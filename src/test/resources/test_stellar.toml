@@ -1,0 +1,22 @@
+ACCOUNTS = []
+VERSION = "0.1.0"
+NETWORK_PASSPHRASE = "Test SDF Network ; September 2015"
+SIGNING_KEY = "GCUZ6YLL5RQBTYLTTQLPCM73C5XAIUGK2TIMWQH7HPSGWVS2KJ2F3CHS"
+
+WEB_AUTH_ENDPOINT = "http://localhost:9800/auth"
+TRANSFER_SERVER_SEP0024 = "http://localhost:9800/sep24"
+
+[[CURRENCIES]]
+code = "USDC"
+issuer = "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+status = "test"
+is_asset_anchored = true
+anchor_asset_type = "fiat"
+desc = "A test USDC issued by Circle."
+
+[DOCUMENTATION]
+ORG_NAME = "Stellar Development Foundation"
+ORG_URL = "https://www.stellar.org"
+ORG_DESCRIPTION = "Stellar is an open network for storing and moving money."
+ORG_LOGO="https://assets-global.website-files.com/5deac75ecad2173c2ccccbc7/5dec8960504967fd31147f62_Stellar_lockup_black_RGB.svg"
+ORG_SUPPORT_EMAIL="jamie@stellar.org"
