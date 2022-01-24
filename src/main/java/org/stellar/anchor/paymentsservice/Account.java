@@ -16,7 +16,7 @@ public class Account {
 
     public Network network;
 
-    public AccountType type;
+    public AccountLevel level;
 
     public List<Balance> balances = new ArrayList<>();
 

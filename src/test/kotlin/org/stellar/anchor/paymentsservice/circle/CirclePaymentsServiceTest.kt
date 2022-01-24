@@ -289,7 +289,7 @@ class CirclePaymentsServiceTest {
         assertDoesNotThrow { account = service.getAccount("1000223064").block() }
         assertEquals("1000223064", account?.id)
         assertEquals(Network.CIRCLE, account?.network)
-        assertEquals(AccountType.DEFAULT, account?.type)
+        assertEquals(AccountLevel.DEFAULT, account?.level)
         assertEquals("Treasury Wallet", account?.idTag)
         assertEquals(1, account?.balances?.size)
         assertEquals("29472389929.00", account!!.balances[0].amount)
@@ -371,7 +371,7 @@ class CirclePaymentsServiceTest {
         assertDoesNotThrow { account = service.getAccount("1000066041").block() }
         assertEquals("1000066041", account?.id)
         assertEquals(Network.CIRCLE, account?.network)
-        assertEquals(AccountType.DISTRIBUTION, account?.type)
+        assertEquals(AccountLevel.DISTRIBUTION, account?.level)
         assertNull(account?.idTag)
         assertEquals(1, account?.balances?.size)
         assertEquals("29472389929.00", account!!.balances[0].amount)
@@ -426,7 +426,7 @@ class CirclePaymentsServiceTest {
         assertDoesNotThrow { account = service.createAccount("Foo bar").block() }
         assertEquals("1000223064", account?.id)
         assertEquals(Network.CIRCLE, account?.network)
-        assertEquals(AccountType.DEFAULT, account?.type)
+        assertEquals(AccountLevel.DEFAULT, account?.level)
         assertEquals("Foo bar", account?.idTag)
         assertEquals(1, account?.balances?.size)
         assertEquals("123.45", account!!.balances[0].amount)

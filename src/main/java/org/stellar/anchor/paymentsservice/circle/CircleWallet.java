@@ -2,7 +2,7 @@ package org.stellar.anchor.paymentsservice.circle;
 
 import lombok.Data;
 import org.stellar.anchor.paymentsservice.Account;
-import org.stellar.anchor.paymentsservice.AccountType;
+import org.stellar.anchor.paymentsservice.AccountLevel;
 import org.stellar.anchor.paymentsservice.Network;
 
 import java.util.List;
@@ -16,11 +16,11 @@ public class CircleWallet {
     String description;
     List<CircleBalance> balances;
 
-    public AccountType getAccountType() {
+    public AccountLevel getAccountLevel() {
         if ("merchant".equals(type)) {
-            return AccountType.DISTRIBUTION;
+            return AccountLevel.DISTRIBUTION;
         }
-        return AccountType.DEFAULT;
+        return AccountLevel.DEFAULT;
     }
 
     public Account toAccount() {
@@ -29,7 +29,7 @@ public class CircleWallet {
         account.setIdTag(description);
         account.setNetwork(Network.CIRCLE);
         account.setBalances(balances.stream().map(CircleBalance::toBalance).collect(Collectors.toList()));
-        account.setType(getAccountType());
+        account.setLevel(getAccountLevel());
         return account;
     }
 }
