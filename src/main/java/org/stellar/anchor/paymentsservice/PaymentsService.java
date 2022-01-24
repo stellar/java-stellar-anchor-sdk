@@ -80,15 +80,17 @@ public interface PaymentsService {
      * API request that executes a payment between accounts. The APIKey needs to have access to the source account for
      * this request to succeed.
      *
-     * @param sourceAccountId      the ID of the account making the payment.
-     * @param destinationAccountId the ID of the account receiving the payment.
-     * @param currencyName         the name of the currency used in the payment. It should obey the <scheme>:<identifier>
-     *                             format described in https://stellar.org/protocol/sep-38#asset-identification-format.
-     * @param amount               the payment amount.
+     * @param sourceAccount      the account making the payment. Only the network and id fields are needed.
+     * @param destinationAccount the account receiving the payment. The network field and a subset of (id, address and
+     *                           addressTag) will be mandatory.
+     * @param currencyName       the name of the currency used in the payment. It should obey the {scheme}:{identifier}
+     *                           format described in <a href="https://stellar.org/protocol/sep-38#asset-identification-format">SEP-38</a>.
+     * @param amount             the payment amount.
      * @return asynchronous stream with the payment object.
+     * @throws HttpException If the provided input parameters are invalid.
      * @throws HttpException If the http response status code is 4xx or 5xx.
      */
-    Mono<Payment> sendPayment(String sourceAccountId, String destinationAccountId, String currencyName, String amount) throws HttpException;
+    Mono<Payment> sendPayment(Account sourceAccount, Account destinationAccount, String currencyName, Float amount) throws HttpException;
 
     /**
      * API request that returns the info needed to make a deposit into a user account. This method will be needed if the
