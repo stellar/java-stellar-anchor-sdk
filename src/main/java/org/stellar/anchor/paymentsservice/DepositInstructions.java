@@ -49,8 +49,8 @@ public class DepositInstructions {
     Network intermediaryNetwork;
 
     /**
-     * The name of the currency to be deposited into the intermediary network. It should obey the <scheme>:<identifier>
-     * format described in https://stellar.org/protocol/sep-38#asset-identification-format.
+     * The name of the currency to be deposited into the intermediary network. It should obey the {scheme}:{identifier}
+     * format described in <a href="https://stellar.org/protocol/sep-38#asset-identification-format">SEP-38</a>.
      */
     String currencyName;
 

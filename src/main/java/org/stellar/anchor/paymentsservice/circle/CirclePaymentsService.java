@@ -183,7 +183,7 @@ public class CirclePaymentsService implements PaymentsService {
     /**
      * API request that retrieves the account with the given id.
      *
-     * @param accountId is the existing account identifier.
+     * @param accountId is the existing account identifier of the circle account.
      * @return asynchronous stream with the account object.
      * @throws HttpException If the http response status code is 4xx or 5xx.
      */
