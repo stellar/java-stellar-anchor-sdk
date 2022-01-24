@@ -407,18 +407,18 @@ class CirclePaymentsServiceTest {
             .addHeader("Content-Type", "application/json")
             .setBody(
                 """{
-                            "data":{
-                                "walletId":"1000223064",
-                                "entityId":"2f47c999-9022-4939-acea-dc3afa9ccbaf",
-                                "type":"end_user_wallet",
-                                "description":"Foo bar",
-                                "balances":[
-                                    {
-                                        "amount":"123.45",
-                                        "currency":"USD"
-                                    }
-                                ]
-                            }
+                        "data":{
+                            "walletId":"1000223064",
+                            "entityId":"2f47c999-9022-4939-acea-dc3afa9ccbaf",
+                            "type":"end_user_wallet",
+                            "description":"Foo bar",
+                            "balances":[
+                                {
+                                    "amount":"123.45",
+                                    "currency":"USD"
+                                }
+                            ]
+                        }
                     }"""
             )
         server.enqueue(response)
