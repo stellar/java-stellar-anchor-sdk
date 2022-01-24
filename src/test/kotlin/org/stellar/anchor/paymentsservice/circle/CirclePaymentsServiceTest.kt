@@ -79,9 +79,7 @@ class CirclePaymentsServiceTest {
         }
         verify { response.status() }
         verify { bodyBytesMono.asString() }
-        assertEquals(400, ex.statusCode)
-        assertEquals("Request body contains unprocessable entity.", ex.reason)
-        assertEquals("2", ex.internalCode)
+        assertEquals(HttpException(400, "Request body contains unprocessable entity.", "2"), ex)
     }
 
     @Test
@@ -296,17 +294,18 @@ class CirclePaymentsServiceTest {
         assertEquals("circle:USD", account!!.balances[0].currencyName)
         assertEquals(0, account?.unsettledBalances?.size)
 
-        val validateSecretKeyRequest = server.takeRequest()
+        assertEquals(2, server.requestCount)
+        val allRequests = arrayOf(server.takeRequest(), server.takeRequest())
+
+        val validateSecretKeyRequest = allRequests.find { request -> request.path!! == "/v1/configuration" }!!
         assertEquals("GET", validateSecretKeyRequest.method)
         assertEquals("application/json", validateSecretKeyRequest.headers["Content-Type"])
         assertEquals("Bearer <secret-key>", validateSecretKeyRequest.headers["Authorization"])
-        assertTrue(validateSecretKeyRequest.path!!.endsWith("/v1/configuration"))
 
-        val getAccountRequest = server.takeRequest()
+        val getAccountRequest = allRequests.find { request -> request.path!! == "/v1/wallets/1000223064" }!!
         assertEquals("GET", getAccountRequest.method)
         assertEquals("application/json", getAccountRequest.headers["Content-Type"])
         assertEquals("Bearer <secret-key>", getAccountRequest.headers["Authorization"])
-        assertTrue(getAccountRequest.path!!.endsWith("/v1/wallets/1000223064"))
     }
 
     @Test
@@ -380,23 +379,25 @@ class CirclePaymentsServiceTest {
         assertEquals("100.00", account!!.unsettledBalances[0].amount)
         assertEquals("circle:USD", account!!.unsettledBalances[0].currencyName)
 
+        assertEquals(3, server.requestCount)
+
         val validateSecretKeyRequest = server.takeRequest()
         assertEquals("GET", validateSecretKeyRequest.method)
         assertEquals("application/json", validateSecretKeyRequest.headers["Content-Type"])
         assertEquals("Bearer <secret-key>", validateSecretKeyRequest.headers["Authorization"])
         assertTrue(validateSecretKeyRequest.path!!.endsWith("/v1/configuration"))
 
-//        val mainAccountRequest = server.takeRequest()
-//        assertEquals("GET", mainAccountRequest.method)
-//        assertEquals("application/json", mainAccountRequest.headers["Content-Type"])
-//        assertEquals("Bearer <secret-key>", mainAccountRequest.headers["Authorization"])
-//        assertTrue(mainAccountRequest.path!!.endsWith("/v1/businessAccount/balances"))
-//
-//        val getAccountRequest = server.takeRequest()
-//        assertEquals("GET", getAccountRequest.method)
-//        assertEquals("application/json", getAccountRequest.headers["Content-Type"])
-//        assertEquals("Bearer <secret-key>", getAccountRequest.headers["Authorization"])
-//        assertTrue(getAccountRequest.path!!.endsWith("/v1/wallets/1000066041"))
+        val parallelRequests = arrayOf(server.takeRequest(), server.takeRequest())
+
+        val mainAccountRequest = parallelRequests.find { request -> request.path!! == "/v1/businessAccount/balances" }!!
+        assertEquals("GET", mainAccountRequest.method)
+        assertEquals("application/json", mainAccountRequest.headers["Content-Type"])
+        assertEquals("Bearer <secret-key>", mainAccountRequest.headers["Authorization"])
+
+        val getAccountRequest = parallelRequests.find { request -> request.path!! == "/v1/wallets/1000066041" }!!
+        assertEquals("GET", getAccountRequest.method)
+        assertEquals("application/json", getAccountRequest.headers["Content-Type"])
+        assertEquals("Bearer <secret-key>", getAccountRequest.headers["Authorization"])
     }
 
     @Test
