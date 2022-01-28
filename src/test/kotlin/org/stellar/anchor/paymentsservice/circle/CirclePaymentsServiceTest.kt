@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.stellar.anchor.exception.HttpException
 import org.stellar.anchor.paymentsservice.*
+import org.stellar.anchor.paymentsservice.circle.model.CircleWallet
 import reactor.core.publisher.Mono
 import reactor.netty.ByteBufMono
 import reactor.netty.http.client.HttpClientResponse

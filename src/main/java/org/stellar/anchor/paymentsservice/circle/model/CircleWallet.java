@@ -1,4 +1,4 @@
-package org.stellar.anchor.paymentsservice.circle;
+package org.stellar.anchor.paymentsservice.circle.model;
 
 import lombok.Data;
 import org.stellar.anchor.paymentsservice.Account;

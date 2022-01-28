@@ -1,6 +1,7 @@
-package org.stellar.anchor.paymentsservice.circle;
+package org.stellar.anchor.paymentsservice.circle.model.response;
 
 import lombok.Data;
+import org.stellar.anchor.paymentsservice.circle.model.CircleBalance;
 
 import java.util.List;
 

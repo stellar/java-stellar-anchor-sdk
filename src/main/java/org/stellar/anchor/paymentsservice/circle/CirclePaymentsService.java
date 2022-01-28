@@ -9,6 +9,12 @@ import lombok.Getter;
 import lombok.Setter;
 import org.stellar.anchor.exception.HttpException;
 import org.stellar.anchor.paymentsservice.*;
+import org.stellar.anchor.paymentsservice.circle.model.CircleBalance;
+import org.stellar.anchor.paymentsservice.circle.model.CircleWallet;
+import org.stellar.anchor.paymentsservice.circle.model.response.CircleAccountBalancesResponse;
+import org.stellar.anchor.paymentsservice.circle.model.response.CircleConfigurationResponse;
+import org.stellar.anchor.paymentsservice.circle.model.response.CircleError;
+import org.stellar.anchor.paymentsservice.circle.model.response.CircleWalletResponse;
 import org.stellar.anchor.paymentsservice.utils.NettyHttpClient;
 import reactor.core.publisher.Mono;
 import reactor.netty.ByteBufMono;
@@ -146,7 +152,7 @@ public class CirclePaymentsService implements PaymentsService {
                     CircleAccountBalancesResponse response = gson.fromJson(body, CircleAccountBalancesResponse.class);
 
                     List<Balance> unsettledBalances = new ArrayList<>();
-                    for (CircleBalance uBalance : response.data.unsettled) {
+                    for (CircleBalance uBalance : response.getData().unsettled) {
                         unsettledBalances.add(uBalance.toBalance());
                     }
 
@@ -175,7 +181,7 @@ public class CirclePaymentsService implements PaymentsService {
                 })
                 .flatMap(body -> {
                     CircleWalletResponse circleWalletResponse = gson.fromJson(body, CircleWalletResponse.class);
-                    CircleWallet circleWallet = circleWalletResponse.data;
+                    CircleWallet circleWallet = circleWalletResponse.getData();
                     return Mono.just(circleWallet);
                 });
     }
@@ -231,7 +237,7 @@ public class CirclePaymentsService implements PaymentsService {
                     return bodyBytesMono.asString();
                 }).flatMap(body -> {
                     CircleWalletResponse circleWalletResponse = gson.fromJson(body, CircleWalletResponse.class);
-                    CircleWallet circleWallet = circleWalletResponse.data;
+                    CircleWallet circleWallet = circleWalletResponse.getData();
                     Account account = circleWallet.toAccount();
                     account.setUnsettledBalances(new ArrayList<>());
                     return Mono.just(account);
