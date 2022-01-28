@@ -288,7 +288,7 @@ class CirclePaymentsServiceTest {
         assertDoesNotThrow { account = service.getAccount("1000223064").block() }
         assertEquals("1000223064", account?.id)
         assertEquals(Network.CIRCLE, account?.network)
-        val wantCapabilities = Account.Capabilities(listOf(Network.CIRCLE, Network.STELLAR))
+        val wantCapabilities = Account.Capabilities(Network.CIRCLE, Network.STELLAR)
         assertEquals(wantCapabilities.send, account?.capabilities?.send)
         assertEquals(wantCapabilities.receive, account?.capabilities?.receive)
         assertEquals("Treasury Wallet", account?.idTag)
@@ -373,7 +373,7 @@ class CirclePaymentsServiceTest {
         assertDoesNotThrow { account = service.getAccount("1000066041").block() }
         assertEquals("1000066041", account?.id)
         assertEquals(Network.CIRCLE, account?.network)
-        val wantCapabilities = Account.Capabilities(listOf(Network.CIRCLE, Network.STELLAR, Network.BANK_WIRE))
+        val wantCapabilities = Account.Capabilities(Network.CIRCLE, Network.STELLAR, Network.BANK_WIRE)
         assertEquals(wantCapabilities.send, account?.capabilities?.send)
         assertEquals(wantCapabilities.receive, account?.capabilities?.receive)
         assertNull(account?.idTag)
@@ -432,7 +432,7 @@ class CirclePaymentsServiceTest {
         assertDoesNotThrow { account = service.createAccount("Foo bar").block() }
         assertEquals("1000223064", account?.id)
         assertEquals(Network.CIRCLE, account?.network)
-        val wantCapabilities = Account.Capabilities(listOf(Network.CIRCLE, Network.STELLAR))
+        val wantCapabilities = Account.Capabilities(Network.CIRCLE, Network.STELLAR)
         assertEquals(wantCapabilities.send, account?.capabilities?.send)
         assertEquals(wantCapabilities.receive, account?.capabilities?.receive)
         assertEquals("Foo bar", account?.idTag)

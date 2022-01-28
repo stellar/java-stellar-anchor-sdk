@@ -21,16 +21,12 @@ public class CircleWallet {
         if ("merchant".equals(type)) {
             sendOrReceiveCapabilities.add(Network.BANK_WIRE);
         }
-        return new Account.Capabilities(sendOrReceiveCapabilities);
+        return new Account.Capabilities(sendOrReceiveCapabilities.toArray(new Network[0]));
     }
 
     public Account toAccount() {
-        Account account = new Account();
-        account.setId(walletId);
-        account.setIdTag(description);
-        account.setNetwork(Network.CIRCLE);
+        Account account = new Account(Network.CIRCLE, walletId, description, getCapabilities());
         account.setBalances(balances.stream().map(CircleBalance::toBalance).collect(Collectors.toList()));
-        account.setCapabilities(getCapabilities());
         return account;
     }
 }

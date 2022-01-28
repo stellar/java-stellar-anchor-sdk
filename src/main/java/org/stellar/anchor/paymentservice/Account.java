@@ -2,6 +2,8 @@ package org.stellar.anchor.paymentservice;
 
 import lombok.Data;
 import lombok.Getter;
+import reactor.util.annotation.Nullable;
+import reactor.util.annotation.NonNull;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -10,27 +12,46 @@ import java.util.Map;
 
 @Data
 public class Account {
+    @NonNull
+    public Network network;
+
+    @NonNull
     public String id;
 
     /**
      * A complementary identifier of the account. It might be considered mandatory depending on the use case.
      */
+    @Nullable
     public String idTag;
-
-    public Network network;
-
-    public List<Balance> balances = new ArrayList<>();
 
     /**
      * An object indicating which networks this account can interact with for sending and/or receiving funds.
      */
-    public Capabilities capabilities;
+    @NonNull
+    public Account.Capabilities capabilities;
 
     /**
      * The list of not-yet-available balances that are expected to settle shortly. These balances could be cancelled or
      * returned, in which cases they may never become available in the user account.
      */
+    @NonNull
     public List<Balance> unsettledBalances = new ArrayList<>();
+
+    @NonNull
+    public List<Balance> balances = new ArrayList<>();
+
+    public Account(@NonNull Network network, @NonNull String id, @Nullable String idTag, @NonNull Account.Capabilities capabilities) {
+        this.network = network;
+        this.id = id;
+        this.idTag = idTag;
+        this.capabilities = capabilities;
+    }
+
+    public Account(@NonNull Network network, @NonNull String id, @NonNull Account.Capabilities capabilities) {
+        this.id = id;
+        this.network = network;
+        this.capabilities = capabilities;
+    }
 
     @Getter
     public static class Capabilities {
@@ -60,8 +81,21 @@ public class Account {
             }
         }
 
-        public Capabilities(List<Network> sendAndReceive) {
-            this(sendAndReceive, sendAndReceive);
+        public Capabilities(Network... sendAndReceive) {
+            this(List.of(sendAndReceive), List.of(sendAndReceive));
+        }
+
+        public void setSendSupport(Network network, Boolean supportEnabled) {
+            this.send.put(network, supportEnabled);
+        }
+
+        public void setReceiveSupport(Network network, Boolean supportEnabled) {
+            this.receive.put(network, supportEnabled);
+        }
+
+        public void setFullSupport(Network network, Boolean supportEnabled) {
+            this.send.put(network, supportEnabled);
+            this.receive.put(network, supportEnabled);
         }
     }
 }
