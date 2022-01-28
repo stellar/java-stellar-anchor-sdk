@@ -28,13 +28,49 @@ import java.lang.reflect.Method
 import java.math.BigDecimal
 
 
-private class ErrorHandlingTestCase(_requestMono: Mono<*>, _mockResponses: List<MockResponse>) {
+private class ErrorHandlingTestCase {
     val requestMono: Mono<*>
-    val mockResponses: List<MockResponse>
+    var mockResponses: List<MockResponse>? = null
+        private set
+    var mockResponsesMap: Map<String, MockResponse>? = null
+        private set
 
-    init {
+    constructor(_requestMono: Mono<*>, _mockResponses: List<MockResponse>) {
         this.requestMono = _requestMono
         this.mockResponses = _mockResponses
+    }
+
+    constructor(_requestMono: Mono<*>, _mockResponsesMap: Map<String, MockResponse>) {
+        this.requestMono = _requestMono
+        this.mockResponsesMap = _mockResponsesMap
+    }
+
+    private fun getDispatcher(): Dispatcher? {
+        if (mockResponsesMap == null) {
+            return null
+        }
+
+        val dispatcher: Dispatcher = object : Dispatcher() {
+            @Throws(InterruptedException::class)
+            override fun dispatch(request: RecordedRequest): MockResponse {
+
+                if (!mockResponsesMap!!.containsKey(request.path)) {
+                    return MockResponse().setResponseCode(404)
+                }
+
+                return mockResponsesMap!![request.path]!!
+            }
+        }
+        return dispatcher
+    }
+
+    fun prepareMockWebServer(server: MockWebServer) {
+        val dispatcher = getDispatcher()
+        if (dispatcher != null) {
+            server.dispatcher = dispatcher
+        } else if (mockResponses != null) {
+            mockResponses!!.forEach { mockResponse -> server.enqueue(mockResponse) }
+        }
     }
 }
 
@@ -773,6 +809,7 @@ class CirclePaymentsServiceTest {
         assert(getCircleWalletMethod.trySetAccessible())
 
         listOf(
+            // --- tests with sync/serial requests ---
             ErrorHandlingTestCase(service.ping(), listOf(badRequestResponse)),
             ErrorHandlingTestCase(service.validateSecretKey(), listOf(badRequestResponse)),
             ErrorHandlingTestCase(service.distributionAccountAddress, listOf(badRequestResponse)),
@@ -780,10 +817,6 @@ class CirclePaymentsServiceTest {
             ErrorHandlingTestCase(
                 service.getAccount("random_id"),
                 listOf(validateSecretKeyResponse, badRequestResponse)
-            ),
-            ErrorHandlingTestCase(
-                service.getAccount("1000066041"),
-                listOf(validateSecretKeyResponse, mainAccountResponse, badRequestResponse)
             ),
             ErrorHandlingTestCase(
                 getMerchantAccountUnsettledBalancesMethod.invoke(service) as Mono<*>,
@@ -794,6 +827,17 @@ class CirclePaymentsServiceTest {
                 getCircleWalletMethod.invoke(service, "random_id") as Mono<*>,
                 listOf(badRequestResponse)
             ),
+            // --- tests with async/parallel requests ---
+            // ATTENTION, make sure to run parallel tests at the end, if you try to run a serial test after a parallel
+            // test, the server dispatcher will throw an exception.
+            ErrorHandlingTestCase(
+                service.getAccount("1000066041"),
+                hashMapOf(
+                    "/v1/configuration" to validateSecretKeyResponse,
+                    "/v1/businessAccount/balances" to mainAccountResponse,
+                    "/v1/wallets/1000066041" to badRequestResponse
+                )
+            ),
             ErrorHandlingTestCase(
                 service.sendPayment(
                     Account(Network.CIRCLE, "1000066041", Account.Capabilities()),
@@ -801,7 +845,10 @@ class CirclePaymentsServiceTest {
                     "circle:USD",
                     BigDecimal.valueOf(1)
                 ),
-                listOf(badRequestResponse, badRequestResponse)
+                hashMapOf(
+                    "/v1/configuration" to validateSecretKeyResponse,
+                    "/v1/transfers" to badRequestResponse
+                )
             ),
             ErrorHandlingTestCase(
                 service.sendPayment(
@@ -815,18 +862,21 @@ class CirclePaymentsServiceTest {
                     "stellar:USD",
                     BigDecimal.valueOf(1)
                 ),
-                listOf(badRequestResponse, badRequestResponse)
+                hashMapOf(
+                    "/v1/configuration" to validateSecretKeyResponse,
+                    "/v1/transfers" to badRequestResponse
+                )
             ),
         ).forEach { testCase ->
-            // sync tests
-            testCase.mockResponses.forEach { mockResponse -> server.enqueue(mockResponse) }
+            // run project reactor synchronously
+            testCase.prepareMockWebServer(server)
             var request = testCase.requestMono
             val thrown = assertThrows<HttpException> { request.block() }
             assertEquals(HttpException(400, "Request body contains unprocessable entity.", "2"), thrown)
 
-            // async tests
+            // run project reactor asynchronously
             var didRunAsyncTask = false
-            testCase.mockResponses.forEach { mockResponse -> server.enqueue(mockResponse) }
+            testCase.prepareMockWebServer(server)
             request = testCase.requestMono.onErrorResume { ex ->
                 assertInstanceOf(HttpException::class.java, ex)
                 assertEquals(HttpException(400, "Request body contains unprocessable entity.", "2"), ex)
