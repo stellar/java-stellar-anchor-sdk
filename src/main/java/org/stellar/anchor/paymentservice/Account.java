@@ -5,10 +5,7 @@ import lombok.Getter;
 import reactor.util.annotation.Nullable;
 import reactor.util.annotation.NonNull;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Data
 public class Account {
@@ -96,6 +93,14 @@ public class Account {
         public void setFullSupport(Network network, Boolean supportEnabled) {
             this.send.put(network, supportEnabled);
             this.receive.put(network, supportEnabled);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+            if (o == null || getClass() != o.getClass()) return false;
+            Capabilities that = (Capabilities) o;
+            return this.send.keySet().equals(that.send.keySet()) && this.receive.keySet().equals(that.receive.keySet());
         }
     }
 }
