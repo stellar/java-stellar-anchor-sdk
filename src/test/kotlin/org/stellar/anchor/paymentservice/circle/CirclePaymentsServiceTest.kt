@@ -573,31 +573,23 @@ class CirclePaymentsServiceTest {
         assertEquals(wantDate, payment?.createdAt)
         assertEquals(wantDate, payment?.updatedAt)
 
-        val wantOriginalResponse: Map<String, *> = object : HashMap<String, Any?>() {
-            init {
-                put("id", "c58e2613-a808-4075-956c-e576787afb3b")
-                put("source", object : HashMap<String, Any?>() {
-                    init {
-                        put("id", "1000066041")
-                        put("type", "wallet")
-                    }
-                })
-                put("destination", object : HashMap<String, Any?>() {
-                    init {
-                        put("id", "1000067536")
-                        put("type", "wallet")
-                    }
-                })
-                put("amount", object : HashMap<String, Any?>() {
-                    init {
-                        put("amount", "0.91")
-                        put("currency", "USD")
-                    }
-                })
-                put("status", "complete")
-                put("createDate", "2022-01-01T01:01:01.544Z")
-            }
-        }
+        val wantOriginalResponse = hashMapOf<String, Any>(
+            "id" to "c58e2613-a808-4075-956c-e576787afb3b",
+            "source" to hashMapOf<String, Any>(
+                "id" to "1000066041",
+                "type" to "wallet"
+            ),
+            "destination" to hashMapOf<String, Any>(
+                "id" to "1000067536",
+                "type" to "wallet",
+            ),
+            "amount" to hashMapOf<String, Any>(
+                "amount" to "0.91",
+                "currency" to "USD",
+            ),
+            "status" to "complete",
+            "createDate" to "2022-01-01T01:01:01.544Z",
+        )
         assertEquals(wantOriginalResponse, payment?.originalResponse)
 
         assertEquals(2, server.requestCount)
@@ -704,33 +696,25 @@ class CirclePaymentsServiceTest {
         assertEquals(wantDate, payment?.createdAt)
         assertEquals(wantDate, payment?.updatedAt)
 
-        val wantOriginalResponse: Map<String, *> = object : HashMap<String, Any?>() {
-            init {
-                put("id", "c58e2613-a808-4075-956c-e576787afb3b")
-                put("source", object : HashMap<String, Any?>() {
-                    init {
-                        put("id", "1000066041")
-                        put("type", "wallet")
-                    }
-                })
-                put("destination", object : HashMap<String, Any?>() {
-                    init {
-                        put("address", "GBG7VGZFH4TU2GS7WL5LMPYFNP64ZFR23XEGAV7GPEEXKWOR2DKCYPCK")
-                        put("addressTag", "test tag")
-                        put("type", "blockchain")
-                        put("chain", "XLM")
-                    }
-                })
-                put("amount", object : HashMap<String, Any?>() {
-                    init {
-                        put("amount", "0.91")
-                        put("currency", "USD")
-                    }
-                })
-                put("status", "complete")
-                put("createDate", "2022-01-01T01:01:01.544Z")
-            }
-        }
+        val wantOriginalResponse = hashMapOf<String, Any>(
+            "id" to "c58e2613-a808-4075-956c-e576787afb3b",
+            "source" to hashMapOf<String, Any>(
+                "id" to "1000066041",
+                "type" to "wallet",
+            ),
+            "destination" to hashMapOf<String, Any>(
+                "address" to "GBG7VGZFH4TU2GS7WL5LMPYFNP64ZFR23XEGAV7GPEEXKWOR2DKCYPCK",
+                "addressTag" to "test tag",
+                "type" to "blockchain",
+                "chain" to "XLM",
+            ),
+            "amount" to hashMapOf<String, Any>(
+                "amount" to "0.91",
+                "currency" to "USD",
+            ),
+            "status" to "complete",
+            "createDate" to "2022-01-01T01:01:01.544Z",
+        )
         assertEquals(wantOriginalResponse, payment?.originalResponse)
 
         assertEquals(2, server.requestCount)
