@@ -27,15 +27,15 @@ public class Account {
     @NonNull
     public Account.Capabilities capabilities;
 
+    @NonNull
+    public List<Balance> balances = new ArrayList<>();
+
     /**
      * The list of not-yet-available balances that are expected to settle shortly. These balances could be cancelled or
      * returned, in which cases they may never become available in the user account.
      */
     @NonNull
     public List<Balance> unsettledBalances = new ArrayList<>();
-
-    @NonNull
-    public List<Balance> balances = new ArrayList<>();
 
     public Account(@NonNull Network network, @NonNull String id, @Nullable String idTag, @NonNull Account.Capabilities capabilities) {
         this.network = network;
@@ -82,15 +82,7 @@ public class Account {
             this(List.of(sendAndReceive), List.of(sendAndReceive));
         }
 
-        public void setSendSupport(Network network, Boolean supportEnabled) {
-            this.send.put(network, supportEnabled);
-        }
-
-        public void setReceiveSupport(Network network, Boolean supportEnabled) {
-            this.receive.put(network, supportEnabled);
-        }
-
-        public void setFullSupport(Network network, Boolean supportEnabled) {
+        public void setCapabilities(Network network, Boolean supportEnabled) {
             this.send.put(network, supportEnabled);
             this.receive.put(network, supportEnabled);
         }
