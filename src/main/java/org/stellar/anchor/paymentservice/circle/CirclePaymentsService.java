@@ -1,4 +1,4 @@
-package org.stellar.anchor.paymentsservice.circle;
+package org.stellar.anchor.paymentservice.circle;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -8,8 +8,14 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import org.stellar.anchor.exception.HttpException;
-import org.stellar.anchor.paymentsservice.*;
-import org.stellar.anchor.paymentsservice.utils.NettyHttpClient;
+import org.stellar.anchor.paymentservice.*;
+import org.stellar.anchor.paymentservice.circle.model.CircleBalance;
+import org.stellar.anchor.paymentservice.circle.model.CircleWallet;
+import org.stellar.anchor.paymentservice.circle.model.response.CircleAccountBalancesResponse;
+import org.stellar.anchor.paymentservice.circle.model.response.CircleConfigurationResponse;
+import org.stellar.anchor.paymentservice.circle.model.response.CircleError;
+import org.stellar.anchor.paymentservice.circle.model.response.CircleWalletResponse;
+import org.stellar.anchor.paymentservice.utils.NettyHttpClient;
 import reactor.core.publisher.Mono;
 import reactor.netty.ByteBufMono;
 import reactor.netty.http.client.HttpClient;
@@ -17,11 +23,11 @@ import reactor.netty.http.client.HttpClientResponse;
 import reactor.util.annotation.NonNull;
 import reactor.util.annotation.Nullable;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-@SuppressWarnings("unused")
 @Data
 public class CirclePaymentsService implements PaymentsService {
     private static final Gson gson = new Gson();
@@ -147,7 +153,7 @@ public class CirclePaymentsService implements PaymentsService {
                     CircleAccountBalancesResponse response = gson.fromJson(body, CircleAccountBalancesResponse.class);
 
                     List<Balance> unsettledBalances = new ArrayList<>();
-                    for (CircleBalance uBalance : response.data.unsettled) {
+                    for (CircleBalance uBalance : response.getData().unsettled) {
                         unsettledBalances.add(uBalance.toBalance());
                     }
 
@@ -176,7 +182,7 @@ public class CirclePaymentsService implements PaymentsService {
                 })
                 .flatMap(body -> {
                     CircleWalletResponse circleWalletResponse = gson.fromJson(body, CircleWalletResponse.class);
-                    CircleWallet circleWallet = circleWalletResponse.data;
+                    CircleWallet circleWallet = circleWalletResponse.getData();
                     return Mono.just(circleWallet);
                 });
     }
@@ -184,7 +190,7 @@ public class CirclePaymentsService implements PaymentsService {
     /**
      * API request that retrieves the account with the given id.
      *
-     * @param accountId is the existing account identifier.
+     * @param accountId is the existing account identifier of the circle account.
      * @return asynchronous stream with the account object.
      * @throws HttpException If the http response status code is 4xx or 5xx.
      */
@@ -232,7 +238,7 @@ public class CirclePaymentsService implements PaymentsService {
                     return bodyBytesMono.asString();
                 }).flatMap(body -> {
                     CircleWalletResponse circleWalletResponse = gson.fromJson(body, CircleWalletResponse.class);
-                    CircleWallet circleWallet = circleWalletResponse.data;
+                    CircleWallet circleWallet = circleWalletResponse.getData();
                     Account account = circleWallet.toAccount();
                     account.setUnsettledBalances(new ArrayList<>());
                     return Mono.just(account);
@@ -255,15 +261,17 @@ public class CirclePaymentsService implements PaymentsService {
      * API request that executes a payment between accounts. The APIKey needs to have access to the source account for
      * this request to succeed.
      *
-     * @param sourceAccountId      the ID of the account making the payment.
-     * @param destinationAccountId the ID of the account receiving the payment.
-     * @param currencyName         the name of the currency used in the payment. It should obey the <scheme>:<identifier>
-     *                             format described in https://stellar.org/protocol/sep-38#asset-identification-format.
-     * @param amount               the payment amount.
+     * @param sourceAccount      the account making the payment. Only the network and id fields are needed.
+     * @param destinationAccount the account receiving the payment. The network field and a subset of (id, address and
+     *                           addressTag) may be needed.
+     * @param currencyName       the name of the currency used in the payment. It should obey the {scheme}:{identifier}
+     *                           format described in <a href="https://stellar.org/protocol/sep-38#asset-identification-format">SEP-38</a>.
+     * @param amount             the payment amount.
      * @return asynchronous stream with the payment object.
+     * @throws HttpException If the provided input parameters are invalid.
      * @throws HttpException If the http response status code is 4xx or 5xx.
      */
-    public Mono<Payment> sendPayment(String sourceAccountId, String destinationAccountId, String currencyName, String amount) throws HttpException {
+    public Mono<Payment> sendPayment(Account sourceAccount, Account destinationAccount, String currencyName, BigDecimal amount) throws HttpException {
         // TODO: implement
         return null;
     }

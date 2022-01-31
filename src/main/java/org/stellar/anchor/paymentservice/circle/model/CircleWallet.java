@@ -1,10 +1,10 @@
-package org.stellar.anchor.paymentsservice.circle;
+package org.stellar.anchor.paymentservice.circle.model;
 
 import lombok.Data;
-import org.stellar.anchor.paymentsservice.Account;
-import org.stellar.anchor.paymentsservice.AccountType;
-import org.stellar.anchor.paymentsservice.Network;
+import org.stellar.anchor.paymentservice.Account;
+import org.stellar.anchor.paymentservice.Network;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -16,11 +16,12 @@ public class CircleWallet {
     String description;
     List<CircleBalance> balances;
 
-    public AccountType getAccountType() {
+    public Account.Capabilities getCapabilities() {
+        List<Network> sendOrReceiveCapabilities = new ArrayList<>(List.of(Network.CIRCLE, Network.STELLAR));
         if ("merchant".equals(type)) {
-            return AccountType.DISTRIBUTION;
+            sendOrReceiveCapabilities.add(Network.BANK_WIRE);
         }
-        return AccountType.DEFAULT;
+        return new Account.Capabilities(sendOrReceiveCapabilities);
     }
 
     public Account toAccount() {
@@ -29,7 +30,7 @@ public class CircleWallet {
         account.setIdTag(description);
         account.setNetwork(Network.CIRCLE);
         account.setBalances(balances.stream().map(CircleBalance::toBalance).collect(Collectors.toList()));
-        account.setType(getAccountType());
+        account.setCapabilities(getCapabilities());
         return account;
     }
 }

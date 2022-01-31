@@ -1,4 +1,4 @@
-package org.stellar.anchor.paymentsservice;
+package org.stellar.anchor.paymentservice;
 
 import lombok.Data;
 import reactor.util.annotation.Nullable;
@@ -35,7 +35,7 @@ public class DepositRequirements {
 
     /**
      * The name of the currency that will be ultimately credited into the beneficiary user account. It should obey the
-     * <scheme>:<identifier> format described in https://stellar.org/protocol/sep-38#asset-identification-format.
+     * {scheme}:{identifier} format described in <a href="https://stellar.org/protocol/sep-38#asset-identification-format">SEP-38</a>.
      */
     String currencyName;
 
