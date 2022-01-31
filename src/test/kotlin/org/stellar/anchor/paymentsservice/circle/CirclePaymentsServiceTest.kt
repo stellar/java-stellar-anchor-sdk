@@ -23,6 +23,7 @@ import reactor.netty.ByteBufMono
 import reactor.netty.http.client.HttpClientResponse
 import java.io.IOException
 import java.lang.reflect.Method
+import kotlin.test.assertContentEquals
 
 
 private class ErrorHandlingTestCase(_requestMono: Mono<*>, _mockResponses: List<MockResponse>) {
@@ -288,7 +289,9 @@ class CirclePaymentsServiceTest {
         assertDoesNotThrow { account = service.getAccount("1000223064").block() }
         assertEquals("1000223064", account?.id)
         assertEquals(Network.CIRCLE, account?.network)
-        assertEquals(AccountLevel.DEFAULT, account?.level)
+        val wantCapabilities = Account.Capabilities(listOf(Network.CIRCLE, Network.STELLAR))
+        assertEquals(wantCapabilities.send, account?.capabilities?.send)
+        assertEquals(wantCapabilities.receive, account?.capabilities?.receive)
         assertEquals("Treasury Wallet", account?.idTag)
         assertEquals(1, account?.balances?.size)
         assertEquals("29472389929.00", account!!.balances[0].amount)
@@ -371,7 +374,9 @@ class CirclePaymentsServiceTest {
         assertDoesNotThrow { account = service.getAccount("1000066041").block() }
         assertEquals("1000066041", account?.id)
         assertEquals(Network.CIRCLE, account?.network)
-        assertEquals(AccountLevel.DISTRIBUTION, account?.level)
+        val wantCapabilities = Account.Capabilities(listOf(Network.CIRCLE, Network.STELLAR, Network.BANK_WIRE))
+        assertEquals(wantCapabilities.send, account?.capabilities?.send)
+        assertEquals(wantCapabilities.receive, account?.capabilities?.receive)
         assertNull(account?.idTag)
         assertEquals(1, account?.balances?.size)
         assertEquals("29472389929.00", account!!.balances[0].amount)
@@ -428,7 +433,9 @@ class CirclePaymentsServiceTest {
         assertDoesNotThrow { account = service.createAccount("Foo bar").block() }
         assertEquals("1000223064", account?.id)
         assertEquals(Network.CIRCLE, account?.network)
-        assertEquals(AccountLevel.DEFAULT, account?.level)
+        val wantCapabilities = Account.Capabilities(listOf(Network.CIRCLE, Network.STELLAR))
+        assertEquals(wantCapabilities.send, account?.capabilities?.send)
+        assertEquals(wantCapabilities.receive, account?.capabilities?.receive)
         assertEquals("Foo bar", account?.idTag)
         assertEquals(1, account?.balances?.size)
         assertEquals("123.45", account!!.balances[0].amount)
