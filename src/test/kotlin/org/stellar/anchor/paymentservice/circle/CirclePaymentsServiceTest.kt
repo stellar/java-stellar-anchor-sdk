@@ -1,4 +1,4 @@
-package org.stellar.anchor.paymentsservice.circle
+package org.stellar.anchor.paymentservice.circle
 
 import io.mockk.every
 import io.mockk.mockk
@@ -16,14 +16,13 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.stellar.anchor.exception.HttpException
-import org.stellar.anchor.paymentsservice.*
-import org.stellar.anchor.paymentsservice.circle.model.CircleWallet
+import org.stellar.anchor.paymentservice.*
+import org.stellar.anchor.paymentservice.circle.model.CircleWallet
 import reactor.core.publisher.Mono
 import reactor.netty.ByteBufMono
 import reactor.netty.http.client.HttpClientResponse
 import java.io.IOException
 import java.lang.reflect.Method
-import kotlin.test.assertContentEquals
 
 
 private class ErrorHandlingTestCase(_requestMono: Mono<*>, _mockResponses: List<MockResponse>) {

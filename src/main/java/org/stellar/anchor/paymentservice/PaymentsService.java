@@ -1,4 +1,4 @@
-package org.stellar.anchor.paymentsservice;
+package org.stellar.anchor.paymentservice;
 
 import org.stellar.anchor.exception.HttpException;
 import reactor.core.publisher.Mono;

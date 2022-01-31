@@ -1,4 +1,4 @@
-package org.stellar.anchor.paymentsservice.utils
+package org.stellar.anchor.paymentservice.utils
 
 
 internal class NettyHttpClientTest {

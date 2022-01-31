@@ -1,4 +1,4 @@
-package org.stellar.anchor.paymentsservice.circle;
+package org.stellar.anchor.paymentservice.circle;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
@@ -8,14 +8,14 @@ import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
 import org.stellar.anchor.exception.HttpException;
-import org.stellar.anchor.paymentsservice.*;
-import org.stellar.anchor.paymentsservice.circle.model.CircleBalance;
-import org.stellar.anchor.paymentsservice.circle.model.CircleWallet;
-import org.stellar.anchor.paymentsservice.circle.model.response.CircleAccountBalancesResponse;
-import org.stellar.anchor.paymentsservice.circle.model.response.CircleConfigurationResponse;
-import org.stellar.anchor.paymentsservice.circle.model.response.CircleError;
-import org.stellar.anchor.paymentsservice.circle.model.response.CircleWalletResponse;
-import org.stellar.anchor.paymentsservice.utils.NettyHttpClient;
+import org.stellar.anchor.paymentservice.*;
+import org.stellar.anchor.paymentservice.circle.model.CircleBalance;
+import org.stellar.anchor.paymentservice.circle.model.CircleWallet;
+import org.stellar.anchor.paymentservice.circle.model.response.CircleAccountBalancesResponse;
+import org.stellar.anchor.paymentservice.circle.model.response.CircleConfigurationResponse;
+import org.stellar.anchor.paymentservice.circle.model.response.CircleError;
+import org.stellar.anchor.paymentservice.circle.model.response.CircleWalletResponse;
+import org.stellar.anchor.paymentservice.utils.NettyHttpClient;
 import reactor.core.publisher.Mono;
 import reactor.netty.ByteBufMono;
 import reactor.netty.http.client.HttpClient;

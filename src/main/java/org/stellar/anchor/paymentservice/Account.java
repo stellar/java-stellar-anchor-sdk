@@ -1,4 +1,4 @@
-package org.stellar.anchor.paymentsservice;
+package org.stellar.anchor.paymentservice;
 
 import lombok.Data;
 import lombok.Getter;

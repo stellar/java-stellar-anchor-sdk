@@ -1,8 +1,8 @@
-package org.stellar.anchor.paymentsservice.circle.model;
+package org.stellar.anchor.paymentservice.circle.model;
 
 import lombok.Data;
-import org.stellar.anchor.paymentsservice.Balance;
-import org.stellar.anchor.paymentsservice.Network;
+import org.stellar.anchor.paymentservice.Balance;
+import org.stellar.anchor.paymentservice.Network;
 
 @Data
 public class CircleBalance {

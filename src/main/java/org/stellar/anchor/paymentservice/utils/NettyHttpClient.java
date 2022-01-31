@@ -1,4 +1,4 @@
-package org.stellar.anchor.paymentsservice.utils;
+package org.stellar.anchor.paymentservice.utils;
 
 import io.netty.channel.ChannelOption;
 import io.netty.handler.codec.http.HttpHeaderNames;
