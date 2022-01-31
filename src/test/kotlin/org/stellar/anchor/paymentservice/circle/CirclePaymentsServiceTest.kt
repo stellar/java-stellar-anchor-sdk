@@ -410,7 +410,7 @@ class CirclePaymentsServiceTest {
         assertDoesNotThrow { account = service.getAccount("1000066041").block() }
         assertEquals("1000066041", account?.id)
         assertEquals(Network.CIRCLE, account?.network)
-        assertEquals(Account.Capabilities(Network.CIRCLE, Network.STELLAR, Network.BANK_WIRE), account?.capabilities)
+        assertEquals(Account.Capabilities(Network.CIRCLE, Network.STELLAR), account?.capabilities)
         assertNull(account?.idTag)
         assertEquals(1, account?.balances?.size)
         assertEquals("29472389929.00", account!!.balances[0].amount)
@@ -563,7 +563,7 @@ class CirclePaymentsServiceTest {
         assertDoesNotThrow { payment = service.sendPayment(source, destination, "circle:USD", BigDecimal.valueOf(0.91)).block() }
 
         assertEquals("c58e2613-a808-4075-956c-e576787afb3b", payment?.id)
-        assertEquals(Account(Network.CIRCLE, "1000066041", Account.Capabilities(Network.CIRCLE, Network.STELLAR, Network.BANK_WIRE)), payment?.sourceAccount)
+        assertEquals(Account(Network.CIRCLE, "1000066041", Account.Capabilities(Network.CIRCLE, Network.STELLAR)), payment?.sourceAccount)
         assertEquals(Account(Network.CIRCLE, "1000067536", Account.Capabilities(Network.CIRCLE, Network.STELLAR)), payment?.destinationAccount)
         assertEquals(Balance("0.91", "circle:USD"), payment?.balance)
         assertEquals(Payment.Status.SUCCESSFUL, payment?.status)
@@ -592,13 +592,8 @@ class CirclePaymentsServiceTest {
         )
         assertEquals(wantOriginalResponse, payment?.originalResponse)
 
-        assertEquals(2, server.requestCount)
-        val allRequests = arrayOf(server.takeRequest(), server.takeRequest())
-
-        val validateSecretKeyRequest = allRequests.find { request -> request.path!! == "/v1/configuration" }!!
-        assertEquals("GET", validateSecretKeyRequest.method)
-        assertEquals("application/json", validateSecretKeyRequest.headers["Content-Type"])
-        assertEquals("Bearer <secret-key>", validateSecretKeyRequest.headers["Authorization"])
+        assertEquals(1, server.requestCount)
+        val allRequests = arrayOf(server.takeRequest())
 
         val postTransferRequest = allRequests.find { request -> request.path!! == "/v1/transfers" }!!
         assertEquals("POST", postTransferRequest.method)
@@ -679,7 +674,7 @@ class CirclePaymentsServiceTest {
         assertDoesNotThrow { payment = service.sendPayment(source, destination, "stellar:USD", BigDecimal.valueOf(0.91)).block() }
 
         assertEquals("c58e2613-a808-4075-956c-e576787afb3b", payment?.id)
-        assertEquals(Account(Network.CIRCLE, "1000066041", Account.Capabilities(Network.CIRCLE, Network.STELLAR, Network.BANK_WIRE)), payment?.sourceAccount)
+        assertEquals(Account(Network.CIRCLE, "1000066041", Account.Capabilities(Network.CIRCLE, Network.STELLAR)), payment?.sourceAccount)
         assertEquals(
             Account(
                 Network.STELLAR,
@@ -717,13 +712,8 @@ class CirclePaymentsServiceTest {
         )
         assertEquals(wantOriginalResponse, payment?.originalResponse)
 
-        assertEquals(2, server.requestCount)
-        val allRequests = arrayOf(server.takeRequest(), server.takeRequest())
-
-        val validateSecretKeyRequest = allRequests.find { request -> request.path!! == "/v1/configuration" }!!
-        assertEquals("GET", validateSecretKeyRequest.method)
-        assertEquals("application/json", validateSecretKeyRequest.headers["Content-Type"])
-        assertEquals("Bearer <secret-key>", validateSecretKeyRequest.headers["Authorization"])
+        assertEquals(1, server.requestCount)
+        val allRequests = arrayOf(server.takeRequest())
 
         val postTransferRequest = allRequests.find { request -> request.path!! == "/v1/transfers" }!!
         assertEquals("POST", postTransferRequest.method)

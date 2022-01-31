@@ -358,24 +358,7 @@ public class CirclePaymentsService implements PaymentsService {
                 throw new RuntimeException("unsupported destination network '" + destinationAccount.network + "'");
         }
 
-        return Mono.zip(getDistributionAccountAddress(), sendPaymentMono).flatMap(args -> {
-            String distributionAccountAddress = args.getT1();
-            Payment payment = args.getT2();
-
-            // fill source account level
-            Account sourceAcc = payment.getSourceAccount();
-            Boolean isSourceEqualsDistribution = sourceAcc.id.equals(distributionAccountAddress);
-            sourceAcc.capabilities.setFullSupport(Network.BANK_WIRE, isSourceEqualsDistribution);
-            payment.setSourceAccount(sourceAcc);
-
-            // fill destination account level
-            Account destinationAcc = payment.getDestinationAccount();
-            Boolean isDestinationEqualsDistribution = destinationAcc.id.equals(distributionAccountAddress);
-            destinationAcc.capabilities.setFullSupport(Network.BANK_WIRE, isDestinationEqualsDistribution);
-            payment.setDestinationAccount(destinationAcc);
-
-            return Mono.just(payment);
-        });
+        return sendPaymentMono;
     }
 
     /**
