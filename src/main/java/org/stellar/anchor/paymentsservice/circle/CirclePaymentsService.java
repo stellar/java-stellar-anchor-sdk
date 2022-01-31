@@ -23,6 +23,7 @@ import reactor.netty.http.client.HttpClientResponse;
 import reactor.util.annotation.NonNull;
 import reactor.util.annotation.Nullable;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -270,7 +271,7 @@ public class CirclePaymentsService implements PaymentsService {
      * @throws HttpException If the provided input parameters are invalid.
      * @throws HttpException If the http response status code is 4xx or 5xx.
      */
-    public Mono<Payment> sendPayment(Account sourceAccount, Account destinationAccount, String currencyName, Float amount) throws HttpException {
+    public Mono<Payment> sendPayment(Account sourceAccount, Account destinationAccount, String currencyName, BigDecimal amount) throws HttpException {
         // TODO: implement
         return null;
     }

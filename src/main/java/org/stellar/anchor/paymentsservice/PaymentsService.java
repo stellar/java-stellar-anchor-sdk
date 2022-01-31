@@ -4,6 +4,8 @@ import org.stellar.anchor.exception.HttpException;
 import reactor.core.publisher.Mono;
 import reactor.util.annotation.Nullable;
 
+import java.math.BigDecimal;
+
 /**
  * Contains the interface methods for a payment service. It can be implemented in different networks, like Stellar,
  * Circle, Wyre or others.
@@ -90,7 +92,7 @@ public interface PaymentsService {
      * @throws HttpException If the provided input parameters are invalid.
      * @throws HttpException If the http response status code is 4xx or 5xx.
      */
-    Mono<Payment> sendPayment(Account sourceAccount, Account destinationAccount, String currencyName, Float amount) throws HttpException;
+    Mono<Payment> sendPayment(Account sourceAccount, Account destinationAccount, String currencyName, BigDecimal amount) throws HttpException;
 
     /**
      * API request that returns the info needed to make a deposit into a user account. This method will be needed if the
