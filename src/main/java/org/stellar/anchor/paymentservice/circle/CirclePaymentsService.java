@@ -10,11 +10,14 @@ import lombok.Setter;
 import org.stellar.anchor.exception.HttpException;
 import org.stellar.anchor.paymentservice.*;
 import org.stellar.anchor.paymentservice.circle.model.CircleBalance;
+import org.stellar.anchor.paymentservice.circle.model.CircleTransactionParty;
 import org.stellar.anchor.paymentservice.circle.model.CircleWallet;
+import org.stellar.anchor.paymentservice.circle.model.response.CircleWalletResponse;
 import org.stellar.anchor.paymentservice.circle.model.response.CircleAccountBalancesResponse;
 import org.stellar.anchor.paymentservice.circle.model.response.CircleConfigurationResponse;
 import org.stellar.anchor.paymentservice.circle.model.response.CircleError;
-import org.stellar.anchor.paymentservice.circle.model.response.CircleWalletResponse;
+import org.stellar.anchor.paymentservice.circle.model.response.CircleTransferResponse;
+import org.stellar.anchor.paymentservice.circle.model.request.CircleSendTransactionRequest;
 import org.stellar.anchor.paymentservice.utils.NettyHttpClient;
 import reactor.core.publisher.Mono;
 import reactor.netty.ByteBufMono;
@@ -258,6 +261,73 @@ public class CirclePaymentsService implements PaymentsService {
     }
 
     /**
+     * Validates if the fields needed to send a payment are valid.
+     *
+     * @param sourceAccount      the account where the payment will be sent from.
+     * @param destinationAccount the account that will receive the payment.
+     * @param currencyName       the name of the currency used in the payment. It should obey the {scheme}:{identifier}
+     *                           format described in <a href="https://stellar.org/protocol/sep-38#asset-identification-format">SEP-38</a>.
+     *
+     * @throws HttpException if the source account network is not CIRCLE.
+     * @throws HttpException if the destination account network is not supported.
+     * @throws HttpException if the currencyName prefix does not reflect the destination account network.
+     */
+    private void validateSendPaymentInput(@NonNull Account sourceAccount, @NonNull Account destinationAccount, @NonNull String currencyName) throws HttpException {
+        if (sourceAccount.network != Network.CIRCLE) {
+            throw new HttpException(400, "the only supported network for the source account is circle");
+        }
+        if (!List.of(Network.CIRCLE, Network.STELLAR).contains(destinationAccount.network)) {
+            throw new HttpException(400, "the only supported networks for the destination account are circle and stellar");
+        }
+        if (!currencyName.startsWith(destinationAccount.network.getCurrencyPrefix())) {
+            throw new HttpException(400, "the currency to be sent must contain the destination network schema");
+        }
+    }
+
+    /**
+     * API request that sends a Circle transfer, i.e. a payment from a Circle account to another Circle account or to a
+     * blockchain wallet.
+     *
+     * @param sourceAccount      the account where the payment will be sent from.
+     * @param destinationAccount the account that will receive the payment, it can be an internal Circle account or a Stellar wallet.
+     * @param balance            the balance to be transferred.
+     * @return asynchronous stream with the payment object.
+     * @throws HttpException If the Circle http response status code is 4xx or 5xx.
+     * @throws HttpException If the destination network is not a Circle account nor a Stellar wallet.
+     */
+    private Mono<Payment> sendTransfer(Account sourceAccount, Account destinationAccount, CircleBalance balance) throws HttpException {
+        CircleTransactionParty source = CircleTransactionParty.wallet(sourceAccount.getId());
+        CircleTransactionParty destination;
+        switch (destinationAccount.network) {
+            case CIRCLE:
+                destination = CircleTransactionParty.wallet(destinationAccount.getId());
+                break;
+            case STELLAR:
+                destination = CircleTransactionParty.stellar(destinationAccount.id, destinationAccount.getIdTag());
+                break;
+            default:
+                throw new HttpException(400, "the destination network is not supported for Circle transfers");
+        }
+        CircleSendTransactionRequest req = CircleSendTransactionRequest.forTransfer(source, destination, balance);
+        String jsonBody = gson.toJson(req);
+
+        return getWebClient(true)
+                .post()
+                .uri("/v1/transfers")
+                .send(ByteBufMono.fromString(Mono.just(jsonBody)))
+                .responseSingle((postResponse, bodyBytesMono) -> {
+                    if (postResponse.status().code() >= 400) {
+                        return handleCircleError(postResponse, bodyBytesMono);
+                    }
+
+                    return bodyBytesMono.asString();
+                }).flatMap(body -> {
+                    CircleTransferResponse transfer = gson.fromJson(body, CircleTransferResponse.class);
+                    return Mono.just(transfer.getData().toPayment());
+                });
+    }
+
+    /**
      * API request that executes a payment between accounts. The APIKey needs to have access to the source account for
      * this request to succeed.
      *
@@ -272,8 +342,23 @@ public class CirclePaymentsService implements PaymentsService {
      * @throws HttpException If the http response status code is 4xx or 5xx.
      */
     public Mono<Payment> sendPayment(Account sourceAccount, Account destinationAccount, String currencyName, BigDecimal amount) throws HttpException {
-        // TODO: implement
-        return null;
+        // validate input
+        validateSendPaymentInput(sourceAccount, destinationAccount, currencyName);
+
+        String rawCurrencyName = currencyName.replace(destinationAccount.network.getCurrencyPrefix() + ":", "");
+        CircleBalance circleBalance = new CircleBalance(rawCurrencyName, amount.toString());
+
+        Mono<Payment> sendPaymentMono;
+        switch (destinationAccount.network) {
+            case CIRCLE:
+            case STELLAR:
+                sendPaymentMono = sendTransfer(sourceAccount, destinationAccount, circleBalance);
+                break;
+            default:
+                throw new RuntimeException("unsupported destination network '" + destinationAccount.network + "'");
+        }
+
+        return sendPaymentMono;
     }
 
     /**

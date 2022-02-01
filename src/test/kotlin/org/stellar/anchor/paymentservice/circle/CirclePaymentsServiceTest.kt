@@ -15,23 +15,62 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.skyscreamer.jsonassert.JSONAssert
 import org.stellar.anchor.exception.HttpException
 import org.stellar.anchor.paymentservice.*
 import org.stellar.anchor.paymentservice.circle.model.CircleWallet
+import org.stellar.anchor.paymentservice.circle.util.CircleDateFormatter
 import reactor.core.publisher.Mono
 import reactor.netty.ByteBufMono
 import reactor.netty.http.client.HttpClientResponse
 import java.io.IOException
 import java.lang.reflect.Method
+import java.math.BigDecimal
 
 
-private class ErrorHandlingTestCase(_requestMono: Mono<*>, _mockResponses: List<MockResponse>) {
+private class ErrorHandlingTestCase {
     val requestMono: Mono<*>
-    val mockResponses: List<MockResponse>
+    var mockResponses: List<MockResponse>? = null
+        private set
+    var mockResponsesMap: Map<String, MockResponse>? = null
+        private set
 
-    init {
+    constructor(_requestMono: Mono<*>, _mockResponses: List<MockResponse>) {
         this.requestMono = _requestMono
         this.mockResponses = _mockResponses
+    }
+
+    constructor(_requestMono: Mono<*>, _mockResponsesMap: Map<String, MockResponse>) {
+        this.requestMono = _requestMono
+        this.mockResponsesMap = _mockResponsesMap
+    }
+
+    private fun getDispatcher(): Dispatcher? {
+        if (mockResponsesMap == null) {
+            return null
+        }
+
+        val dispatcher: Dispatcher = object : Dispatcher() {
+            @Throws(InterruptedException::class)
+            override fun dispatch(request: RecordedRequest): MockResponse {
+
+                if (!mockResponsesMap!!.containsKey(request.path)) {
+                    return MockResponse().setResponseCode(404)
+                }
+
+                return mockResponsesMap!![request.path]!!
+            }
+        }
+        return dispatcher
+    }
+
+    fun prepareMockWebServer(server: MockWebServer) {
+        val dispatcher = getDispatcher()
+        if (dispatcher != null) {
+            server.dispatcher = dispatcher
+        } else if (mockResponses != null) {
+            mockResponses!!.forEach { mockResponse -> server.enqueue(mockResponse) }
+        }
     }
 }
 
@@ -288,9 +327,7 @@ class CirclePaymentsServiceTest {
         assertDoesNotThrow { account = service.getAccount("1000223064").block() }
         assertEquals("1000223064", account?.id)
         assertEquals(Network.CIRCLE, account?.network)
-        val wantCapabilities = Account.Capabilities(listOf(Network.CIRCLE, Network.STELLAR))
-        assertEquals(wantCapabilities.send, account?.capabilities?.send)
-        assertEquals(wantCapabilities.receive, account?.capabilities?.receive)
+        assertEquals(Account.Capabilities(Network.CIRCLE, Network.STELLAR), account?.capabilities)
         assertEquals("Treasury Wallet", account?.idTag)
         assertEquals(1, account?.balances?.size)
         assertEquals("29472389929.00", account!!.balances[0].amount)
@@ -373,9 +410,7 @@ class CirclePaymentsServiceTest {
         assertDoesNotThrow { account = service.getAccount("1000066041").block() }
         assertEquals("1000066041", account?.id)
         assertEquals(Network.CIRCLE, account?.network)
-        val wantCapabilities = Account.Capabilities(listOf(Network.CIRCLE, Network.STELLAR, Network.BANK_WIRE))
-        assertEquals(wantCapabilities.send, account?.capabilities?.send)
-        assertEquals(wantCapabilities.receive, account?.capabilities?.receive)
+        assertEquals(Account.Capabilities(Network.CIRCLE, Network.STELLAR), account?.capabilities)
         assertNull(account?.idTag)
         assertEquals(1, account?.balances?.size)
         assertEquals("29472389929.00", account!!.balances[0].amount)
@@ -432,9 +467,7 @@ class CirclePaymentsServiceTest {
         assertDoesNotThrow { account = service.createAccount("Foo bar").block() }
         assertEquals("1000223064", account?.id)
         assertEquals(Network.CIRCLE, account?.network)
-        val wantCapabilities = Account.Capabilities(listOf(Network.CIRCLE, Network.STELLAR))
-        assertEquals(wantCapabilities.send, account?.capabilities?.send)
-        assertEquals(wantCapabilities.receive, account?.capabilities?.receive)
+        assertEquals(Account.Capabilities(Network.CIRCLE, Network.STELLAR), account?.capabilities)
         assertEquals("Foo bar", account?.idTag)
         assertEquals(1, account?.balances?.size)
         assertEquals("123.45", account!!.balances[0].amount)
@@ -449,6 +482,261 @@ class CirclePaymentsServiceTest {
         assertThat(request.path, CoreMatchers.endsWith("/v1/wallets"))
         assertThat(requestBody, CoreMatchers.containsString("\"description\":\"Foo bar\""))
         assertThat(requestBody, CoreMatchers.containsString("\"idempotencyKey\":"))
+    }
+
+    @Test
+    fun testSendPayment_parameterValidation() {
+        // invalid source account network
+        var ex = assertThrows<HttpException> {
+            service.sendPayment(
+                Account(Network.STELLAR, "123", Account.Capabilities(Network.STELLAR)),
+                Account(Network.CIRCLE, "123", Account.Capabilities(Network.CIRCLE, Network.STELLAR)),
+                "",
+                BigDecimal(0)
+            ).block()
+        }
+        assertEquals(HttpException(400, "the only supported network for the source account is circle"), ex)
+
+        // invalid currency name schema
+        ex = assertThrows {
+            service.sendPayment(
+                Account(Network.CIRCLE, "123", Account.Capabilities(Network.CIRCLE, Network.STELLAR)),
+                Account(Network.CIRCLE, "456", Account.Capabilities(Network.CIRCLE, Network.STELLAR)),
+                "invalidSchema:USD",
+                BigDecimal(0)
+            ).block()
+        }
+        assertEquals(HttpException(400, "the currency to be sent must contain the destination network schema"), ex)
+    }
+
+    @Test
+    fun testSendPayment_circleToCircle() {
+        service.secretKey = "<secret-key>"
+        val dispatcher: Dispatcher = object : Dispatcher() {
+            @Throws(InterruptedException::class)
+            override fun dispatch(request: RecordedRequest): MockResponse {
+                when (request.path) {
+                    "/v1/configuration" -> return MockResponse()
+                        .addHeader("Content-Type", "application/json")
+                        .setBody(
+                            """{
+                                    "data":{
+                                        "payments":{
+                                            "masterWalletId":"1000066041"
+                                        }
+                                    }
+                            }"""
+                        )
+
+                    "/v1/transfers" -> return MockResponse()
+                        .addHeader("Content-Type", "application/json")
+                        .setBody(
+                            """{    
+                            "data": {
+                                "id":"c58e2613-a808-4075-956c-e576787afb3b",
+                                "source":{
+                                    "type":"wallet",
+                                    "id":"1000066041"
+                                },
+                                "destination":{
+                                    "type":"wallet",
+                                    "id":"1000067536"
+                                },
+                                "amount":{
+                                    "amount":"0.91",
+                                    "currency":"USD"
+                                },
+                                "status":"complete",
+                                "createDate":"2022-01-01T01:01:01.544Z"
+                            }
+                        }""".trimIndent()
+                        )
+                }
+                return MockResponse().setResponseCode(404)
+            }
+        }
+        server.dispatcher = dispatcher
+
+        val source = Account(Network.CIRCLE, "1000066041", Account.Capabilities(Network.CIRCLE, Network.STELLAR))
+        val destination = Account(Network.CIRCLE, "1000067536", Account.Capabilities(Network.CIRCLE, Network.STELLAR))
+        var payment: Payment? = null
+        assertDoesNotThrow { payment = service.sendPayment(source, destination, "circle:USD", BigDecimal.valueOf(0.91)).block() }
+
+        assertEquals("c58e2613-a808-4075-956c-e576787afb3b", payment?.id)
+        assertEquals(Account(Network.CIRCLE, "1000066041", Account.Capabilities(Network.CIRCLE, Network.STELLAR)), payment?.sourceAccount)
+        assertEquals(Account(Network.CIRCLE, "1000067536", Account.Capabilities(Network.CIRCLE, Network.STELLAR)), payment?.destinationAccount)
+        assertEquals(Balance("0.91", "circle:USD"), payment?.balance)
+        assertEquals(Payment.Status.SUCCESSFUL, payment?.status)
+        assertNull(payment?.errorCode)
+
+        val wantDate = CircleDateFormatter.stringToDate("2022-01-01T01:01:01.544Z");
+        assertEquals(wantDate, payment?.createdAt)
+        assertEquals(wantDate, payment?.updatedAt)
+
+        val wantOriginalResponse = hashMapOf<String, Any>(
+            "id" to "c58e2613-a808-4075-956c-e576787afb3b",
+            "source" to hashMapOf<String, Any>(
+                "id" to "1000066041",
+                "type" to "wallet"
+            ),
+            "destination" to hashMapOf<String, Any>(
+                "id" to "1000067536",
+                "type" to "wallet",
+            ),
+            "amount" to hashMapOf<String, Any>(
+                "amount" to "0.91",
+                "currency" to "USD",
+            ),
+            "status" to "complete",
+            "createDate" to "2022-01-01T01:01:01.544Z",
+        )
+        assertEquals(wantOriginalResponse, payment?.originalResponse)
+
+        assertEquals(1, server.requestCount)
+        val allRequests = arrayOf(server.takeRequest())
+
+        val postTransferRequest = allRequests.find { request -> request.path!! == "/v1/transfers" }!!
+        assertEquals("POST", postTransferRequest.method)
+        assertEquals("application/json", postTransferRequest.headers["Content-Type"])
+        assertEquals("Bearer <secret-key>", postTransferRequest.headers["Authorization"])
+        val gotBody = postTransferRequest.body.readUtf8()
+        val wantBody = """{
+            "source": {
+                "type": "wallet",
+                "id": "1000066041"
+            },
+            "destination": {
+                "type": "wallet",
+                "id": "1000067536"
+            },
+            "amount": {
+                "amount": "0.91",
+                "currency": "USD"
+            }
+        }""".trimIndent()
+        JSONAssert.assertEquals(wantBody, gotBody, true)
+    }
+
+    @Test
+    fun testSendPayment_circleToStellar() {
+        service.secretKey = "<secret-key>"
+        val dispatcher: Dispatcher = object : Dispatcher() {
+            @Throws(InterruptedException::class)
+            override fun dispatch(request: RecordedRequest): MockResponse {
+                when (request.path) {
+                    "/v1/configuration" -> return MockResponse()
+                        .addHeader("Content-Type", "application/json")
+                        .setBody(
+                            """{
+                                    "data":{
+                                        "payments":{
+                                            "masterWalletId":"1000066041"
+                                        }
+                                    }
+                            }"""
+                        )
+
+                    "/v1/transfers" -> return MockResponse()
+                        .addHeader("Content-Type", "application/json")
+                        .setBody(
+                            """{    
+                            "data": {
+                                "id":"c58e2613-a808-4075-956c-e576787afb3b",
+                                "source":{
+                                    "type":"wallet",
+                                    "id":"1000066041"
+                                },
+                                "destination":{
+                                    "type":"blockchain",
+                                    "address":"GBG7VGZFH4TU2GS7WL5LMPYFNP64ZFR23XEGAV7GPEEXKWOR2DKCYPCK",
+                                    "addressTag":"test tag",
+                                    "chain":"XLM"
+                                },
+                                "amount":{
+                                    "amount":"0.91",
+                                    "currency":"USD"
+                                },
+                                "status":"complete",
+                                "createDate":"2022-01-01T01:01:01.544Z"
+                            }
+                        }""".trimIndent()
+                        )
+                }
+                return MockResponse().setResponseCode(404)
+            }
+        }
+        server.dispatcher = dispatcher
+
+        val source = Account(Network.CIRCLE, "1000066041", Account.Capabilities())
+        val destination =
+            Account(Network.STELLAR, "GBG7VGZFH4TU2GS7WL5LMPYFNP64ZFR23XEGAV7GPEEXKWOR2DKCYPCK", "test tag", Account.Capabilities())
+        var payment: Payment? = null
+        assertDoesNotThrow { payment = service.sendPayment(source, destination, "stellar:USD", BigDecimal.valueOf(0.91)).block() }
+
+        assertEquals("c58e2613-a808-4075-956c-e576787afb3b", payment?.id)
+        assertEquals(Account(Network.CIRCLE, "1000066041", Account.Capabilities(Network.CIRCLE, Network.STELLAR)), payment?.sourceAccount)
+        assertEquals(
+            Account(
+                Network.STELLAR,
+                "GBG7VGZFH4TU2GS7WL5LMPYFNP64ZFR23XEGAV7GPEEXKWOR2DKCYPCK",
+                "test tag",
+                Account.Capabilities(Network.STELLAR)
+            ), payment?.destinationAccount
+        )
+        assertEquals(Balance("0.91", "circle:USD"), payment?.balance)
+        assertEquals(Payment.Status.SUCCESSFUL, payment?.status)
+        assertNull(payment?.errorCode)
+
+        val wantDate = CircleDateFormatter.stringToDate("2022-01-01T01:01:01.544Z");
+        assertEquals(wantDate, payment?.createdAt)
+        assertEquals(wantDate, payment?.updatedAt)
+
+        val wantOriginalResponse = hashMapOf<String, Any>(
+            "id" to "c58e2613-a808-4075-956c-e576787afb3b",
+            "source" to hashMapOf<String, Any>(
+                "id" to "1000066041",
+                "type" to "wallet",
+            ),
+            "destination" to hashMapOf<String, Any>(
+                "address" to "GBG7VGZFH4TU2GS7WL5LMPYFNP64ZFR23XEGAV7GPEEXKWOR2DKCYPCK",
+                "addressTag" to "test tag",
+                "type" to "blockchain",
+                "chain" to "XLM",
+            ),
+            "amount" to hashMapOf<String, Any>(
+                "amount" to "0.91",
+                "currency" to "USD",
+            ),
+            "status" to "complete",
+            "createDate" to "2022-01-01T01:01:01.544Z",
+        )
+        assertEquals(wantOriginalResponse, payment?.originalResponse)
+
+        assertEquals(1, server.requestCount)
+        val allRequests = arrayOf(server.takeRequest())
+
+        val postTransferRequest = allRequests.find { request -> request.path!! == "/v1/transfers" }!!
+        assertEquals("POST", postTransferRequest.method)
+        assertEquals("application/json", postTransferRequest.headers["Content-Type"])
+        assertEquals("Bearer <secret-key>", postTransferRequest.headers["Authorization"])
+        val gotBody = postTransferRequest.body.readUtf8()
+        val wantBody = """{
+            "source": {
+                "type": "wallet",
+                "id": "1000066041"
+            },
+            "destination": {
+                "type": "blockchain",
+                "address": "GBG7VGZFH4TU2GS7WL5LMPYFNP64ZFR23XEGAV7GPEEXKWOR2DKCYPCK",
+                "addressTag": "test tag",
+                "chain": "XLM"
+            },
+            "amount": {
+                "amount": "0.91",
+                "currency": "USD"
+            }
+        }""".trimIndent()
+        JSONAssert.assertEquals(wantBody, gotBody, true)
     }
 
     @Test
@@ -495,6 +783,7 @@ class CirclePaymentsServiceTest {
         assert(getCircleWalletMethod.trySetAccessible())
 
         listOf(
+            // --- tests with sync/serial requests ---
             ErrorHandlingTestCase(service.ping(), listOf(badRequestResponse)),
             ErrorHandlingTestCase(service.validateSecretKey(), listOf(badRequestResponse)),
             ErrorHandlingTestCase(service.distributionAccountAddress, listOf(badRequestResponse)),
@@ -502,10 +791,6 @@ class CirclePaymentsServiceTest {
             ErrorHandlingTestCase(
                 service.getAccount("random_id"),
                 listOf(validateSecretKeyResponse, badRequestResponse)
-            ),
-            ErrorHandlingTestCase(
-                service.getAccount("1000066041"),
-                listOf(validateSecretKeyResponse, mainAccountResponse, badRequestResponse)
             ),
             ErrorHandlingTestCase(
                 getMerchantAccountUnsettledBalancesMethod.invoke(service) as Mono<*>,
@@ -516,16 +801,56 @@ class CirclePaymentsServiceTest {
                 getCircleWalletMethod.invoke(service, "random_id") as Mono<*>,
                 listOf(badRequestResponse)
             ),
+            // --- tests with async/parallel requests ---
+            // ATTENTION, make sure to run parallel tests at the end, if you try to run a serial test after a parallel
+            // test, the server dispatcher will throw an exception.
+            ErrorHandlingTestCase(
+                service.getAccount("1000066041"),
+                hashMapOf(
+                    "/v1/configuration" to validateSecretKeyResponse,
+                    "/v1/businessAccount/balances" to mainAccountResponse,
+                    "/v1/wallets/1000066041" to badRequestResponse
+                )
+            ),
+            ErrorHandlingTestCase(
+                service.sendPayment(
+                    Account(Network.CIRCLE, "1000066041", Account.Capabilities()),
+                    Account(Network.CIRCLE, "1000067536", Account.Capabilities()),
+                    "circle:USD",
+                    BigDecimal.valueOf(1)
+                ),
+                hashMapOf(
+                    "/v1/configuration" to validateSecretKeyResponse,
+                    "/v1/transfers" to badRequestResponse
+                )
+            ),
+            ErrorHandlingTestCase(
+                service.sendPayment(
+                    Account(Network.CIRCLE, "1000066041", Account.Capabilities()),
+                    Account(
+                        Network.STELLAR,
+                        "GBG7VGZFH4TU2GS7WL5LMPYFNP64ZFR23XEGAV7GPEEXKWOR2DKCYPCK",
+                        "test tag",
+                        Account.Capabilities(Network.CIRCLE, Network.STELLAR)
+                    ),
+                    "stellar:USD",
+                    BigDecimal.valueOf(1)
+                ),
+                hashMapOf(
+                    "/v1/configuration" to validateSecretKeyResponse,
+                    "/v1/transfers" to badRequestResponse
+                )
+            ),
         ).forEach { testCase ->
-            // sync tests
-            testCase.mockResponses.forEach { mockResponse -> server.enqueue(mockResponse) }
+            // run project reactor synchronously
+            testCase.prepareMockWebServer(server)
             var request = testCase.requestMono
             val thrown = assertThrows<HttpException> { request.block() }
             assertEquals(HttpException(400, "Request body contains unprocessable entity.", "2"), thrown)
 
-            // async tests
+            // run project reactor asynchronously
             var didRunAsyncTask = false
-            testCase.mockResponses.forEach { mockResponse -> server.enqueue(mockResponse) }
+            testCase.prepareMockWebServer(server)
             request = testCase.requestMono.onErrorResume { ex ->
                 assertInstanceOf(HttpException::class.java, ex)
                 assertEquals(HttpException(400, "Request body contains unprocessable entity.", "2"), ex)

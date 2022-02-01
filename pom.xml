@@ -30,6 +30,7 @@
         <log4j-core.version>2.17.1</log4j-core.version>
         <httpclient.version>4.5.13</httpclient.version>
         <junit-jupiter.version>5.8.2</junit-jupiter.version>
+        <jsonassert.version>1.5.0</jsonassert.version>
         <mockk.version>1.12.1</mockk.version>
         <reactor-netty.version>1.0.14</reactor-netty.version>
         <reactor-core.version>3.4.13</reactor-core.version>
@@ -166,6 +167,13 @@
             <groupId>org.junit.jupiter</groupId>
             <artifactId>junit-jupiter-params</artifactId>
             <version>${junit-jupiter.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.skyscreamer</groupId>
+            <artifactId>jsonassert</artifactId>
+            <version>${jsonassert.version}</version>
             <scope>test</scope>
         </dependency>
 
