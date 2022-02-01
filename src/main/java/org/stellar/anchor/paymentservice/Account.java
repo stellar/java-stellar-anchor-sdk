@@ -82,17 +82,20 @@ public class Account {
             this(List.of(sendAndReceive), List.of(sendAndReceive));
         }
 
-        public void setCapabilities(Network network, Boolean supportEnabled) {
-            this.send.put(network, supportEnabled);
-            this.receive.put(network, supportEnabled);
-        }
-
         @Override
         public boolean equals(Object o) {
             if (this == o) return true;
             if (o == null || getClass() != o.getClass()) return false;
             Capabilities that = (Capabilities) o;
-            return this.send.keySet().equals(that.send.keySet()) && this.receive.keySet().equals(that.receive.keySet());
+            return this.send.equals(that.send) && this.receive.equals(that.receive);
+        }
+
+        @Override
+        public String toString() {
+            return "Capabilities{" +
+                    "send=" + send +
+                    ", receive=" + receive +
+                    '}';
         }
     }
 }

@@ -680,7 +680,7 @@ class CirclePaymentsServiceTest {
                 Network.STELLAR,
                 "GBG7VGZFH4TU2GS7WL5LMPYFNP64ZFR23XEGAV7GPEEXKWOR2DKCYPCK",
                 "test tag",
-                Account.Capabilities(Network.CIRCLE, Network.STELLAR)
+                Account.Capabilities(Network.STELLAR)
             ), payment?.destinationAccount
         )
         assertEquals(Balance("0.91", "circle:USD"), payment?.balance)
