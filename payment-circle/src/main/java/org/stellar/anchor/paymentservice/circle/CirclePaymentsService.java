@@ -12,13 +12,9 @@ import org.stellar.anchor.paymentservice.*;
 import org.stellar.anchor.paymentservice.circle.model.CircleBalance;
 import org.stellar.anchor.paymentservice.circle.model.CircleTransactionParty;
 import org.stellar.anchor.paymentservice.circle.model.CircleWallet;
-import org.stellar.anchor.paymentservice.circle.model.response.CircleWalletResponse;
-import org.stellar.anchor.paymentservice.circle.model.response.CircleAccountBalancesResponse;
-import org.stellar.anchor.paymentservice.circle.model.response.CircleConfigurationResponse;
-import org.stellar.anchor.paymentservice.circle.model.response.CircleError;
-import org.stellar.anchor.paymentservice.circle.model.response.CircleTransferResponse;
 import org.stellar.anchor.paymentservice.circle.model.request.CircleSendTransactionRequest;
-import org.stellar.anchor.paymentservice.utils.NettyHttpClient;
+import org.stellar.anchor.paymentservice.circle.model.response.*;
+import org.stellar.anchor.paymentservice.circle.util.NettyHttpClient;
 import reactor.core.publisher.Mono;
 import reactor.netty.ByteBufMono;
 import reactor.netty.http.client.HttpClient;
@@ -31,10 +27,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+import static org.stellar.anchor.paymentservice.Network.CIRCLE;
+import static org.stellar.anchor.paymentservice.Network.STELLAR;
+
 @Data
 public class CirclePaymentsService implements PaymentsService {
     private static final Gson gson = new Gson();
-    Network network = Network.CIRCLE;
+    Network network = CIRCLE;
     String url;
     String secretKey;
 
@@ -267,16 +266,15 @@ public class CirclePaymentsService implements PaymentsService {
      * @param destinationAccount the account that will receive the payment.
      * @param currencyName       the name of the currency used in the payment. It should obey the {scheme}:{identifier}
      *                           format described in <a href="https://stellar.org/protocol/sep-38#asset-identification-format">SEP-38</a>.
-     *
      * @throws HttpException if the source account network is not CIRCLE.
      * @throws HttpException if the destination account network is not supported.
      * @throws HttpException if the currencyName prefix does not reflect the destination account network.
      */
     private void validateSendPaymentInput(@NonNull Account sourceAccount, @NonNull Account destinationAccount, @NonNull String currencyName) throws HttpException {
-        if (sourceAccount.network != Network.CIRCLE) {
+        if (sourceAccount.network != CIRCLE) {
             throw new HttpException(400, "the only supported network for the source account is circle");
         }
-        if (!List.of(Network.CIRCLE, Network.STELLAR).contains(destinationAccount.network)) {
+        if (!List.of(CIRCLE, STELLAR).contains(destinationAccount.network)) {
             throw new HttpException(400, "the only supported networks for the destination account are circle and stellar");
         }
         if (!currencyName.startsWith(destinationAccount.network.getCurrencyPrefix())) {

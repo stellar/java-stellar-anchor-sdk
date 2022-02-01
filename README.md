@@ -4,12 +4,7 @@
 
 This is an MVP documentation. More will be added.
 
-## Compile 
-`mvn compile`
 
-## Running unit tests
-`mvn test`
 
-## Clean 
-`mvn clean`
-
+## To contribute
+Please refer to [CONTRIBUTING.md](docs/CONTRIBUTING.md)
