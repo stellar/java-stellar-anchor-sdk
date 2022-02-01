@@ -56,6 +56,7 @@ dependencies {
     testImplementation(libs.junit5.api)
     testImplementation(libs.junit5.engine)
     testImplementation(libs.junit5.params)
+    testImplementation(libs.jsonassert)
 
     testAnnotationProcessor(libs.lombok)
 }

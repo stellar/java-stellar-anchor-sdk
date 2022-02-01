@@ -29,7 +29,7 @@ dependencyResolutionManagement {
             alias("junit5.api").to("org.junit.jupiter:junit-jupiter-api:5.8.2")
             alias("junit5.engine").to("org.junit.jupiter:junit-jupiter-engine:5.8.2")
             alias("junit5.params").to("org.junit.jupiter:junit-jupiter-params:5.8.2")
-
+            alias("jsonassert").to("org.skyscreamer:jsonassert:1.5.0")
         }
     }
 }
