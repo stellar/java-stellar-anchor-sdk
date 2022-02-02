@@ -1,4 +1,4 @@
-package org.stellar.anchor.paymentservice.utils;
+package org.stellar.anchor.paymentservice.circle.util;
 
 import io.netty.channel.ChannelOption;
 import io.netty.handler.codec.http.HttpHeaderNames;
