@@ -1,8 +1,6 @@
-/**
- * `java-library` is applied because we are building a JAR file.
- */
 plugins {
     `java-library`
+    id("org.jetbrains.kotlin.jvm") version "1.6.10"
  }
 
 dependencies {
@@ -38,7 +36,12 @@ dependencies {
     testImplementation(libs.junit5.api)
     testImplementation(libs.junit5.engine)
     testImplementation(libs.junit5.params)
+    testImplementation(libs.jsonassert)
     testAnnotationProcessor(libs.lombok)
 
     testImplementation(project(":core"))
+}
+
+tasks.test {
+    useJUnitPlatform()
 }
