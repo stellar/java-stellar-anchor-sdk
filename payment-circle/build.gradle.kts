@@ -11,6 +11,7 @@ dependencies {
     implementation(libs.log4j.core)
     implementation(libs.google.gson)
     implementation(libs.reactor.core)
+    implementation(libs.commons.validator)
     implementation(libs.slf4j.log4j12)
     implementation(libs.okhttp3.mockserver)
     implementation(libs.reactor.netty)

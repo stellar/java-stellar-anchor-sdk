@@ -14,6 +14,7 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.validator.routines.EmailValidator;
 import org.stellar.anchor.exception.HttpException;
 import org.stellar.anchor.paymentservice.*;
 import org.stellar.anchor.paymentservice.circle.model.CircleBalance;
@@ -289,6 +290,7 @@ public class CirclePaymentsService implements PaymentsService {
    *     href="https://stellar.org/protocol/sep-38#asset-identification-format">SEP-38</a>.
    * @throws HttpException if the source account network is not CIRCLE.
    * @throws HttpException if the destination account network is not supported.
+   * @throws HttpException if the destination account is a bank and the idTag is not a valid email.
    * @throws HttpException if the currencyName prefix does not reflect the destination account
    *     network.
    */
@@ -300,9 +302,17 @@ public class CirclePaymentsService implements PaymentsService {
     if (sourceAccount.network != CIRCLE) {
       throw new HttpException(400, "the only supported network for the source account is circle");
     }
-    if (!List.of(CIRCLE, STELLAR).contains(destinationAccount.network)) {
+    if (!List.of(Network.CIRCLE, Network.STELLAR, Network.BANK_WIRE)
+        .contains(destinationAccount.network)) {
       throw new HttpException(
-          400, "the only supported networks for the destination account are circle and stellar");
+          400,
+          "the only supported networks for the destination account are circle, stellar and bank_wire");
+    }
+    if (destinationAccount.network == Network.BANK_WIRE
+        && !EmailValidator.getInstance().isValid(destinationAccount.idTag)) {
+      throw new HttpException(
+          400,
+          "for bank transfers, please provide a valid beneficiary email address in the destination idTag");
     }
     if (!currencyName.startsWith(destinationAccount.network.getCurrencyPrefix())) {
       throw new HttpException(

@@ -487,19 +487,35 @@ class CirclePaymentsServiceTest {
         // invalid source account network
         var ex = assertThrows<HttpException> {
             service.sendPayment(
-                Account(Network.STELLAR, "123", Account.Capabilities(Network.STELLAR)),
-                Account(Network.CIRCLE, "123", Account.Capabilities(Network.CIRCLE, Network.STELLAR)),
+                Account(Network.STELLAR, "123", Account.Capabilities()),
+                Account(Network.CIRCLE, "123", Account.Capabilities()),
                 "",
                 BigDecimal(0)
             ).block()
         }
         assertEquals(HttpException(400, "the only supported network for the source account is circle"), ex)
 
+        // missing beneficiary email when destination is a wire bank account
+        ex = assertThrows {
+            service.sendPayment(
+                Account(Network.CIRCLE, "123", Account.Capabilities()),
+                Account(Network.BANK_WIRE, "123", "invalidEmail", Account.Capabilities()),
+                "",
+                BigDecimal(0)
+            ).block()
+        }
+        assertEquals(
+            HttpException(
+                400,
+                "for bank transfers, please provide a valid beneficiary email address in the destination idTag"
+            ), ex
+        )
+
         // invalid currency name schema
         ex = assertThrows {
             service.sendPayment(
-                Account(Network.CIRCLE, "123", Account.Capabilities(Network.CIRCLE, Network.STELLAR)),
-                Account(Network.CIRCLE, "456", Account.Capabilities(Network.CIRCLE, Network.STELLAR)),
+                Account(Network.CIRCLE, "123", Account.Capabilities()),
+                Account(Network.CIRCLE, "456", Account.Capabilities()),
                 "invalidSchema:USD",
                 BigDecimal(0)
             ).block()
@@ -842,7 +858,7 @@ class CirclePaymentsServiceTest {
                         Account.Capabilities(Network.CIRCLE, Network.STELLAR)
                     ),
                     "stellar:USD",
-                    BigDecimal.valueOf(1)
+                    BigDecimal(1)
                 ),
                 hashMapOf(
                     "/v1/configuration" to validateSecretKeyResponse,
