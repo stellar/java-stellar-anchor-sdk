@@ -772,9 +772,7 @@ class CirclePaymentsServiceTest {
     assertEquals(Payment.Status.PENDING, payment?.status)
     assertNull(payment?.errorCode)
 
-    val wantDate =
-        org.stellar.anchor.paymentservice.circle.util.CircleDateFormatter.stringToDate(
-            "2022-01-01T01:01:01.544Z")
+    val wantDate = CircleDateFormatter.stringToDate("2022-01-01T01:01:01.544Z")
     assertEquals(wantDate, payment?.createdAt)
     assertEquals(wantDate, payment?.updatedAt)
 
@@ -910,9 +908,7 @@ class CirclePaymentsServiceTest {
     assertEquals(Payment.Status.PENDING, payment?.status)
     assertNull(payment?.errorCode)
 
-    val wantDate =
-        org.stellar.anchor.paymentservice.circle.util.CircleDateFormatter.stringToDate(
-            "2022-01-01T01:01:01.544Z")
+    val wantDate = CircleDateFormatter.stringToDate("2022-01-01T01:01:01.544Z")
     assertEquals(wantDate, payment?.createdAt)
     assertEquals(wantDate, payment?.updatedAt)
 
