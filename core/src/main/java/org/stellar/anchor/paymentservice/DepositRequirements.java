@@ -10,7 +10,7 @@ import reactor.util.annotation.Nullable;
  * through a Stellar payment.
  *
  * @see DepositInstructions
- * @see PaymentsService#getDepositInstructions(DepositRequirements)
+ * @see PaymentService#getDepositInstructions(DepositRequirements)
  */
 @Data
 @SuppressWarnings("unused")

@@ -28,7 +28,7 @@ import reactor.util.annotation.NonNull;
 import reactor.util.annotation.Nullable;
 
 @Data
-public class CirclePaymentsService implements PaymentsService {
+public class CirclePaymentService implements PaymentService {
   private static final Gson gson = new Gson();
   Network network = Network.CIRCLE;
   String url;
@@ -46,7 +46,7 @@ public class CirclePaymentsService implements PaymentsService {
    * For all service methods to work correctly, make sure your circle account has a valid business
    * wallet and a bank account configured.
    */
-  public CirclePaymentsService() {
+  public CirclePaymentService() {
     super();
   }
 

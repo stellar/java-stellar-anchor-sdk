@@ -73,16 +73,16 @@ private class ErrorHandlingTestCase {
   }
 }
 
-class CirclePaymentsServiceTest {
+class CirclePaymentServiceTest {
   private lateinit var server: MockWebServer
-  private lateinit var service: PaymentsService
+  private lateinit var service: PaymentService
 
   @BeforeEach
   @Throws(IOException::class)
   fun setUp() {
     server = MockWebServer()
     server.start()
-    service = org.stellar.anchor.paymentservice.circle.CirclePaymentsService()
+    service = CirclePaymentService()
     service.url = server.url("").toString()
   }
 
@@ -103,7 +103,7 @@ class CirclePaymentsServiceTest {
 
     // access private method
     val handleCircleErrorMethod: Method =
-        org.stellar.anchor.paymentservice.circle.CirclePaymentsService::class.java
+        CirclePaymentService::class.java
             .getDeclaredMethod(
                 "handleCircleError", HttpClientResponse::class.java, ByteBufMono::class.java)
     assert(handleCircleErrorMethod.trySetAccessible())
@@ -212,7 +212,7 @@ class CirclePaymentsServiceTest {
 
     // Let's use reflection to access the private method
     val getMerchantAccountUnsettledBalancesMethod: Method =
-        org.stellar.anchor.paymentservice.circle.CirclePaymentsService::class.java
+        CirclePaymentService::class.java
             .getDeclaredMethod("getMerchantAccountUnsettledBalances")
     assert(getMerchantAccountUnsettledBalancesMethod.trySetAccessible())
     @Suppress("UNCHECKED_CAST")
@@ -257,7 +257,7 @@ class CirclePaymentsServiceTest {
 
     // Let's use reflection to access the private method
     val getCircleWalletMethod: Method =
-        org.stellar.anchor.paymentservice.circle.CirclePaymentsService::class.java
+        CirclePaymentService::class.java
             .getDeclaredMethod("getCircleWallet", String::class.java)
     assert(getCircleWalletMethod.trySetAccessible())
 
@@ -1007,13 +1007,13 @@ class CirclePaymentsServiceTest {
 
     // Access private method getMainAccountBalances
     val getMerchantAccountUnsettledBalancesMethod: Method =
-        org.stellar.anchor.paymentservice.circle.CirclePaymentsService::class.java
+        CirclePaymentService::class.java
             .getDeclaredMethod("getMerchantAccountUnsettledBalances")
     assert(getMerchantAccountUnsettledBalancesMethod.trySetAccessible())
 
     // Access private method getCircleWallet
     val getCircleWalletMethod: Method =
-        org.stellar.anchor.paymentservice.circle.CirclePaymentsService::class.java
+        CirclePaymentService::class.java
             .getDeclaredMethod("getCircleWallet", String::class.java)
     assert(getCircleWalletMethod.trySetAccessible())
 
