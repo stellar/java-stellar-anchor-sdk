@@ -1,4 +1,4 @@
-<div>
+<div align="center">
 <img alt="Stellar" src="https://github.com/stellar/.github/raw/master/stellar-logo.png" width="558" />
 <br/>
 <strong>Creating equitable access to the global financial system</strong>
