@@ -2,7 +2,7 @@ package org.stellar.anchor.config;
 
 @SuppressWarnings("unused")
 public interface Sep1Config {
-    String getStellarFile();
+  String getStellarFile();
 
-    boolean isEnabled();
+  boolean isEnabled();
 }

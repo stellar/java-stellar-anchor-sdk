@@ -5,11 +5,11 @@ import lombok.Data;
 @SuppressWarnings("unused")
 @Data
 public class ValidationResponse {
-    String token;
+  String token;
 
-    public static ValidationResponse of(String token) {
-        ValidationResponse validationResponse = new ValidationResponse();
-        validationResponse.token = token;
-        return validationResponse;
-    }
+  public static ValidationResponse of(String token) {
+    ValidationResponse validationResponse = new ValidationResponse();
+    validationResponse.token = token;
+    return validationResponse;
+  }
 }

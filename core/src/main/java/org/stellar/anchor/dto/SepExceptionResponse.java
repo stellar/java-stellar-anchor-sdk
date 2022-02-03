@@ -4,10 +4,9 @@ import lombok.Data;
 
 @Data
 public class SepExceptionResponse {
-    String error;
+  String error;
 
-    public SepExceptionResponse(String error) {
-        this.error = error;
-    }
-
+  public SepExceptionResponse(String error) {
+    this.error = error;
+  }
 }

@@ -1,7 +1,7 @@
 package org.stellar.anchor.config;
 
 public interface Sep24Config {
-    int getInteractiveJwtExpiration();
+  int getInteractiveJwtExpiration();
 
-    String getInteractiveUrl();
+  String getInteractiveUrl();
 }

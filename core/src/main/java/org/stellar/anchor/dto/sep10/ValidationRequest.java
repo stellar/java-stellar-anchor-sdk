@@ -4,11 +4,11 @@ import lombok.Data;
 
 @Data
 public class ValidationRequest {
-    String transaction;
+  String transaction;
 
-    public static ValidationRequest of(String transaction) {
-        ValidationRequest validationRequest = new ValidationRequest();
-        validationRequest.transaction = transaction;
-        return validationRequest;
-    }
+  public static ValidationRequest of(String transaction) {
+    ValidationRequest validationRequest = new ValidationRequest();
+    validationRequest.transaction = transaction;
+    return validationRequest;
+  }
 }

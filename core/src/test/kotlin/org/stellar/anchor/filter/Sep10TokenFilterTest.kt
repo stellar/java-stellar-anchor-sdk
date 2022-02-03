@@ -100,7 +100,7 @@ internal class Sep10TokenFilterTest {
 
     @ParameterizedTest
     @ValueSource(strings = ["GET", "PUT", "POST", "DELETE"])
-    fun testNoBearer(method: String) {
+    fun testNoBearer() {
         every { request.getHeader("Authorization") } returns ""
 
         sep10TokenFilter.doFilter(request, response, mockFilterChain)
@@ -113,7 +113,7 @@ internal class Sep10TokenFilterTest {
 
     @ParameterizedTest
     @ValueSource(strings = ["GET", "PUT", "POST", "DELETE"])
-    fun testBearerSplitError(method: String) {
+    fun testBearerSplitError() {
         every { request.getHeader("Authorization") } returns "Bearer123"
 
         sep10TokenFilter.doFilter(request, response, mockFilterChain)

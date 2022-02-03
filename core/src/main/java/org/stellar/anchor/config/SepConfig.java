@@ -1,4 +1,3 @@
 package org.stellar.anchor.config;
 
-public class SepConfig {
-}
+public class SepConfig {}

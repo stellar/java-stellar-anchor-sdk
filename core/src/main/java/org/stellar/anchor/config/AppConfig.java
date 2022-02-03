@@ -4,15 +4,15 @@ import java.util.List;
 
 @SuppressWarnings("unused")
 public interface AppConfig {
-    String getStellarNetworkPassPhrase();
+  String getStellarNetworkPassPhrase();
 
-    String getHostUrl();
+  String getHostUrl();
 
-    String getHorizonURI();
+  String getHorizonURI();
 
-    String getJwtSecretKey();
+  String getJwtSecretKey();
 
-    String getAssets();
+  String getAssets();
 
-    List<String> getLanguages();
+  List<String> getLanguages();
 }

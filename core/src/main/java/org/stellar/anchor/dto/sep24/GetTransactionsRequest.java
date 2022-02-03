@@ -5,26 +5,27 @@ import lombok.Data;
 
 @Data
 public class GetTransactionsRequest {
-    @SerializedName("asset_code")
-    String assetCode;
+  @SerializedName("asset_code")
+  String assetCode;
 
-    @SerializedName("no_older_than")
-    String noOlderThan;
+  @SerializedName("no_older_than")
+  String noOlderThan;
 
-    Integer limit;
+  Integer limit;
 
-    @SerializedName("paging_id")
-    String pagingId;
+  @SerializedName("paging_id")
+  String pagingId;
 
-    String kind;
+  String kind;
 
-    public static GetTransactionsRequest of(String assetCode, String kind, Integer limit, String noOlderThan, String pagingId) {
-        GetTransactionsRequest r = new GetTransactionsRequest();
-        r.assetCode = assetCode;
-        r.kind = kind;
-        r.limit = limit;
-        r.noOlderThan = noOlderThan;
-        r.pagingId = pagingId;
-        return r;
-    }
+  public static GetTransactionsRequest of(
+      String assetCode, String kind, Integer limit, String noOlderThan, String pagingId) {
+    GetTransactionsRequest r = new GetTransactionsRequest();
+    r.assetCode = assetCode;
+    r.kind = kind;
+    r.limit = limit;
+    r.noOlderThan = noOlderThan;
+    r.pagingId = pagingId;
+    return r;
+  }
 }
