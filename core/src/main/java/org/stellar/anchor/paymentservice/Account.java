@@ -70,12 +70,16 @@ public class Account {
         this.receive.put(network, false);
       }
 
-      for (Network network : send) {
-        this.send.put(network, true);
+      if (send != null) {
+        for (Network network : send) {
+          this.send.put(network, true);
+        }
       }
 
-      for (Network network : receive) {
-        this.receive.put(network, true);
+      if (receive != null) {
+        for (Network network : receive) {
+          this.receive.put(network, true);
+        }
       }
     }
 

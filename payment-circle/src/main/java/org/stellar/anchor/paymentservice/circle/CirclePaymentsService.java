@@ -350,23 +350,27 @@ public class CirclePaymentsService implements PaymentsService {
         CircleSendTransactionRequest.forTransfer(source, destination, balance);
     String jsonBody = gson.toJson(req);
 
-    return getWebClient(true)
-        .post()
-        .uri("/v1/transfers")
-        .send(ByteBufMono.fromString(Mono.just(jsonBody)))
-        .responseSingle(
-            (postResponse, bodyBytesMono) -> {
-              if (postResponse.status().code() >= 400) {
-                return handleCircleError(postResponse, bodyBytesMono);
-              }
+    Mono<Payment> sendTransferMono =
+        getWebClient(true)
+            .post()
+            .uri("/v1/transfers")
+            .send(ByteBufMono.fromString(Mono.just(jsonBody)))
+            .responseSingle(
+                (postResponse, bodyBytesMono) -> {
+                  if (postResponse.status().code() >= 400) {
+                    return handleCircleError(postResponse, bodyBytesMono);
+                  }
 
-              return bodyBytesMono.asString();
-            })
-        .flatMap(
-            body -> {
-              CircleTransferResponse transfer = gson.fromJson(body, CircleTransferResponse.class);
-              return Mono.just(transfer.getData().toPayment());
-            });
+                  return bodyBytesMono.asString();
+                })
+            .map(
+                body -> {
+                  CircleTransferResponse transfer =
+                      gson.fromJson(body, CircleTransferResponse.class);
+                  return transfer.getData().toPayment();
+                });
+
+    return updatePaymentWireCapability(sendTransferMono);
   }
 
   /**
@@ -396,22 +400,56 @@ public class CirclePaymentsService implements PaymentsService {
             source, destination, balance, UUID.randomUUID().toString());
     String jsonBody = gson.toJson(req);
 
-    return getWebClient(true)
-        .post()
-        .uri("/v1/payouts")
-        .send(ByteBufMono.fromString(Mono.just(jsonBody)))
-        .responseSingle(
-            (postResponse, bodyBytesMono) -> {
-              if (postResponse.status().code() >= 400) {
-                return handleCircleError(postResponse, bodyBytesMono);
-              }
+    Mono<Payment> sendPayoutMono =
+        getWebClient(true)
+            .post()
+            .uri("/v1/payouts")
+            .send(ByteBufMono.fromString(Mono.just(jsonBody)))
+            .responseSingle(
+                (postResponse, bodyBytesMono) -> {
+                  if (postResponse.status().code() >= 400) {
+                    return handleCircleError(postResponse, bodyBytesMono);
+                  }
 
-              return bodyBytesMono.asString();
-            })
-        .flatMap(
-            body -> {
-              CirclePayoutResponse payout = gson.fromJson(body, CirclePayoutResponse.class);
-              return Mono.just(payout.getData().toPayment());
+                  return bodyBytesMono.asString();
+                })
+            .map(
+                body -> {
+                  CirclePayoutResponse payout = gson.fromJson(body, CirclePayoutResponse.class);
+                  return payout.getData().toPayment();
+                });
+
+    return updatePaymentWireCapability(sendPayoutMono);
+  }
+
+  /**
+   * Executes a Mono&lt;Payment&gt; reactive stream and updates the resulting payment source &
+   * destination accounts BANK_WIRE capability if any of them is the distribution account.
+   *
+   * @param sendPaymentMono Is a reactive stream that returns a Payment object.
+   * @return a Mono&lt;Payment&gt; the same result from the input parameter with updated accounts
+   *     BANK_WIRE capabilities.
+   */
+  private Mono<Payment> updatePaymentWireCapability(Mono<Payment> sendPaymentMono) {
+    return Mono.zip(getDistributionAccountAddress(), sendPaymentMono)
+        .map(
+            args -> {
+              String distributionAccountId = args.getT1();
+              Payment payment = args.getT2();
+
+              // fill source account level
+              Account sourceAcc = payment.getSourceAccount();
+              sourceAcc.capabilities.set(
+                  Network.BANK_WIRE, sourceAcc.id.equals(distributionAccountId));
+
+              // fill destination account level
+              Account destinationAcc = payment.getDestinationAccount();
+              Boolean isDestinationWireEnabled =
+                  destinationAcc.network.equals(Network.BANK_WIRE)
+                      || destinationAcc.id.equals(distributionAccountId);
+              destinationAcc.capabilities.set(Network.BANK_WIRE, isDestinationWireEnabled);
+
+              return payment;
             });
   }
 
@@ -440,41 +478,16 @@ public class CirclePaymentsService implements PaymentsService {
         currencyName.replace(destinationAccount.network.getCurrencyPrefix() + ":", "");
     CircleBalance circleBalance = new CircleBalance(rawCurrencyName, amount.toString());
 
-    Mono<Payment> sendPaymentMono;
     switch (destinationAccount.network) {
       case CIRCLE:
       case STELLAR:
-        sendPaymentMono = sendTransfer(sourceAccount, destinationAccount, circleBalance);
-        break;
+        return sendTransfer(sourceAccount, destinationAccount, circleBalance);
       case BANK_WIRE:
-        sendPaymentMono = sendPayout(sourceAccount, destinationAccount, circleBalance);
-        break;
+        return sendPayout(sourceAccount, destinationAccount, circleBalance);
       default:
         throw new RuntimeException(
             "unsupported destination network '" + destinationAccount.network + "'");
     }
-
-    return Mono.zip(getDistributionAccountAddress(), sendPaymentMono)
-        .flatMap(
-            args -> {
-              String distributionAccountAddress = args.getT1();
-              Payment payment = args.getT2();
-
-              // fill source account level
-              Account sourceAcc = payment.getSourceAccount();
-              Boolean isSourceEqualsDistribution = sourceAcc.id.equals(distributionAccountAddress);
-              sourceAcc.capabilities.set(Network.BANK_WIRE, isSourceEqualsDistribution);
-
-              // fill destination account level
-              Account destinationAcc = payment.getDestinationAccount();
-              Boolean isDestinationEqualsDistributionOrBankWire =
-                  destinationAcc.network.equals(Network.BANK_WIRE)
-                      || destinationAcc.id.equals(distributionAccountAddress);
-              destinationAcc.capabilities.set(
-                  Network.BANK_WIRE, isDestinationEqualsDistributionOrBankWire);
-
-              return Mono.just(payment);
-            });
   }
 
   /**
