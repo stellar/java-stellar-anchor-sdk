@@ -65,14 +65,13 @@ public class CirclePaymentService implements PaymentService {
   private <T> Mono<T> handleCircleError(HttpClientResponse response, ByteBufMono bodyBytesMono) {
     return bodyBytesMono
         .asString()
-        .flatMap(
+        .map(
             body -> {
               CircleError circleError = gson.fromJson(body, CircleError.class);
-              return Mono.error(
-                  new HttpException(
-                      response.status().code(),
-                      circleError.getMessage(),
-                      circleError.getCode().toString()));
+              throw new HttpException(
+                  response.status().code(),
+                  circleError.getMessage(),
+                  circleError.getCode().toString());
             });
   }
 
@@ -105,7 +104,7 @@ public class CirclePaymentService implements PaymentService {
    * @throws HttpException If the http response status code is 4xx or 5xx.
    */
   public Mono<Void> validateSecretKey() throws HttpException {
-    return getDistributionAccountAddress().flatMap(s -> Mono.empty());
+    return getDistributionAccountAddress().mapNotNull(s -> null);
   }
 
   /**
@@ -130,12 +129,12 @@ public class CirclePaymentService implements PaymentService {
 
               return bodyBytesMono.asString();
             })
-        .flatMap(
+        .map(
             body -> {
               CircleConfigurationResponse response =
                   gson.fromJson(body, CircleConfigurationResponse.class);
               _mainAccountAddress = response.data.payments.masterWalletId;
-              return Mono.just(_mainAccountAddress);
+              return _mainAccountAddress;
             });
   }
 
@@ -157,7 +156,7 @@ public class CirclePaymentService implements PaymentService {
 
               return bodyBytesMono.asString();
             })
-        .flatMap(
+        .map(
             body -> {
               CircleAccountBalancesResponse response =
                   gson.fromJson(body, CircleAccountBalancesResponse.class);
@@ -167,7 +166,7 @@ public class CirclePaymentService implements PaymentService {
                 unsettledBalances.add(uBalance.toBalance());
               }
 
-              return Mono.just(unsettledBalances);
+              return unsettledBalances;
             });
   }
 
@@ -191,12 +190,12 @@ public class CirclePaymentService implements PaymentService {
 
               return bodyBytesMono.asString();
             })
-        .flatMap(
+        .map(
             body -> {
               CircleWalletResponse circleWalletResponse =
                   gson.fromJson(body, CircleWalletResponse.class);
               CircleWallet circleWallet = circleWalletResponse.getData();
-              return Mono.just(circleWallet);
+              return circleWallet;
             });
   }
 
@@ -217,13 +216,13 @@ public class CirclePaymentService implements PaymentService {
               }
               return Mono.zip(unsettledBalancesMono, getCircleWallet(accountId));
             })
-        .flatMap(
+        .map(
             args -> {
               List<Balance> unsettledBalances = args.getT1();
               CircleWallet circleWallet = args.getT2();
               Account account = circleWallet.toAccount();
               account.setUnsettledBalances(unsettledBalances);
-              return Mono.just(account);
+              return account;
             });
   }
 
@@ -254,14 +253,13 @@ public class CirclePaymentService implements PaymentService {
 
               return bodyBytesMono.asString();
             })
-        .flatMap(
+        .map(
             body -> {
               CircleWalletResponse circleWalletResponse =
                   gson.fromJson(body, CircleWalletResponse.class);
               CircleWallet circleWallet = circleWalletResponse.getData();
               Account account = circleWallet.toAccount();
-              account.setUnsettledBalances(new ArrayList<>());
-              return Mono.just(account);
+              return account;
             });
   }
 
