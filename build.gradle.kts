@@ -40,7 +40,7 @@ subprojects {
             logger.warn("=================")
             logger.warn(
                 "    You are running Java version:[{}]. Spotless may not work well with JDK 17.",
-                System.getProperty("java.version")
+                javaVersion
             )
             logger.warn("    In IntelliJ, go to [File -> Build -> Execution, Build, Deployment -> Gradle] and check Gradle JVM")
         }
