@@ -1,8 +1,5 @@
 package org.stellar.anchor.paymentservice.circle;
 
-import static org.stellar.anchor.paymentservice.Network.CIRCLE;
-import static org.stellar.anchor.paymentservice.Network.STELLAR;
-
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import io.netty.handler.codec.http.HttpHeaderNames;
@@ -14,6 +11,7 @@ import lombok.AccessLevel;
 import lombok.Data;
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.validator.routines.EmailValidator;
 import org.stellar.anchor.exception.HttpException;
 import org.stellar.anchor.paymentservice.*;
 import org.stellar.anchor.paymentservice.circle.model.CircleBalance;
@@ -32,7 +30,7 @@ import reactor.util.annotation.Nullable;
 @Data
 public class CirclePaymentsService implements PaymentsService {
   private static final Gson gson = new Gson();
-  Network network = CIRCLE;
+  Network network = Network.CIRCLE;
   String url;
   String secretKey;
 
@@ -289,6 +287,7 @@ public class CirclePaymentsService implements PaymentsService {
    *     href="https://stellar.org/protocol/sep-38#asset-identification-format">SEP-38</a>.
    * @throws HttpException if the source account network is not CIRCLE.
    * @throws HttpException if the destination account network is not supported.
+   * @throws HttpException if the destination account is a bank and the idTag is not a valid email.
    * @throws HttpException if the currencyName prefix does not reflect the destination account
    *     network.
    */
@@ -297,12 +296,20 @@ public class CirclePaymentsService implements PaymentsService {
       @NonNull Account destinationAccount,
       @NonNull String currencyName)
       throws HttpException {
-    if (sourceAccount.network != CIRCLE) {
+    if (sourceAccount.network != Network.CIRCLE) {
       throw new HttpException(400, "the only supported network for the source account is circle");
     }
-    if (!List.of(CIRCLE, STELLAR).contains(destinationAccount.network)) {
+    if (!List.of(Network.CIRCLE, Network.STELLAR, Network.BANK_WIRE)
+        .contains(destinationAccount.network)) {
       throw new HttpException(
-          400, "the only supported networks for the destination account are circle and stellar");
+          400,
+          "the only supported networks for the destination account are circle, stellar and bank_wire");
+    }
+    if (destinationAccount.network == Network.BANK_WIRE
+        && !EmailValidator.getInstance().isValid(destinationAccount.idTag)) {
+      throw new HttpException(
+          400,
+          "for bank transfers, please provide a valid beneficiary email address in the destination idTag");
     }
     if (!currencyName.startsWith(destinationAccount.network.getCurrencyPrefix())) {
       throw new HttpException(
@@ -343,22 +350,106 @@ public class CirclePaymentsService implements PaymentsService {
         CircleSendTransactionRequest.forTransfer(source, destination, balance);
     String jsonBody = gson.toJson(req);
 
-    return getWebClient(true)
-        .post()
-        .uri("/v1/transfers")
-        .send(ByteBufMono.fromString(Mono.just(jsonBody)))
-        .responseSingle(
-            (postResponse, bodyBytesMono) -> {
-              if (postResponse.status().code() >= 400) {
-                return handleCircleError(postResponse, bodyBytesMono);
-              }
+    Mono<Payment> sendTransferMono =
+        getWebClient(true)
+            .post()
+            .uri("/v1/transfers")
+            .send(ByteBufMono.fromString(Mono.just(jsonBody)))
+            .responseSingle(
+                (postResponse, bodyBytesMono) -> {
+                  if (postResponse.status().code() >= 400) {
+                    return handleCircleError(postResponse, bodyBytesMono);
+                  }
 
-              return bodyBytesMono.asString();
-            })
-        .flatMap(
-            body -> {
-              CircleTransferResponse transfer = gson.fromJson(body, CircleTransferResponse.class);
-              return Mono.just(transfer.getData().toPayment());
+                  return bodyBytesMono.asString();
+                })
+            .map(
+                body -> {
+                  CircleTransferResponse transfer =
+                      gson.fromJson(body, CircleTransferResponse.class);
+                  return transfer.getData().toPayment();
+                });
+
+    return updatePaymentWireCapability(sendTransferMono);
+  }
+
+  /**
+   * API request that sends a Circle payout, i.e. a payment from a Circle wallet to a bank account
+   * registered in Circle.
+   *
+   * @param sourceAccount the account where the payment will be sent from.
+   * @param destinationAccount the bank wire account that will receive the payment.
+   * @param balance the balance to be transferred.
+   * @return asynchronous stream with the payment object.
+   * @throws HttpException If the Circle http response status code is 4xx or 5xx.
+   * @throws HttpException If the destination network is not a bank wire.
+   */
+  private Mono<Payment> sendPayout(
+      Account sourceAccount, Account destinationAccount, CircleBalance balance)
+      throws HttpException {
+    if (destinationAccount.network != Network.BANK_WIRE) {
+      throw new HttpException(
+          500, "something went wrong, the destination account network is invalid");
+    }
+
+    CircleTransactionParty source = CircleTransactionParty.wallet(sourceAccount.getId());
+    CircleTransactionParty destination =
+        CircleTransactionParty.wire(destinationAccount.id, destinationAccount.idTag);
+    CircleSendTransactionRequest req =
+        CircleSendTransactionRequest.forPayout(
+            source, destination, balance, UUID.randomUUID().toString());
+    String jsonBody = gson.toJson(req);
+
+    Mono<Payment> sendPayoutMono =
+        getWebClient(true)
+            .post()
+            .uri("/v1/payouts")
+            .send(ByteBufMono.fromString(Mono.just(jsonBody)))
+            .responseSingle(
+                (postResponse, bodyBytesMono) -> {
+                  if (postResponse.status().code() >= 400) {
+                    return handleCircleError(postResponse, bodyBytesMono);
+                  }
+
+                  return bodyBytesMono.asString();
+                })
+            .map(
+                body -> {
+                  CirclePayoutResponse payout = gson.fromJson(body, CirclePayoutResponse.class);
+                  return payout.getData().toPayment();
+                });
+
+    return updatePaymentWireCapability(sendPayoutMono);
+  }
+
+  /**
+   * Executes a Mono&lt;Payment&gt; reactive stream and updates the resulting payment source &
+   * destination accounts BANK_WIRE capability if any of them is the distribution account.
+   *
+   * @param sendPaymentMono Is a reactive stream that returns a Payment object.
+   * @return a Mono&lt;Payment&gt; the same result from the input parameter with updated accounts
+   *     BANK_WIRE capabilities.
+   */
+  private Mono<Payment> updatePaymentWireCapability(Mono<Payment> sendPaymentMono) {
+    return Mono.zip(getDistributionAccountAddress(), sendPaymentMono)
+        .map(
+            args -> {
+              String distributionAccountId = args.getT1();
+              Payment payment = args.getT2();
+
+              // fill source account level
+              Account sourceAcc = payment.getSourceAccount();
+              sourceAcc.capabilities.set(
+                  Network.BANK_WIRE, sourceAcc.id.equals(distributionAccountId));
+
+              // fill destination account level
+              Account destinationAcc = payment.getDestinationAccount();
+              Boolean isDestinationWireEnabled =
+                  destinationAcc.network.equals(Network.BANK_WIRE)
+                      || destinationAcc.id.equals(distributionAccountId);
+              destinationAcc.capabilities.set(Network.BANK_WIRE, isDestinationWireEnabled);
+
+              return payment;
             });
   }
 
@@ -387,18 +478,16 @@ public class CirclePaymentsService implements PaymentsService {
         currencyName.replace(destinationAccount.network.getCurrencyPrefix() + ":", "");
     CircleBalance circleBalance = new CircleBalance(rawCurrencyName, amount.toString());
 
-    Mono<Payment> sendPaymentMono;
     switch (destinationAccount.network) {
       case CIRCLE:
       case STELLAR:
-        sendPaymentMono = sendTransfer(sourceAccount, destinationAccount, circleBalance);
-        break;
+        return sendTransfer(sourceAccount, destinationAccount, circleBalance);
+      case BANK_WIRE:
+        return sendPayout(sourceAccount, destinationAccount, circleBalance);
       default:
         throw new RuntimeException(
             "unsupported destination network '" + destinationAccount.network + "'");
     }
-
-    return sendPaymentMono;
   }
 
   /**

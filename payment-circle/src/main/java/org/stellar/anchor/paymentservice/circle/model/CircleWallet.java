@@ -15,7 +15,9 @@ public class CircleWallet {
   List<CircleBalance> balances;
 
   public Account.Capabilities getCapabilities() {
-    return new Account.Capabilities(Network.CIRCLE, Network.STELLAR);
+    Account.Capabilities capabilities = new Account.Capabilities(Network.CIRCLE, Network.STELLAR);
+    capabilities.set(Network.BANK_WIRE, "merchant".equals(type));
+    return capabilities;
   }
 
   public Account toAccount() {

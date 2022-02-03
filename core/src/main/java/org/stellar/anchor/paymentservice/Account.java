@@ -70,17 +70,26 @@ public class Account {
         this.receive.put(network, false);
       }
 
-      for (Network network : send) {
-        this.send.put(network, true);
+      if (send != null) {
+        for (Network network : send) {
+          this.send.put(network, true);
+        }
       }
 
-      for (Network network : receive) {
-        this.receive.put(network, true);
+      if (receive != null) {
+        for (Network network : receive) {
+          this.receive.put(network, true);
+        }
       }
     }
 
     public Capabilities(Network... sendAndReceive) {
       this(List.of(sendAndReceive), List.of(sendAndReceive));
+    }
+
+    public void set(Network network, Boolean supportEnabled) {
+      this.send.put(network, supportEnabled);
+      this.receive.put(network, supportEnabled);
     }
 
     @Override

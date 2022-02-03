@@ -20,6 +20,7 @@ dependencyResolutionManagement {
             alias("okhttp3.mockserver").to("com.squareup.okhttp3:mockwebserver:4.9.3")
             alias("reactor.netty").to("io.projectreactor.netty:reactor-netty:1.0.15")
             alias("java.stellar.sdk").to("com.github.stellar:java-stellar-sdk:0.29.0")
+            alias("commons.validator").to("commons-validator:commons-validator:1.7")
 
             alias("kotlin.mockk").to("io.mockk:mockk:1.12.2")
             alias("kotlin.stdlib").to("org.jetbrains.kotlin:kotlin-stdlib:1.6.10")
