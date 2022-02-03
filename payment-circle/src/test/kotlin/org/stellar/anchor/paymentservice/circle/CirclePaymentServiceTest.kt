@@ -21,6 +21,7 @@ import org.junit.jupiter.api.assertThrows
 import org.skyscreamer.jsonassert.JSONAssert
 import org.stellar.anchor.exception.HttpException
 import org.stellar.anchor.paymentservice.*
+import org.stellar.anchor.paymentservice.circle.model.CircleWallet
 import org.stellar.anchor.paymentservice.circle.util.CircleDateFormatter
 import reactor.core.publisher.Mono
 import reactor.netty.ByteBufMono
@@ -261,12 +262,11 @@ class CirclePaymentServiceTest {
             .getDeclaredMethod("getCircleWallet", String::class.java)
     assert(getCircleWalletMethod.trySetAccessible())
 
-    var circleWallet: org.stellar.anchor.paymentservice.circle.model.CircleWallet? = null
+    var circleWallet: CircleWallet? = null
     assertDoesNotThrow {
       circleWallet =
-          (getCircleWalletMethod.invoke(service, "1000223064") as
-                  Mono<org.stellar.anchor.paymentservice.circle.model.CircleWallet>)
-              .block()
+        (getCircleWalletMethod.invoke(service, "1000223064") as Mono<CircleWallet>)
+          .block()
     }
     assertEquals("1000223064", circleWallet?.walletId)
     assertEquals("2f47c999-9022-4939-acea-dc3afa9ccbaf", circleWallet?.entityId)
