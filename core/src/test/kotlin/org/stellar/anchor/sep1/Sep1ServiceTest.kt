@@ -9,17 +9,15 @@ import org.junit.jupiter.api.TestInstance
 import org.stellar.anchor.config.Sep1Config
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-internal class Sep1ServiceTest  {
-    @Test
-    fun testToml() {
-        val sep1Config = mockk<Sep1Config>()
-        every {sep1Config.stellarFile} returns "test_stellar.toml"
+internal class Sep1ServiceTest {
+  @Test
+  fun testToml() {
+    val sep1Config = mockk<Sep1Config>()
+    every { sep1Config.stellarFile } returns "test_stellar.toml"
 
-        val sep1Service = Sep1Service(sep1Config)
+    val sep1Service = Sep1Service(sep1Config)
 
-        assertNotNull(sep1Service.stellarToml)
-        verify (exactly = 1){
-            sep1Config.stellarFile
-        }
-    }
+    assertNotNull(sep1Service.stellarToml)
+    verify(exactly = 1) { sep1Config.stellarFile }
+  }
 }
