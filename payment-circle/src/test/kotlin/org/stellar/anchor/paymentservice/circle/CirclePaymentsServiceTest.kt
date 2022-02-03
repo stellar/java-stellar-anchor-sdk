@@ -526,7 +526,7 @@ class CirclePaymentsServiceTest {
                                             "amount":"0.09",
                                             "currency":"USD"
                                         },
-                                        "status":"complete",
+                                        "status":"pending",
                                         "sourceWalletId":"1000066041",
                                         "destination":{
                                             "type":"wire",
@@ -570,7 +570,7 @@ class CirclePaymentsServiceTest {
             Account.Capabilities(Network.BANK_WIRE)),
         payment?.destinationAccount)
     assertEquals(Balance("0.91", "circle:USD"), payment?.balance)
-    assertEquals(Payment.Status.SUCCESSFUL, payment?.status)
+    assertEquals(Payment.Status.PENDING, payment?.status)
     assertNull(payment?.errorCode)
 
     val wantCreateDate = CircleDateFormatter.stringToDate("2021-11-25T15:43:03.477Z")
@@ -598,7 +598,7 @@ class CirclePaymentsServiceTest {
                     put("currency", "USD")
                   }
                 })
-            put("status", "complete")
+            put("status", "pending")
             put("sourceWalletId", "1000066041")
             put(
                 "destination",
@@ -737,7 +737,7 @@ class CirclePaymentsServiceTest {
                                     "amount":"0.91",
                                     "currency":"USD"
                                 },
-                                "status":"complete",
+                                "status":"pending",
                                 "createDate":"2022-01-01T01:01:01.544Z"
                             }
                         }""".trimIndent())
@@ -769,7 +769,7 @@ class CirclePaymentsServiceTest {
             Network.CIRCLE, "1000067536", Account.Capabilities(Network.CIRCLE, Network.STELLAR)),
         payment?.destinationAccount)
     assertEquals(Balance("0.91", "circle:USD"), payment?.balance)
-    assertEquals(Payment.Status.SUCCESSFUL, payment?.status)
+    assertEquals(Payment.Status.PENDING, payment?.status)
     assertNull(payment?.errorCode)
 
     val wantDate =
@@ -792,7 +792,7 @@ class CirclePaymentsServiceTest {
                     "amount" to "0.91",
                     "currency" to "USD",
                 ),
-            "status" to "complete",
+            "status" to "pending",
             "createDate" to "2022-01-01T01:01:01.544Z",
         )
     assertEquals(wantOriginalResponse, payment?.originalResponse)
@@ -869,7 +869,7 @@ class CirclePaymentsServiceTest {
                                     "amount":"0.91",
                                     "currency":"USD"
                                 },
-                                "status":"complete",
+                                "status":"pending",
                                 "createDate":"2022-01-01T01:01:01.544Z"
                             }
                         }""".trimIndent())
@@ -907,7 +907,7 @@ class CirclePaymentsServiceTest {
             Account.Capabilities(Network.STELLAR)),
         payment?.destinationAccount)
     assertEquals(Balance("0.91", "circle:USD"), payment?.balance)
-    assertEquals(Payment.Status.SUCCESSFUL, payment?.status)
+    assertEquals(Payment.Status.PENDING, payment?.status)
     assertNull(payment?.errorCode)
 
     val wantDate =
@@ -936,7 +936,7 @@ class CirclePaymentsServiceTest {
                     "amount" to "0.91",
                     "currency" to "USD",
                 ),
-            "status" to "complete",
+            "status" to "pending",
             "createDate" to "2022-01-01T01:01:01.544Z",
         )
     assertEquals(wantOriginalResponse, payment?.originalResponse)
