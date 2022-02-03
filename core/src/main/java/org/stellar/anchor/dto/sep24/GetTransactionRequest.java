@@ -7,11 +7,11 @@ import lombok.Data;
 @AllArgsConstructor
 @Data
 public class GetTransactionRequest {
-    String id;
+  String id;
 
-    @SerializedName("stellar_transaction_id")
-    String stellarTransactionId;
+  @SerializedName("stellar_transaction_id")
+  String stellarTransactionId;
 
-    @SerializedName("external_transaction_id")
-    String externalTransactionId;
+  @SerializedName("external_transaction_id")
+  String externalTransactionId;
 }

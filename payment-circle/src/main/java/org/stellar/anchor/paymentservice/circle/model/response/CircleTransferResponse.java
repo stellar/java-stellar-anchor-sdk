@@ -5,5 +5,5 @@ import org.stellar.anchor.paymentservice.circle.model.CircleTransfer;
 
 @Data
 public class CircleTransferResponse {
-    CircleTransfer data;
+  CircleTransfer data;
 }

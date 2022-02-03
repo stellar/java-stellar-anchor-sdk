@@ -6,8 +6,7 @@ import lombok.Data;
 @AllArgsConstructor
 @Data
 public class InteractiveTransactionResponse {
-    String type;
-    String url;
-    String id;
+  String type;
+  String url;
+  String id;
 }
-

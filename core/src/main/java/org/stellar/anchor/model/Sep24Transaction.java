@@ -2,182 +2,184 @@ package org.stellar.anchor.model;
 
 @SuppressWarnings("unused")
 public interface Sep24Transaction {
-    String getId();
+  String getId();
 
-    void setId(String id);
+  void setId(String id);
 
-    String getDocumentType();
+  String getDocumentType();
 
-    void setDocumentType(String documentType);
+  void setDocumentType(String documentType);
 
-    String getTransactionId();
+  String getTransactionId();
 
-    void setTransactionId(String transactionId);
+  void setTransactionId(String transactionId);
 
-    String getStellarTransactionId();
+  String getStellarTransactionId();
 
-    void setStellarTransactionId(String stellarTransactionId);
+  void setStellarTransactionId(String stellarTransactionId);
 
-    String getExternalTransactionId();
+  String getExternalTransactionId();
 
-    void setExternalTransactionId(String externalTransactionId);
+  void setExternalTransactionId(String externalTransactionId);
 
-    String getStatus();
+  String getStatus();
 
-    void setStatus(String status);
+  void setStatus(String status);
 
-    String getKind();
+  String getKind();
 
-    void setKind(String kind);
+  void setKind(String kind);
 
-    Long getStartedAt();
+  Long getStartedAt();
 
-    void setStartedAt(Long startedAt);
+  void setStartedAt(Long startedAt);
 
-    Long getCompletedAt();
+  Long getCompletedAt();
 
-    void setCompletedAt(Long completedAt);
+  void setCompletedAt(Long completedAt);
 
-    String getAssetCode();
+  String getAssetCode();
 
-    void setAssetCode(String assetCode);
+  void setAssetCode(String assetCode);
 
-    String getAssetIssuer();
+  String getAssetIssuer();
 
-    void setAssetIssuer(String assetIssuer);
+  void setAssetIssuer(String assetIssuer);
 
-    String getStellarAccount();
+  String getStellarAccount();
 
-    void setStellarAccount(String stellarAccount);
+  void setStellarAccount(String stellarAccount);
 
-    String getReceivingAnchorAccount();
+  String getReceivingAnchorAccount();
 
-    void setReceivingAnchorAccount(String receivingAnchorAccount);
+  void setReceivingAnchorAccount(String receivingAnchorAccount);
 
-    String getFromAccount();
+  String getFromAccount();
 
-    void setFromAccount(String fromAccount);
+  void setFromAccount(String fromAccount);
 
-    String getToAccount();
+  String getToAccount();
 
-    void setToAccount(String toAccount);
+  void setToAccount(String toAccount);
 
-    String getMemoType();
+  String getMemoType();
 
-    void setMemoType(String memoType);
+  void setMemoType(String memoType);
 
-    String getMemo();
+  String getMemo();
 
-    void setMemo(String memo);
+  void setMemo(String memo);
 
-    String getProtocol();
+  String getProtocol();
 
-    void setProtocol(String protocol);
+  void setProtocol(String protocol);
 
-    String getDomainClient();
+  String getDomainClient();
 
-    void setDomainClient(String domainClient);
+  void setDomainClient(String domainClient);
 
-    Boolean getClaimableBalanceSupported();
+  Boolean getClaimableBalanceSupported();
 
-    void setClaimableBalanceSupported(Boolean claimableBalanceSupported);
+  void setClaimableBalanceSupported(Boolean claimableBalanceSupported);
 
-    String getAmountIn();
+  String getAmountIn();
 
-    void setAmountIn(String amountIn);
+  void setAmountIn(String amountIn);
 
-    String getAmountOut();
+  String getAmountOut();
 
-    void setAmountOut(String amountOut);
+  void setAmountOut(String amountOut);
 
-    String getAmountFee();
+  String getAmountFee();
 
-    void setAmountFee(String amountFee);
+  void setAmountFee(String amountFee);
 
-    String getAmountInAsset();
+  String getAmountInAsset();
 
-    void setAmountInAsset(String amountInAsset);
+  void setAmountInAsset(String amountInAsset);
 
-    String getAmountOutAsset();
+  String getAmountOutAsset();
 
-    void setAmountOutAsset(String amountOutAsset);
+  void setAmountOutAsset(String amountOutAsset);
 
-    String getAmountFeeAsset();
+  String getAmountFeeAsset();
 
-    void setAmountFeeAsset(String amountFeeAsset);
+  void setAmountFeeAsset(String amountFeeAsset);
 
-    String getAccountMemo();
+  String getAccountMemo();
 
-    void setAccountMemo(String accountMemo);
+  void setAccountMemo(String accountMemo);
 
-    String getMuxedAccount();
+  String getMuxedAccount();
 
-    void setMuxedAccount(String muxedAccount);
+  void setMuxedAccount(String muxedAccount);
 
-    enum Kind {
-        DEPOSIT("deposit"),
-        WITHDRAWAL("withdrawal"),
-        SEND("send");
-        private final String name;
+  enum Kind {
+    DEPOSIT("deposit"),
+    WITHDRAWAL("withdrawal"),
+    SEND("send");
+    private final String name;
 
-        Kind(String name) {
-            this.name = name;
-        }
-
-        public String toString() {
-            return name;
-        }
+    Kind(String name) {
+      this.name = name;
     }
 
-    enum Status {
-        PENDING_ANCHOR("pending_anchor", "processing"),
-        PENDING_TRUST("pending_trust", "waiting for a trustline to be established"),
-        PENDING_USER("pending_user", "waiting on user action"),
-        PENDING_USR_TRANSFER_START("pending_user_transfer_start", "waiting on the user to transfer funds"),
-        PENDING_USR_TRANSFER_COMPLETE("pending_user_transfer_complete", "the user has transferred the funds"),
-        INCOMPLETE("incomplete", "incomplete"),
-        NO_MARKET("no_market", "no market for the asset"),
-        TOO_SMALL("too_small", "the transaction amount is too small"),
-        TOO_LARGE("too_large", "the transaction amount is too big"),
-        PENDING_SENDER("pending_sender", null),
-        PENDING_RECEIVER("pending_receiver", null),
-        PENDING_TRANSACTION_INFO_UPDATE("pending_transaction_info_update", null),
-        PENDING_CUSTOMER_INFO_UPDATE("pending_customer_info_update", null),
-        COMPLETED("completed", "complete"),
-        ERROR("error", "error"),
-        PENDING_EXTERNAL("pending_external", "waiting on an external entity"),
-        PENDING_STELLAR("pending_stellar", "stellar is executing the transaction");
+    public String toString() {
+      return name;
+    }
+  }
 
-        private final String name;
-        private final String description;
+  enum Status {
+    PENDING_ANCHOR("pending_anchor", "processing"),
+    PENDING_TRUST("pending_trust", "waiting for a trustline to be established"),
+    PENDING_USER("pending_user", "waiting on user action"),
+    PENDING_USR_TRANSFER_START(
+        "pending_user_transfer_start", "waiting on the user to transfer funds"),
+    PENDING_USR_TRANSFER_COMPLETE(
+        "pending_user_transfer_complete", "the user has transferred the funds"),
+    INCOMPLETE("incomplete", "incomplete"),
+    NO_MARKET("no_market", "no market for the asset"),
+    TOO_SMALL("too_small", "the transaction amount is too small"),
+    TOO_LARGE("too_large", "the transaction amount is too big"),
+    PENDING_SENDER("pending_sender", null),
+    PENDING_RECEIVER("pending_receiver", null),
+    PENDING_TRANSACTION_INFO_UPDATE("pending_transaction_info_update", null),
+    PENDING_CUSTOMER_INFO_UPDATE("pending_customer_info_update", null),
+    COMPLETED("completed", "complete"),
+    ERROR("error", "error"),
+    PENDING_EXTERNAL("pending_external", "waiting on an external entity"),
+    PENDING_STELLAR("pending_stellar", "stellar is executing the transaction");
 
-        Status(String name, String description) {
-            this.name = name;
-            this.description = description;
-        }
+    private final String name;
+    private final String description;
 
-        public String toString() {
-            return name;
-        }
-
-        public String getDescription() {
-            return description;
-        }
+    Status(String name, String description) {
+      this.name = name;
+      this.description = description;
     }
 
-    enum Protocol {
-        SEP6("sep6"),
-        SEP24("sep24"),
-        SEP31("sep31");
-
-        private final String name;
-
-        Protocol(String name) {
-            this.name = name;
-        }
-
-        public String toString() {
-            return name;
-        }
+    public String toString() {
+      return name;
     }
+
+    public String getDescription() {
+      return description;
+    }
+  }
+
+  enum Protocol {
+    SEP6("sep6"),
+    SEP24("sep24"),
+    SEP31("sep31");
+
+    private final String name;
+
+    Protocol(String name) {
+      this.name = name;
+    }
+
+    public String toString() {
+      return name;
+    }
+  }
 }

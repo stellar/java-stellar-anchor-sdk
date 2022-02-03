@@ -6,23 +6,22 @@ import org.stellar.anchor.sep10.JwtService;
 import org.stellar.anchor.sep10.JwtToken;
 
 public class Sep10TokenFilter extends BaseTokenFilter {
-    final Sep10Config sep10Config;
+  final Sep10Config sep10Config;
 
-    public Sep10TokenFilter(Sep10Config sep10Config, JwtService jwtService) {
-        super(jwtService);
-        this.sep10Config = sep10Config;
+  public Sep10TokenFilter(Sep10Config sep10Config, JwtService jwtService) {
+    super(jwtService);
+    this.sep10Config = sep10Config;
+  }
+
+  @Override
+  protected boolean isEnabled() {
+    return sep10Config.getEnabled();
+  }
+
+  protected void validate(JwtToken token) throws SepValidationException {
+    if (token == null) {
+      throw new SepValidationException("JwtToken should not be null");
     }
-
-    @Override
-    protected boolean isEnabled() {
-        return sep10Config.getEnabled();
-    }
-
-
-    protected void validate(JwtToken token) throws SepValidationException {
-        if (token == null) {
-            throw new SepValidationException("JwtToken should not be null");
-        }
-        // TODO: Validate later.
-    }
+    // TODO: Validate later.
+  }
 }

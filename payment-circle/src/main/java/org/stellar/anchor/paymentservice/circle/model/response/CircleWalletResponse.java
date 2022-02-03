@@ -5,5 +5,5 @@ import org.stellar.anchor.paymentservice.circle.model.CircleWallet;
 
 @Data
 public class CircleWalletResponse {
-    CircleWallet data;
+  CircleWallet data;
 }

@@ -4,6 +4,6 @@ import lombok.Data;
 
 @Data
 public class CircleError {
-    Integer code;
-    String message;
+  Integer code;
+  String message;
 }

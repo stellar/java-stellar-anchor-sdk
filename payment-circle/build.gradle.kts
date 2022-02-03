@@ -38,8 +38,6 @@ dependencies {
     testImplementation(libs.junit5.params)
     testImplementation(libs.jsonassert)
     testAnnotationProcessor(libs.lombok)
-
-    testImplementation(project(":core"))
 }
 
 tasks.test {

@@ -3,19 +3,19 @@ package org.stellar.anchor.config;
 import java.util.List;
 
 public interface Sep10Config {
-    String getHomeDomain();
+  String getHomeDomain();
 
-    boolean isClientAttributionRequired();
+  boolean isClientAttributionRequired();
 
-    Boolean getEnabled();
+  Boolean getEnabled();
 
-    String getSigningSeed();
+  String getSigningSeed();
 
-    Integer getAuthTimeout();
+  Integer getAuthTimeout();
 
-    Integer getJwtTimeout();
+  Integer getJwtTimeout();
 
-    List<String> getClientAttributionDenyList();
+  List<String> getClientAttributionDenyList();
 
-    List<String> getClientAttributionAllowList();
+  List<String> getClientAttributionAllowList();
 }

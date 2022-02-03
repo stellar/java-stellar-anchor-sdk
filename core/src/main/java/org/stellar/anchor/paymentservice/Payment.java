@@ -1,39 +1,37 @@
 package org.stellar.anchor.paymentservice;
 
-import lombok.Data;
-
 import java.util.Date;
 import java.util.Map;
+import lombok.Data;
 
 @Data
 public class Payment {
-    String id;
-    Account sourceAccount;
-    Account destinationAccount;
-    /**
-     * The balance currency name contains the scheme of the destination network of the payment.
-     */
-    Balance balance;
-    Status status;
-    String errorCode;
-    Date createdAt;
-    Date updatedAt;
-    Map<String, ?> originalResponse;
+  String id;
+  Account sourceAccount;
+  Account destinationAccount;
+  /** The balance currency name contains the scheme of the destination network of the payment. */
+  Balance balance;
 
-    public enum Status {
-        PENDING("pending"),
-        SUCCESSFUL("successful"),
-        FAILED("failed");
+  Status status;
+  String errorCode;
+  Date createdAt;
+  Date updatedAt;
+  Map<String, ?> originalResponse;
 
-        private final String name;
+  public enum Status {
+    PENDING("pending"),
+    SUCCESSFUL("successful"),
+    FAILED("failed");
 
-        Status(String name) {
-            this.name = name;
-        }
+    private final String name;
 
-        @Override
-        public String toString() {
-            return name;
-        }
+    Status(String name) {
+      this.name = name;
     }
+
+    @Override
+    public String toString() {
+      return name;
+    }
+  }
 }
