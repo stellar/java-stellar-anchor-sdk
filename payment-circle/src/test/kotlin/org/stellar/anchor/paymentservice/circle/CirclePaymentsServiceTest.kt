@@ -569,7 +569,7 @@ class CirclePaymentsServiceTest {
             "6c87da10-feb8-484f-822c-2083ed762d25",
             Account.Capabilities(Network.BANK_WIRE)),
         payment?.destinationAccount)
-    assertEquals(Balance("0.91", "circle:USD"), payment?.balance)
+    assertEquals(Balance("0.91", "iso4217:USD"), payment?.balance)
     assertEquals(Payment.Status.PENDING, payment?.status)
     assertNull(payment?.errorCode)
 
@@ -904,7 +904,7 @@ class CirclePaymentsServiceTest {
             "test tag",
             Account.Capabilities(Network.STELLAR)),
         payment?.destinationAccount)
-    assertEquals(Balance("0.91", "circle:USD"), payment?.balance)
+    assertEquals(Balance("0.91", "stellar:USD"), payment?.balance)
     assertEquals(Payment.Status.PENDING, payment?.status)
     assertNull(payment?.errorCode)
 
