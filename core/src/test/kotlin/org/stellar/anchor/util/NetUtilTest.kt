@@ -10,57 +10,54 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
 internal class NetUtilTest {
-    @MockK
-    private lateinit var mockCall: okhttp3.Call
+  @MockK private lateinit var mockCall: okhttp3.Call
 
-    @MockK
-    private lateinit var mockResponse: Response
+  @MockK private lateinit var mockResponse: Response
 
-    @MockK
-    private lateinit var mockResponseBody: ResponseBody
+  @MockK private lateinit var mockResponseBody: ResponseBody
 
-    @BeforeEach
-    fun setup() {
-        MockKAnnotations.init(this, relaxed = true)
+  @BeforeEach
+  fun setup() {
+    MockKAnnotations.init(this, relaxed = true)
+  }
+
+  @AfterEach
+  fun tearDown() {
+    clearAllMocks()
+    unmockkAll()
+  }
+
+  @Test
+  fun testFetch() {
+    mockkStatic(NetUtil::class)
+    every { NetUtil.getCall(any()) } returns mockCall
+    every { mockCall.execute() } returns mockResponse
+    every { mockResponse.body } returns mockResponseBody
+    every { mockResponseBody.string() } returns "result"
+
+    val result = NetUtil.fetch("http://hello")
+    assert(result.equals("result"))
+    verify {
+      NetUtil.getCall(any())
+      mockCall.execute()
     }
+  }
 
-    @AfterEach
-    fun tearDown() {
-        clearAllMocks()
-        unmockkAll()
-    }
+  @Test
+  fun testFetchExcpeption() {
+    mockkStatic(NetUtil::class)
+    every { NetUtil.getCall(any()) } returns mockCall
+    every { mockCall.execute() } returns mockResponse
+    every { mockResponse.body } returns null
+    every { mockResponseBody.string() } returns "result"
 
-    @Test
-    fun testFetch() {
-        mockkStatic(NetUtil::class)
-        every { NetUtil.getCall(any()) } returns mockCall
-        every { mockCall.execute() } returns mockResponse
-        every { mockResponse.body } returns mockResponseBody
-        every { mockResponseBody.string() } returns "result"
+    val result = NetUtil.fetch("http://hello")
+    assert(result.equals(""))
+  }
 
-        val result = NetUtil.fetch("http://hello")
-        assert(result.equals("result"))
-        verify {
-            NetUtil.getCall(any())
-            mockCall.execute()
-        }
-    }
-
-    @Test
-    fun testFetchExcpeption() {
-        mockkStatic(NetUtil::class)
-        every { NetUtil.getCall(any()) } returns mockCall
-        every { mockCall.execute() } returns mockResponse
-        every { mockResponse.body } returns null
-        every { mockResponseBody.string() } returns "result"
-
-        val result = NetUtil.fetch("http://hello")
-        assert(result.equals(""))
-    }
-
-    @Test
-    fun testGetCall() {
-        val request = OkHttpUtil.buildGetRequest("https://www.stellar.org")
-        assertNotNull(NetUtil.getCall(request))
-    }
+  @Test
+  fun testGetCall() {
+    val request = OkHttpUtil.buildGetRequest("https://www.stellar.org")
+    assertNotNull(NetUtil.getCall(request))
+  }
 }
