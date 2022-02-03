@@ -520,7 +520,7 @@ class CirclePaymentsServiceTest {
                                         "sourceWalletId":"1000066041",
                                         "destination":{
                                             "type":"wire",
-                                            "id":"8f6cd3bc-fd21-45ac-b1f0-7534d3b78949",
+                                            "id":"6c87da10-feb8-484f-822c-2083ed762d25",
                                             "name":"JPMORGAN CHASE BANK, NA ****6789"
                                         },
                                         "createDate":"2021-11-25T15:43:03.477Z",
@@ -535,13 +535,13 @@ class CirclePaymentsServiceTest {
         server.dispatcher = dispatcher
 
         val source = Account(Network.CIRCLE, "1000066041", Account.Capabilities())
-        val destination = Account(Network.BANK_WIRE, "8f6cd3bc-fd21-45ac-b1f0-7534d3b78949", "test@mail.com", Account.Capabilities())
+        val destination = Account(Network.BANK_WIRE, "6c87da10-feb8-484f-822c-2083ed762d25", "test@mail.com", Account.Capabilities())
         var payment: Payment? = null
         assertDoesNotThrow { payment = service.sendPayment(source, destination, "iso4217:USD", BigDecimal.valueOf(0.91)).block() }
 
         assertEquals("c58e2613-a808-4075-956c-e576787afb3b", payment?.id)
         assertEquals(Account(Network.CIRCLE, "1000066041", Account.Capabilities(Network.CIRCLE, Network.STELLAR, Network.BANK_WIRE)), payment?.sourceAccount)
-        assertEquals(Account(Network.BANK_WIRE, "8f6cd3bc-fd21-45ac-b1f0-7534d3b78949", Account.Capabilities(Network.BANK_WIRE)), payment?.destinationAccount)
+        assertEquals(Account(Network.BANK_WIRE, "6c87da10-feb8-484f-822c-2083ed762d25", Account.Capabilities(Network.BANK_WIRE)), payment?.destinationAccount)
         assertEquals(Balance("0.91", "circle:USD"), payment?.balance)
         assertEquals(Payment.Status.SUCCESSFUL, payment?.status)
         assertNull(payment?.errorCode)
@@ -571,7 +571,7 @@ class CirclePaymentsServiceTest {
                 put("destination", object: HashMap<String, Any?>() {
                     init {
                         put("type", "wire")
-                        put("id", "8f6cd3bc-fd21-45ac-b1f0-7534d3b78949")
+                        put("id", "6c87da10-feb8-484f-822c-2083ed762d25")
                         put("name", "JPMORGAN CHASE BANK, NA ****6789")
                     }
                 })
@@ -601,7 +601,7 @@ class CirclePaymentsServiceTest {
             },
             "destination": {
                 "type": "wire",
-                "id": "8f6cd3bc-fd21-45ac-b1f0-7534d3b78949"
+                "id": "6c87da10-feb8-484f-822c-2083ed762d25"
             },
             "amount": {
                 "amount": "0.91",
@@ -1000,7 +1000,7 @@ class CirclePaymentsServiceTest {
             ErrorHandlingTestCase(
                 service.sendPayment(
                     Account(Network.CIRCLE, "1000066041", Account.Capabilities()),
-                    Account(Network.BANK_WIRE, "8f6cd3bc-fd21-45ac-b1f0-7534d3b78949", "test@mail.com", Account.Capabilities()),
+                    Account(Network.BANK_WIRE, "6c87da10-feb8-484f-822c-2083ed762d25", "test@mail.com", Account.Capabilities()),
                     "iso4217:USD",
                     BigDecimal(1)
                 ),
