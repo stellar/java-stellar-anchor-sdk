@@ -1,8 +1,5 @@
 package org.stellar.anchor.paymentservice.circle;
 
-import static org.stellar.anchor.paymentservice.Network.CIRCLE;
-import static org.stellar.anchor.paymentservice.Network.STELLAR;
-
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import io.netty.handler.codec.http.HttpHeaderNames;
@@ -33,7 +30,7 @@ import reactor.util.annotation.Nullable;
 @Data
 public class CirclePaymentsService implements PaymentsService {
   private static final Gson gson = new Gson();
-  Network network = CIRCLE;
+  Network network = Network.CIRCLE;
   String url;
   String secretKey;
 
@@ -299,7 +296,7 @@ public class CirclePaymentsService implements PaymentsService {
       @NonNull Account destinationAccount,
       @NonNull String currencyName)
       throws HttpException {
-    if (sourceAccount.network != CIRCLE) {
+    if (sourceAccount.network != Network.CIRCLE) {
       throw new HttpException(400, "the only supported network for the source account is circle");
     }
     if (!List.of(Network.CIRCLE, Network.STELLAR, Network.BANK_WIRE)
@@ -373,6 +370,52 @@ public class CirclePaymentsService implements PaymentsService {
   }
 
   /**
+   * API request that sends a Circle payout, i.e. a payment from a Circle wallet to a bank account
+   * registered in Circle.
+   *
+   * @param sourceAccount the account where the payment will be sent from.
+   * @param destinationAccount the bank wire account that will receive the payment.
+   * @param balance the balance to be transferred.
+   * @return asynchronous stream with the payment object.
+   * @throws HttpException If the Circle http response status code is 4xx or 5xx.
+   * @throws HttpException If the destination network is not a bank wire.
+   */
+  private Mono<Payment> sendPayout(
+      Account sourceAccount, Account destinationAccount, CircleBalance balance)
+      throws HttpException {
+    if (destinationAccount.network != Network.BANK_WIRE) {
+      throw new HttpException(
+          500, "something went wrong, the destination account network is invalid");
+    }
+
+    CircleTransactionParty source = CircleTransactionParty.wallet(sourceAccount.getId());
+    CircleTransactionParty destination =
+        CircleTransactionParty.wire(destinationAccount.id, destinationAccount.idTag);
+    CircleSendTransactionRequest req =
+        CircleSendTransactionRequest.forPayout(
+            source, destination, balance, UUID.randomUUID().toString());
+    String jsonBody = gson.toJson(req);
+
+    return getWebClient(true)
+        .post()
+        .uri("/v1/payouts")
+        .send(ByteBufMono.fromString(Mono.just(jsonBody)))
+        .responseSingle(
+            (postResponse, bodyBytesMono) -> {
+              if (postResponse.status().code() >= 400) {
+                return handleCircleError(postResponse, bodyBytesMono);
+              }
+
+              return bodyBytesMono.asString();
+            })
+        .flatMap(
+            body -> {
+              CirclePayoutResponse payout = gson.fromJson(body, CirclePayoutResponse.class);
+              return Mono.just(payout.getData().toPayment());
+            });
+  }
+
+  /**
    * API request that executes a payment between accounts. The APIKey needs to have access to the
    * source account for this request to succeed.
    *
@@ -402,6 +445,9 @@ public class CirclePaymentsService implements PaymentsService {
       case CIRCLE:
       case STELLAR:
         sendPaymentMono = sendTransfer(sourceAccount, destinationAccount, circleBalance);
+        break;
+      case BANK_WIRE:
+        sendPaymentMono = sendPayout(sourceAccount, destinationAccount, circleBalance);
         break;
       default:
         throw new RuntimeException(

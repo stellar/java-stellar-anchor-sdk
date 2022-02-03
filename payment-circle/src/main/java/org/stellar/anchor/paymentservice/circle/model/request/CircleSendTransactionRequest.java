@@ -21,4 +21,19 @@ public class CircleSendTransactionRequest {
     req.amount = amount;
     return req;
   }
+
+  public static CircleSendTransactionRequest forPayout(
+      CircleTransactionParty source,
+      CircleTransactionParty destination,
+      CircleBalance amount,
+      String idempotencyKey) {
+    CircleSendTransactionRequest req = new CircleSendTransactionRequest();
+    req.source = source;
+    req.destination = destination;
+    req.amount = amount;
+    req.idempotencyKey = idempotencyKey;
+    req.metadata = new HashMap<>();
+    req.metadata.put("beneficiaryEmail", destination.getEmail());
+    return req;
+  }
 }
