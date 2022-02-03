@@ -83,6 +83,11 @@ public class Account {
       this(List.of(sendAndReceive), List.of(sendAndReceive));
     }
 
+    public void set(Network network, Boolean supportEnabled) {
+      this.send.put(network, supportEnabled);
+      this.receive.put(network, supportEnabled);
+    }
+
     @Override
     public boolean equals(Object o) {
       if (this == o) return true;

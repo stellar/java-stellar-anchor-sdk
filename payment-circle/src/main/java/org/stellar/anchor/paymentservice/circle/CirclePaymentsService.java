@@ -398,7 +398,27 @@ public class CirclePaymentsService implements PaymentsService {
             "unsupported destination network '" + destinationAccount.network + "'");
     }
 
-    return sendPaymentMono;
+    return Mono.zip(getDistributionAccountAddress(), sendPaymentMono)
+        .flatMap(
+            args -> {
+              String distributionAccountAddress = args.getT1();
+              Payment payment = args.getT2();
+
+              // fill source account level
+              Account sourceAcc = payment.getSourceAccount();
+              Boolean isSourceEqualsDistribution = sourceAcc.id.equals(distributionAccountAddress);
+              sourceAcc.capabilities.set(Network.BANK_WIRE, isSourceEqualsDistribution);
+
+              // fill destination account level
+              Account destinationAcc = payment.getDestinationAccount();
+              Boolean isDestinationEqualsDistributionOrBankWire =
+                  destinationAcc.network.equals(Network.BANK_WIRE)
+                      || destinationAcc.id.equals(distributionAccountAddress);
+              destinationAcc.capabilities.set(
+                  Network.BANK_WIRE, isDestinationEqualsDistributionOrBankWire);
+
+              return Mono.just(payment);
+            });
   }
 
   /**
