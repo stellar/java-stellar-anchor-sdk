@@ -9,17 +9,17 @@ import org.stellar.anchor.config.AppConfig
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class HorizonTest {
-    companion object {
-        const val TEST_HORIZON_URI = "https://horizon-testnet.stellar.org/"
-    }
+  companion object {
+    const val TEST_HORIZON_URI = "https://horizon-testnet.stellar.org/"
+  }
 
-    @Test
-    fun testHorizon() {
-        val appConfig = mockk<AppConfig>()
-        every { appConfig.horizonURI } returns TEST_HORIZON_URI
+  @Test
+  fun testHorizon() {
+    val appConfig = mockk<AppConfig>()
+    every { appConfig.horizonURI } returns TEST_HORIZON_URI
 
-        val horizonServer = Horizon(appConfig)
+    val horizonServer = Horizon(appConfig)
 
-        assertNotNull(horizonServer.server)
-    }
+    assertNotNull(horizonServer.server)
+  }
 }

@@ -4,13 +4,13 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 
 internal class ValidationRequestTest {
-    companion object {
-        const val TEST_TRANSACTION = "TEST TXN"
-    }
+  companion object {
+    const val TEST_TRANSACTION = "TEST TXN"
+  }
 
-    @Test
-    fun testOf() {
-        val vr = ValidationRequest.of(TEST_TRANSACTION)
-        assertEquals(TEST_TRANSACTION, vr.transaction)
-    }
+  @Test
+  fun testOf() {
+    val vr = ValidationRequest.of(TEST_TRANSACTION)
+    assertEquals(TEST_TRANSACTION, vr.transaction)
+  }
 }
