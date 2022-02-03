@@ -347,7 +347,8 @@ public class CirclePaymentsService implements PaymentsService {
             400, "the destination network is not supported for Circle transfers");
     }
     CircleSendTransactionRequest req =
-        CircleSendTransactionRequest.forTransfer(source, destination, balance);
+        CircleSendTransactionRequest.forTransfer(
+            source, destination, balance, UUID.randomUUID().toString());
     String jsonBody = gson.toJson(req);
 
     Mono<Payment> sendTransferMono =

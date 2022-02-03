@@ -826,7 +826,7 @@ class CirclePaymentsServiceTest {
                 "currency": "USD"
             }
         }""".trimIndent()
-    JSONAssert.assertEquals(wantBody, gotBody, true)
+    JSONAssert.assertEquals(wantBody, gotBody, false)
   }
 
   @Test
@@ -972,7 +972,7 @@ class CirclePaymentsServiceTest {
                 "currency": "USD"
             }
         }""".trimIndent()
-    JSONAssert.assertEquals(wantBody, gotBody, true)
+    JSONAssert.assertEquals(wantBody, gotBody, false)
   }
 
   @Test

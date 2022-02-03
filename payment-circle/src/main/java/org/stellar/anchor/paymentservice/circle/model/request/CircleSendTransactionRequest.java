@@ -14,11 +14,15 @@ public class CircleSendTransactionRequest {
   HashMap<String, Object> metadata;
 
   public static CircleSendTransactionRequest forTransfer(
-      CircleTransactionParty source, CircleTransactionParty destination, CircleBalance amount) {
+      CircleTransactionParty source,
+      CircleTransactionParty destination,
+      CircleBalance amount,
+      String idempotencyKey) {
     CircleSendTransactionRequest req = new CircleSendTransactionRequest();
     req.source = source;
     req.destination = destination;
     req.amount = amount;
+    req.idempotencyKey = idempotencyKey;
     return req;
   }
 
