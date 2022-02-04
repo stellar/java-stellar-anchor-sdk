@@ -38,3 +38,4 @@ dependencyResolutionManagement {
 
 include("core")
 include("payment-circle")
+include("payment-stellar")
