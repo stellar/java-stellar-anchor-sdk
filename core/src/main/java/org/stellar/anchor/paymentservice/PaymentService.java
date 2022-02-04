@@ -56,10 +56,12 @@ public interface PaymentService {
    * API request that returns the history of payments involving a given account.
    *
    * @param accountID the id of the account whose payment history we want to fetch.
+   * @param beforeCursor the value used to limit payments to only those before it
+   * @param afterCursor the value used to limit payments to only those before it
    * @return asynchronous stream with the payment history.
    * @throws HttpException If the http response status code is 4xx or 5xx.
    */
-  Mono<PaymentHistory> getAccountPaymentHistory(String accountID, @Nullable String afterCursor, @Nullable String beforeCursor) throws HttpException;
+  Mono<PaymentHistory> getAccountPaymentHistory(String accountID, @Nullable String beforeCursor, @Nullable String afterCursor) throws HttpException;
 
   /**
    * API request that executes a payment between accounts. The APIKey needs to have access to the
