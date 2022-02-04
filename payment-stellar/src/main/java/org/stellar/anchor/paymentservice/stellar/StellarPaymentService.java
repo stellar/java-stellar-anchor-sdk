@@ -13,7 +13,7 @@ import org.stellar.anchor.paymentservice.DepositRequirements;
 import org.stellar.anchor.paymentservice.Network;
 import org.stellar.anchor.paymentservice.Payment;
 import org.stellar.anchor.paymentservice.PaymentHistory;
-import org.stellar.anchor.paymentservice.PaymentsService;
+import org.stellar.anchor.paymentservice.PaymentService;
 import org.stellar.anchor.paymentservice.stellar.requests.SubmitTransactionRequest;
 import org.stellar.anchor.paymentservice.stellar.util.NettyHttpClient;
 import org.stellar.sdk.*;
@@ -25,7 +25,7 @@ import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.client.HttpClientResponse;
 
 @Data
-public class StellarPaymentsService implements PaymentsService {
+public class StellarPaymentService implements PaymentService {
   private static final Gson gson = new Gson();
   Network network = Network.STELLAR;
   String url;
@@ -49,7 +49,7 @@ public class StellarPaymentsService implements PaymentsService {
     return _webClient;
   }
 
-  public StellarPaymentsService() {
+  public StellarPaymentService() {
     super();
   }
 
