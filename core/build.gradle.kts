@@ -4,10 +4,11 @@ plugins {
 }
 
 dependencies {
-    // ***************************
-    // Production dependencies
-    // ***************************
-    // From mavenCentral
+    compileOnly(libs.servlet.api)
+
+    compileOnly(libs.slf4j.api)
+    api(libs.lombok)
+
     implementation(libs.apache.commons.lang3)
     implementation(libs.log4j.core)
     implementation(libs.httpclient)
@@ -17,30 +18,12 @@ dependencies {
     implementation(libs.commons.codec)
     implementation(libs.jjwt)
     implementation(libs.reactor.core)
-    implementation(libs.slf4j.log4j12)
     implementation(libs.javax.jaxb.api)
-
-    api(libs.lombok)
-    api(libs.servlet.api)
+    implementation(libs.java.stellar.sdk)
 
     // Lombok should be used by all sub-projects to reduce Java verbosity
     annotationProcessor(libs.lombok)
 
-    // From jitpack.io
-    implementation(libs.java.stellar.sdk)
-
-    // ***************************
-    // Test dependencies
-    // ***************************
-    testImplementation(libs.kotlin.stdlib)
-    testImplementation(libs.kotlin.junit5)
-    testImplementation(libs.kotlin.mockk)
-    testImplementation(libs.junit5.api)
-    testImplementation(libs.junit5.engine)
-    testImplementation(libs.junit5.params)
-    testAnnotationProcessor(libs.lombok)
-}
-
-tasks.test {
-    useJUnitPlatform()
+    testImplementation(libs.servlet.api)
+    testImplementation(libs.slf4j.api)
 }
