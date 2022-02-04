@@ -8,7 +8,7 @@ import reactor.util.annotation.Nullable;
  * account.
  *
  * @see DepositRequirements
- * @see PaymentsService#getDepositInstructions(DepositRequirements)
+ * @see PaymentService#getDepositInstructions(DepositRequirements)
  */
 @Data
 @SuppressWarnings("unused")

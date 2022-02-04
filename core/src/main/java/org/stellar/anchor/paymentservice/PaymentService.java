@@ -10,7 +10,7 @@ import reactor.util.annotation.Nullable;
  * networks, like Stellar, Circle, Wyre or others.
  */
 @SuppressWarnings("unused")
-public interface PaymentsService {
+public interface PaymentService {
   Network getNetwork();
 
   void setNetwork(Network network);

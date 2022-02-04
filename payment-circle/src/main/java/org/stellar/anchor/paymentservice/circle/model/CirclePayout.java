@@ -38,8 +38,9 @@ public class CirclePayout {
             Network.CIRCLE,
             sourceWalletId,
             new Account.Capabilities(Network.CIRCLE, Network.STELLAR, Network.BANK_WIRE)));
-    p.setDestinationAccount(destination.toAccount());
-    p.setBalance(amount.toBalance());
+    Account destinationAccount = destination.toAccount();
+    p.setDestinationAccount(destinationAccount);
+    p.setBalance(amount.toBalance(destinationAccount.network));
     p.setStatus(status.toPaymentStatus());
     p.setErrorCode(errorCode);
     p.setCreatedAt(createDate);
