@@ -7,10 +7,6 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.stellar.anchor.exception.HttpException;
 import org.stellar.anchor.paymentservice.*;
@@ -30,16 +26,10 @@ import reactor.util.annotation.Nullable;
 public class CirclePaymentService implements PaymentService {
   private static final Gson gson = new Gson();
 
-  @Getter()
-  @Setter(AccessLevel.NONE)
   Network network = Network.CIRCLE;
 
-  @Getter()
-  @Setter(AccessLevel.NONE)
   String url;
 
-  @Getter()
-  @Setter(AccessLevel.NONE)
   String secretKey;
 
   private HttpClient _webClient;
@@ -54,6 +44,18 @@ public class CirclePaymentService implements PaymentService {
     super();
     this.url = url;
     this.secretKey = secretKey;
+  }
+
+  public Network getNetwork() {
+    return this.network;
+  }
+
+  public String getUrl() {
+    return this.url;
+  }
+
+  public String getSecretKey() {
+    return this.secretKey;
   }
 
   private HttpClient getWebClient(boolean authenticated) {
