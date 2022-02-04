@@ -1,0 +1,22 @@
+ACCOUNTS = []
+VERSION = "0.1.0"
+NETWORK_PASSPHRASE = "Test SDF Network ; September 2015"
+SIGNING_KEY = "GCHLHDBOKG2JWMJQBTLSL5XG6NO7ESXI2TAQKZXCXWXB5WI2X6W233PR"
+
+WEB_AUTH_ENDPOINT = "http://localhost:8080/auth"
+TRANSFER_SERVER_SEP0024 = "http://localhost:8080/sep24"
+
+[[CURRENCIES]]
+code = "USDC"
+issuer = "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+status = "test"
+is_asset_anchored = true
+anchor_asset_type = "fiat"
+desc = "A test USDC issued by Circle."
+
+[DOCUMENTATION]
+ORG_NAME = "MoneyGram"
+ORG_URL = "https://www.moneygram.com"
+ORG_DESCRIPTION = "MoneyGram is leading the evolution of digital P2P payments."
+ORG_LOGO="https://d3stellar.moneygram.com/assets/images/moneygram-logo.jpg"
+ORG_SUPPORT_EMAIL="tbd@moneygram.com"
