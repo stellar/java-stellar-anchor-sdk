@@ -6,6 +6,8 @@ import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
 import java.time.Duration;
+import java.util.Map;
+import okhttp3.HttpUrl;
 import reactor.netty.http.client.HttpClient;
 
 public class NettyHttpClient {
@@ -27,5 +29,23 @@ public class NettyHttpClient {
                 connection
                     .addHandlerLast(new ReadTimeoutHandler(15))
                     .addHandlerLast(new WriteTimeoutHandler(15)));
+  }
+
+  public static String uriWithParams(String uri, Map<String, String> queryParams) {
+    HttpUrl.Builder urlBuilder = new HttpUrl.Builder().scheme("https").host("example.com");
+
+    if (uri != null && !uri.isEmpty()) {
+      for (String pathSegment : uri.split("/")) {
+        urlBuilder = urlBuilder.addPathSegment(pathSegment);
+      }
+    }
+
+    if (queryParams != null && !queryParams.isEmpty()) {
+      for (Map.Entry<String, String> queryParam : queryParams.entrySet()) {
+        urlBuilder = urlBuilder.addQueryParameter(queryParam.getKey(), queryParam.getValue());
+      }
+    }
+
+    return urlBuilder.build().url().getFile();
   }
 }
