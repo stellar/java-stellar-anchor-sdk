@@ -1,0 +1,32 @@
+{
+    "assets": [
+        {
+            "code": "USDC",
+            "issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+            "significant_decimals": 2,
+            "deposit" : {
+                "enabled": true,
+                "fee_minimum": 0,
+                "fee_percent": 0,
+                "min_amount": 0,
+                "max_amount": 10000
+            },
+            "withdraw": {
+                "enabled": true,
+                "fee_fixed": 0,
+                "fee_percent": 0,
+                "min_amount": 0,
+                "max_amount": 10000
+            },
+            "send": {
+                "fee_fixed": 0,
+                "fee_percent": 0,
+                "min_amount": 0,
+                "max_amount": 10000
+            },
+            "sep24_enabled": true,
+            "sep6_enabled": false,
+            "sep31_enabled": false
+        }
+    ]
+}

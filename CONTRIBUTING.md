@@ -21,7 +21,5 @@ Check out the [Stellar Contribution Guide](https://github.com/stellar/.github/bl
 
 IntelliJ is one of the most popular tool in Java development. Click [here](docs/intellij_setup.md) for details.
 
-
-
  
 
