@@ -45,7 +45,8 @@ public interface PaymentService {
   /**
    * API request that creates an account with the given id.
    *
-   * @param accountId is the identifier of the account to be created.
+   * @param accountId is the identifier of the account to be created. It could be mandatory or
+   *     optional depending on the implementation.
    * @return asynchronous stream with the account object.
    * @throws HttpException If the http response status code is 4xx or 5xx.
    */
