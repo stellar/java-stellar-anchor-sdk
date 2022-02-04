@@ -21,7 +21,3 @@ dependencies {
     // From projects
     implementation(project(":core"))
 }
-
-tasks.test {
-    useJUnitPlatform()
-}
