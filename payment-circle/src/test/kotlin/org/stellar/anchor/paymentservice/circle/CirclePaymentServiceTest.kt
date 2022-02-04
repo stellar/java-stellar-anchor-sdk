@@ -21,6 +21,7 @@ import org.junit.jupiter.api.assertThrows
 import org.skyscreamer.jsonassert.JSONAssert
 import org.stellar.anchor.exception.HttpException
 import org.stellar.anchor.paymentservice.*
+import org.stellar.anchor.paymentservice.circle.model.CircleWallet
 import org.stellar.anchor.paymentservice.circle.util.CircleDateFormatter
 import reactor.core.publisher.Mono
 import reactor.netty.ByteBufMono
@@ -73,16 +74,16 @@ private class ErrorHandlingTestCase {
   }
 }
 
-class CirclePaymentsServiceTest {
+class CirclePaymentServiceTest {
   private lateinit var server: MockWebServer
-  private lateinit var service: PaymentsService
+  private lateinit var service: PaymentService
 
   @BeforeEach
   @Throws(IOException::class)
   fun setUp() {
     server = MockWebServer()
     server.start()
-    service = org.stellar.anchor.paymentservice.circle.CirclePaymentsService()
+    service = CirclePaymentService()
     service.url = server.url("").toString()
   }
 
@@ -103,7 +104,7 @@ class CirclePaymentsServiceTest {
 
     // access private method
     val handleCircleErrorMethod: Method =
-        org.stellar.anchor.paymentservice.circle.CirclePaymentsService::class.java
+        CirclePaymentService::class.java
             .getDeclaredMethod(
                 "handleCircleError", HttpClientResponse::class.java, ByteBufMono::class.java)
     assert(handleCircleErrorMethod.trySetAccessible())
@@ -212,7 +213,7 @@ class CirclePaymentsServiceTest {
 
     // Let's use reflection to access the private method
     val getMerchantAccountUnsettledBalancesMethod: Method =
-        org.stellar.anchor.paymentservice.circle.CirclePaymentsService::class.java
+        CirclePaymentService::class.java
             .getDeclaredMethod("getMerchantAccountUnsettledBalances")
     assert(getMerchantAccountUnsettledBalancesMethod.trySetAccessible())
     @Suppress("UNCHECKED_CAST")
@@ -257,16 +258,15 @@ class CirclePaymentsServiceTest {
 
     // Let's use reflection to access the private method
     val getCircleWalletMethod: Method =
-        org.stellar.anchor.paymentservice.circle.CirclePaymentsService::class.java
+        CirclePaymentService::class.java
             .getDeclaredMethod("getCircleWallet", String::class.java)
     assert(getCircleWalletMethod.trySetAccessible())
 
-    var circleWallet: org.stellar.anchor.paymentservice.circle.model.CircleWallet? = null
+    var circleWallet: CircleWallet? = null
     assertDoesNotThrow {
       circleWallet =
-          (getCircleWalletMethod.invoke(service, "1000223064") as
-                  Mono<org.stellar.anchor.paymentservice.circle.model.CircleWallet>)
-              .block()
+        (getCircleWalletMethod.invoke(service, "1000223064") as Mono<CircleWallet>)
+          .block()
     }
     assertEquals("1000223064", circleWallet?.walletId)
     assertEquals("2f47c999-9022-4939-acea-dc3afa9ccbaf", circleWallet?.entityId)
@@ -526,7 +526,7 @@ class CirclePaymentsServiceTest {
                                             "amount":"0.09",
                                             "currency":"USD"
                                         },
-                                        "status":"complete",
+                                        "status":"pending",
                                         "sourceWalletId":"1000066041",
                                         "destination":{
                                             "type":"wire",
@@ -569,8 +569,8 @@ class CirclePaymentsServiceTest {
             "6c87da10-feb8-484f-822c-2083ed762d25",
             Account.Capabilities(Network.BANK_WIRE)),
         payment?.destinationAccount)
-    assertEquals(Balance("0.91", "circle:USD"), payment?.balance)
-    assertEquals(Payment.Status.SUCCESSFUL, payment?.status)
+    assertEquals(Balance("0.91", "iso4217:USD"), payment?.balance)
+    assertEquals(Payment.Status.PENDING, payment?.status)
     assertNull(payment?.errorCode)
 
     val wantCreateDate = CircleDateFormatter.stringToDate("2021-11-25T15:43:03.477Z")
@@ -598,7 +598,7 @@ class CirclePaymentsServiceTest {
                     put("currency", "USD")
                   }
                 })
-            put("status", "complete")
+            put("status", "pending")
             put("sourceWalletId", "1000066041")
             put(
                 "destination",
@@ -737,7 +737,7 @@ class CirclePaymentsServiceTest {
                                     "amount":"0.91",
                                     "currency":"USD"
                                 },
-                                "status":"complete",
+                                "status":"pending",
                                 "createDate":"2022-01-01T01:01:01.544Z"
                             }
                         }""".trimIndent())
@@ -769,12 +769,10 @@ class CirclePaymentsServiceTest {
             Network.CIRCLE, "1000067536", Account.Capabilities(Network.CIRCLE, Network.STELLAR)),
         payment?.destinationAccount)
     assertEquals(Balance("0.91", "circle:USD"), payment?.balance)
-    assertEquals(Payment.Status.SUCCESSFUL, payment?.status)
+    assertEquals(Payment.Status.PENDING, payment?.status)
     assertNull(payment?.errorCode)
 
-    val wantDate =
-        org.stellar.anchor.paymentservice.circle.util.CircleDateFormatter.stringToDate(
-            "2022-01-01T01:01:01.544Z")
+    val wantDate = CircleDateFormatter.stringToDate("2022-01-01T01:01:01.544Z")
     assertEquals(wantDate, payment?.createdAt)
     assertEquals(wantDate, payment?.updatedAt)
 
@@ -792,7 +790,7 @@ class CirclePaymentsServiceTest {
                     "amount" to "0.91",
                     "currency" to "USD",
                 ),
-            "status" to "complete",
+            "status" to "pending",
             "createDate" to "2022-01-01T01:01:01.544Z",
         )
     assertEquals(wantOriginalResponse, payment?.originalResponse)
@@ -826,7 +824,7 @@ class CirclePaymentsServiceTest {
                 "currency": "USD"
             }
         }""".trimIndent()
-    JSONAssert.assertEquals(wantBody, gotBody, true)
+    JSONAssert.assertEquals(wantBody, gotBody, false)
   }
 
   @Test
@@ -869,7 +867,7 @@ class CirclePaymentsServiceTest {
                                     "amount":"0.91",
                                     "currency":"USD"
                                 },
-                                "status":"complete",
+                                "status":"pending",
                                 "createDate":"2022-01-01T01:01:01.544Z"
                             }
                         }""".trimIndent())
@@ -906,13 +904,11 @@ class CirclePaymentsServiceTest {
             "test tag",
             Account.Capabilities(Network.STELLAR)),
         payment?.destinationAccount)
-    assertEquals(Balance("0.91", "circle:USD"), payment?.balance)
-    assertEquals(Payment.Status.SUCCESSFUL, payment?.status)
+    assertEquals(Balance("0.91", "stellar:USD"), payment?.balance)
+    assertEquals(Payment.Status.PENDING, payment?.status)
     assertNull(payment?.errorCode)
 
-    val wantDate =
-        org.stellar.anchor.paymentservice.circle.util.CircleDateFormatter.stringToDate(
-            "2022-01-01T01:01:01.544Z")
+    val wantDate = CircleDateFormatter.stringToDate("2022-01-01T01:01:01.544Z")
     assertEquals(wantDate, payment?.createdAt)
     assertEquals(wantDate, payment?.updatedAt)
 
@@ -936,7 +932,7 @@ class CirclePaymentsServiceTest {
                     "amount" to "0.91",
                     "currency" to "USD",
                 ),
-            "status" to "complete",
+            "status" to "pending",
             "createDate" to "2022-01-01T01:01:01.544Z",
         )
     assertEquals(wantOriginalResponse, payment?.originalResponse)
@@ -972,7 +968,7 @@ class CirclePaymentsServiceTest {
                 "currency": "USD"
             }
         }""".trimIndent()
-    JSONAssert.assertEquals(wantBody, gotBody, true)
+    JSONAssert.assertEquals(wantBody, gotBody, false)
   }
 
   @Test
@@ -1011,13 +1007,13 @@ class CirclePaymentsServiceTest {
 
     // Access private method getMainAccountBalances
     val getMerchantAccountUnsettledBalancesMethod: Method =
-        org.stellar.anchor.paymentservice.circle.CirclePaymentsService::class.java
+        CirclePaymentService::class.java
             .getDeclaredMethod("getMerchantAccountUnsettledBalances")
     assert(getMerchantAccountUnsettledBalancesMethod.trySetAccessible())
 
     // Access private method getCircleWallet
     val getCircleWalletMethod: Method =
-        org.stellar.anchor.paymentservice.circle.CirclePaymentsService::class.java
+        CirclePaymentService::class.java
             .getDeclaredMethod("getCircleWallet", String::class.java)
     assert(getCircleWalletMethod.trySetAccessible())
 

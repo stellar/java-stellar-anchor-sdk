@@ -15,6 +15,10 @@ public class CircleBalance {
   }
 
   public Balance toBalance() {
-    return new Balance(amount, Network.CIRCLE.getCurrencyPrefix() + ":" + currency);
+    return toBalance(Network.CIRCLE);
+  }
+
+  public Balance toBalance(Network destinationNetwork) {
+    return new Balance(amount, destinationNetwork.getCurrencyPrefix() + ":" + currency);
   }
 }
