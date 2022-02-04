@@ -1,62 +1,70 @@
 plugins {
-    java
-    id("com.diffplug.spotless") version "6.2.1"
+  java
+  id("com.diffplug.spotless") version "6.2.1"
 }
 
-/**
- * The following block is applied to all sub-projects
- */
 subprojects {
-    apply(plugin = "java")
-    apply(plugin = "com.diffplug.spotless")
+  apply(plugin = "java")
+  apply(plugin = "com.diffplug.spotless")
 
-    repositories {
-        mavenCentral()
-        maven {
-            url = uri("https://jitpack.io")
-        }
+  repositories {
+    mavenCentral()
+    maven { url = uri("https://jitpack.io") }
+  }
+
+  /** Specifies JDK-11 */
+  java { toolchain { languageVersion.set(JavaLanguageVersion.of(11)) } }
+
+  /** Enforces google-java-format at Java compilation. */
+  tasks.named("compileJava") { this.dependsOn("spotlessApply") }
+
+  spotless {
+    val javaVersion = System.getProperty("java.version")
+    if (javaVersion >= "17") {
+      logger.warn("!!! WARNING !!!")
+      logger.warn("=================")
+      logger.warn(
+          "    You are running Java version:[{}]. Spotless may not work well with JDK 17.",
+          javaVersion)
+      logger.warn(
+          "    In IntelliJ, go to [File -> Build -> Execution, Build, Deployment -> Gradle] and check Gradle JVM")
     }
 
-    /**
-     * Specifies JDK-11
-     */
+    if (javaVersion < "11") {
+      throw GradleException("Java 11 or greater is required for spotless Gradle plugin.")
+    }
+
     java {
-        toolchain {
-            languageVersion.set(JavaLanguageVersion.of(11))
-        }
+      importOrder("java", "javax", "org.stellar")
+      removeUnusedImports()
+      googleJavaFormat()
     }
 
-    /**
-     * Enforces google-java-format at Java compilation.
-     */
-    tasks.named("compileJava") {
-        this.dependsOn("spotlessApply")
-    }
+    kotlin { ktfmt("0.30").googleStyle() }
+  }
 
-    spotless {
-        val javaVersion = System.getProperty("java.version")
-        if (javaVersion >= "17") {
-            logger.warn("!!! WARNING !!!")
-            logger.warn("=================")
-            logger.warn(
-                "    You are running Java version:[{}]. Spotless may not work well with JDK 17.",
-                javaVersion
-            )
-            logger.warn("    In IntelliJ, go to [File -> Build -> Execution, Build, Deployment -> Gradle] and check Gradle JVM")
-        }
+  dependencies {
+    // The common dependencies are declared here because we would like to have a uniform unit
+    // testing across all subprojects.
+    //
+    // We need to use the dependency string because the VERSION_CATEGORY feature isn't supported in
+    // subproject task as of today.
+    //
+    testImplementation("org.jetbrains.kotlin:kotlin-stdlib:1.6.10")
+    testImplementation("org.jetbrains.kotlin:kotlin-test-junit5:1.6.10")
+    testImplementation("io.mockk:mockk:1.12.2")
+    testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.2")
+    testImplementation("org.junit.jupiter:junit-jupiter-engine:5.8.2")
+    testImplementation("org.junit.jupiter:junit-jupiter-params:5.8.2")
+    testImplementation("org.skyscreamer:jsonassert:1.5.0")
 
-        if (javaVersion < "11") {
-            throw GradleException("Java 11 or greater is required for spotless Gradle plugin.")
-        }
+    testAnnotationProcessor("org.projectlombok:lombok:1.18.22")
+  }
 
-        java {
-            importOrder("java", "javax", "org.stellar")
-            removeUnusedImports()
-            googleJavaFormat()
-        }
-
-        kotlin {
-            ktfmt("0.30").googleStyle()
-        }
-    }
+  /**
+   * JUnit5 should be used for all subprojects.
+   */
+  tasks.test {
+    useJUnitPlatform()
+  }
 }

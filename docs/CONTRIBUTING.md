@@ -1,3 +1,10 @@
+# Subprojects
+[Core](core.md): The SDK core library.
+
+[Payment Services](payment-services.md): The payment service library.
+
+[Anchor Platform](anchor-platform.md): The anchor platform Spring Boot application.
+
 # How to Contribute
 
 ## Build with Gradle
