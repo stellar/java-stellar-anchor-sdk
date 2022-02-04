@@ -27,27 +27,33 @@ import reactor.netty.http.client.HttpClientResponse;
 import reactor.util.annotation.NonNull;
 import reactor.util.annotation.Nullable;
 
-@Data
 public class CirclePaymentService implements PaymentService {
   private static final Gson gson = new Gson();
+
+  @Getter()
+  @Setter(AccessLevel.NONE)
   Network network = Network.CIRCLE;
+
+  @Getter()
+  @Setter(AccessLevel.NONE)
   String url;
+
+  @Getter()
+  @Setter(AccessLevel.NONE)
   String secretKey;
 
-  @Getter(AccessLevel.NONE)
-  @Setter(AccessLevel.NONE)
   private HttpClient _webClient;
 
-  @Getter(AccessLevel.NONE)
-  @Setter(AccessLevel.NONE)
   private String _mainAccountAddress;
 
   /**
    * For all service methods to work correctly, make sure your circle account has a valid business
    * wallet and a bank account configured.
    */
-  public CirclePaymentService() {
+  public CirclePaymentService(String url, String secretKey) {
     super();
+    this.url = url;
+    this.secretKey = secretKey;
   }
 
   private HttpClient getWebClient(boolean authenticated) {
@@ -94,17 +100,6 @@ public class CirclePaymentService implements PaymentService {
 
               return Mono.empty();
             });
-  }
-
-  /**
-   * API request that checks with the server if the provided secret key is valid and registered.
-   *
-   * @return asynchronous stream with a Void value. If no exception is thrown it means the request
-   *     was successful and the secret key is valid.
-   * @throws HttpException If the http response status code is 4xx or 5xx.
-   */
-  public Mono<Void> validateSecretKey() throws HttpException {
-    return getDistributionAccountAddress().mapNotNull(s -> null);
   }
 
   /**
@@ -194,8 +189,7 @@ public class CirclePaymentService implements PaymentService {
             body -> {
               CircleWalletResponse circleWalletResponse =
                   gson.fromJson(body, CircleWalletResponse.class);
-              CircleWallet circleWallet = circleWalletResponse.getData();
-              return circleWallet;
+              return circleWalletResponse.getData();
             });
   }
 
@@ -258,8 +252,7 @@ public class CirclePaymentService implements PaymentService {
               CircleWalletResponse circleWalletResponse =
                   gson.fromJson(body, CircleWalletResponse.class);
               CircleWallet circleWallet = circleWalletResponse.getData();
-              Account account = circleWallet.toAccount();
-              return account;
+              return circleWallet.toAccount();
             });
   }
 
@@ -270,7 +263,7 @@ public class CirclePaymentService implements PaymentService {
    * @return asynchronous stream with the payment history.
    * @throws HttpException If the http response status code is 4xx or 5xx.
    */
-  public Mono<PaymentHistory> getAccountPaymentHistory(String accountID) throws HttpException {
+  public Mono<PaymentHistory> getAccountPaymentHistory(String accountID, @Nullable String afterCursor, @Nullable String beforeCursor) throws HttpException {
     // TODO: implement
     return null;
   }

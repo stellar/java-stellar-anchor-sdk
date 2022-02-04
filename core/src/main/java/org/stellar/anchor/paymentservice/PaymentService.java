@@ -9,19 +9,12 @@ import reactor.util.annotation.Nullable;
  * Contains the interface methods for a payment service. It can be implemented in different
  * networks, like Stellar, Circle, Wyre or others.
  */
-@SuppressWarnings("unused")
 public interface PaymentService {
   Network getNetwork();
 
-  void setNetwork(Network network);
-
   String getUrl();
 
-  void setUrl(String url);
-
   String getSecretKey();
-
-  void setSecretKey(String secretKey);
 
   /**
    * API request that pings the server to make sure it's up and running.
@@ -31,15 +24,6 @@ public interface PaymentService {
    * @throws HttpException If the http response status code is 4xx or 5xx.
    */
   Mono<Void> ping() throws HttpException;
-
-  /**
-   * API request that checks with the server if the provided secret key is valid and registered.
-   *
-   * @return asynchronous stream with a Void value. If no exception is thrown it means the request
-   *     was successful and the secret key is valid.
-   * @throws HttpException If the http response status code is 4xx or 5xx.
-   */
-  Mono<Void> validateSecretKey() throws HttpException;
 
   /**
    * API request that returns the id of the distribution account managed by the secret key.
@@ -61,8 +45,7 @@ public interface PaymentService {
   /**
    * API request that creates an account with the given id.
    *
-   * @param accountId is the identifier of the account to be created. It could be mandatory or
-   *     optional depending on the implementation.
+   * @param accountId is the identifier of the account to be created.
    * @return asynchronous stream with the account object.
    * @throws HttpException If the http response status code is 4xx or 5xx.
    */
@@ -75,7 +58,7 @@ public interface PaymentService {
    * @return asynchronous stream with the payment history.
    * @throws HttpException If the http response status code is 4xx or 5xx.
    */
-  Mono<PaymentHistory> getAccountPaymentHistory(String accountID) throws HttpException;
+  Mono<PaymentHistory> getAccountPaymentHistory(String accountID, @Nullable String afterCursor, @Nullable String beforeCursor) throws HttpException;
 
   /**
    * API request that executes a payment between accounts. The APIKey needs to have access to the
@@ -110,7 +93,7 @@ public interface PaymentService {
    * DepositConfiguration config = new DepositConfiguration(circleWalletId, fromNetwork, currencyName);
    *
    * // Here are the instructions with the Stellar account that will receive the payment:
-   * DepositInfo depositInfo = getInfoForDeposit(config).block();
+   * DepositInfo depositInfo = getDepositInstructions(config).block();
    * System.out.println("PublicKey: " + depositInfo.accountId);        // "PublicKey: G..."
    * System.out.println("Memo: " + depositInfo.accountIdTag);          // "Memo: 2454278437550473431"
    * System.out.println("Network: " + depositInfo.network);            // "Network: stellar"
