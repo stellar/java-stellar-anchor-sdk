@@ -6,6 +6,7 @@ import io.netty.handler.codec.http.HttpHeaderValues;
 import io.netty.handler.timeout.ReadTimeoutHandler;
 import io.netty.handler.timeout.WriteTimeoutHandler;
 import java.time.Duration;
+import java.util.LinkedHashMap;
 import java.util.Map;
 import okhttp3.HttpUrl;
 import reactor.netty.http.client.HttpClient;
@@ -31,7 +32,7 @@ public class NettyHttpClient {
                     .addHandlerLast(new WriteTimeoutHandler(15)));
   }
 
-  public static String uriWithParams(String uri, Map<String, String> queryParams) {
+  public static String uriWithParams(String uri, LinkedHashMap<String, String> queryParams) {
     HttpUrl.Builder urlBuilder = new HttpUrl.Builder().scheme("https").host("example.com");
 
     if (uri != null && !uri.isEmpty()) {

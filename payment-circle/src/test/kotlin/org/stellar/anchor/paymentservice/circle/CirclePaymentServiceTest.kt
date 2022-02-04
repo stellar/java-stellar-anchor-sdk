@@ -1,5 +1,6 @@
 package org.stellar.anchor.paymentservice.circle
 
+import com.google.gson.Gson
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -26,6 +27,7 @@ import org.stellar.anchor.paymentservice.circle.util.CircleDateFormatter
 import reactor.core.publisher.Mono
 import reactor.netty.ByteBufMono
 import reactor.netty.http.client.HttpClientResponse
+import shadow.com.google.common.reflect.TypeToken
 
 private class ErrorHandlingTestCase {
   val requestMono: Mono<*>
@@ -238,6 +240,7 @@ class CirclePaymentServiceTest {
 
     var circleWallet: CircleWallet? = null
     assertDoesNotThrow {
+      @Suppress("UNCHECKED_CAST")
       circleWallet =
         (getCircleWalletMethod.invoke(service, "1000223064") as Mono<CircleWallet>).block()
     }
@@ -691,6 +694,291 @@ class CirclePaymentServiceTest {
       HttpException(400, "the currency to be sent must contain the destination network schema"),
       ex
     )
+  }
+
+  @Test
+  fun test_private_getTransfers() {
+    service.secretKey = "<secret-key>"
+
+    val mockWalletToWalletTransfer =
+      """{
+        "id":"c58e2613-a808-4075-956c-e576787afb3b",
+        "source":{
+          "type":"wallet",
+          "id":"1000066041"
+        },
+        "destination":{
+          "type":"wallet",
+          "id":"1000067536"
+        },
+        "amount":{
+          "amount":"0.91",
+          "currency":"USD"
+        },
+        "status":"pending",
+        "createDate":"2022-01-01T01:01:01.544Z"
+      }"""
+
+    val mockStellarToWalletTransfer =
+      """{
+        "id":"7f131f58-a8a0-3dc2-be05-6a015c69de35",
+        "source":{
+          "type":"blockchain",
+          "chain":"XLM"
+        },
+        "destination":{
+          "type":"wallet",
+          "id":"1000066041",
+          "address":"GAYF33NNNMI2Z6VNRFXQ64D4E4SF77PM46NW3ZUZEEU5X7FCHAZCMHKU",
+          "addressTag":"8006436449031889621"
+        },
+        "amount":{
+          "amount":"1.50",
+          "currency":"USD"
+        },
+        "transactionHash":"fb8947c67856d8eb444211c1927d92bcf14abcfb34cdd27fc9e604b15d208fd1",
+        "status":"complete",
+        "createDate":"2022-02-07T18:02:17.999Z"
+       }"""
+
+    val mockWalletToStellarTransfer =
+      """{
+        "id":"a8997020-3da7-4543-bc4a-5ae8c7ce346d",
+        "source":{
+          "type":"wallet",
+          "id":"1000066041"
+        },
+        "destination":{
+          "type":"blockchain",
+          "address":"GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S",
+          "chain":"XLM"
+        },
+        "amount":{
+          "amount":"1.00",
+          "currency":"USD"
+        },
+        "transactionHash":"5239ee055b1083231c6bdaaa921d3e4b3bc090577fbd909815bd5d7fe68091ef",
+        "status":"complete",
+        "createDate":"2022-02-07T19:50:23.408Z"
+       }"""
+
+    val dispatcher: Dispatcher =
+      object : Dispatcher() {
+        @Throws(InterruptedException::class)
+        override fun dispatch(request: RecordedRequest): MockResponse {
+          when (request.path) {
+            "/v1/transfer?pageSize=50&walletId=1000066041" ->
+              return MockResponse()
+                .addHeader("Content-Type", "application/json")
+                .setBody(
+                  """{    
+                    "data": [
+                      $mockWalletToWalletTransfer,
+                      $mockStellarToWalletTransfer,
+                      $mockWalletToStellarTransfer
+                    ]
+                  }""".trimIndent()
+                )
+          }
+          return MockResponse().setResponseCode(404)
+        }
+      }
+    server.dispatcher = dispatcher
+
+    // Let's use reflection to access the private method
+    val getTransfersMethod: Method =
+      CirclePaymentService::class.java.getDeclaredMethod(
+        "getTransfers",
+        String::class.java,
+        String::class.java,
+        String::class.java,
+        Integer::class.java
+      )
+    assert(getTransfersMethod.trySetAccessible())
+    @Suppress("UNCHECKED_CAST")
+    val getTransfersMono =
+      (getTransfersMethod.invoke(service, "1000066041", null, null, null) as Mono<PaymentHistory>)
+
+    var paymentHistory: PaymentHistory? = null
+    assertDoesNotThrow { paymentHistory = getTransfersMono.block() }
+
+    val account =
+      Account(Network.CIRCLE, "1000066041", Account.Capabilities(Network.CIRCLE, Network.STELLAR))
+    val wantPaymentHistory = PaymentHistory(account)
+    wantPaymentHistory.beforeCursor = "c58e2613-a808-4075-956c-e576787afb3b"
+
+    val gson = Gson()
+    val type = object : TypeToken<Map<String?, *>?>() {}.type
+
+    val p1 = Payment()
+    p1.id = "c58e2613-a808-4075-956c-e576787afb3b"
+    p1.sourceAccount = account
+    p1.destinationAccount =
+      Account(Network.CIRCLE, "1000067536", Account.Capabilities(Network.CIRCLE, Network.STELLAR))
+    p1.balance = Balance("0.91", "circle:USD")
+    p1.status = Payment.Status.PENDING
+    p1.createdAt = CircleDateFormatter.stringToDate("2022-01-01T01:01:01.544Z")
+    p1.updatedAt = CircleDateFormatter.stringToDate("2022-01-01T01:01:01.544Z")
+    p1.originalResponse = gson.fromJson(mockWalletToWalletTransfer, type)
+    wantPaymentHistory.payments.add(p1)
+
+    val p2 = Payment()
+    p2.id = "7f131f58-a8a0-3dc2-be05-6a015c69de35"
+    p2.sourceAccount = Account(Network.STELLAR, null, Account.Capabilities(Network.STELLAR))
+    p2.destinationAccount = account
+    p2.balance = Balance("1.50", "circle:USD")
+    p2.txHash = "fb8947c67856d8eb444211c1927d92bcf14abcfb34cdd27fc9e604b15d208fd1"
+    p2.status = Payment.Status.SUCCESSFUL
+    p2.createdAt = CircleDateFormatter.stringToDate("2022-02-07T18:02:17.999Z")
+    p2.updatedAt = CircleDateFormatter.stringToDate("2022-02-07T18:02:17.999Z")
+    p2.originalResponse = gson.fromJson(mockStellarToWalletTransfer, type)
+    wantPaymentHistory.payments.add(p2)
+
+    val p3 = Payment()
+    p3.id = "a8997020-3da7-4543-bc4a-5ae8c7ce346d"
+    p3.sourceAccount = account
+    p3.destinationAccount =
+      Account(
+        Network.STELLAR,
+        "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S",
+        Account.Capabilities(Network.STELLAR)
+      )
+    p3.balance = Balance("1.00", "stellar:USD")
+    p3.txHash = "5239ee055b1083231c6bdaaa921d3e4b3bc090577fbd909815bd5d7fe68091ef"
+    p3.status = Payment.Status.SUCCESSFUL
+    p3.createdAt = CircleDateFormatter.stringToDate("2022-02-07T19:50:23.408Z")
+    p3.updatedAt = CircleDateFormatter.stringToDate("2022-02-07T19:50:23.408Z")
+    p3.originalResponse = gson.fromJson(mockWalletToStellarTransfer, type)
+    wantPaymentHistory.payments.add(p3)
+
+    assertEquals(wantPaymentHistory, paymentHistory)
+  }
+
+  @Test
+  fun test_private_getTransfers_pagination() {
+    service.secretKey = "<secret-key>"
+
+    val mockWalletToWalletTransfer =
+      """{
+        "id":"c58e2613-a808-4075-956c-e576787afb3b",
+        "source":{
+          "type":"wallet",
+          "id":"1000066041"
+        },
+        "destination":{
+          "type":"wallet",
+          "id":"1000067536"
+        },
+        "amount":{
+          "amount":"0.91",
+          "currency":"USD"
+        },
+        "status":"pending",
+        "createDate":"2022-01-01T01:01:01.544Z"
+      }"""
+
+    val mockWalletToStellarTransfer =
+      """{
+        "id":"a8997020-3da7-4543-bc4a-5ae8c7ce346d",
+        "source":{
+          "type":"wallet",
+          "id":"1000066041"
+        },
+        "destination":{
+          "type":"blockchain",
+          "address":"GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S",
+          "chain":"XLM"
+        },
+        "amount":{
+          "amount":"1.00",
+          "currency":"USD"
+        },
+        "transactionHash":"5239ee055b1083231c6bdaaa921d3e4b3bc090577fbd909815bd5d7fe68091ef",
+        "status":"complete",
+        "createDate":"2022-02-07T19:50:23.408Z"
+       }"""
+
+    val dispatcher: Dispatcher =
+      object : Dispatcher() {
+        @Throws(InterruptedException::class)
+        override fun dispatch(request: RecordedRequest): MockResponse {
+          when (request.path) {
+            "/v1/transfer?pageSize=2&walletId=1000066041" ->
+              return MockResponse()
+                .addHeader("Content-Type", "application/json")
+                .setBody(
+                  """{    
+                    "data": [
+                      $mockWalletToWalletTransfer,
+                      $mockWalletToStellarTransfer
+                    ]
+                  }""".trimIndent()
+                )
+          }
+          return MockResponse().setResponseCode(404)
+        }
+      }
+    server.dispatcher = dispatcher
+
+    // Let's use reflection to access the private method
+    val getTransfersMethod: Method =
+      CirclePaymentService::class.java.getDeclaredMethod(
+        "getTransfers",
+        String::class.java,
+        String::class.java,
+        String::class.java,
+        Integer::class.java
+      )
+    assert(getTransfersMethod.trySetAccessible())
+    @Suppress("UNCHECKED_CAST")
+    val getTransfersMono =
+      (getTransfersMethod.invoke(service, "1000066041", null, null, 2) as Mono<PaymentHistory>)
+
+    var paymentHistory: PaymentHistory? = null
+    assertDoesNotThrow { paymentHistory = getTransfersMono.block() }
+
+    val account =
+      Account(Network.CIRCLE, "1000066041", Account.Capabilities(Network.CIRCLE, Network.STELLAR))
+    val wantPaymentHistory = PaymentHistory(account)
+    wantPaymentHistory.beforeCursor = "c58e2613-a808-4075-956c-e576787afb3b"
+    wantPaymentHistory.afterCursor = "a8997020-3da7-4543-bc4a-5ae8c7ce346d"
+
+    val gson = Gson()
+    val type = object : TypeToken<Map<String?, *>?>() {}.type
+
+    val p1 = Payment()
+    p1.id = "c58e2613-a808-4075-956c-e576787afb3b"
+    p1.sourceAccount = account
+    p1.destinationAccount =
+      Account(Network.CIRCLE, "1000067536", Account.Capabilities(Network.CIRCLE, Network.STELLAR))
+    p1.balance = Balance("0.91", "circle:USD")
+    p1.status = Payment.Status.PENDING
+    p1.createdAt = CircleDateFormatter.stringToDate("2022-01-01T01:01:01.544Z")
+    p1.updatedAt = CircleDateFormatter.stringToDate("2022-01-01T01:01:01.544Z")
+    p1.originalResponse = gson.fromJson(mockWalletToWalletTransfer, type)
+    wantPaymentHistory.payments.add(p1)
+
+    val p2 = Payment()
+    p2.id = "a8997020-3da7-4543-bc4a-5ae8c7ce346d"
+    p2.sourceAccount = account
+    p2.destinationAccount =
+      Account(
+        Network.STELLAR,
+        "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S",
+        Account.Capabilities(Network.STELLAR)
+      )
+    p2.balance = Balance("1.00", "stellar:USD")
+    p2.txHash = "5239ee055b1083231c6bdaaa921d3e4b3bc090577fbd909815bd5d7fe68091ef"
+    p2.status = Payment.Status.SUCCESSFUL
+    p2.createdAt = CircleDateFormatter.stringToDate("2022-02-07T19:50:23.408Z")
+    p2.updatedAt = CircleDateFormatter.stringToDate("2022-02-07T19:50:23.408Z")
+    p2.originalResponse = gson.fromJson(mockWalletToStellarTransfer, type)
+    wantPaymentHistory.payments.add(p2)
+
+    println(wantPaymentHistory)
+    println(paymentHistory)
+
+    assertEquals(wantPaymentHistory, paymentHistory)
   }
 
   @Test

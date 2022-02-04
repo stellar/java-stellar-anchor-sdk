@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import java.math.BigDecimal;
+import java.util.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -266,6 +267,47 @@ public class CirclePaymentService implements PaymentService {
             });
   }
 
+  public Mono<PaymentHistory> getTransfers(
+      String accountID, String beforeCursor, String afterCursor, Integer pageSize)
+      throws HttpException {
+    // build query parameters for GET requests
+    Integer _pageSize = pageSize != null ? pageSize : 50;
+    LinkedHashMap<String, String> queryParams = new LinkedHashMap<>();
+    queryParams.put("pageSize", _pageSize.toString());
+    queryParams.put("walletId", accountID);
+
+    if (beforeCursor != null && !beforeCursor.isEmpty()) {
+      queryParams.put("pageBefore", beforeCursor);
+    } else if (afterCursor != null && !afterCursor.isEmpty()) {
+      // we can't use both pageBefore and pageAfter at once, that's why I'm using 'else if'
+      queryParams.put("pageAfter", afterCursor);
+    }
+
+    String url = NettyHttpClient.uriWithParams("/v1/transfer", queryParams);
+    return getWebClient(true)
+        .get()
+        .uri(url)
+        .responseSingle(
+            (response, bodyBytesMono) -> {
+              if (response.status().code() >= 400) {
+                return handleCircleError(response, bodyBytesMono);
+              }
+
+              return bodyBytesMono.asString();
+            })
+        .map(
+            body -> {
+              Account account =
+                  new Account(
+                      Network.CIRCLE,
+                      accountID,
+                      new Account.Capabilities(Network.CIRCLE, Network.STELLAR));
+              CircleTransferListResponse circleTransferListResponse =
+                  gson.fromJson(body, CircleTransferListResponse.class);
+              return circleTransferListResponse.toPaymentHistory(_pageSize, account);
+            });
+  }
+
   /**
    * API request that returns the history of payments involving a given account.
    *
@@ -279,7 +321,7 @@ public class CirclePaymentService implements PaymentService {
       String accountID, @Nullable String beforeCursor, @Nullable String afterCursor)
       throws HttpException {
     // TODO: implement
-    return null;
+    return getTransfers(accountID, beforeCursor, afterCursor, null);
   }
 
   /**
