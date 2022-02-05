@@ -2,10 +2,6 @@ package org.stellar.anchor.paymentservice.stellar;
 
 import com.google.gson.Gson;
 import java.math.BigDecimal;
-import lombok.AccessLevel;
-import lombok.Data;
-import lombok.Getter;
-import lombok.Setter;
 import org.stellar.anchor.exception.HttpException;
 import org.stellar.anchor.paymentservice.Account;
 import org.stellar.anchor.paymentservice.DepositInstructions;
@@ -26,14 +22,14 @@ import reactor.netty.http.client.HttpClientResponse;
 
 public class StellarPaymentService implements PaymentService {
   private static final Gson gson = new Gson();
-  Network network = Network.STELLAR;
-  String url;
-  String secretKey;
-  int baseFee;
-  org.stellar.sdk.Network stellarNetwork;
+  private Network network = Network.STELLAR;
+  private String url;
+  private String secretKey;
+  private int baseFee;
+  private org.stellar.sdk.Network stellarNetwork;
   long transactionsExpireAfter;
 
-  private HttpClient _webClient;
+  private HttpClient webClient;
 
   public StellarPaymentService(String url, String secretKey, int baseFee, org.stellar.sdk.Network stellarNetwork, long transactionsExpireAfter) {
     super();
@@ -45,30 +41,58 @@ public class StellarPaymentService implements PaymentService {
   }
 
   public Network getNetwork() {
-    return this.network;
+    return network;
+  }
+
+  public void setNetwork(Network network) {
+    this.network = network;
   }
 
   public String getUrl() {
-    return this.url;
+    return url;
+  }
+
+  public void setUrl(String url) {
+    this.url = url;
+  }
+
+  public String getSecretKey() {
+    return secretKey;
+  }
+
+  public void setSecretKey(String secretKey) {
+    this.secretKey = secretKey;
   }
 
   public int getBaseFee() {
-    return this.baseFee;
+    return baseFee;
+  }
+
+  public void setBaseFee(int baseFee) {
+    this.baseFee = baseFee;
   }
 
   public org.stellar.sdk.Network getStellarNetwork() {
-    return this.stellarNetwork;
+    return stellarNetwork;
+  }
+
+  public void setStellarNetwork(org.stellar.sdk.Network stellarNetwork) {
+    this.stellarNetwork = stellarNetwork;
   }
 
   public long getTransactionsExpireAfter() {
-    return this.transactionsExpireAfter;
+    return transactionsExpireAfter;
+  }
+
+  public void setTransactionsExpireAfter(long transactionsExpireAfter) {
+    this.transactionsExpireAfter = transactionsExpireAfter;
   }
 
   private HttpClient getWebClient() {
-    if (_webClient == null) {
-      _webClient = NettyHttpClient.withBaseUrl(getUrl());
+    if (webClient == null) {
+      webClient = NettyHttpClient.withBaseUrl(getUrl());
     }
-    return _webClient;
+    return webClient;
   }
 
   public reactor.core.publisher.Mono<Void> ping() throws HttpException {
