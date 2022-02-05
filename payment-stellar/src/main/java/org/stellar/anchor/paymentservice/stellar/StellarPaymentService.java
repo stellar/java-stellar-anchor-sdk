@@ -19,10 +19,11 @@ import reactor.core.publisher.Mono;
 import reactor.netty.ByteBufMono;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.client.HttpClientResponse;
+import reactor.util.annotation.Nullable;
 
 public class StellarPaymentService implements PaymentService {
   private static final Gson gson = new Gson();
-  private Network network = Network.STELLAR;
+  private final Network network = Network.STELLAR;
   private String url;
   private String secretKey;
   private int baseFee;
@@ -42,10 +43,6 @@ public class StellarPaymentService implements PaymentService {
 
   public Network getNetwork() {
     return network;
-  }
-
-  public void setNetwork(Network network) {
-    this.network = network;
   }
 
   public String getUrl() {
@@ -182,7 +179,7 @@ public class StellarPaymentService implements PaymentService {
     return transaction.toEnvelopeXdr().toString();
   }
 
-  public reactor.core.publisher.Mono<PaymentHistory> getAccountPaymentHistory(String accountID)
+  public reactor.core.publisher.Mono<PaymentHistory> getAccountPaymentHistory(String accountID, @Nullable String beforeCursor, @Nullable String afterCursor)
       throws HttpException {
     return null;
   }
