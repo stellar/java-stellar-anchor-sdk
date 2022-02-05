@@ -14,7 +14,11 @@ public interface PaymentService {
 
   String getUrl();
 
+  void setUrl(String url);
+
   String getSecretKey();
+
+  void setSecretKey(String secretKey);
 
   /**
    * API request that pings the server to make sure it's up and running.

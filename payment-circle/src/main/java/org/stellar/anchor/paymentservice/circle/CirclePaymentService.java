@@ -26,15 +26,15 @@ import reactor.util.annotation.Nullable;
 public class CirclePaymentService implements PaymentService {
   private static final Gson gson = new Gson();
 
-  Network network = Network.CIRCLE;
+  private final Network network = Network.CIRCLE;
 
-  String url;
+  private String url;
 
-  String secretKey;
+  private String secretKey;
 
-  private HttpClient _webClient;
+  private HttpClient webClient;
 
-  private String _mainAccountAddress;
+  private String mainAccountAddress;
 
   /**
    * For all service methods to work correctly, make sure your circle account has a valid business
@@ -54,18 +54,27 @@ public class CirclePaymentService implements PaymentService {
     return this.url;
   }
 
+  public void setUrl(String url) {
+    this.url = url;
+  }
+
   public String getSecretKey() {
     return this.secretKey;
   }
 
+  public void setSecretKey(String secretKey) {
+    this.secretKey = secretKey;
+    this.mainAccountAddress = null;
+  }
+
   private HttpClient getWebClient(boolean authenticated) {
-    if (_webClient == null) {
-      _webClient = NettyHttpClient.withBaseUrl(getUrl());
+    if (webClient == null) {
+      this.webClient = NettyHttpClient.withBaseUrl(getUrl());
     }
     if (!authenticated) {
-      return _webClient;
+      return webClient;
     }
-    return _webClient.headers(
+    return webClient.headers(
         h -> h.add(HttpHeaderNames.AUTHORIZATION, "Bearer " + getSecretKey()));
   }
 
@@ -111,8 +120,8 @@ public class CirclePaymentService implements PaymentService {
    * @throws HttpException If the http response status code is 4xx or 5xx.
    */
   public Mono<String> getDistributionAccountAddress() throws HttpException {
-    if (_mainAccountAddress != null) {
-      return Mono.just(_mainAccountAddress);
+    if (mainAccountAddress != null) {
+      return Mono.just(mainAccountAddress);
     }
 
     return getWebClient(true)
@@ -130,8 +139,8 @@ public class CirclePaymentService implements PaymentService {
             body -> {
               CircleConfigurationResponse response =
                   gson.fromJson(body, CircleConfigurationResponse.class);
-              _mainAccountAddress = response.data.payments.masterWalletId;
-              return _mainAccountAddress;
+              mainAccountAddress = response.data.payments.masterWalletId;
+              return mainAccountAddress;
             });
   }
 
