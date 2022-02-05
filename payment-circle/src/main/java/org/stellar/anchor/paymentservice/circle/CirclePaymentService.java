@@ -74,8 +74,7 @@ public class CirclePaymentService implements PaymentService {
     if (!authenticated) {
       return webClient;
     }
-    return webClient.headers(
-        h -> h.add(HttpHeaderNames.AUTHORIZATION, "Bearer " + getSecretKey()));
+    return webClient.headers(h -> h.add(HttpHeaderNames.AUTHORIZATION, "Bearer " + getSecretKey()));
   }
 
   @NonNull
@@ -276,7 +275,9 @@ public class CirclePaymentService implements PaymentService {
    * @return asynchronous stream with the payment history.
    * @throws HttpException If the http response status code is 4xx or 5xx.
    */
-  public Mono<PaymentHistory> getAccountPaymentHistory(String accountID, @Nullable String beforeCursor, @Nullable String afterCursor) throws HttpException {
+  public Mono<PaymentHistory> getAccountPaymentHistory(
+      String accountID, @Nullable String beforeCursor, @Nullable String afterCursor)
+      throws HttpException {
     // TODO: implement
     return null;
   }

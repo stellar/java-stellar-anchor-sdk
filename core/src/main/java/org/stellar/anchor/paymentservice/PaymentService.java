@@ -65,7 +65,9 @@ public interface PaymentService {
    * @return asynchronous stream with the payment history.
    * @throws HttpException If the http response status code is 4xx or 5xx.
    */
-  Mono<PaymentHistory> getAccountPaymentHistory(String accountID, @Nullable String beforeCursor, @Nullable String afterCursor) throws HttpException;
+  Mono<PaymentHistory> getAccountPaymentHistory(
+      String accountID, @Nullable String beforeCursor, @Nullable String afterCursor)
+      throws HttpException;
 
   /**
    * API request that executes a payment between accounts. The APIKey needs to have access to the
