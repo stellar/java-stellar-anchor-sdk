@@ -24,7 +24,6 @@ import reactor.netty.ByteBufMono;
 import reactor.netty.http.client.HttpClient;
 import reactor.netty.http.client.HttpClientResponse;
 
-@Data
 public class StellarPaymentService implements PaymentService {
   private static final Gson gson = new Gson();
   Network network = Network.STELLAR;
@@ -34,23 +33,42 @@ public class StellarPaymentService implements PaymentService {
   org.stellar.sdk.Network stellarNetwork;
   long transactionsExpireAfter;
 
-  @Getter(AccessLevel.NONE)
-  @Setter(AccessLevel.NONE)
   private HttpClient _webClient;
 
-  @Getter(AccessLevel.NONE)
-  @Setter(AccessLevel.NONE)
-  private String _publicKey;
+  public StellarPaymentService(String url, String secretKey, int baseFee, org.stellar.sdk.Network stellarNetwork, long transactionsExpireAfter) {
+    super();
+    this.url = url;
+    this.secretKey = secretKey;
+    this.baseFee = baseFee;
+    this.stellarNetwork = stellarNetwork;
+    this.transactionsExpireAfter = transactionsExpireAfter;
+  }
+
+  public Network getNetwork() {
+    return this.network;
+  }
+
+  public String getUrl() {
+    return this.url;
+  }
+
+  public int getBaseFee() {
+    return this.baseFee;
+  }
+
+  public org.stellar.sdk.Network getStellarNetwork() {
+    return this.stellarNetwork;
+  }
+
+  public long getTransactionsExpireAfter() {
+    return this.transactionsExpireAfter;
+  }
 
   private HttpClient getWebClient() {
     if (_webClient == null) {
       _webClient = NettyHttpClient.withBaseUrl(getUrl());
     }
     return _webClient;
-  }
-
-  public StellarPaymentService() {
-    super();
   }
 
   public reactor.core.publisher.Mono<Void> ping() throws HttpException {
