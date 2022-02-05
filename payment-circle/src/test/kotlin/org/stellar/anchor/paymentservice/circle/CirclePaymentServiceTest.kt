@@ -83,8 +83,7 @@ class CirclePaymentServiceTest {
   fun setUp() {
     server = MockWebServer()
     server.start()
-    service = CirclePaymentService()
-    service.url = server.url("").toString()
+    service = CirclePaymentService(server.url("").toString(), "<secret-key>")
   }
 
   @AfterEach
@@ -137,34 +136,7 @@ class CirclePaymentServiceTest {
   }
 
   @Test
-  fun testValidateSecretKey() {
-    service.secretKey = "<secret-key>"
-    val response =
-      MockResponse()
-        .addHeader("Content-Type", "application/json")
-        .setBody(
-          """{
-                        "data":{
-                            "payments":{
-                                "masterWalletId":"1000066041"
-                            }
-                        }
-                    }"""
-        )
-    server.enqueue(response)
-
-    assertDoesNotThrow { service.validateSecretKey().block() }
-
-    val request = server.takeRequest()
-    assertEquals("GET", request.method)
-    assertEquals("application/json", request.headers["Content-Type"])
-    assertEquals("Bearer <secret-key>", request.headers["Authorization"])
-    assertThat(request.path, CoreMatchers.endsWith("/v1/configuration"))
-  }
-
-  @Test
   fun testGetDistributionAccountAddress() {
-    service.secretKey = "<secret-key>"
     val response =
       MockResponse()
         .addHeader("Content-Type", "application/json")
@@ -197,7 +169,6 @@ class CirclePaymentServiceTest {
 
   @Test
   fun test_private_getMerchantAccountUnsettledBalances() {
-    service.secretKey = "<secret-key>"
     val response =
       MockResponse()
         .addHeader("Content-Type", "application/json")
@@ -239,7 +210,6 @@ class CirclePaymentServiceTest {
 
   @Test
   fun test_private_getCircleWallet() {
-    service.secretKey = "<secret-key>"
     val response =
       MockResponse()
         .addHeader("Content-Type", "application/json")
@@ -288,7 +258,6 @@ class CirclePaymentServiceTest {
 
   @Test
   fun testGetAccount_isNotMainAccount() {
-    service.secretKey = "<secret-key>"
     val dispatcher: Dispatcher =
       object : Dispatcher() {
         @Throws(InterruptedException::class)
@@ -360,7 +329,6 @@ class CirclePaymentServiceTest {
 
   @Test
   fun testGetAccount_isMainAccount() {
-    service.secretKey = "<secret-key>"
     val dispatcher: Dispatcher =
       object : Dispatcher() {
         @Throws(InterruptedException::class)
@@ -459,7 +427,6 @@ class CirclePaymentServiceTest {
 
   @Test
   fun test_createAccount() {
-    service.secretKey = "<secret-key>"
     val response =
       MockResponse()
         .addHeader("Content-Type", "application/json")
@@ -504,7 +471,6 @@ class CirclePaymentServiceTest {
 
   @Test
   fun testSendPayment_circleToWire() {
-    service.secretKey = "<secret-key>"
     val dispatcher: Dispatcher =
       object : Dispatcher() {
         @Throws(InterruptedException::class)
@@ -729,7 +695,6 @@ class CirclePaymentServiceTest {
 
   @Test
   fun testSendPayment_circleToCircle() {
-    service.secretKey = "<secret-key>"
     val dispatcher: Dispatcher =
       object : Dispatcher() {
         @Throws(InterruptedException::class)
@@ -861,7 +826,6 @@ class CirclePaymentServiceTest {
 
   @Test
   fun testSendPayment_circleToStellar() {
-    service.secretKey = "<secret-key>"
     val dispatcher: Dispatcher =
       object : Dispatcher() {
         @Throws(InterruptedException::class)
@@ -1059,7 +1023,6 @@ class CirclePaymentServiceTest {
     listOf(
       // --- tests with sync/serial requests ---
       ErrorHandlingTestCase(service.ping(), listOf(badRequestResponse)),
-      ErrorHandlingTestCase(service.validateSecretKey(), listOf(badRequestResponse)),
       ErrorHandlingTestCase(service.distributionAccountAddress, listOf(badRequestResponse)),
       ErrorHandlingTestCase(service.getAccount("random_id"), listOf(badRequestResponse)),
       ErrorHandlingTestCase(
