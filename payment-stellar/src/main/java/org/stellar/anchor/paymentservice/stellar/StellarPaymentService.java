@@ -2,19 +2,20 @@ package org.stellar.anchor.paymentservice.stellar;
 
 import com.google.gson.Gson;
 import java.math.BigDecimal;
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Arrays;
+
 import org.stellar.anchor.exception.HttpException;
+import org.stellar.anchor.paymentservice.*;
 import org.stellar.anchor.paymentservice.Account;
-import org.stellar.anchor.paymentservice.DepositInstructions;
-import org.stellar.anchor.paymentservice.DepositRequirements;
 import org.stellar.anchor.paymentservice.Network;
-import org.stellar.anchor.paymentservice.Payment;
-import org.stellar.anchor.paymentservice.PaymentHistory;
-import org.stellar.anchor.paymentservice.PaymentService;
 import org.stellar.anchor.paymentservice.stellar.requests.SubmitTransactionRequest;
 import org.stellar.anchor.paymentservice.stellar.util.NettyHttpClient;
 import org.stellar.sdk.*;
 import org.stellar.sdk.responses.AccountResponse;
 import org.stellar.sdk.responses.SubmitTransactionResponse;
+import org.stellar.sdk.responses.TransactionResponse;
 import reactor.core.publisher.Mono;
 import reactor.netty.ByteBufMono;
 import reactor.netty.http.client.HttpClient;
@@ -33,7 +34,6 @@ public class StellarPaymentService implements PaymentService {
   private HttpClient webClient;
 
   public StellarPaymentService(String url, String secretKey, int baseFee, org.stellar.sdk.Network stellarNetwork, long transactionsExpireAfter) {
-    super();
     this.url = url;
     this.secretKey = secretKey;
     this.baseFee = baseFee;
@@ -139,10 +139,10 @@ public class StellarPaymentService implements PaymentService {
 
   public reactor.core.publisher.Mono<Account> createAccount(String accountId, BigDecimal withAmount)
       throws HttpException {
-    return getAccountResponse(accountId)
+    return getAccountResponse(KeyPair.fromSecretSeed(secretKey).getAccountId())
         .flatMap(
             accountResponse ->
-                Mono.just(createAccountTransactionEnvelope(accountResponse, accountId, withAmount)))
+                Mono.just(buildCreateAccountTransactionEnvelope(accountResponse, accountId, withAmount)))
         .flatMap(this::submitTransaction)
         .flatMap(transactionResponse -> getAccount(accountId));
   }
@@ -165,7 +165,7 @@ public class StellarPaymentService implements PaymentService {
                 Mono.just(gson.fromJson(responseBody, SubmitTransactionResponse.class)));
   }
 
-  private String createAccountTransactionEnvelope(
+  private String buildCreateAccountTransactionEnvelope(
       AccountResponse accountResponse, String accountId, BigDecimal withAmount) {
     CreateAccountOperation createAccountOp =
         new CreateAccountOperation.Builder(accountId, withAmount.toString()).build();
@@ -187,6 +187,73 @@ public class StellarPaymentService implements PaymentService {
   public reactor.core.publisher.Mono<Payment> sendPayment(
       Account sourceAccount, Account destinationAccount, String currencyName, BigDecimal amount)
       throws HttpException {
+    return sendPayment(sourceAccount, destinationAccount, currencyName, amount, null, null);
+  }
+
+  public reactor.core.publisher.Mono<Payment> sendPayment(Account sourceAccount, Account destinationAccount, String currencyName, BigDecimal amount, @Nullable String memo, @Nullable String memoType) throws HttpException {
+    return getAccountResponse(sourceAccount.id)
+      .flatMap(accountResponse -> Mono.just(buildPaymentTransactionEnvelope(accountResponse, destinationAccount.id, currencyName, amount, memo, memoType)))
+      .flatMap(this::submitTransaction)
+      .flatMap(submitTransactionResponse -> getTransaction(submitTransactionResponse.getHash()))
+      .flatMap(transactionResponse -> Mono.just(getPaymentFromTransactionResponse(transactionResponse, sourceAccount, destinationAccount, currencyName, amount)));
+  }
+
+  private Payment getPaymentFromTransactionResponse(TransactionResponse response, Account sourceAccount, Account destinationAccount, String currencyName, BigDecimal amount) {
+    Payment payment = new Payment();
+    payment.setId(response.getHash());
+    payment.setSourceAccount(sourceAccount);
+    payment.setDestinationAccount(destinationAccount);
+    payment.setBalance(new Balance(amount.toString(), currencyName));
+    payment.setStatus(Payment.Status.SUCCESSFUL);
+    SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
+    try {
+      payment.setCreatedAt(formatter.parse(response.getCreatedAt()));
+      payment.setUpdatedAt(formatter.parse(response.getCreatedAt()));
+    } catch (ParseException e) {
+      throw new RuntimeException("unable to parse datetime string from Horizon: " + response.getCreatedAt());
+    }
+    return payment;
+  }
+
+  private String buildPaymentTransactionEnvelope(AccountResponse accountResponse, String accountId, String currencyName, BigDecimal amount, @Nullable String memo, @Nullable String memoType) {
+    Asset asset;
+    if (Arrays.asList("xlm", "native").contains(currencyName.toLowerCase())) {
+      asset = new AssetTypeNative();
+    } else if (currencyName.length() > 4) {
+      asset = new AssetTypeCreditAlphaNum12(currencyName, amount.toString());
+    } else {
+      asset = new AssetTypeCreditAlphaNum4(currencyName, amount.toString());
+    }
+    PaymentOperation paymentOp = new PaymentOperation.Builder(accountId, asset, amount.toString()).build();
+    Transaction.Builder builder = new Transaction.Builder(accountResponse, stellarNetwork)
+      .addOperation(paymentOp)
+      .setTimeout(transactionsExpireAfter)
+      .setBaseFee(baseFee);
+    Memo memoObj = makeMemo(memo, memoType);
+    if (memoObj != null) {
+      builder.addMemo(memoObj);
+    }
+    Transaction transaction = builder.build();
+    return transaction.toEnvelopeXdr().toString();
+  }
+
+  private Memo makeMemo(@Nullable String memo, @Nullable String memoType) {
+    if (memo == null && memoType == null) {
+      return null;
+    } else if (memo == null || memoType == null) {
+      throw new IllegalArgumentException("both or neither 'memo' and 'memoType' must be passed");
+    } else if (!Arrays.asList("hash", "id", "text").contains(memoType)) {
+      throw new IllegalArgumentException("'memoType', must be one of 'hash', 'id', or 'text'");
+    } else if (memoType.equals("hash")) {
+      return new MemoHash(memo);
+    } else if (memoType.equals("text")) {
+      return new MemoText(memo);
+    } else {
+      return new MemoId(Long.parseLong(memo));
+    }
+  }
+
+  public reactor.core.publisher.Mono<TransactionResponse> getTransaction(String hash) {
     return null;
   }
 
