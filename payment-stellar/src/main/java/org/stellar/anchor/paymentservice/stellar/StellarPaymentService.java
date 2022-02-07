@@ -97,12 +97,16 @@ public class StellarPaymentService implements PaymentService {
   }
 
   public reactor.core.publisher.Mono<Void> ping() throws HttpException {
-    return getWebClient().get().response().flatMap(response -> {
-      if (response.status().code() != 200) {
-        return Mono.error(new HttpException(response.status().code()));
-      }
-      return Mono.empty();
-    });
+    return getWebClient()
+        .get()
+        .response()
+        .flatMap(
+            response -> {
+              if (response.status().code() != 200) {
+                return Mono.error(new HttpException(response.status().code()));
+              }
+              return Mono.empty();
+            });
   }
 
   public reactor.core.publisher.Mono<Void> validateSecretKey() throws HttpException {
