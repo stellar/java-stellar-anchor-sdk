@@ -5,7 +5,6 @@ import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Arrays;
-
 import org.stellar.anchor.exception.HttpException;
 import org.stellar.anchor.paymentservice.*;
 import org.stellar.anchor.paymentservice.Account;
@@ -33,7 +32,12 @@ public class StellarPaymentService implements PaymentService {
 
   private HttpClient webClient;
 
-  public StellarPaymentService(String url, String secretKey, int baseFee, org.stellar.sdk.Network stellarNetwork, long transactionsExpireAfter) {
+  public StellarPaymentService(
+      String url,
+      String secretKey,
+      int baseFee,
+      org.stellar.sdk.Network stellarNetwork,
+      long transactionsExpireAfter) {
     this.url = url;
     this.secretKey = secretKey;
     this.baseFee = baseFee;
@@ -142,7 +146,8 @@ public class StellarPaymentService implements PaymentService {
     return getAccountResponse(KeyPair.fromSecretSeed(secretKey).getAccountId())
         .flatMap(
             accountResponse ->
-                Mono.just(buildCreateAccountTransactionEnvelope(accountResponse, accountId, withAmount)))
+                Mono.just(
+                    buildCreateAccountTransactionEnvelope(accountResponse, accountId, withAmount)))
         .flatMap(this::submitTransaction)
         .flatMap(transactionResponse -> getAccount(accountId));
   }
@@ -179,7 +184,8 @@ public class StellarPaymentService implements PaymentService {
     return transaction.toEnvelopeXdr().toString();
   }
 
-  public reactor.core.publisher.Mono<PaymentHistory> getAccountPaymentHistory(String accountID, @Nullable String beforeCursor, @Nullable String afterCursor)
+  public reactor.core.publisher.Mono<PaymentHistory> getAccountPaymentHistory(
+      String accountID, @Nullable String beforeCursor, @Nullable String afterCursor)
       throws HttpException {
     return null;
   }
@@ -190,15 +196,44 @@ public class StellarPaymentService implements PaymentService {
     return sendPayment(sourceAccount, destinationAccount, currencyName, amount, null, null);
   }
 
-  public reactor.core.publisher.Mono<Payment> sendPayment(Account sourceAccount, Account destinationAccount, String currencyName, BigDecimal amount, @Nullable String memo, @Nullable String memoType) throws HttpException {
+  public reactor.core.publisher.Mono<Payment> sendPayment(
+      Account sourceAccount,
+      Account destinationAccount,
+      String currencyName,
+      BigDecimal amount,
+      @Nullable String memo,
+      @Nullable String memoType)
+      throws HttpException {
     return getAccountResponse(sourceAccount.id)
-      .flatMap(accountResponse -> Mono.just(buildPaymentTransactionEnvelope(accountResponse, destinationAccount.id, currencyName, amount, memo, memoType)))
-      .flatMap(this::submitTransaction)
-      .flatMap(submitTransactionResponse -> getTransaction(submitTransactionResponse.getHash()))
-      .flatMap(transactionResponse -> Mono.just(getPaymentFromTransactionResponse(transactionResponse, sourceAccount, destinationAccount, currencyName, amount)));
+        .flatMap(
+            accountResponse ->
+                Mono.just(
+                    buildPaymentTransactionEnvelope(
+                        accountResponse,
+                        destinationAccount.id,
+                        currencyName,
+                        amount,
+                        memo,
+                        memoType)))
+        .flatMap(this::submitTransaction)
+        .flatMap(submitTransactionResponse -> getTransaction(submitTransactionResponse.getHash()))
+        .flatMap(
+            transactionResponse ->
+                Mono.just(
+                    getPaymentFromTransactionResponse(
+                        transactionResponse,
+                        sourceAccount,
+                        destinationAccount,
+                        currencyName,
+                        amount)));
   }
 
-  private Payment getPaymentFromTransactionResponse(TransactionResponse response, Account sourceAccount, Account destinationAccount, String currencyName, BigDecimal amount) {
+  private Payment getPaymentFromTransactionResponse(
+      TransactionResponse response,
+      Account sourceAccount,
+      Account destinationAccount,
+      String currencyName,
+      BigDecimal amount) {
     Payment payment = new Payment();
     payment.setId(response.getHash());
     payment.setSourceAccount(sourceAccount);
@@ -210,12 +245,19 @@ public class StellarPaymentService implements PaymentService {
       payment.setCreatedAt(formatter.parse(response.getCreatedAt()));
       payment.setUpdatedAt(formatter.parse(response.getCreatedAt()));
     } catch (ParseException e) {
-      throw new RuntimeException("unable to parse datetime string from Horizon: " + response.getCreatedAt());
+      throw new RuntimeException(
+          "unable to parse datetime string from Horizon: " + response.getCreatedAt());
     }
     return payment;
   }
 
-  private String buildPaymentTransactionEnvelope(AccountResponse accountResponse, String accountId, String currencyName, BigDecimal amount, @Nullable String memo, @Nullable String memoType) {
+  private String buildPaymentTransactionEnvelope(
+      AccountResponse accountResponse,
+      String accountId,
+      String currencyName,
+      BigDecimal amount,
+      @Nullable String memo,
+      @Nullable String memoType) {
     Asset asset;
     if (Arrays.asList("xlm", "native").contains(currencyName.toLowerCase())) {
       asset = new AssetTypeNative();
@@ -224,11 +266,13 @@ public class StellarPaymentService implements PaymentService {
     } else {
       asset = new AssetTypeCreditAlphaNum4(currencyName, amount.toString());
     }
-    PaymentOperation paymentOp = new PaymentOperation.Builder(accountId, asset, amount.toString()).build();
-    Transaction.Builder builder = new Transaction.Builder(accountResponse, stellarNetwork)
-      .addOperation(paymentOp)
-      .setTimeout(transactionsExpireAfter)
-      .setBaseFee(baseFee);
+    PaymentOperation paymentOp =
+        new PaymentOperation.Builder(accountId, asset, amount.toString()).build();
+    Transaction.Builder builder =
+        new Transaction.Builder(accountResponse, stellarNetwork)
+            .addOperation(paymentOp)
+            .setTimeout(transactionsExpireAfter)
+            .setBaseFee(baseFee);
     Memo memoObj = makeMemo(memo, memoType);
     if (memoObj != null) {
       builder.addMemo(memoObj);
