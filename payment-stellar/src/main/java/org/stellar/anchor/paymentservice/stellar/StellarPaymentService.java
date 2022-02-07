@@ -97,7 +97,12 @@ public class StellarPaymentService implements PaymentService {
   }
 
   public reactor.core.publisher.Mono<Void> ping() throws HttpException {
-    return null;
+    return getWebClient().get().response().flatMap(response -> {
+      if (response.status().code() != 200) {
+        return Mono.error(new HttpException(response.status().code()));
+      }
+      return Mono.empty();
+    });
   }
 
   public reactor.core.publisher.Mono<Void> validateSecretKey() throws HttpException {
@@ -216,7 +221,8 @@ public class StellarPaymentService implements PaymentService {
                         memo,
                         memoType)))
         .flatMap(this::submitTransaction)
-        .flatMap(submitTransactionResponse -> getTransaction(submitTransactionResponse.getHash()))
+        .flatMap(
+            submitTransactionResponse -> getStellarTransaction(submitTransactionResponse.getHash()))
         .flatMap(
             transactionResponse ->
                 Mono.just(
@@ -297,8 +303,18 @@ public class StellarPaymentService implements PaymentService {
     }
   }
 
-  public reactor.core.publisher.Mono<TransactionResponse> getTransaction(String hash) {
-    return null;
+  public reactor.core.publisher.Mono<TransactionResponse> getStellarTransaction(String hash) {
+    return getWebClient()
+        .get()
+        .uri("/transactions/" + hash)
+        .responseSingle(
+            (response, bodyBytesMono) -> {
+              if (response.status().code() >= 400) {
+                return handleStellarGetError(response, bodyBytesMono);
+              }
+              return bodyBytesMono.asString();
+            })
+        .flatMap(body -> Mono.just(gson.fromJson(body, TransactionResponse.class)));
   }
 
   public reactor.core.publisher.Mono<DepositInstructions> getDepositInstructions(
