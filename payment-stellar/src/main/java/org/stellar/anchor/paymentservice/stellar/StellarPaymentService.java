@@ -96,7 +96,7 @@ public class StellarPaymentService implements PaymentService {
     return webClient;
   }
 
-  public reactor.core.publisher.Mono<Void> ping() throws HttpException {
+  public Mono<Void> ping() throws HttpException {
     return getWebClient()
         .get()
         .response()
@@ -109,33 +109,32 @@ public class StellarPaymentService implements PaymentService {
             });
   }
 
-  public reactor.core.publisher.Mono<Void> validateSecretKey() throws HttpException {
+  public Mono<Void> validateSecretKey() throws HttpException {
     return getDistributionAccountAddress()
         .flatMap(this::getAccount)
         .flatMap(account -> Mono.empty());
   }
 
-  public reactor.core.publisher.Mono<String> getDistributionAccountAddress() throws HttpException {
+  public Mono<String> getDistributionAccountAddress() throws HttpException {
     if (secretKey == null) {
       return null;
     }
     return Mono.just(KeyPair.fromSecretSeed(secretKey).getAccountId());
   }
 
-  public reactor.core.publisher.Mono<Account> getAccount(String accountId) throws HttpException {
+  public Mono<Account> getAccount(String accountId) throws HttpException {
     return getAccountResponse(accountId)
         .flatMap(accountResponse -> Mono.just(accountResponseToAccount(accountResponse)));
   }
 
-  public reactor.core.publisher.Mono<AccountResponse> getAccountResponse(String accountId)
-      throws HttpException {
+  public Mono<AccountResponse> getAccountResponse(String accountId) throws HttpException {
     return getWebClient()
         .get()
         .uri("/accounts/" + accountId)
         .responseSingle(
             (response, bodyBytesMono) -> {
-              if (response.status().code() >= 400) {
-                return handleStellarGetError(response, bodyBytesMono);
+              if (response.status().code() != 200) {
+                return handleStellarHttpError(response, "unable to fetch account " + accountId);
               }
               return bodyBytesMono.asString();
             })
@@ -146,12 +145,11 @@ public class StellarPaymentService implements PaymentService {
     return null;
   }
 
-  public reactor.core.publisher.Mono<Account> createAccount(String accountId) throws HttpException {
+  public Mono<Account> createAccount(String accountId) throws HttpException {
     return createAccount(accountId, new BigDecimal("1"));
   }
 
-  public reactor.core.publisher.Mono<Account> createAccount(String accountId, BigDecimal withAmount)
-      throws HttpException {
+  public Mono<Account> createAccount(String accountId, BigDecimal withAmount) throws HttpException {
     return getAccountResponse(KeyPair.fromSecretSeed(secretKey).getAccountId())
         .flatMap(
             accountResponse ->
@@ -169,8 +167,11 @@ public class StellarPaymentService implements PaymentService {
         .send(ByteBufMono.fromString(Mono.just(requestBody)))
         .responseSingle(
             (postResponse, bodyBytesMono) -> {
-              if (postResponse.status().code() >= 400) {
-                return handleStellarPostError(postResponse, bodyBytesMono);
+              if (postResponse.status().code() != 200) {
+                return handleStellarHttpError(
+                    postResponse,
+                    "non-success response returned when submitting a transaction, envelope: "
+                        + envelope.toString());
               }
               return bodyBytesMono.asString();
             })
@@ -193,19 +194,19 @@ public class StellarPaymentService implements PaymentService {
     return transaction.toEnvelopeXdr().toString();
   }
 
-  public reactor.core.publisher.Mono<PaymentHistory> getAccountPaymentHistory(
+  public Mono<PaymentHistory> getAccountPaymentHistory(
       String accountID, @Nullable String beforeCursor, @Nullable String afterCursor)
       throws HttpException {
     return null;
   }
 
-  public reactor.core.publisher.Mono<Payment> sendPayment(
+  public Mono<Payment> sendPayment(
       Account sourceAccount, Account destinationAccount, String currencyName, BigDecimal amount)
       throws HttpException {
     return sendPayment(sourceAccount, destinationAccount, currencyName, amount, null, null);
   }
 
-  public reactor.core.publisher.Mono<Payment> sendPayment(
+  public Mono<Payment> sendPayment(
       Account sourceAccount,
       Account destinationAccount,
       String currencyName,
@@ -307,34 +308,27 @@ public class StellarPaymentService implements PaymentService {
     }
   }
 
-  public reactor.core.publisher.Mono<TransactionResponse> getStellarTransaction(String hash) {
+  public Mono<TransactionResponse> getStellarTransaction(String hash) {
     return getWebClient()
         .get()
         .uri("/transactions/" + hash)
         .responseSingle(
             (response, bodyBytesMono) -> {
-              if (response.status().code() >= 400) {
-                return handleStellarGetError(response, bodyBytesMono);
+              if (response.status().code() != 200) {
+                return handleStellarHttpError(response, "unable to fetch transaction " + hash);
               }
               return bodyBytesMono.asString();
             })
         .flatMap(body -> Mono.just(gson.fromJson(body, TransactionResponse.class)));
   }
 
-  public reactor.core.publisher.Mono<DepositInstructions> getDepositInstructions(
-      DepositRequirements config) throws HttpException {
+  public Mono<DepositInstructions> getDepositInstructions(DepositRequirements config)
+      throws HttpException {
     return null;
   }
 
-  private <T> Mono<T> handleStellarPostError(
-      HttpClientResponse response, ByteBufMono bodyBytesMono) {
-    // TODO: implement
-    return Mono.empty();
-  }
-
-  private <T> Mono<T> handleStellarGetError(
-      HttpClientResponse response, ByteBufMono bodyBytesMono) {
-    // TODO: implement
-    return Mono.empty();
+  private static <T> Mono<T> handleStellarHttpError(
+      HttpClientResponse response, @Nullable String reason) throws HttpException {
+    return Mono.error(new HttpException(response.status().code(), reason));
   }
 }
