@@ -1,10 +1,14 @@
 package org.stellar.anchor.paymentservice.stellar;
 
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
 import java.math.BigDecimal;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 import org.stellar.anchor.exception.HttpException;
 import org.stellar.anchor.paymentservice.*;
 import org.stellar.anchor.paymentservice.Account;
@@ -13,8 +17,10 @@ import org.stellar.anchor.paymentservice.stellar.requests.SubmitTransactionReque
 import org.stellar.anchor.paymentservice.stellar.util.NettyHttpClient;
 import org.stellar.sdk.*;
 import org.stellar.sdk.responses.AccountResponse;
+import org.stellar.sdk.responses.Page;
 import org.stellar.sdk.responses.SubmitTransactionResponse;
 import org.stellar.sdk.responses.TransactionResponse;
+import org.stellar.sdk.responses.operations.*;
 import reactor.core.publisher.Mono;
 import reactor.netty.ByteBufMono;
 import reactor.netty.http.client.HttpClient;
@@ -142,7 +148,20 @@ public class StellarPaymentService implements PaymentService {
   }
 
   private Account accountResponseToAccount(AccountResponse accountResponse) {
-    return null;
+    Account account =
+        new Account(
+            network, accountResponse.getAccountId(), new Account.Capabilities(Network.CIRCLE));
+    List<Balance> balances = new ArrayList<Balance>();
+    for (AccountResponse.Balance b : accountResponse.getBalances()) {
+      if (!b.getAsset().isPresent() || !b.getAuthorized()) {
+        // ignored liquidity pool shares or frozen balances
+        continue;
+      }
+      balances.add(
+          new Balance(b.getBalance(), "stellar:" + b.getAssetCode() + ":" + b.getAssetIssuer()));
+    }
+    account.setBalances(balances);
+    return account;
   }
 
   public Mono<Account> createAccount(String accountId) throws HttpException {
@@ -194,10 +213,106 @@ public class StellarPaymentService implements PaymentService {
     return transaction.toEnvelopeXdr().toString();
   }
 
-  public Mono<PaymentHistory> getAccountPaymentHistory(
-      String accountID, @Nullable String beforeCursor, @Nullable String afterCursor)
+  public Mono<PaymentHistory> getAccountPaymentHistory(String accountID, @Nullable String cursor)
       throws HttpException {
-    return null;
+    String params = "?order=desc&join=transactions";
+    if (cursor != null) {
+      params += "&cursor=" + cursor;
+    }
+    return getWebClient()
+        .get()
+        .uri("/payments" + params)
+        .responseSingle(
+            (response, bodyBufMono) -> {
+              if (response.status().code() != 200) {
+                return handleStellarHttpError(
+                    response, "unable to fetch payment history with uri: " + response.uri());
+              }
+              return bodyBufMono.asString();
+            })
+        .flatMap(
+            body -> {
+              Page<OperationResponse> operationsPage =
+                  gson.fromJson(body, new TypeToken<Page<OperationResponse>>() {}.getType());
+              return Mono.just(makePaymentHistoryFrom(operationsPage, accountID));
+            });
+  }
+
+  private PaymentHistory makePaymentHistoryFrom(
+      Page<OperationResponse> operationsPage, String forAccountId) {
+    // does not fetch account balances for each source and destination account
+    // denominates path payment amounts in units of the asset that is known prior to submission
+    // TODO: update Payment to account for different send and receive balances
+    Account forAccount =
+        new Account(network, forAccountId, new Account.Capabilities(Network.CIRCLE));
+    PaymentHistory paymentHistory = new PaymentHistory();
+    paymentHistory.setAccount(forAccount);
+    List<OperationResponse> opResps = operationsPage.getRecords();
+    if (opResps.size() == 0) {
+      return paymentHistory;
+    }
+    paymentHistory.setCursor(opResps.get(opResps.size() - 1).getPagingToken());
+    paymentHistory.setPayments(
+        opResps.stream().map(this::createPaymentFromStellarOperation).collect(Collectors.toList()));
+    return paymentHistory;
+  }
+
+  private Payment createPaymentFromStellarOperation(OperationResponse opResp) {
+    String sourceAccount, destinationAccount, currencyName, amount;
+    if (opResp.getType().equals("create_account")) {
+      CreateAccountOperationResponse createAccountOpResp = (CreateAccountOperationResponse) opResp;
+      sourceAccount = createAccountOpResp.getFunder();
+      destinationAccount = createAccountOpResp.getAccount();
+      currencyName = "stellar:native";
+      amount = createAccountOpResp.getStartingBalance();
+    } else if (opResp.getType().equals("payment")) {
+      PaymentOperationResponse paymentOpResp = (PaymentOperationResponse) opResp;
+      sourceAccount = paymentOpResp.getFrom();
+      destinationAccount = paymentOpResp.getTo();
+      currencyName = getAssetIdentifier(paymentOpResp.getAsset());
+      amount = paymentOpResp.getAmount();
+    } else if (opResp.getType().equals("path_payment_strict_send")) {
+      PathPaymentStrictSendOperationResponse paymentStrictSendOpResp =
+          (PathPaymentStrictSendOperationResponse) opResp;
+      sourceAccount = paymentStrictSendOpResp.getFrom();
+      destinationAccount = paymentStrictSendOpResp.getTo();
+      currencyName = getAssetIdentifier(paymentStrictSendOpResp.getSourceAsset());
+      amount = paymentStrictSendOpResp.getSourceAmount();
+    } else if (opResp.getType().equals("path_payment_strict_receive")) {
+      PathPaymentStrictReceiveOperationResponse paymentStrictReceiveOpResp =
+          (PathPaymentStrictReceiveOperationResponse) opResp;
+      sourceAccount = paymentStrictReceiveOpResp.getFrom();
+      destinationAccount = paymentStrictReceiveOpResp.getTo();
+      currencyName = getAssetIdentifier(paymentStrictReceiveOpResp.getAsset());
+      amount = paymentStrictReceiveOpResp.getAmount();
+    } else if (opResp.getType().equals("account_merge")) {
+      AccountMergeOperationResponse accountMergeOpResp = (AccountMergeOperationResponse) opResp;
+      sourceAccount = accountMergeOpResp.getAccount();
+      destinationAccount = accountMergeOpResp.getInto();
+      currencyName = "stellar:native";
+      // TODO: join w/ transactions, fetch result XDR, decode amount merged to destination
+      amount = null;
+    } else {
+      throw new RuntimeException("unexpected payment operation: " + opResp.getType());
+    }
+    return createPayment(
+        opResp.getTransactionHash(),
+        new Account(network, sourceAccount, new Account.Capabilities(Network.CIRCLE)),
+        new Account(network, destinationAccount, new Account.Capabilities(Network.CIRCLE)),
+        currencyName,
+        amount,
+        opResp.getCreatedAt());
+  }
+
+  private String getAssetIdentifier(Asset asset) {
+    if (asset.getType().equals("native")) {
+      return "stellar:native";
+    } else if (asset.getType().contains("alphanum")) {
+      AssetTypeCreditAlphaNum alphaAsset = (AssetTypeCreditAlphaNum) asset;
+      return "stellar:" + alphaAsset.getCode() + ":" + alphaAsset.getIssuer();
+    } else {
+      throw new RuntimeException("unexpected asset type: " + asset.getType());
+    }
   }
 
   public Mono<Payment> sendPayment(
@@ -231,33 +346,34 @@ public class StellarPaymentService implements PaymentService {
         .flatMap(
             transactionResponse ->
                 Mono.just(
-                    getPaymentFromTransactionResponse(
-                        transactionResponse,
+                    createPayment(
+                        transactionResponse.getHash(),
                         sourceAccount,
                         destinationAccount,
                         currencyName,
-                        amount)));
+                        amount.toString(),
+                        transactionResponse.getCreatedAt())));
   }
 
-  private Payment getPaymentFromTransactionResponse(
-      TransactionResponse response,
+  private Payment createPayment(
+      String hash,
       Account sourceAccount,
       Account destinationAccount,
       String currencyName,
-      BigDecimal amount) {
+      String amount,
+      String createdAt) {
     Payment payment = new Payment();
-    payment.setId(response.getHash());
+    payment.setId(hash);
     payment.setSourceAccount(sourceAccount);
     payment.setDestinationAccount(destinationAccount);
-    payment.setBalance(new Balance(amount.toString(), currencyName));
+    payment.setBalance(new Balance(amount, currencyName));
     payment.setStatus(Payment.Status.SUCCESSFUL);
     SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss'Z'");
     try {
-      payment.setCreatedAt(formatter.parse(response.getCreatedAt()));
-      payment.setUpdatedAt(formatter.parse(response.getCreatedAt()));
+      payment.setCreatedAt(formatter.parse(createdAt));
+      payment.setUpdatedAt(formatter.parse(createdAt));
     } catch (ParseException e) {
-      throw new RuntimeException(
-          "unable to parse datetime string from Horizon: " + response.getCreatedAt());
+      throw new RuntimeException("unable to parse datetime string from Horizon: " + createdAt);
     }
     return payment;
   }
