@@ -82,6 +82,20 @@ class CirclePaymentServiceTest {
   private lateinit var server: MockWebServer
   private lateinit var service: PaymentService
 
+  private fun getDistAccountIdMockResponse(masterWalletId: String = "1000066041"): MockResponse {
+    return MockResponse()
+      .addHeader("Content-Type", "application/json")
+      .setBody(
+        """{
+          "data":{
+            "payments":{
+              "masterWalletId":"$masterWalletId"
+            }
+          }
+        }"""
+      )
+  }
+
   @BeforeEach
   @Throws(IOException::class)
   fun setUp() {
@@ -141,19 +155,7 @@ class CirclePaymentServiceTest {
 
   @Test
   fun testGetDistributionAccountAddress() {
-    val response =
-      MockResponse()
-        .addHeader("Content-Type", "application/json")
-        .setBody(
-          """{
-                        "data":{
-                            "payments":{
-                                "masterWalletId":"1000066041"
-                            }
-                        }
-                    }"""
-        )
-    server.enqueue(response)
+    server.enqueue(getDistAccountIdMockResponse())
 
     var masterWalletId: String? = null
     assertDoesNotThrow { masterWalletId = service.distributionAccountAddress.block() }
@@ -166,7 +168,6 @@ class CirclePaymentServiceTest {
     assertThat(request.path, CoreMatchers.endsWith("/v1/configuration"))
 
     // check if cached version doesn't freeze the thread
-    server.enqueue(response)
     assertDoesNotThrow { masterWalletId = service.distributionAccountAddress.block() }
     assertEquals("1000066041", masterWalletId)
   }
@@ -339,18 +340,7 @@ class CirclePaymentServiceTest {
         @Throws(InterruptedException::class)
         override fun dispatch(request: RecordedRequest): MockResponse {
           when (request.path) {
-            "/v1/configuration" ->
-              return MockResponse()
-                .addHeader("Content-Type", "application/json")
-                .setBody(
-                  """{
-                                    "data":{
-                                        "payments":{
-                                            "masterWalletId":"1000066041"
-                                        }
-                                    }
-                            }"""
-                )
+            "/v1/configuration" -> return getDistAccountIdMockResponse()
             "/v1/businessAccount/balances" ->
               return MockResponse()
                 .addHeader("Content-Type", "application/json")
@@ -481,18 +471,7 @@ class CirclePaymentServiceTest {
         @Throws(InterruptedException::class)
         override fun dispatch(request: RecordedRequest): MockResponse {
           when (request.path) {
-            "/v1/configuration" ->
-              return MockResponse()
-                .addHeader("Content-Type", "application/json")
-                .setBody(
-                  """{
-                                    "data":{
-                                        "payments":{
-                                            "masterWalletId":"1000066041"
-                                        }
-                                    }
-                            }"""
-                )
+            "/v1/configuration" -> return getDistAccountIdMockResponse()
             "/v1/payouts" ->
               return MockResponse()
                 .addHeader("Content-Type", "application/json")
@@ -781,18 +760,7 @@ class CirclePaymentServiceTest {
                     ]
                   }""".trimIndent()
                 )
-            "/v1/configuration" ->
-              return MockResponse()
-                .addHeader("Content-Type", "application/json")
-                .setBody(
-                  """{
-                    "data":{
-                      "payments":{
-                        "masterWalletId":"1000066041"
-                      }
-                    }
-                  }"""
-                )
+            "/v1/configuration" -> return getDistAccountIdMockResponse()
           }
           return MockResponse().setResponseCode(404)
         }
@@ -913,18 +881,7 @@ class CirclePaymentServiceTest {
                     ]
                   }""".trimIndent()
                 )
-            "/v1/configuration" ->
-              return MockResponse()
-                .addHeader("Content-Type", "application/json")
-                .setBody(
-                  """{
-                    "data":{
-                      "payments":{
-                        "masterWalletId":"1000066041"
-                      }
-                    }
-                  }"""
-                )
+            "/v1/configuration" -> return getDistAccountIdMockResponse()
           }
           return MockResponse().setResponseCode(404)
         }
@@ -1039,18 +996,7 @@ class CirclePaymentServiceTest {
                     ]
                   }""".trimIndent()
                 )
-            "/v1/configuration" ->
-              return MockResponse()
-                .addHeader("Content-Type", "application/json")
-                .setBody(
-                  """{
-                    "data":{
-                      "payments":{
-                        "masterWalletId":"1000066041"
-                      }
-                    }
-                  }"""
-                )
+            "/v1/configuration" -> return getDistAccountIdMockResponse()
           }
           return MockResponse().setResponseCode(404)
         }
@@ -1148,17 +1094,7 @@ class CirclePaymentServiceTest {
           }
 
           if (request.path.equals("/v1/configuration")) {
-            return MockResponse()
-              .addHeader("Content-Type", "application/json")
-              .setBody(
-                """{
-                  "data":{
-                    "payments":{
-                      "masterWalletId":"1000066041"
-                    }
-                  }
-                }"""
-              )
+            return getDistAccountIdMockResponse()
           }
 
           return MockResponse().setResponseCode(404)
@@ -1208,18 +1144,7 @@ class CirclePaymentServiceTest {
         @Throws(InterruptedException::class)
         override fun dispatch(request: RecordedRequest): MockResponse {
           when (request.path) {
-            "/v1/configuration" ->
-              return MockResponse()
-                .addHeader("Content-Type", "application/json")
-                .setBody(
-                  """{
-                                    "data":{
-                                        "payments":{
-                                            "masterWalletId":"1000066041"
-                                        }
-                                    }
-                            }"""
-                )
+            "/v1/configuration" -> return getDistAccountIdMockResponse()
             "/v1/transfers" ->
               return MockResponse()
                 .addHeader("Content-Type", "application/json")
@@ -1339,18 +1264,7 @@ class CirclePaymentServiceTest {
         @Throws(InterruptedException::class)
         override fun dispatch(request: RecordedRequest): MockResponse {
           when (request.path) {
-            "/v1/configuration" ->
-              return MockResponse()
-                .addHeader("Content-Type", "application/json")
-                .setBody(
-                  """{
-                                    "data":{
-                                        "payments":{
-                                            "masterWalletId":"1000066041"
-                                        }
-                                    }
-                            }"""
-                )
+            "/v1/configuration" -> return getDistAccountIdMockResponse()
             "/v1/transfers" ->
               return MockResponse()
                 .addHeader("Content-Type", "application/json")
@@ -1489,18 +1403,7 @@ class CirclePaymentServiceTest {
         .setResponseCode(400)
         .addHeader("Content-Type", "application/json")
         .setBody("{\"code\":2,\"message\":\"Request body contains unprocessable entity.\"}")
-    val validateSecretKeyResponse =
-      MockResponse()
-        .addHeader("Content-Type", "application/json")
-        .setBody(
-          """{
-                        "data":{
-                            "payments":{
-                                "masterWalletId":"1000066041"
-                            }
-                        }
-                    }"""
-        )
+    val validateSecretKeyResponse = getDistAccountIdMockResponse()
     val mainAccountResponse =
       MockResponse()
         .addHeader("Content-Type", "application/json")
