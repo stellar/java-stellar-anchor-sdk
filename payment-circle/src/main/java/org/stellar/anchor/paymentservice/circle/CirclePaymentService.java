@@ -276,14 +276,14 @@ public class CirclePaymentService implements PaymentService {
     queryParams.put("pageSize", _pageSize.toString());
     queryParams.put("walletId", accountID);
 
-    if (beforeCursor != null && !beforeCursor.isEmpty()) {
-      queryParams.put("pageBefore", beforeCursor);
-    } else if (afterCursor != null && !afterCursor.isEmpty()) {
-      // we can't use both pageBefore and pageAfter at once, that's why I'm using 'else if'
+    if (afterCursor != null && !afterCursor.isEmpty()) {
       queryParams.put("pageAfter", afterCursor);
+      // we can't use both pageBefore and pageAfter at the same time, that's why I'm using 'else if'
+    } else if (beforeCursor != null && !beforeCursor.isEmpty()) {
+      queryParams.put("pageBefore", beforeCursor);
     }
 
-    String url = NettyHttpClient.uriWithParams("/v1/transfer", queryParams);
+    String url = NettyHttpClient.uriWithParams("/v1/transfers", queryParams);
     return getWebClient(true)
         .get()
         .uri(url)

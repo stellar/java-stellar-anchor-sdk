@@ -767,7 +767,7 @@ class CirclePaymentServiceTest {
         @Throws(InterruptedException::class)
         override fun dispatch(request: RecordedRequest): MockResponse {
           when (request.path) {
-            "/v1/transfer?pageSize=50&walletId=1000066041" ->
+            "/v1/transfers?pageSize=50&walletId=1000066041" ->
               return MockResponse()
                 .addHeader("Content-Type", "application/json")
                 .setBody(
@@ -855,7 +855,7 @@ class CirclePaymentServiceTest {
   }
 
   @Test
-  fun test_private_getTransfers_pagination() {
+  fun test_private_getTransfers_paginationResponse() {
     service.secretKey = "<secret-key>"
 
     val mockWalletToWalletTransfer =
@@ -903,7 +903,7 @@ class CirclePaymentServiceTest {
         @Throws(InterruptedException::class)
         override fun dispatch(request: RecordedRequest): MockResponse {
           when (request.path) {
-            "/v1/transfer?pageSize=2&walletId=1000066041" ->
+            "/v1/transfers?pageSize=2&walletId=1000066041" ->
               return MockResponse()
                 .addHeader("Content-Type", "application/json")
                 .setBody(
@@ -975,10 +975,125 @@ class CirclePaymentServiceTest {
     p2.originalResponse = gson.fromJson(mockWalletToStellarTransfer, type)
     wantPaymentHistory.payments.add(p2)
 
-    println(wantPaymentHistory)
-    println(paymentHistory)
-
     assertEquals(wantPaymentHistory, paymentHistory)
+  }
+
+  @Test
+  fun test_private_getTransfers_paginationRequestUri() {
+    service.secretKey = "<secret-key>"
+
+    val emptyResponse =
+      MockResponse()
+        .addHeader("Content-Type", "application/json")
+        .setBody("""{    
+          "data": []
+        }""".trimIndent())
+
+    // Let's use reflection to access the private method
+    val getTransfersMethod: Method =
+      CirclePaymentService::class.java.getDeclaredMethod(
+        "getTransfers",
+        String::class.java,
+        String::class.java,
+        String::class.java,
+        Integer::class.java
+      )
+    assert(getTransfersMethod.trySetAccessible())
+    var paymentHistory: PaymentHistory? = null
+
+    val account =
+      Account(Network.CIRCLE, "1000066041", Account.Capabilities(Network.CIRCLE, Network.STELLAR))
+
+    // GET without pagination: /v1/transfers?pageSize=1&walletId=1000066041
+    server.enqueue(emptyResponse)
+    @Suppress("UNCHECKED_CAST")
+    var getTransfersMono =
+      (getTransfersMethod.invoke(service, "1000066041", null, null, 1) as Mono<PaymentHistory>)
+    assertDoesNotThrow { paymentHistory = getTransfersMono.block() }
+
+    var wantPaymentHistory = PaymentHistory(account)
+    assertEquals(wantPaymentHistory, paymentHistory)
+
+    var wantUri = "/v1/transfers?pageSize=1&walletId=1000066041"
+    var request = server.takeRequest()
+    assertThat(request.path, CoreMatchers.endsWith(wantUri))
+    assertEquals("GET", request.method)
+    assertEquals("Bearer <secret-key>", request.headers["Authorization"])
+
+    // GET with before pagination:
+    // /v1/transfers?pageSize=1&walletId=1000066041&pageBefore=c58e2613-a808-4075-956c-e576787afb3b
+    server.enqueue(emptyResponse)
+    @Suppress("UNCHECKED_CAST")
+    getTransfersMono =
+      (getTransfersMethod.invoke(
+        service,
+        "1000066041",
+        "c58e2613-a808-4075-956c-e576787afb3b",
+        null,
+        1
+      ) as
+        Mono<PaymentHistory>)
+    assertDoesNotThrow { paymentHistory = getTransfersMono.block() }
+
+    wantPaymentHistory = PaymentHistory(account)
+    assertEquals(wantPaymentHistory, paymentHistory)
+
+    wantUri =
+      "/v1/transfers?pageSize=1&walletId=1000066041&pageBefore=c58e2613-a808-4075-956c-e576787afb3b"
+    request = server.takeRequest()
+    assertThat(request.path, CoreMatchers.endsWith(wantUri))
+    assertEquals("GET", request.method)
+    assertEquals("Bearer <secret-key>", request.headers["Authorization"])
+
+    // GET with after pagination:
+    // /v1/transfers?pageSize=1&walletId=1000066041&pageAfter=a8997020-3da7-4543-bc4a-5ae8c7ce346d
+    server.enqueue(emptyResponse)
+    @Suppress("UNCHECKED_CAST")
+    getTransfersMono =
+      (getTransfersMethod.invoke(
+        service,
+        "1000066041",
+        null,
+        "a8997020-3da7-4543-bc4a-5ae8c7ce346d",
+        1
+      ) as
+        Mono<PaymentHistory>)
+    assertDoesNotThrow { paymentHistory = getTransfersMono.block() }
+
+    wantPaymentHistory = PaymentHistory(account)
+    assertEquals(wantPaymentHistory, paymentHistory)
+
+    wantUri =
+      "/v1/transfers?pageSize=1&walletId=1000066041&pageAfter=a8997020-3da7-4543-bc4a-5ae8c7ce346d"
+    request = server.takeRequest()
+    assertThat(request.path, CoreMatchers.endsWith(wantUri))
+    assertEquals("GET", request.method)
+    assertEquals("Bearer <secret-key>", request.headers["Authorization"])
+
+    // GET with after pagination taking precedence over before:
+    // /v1/transfers?pageSize=1&walletId=1000066041&pageAfter=a8997020-3da7-4543-bc4a-5ae8c7ce346d
+    server.enqueue(emptyResponse)
+    @Suppress("UNCHECKED_CAST")
+    getTransfersMono =
+      (getTransfersMethod.invoke(
+        service,
+        "1000066041",
+        "c58e2613-a808-4075-956c-e576787afb3b",
+        "a8997020-3da7-4543-bc4a-5ae8c7ce346d",
+        1
+      ) as
+        Mono<PaymentHistory>)
+    assertDoesNotThrow { paymentHistory = getTransfersMono.block() }
+
+    wantPaymentHistory = PaymentHistory(account)
+    assertEquals(wantPaymentHistory, paymentHistory)
+
+    wantUri =
+      "/v1/transfers?pageSize=1&walletId=1000066041&pageAfter=a8997020-3da7-4543-bc4a-5ae8c7ce346d"
+    request = server.takeRequest()
+    assertThat(request.path, CoreMatchers.endsWith(wantUri))
+    assertEquals("GET", request.method)
+    assertEquals("Bearer <secret-key>", request.headers["Authorization"])
   }
 
   @Test
