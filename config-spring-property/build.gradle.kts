@@ -1,12 +1,9 @@
-plugins {
-    `java-library`
-}
+plugins { `java-library` }
 
 dependencies {
-    api(libs.lombok)
-    annotationProcessor(libs.lombok)
+  api(libs.lombok)
+  annotationProcessor(libs.lombok)
 
-    // From projects
-    implementation(project(":core"))
+  // From projects
+  implementation(project(":core"))
 }
-

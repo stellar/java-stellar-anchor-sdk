@@ -5,6 +5,9 @@
 
 [Anchor Platform](anchor-platform.md): The anchor platform Spring Boot application.
 
+# Publishing 
+[How to publish](publishing.md): How to publish `org.stellar.anchor-sdk:core:${version}`.
+
 # How to Contribute
 
 ## Build with Gradle
