@@ -284,28 +284,31 @@ public class CirclePaymentService implements PaymentService {
     }
 
     String url = NettyHttpClient.uriWithParams("/v1/transfers", queryParams);
-    return getWebClient(true)
-        .get()
-        .uri(url)
-        .responseSingle(
-            (response, bodyBytesMono) -> {
-              if (response.status().code() >= 400) {
-                return handleCircleError(response, bodyBytesMono);
-              }
+    Mono<PaymentHistory> getTransfersMono =
+        getWebClient(true)
+            .get()
+            .uri(url)
+            .responseSingle(
+                (response, bodyBytesMono) -> {
+                  if (response.status().code() >= 400) {
+                    return handleCircleError(response, bodyBytesMono);
+                  }
 
-              return bodyBytesMono.asString();
-            })
-        .map(
-            body -> {
-              Account account =
-                  new Account(
-                      Network.CIRCLE,
-                      accountID,
-                      new Account.Capabilities(Network.CIRCLE, Network.STELLAR));
-              CircleTransferListResponse circleTransferListResponse =
-                  gson.fromJson(body, CircleTransferListResponse.class);
-              return circleTransferListResponse.toPaymentHistory(_pageSize, account);
-            });
+                  return bodyBytesMono.asString();
+                })
+            .map(
+                body -> {
+                  Account account =
+                      new Account(
+                          Network.CIRCLE,
+                          accountID,
+                          new Account.Capabilities(Network.CIRCLE, Network.STELLAR));
+                  CircleTransferListResponse circleTransferListResponse =
+                      gson.fromJson(body, CircleTransferListResponse.class);
+                  return circleTransferListResponse.toPaymentHistory(_pageSize, account);
+                });
+
+    return updatePaymentHistoryWireCapabilityMono(getTransfersMono);
   }
 
   /**
@@ -418,7 +421,7 @@ public class CirclePaymentService implements PaymentService {
                   return transfer.getData().toPayment();
                 });
 
-    return updatePaymentWireCapability(sendTransferMono);
+    return updatePaymentWireCapabilityMono(sendTransferMono);
   }
 
   /**
@@ -467,7 +470,7 @@ public class CirclePaymentService implements PaymentService {
                   return payout.getData().toPayment();
                 });
 
-    return updatePaymentWireCapability(sendPayoutMono);
+    return updatePaymentWireCapabilityMono(sendPayoutMono);
   }
 
   /**
@@ -478,26 +481,47 @@ public class CirclePaymentService implements PaymentService {
    * @return a Mono&lt;Payment&gt; the same result from the input parameter with updated accounts
    *     BANK_WIRE capabilities.
    */
-  private Mono<Payment> updatePaymentWireCapability(Mono<Payment> sendPaymentMono) {
+  private Mono<Payment> updatePaymentWireCapabilityMono(Mono<Payment> sendPaymentMono) {
     return Mono.zip(getDistributionAccountAddress(), sendPaymentMono)
         .map(
             args -> {
               String distributionAccountId = args.getT1();
               Payment payment = args.getT2();
-
-              // fill source account level
-              Account sourceAcc = payment.getSourceAccount();
-              sourceAcc.capabilities.set(
-                  Network.BANK_WIRE, sourceAcc.id.equals(distributionAccountId));
-
-              // fill destination account level
-              Account destinationAcc = payment.getDestinationAccount();
-              Boolean isDestinationWireEnabled =
-                  destinationAcc.network.equals(Network.BANK_WIRE)
-                      || destinationAcc.id.equals(distributionAccountId);
-              destinationAcc.capabilities.set(Network.BANK_WIRE, isDestinationWireEnabled);
-
+              updatePaymentWireCapability(payment, distributionAccountId);
               return payment;
+            });
+  }
+
+  private void updatePaymentWireCapability(Payment payment, String distributionAccountId) {
+    if (distributionAccountId == null) {
+      return;
+    }
+
+    // fill source account level
+    Account sourceAcc = payment.getSourceAccount();
+    sourceAcc.capabilities.set(Network.BANK_WIRE, distributionAccountId.equals(sourceAcc.id));
+
+    // fill destination account level
+    Account destinationAcc = payment.getDestinationAccount();
+    Boolean isDestinationWireEnabled =
+        destinationAcc.network.equals(Network.BANK_WIRE)
+            || distributionAccountId.equals(destinationAcc.id);
+    destinationAcc.capabilities.set(Network.BANK_WIRE, isDestinationWireEnabled);
+  }
+
+  private Mono<PaymentHistory> updatePaymentHistoryWireCapabilityMono(
+      Mono<PaymentHistory> sendPaymentMono) {
+    return Mono.zip(getDistributionAccountAddress(), sendPaymentMono)
+        .map(
+            args -> {
+              String distributionAccountId = args.getT1();
+              PaymentHistory paymentHistory = args.getT2();
+              for (Payment payment : paymentHistory.getPayments()) {
+                updatePaymentWireCapability(payment, distributionAccountId);
+              }
+              Account account = paymentHistory.getAccount();
+              account.capabilities.set(Network.BANK_WIRE, distributionAccountId.equals(account.id));
+              return paymentHistory;
             });
   }
 
