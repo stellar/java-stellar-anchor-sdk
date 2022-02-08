@@ -311,6 +311,50 @@ public class CirclePaymentService implements PaymentService {
     return updatePaymentHistoryWireCapabilityMono(getTransfersMono);
   }
 
+  public Mono<PaymentHistory> getPayouts(
+      String accountID, String beforeCursor, String afterCursor, Integer pageSize)
+      throws HttpException {
+    // build query parameters for GET requests
+    Integer _pageSize = pageSize != null ? pageSize : 50;
+    LinkedHashMap<String, String> queryParams = new LinkedHashMap<>();
+    queryParams.put("pageSize", _pageSize.toString());
+    queryParams.put("walletId", accountID);
+
+    if (afterCursor != null && !afterCursor.isEmpty()) {
+      queryParams.put("pageAfter", afterCursor);
+      // we can't use both pageBefore and pageAfter at the same time, that's why I'm using 'else if'
+    } else if (beforeCursor != null && !beforeCursor.isEmpty()) {
+      queryParams.put("pageBefore", beforeCursor);
+    }
+
+    String url = NettyHttpClient.uriWithParams("/v1/payouts", queryParams);
+    Mono<PaymentHistory> getTransfersMono =
+        getWebClient(true)
+            .get()
+            .uri(url)
+            .responseSingle(
+                (response, bodyBytesMono) -> {
+                  if (response.status().code() >= 400) {
+                    return handleCircleError(response, bodyBytesMono);
+                  }
+
+                  return bodyBytesMono.asString();
+                })
+            .map(
+                body -> {
+                  Account account =
+                      new Account(
+                          Network.CIRCLE,
+                          accountID,
+                          new Account.Capabilities(Network.CIRCLE, Network.STELLAR));
+                  CirclePayoutListResponse circlePayoutListResponse =
+                      gson.fromJson(body, CirclePayoutListResponse.class);
+                  return circlePayoutListResponse.toPaymentHistory(_pageSize, account);
+                });
+
+    return updatePaymentHistoryWireCapabilityMono(getTransfersMono);
+  }
+
   /**
    * API request that returns the history of payments involving a given account.
    *

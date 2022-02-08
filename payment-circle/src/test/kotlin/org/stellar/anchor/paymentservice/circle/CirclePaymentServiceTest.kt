@@ -873,6 +873,113 @@ class CirclePaymentServiceTest {
   }
 
   @Test
+  fun test_private_getPayouts() {
+    service.secretKey = "<secret-key>"
+
+    val mockWalletToWirePayout =
+      """{
+      "id":"6588a352-5131-4711-a264-e405f38d752d",
+      "amount":{
+        "amount":"3.00",
+        "currency":"USD"
+      },
+      "status":"complete",
+      "sourceWalletId":"1000066041",
+      "destination":{
+        "type":"wire",
+        "id":"6c87da10-feb8-484f-822c-2083ed762d25",
+        "name":"JPMORGAN CHASE BANK, NA ****6789"
+      },
+      "fees":{
+        "amount":"25.00",
+        "currency":"USD"
+      },
+      "createDate":"2022-02-03T15:41:25.286Z",
+      "updateDate":"2022-02-03T16:00:31.697Z"  
+    }"""
+
+    val dispatcher: Dispatcher =
+      object : Dispatcher() {
+        @Throws(InterruptedException::class)
+        override fun dispatch(request: RecordedRequest): MockResponse {
+          when (request.path) {
+            "/v1/payouts?pageSize=50&walletId=1000066041" ->
+              return MockResponse()
+                .addHeader("Content-Type", "application/json")
+                .setBody(
+                  """{    
+                    "data": [
+                      $mockWalletToWirePayout
+                    ]
+                  }""".trimIndent()
+                )
+            "/v1/configuration" ->
+              return MockResponse()
+                .addHeader("Content-Type", "application/json")
+                .setBody(
+                  """{
+                    "data":{
+                      "payments":{
+                        "masterWalletId":"1000066041"
+                      }
+                    }
+                  }"""
+                )
+          }
+          return MockResponse().setResponseCode(404)
+        }
+      }
+    server.dispatcher = dispatcher
+
+    // Let's use reflection to access the private method
+    val getTransfersMethod: Method =
+      CirclePaymentService::class.java.getDeclaredMethod(
+        "getPayouts",
+        String::class.java,
+        String::class.java,
+        String::class.java,
+        Integer::class.java
+      )
+    assert(getTransfersMethod.trySetAccessible())
+    @Suppress("UNCHECKED_CAST")
+    val getTransfersMono =
+      (getTransfersMethod.invoke(service, "1000066041", null, null, null) as Mono<PaymentHistory>)
+
+    var paymentHistory: PaymentHistory? = null
+    assertDoesNotThrow { paymentHistory = getTransfersMono.block() }
+
+    val merchantAccount =
+      Account(
+        Network.CIRCLE,
+        "1000066041",
+        Account.Capabilities(Network.CIRCLE, Network.STELLAR, Network.BANK_WIRE)
+      )
+    val wantPaymentHistory = PaymentHistory(merchantAccount)
+    wantPaymentHistory.beforeCursor = "6588a352-5131-4711-a264-e405f38d752d"
+
+    val gson = Gson()
+    val type = object : TypeToken<Map<String?, *>?>() {}.type
+
+    val p = Payment()
+    p.id = "6588a352-5131-4711-a264-e405f38d752d"
+    p.sourceAccount = merchantAccount
+    p.destinationAccount =
+      Account(
+        Network.BANK_WIRE,
+        "6c87da10-feb8-484f-822c-2083ed762d25",
+        Account.Capabilities(Network.BANK_WIRE)
+      )
+    p.balance = Balance("3.00", "iso4217:USD")
+    p.status = Payment.Status.SUCCESSFUL
+    p.createdAt = CircleDateFormatter.stringToDate("2022-02-03T15:41:25.286Z")
+    p.updatedAt = CircleDateFormatter.stringToDate("2022-02-03T16:00:31.697Z")
+    p.originalResponse = gson.fromJson(mockWalletToWirePayout, type)
+    wantPaymentHistory.payments.add(p)
+
+    assertEquals(wantPaymentHistory, paymentHistory)
+  }
+
+  @Test
   fun test_private_getTransfers_paginationResponse() {
     service.secretKey = "<secret-key>"
 
