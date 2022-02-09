@@ -7,6 +7,9 @@ subprojects {
   apply(plugin = "java")
   apply(plugin = "com.diffplug.spotless")
 
+  group = "org.stellar.anchor-sdk"
+  version = "0.1.0"
+
   repositories {
     mavenCentral()
     maven { url = uri("https://jitpack.io") }
@@ -61,10 +64,6 @@ subprojects {
     testAnnotationProcessor("org.projectlombok:lombok:1.18.22")
   }
 
-  /**
-   * JUnit5 should be used for all subprojects.
-   */
-  tasks.test {
-    useJUnitPlatform()
-  }
+  /** JUnit5 should be used for all subprojects. */
+  tasks.test { useJUnitPlatform() }
 }
