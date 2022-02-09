@@ -272,9 +272,9 @@ public class CirclePaymentService implements PaymentService {
       String accountID, String beforeCursor, String afterCursor, Integer pageSize)
       throws HttpException {
     // build query parameters for GET requests
-    Integer _pageSize = pageSize != null ? pageSize : 50;
+    int _pageSize = pageSize != null ? pageSize : 50;
     LinkedHashMap<String, String> queryParams = new LinkedHashMap<>();
-    queryParams.put("pageSize", _pageSize.toString());
+    queryParams.put("pageSize", Integer.toString(_pageSize));
     queryParams.put("walletId", accountID);
 
     if (afterCursor != null && !afterCursor.isEmpty()) {
@@ -400,14 +400,14 @@ public class CirclePaymentService implements PaymentService {
               allPayments.addAll(payoutsHistory.getPayments());
               allPayments =
                   allPayments.stream()
-                      .sorted(Comparator.comparing(Payment::getCreatedAt))
+                      .sorted((p1, p2) -> p2.getCreatedAt().compareTo(p1.getCreatedAt()))
                       .collect(Collectors.toList());
               for (Payment p : allPayments) {
                 updatePaymentWireCapability(p, distributionAccId);
               }
-              transfersHistory.setPayments(allPayments);
+              result.setPayments(allPayments);
 
-              return transfersHistory;
+              return result;
             });
   }
 
