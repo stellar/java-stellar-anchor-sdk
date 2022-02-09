@@ -21,11 +21,11 @@ public class CircleTransfer {
   String errorCode;
   Date createDate;
 
-  public Payment toPayment() {
+  public Payment toPayment(String distributionAccountId) {
     Payment p = new Payment();
     p.setId(id);
-    p.setSourceAccount(source.toAccount());
-    Account destinationAccount = destination.toAccount();
+    p.setSourceAccount(source.toAccount(distributionAccountId));
+    Account destinationAccount = destination.toAccount(distributionAccountId);
     p.setDestinationAccount(destinationAccount);
     p.setBalance(amount.toBalance(destinationAccount.network));
     p.setTxHash(transactionHash);

@@ -38,7 +38,8 @@ public class CirclePayout {
             Network.CIRCLE,
             sourceWalletId,
             new Account.Capabilities(Network.CIRCLE, Network.STELLAR, Network.BANK_WIRE)));
-    Account destinationAccount = destination.toAccount();
+    // In Circle, only the source wallet can send a Payout:
+    Account destinationAccount = destination.toAccount(sourceWalletId);
     p.setDestinationAccount(destinationAccount);
     p.setBalance(amount.toBalance(destinationAccount.network));
     p.setStatus(status.toPaymentStatus());

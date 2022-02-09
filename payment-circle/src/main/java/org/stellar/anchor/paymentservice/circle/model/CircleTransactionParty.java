@@ -66,7 +66,7 @@ public class CircleTransactionParty {
     return party;
   }
 
-  public Account toAccount() {
+  public Account toAccount(String distributionAccountId) {
     switch (type) {
       case BLOCKCHAIN:
         if (!"XLM".equals(chain)) {
@@ -76,8 +76,11 @@ public class CircleTransactionParty {
             Network.STELLAR, address, addressTag, new Account.Capabilities(Network.STELLAR));
 
       case WALLET:
-        return new Account(
-            Network.CIRCLE, id, new Account.Capabilities(Network.CIRCLE, Network.STELLAR));
+        Account account =
+            new Account(
+                Network.CIRCLE, id, new Account.Capabilities(Network.CIRCLE, Network.STELLAR));
+        account.capabilities.set(Network.BANK_WIRE, distributionAccountId.equals(id));
+        return account;
 
       case WIRE:
         return new Account(Network.BANK_WIRE, id, new Account.Capabilities(Network.BANK_WIRE));

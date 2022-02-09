@@ -10,7 +10,7 @@ import org.stellar.anchor.paymentservice.circle.model.CirclePayout;
 public class CirclePayoutListResponse {
   List<CirclePayout> data;
 
-  public PaymentHistory toPaymentHistory(Integer pageSize, Account account) {
+  public PaymentHistory toPaymentHistory(int pageSize, Account account) {
     PaymentHistory ph = new PaymentHistory(account);
     if (data == null || data.size() == 0) {
       return ph;

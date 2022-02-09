@@ -10,7 +10,8 @@ import org.stellar.anchor.paymentservice.circle.model.CircleTransfer;
 public class CircleTransferListResponse {
   List<CircleTransfer> data;
 
-  public PaymentHistory toPaymentHistory(Integer pageSize, Account account) {
+  public PaymentHistory toPaymentHistory(
+      int pageSize, Account account, String distributionAccountId) {
     PaymentHistory ph = new PaymentHistory(account);
     if (data == null || data.size() == 0) {
       return ph;
@@ -18,7 +19,7 @@ public class CircleTransferListResponse {
 
     for (int i = 0; i < data.size(); i++) {
       CircleTransfer transfer = data.get(i);
-      ph.getPayments().add(transfer.toPayment());
+      ph.getPayments().add(transfer.toPayment(distributionAccountId));
 
       if (i == 0) {
         ph.setBeforeCursor(transfer.getId());
