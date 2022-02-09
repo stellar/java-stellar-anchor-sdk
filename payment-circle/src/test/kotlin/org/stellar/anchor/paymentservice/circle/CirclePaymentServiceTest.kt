@@ -50,7 +50,7 @@ class CirclePaymentServiceTest {
           "currency":"USD"
         },
         "status":"pending",
-        "createDate":"2022-01-01T01:01:01.544Z"
+        "createDate":"2022-02-07T19:50:23.408Z"
       }"""
 
     const val mockStellarToWalletTransferJson =
@@ -93,7 +93,7 @@ class CirclePaymentServiceTest {
         },
         "transactionHash":"5239ee055b1083231c6bdaaa921d3e4b3bc090577fbd909815bd5d7fe68091ef",
         "status":"complete",
-        "createDate":"2022-02-07T19:50:23.408Z"
+        "createDate":"2022-01-01T01:01:01.544Z"
       }"""
 
     const val mockWalletToWirePayoutJson =
@@ -1031,8 +1031,8 @@ class CirclePaymentServiceTest {
       Account(Network.CIRCLE, "1000067536", Account.Capabilities(Network.CIRCLE, Network.STELLAR))
     p1.balance = Balance("0.91", "circle:USD")
     p1.status = Payment.Status.PENDING
-    p1.createdAt = CircleDateFormatter.stringToDate("2022-01-01T01:01:01.544Z")
-    p1.updatedAt = CircleDateFormatter.stringToDate("2022-01-01T01:01:01.544Z")
+    p1.createdAt = CircleDateFormatter.stringToDate("2022-02-07T19:50:23.408Z")
+    p1.updatedAt = CircleDateFormatter.stringToDate("2022-02-07T19:50:23.408Z")
     p1.originalResponse = gson.fromJson(mockWalletToWalletTransferJson, type)
     wantPaymentHistory.payments.add(p1)
 
@@ -1060,8 +1060,8 @@ class CirclePaymentServiceTest {
     p3.balance = Balance("1.00", "stellar:USD")
     p3.txHash = "5239ee055b1083231c6bdaaa921d3e4b3bc090577fbd909815bd5d7fe68091ef"
     p3.status = Payment.Status.SUCCESSFUL
-    p3.createdAt = CircleDateFormatter.stringToDate("2022-02-07T19:50:23.408Z")
-    p3.updatedAt = CircleDateFormatter.stringToDate("2022-02-07T19:50:23.408Z")
+    p3.createdAt = CircleDateFormatter.stringToDate("2022-01-01T01:01:01.544Z")
+    p3.updatedAt = CircleDateFormatter.stringToDate("2022-01-01T01:01:01.544Z")
     p3.originalResponse = gson.fromJson(mockWalletToStellarTransferJson, type)
     wantPaymentHistory.payments.add(p3)
 
@@ -1123,8 +1123,8 @@ class CirclePaymentServiceTest {
       Account(Network.CIRCLE, "1000067536", Account.Capabilities(Network.CIRCLE, Network.STELLAR))
     p1.balance = Balance("0.91", "circle:USD")
     p1.status = Payment.Status.PENDING
-    p1.createdAt = CircleDateFormatter.stringToDate("2022-01-01T01:01:01.544Z")
-    p1.updatedAt = CircleDateFormatter.stringToDate("2022-01-01T01:01:01.544Z")
+    p1.createdAt = CircleDateFormatter.stringToDate("2022-02-07T19:50:23.408Z")
+    p1.updatedAt = CircleDateFormatter.stringToDate("2022-02-07T19:50:23.408Z")
     p1.originalResponse = gson.fromJson(mockWalletToWalletTransferJson, type)
     wantPaymentHistory.payments.add(p1)
 
@@ -1140,8 +1140,8 @@ class CirclePaymentServiceTest {
     p2.balance = Balance("1.00", "stellar:USD")
     p2.txHash = "5239ee055b1083231c6bdaaa921d3e4b3bc090577fbd909815bd5d7fe68091ef"
     p2.status = Payment.Status.SUCCESSFUL
-    p2.createdAt = CircleDateFormatter.stringToDate("2022-02-07T19:50:23.408Z")
-    p2.updatedAt = CircleDateFormatter.stringToDate("2022-02-07T19:50:23.408Z")
+    p2.createdAt = CircleDateFormatter.stringToDate("2022-01-01T01:01:01.544Z")
+    p2.updatedAt = CircleDateFormatter.stringToDate("2022-01-01T01:01:01.544Z")
     p2.originalResponse = gson.fromJson(mockWalletToStellarTransferJson, type)
     wantPaymentHistory.payments.add(p2)
 
