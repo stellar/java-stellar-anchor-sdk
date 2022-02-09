@@ -303,6 +303,7 @@ public class CirclePaymentService implements PaymentService {
                           Network.CIRCLE,
                           accountID,
                           new Account.Capabilities(Network.CIRCLE, Network.STELLAR));
+                  // TODO: update stellar account when receiving Stellar->Wallet transfers
                   CircleTransferListResponse circleTransferListResponse =
                       gson.fromJson(body, CircleTransferListResponse.class);
                   return circleTransferListResponse.toPaymentHistory(_pageSize, account);
@@ -318,7 +319,7 @@ public class CirclePaymentService implements PaymentService {
     Integer _pageSize = pageSize != null ? pageSize : 50;
     LinkedHashMap<String, String> queryParams = new LinkedHashMap<>();
     queryParams.put("pageSize", _pageSize.toString());
-    queryParams.put("walletId", accountID);
+    queryParams.put("source", accountID);
 
     if (afterCursor != null && !afterCursor.isEmpty()) {
       queryParams.put("pageAfter", afterCursor);
@@ -368,6 +369,7 @@ public class CirclePaymentService implements PaymentService {
       String accountID, @Nullable String beforeCursor, @Nullable String afterCursor)
       throws HttpException {
     // TODO: implement
+    // TODO: implement /v1/payments as well
     return getTransfers(accountID, beforeCursor, afterCursor, null);
   }
 

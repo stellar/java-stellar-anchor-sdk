@@ -871,7 +871,7 @@ class CirclePaymentServiceTest {
         @Throws(InterruptedException::class)
         override fun dispatch(request: RecordedRequest): MockResponse {
           when (request.path) {
-            "/v1/payouts?pageSize=50&walletId=1000066041" ->
+            "/v1/payouts?pageSize=50&source=1000066041" ->
               return MockResponse()
                 .addHeader("Content-Type", "application/json")
                 .setBody(
@@ -889,7 +889,7 @@ class CirclePaymentServiceTest {
     server.dispatcher = dispatcher
 
     // Let's use reflection to access the private method
-    val getTransfersMethod: Method =
+    val getPayoutsMethod: Method =
       CirclePaymentService::class.java.getDeclaredMethod(
         "getPayouts",
         String::class.java,
@@ -897,13 +897,13 @@ class CirclePaymentServiceTest {
         String::class.java,
         Integer::class.java
       )
-    assert(getTransfersMethod.trySetAccessible())
+    assert(getPayoutsMethod.trySetAccessible())
     @Suppress("UNCHECKED_CAST")
-    val getTransfersMono =
-      (getTransfersMethod.invoke(service, "1000066041", null, null, null) as Mono<PaymentHistory>)
+    val getPayoutsMono =
+      (getPayoutsMethod.invoke(service, "1000066041", null, null, null) as Mono<PaymentHistory>)
 
     var paymentHistory: PaymentHistory? = null
-    assertDoesNotThrow { paymentHistory = getTransfersMono.block() }
+    assertDoesNotThrow { paymentHistory = getPayoutsMono.block() }
 
     val merchantAccount =
       Account(
@@ -1065,16 +1065,119 @@ class CirclePaymentServiceTest {
     assertEquals(wantPaymentHistory, paymentHistory)
   }
 
+  @Test
+  fun test_private_getPayouts_paginationResponse() {
+    service.secretKey = "<secret-key>"
+
+    val mockWalletToWirePayout =
+      """{
+        "id":"6588a352-5131-4711-a264-e405f38d752d",
+        "amount":{
+          "amount":"3.00",
+          "currency":"USD"
+        },
+        "status":"complete",
+        "sourceWalletId":"1000066041",
+        "destination":{
+          "type":"wire",
+          "id":"6c87da10-feb8-484f-822c-2083ed762d25",
+          "name":"JPMORGAN CHASE BANK, NA ****6789"
+        },
+        "fees":{
+          "amount":"25.00",
+          "currency":"USD"
+        },
+        "createDate":"2022-02-03T15:41:25.286Z",
+        "updateDate":"2022-02-03T16:00:31.697Z"  
+      }"""
+
+    val dispatcher: Dispatcher =
+      object : Dispatcher() {
+        @Throws(InterruptedException::class)
+        override fun dispatch(request: RecordedRequest): MockResponse {
+          when (request.path) {
+            "/v1/payouts?pageSize=1&source=1000066041" ->
+              return MockResponse()
+                .addHeader("Content-Type", "application/json")
+                .setBody(
+                  """{    
+                    "data": [
+                      $mockWalletToWirePayout
+                    ]
+                  }""".trimIndent()
+                )
+            "/v1/configuration" -> return getDistAccountIdMockResponse()
+          }
+          return MockResponse().setResponseCode(404)
+        }
+      }
+    server.dispatcher = dispatcher
+
+    // Let's use reflection to access the private method
+    val getPayoutsMethod: Method =
+      CirclePaymentService::class.java.getDeclaredMethod(
+        "getPayouts",
+        String::class.java,
+        String::class.java,
+        String::class.java,
+        Integer::class.java
+      )
+    assert(getPayoutsMethod.trySetAccessible())
+    @Suppress("UNCHECKED_CAST")
+    val getPayoutsMono =
+      (getPayoutsMethod.invoke(service, "1000066041", null, null, 1) as Mono<PaymentHistory>)
+
+    var paymentHistory: PaymentHistory? = null
+    assertDoesNotThrow { paymentHistory = getPayoutsMono.block() }
+
+    val merchantAccount =
+      Account(
+        Network.CIRCLE,
+        "1000066041",
+        Account.Capabilities(Network.CIRCLE, Network.STELLAR, Network.BANK_WIRE)
+      )
+    val wantPaymentHistory = PaymentHistory(merchantAccount)
+    wantPaymentHistory.beforeCursor = "6588a352-5131-4711-a264-e405f38d752d"
+    wantPaymentHistory.afterCursor = "6588a352-5131-4711-a264-e405f38d752d"
+
+    val gson = Gson()
+    val type = object : TypeToken<Map<String?, *>?>() {}.type
+
+    val p = Payment()
+    p.id = "6588a352-5131-4711-a264-e405f38d752d"
+    p.sourceAccount = merchantAccount
+    p.destinationAccount =
+      Account(
+        Network.BANK_WIRE,
+        "6c87da10-feb8-484f-822c-2083ed762d25",
+        Account.Capabilities(Network.BANK_WIRE)
+      )
+    p.balance = Balance("3.00", "iso4217:USD")
+    p.status = Payment.Status.SUCCESSFUL
+    p.createdAt = CircleDateFormatter.stringToDate("2022-02-03T15:41:25.286Z")
+    p.updatedAt = CircleDateFormatter.stringToDate("2022-02-03T16:00:31.697Z")
+    p.originalResponse = gson.fromJson(mockWalletToWirePayout, type)
+    wantPaymentHistory.payments.add(p)
+
+    assertEquals(wantPaymentHistory, paymentHistory)
+  }
+
   @ParameterizedTest
   @CsvSource(
     value =
       [
-        ",,/v1/transfers?pageSize=1&walletId=1000066041",
-        "before,,/v1/transfers?pageSize=1&walletId=1000066041&pageBefore=before",
-        ",after,/v1/transfers?pageSize=1&walletId=1000066041&pageAfter=after",
-        "before,after,/v1/transfers?pageSize=1&walletId=1000066041&pageAfter=after"]
+        "transfers,,,/v1/transfers?pageSize=1&walletId=1000066041",
+        "transfers,before,,/v1/transfers?pageSize=1&walletId=1000066041&pageBefore=before",
+        "transfers,,after,/v1/transfers?pageSize=1&walletId=1000066041&pageAfter=after",
+        "transfers,before,after,/v1/transfers?pageSize=1&walletId=1000066041&pageAfter=after",
+        "payouts,,,/v1/payouts?pageSize=1&source=1000066041",
+        "payouts,before,,/v1/payouts?pageSize=1&source=1000066041&pageBefore=before",
+        "payouts,,after,/v1/payouts?pageSize=1&source=1000066041&pageAfter=after",
+        "payouts,before,after,/v1/payouts?pageSize=1&source=1000066041&pageAfter=after",
+      ]
   )
-  fun test_private_getTransfers_paginationRequestUri(
+  fun test_private_getTransfersOrPayouts_paginationRequestUri(
+    uri: String,
     beforeCursor: String?,
     afterCursor: String?,
     expectedUri: String
@@ -1085,7 +1188,7 @@ class CirclePaymentServiceTest {
       object : Dispatcher() {
         @Throws(InterruptedException::class)
         override fun dispatch(request: RecordedRequest): MockResponse {
-          if (request.path!!.startsWith("/v1/transfers")) {
+          if (request.path!!.startsWith("/v1/$uri")) {
             return MockResponse()
               .addHeader("Content-Type", "application/json")
               .setBody("""{
@@ -1101,16 +1204,17 @@ class CirclePaymentServiceTest {
         }
       }
 
+    val capitalizedUri = uri.replaceFirstChar { c: Char -> c.titlecase() }
     // Let's use reflection to access the private method
-    val getTransfersMethod: Method =
+    val getAccountHistoryMethod: Method =
       CirclePaymentService::class.java.getDeclaredMethod(
-        "getTransfers",
+        "get$capitalizedUri",
         String::class.java,
         String::class.java,
         String::class.java,
         Integer::class.java
       )
-    assert(getTransfersMethod.trySetAccessible())
+    assert(getAccountHistoryMethod.trySetAccessible())
     var paymentHistory: PaymentHistory? = null
 
     val merchantAccount =
@@ -1122,19 +1226,19 @@ class CirclePaymentServiceTest {
 
     server.dispatcher = dispatcher
     @Suppress("UNCHECKED_CAST")
-    val getTransfersMono =
-      (getTransfersMethod.invoke(service, "1000066041", beforeCursor, afterCursor, 1) as
+    val getAccountHistoryMono =
+      (getAccountHistoryMethod.invoke(service, "1000066041", beforeCursor, afterCursor, 1) as
         Mono<PaymentHistory>)
-    assertDoesNotThrow { paymentHistory = getTransfersMono.block() }
+    assertDoesNotThrow { paymentHistory = getAccountHistoryMono.block() }
 
     val wantPaymentHistory = PaymentHistory(merchantAccount)
     assertEquals(wantPaymentHistory, paymentHistory)
 
     assertEquals(2, server.requestCount)
     val allRequests = arrayOf(server.takeRequest(), server.takeRequest())
-    val getTransfersRequest = allRequests.find { request -> request.path!! == expectedUri }!!
-    assertEquals("GET", getTransfersRequest.method)
-    assertEquals("Bearer <secret-key>", getTransfersRequest.headers["Authorization"])
+    val request = allRequests.find { request -> request.path!! == expectedUri }!!
+    assertEquals("GET", request.method)
+    assertEquals("Bearer <secret-key>", request.headers["Authorization"])
   }
 
   @Test
