@@ -4,13 +4,13 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import io.netty.handler.codec.http.HttpHeaderNames;
-import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import lombok.Getter;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.stellar.anchor.exception.HttpException;
 import org.stellar.anchor.paymentservice.*;
@@ -19,10 +19,6 @@ import org.stellar.anchor.paymentservice.circle.model.request.CircleSendTransact
 import org.stellar.anchor.paymentservice.circle.model.response.*;
 import org.stellar.anchor.paymentservice.circle.util.NettyHttpClient;
 import org.stellar.sdk.Server;
-import org.stellar.sdk.responses.Page;
-import org.stellar.sdk.responses.operations.OperationResponse;
-import org.stellar.sdk.responses.operations.PathPaymentBaseOperationResponse;
-import org.stellar.sdk.responses.operations.PaymentOperationResponse;
 import reactor.core.publisher.Mono;
 import reactor.netty.ByteBufMono;
 import reactor.netty.http.client.HttpClient;
@@ -30,14 +26,14 @@ import reactor.netty.http.client.HttpClientResponse;
 import reactor.util.annotation.NonNull;
 import reactor.util.annotation.Nullable;
 
-public class CirclePaymentService implements PaymentService {
+public class CirclePaymentService implements PaymentService, StellarReconciliation {
   private static final Gson gson =
       new GsonBuilder()
           .registerTypeAdapter(CircleTransfer.class, new CircleTransfer.Deserializer())
           .registerTypeAdapter(CirclePayout.class, new CirclePayout.Deserializer())
           .create();
 
-  Server horizonServer;
+  @Getter Server horizonServer;
 
   private final Network network = Network.CIRCLE;
 
@@ -314,48 +310,7 @@ public class CirclePaymentService implements PaymentService {
                   gson.fromJson(body, CircleTransferListResponse.class);
 
               for (CircleTransfer transfer : response.getData()) {
-                if (transfer.getSource().getId() != null) continue;
-
-                if (!transfer.getSource().getChain().equals("XLM")
-                    || transfer.getSource().getType() != CircleTransactionParty.Type.BLOCKCHAIN) {
-                  throw new HttpException(500, "invalid source account");
-                }
-
-                Page<OperationResponse> responsePage;
-                try {
-                  responsePage =
-                      horizonServer
-                          .payments()
-                          .forTransaction(transfer.getTransactionHash())
-                          .execute();
-                } catch (IOException e) {
-                  e.printStackTrace();
-                  throw new HttpException(500, e.getMessage());
-                }
-
-                for (OperationResponse or : responsePage.getRecords()) {
-                  if (!or.isTransactionSuccessful()) continue;
-
-                  if (!List.of("payment", "path_payment_strict_send", "path_payment_strict_receive")
-                      .contains(or.getType())) continue;
-
-                  String amount, from;
-                  if ("payment".equals(or.getType())) {
-                    PaymentOperationResponse pr = (PaymentOperationResponse) or;
-                    amount = pr.getAmount();
-                    from = pr.getFrom();
-                  } else {
-                    PathPaymentBaseOperationResponse ppr = (PathPaymentBaseOperationResponse) or;
-                    amount = ppr.getAmount();
-                    from = ppr.getFrom();
-                  }
-
-                  BigDecimal wantAmount = new BigDecimal(transfer.getAmount().getAmount());
-                  BigDecimal gotAmount = new BigDecimal(amount);
-                  if (wantAmount.compareTo(gotAmount) != 0) continue;
-
-                  transfer.getSource().setAddress(from);
-                }
+                updateStellarSenderAddress(transfer);
               }
 
               return response;
