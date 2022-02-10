@@ -109,23 +109,18 @@ public class StellarPaymentService implements PaymentService {
         .flatMap(
             response -> {
               if (response.status().code() != 200) {
-                return Mono.error(new HttpException(response.status().code()));
+                return handleStellarHttpError(
+                    response, "unexpected status code during health check");
               }
               return Mono.empty();
             });
   }
 
-  public Mono<Void> validateSecretKey() throws HttpException {
-    return getDistributionAccountAddress()
-        .flatMap(this::getAccount)
-        .flatMap(account -> Mono.empty());
-  }
-
   public Mono<String> getDistributionAccountAddress() throws HttpException {
-    if (secretKey == null) {
+    if (getSecretKey() == null) {
       return null;
     }
-    return Mono.just(KeyPair.fromSecretSeed(secretKey).getAccountId());
+    return Mono.just(KeyPair.fromSecretSeed(getSecretKey()).getAccountId());
   }
 
   public Mono<Account> getAccount(String accountId) throws HttpException {
@@ -150,7 +145,7 @@ public class StellarPaymentService implements PaymentService {
   private Account accountResponseToAccount(AccountResponse accountResponse) {
     Account account =
         new Account(
-            network, accountResponse.getAccountId(), new Account.Capabilities(Network.CIRCLE));
+            getNetwork(), accountResponse.getAccountId(), new Account.Capabilities(Network.CIRCLE));
     List<Balance> balances = new ArrayList<Balance>();
     for (AccountResponse.Balance b : accountResponse.getBalances()) {
       if (!b.getAsset().isPresent() || !b.getAuthorized()) {
@@ -169,17 +164,18 @@ public class StellarPaymentService implements PaymentService {
   }
 
   public Mono<Account> createAccount(String accountId, BigDecimal withAmount) throws HttpException {
-    return getAccountResponse(KeyPair.fromSecretSeed(secretKey).getAccountId())
+    return getAccountResponse(KeyPair.fromSecretSeed(getSecretKey()).getAccountId())
         .flatMap(
             accountResponse ->
-                Mono.just(
-                    buildCreateAccountTransactionEnvelope(accountResponse, accountId, withAmount)))
+                Mono.just(buildCreateAccountTransaction(accountResponse, accountId, withAmount)))
+        .flatMap(transaction -> Mono.just(signTransaction(transaction)))
         .flatMap(this::submitTransaction)
         .flatMap(transactionResponse -> getAccount(accountId));
   }
 
-  private Mono<SubmitTransactionResponse> submitTransaction(String envelope) {
-    String requestBody = gson.toJson(new SubmitTransactionRequest(envelope));
+  private Mono<SubmitTransactionResponse> submitTransaction(Transaction transaction) {
+    String requestBody =
+        gson.toJson(new SubmitTransactionRequest(transaction.toEnvelopeXdrBase64()));
     return getWebClient()
         .post()
         .uri("/transactions")
@@ -190,7 +186,7 @@ public class StellarPaymentService implements PaymentService {
                 return handleStellarHttpError(
                     postResponse,
                     "non-success response returned when submitting a transaction, envelope: "
-                        + envelope.toString());
+                        + transaction.toEnvelopeXdrBase64());
               }
               return bodyBytesMono.asString();
             })
@@ -199,18 +195,16 @@ public class StellarPaymentService implements PaymentService {
                 Mono.just(gson.fromJson(responseBody, SubmitTransactionResponse.class)));
   }
 
-  private String buildCreateAccountTransactionEnvelope(
+  private Transaction buildCreateAccountTransaction(
       AccountResponse accountResponse, String accountId, BigDecimal withAmount) {
     CreateAccountOperation createAccountOp =
         new CreateAccountOperation.Builder(accountId, withAmount.toString()).build();
-    Transaction transaction =
-        new Transaction.Builder(accountResponse, stellarNetwork)
-            .addOperation(createAccountOp)
-            .addMemo(Memo.none())
-            .setTimeout(transactionsExpireAfter)
-            .setBaseFee(baseFee)
-            .build();
-    return transaction.toEnvelopeXdr().toString();
+    return new Transaction.Builder(accountResponse, getStellarNetwork())
+        .addOperation(createAccountOp)
+        .addMemo(Memo.none())
+        .setTimeout(getTransactionsExpireAfter())
+        .setBaseFee(getBaseFee())
+        .build();
   }
 
   public Mono<PaymentHistory> getAccountPaymentHistory(String accountID, @Nullable String cursor)
@@ -244,7 +238,7 @@ public class StellarPaymentService implements PaymentService {
     // denominates path payment amounts in units of the asset that is known prior to submission
     // TODO: update Payment to account for different send and receive balances
     Account forAccount =
-        new Account(network, forAccountId, new Account.Capabilities(Network.CIRCLE));
+        new Account(getNetwork(), forAccountId, new Account.Capabilities(Network.CIRCLE));
     PaymentHistory paymentHistory = new PaymentHistory();
     paymentHistory.setAccount(forAccount);
     List<OperationResponse> opResps = operationsPage.getRecords();
@@ -297,8 +291,8 @@ public class StellarPaymentService implements PaymentService {
     }
     return createPayment(
         opResp.getTransactionHash(),
-        new Account(network, sourceAccount, new Account.Capabilities(Network.CIRCLE)),
-        new Account(network, destinationAccount, new Account.Capabilities(Network.CIRCLE)),
+        new Account(getNetwork(), sourceAccount, new Account.Capabilities(Network.CIRCLE)),
+        new Account(getNetwork(), destinationAccount, new Account.Capabilities(Network.CIRCLE)),
         currencyName,
         amount,
         opResp.getCreatedAt());
@@ -333,13 +327,14 @@ public class StellarPaymentService implements PaymentService {
         .flatMap(
             accountResponse ->
                 Mono.just(
-                    buildPaymentTransactionEnvelope(
+                    buildPaymentTransaction(
                         accountResponse,
                         destinationAccount.id,
                         currencyName,
                         amount,
                         memo,
                         memoType)))
+        .flatMap(transaction -> Mono.just(signTransaction(transaction)))
         .flatMap(this::submitTransaction)
         .flatMap(
             submitTransactionResponse -> getStellarTransaction(submitTransactionResponse.getHash()))
@@ -378,7 +373,7 @@ public class StellarPaymentService implements PaymentService {
     return payment;
   }
 
-  private String buildPaymentTransactionEnvelope(
+  private Transaction buildPaymentTransaction(
       AccountResponse accountResponse,
       String accountId,
       String currencyName,
@@ -396,16 +391,21 @@ public class StellarPaymentService implements PaymentService {
     PaymentOperation paymentOp =
         new PaymentOperation.Builder(accountId, asset, amount.toString()).build();
     Transaction.Builder builder =
-        new Transaction.Builder(accountResponse, stellarNetwork)
+        new Transaction.Builder(accountResponse, getStellarNetwork())
             .addOperation(paymentOp)
-            .setTimeout(transactionsExpireAfter)
-            .setBaseFee(baseFee);
+            .setTimeout(getTransactionsExpireAfter())
+            .setBaseFee(getBaseFee());
     Memo memoObj = makeMemo(memo, memoType);
     if (memoObj != null) {
       builder.addMemo(memoObj);
     }
-    Transaction transaction = builder.build();
-    return transaction.toEnvelopeXdr().toString();
+    return builder.build();
+  }
+
+  private Transaction signTransaction(Transaction transaction) {
+    KeyPair kp = KeyPair.fromSecretSeed(getSecretKey());
+    transaction.sign(kp);
+    return transaction;
   }
 
   private Memo makeMemo(@Nullable String memo, @Nullable String memoType) {

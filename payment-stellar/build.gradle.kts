@@ -11,6 +11,8 @@ dependencies {
     implementation(libs.reactor.netty)
     implementation(libs.google.gson)
     implementation(libs.reactor.core)
+    // Testing
+    testImplementation(libs.okhttp3.mockserver)
 
     // Lombok should be used by all sub-projects to reduce Java verbosity
     annotationProcessor(libs.lombok)
