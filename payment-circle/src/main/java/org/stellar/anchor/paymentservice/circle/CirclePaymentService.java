@@ -1,8 +1,10 @@
 package org.stellar.anchor.paymentservice.circle;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import io.netty.handler.codec.http.HttpHeaderNames;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.ArrayList;
@@ -12,12 +14,15 @@ import java.util.stream.Collectors;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.stellar.anchor.exception.HttpException;
 import org.stellar.anchor.paymentservice.*;
-import org.stellar.anchor.paymentservice.circle.model.CircleBalance;
-import org.stellar.anchor.paymentservice.circle.model.CircleTransactionParty;
-import org.stellar.anchor.paymentservice.circle.model.CircleWallet;
+import org.stellar.anchor.paymentservice.circle.model.*;
 import org.stellar.anchor.paymentservice.circle.model.request.CircleSendTransactionRequest;
 import org.stellar.anchor.paymentservice.circle.model.response.*;
 import org.stellar.anchor.paymentservice.circle.util.NettyHttpClient;
+import org.stellar.sdk.Server;
+import org.stellar.sdk.responses.Page;
+import org.stellar.sdk.responses.operations.OperationResponse;
+import org.stellar.sdk.responses.operations.PathPaymentBaseOperationResponse;
+import org.stellar.sdk.responses.operations.PaymentOperationResponse;
 import reactor.core.publisher.Mono;
 import reactor.netty.ByteBufMono;
 import reactor.netty.http.client.HttpClient;
@@ -26,7 +31,13 @@ import reactor.util.annotation.NonNull;
 import reactor.util.annotation.Nullable;
 
 public class CirclePaymentService implements PaymentService {
-  private static final Gson gson = new Gson();
+  private static final Gson gson =
+      new GsonBuilder()
+          .registerTypeAdapter(CircleTransfer.class, new CircleTransfer.Deserializer())
+          .registerTypeAdapter(CirclePayout.class, new CirclePayout.Deserializer())
+          .create();
+
+  Server horizonServer;
 
   private final Network network = Network.CIRCLE;
 
@@ -42,10 +53,11 @@ public class CirclePaymentService implements PaymentService {
    * For all service methods to work correctly, make sure your circle account has a valid business
    * wallet and a bank account configured.
    */
-  public CirclePaymentService(String url, String secretKey) {
+  public CirclePaymentService(String url, String secretKey, String horizonUrl) {
     super();
     this.url = url;
     this.secretKey = secretKey;
+    this.horizonServer = new Server(horizonUrl);
   }
 
   public Network getNetwork() {
@@ -296,8 +308,58 @@ public class CirclePaymentService implements PaymentService {
 
               return bodyBytesMono.asString();
             })
-        .map(body -> gson.fromJson(body, CircleTransferListResponse.class));
-    // TODO: update stellar account when receiving Stellar->Wallet transfers
+        .map(
+            body -> {
+              CircleTransferListResponse response =
+                  gson.fromJson(body, CircleTransferListResponse.class);
+
+              for (CircleTransfer transfer : response.getData()) {
+                if (transfer.getSource().getId() != null) continue;
+
+                if (!transfer.getSource().getChain().equals("XLM")
+                    || transfer.getSource().getType() != CircleTransactionParty.Type.BLOCKCHAIN) {
+                  throw new HttpException(500, "invalid source account");
+                }
+
+                Page<OperationResponse> responsePage;
+                try {
+                  responsePage =
+                      horizonServer
+                          .payments()
+                          .forTransaction(transfer.getTransactionHash())
+                          .execute();
+                } catch (IOException e) {
+                  e.printStackTrace();
+                  throw new HttpException(500, e.getMessage());
+                }
+
+                for (OperationResponse or : responsePage.getRecords()) {
+                  if (!or.isTransactionSuccessful()) continue;
+
+                  if (!List.of("payment", "path_payment_strict_send", "path_payment_strict_receive")
+                      .contains(or.getType())) continue;
+
+                  String amount, from;
+                  if ("payment".equals(or.getType())) {
+                    PaymentOperationResponse pr = (PaymentOperationResponse) or;
+                    amount = pr.getAmount();
+                    from = pr.getFrom();
+                  } else {
+                    PathPaymentBaseOperationResponse ppr = (PathPaymentBaseOperationResponse) or;
+                    amount = ppr.getAmount();
+                    from = ppr.getFrom();
+                  }
+
+                  BigDecimal wantAmount = new BigDecimal(transfer.getAmount().getAmount());
+                  BigDecimal gotAmount = new BigDecimal(amount);
+                  if (wantAmount.compareTo(gotAmount) != 0) continue;
+
+                  transfer.getSource().setAddress(from);
+                }
+              }
+
+              return response;
+            });
   }
 
   public Mono<CirclePayoutListResponse> _getPayouts(

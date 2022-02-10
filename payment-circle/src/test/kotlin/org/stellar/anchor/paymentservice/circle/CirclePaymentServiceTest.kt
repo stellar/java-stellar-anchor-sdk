@@ -6,7 +6,6 @@ import io.mockk.mockk
 import io.mockk.verify
 import io.netty.handler.codec.http.HttpResponseStatus
 import java.io.IOException
-import java.lang.RuntimeException
 import java.lang.reflect.Method
 import java.math.BigDecimal
 import okhttp3.mockwebserver.Dispatcher
@@ -27,6 +26,10 @@ import org.stellar.anchor.exception.HttpException
 import org.stellar.anchor.paymentservice.*
 import org.stellar.anchor.paymentservice.circle.model.CircleWallet
 import org.stellar.anchor.paymentservice.circle.util.CircleDateFormatter
+import org.stellar.sdk.Server
+import org.stellar.sdk.responses.GsonSingleton
+import org.stellar.sdk.responses.Page
+import org.stellar.sdk.responses.operations.OperationResponse
 import reactor.core.publisher.Mono
 import reactor.netty.ByteBufMono
 import reactor.netty.http.client.HttpClientResponse
@@ -117,6 +120,58 @@ class CirclePaymentServiceTest {
         "createDate":"2022-02-03T15:41:25.286Z",
         "updateDate":"2022-02-03T16:00:31.697Z"  
       }"""
+
+    const val mockStellarPaymentResponsePageBody =
+      """{
+        "_links": {
+          "self": {
+            "href": "https://horizon-testnet.stellar.org/transactions/fb8947c67856d8eb444211c1927d92bcf14abcfb34cdd27fc9e604b15d208fd1/payments?cursor=&limit=10&order=asc"
+          },
+          "next": {
+            "href": "https://horizon-testnet.stellar.org/transactions/fb8947c67856d8eb444211c1927d92bcf14abcfb34cdd27fc9e604b15d208fd1/payments?cursor=3838562596294657&limit=10&order=asc"
+          },
+          "prev": {
+            "href": "https://horizon-testnet.stellar.org/transactions/fb8947c67856d8eb444211c1927d92bcf14abcfb34cdd27fc9e604b15d208fd1/payments?cursor=3838562596294657&limit=10&order=desc"
+          }
+        },
+        "_embedded": {
+          "records": [
+            {
+              "_links": {
+                "self": {
+                  "href": "https://horizon-testnet.stellar.org/operations/3838562596294657"
+                },
+                "transaction": {
+                  "href": "https://horizon-testnet.stellar.org/transactions/fb8947c67856d8eb444211c1927d92bcf14abcfb34cdd27fc9e604b15d208fd1"
+                },
+                "effects": {
+                  "href": "https://horizon-testnet.stellar.org/operations/3838562596294657/effects"
+                },
+                "succeeds": {
+                  "href": "https://horizon-testnet.stellar.org/effects?order=desc&cursor=3838562596294657"
+                },
+                "precedes": {
+                  "href": "https://horizon-testnet.stellar.org/effects?order=asc&cursor=3838562596294657"
+                }
+              },
+              "id": "3838562596294657",
+              "paging_token": "3838562596294657",
+              "transaction_successful": true,
+              "source_account": "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S",
+              "type": "payment",
+              "type_i": 1,
+              "created_at": "2022-02-07T18:02:16Z",
+              "transaction_hash": "fb8947c67856d8eb444211c1927d92bcf14abcfb34cdd27fc9e604b15d208fd1",
+              "asset_type": "credit_alphanum4",
+              "asset_code": "USDC",
+              "asset_issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+              "from": "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S",
+              "to": "GAYF33NNNMI2Z6VNRFXQ64D4E4SF77PM46NW3ZUZEEU5X7FCHAZCMHKU",
+              "amount": "1.5000000"
+            }
+          ]
+        }
+      }"""
   }
 
   private lateinit var server: MockWebServer
@@ -141,7 +196,10 @@ class CirclePaymentServiceTest {
   fun setUp() {
     server = MockWebServer()
     server.start()
-    service = CirclePaymentService(server.url("").toString(), "<secret-key>")
+    val circleUrl = server.url("").toString()
+    val horizonUrl = "https://horizon-testnet.stellar.org"
+    val bearerToken = "<secret-key>"
+    service = CirclePaymentService(circleUrl, bearerToken, horizonUrl)
   }
 
   @AfterEach
@@ -977,7 +1035,33 @@ class CirclePaymentServiceTest {
   }
 
   @Test
+  fun test_Horizon() {
+    val type = (object : TypeToken<Page<OperationResponse>>() {}).type
+    val mockStellarPaymentResponsePage: Page<OperationResponse> =
+      GsonSingleton.getInstance().fromJson(mockStellarPaymentResponsePageBody, type)
+    val mockHorizonServer = mockk<Server>()
+    every { mockHorizonServer.payments().forTransaction(any()).execute() } returns
+      mockStellarPaymentResponsePage
+
+    // when
+    val result = mockHorizonServer.payments().forTransaction("foo bar").execute()
+
+    // then
+    verify { mockHorizonServer.payments().forTransaction(any()).execute() }
+    assertEquals(mockStellarPaymentResponsePage, result)
+  }
+
+  @Test
   fun test_getTransfers() {
+    // Mock Stellar call
+    var type = (object : TypeToken<Page<OperationResponse>>() {}).type
+    val mockStellarPaymentResponsePage: Page<OperationResponse> =
+      GsonSingleton.getInstance().fromJson(mockStellarPaymentResponsePageBody, type)
+    val mockHorizonServer = mockk<Server>()
+    every { mockHorizonServer.payments().forTransaction(any()).execute() } returns
+      mockStellarPaymentResponsePage
+    (service as CirclePaymentService).horizonServer = mockHorizonServer
+
     service.secretKey = "<secret-key>"
 
     val dispatcher: Dispatcher =
@@ -1018,11 +1102,14 @@ class CirclePaymentServiceTest {
         getTransfersMono.block()!!.toPaymentHistory(50, merchantAccount, "1000066041")
     }
 
+    // validate Stellar call was executed
+    verify { mockHorizonServer.payments().forTransaction(any()).execute() }
+
     val wantPaymentHistory = PaymentHistory(merchantAccount)
     wantPaymentHistory.beforeCursor = "c58e2613-a808-4075-956c-e576787afb3b"
 
     val gson = Gson()
-    val type = object : TypeToken<Map<String?, *>?>() {}.type
+    type = object : TypeToken<Map<String?, *>?>() {}.type
 
     val p1 = Payment()
     p1.id = "c58e2613-a808-4075-956c-e576787afb3b"
@@ -1038,7 +1125,12 @@ class CirclePaymentServiceTest {
 
     val p2 = Payment()
     p2.id = "7f131f58-a8a0-3dc2-be05-6a015c69de35"
-    p2.sourceAccount = Account(Network.STELLAR, null, Account.Capabilities(Network.STELLAR))
+    p2.sourceAccount =
+      Account(
+        Network.STELLAR,
+        "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S",
+        Account.Capabilities(Network.STELLAR)
+      )
     p2.destinationAccount = merchantAccount
     p2.balance = Balance("1.50", "circle:USD")
     p2.txHash = "fb8947c67856d8eb444211c1927d92bcf14abcfb34cdd27fc9e604b15d208fd1"
@@ -1356,6 +1448,15 @@ class CirclePaymentServiceTest {
 
   @Test
   fun test_getAccountHistory() {
+    // Mock Stellar call
+    var type = (object : TypeToken<Page<OperationResponse>>() {}).type
+    val mockStellarPaymentResponsePage: Page<OperationResponse> =
+      GsonSingleton.getInstance().fromJson(mockStellarPaymentResponsePageBody, type)
+    val mockHorizonServer = mockk<Server>()
+    every { mockHorizonServer.payments().forTransaction(any()).execute() } returns
+      mockStellarPaymentResponsePage
+    (service as CirclePaymentService).horizonServer = mockHorizonServer
+
     service.secretKey = "<secret-key>"
 
     val dispatcher: Dispatcher =
@@ -1397,6 +1498,9 @@ class CirclePaymentServiceTest {
       (service as CirclePaymentService).getAccountPaymentHistory("1000066041", null, null)
     assertDoesNotThrow { paymentHistory = getAccountHistoryMono.block() }
 
+    // validate Stellar call was executed
+    verify { mockHorizonServer.payments().forTransaction(any()).execute() }
+
     val merchantAccount =
       Account(
         Network.CIRCLE,
@@ -1408,7 +1512,7 @@ class CirclePaymentServiceTest {
       "c58e2613-a808-4075-956c-e576787afb3b:6588a352-5131-4711-a264-e405f38d752d"
 
     val gson = Gson()
-    val type = object : TypeToken<Map<String?, *>?>() {}.type
+    type = object : TypeToken<Map<String?, *>?>() {}.type
 
     val p1 = Payment()
     p1.id = "c58e2613-a808-4075-956c-e576787afb3b"
@@ -1424,7 +1528,12 @@ class CirclePaymentServiceTest {
 
     val p2 = Payment()
     p2.id = "7f131f58-a8a0-3dc2-be05-6a015c69de35"
-    p2.sourceAccount = Account(Network.STELLAR, null, Account.Capabilities(Network.STELLAR))
+    p2.sourceAccount =
+      Account(
+        Network.STELLAR,
+        "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S",
+        Account.Capabilities(Network.STELLAR)
+      )
     p2.destinationAccount = merchantAccount
     p2.balance = Balance("1.50", "circle:USD")
     p2.txHash = "fb8947c67856d8eb444211c1927d92bcf14abcfb34cdd27fc9e604b15d208fd1"
