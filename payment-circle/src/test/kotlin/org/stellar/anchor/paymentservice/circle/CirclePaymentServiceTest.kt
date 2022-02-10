@@ -1074,8 +1074,6 @@ class CirclePaymentServiceTest {
       mockStellarPaymentResponsePage
     (service as CirclePaymentService).horizonServer = mockHorizonServer
 
-    service.secretKey = "<secret-key>"
-
     val dispatcher: Dispatcher =
       object : Dispatcher() {
         @Throws(InterruptedException::class)
@@ -1102,7 +1100,7 @@ class CirclePaymentServiceTest {
 
     var paymentHistory: PaymentHistory? = null
     val getTransfersMono =
-      (service as CirclePaymentService)._getTransfers("1000066041", null, null, null)
+      (service as CirclePaymentService).getTransfers("1000066041", null, null, null)
     val merchantAccount =
       Account(
         Network.CIRCLE,
@@ -1175,8 +1173,6 @@ class CirclePaymentServiceTest {
 
   @Test
   fun test_getTransfers_paginationResponse() {
-    service.secretKey = "<secret-key>"
-
     val dispatcher: Dispatcher =
       object : Dispatcher() {
         @Throws(InterruptedException::class)
@@ -1208,7 +1204,7 @@ class CirclePaymentServiceTest {
         Account.Capabilities(Network.CIRCLE, Network.STELLAR, Network.BANK_WIRE)
       )
     val getTransfersMono =
-      (service as CirclePaymentService)._getTransfers("1000066041", null, null, 2)
+      (service as CirclePaymentService).getTransfers("1000066041", null, null, 2)
     var paymentHistory: PaymentHistory? = null
     assertDoesNotThrow {
       paymentHistory = getTransfersMono.block()!!.toPaymentHistory(2, merchantAccount, "1000066041")
@@ -1256,8 +1252,6 @@ class CirclePaymentServiceTest {
 
   @Test
   fun test_getPayouts() {
-    service.secretKey = "<secret-key>"
-
     val dispatcher: Dispatcher =
       object : Dispatcher() {
         @Throws(InterruptedException::class)
@@ -1286,7 +1280,7 @@ class CirclePaymentServiceTest {
         "1000066041",
         Account.Capabilities(Network.CIRCLE, Network.STELLAR, Network.BANK_WIRE)
       )
-    val getPayoutsMono = (service as CirclePaymentService)._getPayouts("1000066041", null, null, 50)
+    val getPayoutsMono = (service as CirclePaymentService).getPayouts("1000066041", null, null, 50)
     var paymentHistory: PaymentHistory? = null
     assertDoesNotThrow {
       paymentHistory = getPayoutsMono.block()!!.toPaymentHistory(50, merchantAccount)
@@ -1318,8 +1312,6 @@ class CirclePaymentServiceTest {
 
   @Test
   fun test_getPayouts_paginationResponse() {
-    service.secretKey = "<secret-key>"
-
     val dispatcher: Dispatcher =
       object : Dispatcher() {
         @Throws(InterruptedException::class)
@@ -1349,7 +1341,7 @@ class CirclePaymentServiceTest {
         Account.Capabilities(Network.CIRCLE, Network.STELLAR, Network.BANK_WIRE)
       )
 
-    val getPayoutsMono = (service as CirclePaymentService)._getPayouts("1000066041", null, null, 1)
+    val getPayoutsMono = (service as CirclePaymentService).getPayouts("1000066041", null, null, 1)
     var paymentHistory: PaymentHistory? = null
     assertDoesNotThrow {
       paymentHistory = getPayoutsMono.block()!!.toPaymentHistory(1, merchantAccount)
@@ -1400,8 +1392,6 @@ class CirclePaymentServiceTest {
     afterCursor: String?,
     expectedUri: String
   ) {
-    service.secretKey = "<secret-key>"
-
     val dispatcher =
       object : Dispatcher() {
         @Throws(InterruptedException::class)
@@ -1435,7 +1425,7 @@ class CirclePaymentServiceTest {
       assertDoesNotThrow {
         paymentHistory =
           (service as CirclePaymentService)
-              ._getTransfers("1000066041", beforeCursor, afterCursor, 1)
+              .getTransfers("1000066041", beforeCursor, afterCursor, 1)
               .block()!!
             .toPaymentHistory(1, merchantAccount, "1000066041")
       }
@@ -1443,7 +1433,7 @@ class CirclePaymentServiceTest {
       assertDoesNotThrow {
         paymentHistory =
           (service as CirclePaymentService)
-              ._getPayouts("1000066041", beforeCursor, afterCursor, 1)
+              .getPayouts("1000066041", beforeCursor, afterCursor, 1)
               .block()!!
             .toPaymentHistory(1, merchantAccount)
       }
@@ -1470,8 +1460,6 @@ class CirclePaymentServiceTest {
     every { mockHorizonServer.payments().forTransaction(any()).execute() } returns
       mockStellarPaymentResponsePage
     (service as CirclePaymentService).horizonServer = mockHorizonServer
-
-    service.secretKey = "<secret-key>"
 
     val dispatcher: Dispatcher =
       object : Dispatcher() {
@@ -1706,11 +1694,11 @@ class CirclePaymentServiceTest {
         ),
       ),
       ErrorHandlingTestCase(
-        (service as CirclePaymentService)._getTransfers("1000066041", null, null, null),
+        (service as CirclePaymentService).getTransfers("1000066041", null, null, null),
         hashMapOf("/v1/transfers?pageSize=50&walletId=1000066041" to badRequestResponse)
       ),
       ErrorHandlingTestCase(
-        (service as CirclePaymentService)._getPayouts("1000066041", null, null, null),
+        (service as CirclePaymentService).getPayouts("1000066041", null, null, null),
         hashMapOf("/v1/payouts?pageSize=50&source=1000066041" to badRequestResponse)
       ),
       ErrorHandlingTestCase(

@@ -280,7 +280,7 @@ public class CirclePaymentService implements PaymentService, StellarReconciliati
             });
   }
 
-  public Mono<CircleTransferListResponse> _getTransfers(
+  public Mono<CircleTransferListResponse> getTransfers(
       String accountID, String beforeCursor, String afterCursor, Integer pageSize)
       throws HttpException {
     // build query parameters for GET requests
@@ -314,6 +314,7 @@ public class CirclePaymentService implements PaymentService, StellarReconciliati
                   gson.fromJson(body, CircleTransferListResponse.class);
 
               for (CircleTransfer transfer : response.getData()) {
+                // TODO: parallelize this call
                 updateStellarSenderAddress(transfer);
               }
 
@@ -321,13 +322,13 @@ public class CirclePaymentService implements PaymentService, StellarReconciliati
             });
   }
 
-  public Mono<CirclePayoutListResponse> _getPayouts(
+  public Mono<CirclePayoutListResponse> getPayouts(
       String accountID, String beforeCursor, String afterCursor, Integer pageSize)
       throws HttpException {
     // build query parameters for GET requests
-    Integer _pageSize = pageSize != null ? pageSize : 50;
+    int _pageSize = pageSize != null ? pageSize : 50;
     LinkedHashMap<String, String> queryParams = new LinkedHashMap<>();
-    queryParams.put("pageSize", _pageSize.toString());
+    queryParams.put("pageSize", Integer.toString(_pageSize));
     queryParams.put("source", accountID);
 
     if (afterCursor != null && !afterCursor.isEmpty()) {
@@ -387,8 +388,8 @@ public class CirclePaymentService implements PaymentService, StellarReconciliati
     int pageSize = 50;
     return Mono.zip(
             getDistributionAccountAddress(),
-            _getTransfers(accountID, beforeTransfer, afterTransfer, pageSize),
-            _getPayouts(accountID, beforePayout, afterPayout, pageSize))
+            getTransfers(accountID, beforeTransfer, afterTransfer, pageSize),
+            getPayouts(accountID, beforePayout, afterPayout, pageSize))
         .map(
             args -> {
               String distributionAccId = args.getT1();
@@ -610,22 +611,6 @@ public class CirclePaymentService implements PaymentService, StellarReconciliati
         destinationAcc.network.equals(Network.BANK_WIRE)
             || distributionAccountId.equals(destinationAcc.id);
     destinationAcc.capabilities.set(Network.BANK_WIRE, isDestinationWireEnabled);
-  }
-
-  private Mono<PaymentHistory> updatePaymentHistoryWireCapabilityMono(
-      Mono<PaymentHistory> sendPaymentMono) {
-    return Mono.zip(getDistributionAccountAddress(), sendPaymentMono)
-        .map(
-            args -> {
-              String distributionAccountId = args.getT1();
-              PaymentHistory paymentHistory = args.getT2();
-              for (Payment payment : paymentHistory.getPayments()) {
-                updatePaymentWireCapability(payment, distributionAccountId);
-              }
-              Account account = paymentHistory.getAccount();
-              account.capabilities.set(Network.BANK_WIRE, distributionAccountId.equals(account.id));
-              return paymentHistory;
-            });
   }
 
   /**
