@@ -37,6 +37,8 @@ import shadow.com.google.common.reflect.TypeToken
 
 class CirclePaymentServiceTest {
   companion object {
+    val TESTNET: org.stellar.sdk.Network = org.stellar.sdk.Network.TESTNET
+
     const val mockWalletToWalletTransferJson =
       """{
         "id":"c58e2613-a808-4075-956c-e576787afb3b",
@@ -199,7 +201,7 @@ class CirclePaymentServiceTest {
     val circleUrl = server.url("").toString()
     val horizonUrl = "https://horizon-testnet.stellar.org"
     val bearerToken = "<secret-key>"
-    service = CirclePaymentService(circleUrl, bearerToken, horizonUrl)
+    service = CirclePaymentService(circleUrl, bearerToken, horizonUrl, TESTNET)
   }
 
   @AfterEach
@@ -946,7 +948,14 @@ class CirclePaymentServiceTest {
     var payment: Payment? = null
     assertDoesNotThrow {
       payment =
-        service.sendPayment(source, destination, "stellar:USD", BigDecimal.valueOf(0.91)).block()
+        service
+          .sendPayment(
+            source,
+            destination,
+            "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+            BigDecimal.valueOf(0.91)
+          )
+          .block()
     }
 
     assertEquals("c58e2613-a808-4075-956c-e576787afb3b", payment?.id)
@@ -967,7 +976,10 @@ class CirclePaymentServiceTest {
       ),
       payment?.destinationAccount
     )
-    assertEquals(Balance("0.91", "stellar:USD"), payment?.balance)
+    assertEquals(
+      Balance("0.91", "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"),
+      payment?.balance
+    )
     assertEquals(Payment.Status.PENDING, payment?.status)
     assertNull(payment?.errorCode)
 
@@ -1149,7 +1161,8 @@ class CirclePaymentServiceTest {
         "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S",
         Account.Capabilities(Network.STELLAR)
       )
-    p3.balance = Balance("1.00", "stellar:USD")
+    p3.balance =
+      Balance("1.00", "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5")
     p3.txHash = "5239ee055b1083231c6bdaaa921d3e4b3bc090577fbd909815bd5d7fe68091ef"
     p3.status = Payment.Status.SUCCESSFUL
     p3.createdAt = CircleDateFormatter.stringToDate("2022-01-01T01:01:01.544Z")
@@ -1229,7 +1242,8 @@ class CirclePaymentServiceTest {
         "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S",
         Account.Capabilities(Network.STELLAR)
       )
-    p2.balance = Balance("1.00", "stellar:USD")
+    p2.balance =
+      Balance("1.00", "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5")
     p2.txHash = "5239ee055b1083231c6bdaaa921d3e4b3bc090577fbd909815bd5d7fe68091ef"
     p2.status = Payment.Status.SUCCESSFUL
     p2.createdAt = CircleDateFormatter.stringToDate("2022-01-01T01:01:01.544Z")
@@ -1568,7 +1582,8 @@ class CirclePaymentServiceTest {
         "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S",
         Account.Capabilities(Network.STELLAR)
       )
-    p4.balance = Balance("1.00", "stellar:USD")
+    p4.balance =
+      Balance("1.00", "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5")
     p4.txHash = "5239ee055b1083231c6bdaaa921d3e4b3bc090577fbd909815bd5d7fe68091ef"
     p4.status = Payment.Status.SUCCESSFUL
     p4.createdAt = CircleDateFormatter.stringToDate("2022-01-01T01:01:01.544Z")
@@ -1665,7 +1680,7 @@ class CirclePaymentServiceTest {
             "test tag",
             Account.Capabilities(Network.CIRCLE, Network.STELLAR)
           ),
-          "stellar:USD",
+          "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
           BigDecimal(1)
         ),
         hashMapOf(

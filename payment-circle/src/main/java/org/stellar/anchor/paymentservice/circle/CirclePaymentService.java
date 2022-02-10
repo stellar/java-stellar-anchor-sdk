@@ -35,6 +35,8 @@ public class CirclePaymentService implements PaymentService, StellarReconciliati
 
   @Getter Server horizonServer;
 
+  private final org.stellar.sdk.Network stellarNetwork;
+
   private final Network network = Network.CIRCLE;
 
   private String url;
@@ -49,11 +51,13 @@ public class CirclePaymentService implements PaymentService, StellarReconciliati
    * For all service methods to work correctly, make sure your circle account has a valid business
    * wallet and a bank account configured.
    */
-  public CirclePaymentService(String url, String secretKey, String horizonUrl) {
+  public CirclePaymentService(
+      String url, String secretKey, String horizonUrl, org.stellar.sdk.Network stellarNetwork) {
     super();
     this.url = url;
     this.secretKey = secretKey;
     this.horizonServer = new Server(horizonUrl);
+    this.stellarNetwork = stellarNetwork;
   }
 
   public Network getNetwork() {
@@ -178,7 +182,7 @@ public class CirclePaymentService implements PaymentService, StellarReconciliati
 
               List<Balance> unsettledBalances = new ArrayList<>();
               for (CircleBalance uBalance : response.getData().unsettled) {
-                unsettledBalances.add(uBalance.toBalance());
+                unsettledBalances.add(uBalance.toBalance(Network.CIRCLE));
               }
 
               return unsettledBalances;
@@ -647,7 +651,8 @@ public class CirclePaymentService implements PaymentService, StellarReconciliati
 
     String rawCurrencyName =
         currencyName.replace(destinationAccount.network.getCurrencyPrefix() + ":", "");
-    CircleBalance circleBalance = new CircleBalance(rawCurrencyName, amount.toString());
+    CircleBalance circleBalance =
+        new CircleBalance(rawCurrencyName, amount.toString(), stellarNetwork);
 
     switch (destinationAccount.network) {
       case CIRCLE:

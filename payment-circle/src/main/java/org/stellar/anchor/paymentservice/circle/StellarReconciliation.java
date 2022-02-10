@@ -13,6 +13,7 @@ import org.stellar.sdk.responses.operations.PathPaymentBaseOperationResponse;
 import org.stellar.sdk.responses.operations.PaymentOperationResponse;
 
 public interface StellarReconciliation {
+
   Server getHorizonServer();
 
   default void updateStellarSenderAddress(CircleTransfer transfer) throws HttpException {

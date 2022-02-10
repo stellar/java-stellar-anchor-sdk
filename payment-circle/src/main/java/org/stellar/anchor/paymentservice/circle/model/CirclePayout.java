@@ -53,10 +53,6 @@ public class CirclePayout {
   }
 
   public static class Deserializer implements JsonDeserializer<CirclePayout> {
-    public static CirclePayout.Deserializer getInstance() {
-      return new CirclePayout.Deserializer();
-    }
-
     @Override
     public CirclePayout deserialize(
         JsonElement json, Type typeOfT, JsonDeserializationContext context)
