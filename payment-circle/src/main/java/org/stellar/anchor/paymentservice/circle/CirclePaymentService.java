@@ -29,7 +29,7 @@ import reactor.util.annotation.Nullable;
 public class CirclePaymentService implements PaymentService, StellarReconciliation {
   private static final Gson gson =
       new GsonBuilder()
-          .registerTypeAdapter(CircleTransfer.class, new CircleTransfer.Deserializer())
+          .registerTypeAdapter(CircleTransfer.class, new CircleTransfer.Serialization())
           .registerTypeAdapter(CirclePayout.class, new CirclePayout.Deserializer())
           .create();
 
@@ -308,16 +308,33 @@ public class CirclePaymentService implements PaymentService, StellarReconciliati
 
               return bodyBytesMono.asString();
             })
-        .map(
+        .flatMap(
             body -> {
               CircleTransferListResponse response =
                   gson.fromJson(body, CircleTransferListResponse.class);
+              Mono<CircleTransferListResponse> originalResponseMono = Mono.just(response);
 
-              for (CircleTransfer transfer : response.getData()) {
-                // TODO: parallelize this call
-                updateStellarSenderAddress(transfer);
+              List<Mono<CircleTransfer>> monoList =
+                  response.getData().stream()
+                      .map(this::updatedStellarSenderAddress)
+                      .collect(Collectors.toList());
+
+              Mono<List<CircleTransfer>> updatedTransfersMono = Mono.just(new ArrayList<>());
+              if (monoList.size() > 0) {
+                updatedTransfersMono =
+                    Mono.zip(
+                        monoList,
+                        objects -> List.of(Arrays.stream(objects).toArray(CircleTransfer[]::new)));
               }
 
+              return Mono.zip(originalResponseMono, updatedTransfersMono);
+            })
+        .map(
+            args -> {
+              CircleTransferListResponse response = args.getT1();
+              List<CircleTransfer> updatedTransfers = args.getT2();
+
+              response.setData(updatedTransfers);
               return response;
             });
   }

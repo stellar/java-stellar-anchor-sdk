@@ -39,7 +39,8 @@ public class CircleTransfer {
     return p;
   }
 
-  public static class Deserializer implements JsonDeserializer<CircleTransfer> {
+  public static class Serialization
+      implements JsonDeserializer<CircleTransfer>, JsonSerializer<CircleTransfer> {
     @Override
     public CircleTransfer deserialize(
         JsonElement json, Type typeOfT, JsonDeserializationContext context)
@@ -54,6 +55,14 @@ public class CircleTransfer {
       originalResponse.put("createDate", createdDateStr);
       transfer.setOriginalResponse(originalResponse);
       return transfer;
+    }
+
+    @Override
+    public JsonElement serialize(
+        CircleTransfer src, Type typeOfSrc, JsonSerializationContext context) {
+      Gson gson = new Gson();
+      JsonObject jsonObject = gson.toJsonTree(src.originalResponse).getAsJsonObject();
+      return jsonObject;
     }
   }
 }

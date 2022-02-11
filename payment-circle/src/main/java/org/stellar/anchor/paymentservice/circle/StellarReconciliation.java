@@ -1,5 +1,7 @@
 package org.stellar.anchor.paymentservice.circle;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
@@ -11,6 +13,7 @@ import org.stellar.sdk.responses.Page;
 import org.stellar.sdk.responses.operations.OperationResponse;
 import org.stellar.sdk.responses.operations.PathPaymentBaseOperationResponse;
 import org.stellar.sdk.responses.operations.PaymentOperationResponse;
+import reactor.core.publisher.Mono;
 
 public interface StellarReconciliation {
 
@@ -56,5 +59,19 @@ public interface StellarReconciliation {
 
       transfer.getSource().setAddress(from);
     }
+  }
+
+  default Mono<CircleTransfer> updatedStellarSenderAddress(CircleTransfer transfer)
+      throws HttpException {
+    Gson gson =
+        new GsonBuilder()
+            .registerTypeAdapter(CircleTransfer.class, new CircleTransfer.Serialization())
+            .create();
+    CircleTransfer transferClone = gson.fromJson(gson.toJson(transfer), CircleTransfer.class);
+    return Mono.fromCallable(
+        () -> {
+          updateStellarSenderAddress(transferClone);
+          return transferClone;
+        });
   }
 }
