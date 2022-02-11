@@ -32,7 +32,7 @@ public class NettyHttpClient {
                     .addHandlerLast(new WriteTimeoutHandler(15)));
   }
 
-  public static String uriWithParams(String uri, LinkedHashMap<String, String> queryParams) {
+  public static String buildUri(String uri, LinkedHashMap<String, String> queryParams) {
     HttpUrl.Builder urlBuilder = new HttpUrl.Builder().scheme("https").host("example.com");
 
     if (uri != null && !uri.isEmpty()) {

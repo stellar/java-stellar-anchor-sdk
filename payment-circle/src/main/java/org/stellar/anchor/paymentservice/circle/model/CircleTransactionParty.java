@@ -3,6 +3,7 @@ package org.stellar.anchor.paymentservice.circle.model;
 import com.google.gson.annotations.SerializedName;
 import org.stellar.anchor.paymentservice.Account;
 import org.stellar.anchor.paymentservice.Network;
+import reactor.util.annotation.Nullable;
 
 @lombok.Data
 public class CircleTransactionParty {
@@ -66,7 +67,14 @@ public class CircleTransactionParty {
     return party;
   }
 
-  public Account toAccount(String distributionAccountId) {
+  /**
+   * Transforms a Circle transaction party into an Account.
+   *
+   * @param distributionAccountId used to update the bank wire capability when this is a Circle
+   *     wallet.
+   * @return a new account instance.
+   */
+  public Account toAccount(@Nullable String distributionAccountId) {
     switch (type) {
       case BLOCKCHAIN:
         if (!"XLM".equals(chain)) {
@@ -79,7 +87,8 @@ public class CircleTransactionParty {
         Account account =
             new Account(
                 Network.CIRCLE, id, new Account.Capabilities(Network.CIRCLE, Network.STELLAR));
-        account.capabilities.set(Network.BANK_WIRE, distributionAccountId.equals(id));
+        boolean isWireEnabled = distributionAccountId != null && distributionAccountId.equals(id);
+        account.capabilities.set(Network.BANK_WIRE, isWireEnabled);
         return account;
 
       case WIRE:

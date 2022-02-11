@@ -174,6 +174,73 @@ class CirclePaymentServiceTest {
           ]
         }
       }"""
+
+    const val mockStellarPathPaymentResponsePageBody =
+      """{
+        "_links": {
+          "self": {
+            "href": "https://horizon-testnet.stellar.org/transactions/fb8947c67856d8eb444211c1927d92bcf14abcfb34cdd27fc9e604b15d208fd1/payments?cursor=&limit=10&order=asc"
+          },
+          "next": {
+            "href": "https://horizon-testnet.stellar.org/transactions/fb8947c67856d8eb444211c1927d92bcf14abcfb34cdd27fc9e604b15d208fd1/payments?cursor=3838562596294657&limit=10&order=asc"
+          },
+          "prev": {
+            "href": "https://horizon-testnet.stellar.org/transactions/fb8947c67856d8eb444211c1927d92bcf14abcfb34cdd27fc9e604b15d208fd1/payments?cursor=3838562596294657&limit=10&order=desc"
+          }
+        },
+        "_embedded": {
+          "records": [
+            {
+              "_links": {
+                "self": {
+                  "href": "https://horizon-testnet.stellar.org/operations/3838562596294657"
+                },
+                "transaction": {
+                  "href": "https://horizon-testnet.stellar.org/transactions/fb8947c67856d8eb444211c1927d92bcf14abcfb34cdd27fc9e604b15d208fd1"
+                },
+                "effects": {
+                  "href": "https://horizon-testnet.stellar.org/operations/3838562596294657/effects"
+                },
+                "succeeds": {
+                  "href": "https://horizon-testnet.stellar.org/effects?order=desc&cursor=3838562596294657"
+                },
+                "precedes": {
+                  "href": "https://horizon-testnet.stellar.org/effects?order=asc&cursor=3838562596294657"
+                }
+              },
+              "id": "3838562596294657",
+              "paging_token": "3838562596294657",
+              "transaction_successful": true,
+              "source_account": "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S",
+              "type": "path_payment_strict_send",
+              "type_i": 13,
+              "created_at": "2022-02-07T18:02:16Z",
+              "transaction_hash": "fb8947c67856d8eb444211c1927d92bcf14abcfb34cdd27fc9e604b15d208fd1",
+              "asset_type": "credit_alphanum4",
+              "asset_code": "USDC",
+              "asset_issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+              "from": "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S",
+              "to": "GAYF33NNNMI2Z6VNRFXQ64D4E4SF77PM46NW3ZUZEEU5X7FCHAZCMHKU",
+              "amount": "1.5000000",
+              "path": [
+                {
+                  "asset_type": "credit_alphanum4",
+                  "asset_code": "BRL",
+                  "asset_issuer": "GDVKY2GU2DRXWTBEYJJWSFXIGBZV6AZNBVVSUHEPZI54LIS6BA7DVVSP"
+                },
+                {
+                  "asset_type": "native"
+                }
+              ],
+              "source_amount": "7.5000000",
+              "destination_min": "1.4000000",
+              "source_asset_type": "credit_alphanum4",
+              "source_asset_code": "BRL",
+              "source_asset_issuer": "GDVKY2GU2DRXWTBEYJJWSFXIGBZV6AZNBVVSUHEPZI54LIS6BA7DVVSP"
+            }
+          ]
+        }
+      }"""
   }
 
   private lateinit var server: MockWebServer
@@ -685,20 +752,13 @@ class CirclePaymentServiceTest {
       }
     assertEquals(wantMap, payment?.originalResponse)
 
-    assertEquals(2, server.requestCount)
-    val allRequests = arrayOf(server.takeRequest(), server.takeRequest())
-
-    val validateSecretKeyRequest =
-      allRequests.find { request -> request.path!! == "/v1/configuration" }!!
-    assertEquals("GET", validateSecretKeyRequest.method)
-    assertEquals("application/json", validateSecretKeyRequest.headers["Content-Type"])
-    assertEquals("Bearer <secret-key>", validateSecretKeyRequest.headers["Authorization"])
-
-    val postPayoutRequest = allRequests.find { request -> request.path!! == "/v1/payouts" }!!
-    assertEquals("POST", postPayoutRequest.method)
-    assertEquals("application/json", postPayoutRequest.headers["Content-Type"])
-    assertEquals("Bearer <secret-key>", postPayoutRequest.headers["Authorization"])
-    val gotBody = postPayoutRequest.body.readUtf8()
+    assertEquals(1, server.requestCount)
+    val request = server.takeRequest()
+    assertThat(request.path, CoreMatchers.endsWith("/v1/payouts"))
+    assertEquals("POST", request.method)
+    assertEquals("application/json", request.headers["Content-Type"])
+    assertEquals("Bearer <secret-key>", request.headers["Authorization"])
+    val gotBody = request.body.readUtf8()
     val wantBody =
       """{
             "source": {
@@ -1068,7 +1128,7 @@ class CirclePaymentServiceTest {
     // Mock Stellar call
     var type = (object : TypeToken<Page<OperationResponse>>() {}).type
     val mockStellarPaymentResponsePage: Page<OperationResponse> =
-      GsonSingleton.getInstance().fromJson(mockStellarPaymentResponsePageBody, type)
+      GsonSingleton.getInstance().fromJson(mockStellarPathPaymentResponsePageBody, type)
     val mockHorizonServer = mockk<Server>()
     every { mockHorizonServer.payments().forTransaction(any()).execute() } returns
       mockStellarPaymentResponsePage

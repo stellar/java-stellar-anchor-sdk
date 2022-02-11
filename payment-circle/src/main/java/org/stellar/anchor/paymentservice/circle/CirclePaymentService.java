@@ -296,10 +296,9 @@ public class CirclePaymentService implements PaymentService, StellarReconciliati
       queryParams.put("pageBefore", beforeCursor);
     }
 
-    String url = NettyHttpClient.uriWithParams("/v1/transfers", queryParams);
     return getWebClient(true)
         .get()
-        .uri(url)
+        .uri(NettyHttpClient.buildUri("/v1/transfers", queryParams))
         .responseSingle(
             (response, bodyBytesMono) -> {
               if (response.status().code() >= 400) {
@@ -314,11 +313,12 @@ public class CirclePaymentService implements PaymentService, StellarReconciliati
                   gson.fromJson(body, CircleTransferListResponse.class);
               Mono<CircleTransferListResponse> originalResponseMono = Mono.just(response);
 
+              // Build Mono.zip to retrieve the Stellar info from Stellar->CircleWallet transfers in
+              // order to update the sender address that's not disclosed in Circle's API.
               List<Mono<CircleTransfer>> monoList =
                   response.getData().stream()
                       .map(this::updatedStellarSenderAddress)
                       .collect(Collectors.toList());
-
               Mono<List<CircleTransfer>> updatedTransfersMono = Mono.just(new ArrayList<>());
               if (monoList.size() > 0) {
                 updatedTransfersMono =
@@ -355,10 +355,9 @@ public class CirclePaymentService implements PaymentService, StellarReconciliati
       queryParams.put("pageBefore", beforeCursor);
     }
 
-    String url = NettyHttpClient.uriWithParams("/v1/payouts", queryParams);
     return getWebClient(true)
         .get()
-        .uri(url)
+        .uri(NettyHttpClient.buildUri("/v1/payouts", queryParams))
         .responseSingle(
             (response, bodyBytesMono) -> {
               if (response.status().code() >= 400) {
@@ -572,44 +571,22 @@ public class CirclePaymentService implements PaymentService, StellarReconciliati
             source, destination, balance, UUID.randomUUID().toString());
     String jsonBody = gson.toJson(req);
 
-    Mono<Payment> sendPayoutMono =
-        getWebClient(true)
-            .post()
-            .uri("/v1/payouts")
-            .send(ByteBufMono.fromString(Mono.just(jsonBody)))
-            .responseSingle(
-                (postResponse, bodyBytesMono) -> {
-                  if (postResponse.status().code() >= 400) {
-                    return handleCircleError(postResponse, bodyBytesMono);
-                  }
+    return getWebClient(true)
+        .post()
+        .uri("/v1/payouts")
+        .send(ByteBufMono.fromString(Mono.just(jsonBody)))
+        .responseSingle(
+            (postResponse, bodyBytesMono) -> {
+              if (postResponse.status().code() >= 400) {
+                return handleCircleError(postResponse, bodyBytesMono);
+              }
 
-                  return bodyBytesMono.asString();
-                })
-            .map(
-                body -> {
-                  CirclePayoutResponse payout = gson.fromJson(body, CirclePayoutResponse.class);
-                  return payout.getData().toPayment();
-                });
-
-    return updatePaymentWireCapabilityMono(sendPayoutMono);
-  }
-
-  /**
-   * Executes a Mono&lt;Payment&gt; reactive stream and updates the resulting payment source &
-   * destination accounts BANK_WIRE capability if any of them is the distribution account.
-   *
-   * @param sendPaymentMono Is a reactive stream that returns a Payment object.
-   * @return a Mono&lt;Payment&gt; the same result from the input parameter with updated accounts
-   *     BANK_WIRE capabilities.
-   */
-  private Mono<Payment> updatePaymentWireCapabilityMono(Mono<Payment> sendPaymentMono) {
-    return Mono.zip(getDistributionAccountAddress(), sendPaymentMono)
+              return bodyBytesMono.asString();
+            })
         .map(
-            args -> {
-              String distributionAccountId = args.getT1();
-              Payment payment = args.getT2();
-              updatePaymentWireCapability(payment, distributionAccountId);
-              return payment;
+            body -> {
+              CirclePayoutResponse payout = gson.fromJson(body, CirclePayoutResponse.class);
+              return payout.getData().toPayment();
             });
   }
 

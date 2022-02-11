@@ -54,6 +54,7 @@ public class CircleTransfer {
       String createdDateStr = CircleDateFormatter.dateToString(transfer.getCreateDate());
       originalResponse.put("createDate", createdDateStr);
       transfer.setOriginalResponse(originalResponse);
+
       return transfer;
     }
 
@@ -61,8 +62,7 @@ public class CircleTransfer {
     public JsonElement serialize(
         CircleTransfer src, Type typeOfSrc, JsonSerializationContext context) {
       Gson gson = new Gson();
-      JsonObject jsonObject = gson.toJsonTree(src.originalResponse).getAsJsonObject();
-      return jsonObject;
+      return gson.toJsonTree(src.originalResponse).getAsJsonObject();
     }
   }
 }

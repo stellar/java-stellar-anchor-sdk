@@ -39,8 +39,7 @@ public class CirclePayout {
             Network.CIRCLE,
             sourceWalletId,
             new Account.Capabilities(Network.CIRCLE, Network.STELLAR, Network.BANK_WIRE)));
-    // In Circle, only the source wallet can send a Payout:
-    Account destinationAccount = destination.toAccount(sourceWalletId);
+    Account destinationAccount = destination.toAccount(null);
     p.setDestinationAccount(destinationAccount);
     p.setBalance(amount.toBalance(destinationAccount.network));
     p.setStatus(status.toPaymentStatus());
@@ -63,8 +62,10 @@ public class CirclePayout {
 
       Type type = new TypeToken<Map<String, ?>>() {}.getType();
       Map<String, Object> originalResponse = gson.fromJson(jsonObject, type);
-      String createdDateStr = CircleDateFormatter.dateToString(payout.getCreateDate());
-      originalResponse.put("createDate", createdDateStr);
+      String createDateStr = CircleDateFormatter.dateToString(payout.getCreateDate());
+      originalResponse.put("createDate", createDateStr);
+      String updateDateStr = CircleDateFormatter.dateToString(payout.getUpdateDate());
+      originalResponse.put("updateDate", updateDateStr);
       payout.setOriginalResponse(originalResponse);
       return payout;
     }

@@ -22,6 +22,8 @@ public interface StellarReconciliation {
   default void updateStellarSenderAddress(CircleTransfer transfer) throws HttpException {
     if (transfer.getSource().getId() != null) return;
 
+    // Only Stellar->CircleWallet transfers would arrive here with id == null, and they'd also have
+    // chain == "XLM" and type == BLOCKCHAIN
     if (!transfer.getSource().getChain().equals("XLM")
         || transfer.getSource().getType() != CircleTransactionParty.Type.BLOCKCHAIN) {
       throw new HttpException(500, "invalid source account");
@@ -29,8 +31,8 @@ public interface StellarReconciliation {
 
     Page<OperationResponse> responsePage;
     try {
-      responsePage =
-          getHorizonServer().payments().forTransaction(transfer.getTransactionHash()).execute();
+      String txHash = transfer.getTransactionHash();
+      responsePage = getHorizonServer().payments().forTransaction(txHash).execute();
     } catch (IOException e) {
       e.printStackTrace();
       throw new HttpException(500, e.getMessage());
