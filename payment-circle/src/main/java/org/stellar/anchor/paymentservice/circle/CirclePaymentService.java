@@ -62,6 +62,11 @@ public class CirclePaymentService
     return this.network;
   }
 
+  @Override
+  public String getName() {
+    return null;
+  }
+
   public String getUrl() {
     return this.url;
   }

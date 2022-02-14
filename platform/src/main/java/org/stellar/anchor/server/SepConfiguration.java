@@ -19,16 +19,17 @@ import org.stellar.anchor.sep10.JwtService;
 import org.stellar.anchor.sep10.Sep10Service;
 import org.stellar.anchor.sep24.AssetService;
 import org.stellar.anchor.sep24.Sep24Service;
-import org.stellar.anchor.server.config.PropertyResourceAppConfig;
-import org.stellar.anchor.server.config.PropertyResourceSep10Config;
-import org.stellar.anchor.server.config.PropertyResourceSep1Config;
-import org.stellar.anchor.server.config.PropertyResourceSep24Config;
+import org.stellar.anchor.server.config.PropertyAppConfig;
+import org.stellar.anchor.server.config.PropertySep10Config;
+import org.stellar.anchor.server.config.PropertySep1Config;
+import org.stellar.anchor.server.config.PropertySep24Config;
 import org.stellar.anchor.server.data.JdbcSep24TransactionRepo;
 import org.stellar.anchor.server.data.JdbcSep24TransactionStore;
 
+/** SEP configurations */
 @Configuration
-public class SepConfigurationMVC {
-  public SepConfigurationMVC() {}
+public class SepConfiguration {
+  public SepConfiguration() {}
 
   /**
    * Register sep-10 token filter.
@@ -91,24 +92,24 @@ public class SepConfigurationMVC {
   @Bean
   @ConfigurationProperties("app")
   AppConfig appConfig() {
-    return new PropertyResourceAppConfig();
+    return new PropertyAppConfig();
   }
 
   @Bean
   @ConfigurationProperties(prefix = "sep1")
   Sep1Config sep1Config() {
-    return new PropertyResourceSep1Config();
+    return new PropertySep1Config();
   }
 
   @Bean
   @ConfigurationProperties(prefix = "sep10")
   Sep10Config sep10Config() {
-    return new PropertyResourceSep10Config();
+    return new PropertySep10Config();
   }
 
   @Bean
   @ConfigurationProperties(prefix = "sep24")
   Sep24Config sep24Config() {
-    return new PropertyResourceSep24Config();
+    return new PropertySep24Config();
   }
 }

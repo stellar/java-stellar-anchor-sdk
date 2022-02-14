@@ -5,7 +5,7 @@ import lombok.Data;
 import org.stellar.anchor.config.Sep10Config;
 
 @Data
-public class PropertyResourceSep10Config implements Sep10Config {
+public class PropertySep10Config implements Sep10Config {
   private String homeDomain;
   private boolean clientAttributionRequired = false;
   private Boolean enabled = true;
