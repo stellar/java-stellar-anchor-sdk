@@ -1203,7 +1203,7 @@ class CirclePaymentServiceTest {
       )
     p2.destinationAccount = merchantAccount
     p2.balance = Balance("1.50", "circle:USD")
-    p2.txHash = "fb8947c67856d8eb444211c1927d92bcf14abcfb34cdd27fc9e604b15d208fd1"
+    p2.idTag = "fb8947c67856d8eb444211c1927d92bcf14abcfb34cdd27fc9e604b15d208fd1"
     p2.status = Payment.Status.SUCCESSFUL
     p2.createdAt = CircleDateFormatter.stringToDate("2022-02-07T18:02:17.999Z")
     p2.updatedAt = CircleDateFormatter.stringToDate("2022-02-07T18:02:17.999Z")
@@ -1221,7 +1221,7 @@ class CirclePaymentServiceTest {
       )
     p3.balance =
       Balance("1.00", "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5")
-    p3.txHash = "5239ee055b1083231c6bdaaa921d3e4b3bc090577fbd909815bd5d7fe68091ef"
+    p3.idTag = "5239ee055b1083231c6bdaaa921d3e4b3bc090577fbd909815bd5d7fe68091ef"
     p3.status = Payment.Status.SUCCESSFUL
     p3.createdAt = CircleDateFormatter.stringToDate("2022-01-01T01:01:01.544Z")
     p3.updatedAt = CircleDateFormatter.stringToDate("2022-01-01T01:01:01.544Z")
@@ -1300,7 +1300,7 @@ class CirclePaymentServiceTest {
       )
     p2.balance =
       Balance("1.00", "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5")
-    p2.txHash = "5239ee055b1083231c6bdaaa921d3e4b3bc090577fbd909815bd5d7fe68091ef"
+    p2.idTag = "5239ee055b1083231c6bdaaa921d3e4b3bc090577fbd909815bd5d7fe68091ef"
     p2.status = Payment.Status.SUCCESSFUL
     p2.createdAt = CircleDateFormatter.stringToDate("2022-01-01T01:01:01.544Z")
     p2.updatedAt = CircleDateFormatter.stringToDate("2022-01-01T01:01:01.544Z")
@@ -1598,7 +1598,7 @@ class CirclePaymentServiceTest {
       )
     p2.destinationAccount = merchantAccount
     p2.balance = Balance("1.50", "circle:USD")
-    p2.txHash = "fb8947c67856d8eb444211c1927d92bcf14abcfb34cdd27fc9e604b15d208fd1"
+    p2.idTag = "fb8947c67856d8eb444211c1927d92bcf14abcfb34cdd27fc9e604b15d208fd1"
     p2.status = Payment.Status.SUCCESSFUL
     p2.createdAt = CircleDateFormatter.stringToDate("2022-02-07T18:02:17.999Z")
     p2.updatedAt = CircleDateFormatter.stringToDate("2022-02-07T18:02:17.999Z")
@@ -1632,7 +1632,7 @@ class CirclePaymentServiceTest {
       )
     p4.balance =
       Balance("1.00", "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5")
-    p4.txHash = "5239ee055b1083231c6bdaaa921d3e4b3bc090577fbd909815bd5d7fe68091ef"
+    p4.idTag = "5239ee055b1083231c6bdaaa921d3e4b3bc090577fbd909815bd5d7fe68091ef"
     p4.status = Payment.Status.SUCCESSFUL
     p4.createdAt = CircleDateFormatter.stringToDate("2022-01-01T01:01:01.544Z")
     p4.updatedAt = CircleDateFormatter.stringToDate("2022-01-01T01:01:01.544Z")

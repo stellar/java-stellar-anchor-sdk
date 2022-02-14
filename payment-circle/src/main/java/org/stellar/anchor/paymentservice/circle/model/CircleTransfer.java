@@ -29,7 +29,7 @@ public class CircleTransfer {
     Account destinationAccount = destination.toAccount(distributionAccountId);
     p.setDestinationAccount(destinationAccount);
     p.setBalance(amount.toBalance(destinationAccount.network));
-    p.setTxHash(transactionHash);
+    p.setIdTag(transactionHash);
     p.setStatus(status.toPaymentStatus());
     p.setErrorCode(errorCode);
     p.setCreatedAt(createDate);
