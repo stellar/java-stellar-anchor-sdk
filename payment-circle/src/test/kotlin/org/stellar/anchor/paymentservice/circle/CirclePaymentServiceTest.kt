@@ -4,7 +4,6 @@ import com.google.gson.Gson
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
-import io.netty.handler.codec.http.HttpResponseStatus
 import java.io.IOException
 import java.lang.reflect.Method
 import java.math.BigDecimal
@@ -31,8 +30,6 @@ import org.stellar.sdk.responses.GsonSingleton
 import org.stellar.sdk.responses.Page
 import org.stellar.sdk.responses.operations.OperationResponse
 import reactor.core.publisher.Mono
-import reactor.netty.ByteBufMono
-import reactor.netty.http.client.HttpClientResponse
 import shadow.com.google.common.reflect.TypeToken
 
 class CirclePaymentServiceTest {
@@ -275,34 +272,6 @@ class CirclePaymentServiceTest {
   @Throws(IOException::class)
   fun tearDown() {
     server.shutdown()
-  }
-
-  @Test
-  fun test_private_handleCircleError() {
-    // mock objects
-    val response = mockk<HttpClientResponse>()
-    every { response.status() } returns HttpResponseStatus.BAD_REQUEST
-    val bodyBytesMono = mockk<ByteBufMono>()
-    every { bodyBytesMono.asString() } returns
-      Mono.just("{\"code\":2,\"message\":\"Request body contains unprocessable entity.\"}")
-
-    // access private method
-    val handleCircleErrorMethod: Method =
-      CirclePaymentService::class.java.getDeclaredMethod(
-        "handleCircleError",
-        HttpClientResponse::class.java,
-        ByteBufMono::class.java
-      )
-    assert(handleCircleErrorMethod.trySetAccessible())
-
-    // run and test
-    val ex =
-      assertThrows<HttpException> {
-        (handleCircleErrorMethod.invoke(service, response, bodyBytesMono) as Mono<*>).block()
-      }
-    verify { response.status() }
-    verify { bodyBytesMono.asString() }
-    assertEquals(HttpException(400, "Request body contains unprocessable entity.", "2"), ex)
   }
 
   @Test

@@ -22,11 +22,11 @@ import org.stellar.sdk.Server;
 import reactor.core.publisher.Mono;
 import reactor.netty.ByteBufMono;
 import reactor.netty.http.client.HttpClient;
-import reactor.netty.http.client.HttpClientResponse;
 import reactor.util.annotation.NonNull;
 import reactor.util.annotation.Nullable;
 
-public class CirclePaymentService implements PaymentService, StellarReconciliation {
+public class CirclePaymentService
+    implements PaymentService, CircleResponseErrorHandler, StellarReconciliation {
   private static final Gson gson =
       new GsonBuilder()
           .registerTypeAdapter(CircleTransfer.class, new CircleTransfer.Serialization())
@@ -91,20 +91,6 @@ public class CirclePaymentService implements PaymentService, StellarReconciliati
     return webClient.headers(h -> h.add(HttpHeaderNames.AUTHORIZATION, "Bearer " + getSecretKey()));
   }
 
-  @NonNull
-  private <T> Mono<T> handleCircleError(HttpClientResponse response, ByteBufMono bodyBytesMono) {
-    return bodyBytesMono
-        .asString()
-        .map(
-            body -> {
-              CircleError circleError = gson.fromJson(body, CircleError.class);
-              throw new HttpException(
-                  response.status().code(),
-                  circleError.getMessage(),
-                  circleError.getCode().toString());
-            });
-  }
-
   /**
    * API request that pings the server to make sure it's up and running.
    *
@@ -116,14 +102,8 @@ public class CirclePaymentService implements PaymentService, StellarReconciliati
     return getWebClient(false)
         .get()
         .uri("/ping")
-        .responseSingle(
-            (response, bodyBytesMono) -> {
-              if (response.status().code() >= 400) {
-                return handleCircleError(response, bodyBytesMono);
-              }
-
-              return Mono.empty();
-            });
+        .responseSingle(handleResponseSingle())
+        .flatMap(s -> Mono.empty());
   }
 
   /**
@@ -140,14 +120,7 @@ public class CirclePaymentService implements PaymentService, StellarReconciliati
     return getWebClient(true)
         .get()
         .uri("/v1/configuration")
-        .responseSingle(
-            (response, bodyBytesMono) -> {
-              if (response.status().code() >= 400) {
-                return handleCircleError(response, bodyBytesMono);
-              }
-
-              return bodyBytesMono.asString();
-            })
+        .responseSingle(handleResponseSingle())
         .map(
             body -> {
               CircleConfigurationResponse response =
@@ -167,14 +140,7 @@ public class CirclePaymentService implements PaymentService, StellarReconciliati
     return getWebClient(true)
         .get()
         .uri("/v1/businessAccount/balances")
-        .responseSingle(
-            (response, bodyBytesMono) -> {
-              if (response.status().code() >= 400) {
-                return handleCircleError(response, bodyBytesMono);
-              }
-
-              return bodyBytesMono.asString();
-            })
+        .responseSingle(handleResponseSingle())
         .map(
             body -> {
               CircleAccountBalancesResponse response =
@@ -201,14 +167,7 @@ public class CirclePaymentService implements PaymentService, StellarReconciliati
     return getWebClient(true)
         .get()
         .uri("/v1/wallets/" + walletId)
-        .responseSingle(
-            (response, bodyBytesMono) -> {
-              if (response.status().code() >= 400) {
-                return handleCircleError(response, bodyBytesMono);
-              }
-
-              return bodyBytesMono.asString();
-            })
+        .responseSingle(handleResponseSingle())
         .map(
             body -> {
               CircleWalletResponse circleWalletResponse =
@@ -263,14 +222,7 @@ public class CirclePaymentService implements PaymentService, StellarReconciliati
         .post()
         .uri("/v1/wallets")
         .send(ByteBufMono.fromString(Mono.just(postBody.toString())))
-        .responseSingle(
-            (postResponse, bodyBytesMono) -> {
-              if (postResponse.status().code() >= 400) {
-                return handleCircleError(postResponse, bodyBytesMono);
-              }
-
-              return bodyBytesMono.asString();
-            })
+        .responseSingle(handleResponseSingle())
         .map(
             body -> {
               CircleWalletResponse circleWalletResponse =
@@ -299,14 +251,7 @@ public class CirclePaymentService implements PaymentService, StellarReconciliati
     return getWebClient(true)
         .get()
         .uri(NettyHttpClient.buildUri("/v1/transfers", queryParams))
-        .responseSingle(
-            (response, bodyBytesMono) -> {
-              if (response.status().code() >= 400) {
-                return handleCircleError(response, bodyBytesMono);
-              }
-
-              return bodyBytesMono.asString();
-            })
+        .responseSingle(handleResponseSingle())
         .flatMap(
             body -> {
               CircleTransferListResponse response =
@@ -358,14 +303,7 @@ public class CirclePaymentService implements PaymentService, StellarReconciliati
     return getWebClient(true)
         .get()
         .uri(NettyHttpClient.buildUri("/v1/payouts", queryParams))
-        .responseSingle(
-            (response, bodyBytesMono) -> {
-              if (response.status().code() >= 400) {
-                return handleCircleError(response, bodyBytesMono);
-              }
-
-              return bodyBytesMono.asString();
-            })
+        .responseSingle(handleResponseSingle())
         .map(body -> gson.fromJson(body, CirclePayoutListResponse.class));
   }
 
@@ -527,14 +465,8 @@ public class CirclePaymentService implements PaymentService, StellarReconciliati
         .post()
         .uri("/v1/transfers")
         .send(ByteBufMono.fromString(Mono.just(jsonBody)))
-        .responseSingle(
-            (postResponse, bodyBytesMono) -> {
-              if (postResponse.status().code() >= 400) {
-                return handleCircleError(postResponse, bodyBytesMono);
-              }
-
-              return Mono.zip(getDistributionAccountAddress(), bodyBytesMono.asString());
-            })
+        .responseSingle(handleResponseSingle())
+        .flatMap(body -> Mono.zip(getDistributionAccountAddress(), Mono.just(body)))
         .map(
             args -> {
               String distributionAccountId = args.getT1();
@@ -575,14 +507,7 @@ public class CirclePaymentService implements PaymentService, StellarReconciliati
         .post()
         .uri("/v1/payouts")
         .send(ByteBufMono.fromString(Mono.just(jsonBody)))
-        .responseSingle(
-            (postResponse, bodyBytesMono) -> {
-              if (postResponse.status().code() >= 400) {
-                return handleCircleError(postResponse, bodyBytesMono);
-              }
-
-              return bodyBytesMono.asString();
-            })
+        .responseSingle(handleResponseSingle())
         .map(
             body -> {
               CirclePayoutResponse payout = gson.fromJson(body, CirclePayoutResponse.class);
