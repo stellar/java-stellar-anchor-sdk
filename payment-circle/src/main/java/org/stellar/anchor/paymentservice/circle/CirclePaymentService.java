@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
-import lombok.Getter;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.stellar.anchor.exception.HttpException;
 import org.stellar.anchor.paymentservice.*;
@@ -18,7 +17,6 @@ import org.stellar.anchor.paymentservice.circle.model.*;
 import org.stellar.anchor.paymentservice.circle.model.request.CircleSendTransactionRequest;
 import org.stellar.anchor.paymentservice.circle.model.response.*;
 import org.stellar.anchor.paymentservice.circle.util.NettyHttpClient;
-import org.stellar.sdk.Server;
 import reactor.core.publisher.Mono;
 import reactor.netty.ByteBufMono;
 import reactor.netty.http.client.HttpClient;
@@ -33,8 +31,6 @@ public class CirclePaymentService
           .registerTypeAdapter(CirclePayout.class, new CirclePayout.Deserializer())
           .create();
 
-  @Getter Server horizonServer;
-
   private final org.stellar.sdk.Network stellarNetwork;
 
   private final Network network = Network.CIRCLE;
@@ -42,6 +38,8 @@ public class CirclePaymentService
   private String url;
 
   private String secretKey;
+
+  private final String horizonUrl;
 
   private HttpClient webClient;
 
@@ -56,7 +54,7 @@ public class CirclePaymentService
     super();
     this.url = url;
     this.secretKey = secretKey;
-    this.horizonServer = new Server(horizonUrl);
+    this.horizonUrl = horizonUrl;
     this.stellarNetwork = stellarNetwork;
   }
 
@@ -81,7 +79,11 @@ public class CirclePaymentService
     this.mainAccountAddress = null;
   }
 
-  private HttpClient getWebClient(boolean authenticated) {
+  public String getHorizonUrl() {
+    return horizonUrl;
+  }
+
+  public HttpClient getWebClient(boolean authenticated) {
     if (webClient == null) {
       this.webClient = NettyHttpClient.withBaseUrl(getUrl());
     }

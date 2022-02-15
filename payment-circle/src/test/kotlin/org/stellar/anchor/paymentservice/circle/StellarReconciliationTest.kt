@@ -2,38 +2,28 @@ package org.stellar.anchor.paymentservice.circle
 
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import io.mockk.every
-import io.mockk.mockk
 import java.io.IOException
+import okhttp3.mockwebserver.MockResponse
+import okhttp3.mockwebserver.MockWebServer
+import org.hamcrest.CoreMatchers
+import org.hamcrest.MatcherAssert
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.stellar.anchor.paymentservice.circle.model.CircleTransfer
-import org.stellar.sdk.Server
-import org.stellar.sdk.responses.GsonSingleton
-import org.stellar.sdk.responses.Page
-import org.stellar.sdk.responses.operations.OperationResponse
-import shadow.com.google.common.reflect.TypeToken
+import org.stellar.anchor.paymentservice.circle.util.NettyHttpClient
+import reactor.netty.http.client.HttpClient
 
 class StellarReconciliationTest {
-  internal class StellarReconciliationImpl : StellarReconciliation {
+  internal class StellarReconciliationImpl(private val horizonUrl: String) : StellarReconciliation {
+    override fun getWebClient(authenticated: Boolean): HttpClient {
+      return NettyHttpClient.withBaseUrl(horizonUrl)
+    }
 
-    private var horizonServer: Server? = null
-
-    override fun getHorizonServer(): Server {
-      if (horizonServer == null) {
-        val type = (object : TypeToken<Page<OperationResponse>>() {}).type
-        val mockStellarPaymentResponsePage: Page<OperationResponse> =
-          GsonSingleton.getInstance()
-            .fromJson(CirclePaymentServiceTest.mockStellarPaymentResponsePageBody, type)
-        horizonServer = mockk<Server>()
-        every { horizonServer!!.payments().forTransaction(any()).execute() } returns
-          mockStellarPaymentResponsePage
-      }
-
-      return horizonServer!!
+    override fun getHorizonUrl(): String {
+      return this.horizonUrl
     }
   }
 
@@ -49,37 +39,26 @@ class StellarReconciliationTest {
   }
 
   @Test
-  fun test_updateTransferStellarSender() {
-    val originalTransfer =
-      gson.fromJson(
-        CirclePaymentServiceTest.mockStellarToWalletTransferJson,
-        CircleTransfer::class.java
-      )
-
-    assertNull(originalTransfer.source.address)
-
-    val updatedTransfer = gson.fromJson(gson.toJson(originalTransfer), CircleTransfer::class.java)
-    val impl = StellarReconciliationImpl()
-    impl.updateStellarSenderAddress(updatedTransfer)
-    assertEquals(
-      "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S",
-      updatedTransfer.source.address
-    )
-
-    assertNull(originalTransfer.source.address)
-  }
-
-  @Test
   fun test_updatedTransferStellarSender() {
+    // mock response in the server
+    val server = MockWebServer()
+    server.start()
+    val stellarResponse =
+      MockResponse()
+        .addHeader("Content-Type", "application/json")
+        .setBody(CirclePaymentServiceTest.mockStellarPaymentResponsePageBody)
+    server.enqueue(stellarResponse)
+
+    // verify the original transfer source address is null
     val originalTransfer =
       gson.fromJson(
         CirclePaymentServiceTest.mockStellarToWalletTransferJson,
         CircleTransfer::class.java
       )
-
     assertNull(originalTransfer.source.address)
 
-    val impl = StellarReconciliationImpl()
+    // verify the method `.updatedStellarSenderAddress` populates the source address
+    val impl = StellarReconciliationImpl(server.url("").toString())
     var updatedTransfer: CircleTransfer? = null
     assertDoesNotThrow {
       updatedTransfer = impl.updatedStellarSenderAddress(originalTransfer).block()
@@ -89,6 +68,20 @@ class StellarReconciliationTest {
       updatedTransfer?.source?.address
     )
 
+    // verify the updated transfer is a new object and did not cause any change in the original
+    // transfer object
     assertNull(originalTransfer.source.address)
+
+    // validate the request format
+    val request = server.takeRequest()
+    assertEquals("GET", request.method)
+    assertEquals("application/json", request.headers["Content-Type"])
+    println(request.requestUrl)
+    MatcherAssert.assertThat(
+      request.path,
+      CoreMatchers.endsWith(
+        "/transactions/fb8947c67856d8eb444211c1927d92bcf14abcfb34cdd27fc9e604b15d208fd1/payments"
+      )
+    )
   }
 }

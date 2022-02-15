@@ -3,6 +3,7 @@ package org.stellar.anchor.paymentservice.circle
 import com.google.gson.Gson
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.spyk
 import io.mockk.verify
 import java.io.IOException
 import java.lang.reflect.Method
@@ -1094,14 +1095,12 @@ class CirclePaymentServiceTest {
 
   @Test
   fun test_getTransfers() {
-    // Mock Stellar call
-    var type = (object : TypeToken<Page<OperationResponse>>() {}).type
-    val mockStellarPaymentResponsePage: Page<OperationResponse> =
-      GsonSingleton.getInstance().fromJson(mockStellarPathPaymentResponsePageBody, type)
-    val mockHorizonServer = mockk<Server>()
-    every { mockHorizonServer.payments().forTransaction(any()).execute() } returns
-      mockStellarPaymentResponsePage
-    (service as CirclePaymentService).horizonServer = mockHorizonServer
+    // mock call to `.getWebClient(false).baseUrl(any())` so the web client keeps pointing to the
+    // same server URL
+    val service = spyk(this.service as CirclePaymentService)
+    val serviceClient = spyk(service.getWebClient(false))
+    every { serviceClient.baseUrl(any()) } returns service.getWebClient(false)
+    every { service.getWebClient(false) } returns serviceClient
 
     val dispatcher: Dispatcher =
       object : Dispatcher() {
@@ -1121,6 +1120,10 @@ class CirclePaymentServiceTest {
                   }""".trimIndent()
                 )
             "/v1/configuration" -> return getDistAccountIdMockResponse()
+            "/transactions/fb8947c67856d8eb444211c1927d92bcf14abcfb34cdd27fc9e604b15d208fd1/payments" ->
+              return MockResponse()
+                .addHeader("Content-Type", "application/json")
+                .setBody(mockStellarPaymentResponsePageBody)
           }
           return MockResponse().setResponseCode(404)
         }
@@ -1128,8 +1131,7 @@ class CirclePaymentServiceTest {
     server.dispatcher = dispatcher
 
     var paymentHistory: PaymentHistory? = null
-    val getTransfersMono =
-      (service as CirclePaymentService).getTransfers("1000066041", null, null, null)
+    val getTransfersMono = service.getTransfers("1000066041", null, null, null)
     val merchantAccount =
       Account(
         Network.CIRCLE,
@@ -1140,15 +1142,14 @@ class CirclePaymentServiceTest {
       paymentHistory =
         getTransfersMono.block()!!.toPaymentHistory(50, merchantAccount, "1000066041")
     }
-
     // validate Stellar call was executed
-    verify { mockHorizonServer.payments().forTransaction(any()).execute() }
+    verify { serviceClient.baseUrl(any()) }
 
     val wantPaymentHistory = PaymentHistory(merchantAccount)
     wantPaymentHistory.beforeCursor = "c58e2613-a808-4075-956c-e576787afb3b"
 
     val gson = Gson()
-    type = object : TypeToken<Map<String?, *>?>() {}.type
+    val type = object : TypeToken<Map<String?, *>?>() {}.type
 
     val p1 = Payment()
     p1.id = "c58e2613-a808-4075-956c-e576787afb3b"
@@ -1481,14 +1482,12 @@ class CirclePaymentServiceTest {
 
   @Test
   fun test_getAccountHistory() {
-    // Mock Stellar call
-    var type = (object : TypeToken<Page<OperationResponse>>() {}).type
-    val mockStellarPaymentResponsePage: Page<OperationResponse> =
-      GsonSingleton.getInstance().fromJson(mockStellarPaymentResponsePageBody, type)
-    val mockHorizonServer = mockk<Server>()
-    every { mockHorizonServer.payments().forTransaction(any()).execute() } returns
-      mockStellarPaymentResponsePage
-    (service as CirclePaymentService).horizonServer = mockHorizonServer
+    // mock call to `.getWebClient(false).baseUrl(any())` so the web client keeps pointing to the
+    // same server URL
+    val service = spyk(this.service as CirclePaymentService)
+    val serviceClient = spyk(service.getWebClient(false))
+    every { serviceClient.baseUrl(any()) } returns service.getWebClient(false)
+    every { service.getWebClient(false) } returns serviceClient
 
     val dispatcher: Dispatcher =
       object : Dispatcher() {
@@ -1518,6 +1517,10 @@ class CirclePaymentServiceTest {
                       ]
                     }""".trimIndent()
                 )
+            "/transactions/fb8947c67856d8eb444211c1927d92bcf14abcfb34cdd27fc9e604b15d208fd1/payments" ->
+              return MockResponse()
+                .addHeader("Content-Type", "application/json")
+                .setBody(mockStellarPaymentResponsePageBody)
           }
           return MockResponse().setResponseCode(404)
         }
@@ -1525,12 +1528,11 @@ class CirclePaymentServiceTest {
     server.dispatcher = dispatcher
 
     var paymentHistory: PaymentHistory? = null
-    val getAccountHistoryMono =
-      (service as CirclePaymentService).getAccountPaymentHistory("1000066041", null, null)
+    val getAccountHistoryMono = service.getAccountPaymentHistory("1000066041", null, null)
     assertDoesNotThrow { paymentHistory = getAccountHistoryMono.block() }
 
     // validate Stellar call was executed
-    verify { mockHorizonServer.payments().forTransaction(any()).execute() }
+    verify { serviceClient.baseUrl(any()) }
 
     val merchantAccount =
       Account(
@@ -1543,7 +1545,7 @@ class CirclePaymentServiceTest {
       "c58e2613-a808-4075-956c-e576787afb3b:6588a352-5131-4711-a264-e405f38d752d"
 
     val gson = Gson()
-    type = object : TypeToken<Map<String?, *>?>() {}.type
+    val type = object : TypeToken<Map<String?, *>?>() {}.type
 
     val p1 = Payment()
     p1.id = "c58e2613-a808-4075-956c-e576787afb3b"
