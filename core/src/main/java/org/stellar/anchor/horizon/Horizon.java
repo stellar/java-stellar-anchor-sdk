@@ -8,7 +8,7 @@ public class Horizon {
   final Server horizonServer;
 
   public Horizon(AppConfig appConfig) {
-    horizonServer = new Server(appConfig.getHorizonURI());
+    horizonServer = new Server(appConfig.getHorizonUrl());
   }
 
   public Server getServer() {

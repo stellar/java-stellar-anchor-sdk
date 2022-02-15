@@ -1,4 +1,49 @@
 # Anchor Platform Spring Boot Application
 
 ## To Run
-./gradlew bootRun
+```shell
+./gradlew bootRun -PjvmArgs="-Dstellar.anchor.config=path-to-yaml" 
+```
+
+## Configuration Management
+### Overall architecture
+
+[Architecture Diagram](https://lucid.app/publicSegments/view/17b493dd-bbaf-49ca-abcd-6f8abaca0494/image.png)
+
+## Run Configuration
+
+The platform Java process reads configurations in the following order. 
+
+### 1. JVM Options `-Dstellar.anchor.config`
+The path of the `yaml` file can be specified by the JVM Option, `-Dstellar.anchor.config`. 
+
+```shell
+./gradlew bootRun -PjvmArgs="-Dstellar.anchor.config=[path-to-yaml]" 
+```
+
+### 2. System Environment Variable `STELLAR_ANCHOR_CONFIG`
+The path of the `yaml` file can be specified by the system environment variable `STELLAR_ANCHOR_CONFIG`.
+
+```shell
+export STELLAR_ANCHOR_CONFIG=[path-to-yaml]
+/gradlew bootRun -PjvmArgs="-Dstellar.anchor.config=[path-to-yaml]"
+```
+
+### 3. `.anchor/anchor-config.yaml` in user's home directory
+If the path of the `yaml` is not specified by the JVM options or the system environment variable, the server will 
+try to find the `./anchor/anchor-config.yaml` file in the user's home directory. 
+
+### JVM-Argument based run-configuration
+Java process takes `-D` arguments as JVM system properties. The path/locator of the `yaml` file can be passed to the process through JVM system properties.
+
+Ex:
+```shell
+java anchor-platform.jar -Danchor.platform.config=/path/to/file.yaml
+```
+
+### Environment variables
+
+In the scenarios where a CMS or Consul is available when there are few variables to pass, it is practical to pass through environment variables.
+
+## Example YAML file
+[An example of the yaml file](../platform/example.anchor-config.yaml).

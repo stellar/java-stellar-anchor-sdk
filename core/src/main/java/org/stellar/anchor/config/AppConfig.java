@@ -4,11 +4,11 @@ import java.util.List;
 
 @SuppressWarnings("unused")
 public interface AppConfig {
-  String getStellarNetworkPassPhrase();
+  String getStellarNetworkPassphrase();
 
   String getHostUrl();
 
-  String getHorizonURI();
+  String getHorizonUrl();
 
   String getJwtSecretKey();
 

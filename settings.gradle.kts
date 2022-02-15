@@ -41,7 +41,7 @@ include("data-spring-jdbc")
 
 /** Payment subprojects */
 include("payment-circle")
-// TODO: include("payment-stellarx")
+// TODO: include("payment-stellar")
 
 /** Anchor Platform */
 include("platform")

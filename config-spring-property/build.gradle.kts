@@ -6,4 +6,5 @@ dependencies {
 
   // From projects
   implementation(project(":core"))
+  implementation(project(":payment-circle"))
 }

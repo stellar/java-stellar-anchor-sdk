@@ -3,7 +3,7 @@ package org.stellar.anchor.paymentservice;
 import lombok.Getter;
 
 @Getter
-public enum Network {
+public enum PaymentNetwork {
   CIRCLE("circle", "circle"),
   STELLAR("stellar", "stellar"),
   BANK_WIRE("bank_wire", "iso4217");
@@ -16,7 +16,7 @@ public enum Network {
    */
   private final String currencyPrefix;
 
-  Network(String name, String currencyPrefix) {
+  PaymentNetwork(String name, String currencyPrefix) {
     this.name = name;
     this.currencyPrefix = currencyPrefix;
   }

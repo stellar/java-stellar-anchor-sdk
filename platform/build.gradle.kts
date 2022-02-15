@@ -21,6 +21,7 @@ dependencies {
 
   // From projects
   implementation(project(":core"))
+  implementation(project(":payment-circle"))
   implementation(project(":config-spring-property"))
   implementation(project(":data-spring-jdbc"))
 }

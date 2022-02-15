@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.Data;
 import org.stellar.anchor.paymentservice.Account;
-import org.stellar.anchor.paymentservice.Network;
+import org.stellar.anchor.paymentservice.PaymentNetwork;
 
 @Data
 public class CircleWallet {
@@ -15,16 +15,17 @@ public class CircleWallet {
   List<CircleBalance> balances;
 
   public Account.Capabilities getCapabilities() {
-    Account.Capabilities capabilities = new Account.Capabilities(Network.CIRCLE, Network.STELLAR);
-    capabilities.set(Network.BANK_WIRE, "merchant".equals(type));
+    Account.Capabilities capabilities =
+        new Account.Capabilities(PaymentNetwork.CIRCLE, PaymentNetwork.STELLAR);
+    capabilities.set(PaymentNetwork.BANK_WIRE, "merchant".equals(type));
     return capabilities;
   }
 
   public Account toAccount() {
-    Account account = new Account(Network.CIRCLE, walletId, description, getCapabilities());
+    Account account = new Account(PaymentNetwork.CIRCLE, walletId, description, getCapabilities());
     account.setBalances(
         balances.stream()
-            .map(circleBalance -> circleBalance.toBalance(Network.CIRCLE))
+            .map(circleBalance -> circleBalance.toBalance(PaymentNetwork.CIRCLE))
             .collect(Collectors.toList()));
     return account;
   }

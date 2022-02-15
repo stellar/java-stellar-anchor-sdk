@@ -24,6 +24,7 @@ import org.junit.jupiter.params.provider.CsvSource
 import org.skyscreamer.jsonassert.JSONAssert
 import org.stellar.anchor.exception.HttpException
 import org.stellar.anchor.paymentservice.*
+import org.stellar.anchor.paymentservice.circle.config.CirclePaymentConfig
 import org.stellar.anchor.paymentservice.circle.model.CircleWallet
 import org.stellar.anchor.paymentservice.circle.util.CircleDateFormatter
 import org.stellar.sdk.Server
@@ -258,15 +259,56 @@ class CirclePaymentServiceTest {
       )
   }
 
+  class TestCirclePaymentConfig(
+    private val _name: String,
+    private val _enabled: Boolean,
+    private val _circleUrl: String,
+    private val _secretKey: String,
+    private val _horizonUrl: String,
+    private val _stellarNetwork: String
+  ) : CirclePaymentConfig {
+    override fun getName(): String {
+      return _name
+    }
+
+    override fun isEnabled(): Boolean {
+      return _enabled
+    }
+
+    override fun getCircleUrl(): String {
+      return _circleUrl
+    }
+
+    override fun getSecretKey(): String {
+      return _secretKey
+    }
+
+    override fun getHorizonUrl(): String {
+      return _horizonUrl
+    }
+
+    override fun getStellarNetwork(): String {
+      return _stellarNetwork
+    }
+  }
+
   @BeforeEach
   @Throws(IOException::class)
   fun setUp() {
     server = MockWebServer()
     server.start()
-    val circleUrl = server.url("").toString()
-    val horizonUrl = "https://horizon-testnet.stellar.org"
-    val bearerToken = "<secret-key>"
-    service = CirclePaymentService(circleUrl, bearerToken, horizonUrl, TESTNET)
+
+    service =
+      CirclePaymentService(
+        TestCirclePaymentConfig(
+          "TestCircle",
+          true,
+          server.url("").toString(),
+          "<secret-key>",
+          "https://horizon-testnet.stellar.org",
+          "TESTNET"
+        )
+      )
   }
 
   @AfterEach
@@ -446,8 +488,11 @@ class CirclePaymentServiceTest {
     var account: Account? = null
     assertDoesNotThrow { account = service.getAccount("1000223064").block() }
     assertEquals("1000223064", account?.id)
-    assertEquals(Network.CIRCLE, account?.network)
-    assertEquals(Account.Capabilities(Network.CIRCLE, Network.STELLAR), account?.capabilities)
+    assertEquals(PaymentNetwork.CIRCLE, account?.paymentNetwork)
+    assertEquals(
+      Account.Capabilities(PaymentNetwork.CIRCLE, PaymentNetwork.STELLAR),
+      account?.capabilities
+    )
     assertEquals("Treasury Wallet", account?.idTag)
     assertEquals(1, account?.balances?.size)
     assertEquals("29472389929.00", account!!.balances[0].amount)
@@ -521,9 +566,9 @@ class CirclePaymentServiceTest {
     var account: Account? = null
     assertDoesNotThrow { account = service.getAccount("1000066041").block() }
     assertEquals("1000066041", account?.id)
-    assertEquals(Network.CIRCLE, account?.network)
+    assertEquals(PaymentNetwork.CIRCLE, account?.paymentNetwork)
     assertEquals(
-      Account.Capabilities(Network.CIRCLE, Network.STELLAR, Network.BANK_WIRE),
+      Account.Capabilities(PaymentNetwork.CIRCLE, PaymentNetwork.STELLAR, PaymentNetwork.BANK_WIRE),
       account?.capabilities
     )
     assertNull(account?.idTag)
@@ -583,8 +628,11 @@ class CirclePaymentServiceTest {
     var account: Account? = null
     assertDoesNotThrow { account = service.createAccount("Foo bar").block() }
     assertEquals("1000223064", account?.id)
-    assertEquals(Network.CIRCLE, account?.network)
-    assertEquals(Account.Capabilities(Network.CIRCLE, Network.STELLAR), account?.capabilities)
+    assertEquals(PaymentNetwork.CIRCLE, account?.paymentNetwork)
+    assertEquals(
+      Account.Capabilities(PaymentNetwork.CIRCLE, PaymentNetwork.STELLAR),
+      account?.capabilities
+    )
     assertEquals("Foo bar", account?.idTag)
     assertEquals(1, account?.balances?.size)
     assertEquals("123.45", account!!.balances[0].amount)
@@ -642,10 +690,10 @@ class CirclePaymentServiceTest {
       }
     server.dispatcher = dispatcher
 
-    val source = Account(Network.CIRCLE, "1000066041", Account.Capabilities())
+    val source = Account(PaymentNetwork.CIRCLE, "1000066041", Account.Capabilities())
     val destination =
       Account(
-        Network.BANK_WIRE,
+        PaymentNetwork.BANK_WIRE,
         "6c87da10-feb8-484f-822c-2083ed762d25",
         "test@mail.com",
         Account.Capabilities()
@@ -659,17 +707,21 @@ class CirclePaymentServiceTest {
     assertEquals("c58e2613-a808-4075-956c-e576787afb3b", payment?.id)
     assertEquals(
       Account(
-        Network.CIRCLE,
+        PaymentNetwork.CIRCLE,
         "1000066041",
-        Account.Capabilities(Network.CIRCLE, Network.STELLAR, Network.BANK_WIRE)
+        Account.Capabilities(
+          PaymentNetwork.CIRCLE,
+          PaymentNetwork.STELLAR,
+          PaymentNetwork.BANK_WIRE
+        )
       ),
       payment?.sourceAccount
     )
     assertEquals(
       Account(
-        Network.BANK_WIRE,
+        PaymentNetwork.BANK_WIRE,
         "6c87da10-feb8-484f-822c-2083ed762d25",
-        Account.Capabilities(Network.BANK_WIRE)
+        Account.Capabilities(PaymentNetwork.BANK_WIRE)
       ),
       payment?.destinationAccount
     )
@@ -757,8 +809,8 @@ class CirclePaymentServiceTest {
       assertThrows<HttpException> {
         service
           .sendPayment(
-            Account(Network.STELLAR, "123", Account.Capabilities()),
-            Account(Network.CIRCLE, "123", Account.Capabilities()),
+            Account(PaymentNetwork.STELLAR, "123", Account.Capabilities()),
+            Account(PaymentNetwork.CIRCLE, "123", Account.Capabilities()),
             "",
             BigDecimal(0)
           )
@@ -774,8 +826,8 @@ class CirclePaymentServiceTest {
       assertThrows {
         service
           .sendPayment(
-            Account(Network.CIRCLE, "123", Account.Capabilities()),
-            Account(Network.BANK_WIRE, "123", "invalidEmail", Account.Capabilities()),
+            Account(PaymentNetwork.CIRCLE, "123", Account.Capabilities()),
+            Account(PaymentNetwork.BANK_WIRE, "123", "invalidEmail", Account.Capabilities()),
             "",
             BigDecimal(0)
           )
@@ -794,8 +846,8 @@ class CirclePaymentServiceTest {
       assertThrows {
         service
           .sendPayment(
-            Account(Network.CIRCLE, "123", Account.Capabilities()),
-            Account(Network.CIRCLE, "456", Account.Capabilities()),
+            Account(PaymentNetwork.CIRCLE, "123", Account.Capabilities()),
+            Account(PaymentNetwork.CIRCLE, "456", Account.Capabilities()),
             "invalidSchema:USD",
             BigDecimal(0)
           )
@@ -846,9 +898,17 @@ class CirclePaymentServiceTest {
     server.dispatcher = dispatcher
 
     val source =
-      Account(Network.CIRCLE, "1000066041", Account.Capabilities(Network.CIRCLE, Network.STELLAR))
+      Account(
+        PaymentNetwork.CIRCLE,
+        "1000066041",
+        Account.Capabilities(PaymentNetwork.CIRCLE, PaymentNetwork.STELLAR)
+      )
     val destination =
-      Account(Network.CIRCLE, "1000067536", Account.Capabilities(Network.CIRCLE, Network.STELLAR))
+      Account(
+        PaymentNetwork.CIRCLE,
+        "1000067536",
+        Account.Capabilities(PaymentNetwork.CIRCLE, PaymentNetwork.STELLAR)
+      )
     var payment: Payment? = null
     assertDoesNotThrow {
       payment =
@@ -858,14 +918,22 @@ class CirclePaymentServiceTest {
     assertEquals("c58e2613-a808-4075-956c-e576787afb3b", payment?.id)
     assertEquals(
       Account(
-        Network.CIRCLE,
+        PaymentNetwork.CIRCLE,
         "1000066041",
-        Account.Capabilities(Network.CIRCLE, Network.STELLAR, Network.BANK_WIRE)
+        Account.Capabilities(
+          PaymentNetwork.CIRCLE,
+          PaymentNetwork.STELLAR,
+          PaymentNetwork.BANK_WIRE
+        )
       ),
       payment?.sourceAccount
     )
     assertEquals(
-      Account(Network.CIRCLE, "1000067536", Account.Capabilities(Network.CIRCLE, Network.STELLAR)),
+      Account(
+        PaymentNetwork.CIRCLE,
+        "1000067536",
+        Account.Capabilities(PaymentNetwork.CIRCLE, PaymentNetwork.STELLAR)
+      ),
       payment?.destinationAccount
     )
     assertEquals(Balance("0.91", "circle:USD"), payment?.balance)
@@ -967,10 +1035,10 @@ class CirclePaymentServiceTest {
       }
     server.dispatcher = dispatcher
 
-    val source = Account(Network.CIRCLE, "1000066041", Account.Capabilities())
+    val source = Account(PaymentNetwork.CIRCLE, "1000066041", Account.Capabilities())
     val destination =
       Account(
-        Network.STELLAR,
+        PaymentNetwork.STELLAR,
         "GBG7VGZFH4TU2GS7WL5LMPYFNP64ZFR23XEGAV7GPEEXKWOR2DKCYPCK",
         "test tag",
         Account.Capabilities()
@@ -991,18 +1059,22 @@ class CirclePaymentServiceTest {
     assertEquals("c58e2613-a808-4075-956c-e576787afb3b", payment?.id)
     assertEquals(
       Account(
-        Network.CIRCLE,
+        PaymentNetwork.CIRCLE,
         "1000066041",
-        Account.Capabilities(Network.CIRCLE, Network.STELLAR, Network.BANK_WIRE)
+        Account.Capabilities(
+          PaymentNetwork.CIRCLE,
+          PaymentNetwork.STELLAR,
+          PaymentNetwork.BANK_WIRE
+        )
       ),
       payment?.sourceAccount
     )
     assertEquals(
       Account(
-        Network.STELLAR,
+        PaymentNetwork.STELLAR,
         "GBG7VGZFH4TU2GS7WL5LMPYFNP64ZFR23XEGAV7GPEEXKWOR2DKCYPCK",
         "test tag",
-        Account.Capabilities(Network.STELLAR)
+        Account.Capabilities(PaymentNetwork.STELLAR)
       ),
       payment?.destinationAccount
     )
@@ -1134,9 +1206,13 @@ class CirclePaymentServiceTest {
     val getTransfersMono = service.getTransfers("1000066041", null, null, null)
     val merchantAccount =
       Account(
-        Network.CIRCLE,
+        PaymentNetwork.CIRCLE,
         "1000066041",
-        Account.Capabilities(Network.CIRCLE, Network.STELLAR, Network.BANK_WIRE)
+        Account.Capabilities(
+          PaymentNetwork.CIRCLE,
+          PaymentNetwork.STELLAR,
+          PaymentNetwork.BANK_WIRE
+        )
       )
     assertDoesNotThrow {
       paymentHistory =
@@ -1155,7 +1231,11 @@ class CirclePaymentServiceTest {
     p1.id = "c58e2613-a808-4075-956c-e576787afb3b"
     p1.sourceAccount = merchantAccount
     p1.destinationAccount =
-      Account(Network.CIRCLE, "1000067536", Account.Capabilities(Network.CIRCLE, Network.STELLAR))
+      Account(
+        PaymentNetwork.CIRCLE,
+        "1000067536",
+        Account.Capabilities(PaymentNetwork.CIRCLE, PaymentNetwork.STELLAR)
+      )
     p1.balance = Balance("0.91", "circle:USD")
     p1.status = Payment.Status.PENDING
     p1.createdAt = CircleDateFormatter.stringToDate("2022-02-07T19:50:23.408Z")
@@ -1167,9 +1247,9 @@ class CirclePaymentServiceTest {
     p2.id = "7f131f58-a8a0-3dc2-be05-6a015c69de35"
     p2.sourceAccount =
       Account(
-        Network.STELLAR,
+        PaymentNetwork.STELLAR,
         "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S",
-        Account.Capabilities(Network.STELLAR)
+        Account.Capabilities(PaymentNetwork.STELLAR)
       )
     p2.destinationAccount = merchantAccount
     p2.balance = Balance("1.50", "circle:USD")
@@ -1185,9 +1265,9 @@ class CirclePaymentServiceTest {
     p3.sourceAccount = merchantAccount
     p3.destinationAccount =
       Account(
-        Network.STELLAR,
+        PaymentNetwork.STELLAR,
         "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S",
-        Account.Capabilities(Network.STELLAR)
+        Account.Capabilities(PaymentNetwork.STELLAR)
       )
     p3.balance =
       Balance("1.00", "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5")
@@ -1229,9 +1309,13 @@ class CirclePaymentServiceTest {
     // Let's use reflection to access the private method
     val merchantAccount =
       Account(
-        Network.CIRCLE,
+        PaymentNetwork.CIRCLE,
         "1000066041",
-        Account.Capabilities(Network.CIRCLE, Network.STELLAR, Network.BANK_WIRE)
+        Account.Capabilities(
+          PaymentNetwork.CIRCLE,
+          PaymentNetwork.STELLAR,
+          PaymentNetwork.BANK_WIRE
+        )
       )
     val getTransfersMono =
       (service as CirclePaymentService).getTransfers("1000066041", null, null, 2)
@@ -1251,7 +1335,11 @@ class CirclePaymentServiceTest {
     p1.id = "c58e2613-a808-4075-956c-e576787afb3b"
     p1.sourceAccount = merchantAccount
     p1.destinationAccount =
-      Account(Network.CIRCLE, "1000067536", Account.Capabilities(Network.CIRCLE, Network.STELLAR))
+      Account(
+        PaymentNetwork.CIRCLE,
+        "1000067536",
+        Account.Capabilities(PaymentNetwork.CIRCLE, PaymentNetwork.STELLAR)
+      )
     p1.balance = Balance("0.91", "circle:USD")
     p1.status = Payment.Status.PENDING
     p1.createdAt = CircleDateFormatter.stringToDate("2022-02-07T19:50:23.408Z")
@@ -1264,9 +1352,9 @@ class CirclePaymentServiceTest {
     p2.sourceAccount = merchantAccount
     p2.destinationAccount =
       Account(
-        Network.STELLAR,
+        PaymentNetwork.STELLAR,
         "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S",
-        Account.Capabilities(Network.STELLAR)
+        Account.Capabilities(PaymentNetwork.STELLAR)
       )
     p2.balance =
       Balance("1.00", "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5")
@@ -1306,9 +1394,13 @@ class CirclePaymentServiceTest {
 
     val merchantAccount =
       Account(
-        Network.CIRCLE,
+        PaymentNetwork.CIRCLE,
         "1000066041",
-        Account.Capabilities(Network.CIRCLE, Network.STELLAR, Network.BANK_WIRE)
+        Account.Capabilities(
+          PaymentNetwork.CIRCLE,
+          PaymentNetwork.STELLAR,
+          PaymentNetwork.BANK_WIRE
+        )
       )
     val getPayoutsMono = (service as CirclePaymentService).getPayouts("1000066041", null, null, 50)
     var paymentHistory: PaymentHistory? = null
@@ -1324,9 +1416,9 @@ class CirclePaymentServiceTest {
     p.sourceAccount = merchantAccount
     p.destinationAccount =
       Account(
-        Network.BANK_WIRE,
+        PaymentNetwork.BANK_WIRE,
         "6c87da10-feb8-484f-822c-2083ed762d25",
-        Account.Capabilities(Network.BANK_WIRE)
+        Account.Capabilities(PaymentNetwork.BANK_WIRE)
       )
     p.balance = Balance("3.00", "iso4217:USD")
     p.status = Payment.Status.SUCCESSFUL
@@ -1366,9 +1458,13 @@ class CirclePaymentServiceTest {
 
     val merchantAccount =
       Account(
-        Network.CIRCLE,
+        PaymentNetwork.CIRCLE,
         "1000066041",
-        Account.Capabilities(Network.CIRCLE, Network.STELLAR, Network.BANK_WIRE)
+        Account.Capabilities(
+          PaymentNetwork.CIRCLE,
+          PaymentNetwork.STELLAR,
+          PaymentNetwork.BANK_WIRE
+        )
       )
 
     val getPayoutsMono = (service as CirclePaymentService).getPayouts("1000066041", null, null, 1)
@@ -1386,9 +1482,9 @@ class CirclePaymentServiceTest {
     p.sourceAccount = merchantAccount
     p.destinationAccount =
       Account(
-        Network.BANK_WIRE,
+        PaymentNetwork.BANK_WIRE,
         "6c87da10-feb8-484f-822c-2083ed762d25",
-        Account.Capabilities(Network.BANK_WIRE)
+        Account.Capabilities(PaymentNetwork.BANK_WIRE)
       )
     p.balance = Balance("3.00", "iso4217:USD")
     p.status = Payment.Status.SUCCESSFUL
@@ -1445,9 +1541,13 @@ class CirclePaymentServiceTest {
 
     val merchantAccount =
       Account(
-        Network.CIRCLE,
+        PaymentNetwork.CIRCLE,
         "1000066041",
-        Account.Capabilities(Network.CIRCLE, Network.STELLAR, Network.BANK_WIRE)
+        Account.Capabilities(
+          PaymentNetwork.CIRCLE,
+          PaymentNetwork.STELLAR,
+          PaymentNetwork.BANK_WIRE
+        )
       )
 
     var paymentHistory: PaymentHistory? = null
@@ -1536,9 +1636,13 @@ class CirclePaymentServiceTest {
 
     val merchantAccount =
       Account(
-        Network.CIRCLE,
+        PaymentNetwork.CIRCLE,
         "1000066041",
-        Account.Capabilities(Network.CIRCLE, Network.STELLAR, Network.BANK_WIRE)
+        Account.Capabilities(
+          PaymentNetwork.CIRCLE,
+          PaymentNetwork.STELLAR,
+          PaymentNetwork.BANK_WIRE
+        )
       )
     val wantPaymentHistory = PaymentHistory(merchantAccount)
     wantPaymentHistory.beforeCursor =
@@ -1551,7 +1655,11 @@ class CirclePaymentServiceTest {
     p1.id = "c58e2613-a808-4075-956c-e576787afb3b"
     p1.sourceAccount = merchantAccount
     p1.destinationAccount =
-      Account(Network.CIRCLE, "1000067536", Account.Capabilities(Network.CIRCLE, Network.STELLAR))
+      Account(
+        PaymentNetwork.CIRCLE,
+        "1000067536",
+        Account.Capabilities(PaymentNetwork.CIRCLE, PaymentNetwork.STELLAR)
+      )
     p1.balance = Balance("0.91", "circle:USD")
     p1.status = Payment.Status.PENDING
     p1.createdAt = CircleDateFormatter.stringToDate("2022-02-07T19:50:23.408Z")
@@ -1563,9 +1671,9 @@ class CirclePaymentServiceTest {
     p2.id = "7f131f58-a8a0-3dc2-be05-6a015c69de35"
     p2.sourceAccount =
       Account(
-        Network.STELLAR,
+        PaymentNetwork.STELLAR,
         "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S",
-        Account.Capabilities(Network.STELLAR)
+        Account.Capabilities(PaymentNetwork.STELLAR)
       )
     p2.destinationAccount = merchantAccount
     p2.balance = Balance("1.50", "circle:USD")
@@ -1581,9 +1689,9 @@ class CirclePaymentServiceTest {
     p3.sourceAccount = merchantAccount
     p3.destinationAccount =
       Account(
-        Network.BANK_WIRE,
+        PaymentNetwork.BANK_WIRE,
         "6c87da10-feb8-484f-822c-2083ed762d25",
-        Account.Capabilities(Network.BANK_WIRE)
+        Account.Capabilities(PaymentNetwork.BANK_WIRE)
       )
     p3.balance = Balance("3.00", "iso4217:USD")
     p3.status = Payment.Status.SUCCESSFUL
@@ -1597,9 +1705,9 @@ class CirclePaymentServiceTest {
     p4.sourceAccount = merchantAccount
     p4.destinationAccount =
       Account(
-        Network.STELLAR,
+        PaymentNetwork.STELLAR,
         "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S",
-        Account.Capabilities(Network.STELLAR)
+        Account.Capabilities(PaymentNetwork.STELLAR)
       )
     p4.balance =
       Balance("1.00", "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5")
@@ -1667,7 +1775,8 @@ class CirclePaymentServiceTest {
         listOf(badRequestResponse)
       ),
       // --- tests with async/parallel requests ---
-      // ATTENTION, make sure to run parallel tests at the end, if you try to run a serial test
+      // ATTENTION, make sure to run parallel tests at the end, if you try to run a serial
+      // test
       // after a parallel
       // test, the server dispatcher will throw an exception.
       ErrorHandlingTestCase(
@@ -1680,8 +1789,8 @@ class CirclePaymentServiceTest {
       ),
       ErrorHandlingTestCase(
         service.sendPayment(
-          Account(Network.CIRCLE, "1000066041", Account.Capabilities()),
-          Account(Network.CIRCLE, "1000067536", Account.Capabilities()),
+          Account(PaymentNetwork.CIRCLE, "1000066041", Account.Capabilities()),
+          Account(PaymentNetwork.CIRCLE, "1000067536", Account.Capabilities()),
           "circle:USD",
           BigDecimal.valueOf(1)
         ),
@@ -1692,12 +1801,12 @@ class CirclePaymentServiceTest {
       ),
       ErrorHandlingTestCase(
         service.sendPayment(
-          Account(Network.CIRCLE, "1000066041", Account.Capabilities()),
+          Account(PaymentNetwork.CIRCLE, "1000066041", Account.Capabilities()),
           Account(
-            Network.STELLAR,
+            PaymentNetwork.STELLAR,
             "GBG7VGZFH4TU2GS7WL5LMPYFNP64ZFR23XEGAV7GPEEXKWOR2DKCYPCK",
             "test tag",
-            Account.Capabilities(Network.CIRCLE, Network.STELLAR)
+            Account.Capabilities(PaymentNetwork.CIRCLE, PaymentNetwork.STELLAR)
           ),
           "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
           BigDecimal(1)
@@ -1709,9 +1818,9 @@ class CirclePaymentServiceTest {
       ),
       ErrorHandlingTestCase(
         service.sendPayment(
-          Account(Network.CIRCLE, "1000066041", Account.Capabilities()),
+          Account(PaymentNetwork.CIRCLE, "1000066041", Account.Capabilities()),
           Account(
-            Network.BANK_WIRE,
+            PaymentNetwork.BANK_WIRE,
             "6c87da10-feb8-484f-822c-2083ed762d25",
             "test@mail.com",
             Account.Capabilities()

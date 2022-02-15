@@ -16,7 +16,7 @@ internal class HorizonTest {
   @Test
   fun testHorizon() {
     val appConfig = mockk<AppConfig>()
-    every { appConfig.horizonURI } returns TEST_HORIZON_URI
+    every { appConfig.horizonUrl } returns TEST_HORIZON_URI
 
     val horizonServer = Horizon(appConfig)
 
