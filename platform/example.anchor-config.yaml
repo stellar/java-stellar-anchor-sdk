@@ -3,9 +3,6 @@ stellar:
     # Configure the application from this file after it is loaded in memory
     # If `config` is in-memory, the yaml file contains all settings for the server.
     config: in-memory
-    #
-    # Configures how the applications read the
-    #
     app-config:
       type: config-spring-property                # Activate [config-spring-property] module
       settings: app-config                        # The location of the configuration data
@@ -57,17 +54,19 @@ app-config:
     circle:
       name: "circle"
       enabled: true
-      url: http://payment.circle.com
-      secretKey: This-is-a-secret-key
+      circleUrl: https://api-sandbox.circle.com
+      secretKey: secret
+      horizonUrl: https://horizon-testnet.stellar.org
+      stellarNetwork: TESTNET
 
     #
     # Payment Stellar configurations
     #
     stellar:
       enabled: false
-      name: "stellarx_payment"
-      horizon_url: http://payment.stellarx.org
-      secretKey: This-is-a-secret-key
+      name: "stellar"
+      horizon_url: https://horizon-testnet.stellar.org
+      secretKey: secret
 
 #
 # Spring Data JDBC settings

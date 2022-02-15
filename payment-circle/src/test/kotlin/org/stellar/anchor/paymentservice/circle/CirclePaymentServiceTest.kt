@@ -27,6 +27,7 @@ import org.stellar.anchor.paymentservice.*
 import org.stellar.anchor.paymentservice.circle.config.CirclePaymentConfig
 import org.stellar.anchor.paymentservice.circle.model.CircleWallet
 import org.stellar.anchor.paymentservice.circle.util.CircleDateFormatter
+import org.stellar.anchor.util.FileUtil
 import org.stellar.sdk.Server
 import org.stellar.sdk.responses.GsonSingleton
 import org.stellar.sdk.responses.Page
@@ -38,208 +39,23 @@ class CirclePaymentServiceTest {
   companion object {
     val TESTNET: org.stellar.sdk.Network = org.stellar.sdk.Network.TESTNET
 
-    const val mockWalletToWalletTransferJson =
-      """{
-        "id":"c58e2613-a808-4075-956c-e576787afb3b",
-        "source":{
-          "type":"wallet",
-          "id":"1000066041"
-        },
-        "destination":{
-          "type":"wallet",
-          "id":"1000067536"
-        },
-        "amount":{
-          "amount":"0.91",
-          "currency":"USD"
-        },
-        "status":"pending",
-        "createDate":"2022-02-07T19:50:23.408Z"
-      }"""
+    val mockWalletToWalletTransferJson: String =
+      FileUtil.getResourceFileAsString("mock_wallet_to_wallet_transfer.json")
 
-    const val mockStellarToWalletTransferJson =
-      """{
-        "id":"7f131f58-a8a0-3dc2-be05-6a015c69de35",
-        "source":{
-          "type":"blockchain",
-          "chain":"XLM"
-        },
-        "destination":{
-          "type":"wallet",
-          "id":"1000066041",
-          "address":"GAYF33NNNMI2Z6VNRFXQ64D4E4SF77PM46NW3ZUZEEU5X7FCHAZCMHKU",
-          "addressTag":"8006436449031889621"
-        },
-        "amount":{
-          "amount":"1.50",
-          "currency":"USD"
-        },
-        "transactionHash":"fb8947c67856d8eb444211c1927d92bcf14abcfb34cdd27fc9e604b15d208fd1",
-        "status":"complete",
-        "createDate":"2022-02-07T18:02:17.999Z"
-      }"""
+    val mockStellarToWalletTransferJson: String =
+      FileUtil.getResourceFileAsString("mock_stellar_to_wallet_transfer.json")
 
-    const val mockWalletToStellarTransferJson =
-      """{
-        "id":"a8997020-3da7-4543-bc4a-5ae8c7ce346d",
-        "source":{
-          "type":"wallet",
-          "id":"1000066041"
-        },
-        "destination":{
-          "type":"blockchain",
-          "address":"GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S",
-          "chain":"XLM"
-        },
-        "amount":{
-          "amount":"1.00",
-          "currency":"USD"
-        },
-        "transactionHash":"5239ee055b1083231c6bdaaa921d3e4b3bc090577fbd909815bd5d7fe68091ef",
-        "status":"complete",
-        "createDate":"2022-01-01T01:01:01.544Z"
-      }"""
+    val mockWalletToStellarTransferJson: String =
+      FileUtil.getResourceFileAsString("mock_wallet_to_stellar_transfer.json")
 
-    const val mockWalletToWirePayoutJson =
-      """{
-        "id":"6588a352-5131-4711-a264-e405f38d752d",
-        "amount":{
-          "amount":"3.00",
-          "currency":"USD"
-        },
-        "status":"complete",
-        "sourceWalletId":"1000066041",
-        "destination":{
-          "type":"wire",
-          "id":"6c87da10-feb8-484f-822c-2083ed762d25",
-          "name":"JPMORGAN CHASE BANK, NA ****6789"
-        },
-        "fees":{
-          "amount":"25.00",
-          "currency":"USD"
-        },
-        "createDate":"2022-02-03T15:41:25.286Z",
-        "updateDate":"2022-02-03T16:00:31.697Z"  
-      }"""
+    val mockWalletToWirePayoutJson: String =
+      FileUtil.getResourceFileAsString("mock_wallet_to_wire_payout.json")
 
-    const val mockStellarPaymentResponsePageBody =
-      """{
-        "_links": {
-          "self": {
-            "href": "https://horizon-testnet.stellar.org/transactions/fb8947c67856d8eb444211c1927d92bcf14abcfb34cdd27fc9e604b15d208fd1/payments?cursor=&limit=10&order=asc"
-          },
-          "next": {
-            "href": "https://horizon-testnet.stellar.org/transactions/fb8947c67856d8eb444211c1927d92bcf14abcfb34cdd27fc9e604b15d208fd1/payments?cursor=3838562596294657&limit=10&order=asc"
-          },
-          "prev": {
-            "href": "https://horizon-testnet.stellar.org/transactions/fb8947c67856d8eb444211c1927d92bcf14abcfb34cdd27fc9e604b15d208fd1/payments?cursor=3838562596294657&limit=10&order=desc"
-          }
-        },
-        "_embedded": {
-          "records": [
-            {
-              "_links": {
-                "self": {
-                  "href": "https://horizon-testnet.stellar.org/operations/3838562596294657"
-                },
-                "transaction": {
-                  "href": "https://horizon-testnet.stellar.org/transactions/fb8947c67856d8eb444211c1927d92bcf14abcfb34cdd27fc9e604b15d208fd1"
-                },
-                "effects": {
-                  "href": "https://horizon-testnet.stellar.org/operations/3838562596294657/effects"
-                },
-                "succeeds": {
-                  "href": "https://horizon-testnet.stellar.org/effects?order=desc&cursor=3838562596294657"
-                },
-                "precedes": {
-                  "href": "https://horizon-testnet.stellar.org/effects?order=asc&cursor=3838562596294657"
-                }
-              },
-              "id": "3838562596294657",
-              "paging_token": "3838562596294657",
-              "transaction_successful": true,
-              "source_account": "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S",
-              "type": "payment",
-              "type_i": 1,
-              "created_at": "2022-02-07T18:02:16Z",
-              "transaction_hash": "fb8947c67856d8eb444211c1927d92bcf14abcfb34cdd27fc9e604b15d208fd1",
-              "asset_type": "credit_alphanum4",
-              "asset_code": "USDC",
-              "asset_issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
-              "from": "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S",
-              "to": "GAYF33NNNMI2Z6VNRFXQ64D4E4SF77PM46NW3ZUZEEU5X7FCHAZCMHKU",
-              "amount": "1.5000000"
-            }
-          ]
-        }
-      }"""
+    val mockStellarPaymentResponsePageBody: String =
+      FileUtil.getResourceFileAsString("mock_stellar_payment_response_page_body.json")
 
-    const val mockStellarPathPaymentResponsePageBody =
-      """{
-        "_links": {
-          "self": {
-            "href": "https://horizon-testnet.stellar.org/transactions/fb8947c67856d8eb444211c1927d92bcf14abcfb34cdd27fc9e604b15d208fd1/payments?cursor=&limit=10&order=asc"
-          },
-          "next": {
-            "href": "https://horizon-testnet.stellar.org/transactions/fb8947c67856d8eb444211c1927d92bcf14abcfb34cdd27fc9e604b15d208fd1/payments?cursor=3838562596294657&limit=10&order=asc"
-          },
-          "prev": {
-            "href": "https://horizon-testnet.stellar.org/transactions/fb8947c67856d8eb444211c1927d92bcf14abcfb34cdd27fc9e604b15d208fd1/payments?cursor=3838562596294657&limit=10&order=desc"
-          }
-        },
-        "_embedded": {
-          "records": [
-            {
-              "_links": {
-                "self": {
-                  "href": "https://horizon-testnet.stellar.org/operations/3838562596294657"
-                },
-                "transaction": {
-                  "href": "https://horizon-testnet.stellar.org/transactions/fb8947c67856d8eb444211c1927d92bcf14abcfb34cdd27fc9e604b15d208fd1"
-                },
-                "effects": {
-                  "href": "https://horizon-testnet.stellar.org/operations/3838562596294657/effects"
-                },
-                "succeeds": {
-                  "href": "https://horizon-testnet.stellar.org/effects?order=desc&cursor=3838562596294657"
-                },
-                "precedes": {
-                  "href": "https://horizon-testnet.stellar.org/effects?order=asc&cursor=3838562596294657"
-                }
-              },
-              "id": "3838562596294657",
-              "paging_token": "3838562596294657",
-              "transaction_successful": true,
-              "source_account": "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S",
-              "type": "path_payment_strict_send",
-              "type_i": 13,
-              "created_at": "2022-02-07T18:02:16Z",
-              "transaction_hash": "fb8947c67856d8eb444211c1927d92bcf14abcfb34cdd27fc9e604b15d208fd1",
-              "asset_type": "credit_alphanum4",
-              "asset_code": "USDC",
-              "asset_issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
-              "from": "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S",
-              "to": "GAYF33NNNMI2Z6VNRFXQ64D4E4SF77PM46NW3ZUZEEU5X7FCHAZCMHKU",
-              "amount": "1.5000000",
-              "path": [
-                {
-                  "asset_type": "credit_alphanum4",
-                  "asset_code": "BRL",
-                  "asset_issuer": "GDVKY2GU2DRXWTBEYJJWSFXIGBZV6AZNBVVSUHEPZI54LIS6BA7DVVSP"
-                },
-                {
-                  "asset_type": "native"
-                }
-              ],
-              "source_amount": "7.5000000",
-              "destination_min": "1.4000000",
-              "source_asset_type": "credit_alphanum4",
-              "source_asset_code": "BRL",
-              "source_asset_issuer": "GDVKY2GU2DRXWTBEYJJWSFXIGBZV6AZNBVVSUHEPZI54LIS6BA7DVVSP"
-            }
-          ]
-        }
-      }"""
+    val mockStellarPathPaymentResponsePageBody: String =
+      FileUtil.getResourceFileAsString("mock_stellar_path_payment_response_page_body.json")
   }
 
   private lateinit var server: MockWebServer
