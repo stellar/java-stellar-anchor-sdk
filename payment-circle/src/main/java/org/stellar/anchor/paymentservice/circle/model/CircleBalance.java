@@ -2,7 +2,7 @@ package org.stellar.anchor.paymentservice.circle.model;
 
 import lombok.Data;
 import org.stellar.anchor.paymentservice.Balance;
-import org.stellar.anchor.paymentservice.Network;
+import org.stellar.anchor.paymentservice.PaymentNetwork;
 import reactor.util.annotation.NonNull;
 
 @Data
@@ -20,10 +20,10 @@ public class CircleBalance {
     this.stellarNetwork = stellarNetwork;
   }
 
-  public Balance toBalance(@NonNull Network destinationNetwork) {
-    String currencyName = destinationNetwork.getCurrencyPrefix() + ":" + currency;
+  public Balance toBalance(@NonNull PaymentNetwork destinationPaymentNetwork) {
+    String currencyName = destinationPaymentNetwork.getCurrencyPrefix() + ":" + currency;
     if (currencyName.equals("stellar:USD"))
-      currencyName = destinationNetwork.getCurrencyPrefix() + ":" + stellarUSDC();
+      currencyName = destinationPaymentNetwork.getCurrencyPrefix() + ":" + stellarUSDC();
 
     return new Balance(amount, currencyName);
   }

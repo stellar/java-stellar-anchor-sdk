@@ -78,7 +78,7 @@ internal class Sep10ServiceTest {
     every { sep10Config.authTimeout } returns 900
     every { sep10Config.jwtTimeout } returns 900
 
-    every { appConfig.stellarNetworkPassPhrase } returns TEST_NETWORK_PASS_PHRASE
+    every { appConfig.stellarNetworkPassphrase } returns TEST_NETWORK_PASS_PHRASE
     every { appConfig.hostUrl } returns TEST_HOST_URL
     every { appConfig.jwtSecretKey } returns TEST_JWT_SECRET
 

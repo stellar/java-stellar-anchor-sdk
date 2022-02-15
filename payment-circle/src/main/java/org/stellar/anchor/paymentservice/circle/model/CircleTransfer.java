@@ -28,7 +28,7 @@ public class CircleTransfer {
     p.setSourceAccount(source.toAccount(distributionAccountId));
     Account destinationAccount = destination.toAccount(distributionAccountId);
     p.setDestinationAccount(destinationAccount);
-    p.setBalance(amount.toBalance(destinationAccount.network));
+    p.setBalance(amount.toBalance(destinationAccount.paymentNetwork));
     p.setIdTag(transactionHash);
     p.setStatus(status.toPaymentStatus());
     p.setErrorCode(errorCode);

@@ -1,22 +1,23 @@
 package org.stellar.anchor.paymentservice.circle;
 
+import static org.stellar.anchor.util.StellarNetworkHelper.toStellarNetwork;
+
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import java.math.BigDecimal;
 import java.util.*;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
 import java.util.stream.Collectors;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.stellar.anchor.exception.HttpException;
 import org.stellar.anchor.paymentservice.*;
+import org.stellar.anchor.paymentservice.circle.config.CirclePaymentConfig;
 import org.stellar.anchor.paymentservice.circle.model.*;
 import org.stellar.anchor.paymentservice.circle.model.request.CircleSendTransactionRequest;
 import org.stellar.anchor.paymentservice.circle.model.response.*;
 import org.stellar.anchor.paymentservice.circle.util.NettyHttpClient;
+import org.stellar.sdk.Network;
 import reactor.core.publisher.Mono;
 import reactor.netty.ByteBufMono;
 import reactor.netty.http.client.HttpClient;
@@ -31,15 +32,11 @@ public class CirclePaymentService
           .registerTypeAdapter(CirclePayout.class, new CirclePayout.Deserializer())
           .create();
 
-  private final org.stellar.sdk.Network stellarNetwork;
+  private final CirclePaymentConfig config;
 
-  private final Network network = Network.CIRCLE;
+  private final Network stellarNetwork;
 
-  private String url;
-
-  private String secretKey;
-
-  private final String horizonUrl;
+  private final PaymentNetwork paymentNetwork = PaymentNetwork.CIRCLE;
 
   private HttpClient webClient;
 
@@ -49,53 +46,36 @@ public class CirclePaymentService
    * For all service methods to work correctly, make sure your circle account has a valid business
    * wallet and a bank account configured.
    */
-  public CirclePaymentService(
-      String url, String secretKey, String horizonUrl, org.stellar.sdk.Network stellarNetwork) {
+  public CirclePaymentService(CirclePaymentConfig config) {
     super();
-    this.url = url;
-    this.secretKey = secretKey;
-    this.horizonUrl = horizonUrl;
-    this.stellarNetwork = stellarNetwork;
+    this.config = config;
+    this.stellarNetwork = toStellarNetwork(config.getStellarNetwork());
   }
 
-  public Network getNetwork() {
-    return this.network;
+  @Override
+  public String getHorizonUrl() {
+    return config.getHorizonUrl();
+  }
+
+  @Override
+  public PaymentNetwork getPaymentNetwork() {
+    return this.paymentNetwork;
   }
 
   @Override
   public String getName() {
-    return null;
-  }
-
-  public String getUrl() {
-    return this.url;
-  }
-
-  public void setUrl(String url) {
-    this.url = url;
-  }
-
-  public String getSecretKey() {
-    return this.secretKey;
-  }
-
-  public void setSecretKey(String secretKey) {
-    this.secretKey = secretKey;
-    this.mainAccountAddress = null;
-  }
-
-  public String getHorizonUrl() {
-    return horizonUrl;
+    return config.getName();
   }
 
   public HttpClient getWebClient(boolean authenticated) {
     if (webClient == null) {
-      this.webClient = NettyHttpClient.withBaseUrl(getUrl());
+      this.webClient = NettyHttpClient.withBaseUrl(this.config.getCircleUrl());
     }
     if (!authenticated) {
       return webClient;
     }
-    return webClient.headers(h -> h.add(HttpHeaderNames.AUTHORIZATION, "Bearer " + getSecretKey()));
+    return webClient.headers(
+        h -> h.add(HttpHeaderNames.AUTHORIZATION, "Bearer " + this.config.getSecretKey()));
   }
 
   /**
@@ -155,7 +135,7 @@ public class CirclePaymentService
 
               List<Balance> unsettledBalances = new ArrayList<>();
               for (CircleBalance uBalance : response.getData().unsettled) {
-                unsettledBalances.add(uBalance.toBalance(Network.CIRCLE));
+                unsettledBalances.add(uBalance.toBalance(PaymentNetwork.CIRCLE));
               }
 
               return unsettledBalances;
@@ -356,10 +336,11 @@ public class CirclePaymentService
               String distributionAccId = args.getT1();
               Account account =
                   new Account(
-                      Network.CIRCLE,
+                      PaymentNetwork.CIRCLE,
                       accountID,
-                      new Account.Capabilities(Network.CIRCLE, Network.STELLAR));
-              account.capabilities.set(Network.BANK_WIRE, distributionAccId.equals(account.id));
+                      new Account.Capabilities(PaymentNetwork.CIRCLE, PaymentNetwork.STELLAR));
+              account.capabilities.set(
+                  PaymentNetwork.BANK_WIRE, distributionAccId.equals(account.id));
 
               PaymentHistory transfersHistory =
                   args.getT2().toPaymentHistory(pageSize, account, distributionAccId);
@@ -413,22 +394,22 @@ public class CirclePaymentService
       @NonNull Account destinationAccount,
       @NonNull String currencyName)
       throws HttpException {
-    if (sourceAccount.network != Network.CIRCLE) {
+    if (sourceAccount.paymentNetwork != PaymentNetwork.CIRCLE) {
       throw new HttpException(400, "the only supported network for the source account is circle");
     }
-    if (!List.of(Network.CIRCLE, Network.STELLAR, Network.BANK_WIRE)
-        .contains(destinationAccount.network)) {
+    if (!List.of(PaymentNetwork.CIRCLE, PaymentNetwork.STELLAR, PaymentNetwork.BANK_WIRE)
+        .contains(destinationAccount.paymentNetwork)) {
       throw new HttpException(
           400,
           "the only supported networks for the destination account are circle, stellar and bank_wire");
     }
-    if (destinationAccount.network == Network.BANK_WIRE
+    if (destinationAccount.paymentNetwork == PaymentNetwork.BANK_WIRE
         && !EmailValidator.getInstance().isValid(destinationAccount.idTag)) {
       throw new HttpException(
           400,
           "for bank transfers, please provide a valid beneficiary email address in the destination idTag");
     }
-    if (!currencyName.startsWith(destinationAccount.network.getCurrencyPrefix())) {
+    if (!currencyName.startsWith(destinationAccount.paymentNetwork.getCurrencyPrefix())) {
       throw new HttpException(
           400, "the currency to be sent must contain the destination network schema");
     }
@@ -451,7 +432,7 @@ public class CirclePaymentService
       throws HttpException {
     CircleTransactionParty source = CircleTransactionParty.wallet(sourceAccount.getId());
     CircleTransactionParty destination;
-    switch (destinationAccount.network) {
+    switch (destinationAccount.paymentNetwork) {
       case CIRCLE:
         destination = CircleTransactionParty.wallet(destinationAccount.getId());
         break;
@@ -497,7 +478,7 @@ public class CirclePaymentService
   private Mono<Payment> sendPayout(
       Account sourceAccount, Account destinationAccount, CircleBalance balance)
       throws HttpException {
-    if (destinationAccount.network != Network.BANK_WIRE) {
+    if (destinationAccount.paymentNetwork != PaymentNetwork.BANK_WIRE) {
       throw new HttpException(
           500, "something went wrong, the destination account network is invalid");
     }
@@ -529,14 +510,15 @@ public class CirclePaymentService
 
     // fill source account level
     Account sourceAcc = payment.getSourceAccount();
-    sourceAcc.capabilities.set(Network.BANK_WIRE, distributionAccountId.equals(sourceAcc.id));
+    sourceAcc.capabilities.set(
+        PaymentNetwork.BANK_WIRE, distributionAccountId.equals(sourceAcc.id));
 
     // fill destination account level
     Account destinationAcc = payment.getDestinationAccount();
     Boolean isDestinationWireEnabled =
-        destinationAcc.network.equals(Network.BANK_WIRE)
+        destinationAcc.paymentNetwork.equals(PaymentNetwork.BANK_WIRE)
             || distributionAccountId.equals(destinationAcc.id);
-    destinationAcc.capabilities.set(Network.BANK_WIRE, isDestinationWireEnabled);
+    destinationAcc.capabilities.set(PaymentNetwork.BANK_WIRE, isDestinationWireEnabled);
   }
 
   /**
@@ -561,11 +543,11 @@ public class CirclePaymentService
     validateSendPaymentInput(sourceAccount, destinationAccount, currencyName);
 
     String rawCurrencyName =
-        currencyName.replace(destinationAccount.network.getCurrencyPrefix() + ":", "");
+        currencyName.replace(destinationAccount.paymentNetwork.getCurrencyPrefix() + ":", "");
     CircleBalance circleBalance =
         new CircleBalance(rawCurrencyName, amount.toString(), stellarNetwork);
 
-    switch (destinationAccount.network) {
+    switch (destinationAccount.paymentNetwork) {
       case CIRCLE:
       case STELLAR:
         return sendTransfer(sourceAccount, destinationAccount, circleBalance);
@@ -573,7 +555,7 @@ public class CirclePaymentService
         return sendPayout(sourceAccount, destinationAccount, circleBalance);
       default:
         throw new RuntimeException(
-            "unsupported destination network '" + destinationAccount.network + "'");
+            "unsupported destination network '" + destinationAccount.paymentNetwork + "'");
     }
   }
 

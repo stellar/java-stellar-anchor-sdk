@@ -3,9 +3,6 @@ stellar:
     # Configure the application from this file after it is loaded in memory
     # If `config` is in-memory, the yaml file contains all settings for the server.
     config: in-memory
-    #
-    # Configures how the applications read the
-    #
     app-config:
       type: config-spring-property                # Activate [config-spring-property] module
       settings: app-config                        # The location of the configuration data
@@ -22,10 +19,10 @@ stellar:
 app-config:
   # general
   app:
-    stellarNetworkPassPhrase: Test SDF Network ; September 2015
+    stellarNetworkPassphrase: Test SDF Network ; September 2015
     hostUrl: http://localhost:8080
     languages: en
-    horizonURI: https://horizon-testnet.stellar.org
+    horizonUrl: https://horizon-testnet.stellar.org
     assets: assets-test.json
     jwtSecretKey: secret
 
@@ -39,7 +36,8 @@ app-config:
     enabled: true
     homeDomain: localhost:8080
     clientAttributionRequired: false
-    clientAttributionAllowList: lobstr.co,preview.lobstr.co
+    clientAttributionAllowList: lobstr.co,preview.lobstr.co # use this if we want to white list
+    # clientAttributionDenyList: # use this if we want to black list.
     authTimeout: 900
     jwtTimeout: 86400
     signingSeed: SAX3AH622R2XT6DXWWSRIDCMMUCCMATBZ5U6XKJWDO7M2EJUBFC3AW5X
@@ -54,19 +52,21 @@ app-config:
     # Payment Circle configurations
     #
     circle:
-      name: "circle_payment"
+      name: "circle"
       enabled: true
-      url: http://payment.circle.com
-      secretKey: This-is-a-secret-key
+      circleUrl: https://api-sandbox.circle.com
+      secretKey: secret
+      horizonUrl: https://horizon-testnet.stellar.org
+      stellarNetwork: TESTNET
 
     #
-    # Payment StellarX configurations
+    # Payment Stellar configurations
     #
-    stellarx:
+    stellar:
       enabled: false
-      name: "stellarx_payment"
-      horizon_url: http://payment.stellarx.org
-      secretKey: This-is-a-secret-key
+      name: "stellar"
+      horizon_url: https://horizon-testnet.stellar.org
+      secretKey: secret
 
 #
 # Spring Data JDBC settings

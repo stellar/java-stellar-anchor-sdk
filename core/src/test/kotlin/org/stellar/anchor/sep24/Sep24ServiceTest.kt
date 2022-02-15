@@ -53,7 +53,7 @@ internal class Sep24ServiceTest {
   @BeforeEach
   fun setUp() {
     MockKAnnotations.init(this, relaxUnitFun = true)
-    every { appConfig.stellarNetworkPassPhrase } returns Constants.TEST_NETWORK_PASS_PHRASE
+    every { appConfig.stellarNetworkPassphrase } returns Constants.TEST_NETWORK_PASS_PHRASE
     every { appConfig.hostUrl } returns Constants.TEST_HOST_URL
     every { appConfig.jwtSecretKey } returns Constants.TEST_JWT_SECRET
 

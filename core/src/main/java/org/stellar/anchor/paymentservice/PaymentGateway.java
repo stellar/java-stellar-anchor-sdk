@@ -7,7 +7,6 @@ public class PaymentGateway {
   private final Map<String, PaymentService> services;
 
   public PaymentGateway(Map<String, PaymentService> services) {
-
     this.services = services;
   }
 
@@ -29,7 +28,7 @@ public class PaymentGateway {
 
     public Builder add(PaymentService service) {
       if (map.get(service.getName()) != null) {
-        throw new RuntimeException("The serivce [" + service.getName() + "] already exists.");
+        throw new RuntimeException("The serivce with the name [" + service.getName() + "] already exists.");
       }
       map.put(service.getName(), service);
       return this;

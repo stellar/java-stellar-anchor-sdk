@@ -7,6 +7,8 @@ import org.stellar.anchor.paymentservice.circle.config.CirclePaymentConfig;
 public class PropertyCirclePaymentConfig implements CirclePaymentConfig {
   private String name = "";
   private boolean enabled = false;
-  private String url;
+  private String circleUrl;
   private String secretKey;
+  private String horizonUrl;
+  private String stellarNetwork = "TESTNET";
 }

@@ -25,8 +25,8 @@ The path of the `yaml` file can be specified by the JVM Option, `-Dstellar.ancho
 The path of the `yaml` file can be specified by the system environment variable `STELLAR_ANCHOR_CONFIG`.
 
 ```shell
-export STELLAR_ANCHOR_CONFIG=[file-to-yaml]
-/gradlew bootRun -PjvmArgs="-Dstellar.anchor.config=path-to-yaml"
+export STELLAR_ANCHOR_CONFIG=[path-to-yaml]
+/gradlew bootRun -PjvmArgs="-Dstellar.anchor.config=[path-to-yaml]"
 ```
 
 ### 3. `.anchor/anchor-config.yaml` in user's home directory
@@ -47,7 +47,3 @@ In the scenarios where a CMS or Consul is available when there are few variables
 
 ## Example YAML file
 [An example of the yaml file](../platform/example.anchor-config.yaml).
-
-
-
-

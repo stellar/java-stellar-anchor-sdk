@@ -8,7 +8,7 @@ import reactor.util.annotation.Nullable;
 
 @Data
 public class Account {
-  @NonNull public Network network;
+  @NonNull public PaymentNetwork paymentNetwork;
 
   @NonNull public String id;
 
@@ -34,28 +34,30 @@ public class Account {
   @NonNull public List<Balance> unsettledBalances = new ArrayList<>();
 
   public Account(
-      @NonNull Network network,
+      @NonNull PaymentNetwork paymentNetwork,
       @NonNull String id,
       @Nullable String idTag,
       @NonNull Account.Capabilities capabilities) {
-    this.network = network;
+    this.paymentNetwork = paymentNetwork;
     this.id = id;
     this.idTag = idTag;
     this.capabilities = capabilities;
   }
 
   public Account(
-      @NonNull Network network, @NonNull String id, @NonNull Account.Capabilities capabilities) {
+      @NonNull PaymentNetwork paymentNetwork,
+      @NonNull String id,
+      @NonNull Account.Capabilities capabilities) {
     this.id = id;
-    this.network = network;
+    this.paymentNetwork = paymentNetwork;
     this.capabilities = capabilities;
   }
 
   @Getter
   public static class Capabilities {
-    private final Map<Network, Boolean> send = new HashMap<>();
+    private final Map<PaymentNetwork, Boolean> send = new HashMap<>();
 
-    private final Map<Network, Boolean> receive = new HashMap<>();
+    private final Map<PaymentNetwork, Boolean> receive = new HashMap<>();
 
     /**
      * Capabilities is an object indicating which networks this account can interact with for
@@ -64,32 +66,32 @@ public class Account {
      * @param send contains a list of networks this account can send funds to.
      * @param receive contains a list of networks this account can receive funds from.
      */
-    public Capabilities(List<Network> send, List<Network> receive) {
-      for (Network network : Network.values()) {
-        this.send.put(network, false);
-        this.receive.put(network, false);
+    public Capabilities(List<PaymentNetwork> send, List<PaymentNetwork> receive) {
+      for (PaymentNetwork paymentNetwork : PaymentNetwork.values()) {
+        this.send.put(paymentNetwork, false);
+        this.receive.put(paymentNetwork, false);
       }
 
       if (send != null) {
-        for (Network network : send) {
-          this.send.put(network, true);
+        for (PaymentNetwork paymentNetwork : send) {
+          this.send.put(paymentNetwork, true);
         }
       }
 
       if (receive != null) {
-        for (Network network : receive) {
-          this.receive.put(network, true);
+        for (PaymentNetwork paymentNetwork : receive) {
+          this.receive.put(paymentNetwork, true);
         }
       }
     }
 
-    public Capabilities(Network... sendAndReceive) {
+    public Capabilities(PaymentNetwork... sendAndReceive) {
       this(List.of(sendAndReceive), List.of(sendAndReceive));
     }
 
-    public void set(Network network, Boolean supportEnabled) {
-      this.send.put(network, supportEnabled);
-      this.receive.put(network, supportEnabled);
+    public void set(PaymentNetwork paymentNetwork, Boolean supportEnabled) {
+      this.send.put(paymentNetwork, supportEnabled);
+      this.receive.put(paymentNetwork, supportEnabled);
     }
 
     @Override

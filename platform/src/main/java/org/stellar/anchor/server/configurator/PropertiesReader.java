@@ -24,24 +24,24 @@ public class PropertiesReader extends AbstractConfigurator
   public void initialize(@NotNull ConfigurableApplicationContext applicationContext) {
     loadConfigYaml("default", new ClassPathResource("default-config.yaml"));
 
+    // Read from Java VM
+    String yamlFilePath = System.getProperty("stellar.anchor.config");
+    if (yamlFilePath != null) {
+      loadConfigYaml("yaml", new FileSystemResource(yamlFilePath));
+    }
+
+    // Read from the file specified by STELLAR_ANCHOR_CONFIG environment variable.
+    yamlFilePath = System.getenv().get("STELLAR_ANCHOR_CONFIG");
+    if (yamlFilePath != null) {
+      loadConfigYaml("yaml", new FileSystemResource(yamlFilePath));
+      return;
+    }
+
     // Read from $USER_HOME/.anchor/anchor-config.yaml
     File yamlFile = new File(System.getProperty("user.home"), "./anchor/anchor-config.yaml");
     if (yamlFile.exists()) {
       loadConfigYaml("yaml", new FileSystemResource(yamlFile));
       return;
-    }
-
-    // Read from the file specified by STELLAR_ANCHOR_CONFIG environment variable.
-    String yamlFilePath = System.getenv().get("STELLAR_ANCHOR_CONFIG");
-    if (yamlFilePath != null) {
-      loadConfigYaml("yaml", new FileSystemResource(yamlFilePath));
-      return;
-    }
-
-    // Read from Java VM
-    yamlFilePath = System.getProperty("stellar.anchor.config");
-    if (yamlFilePath != null) {
-      loadConfigYaml("yaml", new FileSystemResource(yamlFilePath));
     }
   }
 

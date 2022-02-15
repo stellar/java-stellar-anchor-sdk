@@ -32,7 +32,7 @@ public class DepositRequirements {
    * will be reflected in the beneficiary user balance. Time for confirmation and reconciliation may
    * be needed depending on the network used.
    */
-  Network intermediaryNetwork;
+  PaymentNetwork intermediaryPaymentNetwork;
 
   /**
    * The name of the currency that will be ultimately credited into the beneficiary user account. It
@@ -45,14 +45,14 @@ public class DepositRequirements {
    * Constructor of the DepositConfiguration class.
    *
    * @param beneficiaryAccountId Identifier of the account who will receive the payment.
-   * @param intermediaryNetwork The network where the deposit will be made. After the deposit is
-   *     performed on that network it will be reflected in the beneficiary user balance
+   * @param intermediaryPaymentNetwork The network where the deposit will be made. After the deposit
+   *     is performed on that network it will be reflected in the beneficiary user balance
    * @param currencyName The name of the currency that will be ultimately credited into the
    *     beneficiary user account.
    */
   public DepositRequirements(
-      String beneficiaryAccountId, Network intermediaryNetwork, String currencyName) {
-    this(beneficiaryAccountId, null, intermediaryNetwork, currencyName);
+      String beneficiaryAccountId, PaymentNetwork intermediaryPaymentNetwork, String currencyName) {
+    this(beneficiaryAccountId, null, intermediaryPaymentNetwork, currencyName);
   }
 
   /**
@@ -61,19 +61,19 @@ public class DepositRequirements {
    * @param beneficiaryAccountId Identifier of the account who will receive the payment.
    * @param beneficiaryAccountIdTag Complementary identifier of the account who will receive the
    *     payment. May be mandatory depending on the implementation.
-   * @param intermediaryNetwork The network where the deposit will be made. After the deposit is
-   *     performed on that network it will be reflected in the beneficiary user balance
+   * @param intermediaryPaymentNetwork The network where the deposit will be made. After the deposit
+   *     is performed on that network it will be reflected in the beneficiary user balance
    * @param currencyName The name of the currency that will be ultimately credited into the
    *     beneficiary user account.
    */
   public DepositRequirements(
       String beneficiaryAccountId,
       @Nullable String beneficiaryAccountIdTag,
-      Network intermediaryNetwork,
+      PaymentNetwork intermediaryPaymentNetwork,
       String currencyName) {
     this.beneficiaryAccountId = beneficiaryAccountId;
     this.beneficiaryAccountIdTag = beneficiaryAccountIdTag;
-    this.intermediaryNetwork = intermediaryNetwork;
+    this.intermediaryPaymentNetwork = intermediaryPaymentNetwork;
     this.currencyName = currencyName;
   }
 }

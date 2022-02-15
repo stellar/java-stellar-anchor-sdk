@@ -13,7 +13,7 @@ stellar:
     payment-gateway:
       services:
         - payment-circle                  # Activate [payment-circle] module
-        - payment-stellarx                # Activate [payment-stellarx] module
+        - payment-stellar                # Activate [payment-stellar] module
 
 #
 # Application settings
@@ -59,13 +59,13 @@ payment-circle:
     secretKey: This-is-a-secret-key
 
 #
-# Payment StellarX configurations
+# Payment Stellar configurations
 #
-payment-stellarx:
-  payment.stellarx:
+payment-stellar:
+  payment.stellar:
     enabled: false
-    name: "stellarx_payment"
-    horizon_url: http://payment.stellarx.org
+    name: "stellar_payment"
+    horizon_url: http://payment.stellar.org
     secretKey: This-is-a-secret-key
 
 #

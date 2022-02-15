@@ -5,11 +5,11 @@ public interface CirclePaymentConfig {
 
   boolean isEnabled();
 
-  String getUrl();
+  String getCircleUrl();
 
   String getSecretKey();
 
   String getHorizonUrl();
 
-  String getNetwork();
+  String getStellarNetwork();
 }

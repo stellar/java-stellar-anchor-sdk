@@ -12,15 +12,15 @@ internal class AccountCapabilitiesTest {
     assertEquals(capabilities1, capabilities2)
 
     capabilities1 = Account.Capabilities()
-    capabilities2 = Account.Capabilities(Network.STELLAR)
+    capabilities2 = Account.Capabilities(PaymentNetwork.STELLAR)
     assertNotEquals(capabilities1, capabilities2)
 
-    capabilities1 = Account.Capabilities(Network.CIRCLE)
-    capabilities2 = Account.Capabilities(Network.STELLAR)
+    capabilities1 = Account.Capabilities(PaymentNetwork.CIRCLE)
+    capabilities2 = Account.Capabilities(PaymentNetwork.STELLAR)
     assertNotEquals(capabilities1, capabilities2)
 
-    capabilities1 = Account.Capabilities(Network.BANK_WIRE)
-    capabilities2 = Account.Capabilities(Network.BANK_WIRE)
+    capabilities1 = Account.Capabilities(PaymentNetwork.BANK_WIRE)
+    capabilities2 = Account.Capabilities(PaymentNetwork.BANK_WIRE)
     assertEquals(capabilities1, capabilities2)
   }
 }

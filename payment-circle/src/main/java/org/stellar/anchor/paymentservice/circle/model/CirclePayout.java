@@ -7,8 +7,8 @@ import java.util.Date;
 import java.util.Map;
 import lombok.Data;
 import org.stellar.anchor.paymentservice.Account;
-import org.stellar.anchor.paymentservice.Network;
 import org.stellar.anchor.paymentservice.Payment;
+import org.stellar.anchor.paymentservice.PaymentNetwork;
 import org.stellar.anchor.paymentservice.circle.util.CircleDateFormatter;
 import shadow.com.google.common.reflect.TypeToken;
 
@@ -36,12 +36,13 @@ public class CirclePayout {
     p.setId(id);
     p.setSourceAccount(
         new Account(
-            Network.CIRCLE,
+            PaymentNetwork.CIRCLE,
             sourceWalletId,
-            new Account.Capabilities(Network.CIRCLE, Network.STELLAR, Network.BANK_WIRE)));
+            new Account.Capabilities(
+                PaymentNetwork.CIRCLE, PaymentNetwork.STELLAR, PaymentNetwork.BANK_WIRE)));
     Account destinationAccount = destination.toAccount(null);
     p.setDestinationAccount(destinationAccount);
-    p.setBalance(amount.toBalance(destinationAccount.network));
+    p.setBalance(amount.toBalance(destinationAccount.paymentNetwork));
     p.setStatus(status.toPaymentStatus());
     p.setErrorCode(errorCode);
     p.setCreatedAt(createDate);

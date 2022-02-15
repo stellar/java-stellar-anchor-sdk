@@ -10,7 +10,7 @@ import reactor.util.annotation.Nullable;
  * networks, like Stellar, Circle, Wyre or others.
  */
 public interface PaymentService {
-  Network getNetwork();
+  PaymentNetwork getPaymentNetwork();
 
   /**
    * Gets the name of the service.
