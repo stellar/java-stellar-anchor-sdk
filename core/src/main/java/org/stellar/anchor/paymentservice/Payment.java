@@ -7,6 +7,7 @@ import lombok.Data;
 @Data
 public class Payment {
   String id;
+  String idTag;
   Account sourceAccount;
   Account destinationAccount;
   /** The balance currency name contains the scheme of the destination network of the payment. */

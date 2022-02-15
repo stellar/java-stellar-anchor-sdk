@@ -1,9 +1,10 @@
 package org.stellar.anchor.paymentservice.circle
 
+import com.google.gson.Gson
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.spyk
 import io.mockk.verify
-import io.netty.handler.codec.http.HttpResponseStatus
 import java.io.IOException
 import java.lang.reflect.Method
 import java.math.BigDecimal
@@ -18,106 +19,260 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 import org.skyscreamer.jsonassert.JSONAssert
 import org.stellar.anchor.exception.HttpException
 import org.stellar.anchor.paymentservice.*
 import org.stellar.anchor.paymentservice.circle.model.CircleWallet
 import org.stellar.anchor.paymentservice.circle.util.CircleDateFormatter
+import org.stellar.sdk.Server
+import org.stellar.sdk.responses.GsonSingleton
+import org.stellar.sdk.responses.Page
+import org.stellar.sdk.responses.operations.OperationResponse
 import reactor.core.publisher.Mono
-import reactor.netty.ByteBufMono
-import reactor.netty.http.client.HttpClientResponse
-
-private class ErrorHandlingTestCase {
-  val requestMono: Mono<*>
-  var mockResponses: List<MockResponse>? = null
-    private set
-  var mockResponsesMap: Map<String, MockResponse>? = null
-    private set
-
-  constructor(_requestMono: Mono<*>, _mockResponses: List<MockResponse>) {
-    this.requestMono = _requestMono
-    this.mockResponses = _mockResponses
-  }
-
-  constructor(_requestMono: Mono<*>, _mockResponsesMap: Map<String, MockResponse>) {
-    this.requestMono = _requestMono
-    this.mockResponsesMap = _mockResponsesMap
-  }
-
-  private fun getDispatcher(): Dispatcher? {
-    if (mockResponsesMap == null) {
-      return null
-    }
-
-    val dispatcher: Dispatcher =
-      object : Dispatcher() {
-        @Throws(InterruptedException::class)
-        override fun dispatch(request: RecordedRequest): MockResponse {
-
-          if (!mockResponsesMap!!.containsKey(request.path)) {
-            return MockResponse().setResponseCode(404)
-          }
-
-          return mockResponsesMap!![request.path]!!
-        }
-      }
-    return dispatcher
-  }
-
-  fun prepareMockWebServer(server: MockWebServer) {
-    val dispatcher = getDispatcher()
-    if (dispatcher != null) {
-      server.dispatcher = dispatcher
-    } else if (mockResponses != null) {
-      mockResponses!!.forEach { mockResponse -> server.enqueue(mockResponse) }
-    }
-  }
-}
+import shadow.com.google.common.reflect.TypeToken
 
 class CirclePaymentServiceTest {
+  companion object {
+    val TESTNET: org.stellar.sdk.Network = org.stellar.sdk.Network.TESTNET
+
+    const val mockWalletToWalletTransferJson =
+      """{
+        "id":"c58e2613-a808-4075-956c-e576787afb3b",
+        "source":{
+          "type":"wallet",
+          "id":"1000066041"
+        },
+        "destination":{
+          "type":"wallet",
+          "id":"1000067536"
+        },
+        "amount":{
+          "amount":"0.91",
+          "currency":"USD"
+        },
+        "status":"pending",
+        "createDate":"2022-02-07T19:50:23.408Z"
+      }"""
+
+    const val mockStellarToWalletTransferJson =
+      """{
+        "id":"7f131f58-a8a0-3dc2-be05-6a015c69de35",
+        "source":{
+          "type":"blockchain",
+          "chain":"XLM"
+        },
+        "destination":{
+          "type":"wallet",
+          "id":"1000066041",
+          "address":"GAYF33NNNMI2Z6VNRFXQ64D4E4SF77PM46NW3ZUZEEU5X7FCHAZCMHKU",
+          "addressTag":"8006436449031889621"
+        },
+        "amount":{
+          "amount":"1.50",
+          "currency":"USD"
+        },
+        "transactionHash":"fb8947c67856d8eb444211c1927d92bcf14abcfb34cdd27fc9e604b15d208fd1",
+        "status":"complete",
+        "createDate":"2022-02-07T18:02:17.999Z"
+      }"""
+
+    const val mockWalletToStellarTransferJson =
+      """{
+        "id":"a8997020-3da7-4543-bc4a-5ae8c7ce346d",
+        "source":{
+          "type":"wallet",
+          "id":"1000066041"
+        },
+        "destination":{
+          "type":"blockchain",
+          "address":"GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S",
+          "chain":"XLM"
+        },
+        "amount":{
+          "amount":"1.00",
+          "currency":"USD"
+        },
+        "transactionHash":"5239ee055b1083231c6bdaaa921d3e4b3bc090577fbd909815bd5d7fe68091ef",
+        "status":"complete",
+        "createDate":"2022-01-01T01:01:01.544Z"
+      }"""
+
+    const val mockWalletToWirePayoutJson =
+      """{
+        "id":"6588a352-5131-4711-a264-e405f38d752d",
+        "amount":{
+          "amount":"3.00",
+          "currency":"USD"
+        },
+        "status":"complete",
+        "sourceWalletId":"1000066041",
+        "destination":{
+          "type":"wire",
+          "id":"6c87da10-feb8-484f-822c-2083ed762d25",
+          "name":"JPMORGAN CHASE BANK, NA ****6789"
+        },
+        "fees":{
+          "amount":"25.00",
+          "currency":"USD"
+        },
+        "createDate":"2022-02-03T15:41:25.286Z",
+        "updateDate":"2022-02-03T16:00:31.697Z"  
+      }"""
+
+    const val mockStellarPaymentResponsePageBody =
+      """{
+        "_links": {
+          "self": {
+            "href": "https://horizon-testnet.stellar.org/transactions/fb8947c67856d8eb444211c1927d92bcf14abcfb34cdd27fc9e604b15d208fd1/payments?cursor=&limit=10&order=asc"
+          },
+          "next": {
+            "href": "https://horizon-testnet.stellar.org/transactions/fb8947c67856d8eb444211c1927d92bcf14abcfb34cdd27fc9e604b15d208fd1/payments?cursor=3838562596294657&limit=10&order=asc"
+          },
+          "prev": {
+            "href": "https://horizon-testnet.stellar.org/transactions/fb8947c67856d8eb444211c1927d92bcf14abcfb34cdd27fc9e604b15d208fd1/payments?cursor=3838562596294657&limit=10&order=desc"
+          }
+        },
+        "_embedded": {
+          "records": [
+            {
+              "_links": {
+                "self": {
+                  "href": "https://horizon-testnet.stellar.org/operations/3838562596294657"
+                },
+                "transaction": {
+                  "href": "https://horizon-testnet.stellar.org/transactions/fb8947c67856d8eb444211c1927d92bcf14abcfb34cdd27fc9e604b15d208fd1"
+                },
+                "effects": {
+                  "href": "https://horizon-testnet.stellar.org/operations/3838562596294657/effects"
+                },
+                "succeeds": {
+                  "href": "https://horizon-testnet.stellar.org/effects?order=desc&cursor=3838562596294657"
+                },
+                "precedes": {
+                  "href": "https://horizon-testnet.stellar.org/effects?order=asc&cursor=3838562596294657"
+                }
+              },
+              "id": "3838562596294657",
+              "paging_token": "3838562596294657",
+              "transaction_successful": true,
+              "source_account": "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S",
+              "type": "payment",
+              "type_i": 1,
+              "created_at": "2022-02-07T18:02:16Z",
+              "transaction_hash": "fb8947c67856d8eb444211c1927d92bcf14abcfb34cdd27fc9e604b15d208fd1",
+              "asset_type": "credit_alphanum4",
+              "asset_code": "USDC",
+              "asset_issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+              "from": "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S",
+              "to": "GAYF33NNNMI2Z6VNRFXQ64D4E4SF77PM46NW3ZUZEEU5X7FCHAZCMHKU",
+              "amount": "1.5000000"
+            }
+          ]
+        }
+      }"""
+
+    const val mockStellarPathPaymentResponsePageBody =
+      """{
+        "_links": {
+          "self": {
+            "href": "https://horizon-testnet.stellar.org/transactions/fb8947c67856d8eb444211c1927d92bcf14abcfb34cdd27fc9e604b15d208fd1/payments?cursor=&limit=10&order=asc"
+          },
+          "next": {
+            "href": "https://horizon-testnet.stellar.org/transactions/fb8947c67856d8eb444211c1927d92bcf14abcfb34cdd27fc9e604b15d208fd1/payments?cursor=3838562596294657&limit=10&order=asc"
+          },
+          "prev": {
+            "href": "https://horizon-testnet.stellar.org/transactions/fb8947c67856d8eb444211c1927d92bcf14abcfb34cdd27fc9e604b15d208fd1/payments?cursor=3838562596294657&limit=10&order=desc"
+          }
+        },
+        "_embedded": {
+          "records": [
+            {
+              "_links": {
+                "self": {
+                  "href": "https://horizon-testnet.stellar.org/operations/3838562596294657"
+                },
+                "transaction": {
+                  "href": "https://horizon-testnet.stellar.org/transactions/fb8947c67856d8eb444211c1927d92bcf14abcfb34cdd27fc9e604b15d208fd1"
+                },
+                "effects": {
+                  "href": "https://horizon-testnet.stellar.org/operations/3838562596294657/effects"
+                },
+                "succeeds": {
+                  "href": "https://horizon-testnet.stellar.org/effects?order=desc&cursor=3838562596294657"
+                },
+                "precedes": {
+                  "href": "https://horizon-testnet.stellar.org/effects?order=asc&cursor=3838562596294657"
+                }
+              },
+              "id": "3838562596294657",
+              "paging_token": "3838562596294657",
+              "transaction_successful": true,
+              "source_account": "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S",
+              "type": "path_payment_strict_send",
+              "type_i": 13,
+              "created_at": "2022-02-07T18:02:16Z",
+              "transaction_hash": "fb8947c67856d8eb444211c1927d92bcf14abcfb34cdd27fc9e604b15d208fd1",
+              "asset_type": "credit_alphanum4",
+              "asset_code": "USDC",
+              "asset_issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+              "from": "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S",
+              "to": "GAYF33NNNMI2Z6VNRFXQ64D4E4SF77PM46NW3ZUZEEU5X7FCHAZCMHKU",
+              "amount": "1.5000000",
+              "path": [
+                {
+                  "asset_type": "credit_alphanum4",
+                  "asset_code": "BRL",
+                  "asset_issuer": "GDVKY2GU2DRXWTBEYJJWSFXIGBZV6AZNBVVSUHEPZI54LIS6BA7DVVSP"
+                },
+                {
+                  "asset_type": "native"
+                }
+              ],
+              "source_amount": "7.5000000",
+              "destination_min": "1.4000000",
+              "source_asset_type": "credit_alphanum4",
+              "source_asset_code": "BRL",
+              "source_asset_issuer": "GDVKY2GU2DRXWTBEYJJWSFXIGBZV6AZNBVVSUHEPZI54LIS6BA7DVVSP"
+            }
+          ]
+        }
+      }"""
+  }
+
   private lateinit var server: MockWebServer
   private lateinit var service: PaymentService
+
+  private fun getDistAccountIdMockResponse(masterWalletId: String = "1000066041"): MockResponse {
+    return MockResponse()
+      .addHeader("Content-Type", "application/json")
+      .setBody(
+        """{
+          "data":{
+            "payments":{
+              "masterWalletId":"$masterWalletId"
+            }
+          }
+        }"""
+      )
+  }
 
   @BeforeEach
   @Throws(IOException::class)
   fun setUp() {
     server = MockWebServer()
     server.start()
-    service = CirclePaymentService(server.url("").toString(), "<secret-key>")
+    val circleUrl = server.url("").toString()
+    val horizonUrl = "https://horizon-testnet.stellar.org"
+    val bearerToken = "<secret-key>"
+    service = CirclePaymentService(circleUrl, bearerToken, horizonUrl, TESTNET)
   }
 
   @AfterEach
   @Throws(IOException::class)
   fun tearDown() {
     server.shutdown()
-  }
-
-  @Test
-  fun test_private_handleCircleError() {
-    // mock objects
-    val response = mockk<HttpClientResponse>()
-    every { response.status() } returns HttpResponseStatus.BAD_REQUEST
-    val bodyBytesMono = mockk<ByteBufMono>()
-    every { bodyBytesMono.asString() } returns
-      Mono.just("{\"code\":2,\"message\":\"Request body contains unprocessable entity.\"}")
-
-    // access private method
-    val handleCircleErrorMethod: Method =
-      CirclePaymentService::class.java.getDeclaredMethod(
-        "handleCircleError",
-        HttpClientResponse::class.java,
-        ByteBufMono::class.java
-      )
-    assert(handleCircleErrorMethod.trySetAccessible())
-
-    // run and test
-    val ex =
-      assertThrows<HttpException> {
-        (handleCircleErrorMethod.invoke(service, response, bodyBytesMono) as Mono<*>).block()
-      }
-    verify { response.status() }
-    verify { bodyBytesMono.asString() }
-    assertEquals(HttpException(400, "Request body contains unprocessable entity.", "2"), ex)
   }
 
   @Test
@@ -137,19 +292,7 @@ class CirclePaymentServiceTest {
 
   @Test
   fun testGetDistributionAccountAddress() {
-    val response =
-      MockResponse()
-        .addHeader("Content-Type", "application/json")
-        .setBody(
-          """{
-                        "data":{
-                            "payments":{
-                                "masterWalletId":"1000066041"
-                            }
-                        }
-                    }"""
-        )
-    server.enqueue(response)
+    server.enqueue(getDistAccountIdMockResponse())
 
     var masterWalletId: String? = null
     assertDoesNotThrow { masterWalletId = service.distributionAccountAddress.block() }
@@ -162,7 +305,6 @@ class CirclePaymentServiceTest {
     assertThat(request.path, CoreMatchers.endsWith("/v1/configuration"))
 
     // check if cached version doesn't freeze the thread
-    server.enqueue(response)
     assertDoesNotThrow { masterWalletId = service.distributionAccountAddress.block() }
     assertEquals("1000066041", masterWalletId)
   }
@@ -238,6 +380,7 @@ class CirclePaymentServiceTest {
 
     var circleWallet: CircleWallet? = null
     assertDoesNotThrow {
+      @Suppress("UNCHECKED_CAST")
       circleWallet =
         (getCircleWalletMethod.invoke(service, "1000223064") as Mono<CircleWallet>).block()
     }
@@ -334,18 +477,7 @@ class CirclePaymentServiceTest {
         @Throws(InterruptedException::class)
         override fun dispatch(request: RecordedRequest): MockResponse {
           when (request.path) {
-            "/v1/configuration" ->
-              return MockResponse()
-                .addHeader("Content-Type", "application/json")
-                .setBody(
-                  """{
-                                    "data":{
-                                        "payments":{
-                                            "masterWalletId":"1000066041"
-                                        }
-                                    }
-                            }"""
-                )
+            "/v1/configuration" -> return getDistAccountIdMockResponse()
             "/v1/businessAccount/balances" ->
               return MockResponse()
                 .addHeader("Content-Type", "application/json")
@@ -476,18 +608,7 @@ class CirclePaymentServiceTest {
         @Throws(InterruptedException::class)
         override fun dispatch(request: RecordedRequest): MockResponse {
           when (request.path) {
-            "/v1/configuration" ->
-              return MockResponse()
-                .addHeader("Content-Type", "application/json")
-                .setBody(
-                  """{
-                                    "data":{
-                                        "payments":{
-                                            "masterWalletId":"1000066041"
-                                        }
-                                    }
-                            }"""
-                )
+            "/v1/configuration" -> return getDistAccountIdMockResponse()
             "/v1/payouts" ->
               return MockResponse()
                 .addHeader("Content-Type", "application/json")
@@ -601,20 +722,13 @@ class CirclePaymentServiceTest {
       }
     assertEquals(wantMap, payment?.originalResponse)
 
-    assertEquals(2, server.requestCount)
-    val allRequests = arrayOf(server.takeRequest(), server.takeRequest())
-
-    val validateSecretKeyRequest =
-      allRequests.find { request -> request.path!! == "/v1/configuration" }!!
-    assertEquals("GET", validateSecretKeyRequest.method)
-    assertEquals("application/json", validateSecretKeyRequest.headers["Content-Type"])
-    assertEquals("Bearer <secret-key>", validateSecretKeyRequest.headers["Authorization"])
-
-    val postPayoutRequest = allRequests.find { request -> request.path!! == "/v1/payouts" }!!
-    assertEquals("POST", postPayoutRequest.method)
-    assertEquals("application/json", postPayoutRequest.headers["Content-Type"])
-    assertEquals("Bearer <secret-key>", postPayoutRequest.headers["Authorization"])
-    val gotBody = postPayoutRequest.body.readUtf8()
+    assertEquals(1, server.requestCount)
+    val request = server.takeRequest()
+    assertThat(request.path, CoreMatchers.endsWith("/v1/payouts"))
+    assertEquals("POST", request.method)
+    assertEquals("application/json", request.headers["Content-Type"])
+    assertEquals("Bearer <secret-key>", request.headers["Authorization"])
+    val gotBody = request.body.readUtf8()
     val wantBody =
       """{
             "source": {
@@ -700,18 +814,7 @@ class CirclePaymentServiceTest {
         @Throws(InterruptedException::class)
         override fun dispatch(request: RecordedRequest): MockResponse {
           when (request.path) {
-            "/v1/configuration" ->
-              return MockResponse()
-                .addHeader("Content-Type", "application/json")
-                .setBody(
-                  """{
-                                    "data":{
-                                        "payments":{
-                                            "masterWalletId":"1000066041"
-                                        }
-                                    }
-                            }"""
-                )
+            "/v1/configuration" -> return getDistAccountIdMockResponse()
             "/v1/transfers" ->
               return MockResponse()
                 .addHeader("Content-Type", "application/json")
@@ -831,18 +934,7 @@ class CirclePaymentServiceTest {
         @Throws(InterruptedException::class)
         override fun dispatch(request: RecordedRequest): MockResponse {
           when (request.path) {
-            "/v1/configuration" ->
-              return MockResponse()
-                .addHeader("Content-Type", "application/json")
-                .setBody(
-                  """{
-                                    "data":{
-                                        "payments":{
-                                            "masterWalletId":"1000066041"
-                                        }
-                                    }
-                            }"""
-                )
+            "/v1/configuration" -> return getDistAccountIdMockResponse()
             "/v1/transfers" ->
               return MockResponse()
                 .addHeader("Content-Type", "application/json")
@@ -886,7 +978,14 @@ class CirclePaymentServiceTest {
     var payment: Payment? = null
     assertDoesNotThrow {
       payment =
-        service.sendPayment(source, destination, "stellar:USD", BigDecimal.valueOf(0.91)).block()
+        service
+          .sendPayment(
+            source,
+            destination,
+            "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+            BigDecimal.valueOf(0.91)
+          )
+          .block()
     }
 
     assertEquals("c58e2613-a808-4075-956c-e576787afb3b", payment?.id)
@@ -907,7 +1006,10 @@ class CirclePaymentServiceTest {
       ),
       payment?.destinationAccount
     )
-    assertEquals(Balance("0.91", "stellar:USD"), payment?.balance)
+    assertEquals(
+      Balance("0.91", "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"),
+      payment?.balance
+    )
     assertEquals(Payment.Status.PENDING, payment?.status)
     assertNull(payment?.errorCode)
 
@@ -975,24 +1077,550 @@ class CirclePaymentServiceTest {
   }
 
   @Test
+  fun test_Horizon() {
+    val type = (object : TypeToken<Page<OperationResponse>>() {}).type
+    val mockStellarPaymentResponsePage: Page<OperationResponse> =
+      GsonSingleton.getInstance().fromJson(mockStellarPaymentResponsePageBody, type)
+    val mockHorizonServer = mockk<Server>()
+    every { mockHorizonServer.payments().forTransaction(any()).execute() } returns
+      mockStellarPaymentResponsePage
+
+    // when
+    val result = mockHorizonServer.payments().forTransaction("foo bar").execute()
+
+    // then
+    verify { mockHorizonServer.payments().forTransaction(any()).execute() }
+    assertEquals(mockStellarPaymentResponsePage, result)
+  }
+
+  @Test
+  fun test_getTransfers() {
+    // mock call to `.getWebClient(false).baseUrl(any())` so the web client keeps pointing to the
+    // same server URL
+    val service = spyk(this.service as CirclePaymentService)
+    val serviceClient = spyk(service.getWebClient(false))
+    every { serviceClient.baseUrl(any()) } returns service.getWebClient(false)
+    every { service.getWebClient(false) } returns serviceClient
+
+    val dispatcher: Dispatcher =
+      object : Dispatcher() {
+        @Throws(InterruptedException::class)
+        override fun dispatch(request: RecordedRequest): MockResponse {
+          when (request.path) {
+            "/v1/transfers?pageSize=50&walletId=1000066041" ->
+              return MockResponse()
+                .addHeader("Content-Type", "application/json")
+                .setBody(
+                  """{    
+                    "data": [
+                      $mockWalletToWalletTransferJson,
+                      $mockStellarToWalletTransferJson,
+                      $mockWalletToStellarTransferJson
+                    ]
+                  }""".trimIndent()
+                )
+            "/v1/configuration" -> return getDistAccountIdMockResponse()
+            "/transactions/fb8947c67856d8eb444211c1927d92bcf14abcfb34cdd27fc9e604b15d208fd1/payments" ->
+              return MockResponse()
+                .addHeader("Content-Type", "application/json")
+                .setBody(mockStellarPaymentResponsePageBody)
+          }
+          return MockResponse().setResponseCode(404)
+        }
+      }
+    server.dispatcher = dispatcher
+
+    var paymentHistory: PaymentHistory? = null
+    val getTransfersMono = service.getTransfers("1000066041", null, null, null)
+    val merchantAccount =
+      Account(
+        Network.CIRCLE,
+        "1000066041",
+        Account.Capabilities(Network.CIRCLE, Network.STELLAR, Network.BANK_WIRE)
+      )
+    assertDoesNotThrow {
+      paymentHistory =
+        getTransfersMono.block()!!.toPaymentHistory(50, merchantAccount, "1000066041")
+    }
+    // validate Stellar call was executed
+    verify { serviceClient.baseUrl(any()) }
+
+    val wantPaymentHistory = PaymentHistory(merchantAccount)
+    wantPaymentHistory.beforeCursor = "c58e2613-a808-4075-956c-e576787afb3b"
+
+    val gson = Gson()
+    val type = object : TypeToken<Map<String?, *>?>() {}.type
+
+    val p1 = Payment()
+    p1.id = "c58e2613-a808-4075-956c-e576787afb3b"
+    p1.sourceAccount = merchantAccount
+    p1.destinationAccount =
+      Account(Network.CIRCLE, "1000067536", Account.Capabilities(Network.CIRCLE, Network.STELLAR))
+    p1.balance = Balance("0.91", "circle:USD")
+    p1.status = Payment.Status.PENDING
+    p1.createdAt = CircleDateFormatter.stringToDate("2022-02-07T19:50:23.408Z")
+    p1.updatedAt = CircleDateFormatter.stringToDate("2022-02-07T19:50:23.408Z")
+    p1.originalResponse = gson.fromJson(mockWalletToWalletTransferJson, type)
+    wantPaymentHistory.payments.add(p1)
+
+    val p2 = Payment()
+    p2.id = "7f131f58-a8a0-3dc2-be05-6a015c69de35"
+    p2.sourceAccount =
+      Account(
+        Network.STELLAR,
+        "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S",
+        Account.Capabilities(Network.STELLAR)
+      )
+    p2.destinationAccount = merchantAccount
+    p2.balance = Balance("1.50", "circle:USD")
+    p2.idTag = "fb8947c67856d8eb444211c1927d92bcf14abcfb34cdd27fc9e604b15d208fd1"
+    p2.status = Payment.Status.SUCCESSFUL
+    p2.createdAt = CircleDateFormatter.stringToDate("2022-02-07T18:02:17.999Z")
+    p2.updatedAt = CircleDateFormatter.stringToDate("2022-02-07T18:02:17.999Z")
+    p2.originalResponse = gson.fromJson(mockStellarToWalletTransferJson, type)
+    wantPaymentHistory.payments.add(p2)
+
+    val p3 = Payment()
+    p3.id = "a8997020-3da7-4543-bc4a-5ae8c7ce346d"
+    p3.sourceAccount = merchantAccount
+    p3.destinationAccount =
+      Account(
+        Network.STELLAR,
+        "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S",
+        Account.Capabilities(Network.STELLAR)
+      )
+    p3.balance =
+      Balance("1.00", "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5")
+    p3.idTag = "5239ee055b1083231c6bdaaa921d3e4b3bc090577fbd909815bd5d7fe68091ef"
+    p3.status = Payment.Status.SUCCESSFUL
+    p3.createdAt = CircleDateFormatter.stringToDate("2022-01-01T01:01:01.544Z")
+    p3.updatedAt = CircleDateFormatter.stringToDate("2022-01-01T01:01:01.544Z")
+    p3.originalResponse = gson.fromJson(mockWalletToStellarTransferJson, type)
+    wantPaymentHistory.payments.add(p3)
+
+    assertEquals(wantPaymentHistory, paymentHistory)
+  }
+
+  @Test
+  fun test_getTransfers_paginationResponse() {
+    val dispatcher: Dispatcher =
+      object : Dispatcher() {
+        @Throws(InterruptedException::class)
+        override fun dispatch(request: RecordedRequest): MockResponse {
+          when (request.path) {
+            "/v1/transfers?pageSize=2&walletId=1000066041" ->
+              return MockResponse()
+                .addHeader("Content-Type", "application/json")
+                .setBody(
+                  """{    
+                    "data": [
+                      $mockWalletToWalletTransferJson,
+                      $mockWalletToStellarTransferJson
+                    ]
+                  }""".trimIndent()
+                )
+            "/v1/configuration" -> return getDistAccountIdMockResponse()
+          }
+          return MockResponse().setResponseCode(404)
+        }
+      }
+    server.dispatcher = dispatcher
+
+    // Let's use reflection to access the private method
+    val merchantAccount =
+      Account(
+        Network.CIRCLE,
+        "1000066041",
+        Account.Capabilities(Network.CIRCLE, Network.STELLAR, Network.BANK_WIRE)
+      )
+    val getTransfersMono =
+      (service as CirclePaymentService).getTransfers("1000066041", null, null, 2)
+    var paymentHistory: PaymentHistory? = null
+    assertDoesNotThrow {
+      paymentHistory = getTransfersMono.block()!!.toPaymentHistory(2, merchantAccount, "1000066041")
+    }
+
+    val wantPaymentHistory = PaymentHistory(merchantAccount)
+    wantPaymentHistory.beforeCursor = "c58e2613-a808-4075-956c-e576787afb3b"
+    wantPaymentHistory.afterCursor = "a8997020-3da7-4543-bc4a-5ae8c7ce346d"
+
+    val gson = Gson()
+    val type = object : TypeToken<Map<String?, *>?>() {}.type
+
+    val p1 = Payment()
+    p1.id = "c58e2613-a808-4075-956c-e576787afb3b"
+    p1.sourceAccount = merchantAccount
+    p1.destinationAccount =
+      Account(Network.CIRCLE, "1000067536", Account.Capabilities(Network.CIRCLE, Network.STELLAR))
+    p1.balance = Balance("0.91", "circle:USD")
+    p1.status = Payment.Status.PENDING
+    p1.createdAt = CircleDateFormatter.stringToDate("2022-02-07T19:50:23.408Z")
+    p1.updatedAt = CircleDateFormatter.stringToDate("2022-02-07T19:50:23.408Z")
+    p1.originalResponse = gson.fromJson(mockWalletToWalletTransferJson, type)
+    wantPaymentHistory.payments.add(p1)
+
+    val p2 = Payment()
+    p2.id = "a8997020-3da7-4543-bc4a-5ae8c7ce346d"
+    p2.sourceAccount = merchantAccount
+    p2.destinationAccount =
+      Account(
+        Network.STELLAR,
+        "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S",
+        Account.Capabilities(Network.STELLAR)
+      )
+    p2.balance =
+      Balance("1.00", "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5")
+    p2.idTag = "5239ee055b1083231c6bdaaa921d3e4b3bc090577fbd909815bd5d7fe68091ef"
+    p2.status = Payment.Status.SUCCESSFUL
+    p2.createdAt = CircleDateFormatter.stringToDate("2022-01-01T01:01:01.544Z")
+    p2.updatedAt = CircleDateFormatter.stringToDate("2022-01-01T01:01:01.544Z")
+    p2.originalResponse = gson.fromJson(mockWalletToStellarTransferJson, type)
+    wantPaymentHistory.payments.add(p2)
+
+    assertEquals(wantPaymentHistory, paymentHistory)
+  }
+
+  @Test
+  fun test_getPayouts() {
+    val dispatcher: Dispatcher =
+      object : Dispatcher() {
+        @Throws(InterruptedException::class)
+        override fun dispatch(request: RecordedRequest): MockResponse {
+          when (request.path) {
+            "/v1/payouts?pageSize=50&source=1000066041" ->
+              return MockResponse()
+                .addHeader("Content-Type", "application/json")
+                .setBody(
+                  """{    
+                    "data": [
+                      $mockWalletToWirePayoutJson
+                    ]
+                  }""".trimIndent()
+                )
+            "/v1/configuration" -> return getDistAccountIdMockResponse()
+          }
+          return MockResponse().setResponseCode(404)
+        }
+      }
+    server.dispatcher = dispatcher
+
+    val merchantAccount =
+      Account(
+        Network.CIRCLE,
+        "1000066041",
+        Account.Capabilities(Network.CIRCLE, Network.STELLAR, Network.BANK_WIRE)
+      )
+    val getPayoutsMono = (service as CirclePaymentService).getPayouts("1000066041", null, null, 50)
+    var paymentHistory: PaymentHistory? = null
+    assertDoesNotThrow {
+      paymentHistory = getPayoutsMono.block()!!.toPaymentHistory(50, merchantAccount)
+    }
+
+    val wantPaymentHistory = PaymentHistory(merchantAccount)
+    wantPaymentHistory.beforeCursor = "6588a352-5131-4711-a264-e405f38d752d"
+
+    val p = Payment()
+    p.id = "6588a352-5131-4711-a264-e405f38d752d"
+    p.sourceAccount = merchantAccount
+    p.destinationAccount =
+      Account(
+        Network.BANK_WIRE,
+        "6c87da10-feb8-484f-822c-2083ed762d25",
+        Account.Capabilities(Network.BANK_WIRE)
+      )
+    p.balance = Balance("3.00", "iso4217:USD")
+    p.status = Payment.Status.SUCCESSFUL
+    p.createdAt = CircleDateFormatter.stringToDate("2022-02-03T15:41:25.286Z")
+    p.updatedAt = CircleDateFormatter.stringToDate("2022-02-03T16:00:31.697Z")
+    val gson = Gson()
+    val type = object : TypeToken<Map<String?, *>?>() {}.type
+    p.originalResponse = gson.fromJson(mockWalletToWirePayoutJson, type)
+    wantPaymentHistory.payments.add(p)
+
+    assertEquals(wantPaymentHistory, paymentHistory)
+  }
+
+  @Test
+  fun test_getPayouts_paginationResponse() {
+    val dispatcher: Dispatcher =
+      object : Dispatcher() {
+        @Throws(InterruptedException::class)
+        override fun dispatch(request: RecordedRequest): MockResponse {
+          when (request.path) {
+            "/v1/payouts?pageSize=1&source=1000066041" ->
+              return MockResponse()
+                .addHeader("Content-Type", "application/json")
+                .setBody(
+                  """{    
+                    "data": [
+                      $mockWalletToWirePayoutJson
+                    ]
+                  }""".trimIndent()
+                )
+            "/v1/configuration" -> return getDistAccountIdMockResponse()
+          }
+          return MockResponse().setResponseCode(404)
+        }
+      }
+    server.dispatcher = dispatcher
+
+    val merchantAccount =
+      Account(
+        Network.CIRCLE,
+        "1000066041",
+        Account.Capabilities(Network.CIRCLE, Network.STELLAR, Network.BANK_WIRE)
+      )
+
+    val getPayoutsMono = (service as CirclePaymentService).getPayouts("1000066041", null, null, 1)
+    var paymentHistory: PaymentHistory? = null
+    assertDoesNotThrow {
+      paymentHistory = getPayoutsMono.block()!!.toPaymentHistory(1, merchantAccount)
+    }
+
+    val wantPaymentHistory = PaymentHistory(merchantAccount)
+    wantPaymentHistory.beforeCursor = "6588a352-5131-4711-a264-e405f38d752d"
+    wantPaymentHistory.afterCursor = "6588a352-5131-4711-a264-e405f38d752d"
+
+    val p = Payment()
+    p.id = "6588a352-5131-4711-a264-e405f38d752d"
+    p.sourceAccount = merchantAccount
+    p.destinationAccount =
+      Account(
+        Network.BANK_WIRE,
+        "6c87da10-feb8-484f-822c-2083ed762d25",
+        Account.Capabilities(Network.BANK_WIRE)
+      )
+    p.balance = Balance("3.00", "iso4217:USD")
+    p.status = Payment.Status.SUCCESSFUL
+    p.createdAt = CircleDateFormatter.stringToDate("2022-02-03T15:41:25.286Z")
+    p.updatedAt = CircleDateFormatter.stringToDate("2022-02-03T16:00:31.697Z")
+    val gson = Gson()
+    val type = object : TypeToken<Map<String?, *>?>() {}.type
+    p.originalResponse = gson.fromJson(mockWalletToWirePayoutJson, type)
+    wantPaymentHistory.payments.add(p)
+
+    assertEquals(wantPaymentHistory, paymentHistory)
+  }
+
+  @ParameterizedTest
+  @CsvSource(
+    value =
+      [
+        "transfers,,,/v1/transfers?pageSize=1&walletId=1000066041",
+        "transfers,before,,/v1/transfers?pageSize=1&walletId=1000066041&pageBefore=before",
+        "transfers,,after,/v1/transfers?pageSize=1&walletId=1000066041&pageAfter=after",
+        "transfers,before,after,/v1/transfers?pageSize=1&walletId=1000066041&pageAfter=after",
+        "payouts,,,/v1/payouts?pageSize=1&source=1000066041",
+        "payouts,before,,/v1/payouts?pageSize=1&source=1000066041&pageBefore=before",
+        "payouts,,after,/v1/payouts?pageSize=1&source=1000066041&pageAfter=after",
+        "payouts,before,after,/v1/payouts?pageSize=1&source=1000066041&pageAfter=after",
+      ]
+  )
+  fun test_getTransfersOrPayouts_paginationRequestUri(
+    uri: String,
+    beforeCursor: String?,
+    afterCursor: String?,
+    expectedUri: String
+  ) {
+    val dispatcher =
+      object : Dispatcher() {
+        @Throws(InterruptedException::class)
+        override fun dispatch(request: RecordedRequest): MockResponse {
+          if (request.path!!.startsWith("/v1/$uri")) {
+            return MockResponse()
+              .addHeader("Content-Type", "application/json")
+              .setBody("""{
+                "data": []
+              }""".trimIndent())
+          }
+
+          if (request.path.equals("/v1/configuration")) {
+            return getDistAccountIdMockResponse()
+          }
+
+          return MockResponse().setResponseCode(404)
+        }
+      }
+    server.dispatcher = dispatcher
+
+    val merchantAccount =
+      Account(
+        Network.CIRCLE,
+        "1000066041",
+        Account.Capabilities(Network.CIRCLE, Network.STELLAR, Network.BANK_WIRE)
+      )
+
+    var paymentHistory: PaymentHistory? = null
+    if (uri == "transfers") {
+      assertDoesNotThrow {
+        paymentHistory =
+          (service as CirclePaymentService)
+              .getTransfers("1000066041", beforeCursor, afterCursor, 1)
+              .block()!!
+            .toPaymentHistory(1, merchantAccount, "1000066041")
+      }
+    } else if (uri == "payouts") {
+      assertDoesNotThrow {
+        paymentHistory =
+          (service as CirclePaymentService)
+              .getPayouts("1000066041", beforeCursor, afterCursor, 1)
+              .block()!!
+            .toPaymentHistory(1, merchantAccount)
+      }
+    } else {
+      throw RuntimeException("INVALID URI FOR TEST")
+    }
+
+    val wantPaymentHistory = PaymentHistory(merchantAccount)
+    assertEquals(wantPaymentHistory, paymentHistory)
+
+    assertEquals(1, server.requestCount)
+    val request = server.takeRequest()
+    assertEquals("GET", request.method)
+    assertEquals("Bearer <secret-key>", request.headers["Authorization"])
+  }
+
+  @Test
+  fun test_getAccountHistory() {
+    // mock call to `.getWebClient(false).baseUrl(any())` so the web client keeps pointing to the
+    // same server URL
+    val service = spyk(this.service as CirclePaymentService)
+    val serviceClient = spyk(service.getWebClient(false))
+    every { serviceClient.baseUrl(any()) } returns service.getWebClient(false)
+    every { service.getWebClient(false) } returns serviceClient
+
+    val dispatcher: Dispatcher =
+      object : Dispatcher() {
+        @Throws(InterruptedException::class)
+        override fun dispatch(request: RecordedRequest): MockResponse {
+          when (request.path) {
+            "/v1/configuration" -> return getDistAccountIdMockResponse()
+            "/v1/transfers?pageSize=50&walletId=1000066041" ->
+              return MockResponse()
+                .addHeader("Content-Type", "application/json")
+                .setBody(
+                  """{
+                      "data": [
+                        $mockWalletToWalletTransferJson,
+                        $mockStellarToWalletTransferJson,
+                        $mockWalletToStellarTransferJson
+                      ]
+                    }""".trimIndent()
+                )
+            "/v1/payouts?pageSize=50&source=1000066041" ->
+              return MockResponse()
+                .addHeader("Content-Type", "application/json")
+                .setBody(
+                  """{
+                      "data": [
+                        $mockWalletToWirePayoutJson
+                      ]
+                    }""".trimIndent()
+                )
+            "/transactions/fb8947c67856d8eb444211c1927d92bcf14abcfb34cdd27fc9e604b15d208fd1/payments" ->
+              return MockResponse()
+                .addHeader("Content-Type", "application/json")
+                .setBody(mockStellarPaymentResponsePageBody)
+          }
+          return MockResponse().setResponseCode(404)
+        }
+      }
+    server.dispatcher = dispatcher
+
+    var paymentHistory: PaymentHistory? = null
+    val getAccountHistoryMono = service.getAccountPaymentHistory("1000066041", null, null)
+    assertDoesNotThrow { paymentHistory = getAccountHistoryMono.block() }
+
+    // validate Stellar call was executed
+    verify { serviceClient.baseUrl(any()) }
+
+    val merchantAccount =
+      Account(
+        Network.CIRCLE,
+        "1000066041",
+        Account.Capabilities(Network.CIRCLE, Network.STELLAR, Network.BANK_WIRE)
+      )
+    val wantPaymentHistory = PaymentHistory(merchantAccount)
+    wantPaymentHistory.beforeCursor =
+      "c58e2613-a808-4075-956c-e576787afb3b:6588a352-5131-4711-a264-e405f38d752d"
+
+    val gson = Gson()
+    val type = object : TypeToken<Map<String?, *>?>() {}.type
+
+    val p1 = Payment()
+    p1.id = "c58e2613-a808-4075-956c-e576787afb3b"
+    p1.sourceAccount = merchantAccount
+    p1.destinationAccount =
+      Account(Network.CIRCLE, "1000067536", Account.Capabilities(Network.CIRCLE, Network.STELLAR))
+    p1.balance = Balance("0.91", "circle:USD")
+    p1.status = Payment.Status.PENDING
+    p1.createdAt = CircleDateFormatter.stringToDate("2022-02-07T19:50:23.408Z")
+    p1.updatedAt = CircleDateFormatter.stringToDate("2022-02-07T19:50:23.408Z")
+    p1.originalResponse = gson.fromJson(mockWalletToWalletTransferJson, type)
+    wantPaymentHistory.payments.add(p1)
+
+    val p2 = Payment()
+    p2.id = "7f131f58-a8a0-3dc2-be05-6a015c69de35"
+    p2.sourceAccount =
+      Account(
+        Network.STELLAR,
+        "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S",
+        Account.Capabilities(Network.STELLAR)
+      )
+    p2.destinationAccount = merchantAccount
+    p2.balance = Balance("1.50", "circle:USD")
+    p2.idTag = "fb8947c67856d8eb444211c1927d92bcf14abcfb34cdd27fc9e604b15d208fd1"
+    p2.status = Payment.Status.SUCCESSFUL
+    p2.createdAt = CircleDateFormatter.stringToDate("2022-02-07T18:02:17.999Z")
+    p2.updatedAt = CircleDateFormatter.stringToDate("2022-02-07T18:02:17.999Z")
+    p2.originalResponse = gson.fromJson(mockStellarToWalletTransferJson, type)
+    wantPaymentHistory.payments.add(p2)
+
+    val p3 = Payment()
+    p3.id = "6588a352-5131-4711-a264-e405f38d752d"
+    p3.sourceAccount = merchantAccount
+    p3.destinationAccount =
+      Account(
+        Network.BANK_WIRE,
+        "6c87da10-feb8-484f-822c-2083ed762d25",
+        Account.Capabilities(Network.BANK_WIRE)
+      )
+    p3.balance = Balance("3.00", "iso4217:USD")
+    p3.status = Payment.Status.SUCCESSFUL
+    p3.createdAt = CircleDateFormatter.stringToDate("2022-02-03T15:41:25.286Z")
+    p3.updatedAt = CircleDateFormatter.stringToDate("2022-02-03T16:00:31.697Z")
+    p3.originalResponse = gson.fromJson(mockWalletToWirePayoutJson, type)
+    wantPaymentHistory.payments.add(p3)
+
+    val p4 = Payment()
+    p4.id = "a8997020-3da7-4543-bc4a-5ae8c7ce346d"
+    p4.sourceAccount = merchantAccount
+    p4.destinationAccount =
+      Account(
+        Network.STELLAR,
+        "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S",
+        Account.Capabilities(Network.STELLAR)
+      )
+    p4.balance =
+      Balance("1.00", "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5")
+    p4.idTag = "5239ee055b1083231c6bdaaa921d3e4b3bc090577fbd909815bd5d7fe68091ef"
+    p4.status = Payment.Status.SUCCESSFUL
+    p4.createdAt = CircleDateFormatter.stringToDate("2022-01-01T01:01:01.544Z")
+    p4.updatedAt = CircleDateFormatter.stringToDate("2022-01-01T01:01:01.544Z")
+    p4.originalResponse = gson.fromJson(mockWalletToStellarTransferJson, type)
+    wantPaymentHistory.payments.add(p4)
+
+    assertEquals(wantPaymentHistory, paymentHistory)
+  }
+
+  @Test
   fun testErrorHandling() {
     val badRequestResponse =
       MockResponse()
         .setResponseCode(400)
         .addHeader("Content-Type", "application/json")
         .setBody("{\"code\":2,\"message\":\"Request body contains unprocessable entity.\"}")
-    val validateSecretKeyResponse =
-      MockResponse()
-        .addHeader("Content-Type", "application/json")
-        .setBody(
-          """{
-                        "data":{
-                            "payments":{
-                                "masterWalletId":"1000066041"
-                            }
-                        }
-                    }"""
-        )
+    val validateSecretKeyResponse = getDistAccountIdMockResponse()
     val mainAccountResponse =
       MockResponse()
         .addHeader("Content-Type", "application/json")
@@ -1071,7 +1699,7 @@ class CirclePaymentServiceTest {
             "test tag",
             Account.Capabilities(Network.CIRCLE, Network.STELLAR)
           ),
-          "stellar:USD",
+          "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
           BigDecimal(1)
         ),
         hashMapOf(
@@ -1094,6 +1722,22 @@ class CirclePaymentServiceTest {
         hashMapOf(
           "/v1/configuration" to validateSecretKeyResponse,
           "/v1/payouts" to badRequestResponse
+        ),
+      ),
+      ErrorHandlingTestCase(
+        (service as CirclePaymentService).getTransfers("1000066041", null, null, null),
+        hashMapOf("/v1/transfers?pageSize=50&walletId=1000066041" to badRequestResponse)
+      ),
+      ErrorHandlingTestCase(
+        (service as CirclePaymentService).getPayouts("1000066041", null, null, null),
+        hashMapOf("/v1/payouts?pageSize=50&source=1000066041" to badRequestResponse)
+      ),
+      ErrorHandlingTestCase(
+        service.getAccountPaymentHistory("1000066041", null, null),
+        hashMapOf(
+          "/v1/configuration" to validateSecretKeyResponse,
+          "/v1/transfers?pageSize=50&walletId=1000066041" to badRequestResponse,
+          "/v1/payouts?pageSize=50&source=1000066041" to badRequestResponse
         )
       ),
     )

@@ -1,36 +1,45 @@
 package org.stellar.anchor.paymentservice.circle;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import java.math.BigDecimal;
+import java.util.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.stellar.anchor.exception.HttpException;
 import org.stellar.anchor.paymentservice.*;
-import org.stellar.anchor.paymentservice.circle.model.CircleBalance;
-import org.stellar.anchor.paymentservice.circle.model.CircleTransactionParty;
-import org.stellar.anchor.paymentservice.circle.model.CircleWallet;
+import org.stellar.anchor.paymentservice.circle.model.*;
 import org.stellar.anchor.paymentservice.circle.model.request.CircleSendTransactionRequest;
 import org.stellar.anchor.paymentservice.circle.model.response.*;
 import org.stellar.anchor.paymentservice.circle.util.NettyHttpClient;
 import reactor.core.publisher.Mono;
 import reactor.netty.ByteBufMono;
 import reactor.netty.http.client.HttpClient;
-import reactor.netty.http.client.HttpClientResponse;
 import reactor.util.annotation.NonNull;
 import reactor.util.annotation.Nullable;
 
-public class CirclePaymentService implements PaymentService {
-  private static final Gson gson = new Gson();
+public class CirclePaymentService
+    implements PaymentService, CircleResponseErrorHandler, StellarReconciliation {
+  private static final Gson gson =
+      new GsonBuilder()
+          .registerTypeAdapter(CircleTransfer.class, new CircleTransfer.Serialization())
+          .registerTypeAdapter(CirclePayout.class, new CirclePayout.Deserializer())
+          .create();
+
+  private final org.stellar.sdk.Network stellarNetwork;
 
   private final Network network = Network.CIRCLE;
 
   private String url;
 
   private String secretKey;
+
+  private final String horizonUrl;
 
   private HttpClient webClient;
 
@@ -40,10 +49,13 @@ public class CirclePaymentService implements PaymentService {
    * For all service methods to work correctly, make sure your circle account has a valid business
    * wallet and a bank account configured.
    */
-  public CirclePaymentService(String url, String secretKey) {
+  public CirclePaymentService(
+      String url, String secretKey, String horizonUrl, org.stellar.sdk.Network stellarNetwork) {
     super();
     this.url = url;
     this.secretKey = secretKey;
+    this.horizonUrl = horizonUrl;
+    this.stellarNetwork = stellarNetwork;
   }
 
   public Network getNetwork() {
@@ -67,7 +79,11 @@ public class CirclePaymentService implements PaymentService {
     this.mainAccountAddress = null;
   }
 
-  private HttpClient getWebClient(boolean authenticated) {
+  public String getHorizonUrl() {
+    return horizonUrl;
+  }
+
+  public HttpClient getWebClient(boolean authenticated) {
     if (webClient == null) {
       this.webClient = NettyHttpClient.withBaseUrl(getUrl());
     }
@@ -75,20 +91,6 @@ public class CirclePaymentService implements PaymentService {
       return webClient;
     }
     return webClient.headers(h -> h.add(HttpHeaderNames.AUTHORIZATION, "Bearer " + getSecretKey()));
-  }
-
-  @NonNull
-  private <T> Mono<T> handleCircleError(HttpClientResponse response, ByteBufMono bodyBytesMono) {
-    return bodyBytesMono
-        .asString()
-        .map(
-            body -> {
-              CircleError circleError = gson.fromJson(body, CircleError.class);
-              throw new HttpException(
-                  response.status().code(),
-                  circleError.getMessage(),
-                  circleError.getCode().toString());
-            });
   }
 
   /**
@@ -102,14 +104,8 @@ public class CirclePaymentService implements PaymentService {
     return getWebClient(false)
         .get()
         .uri("/ping")
-        .responseSingle(
-            (response, bodyBytesMono) -> {
-              if (response.status().code() >= 400) {
-                return handleCircleError(response, bodyBytesMono);
-              }
-
-              return Mono.empty();
-            });
+        .responseSingle(handleResponseSingle())
+        .flatMap(s -> Mono.empty());
   }
 
   /**
@@ -126,14 +122,7 @@ public class CirclePaymentService implements PaymentService {
     return getWebClient(true)
         .get()
         .uri("/v1/configuration")
-        .responseSingle(
-            (response, bodyBytesMono) -> {
-              if (response.status().code() >= 400) {
-                return handleCircleError(response, bodyBytesMono);
-              }
-
-              return bodyBytesMono.asString();
-            })
+        .responseSingle(handleResponseSingle())
         .map(
             body -> {
               CircleConfigurationResponse response =
@@ -153,14 +142,7 @@ public class CirclePaymentService implements PaymentService {
     return getWebClient(true)
         .get()
         .uri("/v1/businessAccount/balances")
-        .responseSingle(
-            (response, bodyBytesMono) -> {
-              if (response.status().code() >= 400) {
-                return handleCircleError(response, bodyBytesMono);
-              }
-
-              return bodyBytesMono.asString();
-            })
+        .responseSingle(handleResponseSingle())
         .map(
             body -> {
               CircleAccountBalancesResponse response =
@@ -168,7 +150,7 @@ public class CirclePaymentService implements PaymentService {
 
               List<Balance> unsettledBalances = new ArrayList<>();
               for (CircleBalance uBalance : response.getData().unsettled) {
-                unsettledBalances.add(uBalance.toBalance());
+                unsettledBalances.add(uBalance.toBalance(Network.CIRCLE));
               }
 
               return unsettledBalances;
@@ -187,14 +169,7 @@ public class CirclePaymentService implements PaymentService {
     return getWebClient(true)
         .get()
         .uri("/v1/wallets/" + walletId)
-        .responseSingle(
-            (response, bodyBytesMono) -> {
-              if (response.status().code() >= 400) {
-                return handleCircleError(response, bodyBytesMono);
-              }
-
-              return bodyBytesMono.asString();
-            })
+        .responseSingle(handleResponseSingle())
         .map(
             body -> {
               CircleWalletResponse circleWalletResponse =
@@ -249,14 +224,7 @@ public class CirclePaymentService implements PaymentService {
         .post()
         .uri("/v1/wallets")
         .send(ByteBufMono.fromString(Mono.just(postBody.toString())))
-        .responseSingle(
-            (postResponse, bodyBytesMono) -> {
-              if (postResponse.status().code() >= 400) {
-                return handleCircleError(postResponse, bodyBytesMono);
-              }
-
-              return bodyBytesMono.asString();
-            })
+        .responseSingle(handleResponseSingle())
         .map(
             body -> {
               CircleWalletResponse circleWalletResponse =
@@ -264,6 +232,81 @@ public class CirclePaymentService implements PaymentService {
               CircleWallet circleWallet = circleWalletResponse.getData();
               return circleWallet.toAccount();
             });
+  }
+
+  public Mono<CircleTransferListResponse> getTransfers(
+      String accountID, String beforeCursor, String afterCursor, Integer pageSize)
+      throws HttpException {
+    // build query parameters for GET requests
+    int _pageSize = pageSize != null ? pageSize : 50;
+    LinkedHashMap<String, String> queryParams = new LinkedHashMap<>();
+    queryParams.put("pageSize", Integer.toString(_pageSize));
+    queryParams.put("walletId", accountID);
+
+    if (afterCursor != null && !afterCursor.isEmpty()) {
+      queryParams.put("pageAfter", afterCursor);
+      // we can't use both pageBefore and pageAfter at the same time, that's why I'm using 'else if'
+    } else if (beforeCursor != null && !beforeCursor.isEmpty()) {
+      queryParams.put("pageBefore", beforeCursor);
+    }
+
+    return getWebClient(true)
+        .get()
+        .uri(NettyHttpClient.buildUri("/v1/transfers", queryParams))
+        .responseSingle(handleResponseSingle())
+        .flatMap(
+            body -> {
+              CircleTransferListResponse response =
+                  gson.fromJson(body, CircleTransferListResponse.class);
+              Mono<CircleTransferListResponse> originalResponseMono = Mono.just(response);
+
+              // Build Mono.zip to retrieve the Stellar info from Stellar->CircleWallet transfers in
+              // order to update the sender address that's not disclosed in Circle's API.
+              List<Mono<CircleTransfer>> monoList =
+                  response.getData().stream()
+                      .map(this::updatedStellarSenderAddress)
+                      .collect(Collectors.toList());
+              Mono<List<CircleTransfer>> updatedTransfersMono = Mono.just(new ArrayList<>());
+              if (monoList.size() > 0) {
+                updatedTransfersMono =
+                    Mono.zip(
+                        monoList,
+                        objects -> List.of(Arrays.stream(objects).toArray(CircleTransfer[]::new)));
+              }
+
+              return Mono.zip(originalResponseMono, updatedTransfersMono);
+            })
+        .map(
+            args -> {
+              CircleTransferListResponse response = args.getT1();
+              List<CircleTransfer> updatedTransfers = args.getT2();
+
+              response.setData(updatedTransfers);
+              return response;
+            });
+  }
+
+  public Mono<CirclePayoutListResponse> getPayouts(
+      String accountID, String beforeCursor, String afterCursor, Integer pageSize)
+      throws HttpException {
+    // build query parameters for GET requests
+    int _pageSize = pageSize != null ? pageSize : 50;
+    LinkedHashMap<String, String> queryParams = new LinkedHashMap<>();
+    queryParams.put("pageSize", Integer.toString(_pageSize));
+    queryParams.put("source", accountID);
+
+    if (afterCursor != null && !afterCursor.isEmpty()) {
+      queryParams.put("pageAfter", afterCursor);
+      // we can't use both pageBefore and pageAfter at the same time, that's why I'm using 'else if'
+    } else if (beforeCursor != null && !beforeCursor.isEmpty()) {
+      queryParams.put("pageBefore", beforeCursor);
+    }
+
+    return getWebClient(true)
+        .get()
+        .uri(NettyHttpClient.buildUri("/v1/payouts", queryParams))
+        .responseSingle(handleResponseSingle())
+        .map(body -> gson.fromJson(body, CirclePayoutListResponse.class));
   }
 
   /**
@@ -278,8 +321,72 @@ public class CirclePaymentService implements PaymentService {
   public Mono<PaymentHistory> getAccountPaymentHistory(
       String accountID, @Nullable String beforeCursor, @Nullable String afterCursor)
       throws HttpException {
-    // TODO: implement
-    return null;
+    // TODO: implement /v1/payments as well
+    // Parse cursor
+    String beforeTransfer = null, afterTransfer = null, beforePayout = null, afterPayout = null;
+    if (beforeCursor != null) {
+      String[] beforeCursors = beforeCursor.split(":");
+      if (beforeCursors.length < 2) {
+        throw new HttpException(400, "invalid before cursor");
+      }
+      beforeTransfer = beforeCursors[0];
+      beforePayout = beforeCursors[1];
+    }
+    if (afterCursor != null) {
+      String[] afterCursors = afterCursor.split(":");
+      if (afterCursors.length < 2) {
+        throw new HttpException(400, "invalid after cursor");
+      }
+      afterTransfer = afterCursors[0];
+      afterPayout = afterCursors[1];
+    }
+
+    int pageSize = 50;
+    return Mono.zip(
+            getDistributionAccountAddress(),
+            getTransfers(accountID, beforeTransfer, afterTransfer, pageSize),
+            getPayouts(accountID, beforePayout, afterPayout, pageSize))
+        .map(
+            args -> {
+              String distributionAccId = args.getT1();
+              Account account =
+                  new Account(
+                      Network.CIRCLE,
+                      accountID,
+                      new Account.Capabilities(Network.CIRCLE, Network.STELLAR));
+              account.capabilities.set(Network.BANK_WIRE, distributionAccId.equals(account.id));
+
+              PaymentHistory transfersHistory =
+                  args.getT2().toPaymentHistory(pageSize, account, distributionAccId);
+              PaymentHistory payoutsHistory = args.getT3().toPaymentHistory(pageSize, account);
+              PaymentHistory result = new PaymentHistory(account);
+
+              String befTransfer = transfersHistory.getBeforeCursor();
+              String befPayout = payoutsHistory.getBeforeCursor();
+              if (befTransfer != null || befPayout != null) {
+                result.setBeforeCursor(befTransfer + ":" + befPayout);
+              }
+
+              String aftTransfer = transfersHistory.getAfterCursor();
+              String aftPayout = payoutsHistory.getAfterCursor();
+              if (aftTransfer != null || aftPayout != null) {
+                result.setAfterCursor(aftTransfer + ":" + aftPayout);
+              }
+
+              List<Payment> allPayments = new ArrayList<>();
+              allPayments.addAll(transfersHistory.getPayments());
+              allPayments.addAll(payoutsHistory.getPayments());
+              allPayments =
+                  allPayments.stream()
+                      .sorted((p1, p2) -> p2.getCreatedAt().compareTo(p1.getCreatedAt()))
+                      .collect(Collectors.toList());
+              for (Payment p : allPayments) {
+                updatePaymentWireCapability(p, distributionAccId);
+              }
+              result.setPayments(allPayments);
+
+              return result;
+            });
   }
 
   /**
@@ -356,27 +463,19 @@ public class CirclePaymentService implements PaymentService {
             source, destination, balance, UUID.randomUUID().toString());
     String jsonBody = gson.toJson(req);
 
-    Mono<Payment> sendTransferMono =
-        getWebClient(true)
-            .post()
-            .uri("/v1/transfers")
-            .send(ByteBufMono.fromString(Mono.just(jsonBody)))
-            .responseSingle(
-                (postResponse, bodyBytesMono) -> {
-                  if (postResponse.status().code() >= 400) {
-                    return handleCircleError(postResponse, bodyBytesMono);
-                  }
-
-                  return bodyBytesMono.asString();
-                })
-            .map(
-                body -> {
-                  CircleTransferResponse transfer =
-                      gson.fromJson(body, CircleTransferResponse.class);
-                  return transfer.getData().toPayment();
-                });
-
-    return updatePaymentWireCapability(sendTransferMono);
+    return getWebClient(true)
+        .post()
+        .uri("/v1/transfers")
+        .send(ByteBufMono.fromString(Mono.just(jsonBody)))
+        .responseSingle(handleResponseSingle())
+        .flatMap(body -> Mono.zip(getDistributionAccountAddress(), Mono.just(body)))
+        .map(
+            args -> {
+              String distributionAccountId = args.getT1();
+              String body = args.getT2();
+              CircleTransferResponse transfer = gson.fromJson(body, CircleTransferResponse.class);
+              return transfer.getData().toPayment(distributionAccountId);
+            });
   }
 
   /**
@@ -406,57 +505,33 @@ public class CirclePaymentService implements PaymentService {
             source, destination, balance, UUID.randomUUID().toString());
     String jsonBody = gson.toJson(req);
 
-    Mono<Payment> sendPayoutMono =
-        getWebClient(true)
-            .post()
-            .uri("/v1/payouts")
-            .send(ByteBufMono.fromString(Mono.just(jsonBody)))
-            .responseSingle(
-                (postResponse, bodyBytesMono) -> {
-                  if (postResponse.status().code() >= 400) {
-                    return handleCircleError(postResponse, bodyBytesMono);
-                  }
-
-                  return bodyBytesMono.asString();
-                })
-            .map(
-                body -> {
-                  CirclePayoutResponse payout = gson.fromJson(body, CirclePayoutResponse.class);
-                  return payout.getData().toPayment();
-                });
-
-    return updatePaymentWireCapability(sendPayoutMono);
+    return getWebClient(true)
+        .post()
+        .uri("/v1/payouts")
+        .send(ByteBufMono.fromString(Mono.just(jsonBody)))
+        .responseSingle(handleResponseSingle())
+        .map(
+            body -> {
+              CirclePayoutResponse payout = gson.fromJson(body, CirclePayoutResponse.class);
+              return payout.getData().toPayment();
+            });
   }
 
-  /**
-   * Executes a Mono&lt;Payment&gt; reactive stream and updates the resulting payment source &
-   * destination accounts BANK_WIRE capability if any of them is the distribution account.
-   *
-   * @param sendPaymentMono Is a reactive stream that returns a Payment object.
-   * @return a Mono&lt;Payment&gt; the same result from the input parameter with updated accounts
-   *     BANK_WIRE capabilities.
-   */
-  private Mono<Payment> updatePaymentWireCapability(Mono<Payment> sendPaymentMono) {
-    return Mono.zip(getDistributionAccountAddress(), sendPaymentMono)
-        .map(
-            args -> {
-              String distributionAccountId = args.getT1();
-              Payment payment = args.getT2();
+  private void updatePaymentWireCapability(Payment payment, String distributionAccountId) {
+    if (distributionAccountId == null) {
+      return;
+    }
 
-              // fill source account level
-              Account sourceAcc = payment.getSourceAccount();
-              sourceAcc.capabilities.set(
-                  Network.BANK_WIRE, sourceAcc.id.equals(distributionAccountId));
+    // fill source account level
+    Account sourceAcc = payment.getSourceAccount();
+    sourceAcc.capabilities.set(Network.BANK_WIRE, distributionAccountId.equals(sourceAcc.id));
 
-              // fill destination account level
-              Account destinationAcc = payment.getDestinationAccount();
-              Boolean isDestinationWireEnabled =
-                  destinationAcc.network.equals(Network.BANK_WIRE)
-                      || destinationAcc.id.equals(distributionAccountId);
-              destinationAcc.capabilities.set(Network.BANK_WIRE, isDestinationWireEnabled);
-
-              return payment;
-            });
+    // fill destination account level
+    Account destinationAcc = payment.getDestinationAccount();
+    Boolean isDestinationWireEnabled =
+        destinationAcc.network.equals(Network.BANK_WIRE)
+            || distributionAccountId.equals(destinationAcc.id);
+    destinationAcc.capabilities.set(Network.BANK_WIRE, isDestinationWireEnabled);
   }
 
   /**
@@ -482,7 +557,8 @@ public class CirclePaymentService implements PaymentService {
 
     String rawCurrencyName =
         currencyName.replace(destinationAccount.network.getCurrencyPrefix() + ":", "");
-    CircleBalance circleBalance = new CircleBalance(rawCurrencyName, amount.toString());
+    CircleBalance circleBalance =
+        new CircleBalance(rawCurrencyName, amount.toString(), stellarNetwork);
 
     switch (destinationAccount.network) {
       case CIRCLE:

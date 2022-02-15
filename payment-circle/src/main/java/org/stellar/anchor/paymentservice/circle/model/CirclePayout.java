@@ -1,6 +1,6 @@
 package org.stellar.anchor.paymentservice.circle.model;
 
-import com.google.gson.Gson;
+import com.google.gson.*;
 import com.google.gson.annotations.SerializedName;
 import java.lang.reflect.Type;
 import java.util.Date;
@@ -26,6 +26,7 @@ public class CirclePayout {
   Date createDate;
   Map<String, String> riskEvaluation;
   Map<String, Map<String, String>> adjustments;
+  Map<String, ?> originalResponse;
 
   @SerializedName("return")
   Map<String, ?> returnVal;
@@ -38,22 +39,35 @@ public class CirclePayout {
             Network.CIRCLE,
             sourceWalletId,
             new Account.Capabilities(Network.CIRCLE, Network.STELLAR, Network.BANK_WIRE)));
-    Account destinationAccount = destination.toAccount();
+    Account destinationAccount = destination.toAccount(null);
     p.setDestinationAccount(destinationAccount);
     p.setBalance(amount.toBalance(destinationAccount.network));
     p.setStatus(status.toPaymentStatus());
     p.setErrorCode(errorCode);
     p.setCreatedAt(createDate);
     p.setUpdatedAt(updateDate);
-
-    Gson gson = new Gson();
-    String jsonString = gson.toJson(this);
-    Type type = new TypeToken<Map<String, ?>>() {}.getType();
-    Map<String, Object> map = gson.fromJson(jsonString, type);
-    map.put("createDate", CircleDateFormatter.dateToString(createDate));
-    map.put("updateDate", CircleDateFormatter.dateToString(updateDate));
-    p.setOriginalResponse(map);
+    p.setOriginalResponse(originalResponse);
 
     return p;
+  }
+
+  public static class Deserializer implements JsonDeserializer<CirclePayout> {
+    @Override
+    public CirclePayout deserialize(
+        JsonElement json, Type typeOfT, JsonDeserializationContext context)
+        throws JsonParseException {
+      JsonObject jsonObject = json.getAsJsonObject();
+      Gson gson = new Gson();
+      CirclePayout payout = gson.fromJson(jsonObject, CirclePayout.class);
+
+      Type type = new TypeToken<Map<String, ?>>() {}.getType();
+      Map<String, Object> originalResponse = gson.fromJson(jsonObject, type);
+      String createDateStr = CircleDateFormatter.dateToString(payout.getCreateDate());
+      originalResponse.put("createDate", createDateStr);
+      String updateDateStr = CircleDateFormatter.dateToString(payout.getUpdateDate());
+      originalResponse.put("updateDate", updateDateStr);
+      payout.setOriginalResponse(originalResponse);
+      return payout;
+    }
   }
 }

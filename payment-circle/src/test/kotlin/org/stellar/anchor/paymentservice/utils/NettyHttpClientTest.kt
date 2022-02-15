@@ -1,45 +1,23 @@
 package org.stellar.anchor.paymentservice.utils
 
-internal class NettyHttpClientTest {
-  //    private lateinit var server: MockWebServer
-  //    private lateinit var httpClient: HttpClient
-  //
-  //    @BeforeEach
-  //    @Throws(IOException::class)
-  //    fun setUp() {
-  //        server = MockWebServer()
-  //        server.start()
-  //        val baseUrl = server.url("").toString()
-  //        httpClient = NettyHttpClient.withBaseUrl(baseUrl)
-  //    }
-  //
-  //    @AfterEach
-  //    fun tearDown() {
-  //        server.shutdown()
-  //    }
-  //
-  //    @Test
-  //    fun testHttpClient_readTimeoutResponse() {
-  //        val timeoutResponse = MockResponse()
-  //            .setBody("{\"foo\": \"bar\"}")
-  //            .setBodyDelay(16, TimeUnit.SECONDS)
-  //        server.enqueue(timeoutResponse)
-  //
-  //        assertThrows<ReadTimeoutException> {
-  // httpClient.get().responseContent().aggregate().asString().block() }
-  //    }
-  //
-  //    @Test
-  //    @Timeout(value = 5500, unit = TimeUnit.MILLISECONDS)
-  //    fun testHttpClient_connectionTimeout() {
-  //
-  // server.enqueue(MockResponse().setSocketPolicy(SocketPolicy.SHUTDOWN_SERVER_AFTER_RESPONSE))
-  //
-  //        // throws from the second time onwards because of the option
-  // SocketPolicy.SHUTDOWN_SERVER_AFTER_RESPONSE
-  //        assertDoesNotThrow { httpClient.get().responseContent().aggregate().asString().block() }
-  //        val ex = assertThrows<RuntimeException> {
-  // httpClient.get().responseContent().aggregate().asString().block() }
-  //        assertNotEquals(-1, ExceptionUtils.indexOfThrowable(ex, ConnectException::class.java))
-  //    }
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Test
+import org.stellar.anchor.paymentservice.circle.util.NettyHttpClient
+
+class NettyHttpClientTest {
+  @Test
+  fun testBuildUri() {
+    assertEquals("/", NettyHttpClient.buildUri(null, null))
+    assertEquals("/foo", NettyHttpClient.buildUri("/foo", null))
+    assertEquals("/foo", NettyHttpClient.buildUri("foo", null))
+    assertEquals("/foo/bar", NettyHttpClient.buildUri("foo/bar", null))
+    assertEquals("/foo/bar", NettyHttpClient.buildUri("/foo/bar", null))
+
+    assertEquals("/?key1=val1", NettyHttpClient.buildUri(null, linkedMapOf("key1" to "val1")))
+    assertEquals("/foo?key1=val1", NettyHttpClient.buildUri("/foo", linkedMapOf("key1" to "val1")))
+    var queryParams = linkedMapOf("key1" to "val1", "key2" to "val2")
+    assertEquals("/foo?key1=val1&key2=val2", NettyHttpClient.buildUri("/foo", queryParams))
+    queryParams = linkedMapOf("key2" to "val2", "key1" to "val1")
+    assertEquals("/foo?key2=val2&key1=val1", NettyHttpClient.buildUri("/foo", queryParams))
+  }
 }

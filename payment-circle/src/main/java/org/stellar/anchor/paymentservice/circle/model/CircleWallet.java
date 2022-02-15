@@ -23,7 +23,9 @@ public class CircleWallet {
   public Account toAccount() {
     Account account = new Account(Network.CIRCLE, walletId, description, getCapabilities());
     account.setBalances(
-        balances.stream().map(CircleBalance::toBalance).collect(Collectors.toList()));
+        balances.stream()
+            .map(circleBalance -> circleBalance.toBalance(Network.CIRCLE))
+            .collect(Collectors.toList()));
     return account;
   }
 }
