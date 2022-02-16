@@ -1588,6 +1588,12 @@ class CirclePaymentServiceTest {
     wantResponse.data = wantAddresses
 
     assertEquals(wantResponse, response)
+
+    val getRequest = server.takeRequest()
+    assertThat(getRequest.path, CoreMatchers.endsWith("/v1/wallets/1000066041/addresses"))
+    assertEquals("GET", getRequest.method)
+    assertEquals("application/json", getRequest.headers["Content-Type"])
+    assertEquals("Bearer <secret-key>", getRequest.headers["Authorization"])
   }
 
   @Test
@@ -1623,6 +1629,62 @@ class CirclePaymentServiceTest {
     assertEquals(wantResponse, response)
 
     val request = server.takeRequest()
+    assertThat(request.path, CoreMatchers.endsWith("/v1/wallets/1000066041/addresses"))
+    assertEquals("POST", request.method)
+    assertEquals("application/json", request.headers["Content-Type"])
+    assertEquals("Bearer <secret-key>", request.headers["Authorization"])
+    val gotBody = request.body.readUtf8()
+    val wantBody = """{"currency": "USD", "chain": "XLM"}"""
+    JSONAssert.assertEquals(wantBody, gotBody, false)
+  }
+
+  @Test
+  fun test_getOrCreateStellarAddress() {
+    val dispatcher: Dispatcher =
+      object : Dispatcher() {
+        @Throws(InterruptedException::class)
+        override fun dispatch(request: RecordedRequest): MockResponse {
+
+          if (request.path == "/v1/wallets/1000066041/addresses" && request.method == "GET") {
+            return MockResponse()
+              .addHeader("Content-Type", "application/json")
+              .setBody("""{"data": []}""")
+          }
+
+          if (request.path == "/v1/wallets/1000066041/addresses" && request.method == "POST") {
+            return MockResponse()
+              .addHeader("Content-Type", "application/json")
+              .setBody("""{"data":$mockAddressJson}""")
+          }
+
+          return MockResponse().setResponseCode(404)
+        }
+      }
+    server.dispatcher = dispatcher
+
+    val service = this.service as CirclePaymentService
+    var address: CircleBlockchainAddress? = null
+    assertDoesNotThrow { address = service.getOrCreateStellarAddress("1000066041").block() }
+
+    val wantAddress =
+      CircleBlockchainAddress(
+        "GAYF33NNNMI2Z6VNRFXQ64D4E4SF77PM46NW3ZUZEEU5X7FCHAZCMHKU",
+        "2454278437550473431",
+        "USD",
+        "XLM"
+      )
+    assertEquals(wantAddress, address)
+
+    assertEquals(2, server.requestCount)
+
+    val getRequest = server.takeRequest()
+    assertThat(getRequest.path, CoreMatchers.endsWith("/v1/wallets/1000066041/addresses"))
+    assertEquals("GET", getRequest.method)
+    assertEquals("application/json", getRequest.headers["Content-Type"])
+    assertEquals("Bearer <secret-key>", getRequest.headers["Authorization"])
+
+    val request = server.takeRequest()
+    assertThat(request.path, CoreMatchers.endsWith("/v1/wallets/1000066041/addresses"))
     assertEquals("POST", request.method)
     assertEquals("application/json", request.headers["Content-Type"])
     assertEquals("Bearer <secret-key>", request.headers["Authorization"])

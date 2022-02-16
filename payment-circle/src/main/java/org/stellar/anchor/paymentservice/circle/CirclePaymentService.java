@@ -582,6 +582,21 @@ public class CirclePaymentService
         .map(body -> gson.fromJson(body, CircleBlockchainAddressCreateResponse.class));
   }
 
+  public Mono<CircleBlockchainAddress> getOrCreateStellarAddress(@NonNull String walletId) {
+    return getListOfAddresses(walletId)
+        .flatMap(
+            addressListResponse -> {
+              for (CircleBlockchainAddress address : addressListResponse.getData()) {
+                if (address.getChain().equals("XLM") && address.getCurrency().equals("USD")) {
+                  return Mono.just(address);
+                }
+              }
+
+              return createNewStellarAddress(walletId)
+                  .map(CircleBlockchainAddressCreateResponse::getData);
+            });
+  }
+
   /**
    * API request that returns the info needed to make a deposit into a user account. This method
    * will be needed if the implementation allows users to make deposits using external networks. For
