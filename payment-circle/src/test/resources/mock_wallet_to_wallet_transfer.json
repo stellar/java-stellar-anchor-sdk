@@ -1,0 +1,17 @@
+{
+  "id":"c58e2613-a808-4075-956c-e576787afb3b",
+  "source":{
+    "type":"wallet",
+    "id":"1000066041"
+  },
+  "destination":{
+    "type":"wallet",
+    "id":"1000067536"
+  },
+  "amount":{
+    "amount":"0.91",
+    "currency":"USD"
+  },
+  "status":"pending",
+  "createDate":"2022-02-07T19:50:23.408Z"
+}

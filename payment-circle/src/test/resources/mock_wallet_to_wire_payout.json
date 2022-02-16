@@ -1,0 +1,20 @@
+{
+  "id":"6588a352-5131-4711-a264-e405f38d752d",
+  "amount":{
+    "amount":"3.00",
+    "currency":"USD"
+  },
+  "status":"complete",
+  "sourceWalletId":"1000066041",
+  "destination":{
+    "type":"wire",
+    "id":"6c87da10-feb8-484f-822c-2083ed762d25",
+    "name":"JPMORGAN CHASE BANK, NA ****6789"
+  },
+  "fees":{
+    "amount":"25.00",
+    "currency":"USD"
+  },
+  "createDate":"2022-02-03T15:41:25.286Z",
+  "updateDate":"2022-02-03T16:00:31.697Z"
+}
