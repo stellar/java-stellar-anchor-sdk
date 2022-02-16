@@ -48,7 +48,9 @@ public class DepositRequirements {
    * @param intermediaryPaymentNetwork The network where the deposit will be made. After the deposit
    *     is performed on that network it will be reflected in the beneficiary user balance
    * @param currencyName The name of the currency that will be ultimately credited into the
-   *     beneficiary user account.
+   *     beneficiary user account. For example, if you want the instructions to receive USD credits
+   *     in a Circle account upon receiving a Stellar payment, the currency name would be
+   *     "circle:USD".
    */
   public DepositRequirements(
       String beneficiaryAccountId, PaymentNetwork intermediaryPaymentNetwork, String currencyName) {
@@ -64,7 +66,9 @@ public class DepositRequirements {
    * @param intermediaryPaymentNetwork The network where the deposit will be made. After the deposit
    *     is performed on that network it will be reflected in the beneficiary user balance
    * @param currencyName The name of the currency that will be ultimately credited into the
-   *     beneficiary user account.
+   *     beneficiary user account. For example, if you want the instructions to receive USD credits
+   *     in a Circle account upon receiving a Stellar payment, the currency name would be
+   *     "circle:USD".
    */
   public DepositRequirements(
       String beneficiaryAccountId,

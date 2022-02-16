@@ -21,6 +21,8 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
+import org.junit.jupiter.params.provider.EnumSource
+import org.junit.jupiter.params.provider.NullSource
 import org.skyscreamer.jsonassert.JSONAssert
 import org.stellar.anchor.exception.HttpException
 import org.stellar.anchor.paymentservice.*
@@ -1691,6 +1693,32 @@ class CirclePaymentServiceTest {
     val gotBody = request.body.readUtf8()
     val wantBody = """{"currency": "USD", "chain": "XLM"}"""
     JSONAssert.assertEquals(wantBody, gotBody, false)
+  }
+
+  @ParameterizedTest
+  @NullSource
+  @EnumSource(value = PaymentNetwork::class, mode = EnumSource.Mode.EXCLUDE, names = ["STELLAR"])
+  fun test_getDepositInstructions_parameterValidation(paymentNetwork: PaymentNetwork?) {
+    // empty beneficiary account id
+    var config = DepositRequirements(null, null, null, null)
+    var ex: HttpException = assertThrows { service.getDepositInstructions(config).block() }
+    assertEquals(HttpException(400, "beneficiary account id cannot be empty"), ex)
+
+    // invalid currency name
+    config = DepositRequirements("1000066041", null, null, null)
+    ex = assertThrows { service.getDepositInstructions(config).block() }
+    assertEquals(
+      HttpException(400, "the only receiving currency in a circle account is \"circle:USD\""),
+      ex
+    )
+
+    // unsupported intermediary payment network
+    config = DepositRequirements("1000066041", null, paymentNetwork, "circle:USD")
+    ex = assertThrows { service.getDepositInstructions(config).block() }
+    assertEquals(
+      HttpException(400, "the only supported intermediary payment network is \"stellar\"."),
+      ex
+    )
   }
 
   @Test

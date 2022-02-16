@@ -628,7 +628,28 @@ public class CirclePaymentService
    */
   public Mono<DepositInstructions> getDepositInstructions(DepositRequirements config)
       throws HttpException {
+    validateDepositRequirements(config);
+
     // TODO: implement
     return null;
+  }
+
+  private void validateDepositRequirements(DepositRequirements config) throws HttpException {
+    String beneficiaryId = config.getBeneficiaryAccountId();
+    if (beneficiaryId == null || beneficiaryId.isEmpty()) {
+      throw new HttpException(400, "beneficiary account id cannot be empty");
+    }
+
+    if (!"circle:USD".equals(config.getCurrencyName())) {
+      throw new HttpException(
+          400, "the only receiving currency in a circle account is \"circle:USD\"");
+    }
+
+    PaymentNetwork intermediaryNetwork = config.getIntermediaryPaymentNetwork();
+    if (intermediaryNetwork == null
+        || !List.of(PaymentNetwork.STELLAR).contains(intermediaryNetwork)) {
+      throw new HttpException(
+          400, "the only supported intermediary payment network is \"stellar\".");
+    }
   }
 }
