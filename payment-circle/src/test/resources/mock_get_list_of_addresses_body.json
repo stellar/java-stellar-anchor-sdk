@@ -1,0 +1,21 @@
+{
+  "data":[
+    {
+      "address":"GAYF33NNNMI2Z6VNRFXQ64D4E4SF77PM46NW3ZUZEEU5X7FCHAZCMHKU",
+      "addressTag":"2454278437550473431",
+      "currency":"USD",
+      "chain":"XLM"
+    },
+    {
+      "address":"GAYF33NNNMI2Z6VNRFXQ64D4E4SF77PM46NW3ZUZEEU5X7FCHAZCMHKU",
+      "addressTag":"4560730744420812493",
+      "currency":"USD",
+      "chain":"XLM"
+    },
+    {
+      "address":"TLiSMwSrVp8YZaqt7RRcAZoptT1kmpA9sC",
+      "currency":"USD",
+      "chain":"TRX"
+    }
+  ]
+}

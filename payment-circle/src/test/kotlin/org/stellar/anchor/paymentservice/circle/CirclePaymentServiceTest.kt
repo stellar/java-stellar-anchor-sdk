@@ -25,7 +25,9 @@ import org.skyscreamer.jsonassert.JSONAssert
 import org.stellar.anchor.exception.HttpException
 import org.stellar.anchor.paymentservice.*
 import org.stellar.anchor.paymentservice.circle.config.CirclePaymentConfig
+import org.stellar.anchor.paymentservice.circle.model.CircleBlockchainAddress
 import org.stellar.anchor.paymentservice.circle.model.CircleWallet
+import org.stellar.anchor.paymentservice.circle.model.response.CircleBlockchainAddressListResponse
 import org.stellar.anchor.paymentservice.circle.util.CircleDateFormatter
 import org.stellar.anchor.util.FileUtil
 import org.stellar.sdk.Server
@@ -37,8 +39,6 @@ import shadow.com.google.common.reflect.TypeToken
 
 class CirclePaymentServiceTest {
   companion object {
-    val TESTNET: org.stellar.sdk.Network = org.stellar.sdk.Network.TESTNET
-
     val mockWalletToWalletTransferJson: String =
       FileUtil.getResourceFileAsString("mock_wallet_to_wallet_transfer.json")
 
@@ -56,6 +56,9 @@ class CirclePaymentServiceTest {
 
     val mockStellarPathPaymentResponsePageBody: String =
       FileUtil.getResourceFileAsString("mock_stellar_path_payment_response_page_body.json")
+
+    val mockGetListOfAddressesBody: String =
+      FileUtil.getResourceFileAsString("mock_get_list_of_addresses_body.json")
   }
 
   private lateinit var server: MockWebServer
@@ -1436,7 +1439,7 @@ class CirclePaymentServiceTest {
             "/transactions/fb8947c67856d8eb444211c1927d92bcf14abcfb34cdd27fc9e604b15d208fd1/payments" ->
               return MockResponse()
                 .addHeader("Content-Type", "application/json")
-                .setBody(mockStellarPaymentResponsePageBody)
+                .setBody(mockStellarPathPaymentResponsePageBody)
           }
           return MockResponse().setResponseCode(404)
         }
@@ -1535,6 +1538,53 @@ class CirclePaymentServiceTest {
     wantPaymentHistory.payments.add(p4)
 
     assertEquals(wantPaymentHistory, paymentHistory)
+  }
+
+  @Test
+  fun test_getListOfAddresses() {
+    val dispatcher: Dispatcher =
+      object : Dispatcher() {
+        @Throws(InterruptedException::class)
+        override fun dispatch(request: RecordedRequest): MockResponse {
+          when (request.path) {
+            "/v1/wallets/1000066041/addresses" ->
+              return MockResponse()
+                .addHeader("Content-Type", "application/json")
+                .setBody(mockGetListOfAddressesBody)
+          }
+          return MockResponse().setResponseCode(404)
+        }
+      }
+    server.dispatcher = dispatcher
+
+    val service = this.service as CirclePaymentService
+    var response: CircleBlockchainAddressListResponse? = null
+    assertDoesNotThrow { response = service.getListOfAddresses("1000066041").block() }
+
+    val wantAddresses = ArrayList<CircleBlockchainAddress>()
+    wantAddresses.add(
+      CircleBlockchainAddress(
+        "GAYF33NNNMI2Z6VNRFXQ64D4E4SF77PM46NW3ZUZEEU5X7FCHAZCMHKU",
+        "2454278437550473431",
+        "USD",
+        "XLM"
+      )
+    )
+    wantAddresses.add(
+      CircleBlockchainAddress(
+        "GAYF33NNNMI2Z6VNRFXQ64D4E4SF77PM46NW3ZUZEEU5X7FCHAZCMHKU",
+        "4560730744420812493",
+        "USD",
+        "XLM"
+      )
+    )
+    wantAddresses.add(
+      CircleBlockchainAddress("TLiSMwSrVp8YZaqt7RRcAZoptT1kmpA9sC", null, "USD", "TRX")
+    )
+    val wantResponse = CircleBlockchainAddressListResponse()
+    wantResponse.data = wantAddresses
+
+    assertEquals(wantResponse, response)
   }
 
   @Test

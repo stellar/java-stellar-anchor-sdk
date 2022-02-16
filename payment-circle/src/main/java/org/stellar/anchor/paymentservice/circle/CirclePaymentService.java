@@ -559,6 +559,14 @@ public class CirclePaymentService
     }
   }
 
+  public Mono<CircleBlockchainAddressListResponse> getListOfAddresses(String walletId) {
+    return getWebClient(true)
+        .get()
+        .uri("/v1/wallets/" + walletId + "/addresses")
+        .responseSingle(handleResponseSingle())
+        .map(body -> gson.fromJson(body, CircleBlockchainAddressListResponse.class));
+  }
+
   /**
    * API request that returns the info needed to make a deposit into a user account. This method
    * will be needed if the implementation allows users to make deposits using external networks. For
