@@ -597,6 +597,25 @@ public class CirclePaymentService
             });
   }
 
+  public Mono<CircleBankWireListResponse> getListOfWireAccounts(@NonNull String walletId) {
+    return getDistributionAccountAddress()
+        .flatMap(
+            distributionAccountId -> {
+              if (!distributionAccountId.equals(walletId)) {
+                return Mono.error(
+                    new HttpException(
+                        400,
+                        "in circle, only the distribution account id can receive wire payments"));
+              }
+
+              return getWebClient(true)
+                  .get()
+                  .uri("/v1/businessAccount/banks/wires")
+                  .responseSingle(handleResponseSingle())
+                  .map(body -> gson.fromJson(body, CircleBankWireListResponse.class));
+            });
+  }
+
   /**
    * API request that returns the info needed to make a deposit into a user account. This method
    * will be needed if the implementation allows users to make deposits using external networks. For

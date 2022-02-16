@@ -28,8 +28,10 @@ import org.stellar.anchor.exception.HttpException
 import org.stellar.anchor.paymentservice.*
 import org.stellar.anchor.paymentservice.circle.config.CirclePaymentConfig
 import org.stellar.anchor.paymentservice.circle.model.CircleBalance
+import org.stellar.anchor.paymentservice.circle.model.CircleBankWireAccount
 import org.stellar.anchor.paymentservice.circle.model.CircleBlockchainAddress
 import org.stellar.anchor.paymentservice.circle.model.CircleWallet
+import org.stellar.anchor.paymentservice.circle.model.response.CircleBankWireListResponse
 import org.stellar.anchor.paymentservice.circle.model.response.CircleBlockchainAddressCreateResponse
 import org.stellar.anchor.paymentservice.circle.model.response.CircleBlockchainAddressListResponse
 import org.stellar.anchor.paymentservice.circle.util.CircleDateFormatter
@@ -64,6 +66,9 @@ class CirclePaymentServiceTest {
 
     val mockGetListOfAddressesBody: String =
       FileUtil.getResourceFileAsString("mock_get_list_of_addresses_body.json")
+
+    val mockGetListOfWireAccountsBody: String =
+      FileUtil.getResourceFileAsString("mock_get_list_of_wire_accounts_body.json")
 
     val mockAddressJson: String = FileUtil.getResourceFileAsString("mock_address.json")
   }
@@ -1805,6 +1810,94 @@ class CirclePaymentServiceTest {
       )
     assertEquals(wantInstructions, instructions)
     assertEquals(0, server.requestCount)
+  }
+
+  @Test
+  fun test_getListOfWireAccounts() {
+    val dispatcher: Dispatcher =
+      object : Dispatcher() {
+        @Throws(InterruptedException::class)
+        override fun dispatch(request: RecordedRequest): MockResponse {
+          when (request.path) {
+            "/v1/configuration" -> return getDistAccountIdMockResponse()
+            "/v1/businessAccount/banks/wires" ->
+              return MockResponse()
+                .addHeader("Content-Type", "application/json")
+                .setBody(mockGetListOfWireAccountsBody)
+          }
+          return MockResponse().setResponseCode(404)
+        }
+      }
+    server.dispatcher = dispatcher
+
+    val service = this.service as CirclePaymentService
+    var response: CircleBankWireListResponse? = null
+    assertDoesNotThrow { response = service.getListOfWireAccounts("1000066041").block() }
+
+    val wantWireAccount = CircleBankWireAccount()
+    wantWireAccount.id = "8f6cd3bc-fd21-45ac-b1f0-7534d3b78949"
+    wantWireAccount.status = "complete"
+    wantWireAccount.description = "JPMORGAN CHASE BANK, NA ****6789"
+    wantWireAccount.trackingRef = "CIR3PTK2AE"
+    wantWireAccount.fingerprint = "1f68fda7-6183-47fc-aecf-55f564535e6f"
+    wantWireAccount.createDate = CircleDateFormatter.stringToDate("2021-11-24T20:19:03.852Z")
+    wantWireAccount.updateDate = CircleDateFormatter.stringToDate("2021-11-25T16:00:00.743Z")
+    val billingDetails = CircleBankWireAccount.BillingDetails()
+    billingDetails.name = "Satoshi Nakamoto"
+    billingDetails.line1 = "100 Money Street"
+    billingDetails.line2 = "Suite 1"
+    billingDetails.city = "Boston"
+    billingDetails.postalCode = "01234"
+    billingDetails.district = "MA"
+    billingDetails.country = "US"
+    wantWireAccount.billingDetails = billingDetails
+    val bankAddress = CircleBankWireAccount.BankAddress()
+    bankAddress.bankName = "JPMORGAN CHASE BANK, NA"
+    bankAddress.line1 = "100 Money Street"
+    bankAddress.line2 = "Suite 1"
+    bankAddress.city = "NEW YORK"
+    bankAddress.district = "NY"
+    bankAddress.country = "US"
+    wantWireAccount.bankAddress = bankAddress
+
+    val wantResponse = CircleBankWireListResponse()
+    wantResponse.data = listOf(wantWireAccount)
+    assertEquals(wantResponse, response)
+
+    assertEquals(2, server.requestCount)
+
+    val validateSecretKeyRequest = server.takeRequest()
+    assertEquals("GET", validateSecretKeyRequest.method)
+    assertEquals("application/json", validateSecretKeyRequest.headers["Content-Type"])
+    assertEquals("Bearer <secret-key>", validateSecretKeyRequest.headers["Authorization"])
+    assertTrue(validateSecretKeyRequest.path!!.endsWith("/v1/configuration"))
+
+    val getWiresRequest = server.takeRequest()
+    assertThat(getWiresRequest.path, CoreMatchers.endsWith("/v1/businessAccount/banks/wires"))
+    assertEquals("GET", getWiresRequest.method)
+    assertEquals("application/json", getWiresRequest.headers["Content-Type"])
+    assertEquals("Bearer <secret-key>", getWiresRequest.headers["Authorization"])
+  }
+
+  @Test
+  fun test_getListOfWireAccounts_notTheDistributionAccount() {
+    val dispatcher: Dispatcher =
+      object : Dispatcher() {
+        @Throws(InterruptedException::class)
+        override fun dispatch(request: RecordedRequest): MockResponse {
+          when (request.path) {
+            "/v1/configuration" -> return getDistAccountIdMockResponse()
+          }
+          return MockResponse().setResponseCode(404)
+        }
+      }
+    server.dispatcher = dispatcher
+
+    val service = this.service as CirclePaymentService
+    val ex: HttpException = assertThrows { service.getListOfWireAccounts("1000646072").block() }
+    val wantException =
+      HttpException(400, "in circle, only the distribution account id can receive wire payments")
+    assertEquals(wantException, ex)
   }
 
   @Test
