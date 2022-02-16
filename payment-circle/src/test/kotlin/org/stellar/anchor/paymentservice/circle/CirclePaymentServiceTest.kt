@@ -27,6 +27,7 @@ import org.stellar.anchor.paymentservice.*
 import org.stellar.anchor.paymentservice.circle.config.CirclePaymentConfig
 import org.stellar.anchor.paymentservice.circle.model.CircleBlockchainAddress
 import org.stellar.anchor.paymentservice.circle.model.CircleWallet
+import org.stellar.anchor.paymentservice.circle.model.response.CircleBlockchainAddressCreateResponse
 import org.stellar.anchor.paymentservice.circle.model.response.CircleBlockchainAddressListResponse
 import org.stellar.anchor.paymentservice.circle.util.CircleDateFormatter
 import org.stellar.anchor.util.FileUtil
@@ -59,6 +60,8 @@ class CirclePaymentServiceTest {
 
     val mockGetListOfAddressesBody: String =
       FileUtil.getResourceFileAsString("mock_get_list_of_addresses_body.json")
+
+    val mockAddressJson: String = FileUtil.getResourceFileAsString("mock_address.json")
   }
 
   private lateinit var server: MockWebServer
@@ -1585,6 +1588,47 @@ class CirclePaymentServiceTest {
     wantResponse.data = wantAddresses
 
     assertEquals(wantResponse, response)
+  }
+
+  @Test
+  fun test_createNewStellarAddress() {
+    val dispatcher: Dispatcher =
+      object : Dispatcher() {
+        @Throws(InterruptedException::class)
+        override fun dispatch(request: RecordedRequest): MockResponse {
+          when (request.path) {
+            "/v1/wallets/1000066041/addresses" ->
+              return MockResponse()
+                .addHeader("Content-Type", "application/json")
+                .setBody("""{"data":$mockAddressJson}""")
+          }
+          return MockResponse().setResponseCode(404)
+        }
+      }
+    server.dispatcher = dispatcher
+
+    val service = this.service as CirclePaymentService
+    var response: CircleBlockchainAddressCreateResponse? = null
+    assertDoesNotThrow { response = service.createNewStellarAddress("1000066041").block() }
+
+    val wantResponse = CircleBlockchainAddressCreateResponse()
+    wantResponse.data =
+      CircleBlockchainAddress(
+        "GAYF33NNNMI2Z6VNRFXQ64D4E4SF77PM46NW3ZUZEEU5X7FCHAZCMHKU",
+        "2454278437550473431",
+        "USD",
+        "XLM"
+      )
+
+    assertEquals(wantResponse, response)
+
+    val request = server.takeRequest()
+    assertEquals("POST", request.method)
+    assertEquals("application/json", request.headers["Content-Type"])
+    assertEquals("Bearer <secret-key>", request.headers["Authorization"])
+    val gotBody = request.body.readUtf8()
+    val wantBody = """{"currency": "USD", "chain": "XLM"}"""
+    JSONAssert.assertEquals(wantBody, gotBody, false)
   }
 
   @Test

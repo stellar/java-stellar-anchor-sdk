@@ -559,12 +559,27 @@ public class CirclePaymentService
     }
   }
 
-  public Mono<CircleBlockchainAddressListResponse> getListOfAddresses(String walletId) {
+  public Mono<CircleBlockchainAddressListResponse> getListOfAddresses(@NonNull String walletId) {
     return getWebClient(true)
         .get()
         .uri("/v1/wallets/" + walletId + "/addresses")
         .responseSingle(handleResponseSingle())
         .map(body -> gson.fromJson(body, CircleBlockchainAddressListResponse.class));
+  }
+
+  public Mono<CircleBlockchainAddressCreateResponse> createNewStellarAddress(
+      @NonNull String walletId) {
+    JsonObject postBody = new JsonObject();
+    postBody.addProperty("idempotencyKey", UUID.randomUUID().toString());
+    postBody.addProperty("currency", "USD");
+    postBody.addProperty("chain", "XLM");
+
+    return getWebClient(true)
+        .post()
+        .send(ByteBufMono.fromString(Mono.just(postBody.toString())))
+        .uri("/v1/wallets/" + walletId + "/addresses")
+        .responseSingle(handleResponseSingle())
+        .map(body -> gson.fromJson(body, CircleBlockchainAddressCreateResponse.class));
   }
 
   /**
