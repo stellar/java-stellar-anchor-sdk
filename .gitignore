@@ -3,3 +3,5 @@ build/
 .idea/
 target/
 *.db
+*/out/**
+*.class

@@ -2,8 +2,26 @@
 
 ## To Run
 ```shell
-./gradlew bootRun -PjvmArgs="-Dstellar.anchor.config=path-to-yaml" 
+./gradlew bootRun -PjvmArgs="-Dstellar.anchor.config=[path-to-yaml]"
+
+# An example
+./gradlew bootRun -PjvmArgs="-Dstellar.anchor.config=file:/etc/anchor-platform/anchor-config.yaml" 
 ```
+
+### Note: `path-to-yaml` 
+
+The `path-to-yaml` is defined similarly in the following format. 
+
+```
+<path-to-yaml> ::= <type>:<location>
+<type> ::= file | url | classpath
+<location> ::= <file-location> | <url> | <classpath-resource>
+```  
+
+Examples:
+* `file:/home/user/.anchor/.anchor-config.yaml`
+* `url:https://localhost:8080/.anchor-config.yaml`
+* `classpath:anchor-config.yaml`
 
 ## Configuration Management
 ### Overall architecture
