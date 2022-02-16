@@ -647,8 +647,9 @@ public class CirclePaymentService
                         null));
 
       case CIRCLE:
-        // TODO: implement for WIRE
-        return null;
+        return Mono.just(
+            DepositInstructions.forCircle(
+                walletId, walletId, null, intermediaryNetwork, "circle:USD", null));
 
       case BANK_WIRE:
         // TODO: implement for WIRE
@@ -672,7 +673,7 @@ public class CirclePaymentService
 
     PaymentNetwork intermediaryNetwork = config.getIntermediaryPaymentNetwork();
     if (intermediaryNetwork == null
-        || !List.of(PaymentNetwork.STELLAR).contains(intermediaryNetwork)) {
+        || !List.of(PaymentNetwork.STELLAR, PaymentNetwork.CIRCLE).contains(intermediaryNetwork)) {
       throw new HttpException(
           400, "the only supported intermediary payment network is \"stellar\".");
     }

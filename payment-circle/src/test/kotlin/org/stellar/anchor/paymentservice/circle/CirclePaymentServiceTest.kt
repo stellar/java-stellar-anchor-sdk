@@ -1699,7 +1699,11 @@ class CirclePaymentServiceTest {
 
   @ParameterizedTest
   @NullSource
-  @EnumSource(value = PaymentNetwork::class, mode = EnumSource.Mode.EXCLUDE, names = ["STELLAR"])
+  @EnumSource(
+    value = PaymentNetwork::class,
+    mode = EnumSource.Mode.EXCLUDE,
+    names = ["STELLAR", "CIRCLE"]
+  )
   fun test_getDepositInstructions_parameterValidation(paymentNetwork: PaymentNetwork?) {
     // empty beneficiary account id
     var config = DepositRequirements(null, null, null, null)
@@ -1780,6 +1784,27 @@ class CirclePaymentServiceTest {
     val gotBody = request.body.readUtf8()
     val wantBody = """{"currency": "USD", "chain": "XLM"}"""
     JSONAssert.assertEquals(wantBody, gotBody, false)
+  }
+
+  @Test
+  fun test_getDepositInstructions_circle() {
+    var instructions: DepositInstructions? = null
+    val config = DepositRequirements("1000066041", null, PaymentNetwork.CIRCLE, "circle:USD")
+    assertDoesNotThrow { instructions = service.getDepositInstructions(config).block() }
+
+    val wantInstructions =
+      DepositInstructions(
+        "1000066041",
+        null,
+        PaymentNetwork.CIRCLE,
+        "1000066041",
+        null,
+        PaymentNetwork.CIRCLE,
+        "circle:USD",
+        null
+      )
+    assertEquals(wantInstructions, instructions)
+    assertEquals(0, server.requestCount)
   }
 
   @Test
