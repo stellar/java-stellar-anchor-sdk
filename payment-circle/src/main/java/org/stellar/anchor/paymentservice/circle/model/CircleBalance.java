@@ -3,6 +3,7 @@ package org.stellar.anchor.paymentservice.circle.model;
 import lombok.Data;
 import org.stellar.anchor.paymentservice.Balance;
 import org.stellar.anchor.paymentservice.PaymentNetwork;
+import org.stellar.sdk.Network;
 import reactor.util.annotation.NonNull;
 
 @Data
@@ -30,6 +31,11 @@ public class CircleBalance {
 
   @NonNull
   public String stellarUSDC() {
+    return CircleBalance.stellarUSDC(this.stellarNetwork);
+  }
+
+  @NonNull
+  public static String stellarUSDC(Network stellarNetwork) {
     if (stellarNetwork == org.stellar.sdk.Network.PUBLIC)
       return "USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN";
 

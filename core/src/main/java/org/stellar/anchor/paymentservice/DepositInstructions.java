@@ -1,5 +1,6 @@
 package org.stellar.anchor.paymentservice;
 
+import java.util.Map;
 import lombok.Data;
 import reactor.util.annotation.Nullable;
 
@@ -55,7 +56,7 @@ public class DepositInstructions {
   String currencyName;
 
   /** Extra information needed to perform the deposit. */
-  @Nullable Object extra;
+  @Nullable Map<String, ?> extra;
 
   /**
    * Constructor for the DepositInstructions class
@@ -82,7 +83,7 @@ public class DepositInstructions {
       @Nullable String intermediaryAccountIdTag,
       PaymentNetwork intermediaryPaymentNetwork,
       String currencyName,
-      @Nullable Object extra) {
+      @Nullable Map<String, ?> extra) {
     this.beneficiaryAccountId = beneficiaryAccountId;
     this.beneficiaryAccountIdTag = beneficiaryAccountIdTag;
     this.beneficiaryPaymentNetwork = beneficiaryPaymentNetwork;
@@ -120,5 +121,23 @@ public class DepositInstructions {
         intermediaryPaymentNetwork,
         currencyName,
         null);
+  }
+
+  public static DepositInstructions forCircle(
+      String walletId,
+      String address,
+      String addressTag,
+      PaymentNetwork intermediaryNetwork,
+      String currencyName,
+      Map<String, ?> extra) {
+    return new DepositInstructions(
+        walletId,
+        null,
+        PaymentNetwork.CIRCLE,
+        address,
+        addressTag,
+        intermediaryNetwork,
+        currencyName,
+        extra);
   }
 }

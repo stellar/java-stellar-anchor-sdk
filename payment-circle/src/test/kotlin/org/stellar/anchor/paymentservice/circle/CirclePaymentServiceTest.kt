@@ -27,12 +27,14 @@ import org.skyscreamer.jsonassert.JSONAssert
 import org.stellar.anchor.exception.HttpException
 import org.stellar.anchor.paymentservice.*
 import org.stellar.anchor.paymentservice.circle.config.CirclePaymentConfig
+import org.stellar.anchor.paymentservice.circle.model.CircleBalance
 import org.stellar.anchor.paymentservice.circle.model.CircleBlockchainAddress
 import org.stellar.anchor.paymentservice.circle.model.CircleWallet
 import org.stellar.anchor.paymentservice.circle.model.response.CircleBlockchainAddressCreateResponse
 import org.stellar.anchor.paymentservice.circle.model.response.CircleBlockchainAddressListResponse
 import org.stellar.anchor.paymentservice.circle.util.CircleDateFormatter
 import org.stellar.anchor.util.FileUtil
+import org.stellar.sdk.Network
 import org.stellar.sdk.Server
 import org.stellar.sdk.responses.GsonSingleton
 import org.stellar.sdk.responses.Page
@@ -1719,6 +1721,65 @@ class CirclePaymentServiceTest {
       HttpException(400, "the only supported intermediary payment network is \"stellar\"."),
       ex
     )
+  }
+
+  @Test
+  fun test_getDepositInstructions_stellar() {
+    val dispatcher: Dispatcher =
+      object : Dispatcher() {
+        @Throws(InterruptedException::class)
+        override fun dispatch(request: RecordedRequest): MockResponse {
+
+          if (request.path == "/v1/wallets/1000066041/addresses" && request.method == "GET") {
+            return MockResponse()
+              .addHeader("Content-Type", "application/json")
+              .setBody("""{"data": []}""")
+          }
+
+          if (request.path == "/v1/wallets/1000066041/addresses" && request.method == "POST") {
+            return MockResponse()
+              .addHeader("Content-Type", "application/json")
+              .setBody("""{"data":$mockAddressJson}""")
+          }
+
+          return MockResponse().setResponseCode(404)
+        }
+      }
+    server.dispatcher = dispatcher
+
+    var instructions: DepositInstructions? = null
+    val config = DepositRequirements("1000066041", null, PaymentNetwork.STELLAR, "circle:USD")
+    assertDoesNotThrow { instructions = service.getDepositInstructions(config).block() }
+
+    val wantInstructions =
+      DepositInstructions(
+        "1000066041",
+        null,
+        PaymentNetwork.CIRCLE,
+        "GAYF33NNNMI2Z6VNRFXQ64D4E4SF77PM46NW3ZUZEEU5X7FCHAZCMHKU",
+        "2454278437550473431",
+        PaymentNetwork.STELLAR,
+        "stellar:" + CircleBalance.stellarUSDC(Network.TESTNET),
+        null
+      )
+    assertEquals(wantInstructions, instructions)
+
+    assertEquals(2, server.requestCount)
+
+    val getRequest = server.takeRequest()
+    assertThat(getRequest.path, CoreMatchers.endsWith("/v1/wallets/1000066041/addresses"))
+    assertEquals("GET", getRequest.method)
+    assertEquals("application/json", getRequest.headers["Content-Type"])
+    assertEquals("Bearer <secret-key>", getRequest.headers["Authorization"])
+
+    val request = server.takeRequest()
+    assertThat(request.path, CoreMatchers.endsWith("/v1/wallets/1000066041/addresses"))
+    assertEquals("POST", request.method)
+    assertEquals("application/json", request.headers["Content-Type"])
+    assertEquals("Bearer <secret-key>", request.headers["Authorization"])
+    val gotBody = request.body.readUtf8()
+    val wantBody = """{"currency": "USD", "chain": "XLM"}"""
+    JSONAssert.assertEquals(wantBody, gotBody, false)
   }
 
   @Test

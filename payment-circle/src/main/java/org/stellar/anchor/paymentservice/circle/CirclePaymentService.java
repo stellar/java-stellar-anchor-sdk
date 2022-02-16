@@ -630,8 +630,33 @@ public class CirclePaymentService
       throws HttpException {
     validateDepositRequirements(config);
 
-    // TODO: implement
-    return null;
+    String walletId = config.getBeneficiaryAccountId();
+    PaymentNetwork intermediaryNetwork = config.getIntermediaryPaymentNetwork();
+    switch (intermediaryNetwork) {
+      case STELLAR:
+        String currencyName = "stellar:" + CircleBalance.stellarUSDC(stellarNetwork);
+        return getOrCreateStellarAddress(walletId)
+            .map(
+                address ->
+                    DepositInstructions.forCircle(
+                        walletId,
+                        address.getAddress(),
+                        address.getAddressTag(),
+                        intermediaryNetwork,
+                        currencyName,
+                        null));
+
+      case CIRCLE:
+        // TODO: implement for WIRE
+        return null;
+
+      case BANK_WIRE:
+        // TODO: implement for WIRE
+        return null;
+
+      default:
+        return null;
+    }
   }
 
   private void validateDepositRequirements(DepositRequirements config) throws HttpException {
