@@ -84,7 +84,7 @@ public class TransactionResponse {
             Instant.now().getEpochSecond(),
             Instant.now().getEpochSecond() + sep24Config.getInteractiveJwtExpiration(),
             txn.getTransactionId(),
-            null);
+            txn.getDomainClient());
 
     URI uri = new URI(sep24Config.getInteractiveUrl());
 
