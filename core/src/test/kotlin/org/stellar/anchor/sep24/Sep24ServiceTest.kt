@@ -2,6 +2,9 @@ package org.stellar.anchor.sep24
 
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
+import java.net.URI
+import java.nio.charset.Charset
+import org.apache.http.client.utils.URLEncodedUtils
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
@@ -58,6 +61,7 @@ internal class Sep24ServiceTest {
     every { appConfig.jwtSecretKey } returns Constants.TEST_JWT_SECRET
 
     every { sep24Config.interactiveUrl } returns TEST_SEP24_INTERACTIVE_URL
+    every { sep24Config.interactiveJwtExpiration } returns 1000
 
     every { txnStore.newInstance() } returns PojoSep24Transaction()
 
@@ -111,6 +115,14 @@ internal class Sep24ServiceTest {
     assertEquals(slotTxn.captured.protocol, "sep24")
     assertEquals(slotTxn.captured.amountIn, "123.4")
     assertEquals(slotTxn.captured.amountOut, "123.4")
+
+    val params = URLEncodedUtils.parse(URI(response.url), Charset.forName("UTF-8"))
+    val tokenStrings = params.filter { pair -> pair.name.equals("token") }
+    assertEquals(tokenStrings.size, 1)
+    val tokenString = tokenStrings[0].value
+    val decodedToken = jwtService.decode(tokenString)
+    assertEquals(decodedToken.sub, TEST_ACCOUNT)
+    assertEquals(decodedToken.clientDomain, TEST_CLIENT_DOMAIN)
   }
 
   private fun createTestRequest(): MutableMap<String, String> {
