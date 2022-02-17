@@ -608,6 +608,28 @@ public class CirclePaymentService
             });
   }
 
+  private void validateDepositRequirements(@NonNull DepositRequirements config)
+      throws HttpException {
+    String beneficiaryId = config.getBeneficiaryAccountId();
+    if (beneficiaryId == null || beneficiaryId.isEmpty()) {
+      throw new HttpException(400, "beneficiary account id cannot be empty");
+    }
+
+    if (!"circle:USD".equals(config.getBeneficiaryCurrencyName())) {
+      throw new HttpException(
+          400, "the only receiving currency in a circle account is \"circle:USD\"");
+    }
+
+    PaymentNetwork intermediaryNetwork = config.getIntermediaryPaymentNetwork();
+    if (intermediaryNetwork == null
+        || !List.of(PaymentNetwork.STELLAR, PaymentNetwork.CIRCLE, PaymentNetwork.BANK_WIRE)
+            .contains(intermediaryNetwork)) {
+      throw new HttpException(
+          400,
+          "the only supported intermediary payment networks are \"stellar\", \"circle\" and \"bank_wire\"");
+    }
+  }
+
   /**
    * API request that returns the info needed to make a deposit into a user account. This method
    * will be needed if the implementation allows users to make deposits using external networks. For
@@ -642,8 +664,7 @@ public class CirclePaymentService
     validateDepositRequirements(config);
 
     String walletId = config.getBeneficiaryAccountId();
-    PaymentNetwork intermediaryNetwork = config.getIntermediaryPaymentNetwork();
-    switch (intermediaryNetwork) {
+    switch (config.getIntermediaryPaymentNetwork()) {
       case STELLAR:
         return getOrCreateStellarAddress(walletId)
             .map(address -> address.toDepositInstructions(walletId, stellarNetwork));
@@ -680,28 +701,6 @@ public class CirclePaymentService
 
       default:
         return null;
-    }
-  }
-
-  private void validateDepositRequirements(@NonNull DepositRequirements config)
-      throws HttpException {
-    String beneficiaryId = config.getBeneficiaryAccountId();
-    if (beneficiaryId == null || beneficiaryId.isEmpty()) {
-      throw new HttpException(400, "beneficiary account id cannot be empty");
-    }
-
-    if (!"circle:USD".equals(config.getBeneficiaryCurrencyName())) {
-      throw new HttpException(
-          400, "the only receiving currency in a circle account is \"circle:USD\"");
-    }
-
-    PaymentNetwork intermediaryNetwork = config.getIntermediaryPaymentNetwork();
-    if (intermediaryNetwork == null
-        || !List.of(PaymentNetwork.STELLAR, PaymentNetwork.CIRCLE, PaymentNetwork.BANK_WIRE)
-            .contains(intermediaryNetwork)) {
-      throw new HttpException(
-          400,
-          "the only supported intermediary payment networks are \"stellar\", \"circle\" and \"bank_wire\"");
     }
   }
 }

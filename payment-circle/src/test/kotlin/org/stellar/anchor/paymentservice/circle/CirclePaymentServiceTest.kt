@@ -27,13 +27,13 @@ import org.skyscreamer.jsonassert.JSONAssert
 import org.stellar.anchor.exception.HttpException
 import org.stellar.anchor.paymentservice.*
 import org.stellar.anchor.paymentservice.circle.config.CirclePaymentConfig
-import org.stellar.anchor.paymentservice.circle.model.CircleBalance
 import org.stellar.anchor.paymentservice.circle.model.CircleBankWireAccount
 import org.stellar.anchor.paymentservice.circle.model.CircleBlockchainAddress
 import org.stellar.anchor.paymentservice.circle.model.CircleWallet
 import org.stellar.anchor.paymentservice.circle.model.response.CircleBankWireListResponse
 import org.stellar.anchor.paymentservice.circle.model.response.CircleBlockchainAddressCreateResponse
 import org.stellar.anchor.paymentservice.circle.model.response.CircleBlockchainAddressListResponse
+import org.stellar.anchor.paymentservice.circle.util.CircleAsset
 import org.stellar.anchor.paymentservice.circle.util.CircleDateFormatter
 import org.stellar.anchor.util.FileUtil
 import org.stellar.sdk.Network
@@ -1771,7 +1771,7 @@ class CirclePaymentServiceTest {
         "GAYF33NNNMI2Z6VNRFXQ64D4E4SF77PM46NW3ZUZEEU5X7FCHAZCMHKU",
         "2454278437550473431",
         PaymentNetwork.STELLAR,
-        "stellar:" + CircleBalance.stellarUSDC(Network.TESTNET),
+        "stellar:" + CircleAsset.stellarUSDC(Network.TESTNET),
         null
       )
     assertEquals(wantInstructions, instructions)

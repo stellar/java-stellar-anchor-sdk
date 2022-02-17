@@ -4,6 +4,7 @@ import java.lang.reflect.Type;
 import java.util.Date;
 import java.util.Map;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.stellar.anchor.paymentservice.DepositInstructions;
 import org.stellar.anchor.paymentservice.PaymentNetwork;
 import org.stellar.sdk.responses.GsonSingleton;
@@ -23,11 +24,13 @@ public class CircleBankWireAccount {
   @NonNull Date createDate;
   @NonNull Date updateDate;
 
+  @EqualsAndHashCode(callSuper = true)
   @Data
   public static class BillingDetails extends Address {
     String name;
   }
 
+  @EqualsAndHashCode(callSuper = true)
   @Data
   public static class BankAddress extends Address {
     String bankName;

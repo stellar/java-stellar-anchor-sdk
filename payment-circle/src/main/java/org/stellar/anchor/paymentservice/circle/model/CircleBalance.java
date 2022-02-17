@@ -3,22 +3,27 @@ package org.stellar.anchor.paymentservice.circle.model;
 import lombok.Data;
 import org.stellar.anchor.paymentservice.Balance;
 import org.stellar.anchor.paymentservice.PaymentNetwork;
-import org.stellar.sdk.Network;
+import org.stellar.anchor.paymentservice.circle.util.CircleAsset;
 import reactor.util.annotation.NonNull;
+import reactor.util.annotation.Nullable;
 
 @Data
 public class CircleBalance {
   @NonNull String amount;
   @NonNull String currency;
-  @NonNull org.stellar.sdk.Network stellarNetwork;
+  @Nullable org.stellar.sdk.Network stellarNetwork;
 
   public CircleBalance(
       @NonNull String currency,
       @NonNull String amount,
-      @NonNull org.stellar.sdk.Network stellarNetwork) {
+      @Nullable org.stellar.sdk.Network stellarNetwork) {
     this.currency = currency;
     this.amount = amount;
     this.stellarNetwork = stellarNetwork;
+  }
+
+  public CircleBalance(@NonNull String currency, @NonNull String amount) {
+    this(currency, amount, null);
   }
 
   public Balance toBalance(@NonNull PaymentNetwork destinationPaymentNetwork) {
@@ -31,14 +36,6 @@ public class CircleBalance {
 
   @NonNull
   public String stellarUSDC() {
-    return CircleBalance.stellarUSDC(this.stellarNetwork);
-  }
-
-  @NonNull
-  public static String stellarUSDC(Network stellarNetwork) {
-    if (stellarNetwork == org.stellar.sdk.Network.PUBLIC)
-      return "USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN";
-
-    return "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5";
+    return CircleAsset.stellarUSDC(stellarNetwork);
   }
 }
