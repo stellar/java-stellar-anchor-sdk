@@ -1455,8 +1455,6 @@ class CirclePaymentServiceTest {
         )
       )
     val wantPaymentHistory = PaymentHistory(merchantAccount)
-    wantPaymentHistory.cursor =
-      "c58e2613-a808-4075-956c-e576787afb3b:6588a352-5131-4711-a264-e405f38d752d"
 
     val gson = Gson()
     val type = object : TypeToken<Map<String?, *>?>() {}.type
@@ -1528,7 +1526,9 @@ class CirclePaymentServiceTest {
     p4.originalResponse = gson.fromJson(mockWalletToStellarTransferJson, type)
     wantPaymentHistory.payments.add(p4)
 
-    assertEquals(wantPaymentHistory, paymentHistory)
+    assertEquals(wantPaymentHistory.account, paymentHistory?.account)
+    assertEquals(wantPaymentHistory.cursor, paymentHistory?.cursor)
+    assertEquals(wantPaymentHistory.payments, paymentHistory?.payments)
   }
 
   @Test
