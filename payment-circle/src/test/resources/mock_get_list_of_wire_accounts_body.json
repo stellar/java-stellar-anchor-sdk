@@ -1,0 +1,30 @@
+{
+  "data":[
+    {
+      "id":"8f6cd3bc-fd21-45ac-b1f0-7534d3b78949",
+      "status":"complete",
+      "description":"JPMORGAN CHASE BANK, NA ****6789",
+      "trackingRef":"CIR3PTK2AE",
+      "fingerprint":"1f68fda7-6183-47fc-aecf-55f564535e6f",
+      "billingDetails":{
+        "name":"Satoshi Nakamoto",
+        "line1":"100 Money Street",
+        "line2":"Suite 1",
+        "city":"Boston",
+        "postalCode":"01234",
+        "district":"MA",
+        "country":"US"
+      },
+      "bankAddress":{
+        "bankName":"JPMORGAN CHASE BANK, NA",
+        "line1":"100 Money Street",
+        "line2":"Suite 1",
+        "city":"NEW YORK",
+        "district":"NY",
+        "country":"US"
+      },
+      "createDate":"2021-11-24T20:19:03.852Z",
+      "updateDate":"2021-11-25T16:00:00.743Z"
+    }
+  ]
+}
