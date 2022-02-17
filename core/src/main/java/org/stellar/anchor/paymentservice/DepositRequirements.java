@@ -39,7 +39,7 @@ public class DepositRequirements {
    * should obey the {scheme}:{identifier} format described in <a
    * href="https://stellar.org/protocol/sep-38#asset-identification-format">SEP-38</a>.
    */
-  String currencyName;
+  String beneficiaryCurrencyName;
 
   /**
    * Constructor of the DepositConfiguration class.
@@ -47,14 +47,16 @@ public class DepositRequirements {
    * @param beneficiaryAccountId Identifier of the account who will receive the payment.
    * @param intermediaryPaymentNetwork The network where the deposit will be made. After the deposit
    *     is performed on that network it will be reflected in the beneficiary user balance
-   * @param currencyName The name of the currency that will be ultimately credited into the
-   *     beneficiary user account. For example, if you want the instructions to receive USD credits
-   *     in a Circle account upon receiving a Stellar payment, the currency name would be
-   *     "circle:USD".
+   * @param beneficiaryCurrencyName The name of the currency that will be ultimately credited into
+   *     the beneficiary user account. For instance, if you want the instructions to receive USD
+   *     credits in a Circle account using Stellar as an intermediary medium, the currency name
+   *     should be "circle:USD".
    */
   public DepositRequirements(
-      String beneficiaryAccountId, PaymentNetwork intermediaryPaymentNetwork, String currencyName) {
-    this(beneficiaryAccountId, null, intermediaryPaymentNetwork, currencyName);
+      String beneficiaryAccountId,
+      PaymentNetwork intermediaryPaymentNetwork,
+      String beneficiaryCurrencyName) {
+    this(beneficiaryAccountId, null, intermediaryPaymentNetwork, beneficiaryCurrencyName);
   }
 
   /**
@@ -65,19 +67,19 @@ public class DepositRequirements {
    *     payment. May be mandatory depending on the implementation.
    * @param intermediaryPaymentNetwork The network where the deposit will be made. After the deposit
    *     is performed on that network it will be reflected in the beneficiary user balance
-   * @param currencyName The name of the currency that will be ultimately credited into the
-   *     beneficiary user account. For example, if you want the instructions to receive USD credits
-   *     in a Circle account upon receiving a Stellar payment, the currency name would be
-   *     "circle:USD".
+   * @param beneficiaryCurrencyName The name of the currency that will be ultimately credited into
+   *     the beneficiary user account. For instance, if you want the instructions to receive USD
+   *     credits in a Circle account using Stellar as an intermediary medium, the currency name
+   *     should be "circle:USD".
    */
   public DepositRequirements(
       String beneficiaryAccountId,
       @Nullable String beneficiaryAccountIdTag,
       PaymentNetwork intermediaryPaymentNetwork,
-      String currencyName) {
+      String beneficiaryCurrencyName) {
     this.beneficiaryAccountId = beneficiaryAccountId;
     this.beneficiaryAccountIdTag = beneficiaryAccountIdTag;
     this.intermediaryPaymentNetwork = intermediaryPaymentNetwork;
-    this.currencyName = currencyName;
+    this.beneficiaryCurrencyName = beneficiaryCurrencyName;
   }
 }

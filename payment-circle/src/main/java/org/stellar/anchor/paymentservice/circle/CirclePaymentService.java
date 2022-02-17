@@ -712,7 +712,7 @@ public class CirclePaymentService
       throw new HttpException(400, "beneficiary account id cannot be empty");
     }
 
-    if (!"circle:USD".equals(config.getCurrencyName())) {
+    if (!"circle:USD".equals(config.getBeneficiaryCurrencyName())) {
       throw new HttpException(
           400, "the only receiving currency in a circle account is \"circle:USD\"");
     }
