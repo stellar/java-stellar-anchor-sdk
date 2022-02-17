@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 import org.stellar.anchor.exception.HttpException;
 import org.stellar.anchor.paymentservice.*;
 import org.stellar.anchor.paymentservice.Account;
-import org.stellar.anchor.paymentservice.Network;
+import org.stellar.anchor.paymentservice.PaymentNetwork;
 import org.stellar.anchor.paymentservice.stellar.requests.SubmitTransactionRequest;
 import org.stellar.anchor.paymentservice.stellar.util.NettyHttpClient;
 import org.stellar.sdk.*;
@@ -29,7 +29,7 @@ import reactor.util.annotation.Nullable;
 
 public class StellarPaymentService implements PaymentService {
   private static final Gson gson = new Gson();
-  private final Network network = Network.STELLAR;
+  private final PaymentNetwork paymentNetwork = PaymentNetwork.STELLAR;
   private String url;
   private String secretKey;
   private int baseFee;
@@ -51,8 +51,12 @@ public class StellarPaymentService implements PaymentService {
     this.transactionsExpireAfter = transactionsExpireAfter;
   }
 
-  public Network getNetwork() {
-    return network;
+  public PaymentNetwork getPaymentNetwork() {
+    return paymentNetwork;
+  }
+
+  public String getName() {
+    return "StellarPaymentService";
   }
 
   public String getUrl() {
@@ -145,7 +149,9 @@ public class StellarPaymentService implements PaymentService {
   private Account accountResponseToAccount(AccountResponse accountResponse) {
     Account account =
         new Account(
-            getNetwork(), accountResponse.getAccountId(), new Account.Capabilities(Network.CIRCLE));
+            getPaymentNetwork(),
+            accountResponse.getAccountId(),
+            new Account.Capabilities(PaymentNetwork.CIRCLE));
     List<Balance> balances = new ArrayList<Balance>();
     for (AccountResponse.Balance b : accountResponse.getBalances()) {
       if (!b.getAsset().isPresent() || !b.getAuthorized()) {
@@ -238,8 +244,9 @@ public class StellarPaymentService implements PaymentService {
     // denominates path payment amounts in units of the asset that is known prior to submission
     // TODO: update Payment to account for different send and receive balances
     Account forAccount =
-        new Account(getNetwork(), forAccountId, new Account.Capabilities(Network.CIRCLE));
-    PaymentHistory paymentHistory = new PaymentHistory();
+        new Account(
+            getPaymentNetwork(), forAccountId, new Account.Capabilities(PaymentNetwork.CIRCLE));
+    PaymentHistory paymentHistory = new PaymentHistory(forAccount);
     paymentHistory.setAccount(forAccount);
     List<OperationResponse> opResps = operationsPage.getRecords();
     if (opResps.size() == 0) {
@@ -291,8 +298,12 @@ public class StellarPaymentService implements PaymentService {
     }
     return createPayment(
         opResp.getTransactionHash(),
-        new Account(getNetwork(), sourceAccount, new Account.Capabilities(Network.CIRCLE)),
-        new Account(getNetwork(), destinationAccount, new Account.Capabilities(Network.CIRCLE)),
+        new Account(
+            getPaymentNetwork(), sourceAccount, new Account.Capabilities(PaymentNetwork.CIRCLE)),
+        new Account(
+            getPaymentNetwork(),
+            destinationAccount,
+            new Account.Capabilities(PaymentNetwork.CIRCLE)),
         currencyName,
         amount,
         opResp.getCreatedAt());

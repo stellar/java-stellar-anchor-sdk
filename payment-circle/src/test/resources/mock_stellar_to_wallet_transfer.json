@@ -1,0 +1,20 @@
+{
+  "id":"7f131f58-a8a0-3dc2-be05-6a015c69de35",
+  "source":{
+    "type":"blockchain",
+    "chain":"XLM"
+  },
+  "destination":{
+    "type":"wallet",
+    "id":"1000066041",
+    "address":"GAYF33NNNMI2Z6VNRFXQ64D4E4SF77PM46NW3ZUZEEU5X7FCHAZCMHKU",
+    "addressTag":"8006436449031889621"
+  },
+  "amount":{
+    "amount":"1.50",
+    "currency":"USD"
+  },
+  "transactionHash":"fb8947c67856d8eb444211c1927d92bcf14abcfb34cdd27fc9e604b15d208fd1",
+  "status":"complete",
+  "createDate":"2022-02-07T18:02:17.999Z"
+}

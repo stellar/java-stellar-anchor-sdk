@@ -117,7 +117,7 @@ public class Sep10Service {
       Transaction txn =
           Sep10Challenge.newChallenge(
               signer,
-              new Network(appConfig.getStellarNetworkPassPhrase()),
+              new Network(appConfig.getStellarNetworkPassphrase()),
               challengeRequest.getAccount(),
               challengeRequest.getHomeDomain(),
               getDomainFromURI(appConfig.getHostUrl()),
@@ -128,7 +128,7 @@ public class Sep10Service {
               (clientSigningKey == null) ? "" : clientSigningKey);
       // Convert the challenge to response
       return ChallengeResponse.of(
-          txn.toEnvelopeXdrBase64(), appConfig.getStellarNetworkPassPhrase());
+          txn.toEnvelopeXdrBase64(), appConfig.getStellarNetworkPassphrase());
     } catch (URISyntaxException e) {
       throw new SepException(
           String.format("Invalid HOST_URL [%s} is used.", appConfig.getHostUrl()));
@@ -156,7 +156,7 @@ public class Sep10Service {
         Sep10Challenge.readChallengeTransaction(
             challengeXdr,
             serverAccountId,
-            new Network(appConfig.getStellarNetworkPassPhrase()),
+            new Network(appConfig.getStellarNetworkPassphrase()),
             sep10Config.getHomeDomain(),
             getDomainFromURI(appConfig.getHostUrl()));
 
@@ -205,7 +205,7 @@ public class Sep10Service {
       Sep10Challenge.verifyChallengeTransactionSigners(
           challengeXdr,
           serverAccountId,
-          new Network(appConfig.getStellarNetworkPassPhrase()),
+          new Network(appConfig.getStellarNetworkPassphrase()),
           sep10Config.getHomeDomain(),
           getDomainFromURI(appConfig.getHostUrl()),
           signers);
@@ -231,7 +231,7 @@ public class Sep10Service {
     Sep10Challenge.verifyChallengeTransactionThreshold(
         challengeXdr,
         serverAccountId,
-        new Network(appConfig.getStellarNetworkPassPhrase()),
+        new Network(appConfig.getStellarNetworkPassphrase()),
         sep10Config.getHomeDomain(),
         getDomainFromURI(appConfig.getHostUrl()),
         threshold,
@@ -270,7 +270,7 @@ public class Sep10Service {
         Sep10Challenge.readChallengeTransaction(
             challengeXdr,
             serverAccountId,
-            new Network(appConfig.getStellarNetworkPassPhrase()),
+            new Network(appConfig.getStellarNetworkPassphrase()),
             sep10Config.getHomeDomain(),
             getDomainFromURI(appConfig.getHostUrl()));
     long issuedAt = challenge.getTransaction().getTimeBounds().getMinTime();

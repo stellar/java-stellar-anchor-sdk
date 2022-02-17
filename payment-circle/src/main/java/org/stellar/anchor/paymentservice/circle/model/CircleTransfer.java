@@ -1,6 +1,6 @@
 package org.stellar.anchor.paymentservice.circle.model;
 
-import com.google.gson.Gson;
+import com.google.gson.*;
 import java.lang.reflect.Type;
 import java.util.Date;
 import java.util.Map;
@@ -20,27 +20,49 @@ public class CircleTransfer {
   CirclePaymentStatus status;
   String errorCode;
   Date createDate;
+  Map<String, ?> originalResponse;
 
-  public Payment toPayment() {
+  public Payment toPayment(String distributionAccountId) {
     Payment p = new Payment();
     p.setId(id);
-    p.setSourceAccount(source.toAccount());
-    Account destinationAccount = destination.toAccount();
+    p.setSourceAccount(source.toAccount(distributionAccountId));
+    Account destinationAccount = destination.toAccount(distributionAccountId);
     p.setDestinationAccount(destinationAccount);
-    p.setBalance(amount.toBalance(destinationAccount.network));
+    p.setBalance(amount.toBalance(destinationAccount.paymentNetwork));
+    p.setIdTag(transactionHash);
     p.setStatus(status.toPaymentStatus());
     p.setErrorCode(errorCode);
     p.setCreatedAt(createDate);
     p.setUpdatedAt(createDate);
-
-    Gson gson = new Gson();
-    String jsonString = gson.toJson(this);
-    Type type = new TypeToken<Map<String, ?>>() {}.getType();
-    Map<String, Object> map = gson.fromJson(jsonString, type);
-    String createdDateStr = CircleDateFormatter.dateToString(createDate);
-    map.put("createDate", createdDateStr);
-    p.setOriginalResponse(map);
+    p.setOriginalResponse(originalResponse);
 
     return p;
+  }
+
+  public static class Serialization
+      implements JsonDeserializer<CircleTransfer>, JsonSerializer<CircleTransfer> {
+    @Override
+    public CircleTransfer deserialize(
+        JsonElement json, Type typeOfT, JsonDeserializationContext context)
+        throws JsonParseException {
+      JsonObject jsonObject = json.getAsJsonObject();
+      Gson gson = new Gson();
+      CircleTransfer transfer = gson.fromJson(jsonObject, CircleTransfer.class);
+
+      Type type = new TypeToken<Map<String, ?>>() {}.getType();
+      Map<String, Object> originalResponse = gson.fromJson(jsonObject, type);
+      String createdDateStr = CircleDateFormatter.dateToString(transfer.getCreateDate());
+      originalResponse.put("createDate", createdDateStr);
+      transfer.setOriginalResponse(originalResponse);
+
+      return transfer;
+    }
+
+    @Override
+    public JsonElement serialize(
+        CircleTransfer src, Type typeOfSrc, JsonSerializationContext context) {
+      Gson gson = new Gson();
+      return gson.toJsonTree(src.originalResponse).getAsJsonObject();
+    }
   }
 }

@@ -10,15 +10,14 @@ import reactor.util.annotation.Nullable;
  * networks, like Stellar, Circle, Wyre or others.
  */
 public interface PaymentService {
-  Network getNetwork();
+  PaymentNetwork getPaymentNetwork();
 
-  String getUrl();
-
-  void setUrl(String url);
-
-  String getSecretKey();
-
-  void setSecretKey(String secretKey);
+  /**
+   * Gets the name of the service.
+   *
+   * @return The name of the service
+   */
+  String getName();
 
   /**
    * API request that pings the server to make sure it's up and running.

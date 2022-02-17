@@ -2,7 +2,8 @@ package org.stellar.anchor.paymentservice.circle.model;
 
 import com.google.gson.annotations.SerializedName;
 import org.stellar.anchor.paymentservice.Account;
-import org.stellar.anchor.paymentservice.Network;
+import org.stellar.anchor.paymentservice.PaymentNetwork;
+import reactor.util.annotation.Nullable;
 
 @lombok.Data
 public class CircleTransactionParty {
@@ -66,21 +67,38 @@ public class CircleTransactionParty {
     return party;
   }
 
-  public Account toAccount() {
+  /**
+   * Transforms a Circle transaction party into an Account.
+   *
+   * @param distributionAccountId used to update the bank wire capability when this is a Circle
+   *     wallet.
+   * @return a new account instance.
+   */
+  public Account toAccount(@Nullable String distributionAccountId) {
     switch (type) {
       case BLOCKCHAIN:
         if (!"XLM".equals(chain)) {
           throw new RuntimeException("the only supported chain is `XLM`");
         }
         return new Account(
-            Network.STELLAR, address, addressTag, new Account.Capabilities(Network.STELLAR));
+            PaymentNetwork.STELLAR,
+            address,
+            addressTag,
+            new Account.Capabilities(PaymentNetwork.STELLAR));
 
       case WALLET:
-        return new Account(
-            Network.CIRCLE, id, new Account.Capabilities(Network.CIRCLE, Network.STELLAR));
+        Account account =
+            new Account(
+                PaymentNetwork.CIRCLE,
+                id,
+                new Account.Capabilities(PaymentNetwork.CIRCLE, PaymentNetwork.STELLAR));
+        boolean isWireEnabled = distributionAccountId != null && distributionAccountId.equals(id);
+        account.capabilities.set(PaymentNetwork.BANK_WIRE, isWireEnabled);
+        return account;
 
       case WIRE:
-        return new Account(Network.BANK_WIRE, id, new Account.Capabilities(Network.BANK_WIRE));
+        return new Account(
+            PaymentNetwork.BANK_WIRE, id, new Account.Capabilities(PaymentNetwork.BANK_WIRE));
 
       default:
         throw new RuntimeException("unsupported type");
