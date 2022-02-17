@@ -1939,7 +1939,6 @@ class CirclePaymentServiceTest {
   }
 
   @Test
-  // TODO: add requests here
   fun testErrorHandling() {
     val badRequestResponse =
       MockResponse()
@@ -1963,6 +1962,8 @@ class CirclePaymentServiceTest {
                         }
                     }"""
         )
+    val emptyListResponse =
+      MockResponse().addHeader("Content-Type", "application/json").setBody("""{"data":[]}""")
 
     // Access private method getMainAccountBalances
     val getMerchantAccountUnsettledBalancesMethod: Method =
@@ -1990,6 +1991,35 @@ class CirclePaymentServiceTest {
       ErrorHandlingTestCase(service.createAccount(null), listOf(badRequestResponse)),
       ErrorHandlingTestCase(
         getCircleWalletMethod.invoke(service, "random_id") as Mono<*>,
+        listOf(badRequestResponse)
+      ),
+      ErrorHandlingTestCase(service.createAccount(null), listOf(badRequestResponse)),
+      ErrorHandlingTestCase(
+        (service as CirclePaymentService).getListOfAddresses("any_id"),
+        listOf(badRequestResponse)
+      ),
+      ErrorHandlingTestCase(
+        (service as CirclePaymentService).createNewStellarAddress("any_id"),
+        listOf(badRequestResponse)
+      ),
+      ErrorHandlingTestCase(
+        (service as CirclePaymentService).getOrCreateStellarAddress("any_id"),
+        listOf(emptyListResponse, badRequestResponse)
+      ),
+      ErrorHandlingTestCase(
+        (service as CirclePaymentService).getListOfWireAccounts("any_id"),
+        listOf(badRequestResponse)
+      ),
+      ErrorHandlingTestCase(
+        service.getDepositInstructions(
+          DepositRequirements("1000066041", PaymentNetwork.STELLAR, "circle:USD")
+        ),
+        listOf(badRequestResponse)
+      ),
+      ErrorHandlingTestCase(
+        service.getDepositInstructions(
+          DepositRequirements("1000066041", PaymentNetwork.BANK_WIRE, "circle:USD")
+        ),
         listOf(badRequestResponse)
       ),
       // --- tests with async/parallel requests ---
