@@ -6,6 +6,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import io.netty.handler.codec.http.HttpHeaderNames;
+import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -23,6 +24,7 @@ import reactor.netty.ByteBufMono;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.annotation.NonNull;
 import reactor.util.annotation.Nullable;
+import shadow.com.google.common.reflect.TypeToken;
 
 public class CirclePaymentService
     implements PaymentService, CircleResponseErrorHandler, StellarReconciliation {
@@ -671,8 +673,40 @@ public class CirclePaymentService
                 walletId, walletId, null, intermediaryNetwork, "circle:USD", null));
 
       case BANK_WIRE:
-        // TODO: implement for WIRE
-        return null;
+        return getListOfWireAccounts(walletId)
+            .map(
+                wireListResponse -> {
+                  List<CircleBankWireAccount> wireAccounts = wireListResponse.getData();
+                  if (wireAccounts.size() == 0) {
+                    throw new HttpException(
+                        400,
+                        "your Circle account is not fully configured yet, please make sure to setup your bank wire address");
+                  }
+
+                  CircleBankWireAccount wireAccount = null;
+                  for (CircleBankWireAccount wa : wireAccounts) {
+                    if ("complete".equals(wa.getStatus())) {
+                      wireAccount = wa;
+                      break;
+                    }
+                  }
+                  if (wireAccount == null) {
+                    throw new HttpException(
+                        400,
+                        "your wire account is not properly approved yet, please go to your circle account to finish the wire configuration");
+                  }
+
+                  Type type = new TypeToken<Map<String, ?>>() {}.getType();
+                  Map<String, Object> originalResponse =
+                      gson.fromJson(gson.toJson(wireAccount), type);
+                  return DepositInstructions.forCircle(
+                      walletId,
+                      wireAccount.getId(),
+                      wireAccount.getTrackingRef(),
+                      PaymentNetwork.BANK_WIRE,
+                      "iso4217:USD",
+                      originalResponse);
+                });
 
       default:
         return null;
@@ -692,9 +726,11 @@ public class CirclePaymentService
 
     PaymentNetwork intermediaryNetwork = config.getIntermediaryPaymentNetwork();
     if (intermediaryNetwork == null
-        || !List.of(PaymentNetwork.STELLAR, PaymentNetwork.CIRCLE).contains(intermediaryNetwork)) {
+        || !List.of(PaymentNetwork.STELLAR, PaymentNetwork.CIRCLE, PaymentNetwork.BANK_WIRE)
+            .contains(intermediaryNetwork)) {
       throw new HttpException(
-          400, "the only supported intermediary payment network is \"stellar\".");
+          400,
+          "the only supported intermediary payment networks are \"stellar\", \"circle\" and \"bank_wire\"");
     }
   }
 }

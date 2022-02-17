@@ -1707,7 +1707,7 @@ class CirclePaymentServiceTest {
   @EnumSource(
     value = PaymentNetwork::class,
     mode = EnumSource.Mode.EXCLUDE,
-    names = ["STELLAR", "CIRCLE"]
+    names = ["STELLAR", "CIRCLE", "BANK_WIRE"]
   )
   fun test_getDepositInstructions_parameterValidation(paymentNetwork: PaymentNetwork?) {
     // empty beneficiary account id
@@ -1727,7 +1727,10 @@ class CirclePaymentServiceTest {
     config = DepositRequirements("1000066041", null, paymentNetwork, "circle:USD")
     ex = assertThrows { service.getDepositInstructions(config).block() }
     assertEquals(
-      HttpException(400, "the only supported intermediary payment network is \"stellar\"."),
+      HttpException(
+        400,
+        """the only supported intermediary payment networks are "stellar", "circle" and "bank_wire""""
+      ),
       ex
     )
   }
@@ -1900,7 +1903,43 @@ class CirclePaymentServiceTest {
     assertEquals(wantException, ex)
   }
 
+  @ParameterizedTest
+  @CsvSource(
+    delimiterString = ";",
+    value =
+      [
+        "[];your Circle account is not fully configured yet, please make sure to setup your bank wire address",
+        """[{"status":"pending"}];your wire account is not properly approved yet, please go to your circle account to finish the wire configuration""",
+      ]
+  )
+  fun test_getDepositInstructions_wire_failIfWireIsNotConfigured(
+    listOfWires: String,
+    expectedExceptionMessage: String
+  ) {
+    val dispatcher: Dispatcher =
+      object : Dispatcher() {
+        @Throws(InterruptedException::class)
+        override fun dispatch(request: RecordedRequest): MockResponse {
+          when (request.path) {
+            "/v1/configuration" -> return getDistAccountIdMockResponse()
+            "/v1/businessAccount/banks/wires" ->
+              return MockResponse()
+                .addHeader("Content-Type", "application/json")
+                .setBody("""{"data":$listOfWires}""")
+          }
+          return MockResponse().setResponseCode(404)
+        }
+      }
+    server.dispatcher = dispatcher
+
+    val config = DepositRequirements("1000066041", null, PaymentNetwork.BANK_WIRE, "circle:USD")
+    val ex: HttpException = assertThrows { service.getDepositInstructions(config).block() }
+    val wantException = HttpException(400, expectedExceptionMessage)
+    assertEquals(wantException, ex)
+  }
+
   @Test
+  // TODO: add requests here
   fun testErrorHandling() {
     val badRequestResponse =
       MockResponse()
