@@ -1,8 +1,15 @@
 package org.stellar.anchor.paymentservice.circle.model;
 
+import java.lang.reflect.Type;
 import java.util.Date;
+import java.util.Map;
 import lombok.Data;
+import org.stellar.anchor.paymentservice.DepositInstructions;
+import org.stellar.anchor.paymentservice.PaymentNetwork;
+import org.stellar.sdk.responses.GsonSingleton;
 import reactor.util.annotation.NonNull;
+import shadow.com.google.common.reflect.TypeToken;
+import shadow.com.google.gson.Gson;
 
 @Data
 public class CircleBankWireAccount {
@@ -34,5 +41,20 @@ public class CircleBankWireAccount {
     String postalCode;
     String district;
     String country;
+  }
+
+  public DepositInstructions toDepositInstructions(String beneficiaryAccountId) {
+    Type type = new TypeToken<Map<String, ?>>() {}.getType();
+    Gson gson = GsonSingleton.getInstance();
+    Map<String, Object> originalResponse = gson.fromJson(gson.toJson(this), type);
+    return new DepositInstructions(
+        beneficiaryAccountId,
+        null,
+        PaymentNetwork.CIRCLE,
+        id,
+        trackingRef,
+        PaymentNetwork.BANK_WIRE,
+        "iso4217:USD",
+        originalResponse);
   }
 }

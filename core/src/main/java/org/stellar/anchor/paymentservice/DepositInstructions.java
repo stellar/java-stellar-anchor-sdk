@@ -12,7 +12,6 @@ import reactor.util.annotation.Nullable;
  * @see PaymentService#getDepositInstructions(DepositRequirements)
  */
 @Data
-@SuppressWarnings("unused")
 public class DepositInstructions {
   /**
    * The internal identifier of the beneficiary account, i.e. the account who will receive the
@@ -123,23 +122,5 @@ public class DepositInstructions {
         intermediaryPaymentNetwork,
         intermediaryCurrencyName,
         null);
-  }
-
-  public static DepositInstructions forCircle(
-      String walletId,
-      String address,
-      String addressTag,
-      PaymentNetwork intermediaryNetwork,
-      String currencyName,
-      Map<String, ?> extra) {
-    return new DepositInstructions(
-        walletId,
-        null,
-        PaymentNetwork.CIRCLE,
-        address,
-        addressTag,
-        intermediaryNetwork,
-        currencyName,
-        extra);
   }
 }

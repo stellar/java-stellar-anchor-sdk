@@ -4,7 +4,6 @@ import static org.stellar.anchor.util.StellarNetworkHelper.toStellarNetwork;
 
 import com.google.gson.JsonObject;
 import io.netty.handler.codec.http.HttpHeaderNames;
-import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -22,7 +21,6 @@ import reactor.netty.ByteBufMono;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.annotation.NonNull;
 import reactor.util.annotation.Nullable;
-import shadow.com.google.common.reflect.TypeToken;
 
 public class CirclePaymentService
     implements PaymentService, CircleResponseErrorHandler, StellarReconciliation {
@@ -647,22 +645,11 @@ public class CirclePaymentService
     PaymentNetwork intermediaryNetwork = config.getIntermediaryPaymentNetwork();
     switch (intermediaryNetwork) {
       case STELLAR:
-        String currencyName = "stellar:" + CircleBalance.stellarUSDC(stellarNetwork);
         return getOrCreateStellarAddress(walletId)
-            .map(
-                address ->
-                    DepositInstructions.forCircle(
-                        walletId,
-                        address.getAddress(),
-                        address.getAddressTag(),
-                        intermediaryNetwork,
-                        currencyName,
-                        null));
+            .map(address -> address.toDepositInstructions(walletId, stellarNetwork));
 
       case CIRCLE:
-        return Mono.just(
-            DepositInstructions.forCircle(
-                walletId, walletId, null, intermediaryNetwork, "circle:USD", null));
+        return Mono.just(new CircleWallet(walletId).toDepositInstructions());
 
       case BANK_WIRE:
         return getListOfWireAccounts(walletId)
@@ -688,16 +675,7 @@ public class CirclePaymentService
                         "your wire account is not properly approved yet, please go to your circle account to finish the wire configuration");
                   }
 
-                  Type type = new TypeToken<Map<String, ?>>() {}.getType();
-                  Map<String, Object> originalResponse =
-                      gson.fromJson(gson.toJson(wireAccount), type);
-                  return DepositInstructions.forCircle(
-                      walletId,
-                      wireAccount.getId(),
-                      wireAccount.getTrackingRef(),
-                      PaymentNetwork.BANK_WIRE,
-                      "iso4217:USD",
-                      originalResponse);
+                  return wireAccount.toDepositInstructions(walletId);
                 });
 
       default:

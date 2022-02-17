@@ -13,7 +13,6 @@ import reactor.util.annotation.Nullable;
  * @see PaymentService#getDepositInstructions(DepositRequirements)
  */
 @Data
-@SuppressWarnings("unused")
 public class DepositRequirements {
   /**
    * The internal identifier of the beneficiary account, i.e. the account who will receive the
