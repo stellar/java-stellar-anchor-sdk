@@ -29,8 +29,7 @@ public interface StellarReconciliation extends CircleResponseErrorHandler {
     if (transferCopy.getSource().getId() != null) return Mono.just(transferCopy);
 
     // Only Stellar->CircleWallet transfers should arrive here with id == null, and they should also
-    // have
-    // chain == "XLM" and type == BLOCKCHAIN. Let's validate if that's true:
+    // have chain == "XLM" and type == BLOCKCHAIN. Let's validate if that's true:
     if (!transferCopy.getSource().getChain().equals("XLM")
         || transferCopy.getSource().getType() != CircleTransactionParty.Type.BLOCKCHAIN) {
       throw new HttpException(500, "invalid source account");

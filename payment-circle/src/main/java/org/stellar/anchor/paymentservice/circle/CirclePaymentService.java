@@ -2,8 +2,6 @@ package org.stellar.anchor.paymentservice.circle;
 
 import static org.stellar.anchor.util.StellarNetworkHelper.toStellarNetwork;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import java.lang.reflect.Type;
@@ -28,12 +26,6 @@ import shadow.com.google.common.reflect.TypeToken;
 
 public class CirclePaymentService
     implements PaymentService, CircleResponseErrorHandler, StellarReconciliation {
-  private static final Gson gson =
-      new GsonBuilder()
-          .registerTypeAdapter(CircleTransfer.class, new CircleTransfer.Serialization())
-          .registerTypeAdapter(CirclePayout.class, new CirclePayout.Deserializer())
-          .create();
-
   private final CirclePaymentConfig config;
 
   private final Network stellarNetwork;
@@ -713,7 +705,8 @@ public class CirclePaymentService
     }
   }
 
-  private void validateDepositRequirements(DepositRequirements config) throws HttpException {
+  private void validateDepositRequirements(@NonNull DepositRequirements config)
+      throws HttpException {
     String beneficiaryId = config.getBeneficiaryAccountId();
     if (beneficiaryId == null || beneficiaryId.isEmpty()) {
       throw new HttpException(400, "beneficiary account id cannot be empty");
