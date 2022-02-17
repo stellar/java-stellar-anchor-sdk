@@ -24,6 +24,15 @@ dependencies {
   implementation(project(":payment-circle"))
   implementation(project(":config-spring-property"))
   implementation(project(":data-spring-jdbc"))
+
+  testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 
 application { mainClass.set("org.stellar.anchor.server.AnchorPlatformApplicationMVC") }
+
+configurations {
+  all {
+    exclude(group = "ch.qos.logback", module = "logback-classic")
+    exclude(group = "org.apache.logging.log4j", module = "log4j-to-slf4j")
+  }
+}

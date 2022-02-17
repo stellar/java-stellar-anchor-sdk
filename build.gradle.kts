@@ -8,7 +8,7 @@ subprojects {
   apply(plugin = "com.diffplug.spotless")
 
   group = "org.stellar.anchor-sdk"
-  version = "0.1.0"
+  version = "0.1.1"
 
   repositories {
     mavenCentral()

@@ -2,7 +2,6 @@ package org.stellar.anchor.server;
 
 import java.io.IOException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,17 +18,13 @@ import org.stellar.anchor.sep10.JwtService;
 import org.stellar.anchor.sep10.Sep10Service;
 import org.stellar.anchor.sep24.AssetService;
 import org.stellar.anchor.sep24.Sep24Service;
-import org.stellar.anchor.server.config.PropertyAppConfig;
-import org.stellar.anchor.server.config.PropertySep10Config;
-import org.stellar.anchor.server.config.PropertySep1Config;
-import org.stellar.anchor.server.config.PropertySep24Config;
 import org.stellar.anchor.server.data.JdbcSep24TransactionRepo;
 import org.stellar.anchor.server.data.JdbcSep24TransactionStore;
 
 /** SEP configurations */
 @Configuration
-public class SepConfiguration {
-  public SepConfiguration() {}
+public class SepConfig {
+  public SepConfig() {}
 
   /**
    * Register sep-10 token filter.
@@ -87,29 +82,5 @@ public class SepConfiguration {
       JwtService jwtService,
       JdbcSep24TransactionStore txnStore) {
     return new Sep24Service(appConfig, sep24Config, assetService, jwtService, txnStore);
-  }
-
-  @Bean
-  @ConfigurationProperties("app")
-  AppConfig appConfig() {
-    return new PropertyAppConfig();
-  }
-
-  @Bean
-  @ConfigurationProperties(prefix = "sep1")
-  Sep1Config sep1Config() {
-    return new PropertySep1Config();
-  }
-
-  @Bean
-  @ConfigurationProperties(prefix = "sep10")
-  Sep10Config sep10Config() {
-    return new PropertySep10Config();
-  }
-
-  @Bean
-  @ConfigurationProperties(prefix = "sep24")
-  Sep24Config sep24Config() {
-    return new PropertySep24Config();
   }
 }
