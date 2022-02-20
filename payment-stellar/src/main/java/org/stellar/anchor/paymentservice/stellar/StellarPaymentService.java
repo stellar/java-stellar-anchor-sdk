@@ -247,7 +247,6 @@ public class StellarPaymentService implements PaymentService {
         new Account(
             getPaymentNetwork(), forAccountId, new Account.Capabilities(PaymentNetwork.CIRCLE));
     PaymentHistory paymentHistory = new PaymentHistory(forAccount);
-    paymentHistory.setAccount(forAccount);
     List<OperationResponse> opResps = operationsPage.getRecords();
     if (opResps.size() == 0) {
       return paymentHistory;

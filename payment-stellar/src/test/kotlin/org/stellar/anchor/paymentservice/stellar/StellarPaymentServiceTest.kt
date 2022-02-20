@@ -19,7 +19,6 @@ class StellarPaymentServiceTest {
   fun setUp() {
     server = MockWebServer()
     server.start()
-    System.out.println(server.url("").toString())
     service =
       StellarPaymentService(
         server.url("").toString(),
