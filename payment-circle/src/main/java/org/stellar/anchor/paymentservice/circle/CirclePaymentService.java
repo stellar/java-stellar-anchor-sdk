@@ -555,12 +555,17 @@ public class CirclePaymentService
     }
   }
 
-  public Mono<CircleBlockchainAddressListResponse> getListOfAddresses(@NonNull String walletId) {
+  public Mono<CircleListResponse<CircleBlockchainAddress>> getListOfAddresses(
+      @NonNull String walletId) {
     return getWebClient(true)
         .get()
         .uri("/v1/wallets/" + walletId + "/addresses")
         .responseSingle(handleResponseSingle())
-        .map(body -> gson.fromJson(body, CircleBlockchainAddressListResponse.class));
+        .map(
+            body -> {
+              Type type = new TypeToken<CircleListResponse<CircleBlockchainAddress>>() {}.getType();
+              return gson.fromJson(body, type);
+            });
   }
 
   public Mono<CircleDetailResponse<CircleBlockchainAddress>> createNewStellarAddress(
@@ -598,7 +603,8 @@ public class CirclePaymentService
             });
   }
 
-  public Mono<CircleBankWireListResponse> getListOfWireAccounts(@NonNull String walletId) {
+  public Mono<CircleListResponse<CircleBankWireAccount>> getListOfWireAccounts(
+      @NonNull String walletId) {
     return getDistributionAccountAddress()
         .flatMap(
             distributionAccountId -> {
@@ -613,7 +619,12 @@ public class CirclePaymentService
                   .get()
                   .uri("/v1/businessAccount/banks/wires")
                   .responseSingle(handleResponseSingle())
-                  .map(body -> gson.fromJson(body, CircleBankWireListResponse.class));
+                  .map(
+                      body -> {
+                        Type type =
+                            new TypeToken<CircleListResponse<CircleBankWireAccount>>() {}.getType();
+                        return gson.fromJson(body, type);
+                      });
             });
   }
 

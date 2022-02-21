@@ -1,15 +1,14 @@
 package org.stellar.anchor.paymentservice.circle.model.response;
 
-import java.util.List;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.stellar.anchor.paymentservice.Account;
 import org.stellar.anchor.paymentservice.PaymentHistory;
 import org.stellar.anchor.paymentservice.circle.model.CirclePayout;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
-public class CirclePayoutListResponse {
-  List<CirclePayout> data;
-
+public class CirclePayoutListResponse extends CircleListResponse<CirclePayout> {
   public PaymentHistory toPaymentHistory(int pageSize, Account account) {
     PaymentHistory ph = new PaymentHistory(account);
     if (data == null || data.size() == 0) {

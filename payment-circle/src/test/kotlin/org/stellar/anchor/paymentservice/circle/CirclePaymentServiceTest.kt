@@ -30,9 +30,8 @@ import org.stellar.anchor.paymentservice.circle.config.CirclePaymentConfig
 import org.stellar.anchor.paymentservice.circle.model.CircleBankWireAccount
 import org.stellar.anchor.paymentservice.circle.model.CircleBlockchainAddress
 import org.stellar.anchor.paymentservice.circle.model.CircleWallet
-import org.stellar.anchor.paymentservice.circle.model.response.CircleBankWireListResponse
-import org.stellar.anchor.paymentservice.circle.model.response.CircleBlockchainAddressListResponse
 import org.stellar.anchor.paymentservice.circle.model.response.CircleDetailResponse
+import org.stellar.anchor.paymentservice.circle.model.response.CircleListResponse
 import org.stellar.anchor.paymentservice.circle.util.CircleAsset
 import org.stellar.anchor.paymentservice.circle.util.CircleDateFormatter
 import org.stellar.anchor.util.FileUtil
@@ -1570,7 +1569,7 @@ class CirclePaymentServiceTest {
     server.dispatcher = dispatcher
 
     val service = this.service as CirclePaymentService
-    var response: CircleBlockchainAddressListResponse? = null
+    var response: CircleListResponse<CircleBlockchainAddress>? = null
     assertDoesNotThrow { response = service.getListOfAddresses("1000066041").block() }
 
     val wantAddresses = ArrayList<CircleBlockchainAddress>()
@@ -1593,7 +1592,7 @@ class CirclePaymentServiceTest {
     wantAddresses.add(
       CircleBlockchainAddress("TLiSMwSrVp8YZaqt7RRcAZoptT1kmpA9sC", null, "USD", "TRX")
     )
-    val wantResponse = CircleBlockchainAddressListResponse()
+    val wantResponse = CircleListResponse<CircleBlockchainAddress>()
     wantResponse.data = wantAddresses
 
     assertEquals(wantResponse, response)
@@ -1834,7 +1833,7 @@ class CirclePaymentServiceTest {
     server.dispatcher = dispatcher
 
     val service = this.service as CirclePaymentService
-    var response: CircleBankWireListResponse? = null
+    var response: CircleListResponse<CircleBankWireAccount>? = null
     assertDoesNotThrow { response = service.getListOfWireAccounts("1000066041").block() }
 
     val wantWireAccount = CircleBankWireAccount()
@@ -1863,7 +1862,7 @@ class CirclePaymentServiceTest {
     bankAddress.country = "US"
     wantWireAccount.bankAddress = bankAddress
 
-    val wantResponse = CircleBankWireListResponse()
+    val wantResponse = CircleListResponse<CircleBankWireAccount>()
     wantResponse.data = listOf(wantWireAccount)
     assertEquals(wantResponse, response)
 
