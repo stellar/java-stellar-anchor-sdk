@@ -4,6 +4,7 @@ import static org.stellar.anchor.util.StellarNetworkHelper.toStellarNetwork;
 
 import com.google.gson.JsonObject;
 import io.netty.handler.codec.http.HttpHeaderNames;
+import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -21,6 +22,7 @@ import reactor.netty.ByteBufMono;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.annotation.NonNull;
 import reactor.util.annotation.Nullable;
+import shadow.com.google.common.reflect.TypeToken;
 
 public class CirclePaymentService
     implements PaymentService, CircleResponseErrorHandler, StellarReconciliation {
@@ -104,7 +106,7 @@ public class CirclePaymentService
             body -> {
               CircleConfigurationResponse response =
                   gson.fromJson(body, CircleConfigurationResponse.class);
-              mainAccountAddress = response.data.payments.masterWalletId;
+              mainAccountAddress = response.getData().payments.masterWalletId;
               return mainAccountAddress;
             });
   }
@@ -149,8 +151,8 @@ public class CirclePaymentService
         .responseSingle(handleResponseSingle())
         .map(
             body -> {
-              CircleWalletResponse circleWalletResponse =
-                  gson.fromJson(body, CircleWalletResponse.class);
+              Type type = new TypeToken<CircleDetailResponse<CircleWallet>>() {}.getType();
+              CircleDetailResponse<CircleWallet> circleWalletResponse = gson.fromJson(body, type);
               return circleWalletResponse.getData();
             });
   }
@@ -204,8 +206,8 @@ public class CirclePaymentService
         .responseSingle(handleResponseSingle())
         .map(
             body -> {
-              CircleWalletResponse circleWalletResponse =
-                  gson.fromJson(body, CircleWalletResponse.class);
+              Type type = new TypeToken<CircleDetailResponse<CircleWallet>>() {}.getType();
+              CircleDetailResponse<CircleWallet> circleWalletResponse = gson.fromJson(body, type);
               CircleWallet circleWallet = circleWalletResponse.getData();
               return circleWallet.toAccount();
             });
@@ -451,7 +453,8 @@ public class CirclePaymentService
             args -> {
               String distributionAccountId = args.getT1();
               String body = args.getT2();
-              CircleTransferResponse transfer = gson.fromJson(body, CircleTransferResponse.class);
+              Type type = new TypeToken<CircleDetailResponse<CircleTransfer>>() {}.getType();
+              CircleDetailResponse<CircleTransfer> transfer = gson.fromJson(body, type);
               return transfer.getData().toPayment(distributionAccountId);
             });
   }
@@ -490,7 +493,8 @@ public class CirclePaymentService
         .responseSingle(handleResponseSingle())
         .map(
             body -> {
-              CirclePayoutResponse payout = gson.fromJson(body, CirclePayoutResponse.class);
+              Type type = new TypeToken<CircleDetailResponse<CirclePayout>>() {}.getType();
+              CircleDetailResponse<CirclePayout> payout = gson.fromJson(body, type);
               return payout.getData().toPayment();
             });
   }
@@ -559,7 +563,7 @@ public class CirclePaymentService
         .map(body -> gson.fromJson(body, CircleBlockchainAddressListResponse.class));
   }
 
-  public Mono<CircleBlockchainAddressCreateResponse> createNewStellarAddress(
+  public Mono<CircleDetailResponse<CircleBlockchainAddress>> createNewStellarAddress(
       @NonNull String walletId) {
     JsonObject postBody = new JsonObject();
     postBody.addProperty("idempotencyKey", UUID.randomUUID().toString());
@@ -571,7 +575,12 @@ public class CirclePaymentService
         .send(ByteBufMono.fromString(Mono.just(postBody.toString())))
         .uri("/v1/wallets/" + walletId + "/addresses")
         .responseSingle(handleResponseSingle())
-        .map(body -> gson.fromJson(body, CircleBlockchainAddressCreateResponse.class));
+        .map(
+            body -> {
+              Type type =
+                  new TypeToken<CircleDetailResponse<CircleBlockchainAddress>>() {}.getType();
+              return gson.fromJson(body, type);
+            });
   }
 
   public Mono<CircleBlockchainAddress> getOrCreateStellarAddress(@NonNull String walletId) {
@@ -585,7 +594,7 @@ public class CirclePaymentService
               }
 
               return createNewStellarAddress(walletId)
-                  .map(CircleBlockchainAddressCreateResponse::getData);
+                  .map(CircleDetailResponse<CircleBlockchainAddress>::getData);
             });
   }
 

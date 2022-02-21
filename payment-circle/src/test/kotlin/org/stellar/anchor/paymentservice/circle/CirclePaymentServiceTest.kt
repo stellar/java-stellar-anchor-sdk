@@ -31,8 +31,8 @@ import org.stellar.anchor.paymentservice.circle.model.CircleBankWireAccount
 import org.stellar.anchor.paymentservice.circle.model.CircleBlockchainAddress
 import org.stellar.anchor.paymentservice.circle.model.CircleWallet
 import org.stellar.anchor.paymentservice.circle.model.response.CircleBankWireListResponse
-import org.stellar.anchor.paymentservice.circle.model.response.CircleBlockchainAddressCreateResponse
 import org.stellar.anchor.paymentservice.circle.model.response.CircleBlockchainAddressListResponse
+import org.stellar.anchor.paymentservice.circle.model.response.CircleDetailResponse
 import org.stellar.anchor.paymentservice.circle.util.CircleAsset
 import org.stellar.anchor.paymentservice.circle.util.CircleDateFormatter
 import org.stellar.anchor.util.FileUtil
@@ -1623,10 +1623,10 @@ class CirclePaymentServiceTest {
     server.dispatcher = dispatcher
 
     val service = this.service as CirclePaymentService
-    var response: CircleBlockchainAddressCreateResponse? = null
+    var response: CircleDetailResponse<CircleBlockchainAddress>? = null
     assertDoesNotThrow { response = service.createNewStellarAddress("1000066041").block() }
 
-    val wantResponse = CircleBlockchainAddressCreateResponse()
+    val wantResponse = CircleDetailResponse<CircleBlockchainAddress>()
     wantResponse.data =
       CircleBlockchainAddress(
         "GAYF33NNNMI2Z6VNRFXQ64D4E4SF77PM46NW3ZUZEEU5X7FCHAZCMHKU",
