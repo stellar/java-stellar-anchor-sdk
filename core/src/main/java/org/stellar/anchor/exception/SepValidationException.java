@@ -9,4 +9,8 @@ public class SepValidationException extends SepException {
   public SepValidationException(String message, Exception cause) {
     super(message, cause);
   }
+
+  public SepValidationException(int httpStatus, String message) {
+    super(httpStatus, message);
+  }
 }

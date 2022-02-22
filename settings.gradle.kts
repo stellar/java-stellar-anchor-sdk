@@ -45,3 +45,7 @@ include("payment-circle")
 
 /** Anchor Platform */
 include("platform")
+
+/** Anchor Reference Server */
+
+include("anchor-reference-server")

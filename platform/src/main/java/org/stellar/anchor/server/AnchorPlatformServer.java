@@ -8,9 +8,9 @@ import org.stellar.anchor.server.configurator.*;
 
 @SpringBootApplication
 @EnableConfigurationProperties
-public class AnchorPlatformApplication implements WebMvcConfigurer {
+public class AnchorPlatformServer implements WebMvcConfigurer {
   public static void main(String[] args) {
-    SpringApplication app = new SpringApplication(AnchorPlatformApplication.class);
+    SpringApplication app = new SpringApplication(AnchorPlatformServer.class);
 
     // Reads the configuration from sources, such as yaml
     app.addInitializers(new PropertiesReader());
