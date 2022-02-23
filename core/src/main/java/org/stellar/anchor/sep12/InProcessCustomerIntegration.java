@@ -6,12 +6,12 @@ import reactor.core.publisher.Mono;
 
 public class InProcessCustomerIntegration implements CustomerIntegration {
     @Override
-    public Mono<GetCustomerResponse> get(GetCustomerRequest request) {
+    public Mono<GetCustomerResponse> getCustomer(GetCustomerRequest request) {
         return null;
     }
 
     @Override
-    public Mono<PutCustomerResponse> put(PutCustomerRequest request) {
+    public Mono<PutCustomerResponse> putCustomer(PutCustomerRequest request) {
         return null;
     }
 

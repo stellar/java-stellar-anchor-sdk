@@ -72,7 +72,7 @@ public class Sep12Service {
     request.setMemo(memo);
     request.setMemoType(memoType);
 
-    return customerIntegration.get(request);
+    return customerIntegration.getCustomer(request);
   }
 
   public Mono<PutCustomerResponse> putCustomer(JwtToken token, PutCustomerRequest request) throws SepValidationException {
@@ -114,6 +114,6 @@ public class Sep12Service {
     request.setMemoType(memoType);
 
 
-    return customerIntegration.put(request);
+    return customerIntegration.putCustomer(request);
   }
 }
