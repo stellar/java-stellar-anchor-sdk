@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import lombok.Data;
 import org.stellar.anchor.paymentservice.Account;
+import org.stellar.anchor.paymentservice.DepositInstructions;
 import org.stellar.anchor.paymentservice.PaymentNetwork;
 
 @Data
@@ -13,6 +14,12 @@ public class CircleWallet {
   String type; // `merchant` or `end_user_wallet`
   String description;
   List<CircleBalance> balances;
+
+  public CircleWallet() {}
+
+  public CircleWallet(String walletId) {
+    this.walletId = walletId;
+  }
 
   public Account.Capabilities getCapabilities() {
     Account.Capabilities capabilities =
@@ -28,5 +35,17 @@ public class CircleWallet {
             .map(circleBalance -> circleBalance.toBalance(PaymentNetwork.CIRCLE))
             .collect(Collectors.toList()));
     return account;
+  }
+
+  public DepositInstructions toDepositInstructions() {
+    return new DepositInstructions(
+        walletId,
+        null,
+        PaymentNetwork.CIRCLE,
+        walletId,
+        null,
+        PaymentNetwork.CIRCLE,
+        "circle:USD",
+        null);
   }
 }

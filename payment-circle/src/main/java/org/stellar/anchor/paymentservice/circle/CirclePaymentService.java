@@ -2,8 +2,6 @@ package org.stellar.anchor.paymentservice.circle;
 
 import static org.stellar.anchor.util.StellarNetworkHelper.toStellarNetwork;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import com.google.gson.JsonObject;
 import io.netty.handler.codec.http.HttpHeaderNames;
 import java.math.BigDecimal;
@@ -26,12 +24,6 @@ import reactor.util.annotation.Nullable;
 
 public class CirclePaymentService
     implements PaymentService, CircleResponseErrorHandler, StellarReconciliation {
-  private static final Gson gson =
-      new GsonBuilder()
-          .registerTypeAdapter(CircleTransfer.class, new CircleTransfer.Serialization())
-          .registerTypeAdapter(CirclePayout.class, new CirclePayout.Deserializer())
-          .create();
-
   private final CirclePaymentConfig config;
 
   private final Network stellarNetwork;
@@ -559,6 +551,85 @@ public class CirclePaymentService
     }
   }
 
+  public Mono<CircleBlockchainAddressListResponse> getListOfAddresses(@NonNull String walletId) {
+    return getWebClient(true)
+        .get()
+        .uri("/v1/wallets/" + walletId + "/addresses")
+        .responseSingle(handleResponseSingle())
+        .map(body -> gson.fromJson(body, CircleBlockchainAddressListResponse.class));
+  }
+
+  public Mono<CircleBlockchainAddressCreateResponse> createNewStellarAddress(
+      @NonNull String walletId) {
+    JsonObject postBody = new JsonObject();
+    postBody.addProperty("idempotencyKey", UUID.randomUUID().toString());
+    postBody.addProperty("currency", "USD");
+    postBody.addProperty("chain", "XLM");
+
+    return getWebClient(true)
+        .post()
+        .send(ByteBufMono.fromString(Mono.just(postBody.toString())))
+        .uri("/v1/wallets/" + walletId + "/addresses")
+        .responseSingle(handleResponseSingle())
+        .map(body -> gson.fromJson(body, CircleBlockchainAddressCreateResponse.class));
+  }
+
+  public Mono<CircleBlockchainAddress> getOrCreateStellarAddress(@NonNull String walletId) {
+    return getListOfAddresses(walletId)
+        .flatMap(
+            addressListResponse -> {
+              for (CircleBlockchainAddress address : addressListResponse.getData()) {
+                if (address.getChain().equals("XLM") && address.getCurrency().equals("USD")) {
+                  return Mono.just(address);
+                }
+              }
+
+              return createNewStellarAddress(walletId)
+                  .map(CircleBlockchainAddressCreateResponse::getData);
+            });
+  }
+
+  public Mono<CircleBankWireListResponse> getListOfWireAccounts(@NonNull String walletId) {
+    return getDistributionAccountAddress()
+        .flatMap(
+            distributionAccountId -> {
+              if (!distributionAccountId.equals(walletId)) {
+                return Mono.error(
+                    new HttpException(
+                        400,
+                        "in circle, only the distribution account id can receive wire payments"));
+              }
+
+              return getWebClient(true)
+                  .get()
+                  .uri("/v1/businessAccount/banks/wires")
+                  .responseSingle(handleResponseSingle())
+                  .map(body -> gson.fromJson(body, CircleBankWireListResponse.class));
+            });
+  }
+
+  private void validateDepositRequirements(@NonNull DepositRequirements config)
+      throws HttpException {
+    String beneficiaryId = config.getBeneficiaryAccountId();
+    if (beneficiaryId == null || beneficiaryId.isEmpty()) {
+      throw new HttpException(400, "beneficiary account id cannot be empty");
+    }
+
+    if (!"circle:USD".equals(config.getBeneficiaryCurrencyName())) {
+      throw new HttpException(
+          400, "the only receiving currency in a circle account is \"circle:USD\"");
+    }
+
+    PaymentNetwork intermediaryNetwork = config.getIntermediaryPaymentNetwork();
+    if (intermediaryNetwork == null
+        || !List.of(PaymentNetwork.STELLAR, PaymentNetwork.CIRCLE, PaymentNetwork.BANK_WIRE)
+            .contains(intermediaryNetwork)) {
+      throw new HttpException(
+          400,
+          "the only supported intermediary payment networks are \"stellar\", \"circle\" and \"bank_wire\"");
+    }
+  }
+
   /**
    * API request that returns the info needed to make a deposit into a user account. This method
    * will be needed if the implementation allows users to make deposits using external networks. For
@@ -590,7 +661,46 @@ public class CirclePaymentService
    */
   public Mono<DepositInstructions> getDepositInstructions(DepositRequirements config)
       throws HttpException {
-    // TODO: implement
-    return null;
+    validateDepositRequirements(config);
+
+    String walletId = config.getBeneficiaryAccountId();
+    switch (config.getIntermediaryPaymentNetwork()) {
+      case STELLAR:
+        return getOrCreateStellarAddress(walletId)
+            .map(address -> address.toDepositInstructions(walletId, stellarNetwork));
+
+      case CIRCLE:
+        return Mono.just(new CircleWallet(walletId).toDepositInstructions());
+
+      case BANK_WIRE:
+        return getListOfWireAccounts(walletId)
+            .map(
+                wireListResponse -> {
+                  List<CircleBankWireAccount> wireAccounts = wireListResponse.getData();
+                  if (wireAccounts.size() == 0) {
+                    throw new HttpException(
+                        400,
+                        "your Circle account is not fully configured yet, please make sure to setup your bank wire address");
+                  }
+
+                  CircleBankWireAccount wireAccount = null;
+                  for (CircleBankWireAccount wa : wireAccounts) {
+                    if ("complete".equals(wa.getStatus())) {
+                      wireAccount = wa;
+                      break;
+                    }
+                  }
+                  if (wireAccount == null) {
+                    throw new HttpException(
+                        400,
+                        "your wire account is not properly approved yet, please go to your circle account to finish the wire configuration");
+                  }
+
+                  return wireAccount.toDepositInstructions(walletId);
+                });
+
+      default:
+        return null;
+    }
   }
 }

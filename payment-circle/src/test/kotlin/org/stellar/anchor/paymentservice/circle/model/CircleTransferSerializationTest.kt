@@ -54,7 +54,7 @@ class CircleTransferSerializationTest {
         "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S",
         null
       )
-    wantTransfer.amount = CircleBalance("USD", "1.00", null)
+    wantTransfer.amount = CircleBalance("USD", "1.00")
     wantTransfer.transactionHash =
       "5239ee055b1083231c6bdaaa921d3e4b3bc090577fbd909815bd5d7fe68091ef"
     wantTransfer.status = CirclePaymentStatus.COMPLETE
@@ -93,7 +93,7 @@ class CircleTransferSerializationTest {
         "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S",
         null
       )
-    transfer.amount = CircleBalance("USD", "1.00", null)
+    transfer.amount = CircleBalance("USD", "1.00")
     transfer.transactionHash = "5239ee055b1083231c6bdaaa921d3e4b3bc090577fbd909815bd5d7fe68091ef"
     transfer.status = CirclePaymentStatus.COMPLETE
     transfer.createDate = CircleDateFormatter.stringToDate("2022-01-01T01:01:01.544Z")
