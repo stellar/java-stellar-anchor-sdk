@@ -61,33 +61,84 @@ most of the Stellar-related use cases, being limited to `CircleWallet<>CircleWal
 `CircleWallet<>BankWire` integrations. Credit cards, ACH, SEPA, BTC, ETH and other networks supported by Circle are not
 covered by this integration.
 
+All methods are async and return a `reactor.core.publisher.Mono`. For more information, please refer to [Project Reactor].
+In the examples below we won't be handling the throwable errors, and we will be using the methods synchronously, but in
+reality you can use the library in the following ways:
+
+```java
+CirclePaymentService service = CirclePaymentService(config);
+
+// Sync usage:
+String distributionAccountId = service.getDistributionAccountAddress().block();
+System.out.println(distributionAccountId);
+
+// Async usage:
+String distributionAccountId = service.getDistributionAccountAddress().then(distributionAccountId -> {
+  System.out.println(distributionAccountId);
+});
+```
+
 You can find how to use the Circle payment service with the supported networks below:
 
 ### `ping()`
 
-Allows users to check if the network is up and running.
+Allows users to check if the network is up and running. Usage:
+
+```java
+try {
+  service.ping().block();
+} catch (Exception ex) {
+  ex.printStackTrace();
+  // TODO: handle service being offline
+}
+```
 
 ### `getDistributionAccountAddress()`
 
-Returns the address string of the distribution account, also called **merchant account** within the Circle context.
+Returns the address string of the distribution account, also called **merchant account** within the Circle context. Usage:
+
+```java
+String distributionAccountId = service.getDistributionAccountAddress().block();
+System.out.println(distributionAccountId);
+```
 
 ### `getAccount(String accountId)`
 
-Returns the circle account info and its balance.
+Returns the circle account info and its balance. Usage:
+
+```java
+Account account = service.getAccount("<account-id>").block();
+System.out.println(account);
+```
 
 > Note: only works with Circle accounts, not stellar nor bank wire accounts.
 
 ### `createAccount(String accountId)`
 
 Allows the creation of a new Circle account. The `accountId` isn't needed for Circle, but if provided it will be added
-to the account description, which is not unique.
+to the account description, which is not unique. Usage:
 
-### `getAccountPaymentHistory(String accountID, String afterCursor)`
+```java
+Account newAccount = service.createAccount(null).block();
+System.out.println(newAccount);
+```
+
+### `getAccountPaymentHistory(String accountID, String afterCursor, String beforeCursor)`
 
 Returns a paginated history of the account-related transactions, which includes:
 - CircleWallet<>Circle
 - CircleWallet<>Stellar
 - CircleWallet->BankWire
+
+Usage:
+
+```java
+PaymentHistory history = service.getAccountPaymentHistory("<account-id>", null).block();
+System.out.println(history);
+
+PaymentHistory nextPageHistory = service.getAccountPaymentHistory("<account-id>", null, history.afterCursor).block();
+System.out.println(nextPageHistory);
+```
 
 > Note: BankWire->CircleWallet is still missing.
 
@@ -98,13 +149,57 @@ Allows sending payments to internal and external accounts, including:
 - CircleWallet->Stellar
 - CircleWallet->BankWire
    - ATTENTION: in order to send a payment to a wire account you first need to create this account using the Circle API.
-     We provide a helper method to do that that's not part of the PaymentService interface, but can be used directly.
-   - Please refer to the [Creating a Bank Wire Account](#creating-a-bank-wire-account) section.
+     Please refer to the [Creating a Bank Wire Account](#creating-a-bank-wire-account) section for more info.
+
+Usage:
+
+```java
+// CircleWallet->CircleWallet
+Account source = new Account(PaymentNetwork.CIRCLE, "1000066041", Account.Capabilities(PaymentNetwork.CIRCLE, PaymentNetwork.STELLAR));
+Account destination = new Account(PaymentNetwork.CIRCLE, "1000067536", Account.Capabilities(PaymentNetwork.CIRCLE, PaymentNetwork.STELLAR));
+String currencyName = "circle:USD";
+Payment payment = service.sendPayment(source, destination, currencyName, BigDecimal.valueOf(0.91)).block();
+System.out.println(payment);
+
+// CircleWallet->Stellar
+Account source = new Account(PaymentNetwork.CIRCLE, "1000066041", Account.Capabilities(PaymentNetwork.CIRCLE, PaymentNetwork.STELLAR));
+Account destination = new Account(PaymentNetwork.STELLAR, "GBG7VGZFH4TU2GS7WL5LMPYFNP64ZFR23XEGAV7GPEEXKWOR2DKCYPCK", "<memo here>", Account.Capabilities());
+String currencyName = "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5";
+Payment payment = service.sendPayment(source, destination, currencyName, BigDecimal.valueOf(0.91)).block();
+System.out.println(payment);
+
+// CircleWallet->BankWire
+Account source = new Account(PaymentNetwork.CIRCLE, "1000066041", Account.Capabilities(PaymentNetwork.CIRCLE, PaymentNetwork.STELLAR));
+// The bank wire account should have been created in advance directly in Circle
+Account destination = new Account(PaymentNetwork.BANK_WIRE, "6c87da10-feb8-484f-822c-2083ed762d25", "test@mail.com", Account.Capabilities());
+String currencyName = "iso4217:USD";
+Payment payment = service.sendPayment(source, destination, currencyName, BigDecimal.valueOf(0.91)).block();
+System.out.println(payment);
+```
 
 ### `getDepositInstructions(DepositRequirements config)`
 
 Used to get the instructions to make a deposit into the desired account using the native Circle network or an
 intermediary network (medium) such as Stellar or BankWire.
+
+Usage:
+
+```java
+// Deposit requirements to receive CircleWallet<-CircleWallet payments
+DepositRequirements config = DepositRequirements("1000066041", null, PaymentNetwork.CIRCLE, "circle:USD");
+DepositInstructions instructions = service.getDepositInstructions(config).block();
+System.out.println(instructions);
+
+// Deposit requirements to receive CircleWallet<-Stellar payments
+DepositRequirements config = DepositRequirements("1000066041", null, PaymentNetwork.STELLAR, "circle:USD");
+DepositInstructions instructions = service.getDepositInstructions(config).block();
+System.out.println(instructions);
+
+// Deposit requirements to receive CircleWallet<-BankWire payments
+DepositRequirements config = DepositRequirements("1000066041", null, PaymentNetwork.BANK_WIRE, "circle:USD");
+DepositInstructions instructions = service.getDepositInstructions(config).block();
+System.out.println(instructions);
+```
 
 ## Circle Documentation
 
@@ -117,3 +212,4 @@ To get more info on the circle API and how to properly configure and use it dire
 [Circle API reference]: https://developers.circle.com/reference
 [Wire Payments Quickstart]: https://developers.circle.com/docs/wire-payments-quickstart#3-create-the-bank-account-you-will-accept-a-payment-from
 [Wire Payouts Quickstart]: https://developers.circle.com/docs/payouts-quickstart#4-create-the-bank-account-you-will-send-the-payout-to
+[Project Reactor]: https://projectreactor.io/docs/core/release/reference/
