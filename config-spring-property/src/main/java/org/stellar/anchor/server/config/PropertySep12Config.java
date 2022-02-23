@@ -5,6 +5,6 @@ import org.stellar.anchor.config.Sep12Config;
 
 @Data
 public class PropertySep12Config implements Sep12Config {
-  String enabled;
+  Boolean enabled;
   String customerIntegrationEndPoint;
 }

@@ -1,7 +1,7 @@
 package org.stellar.anchor.config;
 
 public interface Sep12Config {
-  String getEnabled();
+  Boolean getEnabled();
 
   String getCustomerIntegrationEndPoint();
 }
