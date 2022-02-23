@@ -4,5 +4,5 @@ import lombok.Data;
 
 @Data
 public class PutCustomerVerificationRequest {
-    // TODO: To be defined.
+  // TODO: To be defined.
 }

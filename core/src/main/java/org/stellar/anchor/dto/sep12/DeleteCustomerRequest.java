@@ -5,8 +5,9 @@ import lombok.Data;
 
 @Data
 public class DeleteCustomerRequest {
-    String account;
-    String memo;
-    @SerializedName("memo_type")
-    String memoType;
+  String account;
+  String memo;
+
+  @SerializedName("memo_type")
+  String memoType;
 }

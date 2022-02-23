@@ -1,14 +1,13 @@
 package org.stellar.anchor.dto.sep12;
 
 import com.google.gson.annotations.SerializedName;
-import lombok.Data;
-
 import java.util.Map;
+import lombok.Data;
 
 /**
  * Refer to SEP-12.
  *
- * https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0012.md#response
+ * <p>https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0012.md#response
  */
 @Data
 public class GetCustomerResponse {

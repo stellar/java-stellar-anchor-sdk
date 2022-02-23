@@ -1,5 +1,8 @@
 package org.stellar.anchor.util;
 
+import static org.stellar.sdk.xdr.MemoType.MEMO_ID;
+
+import java.util.Base64;
 import org.apache.commons.codec.binary.Hex;
 import org.stellar.anchor.exception.SepException;
 import org.stellar.anchor.exception.SepValidationException;
@@ -8,10 +11,6 @@ import org.stellar.sdk.MemoHash;
 import org.stellar.sdk.MemoId;
 import org.stellar.sdk.MemoText;
 import org.stellar.sdk.xdr.MemoType;
-
-import java.util.Base64;
-
-import static org.stellar.sdk.xdr.MemoType.MEMO_ID;
 
 public class MemoHelper {
   @SuppressWarnings("UnusedReturnValue")

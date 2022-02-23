@@ -1,4 +1,3 @@
 package org.stellar.anchor.sep9;
 
-public class Sep9Helper {
-}
+public class Sep9Helper {}

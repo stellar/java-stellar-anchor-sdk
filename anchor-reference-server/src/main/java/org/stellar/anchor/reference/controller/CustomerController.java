@@ -27,7 +27,8 @@ public class CustomerController {
   @RequestMapping(
       value = "/customers",
       method = {RequestMethod.GET})
-  public GetCustomerResponse getCustomer(@RequestParam GetCustomerRequest request) throws SepNotFoundException {
+  public GetCustomerResponse getCustomer(@RequestParam GetCustomerRequest request)
+      throws SepNotFoundException {
     return customerService.getCustomer(request);
   }
 
@@ -37,21 +38,24 @@ public class CustomerController {
    * @return list of services available.
    */
   @RequestMapping(
-          value = "/customers",
-          method = {RequestMethod.PUT})
-  public PutCustomerResponse putCustomer(@RequestParam PutCustomerRequest request) throws SepNotFoundException {
+      value = "/customers",
+      method = {RequestMethod.PUT})
+  public PutCustomerResponse putCustomer(@RequestParam PutCustomerRequest request)
+      throws SepNotFoundException {
     return customerService.upsertCustomer(request);
   }
 
   /**
    * Delete a customer.
+   *
    * @param request Delete a customer request.
    * @throws SepNotFoundException If the user is not found, an exception is thrown.
    */
   @RequestMapping(
-          value = "/customers",
-          method = {RequestMethod.DELETE})
-  public void deleteCustomer(@RequestParam DeleteCustomerRequest request) throws SepNotFoundException {
+      value = "/customers",
+      method = {RequestMethod.DELETE})
+  public void deleteCustomer(@RequestParam DeleteCustomerRequest request)
+      throws SepNotFoundException {
     customerService.delete(request);
   }
 }

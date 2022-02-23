@@ -1,13 +1,12 @@
 package org.stellar.anchor.reference.service;
 
+import java.util.Optional;
 import org.springframework.stereotype.Service;
 import org.stellar.anchor.dto.sep12.Sep12Status;
 import org.stellar.anchor.exception.SepNotFoundException;
 import org.stellar.anchor.integration.customer.*;
 import org.stellar.anchor.reference.model.Customer;
 import org.stellar.anchor.reference.repo.CustomerRepo;
-
-import java.util.Optional;
 
 @Service
 public class CustomerService {

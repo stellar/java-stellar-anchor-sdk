@@ -1,10 +1,9 @@
 package org.stellar.anchor.reference.model;
 
 import com.google.gson.annotations.SerializedName;
+import javax.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.Type;
-
-import javax.persistence.*;
 
 @Data
 @Entity

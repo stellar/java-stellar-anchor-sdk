@@ -1,11 +1,10 @@
 package org.stellar.anchor.dto.sep12;
 
 import com.google.gson.annotations.SerializedName;
-import lombok.Data;
-
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import lombok.Data;
 
 /**
  * Refer to SEP-12.

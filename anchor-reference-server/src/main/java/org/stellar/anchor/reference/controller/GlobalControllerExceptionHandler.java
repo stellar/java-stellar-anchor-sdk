@@ -1,5 +1,8 @@
 package org.stellar.anchor.reference.controller;
 
+import static org.stellar.anchor.util.Log.errorEx;
+
+import java.io.IOException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -7,10 +10,6 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.stellar.anchor.dto.SepExceptionResponse;
 import org.stellar.anchor.exception.SepNotFoundException;
 import org.stellar.anchor.exception.SepValidationException;
-
-import java.io.IOException;
-
-import static org.stellar.anchor.util.Log.errorEx;
 
 @RestControllerAdvice
 public class GlobalControllerExceptionHandler {

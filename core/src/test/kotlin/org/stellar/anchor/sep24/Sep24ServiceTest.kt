@@ -31,12 +31,10 @@ import org.stellar.anchor.plugins.asset.ResourceJsonAssetService
 import org.stellar.anchor.sep10.JwtService
 import org.stellar.anchor.sep10.JwtToken
 import org.stellar.anchor.util.DateUtil
-import org.stellar.anchor.util.MemoHelper
 import org.stellar.anchor.util.MemoHelper.makeMemo
 import org.stellar.sdk.MemoHash
 import org.stellar.sdk.MemoId
 import org.stellar.sdk.MemoText
-import org.stellar.sdk.xdr.MemoType
 
 internal class Sep24ServiceTest {
   companion object {

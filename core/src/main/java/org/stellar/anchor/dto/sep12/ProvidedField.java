@@ -1,8 +1,7 @@
 package org.stellar.anchor.dto.sep12;
 
-import lombok.Data;
-
 import java.util.List;
+import lombok.Data;
 
 /**
  * Refer to SEP-12.

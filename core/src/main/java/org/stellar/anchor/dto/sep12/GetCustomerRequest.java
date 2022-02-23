@@ -6,15 +6,17 @@ import lombok.Data;
 /**
  * Refer to SEP-12.
  *
- * https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0012.md#request
+ * <p>https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0012.md#request
  */
 @Data
 public class GetCustomerRequest {
-    String id;
-    String account;
-    String memo;
-    @SerializedName("memo_type")
-    String memoType;
-    String type;
-    String lang;
+  String id;
+  String account;
+  String memo;
+
+  @SerializedName("memo_type")
+  String memoType;
+
+  String type;
+  String lang;
 }
