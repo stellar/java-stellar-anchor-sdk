@@ -42,6 +42,11 @@ app-config:
     jwtTimeout: 86400
     signingSeed: SAX3AH622R2XT6DXWWSRIDCMMUCCMATBZ5U6XKJWDO7M2EJUBFC3AW5X
 
+  # sep-12
+  sep12:
+    enabled: true
+    customerIntegrationEndpoint: http://localhost:8081
+
   # sep-24
   sep24:
     interactiveJwtExpiration: 300

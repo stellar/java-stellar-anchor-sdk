@@ -43,6 +43,11 @@ config-spring-property-settings:
     jwtTimeout: 86400
     signingSeed:
 
+  # sep-12
+  sep12:
+    enabled: true
+    customerIntegrationEndpoint: http://localhost:8081
+
   # sep-24
   sep24:
     interactiveJwtExpiration: 300
