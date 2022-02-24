@@ -27,9 +27,9 @@ import org.skyscreamer.jsonassert.JSONAssert
 import org.stellar.anchor.exception.HttpException
 import org.stellar.anchor.paymentservice.*
 import org.stellar.anchor.paymentservice.circle.config.CirclePaymentConfig
-import org.stellar.anchor.paymentservice.circle.model.CircleBankWireAccount
 import org.stellar.anchor.paymentservice.circle.model.CircleBlockchainAddress
 import org.stellar.anchor.paymentservice.circle.model.CircleWallet
+import org.stellar.anchor.paymentservice.circle.model.CircleWireDepositInstructions
 import org.stellar.anchor.paymentservice.circle.model.response.CircleDetailResponse
 import org.stellar.anchor.paymentservice.circle.model.response.CircleListResponse
 import org.stellar.anchor.paymentservice.circle.util.CircleAsset
@@ -66,8 +66,8 @@ class CirclePaymentServiceTest {
     val mockGetListOfAddressesBody: String =
       FileUtil.getResourceFileAsString("mock_get_list_of_addresses_body.json")
 
-    val mockGetListOfWireAccountsBody: String =
-      FileUtil.getResourceFileAsString("mock_get_list_of_wire_accounts_body.json")
+    val mockGetWireDepositInstructionsBody: String =
+      FileUtil.getResourceFileAsString("mock_get_wire_deposit_instructions_body.json")
 
     val mockAddressJson: String = FileUtil.getResourceFileAsString("mock_address.json")
   }
@@ -1701,14 +1701,8 @@ class CirclePaymentServiceTest {
     JSONAssert.assertEquals(wantBody, gotBody, false)
   }
 
-  @ParameterizedTest
-  @NullSource
-  @EnumSource(
-    value = PaymentNetwork::class,
-    mode = EnumSource.Mode.EXCLUDE,
-    names = ["STELLAR", "CIRCLE", "BANK_WIRE"]
-  )
-  fun test_getDepositInstructions_parameterValidation(paymentNetwork: PaymentNetwork?) {
+  @Test
+  fun test_getDepositInstructions_parameterValidation() {
     // empty beneficiary account id
     var config = DepositRequirements(null, null, null, null)
     var ex: HttpException = assertThrows { service.getDepositInstructions(config).block() }
@@ -1722,9 +1716,31 @@ class CirclePaymentServiceTest {
       ex
     )
 
-    // unsupported intermediary payment network
-    config = DepositRequirements("1000066041", null, paymentNetwork, "circle:USD")
+    // missing bank id
+    config = DepositRequirements("1000066041", null, PaymentNetwork.BANK_WIRE, "circle:USD")
     ex = assertThrows { service.getDepositInstructions(config).block() }
+    assertEquals(
+      HttpException(
+        400,
+        "please provide a valid Circle bank id for the intermediaryAccountId field when requesting instructions for bank wire deposits"
+      ),
+      ex
+    )
+  }
+
+  @ParameterizedTest
+  @NullSource
+  @EnumSource(
+    value = PaymentNetwork::class,
+    mode = EnumSource.Mode.EXCLUDE,
+    names = ["STELLAR", "CIRCLE", "BANK_WIRE"]
+  )
+  fun test_getDepositInstructions_parameterValidation_supportedNetworks(
+    paymentNetwork: PaymentNetwork?
+  ) {
+    // unsupported intermediary payment network
+    val config = DepositRequirements("1000066041", null, paymentNetwork, "circle:USD")
+    val ex: HttpException = assertThrows { service.getDepositInstructions(config).block() }
     assertEquals(
       HttpException(
         400,
@@ -1815,17 +1831,17 @@ class CirclePaymentServiceTest {
   }
 
   @Test
-  fun test_getListOfWireAccounts() {
+  fun test_getWireDepositInstructions() {
     val dispatcher: Dispatcher =
       object : Dispatcher() {
         @Throws(InterruptedException::class)
         override fun dispatch(request: RecordedRequest): MockResponse {
           when (request.path) {
             "/v1/configuration" -> return getDistAccountIdMockResponse()
-            "/v1/businessAccount/banks/wires" ->
+            "/v1/businessAccount/banks/wires/bank-id-here/instructions" ->
               return MockResponse()
                 .addHeader("Content-Type", "application/json")
-                .setBody(mockGetListOfWireAccountsBody)
+                .setBody(mockGetWireDepositInstructionsBody)
           }
           return MockResponse().setResponseCode(404)
         }
@@ -1833,37 +1849,31 @@ class CirclePaymentServiceTest {
     server.dispatcher = dispatcher
 
     val service = this.service as CirclePaymentService
-    var response: CircleListResponse<CircleBankWireAccount>? = null
-    assertDoesNotThrow { response = service.getListOfWireAccounts("1000066041").block() }
+    var response: CircleDetailResponse<CircleWireDepositInstructions>? = null
+    assertDoesNotThrow {
+      response = service.getWireDepositInstructions("1000066041", "bank-id-here").block()
+    }
 
-    val wantWireAccount = CircleBankWireAccount()
-    wantWireAccount.id = "8f6cd3bc-fd21-45ac-b1f0-7534d3b78949"
-    wantWireAccount.status = "complete"
-    wantWireAccount.description = "JPMORGAN CHASE BANK, NA ****6789"
-    wantWireAccount.trackingRef = "CIR3PTK2AE"
-    wantWireAccount.fingerprint = "1f68fda7-6183-47fc-aecf-55f564535e6f"
-    wantWireAccount.createDate = CircleDateFormatter.stringToDate("2021-11-24T20:19:03.852Z")
-    wantWireAccount.updateDate = CircleDateFormatter.stringToDate("2021-11-25T16:00:00.743Z")
-    val billingDetails = CircleBankWireAccount.BillingDetails()
-    billingDetails.name = "Satoshi Nakamoto"
-    billingDetails.line1 = "100 Money Street"
-    billingDetails.line2 = "Suite 1"
-    billingDetails.city = "Boston"
-    billingDetails.postalCode = "01234"
-    billingDetails.district = "MA"
-    billingDetails.country = "US"
-    wantWireAccount.billingDetails = billingDetails
-    val bankAddress = CircleBankWireAccount.BankAddress()
-    bankAddress.bankName = "JPMORGAN CHASE BANK, NA"
-    bankAddress.line1 = "100 Money Street"
-    bankAddress.line2 = "Suite 1"
-    bankAddress.city = "NEW YORK"
-    bankAddress.district = "NY"
-    bankAddress.country = "US"
-    wantWireAccount.bankAddress = bankAddress
+    val wantWireInstructions = CircleWireDepositInstructions()
+    wantWireInstructions.trackingRef = "CIR2KMMZEJ"
+    val wantBeneficiary = CircleWireDepositInstructions.Beneficiary()
+    wantBeneficiary.name = "CIRCLE INTERNET FINANCIAL INC"
+    wantBeneficiary.address1 = "1 MAIN STREET"
+    wantBeneficiary.address2 = "SUITE 1"
+    wantWireInstructions.beneficiary = wantBeneficiary
+    val wantBeneficiaryBank = CircleWireDepositInstructions.BeneficiaryBank()
+    wantBeneficiaryBank.name = "CRYPTO BANK"
+    wantBeneficiaryBank.address = "1 MONEY STREET"
+    wantBeneficiaryBank.city = "NEW YORK"
+    wantBeneficiaryBank.postalCode = "1001"
+    wantBeneficiaryBank.country = "US"
+    wantBeneficiaryBank.swiftCode = "CRYPTO99"
+    wantBeneficiaryBank.routingNumber = "999999999"
+    wantBeneficiaryBank.accountNumber = "1000000001"
+    wantWireInstructions.beneficiaryBank = wantBeneficiaryBank
 
-    val wantResponse = CircleListResponse<CircleBankWireAccount>()
-    wantResponse.data = listOf(wantWireAccount)
+    val wantResponse = CircleDetailResponse<CircleWireDepositInstructions>()
+    wantResponse.data = wantWireInstructions
     assertEquals(wantResponse, response)
 
     assertEquals(2, server.requestCount)
@@ -1875,14 +1885,17 @@ class CirclePaymentServiceTest {
     assertTrue(validateSecretKeyRequest.path!!.endsWith("/v1/configuration"))
 
     val getWiresRequest = server.takeRequest()
-    assertThat(getWiresRequest.path, CoreMatchers.endsWith("/v1/businessAccount/banks/wires"))
+    assertThat(
+      getWiresRequest.path,
+      CoreMatchers.endsWith("/v1/businessAccount/banks/wires/bank-id-here/instructions")
+    )
     assertEquals("GET", getWiresRequest.method)
     assertEquals("application/json", getWiresRequest.headers["Content-Type"])
     assertEquals("Bearer <secret-key>", getWiresRequest.headers["Authorization"])
   }
 
   @Test
-  fun test_getListOfWireAccounts_notTheDistributionAccount() {
+  fun test_getWireDepositInstructions_notTheDistributionAccount() {
     val dispatcher: Dispatcher =
       object : Dispatcher() {
         @Throws(InterruptedException::class)
@@ -1896,44 +1909,11 @@ class CirclePaymentServiceTest {
     server.dispatcher = dispatcher
 
     val service = this.service as CirclePaymentService
-    val ex: HttpException = assertThrows { service.getListOfWireAccounts("1000646072").block() }
+    val ex: HttpException = assertThrows {
+      service.getWireDepositInstructions("1000646072", "bank-id-here").block()
+    }
     val wantException =
       HttpException(400, "in circle, only the distribution account id can receive wire payments")
-    assertEquals(wantException, ex)
-  }
-
-  @ParameterizedTest
-  @CsvSource(
-    delimiterString = ";",
-    value =
-      [
-        "[];your Circle account is not fully configured yet, please make sure to setup your bank wire address",
-        """[{"status":"pending"}];your wire account is not properly approved yet, please go to your circle account to finish the wire configuration""",
-      ]
-  )
-  fun test_getDepositInstructions_wire_failIfWireIsNotConfigured(
-    listOfWires: String,
-    expectedExceptionMessage: String
-  ) {
-    val dispatcher: Dispatcher =
-      object : Dispatcher() {
-        @Throws(InterruptedException::class)
-        override fun dispatch(request: RecordedRequest): MockResponse {
-          when (request.path) {
-            "/v1/configuration" -> return getDistAccountIdMockResponse()
-            "/v1/businessAccount/banks/wires" ->
-              return MockResponse()
-                .addHeader("Content-Type", "application/json")
-                .setBody("""{"data":$listOfWires}""")
-          }
-          return MockResponse().setResponseCode(404)
-        }
-      }
-    server.dispatcher = dispatcher
-
-    val config = DepositRequirements("1000066041", null, PaymentNetwork.BANK_WIRE, "circle:USD")
-    val ex: HttpException = assertThrows { service.getDepositInstructions(config).block() }
-    val wantException = HttpException(400, expectedExceptionMessage)
     assertEquals(wantException, ex)
   }
 
@@ -2006,7 +1986,7 @@ class CirclePaymentServiceTest {
         listOf(emptyListResponse, badRequestResponse)
       ),
       ErrorHandlingTestCase(
-        (service as CirclePaymentService).getListOfWireAccounts("any_id"),
+        (service as CirclePaymentService).getWireDepositInstructions("any_id", "any_bank_id"),
         listOf(badRequestResponse)
       ),
       ErrorHandlingTestCase(
@@ -2017,7 +1997,13 @@ class CirclePaymentServiceTest {
       ),
       ErrorHandlingTestCase(
         service.getDepositInstructions(
-          DepositRequirements("1000066041", PaymentNetwork.BANK_WIRE, "circle:USD")
+          DepositRequirements(
+            "1000066041",
+            null,
+            PaymentNetwork.BANK_WIRE,
+            "bank-id-here",
+            "circle:USD"
+          )
         ),
         listOf(badRequestResponse)
       ),

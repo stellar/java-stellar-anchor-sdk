@@ -603,8 +603,8 @@ public class CirclePaymentService
             });
   }
 
-  public Mono<CircleListResponse<CircleBankWireAccount>> getListOfWireAccounts(
-      @NonNull String walletId) {
+  public Mono<CircleDetailResponse<CircleWireDepositInstructions>> getWireDepositInstructions(
+      @NonNull String walletId, @NonNull String bankWireId) {
     return getDistributionAccountAddress()
         .flatMap(
             distributionAccountId -> {
@@ -617,12 +617,13 @@ public class CirclePaymentService
 
               return getWebClient(true)
                   .get()
-                  .uri("/v1/businessAccount/banks/wires")
+                  .uri("/v1/businessAccount/banks/wires/" + bankWireId + "/instructions")
                   .responseSingle(handleResponseSingle())
                   .map(
                       body -> {
                         Type type =
-                            new TypeToken<CircleListResponse<CircleBankWireAccount>>() {}.getType();
+                            new TypeToken<
+                                CircleDetailResponse<CircleWireDepositInstructions>>() {}.getType();
                         return gson.fromJson(body, type);
                       });
             });
@@ -647,6 +648,13 @@ public class CirclePaymentService
       throw new HttpException(
           400,
           "the only supported intermediary payment networks are \"stellar\", \"circle\" and \"bank_wire\"");
+    }
+
+    if (PaymentNetwork.BANK_WIRE.equals(intermediaryNetwork)
+        && config.getIntermediaryAccountId() == null) {
+      throw new HttpException(
+          400,
+          "please provide a valid Circle bank id for the intermediaryAccountId field when requesting instructions for bank wire deposits");
     }
   }
 
@@ -693,31 +701,8 @@ public class CirclePaymentService
         return Mono.just(new CircleWallet(walletId).toDepositInstructions());
 
       case BANK_WIRE:
-        return getListOfWireAccounts(walletId)
-            .map(
-                wireListResponse -> {
-                  List<CircleBankWireAccount> wireAccounts = wireListResponse.getData();
-                  if (wireAccounts.size() == 0) {
-                    throw new HttpException(
-                        400,
-                        "your Circle account is not fully configured yet, please make sure to setup your bank wire address");
-                  }
-
-                  CircleBankWireAccount wireAccount = null;
-                  for (CircleBankWireAccount wa : wireAccounts) {
-                    if ("complete".equals(wa.getStatus())) {
-                      wireAccount = wa;
-                      break;
-                    }
-                  }
-                  if (wireAccount == null) {
-                    throw new HttpException(
-                        400,
-                        "your wire account is not properly approved yet, please go to your circle account to finish the wire configuration");
-                  }
-
-                  return wireAccount.toDepositInstructions(walletId);
-                });
+        return getWireDepositInstructions(walletId, config.getIntermediaryAccountId())
+            .map(response -> response.getData().toDepositInstructions(walletId));
 
       default:
         return null;

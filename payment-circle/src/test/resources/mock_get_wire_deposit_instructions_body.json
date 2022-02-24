@@ -1,0 +1,20 @@
+{
+  "data":{
+    "trackingRef":"CIR2KMMZEJ",
+    "beneficiary":{
+      "name":"CIRCLE INTERNET FINANCIAL INC",
+      "address1":"1 MAIN STREET",
+      "address2":"SUITE 1"
+    },
+    "beneficiaryBank":{
+      "name":"CRYPTO BANK",
+      "address":"1 MONEY STREET",
+      "city":"NEW YORK",
+      "postalCode":"1001",
+      "country":"US",
+      "swiftCode":"CRYPTO99",
+      "routingNumber":"999999999",
+      "accountNumber":"1000000001"
+    }
+  }
+}
