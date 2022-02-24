@@ -15,7 +15,7 @@ import org.stellar.anchor.sep12.Sep12Service;
 
 @RestController
 @CrossOrigin(origins = "*")
-@RequestMapping("/sep24")
+@RequestMapping("/sep12")
 public class Sep12Controller {
   private final Sep12Service sep12Service;
 

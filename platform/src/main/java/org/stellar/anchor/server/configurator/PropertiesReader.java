@@ -26,8 +26,17 @@ public class PropertiesReader extends AbstractConfigurator
     // Load default values
     loadConfigYaml(new ClassPathResource("default-config.yaml"));
 
+    // If stellar.anchor.config is specified in Spring application properties, use it.
+    // This is mainly for the purpose of integration test where we may inject the configuration yaml file from
+    // the test resource.
+    String yamlLocation = applicationContext.getEnvironment().getProperty("stellar.anchor.config");
+    if (yamlLocation != null) {
+      loadConfigYaml(applicationContext, yamlLocation);
+      return;
+    }
+
     // Read from Java VM OPTS
-    String yamlLocation = getFromSystemProperty();
+    yamlLocation = getFromSystemProperty();
     if (yamlLocation != null) {
       loadConfigYaml(applicationContext, yamlLocation);
       return;

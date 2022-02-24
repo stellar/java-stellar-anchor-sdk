@@ -38,6 +38,7 @@ public class SepConfig {
     registrationBean.setFilter(new Sep10TokenFilter(sep10Config, jwtService));
     registrationBean.addUrlPatterns("/sep24/transactions/*");
     registrationBean.addUrlPatterns("/sep24/transaction");
+    registrationBean.addUrlPatterns("/sep12/*");
 
     return registrationBean;
   }

@@ -27,8 +27,10 @@ public class CustomerController {
   @RequestMapping(
       value = "/customers",
       method = {RequestMethod.GET})
-  public GetCustomerResponse getCustomer(@RequestParam GetCustomerRequest request)
+  public GetCustomerResponse getCustomer(@RequestParam(required = false) String id)
       throws SepNotFoundException {
+    GetCustomerRequest request = new GetCustomerRequest();
+    request.setId(id);
     return customerService.getCustomer(request);
   }
 

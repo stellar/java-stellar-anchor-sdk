@@ -9,9 +9,9 @@ import org.hibernate.annotations.Type;
 @Entity
 public class Customer {
   @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
-  @Type(type = "uuid-char")
-  @Column(name = "id", columnDefinition = "VARCHAR(255)", updatable = false, nullable = false)
+//  @GeneratedValue(strategy = GenerationType.AUTO)
+//  @Type(type = "uuid-char")
+//  @Column(name = "id", columnDefinition = "VARCHAR(255)", updatable = false, nullable = false)
   String id;
 
   @SerializedName("stellar_account")
