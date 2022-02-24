@@ -1,6 +1,7 @@
 package org.stellar.anchor.dto.sep12;
 
 import com.google.gson.annotations.SerializedName;
+import lombok.Builder;
 import lombok.Data;
 
 /**
@@ -9,6 +10,7 @@ import lombok.Data;
  * <p>https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0012.md#request
  */
 @Data
+@Builder
 public class GetCustomerRequest {
   String id;
   String account;

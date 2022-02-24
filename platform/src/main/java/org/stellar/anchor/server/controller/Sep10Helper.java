@@ -1,0 +1,19 @@
+package org.stellar.anchor.server.controller;
+
+import org.stellar.anchor.exception.SepValidationException;
+import org.stellar.anchor.sep10.JwtToken;
+
+import javax.servlet.http.HttpServletRequest;
+
+import static org.stellar.anchor.filter.BaseTokenFilter.JWT_TOKEN;
+
+public class Sep10Helper {
+  public static JwtToken getSep10Token(HttpServletRequest request) throws SepValidationException {
+    JwtToken token = (JwtToken) request.getAttribute(JWT_TOKEN);
+    if (token == null) {
+      throw new SepValidationException(
+          "missing sep10 jwt token. Make sure the sep10 filter is invoked before the controller");
+    }
+    return token;
+  }
+}

@@ -1,14 +1,5 @@
 package org.stellar.anchor.server.controller;
 
-import static org.stellar.anchor.filter.BaseTokenFilter.JWT_TOKEN;
-import static org.stellar.anchor.util.Log.*;
-
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
-import java.util.HashMap;
-import java.util.Map;
-import javax.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -20,6 +11,16 @@ import org.stellar.anchor.exception.SepNotFoundException;
 import org.stellar.anchor.exception.SepValidationException;
 import org.stellar.anchor.sep10.JwtToken;
 import org.stellar.anchor.sep24.Sep24Service;
+
+import javax.servlet.http.HttpServletRequest;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.stellar.anchor.server.controller.Sep10Helper.getSep10Token;
+import static org.stellar.anchor.util.Log.*;
 
 @RestController
 @CrossOrigin(origins = "*")
@@ -182,15 +183,6 @@ public class Sep24Controller {
     }
 
     return request.getRequestURL().toString();
-  }
-
-  JwtToken getSep10Token(HttpServletRequest request) throws SepValidationException {
-    JwtToken token = (JwtToken) request.getAttribute(JWT_TOKEN);
-    if (token == null) {
-      throw new SepValidationException(
-          "missing sep10 jwt token. Make sure the sep10 filter is invoked before the controller");
-    }
-    return token;
   }
 
   @ExceptionHandler({MethodArgumentNotValidException.class, SepValidationException.class})

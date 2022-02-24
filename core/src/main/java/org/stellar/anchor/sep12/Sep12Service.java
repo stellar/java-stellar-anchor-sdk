@@ -3,6 +3,7 @@ package org.stellar.anchor.sep12;
 import java.util.stream.Stream;
 import org.apache.http.HttpStatus;
 import org.stellar.anchor.config.AppConfig;
+import org.stellar.anchor.config.Sep12Config;
 import org.stellar.anchor.dto.sep12.GetCustomerRequest;
 import org.stellar.anchor.dto.sep12.GetCustomerResponse;
 import org.stellar.anchor.dto.sep12.PutCustomerRequest;
@@ -18,12 +19,14 @@ import reactor.core.publisher.Mono;
 
 public class Sep12Service {
   private final AppConfig appConfig;
+  private Sep12Config sep12Config;
   private JwtService jwtService;
   private CustomerIntegration customerIntegration;
 
   public Sep12Service(
-      AppConfig appConfig, JwtService jwtService, CustomerIntegration customerIntegration) {
+          AppConfig appConfig, Sep12Config sep12Config, JwtService jwtService, CustomerIntegration customerIntegration) {
     this.appConfig = appConfig;
+    this.sep12Config = sep12Config;
     this.jwtService = jwtService;
     this.customerIntegration = customerIntegration;
   }

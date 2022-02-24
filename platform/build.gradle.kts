@@ -15,6 +15,7 @@ dependencies {
   implementation(libs.sqlite.jdbc)
   implementation(libs.google.gson)
   implementation(libs.java.stellar.sdk)
+  implementation(libs.reactor.netty)
 
   annotationProcessor(libs.lombok)
   annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
@@ -24,6 +25,7 @@ dependencies {
   implementation(project(":payment-circle"))
   implementation(project(":config-spring-property"))
   implementation(project(":data-spring-jdbc"))
+  implementation(project(":anchor-integration-netty"))
 
   testImplementation("org.springframework.boot:spring-boot-starter-test")
 }

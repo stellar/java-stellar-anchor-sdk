@@ -5,17 +5,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.stellar.anchor.config.AppConfig;
-import org.stellar.anchor.config.Sep10Config;
-import org.stellar.anchor.config.Sep1Config;
-import org.stellar.anchor.config.Sep24Config;
+import org.stellar.anchor.config.*;
 import org.stellar.anchor.exception.SepNotFoundException;
 import org.stellar.anchor.filter.Sep10TokenFilter;
 import org.stellar.anchor.horizon.Horizon;
+import org.stellar.anchor.integration.customer.CustomerIntegration;
 import org.stellar.anchor.plugins.asset.ResourceJsonAssetService;
 import org.stellar.anchor.sep1.Sep1Service;
 import org.stellar.anchor.sep10.JwtService;
 import org.stellar.anchor.sep10.Sep10Service;
+import org.stellar.anchor.sep12.Sep12Service;
 import org.stellar.anchor.sep24.AssetService;
 import org.stellar.anchor.sep24.Sep24Service;
 import org.stellar.anchor.server.data.JdbcSep24TransactionRepo;
@@ -72,6 +71,11 @@ public class SepConfig {
   Sep10Service sep10Service(
       AppConfig appConfig, Sep10Config sep10Config, Horizon horizon, JwtService jwtService) {
     return new Sep10Service(appConfig, sep10Config, horizon, jwtService);
+  }
+
+  @Bean
+  Sep12Service sep12Service(AppConfig appConfig, Sep12Config sep12Config, JwtService jwtService, CustomerIntegration customerIntegration) {
+      return new Sep12Service(appConfig, sep12Config, jwtService, customerIntegration);
   }
 
   @Bean
