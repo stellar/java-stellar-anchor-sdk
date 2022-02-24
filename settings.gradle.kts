@@ -51,3 +51,6 @@ include("platform")
 
 /** Anchor Reference Server */
 include("anchor-reference-server")
+
+/** Anchor Platform API Schemas */
+include("platform-apis")
