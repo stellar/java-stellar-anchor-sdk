@@ -1831,6 +1831,85 @@ class CirclePaymentServiceTest {
   }
 
   @Test
+  fun test_getDepositInstructions_wire() {
+    val dispatcher: Dispatcher =
+      object : Dispatcher() {
+        @Throws(InterruptedException::class)
+        override fun dispatch(request: RecordedRequest): MockResponse {
+          when (request.path) {
+            "/v1/configuration" -> return getDistAccountIdMockResponse()
+            "/v1/businessAccount/banks/wires/bank-id-here/instructions" ->
+              return MockResponse()
+                .addHeader("Content-Type", "application/json")
+                .setBody(mockGetWireDepositInstructionsBody)
+          }
+          return MockResponse().setResponseCode(404)
+        }
+      }
+    server.dispatcher = dispatcher
+
+    var instructions: DepositInstructions? = null
+    val config =
+      DepositRequirements(
+        "1000066041",
+        null,
+        PaymentNetwork.BANK_WIRE,
+        "bank-id-here",
+        "circle:USD"
+      )
+    assertDoesNotThrow { instructions = service.getDepositInstructions(config).block() }
+
+    val wantInstructions =
+      DepositInstructions(
+        "1000066041",
+        null,
+        PaymentNetwork.CIRCLE,
+        "CIR2KMMZEJ",
+        null,
+        PaymentNetwork.BANK_WIRE,
+        "iso4217:USD",
+        mapOf(
+          "trackingRef" to "CIR2KMMZEJ",
+          "beneficiary" to
+            mapOf(
+              "name" to "CIRCLE INTERNET FINANCIAL INC",
+              "address1" to "1 MAIN STREET",
+              "address2" to "SUITE 1"
+            ),
+          "beneficiaryBank" to
+            mapOf(
+              "name" to "CRYPTO BANK",
+              "address" to "1 MONEY STREET",
+              "city" to "NEW YORK",
+              "postalCode" to "1001",
+              "country" to "US",
+              "swiftCode" to "CRYPTO99",
+              "routingNumber" to "999999999",
+              "accountNumber" to "1000000001"
+            )
+        )
+      )
+    assertEquals(wantInstructions, instructions)
+
+    assertEquals(2, server.requestCount)
+
+    val validateSecretKeyRequest = server.takeRequest()
+    assertEquals("GET", validateSecretKeyRequest.method)
+    assertEquals("application/json", validateSecretKeyRequest.headers["Content-Type"])
+    assertEquals("Bearer <secret-key>", validateSecretKeyRequest.headers["Authorization"])
+    assertTrue(validateSecretKeyRequest.path!!.endsWith("/v1/configuration"))
+
+    val wireInstructionsRequest = server.takeRequest()
+    assertThat(
+      wireInstructionsRequest.path,
+      CoreMatchers.endsWith("/v1/businessAccount/banks/wires/bank-id-here/instructions")
+    )
+    assertEquals("GET", wireInstructionsRequest.method)
+    assertEquals("application/json", wireInstructionsRequest.headers["Content-Type"])
+    assertEquals("Bearer <secret-key>", wireInstructionsRequest.headers["Authorization"])
+  }
+
+  @Test
   fun test_getWireDepositInstructions() {
     val dispatcher: Dispatcher =
       object : Dispatcher() {
@@ -1884,14 +1963,14 @@ class CirclePaymentServiceTest {
     assertEquals("Bearer <secret-key>", validateSecretKeyRequest.headers["Authorization"])
     assertTrue(validateSecretKeyRequest.path!!.endsWith("/v1/configuration"))
 
-    val getWiresRequest = server.takeRequest()
+    val wireInstructionsRequest = server.takeRequest()
     assertThat(
-      getWiresRequest.path,
+      wireInstructionsRequest.path,
       CoreMatchers.endsWith("/v1/businessAccount/banks/wires/bank-id-here/instructions")
     )
-    assertEquals("GET", getWiresRequest.method)
-    assertEquals("application/json", getWiresRequest.headers["Content-Type"])
-    assertEquals("Bearer <secret-key>", getWiresRequest.headers["Authorization"])
+    assertEquals("GET", wireInstructionsRequest.method)
+    assertEquals("application/json", wireInstructionsRequest.headers["Content-Type"])
+    assertEquals("Bearer <secret-key>", wireInstructionsRequest.headers["Authorization"])
   }
 
   @Test
