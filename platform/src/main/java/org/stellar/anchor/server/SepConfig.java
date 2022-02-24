@@ -74,8 +74,12 @@ public class SepConfig {
   }
 
   @Bean
-  Sep12Service sep12Service(AppConfig appConfig, Sep12Config sep12Config, JwtService jwtService, CustomerIntegration customerIntegration) {
-      return new Sep12Service(appConfig, sep12Config, jwtService, customerIntegration);
+  Sep12Service sep12Service(
+      AppConfig appConfig,
+      Sep12Config sep12Config,
+      JwtService jwtService,
+      CustomerIntegration customerIntegration) {
+    return new Sep12Service(appConfig, sep12Config, jwtService, customerIntegration);
   }
 
   @Bean

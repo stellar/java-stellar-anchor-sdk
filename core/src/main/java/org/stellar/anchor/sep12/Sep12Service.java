@@ -24,7 +24,10 @@ public class Sep12Service {
   private CustomerIntegration customerIntegration;
 
   public Sep12Service(
-          AppConfig appConfig, Sep12Config sep12Config, JwtService jwtService, CustomerIntegration customerIntegration) {
+      AppConfig appConfig,
+      Sep12Config sep12Config,
+      JwtService jwtService,
+      CustomerIntegration customerIntegration) {
     this.appConfig = appConfig;
     this.sep12Config = sep12Config;
     this.jwtService = jwtService;
