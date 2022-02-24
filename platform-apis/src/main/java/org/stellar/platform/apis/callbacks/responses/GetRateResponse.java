@@ -1,4 +1,4 @@
-package org.stellar.platform.callbacks.responses;
+package org.stellar.platform.apis.callbacks.responses;
 
 import java.time.LocalDateTime;
 import lombok.Data;

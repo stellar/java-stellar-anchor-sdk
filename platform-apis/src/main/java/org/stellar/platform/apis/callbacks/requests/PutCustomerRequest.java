@@ -1,4 +1,4 @@
-package org.stellar.platform.callbacks.requests;
+package org.stellar.platform.apis.callbacks.requests;
 
 import com.google.gson.annotations.SerializedName;
 import java.time.LocalDate;

@@ -1,10 +1,12 @@
-package org.stellar.platform.callbacks.requests;
+package org.stellar.platform.apis.callbacks.requests;
 
 import com.google.gson.annotations.SerializedName;
 import lombok.Data;
 
 @Data
-public class GetFeeRequest {
+public class GetRateRequest {
+  String type;
+
   @SerializedName("sell_asset")
   String sellAsset;
 
@@ -17,9 +19,16 @@ public class GetFeeRequest {
   @SerializedName("buy_amount")
   String buyAmount;
 
+  @SerializedName("sell_delivery_method")
+  String sellDeliveryMethod;
+
+  @SerializedName("buy_delivery_method")
+  String buyDeliveryMethod;
+
   @SerializedName("client_domain")
   String clientDomain;
 
+  String id;
   String account;
   String memo;
 

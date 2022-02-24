@@ -1,4 +1,4 @@
-package org.stellar.platform.callbacks.responses;
+package org.stellar.platform.apis.callbacks.responses;
 
 import com.google.gson.annotations.SerializedName;
 import java.util.List;

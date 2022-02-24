@@ -1,17 +1,16 @@
-package org.stellar.platform.callbacks.requests;
+package org.stellar.platform.apis.callbacks.requests;
 
 import com.google.gson.annotations.SerializedName;
 import lombok.Data;
 
 @Data
-public class GetCustomerRequest {
+public class PutCustomerCallbackRequest {
   String id;
   String account;
   String memo;
 
   @SerializedName("memo_type")
-  String memoType;
+  String memo_type;
 
-  String type;
-  String lang;
+  String url;
 }

@@ -1,16 +1,14 @@
-package org.stellar.platform.callbacks.requests;
+package org.stellar.platform.apis.shared;
 
 import com.google.gson.annotations.SerializedName;
 import lombok.Data;
 
 @Data
-public class PutCustomerCallbackRequest {
+public class StellarId {
   String id;
   String account;
   String memo;
 
   @SerializedName("memo_type")
-  String memo_type;
-
-  String url;
+  String memoType;
 }
