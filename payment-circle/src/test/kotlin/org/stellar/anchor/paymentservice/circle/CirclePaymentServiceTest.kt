@@ -1474,6 +1474,10 @@ class CirclePaymentServiceTest {
         "payouts,before,,/v1/payouts?pageSize=1&source=1000066041&pageBefore=before",
         "payouts,,after,/v1/payouts?pageSize=1&source=1000066041&pageAfter=after",
         "payouts,before,after,/v1/payouts?pageSize=1&source=1000066041&pageAfter=after",
+        "payments,,,/v1/payments?pageSize=1&source=1000066041",
+        "payments,before,,/v1/payments?pageSize=1&source=1000066041&pageBefore=before",
+        "payments,,after,/v1/payments?pageSize=1&source=1000066041&pageAfter=after",
+        "payments,before,after,/v1/payments?pageSize=1&source=1000066041&pageAfter=after",
       ]
   )
   fun test_getTransfersOrPayouts_paginationRequestUri(
@@ -1531,6 +1535,14 @@ class CirclePaymentServiceTest {
               .block()!!
             .toPaymentHistory(1, merchantAccount)
       }
+    } else if (uri == "payments") {
+      assertDoesNotThrow {
+        paymentHistory =
+          (service as CirclePaymentService)
+              .getIncomingPayments("1000066041", beforeCursor, afterCursor, 1)
+              .block()!!
+            .toPaymentHistory(1, merchantAccount)
+      }
     } else {
       throw RuntimeException("INVALID URI FOR TEST")
     }
@@ -1538,7 +1550,6 @@ class CirclePaymentServiceTest {
     val wantPaymentHistory = PaymentHistory(merchantAccount)
     assertEquals(wantPaymentHistory, paymentHistory)
 
-    assertEquals(1, server.requestCount)
     val request = server.takeRequest()
     assertEquals("GET", request.method)
     assertEquals("Bearer <secret-key>", request.headers["Authorization"])
