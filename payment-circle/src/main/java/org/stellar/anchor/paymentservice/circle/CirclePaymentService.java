@@ -288,6 +288,39 @@ public class CirclePaymentService
         .map(body -> gson.fromJson(body, CirclePayoutListResponse.class));
   }
 
+  public Mono<CirclePaymentListResponse> getIncomingPayments(
+      @NonNull String accountID, String beforeCursor, String afterCursor, Integer pageSize) {
+    return getDistributionAccountAddress()
+        .flatMap(
+            distributionAccountId -> {
+              if (!distributionAccountId.equals(accountID)) {
+                return Mono.error(
+                    new HttpException(
+                        400,
+                        "in circle, only the distribution account id can receive wire payments"));
+              }
+
+              // build query parameters for GET requests
+              int _pageSize = pageSize != null ? pageSize : 50;
+              LinkedHashMap<String, String> queryParams = new LinkedHashMap<>();
+              queryParams.put("pageSize", Integer.toString(_pageSize));
+
+              if (afterCursor != null && !afterCursor.isEmpty()) {
+                queryParams.put("pageAfter", afterCursor);
+                // we can't use both pageBefore and pageAfter at the same time, that's why I'm using
+                // 'else if'
+              } else if (beforeCursor != null && !beforeCursor.isEmpty()) {
+                queryParams.put("pageBefore", beforeCursor);
+              }
+
+              return getWebClient(true)
+                  .get()
+                  .uri(NettyHttpClient.buildUri("/v1/payments", queryParams))
+                  .responseSingle(handleResponseSingle())
+                  .map(body -> gson.fromJson(body, CirclePaymentListResponse.class));
+            });
+  }
+
   /**
    * API request that returns the history of payments involving a given account.
    *
