@@ -206,7 +206,7 @@ System.out.println(instructions);
 To get more info on the circle API and how to properly configure and use it directly, please refer to [Circle docs] and
 [Circle API reference].
 
-[PaymentService]: ../../../../../../../../../core/src/main/java/org/stellar/anchor/paymentservice/PaymentService.java
+[PaymentService]: ../core/src/main/java/org/stellar/anchor/paymentservice/PaymentService.java
 [Circle network]: https://developers.circle.com/reference
 [Circle docs]: https://developers.circle.com/docs/
 [Circle API reference]: https://developers.circle.com/reference
