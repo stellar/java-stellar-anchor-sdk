@@ -617,7 +617,7 @@ public class CirclePaymentService
 
               return getWebClient(true)
                   .get()
-                  .uri("/v1/businessAccount/banks/wires/" + bankWireId + "/instructions")
+                  .uri("/v1/banks/wires/" + bankWireId + "/instructions")
                   .responseSingle(handleResponseSingle())
                   .map(
                       body -> {

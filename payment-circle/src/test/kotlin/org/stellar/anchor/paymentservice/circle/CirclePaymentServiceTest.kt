@@ -1838,7 +1838,7 @@ class CirclePaymentServiceTest {
         override fun dispatch(request: RecordedRequest): MockResponse {
           when (request.path) {
             "/v1/configuration" -> return getDistAccountIdMockResponse()
-            "/v1/businessAccount/banks/wires/bank-id-here/instructions" ->
+            "/v1/banks/wires/bank-id-here/instructions" ->
               return MockResponse()
                 .addHeader("Content-Type", "application/json")
                 .setBody(mockGetWireDepositInstructionsBody)
@@ -1902,7 +1902,7 @@ class CirclePaymentServiceTest {
     val wireInstructionsRequest = server.takeRequest()
     assertThat(
       wireInstructionsRequest.path,
-      CoreMatchers.endsWith("/v1/businessAccount/banks/wires/bank-id-here/instructions")
+      CoreMatchers.endsWith("/v1/banks/wires/bank-id-here/instructions")
     )
     assertEquals("GET", wireInstructionsRequest.method)
     assertEquals("application/json", wireInstructionsRequest.headers["Content-Type"])
@@ -1917,7 +1917,7 @@ class CirclePaymentServiceTest {
         override fun dispatch(request: RecordedRequest): MockResponse {
           when (request.path) {
             "/v1/configuration" -> return getDistAccountIdMockResponse()
-            "/v1/businessAccount/banks/wires/bank-id-here/instructions" ->
+            "/v1/banks/wires/bank-id-here/instructions" ->
               return MockResponse()
                 .addHeader("Content-Type", "application/json")
                 .setBody(mockGetWireDepositInstructionsBody)
@@ -1966,7 +1966,7 @@ class CirclePaymentServiceTest {
     val wireInstructionsRequest = server.takeRequest()
     assertThat(
       wireInstructionsRequest.path,
-      CoreMatchers.endsWith("/v1/businessAccount/banks/wires/bank-id-here/instructions")
+      CoreMatchers.endsWith("/v1/banks/wires/bank-id-here/instructions")
     )
     assertEquals("GET", wireInstructionsRequest.method)
     assertEquals("application/json", wireInstructionsRequest.headers["Content-Type"])
