@@ -1,11 +1,12 @@
 package org.stellar.anchor.paymentservice.circle.model.response;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
-public class CircleConfigurationResponse {
-  public Data data;
-
+public class CircleConfigurationResponse
+    extends CircleDetailResponse<CircleConfigurationResponse.Data> {
   @lombok.Data
   public static class Data {
     public Payments payments;
