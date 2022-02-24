@@ -4,7 +4,7 @@ The Circle payment service implements the [PaymentService] interface using the [
 
 ## Setup
 
-In order to properly utilize the Circle payment service you need to create a circle account and configure it properly:
+In order to properly utilize the Circle payment service you need to create a Circle account and configure it properly:
 
 1. Go to <https://www.circle.com/> and create a new Circle account.
    - Alternatively, you can skip the long registration process and get your hands on the code quickly by creating a
