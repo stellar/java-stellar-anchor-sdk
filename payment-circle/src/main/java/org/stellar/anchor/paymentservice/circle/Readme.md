@@ -14,7 +14,7 @@ In order to properly utilize the Circle payment service you need to create a cir
    register your bank account that will be used for incoming payments.
    - Please be aware that all received funds go directly to Circle merchant account (what we call the distribution
    account). Circle does not assign a bank account to a specific internal account so all bank payments go to the
-   distribution account.
+   distribution account balance.
 4. If you need to send bank wire transfers, please refer to the [Wire Payouts Quickstart] for instructions on how to
    register the third-party bank accounts that will be receiving this outgoing payments, a.k.a. payouts. Any internal
    Circle account can make a payout given they have enough funds.
@@ -56,14 +56,14 @@ transfers from / to some countries.
 
 ## Usage
 
-The CirclePaymentService does not implement all Circle capabilities, just a subset of the ones that are important for
+The CirclePaymentService does not implement all Circle capabilities, just a subset of the ones that are relevant for
 most of the Stellar-related use cases, being limited to `CircleWallet<>CircleWallet`, `CircleWallet<>Stellar` and
 `CircleWallet<>BankWire` integrations. Credit cards, ACH, SEPA, BTC, ETH and other networks supported by Circle are not
 covered by this integration.
 
 All methods are async and return a `reactor.core.publisher.Mono`. For more information, please refer to [Project Reactor].
-In the examples below we won't be handling the throwable errors, and we will be using the methods synchronously, but in
-reality you can use the library in the following ways:
+In most of the examples below we won't be handling the throwable errors, and we will be using the methods synchronously,
+but you can also use the library asynchronous features at your choice, here is a quick example to help you get started:
 
 ```java
 CirclePaymentService service = CirclePaymentService(config);
@@ -73,12 +73,12 @@ String distributionAccountId = service.getDistributionAccountAddress().block();
 System.out.println(distributionAccountId);
 
 // Async usage:
-String distributionAccountId = service.getDistributionAccountAddress().then(distributionAccountId -> {
+service.getDistributionAccountAddress().then(distributionAccountId -> {
   System.out.println(distributionAccountId);
 });
 ```
 
-You can find how to use the Circle payment service with the supported networks below:
+You can find more details on how to use the CirclePaymentService in the subsections below:
 
 ### `ping()`
 
@@ -125,7 +125,7 @@ System.out.println(newAccount);
 
 ### `getAccountPaymentHistory(String accountID, String afterCursor, String beforeCursor)`
 
-Returns a paginated history of the account-related transactions, which includes:
+Returns the paginated history of the account-related transactions, which includes:
 - CircleWallet<>Circle
 - CircleWallet<>Stellar
 - CircleWallet->BankWire
@@ -140,7 +140,7 @@ PaymentHistory nextPageHistory = service.getAccountPaymentHistory("<account-id>"
 System.out.println(nextPageHistory);
 ```
 
-> Note: BankWire->CircleWallet is still missing.
+> Note: CircleWallet<-BankWire is still missing.
 
 ### `sendPayment(Account sourceAccount, Account destinationAccount, String currencyName, BigDecimal amount)`
 
@@ -148,8 +148,8 @@ Allows sending payments to internal and external accounts, including:
 - CircleWallet->CircleWallet
 - CircleWallet->Stellar
 - CircleWallet->BankWire
-   - ATTENTION: in order to send a payment to a wire account you first need to create this account using the Circle API.
-     Please refer to the [Creating a Bank Wire Account](#creating-a-bank-wire-account) section for more info.
+   - ATTENTION: in order to send a payment to a wire account you first need to create this wire account using the Circle
+     API. Please refer to the [Creating a Bank Wire Account](#creating-a-bank-wire-account) section for more info.
 
 Usage:
 
