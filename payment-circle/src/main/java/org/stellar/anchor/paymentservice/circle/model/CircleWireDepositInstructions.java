@@ -1,49 +1,37 @@
 package org.stellar.anchor.paymentservice.circle.model;
 
 import java.lang.reflect.Type;
-import java.util.Date;
 import java.util.Map;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import org.stellar.anchor.paymentservice.DepositInstructions;
 import org.stellar.anchor.paymentservice.PaymentNetwork;
 import org.stellar.sdk.responses.GsonSingleton;
-import reactor.util.annotation.NonNull;
 import shadow.com.google.common.reflect.TypeToken;
 import shadow.com.google.gson.Gson;
 
 @Data
-public class CircleBankWireAccount {
-  @NonNull String status;
-  @NonNull String id;
-  @NonNull String trackingRef;
-  @NonNull String fingerprint;
-  @NonNull String description;
-  @NonNull BillingDetails billingDetails;
-  @NonNull BankAddress bankAddress;
-  @NonNull Date createDate;
-  @NonNull Date updateDate;
+public class CircleWireDepositInstructions {
+  String trackingRef;
+  Beneficiary beneficiary;
+  BeneficiaryBank beneficiaryBank;
 
-  @EqualsAndHashCode(callSuper = true)
   @Data
-  public static class BillingDetails extends Address {
+  public static class Beneficiary {
     String name;
-  }
-
-  @EqualsAndHashCode(callSuper = true)
-  @Data
-  public static class BankAddress extends Address {
-    String bankName;
+    String address1;
+    String address2;
   }
 
   @Data
-  static class Address {
-    String line1;
-    String line2;
+  public static class BeneficiaryBank {
+    String name;
+    String address;
     String city;
     String postalCode;
-    String district;
     String country;
+    String swiftCode;
+    String routingNumber;
+    String accountNumber;
   }
 
   public DepositInstructions toDepositInstructions(String beneficiaryAccountId) {
@@ -54,8 +42,8 @@ public class CircleBankWireAccount {
         beneficiaryAccountId,
         null,
         PaymentNetwork.CIRCLE,
-        id,
         trackingRef,
+        null,
         PaymentNetwork.BANK_WIRE,
         "iso4217:USD",
         originalResponse);

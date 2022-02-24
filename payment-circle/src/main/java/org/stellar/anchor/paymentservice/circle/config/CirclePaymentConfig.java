@@ -6,23 +6,21 @@ public interface CirclePaymentConfig {
   boolean isEnabled();
 
   /**
-   * @return the Circle API base URL. It's usually `https://api-sandbox.circle.com/` for the sandbox.
+   * @return the Circle API base URL. It's usually `https://api-sandbox.circle.com/` for the
+   *     sandbox.
    */
   String getCircleUrl();
 
-  /**
-   * @return the API key of the Circle account.
-   */
+  /** @return the API key of the Circle account. */
   String getSecretKey();
 
   /**
-   * @return The Stellar horizon URL. The default testnet url is `https://horizon-testnet.stellar.org` and the default
-   * pubnet one is `https://horizon.stellar.org`.
+   * @return The Stellar horizon URL. The default testnet url is
+   *     `https://horizon-testnet.stellar.org` and the default pubnet one is
+   *     `https://horizon.stellar.org`.
    */
   String getHorizonUrl();
 
-  /**
-   * @return "TESTNET" or "PUBLIC".
-   */
+  /** @return "TESTNET" or "PUBLIC". */
   String getStellarNetwork();
 }
