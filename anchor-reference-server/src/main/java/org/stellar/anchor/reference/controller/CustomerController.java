@@ -1,5 +1,6 @@
 package org.stellar.anchor.reference.controller;
 
+import com.google.gson.annotations.SerializedName;
 import org.springframework.web.bind.annotation.*;
 
 import org.stellar.platform.apis.callbacks.requests.DeleteCustomerRequest;
@@ -31,7 +32,20 @@ public class CustomerController {
   @RequestMapping(
       value = "/customer",
       method = {RequestMethod.GET})
-  public GetCustomerResponse getCustomer(@RequestParam GetCustomerRequest request) throws NotFoundException {
+  public GetCustomerResponse getCustomer(
+          @RequestParam(required = false) String id,
+          @RequestParam(required = false) String account,
+          @RequestParam(required = false) String memo,
+          @RequestParam(required = false, name="memo_type") String memoType,
+          @RequestParam(required = false) String type
+          ) throws NotFoundException {
+    GetCustomerRequest request = GetCustomerRequest.builder()
+            .id(id)
+            .account(account)
+            .memo(memo)
+            .memoType(memoType)
+            .type(type)
+            .build();
     return customerService.getCustomer(request);
   }
 
