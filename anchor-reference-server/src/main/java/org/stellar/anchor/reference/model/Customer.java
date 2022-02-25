@@ -43,10 +43,10 @@ public class Customer {
   }
 
   public enum Status {
-    NEEDS_INFO("needs_info"),
-    ACCEPTED("accepted"),
-    PROCESSING("processing"),
-    ERROR("erorr");
+    NEEDS_INFO("NEEDS_INFO"),
+    ACCEPTED("ACCEPTED"),
+    PROCESSING("PROCESSING"),
+    ERROR("ERROR");
 
     private final String name;
 
