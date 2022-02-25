@@ -11,7 +11,5 @@ import org.stellar.anchor.reference.model.Customer;
 public interface CustomerRepo extends CrudRepository<Customer, String> {
   Optional<Customer> findById(@NonNull String Id);
 
-  Optional<Customer> findByStellarAccount(@NonNull String stellarAccount);
-
   Optional<Customer> findByStellarAccountAndMemoAndMemoType(@NonNull String stellarAccount, @Nullable String memo, @Nullable String memoType);
 }

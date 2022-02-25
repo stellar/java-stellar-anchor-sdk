@@ -1,35 +1,22 @@
 package org.stellar.platform.apis.callbacks.responses;
 
 import com.google.gson.annotations.SerializedName;
-import java.util.List;
+
 import lombok.Data;
+import org.stellar.platform.apis.shared.Field;
+import org.stellar.platform.apis.shared.ProvidedField;
+
+import java.util.Map;
 
 @Data
 public class GetCustomerResponse {
   String id;
   String status;
-  Fields fields;
+  Map<String, Field> fields;
 
   @SerializedName("provided_fields")
-  ProvidedFields providedFields;
+  Map<String, ProvidedField> providedFields;
 
   String message;
 }
 
-@Data
-class Fields {
-  String type;
-  String description;
-  List<String> choices;
-  Boolean optional;
-}
-
-@Data
-class ProvidedFields {
-  String type;
-  String description;
-  List<String> choices;
-  Boolean optional;
-  String status;
-  String error;
-}

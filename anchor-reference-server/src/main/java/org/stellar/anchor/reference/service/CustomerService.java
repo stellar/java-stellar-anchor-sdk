@@ -1,6 +1,9 @@
 package org.stellar.anchor.reference.service;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
+import java.util.UUID;
 import javax.ws.rs.NotFoundException;
 
 import org.springframework.stereotype.Service;
@@ -8,11 +11,13 @@ import org.springframework.stereotype.Service;
 import org.stellar.platform.apis.callbacks.requests.DeleteCustomerRequest;
 import org.stellar.platform.apis.callbacks.requests.GetCustomerRequest;
 import org.stellar.platform.apis.callbacks.requests.PutCustomerRequest;
+import org.stellar.platform.apis.shared.Field;
 import org.stellar.platform.apis.callbacks.responses.GetCustomerResponse;
 
 import org.stellar.anchor.reference.model.Customer;
 import org.stellar.anchor.reference.repo.CustomerRepo;
 import org.stellar.platform.apis.callbacks.responses.PutCustomerResponse;
+import org.stellar.platform.apis.shared.ProvidedField;
 
 @Service
 public class CustomerService {
@@ -36,7 +41,7 @@ public class CustomerService {
         return createNewCustomerResponse(request.getType());
       }
     }
-    return createExistingCustomerResponse(maybeCustomer.get());
+    return createExistingCustomerResponse(maybeCustomer.get(), request.getType());
   }
 
   /**
@@ -59,14 +64,14 @@ public class CustomerService {
         updateCustomer(customer, request);
       }
     }
-    return new PutCustomerResponse(customer.getId(), customer.getStatus(request.getType()));
+    return new PutCustomerResponse(customer.getId(), getStatusForCustomer(customer, request.getType()));
   }
 
   public void delete(DeleteCustomerRequest request) throws NotFoundException {
     throw new RuntimeException("Not implemented");
   }
 
-  public Customer getCustomerByRequestId(String id) throws NotFoundException {
+  private Customer getCustomerByRequestId(String id) throws NotFoundException {
     Optional<Customer> maybeCustomer = customerRepo.findById(id);
     String notFoundMessage = String.format("customer for 'id' '%s' not found", id);
     if (maybeCustomer.isEmpty()) {
@@ -75,7 +80,62 @@ public class CustomerService {
     return maybeCustomer.get();
   }
 
-  public void updateCustomer(Customer customer, PutCustomerRequest request) {
+  private GetCustomerResponse createNewCustomerResponse(String type) {
+    GetCustomerResponse response = new GetCustomerResponse();
+    response.setStatus(Customer.Status.NEEDS_INFO);
+    Map<String, Field> fields = getBasicFields();
+    if (type.equals(Customer.Type.SEP31_RECEIVER.toString())) {
+      fields.putAll(getSep31ReceiverFields());
+    }
+    response.setFields(fields);
+    return response;
+  }
+
+  private GetCustomerResponse createExistingCustomerResponse(Customer customer, String type) {
+    GetCustomerResponse response = new GetCustomerResponse();
+    Map<String, ProvidedField> providedFields = new HashMap<String, ProvidedField>();
+    Map<String, Field> fields = new HashMap<String, Field>();
+    if (customer.getFirstName() != null) {
+      providedFields.put("first_name", createFirstNameProvidedField());
+    } else {
+      fields.put("first_name", createFirstNameField());
+    }
+    if (customer.getLastName() != null) {
+      providedFields.put("last_name", createLastNameProvidedField());
+    } else {
+      fields.put("last_name", createLastNameField());
+    }
+    if (customer.getEmail() != null) {
+      providedFields.put("email_address", createEmailProvidedField());
+    } else {
+      fields.put("email_address", createEmailField());
+    }
+    if (type.equals(Customer.Type.SEP31_RECEIVER.toString())) {
+      if (customer.getBankAccountNumber() != null) {
+        providedFields.put("bank_account_number", createBankAccountNumberProvidedField());
+      } else {
+        fields.put("bank_account_number", createBankAccountNumberField());
+      }
+      if (customer.getBankRoutingNumber() != null) {
+        providedFields.put("bank_number", createBankNumberProvidedField());
+      } else {
+        fields.put("bank_number", createBankNumberField());
+      }
+    }
+    response.setFields(fields);
+    response.setProvidedFields(providedFields);
+    response.setStatus(getStatusForCustomer(customer, type));
+    return response;
+  }
+
+  private Customer createCustomer(PutCustomerRequest request) {
+    Customer customer = new Customer();
+    customer.setId(UUID.randomUUID().toString());
+    updateCustomer(customer, request);
+    return customer;
+  }
+
+  private void updateCustomer(Customer customer, PutCustomerRequest request) {
     if (request.getFirstName() != null) {
       customer.setFirstName(request.getFirstName());
     }
@@ -85,7 +145,7 @@ public class CustomerService {
     if (request.getEmailAddress() != null) {
       customer.setFirstName(request.getEmailAddress());
     }
-    if (request.getType() == Customer.Type.sep31Receiver) {
+    if (request.getType().equals(Customer.Type.SEP31_RECEIVER.toString())) {
       if (request.getBankAccountNumber() != null) {
         customer.setBankAccountNumber(request.getBankAccountNumber());
       }
@@ -93,6 +153,6 @@ public class CustomerService {
         customer.setBankRoutingNumber(request.getBankNumber());
       }
     }
-    customer.setStatus(Customer.Status.ACCEPTED);
+    customerRepo.save(customer);
   }
 }

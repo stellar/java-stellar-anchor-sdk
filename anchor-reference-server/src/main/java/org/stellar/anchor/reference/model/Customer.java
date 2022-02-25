@@ -1,6 +1,5 @@
 package org.stellar.anchor.reference.model;
 
-import com.google.gson.annotations.SerializedName;
 import javax.persistence.*;
 import lombok.Data;
 
@@ -8,30 +7,39 @@ import lombok.Data;
 @Entity
 public class Customer {
   @Id
-  //  @GeneratedValue(strategy = GenerationType.AUTO)
-  //  @Type(type = "uuid-char")
-  //  @Column(name = "id", columnDefinition = "VARCHAR(255)", updatable = false, nullable = false)
   String id;
 
-  @SerializedName("stellar_account")
+  // TODO
+  // Customers can have many Stellar accounts
+  // Our current data model assumes 1 account per customer
   String stellarAccount;
 
   String memo;
 
-  @SerializedName("memo_type")
   String memoType;
 
-  @SerializedName("first_name")
   String firstName;
 
-  @SerializedName("last_name")
   String lastName;
 
   String email;
 
-  @SerializedName("bank_account_number")
   String bankAccountNumber;
 
-  @SerializedName("bank_routing_number")
   String bankRoutingNumber;
+
+  public enum Type {
+    SEP31_SENDER("sep31-sender"),
+    SEP31_RECEIVER("sep31-receiver");
+
+    private final String name;
+
+    Type(String s) {
+      name = s;
+    }
+
+    public String toString() {
+      return name;
+    }
+  }
 }
