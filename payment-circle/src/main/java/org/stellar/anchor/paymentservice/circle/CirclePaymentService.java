@@ -294,10 +294,7 @@ public class CirclePaymentService
         .flatMap(
             distributionAccountId -> {
               if (!distributionAccountId.equals(accountID)) {
-                return Mono.error(
-                    new HttpException(
-                        400,
-                        "in circle, only the distribution account id can receive wire payments"));
+                return Mono.just(new CirclePaymentListResponse());
               }
 
               // build query parameters for GET requests
