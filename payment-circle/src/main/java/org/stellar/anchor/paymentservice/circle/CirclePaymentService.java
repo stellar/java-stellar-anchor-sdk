@@ -335,7 +335,7 @@ public class CirclePaymentService
     String afterTransfer = null, afterPayout = null, afterPayment = null;
     if (beforeCursor != null) {
       String[] beforeCursors = beforeCursor.split(":");
-      if (beforeCursors.length < 2) {
+      if (beforeCursors.length < 3) {
         throw new HttpException(400, "invalid before cursor");
       }
       beforeTransfer = beforeCursors[0];
@@ -344,7 +344,7 @@ public class CirclePaymentService
     }
     if (afterCursor != null) {
       String[] afterCursors = afterCursor.split(":");
-      if (afterCursors.length < 2) {
+      if (afterCursors.length < 3) {
         throw new HttpException(400, "invalid after cursor");
       }
       afterTransfer = afterCursors[0];
@@ -374,17 +374,17 @@ public class CirclePaymentService
               PaymentHistory paymentsHistory = args.getT4().toPaymentHistory(pageSize, account);
               PaymentHistory result = new PaymentHistory(account);
 
-              String befTransfer = transfersHistory.getBeforeCursor();
-              String befPayout = payoutsHistory.getBeforeCursor();
-              String befPayment = paymentsHistory.getBeforeCursor();
-              if (befTransfer != null || befPayout != null || befPayment != null) {
+              String befTransfer = Objects.toString(transfersHistory.getBeforeCursor(), "");
+              String befPayout = Objects.toString(payoutsHistory.getBeforeCursor(), "");
+              String befPayment = Objects.toString(paymentsHistory.getBeforeCursor(), "");
+              if (!befTransfer.isEmpty() || !befPayout.isEmpty() || !befPayment.isEmpty()) {
                 result.setBeforeCursor(befTransfer + ":" + befPayout + ":" + befPayment);
               }
 
-              String aftTransfer = transfersHistory.getAfterCursor();
-              String aftPayout = payoutsHistory.getAfterCursor();
-              String aftPayment = paymentsHistory.getAfterCursor();
-              if (aftTransfer != null || aftPayout != null || aftPayment != null) {
+              String aftTransfer = Objects.toString(transfersHistory.getAfterCursor(), "");
+              String aftPayout = Objects.toString(payoutsHistory.getAfterCursor(), "");
+              String aftPayment = Objects.toString(paymentsHistory.getAfterCursor(), "");
+              if (!aftTransfer.isEmpty() || !aftPayout.isEmpty() || !aftPayment.isEmpty()) {
                 result.setAfterCursor(aftTransfer + ":" + aftPayout + ":" + aftPayment);
               }
 
