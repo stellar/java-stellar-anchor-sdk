@@ -24,14 +24,14 @@ public class Account {
    */
   @NonNull public Account.Capabilities capabilities;
 
-  @NonNull public List<Balance> balances = new ArrayList<>();
+  @Nullable public List<Balance> balances;
 
   /**
    * The list of not-yet-available balances that are expected to settle shortly. These balances
    * could be cancelled or returned, in which cases they may never become available in the user
    * account.
    */
-  @NonNull public List<Balance> unsettledBalances = new ArrayList<>();
+  @Nullable public List<Balance> unsettledBalances;
 
   public Account(
       @NonNull PaymentNetwork paymentNetwork,

@@ -1,5 +1,6 @@
 package org.stellar.anchor.paymentservice.circle.model;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.Data;
@@ -41,6 +42,7 @@ public class CircleWallet {
         balances.stream()
             .map(circleBalance -> circleBalance.toBalance(PaymentNetwork.CIRCLE))
             .collect(Collectors.toList()));
+    account.setUnsettledBalances(new ArrayList<>());
     return account;
   }
 
