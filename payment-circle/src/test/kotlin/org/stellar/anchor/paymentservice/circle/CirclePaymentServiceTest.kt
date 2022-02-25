@@ -77,6 +77,12 @@ class CirclePaymentServiceTest {
 
   private lateinit var server: MockWebServer
   private lateinit var service: PaymentService
+  private val merchantAccount =
+    Account(
+      PaymentNetwork.CIRCLE,
+      "1000066041",
+      Account.Capabilities(PaymentNetwork.CIRCLE, PaymentNetwork.STELLAR, PaymentNetwork.BANK_WIRE)
+    )
 
   private fun getDistAccountIdMockResponse(masterWalletId: String = "1000066041"): MockResponse {
     return MockResponse()
@@ -532,18 +538,7 @@ class CirclePaymentServiceTest {
     }
 
     assertEquals("c58e2613-a808-4075-956c-e576787afb3b", payment?.id)
-    assertEquals(
-      Account(
-        PaymentNetwork.CIRCLE,
-        "1000066041",
-        Account.Capabilities(
-          PaymentNetwork.CIRCLE,
-          PaymentNetwork.STELLAR,
-          PaymentNetwork.BANK_WIRE
-        )
-      ),
-      payment?.sourceAccount
-    )
+    assertEquals(merchantAccount, payment?.sourceAccount)
     assertEquals(
       Account(
         PaymentNetwork.BANK_WIRE,
@@ -724,12 +719,6 @@ class CirclePaymentServiceTest {
       }
     server.dispatcher = dispatcher
 
-    val source =
-      Account(
-        PaymentNetwork.CIRCLE,
-        "1000066041",
-        Account.Capabilities(PaymentNetwork.CIRCLE, PaymentNetwork.STELLAR)
-      )
     val destination =
       Account(
         PaymentNetwork.CIRCLE,
@@ -739,22 +728,13 @@ class CirclePaymentServiceTest {
     var payment: Payment? = null
     assertDoesNotThrow {
       payment =
-        service.sendPayment(source, destination, "circle:USD", BigDecimal.valueOf(0.91)).block()
+        service
+          .sendPayment(merchantAccount, destination, "circle:USD", BigDecimal.valueOf(0.91))
+          .block()
     }
 
     assertEquals("c58e2613-a808-4075-956c-e576787afb3b", payment?.id)
-    assertEquals(
-      Account(
-        PaymentNetwork.CIRCLE,
-        "1000066041",
-        Account.Capabilities(
-          PaymentNetwork.CIRCLE,
-          PaymentNetwork.STELLAR,
-          PaymentNetwork.BANK_WIRE
-        )
-      ),
-      payment?.sourceAccount
-    )
+    assertEquals(merchantAccount, payment?.sourceAccount)
     assertEquals(
       Account(PaymentNetwork.CIRCLE, "1000067536", CircleWallet.defaultCapabilities()),
       payment?.destinationAccount
@@ -880,18 +860,7 @@ class CirclePaymentServiceTest {
     }
 
     assertEquals("c58e2613-a808-4075-956c-e576787afb3b", payment?.id)
-    assertEquals(
-      Account(
-        PaymentNetwork.CIRCLE,
-        "1000066041",
-        Account.Capabilities(
-          PaymentNetwork.CIRCLE,
-          PaymentNetwork.STELLAR,
-          PaymentNetwork.BANK_WIRE
-        )
-      ),
-      payment?.sourceAccount
-    )
+    assertEquals(merchantAccount, payment?.sourceAccount)
     assertEquals(
       Account(
         PaymentNetwork.STELLAR,
@@ -1027,16 +996,6 @@ class CirclePaymentServiceTest {
 
     var paymentHistory: PaymentHistory? = null
     val getTransfersMono = service.getTransfers("1000066041", null, null, null)
-    val merchantAccount =
-      Account(
-        PaymentNetwork.CIRCLE,
-        "1000066041",
-        Account.Capabilities(
-          PaymentNetwork.CIRCLE,
-          PaymentNetwork.STELLAR,
-          PaymentNetwork.BANK_WIRE
-        )
-      )
     assertDoesNotThrow {
       paymentHistory =
         getTransfersMono.block()!!.toPaymentHistory(50, merchantAccount, "1000066041")
@@ -1126,16 +1085,6 @@ class CirclePaymentServiceTest {
     server.dispatcher = dispatcher
 
     // Let's use reflection to access the private method
-    val merchantAccount =
-      Account(
-        PaymentNetwork.CIRCLE,
-        "1000066041",
-        Account.Capabilities(
-          PaymentNetwork.CIRCLE,
-          PaymentNetwork.STELLAR,
-          PaymentNetwork.BANK_WIRE
-        )
-      )
     val getTransfersMono =
       (service as CirclePaymentService).getTransfers("1000066041", null, null, 2)
     var paymentHistory: PaymentHistory? = null
@@ -1207,16 +1156,6 @@ class CirclePaymentServiceTest {
       }
     server.dispatcher = dispatcher
 
-    val merchantAccount =
-      Account(
-        PaymentNetwork.CIRCLE,
-        "1000066041",
-        Account.Capabilities(
-          PaymentNetwork.CIRCLE,
-          PaymentNetwork.STELLAR,
-          PaymentNetwork.BANK_WIRE
-        )
-      )
     val getPayoutsMono = (service as CirclePaymentService).getPayouts("1000066041", null, null, 50)
     var paymentHistory: PaymentHistory? = null
     assertDoesNotThrow {
@@ -1270,17 +1209,6 @@ class CirclePaymentServiceTest {
         }
       }
     server.dispatcher = dispatcher
-
-    val merchantAccount =
-      Account(
-        PaymentNetwork.CIRCLE,
-        "1000066041",
-        Account.Capabilities(
-          PaymentNetwork.CIRCLE,
-          PaymentNetwork.STELLAR,
-          PaymentNetwork.BANK_WIRE
-        )
-      )
 
     val getPayoutsMono = (service as CirclePaymentService).getPayouts("1000066041", null, null, 1)
     var paymentHistory: PaymentHistory? = null
@@ -1337,16 +1265,6 @@ class CirclePaymentServiceTest {
       }
     server.dispatcher = dispatcher
 
-    val merchantAccount =
-      Account(
-        PaymentNetwork.CIRCLE,
-        "1000066041",
-        Account.Capabilities(
-          PaymentNetwork.CIRCLE,
-          PaymentNetwork.STELLAR,
-          PaymentNetwork.BANK_WIRE
-        )
-      )
     val getPaymentsMono =
       (service as CirclePaymentService).getIncomingPayments("1000066041", null, null, 50)
     var paymentHistory: PaymentHistory? = null
@@ -1402,16 +1320,6 @@ class CirclePaymentServiceTest {
       }
     server.dispatcher = dispatcher
 
-    val merchantAccount =
-      Account(
-        PaymentNetwork.CIRCLE,
-        "1000066041",
-        Account.Capabilities(
-          PaymentNetwork.CIRCLE,
-          PaymentNetwork.STELLAR,
-          PaymentNetwork.BANK_WIRE
-        )
-      )
     val getPaymentsMono =
       (service as CirclePaymentService).getIncomingPayments("1000066041", null, null, 1)
     var paymentHistory: PaymentHistory? = null
@@ -1488,17 +1396,6 @@ class CirclePaymentServiceTest {
         }
       }
     server.dispatcher = dispatcher
-
-    val merchantAccount =
-      Account(
-        PaymentNetwork.CIRCLE,
-        "1000066041",
-        Account.Capabilities(
-          PaymentNetwork.CIRCLE,
-          PaymentNetwork.STELLAR,
-          PaymentNetwork.BANK_WIRE
-        )
-      )
 
     var paymentHistory: PaymentHistory? = null
     if (uri == "transfers") {
@@ -1601,16 +1498,6 @@ class CirclePaymentServiceTest {
     // validate Stellar call was executed
     verify { serviceClient.baseUrl(any()) }
 
-    val merchantAccount =
-      Account(
-        PaymentNetwork.CIRCLE,
-        "1000066041",
-        Account.Capabilities(
-          PaymentNetwork.CIRCLE,
-          PaymentNetwork.STELLAR,
-          PaymentNetwork.BANK_WIRE
-        )
-      )
     val wantPaymentHistory = PaymentHistory(merchantAccount)
     wantPaymentHistory.beforeCursor =
       "c58e2613-a808-4075-956c-e576787afb3b:6588a352-5131-4711-a264-e405f38d752d:acc622bf-89e1-447c-8588-1bdead8e41a3"
