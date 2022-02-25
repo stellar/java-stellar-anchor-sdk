@@ -6,7 +6,7 @@ import java.util.Map;
 import lombok.Data;
 
 @Data
-public class PutCustomerRequest extends org.stellar.anchor.dto.sep12.PutCustomerRequest {
+public class PutCustomerRequest {
   String id;
   String account;
   String memo;

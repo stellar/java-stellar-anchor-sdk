@@ -7,8 +7,8 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @SpringBootApplication
 @EnableConfigurationProperties
-public class AnchorRerferenceServer implements WebMvcConfigurer {
+public class AnchorReferenceServer implements WebMvcConfigurer {
   public static void main(String[] args) {
-    SpringApplication.run(AnchorRerferenceServer.class);
+    SpringApplication.run(AnchorReferenceServer.class);
   }
 }

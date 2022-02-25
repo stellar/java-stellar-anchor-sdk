@@ -58,8 +58,8 @@ class Sep12IntegrationTest {
     @JvmStatic
     fun setup() {
       val ars =
-        SpringApplicationBuilder(AnchorRerferenceServer::class.java)
-          .properties("server.port=8081", "server.contextPath=/")
+          SpringApplicationBuilder(AnchorRerferenceServer::class.java)
+              .properties("server.port=8081", "server.contextPath=/")
       ars.run()
     }
   }
@@ -69,13 +69,14 @@ class Sep12IntegrationTest {
     //    val port = applicationContext.environment.getProperty("server.port")
     val jwtToken = createJwtToken()
     val request =
-      Request.Builder()
-        .url("http://localhost:$port/sep12/customer")
-        .header("Authorization", "Bearer $jwtToken")
-        .get()
-        .build()
+        Request.Builder()
+            .url("http://localhost:$port/sep12/customer")
+            .header("Authorization", "Bearer $jwtToken")
+            .get()
+            .build()
 
-    client.newCall(request).execute().use { response -> println(response.body!!.string()) }
+    client.newCall(request).execute().use {
+            response -> println(response.body!!.string()) }
   }
 
   private fun createJwtToken(): String {

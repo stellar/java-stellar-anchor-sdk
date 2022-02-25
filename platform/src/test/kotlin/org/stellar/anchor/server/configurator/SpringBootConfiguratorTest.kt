@@ -61,7 +61,7 @@ open class SpringBootConfiguratorTest {
         "sep24.interactiveUrl" to "http://localhost:8080/ref/sep24/interactive",
         "payment-gateway.circle.name" to "circle",
         "payment-gateway.circle.stellarNetwork" to "TESTNET",
-        "spring.jpa.database-platform" to "org.stellar.anchor.server.sqlite.SQLiteDialect",
+        "spring.jpa.properties.hibernate.dialect" to "org.hibernate.dialect.H2Dialect",
         "logging.level.root" to "INFO",
         "server.servlet.context-path" to "/"
       )

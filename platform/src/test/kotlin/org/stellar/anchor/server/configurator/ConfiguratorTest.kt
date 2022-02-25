@@ -35,7 +35,7 @@ open class ConfiguratorTest {
   }
 
   @Test
-  fun testFromUserFolder() {
+  fun testReadFromUserFolder() {
     val applicationContext = AnnotationConfigApplicationContext()
     val propertiesReader = spyk<PropertiesReader>(recordPrivateCalls = true)
     every { propertiesReader.getFromUserFolder() } returns
@@ -52,7 +52,7 @@ open class ConfiguratorTest {
   }
 
   @Test
-  fun testGetFromUserFolder() {
+  fun testFromUserFolder() {
     val file = PropertiesReader().fromUserFolder
     assertTrue(file.absolutePath.endsWith(".anchor/anchor-config.yaml"))
   }
@@ -74,11 +74,11 @@ open class ConfiguratorTest {
         "sep24.interactiveUrl" to "http://localhost:8080/ref/sep24/interactive",
         "payment-gateway.circle.name" to "circle",
         "payment-gateway.circle.stellarNetwork" to "TESTNET",
-        "spring.jpa.database-platform" to "org.stellar.anchor.server.sqlite.SQLiteDialect",
+        "spring.jpa.properties.hibernate.dialect" to "org.hibernate.dialect.H2Dialect",
         "logging.level.root" to "INFO",
         "server.servlet.context-path" to "/"
       )
 
-    tests.forEach { Assertions.assertEquals(it.value, context.environment[it.key]) }
+    tests.forEach { entry -> Assertions.assertEquals(entry.value, context.environment[entry.key]) }
   }
 }
