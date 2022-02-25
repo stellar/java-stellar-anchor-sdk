@@ -15,6 +15,7 @@ import org.stellar.anchor.paymentservice.circle.config.CirclePaymentConfig;
 import org.stellar.anchor.paymentservice.circle.model.*;
 import org.stellar.anchor.paymentservice.circle.model.request.CircleSendTransactionRequest;
 import org.stellar.anchor.paymentservice.circle.model.response.*;
+import org.stellar.anchor.paymentservice.circle.util.CircleAsset;
 import org.stellar.anchor.paymentservice.circle.util.NettyHttpClient;
 import org.stellar.sdk.Network;
 import reactor.core.publisher.Mono;
@@ -677,7 +678,7 @@ public class CirclePaymentService
       throw new HttpException(400, "beneficiary account id cannot be empty");
     }
 
-    if (!"circle:USD".equals(config.getBeneficiaryCurrencyName())) {
+    if (!CircleAsset.circleUSD().equals(config.getBeneficiaryCurrencyName())) {
       throw new HttpException(
           400, "the only receiving currency in a circle account is \"circle:USD\"");
     }

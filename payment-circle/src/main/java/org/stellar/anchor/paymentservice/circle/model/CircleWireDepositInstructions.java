@@ -5,6 +5,7 @@ import java.util.Map;
 import lombok.Data;
 import org.stellar.anchor.paymentservice.DepositInstructions;
 import org.stellar.anchor.paymentservice.PaymentNetwork;
+import org.stellar.anchor.paymentservice.circle.util.CircleAsset;
 import org.stellar.sdk.responses.GsonSingleton;
 import shadow.com.google.common.reflect.TypeToken;
 import shadow.com.google.gson.Gson;
@@ -45,7 +46,7 @@ public class CircleWireDepositInstructions {
         trackingRef,
         null,
         PaymentNetwork.BANK_WIRE,
-        "iso4217:USD",
+        CircleAsset.fiatUSD(),
         originalResponse);
   }
 }

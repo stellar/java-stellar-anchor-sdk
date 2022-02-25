@@ -7,6 +7,7 @@ import lombok.Data;
 import org.stellar.anchor.paymentservice.Account;
 import org.stellar.anchor.paymentservice.DepositInstructions;
 import org.stellar.anchor.paymentservice.PaymentNetwork;
+import org.stellar.anchor.paymentservice.circle.util.CircleAsset;
 
 @Data
 public class CircleWallet {
@@ -54,7 +55,7 @@ public class CircleWallet {
         walletId,
         null,
         PaymentNetwork.CIRCLE,
-        "circle:USD",
+        CircleAsset.circleUSD(),
         null);
   }
 }

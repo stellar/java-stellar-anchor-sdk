@@ -28,8 +28,7 @@ public class CircleBalance {
 
   public Balance toBalance(@NonNull PaymentNetwork destinationPaymentNetwork) {
     String currencyName = destinationPaymentNetwork.getCurrencyPrefix() + ":" + currency;
-    if (currencyName.equals("stellar:USD"))
-      currencyName = destinationPaymentNetwork.getCurrencyPrefix() + ":" + stellarUSDC();
+    if (currencyName.equals("stellar:USD")) currencyName = stellarUSDC();
 
     return new Balance(amount, currencyName);
   }

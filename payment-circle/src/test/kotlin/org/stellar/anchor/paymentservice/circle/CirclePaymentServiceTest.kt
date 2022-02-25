@@ -587,7 +587,12 @@ class CirclePaymentServiceTest {
     assertDoesNotThrow {
       payment =
         service
-          .sendPayment(merchantAccount, destination, "circle:USD", BigDecimal.valueOf(0.91))
+          .sendPayment(
+            merchantAccount,
+            destination,
+            CircleAsset.circleUSD(),
+            BigDecimal.valueOf(0.91)
+          )
           .block()
     }
 
@@ -850,7 +855,9 @@ class CirclePaymentServiceTest {
     var payment: Payment? = null
     assertDoesNotThrow {
       payment =
-        service.sendPayment(source, destination, "iso4217:USD", BigDecimal.valueOf(0.91)).block()
+        service
+          .sendPayment(source, destination, CircleAsset.fiatUSD(), BigDecimal.valueOf(0.91))
+          .block()
     }
 
     assertEquals("c58e2613-a808-4075-956c-e576787afb3b", payment?.id)
@@ -1845,7 +1852,8 @@ class CirclePaymentServiceTest {
     )
 
     // missing bank id
-    config = DepositRequirements("1000066041", null, PaymentNetwork.BANK_WIRE, "circle:USD")
+    config =
+      DepositRequirements("1000066041", null, PaymentNetwork.BANK_WIRE, CircleAsset.circleUSD())
     ex = assertThrows { service.getDepositInstructions(config).block() }
     assertEquals(
       HttpException(
@@ -1867,7 +1875,7 @@ class CirclePaymentServiceTest {
     paymentNetwork: PaymentNetwork?
   ) {
     // unsupported intermediary payment network
-    val config = DepositRequirements("1000066041", null, paymentNetwork, "circle:USD")
+    val config = DepositRequirements("1000066041", null, paymentNetwork, CircleAsset.circleUSD())
     val ex: HttpException = assertThrows { service.getDepositInstructions(config).block() }
     assertEquals(
       HttpException(
@@ -1881,7 +1889,8 @@ class CirclePaymentServiceTest {
   @Test
   fun test_getDepositInstructions_circle() {
     var instructions: DepositInstructions? = null
-    val config = DepositRequirements("1000066041", null, PaymentNetwork.CIRCLE, "circle:USD")
+    val config =
+      DepositRequirements("1000066041", null, PaymentNetwork.CIRCLE, CircleAsset.circleUSD())
     assertDoesNotThrow { instructions = service.getDepositInstructions(config).block() }
 
     val wantInstructions =
@@ -1924,7 +1933,8 @@ class CirclePaymentServiceTest {
     server.dispatcher = dispatcher
 
     var instructions: DepositInstructions? = null
-    val config = DepositRequirements("1000066041", null, PaymentNetwork.STELLAR, "circle:USD")
+    val config =
+      DepositRequirements("1000066041", null, PaymentNetwork.STELLAR, CircleAsset.circleUSD())
     assertDoesNotThrow { instructions = service.getDepositInstructions(config).block() }
 
     val wantInstructions =
@@ -1935,7 +1945,7 @@ class CirclePaymentServiceTest {
         "GAYF33NNNMI2Z6VNRFXQ64D4E4SF77PM46NW3ZUZEEU5X7FCHAZCMHKU",
         "2454278437550473431",
         PaymentNetwork.STELLAR,
-        "stellar:" + CircleAsset.stellarUSDC(Network.TESTNET),
+        CircleAsset.stellarUSDC(Network.TESTNET),
         null
       )
     assertEquals(wantInstructions, instructions)
@@ -1983,7 +1993,7 @@ class CirclePaymentServiceTest {
         null,
         PaymentNetwork.BANK_WIRE,
         "bank-id-here",
-        "circle:USD"
+        CircleAsset.circleUSD()
       )
     assertDoesNotThrow { instructions = service.getDepositInstructions(config).block() }
 
@@ -2111,7 +2121,7 @@ class CirclePaymentServiceTest {
       ),
       ErrorHandlingTestCase(
         service.getDepositInstructions(
-          DepositRequirements("1000066041", PaymentNetwork.STELLAR, "circle:USD")
+          DepositRequirements("1000066041", PaymentNetwork.STELLAR, CircleAsset.circleUSD())
         ),
         listOf(badRequestResponse)
       ),
@@ -2122,7 +2132,7 @@ class CirclePaymentServiceTest {
             null,
             PaymentNetwork.BANK_WIRE,
             "bank-id-here",
-            "circle:USD"
+            CircleAsset.circleUSD()
           )
         ),
         listOf(badRequestResponse)
@@ -2144,7 +2154,7 @@ class CirclePaymentServiceTest {
         service.sendPayment(
           Account(PaymentNetwork.CIRCLE, "1000066041", Account.Capabilities()),
           Account(PaymentNetwork.CIRCLE, "1000067536", Account.Capabilities()),
-          "circle:USD",
+          CircleAsset.circleUSD(),
           BigDecimal.valueOf(1)
         ),
         hashMapOf(
@@ -2178,7 +2188,7 @@ class CirclePaymentServiceTest {
             "test@mail.com",
             Account.Capabilities()
           ),
-          "iso4217:USD",
+          CircleAsset.fiatUSD(),
           BigDecimal(1)
         ),
         hashMapOf(

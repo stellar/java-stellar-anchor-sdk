@@ -157,7 +157,7 @@ Usage:
 // CircleWallet->CircleWallet
 Account source = new Account(PaymentNetwork.CIRCLE, "1000066041", Account.Capabilities(PaymentNetwork.CIRCLE, PaymentNetwork.STELLAR));
 Account destination = new Account(PaymentNetwork.CIRCLE, "1000067536", Account.Capabilities(PaymentNetwork.CIRCLE, PaymentNetwork.STELLAR));
-String currencyName = "circle:USD";
+String currencyName = CircleAsset.circleUSD();
 Payment payment = service.sendPayment(source, destination, currencyName, BigDecimal.valueOf(0.91)).block();
 System.out.println(payment);
 
@@ -172,7 +172,7 @@ System.out.println(payment);
 Account source = new Account(PaymentNetwork.CIRCLE, "1000066041", Account.Capabilities(PaymentNetwork.CIRCLE, PaymentNetwork.STELLAR));
 // The bank wire account should have been created in advance directly in Circle
 Account destination = new Account(PaymentNetwork.BANK_WIRE, "6c87da10-feb8-484f-822c-2083ed762d25", "test@mail.com", Account.Capabilities());
-String currencyName = "iso4217:USD";
+String currencyName = CircleAsset.fiatUSD();
 Payment payment = service.sendPayment(source, destination, currencyName, BigDecimal.valueOf(0.91)).block();
 System.out.println(payment);
 ```
@@ -186,17 +186,17 @@ Usage:
 
 ```java
 // Deposit requirements to receive CircleWallet<-CircleWallet payments
-DepositRequirements config = DepositRequirements("1000066041", PaymentNetwork.CIRCLE, "circle:USD");
+DepositRequirements config = DepositRequirements("1000066041", PaymentNetwork.CIRCLE, CircleAsset.circleUSD());
 DepositInstructions instructions = service.getDepositInstructions(config).block();
 System.out.println(instructions);
 
 // Deposit requirements to receive CircleWallet<-Stellar payments
-DepositRequirements config = DepositRequirements("1000066041", PaymentNetwork.STELLAR, "circle:USD");
+DepositRequirements config = DepositRequirements("1000066041", PaymentNetwork.STELLAR, CircleAsset.circleUSD());
 DepositInstructions instructions = service.getDepositInstructions(config).block();
 System.out.println(instructions);
 
 // Deposit requirements to receive CircleWallet<-BankWire payments
-DepositRequirements config = DepositRequirements("1000066041", null, PaymentNetwork.BANK_WIRE, "a4e76642-81c5-47ca-9229-ebd64efd74a7", "circle:USD");
+DepositRequirements config = DepositRequirements("1000066041", null, PaymentNetwork.BANK_WIRE, "a4e76642-81c5-47ca-9229-ebd64efd74a7", CircleAsset.circleUSD());
 DepositInstructions instructions = service.getDepositInstructions(config).block();
 System.out.println(instructions);
 ```
