@@ -15,17 +15,24 @@ public class CircleWallet {
   String description;
   List<CircleBalance> balances;
 
-  public CircleWallet() {}
-
   public CircleWallet(String walletId) {
     this.walletId = walletId;
   }
 
   public Account.Capabilities getCapabilities() {
+    return "merchant".equals(type) ? merchantAccountCapabilities() : defaultCapabilities();
+  }
+
+  public static Account.Capabilities defaultCapabilities() {
     Account.Capabilities capabilities =
         new Account.Capabilities(PaymentNetwork.CIRCLE, PaymentNetwork.STELLAR);
-    capabilities.set(PaymentNetwork.BANK_WIRE, "merchant".equals(type));
+    capabilities.getSend().put(PaymentNetwork.BANK_WIRE, true);
     return capabilities;
+  }
+
+  public static Account.Capabilities merchantAccountCapabilities() {
+    return new Account.Capabilities(
+        PaymentNetwork.CIRCLE, PaymentNetwork.STELLAR, PaymentNetwork.BANK_WIRE);
   }
 
   public Account toAccount() {

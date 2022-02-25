@@ -322,10 +322,7 @@ class CirclePaymentServiceTest {
     assertDoesNotThrow { account = service.getAccount("1000223064").block() }
     assertEquals("1000223064", account?.id)
     assertEquals(PaymentNetwork.CIRCLE, account?.paymentNetwork)
-    assertEquals(
-      Account.Capabilities(PaymentNetwork.CIRCLE, PaymentNetwork.STELLAR),
-      account?.capabilities
-    )
+    assertEquals(CircleWallet.defaultCapabilities(), account?.capabilities)
     assertEquals("Treasury Wallet", account?.idTag)
     assertEquals(1, account?.balances?.size)
     assertEquals("29472389929.00", account!!.balances[0].amount)
@@ -462,10 +459,7 @@ class CirclePaymentServiceTest {
     assertDoesNotThrow { account = service.createAccount("Foo bar").block() }
     assertEquals("1000223064", account?.id)
     assertEquals(PaymentNetwork.CIRCLE, account?.paymentNetwork)
-    assertEquals(
-      Account.Capabilities(PaymentNetwork.CIRCLE, PaymentNetwork.STELLAR),
-      account?.capabilities
-    )
+    assertEquals(CircleWallet.defaultCapabilities(), account?.capabilities)
     assertEquals("Foo bar", account?.idTag)
     assertEquals(1, account?.balances?.size)
     assertEquals("123.45", account!!.balances[0].amount)
@@ -762,11 +756,7 @@ class CirclePaymentServiceTest {
       payment?.sourceAccount
     )
     assertEquals(
-      Account(
-        PaymentNetwork.CIRCLE,
-        "1000067536",
-        Account.Capabilities(PaymentNetwork.CIRCLE, PaymentNetwork.STELLAR)
-      ),
+      Account(PaymentNetwork.CIRCLE, "1000067536", CircleWallet.defaultCapabilities()),
       payment?.destinationAccount
     )
     assertEquals(Balance("0.91", "circle:USD"), payment?.balance)
@@ -1064,11 +1054,7 @@ class CirclePaymentServiceTest {
     p1.id = "c58e2613-a808-4075-956c-e576787afb3b"
     p1.sourceAccount = merchantAccount
     p1.destinationAccount =
-      Account(
-        PaymentNetwork.CIRCLE,
-        "1000067536",
-        Account.Capabilities(PaymentNetwork.CIRCLE, PaymentNetwork.STELLAR)
-      )
+      Account(PaymentNetwork.CIRCLE, "1000067536", CircleWallet.defaultCapabilities())
     p1.balance = Balance("0.91", "circle:USD")
     p1.status = Payment.Status.PENDING
     p1.createdAt = CircleDateFormatter.stringToDate("2022-02-07T19:50:23.408Z")
@@ -1168,11 +1154,7 @@ class CirclePaymentServiceTest {
     p1.id = "c58e2613-a808-4075-956c-e576787afb3b"
     p1.sourceAccount = merchantAccount
     p1.destinationAccount =
-      Account(
-        PaymentNetwork.CIRCLE,
-        "1000067536",
-        Account.Capabilities(PaymentNetwork.CIRCLE, PaymentNetwork.STELLAR)
-      )
+      Account(PaymentNetwork.CIRCLE, "1000067536", CircleWallet.defaultCapabilities())
     p1.balance = Balance("0.91", "circle:USD")
     p1.status = Payment.Status.PENDING
     p1.createdAt = CircleDateFormatter.stringToDate("2022-02-07T19:50:23.408Z")
@@ -1656,11 +1638,7 @@ class CirclePaymentServiceTest {
     p1.id = "c58e2613-a808-4075-956c-e576787afb3b"
     p1.sourceAccount = merchantAccount
     p1.destinationAccount =
-      Account(
-        PaymentNetwork.CIRCLE,
-        "1000067536",
-        Account.Capabilities(PaymentNetwork.CIRCLE, PaymentNetwork.STELLAR)
-      )
+      Account(PaymentNetwork.CIRCLE, "1000067536", CircleWallet.defaultCapabilities())
     p1.balance = Balance("0.91", "circle:USD")
     p1.status = Payment.Status.PENDING
     p1.createdAt = CircleDateFormatter.stringToDate("2022-02-07T19:50:23.408Z")

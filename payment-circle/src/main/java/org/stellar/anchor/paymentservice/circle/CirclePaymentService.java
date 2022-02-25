@@ -361,13 +361,12 @@ public class CirclePaymentService
         .map(
             args -> {
               String distributionAccId = args.getT1();
-              Account account =
-                  new Account(
-                      PaymentNetwork.CIRCLE,
-                      accountID,
-                      new Account.Capabilities(PaymentNetwork.CIRCLE, PaymentNetwork.STELLAR));
-              account.capabilities.set(
-                  PaymentNetwork.BANK_WIRE, distributionAccId.equals(account.id));
+              boolean isMerchantAccount = distributionAccId.equals(accountID);
+              Account.Capabilities capabilities =
+                  isMerchantAccount
+                      ? CircleWallet.merchantAccountCapabilities()
+                      : CircleWallet.defaultCapabilities();
+              Account account = new Account(PaymentNetwork.CIRCLE, accountID, capabilities);
 
               PaymentHistory transfersHistory =
                   args.getT2().toPaymentHistory(pageSize, account, distributionAccId);
@@ -546,14 +545,17 @@ public class CirclePaymentService
     Boolean isSourceWireEnabled =
         sourceAcc.paymentNetwork.equals(PaymentNetwork.BANK_WIRE)
             || distributionAccountId.equals(sourceAcc.id);
-    sourceAcc.capabilities.set(PaymentNetwork.BANK_WIRE, isSourceWireEnabled);
+    sourceAcc.capabilities.getReceive().put(PaymentNetwork.BANK_WIRE, isSourceWireEnabled);
 
     // fill destination account level
     Account destinationAcc = payment.getDestinationAccount();
     Boolean isDestinationWireEnabled =
         destinationAcc.paymentNetwork.equals(PaymentNetwork.BANK_WIRE)
             || distributionAccountId.equals(destinationAcc.id);
-    destinationAcc.capabilities.set(PaymentNetwork.BANK_WIRE, isDestinationWireEnabled);
+    destinationAcc
+        .capabilities
+        .getReceive()
+        .put(PaymentNetwork.BANK_WIRE, isDestinationWireEnabled);
   }
 
   /**
