@@ -1,10 +1,7 @@
 package org.stellar.anchor.dto.sep12;
 
 import com.google.gson.annotations.SerializedName;
-
 import java.time.LocalDate;
-import java.util.HashMap;
-import java.util.Map;
 import lombok.Data;
 
 /**

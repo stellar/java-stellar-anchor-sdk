@@ -31,4 +31,12 @@ public interface CustomerIntegration {
    * @return Nothing
    */
   Mono<Void> deleteCustomer(DeleteCustomerRequest request);
+
+  /**
+   * The request for verification.
+   *
+   * @param request The PUT request of a customer.
+   * @return The response.
+   */
+  Mono<PutCustomerVerificationResponse> putVerification(PutCustomerVerificationRequest request);
 }

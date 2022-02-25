@@ -1,8 +1,6 @@
 package org.stellar.anchor.dto.sep12;
 
 import com.google.gson.annotations.SerializedName;
-import java.util.Arrays;
-import java.util.Optional;
 
 public enum Sep12Status {
   @SerializedName("NEEDS_INFO")

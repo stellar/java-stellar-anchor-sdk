@@ -21,9 +21,7 @@ public class CustomerController {
     this.customerService = customerService;
   }
 
-  /**
-   * Gets a customer
-   */
+  /** Gets a customer */
   @RequestMapping(
       value = "/customer",
       method = {RequestMethod.GET})
@@ -45,9 +43,7 @@ public class CustomerController {
     return customerService.getCustomer(request);
   }
 
-  /**
-   * Puts a customer
-   */
+  /** Puts a customer */
   @RequestMapping(
       value = "/customer",
       method = {RequestMethod.PUT})
@@ -56,9 +52,7 @@ public class CustomerController {
     return customerService.upsertCustomer(request);
   }
 
-  /**
-   * Delete a customer.
-   */
+  /** Delete a customer. */
   @RequestMapping(
       value = "/customer/{id}",
       method = {RequestMethod.DELETE})

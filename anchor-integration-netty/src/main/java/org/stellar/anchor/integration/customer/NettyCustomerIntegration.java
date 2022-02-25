@@ -2,6 +2,8 @@ package org.stellar.anchor.integration.customer;
 
 import com.google.gson.Gson;
 import io.netty.handler.codec.http.QueryStringEncoder;
+import java.net.URI;
+import java.net.URISyntaxException;
 import org.stellar.anchor.dto.sep12.DeleteCustomerRequest;
 import org.stellar.anchor.dto.sep12.GetCustomerRequest;
 import org.stellar.anchor.dto.sep12.GetCustomerResponse;
@@ -10,9 +12,6 @@ import org.stellar.anchor.dto.sep12.PutCustomerResponse;
 import reactor.core.publisher.Mono;
 import reactor.netty.ByteBufMono;
 import reactor.netty.http.client.HttpClient;
-
-import java.net.URI;
-import java.net.URISyntaxException;
 
 public class NettyCustomerIntegration implements CustomerIntegration {
   private final String baseUri;
@@ -68,6 +67,15 @@ public class NettyCustomerIntegration implements CustomerIntegration {
         .delete()
         .uri(baseUri + "/customer")
         .send(ByteBufMono.fromString(Mono.just(gson.toJson(request))))
-        .response().flatMap(response -> Mono.empty());
+        .response()
+        .flatMap(response -> Mono.empty());
+  }
+
+  @Override
+  public Mono<PutCustomerVerificationResponse> putVerification(
+      PutCustomerVerificationRequest request) {
+    // the Platform Callback API doesn't support verification.
+    // if it does in the future we can implement this method
+    throw new RuntimeException("not implemented");
   }
 }
