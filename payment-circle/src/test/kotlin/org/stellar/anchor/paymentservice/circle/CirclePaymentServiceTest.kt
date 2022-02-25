@@ -982,7 +982,7 @@ class CirclePaymentServiceTest {
   }
 
   @Test
-  fun test_Horizon() {
+  fun test_horizon() {
     val type = (object : TypeToken<Page<OperationResponse>>() {}).type
     val mockStellarPaymentResponsePage: Page<OperationResponse> =
       GsonSingleton.getInstance().fromJson(mockStellarPaymentResponsePageBody, type)
@@ -1592,6 +1592,16 @@ class CirclePaymentServiceTest {
                       ]
                     }""".trimIndent()
                 )
+            "/v1/payments?pageSize=50" ->
+              return MockResponse()
+                .addHeader("Content-Type", "application/json")
+                .setBody(
+                  """{
+                      "data": [
+                        $mockWireToWalletPaymentJson
+                      ]
+                    }""".trimIndent()
+                )
             "/transactions/fb8947c67856d8eb444211c1927d92bcf14abcfb34cdd27fc9e604b15d208fd1/payments" ->
               return MockResponse()
                 .addHeader("Content-Type", "application/json")
@@ -1621,10 +1631,26 @@ class CirclePaymentServiceTest {
       )
     val wantPaymentHistory = PaymentHistory(merchantAccount)
     wantPaymentHistory.beforeCursor =
-      "c58e2613-a808-4075-956c-e576787afb3b:6588a352-5131-4711-a264-e405f38d752d"
+      "c58e2613-a808-4075-956c-e576787afb3b:6588a352-5131-4711-a264-e405f38d752d:acc622bf-89e1-447c-8588-1bdead8e41a3"
 
     val gson = Gson()
     val type = object : TypeToken<Map<String?, *>?>() {}.type
+
+    val p0 = Payment()
+    p0.id = "acc622bf-89e1-447c-8588-1bdead8e41a3"
+    p0.sourceAccount =
+      Account(
+        PaymentNetwork.BANK_WIRE,
+        "a4e76642-81c5-47ca-9229-ebd64efd74a7",
+        Account.Capabilities(PaymentNetwork.BANK_WIRE)
+      )
+    p0.destinationAccount = merchantAccount
+    p0.balance = Balance("1000.00", "circle:USD")
+    p0.status = Payment.Status.SUCCESSFUL
+    p0.createdAt = CircleDateFormatter.stringToDate("2022-02-21T19:20:01.438Z")
+    p0.updatedAt = CircleDateFormatter.stringToDate("2022-02-21T19:28:01.901Z")
+    p0.originalResponse = gson.fromJson(mockWireToWalletPaymentJson, type)
+    wantPaymentHistory.payments.add(p0)
 
     val p1 = Payment()
     p1.id = "c58e2613-a808-4075-956c-e576787afb3b"
