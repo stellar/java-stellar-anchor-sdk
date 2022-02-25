@@ -5,8 +5,6 @@ import org.stellar.anchor.dto.sep12.GetCustomerRequest;
 import org.stellar.anchor.dto.sep12.GetCustomerResponse;
 import org.stellar.anchor.dto.sep12.PutCustomerRequest;
 import org.stellar.anchor.dto.sep12.PutCustomerResponse;
-import org.stellar.anchor.dto.sep12.PutCustomerVerificationRequest;
-import org.stellar.anchor.dto.sep12.PutCustomerVerificationResponse;
 import reactor.core.publisher.Mono;
 
 public interface CustomerIntegration {
@@ -32,13 +30,5 @@ public interface CustomerIntegration {
    * @param request The request to delete a customer.
    * @return Nothing
    */
-  Mono<Void> delete(DeleteCustomerRequest request);
-
-  /**
-   * The request for verification.
-   *
-   * @param request The PUT request of a customer.
-   * @return The response.
-   */
-  Mono<PutCustomerVerificationResponse> putVerification(PutCustomerVerificationRequest request);
+  Mono<Void> deleteCustomer(DeleteCustomerRequest request);
 }

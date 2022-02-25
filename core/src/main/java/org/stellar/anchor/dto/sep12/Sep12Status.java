@@ -5,6 +5,9 @@ import java.util.Arrays;
 import java.util.Optional;
 
 public enum Sep12Status {
+  @SerializedName("NEEDS_INFO")
+  NEEDS_INFO("NEEDS_INFO"),
+
   @SerializedName("ACCEPTED")
   ACCEPTED("ACCEPTED"),
 
@@ -25,9 +28,5 @@ public enum Sep12Status {
 
   public String getName() {
     return this.name;
-  }
-
-  public static Optional<Sep12Status> byName(String match) {
-    return Arrays.stream(values()).filter(it -> it.name.equalsIgnoreCase(match)).findFirst();
   }
 }
