@@ -22,8 +22,6 @@ public class CustomerController {
 
   /**
    * Gets a customer
-   *
-   * @return list of services available.
    */
   @RequestMapping(
       value = "/customer",
@@ -48,8 +46,6 @@ public class CustomerController {
 
   /**
    * Puts a customer
-   *
-   * @return list of services available.
    */
   @RequestMapping(
       value = "/customer",
@@ -61,14 +57,13 @@ public class CustomerController {
 
   /**
    * Delete a customer.
-   *
-   * @param request Delete a customer request.
-   * @throws NotFoundException If the user is not found, an exception is thrown.
    */
   @RequestMapping(
-      value = "/customer",
+      value = "/customer/{id}",
       method = {RequestMethod.DELETE})
-  public void deleteCustomer(@RequestParam DeleteCustomerRequest request) throws NotFoundException {
+  public void deleteCustomer(@PathVariable String id) throws NotFoundException {
+    DeleteCustomerRequest request = new DeleteCustomerRequest();
+    request.setId(id);
     customerService.delete(request);
   }
 }
