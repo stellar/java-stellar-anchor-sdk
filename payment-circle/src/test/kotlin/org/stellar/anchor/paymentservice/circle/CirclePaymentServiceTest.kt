@@ -157,7 +157,7 @@ class CirclePaymentServiceTest {
   }
 
   @Test
-  fun testCirclePing() {
+  fun test_ping() {
     val response =
       MockResponse()
         .addHeader("Content-Type", "application/json")
@@ -172,7 +172,7 @@ class CirclePaymentServiceTest {
   }
 
   @Test
-  fun testGetDistributionAccountAddress() {
+  fun test_getDistributionAccountAddress() {
     server.enqueue(getDistAccountIdMockResponse())
 
     var masterWalletId: String? = null
@@ -281,7 +281,7 @@ class CirclePaymentServiceTest {
   }
 
   @Test
-  fun testGetAccount_isNotMainAccount() {
+  fun test_getAccount_isNotMainAccount() {
     val dispatcher: Dispatcher =
       object : Dispatcher() {
         @Throws(InterruptedException::class)
@@ -352,7 +352,7 @@ class CirclePaymentServiceTest {
   }
 
   @Test
-  fun testGetAccount_isMainAccount() {
+  fun test_getAccount_isMainAccount() {
     val dispatcher: Dispatcher =
       object : Dispatcher() {
         @Throws(InterruptedException::class)
@@ -483,7 +483,7 @@ class CirclePaymentServiceTest {
   }
 
   @Test
-  fun testSendPayment_circleToWire() {
+  fun test_sendPayment_circleToWire() {
     val dispatcher: Dispatcher =
       object : Dispatcher() {
         @Throws(InterruptedException::class)
@@ -625,7 +625,7 @@ class CirclePaymentServiceTest {
   }
 
   @Test
-  fun testSendPayment_parameterValidation() {
+  fun test_sendPayment_parameterValidation() {
     // invalid source account network
     var ex =
       assertThrows<HttpException> {
@@ -682,7 +682,7 @@ class CirclePaymentServiceTest {
   }
 
   @Test
-  fun testSendPayment_circleToCircle() {
+  fun test_sendPayment_circleToCircle() {
     val dispatcher: Dispatcher =
       object : Dispatcher() {
         @Throws(InterruptedException::class)
@@ -799,7 +799,7 @@ class CirclePaymentServiceTest {
   }
 
   @Test
-  fun testSendPayment_circleToStellar() {
+  fun test_sendPayment_circleToStellar() {
     val dispatcher: Dispatcher =
       object : Dispatcher() {
         @Throws(InterruptedException::class)
@@ -2038,7 +2038,7 @@ class CirclePaymentServiceTest {
   }
 
   @Test
-  fun testErrorHandling() {
+  fun test_errorHandling() {
     val badRequestResponse =
       MockResponse()
         .setResponseCode(400)
