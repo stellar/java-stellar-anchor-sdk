@@ -1,18 +1,14 @@
 package org.stellar.anchor.reference.controller;
 
-import com.google.gson.annotations.SerializedName;
+import javax.ws.rs.NotFoundException;
 import org.springframework.web.bind.annotation.*;
-
+import org.stellar.anchor.reference.config.AppSettings;
+import org.stellar.anchor.reference.service.CustomerService;
 import org.stellar.platform.apis.callbacks.requests.DeleteCustomerRequest;
 import org.stellar.platform.apis.callbacks.requests.GetCustomerRequest;
 import org.stellar.platform.apis.callbacks.requests.PutCustomerRequest;
 import org.stellar.platform.apis.callbacks.responses.GetCustomerResponse;
 import org.stellar.platform.apis.callbacks.responses.PutCustomerResponse;
-
-import org.stellar.anchor.reference.config.AppSettings;
-import org.stellar.anchor.reference.service.CustomerService;
-
-import javax.ws.rs.NotFoundException;
 
 @RestController
 public class CustomerController {
@@ -33,13 +29,14 @@ public class CustomerController {
       value = "/customer",
       method = {RequestMethod.GET})
   public GetCustomerResponse getCustomer(
-          @RequestParam(required = false) String id,
-          @RequestParam(required = false) String account,
-          @RequestParam(required = false) String memo,
-          @RequestParam(required = false, name="memo_type") String memoType,
-          @RequestParam(required = false) String type
-          ) throws NotFoundException {
-    GetCustomerRequest request = GetCustomerRequest.builder()
+      @RequestParam(required = false) String id,
+      @RequestParam(required = false) String account,
+      @RequestParam(required = false) String memo,
+      @RequestParam(required = false, name = "memo_type") String memoType,
+      @RequestParam(required = false) String type)
+      throws NotFoundException {
+    GetCustomerRequest request =
+        GetCustomerRequest.builder()
             .id(id)
             .account(account)
             .memo(memo)
@@ -71,8 +68,7 @@ public class CustomerController {
   @RequestMapping(
       value = "/customer",
       method = {RequestMethod.DELETE})
-  public void deleteCustomer(@RequestParam DeleteCustomerRequest request)
-      throws NotFoundException {
+  public void deleteCustomer(@RequestParam DeleteCustomerRequest request) throws NotFoundException {
     customerService.delete(request);
   }
 }

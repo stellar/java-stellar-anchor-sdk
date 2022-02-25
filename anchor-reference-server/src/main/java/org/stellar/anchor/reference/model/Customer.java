@@ -6,8 +6,7 @@ import lombok.Data;
 @Data
 @Entity
 public class Customer {
-  @Id
-  String id;
+  @Id String id;
 
   // TODO
   // Customers can have many Stellar accounts
@@ -35,6 +34,23 @@ public class Customer {
     private final String name;
 
     Type(String s) {
+      name = s;
+    }
+
+    public String toString() {
+      return name;
+    }
+  }
+
+  public enum Status {
+    NEEDS_INFO("needs_info"),
+    ACCEPTED("accepted"),
+    PROCESSING("processing"),
+    ERROR("erorr");
+
+    private final String name;
+
+    Status(String s) {
       name = s;
     }
 
