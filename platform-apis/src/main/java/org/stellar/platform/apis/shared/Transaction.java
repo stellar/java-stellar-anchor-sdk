@@ -3,6 +3,7 @@ package org.stellar.platform.apis.shared;
 import com.google.gson.annotations.SerializedName;
 import java.time.LocalDateTime;
 import java.util.List;
+
 import lombok.Data;
 
 @Data
