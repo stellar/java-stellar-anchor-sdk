@@ -11,4 +11,6 @@ public interface CustomerRepo extends CrudRepository<Customer, String> {
 
   Optional<Customer> findByStellarAccountAndMemoAndMemoType(
       @NonNull String stellarAccount, @Nullable String memo, @Nullable String memoType);
+
+  void deleteById(@NonNull String id);
 }

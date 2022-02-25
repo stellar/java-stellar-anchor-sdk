@@ -11,6 +11,7 @@ import org.stellar.anchor.reference.repo.CustomerRepo;
 import org.stellar.platform.apis.callbacks.requests.DeleteCustomerRequest;
 import org.stellar.platform.apis.callbacks.requests.GetCustomerRequest;
 import org.stellar.platform.apis.callbacks.requests.PutCustomerRequest;
+import org.stellar.platform.apis.callbacks.responses.DeleteCustomerResponse;
 import org.stellar.platform.apis.callbacks.responses.GetCustomerResponse;
 import org.stellar.platform.apis.callbacks.responses.PutCustomerResponse;
 import org.stellar.platform.apis.shared.Field;
@@ -71,8 +72,11 @@ public class CustomerService {
     return response;
   }
 
-  public void delete(DeleteCustomerRequest request) throws NotFoundException {
-    throw new RuntimeException("Not implemented");
+  public DeleteCustomerResponse delete(DeleteCustomerRequest request) throws NotFoundException {
+    customerRepo.deleteById(request.getId());
+    DeleteCustomerResponse response = new DeleteCustomerResponse();
+    response.setId(request.getId());
+    return response;
   }
 
   private Customer getCustomerByRequestId(String id) throws NotFoundException {
