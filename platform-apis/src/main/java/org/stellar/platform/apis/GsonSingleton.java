@@ -12,7 +12,10 @@ public class GsonSingleton {
 
   public static Gson getInstance() {
     if (instance == null) {
-      instance = new GsonBuilder().registerTypeAdapter(EventRequest.class, new EventRequestDeserializer()).create();
+      instance =
+          new GsonBuilder()
+              .registerTypeAdapter(EventRequest.class, new EventRequestDeserializer())
+              .create();
     }
     return instance;
   }

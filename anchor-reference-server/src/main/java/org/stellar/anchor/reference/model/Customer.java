@@ -3,15 +3,14 @@ package org.stellar.anchor.reference.model;
 import com.google.gson.annotations.SerializedName;
 import javax.persistence.*;
 import lombok.Data;
-import org.hibernate.annotations.Type;
 
 @Data
 @Entity
 public class Customer {
   @Id
-//  @GeneratedValue(strategy = GenerationType.AUTO)
-//  @Type(type = "uuid-char")
-//  @Column(name = "id", columnDefinition = "VARCHAR(255)", updatable = false, nullable = false)
+  //  @GeneratedValue(strategy = GenerationType.AUTO)
+  //  @Type(type = "uuid-char")
+  //  @Column(name = "id", columnDefinition = "VARCHAR(255)", updatable = false, nullable = false)
   String id;
 
   @SerializedName("stellar_account")
