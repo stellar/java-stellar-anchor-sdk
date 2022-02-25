@@ -186,17 +186,17 @@ Usage:
 
 ```java
 // Deposit requirements to receive CircleWallet<-CircleWallet payments
-DepositRequirements config = DepositRequirements("1000066041", null, PaymentNetwork.CIRCLE, "circle:USD");
+DepositRequirements config = DepositRequirements("1000066041", PaymentNetwork.CIRCLE, "circle:USD");
 DepositInstructions instructions = service.getDepositInstructions(config).block();
 System.out.println(instructions);
 
 // Deposit requirements to receive CircleWallet<-Stellar payments
-DepositRequirements config = DepositRequirements("1000066041", null, PaymentNetwork.STELLAR, "circle:USD");
+DepositRequirements config = DepositRequirements("1000066041", PaymentNetwork.STELLAR, "circle:USD");
 DepositInstructions instructions = service.getDepositInstructions(config).block();
 System.out.println(instructions);
 
 // Deposit requirements to receive CircleWallet<-BankWire payments
-DepositRequirements config = DepositRequirements("1000066041", null, PaymentNetwork.BANK_WIRE, "circle:USD");
+DepositRequirements config = DepositRequirements("1000066041", null, PaymentNetwork.BANK_WIRE, "a4e76642-81c5-47ca-9229-ebd64efd74a7", "circle:USD");
 DepositInstructions instructions = service.getDepositInstructions(config).block();
 System.out.println(instructions);
 ```
