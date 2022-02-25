@@ -444,6 +444,13 @@ public class CirclePaymentService
       throw new HttpException(
           400, "the currency to be sent must contain the destination network schema");
     }
+    if (!CircleAsset.isSupported(currencyName, stellarNetwork)) {
+      throw new HttpException(
+          400,
+          String.format(
+              "the only supported currencies are %s, %s and %s.",
+              "circle:USD", "iso4217:USD", CircleAsset.stellarUSDC(stellarNetwork)));
+    }
   }
 
   /**
@@ -580,10 +587,7 @@ public class CirclePaymentService
     // validate input
     validateSendPaymentInput(sourceAccount, destinationAccount, currencyName);
 
-    String rawCurrencyName =
-        currencyName.replace(destinationAccount.paymentNetwork.getCurrencyPrefix() + ":", "");
-    CircleBalance circleBalance =
-        new CircleBalance(rawCurrencyName, amount.toString(), stellarNetwork);
+    CircleBalance circleBalance = new CircleBalance("USD", amount.toString(), stellarNetwork);
 
     switch (destinationAccount.paymentNetwork) {
       case CIRCLE:

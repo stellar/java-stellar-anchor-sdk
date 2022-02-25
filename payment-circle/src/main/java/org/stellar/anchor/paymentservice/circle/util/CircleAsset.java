@@ -1,5 +1,6 @@
 package org.stellar.anchor.paymentservice.circle.util;
 
+import java.util.List;
 import org.stellar.sdk.Network;
 import reactor.util.annotation.NonNull;
 
@@ -18,5 +19,11 @@ public class CircleAsset {
 
   public static String fiatUSD() {
     return "iso4217:USD";
+  }
+
+  public static boolean isSupported(String currencyName, Network stellarNetwork) {
+    return List.of(
+            CircleAsset.circleUSD(), CircleAsset.fiatUSD(), CircleAsset.stellarUSDC(stellarNetwork))
+        .contains(currencyName);
   }
 }

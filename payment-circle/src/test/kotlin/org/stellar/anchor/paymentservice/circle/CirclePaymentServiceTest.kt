@@ -537,6 +537,76 @@ class CirclePaymentServiceTest {
       HttpException(400, "the currency to be sent must contain the destination network schema"),
       ex
     )
+
+    // invalid currency name
+    ex =
+      assertThrows {
+        service
+          .sendPayment(
+            Account(PaymentNetwork.CIRCLE, "123", Account.Capabilities()),
+            Account(PaymentNetwork.BANK_WIRE, "456", "email@test.com", Account.Capabilities()),
+            "iso4217:ABC",
+            BigDecimal(0)
+          )
+          .block()
+      }
+    val wantException =
+      HttpException(
+        400,
+        String.format(
+          "the only supported currencies are %s, %s and %s.",
+          "circle:USD",
+          "iso4217:USD",
+          CircleAsset.stellarUSDC(Network.TESTNET)
+        )
+      )
+    assertEquals(wantException, ex)
+  }
+
+  @Test
+  fun test_private_validateSendPaymentInput_supportedCurrencies() {
+    // Let's use reflection to access the private method
+    val validateSendPaymentInputMethod: Method =
+      CirclePaymentService::class.java.getDeclaredMethod(
+        "validateSendPaymentInput",
+        Account::class.java,
+        Account::class.java,
+        String::class.java
+      )
+    assert(validateSendPaymentInputMethod.trySetAccessible())
+
+    // "circle:USD" succeeds
+    assertDoesNotThrow {
+      @Suppress("UNCHECKED_CAST")
+      validateSendPaymentInputMethod.invoke(
+        service,
+        Account(PaymentNetwork.CIRCLE, "123", Account.Capabilities()),
+        Account(PaymentNetwork.CIRCLE, "456", Account.Capabilities()),
+        "circle:USD"
+      )
+    }
+
+    // "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5" succeeds
+    assertDoesNotThrow {
+      @Suppress("UNCHECKED_CAST")
+      validateSendPaymentInputMethod.invoke(
+        service,
+        Account(PaymentNetwork.CIRCLE, "123", Account.Capabilities()),
+        Account(PaymentNetwork.STELLAR, "G...", Account.Capabilities()),
+        "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+      )
+    }
+
+    // "iso4217:USD" succeeds
+    assertDoesNotThrow {
+      @Suppress("UNCHECKED_CAST")
+      validateSendPaymentInputMethod.invoke(
+        service,
+        Account(PaymentNetwork.CIRCLE, "123", Account.Capabilities()),
+        Account(PaymentNetwork.BANK_WIRE, "456", "email@test.com", Account.Capabilities()),
+        "iso4217:USD"
+      )
+    }
   }
 
   @Test
