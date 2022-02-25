@@ -1,13 +1,17 @@
 package org.stellar.anchor.reference.controller;
 
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
-import org.stellar.anchor.exception.SepNotFoundException;
-import org.stellar.anchor.integration.customer.*;
+import org.springframework.web.bind.annotation.*;
+
+import org.stellar.platform.apis.callbacks.requests.DeleteCustomerRequest;
+import org.stellar.platform.apis.callbacks.requests.GetCustomerRequest;
+import org.stellar.platform.apis.callbacks.requests.PutCustomerRequest;
+import org.stellar.platform.apis.callbacks.responses.GetCustomerResponse;
+import org.stellar.platform.apis.callbacks.responses.PutCustomerResponse;
+
 import org.stellar.anchor.reference.config.AppSettings;
 import org.stellar.anchor.reference.service.CustomerService;
+
+import javax.ws.rs.NotFoundException;
 
 @RestController
 public class CustomerController {
@@ -25,12 +29,9 @@ public class CustomerController {
    * @return list of services available.
    */
   @RequestMapping(
-      value = "/customers",
+      value = "/customer",
       method = {RequestMethod.GET})
-  public GetCustomerResponse getCustomer(@RequestParam(required = false) String id)
-      throws SepNotFoundException {
-    GetCustomerRequest request = new GetCustomerRequest();
-    request.setId(id);
+  public GetCustomerResponse getCustomer(@RequestParam GetCustomerRequest request) throws NotFoundException {
     return customerService.getCustomer(request);
   }
 
@@ -40,10 +41,10 @@ public class CustomerController {
    * @return list of services available.
    */
   @RequestMapping(
-      value = "/customers",
+      value = "/customer",
       method = {RequestMethod.PUT})
-  public PutCustomerResponse putCustomer(@RequestParam PutCustomerRequest request)
-      throws SepNotFoundException {
+  public PutCustomerResponse putCustomer(@RequestBody PutCustomerRequest request)
+      throws NotFoundException {
     return customerService.upsertCustomer(request);
   }
 
@@ -51,13 +52,13 @@ public class CustomerController {
    * Delete a customer.
    *
    * @param request Delete a customer request.
-   * @throws SepNotFoundException If the user is not found, an exception is thrown.
+   * @throws NotFoundException If the user is not found, an exception is thrown.
    */
   @RequestMapping(
-      value = "/customers",
+      value = "/customer",
       method = {RequestMethod.DELETE})
   public void deleteCustomer(@RequestParam DeleteCustomerRequest request)
-      throws SepNotFoundException {
+      throws NotFoundException {
     customerService.delete(request);
   }
 }

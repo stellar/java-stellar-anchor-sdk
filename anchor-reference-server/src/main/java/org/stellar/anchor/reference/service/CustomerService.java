@@ -1,12 +1,18 @@
 package org.stellar.anchor.reference.service;
 
 import java.util.Optional;
+import javax.ws.rs.NotFoundException;
+
 import org.springframework.stereotype.Service;
-import org.stellar.anchor.dto.sep12.Sep12Status;
-import org.stellar.anchor.exception.SepNotFoundException;
-import org.stellar.anchor.integration.customer.*;
+
+import org.stellar.platform.apis.callbacks.requests.DeleteCustomerRequest;
+import org.stellar.platform.apis.callbacks.requests.GetCustomerRequest;
+import org.stellar.platform.apis.callbacks.requests.PutCustomerRequest;
+import org.stellar.platform.apis.callbacks.responses.GetCustomerResponse;
+
 import org.stellar.anchor.reference.model.Customer;
 import org.stellar.anchor.reference.repo.CustomerRepo;
+import org.stellar.platform.apis.callbacks.responses.PutCustomerResponse;
 
 @Service
 public class CustomerService {
@@ -16,20 +22,21 @@ public class CustomerService {
     this.customerRepo = customerRepo;
   }
 
-  public GetCustomerResponse getCustomer(GetCustomerRequest request) throws SepNotFoundException {
-    Optional<Customer> customer = customerRepo.findById(request.getId());
-    // TODO: customerRepo.findByAccount() can be used to check if the customer exists.
-    if (customer.isEmpty()) {
-      throw new SepNotFoundException(String.format("User [id=%s] was not found", request.getId()));
+  public GetCustomerResponse getCustomer(GetCustomerRequest request) throws NotFoundException {
+    Optional<Customer> maybeCustomer;
+    if (request.getId() != null) {
+      maybeCustomer = customerRepo.findById(request.getId());
+      String notFoundMessage = String.format("customer for 'id' '%s' not found", request.getId());
+      if (maybeCustomer.isEmpty()) {
+        throw new NotFoundException(notFoundMessage);
+      }
+    } else {
+      maybeCustomer = customerRepo.findByStellarAccountAndMemoAndMemoType(request.getAccount(), request.getMemo(), request.getMemoType());
+      if (maybeCustomer.isEmpty()) {
+        return createNewCustomerResponse(request.getType());
+      }
     }
-
-    // Convert to response
-    GetCustomerResponse response = new GetCustomerResponse();
-    response.setId(customer.get().getId());
-    // TODO: the status should be properly assigned.
-    response.setStatus(Sep12Status.ACCEPTED);
-
-    return response;
+    return createExistingCustomerResponse(maybeCustomer.get());
   }
 
   /**
@@ -38,48 +45,54 @@ public class CustomerService {
    * @param request the PUT customer request.
    * @return the PUT Customer response.
    */
-  public PutCustomerResponse upsertCustomer(PutCustomerRequest request) {
-    Optional<Customer> optCustomer = customerRepo.findById(request.getId());
+  public PutCustomerResponse upsertCustomer(PutCustomerRequest request) throws NotFoundException {
     Customer customer;
-    if (optCustomer.isEmpty()) {
-      customer = new Customer();
+    if (request.getId() != null) {
+      customer = getCustomerByRequestId(request.getId());
+      updateCustomer(customer, request);
     } else {
-      customer = optCustomer.get();
+      Optional<Customer> maybeCustomer = customerRepo.findByStellarAccountAndMemoAndMemoType(request.getAccount(), request.getMemo(), request.getMemoType());
+      if (maybeCustomer.isEmpty()) {
+        customer = createCustomer(request);
+      } else {
+        customer = maybeCustomer.get();
+        updateCustomer(customer, request);
+      }
     }
-
-    // Sets the stellar account
-    customer.setStellarAccount(request.getAccount());
-
-    // Sets the first name
-    String firstName = request.getSep9Fields().get("first_name");
-    if (firstName != null) {
-      customer.setFirstName(firstName);
-    }
-
-    // Sets the last name
-    String lastName = request.getSep9Fields().get("last_name");
-    if (lastName != null) {
-      customer.setLastName(lastName);
-    }
-
-    // Convert to response
-    PutCustomerResponse response = new PutCustomerResponse();
-    response.setId(customer.getId());
-    return response;
+    return new PutCustomerResponse(customer.getId(), customer.getStatus(request.getType()));
   }
 
-  public void delete(DeleteCustomerRequest request) throws SepNotFoundException {
-    Optional<Customer> customer = customerRepo.findByStellarAccount(request.getAccount());
-    if (customer.isEmpty()) {
-      throw new SepNotFoundException(
-          String.format("Customer [account=%s] was not found", request.getAccount()));
-    }
-    customerRepo.delete(customer.get());
-
+  public void delete(DeleteCustomerRequest request) throws NotFoundException {
     throw new RuntimeException("Not implemented");
   }
 
-  PutCustomerVerificationResponse putVerification(PutCustomerVerificationRequest request) {
-    throw new RuntimeException("Not implemented");
+  public Customer getCustomerByRequestId(String id) throws NotFoundException {
+    Optional<Customer> maybeCustomer = customerRepo.findById(id);
+    String notFoundMessage = String.format("customer for 'id' '%s' not found", id);
+    if (maybeCustomer.isEmpty()) {
+      throw new NotFoundException(notFoundMessage);
+    }
+    return maybeCustomer.get();
+  }
+
+  public void updateCustomer(Customer customer, PutCustomerRequest request) {
+    if (request.getFirstName() != null) {
+      customer.setFirstName(request.getFirstName());
+    }
+    if (request.getLastName() != null) {
+      customer.setFirstName(request.getLastName());
+    }
+    if (request.getEmailAddress() != null) {
+      customer.setFirstName(request.getEmailAddress());
+    }
+    if (request.getType() == Customer.Type.sep31Receiver) {
+      if (request.getBankAccountNumber() != null) {
+        customer.setBankAccountNumber(request.getBankAccountNumber());
+      }
+      if (request.getBankNumber() != null) {
+        customer.setBankRoutingNumber(request.getBankNumber());
+      }
+    }
+    customer.setStatus(Customer.Status.ACCEPTED);
   }
 }

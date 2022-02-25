@@ -16,6 +16,11 @@ public class Customer {
   @SerializedName("stellar_account")
   String stellarAccount;
 
+  String memo;
+
+  @SerializedName("memo_type")
+  String memoType;
+
   @SerializedName("first_name")
   String firstName;
 
