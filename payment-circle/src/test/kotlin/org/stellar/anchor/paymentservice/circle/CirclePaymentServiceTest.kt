@@ -331,8 +331,8 @@ class CirclePaymentServiceTest {
     assertEquals(CircleWallet.defaultCapabilities(), account?.capabilities)
     assertEquals("Treasury Wallet", account?.idTag)
     assertEquals(1, account?.balances?.size)
-    assertEquals("29472389929.00", account!!.balances[0].amount)
-    assertEquals("circle:USD", account!!.balances[0].currencyName)
+    assertEquals("29472389929.00", account!!.balances!![0].amount)
+    assertEquals("circle:USD", account!!.balances!![0].currencyName)
     assertEquals(0, account?.unsettledBalances?.size)
 
     assertEquals(2, server.requestCount)
@@ -409,11 +409,11 @@ class CirclePaymentServiceTest {
     )
     assertNull(account?.idTag)
     assertEquals(1, account?.balances?.size)
-    assertEquals("29472389929.00", account!!.balances[0].amount)
-    assertEquals("circle:USD", account!!.balances[0].currencyName)
+    assertEquals("29472389929.00", account!!.balances!![0].amount)
+    assertEquals("circle:USD", account!!.balances!![0].currencyName)
     assertEquals(1, account?.unsettledBalances?.size)
-    assertEquals("100.00", account!!.unsettledBalances[0].amount)
-    assertEquals("circle:USD", account!!.unsettledBalances[0].currencyName)
+    assertEquals("100.00", account!!.unsettledBalances!![0].amount)
+    assertEquals("circle:USD", account!!.unsettledBalances!![0].currencyName)
 
     assertEquals(3, server.requestCount)
 
@@ -468,8 +468,8 @@ class CirclePaymentServiceTest {
     assertEquals(CircleWallet.defaultCapabilities(), account?.capabilities)
     assertEquals("Foo bar", account?.idTag)
     assertEquals(1, account?.balances?.size)
-    assertEquals("123.45", account!!.balances[0].amount)
-    assertEquals("circle:USD", account!!.balances[0].currencyName)
+    assertEquals("123.45", account!!.balances!![0].amount)
+    assertEquals("circle:USD", account!!.balances!![0].currencyName)
     assertEquals(0, account?.unsettledBalances?.size)
 
     val request = server.takeRequest()
@@ -1398,32 +1398,37 @@ class CirclePaymentServiceTest {
     server.dispatcher = dispatcher
 
     var paymentHistory: PaymentHistory? = null
-    if (uri == "transfers") {
-      assertDoesNotThrow {
-        paymentHistory =
-          (service as CirclePaymentService)
-              .getTransfers("1000066041", beforeCursor, afterCursor, 1)
-              .block()!!
-            .toPaymentHistory(1, merchantAccount, "1000066041")
+    when (uri) {
+      "transfers" -> {
+        assertDoesNotThrow {
+          paymentHistory =
+            (service as CirclePaymentService)
+                .getTransfers("1000066041", beforeCursor, afterCursor, 1)
+                .block()!!
+              .toPaymentHistory(1, merchantAccount, "1000066041")
+        }
       }
-    } else if (uri == "payouts") {
-      assertDoesNotThrow {
-        paymentHistory =
-          (service as CirclePaymentService)
-              .getPayouts("1000066041", beforeCursor, afterCursor, 1)
-              .block()!!
-            .toPaymentHistory(1, merchantAccount)
+      "payouts" -> {
+        assertDoesNotThrow {
+          paymentHistory =
+            (service as CirclePaymentService)
+                .getPayouts("1000066041", beforeCursor, afterCursor, 1)
+                .block()!!
+              .toPaymentHistory(1, merchantAccount)
+        }
       }
-    } else if (uri == "payments") {
-      assertDoesNotThrow {
-        paymentHistory =
-          (service as CirclePaymentService)
-              .getIncomingPayments("1000066041", beforeCursor, afterCursor, 1)
-              .block()!!
-            .toPaymentHistory(1, merchantAccount)
+      "payments" -> {
+        assertDoesNotThrow {
+          paymentHistory =
+            (service as CirclePaymentService)
+                .getIncomingPayments("1000066041", beforeCursor, afterCursor, 1)
+                .block()!!
+              .toPaymentHistory(1, merchantAccount)
+        }
       }
-    } else {
-      throw RuntimeException("INVALID URI FOR TEST")
+      else -> {
+        throw RuntimeException("INVALID URI FOR TEST")
+      }
     }
 
     val wantPaymentHistory = PaymentHistory(merchantAccount)
