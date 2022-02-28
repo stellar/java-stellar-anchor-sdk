@@ -1,11 +1,7 @@
 package org.stellar.anchor.reference.service;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
-import javax.ws.rs.NotFoundException;
 import org.springframework.stereotype.Service;
+import org.stellar.anchor.exception.NotFoundException;
 import org.stellar.anchor.reference.model.Customer;
 import org.stellar.anchor.reference.repo.CustomerRepo;
 import org.stellar.platform.apis.callbacks.requests.DeleteCustomerRequest;
@@ -16,6 +12,11 @@ import org.stellar.platform.apis.callbacks.responses.GetCustomerResponse;
 import org.stellar.platform.apis.callbacks.responses.PutCustomerResponse;
 import org.stellar.platform.apis.shared.Field;
 import org.stellar.platform.apis.shared.ProvidedField;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 public class CustomerService {
@@ -29,9 +30,9 @@ public class CustomerService {
     Optional<Customer> maybeCustomer;
     if (request.getId() != null) {
       maybeCustomer = customerRepo.findById(request.getId());
-      String notFoundMessage = String.format("customer for 'id' '%s' not found", request.getId());
       if (maybeCustomer.isEmpty()) {
-        throw new NotFoundException(notFoundMessage);
+        throw new NotFoundException(
+            String.format("customer for 'id' '%s' not found", request.getId()));
       }
     } else {
       maybeCustomer =
@@ -92,7 +93,8 @@ public class CustomerService {
     GetCustomerResponse response = new GetCustomerResponse();
     response.setStatus(Customer.Status.NEEDS_INFO.toString());
     Map<String, Field> fields = getBasicFields();
-    if (type.equals(Customer.Type.SEP31_RECEIVER.toString())) {
+    // type can be null.
+    if (Customer.Type.SEP31_RECEIVER.toString().equals(type)) {
       fields.putAll(getSep31ReceiverFields(type));
     }
     response.setFields(fields);
