@@ -70,8 +70,6 @@ open class ConfiguratorTest {
         "sep10.enabled" to "true",
         "sep10.homeDomain" to "localhost:8080",
         "sep10.signingSeed" to "SAX3AH622R2XT6DXWWSRIDCMMUCCMATBZ5U6XKJWDO7M2EJUBFC3AW5X",
-        "sep24.interactiveJwtExpiration" to "300",
-        "sep24.interactiveUrl" to "http://localhost:8080/ref/sep24/interactive",
         "payment-gateway.circle.name" to "circle",
         "payment-gateway.circle.stellarNetwork" to "TESTNET",
         "spring.jpa.database-platform" to "org.stellar.anchor.server.sqlite.SQLiteDialect",

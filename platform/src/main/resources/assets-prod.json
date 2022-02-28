@@ -24,7 +24,6 @@
                 "min_amount": 0,
                 "max_amount": 10000
             },
-            "sep24_enabled": true,
             "sep6_enabled": false,
             "sep31_enabled": false
         }
