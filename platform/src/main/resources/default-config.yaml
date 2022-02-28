@@ -43,11 +43,6 @@ config-spring-property-settings:
     jwtTimeout: 86400
     signingSeed:
 
-  # sep-24
-  sep24:
-    interactiveJwtExpiration: 300
-    interactiveUrl: http://localhost:8080/ref/sep24/interactive
-
 #
 # Payment Circle configurations
 #

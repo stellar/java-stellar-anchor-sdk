@@ -6,13 +6,11 @@ import org.springframework.context.annotation.Configuration;
 import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.Sep10Config;
 import org.stellar.anchor.config.Sep1Config;
-import org.stellar.anchor.config.Sep24Config;
 import org.stellar.anchor.paymentservice.circle.config.CirclePaymentConfig;
 import org.stellar.anchor.paymentservice.circle.config.StellarPaymentConfig;
 import org.stellar.anchor.server.config.PropertyAppConfig;
 import org.stellar.anchor.server.config.PropertySep10Config;
 import org.stellar.anchor.server.config.PropertySep1Config;
-import org.stellar.anchor.server.config.PropertySep24Config;
 import org.stellar.anchor.server.config.payment.PropertyCirclePaymentConfig;
 import org.stellar.anchor.server.config.payment.PropertyStellarPaymentConfig;
 
@@ -34,12 +32,6 @@ public class ConfigManagementConfig {
   @ConfigurationProperties(prefix = "sep10")
   Sep10Config sep10Config() {
     return new PropertySep10Config();
-  }
-
-  @Bean
-  @ConfigurationProperties(prefix = "sep24")
-  Sep24Config sep24Config() {
-    return new PropertySep24Config();
   }
 
   @Bean

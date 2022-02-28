@@ -42,11 +42,6 @@ app-config:
     jwtTimeout: 86400
     signingSeed: SAX3AH622R2XT6DXWWSRIDCMMUCCMATBZ5U6XKJWDO7M2EJUBFC3AW5X
 
-  # sep-24
-  sep24:
-    interactiveJwtExpiration: 300
-    interactiveUrl: http://localhost:8080/ref/sep24/interactive
-
   payment-gateway:
     #
     # Payment Circle configurations
