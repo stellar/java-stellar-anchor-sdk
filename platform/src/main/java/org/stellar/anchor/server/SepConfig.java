@@ -1,6 +1,5 @@
 package org.stellar.anchor.server;
 
-import java.io.IOException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -9,16 +8,13 @@ import org.stellar.anchor.config.*;
 import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.Sep10Config;
 import org.stellar.anchor.config.Sep1Config;
-import org.stellar.anchor.exception.SepNotFoundException;
 import org.stellar.anchor.filter.Sep10TokenFilter;
 import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.integration.customer.CustomerIntegration;
-import org.stellar.anchor.plugins.asset.ResourceJsonAssetService;
 import org.stellar.anchor.sep1.Sep1Service;
 import org.stellar.anchor.sep10.JwtService;
 import org.stellar.anchor.sep10.Sep10Service;
 import org.stellar.anchor.sep12.Sep12Service;
-import org.stellar.anchor.sep24.AssetService;
 
 /** SEP configurations */
 @Configuration
@@ -47,11 +43,6 @@ public class SepConfig {
   @Bean
   public Horizon horizon(AppConfig appConfig) {
     return new Horizon(appConfig);
-  }
-
-  @Bean
-  AssetService assetService(AppConfig appConfig) throws IOException, SepNotFoundException {
-    return new ResourceJsonAssetService(appConfig.getAssets());
   }
 
   @Bean
