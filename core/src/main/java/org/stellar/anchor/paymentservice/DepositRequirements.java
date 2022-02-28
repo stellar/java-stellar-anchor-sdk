@@ -33,6 +33,8 @@ public class DepositRequirements {
    */
   PaymentNetwork intermediaryPaymentNetwork;
 
+  @Nullable String intermediaryAccountId;
+
   /**
    * The name of the currency that will be ultimately credited into the beneficiary user account. It
    * should obey the {scheme}:{identifier} format described in <a
@@ -55,7 +57,7 @@ public class DepositRequirements {
       String beneficiaryAccountId,
       PaymentNetwork intermediaryPaymentNetwork,
       String beneficiaryCurrencyName) {
-    this(beneficiaryAccountId, null, intermediaryPaymentNetwork, beneficiaryCurrencyName);
+    this(beneficiaryAccountId, null, intermediaryPaymentNetwork, null, beneficiaryCurrencyName);
   }
 
   /**
@@ -76,9 +78,39 @@ public class DepositRequirements {
       @Nullable String beneficiaryAccountIdTag,
       PaymentNetwork intermediaryPaymentNetwork,
       String beneficiaryCurrencyName) {
+    this(
+        beneficiaryAccountId,
+        beneficiaryAccountIdTag,
+        intermediaryPaymentNetwork,
+        null,
+        beneficiaryCurrencyName);
+  }
+
+  /**
+   * Constructor of the DepositConfiguration class.
+   *
+   * @param beneficiaryAccountId Identifier of the account who will receive the payment.
+   * @param beneficiaryAccountIdTag Complementary identifier of the account who will receive the
+   *     payment. May be mandatory depending on the implementation.
+   * @param intermediaryPaymentNetwork The network where the deposit will be made. After the deposit
+   *     is performed on that network it will be reflected in the beneficiary user balance
+   * @param intermediaryAccountId The id of the intermediary account. It may be mandatory for some
+   *     cases.
+   * @param beneficiaryCurrencyName The name of the currency that will be ultimately credited into
+   *     the beneficiary user account. For instance, if you want the instructions to receive USD
+   *     credits in a Circle account using Stellar as an intermediary medium, the currency name
+   *     should be "circle:USD".
+   */
+  public DepositRequirements(
+      String beneficiaryAccountId,
+      @Nullable String beneficiaryAccountIdTag,
+      PaymentNetwork intermediaryPaymentNetwork,
+      @Nullable String intermediaryAccountId,
+      String beneficiaryCurrencyName) {
     this.beneficiaryAccountId = beneficiaryAccountId;
     this.beneficiaryAccountIdTag = beneficiaryAccountIdTag;
     this.intermediaryPaymentNetwork = intermediaryPaymentNetwork;
+    this.intermediaryAccountId = intermediaryAccountId;
     this.beneficiaryCurrencyName = beneficiaryCurrencyName;
   }
 }

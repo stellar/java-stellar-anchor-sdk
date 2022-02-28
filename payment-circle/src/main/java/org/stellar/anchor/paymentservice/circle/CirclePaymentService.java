@@ -4,6 +4,7 @@ import static org.stellar.anchor.util.StellarNetworkHelper.toStellarNetwork;
 
 import com.google.gson.JsonObject;
 import io.netty.handler.codec.http.HttpHeaderNames;
+import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -21,6 +22,7 @@ import reactor.netty.ByteBufMono;
 import reactor.netty.http.client.HttpClient;
 import reactor.util.annotation.NonNull;
 import reactor.util.annotation.Nullable;
+import shadow.com.google.common.reflect.TypeToken;
 
 public class CirclePaymentService
     implements PaymentService, CircleResponseErrorHandler, StellarReconciliation {
@@ -104,7 +106,7 @@ public class CirclePaymentService
             body -> {
               CircleConfigurationResponse response =
                   gson.fromJson(body, CircleConfigurationResponse.class);
-              mainAccountAddress = response.data.payments.masterWalletId;
+              mainAccountAddress = response.getData().payments.masterWalletId;
               return mainAccountAddress;
             });
   }
@@ -149,8 +151,8 @@ public class CirclePaymentService
         .responseSingle(handleResponseSingle())
         .map(
             body -> {
-              CircleWalletResponse circleWalletResponse =
-                  gson.fromJson(body, CircleWalletResponse.class);
+              Type type = new TypeToken<CircleDetailResponse<CircleWallet>>() {}.getType();
+              CircleDetailResponse<CircleWallet> circleWalletResponse = gson.fromJson(body, type);
               return circleWalletResponse.getData();
             });
   }
@@ -204,8 +206,8 @@ public class CirclePaymentService
         .responseSingle(handleResponseSingle())
         .map(
             body -> {
-              CircleWalletResponse circleWalletResponse =
-                  gson.fromJson(body, CircleWalletResponse.class);
+              Type type = new TypeToken<CircleDetailResponse<CircleWallet>>() {}.getType();
+              CircleDetailResponse<CircleWallet> circleWalletResponse = gson.fromJson(body, type);
               CircleWallet circleWallet = circleWalletResponse.getData();
               return circleWallet.toAccount();
             });
@@ -451,7 +453,8 @@ public class CirclePaymentService
             args -> {
               String distributionAccountId = args.getT1();
               String body = args.getT2();
-              CircleTransferResponse transfer = gson.fromJson(body, CircleTransferResponse.class);
+              Type type = new TypeToken<CircleDetailResponse<CircleTransfer>>() {}.getType();
+              CircleDetailResponse<CircleTransfer> transfer = gson.fromJson(body, type);
               return transfer.getData().toPayment(distributionAccountId);
             });
   }
@@ -490,7 +493,8 @@ public class CirclePaymentService
         .responseSingle(handleResponseSingle())
         .map(
             body -> {
-              CirclePayoutResponse payout = gson.fromJson(body, CirclePayoutResponse.class);
+              Type type = new TypeToken<CircleDetailResponse<CirclePayout>>() {}.getType();
+              CircleDetailResponse<CirclePayout> payout = gson.fromJson(body, type);
               return payout.getData().toPayment();
             });
   }
@@ -551,15 +555,20 @@ public class CirclePaymentService
     }
   }
 
-  public Mono<CircleBlockchainAddressListResponse> getListOfAddresses(@NonNull String walletId) {
+  public Mono<CircleListResponse<CircleBlockchainAddress>> getListOfAddresses(
+      @NonNull String walletId) {
     return getWebClient(true)
         .get()
         .uri("/v1/wallets/" + walletId + "/addresses")
         .responseSingle(handleResponseSingle())
-        .map(body -> gson.fromJson(body, CircleBlockchainAddressListResponse.class));
+        .map(
+            body -> {
+              Type type = new TypeToken<CircleListResponse<CircleBlockchainAddress>>() {}.getType();
+              return gson.fromJson(body, type);
+            });
   }
 
-  public Mono<CircleBlockchainAddressCreateResponse> createNewStellarAddress(
+  public Mono<CircleDetailResponse<CircleBlockchainAddress>> createNewStellarAddress(
       @NonNull String walletId) {
     JsonObject postBody = new JsonObject();
     postBody.addProperty("idempotencyKey", UUID.randomUUID().toString());
@@ -571,7 +580,12 @@ public class CirclePaymentService
         .send(ByteBufMono.fromString(Mono.just(postBody.toString())))
         .uri("/v1/wallets/" + walletId + "/addresses")
         .responseSingle(handleResponseSingle())
-        .map(body -> gson.fromJson(body, CircleBlockchainAddressCreateResponse.class));
+        .map(
+            body -> {
+              Type type =
+                  new TypeToken<CircleDetailResponse<CircleBlockchainAddress>>() {}.getType();
+              return gson.fromJson(body, type);
+            });
   }
 
   public Mono<CircleBlockchainAddress> getOrCreateStellarAddress(@NonNull String walletId) {
@@ -585,11 +599,12 @@ public class CirclePaymentService
               }
 
               return createNewStellarAddress(walletId)
-                  .map(CircleBlockchainAddressCreateResponse::getData);
+                  .map(CircleDetailResponse<CircleBlockchainAddress>::getData);
             });
   }
 
-  public Mono<CircleBankWireListResponse> getListOfWireAccounts(@NonNull String walletId) {
+  public Mono<CircleDetailResponse<CircleWireDepositInstructions>> getWireDepositInstructions(
+      @NonNull String walletId, @NonNull String bankWireId) {
     return getDistributionAccountAddress()
         .flatMap(
             distributionAccountId -> {
@@ -602,9 +617,15 @@ public class CirclePaymentService
 
               return getWebClient(true)
                   .get()
-                  .uri("/v1/businessAccount/banks/wires")
+                  .uri("/v1/banks/wires/" + bankWireId + "/instructions")
                   .responseSingle(handleResponseSingle())
-                  .map(body -> gson.fromJson(body, CircleBankWireListResponse.class));
+                  .map(
+                      body -> {
+                        Type type =
+                            new TypeToken<
+                                CircleDetailResponse<CircleWireDepositInstructions>>() {}.getType();
+                        return gson.fromJson(body, type);
+                      });
             });
   }
 
@@ -627,6 +648,13 @@ public class CirclePaymentService
       throw new HttpException(
           400,
           "the only supported intermediary payment networks are \"stellar\", \"circle\" and \"bank_wire\"");
+    }
+
+    if (PaymentNetwork.BANK_WIRE.equals(intermediaryNetwork)
+        && config.getIntermediaryAccountId() == null) {
+      throw new HttpException(
+          400,
+          "please provide a valid Circle bank id for the intermediaryAccountId field when requesting instructions for bank wire deposits");
     }
   }
 
@@ -673,31 +701,8 @@ public class CirclePaymentService
         return Mono.just(new CircleWallet(walletId).toDepositInstructions());
 
       case BANK_WIRE:
-        return getListOfWireAccounts(walletId)
-            .map(
-                wireListResponse -> {
-                  List<CircleBankWireAccount> wireAccounts = wireListResponse.getData();
-                  if (wireAccounts.size() == 0) {
-                    throw new HttpException(
-                        400,
-                        "your Circle account is not fully configured yet, please make sure to setup your bank wire address");
-                  }
-
-                  CircleBankWireAccount wireAccount = null;
-                  for (CircleBankWireAccount wa : wireAccounts) {
-                    if ("complete".equals(wa.getStatus())) {
-                      wireAccount = wa;
-                      break;
-                    }
-                  }
-                  if (wireAccount == null) {
-                    throw new HttpException(
-                        400,
-                        "your wire account is not properly approved yet, please go to your circle account to finish the wire configuration");
-                  }
-
-                  return wireAccount.toDepositInstructions(walletId);
-                });
+        return getWireDepositInstructions(walletId, config.getIntermediaryAccountId())
+            .map(response -> response.getData().toDepositInstructions(walletId));
 
       default:
         return null;
