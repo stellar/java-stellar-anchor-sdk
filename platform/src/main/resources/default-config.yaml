@@ -48,11 +48,6 @@ config-spring-property-settings:
     enabled: true
     customerIntegrationEndpoint: http://localhost:8081
 
-  # sep-24
-  sep24:
-    interactiveJwtExpiration: 300
-    interactiveUrl: http://localhost:8080/ref/sep24/interactive
-
 #
 # Payment Circle configurations
 #

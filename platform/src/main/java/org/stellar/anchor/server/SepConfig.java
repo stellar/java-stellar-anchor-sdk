@@ -6,6 +6,9 @@ import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.stellar.anchor.config.*;
+import org.stellar.anchor.config.AppConfig;
+import org.stellar.anchor.config.Sep10Config;
+import org.stellar.anchor.config.Sep1Config;
 import org.stellar.anchor.exception.SepNotFoundException;
 import org.stellar.anchor.filter.Sep10TokenFilter;
 import org.stellar.anchor.horizon.Horizon;
@@ -16,9 +19,6 @@ import org.stellar.anchor.sep10.JwtService;
 import org.stellar.anchor.sep10.Sep10Service;
 import org.stellar.anchor.sep12.Sep12Service;
 import org.stellar.anchor.sep24.AssetService;
-import org.stellar.anchor.sep24.Sep24Service;
-import org.stellar.anchor.server.data.JdbcSep24TransactionRepo;
-import org.stellar.anchor.server.data.JdbcSep24TransactionStore;
 
 /** SEP configurations */
 @Configuration
@@ -34,12 +34,8 @@ public class SepConfig {
   public FilterRegistrationBean<Sep10TokenFilter> sep10TokenFilter(
       @Autowired Sep10Config sep10Config, @Autowired JwtService jwtService) {
     FilterRegistrationBean<Sep10TokenFilter> registrationBean = new FilterRegistrationBean<>();
-
     registrationBean.setFilter(new Sep10TokenFilter(sep10Config, jwtService));
-    registrationBean.addUrlPatterns("/sep24/transactions/*");
-    registrationBean.addUrlPatterns("/sep24/transaction");
     registrationBean.addUrlPatterns("/sep12/*");
-
     return registrationBean;
   }
 
@@ -56,11 +52,6 @@ public class SepConfig {
   @Bean
   AssetService assetService(AppConfig appConfig) throws IOException, SepNotFoundException {
     return new ResourceJsonAssetService(appConfig.getAssets());
-  }
-
-  @Bean
-  JdbcSep24TransactionStore sep24TransactionStore(JdbcSep24TransactionRepo txnRepo) {
-    return new JdbcSep24TransactionStore(txnRepo);
   }
 
   @Bean
@@ -81,15 +72,5 @@ public class SepConfig {
       JwtService jwtService,
       CustomerIntegration customerIntegration) {
     return new Sep12Service(appConfig, sep12Config, jwtService, customerIntegration);
-  }
-
-  @Bean
-  Sep24Service sep24Service(
-      AppConfig appConfig,
-      Sep24Config sep24Config,
-      AssetService assetService,
-      JwtService jwtService,
-      JdbcSep24TransactionStore txnStore) {
-    return new Sep24Service(appConfig, sep24Config, assetService, jwtService, txnStore);
   }
 }
