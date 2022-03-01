@@ -1,6 +1,6 @@
 package org.stellar.anchor.platform.model;
 
-import java.util.Set;
+import java.util.List;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.OneToMany;
@@ -10,5 +10,5 @@ import lombok.Data;
 @Data
 public class Customer {
   @Id private String id;
-  @OneToMany private Set<CustomerStatus> statuses;
+  @OneToMany private List<CustomerStatus> statuses;
 }
