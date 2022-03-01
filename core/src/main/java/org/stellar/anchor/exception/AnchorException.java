@@ -2,7 +2,7 @@ package org.stellar.anchor.exception;
 
 import org.apache.http.HttpStatus;
 
-public class AnchorException extends Exception {
+public class AnchorException extends RuntimeException {
   int httpStatus = HttpStatus.SC_INTERNAL_SERVER_ERROR;
 
   public AnchorException(String message, Exception cause) {

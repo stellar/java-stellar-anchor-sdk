@@ -12,4 +12,5 @@ dependencies {
 
   // From projects
   implementation(project(":core"))
+  implementation(project(":platform-apis"))
 }
