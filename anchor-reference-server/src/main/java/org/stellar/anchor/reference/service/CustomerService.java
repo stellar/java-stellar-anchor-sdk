@@ -1,5 +1,9 @@
 package org.stellar.anchor.reference.service;
 
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
 import org.springframework.stereotype.Service;
 import org.stellar.anchor.exception.NotFoundException;
 import org.stellar.anchor.reference.model.Customer;
@@ -12,11 +16,6 @@ import org.stellar.platform.apis.callbacks.responses.GetCustomerResponse;
 import org.stellar.platform.apis.callbacks.responses.PutCustomerResponse;
 import org.stellar.platform.apis.shared.Field;
 import org.stellar.platform.apis.shared.ProvidedField;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
 
 @Service
 public class CustomerService {
