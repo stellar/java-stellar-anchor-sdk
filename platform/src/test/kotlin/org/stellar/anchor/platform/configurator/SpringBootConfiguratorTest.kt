@@ -1,4 +1,4 @@
-package org.stellar.anchor.server.configurator
+package org.stellar.anchor.platform.configurator
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
@@ -14,7 +14,7 @@ import org.springframework.test.context.ContextConfiguration
 import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.Sep10Config
 import org.stellar.anchor.config.Sep1Config
-import org.stellar.anchor.server.ConfigManagementConfig
+import org.stellar.anchor.platform.ConfigManagementConfig
 
 @Configuration
 @EnableConfigurationProperties

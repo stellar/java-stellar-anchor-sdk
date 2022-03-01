@@ -1,4 +1,4 @@
-package org.stellar.anchor.server.configurator
+package org.stellar.anchor.platform.configurator
 
 import io.mockk.every
 import io.mockk.spyk

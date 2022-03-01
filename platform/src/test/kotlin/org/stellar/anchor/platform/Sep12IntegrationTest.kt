@@ -1,4 +1,4 @@
-package org.stellar.anchor.server
+package org.stellar.anchor.platform
 
 import java.util.concurrent.TimeUnit
 import okhttp3.OkHttpClient
@@ -14,13 +14,13 @@ import org.springframework.context.ApplicationContext
 import org.springframework.test.context.ContextConfiguration
 import org.springframework.test.context.TestPropertySource
 import org.stellar.anchor.config.AppConfig
+import org.stellar.anchor.platform.configurator.DataAccessConfigurator
+import org.stellar.anchor.platform.configurator.PlatformAppConfigurator
+import org.stellar.anchor.platform.configurator.PropertiesReader
+import org.stellar.anchor.platform.configurator.SpringFrameworkConfigurator
 import org.stellar.anchor.reference.AnchorReferenceServer
 import org.stellar.anchor.sep10.JwtService
 import org.stellar.anchor.sep10.JwtToken
-import org.stellar.anchor.server.configurator.DataAccessConfigurator
-import org.stellar.anchor.server.configurator.PlatformAppConfigurator
-import org.stellar.anchor.server.configurator.PropertiesReader
-import org.stellar.anchor.server.configurator.SpringFrameworkConfigurator
 
 @SpringBootTest(
   classes = [AnchorPlatformServer::class],

@@ -1,4 +1,4 @@
-package org.stellar.anchor.server;
+package org.stellar.anchor.platform;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;

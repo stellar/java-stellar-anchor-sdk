@@ -1,4 +1,4 @@
-package org.stellar.anchor.server;
+package org.stellar.anchor.platform;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

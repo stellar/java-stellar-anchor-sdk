@@ -1,4 +1,4 @@
-package org.stellar.anchor.server.configurator;
+package org.stellar.anchor.platform.configurator;
 
 import org.jetbrains.annotations.NotNull;
 import org.springframework.context.ApplicationContextInitializer;

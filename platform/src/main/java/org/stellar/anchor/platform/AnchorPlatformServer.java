@@ -1,10 +1,13 @@
-package org.stellar.anchor.server;
+package org.stellar.anchor.platform;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import org.stellar.anchor.server.configurator.*;
+import org.stellar.anchor.platform.configurator.DataAccessConfigurator;
+import org.stellar.anchor.platform.configurator.PlatformAppConfigurator;
+import org.stellar.anchor.platform.configurator.PropertiesReader;
+import org.stellar.anchor.platform.configurator.SpringFrameworkConfigurator;
 
 @SpringBootApplication
 @EnableConfigurationProperties

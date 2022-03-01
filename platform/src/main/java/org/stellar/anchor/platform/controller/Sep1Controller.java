@@ -1,4 +1,4 @@
-package org.stellar.anchor.server.controller;
+package org.stellar.anchor.platform.controller;
 
 import java.io.IOException;
 import org.springframework.http.HttpHeaders;

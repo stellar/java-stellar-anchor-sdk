@@ -1,6 +1,6 @@
-package org.stellar.anchor.server.controller;
+package org.stellar.anchor.platform.controller;
 
-import static org.stellar.anchor.server.controller.Sep10Helper.getSep10Token;
+import static org.stellar.anchor.platform.controller.Sep10Helper.getSep10Token;
 
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.http.MediaType;

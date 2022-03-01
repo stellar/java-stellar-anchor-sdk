@@ -1,4 +1,4 @@
-package org.stellar.anchor.server;
+package org.stellar.anchor.platform;
 
 import com.google.gson.Gson;
 import io.netty.handler.codec.http.QueryStringEncoder;

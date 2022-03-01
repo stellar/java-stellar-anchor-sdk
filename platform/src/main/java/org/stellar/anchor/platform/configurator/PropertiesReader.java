@@ -1,4 +1,4 @@
-package org.stellar.anchor.server.configurator;
+package org.stellar.anchor.platform.configurator;
 
 import java.io.File;
 import java.io.IOException;
