@@ -14,7 +14,6 @@ import org.springframework.test.context.ContextConfiguration
 import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.Sep10Config
 import org.stellar.anchor.config.Sep1Config
-import org.stellar.anchor.paymentservice.circle.config.CirclePaymentConfig
 import org.stellar.anchor.server.ConfigManagementConfig
 
 @Configuration
@@ -42,7 +41,6 @@ internal class SystemPropertyInitializer :
 )
 open class SpringBootConfiguratorTest {
   @Autowired lateinit var context: ConfigurableApplicationContext
-  @Autowired lateinit var circlePaymentConfig: CirclePaymentConfig
   @Autowired lateinit var appConfig: AppConfig
   @Autowired lateinit var sep1Config: Sep1Config
   @Autowired lateinit var sep10Config: Sep10Config
@@ -63,16 +61,6 @@ open class SpringBootConfiguratorTest {
       )
 
     tests.forEach { assertEquals(it.value, context.environment[it.key]) }
-  }
-
-  @Test
-  fun testPaymentGatewayConfig() {
-    assertEquals("circle", circlePaymentConfig.name)
-    assertEquals(true, circlePaymentConfig.isEnabled)
-    assertEquals("https://api-sandbox.circle.com", circlePaymentConfig.circleUrl)
-    assertEquals("secret", circlePaymentConfig.secretKey)
-    assertEquals("https://horizon-testnet.stellar.org", circlePaymentConfig.horizonUrl)
-    assertEquals("TESTNET", circlePaymentConfig.stellarNetwork)
   }
 
   @Test

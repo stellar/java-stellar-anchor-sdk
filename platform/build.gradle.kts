@@ -22,10 +22,9 @@ dependencies {
 
   // From projects
   implementation(project(":core"))
-  implementation(project(":payment-circle"))
   implementation(project(":config-spring-property"))
   implementation(project(":data-spring-jdbc"))
-  implementation(project(":anchor-integration-netty"))
+  implementation(project(":platform-apis"))
 
   testImplementation("org.springframework.boot:spring-boot-starter-test")
   testImplementation(libs.okhttp3)
