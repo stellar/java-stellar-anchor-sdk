@@ -9,6 +9,7 @@ import java.util.Map;
 import java.util.Optional;
 import lombok.SneakyThrows;
 import okhttp3.*;
+import org.springframework.http.HttpStatus;
 import org.stellar.anchor.exception.*;
 import org.stellar.anchor.integration.customer.CustomerIntegration;
 import org.stellar.anchor.platform.model.Customer;
@@ -92,7 +93,7 @@ public class NettyCustomerIntegration implements CustomerIntegration {
     Response callbackResponse = getResponse(callbackRequest);
     String callbackResponseContent = getResponseContent(callbackResponse);
 
-    if (callbackResponse.code() == 200) {
+    if (callbackResponse.code() == HttpStatus.OK.value()) {
       PutCustomerResponse putCustomerResponse;
       try {
         putCustomerResponse = gson.fromJson(callbackResponseContent, PutCustomerResponse.class);
@@ -156,9 +157,9 @@ public class NettyCustomerIntegration implements CustomerIntegration {
       return new ServerErrorException("internal server error", e);
     }
     AnchorException exception;
-    if (responseCode == 400) {
+    if (responseCode == HttpStatus.BAD_REQUEST.value()) {
       exception = new BadRequestException(errorResponse.getError());
-    } else if (responseCode == 404) {
+    } else if (responseCode == HttpStatus.NOT_FOUND.value()) {
       exception = new NotFoundException(errorResponse.getError());
     } else {
       exception = new ServerErrorException("internal server error");
