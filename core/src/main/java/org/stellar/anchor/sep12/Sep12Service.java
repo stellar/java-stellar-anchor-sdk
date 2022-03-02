@@ -18,19 +18,10 @@ import org.stellar.sdk.xdr.MemoType;
 import reactor.core.publisher.Mono;
 
 public class Sep12Service {
-  private final AppConfig appConfig;
-  private final Sep12Config sep12Config;
-  private final JwtService jwtService;
   private final CustomerIntegration customerIntegration;
 
   public Sep12Service(
-      AppConfig appConfig,
-      Sep12Config sep12Config,
-      JwtService jwtService,
       CustomerIntegration customerIntegration) {
-    this.appConfig = appConfig;
-    this.sep12Config = sep12Config;
-    this.jwtService = jwtService;
     this.customerIntegration = customerIntegration;
   }
 

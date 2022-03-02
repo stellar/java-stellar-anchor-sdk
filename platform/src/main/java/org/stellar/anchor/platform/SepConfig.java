@@ -4,7 +4,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.stellar.anchor.config.*;
 import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.Sep10Config;
 import org.stellar.anchor.config.Sep1Config;
@@ -57,11 +56,7 @@ public class SepConfig {
   }
 
   @Bean
-  Sep12Service sep12Service(
-      AppConfig appConfig,
-      Sep12Config sep12Config,
-      JwtService jwtService,
-      CustomerIntegration customerIntegration) {
-    return new Sep12Service(appConfig, sep12Config, jwtService, customerIntegration);
+  Sep12Service sep12Service(CustomerIntegration customerIntegration) {
+    return new Sep12Service(customerIntegration);
   }
 }
