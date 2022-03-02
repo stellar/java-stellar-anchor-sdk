@@ -66,7 +66,7 @@ public class Sep12Service {
     return customerIntegration.putCustomer(request);
   }
 
-  private void validateGetOrPutRequest(
+  void validateGetOrPutRequest(
       String customerId,
       String requestAccount,
       String requestMemo,
@@ -81,7 +81,7 @@ public class Sep12Service {
     validateMemo(requestMemo, requestMemoType);
   }
 
-  private String getMemoTypeForCustomerIntegration(String memo, String requestMemoType) {
+  String getMemoTypeForCustomerIntegration(String memo, String requestMemoType) {
     String memoType = null;
     if (memo != null) {
       memoType = (requestMemoType != null) ? requestMemoType : MemoType.MEMO_ID.name();
@@ -89,11 +89,11 @@ public class Sep12Service {
     return memoType;
   }
 
-  private String getMemoForCustomerIntegration(String requestMemo, String tokenMemo) {
+  String getMemoForCustomerIntegration(String requestMemo, String tokenMemo) {
     return requestMemo != null ? requestMemo : tokenMemo;
   }
 
-  private void validateMemo(String memo, String memoType) throws SepException {
+  void validateMemo(String memo, String memoType) throws SepException {
     try {
       MemoHelper.makeMemo(memo, memoType);
     } catch (SepException e) {
@@ -101,7 +101,7 @@ public class Sep12Service {
     }
   }
 
-  private void validateIdXorMemoIsPresent(String id, String account, String memo, String memoType)
+  void validateIdXorMemoIsPresent(String id, String account, String memo, String memoType)
       throws SepException {
     if (id != null) {
       if (account != null || memo != null || memoType != null) {
@@ -111,7 +111,7 @@ public class Sep12Service {
     }
   }
 
-  private void validateMemoRequestAndTokenValuesMatch(
+  void validateMemoRequestAndTokenValuesMatch(
       String requestAccount,
       String requestMemo,
       String requestMemoType,
