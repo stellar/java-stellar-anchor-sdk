@@ -21,7 +21,6 @@ public class CircleSendTransactionRequest {
     CircleSendTransactionRequest req = new CircleSendTransactionRequest();
     req.source = source;
     req.destination = destination;
-    if (amount.stellarUSDC().equals(amount.getCurrency())) amount.setCurrency("USD");
     req.amount = amount;
     req.idempotencyKey = idempotencyKey;
     return req;

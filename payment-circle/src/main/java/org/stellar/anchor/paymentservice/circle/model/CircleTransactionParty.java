@@ -87,14 +87,13 @@ public class CircleTransactionParty {
             new Account.Capabilities(PaymentNetwork.STELLAR));
 
       case WALLET:
-        Account account =
-            new Account(
-                PaymentNetwork.CIRCLE,
-                id,
-                new Account.Capabilities(PaymentNetwork.CIRCLE, PaymentNetwork.STELLAR));
-        boolean isWireEnabled = distributionAccountId != null && distributionAccountId.equals(id);
-        account.capabilities.set(PaymentNetwork.BANK_WIRE, isWireEnabled);
-        return account;
+        boolean isMerchantAccount =
+            distributionAccountId != null && distributionAccountId.equals(id);
+        Account.Capabilities capabilities =
+            isMerchantAccount
+                ? CircleWallet.merchantAccountCapabilities()
+                : CircleWallet.defaultCapabilities();
+        return new Account(PaymentNetwork.CIRCLE, id, capabilities);
 
       case WIRE:
         return new Account(
