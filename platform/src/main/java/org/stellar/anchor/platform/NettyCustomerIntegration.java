@@ -53,8 +53,9 @@ public class NettyCustomerIntegration implements CustomerIntegration {
     } else {
       urlBuilder.addQueryParameter("account", request.getAccount());
       if (request.getMemo() != null && request.getMemoType() != null) {
-        urlBuilder.addQueryParameter("memo", request.getMemo());
-        urlBuilder.addQueryParameter("memo_type", request.getMemoType());
+        urlBuilder
+            .addQueryParameter("memo", request.getMemo())
+            .addQueryParameter("memo_type", request.getMemoType());
       }
     }
     if (request.getType() != null) {
