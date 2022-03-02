@@ -28,8 +28,6 @@ public class CircleBlockchainAddress {
 
   public DepositInstructions toDepositInstructions(
       String beneficiaryAccountId, Network stellarNetwork) {
-    String intermediaryCurrencyName =
-        PaymentNetwork.STELLAR.getCurrencyPrefix() + ":" + CircleAsset.stellarUSDC(stellarNetwork);
     return new DepositInstructions(
         beneficiaryAccountId,
         null,
@@ -37,7 +35,7 @@ public class CircleBlockchainAddress {
         address,
         addressTag,
         PaymentNetwork.STELLAR,
-        intermediaryCurrencyName,
+        CircleAsset.stellarUSDC(stellarNetwork),
         null);
   }
 }

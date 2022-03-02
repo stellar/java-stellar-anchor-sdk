@@ -1,11 +1,13 @@
 package org.stellar.anchor.paymentservice.circle.model;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.Data;
 import org.stellar.anchor.paymentservice.Account;
 import org.stellar.anchor.paymentservice.DepositInstructions;
 import org.stellar.anchor.paymentservice.PaymentNetwork;
+import org.stellar.anchor.paymentservice.circle.util.CircleAsset;
 
 @Data
 public class CircleWallet {
@@ -15,17 +17,24 @@ public class CircleWallet {
   String description;
   List<CircleBalance> balances;
 
-  public CircleWallet() {}
-
   public CircleWallet(String walletId) {
     this.walletId = walletId;
   }
 
   public Account.Capabilities getCapabilities() {
+    return "merchant".equals(type) ? merchantAccountCapabilities() : defaultCapabilities();
+  }
+
+  public static Account.Capabilities defaultCapabilities() {
     Account.Capabilities capabilities =
         new Account.Capabilities(PaymentNetwork.CIRCLE, PaymentNetwork.STELLAR);
-    capabilities.set(PaymentNetwork.BANK_WIRE, "merchant".equals(type));
+    capabilities.getSend().put(PaymentNetwork.BANK_WIRE, true);
     return capabilities;
+  }
+
+  public static Account.Capabilities merchantAccountCapabilities() {
+    return new Account.Capabilities(
+        PaymentNetwork.CIRCLE, PaymentNetwork.STELLAR, PaymentNetwork.BANK_WIRE);
   }
 
   public Account toAccount() {
@@ -34,6 +43,7 @@ public class CircleWallet {
         balances.stream()
             .map(circleBalance -> circleBalance.toBalance(PaymentNetwork.CIRCLE))
             .collect(Collectors.toList()));
+    account.setUnsettledBalances(new ArrayList<>());
     return account;
   }
 
@@ -45,7 +55,7 @@ public class CircleWallet {
         walletId,
         null,
         PaymentNetwork.CIRCLE,
-        "circle:USD",
+        CircleAsset.circleUSD(),
         null);
   }
 }

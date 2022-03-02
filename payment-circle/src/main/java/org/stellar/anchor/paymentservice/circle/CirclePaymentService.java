@@ -15,6 +15,7 @@ import org.stellar.anchor.paymentservice.circle.config.CirclePaymentConfig;
 import org.stellar.anchor.paymentservice.circle.model.*;
 import org.stellar.anchor.paymentservice.circle.model.request.CircleSendTransactionRequest;
 import org.stellar.anchor.paymentservice.circle.model.response.*;
+import org.stellar.anchor.paymentservice.circle.util.CircleAsset;
 import org.stellar.anchor.paymentservice.circle.util.NettyHttpClient;
 import org.stellar.sdk.Network;
 import reactor.core.publisher.Mono;
@@ -288,6 +289,36 @@ public class CirclePaymentService
         .map(body -> gson.fromJson(body, CirclePayoutListResponse.class));
   }
 
+  public Mono<CirclePaymentListResponse> getIncomingPayments(
+      @NonNull String accountID, String beforeCursor, String afterCursor, Integer pageSize) {
+    return getDistributionAccountAddress()
+        .flatMap(
+            distributionAccountId -> {
+              if (!distributionAccountId.equals(accountID)) {
+                return Mono.just(new CirclePaymentListResponse());
+              }
+
+              // build query parameters for GET requests
+              int _pageSize = pageSize != null ? pageSize : 50;
+              LinkedHashMap<String, String> queryParams = new LinkedHashMap<>();
+              queryParams.put("pageSize", Integer.toString(_pageSize));
+
+              if (afterCursor != null && !afterCursor.isEmpty()) {
+                queryParams.put("pageAfter", afterCursor);
+                // we can't use both pageBefore and pageAfter at the same time, that's why I'm using
+                // 'else if'
+              } else if (beforeCursor != null && !beforeCursor.isEmpty()) {
+                queryParams.put("pageBefore", beforeCursor);
+              }
+
+              return getWebClient(true)
+                  .get()
+                  .uri(NettyHttpClient.buildUri("/v1/payments", queryParams))
+                  .responseSingle(handleResponseSingle())
+                  .map(body -> gson.fromJson(body, CirclePaymentListResponse.class));
+            });
+  }
+
   /**
    * API request that returns the history of payments involving a given account.
    *
@@ -300,62 +331,68 @@ public class CirclePaymentService
   public Mono<PaymentHistory> getAccountPaymentHistory(
       String accountID, @Nullable String beforeCursor, @Nullable String afterCursor)
       throws HttpException {
-    // TODO: implement /v1/payments as well
     // Parse cursor
-    String beforeTransfer = null, afterTransfer = null, beforePayout = null, afterPayout = null;
+    String beforeTransfer = null, beforePayout = null, beforePayment = null;
+    String afterTransfer = null, afterPayout = null, afterPayment = null;
     if (beforeCursor != null) {
       String[] beforeCursors = beforeCursor.split(":");
-      if (beforeCursors.length < 2) {
+      if (beforeCursors.length < 3) {
         throw new HttpException(400, "invalid before cursor");
       }
       beforeTransfer = beforeCursors[0];
       beforePayout = beforeCursors[1];
+      beforePayment = beforeCursors[2];
     }
     if (afterCursor != null) {
       String[] afterCursors = afterCursor.split(":");
-      if (afterCursors.length < 2) {
+      if (afterCursors.length < 3) {
         throw new HttpException(400, "invalid after cursor");
       }
       afterTransfer = afterCursors[0];
       afterPayout = afterCursors[1];
+      afterPayment = afterCursors[2];
     }
 
     int pageSize = 50;
     return Mono.zip(
             getDistributionAccountAddress(),
             getTransfers(accountID, beforeTransfer, afterTransfer, pageSize),
-            getPayouts(accountID, beforePayout, afterPayout, pageSize))
+            getPayouts(accountID, beforePayout, afterPayout, pageSize),
+            getIncomingPayments(accountID, beforePayment, afterPayment, pageSize))
         .map(
             args -> {
               String distributionAccId = args.getT1();
-              Account account =
-                  new Account(
-                      PaymentNetwork.CIRCLE,
-                      accountID,
-                      new Account.Capabilities(PaymentNetwork.CIRCLE, PaymentNetwork.STELLAR));
-              account.capabilities.set(
-                  PaymentNetwork.BANK_WIRE, distributionAccId.equals(account.id));
+              boolean isMerchantAccount = distributionAccId.equals(accountID);
+              Account.Capabilities capabilities =
+                  isMerchantAccount
+                      ? CircleWallet.merchantAccountCapabilities()
+                      : CircleWallet.defaultCapabilities();
+              Account account = new Account(PaymentNetwork.CIRCLE, accountID, capabilities);
 
               PaymentHistory transfersHistory =
                   args.getT2().toPaymentHistory(pageSize, account, distributionAccId);
               PaymentHistory payoutsHistory = args.getT3().toPaymentHistory(pageSize, account);
+              PaymentHistory paymentsHistory = args.getT4().toPaymentHistory(pageSize, account);
               PaymentHistory result = new PaymentHistory(account);
 
-              String befTransfer = transfersHistory.getBeforeCursor();
-              String befPayout = payoutsHistory.getBeforeCursor();
-              if (befTransfer != null || befPayout != null) {
-                result.setBeforeCursor(befTransfer + ":" + befPayout);
+              String befTransfer = Objects.toString(transfersHistory.getBeforeCursor(), "");
+              String befPayout = Objects.toString(payoutsHistory.getBeforeCursor(), "");
+              String befPayment = Objects.toString(paymentsHistory.getBeforeCursor(), "");
+              if (!befTransfer.isEmpty() || !befPayout.isEmpty() || !befPayment.isEmpty()) {
+                result.setBeforeCursor(befTransfer + ":" + befPayout + ":" + befPayment);
               }
 
-              String aftTransfer = transfersHistory.getAfterCursor();
-              String aftPayout = payoutsHistory.getAfterCursor();
-              if (aftTransfer != null || aftPayout != null) {
-                result.setAfterCursor(aftTransfer + ":" + aftPayout);
+              String aftTransfer = Objects.toString(transfersHistory.getAfterCursor(), "");
+              String aftPayout = Objects.toString(payoutsHistory.getAfterCursor(), "");
+              String aftPayment = Objects.toString(paymentsHistory.getAfterCursor(), "");
+              if (!aftTransfer.isEmpty() || !aftPayout.isEmpty() || !aftPayment.isEmpty()) {
+                result.setAfterCursor(aftTransfer + ":" + aftPayout + ":" + aftPayment);
               }
 
               List<Payment> allPayments = new ArrayList<>();
               allPayments.addAll(transfersHistory.getPayments());
               allPayments.addAll(payoutsHistory.getPayments());
+              allPayments.addAll(paymentsHistory.getPayments());
               allPayments =
                   allPayments.stream()
                       .sorted((p1, p2) -> p2.getCreatedAt().compareTo(p1.getCreatedAt()))
@@ -406,6 +443,13 @@ public class CirclePaymentService
     if (!currencyName.startsWith(destinationAccount.paymentNetwork.getCurrencyPrefix())) {
       throw new HttpException(
           400, "the currency to be sent must contain the destination network schema");
+    }
+    if (!CircleAsset.isSupported(currencyName, stellarNetwork)) {
+      throw new HttpException(
+          400,
+          String.format(
+              "the only supported currencies are %s, %s and %s.",
+              "circle:USD", "iso4217:USD", CircleAsset.stellarUSDC(stellarNetwork)));
     }
   }
 
@@ -506,15 +550,20 @@ public class CirclePaymentService
 
     // fill source account level
     Account sourceAcc = payment.getSourceAccount();
-    sourceAcc.capabilities.set(
-        PaymentNetwork.BANK_WIRE, distributionAccountId.equals(sourceAcc.id));
+    Boolean isSourceWireEnabled =
+        sourceAcc.paymentNetwork.equals(PaymentNetwork.BANK_WIRE)
+            || distributionAccountId.equals(sourceAcc.id);
+    sourceAcc.capabilities.getReceive().put(PaymentNetwork.BANK_WIRE, isSourceWireEnabled);
 
     // fill destination account level
     Account destinationAcc = payment.getDestinationAccount();
     Boolean isDestinationWireEnabled =
         destinationAcc.paymentNetwork.equals(PaymentNetwork.BANK_WIRE)
             || distributionAccountId.equals(destinationAcc.id);
-    destinationAcc.capabilities.set(PaymentNetwork.BANK_WIRE, isDestinationWireEnabled);
+    destinationAcc
+        .capabilities
+        .getReceive()
+        .put(PaymentNetwork.BANK_WIRE, isDestinationWireEnabled);
   }
 
   /**
@@ -538,10 +587,7 @@ public class CirclePaymentService
     // validate input
     validateSendPaymentInput(sourceAccount, destinationAccount, currencyName);
 
-    String rawCurrencyName =
-        currencyName.replace(destinationAccount.paymentNetwork.getCurrencyPrefix() + ":", "");
-    CircleBalance circleBalance =
-        new CircleBalance(rawCurrencyName, amount.toString(), stellarNetwork);
+    CircleBalance circleBalance = new CircleBalance("USD", amount.toString(), stellarNetwork);
 
     switch (destinationAccount.paymentNetwork) {
       case CIRCLE:
@@ -636,7 +682,7 @@ public class CirclePaymentService
       throw new HttpException(400, "beneficiary account id cannot be empty");
     }
 
-    if (!"circle:USD".equals(config.getBeneficiaryCurrencyName())) {
+    if (!CircleAsset.circleUSD().equals(config.getBeneficiaryCurrencyName())) {
       throw new HttpException(
           400, "the only receiving currency in a circle account is \"circle:USD\"");
     }
