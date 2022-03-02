@@ -1,15 +1,23 @@
-#spring.profiles.active=
-spring.main.banner-mode=off
-server.servlet.context-path=/
-spring.mvc.converters.preferred-json-mapper=gson
-server.port=8081
-logging.level.root=INFO
+spring:
+  main.banner-mode: off
+  mvc.converters.preferred-json-mapper: gson
+
+server:
+  servlet:
+    context-path: /
+    port: 8081
+
+#
+# The settings of the anchor reference serer
+#
+anchor.settings:
+  version: 0.0.1
 
 #
 # Spring Data JDBC settings for H2
 #
-spring.datasource.url = jdbc:h2:mem:test
-spring.jpa.properties.hibernate.dialect = org.hibernate.dialect.H2Dialect
+spring.datasource.url: jdbc:h2:mem:test
+spring.jpa.properties.hibernate.dialect: org.hibernate.dialect.H2Dialect
 
 #
 # Spring Data JDBC settings for SQLite
@@ -22,7 +30,3 @@ spring.jpa.properties.hibernate.dialect = org.hibernate.dialect.H2Dialect
 #spring.datasource.username=admin
 #spring.datasource.password=admin
 
-#
-# The settings of the anchor reference serer
-#
-anchor.settings.version=0.0.1

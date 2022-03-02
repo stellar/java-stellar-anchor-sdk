@@ -18,7 +18,7 @@ import org.stellar.platform.apis.callbacks.responses.GetCustomerResponse
   classes = [AnchorReferenceServer::class],
   webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
 )
-@TestPropertySource(locations = ["classpath:application-integration-test.properties"])
+@TestPropertySource(locations = ["classpath:anchor-reference-server.yaml"])
 class AnchorReferenceServerIntegrationTest {
   companion object {
     val gson = Gson()
