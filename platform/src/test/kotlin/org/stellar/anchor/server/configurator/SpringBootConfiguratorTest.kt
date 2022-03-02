@@ -14,6 +14,7 @@ import org.springframework.test.context.ContextConfiguration
 import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.Sep10Config
 import org.stellar.anchor.config.Sep1Config
+import org.stellar.anchor.config.Sep38Config
 import org.stellar.anchor.paymentservice.circle.config.CirclePaymentConfig
 import org.stellar.anchor.server.ConfigManagementConfig
 
@@ -46,6 +47,7 @@ open class SpringBootConfiguratorTest {
   @Autowired lateinit var appConfig: AppConfig
   @Autowired lateinit var sep1Config: Sep1Config
   @Autowired lateinit var sep10Config: Sep10Config
+  @Autowired lateinit var sep38Config: Sep38Config
 
   @Test
   fun testYamlProperties() {
@@ -55,6 +57,8 @@ open class SpringBootConfiguratorTest {
         "sep10.enabled" to "true",
         "sep10.homeDomain" to "localhost:8080",
         "sep10.signingSeed" to "SAX3AH622R2XT6DXWWSRIDCMMUCCMATBZ5U6XKJWDO7M2EJUBFC3AW5X",
+        "sep38.enabled" to "true",
+        "sep38.customerIntegrationEndpoint" to "localhost:8082",
         "payment-gateway.circle.name" to "circle",
         "payment-gateway.circle.stellarNetwork" to "TESTNET",
         "spring.jpa.database-platform" to "org.stellar.anchor.server.sqlite.SQLiteDialect",
@@ -103,5 +107,11 @@ open class SpringBootConfiguratorTest {
       "SAX3AH622R2XT6DXWWSRIDCMMUCCMATBZ5U6XKJWDO7M2EJUBFC3AW5X",
       sep10Config.signingSeed
     )
+  }
+
+  @Test
+  fun testSep38Config() {
+    assertEquals(true, sep38Config.isEnabled)
+    assertEquals("localhost:8082", sep38Config.customerIntegrationEndPoint)
   }
 }
