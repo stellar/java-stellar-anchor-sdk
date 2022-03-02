@@ -26,10 +26,10 @@ dependencies {
   implementation(project(":config-spring-property"))
   implementation(project(":data-spring-jdbc"))
   implementation(project(":platform-apis"))
-
+  implementation(project(":anchor-reference-server"))
   testImplementation("org.springframework.boot:spring-boot-starter-test")
+
   testImplementation(libs.okhttp3)
-  testImplementation(project(":anchor-reference-server"))
 }
 
 application { mainClass.set("org.stellar.anchor.server.AnchorPlatformServer") }

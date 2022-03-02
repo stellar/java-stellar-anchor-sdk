@@ -1,8 +1,6 @@
 package org.stellar.anchor.sep12;
 
 import java.util.stream.Stream;
-import org.stellar.anchor.config.AppConfig;
-import org.stellar.anchor.config.Sep12Config;
 import org.stellar.anchor.dto.sep12.GetCustomerRequest;
 import org.stellar.anchor.dto.sep12.GetCustomerResponse;
 import org.stellar.anchor.dto.sep12.PutCustomerRequest;
@@ -11,7 +9,6 @@ import org.stellar.anchor.exception.SepException;
 import org.stellar.anchor.exception.SepNotAuthorizedException;
 import org.stellar.anchor.exception.SepValidationException;
 import org.stellar.anchor.integration.customer.CustomerIntegration;
-import org.stellar.anchor.sep10.JwtService;
 import org.stellar.anchor.sep10.JwtToken;
 import org.stellar.anchor.util.MemoHelper;
 import org.stellar.sdk.xdr.MemoType;
@@ -20,8 +17,7 @@ import reactor.core.publisher.Mono;
 public class Sep12Service {
   private final CustomerIntegration customerIntegration;
 
-  public Sep12Service(
-      CustomerIntegration customerIntegration) {
+  public Sep12Service(CustomerIntegration customerIntegration) {
     this.customerIntegration = customerIntegration;
   }
 
