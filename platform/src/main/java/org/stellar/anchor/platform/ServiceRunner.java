@@ -1,8 +1,9 @@
 package org.stellar.anchor.platform;
 
-import java.io.IOException;
 import org.apache.commons.cli.*;
 import org.stellar.anchor.reference.AnchorReferenceServer;
+
+import java.io.IOException;
 
 public class ServiceRunner {
   public static final int DEFAULT_SEP_SERVER_PORT = 8080;
@@ -22,17 +23,17 @@ public class ServiceRunner {
     try {
       CommandLine cmd = parser.parse(options, args);
       boolean anyServerStarted = false;
-      if (cmd.hasOption("sep-server")) {
+      if (cmd.hasOption("sep-server") || cmd.hasOption("all")) {
         startSepServer();
         anyServerStarted = true;
       }
 
-      if (cmd.hasOption("anchor-reference-server")) {
+      if (cmd.hasOption("anchor-reference-server") || cmd.hasOption("all")) {
         startAnchorReferenceServer();
         anyServerStarted = true;
       }
 
-      if (cmd.hasOption("payment-observer")) {
+      if (cmd.hasOption("payment-observer") || cmd.hasOption("all")) {
         startPaymentObserver();
         anyServerStarted = true;
       }
@@ -72,7 +73,8 @@ public class ServiceRunner {
   }
 
   static void startPaymentObserver() {
-    throw new RuntimeException("Not implemented.");
+    // TODO: implement.
+    System.out.println("Not implemented yet.");
   }
 
   static void printUsage(Options options) {
