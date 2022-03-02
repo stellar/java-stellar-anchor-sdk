@@ -44,9 +44,6 @@ include("data-spring-jdbc")
 include("payment-circle")
 // TODO: include("payment-stellar")
 
-/** Anchor integrations **/
-include("anchor-integration-netty")
-
 /** Anchor Platform */
 include("platform")
 
