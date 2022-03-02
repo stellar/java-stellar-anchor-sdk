@@ -177,7 +177,6 @@ public class PlatformCustomerIntegration implements CustomerIntegration {
       CustomerStatus customerStatus = new CustomerStatus();
       customerStatus.setStatus(status);
       customerStatus.setType(type);
-      customerStatus.setCustomer(customer);
       customer.setStatuses(List.of(customerStatus));
       customerRepository.save(customer);
       return;
@@ -195,7 +194,6 @@ public class PlatformCustomerIntegration implements CustomerIntegration {
       CustomerStatus customerStatus = new CustomerStatus();
       customerStatus.setStatus(status);
       customerStatus.setType(type);
-      customerStatus.setCustomer(customer);
       customer.getStatuses().add(customerStatus);
     }
     customerRepository.save(customer);

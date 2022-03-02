@@ -9,6 +9,5 @@ import lombok.Data;
 @Data
 public class CustomerStatus {
   @Id private String type;
-  @ManyToOne private Customer customer;
   private String status;
 }
