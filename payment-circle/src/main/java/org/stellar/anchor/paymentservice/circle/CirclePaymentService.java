@@ -288,6 +288,36 @@ public class CirclePaymentService
         .map(body -> gson.fromJson(body, CirclePayoutListResponse.class));
   }
 
+  public Mono<CirclePaymentListResponse> getIncomingPayments(
+      @NonNull String accountID, String beforeCursor, String afterCursor, Integer pageSize) {
+    return getDistributionAccountAddress()
+        .flatMap(
+            distributionAccountId -> {
+              if (!distributionAccountId.equals(accountID)) {
+                return Mono.just(new CirclePaymentListResponse());
+              }
+
+              // build query parameters for GET requests
+              int _pageSize = pageSize != null ? pageSize : 50;
+              LinkedHashMap<String, String> queryParams = new LinkedHashMap<>();
+              queryParams.put("pageSize", Integer.toString(_pageSize));
+
+              if (afterCursor != null && !afterCursor.isEmpty()) {
+                queryParams.put("pageAfter", afterCursor);
+                // we can't use both pageBefore and pageAfter at the same time, that's why I'm using
+                // 'else if'
+              } else if (beforeCursor != null && !beforeCursor.isEmpty()) {
+                queryParams.put("pageBefore", beforeCursor);
+              }
+
+              return getWebClient(true)
+                  .get()
+                  .uri(NettyHttpClient.buildUri("/v1/payments", queryParams))
+                  .responseSingle(handleResponseSingle())
+                  .map(body -> gson.fromJson(body, CirclePaymentListResponse.class));
+            });
+  }
+
   /**
    * API request that returns the history of payments involving a given account.
    *
@@ -300,9 +330,9 @@ public class CirclePaymentService
   public Mono<PaymentHistory> getAccountPaymentHistory(
       String accountID, @Nullable String beforeCursor, @Nullable String afterCursor)
       throws HttpException {
-    // TODO: implement /v1/payments as well
     // Parse cursor
-    String beforeTransfer = null, afterTransfer = null, beforePayout = null, afterPayout = null;
+    String beforeTransfer = null, beforePayout = null, beforePayment = null;
+    String afterTransfer = null, afterPayout = null, afterPayment = null;
     if (beforeCursor != null) {
       String[] beforeCursors = beforeCursor.split(":");
       if (beforeCursors.length < 2) {
@@ -310,6 +340,7 @@ public class CirclePaymentService
       }
       beforeTransfer = beforeCursors[0];
       beforePayout = beforeCursors[1];
+      beforePayment = beforeCursors[2];
     }
     if (afterCursor != null) {
       String[] afterCursors = afterCursor.split(":");
@@ -318,13 +349,15 @@ public class CirclePaymentService
       }
       afterTransfer = afterCursors[0];
       afterPayout = afterCursors[1];
+      afterPayment = afterCursors[2];
     }
 
     int pageSize = 50;
     return Mono.zip(
             getDistributionAccountAddress(),
             getTransfers(accountID, beforeTransfer, afterTransfer, pageSize),
-            getPayouts(accountID, beforePayout, afterPayout, pageSize))
+            getPayouts(accountID, beforePayout, afterPayout, pageSize),
+            getIncomingPayments(accountID, beforePayment, afterPayment, pageSize))
         .map(
             args -> {
               String distributionAccId = args.getT1();
@@ -339,23 +372,27 @@ public class CirclePaymentService
               PaymentHistory transfersHistory =
                   args.getT2().toPaymentHistory(pageSize, account, distributionAccId);
               PaymentHistory payoutsHistory = args.getT3().toPaymentHistory(pageSize, account);
+              PaymentHistory paymentsHistory = args.getT4().toPaymentHistory(pageSize, account);
               PaymentHistory result = new PaymentHistory(account);
 
               String befTransfer = transfersHistory.getBeforeCursor();
               String befPayout = payoutsHistory.getBeforeCursor();
-              if (befTransfer != null || befPayout != null) {
-                result.setBeforeCursor(befTransfer + ":" + befPayout);
+              String befPayment = paymentsHistory.getBeforeCursor();
+              if (befTransfer != null || befPayout != null || befPayment != null) {
+                result.setBeforeCursor(befTransfer + ":" + befPayout + ":" + befPayment);
               }
 
               String aftTransfer = transfersHistory.getAfterCursor();
               String aftPayout = payoutsHistory.getAfterCursor();
-              if (aftTransfer != null || aftPayout != null) {
-                result.setAfterCursor(aftTransfer + ":" + aftPayout);
+              String aftPayment = paymentsHistory.getAfterCursor();
+              if (aftTransfer != null || aftPayout != null || aftPayment != null) {
+                result.setAfterCursor(aftTransfer + ":" + aftPayout + ":" + aftPayment);
               }
 
               List<Payment> allPayments = new ArrayList<>();
               allPayments.addAll(transfersHistory.getPayments());
               allPayments.addAll(payoutsHistory.getPayments());
+              allPayments.addAll(paymentsHistory.getPayments());
               allPayments =
                   allPayments.stream()
                       .sorted((p1, p2) -> p2.getCreatedAt().compareTo(p1.getCreatedAt()))
@@ -506,8 +543,10 @@ public class CirclePaymentService
 
     // fill source account level
     Account sourceAcc = payment.getSourceAccount();
-    sourceAcc.capabilities.set(
-        PaymentNetwork.BANK_WIRE, distributionAccountId.equals(sourceAcc.id));
+    Boolean isSourceWireEnabled =
+        sourceAcc.paymentNetwork.equals(PaymentNetwork.BANK_WIRE)
+            || distributionAccountId.equals(sourceAcc.id);
+    sourceAcc.capabilities.set(PaymentNetwork.BANK_WIRE, isSourceWireEnabled);
 
     // fill destination account level
     Account destinationAcc = payment.getDestinationAccount();

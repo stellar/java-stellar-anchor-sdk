@@ -57,6 +57,9 @@ class CirclePaymentServiceTest {
     val mockWalletToWirePayoutJson: String =
       FileUtil.getResourceFileAsString("mock_wallet_to_wire_payout.json")
 
+    val mockWireToWalletPaymentJson: String =
+      FileUtil.getResourceFileAsString("mock_wire_to_wallet_payment.json")
+
     val mockStellarPaymentResponsePageBody: String =
       FileUtil.getResourceFileAsString("mock_stellar_payment_response_page_body.json")
 
@@ -979,7 +982,7 @@ class CirclePaymentServiceTest {
   }
 
   @Test
-  fun test_Horizon() {
+  fun test_horizon() {
     val type = (object : TypeToken<Page<OperationResponse>>() {}).type
     val mockStellarPaymentResponsePage: Page<OperationResponse> =
       GsonSingleton.getInstance().fromJson(mockStellarPaymentResponsePageBody, type)
@@ -1328,6 +1331,137 @@ class CirclePaymentServiceTest {
     assertEquals(wantPaymentHistory, paymentHistory)
   }
 
+  @Test
+  fun test_getIncomingPayments() {
+    val dispatcher: Dispatcher =
+      object : Dispatcher() {
+        @Throws(InterruptedException::class)
+        override fun dispatch(request: RecordedRequest): MockResponse {
+          when (request.path) {
+            "/v1/payments?pageSize=50" ->
+              return MockResponse()
+                .addHeader("Content-Type", "application/json")
+                .setBody(
+                  """{    
+                    "data": [
+                      $mockWireToWalletPaymentJson
+                    ]
+                  }""".trimIndent()
+                )
+            "/v1/configuration" -> return getDistAccountIdMockResponse()
+          }
+          return MockResponse().setResponseCode(404)
+        }
+      }
+    server.dispatcher = dispatcher
+
+    val merchantAccount =
+      Account(
+        PaymentNetwork.CIRCLE,
+        "1000066041",
+        Account.Capabilities(
+          PaymentNetwork.CIRCLE,
+          PaymentNetwork.STELLAR,
+          PaymentNetwork.BANK_WIRE
+        )
+      )
+    val getPaymentsMono =
+      (service as CirclePaymentService).getIncomingPayments("1000066041", null, null, 50)
+    var paymentHistory: PaymentHistory? = null
+    assertDoesNotThrow {
+      paymentHistory = getPaymentsMono.block()!!.toPaymentHistory(50, merchantAccount)
+    }
+
+    val wantPaymentHistory = PaymentHistory(merchantAccount)
+    wantPaymentHistory.beforeCursor = "acc622bf-89e1-447c-8588-1bdead8e41a3"
+
+    val p = Payment()
+    p.id = "acc622bf-89e1-447c-8588-1bdead8e41a3"
+    p.sourceAccount =
+      Account(
+        PaymentNetwork.BANK_WIRE,
+        "a4e76642-81c5-47ca-9229-ebd64efd74a7",
+        Account.Capabilities(PaymentNetwork.BANK_WIRE)
+      )
+    p.destinationAccount = merchantAccount
+    p.balance = Balance("1000.00", "circle:USD")
+    p.status = Payment.Status.SUCCESSFUL
+    p.createdAt = CircleDateFormatter.stringToDate("2022-02-21T19:20:01.438Z")
+    p.updatedAt = CircleDateFormatter.stringToDate("2022-02-21T19:28:01.901Z")
+    val gson = Gson()
+    val type = object : TypeToken<Map<String?, *>?>() {}.type
+    p.originalResponse = gson.fromJson(mockWireToWalletPaymentJson, type)
+    wantPaymentHistory.payments.add(p)
+
+    assertEquals(wantPaymentHistory, paymentHistory)
+  }
+
+  @Test
+  fun test_getIncomingPayments_paginationResponse() {
+    val dispatcher: Dispatcher =
+      object : Dispatcher() {
+        @Throws(InterruptedException::class)
+        override fun dispatch(request: RecordedRequest): MockResponse {
+          when (request.path) {
+            "/v1/payments?pageSize=1" ->
+              return MockResponse()
+                .addHeader("Content-Type", "application/json")
+                .setBody(
+                  """{    
+                    "data": [
+                      $mockWireToWalletPaymentJson
+                    ]
+                  }""".trimIndent()
+                )
+            "/v1/configuration" -> return getDistAccountIdMockResponse()
+          }
+          return MockResponse().setResponseCode(404)
+        }
+      }
+    server.dispatcher = dispatcher
+
+    val merchantAccount =
+      Account(
+        PaymentNetwork.CIRCLE,
+        "1000066041",
+        Account.Capabilities(
+          PaymentNetwork.CIRCLE,
+          PaymentNetwork.STELLAR,
+          PaymentNetwork.BANK_WIRE
+        )
+      )
+    val getPaymentsMono =
+      (service as CirclePaymentService).getIncomingPayments("1000066041", null, null, 1)
+    var paymentHistory: PaymentHistory? = null
+    assertDoesNotThrow {
+      paymentHistory = getPaymentsMono.block()!!.toPaymentHistory(1, merchantAccount)
+    }
+
+    val wantPaymentHistory = PaymentHistory(merchantAccount)
+    wantPaymentHistory.beforeCursor = "acc622bf-89e1-447c-8588-1bdead8e41a3"
+    wantPaymentHistory.afterCursor = "acc622bf-89e1-447c-8588-1bdead8e41a3"
+
+    val p = Payment()
+    p.id = "acc622bf-89e1-447c-8588-1bdead8e41a3"
+    p.sourceAccount =
+      Account(
+        PaymentNetwork.BANK_WIRE,
+        "a4e76642-81c5-47ca-9229-ebd64efd74a7",
+        Account.Capabilities(PaymentNetwork.BANK_WIRE)
+      )
+    p.destinationAccount = merchantAccount
+    p.balance = Balance("1000.00", "circle:USD")
+    p.status = Payment.Status.SUCCESSFUL
+    p.createdAt = CircleDateFormatter.stringToDate("2022-02-21T19:20:01.438Z")
+    p.updatedAt = CircleDateFormatter.stringToDate("2022-02-21T19:28:01.901Z")
+    val gson = Gson()
+    val type = object : TypeToken<Map<String?, *>?>() {}.type
+    p.originalResponse = gson.fromJson(mockWireToWalletPaymentJson, type)
+    wantPaymentHistory.payments.add(p)
+
+    assertEquals(wantPaymentHistory, paymentHistory)
+  }
+
   @ParameterizedTest
   @CsvSource(
     value =
@@ -1340,6 +1474,10 @@ class CirclePaymentServiceTest {
         "payouts,before,,/v1/payouts?pageSize=1&source=1000066041&pageBefore=before",
         "payouts,,after,/v1/payouts?pageSize=1&source=1000066041&pageAfter=after",
         "payouts,before,after,/v1/payouts?pageSize=1&source=1000066041&pageAfter=after",
+        "payments,,,/v1/payments?pageSize=1&source=1000066041",
+        "payments,before,,/v1/payments?pageSize=1&source=1000066041&pageBefore=before",
+        "payments,,after,/v1/payments?pageSize=1&source=1000066041&pageAfter=after",
+        "payments,before,after,/v1/payments?pageSize=1&source=1000066041&pageAfter=after",
       ]
   )
   fun test_getTransfersOrPayouts_paginationRequestUri(
@@ -1397,6 +1535,14 @@ class CirclePaymentServiceTest {
               .block()!!
             .toPaymentHistory(1, merchantAccount)
       }
+    } else if (uri == "payments") {
+      assertDoesNotThrow {
+        paymentHistory =
+          (service as CirclePaymentService)
+              .getIncomingPayments("1000066041", beforeCursor, afterCursor, 1)
+              .block()!!
+            .toPaymentHistory(1, merchantAccount)
+      }
     } else {
       throw RuntimeException("INVALID URI FOR TEST")
     }
@@ -1404,7 +1550,6 @@ class CirclePaymentServiceTest {
     val wantPaymentHistory = PaymentHistory(merchantAccount)
     assertEquals(wantPaymentHistory, paymentHistory)
 
-    assertEquals(1, server.requestCount)
     val request = server.takeRequest()
     assertEquals("GET", request.method)
     assertEquals("Bearer <secret-key>", request.headers["Authorization"])
@@ -1447,6 +1592,16 @@ class CirclePaymentServiceTest {
                       ]
                     }""".trimIndent()
                 )
+            "/v1/payments?pageSize=50" ->
+              return MockResponse()
+                .addHeader("Content-Type", "application/json")
+                .setBody(
+                  """{
+                      "data": [
+                        $mockWireToWalletPaymentJson
+                      ]
+                    }""".trimIndent()
+                )
             "/transactions/fb8947c67856d8eb444211c1927d92bcf14abcfb34cdd27fc9e604b15d208fd1/payments" ->
               return MockResponse()
                 .addHeader("Content-Type", "application/json")
@@ -1476,10 +1631,26 @@ class CirclePaymentServiceTest {
       )
     val wantPaymentHistory = PaymentHistory(merchantAccount)
     wantPaymentHistory.beforeCursor =
-      "c58e2613-a808-4075-956c-e576787afb3b:6588a352-5131-4711-a264-e405f38d752d"
+      "c58e2613-a808-4075-956c-e576787afb3b:6588a352-5131-4711-a264-e405f38d752d:acc622bf-89e1-447c-8588-1bdead8e41a3"
 
     val gson = Gson()
     val type = object : TypeToken<Map<String?, *>?>() {}.type
+
+    val p0 = Payment()
+    p0.id = "acc622bf-89e1-447c-8588-1bdead8e41a3"
+    p0.sourceAccount =
+      Account(
+        PaymentNetwork.BANK_WIRE,
+        "a4e76642-81c5-47ca-9229-ebd64efd74a7",
+        Account.Capabilities(PaymentNetwork.BANK_WIRE)
+      )
+    p0.destinationAccount = merchantAccount
+    p0.balance = Balance("1000.00", "circle:USD")
+    p0.status = Payment.Status.SUCCESSFUL
+    p0.createdAt = CircleDateFormatter.stringToDate("2022-02-21T19:20:01.438Z")
+    p0.updatedAt = CircleDateFormatter.stringToDate("2022-02-21T19:28:01.901Z")
+    p0.originalResponse = gson.fromJson(mockWireToWalletPaymentJson, type)
+    wantPaymentHistory.payments.add(p0)
 
     val p1 = Payment()
     p1.id = "c58e2613-a808-4075-956c-e576787afb3b"
