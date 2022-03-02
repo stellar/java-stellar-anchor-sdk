@@ -20,6 +20,7 @@ import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.Sep24Config;
 import org.stellar.anchor.dto.sep24.*;
 import org.stellar.anchor.exception.SepException;
+import org.stellar.anchor.exception.SepNotAuthorizedException;
 import org.stellar.anchor.exception.SepNotFoundException;
 import org.stellar.anchor.exception.SepValidationException;
 import org.stellar.anchor.model.Sep24Transaction;
@@ -251,7 +252,7 @@ public class Sep24Service {
   public GetTransactionsResponse findTransactions(JwtToken token, GetTransactionsRequest txReq)
       throws SepException, MalformedURLException, URISyntaxException {
     if (token == null) {
-      throw new SepValidationException("missing token");
+      throw new SepNotAuthorizedException("missing token");
     }
 
     Log.infoF("Sep24.findTransactions. account={}", shorter(token.getAccount()));
@@ -273,7 +274,7 @@ public class Sep24Service {
   public GetTransactionResponse findTransaction(JwtToken token, GetTransactionRequest txReq)
       throws SepException, IOException, URISyntaxException {
     if (token == null) {
-      throw new SepValidationException("missing token");
+      throw new SepNotAuthorizedException("missing token");
     }
 
     if (txReq == null) {

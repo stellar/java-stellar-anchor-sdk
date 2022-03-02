@@ -24,6 +24,7 @@ import org.stellar.anchor.config.Sep24Config
 import org.stellar.anchor.dto.sep24.GetTransactionRequest
 import org.stellar.anchor.dto.sep24.GetTransactionsRequest
 import org.stellar.anchor.exception.SepException
+import org.stellar.anchor.exception.SepNotAuthorizedException
 import org.stellar.anchor.exception.SepNotFoundException
 import org.stellar.anchor.exception.SepValidationException
 import org.stellar.anchor.model.Sep24Transaction
@@ -307,7 +308,7 @@ internal class Sep24ServiceTest {
   @ParameterizedTest
   @ValueSource(strings = ["deposit", "withdrawal"])
   fun testFindTransactionsValidationError(kind: String) {
-    assertThrows<SepValidationException> {
+    assertThrows<SepNotAuthorizedException> {
       val gtr = GetTransactionsRequest.of(TEST_ASSET, kind, 10, "2021-12-20T19:30:58+00:00", "1")
       sep24Service.findTransactions(null, gtr)
     }
@@ -352,7 +353,7 @@ internal class Sep24ServiceTest {
   @ParameterizedTest
   @ValueSource(strings = ["deposit", "withdrawal"])
   fun testFindTransactionValidationError(kind: String) {
-    assertThrows<SepValidationException> {
+    assertThrows<SepNotAuthorizedException> {
       val gtr = GetTransactionRequest(TEST_TRANSACTION_ID_0, null, null)
       sep24Service.findTransaction(null, gtr)
     }
