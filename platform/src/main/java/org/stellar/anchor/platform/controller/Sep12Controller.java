@@ -48,7 +48,7 @@ public class Sep12Controller {
             .lang(lang)
             .build();
 
-    return sep12Service.getCustomer(jwtToken, getCustomerRequest).block();
+    return sep12Service.getCustomer(jwtToken, getCustomerRequest);
   }
 
   @SneakyThrows
@@ -61,6 +61,6 @@ public class Sep12Controller {
       HttpServletRequest request, @RequestBody PutCustomerRequest putCustomerRequest)
       throws SepValidationException {
     JwtToken jwtToken = getSep10Token(request);
-    return sep12Service.putCustomer(jwtToken, putCustomerRequest).block();
+    return sep12Service.putCustomer(jwtToken, putCustomerRequest);
   }
 }

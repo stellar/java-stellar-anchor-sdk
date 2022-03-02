@@ -15,8 +15,8 @@ dependencies {
   implementation(libs.commons.cli)
   implementation(libs.google.gson)
   implementation(libs.java.stellar.sdk)
-  implementation(libs.reactor.netty)
   implementation(libs.sqlite.jdbc)
+  implementation(libs.okhttp3)
 
   annotationProcessor(libs.lombok)
   annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
@@ -28,8 +28,6 @@ dependencies {
   implementation(project(":platform-apis"))
   implementation(project(":anchor-reference-server"))
   testImplementation("org.springframework.boot:spring-boot-starter-test")
-
-  testImplementation(libs.okhttp3)
 }
 
 application { mainClass.set("org.stellar.anchor.server.AnchorPlatformServer") }

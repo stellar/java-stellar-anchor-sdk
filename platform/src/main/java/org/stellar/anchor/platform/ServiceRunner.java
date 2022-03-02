@@ -1,9 +1,8 @@
 package org.stellar.anchor.platform;
 
+import java.io.IOException;
 import org.apache.commons.cli.*;
 import org.stellar.anchor.reference.AnchorReferenceServer;
-
-import java.io.IOException;
 
 public class ServiceRunner {
   public static final int DEFAULT_SEP_SERVER_PORT = 8080;

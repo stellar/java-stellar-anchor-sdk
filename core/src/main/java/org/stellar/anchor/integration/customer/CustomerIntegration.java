@@ -5,7 +5,7 @@ import org.stellar.anchor.dto.sep12.GetCustomerRequest;
 import org.stellar.anchor.dto.sep12.GetCustomerResponse;
 import org.stellar.anchor.dto.sep12.PutCustomerRequest;
 import org.stellar.anchor.dto.sep12.PutCustomerResponse;
-import reactor.core.publisher.Mono;
+import org.stellar.anchor.exception.AnchorException;
 
 public interface CustomerIntegration {
   /**
@@ -14,7 +14,7 @@ public interface CustomerIntegration {
    * @param request The request to get a customer.
    * @return The GET customer response.
    */
-  Mono<GetCustomerResponse> getCustomer(GetCustomerRequest request);
+  GetCustomerResponse getCustomer(GetCustomerRequest request) throws AnchorException;
 
   /**
    * Puts a customer
@@ -22,7 +22,7 @@ public interface CustomerIntegration {
    * @param request The request to upload a customer.
    * @return The PUT customer response.
    */
-  Mono<PutCustomerResponse> putCustomer(PutCustomerRequest request);
+  PutCustomerResponse putCustomer(PutCustomerRequest request) throws AnchorException;
 
   /**
    * Deletes a customer.
@@ -30,7 +30,7 @@ public interface CustomerIntegration {
    * @param request The request to delete a customer.
    * @return Nothing
    */
-  Mono<Void> deleteCustomer(DeleteCustomerRequest request);
+  void deleteCustomer(DeleteCustomerRequest request) throws AnchorException;
 
   /**
    * The request for verification.
@@ -38,5 +38,6 @@ public interface CustomerIntegration {
    * @param request The PUT request of a customer.
    * @return The response.
    */
-  Mono<PutCustomerVerificationResponse> putVerification(PutCustomerVerificationRequest request);
+  PutCustomerVerificationResponse putVerification(PutCustomerVerificationRequest request)
+      throws AnchorException;
 }

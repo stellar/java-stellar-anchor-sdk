@@ -5,6 +5,7 @@ import org.stellar.anchor.dto.sep12.GetCustomerRequest;
 import org.stellar.anchor.dto.sep12.GetCustomerResponse;
 import org.stellar.anchor.dto.sep12.PutCustomerRequest;
 import org.stellar.anchor.dto.sep12.PutCustomerResponse;
+import org.stellar.anchor.exception.AnchorException;
 import org.stellar.anchor.exception.SepException;
 import org.stellar.anchor.exception.SepNotAuthorizedException;
 import org.stellar.anchor.exception.SepValidationException;
@@ -12,7 +13,6 @@ import org.stellar.anchor.integration.customer.CustomerIntegration;
 import org.stellar.anchor.sep10.JwtToken;
 import org.stellar.anchor.util.MemoHelper;
 import org.stellar.sdk.xdr.MemoType;
-import reactor.core.publisher.Mono;
 
 public class Sep12Service {
   private final CustomerIntegration customerIntegration;
@@ -21,8 +21,8 @@ public class Sep12Service {
     this.customerIntegration = customerIntegration;
   }
 
-  public Mono<GetCustomerResponse> getCustomer(JwtToken token, GetCustomerRequest request)
-      throws SepException {
+  public GetCustomerResponse getCustomer(JwtToken token, GetCustomerRequest request)
+      throws AnchorException {
     validateGetOrPutRequest(
         request.getId(),
         request.getAccount(),
@@ -37,8 +37,8 @@ public class Sep12Service {
     return customerIntegration.getCustomer(request);
   }
 
-  public Mono<PutCustomerResponse> putCustomer(JwtToken token, PutCustomerRequest request)
-      throws SepException {
+  public PutCustomerResponse putCustomer(JwtToken token, PutCustomerRequest request)
+      throws AnchorException {
     validateGetOrPutRequest(
         request.getId(),
         request.getAccount(),
