@@ -42,5 +42,4 @@ public class GlobalControllerExceptionHandler {
     errorEx(ex);
     return new SepExceptionResponse(ex.getMessage());
   }
-
 }

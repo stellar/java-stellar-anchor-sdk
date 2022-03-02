@@ -19,9 +19,9 @@ import reactor.core.publisher.Mono;
 
 public class Sep12Service {
   private final AppConfig appConfig;
-  private Sep12Config sep12Config;
-  private JwtService jwtService;
-  private CustomerIntegration customerIntegration;
+  private final Sep12Config sep12Config;
+  private final JwtService jwtService;
+  private final CustomerIntegration customerIntegration;
 
   public Sep12Service(
       AppConfig appConfig,
@@ -36,89 +36,99 @@ public class Sep12Service {
 
   public Mono<GetCustomerResponse> getCustomer(JwtToken token, GetCustomerRequest request)
       throws SepException {
-    if (request.getAccount() != null
-        && Stream.of(token.getAccount(), token.getMuxedAccount())
-            .noneMatch(it -> request.getAccount().equals(it))) {
-      throw new SepNotAuthorizedException(
-          "The account specified does not match authorization token");
-    }
-
-    if (token.getAccountMemo() != null && request.getMemo() != null) {
-      if (!token.getAccountMemo().equals(request.getMemo())
-          || !request.getMemoType().equals(MemoType.MEMO_ID.name())) {
-        throw new SepNotAuthorizedException(
-            "The memo specified does not match the memo ID authorized via SEP-10");
-      }
-    }
-
-    if (request.getId() != null) {
-      if (request.getAccount() != null
-          || request.getMemo() != null
-          || request.getMemoType() != null) {
-        throw new SepValidationException(
-            "A requests with 'id' cannot also have 'account', 'memo', or 'memo_type'");
-      }
-    }
-
-    try {
-      MemoHelper.makeMemo(request.getMemo(), request.getMemoType());
-    } catch (SepException e) {
-      throw new SepValidationException("Invalid 'memo' for 'memo_type'");
-    }
-
-    String memo = (request.getMemo() != null) ? request.getMemo() : token.getAccountMemo();
-    String memoType = null;
-    if (memo != null) {
-      memoType = (request.getMemoType() != null) ? request.getMemoType() : MemoType.MEMO_ID.name();
-    }
-
-    request.setMemo(memo);
-    request.setMemoType(memoType);
-
+    validateGetOrPutRequest(
+        request.getId(),
+        request.getAccount(),
+        request.getMemo(),
+        request.getMemoType(),
+        token.getAccount(),
+        token.getMuxedAccount(),
+        token.getAccountMemo());
+    request.setMemo(getMemoForCustomerIntegration(request.getMemo(), token.getAccountMemo()));
+    request.setMemoType(
+        getMemoTypeForCustomerIntegration(request.getMemo(), request.getMemoType()));
     return customerIntegration.getCustomer(request);
   }
 
   public Mono<PutCustomerResponse> putCustomer(JwtToken token, PutCustomerRequest request)
       throws SepException {
-    if (request.getId() != null) {
-      if (request.getAccount() != null
-          || request.getMemo() != null
-          || request.getMemoType() != null) {
+    validateGetOrPutRequest(
+        request.getId(),
+        request.getAccount(),
+        request.getMemo(),
+        request.getMemoType(),
+        token.getAccount(),
+        token.getMuxedAccount(),
+        token.getAccountMemo());
+    request.setMemo(getMemoForCustomerIntegration(request.getMemo(), token.getAccountMemo()));
+    request.setMemoType(
+        getMemoTypeForCustomerIntegration(request.getMemo(), request.getMemoType()));
+    return customerIntegration.putCustomer(request);
+  }
+
+  private void validateGetOrPutRequest(
+      String customerId,
+      String requestAccount,
+      String requestMemo,
+      String requestMemoType,
+      String tokenAccount,
+      String tokenMuxedAccount,
+      String tokenMemo)
+      throws SepException {
+    validateIdXorMemoIsPresent(customerId, requestAccount, requestMemo, requestMemoType);
+    validateMemoRequestAndTokenValuesMatch(
+        requestAccount, requestMemo, requestMemoType, tokenAccount, tokenMuxedAccount, tokenMemo);
+    validateMemo(requestMemo, requestMemoType);
+  }
+
+  private String getMemoTypeForCustomerIntegration(String memo, String requestMemoType) {
+    String memoType = null;
+    if (memo != null) {
+      memoType = (requestMemoType != null) ? requestMemoType : MemoType.MEMO_ID.name();
+    }
+    return memoType;
+  }
+
+  private String getMemoForCustomerIntegration(String requestMemo, String tokenMemo) {
+    return requestMemo != null ? requestMemo : tokenMemo;
+  }
+
+  private void validateMemo(String memo, String memoType) throws SepException {
+    try {
+      MemoHelper.makeMemo(memo, memoType);
+    } catch (SepException e) {
+      throw new SepValidationException("Invalid 'memo' for 'memo_type'");
+    }
+  }
+
+  private void validateIdXorMemoIsPresent(String id, String account, String memo, String memoType)
+      throws SepException {
+    if (id != null) {
+      if (account != null || memo != null || memoType != null) {
         throw new SepValidationException(
             "A requests with 'id' cannot also have 'account', 'memo', or 'memo_type'");
       }
     }
+  }
 
-    if (request.getAccount() != null
-        && Stream.of(token.getAccount(), token.getMuxedAccount())
-            .noneMatch(it -> request.getAccount().equals(it))) {
+  private void validateMemoRequestAndTokenValuesMatch(
+      String requestAccount,
+      String requestMemo,
+      String requestMemoType,
+      String tokenAccount,
+      String tokenMuxedAccount,
+      String tokenMemo)
+      throws SepException {
+    if (requestAccount != null
+        && Stream.of(tokenAccount, tokenMuxedAccount).noneMatch(requestAccount::equals)) {
       throw new SepNotAuthorizedException(
           "The account specified does not match authorization token");
     }
-
-    if (token.getAccountMemo() != null && request.getMemo() != null) {
-      if (!token.getAccountMemo().equals(request.getMemo())
-          || !request.getMemoType().equals(MemoType.MEMO_ID.name())) {
+    if (tokenMemo != null && requestMemo != null) {
+      if (!tokenMemo.equals(requestMemo) || !requestMemoType.equals(MemoType.MEMO_ID.name())) {
         throw new SepNotAuthorizedException(
             "The memo specified does not match the memo ID authorized via SEP-10");
       }
     }
-
-    try {
-      MemoHelper.makeMemo(request.getMemo(), request.getMemoType());
-    } catch (SepException e) {
-      throw new SepValidationException("Invalid 'memo' for 'memo_type'");
-    }
-
-    String memo = (request.getMemo() != null) ? request.getMemo() : token.getAccountMemo();
-    String memoType = null;
-    if (memo != null) {
-      memoType = (request.getMemoType() != null) ? request.getMemoType() : MemoType.MEMO_ID.name();
-    }
-
-    request.setMemo(memo);
-    request.setMemoType(memoType);
-
-    return customerIntegration.putCustomer(request);
   }
 }
