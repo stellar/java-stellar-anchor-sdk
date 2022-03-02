@@ -5,9 +5,14 @@ import io.netty.handler.codec.http.QueryStringEncoder;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import lombok.SneakyThrows;
 import org.stellar.anchor.integration.customer.CustomerIntegration;
+import org.stellar.anchor.platform.model.Customer;
+import org.stellar.anchor.platform.model.CustomerStatus;
+import org.stellar.anchor.platform.repository.CustomerRepository;
 import org.stellar.platform.apis.callbacks.responses.DeleteCustomerResponse;
 import org.stellar.platform.apis.callbacks.responses.GetCustomerResponse;
 import org.stellar.platform.apis.callbacks.responses.PutCustomerResponse;
@@ -18,14 +23,16 @@ import reactor.netty.http.client.HttpClient;
 public class NettyCustomerIntegration implements CustomerIntegration {
   private final String baseUri;
   private final Gson gson = new Gson();
+  private final CustomerRepository customerRepository;
 
-  public NettyCustomerIntegration(String baseUri) {
+  public NettyCustomerIntegration(String baseUri, CustomerRepository customerRepository) {
     try {
       new URI(baseUri);
     } catch (URISyntaxException e) {
       throw new IllegalArgumentException("invalid 'baseUri'");
     }
     this.baseUri = baseUri;
+    this.customerRepository = customerRepository;
   }
 
   @Override
@@ -106,7 +113,40 @@ public class NettyCustomerIntegration implements CustomerIntegration {
   }
 
   private void updateCustomerStatus(String id, String type, String status) {
-    // TODO: implement
+    if (id == null) return;
+    Optional<Customer> maybeCustomer = customerRepository.findById(id);
+    if (maybeCustomer.isEmpty()) {
+      Customer customer = new Customer();
+      customer.setId(id);
+      CustomerStatus customerStatus = new CustomerStatus();
+      customerStatus.setStatus(status);
+      customerStatus.setType(type);
+      customerStatus.setCustomer(customer);
+      customer.setStatuses(List.of(customerStatus));
+      customerRepository.save(customer);
+      return;
+    }
+    Customer customer = maybeCustomer.get();
+    if (status == null) {
+      customerRepository.delete(customer);
+      return;
+    }
+    boolean statusFound = false;
+    for (CustomerStatus s : customer.getStatuses()) {
+      if (s.getType().equals(type)) {
+        s.setStatus(status);
+        statusFound = true;
+        break;
+      }
+    }
+    if (!statusFound) {
+      CustomerStatus customerStatus = new CustomerStatus();
+      customerStatus.setStatus(status);
+      customerStatus.setType(type);
+      customerStatus.setCustomer(customer);
+      customer.getStatuses().add(customerStatus);
+    }
+    customerRepository.save(customer);
   }
 }
 
