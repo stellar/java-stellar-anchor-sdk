@@ -3,6 +3,7 @@ package org.stellar.anchor.platform.controller;
 import static org.stellar.anchor.platform.controller.Sep10Helper.getSep10Token;
 
 import javax.servlet.http.HttpServletRequest;
+import lombok.SneakyThrows;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.stellar.anchor.dto.sep12.GetCustomerRequest;
@@ -23,6 +24,7 @@ public class Sep12Controller {
     this.sep12Service = sep12Service;
   }
 
+  @SneakyThrows
   @CrossOrigin(origins = "*")
   @RequestMapping(
       value = "/customer",
@@ -34,8 +36,7 @@ public class Sep12Controller {
       @RequestParam(required = false) String account,
       @RequestParam(required = false) String memo,
       @RequestParam(required = false, name = "memo_type") String memoType,
-      @RequestParam(required = false) String lang)
-      throws SepValidationException {
+      @RequestParam(required = false) String lang) {
     JwtToken jwtToken = getSep10Token(request);
     GetCustomerRequest getCustomerRequest =
         GetCustomerRequest.builder()
@@ -50,6 +51,7 @@ public class Sep12Controller {
     return sep12Service.getCustomer(jwtToken, getCustomerRequest).block();
   }
 
+  @SneakyThrows
   @CrossOrigin(origins = "*")
   @RequestMapping(
       value = "/customer",

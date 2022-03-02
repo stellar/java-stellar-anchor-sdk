@@ -12,10 +12,11 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-autoconfigure")
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
   implementation("org.springframework.boot:spring-boot-starter-web")
-  implementation(libs.sqlite.jdbc)
+  implementation(libs.commons.cli)
   implementation(libs.google.gson)
   implementation(libs.java.stellar.sdk)
   implementation(libs.reactor.netty)
+  implementation(libs.sqlite.jdbc)
 
   annotationProcessor(libs.lombok)
   annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")

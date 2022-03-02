@@ -6,7 +6,7 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
-import org.stellar.anchor.exception.AnchorException;
+import lombok.SneakyThrows;
 import org.stellar.anchor.integration.customer.CustomerIntegration;
 import org.stellar.platform.apis.callbacks.responses.DeleteCustomerResponse;
 import org.stellar.platform.apis.callbacks.responses.GetCustomerResponse;
@@ -95,13 +95,14 @@ public class NettyCustomerIntegration implements CustomerIntegration {
             });
   }
 
+  @SneakyThrows
   @Override
   public Mono<org.stellar.anchor.integration.customer.PutCustomerVerificationResponse>
       putVerification(
           org.stellar.anchor.integration.customer.PutCustomerVerificationRequest request) {
     // the Platform Callback API doesn't support verification.
     // if it does in the future we can implement this method
-    throw new AnchorException(501, "not implemented");
+    throw new UnsupportedOperationException("not implemented");
   }
 
   private void updateCustomerStatus(String id, String type, String status) {

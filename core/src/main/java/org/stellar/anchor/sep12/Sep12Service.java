@@ -1,7 +1,6 @@
 package org.stellar.anchor.sep12;
 
 import java.util.stream.Stream;
-import org.apache.http.HttpStatus;
 import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.Sep12Config;
 import org.stellar.anchor.dto.sep12.GetCustomerRequest;
@@ -9,6 +8,7 @@ import org.stellar.anchor.dto.sep12.GetCustomerResponse;
 import org.stellar.anchor.dto.sep12.PutCustomerRequest;
 import org.stellar.anchor.dto.sep12.PutCustomerResponse;
 import org.stellar.anchor.exception.SepException;
+import org.stellar.anchor.exception.SepNotAuthorizedException;
 import org.stellar.anchor.exception.SepValidationException;
 import org.stellar.anchor.integration.customer.CustomerIntegration;
 import org.stellar.anchor.sep10.JwtService;
@@ -35,19 +35,18 @@ public class Sep12Service {
   }
 
   public Mono<GetCustomerResponse> getCustomer(JwtToken token, GetCustomerRequest request)
-      throws SepValidationException {
+      throws SepException {
     if (request.getAccount() != null
         && Stream.of(token.getAccount(), token.getMuxedAccount())
             .noneMatch(it -> request.getAccount().equals(it))) {
-      throw new SepValidationException(
-          HttpStatus.SC_FORBIDDEN, "The account specified does not match authorization token");
+      throw new SepNotAuthorizedException(
+          "The account specified does not match authorization token");
     }
 
     if (token.getAccountMemo() != null && request.getMemo() != null) {
       if (!token.getAccountMemo().equals(request.getMemo())
           || !request.getMemoType().equals(MemoType.MEMO_ID.name())) {
-        throw new SepValidationException(
-            HttpStatus.SC_FORBIDDEN,
+        throw new SepNotAuthorizedException(
             "The memo specified does not match the memo ID authorized via SEP-10");
       }
     }
@@ -57,7 +56,6 @@ public class Sep12Service {
           || request.getMemo() != null
           || request.getMemoType() != null) {
         throw new SepValidationException(
-            HttpStatus.SC_BAD_REQUEST,
             "A requests with 'id' cannot also have 'account', 'memo', or 'memo_type'");
       }
     }
@@ -65,7 +63,7 @@ public class Sep12Service {
     try {
       MemoHelper.makeMemo(request.getMemo(), request.getMemoType());
     } catch (SepException e) {
-      throw new SepValidationException(HttpStatus.SC_BAD_REQUEST, "Invalid 'memo' for 'memo_type'");
+      throw new SepValidationException("Invalid 'memo' for 'memo_type'");
     }
 
     String memo = (request.getMemo() != null) ? request.getMemo() : token.getAccountMemo();
@@ -81,13 +79,12 @@ public class Sep12Service {
   }
 
   public Mono<PutCustomerResponse> putCustomer(JwtToken token, PutCustomerRequest request)
-      throws SepValidationException {
+      throws SepException {
     if (request.getId() != null) {
       if (request.getAccount() != null
           || request.getMemo() != null
           || request.getMemoType() != null) {
         throw new SepValidationException(
-            HttpStatus.SC_BAD_REQUEST,
             "A requests with 'id' cannot also have 'account', 'memo', or 'memo_type'");
       }
     }
@@ -95,15 +92,14 @@ public class Sep12Service {
     if (request.getAccount() != null
         && Stream.of(token.getAccount(), token.getMuxedAccount())
             .noneMatch(it -> request.getAccount().equals(it))) {
-      throw new SepValidationException(
-          HttpStatus.SC_FORBIDDEN, "The account specified does not match authorization token");
+      throw new SepNotAuthorizedException(
+          "The account specified does not match authorization token");
     }
 
     if (token.getAccountMemo() != null && request.getMemo() != null) {
       if (!token.getAccountMemo().equals(request.getMemo())
           || !request.getMemoType().equals(MemoType.MEMO_ID.name())) {
-        throw new SepValidationException(
-            HttpStatus.SC_FORBIDDEN,
+        throw new SepNotAuthorizedException(
             "The memo specified does not match the memo ID authorized via SEP-10");
       }
     }
@@ -111,7 +107,7 @@ public class Sep12Service {
     try {
       MemoHelper.makeMemo(request.getMemo(), request.getMemoType());
     } catch (SepException e) {
-      throw new SepValidationException(HttpStatus.SC_BAD_REQUEST, "Invalid 'memo' for 'memo_type'");
+      throw new SepValidationException("Invalid 'memo' for 'memo_type'");
     }
 
     String memo = (request.getMemo() != null) ? request.getMemo() : token.getAccountMemo();
