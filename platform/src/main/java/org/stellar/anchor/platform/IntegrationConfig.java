@@ -11,7 +11,7 @@ public class IntegrationConfig {
   @Bean
   CustomerIntegration customerIntegration(
       Sep12Config sep12Config, CustomerRepository customerRepository) {
-    return new NettyCustomerIntegration(
+    return new PlatformCustomerIntegration(
         sep12Config.getCustomerIntegrationEndPoint(), customerRepository);
   }
 }

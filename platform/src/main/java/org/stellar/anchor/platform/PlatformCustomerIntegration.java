@@ -20,13 +20,13 @@ import org.stellar.platform.apis.callbacks.responses.GetCustomerResponse;
 import org.stellar.platform.apis.callbacks.responses.PutCustomerResponse;
 import org.stellar.platform.apis.shared.ErrorResponse;
 
-public class NettyCustomerIntegration implements CustomerIntegration {
+public class PlatformCustomerIntegration implements CustomerIntegration {
   private final HttpUrl customerUrl;
   private final Gson gson = new Gson();
   private final CustomerRepository customerRepository;
   private final OkHttpClient httpClient;
 
-  public NettyCustomerIntegration(String baseUri, CustomerRepository customerRepository) {
+  public PlatformCustomerIntegration(String baseUri, CustomerRepository customerRepository) {
     try {
       new URI(baseUri);
     } catch (URISyntaxException e) {
