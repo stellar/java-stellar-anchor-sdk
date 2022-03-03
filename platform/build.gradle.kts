@@ -30,7 +30,7 @@ dependencies {
   testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 
-application { mainClass.set("org.stellar.anchor.server.AnchorPlatformServer") }
+application { mainClass.set("org.stellar.anchor.platform.ServiceRunner") }
 
 configurations {
   all {
