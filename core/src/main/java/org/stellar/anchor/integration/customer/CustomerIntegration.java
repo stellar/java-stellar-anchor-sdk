@@ -28,7 +28,6 @@ public interface CustomerIntegration {
    * Deletes a customer.
    *
    * @param request The request to delete a customer.
-   * @return Nothing
    */
   void deleteCustomer(DeleteCustomerRequest request) throws AnchorException;
 
