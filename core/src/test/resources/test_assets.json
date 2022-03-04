@@ -110,7 +110,7 @@
         "buy_delivery_methods": [
           {
             "name": "WIRE",
-            "description": "Have WIRE sent directly to your bank account."
+            "description": "Have USD sent directly to your bank account."
           }
         ]
       },

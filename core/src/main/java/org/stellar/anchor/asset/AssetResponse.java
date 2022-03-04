@@ -104,6 +104,11 @@ public class AssetResponse {
       String name;
 
       String description;
+
+      public DeliveryMethod(String name, String description) {
+        this.name = name;
+        this.description = description;
+      }
     }
   }
 }
