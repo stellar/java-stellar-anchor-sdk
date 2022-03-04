@@ -1,4 +1,4 @@
-package org.stellar.anchor.plugins.asset
+package org.stellar.anchor.asset
 
 import com.google.gson.JsonSyntaxException
 import org.junit.jupiter.api.Assertions.*

@@ -1,4 +1,4 @@
-package org.stellar.anchor.dto.sep24;
+package org.stellar.anchor.asset;
 
 import com.google.gson.annotations.SerializedName;
 import java.util.List;

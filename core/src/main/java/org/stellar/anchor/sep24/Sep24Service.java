@@ -15,6 +15,8 @@ import java.time.Instant;
 import java.util.*;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.http.client.utils.URIBuilder;
+import org.stellar.anchor.asset.AssetResponse;
+import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.Sep24Config;
 import org.stellar.anchor.dto.sep24.*;
