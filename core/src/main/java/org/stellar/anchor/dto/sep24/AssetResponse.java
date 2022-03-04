@@ -87,8 +87,8 @@ public class AssetResponse {
 
   @Data
   public static class Sep38Operation {
-    @SerializedName("supported_exchanges")
-    List<String> supportedExchanges;
+    @SerializedName("exchangeable_assets")
+    List<String> exchangeableAssets;
 
     @SerializedName("country_codes")
     List<String> countryCodes;

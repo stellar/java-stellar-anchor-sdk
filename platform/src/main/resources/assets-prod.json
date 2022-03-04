@@ -26,7 +26,7 @@
                 "max_amount": 10000
             },
             "sep38": {
-                "supported_exchanges": [
+                "exchangeable_assets": [
                     "iso4217:USD"
                 ]
             },
@@ -58,7 +58,7 @@
                 "max_amount": 10000
             },
             "sep38": {
-                "supported_exchanges": [
+                "exchangeable_assets": [
                     "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
                 ],
                 "country_codes": ["USA"],
