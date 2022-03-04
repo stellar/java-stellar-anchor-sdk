@@ -45,7 +45,7 @@ app-config:
   # sep-38
   sep38:
     enabled: true
-    customerIntegrationEndpoint: localhost:8082
+    quoteIntegrationEndPoint: localhost:8082
 
   payment-gateway:
     #
