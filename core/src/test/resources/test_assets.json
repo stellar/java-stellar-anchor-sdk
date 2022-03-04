@@ -1,6 +1,7 @@
 {
   "assets": [
     {
+      "schema": "stellar",
       "code": "USDC",
       "issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
       "significant_decimals": 2,
@@ -24,11 +25,19 @@
         "min_amount": 1,
         "max_amount": 10000
       },
+      "sep38": {
+        "supported_exchanges": [
+          "stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+          "iso4217:USD"
+        ]
+      },
       "sep24_enabled": true,
       "sep6_enabled": false,
-      "sep31_enabled": false
+      "sep31_enabled": false,
+      "sep38_enabled": true
     },
     {
+      "schema": "stellar",
       "code": "JPYC",
       "issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
       "significant_decimals": 0,
@@ -52,9 +61,62 @@
         "min_amount": 1,
         "max_amount": 1000000
       },
+      "sep38": {
+        "supported_exchanges": [
+          "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+          "iso4217:USD"
+        ]
+      },
       "sep24_enabled": true,
       "sep6_enabled": true,
-      "sep31_enabled": true
+      "sep31_enabled": true,
+      "sep38_enabled": true
+    },
+    {
+      "schema": "iso4217",
+      "code": "USD",
+      "deposit" : {
+        "enabled": true,
+        "fee_minimum": 0,
+        "fee_percent": 0,
+        "min_amount": 1,
+        "max_amount": 1000000
+      },
+      "withdraw": {
+        "enabled": false,
+        "fee_fixed": 0,
+        "fee_percent": 0,
+        "min_amount": 1,
+        "max_amount": 1000000
+      },
+      "send": {
+        "fee_fixed": 0,
+        "fee_percent": 0,
+        "min_amount": 1,
+        "max_amount": 1000000
+      },
+      "sep38": {
+        "supported_exchanges": [
+          "stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+          "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+        ],
+        "country_codes": ["USA"],
+        "sell_delivery_methods": [
+          {
+            "name": "WIRE",
+            "description": "Send USD directly to the Anchor's bank account."
+          }
+        ],
+        "buy_delivery_methods": [
+          {
+            "name": "WIRE",
+            "description": "Have WIRE sent directly to your bank account."
+          }
+        ]
+      },
+      "sep6_enabled": false,
+      "sep31_enabled": false,
+      "sep38_enabled": true
     }
   ]
 }

@@ -64,7 +64,7 @@ public class SepConfig {
   }
 
   @Bean
-  Sep38Service sep38Service(Sep38Config sep38Config) {
-    return new Sep38Service(sep38Config);
+  Sep38Service sep38Service(Sep38Config sep38Config, AssetService assetService) {
+    return new Sep38Service(sep38Config, assetService);
   }
 }

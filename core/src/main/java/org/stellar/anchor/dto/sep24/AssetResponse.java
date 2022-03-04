@@ -1,6 +1,7 @@
 package org.stellar.anchor.dto.sep24;
 
 import com.google.gson.annotations.SerializedName;
+import java.util.List;
 import lombok.Data;
 
 @SuppressWarnings("unused")
@@ -8,6 +9,7 @@ import lombok.Data;
 public class AssetResponse {
   String code;
   String issuer;
+  Schema schema;
 
   @SerializedName("significant_decimals")
   Integer significantDecimals;
@@ -15,6 +17,7 @@ public class AssetResponse {
   AssetOperation deposit;
   AssetOperation withdraw;
   SendOperation send;
+  Sep38Operation sep38;
 
   @SerializedName("sep24_enabled")
   Boolean sep24Enabled;
@@ -24,6 +27,28 @@ public class AssetResponse {
 
   @SerializedName("sep31_enabled")
   Boolean sep31Enabled;
+
+  @SerializedName("sep38_enabled")
+  Boolean sep38Enabled;
+
+  public enum Schema {
+    @SerializedName("stellar")
+    STELLAR("stellar"),
+
+    @SerializedName("iso4217")
+    ISO4217("iso4217");
+
+    private final String name;
+
+    Schema(String name) {
+      this.name = name;
+    }
+
+    @Override
+    public String toString() {
+      return name;
+    }
+  }
 
   @Data
   public static class AssetOperation {
@@ -58,5 +83,27 @@ public class AssetResponse {
 
     @SerializedName("max_amount")
     Long maxAmount;
+  }
+
+  @Data
+  public static class Sep38Operation {
+    @SerializedName("supported_exchanges")
+    List<String> supportedExchanges;
+
+    @SerializedName("country_codes")
+    List<String> countryCodes;
+
+    @SerializedName("sell_delivery_methods")
+    List<DeliveryMethod> sellDeliveryMethods;
+
+    @SerializedName("buy_delivery_methods")
+    List<DeliveryMethod> buyDeliveryMethods;
+
+    @Data
+    public static class DeliveryMethod {
+      String name;
+
+      String description;
+    }
   }
 }

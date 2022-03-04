@@ -1,6 +1,7 @@
 {
     "assets": [
         {
+            "schema": "stellar",
             "code": "USDC",
             "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
             "significant_decimals": 2,
@@ -24,8 +25,59 @@
                 "min_amount": 0,
                 "max_amount": 10000
             },
+            "sep38": {
+                "supported_exchanges": [
+                    "iso4217:USD"
+                ]
+            },
             "sep6_enabled": false,
-            "sep31_enabled": false
+            "sep31_enabled": false,
+            "sep38_enabled": true
+        },
+        {
+            "schema": "iso4217",
+            "code": "USD",
+            "deposit" : {
+                "enabled": true,
+                "fee_minimum": 0,
+                "fee_percent": 0,
+                "min_amount": 0,
+                "max_amount": 10000
+            },
+            "withdraw": {
+                "enabled": true,
+                "fee_fixed": 0,
+                "fee_percent": 0,
+                "min_amount": 0,
+                "max_amount": 10000
+            },
+            "send": {
+                "fee_fixed": 0,
+                "fee_percent": 0,
+                "min_amount": 0,
+                "max_amount": 10000
+            },
+            "sep38": {
+                "supported_exchanges": [
+                    "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+                ],
+                "country_codes": ["USA"],
+                "sell_delivery_methods": [
+                    {
+                        "name": "WIRE",
+                        "description": "Send USD directly to the Anchor's bank account."
+                    }
+                ],
+                "buy_delivery_methods": [
+                    {
+                        "name": "WIRE",
+                        "description": "Have WIRE sent directly to your bank account."
+                    }
+                ]
+            },
+            "sep6_enabled": false,
+            "sep31_enabled": false,
+            "sep38_enabled": true
         }
     ]
 }
