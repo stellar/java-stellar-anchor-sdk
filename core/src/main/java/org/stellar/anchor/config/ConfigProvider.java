@@ -8,4 +8,6 @@ public interface ConfigProvider {
   Sep10Config sep10Config();
 
   Sep24Config sep24Config();
+
+  Sep38Config sep38Config();
 }

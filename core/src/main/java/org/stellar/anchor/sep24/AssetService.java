@@ -8,7 +8,7 @@ public interface AssetService {
   /**
    * Returns all assets supported by the anchor.
    *
-   * @return assets.
+   * @return a list of assets.
    */
   List<AssetResponse> listAllAssets();
 
@@ -17,7 +17,7 @@ public interface AssetService {
    *
    * @param code The asset code
    * @param issuer The account ID of the issuer
-   * @return
+   * @return an asset with the given code and issuer.
    */
   AssetResponse getAsset(String code, String issuer);
 }

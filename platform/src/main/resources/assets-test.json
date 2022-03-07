@@ -1,6 +1,7 @@
 {
     "assets": [
         {
+            "schema": "stellar",
             "code": "USDC",
             "issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
             "significant_decimals": 2,
@@ -24,7 +25,57 @@
                 "min_amount": 0,
                 "max_amount": 10000
             },
-            "sep31_enabled": false
+            "sep38": {
+                "exchangeable_assets": [
+                    "iso4217:USD"
+                ]
+            },
+            "sep31_enabled": false,
+            "sep38_enabled": true
+        },
+        {
+            "schema": "iso4217",
+            "code": "USD",
+            "deposit" : {
+                "enabled": true,
+                "fee_minimum": 0,
+                "fee_percent": 0,
+                "min_amount": 0,
+                "max_amount": 10000
+            },
+            "withdraw": {
+                "enabled": true,
+                "fee_fixed": 0,
+                "fee_percent": 0,
+                "min_amount": 0,
+                "max_amount": 10000
+            },
+            "send": {
+                "fee_fixed": 0,
+                "fee_percent": 0,
+                "min_amount": 0,
+                "max_amount": 10000
+            },
+            "sep38": {
+                "exchangeable_assets": [
+                    "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                ],
+                "country_codes": ["USA"],
+                "sell_delivery_methods": [
+                    {
+                        "name": "WIRE",
+                        "description": "Send USD directly to the Anchor's bank account."
+                    }
+                ],
+                "buy_delivery_methods": [
+                    {
+                        "name": "WIRE",
+                        "description": "Have WIRE sent directly to your bank account."
+                    }
+                ]
+            },
+            "sep31_enabled": false,
+            "sep38_enabled": true
         }
     ]
 }

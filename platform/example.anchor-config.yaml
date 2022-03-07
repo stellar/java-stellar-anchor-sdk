@@ -42,6 +42,11 @@ app-config:
     jwtTimeout: 86400
     signingSeed: SAX3AH622R2XT6DXWWSRIDCMMUCCMATBZ5U6XKJWDO7M2EJUBFC3AW5X
 
+  # sep-38
+  sep38:
+    enabled: true
+    quoteIntegrationEndPoint: localhost:8082
+
   payment-gateway:
     #
     # Payment Circle configurations

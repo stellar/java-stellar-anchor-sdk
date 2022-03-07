@@ -12,10 +12,10 @@ internal class ResourceJsonAssetServiceTest {
   @Test
   fun getListAllAssets() {
     val rjas = ResourceJsonAssetService("test_assets.json")
-    assertEquals(rjas.assets.getAssets().size, 2)
+    assertEquals(3, rjas.assets.getAssets().size)
 
     val assets = rjas.listAllAssets()
-    assertTrue(assets.size == 2)
+    assertEquals(3, assets.size)
 
     val asset = rjas.getAsset(TEST_ASSET, TEST_ASSET_ISSUER_ACCOUNT_ID)
     assertEquals(asset.code, TEST_ASSET)

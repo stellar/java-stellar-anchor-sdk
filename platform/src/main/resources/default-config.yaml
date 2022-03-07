@@ -43,6 +43,11 @@ config-spring-property-settings:
     jwtTimeout: 86400
     signingSeed:
 
+  # sep-38
+  sep38:
+    enabled: true
+    quoteIntegrationEndPoint: localhost:8082
+
 #
 # Payment Circle configurations
 #
