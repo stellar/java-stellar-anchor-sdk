@@ -26,7 +26,7 @@ class Sep38ServiceTest {
     val assetService = ResourceJsonAssetService("test_assets.json")
     val assets = assetService.listAllAssets()
     val sep8Config = PropertySep38Config()
-    sep38Service = Sep38Service(sep8Config, assetService)
+    this.sep38Service = Sep38Service(sep8Config, assetService)
     assertEquals(3, assets.size)
   }
 

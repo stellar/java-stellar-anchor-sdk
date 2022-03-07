@@ -10,8 +10,8 @@ import org.stellar.anchor.dto.sep38.InfoResponse;
 import org.stellar.anchor.sep38.Sep38Service;
 
 @RestController
+@RequestMapping("/sep38")
 public class Sep38Controller {
-
   private final Sep38Service sep38Service;
 
   public Sep38Controller(Sep38Service sep38Service) {
