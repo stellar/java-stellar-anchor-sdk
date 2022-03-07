@@ -1,7 +1,6 @@
-package org.stellar.anchor.sep24;
+package org.stellar.anchor.asset;
 
 import java.util.List;
-import org.stellar.anchor.dto.sep24.AssetResponse;
 
 public interface AssetService {
 

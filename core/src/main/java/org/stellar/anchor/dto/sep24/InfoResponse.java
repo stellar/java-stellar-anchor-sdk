@@ -4,6 +4,7 @@ import com.google.gson.annotations.SerializedName;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.Data;
+import org.stellar.anchor.asset.AssetResponse;
 
 @Data
 public class InfoResponse {
