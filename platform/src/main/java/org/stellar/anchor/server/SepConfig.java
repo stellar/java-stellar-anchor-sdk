@@ -34,6 +34,7 @@ public class SepConfig {
       @Autowired Sep10Config sep10Config, @Autowired JwtService jwtService) {
     FilterRegistrationBean<Sep10TokenFilter> registrationBean = new FilterRegistrationBean<>();
     registrationBean.setFilter(new Sep10TokenFilter(sep10Config, jwtService));
+    registrationBean.addUrlPatterns("/sep38/*");
     return registrationBean;
   }
 

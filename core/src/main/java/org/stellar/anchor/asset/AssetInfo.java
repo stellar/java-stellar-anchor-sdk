@@ -6,7 +6,7 @@ import lombok.Data;
 
 @SuppressWarnings("unused")
 @Data
-public class AssetResponse {
+public class AssetInfo {
   String code;
   String issuer;
   Schema schema;
@@ -104,6 +104,11 @@ public class AssetResponse {
       String name;
 
       String description;
+
+      public DeliveryMethod(String name, String description) {
+        this.name = name;
+        this.description = description;
+      }
     }
   }
 }

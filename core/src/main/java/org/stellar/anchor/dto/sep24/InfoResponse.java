@@ -4,12 +4,12 @@ import com.google.gson.annotations.SerializedName;
 import java.util.HashMap;
 import java.util.Map;
 import lombok.Data;
-import org.stellar.anchor.asset.AssetResponse;
+import org.stellar.anchor.asset.AssetInfo;
 
 @Data
 public class InfoResponse {
-  Map<String, AssetResponse.AssetOperation> deposit = new HashMap<>();
-  Map<String, AssetResponse.AssetOperation> withdraw = new HashMap<>();
+  Map<String, AssetInfo.AssetOperation> deposit = new HashMap<>();
+  Map<String, AssetInfo.AssetOperation> withdraw = new HashMap<>();
   FeeResponse fee = new FeeResponse();
 
   @SerializedName("feature_flags")
