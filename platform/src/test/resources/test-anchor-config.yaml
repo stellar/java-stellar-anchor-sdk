@@ -8,7 +8,7 @@ stellar:
       settings: app-config                        # The location of the configuration data
     data-access:
       type: data-spring-jdbc                      # Activate [config-spring-jdbc] module.
-      settings: data-spring-jdbc-settings         # The location of the configuration data in this file.
+      settings: data-spring-jdbc-h2         # The location of the configuration data in this file.
     logging:
       type: logging-logback
       settings: logging-logback-settings
@@ -42,6 +42,11 @@ app-config:
     jwtTimeout: 86400
     signingSeed: SAX3AH622R2XT6DXWWSRIDCMMUCCMATBZ5U6XKJWDO7M2EJUBFC3AW5X
 
+  # sep-12
+  sep12:
+    enabled: true
+    customerIntegrationEndpoint: http://localhost:8081
+
   # sep-38
   sep38:
     enabled: true
@@ -71,7 +76,7 @@ app-config:
 #
 # Spring Data JDBC settings
 #
-data-spring-jdbc-settings:
+data-spring-jdbc-sqlite:
   spring.jpa.database-platform: org.stellar.anchor.server.sqlite.SQLiteDialect
   spring.jpa.hibernate.ddl-auto: update
   spring.jpa.generate-ddl: true
@@ -80,6 +85,12 @@ data-spring-jdbc-settings:
   spring.datasource.driver-class-name: org.sqlite.JDBC
   spring.datasource.username: admin
   spring.datasource.password: admin
+
+data-spring-jdbc-h2:
+  spring.datasource.url: jdbc:h2:mem:test
+  spring.jpa.properties.hibernate.dialect: org.hibernate.dialect.H2Dialect
+
+
 
 #
 # Spring framework configurations

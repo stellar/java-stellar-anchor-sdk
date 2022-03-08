@@ -1,6 +1,8 @@
 package org.stellar.anchor.sep9;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class Sep9Fields {
   public static final List<String> SEP_9_FIELDS =
@@ -56,4 +58,14 @@ public class Sep9Fields {
           "organization.website",
           "organization.email",
           "organization.phone");
+
+  public static HashMap<String, String> extractSep9Fields(Map<String, String> wr) {
+    HashMap<String, String> sep9Fields = new HashMap<>();
+    for (Map.Entry<String, String> entry : wr.entrySet()) {
+      if (Sep9Fields.SEP_9_FIELDS.contains(entry.getKey())) {
+        sep9Fields.put(entry.getKey(), entry.getValue());
+      }
+    }
+    return sep9Fields;
+  }
 }

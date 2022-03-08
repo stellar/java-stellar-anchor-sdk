@@ -12,23 +12,25 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-autoconfigure")
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
   implementation("org.springframework.boot:spring-boot-starter-web")
-  implementation(libs.sqlite.jdbc)
+  implementation(libs.commons.cli)
   implementation(libs.google.gson)
   implementation(libs.java.stellar.sdk)
+  implementation(libs.sqlite.jdbc)
+  implementation(libs.okhttp3)
 
   annotationProcessor(libs.lombok)
   annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
   // From projects
   implementation(project(":core"))
-  implementation(project(":payment-circle"))
   implementation(project(":config-spring-property"))
   implementation(project(":data-spring-jdbc"))
-
+  implementation(project(":platform-apis"))
+  implementation(project(":anchor-reference-server"))
   testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 
-application { mainClass.set("org.stellar.anchor.server.AnchorPlatformApplicationMVC") }
+application { mainClass.set("org.stellar.anchor.platform.ServiceRunner") }
 
 configurations {
   all {

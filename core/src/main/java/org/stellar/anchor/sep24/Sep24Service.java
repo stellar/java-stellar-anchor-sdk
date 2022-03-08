@@ -2,7 +2,9 @@ package org.stellar.anchor.sep24;
 
 import static org.stellar.anchor.model.Sep24Transaction.Kind.DEPOSIT;
 import static org.stellar.anchor.model.Sep24Transaction.Kind.WITHDRAWAL;
+import static org.stellar.anchor.sep9.Sep9Fields.extractSep9Fields;
 import static org.stellar.anchor.util.Log.shorter;
+import static org.stellar.anchor.util.MemoHelper.makeMemo;
 import static org.stellar.anchor.util.SepUtil.memoTypeString;
 import static org.stellar.sdk.xdr.MemoType.MEMO_ID;
 
@@ -13,7 +15,6 @@ import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.*;
-import org.apache.commons.codec.binary.Hex;
 import org.apache.http.client.utils.URIBuilder;
 import org.stellar.anchor.asset.AssetInfo;
 import org.stellar.anchor.asset.AssetService;
@@ -21,16 +22,15 @@ import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.Sep24Config;
 import org.stellar.anchor.dto.sep24.*;
 import org.stellar.anchor.exception.SepException;
+import org.stellar.anchor.exception.SepNotAuthorizedException;
 import org.stellar.anchor.exception.SepNotFoundException;
 import org.stellar.anchor.exception.SepValidationException;
 import org.stellar.anchor.model.Sep24Transaction;
 import org.stellar.anchor.model.Sep24TransactionBuilder;
 import org.stellar.anchor.sep10.JwtService;
 import org.stellar.anchor.sep10.JwtToken;
-import org.stellar.anchor.sep9.Sep9Fields;
 import org.stellar.anchor.util.Log;
-import org.stellar.sdk.*;
-import org.stellar.sdk.xdr.MemoType;
+import org.stellar.sdk.KeyPair;
 
 public class Sep24Service {
   final AppConfig appConfig;
@@ -254,7 +254,7 @@ public class Sep24Service {
   public GetTransactionsResponse findTransactions(JwtToken token, GetTransactionsRequest txReq)
       throws SepException, MalformedURLException, URISyntaxException {
     if (token == null) {
-      throw new SepValidationException("missing token");
+      throw new SepNotAuthorizedException("missing token");
     }
 
     Log.infoF("Sep24.findTransactions. account={}", shorter(token.getAccount()));
@@ -276,7 +276,7 @@ public class Sep24Service {
   public GetTransactionResponse findTransaction(JwtToken token, GetTransactionRequest txReq)
       throws SepException, IOException, URISyntaxException {
     if (token == null) {
-      throw new SepValidationException("missing token");
+      throw new SepNotAuthorizedException("missing token");
     }
 
     if (txReq == null) {
@@ -325,10 +325,6 @@ public class Sep24Service {
     return info;
   }
 
-  String convertBase64ToHex(String memo) {
-    return Hex.encodeHexString(Base64.getDecoder().decode(memo.getBytes()));
-  }
-
   TransactionResponse fromTxn(Sep24Transaction txn)
       throws MalformedURLException, URISyntaxException, SepException {
     if (txn.getKind().equals(DEPOSIT.toString())) {
@@ -352,50 +348,6 @@ public class Sep24Service {
 
   List<AssetInfo> listAllAssets() {
     return this.assetService.listAllAssets();
-  }
-
-  @SuppressWarnings("UnusedReturnValue")
-  Memo makeMemo(String memo, String memoType) throws SepException {
-    if (memo == null || memoType == null) {
-      return null;
-    }
-    MemoType mt;
-    switch (memoType) {
-      case "text":
-        mt = MemoType.MEMO_TEXT;
-        break;
-      case "id":
-        mt = MEMO_ID;
-        break;
-      case "hash":
-        mt = MemoType.MEMO_HASH;
-        break;
-      case "none":
-      case "return":
-        throw new SepException("Unsupported value: " + memoType);
-      default:
-        throw new SepValidationException(String.format("Invalid memo type: %s", memoType));
-    }
-
-    return makeMemo(memo, mt);
-  }
-
-  Memo makeMemo(String memo, MemoType memoType) throws SepException {
-    try {
-      switch (memoType) {
-        case MEMO_ID:
-          return new MemoId(Long.parseLong(memo));
-        case MEMO_TEXT:
-          return new MemoText(memo);
-        case MEMO_HASH:
-          return new MemoHash(convertBase64ToHex(memo));
-        default:
-          throw new SepException("Unsupported value: " + memoType);
-      }
-    } catch (NumberFormatException nfex) {
-      throw new SepValidationException(
-          String.format("Invalid memo %s of type:%s", memo, memoType), nfex);
-    }
   }
 
   String constructInteractiveUrl(
@@ -429,16 +381,6 @@ public class Sep24Service {
     sep9Fields.forEach(builder::addParameter);
 
     return builder.build().toURL().toString();
-  }
-
-  HashMap<String, String> extractSep9Fields(Map<String, String> wr) {
-    HashMap<String, String> sep9Fields = new HashMap<>();
-    for (Map.Entry<String, String> entry : wr.entrySet()) {
-      if (Sep9Fields.SEP_9_FIELDS.contains(entry.getKey())) {
-        sep9Fields.put(entry.getKey(), entry.getValue());
-      }
-    }
-    return sep9Fields;
   }
 
   void validateAndActivateLanguage(String lang) throws SepValidationException {

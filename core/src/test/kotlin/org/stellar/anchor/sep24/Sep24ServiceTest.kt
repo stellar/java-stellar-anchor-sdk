@@ -26,16 +26,17 @@ import org.stellar.anchor.config.Sep24Config
 import org.stellar.anchor.dto.sep24.GetTransactionRequest
 import org.stellar.anchor.dto.sep24.GetTransactionsRequest
 import org.stellar.anchor.exception.SepException
+import org.stellar.anchor.exception.SepNotAuthorizedException
 import org.stellar.anchor.exception.SepNotFoundException
 import org.stellar.anchor.exception.SepValidationException
 import org.stellar.anchor.model.Sep24Transaction
 import org.stellar.anchor.sep10.JwtService
 import org.stellar.anchor.sep10.JwtToken
 import org.stellar.anchor.util.DateUtil
+import org.stellar.anchor.util.MemoHelper.makeMemo
 import org.stellar.sdk.MemoHash
 import org.stellar.sdk.MemoId
 import org.stellar.sdk.MemoText
-import org.stellar.sdk.xdr.MemoType
 
 internal class Sep24ServiceTest {
   companion object {
@@ -308,7 +309,7 @@ internal class Sep24ServiceTest {
   @ParameterizedTest
   @ValueSource(strings = ["deposit", "withdrawal"])
   fun testFindTransactionsValidationError(kind: String) {
-    assertThrows<SepValidationException> {
+    assertThrows<SepNotAuthorizedException> {
       val gtr = GetTransactionsRequest.of(TEST_ASSET, kind, 10, "2021-12-20T19:30:58+00:00", "1")
       sep24Service.findTransactions(null, gtr)
     }
@@ -353,7 +354,7 @@ internal class Sep24ServiceTest {
   @ParameterizedTest
   @ValueSource(strings = ["deposit", "withdrawal"])
   fun testFindTransactionValidationError(kind: String) {
-    assertThrows<SepValidationException> {
+    assertThrows<SepNotAuthorizedException> {
       val gtr = GetTransactionRequest(TEST_TRANSACTION_ID_0, null, null)
       sep24Service.findTransaction(null, gtr)
     }
@@ -394,29 +395,12 @@ internal class Sep24ServiceTest {
 
   @Test
   fun testMakeMemo() {
-    var memo = sep24Service.makeMemo("this_is_a_test_memo", "text")
+    var memo = makeMemo("this_is_a_test_memo", "text")
     assertTrue(memo is MemoText)
-    memo = sep24Service.makeMemo("1234", "id")
+    memo = makeMemo("1234", "id")
     assertTrue(memo is MemoId)
-    memo = sep24Service.makeMemo("A1B2C3", "hash")
+    memo = makeMemo("A1B2C3", "hash")
     assertTrue(memo is MemoHash)
-  }
-
-  @Test
-  fun testMakeMemoError() {
-    assertThrows<SepValidationException> { sep24Service.makeMemo("memo", "bad_type") }
-
-    assertThrows<SepValidationException> { sep24Service.makeMemo("bad_number", "id") }
-
-    assertThrows<IllegalArgumentException> { sep24Service.makeMemo("bad_hash", "hash") }
-
-    assertThrows<SepException> { sep24Service.makeMemo("none", "none") }
-
-    assertThrows<SepException> { sep24Service.makeMemo("return", "return") }
-
-    assertThrows<SepException> { sep24Service.makeMemo("none", MemoType.MEMO_NONE) }
-
-    assertThrows<SepException> { sep24Service.makeMemo("return", MemoType.MEMO_RETURN) }
   }
 
   @Test

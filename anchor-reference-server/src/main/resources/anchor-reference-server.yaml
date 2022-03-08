@@ -1,0 +1,28 @@
+server:
+  servlet:
+    context-path: /
+    port: 8081
+
+#
+# The settings of the anchor reference serer
+#
+anchor.settings:
+  version: 0.0.1
+
+#
+# Spring Data JDBC settings for H2
+#
+spring.datasource.url: jdbc:h2:mem:test
+spring.jpa.properties.hibernate.dialect: org.hibernate.dialect.H2Dialect
+
+#
+# Spring Data JDBC settings for SQLite
+#
+#spring.jpa.database-platform=org.stellar.anchor.reference.sqlite.SQLiteDialect
+#spring.jpa.hibernate.ddl-auto=update
+#spring.jpa.generate-ddl=true
+#spring.datasource.url=jdbc:sqlite:anchor-reference-server.db
+#spring.datasource.driver-class-name=org.sqlite.JDBC
+#spring.datasource.username=admin
+#spring.datasource.password=admin
+

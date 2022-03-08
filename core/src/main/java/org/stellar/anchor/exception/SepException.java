@@ -1,6 +1,6 @@
 package org.stellar.anchor.exception;
 
-public class SepException extends Exception {
+public class SepException extends AnchorException {
   public SepException(String message, Exception cause) {
     super(message, cause);
   }

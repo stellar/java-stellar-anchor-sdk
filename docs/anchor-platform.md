@@ -56,7 +56,7 @@ Java process takes `-D` arguments as JVM system properties. The path/locator of 
 
 Ex:
 ```shell
-java anchor-platform.jar -Danchor.platform.config=/path/to/file.yaml
+java -Dstellar.anchor.config=file:/path/to/file.yaml -jar anchor-platform.jar --anchor-reference-server
 ```
 
 ### Environment variables
@@ -65,3 +65,16 @@ In the scenarios where a CMS or Consul is available when there are few variables
 
 ## Example YAML file
 [An example of the yaml file](../platform/example.anchor-config.yaml).
+
+
+## Docker
+Docker Build:
+```shell
+docker build -t stellar-anchor-platform:latest .
+```
+
+Docker Run:
+```shell
+docker run -v {/local/path/to/config/file/}:/config -p 8081:8081 stellar-anchor-platform:latest --anchor-reference-server
+```
+Note: this image can run --sep-server (port: 8080), --anchor-reference-server (port: 8081), --payment-observer

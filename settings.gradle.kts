@@ -6,6 +6,7 @@ dependencyResolutionManagement {
   versionCatalogs {
     create("libs") {
       alias("apache.commons.lang3").to("org.apache.commons:commons-lang3:3.12.0")
+      alias("commons.cli").to("commons-cli:commons-cli:1.5.0")
       alias("commons.codec").to("commons-codec:commons-codec:1.15")
       alias("commons.validator").to("commons-validator:commons-validator:1.7")
       alias("google.gson").to("com.google.code.gson:gson:2.8.9")
@@ -45,3 +46,9 @@ include("payment-circle")
 
 /** Anchor Platform */
 include("platform")
+
+/** Anchor Reference Server */
+include("anchor-reference-server")
+
+/** Anchor Platform API Schemas */
+include("platform-apis")
