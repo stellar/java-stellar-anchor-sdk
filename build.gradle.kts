@@ -47,6 +47,8 @@ subprojects {
   }
 
   dependencies {
+    // This is to fix the missing implementation in JSR305 that causes "unknown enum constant When.MAYBE" warning.
+    implementation("com.google.code.findbugs:jsr305:3.0.2")
     // The common dependencies are declared here because we would like to have a uniform unit
     // testing across all subprojects.
     //
