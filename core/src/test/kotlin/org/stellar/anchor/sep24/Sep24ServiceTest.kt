@@ -19,6 +19,8 @@ import org.stellar.anchor.Constants.Companion.TEST_ASSET_ISSUER_ACCOUNT_ID
 import org.stellar.anchor.Constants.Companion.TEST_CLIENT_DOMAIN
 import org.stellar.anchor.Constants.Companion.TEST_TRANSACTION_ID_0
 import org.stellar.anchor.Constants.Companion.TEST_TRANSACTION_ID_1
+import org.stellar.anchor.asset.AssetService
+import org.stellar.anchor.asset.ResourceJsonAssetService
 import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.Sep24Config
 import org.stellar.anchor.dto.sep24.GetTransactionRequest
@@ -28,7 +30,6 @@ import org.stellar.anchor.exception.SepNotAuthorizedException
 import org.stellar.anchor.exception.SepNotFoundException
 import org.stellar.anchor.exception.SepValidationException
 import org.stellar.anchor.model.Sep24Transaction
-import org.stellar.anchor.plugins.asset.ResourceJsonAssetService
 import org.stellar.anchor.sep10.JwtService
 import org.stellar.anchor.sep10.JwtToken
 import org.stellar.anchor.util.DateUtil
@@ -385,8 +386,8 @@ internal class Sep24ServiceTest {
   fun testGetInfo() {
     val response = sep24Service.info
 
-    assertEquals(response.deposit.size, 2)
-    assertEquals(response.withdraw.size, 1)
+    assertEquals(3, response.deposit.size)
+    assertEquals(1, response.withdraw.size)
     assertNotNull(response.deposit["USDC"])
     assertNotNull(response.withdraw["USDC"])
     assertTrue(response.fee.enabled)

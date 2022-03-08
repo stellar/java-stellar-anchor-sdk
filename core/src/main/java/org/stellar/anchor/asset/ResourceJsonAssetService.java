@@ -1,13 +1,11 @@
-package org.stellar.anchor.plugins.asset;
+package org.stellar.anchor.asset;
 
 import com.google.gson.Gson;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import lombok.Data;
-import org.stellar.anchor.dto.sep24.AssetResponse;
 import org.stellar.anchor.exception.SepNotFoundException;
-import org.stellar.anchor.sep24.AssetService;
 import org.stellar.anchor.util.FileUtil;
 import org.stellar.anchor.util.Log;
 
@@ -22,14 +20,14 @@ public class ResourceJsonAssetService implements AssetService {
     }
   }
 
-  public List<AssetResponse> listAllAssets() {
+  public List<AssetInfo> listAllAssets() {
     // we should make a copy to prevent mutation.
     Log.infoF("The assets, {} ", this.assets);
     return new ArrayList<>(assets.assets);
   }
 
-  public AssetResponse getAsset(String code, String issuer) {
-    for (AssetResponse asset : assets.assets) {
+  public AssetInfo getAsset(String code, String issuer) {
+    for (AssetInfo asset : assets.assets) {
       if (asset.getCode().equals(code)) {
         if (issuer == null || issuer.equals(asset.getIssuer())) {
           return asset;
@@ -41,6 +39,6 @@ public class ResourceJsonAssetService implements AssetService {
 
   @Data
   public static class Assets {
-    List<AssetResponse> assets;
+    List<AssetInfo> assets;
   }
 }

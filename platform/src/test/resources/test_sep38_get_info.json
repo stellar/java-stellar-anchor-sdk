@@ -1,0 +1,26 @@
+{
+  "assets": [
+    {
+      "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+    },
+    {
+      "asset": "stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+    },
+    {
+      "asset": "iso4217:USD",
+      "country_codes": ["USA"],
+      "sell_delivery_methods": [
+        {
+          "name": "WIRE",
+          "description": "Send USD directly to the Anchor's bank account."
+        }
+      ],
+      "buy_delivery_methods": [
+        {
+          "name": "WIRE",
+          "description": "Have USD sent directly to your bank account."
+        }
+      ]
+    }
+  ]
+}

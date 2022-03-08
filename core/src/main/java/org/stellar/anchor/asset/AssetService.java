@@ -1,23 +1,22 @@
-package org.stellar.anchor.sep24;
+package org.stellar.anchor.asset;
 
 import java.util.List;
-import org.stellar.anchor.dto.sep24.AssetResponse;
 
 public interface AssetService {
 
   /**
    * Returns all assets supported by the anchor.
    *
-   * @return assets.
+   * @return a list of assets.
    */
-  List<AssetResponse> listAllAssets();
+  List<AssetInfo> listAllAssets();
 
   /**
    * Get the asset identified by `code` and `issuer`.
    *
    * @param code The asset code
    * @param issuer The account ID of the issuer
-   * @return
+   * @return an asset with the given code and issuer.
    */
-  AssetResponse getAsset(String code, String issuer);
+  AssetInfo getAsset(String code, String issuer);
 }
