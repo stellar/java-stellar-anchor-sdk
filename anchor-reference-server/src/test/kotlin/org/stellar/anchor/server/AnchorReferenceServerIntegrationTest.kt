@@ -18,7 +18,7 @@ import org.stellar.platform.apis.callbacks.responses.GetCustomerResponse
   classes = [AnchorReferenceServer::class],
   webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
 )
-@TestPropertySource(locations = ["classpath:anchor-reference-server.yaml"])
+@TestPropertySource(locations = ["classpath:/anchor-reference-server.yaml"])
 class AnchorReferenceServerIntegrationTest {
   companion object {
     val gson = Gson()
@@ -31,7 +31,7 @@ class AnchorReferenceServerIntegrationTest {
     val result = restGetCustomer(GetCustomerRequest.builder().id("1").build())
     println(result.body)
     assertNotNull(result)
-    assertEquals(HttpStatus.NOT_FOUND, result?.statusCode)
+    assertEquals(HttpStatus.NOT_FOUND, result.statusCode)
   }
 
   fun restGetCustomer(getCustomerRequest: GetCustomerRequest): ResponseEntity<GetCustomerResponse> {

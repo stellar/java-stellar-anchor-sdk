@@ -68,11 +68,10 @@ public class CustomerService {
     }
     PutCustomerResponse response = new PutCustomerResponse();
     response.setId(customer.getId());
-    response.setStatus(getStatusForCustomer(customer, request.getType()));
     return response;
   }
 
-  public DeleteCustomerResponse delete(DeleteCustomerRequest request) throws NotFoundException {
+  public DeleteCustomerResponse delete(DeleteCustomerRequest request) {
     customerRepo.deleteById(request.getId());
     DeleteCustomerResponse response = new DeleteCustomerResponse();
     response.setId(request.getId());
@@ -119,7 +118,7 @@ public class CustomerService {
     } else {
       fields.put("email_address", createEmailField());
     }
-    if (type.equals(Customer.Type.SEP31_RECEIVER.toString())) {
+    if (Customer.Type.SEP31_RECEIVER.toString().equals(type)) {
       if (customer.getBankAccountNumber() != null) {
         providedFields.put("bank_account_number", createBankAccountNumberProvidedField());
       } else {
@@ -131,6 +130,7 @@ public class CustomerService {
         fields.put("bank_number", createBankNumberField(type));
       }
     }
+    response.setId(customer.getId());
     response.setFields(fields);
     response.setProvidedFields(providedFields);
     response.setStatus(getStatusForCustomer(customer, type));
@@ -149,12 +149,12 @@ public class CustomerService {
       customer.setFirstName(request.getFirstName());
     }
     if (request.getLastName() != null) {
-      customer.setFirstName(request.getLastName());
+      customer.setLastName(request.getLastName());
     }
     if (request.getEmailAddress() != null) {
-      customer.setFirstName(request.getEmailAddress());
+      customer.setEmail(request.getEmailAddress());
     }
-    if (request.getType().equals(Customer.Type.SEP31_RECEIVER.toString())) {
+    if (Customer.Type.SEP31_RECEIVER.toString().equals(request.getType())) {
       if (request.getBankAccountNumber() != null) {
         customer.setBankAccountNumber(request.getBankAccountNumber());
       }
@@ -166,7 +166,7 @@ public class CustomerService {
   }
 
   public String getStatusForCustomer(Customer customer, String type) {
-    if (type.equals(Customer.Type.SEP31_SENDER.toString())) {
+    if (Customer.Type.SEP31_SENDER.toString().equals(type)) {
       if (customer.getFirstName() != null
           && customer.getLastName() != null
           && customer.getEmail() != null) {
@@ -175,11 +175,11 @@ public class CustomerService {
         return Customer.Status.NEEDS_INFO.toString();
       }
     } else {
-      if (customer.getFirstName() != null
-          && customer.getLastName() != null
-          && customer.getEmail() != null
-          && customer.getBankAccountNumber() != null
-          && customer.getBankRoutingNumber() != null) {
+      if (customer.getFirstName() == null
+          || customer.getLastName() == null
+          || customer.getEmail() == null
+          || customer.getBankAccountNumber() == null
+          || customer.getBankRoutingNumber() == null) {
         return Customer.Status.NEEDS_INFO.toString();
       } else {
         return Customer.Status.ACCEPTED.toString();

@@ -11,8 +11,11 @@ public class JwtService {
   final String jwtKey;
 
   public JwtService(AppConfig appConfig) {
-    this.jwtKey =
-        Base64.encodeBase64String(appConfig.getJwtSecretKey().getBytes(StandardCharsets.UTF_8));
+    this(appConfig.getJwtSecretKey());
+  }
+
+  public JwtService(String secretKey) {
+    this.jwtKey = Base64.encodeBase64String(secretKey.getBytes(StandardCharsets.UTF_8));
   }
 
   public String encode(JwtToken token) {

@@ -1,10 +1,10 @@
 package org.stellar.anchor.sep12;
 
 import java.util.stream.Stream;
-import org.stellar.anchor.dto.sep12.GetCustomerRequest;
-import org.stellar.anchor.dto.sep12.GetCustomerResponse;
-import org.stellar.anchor.dto.sep12.PutCustomerRequest;
-import org.stellar.anchor.dto.sep12.PutCustomerResponse;
+import org.stellar.anchor.dto.sep12.Sep12GetCustomerRequest;
+import org.stellar.anchor.dto.sep12.Sep12GetCustomerResponse;
+import org.stellar.anchor.dto.sep12.Sep12PutCustomerRequest;
+import org.stellar.anchor.dto.sep12.Sep12PutCustomerResponse;
 import org.stellar.anchor.exception.AnchorException;
 import org.stellar.anchor.exception.SepException;
 import org.stellar.anchor.exception.SepNotAuthorizedException;
@@ -21,7 +21,7 @@ public class Sep12Service {
     this.customerIntegration = customerIntegration;
   }
 
-  public GetCustomerResponse getCustomer(JwtToken token, GetCustomerRequest request)
+  public Sep12GetCustomerResponse getCustomer(JwtToken token, Sep12GetCustomerRequest request)
       throws AnchorException {
     validateGetOrPutRequest(
         request.getId(),
@@ -37,7 +37,7 @@ public class Sep12Service {
     return customerIntegration.getCustomer(request);
   }
 
-  public PutCustomerResponse putCustomer(JwtToken token, PutCustomerRequest request)
+  public Sep12PutCustomerResponse putCustomer(JwtToken token, Sep12PutCustomerRequest request)
       throws AnchorException {
     validateGetOrPutRequest(
         request.getId(),

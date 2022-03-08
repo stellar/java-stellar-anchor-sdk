@@ -1,10 +1,10 @@
 package org.stellar.anchor.integration.customer;
 
 import org.stellar.anchor.dto.sep12.DeleteCustomerRequest;
-import org.stellar.anchor.dto.sep12.GetCustomerRequest;
-import org.stellar.anchor.dto.sep12.GetCustomerResponse;
-import org.stellar.anchor.dto.sep12.PutCustomerRequest;
-import org.stellar.anchor.dto.sep12.PutCustomerResponse;
+import org.stellar.anchor.dto.sep12.Sep12GetCustomerRequest;
+import org.stellar.anchor.dto.sep12.Sep12GetCustomerResponse;
+import org.stellar.anchor.dto.sep12.Sep12PutCustomerRequest;
+import org.stellar.anchor.dto.sep12.Sep12PutCustomerResponse;
 import org.stellar.anchor.exception.AnchorException;
 
 public interface CustomerIntegration {
@@ -14,7 +14,7 @@ public interface CustomerIntegration {
    * @param request The request to get a customer.
    * @return The GET customer response.
    */
-  GetCustomerResponse getCustomer(GetCustomerRequest request) throws AnchorException;
+  Sep12GetCustomerResponse getCustomer(Sep12GetCustomerRequest request) throws AnchorException;
 
   /**
    * Puts a customer
@@ -22,7 +22,7 @@ public interface CustomerIntegration {
    * @param request The request to upload a customer.
    * @return The PUT customer response.
    */
-  PutCustomerResponse putCustomer(PutCustomerRequest request) throws AnchorException;
+  Sep12PutCustomerResponse putCustomer(Sep12PutCustomerRequest request) throws AnchorException;
 
   /**
    * Deletes a customer.

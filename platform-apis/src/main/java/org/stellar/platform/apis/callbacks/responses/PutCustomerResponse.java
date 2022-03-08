@@ -5,5 +5,4 @@ import lombok.Data;
 @Data
 public class PutCustomerResponse {
   String id;
-  String status;
 }

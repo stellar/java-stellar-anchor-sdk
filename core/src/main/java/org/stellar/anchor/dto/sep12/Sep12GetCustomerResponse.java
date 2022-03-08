@@ -10,7 +10,7 @@ import lombok.Data;
  * <p>https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0012.md#response
  */
 @Data
-public class GetCustomerResponse {
+public class Sep12GetCustomerResponse {
   String id;
   Sep12Status status;
 

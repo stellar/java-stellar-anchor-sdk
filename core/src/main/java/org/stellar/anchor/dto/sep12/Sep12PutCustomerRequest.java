@@ -1,7 +1,6 @@
 package org.stellar.anchor.dto.sep12;
 
 import com.google.gson.annotations.SerializedName;
-import java.time.LocalDate;
 import lombok.Data;
 
 /**
@@ -10,7 +9,7 @@ import lombok.Data;
  * <p>https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0012.md#request-1
  */
 @Data
-public class PutCustomerRequest {
+public class Sep12PutCustomerRequest {
   String id;
   String account;
   String memo;
@@ -49,10 +48,10 @@ public class PutCustomerRequest {
   String emailAddress;
 
   @SerializedName("birth_date")
-  LocalDate birthDate;
+  String birthDate;
 
   @SerializedName("birth_place")
-  LocalDate birthPlace;
+  String birthPlace;
 
   @SerializedName("birth_country_code")
   String birthCountryCode;
@@ -93,10 +92,10 @@ public class PutCustomerRequest {
   String idCountryCode;
 
   @SerializedName("id_issue_date")
-  LocalDate idIssueDate;
+  String idIssueDate;
 
   @SerializedName("id_expiration_date")
-  LocalDate idExpirationDate;
+  String idExpirationDate;
 
   @SerializedName("id_number")
   String idNumber;

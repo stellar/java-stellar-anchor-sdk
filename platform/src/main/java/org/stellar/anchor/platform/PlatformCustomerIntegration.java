@@ -1,114 +1,105 @@
 package org.stellar.anchor.platform;
 
+import static okhttp3.HttpUrl.get;
+import static org.stellar.anchor.platform.PlatformCustomerIntegration.Converter.*;
+
 import com.google.gson.Gson;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
 import lombok.SneakyThrows;
 import okhttp3.*;
+import okhttp3.HttpUrl.Builder;
 import org.springframework.http.HttpStatus;
+import org.stellar.anchor.dto.sep12.Sep12GetCustomerRequest;
+import org.stellar.anchor.dto.sep12.Sep12GetCustomerResponse;
+import org.stellar.anchor.dto.sep12.Sep12PutCustomerRequest;
+import org.stellar.anchor.dto.sep12.Sep12PutCustomerResponse;
 import org.stellar.anchor.exception.*;
 import org.stellar.anchor.integration.customer.CustomerIntegration;
-import org.stellar.anchor.platform.model.Customer;
-import org.stellar.anchor.platform.model.CustomerStatus;
-import org.stellar.anchor.platform.repository.CustomerRepository;
+import org.stellar.platform.apis.callbacks.requests.GetCustomerRequest;
 import org.stellar.platform.apis.callbacks.requests.PutCustomerRequest;
 import org.stellar.platform.apis.callbacks.responses.GetCustomerResponse;
 import org.stellar.platform.apis.callbacks.responses.PutCustomerResponse;
 import org.stellar.platform.apis.shared.ErrorResponse;
 
 public class PlatformCustomerIntegration implements CustomerIntegration {
-  private final HttpUrl customerUrl;
-  private final Gson gson = new Gson();
-  private final CustomerRepository customerRepository;
+  private final String anchorEndpoint;
   private final OkHttpClient httpClient;
+  private final Gson gson = new Gson();
 
-  public PlatformCustomerIntegration(String baseUri, CustomerRepository customerRepository) {
+  public PlatformCustomerIntegration(String anchorEndpoint, OkHttpClient httpClient) {
     try {
-      new URI(baseUri);
+      new URI(anchorEndpoint);
     } catch (URISyntaxException e) {
       throw new IllegalArgumentException("invalid 'baseUri'");
     }
-    HttpUrl baseUrl = HttpUrl.parse(baseUri);
-    if (baseUrl == null) {
-      throw new IllegalArgumentException("invalid 'baseUri'");
-    }
-    this.customerUrl = baseUrl.newBuilder().addPathSegment("customer").build();
-    this.customerRepository = customerRepository;
-    // TODO
-    // share http client across the platform
-    // and set reasonable timeout & retry policies
-    this.httpClient = new OkHttpClient();
+
+    this.anchorEndpoint = anchorEndpoint;
+    this.httpClient = httpClient;
   }
 
   @Override
-  public org.stellar.anchor.dto.sep12.GetCustomerResponse getCustomer(
-      org.stellar.anchor.dto.sep12.GetCustomerRequest request) throws AnchorException {
-    HttpUrl.Builder urlBuilder = customerUrl.newBuilder();
-    if (request.getId() != null) {
-      urlBuilder.addQueryParameter("id", request.getId());
+  public Sep12GetCustomerResponse getCustomer(Sep12GetCustomerRequest sep12GetCustomerRequest)
+      throws AnchorException {
+    GetCustomerRequest customerRequest = fromSep12(sep12GetCustomerRequest);
+    Builder customerEndpointBuilder = getCustomerUrlBuilder();
+    if (customerRequest.getId() != null) {
+      customerEndpointBuilder.addQueryParameter("id", customerRequest.getId());
     } else {
-      urlBuilder.addQueryParameter("account", request.getAccount());
-      if (request.getMemo() != null && request.getMemoType() != null) {
-        urlBuilder
-            .addQueryParameter("memo", request.getMemo())
-            .addQueryParameter("memo_type", request.getMemoType());
+      customerEndpointBuilder.addQueryParameter("account", customerRequest.getAccount());
+      if (customerRequest.getMemo() != null && customerRequest.getMemoType() != null) {
+        customerEndpointBuilder
+            .addQueryParameter("memo", customerRequest.getMemo())
+            .addQueryParameter("memo_type", customerRequest.getMemoType());
       }
     }
-    if (request.getType() != null) {
-      urlBuilder.addQueryParameter("type", request.getType());
+    if (customerRequest.getType() != null) {
+      customerEndpointBuilder.addQueryParameter("type", customerRequest.getType());
     }
+    String foo = customerEndpointBuilder.build().toString();
+    // Call anchor
+    Response response =
+        call(new Request.Builder().url(customerEndpointBuilder.build()).get().build());
+    String responseContent = getContent(response);
 
-    Request callbackRequest = new Request.Builder().url(urlBuilder.build()).build();
-    Response callbackResponse = getResponse(callbackRequest);
-    String callbackResponseContent = getResponseContent(callbackResponse);
-
-    if (callbackResponse.code() == 200) {
+    if (response.code() == HttpStatus.OK.value()) {
       GetCustomerResponse getCustomerResponse;
       try {
-        getCustomerResponse = gson.fromJson(callbackResponseContent, GetCustomerResponse.class);
+        getCustomerResponse = gson.fromJson(responseContent, GetCustomerResponse.class);
       } catch (Exception e) { // cannot read body from response
         throw new ServerErrorException("internal server error", e);
       }
       if (getCustomerResponse.getStatus() == null) {
         throw new ServerErrorException("internal server error");
       }
-      updateCustomerStatus(
-          getCustomerResponse.getId(), request.getType(), getCustomerResponse.getStatus());
-      return ResponseConverter.getCustomer(getCustomerResponse);
+      return fromPlatform(getCustomerResponse);
     } else {
-      throw handleErrorResponse(callbackResponseContent, callbackResponse.code());
+      throw httpError(responseContent, response.code());
     }
   }
 
   @Override
-  public org.stellar.anchor.dto.sep12.PutCustomerResponse putCustomer(
-      org.stellar.anchor.dto.sep12.PutCustomerRequest request) throws AnchorException {
+  public Sep12PutCustomerResponse putCustomer(Sep12PutCustomerRequest sep12PutCustomerRequest)
+      throws AnchorException {
+    PutCustomerRequest customerRequest = fromSep12(sep12PutCustomerRequest);
     RequestBody requestBody =
-        RequestBody.create(
-            gson.toJson(request, PutCustomerRequest.class), MediaType.get("application/json"));
-    Request callbackRequest = new Request.Builder().url(customerUrl).put(requestBody).build();
-    Response callbackResponse = getResponse(callbackRequest);
-    String callbackResponseContent = getResponseContent(callbackResponse);
+        RequestBody.create(gson.toJson(customerRequest), MediaType.get("application/json"));
+    Request callbackRequest =
+        new Request.Builder().url(getCustomerUrlBuilder().build()).put(requestBody).build();
 
-    if (callbackResponse.code() == HttpStatus.OK.value()) {
-      PutCustomerResponse putCustomerResponse;
+    // Call anchor
+    Response response = call(callbackRequest);
+    String responseContent = getContent(response);
+
+    if (response.code() == HttpStatus.OK.value()) {
       try {
-        putCustomerResponse = gson.fromJson(callbackResponseContent, PutCustomerResponse.class);
+        return fromPlatform(gson.fromJson(responseContent, PutCustomerResponse.class));
       } catch (Exception e) {
         throw new ServerErrorException("internal server error", e);
       }
-      if (putCustomerResponse.getStatus() == null) {
-        throw new ServerErrorException("internal server error");
-      }
-      updateCustomerStatus(
-          putCustomerResponse.getId(), request.getType(), putCustomerResponse.getStatus());
-      return ResponseConverter.putCustomer(putCustomerResponse);
     } else {
-      throw handleErrorResponse(callbackResponseContent, callbackResponse.code());
+      throw httpError(responseContent, response.code());
     }
   }
 
@@ -128,29 +119,31 @@ public class PlatformCustomerIntegration implements CustomerIntegration {
     throw new UnsupportedOperationException("not implemented");
   }
 
-  Response getResponse(Request request) throws ServiceUnavailableException {
+  Builder getCustomerUrlBuilder() {
+    return get(anchorEndpoint).newBuilder().addPathSegment("customer");
+  }
+
+  Response call(Request request) throws ServiceUnavailableException {
     try {
       return httpClient.newCall(request).execute();
-    } catch (Exception e) { // IOException (connection error)
+    } catch (IOException e) {
       throw new ServiceUnavailableException("service not available", e);
     }
   }
 
-  String getResponseContent(Response response) throws ServerErrorException {
-    String callbackResponseContent;
+  String getContent(Response response) throws ServerErrorException {
     try {
       ResponseBody callbackResponseBody = response.body();
       if (callbackResponseBody == null) {
-        throw new RuntimeException("unable to fetch response body");
+        throw new ServerErrorException("unable to fetch response body");
       }
-      callbackResponseContent = callbackResponseBody.string();
+      return callbackResponseBody.string();
     } catch (Exception e) {
       throw new ServerErrorException("internal server error", e);
     }
-    return callbackResponseContent;
   }
 
-  AnchorException handleErrorResponse(String responseContent, int responseCode) {
+  AnchorException httpError(String responseContent, int responseCode) {
     ErrorResponse errorResponse;
     try {
       errorResponse = gson.fromJson(responseContent, ErrorResponse.class);
@@ -168,89 +161,64 @@ public class PlatformCustomerIntegration implements CustomerIntegration {
     return exception;
   }
 
-  void updateCustomerStatus(String id, String type, String status) {
-    if (id == null) return;
-    Optional<Customer> maybeCustomer = customerRepository.findById(id);
-    if (maybeCustomer.isEmpty()) {
-      Customer customer = new Customer();
-      customer.setId(id);
-      CustomerStatus customerStatus = new CustomerStatus();
-      customerStatus.setStatus(status);
-      customerStatus.setType(type);
-      customer.setStatuses(List.of(customerStatus));
-      customerRepository.save(customer);
-      return;
-    }
-    Customer customer = maybeCustomer.get();
-    boolean statusFound = false;
-    for (CustomerStatus s : customer.getStatuses()) {
-      if (s.getType().equals(type)) {
-        s.setStatus(status);
-        statusFound = true;
-        break;
-      }
-    }
-    if (!statusFound) {
-      CustomerStatus customerStatus = new CustomerStatus();
-      customerStatus.setStatus(status);
-      customerStatus.setType(type);
-      customer.getStatuses().add(customerStatus);
-    }
-    customerRepository.save(customer);
-  }
-}
+  static class Converter {
+    static Gson gson = new Gson();
 
-class ResponseConverter {
-  public static org.stellar.anchor.dto.sep12.GetCustomerResponse getCustomer(
-      GetCustomerResponse response) {
-    org.stellar.anchor.dto.sep12.GetCustomerResponse integrationResponse =
-        new org.stellar.anchor.dto.sep12.GetCustomerResponse();
-    integrationResponse.setId(response.getId());
-    integrationResponse.setStatus(
-        org.stellar.anchor.dto.sep12.Sep12Status.valueOf(response.getStatus()));
-    integrationResponse.setFields(convertFields(response.getFields()));
-    integrationResponse.setProvidedFields(convertProvidedFields(response.getProvidedFields()));
-    integrationResponse.setMessage(response.getMessage());
-    return integrationResponse;
-  }
-
-  public static org.stellar.anchor.dto.sep12.PutCustomerResponse putCustomer(
-      org.stellar.platform.apis.callbacks.responses.PutCustomerResponse response) {
-    org.stellar.anchor.dto.sep12.PutCustomerResponse integrationResponse =
-        new org.stellar.anchor.dto.sep12.PutCustomerResponse();
-    integrationResponse.setId(response.getId());
-    return integrationResponse;
-  }
-
-  private static Map<String, org.stellar.anchor.dto.sep12.ProvidedField> convertProvidedFields(
-      Map<String, org.stellar.platform.apis.shared.ProvidedField> fields) {
-    Map<String, org.stellar.anchor.dto.sep12.ProvidedField> integrationFields = new HashMap<>();
-    for (Map.Entry<String, org.stellar.platform.apis.shared.ProvidedField> entry :
-        fields.entrySet()) {
-      org.stellar.anchor.dto.sep12.ProvidedField field =
-          new org.stellar.anchor.dto.sep12.ProvidedField();
-      field.setType(org.stellar.anchor.dto.sep12.Field.Type.valueOf(entry.getValue().getType()));
-      field.setDescription(entry.getValue().getDescription());
-      field.setChoices(entry.getValue().getChoices());
-      field.setOptional(entry.getValue().getOptional());
-      field.setStatus(
-          org.stellar.anchor.dto.sep12.Sep12Status.valueOf(entry.getValue().getStatus()));
-      field.setError(entry.getValue().getError());
+    public static Sep12GetCustomerResponse fromPlatform(GetCustomerResponse response) {
+      String json = gson.toJson(response);
+      return gson.fromJson(json, Sep12GetCustomerResponse.class);
     }
-    return integrationFields;
-  }
 
-  private static Map<String, org.stellar.anchor.dto.sep12.Field> convertFields(
-      Map<String, org.stellar.platform.apis.shared.Field> fields) {
-    Map<String, org.stellar.anchor.dto.sep12.Field> integrationFields = new HashMap<>();
-    for (Map.Entry<String, org.stellar.platform.apis.shared.Field> entry : fields.entrySet()) {
-      org.stellar.anchor.dto.sep12.Field field = new org.stellar.anchor.dto.sep12.Field();
-      field.setType(org.stellar.anchor.dto.sep12.Field.Type.valueOf(entry.getValue().getType()));
-      field.setDescription(entry.getValue().getDescription());
-      field.setChoices(entry.getValue().getChoices());
-      field.setOptional(entry.getValue().getOptional());
-      integrationFields.put(entry.getKey(), field);
+    public static Sep12PutCustomerResponse fromPlatform(PutCustomerResponse response) {
+      String json = gson.toJson(response);
+      return gson.fromJson(json, Sep12PutCustomerResponse.class);
     }
-    return integrationFields;
+
+    public static GetCustomerRequest fromSep12(Sep12GetCustomerRequest request) {
+      String json = gson.toJson(request);
+      return gson.fromJson(json, GetCustomerRequest.class);
+    }
+
+    public static PutCustomerRequest fromSep12(Sep12PutCustomerRequest request) {
+      String json = gson.toJson(request);
+      return gson.fromJson(json, PutCustomerRequest.class);
+    }
+
+    //    private static Map<String, org.stellar.anchor.dto.sep12.ProvidedField>
+    // convertProvidedFields(
+    //        Map<String, org.stellar.platform.apis.shared.ProvidedField> fields) {
+    //      Map<String, org.stellar.anchor.dto.sep12.ProvidedField> integrationFields = new
+    // HashMap<>();
+    //      for (Map.Entry<String, org.stellar.platform.apis.shared.ProvidedField> entry :
+    //          fields.entrySet()) {
+    //        org.stellar.anchor.dto.sep12.ProvidedField field =
+    //            new org.stellar.anchor.dto.sep12.ProvidedField();
+    //
+    // field.setType(org.stellar.anchor.dto.sep12.Field.Type.valueOf(entry.getValue().getType()));
+    //        field.setDescription(entry.getValue().getDescription());
+    //        field.setChoices(entry.getValue().getChoices());
+    //        field.setOptional(entry.getValue().getOptional());
+    //        field.setStatus(
+    //            org.stellar.anchor.dto.sep12.Sep12Status.valueOf(entry.getValue().getStatus()));
+    //        field.setError(entry.getValue().getError());
+    //      }
+    //      return integrationFields;
+    //    }
+    //
+    //    private static Map<String, org.stellar.anchor.dto.sep12.Field> convertFields(
+    //        Map<String, org.stellar.platform.apis.shared.Field> fields) {
+    //      Map<String, org.stellar.anchor.dto.sep12.Field> integrationFields = new HashMap<>();
+    //      for (Map.Entry<String, org.stellar.platform.apis.shared.Field> entry :
+    // fields.entrySet()) {
+    //        org.stellar.anchor.dto.sep12.Field field = new org.stellar.anchor.dto.sep12.Field();
+    //
+    // field.setType(org.stellar.anchor.dto.sep12.Field.Type.valueOf(entry.getValue().getType()));
+    //        field.setDescription(entry.getValue().getDescription());
+    //        field.setChoices(entry.getValue().getChoices());
+    //        field.setOptional(entry.getValue().getOptional());
+    //        integrationFields.put(entry.getKey(), field);
+    //      }
+    //      return integrationFields;
+    //    }
   }
 }

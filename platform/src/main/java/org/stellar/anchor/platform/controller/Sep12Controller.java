@@ -6,10 +6,10 @@ import javax.servlet.http.HttpServletRequest;
 import lombok.SneakyThrows;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
-import org.stellar.anchor.dto.sep12.GetCustomerRequest;
-import org.stellar.anchor.dto.sep12.GetCustomerResponse;
-import org.stellar.anchor.dto.sep12.PutCustomerRequest;
-import org.stellar.anchor.dto.sep12.PutCustomerResponse;
+import org.stellar.anchor.dto.sep12.Sep12GetCustomerRequest;
+import org.stellar.anchor.dto.sep12.Sep12GetCustomerResponse;
+import org.stellar.anchor.dto.sep12.Sep12PutCustomerRequest;
+import org.stellar.anchor.dto.sep12.Sep12PutCustomerResponse;
 import org.stellar.anchor.exception.SepValidationException;
 import org.stellar.anchor.sep10.JwtToken;
 import org.stellar.anchor.sep12.Sep12Service;
@@ -29,7 +29,7 @@ public class Sep12Controller {
   @RequestMapping(
       value = "/customer",
       method = {RequestMethod.GET})
-  public GetCustomerResponse getCustomer(
+  public Sep12GetCustomerResponse getCustomer(
       HttpServletRequest request,
       @RequestParam(required = false) String type,
       @RequestParam(required = false) String id,
@@ -38,8 +38,8 @@ public class Sep12Controller {
       @RequestParam(required = false, name = "memo_type") String memoType,
       @RequestParam(required = false) String lang) {
     JwtToken jwtToken = getSep10Token(request);
-    GetCustomerRequest getCustomerRequest =
-        GetCustomerRequest.builder()
+    Sep12GetCustomerRequest getCustomerRequest =
+        Sep12GetCustomerRequest.builder()
             .type(type)
             .id(id)
             .account(account)
@@ -57,8 +57,8 @@ public class Sep12Controller {
       value = "/customer",
       consumes = {MediaType.APPLICATION_JSON_VALUE},
       method = {RequestMethod.PUT})
-  public PutCustomerResponse putCustomer(
-      HttpServletRequest request, @RequestBody PutCustomerRequest putCustomerRequest)
+  public Sep12PutCustomerResponse putCustomer(
+      HttpServletRequest request, @RequestBody Sep12PutCustomerRequest putCustomerRequest)
       throws SepValidationException {
     JwtToken jwtToken = getSep10Token(request);
     return sep12Service.putCustomer(jwtToken, putCustomerRequest);
