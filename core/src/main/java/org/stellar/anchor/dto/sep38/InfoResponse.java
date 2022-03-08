@@ -15,16 +15,17 @@ public class InfoResponse {
     assetResponseList.forEach(
         assetResponse -> {
           AssetInfo newAssetInfo = new AssetInfo();
-          newAssetInfo.asset = assetResponse.getSchema().toString() + ":" + assetResponse.getCode();
+          String assetName = assetResponse.getSchema().toString() + ":" + assetResponse.getCode();
           if (!Objects.toString(assetResponse.getIssuer(), "").isEmpty()) {
-            newAssetInfo.asset += ":" + assetResponse.getIssuer();
+            assetName += ":" + assetResponse.getIssuer();
           }
+          newAssetInfo.setAsset(assetName);
 
           AssetResponse.Sep38Operation sep38Info = assetResponse.getSep38();
-          newAssetInfo.countryCodes = sep38Info.getCountryCodes();
-          newAssetInfo.sellDeliveryMethods = sep38Info.getSellDeliveryMethods();
-          newAssetInfo.buyDeliveryMethods = sep38Info.getBuyDeliveryMethods();
-          newAssetInfo.exchangeableAssetNames = sep38Info.getExchangeableAssets();
+          newAssetInfo.setCountryCodes(sep38Info.getCountryCodes());
+          newAssetInfo.setSellDeliveryMethods(sep38Info.getSellDeliveryMethods());
+          newAssetInfo.setBuyDeliveryMethods(sep38Info.getBuyDeliveryMethods());
+          newAssetInfo.setExchangeableAssetNames(sep38Info.getExchangeableAssets());
 
           assets.add(newAssetInfo);
         });
