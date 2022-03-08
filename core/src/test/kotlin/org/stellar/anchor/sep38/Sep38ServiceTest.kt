@@ -3,10 +3,12 @@ package org.stellar.anchor.sep38
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.stellar.anchor.asset.AssetInfo
 import org.stellar.anchor.asset.ResourceJsonAssetService
 import org.stellar.anchor.config.Sep38Config
 import org.stellar.anchor.dto.sep38.InfoResponse
+import org.stellar.anchor.exception.HttpException
 
 class Sep38ServiceTest {
   internal class PropertySep38Config : Sep38Config {
@@ -83,5 +85,57 @@ class Sep38ServiceTest {
       )
     assertTrue(fiatUSD.exchangeableAssetNames.containsAll(wantAssets))
     assertTrue(wantAssets.containsAll(fiatUSD.exchangeableAssetNames))
+  }
+
+  @Test
+  fun test_validateGetPricesInput() {
+    // empty sell_asset
+    var ex: HttpException = assertThrows {
+      sep38Service.validateGetPricesInput(null, null, null, null, null)
+    }
+    var wantException = HttpException(400, "sell_asset cannot be empty")
+    assertEquals(wantException, ex)
+
+    // nonexistent sell_asset
+    ex = assertThrows { sep38Service.validateGetPricesInput("foo:bar", null, null, null, null) }
+    wantException = HttpException(404, "sell_asset not found")
+    assertEquals(wantException, ex)
+
+    // empty sell_amount
+    ex = assertThrows { sep38Service.validateGetPricesInput("iso4217:USD", null, null, null, null) }
+    wantException = HttpException(400, "sell_amount cannot be empty")
+    assertEquals(wantException, ex)
+
+    // country_code, sell_delivery_method and buy_delivery_method are not mandatory
+    assertDoesNotThrow {
+      sep38Service.validateGetPricesInput("iso4217:USD", "1.23", null, null, null)
+    }
+
+    // unsupported country_code
+    ex =
+      assertThrows { sep38Service.validateGetPricesInput("iso4217:USD", "1.23", "BRA", null, null) }
+    wantException = HttpException(400, "Unsupported country code")
+    assertEquals(wantException, ex)
+
+    // unsupported sell_delivery_method
+    ex =
+      assertThrows {
+        sep38Service.validateGetPricesInput("iso4217:USD", "1.23", "USA", "FOO", null)
+      }
+    wantException = HttpException(400, "Unsupported sell delivery method")
+    assertEquals(wantException, ex)
+
+    // unsupported buy_delivery_method
+    ex =
+      assertThrows {
+        sep38Service.validateGetPricesInput("iso4217:USD", "1.23", "USA", "WIRE", "BAR")
+      }
+    wantException = HttpException(400, "Unsupported buy delivery method")
+    assertEquals(wantException, ex)
+
+    // success
+    assertDoesNotThrow {
+      sep38Service.validateGetPricesInput("iso4217:USD", "1.23", "USA", "WIRE", "WIRE")
+    }
   }
 }
