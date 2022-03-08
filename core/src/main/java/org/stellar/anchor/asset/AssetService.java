@@ -9,7 +9,7 @@ public interface AssetService {
    *
    * @return a list of assets.
    */
-  List<AssetResponse> listAllAssets();
+  List<AssetInfo> listAllAssets();
 
   /**
    * Get the asset identified by `code` and `issuer`.
@@ -18,5 +18,5 @@ public interface AssetService {
    * @param issuer The account ID of the issuer
    * @return an asset with the given code and issuer.
    */
-  AssetResponse getAsset(String code, String issuer);
+  AssetInfo getAsset(String code, String issuer);
 }

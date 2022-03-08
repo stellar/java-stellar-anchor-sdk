@@ -3,7 +3,7 @@ package org.stellar.anchor.sep38
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.stellar.anchor.asset.AssetResponse
+import org.stellar.anchor.asset.AssetInfo
 import org.stellar.anchor.asset.ResourceJsonAssetService
 import org.stellar.anchor.config.Sep38Config
 import org.stellar.anchor.dto.sep38.InfoResponse
@@ -35,7 +35,7 @@ class Sep38ServiceTest {
     val infoResponse = sep38Service.getInfo()
     assertEquals(3, infoResponse.assets.size)
 
-    val assetMap = HashMap<String, InfoResponse.AssetInfo>()
+    val assetMap = HashMap<String, InfoResponse.Asset>()
     infoResponse.assets.forEach { assetMap[it.asset] = it }
     assertEquals(3, assetMap.size)
 
@@ -65,13 +65,13 @@ class Sep38ServiceTest {
     assertNotNull(fiatUSD)
     assertEquals(listOf("USA"), fiatUSD!!.countryCodes)
     val wantSellDeliveryMethod =
-      AssetResponse.Sep38Operation.DeliveryMethod(
+      AssetInfo.Sep38Operation.DeliveryMethod(
         "WIRE",
         "Send USD directly to the Anchor's bank account."
       )
     assertEquals(listOf(wantSellDeliveryMethod), fiatUSD.sellDeliveryMethods)
     val wantBuyDeliveryMethod =
-      AssetResponse.Sep38Operation.DeliveryMethod(
+      AssetInfo.Sep38Operation.DeliveryMethod(
         "WIRE",
         "Have USD sent directly to your bank account."
       )

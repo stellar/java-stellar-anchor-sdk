@@ -1,22 +1,22 @@
 package org.stellar.anchor.dto.sep24
 
 import org.junit.jupiter.api.Test
-import org.stellar.anchor.asset.AssetResponse
+import org.stellar.anchor.asset.AssetInfo
 
 internal class Sep24DtoTests {
   @Test
-  fun testAssetResponseCoverage() {
-    val ar = AssetResponse()
+  fun testAssetInfoCoverage() {
+    val ar = AssetInfo()
     ar.getSignificantDecimals()
     ar.setSignificantDecimals(0)
     ar.getSend()
-    ar.setSend(AssetResponse.SendOperation())
+    ar.setSend(AssetInfo.SendOperation())
     ar.getSep6Enabled()
     ar.setSep6Enabled(true)
     ar.getSep31Enabled()
     ar.setSep31Enabled(true)
 
-    val ao = AssetResponse.AssetOperation()
+    val ao = AssetInfo.AssetOperation()
     ao.getFeeFixed()
     ao.setFeeFixed(0)
     ao.getFeePercent()
@@ -24,7 +24,7 @@ internal class Sep24DtoTests {
     ao.getFeeMinimum()
     ao.setFeeMinimum(0)
 
-    val so = AssetResponse.SendOperation()
+    val so = AssetInfo.SendOperation()
     so.getFeeFixed()
     so.setFeeFixed(0)
     so.getFeePercent()

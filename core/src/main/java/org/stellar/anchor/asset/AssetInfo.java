@@ -6,7 +6,7 @@ import lombok.Data;
 
 @SuppressWarnings("unused")
 @Data
-public class AssetResponse {
+public class AssetInfo {
   String code;
   String issuer;
   Schema schema;

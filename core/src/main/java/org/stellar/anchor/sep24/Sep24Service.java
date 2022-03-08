@@ -15,7 +15,7 @@ import java.time.Instant;
 import java.util.*;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.http.client.utils.URIBuilder;
-import org.stellar.anchor.asset.AssetResponse;
+import org.stellar.anchor.asset.AssetInfo;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.Sep24Config;
@@ -88,7 +88,7 @@ public class Sep24Service {
     }
 
     // Verify that the asset code exists in our database, with withdraw enabled.
-    AssetResponse asset = assetService.getAsset(assetCode, assetIssuer);
+    AssetInfo asset = assetService.getAsset(assetCode, assetIssuer);
     if (asset == null || !asset.getWithdraw().getEnabled() || !asset.getSep24Enabled()) {
       throw new SepValidationException(String.format("invalid operation for asset %s", assetCode));
     }
@@ -192,7 +192,7 @@ public class Sep24Service {
     makeMemo(depositRequest.get("memo"), depositRequest.get("memo_type"));
 
     // Verify that the asset code exists in our database, with withdraw enabled.
-    AssetResponse asset = assetService.getAsset(assetCode, assetIssuer);
+    AssetInfo asset = assetService.getAsset(assetCode, assetIssuer);
     if (asset == null || !asset.getDeposit().getEnabled() || !asset.getSep24Enabled()) {
       throw new SepValidationException(String.format("invalid operation for asset %s", assetCode));
     }
@@ -309,14 +309,14 @@ public class Sep24Service {
   }
 
   public InfoResponse getInfo() {
-    List<AssetResponse> assets = listAllAssets();
+    List<AssetInfo> assets = listAllAssets();
     InfoResponse info = new InfoResponse();
     info.setDeposit(new HashMap<>());
     info.setWithdraw(new HashMap<>());
     info.setFee(new InfoResponse.FeeResponse());
     info.setFeatureFlags(new InfoResponse.FeatureFlagResponse());
 
-    for (AssetResponse asset : assets) {
+    for (AssetInfo asset : assets) {
       if (asset.getDeposit().getEnabled())
         info.getDeposit().put(asset.getCode(), asset.getDeposit());
       if (asset.getWithdraw().getEnabled())
@@ -350,7 +350,7 @@ public class Sep24Service {
         token.getClientDomain());
   }
 
-  List<AssetResponse> listAllAssets() {
+  List<AssetInfo> listAllAssets() {
     return this.assetService.listAllAssets();
   }
 

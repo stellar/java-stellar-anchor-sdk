@@ -1,7 +1,7 @@
 package org.stellar.anchor.sep38;
 
 import java.util.List;
-import org.stellar.anchor.asset.AssetResponse;
+import org.stellar.anchor.asset.AssetInfo;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.Sep38Config;
 import org.stellar.anchor.dto.sep38.InfoResponse;
@@ -18,7 +18,7 @@ public class Sep38Service {
   }
 
   public InfoResponse getInfo() {
-    List<AssetResponse> assets = this.assetService.listAllAssets();
+    List<AssetInfo> assets = this.assetService.listAllAssets();
     return new InfoResponse(assets);
   }
 }
