@@ -27,7 +27,6 @@ jobs:
     - name: Build and push to DockerHub
       uses: docker/build-push-action@7f9d37fa544684fb73bfe4835ed7214c255ce02b
       with:
-        # TODO: Commented out until we disable the CircleCI jobs
-        # push: true
+        push: true
         tags: stephenxlm/anchor-platform:${{ steps.get_tag.outputs.TAG }}
         file: Dockerfile
