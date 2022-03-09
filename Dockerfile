@@ -8,7 +8,7 @@ FROM ubuntu:20.04
 
 RUN apt-get update && \
 apt-get install -y --no-install-recommends \
-        openjdk-11-jdk
+        openjdk-11-jre
 
 RUN mkdir /app
 COPY --from=build /code/platform/build/libs/platform*.jar /app/anchor-platform.jar
