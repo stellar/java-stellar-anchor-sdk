@@ -138,4 +138,12 @@ class Sep38ServiceTest {
       sep38Service.validateGetPricesInput("iso4217:USD", "1.23", "USA", "WIRE", "WIRE")
     }
   }
+
+  @Test
+  fun test_getPrices() {
+    // test if input is being validated
+    val ex: HttpException = assertThrows { sep38Service.getPrices(null, null, null, null, null) }
+    val wantException = HttpException(400, "sell_asset cannot be empty")
+    assertEquals(wantException, ex)
+  }
 }

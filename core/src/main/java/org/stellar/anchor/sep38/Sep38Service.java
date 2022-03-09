@@ -28,6 +28,17 @@ public class Sep38Service {
     return new InfoResponse(assets);
   }
 
+  public void getPrices(
+      String sellAssetName,
+      String sellAmount,
+      String countryCode,
+      String sellDeliveryMethod,
+      String buyDeliveryMethod)
+      throws HttpException {
+    validateGetPricesInput(
+        sellAssetName, sellAmount, countryCode, sellDeliveryMethod, buyDeliveryMethod);
+  }
+
   public void validateGetPricesInput(
       String sellAssetName,
       String sellAmount,
