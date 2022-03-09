@@ -21,11 +21,11 @@ public class GetRateRequest {
   @SerializedName("buy_amount")
   String buyAmount;
 
-  @SerializedName("sell_delivery_amount")
-  String sellDeliveryAmount;
+  @SerializedName("sell_delivery_method")
+  String sellDeliveryMethod;
 
-  @SerializedName("buy_delivery_amount")
-  String buyDeliveryAmount;
+  @SerializedName("buy_delivery_method")
+  String buyDeliveryMethod;
 
   @SerializedName("client_domain")
   String clientDomain;

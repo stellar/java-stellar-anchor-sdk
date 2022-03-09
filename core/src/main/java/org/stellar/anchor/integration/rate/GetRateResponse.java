@@ -1,7 +1,7 @@
 package org.stellar.anchor.integration.rate;
 
 import com.google.gson.annotations.SerializedName;
-import java.util.Date;
+import java.time.LocalDateTime;
 import lombok.Data;
 import reactor.util.annotation.NonNull;
 import reactor.util.annotation.Nullable;
@@ -12,5 +12,5 @@ public class GetRateResponse {
 
   @SerializedName("expires_at")
   @Nullable
-  Date expiresAt;
+  LocalDateTime expiresAt;
 }
