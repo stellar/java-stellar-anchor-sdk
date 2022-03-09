@@ -3,7 +3,6 @@ package org.stellar.anchor.sep10;
 import static org.stellar.anchor.util.Log.infoF;
 import static org.stellar.anchor.util.Log.shorter;
 
-import com.moandjiezana.toml.Toml;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -22,7 +21,8 @@ import org.stellar.anchor.exception.SepException;
 import org.stellar.anchor.exception.SepValidationException;
 import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.util.Log;
-import org.stellar.anchor.util.NetUtil;
+import org.stellar.anchor.util.Sep1Helper;
+import org.stellar.anchor.util.Sep1Helper.TomlContent;
 import org.stellar.sdk.*;
 import org.stellar.sdk.requests.ErrorResponse;
 import org.stellar.sdk.responses.AccountResponse;
@@ -244,10 +244,7 @@ public class Sep10Service {
     String clientSigningKey = "";
     String url = "https://" + clientDomain + "/.well-known/stellar.toml";
     try {
-      String tomlValue = NetUtil.fetch(url);
-      Log.debug("Fetched client_domain's stellar.toml.", tomlValue);
-
-      Toml toml = new Toml().read(tomlValue);
+      TomlContent toml = Sep1Helper.readToml(url);
       clientSigningKey = toml.getString("SIGNING_KEY");
       if (clientSigningKey == null) {
         throw new SepException("SIGNING_KEY not present in 'client_domain' TOML");

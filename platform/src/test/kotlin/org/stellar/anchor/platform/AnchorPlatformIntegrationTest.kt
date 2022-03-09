@@ -21,6 +21,7 @@ import org.stellar.anchor.platform.configurator.SpringFrameworkConfigurator
 import org.stellar.anchor.reference.AnchorReferenceServer
 import org.stellar.anchor.sep10.JwtService
 import org.stellar.anchor.sep10.JwtToken
+import org.stellar.anchor.util.OkHttpUtil
 
 @SpringBootTest(
   classes = [AnchorPlatformServer::class],
@@ -35,7 +36,7 @@ import org.stellar.anchor.sep10.JwtToken
       DataAccessConfigurator::class,
       SpringFrameworkConfigurator::class]
 )
-class Sep12IntegrationTest {
+class AnchorPlatformIntegrationTest {
   @Autowired lateinit var restTemplate: TestRestTemplate
   @Autowired lateinit var jwtService: JwtService
   @Autowired lateinit var appConfig: AppConfig
@@ -66,7 +67,6 @@ class Sep12IntegrationTest {
 
   @Test
   fun runTest() {
-    //    val port = applicationContext.environment.getProperty("server.port")
     val jwtToken = createJwtToken()
     val request =
       Request.Builder()
@@ -75,6 +75,12 @@ class Sep12IntegrationTest {
         .get()
         .build()
 
+    client.newCall(request).execute().use { response -> println(response.body!!.string()) }
+  }
+
+  @Test
+  fun runSep1Test() {
+    val request = OkHttpUtil.buildGetRequest("http://localhost:$port/.well-known/stellar.toml")
     client.newCall(request).execute().use { response -> println(response.body!!.string()) }
   }
 
