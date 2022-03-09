@@ -13,4 +13,13 @@ public class GetRateResponse {
   @SerializedName("expires_at")
   @Nullable
   LocalDateTime expiresAt;
+
+  public GetRateResponse(@NonNull String price) {
+    this.price = price;
+  }
+
+  public GetRateResponse(@NonNull String price, @Nullable LocalDateTime expiresAt) {
+    this.price = price;
+    this.expiresAt = expiresAt;
+  }
 }
