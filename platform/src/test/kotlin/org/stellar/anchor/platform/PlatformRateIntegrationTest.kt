@@ -16,7 +16,6 @@ import org.stellar.anchor.exception.AnchorException
 import org.stellar.anchor.exception.BadRequestException
 import org.stellar.anchor.exception.NotFoundException
 import org.stellar.anchor.exception.ServerErrorException
-import org.stellar.anchor.exception.UnprocessableEntityException
 import org.stellar.anchor.integration.rate.GetRateRequest
 import org.stellar.anchor.integration.rate.GetRateResponse
 import org.stellar.anchor.util.OkHttpUtil
@@ -148,10 +147,10 @@ class PlatformRateIntegrationTest {
     validateRequest(404, """{"error": "foo 404"}""", NotFoundException("foo 404"))
 
     // 422 without body
-    validateRequest(422, null, UnprocessableEntityException("Unprocessable Entity"))
+    validateRequest(422, null, BadRequestException("Bad Request"))
 
     // 422 with body
-    validateRequest(422, """{"error": "foo 422"}""", UnprocessableEntityException("foo 422"))
+    validateRequest(422, """{"error": "foo 422"}""", BadRequestException("foo 422"))
 
     // 500
     validateRequest(500, """{"error": "foo 500"}""", ServerErrorException("internal server error"))
