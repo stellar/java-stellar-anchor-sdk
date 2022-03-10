@@ -4,7 +4,7 @@ import org.stellar.anchor.dto.sep12.Sep12PutCustomerRequest
 import org.stellar.anchor.dto.sep12.Sep12Status
 import org.stellar.anchor.util.Sep1Helper
 
-lateinit var sep12 : Sep12Client
+lateinit var sep12: Sep12Client
 
 fun sep12TestAll(toml: Sep1Helper.TomlContent, jwt: String) {
   sep12 = Sep12Client(toml.getString("KYC_SERVER"), jwt)
@@ -51,11 +51,12 @@ fun sep12TestHappyPath() {
   val code = sep12.deleteCustomer(walletAccount)
   printResponse(code)
   // currently, not implemented
-  assert(code==500)
+  assert(code == 500)
 }
 
 fun getTestPutCustomerRequest(resourcePath: String): Sep12PutCustomerRequest {
   return gson.fromJson(
-      resourceAsString("classpath:/org/stellar/anchor/platform/sep12/$resourcePath"),
-      Sep12PutCustomerRequest::class.java)
+    resourceAsString("classpath:/org/stellar/anchor/platform/sep12/$resourcePath"),
+    Sep12PutCustomerRequest::class.java
+  )
 }

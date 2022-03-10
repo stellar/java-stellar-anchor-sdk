@@ -1,7 +1,6 @@
 package org.stellar.anchor.sep12;
 
 import java.util.stream.Stream;
-
 import org.stellar.anchor.dto.sep12.*;
 import org.stellar.anchor.exception.AnchorException;
 import org.stellar.anchor.exception.SepException;
@@ -51,13 +50,14 @@ public class Sep12Service {
     return customerIntegration.putCustomer(request);
   }
 
-  public void deleteCustomer(JwtToken jwtToken, Sep12DeleteCustomerRequest request) throws AnchorException {
+  public void deleteCustomer(JwtToken jwtToken, Sep12DeleteCustomerRequest request)
+      throws AnchorException {
     if (!jwtToken.getAccount().equals(request.getAccount())) {
-      throw new SepNotAuthorizedException(String.format("not authorized to delete account [%s]", request.getAccount()));
+      throw new SepNotAuthorizedException(
+          String.format("not authorized to delete account [%s]", request.getAccount()));
     }
     customerIntegration.deleteCustomer(request);
   }
-
 
   void validateGetOrPutRequest(
       String customerId,
@@ -124,5 +124,4 @@ public class Sep12Service {
       }
     }
   }
-
 }

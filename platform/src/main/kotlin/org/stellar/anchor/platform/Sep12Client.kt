@@ -15,11 +15,11 @@ val TYPE_JSON = APPLICATION_JSON_CHARSET_UTF_8.toMediaTypeOrNull()
 class Sep12Client(private val endpoint: String, private val jwt: String) : SepClient() {
   fun getCustomer(id: String): Sep12GetCustomerResponse? {
     val request =
-        Request.Builder()
-            .url(String.format(this.endpoint + "/customer?id=%s", id))
-            .header("Authorization", "Bearer $jwt")
-            .get()
-            .build()
+      Request.Builder()
+        .url(String.format(this.endpoint + "/customer?id=%s", id))
+        .header("Authorization", "Bearer $jwt")
+        .get()
+        .build()
 
     val response = client.newCall(request).execute()
     val responseBody = response.body!!.string()
@@ -28,11 +28,11 @@ class Sep12Client(private val endpoint: String, private val jwt: String) : SepCl
 
   fun putCustomer(customerRequest: Sep12PutCustomerRequest): Sep12PutCustomerResponse? {
     val request =
-        Request.Builder()
-            .url(this.endpoint + "/customer")
-            .header("Authorization", "Bearer $jwt")
-            .put(gson.toJson(customerRequest).toRequestBody(TYPE_JSON))
-            .build()
+      Request.Builder()
+        .url(this.endpoint + "/customer")
+        .header("Authorization", "Bearer $jwt")
+        .put(gson.toJson(customerRequest).toRequestBody(TYPE_JSON))
+        .build()
     val response = client.newCall(request).execute()
     return gson.fromJson(response.body!!.string(), Sep12PutCustomerResponse::class.java)
   }
@@ -42,11 +42,11 @@ class Sep12Client(private val endpoint: String, private val jwt: String) : SepCl
     deleteCustomerRequest.account = account
 
     val request =
-        Request.Builder()
-            .url(this.endpoint + "/customer/${deleteCustomerRequest.account}")
-            .header("Authorization", "Bearer $jwt")
-            .delete(gson.toJson(deleteCustomerRequest).toRequestBody(TYPE_JSON))
-            .build()
+      Request.Builder()
+        .url(this.endpoint + "/customer/${deleteCustomerRequest.account}")
+        .header("Authorization", "Bearer $jwt")
+        .delete(gson.toJson(deleteCustomerRequest).toRequestBody(TYPE_JSON))
+        .build()
     val response = client.newCall(request).execute()
     return response.code
   }

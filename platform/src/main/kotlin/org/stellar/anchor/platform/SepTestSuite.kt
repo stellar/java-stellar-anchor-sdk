@@ -34,11 +34,11 @@ fun main(args: Array<String>) {
 
     // Read TOML file
     val tomlString =
-        if (cmd.hasOption("sep1-toml-path")) {
-          resourceAsString(cmd.getOptionValue("t"))
-        } else {
-          resourceAsString("classpath:/org/stellar/anchor/platform/sep1/test_default_stellar.toml")
-        }
+      if (cmd.hasOption("sep1-toml-path")) {
+        resourceAsString(cmd.getOptionValue("t"))
+      } else {
+        resourceAsString("classpath:/org/stellar/anchor/platform/sep1/test_default_stellar.toml")
+      }
 
     val toml = Sep1Helper.parse(tomlString)
     val seps = cmd.getOptionValues("p")
@@ -68,13 +68,14 @@ fun getOrCreateJwt(tomlContent: TomlContent): String? {
   if (jwt == null) {
     val issuedAt: Long = System.currentTimeMillis() / 1000L
     val token =
-        JwtToken.of(
-            tomlContent.getString("WEB_AUTH_ENDPOINT"),
-            walletAccount,
-            issuedAt,
-            issuedAt + 60,
-            "",
-            null)
+      JwtToken.of(
+        tomlContent.getString("WEB_AUTH_ENDPOINT"),
+        walletAccount,
+        issuedAt,
+        issuedAt + 60,
+        "",
+        null
+      )
     jwt = jwtService.encode(token)
   }
 
