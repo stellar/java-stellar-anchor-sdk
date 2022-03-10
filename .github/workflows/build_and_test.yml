@@ -25,7 +25,7 @@ jobs:
     - name: Test
       run: ./gradlew test
       
-  build-and-push-anchor-platform:
+  build_and_push_anchor_platform:
     needs: [build_and_test]
     runs-on: ubuntu-latest
     name: Push stellar/anchor-platform:sha to DockerHub
