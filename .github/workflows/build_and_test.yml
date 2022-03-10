@@ -10,9 +10,7 @@ on:
 
 jobs:
   build_and_test:
-
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v2
     - name: Set up JDK 11
@@ -26,3 +24,28 @@ jobs:
       run: ./gradlew jar
     - name: Test
       run: ./gradlew test
+      
+  build_and_push_anchor_platform:
+    needs: [build_and_test]
+    runs-on: ubuntu-latest
+    name: Push stellar/anchor-platform:sha to DockerHub
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Get image tag (short sha)
+      shell: bash
+      id: get_tag
+      run: echo ::set-output name=TAG::$(git rev-parse --short ${{ github.sha }} )
+
+    - name: Login to DockerHub
+      uses: docker/login-action@bb984efc561711aaa26e433c32c3521176eae55b
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+    - name: Build and push to DockerHub
+      uses: docker/build-push-action@7f9d37fa544684fb73bfe4835ed7214c255ce02b
+      with:
+        push: true
+        tags: stellar/anchor-platform:${{ steps.get_tag.outputs.TAG }}
+        file: Dockerfile
