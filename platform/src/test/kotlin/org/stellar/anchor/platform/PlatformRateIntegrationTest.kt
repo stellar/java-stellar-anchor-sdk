@@ -48,7 +48,7 @@ class PlatformRateIntegrationTest {
   }
 
   @Test
-  fun test_getRate_endpoint() {
+  fun test_getRate() {
     val testGetRate = { endpoint: String, getRateRequest: GetRateRequest ->
       server.enqueue(getRateResponse("1"))
 
