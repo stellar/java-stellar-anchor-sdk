@@ -11,7 +11,6 @@ dependencies {
   implementation(libs.reactor.core)
   implementation(libs.commons.validator)
   implementation(libs.slf4j.log4j12)
-  implementation(libs.okhttp3.mockserver)
   implementation(libs.reactor.netty)
 
   // Lombok should be used by all sub-projects to reduce Java verbosity
@@ -22,4 +21,6 @@ dependencies {
 
   // From projects
   implementation(project(":core"))
+
+  testImplementation(libs.okhttp3.mockserver)
 }
