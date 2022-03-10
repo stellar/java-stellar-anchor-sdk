@@ -1,11 +1,10 @@
 package org.stellar.anchor.platform
 
-import com.google.gson.GsonBuilder
 import org.apache.commons.cli.*
-import org.stellar.anchor.dto.sep12.Sep12PutCustomerRequest
-import org.stellar.anchor.dto.sep12.Sep12Status
-
-val gson = GsonBuilder().setPrettyPrinting().create()
+import org.stellar.anchor.sep10.JwtService
+import org.stellar.anchor.sep10.JwtToken
+import org.stellar.anchor.util.Sep1Helper
+import org.stellar.anchor.util.Sep1Helper.TomlContent
 
 fun main(args: Array<String>) {
   // Start necessary servers
@@ -14,7 +13,7 @@ fun main(args: Array<String>) {
   options.addOption("a", "all", false, "Start all servers.")
   options.addOption("s", "sep-server", false, "Start SEP endpoint server.")
   options.addOption("r", "anchor-reference-server", false, "Start anchor reference server.")
-
+  options.addOption("t", "sep1-toml-path", true, "The path where the SEP1 TOML file can be read.")
   val sepsOption = Option("p", "seps", true, "SEPS to be test. eg: sep12")
   sepsOption.args = Option.UNLIMITED_VALUES
   options.addOption(sepsOption)
@@ -22,82 +21,68 @@ fun main(args: Array<String>) {
   try {
     val parser: CommandLineParser = DefaultParser()
     val cmd = parser.parse(options, args)
+
+    // Start sep server if enabled.
     if (cmd.hasOption("sep-server") || cmd.hasOption("all")) {
       ServiceRunner.startSepServer()
     }
+
+    // Start anchor reference server if enabled.
     if (cmd.hasOption("anchor-reference-server") || cmd.hasOption("all")) {
       ServiceRunner.startAnchorReferenceServer()
     }
 
+    // Read TOML file
+    val tomlString =
+        if (cmd.hasOption("sep1-toml-path")) {
+          resourceAsString(cmd.getOptionValue("t"))
+        } else {
+          resourceAsString("classpath:/org/stellar/anchor/platform/sep1/test_default_stellar.toml")
+        }
+
+    val toml = Sep1Helper.parse(tomlString)
     val seps = cmd.getOptionValues("p")
 
     if ("sep12" in seps) {
-      testSep12()
+      sep12TestAll(toml, getOrCreateJwt(toml)!!)
+    }
+
+    if ("sep38" in seps) {
+      sep38TestAll(toml, getOrCreateJwt(toml)!!)
+    }
+
+    if ("sep31" in seps) {
+      sep31TestAll(toml, getOrCreateJwt(toml)!!)
     }
   } catch (ex: ParseException) {
     printUsage(options)
   }
 }
 
+var walletAccount = "GAIUIZPHLIHQEMNJGSZKCEUWHAZVGUZDBDMO2JXNAJZZZVNSVHQCEWJ4"
+var walletPrivateKey = "SAXKNDNU4FE2PCM5SOUXNXIQ7ZLCQMRZMMQAC2SIKZH7BAHQTTOLTIHW"
+var jwt: String? = null
+val jwtService = JwtService("secret")
+
+fun getOrCreateJwt(tomlContent: TomlContent): String? {
+  if (jwt == null) {
+    val issuedAt: Long = System.currentTimeMillis() / 1000L
+    val token =
+        JwtToken.of(
+            tomlContent.getString("WEB_AUTH_ENDPOINT"),
+            walletAccount,
+            issuedAt,
+            issuedAt + 60,
+            "",
+            null)
+    jwt = jwtService.encode(token)
+  }
+
+  return jwt
+}
+
 fun printUsage(options: Options?) {
   val helper = HelpFormatter()
   helper.optionComparator = null
   helper.printHelp("java -jar anchor-platform.jar", options)
-}
-
-fun testSep12() {
-  val sep12 = Sep12("http://localhost:8080/sep12")
-  val customer = getTestPutCustomerRequest()
-
-  println("Calling PUT /customer")
-  print("request=")
-  println(str(customer))
-  var pr = sep12.putCustomer(customer)
-  print("response=")
-  println(str(pr))
-
-  println("Calling GET /customer")
-  var gr = sep12.getCustomer(pr!!.id)
-  print("response=")
-  println(str(gr))
-
-  assert(gr!!.id.equals(pr.id))
-  assert(gr.status.equals(Sep12Status.NEEDS_INFO))
-
-  customer.emailAddress = "john.doe@stellar.org"
-  customer.bankAccountNumber = "1234"
-  customer.bankNumber = "abcd"
-  customer.type = "sep31-receiver"
-
-  println("Calling PUT /customer")
-  print("request=")
-  println(str(customer))
-  pr = sep12.putCustomer(customer)
-  print("response=")
-  println(str(pr))
-
-  println("Calling GET /customer")
-  gr = sep12.getCustomer(pr!!.id)
-  print("response=")
-  print(str(gr))
-
-  assert(gr!!.id.equals(pr.id))
-  assert(gr.status.equals(Sep12Status.ACCEPTED))
-}
-
-fun str(value: Any?): String {
-  if (value != null) return gson.toJson(value)
-  return ""
-}
-
-fun getTestPutCustomerRequest(): Sep12PutCustomerRequest {
-  val pcr = Sep12PutCustomerRequest()
-  pcr.firstName = "John"
-  pcr.lastName = "Doe"
-  pcr.address = "123 Washington Street"
-  pcr.city = "San Francisco"
-  pcr.stateOrProvince = "CA"
-  pcr.addressCountryCode = "US"
-
-  return pcr
 }
