@@ -42,10 +42,16 @@ public class PlatformIntegrationHelper {
       return new ServerErrorException("internal server error", e);
     }
 
+    String errorMessage =
+        (errorResponse != null)
+            ? errorResponse.getError()
+            : HttpStatus.valueOf(responseCode).getReasonPhrase();
     if (responseCode == HttpStatus.BAD_REQUEST.value()) {
-      return new BadRequestException(errorResponse.getError());
+      return new BadRequestException(errorMessage);
     } else if (responseCode == HttpStatus.NOT_FOUND.value()) {
-      return new NotFoundException(errorResponse.getError());
+      return new NotFoundException(errorMessage);
+    } else if (responseCode == HttpStatus.UNPROCESSABLE_ENTITY.value()) {
+      return new UnprocessableEntityException(errorMessage);
     }
     return new ServerErrorException("internal server error");
   }

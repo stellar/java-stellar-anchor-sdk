@@ -11,6 +11,12 @@ import org.hamcrest.MatcherAssert
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
+import org.stellar.anchor.exception.AnchorException
+import org.stellar.anchor.exception.BadRequestException
+import org.stellar.anchor.exception.NotFoundException
+import org.stellar.anchor.exception.ServerErrorException
+import org.stellar.anchor.exception.UnprocessableEntityException
 import org.stellar.anchor.integration.rate.GetRateRequest
 import org.stellar.anchor.integration.rate.GetRateResponse
 import org.stellar.anchor.util.OkHttpUtil
@@ -101,5 +107,60 @@ class PlatformRateIntegrationTest {
       "/rate?type=indicative&sell_asset=iso4217%3AUSD&buy_asset=stellar%3AUSDC%3AGA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN&sell_amount=100&buy_amount=100&sell_delivery_method=WIRE&buy_delivery_method=WIRE&client_domain=test.com&account=GDGWTSQKQQAT2OXRSFLADMN4F6WJQMPJ5MIOKIZ2AMBYUI67MJA4WRLA&memo=foo&memo_type=text",
       getRateRequest
     )
+  }
+
+  @Test
+  fun test_getRate_errorHandling() {
+    val validateRequest =
+        { statusCode: Int, responseBody: String?, wantException: AnchorException ->
+      // mock response
+      var mockResponse =
+        MockResponse().addHeader("Content-Type", "application/json").setResponseCode(statusCode)
+      if (responseBody != null) mockResponse = mockResponse.setBody(responseBody)
+      server.enqueue(mockResponse)
+
+      // execute command
+      val dummyRequest = GetRateRequest.builder().type(GetRateRequest.Type.INDICATIVE).build()
+      val ex = assertThrows<AnchorException> { rateIntegration.getRate(dummyRequest) }
+
+      // validate exception
+      assertEquals(wantException, ex)
+
+      // validateRequest
+      val request = server.takeRequest()
+      assertEquals("GET", request.method)
+      assertEquals("application/json", request.headers["Content-Type"])
+      assertEquals(null, request.headers["Authorization"])
+      MatcherAssert.assertThat(request.path, CoreMatchers.endsWith("/rate?type=indicative"))
+      assertEquals("", request.body.readUtf8())
+    }
+
+    // 400 without body
+    validateRequest(400, null, BadRequestException("Bad Request"))
+
+    // 400 with body
+    validateRequest(400, """{"error": "foo 400"}""", BadRequestException("foo 400"))
+
+    // 404 without body
+    validateRequest(404, null, NotFoundException("Not Found"))
+
+    // 404 with body
+    validateRequest(404, """{"error": "foo 404"}""", NotFoundException("foo 404"))
+
+    // 422 without body
+    validateRequest(422, null, UnprocessableEntityException("Unprocessable Entity"))
+
+    // 422 with body
+    validateRequest(422, """{"error": "foo 422"}""", UnprocessableEntityException("foo 422"))
+
+    // 500
+    validateRequest(500, """{"error": "foo 500"}""", ServerErrorException("internal server error"))
+
+    // 200 with invalid body
+    val serverErrorException = ServerErrorException("internal server error")
+    validateRequest(200, """{"rate": {"price": "invalid json",}}""", serverErrorException)
+
+    // 200 where getRateResponse is missing a price
+    validateRequest(200, """{"rate": "missing price"}""", serverErrorException)
   }
 }

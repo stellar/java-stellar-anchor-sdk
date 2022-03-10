@@ -3,8 +3,8 @@ package org.stellar.anchor.exception;
 import lombok.EqualsAndHashCode;
 
 @EqualsAndHashCode(callSuper = false)
-public class NotFoundException extends AnchorException {
-  public NotFoundException(String message) {
+public class UnprocessableEntityException extends AnchorException {
+  public UnprocessableEntityException(String message) {
     super(message);
   }
 }
