@@ -5,10 +5,14 @@ import java.util.Objects;
 import org.stellar.anchor.asset.AssetInfo;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.Sep38Config;
+import org.stellar.anchor.dto.sep38.GetPricesResponse;
 import org.stellar.anchor.dto.sep38.InfoResponse;
 import org.stellar.anchor.exception.AnchorException;
 import org.stellar.anchor.exception.BadRequestException;
 import org.stellar.anchor.exception.NotFoundException;
+import org.stellar.anchor.exception.ServerErrorException;
+import org.stellar.anchor.integration.rate.GetRateRequest;
+import org.stellar.anchor.integration.rate.GetRateResponse;
 import org.stellar.anchor.integration.rate.RateIntegration;
 import org.stellar.anchor.util.Log;
 
@@ -30,15 +34,40 @@ public class Sep38Service {
     return new InfoResponse(assets);
   }
 
-  public void getPrices(
+  public GetPricesResponse getPrices(
       String sellAssetName,
       String sellAmount,
       String countryCode,
       String sellDeliveryMethod,
       String buyDeliveryMethod)
       throws AnchorException {
+    if (this.rateIntegration == null) {
+      throw new ServerErrorException("internal server error");
+    }
     validateGetPricesInput(
         sellAssetName, sellAmount, countryCode, sellDeliveryMethod, buyDeliveryMethod);
+    InfoResponse.Asset sellAsset =
+        getInfo().getAssets().stream()
+            .filter(asset -> asset.getAsset().equals(sellAssetName))
+            .findFirst()
+            .orElse(null);
+    assert sellAsset != null;
+
+    GetRateRequest.GetRateRequestBuilder builder =
+        GetRateRequest.builder()
+            .sellAsset(sellAssetName)
+            .sellAmount(sellAmount)
+            .countryCode(countryCode)
+            .sellDeliveryMethod(sellDeliveryMethod)
+            .buyDeliveryMethod(buyDeliveryMethod);
+    GetPricesResponse response = new GetPricesResponse();
+    for (String buyAssetName : sellAsset.getExchangeableAssetNames()) {
+      GetRateRequest request = builder.buyAsset(buyAssetName).build();
+      GetRateResponse rateResponse = this.rateIntegration.getRate(request);
+      response.addAsset(buyAssetName, rateResponse.getRate().getPrice());
+    }
+
+    return response;
   }
 
   public void validateGetPricesInput(
