@@ -8,7 +8,9 @@ import org.stellar.anchor.asset.AssetInfo
 import org.stellar.anchor.asset.ResourceJsonAssetService
 import org.stellar.anchor.config.Sep38Config
 import org.stellar.anchor.dto.sep38.InfoResponse
-import org.stellar.anchor.exception.HttpException
+import org.stellar.anchor.exception.AnchorException
+import org.stellar.anchor.exception.BadRequestException
+import org.stellar.anchor.exception.NotFoundException
 
 class Sep38ServiceTest {
   internal class PropertySep38Config : Sep38Config {
@@ -90,20 +92,20 @@ class Sep38ServiceTest {
   @Test
   fun test_validateGetPricesInput() {
     // empty sell_asset
-    var ex: HttpException = assertThrows {
+    var ex: AnchorException = assertThrows {
       sep38Service.validateGetPricesInput(null, null, null, null, null)
     }
-    var wantException = HttpException(400, "sell_asset cannot be empty")
+    var wantException: AnchorException = BadRequestException("sell_asset cannot be empty")
     assertEquals(wantException, ex)
 
     // nonexistent sell_asset
     ex = assertThrows { sep38Service.validateGetPricesInput("foo:bar", null, null, null, null) }
-    wantException = HttpException(404, "sell_asset not found")
+    wantException = NotFoundException("sell_asset not found")
     assertEquals(wantException, ex)
 
     // empty sell_amount
     ex = assertThrows { sep38Service.validateGetPricesInput("iso4217:USD", null, null, null, null) }
-    wantException = HttpException(400, "sell_amount cannot be empty")
+    wantException = BadRequestException("sell_amount cannot be empty")
     assertEquals(wantException, ex)
 
     // country_code, sell_delivery_method and buy_delivery_method are not mandatory
@@ -114,7 +116,7 @@ class Sep38ServiceTest {
     // unsupported country_code
     ex =
       assertThrows { sep38Service.validateGetPricesInput("iso4217:USD", "1.23", "BRA", null, null) }
-    wantException = HttpException(400, "Unsupported country code")
+    wantException = BadRequestException("Unsupported country code")
     assertEquals(wantException, ex)
 
     // unsupported sell_delivery_method
@@ -122,7 +124,7 @@ class Sep38ServiceTest {
       assertThrows {
         sep38Service.validateGetPricesInput("iso4217:USD", "1.23", "USA", "FOO", null)
       }
-    wantException = HttpException(400, "Unsupported sell delivery method")
+    wantException = BadRequestException("Unsupported sell delivery method")
     assertEquals(wantException, ex)
 
     // unsupported buy_delivery_method
@@ -130,7 +132,7 @@ class Sep38ServiceTest {
       assertThrows {
         sep38Service.validateGetPricesInput("iso4217:USD", "1.23", "USA", "WIRE", "BAR")
       }
-    wantException = HttpException(400, "Unsupported buy delivery method")
+    wantException = BadRequestException("Unsupported buy delivery method")
     assertEquals(wantException, ex)
 
     // success
@@ -142,8 +144,8 @@ class Sep38ServiceTest {
   @Test
   fun test_getPrices() {
     // test if input is being validated
-    val ex: HttpException = assertThrows { sep38Service.getPrices(null, null, null, null, null) }
-    val wantException = HttpException(400, "sell_asset cannot be empty")
+    val ex: AnchorException = assertThrows { sep38Service.getPrices(null, null, null, null, null) }
+    val wantException: AnchorException = BadRequestException("sell_asset cannot be empty")
     assertEquals(wantException, ex)
   }
 }

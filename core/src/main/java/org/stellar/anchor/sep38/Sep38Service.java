@@ -6,7 +6,9 @@ import org.stellar.anchor.asset.AssetInfo;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.Sep38Config;
 import org.stellar.anchor.dto.sep38.InfoResponse;
-import org.stellar.anchor.exception.HttpException;
+import org.stellar.anchor.exception.AnchorException;
+import org.stellar.anchor.exception.BadRequestException;
+import org.stellar.anchor.exception.NotFoundException;
 import org.stellar.anchor.integration.rate.RateIntegration;
 import org.stellar.anchor.util.Log;
 
@@ -34,7 +36,7 @@ public class Sep38Service {
       String countryCode,
       String sellDeliveryMethod,
       String buyDeliveryMethod)
-      throws HttpException {
+      throws AnchorException {
     validateGetPricesInput(
         sellAssetName, sellAmount, countryCode, sellDeliveryMethod, buyDeliveryMethod);
   }
@@ -45,7 +47,7 @@ public class Sep38Service {
       String countryCode,
       String sellDeliveryMethod,
       String buyDeliveryMethod)
-      throws HttpException {
+      throws AnchorException {
     Log.infoF(
         "validateGetPricesInput(): sellAssetName={}, sellAmount={}, countryCode={}, sellDeliveryMethod={}, buyDeliveryMethod={}",
         sellAssetName,
@@ -55,7 +57,7 @@ public class Sep38Service {
         buyDeliveryMethod);
 
     if (Objects.toString(sellAssetName, "").isEmpty()) {
-      throw new HttpException(400, "sell_asset cannot be empty");
+      throw new BadRequestException("sell_asset cannot be empty");
     }
 
     InfoResponse.Asset sellAsset =
@@ -64,22 +66,22 @@ public class Sep38Service {
             .findFirst()
             .orElse(null);
     if (sellAsset == null) {
-      throw new HttpException(404, "sell_asset not found");
+      throw new NotFoundException("sell_asset not found");
     }
 
     if (Objects.toString(sellAmount, "").isEmpty()) {
-      throw new HttpException(400, "sell_amount cannot be empty");
+      throw new BadRequestException("sell_amount cannot be empty");
     }
 
     if (!Objects.toString(countryCode, "").isEmpty()) {
       if (!sellAsset.getCountryCodes().contains(countryCode)) {
-        throw new HttpException(400, "Unsupported country code");
+        throw new BadRequestException("Unsupported country code");
       }
     }
 
     if (!Objects.toString(sellDeliveryMethod, "").isEmpty()) {
       if (sellAsset.getSellDeliveryMethods() == null) {
-        throw new HttpException(400, "Unsupported sell delivery method");
+        throw new BadRequestException("Unsupported sell delivery method");
       }
 
       AssetInfo.Sep38Operation.DeliveryMethod deliveryMethod =
@@ -88,13 +90,13 @@ public class Sep38Service {
               .findFirst()
               .orElse(null);
       if (deliveryMethod == null) {
-        throw new HttpException(400, "Unsupported sell delivery method");
+        throw new BadRequestException("Unsupported sell delivery method");
       }
     }
 
     if (!Objects.toString(buyDeliveryMethod, "").isEmpty()) {
       if (sellAsset.getBuyDeliveryMethods() == null) {
-        throw new HttpException(400, "Unsupported buy delivery method");
+        throw new BadRequestException("Unsupported buy delivery method");
       }
 
       AssetInfo.Sep38Operation.DeliveryMethod deliveryMethod =
@@ -103,7 +105,7 @@ public class Sep38Service {
               .findFirst()
               .orElse(null);
       if (deliveryMethod == null) {
-        throw new HttpException(400, "Unsupported buy delivery method");
+        throw new BadRequestException("Unsupported buy delivery method");
       }
     }
   }
