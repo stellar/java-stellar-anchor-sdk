@@ -13,6 +13,7 @@ public interface CustomerIntegration {
    *
    * @param request The request to get a customer.
    * @return The GET customer response.
+   * @throws AnchorException if error happens
    */
   Sep12GetCustomerResponse getCustomer(Sep12GetCustomerRequest request) throws AnchorException;
 
@@ -21,6 +22,7 @@ public interface CustomerIntegration {
    *
    * @param request The request to upload a customer.
    * @return The PUT customer response.
+   * @throws AnchorException if error happens
    */
   Sep12PutCustomerResponse putCustomer(Sep12PutCustomerRequest request) throws AnchorException;
 
@@ -28,6 +30,7 @@ public interface CustomerIntegration {
    * Deletes a customer.
    *
    * @param request The request to delete a customer.
+   * @throws AnchorException if error happens
    */
   void deleteCustomer(DeleteCustomerRequest request) throws AnchorException;
 
@@ -36,6 +39,7 @@ public interface CustomerIntegration {
    *
    * @param request The PUT request of a customer.
    * @return The response.
+   * @throws AnchorException if error happens
    */
   PutCustomerVerificationResponse putVerification(PutCustomerVerificationRequest request)
       throws AnchorException;
