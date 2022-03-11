@@ -14,6 +14,7 @@ public interface Sep24TransactionStore {
    *
    * @param transactionId The transaction ID
    * @return The transaction document. null if not found.
+   * @throws SepException if error happens
    */
   Sep24Transaction findByTransactionId(String transactionId) throws SepException;
 
@@ -22,6 +23,7 @@ public interface Sep24TransactionStore {
    *
    * @param stellarTransactionId The Stellar transaction id (hash)
    * @return The transaction document. null if not found.
+   * @throws SepException if error happens
    */
   Sep24Transaction findByStellarTransactionId(String stellarTransactionId) throws SepException;
 
@@ -30,6 +32,7 @@ public interface Sep24TransactionStore {
    *
    * @param externalTransactionId The anchor's transaction id.
    * @return The transaction document. null if not found.
+   * @throws SepException if error happens
    */
   Sep24Transaction findByExternalTransactionId(String externalTransactionId) throws SepException;
 
@@ -39,6 +42,7 @@ public interface Sep24TransactionStore {
    * @param accountId The Stellar account id.
    * @param request The query request.
    * @return The list of transaction documents. If not found, return empty list.
+   * @throws SepException if error happens
    */
   List<Sep24Transaction> findTransactions(String accountId, GetTransactionsRequest request)
       throws SepException;
