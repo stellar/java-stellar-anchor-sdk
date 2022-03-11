@@ -12,6 +12,7 @@ dependencies {
   implementation(libs.commons.validator)
   implementation(libs.slf4j.log4j12)
   implementation(libs.reactor.netty)
+  implementation(libs.okhttp3)
 
   // Lombok should be used by all sub-projects to reduce Java verbosity
   annotationProcessor(libs.lombok)

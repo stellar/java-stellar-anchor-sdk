@@ -8,18 +8,25 @@ import reactor.util.annotation.Nullable;
 
 @Data
 public class GetRateResponse {
-  @NonNull String price;
-
-  @SerializedName("expires_at")
-  @Nullable
-  LocalDateTime expiresAt;
+  Rate rate;
 
   public GetRateResponse(@NonNull String price) {
-    this.price = price;
+    this.rate = new Rate();
+    this.rate.price = price;
   }
 
   public GetRateResponse(@NonNull String price, @Nullable LocalDateTime expiresAt) {
-    this.price = price;
-    this.expiresAt = expiresAt;
+    this.rate = new Rate();
+    this.rate.price = price;
+    this.rate.expiresAt = expiresAt;
+  }
+
+  @Data
+  public static class Rate {
+    String price;
+
+    @SerializedName("expires_at")
+    @Nullable
+    LocalDateTime expiresAt;
   }
 }

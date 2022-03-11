@@ -42,9 +42,9 @@ class PlatformRateIntegrationTest {
   }
 
   private fun getRateResponse(price: String, expiresAt: String? = null): MockResponse {
-    val bodyMap = hashMapOf("price" to price)
+    val bodyMap = hashMapOf("rate" to hashMapOf("price" to price))
     if (expiresAt != null) {
-      bodyMap["expires_at"] = expiresAt
+      bodyMap["rate"]!!["expires_at"] = expiresAt
     }
     return MockResponse()
       .addHeader("Content-Type", "application/json")
