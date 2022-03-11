@@ -33,6 +33,7 @@ public class GetRateRequest {
   @SerializedName("client_domain")
   String clientDomain;
 
+  String id;
   String account;
   String memo;
 
