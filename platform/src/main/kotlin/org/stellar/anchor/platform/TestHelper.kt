@@ -10,27 +10,8 @@ val gson = GsonBuilder().setPrettyPrinting().create()!!
 
 fun json(value: Any?): String {
   if (value != null) return gson.toJson(value)
-  return ""
+  return "null"
 }
-
-/*
-ResourceLoader resourceLoader = new DefaultResourceLoader();
-
-@Override
-public String readResourceAsString(String path) {
-  Resource resource = resourceLoader.getResource(path);
-  return asString(resource);
-}
-
-public String asString(Resource resource) {
-  try (Reader reader = new InputStreamReader(resource.getInputStream(), UTF_8)) {
-    return FileCopyUtils.copyToString(reader);
-  } catch (IOException e) {
-    throw new UncheckedIOException(e);
-  }
-  }
-};
-*/
 
 val resourceLoader = DefaultResourceLoader()
 

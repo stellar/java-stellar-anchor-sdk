@@ -43,6 +43,10 @@ fun main(args: Array<String>) {
     val toml = Sep1Helper.parse(tomlString)
     val seps = cmd.getOptionValues("p")
 
+    if ("sep10" in seps) {
+      jwt = sep10TestAll(toml)
+    }
+
     if ("sep12" in seps) {
       sep12TestAll(toml, getOrCreateJwt(toml)!!)
     }
