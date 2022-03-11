@@ -101,18 +101,18 @@ class Sep38ServiceTest {
     var ex: AnchorException = assertThrows {
       sep38Service.validateGetPricesInput(null, null, null, null, null)
     }
-    var wantException: AnchorException = BadRequestException("sell_asset cannot be empty")
-    assertEquals(wantException, ex)
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("sell_asset cannot be empty", ex.message)
 
     // nonexistent sell_asset
     ex = assertThrows { sep38Service.validateGetPricesInput("foo:bar", null, null, null, null) }
-    wantException = NotFoundException("sell_asset not found")
-    assertEquals(wantException, ex)
+    assertInstanceOf(NotFoundException::class.java, ex)
+    assertEquals("sell_asset not found", ex.message)
 
     // empty sell_amount
     ex = assertThrows { sep38Service.validateGetPricesInput("iso4217:USD", null, null, null, null) }
-    wantException = BadRequestException("sell_amount cannot be empty")
-    assertEquals(wantException, ex)
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("sell_amount cannot be empty", ex.message)
 
     // country_code, sell_delivery_method and buy_delivery_method are not mandatory
     assertDoesNotThrow {
@@ -122,24 +122,16 @@ class Sep38ServiceTest {
     // unsupported country_code
     ex =
       assertThrows { sep38Service.validateGetPricesInput("iso4217:USD", "1.23", "BRA", null, null) }
-    wantException = BadRequestException("Unsupported country code")
-    assertEquals(wantException, ex)
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("Unsupported country code", ex.message)
 
     // unsupported sell_delivery_method
     ex =
       assertThrows {
         sep38Service.validateGetPricesInput("iso4217:USD", "1.23", "USA", "FOO", null)
       }
-    wantException = BadRequestException("Unsupported sell delivery method")
-    assertEquals(wantException, ex)
-
-    // unsupported buy_delivery_method
-    ex =
-      assertThrows {
-        sep38Service.validateGetPricesInput("iso4217:USD", "1.23", "USA", "WIRE", "BAR")
-      }
-    wantException = BadRequestException("Unsupported buy delivery method")
-    assertEquals(wantException, ex)
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("Unsupported sell delivery method", ex.message)
 
     // success
     assertDoesNotThrow {
@@ -178,7 +170,7 @@ class Sep38ServiceTest {
     wantException = BadRequestException("sell_asset cannot be empty")
     assertEquals(wantException, ex)
 
-    // test if input is being validated
+    // test happy path with the minimum parameters
     var gotResponse: GetPricesResponse? = null
     assertDoesNotThrow {
       gotResponse = sep38Service.getPrices("iso4217:USD", "100", null, null, null)

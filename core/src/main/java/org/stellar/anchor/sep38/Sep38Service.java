@@ -1,8 +1,8 @@
 package org.stellar.anchor.sep38;
 
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
-import org.stellar.anchor.asset.AssetInfo;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.Sep38Config;
 import org.stellar.anchor.dto.sep38.GetPricesResponse;
@@ -20,18 +20,22 @@ public class Sep38Service {
   final Sep38Config sep38Config;
   final AssetService assetService;
   final RateIntegration rateIntegration;
+  final InfoResponse infoResponse;
+  final Map<String, InfoResponse.Asset> assetMap;
 
   public Sep38Service(
       Sep38Config sep38Config, AssetService assetService, RateIntegration rateIntegration) {
     this.sep38Config = sep38Config;
     this.assetService = assetService;
     this.rateIntegration = rateIntegration;
+    this.infoResponse = new InfoResponse(this.assetService.listAllAssets());
+    assetMap = new HashMap<>();
+    this.infoResponse.getAssets().forEach(asset -> assetMap.put(asset.getAsset(), asset));
     Log.info("Initializing sep38 service.");
   }
 
   public InfoResponse getInfo() {
-    List<AssetInfo> assets = this.assetService.listAllAssets();
-    return new InfoResponse(assets);
+    return this.infoResponse;
   }
 
   public GetPricesResponse getPrices(
@@ -46,11 +50,8 @@ public class Sep38Service {
     }
     validateGetPricesInput(
         sellAssetName, sellAmount, countryCode, sellDeliveryMethod, buyDeliveryMethod);
-    InfoResponse.Asset sellAsset =
-        getInfo().getAssets().stream()
-            .filter(asset -> asset.getAsset().equals(sellAssetName))
-            .findFirst()
-            .orElse(null);
+
+    InfoResponse.Asset sellAsset = assetMap.get(sellAssetName);
     assert sellAsset != null;
 
     GetRateRequest.GetRateRequestBuilder builder =
@@ -62,6 +63,11 @@ public class Sep38Service {
             .buyDeliveryMethod(buyDeliveryMethod);
     GetPricesResponse response = new GetPricesResponse();
     for (String buyAssetName : sellAsset.getExchangeableAssetNames()) {
+      InfoResponse.Asset buyAsset = this.assetMap.get(buyAssetName);
+      if (!buyAsset.hasBuyDeliveryMethod(buyDeliveryMethod)) {
+        continue;
+      }
+
       GetRateRequest request = builder.buyAsset(buyAssetName).build();
       GetRateResponse rateResponse = this.rateIntegration.getRate(request);
       response.addAsset(buyAssetName, rateResponse.getRate().getPrice());
@@ -89,11 +95,7 @@ public class Sep38Service {
       throw new BadRequestException("sell_asset cannot be empty");
     }
 
-    InfoResponse.Asset sellAsset =
-        getInfo().getAssets().stream()
-            .filter(asset -> asset.getAsset().equals(sellAssetName))
-            .findFirst()
-            .orElse(null);
+    InfoResponse.Asset sellAsset = assetMap.get(sellAssetName);
     if (sellAsset == null) {
       throw new NotFoundException("sell_asset not found");
     }
@@ -109,32 +111,8 @@ public class Sep38Service {
     }
 
     if (!Objects.toString(sellDeliveryMethod, "").isEmpty()) {
-      if (sellAsset.getSellDeliveryMethods() == null) {
+      if (!sellAsset.hasSellDeliveryMethod(sellDeliveryMethod)) {
         throw new BadRequestException("Unsupported sell delivery method");
-      }
-
-      AssetInfo.Sep38Operation.DeliveryMethod deliveryMethod =
-          sellAsset.getSellDeliveryMethods().stream()
-              .filter(dMethod -> dMethod.getName().equals(sellDeliveryMethod))
-              .findFirst()
-              .orElse(null);
-      if (deliveryMethod == null) {
-        throw new BadRequestException("Unsupported sell delivery method");
-      }
-    }
-
-    if (!Objects.toString(buyDeliveryMethod, "").isEmpty()) {
-      if (sellAsset.getBuyDeliveryMethods() == null) {
-        throw new BadRequestException("Unsupported buy delivery method");
-      }
-
-      AssetInfo.Sep38Operation.DeliveryMethod deliveryMethod =
-          sellAsset.getBuyDeliveryMethods().stream()
-              .filter(dMethod -> dMethod.getName().equals(buyDeliveryMethod))
-              .findFirst()
-              .orElse(null);
-      if (deliveryMethod == null) {
-        throw new BadRequestException("Unsupported buy delivery method");
       }
     }
   }

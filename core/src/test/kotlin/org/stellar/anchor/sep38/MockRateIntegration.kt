@@ -6,6 +6,6 @@ import org.stellar.anchor.integration.rate.RateIntegration
 
 class MockRateIntegration : RateIntegration {
   override fun getRate(request: GetRateRequest?): GetRateResponse {
-    TODO("Not yet implemented, use it with mockk in your tests")
+    TODO("Not implemented! Use it with mockk in your tests")
   }
 }

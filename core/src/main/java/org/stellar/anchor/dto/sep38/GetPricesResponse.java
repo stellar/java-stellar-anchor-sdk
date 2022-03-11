@@ -13,9 +13,7 @@ public class GetPricesResponse {
   List<Asset> buyAssets = new ArrayList<>();
 
   public void addAsset(@NonNull String assetName, @NonNull String price) {
-    int decimals = 7;
-    if (assetName.startsWith("iso4217")) decimals = 2;
-
+    int decimals = assetName.startsWith("iso4217") ? 2 : 7;
     buyAssets.add(Asset.builder().asset(assetName).price(price).decimals(decimals).build());
   }
 

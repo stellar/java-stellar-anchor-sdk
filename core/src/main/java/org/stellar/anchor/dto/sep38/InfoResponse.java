@@ -45,5 +45,37 @@ public class InfoResponse {
     private List<AssetInfo.Sep38Operation.DeliveryMethod> buyDeliveryMethods;
 
     private transient List<String> exchangeableAssetNames;
+
+    public boolean hasSellDeliveryMethod(String deliveryMethod) {
+      return hasDeliveryMethod(sellDeliveryMethods, deliveryMethod);
+    }
+
+    public boolean hasBuyDeliveryMethod(String deliveryMethod) {
+      return hasDeliveryMethod(buyDeliveryMethods, deliveryMethod);
+    }
+
+    private boolean hasDeliveryMethod(
+        List<AssetInfo.Sep38Operation.DeliveryMethod> deliveryMethods, String method) {
+      boolean noneIsAvailable = deliveryMethods == null || deliveryMethods.size() == 0;
+      boolean noneIsProvided = method == null || method.equals("");
+      if (noneIsAvailable && noneIsProvided) {
+        return true;
+      }
+
+      if (noneIsAvailable) {
+        return false;
+      }
+
+      if (noneIsProvided) {
+        return true;
+      }
+
+      AssetInfo.Sep38Operation.DeliveryMethod foundMethod =
+          deliveryMethods.stream()
+              .filter(dMethod -> dMethod.getName().equals(method))
+              .findFirst()
+              .orElse(null);
+      return foundMethod != null;
+    }
   }
 }
