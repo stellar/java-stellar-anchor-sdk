@@ -80,10 +80,11 @@ class PlatformRateIntegrationTest {
         .type(GetRateRequest.Type.INDICATIVE)
         .sellAsset("iso4217:USD")
         .sellAmount("100")
+        .countryCode("USA")
         .sellDeliveryMethod("WIRE")
         .build()
     testGetRate(
-      "/rate?type=indicative&sell_asset=iso4217%3AUSD&sell_amount=100&sell_delivery_method=WIRE",
+      "/rate?type=indicative&sell_asset=iso4217%3AUSD&sell_amount=100&country_code=USA&sell_delivery_method=WIRE",
       getRateRequest
     )
 
@@ -95,6 +96,7 @@ class PlatformRateIntegrationTest {
         .buyAsset("stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN")
         .sellAmount("100")
         .buyAmount("100")
+        .countryCode("USA")
         .sellDeliveryMethod("WIRE")
         .buyDeliveryMethod("WIRE")
         .clientDomain("test.com")
@@ -103,7 +105,7 @@ class PlatformRateIntegrationTest {
         .memoType("text")
         .build()
     testGetRate(
-      "/rate?type=indicative&sell_asset=iso4217%3AUSD&buy_asset=stellar%3AUSDC%3AGA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN&sell_amount=100&buy_amount=100&sell_delivery_method=WIRE&buy_delivery_method=WIRE&client_domain=test.com&account=GDGWTSQKQQAT2OXRSFLADMN4F6WJQMPJ5MIOKIZ2AMBYUI67MJA4WRLA&memo=foo&memo_type=text",
+      "/rate?type=indicative&sell_asset=iso4217%3AUSD&buy_asset=stellar%3AUSDC%3AGA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN&sell_amount=100&buy_amount=100&country_code=USA&sell_delivery_method=WIRE&buy_delivery_method=WIRE&client_domain=test.com&account=GDGWTSQKQQAT2OXRSFLADMN4F6WJQMPJ5MIOKIZ2AMBYUI67MJA4WRLA&memo=foo&memo_type=text",
       getRateRequest
     )
   }
