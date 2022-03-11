@@ -2,7 +2,7 @@ FROM openjdk:11-jdk AS build
 # build jar
 ADD . /code
 WORKDIR /code
-RUN ./gradlew clean build --stacktrace
+RUN ./gradlew jar --stacktrace
 
 FROM ubuntu:20.04
 
