@@ -53,7 +53,9 @@ public class Sep38Service {
         sellAssetName, sellAmount, countryCode, sellDeliveryMethod, buyDeliveryMethod);
 
     InfoResponse.Asset sellAsset = assetMap.get(sellAssetName);
-    assert sellAsset != null;
+    if (sellAsset == null) {
+      throw new ServerErrorException("internal server error");
+    }
 
     GetRateRequest.GetRateRequestBuilder builder =
         GetRateRequest.builder()
