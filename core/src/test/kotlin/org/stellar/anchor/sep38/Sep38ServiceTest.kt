@@ -114,6 +114,23 @@ class Sep38ServiceTest {
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("sell_amount cannot be empty", ex.message)
 
+    // invalid (not a number) sell_amount
+    ex =
+      assertThrows { sep38Service.validateGetPricesInput("iso4217:USD", "foo", null, null, null) }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("Invalid sell_amount", ex.message)
+
+    // sell_amount should be positive
+    ex =
+      assertThrows { sep38Service.validateGetPricesInput("iso4217:USD", "-0.01", null, null, null) }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("sell_amount should be positive", ex.message)
+
+    // sell_amount should be positive
+    ex = assertThrows { sep38Service.validateGetPricesInput("iso4217:USD", "0", null, null, null) }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("sell_amount should be positive", ex.message)
+
     // country_code, sell_delivery_method and buy_delivery_method are not mandatory
     assertDoesNotThrow {
       sep38Service.validateGetPricesInput("iso4217:USD", "1.23", null, null, null)

@@ -1,5 +1,6 @@
 package org.stellar.anchor.sep38;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -102,6 +103,16 @@ public class Sep38Service {
 
     if (Objects.toString(sellAmount, "").isEmpty()) {
       throw new BadRequestException("sell_amount cannot be empty");
+    }
+
+    BigDecimal sAmount;
+    try {
+      sAmount = new BigDecimal(sellAmount);
+    } catch (NumberFormatException e) {
+      throw new BadRequestException("Invalid sell_amount", e);
+    }
+    if (sAmount.signum() < 1) {
+      throw new BadRequestException("sell_amount should be positive");
     }
 
     if (!Objects.toString(countryCode, "").isEmpty()) {
