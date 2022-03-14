@@ -97,98 +97,54 @@ class Sep38ServiceTest {
   }
 
   @Test
-  fun test_validateAssetWithMsgPrefix() {
-    // empty sell_asset
-    var ex: AnchorException = assertThrows {
-      sep38Service.validateAssetWithMsgPrefix("sell_", null, null, null, null)
-    }
-    assertInstanceOf(BadRequestException::class.java, ex)
-    assertEquals("sell_asset cannot be empty", ex.message)
-
-    // nonexistent sell_asset
-    ex =
-      assertThrows { sep38Service.validateAssetWithMsgPrefix("sell_", "foo:bar", null, null, null) }
-    assertInstanceOf(NotFoundException::class.java, ex)
-    assertEquals("sell_asset not found", ex.message)
-
-    // empty sell_amount
-    ex =
-      assertThrows {
-        sep38Service.validateAssetWithMsgPrefix("sell_", "iso4217:USD", null, null, null)
-      }
-    assertInstanceOf(BadRequestException::class.java, ex)
-    assertEquals("sell_amount cannot be empty", ex.message)
-
-    // invalid (not a number) sell_amount
-    ex =
-      assertThrows {
-        sep38Service.validateAssetWithMsgPrefix("sell_", "iso4217:USD", "foo", null, null)
-      }
-    assertInstanceOf(BadRequestException::class.java, ex)
-    assertEquals("sell_amount is invalid", ex.message)
-
-    // sell_amount should be positive
-    ex =
-      assertThrows {
-        sep38Service.validateAssetWithMsgPrefix("sell_", "iso4217:USD", "-0.01", null, null)
-      }
-    assertInstanceOf(BadRequestException::class.java, ex)
-    assertEquals("sell_amount should be positive", ex.message)
-
-    // sell_amount should be positive
-    ex =
-      assertThrows {
-        sep38Service.validateAssetWithMsgPrefix("buy_", "iso4217:USD", "0", null, null)
-      }
-    assertInstanceOf(BadRequestException::class.java, ex)
-    assertEquals("buy_amount should be positive", ex.message)
-
-    // country_code, sell_delivery_method and buy_delivery_method are not mandatory
-    assertDoesNotThrow {
-      sep38Service.validateAssetWithMsgPrefix("sell_", "iso4217:USD", "1.23", null, null)
-    }
-
-    // unsupported sell_delivery_method
-    ex =
-      assertThrows {
-        sep38Service.validateAssetWithMsgPrefix("sell_", "iso4217:USD", "1.23", "FOO", null)
-      }
-    assertInstanceOf(BadRequestException::class.java, ex)
-    assertEquals("Unsupported sell delivery method", ex.message)
-
-    // unsupported buy_delivery_method
-    ex =
-      assertThrows {
-        sep38Service.validateAssetWithMsgPrefix("sell_", "iso4217:USD", "1.23", "WIRE", "BAR")
-      }
-    assertInstanceOf(BadRequestException::class.java, ex)
-    assertEquals("Unsupported buy delivery method", ex.message)
-
-    // success
-    assertDoesNotThrow {
-      sep38Service.validateAssetWithMsgPrefix("sell_", "iso4217:USD", "1.23", "WIRE", "WIRE")
-    }
-  }
-
-  @Test
   fun test_getPrices_failure() {
     // empty rateIntegration should throw an error
     var ex: AnchorException = assertThrows { sep38Service.getPrices(null, null, null, null, null) }
-    var wantException: AnchorException = ServerErrorException("internal server error")
-    assertEquals(wantException, ex)
+    assertInstanceOf(ServerErrorException::class.java, ex)
+    assertEquals("internal server error", ex.message)
 
     // mock rate integration
     val mockRateIntegration = mockk<MockRateIntegration>()
     sep38Service =
       Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration)
 
-    // test if input is being validated
+    // empty sell_asset
     ex = assertThrows { sep38Service.getPrices(null, null, null, null, null) }
-    wantException = BadRequestException("sell_asset cannot be empty")
-    assertEquals(wantException, ex)
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("sell_asset cannot be empty", ex.message)
 
-    // test if country_code is being validated
-    ex = assertThrows { sep38Service.getPrices("iso4217:USD", "1.23", null, null, "FOO") }
+    // nonexistent sell_asset
+    ex = assertThrows { sep38Service.getPrices("foo:bar", null, null, null, null) }
+    assertInstanceOf(NotFoundException::class.java, ex)
+    assertEquals("sell_asset not found", ex.message)
+
+    // empty sell_amount
+    ex = assertThrows { sep38Service.getPrices("iso4217:USD", null, null, null, null) }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("sell_amount cannot be empty", ex.message)
+
+    // invalid (not a number) sell_amount
+    ex = assertThrows { sep38Service.getPrices("iso4217:USD", "foo", null, null, null) }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("sell_amount is invalid", ex.message)
+
+    // sell_amount should be positive
+    ex = assertThrows { sep38Service.getPrices("iso4217:USD", "-0.01", null, null, null) }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("sell_amount should be positive", ex.message)
+
+    // sell_amount should be positive
+    ex = assertThrows { sep38Service.getPrices("iso4217:USD", "0", null, null, null) }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("sell_amount should be positive", ex.message)
+
+    // unsupported sell_delivery_method
+    ex = assertThrows { sep38Service.getPrices("iso4217:USD", "1.23", "FOO", null, null) }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("Unsupported sell delivery method", ex.message)
+
+    // unsupported country_code
+    ex = assertThrows { sep38Service.getPrices("iso4217:USD", "1.23", "WIRE", null, "FOO") }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("Unsupported country code", ex.message)
   }
@@ -313,28 +269,120 @@ class Sep38ServiceTest {
     sep38Service =
       Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration)
 
-    // test if input is being validated for sell assets
+    // empty sell_asset
     ex = assertThrows { sep38Service.getPrice(null, null, null, null, null, null, null) }
     wantException = BadRequestException("sell_asset cannot be empty")
     assertEquals(wantException, ex)
 
-    // test if input is being validated for buy assets
-    ex = assertThrows { sep38Service.getPrice("iso4217:USD", "1.23", null, null, null, null, null) }
+    // nonexistent sell_asset
+    ex = assertThrows { sep38Service.getPrice("foo:bar", null, null, null, null, null, null) }
+    assertInstanceOf(NotFoundException::class.java, ex)
+    assertEquals("sell_asset not found", ex.message)
+
+    // empty buy_asset
+    ex = assertThrows { sep38Service.getPrice("iso4217:USD", null, null, null, null, null, null) }
     wantException = BadRequestException("buy_asset cannot be empty")
     assertEquals(wantException, ex)
 
-    // test if country_code is being validated
+    // nonexistent buy_asset
+    ex =
+      assertThrows { sep38Service.getPrice("iso4217:USD", null, null, "foo:bar", null, null, null) }
+    assertInstanceOf(NotFoundException::class.java, ex)
+    assertEquals("buy_asset not found", ex.message)
+
     val stellarUSDC = "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+    // both sell_amount & buy_amount are empty
     ex =
       assertThrows {
-        sep38Service.getPrice("iso4217:USD", "1.23", null, stellarUSDC, "1.23", null, "FOO")
+        sep38Service.getPrice("iso4217:USD", null, null, stellarUSDC, null, null, null)
+      }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("Please provide either sell_amount or buy_amount", ex.message)
+
+    // both sell_amount & buy_amount are filled
+    ex =
+      assertThrows {
+        sep38Service.getPrice("iso4217:USD", "100", null, stellarUSDC, "100", null, null)
+      }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("Please provide either sell_amount or buy_amount", ex.message)
+
+    // invalid (not a number) sell_amount
+    ex =
+      assertThrows {
+        sep38Service.getPrice("iso4217:USD", "foo", null, stellarUSDC, null, null, null)
+      }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("sell_amount is invalid", ex.message)
+
+    // sell_amount should be positive
+    ex =
+      assertThrows {
+        sep38Service.getPrice("iso4217:USD", "-0.01", null, stellarUSDC, null, null, null)
+      }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("sell_amount should be positive", ex.message)
+
+    // sell_amount should be positive
+    ex =
+      assertThrows {
+        sep38Service.getPrice("iso4217:USD", "0", null, stellarUSDC, null, null, null)
+      }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("sell_amount should be positive", ex.message)
+
+    //
+    // invalid (not a number) buy_amount
+    ex =
+      assertThrows {
+        sep38Service.getPrice("iso4217:USD", null, null, stellarUSDC, "bar", null, null)
+      }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("buy_amount is invalid", ex.message)
+
+    // sell_amount should be positive
+    ex =
+      assertThrows {
+        sep38Service.getPrice("iso4217:USD", null, null, stellarUSDC, "-0.02", null, null)
+      }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("buy_amount should be positive", ex.message)
+
+    // sell_amount should be positive
+    ex =
+      assertThrows {
+        sep38Service.getPrice("iso4217:USD", null, null, stellarUSDC, "0", null, null)
+      }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("buy_amount should be positive", ex.message)
+
+    // unsupported sell_delivery_method
+    ex =
+      assertThrows {
+        sep38Service.getPrice("iso4217:USD", "1.23", "FOO", stellarUSDC, null, null, null)
+      }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("Unsupported sell delivery method", ex.message)
+
+    // unsupported buy_delivery_method
+    ex =
+      assertThrows {
+        sep38Service.getPrice("iso4217:USD", "1.23", "WIRE", stellarUSDC, null, "BAR", null)
+      }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("Unsupported buy delivery method", ex.message)
+
+    // unsupported country_code
+    ex =
+      assertThrows {
+        sep38Service.getPrice("iso4217:USD", "1.23", "WIRE", stellarUSDC, null, null, "BRA")
       }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("Unsupported country code", ex.message)
   }
 
   @Test
-  fun test_getPrice_minimumParameters() {
+  fun test_getPrice_minimumParametersWithSellAmount() {
     // mock rate integration
     val mockRateIntegration = mockk<MockRateIntegration>()
     val getRateReq =
@@ -342,9 +390,8 @@ class Sep38ServiceTest {
         .sellAsset("iso4217:USD")
         .sellAmount("100")
         .buyAsset("stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5")
-        .buyAmount("100")
         .build()
-    every { mockRateIntegration.getRate(getRateReq) } returns GetRateResponse("1")
+    every { mockRateIntegration.getRate(getRateReq) } returns GetRateResponse("1.02")
     sep38Service =
       Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration)
 
@@ -352,11 +399,35 @@ class Sep38ServiceTest {
     val stellarUSDC = "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
     var gotResponse: GetPriceResponse? = null
     assertDoesNotThrow {
-      gotResponse =
-        sep38Service.getPrice("iso4217:USD", "100", null, stellarUSDC, "100", null, null)
+      gotResponse = sep38Service.getPrice("iso4217:USD", "100", null, stellarUSDC, null, null, null)
     }
     val wantResponse =
-      GetPriceResponse.builder().price("1").sellAmount("100").buyAmount("100").build()
+      GetPriceResponse.builder().price("1.02").sellAmount("100").buyAmount("98.0392").build()
+    assertEquals(wantResponse, gotResponse)
+  }
+
+  @Test
+  fun test_getPrice_minimumParametersWithBuyAmount() {
+    // mock rate integration
+    val mockRateIntegration = mockk<MockRateIntegration>()
+    val getRateReq =
+      GetRateRequest.builder()
+        .sellAsset("iso4217:USD")
+        .buyAmount("100")
+        .buyAsset("stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5")
+        .build()
+    every { mockRateIntegration.getRate(getRateReq) } returns GetRateResponse("1.02")
+    sep38Service =
+      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration)
+
+    // test happy path with the minimum parameters
+    val stellarUSDC = "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+    var gotResponse: GetPriceResponse? = null
+    assertDoesNotThrow {
+      gotResponse = sep38Service.getPrice("iso4217:USD", null, null, stellarUSDC, "100", null, null)
+    }
+    val wantResponse =
+      GetPriceResponse.builder().price("1.02").sellAmount("102.00").buyAmount("100").build()
     assertEquals(wantResponse, gotResponse)
   }
 }

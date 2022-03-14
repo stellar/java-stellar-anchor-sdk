@@ -1,6 +1,7 @@
 package org.stellar.anchor.sep38;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -51,9 +52,17 @@ public class Sep38Service {
     if (this.rateIntegration == null) {
       throw new ServerErrorException("internal server error");
     }
-    validateAssetWithMsgPrefix("sell_", sellAssetName, sellAmount, sellDeliveryMethod, null);
+    validateAsset("sell_", sellAssetName);
+    validateAmount("sell_", sellAmount);
 
     InfoResponse.Asset sellAsset = assetMap.get(sellAssetName);
+
+    // sellDeliveryMethod
+    if (!Objects.toString(sellDeliveryMethod, "").isEmpty()) {
+      if (!sellAsset.supportsSellDeliveryMethod(sellDeliveryMethod)) {
+        throw new BadRequestException("Unsupported sell delivery method");
+      }
+    }
 
     // countryCode
     if (!Objects.toString(countryCode, "").isEmpty()) {
@@ -62,6 +71,7 @@ public class Sep38Service {
       }
     }
 
+    // Make requests to `GET {quoteIntegration}/rates`
     GetRateRequest.GetRateRequestBuilder builder =
         GetRateRequest.builder()
             .sellAsset(sellAssetName)
@@ -84,32 +94,20 @@ public class Sep38Service {
     return response;
   }
 
-  public void validateAssetWithMsgPrefix(
-      String prefix,
-      String assetName,
-      String amount,
-      String sellDeliveryMethod,
-      String buyDeliveryMethod)
-      throws AnchorException {
-    Log.infoF(
-        "validateAssetWithMsgPrefix(): prefix={}, assetName={}, amount={}, sellDeliveryMethod={}, buyDeliveryMethod={}",
-        prefix,
-        assetName,
-        amount,
-        sellDeliveryMethod,
-        buyDeliveryMethod);
-
+  public void validateAsset(String prefix, String assetName) throws AnchorException {
     // assetName
     if (Objects.toString(assetName, "").isEmpty()) {
       throw new BadRequestException(prefix + "asset cannot be empty");
     }
 
-    InfoResponse.Asset sellAsset = assetMap.get(assetName);
-    if (sellAsset == null) {
+    InfoResponse.Asset asset = assetMap.get(assetName);
+    if (asset == null) {
       throw new NotFoundException(prefix + "asset not found");
     }
+  }
 
-    // amount
+  public void validateAmount(String prefix, String amount) throws AnchorException {
+    // assetName
     if (Objects.toString(amount, "").isEmpty()) {
       throw new BadRequestException(prefix + "amount cannot be empty");
     }
@@ -122,20 +120,6 @@ public class Sep38Service {
     }
     if (sAmount.signum() < 1) {
       throw new BadRequestException(prefix + "amount should be positive");
-    }
-
-    // sellDeliveryMethod
-    if (!Objects.toString(sellDeliveryMethod, "").isEmpty()) {
-      if (!sellAsset.supportsSellDeliveryMethod(sellDeliveryMethod)) {
-        throw new BadRequestException("Unsupported sell delivery method");
-      }
-    }
-
-    // buyDeliveryMethod
-    if (!Objects.toString(buyDeliveryMethod, "").isEmpty()) {
-      if (!sellAsset.supportsBuyDeliveryMethod(buyDeliveryMethod)) {
-        throw new BadRequestException("Unsupported buy delivery method");
-      }
     }
   }
 
@@ -151,11 +135,33 @@ public class Sep38Service {
     if (this.rateIntegration == null) {
       throw new ServerErrorException("internal server error");
     }
-    validateAssetWithMsgPrefix("sell_", sellAssetName, sellAmount, sellDeliveryMethod, null);
-    validateAssetWithMsgPrefix("buy_", buyAssetName, buyAmount, null, buyDeliveryMethod);
+    validateAsset("sell_", sellAssetName);
+    validateAsset("buy_", buyAssetName);
+
+    if ((sellAmount == null && buyAmount == null) || (sellAmount != null && buyAmount != null)) {
+      throw new BadRequestException("Please provide either sell_amount or buy_amount");
+    } else if (sellAmount != null) {
+      validateAmount("sell_", sellAmount);
+    } else {
+      validateAmount("buy_", buyAmount);
+    }
 
     InfoResponse.Asset sellAsset = assetMap.get(sellAssetName);
     InfoResponse.Asset buyAsset = assetMap.get(buyAssetName);
+
+    // sellDeliveryMethod
+    if (!Objects.toString(sellDeliveryMethod, "").isEmpty()) {
+      if (!sellAsset.supportsSellDeliveryMethod(sellDeliveryMethod)) {
+        throw new BadRequestException("Unsupported sell delivery method");
+      }
+    }
+
+    // buyDeliveryMethod
+    if (!Objects.toString(buyDeliveryMethod, "").isEmpty()) {
+      if (!buyAsset.supportsBuyDeliveryMethod(buyDeliveryMethod)) {
+        throw new BadRequestException("Unsupported buy delivery method");
+      }
+    }
 
     // countryCode
     if (!Objects.toString(countryCode, "").isEmpty()) {
@@ -184,12 +190,20 @@ public class Sep38Service {
             .build();
     GetRateResponse rateResponse = this.rateIntegration.getRate(request);
 
-    // TODO: calculate amounts in terms of price: sellAmount = buyAmount*price or buyAmount = sellAmount/price
+    // Calculate amounts: sellAmount = buyAmount*price or buyAmount = sellAmount/price
+    GetPriceResponse.GetPriceResponseBuilder builder =
+        GetPriceResponse.builder().price(rateResponse.getRate().getPrice());
+    BigDecimal bPrice = new BigDecimal(rateResponse.getRate().getPrice());
+    if (sellAmount != null) {
+      BigDecimal bSellAmount = new BigDecimal(sellAmount);
+      BigDecimal bBuyAmount = bSellAmount.divide(bPrice, 4, RoundingMode.HALF_UP);
+      builder = builder.sellAmount(sellAmount).buyAmount(bBuyAmount.toPlainString());
+    } else {
+      BigDecimal bBuyAmount = new BigDecimal(buyAmount);
+      BigDecimal bSellAmount = bBuyAmount.multiply(bPrice);
+      builder = builder.buyAmount(buyAmount).sellAmount(bSellAmount.toPlainString());
+    }
 
-    return GetPriceResponse.builder()
-        .price(rateResponse.getRate().getPrice())
-        .sellAmount(sellAmount)
-        .buyAmount(buyAmount)
-        .build();
+    return builder.build();
   }
 }
