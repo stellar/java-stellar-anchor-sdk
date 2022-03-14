@@ -9,6 +9,7 @@ import org.junit.jupiter.api.assertThrows
 import org.stellar.anchor.asset.AssetInfo
 import org.stellar.anchor.asset.ResourceJsonAssetService
 import org.stellar.anchor.config.Sep38Config
+import org.stellar.anchor.dto.sep38.GetPriceResponse
 import org.stellar.anchor.dto.sep38.GetPricesResponse
 import org.stellar.anchor.dto.sep38.InfoResponse
 import org.stellar.anchor.exception.AnchorException
@@ -295,6 +296,67 @@ class Sep38ServiceTest {
     }
     val wantResponse = GetPricesResponse()
     wantResponse.addAsset("iso4217:USD", "1")
+    assertEquals(wantResponse, gotResponse)
+  }
+
+  @Test
+  fun test_getPrice_failure() {
+    // empty rateIntegration should throw an error
+    var ex: AnchorException = assertThrows {
+      sep38Service.getPrice(null, null, null, null, null, null, null)
+    }
+    var wantException: AnchorException = ServerErrorException("internal server error")
+    assertEquals(wantException, ex)
+
+    // mock rate integration
+    val mockRateIntegration = mockk<MockRateIntegration>()
+    sep38Service =
+      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration)
+
+    // test if input is being validated for sell assets
+    ex = assertThrows { sep38Service.getPrice(null, null, null, null, null, null, null) }
+    wantException = BadRequestException("sell_asset cannot be empty")
+    assertEquals(wantException, ex)
+
+    // test if input is being validated for buy assets
+    ex = assertThrows { sep38Service.getPrice("iso4217:USD", "1.23", null, null, null, null, null) }
+    wantException = BadRequestException("buy_asset cannot be empty")
+    assertEquals(wantException, ex)
+
+    // test if country_code is being validated
+    val stellarUSDC = "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+    ex =
+      assertThrows {
+        sep38Service.getPrice("iso4217:USD", "1.23", null, stellarUSDC, "1.23", null, "FOO")
+      }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("Unsupported country code", ex.message)
+  }
+
+  @Test
+  fun test_getPrice_minimumParameters() {
+    // mock rate integration
+    val mockRateIntegration = mockk<MockRateIntegration>()
+    val getRateReq =
+      GetRateRequest.builder()
+        .sellAsset("iso4217:USD")
+        .sellAmount("100")
+        .buyAsset("stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5")
+        .buyAmount("100")
+        .build()
+    every { mockRateIntegration.getRate(getRateReq) } returns GetRateResponse("1")
+    sep38Service =
+      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration)
+
+    // test happy path with the minimum parameters
+    val stellarUSDC = "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+    var gotResponse: GetPriceResponse? = null
+    assertDoesNotThrow {
+      gotResponse =
+        sep38Service.getPrice("iso4217:USD", "100", null, stellarUSDC, "100", null, null)
+    }
+    val wantResponse =
+      GetPriceResponse.builder().price("1").sellAmount("100").buyAmount("100").build()
     assertEquals(wantResponse, gotResponse)
   }
 }

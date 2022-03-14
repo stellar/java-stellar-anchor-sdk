@@ -2,10 +2,12 @@ package org.stellar.anchor.sep38;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.Sep38Config;
+import org.stellar.anchor.dto.sep38.GetPriceResponse;
 import org.stellar.anchor.dto.sep38.GetPricesResponse;
 import org.stellar.anchor.dto.sep38.InfoResponse;
 import org.stellar.anchor.exception.AnchorException;
@@ -135,5 +137,59 @@ public class Sep38Service {
         throw new BadRequestException("Unsupported buy delivery method");
       }
     }
+  }
+
+  public GetPriceResponse getPrice(
+      String sellAssetName,
+      String sellAmount,
+      String sellDeliveryMethod,
+      String buyAssetName,
+      String buyAmount,
+      String buyDeliveryMethod,
+      String countryCode)
+      throws AnchorException {
+    if (this.rateIntegration == null) {
+      throw new ServerErrorException("internal server error");
+    }
+    validateAssetWithMsgPrefix("sell_", sellAssetName, sellAmount, sellDeliveryMethod, null);
+    validateAssetWithMsgPrefix("buy_", buyAssetName, buyAmount, null, buyDeliveryMethod);
+
+    InfoResponse.Asset sellAsset = assetMap.get(sellAssetName);
+    InfoResponse.Asset buyAsset = assetMap.get(buyAssetName);
+
+    // countryCode
+    if (!Objects.toString(countryCode, "").isEmpty()) {
+      List<String> sellCountryCodes = sellAsset.getCountryCodes();
+      List<String> buyCountryCodes = buyAsset.getCountryCodes();
+      boolean bothCountryCodesAreNull = sellCountryCodes == null && buyCountryCodes == null;
+      boolean countryCodeIsSupportedForSell =
+          sellCountryCodes != null && sellCountryCodes.contains(countryCode);
+      boolean countryCodeIsSupportedForBuy =
+          buyCountryCodes != null && buyCountryCodes.contains(countryCode);
+      if (bothCountryCodesAreNull
+          || (!countryCodeIsSupportedForSell || !countryCodeIsSupportedForBuy)) {
+        throw new BadRequestException("Unsupported country code");
+      }
+    }
+
+    GetRateRequest request =
+        GetRateRequest.builder()
+            .sellAsset(sellAssetName)
+            .sellAmount(sellAmount)
+            .sellDeliveryMethod(sellDeliveryMethod)
+            .buyAsset(buyAssetName)
+            .buyAmount(buyAmount)
+            .buyDeliveryMethod(buyDeliveryMethod)
+            .countryCode(countryCode)
+            .build();
+    GetRateResponse rateResponse = this.rateIntegration.getRate(request);
+
+    // TODO: calculate amounts in terms of price: sellAmount = buyAmount*price or buyAmount = sellAmount/price
+
+    return GetPriceResponse.builder()
+        .price(rateResponse.getRate().getPrice())
+        .sellAmount(sellAmount)
+        .buyAmount(buyAmount)
+        .build();
   }
 }
