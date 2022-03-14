@@ -11,15 +11,12 @@ import org.stellar.anchor.config.Sep38Config;
 import org.stellar.anchor.dto.sep38.GetPriceResponse;
 import org.stellar.anchor.dto.sep38.GetPricesResponse;
 import org.stellar.anchor.dto.sep38.InfoResponse;
-<<<<<<< HEAD
 import org.stellar.anchor.exception.AnchorException;
 import org.stellar.anchor.exception.BadRequestException;
 import org.stellar.anchor.exception.NotFoundException;
 import org.stellar.anchor.exception.ServerErrorException;
 import org.stellar.anchor.integration.rate.GetRateRequest;
 import org.stellar.anchor.integration.rate.GetRateResponse;
-=======
->>>>>>> 3775b0b... SEP-38: integrate with the anchor synchronous callback API for `GET /rate` (#108)
 import org.stellar.anchor.integration.rate.RateIntegration;
 import org.stellar.anchor.util.Log;
 
@@ -27,23 +24,17 @@ public class Sep38Service {
   final Sep38Config sep38Config;
   final AssetService assetService;
   final RateIntegration rateIntegration;
-<<<<<<< HEAD
   final InfoResponse infoResponse;
   final Map<String, InfoResponse.Asset> assetMap;
-=======
->>>>>>> 3775b0b... SEP-38: integrate with the anchor synchronous callback API for `GET /rate` (#108)
 
   public Sep38Service(
       Sep38Config sep38Config, AssetService assetService, RateIntegration rateIntegration) {
     this.sep38Config = sep38Config;
     this.assetService = assetService;
     this.rateIntegration = rateIntegration;
-<<<<<<< HEAD
     this.infoResponse = new InfoResponse(this.assetService.listAllAssets());
     assetMap = new HashMap<>();
     this.infoResponse.getAssets().forEach(asset -> assetMap.put(asset.getAsset(), asset));
-=======
->>>>>>> 3775b0b... SEP-38: integrate with the anchor synchronous callback API for `GET /rate` (#108)
     Log.info("Initializing sep38 service.");
   }
 

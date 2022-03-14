@@ -3,10 +3,12 @@ package org.stellar.anchor.platform
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import org.springframework.http.HttpStatus
 import org.stellar.anchor.dto.sep12.Sep12DeleteCustomerRequest
 import org.stellar.anchor.dto.sep12.Sep12GetCustomerResponse
 import org.stellar.anchor.dto.sep12.Sep12PutCustomerRequest
 import org.stellar.anchor.dto.sep12.Sep12PutCustomerResponse
+import org.stellar.anchor.exception.SepNotAuthorizedException
 
 const val HOST_URL = "http://localhost:8080"
 const val APPLICATION_JSON_CHARSET_UTF_8 = "application/json; charset=utf-8"
@@ -22,6 +24,9 @@ class Sep12Client(private val endpoint: String, private val jwt: String) : SepCl
         .build()
 
     val response = client.newCall(request).execute()
+    if (response.code == HttpStatus.FORBIDDEN.value()) {
+      throw SepNotAuthorizedException("Forbidden")
+    }
     val responseBody = response.body!!.string()
     return gson.fromJson(responseBody, Sep12GetCustomerResponse::class.java)
   }
@@ -34,6 +39,10 @@ class Sep12Client(private val endpoint: String, private val jwt: String) : SepCl
         .put(gson.toJson(customerRequest).toRequestBody(TYPE_JSON))
         .build()
     val response = client.newCall(request).execute()
+    if (response.code == HttpStatus.FORBIDDEN.value()) {
+      throw SepNotAuthorizedException("Forbidden")
+    }
+
     return gson.fromJson(response.body!!.string(), Sep12PutCustomerResponse::class.java)
   }
 
@@ -48,6 +57,9 @@ class Sep12Client(private val endpoint: String, private val jwt: String) : SepCl
         .delete(gson.toJson(deleteCustomerRequest).toRequestBody(TYPE_JSON))
         .build()
     val response = client.newCall(request).execute()
+    if (response.code == HttpStatus.FORBIDDEN.value()) {
+      throw SepNotAuthorizedException("Forbidden")
+    }
     return response.code
   }
 }

@@ -7,6 +7,7 @@ import org.stellar.anchor.util.Sep1Helper
 lateinit var sep12: Sep12Client
 
 fun sep12TestAll(toml: Sep1Helper.TomlContent, jwt: String) {
+  println("Performing SEP12 tests...")
   sep12 = Sep12Client(toml.getString("KYC_SERVER"), jwt)
 
   sep12TestHappyPath()
@@ -47,8 +48,8 @@ fun sep12TestHappyPath() {
   assert(gr.status.equals(Sep12Status.ACCEPTED))
 
   // Delete the customer
-  printRequest("Calling DELETE /customer/${walletAccount}", null)
-  val code = sep12.deleteCustomer(walletAccount)
+  printRequest("Calling DELETE /customer/${CLIENT_WALLET_ACCOUNT}", null)
+  val code = sep12.deleteCustomer(CLIENT_WALLET_ACCOUNT)
   printResponse(code)
   // currently, not implemented
   assert(code == 500)

@@ -6,15 +6,26 @@ import org.stellar.anchor.sep10.JwtToken
 import org.stellar.anchor.util.Sep1Helper
 import org.stellar.anchor.util.Sep1Helper.TomlContent
 
+var CLIENT_WALLET_ACCOUNT = "GAIUIZPHLIHQEMNJGSZKCEUWHAZVGUZDBDMO2JXNAJZZZVNSVHQCEWJ4"
+var CLIENT_WALLET_SECRET = "SAXKNDNU4FE2PCM5SOUXNXIQ7ZLCQMRZMMQAC2SIKZH7BAHQTTOLTIHW"
+var jwt: String? = null
+val jwtService = JwtService("secret")
+
 fun main(args: Array<String>) {
   // Start necessary servers
   val options = Options()
   options.addOption("h", "help", false, "Print this message.")
   options.addOption("a", "all", false, "Start all servers.")
-  options.addOption("s", "sep-server", false, "Start SEP endpoint server.")
-  options.addOption("r", "anchor-reference-server", false, "Start anchor reference server.")
-  options.addOption("t", "sep1-toml-path", true, "The path where the SEP1 TOML file can be read.")
+  options.addOption("s", "sep-server", false, "Start SEP endpoint test server.")
+  options.addOption("r", "anchor-reference-server", false, "Start anchor reference test server.")
+  options.addRequiredOption(
+    "t",
+    "sep1-toml",
+    true,
+    "The path where the SEP1 TOML file can be read."
+  )
   val sepsOption = Option("p", "seps", true, "SEPS to be test. eg: sep12")
+  sepsOption.isRequired = true
   sepsOption.args = Option.UNLIMITED_VALUES
   options.addOption(sepsOption)
 
@@ -63,18 +74,13 @@ fun main(args: Array<String>) {
   }
 }
 
-var walletAccount = "GAIUIZPHLIHQEMNJGSZKCEUWHAZVGUZDBDMO2JXNAJZZZVNSVHQCEWJ4"
-var walletPrivateKey = "SAXKNDNU4FE2PCM5SOUXNXIQ7ZLCQMRZMMQAC2SIKZH7BAHQTTOLTIHW"
-var jwt: String? = null
-val jwtService = JwtService("secret")
-
 fun getOrCreateJwt(tomlContent: TomlContent): String? {
   if (jwt == null) {
     val issuedAt: Long = System.currentTimeMillis() / 1000L
     val token =
       JwtToken.of(
         tomlContent.getString("WEB_AUTH_ENDPOINT"),
-        walletAccount,
+        CLIENT_WALLET_ACCOUNT,
         issuedAt,
         issuedAt + 60,
         "",
@@ -89,5 +95,6 @@ fun getOrCreateJwt(tomlContent: TomlContent): String? {
 fun printUsage(options: Options?) {
   val helper = HelpFormatter()
   helper.optionComparator = null
+  // TODO: Change this when we refactor the project structure.
   helper.printHelp("java -jar anchor-platform.jar", options)
 }
