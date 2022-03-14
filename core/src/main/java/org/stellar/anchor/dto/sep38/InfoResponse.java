@@ -46,15 +46,15 @@ public class InfoResponse {
 
     private transient List<String> exchangeableAssetNames;
 
-    public boolean hasSellDeliveryMethod(String deliveryMethod) {
-      return hasDeliveryMethod(sellDeliveryMethods, deliveryMethod);
+    public boolean supportsSellDeliveryMethod(String deliveryMethod) {
+      return supportsDeliveryMethod(sellDeliveryMethods, deliveryMethod);
     }
 
-    public boolean hasBuyDeliveryMethod(String deliveryMethod) {
-      return hasDeliveryMethod(buyDeliveryMethods, deliveryMethod);
+    public boolean supportsBuyDeliveryMethod(String deliveryMethod) {
+      return supportsDeliveryMethod(buyDeliveryMethods, deliveryMethod);
     }
 
-    private boolean hasDeliveryMethod(
+    private boolean supportsDeliveryMethod(
         List<AssetInfo.Sep38Operation.DeliveryMethod> deliveryMethods, String method) {
       boolean noneIsAvailable = deliveryMethods == null || deliveryMethods.size() == 0;
       boolean noneIsProvided = method == null || method.equals("");

@@ -64,7 +64,7 @@ public class Sep38Service {
     GetPricesResponse response = new GetPricesResponse();
     for (String buyAssetName : sellAsset.getExchangeableAssetNames()) {
       InfoResponse.Asset buyAsset = this.assetMap.get(buyAssetName);
-      if (!buyAsset.hasBuyDeliveryMethod(buyDeliveryMethod)) {
+      if (!buyAsset.supportsBuyDeliveryMethod(buyDeliveryMethod)) {
         continue;
       }
 
@@ -111,7 +111,7 @@ public class Sep38Service {
     }
 
     if (!Objects.toString(sellDeliveryMethod, "").isEmpty()) {
-      if (!sellAsset.hasSellDeliveryMethod(sellDeliveryMethod)) {
+      if (!sellAsset.supportsSellDeliveryMethod(sellDeliveryMethod)) {
         throw new BadRequestException("Unsupported sell delivery method");
       }
     }
