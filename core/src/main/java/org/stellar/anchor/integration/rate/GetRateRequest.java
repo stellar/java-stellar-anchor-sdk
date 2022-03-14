@@ -1,11 +1,13 @@
-package org.stellar.platform.apis.callbacks.requests;
+package org.stellar.anchor.integration.rate;
 
 import com.google.gson.annotations.SerializedName;
+import lombok.Builder;
 import lombok.Data;
 
 @Data
+@Builder
 public class GetRateRequest {
-  String type;
+  Type type;
 
   @SerializedName("sell_asset")
   String sellAsset;
@@ -37,4 +39,23 @@ public class GetRateRequest {
 
   @SerializedName("memo_type")
   String memoType;
+
+  public enum Type {
+    @SerializedName("indicative")
+    INDICATIVE("indicative"),
+
+    @SerializedName("firm")
+    FIRM("firm");
+
+    private final String name;
+
+    Type(String name) {
+      this.name = name;
+    }
+
+    @Override
+    public String toString() {
+      return name;
+    }
+  }
 }
