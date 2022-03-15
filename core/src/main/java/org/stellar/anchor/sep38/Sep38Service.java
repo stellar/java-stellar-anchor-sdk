@@ -173,7 +173,7 @@ public class Sep38Service {
       boolean countryCodeIsSupportedForBuy =
           buyCountryCodes != null && buyCountryCodes.contains(countryCode);
       if (bothCountryCodesAreNull
-          || (!countryCodeIsSupportedForSell || !countryCodeIsSupportedForBuy)) {
+          || !(countryCodeIsSupportedForSell || countryCodeIsSupportedForBuy)) {
         throw new BadRequestException("Unsupported country code");
       }
     }

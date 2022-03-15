@@ -395,7 +395,7 @@ class Sep38ServiceTest {
     sep38Service =
       Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration)
 
-    // test happy path with the minimum parameters
+    // test happy path with the minimum parameters using sellAmount
     val stellarUSDC = "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
     var gotResponse: GetPriceResponse? = null
     assertDoesNotThrow {
@@ -420,11 +420,71 @@ class Sep38ServiceTest {
     sep38Service =
       Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration)
 
-    // test happy path with the minimum parameters
+    // test happy path with the minimum parameters using buyAmount
     val stellarUSDC = "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
     var gotResponse: GetPriceResponse? = null
     assertDoesNotThrow {
       gotResponse = sep38Service.getPrice("iso4217:USD", null, null, stellarUSDC, "100", null, null)
+    }
+    val wantResponse =
+      GetPriceResponse.builder().price("1.02").sellAmount("102.00").buyAmount("100").build()
+    assertEquals(wantResponse, gotResponse)
+  }
+
+  @Test
+  fun test_getPrice_allParametersWithSellAmount() {
+    val stellarUSDC = "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+
+    // mock rate integration
+    val mockRateIntegration = mockk<MockRateIntegration>()
+    val getRateReq =
+      GetRateRequest.builder()
+        .sellAsset("iso4217:USD")
+        .buyAsset(stellarUSDC)
+        .sellAmount("100")
+        .countryCode("USA")
+        .sellDeliveryMethod("WIRE")
+        .build()
+    every { mockRateIntegration.getRate(getRateReq) } returns GetRateResponse("1.02")
+    sep38Service =
+      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration)
+
+    // test happy path with all the parameters
+    var gotResponse: GetPriceResponse? = null
+
+    assertDoesNotThrow {
+      gotResponse =
+        sep38Service.getPrice("iso4217:USD", "100", "WIRE", stellarUSDC, null, null, "USA")
+    }
+    val wantResponse =
+      GetPriceResponse.builder().price("1.02").sellAmount("100").buyAmount("98.0392").build()
+    assertEquals(wantResponse, gotResponse)
+  }
+
+  @Test
+  fun test_getPrice_allParametersWithBuyAmount() {
+    val stellarUSDC = "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+
+    // mock rate integration
+    val mockRateIntegration = mockk<MockRateIntegration>()
+    val getRateReq =
+      GetRateRequest.builder()
+        .sellAsset("iso4217:USD")
+        .buyAsset(stellarUSDC)
+        .buyAmount("100")
+        .countryCode("USA")
+        .sellDeliveryMethod("WIRE")
+        .build()
+    every { mockRateIntegration.getRate(getRateReq) } returns GetRateResponse("1.02")
+    sep38Service =
+      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration)
+
+    // test happy path with all the parameters
+    var gotResponse: GetPriceResponse? = null
+
+    assertDoesNotThrow {
+      gotResponse =
+        sep38Service.getPrice("iso4217:USD", null, "WIRE", stellarUSDC, "100", null, "USA")
     }
     val wantResponse =
       GetPriceResponse.builder().price("1.02").sellAmount("102.00").buyAmount("100").build()
