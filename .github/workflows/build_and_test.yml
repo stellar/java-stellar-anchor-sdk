@@ -18,7 +18,7 @@ jobs:
       with:
         java-version: '11'
         distribution: 'adopt'
-    - name: Clean
+    - name: Clean, Build and Test
       run: ./gradlew clean build
     - name: View Results
       run: cat /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/platform/build/reports/tests/test/index.html
