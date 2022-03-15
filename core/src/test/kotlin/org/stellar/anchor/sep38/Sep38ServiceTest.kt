@@ -31,6 +31,7 @@ class Sep38ServiceTest {
   }
 
   private lateinit var sep38Service: Sep38Service
+  private val stellarUSDC = "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
 
   @BeforeEach
   fun setUp() {
@@ -50,16 +51,15 @@ class Sep38ServiceTest {
     infoResponse.assets.forEach { assetMap[it.asset] = it }
     assertEquals(3, assetMap.size)
 
-    val stellarUSDC =
-      assetMap["stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"]
-    assertNotNull(stellarUSDC)
-    assertNull(stellarUSDC!!.countryCodes)
-    assertNull(stellarUSDC.sellDeliveryMethods)
-    assertNull(stellarUSDC.buyDeliveryMethods)
+    val usdcAsset = assetMap[stellarUSDC]
+    assertNotNull(usdcAsset)
+    assertNull(usdcAsset!!.countryCodes)
+    assertNull(usdcAsset.sellDeliveryMethods)
+    assertNull(usdcAsset.buyDeliveryMethods)
     var wantAssets =
       listOf("iso4217:USD", "stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5")
-    assertTrue(stellarUSDC.exchangeableAssetNames.containsAll(wantAssets))
-    assertTrue(wantAssets.containsAll(stellarUSDC.exchangeableAssetNames))
+    assertTrue(usdcAsset.exchangeableAssetNames.containsAll(wantAssets))
+    assertTrue(wantAssets.containsAll(usdcAsset.exchangeableAssetNames))
 
     val stellarJPYC =
       assetMap["stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"]
@@ -67,8 +67,7 @@ class Sep38ServiceTest {
     assertNull(stellarJPYC!!.countryCodes)
     assertNull(stellarJPYC.sellDeliveryMethods)
     assertNull(stellarJPYC.buyDeliveryMethods)
-    wantAssets =
-      listOf("iso4217:USD", "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5")
+    wantAssets = listOf("iso4217:USD", stellarUSDC)
     assertTrue(stellarJPYC.exchangeableAssetNames.containsAll(wantAssets))
     assertTrue(wantAssets.containsAll(stellarJPYC.exchangeableAssetNames))
 
@@ -88,10 +87,7 @@ class Sep38ServiceTest {
       )
     assertEquals(listOf(wantBuyDeliveryMethod), fiatUSD.buyDeliveryMethods)
     wantAssets =
-      listOf(
-        "stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
-        "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
-      )
+      listOf("stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5", stellarUSDC)
     assertTrue(fiatUSD.exchangeableAssetNames.containsAll(wantAssets))
     assertTrue(wantAssets.containsAll(fiatUSD.exchangeableAssetNames))
   }
@@ -163,7 +159,7 @@ class Sep38ServiceTest {
     val getRateReq2 =
       GetRateRequest.builder()
         .sellAsset("iso4217:USD")
-        .buyAsset("stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5")
+        .buyAsset(stellarUSDC)
         .sellAmount("100")
         .build()
     every { mockRateIntegration.getRate(getRateReq2) } returns GetRateResponse("2")
@@ -180,10 +176,7 @@ class Sep38ServiceTest {
       "stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
       "1"
     )
-    wantResponse.addAsset(
-      "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
-      "2"
-    )
+    wantResponse.addAsset(stellarUSDC, "2")
     assertEquals(wantResponse, gotResponse)
   }
 
@@ -203,7 +196,7 @@ class Sep38ServiceTest {
     val getRateReq2 =
       GetRateRequest.builder()
         .sellAsset("iso4217:USD")
-        .buyAsset("stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5")
+        .buyAsset(stellarUSDC)
         .sellAmount("100")
         .countryCode("USA")
         .sellDeliveryMethod("WIRE")
@@ -222,10 +215,7 @@ class Sep38ServiceTest {
       "stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
       "1.1"
     )
-    wantResponse.addAsset(
-      "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
-      "2.1"
-    )
+    wantResponse.addAsset(stellarUSDC, "2.1")
     assertEquals(wantResponse, gotResponse)
   }
 
@@ -235,7 +225,7 @@ class Sep38ServiceTest {
     val mockRateIntegration = mockk<MockRateIntegration>()
     val getRateReq1 =
       GetRateRequest.builder()
-        .sellAsset("stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5")
+        .sellAsset(stellarUSDC)
         .buyAsset("iso4217:USD")
         .sellAmount("100")
         .buyDeliveryMethod("WIRE")
@@ -245,10 +235,9 @@ class Sep38ServiceTest {
       Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration)
 
     // test happy path with the minimum parameters and specify buy_delivery_method
-    val sellAssetName = "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
     var gotResponse: GetPricesResponse? = null
     assertDoesNotThrow {
-      gotResponse = sep38Service.getPrices(sellAssetName, "100", null, "WIRE", null)
+      gotResponse = sep38Service.getPrices(stellarUSDC, "100", null, "WIRE", null)
     }
     val wantResponse = GetPricesResponse()
     wantResponse.addAsset("iso4217:USD", "1")
@@ -290,7 +279,6 @@ class Sep38ServiceTest {
     assertInstanceOf(NotFoundException::class.java, ex)
     assertEquals("buy_asset not found", ex.message)
 
-    val stellarUSDC = "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
     // both sell_amount & buy_amount are empty
     ex =
       assertThrows {
@@ -331,7 +319,6 @@ class Sep38ServiceTest {
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("sell_amount should be positive", ex.message)
 
-    //
     // invalid (not a number) buy_amount
     ex =
       assertThrows {
@@ -340,7 +327,7 @@ class Sep38ServiceTest {
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("buy_amount is invalid", ex.message)
 
-    // sell_amount should be positive
+    // buy_amount should be positive
     ex =
       assertThrows {
         sep38Service.getPrice("iso4217:USD", null, null, stellarUSDC, "-0.02", null, null)
@@ -348,7 +335,7 @@ class Sep38ServiceTest {
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("buy_amount should be positive", ex.message)
 
-    // sell_amount should be positive
+    // buy_amount should be positive
     ex =
       assertThrows {
         sep38Service.getPrice("iso4217:USD", null, null, stellarUSDC, "0", null, null)
@@ -389,14 +376,13 @@ class Sep38ServiceTest {
       GetRateRequest.builder()
         .sellAsset("iso4217:USD")
         .sellAmount("100")
-        .buyAsset("stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5")
+        .buyAsset(stellarUSDC)
         .build()
     every { mockRateIntegration.getRate(getRateReq) } returns GetRateResponse("1.02")
     sep38Service =
       Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration)
 
     // test happy path with the minimum parameters using sellAmount
-    val stellarUSDC = "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
     var gotResponse: GetPriceResponse? = null
     assertDoesNotThrow {
       gotResponse = sep38Service.getPrice("iso4217:USD", "100", null, stellarUSDC, null, null, null)
@@ -414,14 +400,13 @@ class Sep38ServiceTest {
       GetRateRequest.builder()
         .sellAsset("iso4217:USD")
         .buyAmount("100")
-        .buyAsset("stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5")
+        .buyAsset(stellarUSDC)
         .build()
     every { mockRateIntegration.getRate(getRateReq) } returns GetRateResponse("1.02")
     sep38Service =
       Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration)
 
     // test happy path with the minimum parameters using buyAmount
-    val stellarUSDC = "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
     var gotResponse: GetPriceResponse? = null
     assertDoesNotThrow {
       gotResponse = sep38Service.getPrice("iso4217:USD", null, null, stellarUSDC, "100", null, null)
@@ -433,8 +418,6 @@ class Sep38ServiceTest {
 
   @Test
   fun test_getPrice_allParametersWithSellAmount() {
-    val stellarUSDC = "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
-
     // mock rate integration
     val mockRateIntegration = mockk<MockRateIntegration>()
     val getRateReq =
@@ -449,7 +432,7 @@ class Sep38ServiceTest {
     sep38Service =
       Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration)
 
-    // test happy path with all the parameters
+    // test happy path with all the parameters using sellAmount
     var gotResponse: GetPriceResponse? = null
 
     assertDoesNotThrow {
@@ -463,8 +446,6 @@ class Sep38ServiceTest {
 
   @Test
   fun test_getPrice_allParametersWithBuyAmount() {
-    val stellarUSDC = "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
-
     // mock rate integration
     val mockRateIntegration = mockk<MockRateIntegration>()
     val getRateReq =
@@ -479,7 +460,7 @@ class Sep38ServiceTest {
     sep38Service =
       Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration)
 
-    // test happy path with all the parameters
+    // test happy path with all the parameters using buyAmount
     var gotResponse: GetPriceResponse? = null
 
     assertDoesNotThrow {
