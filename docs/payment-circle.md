@@ -6,7 +6,8 @@ The Circle payment service implements the [PaymentService] interface using the [
 
 In order to properly utilize the Circle payment service you need to create a Circle account and configure it properly:
 
-1. Go to <https://www.circle.com/> and create a new Circle account.
+1. Go to <https://www.circle.com/> and create a new Circle account. The account creation screening process takes around
+3 weeks.
    - Alternatively, you can skip the long registration process and get your hands on the code quickly by creating a
      simpler sandbox account at <https://my-sandbox.circle.com/signup>.
 2. Make sure you get an API key.
