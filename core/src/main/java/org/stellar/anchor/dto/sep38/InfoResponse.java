@@ -26,6 +26,7 @@ public class InfoResponse {
           newAsset.setSellDeliveryMethods(sep38Info.getSellDeliveryMethods());
           newAsset.setBuyDeliveryMethods(sep38Info.getBuyDeliveryMethods());
           newAsset.setExchangeableAssetNames(sep38Info.getExchangeableAssets());
+          newAsset.setDecimals(sep38Info.getDecimals());
 
           assets.add(newAsset);
         });
@@ -45,6 +46,8 @@ public class InfoResponse {
     private List<AssetInfo.Sep38Operation.DeliveryMethod> buyDeliveryMethods;
 
     private transient List<String> exchangeableAssetNames;
+
+    private transient Integer decimals;
 
     public boolean supportsSellDeliveryMethod(String deliveryMethod) {
       return supportsDeliveryMethod(sellDeliveryMethods, deliveryMethod);

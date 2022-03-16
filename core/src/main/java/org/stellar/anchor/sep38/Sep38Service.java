@@ -2,6 +2,7 @@ package org.stellar.anchor.sep38;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -88,7 +89,7 @@ public class Sep38Service {
 
       GetRateRequest request = builder.buyAsset(buyAssetName).build();
       GetRateResponse rateResponse = this.rateIntegration.getRate(request);
-      response.addAsset(buyAssetName, rateResponse.getRate().getPrice());
+      response.addAsset(buyAssetName, buyAsset.getDecimals(), rateResponse.getRate().getPrice());
     }
 
     return response;
@@ -194,16 +195,32 @@ public class Sep38Service {
     GetPriceResponse.GetPriceResponseBuilder builder =
         GetPriceResponse.builder().price(rateResponse.getRate().getPrice());
     BigDecimal bPrice = new BigDecimal(rateResponse.getRate().getPrice());
+    BigDecimal bSellAmount, bBuyAmount;
     if (sellAmount != null) {
-      BigDecimal bSellAmount = new BigDecimal(sellAmount);
-      BigDecimal bBuyAmount = bSellAmount.divide(bPrice, 4, RoundingMode.HALF_UP);
-      builder = builder.sellAmount(sellAmount).buyAmount(bBuyAmount.toPlainString());
+      bSellAmount = new BigDecimal(sellAmount);
+      int buyDecimals = buyAsset.getDecimals() != null ? buyAsset.getDecimals() : 7;
+      bBuyAmount = bSellAmount.divide(bPrice, buyDecimals, RoundingMode.HALF_UP);
     } else {
-      BigDecimal bBuyAmount = new BigDecimal(buyAmount);
-      BigDecimal bSellAmount = bBuyAmount.multiply(bPrice);
-      builder = builder.buyAmount(buyAmount).sellAmount(bSellAmount.toPlainString());
+      bBuyAmount = new BigDecimal(buyAmount);
+      bSellAmount = bBuyAmount.multiply(bPrice);
     }
+    builder =
+        builder
+            .sellAmount(formatAmount(bSellAmount, sellAsset.getDecimals()))
+            .buyAmount(formatAmount(bBuyAmount, buyAsset.getDecimals()));
 
     return builder.build();
+  }
+
+  private String formatAmount(BigDecimal amount, Integer decimals) throws NumberFormatException {
+    int newDecimals = decimals != null ? decimals : 7;
+    BigDecimal newAmount = amount.setScale(newDecimals, RoundingMode.HALF_UP);
+
+    DecimalFormat df = new DecimalFormat();
+    df.setMaximumFractionDigits(newDecimals);
+    df.setMinimumFractionDigits(0);
+    df.setGroupingUsed(false);
+
+    return df.format(newAmount);
   }
 }
