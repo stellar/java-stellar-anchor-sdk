@@ -70,16 +70,42 @@ class PlatformRateIntegrationTest {
         .type(GetRateRequest.Type.INDICATIVE)
         .sellAsset("iso4217:USD")
         .sellAmount("100")
-        .countryCode("USA")
         .sellDeliveryMethod("WIRE")
+        .countryCode("USA")
         .build()
     testGetRate(
       """/rate
         ?type=indicative
         &sell_asset=iso4217%3AUSD
         &sell_amount=100
-        &country_code=USA
-        &sell_delivery_method=WIRE""".replace(
+        &sell_delivery_method=WIRE
+        &country_code=USA""".replace(
+        "\n        ",
+        ""
+      ),
+      getRateRequest
+    )
+
+    // getPrice parameters
+    getRateRequest =
+      builder
+        .type(GetRateRequest.Type.INDICATIVE)
+        .sellAsset("iso4217:USD")
+        .sellAmount("100")
+        .sellDeliveryMethod("WIRE")
+        .buyAsset("stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN")
+        .buyDeliveryMethod("CASH")
+        .countryCode("USA")
+        .build()
+    testGetRate(
+      """/rate
+        ?type=indicative
+        &sell_asset=iso4217%3AUSD
+        &sell_amount=100
+        &sell_delivery_method=WIRE
+        &buy_asset=stellar%3AUSDC%3AGA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN
+        &buy_delivery_method=CASH
+        &country_code=USA""".replace(
         "\n        ",
         ""
       ),
@@ -91,13 +117,13 @@ class PlatformRateIntegrationTest {
       builder
         .type(GetRateRequest.Type.INDICATIVE)
         .sellAsset("iso4217:USD")
-        .buyAsset("stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN")
         .sellAmount("100")
+        .sellDeliveryMethod("WIRE")
+        .buyAsset("stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN")
         .buyAmount("100")
+        .buyDeliveryMethod("WIRE")
         .countryCode("USA")
         .expireAfter("2022-04-30T02:15:44.000Z")
-        .sellDeliveryMethod("WIRE")
-        .buyDeliveryMethod("WIRE")
         .clientDomain("test.com")
         .account("GDGWTSQKQQAT2OXRSFLADMN4F6WJQMPJ5MIOKIZ2AMBYUI67MJA4WRLA")
         .memo("foo")
@@ -107,13 +133,13 @@ class PlatformRateIntegrationTest {
       """/rate
         ?type=indicative
         &sell_asset=iso4217%3AUSD
-        &buy_asset=stellar%3AUSDC%3AGA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN
         &sell_amount=100
+        &sell_delivery_method=WIRE
+        &buy_asset=stellar%3AUSDC%3AGA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN
         &buy_amount=100
+        &buy_delivery_method=WIRE
         &country_code=USA
         &expire_after=2022-04-30T02%3A15%3A44.000Z
-        &sell_delivery_method=WIRE
-        &buy_delivery_method=WIRE
         &client_domain=test.com
         &account=GDGWTSQKQQAT2OXRSFLADMN4F6WJQMPJ5MIOKIZ2AMBYUI67MJA4WRLA
         &memo=foo
@@ -177,7 +203,7 @@ class PlatformRateIntegrationTest {
     val serverErrorException = ServerErrorException("internal server error")
     validateRequest(200, """{"rate": {"price": "invalid json",}}""", serverErrorException)
 
-    // 200 where getRateResponse is missing a price
+    // 200 where getRateResponse is missing "price"
     validateRequest(200, """{"rate": "missing price"}""", serverErrorException)
   }
 }
