@@ -42,12 +42,21 @@ public class PlatformIntegrationHelper {
       return new ServerErrorException("internal server error", e);
     }
 
-    String errorMessage =
+    // Handle 422
+    String errorMessage;
+    if (responseCode == HttpStatus.UNPROCESSABLE_ENTITY.value()) {
+      errorMessage =
+          (errorResponse != null)
+              ? errorResponse.getError()
+              : HttpStatus.BAD_REQUEST.getReasonPhrase();
+      return new BadRequestException(errorMessage);
+    }
+
+    errorMessage =
         (errorResponse != null)
             ? errorResponse.getError()
             : HttpStatus.valueOf(responseCode).getReasonPhrase();
-    if (responseCode == HttpStatus.BAD_REQUEST.value()
-        || responseCode == HttpStatus.UNPROCESSABLE_ENTITY.value()) {
+    if (responseCode == HttpStatus.BAD_REQUEST.value()) {
       return new BadRequestException(errorMessage);
     } else if (responseCode == HttpStatus.NOT_FOUND.value()) {
       return new NotFoundException(errorMessage);

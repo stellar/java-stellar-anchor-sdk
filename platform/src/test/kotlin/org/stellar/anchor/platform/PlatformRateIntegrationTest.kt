@@ -140,7 +140,8 @@ class PlatformRateIntegrationTest {
       val ex = assertThrows<AnchorException> { rateIntegration.getRate(dummyRequest) }
 
       // validate exception
-      assertEquals(wantException, ex)
+      assertEquals(wantException.javaClass, ex.javaClass)
+      assertEquals(wantException.message, ex.message)
 
       // validateRequest
       val request = server.takeRequest()
