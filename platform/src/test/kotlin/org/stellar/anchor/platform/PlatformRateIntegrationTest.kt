@@ -112,6 +112,32 @@ class PlatformRateIntegrationTest {
       getRateRequest
     )
 
+    // postQuote parameters
+    getRateRequest =
+      builder
+        .type(GetRateRequest.Type.INDICATIVE)
+        .sellAsset("iso4217:USD")
+        .sellAmount("100")
+        .sellDeliveryMethod("WIRE")
+        .buyAsset("stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN")
+        .buyDeliveryMethod("CASH")
+        .countryCode("USA")
+        .build()
+    testGetRate(
+      """/rate
+        ?type=indicative
+        &sell_asset=iso4217%3AUSD
+        &sell_amount=100
+        &sell_delivery_method=WIRE
+        &buy_asset=stellar%3AUSDC%3AGA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN
+        &buy_delivery_method=CASH
+        &country_code=USA""".replace(
+        "\n        ",
+        ""
+      ),
+      getRateRequest
+    )
+
     // all parameters
     getRateRequest =
       builder
