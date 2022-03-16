@@ -151,6 +151,7 @@ class Sep38ServiceTest {
     val mockRateIntegration = mockk<MockRateIntegration>()
     val getRateReq1 =
       GetRateRequest.builder()
+        .type(GetRateRequest.Type.INDICATIVE)
         .sellAsset("iso4217:USD")
         .buyAsset("stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5")
         .sellAmount("100")
@@ -158,6 +159,7 @@ class Sep38ServiceTest {
     every { mockRateIntegration.getRate(getRateReq1) } returns GetRateResponse("1")
     val getRateReq2 =
       GetRateRequest.builder()
+        .type(GetRateRequest.Type.INDICATIVE)
         .sellAsset("iso4217:USD")
         .buyAsset(stellarUSDC)
         .sellAmount("100")
@@ -187,6 +189,7 @@ class Sep38ServiceTest {
     val mockRateIntegration = mockk<MockRateIntegration>()
     val getRateReq1 =
       GetRateRequest.builder()
+        .type(GetRateRequest.Type.INDICATIVE)
         .sellAsset("iso4217:USD")
         .buyAsset("stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5")
         .sellAmount("100")
@@ -196,6 +199,7 @@ class Sep38ServiceTest {
     every { mockRateIntegration.getRate(getRateReq1) } returns GetRateResponse("1.1")
     val getRateReq2 =
       GetRateRequest.builder()
+        .type(GetRateRequest.Type.INDICATIVE)
         .sellAsset("iso4217:USD")
         .buyAsset(stellarUSDC)
         .sellAmount("100")
@@ -227,6 +231,7 @@ class Sep38ServiceTest {
     val mockRateIntegration = mockk<MockRateIntegration>()
     val getRateReq1 =
       GetRateRequest.builder()
+        .type(GetRateRequest.Type.INDICATIVE)
         .sellAsset(stellarUSDC)
         .buyAsset("iso4217:USD")
         .sellAmount("100")
@@ -376,6 +381,7 @@ class Sep38ServiceTest {
     val mockRateIntegration = mockk<MockRateIntegration>()
     val getRateReq =
       GetRateRequest.builder()
+        .type(GetRateRequest.Type.INDICATIVE)
         .sellAsset("iso4217:USD")
         .sellAmount("100")
         .buyAsset(stellarUSDC)
@@ -400,6 +406,7 @@ class Sep38ServiceTest {
     val mockRateIntegration = mockk<MockRateIntegration>()
     val getRateReq =
       GetRateRequest.builder()
+        .type(GetRateRequest.Type.INDICATIVE)
         .sellAsset("iso4217:USD")
         .buyAmount("100")
         .buyAsset(stellarUSDC)
@@ -424,6 +431,7 @@ class Sep38ServiceTest {
     val mockRateIntegration = mockk<MockRateIntegration>()
     val getRateReq =
       GetRateRequest.builder()
+        .type(GetRateRequest.Type.INDICATIVE)
         .sellAsset("iso4217:USD")
         .buyAsset(stellarUSDC)
         .sellAmount("100")
@@ -452,6 +460,7 @@ class Sep38ServiceTest {
     val mockRateIntegration = mockk<MockRateIntegration>()
     val getRateReq =
       GetRateRequest.builder()
+        .type(GetRateRequest.Type.INDICATIVE)
         .sellAsset("iso4217:USD")
         .buyAsset(stellarUSDC)
         .buyAmount("100")

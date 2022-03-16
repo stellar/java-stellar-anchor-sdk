@@ -75,6 +75,7 @@ public class Sep38Service {
     // Make requests to `GET {quoteIntegration}/rates`
     GetRateRequest.GetRateRequestBuilder builder =
         GetRateRequest.builder()
+            .type(GetRateRequest.Type.INDICATIVE)
             .sellAsset(sellAssetName)
             .sellAmount(sellAmount)
             .countryCode(countryCode)
@@ -181,6 +182,7 @@ public class Sep38Service {
 
     GetRateRequest request =
         GetRateRequest.builder()
+            .type(GetRateRequest.Type.INDICATIVE)
             .sellAsset(sellAssetName)
             .sellAmount(sellAmount)
             .sellDeliveryMethod(sellDeliveryMethod)
