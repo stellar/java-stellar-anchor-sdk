@@ -198,8 +198,7 @@ public class Sep38Service {
     BigDecimal bSellAmount, bBuyAmount;
     if (sellAmount != null) {
       bSellAmount = new BigDecimal(sellAmount);
-      int buyDecimals = buyAsset.getDecimals() != null ? buyAsset.getDecimals() : 7;
-      bBuyAmount = bSellAmount.divide(bPrice, buyDecimals, RoundingMode.HALF_UP);
+      bBuyAmount = bSellAmount.divide(bPrice, buyAsset.getDecimals(), RoundingMode.HALF_UP);
     } else {
       bBuyAmount = new BigDecimal(buyAmount);
       bSellAmount = bBuyAmount.multiply(bPrice);
@@ -213,11 +212,10 @@ public class Sep38Service {
   }
 
   private String formatAmount(BigDecimal amount, Integer decimals) throws NumberFormatException {
-    int newDecimals = decimals != null ? decimals : 7;
-    BigDecimal newAmount = amount.setScale(newDecimals, RoundingMode.HALF_UP);
+    BigDecimal newAmount = amount.setScale(decimals, RoundingMode.HALF_UP);
 
     DecimalFormat df = new DecimalFormat();
-    df.setMaximumFractionDigits(newDecimals);
+    df.setMaximumFractionDigits(decimals);
     df.setMinimumFractionDigits(0);
     df.setGroupingUsed(false);
 

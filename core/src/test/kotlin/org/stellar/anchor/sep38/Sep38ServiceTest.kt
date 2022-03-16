@@ -174,9 +174,10 @@ class Sep38ServiceTest {
     val wantResponse = GetPricesResponse()
     wantResponse.addAsset(
       "stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+      7,
       "1"
     )
-    wantResponse.addAsset(stellarUSDC, "2")
+    wantResponse.addAsset(stellarUSDC, 7, "2")
     assertEquals(wantResponse, gotResponse)
   }
 
@@ -213,9 +214,10 @@ class Sep38ServiceTest {
     val wantResponse = GetPricesResponse()
     wantResponse.addAsset(
       "stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+      7,
       "1.1"
     )
-    wantResponse.addAsset(stellarUSDC, "2.1")
+    wantResponse.addAsset(stellarUSDC, 7, "2.1")
     assertEquals(wantResponse, gotResponse)
   }
 

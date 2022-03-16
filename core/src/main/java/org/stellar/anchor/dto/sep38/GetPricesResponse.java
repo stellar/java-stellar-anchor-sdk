@@ -14,16 +14,8 @@ public class GetPricesResponse {
 
   public void addAsset(
       @NonNull String buyAssetName, Integer buyAssetDecimals, @NonNull String price) {
-    int decimals = 7;
-    if (!buyAssetName.startsWith("stellar") && buyAssetDecimals != null) {
-      decimals = buyAssetDecimals;
-    }
-
-    buyAssets.add(Asset.builder().asset(buyAssetName).price(price).decimals(decimals).build());
-  }
-
-  public void addAsset(@NonNull String buyAssetName, @NonNull String price) {
-    addAsset(buyAssetName, null, price);
+    buyAssets.add(
+        Asset.builder().asset(buyAssetName).price(price).decimals(buyAssetDecimals).build());
   }
 
   @Data

@@ -26,7 +26,12 @@ public class InfoResponse {
           newAsset.setSellDeliveryMethods(sep38Info.getSellDeliveryMethods());
           newAsset.setBuyDeliveryMethods(sep38Info.getBuyDeliveryMethods());
           newAsset.setExchangeableAssetNames(sep38Info.getExchangeableAssets());
-          newAsset.setDecimals(sep38Info.getDecimals());
+
+          int decimals = 7;
+          if (!assetName.startsWith("stellar") && sep38Info.getDecimals() != null) {
+            decimals = sep38Info.getDecimals();
+          }
+          newAsset.setDecimals(decimals);
 
           assets.add(newAsset);
         });
