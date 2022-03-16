@@ -55,6 +55,17 @@ might end up being configured to only accept payments from a subset of those cou
 Also note that countries might have capital controls in place which might in practice limit your ability to process wire
 transfers from / to some countries.
 
+#### Wire Transfers Fees
+
+At the time this document was written, the fees for wire transfers were:
+- $2 per incoming wire transfer
+- $25 per outgoing wire transfer | $50 per wire reversal
+  - Customers are billed $50 per wire reversal. Amounts are directly debited from their Circle Account. Possible reasons
+  for rejection include missing or misspelled reference numbers or attempting to payout an amount in excess of any
+  agreed upon limits.
+
+For a more complete and up-to-date information on Circle's fees, please refer to their [pricing webpage](https://www.circle.com/en/pricing). 
+
 ## Usage
 
 The CirclePaymentService does not implement all Circle capabilities, just a subset of the ones that are relevant for
