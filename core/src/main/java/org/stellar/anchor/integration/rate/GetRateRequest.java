@@ -24,6 +24,9 @@ public class GetRateRequest {
   @SerializedName("country_code")
   String countryCode;
 
+  @SerializedName("expire_after")
+  String expireAfter;
+
   @SerializedName("sell_delivery_method")
   String sellDeliveryMethod;
 

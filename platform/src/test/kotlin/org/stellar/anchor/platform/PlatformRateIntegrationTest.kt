@@ -2,8 +2,6 @@ package org.stellar.anchor.platform
 
 import com.google.gson.Gson
 import java.io.IOException
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.hamcrest.CoreMatchers
@@ -31,14 +29,6 @@ class PlatformRateIntegrationTest {
     server = MockWebServer()
     server.start()
     rateIntegration = PlatformRateIntegration(server.url("").toString(), OkHttpUtil.buildClient())
-  }
-
-  private fun getRateResponse(price: String, expiresAt: LocalDateTime?): MockResponse {
-    var expiresAtStr: String? = null
-    if (expiresAt != null) {
-      expiresAtStr = expiresAt.format(DateTimeFormatter.ISO_DATE_TIME)
-    }
-    return getRateResponse(price, expiresAtStr)
   }
 
   private fun getRateResponse(price: String, expiresAt: String? = null): MockResponse {
@@ -84,7 +74,15 @@ class PlatformRateIntegrationTest {
         .sellDeliveryMethod("WIRE")
         .build()
     testGetRate(
-      "/rate?type=indicative&sell_asset=iso4217%3AUSD&sell_amount=100&country_code=USA&sell_delivery_method=WIRE",
+      """/rate
+        ?type=indicative
+        &sell_asset=iso4217%3AUSD
+        &sell_amount=100
+        &country_code=USA
+        &sell_delivery_method=WIRE""".replace(
+        "\n        ",
+        ""
+      ),
       getRateRequest
     )
 
@@ -97,6 +95,7 @@ class PlatformRateIntegrationTest {
         .sellAmount("100")
         .buyAmount("100")
         .countryCode("USA")
+        .expireAfter("2022-04-30T02:15:44.000Z")
         .sellDeliveryMethod("WIRE")
         .buyDeliveryMethod("WIRE")
         .clientDomain("test.com")
@@ -105,7 +104,23 @@ class PlatformRateIntegrationTest {
         .memoType("text")
         .build()
     testGetRate(
-      "/rate?type=indicative&sell_asset=iso4217%3AUSD&buy_asset=stellar%3AUSDC%3AGA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN&sell_amount=100&buy_amount=100&country_code=USA&sell_delivery_method=WIRE&buy_delivery_method=WIRE&client_domain=test.com&account=GDGWTSQKQQAT2OXRSFLADMN4F6WJQMPJ5MIOKIZ2AMBYUI67MJA4WRLA&memo=foo&memo_type=text",
+      """/rate
+        ?type=indicative
+        &sell_asset=iso4217%3AUSD
+        &buy_asset=stellar%3AUSDC%3AGA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN
+        &sell_amount=100
+        &buy_amount=100
+        &country_code=USA
+        &expire_after=2022-04-30T02%3A15%3A44.000Z
+        &sell_delivery_method=WIRE
+        &buy_delivery_method=WIRE
+        &client_domain=test.com
+        &account=GDGWTSQKQQAT2OXRSFLADMN4F6WJQMPJ5MIOKIZ2AMBYUI67MJA4WRLA
+        &memo=foo
+        &memo_type=text""".replace(
+        "\n        ",
+        ""
+      ),
       getRateRequest
     )
   }
