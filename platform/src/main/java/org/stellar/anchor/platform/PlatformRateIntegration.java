@@ -61,8 +61,15 @@ public class PlatformRateIntegration implements RateIntegration {
     } catch (Exception e) { // cannot read body from response
       throw new ServerErrorException("internal server error", e);
     }
-    if (getRateResponse.getRate() == null || getRateResponse.getRate().getPrice() == null) {
+
+    GetRateResponse.Rate rate = getRateResponse.getRate();
+    if (rate == null || rate.getPrice() == null) {
       throw new ServerErrorException("internal server error");
+    }
+    if (request.getType() == GetRateRequest.Type.FIRM) {
+      if (rate.getId() == null || rate.getExpiresAt() == null) {
+        throw new ServerErrorException("internal server error");
+      }
     }
     return getRateResponse;
   }

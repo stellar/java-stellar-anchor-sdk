@@ -154,7 +154,11 @@ class PlatformRateIntegrationTest {
   @Test
   fun test_getRate_errorHandling() {
     val validateRequest =
-        { statusCode: Int, responseBody: String?, wantException: AnchorException ->
+        {
+      statusCode: Int,
+      responseBody: String?,
+      wantException: AnchorException,
+      type: GetRateRequest.Type ->
       // mock response
       var mockResponse =
         MockResponse().addHeader("Content-Type", "application/json").setResponseCode(statusCode)
@@ -162,7 +166,7 @@ class PlatformRateIntegrationTest {
       server.enqueue(mockResponse)
 
       // execute command
-      val dummyRequest = GetRateRequest.builder().type(GetRateRequest.Type.INDICATIVE).build()
+      val dummyRequest = GetRateRequest.builder().type(type).build()
       val ex = assertThrows<AnchorException> { rateIntegration.getRate(dummyRequest) }
 
       // validate exception
@@ -174,36 +178,98 @@ class PlatformRateIntegrationTest {
       assertEquals("GET", request.method)
       assertEquals("application/json", request.headers["Content-Type"])
       assertEquals(null, request.headers["Authorization"])
-      MatcherAssert.assertThat(request.path, CoreMatchers.endsWith("/rate?type=indicative"))
+      MatcherAssert.assertThat(request.path, CoreMatchers.endsWith("/rate?type=$type"))
       assertEquals("", request.body.readUtf8())
     }
 
     // 400 without body
-    validateRequest(400, null, BadRequestException("Bad Request"))
+    validateRequest(400, null, BadRequestException("Bad Request"), GetRateRequest.Type.INDICATIVE)
 
     // 400 with body
-    validateRequest(400, """{"error": "foo 400"}""", BadRequestException("foo 400"))
+    validateRequest(
+      400,
+      """{"error": "foo 400"}""",
+      BadRequestException("foo 400"),
+      GetRateRequest.Type.INDICATIVE
+    )
 
     // 404 without body
-    validateRequest(404, null, NotFoundException("Not Found"))
+    validateRequest(404, null, NotFoundException("Not Found"), GetRateRequest.Type.INDICATIVE)
 
     // 404 with body
-    validateRequest(404, """{"error": "foo 404"}""", NotFoundException("foo 404"))
+    validateRequest(
+      404,
+      """{"error": "foo 404"}""",
+      NotFoundException("foo 404"),
+      GetRateRequest.Type.INDICATIVE
+    )
 
     // 422 without body
-    validateRequest(422, null, BadRequestException("Bad Request"))
+    validateRequest(422, null, BadRequestException("Bad Request"), GetRateRequest.Type.INDICATIVE)
 
     // 422 with body
-    validateRequest(422, """{"error": "foo 422"}""", BadRequestException("foo 422"))
+    validateRequest(
+      422,
+      """{"error": "foo 422"}""",
+      BadRequestException("foo 422"),
+      GetRateRequest.Type.INDICATIVE
+    )
 
     // 500
-    validateRequest(500, """{"error": "foo 500"}""", ServerErrorException("internal server error"))
+    validateRequest(
+      500,
+      """{"error": "foo 500"}""",
+      ServerErrorException("internal server error"),
+      GetRateRequest.Type.INDICATIVE
+    )
 
     // 200 with invalid body
     val serverErrorException = ServerErrorException("internal server error")
-    validateRequest(200, """{"rate": {"price": "invalid json",}}""", serverErrorException)
+    validateRequest(
+      200,
+      """{"rate": {"price": "invalid json",}}""",
+      serverErrorException,
+      GetRateRequest.Type.INDICATIVE
+    )
 
     // 200 where getRateResponse is missing "price"
-    validateRequest(200, """{"rate": "missing price"}""", serverErrorException)
+    validateRequest(
+      200,
+      """{"rate": "missing price"}""",
+      serverErrorException,
+      GetRateRequest.Type.INDICATIVE
+    )
+
+    // 200 for type=firm where getRateResponse is missing "id"
+    validateRequest(
+      200,
+      """{"rate": {"price": "1"} }""",
+      serverErrorException,
+      GetRateRequest.Type.FIRM
+    )
+
+    // 200 for type=firm where getRateResponse is missing "id" but contains "expires_at"
+    validateRequest(
+      200,
+      """{"rate": {"price": "1", "expires_at": "2022-04-30T02:15:44.000Z"} }""",
+      serverErrorException,
+      GetRateRequest.Type.FIRM
+    )
+
+    // 200 for type=firm where getRateResponse is missing "expires_at"
+    validateRequest(
+      200,
+      """{"rate": {"price": "1", "id": "my-id"} }""",
+      serverErrorException,
+      GetRateRequest.Type.FIRM
+    )
+
+    // 200 for type=firm where getRateResponse's "expires_at" is invalid
+    validateRequest(
+      200,
+      """{"rate": {"price": "1", "id": "my-id", "expires_at": "2022-04-30T02:15:44.000Z"} }""",
+      serverErrorException,
+      GetRateRequest.Type.FIRM
+    )
   }
 }

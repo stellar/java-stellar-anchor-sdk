@@ -23,6 +23,8 @@ public class GetRateResponse {
 
   @Data
   public static class Rate {
+    @Nullable String id;
+
     String price;
 
     @SerializedName("expires_at")
