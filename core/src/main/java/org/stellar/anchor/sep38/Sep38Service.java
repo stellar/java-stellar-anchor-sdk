@@ -3,6 +3,7 @@ package org.stellar.anchor.sep38;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +13,7 @@ import org.stellar.anchor.config.Sep38Config;
 import org.stellar.anchor.dto.sep38.GetPriceResponse;
 import org.stellar.anchor.dto.sep38.GetPricesResponse;
 import org.stellar.anchor.dto.sep38.InfoResponse;
+import org.stellar.anchor.dto.sep38.QuoteResponse;
 import org.stellar.anchor.exception.AnchorException;
 import org.stellar.anchor.exception.BadRequestException;
 import org.stellar.anchor.exception.NotFoundException;
@@ -193,9 +195,10 @@ public class Sep38Service {
             .build();
     GetRateResponse rateResponse = this.rateIntegration.getRate(request);
 
-    // Calculate amounts: sellAmount = buyAmount*price or buyAmount = sellAmount/price
     GetPriceResponse.GetPriceResponseBuilder builder =
         GetPriceResponse.builder().price(rateResponse.getRate().getPrice());
+
+    // Calculate amounts: sellAmount = buyAmount*price or buyAmount = sellAmount/price
     BigDecimal bPrice = new BigDecimal(rateResponse.getRate().getPrice());
     BigDecimal bSellAmount, bBuyAmount;
     if (sellAmount != null) {
@@ -222,5 +225,113 @@ public class Sep38Service {
     df.setGroupingUsed(false);
 
     return df.format(newAmount);
+  }
+
+  public QuoteResponse postQuote(
+      String sellAssetName,
+      String sellAmount,
+      String sellDeliveryMethod,
+      String buyAssetName,
+      String buyAmount,
+      String buyDeliveryMethod,
+      String countryCode,
+      String expireAfter)
+      throws AnchorException {
+    if (this.rateIntegration == null) {
+      throw new ServerErrorException("internal server error");
+    }
+    validateAsset("sell_", sellAssetName);
+    validateAsset("buy_", buyAssetName);
+
+    if ((sellAmount == null && buyAmount == null) || (sellAmount != null && buyAmount != null)) {
+      throw new BadRequestException("Please provide either sell_amount or buy_amount");
+    } else if (sellAmount != null) {
+      validateAmount("sell_", sellAmount);
+    } else {
+      validateAmount("buy_", buyAmount);
+    }
+
+    InfoResponse.Asset sellAsset = assetMap.get(sellAssetName);
+    InfoResponse.Asset buyAsset = assetMap.get(buyAssetName);
+
+    // sellDeliveryMethod
+    if (!Objects.toString(sellDeliveryMethod, "").isEmpty()) {
+      if (!sellAsset.supportsSellDeliveryMethod(sellDeliveryMethod)) {
+        throw new BadRequestException("Unsupported sell delivery method");
+      }
+    }
+
+    // buyDeliveryMethod
+    if (!Objects.toString(buyDeliveryMethod, "").isEmpty()) {
+      if (!buyAsset.supportsBuyDeliveryMethod(buyDeliveryMethod)) {
+        throw new BadRequestException("Unsupported buy delivery method");
+      }
+    }
+
+    // countryCode
+    if (!Objects.toString(countryCode, "").isEmpty()) {
+      List<String> sellCountryCodes = sellAsset.getCountryCodes();
+      List<String> buyCountryCodes = buyAsset.getCountryCodes();
+      boolean bothCountryCodesAreNull = sellCountryCodes == null && buyCountryCodes == null;
+      boolean countryCodeIsSupportedForSell =
+          sellCountryCodes != null && sellCountryCodes.contains(countryCode);
+      boolean countryCodeIsSupportedForBuy =
+          buyCountryCodes != null && buyCountryCodes.contains(countryCode);
+      if (bothCountryCodesAreNull
+          || !(countryCodeIsSupportedForSell || countryCodeIsSupportedForBuy)) {
+        throw new BadRequestException("Unsupported country code");
+      }
+    }
+
+    // expireAfter
+    if (!Objects.toString(expireAfter, "").isEmpty()) {
+      try {
+        LocalDateTime.parse(expireAfter);
+      } catch (Exception ex) {
+        throw new BadRequestException("expire_after is invalid");
+      }
+    }
+
+    GetRateRequest request =
+        GetRateRequest.builder()
+            .type(GetRateRequest.Type.FIRM)
+            .sellAsset(sellAssetName)
+            .sellAmount(sellAmount)
+            .sellDeliveryMethod(sellDeliveryMethod)
+            .buyAsset(buyAssetName)
+            .buyAmount(buyAmount)
+            .buyDeliveryMethod(buyDeliveryMethod)
+            .countryCode(countryCode)
+            .expireAfter(expireAfter)
+            .build();
+    GetRateResponse.Rate rate = this.rateIntegration.getRate(request).getRate();
+
+    QuoteResponse.QuoteResponseBuilder builder =
+        QuoteResponse.builder()
+            .id(rate.getId())
+            .expiresAt(rate.getExpiresAt())
+            .price(rate.getPrice())
+            .sellAsset(sellAssetName)
+            .buyAsset(buyAssetName);
+
+    // Calculate amounts: sellAmount = buyAmount*price or buyAmount = sellAmount/price
+    BigDecimal bPrice = new BigDecimal(rate.getPrice());
+    BigDecimal bSellAmount, bBuyAmount;
+    if (sellAmount != null) {
+      bSellAmount = new BigDecimal(sellAmount);
+      bBuyAmount = bSellAmount.divide(bPrice, buyAsset.getDecimals(), RoundingMode.HALF_UP);
+    } else {
+      bBuyAmount = new BigDecimal(buyAmount);
+      bSellAmount = bBuyAmount.multiply(bPrice);
+    }
+    builder =
+        builder
+            .sellAmount(formatAmount(bSellAmount, sellAsset.getDecimals(), RoundingMode.UP))
+            .buyAmount(formatAmount(bBuyAmount, buyAsset.getDecimals(), RoundingMode.DOWN));
+
+    // TODO: get the user info from SEP-10
+    // TODO: save the quote locally
+    // TODO: create an event for `quote_created` using the event API
+    return builder.build();
   }
 }
