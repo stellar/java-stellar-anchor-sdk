@@ -1,11 +1,14 @@
 package org.stellar.anchor.sep38;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.Sep38Config;
+import org.stellar.anchor.dto.sep38.GetPriceResponse;
 import org.stellar.anchor.dto.sep38.GetPricesResponse;
 import org.stellar.anchor.dto.sep38.InfoResponse;
 import org.stellar.anchor.exception.AnchorException;
@@ -42,21 +45,33 @@ public class Sep38Service {
   public GetPricesResponse getPrices(
       String sellAssetName,
       String sellAmount,
-      String countryCode,
       String sellDeliveryMethod,
-      String buyDeliveryMethod)
+      String buyDeliveryMethod,
+      String countryCode)
       throws AnchorException {
     if (this.rateIntegration == null) {
       throw new ServerErrorException("internal server error");
     }
-    validateGetPricesInput(
-        sellAssetName, sellAmount, countryCode, sellDeliveryMethod, buyDeliveryMethod);
+    validateAsset("sell_", sellAssetName);
+    validateAmount("sell_", sellAmount);
 
     InfoResponse.Asset sellAsset = assetMap.get(sellAssetName);
-    if (sellAsset == null) {
-      throw new ServerErrorException("internal server error");
+
+    // sellDeliveryMethod
+    if (!Objects.toString(sellDeliveryMethod, "").isEmpty()) {
+      if (!sellAsset.supportsSellDeliveryMethod(sellDeliveryMethod)) {
+        throw new BadRequestException("Unsupported sell delivery method");
+      }
     }
 
+    // countryCode
+    if (!Objects.toString(countryCode, "").isEmpty()) {
+      if (!sellAsset.getCountryCodes().contains(countryCode)) {
+        throw new BadRequestException("Unsupported country code");
+      }
+    }
+
+    // Make requests to `GET {quoteIntegration}/rates`
     GetRateRequest.GetRateRequestBuilder builder =
         GetRateRequest.builder()
             .sellAsset(sellAssetName)
@@ -79,54 +94,116 @@ public class Sep38Service {
     return response;
   }
 
-  public void validateGetPricesInput(
-      String sellAssetName,
-      String sellAmount,
-      String countryCode,
-      String sellDeliveryMethod,
-      String buyDeliveryMethod)
-      throws AnchorException {
-    Log.infoF(
-        "validateGetPricesInput(): sellAssetName={}, sellAmount={}, countryCode={}, sellDeliveryMethod={}, buyDeliveryMethod={}",
-        sellAssetName,
-        sellAmount,
-        countryCode,
-        sellDeliveryMethod,
-        buyDeliveryMethod);
-
-    if (Objects.toString(sellAssetName, "").isEmpty()) {
-      throw new BadRequestException("sell_asset cannot be empty");
+  public void validateAsset(String prefix, String assetName) throws AnchorException {
+    // assetName
+    if (Objects.toString(assetName, "").isEmpty()) {
+      throw new BadRequestException(prefix + "asset cannot be empty");
     }
 
-    InfoResponse.Asset sellAsset = assetMap.get(sellAssetName);
-    if (sellAsset == null) {
-      throw new NotFoundException("sell_asset not found");
+    InfoResponse.Asset asset = assetMap.get(assetName);
+    if (asset == null) {
+      throw new NotFoundException(prefix + "asset not found");
     }
+  }
 
-    if (Objects.toString(sellAmount, "").isEmpty()) {
-      throw new BadRequestException("sell_amount cannot be empty");
+  public void validateAmount(String prefix, String amount) throws AnchorException {
+    // assetName
+    if (Objects.toString(amount, "").isEmpty()) {
+      throw new BadRequestException(prefix + "amount cannot be empty");
     }
 
     BigDecimal sAmount;
     try {
-      sAmount = new BigDecimal(sellAmount);
+      sAmount = new BigDecimal(amount);
     } catch (NumberFormatException e) {
-      throw new BadRequestException("Invalid sell_amount", e);
+      throw new BadRequestException(prefix + "amount is invalid", e);
     }
     if (sAmount.signum() < 1) {
-      throw new BadRequestException("sell_amount should be positive");
+      throw new BadRequestException(prefix + "amount should be positive");
+    }
+  }
+
+  public GetPriceResponse getPrice(
+      String sellAssetName,
+      String sellAmount,
+      String sellDeliveryMethod,
+      String buyAssetName,
+      String buyAmount,
+      String buyDeliveryMethod,
+      String countryCode)
+      throws AnchorException {
+    if (this.rateIntegration == null) {
+      throw new ServerErrorException("internal server error");
+    }
+    validateAsset("sell_", sellAssetName);
+    validateAsset("buy_", buyAssetName);
+
+    if ((sellAmount == null && buyAmount == null) || (sellAmount != null && buyAmount != null)) {
+      throw new BadRequestException("Please provide either sell_amount or buy_amount");
+    } else if (sellAmount != null) {
+      validateAmount("sell_", sellAmount);
+    } else {
+      validateAmount("buy_", buyAmount);
     }
 
-    if (!Objects.toString(countryCode, "").isEmpty()) {
-      if (!sellAsset.getCountryCodes().contains(countryCode)) {
-        throw new BadRequestException("Unsupported country code");
-      }
-    }
+    InfoResponse.Asset sellAsset = assetMap.get(sellAssetName);
+    InfoResponse.Asset buyAsset = assetMap.get(buyAssetName);
 
+    // sellDeliveryMethod
     if (!Objects.toString(sellDeliveryMethod, "").isEmpty()) {
       if (!sellAsset.supportsSellDeliveryMethod(sellDeliveryMethod)) {
         throw new BadRequestException("Unsupported sell delivery method");
       }
     }
+
+    // buyDeliveryMethod
+    if (!Objects.toString(buyDeliveryMethod, "").isEmpty()) {
+      if (!buyAsset.supportsBuyDeliveryMethod(buyDeliveryMethod)) {
+        throw new BadRequestException("Unsupported buy delivery method");
+      }
+    }
+
+    // countryCode
+    if (!Objects.toString(countryCode, "").isEmpty()) {
+      List<String> sellCountryCodes = sellAsset.getCountryCodes();
+      List<String> buyCountryCodes = buyAsset.getCountryCodes();
+      boolean bothCountryCodesAreNull = sellCountryCodes == null && buyCountryCodes == null;
+      boolean countryCodeIsSupportedForSell =
+          sellCountryCodes != null && sellCountryCodes.contains(countryCode);
+      boolean countryCodeIsSupportedForBuy =
+          buyCountryCodes != null && buyCountryCodes.contains(countryCode);
+      if (bothCountryCodesAreNull
+          || !(countryCodeIsSupportedForSell || countryCodeIsSupportedForBuy)) {
+        throw new BadRequestException("Unsupported country code");
+      }
+    }
+
+    GetRateRequest request =
+        GetRateRequest.builder()
+            .sellAsset(sellAssetName)
+            .sellAmount(sellAmount)
+            .sellDeliveryMethod(sellDeliveryMethod)
+            .buyAsset(buyAssetName)
+            .buyAmount(buyAmount)
+            .buyDeliveryMethod(buyDeliveryMethod)
+            .countryCode(countryCode)
+            .build();
+    GetRateResponse rateResponse = this.rateIntegration.getRate(request);
+
+    // Calculate amounts: sellAmount = buyAmount*price or buyAmount = sellAmount/price
+    GetPriceResponse.GetPriceResponseBuilder builder =
+        GetPriceResponse.builder().price(rateResponse.getRate().getPrice());
+    BigDecimal bPrice = new BigDecimal(rateResponse.getRate().getPrice());
+    if (sellAmount != null) {
+      BigDecimal bSellAmount = new BigDecimal(sellAmount);
+      BigDecimal bBuyAmount = bSellAmount.divide(bPrice, 4, RoundingMode.HALF_UP);
+      builder = builder.sellAmount(sellAmount).buyAmount(bBuyAmount.toPlainString());
+    } else {
+      BigDecimal bBuyAmount = new BigDecimal(buyAmount);
+      BigDecimal bSellAmount = bBuyAmount.multiply(bPrice);
+      builder = builder.buyAmount(buyAmount).sellAmount(bSellAmount.toPlainString());
+    }
+
+    return builder.build();
   }
 }
