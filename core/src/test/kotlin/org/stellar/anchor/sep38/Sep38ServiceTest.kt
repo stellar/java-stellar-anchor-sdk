@@ -390,7 +390,7 @@ class Sep38ServiceTest {
       gotResponse = sep38Service.getPrice("iso4217:USD", "100", null, stellarUSDC, null, null, null)
     }
     val wantResponse =
-      GetPriceResponse.builder().price("1.02").sellAmount("100").buyAmount("98.0392157").build()
+      GetPriceResponse.builder().price("1.02").sellAmount("100").buyAmount("98.0392156").build()
     assertEquals(wantResponse, gotResponse)
   }
 
@@ -442,7 +442,7 @@ class Sep38ServiceTest {
         sep38Service.getPrice("iso4217:USD", "100", "WIRE", stellarUSDC, null, null, "USA")
     }
     val wantResponse =
-      GetPriceResponse.builder().price("1.02").sellAmount("100").buyAmount("98.0392157").build()
+      GetPriceResponse.builder().price("1.02").sellAmount("100").buyAmount("98.0392156").build()
     assertEquals(wantResponse, gotResponse)
   }
 
@@ -458,7 +458,7 @@ class Sep38ServiceTest {
         .countryCode("USA")
         .sellDeliveryMethod("WIRE")
         .build()
-    every { mockRateIntegration.getRate(getRateReq) } returns GetRateResponse("1.02")
+    every { mockRateIntegration.getRate(getRateReq) } returns GetRateResponse("1.02345678901")
     sep38Service =
       Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration)
 
@@ -470,7 +470,11 @@ class Sep38ServiceTest {
         sep38Service.getPrice("iso4217:USD", null, "WIRE", stellarUSDC, "100", null, "USA")
     }
     val wantResponse =
-      GetPriceResponse.builder().price("1.02").sellAmount("102").buyAmount("100").build()
+      GetPriceResponse.builder()
+        .price("1.02345678901")
+        .sellAmount("102.3457")
+        .buyAmount("100")
+        .build()
     assertEquals(wantResponse, gotResponse)
   }
 }
