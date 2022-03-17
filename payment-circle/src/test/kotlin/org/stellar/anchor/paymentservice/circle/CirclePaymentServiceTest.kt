@@ -1665,7 +1665,7 @@ class CirclePaymentServiceTest {
     p4.originalResponse = gson.fromJson(mockWalletToStellarTransferJson, type)
     wantPaymentHistory.payments.add(p4)
 
-    //    assertEquals(wantPaymentHistory, paymentHistory)
+    assertEquals(wantPaymentHistory, paymentHistory)
   }
 
   @Test

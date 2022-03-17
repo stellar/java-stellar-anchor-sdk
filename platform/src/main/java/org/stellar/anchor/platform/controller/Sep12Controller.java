@@ -6,10 +6,7 @@ import javax.servlet.http.HttpServletRequest;
 import lombok.SneakyThrows;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
-import org.stellar.anchor.dto.sep12.Sep12GetCustomerRequest;
-import org.stellar.anchor.dto.sep12.Sep12GetCustomerResponse;
-import org.stellar.anchor.dto.sep12.Sep12PutCustomerRequest;
-import org.stellar.anchor.dto.sep12.Sep12PutCustomerResponse;
+import org.stellar.anchor.dto.sep12.*;
 import org.stellar.anchor.exception.SepValidationException;
 import org.stellar.anchor.sep10.JwtToken;
 import org.stellar.anchor.sep12.Sep12Service;
@@ -62,5 +59,19 @@ public class Sep12Controller {
       throws SepValidationException {
     JwtToken jwtToken = getSep10Token(request);
     return sep12Service.putCustomer(jwtToken, putCustomerRequest);
+  }
+
+  @SneakyThrows
+  @CrossOrigin(origins = "*")
+  @RequestMapping(
+      value = "/customer/{account}",
+      consumes = {MediaType.APPLICATION_JSON_VALUE},
+      method = {RequestMethod.DELETE})
+  public void deleteCustomer(
+      HttpServletRequest request,
+      @PathVariable String account,
+      @RequestBody Sep12DeleteCustomerRequest deleteCustomerRequest) {
+    JwtToken jwtToken = getSep10Token(request);
+    sep12Service.deleteCustomer(jwtToken, deleteCustomerRequest);
   }
 }

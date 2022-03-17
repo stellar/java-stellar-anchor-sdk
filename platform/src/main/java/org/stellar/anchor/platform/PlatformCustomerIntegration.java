@@ -11,10 +11,7 @@ import lombok.SneakyThrows;
 import okhttp3.*;
 import okhttp3.HttpUrl.Builder;
 import org.springframework.http.HttpStatus;
-import org.stellar.anchor.dto.sep12.Sep12GetCustomerRequest;
-import org.stellar.anchor.dto.sep12.Sep12GetCustomerResponse;
-import org.stellar.anchor.dto.sep12.Sep12PutCustomerRequest;
-import org.stellar.anchor.dto.sep12.Sep12PutCustomerResponse;
+import org.stellar.anchor.dto.sep12.*;
 import org.stellar.anchor.exception.*;
 import org.stellar.anchor.integration.customer.CustomerIntegration;
 import org.stellar.platform.apis.callbacks.requests.GetCustomerRequest;
@@ -103,8 +100,8 @@ public class PlatformCustomerIntegration implements CustomerIntegration {
 
   @SneakyThrows
   @Override
-  public void deleteCustomer(org.stellar.anchor.dto.sep12.DeleteCustomerRequest request) {
-    // TODO
+  public void deleteCustomer(Sep12DeleteCustomerRequest sep12DeleteCustomerRequest) {
+    //    DeleteCustomerRequest deleteRequest = fromSep12(sep12DeleteCustomerRequest);
     throw new UnsupportedOperationException("not implemented");
   }
 

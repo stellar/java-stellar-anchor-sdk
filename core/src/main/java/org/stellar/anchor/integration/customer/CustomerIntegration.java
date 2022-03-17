@@ -1,6 +1,6 @@
 package org.stellar.anchor.integration.customer;
 
-import org.stellar.anchor.dto.sep12.DeleteCustomerRequest;
+import org.stellar.anchor.dto.sep12.Sep12DeleteCustomerRequest;
 import org.stellar.anchor.dto.sep12.Sep12GetCustomerRequest;
 import org.stellar.anchor.dto.sep12.Sep12GetCustomerResponse;
 import org.stellar.anchor.dto.sep12.Sep12PutCustomerRequest;
@@ -32,7 +32,7 @@ public interface CustomerIntegration {
    * @param request The request to delete a customer.
    * @throws AnchorException if error happens
    */
-  void deleteCustomer(DeleteCustomerRequest request) throws AnchorException;
+  void deleteCustomer(Sep12DeleteCustomerRequest request) throws AnchorException;
 
   /**
    * The request for verification.
