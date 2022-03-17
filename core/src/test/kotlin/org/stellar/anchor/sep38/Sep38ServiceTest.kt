@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.stellar.anchor.asset.AssetInfo
 import org.stellar.anchor.asset.ResourceJsonAssetService
+import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.Sep38Config
 import org.stellar.anchor.dto.sep38.GetPriceResponse
 import org.stellar.anchor.dto.sep38.GetPricesResponse
@@ -18,6 +19,7 @@ import org.stellar.anchor.exception.NotFoundException
 import org.stellar.anchor.exception.ServerErrorException
 import org.stellar.anchor.integration.rate.GetRateRequest
 import org.stellar.anchor.integration.rate.GetRateResponse
+import org.stellar.anchor.sep10.JwtToken
 
 class Sep38ServiceTest {
   internal class PropertySep38Config : Sep38Config {
@@ -30,7 +32,14 @@ class Sep38ServiceTest {
     }
   }
 
+  companion object {
+    private const val PUBLIC_KEY = "GBJDSMTMG4YBP27ZILV665XBISBBNRP62YB7WZA2IQX2HIPK7ABLF4C2"
+  }
+
   private lateinit var sep38Service: Sep38Service
+  // sep10 related:
+  private lateinit var appConfig: AppConfig
+
   private val stellarUSDC = "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
 
   @BeforeEach
@@ -40,6 +49,10 @@ class Sep38ServiceTest {
     val sep8Config = PropertySep38Config()
     this.sep38Service = Sep38Service(sep8Config, assetService, null)
     assertEquals(3, assets.size)
+
+    // sep10 related:
+    this.appConfig = mockk(relaxed = true)
+    every { appConfig.jwtSecretKey } returns "secret"
   }
 
   @Test
@@ -485,5 +498,272 @@ class Sep38ServiceTest {
         .buyAmount("100")
         .build()
     assertEquals(wantResponse, gotResponse)
+  }
+
+  @Test
+  fun test_postQuote_failure() {
+    // empty rateIntegration should throw an error
+    var ex: AnchorException = assertThrows {
+      sep38Service.postQuote(null, null, null, null, null, null, null, null, null)
+    }
+    assertInstanceOf(ServerErrorException::class.java, ex)
+    assertEquals("internal server error", ex.message)
+
+    // mock rate integration
+    val mockRateIntegration = mockk<MockRateIntegration>()
+    sep38Service =
+      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration)
+
+    // empty token
+    ex =
+      assertThrows { sep38Service.postQuote(null, null, null, null, null, null, null, null, null) }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("missing sep10 jwt token", ex.message)
+
+    // malformed token
+    var token = createJwtToken("")
+    ex =
+      assertThrows { sep38Service.postQuote(token, null, null, null, null, null, null, null, null) }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("sep10 token is malformed", ex.message)
+
+    // empty sell_asset
+    token = createJwtToken()
+    ex =
+      assertThrows { sep38Service.postQuote(token, null, null, null, null, null, null, null, null) }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("sell_asset cannot be empty", ex.message)
+
+    // nonexistent sell_asset
+    ex =
+      assertThrows {
+        sep38Service.postQuote(token, "foo:bar", null, null, null, null, null, null, null)
+      }
+    assertInstanceOf(NotFoundException::class.java, ex)
+    assertEquals("sell_asset not found", ex.message)
+
+    // empty buy_asset
+    ex =
+      assertThrows {
+        sep38Service.postQuote(token, "iso4217:USD", null, null, null, null, null, null, null)
+      }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("buy_asset cannot be empty", ex.message)
+
+    // nonexistent buy_asset
+    ex =
+      assertThrows {
+        sep38Service.postQuote(token, "iso4217:USD", null, null, "foo:bar", null, null, null, null)
+      }
+    assertInstanceOf(NotFoundException::class.java, ex)
+    assertEquals("buy_asset not found", ex.message)
+
+    // both sell_amount & buy_amount are empty
+    ex =
+      assertThrows {
+        sep38Service.postQuote(
+          token,
+          "iso4217:USD",
+          null,
+          null,
+          stellarUSDC,
+          null,
+          null,
+          null,
+          null
+        )
+      }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("Please provide either sell_amount or buy_amount", ex.message)
+
+    // both sell_amount & buy_amount are filled
+    ex =
+      assertThrows {
+        sep38Service.postQuote(
+          token,
+          "iso4217:USD",
+          "100",
+          null,
+          stellarUSDC,
+          "100",
+          null,
+          null,
+          null
+        )
+      }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("Please provide either sell_amount or buy_amount", ex.message)
+
+    // invalid (not a number) sell_amount
+    ex =
+      assertThrows {
+        sep38Service.postQuote(
+          token,
+          "iso4217:USD",
+          "foo",
+          null,
+          stellarUSDC,
+          null,
+          null,
+          null,
+          null
+        )
+      }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("sell_amount is invalid", ex.message)
+
+    // sell_amount should be positive
+    ex =
+      assertThrows {
+        sep38Service.postQuote(
+          token,
+          "iso4217:USD",
+          "-0.01",
+          null,
+          stellarUSDC,
+          null,
+          null,
+          null,
+          null
+        )
+      }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("sell_amount should be positive", ex.message)
+
+    // sell_amount should be positive
+    ex =
+      assertThrows {
+        sep38Service.postQuote(token, "iso4217:USD", "0", null, stellarUSDC, null, null, null, null)
+      }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("sell_amount should be positive", ex.message)
+
+    // invalid (not a number) buy_amount
+    ex =
+      assertThrows {
+        sep38Service.postQuote(
+          token,
+          "iso4217:USD",
+          null,
+          null,
+          stellarUSDC,
+          "bar",
+          null,
+          null,
+          null
+        )
+      }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("buy_amount is invalid", ex.message)
+
+    // buy_amount should be positive
+    ex =
+      assertThrows {
+        sep38Service.postQuote(
+          token,
+          "iso4217:USD",
+          null,
+          null,
+          stellarUSDC,
+          "-0.02",
+          null,
+          null,
+          null
+        )
+      }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("buy_amount should be positive", ex.message)
+
+    // buy_amount should be positive
+    ex =
+      assertThrows {
+        sep38Service.postQuote(token, "iso4217:USD", null, null, stellarUSDC, "0", null, null, null)
+      }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("buy_amount should be positive", ex.message)
+
+    // unsupported sell_delivery_method
+    ex =
+      assertThrows {
+        sep38Service.postQuote(
+          token,
+          "iso4217:USD",
+          "1.23",
+          "FOO",
+          stellarUSDC,
+          null,
+          null,
+          null,
+          null
+        )
+      }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("Unsupported sell delivery method", ex.message)
+
+    // unsupported buy_delivery_method
+    ex =
+      assertThrows {
+        sep38Service.postQuote(
+          token,
+          "iso4217:USD",
+          "1.23",
+          "WIRE",
+          stellarUSDC,
+          null,
+          "BAR",
+          null,
+          null
+        )
+      }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("Unsupported buy delivery method", ex.message)
+
+    // unsupported country_code
+    ex =
+      assertThrows {
+        sep38Service.postQuote(
+          token,
+          "iso4217:USD",
+          "1.23",
+          "WIRE",
+          stellarUSDC,
+          null,
+          null,
+          "BRA",
+          null
+        )
+      }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("Unsupported country code", ex.message)
+
+    // unsupported country_code
+    ex =
+      assertThrows {
+        sep38Service.postQuote(
+          token,
+          "iso4217:USD",
+          "1.23",
+          "WIRE",
+          stellarUSDC,
+          null,
+          null,
+          "USA",
+          "FOO BAR"
+        )
+      }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("expire_after is invalid", ex.message)
+  }
+
+  private fun createJwtToken(publicKey: String = PUBLIC_KEY): JwtToken {
+    val issuedAt: Long = System.currentTimeMillis() / 1000L
+    return JwtToken.of(
+      appConfig.hostUrl + "/auth",
+      publicKey,
+      issuedAt,
+      issuedAt + 60,
+      "",
+      "vibrant.stellar.org"
+    )
   }
 }

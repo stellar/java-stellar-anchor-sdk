@@ -14,13 +14,11 @@ import org.stellar.anchor.dto.sep38.GetPriceResponse;
 import org.stellar.anchor.dto.sep38.GetPricesResponse;
 import org.stellar.anchor.dto.sep38.InfoResponse;
 import org.stellar.anchor.dto.sep38.QuoteResponse;
-import org.stellar.anchor.exception.AnchorException;
-import org.stellar.anchor.exception.BadRequestException;
-import org.stellar.anchor.exception.NotFoundException;
-import org.stellar.anchor.exception.ServerErrorException;
+import org.stellar.anchor.exception.*;
 import org.stellar.anchor.integration.rate.GetRateRequest;
 import org.stellar.anchor.integration.rate.GetRateResponse;
 import org.stellar.anchor.integration.rate.RateIntegration;
+import org.stellar.anchor.sep10.JwtToken;
 import org.stellar.anchor.util.Log;
 
 public class Sep38Service {
@@ -228,6 +226,7 @@ public class Sep38Service {
   }
 
   public QuoteResponse postQuote(
+      JwtToken token,
       String sellAssetName,
       String sellAmount,
       String sellDeliveryMethod,
@@ -240,6 +239,24 @@ public class Sep38Service {
     if (this.rateIntegration == null) {
       throw new ServerErrorException("internal server error");
     }
+
+    // validate token
+    if (token == null) {
+      throw new BadRequestException("missing sep10 jwt token");
+    }
+    String account, memo = null, memoType = null;
+    if (!Objects.toString(token.getMuxedAccount(), "").isEmpty()) {
+      account = token.getMuxedAccount();
+    } else if (!Objects.toString(token.getAccount(), "").isEmpty()) {
+      account = token.getAccount();
+      if (token.getAccountMemo() != null) {
+        memo = token.getAccountMemo();
+        memoType = "id";
+      }
+    } else {
+      throw new BadRequestException("sep10 token is malformed");
+    }
+
     validateAsset("sell_", sellAssetName);
     validateAsset("buy_", buyAssetName);
 
@@ -303,6 +320,9 @@ public class Sep38Service {
             .buyDeliveryMethod(buyDeliveryMethod)
             .countryCode(countryCode)
             .expireAfter(expireAfter)
+            .account(account)
+            .memo(memo)
+            .memoType(memoType)
             .build();
     GetRateResponse.Rate rate = this.rateIntegration.getRate(request).getRate();
 
@@ -329,7 +349,6 @@ public class Sep38Service {
             .sellAmount(formatAmount(bSellAmount, sellAsset.getDecimals(), RoundingMode.UP))
             .buyAmount(formatAmount(bBuyAmount, buyAsset.getDecimals(), RoundingMode.DOWN));
 
-    // TODO: get the user info from SEP-10
     // TODO: save the quote locally
     // TODO: create an event for `quote_created` using the event API
     return builder.build();
