@@ -1,5 +1,7 @@
 package org.stellar.anchor.platform
 
+import java.util.*
+import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Order
 import org.junit.jupiter.api.Test
@@ -16,9 +18,16 @@ class AnchorPlatformIntegrationTest {
     @BeforeAll
     @JvmStatic
     fun setup() {
-      AnchorPlatformServer.start(SEP_SERVER_PORT, "/")
+      AnchorPlatformServer.start(
+        SEP_SERVER_PORT,
+        "/",
+        mapOf("stellar.anchor.config" to "classpath:test-anchor-config.yaml")
+      )
+
       AnchorReferenceServer.start(REFERENCE_SERVER_PORT, "/")
     }
+
+    @AfterAll fun tearDown() {}
   }
 
   private fun readSep1Toml(): Sep1Helper.TomlContent {

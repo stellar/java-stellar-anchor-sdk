@@ -37,6 +37,13 @@ dependencies {
   testImplementation(libs.okhttp3.mockserver)
 }
 
+tasks.test {
+  testLogging {
+    exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+    events = setOf(org.gradle.api.tasks.testing.logging.TestLogEvent.FAILED)
+  }
+}
+
 application { mainClass.set("org.stellar.anchor.platform.ServiceRunner") }
 
 configurations {
