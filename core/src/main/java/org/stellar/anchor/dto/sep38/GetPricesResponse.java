@@ -12,9 +12,10 @@ public class GetPricesResponse {
   @SerializedName("buy_assets")
   List<Asset> buyAssets = new ArrayList<>();
 
-  public void addAsset(@NonNull String assetName, @NonNull String price) {
-    int decimals = assetName.startsWith("iso4217") ? 4 : 7;
-    buyAssets.add(Asset.builder().asset(assetName).price(price).decimals(decimals).build());
+  public void addAsset(
+      @NonNull String buyAssetName, Integer buyAssetDecimals, @NonNull String price) {
+    buyAssets.add(
+        Asset.builder().asset(buyAssetName).price(price).decimals(buyAssetDecimals).build());
   }
 
   @Data

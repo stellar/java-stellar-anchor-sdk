@@ -99,6 +99,8 @@ public class AssetInfo {
     @SerializedName("buy_delivery_methods")
     List<DeliveryMethod> buyDeliveryMethods;
 
+    Integer decimals;
+
     @Data
     public static class DeliveryMethod {
       String name;

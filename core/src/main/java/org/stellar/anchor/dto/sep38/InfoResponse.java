@@ -27,6 +27,12 @@ public class InfoResponse {
           newAsset.setBuyDeliveryMethods(sep38Info.getBuyDeliveryMethods());
           newAsset.setExchangeableAssetNames(sep38Info.getExchangeableAssets());
 
+          int decimals = 7;
+          if (!assetName.startsWith("stellar") && sep38Info.getDecimals() != null) {
+            decimals = sep38Info.getDecimals();
+          }
+          newAsset.setDecimals(decimals);
+
           assets.add(newAsset);
         });
   }
@@ -45,6 +51,8 @@ public class InfoResponse {
     private List<AssetInfo.Sep38Operation.DeliveryMethod> buyDeliveryMethods;
 
     private transient List<String> exchangeableAssetNames;
+
+    private transient Integer decimals;
 
     public boolean supportsSellDeliveryMethod(String deliveryMethod) {
       return supportsDeliveryMethod(sellDeliveryMethods, deliveryMethod);
