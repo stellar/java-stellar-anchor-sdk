@@ -1,5 +1,8 @@
 package org.stellar.anchor.platform;
 
+import static org.springframework.boot.Banner.Mode.OFF;
+
+import java.util.Map;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -10,10 +13,6 @@ import org.stellar.anchor.platform.configurator.DataAccessConfigurator;
 import org.stellar.anchor.platform.configurator.PlatformAppConfigurator;
 import org.stellar.anchor.platform.configurator.PropertiesReader;
 import org.stellar.anchor.platform.configurator.SpringFrameworkConfigurator;
-
-import java.util.Map;
-
-import static org.springframework.boot.Banner.Mode.OFF;
 
 @SpringBootApplication
 @EnableConfigurationProperties

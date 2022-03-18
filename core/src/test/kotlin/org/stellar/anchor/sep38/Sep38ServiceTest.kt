@@ -390,7 +390,7 @@ class Sep38ServiceTest {
       gotResponse = sep38Service.getPrice("iso4217:USD", "100", null, stellarUSDC, null, null, null)
     }
     val wantResponse =
-      GetPriceResponse.builder().price("1.02").sellAmount("100").buyAmount("98.0392156").build()
+      GetPriceResponse.builder().price("1.02").sellAmount("100").buyAmount("98.0392157").build()
     assertEquals(wantResponse, gotResponse)
   }
 
@@ -442,7 +442,7 @@ class Sep38ServiceTest {
         sep38Service.getPrice("iso4217:USD", "100", "WIRE", stellarUSDC, null, null, "USA")
     }
     val wantResponse =
-      GetPriceResponse.builder().price("1.02").sellAmount("100").buyAmount("98.0392156").build()
+      GetPriceResponse.builder().price("1.02").sellAmount("100").buyAmount("98.0392157").build()
     assertEquals(wantResponse, gotResponse)
   }
 
