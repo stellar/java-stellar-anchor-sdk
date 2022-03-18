@@ -43,6 +43,8 @@ class Sep12Client(private val endpoint: String, private val jwt: String) : SepCl
       throw SepNotAuthorizedException("Forbidden")
     }
 
+    assert(response.code == HttpStatus.ACCEPTED.value())
+
     return gson.fromJson(response.body!!.string(), Sep12PutCustomerResponse::class.java)
   }
 
