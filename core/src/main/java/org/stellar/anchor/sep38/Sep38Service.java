@@ -346,8 +346,8 @@ public class Sep38Service {
     }
     builder =
         builder
-            .sellAmount(formatAmount(bSellAmount, sellAsset.getDecimals(), RoundingMode.UP))
-            .buyAmount(formatAmount(bBuyAmount, buyAsset.getDecimals(), RoundingMode.DOWN));
+            .sellAmount(formatAmount(bSellAmount, sellAsset.getDecimals()))
+            .buyAmount(formatAmount(bBuyAmount, buyAsset.getDecimals()));
 
     // TODO: save the quote locally
     // TODO: create an event for `quote_created` using the event API
