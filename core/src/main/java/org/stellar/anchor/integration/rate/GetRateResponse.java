@@ -15,8 +15,10 @@ public class GetRateResponse {
     this.rate.price = price;
   }
 
-  public GetRateResponse(@NonNull String price, @Nullable LocalDateTime expiresAt) {
+  public GetRateResponse(
+      @NonNull String id, @NonNull String price, @NonNull LocalDateTime expiresAt) {
     this.rate = new Rate();
+    this.rate.id = id;
     this.rate.price = price;
     this.rate.expiresAt = expiresAt;
   }

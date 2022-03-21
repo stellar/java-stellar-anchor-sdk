@@ -2,6 +2,7 @@ package org.stellar.anchor.sep38
 
 import io.mockk.every
 import io.mockk.mockk
+import java.time.LocalDateTime
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -13,6 +14,7 @@ import org.stellar.anchor.config.Sep38Config
 import org.stellar.anchor.dto.sep38.GetPriceResponse
 import org.stellar.anchor.dto.sep38.GetPricesResponse
 import org.stellar.anchor.dto.sep38.InfoResponse
+import org.stellar.anchor.dto.sep38.Sep38QuoteResponse
 import org.stellar.anchor.exception.AnchorException
 import org.stellar.anchor.exception.BadRequestException
 import org.stellar.anchor.exception.NotFoundException
@@ -753,6 +755,208 @@ class Sep38ServiceTest {
       }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("expire_after is invalid", ex.message)
+  }
+
+  @Test
+  fun test_postQuote_minimumParametersWithSellAmount() {
+    // mock rate integration
+    val mockRateIntegration = mockk<MockRateIntegration>()
+    val getRateReq =
+      GetRateRequest.builder()
+        .type(GetRateRequest.Type.FIRM)
+        .sellAsset("iso4217:USD")
+        .sellAmount("100")
+        .buyAsset(stellarUSDC)
+        .account(PUBLIC_KEY)
+        .build()
+    val tomorrow = LocalDateTime.now().plusDays(1)
+    every { mockRateIntegration.getRate(getRateReq) } returns
+      GetRateResponse("123", "1.02", tomorrow)
+    sep38Service =
+      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration)
+
+    // test happy path with the minimum parameters using sellAmount
+    val token = createJwtToken()
+    var gotResponse: Sep38QuoteResponse? = null
+    assertDoesNotThrow {
+      gotResponse =
+        sep38Service.postQuote(
+          token,
+          "iso4217:USD",
+          "100",
+          null,
+          stellarUSDC,
+          null,
+          null,
+          null,
+          null
+        )
+    }
+    val wantResponse =
+      Sep38QuoteResponse.builder()
+        .id("123")
+        .expiresAt(tomorrow)
+        .price("1.02")
+        .sellAsset("iso4217:USD")
+        .sellAmount("100")
+        .buyAsset(stellarUSDC)
+        .buyAmount("98.0392157")
+        .build()
+    assertEquals(wantResponse, gotResponse)
+  }
+
+  @Test
+  fun test_postQuote_minimumParametersWithBuyAmount() {
+    // mock rate integration
+    val mockRateIntegration = mockk<MockRateIntegration>()
+    val getRateReq =
+      GetRateRequest.builder()
+        .type(GetRateRequest.Type.FIRM)
+        .sellAsset("iso4217:USD")
+        .buyAsset(stellarUSDC)
+        .buyAmount("100")
+        .account(PUBLIC_KEY)
+        .build()
+    val tomorrow = LocalDateTime.now().plusDays(1)
+    every { mockRateIntegration.getRate(getRateReq) } returns
+      GetRateResponse("456", "1.02", tomorrow)
+    sep38Service =
+      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration)
+
+    // test happy path with the minimum parameters using sellAmount
+    val token = createJwtToken()
+    var gotResponse: Sep38QuoteResponse? = null
+    assertDoesNotThrow {
+      gotResponse =
+        sep38Service.postQuote(
+          token,
+          "iso4217:USD",
+          null,
+          null,
+          stellarUSDC,
+          "100",
+          null,
+          null,
+          null
+        )
+    }
+    val wantResponse =
+      Sep38QuoteResponse.builder()
+        .id("456")
+        .expiresAt(tomorrow)
+        .price("1.02")
+        .sellAsset("iso4217:USD")
+        .sellAmount("102")
+        .buyAsset(stellarUSDC)
+        .buyAmount("100")
+        .build()
+    assertEquals(wantResponse, gotResponse)
+  }
+
+  @Test
+  fun test_postQuote_allParametersWithSellAmount() {
+    val now = LocalDateTime.now()
+    val tomorrow = now.plusDays(1)
+
+    // mock rate integration
+    val mockRateIntegration = mockk<MockRateIntegration>()
+    val getRateReq =
+      GetRateRequest.builder()
+        .type(GetRateRequest.Type.FIRM)
+        .sellAsset("iso4217:USD")
+        .sellAmount("100")
+        .sellDeliveryMethod("WIRE")
+        .buyAsset(stellarUSDC)
+        .countryCode("USA")
+        .account(PUBLIC_KEY)
+        .expireAfter(now.toString())
+        .build()
+    every { mockRateIntegration.getRate(getRateReq) } returns
+      GetRateResponse("123", "1.02", tomorrow)
+    sep38Service =
+      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration)
+
+    // test happy path with the minimum parameters using sellAmount
+    val token = createJwtToken()
+    var gotResponse: Sep38QuoteResponse? = null
+    assertDoesNotThrow {
+      gotResponse =
+        sep38Service.postQuote(
+          token,
+          "iso4217:USD",
+          "100",
+          "WIRE",
+          stellarUSDC,
+          null,
+          null,
+          "USA",
+          now.toString()
+        )
+    }
+    val wantResponse =
+      Sep38QuoteResponse.builder()
+        .id("123")
+        .expiresAt(tomorrow)
+        .price("1.02")
+        .sellAsset("iso4217:USD")
+        .sellAmount("100")
+        .buyAsset(stellarUSDC)
+        .buyAmount("98.0392157")
+        .build()
+    assertEquals(wantResponse, gotResponse)
+  }
+
+  @Test
+  fun test_postQuote_allParametersWithBuyAmount() {
+    val now = LocalDateTime.now()
+    val tomorrow = now.plusDays(1)
+
+    // mock rate integration
+    val mockRateIntegration = mockk<MockRateIntegration>()
+    val getRateReq =
+      GetRateRequest.builder()
+        .type(GetRateRequest.Type.FIRM)
+        .sellAsset("iso4217:USD")
+        .sellDeliveryMethod("WIRE")
+        .buyAsset(stellarUSDC)
+        .buyAmount("100")
+        .countryCode("USA")
+        .account(PUBLIC_KEY)
+        .expireAfter(now.toString())
+        .build()
+    every { mockRateIntegration.getRate(getRateReq) } returns
+      GetRateResponse("456", "1.02", tomorrow)
+    sep38Service =
+      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration)
+
+    // test happy path with the minimum parameters using sellAmount
+    val token = createJwtToken()
+    var gotResponse: Sep38QuoteResponse? = null
+    assertDoesNotThrow {
+      gotResponse =
+        sep38Service.postQuote(
+          token,
+          "iso4217:USD",
+          null,
+          "WIRE",
+          stellarUSDC,
+          "100",
+          null,
+          "USA",
+          now.toString()
+        )
+    }
+    val wantResponse =
+      Sep38QuoteResponse.builder()
+        .id("456")
+        .expiresAt(tomorrow)
+        .price("1.02")
+        .sellAsset("iso4217:USD")
+        .sellAmount("102")
+        .buyAsset(stellarUSDC)
+        .buyAmount("100")
+        .build()
+    assertEquals(wantResponse, gotResponse)
   }
 
   private fun createJwtToken(publicKey: String = PUBLIC_KEY): JwtToken {
