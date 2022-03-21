@@ -7,7 +7,7 @@ import lombok.Data;
 
 @Data
 @Builder
-public class QuoteResponse {
+public class Sep38QuoteResponse {
   String id;
 
   @SerializedName("expires_at")

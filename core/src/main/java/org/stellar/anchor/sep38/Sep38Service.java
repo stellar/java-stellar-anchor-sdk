@@ -13,7 +13,7 @@ import org.stellar.anchor.config.Sep38Config;
 import org.stellar.anchor.dto.sep38.GetPriceResponse;
 import org.stellar.anchor.dto.sep38.GetPricesResponse;
 import org.stellar.anchor.dto.sep38.InfoResponse;
-import org.stellar.anchor.dto.sep38.QuoteResponse;
+import org.stellar.anchor.dto.sep38.Sep38QuoteResponse;
 import org.stellar.anchor.exception.*;
 import org.stellar.anchor.integration.rate.GetRateRequest;
 import org.stellar.anchor.integration.rate.GetRateResponse;
@@ -225,7 +225,7 @@ public class Sep38Service {
     return df.format(newAmount);
   }
 
-  public QuoteResponse postQuote(
+  public Sep38QuoteResponse postQuote(
       JwtToken token,
       String sellAssetName,
       String sellAmount,
@@ -326,8 +326,8 @@ public class Sep38Service {
             .build();
     GetRateResponse.Rate rate = this.rateIntegration.getRate(request).getRate();
 
-    QuoteResponse.QuoteResponseBuilder builder =
-        QuoteResponse.builder()
+    Sep38QuoteResponse.Sep38QuoteResponseBuilder builder =
+        Sep38QuoteResponse.builder()
             .id(rate.getId())
             .expiresAt(rate.getExpiresAt())
             .price(rate.getPrice())
