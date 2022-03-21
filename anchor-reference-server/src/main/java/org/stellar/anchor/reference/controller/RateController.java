@@ -19,7 +19,36 @@ public class RateController {
   @RequestMapping(
       value = "/rate",
       method = {RequestMethod.GET})
-  public GetRateResponse getRate(GetRateRequest getRateRequest) throws AnchorException {
-    return rateService.getRate(getRateRequest);
+  public GetRateResponse getRate(
+      @RequestParam() String type,
+      @RequestParam(required = false) String id,
+      @RequestParam(name = "sell_asset") String sellAsset,
+      @RequestParam(name = "sell_amount", required = false) String sellAmount,
+      @RequestParam(name = "sell_delivery_method", required = false) String sellDeliveryMethod,
+      @RequestParam(name = "buy_asset") String buyAsset,
+      @RequestParam(name = "buy_amount", required = false) String buyAmount,
+      @RequestParam(name = "buy_delivery_method", required = false) String buyDeliveryMethod,
+      @RequestParam(name = "country_code", required = false) String countryCode,
+      @RequestParam(name = "client_domain", required = false) String clientDomain,
+      @RequestParam(required = false) String account,
+      @RequestParam(required = false) String memo,
+      @RequestParam(name = "memo_type", required = false) String memoType)
+      throws AnchorException {
+    return rateService.getRate(
+        GetRateRequest.builder()
+            .type(type)
+            .id(id)
+            .sellAsset(sellAsset)
+            .sellAmount(sellAmount)
+            .sellDeliveryMethod(sellDeliveryMethod)
+            .buyAsset(buyAsset)
+            .buyAmount(buyAmount)
+            .buyDeliveryMethod(buyDeliveryMethod)
+            .countryCode(countryCode)
+            .clientDomain(clientDomain)
+            .account(account)
+            .memo(memo)
+            .memoType(memoType)
+            .build());
   }
 }

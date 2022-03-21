@@ -1,9 +1,9 @@
 package org.stellar.anchor.server
 
 import com.google.gson.Gson
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import org.skyscreamer.jsonassert.JSONAssert
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.test.web.client.TestRestTemplate
@@ -34,10 +34,32 @@ class AnchorReferenceServerIntegrationTest {
     assertEquals(HttpStatus.NOT_FOUND, result.statusCode)
   }
 
-  fun restGetCustomer(getCustomerRequest: GetCustomerRequest): ResponseEntity<GetCustomerResponse> {
+  private fun restGetCustomer(
+    getCustomerRequest: GetCustomerRequest
+  ): ResponseEntity<GetCustomerResponse> {
     val json = gson.toJson(getCustomerRequest)
     val params = gson.fromJson(json, HashMap::class.java)
 
     return restTemplate.getForEntity("/customer?id={id}", GetCustomerResponse::class.java, params)
+  }
+
+  @Test
+  fun getRate() {
+    val fiatUSD = "iso4217:USD"
+    val stellarUSDC = "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+
+    val result =
+      restTemplate.getForEntity(
+        "/rate?type={type}&sell_asset={sell_asset}&buy_asset={buy_asset}",
+        String::class.java,
+        "indicative",
+        fiatUSD,
+        stellarUSDC
+      )
+    assertNotNull(result)
+    assertEquals(HttpStatus.OK, result.statusCode)
+
+    val wantBody = """{"rate":{"id":null,"price":"1.02","expiresAt":null}}"""
+    JSONAssert.assertEquals(wantBody, result.body, true)
   }
 }

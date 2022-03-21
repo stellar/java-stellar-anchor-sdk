@@ -8,6 +8,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.stellar.anchor.dto.SepExceptionResponse;
+import org.stellar.anchor.exception.BadRequestException;
 import org.stellar.anchor.exception.NotFoundException;
 import org.stellar.anchor.exception.ServerErrorException;
 import org.stellar.anchor.exception.UnprocessableEntityException;
@@ -22,7 +23,7 @@ public class GlobalControllerExceptionHandler {
   }
 
   @ResponseStatus(HttpStatus.UNPROCESSABLE_ENTITY)
-  @ExceptionHandler({UnprocessableEntityException.class})
+  @ExceptionHandler({BadRequestException.class, UnprocessableEntityException.class})
   public SepExceptionResponse handleUnprocessableEntityError(Exception ex) {
     errorEx(ex);
     return new SepExceptionResponse(ex.getMessage());

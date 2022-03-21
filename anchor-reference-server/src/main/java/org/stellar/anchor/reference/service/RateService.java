@@ -1,5 +1,6 @@
 package org.stellar.anchor.reference.service;
 
+import java.util.List;
 import java.util.Map;
 import kotlin.Pair;
 import org.springframework.stereotype.Service;
@@ -15,11 +16,19 @@ public class RateService {
       throw new ServerErrorException("getting quote by id is not implemented yet");
     }
 
+    if (request.getType() == null) {
+      throw new BadRequestException("type cannot be empty");
+    }
+
+    if (!List.of("firm", "indicative").contains(request.getType())) {
+      throw new BadRequestException("type is not supported");
+    }
+
     if (request.getSellAsset() == null) {
       throw new BadRequestException("sell_asset cannot be empty");
     }
     if (request.getBuyAsset() == null) {
-      throw new BadRequestException("sell_asset cannot be empty");
+      throw new BadRequestException("buy_asset cannot be empty");
     }
 
     String price = ConversionPrice.getPrice(request.getSellAsset(), request.getBuyAsset());
@@ -27,7 +36,7 @@ public class RateService {
       throw new UnprocessableEntityException("the price for the given pair could not be found");
     }
 
-    return null;
+    return new GetRateResponse(price);
   }
 
   private static class ConversionPrice {
