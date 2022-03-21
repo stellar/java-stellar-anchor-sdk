@@ -11,6 +11,7 @@ dependencyResolutionManagement {
       alias("commons.validator").to("commons-validator:commons-validator:1.7")
       alias("google.gson").to("com.google.code.gson:gson:2.8.9")
       alias("httpclient").to("org.apache.httpcomponents:httpclient:4.5.13")
+      alias("jackson.annotations").to("com.fasterxml.jackson.core:jackson-annotations:2.13.1")
       alias("java.stellar.sdk").to("com.github.stellar:java-stellar-sdk:0.29.0")
       alias("javax.jaxb.api").to("javax.xml.bind:jaxb-api:2.3.1")
       alias("jjwt").to("io.jsonwebtoken:jjwt:0.9.1")

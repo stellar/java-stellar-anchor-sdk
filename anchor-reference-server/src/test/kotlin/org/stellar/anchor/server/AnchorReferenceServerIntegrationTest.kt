@@ -59,7 +59,7 @@ class AnchorReferenceServerIntegrationTest {
     assertNotNull(result)
     assertEquals(HttpStatus.OK, result.statusCode)
 
-    val wantBody = """{"rate":{"id":null,"price":"1.02","expiresAt":null}}"""
+    val wantBody = """{"rate":{"price":"1.02"}}"""
     JSONAssert.assertEquals(wantBody, result.body, true)
   }
 }
