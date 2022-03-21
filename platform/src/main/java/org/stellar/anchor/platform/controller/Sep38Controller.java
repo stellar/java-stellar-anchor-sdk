@@ -1,15 +1,17 @@
 package org.stellar.anchor.platform.controller;
 
+import static org.stellar.anchor.platform.controller.Sep10Helper.getSep10Token;
 import static org.stellar.anchor.util.Log.*;
 
+import javax.servlet.http.HttpServletRequest;
 import lombok.SneakyThrows;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestClientException;
 import org.stellar.anchor.dto.SepExceptionResponse;
-import org.stellar.anchor.dto.sep38.GetPriceResponse;
-import org.stellar.anchor.dto.sep38.GetPricesResponse;
-import org.stellar.anchor.dto.sep38.InfoResponse;
+import org.stellar.anchor.dto.sep38.*;
+import org.stellar.anchor.sep10.JwtToken;
 import org.stellar.anchor.sep38.Sep38Service;
 
 @RestController
@@ -66,6 +68,19 @@ public class Sep38Controller {
         buyAmount,
         buyDeliveryMethod,
         countryCode);
+  }
+
+  @SneakyThrows
+  @CrossOrigin(origins = "*")
+  @ResponseStatus(code = HttpStatus.CREATED)
+  @RequestMapping(
+      value = "/quote",
+      consumes = {MediaType.APPLICATION_JSON_VALUE},
+      method = {RequestMethod.POST})
+  public Sep38QuoteResponse postQuote(
+      HttpServletRequest request, @RequestBody Sep38PostQuoteRequest postQuoteRequest) {
+    JwtToken jwtToken = getSep10Token(request);
+    return sep38Service.postQuote(jwtToken, postQuoteRequest);
   }
 
   @ExceptionHandler(RestClientException.class)
