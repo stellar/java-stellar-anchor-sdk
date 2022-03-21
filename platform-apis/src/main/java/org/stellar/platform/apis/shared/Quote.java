@@ -21,7 +21,9 @@ public class Quote {
   LocalDateTime createdAt;
 
   String price;
-  StellarId creator;
+  String stellarAccount;
+  String memo;
+  String memoType;
 
   @SerializedName("transaction_id")
   String transactionId;
