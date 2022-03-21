@@ -22,14 +22,19 @@ public class Sep38Service {
   final Sep38Config sep38Config;
   final AssetService assetService;
   final RateIntegration rateIntegration;
+  final Sep38QuoteStore sep38QuoteStore;
   final InfoResponse infoResponse;
   final Map<String, InfoResponse.Asset> assetMap;
 
   public Sep38Service(
-      Sep38Config sep38Config, AssetService assetService, RateIntegration rateIntegration) {
+      Sep38Config sep38Config,
+      AssetService assetService,
+      RateIntegration rateIntegration,
+      Sep38QuoteStore sep38QuoteStore) {
     this.sep38Config = sep38Config;
     this.assetService = assetService;
     this.rateIntegration = rateIntegration;
+    this.sep38QuoteStore = sep38QuoteStore;
     this.infoResponse = new InfoResponse(this.assetService.listAllAssets());
     assetMap = new HashMap<>();
     this.infoResponse.getAssets().forEach(asset -> assetMap.put(asset.getAsset(), asset));

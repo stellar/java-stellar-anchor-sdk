@@ -46,7 +46,7 @@ class Sep38ServiceTest {
     val assetService = ResourceJsonAssetService("test_assets.json")
     val assets = assetService.listAllAssets()
     val sep8Config = PropertySep38Config()
-    this.sep38Service = Sep38Service(sep8Config, assetService, null)
+    this.sep38Service = Sep38Service(sep8Config, assetService, null, null)
     assertEquals(3, assets.size)
 
     // sep10 related:
@@ -114,7 +114,7 @@ class Sep38ServiceTest {
     // mock rate integration
     val mockRateIntegration = mockk<MockRateIntegration>()
     sep38Service =
-      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration)
+      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration, null)
 
     // empty sell_asset
     ex = assertThrows { sep38Service.getPrices(null, null, null, null, null) }
@@ -178,7 +178,7 @@ class Sep38ServiceTest {
         .build()
     every { mockRateIntegration.getRate(getRateReq2) } returns GetRateResponse("2")
     sep38Service =
-      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration)
+      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration, null)
 
     // test happy path with the minimum parameters
     var gotResponse: GetPricesResponse? = null
@@ -220,7 +220,7 @@ class Sep38ServiceTest {
         .build()
     every { mockRateIntegration.getRate(getRateReq2) } returns GetRateResponse("2.1")
     sep38Service =
-      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration)
+      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration, null)
 
     // test happy path with all the parameters
     var gotResponse: GetPricesResponse? = null
@@ -251,7 +251,7 @@ class Sep38ServiceTest {
         .build()
     every { mockRateIntegration.getRate(getRateReq1) } returns GetRateResponse("1")
     sep38Service =
-      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration)
+      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration, null)
 
     // test happy path with the minimum parameters and specify buy_delivery_method
     var gotResponse: GetPricesResponse? = null
@@ -275,7 +275,7 @@ class Sep38ServiceTest {
     // mock rate integration
     val mockRateIntegration = mockk<MockRateIntegration>()
     sep38Service =
-      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration)
+      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration, null)
 
     // empty sell_asset
     ex = assertThrows { sep38Service.getPrice(null, null, null, null, null, null, null) }
@@ -400,7 +400,7 @@ class Sep38ServiceTest {
         .build()
     every { mockRateIntegration.getRate(getRateReq) } returns GetRateResponse("1.02")
     sep38Service =
-      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration)
+      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration, null)
 
     // test happy path with the minimum parameters using sellAmount
     var gotResponse: GetPriceResponse? = null
@@ -425,7 +425,7 @@ class Sep38ServiceTest {
         .build()
     every { mockRateIntegration.getRate(getRateReq) } returns GetRateResponse("1.02")
     sep38Service =
-      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration)
+      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration, null)
 
     // test happy path with the minimum parameters using buyAmount
     var gotResponse: GetPriceResponse? = null
@@ -452,7 +452,7 @@ class Sep38ServiceTest {
         .build()
     every { mockRateIntegration.getRate(getRateReq) } returns GetRateResponse("1.02")
     sep38Service =
-      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration)
+      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration, null)
 
     // test happy path with all the parameters using sellAmount
     var gotResponse: GetPriceResponse? = null
@@ -481,7 +481,7 @@ class Sep38ServiceTest {
         .build()
     every { mockRateIntegration.getRate(getRateReq) } returns GetRateResponse("1.02345678901")
     sep38Service =
-      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration)
+      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration, null)
 
     // test happy path with all the parameters using buyAmount
     var gotResponse: GetPriceResponse? = null
@@ -511,7 +511,7 @@ class Sep38ServiceTest {
     // mock rate integration
     val mockRateIntegration = mockk<MockRateIntegration>()
     sep38Service =
-      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration)
+      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration, null)
 
     // empty token
     ex = assertThrows { sep38Service.postQuote(null, Sep38PostQuoteRequest.builder().build()) }
@@ -771,7 +771,7 @@ class Sep38ServiceTest {
     every { mockRateIntegration.getRate(getRateReq) } returns
       GetRateResponse("123", "1.02", tomorrow)
     sep38Service =
-      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration)
+      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration, null)
 
     // test happy path with the minimum parameters using sellAmount
     val token = createJwtToken()
@@ -816,7 +816,7 @@ class Sep38ServiceTest {
     every { mockRateIntegration.getRate(getRateReq) } returns
       GetRateResponse("456", "1.02", tomorrow)
     sep38Service =
-      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration)
+      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration, null)
 
     // test happy path with the minimum parameters using sellAmount
     val token = createJwtToken()
@@ -866,7 +866,7 @@ class Sep38ServiceTest {
     every { mockRateIntegration.getRate(getRateReq) } returns
       GetRateResponse("123", "1.02", tomorrow)
     sep38Service =
-      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration)
+      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration, null)
 
     // test happy path with the minimum parameters using sellAmount
     val token = createJwtToken()
@@ -919,7 +919,7 @@ class Sep38ServiceTest {
     every { mockRateIntegration.getRate(getRateReq) } returns
       GetRateResponse("456", "1.02", tomorrow)
     sep38Service =
-      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration)
+      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration, null)
 
     // test happy path with the minimum parameters using sellAmount
     val token = createJwtToken()
