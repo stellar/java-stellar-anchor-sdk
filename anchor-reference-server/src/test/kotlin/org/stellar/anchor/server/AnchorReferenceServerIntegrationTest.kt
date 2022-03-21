@@ -54,10 +54,11 @@ class AnchorReferenceServerIntegrationTest {
 
     val result =
       restTemplate.getForEntity(
-        "/rate?type={type}&sell_asset={sell_asset}&buy_asset={buy_asset}",
+        "/rate?type={type}&sell_asset={sell_asset}&sell_amount={sell_amount}&buy_asset={buy_asset}",
         String::class.java,
         "indicative",
         fiatUSD,
+        "100",
         stellarUSDC
       )
     assertNotNull(result)
@@ -74,11 +75,12 @@ class AnchorReferenceServerIntegrationTest {
 
     val result =
       restTemplate.getForEntity(
-        "/rate?type={type}&sell_asset={sell_asset}&buy_asset={buy_asset}",
+        "/rate?type={type}&sell_asset={sell_asset}&buy_asset={buy_asset}&buy_amount={buy_amount}",
         GetRateResponse::class.java,
         "firm",
         fiatUSD,
-        stellarUSDC
+        stellarUSDC,
+        "100"
       )
     assertNotNull(result)
     assertEquals(HttpStatus.OK, result.statusCode)
@@ -93,6 +95,7 @@ class AnchorReferenceServerIntegrationTest {
     wantQuote.id = rate.id
     wantQuote.sellAsset = fiatUSD
     wantQuote.buyAsset = stellarUSDC
+    wantQuote.buyAmount = "100"
     wantQuote.price = "1.02"
     wantQuote.expiresAt = rate.expiresAt
     val quote = this.quoteRepo.findById(rate.id).orElse(null)

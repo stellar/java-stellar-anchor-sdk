@@ -1,7 +1,9 @@
 package org.stellar.anchor.reference.service;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
 import kotlin.Pair;
 import org.springframework.stereotype.Service;
@@ -31,8 +33,19 @@ public class RateService {
     if (request.getSellAsset() == null) {
       throw new BadRequestException("sell_asset cannot be empty");
     }
+
     if (request.getBuyAsset() == null) {
       throw new BadRequestException("buy_asset cannot be empty");
+    }
+
+    String sellAmount = request.getSellAmount();
+    String buyAmount = request.getBuyAmount();
+    if ((sellAmount == null && buyAmount == null) || (sellAmount != null && buyAmount != null)) {
+      throw new BadRequestException("Please provide either sell_amount or buy_amount");
+    } else if (sellAmount != null) {
+      validateAmount("sell_", sellAmount);
+    } else {
+      validateAmount("buy_", buyAmount);
     }
 
     String price = ConversionPrice.getPrice(request.getSellAsset(), request.getBuyAsset());
@@ -98,6 +111,23 @@ public class RateService {
 
     public static String getPrice(String sellAsset, String buyAsset) {
       return hardcodedPrices.get(new Pair<>(sellAsset, buyAsset));
+    }
+  }
+
+  private void validateAmount(String prefix, String amount) throws AnchorException {
+    // assetName
+    if (Objects.toString(amount, "").isEmpty()) {
+      throw new BadRequestException(prefix + "amount cannot be empty");
+    }
+
+    BigDecimal sAmount;
+    try {
+      sAmount = new BigDecimal(amount);
+    } catch (NumberFormatException e) {
+      throw new BadRequestException(prefix + "amount is invalid", e);
+    }
+    if (sAmount.signum() < 1) {
+      throw new BadRequestException(prefix + "amount should be positive");
     }
   }
 }
