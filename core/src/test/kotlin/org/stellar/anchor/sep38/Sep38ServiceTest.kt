@@ -11,10 +11,7 @@ import org.stellar.anchor.asset.AssetInfo
 import org.stellar.anchor.asset.ResourceJsonAssetService
 import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.Sep38Config
-import org.stellar.anchor.dto.sep38.GetPriceResponse
-import org.stellar.anchor.dto.sep38.GetPricesResponse
-import org.stellar.anchor.dto.sep38.InfoResponse
-import org.stellar.anchor.dto.sep38.Sep38QuoteResponse
+import org.stellar.anchor.dto.sep38.*
 import org.stellar.anchor.exception.AnchorException
 import org.stellar.anchor.exception.BadRequestException
 import org.stellar.anchor.exception.NotFoundException
@@ -506,7 +503,7 @@ class Sep38ServiceTest {
   fun test_postQuote_failure() {
     // empty rateIntegration should throw an error
     var ex: AnchorException = assertThrows {
-      sep38Service.postQuote(null, null, null, null, null, null, null, null, null)
+      sep38Service.postQuote(null, Sep38PostQuoteRequest.builder().build())
     }
     assertInstanceOf(ServerErrorException::class.java, ex)
     assertEquals("internal server error", ex.message)
@@ -517,29 +514,29 @@ class Sep38ServiceTest {
       Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration)
 
     // empty token
-    ex =
-      assertThrows { sep38Service.postQuote(null, null, null, null, null, null, null, null, null) }
+    ex = assertThrows { sep38Service.postQuote(null, Sep38PostQuoteRequest.builder().build()) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("missing sep10 jwt token", ex.message)
 
     // malformed token
     var token = createJwtToken("")
-    ex =
-      assertThrows { sep38Service.postQuote(token, null, null, null, null, null, null, null, null) }
+    ex = assertThrows { sep38Service.postQuote(token, Sep38PostQuoteRequest.builder().build()) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("sep10 token is malformed", ex.message)
 
     // empty sell_asset
     token = createJwtToken()
-    ex =
-      assertThrows { sep38Service.postQuote(token, null, null, null, null, null, null, null, null) }
+    ex = assertThrows { sep38Service.postQuote(token, Sep38PostQuoteRequest.builder().build()) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("sell_asset cannot be empty", ex.message)
 
     // nonexistent sell_asset
     ex =
       assertThrows {
-        sep38Service.postQuote(token, "foo:bar", null, null, null, null, null, null, null)
+        sep38Service.postQuote(
+          token,
+          Sep38PostQuoteRequest.builder().sellAssetName("foo:bar").build()
+        )
       }
     assertInstanceOf(NotFoundException::class.java, ex)
     assertEquals("sell_asset not found", ex.message)
@@ -547,7 +544,10 @@ class Sep38ServiceTest {
     // empty buy_asset
     ex =
       assertThrows {
-        sep38Service.postQuote(token, "iso4217:USD", null, null, null, null, null, null, null)
+        sep38Service.postQuote(
+          token,
+          Sep38PostQuoteRequest.builder().sellAssetName("iso4217:USD").build()
+        )
       }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("buy_asset cannot be empty", ex.message)
@@ -555,7 +555,13 @@ class Sep38ServiceTest {
     // nonexistent buy_asset
     ex =
       assertThrows {
-        sep38Service.postQuote(token, "iso4217:USD", null, null, "foo:bar", null, null, null, null)
+        sep38Service.postQuote(
+          token,
+          Sep38PostQuoteRequest.builder()
+            .sellAssetName("iso4217:USD")
+            .buyAssetName("foo:bar")
+            .build()
+        )
       }
     assertInstanceOf(NotFoundException::class.java, ex)
     assertEquals("buy_asset not found", ex.message)
@@ -565,14 +571,10 @@ class Sep38ServiceTest {
       assertThrows {
         sep38Service.postQuote(
           token,
-          "iso4217:USD",
-          null,
-          null,
-          stellarUSDC,
-          null,
-          null,
-          null,
-          null
+          Sep38PostQuoteRequest.builder()
+            .sellAssetName("iso4217:USD")
+            .buyAssetName(stellarUSDC)
+            .build()
         )
       }
     assertInstanceOf(BadRequestException::class.java, ex)
@@ -583,14 +585,12 @@ class Sep38ServiceTest {
       assertThrows {
         sep38Service.postQuote(
           token,
-          "iso4217:USD",
-          "100",
-          null,
-          stellarUSDC,
-          "100",
-          null,
-          null,
-          null
+          Sep38PostQuoteRequest.builder()
+            .sellAssetName("iso4217:USD")
+            .sellAmount("100")
+            .buyAssetName(stellarUSDC)
+            .buyAmount("100")
+            .build()
         )
       }
     assertInstanceOf(BadRequestException::class.java, ex)
@@ -601,14 +601,11 @@ class Sep38ServiceTest {
       assertThrows {
         sep38Service.postQuote(
           token,
-          "iso4217:USD",
-          "foo",
-          null,
-          stellarUSDC,
-          null,
-          null,
-          null,
-          null
+          Sep38PostQuoteRequest.builder()
+            .sellAssetName("iso4217:USD")
+            .sellAmount("foo")
+            .buyAssetName(stellarUSDC)
+            .build()
         )
       }
     assertInstanceOf(BadRequestException::class.java, ex)
@@ -619,14 +616,11 @@ class Sep38ServiceTest {
       assertThrows {
         sep38Service.postQuote(
           token,
-          "iso4217:USD",
-          "-0.01",
-          null,
-          stellarUSDC,
-          null,
-          null,
-          null,
-          null
+          Sep38PostQuoteRequest.builder()
+            .sellAssetName("iso4217:USD")
+            .sellAmount("-0.01")
+            .buyAssetName(stellarUSDC)
+            .build()
         )
       }
     assertInstanceOf(BadRequestException::class.java, ex)
@@ -635,7 +629,14 @@ class Sep38ServiceTest {
     // sell_amount should be positive
     ex =
       assertThrows {
-        sep38Service.postQuote(token, "iso4217:USD", "0", null, stellarUSDC, null, null, null, null)
+        sep38Service.postQuote(
+          token,
+          Sep38PostQuoteRequest.builder()
+            .sellAssetName("iso4217:USD")
+            .sellAmount("0")
+            .buyAssetName(stellarUSDC)
+            .build()
+        )
       }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("sell_amount should be positive", ex.message)
@@ -645,14 +646,11 @@ class Sep38ServiceTest {
       assertThrows {
         sep38Service.postQuote(
           token,
-          "iso4217:USD",
-          null,
-          null,
-          stellarUSDC,
-          "bar",
-          null,
-          null,
-          null
+          Sep38PostQuoteRequest.builder()
+            .sellAssetName("iso4217:USD")
+            .buyAssetName(stellarUSDC)
+            .buyAmount("bar")
+            .build()
         )
       }
     assertInstanceOf(BadRequestException::class.java, ex)
@@ -663,14 +661,11 @@ class Sep38ServiceTest {
       assertThrows {
         sep38Service.postQuote(
           token,
-          "iso4217:USD",
-          null,
-          null,
-          stellarUSDC,
-          "-0.02",
-          null,
-          null,
-          null
+          Sep38PostQuoteRequest.builder()
+            .sellAssetName("iso4217:USD")
+            .buyAssetName(stellarUSDC)
+            .buyAmount("-0.02")
+            .build()
         )
       }
     assertInstanceOf(BadRequestException::class.java, ex)
@@ -679,7 +674,14 @@ class Sep38ServiceTest {
     // buy_amount should be positive
     ex =
       assertThrows {
-        sep38Service.postQuote(token, "iso4217:USD", null, null, stellarUSDC, "0", null, null, null)
+        sep38Service.postQuote(
+          token,
+          Sep38PostQuoteRequest.builder()
+            .sellAssetName("iso4217:USD")
+            .buyAssetName(stellarUSDC)
+            .buyAmount("0")
+            .build()
+        )
       }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("buy_amount should be positive", ex.message)
@@ -689,14 +691,12 @@ class Sep38ServiceTest {
       assertThrows {
         sep38Service.postQuote(
           token,
-          "iso4217:USD",
-          "1.23",
-          "FOO",
-          stellarUSDC,
-          null,
-          null,
-          null,
-          null
+          Sep38PostQuoteRequest.builder()
+            .sellAssetName("iso4217:USD")
+            .sellAmount("1.23")
+            .sellDeliveryMethod("FOO")
+            .buyAssetName(stellarUSDC)
+            .build()
         )
       }
     assertInstanceOf(BadRequestException::class.java, ex)
@@ -707,14 +707,13 @@ class Sep38ServiceTest {
       assertThrows {
         sep38Service.postQuote(
           token,
-          "iso4217:USD",
-          "1.23",
-          "WIRE",
-          stellarUSDC,
-          null,
-          "BAR",
-          null,
-          null
+          Sep38PostQuoteRequest.builder()
+            .sellAssetName("iso4217:USD")
+            .sellAmount("1.23")
+            .sellDeliveryMethod("WIRE")
+            .buyAssetName(stellarUSDC)
+            .buyDeliveryMethod("BAR")
+            .build()
         )
       }
     assertInstanceOf(BadRequestException::class.java, ex)
@@ -725,32 +724,31 @@ class Sep38ServiceTest {
       assertThrows {
         sep38Service.postQuote(
           token,
-          "iso4217:USD",
-          "1.23",
-          "WIRE",
-          stellarUSDC,
-          null,
-          null,
-          "BRA",
-          null
+          Sep38PostQuoteRequest.builder()
+            .sellAssetName("iso4217:USD")
+            .sellAmount("1.23")
+            .sellDeliveryMethod("WIRE")
+            .buyAssetName(stellarUSDC)
+            .countryCode("BRA")
+            .build()
         )
       }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("Unsupported country code", ex.message)
 
-    // unsupported country_code
+    // unsupported expire_after
     ex =
       assertThrows {
         sep38Service.postQuote(
           token,
-          "iso4217:USD",
-          "1.23",
-          "WIRE",
-          stellarUSDC,
-          null,
-          null,
-          "USA",
-          "FOO BAR"
+          Sep38PostQuoteRequest.builder()
+            .sellAssetName("iso4217:USD")
+            .sellAmount("1.23")
+            .sellDeliveryMethod("WIRE")
+            .buyAssetName(stellarUSDC)
+            .countryCode("USA")
+            .expireAfter("FOO BAR")
+            .build()
         )
       }
     assertInstanceOf(BadRequestException::class.java, ex)
@@ -782,14 +780,11 @@ class Sep38ServiceTest {
       gotResponse =
         sep38Service.postQuote(
           token,
-          "iso4217:USD",
-          "100",
-          null,
-          stellarUSDC,
-          null,
-          null,
-          null,
-          null
+          Sep38PostQuoteRequest.builder()
+            .sellAssetName("iso4217:USD")
+            .sellAmount("100")
+            .buyAssetName(stellarUSDC)
+            .build()
         )
     }
     val wantResponse =
@@ -830,14 +825,11 @@ class Sep38ServiceTest {
       gotResponse =
         sep38Service.postQuote(
           token,
-          "iso4217:USD",
-          null,
-          null,
-          stellarUSDC,
-          "100",
-          null,
-          null,
-          null
+          Sep38PostQuoteRequest.builder()
+            .sellAssetName("iso4217:USD")
+            .buyAssetName(stellarUSDC)
+            .buyAmount("100")
+            .build()
         )
     }
     val wantResponse =
@@ -883,14 +875,14 @@ class Sep38ServiceTest {
       gotResponse =
         sep38Service.postQuote(
           token,
-          "iso4217:USD",
-          "100",
-          "WIRE",
-          stellarUSDC,
-          null,
-          null,
-          "USA",
-          now.toString()
+          Sep38PostQuoteRequest.builder()
+            .sellAssetName("iso4217:USD")
+            .sellAmount("100")
+            .sellDeliveryMethod("WIRE")
+            .buyAssetName(stellarUSDC)
+            .countryCode("USA")
+            .expireAfter(now.toString())
+            .build()
         )
     }
     val wantResponse =
@@ -936,14 +928,14 @@ class Sep38ServiceTest {
       gotResponse =
         sep38Service.postQuote(
           token,
-          "iso4217:USD",
-          null,
-          "WIRE",
-          stellarUSDC,
-          "100",
-          null,
-          "USA",
-          now.toString()
+          Sep38PostQuoteRequest.builder()
+            .sellAssetName("iso4217:USD")
+            .sellDeliveryMethod("WIRE")
+            .buyAssetName(stellarUSDC)
+            .buyAmount("100")
+            .countryCode("USA")
+            .expireAfter(now.toString())
+            .build()
         )
     }
     val wantResponse =
