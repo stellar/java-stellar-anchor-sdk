@@ -1,15 +1,23 @@
 package org.stellar.anchor.reference.service;
 
-import java.util.List;
+import java.time.LocalDateTime;
 import java.util.Map;
+import java.util.UUID;
 import kotlin.Pair;
 import org.springframework.stereotype.Service;
 import org.stellar.anchor.exception.*;
+import org.stellar.anchor.reference.model.Quote;
+import org.stellar.anchor.reference.repo.QuoteRepo;
 import org.stellar.platform.apis.callbacks.requests.GetRateRequest;
 import org.stellar.platform.apis.callbacks.responses.GetRateResponse;
 
 @Service
 public class RateService {
+  private final QuoteRepo quoteRepo;
+
+  RateService(QuoteRepo quoteRepo) {
+    this.quoteRepo = quoteRepo;
+  }
 
   public GetRateResponse getRate(GetRateRequest request) throws AnchorException {
     if (request.getId() != null) {
@@ -18,10 +26,6 @@ public class RateService {
 
     if (request.getType() == null) {
       throw new BadRequestException("type cannot be empty");
-    }
-
-    if (!List.of("firm", "indicative").contains(request.getType())) {
-      throw new BadRequestException("type is not supported");
     }
 
     if (request.getSellAsset() == null) {
@@ -36,7 +40,45 @@ public class RateService {
       throw new UnprocessableEntityException("the price for the given pair could not be found");
     }
 
-    return new GetRateResponse(price);
+    if (request.getType().equals("indicative")) {
+      return new GetRateResponse(price);
+    } else if (request.getType().equals("firm")) {
+      Quote newQuote = createQuote(request, price);
+      return new GetRateResponse(newQuote.getId(), newQuote.getPrice(), newQuote.getExpiresAt());
+    }
+    throw new BadRequestException("type is not supported");
+  }
+
+  private Quote createQuote(GetRateRequest request, String price) {
+    Quote quote = new Quote();
+    quote.setId(UUID.randomUUID().toString());
+    quote.setSellAsset(request.getSellAsset());
+    quote.setSellAmount(request.getSellAmount());
+    quote.setSellDeliveryMethod(request.getSellDeliveryMethod());
+    quote.setBuyAsset(request.getBuyAsset());
+    quote.setBuyAmount(request.getBuyAmount());
+    quote.setSellDeliveryMethod(request.getSellDeliveryMethod());
+    quote.setCountryCode(request.getCountryCode());
+    quote.setCreatedAt(LocalDateTime.now());
+    quote.setPrice(price);
+    quote.setStellarAccount(request.getAccount());
+    quote.setMemo(request.getMemo());
+    quote.setMemoType(request.getMemoType());
+
+    // "calculate" expiresAt
+    LocalDateTime expiresAfter = request.getExpiresAfter();
+    if (expiresAfter == null) {
+      expiresAfter = LocalDateTime.now();
+    }
+    LocalDateTime expiresAt = expiresAfter.withHour(12);
+    expiresAt = expiresAt.withMinute(0);
+    expiresAt = expiresAt.withSecond(0);
+    expiresAt = expiresAt.withNano(0);
+    expiresAt = expiresAt.plusDays(1);
+    quote.setExpiresAt(expiresAt);
+
+    quoteRepo.save(quote);
+    return quote;
   }
 
   private static class ConversionPrice {
