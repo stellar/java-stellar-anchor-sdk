@@ -6,7 +6,8 @@ The Circle payment service implements the [PaymentService] interface using the [
 
 In order to properly utilize the Circle payment service you need to create a Circle account and configure it properly:
 
-1. Go to <https://www.circle.com/> and create a new Circle account.
+1. Go to <https://www.circle.com/> and create a new Circle account. The account creation screening process takes around
+3 weeks.
    - Alternatively, you can skip the long registration process and get your hands on the code quickly by creating a
      simpler sandbox account at <https://my-sandbox.circle.com/signup>.
 2. Make sure you get an API key.
@@ -53,6 +54,17 @@ might end up being configured to only accept payments from a subset of those cou
 
 Also note that countries might have capital controls in place which might in practice limit your ability to process wire
 transfers from / to some countries.
+
+#### Wire Transfers Fees
+
+At the time this document was written, the fees for wire transfers were:
+- $2 per incoming wire transfer
+- $25 per outgoing wire transfer | $50 per wire reversal
+  - Customers are billed $50 per wire reversal. Amounts are directly debited from their Circle Account. Possible reasons
+  for rejection include missing or misspelled reference numbers or attempting to payout an amount in excess of any
+  agreed upon limits.
+
+For a more complete and up-to-date information on Circle's fees, please refer to their [pricing webpage](https://www.circle.com/en/pricing). 
 
 ## Usage
 

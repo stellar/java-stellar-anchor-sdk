@@ -54,7 +54,9 @@ open class ConfiguratorTest {
   @Test
   fun testFromUserFolder() {
     val file = PropertiesReader().fromUserFolder
-    assertTrue(file.absolutePath.endsWith(".anchor/anchor-config.yaml"))
+    assertTrue(
+      file.absolutePath.endsWith(String.format(".anchor%sanchor-config.yaml", File.separator))
+    )
   }
 
   fun loadConfigurations(context: ConfigurableApplicationContext) {

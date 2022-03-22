@@ -18,13 +18,17 @@ jobs:
       with:
         java-version: '11'
         distribution: 'adopt'
-    - name: Clean
-      run: ./gradlew clean
-    - name: Compile
-      run: ./gradlew jar
-    - name: Test
-      run: ./gradlew test
-      
+    - name: Clean, Build and Test
+      run: |
+        ./gradlew clean build
+        echo *** Core test report ***
+        cat /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/core/build/reports/tests/test/index.html
+        echo *** Payment Circle test report ***
+        cat /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/payment-circle/build/reports/tests/test/index.html
+        echo *** Platform test report ***
+        cat /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/platform/build/reports/tests/test/index.html
+        echo *** Anchor reference server test report ***
+        cat /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/anchor-reference-server/build/reports/tests/test/index.html
   build_and_push_anchor_platform:
     needs: [build_and_test]
     runs-on: ubuntu-latest

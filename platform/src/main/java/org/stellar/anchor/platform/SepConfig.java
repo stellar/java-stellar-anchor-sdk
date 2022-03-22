@@ -24,6 +24,7 @@ import org.stellar.anchor.exception.SepNotFoundException;
 import org.stellar.anchor.filter.Sep10TokenFilter;
 import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.integration.customer.CustomerIntegration;
+import org.stellar.anchor.integration.rate.RateIntegration;
 import org.stellar.anchor.sep1.ResourceReader;
 import org.stellar.anchor.sep1.Sep1Service;
 import org.stellar.anchor.sep10.JwtService;
@@ -104,7 +105,8 @@ public class SepConfig {
   }
 
   @Bean
-  Sep38Service sep38Service(Sep38Config sep38Config, AssetService assetService) {
-    return new Sep38Service(sep38Config, assetService);
+  Sep38Service sep38Service(
+      Sep38Config sep38Config, AssetService assetService, RateIntegration rateIntegration) {
+    return new Sep38Service(sep38Config, assetService, rateIntegration);
   }
 }

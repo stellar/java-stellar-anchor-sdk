@@ -1,10 +1,7 @@
 package org.stellar.anchor.sep12;
 
 import java.util.stream.Stream;
-import org.stellar.anchor.dto.sep12.Sep12GetCustomerRequest;
-import org.stellar.anchor.dto.sep12.Sep12GetCustomerResponse;
-import org.stellar.anchor.dto.sep12.Sep12PutCustomerRequest;
-import org.stellar.anchor.dto.sep12.Sep12PutCustomerResponse;
+import org.stellar.anchor.dto.sep12.*;
 import org.stellar.anchor.exception.AnchorException;
 import org.stellar.anchor.exception.SepException;
 import org.stellar.anchor.exception.SepNotAuthorizedException;
@@ -51,6 +48,15 @@ public class Sep12Service {
     request.setMemoType(
         getMemoTypeForCustomerIntegration(request.getMemo(), request.getMemoType()));
     return customerIntegration.putCustomer(request);
+  }
+
+  public void deleteCustomer(JwtToken jwtToken, Sep12DeleteCustomerRequest request)
+      throws AnchorException {
+    if (!jwtToken.getAccount().equals(request.getAccount())) {
+      throw new SepNotAuthorizedException(
+          String.format("not authorized to delete account [%s]", request.getAccount()));
+    }
+    customerIntegration.deleteCustomer(request);
   }
 
   void validateGetOrPutRequest(

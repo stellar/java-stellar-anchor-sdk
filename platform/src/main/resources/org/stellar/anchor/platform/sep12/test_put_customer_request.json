@@ -1,0 +1,8 @@
+{
+  "first_name": "John",
+  "last_name": "Doe",
+  "address": "123 Washington Street",
+  "city": "San Francisco",
+  "state_or_province": "CA",
+  "address_country_code": "US"
+}
