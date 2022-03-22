@@ -17,9 +17,8 @@ import org.stellar.anchor.platform.configurator.PropertiesReader;
 import org.stellar.anchor.platform.configurator.SpringFrameworkConfigurator;
 
 @SpringBootApplication
-@EnableJpaRepositories(
-    basePackages = {"org.stellar.anchor.platform", "org.stellar.anchor.server.data"})
-@EntityScan(basePackages = {"org.stellar.anchor.platform", "org.stellar.anchor.server.data"})
+@EnableJpaRepositories(basePackages = {"org.stellar.anchor.server.data"})
+@EntityScan(basePackages = {"org.stellar.anchor.server.data"})
 @EnableConfigurationProperties
 @PropertySource("/anchor-platform-server.yaml")
 public class AnchorPlatformServer implements WebMvcConfigurer {
