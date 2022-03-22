@@ -36,6 +36,11 @@ public class Sep38QuoteBuilder {
     return this;
   }
 
+  public Sep38QuoteBuilder sellDeliveryMethod(String sellDeliveryMethod) {
+    quote.setSellDeliveryMethod(sellDeliveryMethod);
+    return this;
+  }
+
   public Sep38QuoteBuilder buyAsset(String buyAsset) {
     quote.setBuyAsset(buyAsset);
     return this;
@@ -43,6 +48,11 @@ public class Sep38QuoteBuilder {
 
   public Sep38QuoteBuilder buyAmount(String buyAmount) {
     quote.setBuyAmount(buyAmount);
+    return this;
+  }
+
+  public Sep38QuoteBuilder buyDeliveryMethod(String buyDeliveryMethod) {
+    quote.setBuyDeliveryMethod(buyDeliveryMethod);
     return this;
   }
 

@@ -16,8 +16,6 @@ import org.stellar.anchor.platform.configurator.PlatformAppConfigurator;
 import org.stellar.anchor.platform.configurator.PropertiesReader;
 import org.stellar.anchor.platform.configurator.SpringFrameworkConfigurator;
 
-
-
 @SpringBootApplication
 @EnableJpaRepositories(
     basePackages = {"org.stellar.anchor.platform", "org.stellar.anchor.server.data"})

@@ -2,7 +2,6 @@ package org.stellar.anchor.model;
 
 import java.time.LocalDateTime;
 
-@SuppressWarnings("unused")
 public interface Sep38Quote {
   String getId();
 
@@ -24,6 +23,10 @@ public interface Sep38Quote {
 
   void setSellAmount(String sellAmount);
 
+  String getSellDeliveryMethod();
+
+  void setSellDeliveryMethod(String sellDeliveryMethod);
+
   String getBuyAsset();
 
   void setBuyAsset(String buyAsset);
@@ -31,6 +34,10 @@ public interface Sep38Quote {
   String getBuyAmount();
 
   void setBuyAmount(String buyAmount);
+
+  String getBuyDeliveryMethod();
+
+  void setBuyDeliveryMethod(String buyDeliveryMethod);
 
   // Not relevant to the SEP-38 quotes response. Only relevant for DB consistency and Events API
   LocalDateTime getCreatedAt();

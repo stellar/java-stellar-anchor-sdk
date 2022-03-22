@@ -15,6 +15,8 @@ import org.stellar.anchor.exception.*;
 import org.stellar.anchor.integration.rate.GetRateRequest;
 import org.stellar.anchor.integration.rate.GetRateResponse;
 import org.stellar.anchor.integration.rate.RateIntegration;
+import org.stellar.anchor.model.Sep38Quote;
+import org.stellar.anchor.model.Sep38QuoteBuilder;
 import org.stellar.anchor.sep10.JwtToken;
 import org.stellar.anchor.util.Log;
 
@@ -233,6 +235,10 @@ public class Sep38Service {
       throw new ServerErrorException("internal server error");
     }
 
+    if (this.sep38QuoteStore == null) {
+      throw new ServerErrorException("internal server error");
+    }
+
     // validate token
     if (token == null) {
       throw new BadRequestException("missing sep10 jwt token");
@@ -338,12 +344,28 @@ public class Sep38Service {
       bBuyAmount = new BigDecimal(request.getBuyAmount());
       bSellAmount = bBuyAmount.multiply(bPrice);
     }
-    builder =
-        builder
-            .sellAmount(formatAmount(bSellAmount, sellAsset.getDecimals()))
-            .buyAmount(formatAmount(bBuyAmount, buyAsset.getDecimals()));
+    String sellAmount = formatAmount(bSellAmount, sellAsset.getDecimals());
+    String buyAmount = formatAmount(bBuyAmount, buyAsset.getDecimals());
+    builder = builder.sellAmount(sellAmount).buyAmount(buyAmount);
 
-    // TODO: save the quote locally
+    // save firm quote in the local database
+    Sep38Quote newQuote =
+        new Sep38QuoteBuilder(this.sep38QuoteStore)
+            .id(rate.getId())
+            .expiresAt(rate.getExpiresAt())
+            .price(rate.getPrice())
+            .sellAsset(request.getSellAssetName())
+            .sellAmount(sellAmount)
+            .sellDeliveryMethod(request.getSellDeliveryMethod())
+            .buyAsset(request.getBuyAssetName())
+            .buyAmount(buyAmount)
+            .buyDeliveryMethod(request.getBuyDeliveryMethod())
+            .createdAt(LocalDateTime.now())
+            .creatorAccountId(account)
+            .creatorMemo(memo)
+            .build();
+    this.sep38QuoteStore.save(newQuote);
+
     // TODO: create an event for `quote_created` using the event API
     return builder.build();
   }

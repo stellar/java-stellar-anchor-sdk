@@ -23,11 +23,17 @@ public class JdbcSep38Quote implements Sep38Quote {
   @SerializedName("sell_amount")
   String sellAmount;
 
+  @SerializedName("sell_delivery_method")
+  String sellDeliveryMethod;
+
   @SerializedName("buy_asset")
   String buyAsset;
 
   @SerializedName("buy_amount")
   String buyAmount;
+
+  @SerializedName("buy_delivery_method")
+  String buyDeliveryMethod;
 
   @SerializedName("created_at")
   LocalDateTime createdAt;
