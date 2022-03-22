@@ -50,7 +50,7 @@ public class SepConfig {
     FilterRegistrationBean<Sep10TokenFilter> registrationBean = new FilterRegistrationBean<>();
     registrationBean.setFilter(new Sep10TokenFilter(sep10Config, jwtService));
     registrationBean.addUrlPatterns("/sep12/*");
-    registrationBean.addUrlPatterns("/sep38/*");
+    registrationBean.addUrlPatterns("/sep38/quote/*");
     return registrationBean;
   }
 

@@ -52,4 +52,10 @@ class AnchorPlatformIntegrationTest {
   fun runSep12Test() {
     sep12TestAll(toml, jwt)
   }
+
+  @Test
+  @Order(4)
+  fun runSep38Test() {
+    sep38TestAll(toml, jwt)
+  }
 }

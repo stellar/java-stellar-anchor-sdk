@@ -82,18 +82,24 @@ public class RateService {
 
   private static class ConversionPrice {
     private static final String fiatUSD = "iso4217:USD";
-    private static final String stellarUSDC =
+    private static final String stellarUSDCtest =
         "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5";
+    private static final String stellarUSDCprod =
+        "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN";
     private static final String stellarJPYC =
         "stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5";
     private static final Map<Pair<String, String>, String> hardcodedPrices =
         Map.of(
-            new Pair<>(fiatUSD, stellarUSDC), "1.02",
-            new Pair<>(stellarUSDC, fiatUSD), "1.05",
+            new Pair<>(fiatUSD, stellarUSDCtest), "1.02",
+            new Pair<>(stellarUSDCtest, fiatUSD), "1.05",
+            new Pair<>(fiatUSD, stellarUSDCprod), "1.02",
+            new Pair<>(stellarUSDCprod, fiatUSD), "1.05",
             new Pair<>(fiatUSD, stellarJPYC), "0.0083333",
             new Pair<>(stellarJPYC, fiatUSD), "122",
-            new Pair<>(stellarUSDC, stellarJPYC), "0.0084",
-            new Pair<>(stellarJPYC, stellarUSDC), "120");
+            new Pair<>(stellarUSDCtest, stellarJPYC), "0.0084",
+            new Pair<>(stellarJPYC, stellarUSDCtest), "120",
+            new Pair<>(stellarUSDCprod, stellarJPYC), "0.0084",
+            new Pair<>(stellarJPYC, stellarUSDCprod), "120");
 
     public static String getPrice(String sellAsset, String buyAsset) {
       return hardcodedPrices.get(new Pair<>(sellAsset, buyAsset));

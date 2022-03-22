@@ -36,6 +36,7 @@ class Sep38Client(private val endpoint: String) : SepClient() {
         .addQueryParameter("sell_asset", sellAsset)
         .addQueryParameter("sell_amount", sellAmount)
     println(urlBuilder.build().toString())
+
     val request =
       Request.Builder()
         .url(urlBuilder.build())
@@ -50,9 +51,7 @@ class Sep38Client(private val endpoint: String) : SepClient() {
   private fun handleResponse(response: Response): String? {
     val responseBody = response.body?.string()
 
-    println("statusCode: " + response.code)
     println("responseBody: $responseBody")
-
     if (response.code == HttpStatus.FORBIDDEN.value()) {
       throw SepNotAuthorizedException("Forbidden")
     } else if (response.code != HttpStatus.OK.value()) {
