@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import org.apache.commons.lang3.StringUtils;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.Sep38Config;
 import org.stellar.anchor.dto.sep38.*;
@@ -369,5 +370,45 @@ public class Sep38Service {
 
     // TODO: create an event for `quote_created` using the event API
     return builder.build();
+  }
+
+  public Sep38QuoteResponse getQuote(JwtToken token, String quoteId) throws AnchorException {
+    if (this.sep38QuoteStore == null) {
+      throw new ServerErrorException("internal server error");
+    }
+
+    // validate token
+    if (token == null) {
+      throw new BadRequestException("missing sep10 jwt token");
+    }
+    String account, memo = null, memoType = null;
+    if (!Objects.toString(token.getMuxedAccount(), "").isEmpty()) {
+      account = token.getMuxedAccount();
+    } else if (!Objects.toString(token.getAccount(), "").isEmpty()) {
+      account = token.getAccount();
+      if (token.getAccountMemo() != null) {
+        memo = token.getAccountMemo();
+        memoType = "id";
+      }
+    } else {
+      throw new BadRequestException("sep10 token is malformed");
+    }
+
+    Sep38Quote quote = this.sep38QuoteStore.findByQuoteId(quoteId);
+    if (!StringUtils.equals(quote.getCreatorAccountId(), account)
+        || !StringUtils.equals(memo, quote.getCreatorMemo())
+        || !StringUtils.equals(memoType, quote.getCreatorMemoType())) {
+      throw new ServerErrorException("internal server error");
+    }
+
+    return Sep38QuoteResponse.builder()
+        .id(quote.getId())
+        .expiresAt(quote.getExpiresAt())
+        .price(quote.getPrice())
+        .sellAsset(quote.getSellAsset())
+        .sellAmount(quote.getSellAmount())
+        .buyAsset(quote.getBuyAsset())
+        .buyAmount(quote.getBuyAmount())
+        .build();
   }
 }

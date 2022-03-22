@@ -1,6 +1,5 @@
 package org.stellar.anchor.platform
 
-import java.util.*
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Order
