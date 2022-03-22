@@ -71,6 +71,11 @@ public class Sep38QuoteBuilder {
     return this;
   }
 
+  public Sep38QuoteBuilder creatorMemoType(String creatorMemoType) {
+    quote.setCreatorMemoType(creatorMemoType);
+    return this;
+  }
+
   public Sep38QuoteBuilder transactionId(String transactionId) {
     quote.setTransactionId(transactionId);
     return this;

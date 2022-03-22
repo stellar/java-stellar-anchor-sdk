@@ -18,5 +18,6 @@ public class PojoSep38Quote implements Sep38Quote {
   LocalDateTime createdAt;
   String creatorAccountId;
   String creatorMemo;
+  String creatorMemoType;
   String transactionId;
 }

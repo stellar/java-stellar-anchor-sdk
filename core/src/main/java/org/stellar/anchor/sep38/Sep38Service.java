@@ -363,6 +363,7 @@ public class Sep38Service {
             .createdAt(LocalDateTime.now())
             .creatorAccountId(account)
             .creatorMemo(memo)
+            .creatorMemoType(memoType)
             .build();
     this.sep38QuoteStore.save(newQuote);
 

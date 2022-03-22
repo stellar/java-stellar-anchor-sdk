@@ -39,7 +39,6 @@ public interface Sep38Quote {
 
   void setBuyDeliveryMethod(String buyDeliveryMethod);
 
-  // Not relevant to the SEP-38 quotes response. Only relevant for DB consistency and Events API
   LocalDateTime getCreatedAt();
 
   void setCreatedAt(LocalDateTime createdAt);
@@ -51,6 +50,10 @@ public interface Sep38Quote {
   String getCreatorMemo();
 
   void setCreatorMemo(String creatorMemo);
+
+  String getCreatorMemoType();
+
+  void setCreatorMemoType(String creatorMemoType);
 
   String getTransactionId();
 

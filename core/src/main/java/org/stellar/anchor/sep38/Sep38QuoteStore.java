@@ -1,6 +1,5 @@
 package org.stellar.anchor.sep38;
 
-import org.stellar.anchor.exception.NotFoundException;
 import org.stellar.anchor.exception.SepException;
 import org.stellar.anchor.model.Sep38Quote;
 import reactor.util.annotation.NonNull;
@@ -16,7 +15,7 @@ public interface Sep38QuoteStore {
    * @return The quote document. null if not found.
    * @throws SepException if error happens
    */
-  Sep38Quote findByQuoteId(@NonNull String quoteId) throws SepException, NotFoundException;
+  Sep38Quote findByQuoteId(@NonNull String quoteId) throws SepException;
 
   /**
    * Save a quote.

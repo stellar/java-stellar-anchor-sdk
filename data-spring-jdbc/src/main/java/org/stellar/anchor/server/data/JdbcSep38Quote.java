@@ -44,6 +44,9 @@ public class JdbcSep38Quote implements Sep38Quote {
   @SerializedName("creator_memo")
   String creatorMemo;
 
+  @SerializedName("creator_memo_type")
+  String creatorMemoType;
+
   @SerializedName("transaction_id")
   String transactionId;
 }
