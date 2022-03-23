@@ -1,5 +1,7 @@
 package org.stellar.anchor.reference.controller;
 
+import com.google.gson.Gson;
+import java.util.Map;
 import org.springframework.web.bind.annotation.*;
 import org.stellar.anchor.exception.AnchorException;
 import org.stellar.anchor.reference.config.AppSettings;
@@ -20,36 +22,9 @@ public class RateController {
       value = "/rate",
       method = {RequestMethod.GET})
   @ResponseBody
-  public GetRateResponse getRate(
-      @RequestParam() String type,
-      @RequestParam(required = false) String id,
-      @RequestParam(name = "sell_asset") String sellAsset,
-      @RequestParam(name = "sell_amount", required = false) String sellAmount,
-      @RequestParam(name = "sell_delivery_method", required = false) String sellDeliveryMethod,
-      @RequestParam(name = "buy_asset") String buyAsset,
-      @RequestParam(name = "buy_amount", required = false) String buyAmount,
-      @RequestParam(name = "buy_delivery_method", required = false) String buyDeliveryMethod,
-      @RequestParam(name = "country_code", required = false) String countryCode,
-      @RequestParam(name = "client_domain", required = false) String clientDomain,
-      @RequestParam(required = false) String account,
-      @RequestParam(required = false) String memo,
-      @RequestParam(name = "memo_type", required = false) String memoType)
-      throws AnchorException {
-    return rateService.getRate(
-        GetRateRequest.builder()
-            .type(type)
-            .id(id)
-            .sellAsset(sellAsset)
-            .sellAmount(sellAmount)
-            .sellDeliveryMethod(sellDeliveryMethod)
-            .buyAsset(buyAsset)
-            .buyAmount(buyAmount)
-            .buyDeliveryMethod(buyDeliveryMethod)
-            .countryCode(countryCode)
-            .clientDomain(clientDomain)
-            .account(account)
-            .memo(memo)
-            .memoType(memoType)
-            .build());
+  public GetRateResponse getRate(@RequestParam Map<String, String> params) throws AnchorException {
+    Gson gson = new Gson();
+    GetRateRequest getRateRequest = gson.fromJson(gson.toJson(params), GetRateRequest.class);
+    return rateService.getRate(getRateRequest);
   }
 }
