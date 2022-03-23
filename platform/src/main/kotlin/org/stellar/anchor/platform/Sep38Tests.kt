@@ -23,4 +23,14 @@ fun sep38TestHappyPath() {
   printRequest("Calling GET /prices")
   val prices = sep38.getPrices("iso4217:USD", "100")
   printResponse(prices)
+
+  // GET {SEP38}/prices
+  printRequest("Calling GET /price")
+  val price =
+    sep38.getPrice(
+      "iso4217:USD",
+      "100",
+      "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+    )
+  printResponse(price)
 }
