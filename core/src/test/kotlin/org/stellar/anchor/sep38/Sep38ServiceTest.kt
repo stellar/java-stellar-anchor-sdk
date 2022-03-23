@@ -19,6 +19,7 @@ import org.stellar.anchor.exception.ServerErrorException
 import org.stellar.anchor.integration.rate.GetRateRequest
 import org.stellar.anchor.integration.rate.GetRateResponse
 import org.stellar.anchor.model.Sep38Quote
+import org.stellar.anchor.model.Sep38QuoteBuilder
 import org.stellar.anchor.sep10.JwtToken
 
 class Sep38ServiceTest {
@@ -1064,6 +1065,131 @@ class Sep38ServiceTest {
     assertEquals("100", savedQuote.buyAmount)
     assertEquals(PUBLIC_KEY, savedQuote.creatorAccountId)
     assertNotNull(savedQuote.createdAt)
+  }
+
+  @Test
+  fun test_getQuote_failure() {
+    // empty sep38QuoteStore should throw an error
+    var ex: AnchorException = assertThrows { sep38Service.getQuote(null, null) }
+    assertInstanceOf(ServerErrorException::class.java, ex)
+    assertEquals("internal server error", ex.message)
+
+    // mocked quote store
+    sep38Service =
+      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, null, quoteStore)
+
+    // empty token
+    ex = assertThrows { sep38Service.getQuote(null, null) }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("missing sep10 jwt token", ex.message)
+
+    // malformed token
+    var token = createJwtToken("")
+    ex = assertThrows { sep38Service.getQuote(token, null) }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("sep10 token is malformed", ex.message)
+
+    // empty quote id
+    token = createJwtToken()
+    ex = assertThrows { sep38Service.getQuote(token, null) }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("quote id cannot be empty", ex.message)
+
+    // mock quote builder
+    val now = LocalDateTime.now()
+    val tomorrow = now.plusDays(1)
+    val mockQuoteBuilder: () -> Sep38QuoteBuilder = {
+      Sep38QuoteBuilder(quoteStore)
+        .id("123")
+        .expiresAt(tomorrow)
+        .price("1.02")
+        .sellAsset("iso4217:USD")
+        .sellAmount("100")
+        .sellDeliveryMethod("WIRE")
+        .buyAsset(stellarUSDC)
+        .buyAmount("98.0392157")
+        .createdAt(now)
+    }
+
+    // jwt token account is different from quote account
+    val wrongAccount = "GB3MX4G2RSN5UC2GXLIQI7YAY3G5SH3TJZHT2WEDHGJLU5UW6IVXKGLL"
+    var mockQuote = mockQuoteBuilder().creatorAccountId(wrongAccount).build()
+    var slotQuoteId = slot<String>()
+    every { quoteStore.findByQuoteId(capture(slotQuoteId)) } returns mockQuote
+    ex = assertThrows { sep38Service.getQuote(token, "123") }
+    assertInstanceOf(ServerErrorException::class.java, ex)
+    assertEquals("internal server error", ex.message)
+    verify(exactly = 1) { quoteStore.findByQuoteId(any()) }
+    assertEquals("123", slotQuoteId.captured)
+
+    // jwt token memo is different from quote memo
+    mockQuote = mockQuoteBuilder().creatorAccountId(PUBLIC_KEY).creatorMemo("wrong memo!").build()
+    slotQuoteId = slot()
+    every { quoteStore.findByQuoteId(capture(slotQuoteId)) } returns mockQuote
+    ex = assertThrows { sep38Service.getQuote(token, "123") }
+    assertInstanceOf(ServerErrorException::class.java, ex)
+    assertEquals("internal server error", ex.message)
+    verify(exactly = 2) { quoteStore.findByQuoteId(any()) }
+    assertEquals("123", slotQuoteId.captured)
+
+    // jwt token memo is different from quote memo
+    mockQuote =
+      mockQuoteBuilder().creatorAccountId(PUBLIC_KEY).creatorMemoType("wrong memoType!").build()
+    slotQuoteId = slot()
+    every { quoteStore.findByQuoteId(capture(slotQuoteId)) } returns mockQuote
+    ex = assertThrows { sep38Service.getQuote(token, "123") }
+    assertInstanceOf(ServerErrorException::class.java, ex)
+    assertEquals("internal server error", ex.message)
+    verify(exactly = 3) { quoteStore.findByQuoteId(any()) }
+    assertEquals("123", slotQuoteId.captured)
+  }
+
+  @Test
+  fun test_getQuote() {
+    // mocked quote store
+    sep38Service =
+      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, null, quoteStore)
+
+    // mock quote store response
+    val now = LocalDateTime.now()
+    val tomorrow = now.plusDays(1)
+    val mockQuote =
+      Sep38QuoteBuilder(quoteStore)
+        .id("123")
+        .expiresAt(tomorrow)
+        .price("1.02")
+        .sellAsset("iso4217:USD")
+        .sellAmount("100")
+        .sellDeliveryMethod("WIRE")
+        .buyAsset(stellarUSDC)
+        .buyAmount("98.0392157")
+        .createdAt(now)
+        .creatorAccountId(PUBLIC_KEY)
+        .build()
+    val slotQuoteId = slot<String>()
+    every { quoteStore.findByQuoteId(capture(slotQuoteId)) } returns mockQuote
+
+    // execute request
+    val token = createJwtToken()
+    var gotQuoteResponse: Sep38QuoteResponse? = null
+    assertDoesNotThrow { gotQuoteResponse = sep38Service.getQuote(token, "123") }
+
+    // verify the store response was called as expected
+    verify(exactly = 1) { quoteStore.findByQuoteId(any()) }
+    assertEquals("123", slotQuoteId.captured)
+
+    // verify results
+    val wantQuoteResponse =
+      Sep38QuoteResponse.builder()
+        .id("123")
+        .expiresAt(tomorrow)
+        .price("1.02")
+        .sellAsset("iso4217:USD")
+        .sellAmount("100")
+        .buyAsset(stellarUSDC)
+        .buyAmount("98.0392157")
+        .build()
+    assertEquals(wantQuoteResponse, gotQuoteResponse)
   }
 
   private fun createJwtToken(publicKey: String = PUBLIC_KEY): JwtToken {

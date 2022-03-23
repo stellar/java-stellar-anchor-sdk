@@ -394,6 +394,11 @@ public class Sep38Service {
       throw new BadRequestException("sep10 token is malformed");
     }
 
+    // empty quote id
+    if (StringUtils.isEmpty(quoteId)) {
+      throw new BadRequestException("quote id cannot be empty");
+    }
+
     Sep38Quote quote = this.sep38QuoteStore.findByQuoteId(quoteId);
     if (!StringUtils.equals(quote.getCreatorAccountId(), account)
         || !StringUtils.equals(memo, quote.getCreatorMemo())
