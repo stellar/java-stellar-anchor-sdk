@@ -404,7 +404,7 @@ public class Sep38Service {
     if (!StringUtils.equals(quote.getCreatorAccountId(), account)
         || !StringUtils.equals(memo, quote.getCreatorMemo())
         || !StringUtils.equals(memoType, quote.getCreatorMemoType())) {
-      throw new ServerErrorException("internal server error");
+      throw new NotFoundException("quote not found");
     }
 
     return Sep38QuoteResponse.builder()

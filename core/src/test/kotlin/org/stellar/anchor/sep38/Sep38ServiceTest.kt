@@ -1117,8 +1117,8 @@ class Sep38ServiceTest {
     var slotQuoteId = slot<String>()
     every { quoteStore.findByQuoteId(capture(slotQuoteId)) } returns mockQuote
     ex = assertThrows { sep38Service.getQuote(token, "123") }
-    assertInstanceOf(ServerErrorException::class.java, ex)
-    assertEquals("internal server error", ex.message)
+    assertInstanceOf(NotFoundException::class.java, ex)
+    assertEquals("quote not found", ex.message)
     verify(exactly = 1) { quoteStore.findByQuoteId(any()) }
     assertEquals("123", slotQuoteId.captured)
 
@@ -1127,8 +1127,8 @@ class Sep38ServiceTest {
     slotQuoteId = slot()
     every { quoteStore.findByQuoteId(capture(slotQuoteId)) } returns mockQuote
     ex = assertThrows { sep38Service.getQuote(token, "123") }
-    assertInstanceOf(ServerErrorException::class.java, ex)
-    assertEquals("internal server error", ex.message)
+    assertInstanceOf(NotFoundException::class.java, ex)
+    assertEquals("quote not found", ex.message)
     verify(exactly = 2) { quoteStore.findByQuoteId(any()) }
     assertEquals("123", slotQuoteId.captured)
 
@@ -1138,8 +1138,8 @@ class Sep38ServiceTest {
     slotQuoteId = slot()
     every { quoteStore.findByQuoteId(capture(slotQuoteId)) } returns mockQuote
     ex = assertThrows { sep38Service.getQuote(token, "123") }
-    assertInstanceOf(ServerErrorException::class.java, ex)
-    assertEquals("internal server error", ex.message)
+    assertInstanceOf(NotFoundException::class.java, ex)
+    assertEquals("quote not found", ex.message)
     verify(exactly = 3) { quoteStore.findByQuoteId(any()) }
     assertEquals("123", slotQuoteId.captured)
   }
