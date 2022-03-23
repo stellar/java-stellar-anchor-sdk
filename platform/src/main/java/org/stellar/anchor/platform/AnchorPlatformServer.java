@@ -2,6 +2,7 @@ package org.stellar.anchor.platform;
 
 import static org.springframework.boot.Banner.Mode.OFF;
 
+import java.util.Map;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -21,13 +22,17 @@ public class AnchorPlatformServer implements WebMvcConfigurer {
     start(8080, "/");
   }
 
-  public static void start(int port, String contextPath) {
+  public static void start(int port, String contextPath, Map<String, Object> environment) {
     SpringApplicationBuilder builder =
         new SpringApplicationBuilder(AnchorPlatformServer.class)
             .bannerMode(OFF)
             .properties(
                 String.format("server.port=%d", port),
                 String.format("server.contextPath=%s", contextPath));
+    if (environment != null) {
+      builder.properties(environment);
+    }
+
     SpringApplication app = builder.build();
 
     // Reads the configuration from sources, such as yaml
@@ -40,5 +45,9 @@ public class AnchorPlatformServer implements WebMvcConfigurer {
     app.addInitializers(new SpringFrameworkConfigurator());
 
     app.run();
+  }
+
+  public static void start(int port, String contextPath) {
+    start(port, contextPath, null);
   }
 }

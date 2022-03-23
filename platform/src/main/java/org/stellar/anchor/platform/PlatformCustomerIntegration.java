@@ -2,26 +2,22 @@ package org.stellar.anchor.platform;
 
 import static okhttp3.HttpUrl.get;
 import static org.stellar.anchor.platform.PlatformCustomerIntegration.Converter.*;
+import static org.stellar.anchor.platform.PlatformIntegrationHelper.*;
 
 import com.google.gson.Gson;
-import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import lombok.SneakyThrows;
 import okhttp3.*;
 import okhttp3.HttpUrl.Builder;
 import org.springframework.http.HttpStatus;
-import org.stellar.anchor.dto.sep12.Sep12GetCustomerRequest;
-import org.stellar.anchor.dto.sep12.Sep12GetCustomerResponse;
-import org.stellar.anchor.dto.sep12.Sep12PutCustomerRequest;
-import org.stellar.anchor.dto.sep12.Sep12PutCustomerResponse;
+import org.stellar.anchor.dto.sep12.*;
 import org.stellar.anchor.exception.*;
 import org.stellar.anchor.integration.customer.CustomerIntegration;
 import org.stellar.platform.apis.callbacks.requests.GetCustomerRequest;
 import org.stellar.platform.apis.callbacks.requests.PutCustomerRequest;
 import org.stellar.platform.apis.callbacks.responses.GetCustomerResponse;
 import org.stellar.platform.apis.callbacks.responses.PutCustomerResponse;
-import org.stellar.platform.apis.shared.ErrorResponse;
 
 public class PlatformCustomerIntegration implements CustomerIntegration {
   private final String anchorEndpoint;
@@ -57,10 +53,9 @@ public class PlatformCustomerIntegration implements CustomerIntegration {
     if (customerRequest.getType() != null) {
       customerEndpointBuilder.addQueryParameter("type", customerRequest.getType());
     }
-    String foo = customerEndpointBuilder.build().toString();
     // Call anchor
     Response response =
-        call(new Request.Builder().url(customerEndpointBuilder.build()).get().build());
+        call(httpClient, new Request.Builder().url(customerEndpointBuilder.build()).get().build());
     String responseContent = getContent(response);
 
     if (response.code() == HttpStatus.OK.value()) {
@@ -89,7 +84,7 @@ public class PlatformCustomerIntegration implements CustomerIntegration {
         new Request.Builder().url(getCustomerUrlBuilder().build()).put(requestBody).build();
 
     // Call anchor
-    Response response = call(callbackRequest);
+    Response response = call(httpClient, callbackRequest);
     String responseContent = getContent(response);
 
     if (response.code() == HttpStatus.OK.value()) {
@@ -105,8 +100,8 @@ public class PlatformCustomerIntegration implements CustomerIntegration {
 
   @SneakyThrows
   @Override
-  public void deleteCustomer(org.stellar.anchor.dto.sep12.DeleteCustomerRequest request) {
-    // TODO
+  public void deleteCustomer(Sep12DeleteCustomerRequest sep12DeleteCustomerRequest) {
+    //    DeleteCustomerRequest deleteRequest = fromSep12(sep12DeleteCustomerRequest);
     throw new UnsupportedOperationException("not implemented");
   }
 
@@ -121,44 +116,6 @@ public class PlatformCustomerIntegration implements CustomerIntegration {
 
   Builder getCustomerUrlBuilder() {
     return get(anchorEndpoint).newBuilder().addPathSegment("customer");
-  }
-
-  Response call(Request request) throws ServiceUnavailableException {
-    try {
-      return httpClient.newCall(request).execute();
-    } catch (IOException e) {
-      throw new ServiceUnavailableException("service not available", e);
-    }
-  }
-
-  String getContent(Response response) throws ServerErrorException {
-    try {
-      ResponseBody callbackResponseBody = response.body();
-      if (callbackResponseBody == null) {
-        throw new ServerErrorException("unable to fetch response body");
-      }
-      return callbackResponseBody.string();
-    } catch (Exception e) {
-      throw new ServerErrorException("internal server error", e);
-    }
-  }
-
-  AnchorException httpError(String responseContent, int responseCode) {
-    ErrorResponse errorResponse;
-    try {
-      errorResponse = gson.fromJson(responseContent, ErrorResponse.class);
-    } catch (Exception e) { // cannot read body from response
-      return new ServerErrorException("internal server error", e);
-    }
-    AnchorException exception;
-    if (responseCode == HttpStatus.BAD_REQUEST.value()) {
-      exception = new BadRequestException(errorResponse.getError());
-    } else if (responseCode == HttpStatus.NOT_FOUND.value()) {
-      exception = new NotFoundException(errorResponse.getError());
-    } else {
-      exception = new ServerErrorException("internal server error");
-    }
-    return exception;
   }
 
   static class Converter {

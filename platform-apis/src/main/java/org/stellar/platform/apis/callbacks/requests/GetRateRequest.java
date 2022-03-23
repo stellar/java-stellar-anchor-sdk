@@ -19,6 +19,9 @@ public class GetRateRequest {
   @SerializedName("buy_amount")
   String buyAmount;
 
+  @SerializedName("country_code")
+  String countryCode;
+
   @SerializedName("sell_delivery_method")
   String sellDeliveryMethod;
 

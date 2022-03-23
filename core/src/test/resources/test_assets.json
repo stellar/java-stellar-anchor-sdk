@@ -101,6 +101,7 @@
           "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
         ],
         "country_codes": ["USA"],
+        "decimals": 4,
         "sell_delivery_methods": [
           {
             "name": "WIRE",

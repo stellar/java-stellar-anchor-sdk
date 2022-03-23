@@ -1,6 +1,6 @@
 # Anchor Platform Spring Boot Application
 
-## To Run
+## How To Run
 ```shell
 ./gradlew bootRun -PjvmArgs="-Dstellar.anchor.config=[path-to-yaml]"
 
