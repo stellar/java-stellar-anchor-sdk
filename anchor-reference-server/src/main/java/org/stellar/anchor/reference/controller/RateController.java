@@ -1,6 +1,5 @@
 package org.stellar.anchor.reference.controller;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import org.springframework.web.bind.annotation.*;
 import org.stellar.anchor.exception.AnchorException;
 import org.stellar.anchor.reference.config.AppSettings;
@@ -21,7 +20,6 @@ public class RateController {
       value = "/rate",
       method = {RequestMethod.GET})
   @ResponseBody
-  @JsonInclude(JsonInclude.Include.NON_NULL)
   public GetRateResponse getRate(
       @RequestParam() String type,
       @RequestParam(required = false) String id,

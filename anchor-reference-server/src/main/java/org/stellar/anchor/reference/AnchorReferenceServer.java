@@ -17,7 +17,6 @@ public class AnchorReferenceServer implements WebMvcConfigurer {
         new SpringApplicationBuilder(AnchorReferenceServer.class)
             .bannerMode(OFF)
             .properties(
-                String.format("spring.mvc.converters.preferred-json-mapper", "gson"),
                 String.format("server.port=%d", port),
                 String.format("server.contextPath=%s", contextPath));
 
