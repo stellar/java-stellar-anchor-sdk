@@ -101,6 +101,24 @@ class Sep38Client(private val endpoint: String) : SepClient() {
     return gson.fromJson(responseBody, Sep38QuoteResponse::class.java)
   }
 
+  fun getQuote(quoteId: String): Sep38QuoteResponse {
+    // build URL
+    val urlBuilder =
+      this.endpoint.toHttpUrl().newBuilder().addPathSegment("quote").addPathSegment(quoteId)
+    println(urlBuilder.build().toString())
+
+    val request =
+      Request.Builder()
+        .url(urlBuilder.build())
+        .header("Content-Type", "application/json")
+        .header("Authorization", "Bearer $jwtStr")
+        .get()
+        .build()
+    val response = client.newCall(request).execute()
+    val responseBody = handleResponse(response)
+    return gson.fromJson(responseBody, Sep38QuoteResponse::class.java)
+  }
+
   private fun handleResponse(response: Response): String? {
     val responseBody = response.body?.string()
 
