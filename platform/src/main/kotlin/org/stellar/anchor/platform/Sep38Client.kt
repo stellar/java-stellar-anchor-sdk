@@ -3,11 +3,13 @@ package org.stellar.anchor.platform
 import com.google.gson.Gson
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Request
+import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import org.springframework.http.HttpStatus
 import org.stellar.anchor.dto.sep38.GetPriceResponse
 import org.stellar.anchor.dto.sep38.GetPricesResponse
 import org.stellar.anchor.dto.sep38.InfoResponse
+import org.stellar.anchor.dto.sep38.Sep38QuoteResponse
 import org.stellar.anchor.exception.SepException
 import org.stellar.anchor.exception.SepNotAuthorizedException
 
@@ -72,13 +74,41 @@ class Sep38Client(private val endpoint: String) : SepClient() {
     return gson.fromJson(responseBody, GetPriceResponse::class.java)
   }
 
+  fun postQuote(sellAsset: String, sellAmount: String, buyAsset: String): Sep38QuoteResponse {
+    // build URL
+    val urlBuilder = this.endpoint.toHttpUrl().newBuilder().addPathSegment("quote")
+    println(urlBuilder.build().toString())
+
+    // build request body
+    val requestBody =
+      """{
+      "sell_asset": "$sellAsset",
+      "sell_amount": "$sellAmount",
+      "buy_asset": "$buyAsset"
+    }"""
+        .trimIndent()
+        .toRequestBody(TYPE_JSON)
+
+    val request =
+      Request.Builder()
+        .url(urlBuilder.build())
+        .header("Content-Type", "application/json")
+        .header("Authorization", "Bearer $jwtStr")
+        .post(requestBody)
+        .build()
+    val response = client.newCall(request).execute()
+    val responseBody = handleResponse(response)
+    return gson.fromJson(responseBody, Sep38QuoteResponse::class.java)
+  }
+
   private fun handleResponse(response: Response): String? {
     val responseBody = response.body?.string()
 
+    println("statusCode: " + response.code)
     println("responseBody: $responseBody")
     if (response.code == HttpStatus.FORBIDDEN.value()) {
       throw SepNotAuthorizedException("Forbidden")
-    } else if (response.code != HttpStatus.OK.value()) {
+    } else if (!listOf(HttpStatus.OK.value(), HttpStatus.CREATED.value()).contains(response.code)) {
       throw SepException(responseBody)
     }
 
