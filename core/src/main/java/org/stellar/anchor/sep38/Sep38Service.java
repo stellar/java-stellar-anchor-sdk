@@ -399,6 +399,7 @@ public class Sep38Service {
       throw new BadRequestException("quote id cannot be empty");
     }
 
+    // validate consistency between quote and jwt token
     Sep38Quote quote = this.sep38QuoteStore.findByQuoteId(quoteId);
     if (!StringUtils.equals(quote.getCreatorAccountId(), account)
         || !StringUtils.equals(memo, quote.getCreatorMemo())
