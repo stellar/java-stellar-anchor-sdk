@@ -87,9 +87,10 @@ public class Sep38Controller {
   @CrossOrigin(origins = "*")
   @ResponseStatus(code = HttpStatus.OK)
   @RequestMapping(
-      value = "/quote",
+      value = "/quote/{quote_id}",
       method = {RequestMethod.GET})
-  public Sep38QuoteResponse getQuote(HttpServletRequest request, @RequestParam String quoteId) {
+  public Sep38QuoteResponse getQuote(
+      HttpServletRequest request, @PathVariable(name = "quote_id") String quoteId) {
     JwtToken jwtToken = getSep10Token(request);
     return sep38Service.getQuote(jwtToken, quoteId);
   }
