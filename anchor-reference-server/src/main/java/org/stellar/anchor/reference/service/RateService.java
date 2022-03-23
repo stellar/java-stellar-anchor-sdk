@@ -4,7 +4,6 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.Map;
 import java.util.Objects;
-import java.util.UUID;
 import kotlin.Pair;
 import org.springframework.stereotype.Service;
 import org.stellar.anchor.exception.*;
@@ -63,20 +62,7 @@ public class RateService {
   }
 
   private Quote createQuote(GetRateRequest request, String price) {
-    Quote quote = new Quote();
-    quote.setId(UUID.randomUUID().toString());
-    quote.setSellAsset(request.getSellAsset());
-    quote.setSellAmount(request.getSellAmount());
-    quote.setSellDeliveryMethod(request.getSellDeliveryMethod());
-    quote.setBuyAsset(request.getBuyAsset());
-    quote.setBuyAmount(request.getBuyAmount());
-    quote.setSellDeliveryMethod(request.getSellDeliveryMethod());
-    quote.setCountryCode(request.getCountryCode());
-    quote.setCreatedAt(LocalDateTime.now());
-    quote.setPrice(price);
-    quote.setStellarAccount(request.getAccount());
-    quote.setMemo(request.getMemo());
-    quote.setMemoType(request.getMemoType());
+    Quote quote = Quote.of(request, price);
 
     // "calculate" expiresAt
     LocalDateTime expiresAfter = request.getExpiresAfter();
