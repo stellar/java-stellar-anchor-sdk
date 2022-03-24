@@ -30,7 +30,9 @@ import org.stellar.anchor.sep1.Sep1Service;
 import org.stellar.anchor.sep10.JwtService;
 import org.stellar.anchor.sep10.Sep10Service;
 import org.stellar.anchor.sep12.Sep12Service;
+import org.stellar.anchor.sep38.Sep38QuoteStore;
 import org.stellar.anchor.sep38.Sep38Service;
+import org.stellar.anchor.server.data.*;
 
 /** SEP configurations */
 @Configuration
@@ -105,8 +107,16 @@ public class SepConfig {
   }
 
   @Bean
+  Sep38QuoteStore sep38QuoteStore(JdbcSep38QuoteRepo quoteRepo) {
+    return new JdbcSep38QuoteStore(quoteRepo);
+  }
+
+  @Bean
   Sep38Service sep38Service(
-      Sep38Config sep38Config, AssetService assetService, RateIntegration rateIntegration) {
-    return new Sep38Service(sep38Config, assetService, rateIntegration);
+      Sep38Config sep38Config,
+      AssetService assetService,
+      RateIntegration rateIntegration,
+      Sep38QuoteStore sep38QuoteStore) {
+    return new Sep38Service(sep38Config, assetService, rateIntegration, sep38QuoteStore);
   }
 }

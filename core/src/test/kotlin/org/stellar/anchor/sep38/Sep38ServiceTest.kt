@@ -1,8 +1,8 @@
 package org.stellar.anchor.sep38
 
-import io.mockk.every
-import io.mockk.mockk
+import io.mockk.*
 import java.time.LocalDateTime
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -18,6 +18,7 @@ import org.stellar.anchor.exception.NotFoundException
 import org.stellar.anchor.exception.ServerErrorException
 import org.stellar.anchor.integration.rate.GetRateRequest
 import org.stellar.anchor.integration.rate.GetRateResponse
+import org.stellar.anchor.model.Sep38Quote
 import org.stellar.anchor.sep10.JwtToken
 
 class Sep38ServiceTest {
@@ -36,22 +37,36 @@ class Sep38ServiceTest {
   }
 
   private lateinit var sep38Service: Sep38Service
-  // sep10 related:
-  private lateinit var appConfig: AppConfig
 
   private val stellarUSDC = "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+
+  // store/db related:
+  private lateinit var quoteStore: Sep38QuoteStore
+
+  // sep10 related:
+  private lateinit var appConfig: AppConfig
 
   @BeforeEach
   fun setUp() {
     val assetService = ResourceJsonAssetService("test_assets.json")
     val assets = assetService.listAllAssets()
     val sep8Config = PropertySep38Config()
-    this.sep38Service = Sep38Service(sep8Config, assetService, null)
+    this.sep38Service = Sep38Service(sep8Config, assetService, null, null)
     assertEquals(3, assets.size)
 
     // sep10 related:
     this.appConfig = mockk(relaxed = true)
     every { appConfig.jwtSecretKey } returns "secret"
+
+    // store/db related:
+    this.quoteStore = mockk(relaxed = true)
+    every { quoteStore.newInstance() } returns PojoSep38Quote()
+  }
+
+  @AfterEach
+  fun tearDown() {
+    clearAllMocks()
+    unmockkAll()
   }
 
   @Test
@@ -114,7 +129,7 @@ class Sep38ServiceTest {
     // mock rate integration
     val mockRateIntegration = mockk<MockRateIntegration>()
     sep38Service =
-      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration)
+      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration, null)
 
     // empty sell_asset
     ex = assertThrows { sep38Service.getPrices(null, null, null, null, null) }
@@ -178,7 +193,7 @@ class Sep38ServiceTest {
         .build()
     every { mockRateIntegration.getRate(getRateReq2) } returns GetRateResponse("2")
     sep38Service =
-      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration)
+      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration, null)
 
     // test happy path with the minimum parameters
     var gotResponse: GetPricesResponse? = null
@@ -220,7 +235,7 @@ class Sep38ServiceTest {
         .build()
     every { mockRateIntegration.getRate(getRateReq2) } returns GetRateResponse("2.1")
     sep38Service =
-      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration)
+      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration, null)
 
     // test happy path with all the parameters
     var gotResponse: GetPricesResponse? = null
@@ -251,7 +266,7 @@ class Sep38ServiceTest {
         .build()
     every { mockRateIntegration.getRate(getRateReq1) } returns GetRateResponse("1")
     sep38Service =
-      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration)
+      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration, null)
 
     // test happy path with the minimum parameters and specify buy_delivery_method
     var gotResponse: GetPricesResponse? = null
@@ -275,7 +290,7 @@ class Sep38ServiceTest {
     // mock rate integration
     val mockRateIntegration = mockk<MockRateIntegration>()
     sep38Service =
-      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration)
+      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration, null)
 
     // empty sell_asset
     ex = assertThrows { sep38Service.getPrice(null, null, null, null, null, null, null) }
@@ -400,7 +415,7 @@ class Sep38ServiceTest {
         .build()
     every { mockRateIntegration.getRate(getRateReq) } returns GetRateResponse("1.02")
     sep38Service =
-      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration)
+      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration, null)
 
     // test happy path with the minimum parameters using sellAmount
     var gotResponse: GetPriceResponse? = null
@@ -425,7 +440,7 @@ class Sep38ServiceTest {
         .build()
     every { mockRateIntegration.getRate(getRateReq) } returns GetRateResponse("1.02")
     sep38Service =
-      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration)
+      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration, null)
 
     // test happy path with the minimum parameters using buyAmount
     var gotResponse: GetPriceResponse? = null
@@ -452,7 +467,7 @@ class Sep38ServiceTest {
         .build()
     every { mockRateIntegration.getRate(getRateReq) } returns GetRateResponse("1.02")
     sep38Service =
-      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration)
+      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration, null)
 
     // test happy path with all the parameters using sellAmount
     var gotResponse: GetPriceResponse? = null
@@ -481,7 +496,7 @@ class Sep38ServiceTest {
         .build()
     every { mockRateIntegration.getRate(getRateReq) } returns GetRateResponse("1.02345678901")
     sep38Service =
-      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration)
+      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration, null)
 
     // test happy path with all the parameters using buyAmount
     var gotResponse: GetPriceResponse? = null
@@ -511,7 +526,21 @@ class Sep38ServiceTest {
     // mock rate integration
     val mockRateIntegration = mockk<MockRateIntegration>()
     sep38Service =
-      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration)
+      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration, null)
+
+    // empty sep38QuoteStore should throw an error
+    ex = assertThrows { sep38Service.postQuote(null, Sep38PostQuoteRequest.builder().build()) }
+    assertInstanceOf(ServerErrorException::class.java, ex)
+    assertEquals("internal server error", ex.message)
+
+    // mocked quote store
+    sep38Service =
+      Sep38Service(
+        sep38Service.sep38Config,
+        sep38Service.assetService,
+        mockRateIntegration,
+        quoteStore
+      )
 
     // empty token
     ex = assertThrows { sep38Service.postQuote(null, Sep38PostQuoteRequest.builder().build()) }
@@ -771,7 +800,15 @@ class Sep38ServiceTest {
     every { mockRateIntegration.getRate(getRateReq) } returns
       GetRateResponse("123", "1.02", tomorrow)
     sep38Service =
-      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration)
+      Sep38Service(
+        sep38Service.sep38Config,
+        sep38Service.assetService,
+        mockRateIntegration,
+        quoteStore
+      )
+
+    val slotQuote = slot<Sep38Quote>()
+    every { quoteStore.save(capture(slotQuote)) } returns null
 
     // test happy path with the minimum parameters using sellAmount
     val token = createJwtToken()
@@ -798,6 +835,19 @@ class Sep38ServiceTest {
         .buyAmount("98.0392157")
         .build()
     assertEquals(wantResponse, gotResponse)
+
+    // verify the saved quote
+    verify(exactly = 1) { quoteStore.save(any()) }
+    val savedQuote = slotQuote.captured
+    assertEquals("123", savedQuote.id)
+    assertEquals(tomorrow, savedQuote.expiresAt)
+    assertEquals("1.02", savedQuote.price)
+    assertEquals("iso4217:USD", savedQuote.sellAsset)
+    assertEquals("100", savedQuote.sellAmount)
+    assertEquals(stellarUSDC, savedQuote.buyAsset)
+    assertEquals("98.0392157", savedQuote.buyAmount)
+    assertEquals(PUBLIC_KEY, savedQuote.creatorAccountId)
+    assertNotNull(savedQuote.createdAt)
   }
 
   @Test
@@ -816,7 +866,15 @@ class Sep38ServiceTest {
     every { mockRateIntegration.getRate(getRateReq) } returns
       GetRateResponse("456", "1.02", tomorrow)
     sep38Service =
-      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration)
+      Sep38Service(
+        sep38Service.sep38Config,
+        sep38Service.assetService,
+        mockRateIntegration,
+        quoteStore
+      )
+
+    val slotQuote = slot<Sep38Quote>()
+    every { quoteStore.save(capture(slotQuote)) } returns null
 
     // test happy path with the minimum parameters using sellAmount
     val token = createJwtToken()
@@ -843,6 +901,19 @@ class Sep38ServiceTest {
         .buyAmount("100")
         .build()
     assertEquals(wantResponse, gotResponse)
+
+    // verify the saved quote
+    verify(exactly = 1) { quoteStore.save(any()) }
+    val savedQuote = slotQuote.captured
+    assertEquals("456", savedQuote.id)
+    assertEquals(tomorrow, savedQuote.expiresAt)
+    assertEquals("1.02", savedQuote.price)
+    assertEquals("iso4217:USD", savedQuote.sellAsset)
+    assertEquals("102", savedQuote.sellAmount)
+    assertEquals(stellarUSDC, savedQuote.buyAsset)
+    assertEquals("100", savedQuote.buyAmount)
+    assertEquals(PUBLIC_KEY, savedQuote.creatorAccountId)
+    assertNotNull(savedQuote.createdAt)
   }
 
   @Test
@@ -866,7 +937,15 @@ class Sep38ServiceTest {
     every { mockRateIntegration.getRate(getRateReq) } returns
       GetRateResponse("123", "1.02", tomorrow)
     sep38Service =
-      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration)
+      Sep38Service(
+        sep38Service.sep38Config,
+        sep38Service.assetService,
+        mockRateIntegration,
+        quoteStore
+      )
+
+    val slotQuote = slot<Sep38Quote>()
+    every { quoteStore.save(capture(slotQuote)) } returns null
 
     // test happy path with the minimum parameters using sellAmount
     val token = createJwtToken()
@@ -896,6 +975,20 @@ class Sep38ServiceTest {
         .buyAmount("98.0392157")
         .build()
     assertEquals(wantResponse, gotResponse)
+
+    // verify the saved quote
+    verify(exactly = 1) { quoteStore.save(any()) }
+    val savedQuote = slotQuote.captured
+    assertEquals("123", savedQuote.id)
+    assertEquals(tomorrow, savedQuote.expiresAt)
+    assertEquals("1.02", savedQuote.price)
+    assertEquals("iso4217:USD", savedQuote.sellAsset)
+    assertEquals("100", savedQuote.sellAmount)
+    assertEquals("WIRE", savedQuote.sellDeliveryMethod)
+    assertEquals(stellarUSDC, savedQuote.buyAsset)
+    assertEquals("98.0392157", savedQuote.buyAmount)
+    assertEquals(PUBLIC_KEY, savedQuote.creatorAccountId)
+    assertNotNull(savedQuote.createdAt)
   }
 
   @Test
@@ -919,7 +1012,15 @@ class Sep38ServiceTest {
     every { mockRateIntegration.getRate(getRateReq) } returns
       GetRateResponse("456", "1.02", tomorrow)
     sep38Service =
-      Sep38Service(sep38Service.sep38Config, sep38Service.assetService, mockRateIntegration)
+      Sep38Service(
+        sep38Service.sep38Config,
+        sep38Service.assetService,
+        mockRateIntegration,
+        quoteStore
+      )
+
+    val slotQuote = slot<Sep38Quote>()
+    every { quoteStore.save(capture(slotQuote)) } returns null
 
     // test happy path with the minimum parameters using sellAmount
     val token = createJwtToken()
@@ -949,6 +1050,20 @@ class Sep38ServiceTest {
         .buyAmount("100")
         .build()
     assertEquals(wantResponse, gotResponse)
+
+    // verify the saved quote
+    verify(exactly = 1) { quoteStore.save(any()) }
+    val savedQuote = slotQuote.captured
+    assertEquals("456", savedQuote.id)
+    assertEquals(tomorrow, savedQuote.expiresAt)
+    assertEquals("1.02", savedQuote.price)
+    assertEquals("iso4217:USD", savedQuote.sellAsset)
+    assertEquals("102", savedQuote.sellAmount)
+    assertEquals("WIRE", savedQuote.sellDeliveryMethod)
+    assertEquals(stellarUSDC, savedQuote.buyAsset)
+    assertEquals("100", savedQuote.buyAmount)
+    assertEquals(PUBLIC_KEY, savedQuote.creatorAccountId)
+    assertNotNull(savedQuote.createdAt)
   }
 
   private fun createJwtToken(publicKey: String = PUBLIC_KEY): JwtToken {
