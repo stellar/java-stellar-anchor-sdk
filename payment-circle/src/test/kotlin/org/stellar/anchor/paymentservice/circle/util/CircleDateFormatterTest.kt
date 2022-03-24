@@ -8,9 +8,9 @@ class CircleDateFormatterTest {
   @Test
   fun testDateFormatterField() {
     val wantTimezone = TimeZone.getTimeZone("UTC")
-    assertEquals(wantTimezone, CircleDateFormatter.dateFormatter.timeZone)
+    assertEquals(wantTimezone, CircleDateFormatter.dateFormatter().timeZone)
     val wantPattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
-    assertEquals(wantPattern, CircleDateFormatter.dateFormatter.toPattern())
+    assertEquals(wantPattern, CircleDateFormatter.dateFormatter().toPattern())
   }
 
   @Test
