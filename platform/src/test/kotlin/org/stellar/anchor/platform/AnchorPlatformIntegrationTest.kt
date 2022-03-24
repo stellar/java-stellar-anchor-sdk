@@ -1,6 +1,5 @@
 package org.stellar.anchor.platform
 
-import java.util.*
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Order
@@ -51,5 +50,11 @@ class AnchorPlatformIntegrationTest {
   @Order(3)
   fun runSep12Test() {
     sep12TestAll(toml, jwt)
+  }
+
+  @Test
+  @Order(4)
+  fun runSep38Test() {
+    sep38TestAll(toml, jwt)
   }
 }

@@ -12,23 +12,26 @@ public class GetRateRequest {
   @SerializedName("sell_asset")
   String sellAsset;
 
-  @SerializedName("buy_asset")
-  String buyAsset;
-
   @SerializedName("sell_amount")
   String sellAmount;
-
-  @SerializedName("buy_amount")
-  String buyAmount;
-
-  @SerializedName("country_code")
-  String countryCode;
 
   @SerializedName("sell_delivery_method")
   String sellDeliveryMethod;
 
+  @SerializedName("buy_asset")
+  String buyAsset;
+
+  @SerializedName("buy_amount")
+  String buyAmount;
+
   @SerializedName("buy_delivery_method")
   String buyDeliveryMethod;
+
+  @SerializedName("country_code")
+  String countryCode;
+
+  @SerializedName("expire_after")
+  String expireAfter;
 
   @SerializedName("client_domain")
   String clientDomain;

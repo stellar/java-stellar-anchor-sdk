@@ -73,7 +73,7 @@ open class ConfiguratorTest {
         "sep10.homeDomain" to "localhost:8080",
         "sep10.signingSeed" to "SAX3AH622R2XT6DXWWSRIDCMMUCCMATBZ5U6XKJWDO7M2EJUBFC3AW5X",
         "sep38.enabled" to "true",
-        "sep38.quoteIntegrationEndPoint" to "localhost:8082",
+        "sep38.quoteIntegrationEndPoint" to "http://localhost:8081",
         "payment-gateway.circle.name" to "circle",
         "payment-gateway.circle.stellarNetwork" to "TESTNET",
         "spring.jpa.properties.hibernate.dialect" to "org.hibernate.dialect.H2Dialect",

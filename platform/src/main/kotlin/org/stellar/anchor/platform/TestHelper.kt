@@ -20,7 +20,7 @@ fun resourceAsString(path: String): String {
   return FileCopyUtils.copyToString(reader)
 }
 
-fun printRequest(title: String?, payload: Any?) {
+fun printRequest(title: String?, payload: Any? = null) {
   if (title != null) println(title)
   if (payload != null) {
     print("request=")

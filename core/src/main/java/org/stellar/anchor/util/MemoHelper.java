@@ -13,7 +13,6 @@ import org.stellar.sdk.MemoText;
 import org.stellar.sdk.xdr.MemoType;
 
 public class MemoHelper {
-  @SuppressWarnings("UnusedReturnValue")
   public static Memo makeMemo(String memo, String memoType) throws SepException {
     if (memo == null || memoType == null) {
       return null;
