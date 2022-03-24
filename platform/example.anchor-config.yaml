@@ -54,6 +54,10 @@ app-config:
     enabled: true
     customerIntegrationEndpoint: http://localhost:8081
 
+  # sep-31
+  sep31:
+    enabled: true
+
   # sep-38
   sep38:
     enabled: true

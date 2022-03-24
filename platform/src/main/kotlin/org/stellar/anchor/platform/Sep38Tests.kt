@@ -4,12 +4,10 @@ import kotlin.test.assertEquals
 import org.stellar.anchor.util.Sep1Helper
 
 lateinit var sep38: Sep38Client
-lateinit var jwtStr: String
 
 fun sep38TestAll(toml: Sep1Helper.TomlContent, jwt: String) {
-  jwtStr = jwt
   println("Performing SEP38 tests...")
-  sep38 = Sep38Client(toml.getString("ANCHOR_QUOTE_SERVER"))
+  sep38 = Sep38Client(toml.getString("ANCHOR_QUOTE_SERVER"), jwt)
 
   sep38TestHappyPath()
 }
