@@ -1,5 +1,6 @@
 package org.stellar.anchor.paymentservice.circle.util
 
+import java.time.ZoneId
 import java.util.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -7,10 +8,8 @@ import org.junit.jupiter.api.Test
 class CircleDateFormatterTest {
   @Test
   fun testDateFormatterField() {
-    val wantTimezone = TimeZone.getTimeZone("UTC")
-    assertEquals(wantTimezone, CircleDateFormatter.dateFormatter().timeZone)
-    val wantPattern = "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"
-    assertEquals(wantPattern, CircleDateFormatter.dateFormatter().toPattern())
+    val wantZoneId = ZoneId.of("UTC")
+    assertEquals(wantZoneId, CircleDateFormatter.dateFormatter.zone)
   }
 
   @Test

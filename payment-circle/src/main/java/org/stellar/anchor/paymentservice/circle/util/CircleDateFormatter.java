@@ -1,24 +1,28 @@
 package org.stellar.anchor.paymentservice.circle.util;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.Date;
 import java.util.Locale;
-import java.util.TimeZone;
 
 public class CircleDateFormatter {
-  public static SimpleDateFormat dateFormatter() {
-    SimpleDateFormat circleDateFormatter =
-        new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.ENGLISH);
-    circleDateFormatter.setTimeZone(TimeZone.getTimeZone("UTC"));
-    return circleDateFormatter;
+  public static final DateTimeFormatter dateFormatter = _dateFormatter();
+  private static final ZoneId zone = ZoneId.of("UTC");
+
+  private static DateTimeFormatter _dateFormatter() {
+    ZoneId zone = ZoneId.of("UTC");
+    return DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.ENGLISH)
+        .withZone(zone);
   }
 
-  public static Date stringToDate(String dateStr) throws ParseException {
-    return dateFormatter().parse(dateStr);
+  public static Date stringToDate(String dateStr) {
+    LocalDateTime localDateTime = LocalDateTime.parse(dateStr, dateFormatter);
+    return Date.from(localDateTime.atZone(zone).toInstant());
   }
 
   public static String dateToString(Date date) {
-    return dateFormatter().format(date);
+    LocalDateTime localDateTime = date.toInstant().atZone(zone).toLocalDateTime();
+    return dateFormatter.format(localDateTime);
   }
 }
