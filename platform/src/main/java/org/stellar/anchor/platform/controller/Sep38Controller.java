@@ -83,6 +83,18 @@ public class Sep38Controller {
     return sep38Service.postQuote(jwtToken, postQuoteRequest);
   }
 
+  @SneakyThrows
+  @CrossOrigin(origins = "*")
+  @ResponseStatus(code = HttpStatus.OK)
+  @RequestMapping(
+      value = "/quote/{quote_id}",
+      method = {RequestMethod.GET})
+  public Sep38QuoteResponse getQuote(
+      HttpServletRequest request, @PathVariable(name = "quote_id") String quoteId) {
+    JwtToken jwtToken = getSep10Token(request);
+    return sep38Service.getQuote(jwtToken, quoteId);
+  }
+
   @ExceptionHandler(RestClientException.class)
   @ResponseStatus(value = HttpStatus.SERVICE_UNAVAILABLE)
   public SepExceptionResponse handleRestClientException(RestClientException ex) {

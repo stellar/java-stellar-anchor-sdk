@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform
 
+import kotlin.test.assertEquals
 import org.stellar.anchor.util.Sep1Helper
 
 lateinit var sep38: Sep38Client
@@ -36,11 +37,17 @@ fun sep38TestHappyPath() {
 
   // POST {SEP38}/quote
   printRequest("Calling GET /quote")
-  val quote =
+  val postQuote =
     sep38.postQuote(
       "iso4217:USD",
       "100",
       "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
     )
-  printResponse(quote)
+  printResponse(postQuote)
+
+  // GET {SEP38}/quote/{id}
+  printRequest("Calling GET /quote")
+  val getQuote = sep38.getQuote(postQuote.id)
+  printResponse(getQuote)
+  assertEquals(postQuote, getQuote)
 }
