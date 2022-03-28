@@ -1,7 +1,6 @@
 package org.stellar.anchor.paymentservice.circle.model
 
 import com.google.gson.Gson
-import com.google.gson.GsonBuilder
 import java.io.IOException
 import java.time.Instant
 import java.time.format.DateTimeFormatter
@@ -9,6 +8,7 @@ import kotlin.test.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
+import org.stellar.anchor.util.GsonUtils
 
 class CircleTransferSerializationTest {
   private lateinit var gson: Gson
@@ -44,7 +44,7 @@ class CircleTransferSerializationTest {
   @Throws(IOException::class)
   fun setUp() {
     gson =
-      GsonBuilder()
+      GsonUtils.builder()
         .registerTypeAdapter(CircleTransfer::class.java, CircleTransfer.Serialization())
         .create()
   }

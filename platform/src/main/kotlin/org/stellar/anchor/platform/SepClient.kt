@@ -1,20 +1,17 @@
 package org.stellar.anchor.platform
 
 import com.google.gson.Gson
-import com.google.gson.GsonBuilder
-import java.time.Instant
 import java.util.concurrent.TimeUnit
 import okhttp3.OkHttpClient
 import okhttp3.Response
 import org.springframework.http.HttpStatus
 import org.stellar.anchor.exception.SepException
 import org.stellar.anchor.exception.SepNotAuthorizedException
-import org.stellar.anchor.util.InstantConverter
+import org.stellar.anchor.util.GsonUtils
 
 open class SepClient {
   companion object {
-    val gson: Gson =
-      GsonBuilder().registerTypeAdapter(Instant::class.java, InstantConverter()).create()
+    val gson: Gson = GsonUtils.getGsonInstance()
     val client =
       OkHttpClient.Builder()
         .connectTimeout(10, TimeUnit.MINUTES)

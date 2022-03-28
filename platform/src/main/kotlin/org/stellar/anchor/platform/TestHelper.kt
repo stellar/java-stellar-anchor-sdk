@@ -1,19 +1,13 @@
 package org.stellar.anchor.platform
 
 import com.google.gson.Gson
-import com.google.gson.GsonBuilder
 import java.io.InputStreamReader
 import java.nio.charset.StandardCharsets.UTF_8
-import java.time.Instant
 import org.springframework.core.io.DefaultResourceLoader
 import org.springframework.util.FileCopyUtils
-import org.stellar.anchor.util.InstantConverter
+import org.stellar.anchor.util.GsonUtils
 
-val gson: Gson =
-  GsonBuilder()
-    .registerTypeAdapter(Instant::class.java, InstantConverter())
-    .setPrettyPrinting()
-    .create()
+val gson: Gson = GsonUtils.builder().setPrettyPrinting().create()
 
 fun json(value: Any?): String {
   if (value != null) return gson.toJson(value)
