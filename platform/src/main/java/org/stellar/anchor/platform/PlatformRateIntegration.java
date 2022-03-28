@@ -3,7 +3,6 @@ package org.stellar.anchor.platform;
 import static okhttp3.HttpUrl.get;
 import static org.stellar.anchor.platform.PlatformIntegrationHelper.*;
 
-import com.google.gson.Gson;
 import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -20,7 +19,6 @@ import shadow.com.google.common.reflect.TypeToken;
 public class PlatformRateIntegration implements RateIntegration {
   private final String anchorEndpoint;
   private final OkHttpClient httpClient;
-  private final Gson gson = new Gson();
 
   public PlatformRateIntegration(String anchorEndpoint, OkHttpClient httpClient) {
     try {

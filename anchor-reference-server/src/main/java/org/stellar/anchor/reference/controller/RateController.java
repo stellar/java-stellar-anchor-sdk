@@ -12,9 +12,11 @@ import org.stellar.platform.apis.callbacks.responses.GetRateResponse;
 @RestController
 public class RateController {
   private final RateService rateService;
+  private final Gson gson;
 
-  public RateController(AppSettings appSettings, RateService rateService) {
+  public RateController(AppSettings appSettings, RateService rateService, Gson gson) {
     this.rateService = rateService;
+    this.gson = gson;
   }
 
   /** Gets a rate */
@@ -23,7 +25,6 @@ public class RateController {
       method = {RequestMethod.GET})
   @ResponseBody
   public GetRateResponse getRate(@RequestParam Map<String, String> params) throws AnchorException {
-    Gson gson = new Gson();
     GetRateRequest getRateRequest = gson.fromJson(gson.toJson(params), GetRateRequest.class);
     return rateService.getRate(getRateRequest);
   }

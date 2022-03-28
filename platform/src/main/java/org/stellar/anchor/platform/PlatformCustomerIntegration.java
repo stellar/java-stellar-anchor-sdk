@@ -4,7 +4,6 @@ import static okhttp3.HttpUrl.get;
 import static org.stellar.anchor.platform.PlatformCustomerIntegration.Converter.*;
 import static org.stellar.anchor.platform.PlatformIntegrationHelper.*;
 
-import com.google.gson.Gson;
 import java.net.URI;
 import java.net.URISyntaxException;
 import lombok.SneakyThrows;
@@ -22,7 +21,6 @@ import org.stellar.platform.apis.callbacks.responses.PutCustomerResponse;
 public class PlatformCustomerIntegration implements CustomerIntegration {
   private final String anchorEndpoint;
   private final OkHttpClient httpClient;
-  private final Gson gson = new Gson();
 
   public PlatformCustomerIntegration(String anchorEndpoint, OkHttpClient httpClient) {
     try {
@@ -119,8 +117,6 @@ public class PlatformCustomerIntegration implements CustomerIntegration {
   }
 
   static class Converter {
-    static Gson gson = new Gson();
-
     public static Sep12GetCustomerResponse fromPlatform(GetCustomerResponse response) {
       String json = gson.toJson(response);
       return gson.fromJson(json, Sep12GetCustomerResponse.class);

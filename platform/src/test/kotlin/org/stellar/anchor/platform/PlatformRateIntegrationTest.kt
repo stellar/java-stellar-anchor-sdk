@@ -1,11 +1,15 @@
 package org.stellar.anchor.platform
 
 import com.google.gson.Gson
+import io.mockk.*
 import java.io.IOException
+import java.time.Instant
+import java.time.format.DateTimeFormatter
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.hamcrest.CoreMatchers
 import org.hamcrest.MatcherAssert
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -29,6 +33,12 @@ class PlatformRateIntegrationTest {
     server = MockWebServer()
     server.start()
     rateIntegration = PlatformRateIntegration(server.url("").toString(), OkHttpUtil.buildClient())
+  }
+
+  @AfterEach
+  fun tearDown() {
+    clearAllMocks()
+    unmockkAll()
   }
 
   private fun getRateResponse(price: String, expiresAt: String? = null): MockResponse {
@@ -293,9 +303,58 @@ class PlatformRateIntegrationTest {
     // 200 for type=firm where getRateResponse's "expires_at" is invalid
     validateRequest(
       200,
-      """{"rate": {"price": "1", "id": "my-id", "expires_at": "2022-04-30T02:15:44.000Z"} }""",
+      """{"rate": {"price": "1", "id": "my-id", "expires_at": "foo bar"} }""",
       serverErrorException,
       GetRateRequest.Type.FIRM
     )
+  }
+
+  @Test
+  fun test_getRate_response() {
+    val validateRequest =
+        { type: GetRateRequest.Type, responseBody: String, wantResponse: GetRateResponse ->
+      // mock response
+      val mockResponse =
+        MockResponse()
+          .addHeader("Content-Type", "application/json")
+          .setResponseCode(200)
+          .setBody(responseBody)
+      server.enqueue(mockResponse)
+
+      // execute command
+      val dummyRequest = GetRateRequest.builder().type(type).build()
+      var gotResponse: GetRateResponse? = null
+      assertDoesNotThrow { gotResponse = rateIntegration.getRate(dummyRequest) }
+      assertEquals(wantResponse, gotResponse)
+
+      // validateRequest
+      val request = server.takeRequest()
+      assertEquals("GET", request.method)
+      assertEquals("application/json", request.headers["Content-Type"])
+      assertEquals(null, request.headers["Authorization"])
+      MatcherAssert.assertThat(request.path, CoreMatchers.endsWith("/rate?type=$type"))
+      assertEquals("", request.body.readUtf8())
+    }
+
+    // indicative quote successful response
+    var wantGetRateResponse = GetRateResponse("1.02")
+    validateRequest(
+      GetRateRequest.Type.INDICATIVE,
+      """{"rate": {"price": "1.02"}}""",
+      wantGetRateResponse
+    )
+
+    // firm quote
+    val instantNow = DateTimeFormatter.ISO_INSTANT.parse("2022-04-30T02:15:44.000Z", Instant::from)
+    mockkStatic(Instant::class)
+    every { Instant.now() } returns instantNow
+
+    wantGetRateResponse = GetRateResponse("my-id", "1.02", Instant.now())
+    validateRequest(
+      GetRateRequest.Type.FIRM,
+      """{"rate": {"price": "1.02", "id": "my-id", "expires_at": "2022-04-30T02:15:44.000Z"} }""",
+      wantGetRateResponse
+    )
+    verify(exactly = 1) { Instant.now() }
   }
 }
