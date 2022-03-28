@@ -2,12 +2,16 @@ package org.stellar.anchor.platform;
 
 import static org.springframework.boot.Banner.Mode.OFF;
 
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+import java.time.Instant;
 import java.util.Map;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -15,6 +19,7 @@ import org.stellar.anchor.platform.configurator.DataAccessConfigurator;
 import org.stellar.anchor.platform.configurator.PlatformAppConfigurator;
 import org.stellar.anchor.platform.configurator.PropertiesReader;
 import org.stellar.anchor.platform.configurator.SpringFrameworkConfigurator;
+import org.stellar.anchor.util.InstantConverter;
 
 @SpringBootApplication
 @EnableJpaRepositories(basePackages = {"org.stellar.anchor.server.data"})
@@ -49,6 +54,11 @@ public class AnchorPlatformServer implements WebMvcConfigurer {
     app.addInitializers(new SpringFrameworkConfigurator());
 
     app.run();
+  }
+
+  @Bean
+  public Gson gson() {
+    return new GsonBuilder().registerTypeAdapter(Instant.class, new InstantConverter()).create();
   }
 
   public static void start(int port, String contextPath) {

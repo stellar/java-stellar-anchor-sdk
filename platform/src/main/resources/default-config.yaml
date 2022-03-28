@@ -85,6 +85,7 @@ data-spring-jdbc-settings:
   spring.datasource.driver-class-name: org.sqlite.JDBC
   spring.datasource.username: admin
   spring.datasource.password: admin
+  spring.mvc.converters.preferred-json-mapper: gson
 
 #
 # Spring framework configurations
