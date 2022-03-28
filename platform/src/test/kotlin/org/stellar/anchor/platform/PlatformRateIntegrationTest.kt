@@ -1,6 +1,5 @@
 package org.stellar.anchor.platform
 
-import com.google.gson.Gson
 import io.mockk.*
 import java.io.IOException
 import java.time.Instant
@@ -20,19 +19,25 @@ import org.stellar.anchor.exception.NotFoundException
 import org.stellar.anchor.exception.ServerErrorException
 import org.stellar.anchor.integration.rate.GetRateRequest
 import org.stellar.anchor.integration.rate.GetRateResponse
+import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.OkHttpUtil
 
 class PlatformRateIntegrationTest {
   private lateinit var server: MockWebServer
   private lateinit var rateIntegration: PlatformRateIntegration
-  private val gson = Gson()
+  private val gson = GsonUtils.getGsonInstance()
 
   @BeforeEach
   @Throws(IOException::class)
   fun setUp() {
     server = MockWebServer()
     server.start()
-    rateIntegration = PlatformRateIntegration(server.url("").toString(), OkHttpUtil.buildClient())
+    rateIntegration =
+      PlatformRateIntegration(
+        server.url("").toString(),
+        OkHttpUtil.buildClient(),
+        GsonUtils.getGsonInstance()
+      )
   }
 
   @AfterEach

@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform;
 
+import com.google.gson.Gson;
 import java.util.concurrent.TimeUnit;
 import okhttp3.OkHttpClient;
 import org.springframework.context.annotation.Bean;
@@ -22,13 +23,14 @@ public class IntegrationConfig {
   }
 
   @Bean
-  CustomerIntegration customerIntegration(Sep12Config sep12Config, OkHttpClient httpClient) {
+  CustomerIntegration customerIntegration(
+      Sep12Config sep12Config, OkHttpClient httpClient, Gson gson) {
     return new PlatformCustomerIntegration(
-        sep12Config.getCustomerIntegrationEndPoint(), httpClient);
+        sep12Config.getCustomerIntegrationEndPoint(), httpClient, gson);
   }
 
   @Bean
-  RateIntegration rateIntegration(Sep38Config sep38Config, OkHttpClient httpClient) {
-    return new PlatformRateIntegration(sep38Config.getQuoteIntegrationEndPoint(), httpClient);
+  RateIntegration rateIntegration(Sep38Config sep38Config, OkHttpClient httpClient, Gson gson) {
+    return new PlatformRateIntegration(sep38Config.getQuoteIntegrationEndPoint(), httpClient, gson);
   }
 }

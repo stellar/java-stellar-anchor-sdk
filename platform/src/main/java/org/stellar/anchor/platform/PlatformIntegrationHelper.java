@@ -1,22 +1,16 @@
 package org.stellar.anchor.platform;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import java.io.IOException;
-import java.time.Instant;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.springframework.http.HttpStatus;
 import org.stellar.anchor.exception.*;
-import org.stellar.anchor.util.InstantConverter;
 import org.stellar.platform.apis.shared.ErrorResponse;
 
 public class PlatformIntegrationHelper {
-  static final Gson gson =
-      new GsonBuilder().registerTypeAdapter(Instant.class, new InstantConverter()).create();
-
   public static Response call(OkHttpClient httpClient, Request request)
       throws ServiceUnavailableException {
     try {
@@ -38,7 +32,7 @@ public class PlatformIntegrationHelper {
     }
   }
 
-  public static AnchorException httpError(String responseContent, int responseCode) {
+  public static AnchorException httpError(String responseContent, int responseCode, Gson gson) {
     ErrorResponse errorResponse;
     try {
       errorResponse = gson.fromJson(responseContent, ErrorResponse.class);
