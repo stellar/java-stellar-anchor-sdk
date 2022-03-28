@@ -1,7 +1,6 @@
 package org.stellar.anchor.util;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import java.beans.BeanInfo;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
@@ -12,7 +11,7 @@ import org.slf4j.LoggerFactory;
 
 /** Logging utility functions. */
 public class Log {
-  static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
+  static final Gson gson = GsonUtils.builder().setPrettyPrinting().create();
 
   /**
    * Send msg as INFO log.

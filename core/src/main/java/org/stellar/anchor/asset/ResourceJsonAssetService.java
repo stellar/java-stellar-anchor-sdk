@@ -7,10 +7,11 @@ import java.util.List;
 import lombok.Data;
 import org.stellar.anchor.exception.SepNotFoundException;
 import org.stellar.anchor.util.FileUtil;
+import org.stellar.anchor.util.GsonUtils;
 import org.stellar.anchor.util.Log;
 
 public class ResourceJsonAssetService implements AssetService {
-  final Gson gson = new Gson();
+  final Gson gson = GsonUtils.getGsonInstance();
   Assets assets;
 
   public ResourceJsonAssetService(String assetPath) throws IOException, SepNotFoundException {
