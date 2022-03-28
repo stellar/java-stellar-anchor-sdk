@@ -1,7 +1,6 @@
 package org.stellar.anchor.paymentservice.circle
 
 import com.google.gson.Gson
-import com.google.gson.GsonBuilder
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
@@ -12,7 +11,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.stellar.anchor.exception.HttpException
-import org.stellar.anchor.paymentservice.circle.model.CircleTransfer
+import org.stellar.anchor.util.GsonUtils
 import reactor.core.publisher.Mono
 import reactor.netty.ByteBufMono
 import reactor.netty.http.client.HttpClientResponse
@@ -25,10 +24,7 @@ class CircleResponseErrorHandlerTest {
   @BeforeEach
   @Throws(IOException::class)
   fun setUp() {
-    gson =
-      GsonBuilder()
-        .registerTypeAdapter(CircleTransfer::class.java, CircleTransfer.Serialization())
-        .create()
+    gson = GsonUtils.getGsonInstance()
   }
 
   @Test

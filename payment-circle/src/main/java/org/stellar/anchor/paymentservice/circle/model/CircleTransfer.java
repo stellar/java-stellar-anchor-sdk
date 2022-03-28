@@ -7,7 +7,7 @@ import java.util.Map;
 import lombok.Data;
 import org.stellar.anchor.paymentservice.Account;
 import org.stellar.anchor.paymentservice.Payment;
-import org.stellar.anchor.util.InstantConverter;
+import org.stellar.anchor.util.GsonUtils;
 import shadow.com.google.common.reflect.TypeToken;
 
 @Data
@@ -41,8 +41,7 @@ public class CircleTransfer {
 
   public static class Serialization
       implements JsonDeserializer<CircleTransfer>, JsonSerializer<CircleTransfer> {
-    private static final Gson gson =
-        new GsonBuilder().registerTypeAdapter(Instant.class, new InstantConverter()).create();
+    private static final Gson gson = GsonUtils.getGsonInstance();
 
     @Override
     public CircleTransfer deserialize(

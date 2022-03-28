@@ -9,7 +9,7 @@ import lombok.Data;
 import org.stellar.anchor.paymentservice.Account;
 import org.stellar.anchor.paymentservice.Payment;
 import org.stellar.anchor.paymentservice.PaymentNetwork;
-import org.stellar.anchor.util.InstantConverter;
+import org.stellar.anchor.util.GsonUtils;
 import shadow.com.google.common.reflect.TypeToken;
 
 @Data
@@ -63,8 +63,7 @@ public class CirclePayment {
   }
 
   public static class Deserializer implements JsonDeserializer<CirclePayment> {
-    private static final Gson gson =
-        new GsonBuilder().registerTypeAdapter(Instant.class, new InstantConverter()).create();
+    private static final Gson gson = GsonUtils.getGsonInstance();
 
     @Override
     public CirclePayment deserialize(
