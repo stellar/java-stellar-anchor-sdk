@@ -36,9 +36,9 @@ import org.stellar.anchor.paymentservice.circle.model.response.CircleDetailRespo
 import org.stellar.anchor.paymentservice.circle.model.response.CircleListResponse
 import org.stellar.anchor.paymentservice.circle.util.CircleAsset
 import org.stellar.anchor.util.FileUtil
+import org.stellar.anchor.util.GsonUtils
 import org.stellar.sdk.Network
 import org.stellar.sdk.Server
-import org.stellar.sdk.responses.GsonSingleton
 import org.stellar.sdk.responses.Page
 import org.stellar.sdk.responses.operations.OperationResponse
 import reactor.core.publisher.Mono
@@ -1026,7 +1026,7 @@ class CirclePaymentServiceTest {
   fun test_horizon() {
     val type = (object : TypeToken<Page<OperationResponse>>() {}).type
     val mockStellarPaymentResponsePage: Page<OperationResponse> =
-      GsonSingleton.getInstance().fromJson(mockStellarPaymentResponsePageBody, type)
+      GsonUtils.getGsonInstance().fromJson(mockStellarPaymentResponsePageBody, type)
     val mockHorizonServer = mockk<Server>()
     every { mockHorizonServer.payments().forTransaction(any()).execute() } returns
       mockStellarPaymentResponsePage
