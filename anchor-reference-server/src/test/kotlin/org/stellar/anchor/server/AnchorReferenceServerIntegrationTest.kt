@@ -19,6 +19,7 @@ import org.springframework.test.context.TestPropertySource
 import org.stellar.anchor.reference.AnchorReferenceServer
 import org.stellar.anchor.reference.model.Quote
 import org.stellar.anchor.reference.repo.QuoteRepo
+import org.stellar.anchor.util.GsonUtils
 import org.stellar.platform.apis.callbacks.requests.GetCustomerRequest
 import org.stellar.platform.apis.callbacks.responses.GetCustomerResponse
 
@@ -29,7 +30,7 @@ import org.stellar.platform.apis.callbacks.responses.GetCustomerResponse
 @TestPropertySource(locations = ["classpath:/anchor-reference-server.yaml"])
 class AnchorReferenceServerIntegrationTest {
   companion object {
-    val gson = Gson()
+    val gson: Gson = GsonUtils.builder().setPrettyPrinting().create()
   }
 
   @Autowired lateinit var restTemplate: TestRestTemplate
