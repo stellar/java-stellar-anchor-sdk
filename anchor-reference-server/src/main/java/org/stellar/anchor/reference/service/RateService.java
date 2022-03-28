@@ -1,7 +1,9 @@
 package org.stellar.anchor.reference.service;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Map;
 import java.util.Objects;
 import kotlin.Pair;
@@ -65,16 +67,17 @@ public class RateService {
     Quote quote = Quote.of(request, price);
 
     // "calculate" expiresAt
-    LocalDateTime expiresAfter = request.getExpiresAfter();
+    Instant expiresAfter = request.getExpiresAfter();
     if (expiresAfter == null) {
-      expiresAfter = LocalDateTime.now();
+      expiresAfter = Instant.now();
     }
-    LocalDateTime expiresAt = expiresAfter.withHour(12);
+    ZonedDateTime expiresAt = ZonedDateTime.ofInstant(expiresAfter, ZoneId.of("UTC"));
+    expiresAt = expiresAt.withHour(12);
     expiresAt = expiresAt.withMinute(0);
     expiresAt = expiresAt.withSecond(0);
     expiresAt = expiresAt.withNano(0);
     expiresAt = expiresAt.plusDays(1);
-    quote.setExpiresAt(expiresAt);
+    quote.setExpiresAt(expiresAt.toInstant());
 
     quoteRepo.save(quote);
     return quote;
