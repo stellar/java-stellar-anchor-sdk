@@ -71,12 +71,13 @@ public class RateService {
     if (expiresAfter == null) {
       expiresAfter = Instant.now();
     }
-    ZonedDateTime expiresAt = ZonedDateTime.ofInstant(expiresAfter, ZoneId.of("UTC"));
-    expiresAt = expiresAt.withHour(12);
-    expiresAt = expiresAt.withMinute(0);
-    expiresAt = expiresAt.withSecond(0);
-    expiresAt = expiresAt.withNano(0);
-    expiresAt = expiresAt.plusDays(1);
+    ZonedDateTime expiresAt =
+        ZonedDateTime.ofInstant(expiresAfter, ZoneId.of("UTC"))
+            .plusDays(1)
+            .withHour(12)
+            .withMinute(0)
+            .withSecond(0)
+            .withNano(0);
     quote.setExpiresAt(expiresAt.toInstant());
 
     quoteRepo.save(quote);
