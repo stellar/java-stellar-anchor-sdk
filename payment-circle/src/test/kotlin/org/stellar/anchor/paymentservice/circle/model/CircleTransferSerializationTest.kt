@@ -3,11 +3,12 @@ package org.stellar.anchor.paymentservice.circle.model
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import java.io.IOException
+import java.time.Instant
+import java.time.format.DateTimeFormatter
 import kotlin.test.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
-import org.stellar.anchor.paymentservice.circle.util.CircleDateFormatter
 
 class CircleTransferSerializationTest {
   private lateinit var gson: Gson
@@ -35,6 +36,10 @@ class CircleTransferSerializationTest {
       }"""
   }
 
+  private fun instantFromString(dateStr: String): Instant {
+    return DateTimeFormatter.ISO_INSTANT.parse(dateStr, Instant::from)
+  }
+
   @BeforeEach
   @Throws(IOException::class)
   fun setUp() {
@@ -58,7 +63,7 @@ class CircleTransferSerializationTest {
     wantTransfer.transactionHash =
       "5239ee055b1083231c6bdaaa921d3e4b3bc090577fbd909815bd5d7fe68091ef"
     wantTransfer.status = CirclePaymentStatus.COMPLETE
-    wantTransfer.createDate = CircleDateFormatter.stringToDate("2022-01-01T01:01:01.544Z")
+    wantTransfer.createDate = instantFromString("2022-01-01T01:01:01.544Z")
     wantTransfer.originalResponse =
       hashMapOf<String, Any>(
         "id" to "a8997020-3da7-4543-bc4a-5ae8c7ce346d",
@@ -96,7 +101,7 @@ class CircleTransferSerializationTest {
     transfer.amount = CircleBalance("USD", "1.00")
     transfer.transactionHash = "5239ee055b1083231c6bdaaa921d3e4b3bc090577fbd909815bd5d7fe68091ef"
     transfer.status = CirclePaymentStatus.COMPLETE
-    transfer.createDate = CircleDateFormatter.stringToDate("2022-01-01T01:01:01.544Z")
+    transfer.createDate = instantFromString("2022-01-01T01:01:01.544Z")
     transfer.originalResponse =
       hashMapOf<String, Any>(
         "id" to "a8997020-3da7-4543-bc4a-5ae8c7ce346d",

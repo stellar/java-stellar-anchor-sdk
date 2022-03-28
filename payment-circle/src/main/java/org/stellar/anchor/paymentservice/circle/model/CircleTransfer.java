@@ -2,12 +2,12 @@ package org.stellar.anchor.paymentservice.circle.model;
 
 import com.google.gson.*;
 import java.lang.reflect.Type;
-import java.util.Date;
+import java.time.Instant;
 import java.util.Map;
 import lombok.Data;
 import org.stellar.anchor.paymentservice.Account;
 import org.stellar.anchor.paymentservice.Payment;
-import org.stellar.anchor.paymentservice.circle.util.CircleDateFormatter;
+import org.stellar.anchor.util.InstantConverter;
 import shadow.com.google.common.reflect.TypeToken;
 
 @Data
@@ -19,7 +19,7 @@ public class CircleTransfer {
   String transactionHash;
   CirclePaymentStatus status;
   String errorCode;
-  Date createDate;
+  Instant createDate;
   Map<String, ?> originalResponse;
 
   public Payment toPayment(String distributionAccountId) {
@@ -41,18 +41,18 @@ public class CircleTransfer {
 
   public static class Serialization
       implements JsonDeserializer<CircleTransfer>, JsonSerializer<CircleTransfer> {
+    private static final Gson gson =
+        new GsonBuilder().registerTypeAdapter(Instant.class, new InstantConverter()).create();
+
     @Override
     public CircleTransfer deserialize(
         JsonElement json, Type typeOfT, JsonDeserializationContext context)
         throws JsonParseException {
       JsonObject jsonObject = json.getAsJsonObject();
-      Gson gson = new Gson();
       CircleTransfer transfer = gson.fromJson(jsonObject, CircleTransfer.class);
 
       Type type = new TypeToken<Map<String, ?>>() {}.getType();
       Map<String, Object> originalResponse = gson.fromJson(jsonObject, type);
-      String createdDateStr = CircleDateFormatter.dateToString(transfer.getCreateDate());
-      originalResponse.put("createDate", createdDateStr);
       transfer.setOriginalResponse(originalResponse);
 
       return transfer;
@@ -61,7 +61,6 @@ public class CircleTransfer {
     @Override
     public JsonElement serialize(
         CircleTransfer src, Type typeOfSrc, JsonSerializationContext context) {
-      Gson gson = new Gson();
       return gson.toJsonTree(src.originalResponse).getAsJsonObject();
     }
   }
