@@ -11,7 +11,7 @@ import org.stellar.anchor.util.GsonUtils;
 import org.stellar.anchor.util.Log;
 
 public class ResourceJsonAssetService implements AssetService {
-  private static final Gson gson = GsonUtils.getGsonInstance();
+  private static final Gson gson = GsonUtils.getInstance();
   Assets assets;
 
   public ResourceJsonAssetService(String assetPath) throws IOException, SepNotFoundException {

@@ -24,7 +24,7 @@ class CircleResponseErrorHandlerTest {
   @BeforeEach
   @Throws(IOException::class)
   fun setUp() {
-    gson = GsonUtils.getGsonInstance()
+    gson = GsonUtils.getInstance()
   }
 
   @Test

@@ -1026,7 +1026,7 @@ class CirclePaymentServiceTest {
   fun test_horizon() {
     val type = (object : TypeToken<Page<OperationResponse>>() {}).type
     val mockStellarPaymentResponsePage: Page<OperationResponse> =
-      GsonUtils.getGsonInstance().fromJson(mockStellarPaymentResponsePageBody, type)
+      GsonUtils.getInstance().fromJson(mockStellarPaymentResponsePageBody, type)
     val mockHorizonServer = mockk<Server>()
     every { mockHorizonServer.payments().forTransaction(any()).execute() } returns
       mockStellarPaymentResponsePage

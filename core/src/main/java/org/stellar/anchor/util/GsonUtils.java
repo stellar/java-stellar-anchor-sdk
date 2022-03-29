@@ -11,7 +11,7 @@ public class GsonUtils {
     return new GsonBuilder().registerTypeAdapter(Instant.class, new InstantConverter());
   }
 
-  public static Gson getGsonInstance() {
+  public static Gson getInstance() {
     if (instance == null) instance = builder().create();
     return instance;
   }

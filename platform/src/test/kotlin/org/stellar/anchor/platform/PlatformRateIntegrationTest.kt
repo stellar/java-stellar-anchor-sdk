@@ -25,7 +25,7 @@ import org.stellar.anchor.util.OkHttpUtil
 class PlatformRateIntegrationTest {
   private lateinit var server: MockWebServer
   private lateinit var rateIntegration: PlatformRateIntegration
-  private val gson = GsonUtils.getGsonInstance()
+  private val gson = GsonUtils.getInstance()
 
   @BeforeEach
   @Throws(IOException::class)
@@ -36,7 +36,7 @@ class PlatformRateIntegrationTest {
       PlatformRateIntegration(
         server.url("").toString(),
         OkHttpUtil.buildClient(),
-        GsonUtils.getGsonInstance()
+        GsonUtils.getInstance()
       )
   }
 

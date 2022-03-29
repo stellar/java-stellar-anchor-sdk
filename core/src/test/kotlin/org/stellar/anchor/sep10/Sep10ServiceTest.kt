@@ -43,7 +43,7 @@ internal class TestSigner(
   @SerializedName("sponsor") val sponsor: String
 ) {
   fun toSigner(): AccountResponse.Signer {
-    val gson = GsonUtils.getGsonInstance()
+    val gson = GsonUtils.getInstance()
     val json = gson.toJson(this)
     return gson.fromJson(json, AccountResponse.Signer::class.java)
   }

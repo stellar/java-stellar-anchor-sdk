@@ -72,7 +72,7 @@ public class TransactionResponse {
   @SerializedName("muxed_account")
   String muxedAccount;
 
-  static final Gson gson = GsonUtils.getGsonInstance();
+  static final Gson gson = GsonUtils.getInstance();
 
   static String constructMoreInfoUrl(
       JwtService jwtService, Sep24Config sep24Config, Sep24Transaction txn)

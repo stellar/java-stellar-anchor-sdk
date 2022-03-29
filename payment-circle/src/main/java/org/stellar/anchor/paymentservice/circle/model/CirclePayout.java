@@ -52,7 +52,7 @@ public class CirclePayout {
   }
 
   public static class Deserializer implements JsonDeserializer<CirclePayout> {
-    private static final Gson gson = GsonUtils.getGsonInstance();
+    private static final Gson gson = GsonUtils.getInstance();
 
     @Override
     public CirclePayout deserialize(

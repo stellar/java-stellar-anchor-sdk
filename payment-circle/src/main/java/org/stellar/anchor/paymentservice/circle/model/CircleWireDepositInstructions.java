@@ -16,7 +16,7 @@ public class CircleWireDepositInstructions {
   Beneficiary beneficiary;
   BeneficiaryBank beneficiaryBank;
 
-  private static final Gson gson = GsonUtils.getGsonInstance();
+  private static final Gson gson = GsonUtils.getInstance();
 
   @Data
   public static class Beneficiary {

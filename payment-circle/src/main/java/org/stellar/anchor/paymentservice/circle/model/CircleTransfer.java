@@ -41,7 +41,7 @@ public class CircleTransfer {
 
   public static class Serialization
       implements JsonDeserializer<CircleTransfer>, JsonSerializer<CircleTransfer> {
-    private static final Gson gson = GsonUtils.getGsonInstance();
+    private static final Gson gson = GsonUtils.getInstance();
 
     @Override
     public CircleTransfer deserialize(
