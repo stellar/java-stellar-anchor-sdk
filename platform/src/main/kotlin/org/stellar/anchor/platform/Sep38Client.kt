@@ -1,5 +1,7 @@
 package org.stellar.anchor.platform
 
+import java.time.Instant
+import java.time.format.DateTimeFormatter
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
@@ -67,20 +69,26 @@ class Sep38Client(private val endpoint: String, private val jwt: String) : SepCl
     return gson.fromJson(responseBody, GetPriceResponse::class.java)
   }
 
-  fun postQuote(sellAsset: String, sellAmount: String, buyAsset: String): Sep38QuoteResponse {
+  fun postQuote(
+    sellAsset: String,
+    sellAmount: String,
+    buyAsset: String,
+    expireAfter: Instant? = null
+  ): Sep38QuoteResponse {
     // build URL
     val urlBuilder = this.endpoint.toHttpUrl().newBuilder().addPathSegment("quote")
     println(urlBuilder.build().toString())
 
     // build request body
-    val requestBody =
-      """{
-      "sell_asset": "$sellAsset",
-      "sell_amount": "$sellAmount",
-      "buy_asset": "$buyAsset"
-    }"""
-        .trimIndent()
-        .toRequestBody(TYPE_JSON)
+    val requestMap =
+      hashMapOf(
+        "sell_asset" to sellAsset,
+        "sell_amount" to sellAmount,
+        "buy_asset" to buyAsset,
+      )
+    if (expireAfter != null)
+      requestMap["expire_after"] = DateTimeFormatter.ISO_INSTANT.format(expireAfter)
+    val requestBody = gson.toJson(requestMap).toRequestBody(TYPE_JSON)
 
     val request =
       Request.Builder()

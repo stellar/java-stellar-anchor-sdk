@@ -1,7 +1,7 @@
 package org.stellar.platform.apis.api.requests;
 
 import com.google.gson.annotations.SerializedName;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import lombok.Data;
 
 @Data
@@ -12,6 +12,6 @@ public class GetQuotesRequest {
   String orderBy;
 
   String cursor;
-  LocalDateTime after;
-  LocalDateTime before;
+  Instant after;
+  Instant before;
 }

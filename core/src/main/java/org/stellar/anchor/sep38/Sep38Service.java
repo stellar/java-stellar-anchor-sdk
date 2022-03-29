@@ -3,7 +3,7 @@ package org.stellar.anchor.sep38;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -304,7 +304,7 @@ public class Sep38Service {
     // expireAfter
     if (!Objects.toString(request.getExpireAfter(), "").isEmpty()) {
       try {
-        LocalDateTime.parse(request.getExpireAfter());
+        Instant.parse(request.getExpireAfter());
       } catch (Exception ex) {
         throw new BadRequestException("expire_after is invalid");
       }
@@ -361,7 +361,7 @@ public class Sep38Service {
             .buyAsset(request.getBuyAssetName())
             .buyAmount(buyAmount)
             .buyDeliveryMethod(request.getBuyDeliveryMethod())
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .creatorAccountId(account)
             .creatorMemo(memo)
             .creatorMemoType(memoType)

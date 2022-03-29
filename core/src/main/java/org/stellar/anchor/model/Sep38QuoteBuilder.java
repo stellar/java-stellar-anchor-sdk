@@ -1,9 +1,8 @@
 package org.stellar.anchor.model;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
 
-@SuppressWarnings("unused")
 public class Sep38QuoteBuilder {
   final Sep38Quote quote;
 
@@ -16,7 +15,7 @@ public class Sep38QuoteBuilder {
     return this;
   }
 
-  public Sep38QuoteBuilder expiresAt(LocalDateTime expiresAt) {
+  public Sep38QuoteBuilder expiresAt(Instant expiresAt) {
     quote.setExpiresAt(expiresAt);
     return this;
   }
@@ -56,7 +55,7 @@ public class Sep38QuoteBuilder {
     return this;
   }
 
-  public Sep38QuoteBuilder createdAt(LocalDateTime createdAt) {
+  public Sep38QuoteBuilder createdAt(Instant createdAt) {
     quote.setCreatedAt(createdAt);
     return this;
   }

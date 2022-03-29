@@ -1,7 +1,7 @@
 package org.stellar.platform.apis.shared;
 
 import com.google.gson.annotations.SerializedName;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import lombok.Data;
 
 @Data
@@ -10,8 +10,8 @@ public class Refund {
   Amount amount;
 
   @SerializedName("requested_at")
-  LocalDateTime requestedAt;
+  Instant requestedAt;
 
   @SerializedName("refunded_at")
-  LocalDateTime refundedAt;
+  Instant refundedAt;
 }

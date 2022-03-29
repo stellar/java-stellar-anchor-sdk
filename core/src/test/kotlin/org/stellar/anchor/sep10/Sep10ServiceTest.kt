@@ -1,6 +1,5 @@
 package org.stellar.anchor.sep10
 
-import com.google.gson.Gson
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import java.io.IOException
@@ -29,6 +28,7 @@ import org.stellar.anchor.dto.sep10.ValidationRequest
 import org.stellar.anchor.exception.SepException
 import org.stellar.anchor.exception.SepValidationException
 import org.stellar.anchor.horizon.Horizon
+import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.NetUtil
 import org.stellar.sdk.*
 import org.stellar.sdk.requests.ErrorResponse
@@ -43,7 +43,7 @@ internal class TestSigner(
   @SerializedName("sponsor") val sponsor: String
 ) {
   fun toSigner(): AccountResponse.Signer {
-    val gson = Gson()
+    val gson = GsonUtils.getInstance()
     val json = gson.toJson(this)
     return gson.fromJson(json, AccountResponse.Signer::class.java)
   }

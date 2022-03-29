@@ -7,10 +7,11 @@ import okhttp3.Response
 import org.springframework.http.HttpStatus
 import org.stellar.anchor.exception.SepException
 import org.stellar.anchor.exception.SepNotAuthorizedException
+import org.stellar.anchor.util.GsonUtils
 
 open class SepClient {
   companion object {
-    val gson = Gson()
+    val gson: Gson = GsonUtils.getInstance()
     val client =
       OkHttpClient.Builder()
         .connectTimeout(10, TimeUnit.MINUTES)

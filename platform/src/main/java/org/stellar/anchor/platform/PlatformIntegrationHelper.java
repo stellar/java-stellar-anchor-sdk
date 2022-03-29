@@ -11,8 +11,6 @@ import org.stellar.anchor.exception.*;
 import org.stellar.platform.apis.shared.ErrorResponse;
 
 public class PlatformIntegrationHelper {
-  private static final Gson gson = new Gson();
-
   public static Response call(OkHttpClient httpClient, Request request)
       throws ServiceUnavailableException {
     try {
@@ -34,7 +32,7 @@ public class PlatformIntegrationHelper {
     }
   }
 
-  public static AnchorException httpError(String responseContent, int responseCode) {
+  public static AnchorException httpError(String responseContent, int responseCode, Gson gson) {
     ErrorResponse errorResponse;
     try {
       errorResponse = gson.fromJson(responseContent, ErrorResponse.class);

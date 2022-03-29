@@ -1,15 +1,15 @@
 package org.stellar.anchor.model;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 public interface Sep38Quote {
   String getId();
 
   void setId(String id);
 
-  LocalDateTime getExpiresAt();
+  Instant getExpiresAt();
 
-  void setExpiresAt(LocalDateTime expiresAt);
+  void setExpiresAt(Instant expiresAt);
 
   String getPrice();
 
@@ -39,9 +39,9 @@ public interface Sep38Quote {
 
   void setBuyDeliveryMethod(String buyDeliveryMethod);
 
-  LocalDateTime getCreatedAt();
+  Instant getCreatedAt();
 
-  void setCreatedAt(LocalDateTime createdAt);
+  void setCreatedAt(Instant createdAt);
 
   String getCreatorAccountId();
 

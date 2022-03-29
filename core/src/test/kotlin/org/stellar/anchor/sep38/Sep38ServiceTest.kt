@@ -1,7 +1,8 @@
 package org.stellar.anchor.sep38
 
 import io.mockk.*
-import java.time.LocalDateTime
+import java.time.Instant
+import java.time.temporal.ChronoUnit
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
@@ -797,7 +798,7 @@ class Sep38ServiceTest {
         .buyAsset(stellarUSDC)
         .account(PUBLIC_KEY)
         .build()
-    val tomorrow = LocalDateTime.now().plusDays(1)
+    val tomorrow = Instant.now().plus(1, ChronoUnit.DAYS)
     every { mockRateIntegration.getRate(getRateReq) } returns
       GetRateResponse("123", "1.02", tomorrow)
     sep38Service =
@@ -863,7 +864,7 @@ class Sep38ServiceTest {
         .buyAmount("100")
         .account(PUBLIC_KEY)
         .build()
-    val tomorrow = LocalDateTime.now().plusDays(1)
+    val tomorrow = Instant.now().plus(1, ChronoUnit.DAYS)
     every { mockRateIntegration.getRate(getRateReq) } returns
       GetRateResponse("456", "1.02", tomorrow)
     sep38Service =
@@ -919,8 +920,8 @@ class Sep38ServiceTest {
 
   @Test
   fun test_postQuote_allParametersWithSellAmount() {
-    val now = LocalDateTime.now()
-    val tomorrow = now.plusDays(1)
+    val now = Instant.now()
+    val tomorrow = now.plus(1, ChronoUnit.DAYS)
 
     // mock rate integration
     val mockRateIntegration = mockk<MockRateIntegration>()
@@ -994,8 +995,8 @@ class Sep38ServiceTest {
 
   @Test
   fun test_postQuote_allParametersWithBuyAmount() {
-    val now = LocalDateTime.now()
-    val tomorrow = now.plusDays(1)
+    val now = Instant.now()
+    val tomorrow = now.plus(1, ChronoUnit.DAYS)
 
     // mock rate integration
     val mockRateIntegration = mockk<MockRateIntegration>()
@@ -1096,8 +1097,8 @@ class Sep38ServiceTest {
     assertEquals("quote id cannot be empty", ex.message)
 
     // mock quote builder
-    val now = LocalDateTime.now()
-    val tomorrow = now.plusDays(1)
+    val now = Instant.now()
+    val tomorrow = now.plus(1, ChronoUnit.DAYS)
     val mockQuoteBuilder: () -> Sep38QuoteBuilder = {
       Sep38QuoteBuilder(quoteStore)
         .id("123")
@@ -1151,8 +1152,8 @@ class Sep38ServiceTest {
       Sep38Service(sep38Service.sep38Config, sep38Service.assetService, null, quoteStore)
 
     // mock quote store response
-    val now = LocalDateTime.now()
-    val tomorrow = now.plusDays(1)
+    val now = Instant.now()
+    val tomorrow = now.plus(1, ChronoUnit.DAYS)
     val mockQuote =
       Sep38QuoteBuilder(quoteStore)
         .id("123")

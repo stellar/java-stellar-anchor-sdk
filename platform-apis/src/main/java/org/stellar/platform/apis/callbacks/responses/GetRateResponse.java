@@ -1,7 +1,7 @@
 package org.stellar.platform.apis.callbacks.responses;
 
 import com.google.gson.annotations.SerializedName;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import lombok.Data;
 
 @Data
@@ -17,7 +17,7 @@ public class GetRateResponse {
     this.rate.price = price;
   }
 
-  public GetRateResponse(String id, String price, LocalDateTime expiresAt) {
+  public GetRateResponse(String id, String price, Instant expiresAt) {
     this.rate = new Rate();
     this.rate.id = id;
     this.rate.price = price;
@@ -31,6 +31,6 @@ public class GetRateResponse {
     String price;
 
     @SerializedName("expires_at")
-    LocalDateTime expiresAt;
+    Instant expiresAt;
   }
 }

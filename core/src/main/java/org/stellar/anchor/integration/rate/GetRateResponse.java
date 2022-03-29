@@ -1,7 +1,7 @@
 package org.stellar.anchor.integration.rate;
 
 import com.google.gson.annotations.SerializedName;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import lombok.Data;
 import reactor.util.annotation.NonNull;
 import reactor.util.annotation.Nullable;
@@ -15,8 +15,7 @@ public class GetRateResponse {
     this.rate.price = price;
   }
 
-  public GetRateResponse(
-      @NonNull String id, @NonNull String price, @NonNull LocalDateTime expiresAt) {
+  public GetRateResponse(@NonNull String id, @NonNull String price, @NonNull Instant expiresAt) {
     this.rate = new Rate();
     this.rate.id = id;
     this.rate.price = price;
@@ -31,6 +30,6 @@ public class GetRateResponse {
 
     @SerializedName("expires_at")
     @Nullable
-    LocalDateTime expiresAt;
+    Instant expiresAt;
   }
 }
