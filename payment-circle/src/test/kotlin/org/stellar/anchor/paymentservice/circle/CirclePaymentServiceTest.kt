@@ -2339,11 +2339,21 @@ class CirclePaymentServiceTest {
     )
     validateErrHandling(
       ErrorHandlingTestCase(
+        (service as CirclePaymentService).getIncomingPayments("1000066041", null, null, null),
+        hashMapOf(
+          "/v1/configuration" to validateSecretKeyResponse,
+          "/v1/payments?pageSize=50" to badRequestResponse
+        )
+      )
+    )
+    validateErrHandling(
+      ErrorHandlingTestCase(
         service.getAccountPaymentHistory("1000066041", null, null),
         hashMapOf(
           "/v1/configuration" to validateSecretKeyResponse,
           "/v1/transfers?pageSize=50&walletId=1000066041" to badRequestResponse,
-          "/v1/payouts?pageSize=50&source=1000066041" to badRequestResponse
+          "/v1/payouts?pageSize=50&source=1000066041" to badRequestResponse,
+          "/v1/payments?pageSize=50" to badRequestResponse
         )
       )
     )
