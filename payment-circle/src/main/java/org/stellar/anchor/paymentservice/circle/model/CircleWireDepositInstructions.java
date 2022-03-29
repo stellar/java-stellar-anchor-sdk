@@ -16,6 +16,8 @@ public class CircleWireDepositInstructions {
   Beneficiary beneficiary;
   BeneficiaryBank beneficiaryBank;
 
+  private static final Gson gson = GsonUtils.getGsonInstance();
+
   @Data
   public static class Beneficiary {
     String name;
@@ -37,7 +39,6 @@ public class CircleWireDepositInstructions {
 
   public DepositInstructions toDepositInstructions(String beneficiaryAccountId) {
     Type type = new TypeToken<Map<String, ?>>() {}.getType();
-    Gson gson = GsonUtils.getGsonInstance();
     Map<String, Object> originalResponse = gson.fromJson(gson.toJson(this), type);
     return new DepositInstructions(
         beneficiaryAccountId,

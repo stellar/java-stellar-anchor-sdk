@@ -315,7 +315,7 @@ class PlatformRateIntegrationTest {
   }
 
   @Test
-  fun test_getRate_response() {
+  fun test_getRate_jsonBody() {
     val validateRequest =
         { type: GetRateRequest.Type, responseBody: String, wantResponse: GetRateResponse ->
       // mock response
