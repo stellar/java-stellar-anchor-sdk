@@ -13,8 +13,7 @@ public class PropertyUtil {
     Target location = findTarget(instance, path, true);
     // Now we have reached the final target
     if (location.instance instanceof Map) {
-      Map<String, Object> map = (Map<String, Object>) location.instance;
-      map.put(location.field, value);
+      PropertyUtils.setMappedProperty(location.instance, location.field, value);
     } else {
       PropertyUtils.setNestedProperty(location.instance, location.field, value);
     }
@@ -28,8 +27,7 @@ public class PropertyUtil {
         return Optional.empty();
       }
       if (target.instance instanceof Map) {
-        Map<String, Object> map = (Map<String, Object>) target.instance;
-        return Optional.ofNullable(map.get(target.field));
+        return Optional.ofNullable(PropertyUtils.getMappedProperty(target.instance, target.field));
       } else {
         return Optional.ofNullable(PropertyUtils.getNestedProperty(target.instance, target.field));
       }
@@ -45,8 +43,7 @@ public class PropertyUtil {
     String name;
     for (name = st.nextToken(); st.hasMoreTokens(); name = st.nextToken()) {
       if (target instanceof Map) {
-        Map<String, Object> map = (Map<String, Object>) target;
-        target = map.get(name);
+        target = PropertyUtils.getMappedProperty(target, name);
       } else {
         Object nextTarget = PropertyUtils.getNestedProperty(target, name);
         // If the field does not exist, try to create an instance with the default constructor
