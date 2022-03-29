@@ -1,7 +1,7 @@
 package org.stellar.platform.apis.shared;
 
 import com.google.gson.annotations.SerializedName;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.List;
 import lombok.Data;
 
@@ -28,16 +28,16 @@ public class Transaction {
   String quoteId;
 
   @SerializedName("started_at")
-  LocalDateTime startedAt;
+  Instant startedAt;
 
   @SerializedName("updated_at")
-  LocalDateTime updatedAt;
+  Instant updatedAt;
 
   @SerializedName("completed_at")
-  LocalDateTime completedAt;
+  Instant completedAt;
 
   @SerializedName("transfer_received_at")
-  LocalDateTime transferReceivedAt;
+  Instant transferReceivedAt;
 
   String message;
   Refund refund;
@@ -64,7 +64,7 @@ class StellarTransaction {
   String memoType;
 
   @SerializedName("created_at")
-  LocalDateTime createdAt;
+  Instant createdAt;
 
   String envelope;
   Payment payment;

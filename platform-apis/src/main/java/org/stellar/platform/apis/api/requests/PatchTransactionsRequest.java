@@ -1,7 +1,7 @@
 package org.stellar.platform.apis.api.requests;
 
 import com.google.gson.annotations.SerializedName;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import lombok.Data;
 import org.stellar.platform.apis.shared.Amount;
 import org.stellar.platform.apis.shared.Refund;
@@ -21,7 +21,7 @@ public class PatchTransactionsRequest {
   Amount amountFee;
 
   @SerializedName("transfer_received_at")
-  LocalDateTime transferReceivedAt;
+  Instant transferReceivedAt;
 
   String message;
   Refund refund;
