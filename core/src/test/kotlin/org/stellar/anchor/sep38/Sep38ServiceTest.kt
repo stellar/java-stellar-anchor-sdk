@@ -1143,6 +1143,14 @@ class Sep38ServiceTest {
     assertEquals("quote not found", ex.message)
     verify(exactly = 3) { quoteStore.findByQuoteId(any()) }
     assertEquals("123", slotQuoteId.captured)
+
+    // quote ot found
+    every { quoteStore.findByQuoteId(capture(slotQuoteId)) } returns null
+    ex = assertThrows { sep38Service.getQuote(token, "444") }
+    assertInstanceOf(NotFoundException::class.java, ex)
+    assertEquals("quote not found", ex.message)
+    verify(exactly = 4) { quoteStore.findByQuoteId(any()) }
+    assertEquals("444", slotQuoteId.captured)
   }
 
   @Test
