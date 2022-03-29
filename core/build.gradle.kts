@@ -13,6 +13,7 @@ dependencies {
   compileOnly(libs.slf4j.api)
   api(libs.lombok)
 
+  implementation("commons-beanutils:commons-beanutils:1.9.4")
   implementation(libs.apache.commons.lang3)
   implementation(libs.log4j.core)
   implementation(libs.httpclient)

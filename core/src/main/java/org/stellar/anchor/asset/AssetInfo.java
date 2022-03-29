@@ -2,6 +2,7 @@ package org.stellar.anchor.asset;
 
 import com.google.gson.annotations.SerializedName;
 import java.util.List;
+import java.util.Map;
 import lombok.Data;
 
 @SuppressWarnings("unused")
@@ -14,9 +15,10 @@ public class AssetInfo {
   @SerializedName("significant_decimals")
   Integer significantDecimals;
 
-  AssetOperation deposit;
-  AssetOperation withdraw;
+  DepositOperation deposit;
+  WithdrawOperation withdraw;
   SendOperation send;
+  Sep31Operation sep31;
   Sep38Operation sep38;
 
   @SerializedName("sep24_enabled")
@@ -70,6 +72,10 @@ public class AssetInfo {
     Long feeMinimum;
   }
 
+  public static class DepositOperation extends AssetOperation {}
+
+  public static class WithdrawOperation extends AssetOperation {}
+
   @Data
   public static class SendOperation {
     @SerializedName("fee_fixed")
@@ -83,6 +89,46 @@ public class AssetInfo {
 
     @SerializedName("max_amount")
     Long maxAmount;
+  }
+
+  @Data
+  public static class Sep31Operation {
+    @SerializedName("quotes_supported")
+    boolean quotesSupported;
+
+    @SerializedName("quotes_required")
+    boolean quotesRequired;
+
+    Sep12Operation sep12;
+    Sep31TxnFields fields;
+  }
+
+  @Data
+  public static class Sep12Operation {
+    Sep12Types sender;
+    Sep12Types receiver;
+  }
+
+  @Data
+  public static class Sep12Types {
+    Map<String, Sep12Type> types;
+  }
+
+  @Data
+  public static class Sep12Type {
+    String description;
+  }
+
+  @Data
+  public static class Sep31TxnFields {
+    Map<String, Sep31TxnField> transaction;
+  }
+
+  @Data
+  public static class Sep31TxnField {
+    String description;
+    List<String> choices;
+    boolean optional;
   }
 
   @Data

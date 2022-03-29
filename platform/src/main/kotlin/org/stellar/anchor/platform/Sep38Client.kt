@@ -1,21 +1,14 @@
 package org.stellar.anchor.platform
 
-import com.google.gson.Gson
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
-import okhttp3.Response
-import org.springframework.http.HttpStatus
 import org.stellar.anchor.dto.sep38.GetPriceResponse
 import org.stellar.anchor.dto.sep38.GetPricesResponse
 import org.stellar.anchor.dto.sep38.InfoResponse
 import org.stellar.anchor.dto.sep38.Sep38QuoteResponse
-import org.stellar.anchor.exception.SepException
-import org.stellar.anchor.exception.SepNotAuthorizedException
 
-class Sep38Client(private val endpoint: String) : SepClient() {
-  private val gson = Gson()
-
+class Sep38Client(private val endpoint: String, private val jwt: String) : SepClient() {
   fun getInfo(): InfoResponse {
     println("$endpoint/info")
     val request =
@@ -92,8 +85,8 @@ class Sep38Client(private val endpoint: String) : SepClient() {
     val request =
       Request.Builder()
         .url(urlBuilder.build())
+        .header("Authorization", "Bearer $jwt")
         .header("Content-Type", "application/json")
-        .header("Authorization", "Bearer $jwtStr")
         .post(requestBody)
         .build()
     val response = client.newCall(request).execute()
@@ -111,25 +104,11 @@ class Sep38Client(private val endpoint: String) : SepClient() {
       Request.Builder()
         .url(urlBuilder.build())
         .header("Content-Type", "application/json")
-        .header("Authorization", "Bearer $jwtStr")
+        .header("Authorization", "Bearer $jwt")
         .get()
         .build()
     val response = client.newCall(request).execute()
     val responseBody = handleResponse(response)
     return gson.fromJson(responseBody, Sep38QuoteResponse::class.java)
-  }
-
-  private fun handleResponse(response: Response): String? {
-    val responseBody = response.body?.string()
-
-    println("statusCode: " + response.code)
-    println("responseBody: $responseBody")
-    if (response.code == HttpStatus.FORBIDDEN.value()) {
-      throw SepNotAuthorizedException("Forbidden")
-    } else if (!listOf(HttpStatus.OK.value(), HttpStatus.CREATED.value()).contains(response.code)) {
-      throw SepException(responseBody)
-    }
-
-    return responseBody
   }
 }
