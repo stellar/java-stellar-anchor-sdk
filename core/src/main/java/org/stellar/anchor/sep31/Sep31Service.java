@@ -8,7 +8,7 @@ import lombok.SneakyThrows;
 import org.stellar.anchor.asset.AssetInfo;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.Sep31Config;
-import org.stellar.anchor.dto.sep31.Sep31InfoResponse;
+import org.stellar.anchor.dto.sep31.*;
 import org.stellar.anchor.integration.customer.CustomerIntegration;
 import org.stellar.anchor.integration.rate.RateIntegration;
 
@@ -35,6 +35,18 @@ public class Sep31Service {
 
   public Sep31InfoResponse getInfo() {
     return infoResponse;
+  }
+
+  public Sep31PostTransactionResponse postTransaction(Sep31PostTransactionRequest request) {
+    return null;
+  }
+
+  public Sep31GetTransactionResponse getTransaction(String id) {
+    return null;
+  }
+
+  public void patchTransaction(Sep31PatchTransactionRequest request) {
+    return;
   }
 
   @SneakyThrows
