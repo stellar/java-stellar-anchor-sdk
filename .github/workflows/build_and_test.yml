@@ -77,16 +77,6 @@ jobs:
           PR: ${{ steps.findPr.outputs.pr }}
         run: echo "Your PR is ${PR}"
 
-      - name: Wait for preview endpoint to be up and running
-        uses: nev7n/wait_for_response@7fef3c1a6e8939d0b09062f14fec50d3c5d15fa1
-        env:
-          PR: ${{ steps.findPr.outputs.pr }}
-        with:
-          url: https://anchor-sep-pr${PR}.previews.kube001.services.stellar-ops.com/.well-known/stellar.toml
-          responseCode: 200
-          timeout: 30000
-          interval: 1000
-
       - name: Install Node
         uses: actions/setup-node@v2
         with:
