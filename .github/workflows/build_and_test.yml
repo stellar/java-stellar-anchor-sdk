@@ -57,7 +57,7 @@ jobs:
 
   sep_validation_suite:
     if: github.event.pull_request != null
-    needs: [build_and_push_anchor_platform]
+    needs: [build_and_test]
     runs-on: ubuntu-latest
     name: Run [stellar-anchor-tests](https://github.com/stellar/stellar-anchor-tests) for SEP-38
     steps:
@@ -73,16 +73,29 @@ jobs:
 
       # This will echo "Your PR is 7", or be skipped if there is no current PR.
       - name: Check if `findPr` worked
-        run: echo "Your PR is ${PR}"
         env:
           PR: ${{ steps.findPr.outputs.pr }}
+        run: echo "Your PR is ${PR}"
 
       - name: Wait for preview endpoint to be up and running
         uses: nev7n/wait_for_response@7fef3c1a6e8939d0b09062f14fec50d3c5d15fa1
         env:
           PR: ${{ steps.findPr.outputs.pr }}
         with:
-          url: 'https://anchor-sep-pr${PR}.previews.kube001.services.stellar-ops.com/.well-known/stellar.toml'
+          url: https://anchor-sep-pr${PR}.previews.kube001.services.stellar-ops.com/.well-known/stellar.toml
           responseCode: 200
-          timeout: 240000
+          timeout: 30000
           interval: 1000
+
+      - name: Install Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14
+
+      - name: Install [stellar-anchor-tests](https://github.com/stellar/stellar-anchor-tests)
+        run: yarn global add @stellar/anchor-tests
+
+      - name: Execute [stellar-anchor-tests](https://github.com/stellar/stellar-anchor-tests) in the preview instance.
+        env:
+          PR: ${{ steps.findPr.outputs.pr }}
+        run: yarn stellar-anchor-tests --home-domain https://anchor-sep-pr${PR}.previews.kube001.services.stellar-ops.com/.well-known/stellar.toml --seps 38
