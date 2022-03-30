@@ -86,6 +86,4 @@ jobs:
         run: yarn global add @stellar/anchor-tests
 
       - name: Execute [stellar-anchor-tests](https://github.com/stellar/stellar-anchor-tests) in the preview instance.
-        env:
-          PR: ${{ steps.findPr.outputs.pr }}
-        run: yarn stellar-anchor-tests --home-domain https://anchor-sep-pr${PR}.previews.kube001.services.stellar-ops.com/.well-known/stellar.toml --seps 38
+        run: yarn stellar-anchor-tests --home-domain https://anchor-sep-pr${{ steps.findPr.outputs.pr }}.previews.kube001.services.stellar-ops.com/.well-known/stellar.toml --seps 38
