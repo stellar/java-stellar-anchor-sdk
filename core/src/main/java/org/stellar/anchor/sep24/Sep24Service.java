@@ -5,7 +5,7 @@ import static org.stellar.anchor.model.Sep24Transaction.Kind.WITHDRAWAL;
 import static org.stellar.anchor.sep9.Sep9Fields.extractSep9Fields;
 import static org.stellar.anchor.util.Log.shorter;
 import static org.stellar.anchor.util.MemoHelper.makeMemo;
-import static org.stellar.anchor.util.SepUtil.memoTypeString;
+import static org.stellar.anchor.util.SepHelper.memoTypeString;
 import static org.stellar.sdk.xdr.MemoType.MEMO_ID;
 
 import java.io.IOException;

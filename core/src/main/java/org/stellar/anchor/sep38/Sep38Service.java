@@ -21,6 +21,8 @@ import org.stellar.anchor.model.Sep38QuoteBuilder;
 import org.stellar.anchor.sep10.JwtToken;
 import org.stellar.anchor.util.Log;
 
+import static org.stellar.anchor.util.SepHelper.validateAmount;
+
 public class Sep38Service {
   final Sep38Config sep38Config;
   final AssetService assetService;
@@ -110,23 +112,6 @@ public class Sep38Service {
     InfoResponse.Asset asset = assetMap.get(assetName);
     if (asset == null) {
       throw new NotFoundException(prefix + "asset not found");
-    }
-  }
-
-  public void validateAmount(String prefix, String amount) throws AnchorException {
-    // assetName
-    if (Objects.toString(amount, "").isEmpty()) {
-      throw new BadRequestException(prefix + "amount cannot be empty");
-    }
-
-    BigDecimal sAmount;
-    try {
-      sAmount = new BigDecimal(amount);
-    } catch (NumberFormatException e) {
-      throw new BadRequestException(prefix + "amount is invalid", e);
-    }
-    if (sAmount.signum() < 1) {
-      throw new BadRequestException(prefix + "amount should be positive");
     }
   }
 

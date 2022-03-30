@@ -1,18 +1,22 @@
 package org.stellar.anchor.reference.service;
 
-import java.math.BigDecimal;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.util.Map;
-import java.util.Objects;
 import kotlin.Pair;
 import org.springframework.stereotype.Service;
-import org.stellar.anchor.exception.*;
+import org.stellar.anchor.exception.AnchorException;
+import org.stellar.anchor.exception.BadRequestException;
+import org.stellar.anchor.exception.ServerErrorException;
+import org.stellar.anchor.exception.UnprocessableEntityException;
 import org.stellar.anchor.reference.model.Quote;
 import org.stellar.anchor.reference.repo.QuoteRepo;
 import org.stellar.platform.apis.callbacks.requests.GetRateRequest;
 import org.stellar.platform.apis.callbacks.responses.GetRateResponse;
+
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.Map;
+
+import static org.stellar.anchor.util.SepHelper.validateAmount;
 
 @Service
 public class RateService {
@@ -107,23 +111,6 @@ public class RateService {
 
     public static String getPrice(String sellAsset, String buyAsset) {
       return hardcodedPrices.get(new Pair<>(sellAsset, buyAsset));
-    }
-  }
-
-  private void validateAmount(String prefix, String amount) throws AnchorException {
-    // assetName
-    if (Objects.toString(amount, "").isEmpty()) {
-      throw new BadRequestException(prefix + "amount cannot be empty");
-    }
-
-    BigDecimal sAmount;
-    try {
-      sAmount = new BigDecimal(amount);
-    } catch (NumberFormatException e) {
-      throw new BadRequestException(prefix + "amount is invalid", e);
-    }
-    if (sAmount.signum() < 1) {
-      throw new BadRequestException(prefix + "amount should be positive");
     }
   }
 }
