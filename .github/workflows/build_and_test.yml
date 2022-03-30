@@ -83,7 +83,9 @@ jobs:
           node-version: 14
 
       - name: Install [stellar-anchor-tests](https://github.com/stellar/stellar-anchor-tests)
-        run: yarn global add @stellar/anchor-tests
+        run: |
+          yarn global add @stellar/anchor-tests
+          echo "$(yarn global bin)" >> $GITHUB_PATH
 
       - name: Execute [stellar-anchor-tests](https://github.com/stellar/stellar-anchor-tests) in the preview instance.
         run: yarn stellar-anchor-tests --home-domain https://anchor-sep-pr${{ steps.findPr.outputs.pr }}.previews.kube001.services.stellar-ops.com/.well-known/stellar.toml --seps 38
