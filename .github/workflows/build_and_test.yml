@@ -29,6 +29,7 @@ jobs:
         cat /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/platform/build/reports/tests/test/index.html
         echo *** Anchor reference server test report ***
         cat /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/anchor-reference-server/build/reports/tests/test/index.html
+
   build_and_push_anchor_platform:
     needs: [build_and_test]
     runs-on: ubuntu-latest
@@ -53,3 +54,35 @@ jobs:
         push: true
         tags: stellar/anchor-platform:${{ steps.get_tag.outputs.TAG }}
         file: Dockerfile
+
+  sep_validation_suite:
+    if: github.event.pull_request != null
+    needs: [build_and_push_anchor_platform]
+    runs-on: ubuntu-latest
+    name: Run [stellar-anchor-tests](https://github.com/stellar/stellar-anchor-tests) for SEP-38
+    steps:
+      - uses: actions/checkout@v1
+
+      # Find the PR associated with this push, if there is one.
+      - name: Find PR number
+        uses: jwalton/gh-find-current-pr@465461f2b0e83dd1a57b3a04e7c81050705f7391
+        id: findPr
+        with:
+          # Can be "open", "closed", or "all".  Defaults to "open".
+          state: open
+
+      # This will echo "Your PR is 7", or be skipped if there is no current PR.
+      - name: Check if `findPr` worked
+        run: echo "Your PR is ${PR}"
+        env:
+          PR: ${{ steps.findPr.outputs.pr }}
+
+      - name: Wait for preview endpoint to be up and running
+        uses: nev7n/wait_for_response@7fef3c1a6e8939d0b09062f14fec50d3c5d15fa1
+        env:
+          PR: ${{ steps.findPr.outputs.pr }}
+        with:
+          url: 'https://anchor-sep-pr${PR}.previews.kube001.services.stellar-ops.com/.well-known/stellar.toml'
+          responseCode: 200
+          timeout: 240000
+          interval: 1000
