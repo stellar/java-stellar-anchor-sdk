@@ -1,47 +1,53 @@
 stellar:
   anchor:
-    config: in-memory                             # Configure the application from this file after it is loaded in memory
+    # Configure the application from this file after it is loaded in memory
+    # If `config` is in-memory, the yaml file contains all settings for the server.
+    config: in-memory
     app-config:
       type: config-spring-property                # Activate [config-spring-property] module
-      settings: config-spring-property-settings   # The location of the configuration data in this file.
+      settings: app-config                        # The location of the configuration data
     data-access:
       type: data-spring-jdbc                      # Activate [config-spring-jdbc] module.
-      settings: data-spring-jdbc-settings         # The location of the configuration data in this file.
+      settings: data-spring-jdbc-sqlite           # The location of the configuration data in this file.
     logging:
       type: logging-logback
       settings: logging-logback-settings
-    payment-gateway:
-      services:
-        - payment-circle                  # Activate [payment-circle] module
-        - payment-stellar                # Activate [payment-stellar] module
 
 #
 # Application settings
 #
-config-spring-property-settings:
+app-config:
   # general
   app:
-    stellarNetworkPassPhrase: Test SDF Network ; September 2015
+    stellarNetworkPassphrase: Test SDF Network ; September 2015
     hostUrl: http://localhost:8080
     languages: en
-    horizonURI: https://horizon-testnet.stellar.org
+    horizonUrl: https://horizon-testnet.stellar.org
     assets: assets-test.json
     jwtSecretKey: secret
 
   # sep-1
   sep1:
     enabled: true
-    stellarFile: sep1/stellar-wks.toml
+    #
+    # The stellarFile is the location where to retrieve the content as the return value
+    # of the `/.well-known/stellar.toml`.
+    #
+    # The format of the resource is specified as Table 6.1 of the Spring document located at:
+    # https://docs.spring.io/spring-framework/docs/3.2.x/spring-framework-reference/html/resources.html
+    #
+    stellarFile: classpath:sep1/stellar-wks.toml
 
   # sep-10
   sep10:
     enabled: true
     homeDomain: localhost:8080
     clientAttributionRequired: false
-    clientAttributionAllowList: lobstr.co,preview.lobstr.co
+    clientAttributionAllowList: lobstr.co,preview.lobstr.co # use this if we want to white list
+    # clientAttributionDenyList: # use this if we want to black list.
     authTimeout: 900
     jwtTimeout: 86400
-    signingSeed:
+    signingSeed: SAX3AH622R2XT6DXWWSRIDCMMUCCMATBZ5U6XKJWDO7M2EJUBFC3AW5X
 
   # sep-12
   sep12:
@@ -53,30 +59,31 @@ config-spring-property-settings:
     enabled: true
     quoteIntegrationEndPoint: http://localhost:8081
 
-#
-# Payment Circle configurations
-#
-payment-circle:
-  payment.circle:
-    enabled: true
-    name: "circle_payment"
-    url: http://payment.circle.com
-    secretKey: This-is-a-secret-key
+  payment-gateway:
+    #
+    # Payment Circle configurations
+    #
+    circle:
+      name: "circle"
+      enabled: true
+      circleUrl: https://api-sandbox.circle.com
+      secretKey: secret # circle API key
+      horizonUrl: https://horizon-testnet.stellar.org
+      stellarNetwork: TESTNET
 
-#
-# Payment Stellar configurations
-#
-payment-stellar:
-  payment.stellar:
-    enabled: false
-    name: "stellar_payment"
-    horizon_url: http://payment.stellar.org
-    secretKey: This-is-a-secret-key
+    #
+    # Payment Stellar configurations
+    #
+    stellar:
+      enabled: false
+      name: "stellar"
+      horizonUrl: https://horizon-testnet.stellar.org
+      secretKey: secret # stellar account secret key
 
 #
 # Spring Data JDBC settings
 #
-data-spring-jdbc-settings:
+data-spring-jdbc-sqlite:
   spring.jpa.database-platform: org.stellar.anchor.server.sqlite.SQLiteDialect
   spring.jpa.hibernate.ddl-auto: update
   spring.jpa.generate-ddl: true
@@ -87,6 +94,10 @@ data-spring-jdbc-settings:
   spring.datasource.password: admin
   spring.mvc.converters.preferred-json-mapper: gson
 
+data-spring-jdbc-h2:
+  spring.datasource.url: jdbc:h2:mem:test
+  spring.jpa.properties.hibernate.dialect: org.hibernate.dialect.H2Dialect
+
 #
 # Spring framework configurations
 #
@@ -96,9 +107,6 @@ spring:
       root: INFO
       org.springframework: INFO
       org.springframework.web.filter: INFO
-      org.stellar: DEBUG
-  server:
-    servlet:
-      context-path: "/"
+      org.stellar: INFO
   mvc:
     async.request-timeout: 6000

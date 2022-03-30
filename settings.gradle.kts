@@ -21,7 +21,7 @@ dependencyResolutionManagement {
       alias("reactor.core").to("io.projectreactor:reactor-core:3.4.14")
       alias("reactor.netty").to("io.projectreactor.netty:reactor-netty:1.0.15")
       alias("servlet.api").to("javax.servlet:servlet-api:2.5")
-      alias("sqlite.jdbc").to("org.xerial:sqlite-jdbc:3.16.1")
+      alias("sqlite.jdbc").to("org.xerial:sqlite-jdbc:3.34.0")
       alias("slf4j.api").to("org.slf4j:slf4j-api:1.7.35")
       alias("slf4j.log4j12").to("org.slf4j:slf4j-log4j12:1.7.33")
       alias("toml4j").to("com.moandjiezana.toml:toml4j:0.7.2")

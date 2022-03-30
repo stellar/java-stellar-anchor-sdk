@@ -401,7 +401,8 @@ public class Sep38Service {
 
     // validate consistency between quote and jwt token
     Sep38Quote quote = this.sep38QuoteStore.findByQuoteId(quoteId);
-    if (!StringUtils.equals(quote.getCreatorAccountId(), account)
+    if (quote == null
+        || !StringUtils.equals(quote.getCreatorAccountId(), account)
         || !StringUtils.equals(memo, quote.getCreatorMemo())
         || !StringUtils.equals(memoType, quote.getCreatorMemoType())) {
       throw new NotFoundException("quote not found");

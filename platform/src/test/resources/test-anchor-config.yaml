@@ -64,7 +64,7 @@ app-config:
       name: "circle"
       enabled: true
       circleUrl: https://api-sandbox.circle.com
-      secretKey: secret
+      secretKey: secret # circle API key
       horizonUrl: https://horizon-testnet.stellar.org
       stellarNetwork: TESTNET
 
@@ -75,7 +75,7 @@ app-config:
       enabled: false
       name: "stellar"
       horizonUrl: https://horizon-testnet.stellar.org
-      secretKey: secret
+      secretKey: secret # stellar account secret key
 
 #
 # Spring Data JDBC settings
