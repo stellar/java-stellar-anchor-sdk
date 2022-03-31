@@ -83,6 +83,8 @@ jobs:
           node-version: 14
 
       - name: Install & run stellar-anchor-tests for SEPs 1 and 38
+        env:
+          PR: ${{ steps.findPr.outputs.pr }}
         run: |
           npm install -g @stellar/anchor-tests
-          stellar-anchor-tests --home-domain https://anchor-sep-pr165.previews.kube001.services.stellar-ops.com --seps 1 38
+          stellar-anchor-tests --home-domain https://anchor-sep-pr$PR.previews.kube001.services.stellar-ops.com --seps 1 38
