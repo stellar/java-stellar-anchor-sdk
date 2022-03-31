@@ -59,7 +59,7 @@ jobs:
     if: github.event.pull_request != null
     needs: [build_and_test]
     runs-on: ubuntu-latest
-    name: Run [stellar-anchor-tests](https://github.com/stellar/stellar-anchor-tests) for SEP-38
+    name: Validate SEPs (1, 38)
     steps:
       - uses: actions/checkout@v1
 
@@ -76,7 +76,7 @@ jobs:
         with:
           node-version: 14
 
-      - name: Validate SEPs (1, 38)
+      - name: Run Validation Tool
         env:
           PR: ${{ steps.findPr.outputs.pr }}
         run: |
