@@ -71,18 +71,22 @@ jobs:
           # Can be "open", "closed", or "all".  Defaults to "open".
           state: open
 
-      # This will echo "Your PR is 7", or be skipped if there is no current PR.
-      - name: Check if `findPr` worked
+      - name: Wait for preview endpoint to be up and running
+        uses: nev7n/wait_for_response@7fef3c1a6e8939d0b09062f14fec50d3c5d15fa1
         env:
           PR: ${{ steps.findPr.outputs.pr }}
-        run: echo "Your PR is ${PR}"
+        with:
+          url: https://anchor-sep-pr$PR.previews.kube001.services.stellar-ops.com/.well-known/stellar.toml
+          responseCode: 200
+          timeout: 30000
+          interval: 1000
 
       - name: Install Node
         uses: actions/setup-node@v2
         with:
           node-version: 14
 
-      - name: Install & run stellar-anchor-tests for SEPs 1 and 38
+      - name: Validate SEPs (1, 38)
         env:
           PR: ${{ steps.findPr.outputs.pr }}
         run: |
