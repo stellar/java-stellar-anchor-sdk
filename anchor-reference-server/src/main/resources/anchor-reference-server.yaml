@@ -15,9 +15,6 @@ anchor.settings:
 spring.datasource.url: jdbc:h2:mem:test
 spring.jpa.properties.hibernate.dialect: org.hibernate.dialect.H2Dialect
 
-# force gson as serializer/deserializer over jackson
-spring.mvc.converters.preferred-json-mapper: gson
-
 #
 # Spring Data JDBC settings for SQLite
 #

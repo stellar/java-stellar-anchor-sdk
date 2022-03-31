@@ -1,18 +1,20 @@
 package org.stellar.anchor.dto.sep24;
 
-import static org.stellar.anchor.model.Sep24Transaction.Status.*;
-
 import com.google.gson.annotations.SerializedName;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
-import java.util.Arrays;
-import java.util.List;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.stellar.anchor.config.Sep24Config;
 import org.stellar.anchor.model.Sep24Transaction;
 import org.stellar.anchor.sep10.JwtService;
 import org.stellar.anchor.util.DateUtil;
+
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.util.Arrays;
+import java.util.List;
+
+import static javax.print.attribute.standard.JobState.COMPLETED;
+import static org.stellar.anchor.model.TransactionStatus.*;
 
 @EqualsAndHashCode(callSuper = true)
 @Data

@@ -57,6 +57,7 @@ app-config:
   # sep-31
   sep31:
     enabled: true
+    feeIntegrationEndPoint: http://localhost:8081
 
   # sep-38
   sep38:

@@ -42,6 +42,9 @@ public class JdbcSep31Transaction implements Sep31Transaction {
   @SerializedName("stellar_account_id")
   String stellarAccountId;
 
+  @SerializedName("stellar_memo")
+  String stellarMemo;
+
   @SerializedName("stellar_memo_type")
   String stellarMemoType;
 
@@ -59,6 +62,12 @@ public class JdbcSep31Transaction implements Sep31Transaction {
 
   @SerializedName("required_info_message")
   String requiredInfoMessage;
+
+  @SerializedName("quote_id")
+  String quoteId;
+
+  @SerializedName("client_domain")
+  String clientDomain;
 
   // Ignored by JPA
   @SerializedName("required_info_updates")

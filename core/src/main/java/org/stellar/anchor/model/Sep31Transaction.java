@@ -1,8 +1,9 @@
 package org.stellar.anchor.model;
 
+import org.stellar.anchor.asset.AssetInfo;
+
 import java.time.Instant;
 import java.util.List;
-import org.stellar.anchor.asset.AssetInfo;
 
 public interface Sep31Transaction {
   String getId();
@@ -45,6 +46,10 @@ public interface Sep31Transaction {
 
   void setStellarAccountId(String stellarAccountId);
 
+  String getStellarMemo();
+
+  void setStellarMemo(String stellarMemo);
+
   String getStellarMemoType();
 
   void setStellarMemoType(String stellarMemoType);
@@ -80,6 +85,14 @@ public interface Sep31Transaction {
   AssetInfo.Sep31TxnFields getRequiredInfoUpdates();
 
   void setRequiredInfoUpdates(AssetInfo.Sep31TxnFields requiredInfoUpdates);
+
+  String getQuoteId();
+
+  void setQuoteId(String quoteId);
+
+  String getClientDomain();
+
+  void setClientDomain(String clientDomain);
 
   interface Refunds {
 

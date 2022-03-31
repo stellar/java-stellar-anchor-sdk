@@ -109,6 +109,20 @@ public class Sep31TransactionBuilder {
     return this;
   }
 
+  public Sep31TransactionBuilder quoteId(String quoteId) {
+    txn.setQuoteId(quoteId);
+    return this;
+  }
+
+  public Sep31TransactionBuilder clientDomain(String clientDomain) {
+    txn.setClientDomain(clientDomain);
+    return this;
+  }
+
+  public Sep31Transaction build() {
+    return txn;
+  }
+
   public class RefundsBuilder {
     Sep31Transaction.Refunds refunds;
 

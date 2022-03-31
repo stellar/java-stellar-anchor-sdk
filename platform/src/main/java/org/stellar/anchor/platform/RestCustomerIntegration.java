@@ -1,7 +1,7 @@
 package org.stellar.anchor.platform;
 
 import static okhttp3.HttpUrl.get;
-import static org.stellar.anchor.platform.PlatformCustomerIntegration.Converter.*;
+import static org.stellar.anchor.platform.RestCustomerIntegration.Converter.*;
 import static org.stellar.anchor.platform.PlatformIntegrationHelper.*;
 
 import com.google.gson.Gson;
@@ -19,12 +19,12 @@ import org.stellar.platform.apis.callbacks.requests.PutCustomerRequest;
 import org.stellar.platform.apis.callbacks.responses.GetCustomerResponse;
 import org.stellar.platform.apis.callbacks.responses.PutCustomerResponse;
 
-public class PlatformCustomerIntegration implements CustomerIntegration {
+public class RestCustomerIntegration implements CustomerIntegration {
   private final String anchorEndpoint;
   private final OkHttpClient httpClient;
   private final Gson gson;
 
-  public PlatformCustomerIntegration(String anchorEndpoint, OkHttpClient httpClient, Gson gson) {
+  public RestCustomerIntegration(String anchorEndpoint, OkHttpClient httpClient, Gson gson) {
     try {
       new URI(anchorEndpoint);
     } catch (URISyntaxException e) {
@@ -139,42 +139,5 @@ public class PlatformCustomerIntegration implements CustomerIntegration {
       String json = gson.toJson(request);
       return gson.fromJson(json, PutCustomerRequest.class);
     }
-
-    //    private static Map<String, org.stellar.anchor.dto.sep12.ProvidedField>
-    // convertProvidedFields(
-    //        Map<String, org.stellar.platform.apis.shared.ProvidedField> fields) {
-    //      Map<String, org.stellar.anchor.dto.sep12.ProvidedField> integrationFields = new
-    // HashMap<>();
-    //      for (Map.Entry<String, org.stellar.platform.apis.shared.ProvidedField> entry :
-    //          fields.entrySet()) {
-    //        org.stellar.anchor.dto.sep12.ProvidedField field =
-    //            new org.stellar.anchor.dto.sep12.ProvidedField();
-    //
-    // field.setType(org.stellar.anchor.dto.sep12.Field.Type.valueOf(entry.getValue().getType()));
-    //        field.setDescription(entry.getValue().getDescription());
-    //        field.setChoices(entry.getValue().getChoices());
-    //        field.setOptional(entry.getValue().getOptional());
-    //        field.setStatus(
-    //            org.stellar.anchor.dto.sep12.Sep12Status.valueOf(entry.getValue().getStatus()));
-    //        field.setError(entry.getValue().getError());
-    //      }
-    //      return integrationFields;
-    //    }
-    //
-    //    private static Map<String, org.stellar.anchor.dto.sep12.Field> convertFields(
-    //        Map<String, org.stellar.platform.apis.shared.Field> fields) {
-    //      Map<String, org.stellar.anchor.dto.sep12.Field> integrationFields = new HashMap<>();
-    //      for (Map.Entry<String, org.stellar.platform.apis.shared.Field> entry :
-    // fields.entrySet()) {
-    //        org.stellar.anchor.dto.sep12.Field field = new org.stellar.anchor.dto.sep12.Field();
-    //
-    // field.setType(org.stellar.anchor.dto.sep12.Field.Type.valueOf(entry.getValue().getType()));
-    //        field.setDescription(entry.getValue().getDescription());
-    //        field.setChoices(entry.getValue().getChoices());
-    //        field.setOptional(entry.getValue().getOptional());
-    //        integrationFields.put(entry.getKey(), field);
-    //      }
-    //      return integrationFields;
-    //    }
   }
 }
