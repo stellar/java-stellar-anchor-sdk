@@ -20,6 +20,7 @@ import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.Sep10Config;
 import org.stellar.anchor.config.Sep1Config;
 import org.stellar.anchor.config.Sep38Config;
+import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.exception.SepNotFoundException;
 import org.stellar.anchor.filter.Sep10TokenFilter;
 import org.stellar.anchor.horizon.Horizon;
@@ -116,7 +117,9 @@ public class SepConfig {
       Sep38Config sep38Config,
       AssetService assetService,
       RateIntegration rateIntegration,
-      Sep38QuoteStore sep38QuoteStore) {
-    return new Sep38Service(sep38Config, assetService, rateIntegration, sep38QuoteStore);
+      Sep38QuoteStore sep38QuoteStore,
+      EventService eventService) {
+    return new Sep38Service(
+        sep38Config, assetService, rateIntegration, sep38QuoteStore, eventService);
   }
 }

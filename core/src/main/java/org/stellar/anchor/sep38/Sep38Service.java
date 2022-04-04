@@ -12,6 +12,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.Sep38Config;
 import org.stellar.anchor.dto.sep38.*;
+import org.stellar.anchor.event.EventService;
+import org.stellar.anchor.event.models.QuoteEvent;
 import org.stellar.anchor.exception.*;
 import org.stellar.anchor.integration.rate.GetRateRequest;
 import org.stellar.anchor.integration.rate.GetRateResponse;
@@ -26,6 +28,7 @@ public class Sep38Service {
   final AssetService assetService;
   final RateIntegration rateIntegration;
   final Sep38QuoteStore sep38QuoteStore;
+  final EventService eventService;
   final InfoResponse infoResponse;
   final Map<String, InfoResponse.Asset> assetMap;
 
@@ -33,11 +36,13 @@ public class Sep38Service {
       Sep38Config sep38Config,
       AssetService assetService,
       RateIntegration rateIntegration,
-      Sep38QuoteStore sep38QuoteStore) {
+      Sep38QuoteStore sep38QuoteStore,
+      EventService eventService) {
     this.sep38Config = sep38Config;
     this.assetService = assetService;
     this.rateIntegration = rateIntegration;
     this.sep38QuoteStore = sep38QuoteStore;
+    this.eventService = eventService;
     this.infoResponse = new InfoResponse(this.assetService.listAllAssets());
     assetMap = new HashMap<>();
     this.infoResponse.getAssets().forEach(asset -> assetMap.put(asset.getAsset(), asset));
@@ -45,6 +50,19 @@ public class Sep38Service {
   }
 
   public InfoResponse getInfo() {
+    QuoteEvent event =
+        new QuoteEvent(
+            "id",
+            "quote_created",
+            "sellAsset",
+            "buyAsset",
+            LocalDateTime.now(),
+            "price",
+            null,
+            "transactionId",
+            LocalDateTime.now(),
+            "clientDomain");
+    eventService.publish( event);
     return this.infoResponse;
   }
 
@@ -369,6 +387,20 @@ public class Sep38Service {
     this.sep38QuoteStore.save(newQuote);
 
     // TODO: create an event for `quote_created` using the event API
+    QuoteEvent event =
+        new QuoteEvent(
+            "id",
+            "quote_created",
+            "sellAsset",
+            "buyAsset",
+            LocalDateTime.now(),
+            "price",
+            null,
+            "transactionId",
+            LocalDateTime.now(),
+            "clientDomain");
+    eventService.publish(event);
+
     return builder.build();
   }
 

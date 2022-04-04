@@ -80,6 +80,21 @@ app-config:
       horizon_url: https://horizon-testnet.stellar.org
       secretKey: secret
 
+  event:
+    enabled: true
+    kafkaBootstrapServer: localhost:29092
+    useSingleQueue: false
+    queues:
+      all: ap_event_single_queue
+      quote_created: ap_event_quote_created
+      transaction_created: ap_event_transaction_created
+      transaction_payment_received: ap_event_transaction_payment_received
+      transaction_destination_account_created: ap_event_transaction_destination_account_created
+      transaction_payment_submitted: ap_event_transaction_payment_submitted
+      transaction_error: ap_event_transaction_error
+
+
+
 #
 # Spring Data JDBC settings
 #
