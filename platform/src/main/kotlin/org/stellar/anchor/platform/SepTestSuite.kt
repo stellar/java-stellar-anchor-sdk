@@ -11,6 +11,9 @@ var CLIENT_WALLET_SECRET = "SAXKNDNU4FE2PCM5SOUXNXIQ7ZLCQMRZMMQAC2SIKZH7BAHQTTOL
 var jwt: String? = null
 val jwtService = JwtService("secret")
 
+lateinit var sep31Client: Sep31Client
+lateinit var sep12Client: Sep12Client
+
 fun main(args: Array<String>) {
   // Start necessary servers
   val options = Options()

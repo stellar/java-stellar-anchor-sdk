@@ -100,7 +100,7 @@ public class AssetInfo {
     boolean quotesRequired;
 
     Sep12Operation sep12;
-    Sep31TxnFields fields;
+    Sep31TxnFieldSpecs fields;
   }
 
   @Data
@@ -120,12 +120,12 @@ public class AssetInfo {
   }
 
   @Data
-  public static class Sep31TxnFields {
-    Map<String, Sep31TxnField> transaction;
+  public static class Sep31TxnFieldSpecs {
+    Map<String, Sep31TxnFieldSpec> transaction;
   }
 
   @Data
-  public static class Sep31TxnField {
+  public static class Sep31TxnFieldSpec {
     String description;
     List<String> choices;
     boolean optional;

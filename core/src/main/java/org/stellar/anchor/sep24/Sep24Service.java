@@ -1,5 +1,20 @@
 package org.stellar.anchor.sep24;
 
+import static org.stellar.anchor.model.Sep24Transaction.Kind.DEPOSIT;
+import static org.stellar.anchor.model.Sep24Transaction.Kind.WITHDRAWAL;
+import static org.stellar.anchor.sep9.Sep9Fields.extractSep9Fields;
+import static org.stellar.anchor.util.Log.shorter;
+import static org.stellar.anchor.util.MemoHelper.makeMemo;
+import static org.stellar.anchor.util.SepHelper.*;
+import static org.stellar.sdk.xdr.MemoType.MEMO_ID;
+
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.time.Instant;
+import java.util.*;
 import org.apache.http.client.utils.URIBuilder;
 import org.stellar.anchor.asset.AssetInfo;
 import org.stellar.anchor.asset.AssetService;
@@ -17,22 +32,6 @@ import org.stellar.anchor.sep10.JwtService;
 import org.stellar.anchor.sep10.JwtToken;
 import org.stellar.anchor.util.Log;
 import org.stellar.sdk.KeyPair;
-
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.time.Instant;
-import java.util.*;
-
-import static org.stellar.anchor.model.Sep24Transaction.Kind.DEPOSIT;
-import static org.stellar.anchor.model.Sep24Transaction.Kind.WITHDRAWAL;
-import static org.stellar.anchor.sep9.Sep9Fields.extractSep9Fields;
-import static org.stellar.anchor.util.Log.shorter;
-import static org.stellar.anchor.util.MemoHelper.makeMemo;
-import static org.stellar.anchor.util.SepHelper.*;
-import static org.stellar.sdk.xdr.MemoType.MEMO_ID;
 
 public class Sep24Service {
   final AppConfig appConfig;

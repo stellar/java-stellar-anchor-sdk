@@ -27,8 +27,9 @@ import org.stellar.platform.apis.callbacks.responses.GetCustomerResponse
 import org.stellar.platform.apis.callbacks.responses.GetFeeResponse
 
 @SpringBootTest(
-    classes = [AnchorReferenceServer::class],
-    webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+  classes = [AnchorReferenceServer::class],
+  webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
+)
 @TestPropertySource(locations = ["classpath:/anchor-reference-server.yaml"])
 class AnchorReferenceServerIntegrationTest {
   companion object {
@@ -41,19 +42,19 @@ class AnchorReferenceServerIntegrationTest {
   @Test
   fun getFee() {
     val result =
-        restGetFee(
-            GetFeeRequest.builder()
-                .sendAmount("10")
-                .sendAsset("USDC")
-                .receiveAsset("USDC")
-                .senderId("sender_id")
-                .receiverId("receiver_id")
-                .build())
-    print(result.body)
+      restGetFee(
+        GetFeeRequest.builder()
+          .sendAmount("10")
+          .sendAsset("USDC")
+          .receiveAsset("USDC")
+          .senderId("sender_id")
+          .receiverId("receiver_id")
+          .build()
+      )
     assertNotNull(result.body)
     JSONAssert.assertEquals(
-        gson.toJson(result.body),
-        """
+      gson.toJson(result.body),
+      """
          {
              "fee": {
                 "asset": "USDC",
@@ -61,19 +62,20 @@ class AnchorReferenceServerIntegrationTest {
              }
          }
       """,
-        true)
+      true
+    )
   }
 
   private fun restGetFee(getFeeRequest: GetFeeRequest): ResponseEntity<GetFeeResponse> {
     val json = gson.toJson(getFeeRequest)
     val params = gson.fromJson(json, HashMap::class.java)
     val query =
-        params
-            .entries
-            .stream()
-            .map { p -> urlEncodeUTF8(p.key.toString()) + "=" + urlEncodeUTF8(p.value.toString()) }
-            .reduce { p1, p2 -> "$p1&$p2" }
-            .orElse("")
+      params
+        .entries
+        .stream()
+        .map { p -> urlEncodeUTF8(p.key.toString()) + "=" + urlEncodeUTF8(p.value.toString()) }
+        .reduce { p1, p2 -> "$p1&$p2" }
+        .orElse("")
     return restTemplate.getForEntity("/fee?$query", GetFeeResponse::class.java, params)
   }
 
@@ -90,7 +92,7 @@ class AnchorReferenceServerIntegrationTest {
   }
 
   private fun restGetCustomer(
-      getCustomerRequest: GetCustomerRequest
+    getCustomerRequest: GetCustomerRequest
   ): ResponseEntity<GetCustomerResponse> {
     val json = gson.toJson(getCustomerRequest)
     val params = gson.fromJson(json, HashMap::class.java)
@@ -104,13 +106,14 @@ class AnchorReferenceServerIntegrationTest {
     val stellarUSDC = "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
 
     val result =
-        restTemplate.getForEntity(
-            "/rate?type={type}&sell_asset={sell_asset}&sell_amount={sell_amount}&buy_asset={buy_asset}",
-            String::class.java,
-            "indicative",
-            fiatUSD,
-            "100",
-            stellarUSDC)
+      restTemplate.getForEntity(
+        "/rate?type={type}&sell_asset={sell_asset}&sell_amount={sell_amount}&buy_asset={buy_asset}",
+        String::class.java,
+        "indicative",
+        fiatUSD,
+        "100",
+        stellarUSDC
+      )
     assertNotNull(result)
     assertEquals(HttpStatus.OK, result.statusCode)
 
@@ -124,13 +127,14 @@ class AnchorReferenceServerIntegrationTest {
     val stellarUSDC = "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
 
     val result =
-        restTemplate.getForEntity(
-            "/rate?type={type}&sell_asset={sell_asset}&buy_asset={buy_asset}&buy_amount={buy_amount}",
-            String::class.java,
-            "firm",
-            fiatUSD,
-            stellarUSDC,
-            "100")
+      restTemplate.getForEntity(
+        "/rate?type={type}&sell_asset={sell_asset}&buy_asset={buy_asset}&buy_amount={buy_amount}",
+        String::class.java,
+        "firm",
+        fiatUSD,
+        stellarUSDC,
+        "100"
+      )
     assertNotNull(result)
     assertEquals(HttpStatus.OK, result.statusCode)
     println(result.body)
@@ -146,12 +150,12 @@ class AnchorReferenceServerIntegrationTest {
       gotExpiresAt = DateTimeFormatter.ISO_INSTANT.parse(expiresAtStr, Instant::from)
     }
     val wantExpiresAt =
-        ZonedDateTime.now(ZoneId.of("UTC"))
-            .plusDays(1)
-            .withHour(12)
-            .withMinute(0)
-            .withSecond(0)
-            .withNano(0)
+      ZonedDateTime.now(ZoneId.of("UTC"))
+        .plusDays(1)
+        .withHour(12)
+        .withMinute(0)
+        .withSecond(0)
+        .withNano(0)
     assertEquals(wantExpiresAt.toInstant(), gotExpiresAt)
 
     // check if rate was persisted

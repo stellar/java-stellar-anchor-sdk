@@ -1,15 +1,14 @@
 package org.stellar.anchor.util;
 
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.exception.AnchorException;
 import org.stellar.anchor.exception.BadRequestException;
 import org.stellar.anchor.exception.SepValidationException;
 import org.stellar.sdk.xdr.MemoType;
-
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
 
 public class SepHelper {
   public static String memoTypeString(MemoType memoType) {
@@ -52,7 +51,8 @@ public class SepHelper {
     }
   }
 
-  public static void validateLanguage(AppConfig appConfig, String lang) throws SepValidationException {
+  public static void validateLanguage(AppConfig appConfig, String lang)
+      throws SepValidationException {
     if (lang != null) {
       List<String> languages = appConfig.getLanguages();
       if (languages != null && languages.size() > 0) {

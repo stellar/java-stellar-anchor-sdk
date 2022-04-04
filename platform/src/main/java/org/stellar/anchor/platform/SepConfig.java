@@ -1,5 +1,11 @@
 package org.stellar.anchor.platform;
 
+import static java.nio.charset.StandardCharsets.UTF_8;
+
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.Reader;
+import java.io.UncheckedIOException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -30,13 +36,6 @@ import org.stellar.anchor.server.data.JdbcSep31TransactionRepo;
 import org.stellar.anchor.server.data.JdbcSep31TransactionStore;
 import org.stellar.anchor.server.data.JdbcSep38QuoteRepo;
 import org.stellar.anchor.server.data.JdbcSep38QuoteStore;
-
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.UncheckedIOException;
-
-import static java.nio.charset.StandardCharsets.UTF_8;
 
 /** SEP configurations */
 @Configuration

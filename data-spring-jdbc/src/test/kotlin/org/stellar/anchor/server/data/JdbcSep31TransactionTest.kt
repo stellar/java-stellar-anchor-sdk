@@ -46,7 +46,7 @@ class JdbcSep31TransactionTest {
   fun createTestTxn(): JdbcSep31Transaction {
     val txn = gson.fromJson(testTxnJson, JdbcSep31Transaction::class.java)
     txn.setRequiredInfoUpdates(
-      gson.fromJson(testRequiredInfoUpdatesJson, AssetInfo.Sep31TxnFields::class.java)
+      gson.fromJson(testRequiredInfoUpdatesJson, AssetInfo.Sep31TxnFieldSpecs::class.java)
     )
     return txn
   }

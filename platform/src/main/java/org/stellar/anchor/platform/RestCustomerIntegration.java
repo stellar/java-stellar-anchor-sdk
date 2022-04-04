@@ -1,8 +1,8 @@
 package org.stellar.anchor.platform;
 
 import static okhttp3.HttpUrl.get;
-import static org.stellar.anchor.platform.RestCustomerIntegration.Converter.*;
 import static org.stellar.anchor.platform.PlatformIntegrationHelper.*;
+import static org.stellar.anchor.platform.RestCustomerIntegration.Converter.*;
 
 import com.google.gson.Gson;
 import java.net.URI;

@@ -9,7 +9,7 @@ import org.stellar.anchor.sep24.Sep24TransactionStore
 internal class Sep24TransactionTest {
   @Test
   fun testStatusCoverage() {
-    Sep24Transaction.TransactionStatus.COMPLETED.description
+    TransactionStatus.COMPLETED.description
   }
 
   @Test

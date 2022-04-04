@@ -1,22 +1,19 @@
 package org.stellar.anchor.platform.controller;
 
+import static org.stellar.anchor.platform.controller.Sep10Helper.getSep10Token;
+import static org.stellar.anchor.util.Log.errorEx;
+
+import javax.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
-import org.stellar.anchor.asset.AssetInfo.Sep31TxnFields;
-import org.stellar.anchor.dto.sep31.Sep31InfoResponse;
-import org.stellar.anchor.dto.sep31.Sep31PostTransactionRequest;
-import org.stellar.anchor.dto.sep31.Sep31PostTransactionResponse;
+import org.stellar.anchor.asset.AssetInfo.Sep31TxnFieldSpecs;
+import org.stellar.anchor.dto.sep31.*;
 import org.stellar.anchor.exception.AnchorException;
 import org.stellar.anchor.sep10.JwtToken;
 import org.stellar.anchor.sep31.Sep31Service;
 import org.stellar.anchor.sep31.Sep31Service.Sep31CustomerInfoNeededException;
 import org.stellar.anchor.sep31.Sep31Service.Sep31MissingFieldException;
-
-import javax.servlet.http.HttpServletRequest;
-
-import static org.stellar.anchor.platform.controller.Sep10Helper.getSep10Token;
-import static org.stellar.anchor.util.Log.errorEx;
 
 @RestController
 @RequestMapping("sep31")
@@ -38,14 +35,40 @@ public class Sep31Controller {
   @CrossOrigin(origins = "*")
   @ResponseStatus(code = HttpStatus.CREATED)
   @RequestMapping(
-      value = "/quote",
+      value = "/transactions",
       consumes = {MediaType.APPLICATION_JSON_VALUE},
       method = {RequestMethod.POST})
   public Sep31PostTransactionResponse postTransaction(
-      HttpServletRequest servletRequest, Sep31PostTransactionRequest request)
+      HttpServletRequest servletRequest, @RequestBody Sep31PostTransactionRequest request)
       throws AnchorException {
     JwtToken jwtToken = getSep10Token(servletRequest);
     return sep31Service.postTransaction(jwtToken, request);
+  }
+
+  @CrossOrigin(origins = "*")
+  @ResponseStatus(code = HttpStatus.OK)
+  @RequestMapping(
+      value = "/transactions/{id}",
+      method = {RequestMethod.GET})
+  public Sep31GetTransactionResponse postTransaction(
+      HttpServletRequest servletRequest, @PathVariable(name = "id") String txnId)
+      throws AnchorException {
+    JwtToken jwtToken = getSep10Token(servletRequest);
+    return sep31Service.getTransaction(txnId);
+  }
+
+  @CrossOrigin(origins = "*")
+  @ResponseStatus(code = HttpStatus.OK)
+  @RequestMapping(
+      value = "/transactions/{id}",
+      method = {RequestMethod.PATCH})
+  public Sep31GetTransactionResponse patchTransaction(
+      HttpServletRequest servletRequest,
+      @PathVariable(name = "id") String txnId,
+      @RequestBody Sep31PatchTransactionRequest request)
+      throws AnchorException {
+    JwtToken jwtToken = getSep10Token(servletRequest);
+    return sep31Service.patchTransaction(request);
   }
 
   @ExceptionHandler(Sep31MissingFieldException.class)
@@ -65,7 +88,7 @@ public class Sep31Controller {
 
   public static class Sep31MissingFieldResponse {
     String error;
-    Sep31TxnFields fields;
+    Sep31TxnFieldSpecs fields;
 
     public static Sep31MissingFieldResponse from(Sep31MissingFieldException exception) {
       Sep31MissingFieldResponse instance = new Sep31MissingFieldResponse();

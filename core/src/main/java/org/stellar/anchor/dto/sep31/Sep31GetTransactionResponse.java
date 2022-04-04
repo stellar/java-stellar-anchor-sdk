@@ -3,7 +3,6 @@ package org.stellar.anchor.dto.sep31;
 import com.google.gson.annotations.SerializedName;
 import java.time.Instant;
 import java.util.List;
-
 import lombok.Builder;
 import lombok.Data;
 import org.stellar.anchor.asset.AssetInfo;
@@ -69,7 +68,7 @@ public class Sep31GetTransactionResponse {
     String requiredInfoMessage;
 
     @SerializedName("required_info_updates")
-    AssetInfo.Sep31TxnFields requiredInfoUpdates;
+    AssetInfo.Sep31TxnFieldSpecs requiredInfoUpdates;
   }
 
   @Data

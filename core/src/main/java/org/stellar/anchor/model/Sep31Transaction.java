@@ -1,9 +1,9 @@
 package org.stellar.anchor.model;
 
-import org.stellar.anchor.asset.AssetInfo;
-
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
+import org.stellar.anchor.asset.AssetInfo;
 
 public interface Sep31Transaction {
   String getId();
@@ -80,11 +80,15 @@ public interface Sep31Transaction {
 
   String getRequiredInfoMessage();
 
+  Map<String, String> getFields();
+
+  void setFields(Map<String, String> fields);
+
   void setRequiredInfoMessage(String requiredInfoMessage);
 
-  AssetInfo.Sep31TxnFields getRequiredInfoUpdates();
+  AssetInfo.Sep31TxnFieldSpecs getRequiredInfoUpdates();
 
-  void setRequiredInfoUpdates(AssetInfo.Sep31TxnFields requiredInfoUpdates);
+  void setRequiredInfoUpdates(AssetInfo.Sep31TxnFieldSpecs requiredInfoUpdates);
 
   String getQuoteId();
 

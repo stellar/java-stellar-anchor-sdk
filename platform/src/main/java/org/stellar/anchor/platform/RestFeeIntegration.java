@@ -1,6 +1,13 @@
 package org.stellar.anchor.platform;
 
+import static okhttp3.HttpUrl.get;
+import static org.stellar.anchor.platform.PlatformIntegrationHelper.*;
+
 import com.google.gson.Gson;
+import java.lang.reflect.Type;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Map;
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -12,14 +19,6 @@ import org.stellar.anchor.integration.fee.FeeIntegration;
 import org.stellar.platform.apis.callbacks.requests.GetFeeRequest;
 import org.stellar.platform.apis.callbacks.responses.GetFeeResponse;
 import shadow.com.google.common.reflect.TypeToken;
-
-import java.lang.reflect.Type;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.Map;
-
-import static okhttp3.HttpUrl.get;
-import static org.stellar.anchor.platform.PlatformIntegrationHelper.*;
 
 public class RestFeeIntegration implements FeeIntegration {
   private final String feeIntegrationEndPoint;

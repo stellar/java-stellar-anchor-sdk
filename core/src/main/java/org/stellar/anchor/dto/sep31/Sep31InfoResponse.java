@@ -30,6 +30,6 @@ public class Sep31InfoResponse {
     Long maxAmount;
 
     AssetInfo.Sep12Operation sep12;
-    AssetInfo.Sep31TxnFields fields;
+    AssetInfo.Sep31TxnFieldSpecs fields;
   }
 }

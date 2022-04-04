@@ -1,20 +1,14 @@
 package org.stellar.anchor.reference.controller;
 
 import com.google.gson.Gson;
+import java.util.Map;
 import lombok.SneakyThrows;
 import org.springframework.web.bind.annotation.*;
-import org.stellar.anchor.exception.NotFoundException;
 import org.stellar.anchor.reference.config.AppSettings;
-import org.stellar.anchor.reference.service.CustomerService;
 import org.stellar.anchor.reference.service.FeeService;
 import org.stellar.anchor.util.GsonUtils;
 import org.stellar.platform.apis.callbacks.requests.*;
-import org.stellar.platform.apis.callbacks.responses.DeleteCustomerResponse;
-import org.stellar.platform.apis.callbacks.responses.GetCustomerResponse;
 import org.stellar.platform.apis.callbacks.responses.GetFeeResponse;
-import org.stellar.platform.apis.callbacks.responses.PutCustomerResponse;
-
-import java.util.Map;
 
 @RestController
 public class FeeController {
