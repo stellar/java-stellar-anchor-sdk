@@ -5,6 +5,8 @@ import org.stellar.anchor.exception.SepException;
 import org.stellar.anchor.model.Sep31Transaction;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 
+import java.time.Instant;
+
 public class JdbcSep31TransactionStore implements Sep31TransactionStore {
   private final JdbcSep31TransactionRepo transactionRepo;
 
@@ -38,6 +40,14 @@ public class JdbcSep31TransactionStore implements Sep31TransactionStore {
       throw new SepException(
           transaction.getClass() + "  is not a sub-type of " + JdbcSep31Transaction.class);
     }
+
+    JdbcSep31Transaction txn = (JdbcSep31Transaction) transaction;
+
+    txn.setUpdatedAt(Instant.now());
+    if (txn.getAmountExpected() == null) {
+      txn.setAmountExpected(txn.getAmountIn());
+    }
+
     return transactionRepo.save((JdbcSep31Transaction) transaction);
   }
 }

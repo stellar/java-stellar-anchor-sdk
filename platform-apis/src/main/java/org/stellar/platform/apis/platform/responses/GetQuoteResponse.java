@@ -1,4 +1,4 @@
-package org.stellar.platform.apis.api.responses;
+package org.stellar.platform.apis.platform.responses;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;

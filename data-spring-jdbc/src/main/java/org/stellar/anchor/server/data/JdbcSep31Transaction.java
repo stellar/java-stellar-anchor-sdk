@@ -3,13 +3,15 @@ package org.stellar.anchor.server.data;
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
 import com.google.gson.reflect.TypeToken;
-import java.time.Instant;
-import java.util.Map;
-import javax.persistence.*;
 import lombok.Data;
 import org.stellar.anchor.asset.AssetInfo;
 import org.stellar.anchor.model.Sep31Transaction;
 import org.stellar.anchor.util.GsonUtils;
+
+import javax.persistence.*;
+import java.time.Instant;
+import java.util.Map;
+import java.util.Set;
 
 @Data
 @Entity
@@ -123,4 +125,11 @@ public class JdbcSep31Transaction implements Sep31Transaction {
       this.refunds = gson.fromJson(refundsJson, Refunds.class);
     }
   }
+
+  Instant updatedAt;
+  Instant transferReceivedAt;
+  String message;
+  String amountExpected;
+  @OneToMany(fetch = FetchType.EAGER, mappedBy = "sep31Transaction")
+  Set<StellarTransaction> stellarTransactions = new java.util.LinkedHashSet<>();
 }
