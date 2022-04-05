@@ -3,15 +3,18 @@ package org.stellar.anchor.dto.sep31;
 import com.google.gson.annotations.SerializedName;
 import java.time.Instant;
 import java.util.List;
+import lombok.Builder;
 import lombok.Data;
 import org.stellar.anchor.asset.AssetInfo;
 import org.stellar.anchor.model.Sep31Transaction;
 
 @Data
+@Builder
 public class Sep31GetTransactionResponse {
   TransactionResponse transaction;
 
   @Data
+  @Builder
   public static class TransactionResponse {
     String id;
     String status;
@@ -40,6 +43,9 @@ public class Sep31GetTransactionResponse {
     @SerializedName("stellar_account_id")
     String stellarAccountId;
 
+    @SerializedName("stellar_memo")
+    String stellarMemo;
+
     @SerializedName("stellar_memo_type")
     String stellarMemoType;
 
@@ -62,7 +68,7 @@ public class Sep31GetTransactionResponse {
     String requiredInfoMessage;
 
     @SerializedName("required_info_updates")
-    AssetInfo.Sep31TxnFields requiredInfoUpdates;
+    AssetInfo.Sep31TxnFieldSpecs requiredInfoUpdates;
   }
 
   @Data

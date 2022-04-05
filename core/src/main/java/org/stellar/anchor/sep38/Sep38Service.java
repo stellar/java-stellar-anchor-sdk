@@ -1,5 +1,7 @@
 package org.stellar.anchor.sep38;
 
+import static org.stellar.anchor.util.SepHelper.validateAmount;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
@@ -20,8 +22,6 @@ import org.stellar.anchor.model.Sep38Quote;
 import org.stellar.anchor.model.Sep38QuoteBuilder;
 import org.stellar.anchor.sep10.JwtToken;
 import org.stellar.anchor.util.Log;
-
-import static org.stellar.anchor.util.SepHelper.validateAmount;
 
 public class Sep38Service {
   final Sep38Config sep38Config;

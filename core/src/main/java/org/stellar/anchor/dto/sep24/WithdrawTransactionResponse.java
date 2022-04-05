@@ -1,6 +1,6 @@
 package org.stellar.anchor.dto.sep24;
 
-import static org.stellar.anchor.model.Sep24Transaction.Status.*;
+import static org.stellar.anchor.model.TransactionStatus.*;
 
 import com.google.gson.annotations.SerializedName;
 import java.net.MalformedURLException;

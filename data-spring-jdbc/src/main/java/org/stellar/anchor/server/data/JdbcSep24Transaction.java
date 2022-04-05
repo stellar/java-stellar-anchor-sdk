@@ -1,15 +1,13 @@
 package org.stellar.anchor.server.data;
 
 import com.google.gson.annotations.SerializedName;
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Id;
+import javax.persistence.*;
 import lombok.Data;
 import org.stellar.anchor.model.Sep24Transaction;
 
 @Data
 @Entity
+@Table(name = "sep24_transaction")
 public class JdbcSep24Transaction implements Sep24Transaction {
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)

@@ -1,8 +1,9 @@
 package org.stellar.anchor.dto.sep31;
 
 import com.google.gson.annotations.SerializedName;
+import java.util.HashMap;
+import lombok.AllArgsConstructor;
 import lombok.Data;
-import org.stellar.anchor.asset.AssetInfo;
 
 @Data
 public class Sep31PostTransactionRequest {
@@ -26,6 +27,12 @@ public class Sep31PostTransactionRequest {
   @SerializedName("receiver_id")
   String receiverId;
 
-  AssetInfo.Sep31TxnFields fields;
+  Sep31TxnFields fields;
   String lang;
+
+  @Data
+  @AllArgsConstructor
+  public static class Sep31TxnFields {
+    HashMap<String, String> transaction;
+  }
 }

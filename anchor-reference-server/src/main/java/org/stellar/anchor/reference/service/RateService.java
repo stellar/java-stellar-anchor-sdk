@@ -1,5 +1,11 @@
 package org.stellar.anchor.reference.service;
 
+import static org.stellar.anchor.util.SepHelper.validateAmount;
+
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.util.Map;
 import kotlin.Pair;
 import org.springframework.stereotype.Service;
 import org.stellar.anchor.exception.AnchorException;
@@ -10,13 +16,6 @@ import org.stellar.anchor.reference.model.Quote;
 import org.stellar.anchor.reference.repo.QuoteRepo;
 import org.stellar.platform.apis.callbacks.requests.GetRateRequest;
 import org.stellar.platform.apis.callbacks.responses.GetRateResponse;
-
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.ZonedDateTime;
-import java.util.Map;
-
-import static org.stellar.anchor.util.SepHelper.validateAmount;
 
 @Service
 public class RateService {

@@ -2,6 +2,7 @@ package org.stellar.anchor.model;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Map;
 import org.stellar.anchor.asset.AssetInfo;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 
@@ -104,9 +105,29 @@ public class Sep31TransactionBuilder {
     return this;
   }
 
-  public Sep31TransactionBuilder requiredInfoUpdates(AssetInfo.Sep31TxnFields requiredInfoUpdates) {
+  public Sep31TransactionBuilder fields(Map<String, String> fields) {
+    txn.setFields(fields);
+    return this;
+  }
+
+  public Sep31TransactionBuilder requiredInfoUpdates(
+      AssetInfo.Sep31TxnFieldSpecs requiredInfoUpdates) {
     txn.setRequiredInfoUpdates(requiredInfoUpdates);
     return this;
+  }
+
+  public Sep31TransactionBuilder quoteId(String quoteId) {
+    txn.setQuoteId(quoteId);
+    return this;
+  }
+
+  public Sep31TransactionBuilder clientDomain(String clientDomain) {
+    txn.setClientDomain(clientDomain);
+    return this;
+  }
+
+  public Sep31Transaction build() {
+    return txn;
   }
 
   public class RefundsBuilder {
