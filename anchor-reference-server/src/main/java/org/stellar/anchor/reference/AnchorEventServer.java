@@ -50,13 +50,14 @@ public class AnchorEventServer implements DisposableBean, Runnable {
 
         while(!shutdown){
             ConsumerRecords<String, AnchorEvent> consumerRecords = consumer.poll(Duration.ofSeconds(10));
-            System.out.println("Messages received - " + consumerRecords.count());
+            System.out.println("Anchor Reference Server - Messages received - " + consumerRecords.count());
             consumerRecords.forEach(
                 record -> {
                     for (Header header : record.headers()){
                         if (Objects.equals(header.key(), "type")){
                             String eventType = new String(header.value(), StandardCharsets.UTF_8);
                             switch(eventType){
+                                // TODO: use constants for event types
                                 case "quote_created":
                                     System.out.println("anchor_platform_event - quote_created " + record.value());
                                     break;
@@ -65,7 +66,7 @@ public class AnchorEventServer implements DisposableBean, Runnable {
                                             "transaction_created " + record.value());
                                     break;
                                 case "transaction_payment_received":
-                                    /* TODO reference server to process this event and make a
+                                    /* TODO: reference server to process this event and make a
                                        PATCH request back to the platform server to update the
                                        transaction status */
                                     System.out.println("anchor_platform_event - " +

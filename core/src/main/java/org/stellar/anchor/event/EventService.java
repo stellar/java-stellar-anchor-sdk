@@ -16,16 +16,11 @@ import org.stellar.anchor.event.models.AnchorEvent;
 public class EventService {
   final Producer<String, AnchorEvent> producer;
   final Map<String, String> queues;
+  final boolean eventsEnabled;
+  final boolean useSingleQueue;
 
   public EventService(EventConfig eventConfig) {
-
-    //        Message<AnchorEvent> message =
-    //                MessageBuilder.withPayload(event).setHeader(KafkaHeaders.TOPIC,
-    // topic).build();
-    //        this.kafkaTemplate.send(message);
-    if (eventConfig.isUseSingleQueue() == true) {
-      ;
-    }
+    // TODO: log the event config
     Properties props = new Properties();
     props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, eventConfig.getKafkaBootstrapServer());
     props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
@@ -33,16 +28,27 @@ public class EventService {
     this.producer = new KafkaProducer<String, AnchorEvent>(props);
 
     this.queues = eventConfig.getQueues();
+    this.eventsEnabled = eventConfig.isEnabled();
+    this.useSingleQueue = eventConfig.isUseSingleQueue();
   }
 
   public void publish(AnchorEvent event) {
+    if(!eventsEnabled){
+      return;
+    }
     try{
-      String topic =  this.queues.get(event.getType());
+      String topic;
+      if(useSingleQueue){
+        // TODO: use constant instead of 'all'
+        topic = queues.get("all");
+      } else {
+        topic = queues.get(event.getType());
+      }
       ProducerRecord<String, AnchorEvent> record = new ProducerRecord<>(topic, event);
       record.headers().add(new RecordHeader("type", event.getType().getBytes()));
-      this.producer.send(record);
+      producer.send(record);
     } catch (Exception ex){
-      ;
+      ; //TODO handle exceptions
     }
   }
 }

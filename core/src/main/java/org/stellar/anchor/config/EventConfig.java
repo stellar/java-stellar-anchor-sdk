@@ -9,4 +9,5 @@ public interface EventConfig {
   String getKafkaBootstrapServer();
 
   boolean isUseSingleQueue();
+  boolean isEnabled();
 }

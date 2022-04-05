@@ -50,19 +50,6 @@ public class Sep38Service {
   }
 
   public InfoResponse getInfo() {
-    QuoteEvent event =
-        new QuoteEvent(
-            "id",
-            "quote_created",
-            "sellAsset",
-            "buyAsset",
-            LocalDateTime.now(),
-            "price",
-            null,
-            "transactionId",
-            LocalDateTime.now(),
-            "clientDomain");
-    eventService.publish( event);
     return this.infoResponse;
   }
 
@@ -386,18 +373,18 @@ public class Sep38Service {
             .build();
     this.sep38QuoteStore.save(newQuote);
 
-    // TODO: create an event for `quote_created` using the event API
+    // TODO: use constant instead of "quote_created"
     QuoteEvent event =
         new QuoteEvent(
-            "id",
+            newQuote.getId(),
             "quote_created",
-            "sellAsset",
-            "buyAsset",
-            LocalDateTime.now(),
-            "price",
+            newQuote.getSellAsset(),
+            newQuote.getBuyAsset(),
+            newQuote.getExpiresAt(),
+            newQuote.getPrice(),
             null,
             "transactionId",
-            LocalDateTime.now(),
+            newQuote.getCreatedAt(),
             "clientDomain");
     eventService.publish(event);
 

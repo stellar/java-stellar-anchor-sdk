@@ -10,4 +10,5 @@ public class PropertyEventConfig implements EventConfig {
   private String kafkaBootstrapServer;
   private Map<String, String> queues;
   private boolean useSingleQueue;
+  private boolean enabled;
 }

@@ -86,7 +86,7 @@ public class ServiceRunner {
     }
     if (contextPath == null) {
       contextPath = DEFAULT_CONTEXTPATH;
-    }platform/src/main/java/org/stellar/anchor/platform/ServiceRunner.java
+    }
     AnchorPlatformServer.start(port, contextPath);
   }
 
@@ -94,7 +94,7 @@ public class ServiceRunner {
     //    JsonDeserializer<QuoteEvent> deserializer = new JsonDeserializer<>(QuoteEvent.class);
     //    deserializer.setRemoveTypeHeaders(false);
     //    deserializer.addTrustedPackages("*");
-    //    deserializer.setUseTypeMapperForKey(true);
+    //    deserializer.setUseTypeMapperForKey(true);platform/src/main/java/org/stellar/anchor/platform/ServiceRunner.java
 
     Properties props = new Properties();
 
