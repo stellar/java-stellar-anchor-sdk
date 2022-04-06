@@ -6,6 +6,8 @@ import org.stellar.anchor.dto.sep31.Sep31PostTransactionRequest
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.Sep1Helper
 
+lateinit var sep31Client: Sep31Client
+
 const val postTxnJson =
   """{
     "amount": "10.0",
@@ -27,11 +29,11 @@ fun sep31TestAll(toml: Sep1Helper.TomlContent, jwt: String) {
   sep12Client = Sep12Client(toml.getString("KYC_SERVER"), jwt)
   sep31Client = Sep31Client(toml.getString("DIRECT_PAYMENT_SERVER"), jwt)
 
-  sep31TestInfo()
-  sep31PostTransaction()
+  testSep31TestInfo()
+  testSep31PostTransaction()
 }
 
-fun sep31TestInfo() {
+fun testSep31TestInfo() {
   printRequest("Calling GET /info")
   val info = sep31Client.getInfo()
   printResponse(info)
@@ -46,7 +48,7 @@ fun sep31TestInfo() {
   assertEquals(3, info.receive.get("USDC")!!.fields.transaction.size)
 }
 
-fun sep31PostTransaction() {
+fun testSep31PostTransaction() {
   // Create customer
   val customer =
     GsonUtils.getInstance().fromJson(testCustomerJson, Sep12PutCustomerRequest::class.java)
@@ -55,8 +57,5 @@ fun sep31PostTransaction() {
   // Post Sep31 transaction.
   val txnRequest = gson.fromJson(postTxnJson, Sep31PostTransactionRequest::class.java)
   txnRequest.receiverId = pr!!.id
-  val txn = sep31Client.postTransaction(txnRequest)
-
-  println(txn)
-  // TODO: Delete customer
+  sep31Client.postTransaction(txnRequest)
 }

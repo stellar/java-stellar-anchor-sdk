@@ -131,7 +131,7 @@ public class SepConfig {
   }
 
   @Bean
-  Sep31TransactionStore sep31TransactionStore(JdbcSep31TransactionRepo txnRepo) {
+  JdbcSep31TransactionStore sep31TransactionStore(JdbcSep31TransactionRepo txnRepo) {
     return new JdbcSep31TransactionStore(txnRepo);
   }
 

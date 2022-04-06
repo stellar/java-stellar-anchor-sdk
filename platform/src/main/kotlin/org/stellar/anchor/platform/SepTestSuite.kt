@@ -11,9 +11,6 @@ var CLIENT_WALLET_SECRET = "SAXKNDNU4FE2PCM5SOUXNXIQ7ZLCQMRZMMQAC2SIKZH7BAHQTTOL
 var jwt: String? = null
 val jwtService = JwtService("secret")
 
-lateinit var sep31Client: Sep31Client
-lateinit var sep12Client: Sep12Client
-
 fun main(args: Array<String>) {
   // Start necessary servers
   val options = Options()
@@ -27,10 +24,10 @@ fun main(args: Array<String>) {
     true,
     "The path where the SEP1 TOML file can be read."
   )
-  val sepsOption = Option("p", "seps", true, "SEPS to be test. eg: sep12")
-  sepsOption.isRequired = true
-  sepsOption.args = Option.UNLIMITED_VALUES
-  options.addOption(sepsOption)
+  val testOptions = Option("p", "tests", false, "SEPS to be test. eg: sep12")
+  testOptions.isRequired = true
+  testOptions.args = Option.UNLIMITED_VALUES
+  options.addOption(testOptions)
 
   try {
     val parser: CommandLineParser = DefaultParser()
@@ -55,22 +52,26 @@ fun main(args: Array<String>) {
       }
 
     val toml = Sep1Helper.parse(tomlString)
-    val seps = cmd.getOptionValues("p")
+    val tests = cmd.getOptionValues("p")
 
-    if ("sep10" in seps) {
+    if ("sep10" in tests) {
       jwt = sep10TestAll(toml)
     }
 
-    if ("sep12" in seps) {
+    if ("sep12" in tests) {
       sep12TestAll(toml, getOrCreateJwt(toml)!!)
     }
 
-    if ("sep38" in seps) {
+    if ("sep38" in tests) {
       sep38TestAll(toml, getOrCreateJwt(toml)!!)
     }
 
-    if ("sep31" in seps) {
+    if ("sep31" in tests) {
       sep31TestAll(toml, getOrCreateJwt(toml)!!)
+    }
+
+    if ("platform" in tests) {
+      platformTestAll(toml, getOrCreateJwt(toml)!!)
     }
   } catch (ex: ParseException) {
     printUsage(options)

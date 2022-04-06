@@ -1,5 +1,7 @@
 package org.stellar.anchor.paymentservice.circle;
 
+import static org.stellar.anchor.util.MathHelper.decimal;
+
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.util.List;
@@ -65,8 +67,8 @@ public interface StellarReconciliation extends CircleResponseErrorHandler {
                   from = pathPaymentResponse.getFrom();
                 }
 
-                BigDecimal wantAmount = new BigDecimal(transferCopy.getAmount().getAmount());
-                BigDecimal gotAmount = new BigDecimal(amount);
+                BigDecimal wantAmount = decimal(transferCopy.getAmount().getAmount());
+                BigDecimal gotAmount = decimal(amount);
                 if (wantAmount.compareTo(gotAmount) != 0) continue;
 
                 transferCopy.getSource().setAddress(from);

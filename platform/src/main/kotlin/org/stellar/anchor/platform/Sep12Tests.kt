@@ -5,6 +5,8 @@ import org.stellar.anchor.dto.sep12.Sep12Status
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.Sep1Helper
 
+lateinit var sep12Client: Sep12Client
+
 const val testCustomerJson =
   """
 {

@@ -2,12 +2,10 @@ package org.stellar.anchor.platform.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import org.stellar.anchor.dto.sep31.Sep31GetTransactionResponse;
 import org.stellar.anchor.exception.AnchorException;
 import org.stellar.anchor.exception.NotFoundException;
 import org.stellar.anchor.platform.service.TransactionService;
 import org.stellar.anchor.sep31.Sep31Service;
-import org.stellar.platform.apis.platform.requests.GetTransactionsRequest;
 import org.stellar.platform.apis.platform.requests.PatchTransactionsRequest;
 import org.stellar.platform.apis.platform.responses.GetTransactionResponse;
 import org.stellar.platform.apis.platform.responses.PatchTransactionsResponse;
@@ -36,10 +34,10 @@ public class PlatformController {
   @CrossOrigin(origins = "*")
   @ResponseStatus(code = HttpStatus.OK)
   @RequestMapping(
-          value = "/transactions",
-          method = {RequestMethod.PATCH})
+      value = "/transactions",
+      method = {RequestMethod.PATCH})
   public PatchTransactionsResponse patchTransactions(@RequestBody PatchTransactionsRequest request)
-          throws AnchorException {
+      throws AnchorException {
     return transactionService.patchTransactions(request);
   }
 
@@ -51,15 +49,5 @@ public class PlatformController {
   public GetTransactionResponse getTransactions(@PathVariable(name = "id") String txnId)
       throws AnchorException {
     throw new NotFoundException("Not implemented");
-  }
-
-
-  @CrossOrigin(origins = "*")
-  @ResponseStatus(code = HttpStatus.OK)
-  @RequestMapping(
-          value = "/transactions/{id}",
-          method = {RequestMethod.PATCH})
-  public PatchTransactionsResponse patchTransaction(@RequestBody PatchTransactionsRequest request) {
-    return transactionService.patchTransactions(request);
   }
 }

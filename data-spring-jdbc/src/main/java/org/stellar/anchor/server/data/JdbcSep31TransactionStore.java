@@ -1,11 +1,12 @@
 package org.stellar.anchor.server.data;
 
+import java.time.Instant;
+import java.util.Collection;
+import java.util.List;
 import lombok.NonNull;
 import org.stellar.anchor.exception.SepException;
 import org.stellar.anchor.model.Sep31Transaction;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
-
-import java.time.Instant;
 
 public class JdbcSep31TransactionStore implements Sep31TransactionStore {
   private final JdbcSep31TransactionRepo transactionRepo;
@@ -32,6 +33,12 @@ public class JdbcSep31TransactionStore implements Sep31TransactionStore {
   @Override
   public Sep31Transaction findByTransactionId(@NonNull String transactionId) throws SepException {
     return transactionRepo.findById(transactionId).orElse(null);
+  }
+
+  @Override
+  public List<? extends Sep31Transaction> findByTransactionIds(
+      @NonNull Collection<String> transactionId) throws SepException {
+    return transactionRepo.findByIds(transactionId);
   }
 
   @Override

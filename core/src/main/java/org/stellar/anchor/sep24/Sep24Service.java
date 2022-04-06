@@ -4,12 +4,12 @@ import static org.stellar.anchor.model.Sep24Transaction.Kind.DEPOSIT;
 import static org.stellar.anchor.model.Sep24Transaction.Kind.WITHDRAWAL;
 import static org.stellar.anchor.sep9.Sep9Fields.extractSep9Fields;
 import static org.stellar.anchor.util.Log.shorter;
+import static org.stellar.anchor.util.MathHelper.decimal;
 import static org.stellar.anchor.util.MemoHelper.makeMemo;
 import static org.stellar.anchor.util.SepHelper.*;
 import static org.stellar.sdk.xdr.MemoType.MEMO_ID;
 
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -96,10 +96,8 @@ public class Sep24Service {
 
     // Validate amount
     if (strAmount != null) {
-      if (new BigDecimal(strAmount).compareTo(new BigDecimal(asset.getWithdraw().getMinAmount()))
-              < 0
-          || new BigDecimal(strAmount).compareTo(new BigDecimal(asset.getWithdraw().getMaxAmount()))
-              > 0) {
+      if (decimal(strAmount).compareTo(decimal(asset.getWithdraw().getMinAmount())) < 0
+          || decimal(strAmount).compareTo(decimal(asset.getWithdraw().getMaxAmount())) > 0) {
         throw new SepValidationException(String.format("invalid amount: %s", strAmount));
       }
     }
@@ -200,9 +198,8 @@ public class Sep24Service {
 
     // Validate amount
     if (strAmount != null) {
-      if (new BigDecimal(strAmount).compareTo(new BigDecimal(asset.getDeposit().getMinAmount())) < 0
-          || new BigDecimal(strAmount).compareTo(new BigDecimal(asset.getDeposit().getMaxAmount()))
-              > 0) {
+      if (decimal(strAmount).compareTo(decimal(asset.getDeposit().getMinAmount())) < 0
+          || decimal(strAmount).compareTo(decimal(asset.getDeposit().getMaxAmount())) > 0) {
         throw new SepValidationException(String.format("invalid amount: %s", strAmount));
       }
     }
@@ -214,7 +211,7 @@ public class Sep24Service {
           String.format("invalid account: %s", destinationAccount), ex);
     }
 
-    String txnId = generateTransactionId();
+    String txnId = generateSepTransactionId();
     Sep24Transaction txn =
         new Sep24TransactionBuilder(txnStore)
             .transactionId(txnId)

@@ -1,12 +1,11 @@
 package org.stellar.platform.apis.shared;
 
 import com.google.gson.annotations.SerializedName;
+import java.time.Instant;
+import java.util.List;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-
-import java.time.Instant;
-import java.util.List;
 
 @Data
 @SuperBuilder

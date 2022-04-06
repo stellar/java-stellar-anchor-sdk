@@ -34,6 +34,10 @@ public enum TransactionStatus {
     return name;
   }
 
+  public String getName() {
+    return name;
+  }
+
   public String getDescription() {
     return description;
   }

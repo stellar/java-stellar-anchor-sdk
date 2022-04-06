@@ -2,11 +2,10 @@ package org.stellar.anchor.server.data;
 
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
+import java.time.Instant;
+import javax.persistence.*;
 import lombok.Data;
 import org.stellar.anchor.util.GsonUtils;
-
-import javax.persistence.*;
-import java.time.Instant;
 
 @Entity
 @Table(name = "stellar_transaction")
