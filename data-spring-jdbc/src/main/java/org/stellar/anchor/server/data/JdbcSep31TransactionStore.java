@@ -1,5 +1,8 @@
 package org.stellar.anchor.server.data;
 
+import java.time.Instant;
+import java.util.Collection;
+import java.util.List;
 import lombok.NonNull;
 import org.stellar.anchor.exception.SepException;
 import org.stellar.anchor.model.Sep31Transaction;
@@ -33,11 +36,25 @@ public class JdbcSep31TransactionStore implements Sep31TransactionStore {
   }
 
   @Override
+  public List<? extends Sep31Transaction> findByTransactionIds(
+      @NonNull Collection<String> transactionId) throws SepException {
+    return transactionRepo.findByIds(transactionId);
+  }
+
+  @Override
   public Sep31Transaction save(Sep31Transaction transaction) throws SepException {
     if (!(transaction instanceof JdbcSep31Transaction)) {
       throw new SepException(
           transaction.getClass() + "  is not a sub-type of " + JdbcSep31Transaction.class);
     }
+
+    JdbcSep31Transaction txn = (JdbcSep31Transaction) transaction;
+
+    txn.setUpdatedAt(Instant.now());
+    if (txn.getAmountExpected() == null) {
+      txn.setAmountExpected(txn.getAmountIn());
+    }
+
     return transactionRepo.save((JdbcSep31Transaction) transaction);
   }
 }

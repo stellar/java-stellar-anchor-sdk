@@ -1,4 +1,4 @@
-package org.stellar.platform.apis.api.requests;
+package org.stellar.platform.apis.platform.requests;
 
 import lombok.Data;
 

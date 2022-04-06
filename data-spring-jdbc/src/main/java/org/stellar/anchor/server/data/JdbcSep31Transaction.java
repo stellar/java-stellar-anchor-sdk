@@ -5,6 +5,7 @@ import com.google.gson.annotations.SerializedName;
 import com.google.gson.reflect.TypeToken;
 import java.time.Instant;
 import java.util.Map;
+import java.util.Set;
 import javax.persistence.*;
 import lombok.Data;
 import org.stellar.anchor.asset.AssetInfo;
@@ -123,4 +124,12 @@ public class JdbcSep31Transaction implements Sep31Transaction {
       this.refunds = gson.fromJson(refundsJson, Refunds.class);
     }
   }
+
+  Instant updatedAt;
+  Instant transferReceivedAt;
+  String message;
+  String amountExpected;
+
+  @OneToMany(fetch = FetchType.EAGER, mappedBy = "sep31Transaction")
+  Set<StellarTransaction> stellarTransactions = new java.util.LinkedHashSet<>();
 }

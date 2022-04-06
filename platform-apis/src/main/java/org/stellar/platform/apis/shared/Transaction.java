@@ -4,8 +4,12 @@ import com.google.gson.annotations.SerializedName;
 import java.time.Instant;
 import java.util.List;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Data
+@SuperBuilder
+@NoArgsConstructor
 public class Transaction {
   String id;
   Integer sep;
@@ -40,7 +44,7 @@ public class Transaction {
   Instant transferReceivedAt;
 
   String message;
-  Refund refund;
+  Refunds refunds;
 
   @SerializedName("stellar_transactions")
   List<StellarTransaction> stellarTransactions;

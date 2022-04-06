@@ -1,5 +1,6 @@
 package org.stellar.anchor.sep38;
 
+import static org.stellar.anchor.util.MathHelper.decimal;
 import static org.stellar.anchor.util.SepHelper.validateAmount;
 
 import java.math.BigDecimal;
@@ -14,7 +15,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.Sep38Config;
 import org.stellar.anchor.dto.sep38.*;
-import org.stellar.anchor.exception.*;
+import org.stellar.anchor.exception.AnchorException;
+import org.stellar.anchor.exception.BadRequestException;
+import org.stellar.anchor.exception.NotFoundException;
+import org.stellar.anchor.exception.ServerErrorException;
 import org.stellar.anchor.integration.rate.GetRateRequest;
 import org.stellar.anchor.integration.rate.GetRateResponse;
 import org.stellar.anchor.integration.rate.RateIntegration;
@@ -187,13 +191,13 @@ public class Sep38Service {
         GetPriceResponse.builder().price(rateResponse.getRate().getPrice());
 
     // Calculate amounts: sellAmount = buyAmount*price or buyAmount = sellAmount/price
-    BigDecimal bPrice = new BigDecimal(rateResponse.getRate().getPrice());
+    BigDecimal bPrice = decimal(rateResponse.getRate().getPrice());
     BigDecimal bSellAmount, bBuyAmount;
     if (sellAmount != null) {
-      bSellAmount = new BigDecimal(sellAmount);
+      bSellAmount = decimal(sellAmount);
       bBuyAmount = bSellAmount.divide(bPrice, buyAsset.getDecimals(), RoundingMode.HALF_DOWN);
     } else {
-      bBuyAmount = new BigDecimal(buyAmount);
+      bBuyAmount = decimal(buyAmount);
       bSellAmount = bBuyAmount.multiply(bPrice);
     }
     builder =
@@ -321,13 +325,13 @@ public class Sep38Service {
             .buyAsset(request.getBuyAssetName());
 
     // Calculate amounts: sellAmount = buyAmount*price or buyAmount = sellAmount/price
-    BigDecimal bPrice = new BigDecimal(rate.getPrice());
+    BigDecimal bPrice = decimal(rate.getPrice());
     BigDecimal bSellAmount, bBuyAmount;
     if (request.getSellAmount() != null) {
-      bSellAmount = new BigDecimal(request.getSellAmount());
+      bSellAmount = decimal(request.getSellAmount());
       bBuyAmount = bSellAmount.divide(bPrice, buyAsset.getDecimals(), RoundingMode.HALF_UP);
     } else {
-      bBuyAmount = new BigDecimal(request.getBuyAmount());
+      bBuyAmount = decimal(request.getBuyAmount());
       bSellAmount = bBuyAmount.multiply(bPrice);
     }
     String sellAmount = formatAmount(bSellAmount, sellAsset.getDecimals());

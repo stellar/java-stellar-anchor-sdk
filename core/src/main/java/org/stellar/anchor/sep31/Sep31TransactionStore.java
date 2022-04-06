@@ -1,5 +1,8 @@
 package org.stellar.anchor.sep31;
 
+import java.util.Collection;
+import java.util.List;
+import lombok.NonNull;
 import org.stellar.anchor.exception.SepException;
 import org.stellar.anchor.model.Sep31Transaction;
 
@@ -18,6 +21,16 @@ public interface Sep31TransactionStore {
    * @throws SepException if error happens
    */
   Sep31Transaction findByTransactionId(String transactionId) throws SepException;
+
+  /**
+   * Find the transactions by the collection of ids.
+   *
+   * @param transactionIds Collection of ids.
+   * @return List of transactions.
+   * @throws SepException
+   */
+  List<? extends Sep31Transaction> findByTransactionIds(@NonNull Collection<String> transactionIds)
+      throws SepException;
 
   /**
    * Save a transaction.

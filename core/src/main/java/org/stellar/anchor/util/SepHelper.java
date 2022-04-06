@@ -1,5 +1,8 @@
 package org.stellar.anchor.util;
 
+import static org.stellar.anchor.model.TransactionStatus.*;
+import static org.stellar.anchor.util.MathHelper.decimal;
+
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
@@ -8,9 +11,19 @@ import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.exception.AnchorException;
 import org.stellar.anchor.exception.BadRequestException;
 import org.stellar.anchor.exception.SepValidationException;
+import org.stellar.anchor.model.TransactionStatus;
 import org.stellar.sdk.xdr.MemoType;
 
 public class SepHelper {
+  /**
+   * Generates an Id for SEP transactions.
+   *
+   * @return An Id in UUID format
+   */
+  public static String generateSepTransactionId() {
+    return UUID.randomUUID().toString();
+  }
+
   public static String memoTypeString(MemoType memoType) {
     String result = "";
     switch (memoType) {
@@ -42,7 +55,7 @@ public class SepHelper {
 
     BigDecimal sAmount;
     try {
-      sAmount = new BigDecimal(amount);
+      sAmount = decimal(amount);
     } catch (NumberFormatException e) {
       throw new BadRequestException(messagePrefix + "amount is invalid", e);
     }
@@ -60,12 +73,68 @@ public class SepHelper {
           throw new SepValidationException(String.format("unsupported language: %s", lang));
         }
       }
-      // TODO: Implement later
-      // activateLanguage();
     }
   }
 
-  public static String generateTransactionId() {
-    return UUID.randomUUID().toString();
+  /**
+   * Checks if the status is valid in a SEP.
+   *
+   * @param sep The sep number.
+   * @param status The name (String) of the status to be checked.
+   * @return true, if valid. Otherwise false
+   */
+  public static boolean validateTransactionStatus(String status, int sep) {
+    for (TransactionStatus transactionStatus : values()) {
+      if (transactionStatus.getName().equals(status)) {
+        return validateTransactionStatus(transactionStatus, sep);
+      }
+    }
+
+    return false;
   }
+
+  /**
+   * Checks if the status is valid in a SEP.
+   *
+   * @param sep The sep number.
+   * @param status The status to be checked.
+   * @return true, if valid. Otherwise false
+   */
+  public static boolean validateTransactionStatus(TransactionStatus status, int sep) {
+    switch (sep) {
+      case 24:
+        return (sep24Statuses.contains(status));
+      case 31:
+        return (sep31Statuses.contains(status));
+      default:
+        return false;
+    }
+  }
+
+  static List<TransactionStatus> sep24Statuses =
+      List.of(
+          INCOMPLETE,
+          PENDING_USR_TRANSFER_START,
+          PENDING_USR_TRANSFER_COMPLETE,
+          PENDING_EXTERNAL,
+          PENDING_ANCHOR,
+          PENDING_STELLAR,
+          PENDING_TRUST,
+          PENDING_USER,
+          COMPLETED,
+          NO_MARKET,
+          TOO_SMALL,
+          TOO_LARGE,
+          ERROR);
+
+  static List<TransactionStatus> sep31Statuses =
+      List.of(
+          PENDING_SENDER,
+          PENDING_STELLAR,
+          PENDING_CUSTOMER_INFO_UPDATE,
+          PENDING_TRANSACTION_INFO_UPDATE,
+          PENDING_RECEIVER,
+          PENDING_EXTERNAL,
+          COMPLETED,
+          ERROR);
 }

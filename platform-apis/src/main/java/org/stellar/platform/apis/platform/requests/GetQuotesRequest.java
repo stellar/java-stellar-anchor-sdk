@@ -1,12 +1,11 @@
-package org.stellar.platform.apis.api.requests;
+package org.stellar.platform.apis.platform.requests;
 
 import com.google.gson.annotations.SerializedName;
 import java.time.Instant;
 import lombok.Data;
 
 @Data
-public class GetTransactionsRequest {
-  Integer sep;
+public class GetQuotesRequest {
   String order;
 
   @SerializedName("order_by")
@@ -15,5 +14,4 @@ public class GetTransactionsRequest {
   String cursor;
   Instant after;
   Instant before;
-  String status;
 }

@@ -1,13 +1,15 @@
-package org.stellar.platform.apis.api.requests;
+package org.stellar.platform.apis.platform.requests;
 
 import com.google.gson.annotations.SerializedName;
 import java.time.Instant;
+import lombok.Builder;
 import lombok.Data;
 import org.stellar.platform.apis.shared.Amount;
-import org.stellar.platform.apis.shared.Refund;
+import org.stellar.platform.apis.shared.Refunds;
 
 @Data
-public class PatchTransactionsRequest {
+@Builder
+public class PatchTransactionRequest {
   String id;
   String status;
 
@@ -24,7 +26,7 @@ public class PatchTransactionsRequest {
   Instant transferReceivedAt;
 
   String message;
-  Refund refund;
+  Refunds refunds;
 
   @SerializedName("external_transaction_id")
   String externalTransactionId;

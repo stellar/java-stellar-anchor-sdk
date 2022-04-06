@@ -1,6 +1,8 @@
 package org.stellar.anchor.sep31;
 
 import static org.stellar.anchor.dto.sep31.Sep31InfoResponse.AssetResponse;
+import static org.stellar.anchor.sep31.Sep31Helper.amountEquals;
+import static org.stellar.anchor.util.MathHelper.decimal;
 import static org.stellar.anchor.util.SepHelper.*;
 
 import java.math.BigDecimal;
@@ -80,7 +82,7 @@ public class Sep31Service {
 
     Sep31Transaction txn =
         new Sep31TransactionBuilder(sep31TransactionStore)
-            .id(generateTransactionId())
+            .id(generateSepTransactionId())
             .status(TransactionStatus.PENDING_SENDER.toString())
             .stellarAccountId(jwtToken.getAccount())
             .amountInAsset(request.getAssetCode())
@@ -178,8 +180,7 @@ public class Sep31Service {
 
     txn.setAmountOutAsset(txn.getAmountInAsset());
     BigDecimal amountIn =
-        new BigDecimal(txn.getAmountIn())
-            .setScale(asset.getSignificantDecimals(), RoundingMode.HALF_UP);
+        decimal(txn.getAmountIn()).setScale(asset.getSignificantDecimals(), RoundingMode.HALF_UP);
     GetFeeResponse feeResponse =
         feeIntegration.getFee(
             GetFeeRequest.builder()
@@ -191,13 +192,13 @@ public class Sep31Service {
                 .receiverId(request.getReceiverId())
                 .clientDomain(jwtToken.getClientDomain())
                 .build());
-    BigDecimal amountFee = new BigDecimal(feeResponse.getFee().getAmount());
+    BigDecimal amountFee = decimal(feeResponse.getFee().getAmount());
     BigDecimal amountOut = amountIn.subtract(amountFee);
     txn.setAmountOut(String.valueOf(amountOut));
 
     if (quote != null) {
       // Check quote amounts
-      if (!isAmountEquivalent(quote.getSellAmount(), txn.getAmountIn())) {
+      if (!amountEquals(quote.getSellAmount(), txn.getAmountIn())) {
         throw new BadRequestException(
             String.format(
                 "Quote amount is [%s] different from the sending amount [%s]",
@@ -215,10 +216,6 @@ public class Sep31Service {
     }
   }
 
-  boolean isAmountEquivalent(String amount1, String amount2) {
-    return new BigDecimal(amount1).equals(new BigDecimal(amount2));
-  }
-
   void validateKyc(String senderId, String receiverId) throws AnchorException {
     Sep12GetCustomerRequest request = Sep12GetCustomerRequest.builder().id(receiverId).build();
     Sep12GetCustomerResponse receiver = this.customerIntegration.getCustomer(request);
@@ -226,7 +223,8 @@ public class Sep31Service {
       throw new Sep31CustomerInfoNeededException("sep31-receiver");
     }
 
-    // TODO: More of sender / receiver customer validation should be implemented in /fee or future /validate-txn API.
+    // TODO: More of sender / receiver customer validation should be implemented in /fee or future
+    // /validate-txn API.
     // TODO: Check sender if sender id is not null. This is also related to if we require senderId
   }
 

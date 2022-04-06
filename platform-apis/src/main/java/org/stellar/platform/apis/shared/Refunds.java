@@ -5,7 +5,7 @@ import java.time.Instant;
 import lombok.Data;
 
 @Data
-public class Refund {
+public class Refunds {
   String type;
   Amount amount;
 
