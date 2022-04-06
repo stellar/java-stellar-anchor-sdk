@@ -10,6 +10,10 @@ RUN apt-get update && \
 apt-get install -y --no-install-recommends \
         openjdk-11-jre
 
+#temporary for testing reece
+apt-get install -y net-tools
+apt-get install -y wget
+
 RUN mkdir /app
 COPY --from=build /code/platform/build/libs/platform*.jar /app/anchor-platform.jar
 
