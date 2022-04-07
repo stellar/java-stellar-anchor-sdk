@@ -1,9 +1,12 @@
 package org.stellar.anchor.sep38;
 
+import static org.stellar.anchor.util.MathHelper.decimal;
+import static org.stellar.anchor.util.SepHelper.validateAmount;
+
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -15,6 +18,10 @@ import org.stellar.anchor.dto.sep38.*;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.event.models.QuoteEvent;
 import org.stellar.anchor.exception.*;
+import org.stellar.anchor.exception.AnchorException;
+import org.stellar.anchor.exception.BadRequestException;
+import org.stellar.anchor.exception.NotFoundException;
+import org.stellar.anchor.exception.ServerErrorException;
 import org.stellar.anchor.integration.rate.GetRateRequest;
 import org.stellar.anchor.integration.rate.GetRateResponse;
 import org.stellar.anchor.integration.rate.RateIntegration;
@@ -118,23 +125,6 @@ public class Sep38Service {
     }
   }
 
-  public void validateAmount(String prefix, String amount) throws AnchorException {
-    // assetName
-    if (Objects.toString(amount, "").isEmpty()) {
-      throw new BadRequestException(prefix + "amount cannot be empty");
-    }
-
-    BigDecimal sAmount;
-    try {
-      sAmount = new BigDecimal(amount);
-    } catch (NumberFormatException e) {
-      throw new BadRequestException(prefix + "amount is invalid", e);
-    }
-    if (sAmount.signum() < 1) {
-      throw new BadRequestException(prefix + "amount should be positive");
-    }
-  }
-
   public GetPriceResponse getPrice(
       String sellAssetName,
       String sellAmount,
@@ -207,13 +197,13 @@ public class Sep38Service {
         GetPriceResponse.builder().price(rateResponse.getRate().getPrice());
 
     // Calculate amounts: sellAmount = buyAmount*price or buyAmount = sellAmount/price
-    BigDecimal bPrice = new BigDecimal(rateResponse.getRate().getPrice());
+    BigDecimal bPrice = decimal(rateResponse.getRate().getPrice());
     BigDecimal bSellAmount, bBuyAmount;
     if (sellAmount != null) {
-      bSellAmount = new BigDecimal(sellAmount);
+      bSellAmount = decimal(sellAmount);
       bBuyAmount = bSellAmount.divide(bPrice, buyAsset.getDecimals(), RoundingMode.HALF_DOWN);
     } else {
-      bBuyAmount = new BigDecimal(buyAmount);
+      bBuyAmount = decimal(buyAmount);
       bSellAmount = bBuyAmount.multiply(bPrice);
     }
     builder =
@@ -309,7 +299,7 @@ public class Sep38Service {
     // expireAfter
     if (!Objects.toString(request.getExpireAfter(), "").isEmpty()) {
       try {
-        LocalDateTime.parse(request.getExpireAfter());
+        Instant.parse(request.getExpireAfter());
       } catch (Exception ex) {
         throw new BadRequestException("expire_after is invalid");
       }
@@ -341,13 +331,13 @@ public class Sep38Service {
             .buyAsset(request.getBuyAssetName());
 
     // Calculate amounts: sellAmount = buyAmount*price or buyAmount = sellAmount/price
-    BigDecimal bPrice = new BigDecimal(rate.getPrice());
+    BigDecimal bPrice = decimal(rate.getPrice());
     BigDecimal bSellAmount, bBuyAmount;
     if (request.getSellAmount() != null) {
-      bSellAmount = new BigDecimal(request.getSellAmount());
+      bSellAmount = decimal(request.getSellAmount());
       bBuyAmount = bSellAmount.divide(bPrice, buyAsset.getDecimals(), RoundingMode.HALF_UP);
     } else {
-      bBuyAmount = new BigDecimal(request.getBuyAmount());
+      bBuyAmount = decimal(request.getBuyAmount());
       bSellAmount = bBuyAmount.multiply(bPrice);
     }
     String sellAmount = formatAmount(bSellAmount, sellAsset.getDecimals());
@@ -366,7 +356,7 @@ public class Sep38Service {
             .buyAsset(request.getBuyAssetName())
             .buyAmount(buyAmount)
             .buyDeliveryMethod(request.getBuyDeliveryMethod())
-            .createdAt(LocalDateTime.now())
+            .createdAt(Instant.now())
             .creatorAccountId(account)
             .creatorMemo(memo)
             .creatorMemoType(memoType)
@@ -420,7 +410,8 @@ public class Sep38Service {
 
     // validate consistency between quote and jwt token
     Sep38Quote quote = this.sep38QuoteStore.findByQuoteId(quoteId);
-    if (!StringUtils.equals(quote.getCreatorAccountId(), account)
+    if (quote == null
+        || !StringUtils.equals(quote.getCreatorAccountId(), account)
         || !StringUtils.equals(memo, quote.getCreatorMemo())
         || !StringUtils.equals(memoType, quote.getCreatorMemoType())) {
       throw new NotFoundException("quote not found");

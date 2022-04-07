@@ -1,12 +1,15 @@
 package org.stellar.anchor.platform;
 
+import com.google.gson.Gson;
 import java.util.concurrent.TimeUnit;
 import okhttp3.OkHttpClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.stellar.anchor.config.Sep12Config;
+import org.stellar.anchor.config.Sep31Config;
 import org.stellar.anchor.config.Sep38Config;
 import org.stellar.anchor.integration.customer.CustomerIntegration;
+import org.stellar.anchor.integration.fee.FeeIntegration;
 import org.stellar.anchor.integration.rate.RateIntegration;
 
 @Configuration
@@ -22,13 +25,19 @@ public class IntegrationConfig {
   }
 
   @Bean
-  CustomerIntegration customerIntegration(Sep12Config sep12Config, OkHttpClient httpClient) {
-    return new PlatformCustomerIntegration(
-        sep12Config.getCustomerIntegrationEndPoint(), httpClient);
+  CustomerIntegration customerIntegration(
+      Sep12Config sep12Config, OkHttpClient httpClient, Gson gson) {
+    return new RestCustomerIntegration(
+        sep12Config.getCustomerIntegrationEndPoint(), httpClient, gson);
   }
 
   @Bean
-  RateIntegration rateIntegration(Sep38Config sep38Config, OkHttpClient httpClient) {
-    return new PlatformRateIntegration(sep38Config.getQuoteIntegrationEndPoint(), httpClient);
+  RateIntegration rateIntegration(Sep38Config sep38Config, OkHttpClient httpClient, Gson gson) {
+    return new PlatformRateIntegration(sep38Config.getQuoteIntegrationEndPoint(), httpClient, gson);
+  }
+
+  @Bean
+  FeeIntegration feeIntegration(Sep31Config sep31Config, Gson gson) {
+    return new RestFeeIntegration(sep31Config.getFeeIntegrationEndPoint(), httpClient(), gson);
   }
 }

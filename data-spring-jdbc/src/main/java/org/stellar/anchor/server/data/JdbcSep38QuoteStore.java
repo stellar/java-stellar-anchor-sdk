@@ -1,6 +1,6 @@
 package org.stellar.anchor.server.data;
 
-import org.jetbrains.annotations.NotNull;
+import lombok.NonNull;
 import org.stellar.anchor.exception.SepException;
 import org.stellar.anchor.model.Sep38Quote;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
@@ -18,7 +18,7 @@ public class JdbcSep38QuoteStore implements Sep38QuoteStore {
   }
 
   @Override
-  public Sep38Quote findByQuoteId(@NotNull String quoteId) {
+  public Sep38Quote findByQuoteId(@NonNull String quoteId) {
     return quoteRepo.findById(quoteId).orElse(null);
   }
 
@@ -28,7 +28,6 @@ public class JdbcSep38QuoteStore implements Sep38QuoteStore {
       throw new SepException(
           sep38Quote.getClass() + "  is not a sub-type of " + JdbcSep38Quote.class);
     }
-    JdbcSep38Quote quote = (JdbcSep38Quote) sep38Quote;
-    return quoteRepo.save(quote);
+    return quoteRepo.save((JdbcSep38Quote) sep38Quote);
   }
 }

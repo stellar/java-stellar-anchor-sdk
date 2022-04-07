@@ -1,15 +1,15 @@
 package org.stellar.anchor.platform
 
+import java.time.Instant
+import java.time.format.DateTimeFormatter
 import kotlin.test.assertEquals
 import org.stellar.anchor.util.Sep1Helper
 
 lateinit var sep38: Sep38Client
-lateinit var jwtStr: String
 
 fun sep38TestAll(toml: Sep1Helper.TomlContent, jwt: String) {
-  jwtStr = jwt
   println("Performing SEP38 tests...")
-  sep38 = Sep38Client(toml.getString("ANCHOR_QUOTE_SERVER"))
+  sep38 = Sep38Client(toml.getString("ANCHOR_QUOTE_SERVER"), jwt)
 
   sep38TestHappyPath()
 }
@@ -36,12 +36,24 @@ fun sep38TestHappyPath() {
   printResponse(price)
 
   // POST {SEP38}/quote
-  printRequest("Calling GET /quote")
-  val postQuote =
+  printRequest("Calling POST /quote")
+  var postQuote =
     sep38.postQuote(
       "iso4217:USD",
       "100",
       "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+    )
+  printResponse(postQuote)
+
+  // POST {SEP38}/quote with `expires_after`
+  printRequest("Calling POST /quote")
+  val expiresAfter = DateTimeFormatter.ISO_INSTANT.parse("2022-04-30T02:15:44.000Z", Instant::from)
+  postQuote =
+    sep38.postQuote(
+      "iso4217:USD",
+      "100",
+      "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+      expiresAfter
     )
   printResponse(postQuote)
 

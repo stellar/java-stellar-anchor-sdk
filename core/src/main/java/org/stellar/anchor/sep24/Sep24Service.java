@@ -4,12 +4,12 @@ import static org.stellar.anchor.model.Sep24Transaction.Kind.DEPOSIT;
 import static org.stellar.anchor.model.Sep24Transaction.Kind.WITHDRAWAL;
 import static org.stellar.anchor.sep9.Sep9Fields.extractSep9Fields;
 import static org.stellar.anchor.util.Log.shorter;
+import static org.stellar.anchor.util.MathHelper.decimal;
 import static org.stellar.anchor.util.MemoHelper.makeMemo;
-import static org.stellar.anchor.util.SepUtil.memoTypeString;
+import static org.stellar.anchor.util.SepHelper.*;
 import static org.stellar.sdk.xdr.MemoType.MEMO_ID;
 
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.net.MalformedURLException;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -27,6 +27,7 @@ import org.stellar.anchor.exception.SepNotFoundException;
 import org.stellar.anchor.exception.SepValidationException;
 import org.stellar.anchor.model.Sep24Transaction;
 import org.stellar.anchor.model.Sep24TransactionBuilder;
+import org.stellar.anchor.model.TransactionStatus;
 import org.stellar.anchor.sep10.JwtService;
 import org.stellar.anchor.sep10.JwtToken;
 import org.stellar.anchor.util.Log;
@@ -73,7 +74,7 @@ public class Sep24Service {
     String strAmount = withdrawRequest.get("amount");
     HashMap<String, String> sep9Fields = extractSep9Fields(withdrawRequest);
 
-    validateAndActivateLanguage(lang);
+    validateLanguage(appConfig, lang);
 
     if (assetCode == null) {
       throw new SepValidationException("missing 'asset_code'");
@@ -95,10 +96,8 @@ public class Sep24Service {
 
     // Validate amount
     if (strAmount != null) {
-      if (new BigDecimal(strAmount).compareTo(new BigDecimal(asset.getWithdraw().getMinAmount()))
-              < 0
-          || new BigDecimal(strAmount).compareTo(new BigDecimal(asset.getWithdraw().getMaxAmount()))
-              > 0) {
+      if (decimal(strAmount).compareTo(decimal(asset.getWithdraw().getMinAmount())) < 0
+          || decimal(strAmount).compareTo(decimal(asset.getWithdraw().getMaxAmount())) > 0) {
         throw new SepValidationException(String.format("invalid amount: %s", strAmount));
       }
     }
@@ -114,7 +113,7 @@ public class Sep24Service {
     Sep24Transaction txn =
         new Sep24TransactionBuilder(txnStore)
             .transactionId(txnId)
-            .status(Sep24Transaction.Status.INCOMPLETE.toString())
+            .status(TransactionStatus.INCOMPLETE.toString())
             .kind(Sep24Transaction.Kind.WITHDRAWAL.toString())
             .amountIn(strAmount)
             .amountOut(strAmount)
@@ -175,7 +174,7 @@ public class Sep24Service {
       claimableSupported = Boolean.parseBoolean(strClaimableSupported.toLowerCase(Locale.ROOT));
     }
 
-    validateAndActivateLanguage(lang);
+    validateLanguage(appConfig, lang);
 
     if (assetCode == null) {
       throw new SepValidationException("missing 'asset_code'");
@@ -199,9 +198,8 @@ public class Sep24Service {
 
     // Validate amount
     if (strAmount != null) {
-      if (new BigDecimal(strAmount).compareTo(new BigDecimal(asset.getDeposit().getMinAmount())) < 0
-          || new BigDecimal(strAmount).compareTo(new BigDecimal(asset.getDeposit().getMaxAmount()))
-              > 0) {
+      if (decimal(strAmount).compareTo(decimal(asset.getDeposit().getMinAmount())) < 0
+          || decimal(strAmount).compareTo(decimal(asset.getDeposit().getMaxAmount())) > 0) {
         throw new SepValidationException(String.format("invalid amount: %s", strAmount));
       }
     }
@@ -213,11 +211,11 @@ public class Sep24Service {
           String.format("invalid account: %s", destinationAccount), ex);
     }
 
-    String txnId = UUID.randomUUID().toString();
+    String txnId = generateSepTransactionId();
     Sep24Transaction txn =
         new Sep24TransactionBuilder(txnStore)
             .transactionId(txnId)
-            .status(Sep24Transaction.Status.INCOMPLETE.toString())
+            .status(TransactionStatus.INCOMPLETE.toString())
             .kind(Sep24Transaction.Kind.DEPOSIT.toString())
             .amountIn(strAmount)
             .amountOut(strAmount)
@@ -381,18 +379,5 @@ public class Sep24Service {
     sep9Fields.forEach(builder::addParameter);
 
     return builder.build().toURL().toString();
-  }
-
-  void validateAndActivateLanguage(String lang) throws SepValidationException {
-    if (lang != null) {
-      List<String> languages = appConfig.getLanguages();
-      if (languages != null && languages.size() > 0) {
-        if (languages.stream().noneMatch(l -> l.equalsIgnoreCase(lang))) {
-          throw new SepValidationException(String.format("unsupported language: %s", lang));
-        }
-      }
-      // TODO: Implement later
-      // activateLanguage();
-    }
   }
 }

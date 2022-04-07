@@ -29,6 +29,7 @@ jobs:
         cat /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/platform/build/reports/tests/test/index.html
         echo *** Anchor reference server test report ***
         cat /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/anchor-reference-server/build/reports/tests/test/index.html
+
   build_and_push_anchor_platform:
     needs: [build_and_test]
     runs-on: ubuntu-latest
@@ -53,3 +54,31 @@ jobs:
         push: true
         tags: stellar/anchor-platform:${{ steps.get_tag.outputs.TAG }}
         file: Dockerfile
+
+  sep_validation_suite:
+    if: github.event.pull_request != null
+    needs: [build_and_test]
+    runs-on: ubuntu-latest
+    name: Validate SEPs (1, 38)
+    steps:
+      - uses: actions/checkout@v1
+
+      # Find the PR associated with this push, if there is one.
+      - name: Find PR number
+        uses: jwalton/gh-find-current-pr@465461f2b0e83dd1a57b3a04e7c81050705f7391
+        id: findPr
+        with:
+          # Can be "open", "closed", or "all".  Defaults to "open".
+          state: open
+
+      - name: Install Node
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14
+
+      - name: Run Validation Tool
+        env:
+          PR: ${{ steps.findPr.outputs.pr }}
+        run: |
+          npm install -g @stellar/anchor-tests
+          stellar-anchor-tests --home-domain https://anchor-sep-pr$PR.previews.kube001.services.stellar-ops.com --seps 1 38

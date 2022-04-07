@@ -20,9 +20,9 @@ import shadow.com.google.common.reflect.TypeToken;
 public class PlatformRateIntegration implements RateIntegration {
   private final String anchorEndpoint;
   private final OkHttpClient httpClient;
-  private final Gson gson = new Gson();
+  private final Gson gson;
 
-  public PlatformRateIntegration(String anchorEndpoint, OkHttpClient httpClient) {
+  public PlatformRateIntegration(String anchorEndpoint, OkHttpClient httpClient, Gson gson) {
     try {
       new URI(anchorEndpoint);
     } catch (URISyntaxException e) {
@@ -31,6 +31,7 @@ public class PlatformRateIntegration implements RateIntegration {
 
     this.anchorEndpoint = anchorEndpoint;
     this.httpClient = httpClient;
+    this.gson = gson;
   }
 
   @Override
@@ -52,7 +53,7 @@ public class PlatformRateIntegration implements RateIntegration {
     String responseContent = getContent(response);
 
     if (response.code() != HttpStatus.OK.value()) {
-      throw httpError(responseContent, response.code());
+      throw httpError(responseContent, response.code(), gson);
     }
 
     GetRateResponse getRateResponse;

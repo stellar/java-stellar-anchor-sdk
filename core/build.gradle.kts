@@ -13,6 +13,7 @@ dependencies {
   compileOnly(libs.slf4j.api)
   api(libs.lombok)
 
+  implementation("commons-beanutils:commons-beanutils:1.9.4")
   implementation(libs.apache.commons.lang3)
   implementation(libs.log4j.core)
   implementation(libs.httpclient)
@@ -24,6 +25,9 @@ dependencies {
   implementation(libs.reactor.core)
   implementation(libs.javax.jaxb.api)
   implementation(libs.java.stellar.sdk)
+
+  implementation(project(":platform-apis"))
+
 
   // Lombok should be used by all sub-projects to reduce Java verbosity
   annotationProcessor(libs.lombok)

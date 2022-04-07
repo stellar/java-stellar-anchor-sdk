@@ -1,6 +1,6 @@
 package org.stellar.anchor.paymentservice;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.Map;
 import lombok.Data;
 
@@ -15,8 +15,8 @@ public class Payment {
 
   Status status;
   String errorCode;
-  Date createdAt;
-  Date updatedAt;
+  Instant createdAt;
+  Instant updatedAt;
   Map<String, ?> originalResponse;
 
   public enum Status {

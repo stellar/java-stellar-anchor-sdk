@@ -1,28 +1,30 @@
 package org.stellar.platform.apis.callbacks.requests;
 
 import com.google.gson.annotations.SerializedName;
+import lombok.Builder;
 import lombok.Data;
 
 @Data
+@Builder
 public class GetFeeRequest {
-  @SerializedName("sell_asset")
-  String sellAsset;
+  @SerializedName("send_asset")
+  String sendAsset;
 
-  @SerializedName("buy_asset")
-  String buyAsset;
+  @SerializedName("receive_asset")
+  String receiveAsset;
 
-  @SerializedName("sell_amount")
-  String sellAmount;
+  @SerializedName("send_amount")
+  String sendAmount;
 
-  @SerializedName("buy_amount")
-  String buyAmount;
+  @SerializedName("receive_amount")
+  String receiveAmount;
 
   @SerializedName("client_domain")
   String clientDomain;
 
-  String account;
-  String memo;
+  @SerializedName("sender_id")
+  String senderId;
 
-  @SerializedName("memo_type")
-  String memoType;
+  @SerializedName("receiver_id")
+  String receiverId;
 }

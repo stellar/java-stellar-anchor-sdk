@@ -12,6 +12,7 @@ import org.stellar.anchor.config.Sep24Config;
 import org.stellar.anchor.model.Sep24Transaction;
 import org.stellar.anchor.sep10.JwtService;
 import org.stellar.anchor.sep10.JwtToken;
+import org.stellar.anchor.util.GsonUtils;
 
 @Data
 public class TransactionResponse {
@@ -71,7 +72,7 @@ public class TransactionResponse {
   @SerializedName("muxed_account")
   String muxedAccount;
 
-  static final Gson gson = new Gson();
+  static final Gson gson = GsonUtils.getInstance();
 
   static String constructMoreInfoUrl(
       JwtService jwtService, Sep24Config sep24Config, Sep24Transaction txn)

@@ -1,7 +1,7 @@
 package org.stellar.platform.apis.callbacks.requests;
 
 import com.google.gson.annotations.SerializedName;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import lombok.Builder;
 import lombok.Data;
 
@@ -32,7 +32,7 @@ public class GetRateRequest {
   String buyDeliveryMethod;
 
   @SerializedName("expires_after")
-  LocalDateTime expiresAfter;
+  Instant expiresAfter;
 
   @SerializedName("client_domain")
   String clientDomain;

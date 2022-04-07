@@ -1,7 +1,6 @@
 package org.stellar.anchor.paymentservice.circle
 
 import com.google.gson.Gson
-import com.google.gson.GsonBuilder
 import java.io.IOException
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
@@ -14,6 +13,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.stellar.anchor.paymentservice.circle.model.CircleTransfer
 import org.stellar.anchor.paymentservice.circle.util.NettyHttpClient
+import org.stellar.anchor.util.GsonUtils
 import reactor.netty.http.client.HttpClient
 
 class StellarReconciliationTest {
@@ -33,7 +33,7 @@ class StellarReconciliationTest {
   @Throws(IOException::class)
   fun setUp() {
     gson =
-      GsonBuilder()
+      GsonUtils.builder()
         .registerTypeAdapter(CircleTransfer::class.java, CircleTransfer.Serialization())
         .create()
   }

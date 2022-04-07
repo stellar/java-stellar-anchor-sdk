@@ -2,28 +2,42 @@ package org.stellar.anchor.platform
 
 import org.stellar.anchor.dto.sep12.Sep12PutCustomerRequest
 import org.stellar.anchor.dto.sep12.Sep12Status
+import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.Sep1Helper
 
-lateinit var sep12: Sep12Client
+lateinit var sep12Client: Sep12Client
+
+const val testCustomerJson =
+  """
+{
+  "first_name": "John",
+  "last_name": "Doe",
+  "address": "123 Washington Street",
+  "city": "San Francisco",
+  "state_or_province": "CA",
+  "address_country_code": "US"
+}
+"""
 
 fun sep12TestAll(toml: Sep1Helper.TomlContent, jwt: String) {
   println("Performing SEP12 tests...")
-  sep12 = Sep12Client(toml.getString("KYC_SERVER"), jwt)
+  sep12Client = Sep12Client(toml.getString("KYC_SERVER"), jwt)
 
   sep12TestHappyPath()
 }
 
 fun sep12TestHappyPath() {
-  val customer = getTestPutCustomerRequest("test_put_customer_request.json")
+  val customer =
+    GsonUtils.getInstance().fromJson(testCustomerJson, Sep12PutCustomerRequest::class.java)
 
   // Upload a customer
   printRequest("Calling PUT /customer", customer)
-  var pr = sep12.putCustomer(customer)
+  var pr = sep12Client.putCustomer(customer)
   printResponse(pr)
 
   // make sure the customer was uploaded correctly.
   printRequest("Calling GET /customer", customer)
-  var gr = sep12.getCustomer(pr!!.id)
+  var gr = sep12Client.getCustomer(pr!!.id)
   printResponse(gr)
 
   assert(gr!!.id.equals(pr.id))
@@ -36,12 +50,12 @@ fun sep12TestHappyPath() {
 
   // Modify the customer
   printRequest("Calling PUT /customer", customer)
-  pr = sep12.putCustomer(customer)
+  pr = sep12Client.putCustomer(customer)
   printResponse(pr)
 
   // Make sure the customer is modified correctly.
   printRequest("Calling GET /customer", customer)
-  gr = sep12.getCustomer(pr!!.id)
+  gr = sep12Client.getCustomer(pr!!.id)
   printResponse(gr)
 
   assert(gr!!.id.equals(pr.id))
@@ -49,15 +63,8 @@ fun sep12TestHappyPath() {
 
   // Delete the customer
   printRequest("Calling DELETE /customer/${CLIENT_WALLET_ACCOUNT}")
-  val code = sep12.deleteCustomer(CLIENT_WALLET_ACCOUNT)
+  val code = sep12Client.deleteCustomer(CLIENT_WALLET_ACCOUNT)
   printResponse(code)
   // currently, not implemented
   assert(code == 500)
-}
-
-fun getTestPutCustomerRequest(resourcePath: String): Sep12PutCustomerRequest {
-  return gson.fromJson(
-    resourceAsString("classpath:/org/stellar/anchor/platform/sep12/$resourcePath"),
-    Sep12PutCustomerRequest::class.java
-  )
 }

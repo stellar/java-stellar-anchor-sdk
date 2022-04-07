@@ -21,19 +21,26 @@ import org.stellar.anchor.config.Sep10Config;
 import org.stellar.anchor.config.Sep1Config;
 import org.stellar.anchor.config.Sep38Config;
 import org.stellar.anchor.event.EventService;
+import org.stellar.anchor.config.*;
 import org.stellar.anchor.exception.SepNotFoundException;
 import org.stellar.anchor.filter.Sep10TokenFilter;
 import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.integration.customer.CustomerIntegration;
+import org.stellar.anchor.integration.fee.FeeIntegration;
 import org.stellar.anchor.integration.rate.RateIntegration;
 import org.stellar.anchor.sep1.ResourceReader;
 import org.stellar.anchor.sep1.Sep1Service;
 import org.stellar.anchor.sep10.JwtService;
 import org.stellar.anchor.sep10.Sep10Service;
 import org.stellar.anchor.sep12.Sep12Service;
+import org.stellar.anchor.sep31.Sep31Service;
+import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
 import org.stellar.anchor.sep38.Sep38Service;
-import org.stellar.anchor.server.data.*;
+import org.stellar.anchor.server.data.JdbcSep31TransactionRepo;
+import org.stellar.anchor.server.data.JdbcSep31TransactionStore;
+import org.stellar.anchor.server.data.JdbcSep38QuoteRepo;
+import org.stellar.anchor.server.data.JdbcSep38QuoteStore;
 
 /** SEP configurations */
 @Configuration
@@ -51,6 +58,8 @@ public class SepConfig {
     FilterRegistrationBean<Sep10TokenFilter> registrationBean = new FilterRegistrationBean<>();
     registrationBean.setFilter(new Sep10TokenFilter(sep10Config, jwtService));
     registrationBean.addUrlPatterns("/sep12/*");
+    registrationBean.addUrlPatterns("/sep31/*");
+    registrationBean.addUrlPatterns("/sep38/quote");
     registrationBean.addUrlPatterns("/sep38/quote/*");
     return registrationBean;
   }
@@ -105,6 +114,30 @@ public class SepConfig {
   @Bean
   Sep12Service sep12Service(CustomerIntegration customerIntegration) {
     return new Sep12Service(customerIntegration);
+  }
+
+  @Bean
+  Sep31Service sep31Service(
+      AppConfig appConfig,
+      Sep31Config sep31Config,
+      Sep31TransactionStore sep31TransactionStore,
+      Sep38QuoteStore sep38QuoteStore,
+      AssetService assetService,
+      FeeIntegration feeIntegration,
+      CustomerIntegration customerIntegration) {
+    return new Sep31Service(
+        appConfig,
+        sep31Config,
+        sep31TransactionStore,
+        sep38QuoteStore,
+        assetService,
+        feeIntegration,
+        customerIntegration);
+  }
+
+  @Bean
+  JdbcSep31TransactionStore sep31TransactionStore(JdbcSep31TransactionRepo txnRepo) {
+    return new JdbcSep31TransactionStore(txnRepo);
   }
 
   @Bean
