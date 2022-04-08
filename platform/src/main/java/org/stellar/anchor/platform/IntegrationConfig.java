@@ -11,6 +11,9 @@ import org.stellar.anchor.config.Sep38Config;
 import org.stellar.anchor.integration.customer.CustomerIntegration;
 import org.stellar.anchor.integration.fee.FeeIntegration;
 import org.stellar.anchor.integration.rate.RateIntegration;
+import org.stellar.anchor.platform.callback.RestCustomerIntegration;
+import org.stellar.anchor.platform.callback.RestFeeIntegration;
+import org.stellar.anchor.platform.callback.RestRateIntegration;
 
 @Configuration
 public class IntegrationConfig {
@@ -33,7 +36,7 @@ public class IntegrationConfig {
 
   @Bean
   RateIntegration rateIntegration(Sep38Config sep38Config, OkHttpClient httpClient, Gson gson) {
-    return new PlatformRateIntegration(sep38Config.getQuoteIntegrationEndPoint(), httpClient, gson);
+    return new RestRateIntegration(sep38Config.getQuoteIntegrationEndPoint(), httpClient, gson);
   }
 
   @Bean

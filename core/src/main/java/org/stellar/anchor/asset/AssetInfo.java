@@ -13,6 +13,7 @@ public class AssetInfo {
 
   @SerializedName("distribution_account")
   String distributionAccount;
+
   Schema schema;
 
   @SerializedName("significant_decimals")
