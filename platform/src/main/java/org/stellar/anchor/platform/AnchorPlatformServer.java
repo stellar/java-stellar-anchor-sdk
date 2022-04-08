@@ -1,9 +1,6 @@
 package org.stellar.anchor.platform;
 
-import static org.springframework.boot.Banner.Mode.OFF;
-
 import com.google.gson.Gson;
-import java.util.Map;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
@@ -18,6 +15,10 @@ import org.stellar.anchor.platform.configurator.PlatformAppConfigurator;
 import org.stellar.anchor.platform.configurator.PropertiesReader;
 import org.stellar.anchor.platform.configurator.SpringFrameworkConfigurator;
 import org.stellar.anchor.util.GsonUtils;
+
+import java.util.Map;
+
+import static org.springframework.boot.Banner.Mode.OFF;
 
 @SpringBootApplication
 @EnableJpaRepositories(basePackages = {"org.stellar.anchor.server.data"})
