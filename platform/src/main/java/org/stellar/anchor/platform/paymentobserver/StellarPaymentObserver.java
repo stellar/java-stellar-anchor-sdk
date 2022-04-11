@@ -1,11 +1,9 @@
 package org.stellar.anchor.platform.paymentobserver;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import org.stellar.anchor.util.Log;
-import org.stellar.sdk.KeyPair;
 import org.stellar.sdk.Server;
 import org.stellar.sdk.requests.EventListener;
 import org.stellar.sdk.requests.PaymentsRequestBuilder;
@@ -13,7 +11,6 @@ import org.stellar.sdk.requests.SSEStream;
 import org.stellar.sdk.responses.operations.OperationResponse;
 import org.stellar.sdk.responses.operations.PaymentOperationResponse;
 import shadow.com.google.common.base.Optional;
-import shadow.com.google.gson.Gson;
 
 public class StellarPaymentObserver {
   final Server server;
