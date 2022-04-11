@@ -16,9 +16,9 @@ public interface Sep31TransactionStore {
   /**
    * Find the Sep31Transaction by transaction_id
    *
-   * @param transactionId The transaction ID.
+   * @param transactionId The transaction ID
    * @return The transaction document. null if not found.
-   * @throws SepException if error happens.
+   * @throws SepException if error happens
    */
   Sep31Transaction findByTransactionId(String transactionId) throws SepException;
 
@@ -27,7 +27,7 @@ public interface Sep31TransactionStore {
    *
    * @param transactionIds Collection of ids.
    * @return List of transactions.
-   * @throws SepException if error happens.
+   * @throws SepException
    */
   List<? extends Sep31Transaction> findByTransactionIds(@NonNull Collection<String> transactionIds)
       throws SepException;
@@ -37,7 +37,7 @@ public interface Sep31TransactionStore {
    *
    * @param sep31Transaction The transaction to be saved.
    * @return The saved transaction.
-   * @throws SepException if error happens.
+   * @throws SepException SepException.
    */
   @SuppressWarnings("UnusedReturnValue")
   Sep31Transaction save(Sep31Transaction sep31Transaction) throws SepException;

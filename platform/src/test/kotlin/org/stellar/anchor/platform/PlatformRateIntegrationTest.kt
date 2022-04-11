@@ -19,13 +19,12 @@ import org.stellar.anchor.exception.NotFoundException
 import org.stellar.anchor.exception.ServerErrorException
 import org.stellar.anchor.integration.rate.GetRateRequest
 import org.stellar.anchor.integration.rate.GetRateResponse
-import org.stellar.anchor.platform.callback.RestRateIntegration
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.OkHttpUtil
 
-class RestRateIntegrationTest {
+class PlatformRateIntegrationTest {
   private lateinit var server: MockWebServer
-  private lateinit var rateIntegration: RestRateIntegration
+  private lateinit var rateIntegration: PlatformRateIntegration
   private val gson = GsonUtils.getInstance()
 
   @BeforeEach
@@ -34,7 +33,7 @@ class RestRateIntegrationTest {
     server = MockWebServer()
     server.start()
     rateIntegration =
-      RestRateIntegration(
+      PlatformRateIntegration(
         server.url("").toString(),
         OkHttpUtil.buildClient(),
         GsonUtils.getInstance()

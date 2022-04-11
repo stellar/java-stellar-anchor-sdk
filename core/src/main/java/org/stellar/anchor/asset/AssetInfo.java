@@ -10,10 +10,6 @@ import lombok.Data;
 public class AssetInfo {
   String code;
   String issuer;
-
-  @SerializedName("distribution_account")
-  String distributionAccount;
-
   Schema schema;
 
   @SerializedName("significant_decimals")

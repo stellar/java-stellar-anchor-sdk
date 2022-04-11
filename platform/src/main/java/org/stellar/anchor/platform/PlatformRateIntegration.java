@@ -1,4 +1,4 @@
-package org.stellar.anchor.platform.callback;
+package org.stellar.anchor.platform;
 
 import static okhttp3.HttpUrl.get;
 import static org.stellar.anchor.platform.PlatformIntegrationHelper.*;
@@ -8,38 +8,35 @@ import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
-import okhttp3.HttpUrl;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
+import okhttp3.*;
+import okhttp3.HttpUrl.Builder;
 import org.springframework.http.HttpStatus;
-import org.stellar.anchor.exception.AnchorException;
-import org.stellar.anchor.exception.ServerErrorException;
-import org.stellar.anchor.integration.fee.FeeIntegration;
-import org.stellar.platform.apis.callbacks.requests.GetFeeRequest;
-import org.stellar.platform.apis.callbacks.responses.GetFeeResponse;
+import org.stellar.anchor.exception.*;
+import org.stellar.anchor.integration.rate.GetRateRequest;
+import org.stellar.anchor.integration.rate.GetRateResponse;
+import org.stellar.anchor.integration.rate.RateIntegration;
 import shadow.com.google.common.reflect.TypeToken;
 
-public class RestFeeIntegration implements FeeIntegration {
-  private final String feeIntegrationEndPoint;
+public class PlatformRateIntegration implements RateIntegration {
+  private final String anchorEndpoint;
   private final OkHttpClient httpClient;
   private final Gson gson;
 
-  public RestFeeIntegration(String feeIntegrationEndPoint, OkHttpClient okHttpClient, Gson gson) {
+  public PlatformRateIntegration(String anchorEndpoint, OkHttpClient httpClient, Gson gson) {
     try {
-      new URI(feeIntegrationEndPoint);
+      new URI(anchorEndpoint);
     } catch (URISyntaxException e) {
       throw new IllegalArgumentException("invalid 'baseUri'");
     }
 
-    this.feeIntegrationEndPoint = feeIntegrationEndPoint;
-    this.httpClient = okHttpClient;
+    this.anchorEndpoint = anchorEndpoint;
+    this.httpClient = httpClient;
     this.gson = gson;
   }
 
   @Override
-  public GetFeeResponse getFee(GetFeeRequest request) throws AnchorException {
-    HttpUrl.Builder urlBuilder = get(feeIntegrationEndPoint).newBuilder().addPathSegment("fee");
+  public GetRateResponse getRate(GetRateRequest request) throws AnchorException {
+    Builder urlBuilder = get(anchorEndpoint).newBuilder().addPathSegment("rate");
     Type type = new TypeToken<Map<String, ?>>() {}.getType();
     Map<String, String> paramsMap = gson.fromJson(gson.toJson(request), type);
     paramsMap.forEach(
@@ -59,13 +56,22 @@ public class RestFeeIntegration implements FeeIntegration {
       throw httpError(responseContent, response.code(), gson);
     }
 
-    GetFeeResponse feeResponse;
+    GetRateResponse getRateResponse;
     try {
-      feeResponse = gson.fromJson(responseContent, GetFeeResponse.class);
+      getRateResponse = gson.fromJson(responseContent, GetRateResponse.class);
     } catch (Exception e) { // cannot read body from response
       throw new ServerErrorException("internal server error", e);
     }
 
-    return feeResponse;
+    GetRateResponse.Rate rate = getRateResponse.getRate();
+    if (rate == null || rate.getPrice() == null) {
+      throw new ServerErrorException("internal server error");
+    }
+    if (request.getType() == GetRateRequest.Type.FIRM) {
+      if (rate.getId() == null || rate.getExpiresAt() == null) {
+        throw new ServerErrorException("internal server error");
+      }
+    }
+    return getRateResponse;
   }
 }

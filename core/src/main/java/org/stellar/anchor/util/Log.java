@@ -107,21 +107,11 @@ public class Log {
   }
 
   /**
-   * Send message to ERROR log.
-   *
-   * @param msg The message
-   */
-  public static void error(String msg) {
-    Logger logger = getLogger();
-    logger.error(msg);
-  }
-
-  /**
    * Send exception ERROR log.
    *
    * @param ex The exception.
    */
-  public static void errorEx(final Throwable ex) {
+  public static void errorEx(final Exception ex) {
     Logger logger = getLogger();
     StringWriter sw = new StringWriter();
     PrintWriter pw = new PrintWriter(sw);
