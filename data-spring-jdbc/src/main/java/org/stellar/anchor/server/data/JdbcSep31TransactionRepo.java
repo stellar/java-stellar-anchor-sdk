@@ -13,4 +13,6 @@ public interface JdbcSep31TransactionRepo extends CrudRepository<JdbcSep31Transa
 
   @Query(value = "SELECT t FROM JdbcSep31Transaction t WHERE t.id IN :ids")
   List<JdbcSep31Transaction> findByIds(@Param("ids") Collection<String> ids);
+
+  Optional<JdbcSep31Transaction> findByStellarAccountId(@NonNull String stellarAccountId);
 }

@@ -3,6 +3,7 @@ package org.stellar.anchor.server.data;
 import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 import lombok.NonNull;
 import org.stellar.anchor.exception.SepException;
 import org.stellar.anchor.model.Sep31Transaction;
@@ -56,5 +57,10 @@ public class JdbcSep31TransactionStore implements Sep31TransactionStore {
     }
 
     return transactionRepo.save((JdbcSep31Transaction) transaction);
+  }
+
+  public Sep31Transaction findByStellarAccountId(String accountId) {
+    Optional<JdbcSep31Transaction> optTxn = transactionRepo.findByStellarAccountId(accountId);
+    return optTxn.orElse(null);
   }
 }
