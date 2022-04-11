@@ -7,6 +7,7 @@ import org.stellar.anchor.util.Log;
 import org.stellar.sdk.Server;
 import org.stellar.sdk.requests.EventListener;
 import org.stellar.sdk.requests.PaymentsRequestBuilder;
+import org.stellar.sdk.requests.RequestBuilder;
 import org.stellar.sdk.requests.SSEStream;
 import org.stellar.sdk.responses.operations.OperationResponse;
 import org.stellar.sdk.responses.operations.PaymentOperationResponse;
@@ -48,7 +49,7 @@ public class StellarPaymentObserver {
 
   public SSEStream<OperationResponse> watch(String account) {
     PaymentsRequestBuilder paymentsRequest =
-        server.payments().forAccount(account).includeTransactions(true);
+        server.payments().forAccount(account).includeTransactions(true).limit(200).order(RequestBuilder.Order.DESC);
 
     String lastToken = pageTokenStore.load(account);
     if (lastToken != null) {
