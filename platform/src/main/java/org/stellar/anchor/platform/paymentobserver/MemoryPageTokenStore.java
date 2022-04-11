@@ -7,8 +7,8 @@ public class MemoryPageTokenStore implements PageTokenStore {
   Map<String, String> mapTokens = new HashMap<>();
 
   @Override
-  public void save(String account, String token) {
-    mapTokens.put(account, token);
+  public void save(String account, String cursor) {
+    mapTokens.put(account, cursor);
   }
 
   @Override

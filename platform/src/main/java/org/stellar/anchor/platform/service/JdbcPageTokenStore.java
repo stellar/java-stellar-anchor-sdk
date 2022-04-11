@@ -15,13 +15,13 @@ public class JdbcPageTokenStore implements PageTokenStore {
   }
 
   @Override
-  public void save(String account, String token) {
+  public void save(String account, String cursor) {
     StellarAccountPageToken pageToken = this.repo.findByAccountId(account).orElse(null);
     if (pageToken == null) {
       pageToken = new StellarAccountPageToken();
     }
     pageToken.setAccountId(account);
-    pageToken.setToken(token);
+    pageToken.setToken(cursor);
     this.repo.save(pageToken);
   }
 
