@@ -59,9 +59,9 @@ public class StellarPaymentObserver {
     return paymentsRequest.stream(
         new EventListener<>() {
           @Override
-          public void onEvent(OperationResponse transaction) {
-            if (transaction instanceof PaymentOperationResponse) {
-              PaymentOperationResponse payment = (PaymentOperationResponse) transaction;
+          public void onEvent(OperationResponse operationResponse) {
+            if (operationResponse instanceof PaymentOperationResponse) {
+              PaymentOperationResponse payment = (PaymentOperationResponse) operationResponse;
               try {
                 if (payment.getTo().equals(account)) {
                   observers.forEach(observer -> observer.onReceived(payment));
@@ -72,7 +72,7 @@ public class StellarPaymentObserver {
                 Log.errorEx(t);
               }
             }
-            paymentStreamerCursorStore.save(account, transaction.getPagingToken());
+            paymentStreamerCursorStore.save(account, operationResponse.getPagingToken());
           }
 
           @Override
