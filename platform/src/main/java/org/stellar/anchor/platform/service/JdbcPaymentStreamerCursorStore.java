@@ -3,31 +3,31 @@ package org.stellar.anchor.platform.service;
 import java.util.Optional;
 import org.springframework.stereotype.Component;
 import org.stellar.anchor.platform.paymentobserver.PaymentStreamerCursorStore;
-import org.stellar.anchor.server.data.StellarAccountPageToken;
-import org.stellar.anchor.server.data.StellarAccountPageTokenRepo;
+import org.stellar.anchor.server.data.PaymentStreamerCursor;
+import org.stellar.anchor.server.data.PaymentStreamerCursorRepo;
 
 @Component
 public class JdbcPaymentStreamerCursorStore implements PaymentStreamerCursorStore {
-  private final StellarAccountPageTokenRepo repo;
+  private final PaymentStreamerCursorRepo repo;
 
-  JdbcPaymentStreamerCursorStore(StellarAccountPageTokenRepo repo) {
+  JdbcPaymentStreamerCursorStore(PaymentStreamerCursorRepo repo) {
     this.repo = repo;
   }
 
   @Override
   public void save(String account, String cursor) {
-    StellarAccountPageToken pageToken = this.repo.findByAccountId(account).orElse(null);
-    if (pageToken == null) {
-      pageToken = new StellarAccountPageToken();
+    PaymentStreamerCursor paymentStreamerCursor = this.repo.findByAccountId(account).orElse(null);
+    if (paymentStreamerCursor == null) {
+      paymentStreamerCursor = new PaymentStreamerCursor();
     }
-    pageToken.setAccountId(account);
-    pageToken.setToken(cursor);
-    this.repo.save(pageToken);
+    paymentStreamerCursor.setAccountId(account);
+    paymentStreamerCursor.setCursor(cursor);
+    this.repo.save(paymentStreamerCursor);
   }
 
   @Override
   public String load(String account) {
-    Optional<StellarAccountPageToken> pageToken = repo.findByAccountId(account);
-    return pageToken.map(StellarAccountPageToken::getToken).orElse(null);
+    Optional<PaymentStreamerCursor> pageToken = repo.findByAccountId(account);
+    return pageToken.map(PaymentStreamerCursor::getCursor).orElse(null);
   }
 }
