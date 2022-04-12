@@ -28,7 +28,13 @@ open class SepClient {
     println("responseBody: $responseBody")
     if (response.code == HttpStatus.FORBIDDEN.value()) {
       throw SepNotAuthorizedException("Forbidden")
-    } else if (!listOf(HttpStatus.OK.value(), HttpStatus.CREATED.value()).contains(response.code)) {
+    } else if (!listOf(
+          HttpStatus.OK.value(),
+          HttpStatus.CREATED.value(),
+          HttpStatus.ACCEPTED.value()
+        )
+        .contains(response.code)
+    ) {
       throw SepException(responseBody)
     }
 
