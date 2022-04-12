@@ -1,20 +1,18 @@
 package org.stellar.anchor.platform.service;
 
 import com.google.gson.Gson;
-import org.apache.tomcat.util.codec.binary.Base64;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
+import java.util.List;
+import java.util.Objects;
 import org.springframework.stereotype.Component;
 import org.stellar.anchor.exception.SepException;
 import org.stellar.anchor.model.Sep31Transaction;
 import org.stellar.anchor.model.TransactionStatus;
-import org.stellar.anchor.platform.paymentobserver.PaymentListener;
-import org.stellar.anchor.platform.paymentobserver.StellarTransaction;
-import org.stellar.anchor.platform.paymentobserver.TransactionEvent;
+import org.stellar.anchor.platform.paymentobserver.*;
 import org.stellar.anchor.server.data.JdbcSep31TransactionStore;
 import org.stellar.anchor.util.Log;
 import org.stellar.platform.apis.shared.Amount;
-import org.stellar.sdk.AssetTypeCreditAlphaNum;
-import org.stellar.sdk.MemoHash;
-import org.stellar.sdk.responses.operations.PaymentOperationResponse;
 
 @Component
 public class PaymentOperationToEventListener implements PaymentListener {
@@ -25,20 +23,20 @@ public class PaymentOperationToEventListener implements PaymentListener {
   }
 
   @Override
-  public void onReceived(PaymentOperationResponse payment) {
-    if (!payment.getTransaction().isPresent()) {
+  public void onReceived(ObservedPayment payment) {
+    if (Objects.toString(payment.getTransactionHash(), "").isEmpty()) {
       return;
     }
-
-    MemoHash memoHash = (MemoHash) payment.getTransaction().get().getMemo();
-    String hash = new String(Base64.encodeBase64(memoHash.getBytes()));
 
     // Find the matching transaction
     Sep31Transaction txn = null;
     try {
-      txn = transactionStore.findByStellarMemo(hash);
+      txn = transactionStore.findByStellarMemo(payment.getTransactionMemo());
     } catch (SepException e) {
-      Log.error(String.format("error finding transaction that matches the memo (%s).", hash));
+      Log.error(
+          String.format(
+              "error finding transaction that matches the memo (%s).",
+              payment.getTransactionMemo()));
       e.printStackTrace();
     }
 
@@ -47,18 +45,17 @@ public class PaymentOperationToEventListener implements PaymentListener {
       return;
     }
 
-    if (!(payment.getAsset() instanceof AssetTypeCreditAlphaNum)) {
-      // Asset does not match. Ignore.
-      Log.info(String.format("unexpected payment type %s", payment.getAsset().getClass()));
+    if (!List.of("credit_alphanum4", "credit_alphanum12").contains(payment.getAssetType())) {
+      // Asset type does not match
+      Log.warn("Not an issued asset");
       return;
     }
 
-    AssetTypeCreditAlphaNum atcPayment = (AssetTypeCreditAlphaNum) payment.getAsset();
-    if (!txn.getAmountInAsset().equals(atcPayment.getCode())) {
+    if (!txn.getAmountInAsset().equals(payment.getAssetCode())) {
       Log.warn(
           String.format(
               "Payment asset(%s) does not match the expected asset(%s)",
-              atcPayment.getCode(), txn.getAmountInAsset()));
+              payment.getAssetCode(), txn.getAmountInAsset()));
       return;
     }
 
@@ -80,7 +77,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
   }
 
   @Override
-  public void onSent(PaymentOperationResponse payment) {
+  public void onSent(ObservedPayment payment) {
     // noop
   }
 
@@ -89,7 +86,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
     System.out.println("Sent to event queue" + new Gson().toJson(event));
   }
 
-  TransactionEvent receivedPaymentToEvent(Sep31Transaction txn, PaymentOperationResponse payment) {
+  TransactionEvent receivedPaymentToEvent(Sep31Transaction txn, ObservedPayment payment) {
     TransactionEvent txnEvent =
         TransactionEvent.builder()
             .transactionId(txn.getId())
@@ -102,9 +99,16 @@ public class PaymentOperationToEventListener implements PaymentListener {
                     .id(txn.getStellarTransactionId())
                     .memo(txn.getStellarMemo())
                     .memoType(txn.getStellarMemoType())
-
-                    // TODO: payment does not provide access to createdAt timestamp. Need to submit
-                    // a PR.
+                    .createdAt(
+                        DateTimeFormatter.ISO_INSTANT.parse(payment.getCreatedAt(), Instant::from))
+                    .envelope(payment.getTransactionEnvelope())
+                    .payment(
+                        StellarPayment.builder()
+                            .operationId(payment.getId())
+                            .sourceAccount(payment.getFrom())
+                            .destinationAccount(payment.getTo())
+                            .amount(new Amount(payment.getAmount(), payment.getAssetName()))
+                            .build())
                     .build())
             .build();
     // Assign values from the payment

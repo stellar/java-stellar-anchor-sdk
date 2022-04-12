@@ -1,15 +1,19 @@
 package org.stellar.anchor.platform.paymentobserver;
 
+import com.google.gson.Gson;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import org.stellar.anchor.util.Log;
+import org.stellar.sdk.KeyPair;
 import org.stellar.sdk.Server;
 import org.stellar.sdk.requests.EventListener;
 import org.stellar.sdk.requests.PaymentsRequestBuilder;
 import org.stellar.sdk.requests.RequestBuilder;
 import org.stellar.sdk.requests.SSEStream;
 import org.stellar.sdk.responses.operations.OperationResponse;
+import org.stellar.sdk.responses.operations.PathPaymentBaseOperationResponse;
 import org.stellar.sdk.responses.operations.PaymentOperationResponse;
 import shadow.com.google.common.base.Optional;
 
@@ -49,7 +53,12 @@ public class StellarPaymentObserver {
 
   public SSEStream<OperationResponse> watch(String account) {
     PaymentsRequestBuilder paymentsRequest =
-        server.payments().forAccount(account).includeTransactions(true).limit(200).order(RequestBuilder.Order.DESC);
+        server
+            .payments()
+            .forAccount(account)
+            .includeTransactions(true)
+            .limit(200)
+            .order(RequestBuilder.Order.DESC);
 
     String lastToken = paymentStreamerCursorStore.load(account);
     if (lastToken != null) {
@@ -60,18 +69,30 @@ public class StellarPaymentObserver {
         new EventListener<>() {
           @Override
           public void onEvent(OperationResponse operationResponse) {
+            ObservedPayment observedPayment = null;
             if (operationResponse instanceof PaymentOperationResponse) {
               PaymentOperationResponse payment = (PaymentOperationResponse) operationResponse;
+              observedPayment = ObservedPayment.fromPaymentOperationResponse(payment);
+            } else if (operationResponse instanceof PathPaymentBaseOperationResponse) {
+              PathPaymentBaseOperationResponse pathPayment =
+                  (PathPaymentBaseOperationResponse) operationResponse;
+              observedPayment = ObservedPayment.fromPathPaymentOperationResponse(pathPayment);
+            }
+
+            if (observedPayment != null) {
               try {
-                if (payment.getTo().equals(account)) {
-                  observers.forEach(observer -> observer.onReceived(payment));
-                } else if (payment.getFrom().equals(account)) {
-                  observers.forEach(observer -> observer.onSent(payment));
+                if (observedPayment.getTo().equals(account)) {
+                  ObservedPayment finalObservedPayment = observedPayment;
+                  observers.forEach(observer -> observer.onReceived(finalObservedPayment));
+                } else if (observedPayment.getFrom().equals(account)) {
+                  ObservedPayment finalObservedPayment1 = observedPayment;
+                  observers.forEach(observer -> observer.onSent(finalObservedPayment1));
                 }
               } catch (Throwable t) {
                 Log.errorEx(t);
               }
             }
+
             paymentStreamerCursorStore.save(account, operationResponse.getPagingToken());
           }
 
@@ -127,23 +148,24 @@ public class StellarPaymentObserver {
     KeyPair account2 =
         KeyPair.fromSecretSeed("SDPJLASIYSGX7ZKOJZIGJGYGC5F6XKHTPEA7NR2Y6YKKCHIBR2GAPCEZ");
 
+    PaymentListener dummyObserver =
+        new PaymentListener() {
+          @Override
+          public void onReceived(ObservedPayment payment) {
+            System.out.println("Received:" + new Gson().toJson(payment));
+          }
+
+          @Override
+          public void onSent(ObservedPayment payment) {
+            System.out.println("Sent:" + new Gson().toJson(payment));
+          }
+        };
+
     StellarPaymentObserver watcher =
         builder()
             .horizonServer("https://horizon-testnet.stellar.org")
-            .addAccount(account1.getAccountId())
-            .addAccount(account2.getAccountId())
-            .addObserver(
-                new PaymentListener() {
-                  @Override
-                  public void onReceived(PaymentOperationResponse payment) {
-                    System.out.println("Received:" + new Gson().toJson(payment));
-                  }
-
-                  @Override
-                  public void onSent(PaymentOperationResponse payment) {
-                    System.out.println("Sent:" + new Gson().toJson(payment));
-                  }
-                })
+            .accounts(List.of(account1.getAccountId(), account2.getAccountId()))
+            .observers(List.of(dummyObserver))
             .build();
 
     watcher.start();
