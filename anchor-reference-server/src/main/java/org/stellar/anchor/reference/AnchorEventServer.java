@@ -1,5 +1,6 @@
 package org.stellar.anchor.reference;
 
+import lombok.val;
 import org.apache.kafka.clients.consumer.Consumer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.consumer.ConsumerRecords;
@@ -9,13 +10,20 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.stereotype.Component;
+import org.stellar.anchor.dto.sep31.Sep31PatchTransactionRequest;
+import org.stellar.anchor.dto.sep31.Sep31PostTransactionRequest;
 import org.stellar.anchor.event.models.AnchorEvent;
 import org.stellar.anchor.event.models.QuoteEvent;
+import org.stellar.anchor.event.models.TransactionEvent;
+import org.stellar.platform.apis.platform.requests.PatchTransactionRequest;
+import org.stellar.platform.apis.platform.requests.PatchTransactionsRequest;
+import org.stellar.platform.apis.shared.Amount;
 
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
 
@@ -69,11 +77,32 @@ public class AnchorEventServer implements DisposableBean, Runnable {
                                                 "transaction_created " + record.value());
                                         break;
                                     case "transaction_payment_received":
-                                /* TODO: reference server to process this event and make a
-                                   PATCH request back to the platform server to update the
-                                   transaction status */
                                         System.out.println("anchor_platform_event - " +
                                                 "transaction_payment_received " + record.value());
+                                        if(record.value() instanceof TransactionEvent){
+                                            TransactionEvent transactionEvent = (TransactionEvent) record.value();
+                                            PatchTransactionsRequest txnRequest = PatchTransactionsRequest
+                                                    .builder()
+                                                    .records(
+                                                        List.of(PatchTransactionRequest.builder()
+                                                            .id(transactionEvent.getId())
+                                                            .status(TransactionEvent.Status.COMPLETED.status)
+                                                            .amountFee(new Amount(
+                                                                    transactionEvent.getAmountFee().getAmount(),
+                                                                    transactionEvent.getAmountFee().getAsset())
+                                                            )
+                                                            .amountOut(new Amount(
+                                                                    transactionEvent.getAmountOut().getAmount(),
+                                                                    transactionEvent.getAmountOut().getAsset())
+                                                            )
+                                                            .build())
+                                                    )
+                                                    .build();
+//                                            PlatformApiClient platformClient =
+//                                                    new PlatformApiClient("http://localhost:8080");
+//                                            platformClient.patchTransaction(txnRequest);
+                                        }
+
                                         break;
                                     case "transaction_error":
                                         System.out.println("anchor_platform_event - " +
