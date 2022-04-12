@@ -33,6 +33,15 @@ public interface Sep31TransactionStore {
       throws SepException;
 
   /**
+   * Find the transactions by the transaction memo.
+   *
+   * @param memo transaction memo.
+   * @return The matching transaction.
+   * @throws SepException if error happens.
+   */
+  Sep31Transaction findByStellarMemo(@NonNull String memo) throws SepException;
+
+  /**
    * Save a transaction.
    *
    * @param sep31Transaction The transaction to be saved.

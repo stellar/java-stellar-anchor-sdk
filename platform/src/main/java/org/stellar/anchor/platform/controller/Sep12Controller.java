@@ -2,6 +2,9 @@ package org.stellar.anchor.platform.controller;
 
 import static org.stellar.anchor.platform.controller.Sep10Helper.getSep10Token;
 
+import com.google.gson.Gson;
+import java.util.HashMap;
+import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import lombok.SneakyThrows;
 import org.springframework.http.HttpStatus;
@@ -10,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.stellar.anchor.dto.sep12.*;
 import org.stellar.anchor.sep10.JwtToken;
 import org.stellar.anchor.sep12.Sep12Service;
+import org.stellar.anchor.util.GsonUtils;
 
 @RestController
 @CrossOrigin(origins = "*")
@@ -57,6 +61,25 @@ public class Sep12Controller {
       method = {RequestMethod.PUT})
   public Sep12PutCustomerResponse putCustomer(
       HttpServletRequest request, @RequestBody Sep12PutCustomerRequest putCustomerRequest) {
+    JwtToken jwtToken = getSep10Token(request);
+    return sep12Service.putCustomer(jwtToken, putCustomerRequest);
+  }
+
+  @SneakyThrows
+  @CrossOrigin(origins = "*")
+  @ResponseStatus(code = HttpStatus.ACCEPTED)
+  @RequestMapping(
+      value = "/customer",
+      method = {RequestMethod.POST, RequestMethod.PUT},
+      consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+  public Sep12PutCustomerResponse putCustomerMultipart(HttpServletRequest request) {
+    Gson gson = GsonUtils.getInstance();
+    Map<String, String> requestData = new HashMap<>();
+    for (Map.Entry<String, String[]> entry : request.getParameterMap().entrySet()) {
+      requestData.put(entry.getKey(), entry.getValue()[0]);
+    }
+    Sep12PutCustomerRequest putCustomerRequest =
+        gson.fromJson(gson.toJson(requestData), Sep12PutCustomerRequest.class);
     JwtToken jwtToken = getSep10Token(request);
     return sep12Service.putCustomer(jwtToken, putCustomerRequest);
   }

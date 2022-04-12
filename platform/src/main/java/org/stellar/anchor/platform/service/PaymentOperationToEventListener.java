@@ -1,6 +1,7 @@
 package org.stellar.anchor.platform.service;
 
 import com.google.gson.Gson;
+import org.apache.tomcat.util.codec.binary.Base64;
 import org.springframework.stereotype.Component;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.event.models.Amount;
@@ -14,6 +15,7 @@ import org.stellar.anchor.platform.paymentobserver.PaymentListener;
 import org.stellar.anchor.server.data.JdbcSep31TransactionStore;
 import org.stellar.anchor.util.Log;
 import org.stellar.sdk.AssetTypeCreditAlphaNum;
+import org.stellar.sdk.MemoHash;
 import org.stellar.sdk.responses.operations.PaymentOperationResponse;
 
 import java.util.UUID;
@@ -31,15 +33,29 @@ public class PaymentOperationToEventListener implements PaymentListener {
 
   @Override
   public void onReceived(PaymentOperationResponse payment) {
+    if (!payment.getTransaction().isPresent()) {
+      return;
+    }
+
+    MemoHash memoHash = (MemoHash) payment.getTransaction().get().getMemo();
+    String hash = new String(Base64.encodeBase64(memoHash.getBytes()));
+
     // Find the matching transaction
-    Sep31Transaction txn = transactionStore.findByStellarAccountId(payment.getTo());
+    Sep31Transaction txn = null;
+    try {
+      txn = transactionStore.findByStellarMemo(hash);
+    } catch (SepException e) {
+      Log.info(String.format("error finding transaction that matches the memo (%s).", hash));
+    }
+
     if (txn == null) {
-      Log.error(String.format("no transaction(stellarAccountId=%s) is found.", payment.getTo()));
+      Log.info(String.format("no transaction(stellarAccountId=%s) is found.", payment.getTo()));
       return;
     }
 
     if (!(payment.getAsset() instanceof AssetTypeCreditAlphaNum)) {
-      // Asset does not match
+      // Asset does not match. Ignore.
+      Log.info(String.format("unexpected payment type %s", payment.getAsset().getClass()));
       return;
     }
 
@@ -57,6 +73,8 @@ public class PaymentOperationToEventListener implements PaymentListener {
     // Set the transaction status.
     if (txn.getStatus().equals(TransactionStatus.PENDING_SENDER.toString())) {
       txn.setStatus(TransactionStatus.PENDING_RECEIVER.toString());
+      txn.setStatus(
+          TransactionStatus.COMPLETED.toString()); // TODO: remove after event API is implemented.
       try {
         transactionStore.save(txn);
       } catch (SepException ex) {
