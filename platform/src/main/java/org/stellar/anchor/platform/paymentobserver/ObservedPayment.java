@@ -4,6 +4,7 @@ import com.google.gson.annotations.SerializedName;
 import lombok.Builder;
 import lombok.Data;
 import org.apache.tomcat.util.codec.binary.Base64;
+import org.stellar.anchor.util.Log;
 import org.stellar.anchor.util.MemoHelper;
 import org.stellar.sdk.AssetTypeCreditAlphaNum;
 import org.stellar.sdk.MemoHash;
@@ -110,8 +111,13 @@ public class ObservedPayment {
   }
 
   private static String getMemoHash(OperationResponse opResponse) {
-    MemoHash memoHash = (MemoHash) opResponse.getTransaction().get().getMemo();
-    return new String(Base64.encodeBase64(memoHash.getBytes()));
+    try {
+      MemoHash memoHash = (MemoHash) opResponse.getTransaction().get().getMemo();
+      return new String(Base64.encodeBase64(memoHash.getBytes()));
+    } catch (Exception e) {
+      Log.error("Error parsing memo to MemoHash object");
+      return null;
+    }
   }
 
   public enum Type {
