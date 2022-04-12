@@ -43,6 +43,11 @@ public class JdbcSep31TransactionStore implements Sep31TransactionStore {
   }
 
   @Override
+  public Sep31Transaction findByStellarMemo(@NonNull String memo) throws SepException {
+    return transactionRepo.findByStellarMemo(memo).orElse(null);
+  }
+
+  @Override
   public Sep31Transaction save(Sep31Transaction transaction) throws SepException {
     if (!(transaction instanceof JdbcSep31Transaction)) {
       throw new SepException(

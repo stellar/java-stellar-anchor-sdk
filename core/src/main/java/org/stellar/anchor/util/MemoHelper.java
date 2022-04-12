@@ -38,6 +38,23 @@ public class MemoHelper {
     return makeMemo(memo, mt);
   }
 
+  public static String memoType(MemoType memoType) {
+    switch (memoType) {
+      case MEMO_ID:
+        return "id";
+      case MEMO_TEXT:
+        return "text";
+      case MEMO_HASH:
+        return "hash";
+      case MEMO_NONE:
+        return "none";
+      case MEMO_RETURN:
+        return "return";
+      default:
+        throw new RuntimeException("Unsupported value: " + memoType);
+    }
+  }
+
   public static Memo makeMemo(String memo, MemoType memoType) throws SepException {
     try {
       switch (memoType) {

@@ -1,7 +1,7 @@
 package org.stellar.platform.apis.callbacks.requests;
 
 import com.google.gson.annotations.SerializedName;
-import java.time.LocalDate;
+import java.time.Instant;
 import lombok.Data;
 
 @Data
@@ -44,10 +44,10 @@ public class PutCustomerRequest {
   String emailAddress;
 
   @SerializedName("birth_date")
-  LocalDate birthDate;
+  Instant birthDate;
 
   @SerializedName("birth_place")
-  LocalDate birthPlace;
+  Instant birthPlace;
 
   @SerializedName("birth_country_code")
   String birthCountryCode;
@@ -88,10 +88,10 @@ public class PutCustomerRequest {
   String idCountryCode;
 
   @SerializedName("id_issue_date")
-  LocalDate idIssueDate;
+  Instant idIssueDate;
 
   @SerializedName("id_expiration_date")
-  LocalDate idExpirationDate;
+  Instant idExpirationDate;
 
   @SerializedName("id_number")
   String idNumber;

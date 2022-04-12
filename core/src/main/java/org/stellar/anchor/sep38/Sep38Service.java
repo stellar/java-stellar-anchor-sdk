@@ -95,7 +95,7 @@ public class Sep38Service {
     GetPricesResponse response = new GetPricesResponse();
     for (String buyAssetName : sellAsset.getExchangeableAssetNames()) {
       InfoResponse.Asset buyAsset = this.assetMap.get(buyAssetName);
-      if (!buyAsset.supportsBuyDeliveryMethod(buyDeliveryMethod)) {
+      if (buyAsset == null || !buyAsset.supportsBuyDeliveryMethod(buyDeliveryMethod)) {
         continue;
       }
 
