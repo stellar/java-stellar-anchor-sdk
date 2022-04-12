@@ -7,10 +7,7 @@ import static org.stellar.anchor.util.SepHelper.*;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 import org.stellar.anchor.asset.AssetInfo;
@@ -22,6 +19,11 @@ import org.stellar.anchor.dto.sep12.Sep12GetCustomerRequest;
 import org.stellar.anchor.dto.sep12.Sep12GetCustomerResponse;
 import org.stellar.anchor.dto.sep31.*;
 import org.stellar.anchor.dto.sep31.Sep31GetTransactionResponse.TransactionResponse;
+import org.stellar.anchor.event.EventService;
+import org.stellar.anchor.event.models.Amount;
+import org.stellar.anchor.event.models.QuoteEvent;
+import org.stellar.anchor.event.models.StellarId;
+import org.stellar.anchor.event.models.TransactionEvent;
 import org.stellar.anchor.exception.AnchorException;
 import org.stellar.anchor.exception.BadRequestException;
 import org.stellar.anchor.exception.NotFoundException;
@@ -46,6 +48,7 @@ public class Sep31Service {
   private FeeIntegration feeIntegration;
   private final CustomerIntegration customerIntegration;
   private Sep31InfoResponse infoResponse;
+  final EventService eventService;
 
   @SneakyThrows
   public Sep31Service(
@@ -55,7 +58,8 @@ public class Sep31Service {
       Sep38QuoteStore sep38QuoteStore,
       AssetService assetService,
       FeeIntegration feeIntegration,
-      CustomerIntegration customerIntegration) {
+      CustomerIntegration customerIntegration,
+      EventService eventService) {
     this.appConfig = appConfig;
     this.sep31Config = sep31Config;
     this.sep31TransactionStore = sep31TransactionStore;
@@ -63,6 +67,7 @@ public class Sep31Service {
     this.assetService = assetService;
     this.feeIntegration = feeIntegration;
     this.customerIntegration = customerIntegration;
+    this.eventService = eventService;
     this.infoResponse = createFromAssets(assetService.listAllAssets());
   }
 
@@ -95,6 +100,41 @@ public class Sep31Service {
     validateAndApplyFeeAndQuote(txn, request, jwtToken);
 
     sep31TransactionStore.save(txn);
+
+    TransactionEvent event = TransactionEvent.builder()
+        .eventId(UUID.randomUUID().toString())
+        .type(TransactionEvent.Type.TRANSACTION_CREATED)
+        .id(txn.getId())
+        .sep(TransactionEvent.Sep.SEP_31)
+        .kind(TransactionEvent.Kind.RECEIVE)
+        .amountIn(Amount.builder()
+                .amount(txn.getAmountIn())
+                .asset(txn.getAmountInAsset())
+                .build()
+        )
+        .amountOut(Amount.builder()
+                  .amount(txn.getAmountOut())
+                  .asset(txn.getAmountInAsset())
+                  .build()
+        )
+        .amountFee(Amount.builder()
+                  .amount(txn.getAmountFee())
+                  .asset(txn.getAmountInAsset())
+                  .build()
+                )
+        .quoteId(txn.getQuoteId())
+        .startedAt(txn.getStartedAt())
+        .sourceAccount(request.getSenderId())
+        .destinationAccount(request.getReceiverId())
+        .creator(StellarId.builder()
+                .account(txn.getStellarAccountId())
+                .memo(txn.getStellarMemo())
+                .memoType(txn.getStellarMemoType())
+                .build()
+        )
+        .build();
+
+    eventService.publish(event);
 
     return Sep31PostTransactionResponse.builder()
         .id(txn.getId())

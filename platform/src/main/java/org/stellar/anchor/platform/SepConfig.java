@@ -124,7 +124,9 @@ public class SepConfig {
       Sep38QuoteStore sep38QuoteStore,
       AssetService assetService,
       FeeIntegration feeIntegration,
-      CustomerIntegration customerIntegration) {
+      CustomerIntegration customerIntegration,
+      EventService eventService
+      ) {
     return new Sep31Service(
         appConfig,
         sep31Config,
@@ -132,7 +134,8 @@ public class SepConfig {
         sep38QuoteStore,
         assetService,
         feeIntegration,
-        customerIntegration);
+        customerIntegration,
+        eventService);
   }
 
   @Bean
@@ -153,6 +156,10 @@ public class SepConfig {
       Sep38QuoteStore sep38QuoteStore,
       EventService eventService) {
     return new Sep38Service(
-        sep38Config, assetService, rateIntegration, sep38QuoteStore, eventService);
+        sep38Config,
+        assetService,
+        rateIntegration,
+        sep38QuoteStore,
+        eventService);
   }
 }

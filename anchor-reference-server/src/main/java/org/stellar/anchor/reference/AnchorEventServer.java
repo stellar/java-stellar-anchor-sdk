@@ -49,49 +49,50 @@ public class AnchorEventServer implements DisposableBean, Runnable {
         this.consumer = consumer;
 
         while(!shutdown){
-            ConsumerRecords<String, AnchorEvent> consumerRecords = consumer.poll(Duration.ofSeconds(10));
-            System.out.println("Anchor Reference Server - Messages received - " + consumerRecords.count());
-            consumerRecords.forEach(
-                record -> {
-                    for (Header header : record.headers()){
-                        if (Objects.equals(header.key(), "type")){
-                            String eventType = new String(header.value(), StandardCharsets.UTF_8);
-                            switch(eventType){
-                                // TODO: use constants for event types
-                                case "quote_created":
-                                    System.out.println("anchor_platform_event - quote_created " + record.value());
-                                    break;
-                                case "transaction_created":
-                                    System.out.println("anchor_platform_event - " +
-                                            "transaction_created " + record.value());
-                                    break;
-                                case "transaction_payment_received":
-                                    /* TODO: reference server to process this event and make a
-                                       PATCH request back to the platform server to update the
-                                       transaction status */
-                                    System.out.println("anchor_platform_event - " +
-                                            "transaction_payment_received " + record.value());
-                                    break;
-                                case "transaction_destination_account_created":
-                                    System.out.println("anchor_platform_event - " +
-                                            "transaction_destination_account_created " + record.value());
-                                    break;
-                                case "transaction_payment_submitted":
-                                    System.out.println("anchor_platform_event - " +
-                                            "transaction_payment_submitted " + record.value());
-                                    break;
-                                case "transaction_error":
-                                    System.out.println("anchor_platform_event - " +
-                                            "transaction_error " + record.value());
-                                    break;
-                                default:
-                                    System.out.printf("error: anchor_platform_event - invalid " +
-                                            "message type '%s'%n", eventType);
+            try{
+                ConsumerRecords<String, AnchorEvent> consumerRecords = consumer.poll(Duration.ofSeconds(10));
+                System.out.println("Anchor Reference Server - Messages received - " + consumerRecords.count());
+                consumerRecords.forEach(
+                    record -> {
+                        for (Header header : record.headers()){
+                            if (Objects.equals(header.key(), "type")){
+                                String eventType = new String(header.value(), StandardCharsets.UTF_8);
+                                switch(eventType){
+                                    case "quote_created":
+                                        System.out.println("anchor_platform_event - quote_created " + record.value());
+                                        break;
+                                    case "transaction_created":
+                                        System.out.println("anchor_platform_event - " +
+                                                "transaction_created " + record.value());
+                                        break;
+                                    case "transaction_payment_received":
+                                /* TODO: reference server to process this event and make a
+                                   PATCH request back to the platform server to update the
+                                   transaction status */
+                                        System.out.println("anchor_platform_event - " +
+                                                "transaction_payment_received " + record.value());
+                                        break;
+                                    case "transaction_error":
+                                        System.out.println("anchor_platform_event - " +
+                                                "transaction_error " + record.value());
+                                        break;
+                                    default:
+                                        System.out.printf("error: anchor_platform_event - invalid " +
+                                                "message type '%s'%n", eventType);
+                                }
+                                break;
                             }
-                            break;
                         }
-                    }
-                });
+                    });
+            } catch (Exception ex) {
+                System.out.println(ex.toString());
+                try {
+                    Thread.sleep(1 * 1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+
+            }
         }
     }
 

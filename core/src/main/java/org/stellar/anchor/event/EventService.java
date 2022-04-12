@@ -48,7 +48,7 @@ public class EventService {
       record.headers().add(new RecordHeader("type", event.getType().getBytes()));
       producer.send(record);
     } catch (Exception ex){
-      ; //TODO handle exceptions
+      System.out.println(ex.toString());
     }
   }
 }

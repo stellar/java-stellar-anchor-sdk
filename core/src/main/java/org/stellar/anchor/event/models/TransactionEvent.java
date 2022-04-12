@@ -1,25 +1,32 @@
 package org.stellar.anchor.event.models;
 
+import com.fasterxml.jackson.annotation.JsonValue;
 import com.google.gson.annotations.SerializedName;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 
 @Data
+@Builder
+@AllArgsConstructor
 public class TransactionEvent implements AnchorEvent {
   @SerializedName("event_id")
-  String event_id;
+  String eventId;
 
-  String type;
+  Type type;
+  public String getType(){
+    return this.type.type;
+  }
 
-  Integer sep; // TODO ENUM
+  String id;
 
-  String kind;
+  Sep sep;
 
-  String status; // TODO ENUM
+  Kind kind;
 
-  @SerializedName("transaction_id")
-  String transactionId;
+  Status status;
 
   @SerializedName("amount_expected")
   Amount amountExpected;
@@ -37,23 +44,23 @@ public class TransactionEvent implements AnchorEvent {
   String quoteId;
 
   @SerializedName("started_at")
-  LocalDateTime startedAt;
+  Instant startedAt;
 
   @SerializedName("updated_at")
-  LocalDateTime updatedAt;
+  Instant updatedAt;
 
   @SerializedName("completed_at")
-  LocalDateTime completedAt;
+  Instant completedAt;
 
   @SerializedName("transfer_received_at")
-  LocalDateTime transferReceivedAt;
+  Instant transferReceivedAt;
 
   String message;
 
   Refund refund;
 
   @SerializedName("stellar_transactions")
-  StellarTransaction stellarTransactions; // TODO should be array
+  StellarTransaction[] stellarTransactions;
 
   @SerializedName("external_transaction_id")
   String externalTransactionId;
@@ -69,59 +76,68 @@ public class TransactionEvent implements AnchorEvent {
 
   Customers customers;
 
-  @SerializedName("client_domain")
-  String clientDomain;
+  StellarId creator;
 
-  public TransactionEvent() {}
+  public enum Status {
+    PENDING_SENDER("pending_sender"),
+    PENDING_STELLAR("pending_stellar"),
+    PENDING_CUSTOMER_INFO_UPDATE("pending_customer_info_update"),
+    PENDING_RECEIVER("pending_receiver"),
+    PENDING_EXTERNAL("pending_external"),
+    COMPLETED("completed"),
+    ERROR("error");
 
-  public TransactionEvent(
-      String event_id,
-      String type,
-      Integer sep,
-      String kind,
-      String status,
-      String transactionId,
-      Amount amountExpected,
-      Amount amountIn,
-      Amount amountOut,
-      Amount amountFee,
-      String quoteId,
-      LocalDateTime startedAt,
-      LocalDateTime updatedAt,
-      LocalDateTime completedAt,
-      LocalDateTime transferReceivedAt,
-      String message,
-      Refund refund,
-      StellarTransaction stellarTransactions,
-      String externalTransactionId,
-      String custodialTransactionId,
-      String sourceAccount,
-      String destinationAccount,
-      Customers customers,
-      String clientDomain) {
-    this.event_id = event_id;
-    this.type = type;
-    this.sep = sep;
-    this.kind = kind;
-    this.status = status;
-    this.transactionId = transactionId;
-    this.amountExpected = amountExpected;
-    this.amountIn = amountIn;
-    this.amountOut = amountOut;
-    this.amountFee = amountFee;
-    this.quoteId = quoteId;
-    this.startedAt = startedAt;
-    this.updatedAt = updatedAt;
-    this.completedAt = completedAt;
-    this.transferReceivedAt = transferReceivedAt;
-    this.message = message;
-    this.refund = refund;
-    this.stellarTransactions = stellarTransactions;
-    this.externalTransactionId = externalTransactionId;
-    this.custodialTransactionId = custodialTransactionId;
-    this.sourceAccount = sourceAccount;
-    this.destinationAccount = destinationAccount;
-    this.customers = customers;
-    this.clientDomain = clientDomain;
+    @JsonValue
+    public final String status;
+
+    Status(String status){
+      this.status = status;
+    }
   }
+
+
+  public enum Sep {
+    SEP_31(31);
+
+    private final Integer sep;
+
+    Sep(Integer sep) {
+      this.sep = sep;
+    }
+
+    @JsonValue
+    public Integer getSep(){
+      return sep;
+    }
+  }
+
+  public enum Type {
+    TRANSACTION_CREATED("transaction_created"),
+    TRANSACTION_PAYMENT_RECEIVED("transaction_payment_received"),
+    TRANSACTION_ERROR("transaction_error");
+
+    @JsonValue
+    public final String type;
+
+    Type(String type){
+      this.type = type;
+    }
+  }
+
+  public enum Kind {
+    RECEIVE("receive");
+
+    public final String kind;
+
+    Kind(String kind){
+      this.kind = kind;
+    }
+
+    @JsonValue
+    public String getKind(){
+      return kind;
+    }
+  }
+
+  public TransactionEvent(){}
 }

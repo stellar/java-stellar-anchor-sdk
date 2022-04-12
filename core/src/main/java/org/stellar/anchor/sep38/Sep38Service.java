@@ -7,17 +7,15 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.time.Instant;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
+
 import org.apache.commons.lang3.StringUtils;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.Sep38Config;
 import org.stellar.anchor.dto.sep38.*;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.event.models.QuoteEvent;
-import org.stellar.anchor.exception.*;
+import org.stellar.anchor.event.models.StellarId;
 import org.stellar.anchor.exception.AnchorException;
 import org.stellar.anchor.exception.BadRequestException;
 import org.stellar.anchor.exception.NotFoundException;
@@ -361,21 +359,26 @@ public class Sep38Service {
             .creatorMemo(memo)
             .creatorMemoType(memoType)
             .build();
+
     this.sep38QuoteStore.save(newQuote);
 
-    // TODO: use constant instead of "quote_created"
-    QuoteEvent event =
-        new QuoteEvent(
-            newQuote.getId(),
-            "quote_created",
-            newQuote.getSellAsset(),
-            newQuote.getBuyAsset(),
-            newQuote.getExpiresAt(),
-            newQuote.getPrice(),
-            null,
-            "transactionId",
-            newQuote.getCreatedAt(),
-            "clientDomain");
+    QuoteEvent event = QuoteEvent.builder()
+            .eventId(UUID.randomUUID().toString())
+            .type(QuoteEvent.Type.QUOTE_CREATED)
+            .id(newQuote.getId())
+            .sellAsset(newQuote.getSellAsset())
+            .buyAsset(newQuote.getBuyAsset())
+            .expiresAt(newQuote.getExpiresAt())
+            .price(newQuote.getPrice())
+            .creator(StellarId.builder()
+                    .account(newQuote.getCreatorAccountId())
+                    .memo(newQuote.getCreatorMemo())
+                    .memoType(newQuote.getCreatorMemoType())
+                    .build())  //TODO where to get StellarId.id?
+            .transactionId(newQuote.getTransactionId())
+            .createdAt(newQuote.getCreatedAt())
+            .build();
+
     eventService.publish(event);
 
     return builder.build();

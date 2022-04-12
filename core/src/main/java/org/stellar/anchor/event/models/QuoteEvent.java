@@ -1,14 +1,27 @@
 package org.stellar.anchor.event.models;
 
+import com.fasterxml.jackson.annotation.JsonValue;
 import com.google.gson.annotations.SerializedName;
-import java.time.LocalDateTime;
+
+import java.time.Instant;
+
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 
 @Data
+@Builder
+@AllArgsConstructor
 public class QuoteEvent implements AnchorEvent {
-  String id;
+  @SerializedName("event_id")
+  String eventId;
 
-  String type;
+  Type type;
+  public String getType(){
+    return this.type.type;
+  }
+
+  String id;
 
   @SerializedName("sell_asset")
   String sellAsset;
@@ -17,7 +30,7 @@ public class QuoteEvent implements AnchorEvent {
   String buyAsset;
 
   @SerializedName("expires_at")
-  LocalDateTime expiresAt;
+  Instant expiresAt;
 
   String price;
 
@@ -27,33 +40,18 @@ public class QuoteEvent implements AnchorEvent {
   String transactionId;
 
   @SerializedName("created_at")
-  LocalDateTime createdAt;
+  Instant createdAt;
 
-  @SerializedName("client_domain")
-  String clientDomain;
+  public enum Type {
+    QUOTE_CREATED("quote_created");
 
-  public QuoteEvent() {}
+    @JsonValue
+    public final String type;
 
-  public QuoteEvent(
-      String id,
-      String type,
-      String sellAsset,
-      String buyAsset,
-      LocalDateTime expiresAt,
-      String price,
-      StellarId creator,
-      String transactionId,
-      LocalDateTime createdAt,
-      String clientDomain) {
-    this.id = id;
-    this.type = type;
-    this.sellAsset = sellAsset;
-    this.buyAsset = buyAsset;
-    this.expiresAt = expiresAt;
-    this.price = price;
-    this.creator = creator;
-    this.transactionId = transactionId;
-    this.createdAt = createdAt;
-    this.clientDomain = clientDomain;
+    Type(String type){
+      this.type = type;
+    }
   }
+
+  public QuoteEvent(){}
 }
