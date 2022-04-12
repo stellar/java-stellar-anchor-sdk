@@ -16,6 +16,7 @@ dependencies {
   implementation(libs.sqlite.jdbc)
   implementation(libs.google.gson)
   implementation(libs.java.stellar.sdk)
+  implementation(libs.okhttp3)
 
   implementation(project(":platform-apis"))
   implementation(project(":core"))
