@@ -45,7 +45,10 @@ public class AnchorEventServer implements DisposableBean, Runnable {
         props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
 
         Consumer<String, AnchorEvent> consumer = new KafkaConsumer<String, AnchorEvent>(props);
-        consumer.subscribe(Arrays.asList("ap_event_quote_created", "ap_event_transaction_created"));
+        consumer.subscribe(Arrays.asList(
+                "ap_event_quote_created",
+                "ap_event_transaction_created",
+                "ap_event_transaction_payment_received")); // TODO make this configurable
         this.consumer = consumer;
 
         while(!shutdown){
@@ -87,6 +90,7 @@ public class AnchorEventServer implements DisposableBean, Runnable {
             } catch (Exception ex) {
                 System.out.println(ex.toString());
                 try {
+                    //TODO cleanup
                     Thread.sleep(1 * 1000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();

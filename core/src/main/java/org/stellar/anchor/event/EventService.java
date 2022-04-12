@@ -10,9 +10,12 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.header.internals.RecordHeader;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
+import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 import org.stellar.anchor.config.EventConfig;
 import org.stellar.anchor.event.models.AnchorEvent;
 
+@Component
 public class EventService {
   final Producer<String, AnchorEvent> producer;
   final Map<String, String> queues;

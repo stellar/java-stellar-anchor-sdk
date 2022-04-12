@@ -1,9 +1,13 @@
 package org.stellar.anchor.event.models;
 
 import com.google.gson.annotations.SerializedName;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 
 @Data
+@Builder
+@AllArgsConstructor
 class Payment {
   @SerializedName("operation_id")
   String operationId;
@@ -15,4 +19,6 @@ class Payment {
   String destinationAccount;
 
   Amount amount;
+
+  public Payment(){}
 }

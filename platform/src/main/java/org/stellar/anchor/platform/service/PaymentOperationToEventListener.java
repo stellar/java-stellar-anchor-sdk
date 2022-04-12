@@ -2,24 +2,31 @@ package org.stellar.anchor.platform.service;
 
 import com.google.gson.Gson;
 import org.springframework.stereotype.Component;
+import org.stellar.anchor.event.EventService;
+import org.stellar.anchor.event.models.Amount;
+import org.stellar.anchor.event.models.StellarId;
+import org.stellar.anchor.event.models.TransactionEvent;
+import org.stellar.anchor.event.models.StellarTransaction;
 import org.stellar.anchor.exception.SepException;
 import org.stellar.anchor.model.Sep31Transaction;
 import org.stellar.anchor.model.TransactionStatus;
 import org.stellar.anchor.platform.paymentobserver.PaymentListener;
-import org.stellar.anchor.platform.paymentobserver.StellarTransaction;
-import org.stellar.anchor.platform.paymentobserver.TransactionEvent;
 import org.stellar.anchor.server.data.JdbcSep31TransactionStore;
 import org.stellar.anchor.util.Log;
-import org.stellar.platform.apis.shared.Amount;
 import org.stellar.sdk.AssetTypeCreditAlphaNum;
 import org.stellar.sdk.responses.operations.PaymentOperationResponse;
+
+import java.util.UUID;
 
 @Component
 public class PaymentOperationToEventListener implements PaymentListener {
   final JdbcSep31TransactionStore transactionStore;
+  final EventService eventService;
 
-  PaymentOperationToEventListener(JdbcSep31TransactionStore transactionStore) {
+  PaymentOperationToEventListener(JdbcSep31TransactionStore transactionStore,
+                                  EventService eventService) {
     this.transactionStore = transactionStore;
+    this.eventService = eventService;
   }
 
   @Override
@@ -66,30 +73,55 @@ public class PaymentOperationToEventListener implements PaymentListener {
   }
 
   private void sendToQueue(TransactionEvent event) {
-    // TODO: Send the event to event API.
+    eventService.publish(event);
     System.out.println("Sent to event queue" + new Gson().toJson(event));
   }
 
   TransactionEvent receivedPaymentToEvent(Sep31Transaction txn, PaymentOperationResponse payment) {
-    TransactionEvent txnEvent =
-        TransactionEvent.builder()
-            .transactionId(txn.getId())
-            .status(txn.getStatus())
-            .amountIn(new Amount(txn.getAmountIn(), txn.getAmountInAsset()))
-            .amountOut(new Amount(txn.getAmountOut(), txn.getAmountOutAsset()))
-            .amountFee(new Amount(txn.getAmountFee(), txn.getAmountFeeAsset()))
-            .stellarTransactions(
-                StellarTransaction.builder()
-                    .id(txn.getStellarTransactionId())
-                    .memo(txn.getStellarMemo())
-                    .memoType(txn.getStellarMemoType())
-
-                    // TODO: payment does not provide access to createdAt timestamp. Need to submit
-                    // a PR.
-                    .build())
-            .build();
+    TransactionEvent event = TransactionEvent.builder()
+      .eventId(UUID.randomUUID().toString())
+      .type(org.stellar.anchor.event.models.TransactionEvent.Type.TRANSACTION_CREATED)
+      .id(txn.getId())
+      .status(TransactionEvent.Status.valueOf(txn.getStatus()))
+      .sep(org.stellar.anchor.event.models.TransactionEvent.Sep.SEP_31)
+      .kind(org.stellar.anchor.event.models.TransactionEvent.Kind.RECEIVE)
+      .amountIn(org.stellar.anchor.event.models.Amount.builder()
+              .amount(txn.getAmountIn())
+              .asset(txn.getAmountInAsset())
+              .build()
+      )
+      .amountOut(org.stellar.anchor.event.models.Amount.builder()
+              .amount(txn.getAmountOut())
+              .asset(txn.getAmountInAsset())
+              .build()
+      )
+      .amountFee(Amount.builder()
+              .amount(txn.getAmountFee())
+              .asset(txn.getAmountInAsset())
+              .build()
+      )
+      .quoteId(txn.getQuoteId())
+      .startedAt(txn.getStartedAt())
+      .sourceAccount(payment.getSourceAccount())
+      .destinationAccount(payment.getTo())
+      .creator(
+         StellarId.builder()
+            .account(txn.getStellarAccountId())
+            .memo(txn.getStellarMemo())
+            .memoType(txn.getStellarMemoType())
+            .build()
+      )
+      .stellarTransactions(new StellarTransaction[]{
+         StellarTransaction.builder()
+            .id(txn.getStellarTransactionId())
+            .memo(txn.getStellarMemo())
+            .memoType(txn.getStellarMemoType())
+            // TODO: payment does not provide access to createdAt timestamp. Need to submit
+            // a PR.
+            .build()})
+      .build();
     // Assign values from the payment
-    txnEvent.getAmountIn().setAmount(payment.getAmount());
-    return txnEvent;
+    event.getAmountIn().setAmount(payment.getAmount());
+    return event;
   }
 }
