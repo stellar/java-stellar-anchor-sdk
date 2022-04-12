@@ -34,7 +34,7 @@ public class OkHttpUtil {
     return new Request.Builder().url(url).get().build();
   }
 
-  static RequestBody buildJsonRequestBody(String requestBody) {
+  public static RequestBody buildJsonRequestBody(String requestBody) {
     return RequestBody.create(requestBody, TYPE_JSON);
   }
 }

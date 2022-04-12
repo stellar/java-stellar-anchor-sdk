@@ -3,6 +3,7 @@ package org.stellar.anchor.platform
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.stellar.anchor.dto.sep12.Sep12PutCustomerRequest
 import org.stellar.anchor.dto.sep31.Sep31PostTransactionRequest
+import org.stellar.anchor.reference.client.PlatformApiClient
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.Sep1Helper
 
