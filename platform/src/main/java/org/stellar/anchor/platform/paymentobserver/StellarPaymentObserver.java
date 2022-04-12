@@ -100,13 +100,13 @@ public class StellarPaymentObserver {
       return this;
     }
 
-    public Builder addAccount(String account) {
-      accounts.add(account);
+    public Builder accounts(List<String> accounts) {
+      this.accounts.addAll(accounts);
       return this;
     }
 
-    public Builder addObserver(PaymentListener observer) {
-      observers.add(observer);
+    public Builder observers(List<PaymentListener> observers) {
+      this.observers.addAll(observers);
       return this;
     }
 
