@@ -58,8 +58,7 @@ public class StellarPaymentObserver {
             .forAccount(account)
             .includeTransactions(true)
             .limit(200)
-            .order(RequestBuilder.Order.DESC);
-
+            .order(RequestBuilder.Order.ASC);
     String lastToken = paymentStreamerCursorStore.load(account);
     if (lastToken != null) {
       paymentsRequest.cursor(lastToken);
