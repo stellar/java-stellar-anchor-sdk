@@ -2,15 +2,15 @@ package org.stellar.anchor.platform.service;
 
 import java.util.Optional;
 import org.springframework.stereotype.Component;
-import org.stellar.anchor.platform.paymentobserver.PageTokenStore;
+import org.stellar.anchor.platform.paymentobserver.PaymentStreamerCursorStore;
 import org.stellar.anchor.server.data.StellarAccountPageToken;
 import org.stellar.anchor.server.data.StellarAccountPageTokenRepo;
 
 @Component
-public class JdbcPageTokenStore implements PageTokenStore {
+public class JdbcPaymentStreamerCursorStore implements PaymentStreamerCursorStore {
   private final StellarAccountPageTokenRepo repo;
 
-  JdbcPageTokenStore(StellarAccountPageTokenRepo repo) {
+  JdbcPaymentStreamerCursorStore(StellarAccountPageTokenRepo repo) {
     this.repo = repo;
   }
 

@@ -18,18 +18,18 @@ public class StellarPaymentObserver {
   final List<PaymentListener> observers;
   final List<String> accounts;
   final List<SSEStream<OperationResponse>> streams;
-  final PageTokenStore pageTokenStore;
+  final PaymentStreamerCursorStore paymentStreamerCursorStore;
 
   StellarPaymentObserver(
       String horizonServer,
       List<String> accounts,
       List<PaymentListener> observers,
-      PageTokenStore pageTokenStore) {
+      PaymentStreamerCursorStore paymentStreamerCursorStore) {
     this.server = new Server(horizonServer);
     this.observers = observers;
     this.accounts = accounts;
     this.streams = new ArrayList<>(accounts.size());
-    this.pageTokenStore = pageTokenStore;
+    this.paymentStreamerCursorStore = paymentStreamerCursorStore;
   }
 
   /** Start watching the accounts. */
@@ -51,7 +51,7 @@ public class StellarPaymentObserver {
     PaymentsRequestBuilder paymentsRequest =
         server.payments().forAccount(account).includeTransactions(true).limit(200).order(RequestBuilder.Order.DESC);
 
-    String lastToken = pageTokenStore.load(account);
+    String lastToken = paymentStreamerCursorStore.load(account);
     if (lastToken != null) {
       paymentsRequest.cursor(lastToken);
     }
@@ -72,7 +72,7 @@ public class StellarPaymentObserver {
                 Log.errorEx(t);
               }
             }
-            pageTokenStore.save(account, transaction.getPagingToken());
+            paymentStreamerCursorStore.save(account, transaction.getPagingToken());
           }
 
           @Override
@@ -91,7 +91,7 @@ public class StellarPaymentObserver {
     String horizonServer = "https://horizon-testnet.stellar.org";
     List<String> accounts = new LinkedList<>();
     List<PaymentListener> observers = new LinkedList<>();
-    PageTokenStore pageTokenStore = new MemoryPageTokenStore();
+    PaymentStreamerCursorStore paymentStreamerCursorStore = new MemoryPaymentStreamerCursorStore();
 
     public Builder() {}
 
@@ -110,13 +110,14 @@ public class StellarPaymentObserver {
       return this;
     }
 
-    public Builder paymentTokenStore(PageTokenStore pageTokenStore) {
-      this.pageTokenStore = pageTokenStore;
+    public Builder paymentTokenStore(PaymentStreamerCursorStore paymentStreamerCursorStore) {
+      this.paymentStreamerCursorStore = paymentStreamerCursorStore;
       return this;
     }
 
     public StellarPaymentObserver build() {
-      return new StellarPaymentObserver(horizonServer, accounts, observers, pageTokenStore);
+      return new StellarPaymentObserver(
+          horizonServer, accounts, observers, paymentStreamerCursorStore);
     }
   }
 

@@ -3,7 +3,7 @@ package org.stellar.anchor.platform.paymentobserver;
 import java.util.HashMap;
 import java.util.Map;
 
-public class MemoryPageTokenStore implements PageTokenStore {
+public class MemoryPaymentStreamerCursorStore implements PaymentStreamerCursorStore {
   Map<String, String> mapTokens = new HashMap<>();
 
   @Override
