@@ -107,6 +107,16 @@ public class Log {
   }
 
   /**
+   * Send message to WARN log.
+   *
+   * @param msg The message
+   */
+  public static void warn(String msg) {
+    Logger logger = getLogger();
+    logger.warn(msg);
+  }
+
+  /**
    * Send message to ERROR log.
    *
    * @param msg The message

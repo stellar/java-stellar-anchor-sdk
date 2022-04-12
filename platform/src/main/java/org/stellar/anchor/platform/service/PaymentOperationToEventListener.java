@@ -38,7 +38,8 @@ public class PaymentOperationToEventListener implements PaymentListener {
     try {
       txn = transactionStore.findByStellarMemo(hash);
     } catch (SepException e) {
-      Log.info(String.format("error finding transaction that matches the memo (%s).", hash));
+      Log.error(String.format("error finding transaction that matches the memo (%s).", hash));
+      e.printStackTrace();
     }
 
     if (txn == null) {
@@ -54,7 +55,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
 
     AssetTypeCreditAlphaNum atcPayment = (AssetTypeCreditAlphaNum) payment.getAsset();
     if (!txn.getAmountInAsset().equals(atcPayment.getCode())) {
-      Log.error(
+      Log.warn(
           String.format(
               "Payment asset(%s) does not match the expected asset(%s)",
               atcPayment.getCode(), txn.getAmountInAsset()));
