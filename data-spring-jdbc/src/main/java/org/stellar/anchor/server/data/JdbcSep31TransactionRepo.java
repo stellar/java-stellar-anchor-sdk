@@ -7,6 +7,7 @@ import lombok.NonNull;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
+import org.stellar.anchor.model.Sep31Transaction;
 
 public interface JdbcSep31TransactionRepo extends CrudRepository<JdbcSep31Transaction, String> {
   Optional<JdbcSep31Transaction> findById(@NonNull String id);
@@ -15,4 +16,6 @@ public interface JdbcSep31TransactionRepo extends CrudRepository<JdbcSep31Transa
   List<JdbcSep31Transaction> findByIds(@Param("ids") Collection<String> ids);
 
   Optional<JdbcSep31Transaction> findByStellarAccountId(@NonNull String stellarAccountId);
+
+  Optional<Sep31Transaction> findByStellarMemo(String stellarMemo);
 }

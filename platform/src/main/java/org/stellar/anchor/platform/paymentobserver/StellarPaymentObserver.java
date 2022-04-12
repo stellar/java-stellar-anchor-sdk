@@ -50,7 +50,8 @@ public class StellarPaymentObserver {
   }
 
   public SSEStream<OperationResponse> watch(String account) {
-    PaymentsRequestBuilder paymentsRequest = server.payments().forAccount(account);
+    PaymentsRequestBuilder paymentsRequest =
+        server.payments().forAccount(account).includeTransactions(true);
 
     String lastToken = pageTokenStore.load(account);
     if (lastToken != null) {
@@ -119,5 +120,35 @@ public class StellarPaymentObserver {
     public StellarPaymentObserver build() {
       return new StellarPaymentObserver(horizonServer, accounts, observers, pageTokenStore);
     }
+  }
+
+  public static void main(String[] args) throws IOException, InterruptedException {
+    KeyPair account1 =
+        KeyPair.fromSecretSeed("SCBYEX2YH7BH5WVKVR22RW2M3QQR3P2P3NLWIVNNNEZHJ3KZ52E2QKZN");
+    KeyPair account2 =
+        KeyPair.fromSecretSeed("SDPJLASIYSGX7ZKOJZIGJGYGC5F6XKHTPEA7NR2Y6YKKCHIBR2GAPCEZ");
+
+    StellarPaymentObserver watcher =
+        builder()
+            .horizonServer("https://horizon-testnet.stellar.org")
+            .addAccount(account1.getAccountId())
+            .addAccount(account2.getAccountId())
+            .addObserver(
+                new PaymentListener() {
+                  @Override
+                  public void onReceived(PaymentOperationResponse payment) {
+                    System.out.println("Received:" + new Gson().toJson(payment));
+                  }
+
+                  @Override
+                  public void onSent(PaymentOperationResponse payment) {
+                    System.out.println("Sent:" + new Gson().toJson(payment));
+                  }
+                })
+            .build();
+
+    watcher.start();
+    Thread.sleep(300000);
+    watcher.shutdown();
   }
 }

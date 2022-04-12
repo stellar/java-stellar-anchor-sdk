@@ -31,7 +31,7 @@ fun sep38TestHappyPath() {
     sep38.getPrice(
       "iso4217:USD",
       "100",
-      "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+      "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
     )
   printResponse(price)
 
@@ -41,7 +41,7 @@ fun sep38TestHappyPath() {
     sep38.postQuote(
       "iso4217:USD",
       "100",
-      "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+      "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
     )
   printResponse(postQuote)
 
@@ -52,7 +52,7 @@ fun sep38TestHappyPath() {
     sep38.postQuote(
       "iso4217:USD",
       "100",
-      "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+      "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
       expiresAfter
     )
   printResponse(postQuote)

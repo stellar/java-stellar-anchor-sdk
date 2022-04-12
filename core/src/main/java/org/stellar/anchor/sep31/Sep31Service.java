@@ -3,16 +3,16 @@ package org.stellar.anchor.sep31;
 import static org.stellar.anchor.dto.sep31.Sep31InfoResponse.AssetResponse;
 import static org.stellar.anchor.sep31.Sep31Helper.amountEquals;
 import static org.stellar.anchor.util.MathHelper.decimal;
+import static org.stellar.anchor.util.MemoHelper.*;
 import static org.stellar.anchor.util.SepHelper.*;
+import static org.stellar.sdk.xdr.MemoType.*;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
 import lombok.SneakyThrows;
+import org.apache.commons.lang3.StringUtils;
 import org.stellar.anchor.asset.AssetInfo;
 import org.stellar.anchor.asset.AssetInfo.Sep31TxnFieldSpecs;
 import org.stellar.anchor.asset.AssetService;
@@ -76,8 +76,7 @@ public class Sep31Service {
     validateAmount("", request.getAmount());
     validateLanguage(appConfig, request.getLang());
     validateRequiredFields(request.getAssetCode(), request.getFields().getTransaction());
-
-    validateAsset(request);
+    AssetInfo asset = validateAsset(request);
     validateSenderAndReceiver(request);
 
     Sep31Transaction txn =
@@ -93,15 +92,24 @@ public class Sep31Service {
 
     validateKyc(request.getSenderId(), request.getReceiverId());
     validateAndApplyFeeAndQuote(txn, request, jwtToken);
+    generateTransactionMemo(txn);
 
     sep31TransactionStore.save(txn);
 
     return Sep31PostTransactionResponse.builder()
         .id(txn.getId())
-        .stellarAccountId(txn.getStellarAccountId())
+        .stellarAccountId(asset.getDistributionAccount())
         .stellarMemo(txn.getStellarMemo())
-        .stellarMemo(txn.getStellarMemoType())
+        .stellarMemoType(txn.getStellarMemoType())
         .build();
+  }
+
+  private void generateTransactionMemo(Sep31Transaction txn) throws SepException {
+    String memo = StringUtils.truncate(txn.getId(), 32);
+    memo = StringUtils.leftPad(memo, 32, '0');
+    memo = new String(Base64.getEncoder().encode(memo.getBytes()));
+    txn.setStellarMemo(memo);
+    txn.setStellarMemoType(memoType(MEMO_HASH));
   }
 
   public Sep31GetTransactionResponse getTransaction(String id)
@@ -260,20 +268,21 @@ public class Sep31Service {
     // to the anchor.
   }
 
-  void validateAsset(Sep31PostTransactionRequest request) throws BadRequestException {
+  AssetInfo validateAsset(Sep31PostTransactionRequest request) throws BadRequestException {
     String assetCode = request.getAssetCode();
     String assetIssuer = request.getAssetIssuer();
     // Check if the asset is supported in SEP-31
-    if (assetService.listAllAssets().stream()
-        .noneMatch(
-            assetInfo ->
-                assetInfo.getSep31Enabled()
-                    && assetInfo.getIssuer().equals(assetIssuer)
-                    && assetInfo.getCode().equals(assetCode))) {
-      // the asset is not supported.
-      throw new BadRequestException(
-          String.format("asset %s:%s is not supported.", assetCode, assetIssuer));
+    for (AssetInfo assetInfo : assetService.listAllAssets()) {
+      if (assetInfo.getSep31Enabled()
+          //          && assetInfo.getIssuer().equals(assetIssuer) TODO: Add this back when
+          // demo-wallet sends the issuer.
+          && assetInfo.getCode().equals(assetCode)) {
+        return assetInfo;
+      }
     }
+    // the asset is not supported.
+    throw new BadRequestException(
+        String.format("asset %s:%s is not supported.", assetCode, assetIssuer));
   }
 
   Sep31GetTransactionResponse fromTransactionToResponse(Sep31Transaction txn) {

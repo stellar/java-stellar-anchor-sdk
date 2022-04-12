@@ -3,8 +3,8 @@
         {
             "schema": "stellar",
             "code": "USDC",
-            "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
-            "distribution_account": "GBJDTHT4562X2H37JMOE6IUTZZSDU6RYGYUNFYCHVFG3J4MYJIMU33HK",
+            "issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+            "distribution_account": "GDVARAZQD3B5QKKQG2AE455HXLD3NYFWRMPBGXSH2VE3L3CF23CAZDUB",
             "significant_decimals": 2,
             "deposit" : {
                 "enabled": true,
@@ -105,7 +105,7 @@
             },
             "sep38": {
                 "exchangeable_assets": [
-                    "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+                    "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
                 ],
                 "country_codes": ["USA"],
                 "decimals": 4,

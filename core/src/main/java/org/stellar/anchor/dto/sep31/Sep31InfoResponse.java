@@ -11,6 +11,8 @@ public class Sep31InfoResponse {
 
   @Data
   public static class AssetResponse {
+    Boolean enabled = true;
+
     @SerializedName("quotes_supported")
     Boolean quotesSupported;
 
