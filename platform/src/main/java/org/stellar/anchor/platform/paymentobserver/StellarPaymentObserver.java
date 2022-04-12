@@ -69,6 +69,11 @@ public class StellarPaymentObserver {
         new EventListener<>() {
           @Override
           public void onEvent(OperationResponse operationResponse) {
+            if (!operationResponse.isTransactionSuccessful()) {
+              paymentStreamerCursorStore.save(account, operationResponse.getPagingToken());
+              return;
+            }
+
             ObservedPayment observedPayment = null;
             if (operationResponse instanceof PaymentOperationResponse) {
               PaymentOperationResponse payment = (PaymentOperationResponse) operationResponse;
