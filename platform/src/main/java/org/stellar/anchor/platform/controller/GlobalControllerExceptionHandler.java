@@ -4,6 +4,7 @@ import static org.stellar.anchor.util.Log.errorEx;
 
 import javax.transaction.NotSupportedException;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -18,6 +19,13 @@ public class GlobalControllerExceptionHandler {
   public SepExceptionResponse handleBadRequest(AnchorException ex) {
     errorEx(ex);
     return new SepExceptionResponse(ex.getMessage());
+  }
+
+  @ResponseStatus(HttpStatus.BAD_REQUEST)
+  @ExceptionHandler(MissingServletRequestParameterException.class)
+  public SepExceptionResponse handleMissingParams(MissingServletRequestParameterException ex) {
+    String name = ex.getParameterName();
+    return new SepExceptionResponse(String.format("The \"%s\" parameter is missing.", name));
   }
 
   @ResponseStatus(HttpStatus.FORBIDDEN)
