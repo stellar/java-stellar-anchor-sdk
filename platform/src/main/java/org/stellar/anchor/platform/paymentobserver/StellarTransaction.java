@@ -4,7 +4,6 @@ import com.google.gson.annotations.SerializedName;
 import java.time.Instant;
 import lombok.Builder;
 import lombok.Data;
-import org.stellar.anchor.paymentservice.Payment;
 
 @Data
 @Builder
@@ -19,5 +18,5 @@ public class StellarTransaction {
   Instant createdAt;
 
   String envelope;
-  Payment payment;
+  StellarPayment payment;
 }
