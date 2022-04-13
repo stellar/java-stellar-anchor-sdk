@@ -2,11 +2,10 @@ package org.stellar.anchor.event.models;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.google.gson.annotations.SerializedName;
+import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-
-import java.time.Instant;
 
 @Data
 @Builder
@@ -16,7 +15,8 @@ public class TransactionEvent implements AnchorEvent {
   String eventId;
 
   Type type;
-  public String getType(){
+
+  public String getType() {
     return this.type.type;
   }
 
@@ -88,14 +88,12 @@ public class TransactionEvent implements AnchorEvent {
     COMPLETED("completed"),
     ERROR("error");
 
-    @JsonValue
-    public final String status;
+    @JsonValue public final String status;
 
-    Status(String status){
+    Status(String status) {
       this.status = status;
     }
   }
-
 
   public enum Sep {
     SEP_31(31);
@@ -107,7 +105,7 @@ public class TransactionEvent implements AnchorEvent {
     }
 
     @JsonValue
-    public Integer getSep(){
+    public Integer getSep() {
       return sep;
     }
   }
@@ -117,10 +115,9 @@ public class TransactionEvent implements AnchorEvent {
     TRANSACTION_PAYMENT_RECEIVED("transaction_payment_received"),
     TRANSACTION_ERROR("transaction_error");
 
-    @JsonValue
-    public final String type;
+    @JsonValue public final String type;
 
-    Type(String type){
+    Type(String type) {
       this.type = type;
     }
   }
@@ -130,15 +127,15 @@ public class TransactionEvent implements AnchorEvent {
 
     public final String kind;
 
-    Kind(String kind){
+    Kind(String kind) {
       this.kind = kind;
     }
 
     @JsonValue
-    public String getKind(){
+    public String getKind() {
       return kind;
     }
   }
 
-  public TransactionEvent(){}
+  public TransactionEvent() {}
 }

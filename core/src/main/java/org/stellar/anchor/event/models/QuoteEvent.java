@@ -2,9 +2,7 @@ package org.stellar.anchor.event.models;
 
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.google.gson.annotations.SerializedName;
-
 import java.time.Instant;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,7 +15,8 @@ public class QuoteEvent implements AnchorEvent {
   String eventId;
 
   Type type;
-  public String getType(){
+
+  public String getType() {
     return this.type.type;
   }
 
@@ -45,13 +44,12 @@ public class QuoteEvent implements AnchorEvent {
   public enum Type {
     QUOTE_CREATED("quote_created");
 
-    @JsonValue
-    public final String type;
+    @JsonValue public final String type;
 
-    Type(String type){
+    Type(String type) {
       this.type = type;
     }
   }
 
-  public QuoteEvent(){}
+  public QuoteEvent() {}
 }

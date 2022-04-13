@@ -1,4 +1,4 @@
- package org.stellar.anchor.event.models;
+package org.stellar.anchor.event.models;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -11,5 +11,5 @@ public class Amount {
   String amount;
   String asset;
 
-  public Amount(){}
+  public Amount() {}
 }

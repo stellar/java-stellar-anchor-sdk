@@ -11,5 +11,5 @@ public class Amount {
   String amount;
   String asset;
 
-  public Amount(){}
+  public Amount() {}
 }

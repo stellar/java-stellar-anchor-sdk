@@ -20,5 +20,5 @@ public class Payment {
 
   Amount amount;
 
-  public Payment(){}
+  public Payment() {}
 }

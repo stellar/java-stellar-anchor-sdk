@@ -1,6 +1,5 @@
 package org.stellar.anchor.event;
 
-import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.Properties;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -11,7 +10,6 @@ import org.apache.kafka.common.header.internals.RecordHeader;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 import org.springframework.stereotype.Component;
-import org.springframework.stereotype.Service;
 import org.stellar.anchor.config.EventConfig;
 import org.stellar.anchor.event.models.AnchorEvent;
 
@@ -36,12 +34,12 @@ public class EventService {
   }
 
   public void publish(AnchorEvent event) {
-    if(!eventsEnabled){
+    if (!eventsEnabled) {
       return;
     }
-    try{
+    try {
       String topic;
-      if(useSingleQueue){
+      if (useSingleQueue) {
         // TODO: use constant instead of 'all'
         topic = queues.get("all");
       } else {
@@ -50,7 +48,7 @@ public class EventService {
       ProducerRecord<String, AnchorEvent> record = new ProducerRecord<>(topic, event);
       record.headers().add(new RecordHeader("type", event.getType().getBytes()));
       producer.send(record);
-    } catch (Exception ex){
+    } catch (Exception ex) {
       System.out.println(ex.toString());
     }
   }

@@ -8,7 +8,6 @@ import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.time.Instant;
 import java.util.*;
-
 import org.apache.commons.lang3.StringUtils;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.Sep38Config;
@@ -362,7 +361,8 @@ public class Sep38Service {
 
     this.sep38QuoteStore.save(newQuote);
 
-    QuoteEvent event = QuoteEvent.builder()
+    QuoteEvent event =
+        QuoteEvent.builder()
             .eventId(UUID.randomUUID().toString())
             .type(QuoteEvent.Type.QUOTE_CREATED)
             .id(newQuote.getId())
@@ -370,11 +370,12 @@ public class Sep38Service {
             .buyAsset(newQuote.getBuyAsset())
             .expiresAt(newQuote.getExpiresAt())
             .price(newQuote.getPrice())
-            .creator(StellarId.builder()
+            .creator(
+                StellarId.builder()
                     .account(newQuote.getCreatorAccountId())
                     .memo(newQuote.getCreatorMemo())
                     .memoType(newQuote.getCreatorMemoType())
-                    .build())  //TODO where to get StellarId.id?
+                    .build()) // TODO where to get StellarId.id?
             .transactionId(newQuote.getTransactionId())
             .createdAt(newQuote.getCreatedAt())
             .build();

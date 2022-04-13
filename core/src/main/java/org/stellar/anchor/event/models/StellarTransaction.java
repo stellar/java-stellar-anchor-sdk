@@ -1,9 +1,7 @@
 package org.stellar.anchor.event.models;
 
 import com.google.gson.annotations.SerializedName;
-
 import java.time.Instant;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -24,7 +22,7 @@ public class StellarTransaction {
   String envelope;
   Payment[] payments;
 
-  public StellarTransaction(){}
+  public StellarTransaction() {}
 }
 
 @Data
@@ -34,5 +32,5 @@ class Customers {
   StellarId sender;
   StellarId receiver;
 
-  public Customers(){}
+  public Customers() {}
 }

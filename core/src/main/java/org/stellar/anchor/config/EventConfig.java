@@ -1,6 +1,5 @@
 package org.stellar.anchor.config;
 
-
 import java.util.Map;
 
 public interface EventConfig {
@@ -9,5 +8,6 @@ public interface EventConfig {
   String getKafkaBootstrapServer();
 
   boolean isUseSingleQueue();
+
   boolean isEnabled();
 }

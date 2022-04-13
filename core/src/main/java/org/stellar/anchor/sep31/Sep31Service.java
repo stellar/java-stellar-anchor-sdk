@@ -24,7 +24,6 @@ import org.stellar.anchor.dto.sep31.*;
 import org.stellar.anchor.dto.sep31.Sep31GetTransactionResponse.TransactionResponse;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.event.models.Amount;
-import org.stellar.anchor.event.models.QuoteEvent;
 import org.stellar.anchor.event.models.StellarId;
 import org.stellar.anchor.event.models.TransactionEvent;
 import org.stellar.anchor.exception.AnchorException;
@@ -104,38 +103,30 @@ public class Sep31Service {
 
     sep31TransactionStore.save(txn);
 
-    TransactionEvent event = TransactionEvent.builder()
-        .eventId(UUID.randomUUID().toString())
-        .type(TransactionEvent.Type.TRANSACTION_CREATED)
-        .id(txn.getId())
-        .sep(TransactionEvent.Sep.SEP_31)
-        .kind(TransactionEvent.Kind.RECEIVE)
-        .amountIn(Amount.builder()
-                .amount(txn.getAmountIn())
-                .asset(txn.getAmountInAsset())
-                .build()
-        )
-        .amountOut(Amount.builder()
-                  .amount(txn.getAmountOut())
-                  .asset(txn.getAmountInAsset())
-                  .build()
-        )
-        .amountFee(Amount.builder()
-                  .amount(txn.getAmountFee())
-                  .asset(txn.getAmountInAsset())
-                  .build()
-                )
-        .quoteId(txn.getQuoteId())
-        .startedAt(txn.getStartedAt())
-        .sourceAccount(request.getSenderId())
-        .destinationAccount(request.getReceiverId())
-        .creator(StellarId.builder()
-                .account(txn.getStellarAccountId())
-                .memo(txn.getStellarMemo())
-                .memoType(txn.getStellarMemoType())
-                .build()
-        )
-        .build();
+    TransactionEvent event =
+        TransactionEvent.builder()
+            .eventId(UUID.randomUUID().toString())
+            .type(TransactionEvent.Type.TRANSACTION_CREATED)
+            .id(txn.getId())
+            .sep(TransactionEvent.Sep.SEP_31)
+            .kind(TransactionEvent.Kind.RECEIVE)
+            .amountIn(
+                Amount.builder().amount(txn.getAmountIn()).asset(txn.getAmountInAsset()).build())
+            .amountOut(
+                Amount.builder().amount(txn.getAmountOut()).asset(txn.getAmountInAsset()).build())
+            .amountFee(
+                Amount.builder().amount(txn.getAmountFee()).asset(txn.getAmountInAsset()).build())
+            .quoteId(txn.getQuoteId())
+            .startedAt(txn.getStartedAt())
+            .sourceAccount(request.getSenderId())
+            .destinationAccount(request.getReceiverId())
+            .creator(
+                StellarId.builder()
+                    .account(txn.getStellarAccountId())
+                    .memo(txn.getStellarMemo())
+                    .memoType(txn.getStellarMemoType())
+                    .build())
+            .build();
 
     eventService.publish(event);
 
@@ -168,7 +159,7 @@ public class Sep31Service {
     return fromTransactionToResponse(txn);
   }
 
-  public Sep31GetTransactionResponse patchTransaction(Sep31PatchTransactionRequest request)
+  public Sep31GetTransactionResponse patchTransaccore/src/main/java/org/stellar/anchor/sep31/Sep31Service.java tion(Sep31PatchTransactionRequest request)
       throws AnchorException {
     Sep31Transaction txn = sep31TransactionStore.findByTransactionId(request.getId());
     if (txn == null) {

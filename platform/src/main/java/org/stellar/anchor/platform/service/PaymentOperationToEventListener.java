@@ -1,12 +1,12 @@
 package org.stellar.anchor.platform.service;
 
 import com.google.gson.Gson;
-
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import org.springframework.stereotype.Component;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.event.models.*;
@@ -15,20 +15,17 @@ import org.stellar.anchor.event.models.TransactionEvent;
 import org.stellar.anchor.exception.SepException;
 import org.stellar.anchor.model.Sep31Transaction;
 import org.stellar.anchor.model.TransactionStatus;
-
 import org.stellar.anchor.platform.paymentobserver.*;
 import org.stellar.anchor.server.data.JdbcSep31TransactionStore;
 import org.stellar.anchor.util.Log;
-
-import java.util.UUID;
 
 @Component
 public class PaymentOperationToEventListener implements PaymentListener {
   final JdbcSep31TransactionStore transactionStore;
   final EventService eventService;
 
-  PaymentOperationToEventListener(JdbcSep31TransactionStore transactionStore,
-                                  EventService eventService) {
+  PaymentOperationToEventListener(
+      JdbcSep31TransactionStore transactionStore, EventService eventService) {
     this.transactionStore = transactionStore;
     this.eventService = eventService;
   }
@@ -53,7 +50,9 @@ public class PaymentOperationToEventListener implements PaymentListener {
       return;
     }
     if (txn == null) {
-      Log.info(String.format("Not expecting any transaction with the memo %s.", payment.getTransactionMemo()));
+      Log.info(
+          String.format(
+              "Not expecting any transaction with the memo %s.", payment.getTransactionMemo()));
       return;
     }
 
@@ -76,7 +75,10 @@ public class PaymentOperationToEventListener implements PaymentListener {
     BigDecimal expectedAmount = new BigDecimal(txn.getAmountIn());
     BigDecimal gotAmount = new BigDecimal(payment.getAmount());
     if (gotAmount.compareTo(expectedAmount) < 0) {
-      Log.warn(String.format("Payment amount %s is smaller than the expected amount %s", payment.getAmount(), txn.getAmountIn()));
+      Log.warn(
+          String.format(
+              "Payment amount %s is smaller than the expected amount %s",
+              payment.getAmount(), txn.getAmountIn()));
       return;
     }
 
@@ -105,46 +107,51 @@ public class PaymentOperationToEventListener implements PaymentListener {
   }
 
   TransactionEvent receivedPaymentToEvent(Sep31Transaction txn, ObservedPayment payment) {
-    //TODO move event models to /shared
-    TransactionEvent event = TransactionEvent.builder()
-      .eventId(UUID.randomUUID().toString())
-      .type(TransactionEvent.Type.TRANSACTION_PAYMENT_RECEIVED)
-      .id(txn.getId())
-      .status(TransactionEvent.Status.PENDING_RECEIVER)
-      .sep(org.stellar.anchor.event.models.TransactionEvent.Sep.SEP_31)
-      .kind(org.stellar.anchor.event.models.TransactionEvent.Kind.RECEIVE)
-      .amountIn(new Amount(payment.getAmount(), txn.getAmountInAsset()))
-      .amountOut(new Amount(txn.getAmountOut(), txn.getAmountInAsset()))
+    // TODO move event models to /shared
+    TransactionEvent event =
+        TransactionEvent.builder()
+            .eventId(UUID.randomUUID().toString())
+            .type(TransactionEvent.Type.TRANSACTION_PAYMENT_RECEIVED)
+            .id(txn.getId())
+            .status(TransactionEvent.Status.PENDING_RECEIVER)
+            .sep(org.stellar.anchor.event.models.TransactionEvent.Sep.SEP_31)
+            .kind(org.stellar.anchor.event.models.TransactionEvent.Kind.RECEIVE)
+            .amountIn(new Amount(payment.getAmount(), txn.getAmountInAsset()))
+            .amountOut(new Amount(txn.getAmountOut(), txn.getAmountInAsset()))
             // TODO: fix PATCH transaction fails if getAmountOut is null?
-      .amountFee(new Amount(txn.getAmountFee(), txn.getAmountInAsset()))
-      .quoteId(txn.getQuoteId())
-      .startedAt(txn.getStartedAt())
-      .sourceAccount(payment.getSourceAccount())
-      .destinationAccount(payment.getTo())
-      .creator(
-         StellarId.builder()
-            .account(txn.getStellarAccountId())
-            .memo(txn.getStellarMemo())
-            .memoType(txn.getStellarMemoType())
-            .build()
-      )
-      .stellarTransactions(new StellarTransaction[]{
-        StellarTransaction.builder()
-        .id(txn.getStellarTransactionId())
-        .memo(txn.getStellarMemo())
-        .memoType(txn.getStellarMemoType())
-        .createdAt(
-            DateTimeFormatter.ISO_INSTANT.parse(payment.getCreatedAt(), Instant::from))
-        .envelope(payment.getTransactionEnvelope())
-        .payments(new Payment[]{
-                Payment.builder()
-                .operationId(payment.getId())
-                .sourceAccount(payment.getFrom())
-                .destinationAccount(payment.getTo())
-                .amount(new Amount(payment.getAmount(), payment.getAssetName()))
-                .build()})
-        .build()})
-      .build();
+            .amountFee(new Amount(txn.getAmountFee(), txn.getAmountInAsset()))
+            .quoteId(txn.getQuoteId())
+            .startedAt(txn.getStartedAt())
+            .sourceAccount(payment.getSourceAccount())
+            .destinationAccount(payment.getTo())
+            .creator(
+                StellarId.builder()
+                    .account(txn.getStellarAccountId())
+                    .memo(txn.getStellarMemo())
+                    .memoType(txn.getStellarMemoType())
+                    .build())
+            .stellarTransactions(
+                new StellarTransaction[] {
+                  StellarTransaction.builder()
+                      .id(txn.getStellarTransactionId())
+                      .memo(txn.getStellarMemo())
+                      .memoType(txn.getStellarMemoType())
+                      .createdAt(
+                          DateTimeFormatter.ISO_INSTANT.parse(
+                              payment.getCreatedAt(), Instant::from))
+                      .envelope(payment.getTransactionEnvelope())
+                      .payments(
+                          new Payment[] {
+                            Payment.builder()
+                                .operationId(payment.getId())
+                                .sourceAccount(payment.getFrom())
+                                .destinationAccount(payment.getTo())
+                                .amount(new Amount(payment.getAmount(), payment.getAssetName()))
+                                .build()
+                          })
+                      .build()
+                })
+            .build();
     return event;
   }
 }

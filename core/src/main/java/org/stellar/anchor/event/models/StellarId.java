@@ -16,5 +16,5 @@ public class StellarId {
   @SerializedName("memo_type")
   String memoType;
 
-  public StellarId(){}
+  public StellarId() {}
 }
