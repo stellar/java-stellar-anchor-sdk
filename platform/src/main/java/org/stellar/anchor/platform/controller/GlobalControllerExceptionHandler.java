@@ -46,7 +46,7 @@ public class GlobalControllerExceptionHandler {
 
   @ExceptionHandler({SepNotFoundException.class, NotFoundException.class})
   @ResponseStatus(value = HttpStatus.NOT_FOUND)
-  SepExceptionResponse handleNotFound(Exception ex) {
+  SepExceptionResponse handleNotFound(AnchorException ex) {
     errorEx(ex);
     return new SepExceptionResponse(ex.getMessage());
   }
