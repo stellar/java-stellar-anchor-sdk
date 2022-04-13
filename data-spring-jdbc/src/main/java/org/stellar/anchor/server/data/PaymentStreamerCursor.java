@@ -8,10 +8,10 @@ import lombok.Data;
 @Entity
 @Access(AccessType.FIELD)
 @Table(name = "stellar_account_page_token")
-public class StellarAccountPageToken {
+public class PaymentStreamerCursor {
   @Id
   @SerializedName("account_id")
   String accountId;
 
-  String token;
+  String cursor;
 }

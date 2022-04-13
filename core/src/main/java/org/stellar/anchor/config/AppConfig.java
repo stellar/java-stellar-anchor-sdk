@@ -2,7 +2,6 @@ package org.stellar.anchor.config;
 
 import java.util.List;
 
-@SuppressWarnings("unused")
 public interface AppConfig {
   String getStellarNetworkPassphrase();
 
