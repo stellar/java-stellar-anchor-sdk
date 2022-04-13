@@ -15,7 +15,7 @@ dependencies {
 
   implementation("commons-beanutils:commons-beanutils:1.9.4")
   implementation(libs.apache.commons.lang3)
-  implementation(libs.log4j.core)
+  implementation(libs.log4j2.core)
   implementation(libs.httpclient)
   implementation(libs.google.gson)
   implementation(libs.toml4j)

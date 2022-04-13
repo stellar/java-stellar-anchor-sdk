@@ -3,9 +3,9 @@ package org.stellar.anchor.sep31;
 import static org.stellar.anchor.dto.sep31.Sep31InfoResponse.AssetResponse;
 import static org.stellar.anchor.sep31.Sep31Helper.amountEquals;
 import static org.stellar.anchor.util.MathHelper.decimal;
-import static org.stellar.anchor.util.MemoHelper.*;
+import static org.stellar.anchor.util.MemoHelper.memoType;
 import static org.stellar.anchor.util.SepHelper.*;
-import static org.stellar.sdk.xdr.MemoType.*;
+import static org.stellar.sdk.xdr.MemoType.MEMO_HASH;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -34,6 +34,7 @@ import org.stellar.anchor.model.Sep38Quote;
 import org.stellar.anchor.model.TransactionStatus;
 import org.stellar.anchor.sep10.JwtToken;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
+import org.stellar.anchor.util.Log;
 import org.stellar.platform.apis.callbacks.requests.GetFeeRequest;
 import org.stellar.platform.apis.callbacks.responses.GetFeeResponse;
 
@@ -47,7 +48,6 @@ public class Sep31Service {
   private final CustomerIntegration customerIntegration;
   private Sep31InfoResponse infoResponse;
 
-  @SneakyThrows
   public Sep31Service(
       AppConfig appConfig,
       Sep31Config sep31Config,
