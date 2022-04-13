@@ -79,8 +79,8 @@ public class Sep10Controller {
     InvalidSep10ChallengeException.class,
     URISyntaxException.class
   })
-  @ResponseStatus(value = org.springframework.http.HttpStatus.BAD_REQUEST)
-  public SepExceptionResponse handleSepValidationException(SepException ex) {
+  @ResponseStatus(value = HttpStatus.BAD_REQUEST)
+  public SepExceptionResponse handleSepValidationException(Exception ex) {
     return new SepExceptionResponse(ex.getMessage());
   }
 
