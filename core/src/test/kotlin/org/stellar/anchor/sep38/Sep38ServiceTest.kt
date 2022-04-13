@@ -851,6 +851,7 @@ class Sep38ServiceTest {
   fun test_postQuote_minimumParametersWithSellAmount() {
     // mock rate integration
     val mockRateIntegration = mockk<MockRateIntegration>()
+    val mockEventService = mockk<MockEventService>(relaxed = true)
     val getRateReq =
       GetRateRequest.builder()
         .type(GetRateRequest.Type.FIRM)
@@ -868,7 +869,7 @@ class Sep38ServiceTest {
         sep38Service.assetService,
         mockRateIntegration,
         quoteStore,
-        null
+        mockEventService
       )
 
     val slotQuote = slot<Sep38Quote>()
@@ -918,6 +919,7 @@ class Sep38ServiceTest {
   fun test_postQuote_minimumParametersWithBuyAmount() {
     // mock rate integration
     val mockRateIntegration = mockk<MockRateIntegration>()
+    val mockEventService = mockk<MockEventService>(relaxed = true)
     val getRateReq =
       GetRateRequest.builder()
         .type(GetRateRequest.Type.FIRM)
@@ -935,7 +937,7 @@ class Sep38ServiceTest {
         sep38Service.assetService,
         mockRateIntegration,
         quoteStore,
-        null
+        mockEventService,
       )
 
     val slotQuote = slot<Sep38Quote>()
@@ -988,6 +990,7 @@ class Sep38ServiceTest {
 
     // mock rate integration
     val mockRateIntegration = mockk<MockRateIntegration>()
+    val mockEventService = mockk<MockEventService>(relaxed = true)
     val getRateReq =
       GetRateRequest.builder()
         .type(GetRateRequest.Type.FIRM)
@@ -1007,7 +1010,7 @@ class Sep38ServiceTest {
         sep38Service.assetService,
         mockRateIntegration,
         quoteStore,
-        null
+        mockEventService
       )
 
     val slotQuote = slot<Sep38Quote>()
@@ -1064,6 +1067,7 @@ class Sep38ServiceTest {
 
     // mock rate integration
     val mockRateIntegration = mockk<MockRateIntegration>()
+    val mockEventService = mockk<MockEventService>(relaxed = true)
     val getRateReq =
       GetRateRequest.builder()
         .type(GetRateRequest.Type.FIRM)
@@ -1083,7 +1087,7 @@ class Sep38ServiceTest {
         sep38Service.assetService,
         mockRateIntegration,
         quoteStore,
-        null
+        mockEventService
       )
 
     val slotQuote = slot<Sep38Quote>()
