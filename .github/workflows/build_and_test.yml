@@ -81,4 +81,4 @@ jobs:
           PR: ${{ steps.findPr.outputs.pr }}
         run: |
           npm install -g @stellar/anchor-tests
-          stellar-anchor-tests --home-domain https://anchor-sep-pr$PR.previews.kube001.services.stellar-ops.com --seps 1 38
+          stellar-anchor-tests --home-domain https://anchor-sep-pr$PR.previews.kube001.services.stellar-ops.com --seps 1 10 38
