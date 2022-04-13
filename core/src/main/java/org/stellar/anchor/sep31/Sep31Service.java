@@ -159,7 +159,7 @@ public class Sep31Service {
     return fromTransactionToResponse(txn);
   }
 
-  public Sep31GetTransactionResponse patchTransaccore/src/main/java/org/stellar/anchor/sep31/Sep31Service.java tion(Sep31PatchTransactionRequest request)
+  public Sep31GetTransactionResponse patchTransaction(Sep31PatchTransactionRequest request)
       throws AnchorException {
     Sep31Transaction txn = sep31TransactionStore.findByTransactionId(request.getId());
     if (txn == null) {
