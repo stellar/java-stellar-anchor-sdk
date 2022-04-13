@@ -73,8 +73,6 @@ public class PaymentOperationToEventListener implements PaymentListener {
     // Set the transaction status.
     if (txn.getStatus().equals(TransactionStatus.PENDING_SENDER.toString())) {
       txn.setStatus(TransactionStatus.PENDING_RECEIVER.toString());
-      txn.setStatus(
-          TransactionStatus.COMPLETED.toString()); // TODO: remove after event API is implemented.
       try {
         transactionStore.save(txn);
       } catch (SepException ex) {
@@ -98,9 +96,9 @@ public class PaymentOperationToEventListener implements PaymentListener {
   TransactionEvent receivedPaymentToEvent(Sep31Transaction txn, PaymentOperationResponse payment) {
     TransactionEvent event = TransactionEvent.builder()
       .eventId(UUID.randomUUID().toString())
-      .type(org.stellar.anchor.event.models.TransactionEvent.Type.TRANSACTION_CREATED)
+      .type(TransactionEvent.Type.TRANSACTION_PAYMENT_RECEIVED)
       .id(txn.getId())
-      .status(TransactionEvent.Status.valueOf(txn.getStatus()))
+      .status(TransactionEvent.Status.PENDING_RECEIVER)
       .sep(org.stellar.anchor.event.models.TransactionEvent.Sep.SEP_31)
       .kind(org.stellar.anchor.event.models.TransactionEvent.Kind.RECEIVE)
       .amountIn(org.stellar.anchor.event.models.Amount.builder()

@@ -44,7 +44,7 @@ public class PlatformApiClient extends BaseApiClient {
         new Request.Builder()
             .url(url)
             .header("Content-Type", "application/json")
-            .post(requestBody)
+            .patch(requestBody)
             .build();
     var response = client.newCall(request).execute();
     return gson.fromJson(handleResponse(response), PatchTransactionsResponse.class);

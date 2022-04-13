@@ -15,10 +15,14 @@ import org.stellar.anchor.dto.sep31.Sep31PostTransactionRequest;
 import org.stellar.anchor.event.models.AnchorEvent;
 import org.stellar.anchor.event.models.QuoteEvent;
 import org.stellar.anchor.event.models.TransactionEvent;
+import org.stellar.anchor.exception.AnchorException;
+import org.stellar.anchor.reference.client.BaseApiClient;
+import org.stellar.anchor.reference.client.PlatformApiClient;
 import org.stellar.platform.apis.platform.requests.PatchTransactionRequest;
 import org.stellar.platform.apis.platform.requests.PatchTransactionsRequest;
 import org.stellar.platform.apis.shared.Amount;
 
+import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
@@ -98,9 +102,16 @@ public class AnchorEventServer implements DisposableBean, Runnable {
                                                             .build())
                                                     )
                                                     .build();
-//                                            PlatformApiClient platformClient =
-//                                                    new PlatformApiClient("http://localhost:8080");
-//                                            platformClient.patchTransaction(txnRequest);
+                                            PlatformApiClient platformClient =
+                                                    new PlatformApiClient("http://localhost:8080");
+                                            try {
+                                                platformClient.patchTransaction(txnRequest);
+                                            } catch (IOException e) {
+                                                e.printStackTrace();
+                                            } catch (AnchorException e) {
+                                                e.printStackTrace();
+                                            }
+
                                         }
 
                                         break;
