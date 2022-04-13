@@ -61,6 +61,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
               payment.getAssetCode(), txn.getAmountInAsset()));
       return;
     }
+    // TODO: match asset code.
 
     // Check if the payment contains the expected amount (or greater)
     BigDecimal expectedAmount = new BigDecimal(txn.getAmountIn());
