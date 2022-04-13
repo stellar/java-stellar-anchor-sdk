@@ -39,7 +39,7 @@ public class GlobalControllerExceptionHandler {
 
   @ResponseStatus(HttpStatus.FORBIDDEN)
   @ExceptionHandler({SepNotAuthorizedException.class})
-  public SepExceptionResponse handleAuthError(SepValidationException ex) {
+  public SepExceptionResponse handleAuthError(SepException ex) {
     errorEx(ex);
     return new SepExceptionResponse(ex.getMessage());
   }
