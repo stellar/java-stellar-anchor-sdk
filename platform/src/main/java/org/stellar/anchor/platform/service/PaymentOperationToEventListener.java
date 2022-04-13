@@ -9,10 +9,9 @@ import java.util.List;
 import java.util.Objects;
 import org.springframework.stereotype.Component;
 import org.stellar.anchor.event.EventService;
-import org.stellar.anchor.event.models.Amount;
-import org.stellar.anchor.event.models.StellarId;
-import org.stellar.anchor.event.models.TransactionEvent;
+import org.stellar.anchor.event.models.*;
 import org.stellar.anchor.event.models.StellarTransaction;
+import org.stellar.anchor.event.models.TransactionEvent;
 import org.stellar.anchor.exception.SepException;
 import org.stellar.anchor.model.Sep31Transaction;
 import org.stellar.anchor.model.TransactionStatus;
@@ -20,9 +19,6 @@ import org.stellar.anchor.model.TransactionStatus;
 import org.stellar.anchor.platform.paymentobserver.*;
 import org.stellar.anchor.server.data.JdbcSep31TransactionStore;
 import org.stellar.anchor.util.Log;
-import org.stellar.sdk.AssetTypeCreditAlphaNum;
-import org.stellar.sdk.MemoHash;
-import org.stellar.sdk.responses.operations.PaymentOperationResponse;
 
 import java.util.UUID;
 
@@ -108,7 +104,8 @@ public class PaymentOperationToEventListener implements PaymentListener {
     System.out.println("Sent to event queue" + new Gson().toJson(event));
   }
 
-  TransactionEvent receivedPaymentToEvent(Sep31Transaction txn, PaymentOperationResponse payment) {
+  TransactionEvent receivedPaymentToEvent(Sep31Transaction txn, ObservedPayment payment) {
+    //TODO move event models to /shared
     TransactionEvent event = TransactionEvent.builder()
       .eventId(UUID.randomUUID().toString())
       .type(TransactionEvent.Type.TRANSACTION_PAYMENT_RECEIVED)
@@ -117,8 +114,9 @@ public class PaymentOperationToEventListener implements PaymentListener {
       .sep(org.stellar.anchor.event.models.TransactionEvent.Sep.SEP_31)
       .kind(org.stellar.anchor.event.models.TransactionEvent.Kind.RECEIVE)
       .amountIn(new Amount(payment.getAmount(), txn.getAmountInAsset()))
-      .amountOut(new Amount(txn.getAmountOut(), txn.getAmountOutAsset()))
-      .amountFee(new Amount(txn.getAmountFee(), txn.getAmountFeeAsset()))
+      .amountOut(new Amount(txn.getAmountOut(), txn.getAmountInAsset()))
+            // TODO: fix PATCH transaction fails if getAmountOut is null?
+      .amountFee(new Amount(txn.getAmountFee(), txn.getAmountInAsset()))
       .quoteId(txn.getQuoteId())
       .startedAt(txn.getStartedAt())
       .sourceAccount(payment.getSourceAccount())
@@ -138,13 +136,13 @@ public class PaymentOperationToEventListener implements PaymentListener {
         .createdAt(
             DateTimeFormatter.ISO_INSTANT.parse(payment.getCreatedAt(), Instant::from))
         .envelope(payment.getTransactionEnvelope())
-        .payment(
-            StellarPayment.builder()
+        .payments(new Payment[]{
+                Payment.builder()
                 .operationId(payment.getId())
                 .sourceAccount(payment.getFrom())
                 .destinationAccount(payment.getTo())
                 .amount(new Amount(payment.getAmount(), payment.getAssetName()))
-                .build())
+                .build()})
         .build()})
       .build();
     return event;

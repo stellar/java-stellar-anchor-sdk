@@ -8,7 +8,7 @@ import lombok.Data;
 @Data
 @Builder
 @AllArgsConstructor
-class Payment {
+public class Payment {
   @SerializedName("operation_id")
   String operationId;
 
