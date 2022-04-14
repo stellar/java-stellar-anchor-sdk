@@ -31,6 +31,7 @@ jobs:
         cat /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/anchor-reference-server/build/reports/tests/test/index.html
 
   build_and_push_anchor_platform:
+    if: github.event.pull_request == null
     needs: [build_and_test]
     runs-on: ubuntu-latest
     name: Push stellar/anchor-platform:sha to DockerHub
