@@ -13,6 +13,7 @@ subprojects {
   repositories {
     mavenCentral()
     maven { url = uri("https://jitpack.io") }
+    maven { url = uri("https://packages.confluent.io/maven") }
   }
 
   /** Specifies JDK-11 */
@@ -49,6 +50,12 @@ subprojects {
   dependencies {
     // This is to fix the missing implementation in JSR305 that causes "unknown enum constant When.MAYBE" warning.
     implementation("com.google.code.findbugs:jsr305:3.0.2")
+    implementation("org.apache.kafka:kafka-clients:3.1.0")
+    implementation("org.apache.kafka:connect:3.1.0")
+    implementation("io.confluent:kafka-json-schema-serializer:7.0.1")
+    implementation("org.springframework.kafka:spring-kafka:2.8.4")
+
+
     // The common dependencies are declared here because we would like to have a uniform unit
     // testing across all subprojects.
     //

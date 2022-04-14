@@ -13,6 +13,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.stellar.anchor.config.EventConfig;
+import org.stellar.anchor.event.EventService;
+import org.stellar.anchor.event.KafkaEventService;
 import org.stellar.anchor.platform.configurator.DataAccessConfigurator;
 import org.stellar.anchor.platform.configurator.PlatformAppConfigurator;
 import org.stellar.anchor.platform.configurator.PropertiesReader;
@@ -61,5 +64,10 @@ public class AnchorPlatformServer implements WebMvcConfigurer {
 
   public static void start(int port, String contextPath) {
     start(port, contextPath, null);
+  }
+
+  @Bean
+  public EventService eventService(EventConfig eventConfig) {
+    return new KafkaEventService(eventConfig);
   }
 }

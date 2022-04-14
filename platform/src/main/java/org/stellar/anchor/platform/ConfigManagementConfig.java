@@ -43,4 +43,10 @@ public class ConfigManagementConfig {
   Sep38Config sep38Config() {
     return new PropertySep38Config();
   }
+
+  @Bean
+  @ConfigurationProperties(prefix = "event")
+  EventConfig eventConfig() {
+    return new PropertyEventConfig();
+  }
 }
