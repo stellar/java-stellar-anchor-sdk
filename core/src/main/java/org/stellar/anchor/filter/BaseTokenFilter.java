@@ -3,7 +3,6 @@ package org.stellar.anchor.filter;
 import static org.stellar.anchor.util.Log.*;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import java.io.IOException;
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
@@ -14,6 +13,7 @@ import org.stellar.anchor.dto.SepExceptionResponse;
 import org.stellar.anchor.exception.SepValidationException;
 import org.stellar.anchor.sep10.JwtService;
 import org.stellar.anchor.sep10.JwtToken;
+import org.stellar.anchor.util.GsonUtils;
 
 public abstract class BaseTokenFilter implements Filter {
   public static final String JWT_TOKEN = "token";
@@ -24,7 +24,7 @@ public abstract class BaseTokenFilter implements Filter {
 
   public BaseTokenFilter(JwtService jwtService) {
     this.jwtService = jwtService;
-    this.gson = new GsonBuilder().setPrettyPrinting().create();
+    this.gson = GsonUtils.builder().setPrettyPrinting().create();
   }
 
   @Override

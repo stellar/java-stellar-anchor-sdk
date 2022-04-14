@@ -1,6 +1,6 @@
 package org.stellar.anchor.reference.model;
 
-import java.time.LocalDateTime;
+import java.time.Instant;
 import java.util.UUID;
 import javax.persistence.Entity;
 import javax.persistence.Id;
@@ -14,9 +14,9 @@ public class Quote {
 
   String price;
 
-  LocalDateTime expiresAt;
+  Instant expiresAt;
 
-  LocalDateTime createdAt;
+  Instant createdAt;
 
   String sellAsset;
 
@@ -52,7 +52,7 @@ public class Quote {
     quote.setBuyAmount(request.getBuyAmount());
     quote.setSellDeliveryMethod(request.getSellDeliveryMethod());
     quote.setCountryCode(request.getCountryCode());
-    quote.setCreatedAt(LocalDateTime.now());
+    quote.setCreatedAt(Instant.now());
     quote.setPrice(price);
     quote.setStellarAccount(request.getAccount());
     quote.setMemo(request.getMemo());

@@ -1,12 +1,17 @@
 package org.stellar.anchor.reference.service;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import static org.stellar.anchor.util.SepHelper.validateAmount;
+
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
 import java.util.Map;
-import java.util.Objects;
 import kotlin.Pair;
 import org.springframework.stereotype.Service;
-import org.stellar.anchor.exception.*;
+import org.stellar.anchor.exception.AnchorException;
+import org.stellar.anchor.exception.BadRequestException;
+import org.stellar.anchor.exception.ServerErrorException;
+import org.stellar.anchor.exception.UnprocessableEntityException;
 import org.stellar.anchor.reference.model.Quote;
 import org.stellar.anchor.reference.repo.QuoteRepo;
 import org.stellar.platform.apis.callbacks.requests.GetRateRequest;
@@ -65,16 +70,18 @@ public class RateService {
     Quote quote = Quote.of(request, price);
 
     // "calculate" expiresAt
-    LocalDateTime expiresAfter = request.getExpiresAfter();
+    Instant expiresAfter = request.getExpiresAfter();
     if (expiresAfter == null) {
-      expiresAfter = LocalDateTime.now();
+      expiresAfter = Instant.now();
     }
-    LocalDateTime expiresAt = expiresAfter.withHour(12);
-    expiresAt = expiresAt.withMinute(0);
-    expiresAt = expiresAt.withSecond(0);
-    expiresAt = expiresAt.withNano(0);
-    expiresAt = expiresAt.plusDays(1);
-    quote.setExpiresAt(expiresAt);
+    ZonedDateTime expiresAt =
+        ZonedDateTime.ofInstant(expiresAfter, ZoneId.of("UTC"))
+            .plusDays(1)
+            .withHour(12)
+            .withMinute(0)
+            .withSecond(0)
+            .withNano(0);
+    quote.setExpiresAt(expiresAt.toInstant());
 
     quoteRepo.save(quote);
     return quote;
@@ -103,23 +110,6 @@ public class RateService {
 
     public static String getPrice(String sellAsset, String buyAsset) {
       return hardcodedPrices.get(new Pair<>(sellAsset, buyAsset));
-    }
-  }
-
-  private void validateAmount(String prefix, String amount) throws AnchorException {
-    // assetName
-    if (Objects.toString(amount, "").isEmpty()) {
-      throw new BadRequestException(prefix + "amount cannot be empty");
-    }
-
-    BigDecimal sAmount;
-    try {
-      sAmount = new BigDecimal(amount);
-    } catch (NumberFormatException e) {
-      throw new BadRequestException(prefix + "amount is invalid", e);
-    }
-    if (sAmount.signum() < 1) {
-      throw new BadRequestException(prefix + "amount should be positive");
     }
   }
 }

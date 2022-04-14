@@ -8,4 +8,6 @@ public abstract class AnchorException extends Exception {
   public AnchorException(String message) {
     super(message);
   }
+
+  public AnchorException() {}
 }

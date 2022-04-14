@@ -1,19 +1,21 @@
 package org.stellar.anchor.server.data;
 
 import com.google.gson.annotations.SerializedName;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.Table;
 import lombok.Data;
 import org.stellar.anchor.model.Sep38Quote;
 
 @Data
 @Entity
+@Table(name = "exchange_quote")
 public class JdbcSep38Quote implements Sep38Quote {
   @Id String id;
 
   @SerializedName("expires_at")
-  LocalDateTime expiresAt;
+  Instant expiresAt;
 
   String price;
 
@@ -36,7 +38,7 @@ public class JdbcSep38Quote implements Sep38Quote {
   String buyDeliveryMethod;
 
   @SerializedName("created_at")
-  LocalDateTime createdAt;
+  Instant createdAt;
 
   @SerializedName("creator_account_id")
   String creatorAccountId;

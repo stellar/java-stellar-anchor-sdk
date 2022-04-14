@@ -12,29 +12,29 @@ public class InfoResponse {
   private List<Asset> assets = new ArrayList<>();
 
   public InfoResponse(List<AssetInfo> assetInfoList) {
-    assetInfoList.forEach(
-        assetInfo -> {
-          Asset newAsset = new Asset();
-          String assetName = assetInfo.getSchema().toString() + ":" + assetInfo.getCode();
-          if (!Objects.toString(assetInfo.getIssuer(), "").isEmpty()) {
-            assetName += ":" + assetInfo.getIssuer();
-          }
-          newAsset.setAsset(assetName);
+    for (AssetInfo assetInfo : assetInfoList) {
+      if (!assetInfo.getSep38Enabled()) continue;
+      Asset newAsset = new Asset();
+      String assetName = assetInfo.getSchema().toString() + ":" + assetInfo.getCode();
+      if (!Objects.toString(assetInfo.getIssuer(), "").isEmpty()) {
+        assetName += ":" + assetInfo.getIssuer();
+      }
+      newAsset.setAsset(assetName);
 
-          AssetInfo.Sep38Operation sep38Info = assetInfo.getSep38();
-          newAsset.setCountryCodes(sep38Info.getCountryCodes());
-          newAsset.setSellDeliveryMethods(sep38Info.getSellDeliveryMethods());
-          newAsset.setBuyDeliveryMethods(sep38Info.getBuyDeliveryMethods());
-          newAsset.setExchangeableAssetNames(sep38Info.getExchangeableAssets());
+      AssetInfo.Sep38Operation sep38Info = assetInfo.getSep38();
+      newAsset.setCountryCodes(sep38Info.getCountryCodes());
+      newAsset.setSellDeliveryMethods(sep38Info.getSellDeliveryMethods());
+      newAsset.setBuyDeliveryMethods(sep38Info.getBuyDeliveryMethods());
+      newAsset.setExchangeableAssetNames(sep38Info.getExchangeableAssets());
 
-          int decimals = 7;
-          if (!assetName.startsWith("stellar") && sep38Info.getDecimals() != null) {
-            decimals = sep38Info.getDecimals();
-          }
-          newAsset.setDecimals(decimals);
+      int decimals = 7;
+      if (!assetName.startsWith("stellar") && sep38Info.getDecimals() != null) {
+        decimals = sep38Info.getDecimals();
+      }
+      newAsset.setDecimals(decimals);
 
-          assets.add(newAsset);
-        });
+      assets.add(newAsset);
+    }
   }
 
   @Data

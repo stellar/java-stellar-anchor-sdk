@@ -3,13 +3,13 @@ package org.stellar.anchor.paymentservice.circle.model;
 import com.google.gson.*;
 import com.google.gson.annotations.SerializedName;
 import java.lang.reflect.Type;
-import java.util.Date;
+import java.time.Instant;
 import java.util.Map;
 import lombok.Data;
 import org.stellar.anchor.paymentservice.Account;
 import org.stellar.anchor.paymentservice.Payment;
 import org.stellar.anchor.paymentservice.PaymentNetwork;
-import org.stellar.anchor.paymentservice.circle.util.CircleDateFormatter;
+import org.stellar.anchor.util.GsonUtils;
 import shadow.com.google.common.reflect.TypeToken;
 
 @Data
@@ -22,8 +22,8 @@ public class CirclePayout {
   CirclePaymentStatus status;
   String trackingRef;
   String errorCode;
-  Date updateDate;
-  Date createDate;
+  Instant updateDate;
+  Instant createDate;
   Map<String, String> riskEvaluation;
   Map<String, ?> originalResponse;
 
@@ -52,20 +52,17 @@ public class CirclePayout {
   }
 
   public static class Deserializer implements JsonDeserializer<CirclePayout> {
+    private static final Gson gson = GsonUtils.getInstance();
+
     @Override
     public CirclePayout deserialize(
         JsonElement json, Type typeOfT, JsonDeserializationContext context)
         throws JsonParseException {
       JsonObject jsonObject = json.getAsJsonObject();
-      Gson gson = new Gson();
       CirclePayout payout = gson.fromJson(jsonObject, CirclePayout.class);
 
       Type type = new TypeToken<Map<String, ?>>() {}.getType();
       Map<String, Object> originalResponse = gson.fromJson(jsonObject, type);
-      String createDateStr = CircleDateFormatter.dateToString(payout.getCreateDate());
-      originalResponse.put("createDate", createDateStr);
-      String updateDateStr = CircleDateFormatter.dateToString(payout.getUpdateDate());
-      originalResponse.put("updateDate", updateDateStr);
       payout.setOriginalResponse(originalResponse);
       return payout;
     }

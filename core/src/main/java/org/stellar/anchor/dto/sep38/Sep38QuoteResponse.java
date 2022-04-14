@@ -1,7 +1,7 @@
 package org.stellar.anchor.dto.sep38;
 
 import com.google.gson.annotations.SerializedName;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import lombok.Builder;
 import lombok.Data;
 
@@ -11,7 +11,7 @@ public class Sep38QuoteResponse {
   String id;
 
   @SerializedName("expires_at")
-  LocalDateTime expiresAt;
+  Instant expiresAt;
 
   String price;
 

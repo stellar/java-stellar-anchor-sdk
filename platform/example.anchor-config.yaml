@@ -54,6 +54,11 @@ app-config:
     enabled: true
     customerIntegrationEndpoint: http://localhost:8081
 
+  # sep-31
+  sep31:
+    enabled: true
+    feeIntegrationEndPoint: http://localhost:8081
+
   # sep-38
   sep38:
     enabled: true
@@ -67,7 +72,7 @@ app-config:
       name: "circle"
       enabled: true
       circleUrl: https://api-sandbox.circle.com
-      secretKey: secret
+      secretKey: secret # circle API key
       horizonUrl: https://horizon-testnet.stellar.org
       stellarNetwork: TESTNET
 
@@ -77,8 +82,19 @@ app-config:
     stellar:
       enabled: false
       name: "stellar"
-      horizon_url: https://horizon-testnet.stellar.org
-      secretKey: secret
+      horizonUrl: https://horizon-testnet.stellar.org
+      secretKey: secret # stellar account secret key
+
+  event:
+    enabled: true
+    kafkaBootstrapServer: localhost:29092
+    useSingleQueue: false
+    queues:
+      all: ap_event_single_queue
+      quote_created: ap_event_quote_created
+      transaction_created: ap_event_transaction_created
+      transaction_payment_received: ap_event_transaction_payment_received
+      transaction_error: ap_event_transaction_error
 
 #
 # Spring Data JDBC settings
@@ -92,6 +108,7 @@ data-spring-jdbc-sqlite:
   spring.datasource.driver-class-name: org.sqlite.JDBC
   spring.datasource.username: admin
   spring.datasource.password: admin
+  spring.mvc.converters.preferred-json-mapper: gson
 
 data-spring-jdbc-h2:
   spring.datasource.url: jdbc:h2:mem:test

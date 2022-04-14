@@ -145,6 +145,10 @@ public class CustomerService {
   }
 
   private void updateCustomer(Customer customer, PutCustomerRequest request) {
+    customer.setStellarAccount(request.getAccount());
+    customer.setMemo(request.getMemo());
+    customer.setMemoType(request.getMemoType());
+
     if (request.getFirstName() != null) {
       customer.setFirstName(request.getFirstName());
     }
