@@ -52,7 +52,6 @@ subprojects {
     implementation("com.google.code.findbugs:jsr305:3.0.2")
     implementation("org.apache.kafka:kafka-clients:3.1.0")
     implementation("org.apache.kafka:connect:3.1.0")
-    // https://mvnrepository.com/artifact/io.confluent/kafka-json-schema-serializer
     implementation("io.confluent:kafka-json-schema-serializer:7.0.1")
     implementation("org.springframework.kafka:spring-kafka:2.8.4")
 

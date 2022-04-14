@@ -81,6 +81,8 @@ public class AnchorEventConsumerService implements DisposableBean, Runnable {
                           "anchor_platform_event - "
                               + "transaction_payment_received "
                               + record.value());
+                      // NOTE: this code skips processing the received payment and just marks the
+                      // transaction as complete.
                       if (record.value() instanceof TransactionEvent) {
                         TransactionEvent transactionEvent = (TransactionEvent) record.value();
                         PatchTransactionsRequest txnRequest =
