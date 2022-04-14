@@ -1,0 +1,31 @@
+{
+  "12": {
+    "customers": {
+      "toBeCreated": {
+        "first_name": "John",
+        "last_name": "Doe",
+        "email_address": "john@email.com",
+        "bank_number": "123",
+        "bank_account_number": "456"
+      },
+      "sendingClient": {
+        "first_name": "Allie",
+        "last_name": "Grater",
+        "email_address": "allie@email.com"
+      },
+      "receivingClient": {
+        "first_name": "Lee",
+        "last_name": "Sun",
+        "email_address": "lee@email.com"
+      },
+      "toBeDeleted": {
+        "first_name": "Jane",
+        "last_name": "Doe",
+        "email_address": "jane@email.com"
+      }
+    },
+    "createCustomer": "toBeCreated",
+    "deleteCustomer": "toBeDeleted",
+    "sameAccountDifferentMemos": ["sendingClient", "receivingClient"]
+  }
+}
