@@ -93,8 +93,9 @@ public class Sep12Controller {
   public void deleteCustomer(
       HttpServletRequest request,
       @PathVariable String account,
-      @RequestBody Sep12DeleteCustomerRequest deleteCustomerRequest) {
+      @RequestParam(required = false) String memo,
+      @RequestParam(required = false, name = "memo_type") String memoType) {
     JwtToken jwtToken = getSep10Token(request);
-    sep12Service.deleteCustomer(jwtToken, deleteCustomerRequest);
+    sep12Service.deleteCustomer(jwtToken, account, memo, memoType);
   }
 }

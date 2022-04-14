@@ -2,10 +2,7 @@ package org.stellar.anchor.sep12;
 
 import java.util.stream.Stream;
 import org.stellar.anchor.dto.sep12.*;
-import org.stellar.anchor.exception.AnchorException;
-import org.stellar.anchor.exception.SepException;
-import org.stellar.anchor.exception.SepNotAuthorizedException;
-import org.stellar.anchor.exception.SepValidationException;
+import org.stellar.anchor.exception.*;
 import org.stellar.anchor.integration.customer.CustomerIntegration;
 import org.stellar.anchor.sep10.JwtToken;
 import org.stellar.anchor.util.MemoHelper;
@@ -56,13 +53,25 @@ public class Sep12Service {
     return customerIntegration.putCustomer(request);
   }
 
-  public void deleteCustomer(JwtToken jwtToken, Sep12DeleteCustomerRequest request)
+  public void deleteCustomer(JwtToken jwtToken, String account, String memo, String memoType)
       throws AnchorException {
-    if (!jwtToken.getAccount().equals(request.getAccount())) {
+    if (!jwtToken.getAccount().equals(account)) {
       throw new SepNotAuthorizedException(
-          String.format("not authorized to delete account [%s]", request.getAccount()));
+          String.format("Not authorized to delete account [%s]", account));
     }
-    customerIntegration.deleteCustomer(request);
+
+    Sep12GetCustomerResponse existingCustomer =
+        customerIntegration.getCustomer(
+            Sep12GetCustomerRequest.builder()
+                .account(account)
+                .memo(memo)
+                .memoType(memoType)
+                .build());
+    if (existingCustomer.getId() == null) {
+      throw new SepNotFoundException("User not found.");
+    }
+
+    customerIntegration.deleteCustomer(existingCustomer.getId());
   }
 
   void validateGetOrPutRequest(

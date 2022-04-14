@@ -10,10 +10,8 @@ import org.springframework.stereotype.Service;
 import org.stellar.anchor.exception.NotFoundException;
 import org.stellar.anchor.reference.model.Customer;
 import org.stellar.anchor.reference.repo.CustomerRepo;
-import org.stellar.platform.apis.callbacks.requests.DeleteCustomerRequest;
 import org.stellar.platform.apis.callbacks.requests.GetCustomerRequest;
 import org.stellar.platform.apis.callbacks.requests.PutCustomerRequest;
-import org.stellar.platform.apis.callbacks.responses.DeleteCustomerResponse;
 import org.stellar.platform.apis.callbacks.responses.GetCustomerResponse;
 import org.stellar.platform.apis.callbacks.responses.PutCustomerResponse;
 import org.stellar.platform.apis.shared.Field;
@@ -73,11 +71,8 @@ public class CustomerService {
     return response;
   }
 
-  public DeleteCustomerResponse delete(DeleteCustomerRequest request) {
-    customerRepo.deleteById(request.getId());
-    DeleteCustomerResponse response = new DeleteCustomerResponse();
-    response.setId(request.getId());
-    return response;
+  public void delete(String customerId) {
+    customerRepo.deleteById(customerId);
   }
 
   private Customer getCustomerByRequestId(String id) throws NotFoundException {
