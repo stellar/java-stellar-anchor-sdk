@@ -1,5 +1,7 @@
 package org.stellar.anchor.platform.service;
 
+import static org.stellar.anchor.model.TransactionStatus.ERROR;
+
 import com.google.gson.Gson;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -10,14 +12,14 @@ import java.util.UUID;
 import org.springframework.stereotype.Component;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.event.models.*;
-import org.stellar.anchor.event.models.StellarTransaction;
-import org.stellar.anchor.event.models.TransactionEvent;
 import org.stellar.anchor.exception.SepException;
 import org.stellar.anchor.model.Sep31Transaction;
 import org.stellar.anchor.model.TransactionStatus;
-import org.stellar.anchor.platform.paymentobserver.*;
+import org.stellar.anchor.platform.paymentobserver.ObservedPayment;
+import org.stellar.anchor.platform.paymentobserver.PaymentListener;
 import org.stellar.anchor.server.data.JdbcSep31TransactionStore;
 import org.stellar.anchor.util.Log;
+import org.stellar.platform.apis.shared.Amount;
 
 @Component
 public class PaymentOperationToEventListener implements PaymentListener {
@@ -34,6 +36,10 @@ public class PaymentOperationToEventListener implements PaymentListener {
   public void onReceived(ObservedPayment payment) {
     // Check if payment is connected to a transaction
     if (Objects.toString(payment.getTransactionHash(), "").isEmpty()) {
+      return;
+    }
+
+    if (payment.getTransactionMemo() == null) {
       return;
     }
 
@@ -62,6 +68,8 @@ public class PaymentOperationToEventListener implements PaymentListener {
       Log.warn("Not an issued asset");
       return;
     }
+
+    // Check if asset code matches
     if (!txn.getAmountInAsset().equals(payment.getAssetCode())) {
       Log.warn(
           String.format(
@@ -69,7 +77,6 @@ public class PaymentOperationToEventListener implements PaymentListener {
               payment.getAssetCode(), txn.getAmountInAsset()));
       return;
     }
-    // TODO: match asset code.
 
     // Check if the payment contains the expected amount (or greater)
     BigDecimal expectedAmount = new BigDecimal(txn.getAmountIn());
@@ -79,6 +86,8 @@ public class PaymentOperationToEventListener implements PaymentListener {
           String.format(
               "Payment amount %s is smaller than the expected amount %s",
               payment.getAmount(), txn.getAmountIn()));
+      txn.setStatus(ERROR.getName());
+      saveTransaction(txn);
       return;
     }
 
@@ -103,7 +112,6 @@ public class PaymentOperationToEventListener implements PaymentListener {
 
   private void sendToQueue(TransactionEvent event) {
     eventService.publish(event);
-    System.out.println("Sent to event queue" + new Gson().toJson(event));
   }
 
   TransactionEvent receivedPaymentToEvent(Sep31Transaction txn, ObservedPayment payment) {
@@ -153,5 +161,13 @@ public class PaymentOperationToEventListener implements PaymentListener {
                 })
             .build();
     return event;
+  }
+
+  void saveTransaction(Sep31Transaction txn) {
+    try {
+      transactionStore.save(txn);
+    } catch (SepException ex) {
+      Log.errorEx(ex);
+    }
   }
 }
