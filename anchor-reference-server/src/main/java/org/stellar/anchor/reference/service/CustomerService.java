@@ -1,5 +1,7 @@
 package org.stellar.anchor.reference.service;
 
+import static org.stellar.anchor.reference.model.Customer.Status.*;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -133,7 +135,8 @@ public class CustomerService {
     response.setId(customer.getId());
     response.setFields(fields);
     response.setProvidedFields(providedFields);
-    response.setStatus(getStatusForCustomer(customer, type));
+    Customer.Status status = (fields.size() > 0) ? NEEDS_INFO : ACCEPTED;
+    response.setStatus(status.toString());
     return response;
   }
 
@@ -167,28 +170,6 @@ public class CustomerService {
       }
     }
     customerRepo.save(customer);
-  }
-
-  public String getStatusForCustomer(Customer customer, String type) {
-    if (Customer.Type.SEP31_SENDER.toString().equals(type)) {
-      if (customer.getFirstName() != null
-          && customer.getLastName() != null
-          && customer.getEmail() != null) {
-        return Customer.Status.ACCEPTED.toString();
-      } else {
-        return Customer.Status.NEEDS_INFO.toString();
-      }
-    } else {
-      if (customer.getFirstName() == null
-          || customer.getLastName() == null
-          || customer.getEmail() == null
-          || customer.getBankAccountNumber() == null
-          || customer.getBankRoutingNumber() == null) {
-        return Customer.Status.NEEDS_INFO.toString();
-      } else {
-        return Customer.Status.ACCEPTED.toString();
-      }
-    }
   }
 
   public Map<String, Field> getBasicFields() {
