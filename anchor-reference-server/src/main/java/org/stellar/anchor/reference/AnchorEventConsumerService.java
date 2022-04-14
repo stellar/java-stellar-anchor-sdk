@@ -44,7 +44,7 @@ public class AnchorEventConsumerService implements DisposableBean, Runnable {
     Log.info("queue consumer server started ");
     Properties props = new Properties();
 
-    props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:29092");
+    props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, eventSettings.getKafkaBootstrapServer());
     props.put(ConsumerConfig.GROUP_ID_CONFIG, "group_one1");
     // props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
     props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
@@ -53,11 +53,7 @@ public class AnchorEventConsumerService implements DisposableBean, Runnable {
     props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
 
     Consumer<String, AnchorEvent> consumer = new KafkaConsumer<String, AnchorEvent>(props);
-    consumer.subscribe(
-        Arrays.asList(
-            "ap_event_quote_created",
-            "ap_event_transaction_created",
-            "ap_event_transaction_payment_received")); // TODO make this configurable
+    consumer.subscribe(eventSettings.getEventTypeToQueue().values());
     this.consumer = consumer;
 
     while (!shutdown) {
@@ -106,7 +102,7 @@ public class AnchorEventConsumerService implements DisposableBean, Runnable {
                                             .build()))
                                 .build();
                         PlatformApiClient platformClient =
-                            new PlatformApiClient("http://localhost:8080");
+                            new PlatformApiClient(eventSettings.getSep31Endpoint());
                         try {
                           platformClient.patchTransaction(txnRequest);
                         } catch (IOException e) {
