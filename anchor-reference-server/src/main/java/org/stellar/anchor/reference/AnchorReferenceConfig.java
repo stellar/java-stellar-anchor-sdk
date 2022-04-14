@@ -1,5 +1,6 @@
 package org.stellar.anchor.reference;
 
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 /** SEP configurations */

@@ -20,6 +20,7 @@ import org.stellar.anchor.event.models.AnchorEvent;
 import org.stellar.anchor.event.models.TransactionEvent;
 import org.stellar.anchor.exception.AnchorException;
 import org.stellar.anchor.reference.client.PlatformApiClient;
+import org.stellar.anchor.reference.config.EventConsumerSettings;
 import org.stellar.anchor.util.Log;
 import org.stellar.platform.apis.platform.requests.PatchTransactionRequest;
 import org.stellar.platform.apis.platform.requests.PatchTransactionsRequest;
@@ -30,10 +31,12 @@ public class AnchorEventConsumerService implements DisposableBean, Runnable {
   private Thread thread;
   private Consumer consumer;
   private volatile boolean shutdown = false;
+  private EventConsumerSettings eventSettings;
 
-  AnchorEventConsumerService() {
+  AnchorEventConsumerService(EventConsumerSettings eventSettings) {
     this.thread = new Thread(this);
     this.thread.start();
+    this.eventSettings = eventSettings;
   }
 
   @Override

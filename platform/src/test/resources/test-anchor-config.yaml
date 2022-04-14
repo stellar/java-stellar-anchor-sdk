@@ -81,7 +81,7 @@ app-config:
     enabled: true
     kafkaBootstrapServer: localhost:29092
     useSingleQueue: false
-    queues:
+    getEventTypeToQueue:
       all: ap_event_single_queue
       quote_created: ap_event_quote_created
       transaction_created: ap_event_transaction_created
