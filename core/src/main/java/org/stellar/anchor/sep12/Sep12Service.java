@@ -31,6 +31,9 @@ public class Sep12Service {
     request.setMemo(getMemoForCustomerIntegration(request.getMemo(), token.getAccountMemo()));
     request.setMemoType(
         getMemoTypeForCustomerIntegration(request.getMemo(), request.getMemoType()));
+    if (request.getId() == null && request.getAccount() == null && token.getAccount() != null) {
+      request.setAccount(token.getAccount());
+    }
     return customerIntegration.getCustomer(request);
   }
 
@@ -47,6 +50,9 @@ public class Sep12Service {
     request.setMemo(getMemoForCustomerIntegration(request.getMemo(), token.getAccountMemo()));
     request.setMemoType(
         getMemoTypeForCustomerIntegration(request.getMemo(), request.getMemoType()));
+    if (request.getAccount() == null && token.getAccount() != null) {
+      request.setAccount(token.getAccount());
+    }
     return customerIntegration.putCustomer(request);
   }
 
