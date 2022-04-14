@@ -6,11 +6,10 @@ plugins {
 dependencies {
   api(libs.lombok)
 
-  implementation(libs.log4j.core)
+  implementation(libs.log4j2.core)
   implementation(libs.google.gson)
   implementation(libs.reactor.core)
   implementation(libs.commons.validator)
-  implementation(libs.slf4j.log4j12)
   implementation(libs.reactor.netty)
   implementation(libs.okhttp3)
 
