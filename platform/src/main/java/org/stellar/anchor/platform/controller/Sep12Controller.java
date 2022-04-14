@@ -95,11 +95,9 @@ public class Sep12Controller {
       @PathVariable String account,
       @RequestBody(required = false) Sep12DeleteCustomerRequest body) {
     JwtToken jwtToken = getSep10Token(request);
-    if (body == null) {
-      sep12Service.deleteCustomer(jwtToken, account, null, null);
-      return;
-    }
-    sep12Service.deleteCustomer(jwtToken, account, body.getMemo(), body.getMemoType());
+    String memo = body != null ? body.getMemo() : null;
+    String memoType = body != null ? body.getMemoType() : null;
+    sep12Service.deleteCustomer(jwtToken, account, memo, memoType);
   }
 
   @SneakyThrows
