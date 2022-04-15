@@ -81,6 +81,7 @@ public class Sep10Controller {
   })
   @ResponseStatus(value = HttpStatus.BAD_REQUEST)
   public SepExceptionResponse handleSepValidationException(Exception ex) {
+    errorEx(ex);
     return new SepExceptionResponse(ex.getMessage());
   }
 
