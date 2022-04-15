@@ -101,9 +101,17 @@ public class RestCustomerIntegration implements CustomerIntegration {
 
   @SneakyThrows
   @Override
-  public void deleteCustomer(Sep12DeleteCustomerRequest sep12DeleteCustomerRequest) {
-    //    DeleteCustomerRequest deleteRequest = fromSep12(sep12DeleteCustomerRequest);
-    throw new UnsupportedOperationException("not implemented");
+  public void deleteCustomer(String id) {
+    HttpUrl url = getCustomerUrlBuilder().addPathSegment(id).build();
+    Request callbackRequest = new Request.Builder().url(url).delete().build();
+
+    // Call anchor
+    Response response = call(httpClient, callbackRequest);
+    String responseContent = getContent(response);
+
+    if (response.code() != HttpStatus.OK.value()) {
+      throw httpError(responseContent, response.code(), gson);
+    }
   }
 
   @SneakyThrows

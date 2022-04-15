@@ -12,7 +12,7 @@ jobs:
   build_and_test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up JDK 11
       uses: actions/setup-java@v2
       with:
@@ -31,6 +31,7 @@ jobs:
         cat /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/anchor-reference-server/build/reports/tests/test/index.html
 
   build_and_push_anchor_platform:
+    if: github.event.pull_request == null
     needs: [build_and_test]
     runs-on: ubuntu-latest
     name: Push stellar/anchor-platform:sha to DockerHub
@@ -61,7 +62,7 @@ jobs:
     runs-on: ubuntu-latest
     name: Validate SEPs (1, 38)
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v3
 
       # Find the PR associated with this push, if there is one.
       - name: Find PR number
@@ -81,4 +82,4 @@ jobs:
           PR: ${{ steps.findPr.outputs.pr }}
         run: |
           npm install -g @stellar/anchor-tests
-          stellar-anchor-tests --home-domain https://anchor-sep-pr$PR.previews.kube001.services.stellar-ops.com --seps 1 38
+          stellar-anchor-tests --home-domain https://anchor-sep-pr$PR.previews.kube001.services.stellar-ops.com --seps 1 10 12 31 38 --sep-config platform/src/test/resources/stellar-anchor-tests-sep-config.json

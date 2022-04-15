@@ -26,10 +26,7 @@ import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.event.models.Amount;
 import org.stellar.anchor.event.models.StellarId;
 import org.stellar.anchor.event.models.TransactionEvent;
-import org.stellar.anchor.exception.AnchorException;
-import org.stellar.anchor.exception.BadRequestException;
-import org.stellar.anchor.exception.NotFoundException;
-import org.stellar.anchor.exception.SepException;
+import org.stellar.anchor.exception.*;
 import org.stellar.anchor.integration.customer.CustomerIntegration;
 import org.stellar.anchor.integration.fee.FeeIntegration;
 import org.stellar.anchor.model.Sep31Transaction;
@@ -274,7 +271,15 @@ public class Sep31Service {
       throw new BadRequestException("'fields' field must have one 'transaction' field");
     }
 
+    if (assetCode == null) {
+      throw new BadRequestException("Missing asset code.");
+    }
+
     AssetResponse fieldSpecs = this.infoResponse.getReceive().get(assetCode);
+    if (fieldSpecs == null) {
+      throw new SepNotFoundException("Asset not found.");
+    }
+
     Map<String, AssetInfo.Sep31TxnFieldSpec> missingFields =
         fieldSpecs.getFields().getTransaction().entrySet().stream()
             .filter(

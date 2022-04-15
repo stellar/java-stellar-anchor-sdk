@@ -1,5 +1,7 @@
 package org.stellar.anchor.reference.service;
 
+import static org.stellar.anchor.reference.model.Customer.Status.*;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -8,10 +10,8 @@ import org.springframework.stereotype.Service;
 import org.stellar.anchor.exception.NotFoundException;
 import org.stellar.anchor.reference.model.Customer;
 import org.stellar.anchor.reference.repo.CustomerRepo;
-import org.stellar.platform.apis.callbacks.requests.DeleteCustomerRequest;
 import org.stellar.platform.apis.callbacks.requests.GetCustomerRequest;
 import org.stellar.platform.apis.callbacks.requests.PutCustomerRequest;
-import org.stellar.platform.apis.callbacks.responses.DeleteCustomerResponse;
 import org.stellar.platform.apis.callbacks.responses.GetCustomerResponse;
 import org.stellar.platform.apis.callbacks.responses.PutCustomerResponse;
 import org.stellar.platform.apis.shared.Field;
@@ -71,11 +71,8 @@ public class CustomerService {
     return response;
   }
 
-  public DeleteCustomerResponse delete(DeleteCustomerRequest request) {
-    customerRepo.deleteById(request.getId());
-    DeleteCustomerResponse response = new DeleteCustomerResponse();
-    response.setId(request.getId());
-    return response;
+  public void delete(String customerId) {
+    customerRepo.deleteById(customerId);
   }
 
   private Customer getCustomerByRequestId(String id) throws NotFoundException {
@@ -133,7 +130,8 @@ public class CustomerService {
     response.setId(customer.getId());
     response.setFields(fields);
     response.setProvidedFields(providedFields);
-    response.setStatus(getStatusForCustomer(customer, type));
+    Customer.Status status = (fields.size() > 0) ? NEEDS_INFO : ACCEPTED;
+    response.setStatus(status.toString());
     return response;
   }
 
@@ -167,28 +165,6 @@ public class CustomerService {
       }
     }
     customerRepo.save(customer);
-  }
-
-  public String getStatusForCustomer(Customer customer, String type) {
-    if (Customer.Type.SEP31_SENDER.toString().equals(type)) {
-      if (customer.getFirstName() != null
-          && customer.getLastName() != null
-          && customer.getEmail() != null) {
-        return Customer.Status.ACCEPTED.toString();
-      } else {
-        return Customer.Status.NEEDS_INFO.toString();
-      }
-    } else {
-      if (customer.getFirstName() == null
-          || customer.getLastName() == null
-          || customer.getEmail() == null
-          || customer.getBankAccountNumber() == null
-          || customer.getBankRoutingNumber() == null) {
-        return Customer.Status.NEEDS_INFO.toString();
-      } else {
-        return Customer.Status.ACCEPTED.toString();
-      }
-    }
   }
 
   public Map<String, Field> getBasicFields() {

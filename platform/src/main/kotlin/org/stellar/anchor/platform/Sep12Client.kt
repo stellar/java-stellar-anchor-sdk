@@ -49,8 +49,7 @@ class Sep12Client(private val endpoint: String, private val jwt: String) : SepCl
   }
 
   fun deleteCustomer(account: String): Int {
-    val deleteCustomerRequest = Sep12DeleteCustomerRequest()
-    deleteCustomerRequest.account = account
+    val deleteCustomerRequest = Sep12DeleteCustomerRequest.builder().account(account).build()
 
     val request =
       Request.Builder()

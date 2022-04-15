@@ -93,8 +93,25 @@ public class Sep12Controller {
   public void deleteCustomer(
       HttpServletRequest request,
       @PathVariable String account,
-      @RequestBody Sep12DeleteCustomerRequest deleteCustomerRequest) {
+      @RequestBody(required = false) Sep12DeleteCustomerRequest body) {
     JwtToken jwtToken = getSep10Token(request);
-    sep12Service.deleteCustomer(jwtToken, deleteCustomerRequest);
+    String memo = body != null ? body.getMemo() : null;
+    String memoType = body != null ? body.getMemoType() : null;
+    sep12Service.deleteCustomer(jwtToken, account, memo, memoType);
+  }
+
+  @SneakyThrows
+  @CrossOrigin(origins = "*")
+  @RequestMapping(
+      value = "/customer/{account}",
+      consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE},
+      method = {RequestMethod.DELETE})
+  public void deleteCustomer(
+      HttpServletRequest request,
+      @PathVariable String account,
+      @RequestParam(required = false) String memo,
+      @RequestParam(required = false, name = "memo_type") String memoType) {
+    JwtToken jwtToken = getSep10Token(request);
+    sep12Service.deleteCustomer(jwtToken, account, memo, memoType);
   }
 }

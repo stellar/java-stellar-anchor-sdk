@@ -1,6 +1,7 @@
 version: '2'
 services:
   zookeeper:
+    platform: linux/x86_64
     image: confluentinc/cp-zookeeper:latest
     environment:
       ZOOKEEPER_CLIENT_PORT: 2181
@@ -9,6 +10,7 @@ services:
       - 22181:2181
 
   kafka:
+    platform: linux/x86_64
     image: confluentinc/cp-kafka:latest
     depends_on:
       - zookeeper

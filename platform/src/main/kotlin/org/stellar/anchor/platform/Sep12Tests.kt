@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform
 
+import org.junit.jupiter.api.Assertions.*
 import org.stellar.anchor.dto.sep12.Sep12PutCustomerRequest
 import org.stellar.anchor.dto.sep12.Sep12Status
 import org.stellar.anchor.util.GsonUtils
@@ -40,8 +41,8 @@ fun sep12TestHappyPath() {
   var gr = sep12Client.getCustomer(pr!!.id)
   printResponse(gr)
 
-  assert(gr!!.id.equals(pr.id))
-  assert(gr.status.equals(Sep12Status.NEEDS_INFO))
+  assertEquals(Sep12Status.NEEDS_INFO, gr?.status)
+  assertEquals(pr.id, gr?.id)
 
   customer.emailAddress = "john.doe@stellar.org"
   customer.bankAccountNumber = "1234"
@@ -58,13 +59,16 @@ fun sep12TestHappyPath() {
   gr = sep12Client.getCustomer(pr!!.id)
   printResponse(gr)
 
-  assert(gr!!.id.equals(pr.id))
-  assert(gr.status.equals(Sep12Status.ACCEPTED))
+  assertEquals(pr.id, gr?.id)
+  assertEquals(Sep12Status.ACCEPTED, gr?.status)
 
   // Delete the customer
   printRequest("Calling DELETE /customer/${CLIENT_WALLET_ACCOUNT}")
   val code = sep12Client.deleteCustomer(CLIENT_WALLET_ACCOUNT)
   printResponse(code)
   // currently, not implemented
-  assert(code == 500)
+  assertEquals(200, code)
+
+  gr = sep12Client.getCustomer(pr.id)
+  assertNull(gr!!.id)
 }
