@@ -13,7 +13,10 @@ class AnchorPlatformIntegrationTest {
     const val REFERENCE_SERVER_PORT = 8081
     lateinit var toml: Sep1Helper.TomlContent
     lateinit var jwt: String
-
+    init {
+      val props = System.getProperties()
+      props.setProperty("REFERENCE_CONFIG", "classpath:/anchor-reference-server.yaml")
+    }
     @BeforeAll
     @JvmStatic
     fun setup() {
