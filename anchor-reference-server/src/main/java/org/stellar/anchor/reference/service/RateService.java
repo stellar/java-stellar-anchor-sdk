@@ -8,10 +8,7 @@ import java.time.ZonedDateTime;
 import java.util.Map;
 import kotlin.Pair;
 import org.springframework.stereotype.Service;
-import org.stellar.anchor.exception.AnchorException;
-import org.stellar.anchor.exception.BadRequestException;
-import org.stellar.anchor.exception.ServerErrorException;
-import org.stellar.anchor.exception.UnprocessableEntityException;
+import org.stellar.anchor.exception.*;
 import org.stellar.anchor.reference.model.Quote;
 import org.stellar.anchor.reference.repo.QuoteRepo;
 import org.stellar.platform.apis.callbacks.requests.GetRateRequest;
@@ -27,7 +24,11 @@ public class RateService {
 
   public GetRateResponse getRate(GetRateRequest request) throws AnchorException {
     if (request.getId() != null) {
-      throw new ServerErrorException("getting quote by id is not implemented yet");
+      Quote quote = quoteRepo.findById(request.getId()).orElse(null);
+      if (quote == null) {
+        throw new NotFoundException("Quote not found.");
+      }
+      return new GetRateResponse(quote.getId(), quote.getPrice(), quote.getExpiresAt());
     }
 
     if (request.getType() == null) {
