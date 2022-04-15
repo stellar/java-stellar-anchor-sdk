@@ -6,10 +6,7 @@ import static org.stellar.anchor.util.Log.shorter;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.Sep10Config;
@@ -108,7 +105,7 @@ public class Sep10Service {
     //
     try {
       String clientSigningKey = null;
-      if (challengeRequest.getClientDomain() != null) {
+      if (!Objects.toString(challengeRequest.getClientDomain(), "").isEmpty()) {
         clientSigningKey = getClientAccountId(challengeRequest.getClientDomain());
       }
 
