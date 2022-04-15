@@ -7,7 +7,7 @@ import org.stellar.anchor.config.EventConfig;
 @Data
 public class PropertyEventConfig implements EventConfig {
   private String kafkaBootstrapServer;
-  private Map<String, String> queues;
+  private Map<String, String> eventTypeToQueue;
   private boolean useSingleQueue;
   private boolean enabled;
 }

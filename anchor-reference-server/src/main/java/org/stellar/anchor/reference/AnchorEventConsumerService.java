@@ -3,7 +3,6 @@ package org.stellar.anchor.reference;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.time.Duration;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
@@ -20,6 +19,7 @@ import org.stellar.anchor.event.models.AnchorEvent;
 import org.stellar.anchor.event.models.TransactionEvent;
 import org.stellar.anchor.exception.AnchorException;
 import org.stellar.anchor.reference.client.PlatformApiClient;
+import org.stellar.anchor.reference.config.EventConsumerSettings;
 import org.stellar.anchor.util.Log;
 import org.stellar.platform.apis.platform.requests.PatchTransactionRequest;
 import org.stellar.platform.apis.platform.requests.PatchTransactionsRequest;
@@ -30,10 +30,12 @@ public class AnchorEventConsumerService implements DisposableBean, Runnable {
   private Thread thread;
   private Consumer consumer;
   private volatile boolean shutdown = false;
+  private EventConsumerSettings eventSettings;
 
-  AnchorEventConsumerService() {
+  AnchorEventConsumerService(EventConsumerSettings eventSettings) {
     this.thread = new Thread(this);
     this.thread.start();
+    this.eventSettings = eventSettings;
   }
 
   @Override
@@ -41,7 +43,7 @@ public class AnchorEventConsumerService implements DisposableBean, Runnable {
     Log.info("queue consumer server started ");
     Properties props = new Properties();
 
-    props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:29092");
+    props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, eventSettings.getKafkaBootstrapServer());
     props.put(ConsumerConfig.GROUP_ID_CONFIG, "group_one1");
     // props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
     props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
@@ -50,11 +52,7 @@ public class AnchorEventConsumerService implements DisposableBean, Runnable {
     props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
 
     Consumer<String, AnchorEvent> consumer = new KafkaConsumer<String, AnchorEvent>(props);
-    consumer.subscribe(
-        Arrays.asList(
-            "ap_event_quote_created",
-            "ap_event_transaction_created",
-            "ap_event_transaction_payment_received")); // TODO make this configurable
+    consumer.subscribe(eventSettings.getEventTypeToQueue().values());
     this.consumer = consumer;
 
     while (!shutdown) {
@@ -103,7 +101,7 @@ public class AnchorEventConsumerService implements DisposableBean, Runnable {
                                             .build()))
                                 .build();
                         PlatformApiClient platformClient =
-                            new PlatformApiClient("http://localhost:8080");
+                            new PlatformApiClient(eventSettings.getPlatformApiEndpoint());
                         try {
                           platformClient.patchTransaction(txnRequest);
                         } catch (IOException e) {
