@@ -34,6 +34,9 @@ import org.stellar.platform.apis.callbacks.responses.GetFeeResponse
 class AnchorReferenceServerIntegrationTest {
   companion object {
     val gson: Gson = GsonUtils.builder().setPrettyPrinting().create()
+    const val fiatUSD = "iso4217:USD"
+    const val stellarUSDC = "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+
     init {
       val props = System.getProperties()
       props.setProperty("REFERENCE_CONFIG", "classpath:/anchor-reference-server.yaml")
@@ -106,9 +109,6 @@ class AnchorReferenceServerIntegrationTest {
 
   @Test
   fun getRate_indicative() {
-    val fiatUSD = "iso4217:USD"
-    val stellarUSDC = "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
-
     val result =
       restTemplate.getForEntity(
         "/rate?type={type}&sell_asset={sell_asset}&sell_amount={sell_amount}&buy_asset={buy_asset}",
@@ -127,9 +127,6 @@ class AnchorReferenceServerIntegrationTest {
 
   @Test
   fun getRate_firm() {
-    val fiatUSD = "iso4217:USD"
-    val stellarUSDC = "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
-
     val result =
       restTemplate.getForEntity(
         "/rate?type={type}&sell_asset={sell_asset}&buy_asset={buy_asset}&buy_amount={buy_amount}",
@@ -141,9 +138,73 @@ class AnchorReferenceServerIntegrationTest {
       )
     assertNotNull(result)
     assertEquals(HttpStatus.OK, result.statusCode)
-    println(result.body)
-    //    val json = JsonPrimitive(result.body)
+
     val json = JsonParser.parseString(result.body).asJsonObject
+    // check if id is a valid UUID
+    val id: String = json.get("rate").asJsonObject.get("id").asString
+    assertDoesNotThrow { UUID.fromString(id) }
+    // check if expires_at is a valid date
+    val expiresAtStr: String = json.get("rate").asJsonObject.get("expires_at").asString
+    var gotExpiresAt: Instant? = null
+    assertDoesNotThrow {
+      gotExpiresAt = DateTimeFormatter.ISO_INSTANT.parse(expiresAtStr, Instant::from)
+    }
+    val wantExpiresAt =
+      ZonedDateTime.now(ZoneId.of("UTC"))
+        .plusDays(1)
+        .withHour(12)
+        .withMinute(0)
+        .withSecond(0)
+        .withNano(0)
+    assertEquals(wantExpiresAt.toInstant(), gotExpiresAt)
+
+    // check if rate was persisted
+    val wantQuote = Quote()
+    wantQuote.id = id
+    wantQuote.sellAsset = fiatUSD
+    wantQuote.buyAsset = stellarUSDC
+    wantQuote.buyAmount = "100"
+    wantQuote.price = "1.02"
+    wantQuote.expiresAt = gotExpiresAt
+    val quote = this.quoteRepo.findById(id).orElse(null)
+    wantQuote.createdAt = quote.createdAt
+    assertEquals(wantQuote, quote)
+  }
+
+  @Test
+  fun getRate_byId() {
+    // create firm rate
+    var result =
+      restTemplate.getForEntity(
+        "/rate?type={type}&sell_asset={sell_asset}&buy_asset={buy_asset}&buy_amount={buy_amount}",
+        String::class.java,
+        "firm",
+        fiatUSD,
+        stellarUSDC,
+        "100"
+      )
+    assertNotNull(result)
+    assertEquals(HttpStatus.OK, result.statusCode)
+    val createdRateJson = JsonParser.parseString(result.body).asJsonObject
+    // check if id is a valid UUID
+    val createdRateId: String = createdRateJson.get("rate").asJsonObject.get("id").asString
+    assertDoesNotThrow { UUID.fromString(createdRateId) }
+
+    // get the rate by id
+    result =
+      restTemplate.getForEntity(
+        "/rate?id={id}",
+        String::class.java,
+        createdRateId,
+        fiatUSD,
+        stellarUSDC,
+        "100"
+      )
+    assertNotNull(result)
+    assertEquals(HttpStatus.OK, result.statusCode)
+    val json = JsonParser.parseString(result.body).asJsonObject
+    assertEquals(createdRateJson, json)
+
     // check if id is a valid UUID
     val id: String = json.get("rate").asJsonObject.get("id").asString
     assertDoesNotThrow { UUID.fromString(id) }
