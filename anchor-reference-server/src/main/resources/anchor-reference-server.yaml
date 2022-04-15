@@ -9,6 +9,15 @@ server:
 anchor.settings:
   version: 0.0.1
 
+event:
+  kafkaBootstrapServer: localhost:29092
+  platformApiEndpoint: http://localhost:8080
+  eventTypeToQueue:
+    all: ap_event_single_queue
+    quote_created: ap_event_quote_created
+    transaction_created: ap_event_transaction_created
+    transaction_payment_received: ap_event_transaction_payment_received
+    transaction_error: ap_event_transaction_error
 #
 # Spring Data JDBC settings for H2
 #

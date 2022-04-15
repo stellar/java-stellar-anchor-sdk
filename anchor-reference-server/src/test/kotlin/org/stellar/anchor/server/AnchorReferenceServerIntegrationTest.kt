@@ -30,10 +30,14 @@ import org.stellar.platform.apis.callbacks.responses.GetFeeResponse
   classes = [AnchorReferenceServer::class],
   webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
 )
-@TestPropertySource(locations = ["classpath:/anchor-reference-server.yaml"])
+@TestPropertySource(locations = ["classpath:anchor-reference-server.yaml"])
 class AnchorReferenceServerIntegrationTest {
   companion object {
     val gson: Gson = GsonUtils.builder().setPrettyPrinting().create()
+    init {
+      val props = System.getProperties()
+      props.setProperty("REFERENCE_CONFIG", "classpath:/anchor-reference-server.yaml")
+    }
   }
 
   @Autowired lateinit var restTemplate: TestRestTemplate

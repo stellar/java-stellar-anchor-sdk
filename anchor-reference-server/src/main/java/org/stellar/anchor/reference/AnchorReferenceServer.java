@@ -13,7 +13,7 @@ import org.stellar.anchor.util.GsonUtils;
 
 @SpringBootApplication
 @EnableConfigurationProperties
-@PropertySource("/anchor-reference-server.yaml")
+@PropertySource(value = "${REFERENCE_CONFIG}", factory = YamlPropertySourceFactory.class)
 public class AnchorReferenceServer implements WebMvcConfigurer {
   public static void start(int port, String contextPath) {
     SpringApplicationBuilder builder =
