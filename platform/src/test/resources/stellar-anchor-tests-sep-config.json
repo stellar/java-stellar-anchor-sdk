@@ -27,5 +27,15 @@
     "createCustomer": "toBeCreated",
     "deleteCustomer": "toBeDeleted",
     "sameAccountDifferentMemos": ["sendingClient", "receivingClient"]
+  },
+  "31": {
+    "sendingAnchorClientSecret": "SB7E7M6VLBXXIEDJ4RXP7E4SS4CFDMFMIMWERJVY3MSRGNN5ROANA5OJ",
+    "sendingClientName": "sendingClient",
+    "receivingClientName": "receivingClient",
+    "transactionFields": {
+      "receiver_account_number": "123",
+      "receiver_routing_number": "456",
+      "type": "SWIFT"
+    }
   }
 }
