@@ -11,7 +11,7 @@ anchor.settings:
 
 event:
   kafkaBootstrapServer: localhost:29092
-  sep31Endpoint: http://localhost:8080
+  platformApiEndpoint: http://localhost:8080
   eventTypeToQueue:
     all: ap_event_single_queue
     quote_created: ap_event_quote_created

@@ -101,7 +101,7 @@ public class AnchorEventConsumerService implements DisposableBean, Runnable {
                                             .build()))
                                 .build();
                         PlatformApiClient platformClient =
-                            new PlatformApiClient(eventSettings.getSep31Endpoint());
+                            new PlatformApiClient(eventSettings.getPlatformApiEndpoint());
                         try {
                           platformClient.patchTransaction(txnRequest);
                         } catch (IOException e) {

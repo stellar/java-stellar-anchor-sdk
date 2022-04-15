@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConfigurationProperties(prefix = "event")
 public class EventConsumerSettings {
-  String sep31Endpoint;
+  String platformApiEndpoint;
   String kafkaBootstrapServer;
   Map<String, String> eventTypeToQueue;
 }
