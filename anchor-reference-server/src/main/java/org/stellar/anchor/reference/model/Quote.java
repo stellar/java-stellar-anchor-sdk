@@ -32,13 +32,8 @@ public class Quote {
 
   String countryCode;
 
-  String clientDomain;
-
-  String stellarAccount;
-
-  String memo;
-
-  String memoType;
+  // used to store the stellar account
+  String clientId;
 
   String transactionId;
 
@@ -54,9 +49,7 @@ public class Quote {
     quote.setCountryCode(request.getCountryCode());
     quote.setCreatedAt(Instant.now());
     quote.setPrice(price);
-    quote.setStellarAccount(request.getAccount());
-    quote.setMemo(request.getMemo());
-    quote.setMemoType(request.getMemoType());
+    quote.setClientId(request.getClientId());
 
     return quote;
   }

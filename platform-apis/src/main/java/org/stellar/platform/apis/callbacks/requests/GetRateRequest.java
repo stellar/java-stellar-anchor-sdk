@@ -34,13 +34,8 @@ public class GetRateRequest {
   @SerializedName("expires_after")
   Instant expiresAfter;
 
-  @SerializedName("client_domain")
-  String clientDomain;
+  @SerializedName("client_id")
+  String clientId;
 
   String id;
-  String account;
-  String memo;
-
-  @SerializedName("memo_type")
-  String memoType;
 }
