@@ -2,12 +2,6 @@ package org.stellar.anchor.server
 
 import com.google.gson.Gson
 import com.google.gson.JsonParser
-import java.net.URLEncoder
-import java.time.Instant
-import java.time.ZoneId
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
-import java.util.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
@@ -25,15 +19,25 @@ import org.stellar.platform.apis.callbacks.requests.GetCustomerRequest
 import org.stellar.platform.apis.callbacks.requests.GetFeeRequest
 import org.stellar.platform.apis.callbacks.responses.GetCustomerResponse
 import org.stellar.platform.apis.callbacks.responses.GetFeeResponse
+import java.net.URLEncoder
+import java.time.Instant
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+import java.util.*
 
 @SpringBootTest(
   classes = [AnchorReferenceServer::class],
   webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
 )
-@TestPropertySource(locations = ["classpath:/anchor-reference-server.yaml"])
+@TestPropertySource(locations = ["classpath:anchor-reference-server.yaml"])
 class AnchorReferenceServerIntegrationTest {
   companion object {
     val gson: Gson = GsonUtils.builder().setPrettyPrinting().create()
+    init {
+      val props = System.getProperties()
+      props.setProperty("REFERENCE_CONFIG", "classpath:anchor-reference-server.yaml")
+    }
   }
 
   @Autowired lateinit var restTemplate: TestRestTemplate

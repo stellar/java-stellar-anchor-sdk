@@ -38,7 +38,6 @@ import org.stellar.anchor.model.Sep38Quote;
 import org.stellar.anchor.model.TransactionStatus;
 import org.stellar.anchor.sep10.JwtToken;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
-import org.stellar.anchor.util.Log;
 import org.stellar.platform.apis.callbacks.requests.GetFeeRequest;
 import org.stellar.platform.apis.callbacks.responses.GetFeeResponse;
 
