@@ -39,7 +39,10 @@ public class PaymentOperationToEventListener implements PaymentListener {
       return;
     }
 
-    if (payment.getTransactionMemo() == null) {
+    // Check if the payment contains the expected asset type
+    if (!List.of("credit_alphanum4", "credit_alphanum12").contains(payment.getAssetType())) {
+      // Asset type does not match
+      Log.warn("Not an issued asset");
       return;
     }
 
@@ -62,14 +65,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
       return;
     }
 
-    // Check if the payment contains the expected asset
-    if (!List.of("credit_alphanum4", "credit_alphanum12").contains(payment.getAssetType())) {
-      // Asset type does not match
-      Log.warn("Not an issued asset");
-      return;
-    }
-
-    // Check if asset code matches
+    // Compare asset code
     if (!txn.getAmountInAsset().equals(payment.getAssetCode())) {
       Log.warn(
           String.format(
