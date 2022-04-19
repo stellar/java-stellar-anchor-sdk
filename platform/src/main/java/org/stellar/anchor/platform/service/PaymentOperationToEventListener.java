@@ -34,7 +34,8 @@ public class PaymentOperationToEventListener implements PaymentListener {
   @Override
   public void onReceived(ObservedPayment payment) {
     // Check if payment is connected to a transaction
-    if (Objects.toString(payment.getTransactionHash(), "").isEmpty()) {
+    if (Objects.toString(payment.getTransactionHash(), "").isEmpty() ||
+        Objects.toString(payment.getTransactionMemo(), "").isEmpty()) {
       return;
     }
 
