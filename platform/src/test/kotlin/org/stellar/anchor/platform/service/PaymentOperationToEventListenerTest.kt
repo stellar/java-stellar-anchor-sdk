@@ -68,5 +68,17 @@ class PaymentOperationToEventListenerTest {
     verify { eventService wasNot Called }
     verify(exactly = 1) { transactionStore.findByStellarMemo("my_memo_3") }
     assertEquals("my_memo_3", slotMemo.captured)
+
+    // If asset code from the fetched tx is different, don't trigger event
+    slotMemo = slot()
+    p.transactionMemo = "my_memo_4"
+    p.assetCode = "FOO"
+    val sep31TxMock = JdbcSep31Transaction()
+    sep31TxMock.amountInAsset = "BAR"
+    every { transactionStore.findByStellarMemo(capture(slotMemo)) } returns sep31TxMock
+    paymentOperationToEventListener.onReceived(p)
+    verify { eventService wasNot Called }
+    verify(exactly = 1) { transactionStore.findByStellarMemo("my_memo_4") }
+    assertEquals("my_memo_4", slotMemo.captured)
   }
 }
