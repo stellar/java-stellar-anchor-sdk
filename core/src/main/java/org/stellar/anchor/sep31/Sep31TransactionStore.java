@@ -18,28 +18,28 @@ public interface Sep31TransactionStore {
    *
    * @param transactionId The transaction ID.
    * @return The transaction document. null if not found.
-   * @throws SepException if error happens.
+   * @throws RuntimeException if error happens.
    */
-  Sep31Transaction findByTransactionId(String transactionId) throws SepException;
+  Sep31Transaction findByTransactionId(String transactionId) throws RuntimeException;
 
   /**
    * Find the transactions by the collection of ids.
    *
    * @param transactionIds Collection of ids.
    * @return List of transactions.
-   * @throws SepException if error happens.
+   * @throws RuntimeException if error happens.
    */
   List<? extends Sep31Transaction> findByTransactionIds(@NonNull Collection<String> transactionIds)
-      throws SepException;
+      throws RuntimeException;
 
   /**
    * Find the transactions by the transaction memo.
    *
    * @param memo transaction memo.
    * @return The matching transaction.
-   * @throws SepException if error happens.
+   * @throws RuntimeException if error happens.
    */
-  Sep31Transaction findByStellarMemo(@NonNull String memo) throws SepException;
+  Sep31Transaction findByStellarMemo(@NonNull String memo) throws RuntimeException;
 
   /**
    * Save a transaction.

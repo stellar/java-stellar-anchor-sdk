@@ -27,7 +27,7 @@ class PaymentOperationToEventListenerTest {
     // Payment missing transaction hash shouldn't trigger an event nor reach the DB
     val p = ObservedPayment.builder().build()
     p.transactionHash = null
-    p.transactionMemo = "my_memo"
+    p.transactionMemo = "my_memo_1"
     paymentOperationToEventListener.onReceived(p)
     verify { eventService wasNot Called }
     verify { transactionStore wasNot Called }
@@ -41,12 +41,21 @@ class PaymentOperationToEventListenerTest {
 
     // Payment whose memo is not in the DB shouldn't trigger event
     p.transactionHash = "1ad62e48724426be96cf2cdb65d5dacb8fac2e403e50bedb717bfc8eaf05af30"
-    p.transactionMemo = "my_memo"
-    val slotMemo = slot<String>()
+    p.transactionMemo = "my_memo_2"
+    var slotMemo = slot<String>()
     every { transactionStore.findByStellarMemo(capture(slotMemo)) } returns null
     paymentOperationToEventListener.onReceived(p)
     verify { eventService wasNot Called }
-    verify(exactly = 1) { transactionStore.findByStellarMemo(any()) }
-    assertEquals("my_memo", slotMemo.captured)
+    verify(exactly = 1) { transactionStore.findByStellarMemo("my_memo_2") }
+    assertEquals("my_memo_2", slotMemo.captured)
+
+    // If findByStellarMemo throws an exception, we shouldn't trigger an event
+    slotMemo = slot()
+    p.transactionMemo = "my_memo_3"
+    every { transactionStore.findByStellarMemo(capture(slotMemo)) } throws RuntimeException("Something went wrong")
+    paymentOperationToEventListener.onReceived(p)
+    verify { eventService wasNot Called }
+    verify(exactly = 1) { transactionStore.findByStellarMemo("my_memo_3") }
+    assertEquals("my_memo_3", slotMemo.captured)
   }
 }

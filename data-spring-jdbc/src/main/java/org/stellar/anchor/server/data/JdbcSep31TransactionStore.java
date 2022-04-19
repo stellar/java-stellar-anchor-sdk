@@ -32,18 +32,18 @@ public class JdbcSep31TransactionStore implements Sep31TransactionStore {
   }
 
   @Override
-  public Sep31Transaction findByTransactionId(@NonNull String transactionId) throws SepException {
+  public Sep31Transaction findByTransactionId(@NonNull String transactionId) throws RuntimeException {
     return transactionRepo.findById(transactionId).orElse(null);
   }
 
   @Override
   public List<? extends Sep31Transaction> findByTransactionIds(
-      @NonNull Collection<String> transactionId) throws SepException {
+      @NonNull Collection<String> transactionId) throws RuntimeException {
     return transactionRepo.findByIds(transactionId);
   }
 
   @Override
-  public Sep31Transaction findByStellarMemo(@NonNull String memo) throws SepException {
+  public Sep31Transaction findByStellarMemo(@NonNull String memo) throws RuntimeException {
     return transactionRepo.findByStellarMemo(memo).orElse(null);
   }
 

@@ -47,7 +47,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
     Sep31Transaction txn;
     try {
       txn = transactionStore.findByStellarMemo(payment.getTransactionMemo());
-    } catch (SepException e) {
+    } catch (RuntimeException e) {
       Log.error(
           String.format(
               "error finding transaction that matches the memo (%s).",
