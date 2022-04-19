@@ -73,12 +73,26 @@ class PaymentOperationToEventListenerTest {
     slotMemo = slot()
     p.transactionMemo = "my_memo_4"
     p.assetCode = "FOO"
-    val sep31TxMock = JdbcSep31Transaction()
+    var sep31TxMock = JdbcSep31Transaction()
     sep31TxMock.amountInAsset = "BAR"
     every { transactionStore.findByStellarMemo(capture(slotMemo)) } returns sep31TxMock
     paymentOperationToEventListener.onReceived(p)
     verify { eventService wasNot Called }
     verify(exactly = 1) { transactionStore.findByStellarMemo("my_memo_4") }
     assertEquals("my_memo_4", slotMemo.captured)
+
+    // If payment amount is smaller than the expected, don't trigger event
+    slotMemo = slot()
+    p.transactionMemo = "my_memo_5"
+    p.assetCode = "FOO"
+    p.amount = "9.9999999"
+    sep31TxMock = JdbcSep31Transaction()
+    sep31TxMock.amountInAsset = "FOO"
+    sep31TxMock.amountIn = "10"
+    every { transactionStore.findByStellarMemo(capture(slotMemo)) } returns sep31TxMock
+    paymentOperationToEventListener.onReceived(p)
+    verify { eventService wasNot Called }
+    verify(exactly = 1) { transactionStore.findByStellarMemo("my_memo_5") }
+    assertEquals("my_memo_5", slotMemo.captured)
   }
 }

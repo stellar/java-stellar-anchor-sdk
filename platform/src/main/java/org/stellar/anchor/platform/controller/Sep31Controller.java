@@ -50,7 +50,7 @@ public class Sep31Controller {
   @RequestMapping(
       value = "/transactions/{id}",
       method = {RequestMethod.GET})
-  public Sep31GetTransactionResponse postTransaction(
+  public Sep31GetTransactionResponse getTransaction(
       HttpServletRequest servletRequest, @PathVariable(name = "id") String txnId)
       throws AnchorException {
     JwtToken jwtToken = getSep10Token(servletRequest);
