@@ -174,8 +174,8 @@ public class TransactionService {
       // without exchange
       if (allAmountAvailable(txn))
         if (decimal(txn.getAmountIn())
-            .compareTo(decimal(txn.getAmountOut()).add(decimal(txn.getAmountFee()))) != 0)
-          throw new BadRequestException("amount_in != amount_out + amount_fee");
+                .compareTo(decimal(txn.getAmountOut()).add(decimal(txn.getAmountFee())))
+            != 0) throw new BadRequestException("amount_in != amount_out + amount_fee");
     } else {
       // with exchange
       Sep38Quote quote = quoteStore.findByQuoteId(txn.getQuoteId());
@@ -194,13 +194,15 @@ public class TransactionService {
         // fee calculated in buying asset
         // buy_asset = amount_out + amount_fee
         if (decimal(quote.getBuyAmount())
-            .compareTo(decimal(txn.getAmountOut()).add(decimal(txn.getAmountFee()))) != 0) {
+                .compareTo(decimal(txn.getAmountOut()).add(decimal(txn.getAmountFee())))
+            != 0) {
           throw new BadRequestException("quote.buy_amount != amount_fee + amount_out");
         } else if (txn.getAmountFeeAsset().equals(quote.getSellAsset())) {
           // fee calculated in selling asset
           // sell_asset = amount_in + amount_fee
           if (decimal(quote.getSellAmount())
-              .compareTo(decimal(txn.getAmountIn()).add(decimal(txn.getAmountFee()))) != 0) {
+                  .compareTo(decimal(txn.getAmountIn()).add(decimal(txn.getAmountFee())))
+              != 0) {
             throw new BadRequestException("quote.sell_amount != amount_fee + amount_in");
           }
         } else {

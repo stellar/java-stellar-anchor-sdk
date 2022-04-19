@@ -2,7 +2,6 @@ package org.stellar.anchor.platform.service;
 
 import static org.stellar.anchor.model.TransactionStatus.ERROR;
 
-import com.google.gson.Gson;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;

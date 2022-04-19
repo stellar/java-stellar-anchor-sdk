@@ -11,14 +11,14 @@
         "fee_minimum": 0,
         "fee_percent": 0,
         "min_amount": 1,
-        "max_amount": 1000000
+        "max_amount": 10000
       },
       "withdraw": {
-        "enabled": false,
+        "enabled": true,
         "fee_fixed": 0,
         "fee_percent": 0,
         "min_amount": 1,
-        "max_amount": 1000000
+        "max_amount": 10000
       },
       "send": {
         "fee_fixed": 0,
@@ -74,9 +74,86 @@
       },
       "sep38": {
         "exchangeable_assets": [
+          "stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
           "iso4217:USD"
         ]
       },
+      "sep6_enabled": false,
+      "sep24_enabled": true,
+      "sep31_enabled": true,
+      "sep38_enabled": true
+    },
+    {
+      "schema": "stellar",
+      "code": "JPYC",
+      "issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+      "significant_decimals": 0,
+      "deposit" : {
+        "enabled": true,
+        "fee_minimum": 0,
+        "fee_percent": 0,
+        "min_amount": 1,
+        "max_amount": 1000000
+      },
+      "withdraw": {
+        "enabled": false,
+        "fee_fixed": 0,
+        "fee_percent": 0,
+        "min_amount": 1,
+        "max_amount": 1000000
+      },
+      "send": {
+        "fee_fixed": 0,
+        "fee_percent": 0,
+        "min_amount": 1,
+        "max_amount": 1000000
+      },
+      "sep31" : {
+        "quotes_supported": true,
+        "quotes_required": true,
+        "sep12": {
+          "sender": {
+            "types": {
+              "sep31-sender": {
+                "description": "Japanese citizens"
+              }
+            }
+          },
+          "receiver": {
+            "types": {
+              "sep31-receiver": {
+                "description": "Japanese citizens receiving USD"
+              }
+            }
+          }
+        },
+        "fields": {
+          "transaction": {
+            "receiver_routing_number": {
+              "description": "routing number of the destination bank account"
+            },
+            "receiver_account_number": {
+              "description": "bank account number of the destination"
+            },
+            "type": {
+              "description": "type of deposit to make",
+              "choices": [
+                "ACH",
+                "SWIFT",
+                "WIRE"
+              ]
+            }
+          }
+        }
+      },
+      "sep38": {
+        "exchangeable_assets": [
+          "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+          "iso4217:USD"
+        ]
+      },
+      "sep24_enabled": true,
+      "sep6_enabled": true,
       "sep31_enabled": true,
       "sep38_enabled": true
     },
@@ -87,24 +164,25 @@
         "enabled": true,
         "fee_minimum": 0,
         "fee_percent": 0,
-        "min_amount": 0,
-        "max_amount": 10000
+        "min_amount": 1,
+        "max_amount": 1000000
       },
       "withdraw": {
-        "enabled": true,
+        "enabled": false,
         "fee_fixed": 0,
         "fee_percent": 0,
-        "min_amount": 0,
-        "max_amount": 10000
+        "min_amount": 1,
+        "max_amount": 1000000
       },
       "send": {
         "fee_fixed": 0,
         "fee_percent": 0,
-        "min_amount": 0,
-        "max_amount": 10000
+        "min_amount": 1,
+        "max_amount": 1000000
       },
       "sep38": {
         "exchangeable_assets": [
+          "stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
           "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
         ],
         "country_codes": ["USA"],
@@ -122,6 +200,7 @@
           }
         ]
       },
+      "sep6_enabled": false,
       "sep31_enabled": false,
       "sep38_enabled": true
     }
