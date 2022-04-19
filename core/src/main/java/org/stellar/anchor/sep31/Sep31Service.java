@@ -222,10 +222,13 @@ public class Sep31Service {
                 "Bad quote. quote.sell_amount does not equal to amount_in");
           }
         } else {
-          // amount_in=req.amount
+          // amount_in=sellAmount
           // amount_out=quote.buy_amount -fee
           amountIn = sellAmount;
           amountOut = buyAmount.subtract(fee);
+        }
+        if (amountIn.compareTo(sellAmount) != 0) {
+          throw new BadRequestException("Bad quote. amount_in does not equal to request amount.");
         }
       }
     }
@@ -346,7 +349,7 @@ public class Sep31Service {
                 GetFeeRequest.builder()
                     .sendAmount(request.getAmount())
                     .sendAsset(request.getAssetCode())
-                    .receiveAsset(request.getAssetCode())
+                    .receiveAsset(request.getDestinationAsset())
                     .receiveAmount(null)
                     .senderId(request.getSenderId())
                     .receiverId(request.getReceiverId())
