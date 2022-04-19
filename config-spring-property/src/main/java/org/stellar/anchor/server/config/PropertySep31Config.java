@@ -1,9 +1,9 @@
 package org.stellar.anchor.server.config;
 
+import static org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_SEND;
+
 import lombok.Data;
 import org.stellar.anchor.config.Sep31Config;
-
-import static org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_SEND;
 
 @Data
 public class PropertySep31Config implements Sep31Config {
