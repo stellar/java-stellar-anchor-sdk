@@ -32,7 +32,8 @@ public class JdbcSep31TransactionStore implements Sep31TransactionStore {
   }
 
   @Override
-  public Sep31Transaction findByTransactionId(@NonNull String transactionId) throws RuntimeException {
+  public Sep31Transaction findByTransactionId(@NonNull String transactionId)
+      throws RuntimeException {
     return transactionRepo.findById(transactionId).orElse(null);
   }
 
@@ -53,7 +54,6 @@ public class JdbcSep31TransactionStore implements Sep31TransactionStore {
       throw new SepException(
           transaction.getClass() + "  is not a sub-type of " + JdbcSep31Transaction.class);
     }
-
     JdbcSep31Transaction txn = (JdbcSep31Transaction) transaction;
 
     txn.setUpdatedAt(Instant.now());

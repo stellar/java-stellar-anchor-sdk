@@ -8,6 +8,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+
+import com.google.gson.Gson;
 import org.springframework.stereotype.Component;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.event.models.*;
@@ -34,8 +36,8 @@ public class PaymentOperationToEventListener implements PaymentListener {
   @Override
   public void onReceived(ObservedPayment payment) {
     // Check if payment is connected to a transaction
-    if (Objects.toString(payment.getTransactionHash(), "").isEmpty() ||
-        Objects.toString(payment.getTransactionMemo(), "").isEmpty()) {
+    if (Objects.toString(payment.getTransactionHash(), "").isEmpty()
+        || Objects.toString(payment.getTransactionMemo(), "").isEmpty()) {
       return;
     }
 
@@ -108,6 +110,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
 
   private void sendToQueue(TransactionEvent event) {
     eventService.publish(event);
+    Log.info("Sent to event queue" + new Gson().toJson(event));
   }
 
   TransactionEvent receivedPaymentToEvent(Sep31Transaction txn, ObservedPayment payment) {
@@ -118,26 +121,26 @@ public class PaymentOperationToEventListener implements PaymentListener {
             .type(TransactionEvent.Type.TRANSACTION_PAYMENT_RECEIVED)
             .id(txn.getId())
             .status(TransactionEvent.Status.PENDING_RECEIVER)
-            .sep(org.stellar.anchor.event.models.TransactionEvent.Sep.SEP_31)
-            .kind(org.stellar.anchor.event.models.TransactionEvent.Kind.RECEIVE)
+            .sep(TransactionEvent.Sep.SEP_31)
+            .kind(TransactionEvent.Kind.RECEIVE)
             .amountIn(new Amount(payment.getAmount(), txn.getAmountInAsset()))
-            .amountOut(new Amount(txn.getAmountOut(), txn.getAmountInAsset()))
+            .amountOut(new Amount(txn.getAmountOut(), txn.getAmountOutAsset()))
             // TODO: fix PATCH transaction fails if getAmountOut is null?
-            .amountFee(new Amount(txn.getAmountFee(), txn.getAmountInAsset()))
+            .amountFee(new Amount(txn.getAmountFee(), txn.getAmountFeeAsset()))
             .quoteId(txn.getQuoteId())
             .startedAt(txn.getStartedAt())
-            .sourceAccount(payment.getSourceAccount())
+            .sourceAccount(payment.getFrom())
             .destinationAccount(payment.getTo())
             .creator(
                 StellarId.builder()
-                    .account(txn.getStellarAccountId())
+                    .account(payment.getFrom())
                     .memo(txn.getStellarMemo())
                     .memoType(txn.getStellarMemoType())
                     .build())
             .stellarTransactions(
                 new StellarTransaction[] {
                   StellarTransaction.builder()
-                      .id(txn.getStellarTransactionId())
+                      .id(payment.getTransactionHash())
                       .memo(txn.getStellarMemo())
                       .memoType(txn.getStellarMemoType())
                       .createdAt(
