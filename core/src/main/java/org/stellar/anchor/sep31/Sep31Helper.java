@@ -17,7 +17,7 @@ public class Sep31Helper {
   }
 
   public static boolean amountEquals(String amount1, String amount2) {
-    return decimal(amount1).equals(decimal(amount2));
+    return decimal(amount1).compareTo(decimal(amount2)) == 0;
   }
 
   public static void validateStatus(Sep31Transaction txn) throws BadRequestException {

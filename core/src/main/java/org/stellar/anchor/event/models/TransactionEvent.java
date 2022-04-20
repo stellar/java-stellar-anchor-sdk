@@ -6,6 +6,7 @@ import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import org.stellar.platform.apis.shared.Amount;
 
 @Data
 @Builder
