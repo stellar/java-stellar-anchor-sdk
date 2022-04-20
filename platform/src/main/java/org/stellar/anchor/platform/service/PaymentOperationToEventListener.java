@@ -92,6 +92,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
     TransactionEvent event = receivedPaymentToEvent(txn, payment);
     if (txn.getStatus().equals(TransactionStatus.PENDING_SENDER.toString())) {
       txn.setStatus(TransactionStatus.PENDING_RECEIVER.toString());
+      txn.setStellarTransactionId(payment.getTransactionHash());
       try {
         transactionStore.save(txn);
       } catch (SepException ex) {
