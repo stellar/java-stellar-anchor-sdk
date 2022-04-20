@@ -6,8 +6,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Data
 @Configuration
-@ConfigurationProperties(prefix = "anchor.settings")
-public class AppSettings {
-  String version;
-  String platformApiEndpoint;
+@ConfigurationProperties(prefix = "kafka.listener")
+public class AmqpListenerSettings {
+  String endpoint;
 }

@@ -15,7 +15,7 @@ class AnchorPlatformIntegrationTest {
     lateinit var jwt: String
     init {
       val props = System.getProperties()
-      props.setProperty("REFERENCE_SERVER_CONFIG_ENV", "classpath:/anchor-reference-server.yaml")
+      props.setProperty("REFERENCE_SERVER_CONFIG", "classpath:/anchor-reference-server.yaml")
     }
     @BeforeAll
     @JvmStatic

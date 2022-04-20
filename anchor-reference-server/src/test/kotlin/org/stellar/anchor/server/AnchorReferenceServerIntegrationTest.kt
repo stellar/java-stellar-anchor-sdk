@@ -9,14 +9,14 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 import java.util.*
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import org.springframework.beans.factory.annotation.Autowired
-import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.web.client.TestRestTemplate
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
-import org.springframework.test.context.TestPropertySource
+import org.springframework.web.client.RestTemplate
+import org.springframework.web.util.DefaultUriBuilderFactory
 import org.stellar.anchor.reference.AnchorReferenceServer
 import org.stellar.anchor.reference.model.Quote
 import org.stellar.anchor.reference.repo.QuoteRepo
@@ -26,24 +26,26 @@ import org.stellar.platform.apis.callbacks.requests.GetFeeRequest
 import org.stellar.platform.apis.callbacks.responses.GetCustomerResponse
 import org.stellar.platform.apis.callbacks.responses.GetFeeResponse
 
-@SpringBootTest(
-  classes = [AnchorReferenceServer::class],
-  webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT
-)
-@TestPropertySource(locations = ["classpath:anchor-reference-server.yaml"])
 class AnchorReferenceServerIntegrationTest {
   companion object {
-    val gson: Gson = GsonUtils.builder().setPrettyPrinting().create()
+    private const val REFERENCE_SERVER_PORT = 8081
     const val fiatUSD = "iso4217:USD"
     const val stellarUSDC = "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+    val gson: Gson = GsonUtils.builder().setPrettyPrinting().create()
+    val restTemplate: RestTemplate = RestTemplate()
 
-    init {
-      val props = System.getProperties()
-      props.setProperty("REFERENCE_SERVER_CONFIG_ENV", "classpath:/anchor-reference-server.yaml")
+//    init {
+//      restTemplate.uriTemplateHandler =
+//        DefaultUriBuilderFactory("http://localhost:$REFERENCE_SERVER_PORT")
+//    }
+
+    @BeforeAll
+    @JvmStatic
+    fun setup() {
+      AnchorReferenceServer.start(REFERENCE_SERVER_PORT, "/")
     }
   }
 
-  @Autowired lateinit var restTemplate: TestRestTemplate
   @Autowired lateinit var quoteRepo: QuoteRepo
 
   @Test
@@ -92,19 +94,10 @@ class AnchorReferenceServerIntegrationTest {
 
   @Test
   fun getCustomer() {
-    val result = restGetCustomer(GetCustomerRequest.builder().id("1").build())
-    println(result.body)
+    val result = restTemplate.getForEntity("http://localhost:8081/customer?id={id}", String::class.java, "1")
+//    val result = restTemplate.getForEntity("/customer?id=1", GetCustomerResponse::class.java, "1")
     assertNotNull(result)
     assertEquals(HttpStatus.NOT_FOUND, result.statusCode)
-  }
-
-  private fun restGetCustomer(
-    getCustomerRequest: GetCustomerRequest
-  ): ResponseEntity<GetCustomerResponse> {
-    val json = gson.toJson(getCustomerRequest)
-    val params = gson.fromJson(json, HashMap::class.java)
-
-    return restTemplate.getForEntity("/customer?id={id}", GetCustomerResponse::class.java, params)
   }
 
   @Test
