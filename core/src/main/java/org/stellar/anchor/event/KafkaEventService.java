@@ -11,25 +11,26 @@ import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 import org.springframework.stereotype.Component;
 import org.stellar.anchor.config.EventConfig;
+import org.stellar.anchor.config.KafkaConfig;
 import org.stellar.anchor.event.models.AnchorEvent;
 import org.stellar.anchor.util.Log;
 
 @Component
-public class KafkaEventService implements EventService {
+public class KafkaEventService implements EventPublishService {
   final Producer<String, AnchorEvent> producer;
   final Map<String, String> eventTypeToQueue;
   final boolean eventsEnabled;
   final boolean useSingleQueue;
 
-  public KafkaEventService(EventConfig eventConfig) {
+  public KafkaEventService(EventConfig eventConfig, KafkaConfig kafkaConfig) {
     // TODO: log the event config
     Properties props = new Properties();
-    props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, eventConfig.getKafkaBootstrapServer());
+    props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaConfig.getKafkaBootstrapServer());
     props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
     props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
     this.producer = new KafkaProducer<String, AnchorEvent>(props);
 
-    this.eventTypeToQueue = eventConfig.getEventTypeToQueue();
+    this.eventTypeToQueue = kafkaConfig.getEventTypeToQueue();
     this.eventsEnabled = eventConfig.isEnabled();
     this.useSingleQueue = eventConfig.isUseSingleQueue();
   }

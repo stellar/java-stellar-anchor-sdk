@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import org.springframework.stereotype.Component;
-import org.stellar.anchor.event.EventService;
+import org.stellar.anchor.event.EventPublishService;
 import org.stellar.anchor.event.models.*;
 import org.stellar.anchor.event.models.StellarTransaction;
 import org.stellar.anchor.event.models.TransactionEvent;
@@ -22,10 +22,10 @@ import org.stellar.anchor.util.Log;
 @Component
 public class PaymentOperationToEventListener implements PaymentListener {
   final JdbcSep31TransactionStore transactionStore;
-  final EventService eventService;
+  final EventPublishService eventService;platform/src/main/java/org/stellar/anchor/platform/service/PaymentOperationToEventListener.java
 
   PaymentOperationToEventListener(
-      JdbcSep31TransactionStore transactionStore, EventService eventService) {
+      JdbcSep31TransactionStore transactionStore, EventPublishService eventService) {
     this.transactionStore = transactionStore;
     this.eventService = eventService;
   }

@@ -22,7 +22,7 @@ import org.stellar.anchor.dto.sep12.Sep12GetCustomerRequest;
 import org.stellar.anchor.dto.sep12.Sep12GetCustomerResponse;
 import org.stellar.anchor.dto.sep31.*;
 import org.stellar.anchor.dto.sep31.Sep31GetTransactionResponse.TransactionResponse;
-import org.stellar.anchor.event.EventService;
+import org.stellar.anchor.event.EventPublishService;
 import org.stellar.anchor.event.models.Amount;
 import org.stellar.anchor.event.models.StellarId;
 import org.stellar.anchor.event.models.TransactionEvent;
@@ -47,7 +47,7 @@ public class Sep31Service {
   private FeeIntegration feeIntegration;
   private final CustomerIntegration customerIntegration;
   private Sep31InfoResponse infoResponse;
-  final EventService eventService;
+  final EventPublishService eventService;
 
   public Sep31Service(
       AppConfig appConfig,
@@ -57,7 +57,7 @@ public class Sep31Service {
       AssetService assetService,
       FeeIntegration feeIntegration,
       CustomerIntegration customerIntegration,
-      EventService eventService) {
+      EventPublishService eventService) {
     this.appConfig = appConfig;
     this.sep31Config = sep31Config;
     this.sep31TransactionStore = sep31TransactionStore;

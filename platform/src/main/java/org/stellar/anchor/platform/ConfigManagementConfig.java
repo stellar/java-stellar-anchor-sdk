@@ -49,4 +49,16 @@ public class ConfigManagementConfig {
   EventConfig eventConfig() {
     return new PropertyEventConfig();
   }
+
+  @Bean
+  @ConfigurationProperties(prefix = "kafka-config")
+  KafkaConfig kafkaConfig() {
+    return new PropertyKafkaConfig();
+  }
+
+  @Bean
+  @ConfigurationProperties(prefix = "sqs-config")
+  SqsConfig sqsConfig() {
+    return new PropertySqsConfig();
+  }
 }

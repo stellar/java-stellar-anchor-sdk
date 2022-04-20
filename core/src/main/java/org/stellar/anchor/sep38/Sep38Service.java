@@ -12,7 +12,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.Sep38Config;
 import org.stellar.anchor.dto.sep38.*;
-import org.stellar.anchor.event.EventService;
+import org.stellar.anchor.event.EventPublishService;
 import org.stellar.anchor.event.models.QuoteEvent;
 import org.stellar.anchor.event.models.StellarId;
 import org.stellar.anchor.exception.AnchorException;
@@ -32,7 +32,7 @@ public class Sep38Service {
   final AssetService assetService;
   final RateIntegration rateIntegration;
   final Sep38QuoteStore sep38QuoteStore;
-  final EventService eventService;
+  final EventPublishService eventService;
   final InfoResponse infoResponse;
   final Map<String, InfoResponse.Asset> assetMap;
 
@@ -41,7 +41,7 @@ public class Sep38Service {
       AssetService assetService,
       RateIntegration rateIntegration,
       Sep38QuoteStore sep38QuoteStore,
-      EventService eventService) {
+      EventPublishService eventService) {
     this.sep38Config = sep38Config;
     this.assetService = assetService;
     this.rateIntegration = rateIntegration;
