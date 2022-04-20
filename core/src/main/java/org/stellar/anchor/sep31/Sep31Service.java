@@ -1,16 +1,5 @@
 package org.stellar.anchor.sep31;
 
-import static org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_SEND;
-import static org.stellar.anchor.dto.sep31.Sep31InfoResponse.AssetResponse;
-import static org.stellar.anchor.sep31.Sep31Helper.amountEquals;
-import static org.stellar.anchor.util.MathHelper.decimal;
-import static org.stellar.anchor.util.MemoHelper.memoType;
-import static org.stellar.anchor.util.SepHelper.*;
-import static org.stellar.sdk.xdr.MemoType.MEMO_HASH;
-
-import java.math.BigDecimal;
-import java.util.*;
-import java.util.stream.Collectors;
 import lombok.Data;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
@@ -37,6 +26,18 @@ import org.stellar.anchor.sep10.JwtToken;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
 import org.stellar.platform.apis.callbacks.requests.GetFeeRequest;
 import org.stellar.platform.apis.shared.Amount;
+
+import java.math.BigDecimal;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_SEND;
+import static org.stellar.anchor.dto.sep31.Sep31InfoResponse.AssetResponse;
+import static org.stellar.anchor.sep31.Sep31Helper.amountEquals;
+import static org.stellar.anchor.util.MathHelper.decimal;
+import static org.stellar.anchor.util.MemoHelper.memoType;
+import static org.stellar.anchor.util.SepHelper.*;
+import static org.stellar.sdk.xdr.MemoType.MEMO_HASH;
 
 public class Sep31Service {
   private final AppConfig appConfig;
@@ -349,7 +350,10 @@ public class Sep31Service {
                 GetFeeRequest.builder()
                     .sendAmount(request.getAmount())
                     .sendAsset(request.getAssetCode())
-                    .receiveAsset(request.getDestinationAsset())
+                    .receiveAsset(
+                        (request.getDestinationAsset() == null)
+                            ? request.getAssetCode()
+                            : request.getDestinationAsset())
                     .receiveAmount(null)
                     .senderId(request.getSenderId())
                     .receiverId(request.getReceiverId())
