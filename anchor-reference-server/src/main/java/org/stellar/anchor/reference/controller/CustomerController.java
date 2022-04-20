@@ -2,7 +2,6 @@ package org.stellar.anchor.reference.controller;
 
 import org.springframework.web.bind.annotation.*;
 import org.stellar.anchor.exception.NotFoundException;
-import org.stellar.anchor.reference.config.AppSettings;
 import org.stellar.anchor.reference.service.CustomerService;
 import org.stellar.platform.apis.callbacks.requests.GetCustomerRequest;
 import org.stellar.platform.apis.callbacks.requests.PutCustomerRequest;
@@ -13,7 +12,7 @@ import org.stellar.platform.apis.callbacks.responses.PutCustomerResponse;
 public class CustomerController {
   private final CustomerService customerService;
 
-  public CustomerController(AppSettings appSettings, CustomerService customerService) {
+  public CustomerController(CustomerService customerService) {
     this.customerService = customerService;
   }
 

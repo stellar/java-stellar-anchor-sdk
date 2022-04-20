@@ -39,7 +39,7 @@ class AnchorReferenceServerIntegrationTest {
 
     init {
       val props = System.getProperties()
-      props.setProperty("REFERENCE_CONFIG", "classpath:/anchor-reference-server.yaml")
+      props.setProperty("REFERENCE_SERVER_CONFIG_ENV", "classpath:/anchor-reference-server.yaml")
     }
   }
 
