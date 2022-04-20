@@ -2,14 +2,13 @@ package org.stellar.anchor.platform.service;
 
 import static org.stellar.anchor.model.TransactionStatus.ERROR;
 
+import com.google.gson.Gson;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
-
-import com.google.gson.Gson;
 import org.springframework.stereotype.Component;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.event.models.*;

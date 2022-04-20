@@ -13,6 +13,7 @@ import org.stellar.anchor.model.TransactionStatus
 import org.stellar.anchor.platform.paymentobserver.ObservedPayment
 import org.stellar.anchor.server.data.JdbcSep31Transaction
 import org.stellar.anchor.server.data.JdbcSep31TransactionStore
+import org.stellar.platform.apis.shared.Amount
 
 class PaymentOperationToEventListenerTest {
   @MockK(relaxed = true) private lateinit var transactionStore: JdbcSep31TransactionStore
