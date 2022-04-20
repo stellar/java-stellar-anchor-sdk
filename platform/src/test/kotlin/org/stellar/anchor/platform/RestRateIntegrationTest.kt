@@ -166,10 +166,7 @@ class RestRateIntegrationTest {
         .buyDeliveryMethod("WIRE")
         .countryCode("USA")
         .expireAfter("2022-04-30T02:15:44.000Z")
-        .clientDomain("test.com")
-        .account("GDGWTSQKQQAT2OXRSFLADMN4F6WJQMPJ5MIOKIZ2AMBYUI67MJA4WRLA")
-        .memo("foo")
-        .memoType("text")
+        .clientId("GDGWTSQKQQAT2OXRSFLADMN4F6WJQMPJ5MIOKIZ2AMBYUI67MJA4WRLA")
         .build()
     testGetRate(
       """/rate
@@ -182,10 +179,7 @@ class RestRateIntegrationTest {
         &buy_delivery_method=WIRE
         &country_code=USA
         &expire_after=2022-04-30T02%3A15%3A44.000Z
-        &client_domain=test.com
-        &account=GDGWTSQKQQAT2OXRSFLADMN4F6WJQMPJ5MIOKIZ2AMBYUI67MJA4WRLA
-        &memo=foo
-        &memo_type=text""".replace(
+        &client_id=GDGWTSQKQQAT2OXRSFLADMN4F6WJQMPJ5MIOKIZ2AMBYUI67MJA4WRLA""".replace(
         "\n        ",
         ""
       ),

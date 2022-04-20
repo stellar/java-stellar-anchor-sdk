@@ -858,7 +858,7 @@ class Sep38ServiceTest {
         .sellAsset("iso4217:USD")
         .sellAmount("100")
         .buyAsset(stellarUSDC)
-        .account(PUBLIC_KEY)
+        .clientId(PUBLIC_KEY)
         .build()
     val tomorrow = Instant.now().plus(1, ChronoUnit.DAYS)
     every { mockRateIntegration.getRate(getRateReq) } returns
@@ -926,7 +926,7 @@ class Sep38ServiceTest {
         .sellAsset("iso4217:USD")
         .buyAsset(stellarUSDC)
         .buyAmount("100")
-        .account(PUBLIC_KEY)
+        .clientId(PUBLIC_KEY)
         .build()
     val tomorrow = Instant.now().plus(1, ChronoUnit.DAYS)
     every { mockRateIntegration.getRate(getRateReq) } returns
@@ -999,7 +999,7 @@ class Sep38ServiceTest {
         .sellDeliveryMethod("WIRE")
         .buyAsset(stellarUSDC)
         .countryCode("USA")
-        .account(PUBLIC_KEY)
+        .clientId(PUBLIC_KEY)
         .expireAfter(now.toString())
         .build()
     every { mockRateIntegration.getRate(getRateReq) } returns
@@ -1076,7 +1076,7 @@ class Sep38ServiceTest {
         .buyAsset(stellarUSDC)
         .buyAmount("100")
         .countryCode("USA")
-        .account(PUBLIC_KEY)
+        .clientId(PUBLIC_KEY)
         .expireAfter(now.toString())
         .build()
     every { mockRateIntegration.getRate(getRateReq) } returns

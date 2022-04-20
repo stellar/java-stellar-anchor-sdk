@@ -313,9 +313,7 @@ public class Sep38Service {
             .buyDeliveryMethod(request.getBuyDeliveryMethod())
             .countryCode(request.getCountryCode())
             .expireAfter(request.getExpireAfter())
-            .account(account)
-            .memo(memo)
-            .memoType(memoType)
+            .clientId(account)
             .build();
     GetRateResponse.Rate rate = this.rateIntegration.getRate(getRateRequest).getRate();
 

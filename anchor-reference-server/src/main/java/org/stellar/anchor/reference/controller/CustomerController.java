@@ -4,10 +4,8 @@ import org.springframework.web.bind.annotation.*;
 import org.stellar.anchor.exception.NotFoundException;
 import org.stellar.anchor.reference.config.AppSettings;
 import org.stellar.anchor.reference.service.CustomerService;
-import org.stellar.platform.apis.callbacks.requests.DeleteCustomerRequest;
 import org.stellar.platform.apis.callbacks.requests.GetCustomerRequest;
 import org.stellar.platform.apis.callbacks.requests.PutCustomerRequest;
-import org.stellar.platform.apis.callbacks.responses.DeleteCustomerResponse;
 import org.stellar.platform.apis.callbacks.responses.GetCustomerResponse;
 import org.stellar.platform.apis.callbacks.responses.PutCustomerResponse;
 
@@ -41,9 +39,7 @@ public class CustomerController {
   @RequestMapping(
       value = "/customer/{id}",
       method = {RequestMethod.DELETE})
-  public DeleteCustomerResponse deleteCustomer(@PathVariable String id) throws NotFoundException {
-    DeleteCustomerRequest request = new DeleteCustomerRequest();
-    request.setId(id);
-    return customerService.delete(request);
+  public void deleteCustomer(@PathVariable String id) {
+    customerService.delete(id);
   }
 }

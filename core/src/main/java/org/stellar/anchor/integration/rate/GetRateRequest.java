@@ -33,15 +33,10 @@ public class GetRateRequest {
   @SerializedName("expire_after")
   String expireAfter;
 
-  @SerializedName("client_domain")
-  String clientDomain;
+  @SerializedName("client_id")
+  String clientId;
 
   String id;
-  String account;
-  String memo;
-
-  @SerializedName("memo_type")
-  String memoType;
 
   public enum Type {
     @SerializedName("indicative")
