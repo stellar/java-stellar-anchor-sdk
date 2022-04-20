@@ -77,6 +77,11 @@ app-config:
       horizonUrl: https://horizon-testnet.stellar.org
       secretKey: secret # stellar account secret key
 
+  circle-payment-observer:
+    enabled: true
+    circleUrl: https://api-sandbox.circle.com
+    secretKey: secret # circle API key
+
   event:
     enabled: true
     kafkaBootstrapServer: localhost:29092
