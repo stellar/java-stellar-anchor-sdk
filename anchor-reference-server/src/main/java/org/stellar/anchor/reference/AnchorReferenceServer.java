@@ -1,6 +1,5 @@
 package org.stellar.anchor.reference;
 
-import com.google.gson.Gson;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -9,10 +8,8 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.env.YamlPropertySourceLoader;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.annotation.Bean;
 import org.springframework.core.io.Resource;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import org.stellar.anchor.util.GsonUtils;
 
 import java.io.IOException;
 import java.util.List;
@@ -38,7 +35,6 @@ public class AnchorReferenceServer implements WebMvcConfigurer {
     app.addInitializers(new PropertySourceInitializer());
     app.run();
   }
-
 
   public static class PropertySourceInitializer
       implements ApplicationContextInitializer<ConfigurableApplicationContext> {

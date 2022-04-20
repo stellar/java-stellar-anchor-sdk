@@ -15,8 +15,8 @@ import java.util.Map;
 
 @RestController
 public class FeeController {
-  private FeeService feeService;
-  private static final Gson gson = GsonUtils.builder().create();
+  final FeeService feeService;
+  static final Gson gson = GsonUtils.builder().create();
 
   public FeeController(FeeService feeService) {
     this.feeService = feeService;
