@@ -12,6 +12,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Component;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.event.models.*;
+import org.stellar.anchor.exception.AnchorException;
 import org.stellar.anchor.exception.SepException;
 import org.stellar.anchor.model.Sep31Transaction;
 import org.stellar.anchor.model.TransactionStatus;
@@ -51,7 +52,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
     Sep31Transaction txn;
     try {
       txn = transactionStore.findByStellarMemo(payment.getTransactionMemo());
-    } catch (RuntimeException e) {
+    } catch (AnchorException e) {
       Log.error(
           String.format(
               "error finding transaction that matches the memo (%s).",

@@ -9,6 +9,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.stellar.anchor.event.EventService
 import org.stellar.anchor.event.models.*
+import org.stellar.anchor.exception.SepException
 import org.stellar.anchor.model.TransactionStatus
 import org.stellar.anchor.platform.paymentobserver.ObservedPayment
 import org.stellar.anchor.server.data.JdbcSep31Transaction
@@ -69,7 +70,7 @@ class PaymentOperationToEventListenerTest {
     slotMemo = slot()
     p.transactionMemo = "my_memo_3"
     every { transactionStore.findByStellarMemo(capture(slotMemo)) } throws
-      RuntimeException("Something went wrong")
+      SepException("Something went wrong")
     paymentOperationToEventListener.onReceived(p)
     verify { eventService wasNot Called }
     verify(exactly = 1) { transactionStore.findByStellarMemo("my_memo_3") }

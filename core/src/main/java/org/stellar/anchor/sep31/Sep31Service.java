@@ -250,8 +250,7 @@ public class Sep31Service {
     txn.setStellarMemoType(memoType(MEMO_HASH));
   }
 
-  public Sep31GetTransactionResponse getTransaction(String id)
-      throws SepException, NotFoundException, BadRequestException {
+  public Sep31GetTransactionResponse getTransaction(String id) throws AnchorException {
     if (id == null) {
       throw new BadRequestException("'id' is not provided");
     }

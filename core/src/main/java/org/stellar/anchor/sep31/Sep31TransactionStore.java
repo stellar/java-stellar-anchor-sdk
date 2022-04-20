@@ -3,6 +3,7 @@ package org.stellar.anchor.sep31;
 import java.util.Collection;
 import java.util.List;
 import lombok.NonNull;
+import org.stellar.anchor.exception.AnchorException;
 import org.stellar.anchor.exception.SepException;
 import org.stellar.anchor.model.Sep31Transaction;
 
@@ -18,28 +19,28 @@ public interface Sep31TransactionStore {
    *
    * @param transactionId The transaction ID.
    * @return The transaction document. null if not found.
-   * @throws RuntimeException if error happens.
+   * @throws org.stellar.anchor.exception.AnchorException if error happens.
    */
-  Sep31Transaction findByTransactionId(String transactionId) throws RuntimeException;
+  Sep31Transaction findByTransactionId(String transactionId) throws AnchorException;
 
   /**
    * Find the transactions by the collection of ids.
    *
    * @param transactionIds Collection of ids.
    * @return List of transactions.
-   * @throws RuntimeException if error happens.
+   * @throws AnchorException if error happens.
    */
   List<? extends Sep31Transaction> findByTransactionIds(@NonNull Collection<String> transactionIds)
-      throws RuntimeException;
+      throws AnchorException;
 
   /**
    * Find the transactions by the transaction memo.
    *
    * @param memo transaction memo.
    * @return The matching transaction.
-   * @throws RuntimeException if error happens.
+   * @throws AnchorException if error happens.
    */
-  Sep31Transaction findByStellarMemo(@NonNull String memo) throws RuntimeException;
+  Sep31Transaction findByStellarMemo(@NonNull String memo) throws AnchorException;
 
   /**
    * Save a transaction.
