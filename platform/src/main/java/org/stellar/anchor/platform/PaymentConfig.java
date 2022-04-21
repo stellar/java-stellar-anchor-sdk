@@ -2,6 +2,7 @@ package org.stellar.anchor.platform;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import okhttp3.OkHttpClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.stellar.anchor.asset.AssetInfo;
@@ -68,7 +69,7 @@ public class PaymentConfig {
 
   @Bean
   public CirclePaymentObserverService circlePaymentObserverService(
-      CirclePaymentObserverConfig circlePaymentObserverConfig) {
-    return new CirclePaymentObserverService(circlePaymentObserverConfig);
+      OkHttpClient httpClient, CirclePaymentObserverConfig circlePaymentObserverConfig) {
+    return new CirclePaymentObserverService(httpClient, circlePaymentObserverConfig);
   }
 }
