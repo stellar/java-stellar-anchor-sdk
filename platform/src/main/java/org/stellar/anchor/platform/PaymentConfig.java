@@ -9,7 +9,7 @@ import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.CirclePaymentObserverConfig;
 import org.stellar.anchor.exception.ServerErrorException;
-import org.stellar.anchor.paymentobserver.CirclePaymentObserverService;
+import org.stellar.anchor.platform.paymentobserver.CirclePaymentObserverService;
 import org.stellar.anchor.platform.paymentobserver.PaymentListener;
 import org.stellar.anchor.platform.paymentobserver.PaymentStreamerCursorStore;
 import org.stellar.anchor.platform.paymentobserver.StellarPaymentObserver;

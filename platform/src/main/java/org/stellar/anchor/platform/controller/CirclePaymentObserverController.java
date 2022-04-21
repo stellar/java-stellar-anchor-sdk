@@ -5,7 +5,7 @@ import java.lang.reflect.Type;
 import java.util.Map;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
-import org.stellar.anchor.paymentobserver.CirclePaymentObserverService;
+import org.stellar.anchor.platform.paymentobserver.CirclePaymentObserverService;
 import shadow.com.google.common.reflect.TypeToken;
 
 @RestController
