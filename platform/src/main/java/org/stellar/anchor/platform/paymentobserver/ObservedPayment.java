@@ -50,17 +50,22 @@ public class ObservedPayment {
       assetIssuer = issuedAsset.getIssuer();
     }
 
+    String sourceAccount =
+        paymentOp.getSourceAccount() != null
+            ? paymentOp.getSourceAccount()
+            : paymentOp.getTransaction().orNull().getSourceAccount();
+    String from = paymentOp.getFrom() != null ? paymentOp.getFrom() : sourceAccount;
     return ObservedPayment.builder()
         .id(paymentOp.getId().toString())
         .type(Type.PAYMENT)
-        .from(paymentOp.getFrom())
+        .from(from)
         .to(paymentOp.getTo())
         .amount(paymentOp.getAmount())
         .assetType(paymentOp.getAsset().getType())
         .assetCode(assetCode)
         .assetIssuer(assetIssuer)
         .assetName(paymentOp.getAsset().toString())
-        .sourceAccount(paymentOp.getSourceAccount())
+        .sourceAccount(sourceAccount)
         .createdAt(paymentOp.getCreatedAt())
         .transactionHash(paymentOp.getTransactionHash())
         .transactionMemo(getMemoHash(paymentOp))
@@ -86,10 +91,15 @@ public class ObservedPayment {
       sourceAssetIssuer = sourceIssuedAsset.getIssuer();
     }
 
+    String sourceAccount =
+        pathPaymentOp.getSourceAccount() != null
+            ? pathPaymentOp.getSourceAccount()
+            : pathPaymentOp.getTransaction().orNull().getSourceAccount();
+    String from = pathPaymentOp.getFrom() != null ? pathPaymentOp.getFrom() : sourceAccount;
     return ObservedPayment.builder()
         .id(pathPaymentOp.getId().toString())
         .type(Type.PATH_PAYMENT)
-        .from(pathPaymentOp.getFrom())
+        .from(from)
         .to(pathPaymentOp.getTo())
         .amount(pathPaymentOp.getAmount())
         .assetType(pathPaymentOp.getAsset().getType())
@@ -101,7 +111,7 @@ public class ObservedPayment {
         .sourceAssetCode(sourceAssetCode)
         .sourceAssetIssuer(sourceAssetIssuer)
         .sourceAssetName(pathPaymentOp.getSourceAsset().toString())
-        .sourceAccount(pathPaymentOp.getSourceAccount())
+        .sourceAccount(sourceAccount)
         .createdAt(pathPaymentOp.getCreatedAt())
         .transactionHash(pathPaymentOp.getTransactionHash())
         .transactionMemo(getMemoHash(pathPaymentOp))

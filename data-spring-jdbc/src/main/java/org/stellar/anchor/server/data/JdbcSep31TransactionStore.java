@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import lombok.NonNull;
+import org.stellar.anchor.exception.AnchorException;
 import org.stellar.anchor.exception.SepException;
 import org.stellar.anchor.model.Sep31Transaction;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
@@ -32,18 +33,19 @@ public class JdbcSep31TransactionStore implements Sep31TransactionStore {
   }
 
   @Override
-  public Sep31Transaction findByTransactionId(@NonNull String transactionId) throws SepException {
+  public Sep31Transaction findByTransactionId(@NonNull String transactionId)
+      throws AnchorException {
     return transactionRepo.findById(transactionId).orElse(null);
   }
 
   @Override
   public List<? extends Sep31Transaction> findByTransactionIds(
-      @NonNull Collection<String> transactionId) throws SepException {
+      @NonNull Collection<String> transactionId) throws AnchorException {
     return transactionRepo.findByIds(transactionId);
   }
 
   @Override
-  public Sep31Transaction findByStellarMemo(@NonNull String memo) throws SepException {
+  public Sep31Transaction findByStellarMemo(@NonNull String memo) throws AnchorException {
     return transactionRepo.findByStellarMemo(memo).orElse(null);
   }
 
@@ -53,7 +55,6 @@ public class JdbcSep31TransactionStore implements Sep31TransactionStore {
       throw new SepException(
           transaction.getClass() + "  is not a sub-type of " + JdbcSep31Transaction.class);
     }
-
     JdbcSep31Transaction txn = (JdbcSep31Transaction) transaction;
 
     txn.setUpdatedAt(Instant.now());

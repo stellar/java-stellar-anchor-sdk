@@ -47,6 +47,10 @@ public class SepHelper {
     return result;
   }
 
+  public static void validateAmount(String amount) throws AnchorException {
+    validateAmount("", amount);
+  }
+
   public static void validateAmount(String messagePrefix, String amount) throws AnchorException {
     // assetName
     if (Objects.toString(amount, "").isEmpty()) {

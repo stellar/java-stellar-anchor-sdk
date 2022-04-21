@@ -3,19 +3,21 @@ package org.stellar.anchor.reference.controller;
 import com.google.gson.Gson;
 import java.util.Map;
 import lombok.SneakyThrows;
-import org.springframework.web.bind.annotation.*;
-import org.stellar.anchor.reference.config.AppSettings;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.stellar.anchor.reference.service.FeeService;
 import org.stellar.anchor.util.GsonUtils;
-import org.stellar.platform.apis.callbacks.requests.*;
+import org.stellar.platform.apis.callbacks.requests.GetFeeRequest;
 import org.stellar.platform.apis.callbacks.responses.GetFeeResponse;
 
 @RestController
 public class FeeController {
-  private FeeService feeService;
-  private static final Gson gson = GsonUtils.builder().create();
+  final FeeService feeService;
+  static final Gson gson = GsonUtils.builder().create();
 
-  public FeeController(AppSettings appSettings, FeeService feeService) {
+  public FeeController(FeeService feeService) {
     this.feeService = feeService;
   }
 

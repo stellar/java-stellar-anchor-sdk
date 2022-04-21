@@ -1,5 +1,7 @@
 package org.stellar.anchor.platform.service;
 
+import static org.stellar.anchor.model.TransactionStatus.ERROR;
+
 import com.google.gson.Gson;
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -10,14 +12,15 @@ import java.util.UUID;
 import org.springframework.stereotype.Component;
 import org.stellar.anchor.event.EventPublishService;
 import org.stellar.anchor.event.models.*;
-import org.stellar.anchor.event.models.StellarTransaction;
-import org.stellar.anchor.event.models.TransactionEvent;
+import org.stellar.anchor.exception.AnchorException;
 import org.stellar.anchor.exception.SepException;
 import org.stellar.anchor.model.Sep31Transaction;
 import org.stellar.anchor.model.TransactionStatus;
-import org.stellar.anchor.platform.paymentobserver.*;
+import org.stellar.anchor.platform.paymentobserver.ObservedPayment;
+import org.stellar.anchor.platform.paymentobserver.PaymentListener;
 import org.stellar.anchor.server.data.JdbcSep31TransactionStore;
 import org.stellar.anchor.util.Log;
+import org.stellar.platform.apis.shared.Amount;
 
 @Component
 public class PaymentOperationToEventListener implements PaymentListener {
@@ -33,7 +36,15 @@ public class PaymentOperationToEventListener implements PaymentListener {
   @Override
   public void onReceived(ObservedPayment payment) {
     // Check if payment is connected to a transaction
-    if (Objects.toString(payment.getTransactionHash(), "").isEmpty()) {
+    if (Objects.toString(payment.getTransactionHash(), "").isEmpty()
+        || Objects.toString(payment.getTransactionMemo(), "").isEmpty()) {
+      return;
+    }
+
+    // Check if the payment contains the expected asset type
+    if (!List.of("credit_alphanum4", "credit_alphanum12").contains(payment.getAssetType())) {
+      // Asset type does not match
+      Log.warn("Not an issued asset");
       return;
     }
 
@@ -41,7 +52,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
     Sep31Transaction txn;
     try {
       txn = transactionStore.findByStellarMemo(payment.getTransactionMemo());
-    } catch (SepException e) {
+    } catch (AnchorException e) {
       Log.error(
           String.format(
               "error finding transaction that matches the memo (%s).",
@@ -56,12 +67,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
       return;
     }
 
-    // Check if the payment contains the expected asset
-    if (!List.of("credit_alphanum4", "credit_alphanum12").contains(payment.getAssetType())) {
-      // Asset type does not match
-      Log.warn("Not an issued asset");
-      return;
-    }
+    // Compare asset code
     if (!txn.getAmountInAsset().equals(payment.getAssetCode())) {
       Log.warn(
           String.format(
@@ -69,7 +75,6 @@ public class PaymentOperationToEventListener implements PaymentListener {
               payment.getAssetCode(), txn.getAmountInAsset()));
       return;
     }
-    // TODO: match asset code.
 
     // Check if the payment contains the expected amount (or greater)
     BigDecimal expectedAmount = new BigDecimal(txn.getAmountIn());
@@ -79,6 +84,8 @@ public class PaymentOperationToEventListener implements PaymentListener {
           String.format(
               "Payment amount %s is smaller than the expected amount %s",
               payment.getAmount(), txn.getAmountIn()));
+      txn.setStatus(ERROR.getName());
+      saveTransaction(txn);
       return;
     }
 
@@ -86,6 +93,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
     TransactionEvent event = receivedPaymentToEvent(txn, payment);
     if (txn.getStatus().equals(TransactionStatus.PENDING_SENDER.toString())) {
       txn.setStatus(TransactionStatus.PENDING_RECEIVER.toString());
+      txn.setStellarTransactionId(payment.getTransactionHash());
       try {
         transactionStore.save(txn);
       } catch (SepException ex) {
@@ -103,7 +111,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
 
   private void sendToQueue(TransactionEvent event) {
     eventService.publish(event);
-    System.out.println("Sent to event queue" + new Gson().toJson(event));
+    Log.info("Sent to event queue" + new Gson().toJson(event));
   }
 
   TransactionEvent receivedPaymentToEvent(Sep31Transaction txn, ObservedPayment payment) {
@@ -114,26 +122,26 @@ public class PaymentOperationToEventListener implements PaymentListener {
             .type(TransactionEvent.Type.TRANSACTION_PAYMENT_RECEIVED)
             .id(txn.getId())
             .status(TransactionEvent.Status.PENDING_RECEIVER)
-            .sep(org.stellar.anchor.event.models.TransactionEvent.Sep.SEP_31)
-            .kind(org.stellar.anchor.event.models.TransactionEvent.Kind.RECEIVE)
+            .sep(TransactionEvent.Sep.SEP_31)
+            .kind(TransactionEvent.Kind.RECEIVE)
             .amountIn(new Amount(payment.getAmount(), txn.getAmountInAsset()))
-            .amountOut(new Amount(txn.getAmountOut(), txn.getAmountInAsset()))
+            .amountOut(new Amount(txn.getAmountOut(), txn.getAmountOutAsset()))
             // TODO: fix PATCH transaction fails if getAmountOut is null?
-            .amountFee(new Amount(txn.getAmountFee(), txn.getAmountInAsset()))
+            .amountFee(new Amount(txn.getAmountFee(), txn.getAmountFeeAsset()))
             .quoteId(txn.getQuoteId())
             .startedAt(txn.getStartedAt())
-            .sourceAccount(payment.getSourceAccount())
+            .sourceAccount(payment.getFrom())
             .destinationAccount(payment.getTo())
             .creator(
                 StellarId.builder()
-                    .account(txn.getStellarAccountId())
+                    .account(payment.getFrom())
                     .memo(txn.getStellarMemo())
                     .memoType(txn.getStellarMemoType())
                     .build())
             .stellarTransactions(
                 new StellarTransaction[] {
                   StellarTransaction.builder()
-                      .id(txn.getStellarTransactionId())
+                      .id(payment.getTransactionHash())
                       .memo(txn.getStellarMemo())
                       .memoType(txn.getStellarMemoType())
                       .createdAt(
@@ -153,5 +161,13 @@ public class PaymentOperationToEventListener implements PaymentListener {
                 })
             .build();
     return event;
+  }
+
+  void saveTransaction(Sep31Transaction txn) {
+    try {
+      transactionStore.save(txn);
+    } catch (SepException ex) {
+      Log.errorEx(ex);
+    }
   }
 }
