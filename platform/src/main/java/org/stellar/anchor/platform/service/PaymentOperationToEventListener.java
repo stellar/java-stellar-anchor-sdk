@@ -2,6 +2,7 @@ package org.stellar.anchor.platform.service;
 
 import static org.stellar.anchor.model.TransactionStatus.ERROR;
 
+import com.google.gson.Gson;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
@@ -11,6 +12,7 @@ import java.util.UUID;
 import org.springframework.stereotype.Component;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.event.models.*;
+import org.stellar.anchor.exception.AnchorException;
 import org.stellar.anchor.exception.SepException;
 import org.stellar.anchor.model.Sep31Transaction;
 import org.stellar.anchor.model.TransactionStatus;
@@ -34,11 +36,15 @@ public class PaymentOperationToEventListener implements PaymentListener {
   @Override
   public void onReceived(ObservedPayment payment) {
     // Check if payment is connected to a transaction
-    if (Objects.toString(payment.getTransactionHash(), "").isEmpty()) {
+    if (Objects.toString(payment.getTransactionHash(), "").isEmpty()
+        || Objects.toString(payment.getTransactionMemo(), "").isEmpty()) {
       return;
     }
 
-    if (payment.getTransactionMemo() == null) {
+    // Check if the payment contains the expected asset type
+    if (!List.of("credit_alphanum4", "credit_alphanum12").contains(payment.getAssetType())) {
+      // Asset type does not match
+      Log.warn("Not an issued asset");
       return;
     }
 
@@ -46,7 +52,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
     Sep31Transaction txn;
     try {
       txn = transactionStore.findByStellarMemo(payment.getTransactionMemo());
-    } catch (SepException e) {
+    } catch (AnchorException e) {
       Log.error(
           String.format(
               "error finding transaction that matches the memo (%s).",
@@ -61,14 +67,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
       return;
     }
 
-    // Check if the payment contains the expected asset
-    if (!List.of("credit_alphanum4", "credit_alphanum12").contains(payment.getAssetType())) {
-      // Asset type does not match
-      Log.warn("Not an issued asset");
-      return;
-    }
-
-    // Check if asset code matches
+    // Compare asset code
     if (!txn.getAmountInAsset().equals(payment.getAssetCode())) {
       Log.warn(
           String.format(
@@ -94,6 +93,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
     TransactionEvent event = receivedPaymentToEvent(txn, payment);
     if (txn.getStatus().equals(TransactionStatus.PENDING_SENDER.toString())) {
       txn.setStatus(TransactionStatus.PENDING_RECEIVER.toString());
+      txn.setStellarTransactionId(payment.getTransactionHash());
       try {
         transactionStore.save(txn);
       } catch (SepException ex) {
@@ -111,6 +111,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
 
   private void sendToQueue(TransactionEvent event) {
     eventService.publish(event);
+    Log.info("Sent to event queue" + new Gson().toJson(event));
   }
 
   TransactionEvent receivedPaymentToEvent(Sep31Transaction txn, ObservedPayment payment) {
@@ -121,26 +122,26 @@ public class PaymentOperationToEventListener implements PaymentListener {
             .type(TransactionEvent.Type.TRANSACTION_PAYMENT_RECEIVED)
             .id(txn.getId())
             .status(TransactionEvent.Status.PENDING_RECEIVER)
-            .sep(org.stellar.anchor.event.models.TransactionEvent.Sep.SEP_31)
-            .kind(org.stellar.anchor.event.models.TransactionEvent.Kind.RECEIVE)
+            .sep(TransactionEvent.Sep.SEP_31)
+            .kind(TransactionEvent.Kind.RECEIVE)
             .amountIn(new Amount(payment.getAmount(), txn.getAmountInAsset()))
-            .amountOut(new Amount(txn.getAmountOut(), txn.getAmountInAsset()))
+            .amountOut(new Amount(txn.getAmountOut(), txn.getAmountOutAsset()))
             // TODO: fix PATCH transaction fails if getAmountOut is null?
-            .amountFee(new Amount(txn.getAmountFee(), txn.getAmountInAsset()))
+            .amountFee(new Amount(txn.getAmountFee(), txn.getAmountFeeAsset()))
             .quoteId(txn.getQuoteId())
             .startedAt(txn.getStartedAt())
-            .sourceAccount(payment.getSourceAccount())
+            .sourceAccount(payment.getFrom())
             .destinationAccount(payment.getTo())
             .creator(
                 StellarId.builder()
-                    .account(txn.getStellarAccountId())
+                    .account(payment.getFrom())
                     .memo(txn.getStellarMemo())
                     .memoType(txn.getStellarMemoType())
                     .build())
             .stellarTransactions(
                 new StellarTransaction[] {
                   StellarTransaction.builder()
-                      .id(txn.getStellarTransactionId())
+                      .id(payment.getTransactionHash())
                       .memo(txn.getStellarMemo())
                       .memoType(txn.getStellarMemoType())
                       .createdAt(

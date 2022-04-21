@@ -1,5 +1,9 @@
 package org.stellar.anchor.reference;
 
+import static org.springframework.boot.Banner.Mode.OFF;
+
+import java.io.IOException;
+import java.util.List;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -10,11 +14,6 @@ import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.Resource;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-
-import java.io.IOException;
-import java.util.List;
-
-import static org.springframework.boot.Banner.Mode.OFF;
 
 @SpringBootApplication
 @EnableConfigurationProperties
