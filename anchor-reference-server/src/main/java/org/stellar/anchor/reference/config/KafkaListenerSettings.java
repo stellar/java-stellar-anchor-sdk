@@ -8,15 +8,15 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConfigurationProperties(prefix = "kafka.listener")
 public class KafkaListenerSettings {
-    String bootStrapServer;
-    Queues queues;
+  String bootStrapServer;
+  Queues queues;
 
-    @Data
-    public static class Queues {
-        String all;
-        String quoteCreated;
-        String transactionCreated;
-        String transactionPaymentReceived;
-        String transactionError;
-    }
+  @Data
+  public static class Queues {
+    String all;
+    String quoteCreated;
+    String transactionCreated;
+    String transactionPaymentReceived;
+    String transactionError;
+  }
 }

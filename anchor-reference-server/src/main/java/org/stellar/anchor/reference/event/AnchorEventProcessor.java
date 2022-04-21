@@ -1,6 +1,8 @@
 package org.stellar.anchor.reference.event;
 
 import com.google.gson.Gson;
+import java.io.IOException;
+import java.util.List;
 import org.springframework.stereotype.Component;
 import org.stellar.anchor.event.models.QuoteEvent;
 import org.stellar.anchor.event.models.TransactionEvent;
@@ -11,9 +13,6 @@ import org.stellar.anchor.util.Log;
 import org.stellar.platform.apis.platform.requests.PatchTransactionRequest;
 import org.stellar.platform.apis.platform.requests.PatchTransactionsRequest;
 import org.stellar.platform.apis.shared.Amount;
-
-import java.io.IOException;
-import java.util.List;
 
 @Component
 public class AnchorEventProcessor {
@@ -40,12 +39,10 @@ public class AnchorEventProcessor {
                         .status(TransactionEvent.Status.COMPLETED.status)
                         .amountFee(
                             new Amount(
-                                event.getAmountFee().getAmount(),
-                                event.getAmountFee().getAsset()))
+                                event.getAmountFee().getAmount(), event.getAmountFee().getAsset()))
                         .amountOut(
                             new Amount(
-                                event.getAmountOut().getAmount(), 
-                                event.getAmountOut().getAsset()))
+                                event.getAmountOut().getAmount(), event.getAmountOut().getAsset()))
                         .build()))
             .build();
     try {

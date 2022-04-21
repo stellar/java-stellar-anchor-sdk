@@ -11,9 +11,9 @@ anchor.settings:
   platformApiEndpoint: http://localhost:8080
 
 event:
-  # The listener type. values: [kafka, sns, amqp]
+  # The listener type. values: [kafka, sqs, amqp]
   # If the listener is kafka, the kafka listener is configured in kafka.listener section.
-  # If the listener is sns, the sns listener is configured in the sns.listener section.
+  # If the listener is sqs, the sqs listener is configured in the sqs.listener section.
   # If the listener is amqp, the AMQP listner is configured in the ampq.listner section.
   listenerType: kafka
 
@@ -26,7 +26,7 @@ kafka.listener:
     transactionPaymentReceived: ap_event_transaction_payment_received
     transactionError: ap_event_transaction_error
 
-sns.listener:
+sqs.listener:
   username: to_be_changed
 
 amqp.listener:

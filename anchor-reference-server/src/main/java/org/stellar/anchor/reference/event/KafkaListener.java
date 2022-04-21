@@ -1,5 +1,13 @@
 package org.stellar.anchor.reference.event;
 
+import java.nio.charset.StandardCharsets;
+import java.time.Duration;
+import java.util.List;
+import java.util.Objects;
+import java.util.Properties;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import javax.annotation.PreDestroy;
 import org.apache.kafka.clients.consumer.*;
 import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -10,15 +18,6 @@ import org.stellar.anchor.event.models.QuoteEvent;
 import org.stellar.anchor.event.models.TransactionEvent;
 import org.stellar.anchor.reference.config.KafkaListenerSettings;
 import org.stellar.anchor.util.Log;
-
-import javax.annotation.PreDestroy;
-import java.nio.charset.StandardCharsets;
-import java.time.Duration;
-import java.util.List;
-import java.util.Objects;
-import java.util.Properties;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 
 @Component
 public class KafkaListener extends AbstractEventListener {

@@ -25,7 +25,7 @@ public class AnchorReferenceConfig {
     switch (eventSettings.getListenerType()) {
       case "kafka":
         return new KafkaListener(kafkaListenerSettings, anchorEventProcessor);
-      case "sns":
+      case "sqs":
       case "amqp":
       default:
         throw new RuntimeException(

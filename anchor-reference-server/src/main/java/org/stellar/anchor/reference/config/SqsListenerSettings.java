@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Data
 @Configuration
-@ConfigurationProperties(prefix = "sns.listener")
-public class SnsListenerSettings {
-    String username;
+@ConfigurationProperties(prefix = "sqs.listener")
+public class SqsListenerSettings {
+  String username;
 }
