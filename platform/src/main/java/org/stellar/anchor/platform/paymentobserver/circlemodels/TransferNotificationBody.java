@@ -1,9 +1,8 @@
 package org.stellar.anchor.platform.paymentobserver.circlemodels;
 
+import java.util.Map;
 import lombok.Data;
 import org.stellar.anchor.paymentservice.circle.model.CircleTransfer;
-
-import java.util.Map;
 
 @Data
 public class TransferNotificationBody {

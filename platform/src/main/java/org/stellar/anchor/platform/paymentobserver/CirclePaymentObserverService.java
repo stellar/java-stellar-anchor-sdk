@@ -2,13 +2,16 @@ package org.stellar.anchor.platform.paymentobserver;
 
 import com.google.gson.Gson;
 import java.io.IOException;
-import java.util.HashMap;
 import java.util.Map;
+
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.stellar.anchor.config.CirclePaymentObserverConfig;
+import org.stellar.anchor.paymentservice.circle.model.CirclePaymentStatus;
 import org.stellar.anchor.paymentservice.circle.model.CircleTransfer;
+import org.stellar.anchor.platform.paymentobserver.circlemodels.CircleNotification;
+import org.stellar.anchor.platform.paymentobserver.circlemodels.TransferNotificationBody;
 import org.stellar.anchor.util.GsonUtils;
 import org.stellar.anchor.util.Log;
 
@@ -16,7 +19,10 @@ public class CirclePaymentObserverService {
   private final OkHttpClient httpClient;
   private final CirclePaymentObserverConfig circlePaymentObserverConfig;
 
-  private final Gson gson = GsonUtils.builder().setPrettyPrinting().create();
+  private final Gson gson = GsonUtils.builder()
+      .registerTypeAdapter(CircleTransfer.class, new CircleTransfer.Serialization())
+      .setPrettyPrinting()
+      .create();
 
   public CirclePaymentObserverService(
       OkHttpClient httpClient, CirclePaymentObserverConfig circlePaymentObserverConfig) {
@@ -25,32 +31,26 @@ public class CirclePaymentObserverService {
   }
 
   public void handleCircleNotification(Map<String, Object> requestBody) {
-    String type = (String) requestBody.get("Type");
-    if (type.equals("SubscriptionConfirmation")) {
-      handleSubscriptionConfirmationNotification(requestBody);
-      return;
-    }
+    CircleNotification circleNotification = gson.fromJson(gson.toJson(requestBody), CircleNotification.class);
+    String type = circleNotification.getType();
 
-    if (type.equals("Notification")) {
-      Map<String, Object> message = (HashMap<String, Object>) requestBody.get("Message");
-    }
+    switch(type) {
+      case "SubscriptionConfirmation":
+        handleSubscriptionConfirmationNotification(circleNotification);
+        return;
 
-    // Handle transfer body
-    boolean isTransferNotification = requestBody.get("NotificationType").equals("transfers");
-    if (isTransferNotification) {
-      handleTransferNotification(requestBody);
-      return;
-    }
+      case "Notification":
+        handleTransferNotification(circleNotification);
+        return;
 
-    Log.warn("Not handling notification of type " + requestBody.getOrDefault("notificationType", ""));
+      default:
+        Log.warn("Not handling notification of type " + type);
+    }
   }
 
-  public void handleSubscriptionConfirmationNotification(Map<String, Object> requestBody) {
-    CircleSubscriptionNotification subscriptionNotification =
-        gson.fromJson(gson.toJson(requestBody), CircleSubscriptionNotification.class);
-    String subscribeUrl = subscriptionNotification.subscribeUrl;
-    System.out.println("=====> subscriptionNotification.subscribeUrl: " + subscribeUrl);
-    // TODO: handle subscription notification
+  public void handleSubscriptionConfirmationNotification(CircleNotification circleNotification) {
+    String subscribeUrl = circleNotification.getSubscribeUrl();
+    Log.info("=====> subscriptionNotification.subscribeUrl: " + subscribeUrl);
 
     Request httpRequest =
         new Request.Builder()
@@ -74,15 +74,21 @@ public class CirclePaymentObserverService {
     }
   }
 
-  public void handleTransferNotification(Map<String, ?> requestBody) {
-    Object transferBody = requestBody.get("transfer");
-    if (transferBody == null) {
+  public void handleTransferNotification(CircleNotification circleNotification) {
+    TransferNotificationBody transferNotification = gson.fromJson(circleNotification.getMessage(), TransferNotificationBody.class);
+
+    CircleTransfer circleTransfer = transferNotification.getTransfer();
+    if (circleTransfer == null) {
       Log.error("Missing \"transfer\" value in notification of type \"transfers\".");
       return;
     }
 
-    CircleTransfer circleTransfer = gson.fromJson(gson.toJson(transferBody), CircleTransfer.class);
-    System.out.println("=====> circleTransfer: " + circleTransfer);
-    // TODO: handle transfer body
+    if (!circleTransfer.getStatus().equals(CirclePaymentStatus.COMPLETE)) {
+      Log.info("Incomplete transfer:\n"+gson.toJson(circleTransfer));
+      return;
+    }
+
+    Log.info("Completed transfer:\n"+gson.toJson(circleTransfer));
+    // TODO: handle transfer event
   }
 }

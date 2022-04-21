@@ -45,5 +45,6 @@ public class CirclePaymentObserverController {
     return Map.of("foo", "bar");
   }
 
-  // if body["Type"].equals("SubscriptionConfirmation") and has key "SubscribeURL", then make a GET request to "SubscribeURL"
+  // if body["Type"].equals("SubscriptionConfirmation") and has key "SubscribeURL", then make a GET
+  // request to "SubscribeURL"
 }

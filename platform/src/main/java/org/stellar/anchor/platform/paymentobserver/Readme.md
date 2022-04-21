@@ -12,13 +12,13 @@ In order to receive the webhook requests, the Platform provides an endpoint to b
 ### Subscribing to Receive Webhook Requests
 
 - [x] TODO: 1, add the configurations needed
-- [ ] TODO: 2, add the webserver
+- [x] TODO: 2, add the endpoint
 - [ ] TODO: 3, add a command to start the webserver
 - [x] TODO: 4, add the callback who can print the request body
-- [ ] TODO: 5, manually register my local server for subscriptions
+- [x] TODO: 5, manually register my local server for subscriptions
 - [ ] TODO: 6, handle incoming payments
 - [ ] TODO: 7, handle outgoing payments
-- [ ] TODO: 8, auto-confirm subscriptions
+- [x] TODO: 8, auto-confirm subscriptions
 - [ ] TODO: 9, auto-subscribe-and-confirm subscriptions
 - [ ] TODO: 10, Add `circle-payment-observer` config to kube.
 You can manually subscribe to Circle's webhook notifications by following [these circle instructions](https://developers.circle.com/docs/notifications-quickstart#2-subscribe-to-payments-status-notifications).

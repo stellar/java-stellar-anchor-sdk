@@ -1,10 +1,11 @@
 package org.stellar.anchor.platform.paymentobserver.circlemodels;
 
 import com.google.gson.annotations.SerializedName;
-import lombok.Builder;
+import java.time.Instant;
+import java.util.Map;
+
 import lombok.Data;
 
-import java.time.Instant;
 @Data
 public class CircleNotification {
   @SerializedName("Type")
@@ -12,6 +13,9 @@ public class CircleNotification {
 
   @SerializedName("MessageId")
   String messageId;
+
+  @SerializedName("Message")
+  String message;
 
   @SerializedName("TopicArn")
   String topicArn;
@@ -27,4 +31,18 @@ public class CircleNotification {
 
   @SerializedName("SigningCertURL")
   String signingCertURL;
+
+  // For Type == "SubscriptionConfirmation"
+  @SerializedName("Token")
+  String token;
+
+  @SerializedName("SubscribeURL")
+  String subscribeUrl;
+
+  // For Type == "Notification"
+  @SerializedName("UnsubscribeURL")
+  String unsubscribeURL;
+
+  @SerializedName("MessageAttributes")
+  Map<String, ?> messageAttributes;
 }
