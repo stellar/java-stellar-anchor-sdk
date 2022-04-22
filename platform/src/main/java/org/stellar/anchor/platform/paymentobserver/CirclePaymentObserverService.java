@@ -105,7 +105,7 @@ public class CirclePaymentObserverService {
 
     CircleTransfer circleTransfer = transferNotification.getTransfer();
     if (circleTransfer == null) {
-      Log.error("Missing \"transfer\" value in notification of type \"transfers\".");
+      Log.info("Missing \"transfer\" value in notification of type \"transfers\".");
       return;
     }
 
@@ -125,13 +125,13 @@ public class CirclePaymentObserverService {
             && destination.getChain().equals("XLM");
 
     if (!isSourceOnStellar && !isDestinationOnStellar) {
-      Log.warn(
+      Log.info(
           "Neither source nor destination are stellar accounts. Giving up on processing this transfer.");
       return;
     }
 
     if (!circleTransfer.getAmount().getCurrency().equals("USD")) {
-      Log.error("The only circle currency supported is USDC.");
+      Log.info("The only circle currency supported is USDC.");
       return;
     }
 
