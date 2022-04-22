@@ -8,5 +8,17 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConfigurationProperties(prefix = "sqs.listener")
 public class SqsListenerSettings {
-  String username;
+  String region;
+  Queues queues;
+  String accessKey;
+  String secretKey;
+
+  @Data
+  public static class Queues {
+    String all;
+    String quoteCreated;
+    String transactionCreated;
+    String transactionPaymentReceived;
+    String transactionError;
+  }
 }

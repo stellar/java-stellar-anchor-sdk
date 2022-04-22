@@ -15,7 +15,7 @@ event:
   # If the listener is kafka, the kafka listener is configured in kafka.listener section.
   # If the listener is sqs, the sqs listener is configured in the sqs.listener section.
   # If the listener is amqp, the AMQP listner is configured in the ampq.listner section.
-  listenerType: kafka
+  listenerType: sqs
 
 kafka.listener:
   bootstrapServer: localhost:29092
@@ -27,7 +27,15 @@ kafka.listener:
     transactionError: ap_event_transaction_error
 
 sqs.listener:
-  username: to_be_changed
+  region: us-east-1
+  queues:
+    all: sdf_dev_ap_event_single_queue.fifo
+    quote_created: sdf_dev_ap_event_quote_created.fifo
+    transaction_created: sdf_dev_ap_event_transaction_created.fifo
+    transaction_payment_received: sdf_dev_ap_event_transaction_payment_received.fifo
+    transaction_error: sdf_dev_ap_event_transaction_error.fifo
+  accessKey: AKIA3CAN47R2RKGEQVXW
+  secretKey: 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
 
 amqp.listener:
   endpoint: localhost:5672

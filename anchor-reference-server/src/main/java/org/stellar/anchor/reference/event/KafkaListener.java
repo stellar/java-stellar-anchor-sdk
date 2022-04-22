@@ -34,12 +34,12 @@ public class KafkaListener extends AbstractEventListener {
   }
 
   public void listen() {
-    Log.info("queue consumer server started ");
+    Log.info("Kafka consumer server started ");
     Properties props = new Properties();
 
     props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaListenerSettings.getBootStrapServer());
     props.put(ConsumerConfig.GROUP_ID_CONFIG, "group_one1");
-    // props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+    //props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");  // start reading from earliest available message
     props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
     props.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
     props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
@@ -63,38 +63,23 @@ public class KafkaListener extends AbstractEventListener {
         Log.debug(String.format("Messages received: %s", consumerRecords.count()));
         consumerRecords.forEach(
             record -> {
-              String eventType = getEventType(record);
-              if (eventType != null) {
-                switch (eventType) {
-                  case "quote_created":
-                    Log.debug("quote_created " + record.value());
-                    processor.handleQuoteEvent((QuoteEvent) record.value());
-                    break;
-                  case "transaction_created":
-                  case "transaction_payment_received":
-                  case "transaction_status_changed":
-                  case "transaction_error":
-                    processor.handleTransactionEvent((TransactionEvent) record.value());
-                    break;
-                  default:
-                    Log.debug(
-                        "error: anchor_platform_event - invalid message type '%s'%n", eventType);
-                }
+              String eventClass = record.value().getClass().getSimpleName();
+              switch(eventClass){
+                case "QuoteEvent":
+                  processor.handleQuoteEvent((QuoteEvent) record.value());
+                  break;
+                case "TransactionEvent":
+                  processor.handleTransactionEvent((TransactionEvent) record.value());
+                  break;
+                default:
+                  Log.debug(
+                          "error: anchor_platform_event - invalid message type '%s'%n", eventClass);
               }
             });
       } catch (Exception ex) {
         Log.errorEx(ex);
       }
     }
-  }
-
-  private String getEventType(ConsumerRecord<String, AnchorEvent> record) {
-    for (Header header : record.headers()) {
-      if (Objects.equals(header.key(), "type")) {
-        return new String(header.value(), StandardCharsets.UTF_8);
-      }
-    }
-    return null;
   }
 
   public void stop() {
