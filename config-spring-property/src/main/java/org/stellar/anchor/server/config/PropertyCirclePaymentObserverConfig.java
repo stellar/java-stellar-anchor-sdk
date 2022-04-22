@@ -8,4 +8,5 @@ public class PropertyCirclePaymentObserverConfig implements CirclePaymentObserve
   private boolean enabled = false;
   private String circleUrl;
   private String secretKey;
+  private String stellarNetwork;
 }

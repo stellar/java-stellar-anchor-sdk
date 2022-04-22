@@ -81,6 +81,8 @@ app-config:
     enabled: true
     circleUrl: https://api-sandbox.circle.com
     secretKey: secret # circle API key
+    horizonUrl: https://horizon-testnet.stellar.org
+    stellarNetwork: TESTNET # TESTNET or PUBLIC
 
   event:
     enabled: true

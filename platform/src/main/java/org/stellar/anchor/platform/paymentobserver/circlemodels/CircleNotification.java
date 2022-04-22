@@ -3,7 +3,6 @@ package org.stellar.anchor.platform.paymentobserver.circlemodels;
 import com.google.gson.annotations.SerializedName;
 import java.time.Instant;
 import java.util.Map;
-
 import lombok.Data;
 
 @Data

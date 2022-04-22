@@ -44,7 +44,4 @@ public class CirclePaymentObserverController {
     circlePaymentObserverService.handleCircleNotification(requestBody);
     return Map.of("foo", "bar");
   }
-
-  // if body["Type"].equals("SubscriptionConfirmation") and has key "SubscribeURL", then make a GET
-  // request to "SubscribeURL"
 }

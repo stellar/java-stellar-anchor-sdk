@@ -6,4 +6,7 @@ public interface CirclePaymentObserverConfig {
   String getCircleUrl();
 
   String getSecretKey();
+
+  /** @return "TESTNET" or "PUBLIC". */
+  String getStellarNetwork();
 }
