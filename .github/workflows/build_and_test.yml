@@ -9,6 +9,25 @@ on:
   pull_request:
 
 jobs:
+  find_test_url:
+    runs-on: ubuntu-latest
+    name: Finds server URL
+    env:
+      PR_NUMBER: ${{github.event.pull_request.number}}
+    steps:
+      - name: Find Server URL (Preview or Dev)
+        run: |
+          export ENDPOINT=https://anchor-sep-server-dev.stellar.org/
+          if [ ! -z "$PR_NUMBER" ]
+          then
+            export ENDPOINT=https://anchor-sep-pr$PR_NUMBER.previews.kube001.services.stellar-ops.com
+          fi
+          echo ENDPOINT=$ENDPOINT
+          echo "::set-output name=ENDPOINT::$ENDPOINT"
+
+      - name: Validate endpoint
+        run: echo ENDPOINT=$ENDPOINT
+
   build_and_test:
     runs-on: ubuntu-latest
     steps:
@@ -57,7 +76,6 @@ jobs:
         file: Dockerfile
 
   sep_validation_suite:
-    if: github.event.pull_request != null
     needs: [build_and_test]
     runs-on: ubuntu-latest
     name: Validate SEPs (1, 10, 12, 31, 38)
