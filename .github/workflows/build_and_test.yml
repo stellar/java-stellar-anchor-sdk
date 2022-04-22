@@ -57,7 +57,6 @@ jobs:
         file: Dockerfile
 
   sep_validation_suite:
-    needs: [build_and_test]
     runs-on: ubuntu-latest
     name: Validate SEPs (1, 10, 12, 31, 38)
     steps:
@@ -67,7 +66,7 @@ jobs:
       - name: Find Home Domain (Preview or Dev)
         id: endpoint-finder
         run: |
-          export HOME_DOMAIN=https://anchor-sep-server-dev.stellar.org/
+          export HOME_DOMAIN=https://anchor-sep-server-dev.stellar.org
           if [ ! -z "$PR_NUMBER" ]
           then
             export HOME_DOMAIN=https://anchor-sep-pr$PR_NUMBER.previews.kube001.services.stellar-ops.com
