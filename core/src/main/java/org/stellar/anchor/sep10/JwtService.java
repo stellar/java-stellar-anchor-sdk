@@ -2,12 +2,11 @@ package org.stellar.anchor.sep10;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.impl.DefaultJwsHeader;
-import org.apache.commons.codec.binary.Base64;
-import org.stellar.anchor.config.AppConfig;
-
 import java.nio.charset.StandardCharsets;
 import java.util.Calendar;
 import java.util.Map;
+import org.apache.commons.codec.binary.Base64;
+import org.stellar.anchor.config.AppConfig;
 
 public class JwtService {
   final String jwtKey;

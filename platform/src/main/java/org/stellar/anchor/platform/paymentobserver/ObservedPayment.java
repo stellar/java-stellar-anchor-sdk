@@ -135,7 +135,10 @@ public class ObservedPayment {
     PAYMENT("payment"),
 
     @SerializedName("path_payment")
-    PATH_PAYMENT("path_payment");
+    PATH_PAYMENT("path_payment"),
+
+    @SerializedName("circle_transfer")
+    CIRCLE_TRANSFER("circle_transfer");
 
     private final String name;
 
