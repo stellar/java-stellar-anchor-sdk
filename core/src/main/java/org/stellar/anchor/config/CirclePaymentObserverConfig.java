@@ -9,4 +9,6 @@ public interface CirclePaymentObserverConfig {
 
   /** @return "TESTNET" or "PUBLIC". */
   String getStellarNetwork();
+
+  String getHorizonUrl();
 }

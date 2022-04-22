@@ -13,9 +13,9 @@ import org.stellar.sdk.Sep10Challenge
 
 class Sep10Client(
   private val endpoint: String,
-  val serverAccount: String,
-  val walletAccount: String,
-  val walletSigningSeed: String
+  private val serverAccount: String,
+  private val walletAccount: String,
+  private val walletSigningSeed: String
 ) : SepClient() {
   fun auth(): String {
     // Call to get challenge
@@ -38,7 +38,7 @@ class Sep10Client(
     return gson.fromJson(responseBody, ChallengeResponse::class.java)
   }
 
-  fun sign(
+  private fun sign(
     challengeResponse: ChallengeResponse,
     signingSeed: String,
     serverAccount: String
@@ -57,8 +57,8 @@ class Sep10Client(
     return challengeTransaction.transaction.toEnvelopeXdrBase64()
   }
 
-  fun validate(request: ValidationRequest): ValidationResponse? {
-    val request = OkHttpUtil.buildJsonPostRequest(this.endpoint, json(request))
+  fun validate(validationRequest: ValidationRequest): ValidationResponse? {
+    val request = OkHttpUtil.buildJsonPostRequest(this.endpoint, json(validationRequest))
     val response = client.newCall(request).execute()
     if (response.code != 200) {
       throw SepNotAuthorizedException("Error validating SEP10 transaction")

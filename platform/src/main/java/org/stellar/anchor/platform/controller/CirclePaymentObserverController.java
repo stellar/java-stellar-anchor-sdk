@@ -24,11 +24,9 @@ public class CirclePaymentObserverController {
       value = "",
       method = {RequestMethod.POST, RequestMethod.GET, RequestMethod.HEAD},
       consumes = {MediaType.APPLICATION_JSON_VALUE})
-  public Map<String, String> handleCircleNotificationJson(
+  public void handleCircleNotificationJson(
       @RequestBody(required = false) Map<String, Object> requestBody) {
-    System.out.println("Content-Type application/json");
     circlePaymentObserverService.handleCircleNotification(requestBody);
-    return Map.of("foo", "bar");
   }
 
   @CrossOrigin(origins = "*")
@@ -36,12 +34,9 @@ public class CirclePaymentObserverController {
       value = "",
       method = {RequestMethod.POST, RequestMethod.GET, RequestMethod.HEAD},
       consumes = {MediaType.TEXT_PLAIN_VALUE})
-  public Map<String, String> handleCircleNotificationTextPlain(
-      @RequestBody(required = false) String jsonBodyStr) {
-    System.out.println("Content-Type text/plain");
+  public void handleCircleNotificationTextPlain(@RequestBody(required = false) String jsonBodyStr) {
     Type type = new TypeToken<Map<String, ?>>() {}.getType();
     Map<String, Object> requestBody = gson.fromJson(jsonBodyStr, type);
     circlePaymentObserverService.handleCircleNotification(requestBody);
-    return Map.of("foo", "bar");
   }
 }

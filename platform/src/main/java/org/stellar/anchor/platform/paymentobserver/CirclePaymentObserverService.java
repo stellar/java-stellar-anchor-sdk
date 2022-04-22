@@ -29,7 +29,6 @@ import shadow.com.google.common.reflect.TypeToken;
 public class CirclePaymentObserverService {
   private final OkHttpClient httpClient;
   private final CirclePaymentObserverConfig circlePaymentObserverConfig;
-  private final Network stellarNetwork;
   private final String usdcIssuer;
 
   private final Gson gson =
@@ -42,8 +41,7 @@ public class CirclePaymentObserverService {
       OkHttpClient httpClient, CirclePaymentObserverConfig circlePaymentObserverConfig) {
     this.httpClient = httpClient;
     this.circlePaymentObserverConfig = circlePaymentObserverConfig;
-    this.stellarNetwork =
-        StellarNetworkHelper.toStellarNetwork(circlePaymentObserverConfig.getStellarNetwork());
+    Network stellarNetwork = StellarNetworkHelper.toStellarNetwork(circlePaymentObserverConfig.getStellarNetwork());
     String[] assetIdPieces = CircleAsset.stellarUSDC(stellarNetwork).split(":");
     this.usdcIssuer = assetIdPieces[assetIdPieces.length - 1];
   }
@@ -67,6 +65,10 @@ public class CirclePaymentObserverService {
     }
   }
 
+  /**
+   * This will auto-subscribe to Circle when we receive a subscription available notification.
+   * @param circleNotification is the circle notification object.
+   */
   public void handleSubscriptionConfirmationNotification(CircleNotification circleNotification) {
     String subscribeUrl = circleNotification.getSubscribeUrl();
     Log.info("=====> subscriptionNotification.subscribeUrl: " + subscribeUrl);
@@ -93,6 +95,10 @@ public class CirclePaymentObserverService {
     }
   }
 
+  /**
+   * Handle incoming circle notifications of type "transfers". A transfer notification can contain circle<>circle or circle<>stellar events.
+   * @param circleNotification is the circle notification object.
+   */
   public void handleTransferNotification(CircleNotification circleNotification) {
     TransferNotificationBody transferNotification =
         gson.fromJson(circleNotification.getMessage(), TransferNotificationBody.class);
@@ -144,6 +150,13 @@ public class CirclePaymentObserverService {
     // TODO: send event
   }
 
+  /**
+   * This will fetch the Stellar payment (or path payment) that originated thee Circle transfer.
+   * @param circleTransfer the Circle transfer
+   * @return an ObservedPayment or null if unable to convert
+   * @throws IOException
+   * @throws ServerErrorException
+   */
   public ObservedPayment fetchObservedPayment(CircleTransfer circleTransfer)
       throws IOException, ServerErrorException {
     String txHash = circleTransfer.getTransactionHash();
@@ -161,14 +174,13 @@ public class CirclePaymentObserverService {
     Request httpRequest =
         new Request.Builder().url(url).header("Content-Type", "application/json").get().build();
     Response response = httpClient.newCall(httpRequest).execute();
-
-    Type type = new TypeToken<Page<OperationResponse>>() {}.getType();
-    shadow.com.google.gson.Gson stellarSdkGson = GsonSingleton.getInstance();
-
     ResponseBody responseBody = response.body();
     if (responseBody == null) throw new ServerErrorException("unable to fetch response body");
 
+    Type type = new TypeToken<Page<OperationResponse>>() {}.getType();
+    shadow.com.google.gson.Gson stellarSdkGson = GsonSingleton.getInstance();
     Page<OperationResponse> responsePage = stellarSdkGson.fromJson(responseBody.string(), type);
+
     for (OperationResponse opResponse : responsePage.getRecords()) {
       if (!opResponse.isTransactionSuccessful()) continue;
 

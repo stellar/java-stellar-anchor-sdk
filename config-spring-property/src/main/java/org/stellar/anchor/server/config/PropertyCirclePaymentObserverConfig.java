@@ -9,4 +9,5 @@ public class PropertyCirclePaymentObserverConfig implements CirclePaymentObserve
   private String circleUrl;
   private String secretKey;
   private String stellarNetwork;
+  private String horizonUrl;
 }
