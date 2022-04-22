@@ -25,7 +25,7 @@ import org.stellar.platform.apis.shared.Amount;
 @Component
 public class PaymentOperationToEventListener implements PaymentListener {
   final JdbcSep31TransactionStore transactionStore;
-  final EventPublishService eventService;platform/src/main/java/org/stellar/anchor/platform/service/PaymentOperationToEventListener.java
+  final EventPublishService eventService;
 
   PaymentOperationToEventListener(
       JdbcSep31TransactionStore transactionStore, EventPublishService eventService) {

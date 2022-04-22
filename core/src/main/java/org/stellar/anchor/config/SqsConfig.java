@@ -8,4 +8,3 @@ public interface SqsConfig {
     String getAccessKey();
     String getSecretKey();
 }
-core/src/main/java/org/stellar/anchor/config/SqsConfig.java

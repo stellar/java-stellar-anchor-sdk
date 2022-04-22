@@ -22,7 +22,7 @@ import org.stellar.anchor.config.Sep10Config;
 import org.stellar.anchor.config.Sep1Config;
 import org.stellar.anchor.config.Sep38Config;
 import org.stellar.anchor.event.EventPublishService;
-platform/src/main/java/org/stellar/anchor/platform/SepConfig.java platform/src/main/java/org/stellar/anchor/platform/SepConfig.javaimport org.stellar.anchor.exception.SepNotFoundException;
+import org.stellar.anchor.exception.SepNotFoundException;
 import org.stellar.anchor.filter.Sep10TokenFilter;
 import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.integration.customer.CustomerIntegration;
