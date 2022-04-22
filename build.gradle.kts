@@ -68,6 +68,7 @@ subprojects {
     testImplementation("org.jetbrains.kotlin:kotlin-stdlib:1.6.10")
     testImplementation("org.jetbrains.kotlin:kotlin-test-junit5:1.6.10")
     testImplementation("io.mockk:mockk:1.12.2")
+    testImplementation("org.junit.platform:junit-platform-suite-engine:1.8.2")
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.8.2")
     testImplementation("org.junit.jupiter:junit-jupiter-engine:5.8.2")
     testImplementation("org.junit.jupiter:junit-jupiter-params:5.8.2")
