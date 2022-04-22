@@ -15,7 +15,8 @@ jobs:
     env:
       PR_NUMBER: ${{github.event.pull_request.number}}
     steps:
-      - name: Find Server URL (Preview or Dev)
+      - name: Find Server Endpoint (Preview or Dev)
+        id: endpoint-finder
         run: |
           export ENDPOINT=https://anchor-sep-server-dev.stellar.org/
           if [ ! -z "$PR_NUMBER" ]
@@ -26,7 +27,10 @@ jobs:
           echo "::set-output name=ENDPOINT::$ENDPOINT"
 
       - name: Validate endpoint
-        run: echo ENDPOINT=$ENDPOINT
+        env:
+          ENDPOINT: ${{ steps.endpoint-finder.outputs.ENDPOINT }}
+        run: |
+          echo ENDPOINT=$ENDPOINT
 
   build_and_test:
     runs-on: ubuntu-latest
