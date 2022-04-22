@@ -57,8 +57,11 @@ jobs:
         file: Dockerfile
 
   sep_validation_suite:
+    needs: [build_and_test]
     runs-on: ubuntu-latest
     name: Validate SEPs (1, 10, 12, 31, 38)
+    env:
+      PR_NUMBER: ${{github.event.pull_request.number}}
     steps:
       - uses: actions/checkout@v3
 
