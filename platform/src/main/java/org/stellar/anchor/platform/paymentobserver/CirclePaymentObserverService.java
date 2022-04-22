@@ -6,6 +6,8 @@ import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+
 import okhttp3.*;
 import org.stellar.anchor.config.CirclePaymentObserverConfig;
 import org.stellar.anchor.exception.ServerErrorException;
@@ -50,7 +52,7 @@ public class CirclePaymentObserverService {
   public void handleCircleNotification(Map<String, Object> requestBody) {
     CircleNotification circleNotification =
         gson.fromJson(gson.toJson(requestBody), CircleNotification.class);
-    String type = circleNotification.getType();
+    String type = Objects.toString(circleNotification.getType(), "");
 
     switch (type) {
       case "SubscriptionConfirmation":
@@ -62,7 +64,7 @@ public class CirclePaymentObserverService {
         return;
 
       default:
-        Log.warn("Not handling notification of type " + type);
+        Log.warn("Not handling notification of unsupported type \"" + type + "\".");
     }
   }
 
