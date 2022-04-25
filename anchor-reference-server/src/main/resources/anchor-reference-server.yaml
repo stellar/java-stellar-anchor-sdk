@@ -15,7 +15,7 @@ event:
   # If the listener is kafka, the kafka listener is configured in kafka.listener section.
   # If the listener is sqs, the sqs listener is configured in the sqs.listener section.
   # If the listener is amqp, the AMQP listner is configured in the ampq.listner section.
-  listenerType: sqs
+  listenerType: kafka
 
 kafka.listener:
   bootstrapServer: localhost:29092

@@ -102,7 +102,7 @@ app-config:
     # If enabled, publish Events to a queue (publisherType)
     # publisherType - the type of queue to use for event publishing
     enabled: true
-    publisherType: sqs
+    publisherType: kafka
 
   kafka.publisher:
     # kafkaBootstrapServer - the Kafka server used to bootstrap setup
