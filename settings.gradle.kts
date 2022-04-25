@@ -35,9 +35,6 @@ dependencyResolutionManagement {
 
 include("core")
 
-/** Data access subprojects */
-include("data-spring-jdbc")
-
 /** Payment subprojects */
 include("payment-circle")
 // TODO: include("payment-stellar")
