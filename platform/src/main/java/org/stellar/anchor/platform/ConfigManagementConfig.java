@@ -45,6 +45,12 @@ public class ConfigManagementConfig {
   }
 
   @Bean
+  @ConfigurationProperties(prefix = "circle-payment-observer")
+  CirclePaymentObserverConfig circlePaymentObserverConfig() {
+    return new PropertyCirclePaymentObserverConfig();
+  }
+
+  @Bean
   @ConfigurationProperties(prefix = "event")
   EventConfig eventConfig() {
     return new PropertyEventConfig();
