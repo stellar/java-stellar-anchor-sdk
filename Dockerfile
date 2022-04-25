@@ -24,4 +24,4 @@ ENV REFERENCE_SERVER_CONFIG_ENV=file:/config/reference-config.yaml
 
 EXPOSE 8080 8081
 
-ENTRYPOINT ["java", "-jar", "/app/anchor-platform.jar"]
+ENTRYPOINT ["java", "-jar", "/app/anchor-platform-runner.jar"]
