@@ -27,6 +27,7 @@ app-config:
     jwtSecretKey: secret
 
   # sep-1
+  sep1:
     enabled: true
     stellarFile: sep1/stellar-wks.toml
 
