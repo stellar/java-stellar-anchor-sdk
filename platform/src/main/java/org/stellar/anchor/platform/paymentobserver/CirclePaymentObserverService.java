@@ -117,19 +117,23 @@ public class CirclePaymentObserverService {
    *
    * @param circleNotification is the circle notification object.
    */
-  public void handleTransferNotification(CircleNotification circleNotification) {
+  public void handleTransferNotification(CircleNotification circleNotification)
+      throws BadRequestException, UnprocessableEntityException {
+    if (circleNotification.getMessage() == null) {
+      throw new BadRequestException("Notification body of type Notification is missing a message.");
+    }
+
     TransferNotificationBody transferNotification =
         gson.fromJson(circleNotification.getMessage(), TransferNotificationBody.class);
 
     CircleTransfer circleTransfer = transferNotification.getTransfer();
     if (circleTransfer == null) {
-      Log.info("Missing \"transfer\" value in notification of type \"transfers\".");
-      return;
+      throw new BadRequestException(
+          "Missing \"transfer\" value in notification of type \"transfers\".");
     }
 
-    if (!circleTransfer.getStatus().equals(CirclePaymentStatus.COMPLETE)) {
-      Log.info("Incomplete transfer:\n" + gson.toJson(circleTransfer));
-      return;
+    if (!CirclePaymentStatus.COMPLETE.equals(circleTransfer.getStatus())) {
+      throw new UnprocessableEntityException("Not a complete transfer.");
     }
 
     Log.info("Completed transfer:\n" + gson.toJson(circleTransfer));
@@ -143,14 +147,12 @@ public class CirclePaymentObserverService {
             && destination.getChain().equals("XLM");
 
     if (!isSourceOnStellar && !isDestinationOnStellar) {
-      Log.info(
-          "Neither source nor destination are stellar accounts. Giving up on processing this transfer.");
-      return;
+      throw new UnprocessableEntityException(
+          "Neither source nor destination are Stellar accounts.");
     }
 
     if (!circleTransfer.getAmount().getCurrency().equals("USD")) {
-      Log.info("The only circle currency supported is USDC.");
-      return;
+      throw new UnprocessableEntityException("The only supported Circle currency is USDC.");
     }
 
     ObservedPayment observedPayment = null;

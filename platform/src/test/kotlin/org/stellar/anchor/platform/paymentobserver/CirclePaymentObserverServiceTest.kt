@@ -12,6 +12,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.stellar.anchor.config.CirclePaymentObserverConfig
+import org.stellar.anchor.exception.AnchorException
 import org.stellar.anchor.exception.BadRequestException
 import org.stellar.anchor.exception.UnprocessableEntityException
 
@@ -53,9 +54,10 @@ class CirclePaymentObserverServiceTest {
 
     // Unsupported type is ignored
     unsupportedNotification = mapOf("Type" to "ABC")
-    ex = assertThrows {
-      circlePaymentObserverService.handleCircleNotification(unsupportedNotification)
-    }
+    ex =
+      assertThrows {
+        circlePaymentObserverService.handleCircleNotification(unsupportedNotification)
+      }
     assertEquals("Not handling notification of unsupported type \"ABC\".", ex.message)
     assertInstanceOf(UnprocessableEntityException::class.java, ex)
   }
@@ -78,9 +80,10 @@ class CirclePaymentObserverServiceTest {
     val serverUrl = server.url("").toString()
     subConfirmationNotification =
       mapOf("Type" to "SubscriptionConfirmation", "SubscribeURL" to serverUrl)
-    ex = assertThrows {
-      circlePaymentObserverService.handleCircleNotification(subConfirmationNotification)
-    }
+    ex =
+      assertThrows {
+        circlePaymentObserverService.handleCircleNotification(subConfirmationNotification)
+      }
     assertEquals("Failed to call \"SubscribeURL\" endpoint.", ex.message)
     assertInstanceOf(BadRequestException::class.java, ex)
 
@@ -96,9 +99,10 @@ class CirclePaymentObserverServiceTest {
         .setBody("""{ "error": "Something went wrong with your request." }""")
     server.enqueue(badRequestResponse)
 
-    ex = assertThrows {
-      circlePaymentObserverService.handleCircleNotification(subConfirmationNotification)
-    }
+    ex =
+      assertThrows {
+        circlePaymentObserverService.handleCircleNotification(subConfirmationNotification)
+      }
     assertEquals("Calling the \"SubscribeURL\" endpoint didn't succeed.", ex.message)
     assertInstanceOf(BadRequestException::class.java, ex)
 
@@ -124,5 +128,99 @@ class CirclePaymentObserverServiceTest {
     assertEquals("application/json", request.headers["Content-Type"])
     assertEquals(serverUrl, request.requestUrl.toString())
     assertNotNull(request.body.readUtf8())
+  }
+
+  @Test
+  fun test_handleCircleNotification_handleTransferNotification() {
+    // missing Message
+    var subConfirmationNotification = mapOf("Type" to "Notification")
+    var ex: AnchorException = assertThrows {
+      circlePaymentObserverService.handleCircleNotification(subConfirmationNotification)
+    }
+    assertEquals("Notification body of type Notification is missing a message.", ex.message)
+    assertInstanceOf(BadRequestException::class.java, ex)
+
+    // missing Message.transfer
+    subConfirmationNotification = mapOf("Type" to "Notification", "Message" to "{}")
+    ex =
+      assertThrows {
+        circlePaymentObserverService.handleCircleNotification(subConfirmationNotification)
+      }
+    assertEquals("Missing \"transfer\" value in notification of type \"transfers\".", ex.message)
+    assertInstanceOf(BadRequestException::class.java, ex)
+
+    // Not a complete transfer
+    var messageJson = """{ "transfer": {} }"""
+    subConfirmationNotification = mapOf("Type" to "Notification", "Message" to messageJson)
+    ex =
+      assertThrows {
+        circlePaymentObserverService.handleCircleNotification(subConfirmationNotification)
+      }
+    assertEquals("Not a complete transfer.", ex.message)
+    assertInstanceOf(UnprocessableEntityException::class.java, ex)
+
+    // Incomplete transfer
+    messageJson = """{ "transfer": { "status": "pending" } }"""
+    subConfirmationNotification = mapOf("Type" to "Notification", "Message" to messageJson)
+    ex =
+      assertThrows {
+        circlePaymentObserverService.handleCircleNotification(subConfirmationNotification)
+      }
+    assertEquals("Not a complete transfer.", ex.message)
+    assertInstanceOf(UnprocessableEntityException::class.java, ex)
+
+    // Neither source nor destination are Stellar accounts
+    messageJson =
+      """{ 
+      "transfer": {
+        "status": "complete",
+        "source": {
+          "type": "wallet",
+          "id": "1"
+        },
+        "destination": {
+          "type": "wallet",
+          "id": "2"
+        }
+      }
+    }"""
+        .trimIndent()
+        .trimMargin()
+    subConfirmationNotification = mapOf("Type" to "Notification", "Message" to messageJson)
+    ex =
+      assertThrows {
+        circlePaymentObserverService.handleCircleNotification(subConfirmationNotification)
+      }
+    assertEquals("Neither source nor destination are Stellar accounts.", ex.message)
+    assertInstanceOf(UnprocessableEntityException::class.java, ex)
+
+    // Neither source nor destination are Stellar accounts
+    messageJson =
+      """{ 
+      "transfer": {
+        "status": "complete",
+        "source": {
+          "type": "blockchain",
+          "chain": "XLM"
+        },
+        "destination": {
+          "type": "wallet",
+          "id": "1000223064"
+        },
+        "amount": {
+          "amount": "1.50",
+          "currency": "ETH"
+        }
+      }
+    }"""
+        .trimIndent()
+        .trimMargin()
+    subConfirmationNotification = mapOf("Type" to "Notification", "Message" to messageJson)
+    ex =
+      assertThrows {
+        circlePaymentObserverService.handleCircleNotification(subConfirmationNotification)
+      }
+    assertEquals("The only supported Circle currency is USDC.", ex.message)
+    assertInstanceOf(UnprocessableEntityException::class.java, ex)
   }
 }
