@@ -15,10 +15,6 @@ dependencies {
 }
 
 tasks {
-  jar {
-    archiveBaseName.set("anchor-platform-runner")
-  }
-
   bootJar {
     archiveBaseName.set("anchor-platform-runner")
   }
