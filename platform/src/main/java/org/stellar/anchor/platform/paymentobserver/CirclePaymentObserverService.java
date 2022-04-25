@@ -10,7 +10,9 @@ import java.util.Objects;
 
 import okhttp3.*;
 import org.stellar.anchor.config.CirclePaymentObserverConfig;
+import org.stellar.anchor.exception.AnchorException;
 import org.stellar.anchor.exception.ServerErrorException;
+import org.stellar.anchor.exception.UnprocessableEntityException;
 import org.stellar.anchor.paymentservice.circle.model.CirclePaymentStatus;
 import org.stellar.anchor.paymentservice.circle.model.CircleTransactionParty;
 import org.stellar.anchor.paymentservice.circle.model.CircleTransfer;
@@ -49,7 +51,7 @@ public class CirclePaymentObserverService {
     this.usdcIssuer = assetIdPieces[assetIdPieces.length - 1];
   }
 
-  public void handleCircleNotification(Map<String, Object> requestBody) {
+  public void handleCircleNotification(Map<String, Object> requestBody) throws UnprocessableEntityException {
     CircleNotification circleNotification =
         gson.fromJson(gson.toJson(requestBody), CircleNotification.class);
     String type = Objects.toString(circleNotification.getType(), "");
@@ -64,7 +66,7 @@ public class CirclePaymentObserverService {
         return;
 
       default:
-        Log.warn("Not handling notification of unsupported type \"" + type + "\".");
+        throw new UnprocessableEntityException("Not handling notification of unsupported type \"" + type + "\".");
     }
   }
 

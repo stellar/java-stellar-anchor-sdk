@@ -3,10 +3,17 @@ package org.stellar.anchor.platform.controller;
 import com.google.gson.Gson;
 import java.lang.reflect.Type;
 import java.util.Map;
+
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestClientException;
+import org.stellar.anchor.dto.SepExceptionResponse;
+import org.stellar.anchor.exception.UnprocessableEntityException;
 import org.stellar.anchor.platform.paymentobserver.CirclePaymentObserverService;
 import shadow.com.google.common.reflect.TypeToken;
+
+import static org.stellar.anchor.util.Log.warnEx;
 
 @RestController
 @RequestMapping("/circle-observer")
@@ -25,7 +32,7 @@ public class CirclePaymentObserverController {
       method = {RequestMethod.POST, RequestMethod.GET, RequestMethod.HEAD},
       consumes = {MediaType.APPLICATION_JSON_VALUE})
   public void handleCircleNotificationJson(
-      @RequestBody(required = false) Map<String, Object> requestBody) {
+      @RequestBody(required = false) Map<String, Object> requestBody) throws UnprocessableEntityException {
     circlePaymentObserverService.handleCircleNotification(requestBody);
   }
 
@@ -34,9 +41,16 @@ public class CirclePaymentObserverController {
       value = "",
       method = {RequestMethod.POST, RequestMethod.GET, RequestMethod.HEAD},
       consumes = {MediaType.TEXT_PLAIN_VALUE})
-  public void handleCircleNotificationTextPlain(@RequestBody(required = false) String jsonBodyStr) {
+  public void handleCircleNotificationTextPlain(@RequestBody(required = false) String jsonBodyStr) throws UnprocessableEntityException{
     Type type = new TypeToken<Map<String, ?>>() {}.getType();
     Map<String, Object> requestBody = gson.fromJson(jsonBodyStr, type);
     circlePaymentObserverService.handleCircleNotification(requestBody);
+  }
+
+  @ExceptionHandler(UnprocessableEntityException.class)
+  @ResponseStatus(value = HttpStatus.NO_CONTENT)
+  public SepExceptionResponse handleUnhandledCaseException(RestClientException ex) {
+    warnEx(ex);
+    return new SepExceptionResponse(ex.getMessage());
   }
 }
