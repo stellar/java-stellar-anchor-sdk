@@ -10,7 +10,6 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.stellar.anchor.config.EventConfig;
@@ -26,7 +25,6 @@ import org.stellar.anchor.util.GsonUtils;
 @EnableJpaRepositories(basePackages = {"org.stellar.anchor.platform.data"})
 @EntityScan(basePackages = {"org.stellar.anchor.platform.data"})
 @EnableConfigurationProperties
-@PropertySource("/anchor-platform-server.yaml")
 public class AnchorPlatformServer implements WebMvcConfigurer {
   public static void main(String[] args) {
     start(8080, "/");
@@ -37,6 +35,7 @@ public class AnchorPlatformServer implements WebMvcConfigurer {
         new SpringApplicationBuilder(AnchorPlatformServer.class)
             .bannerMode(OFF)
             .properties(
+                "spring.mvc.converters.preferred-json-mapper=gson",
                 String.format("server.port=%d", port),
                 String.format("server.contextPath=%s", contextPath));
     if (environment != null) {

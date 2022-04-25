@@ -80,7 +80,7 @@ open class SpringBootConfiguratorTest {
   @Test
   fun testSep1Config() {
     assertEquals(true, sep1Config.isEnabled)
-    assertEquals("sep1/stellar-wks.toml", sep1Config.stellarFile)
+    assertEquals("classpath:sep1/stellar-wks.toml", sep1Config.stellarFile)
   }
 
   @Test

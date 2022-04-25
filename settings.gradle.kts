@@ -47,3 +47,6 @@ include("anchor-reference-server")
 
 /** Anchor Platform API Schemas */
 include("platform-apis")
+
+/** Integration tests */
+include("integration-tests")

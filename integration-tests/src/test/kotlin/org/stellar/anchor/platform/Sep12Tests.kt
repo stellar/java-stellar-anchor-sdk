@@ -63,7 +63,7 @@ fun sep12TestHappyPath() {
   assertEquals(Sep12Status.ACCEPTED, gr?.status)
 
   // Delete the customer
-  printRequest("Calling DELETE /customer/${CLIENT_WALLET_ACCOUNT}")
+  printRequest("Calling DELETE /customer/$CLIENT_WALLET_ACCOUNT")
   val code = sep12Client.deleteCustomer(CLIENT_WALLET_ACCOUNT)
   printResponse(code)
   // currently, not implemented

@@ -43,8 +43,8 @@ class AnchorPlatformIntegrationTest {
       RestRateIntegration("http://localhost:$REFERENCE_SERVER_PORT", httpClient, gson)
     private val rfi =
       RestFeeIntegration("http://localhost:$REFERENCE_SERVER_PORT", httpClient, gson)
-    val fiatUSD = "iso4217:USD"
-    val stellarUSDC = "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+    const val fiatUSD = "iso4217:USD"
+    const val stellarUSDC = "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
     init {
       val props = System.getProperties()
       props.setProperty("REFERENCE_SERVER_CONFIG", "classpath:/anchor-reference-server.yaml")
@@ -55,7 +55,7 @@ class AnchorPlatformIntegrationTest {
       AnchorPlatformServer.start(
         SEP_SERVER_PORT,
         "/",
-        mapOf("stellar.anchor.config" to "classpath:test-anchor-config.yaml")
+        mapOf("stellar.anchor.config" to "classpath:/test-anchor-config.yaml")
       )
 
       AnchorReferenceServer.start(REFERENCE_SERVER_PORT, "/")
@@ -175,7 +175,7 @@ class AnchorPlatformIntegrationTest {
         .withMinute(0)
         .withSecond(0)
         .withNano(0)
-    Assertions.assertEquals(wantExpiresAt.toInstant(), gotExpiresAt)
+    assertEquals(wantExpiresAt.toInstant(), gotExpiresAt)
 
     // check if rate was persisted by getting the rate with ID
     val gotQuote = rri.getRate(GetRateRequest.builder().id(rate.id).build())

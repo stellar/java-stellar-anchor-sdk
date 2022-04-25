@@ -8,6 +8,9 @@ plugins {
 dependencies {
   api(libs.lombok)
 
+  annotationProcessor(libs.lombok)
+  annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
+
   implementation("org.springframework.boot:spring-boot")
   implementation("org.springframework.boot:spring-boot-autoconfigure")
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
@@ -17,13 +20,10 @@ dependencies {
   implementation(libs.java.stellar.sdk)
   implementation(libs.sqlite.jdbc)
   implementation(libs.okhttp3)
-
   implementation(libs.jackson.dataformat.yaml)
   implementation(libs.log4j2.core)
   implementation(libs.log4j2.slf4j)
 
-  annotationProcessor(libs.lombok)
-  annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
   // TODO: Used by the test suite. To be removed when the test suite is moved to a different
   // project.

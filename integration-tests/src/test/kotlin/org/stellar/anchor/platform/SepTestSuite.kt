@@ -48,7 +48,7 @@ fun main(args: Array<String>) {
       if (cmd.hasOption("sep1-toml-path")) {
         resourceAsString(cmd.getOptionValue("t"))
       } else {
-        resourceAsString("classpath:/org/stellar/anchor/platform/sep1/test_default_stellar.toml")
+        resourceAsString("classpath:/org/stellar/anchor/platform/sep1/test-stellar.toml")
       }
 
     val toml = Sep1Helper.parse(tomlString)
