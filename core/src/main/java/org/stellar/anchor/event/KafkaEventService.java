@@ -23,7 +23,7 @@ public class KafkaEventService implements EventPublishService {
   public KafkaEventService(KafkaConfig kafkaConfig) {
     // TODO: log the event config
     Properties props = new Properties();
-    props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaConfig.getKafkaBootstrapServer());
+    props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaConfig.getBootstrapServer());
     props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
     props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
     this.producer = new KafkaProducer<String, AnchorEvent>(props);

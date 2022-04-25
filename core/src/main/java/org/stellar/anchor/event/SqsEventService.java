@@ -15,7 +15,7 @@ import org.stellar.anchor.util.Log;
 public class SqsEventService implements EventPublishService {
   final AmazonSQSAsync sqsClient;
   final Map<String, String> eventTypeToQueue;
-   final boolean useSingleQueue;
+  final boolean useSingleQueue;
 
   public SqsEventService(SqsConfig sqsConfig) {
     this.sqsClient =

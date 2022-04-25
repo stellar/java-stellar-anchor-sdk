@@ -6,7 +6,7 @@ import org.stellar.anchor.config.KafkaConfig;
 
 @Data
 public class PropertyKafkaConfig implements KafkaConfig {
-  private String kafkaBootstrapServer;
+  private String bootstrapServer;
   private Boolean useSingleQueue;
   private Map<String, String> eventTypeToQueue;
 

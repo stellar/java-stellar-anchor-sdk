@@ -109,7 +109,7 @@ app-config:
     # If useSingleQueue, all events are published to a single queue
     #   (specified in eventTypeToQueue.all)
     # eventTypeToQueue - a map of the event type to the queue name messages are published to
-    kafkaBootstrapServer: localhost:29092
+    bootstrapServer: localhost:29092
     useSingleQueue: false
     eventTypeToQueue:
       all: ap_event_single_queue

@@ -3,7 +3,7 @@ package org.stellar.anchor.config;
 import java.util.Map;
 
 public interface KafkaConfig {
-  String getKafkaBootstrapServer();
+  String getBootstrapServer();
 
   boolean isUseSingleQueue();
 
