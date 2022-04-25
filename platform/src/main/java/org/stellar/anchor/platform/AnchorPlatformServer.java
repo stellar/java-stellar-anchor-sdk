@@ -23,8 +23,8 @@ import org.stellar.anchor.platform.configurator.SpringFrameworkConfigurator;
 import org.stellar.anchor.util.GsonUtils;
 
 @SpringBootApplication
-@EnableJpaRepositories(basePackages = {"org.stellar.anchor.server.data"})
-@EntityScan(basePackages = {"org.stellar.anchor.server.data"})
+@EnableJpaRepositories(basePackages = {"org.stellar.anchor.platform.data"})
+@EntityScan(basePackages = {"org.stellar.anchor.platform.data"})
 @EnableConfigurationProperties
 @PropertySource("/anchor-platform-server.yaml")
 public class AnchorPlatformServer implements WebMvcConfigurer {

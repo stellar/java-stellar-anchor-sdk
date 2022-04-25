@@ -33,11 +33,14 @@ dependencies {
 
   // From projects
   implementation(project(":core"))
-  implementation(project(":data-spring-jdbc"))
   implementation(project(":platform-apis"))
   implementation(project(":payment-circle"))
   implementation(project(":anchor-reference-server"))
+
+  testImplementation("org.springframework.boot:spring-boot-test-autoconfigure")
+  testImplementation("com.h2database:h2")
   testImplementation("org.springframework.boot:spring-boot-starter-test")
+
   testImplementation(libs.okhttp3.mockserver)
 }
 

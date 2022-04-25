@@ -1,4 +1,4 @@
-package org.stellar.anchor.server.data
+package org.stellar.anchor.platform.data
 
 import com.google.gson.Gson
 import org.junit.jupiter.api.Assertions.*
@@ -9,7 +9,7 @@ import org.stellar.anchor.asset.AssetInfo
 import org.stellar.anchor.util.GsonUtils
 
 @DataJpaTest
-class JdbcSep31TransactionTest {
+open class JdbcSep31TransactionTest {
   companion object {
     val gson: Gson = GsonUtils.getInstance()
   }

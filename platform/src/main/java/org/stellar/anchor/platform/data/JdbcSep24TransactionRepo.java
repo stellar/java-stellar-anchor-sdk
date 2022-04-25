@@ -1,4 +1,4 @@
-package org.stellar.anchor.server.data;
+package org.stellar.anchor.platform.data;
 
 import java.util.List;
 import java.util.Optional;

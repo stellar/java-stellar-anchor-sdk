@@ -1,4 +1,4 @@
-package org.stellar.anchor.server.data;
+package org.stellar.anchor.platform.data;
 
 import java.util.Optional;
 import org.springframework.data.repository.CrudRepository;

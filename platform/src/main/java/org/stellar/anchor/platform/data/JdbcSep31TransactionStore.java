@@ -1,4 +1,4 @@
-package org.stellar.anchor.server.data;
+package org.stellar.anchor.platform.data;
 
 import java.time.Instant;
 import java.util.Collection;

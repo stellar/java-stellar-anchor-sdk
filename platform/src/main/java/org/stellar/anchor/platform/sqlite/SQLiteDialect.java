@@ -1,4 +1,4 @@
-package org.stellar.anchor.server.sqlite;
+package org.stellar.anchor.platform.sqlite;
 
 import java.sql.Types;
 import org.hibernate.dialect.Dialect;

@@ -28,6 +28,10 @@ import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.integration.customer.CustomerIntegration;
 import org.stellar.anchor.integration.fee.FeeIntegration;
 import org.stellar.anchor.integration.rate.RateIntegration;
+import org.stellar.anchor.platform.data.JdbcSep31TransactionRepo;
+import org.stellar.anchor.platform.data.JdbcSep31TransactionStore;
+import org.stellar.anchor.platform.data.JdbcSep38QuoteRepo;
+import org.stellar.anchor.platform.data.JdbcSep38QuoteStore;
 import org.stellar.anchor.sep1.ResourceReader;
 import org.stellar.anchor.sep1.Sep1Service;
 import org.stellar.anchor.sep10.JwtService;
@@ -37,10 +41,6 @@ import org.stellar.anchor.sep31.Sep31Service;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
 import org.stellar.anchor.sep38.Sep38Service;
-import org.stellar.anchor.server.data.JdbcSep31TransactionRepo;
-import org.stellar.anchor.server.data.JdbcSep31TransactionStore;
-import org.stellar.anchor.server.data.JdbcSep38QuoteRepo;
-import org.stellar.anchor.server.data.JdbcSep38QuoteStore;
 
 /** SEP configurations */
 @Configuration

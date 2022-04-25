@@ -1,4 +1,4 @@
-package org.stellar.anchor.server.data;
+package org.stellar.anchor.platform.data;
 
 import java.time.format.DateTimeParseException;
 import java.util.List;

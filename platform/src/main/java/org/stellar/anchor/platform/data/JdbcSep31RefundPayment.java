@@ -1,4 +1,4 @@
-package org.stellar.anchor.server.data;
+package org.stellar.anchor.platform.data;
 
 import lombok.Data;
 import org.stellar.anchor.model.Sep31Transaction;
