@@ -7,10 +7,9 @@ import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-
 import okhttp3.*;
 import org.stellar.anchor.config.CirclePaymentObserverConfig;
-import org.stellar.anchor.exception.AnchorException;
+import org.stellar.anchor.exception.BadRequestException;
 import org.stellar.anchor.exception.ServerErrorException;
 import org.stellar.anchor.exception.UnprocessableEntityException;
 import org.stellar.anchor.paymentservice.circle.model.CirclePaymentStatus;
@@ -51,7 +50,8 @@ public class CirclePaymentObserverService {
     this.usdcIssuer = assetIdPieces[assetIdPieces.length - 1];
   }
 
-  public void handleCircleNotification(Map<String, Object> requestBody) throws UnprocessableEntityException {
+  public void handleCircleNotification(Map<String, Object> requestBody)
+      throws UnprocessableEntityException, BadRequestException {
     CircleNotification circleNotification =
         gson.fromJson(gson.toJson(requestBody), CircleNotification.class);
     String type = Objects.toString(circleNotification.getType(), "");
@@ -66,7 +66,8 @@ public class CirclePaymentObserverService {
         return;
 
       default:
-        throw new UnprocessableEntityException("Not handling notification of unsupported type \"" + type + "\".");
+        throw new UnprocessableEntityException(
+            "Not handling notification of unsupported type \"" + type + "\".");
     }
   }
 
@@ -75,9 +76,13 @@ public class CirclePaymentObserverService {
    *
    * @param circleNotification is the circle notification object.
    */
-  public void handleSubscriptionConfirmationNotification(CircleNotification circleNotification) {
+  public void handleSubscriptionConfirmationNotification(CircleNotification circleNotification)
+      throws BadRequestException {
     String subscribeUrl = circleNotification.getSubscribeUrl();
-    Log.info("=====> subscriptionNotification.subscribeUrl: " + subscribeUrl);
+    if (subscribeUrl == null) {
+      throw new BadRequestException(
+          "Notification body of type SubscriptionConfirmation is missing subscription URL.");
+    }
 
     Request httpRequest =
         new Request.Builder()
@@ -89,16 +94,21 @@ public class CirclePaymentObserverService {
     try {
       response = httpClient.newCall(httpRequest).execute();
     } catch (IOException e) {
-      Log.error("Failed to call endpoint " + subscribeUrl);
-      return;
+      throw new BadRequestException("Failed to call \"SubscribeURL\" endpoint.");
     }
 
-    Log.info(
-        String.format(
-            "Called subscribeUrl %s and got status code %d", subscribeUrl, response.code()));
-    if (response.code() != 200) {
-      Log.error(String.format("Status code: %d. \nResponse: %s", response.code(), response.body()));
+    if (!response.isSuccessful()) {
+      try (ResponseBody responseBody = response.body()) {
+        if (responseBody != null) {
+          Log.error(responseBody.string());
+        }
+      } catch (IOException e) {
+        Log.errorEx(e);
+      }
+      throw new BadRequestException("Calling the \"SubscribeURL\" endpoint didn't succeed.");
     }
+
+    Log.info("Successfully called subscribeUrl and got status code ", response.code());
   }
 
   /**
