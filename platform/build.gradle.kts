@@ -33,7 +33,6 @@ dependencies {
 
   // From projects
   implementation(project(":core"))
-  implementation(project(":config-spring-property"))
   implementation(project(":data-spring-jdbc"))
   implementation(project(":platform-apis"))
   implementation(project(":payment-circle"))

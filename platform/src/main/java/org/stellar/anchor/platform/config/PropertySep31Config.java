@@ -1,4 +1,4 @@
-package org.stellar.anchor.server.config;
+package org.stellar.anchor.platform.config;
 
 import static org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_SEND;
 

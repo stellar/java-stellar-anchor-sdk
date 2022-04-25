@@ -35,14 +35,8 @@ dependencyResolutionManagement {
 
 include("core")
 
-/** Configuration management subprojects */
-include("config-spring-property")
-// TODO: include("config-consul")
-
 /** Data access subprojects */
 include("data-spring-jdbc")
-// TODO: include("data-spring-mongo")
-// TODO: include("data-spring-couchbase")
 
 /** Payment subprojects */
 include("payment-circle")

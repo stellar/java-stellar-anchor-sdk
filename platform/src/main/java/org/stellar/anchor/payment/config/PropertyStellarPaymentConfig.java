@@ -1,4 +1,4 @@
-package org.stellar.anchor.server.config.payment;
+package org.stellar.anchor.payment.config;
 
 import lombok.Data;
 import org.stellar.anchor.paymentservice.circle.config.StellarPaymentConfig;

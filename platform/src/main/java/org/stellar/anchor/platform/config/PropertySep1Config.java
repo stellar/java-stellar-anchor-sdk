@@ -1,4 +1,4 @@
-package org.stellar.anchor.server.config;
+package org.stellar.anchor.platform.config;
 
 import lombok.Data;
 import org.stellar.anchor.config.Sep1Config;

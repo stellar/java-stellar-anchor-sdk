@@ -1,4 +1,4 @@
-package org.stellar.anchor.server.config;
+package org.stellar.anchor.platform.config;
 
 import java.util.List;
 import lombok.Data;
