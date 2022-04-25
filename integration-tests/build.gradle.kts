@@ -25,6 +25,8 @@ dependencies {
   implementation(project(":platform-apis"))
   implementation(project(":platform"))
   implementation(project(":anchor-reference-server"))
+  implementation(project(":service-runner"))
+
 }
 
 tasks { bootJar { enabled = false } }

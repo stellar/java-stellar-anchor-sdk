@@ -35,6 +35,7 @@ dependencies {
   implementation(project(":core"))
   implementation(project(":platform-apis"))
   implementation(project(":payment-circle"))
+  implementation(project(":platform"))
   implementation(project(":anchor-reference-server"))
 
   testImplementation("org.springframework.boot:spring-boot-test-autoconfigure")
@@ -53,7 +54,14 @@ tasks.test {
 
 application { mainClass.set("org.stellar.anchor.platform.ServiceRunner") }
 
-tasks { bootJar { enabled = false } }
+tasks {
+  jar {
+    archiveBaseName.set("anchor-platform-runner")
+  }
+  bootJar {
+    archiveBaseName.set("anchor-platform-runner")
+  }
+}
 
 configurations {
   all {

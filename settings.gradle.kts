@@ -50,3 +50,5 @@ include("platform-apis")
 
 /** Integration tests */
 include("integration-tests")
+
+include("service-runner")
