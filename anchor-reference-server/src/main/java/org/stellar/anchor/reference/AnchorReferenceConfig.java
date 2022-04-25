@@ -21,10 +21,10 @@ public class AnchorReferenceConfig {
 
   @Bean
   public AbstractEventListener eventListener(
-          EventSettings eventSettings,
-          AnchorEventProcessor anchorEventProcessor,
-          KafkaListenerSettings kafkaListenerSettings,
-          SqsListenerSettings sqsListenerSettings) {
+      EventSettings eventSettings,
+      AnchorEventProcessor anchorEventProcessor,
+      KafkaListenerSettings kafkaListenerSettings,
+      SqsListenerSettings sqsListenerSettings) {
     switch (eventSettings.getListenerType()) {
       case "kafka":
         return new KafkaListener(kafkaListenerSettings, anchorEventProcessor);

@@ -51,13 +51,13 @@ public class ConfigManagementConfig {
   }
 
   @Bean
-  @ConfigurationProperties(prefix = "kafka-config")
+  @ConfigurationProperties(prefix = "kafka.publisher")
   KafkaConfig kafkaConfig() {
     return new PropertyKafkaConfig();
   }
 
   @Bean
-  @ConfigurationProperties(prefix = "sqs-config")
+  @ConfigurationProperties(prefix = "sqs.publisher")
   SqsConfig sqsConfig() {
     return new PropertySqsConfig();
   }

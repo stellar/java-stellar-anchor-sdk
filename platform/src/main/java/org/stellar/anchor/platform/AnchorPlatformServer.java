@@ -70,17 +70,17 @@ public class AnchorPlatformServer implements WebMvcConfigurer {
   }
 
   @Bean
-  public EventPublishService eventService(EventConfig eventConfig,
-                                          KafkaConfig kafkaConfig,
-                                          SqsConfig sqsConfig) {
-    switch(eventConfig.getQueueType()){
+  public EventPublishService eventService(
+      EventConfig eventConfig, KafkaConfig kafkaConfig, SqsConfig sqsConfig) {
+    // TODO handle when event publishing is disabled
+    switch (eventConfig.getPublisherType()) {
       case "kafka":
-        return new KafkaEventService(eventConfig, kafkaConfig);
+        return new KafkaEventService(kafkaConfig);
       case "sqs":
-        return new SqsEventService(eventConfig, sqsConfig);
+        return new SqsEventService(sqsConfig);
       default:
-        //TODO: throw error? return dummy event service if enabled==false?
-        return null;
+        throw new RuntimeException(
+            String.format("Invalid event publisher: %s", eventConfig.getPublisherType()));
     }
   }
 }

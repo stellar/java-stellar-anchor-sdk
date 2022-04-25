@@ -19,7 +19,8 @@ event:
 
 kafka.listener:
   bootstrapServer: localhost:29092
-  queues:
+  useSingleQueue: false
+  eventTypeToQueue:
     all: ap_event_single_queue
     quoteCreated: ap_event_quote_created
     transactionCreated: ap_event_transaction_created
@@ -28,14 +29,15 @@ kafka.listener:
 
 sqs.listener:
   region: us-east-1
-  queues:
+  useSingleQueue: false
+  eventTypeToQueue:
     all: sdf_dev_ap_event_single_queue.fifo
     quote_created: sdf_dev_ap_event_quote_created.fifo
     transaction_created: sdf_dev_ap_event_transaction_created.fifo
     transaction_payment_received: sdf_dev_ap_event_transaction_payment_received.fifo
     transaction_error: sdf_dev_ap_event_transaction_error.fifo
-  accessKey: AKIA3CAN47R2RKGEQVXW
-  secretKey: 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
+  accessKey: <ACCESS_KEY>
+  secretKey: <SECRET_KEY>
 
 amqp.listener:
   endpoint: localhost:5672

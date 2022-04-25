@@ -28,8 +28,7 @@ public class AnchorEventProcessor {
       case "quote_created":
         break;
       default:
-        Log.debug(
-                "error: anchor_platform_event - invalid message type '%s'%n", event.getType());
+        Log.debug("error: anchor_platform_event - invalid message type '%s'%n", event.getType());
     }
   }
 
@@ -42,30 +41,29 @@ public class AnchorEventProcessor {
       case "transaction_status_changed":
       case "transaction_error":
       default:
-        Log.debug(
-                "error: anchor_platform_event - invalid message type '%s'%n", event.getType());
+        Log.debug("error: anchor_platform_event - invalid message type '%s'%n", event.getType());
     }
   }
 
-  public void handleTransactionPaymentReceivedEvent(TransactionEvent event){
+  public void handleTransactionPaymentReceivedEvent(TransactionEvent event) {
     // NOTE: this code skips processing the received payment and just marks the
     // transaction as complete.
     Log.debug("Updating transaction: %s on Anchor Platform to 'complete'", event.getId());
     PatchTransactionsRequest txnRequest =
-      PatchTransactionsRequest.builder()
-        .records(
-          List.of(
-            PatchTransactionRequest.builder()
-              .id(event.getId())
-              .status(TransactionEvent.Status.COMPLETED.status)
-              .amountFee(
-                      new Amount(
-                              event.getAmountFee().getAmount(), event.getAmountFee().getAsset()))
-              .amountOut(
-                      new Amount(
-                              event.getAmountOut().getAmount(), event.getAmountOut().getAsset()))
-              .build()))
-        .build();
+        PatchTransactionsRequest.builder()
+            .records(
+                List.of(
+                    PatchTransactionRequest.builder()
+                        .id(event.getId())
+                        .status(TransactionEvent.Status.COMPLETED.status)
+                        .amountFee(
+                            new Amount(
+                                event.getAmountFee().getAmount(), event.getAmountFee().getAsset()))
+                        .amountOut(
+                            new Amount(
+                                event.getAmountOut().getAmount(), event.getAmountOut().getAsset()))
+                        .build()))
+            .build();
 
     try {
       platformClient.patchTransaction(txnRequest);

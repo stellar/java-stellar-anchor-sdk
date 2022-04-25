@@ -7,7 +7,7 @@ import java.time.format.DateTimeFormatter
 import kotlin.test.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.stellar.anchor.event.EventService
+import org.stellar.anchor.event.EventPublishService
 import org.stellar.anchor.event.models.*
 import org.stellar.anchor.exception.SepException
 import org.stellar.anchor.model.TransactionStatus
@@ -18,7 +18,7 @@ import org.stellar.platform.apis.shared.Amount
 
 class PaymentOperationToEventListenerTest {
   @MockK(relaxed = true) private lateinit var transactionStore: JdbcSep31TransactionStore
-  @MockK(relaxed = true) private lateinit var eventService: EventService
+  @MockK(relaxed = true) private lateinit var eventPublishService: EventPublishService
   private lateinit var paymentOperationToEventListener: PaymentOperationToEventListener
 
   @BeforeEach
@@ -26,7 +26,7 @@ class PaymentOperationToEventListenerTest {
     MockKAnnotations.init(this, relaxUnitFun = true)
 
     paymentOperationToEventListener =
-      PaymentOperationToEventListener(transactionStore, eventService)
+      PaymentOperationToEventListener(transactionStore, eventPublishService)
   }
 
   @Test
@@ -36,14 +36,14 @@ class PaymentOperationToEventListenerTest {
     p.transactionHash = null
     p.transactionMemo = "my_memo_1"
     paymentOperationToEventListener.onReceived(p)
-    verify { eventService wasNot Called }
+    verify { eventPublishService wasNot Called }
     verify { transactionStore wasNot Called }
 
     // Payment missing txHash shouldn't trigger an event nor reach the DB
     p.transactionHash = "1ad62e48724426be96cf2cdb65d5dacb8fac2e403e50bedb717bfc8eaf05af30"
     p.transactionMemo = null
     paymentOperationToEventListener.onReceived(p)
-    verify { eventService wasNot Called }
+    verify { eventPublishService wasNot Called }
     verify { transactionStore wasNot Called }
 
     // Asset types different from "credit_alphanum4" and "credit_alphanum12" shouldn't trigger an
@@ -52,7 +52,7 @@ class PaymentOperationToEventListenerTest {
     p.transactionMemo = "my_memo_1"
     p.assetType = "native"
     paymentOperationToEventListener.onReceived(p)
-    verify { eventService wasNot Called }
+    verify { eventPublishService wasNot Called }
     verify { transactionStore wasNot Called }
 
     // Payment whose memo is not in the DB shouldn't trigger event
@@ -62,7 +62,7 @@ class PaymentOperationToEventListenerTest {
     var slotMemo = slot<String>()
     every { transactionStore.findByStellarMemo(capture(slotMemo)) } returns null
     paymentOperationToEventListener.onReceived(p)
-    verify { eventService wasNot Called }
+    verify { eventPublishService wasNot Called }
     verify(exactly = 1) { transactionStore.findByStellarMemo("my_memo_2") }
     assertEquals("my_memo_2", slotMemo.captured)
 
@@ -72,7 +72,7 @@ class PaymentOperationToEventListenerTest {
     every { transactionStore.findByStellarMemo(capture(slotMemo)) } throws
       SepException("Something went wrong")
     paymentOperationToEventListener.onReceived(p)
-    verify { eventService wasNot Called }
+    verify { eventPublishService wasNot Called }
     verify(exactly = 1) { transactionStore.findByStellarMemo("my_memo_3") }
     assertEquals("my_memo_3", slotMemo.captured)
 
@@ -84,7 +84,7 @@ class PaymentOperationToEventListenerTest {
     sep31TxMock.amountInAsset = "BAR"
     every { transactionStore.findByStellarMemo(capture(slotMemo)) } returns sep31TxMock
     paymentOperationToEventListener.onReceived(p)
-    verify { eventService wasNot Called }
+    verify { eventPublishService wasNot Called }
     verify(exactly = 1) { transactionStore.findByStellarMemo("my_memo_4") }
     assertEquals("my_memo_4", slotMemo.captured)
 
@@ -98,7 +98,7 @@ class PaymentOperationToEventListenerTest {
     sep31TxMock.amountIn = "10"
     every { transactionStore.findByStellarMemo(capture(slotMemo)) } returns sep31TxMock
     paymentOperationToEventListener.onReceived(p)
-    verify { eventService wasNot Called }
+    verify { eventPublishService wasNot Called }
     verify(exactly = 1) { transactionStore.findByStellarMemo("my_memo_5") }
     assertEquals("my_memo_5", slotMemo.captured)
   }
@@ -188,11 +188,11 @@ class PaymentOperationToEventListenerTest {
         .build()
 
     val slotEvent = slot<TransactionEvent>()
-    every { eventService.publish(capture(slotEvent)) } just Runs
+    every { eventPublishService.publish(capture(slotEvent)) } just Runs
 
     paymentOperationToEventListener.onReceived(p)
     verify(exactly = 1) { transactionStore.findByStellarMemo("my_memo") }
-    verify(exactly = 1) { eventService.publish(any()) }
+    verify(exactly = 1) { eventPublishService.publish(any()) }
 
     wantEvent.eventId = slotEvent.captured.eventId
     assertEquals(wantEvent, slotEvent.captured)

@@ -17,7 +17,7 @@ import org.stellar.anchor.config.Sep31Config
 import org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_RECEIVE
 import org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_SEND
 import org.stellar.anchor.dto.sep31.Sep31PostTransactionRequest
-import org.stellar.anchor.event.EventService
+import org.stellar.anchor.event.EventPublishService
 import org.stellar.anchor.integration.customer.CustomerIntegration
 import org.stellar.anchor.integration.fee.FeeIntegration
 import org.stellar.anchor.sep10.JwtService
@@ -40,7 +40,7 @@ internal class Sep31ServiceTest {
   @MockK(relaxed = true) lateinit var quoteStore: Sep38QuoteStore
   @MockK(relaxed = true) lateinit var feeIntegration: FeeIntegration
   @MockK(relaxed = true) lateinit var customerIntegration: CustomerIntegration
-  @MockK(relaxed = true) lateinit var eventService: EventService
+  @MockK(relaxed = true) lateinit var eventPublishService: EventPublishService
 
   private lateinit var jwtService: JwtService
   private lateinit var sep31Service: Sep31Service
@@ -71,7 +71,7 @@ internal class Sep31ServiceTest {
         assetService,
         feeIntegration,
         customerIntegration,
-        eventService
+        eventPublishService
       )
 
     request = gson.fromJson(requestJson, Sep31PostTransactionRequest::class.java)

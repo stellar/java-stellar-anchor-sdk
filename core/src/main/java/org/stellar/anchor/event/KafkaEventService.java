@@ -10,7 +10,6 @@ import org.apache.kafka.common.header.internals.RecordHeader;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 import org.springframework.stereotype.Component;
-import org.stellar.anchor.config.EventConfig;
 import org.stellar.anchor.config.KafkaConfig;
 import org.stellar.anchor.event.models.AnchorEvent;
 import org.stellar.anchor.util.Log;
@@ -19,10 +18,9 @@ import org.stellar.anchor.util.Log;
 public class KafkaEventService implements EventPublishService {
   final Producer<String, AnchorEvent> producer;
   final Map<String, String> eventTypeToQueue;
-  final boolean eventsEnabled;
   final boolean useSingleQueue;
 
-  public KafkaEventService(EventConfig eventConfig, KafkaConfig kafkaConfig) {
+  public KafkaEventService(KafkaConfig kafkaConfig) {
     // TODO: log the event config
     Properties props = new Properties();
     props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaConfig.getKafkaBootstrapServer());
@@ -31,18 +29,13 @@ public class KafkaEventService implements EventPublishService {
     this.producer = new KafkaProducer<String, AnchorEvent>(props);
 
     this.eventTypeToQueue = kafkaConfig.getEventTypeToQueue();
-    this.eventsEnabled = eventConfig.isEnabled();
-    this.useSingleQueue = eventConfig.isUseSingleQueue();
+    this.useSingleQueue = kafkaConfig.isUseSingleQueue();
   }
 
   public void publish(AnchorEvent event) {
-    if (!eventsEnabled) {
-      return;
-    }
     try {
       String topic;
       if (useSingleQueue) {
-        // TODO: use constant instead of 'all'
         topic = eventTypeToQueue.get("all");
       } else {
         topic = eventTypeToQueue.get(event.getType());
