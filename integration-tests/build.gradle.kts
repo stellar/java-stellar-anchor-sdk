@@ -15,10 +15,16 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
   implementation("org.springframework.boot:spring-boot-starter-web")
 
-  implementation(libs.google.gson)
   implementation(libs.commons.cli)
+  implementation(libs.google.gson)
   implementation(libs.java.stellar.sdk)
   implementation(libs.okhttp3)
+
+  implementation(libs.sqlite.jdbc)
+  implementation(libs.okhttp3)
+  implementation(libs.jackson.dataformat.yaml)
+  implementation(libs.log4j2.core)
+  implementation(libs.log4j2.slf4j)
 
   // From projects
   implementation(project(":core"))
@@ -27,6 +33,10 @@ dependencies {
   implementation(project(":anchor-reference-server"))
   implementation(project(":service-runner"))
 
+  testImplementation("org.springframework.boot:spring-boot-test-autoconfigure")
+  testImplementation("com.h2database:h2")
+  testImplementation("org.springframework.boot:spring-boot-starter-test")
+  testImplementation(libs.okhttp3.mockserver)
 }
 
 tasks { bootJar { enabled = false } }
