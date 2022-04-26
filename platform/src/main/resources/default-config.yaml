@@ -88,10 +88,9 @@ app-config:
 
   circle-payment-observer:
     enabled: true
-    circleUrl: https://api-sandbox.circle.com
-    secretKey: secret # circle API key
     horizonUrl: https://horizon-testnet.stellar.org
     stellarNetwork: TESTNET # TESTNET or PUBLIC
+    trackedWallet: all
 
   event:
     # If enabled, publish Events to a queue (publisherType)

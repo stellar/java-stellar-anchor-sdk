@@ -6,8 +6,7 @@ import org.stellar.anchor.config.CirclePaymentObserverConfig;
 @Data
 public class PropertyCirclePaymentObserverConfig implements CirclePaymentObserverConfig {
   private boolean enabled = false;
-  private String circleUrl;
-  private String secretKey;
-  private String stellarNetwork;
-  private String horizonUrl;
+  private String stellarNetwork = "TESTNET";
+  private String horizonUrl = "https://horizon-testnet.stellar.org";
+  private String trackedWallet = "all";
 }

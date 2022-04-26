@@ -17,6 +17,7 @@ import org.stellar.anchor.exception.BadRequestException
 import org.stellar.anchor.exception.UnprocessableEntityException
 import org.stellar.anchor.horizon.Horizon
 import org.stellar.anchor.paymentservice.circle.model.CircleBalance
+import org.stellar.anchor.paymentservice.circle.model.CircleTransactionParty
 import org.stellar.anchor.paymentservice.circle.model.CircleTransfer
 import org.stellar.sdk.*
 import org.stellar.sdk.responses.Page
@@ -203,7 +204,39 @@ class CirclePaymentObserverServiceTest {
     assertEquals("Neither source nor destination are Stellar accounts.", ex.message)
     assertInstanceOf(UnprocessableEntityException::class.java, ex)
 
-    // Neither source nor destination are Stellar accounts
+    // Not tracking the wallets
+    messageJson =
+      """{ 
+      "transfer": {
+        "status": "complete",
+        "source": {
+          "type": "blockchain",
+          "chain": "XLM"
+        },
+        "destination": {
+          "type": "wallet",
+          "id": "1000223064"
+        },
+        "amount": {
+          "amount": "1.50",
+          "currency": "ETH"
+        }
+      }
+    }"""
+        .trimIndent()
+        .trimMargin()
+    subConfirmationNotification = mapOf("Type" to "Notification", "Message" to messageJson)
+    ex =
+      assertThrows {
+        circlePaymentObserverService.handleCircleNotification(subConfirmationNotification)
+      }
+    assertEquals("None of the transfer wallets is being tracked.", ex.message)
+    assertInstanceOf(UnprocessableEntityException::class.java, ex)
+
+    // Not trading USDC
+    every { circlePaymentObserverConfig.trackedWallet } returns "all"
+    circlePaymentObserverService =
+      CirclePaymentObserverService(httpClient, circlePaymentObserverConfig, horizon)
     messageJson =
       """{ 
       "transfer": {
@@ -327,5 +360,42 @@ class CirclePaymentObserverServiceTest {
         .transactionEnvelope("my_envelope_xdr")
         .build()
     assertEquals(wantObservedPayment, observedPayment)
+  }
+
+  @Test
+  fun test_isWalletTracked() {
+    // Wire transfers are not tracked
+    var party = CircleTransactionParty.wire("bank_id", "mail@test.com")
+    var isWalletTracked = circlePaymentObserverService.isWalletTracked(party)
+    assertFalse(isWalletTracked)
+
+    // Stellar transfers are not tracked
+    party = CircleTransactionParty.stellar("G...", "address_tag_here")
+    isWalletTracked = circlePaymentObserverService.isWalletTracked(party)
+    assertFalse(isWalletTracked)
+
+    // when tracked == "all", it's always approved
+    every { circlePaymentObserverConfig.trackedWallet } returns "all"
+    circlePaymentObserverService =
+      CirclePaymentObserverService(httpClient, circlePaymentObserverConfig, horizon)
+    party = CircleTransactionParty.wallet("11111")
+    isWalletTracked = circlePaymentObserverService.isWalletTracked(party)
+    assertTrue(isWalletTracked)
+
+    party = CircleTransactionParty.wallet("22222")
+    isWalletTracked = circlePaymentObserverService.isWalletTracked(party)
+    assertTrue(isWalletTracked)
+
+    // when tracked == "11111", only the wallet with that ID is approved
+    every { circlePaymentObserverConfig.trackedWallet } returns "11111"
+    circlePaymentObserverService =
+      CirclePaymentObserverService(httpClient, circlePaymentObserverConfig, horizon)
+    party = CircleTransactionParty.wallet("11111")
+    isWalletTracked = circlePaymentObserverService.isWalletTracked(party)
+    assertTrue(isWalletTracked)
+
+    party = CircleTransactionParty.wallet("22222")
+    isWalletTracked = circlePaymentObserverService.isWalletTracked(party)
+    assertFalse(isWalletTracked)
   }
 }

@@ -30,9 +30,9 @@ import org.stellar.sdk.responses.operations.PaymentOperationResponse;
 
 public class CirclePaymentObserverService {
   private final OkHttpClient httpClient;
-  private final CirclePaymentObserverConfig circlePaymentObserverConfig;
   private final String usdcIssuer;
   private final Server horizonServer;
+  private final String trackedWallet;
 
   private final Gson gson =
       GsonUtils.builder()
@@ -45,12 +45,12 @@ public class CirclePaymentObserverService {
       CirclePaymentObserverConfig circlePaymentObserverConfig,
       Horizon horizon) {
     this.httpClient = httpClient;
-    this.circlePaymentObserverConfig = circlePaymentObserverConfig;
     Network stellarNetwork =
         StellarNetworkHelper.toStellarNetwork(circlePaymentObserverConfig.getStellarNetwork());
     String[] assetIdPieces = CircleAsset.stellarUSDC(stellarNetwork).split(":");
     this.usdcIssuer = assetIdPieces[assetIdPieces.length - 1];
     this.horizonServer = horizon.getServer();
+    this.trackedWallet = circlePaymentObserverConfig.getTrackedWallet();
   }
 
   public void handleCircleNotification(Map<String, Object> requestBody)
@@ -148,10 +148,13 @@ public class CirclePaymentObserverService {
     boolean isDestinationOnStellar =
         destination.getType().equals(CircleTransactionParty.Type.BLOCKCHAIN)
             && destination.getChain().equals("XLM");
-
     if (!isSourceOnStellar && !isDestinationOnStellar) {
       throw new UnprocessableEntityException(
           "Neither source nor destination are Stellar accounts.");
+    }
+
+    if (!isWalletTracked(source) && !isWalletTracked(destination)) {
+      throw new UnprocessableEntityException("None of the transfer wallets is being tracked.");
     }
 
     if (!circleTransfer.getAmount().getCurrency().equals("USD")) {
@@ -170,6 +173,18 @@ public class CirclePaymentObserverService {
     }
 
     // TODO: send event
+  }
+
+  public boolean isWalletTracked(CircleTransactionParty party) {
+    if (!party.getType().equals(CircleTransactionParty.Type.WALLET)) {
+      return false;
+    }
+
+    if (Objects.equals(trackedWallet, "all")) {
+      return true;
+    }
+
+    return Objects.equals(trackedWallet, party.getId());
   }
 
   /**
