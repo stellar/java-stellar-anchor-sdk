@@ -2,9 +2,9 @@ package org.stellar.anchor.platform.service;
 
 import java.util.Optional;
 import org.springframework.stereotype.Component;
+import org.stellar.anchor.platform.data.PaymentStreamerCursor;
+import org.stellar.anchor.platform.data.PaymentStreamerCursorRepo;
 import org.stellar.anchor.platform.paymentobserver.PaymentStreamerCursorStore;
-import org.stellar.anchor.server.data.PaymentStreamerCursor;
-import org.stellar.anchor.server.data.PaymentStreamerCursorRepo;
 
 @Component
 public class JdbcPaymentStreamerCursorStore implements PaymentStreamerCursorStore {

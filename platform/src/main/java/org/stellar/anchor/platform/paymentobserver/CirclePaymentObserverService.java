@@ -41,7 +41,8 @@ public class CirclePaymentObserverService {
       OkHttpClient httpClient, CirclePaymentObserverConfig circlePaymentObserverConfig) {
     this.httpClient = httpClient;
     this.circlePaymentObserverConfig = circlePaymentObserverConfig;
-    Network stellarNetwork = StellarNetworkHelper.toStellarNetwork(circlePaymentObserverConfig.getStellarNetwork());
+    Network stellarNetwork =
+        StellarNetworkHelper.toStellarNetwork(circlePaymentObserverConfig.getStellarNetwork());
     String[] assetIdPieces = CircleAsset.stellarUSDC(stellarNetwork).split(":");
     this.usdcIssuer = assetIdPieces[assetIdPieces.length - 1];
   }
@@ -67,6 +68,7 @@ public class CirclePaymentObserverService {
 
   /**
    * This will auto-subscribe to Circle when we receive a subscription available notification.
+   *
    * @param circleNotification is the circle notification object.
    */
   public void handleSubscriptionConfirmationNotification(CircleNotification circleNotification) {
@@ -96,7 +98,9 @@ public class CirclePaymentObserverService {
   }
 
   /**
-   * Handle incoming circle notifications of type "transfers". A transfer notification can contain circle<>circle or circle<>stellar events.
+   * Handle incoming circle notifications of type "transfers". A transfer notification can contain
+   * circle<>circle or circle<>stellar events.
+   *
    * @param circleNotification is the circle notification object.
    */
   public void handleTransferNotification(CircleNotification circleNotification) {
@@ -152,6 +156,7 @@ public class CirclePaymentObserverService {
 
   /**
    * This will fetch the Stellar payment (or path payment) that originated thee Circle transfer.
+   *
    * @param circleTransfer the Circle transfer
    * @return an ObservedPayment or null if unable to convert
    * @throws IOException

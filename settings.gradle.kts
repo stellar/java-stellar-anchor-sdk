@@ -35,15 +35,6 @@ dependencyResolutionManagement {
 
 include("core")
 
-/** Configuration management subprojects */
-include("config-spring-property")
-// TODO: include("config-consul")
-
-/** Data access subprojects */
-include("data-spring-jdbc")
-// TODO: include("data-spring-mongo")
-// TODO: include("data-spring-couchbase")
-
 /** Payment subprojects */
 include("payment-circle")
 // TODO: include("payment-stellar")
@@ -56,3 +47,8 @@ include("anchor-reference-server")
 
 /** Anchor Platform API Schemas */
 include("platform-apis")
+
+/** Integration tests */
+include("integration-tests")
+
+include("service-runner")
