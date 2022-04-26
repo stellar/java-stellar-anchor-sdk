@@ -4,7 +4,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.stellar.anchor.config.*;
-import org.stellar.anchor.server.config.*;
+import org.stellar.anchor.platform.config.*;
 
 @Configuration
 public class ConfigManagementConfig {

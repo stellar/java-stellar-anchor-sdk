@@ -114,7 +114,7 @@ app-config:
 # Spring Data JDBC settings
 #
 data-spring-jdbc-sqlite:
-  spring.jpa.database-platform: org.stellar.anchor.server.sqlite.SQLiteDialect
+  spring.jpa.database-platform: org.stellar.anchor.platform.sqlite.SQLiteDialect
   spring.jpa.hibernate.ddl-auto: update
   spring.jpa.generate-ddl: true
   spring.jpa.hibernate.show_sql: false
