@@ -15,9 +15,11 @@ import org.stellar.anchor.config.CirclePaymentObserverConfig
 import org.stellar.anchor.exception.AnchorException
 import org.stellar.anchor.exception.BadRequestException
 import org.stellar.anchor.exception.UnprocessableEntityException
+import org.stellar.anchor.horizon.Horizon
 
 class CirclePaymentObserverServiceTest {
   @MockK private lateinit var httpClient: OkHttpClient
+  @MockK private lateinit var horizon: Horizon
   @MockK private lateinit var circlePaymentObserverConfig: CirclePaymentObserverConfig
   @MockK private lateinit var circlePaymentObserverService: CirclePaymentObserverService
   private lateinit var server: MockWebServer
@@ -28,7 +30,7 @@ class CirclePaymentObserverServiceTest {
 
     every { circlePaymentObserverConfig.stellarNetwork } returns "TESTNET"
     circlePaymentObserverService =
-      CirclePaymentObserverService(httpClient, circlePaymentObserverConfig)
+      CirclePaymentObserverService(httpClient, circlePaymentObserverConfig, horizon)
 
     server = MockWebServer()
     server.start()
@@ -90,7 +92,7 @@ class CirclePaymentObserverServiceTest {
     // Failing http request
     val newHttpClient = OkHttpClient.Builder().build()
     circlePaymentObserverService =
-      CirclePaymentObserverService(newHttpClient, circlePaymentObserverConfig)
+      CirclePaymentObserverService(newHttpClient, circlePaymentObserverConfig, horizon)
 
     val badRequestResponse =
       MockResponse()

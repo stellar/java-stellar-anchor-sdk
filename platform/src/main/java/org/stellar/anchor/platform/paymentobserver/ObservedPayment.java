@@ -3,15 +3,10 @@ package org.stellar.anchor.platform.paymentobserver;
 import com.google.gson.annotations.SerializedName;
 import lombok.Builder;
 import lombok.Data;
-import org.apache.tomcat.util.codec.binary.Base64;
-import org.stellar.anchor.util.Log;
 import org.stellar.anchor.util.MemoHelper;
-import org.stellar.sdk.AssetTypeCreditAlphaNum;
-import org.stellar.sdk.MemoHash;
-import org.stellar.sdk.responses.operations.OperationResponse;
+import org.stellar.sdk.*;
 import org.stellar.sdk.responses.operations.PathPaymentBaseOperationResponse;
 import org.stellar.sdk.responses.operations.PaymentOperationResponse;
-import org.stellar.sdk.xdr.MemoType;
 
 @Builder
 @Data
@@ -55,6 +50,7 @@ public class ObservedPayment {
             ? paymentOp.getSourceAccount()
             : paymentOp.getTransaction().orNull().getSourceAccount();
     String from = paymentOp.getFrom() != null ? paymentOp.getFrom() : sourceAccount;
+    Memo memo = paymentOp.getTransaction().get().getMemo();
     return ObservedPayment.builder()
         .id(paymentOp.getId().toString())
         .type(Type.PAYMENT)
@@ -68,8 +64,8 @@ public class ObservedPayment {
         .sourceAccount(sourceAccount)
         .createdAt(paymentOp.getCreatedAt())
         .transactionHash(paymentOp.getTransactionHash())
-        .transactionMemo(getMemoHash(paymentOp))
-        .transactionMemoType(MemoHelper.memoType(MemoType.MEMO_HASH))
+        .transactionMemo(MemoHelper.parseMemoToString(memo))
+        .transactionMemoType(MemoHelper.getMemoTypeAsString(memo))
         .transactionEnvelope(paymentOp.getTransaction().get().getEnvelopeXdr())
         .build();
   }
@@ -96,6 +92,7 @@ public class ObservedPayment {
             ? pathPaymentOp.getSourceAccount()
             : pathPaymentOp.getTransaction().orNull().getSourceAccount();
     String from = pathPaymentOp.getFrom() != null ? pathPaymentOp.getFrom() : sourceAccount;
+    Memo memo = pathPaymentOp.getTransaction().get().getMemo();
     return ObservedPayment.builder()
         .id(pathPaymentOp.getId().toString())
         .type(Type.PATH_PAYMENT)
@@ -114,20 +111,10 @@ public class ObservedPayment {
         .sourceAccount(sourceAccount)
         .createdAt(pathPaymentOp.getCreatedAt())
         .transactionHash(pathPaymentOp.getTransactionHash())
-        .transactionMemo(getMemoHash(pathPaymentOp))
-        .transactionMemoType(MemoHelper.memoType(MemoType.MEMO_HASH))
+        .transactionMemo(MemoHelper.parseMemoToString(memo))
+        .transactionMemoType(MemoHelper.getMemoTypeAsString(memo))
         .transactionEnvelope(pathPaymentOp.getTransaction().get().getEnvelopeXdr())
         .build();
-  }
-
-  private static String getMemoHash(OperationResponse opResponse) {
-    try {
-      MemoHash memoHash = (MemoHash) opResponse.getTransaction().get().getMemo();
-      return new String(Base64.encodeBase64(memoHash.getBytes()));
-    } catch (Exception e) {
-      Log.error("Error parsing memo to MemoHash object");
-      return null;
-    }
   }
 
   public enum Type {

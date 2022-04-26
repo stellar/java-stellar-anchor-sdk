@@ -2,7 +2,6 @@ package org.stellar.anchor.platform.paymentobserver;
 
 import com.google.gson.Gson;
 import java.io.IOException;
-import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
@@ -12,6 +11,7 @@ import org.stellar.anchor.config.CirclePaymentObserverConfig;
 import org.stellar.anchor.exception.BadRequestException;
 import org.stellar.anchor.exception.ServerErrorException;
 import org.stellar.anchor.exception.UnprocessableEntityException;
+import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.paymentservice.circle.model.CirclePaymentStatus;
 import org.stellar.anchor.paymentservice.circle.model.CircleTransactionParty;
 import org.stellar.anchor.paymentservice.circle.model.CircleTransfer;
@@ -22,17 +22,17 @@ import org.stellar.anchor.util.GsonUtils;
 import org.stellar.anchor.util.Log;
 import org.stellar.anchor.util.StellarNetworkHelper;
 import org.stellar.sdk.Network;
-import org.stellar.sdk.responses.GsonSingleton;
+import org.stellar.sdk.Server;
 import org.stellar.sdk.responses.Page;
 import org.stellar.sdk.responses.operations.OperationResponse;
 import org.stellar.sdk.responses.operations.PathPaymentBaseOperationResponse;
 import org.stellar.sdk.responses.operations.PaymentOperationResponse;
-import shadow.com.google.common.reflect.TypeToken;
 
 public class CirclePaymentObserverService {
   private final OkHttpClient httpClient;
   private final CirclePaymentObserverConfig circlePaymentObserverConfig;
   private final String usdcIssuer;
+  private final Server horizonServer;
 
   private final Gson gson =
       GsonUtils.builder()
@@ -41,13 +41,16 @@ public class CirclePaymentObserverService {
           .create();
 
   public CirclePaymentObserverService(
-      OkHttpClient httpClient, CirclePaymentObserverConfig circlePaymentObserverConfig) {
+      OkHttpClient httpClient,
+      CirclePaymentObserverConfig circlePaymentObserverConfig,
+      Horizon horizon) {
     this.httpClient = httpClient;
     this.circlePaymentObserverConfig = circlePaymentObserverConfig;
     Network stellarNetwork =
         StellarNetworkHelper.toStellarNetwork(circlePaymentObserverConfig.getStellarNetwork());
     String[] assetIdPieces = CircleAsset.stellarUSDC(stellarNetwork).split(":");
     this.usdcIssuer = assetIdPieces[assetIdPieces.length - 1];
+    this.horizonServer = horizon.getServer();
   }
 
   public void handleCircleNotification(Map<String, Object> requestBody)
@@ -181,26 +184,13 @@ public class CirclePaymentObserverService {
   public ObservedPayment fetchObservedPayment(CircleTransfer circleTransfer)
       throws IOException, ServerErrorException {
     String txHash = circleTransfer.getTransactionHash();
-    HttpUrl url = HttpUrl.parse(circlePaymentObserverConfig.getStellarNetwork());
-    url =
-        new HttpUrl.Builder()
-            .scheme(url.scheme())
-            .host(url.host())
-            .port(url.port())
-            .addPathSegment("transactions")
-            .addPathSegment(txHash)
-            .addPathSegment("payments")
-            .addQueryParameter("limit", "100")
-            .build();
-    Request httpRequest =
-        new Request.Builder().url(url).header("Content-Type", "application/json").get().build();
-    Response response = httpClient.newCall(httpRequest).execute();
-    ResponseBody responseBody = response.body();
-    if (responseBody == null) throw new ServerErrorException("unable to fetch response body");
-
-    Type type = new TypeToken<Page<OperationResponse>>() {}.getType();
-    shadow.com.google.gson.Gson stellarSdkGson = GsonSingleton.getInstance();
-    Page<OperationResponse> responsePage = stellarSdkGson.fromJson(responseBody.string(), type);
+    Page<OperationResponse> responsePage =
+        horizonServer
+            .payments()
+            .forTransaction(txHash)
+            .limit(200)
+            .includeTransactions(true)
+            .execute();
 
     for (OperationResponse opResponse : responsePage.getRecords()) {
       if (!opResponse.isTransactionSuccessful()) continue;
