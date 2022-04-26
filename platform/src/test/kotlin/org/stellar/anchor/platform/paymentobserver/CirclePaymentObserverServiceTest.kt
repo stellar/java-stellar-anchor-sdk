@@ -141,7 +141,7 @@ class CirclePaymentObserverServiceTest {
   }
 
   @Test
-  fun test_handleCircleNotification_handleTransferNotification() {
+  fun test_handleCircleNotification_handleTransferNotification_failure() {
     // missing Message
     var subConfirmationNotification = mapOf("Type" to "Notification")
     var ex: AnchorException = assertThrows {
@@ -264,6 +264,85 @@ class CirclePaymentObserverServiceTest {
       }
     assertEquals("The only supported Circle currency is USDC.", ex.message)
     assertInstanceOf(UnprocessableEntityException::class.java, ex)
+  }
+
+  @Test
+  fun test_handleCircleNotification_handleTransferNotification_success() {
+    every { circlePaymentObserverConfig.trackedWallet } returns "all"
+
+    // Mock horizon call
+    val mockedServer = mockk<Server>()
+    val mockedOpResponsePage = mockk<Page<OperationResponse>>()
+    every { horizon.server } returns mockedServer
+    every {
+      mockedServer
+        .payments()
+        .forTransaction(any())
+        .limit(any())
+        .includeTransactions(any())
+        .execute()
+    } returns mockedOpResponsePage
+
+    circlePaymentObserverService =
+      CirclePaymentObserverService(httpClient, circlePaymentObserverConfig, horizon)
+
+    // Mock horizon call
+    val circleTransfer = CircleTransfer()
+    circleTransfer.transactionHash =
+      "b9d0b2292c4e09e8eb22d036171491e87b8d2086bf8b265874c8d182cb9c9020"
+    circleTransfer.amount = CircleBalance("USD", "1.234")
+
+    val mockedTransaction = mockk<TransactionResponse>()
+    every { mockedTransaction.sourceAccount } returns
+      "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S"
+    every { mockedTransaction.envelopeXdr } returns "my_envelope_xdr"
+    every { mockedTransaction.memo } returns Memo.text("my_text_memo")
+
+    val usdcAsset =
+      AssetTypeCreditAlphaNum4("USDC", "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5")
+    val mockedPaymentOpResponse = mockk<PaymentOperationResponse>()
+    every { mockedPaymentOpResponse.transaction.get() } returns mockedTransaction
+    every { mockedPaymentOpResponse.isTransactionSuccessful } returns true
+    every { mockedPaymentOpResponse.type } returns "payment"
+    every { mockedPaymentOpResponse.asset } returns usdcAsset
+    every { mockedPaymentOpResponse.sourceAccount } returns
+      "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S"
+    every { mockedPaymentOpResponse.id } returns 755914248193
+    every { mockedPaymentOpResponse.to } returns
+      "GAYF33NNNMI2Z6VNRFXQ64D4E4SF77PM46NW3ZUZEEU5X7FCHAZCMHKU"
+    every { mockedPaymentOpResponse.from } returns
+      "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S"
+    every { mockedPaymentOpResponse.amount } returns "1.2340000"
+    every { mockedPaymentOpResponse.createdAt } returns "2022-03-16T10:02:39Z"
+    every { mockedPaymentOpResponse.transactionHash } returns
+      "b9d0b2292c4e09e8eb22d036171491e87b8d2086bf8b265874c8d182cb9c9020"
+    every { mockedOpResponsePage.records } returns arrayListOf(mockedPaymentOpResponse)
+
+    val messageJson =
+      """{ 
+      "transfer": {
+        "status": "complete",
+        "source": {
+          "type": "blockchain",
+          "chain": "XLM"
+        },
+        "destination": {
+          "type": "wallet",
+          "id": "1000223064"
+        },
+        "amount": {
+          "amount": "1.234",
+          "currency": "USD"
+        },
+        "transactionHash": "b9d0b2292c4e09e8eb22d036171491e87b8d2086bf8b265874c8d182cb9c9020"
+      }
+    }"""
+        .trimIndent()
+        .trimMargin()
+    val subConfirmationNotification = mapOf("Type" to "Notification", "Message" to messageJson)
+    assertDoesNotThrow {
+      circlePaymentObserverService.handleCircleNotification(subConfirmationNotification)
+    }
   }
 
   @Test
