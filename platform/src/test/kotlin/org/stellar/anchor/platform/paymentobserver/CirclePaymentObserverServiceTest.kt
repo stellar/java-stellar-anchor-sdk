@@ -16,6 +16,13 @@ import org.stellar.anchor.exception.AnchorException
 import org.stellar.anchor.exception.BadRequestException
 import org.stellar.anchor.exception.UnprocessableEntityException
 import org.stellar.anchor.horizon.Horizon
+import org.stellar.anchor.paymentservice.circle.model.CircleBalance
+import org.stellar.anchor.paymentservice.circle.model.CircleTransfer
+import org.stellar.sdk.*
+import org.stellar.sdk.responses.Page
+import org.stellar.sdk.responses.TransactionResponse
+import org.stellar.sdk.responses.operations.OperationResponse
+import org.stellar.sdk.responses.operations.PaymentOperationResponse
 
 class CirclePaymentObserverServiceTest {
   @MockK private lateinit var httpClient: OkHttpClient
@@ -224,5 +231,101 @@ class CirclePaymentObserverServiceTest {
       }
     assertEquals("The only supported Circle currency is USDC.", ex.message)
     assertInstanceOf(UnprocessableEntityException::class.java, ex)
+  }
+
+  @Test
+  fun test_fetchObservedPayment() {
+    // Mock horizon call
+    val mockedServer = mockk<Server>()
+    val mockedOpResponsePage = mockk<Page<OperationResponse>>()
+    every { horizon.server } returns mockedServer
+    every {
+      mockedServer
+        .payments()
+        .forTransaction(any())
+        .limit(any())
+        .includeTransactions(any())
+        .execute()
+    } returns mockedOpResponsePage
+    circlePaymentObserverService =
+      CirclePaymentObserverService(httpClient, circlePaymentObserverConfig, horizon)
+
+    // if the response is empty, returns null
+    val circleTransfer = CircleTransfer()
+    circleTransfer.transactionHash =
+      "b9d0b2292c4e09e8eb22d036171491e87b8d2086bf8b265874c8d182cb9c9020"
+    every { mockedOpResponsePage.records } returns ArrayList()
+    var observedPayment = circlePaymentObserverService.fetchObservedPayment(circleTransfer)
+    verify(exactly = 1) { mockedOpResponsePage.records }
+    assertNull(observedPayment)
+
+    // if the response operation is not successful, returns null
+    val mockedOpResponse = mockk<OperationResponse>()
+    every { mockedOpResponse.isTransactionSuccessful } returns false
+    every { mockedOpResponsePage.records } returns arrayListOf(mockedOpResponse)
+    observedPayment = circlePaymentObserverService.fetchObservedPayment(circleTransfer)
+    verify(exactly = 2) { mockedOpResponsePage.records }
+    verify(exactly = 1) { mockedOpResponse.isTransactionSuccessful }
+    assertNull(observedPayment)
+
+    // if the response does not contain any payment, returns null
+    every { mockedOpResponse.isTransactionSuccessful } returns true
+    every { mockedOpResponse.type } returns "create_account"
+    every { mockedOpResponsePage.records } returns arrayListOf(mockedOpResponse)
+    observedPayment = circlePaymentObserverService.fetchObservedPayment(circleTransfer)
+    verify(exactly = 3) { mockedOpResponsePage.records }
+    verify(exactly = 2) { mockedOpResponse.isTransactionSuccessful }
+    verify(exactly = 1) { mockedOpResponse.type }
+    assertNull(observedPayment)
+
+    // if asset type is not AssetTypeCreditAlphaNum, returns null
+    circleTransfer.amount = CircleBalance("USD", "1.234")
+
+    val mockedTransaction = mockk<TransactionResponse>()
+    every { mockedTransaction.sourceAccount } returns
+      "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S"
+    every { mockedTransaction.envelopeXdr } returns "my_envelope_xdr"
+    every { mockedTransaction.memo } returns Memo.text("my_text_memo")
+
+    val usdcAsset =
+      AssetTypeCreditAlphaNum4("USDC", "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5")
+    val mockedPaymentOpResponse = mockk<PaymentOperationResponse>()
+    every { mockedPaymentOpResponse.transaction.get() } returns mockedTransaction
+    every { mockedPaymentOpResponse.isTransactionSuccessful } returns true
+    every { mockedPaymentOpResponse.type } returns "payment"
+    every { mockedPaymentOpResponse.asset } returns usdcAsset
+    every { mockedPaymentOpResponse.sourceAccount } returns
+      "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S"
+    every { mockedPaymentOpResponse.id } returns 755914248193
+    every { mockedPaymentOpResponse.to } returns
+      "GAYF33NNNMI2Z6VNRFXQ64D4E4SF77PM46NW3ZUZEEU5X7FCHAZCMHKU"
+    every { mockedPaymentOpResponse.from } returns
+      "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S"
+    every { mockedPaymentOpResponse.amount } returns "1.2340000"
+    every { mockedPaymentOpResponse.createdAt } returns "2022-03-16T10:02:39Z"
+    every { mockedPaymentOpResponse.transactionHash } returns
+      "b9d0b2292c4e09e8eb22d036171491e87b8d2086bf8b265874c8d182cb9c9020"
+    every { mockedOpResponsePage.records } returns arrayListOf(mockedPaymentOpResponse)
+    observedPayment = circlePaymentObserverService.fetchObservedPayment(circleTransfer)
+
+    val wantObservedPayment =
+      ObservedPayment.builder()
+        .id("755914248193")
+        .type(ObservedPayment.Type.PAYMENT)
+        .from("GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S")
+        .to("GAYF33NNNMI2Z6VNRFXQ64D4E4SF77PM46NW3ZUZEEU5X7FCHAZCMHKU")
+        .amount("1.2340000")
+        .assetType("credit_alphanum4")
+        .assetCode("USDC")
+        .assetIssuer("GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5")
+        .assetName("USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5")
+        .sourceAccount("GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S")
+        .createdAt("2022-03-16T10:02:39Z")
+        .transactionHash("b9d0b2292c4e09e8eb22d036171491e87b8d2086bf8b265874c8d182cb9c9020")
+        .transactionMemo("my_text_memo")
+        .transactionMemoType("text")
+        .transactionEnvelope("my_envelope_xdr")
+        .build()
+    assertEquals(wantObservedPayment, observedPayment)
   }
 }

@@ -48,7 +48,7 @@ public class ObservedPayment {
     String sourceAccount =
         paymentOp.getSourceAccount() != null
             ? paymentOp.getSourceAccount()
-            : paymentOp.getTransaction().orNull().getSourceAccount();
+            : paymentOp.getTransaction().get().getSourceAccount();
     String from = paymentOp.getFrom() != null ? paymentOp.getFrom() : sourceAccount;
     Memo memo = paymentOp.getTransaction().get().getMemo();
     return ObservedPayment.builder()
@@ -90,7 +90,7 @@ public class ObservedPayment {
     String sourceAccount =
         pathPaymentOp.getSourceAccount() != null
             ? pathPaymentOp.getSourceAccount()
-            : pathPaymentOp.getTransaction().orNull().getSourceAccount();
+            : pathPaymentOp.getTransaction().get().getSourceAccount();
     String from = pathPaymentOp.getFrom() != null ? pathPaymentOp.getFrom() : sourceAccount;
     Memo memo = pathPaymentOp.getTransaction().get().getMemo();
     return ObservedPayment.builder()

@@ -166,8 +166,7 @@ public class CirclePaymentObserverService {
     }
 
     if (observedPayment == null) {
-      Log.error("Observed payment could not be fetched");
-      return;
+      throw new UnprocessableEntityException("Observed payment could not be fetched.");
     }
 
     // TODO: send event
@@ -198,7 +197,7 @@ public class CirclePaymentObserverService {
       if (!List.of("payment", "path_payment_strict_send", "path_payment_strict_receive")
           .contains(opResponse.getType())) continue;
 
-      ObservedPayment observedPayment = null;
+      ObservedPayment observedPayment;
       if (opResponse instanceof PaymentOperationResponse) {
         PaymentOperationResponse payment = (PaymentOperationResponse) opResponse;
         observedPayment = ObservedPayment.fromPaymentOperationResponse(payment);
@@ -223,6 +222,7 @@ public class CirclePaymentObserverService {
 
       return observedPayment;
     }
+
     return null;
   }
 }
