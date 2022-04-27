@@ -72,7 +72,9 @@ public class PaymentConfig {
   public CirclePaymentObserverService circlePaymentObserverService(
       OkHttpClient httpClient,
       CirclePaymentObserverConfig circlePaymentObserverConfig,
-      Horizon horizon) {
-    return new CirclePaymentObserverService(httpClient, circlePaymentObserverConfig, horizon);
+      Horizon horizon,
+      List<PaymentListener> paymentListeners) {
+    return new CirclePaymentObserverService(
+        httpClient, circlePaymentObserverConfig, horizon, paymentListeners);
   }
 }

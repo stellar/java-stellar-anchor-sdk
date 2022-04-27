@@ -33,6 +33,7 @@ public class CirclePaymentObserverService {
   private final String usdcIssuer;
   private final Server horizonServer;
   private final String trackedWallet;
+  private final List<PaymentListener> observers;
 
   private final Gson gson =
       GsonUtils.builder()
@@ -43,7 +44,8 @@ public class CirclePaymentObserverService {
   public CirclePaymentObserverService(
       OkHttpClient httpClient,
       CirclePaymentObserverConfig circlePaymentObserverConfig,
-      Horizon horizon) {
+      Horizon horizon,
+      List<PaymentListener> observers) {
     this.httpClient = httpClient;
     Network stellarNetwork =
         StellarNetworkHelper.toStellarNetwork(circlePaymentObserverConfig.getStellarNetwork());
@@ -51,6 +53,7 @@ public class CirclePaymentObserverService {
     this.usdcIssuer = assetIdPieces[assetIdPieces.length - 1];
     this.horizonServer = horizon.getServer();
     this.trackedWallet = circlePaymentObserverConfig.getTrackedWallet();
+    this.observers = observers;
   }
 
   public void handleCircleNotification(Map<String, Object> requestBody)
