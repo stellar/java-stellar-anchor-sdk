@@ -86,11 +86,11 @@ public class StellarPaymentObserver {
             if (observedPayment != null) {
               try {
                 if (observedPayment.getTo().equals(account)) {
-                  ObservedPayment finalObservedPayment = observedPayment;
+                  final ObservedPayment finalObservedPayment = observedPayment;
                   observers.forEach(observer -> observer.onReceived(finalObservedPayment));
                 } else if (observedPayment.getFrom().equals(account)) {
-                  ObservedPayment finalObservedPayment1 = observedPayment;
-                  observers.forEach(observer -> observer.onSent(finalObservedPayment1));
+                  final ObservedPayment finalObservedPayment = observedPayment;
+                  observers.forEach(observer -> observer.onSent(finalObservedPayment));
                 }
               } catch (Throwable t) {
                 Log.errorEx(t);

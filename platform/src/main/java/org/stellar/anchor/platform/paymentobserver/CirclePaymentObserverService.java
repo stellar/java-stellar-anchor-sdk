@@ -175,7 +175,13 @@ public class CirclePaymentObserverService {
       throw new UnprocessableEntityException("Observed payment could not be fetched.");
     }
 
-    // TODO: send event
+    if (isWalletTracked(destination)) {
+      final ObservedPayment finalObservedPayment = observedPayment;
+      observers.forEach(observer -> observer.onReceived(finalObservedPayment));
+    } else {
+      final ObservedPayment finalObservedPayment1 = observedPayment;
+      observers.forEach(observer -> observer.onSent(finalObservedPayment1));
+    }
   }
 
   public boolean isWalletTracked(CircleTransactionParty party) {
