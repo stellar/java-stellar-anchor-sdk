@@ -1,9 +1,10 @@
 package org.stellar.anchor.asset;
 
 import com.google.gson.annotations.SerializedName;
+import lombok.Data;
+
 import java.util.List;
 import java.util.Map;
-import lombok.Data;
 
 @SuppressWarnings("unused")
 @Data
@@ -26,16 +27,16 @@ public class AssetInfo {
   Sep38Operation sep38;
 
   @SerializedName("sep24_enabled")
-  Boolean sep24Enabled;
+  Boolean sep24Enabled = false;
 
   @SerializedName("sep6_enabled")
-  Boolean sep6Enabled;
+  Boolean sep6Enabled = false;
 
   @SerializedName("sep31_enabled")
-  Boolean sep31Enabled;
+  Boolean sep31Enabled = false;
 
   @SerializedName("sep38_enabled")
-  Boolean sep38Enabled;
+  Boolean sep38Enabled = false;
 
   public enum Schema {
     @SerializedName("stellar")

@@ -33,6 +33,12 @@ public class ConfigManagementConfig {
   }
 
   @Bean
+  @ConfigurationProperties(prefix = "sep24")
+  Sep24Config sep24Config() {
+    return new PropertySep24Config();
+  }
+
+  @Bean
   @ConfigurationProperties(prefix = "sep31")
   Sep31Config sep31Config() {
     return new PropertySep31Config();
