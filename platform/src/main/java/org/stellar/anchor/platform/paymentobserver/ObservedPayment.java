@@ -12,6 +12,7 @@ import org.stellar.sdk.responses.operations.PaymentOperationResponse;
 @Data
 public class ObservedPayment {
   String id;
+  String externalTransactionId;
   Type type;
 
   String from;

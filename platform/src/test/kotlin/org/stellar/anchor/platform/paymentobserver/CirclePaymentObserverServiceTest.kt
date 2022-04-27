@@ -390,6 +390,7 @@ class CirclePaymentObserverServiceTest {
 
     // if the response is empty, returns null
     val circleTransfer = CircleTransfer()
+    circleTransfer.id = "7f131f58-a8a0-3dc2-be05-6a015c69de35"
     circleTransfer.transactionHash =
       "b9d0b2292c4e09e8eb22d036171491e87b8d2086bf8b265874c8d182cb9c9020"
     every { mockedOpResponsePage.records } returns ArrayList()
@@ -449,7 +450,8 @@ class CirclePaymentObserverServiceTest {
     val wantObservedPayment =
       ObservedPayment.builder()
         .id("755914248193")
-        .type(ObservedPayment.Type.PAYMENT)
+        .externalTransactionId("7f131f58-a8a0-3dc2-be05-6a015c69de35")
+        .type(ObservedPayment.Type.CIRCLE_TRANSFER)
         .from("GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S")
         .to("GAYF33NNNMI2Z6VNRFXQ64D4E4SF77PM46NW3ZUZEEU5X7FCHAZCMHKU")
         .amount("1.2340000")

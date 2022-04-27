@@ -238,6 +238,8 @@ public class CirclePaymentObserverService {
         continue;
       }
 
+      observedPayment.setExternalTransactionId(circleTransfer.getId());
+      observedPayment.setType(ObservedPayment.Type.CIRCLE_TRANSFER);
       return observedPayment;
     }
 
