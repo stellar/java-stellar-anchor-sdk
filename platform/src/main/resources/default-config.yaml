@@ -54,6 +54,12 @@ app-config:
     enabled: true
     customerIntegrationEndpoint: http://localhost:8081
 
+  # sep-24
+  sep24:
+    enabled: true
+    interactiveJwtExpiration: 3600
+    interactiveUrl: http://localhost:8081/sep24/interactive
+
   # sep-38
   sep38:
     enabled: true

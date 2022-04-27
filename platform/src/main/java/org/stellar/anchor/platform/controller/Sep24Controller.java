@@ -19,7 +19,7 @@ import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 
-import static org.stellar.anchor.filter.BaseTokenFilter.JWT_TOKEN;
+import static org.stellar.anchor.platform.controller.Sep10Helper.getSep10Token;
 import static org.stellar.anchor.util.Log.*;
 
 @RestController
@@ -62,7 +62,7 @@ public class Sep24Controller {
       value = "/transactions/deposit/interactive",
       method = {RequestMethod.POST},
       consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-  public InteractiveTransactionResponse depositAllType(HttpServletRequest request)
+  public InteractiveTransactionResponse depositFormData(HttpServletRequest request)
       throws SepException, MalformedURLException, URISyntaxException {
     HashMap<String, String> requestData = new HashMap<>();
     for (Map.Entry<String, String[]> entry : request.getParameterMap().entrySet()) {
@@ -93,7 +93,7 @@ public class Sep24Controller {
       value = "/transactions/withdraw/interactive",
       method = {RequestMethod.POST},
       consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-  public InteractiveTransactionResponse withdrawAllType(HttpServletRequest request)
+  public InteractiveTransactionResponse withdrawFormData(HttpServletRequest request)
       throws SepException, MalformedURLException, URISyntaxException {
     HashMap<String, String> requestData = new HashMap<>();
     for (Map.Entry<String, String[]> entry : request.getParameterMap().entrySet()) {
@@ -183,15 +183,6 @@ public class Sep24Controller {
     }
 
     return request.getRequestURL().toString();
-  }
-
-  JwtToken getSep10Token(HttpServletRequest request) throws SepValidationException {
-    JwtToken token = (JwtToken) request.getAttribute(JWT_TOKEN);
-    if (token == null) {
-      throw new SepValidationException(
-          "missing sep10 jwt token. Make sure the sep10 filter is invoked before the controller");
-    }
-    return token;
   }
 
   @ExceptionHandler({MethodArgumentNotValidException.class, SepValidationException.class})
