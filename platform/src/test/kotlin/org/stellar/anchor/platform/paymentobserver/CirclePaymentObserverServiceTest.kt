@@ -394,7 +394,7 @@ class CirclePaymentObserverServiceTest {
   }
 
   @Test
-  fun test_fetchObservedPayment() {
+  fun test_fetchCircleTransferOnStellar() {
     // Mock horizon call
     val mockedServer = mockk<Server>()
     val mockedOpResponsePage = mockk<Page<OperationResponse>>()
@@ -421,7 +421,7 @@ class CirclePaymentObserverServiceTest {
     circleTransfer.transactionHash =
       "b9d0b2292c4e09e8eb22d036171491e87b8d2086bf8b265874c8d182cb9c9020"
     every { mockedOpResponsePage.records } returns ArrayList()
-    var observedPayment = circlePaymentObserverService.fetchObservedPayment(circleTransfer)
+    var observedPayment = circlePaymentObserverService.fetchCircleTransferOnStellar(circleTransfer)
     verify(exactly = 1) { mockedOpResponsePage.records }
     assertNull(observedPayment)
 
@@ -429,7 +429,7 @@ class CirclePaymentObserverServiceTest {
     val mockedOpResponse = mockk<OperationResponse>()
     every { mockedOpResponse.isTransactionSuccessful } returns false
     every { mockedOpResponsePage.records } returns arrayListOf(mockedOpResponse)
-    observedPayment = circlePaymentObserverService.fetchObservedPayment(circleTransfer)
+    observedPayment = circlePaymentObserverService.fetchCircleTransferOnStellar(circleTransfer)
     verify(exactly = 2) { mockedOpResponsePage.records }
     verify(exactly = 1) { mockedOpResponse.isTransactionSuccessful }
     assertNull(observedPayment)
@@ -438,7 +438,7 @@ class CirclePaymentObserverServiceTest {
     every { mockedOpResponse.isTransactionSuccessful } returns true
     every { mockedOpResponse.type } returns "create_account"
     every { mockedOpResponsePage.records } returns arrayListOf(mockedOpResponse)
-    observedPayment = circlePaymentObserverService.fetchObservedPayment(circleTransfer)
+    observedPayment = circlePaymentObserverService.fetchCircleTransferOnStellar(circleTransfer)
     verify(exactly = 3) { mockedOpResponsePage.records }
     verify(exactly = 2) { mockedOpResponse.isTransactionSuccessful }
     verify(exactly = 1) { mockedOpResponse.type }
@@ -472,7 +472,7 @@ class CirclePaymentObserverServiceTest {
     every { mockedPaymentOpResponse.transactionHash } returns
       "b9d0b2292c4e09e8eb22d036171491e87b8d2086bf8b265874c8d182cb9c9020"
     every { mockedOpResponsePage.records } returns arrayListOf(mockedPaymentOpResponse)
-    observedPayment = circlePaymentObserverService.fetchObservedPayment(circleTransfer)
+    observedPayment = circlePaymentObserverService.fetchCircleTransferOnStellar(circleTransfer)
 
     val wantObservedPayment =
       ObservedPayment.builder()

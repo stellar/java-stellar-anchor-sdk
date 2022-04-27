@@ -9,7 +9,6 @@ import java.util.Objects;
 import okhttp3.*;
 import org.stellar.anchor.config.CirclePaymentObserverConfig;
 import org.stellar.anchor.exception.BadRequestException;
-import org.stellar.anchor.exception.ServerErrorException;
 import org.stellar.anchor.exception.UnprocessableEntityException;
 import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.paymentservice.circle.model.CirclePaymentStatus;
@@ -166,8 +165,8 @@ public class CirclePaymentObserverService {
 
     ObservedPayment observedPayment = null;
     try {
-      observedPayment = fetchObservedPayment(circleTransfer);
-    } catch (IOException | ServerErrorException ex) {
+      observedPayment = fetchCircleTransferOnStellar(circleTransfer);
+    } catch (IOException ex) {
       ex.printStackTrace();
     }
 
@@ -197,15 +196,14 @@ public class CirclePaymentObserverService {
   }
 
   /**
-   * This will fetch the Stellar payment (or path payment) that originated thee Circle transfer.
+   * This will fetch the Stellar payment (or path payment) that originated the Circle transfer.
    *
    * @param circleTransfer the Circle transfer
    * @return an ObservedPayment or null if unable to convert
-   * @throws IOException
-   * @throws ServerErrorException
+   * @throws IOException if an error happens fetching data from Stellar
    */
-  public ObservedPayment fetchObservedPayment(CircleTransfer circleTransfer)
-      throws IOException, ServerErrorException {
+  public ObservedPayment fetchCircleTransferOnStellar(CircleTransfer circleTransfer)
+      throws IOException {
     String txHash = circleTransfer.getTransactionHash();
     Page<OperationResponse> responsePage =
         horizonServer
