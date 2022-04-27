@@ -115,38 +115,53 @@ public class PaymentOperationToEventListener implements PaymentListener {
   }
 
   TransactionEvent receivedPaymentToEvent(Sep31Transaction txn, ObservedPayment payment) {
-    // TODO move event models to /shared
+    Instant paymentTime =
+        DateTimeFormatter.ISO_INSTANT.parse(payment.getCreatedAt(), Instant::from);
+
+    TransactionEvent.Status newStatus = TransactionEvent.Status.PENDING_RECEIVER;
+    TransactionEvent.StatusChange statusChange =
+        TransactionEvent.StatusChange.builder()
+            .from(TransactionEvent.Status.from(txn.getStatus()))
+            .to(newStatus)
+            .build();
+
+    StellarId senderStellarId =
+        StellarId.builder()
+            .account(payment.getFrom())
+            .memo(txn.getStellarMemo())
+            .memoType(txn.getStellarMemoType())
+            .build();
+    StellarId receiverStellarId = StellarId.builder().account(payment.getTo()).build();
+
     TransactionEvent event =
         TransactionEvent.builder()
             .eventId(UUID.randomUUID().toString())
+            // TODO: update to TRANSACTION_STATUS_CHANGED:
             .type(TransactionEvent.Type.TRANSACTION_PAYMENT_RECEIVED)
             .id(txn.getId())
-            .status(TransactionEvent.Status.PENDING_RECEIVER)
             .sep(TransactionEvent.Sep.SEP_31)
             .kind(TransactionEvent.Kind.RECEIVE)
-            .amountIn(new Amount(payment.getAmount(), txn.getAmountInAsset()))
+            .status(newStatus)
+            .statusChange(statusChange)
+            .amountExpected(new Amount(txn.getAmountIn(), txn.getAmountInAsset()))
+            .amountIn(new Amount(payment.getAmount(), payment.getAssetCode()))
             .amountOut(new Amount(txn.getAmountOut(), txn.getAmountOutAsset()))
             // TODO: fix PATCH transaction fails if getAmountOut is null?
             .amountFee(new Amount(txn.getAmountFee(), txn.getAmountFeeAsset()))
             .quoteId(txn.getQuoteId())
             .startedAt(txn.getStartedAt())
-            .sourceAccount(payment.getFrom())
-            .destinationAccount(payment.getTo())
-            .creator(
-                StellarId.builder()
-                    .account(payment.getFrom())
-                    .memo(txn.getStellarMemo())
-                    .memoType(txn.getStellarMemoType())
-                    .build())
+            .updatedAt(paymentTime)
+            .completedAt(null)
+            .transferReceivedAt(paymentTime)
+            .message("Incoming payment for SEP-31 transaction")
+            .refund(null)
             .stellarTransactions(
                 new StellarTransaction[] {
                   StellarTransaction.builder()
                       .id(payment.getTransactionHash())
                       .memo(txn.getStellarMemo())
                       .memoType(txn.getStellarMemoType())
-                      .createdAt(
-                          DateTimeFormatter.ISO_INSTANT.parse(
-                              payment.getCreatedAt(), Instant::from))
+                      .createdAt(paymentTime)
                       .envelope(payment.getTransactionEnvelope())
                       .payments(
                           new Payment[] {
@@ -159,6 +174,12 @@ public class PaymentOperationToEventListener implements PaymentListener {
                           })
                       .build()
                 })
+            .externalTransactionId(payment.getExternalTransactionId())
+            .custodialTransactionId(null)
+            .sourceAccount(payment.getFrom())
+            .destinationAccount(payment.getTo())
+            .customers(new Customers(senderStellarId, receiverStellarId))
+            .creator(senderStellarId)
             .build();
     return event;
   }
