@@ -9,7 +9,8 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "kafka.listener")
 public class KafkaListenerSettings {
   String bootStrapServer;
-  Queues queues;
+  Boolean useSingleQueue;
+  Queues eventTypeToQueue;
 
   @Data
   public static class Queues {

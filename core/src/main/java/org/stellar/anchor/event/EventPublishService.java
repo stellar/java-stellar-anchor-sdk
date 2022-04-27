@@ -2,6 +2,6 @@ package org.stellar.anchor.event;
 
 import org.stellar.anchor.event.models.AnchorEvent;
 
-public interface EventService {
+public interface EventPublishService {
   void publish(AnchorEvent event);
 }

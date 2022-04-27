@@ -8,5 +8,22 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConfigurationProperties(prefix = "sqs.listener")
 public class SqsListenerSettings {
-  String username;
+  String region;
+  Boolean useSingleQueue;
+  Queues eventTypeToQueue;
+  String accessKey;
+  String secretKey;
+
+  @Data
+  public static class Queues {
+    String all;
+    String quoteCreated;
+    String transactionCreated;
+    String transactionPaymentReceived;
+    String transactionError;
+  }
+
+  public Boolean isUseSingleQueue() {
+    return useSingleQueue;
+  }
 }

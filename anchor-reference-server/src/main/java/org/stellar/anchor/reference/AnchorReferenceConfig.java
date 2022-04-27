@@ -5,9 +5,11 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.stellar.anchor.reference.config.EventSettings;
 import org.stellar.anchor.reference.config.KafkaListenerSettings;
+import org.stellar.anchor.reference.config.SqsListenerSettings;
 import org.stellar.anchor.reference.event.AbstractEventListener;
 import org.stellar.anchor.reference.event.AnchorEventProcessor;
 import org.stellar.anchor.reference.event.KafkaListener;
+import org.stellar.anchor.reference.event.SqsListener;
 import org.stellar.anchor.util.GsonUtils;
 
 @Configuration
@@ -21,11 +23,13 @@ public class AnchorReferenceConfig {
   public AbstractEventListener eventListener(
       EventSettings eventSettings,
       AnchorEventProcessor anchorEventProcessor,
-      KafkaListenerSettings kafkaListenerSettings) {
+      KafkaListenerSettings kafkaListenerSettings,
+      SqsListenerSettings sqsListenerSettings) {
     switch (eventSettings.getListenerType()) {
       case "kafka":
         return new KafkaListener(kafkaListenerSettings, anchorEventProcessor);
       case "sqs":
+        return new SqsListener(sqsListenerSettings, anchorEventProcessor);
       case "amqp":
       default:
         throw new RuntimeException(
