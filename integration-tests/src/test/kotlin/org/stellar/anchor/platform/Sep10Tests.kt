@@ -1,8 +1,8 @@
 package org.stellar.anchor.platform
 
 import kotlin.test.assertFailsWith
-import org.stellar.anchor.dto.sep10.ValidationRequest
-import org.stellar.anchor.exception.SepNotAuthorizedException
+import org.stellar.anchor.api.exception.SepNotAuthorizedException
+import org.stellar.anchor.api.sep.sep10.ValidationRequest
 import org.stellar.anchor.util.Sep1Helper
 
 lateinit var sep10Client: Sep10Client

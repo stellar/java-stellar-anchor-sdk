@@ -4,11 +4,11 @@ import java.io.IOException;
 import okhttp3.HttpUrl;
 import okhttp3.Request;
 import okhttp3.RequestBody;
-import org.stellar.anchor.exception.AnchorException;
+import org.stellar.anchor.api.exception.AnchorException;
+import org.stellar.anchor.api.platform.GetTransactionResponse;
+import org.stellar.anchor.api.platform.PatchTransactionsRequest;
+import org.stellar.anchor.api.platform.PatchTransactionsResponse;
 import org.stellar.anchor.util.OkHttpUtil;
-import org.stellar.platform.apis.platform.requests.PatchTransactionsRequest;
-import org.stellar.platform.apis.platform.responses.GetTransactionResponse;
-import org.stellar.platform.apis.platform.responses.PatchTransactionsResponse;
 
 public class PlatformApiClient extends BaseApiClient {
   private String endpoint;

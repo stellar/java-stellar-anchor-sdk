@@ -5,10 +5,10 @@ import java.time.format.DateTimeFormatter
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
-import org.stellar.anchor.dto.sep38.GetPriceResponse
-import org.stellar.anchor.dto.sep38.GetPricesResponse
-import org.stellar.anchor.dto.sep38.InfoResponse
-import org.stellar.anchor.dto.sep38.Sep38QuoteResponse
+import org.stellar.anchor.api.sep.sep38.GetPriceResponse
+import org.stellar.anchor.api.sep.sep38.GetPricesResponse
+import org.stellar.anchor.api.sep.sep38.InfoResponse
+import org.stellar.anchor.api.sep.sep38.Sep38QuoteResponse
 
 class Sep38Client(private val endpoint: String, private val jwt: String) : SepClient() {
   fun getInfo(): InfoResponse {

@@ -2,8 +2,8 @@ package org.stellar.anchor.util
 
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.stellar.anchor.exception.SepException
-import org.stellar.anchor.exception.SepValidationException
+import org.stellar.anchor.api.exception.SepException
+import org.stellar.anchor.api.exception.SepValidationException
 import org.stellar.sdk.xdr.MemoType
 
 internal class MemoHelperTest {

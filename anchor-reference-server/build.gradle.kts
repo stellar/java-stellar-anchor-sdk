@@ -18,7 +18,7 @@ dependencies {
   implementation(libs.java.stellar.sdk)
   implementation(libs.okhttp3)
 
-  implementation(project(":platform-apis"))
+  implementation(project(":api-schema"))
   implementation(project(":core"))
 
   annotationProcessor(libs.lombok)

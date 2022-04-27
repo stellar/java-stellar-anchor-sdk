@@ -1,7 +1,8 @@
 package org.stellar.anchor.dto.sep24
 
 import org.junit.jupiter.api.Test
-import org.stellar.anchor.asset.AssetInfo
+import org.stellar.anchor.api.sep.AssetInfo
+import org.stellar.anchor.api.sep.sep24.*
 
 internal class Sep24DtoTests {
   @Test

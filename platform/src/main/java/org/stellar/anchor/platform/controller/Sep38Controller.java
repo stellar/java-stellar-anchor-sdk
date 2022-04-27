@@ -9,8 +9,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestClientException;
-import org.stellar.anchor.dto.SepExceptionResponse;
-import org.stellar.anchor.dto.sep38.*;
+import org.stellar.anchor.api.sep.SepExceptionResponse;
+import org.stellar.anchor.api.sep.sep38.*;
 import org.stellar.anchor.sep10.JwtToken;
 import org.stellar.anchor.sep38.Sep38Service;
 

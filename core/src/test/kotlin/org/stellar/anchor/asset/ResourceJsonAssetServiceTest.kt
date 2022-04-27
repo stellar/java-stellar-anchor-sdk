@@ -1,12 +1,13 @@
 package org.stellar.anchor.asset
 
 import com.google.gson.JsonSyntaxException
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.stellar.anchor.Constants.Companion.TEST_ASSET
 import org.stellar.anchor.Constants.Companion.TEST_ASSET_ISSUER_ACCOUNT_ID
-import org.stellar.anchor.exception.SepNotFoundException
+import org.stellar.anchor.api.exception.SepNotFoundException
 
 internal class ResourceJsonAssetServiceTest {
   @Test

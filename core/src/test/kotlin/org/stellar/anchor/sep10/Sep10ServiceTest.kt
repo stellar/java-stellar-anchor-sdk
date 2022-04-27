@@ -20,13 +20,13 @@ import org.stellar.anchor.Constants.Companion.TEST_JWT_SECRET
 import org.stellar.anchor.Constants.Companion.TEST_MEMO
 import org.stellar.anchor.Constants.Companion.TEST_NETWORK_PASS_PHRASE
 import org.stellar.anchor.Constants.Companion.TEST_SIGNING_SEED
+import org.stellar.anchor.api.exception.SepException
+import org.stellar.anchor.api.exception.SepValidationException
+import org.stellar.anchor.api.sep.sep10.ChallengeRequest
+import org.stellar.anchor.api.sep.sep10.ValidationRequest
 import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.Sep10Config
-import org.stellar.anchor.dto.sep10.ChallengeRequest
 import org.stellar.anchor.dto.sep10.ChallengeRequestTest
-import org.stellar.anchor.dto.sep10.ValidationRequest
-import org.stellar.anchor.exception.SepException
-import org.stellar.anchor.exception.SepValidationException
 import org.stellar.anchor.horizon.Horizon
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.NetUtil

@@ -1,8 +1,8 @@
 package org.stellar.anchor.platform
 
 import org.junit.jupiter.api.Assertions.*
-import org.stellar.anchor.dto.sep12.Sep12PutCustomerRequest
-import org.stellar.anchor.dto.sep12.Sep12Status
+import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest
+import org.stellar.anchor.api.sep.sep12.Sep12Status
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.Sep1Helper
 

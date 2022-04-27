@@ -2,6 +2,7 @@ package org.stellar.anchor.dto.sep10
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
+import org.stellar.anchor.api.sep.sep10.ChallengeResponse
 
 internal class ChallengeResponseTest {
   companion object {

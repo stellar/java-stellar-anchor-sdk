@@ -1,17 +1,17 @@
 package org.stellar.anchor.util;
 
-import static org.stellar.anchor.model.TransactionStatus.*;
+import static org.stellar.anchor.api.sep.TransactionStatus.*;
 import static org.stellar.anchor.util.MathHelper.decimal;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import org.stellar.anchor.api.exception.AnchorException;
+import org.stellar.anchor.api.exception.BadRequestException;
+import org.stellar.anchor.api.exception.SepValidationException;
+import org.stellar.anchor.api.sep.TransactionStatus;
 import org.stellar.anchor.config.AppConfig;
-import org.stellar.anchor.exception.AnchorException;
-import org.stellar.anchor.exception.BadRequestException;
-import org.stellar.anchor.exception.SepValidationException;
-import org.stellar.anchor.model.TransactionStatus;
 import org.stellar.sdk.xdr.MemoType;
 
 public class SepHelper {

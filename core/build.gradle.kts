@@ -26,8 +26,7 @@ dependencies {
   implementation(libs.javax.jaxb.api)
   implementation(libs.java.stellar.sdk)
 
-  implementation(project(":platform-apis"))
-
+  implementation(project(":api-schema"))
 
   // Lombok should be used by all sub-projects to reduce Java verbosity
   annotationProcessor(libs.lombok)

@@ -1,6 +1,6 @@
 package org.stellar.anchor.platform
 
-import org.stellar.anchor.asset.AssetInfo
+import org.stellar.anchor.api.sep.AssetInfo
 import org.stellar.anchor.asset.AssetService
 
 class EmptyAssetService : AssetService {

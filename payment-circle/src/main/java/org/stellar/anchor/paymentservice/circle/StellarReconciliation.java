@@ -5,7 +5,7 @@ import static org.stellar.anchor.util.MathHelper.decimal;
 import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.util.List;
-import org.stellar.anchor.exception.HttpException;
+import org.stellar.anchor.api.exception.HttpException;
 import org.stellar.anchor.paymentservice.circle.model.CircleTransactionParty;
 import org.stellar.anchor.paymentservice.circle.model.CircleTransfer;
 import org.stellar.sdk.responses.GsonSingleton;

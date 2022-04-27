@@ -1,16 +1,14 @@
 package org.stellar.anchor.platform.paymentobserver;
 
 import com.google.gson.Gson;
-import java.io.IOException;
-import java.math.BigDecimal;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import okhttp3.*;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import okhttp3.ResponseBody;
+import org.stellar.anchor.api.exception.BadRequestException;
+import org.stellar.anchor.api.exception.ServerErrorException;
+import org.stellar.anchor.api.exception.UnprocessableEntityException;
 import org.stellar.anchor.config.CirclePaymentObserverConfig;
-import org.stellar.anchor.exception.BadRequestException;
-import org.stellar.anchor.exception.ServerErrorException;
-import org.stellar.anchor.exception.UnprocessableEntityException;
 import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.paymentservice.circle.model.CirclePaymentStatus;
 import org.stellar.anchor.paymentservice.circle.model.CircleTransactionParty;
@@ -27,6 +25,12 @@ import org.stellar.sdk.responses.Page;
 import org.stellar.sdk.responses.operations.OperationResponse;
 import org.stellar.sdk.responses.operations.PathPaymentBaseOperationResponse;
 import org.stellar.sdk.responses.operations.PaymentOperationResponse;
+
+import java.io.IOException;
+import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 public class CirclePaymentObserverService {
   private final OkHttpClient httpClient;

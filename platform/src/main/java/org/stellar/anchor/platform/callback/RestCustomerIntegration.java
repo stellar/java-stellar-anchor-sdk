@@ -2,7 +2,8 @@ package org.stellar.anchor.platform.callback;
 
 import static okhttp3.HttpUrl.get;
 import static org.stellar.anchor.platform.PlatformIntegrationHelper.*;
-import static org.stellar.anchor.platform.callback.RestCustomerIntegration.Converter.*;
+import static org.stellar.anchor.platform.callback.RestCustomerIntegration.Converter.fromPlatform;
+import static org.stellar.anchor.platform.callback.RestCustomerIntegration.Converter.fromSep12;
 
 import com.google.gson.Gson;
 import java.net.URI;
@@ -11,13 +12,17 @@ import lombok.SneakyThrows;
 import okhttp3.*;
 import okhttp3.HttpUrl.Builder;
 import org.springframework.http.HttpStatus;
-import org.stellar.anchor.dto.sep12.*;
-import org.stellar.anchor.exception.*;
+import org.stellar.anchor.api.callback.GetCustomerRequest;
+import org.stellar.anchor.api.callback.GetCustomerResponse;
+import org.stellar.anchor.api.callback.PutCustomerRequest;
+import org.stellar.anchor.api.callback.PutCustomerResponse;
+import org.stellar.anchor.api.exception.AnchorException;
+import org.stellar.anchor.api.exception.ServerErrorException;
+import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerRequest;
+import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerResponse;
+import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest;
+import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerResponse;
 import org.stellar.anchor.integration.customer.CustomerIntegration;
-import org.stellar.platform.apis.callbacks.requests.GetCustomerRequest;
-import org.stellar.platform.apis.callbacks.requests.PutCustomerRequest;
-import org.stellar.platform.apis.callbacks.responses.GetCustomerResponse;
-import org.stellar.platform.apis.callbacks.responses.PutCustomerResponse;
 
 public class RestCustomerIntegration implements CustomerIntegration {
   private final String anchorEndpoint;

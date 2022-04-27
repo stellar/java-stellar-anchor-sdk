@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.stellar.anchor.exception.HttpException
+import org.stellar.anchor.api.exception.HttpException
 import org.stellar.anchor.util.GsonUtils
 import reactor.core.publisher.Mono
 import reactor.netty.ByteBufMono

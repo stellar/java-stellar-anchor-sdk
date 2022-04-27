@@ -8,11 +8,14 @@ import java.time.ZonedDateTime;
 import java.util.Map;
 import kotlin.Pair;
 import org.springframework.stereotype.Service;
-import org.stellar.anchor.exception.*;
+import org.stellar.anchor.api.callback.GetRateRequest;
+import org.stellar.anchor.api.callback.GetRateResponse;
+import org.stellar.anchor.api.exception.AnchorException;
+import org.stellar.anchor.api.exception.BadRequestException;
+import org.stellar.anchor.api.exception.NotFoundException;
+import org.stellar.anchor.api.exception.UnprocessableEntityException;
 import org.stellar.anchor.reference.model.Quote;
 import org.stellar.anchor.reference.repo.QuoteRepo;
-import org.stellar.platform.apis.callbacks.requests.GetRateRequest;
-import org.stellar.platform.apis.callbacks.responses.GetRateResponse;
 
 @Service
 public class RateService {

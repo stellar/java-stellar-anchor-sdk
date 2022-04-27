@@ -17,7 +17,7 @@ dependencies {
 
   // project dependencies
   implementation(project(":core"))
-  implementation(project(":platform-apis"))
+  implementation(project(":api-schema"))
   implementation(project(":platform"))
   implementation(project(":anchor-reference-server"))
   implementation(project(":service-runner"))

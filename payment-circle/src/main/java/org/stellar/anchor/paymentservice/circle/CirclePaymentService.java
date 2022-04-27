@@ -9,7 +9,7 @@ import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.apache.commons.validator.routines.EmailValidator;
-import org.stellar.anchor.exception.HttpException;
+import org.stellar.anchor.api.exception.HttpException;
 import org.stellar.anchor.paymentservice.*;
 import org.stellar.anchor.paymentservice.circle.config.CirclePaymentConfig;
 import org.stellar.anchor.paymentservice.circle.model.*;

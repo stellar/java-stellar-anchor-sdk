@@ -7,9 +7,9 @@
 
 The Stellar Anchor SDK is a collection of projects that make easy to build financial applications on Stellar.
 
+* [api-schema](./api-schema): the API interfaces, request, response classes.
 * [core](./core): the base package for implementing standardized anchor applications.
 * [payment-circle](./payment-circle): implementation of payment service with [Circle API](https://developers.circle.com/reference).
-* [platform-apis](./platform-apis): the API interfaces, request, response classes for the anchor platform.
 * [platform](./platform): the anchor platform [Spring Boot Application with WebMVC](https://spring.io/guides/gs/serving-web-content/).
 * [service-runner](./service-runner): the runner class for the platform, reference server and payment observer. 
 * [integration-tests](./integration-tests): the integration tests for the platform, reference server, and payment observers.  

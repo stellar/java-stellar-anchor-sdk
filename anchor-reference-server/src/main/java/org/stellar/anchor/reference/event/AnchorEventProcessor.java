@@ -4,15 +4,15 @@ import com.google.gson.Gson;
 import java.io.IOException;
 import java.util.List;
 import org.springframework.stereotype.Component;
+import org.stellar.anchor.api.exception.AnchorException;
+import org.stellar.anchor.api.platform.PatchTransactionRequest;
+import org.stellar.anchor.api.platform.PatchTransactionsRequest;
+import org.stellar.anchor.api.shared.Amount;
 import org.stellar.anchor.event.models.QuoteEvent;
 import org.stellar.anchor.event.models.TransactionEvent;
-import org.stellar.anchor.exception.AnchorException;
 import org.stellar.anchor.reference.client.PlatformApiClient;
 import org.stellar.anchor.reference.config.AppSettings;
 import org.stellar.anchor.util.Log;
-import org.stellar.platform.apis.platform.requests.PatchTransactionRequest;
-import org.stellar.platform.apis.platform.requests.PatchTransactionsRequest;
-import org.stellar.platform.apis.shared.Amount;
 
 @Component
 public class AnchorEventProcessor {

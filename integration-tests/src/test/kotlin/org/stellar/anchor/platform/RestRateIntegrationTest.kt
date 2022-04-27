@@ -13,10 +13,10 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.stellar.anchor.exception.AnchorException
-import org.stellar.anchor.exception.BadRequestException
-import org.stellar.anchor.exception.NotFoundException
-import org.stellar.anchor.exception.ServerErrorException
+import org.stellar.anchor.api.exception.AnchorException
+import org.stellar.anchor.api.exception.BadRequestException
+import org.stellar.anchor.api.exception.NotFoundException
+import org.stellar.anchor.api.exception.ServerErrorException
 import org.stellar.anchor.integration.rate.GetRateRequest
 import org.stellar.anchor.integration.rate.GetRateResponse
 import org.stellar.anchor.platform.callback.RestRateIntegration

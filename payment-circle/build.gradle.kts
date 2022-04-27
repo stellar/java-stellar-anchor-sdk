@@ -20,6 +20,7 @@ dependencies {
   implementation(libs.java.stellar.sdk)
 
   // From projects
+  implementation(project(":api-schema"))
   implementation(project(":core"))
 
   testImplementation(libs.okhttp3.mockserver)

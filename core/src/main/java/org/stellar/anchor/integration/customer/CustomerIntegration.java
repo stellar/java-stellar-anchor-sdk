@@ -1,10 +1,10 @@
 package org.stellar.anchor.integration.customer;
 
-import org.stellar.anchor.dto.sep12.Sep12GetCustomerRequest;
-import org.stellar.anchor.dto.sep12.Sep12GetCustomerResponse;
-import org.stellar.anchor.dto.sep12.Sep12PutCustomerRequest;
-import org.stellar.anchor.dto.sep12.Sep12PutCustomerResponse;
-import org.stellar.anchor.exception.AnchorException;
+import org.stellar.anchor.api.exception.AnchorException;
+import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerRequest;
+import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerResponse;
+import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest;
+import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerResponse;
 
 public interface CustomerIntegration {
   /**

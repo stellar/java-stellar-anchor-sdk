@@ -3,9 +3,9 @@ package org.stellar.anchor.platform
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
-import org.stellar.anchor.dto.sep31.Sep31InfoResponse
-import org.stellar.anchor.dto.sep31.Sep31PostTransactionRequest
-import org.stellar.anchor.dto.sep31.Sep31PostTransactionResponse
+import org.stellar.anchor.api.sep.sep31.Sep31InfoResponse
+import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionRequest
+import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionResponse
 
 class Sep31Client(private val endpoint: String, private val jwt: String) : SepClient() {
   fun getInfo(): Sep31InfoResponse {

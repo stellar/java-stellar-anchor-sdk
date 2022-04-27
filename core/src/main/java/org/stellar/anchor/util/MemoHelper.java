@@ -4,8 +4,8 @@ import static org.stellar.sdk.xdr.MemoType.*;
 
 import java.util.Base64;
 import org.apache.commons.codec.binary.Hex;
-import org.stellar.anchor.exception.SepException;
-import org.stellar.anchor.exception.SepValidationException;
+import org.stellar.anchor.api.exception.SepException;
+import org.stellar.anchor.api.exception.SepValidationException;
 import org.stellar.sdk.*;
 import org.stellar.sdk.xdr.MemoType;
 

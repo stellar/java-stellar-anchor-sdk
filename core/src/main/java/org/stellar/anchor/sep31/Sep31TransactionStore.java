@@ -3,8 +3,8 @@ package org.stellar.anchor.sep31;
 import java.util.Collection;
 import java.util.List;
 import lombok.NonNull;
-import org.stellar.anchor.exception.AnchorException;
-import org.stellar.anchor.exception.SepException;
+import org.stellar.anchor.api.exception.AnchorException;
+import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.model.Sep31Transaction;
 
 public interface Sep31TransactionStore {

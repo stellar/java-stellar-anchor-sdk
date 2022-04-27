@@ -26,7 +26,7 @@ import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.NullSource
 import org.skyscreamer.jsonassert.JSONAssert
-import org.stellar.anchor.exception.HttpException
+import org.stellar.anchor.api.exception.HttpException
 import org.stellar.anchor.paymentservice.*
 import org.stellar.anchor.paymentservice.circle.config.CirclePaymentConfig
 import org.stellar.anchor.paymentservice.circle.model.CircleBlockchainAddress

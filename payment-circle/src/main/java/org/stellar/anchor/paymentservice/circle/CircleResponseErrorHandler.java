@@ -2,7 +2,7 @@ package org.stellar.anchor.paymentservice.circle;
 
 import java.util.function.BiFunction;
 import org.jetbrains.annotations.NotNull;
-import org.stellar.anchor.exception.HttpException;
+import org.stellar.anchor.api.exception.HttpException;
 import org.stellar.anchor.paymentservice.circle.model.response.CircleError;
 import reactor.core.publisher.Mono;
 import reactor.netty.ByteBufMono;

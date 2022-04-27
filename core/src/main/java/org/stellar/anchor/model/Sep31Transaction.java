@@ -3,7 +3,7 @@ package org.stellar.anchor.model;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
-import org.stellar.anchor.asset.AssetInfo;
+import org.stellar.anchor.api.sep.AssetInfo;
 
 public interface Sep31Transaction {
   String getId();

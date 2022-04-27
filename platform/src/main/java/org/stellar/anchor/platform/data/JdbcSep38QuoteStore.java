@@ -1,7 +1,7 @@
 package org.stellar.anchor.platform.data;
 
 import lombok.NonNull;
-import org.stellar.anchor.exception.SepException;
+import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.model.Sep38Quote;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
 

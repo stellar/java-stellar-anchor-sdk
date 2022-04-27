@@ -1,7 +1,7 @@
 package org.stellar.anchor.paymentservice;
 
 import java.math.BigDecimal;
-import org.stellar.anchor.exception.HttpException;
+import org.stellar.anchor.api.exception.HttpException;
 import reactor.core.publisher.Mono;
 import reactor.util.annotation.Nullable;
 

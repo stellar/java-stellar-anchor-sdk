@@ -1,6 +1,6 @@
 package org.stellar.anchor.integration.rate;
 
-import org.stellar.anchor.exception.AnchorException;
+import org.stellar.anchor.api.exception.AnchorException;
 
 public interface RateIntegration {
   /**

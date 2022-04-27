@@ -7,7 +7,7 @@ import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import org.stellar.platform.apis.shared.Amount;
+import org.stellar.anchor.api.shared.Amount;
 
 @Data
 @Builder
