@@ -58,7 +58,11 @@ class Sep10Client(
   }
 
   fun validate(validationRequest: ValidationRequest): ValidationResponse? {
-    val request = OkHttpUtil.buildJsonPostRequest(this.endpoint, json(validationRequest))
+    val request =
+      org.stellar.anchor.util.OkHttpUtil.buildJsonPostRequest(
+        this.endpoint,
+        json(validationRequest)
+      )
     val response = client.newCall(request).execute()
     if (response.code != 200) {
       throw SepNotAuthorizedException("Error validating SEP10 transaction")
