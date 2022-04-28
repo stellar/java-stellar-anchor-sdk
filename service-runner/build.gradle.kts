@@ -11,7 +11,7 @@ dependencies {
 
 
   // From projects
-  implementation(project(":payment-circle"))
+  implementation(project(":payment"))
   implementation(project(":platform"))
   implementation(project(":anchor-reference-server"))
 }

@@ -19,8 +19,7 @@ dependencies {
   implementation(libs.okhttp3)
 
   implementation(project(":api-schema"))
-  implementation(project(":common"))
-  implementation(project(":sep"))
+  implementation(project(":core"))
 
   annotationProcessor(libs.lombok)
   annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")

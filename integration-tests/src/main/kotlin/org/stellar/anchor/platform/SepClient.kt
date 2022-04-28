@@ -11,7 +11,7 @@ import org.stellar.anchor.util.GsonUtils
 
 open class SepClient {
   companion object {
-    val gson: Gson = org.stellar.anchor.util.GsonUtils.getInstance()
+    val gson: Gson = GsonUtils.getInstance()
     val client =
       OkHttpClient.Builder()
         .connectTimeout(10, TimeUnit.MINUTES)

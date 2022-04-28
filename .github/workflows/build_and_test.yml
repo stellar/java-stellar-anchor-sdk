@@ -22,9 +22,9 @@ jobs:
       run: |
         ./gradlew clean build
         echo *** SEP test report ***
-        cat /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/sep/build/reports/tests/test/index.html
-        echo *** Payment Circle test report ***
-        cat /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/payment-circle/build/reports/tests/test/index.html
+        cat /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/core/build/reports/tests/test/index.html
+        echo *** Payment test report ***
+        cat /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/payment/build/reports/tests/test/index.html
         echo *** Platform test report ***
         cat /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/platform/build/reports/tests/test/index.html
         echo *** Anchor reference server test report ***

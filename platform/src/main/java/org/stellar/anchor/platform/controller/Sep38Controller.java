@@ -1,7 +1,7 @@
 package org.stellar.anchor.platform.controller;
 
 import static org.stellar.anchor.platform.controller.Sep10Helper.getSep10Token;
-import static org.stellar.anchor.util.Log.*;
+import static org.stellar.anchor.util.Log.errorEx;
 
 import javax.servlet.http.HttpServletRequest;
 import lombok.SneakyThrows;

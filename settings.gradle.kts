@@ -37,15 +37,10 @@ dependencyResolutionManagement {
 /** APIs and Schemas */
 include("api-schema")
 
-include("common")
-
-include("sep")
-
-include("payment-common")
+include("core")
 
 /** Payment subprojects */
-include("payment-circle")
-// TODO: include("payment-stellar")
+include("payment")
 
 /** Anchor Platform */
 include("platform")
