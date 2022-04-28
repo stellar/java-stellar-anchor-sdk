@@ -56,7 +56,7 @@ public class KafkaListener extends AbstractEventListener {
       try {
         ConsumerRecords<String, AnchorEvent> consumerRecords =
             consumer.poll(Duration.ofSeconds(10));
-        Log.debug(String.format("Messages received: %s", consumerRecords.count()));
+        Log.info(String.format("Messages received: %s", consumerRecords.count()));
         consumerRecords.forEach(
             record -> {
               String eventClass = record.value().getClass().getSimpleName();

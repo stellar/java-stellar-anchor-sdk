@@ -34,6 +34,7 @@ class PaymentOperationToEventListenerTest {
     // Payment missing txHash shouldn't trigger an event nor reach the DB
     val p = ObservedPayment.builder().build()
     p.transactionHash = null
+    p.transactionMemoType = "text"
     p.transactionMemo = "my_memo_1"
     paymentOperationToEventListener.onReceived(p)
     verify { eventPublishService wasNot Called }
@@ -111,7 +112,8 @@ class PaymentOperationToEventListenerTest {
 
     val p = ObservedPayment.builder().build()
     p.transactionHash = "1ad62e48724426be96cf2cdb65d5dacb8fac2e403e50bedb717bfc8eaf05af30"
-    p.transactionMemo = "my_memo"
+    p.transactionMemo = "39623738663066612d393366392d343139382d386439332d6537366664303834"
+    p.transactionMemoType = "hash"
     p.assetType = "credit_alphanum4"
     p.assetCode = "FOO"
     p.assetIssuer = "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364"
@@ -136,14 +138,18 @@ class PaymentOperationToEventListenerTest {
     sep31TxMock.amountFeeAsset = "FOO"
     sep31TxMock.quoteId = "cef1fc13-3f65-4612-b1f2-502d698c816b"
     sep31TxMock.startedAt = startedAtMock
-    sep31TxMock.stellarMemo = "my_memo"
-    sep31TxMock.stellarMemoType = "text"
+    sep31TxMock.stellarMemo = "OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ="
+    sep31TxMock.stellarMemoType = "hash"
     sep31TxMock.status = TransactionStatus.PENDING_SENDER.toString()
 
     every { transactionStore.findByStellarMemo(capture(slotMemo)) } returns sep31TxMock
 
     val wantSenderStellarId =
-      StellarId.builder().account(p.from).memo("my_memo").memoType("text").build()
+      StellarId.builder()
+        .account(p.from)
+        .memo("OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ=")
+        .memoType("hash")
+        .build()
     val wantReceiverStellarId = StellarId.builder().account(p.to).build()
     val wantEvent =
       TransactionEvent.builder()
@@ -175,8 +181,8 @@ class PaymentOperationToEventListenerTest {
           arrayOf(
             StellarTransaction.builder()
               .id("1ad62e48724426be96cf2cdb65d5dacb8fac2e403e50bedb717bfc8eaf05af30")
-              .memo("my_memo")
-              .memoType("text")
+              .memo("OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ=")
+              .memoType("hash")
               .createdAt(createdAt)
               .envelope(
                 "AAAAAgAAAAAQfdFrLDgzSIIugR73qs8U0ZiKbwBUclTTPh5thlbgnAAAB9AAAACwAAAABAAAAAEAAAAAAAAAAAAAAABiMbeEAAAAAAAAABQAAAAAAAAAAAAAAADcXPrnCDi+IDcGSvu/HjP779qjBv6K9Sie8i3WDySaIgAAAAA8M2CAAAAAAAAAAAAAAAAAJXdMB+xylKwEPk1tOLU82vnDM0u15RsK6/HCKsY1O3MAAAAAPDNggAAAAAAAAAAAAAAAALn+JaJ9iXEcrPeRFqEMGo6WWFeOwW15H/vvCOuMqCsSAAAAADwzYIAAAAAAAAAAAAAAAADbWpHlX0LQjIjY0x8jWkclnQDK8jFmqhzCmB+1EusXwAAAAAA8M2CAAAAAAAAAAAAAAAAAmy3UTqTnhNzIg8TjCYiRh9l07ls0Hi5FTqelhfZ4KqAAAAAAPDNggAAAAAAAAAAAAAAAAIwiZIIbYJn7MbHrrM+Pg85c6Lcn0ZGLb8NIiXLEIPTnAAAAADwzYIAAAAAAAAAAAAAAAAAYEjPKA/6lDpr/w1Cfif2hK4GHeNODhw0kk4kgLrmPrQAAAAA8M2CAAAAAAAAAAAAAAAAASMrE32C3vL39cj84pIg2mt6OkeWBz5OSZn0eypcjS4IAAAAAPDNggAAAAAAAAAAAAAAAAIuxsI+2mSeh3RkrkcpQ8bMqE7nXUmdvgwyJS/dBThIPAAAAADwzYIAAAAAAAAAAAAAAAACuZxdjR/GXaymdc9y5WFzz2A8Yk5hhgzBZsQ9R0/BmZwAAAAA8M2CAAAAAAAAAAAAAAAAAAtWBvyq0ToNovhQHSLeQYu7UzuqbVrm0i3d1TjRm7WEAAAAAPDNggAAAAAAAAAAAAAAAANtrzNON0u1IEGKmVsm80/Av+BKip0ioeS/4E+Ejs9YPAAAAADwzYIAAAAAAAAAAAAAAAAD+ejNcgNcKjR/ihUx1ikhdz5zmhzvRET3LGd7oOiBlTwAAAAA8M2CAAAAAAAAAAAAAAAAASXG3P6KJjS6e0dzirbso8vRvZKo6zETUsEv7OSP8XekAAAAAPDNggAAAAAAAAAAAAAAAAC5orVpxxvGEB8ISTho2YdOPZJrd7UBj1Bt8TOjLOiEKAAAAADwzYIAAAAAAAAAAAAAAAAAOQR7AqdGyIIMuFLw9JQWtHqsUJD94kHum7SJS9PXkOwAAAAA8M2CAAAAAAAAAAAAAAAAAIosijRx7xSP/+GA6eAjGeV9wJtKDySP+OJr90euE1yQAAAAAPDNggAAAAAAAAAAAAAAAAKlHXWQvwNPeT4Pp1oJDiOpcKwS3d9sho+ha+6pyFwFqAAAAADwzYIAAAAAAAAAAAAAAAABjCjnoL8+FEP0LByZA9PfMLwU1uAX4Cb13rVs83e1UZAAAAAA8M2CAAAAAAAAAAAAAAAAAokhNCZNGq9uAkfKTNoNGr5XmmMoY5poQEmp8OVbit7IAAAAAPDNggAAAAAAAAAABhlbgnAAAAEBa9csgF5/0wxrYM6oVsbM4Yd+/3uVIplS6iLmPOS4xf8oLQLtjKKKIIKmg9Gc/yYm3icZyU7icy9hGjcujenMN"
@@ -205,7 +211,9 @@ class PaymentOperationToEventListenerTest {
     every { eventPublishService.publish(capture(slotEvent)) } just Runs
 
     paymentOperationToEventListener.onReceived(p)
-    verify(exactly = 1) { transactionStore.findByStellarMemo("my_memo") }
+    verify(exactly = 1) {
+      transactionStore.findByStellarMemo("OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ=")
+    }
     verify(exactly = 1) { eventPublishService.publish(any()) }
 
     wantEvent.eventId = slotEvent.captured.eventId

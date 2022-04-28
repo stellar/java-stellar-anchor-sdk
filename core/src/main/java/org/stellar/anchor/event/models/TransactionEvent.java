@@ -115,6 +115,8 @@ public class TransactionEvent implements AnchorEvent {
   public static class StatusChange {
     Status from;
     Status to;
+
+    StatusChange() {}
   }
 
   public enum Sep {
