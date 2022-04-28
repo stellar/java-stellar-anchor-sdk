@@ -21,7 +21,7 @@ dependencies {
 
   // From projects
   implementation(project(":api-schema"))
-  implementation(project(":core"))
+  implementation(project(":sep"))
 
   testImplementation(libs.okhttp3.mockserver)
 }

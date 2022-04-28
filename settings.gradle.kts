@@ -36,7 +36,7 @@ dependencyResolutionManagement {
 /** APIs and Schemas */
 include("api-schema")
 
-include("core")
+include("sep")
 
 /** Payment subprojects */
 include("payment-circle")

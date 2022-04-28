@@ -19,7 +19,7 @@ public interface Sep31TransactionStore {
    *
    * @param transactionId The transaction ID.
    * @return The transaction document. null if not found.
-   * @throws org.stellar.anchor.exception.AnchorException if error happens.
+   * @throws AnchorException if error happens.
    */
   Sep31Transaction findByTransactionId(String transactionId) throws AnchorException;
 

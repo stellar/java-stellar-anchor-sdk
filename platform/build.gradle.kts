@@ -27,8 +27,8 @@ dependencies {
   implementation(libs.log4j2.slf4j)
 
   // From projects
-  implementation(project(":core"))
   implementation(project(":api-schema"))
+  implementation(project(":sep"))
   implementation(project(":payment-circle"))
   implementation(project(":anchor-reference-server"))
 
