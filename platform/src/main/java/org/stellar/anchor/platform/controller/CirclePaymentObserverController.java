@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestClientException;
 import org.stellar.anchor.dto.SepExceptionResponse;
 import org.stellar.anchor.exception.BadRequestException;
+import org.stellar.anchor.exception.ServerErrorException;
 import org.stellar.anchor.exception.UnprocessableEntityException;
 import org.stellar.anchor.platform.paymentobserver.CirclePaymentObserverService;
 import shadow.com.google.common.reflect.TypeToken;
@@ -33,7 +34,7 @@ public class CirclePaymentObserverController {
       consumes = {MediaType.APPLICATION_JSON_VALUE})
   public void handleCircleNotificationJson(
       @RequestBody(required = false) Map<String, Object> requestBody)
-      throws UnprocessableEntityException, BadRequestException {
+      throws UnprocessableEntityException, BadRequestException, ServerErrorException {
     circlePaymentObserverService.handleCircleNotification(requestBody);
   }
 
@@ -43,7 +44,7 @@ public class CirclePaymentObserverController {
       method = {RequestMethod.POST, RequestMethod.GET, RequestMethod.HEAD},
       consumes = {MediaType.TEXT_PLAIN_VALUE})
   public void handleCircleNotificationTextPlain(@RequestBody(required = false) String jsonBodyStr)
-      throws UnprocessableEntityException, BadRequestException {
+      throws UnprocessableEntityException, BadRequestException, ServerErrorException {
     Type type = new TypeToken<Map<String, ?>>() {}.getType();
     Map<String, Object> requestBody = gson.fromJson(jsonBodyStr, type);
     circlePaymentObserverService.handleCircleNotification(requestBody);

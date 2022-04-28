@@ -9,6 +9,7 @@ import java.util.Objects;
 import okhttp3.*;
 import org.stellar.anchor.config.CirclePaymentObserverConfig;
 import org.stellar.anchor.exception.BadRequestException;
+import org.stellar.anchor.exception.ServerErrorException;
 import org.stellar.anchor.exception.UnprocessableEntityException;
 import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.paymentservice.circle.model.CirclePaymentStatus;
@@ -56,7 +57,7 @@ public class CirclePaymentObserverService {
   }
 
   public void handleCircleNotification(Map<String, Object> requestBody)
-      throws UnprocessableEntityException, BadRequestException {
+      throws UnprocessableEntityException, BadRequestException, ServerErrorException {
     CircleNotification circleNotification =
         gson.fromJson(gson.toJson(requestBody), CircleNotification.class);
     String type = Objects.toString(circleNotification.getType(), "");
@@ -80,6 +81,8 @@ public class CirclePaymentObserverService {
    * This will auto-subscribe to Circle when we receive a subscription available notification.
    *
    * @param circleNotification is the circle notification object.
+   * @throws BadRequestException when the incoming circle subscription notification does not contain
+   *     a SubscribeURL, or it can't be reached.
    */
   public void handleSubscriptionConfirmationNotification(CircleNotification circleNotification)
       throws BadRequestException {
@@ -121,15 +124,27 @@ public class CirclePaymentObserverService {
    * circle<>circle or circle<>stellar events.
    *
    * @param circleNotification is the circle notification object.
+   * @throws BadRequestException when the incoming notification format is inconsistent with Circle
+   *     documentation. This will return an error to Circle and Circle will try to submit the
+   *     notification again.
+   * @throws UnprocessableEntityException when the incoming notification doesn't match the
+   *     characteristics we want to watch. This should not return any error to Circle.
+   * @throws ServerErrorException when there's an error trying to fetch the Stellar network.
    */
   public void handleTransferNotification(CircleNotification circleNotification)
-      throws BadRequestException, UnprocessableEntityException {
+      throws BadRequestException, UnprocessableEntityException, ServerErrorException {
     if (circleNotification.getMessage() == null) {
       throw new BadRequestException("Notification body of type Notification is missing a message.");
     }
 
     TransferNotificationBody transferNotification =
         gson.fromJson(circleNotification.getMessage(), TransferNotificationBody.class);
+
+    String notificationType = transferNotification.getNotificationType();
+    if (!Objects.equals("transfers", notificationType)) {
+      throw new UnprocessableEntityException(
+          "Won't handle notification of type \"" + notificationType + "\".");
+    }
 
     CircleTransfer circleTransfer = transferNotification.getTransfer();
     if (circleTransfer == null) {
@@ -167,7 +182,8 @@ public class CirclePaymentObserverService {
     try {
       observedPayment = fetchCircleTransferOnStellar(circleTransfer);
     } catch (IOException ex) {
-      ex.printStackTrace();
+      throw new ServerErrorException(
+          "Something went wrong when trying to fetch the Stellar network", ex);
     }
 
     if (observedPayment == null) {

@@ -161,8 +161,18 @@ class CirclePaymentObserverServiceTest {
     assertEquals("Notification body of type Notification is missing a message.", ex.message)
     assertInstanceOf(BadRequestException::class.java, ex)
 
-    // missing Message.transfer
+    // notification type is not "transfers"
     subConfirmationNotification = mapOf("Type" to "Notification", "Message" to "{}")
+    ex =
+      assertThrows {
+        circlePaymentObserverService.handleCircleNotification(subConfirmationNotification)
+      }
+    assertEquals("Won't handle notification of type \"null\".", ex.message)
+    assertInstanceOf(UnprocessableEntityException::class.java, ex)
+
+    // missing Message.transfer
+    var messageJson = """{ "notificationType": "transfers" }"""
+    subConfirmationNotification = mapOf("Type" to "Notification", "Message" to messageJson)
     ex =
       assertThrows {
         circlePaymentObserverService.handleCircleNotification(subConfirmationNotification)
@@ -171,7 +181,7 @@ class CirclePaymentObserverServiceTest {
     assertInstanceOf(BadRequestException::class.java, ex)
 
     // Not a complete transfer
-    var messageJson = """{ "transfer": {} }"""
+    messageJson = """{ "notificationType": "transfers", "transfer": {} }"""
     subConfirmationNotification = mapOf("Type" to "Notification", "Message" to messageJson)
     ex =
       assertThrows {
@@ -181,7 +191,7 @@ class CirclePaymentObserverServiceTest {
     assertInstanceOf(UnprocessableEntityException::class.java, ex)
 
     // Incomplete transfer
-    messageJson = """{ "transfer": { "status": "pending" } }"""
+    messageJson = """{ "notificationType": "transfers", "transfer": { "status": "pending" } }"""
     subConfirmationNotification = mapOf("Type" to "Notification", "Message" to messageJson)
     ex =
       assertThrows {
@@ -193,6 +203,7 @@ class CirclePaymentObserverServiceTest {
     // Neither source nor destination are Stellar accounts
     messageJson =
       """{ 
+      "notificationType": "transfers",
       "transfer": {
         "status": "complete",
         "source": {
@@ -217,7 +228,8 @@ class CirclePaymentObserverServiceTest {
 
     // Not tracking the wallets
     messageJson =
-      """{ 
+      """{
+      "notificationType": "transfers",
       "transfer": {
         "status": "complete",
         "source": {
@@ -254,7 +266,8 @@ class CirclePaymentObserverServiceTest {
         listOf(paymentListener)
       )
     messageJson =
-      """{ 
+      """{
+      "notificationType": "transfers",
       "transfer": {
         "status": "complete",
         "source": {
@@ -343,7 +356,8 @@ class CirclePaymentObserverServiceTest {
     every { paymentListener.onReceived(capture(slotObservedPayment)) } just Runs
 
     val messageJson =
-      """{ 
+      """{
+      "notificationType": "transfers",
       "transfer": {
         "id": "7f131f58-a8a0-3dc2-be05-6a015c69de35",
         "status": "complete",
