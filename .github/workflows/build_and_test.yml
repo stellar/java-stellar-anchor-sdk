@@ -59,7 +59,7 @@ jobs:
   sep_validation_suite:
     needs: [build_and_test]
     runs-on: ubuntu-latest
-    name: Validate SEPs (1, 10, 12, 31, 38)
+    name: Validate SEPs
     env:
       PR_NUMBER: ${{github.event.pull_request.number}}
     steps:
