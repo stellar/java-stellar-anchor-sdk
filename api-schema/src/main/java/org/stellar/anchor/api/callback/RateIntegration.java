@@ -1,4 +1,4 @@
-package org.stellar.anchor.integration.rate;
+package org.stellar.anchor.api.callback;
 
 import org.stellar.anchor.api.exception.AnchorException;
 

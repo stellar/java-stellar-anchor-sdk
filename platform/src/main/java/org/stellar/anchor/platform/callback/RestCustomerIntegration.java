@@ -12,17 +12,14 @@ import lombok.SneakyThrows;
 import okhttp3.*;
 import okhttp3.HttpUrl.Builder;
 import org.springframework.http.HttpStatus;
-import org.stellar.anchor.api.callback.GetCustomerRequest;
-import org.stellar.anchor.api.callback.GetCustomerResponse;
-import org.stellar.anchor.api.callback.PutCustomerRequest;
-import org.stellar.anchor.api.callback.PutCustomerResponse;
+import org.stellar.anchor.api.callback.*;
+import org.stellar.anchor.api.callback.CustomerIntegration;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.ServerErrorException;
 import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerRequest;
 import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerResponse;
 import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest;
 import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerResponse;
-import org.stellar.anchor.integration.customer.CustomerIntegration;
 
 public class RestCustomerIntegration implements CustomerIntegration {
   private final String anchorEndpoint;
@@ -121,8 +118,7 @@ public class RestCustomerIntegration implements CustomerIntegration {
 
   @SneakyThrows
   @Override
-  public org.stellar.anchor.integration.customer.PutCustomerVerificationResponse putVerification(
-      org.stellar.anchor.integration.customer.PutCustomerVerificationRequest request) {
+  public PutCustomerVerificationResponse putVerification(PutCustomerVerificationRequest request) {
     // the Platform Callback API doesn't support verification.
     // if it does in the future we can implement this method
     throw new UnsupportedOperationException("not implemented");

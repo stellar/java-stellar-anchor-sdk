@@ -14,11 +14,11 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.springframework.http.HttpStatus;
+import org.stellar.anchor.api.callback.GetRateRequest;
+import org.stellar.anchor.api.callback.GetRateResponse;
+import org.stellar.anchor.api.callback.RateIntegration;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.ServerErrorException;
-import org.stellar.anchor.integration.rate.GetRateRequest;
-import org.stellar.anchor.integration.rate.GetRateResponse;
-import org.stellar.anchor.integration.rate.RateIntegration;
 import shadow.com.google.common.reflect.TypeToken;
 
 public class RestRateIntegration implements RateIntegration {

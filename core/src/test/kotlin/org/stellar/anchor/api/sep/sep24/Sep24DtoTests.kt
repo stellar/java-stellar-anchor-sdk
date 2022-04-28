@@ -1,4 +1,4 @@
-package org.stellar.anchor.dto.sep24
+package org.stellar.anchor.api.sep.sep24
 
 import org.junit.jupiter.api.Test
 import org.stellar.anchor.api.sep.AssetInfo

@@ -13,11 +13,11 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.springframework.http.HttpStatus;
+import org.stellar.anchor.api.callback.FeeIntegration;
 import org.stellar.anchor.api.callback.GetFeeRequest;
 import org.stellar.anchor.api.callback.GetFeeResponse;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.ServerErrorException;
-import org.stellar.anchor.integration.fee.FeeIntegration;
 import shadow.com.google.common.reflect.TypeToken;
 
 public class RestFeeIntegration implements FeeIntegration {

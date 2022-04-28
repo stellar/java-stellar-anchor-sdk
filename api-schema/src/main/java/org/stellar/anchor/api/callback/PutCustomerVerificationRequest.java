@@ -1,4 +1,4 @@
-package org.stellar.anchor.integration.customer;
+package org.stellar.anchor.api.callback;
 
 import lombok.Data;
 

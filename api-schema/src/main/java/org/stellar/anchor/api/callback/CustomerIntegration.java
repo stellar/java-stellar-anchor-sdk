@@ -1,4 +1,4 @@
-package org.stellar.anchor.integration.customer;
+package org.stellar.anchor.api.callback;
 
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerRequest;

@@ -23,12 +23,12 @@ import org.stellar.anchor.api.exception.SepException
 import org.stellar.anchor.api.exception.SepNotAuthorizedException
 import org.stellar.anchor.api.exception.SepNotFoundException
 import org.stellar.anchor.api.exception.SepValidationException
+import org.stellar.anchor.api.sep.sep24.GetTransactionRequest
+import org.stellar.anchor.api.sep.sep24.GetTransactionsRequest
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.ResourceJsonAssetService
 import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.Sep24Config
-import org.stellar.anchor.api.sep.sep24.GetTransactionRequest
-import org.stellar.anchor.api.sep.sep24.GetTransactionsRequest
 import org.stellar.anchor.model.Sep24Transaction
 import org.stellar.anchor.sep10.JwtService
 import org.stellar.anchor.sep10.JwtToken
@@ -329,8 +329,7 @@ internal class Sep24ServiceTest {
   fun testFindTransaction(kind: String) {
     every { txnStore.findByTransactionId(any()) } returns createTestTransaction(kind)
 
-    var gtr =
-      GetTransactionRequest(TEST_TRANSACTION_ID_0, null, null)
+    var gtr = GetTransactionRequest(TEST_TRANSACTION_ID_0, null, null)
     val response = sep24Service.findTransaction(createJwtToken(), gtr)
 
     assertEquals(response.transaction.id, TEST_TRANSACTION_ID_0)
@@ -359,8 +358,7 @@ internal class Sep24ServiceTest {
   @ValueSource(strings = ["deposit", "withdrawal"])
   fun testFindTransactionValidationError(kind: String) {
     assertThrows<SepNotAuthorizedException> {
-      val gtr =
-        GetTransactionRequest(TEST_TRANSACTION_ID_0, null, null)
+      val gtr = GetTransactionRequest(TEST_TRANSACTION_ID_0, null, null)
       sep24Service.findTransaction(null, gtr)
     }
 
@@ -373,8 +371,7 @@ internal class Sep24ServiceTest {
 
     every { txnStore.findByTransactionId(any()) } returns null
     assertThrows<SepNotFoundException> {
-      val gtr =
-        GetTransactionRequest(TEST_TRANSACTION_ID_0, null, null)
+      val gtr = GetTransactionRequest(TEST_TRANSACTION_ID_0, null, null)
       sep24Service.findTransaction(createJwtToken(), gtr)
     }
 
@@ -383,8 +380,7 @@ internal class Sep24ServiceTest {
     every { txnStore.findByTransactionId(any()) } returns badTxn
 
     assertThrows<SepException> {
-      val gtr =
-        GetTransactionRequest(TEST_TRANSACTION_ID_0, null, null)
+      val gtr = GetTransactionRequest(TEST_TRANSACTION_ID_0, null, null)
       sep24Service.findTransaction(createJwtToken(), gtr)
     }
   }

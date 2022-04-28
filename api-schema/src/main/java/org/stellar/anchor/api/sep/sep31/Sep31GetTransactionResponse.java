@@ -1,4 +1,4 @@
-package org.stellar.anchor.dto.sep31;
+package org.stellar.anchor.api.sep.sep31;
 
 import com.google.gson.annotations.SerializedName;
 import java.time.Instant;
@@ -6,7 +6,6 @@ import java.util.List;
 import lombok.Builder;
 import lombok.Data;
 import org.stellar.anchor.api.sep.AssetInfo;
-import org.stellar.anchor.model.Sep31Transaction;
 
 @Data
 @Builder
@@ -79,11 +78,11 @@ public class Sep31GetTransactionResponse {
     @SerializedName("amount_fee")
     String amountFee;
 
-    List<Sep31Transaction.RefundPayment> payments;
+    List<Sep31RefundPayment> payments;
   }
 
   @Data
-  public static class JdbcRefundPayment implements Sep31Transaction.RefundPayment {
+  public static class Sep31RefundPayment {
     String Id;
     String amount;
     String fee;

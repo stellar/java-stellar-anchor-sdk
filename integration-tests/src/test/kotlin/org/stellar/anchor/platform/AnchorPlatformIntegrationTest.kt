@@ -12,11 +12,11 @@ import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.skyscreamer.jsonassert.JSONAssert
 import org.stellar.anchor.api.callback.GetFeeRequest
+import org.stellar.anchor.api.callback.GetRateRequest
+import org.stellar.anchor.api.callback.GetRateRequest.Type.FIRM
+import org.stellar.anchor.api.callback.GetRateRequest.Type.INDICATIVE
 import org.stellar.anchor.api.exception.NotFoundException
 import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerRequest
-import org.stellar.anchor.integration.rate.GetRateRequest
-import org.stellar.anchor.integration.rate.GetRateRequest.Type.FIRM
-import org.stellar.anchor.integration.rate.GetRateRequest.Type.INDICATIVE
 import org.stellar.anchor.platform.callback.RestCustomerIntegration
 import org.stellar.anchor.platform.callback.RestFeeIntegration
 import org.stellar.anchor.platform.callback.RestRateIntegration

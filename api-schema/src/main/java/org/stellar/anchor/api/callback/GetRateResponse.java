@@ -3,21 +3,19 @@ package org.stellar.anchor.api.callback;
 import com.google.gson.annotations.SerializedName;
 import java.time.Instant;
 import lombok.Data;
+import reactor.util.annotation.NonNull;
+import reactor.util.annotation.Nullable;
 
 @Data
 public class GetRateResponse {
   Rate rate;
 
-  public GetRateResponse() {
-    this.rate = new Rate();
-  }
-
-  public GetRateResponse(String price) {
+  public GetRateResponse(@NonNull String price) {
     this.rate = new Rate();
     this.rate.price = price;
   }
 
-  public GetRateResponse(String id, String price, Instant expiresAt) {
+  public GetRateResponse(@NonNull String id, @NonNull String price, @NonNull Instant expiresAt) {
     this.rate = new Rate();
     this.rate.id = id;
     this.rate.price = price;
@@ -26,11 +24,12 @@ public class GetRateResponse {
 
   @Data
   public static class Rate {
-    String id;
+    @Nullable String id;
 
     String price;
 
     @SerializedName("expires_at")
+    @Nullable
     Instant expiresAt;
   }
 }

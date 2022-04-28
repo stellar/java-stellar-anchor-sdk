@@ -8,6 +8,8 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.stellar.anchor.api.callback.GetRateRequest
+import org.stellar.anchor.api.callback.GetRateResponse
 import org.stellar.anchor.api.exception.AnchorException
 import org.stellar.anchor.api.exception.BadRequestException
 import org.stellar.anchor.api.exception.NotFoundException
@@ -17,8 +19,6 @@ import org.stellar.anchor.api.sep.sep38.*
 import org.stellar.anchor.asset.ResourceJsonAssetService
 import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.Sep38Config
-import org.stellar.anchor.integration.rate.GetRateRequest
-import org.stellar.anchor.integration.rate.GetRateResponse
 import org.stellar.anchor.model.Sep38Quote
 import org.stellar.anchor.model.Sep38QuoteBuilder
 import org.stellar.anchor.sep10.JwtToken

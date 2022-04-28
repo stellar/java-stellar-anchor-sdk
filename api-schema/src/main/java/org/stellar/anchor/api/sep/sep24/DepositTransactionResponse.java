@@ -3,7 +3,6 @@ package org.stellar.anchor.api.sep.sep24;
 import com.google.gson.annotations.SerializedName;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.stellar.anchor.api.sep.sep24.TransactionResponse;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
