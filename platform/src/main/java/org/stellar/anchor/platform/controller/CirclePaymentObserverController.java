@@ -1,6 +1,7 @@
 package org.stellar.anchor.platform.controller;
 
-import static org.stellar.anchor.util.Log.*;
+import static org.stellar.anchor.util.Log.errorEx;
+import static org.stellar.anchor.util.Log.warnEx;
 
 import com.google.gson.Gson;
 import java.lang.reflect.Type;
@@ -9,10 +10,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestClientException;
-import org.stellar.anchor.dto.SepExceptionResponse;
-import org.stellar.anchor.exception.BadRequestException;
-import org.stellar.anchor.exception.ServerErrorException;
-import org.stellar.anchor.exception.UnprocessableEntityException;
+import org.stellar.anchor.api.exception.BadRequestException;
+import org.stellar.anchor.api.exception.ServerErrorException;
+import org.stellar.anchor.api.exception.UnprocessableEntityException;
+import org.stellar.anchor.api.sep.SepExceptionResponse;
 import org.stellar.anchor.platform.paymentobserver.CirclePaymentObserverService;
 import shadow.com.google.common.reflect.TypeToken;
 

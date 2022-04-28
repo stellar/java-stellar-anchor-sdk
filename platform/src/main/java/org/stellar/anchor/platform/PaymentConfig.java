@@ -1,5 +1,7 @@
 package org.stellar.anchor.platform;
 
+import java.util.List;
+import java.util.stream.Collectors;
 import okhttp3.OkHttpClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,9 +15,6 @@ import org.stellar.anchor.platform.paymentobserver.CirclePaymentObserverService;
 import org.stellar.anchor.platform.paymentobserver.PaymentListener;
 import org.stellar.anchor.platform.paymentobserver.PaymentStreamerCursorStore;
 import org.stellar.anchor.platform.paymentobserver.StellarPaymentObserver;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Configuration
 public class PaymentConfig {
