@@ -1,5 +1,14 @@
 package org.stellar.anchor.platform.controller;
 
+import static org.stellar.anchor.platform.controller.Sep10Helper.getSep10Token;
+import static org.stellar.anchor.util.Log.*;
+
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
+import java.util.HashMap;
+import java.util.Map;
+import javax.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -11,16 +20,6 @@ import org.stellar.anchor.exception.SepNotFoundException;
 import org.stellar.anchor.exception.SepValidationException;
 import org.stellar.anchor.sep10.JwtToken;
 import org.stellar.anchor.sep24.Sep24Service;
-
-import javax.servlet.http.HttpServletRequest;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URISyntaxException;
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.stellar.anchor.platform.controller.Sep10Helper.getSep10Token;
-import static org.stellar.anchor.util.Log.*;
 
 @RestController
 @CrossOrigin(origins = "*")
