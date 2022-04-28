@@ -4,7 +4,6 @@ import static org.stellar.anchor.util.MathHelper.decimal;
 import static org.stellar.anchor.util.SepHelper.validateTransactionStatus;
 
 import org.stellar.anchor.api.exception.BadRequestException;
-import org.stellar.anchor.model.Sep31Transaction;
 
 public class Sep31Helper {
   public static boolean allAmountAvailable(Sep31Transaction txn) {

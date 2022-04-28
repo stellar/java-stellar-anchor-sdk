@@ -35,9 +35,7 @@ import org.stellar.anchor.config.Sep31Config;
 import org.stellar.anchor.event.EventPublishService;
 import org.stellar.anchor.event.models.StellarId;
 import org.stellar.anchor.event.models.TransactionEvent;
-import org.stellar.anchor.model.Sep31Transaction;
-import org.stellar.anchor.model.Sep31TransactionBuilder;
-import org.stellar.anchor.model.Sep38Quote;
+import org.stellar.anchor.sep38.Sep38Quote;
 import org.stellar.anchor.sep10.JwtToken;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
 

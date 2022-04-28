@@ -6,7 +6,6 @@ import java.util.Set;
 import lombok.Data;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.event.models.StellarTransaction;
-import org.stellar.anchor.model.Sep31Transaction;
 
 @Data
 public class PojoSep31Transaction implements Sep31Transaction {

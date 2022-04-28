@@ -1,7 +1,7 @@
 package org.stellar.anchor.sep24;
 
-import static org.stellar.anchor.model.Sep24Transaction.Kind.DEPOSIT;
-import static org.stellar.anchor.model.Sep24Transaction.Kind.WITHDRAWAL;
+import static org.stellar.anchor.sep24.Sep24Transaction.Kind.DEPOSIT;
+import static org.stellar.anchor.sep24.Sep24Transaction.Kind.WITHDRAWAL;
 import static org.stellar.anchor.sep9.Sep9Fields.extractSep9Fields;
 import static org.stellar.anchor.util.Log.shorter;
 import static org.stellar.anchor.util.MathHelper.decimal;
@@ -27,8 +27,6 @@ import org.stellar.anchor.api.sep.sep24.*;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.Sep24Config;
-import org.stellar.anchor.model.Sep24Transaction;
-import org.stellar.anchor.model.Sep24TransactionBuilder;
 import org.stellar.anchor.sep10.JwtService;
 import org.stellar.anchor.sep10.JwtToken;
 import org.stellar.anchor.util.Log;

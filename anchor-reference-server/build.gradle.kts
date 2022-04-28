@@ -19,6 +19,7 @@ dependencies {
   implementation(libs.okhttp3)
 
   implementation(project(":api-schema"))
+  implementation(project(":common"))
   implementation(project(":sep"))
 
   annotationProcessor(libs.lombok)

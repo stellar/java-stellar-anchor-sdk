@@ -16,7 +16,6 @@ import org.stellar.anchor.api.sep.sep24.DepositTransactionResponse;
 import org.stellar.anchor.api.sep.sep24.TransactionResponse;
 import org.stellar.anchor.api.sep.sep24.WithdrawTransactionResponse;
 import org.stellar.anchor.config.Sep24Config;
-import org.stellar.anchor.model.Sep24Transaction;
 import org.stellar.anchor.sep10.JwtService;
 import org.stellar.anchor.sep10.JwtToken;
 import org.stellar.anchor.util.DateUtil;

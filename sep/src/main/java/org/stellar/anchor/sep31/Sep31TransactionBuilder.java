@@ -1,10 +1,9 @@
-package org.stellar.anchor.model;
+package org.stellar.anchor.sep31;
 
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import org.stellar.anchor.api.sep.AssetInfo;
-import org.stellar.anchor.sep31.Sep31TransactionStore;
 
 public class Sep31TransactionBuilder {
   final Sep31Transaction txn;

@@ -21,6 +21,8 @@ dependencies {
 
   // From projects
   implementation(project(":api-schema"))
+  implementation(project(":common"))
+  implementation(project(":payment-common"))
   implementation(project(":sep"))
 
   testImplementation(libs.okhttp3.mockserver)

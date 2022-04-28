@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.lang.NonNull;
-import org.stellar.anchor.model.Sep24Transaction;
+import org.stellar.anchor.sep24.Sep24Transaction;
 
 public interface JdbcSep24TransactionRepo extends CrudRepository<JdbcSep24Transaction, String> {
   Optional<JdbcSep24Transaction> findById(@NonNull String id);

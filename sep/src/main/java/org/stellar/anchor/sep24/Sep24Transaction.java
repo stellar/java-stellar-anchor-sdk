@@ -1,4 +1,4 @@
-package org.stellar.anchor.model;
+package org.stellar.anchor.sep24;
 
 @SuppressWarnings("unused")
 public interface Sep24Transaction {

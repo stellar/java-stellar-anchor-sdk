@@ -29,7 +29,6 @@ import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.ResourceJsonAssetService
 import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.Sep24Config
-import org.stellar.anchor.model.Sep24Transaction
 import org.stellar.anchor.sep10.JwtService
 import org.stellar.anchor.sep10.JwtToken
 import org.stellar.anchor.util.DateUtil

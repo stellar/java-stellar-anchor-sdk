@@ -1,7 +1,6 @@
-package org.stellar.anchor.model;
+package org.stellar.anchor.sep38;
 
 import java.time.Instant;
-import org.stellar.anchor.sep38.Sep38QuoteStore;
 
 public class Sep38QuoteBuilder {
   final Sep38Quote quote;

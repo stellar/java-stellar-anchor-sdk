@@ -3,7 +3,6 @@ package org.stellar.anchor.sep24;
 import java.util.List;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.sep.sep24.GetTransactionsRequest;
-import org.stellar.anchor.model.Sep24Transaction;
 
 /** This interface is for the SEP adapter service to query/save the transaction document. */
 public interface Sep24TransactionStore {

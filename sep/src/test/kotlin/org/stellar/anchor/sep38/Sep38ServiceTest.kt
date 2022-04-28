@@ -19,8 +19,6 @@ import org.stellar.anchor.api.sep.sep38.*
 import org.stellar.anchor.asset.ResourceJsonAssetService
 import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.Sep38Config
-import org.stellar.anchor.model.Sep38Quote
-import org.stellar.anchor.model.Sep38QuoteBuilder
 import org.stellar.anchor.sep10.JwtToken
 
 class Sep38ServiceTest {

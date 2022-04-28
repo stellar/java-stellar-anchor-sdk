@@ -5,6 +5,7 @@ import io.mockk.mockk
 import org.junit.jupiter.api.Test
 import org.stellar.anchor.api.sep.TransactionStatus
 import org.stellar.anchor.sep24.PojoSep24Transaction
+import org.stellar.anchor.sep24.Sep24TransactionBuilder
 import org.stellar.anchor.sep24.Sep24TransactionStore
 
 internal class Sep24TransactionTest {

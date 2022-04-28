@@ -1,4 +1,4 @@
-package org.stellar.anchor.model;
+package org.stellar.anchor.sep31;
 
 import java.time.Instant;
 import java.util.List;

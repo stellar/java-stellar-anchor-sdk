@@ -1,4 +1,4 @@
-package org.stellar.anchor.model;
+package org.stellar.anchor.sep38;
 
 import java.time.Instant;
 

@@ -16,7 +16,7 @@ import org.stellar.anchor.api.sep.TransactionStatus;
 import org.stellar.anchor.api.shared.Amount;
 import org.stellar.anchor.event.EventPublishService;
 import org.stellar.anchor.event.models.*;
-import org.stellar.anchor.model.Sep31Transaction;
+import org.stellar.anchor.sep31.Sep31Transaction;
 import org.stellar.anchor.platform.data.JdbcSep31TransactionStore;
 import org.stellar.anchor.platform.paymentobserver.ObservedPayment;
 import org.stellar.anchor.platform.paymentobserver.PaymentListener;

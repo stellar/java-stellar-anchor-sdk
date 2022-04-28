@@ -6,7 +6,7 @@ import java.util.stream.Collectors;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.exception.SepValidationException;
 import org.stellar.anchor.api.sep.sep24.GetTransactionsRequest;
-import org.stellar.anchor.model.Sep24Transaction;
+import org.stellar.anchor.sep24.Sep24Transaction;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.util.DateUtil;
 

@@ -28,7 +28,9 @@ dependencies {
 
   // From projects
   implementation(project(":api-schema"))
+  implementation(project(":common"))
   implementation(project(":sep"))
+  implementation(project(":payment-common"))
   implementation(project(":payment-circle"))
   implementation(project(":anchor-reference-server"))
 

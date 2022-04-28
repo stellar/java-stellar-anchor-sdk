@@ -1,6 +1,4 @@
-package org.stellar.anchor.model;
-
-import org.stellar.anchor.sep24.Sep24TransactionStore;
+package org.stellar.anchor.sep24;
 
 @SuppressWarnings("unused")
 public class Sep24TransactionBuilder {

@@ -22,8 +22,6 @@ import org.stellar.anchor.config.Sep38Config;
 import org.stellar.anchor.event.EventPublishService;
 import org.stellar.anchor.event.models.QuoteEvent;
 import org.stellar.anchor.event.models.StellarId;
-import org.stellar.anchor.model.Sep38Quote;
-import org.stellar.anchor.model.Sep38QuoteBuilder;
 import org.stellar.anchor.sep10.JwtToken;
 import org.stellar.anchor.util.Log;
 

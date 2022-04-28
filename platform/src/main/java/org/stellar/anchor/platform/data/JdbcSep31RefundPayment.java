@@ -1,7 +1,7 @@
 package org.stellar.anchor.platform.data;
 
 import lombok.Data;
-import org.stellar.anchor.model.Sep31Transaction;
+import org.stellar.anchor.sep31.Sep31Transaction;
 
 public class JdbcSep31RefundPayment {
   @Data

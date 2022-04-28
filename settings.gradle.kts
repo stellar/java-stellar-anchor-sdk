@@ -6,6 +6,7 @@ dependencyResolutionManagement {
   versionCatalogs {
     create("libs") {
       alias("apache.commons.lang3").to("org.apache.commons:commons-lang3:3.12.0")
+      alias("commons.beanutils").to("commons-beanutils:commons-beanutils:1.9.4")
       alias("commons.cli").to("commons-cli:commons-cli:1.5.0")
       alias("commons.codec").to("commons-codec:commons-codec:1.15")
       alias("commons.validator").to("commons-validator:commons-validator:1.7")
@@ -36,7 +37,11 @@ dependencyResolutionManagement {
 /** APIs and Schemas */
 include("api-schema")
 
+include("common")
+
 include("sep")
+
+include("payment-common")
 
 /** Payment subprojects */
 include("payment-circle")
