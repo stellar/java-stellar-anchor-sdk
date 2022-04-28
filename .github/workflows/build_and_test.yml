@@ -21,8 +21,8 @@ jobs:
     - name: Clean, Build and Test
       run: |
         ./gradlew clean build
-        echo *** Core test report ***
-        cat /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/core/build/reports/tests/test/index.html
+        echo *** SEP test report ***
+        cat /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/sep/build/reports/tests/test/index.html
         echo *** Payment Circle test report ***
         cat /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/payment-circle/build/reports/tests/test/index.html
         echo *** Platform test report ***
