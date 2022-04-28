@@ -3,6 +3,7 @@ package org.stellar.anchor.platform.paymentobserver;
 import com.google.gson.annotations.SerializedName;
 import lombok.Builder;
 import lombok.Data;
+import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.util.MemoHelper;
 import org.stellar.sdk.*;
 import org.stellar.sdk.responses.operations.PathPaymentBaseOperationResponse;
@@ -38,7 +39,8 @@ public class ObservedPayment {
   String transactionMemoType;
   String transactionEnvelope;
 
-  public static ObservedPayment fromPaymentOperationResponse(PaymentOperationResponse paymentOp) {
+  public static ObservedPayment fromPaymentOperationResponse(PaymentOperationResponse paymentOp)
+      throws SepException {
     String assetCode = null, assetIssuer = null;
     if (paymentOp.getAsset() instanceof AssetTypeCreditAlphaNum) {
       AssetTypeCreditAlphaNum issuedAsset = (AssetTypeCreditAlphaNum) paymentOp.getAsset();
@@ -72,7 +74,7 @@ public class ObservedPayment {
   }
 
   public static ObservedPayment fromPathPaymentOperationResponse(
-      PathPaymentBaseOperationResponse pathPaymentOp) {
+      PathPaymentBaseOperationResponse pathPaymentOp) throws SepException {
     String assetCode = null, assetIssuer = null;
     if (pathPaymentOp.getAsset() instanceof AssetTypeCreditAlphaNum) {
       AssetTypeCreditAlphaNum issuedAsset = (AssetTypeCreditAlphaNum) pathPaymentOp.getAsset();

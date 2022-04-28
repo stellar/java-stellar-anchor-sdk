@@ -133,12 +133,10 @@ public class PaymentOperationToEventListener implements PaymentListener {
     Instant paymentTime =
         DateTimeFormatter.ISO_INSTANT.parse(payment.getCreatedAt(), Instant::from);
 
+    TransactionEvent.Status oldStatus = TransactionEvent.Status.from(txn.getStatus());
     TransactionEvent.Status newStatus = TransactionEvent.Status.PENDING_RECEIVER;
     TransactionEvent.StatusChange statusChange =
-        TransactionEvent.StatusChange.builder()
-            .from(TransactionEvent.Status.from(txn.getStatus()))
-            .to(newStatus)
-            .build();
+        new TransactionEvent.StatusChange(oldStatus, newStatus);
 
     StellarId senderStellarId =
         StellarId.builder()

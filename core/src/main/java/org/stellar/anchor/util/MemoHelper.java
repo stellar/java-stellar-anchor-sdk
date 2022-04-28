@@ -92,11 +92,9 @@ public class MemoHelper {
     return Base64.getEncoder().encodeToString(Hex.decodeHex(memo));
   }
 
-  public static String memoAsString(Memo memo) {
-    switch (getMemoType(memo)) {
-      case MEMO_NONE:
-        return null;
+  public static String memoAsString(Memo memo) throws SepException {
 
+    switch (getMemoType(memo)) {
       case MEMO_ID:
         return String.valueOf(((MemoId) memo).getId());
 
@@ -106,10 +104,9 @@ public class MemoHelper {
       case MEMO_HASH:
         return ((MemoHash) memo).getHexValue();
 
-      case MEMO_RETURN:
-        return ((MemoReturnHash) memo).getHexValue();
+      default:
+        String memoTypeStr = memoTypeAsString(memo);
+        throw new SepException("Unsupported value: " + memoTypeStr);
     }
-
-    return null;
   }
 }

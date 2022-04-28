@@ -110,7 +110,6 @@ public class TransactionEvent implements AnchorEvent {
   }
 
   @Data
-  @Builder
   @AllArgsConstructor
   public static class StatusChange {
     Status from;

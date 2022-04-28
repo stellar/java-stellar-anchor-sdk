@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
+import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.util.Log;
 import org.stellar.sdk.KeyPair;
 import org.stellar.sdk.Server;
@@ -73,13 +74,22 @@ public class StellarPaymentObserver {
             }
 
             ObservedPayment observedPayment = null;
-            if (operationResponse instanceof PaymentOperationResponse) {
-              PaymentOperationResponse payment = (PaymentOperationResponse) operationResponse;
-              observedPayment = ObservedPayment.fromPaymentOperationResponse(payment);
-            } else if (operationResponse instanceof PathPaymentBaseOperationResponse) {
-              PathPaymentBaseOperationResponse pathPayment =
-                  (PathPaymentBaseOperationResponse) operationResponse;
-              observedPayment = ObservedPayment.fromPathPaymentOperationResponse(pathPayment);
+            try {
+              if (operationResponse instanceof PaymentOperationResponse) {
+                PaymentOperationResponse payment = (PaymentOperationResponse) operationResponse;
+                observedPayment = ObservedPayment.fromPaymentOperationResponse(payment);
+              } else if (operationResponse instanceof PathPaymentBaseOperationResponse) {
+                PathPaymentBaseOperationResponse pathPayment =
+                    (PathPaymentBaseOperationResponse) operationResponse;
+                observedPayment = ObservedPayment.fromPathPaymentOperationResponse(pathPayment);
+              }
+            } catch (SepException ex) {
+              Log.warn(
+                  String.format(
+                      "Payment of id %s contains unsupported memo %s.",
+                      operationResponse.getId(),
+                      operationResponse.getTransaction().get().getMemo().toString()));
+              Log.warnEx(ex);
             }
 
             if (observedPayment != null) {
