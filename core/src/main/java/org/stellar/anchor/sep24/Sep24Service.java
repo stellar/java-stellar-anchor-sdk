@@ -1,7 +1,7 @@
 package org.stellar.anchor.sep24;
 
-import static org.stellar.anchor.model.Sep24Transaction.Kind.DEPOSIT;
-import static org.stellar.anchor.model.Sep24Transaction.Kind.WITHDRAWAL;
+import static org.stellar.anchor.sep24.Sep24Transaction.Kind.DEPOSIT;
+import static org.stellar.anchor.sep24.Sep24Transaction.Kind.WITHDRAWAL;
 import static org.stellar.anchor.sep9.Sep9Fields.extractSep9Fields;
 import static org.stellar.anchor.util.Log.shorter;
 import static org.stellar.anchor.util.MathHelper.decimal;
@@ -9,6 +9,7 @@ import static org.stellar.anchor.util.MemoHelper.makeMemo;
 import static org.stellar.anchor.util.SepHelper.*;
 import static org.stellar.sdk.xdr.MemoType.MEMO_ID;
 
+import com.google.gson.Gson;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -16,24 +17,23 @@ import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.*;
 import org.apache.http.client.utils.URIBuilder;
-import org.stellar.anchor.asset.AssetInfo;
+import org.stellar.anchor.api.exception.SepException;
+import org.stellar.anchor.api.exception.SepNotAuthorizedException;
+import org.stellar.anchor.api.exception.SepNotFoundException;
+import org.stellar.anchor.api.exception.SepValidationException;
+import org.stellar.anchor.api.sep.AssetInfo;
+import org.stellar.anchor.api.sep.TransactionStatus;
+import org.stellar.anchor.api.sep.sep24.*;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.Sep24Config;
-import org.stellar.anchor.dto.sep24.*;
-import org.stellar.anchor.exception.SepException;
-import org.stellar.anchor.exception.SepNotAuthorizedException;
-import org.stellar.anchor.exception.SepNotFoundException;
-import org.stellar.anchor.exception.SepValidationException;
-import org.stellar.anchor.model.Sep24Transaction;
-import org.stellar.anchor.model.Sep24TransactionBuilder;
-import org.stellar.anchor.model.TransactionStatus;
 import org.stellar.anchor.sep10.JwtService;
 import org.stellar.anchor.sep10.JwtToken;
 import org.stellar.anchor.util.Log;
 import org.stellar.sdk.KeyPair;
 
 public class Sep24Service {
+  final Gson gson;
   final AppConfig appConfig;
   final Sep24Config sep24Config;
   final AssetService assetService;
@@ -41,11 +41,13 @@ public class Sep24Service {
   final Sep24TransactionStore txnStore;
 
   public Sep24Service(
+      Gson gson,
       AppConfig appConfig,
       Sep24Config sep24Config,
       AssetService assetService,
       JwtService jwtService,
       Sep24TransactionStore txnStore) {
+    this.gson = gson;
     this.appConfig = appConfig;
     this.sep24Config = sep24Config;
     this.assetService = assetService;
@@ -326,9 +328,9 @@ public class Sep24Service {
   TransactionResponse fromTxn(Sep24Transaction txn)
       throws MalformedURLException, URISyntaxException, SepException {
     if (txn.getKind().equals(DEPOSIT.toString())) {
-      return DepositTransactionResponse.of(jwtService, sep24Config, txn, true);
+      return Sep24Helper.fromDepositTxn(gson, jwtService, sep24Config, txn, true);
     } else if (txn.getKind().equals(WITHDRAWAL.toString())) {
-      return WithdrawTransactionResponse.of(jwtService, sep24Config, txn, true);
+      return Sep24Helper.fromWithdrawTxn(gson, jwtService, sep24Config, txn, true);
     } else {
       throw new SepException(String.format("unsupported txn kind:%s", txn.getKind()));
     }

@@ -2,8 +2,8 @@ package org.stellar.anchor.reference.service
 
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.stellar.anchor.exception.BadRequestException
-import org.stellar.platform.apis.callbacks.requests.GetFeeRequest
+import org.stellar.anchor.api.callback.GetFeeRequest
+import org.stellar.anchor.api.exception.BadRequestException
 
 internal class FeeServiceTest {
   @Test

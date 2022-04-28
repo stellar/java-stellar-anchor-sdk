@@ -2,6 +2,7 @@ package org.stellar.anchor.platform;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+import com.google.gson.Gson;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -14,16 +15,16 @@ import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.util.FileCopyUtils;
+import org.stellar.anchor.api.callback.CustomerIntegration;
+import org.stellar.anchor.api.callback.FeeIntegration;
+import org.stellar.anchor.api.callback.RateIntegration;
+import org.stellar.anchor.api.exception.SepNotFoundException;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.asset.ResourceJsonAssetService;
 import org.stellar.anchor.config.*;
 import org.stellar.anchor.event.EventPublishService;
-import org.stellar.anchor.exception.SepNotFoundException;
 import org.stellar.anchor.filter.Sep10TokenFilter;
 import org.stellar.anchor.horizon.Horizon;
-import org.stellar.anchor.integration.customer.CustomerIntegration;
-import org.stellar.anchor.integration.fee.FeeIntegration;
-import org.stellar.anchor.integration.rate.RateIntegration;
 import org.stellar.anchor.platform.data.*;
 import org.stellar.anchor.sep1.ResourceReader;
 import org.stellar.anchor.sep1.Sep1Service;
@@ -81,7 +82,7 @@ public class SepConfig {
   @Bean
   public ResourceReader resourceReader() {
     return new ResourceReader() {
-      ResourceLoader resourceLoader = new DefaultResourceLoader();
+      final ResourceLoader resourceLoader = new DefaultResourceLoader();
 
       @Override
       public String readResourceAsString(String path) {
@@ -117,13 +118,14 @@ public class SepConfig {
 
   @Bean
   Sep24Service sep24Service(
+      Gson gson,
       AppConfig appConfig,
       Sep24Config sep24Config,
       AssetService assetService,
       JwtService jwtService,
       Sep24TransactionStore sep24TransactionStore) {
     return new Sep24Service(
-        appConfig, sep24Config, assetService, jwtService, sep24TransactionStore);
+        gson, appConfig, sep24Config, assetService, jwtService, sep24TransactionStore);
   }
 
   @Bean

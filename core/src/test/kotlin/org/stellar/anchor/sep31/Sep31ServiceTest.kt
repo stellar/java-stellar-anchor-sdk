@@ -9,22 +9,22 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.stellar.anchor.Constants
-import org.stellar.anchor.asset.AssetInfo
+import org.stellar.anchor.api.callback.CustomerIntegration
+import org.stellar.anchor.api.callback.FeeIntegration
+import org.stellar.anchor.api.sep.AssetInfo
+import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionRequest
+import org.stellar.anchor.api.shared.Amount
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.ResourceJsonAssetService
 import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.Sep31Config
 import org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_RECEIVE
 import org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_SEND
-import org.stellar.anchor.dto.sep31.Sep31PostTransactionRequest
 import org.stellar.anchor.event.EventPublishService
-import org.stellar.anchor.integration.customer.CustomerIntegration
-import org.stellar.anchor.integration.fee.FeeIntegration
 import org.stellar.anchor.sep10.JwtService
 import org.stellar.anchor.sep38.PojoSep38Quote
 import org.stellar.anchor.sep38.Sep38QuoteStore
 import org.stellar.anchor.util.GsonUtils
-import org.stellar.platform.apis.shared.Amount
 
 internal class Sep31ServiceTest {
   companion object {

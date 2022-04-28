@@ -7,14 +7,14 @@ import java.time.format.DateTimeFormatter
 import kotlin.test.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.stellar.anchor.api.exception.SepException
+import org.stellar.anchor.api.sep.TransactionStatus
+import org.stellar.anchor.api.shared.Amount
 import org.stellar.anchor.event.EventPublishService
 import org.stellar.anchor.event.models.*
-import org.stellar.anchor.exception.SepException
-import org.stellar.anchor.model.TransactionStatus
 import org.stellar.anchor.platform.data.JdbcSep31Transaction
 import org.stellar.anchor.platform.data.JdbcSep31TransactionStore
 import org.stellar.anchor.platform.paymentobserver.ObservedPayment
-import org.stellar.platform.apis.shared.Amount
 
 class PaymentOperationToEventListenerTest {
   @MockK(relaxed = true) private lateinit var transactionStore: JdbcSep31TransactionStore

@@ -3,7 +3,7 @@ package org.stellar.anchor.platform.controller;
 import static org.stellar.anchor.filter.BaseTokenFilter.JWT_TOKEN;
 
 import javax.servlet.http.HttpServletRequest;
-import org.stellar.anchor.exception.SepValidationException;
+import org.stellar.anchor.api.exception.SepValidationException;
 import org.stellar.anchor.sep10.JwtToken;
 
 public class Sep10Helper {

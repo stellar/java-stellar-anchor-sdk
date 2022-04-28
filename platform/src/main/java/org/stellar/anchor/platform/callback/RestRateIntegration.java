@@ -8,13 +8,17 @@ import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.Map;
-import okhttp3.*;
+import okhttp3.HttpUrl;
 import okhttp3.HttpUrl.Builder;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 import org.springframework.http.HttpStatus;
-import org.stellar.anchor.exception.*;
-import org.stellar.anchor.integration.rate.GetRateRequest;
-import org.stellar.anchor.integration.rate.GetRateResponse;
-import org.stellar.anchor.integration.rate.RateIntegration;
+import org.stellar.anchor.api.callback.GetRateRequest;
+import org.stellar.anchor.api.callback.GetRateResponse;
+import org.stellar.anchor.api.callback.RateIntegration;
+import org.stellar.anchor.api.exception.AnchorException;
+import org.stellar.anchor.api.exception.ServerErrorException;
 import shadow.com.google.common.reflect.TypeToken;
 
 public class RestRateIntegration implements RateIntegration {

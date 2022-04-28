@@ -16,8 +16,8 @@ dependencies {
   implementation(libs.log4j2.slf4j)
 
   // project dependencies
+  implementation(project(":api-schema"))
   implementation(project(":core"))
-  implementation(project(":platform-apis"))
   implementation(project(":platform"))
   implementation(project(":anchor-reference-server"))
   implementation(project(":service-runner"))

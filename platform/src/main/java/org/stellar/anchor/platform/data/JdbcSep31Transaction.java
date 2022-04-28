@@ -8,8 +8,8 @@ import java.util.Map;
 import java.util.Set;
 import javax.persistence.*;
 import lombok.Data;
-import org.stellar.anchor.asset.AssetInfo;
-import org.stellar.anchor.model.Sep31Transaction;
+import org.stellar.anchor.api.sep.AssetInfo;
+import org.stellar.anchor.sep31.Sep31Transaction;
 import org.stellar.anchor.util.GsonUtils;
 
 @Data

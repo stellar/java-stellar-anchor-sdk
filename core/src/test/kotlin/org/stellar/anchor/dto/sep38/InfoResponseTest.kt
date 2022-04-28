@@ -3,7 +3,8 @@ package org.stellar.anchor.dto.sep38
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.stellar.anchor.asset.AssetInfo
+import org.stellar.anchor.api.sep.AssetInfo
+import org.stellar.anchor.api.sep.sep38.InfoResponse
 import org.stellar.anchor.asset.ResourceJsonAssetService
 
 class InfoResponseTest {

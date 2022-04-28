@@ -1,6 +1,6 @@
 package org.stellar.anchor.platform.service;
 
-import static org.stellar.anchor.model.TransactionStatus.ERROR;
+import static org.stellar.anchor.api.sep.TransactionStatus.ERROR;
 
 import com.google.gson.Gson;
 import java.math.BigDecimal;
@@ -10,17 +10,17 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import org.springframework.stereotype.Component;
+import org.stellar.anchor.api.exception.AnchorException;
+import org.stellar.anchor.api.exception.SepException;
+import org.stellar.anchor.api.sep.TransactionStatus;
+import org.stellar.anchor.api.shared.Amount;
 import org.stellar.anchor.event.EventPublishService;
 import org.stellar.anchor.event.models.*;
-import org.stellar.anchor.exception.AnchorException;
-import org.stellar.anchor.exception.SepException;
-import org.stellar.anchor.model.Sep31Transaction;
-import org.stellar.anchor.model.TransactionStatus;
 import org.stellar.anchor.platform.data.JdbcSep31TransactionStore;
 import org.stellar.anchor.platform.paymentobserver.ObservedPayment;
 import org.stellar.anchor.platform.paymentobserver.PaymentListener;
+import org.stellar.anchor.sep31.Sep31Transaction;
 import org.stellar.anchor.util.Log;
-import org.stellar.platform.apis.shared.Amount;
 
 @Component
 public class PaymentOperationToEventListener implements PaymentListener {

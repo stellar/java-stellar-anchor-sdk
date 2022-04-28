@@ -27,9 +27,9 @@ dependencies {
   implementation(libs.log4j2.slf4j)
 
   // From projects
+  implementation(project(":api-schema"))
   implementation(project(":core"))
-  implementation(project(":platform-apis"))
-  implementation(project(":payment-circle"))
+  implementation(project(":payment"))
   implementation(project(":anchor-reference-server"))
 
   testImplementation("org.springframework.boot:spring-boot-starter-test")

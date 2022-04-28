@@ -6,7 +6,7 @@ import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
 import lombok.Data;
-import org.stellar.anchor.model.Sep38Quote;
+import org.stellar.anchor.sep38.Sep38Quote;
 
 @Data
 @Entity

@@ -5,10 +5,10 @@ import io.mockk.mockk
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.stellar.anchor.api.exception.ServerErrorException
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.ResourceJsonAssetService
 import org.stellar.anchor.config.AppConfig
-import org.stellar.anchor.exception.ServerErrorException
 import org.stellar.anchor.platform.paymentobserver.PaymentListener
 import org.stellar.anchor.platform.paymentobserver.PaymentStreamerCursorStore
 

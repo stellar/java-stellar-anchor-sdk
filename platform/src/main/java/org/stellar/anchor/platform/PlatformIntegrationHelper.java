@@ -7,8 +7,8 @@ import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.springframework.http.HttpStatus;
-import org.stellar.anchor.exception.*;
-import org.stellar.platform.apis.shared.ErrorResponse;
+import org.stellar.anchor.api.exception.*;
+import org.stellar.anchor.api.shared.ErrorResponse;
 
 public class PlatformIntegrationHelper {
   public static Response call(OkHttpClient httpClient, Request request)

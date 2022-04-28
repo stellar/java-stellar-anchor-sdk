@@ -2,13 +2,13 @@ package org.stellar.anchor.platform.controller;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
-import org.stellar.anchor.exception.AnchorException;
-import org.stellar.anchor.exception.NotFoundException;
+import org.stellar.anchor.api.exception.AnchorException;
+import org.stellar.anchor.api.exception.NotFoundException;
+import org.stellar.anchor.api.platform.GetTransactionResponse;
+import org.stellar.anchor.api.platform.PatchTransactionsRequest;
+import org.stellar.anchor.api.platform.PatchTransactionsResponse;
 import org.stellar.anchor.platform.service.TransactionService;
 import org.stellar.anchor.sep31.Sep31Service;
-import org.stellar.platform.apis.platform.requests.PatchTransactionsRequest;
-import org.stellar.platform.apis.platform.responses.GetTransactionResponse;
-import org.stellar.platform.apis.platform.responses.PatchTransactionsResponse;
 
 @RestController
 public class PlatformController {

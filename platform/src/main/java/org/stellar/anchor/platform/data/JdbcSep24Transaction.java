@@ -3,7 +3,7 @@ package org.stellar.anchor.platform.data;
 import com.google.gson.annotations.SerializedName;
 import javax.persistence.*;
 import lombok.Data;
-import org.stellar.anchor.model.Sep24Transaction;
+import org.stellar.anchor.sep24.Sep24Transaction;
 
 @Data
 @Entity

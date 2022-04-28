@@ -5,7 +5,7 @@ import java.util.UUID;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import lombok.Data;
-import org.stellar.platform.apis.callbacks.requests.GetRateRequest;
+import org.stellar.anchor.api.callback.GetRateRequest;
 
 @Data
 @Entity

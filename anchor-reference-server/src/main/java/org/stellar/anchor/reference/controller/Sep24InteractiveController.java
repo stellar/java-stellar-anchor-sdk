@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
-import org.stellar.anchor.exception.SepValidationException;
+import org.stellar.anchor.api.exception.SepValidationException;
 
 /** The controller that implement the endpoints of the Sep24 interactive flow. */
 @Controller

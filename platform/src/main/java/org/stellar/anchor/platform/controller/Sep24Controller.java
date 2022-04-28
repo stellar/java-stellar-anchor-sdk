@@ -13,11 +13,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
-import org.stellar.anchor.dto.SepExceptionResponse;
-import org.stellar.anchor.dto.sep24.*;
-import org.stellar.anchor.exception.SepException;
-import org.stellar.anchor.exception.SepNotFoundException;
-import org.stellar.anchor.exception.SepValidationException;
+import org.stellar.anchor.api.exception.SepException;
+import org.stellar.anchor.api.exception.SepNotFoundException;
+import org.stellar.anchor.api.exception.SepValidationException;
+import org.stellar.anchor.api.sep.SepExceptionResponse;
+import org.stellar.anchor.api.sep.sep24.*;
 import org.stellar.anchor.sep10.JwtToken;
 import org.stellar.anchor.sep24.Sep24Service;
 
@@ -61,7 +61,7 @@ public class Sep24Controller {
       value = "/transactions/deposit/interactive",
       method = {RequestMethod.POST},
       consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-  public InteractiveTransactionResponse depositFormData(HttpServletRequest request)
+  public InteractiveTransactionResponse depositAllType(HttpServletRequest request)
       throws SepException, MalformedURLException, URISyntaxException {
     HashMap<String, String> requestData = new HashMap<>();
     for (Map.Entry<String, String[]> entry : request.getParameterMap().entrySet()) {
@@ -92,7 +92,7 @@ public class Sep24Controller {
       value = "/transactions/withdraw/interactive",
       method = {RequestMethod.POST},
       consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
-  public InteractiveTransactionResponse withdrawFormData(HttpServletRequest request)
+  public InteractiveTransactionResponse withdrawAllType(HttpServletRequest request)
       throws SepException, MalformedURLException, URISyntaxException {
     HashMap<String, String> requestData = new HashMap<>();
     for (Map.Entry<String, String[]> entry : request.getParameterMap().entrySet()) {

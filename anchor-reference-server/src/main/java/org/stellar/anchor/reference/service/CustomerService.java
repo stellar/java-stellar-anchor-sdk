@@ -1,21 +1,22 @@
 package org.stellar.anchor.reference.service;
 
-import static org.stellar.anchor.reference.model.Customer.Status.*;
+import static org.stellar.anchor.reference.model.Customer.Status.ACCEPTED;
+import static org.stellar.anchor.reference.model.Customer.Status.NEEDS_INFO;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.stereotype.Service;
-import org.stellar.anchor.exception.NotFoundException;
+import org.stellar.anchor.api.callback.GetCustomerRequest;
+import org.stellar.anchor.api.callback.GetCustomerResponse;
+import org.stellar.anchor.api.callback.PutCustomerRequest;
+import org.stellar.anchor.api.callback.PutCustomerResponse;
+import org.stellar.anchor.api.exception.NotFoundException;
+import org.stellar.anchor.api.shared.Field;
+import org.stellar.anchor.api.shared.ProvidedField;
 import org.stellar.anchor.reference.model.Customer;
 import org.stellar.anchor.reference.repo.CustomerRepo;
-import org.stellar.platform.apis.callbacks.requests.GetCustomerRequest;
-import org.stellar.platform.apis.callbacks.requests.PutCustomerRequest;
-import org.stellar.platform.apis.callbacks.responses.GetCustomerResponse;
-import org.stellar.platform.apis.callbacks.responses.PutCustomerResponse;
-import org.stellar.platform.apis.shared.Field;
-import org.stellar.platform.apis.shared.ProvidedField;
 
 @Service
 public class CustomerService {

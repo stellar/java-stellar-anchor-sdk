@@ -2,10 +2,10 @@ package org.stellar.anchor.platform
 
 import java.net.URL
 import okhttp3.Request
-import org.stellar.anchor.dto.sep10.ChallengeResponse
-import org.stellar.anchor.dto.sep10.ValidationRequest
-import org.stellar.anchor.dto.sep10.ValidationResponse
-import org.stellar.anchor.exception.SepNotAuthorizedException
+import org.stellar.anchor.api.exception.SepNotAuthorizedException
+import org.stellar.anchor.api.sep.sep10.ChallengeResponse
+import org.stellar.anchor.api.sep.sep10.ValidationRequest
+import org.stellar.anchor.api.sep.sep10.ValidationResponse
 import org.stellar.anchor.util.OkHttpUtil
 import org.stellar.sdk.KeyPair
 import org.stellar.sdk.Network

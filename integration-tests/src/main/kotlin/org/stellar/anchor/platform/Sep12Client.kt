@@ -4,11 +4,11 @@ import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.springframework.http.HttpStatus
-import org.stellar.anchor.dto.sep12.Sep12DeleteCustomerRequest
-import org.stellar.anchor.dto.sep12.Sep12GetCustomerResponse
-import org.stellar.anchor.dto.sep12.Sep12PutCustomerRequest
-import org.stellar.anchor.dto.sep12.Sep12PutCustomerResponse
-import org.stellar.anchor.exception.SepNotAuthorizedException
+import org.stellar.anchor.api.exception.SepNotAuthorizedException
+import org.stellar.anchor.api.sep.sep12.Sep12DeleteCustomerRequest
+import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerResponse
+import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest
+import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerResponse
 
 const val HOST_URL = "http://localhost:8080"
 const val APPLICATION_JSON_CHARSET_UTF_8 = "application/json; charset=utf-8"

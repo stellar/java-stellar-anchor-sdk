@@ -1,5 +1,7 @@
 package org.stellar.anchor.reference.service;
 
+import static org.stellar.anchor.api.callback.GetRateRequest.Type.FIRM;
+import static org.stellar.anchor.api.callback.GetRateRequest.Type.INDICATIVE;
 import static org.stellar.anchor.util.SepHelper.validateAmount;
 
 import java.time.Instant;
@@ -8,11 +10,15 @@ import java.time.ZonedDateTime;
 import java.util.Map;
 import kotlin.Pair;
 import org.springframework.stereotype.Service;
-import org.stellar.anchor.exception.*;
+import org.stellar.anchor.api.callback.GetRateRequest;
+import org.stellar.anchor.api.callback.GetRateResponse;
+import org.stellar.anchor.api.exception.AnchorException;
+import org.stellar.anchor.api.exception.BadRequestException;
+import org.stellar.anchor.api.exception.NotFoundException;
+import org.stellar.anchor.api.exception.UnprocessableEntityException;
 import org.stellar.anchor.reference.model.Quote;
 import org.stellar.anchor.reference.repo.QuoteRepo;
-import org.stellar.platform.apis.callbacks.requests.GetRateRequest;
-import org.stellar.platform.apis.callbacks.responses.GetRateResponse;
+import org.stellar.anchor.util.DateUtil;
 
 @Service
 public class RateService {
@@ -58,9 +64,9 @@ public class RateService {
       throw new UnprocessableEntityException("the price for the given pair could not be found");
     }
 
-    if (request.getType().equals("indicative")) {
+    if (request.getType() == INDICATIVE) {
       return new GetRateResponse(price);
-    } else if (request.getType().equals("firm")) {
+    } else if (request.getType() == FIRM) {
       Quote newQuote = createQuote(request, price);
       return new GetRateResponse(newQuote.getId(), newQuote.getPrice(), newQuote.getExpiresAt());
     }
@@ -71,9 +77,12 @@ public class RateService {
     Quote quote = Quote.of(request, price);
 
     // "calculate" expiresAt
-    Instant expiresAfter = request.getExpiresAfter();
-    if (expiresAfter == null) {
+    String strExpiresAfter = request.getExpireAfter();
+    Instant expiresAfter;
+    if (strExpiresAfter == null) {
       expiresAfter = Instant.now();
+    } else {
+      expiresAfter = Instant.ofEpochSecond(DateUtil.fromISO8601UTC(strExpiresAfter));
     }
     ZonedDateTime expiresAt =
         ZonedDateTime.ofInstant(expiresAfter, ZoneId.of("UTC"))

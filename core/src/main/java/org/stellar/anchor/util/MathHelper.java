@@ -2,7 +2,7 @@ package org.stellar.anchor.util;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import org.stellar.anchor.asset.AssetInfo;
+import org.stellar.anchor.api.sep.AssetInfo;
 
 public class MathHelper {
   public static BigDecimal decimal(String value) {

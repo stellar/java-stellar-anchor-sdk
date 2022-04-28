@@ -1,6 +1,6 @@
 package org.stellar.anchor.platform.service;
 
-import static org.stellar.anchor.model.TransactionStatus.*;
+import static org.stellar.anchor.api.sep.TransactionStatus.*;
 import static org.stellar.anchor.sep31.Sep31Helper.allAmountAvailable;
 import static org.stellar.anchor.sep31.Sep31Helper.validateStatus;
 import static org.stellar.anchor.util.MathHelper.decimal;
@@ -12,23 +12,23 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
-import org.stellar.anchor.asset.AssetInfo;
+import org.stellar.anchor.api.exception.AnchorException;
+import org.stellar.anchor.api.exception.BadRequestException;
+import org.stellar.anchor.api.exception.InternalServerErrorException;
+import org.stellar.anchor.api.exception.NotFoundException;
+import org.stellar.anchor.api.platform.GetTransactionResponse;
+import org.stellar.anchor.api.platform.PatchTransactionRequest;
+import org.stellar.anchor.api.platform.PatchTransactionsRequest;
+import org.stellar.anchor.api.platform.PatchTransactionsResponse;
+import org.stellar.anchor.api.sep.AssetInfo;
+import org.stellar.anchor.api.shared.Amount;
+import org.stellar.anchor.api.shared.Transaction;
 import org.stellar.anchor.asset.AssetService;
-import org.stellar.anchor.exception.AnchorException;
-import org.stellar.anchor.exception.BadRequestException;
-import org.stellar.anchor.exception.InternalServerErrorException;
-import org.stellar.anchor.exception.NotFoundException;
-import org.stellar.anchor.model.Sep31Transaction;
-import org.stellar.anchor.model.Sep38Quote;
 import org.stellar.anchor.platform.data.JdbcSep31Transaction;
 import org.stellar.anchor.platform.data.JdbcSep31TransactionStore;
+import org.stellar.anchor.sep31.Sep31Transaction;
+import org.stellar.anchor.sep38.Sep38Quote;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
-import org.stellar.platform.apis.platform.requests.PatchTransactionRequest;
-import org.stellar.platform.apis.platform.requests.PatchTransactionsRequest;
-import org.stellar.platform.apis.platform.responses.GetTransactionResponse;
-import org.stellar.platform.apis.platform.responses.PatchTransactionsResponse;
-import org.stellar.platform.apis.shared.Amount;
-import org.stellar.platform.apis.shared.Transaction;
 
 @Service
 public class TransactionService {

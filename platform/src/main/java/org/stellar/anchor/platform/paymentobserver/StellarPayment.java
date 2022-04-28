@@ -2,7 +2,7 @@ package org.stellar.anchor.platform.paymentobserver;
 
 import com.google.gson.annotations.SerializedName;
 import lombok.Builder;
-import org.stellar.platform.apis.shared.Amount;
+import org.stellar.anchor.api.shared.Amount;
 
 @Builder
 public class StellarPayment {

@@ -5,9 +5,9 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import lombok.NonNull;
-import org.stellar.anchor.exception.AnchorException;
-import org.stellar.anchor.exception.SepException;
-import org.stellar.anchor.model.Sep31Transaction;
+import org.stellar.anchor.api.exception.AnchorException;
+import org.stellar.anchor.api.exception.SepException;
+import org.stellar.anchor.sep31.Sep31Transaction;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 
 public class JdbcSep31TransactionStore implements Sep31TransactionStore {

@@ -11,10 +11,10 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.stellar.anchor.api.exception.AnchorException
+import org.stellar.anchor.api.exception.BadRequestException
+import org.stellar.anchor.api.exception.UnprocessableEntityException
 import org.stellar.anchor.config.CirclePaymentObserverConfig
-import org.stellar.anchor.exception.AnchorException
-import org.stellar.anchor.exception.BadRequestException
-import org.stellar.anchor.exception.UnprocessableEntityException
 import org.stellar.anchor.horizon.Horizon
 import org.stellar.anchor.paymentservice.circle.model.CircleBalance
 import org.stellar.anchor.paymentservice.circle.model.CircleTransactionParty
