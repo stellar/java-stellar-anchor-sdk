@@ -147,7 +147,7 @@ class PaymentOperationToEventListenerTest {
     val wantReceiverStellarId = StellarId.builder().account(p.to).build()
     val wantEvent =
       TransactionEvent.builder()
-        .type(TransactionEvent.Type.TRANSACTION_PAYMENT_RECEIVED)
+        .type(TransactionEvent.Type.TRANSACTION_STATUS_CHANGED)
         .id("ceaa7677-a5a7-434e-b02a-8e0801b3e7bd")
         .status(TransactionEvent.Status.PENDING_RECEIVER)
         .statusChange(

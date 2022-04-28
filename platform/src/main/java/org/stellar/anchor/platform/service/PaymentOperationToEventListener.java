@@ -137,7 +137,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
         TransactionEvent.builder()
             .eventId(UUID.randomUUID().toString())
             // TODO: update to TRANSACTION_STATUS_CHANGED:
-            .type(TransactionEvent.Type.TRANSACTION_PAYMENT_RECEIVED)
+            .type(TransactionEvent.Type.TRANSACTION_STATUS_CHANGED)
             .id(txn.getId())
             .sep(TransactionEvent.Sep.SEP_31)
             .kind(TransactionEvent.Kind.RECEIVE)

@@ -134,7 +134,7 @@ public class TransactionEvent implements AnchorEvent {
 
   public enum Type {
     TRANSACTION_CREATED("transaction_created"),
-    TRANSACTION_PAYMENT_RECEIVED("transaction_payment_received"),
+    TRANSACTION_STATUS_CHANGED("transaction_status_changed"),
     TRANSACTION_ERROR("transaction_error");
 
     @JsonValue public final String type;

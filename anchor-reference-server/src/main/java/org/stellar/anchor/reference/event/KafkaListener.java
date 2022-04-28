@@ -49,7 +49,7 @@ public class KafkaListener extends AbstractEventListener {
             q.getQuoteCreated(),
             q.getTransactionCreated(),
             q.getTransactionError(),
-            q.getTransactionPaymentReceived()));
+            q.getTransactionStatusChanged()));
     this.consumer = consumer;
 
     while (!Thread.interrupted()) {

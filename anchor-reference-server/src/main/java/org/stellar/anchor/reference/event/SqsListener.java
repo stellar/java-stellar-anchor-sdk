@@ -34,7 +34,7 @@ public class SqsListener extends AbstractEventListener {
       executor.scheduleAtFixedRate(new SqsListen(q.getAll()), 0, 10, TimeUnit.SECONDS);
     } else {
       executor.scheduleAtFixedRate(
-          new SqsListen(q.getTransactionPaymentReceived()), 0, 10, TimeUnit.SECONDS);
+          new SqsListen(q.getTransactionStatusChanged()), 0, 10, TimeUnit.SECONDS);
       executor.scheduleAtFixedRate(new SqsListen(q.getQuoteCreated()), 0, 10, TimeUnit.SECONDS);
       executor.scheduleAtFixedRate(
           new SqsListen(q.getTransactionCreated()), 0, 10, TimeUnit.SECONDS);

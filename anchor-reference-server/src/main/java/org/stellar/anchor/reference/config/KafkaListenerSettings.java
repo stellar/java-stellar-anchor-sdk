@@ -17,7 +17,7 @@ public class KafkaListenerSettings {
     String all;
     String quoteCreated;
     String transactionCreated;
-    String transactionPaymentReceived;
+    String transactionStatusChanged;
     String transactionError;
   }
 }
