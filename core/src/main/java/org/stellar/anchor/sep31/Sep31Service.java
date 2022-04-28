@@ -4,7 +4,7 @@ import static org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_SEND;
 import static org.stellar.anchor.dto.sep31.Sep31InfoResponse.AssetResponse;
 import static org.stellar.anchor.sep31.Sep31Helper.amountEquals;
 import static org.stellar.anchor.util.MathHelper.decimal;
-import static org.stellar.anchor.util.MemoHelper.memoType;
+import static org.stellar.anchor.util.MemoHelper.memoTypeAsString;
 import static org.stellar.anchor.util.SepHelper.*;
 import static org.stellar.sdk.xdr.MemoType.MEMO_HASH;
 
@@ -247,7 +247,7 @@ public class Sep31Service {
     memo = StringUtils.leftPad(memo, 32, '0');
     memo = new String(Base64.getEncoder().encode(memo.getBytes()));
     txn.setStellarMemo(memo);
-    txn.setStellarMemoType(memoType(MEMO_HASH));
+    txn.setStellarMemoType(memoTypeAsString(MEMO_HASH));
   }
 
   public Sep31GetTransactionResponse getTransaction(String id) throws AnchorException {

@@ -1,9 +1,8 @@
 package org.stellar.anchor.platform.config;
 
+import java.util.Map;
 import lombok.Data;
 import org.stellar.anchor.config.SqsConfig;
-
-import java.util.Map;
 
 @Data
 public class PropertySqsConfig implements SqsConfig {

@@ -1,10 +1,9 @@
 package org.stellar.anchor.asset;
 
 import com.google.gson.annotations.SerializedName;
-import lombok.Data;
-
 import java.util.List;
 import java.util.Map;
+import lombok.Data;
 
 @SuppressWarnings("unused")
 @Data

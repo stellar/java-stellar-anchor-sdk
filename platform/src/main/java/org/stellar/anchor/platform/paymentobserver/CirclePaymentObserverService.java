@@ -2,13 +2,16 @@ package org.stellar.anchor.platform.paymentobserver;
 
 import com.google.gson.Gson;
 import java.io.IOException;
-import java.lang.reflect.Type;
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import okhttp3.*;
 import org.stellar.anchor.config.CirclePaymentObserverConfig;
+import org.stellar.anchor.exception.BadRequestException;
 import org.stellar.anchor.exception.ServerErrorException;
+import org.stellar.anchor.exception.UnprocessableEntityException;
+import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.paymentservice.circle.model.CirclePaymentStatus;
 import org.stellar.anchor.paymentservice.circle.model.CircleTransactionParty;
 import org.stellar.anchor.paymentservice.circle.model.CircleTransfer;
@@ -19,17 +22,18 @@ import org.stellar.anchor.util.GsonUtils;
 import org.stellar.anchor.util.Log;
 import org.stellar.anchor.util.StellarNetworkHelper;
 import org.stellar.sdk.Network;
-import org.stellar.sdk.responses.GsonSingleton;
+import org.stellar.sdk.Server;
 import org.stellar.sdk.responses.Page;
 import org.stellar.sdk.responses.operations.OperationResponse;
 import org.stellar.sdk.responses.operations.PathPaymentBaseOperationResponse;
 import org.stellar.sdk.responses.operations.PaymentOperationResponse;
-import shadow.com.google.common.reflect.TypeToken;
 
 public class CirclePaymentObserverService {
   private final OkHttpClient httpClient;
-  private final CirclePaymentObserverConfig circlePaymentObserverConfig;
   private final String usdcIssuer;
+  private final Server horizonServer;
+  private final String trackedWallet;
+  private final List<PaymentListener> observers;
 
   private final Gson gson =
       GsonUtils.builder()
@@ -38,19 +42,25 @@ public class CirclePaymentObserverService {
           .create();
 
   public CirclePaymentObserverService(
-      OkHttpClient httpClient, CirclePaymentObserverConfig circlePaymentObserverConfig) {
+      OkHttpClient httpClient,
+      CirclePaymentObserverConfig circlePaymentObserverConfig,
+      Horizon horizon,
+      List<PaymentListener> observers) {
     this.httpClient = httpClient;
-    this.circlePaymentObserverConfig = circlePaymentObserverConfig;
     Network stellarNetwork =
         StellarNetworkHelper.toStellarNetwork(circlePaymentObserverConfig.getStellarNetwork());
     String[] assetIdPieces = CircleAsset.stellarUSDC(stellarNetwork).split(":");
     this.usdcIssuer = assetIdPieces[assetIdPieces.length - 1];
+    this.horizonServer = horizon.getServer();
+    this.trackedWallet = circlePaymentObserverConfig.getTrackedWallet();
+    this.observers = observers;
   }
 
-  public void handleCircleNotification(Map<String, Object> requestBody) {
+  public void handleCircleNotification(Map<String, Object> requestBody)
+      throws UnprocessableEntityException, BadRequestException, ServerErrorException {
     CircleNotification circleNotification =
         gson.fromJson(gson.toJson(requestBody), CircleNotification.class);
-    String type = circleNotification.getType();
+    String type = Objects.toString(circleNotification.getType(), "");
 
     switch (type) {
       case "SubscriptionConfirmation":
@@ -62,7 +72,8 @@ public class CirclePaymentObserverService {
         return;
 
       default:
-        Log.warn("Not handling notification of type " + type);
+        throw new UnprocessableEntityException(
+            "Not handling notification of unsupported type \"" + type + "\".");
     }
   }
 
@@ -70,10 +81,16 @@ public class CirclePaymentObserverService {
    * This will auto-subscribe to Circle when we receive a subscription available notification.
    *
    * @param circleNotification is the circle notification object.
+   * @throws BadRequestException when the incoming circle subscription notification does not contain
+   *     a SubscribeURL, or it can't be reached.
    */
-  public void handleSubscriptionConfirmationNotification(CircleNotification circleNotification) {
+  public void handleSubscriptionConfirmationNotification(CircleNotification circleNotification)
+      throws BadRequestException {
     String subscribeUrl = circleNotification.getSubscribeUrl();
-    Log.info("=====> subscriptionNotification.subscribeUrl: " + subscribeUrl);
+    if (subscribeUrl == null) {
+      throw new BadRequestException(
+          "Notification body of type SubscriptionConfirmation is missing subscription URL.");
+    }
 
     Request httpRequest =
         new Request.Builder()
@@ -85,16 +102,21 @@ public class CirclePaymentObserverService {
     try {
       response = httpClient.newCall(httpRequest).execute();
     } catch (IOException e) {
-      Log.error("Failed to call endpoint " + subscribeUrl);
-      return;
+      throw new BadRequestException("Failed to call \"SubscribeURL\" endpoint.");
     }
 
-    Log.info(
-        String.format(
-            "Called subscribeUrl %s and got status code %d", subscribeUrl, response.code()));
-    if (response.code() != 200) {
-      Log.error(String.format("Status code: %d. \nResponse: %s", response.code(), response.body()));
+    if (!response.isSuccessful()) {
+      try (ResponseBody responseBody = response.body()) {
+        if (responseBody != null) {
+          Log.error(responseBody.string());
+        }
+      } catch (IOException e) {
+        Log.errorEx(e);
+      }
+      throw new BadRequestException("Calling the \"SubscribeURL\" endpoint didn't succeed.");
     }
+
+    Log.info("Successfully called subscribeUrl and got status code ", response.code());
   }
 
   /**
@@ -102,20 +124,36 @@ public class CirclePaymentObserverService {
    * circle<>circle or circle<>stellar events.
    *
    * @param circleNotification is the circle notification object.
+   * @throws BadRequestException when the incoming notification format is inconsistent with Circle
+   *     documentation. This will return an error to Circle and Circle will try to submit the
+   *     notification again.
+   * @throws UnprocessableEntityException when the incoming notification doesn't match the
+   *     characteristics we want to watch. This should not return any error to Circle.
+   * @throws ServerErrorException when there's an error trying to fetch the Stellar network.
    */
-  public void handleTransferNotification(CircleNotification circleNotification) {
+  public void handleTransferNotification(CircleNotification circleNotification)
+      throws BadRequestException, UnprocessableEntityException, ServerErrorException {
+    if (circleNotification.getMessage() == null) {
+      throw new BadRequestException("Notification body of type Notification is missing a message.");
+    }
+
     TransferNotificationBody transferNotification =
         gson.fromJson(circleNotification.getMessage(), TransferNotificationBody.class);
 
-    CircleTransfer circleTransfer = transferNotification.getTransfer();
-    if (circleTransfer == null) {
-      Log.info("Missing \"transfer\" value in notification of type \"transfers\".");
-      return;
+    String notificationType = transferNotification.getNotificationType();
+    if (!Objects.equals("transfers", notificationType)) {
+      throw new UnprocessableEntityException(
+          "Won't handle notification of type \"" + notificationType + "\".");
     }
 
-    if (!circleTransfer.getStatus().equals(CirclePaymentStatus.COMPLETE)) {
-      Log.info("Incomplete transfer:\n" + gson.toJson(circleTransfer));
-      return;
+    CircleTransfer circleTransfer = transferNotification.getTransfer();
+    if (circleTransfer == null) {
+      throw new BadRequestException(
+          "Missing \"transfer\" value in notification of type \"transfers\".");
+    }
+
+    if (!CirclePaymentStatus.COMPLETE.equals(circleTransfer.getStatus())) {
+      throw new UnprocessableEntityException("Not a complete transfer.");
     }
 
     Log.info("Completed transfer:\n" + gson.toJson(circleTransfer));
@@ -127,64 +165,69 @@ public class CirclePaymentObserverService {
     boolean isDestinationOnStellar =
         destination.getType().equals(CircleTransactionParty.Type.BLOCKCHAIN)
             && destination.getChain().equals("XLM");
-
     if (!isSourceOnStellar && !isDestinationOnStellar) {
-      Log.info(
-          "Neither source nor destination are stellar accounts. Giving up on processing this transfer.");
-      return;
+      throw new UnprocessableEntityException(
+          "Neither source nor destination are Stellar accounts.");
+    }
+
+    if (!isWalletTracked(source) && !isWalletTracked(destination)) {
+      throw new UnprocessableEntityException("None of the transfer wallets is being tracked.");
     }
 
     if (!circleTransfer.getAmount().getCurrency().equals("USD")) {
-      Log.info("The only circle currency supported is USDC.");
-      return;
+      throw new UnprocessableEntityException("The only supported Circle currency is USDC.");
     }
 
     ObservedPayment observedPayment = null;
     try {
-      observedPayment = fetchObservedPayment(circleTransfer);
-    } catch (IOException | ServerErrorException ex) {
-      ex.printStackTrace();
+      observedPayment = fetchCircleTransferOnStellar(circleTransfer);
+    } catch (IOException ex) {
+      throw new ServerErrorException(
+          "Something went wrong when trying to fetch the Stellar network", ex);
     }
 
     if (observedPayment == null) {
-      Log.error("Observed payment could not be fetched");
-      return;
+      throw new UnprocessableEntityException("Observed payment could not be fetched.");
     }
 
-    // TODO: send event
+    if (isWalletTracked(destination)) {
+      final ObservedPayment finalObservedPayment = observedPayment;
+      observers.forEach(observer -> observer.onReceived(finalObservedPayment));
+    } else {
+      final ObservedPayment finalObservedPayment1 = observedPayment;
+      observers.forEach(observer -> observer.onSent(finalObservedPayment1));
+    }
+  }
+
+  public boolean isWalletTracked(CircleTransactionParty party) {
+    if (!party.getType().equals(CircleTransactionParty.Type.WALLET)) {
+      return false;
+    }
+
+    if (Objects.equals(trackedWallet, "all")) {
+      return true;
+    }
+
+    return Objects.equals(trackedWallet, party.getId());
   }
 
   /**
-   * This will fetch the Stellar payment (or path payment) that originated thee Circle transfer.
+   * This will fetch the Stellar payment (or path payment) that originated the Circle transfer.
    *
    * @param circleTransfer the Circle transfer
    * @return an ObservedPayment or null if unable to convert
-   * @throws IOException
-   * @throws ServerErrorException
+   * @throws IOException if an error happens fetching data from Stellar
    */
-  public ObservedPayment fetchObservedPayment(CircleTransfer circleTransfer)
-      throws IOException, ServerErrorException {
+  public ObservedPayment fetchCircleTransferOnStellar(CircleTransfer circleTransfer)
+      throws IOException {
     String txHash = circleTransfer.getTransactionHash();
-    HttpUrl url = HttpUrl.parse(circlePaymentObserverConfig.getStellarNetwork());
-    url =
-        new HttpUrl.Builder()
-            .scheme(url.scheme())
-            .host(url.host())
-            .port(url.port())
-            .addPathSegment("transactions")
-            .addPathSegment(txHash)
-            .addPathSegment("payments")
-            .addQueryParameter("limit", "100")
-            .build();
-    Request httpRequest =
-        new Request.Builder().url(url).header("Content-Type", "application/json").get().build();
-    Response response = httpClient.newCall(httpRequest).execute();
-    ResponseBody responseBody = response.body();
-    if (responseBody == null) throw new ServerErrorException("unable to fetch response body");
-
-    Type type = new TypeToken<Page<OperationResponse>>() {}.getType();
-    shadow.com.google.gson.Gson stellarSdkGson = GsonSingleton.getInstance();
-    Page<OperationResponse> responsePage = stellarSdkGson.fromJson(responseBody.string(), type);
+    Page<OperationResponse> responsePage =
+        horizonServer
+            .payments()
+            .forTransaction(txHash)
+            .limit(200)
+            .includeTransactions(true)
+            .execute();
 
     for (OperationResponse opResponse : responsePage.getRecords()) {
       if (!opResponse.isTransactionSuccessful()) continue;
@@ -192,7 +235,7 @@ public class CirclePaymentObserverService {
       if (!List.of("payment", "path_payment_strict_send", "path_payment_strict_receive")
           .contains(opResponse.getType())) continue;
 
-      ObservedPayment observedPayment = null;
+      ObservedPayment observedPayment;
       if (opResponse instanceof PaymentOperationResponse) {
         PaymentOperationResponse payment = (PaymentOperationResponse) opResponse;
         observedPayment = ObservedPayment.fromPaymentOperationResponse(payment);
@@ -215,8 +258,11 @@ public class CirclePaymentObserverService {
         continue;
       }
 
+      observedPayment.setExternalTransactionId(circleTransfer.getId());
+      observedPayment.setType(ObservedPayment.Type.CIRCLE_TRANSFER);
       return observedPayment;
     }
+
     return null;
   }
 }

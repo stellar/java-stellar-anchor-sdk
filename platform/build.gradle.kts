@@ -33,6 +33,7 @@ dependencies {
   implementation(project(":anchor-reference-server"))
 
   testImplementation("org.springframework.boot:spring-boot-starter-test")
+  testImplementation(libs.okhttp3.mockserver)
 }
 
 tasks.test {

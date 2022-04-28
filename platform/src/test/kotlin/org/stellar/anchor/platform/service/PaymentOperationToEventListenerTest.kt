@@ -142,21 +142,35 @@ class PaymentOperationToEventListenerTest {
 
     every { transactionStore.findByStellarMemo(capture(slotMemo)) } returns sep31TxMock
 
+    val wantSenderStellarId =
+      StellarId.builder().account(p.from).memo("my_memo").memoType("text").build()
+    val wantReceiverStellarId = StellarId.builder().account(p.to).build()
     val wantEvent =
       TransactionEvent.builder()
         .type(TransactionEvent.Type.TRANSACTION_PAYMENT_RECEIVED)
         .id("ceaa7677-a5a7-434e-b02a-8e0801b3e7bd")
         .status(TransactionEvent.Status.PENDING_RECEIVER)
+        .statusChange(
+          TransactionEvent.StatusChange(
+            TransactionEvent.Status.PENDING_SENDER,
+            TransactionEvent.Status.PENDING_RECEIVER
+          )
+        )
         .sep(TransactionEvent.Sep.SEP_31)
         .kind(TransactionEvent.Kind.RECEIVE)
+        .amountExpected(Amount("10", "FOO"))
         .amountIn(Amount("10.0000000", "FOO"))
         .amountOut(Amount("20", "BAR"))
         .amountFee(Amount("0.5", "FOO"))
         .quoteId("cef1fc13-3f65-4612-b1f2-502d698c816b")
         .startedAt(startedAtMock)
+        .updatedAt(createdAt)
+        .transferReceivedAt(createdAt)
+        .message("Incoming payment for SEP-31 transaction")
         .sourceAccount("GAJKV32ZXP5QLYHPCMLTV5QCMNJR3W6ZKFP6HMDN67EM2ULDHHDGEZYO")
         .destinationAccount("GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364")
-        .creator(StellarId.builder().account(p.from).memo("my_memo").memoType("text").build())
+        .creator(wantSenderStellarId)
+        .customers(Customers(wantSenderStellarId, wantReceiverStellarId))
         .stellarTransactions(
           arrayOf(
             StellarTransaction.builder()

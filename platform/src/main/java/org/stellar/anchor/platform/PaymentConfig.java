@@ -10,6 +10,7 @@ import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.CirclePaymentObserverConfig;
 import org.stellar.anchor.exception.ServerErrorException;
+import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.platform.paymentobserver.CirclePaymentObserverService;
 import org.stellar.anchor.platform.paymentobserver.PaymentListener;
 import org.stellar.anchor.platform.paymentobserver.PaymentStreamerCursorStore;
@@ -69,7 +70,11 @@ public class PaymentConfig {
 
   @Bean
   public CirclePaymentObserverService circlePaymentObserverService(
-      OkHttpClient httpClient, CirclePaymentObserverConfig circlePaymentObserverConfig) {
-    return new CirclePaymentObserverService(httpClient, circlePaymentObserverConfig);
+      OkHttpClient httpClient,
+      CirclePaymentObserverConfig circlePaymentObserverConfig,
+      Horizon horizon,
+      List<PaymentListener> paymentListeners) {
+    return new CirclePaymentObserverService(
+        httpClient, circlePaymentObserverConfig, horizon, paymentListeners);
   }
 }

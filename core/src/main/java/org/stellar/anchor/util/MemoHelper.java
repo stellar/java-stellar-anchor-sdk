@@ -1,15 +1,12 @@
 package org.stellar.anchor.util;
 
-import static org.stellar.sdk.xdr.MemoType.MEMO_ID;
+import static org.stellar.sdk.xdr.MemoType.*;
 
 import java.util.Base64;
 import org.apache.commons.codec.binary.Hex;
 import org.stellar.anchor.exception.SepException;
 import org.stellar.anchor.exception.SepValidationException;
-import org.stellar.sdk.Memo;
-import org.stellar.sdk.MemoHash;
-import org.stellar.sdk.MemoId;
-import org.stellar.sdk.MemoText;
+import org.stellar.sdk.*;
 import org.stellar.sdk.xdr.MemoType;
 
 public class MemoHelper {
@@ -38,7 +35,7 @@ public class MemoHelper {
     return makeMemo(memo, mt);
   }
 
-  public static String memoType(MemoType memoType) {
+  public static String memoTypeAsString(MemoType memoType) {
     switch (memoType) {
       case MEMO_ID:
         return "id";
@@ -75,5 +72,44 @@ public class MemoHelper {
 
   public static String convertBase64ToHex(String memo) {
     return Hex.encodeHexString(Base64.getDecoder().decode(memo.getBytes()));
+  }
+
+  public static String memoAsString(Memo memo) {
+    switch (getMemoType(memo)) {
+      case MEMO_NONE:
+        return null;
+
+      case MEMO_ID:
+        return String.valueOf(((MemoId) memo).getId());
+
+      case MEMO_TEXT:
+        return ((MemoText) memo).getText();
+
+      case MEMO_HASH:
+        return ((MemoHash) memo).getHexValue();
+
+      case MEMO_RETURN:
+        return ((MemoReturnHash) memo).getHexValue();
+    }
+
+    return null;
+  }
+
+  private static MemoType getMemoType(Memo memo) {
+    if (memo == null || memo instanceof MemoNone) {
+      return MEMO_NONE;
+    } else if (memo instanceof MemoId) {
+      return MEMO_ID;
+    } else if (memo instanceof MemoText) {
+      return MEMO_TEXT;
+    } else if (memo instanceof MemoHash) {
+      return MEMO_HASH;
+    }
+
+    return MEMO_RETURN;
+  }
+
+  public static String memoTypeAsString(Memo memo) {
+    return memoTypeAsString(getMemoType(memo));
   }
 }

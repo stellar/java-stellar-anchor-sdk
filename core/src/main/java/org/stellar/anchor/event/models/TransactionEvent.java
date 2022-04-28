@@ -3,6 +3,7 @@ package org.stellar.anchor.event.models;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.google.gson.annotations.SerializedName;
 import java.time.Instant;
+import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -28,6 +29,9 @@ public class TransactionEvent implements AnchorEvent {
   Kind kind;
 
   Status status;
+
+  @SerializedName("status_change")
+  StatusChange statusChange;
 
   @SerializedName("amount_expected")
   Amount amountExpected;
@@ -94,6 +98,23 @@ public class TransactionEvent implements AnchorEvent {
     Status(String status) {
       this.status = status;
     }
+
+    public static Status from(String statusStr) {
+      for (Status status : values()) {
+        if (Objects.equals(status.status, statusStr)) {
+          return status;
+        }
+      }
+      throw new IllegalArgumentException("No matching constant for [" + statusStr + "]");
+    }
+  }
+
+  @Data
+  @Builder
+  @AllArgsConstructor
+  public static class StatusChange {
+    Status from;
+    Status to;
   }
 
   public enum Sep {

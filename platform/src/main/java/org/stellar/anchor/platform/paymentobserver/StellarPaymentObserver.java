@@ -1,7 +1,6 @@
 package org.stellar.anchor.platform.paymentobserver;
 
 import com.google.gson.Gson;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -86,11 +85,11 @@ public class StellarPaymentObserver {
             if (observedPayment != null) {
               try {
                 if (observedPayment.getTo().equals(account)) {
-                  ObservedPayment finalObservedPayment = observedPayment;
+                  final ObservedPayment finalObservedPayment = observedPayment;
                   observers.forEach(observer -> observer.onReceived(finalObservedPayment));
                 } else if (observedPayment.getFrom().equals(account)) {
-                  ObservedPayment finalObservedPayment1 = observedPayment;
-                  observers.forEach(observer -> observer.onSent(finalObservedPayment1));
+                  final ObservedPayment finalObservedPayment = observedPayment;
+                  observers.forEach(observer -> observer.onSent(finalObservedPayment));
                 }
               } catch (Throwable t) {
                 Log.errorEx(t);
@@ -102,6 +101,7 @@ public class StellarPaymentObserver {
 
           @Override
           public void onFailure(Optional<Throwable> exception, Optional<Integer> statusCode) {
+            Log.errorEx(exception.get());
             // TODO: The stream seems closed when failure happens. Improve the reliability of the
             // stream.
           }
@@ -146,7 +146,7 @@ public class StellarPaymentObserver {
     }
   }
 
-  public static void main(String[] args) throws IOException, InterruptedException {
+  public static void main(String[] args) throws InterruptedException {
     KeyPair account1 =
         KeyPair.fromSecretSeed("SCBYEX2YH7BH5WVKVR22RW2M3QQR3P2P3NLWIVNNNEZHJ3KZ52E2QKZN");
     KeyPair account2 =
