@@ -1,7 +1,6 @@
 package org.stellar.anchor.platform.paymentobserver;
 
 import com.google.gson.Gson;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;

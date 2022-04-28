@@ -35,7 +35,7 @@ public class MemoHelper {
     return makeMemo(memo, mt);
   }
 
-  public static String memoType(MemoType memoType) {
+  public static String memoTypeAsString(MemoType memoType) {
     switch (memoType) {
       case MEMO_ID:
         return "id";
@@ -74,7 +74,7 @@ public class MemoHelper {
     return Hex.encodeHexString(Base64.getDecoder().decode(memo.getBytes()));
   }
 
-  public static String parseMemoToString(Memo memo) {
+  public static String memoAsString(Memo memo) {
     switch (getMemoType(memo)) {
       case MEMO_NONE:
         return null;
@@ -86,18 +86,16 @@ public class MemoHelper {
         return ((MemoText) memo).getText();
 
       case MEMO_HASH:
-        byte[] memoHashBytes = ((MemoHash) memo).getBytes();
-        return Base64.getEncoder().encodeToString(memoHashBytes);
+        return ((MemoHash) memo).getHexValue();
 
       case MEMO_RETURN:
-        byte[] memoReturnBytes = ((MemoReturnHash) memo).getBytes();
-        return Base64.getEncoder().encodeToString(memoReturnBytes);
+        return ((MemoReturnHash) memo).getHexValue();
     }
 
     return null;
   }
 
-  public static MemoType getMemoType(Memo memo) {
+  private static MemoType getMemoType(Memo memo) {
     if (memo == null || memo instanceof MemoNone) {
       return MEMO_NONE;
     } else if (memo instanceof MemoId) {
@@ -111,7 +109,7 @@ public class MemoHelper {
     return MEMO_RETURN;
   }
 
-  public static String getMemoTypeAsString(Memo memo) {
-    return memoType(getMemoType(memo));
+  public static String memoTypeAsString(Memo memo) {
+    return memoTypeAsString(getMemoType(memo));
   }
 }

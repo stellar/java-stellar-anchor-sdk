@@ -65,8 +65,8 @@ public class ObservedPayment {
         .sourceAccount(sourceAccount)
         .createdAt(paymentOp.getCreatedAt())
         .transactionHash(paymentOp.getTransactionHash())
-        .transactionMemo(MemoHelper.parseMemoToString(memo))
-        .transactionMemoType(MemoHelper.getMemoTypeAsString(memo))
+        .transactionMemo(MemoHelper.memoAsString(memo))
+        .transactionMemoType(MemoHelper.memoTypeAsString(memo))
         .transactionEnvelope(paymentOp.getTransaction().get().getEnvelopeXdr())
         .build();
   }
@@ -112,8 +112,8 @@ public class ObservedPayment {
         .sourceAccount(sourceAccount)
         .createdAt(pathPaymentOp.getCreatedAt())
         .transactionHash(pathPaymentOp.getTransactionHash())
-        .transactionMemo(MemoHelper.parseMemoToString(memo))
-        .transactionMemoType(MemoHelper.getMemoTypeAsString(memo))
+        .transactionMemo(MemoHelper.memoAsString(memo))
+        .transactionMemoType(MemoHelper.memoTypeAsString(memo))
         .transactionEnvelope(pathPaymentOp.getTransaction().get().getEnvelopeXdr())
         .build();
   }
