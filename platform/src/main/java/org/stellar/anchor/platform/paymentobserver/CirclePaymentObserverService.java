@@ -146,7 +146,7 @@ public class CirclePaymentObserverService {
     String notificationType = transferNotification.getNotificationType();
     if (!Objects.equals("transfers", notificationType)) {
       throw new UnprocessableEntityException(
-          "Won't handle notification of type \"" + notificationType + "\".");
+          String.format("Won't handle notification of type \"%s\".", notificationType));
     }
 
     CircleTransfer circleTransfer = transferNotification.getTransfer();
@@ -203,7 +203,7 @@ public class CirclePaymentObserverService {
   }
 
   public boolean isWalletTracked(CircleTransactionParty party) {
-    if (!party.getType().equals(CircleTransactionParty.Type.WALLET)) {
+    if (party.getType() != CircleTransactionParty.Type.WALLET) {
       return false;
     }
 
