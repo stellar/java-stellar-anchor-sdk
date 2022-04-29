@@ -1,9 +1,13 @@
 package org.stellar.anchor.platform.data;
 
 import com.google.gson.annotations.SerializedName;
-import javax.persistence.*;
 import lombok.Data;
+import org.stellar.anchor.sep24.Sep24RefundPayment;
 import org.stellar.anchor.sep24.Sep24Transaction;
+
+import javax.persistence.*;
+import java.util.Collection;
+import java.util.Set;
 
 @Data
 @Entity
@@ -11,6 +15,7 @@ import org.stellar.anchor.sep24.Sep24Transaction;
 public class JdbcSep24Transaction implements Sep24Transaction {
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
+  @Column(name = "sep_transaction_id")
   Long jdbcId;
 
   String id;
@@ -91,7 +96,11 @@ public class JdbcSep24Transaction implements Sep24Transaction {
 
   @SerializedName("muxed_account")
   String muxedAccount;
+  @OneToMany(mappedBy="transaction")
+  private Set<JdbcSep24RefundPayment> refundPayments;
 
-  Boolean refunded;
-  JdbcSep24Refunds refunds;
+  @Override
+  public Collection<? extends Sep24RefundPayment> refundPayments() {
+    return refundPayments;
+  }
 }
