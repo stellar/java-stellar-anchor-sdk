@@ -1,7 +1,7 @@
 package org.stellar.anchor.sep24;
 
 import static javax.print.attribute.standard.JobState.COMPLETED;
-import static org.stellar.anchor.api.sep.TransactionStatus.*;
+import static org.stellar.anchor.api.sep.SepTransactionStatus.*;
 
 import com.google.gson.Gson;
 import java.net.MalformedURLException;
@@ -11,7 +11,7 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import org.apache.http.client.utils.URIBuilder;
-import org.stellar.anchor.api.sep.TransactionStatus;
+import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.sep.sep24.DepositTransactionResponse;
 import org.stellar.anchor.api.sep.sep24.TransactionResponse;
 import org.stellar.anchor.api.sep.sep24.WithdrawTransactionResponse;
@@ -33,7 +33,7 @@ public class Sep24Helper {
       Arrays.asList(
           PENDING_USR_TRANSFER_START.toString(),
           PENDING_USR_TRANSFER_COMPLETE.toString(),
-          TransactionStatus.COMPLETED.toString(),
+          SepTransactionStatus.COMPLETED.toString(),
           PENDING_EXTERNAL.toString(),
           PENDING_ANCHOR.toString(),
           PENDING_USER.toString());

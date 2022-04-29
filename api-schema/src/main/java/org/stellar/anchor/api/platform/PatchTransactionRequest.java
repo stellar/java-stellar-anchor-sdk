@@ -5,7 +5,6 @@ import java.time.Instant;
 import lombok.Builder;
 import lombok.Data;
 import org.stellar.anchor.api.shared.Amount;
-import org.stellar.anchor.api.shared.Refunds;
 
 @Data
 @Builder

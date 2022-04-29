@@ -1,6 +1,6 @@
 package org.stellar.anchor.platform.service;
 
-import static org.stellar.anchor.api.sep.TransactionStatus.ERROR;
+import static org.stellar.anchor.api.sep.SepTransactionStatus.ERROR;
 
 import com.google.gson.Gson;
 import java.math.BigDecimal;
@@ -13,7 +13,7 @@ import org.apache.commons.codec.DecoderException;
 import org.springframework.stereotype.Component;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.SepException;
-import org.stellar.anchor.api.sep.TransactionStatus;
+import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.shared.Amount;
 import org.stellar.anchor.event.EventPublishService;
 import org.stellar.anchor.event.models.*;
@@ -106,8 +106,8 @@ public class PaymentOperationToEventListener implements PaymentListener {
 
     // Set the transaction status.
     TransactionEvent event = receivedPaymentToEvent(txn, payment);
-    if (txn.getStatus().equals(TransactionStatus.PENDING_SENDER.toString())) {
-      txn.setStatus(TransactionStatus.PENDING_RECEIVER.toString());
+    if (txn.getStatus().equals(SepTransactionStatus.PENDING_SENDER.toString())) {
+      txn.setStatus(SepTransactionStatus.PENDING_RECEIVER.toString());
       txn.setStellarTransactionId(payment.getTransactionHash());
       try {
         transactionStore.save(txn);

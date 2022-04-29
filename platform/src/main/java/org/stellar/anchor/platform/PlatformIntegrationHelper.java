@@ -2,13 +2,13 @@ package org.stellar.anchor.platform;
 
 import com.google.gson.Gson;
 import java.io.IOException;
+import lombok.Data;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.springframework.http.HttpStatus;
 import org.stellar.anchor.api.exception.*;
-import org.stellar.anchor.api.shared.ErrorResponse;
 
 public class PlatformIntegrationHelper {
   public static Response call(OkHttpClient httpClient, Request request)
@@ -60,5 +60,10 @@ public class PlatformIntegrationHelper {
       return new NotFoundException(errorMessage);
     }
     return new ServerErrorException("internal server error");
+  }
+
+  @Data
+  static class ErrorResponse {
+    String error;
   }
 }

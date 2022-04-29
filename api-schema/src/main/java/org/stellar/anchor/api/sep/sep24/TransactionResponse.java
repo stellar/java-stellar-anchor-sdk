@@ -50,6 +50,7 @@ public class TransactionResponse {
   String message;
 
   Boolean refunded = false;
+  Refunds refunds;
 
   String from = "";
 

@@ -23,7 +23,7 @@ import org.stellar.anchor.api.exception.NotFoundException;
 import org.stellar.anchor.api.exception.SepNotFoundException;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.AssetInfo.Sep31TxnFieldSpecs;
-import org.stellar.anchor.api.sep.TransactionStatus;
+import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerRequest;
 import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerResponse;
 import org.stellar.anchor.api.sep.sep31.*;
@@ -97,7 +97,7 @@ public class Sep31Service {
     Sep31Transaction txn =
         new Sep31TransactionBuilder(sep31TransactionStore)
             .id(generateSepTransactionId())
-            .status(TransactionStatus.PENDING_SENDER.toString())
+            .status(SepTransactionStatus.PENDING_SENDER.toString())
             .stellarAccountId(asset.getDistributionAccount())
             .amountInAsset(request.getAssetCode())
             .amountIn(request.getAmount())
@@ -276,7 +276,7 @@ public class Sep31Service {
 
     // validate if the transaction is in the pending_transaction_info_update status
     if (!Objects.equals(
-        txn.getStatus(), TransactionStatus.PENDING_TRANSACTION_INFO_UPDATE.toString())) {
+        txn.getStatus(), SepTransactionStatus.PENDING_TRANSACTION_INFO_UPDATE.toString())) {
       throw new BadRequestException(
           String.format("transaction (id=%s) does not need update", txn.getId()));
     }

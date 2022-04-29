@@ -91,4 +91,7 @@ public class JdbcSep24Transaction implements Sep24Transaction {
 
   @SerializedName("muxed_account")
   String muxedAccount;
+
+  Boolean refunded;
+  JdbcSep24Refunds refunds;
 }

@@ -114,6 +114,10 @@ public interface Sep24Transaction {
 
   void setMuxedAccount(String muxedAccount);
 
+  Boolean getRefunded();
+
+  Sep24Refunds getRefunds();
+
   enum Kind {
     DEPOSIT("deposit"),
     WITHDRAWAL("withdrawal"),

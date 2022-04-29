@@ -22,7 +22,7 @@ import org.stellar.anchor.api.exception.SepNotAuthorizedException;
 import org.stellar.anchor.api.exception.SepNotFoundException;
 import org.stellar.anchor.api.exception.SepValidationException;
 import org.stellar.anchor.api.sep.AssetInfo;
-import org.stellar.anchor.api.sep.TransactionStatus;
+import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.sep.sep24.*;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.AppConfig;
@@ -115,7 +115,7 @@ public class Sep24Service {
     Sep24Transaction txn =
         new Sep24TransactionBuilder(txnStore)
             .transactionId(txnId)
-            .status(TransactionStatus.INCOMPLETE.toString())
+            .status(SepTransactionStatus.INCOMPLETE.toString())
             .kind(Sep24Transaction.Kind.WITHDRAWAL.toString())
             .amountIn(strAmount)
             .amountOut(strAmount)
@@ -217,7 +217,7 @@ public class Sep24Service {
     Sep24Transaction txn =
         new Sep24TransactionBuilder(txnStore)
             .transactionId(txnId)
-            .status(TransactionStatus.INCOMPLETE.toString())
+            .status(SepTransactionStatus.INCOMPLETE.toString())
             .kind(Sep24Transaction.Kind.DEPOSIT.toString())
             .amountIn(strAmount)
             .amountOut(strAmount)
