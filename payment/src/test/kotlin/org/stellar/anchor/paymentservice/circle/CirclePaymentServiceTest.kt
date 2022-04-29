@@ -3,7 +3,6 @@ package org.stellar.anchor.paymentservice.circle
 import com.google.gson.Gson
 import io.mockk.every
 import io.mockk.mockk
-import io.mockk.spyk
 import io.mockk.verify
 import java.io.IOException
 import java.lang.reflect.Method
@@ -27,6 +26,8 @@ import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.NullSource
 import org.skyscreamer.jsonassert.JSONAssert
 import org.stellar.anchor.api.exception.HttpException
+import org.stellar.anchor.config.CircleConfig
+import org.stellar.anchor.horizon.Horizon
 import org.stellar.anchor.paymentservice.circle.config.CirclePaymentConfig
 import org.stellar.anchor.paymentservice.circle.model.CircleBlockchainAddress
 import org.stellar.anchor.paymentservice.circle.model.CircleWallet
@@ -103,56 +104,26 @@ class CirclePaymentServiceTest {
       )
   }
 
-  class TestCirclePaymentConfig(
-    private val _name: String,
-    private val _enabled: Boolean,
-    private val _circleUrl: String,
-    private val _secretKey: String,
-    private val _horizonUrl: String,
-    private val _stellarNetwork: String
-  ) : CirclePaymentConfig {
-    override fun getName(): String {
-      return _name
-    }
-
-    override fun isEnabled(): Boolean {
-      return _enabled
-    }
-
-    override fun getCircleUrl(): String {
-      return _circleUrl
-    }
-
-    override fun getSecretKey(): String {
-      return _secretKey
-    }
-
-    override fun getHorizonUrl(): String {
-      return _horizonUrl
-    }
-
-    override fun getStellarNetwork(): String {
-      return _stellarNetwork
-    }
-  }
-
   @BeforeEach
   @Throws(IOException::class)
   fun setUp() {
     server = MockWebServer()
     server.start()
 
-    service =
-      CirclePaymentService(
-        TestCirclePaymentConfig(
-          "TestCircle",
-          true,
-          server.url("").toString(),
-          "<secret-key>",
-          "https://horizon-testnet.stellar.org",
-          "TESTNET"
-        )
-      )
+    val circlePaymentConfig = mockk<CirclePaymentConfig>()
+    every { circlePaymentConfig.isEnabled } returns true
+    every { circlePaymentConfig.name } returns "TestCircle"
+
+    val circleConfig = mockk<CircleConfig>()
+    every { circleConfig.circleUrl } returns server.url("").toString()
+    every { circleConfig.apiKey } returns "<secret-key>"
+
+    val horizon = mockk<Horizon>()
+    every { horizon.horizonUrl } returns server.url("").toString()
+    every { horizon.stellarNetworkPassphrase } returns "Test SDF Network ; September 2015"
+    every { horizon.server } returns Server(server.url("").toString())
+
+    service = CirclePaymentService(circlePaymentConfig, circleConfig, horizon)
   }
 
   @AfterEach
@@ -1041,13 +1012,6 @@ class CirclePaymentServiceTest {
 
   @Test
   fun test_getTransfers() {
-    // mock call to `.getWebClient(false).baseUrl(any())` so the web client keeps pointing to the
-    // same server URL
-    val service = spyk(this.service as CirclePaymentService)
-    val serviceClient = spyk(service.getWebClient(false))
-    every { serviceClient.baseUrl(any()) } returns service.getWebClient(false)
-    every { service.getWebClient(false) } returns serviceClient
-
     val dispatcher: Dispatcher =
       object : Dispatcher() {
         @Throws(InterruptedException::class)
@@ -1077,13 +1041,12 @@ class CirclePaymentServiceTest {
     server.dispatcher = dispatcher
 
     var paymentHistory: PaymentHistory? = null
+    val service = this.service as CirclePaymentService
     val getTransfersMono = service.getTransfers("1000066041", null, null, null)
     assertDoesNotThrow {
       paymentHistory =
         getTransfersMono.block()!!.toPaymentHistory(50, merchantAccount, "1000066041")
     }
-    // validate Stellar call was executed
-    verify { serviceClient.baseUrl(any()) }
 
     val wantPaymentHistory = PaymentHistory(merchantAccount)
     wantPaymentHistory.beforeCursor = "c58e2613-a808-4075-956c-e576787afb3b"
@@ -1522,13 +1485,6 @@ class CirclePaymentServiceTest {
 
   @Test
   fun test_getAccountHistory() {
-    // mock call to `.getWebClient(false).baseUrl(any())` so the web client keeps pointing to the
-    // same server URL
-    val service = spyk(this.service as CirclePaymentService)
-    val serviceClient = spyk(service.getWebClient(false))
-    every { serviceClient.baseUrl(any()) } returns service.getWebClient(false)
-    every { service.getWebClient(false) } returns serviceClient
-
     val dispatcher: Dispatcher =
       object : Dispatcher() {
         @Throws(InterruptedException::class)
@@ -1580,9 +1536,6 @@ class CirclePaymentServiceTest {
     var paymentHistory: PaymentHistory? = null
     val getAccountHistoryMono = service.getAccountPaymentHistory("1000066041", null, null)
     assertDoesNotThrow { paymentHistory = getAccountHistoryMono.block() }
-
-    // validate Stellar call was executed
-    verify { serviceClient.baseUrl(any()) }
 
     val wantPaymentHistory = PaymentHistory(merchantAccount)
     wantPaymentHistory.beforeCursor =

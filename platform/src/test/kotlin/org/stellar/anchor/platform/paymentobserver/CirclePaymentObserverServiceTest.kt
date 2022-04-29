@@ -37,7 +37,7 @@ class CirclePaymentObserverServiceTest {
   fun setUp() {
     MockKAnnotations.init(this, relaxed = true)
 
-    every { circlePaymentObserverConfig.stellarNetwork } returns "TESTNET"
+    every { horizon.stellarNetworkPassphrase } returns "Test SDF Network ; September 2015"
     circlePaymentObserverService =
       CirclePaymentObserverService(
         httpClient,
