@@ -327,13 +327,18 @@ public class Sep24Service {
 
   TransactionResponse fromTxn(Sep24Transaction txn)
       throws MalformedURLException, URISyntaxException, SepException {
+    TransactionResponse response;
     if (txn.getKind().equals(DEPOSIT.toString())) {
-      return Sep24Helper.fromDepositTxn(gson, jwtService, sep24Config, txn, true);
+      response = Sep24Helper.fromDepositTxn(jwtService, sep24Config, txn, true);
     } else if (txn.getKind().equals(WITHDRAWAL.toString())) {
-      return Sep24Helper.fromWithdrawTxn(gson, jwtService, sep24Config, txn, true);
+      response = Sep24Helper.fromWithdrawTxn(jwtService, sep24Config, txn, true);
     } else {
       throw new SepException(String.format("unsupported txn kind:%s", txn.getKind()));
     }
+
+    // Calculate refund information.
+    AssetInfo assetInfo = assetService.getAsset(txn.getAssetCode(), txn.getAssetIssuer());
+    return Sep24Helper.updateRefundInfo(response, txn, assetInfo);
   }
 
   JwtToken buildRedirectJwtToken(String fullRequestUrl, JwtToken token, Sep24Transaction txn) {

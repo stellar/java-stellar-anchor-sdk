@@ -1,11 +1,13 @@
 package org.stellar.anchor.platform.data;
 
-import lombok.Data;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import javax.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 import org.stellar.anchor.sep24.Sep24RefundPayment;
 
-import javax.persistence.*;
-
-@Data
+@Getter
+@Setter
 @Entity
 @Table(name = "sep24_refund_payment")
 public class JdbcSep24RefundPayment implements Sep24RefundPayment {
@@ -14,9 +16,10 @@ public class JdbcSep24RefundPayment implements Sep24RefundPayment {
   @Column(name = "sep24_refund_payment_id")
   Long jdbcId;
 
-  @ManyToOne
-  @JoinColumn(name = "jdbc_id", nullable = false)
-  private JdbcSep24Transaction transaction;
+  @JsonIgnore
+  @ManyToOne(fetch = FetchType.LAZY)
+  @JoinColumn(name = "transaction_id", nullable = false)
+  JdbcSep24Transaction transaction;
 
   String id;
   String idType;

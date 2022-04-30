@@ -1,15 +1,16 @@
 package org.stellar.anchor.platform.data;
 
 import com.google.gson.annotations.SerializedName;
-import lombok.Data;
+import java.util.ArrayList;
+import java.util.List;
+import javax.persistence.*;
+import lombok.Getter;
+import lombok.Setter;
 import org.stellar.anchor.sep24.Sep24RefundPayment;
 import org.stellar.anchor.sep24.Sep24Transaction;
 
-import javax.persistence.*;
-import java.util.Collection;
-import java.util.Set;
-
-@Data
+@Getter
+@Setter
 @Entity
 @Table(name = "sep24_transaction")
 public class JdbcSep24Transaction implements Sep24Transaction {
@@ -96,11 +97,20 @@ public class JdbcSep24Transaction implements Sep24Transaction {
 
   @SerializedName("muxed_account")
   String muxedAccount;
-  @OneToMany(mappedBy="transaction")
-  private Set<JdbcSep24RefundPayment> refundPayments;
+
+  @OneToMany(fetch = FetchType.LAZY, mappedBy = "transaction")
+  List<JdbcSep24RefundPayment> refundPayments;
 
   @Override
-  public Collection<? extends Sep24RefundPayment> refundPayments() {
+  public List<? extends Sep24RefundPayment> getRefundPayments() {
     return refundPayments;
+  }
+
+  @Override
+  public void setRefundPayments(List<? extends Sep24RefundPayment> payments) {
+    refundPayments = new ArrayList<>(payments.size());
+    payments.stream()
+        .filter(p -> p instanceof JdbcSep24RefundPayment)
+        .forEach(fp -> refundPayments.add((JdbcSep24RefundPayment) fp));
   }
 }

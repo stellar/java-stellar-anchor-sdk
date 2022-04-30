@@ -1,6 +1,6 @@
 package org.stellar.anchor.sep24;
 
-import java.util.Collection;
+import java.util.List;
 
 @SuppressWarnings("unused")
 public interface Sep24Transaction {
@@ -116,7 +116,9 @@ public interface Sep24Transaction {
 
   void setMuxedAccount(String muxedAccount);
 
-  Collection<? extends Sep24RefundPayment> refundPayments();
+  List<? extends Sep24RefundPayment> getRefundPayments();
+
+  void setRefundPayments(List<? extends Sep24RefundPayment> payments);
 
   enum Kind {
     DEPOSIT("deposit"),
