@@ -2,7 +2,6 @@ package org.stellar.anchor.platform.service;
 
 import static org.stellar.anchor.api.sep.SepTransactionStatus.ERROR;
 
-import com.google.gson.Gson;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
@@ -21,6 +20,7 @@ import org.stellar.anchor.platform.data.JdbcSep31TransactionStore;
 import org.stellar.anchor.platform.paymentobserver.ObservedPayment;
 import org.stellar.anchor.platform.paymentobserver.PaymentListener;
 import org.stellar.anchor.sep31.Sep31Transaction;
+import org.stellar.anchor.util.GsonUtils;
 import org.stellar.anchor.util.Log;
 import org.stellar.anchor.util.MemoHelper;
 import org.stellar.sdk.xdr.MemoType;
@@ -126,7 +126,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
 
   private void sendToQueue(TransactionEvent event) {
     eventService.publish(event);
-    Log.info("Sent to event queue" + new Gson().toJson(event));
+    Log.info("Sent to event queue" + GsonUtils.getInstance().toJson(event));
   }
 
   TransactionEvent receivedPaymentToEvent(Sep31Transaction txn, ObservedPayment payment) {

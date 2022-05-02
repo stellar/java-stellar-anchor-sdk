@@ -138,8 +138,8 @@ class PaymentOperationToEventListenerTest {
     sep31TxMock.amountFeeAsset = "FOO"
     sep31TxMock.quoteId = "cef1fc13-3f65-4612-b1f2-502d698c816b"
     sep31TxMock.startedAt = startedAtMock
-    sep31TxMock.stellarMemo = "my_memo"
-    sep31TxMock.stellarMemoType = "text"
+    sep31TxMock.stellarMemo = "OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ="
+    sep31TxMock.stellarMemoType = "hash"
     sep31TxMock.status = SepTransactionStatus.PENDING_SENDER.toString()
 
     every { transactionStore.findByStellarMemo(capture(slotMemo)) } returns sep31TxMock

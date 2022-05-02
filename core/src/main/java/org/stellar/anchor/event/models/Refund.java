@@ -1,7 +1,7 @@
 package org.stellar.anchor.event.models;
 
 import com.google.gson.annotations.SerializedName;
-import java.time.LocalDateTime;
+import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,10 +15,10 @@ public class Refund {
   Amount amount;
 
   @SerializedName("requested_at")
-  LocalDateTime requestedAt;
+  Instant requestedAt;
 
   @SerializedName("refunded_at")
-  LocalDateTime refundedAt;
+  Instant refundedAt;
 
   public Refund() {}
 }
