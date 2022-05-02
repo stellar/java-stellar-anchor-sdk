@@ -25,6 +25,7 @@ import org.stellar.anchor.config.*;
 import org.stellar.anchor.event.EventPublishService;
 import org.stellar.anchor.filter.Sep10TokenFilter;
 import org.stellar.anchor.horizon.Horizon;
+import org.stellar.anchor.platform.config.PropertyCircleConfig;
 import org.stellar.anchor.platform.data.*;
 import org.stellar.anchor.sep1.ResourceReader;
 import org.stellar.anchor.sep1.Sep1Service;
@@ -77,6 +78,11 @@ public class SepConfig {
   @Bean
   public Horizon horizon(AppConfig appConfig) {
     return new Horizon(appConfig);
+  }
+
+  @Bean
+  CircleConfig circleConfig() {
+    return new PropertyCircleConfig();
   }
 
   @Bean
@@ -137,6 +143,7 @@ public class SepConfig {
   Sep31Service sep31Service(
       AppConfig appConfig,
       Sep31Config sep31Config,
+      CircleConfig circleConfig,
       Sep31TransactionStore sep31TransactionStore,
       Sep38QuoteStore sep38QuoteStore,
       AssetService assetService,
@@ -146,6 +153,7 @@ public class SepConfig {
     return new Sep31Service(
         appConfig,
         sep31Config,
+        circleConfig,
         sep31TransactionStore,
         sep38QuoteStore,
         assetService,

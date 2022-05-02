@@ -31,6 +31,7 @@ import org.stellar.anchor.api.sep.sep31.Sep31GetTransactionResponse.TransactionR
 import org.stellar.anchor.api.shared.Amount;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.AppConfig;
+import org.stellar.anchor.config.CircleConfig;
 import org.stellar.anchor.config.Sep31Config;
 import org.stellar.anchor.event.EventPublishService;
 import org.stellar.anchor.event.models.StellarId;
@@ -42,6 +43,7 @@ import org.stellar.anchor.sep38.Sep38QuoteStore;
 public class Sep31Service {
   private final AppConfig appConfig;
   private final Sep31Config sep31Config;
+  private final CircleConfig circleConfig;
   private final Sep31TransactionStore sep31TransactionStore;
   private final Sep38QuoteStore sep38QuoteStore;
   private final AssetService assetService;
@@ -53,14 +55,22 @@ public class Sep31Service {
   public Sep31Service(
       AppConfig appConfig,
       Sep31Config sep31Config,
+      CircleConfig circleConfig,
       Sep31TransactionStore sep31TransactionStore,
       Sep38QuoteStore sep38QuoteStore,
       AssetService assetService,
       FeeIntegration feeIntegration,
       CustomerIntegration customerIntegration,
       EventPublishService eventService) {
+    if (sep31Config.getMemoGenerator() == Sep31Config.MemoGenerator.CIRCLE
+        && circleConfig == null) {
+      throw new RuntimeException(
+          "Missing Circle configuration to be used for Circle memo generation.");
+    }
+
     this.appConfig = appConfig;
     this.sep31Config = sep31Config;
+    this.circleConfig = circleConfig;
     this.sep31TransactionStore = sep31TransactionStore;
     this.sep38QuoteStore = sep38QuoteStore;
     this.assetService = assetService;
@@ -244,11 +254,27 @@ public class Sep31Service {
   }
 
   private void generateTransactionMemo(Sep31Transaction txn) {
-    String memo = StringUtils.truncate(txn.getId(), 32);
-    memo = StringUtils.leftPad(memo, 32, '0');
-    memo = new String(Base64.getEncoder().encode(memo.getBytes()));
+    String memoType;
+    String memo;
+    switch (sep31Config.getMemoGenerator()) {
+      case SELF:
+        memoType = memoTypeAsString(MEMO_HASH);
+        memo = StringUtils.truncate(txn.getId(), 32);
+        memo =
+            StringUtils.leftPad(
+                memo, 32, '0'); // this won't have any affect if the memo already has 32 char.
+        memo = new String(Base64.getEncoder().encode(memo.getBytes()));
+        break;
+
+      case CIRCLE:
+        throw new RuntimeException("Not implemented");
+
+      default:
+        throw new RuntimeException("Not supported");
+    }
+
+    txn.setStellarMemoType(memoType);
     txn.setStellarMemo(memo);
-    txn.setStellarMemoType(memoTypeAsString(MEMO_HASH));
   }
 
   public Sep31GetTransactionResponse getTransaction(String id) throws AnchorException {

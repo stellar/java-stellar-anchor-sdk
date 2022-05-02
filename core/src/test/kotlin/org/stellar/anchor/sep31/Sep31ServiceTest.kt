@@ -1,11 +1,14 @@
 package org.stellar.anchor.sep31
 
 import com.google.gson.Gson
-import io.mockk.MockKAnnotations
-import io.mockk.every
+import io.mockk.*
 import io.mockk.impl.annotations.MockK
-import io.mockk.spyk
+import java.lang.reflect.Method
+import java.util.*
+import org.apache.commons.lang3.StringUtils
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.stellar.anchor.Constants
@@ -17,6 +20,7 @@ import org.stellar.anchor.api.shared.Amount
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.ResourceJsonAssetService
 import org.stellar.anchor.config.AppConfig
+import org.stellar.anchor.config.CircleConfig
 import org.stellar.anchor.config.Sep31Config
 import org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_RECEIVE
 import org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_SEND
@@ -29,6 +33,156 @@ import org.stellar.anchor.util.GsonUtils
 internal class Sep31ServiceTest {
   companion object {
     val gson: Gson = GsonUtils.getInstance()
+
+    private const val requestJson =
+      """
+        {
+          "amount": "500",
+          "asset_code": "USDC",
+          "sender_id": "3f720570-26bd-4ea6-b0a2-1643ef4149da",
+          "receiver_id": "69401a9a-7edb-4121-b507-1089a4389b11",
+          "fields": {
+            "transaction": {
+              "receiver_account_number": "1",
+              "type": "SWIFT",
+              "receiver_routing_number": "1"
+            }
+          }
+        }
+    """
+
+    private const val feeJson =
+      """
+        {
+          "amount": "2",
+          "asset": "USDC"
+        }
+    """
+
+    private const val assetJson =
+      """
+            {
+              "code": "USDC",
+              "issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+              "distribution_account": "GDVARAZQD3B5QKKQG2AE455HXLD3NYFWRMPBGXSH2VE3L3CF23CAZDUB",
+              "schema": "stellar",
+              "significant_decimals": 2,
+              "deposit": {
+                "enabled": true,
+                "fee_fixed": 0,
+                "fee_percent": 0,
+                "min_amount": 1,
+                "max_amount": 1000000,
+                "fee_minimum": 0
+              },
+              "withdraw": {
+                "enabled": false,
+                "fee_fixed": 0,
+                "fee_percent": 0,
+                "min_amount": 1,
+                "max_amount": 1000000
+              },
+              "send": {
+                "fee_fixed": 0,
+                "fee_percent": 0,
+                "min_amount": 1,
+                "max_amount": 1000000
+              },
+              "sep31": {
+                "quotes_supported": true,
+                "quotes_required": true,
+                "sep12": {
+                  "sender": {
+                    "types": {
+                      "sep31-sender": {
+                        "description": "U.S. citizens limited to sending payments of less than ${'$'}10,000 in value"
+                      },
+                      "sep31-large-sender": {
+                        "description": "U.S. citizens that do not have sending limits"
+                      },
+                      "sep31-foreign-sender": {
+                        "description": "non-U.S. citizens sending payments of less than ${'$'}10,000 in value"
+                      }
+                    }
+                  },
+                  "receiver": {
+                    "types": {
+                      "sep31-receiver": {
+                        "description": "U.S. citizens receiving USD"
+                      },
+                      "sep31-foreign-receiver": {
+                        "description": "non-U.S. citizens receiving USD"
+                      }
+                    }
+                  }
+                },
+                "fields": {
+                  "transaction": {
+                    "receiver_routing_number": {
+                      "description": "routing number of the destination bank account",
+                      "optional": false
+                    },
+                    "receiver_account_number": {
+                      "description": "bank account number of the destination",
+                      "optional": false
+                    },
+                    "type": {
+                      "description": "type of deposit to make",
+                      "choices": [
+                        "SEPA",
+                        "SWIFT"
+                      ],
+                      "optional": false
+                    }
+                  }
+                }
+              },
+              "sep38": {
+                "exchangeable_assets": [
+                  "iso4217:USD"
+                ]
+              },
+              "sep31_enabled": true,
+              "sep38_enabled": true
+            }
+
+        """
+
+    private const val txnJson =
+      """
+        {
+          "id": "a2392add-87c9-42f0-a5c1-5f1728030b68",
+          "status": "pending_sender",
+          "stellar_account_id": "GAYR3FVW2PCXTNHHWHEAFOCKZQV4PEY2ZKGIKB47EKPJ3GSBYA52XJBY",
+          "client_domain": "demo-wallet-server.stellar.org",
+          "fields": {
+            "receiver_account_number": "1",
+            "type": "SWIFT",
+            "receiver_routing_number": "1"
+          },
+          "stellarTransactions": []
+        }
+    """
+
+    private const val quoteJson =
+      """
+      {
+        "id": "quote_id",
+        "expires_at": "2022-04-18T23:33:24.629719Z",
+        "price": "5.0",
+        "sell_asset": "USD",
+        "sell_amount": "100",
+        "sell_delivery_method": "SWIFT",
+        "buy_asset": "USD",
+        "buy_amount": "100",
+        "buy_delivery_method": "SWIFT",
+        "created_at": "2022-04-18T23:33:24.629719Z",
+        "creator_account_id": "1234",
+        "creator_memo": "5678",
+        "creator_memo_type": "string",
+        "transaction_id": "abcd"
+      }
+  """
   }
 
   private val assetService: AssetService = ResourceJsonAssetService("test_assets.json")
@@ -37,6 +191,7 @@ internal class Sep31ServiceTest {
 
   @MockK(relaxed = true) lateinit var appConfig: AppConfig
   @MockK(relaxed = true) lateinit var sep31Config: Sep31Config
+  @MockK(relaxed = true) lateinit var circleConfig: CircleConfig
   @MockK(relaxed = true) lateinit var quoteStore: Sep38QuoteStore
   @MockK(relaxed = true) lateinit var feeIntegration: FeeIntegration
   @MockK(relaxed = true) lateinit var customerIntegration: CustomerIntegration
@@ -45,11 +200,11 @@ internal class Sep31ServiceTest {
   private lateinit var jwtService: JwtService
   private lateinit var sep31Service: Sep31Service
 
-  lateinit var request: Sep31PostTransactionRequest
-  lateinit var txn: PojoSep31Transaction
-  lateinit var fee: Amount
-  lateinit var asset: AssetInfo
-  lateinit var quote: PojoSep38Quote
+  private lateinit var request: Sep31PostTransactionRequest
+  private lateinit var txn: PojoSep31Transaction
+  private lateinit var fee: Amount
+  private lateinit var asset: AssetInfo
+  private lateinit var quote: PojoSep38Quote
 
   @BeforeEach
   fun setUp() {
@@ -66,6 +221,7 @@ internal class Sep31ServiceTest {
       Sep31Service(
         appConfig,
         sep31Config,
+        circleConfig,
         txnStore,
         quoteStore,
         assetService,
@@ -79,6 +235,12 @@ internal class Sep31ServiceTest {
     fee = gson.fromJson(feeJson, Amount::class.java)
     asset = gson.fromJson(assetJson, AssetInfo::class.java)
     quote = gson.fromJson(quoteJson, PojoSep38Quote::class.java)
+  }
+
+  @AfterEach
+  fun teardown() {
+    clearAllMocks()
+    unmockkAll()
   }
 
   @Test
@@ -182,151 +344,27 @@ internal class Sep31ServiceTest {
     assertEquals("BRL", txn.amountOutAsset)
   }
 
-  val requestJson =
-    """
-        {
-          "amount": "500",
-          "asset_code": "USDC",
-          "sender_id": "3f720570-26bd-4ea6-b0a2-1643ef4149da",
-          "receiver_id": "69401a9a-7edb-4121-b507-1089a4389b11",
-          "fields": {
-            "transaction": {
-              "receiver_account_number": "1",
-              "type": "SWIFT",
-              "receiver_routing_number": "1"
-            }
-          }
-        }
-    """
-  val feeJson = """
-        {
-          "amount": "2",
-          "asset": "USDC"
-        }
-    """
+  @Test
+  fun test_calculateMemoSelf() {
+    every { sep31Config.memoGenerator } returns Sep31Config.MemoGenerator.SELF
 
-  val assetJson =
-    """
-            {
-              "code": "USDC",
-              "issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
-              "distribution_account": "GDVARAZQD3B5QKKQG2AE455HXLD3NYFWRMPBGXSH2VE3L3CF23CAZDUB",
-              "schema": "stellar",
-              "significant_decimals": 2,
-              "deposit": {
-                "enabled": true,
-                "fee_fixed": 0,
-                "fee_percent": 0,
-                "min_amount": 1,
-                "max_amount": 1000000,
-                "fee_minimum": 0
-              },
-              "withdraw": {
-                "enabled": false,
-                "fee_fixed": 0,
-                "fee_percent": 0,
-                "min_amount": 1,
-                "max_amount": 1000000
-              },
-              "send": {
-                "fee_fixed": 0,
-                "fee_percent": 0,
-                "min_amount": 1,
-                "max_amount": 1000000
-              },
-              "sep31": {
-                "quotes_supported": true,
-                "quotes_required": true,
-                "sep12": {
-                  "sender": {
-                    "types": {
-                      "sep31-sender": {
-                        "description": "U.S. citizens limited to sending payments of less than ${'$'}10,000 in value"
-                      },
-                      "sep31-large-sender": {
-                        "description": "U.S. citizens that do not have sending limits"
-                      },
-                      "sep31-foreign-sender": {
-                        "description": "non-U.S. citizens sending payments of less than ${'$'}10,000 in value"
-                      }
-                    }
-                  },
-                  "receiver": {
-                    "types": {
-                      "sep31-receiver": {
-                        "description": "U.S. citizens receiving USD"
-                      },
-                      "sep31-foreign-receiver": {
-                        "description": "non-U.S. citizens receiving USD"
-                      }
-                    }
-                  }
-                },
-                "fields": {
-                  "transaction": {
-                    "receiver_routing_number": {
-                      "description": "routing number of the destination bank account",
-                      "optional": false
-                    },
-                    "receiver_account_number": {
-                      "description": "bank account number of the destination",
-                      "optional": false
-                    },
-                    "type": {
-                      "description": "type of deposit to make",
-                      "choices": [
-                        "SEPA",
-                        "SWIFT"
-                      ],
-                      "optional": false
-                    }
-                  }
-                }
-              },
-              "sep38": {
-                "exchangeable_assets": [
-                  "iso4217:USD"
-                ]
-              },
-              "sep31_enabled": true,
-              "sep38_enabled": true
-            }
+    assertEquals("a2392add-87c9-42f0-a5c1-5f1728030b68", txn.id)
+    assertNull(txn.stellarMemoType)
+    assertNull(txn.stellarMemo)
 
-        """
+    var wantMemo = StringUtils.truncate("a2392add-87c9-42f0-a5c1-5f1728030b68", 32)
+    wantMemo = String(Base64.getEncoder().encode(wantMemo.toByteArray()))
+    assertEquals("YTIzOTJhZGQtODdjOS00MmYwLWE1YzEtNWYxNzI4MDM=", wantMemo)
 
-  val txnJson =
-    """
-        {
-          "id": "a2392add-87c9-42f0-a5c1-5f1728030b68",
-          "status": "pending_sender",
-          "stellar_account_id": "GAYR3FVW2PCXTNHHWHEAFOCKZQV4PEY2ZKGIKB47EKPJ3GSBYA52XJBY",
-          "client_domain": "demo-wallet-server.stellar.org",
-          "fields": {
-            "receiver_account_number": "1",
-            "type": "SWIFT",
-            "receiver_routing_number": "1"
-          },
-          "stellarTransactions": []
-        }
-    """
+    val generateTransactionMemoMethod: Method =
+      Sep31Service::class.java.getDeclaredMethod(
+        "generateTransactionMemo",
+        Sep31Transaction::class.java
+      )
+    assert(generateTransactionMemoMethod.trySetAccessible())
+    @Suppress("UNCHECKED_CAST") generateTransactionMemoMethod.invoke(sep31Service, txn)
 
-  val quoteJson =
-    """
-      {
-        "id": "quote_id",
-        "expires_at": "2022-04-18T23:33:24.629719Z",
-        "price": "5.0",
-        "sell_asset": "USD",
-        "sell_amount": "100",
-        "sell_delivery_method": "SWIFT",
-        "buy_asset": "USD",
-        "buy_amount": "100",
-        "buy_delivery_method": "SWIFT",
-        "created_at": "2022-04-18T23:33:24.629719Z",
-        "creator_account_id": "1234",
-        "creator_memo": "5678",
-        "creator_memo_type": "string",
-        "transaction_id": "abcd"
-      }
-  """
+    assertEquals("hash", txn.stellarMemoType)
+    assertEquals("YTIzOTJhZGQtODdjOS00MmYwLWE1YzEtNWYxNzI4MDM=", txn.stellarMemo)
+  }
 }
