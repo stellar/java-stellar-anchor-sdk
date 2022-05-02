@@ -1,6 +1,7 @@
 package org.stellar.anchor.sep10;
 
 import io.jsonwebtoken.*;
+import io.jsonwebtoken.impl.DefaultJwsHeader;
 import java.nio.charset.StandardCharsets;
 import java.util.Calendar;
 import java.util.Map;
@@ -46,6 +47,16 @@ public class JwtService {
     JwtParser jwtParser = Jwts.parser();
     jwtParser.setSigningKey(jwtKey);
     Jwt jwt = jwtParser.parse(cipher);
+    Header header = jwt.getHeader();
+    if (!(header instanceof DefaultJwsHeader)) {
+      // This should not happen
+      throw new IllegalArgumentException("Bad token");
+    }
+    DefaultJwsHeader defaultHeader = (DefaultJwsHeader) header;
+    if (!defaultHeader.getAlgorithm().equals(SignatureAlgorithm.HS256.getValue())) {
+      // Not signed by the JWTService.
+      throw new IllegalArgumentException("Bad token");
+    }
     Claims claims = (Claims) jwt.getBody();
     return JwtToken.of(
         (String) claims.get("iss"),

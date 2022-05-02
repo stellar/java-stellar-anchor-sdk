@@ -14,3 +14,9 @@ Configutation:
     Logger:
       - name: org.stellar
         level: info
+      - name: org.apache
+        level: warn
+      - name: org.hibernate
+        level: warn
+      - name: com.zaxxer
+        level: warn

@@ -7,9 +7,9 @@ import java.util.concurrent.TimeUnit;
 import okhttp3.OkHttpClient;
 import okhttp3.Response;
 import org.springframework.http.HttpStatus;
-import org.stellar.anchor.exception.AnchorException;
-import org.stellar.anchor.exception.SepException;
-import org.stellar.anchor.exception.SepNotAuthorizedException;
+import org.stellar.anchor.api.exception.AnchorException;
+import org.stellar.anchor.api.exception.SepException;
+import org.stellar.anchor.api.exception.SepNotAuthorizedException;
 import org.stellar.anchor.util.GsonUtils;
 
 public abstract class BaseApiClient {

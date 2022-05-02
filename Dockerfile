@@ -15,13 +15,13 @@ RUN apt-get install -y net-tools
 RUN apt-get install -y wget
 
 RUN mkdir /app
-COPY --from=build /code/platform/build/libs/platform*.jar /app/anchor-platform.jar
+COPY --from=build /code/service-runner/build/libs/anchor-platform-runner*.jar /app/anchor-platform-runner.jar
 
 RUN mkdir /config
 ENV STELLAR_ANCHOR_CONFIG=file:/config/anchor-config.yaml
 
-ENV REFERENCE_CONFIG=file:/config/reference-config.yaml
+ENV REFERENCE_SERVER_CONFIG_ENV=file:/config/reference-config.yaml
 
 EXPOSE 8080 8081
 
-ENTRYPOINT ["java", "-jar", "/app/anchor-platform.jar"]
+ENTRYPOINT ["java", "-jar", "/app/anchor-platform-runner.jar"]

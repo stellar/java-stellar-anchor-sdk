@@ -117,6 +117,19 @@ public class Log {
   }
 
   /**
+   * Send exception WARN log.
+   *
+   * @param ex The exception.
+   */
+  public static void warnEx(final Throwable ex) {
+    Logger logger = getLogger();
+    StringWriter sw = new StringWriter();
+    PrintWriter pw = new PrintWriter(sw);
+    ex.printStackTrace(pw);
+    logger.warn(sw.toString());
+  }
+
+  /**
    * Send message to ERROR log.
    *
    * @param msg The message

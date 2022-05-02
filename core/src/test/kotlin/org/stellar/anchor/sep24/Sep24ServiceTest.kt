@@ -19,20 +19,20 @@ import org.stellar.anchor.Constants.Companion.TEST_ASSET_ISSUER_ACCOUNT_ID
 import org.stellar.anchor.Constants.Companion.TEST_CLIENT_DOMAIN
 import org.stellar.anchor.Constants.Companion.TEST_TRANSACTION_ID_0
 import org.stellar.anchor.Constants.Companion.TEST_TRANSACTION_ID_1
+import org.stellar.anchor.api.exception.SepException
+import org.stellar.anchor.api.exception.SepNotAuthorizedException
+import org.stellar.anchor.api.exception.SepNotFoundException
+import org.stellar.anchor.api.exception.SepValidationException
+import org.stellar.anchor.api.sep.sep24.GetTransactionRequest
+import org.stellar.anchor.api.sep.sep24.GetTransactionsRequest
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.ResourceJsonAssetService
 import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.Sep24Config
-import org.stellar.anchor.dto.sep24.GetTransactionRequest
-import org.stellar.anchor.dto.sep24.GetTransactionsRequest
-import org.stellar.anchor.exception.SepException
-import org.stellar.anchor.exception.SepNotAuthorizedException
-import org.stellar.anchor.exception.SepNotFoundException
-import org.stellar.anchor.exception.SepValidationException
-import org.stellar.anchor.model.Sep24Transaction
 import org.stellar.anchor.sep10.JwtService
 import org.stellar.anchor.sep10.JwtToken
 import org.stellar.anchor.util.DateUtil
+import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.MemoHelper.makeMemo
 import org.stellar.sdk.MemoHash
 import org.stellar.sdk.MemoId
@@ -55,6 +55,8 @@ internal class Sep24ServiceTest {
 
   private lateinit var sep24Service: Sep24Service
 
+  private val gson = GsonUtils.getInstance()
+
   @BeforeEach
   fun setUp() {
     MockKAnnotations.init(this, relaxUnitFun = true)
@@ -69,7 +71,7 @@ internal class Sep24ServiceTest {
 
     jwtService = spyk(JwtService(appConfig))
 
-    sep24Service = Sep24Service(appConfig, sep24Config, assetService, jwtService, txnStore)
+    sep24Service = Sep24Service(gson, appConfig, sep24Config, assetService, jwtService, txnStore)
   }
 
   @AfterEach

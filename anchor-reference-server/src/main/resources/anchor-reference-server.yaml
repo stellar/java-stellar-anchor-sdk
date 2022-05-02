@@ -8,16 +8,39 @@ server:
 #
 anchor.settings:
   version: 0.0.1
+  platformApiEndpoint: http://localhost:8080
 
 event:
-  kafkaBootstrapServer: localhost:29092
-  platformApiEndpoint: http://localhost:8080
+  # The listener type. values: [kafka, sqs, amqp]
+  # If the listener is kafka, the kafka listener is configured in kafka.listener section.
+  # If the listener is sqs, the sqs listener is configured in the sqs.listener section.
+  # If the listener is amqp, the AMQP listner is configured in the ampq.listner section.
+  listenerType: kafka
+
+kafka.listener:
+  bootstrapServer: localhost:29092
+  useSingleQueue: false
   eventTypeToQueue:
     all: ap_event_single_queue
-    quote_created: ap_event_quote_created
-    transaction_created: ap_event_transaction_created
-    transaction_payment_received: ap_event_transaction_payment_received
-    transaction_error: ap_event_transaction_error
+    quoteCreated: ap_event_quote_created
+    transactionCreated: ap_event_transaction_created
+    transactionStatusChanged: ap_event_transaction_status_changed
+    transactionError: ap_event_transaction_error
+
+sqs.listener:
+  region: us-east-1
+  useSingleQueue: false
+  eventTypeToQueue:
+    all: sdf_dev_ap_event_single_queue.fifo
+    quote_created: sdf_dev_ap_event_quote_created.fifo
+    transaction_created: sdf_dev_ap_event_transaction_created.fifo
+    transaction_status_changed: sdf_dev_ap_event_transaction_status_changed.fifo
+    transaction_error: sdf_dev_ap_event_transaction_error.fifo
+  accessKey: <ACCESS_KEY>
+  secretKey: <SECRET_KEY>
+
+amqp.listener:
+  endpoint: localhost:5672
 #
 # Spring Data JDBC settings for H2
 #

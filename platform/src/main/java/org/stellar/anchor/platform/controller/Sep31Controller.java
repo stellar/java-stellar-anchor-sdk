@@ -7,9 +7,9 @@ import javax.servlet.http.HttpServletRequest;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
-import org.stellar.anchor.asset.AssetInfo.Sep31TxnFieldSpecs;
-import org.stellar.anchor.dto.sep31.*;
-import org.stellar.anchor.exception.AnchorException;
+import org.stellar.anchor.api.exception.AnchorException;
+import org.stellar.anchor.api.sep.AssetInfo.Sep31TxnFieldSpecs;
+import org.stellar.anchor.api.sep.sep31.*;
 import org.stellar.anchor.sep10.JwtToken;
 import org.stellar.anchor.sep31.Sep31Service;
 import org.stellar.anchor.sep31.Sep31Service.Sep31CustomerInfoNeededException;
@@ -50,7 +50,7 @@ public class Sep31Controller {
   @RequestMapping(
       value = "/transactions/{id}",
       method = {RequestMethod.GET})
-  public Sep31GetTransactionResponse postTransaction(
+  public Sep31GetTransactionResponse getTransaction(
       HttpServletRequest servletRequest, @PathVariable(name = "id") String txnId)
       throws AnchorException {
     JwtToken jwtToken = getSep10Token(servletRequest);

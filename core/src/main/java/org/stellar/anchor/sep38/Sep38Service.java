@@ -9,21 +9,19 @@ import java.text.DecimalFormat;
 import java.time.Instant;
 import java.util.*;
 import org.apache.commons.lang3.StringUtils;
+import org.stellar.anchor.api.callback.GetRateRequest;
+import org.stellar.anchor.api.callback.GetRateResponse;
+import org.stellar.anchor.api.callback.RateIntegration;
+import org.stellar.anchor.api.exception.AnchorException;
+import org.stellar.anchor.api.exception.BadRequestException;
+import org.stellar.anchor.api.exception.NotFoundException;
+import org.stellar.anchor.api.exception.ServerErrorException;
+import org.stellar.anchor.api.sep.sep38.*;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.Sep38Config;
-import org.stellar.anchor.dto.sep38.*;
-import org.stellar.anchor.event.EventService;
+import org.stellar.anchor.event.EventPublishService;
 import org.stellar.anchor.event.models.QuoteEvent;
 import org.stellar.anchor.event.models.StellarId;
-import org.stellar.anchor.exception.AnchorException;
-import org.stellar.anchor.exception.BadRequestException;
-import org.stellar.anchor.exception.NotFoundException;
-import org.stellar.anchor.exception.ServerErrorException;
-import org.stellar.anchor.integration.rate.GetRateRequest;
-import org.stellar.anchor.integration.rate.GetRateResponse;
-import org.stellar.anchor.integration.rate.RateIntegration;
-import org.stellar.anchor.model.Sep38Quote;
-import org.stellar.anchor.model.Sep38QuoteBuilder;
 import org.stellar.anchor.sep10.JwtToken;
 import org.stellar.anchor.util.Log;
 
@@ -32,7 +30,7 @@ public class Sep38Service {
   final AssetService assetService;
   final RateIntegration rateIntegration;
   final Sep38QuoteStore sep38QuoteStore;
-  final EventService eventService;
+  final EventPublishService eventService;
   final InfoResponse infoResponse;
   final Map<String, InfoResponse.Asset> assetMap;
 
@@ -41,7 +39,7 @@ public class Sep38Service {
       AssetService assetService,
       RateIntegration rateIntegration,
       Sep38QuoteStore sep38QuoteStore,
-      EventService eventService) {
+      EventPublishService eventService) {
     this.sep38Config = sep38Config;
     this.assetService = assetService;
     this.rateIntegration = rateIntegration;

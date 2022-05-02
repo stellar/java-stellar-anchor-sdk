@@ -47,6 +47,12 @@ app-config:
     enabled: true
     customerIntegrationEndpoint: http://localhost:8081
 
+  # sep-24
+  sep24:
+    enabled: true
+    interactiveJwtExpiration: 3600
+    interactiveUrl: http://localhost:8081/sep24/interactive
+
   # sep-31
   sep31:
     enabled: true
@@ -77,22 +83,43 @@ app-config:
       horizonUrl: https://horizon-testnet.stellar.org
       secretKey: secret # stellar account secret key
 
+  circle-payment-observer:
+    enabled: true
+    horizonUrl: https://horizon-testnet.stellar.org
+    stellarNetwork: TESTNET # TESTNET or PUBLIC
+    trackedWallet: all
+
   event:
     enabled: true
-    kafkaBootstrapServer: localhost:29092
+    publisherType: sqs
+
+  kafka.publisher:
+    bootstrapServer: localhost:29092
     useSingleQueue: false
     eventTypeToQueue:
       all: ap_event_single_queue
       quote_created: ap_event_quote_created
       transaction_created: ap_event_transaction_created
-      transaction_payment_received: ap_event_transaction_payment_received
+      transaction_status_changed: ap_event_transaction_status_changed
       transaction_error: ap_event_transaction_error
+
+  sqs.publisher:
+    region: us-east-1
+    useSingleQueue: false
+    eventTypeToQueue:
+      all: sdf_dev_ap_event_single_queue.fifo
+      quote_created: sdf_dev_ap_event_quote_created.fifo
+      transaction_created: sdf_dev_ap_event_transaction_created.fifo
+      transaction_status_changed: sdf_dev_ap_event_transaction_status_changed.fifo
+      transaction_error: sdf_dev_ap_event_transaction_error.fifo
+    accessKey: <ACCESS_KEY>
+    secretKey: <SECRET_KEY>
 
 #
 # Spring Data JDBC settings
 #
 data-spring-jdbc-sqlite:
-  spring.jpa.database-platform: org.stellar.anchor.server.sqlite.SQLiteDialect
+  spring.jpa.database-platform: org.stellar.anchor.platform.sqlite.SQLiteDialect
   spring.jpa.hibernate.ddl-auto: update
   spring.jpa.generate-ddl: true
   spring.jpa.hibernate.show_sql: false

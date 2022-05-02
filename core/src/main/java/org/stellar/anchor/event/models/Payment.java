@@ -4,6 +4,7 @@ import com.google.gson.annotations.SerializedName;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import org.stellar.anchor.api.shared.Amount;
 
 @Data
 @Builder

@@ -1,7 +1,6 @@
 package org.stellar.anchor.sep24;
 
 import lombok.Data;
-import org.stellar.anchor.model.Sep24Transaction;
 
 @Data
 public class PojoSep24Transaction implements Sep24Transaction {

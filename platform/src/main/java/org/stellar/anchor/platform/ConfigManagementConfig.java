@@ -4,7 +4,11 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.stellar.anchor.config.*;
-import org.stellar.anchor.server.config.*;
+import org.stellar.anchor.config.CirclePaymentObserverConfig;
+import org.stellar.anchor.config.EventConfig;
+import org.stellar.anchor.config.KafkaConfig;
+import org.stellar.anchor.config.SqsConfig;
+import org.stellar.anchor.platform.config.*;
 
 @Configuration
 public class ConfigManagementConfig {
@@ -33,6 +37,12 @@ public class ConfigManagementConfig {
   }
 
   @Bean
+  @ConfigurationProperties(prefix = "sep24")
+  Sep24Config sep24Config() {
+    return new PropertySep24Config();
+  }
+
+  @Bean
   @ConfigurationProperties(prefix = "sep31")
   Sep31Config sep31Config() {
     return new PropertySep31Config();
@@ -45,8 +55,26 @@ public class ConfigManagementConfig {
   }
 
   @Bean
+  @ConfigurationProperties(prefix = "circle-payment-observer")
+  CirclePaymentObserverConfig circlePaymentObserverConfig() {
+    return new PropertyCirclePaymentObserverConfig();
+  }
+
+  @Bean
   @ConfigurationProperties(prefix = "event")
   EventConfig eventConfig() {
     return new PropertyEventConfig();
+  }
+
+  @Bean
+  @ConfigurationProperties(prefix = "kafka.publisher")
+  KafkaConfig kafkaConfig() {
+    return new PropertyKafkaConfig();
+  }
+
+  @Bean
+  @ConfigurationProperties(prefix = "sqs.publisher")
+  SqsConfig sqsConfig() {
+    return new PropertySqsConfig();
   }
 }

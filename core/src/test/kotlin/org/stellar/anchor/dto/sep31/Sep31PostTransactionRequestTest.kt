@@ -2,6 +2,7 @@ package org.stellar.anchor.dto.sep31
 
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
+import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionRequest
 import org.stellar.anchor.util.GsonUtils
 
 internal class Sep31PostTransactionRequestTest {

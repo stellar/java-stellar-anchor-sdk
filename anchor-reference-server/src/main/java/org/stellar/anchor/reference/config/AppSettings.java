@@ -9,4 +9,5 @@ import org.springframework.context.annotation.Configuration;
 @ConfigurationProperties(prefix = "anchor.settings")
 public class AppSettings {
   String version;
+  String platformApiEndpoint;
 }

@@ -2,6 +2,7 @@ package org.stellar.anchor.platform;
 
 import static java.nio.charset.StandardCharsets.UTF_8;
 
+import com.google.gson.Gson;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.Reader;
@@ -14,33 +15,28 @@ import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.util.FileCopyUtils;
+import org.stellar.anchor.api.callback.CustomerIntegration;
+import org.stellar.anchor.api.callback.FeeIntegration;
+import org.stellar.anchor.api.callback.RateIntegration;
+import org.stellar.anchor.api.exception.SepNotFoundException;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.asset.ResourceJsonAssetService;
 import org.stellar.anchor.config.*;
-import org.stellar.anchor.config.AppConfig;
-import org.stellar.anchor.config.Sep10Config;
-import org.stellar.anchor.config.Sep1Config;
-import org.stellar.anchor.config.Sep38Config;
-import org.stellar.anchor.event.EventService;
-import org.stellar.anchor.exception.SepNotFoundException;
+import org.stellar.anchor.event.EventPublishService;
 import org.stellar.anchor.filter.Sep10TokenFilter;
 import org.stellar.anchor.horizon.Horizon;
-import org.stellar.anchor.integration.customer.CustomerIntegration;
-import org.stellar.anchor.integration.fee.FeeIntegration;
-import org.stellar.anchor.integration.rate.RateIntegration;
+import org.stellar.anchor.platform.data.*;
 import org.stellar.anchor.sep1.ResourceReader;
 import org.stellar.anchor.sep1.Sep1Service;
 import org.stellar.anchor.sep10.JwtService;
 import org.stellar.anchor.sep10.Sep10Service;
 import org.stellar.anchor.sep12.Sep12Service;
+import org.stellar.anchor.sep24.Sep24Service;
+import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31Service;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
 import org.stellar.anchor.sep38.Sep38Service;
-import org.stellar.anchor.server.data.JdbcSep31TransactionRepo;
-import org.stellar.anchor.server.data.JdbcSep31TransactionStore;
-import org.stellar.anchor.server.data.JdbcSep38QuoteRepo;
-import org.stellar.anchor.server.data.JdbcSep38QuoteStore;
 
 /** SEP configurations */
 @Configuration
@@ -58,6 +54,9 @@ public class SepConfig {
     FilterRegistrationBean<Sep10TokenFilter> registrationBean = new FilterRegistrationBean<>();
     registrationBean.setFilter(new Sep10TokenFilter(sep10Config, jwtService));
     registrationBean.addUrlPatterns("/sep12/*");
+    registrationBean.addUrlPatterns("/sep24/transaction");
+    registrationBean.addUrlPatterns("/sep24/transactions*");
+    registrationBean.addUrlPatterns("/sep24/transactions/*");
     registrationBean.addUrlPatterns("/sep31/transactions");
     registrationBean.addUrlPatterns("/sep31/transactions/*");
     registrationBean.addUrlPatterns("/sep38/quote");
@@ -83,7 +82,7 @@ public class SepConfig {
   @Bean
   public ResourceReader resourceReader() {
     return new ResourceReader() {
-      ResourceLoader resourceLoader = new DefaultResourceLoader();
+      final ResourceLoader resourceLoader = new DefaultResourceLoader();
 
       @Override
       public String readResourceAsString(String path) {
@@ -118,6 +117,23 @@ public class SepConfig {
   }
 
   @Bean
+  Sep24Service sep24Service(
+      Gson gson,
+      AppConfig appConfig,
+      Sep24Config sep24Config,
+      AssetService assetService,
+      JwtService jwtService,
+      Sep24TransactionStore sep24TransactionStore) {
+    return new Sep24Service(
+        gson, appConfig, sep24Config, assetService, jwtService, sep24TransactionStore);
+  }
+
+  @Bean
+  Sep24TransactionStore sep24TransactionStore(JdbcSep24TransactionRepo sep24TransactionRepo) {
+    return new JdbcSep24TransactionStore(sep24TransactionRepo);
+  }
+
+  @Bean
   Sep31Service sep31Service(
       AppConfig appConfig,
       Sep31Config sep31Config,
@@ -126,7 +142,7 @@ public class SepConfig {
       AssetService assetService,
       FeeIntegration feeIntegration,
       CustomerIntegration customerIntegration,
-      EventService eventService) {
+      EventPublishService eventPublishService) {
     return new Sep31Service(
         appConfig,
         sep31Config,
@@ -135,7 +151,7 @@ public class SepConfig {
         assetService,
         feeIntegration,
         customerIntegration,
-        eventService);
+        eventPublishService);
   }
 
   @Bean
@@ -154,7 +170,7 @@ public class SepConfig {
       AssetService assetService,
       RateIntegration rateIntegration,
       Sep38QuoteStore sep38QuoteStore,
-      EventService eventService) {
+      EventPublishService eventService) {
     return new Sep38Service(
         sep38Config, assetService, rateIntegration, sep38QuoteStore, eventService);
   }

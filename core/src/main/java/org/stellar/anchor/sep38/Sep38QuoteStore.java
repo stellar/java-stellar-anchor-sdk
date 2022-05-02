@@ -1,7 +1,6 @@
 package org.stellar.anchor.sep38;
 
-import org.stellar.anchor.exception.SepException;
-import org.stellar.anchor.model.Sep38Quote;
+import org.stellar.anchor.api.exception.SepException;
 import reactor.util.annotation.NonNull;
 
 /** This interface is for the SEP adapter service to query/save the quote document. */

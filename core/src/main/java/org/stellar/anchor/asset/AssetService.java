@@ -1,6 +1,7 @@
 package org.stellar.anchor.asset;
 
 import java.util.List;
+import org.stellar.anchor.api.sep.AssetInfo;
 
 public interface AssetService {
 

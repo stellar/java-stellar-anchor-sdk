@@ -5,9 +5,9 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.stellar.anchor.api.exception.SepNotFoundException;
+import org.stellar.anchor.api.sep.SepExceptionResponse;
 import org.stellar.anchor.config.Sep1Config;
-import org.stellar.anchor.dto.SepExceptionResponse;
-import org.stellar.anchor.exception.SepNotFoundException;
 import org.stellar.anchor.sep1.Sep1Service;
 
 @RestController

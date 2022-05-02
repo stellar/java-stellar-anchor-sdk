@@ -1,2 +1,0 @@
-server.servlet.context-path: /
-spring.mvc.converters.preferred-json-mapper: gson
