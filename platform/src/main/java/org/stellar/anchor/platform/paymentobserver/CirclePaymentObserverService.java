@@ -11,6 +11,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.stellar.anchor.api.exception.BadRequestException;
+import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.exception.ServerErrorException;
 import org.stellar.anchor.api.exception.UnprocessableEntityException;
 import org.stellar.anchor.config.CirclePaymentObserverConfig;
@@ -146,7 +147,7 @@ public class CirclePaymentObserverService {
     String notificationType = transferNotification.getNotificationType();
     if (!Objects.equals("transfers", notificationType)) {
       throw new UnprocessableEntityException(
-          "Won't handle notification of type \"" + notificationType + "\".");
+          String.format("Won't handle notification of type \"%s\".", notificationType));
     }
 
     CircleTransfer circleTransfer = transferNotification.getTransfer();
@@ -181,12 +182,18 @@ public class CirclePaymentObserverService {
       throw new UnprocessableEntityException("The only supported Circle currency is USDC.");
     }
 
-    ObservedPayment observedPayment = null;
+    ObservedPayment observedPayment;
     try {
       observedPayment = fetchCircleTransferOnStellar(circleTransfer);
     } catch (IOException ex) {
       throw new ServerErrorException(
           "Something went wrong when trying to fetch the Stellar network", ex);
+    } catch (SepException ex) {
+      String exMessage =
+          String.format(
+              "Payment from transaction %s contains an unsupported memo.",
+              circleTransfer.getTransactionHash());
+      throw new UnprocessableEntityException(exMessage, ex);
     }
 
     if (observedPayment == null) {
@@ -203,7 +210,7 @@ public class CirclePaymentObserverService {
   }
 
   public boolean isWalletTracked(CircleTransactionParty party) {
-    if (!party.getType().equals(CircleTransactionParty.Type.WALLET)) {
+    if (party.getType() != CircleTransactionParty.Type.WALLET) {
       return false;
     }
 
@@ -222,7 +229,7 @@ public class CirclePaymentObserverService {
    * @throws IOException if an error happens fetching data from Stellar
    */
   public ObservedPayment fetchCircleTransferOnStellar(CircleTransfer circleTransfer)
-      throws IOException {
+      throws IOException, SepException {
     String txHash = circleTransfer.getTransactionHash();
     Page<OperationResponse> responsePage =
         horizonServer

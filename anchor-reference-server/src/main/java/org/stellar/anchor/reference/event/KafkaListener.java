@@ -49,14 +49,14 @@ public class KafkaListener extends AbstractEventListener {
             q.getQuoteCreated(),
             q.getTransactionCreated(),
             q.getTransactionError(),
-            q.getTransactionPaymentReceived()));
+            q.getTransactionStatusChanged()));
     this.consumer = consumer;
 
     while (!Thread.interrupted()) {
       try {
         ConsumerRecords<String, AnchorEvent> consumerRecords =
             consumer.poll(Duration.ofSeconds(10));
-        Log.debug(String.format("Messages received: %s", consumerRecords.count()));
+        Log.info(String.format("Messages received: %s", consumerRecords.count()));
         consumerRecords.forEach(
             record -> {
               String eventClass = record.value().getClass().getSimpleName();

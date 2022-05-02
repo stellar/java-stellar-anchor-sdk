@@ -9,6 +9,7 @@ import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
+import org.apache.commons.codec.DecoderException;
 import org.springframework.stereotype.Component;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.SepException;
@@ -21,6 +22,8 @@ import org.stellar.anchor.platform.paymentobserver.ObservedPayment;
 import org.stellar.anchor.platform.paymentobserver.PaymentListener;
 import org.stellar.anchor.sep31.Sep31Transaction;
 import org.stellar.anchor.util.Log;
+import org.stellar.anchor.util.MemoHelper;
+import org.stellar.sdk.xdr.MemoType;
 
 @Component
 public class PaymentOperationToEventListener implements PaymentListener {
@@ -48,10 +51,22 @@ public class PaymentOperationToEventListener implements PaymentListener {
       return;
     }
 
+    // Parse memo
+    String memo = payment.getTransactionMemo();
+    String memoType = payment.getTransactionMemoType();
+    if (memoType.equals(MemoHelper.memoTypeAsString(MemoType.MEMO_HASH))) {
+      try {
+        memo = MemoHelper.convertHexToBase64(payment.getTransactionMemo());
+      } catch (DecoderException ex) {
+        Log.warn("Not a HEX string");
+        Log.warnEx(ex);
+      }
+    }
+
     // Find a transaction matching the memo
     Sep31Transaction txn;
     try {
-      txn = transactionStore.findByStellarMemo(payment.getTransactionMemo());
+      txn = transactionStore.findByStellarMemo(memo);
     } catch (AnchorException e) {
       Log.error(
           String.format(
@@ -118,12 +133,10 @@ public class PaymentOperationToEventListener implements PaymentListener {
     Instant paymentTime =
         DateTimeFormatter.ISO_INSTANT.parse(payment.getCreatedAt(), Instant::from);
 
+    TransactionEvent.Status oldStatus = TransactionEvent.Status.from(txn.getStatus());
     TransactionEvent.Status newStatus = TransactionEvent.Status.PENDING_RECEIVER;
     TransactionEvent.StatusChange statusChange =
-        TransactionEvent.StatusChange.builder()
-            .from(TransactionEvent.Status.from(txn.getStatus()))
-            .to(newStatus)
-            .build();
+        new TransactionEvent.StatusChange(oldStatus, newStatus);
 
     StellarId senderStellarId =
         StellarId.builder()
@@ -137,7 +150,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
         TransactionEvent.builder()
             .eventId(UUID.randomUUID().toString())
             // TODO: update to TRANSACTION_STATUS_CHANGED:
-            .type(TransactionEvent.Type.TRANSACTION_PAYMENT_RECEIVED)
+            .type(TransactionEvent.Type.TRANSACTION_STATUS_CHANGED)
             .id(txn.getId())
             .sep(TransactionEvent.Sep.SEP_31)
             .kind(TransactionEvent.Kind.RECEIVE)

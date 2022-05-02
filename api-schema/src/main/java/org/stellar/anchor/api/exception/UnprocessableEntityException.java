@@ -7,4 +7,8 @@ public class UnprocessableEntityException extends AnchorException {
   public UnprocessableEntityException(String message) {
     super(message);
   }
+
+  public UnprocessableEntityException(String message, Exception cause) {
+    super(message, cause);
+  }
 }
