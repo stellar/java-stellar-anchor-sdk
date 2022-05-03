@@ -3,7 +3,6 @@ package org.stellar.anchor.sep31
 import com.google.gson.Gson
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
-import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
 import java.util.*
 import org.apache.commons.lang3.StringUtils
@@ -12,7 +11,6 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
-import org.junit.jupiter.api.assertThrows
 import org.stellar.anchor.Constants
 import org.stellar.anchor.api.callback.CustomerIntegration
 import org.stellar.anchor.api.callback.FeeIntegration
@@ -22,7 +20,6 @@ import org.stellar.anchor.api.shared.Amount
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.ResourceJsonAssetService
 import org.stellar.anchor.config.AppConfig
-import org.stellar.anchor.config.CircleConfig
 import org.stellar.anchor.config.Sep31Config
 import org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_RECEIVE
 import org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_SEND
@@ -193,7 +190,7 @@ internal class Sep31ServiceTest {
 
   @MockK(relaxed = true) lateinit var appConfig: AppConfig
   @MockK(relaxed = true) lateinit var sep31Config: Sep31Config
-  @MockK(relaxed = true) lateinit var circleConfig: CircleConfig
+  @MockK(relaxed = true) lateinit var sep31DepositInfoGenerator: Sep31DepositInfoGenerator
   @MockK(relaxed = true) lateinit var quoteStore: Sep38QuoteStore
   @MockK(relaxed = true) lateinit var feeIntegration: FeeIntegration
   @MockK(relaxed = true) lateinit var customerIntegration: CustomerIntegration
@@ -223,8 +220,8 @@ internal class Sep31ServiceTest {
       Sep31Service(
         appConfig,
         sep31Config,
-        circleConfig,
         txnStore,
+        sep31DepositInfoGenerator,
         quoteStore,
         assetService,
         feeIntegration,
@@ -348,9 +345,21 @@ internal class Sep31ServiceTest {
 
   @Test
   fun test_calculateMemoSelf() {
-    every { sep31Config.memoGenerator } returns Sep31Config.MemoGenerator.SELF
+    sep31Service =
+      Sep31Service(
+        appConfig,
+        sep31Config,
+        txnStore,
+        Sep31DepositInfoGeneratorSelf(), // set deposit info generator
+        quoteStore,
+        assetService,
+        feeIntegration,
+        customerIntegration,
+        eventPublishService
+      )
 
     assertEquals("a2392add-87c9-42f0-a5c1-5f1728030b68", txn.id)
+    assertEquals("GAYR3FVW2PCXTNHHWHEAFOCKZQV4PEY2ZKGIKB47EKPJ3GSBYA52XJBY", txn.stellarAccountId)
     assertNull(txn.stellarMemoType)
     assertNull(txn.stellarMemo)
 
@@ -366,6 +375,7 @@ internal class Sep31ServiceTest {
     assert(generateTransactionMemoMethod.trySetAccessible())
     assertDoesNotThrow { generateTransactionMemoMethod.invoke(sep31Service, txn) }
 
+    assertEquals("GAYR3FVW2PCXTNHHWHEAFOCKZQV4PEY2ZKGIKB47EKPJ3GSBYA52XJBY", txn.stellarAccountId)
     assertEquals("hash", txn.stellarMemoType)
     assertEquals("YTIzOTJhZGQtODdjOS00MmYwLWE1YzEtNWYxNzI4MDM=", txn.stellarMemo)
   }

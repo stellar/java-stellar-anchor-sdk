@@ -70,7 +70,7 @@ app-config:
     #     STRICT_SEND: amount_in = amount
     #     STRICT_RECEIVE: amount_in = amount + fee
     paymentType: STRICT_SEND
-    memoGenerator:
+    depositInfoGeneratorType:
       type: "self" # self or "circle"
 
   # sep-38
@@ -89,10 +89,6 @@ app-config:
     circle:
       name: "circle"
       enabled: true
-      circleUrl: https://api-sandbox.circle.com
-      secretKey: secret # circle API key
-      horizonUrl: https://horizon-testnet.stellar.org
-      stellarNetwork: TESTNET
 
     #
     # Payment Stellar configurations

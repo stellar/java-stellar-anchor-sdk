@@ -7,14 +7,14 @@ public interface Sep31Config {
 
   PaymentType getPaymentType();
 
-  MemoGenerator getMemoGenerator();
+  DepositInfoGeneratorType getDepositInfoGeneratorType();
 
   enum PaymentType {
     STRICT_SEND,
     STRICT_RECEIVE
   }
 
-  enum MemoGenerator {
+  enum DepositInfoGeneratorType {
     SELF,
     CIRCLE
   }
