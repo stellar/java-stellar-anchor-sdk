@@ -18,12 +18,7 @@ fun main(args: Array<String>) {
   options.addOption("a", "all", false, "Start all servers.")
   options.addOption("s", "sep-server", false, "Start SEP endpoint test server.")
   options.addOption("r", "anchor-reference-server", false, "Start anchor reference test server.")
-  options.addOption(
-    "t",
-    "sep1-toml",
-    true,
-    "The path where the SEP1 TOML file can be read."
-  )
+  options.addOption("t", "sep1-toml", true, "The path where the SEP1 TOML file can be read.")
   val testOptions = Option("p", "tests", false, "SEPS to be test. eg: sep12")
   testOptions.isRequired = true
   testOptions.args = Option.UNLIMITED_VALUES
