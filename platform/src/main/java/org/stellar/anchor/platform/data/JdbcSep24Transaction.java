@@ -3,6 +3,7 @@ package org.stellar.anchor.platform.data;
 import com.google.gson.annotations.SerializedName;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import javax.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,7 +18,7 @@ public class JdbcSep24Transaction implements Sep24Transaction {
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   @Column(name = "sep_transaction_id")
-  Long jdbcId;
+  UUID jdbcId;
 
   String id;
 

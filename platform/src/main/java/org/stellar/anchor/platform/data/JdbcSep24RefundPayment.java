@@ -1,6 +1,7 @@
 package org.stellar.anchor.platform.data;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.util.UUID;
 import javax.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -14,7 +15,7 @@ public class JdbcSep24RefundPayment implements Sep24RefundPayment {
   @Id
   @GeneratedValue(strategy = GenerationType.AUTO)
   @Column(name = "sep24_refund_payment_id")
-  Long jdbcId;
+  UUID jdbcId;
 
   @JsonIgnore
   @ManyToOne(fetch = FetchType.LAZY)
