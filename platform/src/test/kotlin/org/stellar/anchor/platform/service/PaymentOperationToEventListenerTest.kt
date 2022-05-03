@@ -8,7 +8,7 @@ import kotlin.test.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.stellar.anchor.api.exception.SepException
-import org.stellar.anchor.api.sep.TransactionStatus
+import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.api.shared.Amount
 import org.stellar.anchor.event.EventPublishService
 import org.stellar.anchor.event.models.*
@@ -140,7 +140,7 @@ class PaymentOperationToEventListenerTest {
     sep31TxMock.startedAt = startedAtMock
     sep31TxMock.stellarMemo = "OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ="
     sep31TxMock.stellarMemoType = "hash"
-    sep31TxMock.status = TransactionStatus.PENDING_SENDER.toString()
+    sep31TxMock.status = SepTransactionStatus.PENDING_SENDER.toString()
 
     every { transactionStore.findByStellarMemo(capture(slotMemo)) } returns sep31TxMock
 

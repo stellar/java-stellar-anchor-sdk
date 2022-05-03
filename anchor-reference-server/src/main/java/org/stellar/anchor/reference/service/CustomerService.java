@@ -13,8 +13,8 @@ import org.stellar.anchor.api.callback.GetCustomerResponse;
 import org.stellar.anchor.api.callback.PutCustomerRequest;
 import org.stellar.anchor.api.callback.PutCustomerResponse;
 import org.stellar.anchor.api.exception.NotFoundException;
-import org.stellar.anchor.api.shared.Field;
-import org.stellar.anchor.api.shared.ProvidedField;
+import org.stellar.anchor.api.shared.CustomerField;
+import org.stellar.anchor.api.shared.ProvidedCustomerField;
 import org.stellar.anchor.reference.model.Customer;
 import org.stellar.anchor.reference.repo.CustomerRepo;
 
@@ -88,7 +88,7 @@ public class CustomerService {
   private GetCustomerResponse createNewCustomerResponse(String type) {
     GetCustomerResponse response = new GetCustomerResponse();
     response.setStatus(Customer.Status.NEEDS_INFO.toString());
-    Map<String, Field> fields = getBasicFields();
+    Map<String, CustomerField> fields = getBasicFields();
     // type can be null.
     if (Customer.Type.SEP31_RECEIVER.toString().equals(type)) {
       fields.putAll(getSep31ReceiverFields(type));
@@ -99,8 +99,8 @@ public class CustomerService {
 
   private GetCustomerResponse createExistingCustomerResponse(Customer customer, String type) {
     GetCustomerResponse response = new GetCustomerResponse();
-    Map<String, ProvidedField> providedFields = new HashMap<>();
-    Map<String, Field> fields = new HashMap<>();
+    Map<String, ProvidedCustomerField> providedFields = new HashMap<>();
+    Map<String, CustomerField> fields = new HashMap<>();
     if (customer.getFirstName() != null) {
       providedFields.put("first_name", createFirstNameProvidedField());
     } else {
@@ -168,95 +168,95 @@ public class CustomerService {
     customerRepo.save(customer);
   }
 
-  public Map<String, Field> getBasicFields() {
-    Map<String, Field> map = new HashMap<>();
+  public Map<String, CustomerField> getBasicFields() {
+    Map<String, CustomerField> map = new HashMap<>();
     map.put("first_name", createFirstNameField());
     map.put("last_name", createLastNameField());
     map.put("email_address", createEmailField());
     return map;
   }
 
-  public Map<String, Field> getSep31ReceiverFields(String type) {
-    Map<String, Field> map = new HashMap<>();
+  public Map<String, CustomerField> getSep31ReceiverFields(String type) {
+    Map<String, CustomerField> map = new HashMap<>();
     map.put("bank_account_number", createBankAccountNumberField(type));
     map.put("bank_number", createBankNumberField(type));
     return map;
   }
 
-  public Field createFirstNameField() {
-    Field field = new Field();
+  public CustomerField createFirstNameField() {
+    CustomerField field = new CustomerField();
     field.setType("string");
     field.setDescription("first name of the customer");
     field.setOptional(false);
     return field;
   }
 
-  public Field createLastNameField() {
-    Field field = new Field();
+  public CustomerField createLastNameField() {
+    CustomerField field = new CustomerField();
     field.setType("string");
     field.setDescription("last name of the customer");
     field.setOptional(false);
     return field;
   }
 
-  public Field createEmailField() {
-    Field field = new Field();
+  public CustomerField createEmailField() {
+    CustomerField field = new CustomerField();
     field.setType("string");
     field.setDescription("email of the customer");
     field.setOptional(false);
     return field;
   }
 
-  public Field createBankAccountNumberField(String type) {
-    Field field = new Field();
+  public CustomerField createBankAccountNumberField(String type) {
+    CustomerField field = new CustomerField();
     field.setType("string");
     field.setDescription("bank account number of the customer");
     field.setOptional(!type.equals(Customer.Type.SEP31_RECEIVER.toString()));
     return field;
   }
 
-  public Field createBankNumberField(String type) {
-    Field field = new Field();
+  public CustomerField createBankNumberField(String type) {
+    CustomerField field = new CustomerField();
     field.setType("string");
     field.setDescription("bank routing number of the customer");
     field.setOptional(!type.equals(Customer.Type.SEP31_RECEIVER.toString()));
     return field;
   }
 
-  public ProvidedField createFirstNameProvidedField() {
-    ProvidedField field = new ProvidedField();
+  public ProvidedCustomerField createFirstNameProvidedField() {
+    ProvidedCustomerField field = new ProvidedCustomerField();
     field.setType("string");
     field.setDescription("first name of the customer");
     field.setStatus(Customer.Status.ACCEPTED.toString());
     return field;
   }
 
-  public ProvidedField createLastNameProvidedField() {
-    ProvidedField field = new ProvidedField();
+  public ProvidedCustomerField createLastNameProvidedField() {
+    ProvidedCustomerField field = new ProvidedCustomerField();
     field.setType("string");
     field.setDescription("last name of the customer");
     field.setStatus(Customer.Status.ACCEPTED.toString());
     return field;
   }
 
-  public ProvidedField createEmailProvidedField() {
-    ProvidedField field = new ProvidedField();
+  public ProvidedCustomerField createEmailProvidedField() {
+    ProvidedCustomerField field = new ProvidedCustomerField();
     field.setType("string");
     field.setDescription("email of the customer");
     field.setStatus(Customer.Status.ACCEPTED.toString());
     return field;
   }
 
-  public ProvidedField createBankAccountNumberProvidedField() {
-    ProvidedField field = new ProvidedField();
+  public ProvidedCustomerField createBankAccountNumberProvidedField() {
+    ProvidedCustomerField field = new ProvidedCustomerField();
     field.setType("string");
     field.setDescription("bank account of the customer");
     field.setStatus(Customer.Status.ACCEPTED.toString());
     return field;
   }
 
-  public ProvidedField createBankNumberProvidedField() {
-    ProvidedField field = new ProvidedField();
+  public ProvidedCustomerField createBankNumberProvidedField() {
+    ProvidedCustomerField field = new ProvidedCustomerField();
     field.setType("string");
     field.setDescription("bank routing number of the customer");
     field.setStatus(Customer.Status.ACCEPTED.toString());

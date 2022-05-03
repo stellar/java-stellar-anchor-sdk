@@ -4,7 +4,7 @@ import java.util.List;
 import lombok.Data;
 
 @Data
-public class Field {
+public class CustomerField {
   String type;
   String description;
   List<String> choices;

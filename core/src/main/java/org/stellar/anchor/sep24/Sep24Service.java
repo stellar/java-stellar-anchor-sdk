@@ -22,7 +22,7 @@ import org.stellar.anchor.api.exception.SepNotAuthorizedException;
 import org.stellar.anchor.api.exception.SepNotFoundException;
 import org.stellar.anchor.api.exception.SepValidationException;
 import org.stellar.anchor.api.sep.AssetInfo;
-import org.stellar.anchor.api.sep.TransactionStatus;
+import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.sep.sep24.*;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.AppConfig;
@@ -115,7 +115,7 @@ public class Sep24Service {
     Sep24Transaction txn =
         new Sep24TransactionBuilder(txnStore)
             .transactionId(txnId)
-            .status(TransactionStatus.INCOMPLETE.toString())
+            .status(SepTransactionStatus.INCOMPLETE.toString())
             .kind(Sep24Transaction.Kind.WITHDRAWAL.toString())
             .amountIn(strAmount)
             .amountOut(strAmount)
@@ -217,7 +217,7 @@ public class Sep24Service {
     Sep24Transaction txn =
         new Sep24TransactionBuilder(txnStore)
             .transactionId(txnId)
-            .status(TransactionStatus.INCOMPLETE.toString())
+            .status(SepTransactionStatus.INCOMPLETE.toString())
             .kind(Sep24Transaction.Kind.DEPOSIT.toString())
             .amountIn(strAmount)
             .amountOut(strAmount)
@@ -327,13 +327,18 @@ public class Sep24Service {
 
   TransactionResponse fromTxn(Sep24Transaction txn)
       throws MalformedURLException, URISyntaxException, SepException {
+    TransactionResponse response;
     if (txn.getKind().equals(DEPOSIT.toString())) {
-      return Sep24Helper.fromDepositTxn(gson, jwtService, sep24Config, txn, true);
+      response = Sep24Helper.fromDepositTxn(jwtService, sep24Config, txn, true);
     } else if (txn.getKind().equals(WITHDRAWAL.toString())) {
-      return Sep24Helper.fromWithdrawTxn(gson, jwtService, sep24Config, txn, true);
+      response = Sep24Helper.fromWithdrawTxn(jwtService, sep24Config, txn, true);
     } else {
       throw new SepException(String.format("unsupported txn kind:%s", txn.getKind()));
     }
+
+    // Calculate refund information.
+    AssetInfo assetInfo = assetService.getAsset(txn.getAssetCode(), txn.getAssetIssuer());
+    return Sep24Helper.updateRefundInfo(response, txn, assetInfo);
   }
 
   JwtToken buildRedirectJwtToken(String fullRequestUrl, JwtToken token, Sep24Transaction txn) {

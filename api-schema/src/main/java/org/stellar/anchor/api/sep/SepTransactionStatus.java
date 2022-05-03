@@ -1,6 +1,6 @@
 package org.stellar.anchor.api.sep;
 
-public enum TransactionStatus {
+public enum SepTransactionStatus {
   PENDING_ANCHOR("pending_anchor", "processing"),
   PENDING_TRUST("pending_trust", "waiting for a trustline to be established"),
   PENDING_USER("pending_user", "waiting on user action"),
@@ -25,7 +25,7 @@ public enum TransactionStatus {
   private final String name;
   private final String description;
 
-  TransactionStatus(String name, String description) {
+  SepTransactionStatus(String name, String description) {
     this.name = name;
     this.description = description;
   }

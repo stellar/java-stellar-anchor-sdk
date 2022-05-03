@@ -7,12 +7,14 @@ import java.time.Instant;
 import java.util.Map;
 import java.util.Set;
 import javax.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.sep31.Sep31Transaction;
 import org.stellar.anchor.util.GsonUtils;
 
-@Data
+@Getter
+@Setter
 @Entity
 @Access(AccessType.FIELD)
 @Table(name = "sep31_transaction")
