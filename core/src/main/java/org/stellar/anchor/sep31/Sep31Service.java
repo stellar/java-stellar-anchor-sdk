@@ -108,7 +108,7 @@ public class Sep31Service {
     Context.get().setTransaction(txn);
 
     updateAmounts();
-    generateTransactionMemo(txn);
+    updateDepositInfo(txn);
 
     sep31TransactionStore.save(txn);
 
@@ -243,7 +243,7 @@ public class Sep31Service {
     txn.setAmountOutAsset(amountOutAsset);
   }
 
-  private void generateTransactionMemo(Sep31Transaction txn) {
+  private void updateDepositInfo(Sep31Transaction txn) {
     Sep31DepositInfo depositInfo = sep31DepositInfoGenerator.getSep31DepositInfo(txn);
     txn.setStellarAccountId(depositInfo.getStellarAddress());
     txn.setStellarMemo(depositInfo.getMemo());

@@ -52,15 +52,15 @@ class Sep31DepositInfoGeneratorTest {
   private val assetService: AssetService = ResourceJsonAssetService("test_assets.json")
 
   @MockK(relaxed = true) private lateinit var txnStore: Sep31TransactionStore
+  @MockK(relaxed = true) private lateinit var appConfig: AppConfig
+  @MockK(relaxed = true) private lateinit var sep31Config: Sep31Config
+  @MockK(relaxed = true) private lateinit var sep31DepositInfoGenerator: Sep31DepositInfoGenerator
+  @MockK(relaxed = true) private lateinit var quoteStore: Sep38QuoteStore
+  @MockK(relaxed = true) private lateinit var feeIntegration: FeeIntegration
+  @MockK(relaxed = true) private lateinit var customerIntegration: CustomerIntegration
+  @MockK(relaxed = true) private lateinit var eventPublishService: EventPublishService
+  @MockK(relaxed = true) private lateinit var txn: Sep31Transaction
 
-  @MockK(relaxed = true) lateinit var appConfig: AppConfig
-  @MockK(relaxed = true) lateinit var sep31Config: Sep31Config
-  @MockK(relaxed = true) lateinit var sep31DepositInfoGenerator: Sep31DepositInfoGenerator
-  @MockK(relaxed = true) lateinit var quoteStore: Sep38QuoteStore
-  @MockK(relaxed = true) lateinit var feeIntegration: FeeIntegration
-  @MockK(relaxed = true) lateinit var customerIntegration: CustomerIntegration
-  @MockK(relaxed = true) lateinit var eventPublishService: EventPublishService
-  @MockK(relaxed = true) lateinit var txn: Sep31Transaction
   private lateinit var sep31Service: Sep31Service
 
   @BeforeEach
@@ -89,7 +89,7 @@ class Sep31DepositInfoGeneratorTest {
   }
 
   @Test
-  fun test_generateTransactionMemo_self() {
+  fun test_updateDepositInfo_self() {
     sep31Service =
       Sep31Service(
         appConfig,
@@ -115,13 +115,10 @@ class Sep31DepositInfoGeneratorTest {
     wantMemo = String(Base64.getEncoder().encode(wantMemo.toByteArray()))
     Assertions.assertEquals("YTIzOTJhZGQtODdjOS00MmYwLWE1YzEtNWYxNzI4MDM=", wantMemo)
 
-    val generateTransactionMemoMethod: Method =
-      Sep31Service::class.java.getDeclaredMethod(
-        "generateTransactionMemo",
-        Sep31Transaction::class.java
-      )
-    assert(generateTransactionMemoMethod.trySetAccessible())
-    assertDoesNotThrow { generateTransactionMemoMethod.invoke(sep31Service, txn) }
+    val updateDepositInfoMethod: Method =
+      Sep31Service::class.java.getDeclaredMethod("updateDepositInfo", Sep31Transaction::class.java)
+    assert(updateDepositInfoMethod.trySetAccessible())
+    assertDoesNotThrow { updateDepositInfoMethod.invoke(sep31Service, txn) }
 
     Assertions.assertEquals(
       "GAYR3FVW2PCXTNHHWHEAFOCKZQV4PEY2ZKGIKB47EKPJ3GSBYA52XJBY",
@@ -132,7 +129,7 @@ class Sep31DepositInfoGeneratorTest {
   }
 
   @Test
-  fun test_generateTransactionMemo_circle() {
+  fun test_updateDepositInfo_circle() {
     val server = MockWebServer()
     server.start()
     val dispatcher: Dispatcher =
@@ -196,13 +193,10 @@ class Sep31DepositInfoGeneratorTest {
     Assertions.assertNull(txn.stellarMemoType)
     Assertions.assertNull(txn.stellarMemo)
 
-    val generateTransactionMemoMethod: Method =
-      Sep31Service::class.java.getDeclaredMethod(
-        "generateTransactionMemo",
-        Sep31Transaction::class.java
-      )
-    assert(generateTransactionMemoMethod.trySetAccessible())
-    assertDoesNotThrow { generateTransactionMemoMethod.invoke(sep31Service, txn) }
+    val updateDepositInfoMethod: Method =
+      Sep31Service::class.java.getDeclaredMethod("updateDepositInfo", Sep31Transaction::class.java)
+    assert(updateDepositInfoMethod.trySetAccessible())
+    assertDoesNotThrow { updateDepositInfoMethod.invoke(sep31Service, txn) }
 
     Assertions.assertEquals(
       "GAYF33NNNMI2Z6VNRFXQ64D4E4SF77PM46NW3ZUZEEU5X7FCHAZCMHKU",

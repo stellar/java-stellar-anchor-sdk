@@ -38,7 +38,7 @@ public class CirclePaymentService
         CircleResponseErrorHandler,
         StellarReconciliation,
         Sep31DepositInfoGenerator {
-  private final CirclePaymentConfig config;
+  private final CirclePaymentConfig circlePaymentConfig;
 
   private final CircleConfig circleConfig;
 
@@ -57,15 +57,16 @@ public class CirclePaymentService
    * wallet and a bank account configured.
    */
   public CirclePaymentService(
-      CirclePaymentConfig config, CircleConfig circleConfig, Horizon horizon) {
+      CirclePaymentConfig circlePaymentConfig, CircleConfig circleConfig, Horizon horizon) {
     super();
-    this.config = config;
+    this.circlePaymentConfig = circlePaymentConfig;
     this.circleConfig = circleConfig;
     this.horizonServer = horizon.getServer();
 
     this.stellarNetwork = toStellarNetwork(horizon.getStellarNetworkPassphrase());
   }
 
+  @Override
   public Server getHorizonServer() {
     return horizonServer;
   }
@@ -77,7 +78,7 @@ public class CirclePaymentService
 
   @Override
   public String getName() {
-    return config.getName();
+    return circlePaymentConfig.getName();
   }
 
   public HttpClient getWebClient(boolean authenticated) {
