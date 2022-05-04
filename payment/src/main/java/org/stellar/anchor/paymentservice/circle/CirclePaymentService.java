@@ -10,6 +10,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.stellar.anchor.api.exception.HttpException;
+import org.stellar.anchor.api.sep.sep31.Sep31DepositInfo;
 import org.stellar.anchor.config.CircleConfig;
 import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.paymentservice.circle.config.CirclePaymentConfig;
@@ -18,8 +19,12 @@ import org.stellar.anchor.paymentservice.circle.model.request.CircleSendTransact
 import org.stellar.anchor.paymentservice.circle.model.response.*;
 import org.stellar.anchor.paymentservice.circle.util.CircleAsset;
 import org.stellar.anchor.paymentservice.circle.util.NettyHttpClient;
+import org.stellar.anchor.sep31.Sep31DepositInfoGenerator;
+import org.stellar.anchor.sep31.Sep31Transaction;
+import org.stellar.anchor.util.MemoHelper;
 import org.stellar.sdk.Network;
 import org.stellar.sdk.Server;
+import org.stellar.sdk.xdr.MemoType;
 import paymentservice.*;
 import reactor.core.publisher.Mono;
 import reactor.netty.ByteBufMono;
@@ -29,7 +34,10 @@ import reactor.util.annotation.Nullable;
 import shadow.com.google.common.reflect.TypeToken;
 
 public class CirclePaymentService
-    implements PaymentService, CircleResponseErrorHandler, StellarReconciliation {
+    implements PaymentService,
+        CircleResponseErrorHandler,
+        StellarReconciliation,
+        Sep31DepositInfoGenerator {
   private final CirclePaymentConfig config;
 
   private final CircleConfig circleConfig;
@@ -642,6 +650,22 @@ public class CirclePaymentService
                   new TypeToken<CircleDetailResponse<CircleBlockchainAddress>>() {}.getType();
               return gson.fromJson(body, type);
             });
+  }
+
+  /** Implementation of `Sep31DepositInfoGenerator` interface method */
+  public Sep31DepositInfo getSep31DepositInfo(Sep31Transaction txn) {
+    return getDistributionAccountAddress()
+        .flatMap(this::createNewStellarAddress)
+        .map(
+            circleBlockchainAddressCircleDetailResponse -> {
+              CircleBlockchainAddress blockchainAddress =
+                  circleBlockchainAddressCircleDetailResponse.getData();
+              return new Sep31DepositInfo(
+                  blockchainAddress.getAddress(),
+                  blockchainAddress.getAddressTag(),
+                  MemoHelper.memoTypeAsString(MemoType.MEMO_TEXT));
+            })
+        .block();
   }
 
   public Mono<CircleBlockchainAddress> getOrCreateStellarAddress(@NonNull String walletId) {

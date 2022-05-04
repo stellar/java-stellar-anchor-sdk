@@ -245,7 +245,7 @@ public class Sep31Service {
 
   private void generateTransactionMemo(Sep31Transaction txn) {
     Sep31DepositInfo depositInfo = sep31DepositInfoGenerator.getSep31DepositInfo(txn);
-    txn.setStellarTransactionId(depositInfo.getStellarAddress());
+    txn.setStellarAccountId(depositInfo.getStellarAddress());
     txn.setStellarMemo(depositInfo.getMemo());
     txn.setStellarMemoType(depositInfo.getMemoType());
   }

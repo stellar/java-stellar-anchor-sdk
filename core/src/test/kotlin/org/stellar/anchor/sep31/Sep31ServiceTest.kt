@@ -3,14 +3,10 @@ package org.stellar.anchor.sep31
 import com.google.gson.Gson
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
-import java.lang.reflect.Method
-import java.util.*
-import org.apache.commons.lang3.StringUtils
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertDoesNotThrow
 import org.stellar.anchor.Constants
 import org.stellar.anchor.api.callback.CustomerIntegration
 import org.stellar.anchor.api.callback.FeeIntegration
@@ -341,68 +337,5 @@ internal class Sep31ServiceTest {
     assertEquals("BRL", txn.amountFeeAsset)
     assertEquals("500.00", txn.amountOut)
     assertEquals("BRL", txn.amountOutAsset)
-  }
-
-  @Test
-  fun test_calculateMemoSelf() {
-    sep31Service =
-      Sep31Service(
-        appConfig,
-        sep31Config,
-        txnStore,
-        Sep31DepositInfoGeneratorSelf(), // set deposit info generator
-        quoteStore,
-        assetService,
-        feeIntegration,
-        customerIntegration,
-        eventPublishService
-      )
-
-    assertEquals("a2392add-87c9-42f0-a5c1-5f1728030b68", txn.id)
-    assertEquals("GAYR3FVW2PCXTNHHWHEAFOCKZQV4PEY2ZKGIKB47EKPJ3GSBYA52XJBY", txn.stellarAccountId)
-    assertNull(txn.stellarMemoType)
-    assertNull(txn.stellarMemo)
-
-    var wantMemo = StringUtils.truncate("a2392add-87c9-42f0-a5c1-5f1728030b68", 32)
-    wantMemo = String(Base64.getEncoder().encode(wantMemo.toByteArray()))
-    assertEquals("YTIzOTJhZGQtODdjOS00MmYwLWE1YzEtNWYxNzI4MDM=", wantMemo)
-
-    val generateTransactionMemoMethod: Method =
-      Sep31Service::class.java.getDeclaredMethod(
-        "generateTransactionMemo",
-        Sep31Transaction::class.java
-      )
-    assert(generateTransactionMemoMethod.trySetAccessible())
-    assertDoesNotThrow { generateTransactionMemoMethod.invoke(sep31Service, txn) }
-
-    assertEquals("GAYR3FVW2PCXTNHHWHEAFOCKZQV4PEY2ZKGIKB47EKPJ3GSBYA52XJBY", txn.stellarAccountId)
-    assertEquals("hash", txn.stellarMemoType)
-    assertEquals("YTIzOTJhZGQtODdjOS00MmYwLWE1YzEtNWYxNzI4MDM=", txn.stellarMemo)
-  }
-
-  @Test
-  fun test_calculateMemoCircle() {
-    every { sep31Config.memoGenerator } returns Sep31Config.MemoGenerator.CIRCLE
-
-    assertEquals("a2392add-87c9-42f0-a5c1-5f1728030b68", txn.id)
-    assertNull(txn.stellarMemoType)
-    assertNull(txn.stellarMemo)
-
-    // TODO: mock Circle requests/responses
-
-    val generateTransactionMemoMethod: Method =
-      Sep31Service::class.java.getDeclaredMethod(
-        "generateTransactionMemo",
-        Sep31Transaction::class.java
-      )
-    assert(generateTransactionMemoMethod.trySetAccessible())
-    val ex: InvocationTargetException = assertThrows {
-      generateTransactionMemoMethod.invoke(sep31Service, txn)
-    }
-    assertEquals("Not implemented", ex.targetException.message)
-
-    // TODO: assert updated memo
-    //    assertEquals("hash", txn.stellarMemoType)
-    //    assertEquals("YTIzOTJhZGQtODdjOS00MmYwLWE1YzEtNWYxNzI4MDM=", txn.stellarMemo)
   }
 }
