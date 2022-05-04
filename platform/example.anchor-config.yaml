@@ -79,7 +79,7 @@ app-config:
 
   circle:
     circleUrl: https://api-sandbox.circle.com
-    apiKey: secret # circle API key
+    apiKey: QVBJX0tFWTpjOWRjOWU3YjgzNTFhZDIwNWNlODEzYjkyZDEzZTU1YzpkY2U1MzVhMTExYjNjODU1YzQzNjMyZTQ5NWJhNDdlZg== # circle API key
 
   payment-gateway:
     #

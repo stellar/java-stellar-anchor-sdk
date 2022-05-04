@@ -85,11 +85,6 @@ public class SepConfig {
   }
 
   @Bean
-  CircleConfig circleConfig() {
-    return new PropertyCircleConfig();
-  }
-
-  @Bean
   public ResourceReader resourceReader() {
     return new ResourceReader() {
       final ResourceLoader resourceLoader = new DefaultResourceLoader();

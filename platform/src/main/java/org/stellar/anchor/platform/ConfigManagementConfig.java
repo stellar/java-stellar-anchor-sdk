@@ -57,6 +57,12 @@ public class ConfigManagementConfig {
   }
 
   @Bean
+  @ConfigurationProperties(prefix = "circle")
+  CircleConfig circleConfig() {
+    return new PropertyCircleConfig();
+  }
+
+  @Bean
   @ConfigurationProperties(prefix = "payment-gateway.circle")
   CirclePaymentConfig circlePaymentConfig() {
     return new PropertyCirclePaymentConfig();
