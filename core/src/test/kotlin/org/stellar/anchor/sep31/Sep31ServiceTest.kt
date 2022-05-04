@@ -196,7 +196,7 @@ internal class Sep31ServiceTest {
   private lateinit var sep31Service: Sep31Service
 
   private lateinit var request: Sep31PostTransactionRequest
-  private lateinit var txn: PojoSep31Transaction
+  private lateinit var txn: Sep31Transaction
   private lateinit var fee: Amount
   private lateinit var asset: AssetInfo
   private lateinit var quote: PojoSep38Quote

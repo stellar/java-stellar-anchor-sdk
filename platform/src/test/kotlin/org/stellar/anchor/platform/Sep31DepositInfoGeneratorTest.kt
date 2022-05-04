@@ -22,6 +22,7 @@ import org.stellar.anchor.event.EventPublishService
 import org.stellar.anchor.horizon.Horizon
 import org.stellar.anchor.paymentservice.circle.CirclePaymentService
 import org.stellar.anchor.paymentservice.circle.config.CirclePaymentConfig
+import org.stellar.anchor.platform.data.JdbcSep31Transaction
 import org.stellar.anchor.sep31.*
 import org.stellar.anchor.sep38.Sep38QuoteStore
 import org.stellar.anchor.util.GsonUtils
@@ -59,7 +60,7 @@ class Sep31DepositInfoGeneratorTest {
   @MockK(relaxed = true) lateinit var feeIntegration: FeeIntegration
   @MockK(relaxed = true) lateinit var customerIntegration: CustomerIntegration
   @MockK(relaxed = true) lateinit var eventPublishService: EventPublishService
-  @MockK(relaxed = true) lateinit var txn: PojoSep31Transaction
+  @MockK(relaxed = true) lateinit var txn: Sep31Transaction
   private lateinit var sep31Service: Sep31Service
 
   @BeforeEach
@@ -78,7 +79,7 @@ class Sep31DepositInfoGeneratorTest {
         eventPublishService
       )
 
-    txn = gson.fromJson(txnJson, PojoSep31Transaction::class.java)
+    txn = gson.fromJson(txnJson, JdbcSep31Transaction::class.java)
   }
 
   @AfterEach
