@@ -1,4 +1,4 @@
-package org.stellar.anchor.sep31;
+package org.stellar.anchor.platform.service;
 
 import static org.stellar.anchor.util.MemoHelper.memoTypeAsString;
 import static org.stellar.sdk.xdr.MemoType.MEMO_HASH;
@@ -6,6 +6,8 @@ import static org.stellar.sdk.xdr.MemoType.MEMO_HASH;
 import java.util.Base64;
 import org.apache.commons.lang3.StringUtils;
 import org.stellar.anchor.api.sep.sep31.Sep31DepositInfo;
+import org.stellar.anchor.sep31.Sep31DepositInfoGenerator;
+import org.stellar.anchor.sep31.Sep31Transaction;
 
 public class Sep31DepositInfoGeneratorSelf implements Sep31DepositInfoGenerator {
   @Override

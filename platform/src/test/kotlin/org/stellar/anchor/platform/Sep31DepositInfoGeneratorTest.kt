@@ -23,6 +23,7 @@ import org.stellar.anchor.horizon.Horizon
 import org.stellar.anchor.paymentservice.circle.CirclePaymentService
 import org.stellar.anchor.paymentservice.circle.config.CirclePaymentConfig
 import org.stellar.anchor.platform.data.JdbcSep31Transaction
+import org.stellar.anchor.platform.service.Sep31DepositInfoGeneratorSelf
 import org.stellar.anchor.sep31.*
 import org.stellar.anchor.sep38.Sep38QuoteStore
 import org.stellar.anchor.util.GsonUtils
