@@ -23,6 +23,7 @@ import org.stellar.anchor.horizon.Horizon
 import org.stellar.anchor.paymentservice.circle.CirclePaymentService
 import org.stellar.anchor.paymentservice.circle.config.CirclePaymentConfig
 import org.stellar.anchor.platform.data.JdbcSep31Transaction
+import org.stellar.anchor.platform.service.Sep31DepositInfoGeneratorCircle
 import org.stellar.anchor.platform.service.Sep31DepositInfoGeneratorSelf
 import org.stellar.anchor.sep31.*
 import org.stellar.anchor.sep38.Sep38QuoteStore
@@ -177,7 +178,8 @@ class Sep31DepositInfoGeneratorTest {
     every { horizon.server } returns Server(server.url("").toString())
     every { horizon.stellarNetworkPassphrase } returns "Test SDF Network ; September 2015"
 
-    val depositInfoGenerator = CirclePaymentService(circlePaymentConfig, circleConfig, horizon)
+    val circlePaymentService = CirclePaymentService(circlePaymentConfig, circleConfig, horizon)
+    val depositInfoGenerator = Sep31DepositInfoGeneratorCircle(circlePaymentService)
     sep31Service =
       Sep31Service(
         appConfig,

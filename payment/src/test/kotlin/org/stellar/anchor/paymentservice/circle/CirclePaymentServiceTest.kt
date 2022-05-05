@@ -26,7 +26,6 @@ import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.NullSource
 import org.skyscreamer.jsonassert.JSONAssert
 import org.stellar.anchor.api.exception.HttpException
-import org.stellar.anchor.api.sep.sep31.Sep31DepositInfo
 import org.stellar.anchor.config.CircleConfig
 import org.stellar.anchor.horizon.Horizon
 import org.stellar.anchor.paymentservice.circle.config.CirclePaymentConfig
@@ -36,7 +35,6 @@ import org.stellar.anchor.paymentservice.circle.model.CircleWireDepositInstructi
 import org.stellar.anchor.paymentservice.circle.model.response.CircleDetailResponse
 import org.stellar.anchor.paymentservice.circle.model.response.CircleListResponse
 import org.stellar.anchor.paymentservice.circle.util.CircleAsset
-import org.stellar.anchor.sep31.Sep31Transaction
 import org.stellar.anchor.util.FileUtil
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.sdk.Network
@@ -1626,38 +1624,6 @@ class CirclePaymentServiceTest {
     wantPaymentHistory.payments.add(p4)
 
     assertEquals(wantPaymentHistory, paymentHistory)
-  }
-
-  @Test
-  fun test_getSep31DepositInfo() {
-    val dispatcher: Dispatcher =
-      object : Dispatcher() {
-        @Throws(InterruptedException::class)
-        override fun dispatch(request: RecordedRequest): MockResponse {
-          when (request.path) {
-            "/v1/configuration" -> return getDistAccountIdMockResponse()
-            "/v1/wallets/1000066041/addresses" ->
-              return MockResponse()
-                .addHeader("Content-Type", "application/json")
-                .setBody("""{"data":$mockAddressJson}""")
-          }
-          return MockResponse().setResponseCode(404)
-        }
-      }
-
-    server.dispatcher = dispatcher
-
-    val mockSep31Tx = mockk<Sep31Transaction>()
-
-    val service = this.service as CirclePaymentService
-    val gotDepositInfo = service.getSep31DepositInfo(mockSep31Tx)
-    val wantDepositInfo =
-      Sep31DepositInfo(
-        "GAYF33NNNMI2Z6VNRFXQ64D4E4SF77PM46NW3ZUZEEU5X7FCHAZCMHKU",
-        "2454278437550473431",
-        "text"
-      )
-    assertEquals(wantDepositInfo, gotDepositInfo)
   }
 
   @Test

@@ -28,6 +28,7 @@ import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.paymentservice.circle.CirclePaymentService;
 import org.stellar.anchor.paymentservice.circle.config.CirclePaymentConfig;
 import org.stellar.anchor.platform.data.*;
+import org.stellar.anchor.platform.service.Sep31DepositInfoGeneratorCircle;
 import org.stellar.anchor.platform.service.Sep31DepositInfoGeneratorSelf;
 import org.stellar.anchor.sep1.ResourceReader;
 import org.stellar.anchor.sep1.Sep1Service;
@@ -144,14 +145,20 @@ public class SepConfig {
   }
 
   @Bean
+  Sep31DepositInfoGenerator sep31DepositInfoGeneratorCircle(
+      CirclePaymentService circlePaymentService) {
+    return new Sep31DepositInfoGeneratorCircle(circlePaymentService);
+  }
+
+  @Bean
   Sep31DepositInfoGenerator sep31DepositInfoGenerator(
-      Sep31Config sep31Config, CirclePaymentService circlePaymentService) {
+      Sep31Config sep31Config, Sep31DepositInfoGenerator sep31DepositInfoGeneratorCircle) {
     switch (sep31Config.getDepositInfoGeneratorType()) {
       case SELF:
         return new Sep31DepositInfoGeneratorSelf();
 
       case CIRCLE:
-        return circlePaymentService;
+        return sep31DepositInfoGeneratorCircle;
 
       default:
         throw new RuntimeException("Not supported");
