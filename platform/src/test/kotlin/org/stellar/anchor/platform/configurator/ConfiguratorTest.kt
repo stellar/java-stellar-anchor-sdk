@@ -75,7 +75,7 @@ open class ConfiguratorTest {
         "sep38.enabled" to "true",
         "sep38.quoteIntegrationEndPoint" to "http://localhost:8081",
         "payment-gateway.circle.name" to "circle",
-        "payment-gateway.circle.stellarNetwork" to "TESTNET",
+        "payment-gateway.circle.enabled" to "true",
         "spring.jpa.properties.hibernate.dialect" to "org.hibernate.dialect.H2Dialect",
         "logging.level.root" to "INFO",
         "server.servlet.context-path" to "/"

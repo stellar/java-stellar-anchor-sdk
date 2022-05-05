@@ -15,6 +15,7 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-autoconfigure")
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
   implementation("org.springframework.boot:spring-boot-starter-web")
+  implementation("org.springframework.boot:spring-boot-starter-reactor-netty")
 
   implementation(libs.commons.cli)
   implementation(libs.google.gson)
