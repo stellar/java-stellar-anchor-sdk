@@ -3,6 +3,7 @@ package org.stellar.anchor.platform
 import com.google.gson.Gson
 import java.util.concurrent.TimeUnit
 import okhttp3.OkHttpClient
+import okhttp3.Request
 import okhttp3.Response
 import org.springframework.http.HttpStatus
 import org.stellar.anchor.api.exception.SepException
@@ -20,6 +21,19 @@ open class SepClient {
         .callTimeout(10, TimeUnit.MINUTES)
         .build()
   }
+  fun httpGetWithJwt(url: String, jwt: String): String? {
+    val builder =
+      Request.Builder()
+        .url("$url")
+        .header("Content-Type", "application/json")
+        .header("Authorization", "Bearer $jwt")
+        .get()
+
+    val request = builder.build()
+    val response = client.newCall(request).execute()
+    return handleResponse(response)
+  }
+  fun httpPostWithJwt(request: Any, jwt: String) {}
 
   fun handleResponse(response: Response): String? {
     val responseBody = response.body?.string()

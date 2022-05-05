@@ -14,9 +14,9 @@ import org.stellar.anchor.sep24.Sep24Transaction;
 @Setter
 @Entity
 @Table(name = "sep24_transaction")
-public class JdbcSep24Transaction implements Sep24Transaction {
+public class JdbcSep24Transaction implements Sep24Transaction, SepTransaction {
   @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
+  @GeneratedValue
   @Column(name = "sep_transaction_id")
   UUID jdbcId;
 

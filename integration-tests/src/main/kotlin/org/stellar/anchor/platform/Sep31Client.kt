@@ -10,15 +10,7 @@ import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionResponse
 class Sep31Client(private val endpoint: String, private val jwt: String) : SepClient() {
   fun getInfo(): Sep31InfoResponse {
     println("$endpoint/info")
-    val request =
-      Request.Builder()
-        .url("$endpoint/info")
-        .header("Content-Type", "application/json")
-        .header("Authorization", "Bearer $jwt")
-        .get()
-        .build()
-    val response = client.newCall(request).execute()
-    val responseBody = handleResponse(response)
+    val responseBody = httpGetWithJwt("$endpoint/info", jwt)
     return gson.fromJson(responseBody, Sep31InfoResponse::class.java)
   }
 

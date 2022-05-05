@@ -93,7 +93,9 @@ public class MemoHelper {
   }
 
   public static String memoAsString(Memo memo) throws SepException {
-
+    if (memo == null) {
+      return null;
+    }
     switch (getMemoType(memo)) {
       case MEMO_ID:
         return String.valueOf(((MemoId) memo).getId());

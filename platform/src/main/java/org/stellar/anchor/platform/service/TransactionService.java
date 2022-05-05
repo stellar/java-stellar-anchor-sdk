@@ -65,34 +65,34 @@ public class TransactionService {
 
   public PatchTransactionsResponse patchTransactions(PatchTransactionsRequest request)
       throws AnchorException {
-    List<PatchTransactionRequest> records = request.getRecords();
+    List<PatchTransactionRequest> patchRequests = request.getRecords();
     List<String> ids =
-        records.stream().map(PatchTransactionRequest::getId).collect(Collectors.toList());
+        patchRequests.stream().map(PatchTransactionRequest::getId).collect(Collectors.toList());
     List<? extends Sep31Transaction> fetchedTxns = txnStore.findByTransactionIds(ids);
-    Map<String, ? extends Sep31Transaction> txnMap =
+    Map<String, ? extends Sep31Transaction> sep31Transactions =
         fetchedTxns.stream()
             .collect(Collectors.toMap(Sep31Transaction::getId, Function.identity()));
 
     List<JdbcSep31Transaction> txnsToSave = new LinkedList<>();
-    List<GetTransactionResponse> updatedTxns = new LinkedList<>();
+    List<GetTransactionResponse> responses = new LinkedList<>();
 
-    for (PatchTransactionRequest ptr : records) {
-      JdbcSep31Transaction txn = (JdbcSep31Transaction) txnMap.get(ptr.getId());
+    for (PatchTransactionRequest patch : patchRequests) {
+      JdbcSep31Transaction txn = (JdbcSep31Transaction) sep31Transactions.get(patch.getId());
       if (txn != null) {
         // validate and update the transaction.
-        updateSep31Transaction(ptr, txn);
+        updateSep31Transaction(patch, txn);
         // Add them to the to-be-updated lists.
         txnsToSave.add(txn);
-        updatedTxns.add(fromTransactionToResponse(txn));
+        responses.add(fromTransactionToResponse(txn));
       } else {
-        throw new BadRequestException(String.format("transaction(id=%s) not found", ptr.getId()));
+        throw new BadRequestException(String.format("transaction(id=%s) not found", patch.getId()));
       }
     }
     for (JdbcSep31Transaction txn : txnsToSave) {
       // TODO: consider 2-phase commit DB transaction management.
       txnStore.save(txn);
     }
-    return new PatchTransactionsResponse(updatedTxns);
+    return new PatchTransactionsResponse(responses);
   }
 
   GetTransactionResponse fromTransactionToResponse(JdbcSep31Transaction txn) {
