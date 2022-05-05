@@ -9,8 +9,8 @@ since they are the only ones that can contain information about incoming and out
 
 In order to use Circle in the SEP-31 flow, a few basic steps are needed:
 1. Make sure you register to Circle and generate an API key.
-2. Generate the SEP-31 transactions using a memo provided by Circle.
-3. Register the Platform `{HOST}/circle-observer` endpoint to the Circle subscription service.
+2. Register the Platform `{HOST}/circle-observer` endpoint to the Circle subscription service.
+3. Generate the SEP-31 transactions using a memo provided by Circle.
 
 ### Circle API Key
 
@@ -20,11 +20,6 @@ to authenticate your Circle requests.
 At some point, you'll want to get a production key. In order to do so, go to <https://www.circle.com/> and create a new
 Circle account. The account creation screening process takes around 3 weeks.
    
-### [TODO] Generating SEP-31 Transactions Using Circle's Memo
-
-_In order to connect incoming Circle payments with a SEP-31 transfer, SEP-31 actually needs to use Circle to generate the
-SEP-31 memo, which is not in place yet._
-
 ### Subscribing to Receive Webhook Requests
 
 Here are the steps to subscribe to Circle events:
@@ -38,3 +33,8 @@ confirm the subscription. After receiving that confirmation, Circle will start n
 `{HOST}/circle-observer` endpoint.    
 
 You can check Circle's official documentation [here](https://developers.circle.com/docs/notifications-quickstart#2-subscribe-to-payments-status-notifications).
+
+### Generating SEP-31 Transactions Using Circle's Memo
+
+In order to connect incoming Circle payments with a SEP-31 transfer, SEP-31 actually needs to use Circle to generate the
+SEP-31 memo. To do so, make sure you configure `sep31` in the yaml file with `depositInfoGeneratorType: circle`.  
