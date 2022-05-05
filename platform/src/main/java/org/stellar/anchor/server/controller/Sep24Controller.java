@@ -136,7 +136,7 @@ public class Sep24Controller {
         noOlderThan,
         pagingId);
     GetTransactionsRequest gtr =
-        GetTransactionsRequest.of(assetCode, kind, limit, noOlderThan, pagingId);
+        GetTransactionsRequest.of(assetCode, kind, limit, noOlderThan, pagingId, "en-US");
     return getTransactions(request, gtr);
   }
 
@@ -172,7 +172,7 @@ public class Sep24Controller {
         externalTransactionId,
         stellarTransactionId);
     GetTransactionRequest tr =
-        new GetTransactionRequest(id, stellarTransactionId, externalTransactionId);
+        new GetTransactionRequest(id, stellarTransactionId, externalTransactionId, "en-US");
     return getTransaction(request, tr);
   }
 

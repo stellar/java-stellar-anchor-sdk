@@ -60,7 +60,7 @@ internal class Sep24DtoTests {
 
   @Test
   fun testGetTransactionRequestCoverage() {
-    val gtr = GetTransactionRequest("", "", "")
+    val gtr = GetTransactionRequest("", "", "", "")
     gtr.canEqual(Object())
   }
 

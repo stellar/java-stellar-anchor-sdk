@@ -64,14 +64,13 @@ public class Sep24Service {
 
     Log.infoF(
         "Sep24.withdraw. account={}, memo={}", shorter(token.getAccount()), token.getAccountMemo());
-    String lang = withdrawRequest.get("lang");
     String assetCode = withdrawRequest.get("asset_code");
     String assetIssuer = withdrawRequest.get("asset_issuer");
     String sourceAccount = withdrawRequest.get("account");
     String strAmount = withdrawRequest.get("amount");
     HashMap<String, String> sep9Fields = extractSep9Fields(withdrawRequest);
 
-    validateAndActivateLanguage(lang);
+    String lang = validateAndActivateLanguage(withdrawRequest.get("lang"));
 
     if (assetCode == null) {
       throw new SepValidationException("missing 'asset_code'");
@@ -140,6 +139,7 @@ public class Sep24Service {
             "withdraw",
             buildRedirectJwtToken(fullRequestUrl, token, txn),
             sep9Fields,
+            lang,
             assetCode,
             strAmount,
             txn.getTransactionId()),
@@ -160,7 +160,6 @@ public class Sep24Service {
     Log.infoF(
         "Sep24.deposit. account={}, memo={}", shorter(token.getAccount()), token.getAccountMemo());
 
-    String lang = depositRequest.get("lang");
     String assetCode = depositRequest.get("asset_code");
     String assetIssuer = depositRequest.get("asset_issuer");
     String destinationAccount = depositRequest.get("account");
@@ -173,7 +172,7 @@ public class Sep24Service {
       claimableSupported = Boolean.parseBoolean(strClaimableSupported.toLowerCase(Locale.ROOT));
     }
 
-    validateAndActivateLanguage(lang);
+    String lang = validateAndActivateLanguage(depositRequest.get("lang"));
 
     if (assetCode == null) {
       throw new SepValidationException("missing 'asset_code'");
@@ -243,6 +242,7 @@ public class Sep24Service {
             "deposit",
             buildRedirectJwtToken(fullRequestUrl, token, txn),
             sep9Fields,
+            lang,
             assetCode,
             strAmount,
             txn.getTransactionId()),
@@ -400,6 +400,7 @@ public class Sep24Service {
       String op,
       JwtToken token,
       HashMap<String, String> sep9Fields,
+      String lang,
       String assetCode,
       String amount,
       String txnId)
@@ -416,6 +417,7 @@ public class Sep24Service {
             .setPort(uri.getPort())
             .setPath(uri.getPath())
             .addParameter("operation", op)
+            .addParameter("lang", lang)
             .addParameter("asset_code", assetCode)
             .addParameter("transaction_id", txnId)
             .addParameter("token", jwtService.encode(token));
@@ -439,7 +441,7 @@ public class Sep24Service {
     return sep9Fields;
   }
 
-  void validateAndActivateLanguage(String lang) throws SepValidationException {
+  String validateAndActivateLanguage(String lang) throws SepValidationException {
     if (lang != null) {
       List<String> languages = appConfig.getLanguages();
       if (languages != null && languages.size() > 0) {
@@ -447,8 +449,9 @@ public class Sep24Service {
           throw new SepValidationException(String.format("unsupported language: %s", lang));
         }
       }
-      // TODO: Implement later
-      // activateLanguage();
+      return lang;
+    } else {
+      return "en-US";
     }
   }
 }
