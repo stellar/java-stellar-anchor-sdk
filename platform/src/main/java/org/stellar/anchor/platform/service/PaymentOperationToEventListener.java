@@ -1,8 +1,7 @@
 package org.stellar.anchor.platform.service;
 
-import static org.stellar.anchor.api.sep.TransactionStatus.ERROR;
+import static org.stellar.anchor.api.sep.SepTransactionStatus.ERROR;
 
-import com.google.gson.Gson;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
@@ -13,7 +12,7 @@ import org.apache.commons.codec.DecoderException;
 import org.springframework.stereotype.Component;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.SepException;
-import org.stellar.anchor.api.sep.TransactionStatus;
+import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.shared.Amount;
 import org.stellar.anchor.event.EventPublishService;
 import org.stellar.anchor.event.models.*;
@@ -21,6 +20,7 @@ import org.stellar.anchor.platform.data.JdbcSep31TransactionStore;
 import org.stellar.anchor.platform.paymentobserver.ObservedPayment;
 import org.stellar.anchor.platform.paymentobserver.PaymentListener;
 import org.stellar.anchor.sep31.Sep31Transaction;
+import org.stellar.anchor.util.GsonUtils;
 import org.stellar.anchor.util.Log;
 import org.stellar.anchor.util.MemoHelper;
 import org.stellar.sdk.xdr.MemoType;
@@ -106,8 +106,8 @@ public class PaymentOperationToEventListener implements PaymentListener {
 
     // Set the transaction status.
     TransactionEvent event = receivedPaymentToEvent(txn, payment);
-    if (txn.getStatus().equals(TransactionStatus.PENDING_SENDER.toString())) {
-      txn.setStatus(TransactionStatus.PENDING_RECEIVER.toString());
+    if (txn.getStatus().equals(SepTransactionStatus.PENDING_SENDER.toString())) {
+      txn.setStatus(SepTransactionStatus.PENDING_RECEIVER.toString());
       txn.setStellarTransactionId(payment.getTransactionHash());
       try {
         transactionStore.save(txn);
@@ -126,7 +126,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
 
   private void sendToQueue(TransactionEvent event) {
     eventService.publish(event);
-    Log.info("Sent to event queue" + new Gson().toJson(event));
+    Log.info("Sent to event queue" + GsonUtils.getInstance().toJson(event));
   }
 
   TransactionEvent receivedPaymentToEvent(Sep31Transaction txn, ObservedPayment payment) {

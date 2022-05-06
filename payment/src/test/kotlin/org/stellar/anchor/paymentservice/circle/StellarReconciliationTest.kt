@@ -14,16 +14,19 @@ import org.junit.jupiter.api.assertDoesNotThrow
 import org.stellar.anchor.paymentservice.circle.model.CircleTransfer
 import org.stellar.anchor.paymentservice.circle.util.NettyHttpClient
 import org.stellar.anchor.util.GsonUtils
+import org.stellar.sdk.Server
 import reactor.netty.http.client.HttpClient
 
 class StellarReconciliationTest {
   internal class StellarReconciliationImpl(private val horizonUrl: String) : StellarReconciliation {
+    private val _horizonServer: Server = Server(this.horizonUrl)
+
     override fun getWebClient(authenticated: Boolean): HttpClient {
       return NettyHttpClient.withBaseUrl(horizonUrl)
     }
 
-    override fun getHorizonUrl(): String {
-      return this.horizonUrl
+    override fun getHorizonServer(): Server {
+      return this._horizonServer
     }
   }
 
@@ -75,7 +78,6 @@ class StellarReconciliationTest {
     // validate the request format
     val request = server.takeRequest()
     assertEquals("GET", request.method)
-    assertEquals("application/json", request.headers["Content-Type"])
     println(request.requestUrl)
     MatcherAssert.assertThat(
       request.path,

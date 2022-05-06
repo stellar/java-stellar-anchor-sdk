@@ -25,7 +25,11 @@ import org.stellar.anchor.config.*;
 import org.stellar.anchor.event.EventPublishService;
 import org.stellar.anchor.filter.Sep10TokenFilter;
 import org.stellar.anchor.horizon.Horizon;
+import org.stellar.anchor.paymentservice.circle.CirclePaymentService;
+import org.stellar.anchor.paymentservice.circle.config.CirclePaymentConfig;
 import org.stellar.anchor.platform.data.*;
+import org.stellar.anchor.platform.service.Sep31DepositInfoGeneratorCircle;
+import org.stellar.anchor.platform.service.Sep31DepositInfoGeneratorSelf;
 import org.stellar.anchor.sep1.ResourceReader;
 import org.stellar.anchor.sep1.Sep1Service;
 import org.stellar.anchor.sep10.JwtService;
@@ -33,6 +37,7 @@ import org.stellar.anchor.sep10.Sep10Service;
 import org.stellar.anchor.sep12.Sep12Service;
 import org.stellar.anchor.sep24.Sep24Service;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
+import org.stellar.anchor.sep31.Sep31DepositInfoGenerator;
 import org.stellar.anchor.sep31.Sep31Service;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
@@ -134,10 +139,38 @@ public class SepConfig {
   }
 
   @Bean
+  CirclePaymentService circlePaymentService(
+      CirclePaymentConfig circlePaymentConfig, CircleConfig circleConfig, Horizon horizon) {
+    return new CirclePaymentService(circlePaymentConfig, circleConfig, horizon);
+  }
+
+  @Bean
+  Sep31DepositInfoGenerator sep31DepositInfoGeneratorCircle(
+      CirclePaymentService circlePaymentService) {
+    return new Sep31DepositInfoGeneratorCircle(circlePaymentService);
+  }
+
+  @Bean
+  Sep31DepositInfoGenerator sep31DepositInfoGenerator(
+      Sep31Config sep31Config, Sep31DepositInfoGenerator sep31DepositInfoGeneratorCircle) {
+    switch (sep31Config.getDepositInfoGeneratorType()) {
+      case SELF:
+        return new Sep31DepositInfoGeneratorSelf();
+
+      case CIRCLE:
+        return sep31DepositInfoGeneratorCircle;
+
+      default:
+        throw new RuntimeException("Not supported");
+    }
+  }
+
+  @Bean
   Sep31Service sep31Service(
       AppConfig appConfig,
       Sep31Config sep31Config,
       Sep31TransactionStore sep31TransactionStore,
+      Sep31DepositInfoGenerator sep31DepositInfoGenerator,
       Sep38QuoteStore sep38QuoteStore,
       AssetService assetService,
       FeeIntegration feeIntegration,
@@ -147,6 +180,7 @@ public class SepConfig {
         appConfig,
         sep31Config,
         sep31TransactionStore,
+        sep31DepositInfoGenerator,
         sep38QuoteStore,
         assetService,
         feeIntegration,

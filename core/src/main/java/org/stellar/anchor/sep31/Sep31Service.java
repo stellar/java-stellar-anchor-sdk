@@ -4,16 +4,13 @@ import static org.stellar.anchor.api.sep.sep31.Sep31InfoResponse.AssetResponse;
 import static org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_SEND;
 import static org.stellar.anchor.sep31.Sep31Helper.amountEquals;
 import static org.stellar.anchor.util.MathHelper.decimal;
-import static org.stellar.anchor.util.MemoHelper.memoTypeAsString;
 import static org.stellar.anchor.util.SepHelper.*;
-import static org.stellar.sdk.xdr.MemoType.MEMO_HASH;
 
 import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.Data;
 import lombok.SneakyThrows;
-import org.apache.commons.lang3.StringUtils;
 import org.stellar.anchor.api.callback.CustomerIntegration;
 import org.stellar.anchor.api.callback.FeeIntegration;
 import org.stellar.anchor.api.callback.GetFeeRequest;
@@ -23,7 +20,7 @@ import org.stellar.anchor.api.exception.NotFoundException;
 import org.stellar.anchor.api.exception.SepNotFoundException;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.AssetInfo.Sep31TxnFieldSpecs;
-import org.stellar.anchor.api.sep.TransactionStatus;
+import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerRequest;
 import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerResponse;
 import org.stellar.anchor.api.sep.sep31.*;
@@ -43,6 +40,7 @@ public class Sep31Service {
   private final AppConfig appConfig;
   private final Sep31Config sep31Config;
   private final Sep31TransactionStore sep31TransactionStore;
+  private final Sep31DepositInfoGenerator sep31DepositInfoGenerator;
   private final Sep38QuoteStore sep38QuoteStore;
   private final AssetService assetService;
   private final FeeIntegration feeIntegration;
@@ -54,6 +52,7 @@ public class Sep31Service {
       AppConfig appConfig,
       Sep31Config sep31Config,
       Sep31TransactionStore sep31TransactionStore,
+      Sep31DepositInfoGenerator sep31DepositInfoGenerator,
       Sep38QuoteStore sep38QuoteStore,
       AssetService assetService,
       FeeIntegration feeIntegration,
@@ -62,6 +61,7 @@ public class Sep31Service {
     this.appConfig = appConfig;
     this.sep31Config = sep31Config;
     this.sep31TransactionStore = sep31TransactionStore;
+    this.sep31DepositInfoGenerator = sep31DepositInfoGenerator;
     this.sep38QuoteStore = sep38QuoteStore;
     this.assetService = assetService;
     this.feeIntegration = feeIntegration;
@@ -97,7 +97,7 @@ public class Sep31Service {
     Sep31Transaction txn =
         new Sep31TransactionBuilder(sep31TransactionStore)
             .id(generateSepTransactionId())
-            .status(TransactionStatus.PENDING_SENDER.toString())
+            .status(SepTransactionStatus.PENDING_SENDER.toString())
             .stellarAccountId(asset.getDistributionAccount())
             .amountInAsset(request.getAssetName())
             .amountIn(request.getAmount())
@@ -108,7 +108,7 @@ public class Sep31Service {
     Context.get().setTransaction(txn);
 
     updateAmounts();
-    generateTransactionMemo(txn);
+    updateDepositInfo(txn);
 
     sep31TransactionStore.save(txn);
 
@@ -244,12 +244,11 @@ public class Sep31Service {
     txn.setAmountOutAsset(amountOutAsset);
   }
 
-  private void generateTransactionMemo(Sep31Transaction txn) {
-    String memo = StringUtils.truncate(txn.getId(), 32);
-    memo = StringUtils.leftPad(memo, 32, '0');
-    memo = new String(Base64.getEncoder().encode(memo.getBytes()));
-    txn.setStellarMemo(memo);
-    txn.setStellarMemoType(memoTypeAsString(MEMO_HASH));
+  private void updateDepositInfo(Sep31Transaction txn) {
+    Sep31DepositInfo depositInfo = sep31DepositInfoGenerator.getSep31DepositInfo(txn);
+    txn.setStellarAccountId(depositInfo.getStellarAddress());
+    txn.setStellarMemo(depositInfo.getMemo());
+    txn.setStellarMemoType(depositInfo.getMemoType());
   }
 
   public Sep31GetTransactionResponse getTransaction(String id) throws AnchorException {
@@ -277,7 +276,7 @@ public class Sep31Service {
 
     // validate if the transaction is in the pending_transaction_info_update status
     if (!Objects.equals(
-        txn.getStatus(), TransactionStatus.PENDING_TRANSACTION_INFO_UPDATE.toString())) {
+        txn.getStatus(), SepTransactionStatus.PENDING_TRANSACTION_INFO_UPDATE.toString())) {
       throw new BadRequestException(
           String.format("transaction (id=%s) does not need update", txn.getId()));
     }

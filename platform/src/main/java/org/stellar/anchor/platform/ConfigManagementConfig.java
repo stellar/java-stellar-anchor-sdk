@@ -8,6 +8,8 @@ import org.stellar.anchor.config.CirclePaymentObserverConfig;
 import org.stellar.anchor.config.EventConfig;
 import org.stellar.anchor.config.KafkaConfig;
 import org.stellar.anchor.config.SqsConfig;
+import org.stellar.anchor.payment.config.PropertyCirclePaymentConfig;
+import org.stellar.anchor.paymentservice.circle.config.CirclePaymentConfig;
 import org.stellar.anchor.platform.config.*;
 
 @Configuration
@@ -52,6 +54,18 @@ public class ConfigManagementConfig {
   @ConfigurationProperties(prefix = "sep38")
   Sep38Config sep38Config() {
     return new PropertySep38Config();
+  }
+
+  @Bean
+  @ConfigurationProperties(prefix = "circle")
+  CircleConfig circleConfig() {
+    return new PropertyCircleConfig();
+  }
+
+  @Bean
+  @ConfigurationProperties(prefix = "payment-gateway.circle")
+  CirclePaymentConfig circlePaymentConfig() {
+    return new PropertyCirclePaymentConfig();
   }
 
   @Bean

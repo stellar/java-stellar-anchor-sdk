@@ -1,6 +1,6 @@
 package org.stellar.anchor.platform.service;
 
-import static org.stellar.anchor.api.sep.TransactionStatus.*;
+import static org.stellar.anchor.api.sep.SepTransactionStatus.*;
 import static org.stellar.anchor.sep31.Sep31Helper.allAmountAvailable;
 import static org.stellar.anchor.sep31.Sep31Helper.validateStatus;
 import static org.stellar.anchor.util.MathHelper.decimal;
@@ -22,7 +22,6 @@ import org.stellar.anchor.api.platform.PatchTransactionsRequest;
 import org.stellar.anchor.api.platform.PatchTransactionsResponse;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.shared.Amount;
-import org.stellar.anchor.api.shared.Transaction;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.platform.data.JdbcSep31Transaction;
 import org.stellar.anchor.platform.data.JdbcSep31TransactionStore;
@@ -57,7 +56,7 @@ public class TransactionService {
       throw new NotFoundException(String.format("transaction (id=%s) is not found", txnId));
     }
 
-    Transaction txnResponse = fromTransactionToResponse(txn);
+    GetTransactionResponse txnResponse = fromTransactionToResponse(txn);
     GetTransactionResponse response = new GetTransactionResponse();
     BeanUtils.copyProperties(txnResponse, response);
 
@@ -75,7 +74,7 @@ public class TransactionService {
             .collect(Collectors.toMap(Sep31Transaction::getId, Function.identity()));
 
     List<JdbcSep31Transaction> txnsToSave = new LinkedList<>();
-    List<Transaction> updatedTxns = new LinkedList<>();
+    List<GetTransactionResponse> updatedTxns = new LinkedList<>();
 
     for (PatchTransactionRequest ptr : records) {
       JdbcSep31Transaction txn = (JdbcSep31Transaction) txnMap.get(ptr.getId());
@@ -96,8 +95,8 @@ public class TransactionService {
     return new PatchTransactionsResponse(updatedTxns);
   }
 
-  Transaction fromTransactionToResponse(JdbcSep31Transaction txn) {
-    return Transaction.builder()
+  GetTransactionResponse fromTransactionToResponse(JdbcSep31Transaction txn) {
+    return GetTransactionResponse.builder()
         .id(txn.getId())
         .sep(31)
         .status(txn.getStatus())

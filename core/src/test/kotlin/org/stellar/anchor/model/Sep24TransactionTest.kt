@@ -3,7 +3,7 @@ package org.stellar.anchor.model
 import io.mockk.every
 import io.mockk.mockk
 import org.junit.jupiter.api.Test
-import org.stellar.anchor.api.sep.TransactionStatus
+import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.sep24.PojoSep24Transaction
 import org.stellar.anchor.sep24.Sep24TransactionBuilder
 import org.stellar.anchor.sep24.Sep24TransactionStore
@@ -11,7 +11,7 @@ import org.stellar.anchor.sep24.Sep24TransactionStore
 internal class Sep24TransactionTest {
   @Test
   fun testStatusCoverage() {
-    TransactionStatus.COMPLETED.description
+    SepTransactionStatus.COMPLETED.description
   }
 
   @Test

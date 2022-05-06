@@ -10,6 +10,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.stellar.anchor.api.exception.HttpException;
+import org.stellar.anchor.config.CircleConfig;
+import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.paymentservice.circle.config.CirclePaymentConfig;
 import org.stellar.anchor.paymentservice.circle.model.*;
 import org.stellar.anchor.paymentservice.circle.model.request.CircleSendTransactionRequest;
@@ -17,6 +19,7 @@ import org.stellar.anchor.paymentservice.circle.model.response.*;
 import org.stellar.anchor.paymentservice.circle.util.CircleAsset;
 import org.stellar.anchor.paymentservice.circle.util.NettyHttpClient;
 import org.stellar.sdk.Network;
+import org.stellar.sdk.Server;
 import paymentservice.*;
 import reactor.core.publisher.Mono;
 import reactor.netty.ByteBufMono;
@@ -27,7 +30,11 @@ import shadow.com.google.common.reflect.TypeToken;
 
 public class CirclePaymentService
     implements PaymentService, CircleResponseErrorHandler, StellarReconciliation {
-  private final CirclePaymentConfig config;
+  private final CirclePaymentConfig circlePaymentConfig;
+
+  private final CircleConfig circleConfig;
+
+  private final Server horizonServer;
 
   private final Network stellarNetwork;
 
@@ -41,15 +48,19 @@ public class CirclePaymentService
    * For all service methods to work correctly, make sure your circle account has a valid business
    * wallet and a bank account configured.
    */
-  public CirclePaymentService(CirclePaymentConfig config) {
+  public CirclePaymentService(
+      CirclePaymentConfig circlePaymentConfig, CircleConfig circleConfig, Horizon horizon) {
     super();
-    this.config = config;
-    this.stellarNetwork = toStellarNetwork(config.getStellarNetwork());
+    this.circlePaymentConfig = circlePaymentConfig;
+    this.circleConfig = circleConfig;
+    this.horizonServer = horizon.getServer();
+
+    this.stellarNetwork = toStellarNetwork(horizon.getStellarNetworkPassphrase());
   }
 
   @Override
-  public String getHorizonUrl() {
-    return config.getHorizonUrl();
+  public Server getHorizonServer() {
+    return horizonServer;
   }
 
   @Override
@@ -59,18 +70,18 @@ public class CirclePaymentService
 
   @Override
   public String getName() {
-    return config.getName();
+    return circlePaymentConfig.getName();
   }
 
   public HttpClient getWebClient(boolean authenticated) {
     if (webClient == null) {
-      this.webClient = NettyHttpClient.withBaseUrl(this.config.getCircleUrl());
+      this.webClient = NettyHttpClient.withBaseUrl(this.circleConfig.getCircleUrl());
     }
     if (!authenticated) {
       return webClient;
     }
     return webClient.headers(
-        h -> h.add(HttpHeaderNames.AUTHORIZATION, "Bearer " + this.config.getSecretKey()));
+        h -> h.add(HttpHeaderNames.AUTHORIZATION, "Bearer " + this.circleConfig.getApiKey()));
   }
 
   /**

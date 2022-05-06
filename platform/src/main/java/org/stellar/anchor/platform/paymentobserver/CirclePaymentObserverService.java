@@ -52,7 +52,7 @@ public class CirclePaymentObserverService {
       List<PaymentListener> observers) {
     this.httpClient = httpClient;
     Network stellarNetwork =
-        StellarNetworkHelper.toStellarNetwork(circlePaymentObserverConfig.getStellarNetwork());
+        StellarNetworkHelper.toStellarNetwork(horizon.getStellarNetworkPassphrase());
     String[] assetIdPieces = CircleAsset.stellarUSDC(stellarNetwork).split(":");
     this.usdcIssuer = assetIdPieces[assetIdPieces.length - 1];
     this.horizonServer = horizon.getServer();
