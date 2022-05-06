@@ -5,7 +5,7 @@ plugins {
   id("org.jetbrains.kotlin.jvm") version "1.6.10"
 }
 
-version = "1.0.3"
+version = "1.0.5"
 
 dependencies {
   compileOnly(libs.servlet.api)

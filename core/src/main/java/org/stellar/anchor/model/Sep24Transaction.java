@@ -145,6 +145,7 @@ public interface Sep24Transaction {
     PENDING_RECEIVER("pending_receiver", null),
     PENDING_TRANSACTION_INFO_UPDATE("pending_transaction_info_update", null),
     PENDING_CUSTOMER_INFO_UPDATE("pending_customer_info_update", null),
+    REFUNDED("refunded", "the deposit/withdrawal is fully refunded"),
     COMPLETED("completed", "complete"),
     ERROR("error", "error"),
     PENDING_EXTERNAL("pending_external", "waiting on an external entity"),
