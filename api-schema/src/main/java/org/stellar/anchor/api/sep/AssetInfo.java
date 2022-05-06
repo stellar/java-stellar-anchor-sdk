@@ -11,6 +11,13 @@ public class AssetInfo {
   String code;
   String issuer;
 
+  public String getAssetName(){
+    if(issuer != null){
+      return "stellar:" + code + ":" + issuer;
+    }
+    return code;
+  }
+
   @SerializedName("distribution_account")
   String distributionAccount;
 

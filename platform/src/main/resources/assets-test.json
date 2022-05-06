@@ -74,11 +74,57 @@
             },
             "sep38": {
                 "exchangeable_assets": [
-                    "iso4217:USD"
+                    "iso4217:USD",
+                    "stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
                 ]
             },
             "sep24_enabled": true,
             "sep31_enabled": true,
+            "sep38_enabled": true
+        },
+        {
+            "schema": "stellar",
+            "code": "JPYC",
+            "issuer": "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+            "distribution_account": "GAB24L6CPBKSMQOBXJ5PRA6I66X4TGZHPAEI2CMPNLC6I2WX646OYCAV",
+            "significant_decimals": 4,
+            "sep31" : {
+                "quotes_supported": true,
+                "quotes_required": true,
+                "sep12": {
+                    "sender": {
+                        "types": {
+                            "sep31-sender": {
+                                "description": "U.S. citizens limited to sending payments of less than $10,000 in value"
+                            },
+                            "sep31-large-sender": {
+                                "description": "U.S. citizens that do not have sending limits"
+                            },
+                            "sep31-foreign-sender": {
+                                "description": "non-U.S. citizens sending payments of less than $10,000 in value"
+                            }
+                        }
+                    },
+                    "receiver": {
+                        "types": {
+                            "sep31-receiver": {
+                                "description": "U.S. citizens receiving JPY"
+                            },
+                            "sep31-foreign-receiver": {
+                                "description": "non-U.S. citizens receiving JPY"
+                            }
+                        }
+                    }
+                }
+            },
+            "sep38": {
+                "exchangeable_assets": [
+                    "iso4217:USD",
+                    "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                ]
+            },
+            "sep24_enabled": false,
+            "sep31_enabled": false,
             "sep38_enabled": true
         },
         {

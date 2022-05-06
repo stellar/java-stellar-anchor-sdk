@@ -37,6 +37,7 @@ public class AnchorEventProcessor {
     switch (event.getType()) {
       case "transaction_created":
       case "transaction_status_changed":
+        //TODO fix this - current code only handles payment received
         handleTransactionStatusChangedEvent(event);
       case "transaction_error":
       default:
