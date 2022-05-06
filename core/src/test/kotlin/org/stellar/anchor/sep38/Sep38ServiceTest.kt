@@ -1,8 +1,11 @@
 package org.stellar.anchor.sep38
 
 import io.mockk.*
+import io.mockk.impl.annotations.MockK
 import java.time.Instant
 import java.time.temporal.ChronoUnit
+import java.util.*
+import kotlin.collections.HashMap
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
@@ -19,6 +22,9 @@ import org.stellar.anchor.api.sep.sep38.*
 import org.stellar.anchor.asset.ResourceJsonAssetService
 import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.Sep38Config
+import org.stellar.anchor.event.EventPublishService
+import org.stellar.anchor.event.models.QuoteEvent
+import org.stellar.anchor.event.models.StellarId
 import org.stellar.anchor.sep10.JwtToken
 
 class Sep38ServiceTest {
@@ -44,25 +50,28 @@ class Sep38ServiceTest {
   private lateinit var sep38Service: Sep38Service
 
   // store/db related:
-  private lateinit var quoteStore: Sep38QuoteStore
+  @MockK(relaxed = true) private lateinit var quoteStore: Sep38QuoteStore
+
+  // events related
+  @MockK(relaxed = true) private lateinit var eventService: EventPublishService
 
   // sep10 related:
-  private lateinit var appConfig: AppConfig
+  @MockK(relaxed = true) private lateinit var appConfig: AppConfig
 
   @BeforeEach
   fun setUp() {
+    MockKAnnotations.init(this, relaxUnitFun = true)
+
     val assetService = ResourceJsonAssetService("test_assets.json")
     val assets = assetService.listAllAssets()
     val sep8Config = PropertySep38Config()
-    this.sep38Service = Sep38Service(sep8Config, assetService, null, null, null)
+    this.sep38Service = Sep38Service(sep8Config, assetService, null, null, eventService)
     assertEquals(3, assets.size)
 
     // sep10 related:
-    this.appConfig = mockk(relaxed = true)
     every { appConfig.jwtSecretKey } returns "secret"
 
     // store/db related:
-    this.quoteStore = mockk(relaxed = true)
     every { quoteStore.newInstance() } returns PojoSep38Quote()
   }
 
@@ -868,7 +877,6 @@ class Sep38ServiceTest {
   fun test_postQuote_minimumParametersWithSellAmount() {
     // mock rate integration
     val mockRateIntegration = mockk<MockRateIntegration>()
-    val mockEventService = mockk<MockEventService>(relaxed = true)
     val getRateReq =
       GetRateRequest.builder()
         .type(GetRateRequest.Type.FIRM)
@@ -886,11 +894,15 @@ class Sep38ServiceTest {
         sep38Service.assetService,
         mockRateIntegration,
         quoteStore,
-        mockEventService
+        eventService
       )
 
     val slotQuote = slot<Sep38Quote>()
     every { quoteStore.save(capture(slotQuote)) } returns null
+
+    // Mock event service
+    val slotEvent = slot<QuoteEvent>()
+    every { eventService.publish(capture(slotEvent)) } just Runs
 
     // test happy path with the minimum parameters using sellAmount
     val token = createJwtToken()
@@ -931,13 +943,30 @@ class Sep38ServiceTest {
     assertEquals("98.0392157", savedQuote.buyAmount)
     assertEquals(PUBLIC_KEY, savedQuote.creatorAccountId)
     assertNotNull(savedQuote.createdAt)
+
+    // verify the published event
+    verify(exactly = 1) { eventService.publish(any()) }
+    val wantEvent =
+      QuoteEvent.builder()
+        .eventId(slotEvent.captured.eventId)
+        .type(QuoteEvent.Type.QUOTE_CREATED)
+        .id("123")
+        .sellAsset(fiatUSD)
+        .buyAsset(stellarUSDC)
+        .expiresAt(tomorrow)
+        .price("1.02")
+        .creator(StellarId.builder().account(PUBLIC_KEY).memo(null).memoType(null).build())
+        .transactionId(null)
+        .createdAt(savedQuote.createdAt)
+        .priceDetails(mockPriceDetails(fiatUSD, stellarUSDC))
+        .build()
+    assertEquals(wantEvent, slotEvent.captured)
   }
 
   @Test
   fun test_postQuote_minimumParametersWithBuyAmount() {
     // mock rate integration
     val mockRateIntegration = mockk<MockRateIntegration>()
-    val mockEventService = mockk<MockEventService>(relaxed = true)
     val getRateReq =
       GetRateRequest.builder()
         .type(GetRateRequest.Type.FIRM)
@@ -955,11 +984,15 @@ class Sep38ServiceTest {
         sep38Service.assetService,
         mockRateIntegration,
         quoteStore,
-        mockEventService,
+        eventService,
       )
 
     val slotQuote = slot<Sep38Quote>()
     every { quoteStore.save(capture(slotQuote)) } returns null
+
+    // Mock event service
+    val slotEvent = slot<QuoteEvent>()
+    every { eventService.publish(capture(slotEvent)) } just Runs
 
     // test happy path with the minimum parameters using sellAmount
     val token = createJwtToken()
@@ -1000,6 +1033,24 @@ class Sep38ServiceTest {
     assertEquals("100", savedQuote.buyAmount)
     assertEquals(PUBLIC_KEY, savedQuote.creatorAccountId)
     assertNotNull(savedQuote.createdAt)
+
+    // verify the published event
+    verify(exactly = 1) { eventService.publish(any()) }
+    val wantEvent =
+      QuoteEvent.builder()
+        .eventId(slotEvent.captured.eventId)
+        .type(QuoteEvent.Type.QUOTE_CREATED)
+        .id("456")
+        .sellAsset(fiatUSD)
+        .buyAsset(stellarUSDC)
+        .expiresAt(tomorrow)
+        .price("1.02")
+        .creator(StellarId.builder().account(PUBLIC_KEY).memo(null).memoType(null).build())
+        .transactionId(null)
+        .createdAt(savedQuote.createdAt)
+        .priceDetails(mockPriceDetails(fiatUSD, stellarUSDC))
+        .build()
+    assertEquals(wantEvent, slotEvent.captured)
   }
 
   @Test
@@ -1009,7 +1060,6 @@ class Sep38ServiceTest {
 
     // mock rate integration
     val mockRateIntegration = mockk<MockRateIntegration>()
-    val mockEventService = mockk<MockEventService>(relaxed = true)
     val getRateReq =
       GetRateRequest.builder()
         .type(GetRateRequest.Type.FIRM)
@@ -1029,11 +1079,15 @@ class Sep38ServiceTest {
         sep38Service.assetService,
         mockRateIntegration,
         quoteStore,
-        mockEventService
+        eventService
       )
 
     val slotQuote = slot<Sep38Quote>()
     every { quoteStore.save(capture(slotQuote)) } returns null
+
+    // Mock event service
+    val slotEvent = slot<QuoteEvent>()
+    every { eventService.publish(capture(slotEvent)) } just Runs
 
     // test happy path with the minimum parameters using sellAmount
     val token = createJwtToken()
@@ -1078,6 +1132,24 @@ class Sep38ServiceTest {
     assertEquals("98.0392157", savedQuote.buyAmount)
     assertEquals(PUBLIC_KEY, savedQuote.creatorAccountId)
     assertNotNull(savedQuote.createdAt)
+
+    // verify the published event
+    verify(exactly = 1) { eventService.publish(any()) }
+    val wantEvent =
+      QuoteEvent.builder()
+        .eventId(slotEvent.captured.eventId)
+        .type(QuoteEvent.Type.QUOTE_CREATED)
+        .id("123")
+        .sellAsset(fiatUSD)
+        .buyAsset(stellarUSDC)
+        .expiresAt(tomorrow)
+        .price("1.02")
+        .creator(StellarId.builder().account(PUBLIC_KEY).memo(null).memoType(null).build())
+        .transactionId(null)
+        .createdAt(savedQuote.createdAt)
+        .priceDetails(mockPriceDetails(fiatUSD, stellarUSDC))
+        .build()
+    assertEquals(wantEvent, slotEvent.captured)
   }
 
   @Test
@@ -1087,7 +1159,6 @@ class Sep38ServiceTest {
 
     // mock rate integration
     val mockRateIntegration = mockk<MockRateIntegration>()
-    val mockEventService = mockk<MockEventService>(relaxed = true)
     val getRateReq =
       GetRateRequest.builder()
         .type(GetRateRequest.Type.FIRM)
@@ -1107,11 +1178,15 @@ class Sep38ServiceTest {
         sep38Service.assetService,
         mockRateIntegration,
         quoteStore,
-        mockEventService
+        eventService
       )
 
     val slotQuote = slot<Sep38Quote>()
     every { quoteStore.save(capture(slotQuote)) } returns null
+
+    // Mock event service
+    val slotEvent = slot<QuoteEvent>()
+    every { eventService.publish(capture(slotEvent)) } just Runs
 
     // test happy path with the minimum parameters using sellAmount
     val token = createJwtToken()
@@ -1155,7 +1230,26 @@ class Sep38ServiceTest {
     assertEquals(stellarUSDC, savedQuote.buyAsset)
     assertEquals("100", savedQuote.buyAmount)
     assertEquals(PUBLIC_KEY, savedQuote.creatorAccountId)
+    assertEquals(mockPriceDetails(fiatUSD, stellarUSDC), savedQuote.priceDetails)
     assertNotNull(savedQuote.createdAt)
+
+    // verify the published event
+    verify(exactly = 1) { eventService.publish(any()) }
+    val wantEvent =
+      QuoteEvent.builder()
+        .eventId(slotEvent.captured.eventId)
+        .type(QuoteEvent.Type.QUOTE_CREATED)
+        .id("456")
+        .sellAsset(fiatUSD)
+        .buyAsset(stellarUSDC)
+        .expiresAt(tomorrow)
+        .price("1.02")
+        .creator(StellarId.builder().account(PUBLIC_KEY).memo(null).memoType(null).build())
+        .transactionId(null)
+        .createdAt(savedQuote.createdAt)
+        .priceDetails(mockPriceDetails(fiatUSD, stellarUSDC))
+        .build()
+    assertEquals(wantEvent, slotEvent.captured)
   }
 
   @Test
