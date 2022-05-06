@@ -7,6 +7,8 @@ import static org.stellar.anchor.util.SepHelper.validateAmount;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 import kotlin.Pair;
 import org.springframework.stereotype.Service;
@@ -16,6 +18,7 @@ import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.NotFoundException;
 import org.stellar.anchor.api.exception.UnprocessableEntityException;
+import org.stellar.anchor.api.sep.sep38.PriceDetail;
 import org.stellar.anchor.reference.model.Quote;
 import org.stellar.anchor.reference.repo.QuoteRepo;
 import org.stellar.anchor.util.DateUtil;
@@ -34,7 +37,8 @@ public class RateService {
       if (quote == null) {
         throw new NotFoundException("Quote not found.");
       }
-      return new GetRateResponse(quote.getId(), quote.getPrice(), quote.getExpiresAt());
+      return GetRateResponse.firm(
+          quote.getId(), quote.getPrice(), quote.getExpiresAt(), quote.getPriceDetails());
     }
 
     if (request.getType() == null) {
@@ -63,18 +67,23 @@ public class RateService {
     if (price == null) {
       throw new UnprocessableEntityException("the price for the given pair could not be found");
     }
+    List<PriceDetail> priceDetails =
+        ConversionPrice.getPriceDetails(request.getSellAsset(), request.getBuyAsset());
 
     if (request.getType() == INDICATIVE) {
-      return new GetRateResponse(price);
+      return GetRateResponse.indicative(price, priceDetails);
     } else if (request.getType() == FIRM) {
-      Quote newQuote = createQuote(request, price);
-      return new GetRateResponse(newQuote.getId(), newQuote.getPrice(), newQuote.getExpiresAt());
+      Quote quote = createQuote(request, price, priceDetails);
+      return GetRateResponse.firm(
+          quote.getId(), quote.getPrice(), quote.getExpiresAt(), quote.getPriceDetails());
     }
     throw new BadRequestException("type is not supported");
   }
 
-  private Quote createQuote(GetRateRequest request, String price) {
-    Quote quote = Quote.of(request, price);
+  private Quote createQuote(GetRateRequest request, String price, List<PriceDetail> priceDetails) {
+    Quote quote = Quote.of(request);
+    quote.setPrice(price);
+    quote.setPriceDetails(priceDetails);
 
     // "calculate" expiresAt
     String strExpiresAfter = request.getExpireAfter();
@@ -120,6 +129,20 @@ public class RateService {
 
     public static String getPrice(String sellAsset, String buyAsset) {
       return hardcodedPrices.get(new Pair<>(sellAsset, buyAsset));
+    }
+
+    public static List<PriceDetail> getPriceDetails(String sellAsset, String buyAsset) {
+      List<PriceDetail> priceDetails = new ArrayList<>();
+      if (getPrice(sellAsset, buyAsset) != null) {
+        PriceDetail sellAssetPriceDetail =
+            PriceDetail.builder().asset(sellAsset).name("Sell fee").value("1.00").build();
+        priceDetails.add(sellAssetPriceDetail);
+
+        PriceDetail buyAssetPriceDetail =
+            PriceDetail.builder().asset(buyAsset).name("Buy fee").value("0.99").build();
+        priceDetails.add(buyAssetPriceDetail);
+      }
+      return priceDetails;
     }
   }
 }

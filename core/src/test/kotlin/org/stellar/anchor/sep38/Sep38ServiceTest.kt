@@ -34,11 +34,14 @@ class Sep38ServiceTest {
 
   companion object {
     private const val PUBLIC_KEY = "GBJDSMTMG4YBP27ZILV665XBISBBNRP62YB7WZA2IQX2HIPK7ABLF4C2"
+    private const val stellarUSDC =
+      "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+    private const val fiatUSD = "iso4217:USD"
+    private const val stellarJPYC =
+      "stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
   }
 
   private lateinit var sep38Service: Sep38Service
-
-  private val stellarUSDC = "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
 
   // store/db related:
   private lateinit var quoteStore: Sep38QuoteStore
@@ -178,6 +181,13 @@ class Sep38ServiceTest {
     assertEquals("Unsupported country code", ex.message)
   }
 
+  private fun mockPriceDetails(sellAsset: String, buyAsset: String): List<PriceDetail> {
+    return listOf(
+      PriceDetail("Sell fee", sellAsset, "0.50"),
+      PriceDetail("Buy fee", buyAsset, "0.49")
+    )
+  }
+
   @Test
   fun test_getPrices_minimumParameters() {
     // mock rate integration
@@ -189,7 +199,8 @@ class Sep38ServiceTest {
         .buyAsset("stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5")
         .sellAmount("100")
         .build()
-    every { mockRateIntegration.getRate(getRateReq1) } returns GetRateResponse("1")
+    every { mockRateIntegration.getRate(getRateReq1) } returns
+      GetRateResponse.indicative("1", mockPriceDetails(fiatUSD, stellarJPYC))
     val getRateReq2 =
       GetRateRequest.builder()
         .type(GetRateRequest.Type.INDICATIVE)
@@ -197,7 +208,8 @@ class Sep38ServiceTest {
         .buyAsset(stellarUSDC)
         .sellAmount("100")
         .build()
-    every { mockRateIntegration.getRate(getRateReq2) } returns GetRateResponse("2")
+    every { mockRateIntegration.getRate(getRateReq2) } returns
+      GetRateResponse.indicative("2", mockPriceDetails(fiatUSD, stellarUSDC))
     sep38Service =
       Sep38Service(
         sep38Service.sep38Config,
@@ -235,7 +247,8 @@ class Sep38ServiceTest {
         .countryCode("USA")
         .sellDeliveryMethod("WIRE")
         .build()
-    every { mockRateIntegration.getRate(getRateReq1) } returns GetRateResponse("1.1")
+    every { mockRateIntegration.getRate(getRateReq1) } returns
+      GetRateResponse.indicative("1.1", mockPriceDetails(fiatUSD, stellarJPYC))
     val getRateReq2 =
       GetRateRequest.builder()
         .type(GetRateRequest.Type.INDICATIVE)
@@ -245,7 +258,8 @@ class Sep38ServiceTest {
         .countryCode("USA")
         .sellDeliveryMethod("WIRE")
         .build()
-    every { mockRateIntegration.getRate(getRateReq2) } returns GetRateResponse("2.1")
+    every { mockRateIntegration.getRate(getRateReq2) } returns
+      GetRateResponse.indicative("2.1", mockPriceDetails(fiatUSD, stellarUSDC))
     sep38Service =
       Sep38Service(
         sep38Service.sep38Config,
@@ -282,7 +296,8 @@ class Sep38ServiceTest {
         .sellAmount("100")
         .buyDeliveryMethod("WIRE")
         .build()
-    every { mockRateIntegration.getRate(getRateReq1) } returns GetRateResponse("1")
+    every { mockRateIntegration.getRate(getRateReq1) } returns
+      GetRateResponse.indicative("1", mockPriceDetails(stellarUSDC, fiatUSD))
     sep38Service =
       Sep38Service(
         sep38Service.sep38Config,
@@ -443,7 +458,8 @@ class Sep38ServiceTest {
         .sellAmount("100")
         .buyAsset(stellarUSDC)
         .build()
-    every { mockRateIntegration.getRate(getRateReq) } returns GetRateResponse("1.02")
+    every { mockRateIntegration.getRate(getRateReq) } returns
+      GetRateResponse.indicative("1.02", mockPriceDetails(stellarUSDC, fiatUSD))
     sep38Service =
       Sep38Service(
         sep38Service.sep38Config,
@@ -474,7 +490,8 @@ class Sep38ServiceTest {
         .buyAmount("100")
         .buyAsset(stellarUSDC)
         .build()
-    every { mockRateIntegration.getRate(getRateReq) } returns GetRateResponse("1.02")
+    every { mockRateIntegration.getRate(getRateReq) } returns
+      GetRateResponse.indicative("1.02", mockPriceDetails(fiatUSD, stellarUSDC))
     sep38Service =
       Sep38Service(
         sep38Service.sep38Config,
@@ -507,7 +524,8 @@ class Sep38ServiceTest {
         .countryCode("USA")
         .sellDeliveryMethod("WIRE")
         .build()
-    every { mockRateIntegration.getRate(getRateReq) } returns GetRateResponse("1.02")
+    every { mockRateIntegration.getRate(getRateReq) } returns
+      GetRateResponse.indicative("1.02", mockPriceDetails(fiatUSD, stellarUSDC))
     sep38Service =
       Sep38Service(
         sep38Service.sep38Config,
@@ -542,7 +560,8 @@ class Sep38ServiceTest {
         .countryCode("USA")
         .sellDeliveryMethod("WIRE")
         .build()
-    every { mockRateIntegration.getRate(getRateReq) } returns GetRateResponse("1.02345678901")
+    every { mockRateIntegration.getRate(getRateReq) } returns
+      GetRateResponse.indicative("1.02345678901", mockPriceDetails(fiatUSD, stellarUSDC))
     sep38Service =
       Sep38Service(
         sep38Service.sep38Config,
@@ -860,7 +879,7 @@ class Sep38ServiceTest {
         .build()
     val tomorrow = Instant.now().plus(1, ChronoUnit.DAYS)
     every { mockRateIntegration.getRate(getRateReq) } returns
-      GetRateResponse("123", "1.02", tomorrow)
+      GetRateResponse.firm("123", "1.02", tomorrow, mockPriceDetails(fiatUSD, stellarUSDC))
     sep38Service =
       Sep38Service(
         sep38Service.sep38Config,
@@ -896,6 +915,7 @@ class Sep38ServiceTest {
         .sellAmount("100")
         .buyAsset(stellarUSDC)
         .buyAmount("98.0392157")
+        .priceDetails(mockPriceDetails(fiatUSD, stellarUSDC))
         .build()
     assertEquals(wantResponse, gotResponse)
 
@@ -928,7 +948,7 @@ class Sep38ServiceTest {
         .build()
     val tomorrow = Instant.now().plus(1, ChronoUnit.DAYS)
     every { mockRateIntegration.getRate(getRateReq) } returns
-      GetRateResponse("456", "1.02", tomorrow)
+      GetRateResponse.firm("456", "1.02", tomorrow, mockPriceDetails(fiatUSD, stellarUSDC))
     sep38Service =
       Sep38Service(
         sep38Service.sep38Config,
@@ -964,6 +984,7 @@ class Sep38ServiceTest {
         .sellAmount("102")
         .buyAsset(stellarUSDC)
         .buyAmount("100")
+        .priceDetails(mockPriceDetails(fiatUSD, stellarUSDC))
         .build()
     assertEquals(wantResponse, gotResponse)
 
@@ -1001,7 +1022,7 @@ class Sep38ServiceTest {
         .expireAfter(now.toString())
         .build()
     every { mockRateIntegration.getRate(getRateReq) } returns
-      GetRateResponse("123", "1.02", tomorrow)
+      GetRateResponse.firm("123", "1.02", tomorrow, mockPriceDetails(fiatUSD, stellarUSDC))
     sep38Service =
       Sep38Service(
         sep38Service.sep38Config,
@@ -1040,6 +1061,7 @@ class Sep38ServiceTest {
         .sellAmount("100")
         .buyAsset(stellarUSDC)
         .buyAmount("98.0392157")
+        .priceDetails(mockPriceDetails(fiatUSD, stellarUSDC))
         .build()
     assertEquals(wantResponse, gotResponse)
 
@@ -1078,7 +1100,7 @@ class Sep38ServiceTest {
         .expireAfter(now.toString())
         .build()
     every { mockRateIntegration.getRate(getRateReq) } returns
-      GetRateResponse("456", "1.02", tomorrow)
+      GetRateResponse.firm("456", "1.02", tomorrow, mockPriceDetails(fiatUSD, stellarUSDC))
     sep38Service =
       Sep38Service(
         sep38Service.sep38Config,
@@ -1117,6 +1139,7 @@ class Sep38ServiceTest {
         .sellAmount("102")
         .buyAsset(stellarUSDC)
         .buyAmount("100")
+        .priceDetails(mockPriceDetails(fiatUSD, stellarUSDC))
         .build()
     assertEquals(wantResponse, gotResponse)
 

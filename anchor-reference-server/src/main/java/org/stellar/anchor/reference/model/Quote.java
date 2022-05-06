@@ -43,7 +43,7 @@ public class Quote {
   @Convert(converter = QuotePriceDetailConverter.class)
   List<PriceDetail> priceDetails;
 
-  public static Quote of(GetRateRequest request, String price) {
+  public static Quote of(GetRateRequest request) {
     Quote quote = new Quote();
     quote.setId(UUID.randomUUID().toString());
     quote.setSellAsset(request.getSellAsset());
@@ -54,7 +54,6 @@ public class Quote {
     quote.setSellDeliveryMethod(request.getSellDeliveryMethod());
     quote.setCountryCode(request.getCountryCode());
     quote.setCreatedAt(Instant.now());
-    quote.setPrice(price);
     quote.setClientId(request.getClientId());
 
     return quote;
