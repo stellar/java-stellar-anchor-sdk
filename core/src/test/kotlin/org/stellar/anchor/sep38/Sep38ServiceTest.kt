@@ -4,7 +4,6 @@ import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import java.time.Instant
 import java.time.temporal.ChronoUnit
-import java.util.*
 import kotlin.collections.HashMap
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
@@ -210,6 +209,7 @@ class Sep38ServiceTest {
         .build()
     every { mockRateIntegration.getRate(getRateReq1) } returns
       GetRateResponse.indicative("1", mockPriceDetails(fiatUSD, stellarJPYC))
+
     val getRateReq2 =
       GetRateRequest.builder()
         .type(GetRateRequest.Type.INDICATIVE)
@@ -234,12 +234,8 @@ class Sep38ServiceTest {
       gotResponse = sep38Service.getPrices("iso4217:USD", "100", null, null, null)
     }
     val wantResponse = GetPricesResponse()
-    wantResponse.addAsset(
-      "stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
-      7,
-      "1"
-    )
-    wantResponse.addAsset(stellarUSDC, 7, "2")
+    wantResponse.addAsset(stellarJPYC, 7, "1", mockPriceDetails(fiatUSD, stellarJPYC))
+    wantResponse.addAsset(stellarUSDC, 7, "2", mockPriceDetails(fiatUSD, stellarUSDC))
     assertEquals(wantResponse, gotResponse)
   }
 
@@ -258,6 +254,7 @@ class Sep38ServiceTest {
         .build()
     every { mockRateIntegration.getRate(getRateReq1) } returns
       GetRateResponse.indicative("1.1", mockPriceDetails(fiatUSD, stellarJPYC))
+
     val getRateReq2 =
       GetRateRequest.builder()
         .type(GetRateRequest.Type.INDICATIVE)
@@ -284,12 +281,8 @@ class Sep38ServiceTest {
       gotResponse = sep38Service.getPrices("iso4217:USD", "100", "WIRE", null, "USA")
     }
     val wantResponse = GetPricesResponse()
-    wantResponse.addAsset(
-      "stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
-      7,
-      "1.1"
-    )
-    wantResponse.addAsset(stellarUSDC, 7, "2.1")
+    wantResponse.addAsset(stellarJPYC, 7, "1.1", mockPriceDetails(fiatUSD, stellarJPYC))
+    wantResponse.addAsset(stellarUSDC, 7, "2.1", mockPriceDetails(fiatUSD, stellarUSDC))
     assertEquals(wantResponse, gotResponse)
   }
 
@@ -322,7 +315,7 @@ class Sep38ServiceTest {
       gotResponse = sep38Service.getPrices(stellarUSDC, "100", null, "WIRE", null)
     }
     val wantResponse = GetPricesResponse()
-    wantResponse.addAsset("iso4217:USD", 4, "1")
+    wantResponse.addAsset("iso4217:USD", 4, "1", mockPriceDetails(stellarUSDC, fiatUSD))
     assertEquals(wantResponse, gotResponse)
   }
 
@@ -468,7 +461,7 @@ class Sep38ServiceTest {
         .buyAsset(stellarUSDC)
         .build()
     every { mockRateIntegration.getRate(getRateReq) } returns
-      GetRateResponse.indicative("1.02", mockPriceDetails(stellarUSDC, fiatUSD))
+      GetRateResponse.indicative("1.02", mockPriceDetails(fiatUSD, stellarUSDC))
     sep38Service =
       Sep38Service(
         sep38Service.sep38Config,
@@ -484,7 +477,12 @@ class Sep38ServiceTest {
       gotResponse = sep38Service.getPrice("iso4217:USD", "100", null, stellarUSDC, null, null, null)
     }
     val wantResponse =
-      GetPriceResponse.builder().price("1.02").sellAmount("100").buyAmount("98.0392157").build()
+      GetPriceResponse.builder()
+        .price("1.02")
+        .sellAmount("100")
+        .buyAmount("98.0392157")
+        .priceDetails(mockPriceDetails(fiatUSD, stellarUSDC))
+        .build()
     assertEquals(wantResponse, gotResponse)
   }
 
@@ -516,7 +514,12 @@ class Sep38ServiceTest {
       gotResponse = sep38Service.getPrice("iso4217:USD", null, null, stellarUSDC, "100", null, null)
     }
     val wantResponse =
-      GetPriceResponse.builder().price("1.02").sellAmount("102").buyAmount("100").build()
+      GetPriceResponse.builder()
+        .price("1.02")
+        .sellAmount("102")
+        .buyAmount("100")
+        .priceDetails(mockPriceDetails(fiatUSD, stellarUSDC))
+        .build()
     assertEquals(wantResponse, gotResponse)
   }
 
@@ -552,7 +555,12 @@ class Sep38ServiceTest {
         sep38Service.getPrice("iso4217:USD", "100", "WIRE", stellarUSDC, null, null, "USA")
     }
     val wantResponse =
-      GetPriceResponse.builder().price("1.02").sellAmount("100").buyAmount("98.0392157").build()
+      GetPriceResponse.builder()
+        .price("1.02")
+        .sellAmount("100")
+        .buyAmount("98.0392157")
+        .priceDetails(mockPriceDetails(fiatUSD, stellarUSDC))
+        .build()
     assertEquals(wantResponse, gotResponse)
   }
 
@@ -592,6 +600,7 @@ class Sep38ServiceTest {
         .price("1.02345678901")
         .sellAmount("102.3457")
         .buyAmount("100")
+        .priceDetails(mockPriceDetails(fiatUSD, stellarUSDC))
         .build()
     assertEquals(wantResponse, gotResponse)
   }

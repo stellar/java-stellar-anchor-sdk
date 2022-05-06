@@ -1,6 +1,7 @@
 package org.stellar.anchor.api.sep.sep38;
 
 import com.google.gson.annotations.SerializedName;
+import java.util.List;
 import lombok.Builder;
 import lombok.Data;
 
@@ -14,4 +15,7 @@ public class GetPriceResponse {
 
   @SerializedName("buy_amount")
   String buyAmount;
+
+  @SerializedName("price_details")
+  List<PriceDetail> priceDetails;
 }
