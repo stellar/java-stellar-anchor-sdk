@@ -2,7 +2,9 @@ package org.stellar.anchor.api.callback;
 
 import com.google.gson.annotations.SerializedName;
 import java.time.Instant;
+import java.util.List;
 import lombok.Data;
+import org.stellar.anchor.api.sep.sep38.PriceDetail;
 import reactor.util.annotation.NonNull;
 import reactor.util.annotation.Nullable;
 
@@ -31,5 +33,8 @@ public class GetRateResponse {
     @SerializedName("expires_at")
     @Nullable
     Instant expiresAt;
+
+    @SerializedName("price_details")
+    List<PriceDetail> priceDetails;
   }
 }
