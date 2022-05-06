@@ -9,7 +9,7 @@ import javax.persistence.Id;
 import javax.persistence.Table;
 import lombok.Data;
 import org.stellar.anchor.api.sep.sep38.PriceDetail;
-import org.stellar.anchor.reference.model.QuotePriceDetailConverter;
+import org.stellar.anchor.reference.model.PriceDetailListConverter;
 import org.stellar.anchor.sep38.Sep38Quote;
 
 @Data
@@ -57,6 +57,6 @@ public class JdbcSep38Quote implements Sep38Quote {
   String transactionId;
 
   @SerializedName("price_details")
-  @Convert(converter = QuotePriceDetailConverter.class)
+  @Convert(converter = PriceDetailListConverter.class)
   List<PriceDetail> priceDetails;
 }

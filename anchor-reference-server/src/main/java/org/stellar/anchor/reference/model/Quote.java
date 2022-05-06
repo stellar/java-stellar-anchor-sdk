@@ -40,7 +40,7 @@ public class Quote {
 
   String transactionId;
 
-  @Convert(converter = QuotePriceDetailConverter.class)
+  @Convert(converter = PriceDetailListConverter.class)
   List<PriceDetail> priceDetails;
 
   public static Quote of(GetRateRequest request) {

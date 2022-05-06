@@ -4,11 +4,13 @@ import com.google.gson.Gson;
 import java.lang.reflect.Type;
 import java.util.List;
 import javax.persistence.AttributeConverter;
+import javax.persistence.Converter;
 import org.stellar.anchor.api.sep.sep38.PriceDetail;
 import org.stellar.anchor.util.GsonUtils;
 import shadow.com.google.common.reflect.TypeToken;
 
-public class QuotePriceDetailConverter implements AttributeConverter<List<PriceDetail>, String> {
+@Converter
+public class PriceDetailListConverter implements AttributeConverter<List<PriceDetail>, String> {
   private static final Gson gson = GsonUtils.getInstance();
 
   @Override
