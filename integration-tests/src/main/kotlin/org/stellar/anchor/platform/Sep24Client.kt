@@ -11,11 +11,12 @@ class Sep24Client(private val endpoint: String, private val jwt: String) : SepCl
 
   fun getInfo(): InfoResponse {
     println("SEP24 $endpoint/info")
-    val responseBody = httpGetWithJwt("$endpoint/info", jwt)
+    val responseBody = httpGet("$endpoint/info", jwt)
     return gson.fromJson(responseBody, InfoResponse::class.java)
   }
 
   fun withdraw(requestData: Map<String, String>?): InteractiveTransactionResponse {
+    println("SEP24 $endpoint/transactions/withdraw/interactive")
     val urlBuilder =
       this.endpoint.toHttpUrl().newBuilder().addPathSegments("transactions/withdraw/interactive")
     val requestBody = gson.toJson(requestData).toRequestBody(TYPE_JSON)
@@ -27,7 +28,6 @@ class Sep24Client(private val endpoint: String, private val jwt: String) : SepCl
         .post(requestBody)
         .build()
 
-    print(gson.toJson(requestData))
     val response = client.newCall(request).execute()
 
     return gson.fromJson(handleResponse(response), InteractiveTransactionResponse::class.java)

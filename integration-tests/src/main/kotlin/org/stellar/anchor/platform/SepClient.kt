@@ -14,21 +14,19 @@ open class SepClient {
   companion object {
     val gson: Gson = GsonUtils.getInstance()
     val client =
-      OkHttpClient.Builder()
-        .connectTimeout(10, TimeUnit.MINUTES)
-        .readTimeout(10, TimeUnit.MINUTES)
-        .writeTimeout(10, TimeUnit.MINUTES)
-        .callTimeout(10, TimeUnit.MINUTES)
-        .build()
+        OkHttpClient.Builder()
+            .connectTimeout(10, TimeUnit.MINUTES)
+            .readTimeout(10, TimeUnit.MINUTES)
+            .writeTimeout(10, TimeUnit.MINUTES)
+            .callTimeout(10, TimeUnit.MINUTES)
+            .build()
   }
-  fun httpGetWithJwt(url: String, jwt: String): String? {
-    val builder =
-      Request.Builder()
-        .url("$url")
-        .header("Content-Type", "application/json")
-        .header("Authorization", "Bearer $jwt")
-        .get()
+  fun httpGet(url: String, jwt: String? = null): String? {
+    var builder = Request.Builder().url("$url").header("Content-Type", "application/json").get()
 
+    if (jwt != null) {
+      builder = builder.header("Authorization", "Bearer $jwt")
+    }
     val request = builder.build()
     val response = client.newCall(request).execute()
     return handleResponse(response)
@@ -43,12 +41,8 @@ open class SepClient {
     if (response.code == HttpStatus.FORBIDDEN.value()) {
       throw SepNotAuthorizedException("Forbidden")
     } else if (!listOf(
-          HttpStatus.OK.value(),
-          HttpStatus.CREATED.value(),
-          HttpStatus.ACCEPTED.value()
-        )
-        .contains(response.code)
-    ) {
+            HttpStatus.OK.value(), HttpStatus.CREATED.value(), HttpStatus.ACCEPTED.value())
+        .contains(response.code)) {
       throw SepException(responseBody)
     }
 
