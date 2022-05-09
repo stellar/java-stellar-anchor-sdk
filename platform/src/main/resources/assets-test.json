@@ -75,7 +75,7 @@
             "sep38": {
                 "exchangeable_assets": [
                     "iso4217:USD",
-                    "stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                    "stellar:JPYC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
                 ]
             },
             "sep24_enabled": true,
@@ -86,7 +86,7 @@
             "schema": "stellar",
             "code": "JPYC",
             "issuer": "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-            "distribution_account": "GAB24L6CPBKSMQOBXJ5PRA6I66X4TGZHPAEI2CMPNLC6I2WX646OYCAV",
+            "distribution_account": "GDVARAZQD3B5QKKQG2AE455HXLD3NYFWRMPBGXSH2VE3L3CF23CAZDUB",
             "significant_decimals": 4,
             "sep31" : {
                 "quotes_supported": true,

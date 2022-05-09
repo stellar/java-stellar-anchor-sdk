@@ -160,7 +160,7 @@ public class TransactionService {
 
   void validateAsset(Amount amount) throws BadRequestException {
     if (amount != null) {
-      if (assets.stream().noneMatch(assetInfo -> assetInfo.getCode().equals(amount.getAsset()))) {
+      if (assets.stream().noneMatch(assetInfo -> assetInfo.getAssetName().equals(amount.getAsset()))) {
         throw new BadRequestException(
             String.format("'%s' is not a supported asset.", amount.getAsset()));
       }
@@ -185,9 +185,9 @@ public class TransactionService {
                 txn.getQuoteId(), txn.getId()));
       }
 
-      if (!decimal(quote.getSellAmount()).equals(decimal(txn.getAmountIn()))) {
-        throw new BadRequestException("quote.sell_amount != amount_in");
-      }
+//      if (!decimal(quote.getSellAmount()).equals(decimal(txn.getAmountIn()))) {
+//        throw new BadRequestException("quote.sell_amount != amount_in");
+//      }
 
       if (txn.getAmountFeeAsset().equals(quote.getBuyAsset())) {
         // fee calculated in buying asset
