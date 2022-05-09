@@ -134,12 +134,10 @@ public class RateService {
     public static List<PriceDetail> getPriceDetails(String sellAsset, String buyAsset) {
       List<PriceDetail> priceDetails = new ArrayList<>();
       if (getPrice(sellAsset, buyAsset) != null) {
-        PriceDetail sellAssetPriceDetail =
-            PriceDetail.builder().asset(sellAsset).name("Sell fee").value("1.00").build();
+        PriceDetail sellAssetPriceDetail = new PriceDetail("Sell fee", sellAsset, "1.00");
         priceDetails.add(sellAssetPriceDetail);
 
-        PriceDetail buyAssetPriceDetail =
-            PriceDetail.builder().asset(buyAsset).name("Buy fee").value("0.99").build();
+        PriceDetail buyAssetPriceDetail = new PriceDetail("Buy fee", buyAsset, "0.99");
         priceDetails.add(buyAssetPriceDetail);
       }
       return priceDetails;
