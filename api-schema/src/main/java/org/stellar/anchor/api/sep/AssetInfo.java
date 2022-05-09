@@ -15,7 +15,7 @@ public class AssetInfo {
     if(issuer != null){
       return "stellar:" + code + ":" + issuer;
     }
-    return code;
+    return schema + ":" + code;
   }
 
   @SerializedName("distribution_account")

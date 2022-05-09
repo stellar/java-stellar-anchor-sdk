@@ -59,7 +59,7 @@ internal class Sep31ServiceTest {
             {
               "code": "USDC",
               "issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
-              "distribution_account": "GDVARAZQD3B5QKKQG2AE455HXLD3NYFWRMPBGXSH2VE3L3CF23CAZDUB",
+              "distribution_account": "GA7FYRB5VREZKOBIIKHG5AVTPFGWUBPOBF7LTYG4GTMFVIOOD2DWAL7I",
               "schema": "stellar",
               "significant_decimals": 2,
               "deposit": {

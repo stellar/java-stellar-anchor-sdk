@@ -84,7 +84,7 @@ public class Sep31Service {
     // Pre-validation
     validateAmount(request.getAmount());
     validateLanguage(appConfig, request.getLang());
-    validateRequiredFields(request.getAssetCode(), request.getFields().getTransaction());
+    validateRequiredFields(request.getAssetName(), request.getFields().getTransaction());
     validateAsset();
     validateSenderAndReceiver();
     validateKyc();
@@ -479,7 +479,7 @@ public class Sep31Service {
         assetResponse.setMaxAmount(assetInfo.getSend().getMaxAmount());
         assetResponse.setFields(assetInfo.getSep31().getFields());
         assetResponse.setSep12(assetInfo.getSep31().getSep12());
-        response.getReceive().put(assetInfo.getCode(), assetResponse);
+        response.getReceive().put(assetInfo.getAssetName(), assetResponse);
       }
     }
 
