@@ -151,6 +151,55 @@ public class Sep31Service {
     Sep31Transaction txn = Context.get().getTransaction();
     Sep31PostTransactionRequest request = Context.get().getRequest();
     Amount feeResponse = Context.get().getFee();
+    boolean withoutQuote = request.getQuoteId() == null;
+
+    AssetInfo reqAsset = assetService.getAsset(request.getAssetCode(), request.getAssetIssuer());
+    BigDecimal reqAmount = decimal(request.getAmount(), reqAsset);
+    BigDecimal fee = decimal(feeResponse.getAmount(), reqAsset);
+    String feeAsset = String.valueOf(feeResponse.getAsset());
+
+    BigDecimal amountIn;
+    String amountInAsset = reqAsset.getCode();
+    BigDecimal amountOut;
+    String amountOutAsset;
+
+    if (withoutQuote) {
+      boolean strictSend = sep31Config.getPaymentType() == STRICT_SEND;
+      // Without quote.
+      amountOutAsset = amountInAsset;
+      if (strictSend) {
+        // amount_in = req.amount
+        // amount_out = amount_in - amount fee
+        amountIn = reqAmount;
+        amountOut = amountIn.subtract(fee);
+      } else {
+        // amount_in = req.amount + fee
+        // amount_out = req.amount
+        amountIn = reqAmount.add(fee);
+        amountOut = reqAmount;
+      }
+    } else {
+      // With quote
+      Sep38Quote quote = sep38QuoteStore.findByQuoteId(request.getQuoteId());
+      txn.setQuoteId(request.getQuoteId());
+      amountOutAsset = quote.getBuyAsset();
+      amountIn = decimal(quote.getSellAmount(), reqAsset);
+      amountOut = decimal(quote.getBuyAmount(), reqAsset);
+    }
+
+    // Update transactions
+    txn.setAmountFee(String.valueOf(fee));
+    txn.setAmountFeeAsset(feeAsset);
+    txn.setAmountIn(String.valueOf(amountIn));
+    txn.setAmountInAsset(amountInAsset);
+    txn.setAmountOut(String.valueOf(amountOut));
+    txn.setAmountOutAsset(amountOutAsset);
+  }
+
+  void updateAmounts2() throws AnchorException {
+    Sep31Transaction txn = Context.get().getTransaction();
+    Sep31PostTransactionRequest request = Context.get().getRequest();
+    Amount feeResponse = Context.get().getFee();
 
     boolean strictSend = sep31Config.getPaymentType() == STRICT_SEND;
     boolean withoutQuote = request.getQuoteId() == null;
