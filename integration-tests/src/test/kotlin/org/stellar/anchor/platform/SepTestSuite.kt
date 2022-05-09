@@ -18,12 +18,7 @@ fun main(args: Array<String>) {
   options.addOption("a", "all", false, "Start all servers.")
   options.addOption("s", "sep-server", false, "Start SEP endpoint test server.")
   options.addOption("r", "anchor-reference-server", false, "Start anchor reference test server.")
-  options.addRequiredOption(
-    "t",
-    "sep1-toml",
-    true,
-    "The path where the SEP1 TOML file can be read."
-  )
+  options.addOption("t", "sep1-toml", true, "The path where the SEP1 TOML file can be read.")
   val testOptions = Option("p", "tests", false, "SEPS to be test. eg: sep12")
   testOptions.isRequired = true
   testOptions.args = Option.UNLIMITED_VALUES
@@ -45,10 +40,10 @@ fun main(args: Array<String>) {
 
     // Read TOML file
     val tomlString =
-      if (cmd.hasOption("sep1-toml-path")) {
+      if (cmd.hasOption("sep1-toml")) {
         resourceAsString(cmd.getOptionValue("t"))
       } else {
-        resourceAsString("classpath:/org/stellar/anchor/platform/sep1/test-stellar.toml")
+        resourceAsString("classpath:/sep1/test-stellar.toml")
       }
 
     val toml = Sep1Helper.parse(tomlString)
@@ -62,12 +57,16 @@ fun main(args: Array<String>) {
       sep12TestAll(toml, getOrCreateJwt(toml)!!)
     }
 
-    if ("sep38" in tests) {
-      sep38TestAll(toml, getOrCreateJwt(toml)!!)
+    if ("sep24" in tests) {
+      sep24TestAll(toml, getOrCreateJwt(toml)!!)
     }
 
     if ("sep31" in tests) {
       sep31TestAll(toml, getOrCreateJwt(toml)!!)
+    }
+
+    if ("sep38" in tests) {
+      sep38TestAll(toml, getOrCreateJwt(toml)!!)
     }
 
     if ("platform" in tests) {

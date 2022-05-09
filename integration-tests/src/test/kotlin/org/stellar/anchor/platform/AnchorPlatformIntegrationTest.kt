@@ -89,12 +89,23 @@ class AnchorPlatformIntegrationTest {
 
   @Test
   @Order(4)
+  fun runSep24Test() {
+    sep24TestAll(toml, jwt)
+  }
+
+  @Test
+  @Order(5)
+  fun runSep31Test() {
+    sep31TestAll(toml, jwt)
+  }
+
+  @Test
+  @Order(6)
   fun runSep38Test() {
     sep38TestAll(toml, jwt)
   }
 
   @Test
-  @Order(5)
   fun testCustomerIntegration() {
     assertThrows<NotFoundException> {
       rci.getCustomer(Sep12GetCustomerRequest.builder().id("1").build())
@@ -102,7 +113,6 @@ class AnchorPlatformIntegrationTest {
   }
 
   @Test
-  @Order(6)
   fun testRateIndicative() {
     val result =
       rri.getRate(
