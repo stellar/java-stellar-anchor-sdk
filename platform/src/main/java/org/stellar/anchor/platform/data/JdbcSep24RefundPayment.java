@@ -13,7 +13,7 @@ import org.stellar.anchor.sep24.Sep24RefundPayment;
 @Table(name = "sep24_refund_payment")
 public class JdbcSep24RefundPayment implements Sep24RefundPayment {
   @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
+  @GeneratedValue
   @Column(name = "sep24_refund_payment_id")
   UUID jdbcId;
 

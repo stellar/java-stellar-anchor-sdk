@@ -18,7 +18,7 @@ import org.stellar.anchor.util.GsonUtils;
 @Entity
 @Access(AccessType.FIELD)
 @Table(name = "sep31_transaction")
-public class JdbcSep31Transaction implements Sep31Transaction {
+public class JdbcSep31Transaction implements Sep31Transaction, SepTransaction {
   static Gson gson = GsonUtils.getInstance();
 
   @Id String id;
