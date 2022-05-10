@@ -279,7 +279,10 @@ internal class Sep31ServiceTest {
     quote.buyAsset = "BRL"
     sep31Service.updateAmounts()
     assertEquals("100.00", txn.amountIn)
-    assertEquals("USDC", txn.amountInAsset)
+    assertEquals(
+      "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+      txn.amountInAsset
+    )
     assertEquals("2.00", txn.amountFee)
     assertEquals("USDC", txn.amountFeeAsset)
     assertEquals("490.00", txn.amountOut)
@@ -296,7 +299,10 @@ internal class Sep31ServiceTest {
     quote.buyAsset = "BRL"
     sep31Service.updateAmounts()
     assertEquals("102.00", txn.amountIn)
-    assertEquals("USDC", txn.amountInAsset)
+    assertEquals(
+      "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+      txn.amountInAsset
+    )
     assertEquals("2.00", txn.amountFee)
     assertEquals("USDC", txn.amountFeeAsset)
     assertEquals("500.00", txn.amountOut)
@@ -315,7 +321,10 @@ internal class Sep31ServiceTest {
     sep31Service.updateAmounts()
 
     assertEquals("100.00", txn.amountIn)
-    assertEquals("USDC", txn.amountInAsset)
+    assertEquals(
+      "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+      txn.amountInAsset
+    )
     assertEquals("10.00", txn.amountFee)
     assertEquals("BRL", txn.amountFeeAsset)
     assertEquals("490.00", txn.amountOut)
@@ -332,7 +341,10 @@ internal class Sep31ServiceTest {
     quote.buyAsset = "BRL"
     sep31Service.updateAmounts()
     assertEquals("102.00", txn.amountIn)
-    assertEquals("USDC", txn.amountInAsset)
+    assertEquals(
+      "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+      txn.amountInAsset
+    )
     assertEquals("10.00", txn.amountFee)
     assertEquals("BRL", txn.amountFeeAsset)
     assertEquals("500.00", txn.amountOut)

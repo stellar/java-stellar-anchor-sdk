@@ -160,7 +160,8 @@ public class TransactionService {
 
   void validateAsset(Amount amount) throws BadRequestException {
     if (amount != null) {
-      if (assets.stream().noneMatch(assetInfo -> assetInfo.getAssetName().equals(amount.getAsset()))) {
+      if (assets.stream()
+          .noneMatch(assetInfo -> assetInfo.getAssetName().equals(amount.getAsset()))) {
         throw new BadRequestException(
             String.format("'%s' is not a supported asset.", amount.getAsset()));
       }
@@ -184,10 +185,11 @@ public class TransactionService {
                 "invalid quote_id(id=%s) found in transaction(id=%s)",
                 txn.getQuoteId(), txn.getId()));
       }
-        //TODO: Commenting out for now to get SEP38 working, Jamie will update SEP31 fee handling logic
-//      if (!decimal(quote.getSellAmount()).equals(decimal(txn.getAmountIn()))) {
-//        throw new BadRequestException("quote.sell_amount != amount_in");
-//      }
+      // TODO: Commenting out for now to get SEP38 working, Jamie will update SEP31 fee handling
+      // logic
+      //      if (!decimal(quote.getSellAmount()).equals(decimal(txn.getAmountIn()))) {
+      //        throw new BadRequestException("quote.sell_amount != amount_in");
+      //      }
 
       if (txn.getAmountFeeAsset().equals(quote.getBuyAsset())) {
         // fee calculated in buying asset
