@@ -35,12 +35,4 @@ public class Sep31PostTransactionRequest {
   public static class Sep31TxnFields {
     HashMap<String, String> transaction;
   }
-
-  public String getAssetName(){
-    if(assetIssuer != null){
-      return "stellar:" + assetCode + ":" + assetIssuer;
-    }
-    return assetCode;
-  }
-
 }

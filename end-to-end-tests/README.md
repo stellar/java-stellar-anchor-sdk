@@ -8,7 +8,7 @@ end_to_end_tests.py is a Python CLI tool used to test end-to-end Anchor Platform
 1) (End-to-End Test) Get the SEP endpoints/keys from the Platform Server TOML file (*<PLATFORM_SERVER_ENDPOINT>/.well-known/stellar.toml*) 
 2) (End-to-End Test) Get a token from the *GET <PLATFORM_SERVER_ENDPOINT>/<WEB_AUTH_ENDPOINT>* endpoint to authenticate all further requests
 3) (End-to-End Test) Make a *PUT <PLATFORM_SERVER_ENDPOINT>/<KYC_SERVER>/customer* request to create a customer
-4) (End-to-End Test) Create a transaction using the *POST <PLATFORM_SERVER_ENDPOINT>/<DIRECT_PAYMENT_SERVER>/transactions* endpoint
+4) (End-to-End Test) Create a transaction using the *POST <SEP_31_ENDPOINT>/transactions* endpoint
 5) (End-to-End Test) Send the Asset on the Stellar Network to the *stellar_account_id* address that was returned in step 4
 6) The Platform Server's Payment Observer detects the payment on the Stellar Network and publishes a message to the event queue
 7) The Anchor Reference Server detects the published event, "processes" the event and makes a PATCH request back to the Platform Server to update the transaction's status as "complete"

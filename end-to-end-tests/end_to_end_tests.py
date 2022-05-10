@@ -49,7 +49,7 @@ def get_anchor_platform_token(endpoints, public_key, secret_key):
     return content["token"]
 
 
-def get_anchor_platform_quote(endpoints, headers, payload):
+def create_anchor_test_quote(endpoints, headers, payload):
     print("===================== Creating SEP-38 Quote ====================================")
     print("Request Payload:")
     pprint(payload)
@@ -160,7 +160,7 @@ def test_sep_31_flow(endpoints, keypair, transaction_payload, sep38_payload=None
     transaction_payload["sender_id"] = sender_id
 
     if sep38_payload:
-        quote = get_anchor_platform_quote(endpoints, headers, sep38_payload)
+        quote = create_anchor_test_quote(endpoints, headers, sep38_payload)
         transaction = create_anchor_test_transaction(endpoints, headers, transaction_payload, quote["id"])
     else:
         transaction = create_anchor_test_transaction(endpoints, headers, transaction_payload)
@@ -175,14 +175,13 @@ def test_sep_31_flow(endpoints, keypair, transaction_payload, sep38_payload=None
     poll_transaction_status(endpoints, headers, transaction["id"])
 
 
-def test_sep38_create_quote(endpoints, keypair):
+def test_sep38_create_quote(endpoints, keypair, payload):
     token = get_anchor_platform_token(endpoints, keypair.public_key, keypair.secret)
 
     headers = {"Authorization": f"Bearer {token}", 'Content-Type': 'application/json'}
     #res = requests.get("http://localhost:8080/sep38/prices?sell_asset=iso4217:USD&sell_amount=10", headers=headers)
     #print(res.content)
-    quote = get_anchor_platform_quote(endpoints, headers, QUOTE_PAYLOAD_USDC_TO_JPYC)
-    pprint(quote)
+    quote = create_anchor_test_quote(endpoints, headers, payload)
     return quote
 
 
@@ -272,6 +271,11 @@ if __name__ == "__main__":
                              sep38_payload=QUOTE_PAYLOAD_JPYC_TO_USD)
         elif test == "sep38_create_quote":
             print("####################### Testing POST Quote #######################")
-            test_sep38_create_quote(endpoints, keypair)
+            QUOTE_PAYLOAD_USDC_TO_JPYC = {
+                "sell_asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+                "sell_amount": "10",
+                "buy_asset": "stellar:JPYC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+            }
+            test_sep38_create_quote(endpoints, keypair, QUOTE_PAYLOAD_USDC_TO_JPYC)
         else:
             exit(f"Error: unknown test {test}")

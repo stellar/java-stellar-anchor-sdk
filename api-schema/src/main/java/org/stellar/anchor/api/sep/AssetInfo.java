@@ -11,9 +11,9 @@ public class AssetInfo {
   String code;
   String issuer;
 
-  public String getAssetName(){
-    if(issuer != null){
-      return "stellar:" + code + ":" + issuer;
+  public String getAssetName() {
+    if (issuer != null) {
+      return schema + ":" + code + ":" + issuer;
     }
     return schema + ":" + code;
   }

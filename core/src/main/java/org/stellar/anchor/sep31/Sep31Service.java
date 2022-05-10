@@ -81,10 +81,13 @@ public class Sep31Service {
     Context.get().setRequest(request);
     Context.get().setJwtToken(jwtToken);
 
+    String assetName =
+        assetService.getAsset(request.getAssetCode(), request.getAssetIssuer()).getAssetName();
+
     // Pre-validation
     validateAmount(request.getAmount());
     validateLanguage(appConfig, request.getLang());
-    validateRequiredFields(request.getAssetName(), request.getFields().getTransaction());
+    validateRequiredFields(assetName, request.getFields().getTransaction());
     validateAsset();
     validateSenderAndReceiver();
     validateKyc();
@@ -99,7 +102,7 @@ public class Sep31Service {
             .id(generateSepTransactionId())
             .status(SepTransactionStatus.PENDING_SENDER.toString())
             .stellarAccountId(asset.getDistributionAccount())
-            .amountInAsset(request.getAssetName())
+            .amountInAsset(assetName)
             .amountIn(request.getAmount())
             .clientDomain(jwtToken.getClientDomain())
             .fields(request.getFields().getTransaction())
@@ -192,12 +195,13 @@ public class Sep31Service {
           amountIn = reqAmount;
           amountOut = buyAmount;
           // Validate:
-          //TODO - should this check be ((amount_in - fee) / quote.price) == quote.buy_amount?
+          // TODO - should this check be ((amount_in - fee) / quote.price) == quote.buy_amount?
           // for simplicity, i think quote.sell_amount = amount_in
-//          if (sellAmount.compareTo(amountIn.subtract(fee)) != 0) {
-//            throw new BadRequestException(
-//                "Bad quote. quote.sell_amount does not equal to (amount_in - amount_fee)");
-//          }
+          //          if (sellAmount.compareTo(amountIn.subtract(fee)) != 0) {
+          //            throw new BadRequestException(
+          //                "Bad quote. quote.sell_amount does not equal to (amount_in -
+          // amount_fee)");
+          //          }
         } else {
           // amount_in = req.amount + fee
           // amount_out = quote.buy_amount
@@ -328,13 +332,14 @@ public class Sep31Service {
                 "Quote amount is [%s] different from the sending amount [%s]",
                 quote.getSellAmount(), request.getAmount()));
       }
-
+      String assetName =
+          assetService.getAsset(request.getAssetCode(), request.getAssetIssuer()).getAssetName();
       // check quote asset
-      if (!quote.getSellAsset().equals(request.getAssetName())) {
+      if (!quote.getSellAsset().equals(assetName)) {
         throw new BadRequestException(
             String.format(
                 "Quote asset is [%s] different from the transaction sending asset [%s]",
-                quote.getSellAsset(), request.getAssetName()));
+                quote.getSellAsset(), assetName));
       }
     }
   }
@@ -342,15 +347,17 @@ public class Sep31Service {
   void queryFee() throws AnchorException {
     Sep31PostTransactionRequest request = Context.get().getRequest();
     JwtToken token = Context.get().getJwtToken();
+    String assetName =
+        assetService.getAsset(request.getAssetCode(), request.getAssetIssuer()).getAssetName();
     Amount fee =
         feeIntegration
             .getFee(
                 GetFeeRequest.builder()
                     .sendAmount(request.getAmount())
-                    .sendAsset(request.getAssetName())
+                    .sendAsset(assetName)
                     .receiveAsset(
                         (request.getDestinationAsset() == null)
-                            ? request.getAssetName()
+                            ? assetName
                             : request.getDestinationAsset())
                     .receiveAmount(null)
                     .senderId(request.getSenderId())

@@ -184,7 +184,7 @@ public class TransactionService {
                 "invalid quote_id(id=%s) found in transaction(id=%s)",
                 txn.getQuoteId(), txn.getId()));
       }
-
+        //TODO: Commenting out for now to get SEP38 working, Jamie will update SEP31 fee handling logic
 //      if (!decimal(quote.getSellAmount()).equals(decimal(txn.getAmountIn()))) {
 //        throw new BadRequestException("quote.sell_amount != amount_in");
 //      }
