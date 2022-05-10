@@ -9,6 +9,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
@@ -29,11 +30,13 @@ import org.stellar.anchor.util.GsonUtils;
 @EntityScan(basePackages = {"org.stellar.anchor.platform.data"})
 @EnableConfigurationProperties
 public class AnchorPlatformServer implements WebMvcConfigurer {
+
   public static void main(String[] args) {
     start(8080, "/");
   }
 
-  public static void start(int port, String contextPath, Map<String, Object> environment) {
+  public static ConfigurableApplicationContext start(
+      int port, String contextPath, Map<String, Object> environment) {
     SpringApplicationBuilder builder =
         new SpringApplicationBuilder(AnchorPlatformServer.class)
             .bannerMode(OFF)
@@ -45,18 +48,18 @@ public class AnchorPlatformServer implements WebMvcConfigurer {
       builder.properties(environment);
     }
 
-    SpringApplication app = builder.build();
+    SpringApplication springApplication = builder.build();
 
     // Reads the configuration from sources, such as yaml
-    app.addInitializers(new PropertiesReader());
+    springApplication.addInitializers(new PropertiesReader());
     // Configure SEPs
-    app.addInitializers(new PlatformAppConfigurator());
+    springApplication.addInitializers(new PlatformAppConfigurator());
     // Configure databases
-    app.addInitializers(new DataAccessConfigurator());
+    springApplication.addInitializers(new DataAccessConfigurator());
     // Configure spring framework
-    app.addInitializers(new SpringFrameworkConfigurator());
+    springApplication.addInitializers(new SpringFrameworkConfigurator());
 
-    app.run();
+    return springApplication.run();
   }
 
   @Bean
