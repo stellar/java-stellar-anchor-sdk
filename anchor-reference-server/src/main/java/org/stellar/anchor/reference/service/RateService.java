@@ -113,7 +113,7 @@ public class RateService {
     private static final String stellarUSDCprod =
         "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN";
     private static final String stellarJPYC =
-        "stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5";
+        "stellar:JPYC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP";
     private static final Map<Pair<String, String>, String> hardcodedPrices =
         Map.of(
             new Pair<>(fiatUSD, stellarUSDCtest), "1.02",

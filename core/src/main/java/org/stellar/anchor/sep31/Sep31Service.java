@@ -81,10 +81,13 @@ public class Sep31Service {
     Context.get().setRequest(request);
     Context.get().setJwtToken(jwtToken);
 
+    String assetName =
+        assetService.getAsset(request.getAssetCode(), request.getAssetIssuer()).getAssetName();
+
     // Pre-validation
     validateAmount(request.getAmount());
     validateLanguage(appConfig, request.getLang());
-    validateRequiredFields(request.getAssetCode(), request.getFields().getTransaction());
+    validateRequiredFields(assetName, request.getFields().getTransaction());
     validateAsset();
     validateSenderAndReceiver();
     validateKyc();
@@ -99,7 +102,7 @@ public class Sep31Service {
             .id(generateSepTransactionId())
             .status(SepTransactionStatus.PENDING_SENDER.toString())
             .stellarAccountId(asset.getDistributionAccount())
-            .amountInAsset(request.getAssetCode())
+            .amountInAsset(assetName)
             .amountIn(request.getAmount())
             .clientDomain(jwtToken.getClientDomain())
             .fields(request.getFields().getTransaction())
@@ -158,7 +161,7 @@ public class Sep31Service {
     String feeAsset = String.valueOf(feeResponse.getAsset());
 
     BigDecimal amountIn;
-    String amountInAsset = reqAsset.getCode();
+    String amountInAsset = reqAsset.getAssetName();
     BigDecimal amountOut;
     String amountOutAsset;
 
@@ -192,11 +195,13 @@ public class Sep31Service {
           amountIn = reqAmount;
           amountOut = buyAmount;
           // Validate:
-          //   quote.sell_amount = amount_in - fee
-          if (sellAmount.compareTo(amountIn.subtract(fee)) != 0) {
-            throw new BadRequestException(
-                "Bad quote. quote.sell_amount does not equal to (amount_in - amount_fee)");
-          }
+          // TODO - should this check be ((amount_in - fee) / quote.price) == quote.buy_amount?
+          // for simplicity, i think quote.sell_amount = amount_in
+          //          if (sellAmount.compareTo(amountIn.subtract(fee)) != 0) {
+          //            throw new BadRequestException(
+          //                "Bad quote. quote.sell_amount does not equal to (amount_in -
+          // amount_fee)");
+          //          }
         } else {
           // amount_in = req.amount + fee
           // amount_out = quote.buy_amount
@@ -312,7 +317,6 @@ public class Sep31Service {
   }
 
   void preValidateQuote() throws AnchorException {
-    Sep31Transaction txn = Context.get().getTransaction();
     Sep31PostTransactionRequest request = Context.get().getRequest();
 
     // Check if quote is provided.
@@ -322,19 +326,20 @@ public class Sep31Service {
         throw new BadRequestException(
             String.format("quote(id=%s) was not a valid quote.", request.getQuoteId()));
       // Check quote amounts
-      if (!amountEquals(quote.getSellAmount(), txn.getAmountIn())) {
+      if (!amountEquals(quote.getSellAmount(), request.getAmount())) {
         throw new BadRequestException(
             String.format(
                 "Quote amount is [%s] different from the sending amount [%s]",
-                quote.getSellAmount(), txn.getAmountIn()));
+                quote.getSellAmount(), request.getAmount()));
       }
-
+      String assetName =
+          assetService.getAsset(request.getAssetCode(), request.getAssetIssuer()).getAssetName();
       // check quote asset
-      if (!quote.getSellAsset().equals(txn.getAmountInAsset())) {
+      if (!quote.getSellAsset().equals(assetName)) {
         throw new BadRequestException(
             String.format(
                 "Quote asset is [%s] different from the transaction sending asset [%s]",
-                quote.getSellAmount(), txn.getAmountIn()));
+                quote.getSellAsset(), assetName));
       }
     }
   }
@@ -342,15 +347,17 @@ public class Sep31Service {
   void queryFee() throws AnchorException {
     Sep31PostTransactionRequest request = Context.get().getRequest();
     JwtToken token = Context.get().getJwtToken();
+    String assetName =
+        assetService.getAsset(request.getAssetCode(), request.getAssetIssuer()).getAssetName();
     Amount fee =
         feeIntegration
             .getFee(
                 GetFeeRequest.builder()
                     .sendAmount(request.getAmount())
-                    .sendAsset(request.getAssetCode())
+                    .sendAsset(assetName)
                     .receiveAsset(
                         (request.getDestinationAsset() == null)
-                            ? request.getAssetCode()
+                            ? assetName
                             : request.getDestinationAsset())
                     .receiveAmount(null)
                     .senderId(request.getSenderId())
@@ -479,7 +486,7 @@ public class Sep31Service {
         assetResponse.setMaxAmount(assetInfo.getSend().getMaxAmount());
         assetResponse.setFields(assetInfo.getSep31().getFields());
         assetResponse.setSep12(assetInfo.getSep31().getSep12());
-        response.getReceive().put(assetInfo.getCode(), assetResponse);
+        response.getReceive().put(assetInfo.getAssetName(), assetResponse);
       }
     }
 
