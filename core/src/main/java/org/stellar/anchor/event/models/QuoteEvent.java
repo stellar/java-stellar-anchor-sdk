@@ -3,9 +3,11 @@ package org.stellar.anchor.event.models;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.google.gson.annotations.SerializedName;
 import java.time.Instant;
+import java.util.List;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import org.stellar.anchor.api.sep.sep38.PriceDetail;
 
 @Data
 @Builder
@@ -40,6 +42,9 @@ public class QuoteEvent implements AnchorEvent {
 
   @SerializedName("created_at")
   Instant createdAt;
+
+  @SerializedName("price_details")
+  List<PriceDetail> priceDetails;
 
   public enum Type {
     QUOTE_CREATED("quote_created");

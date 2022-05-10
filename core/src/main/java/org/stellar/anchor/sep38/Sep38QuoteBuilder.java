@@ -1,6 +1,8 @@
 package org.stellar.anchor.sep38;
 
 import java.time.Instant;
+import java.util.List;
+import org.stellar.anchor.api.sep.sep38.PriceDetail;
 
 public class Sep38QuoteBuilder {
   final Sep38Quote quote;
@@ -76,6 +78,11 @@ public class Sep38QuoteBuilder {
 
   public Sep38QuoteBuilder transactionId(String transactionId) {
     quote.setTransactionId(transactionId);
+    return this;
+  }
+
+  public Sep38QuoteBuilder priceDetails(List<PriceDetail> priceDetails) {
+    quote.setPriceDetails(priceDetails);
     return this;
   }
 

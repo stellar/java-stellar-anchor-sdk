@@ -1,7 +1,9 @@
 package org.stellar.anchor.sep38;
 
 import java.time.Instant;
+import java.util.List;
 import lombok.Data;
+import org.stellar.anchor.api.sep.sep38.PriceDetail;
 
 @Data
 public class PojoSep38Quote implements Sep38Quote {
@@ -19,4 +21,5 @@ public class PojoSep38Quote implements Sep38Quote {
   String creatorMemo;
   String creatorMemoType;
   String transactionId;
+  List<PriceDetail> priceDetails;
 }

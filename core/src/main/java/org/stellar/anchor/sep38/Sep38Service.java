@@ -102,7 +102,9 @@ public class Sep38Service {
 
       GetRateRequest request = builder.buyAsset(buyAssetName).build();
       GetRateResponse rateResponse = this.rateIntegration.getRate(request);
-      response.addAsset(buyAssetName, buyAsset.getDecimals(), rateResponse.getRate().getPrice());
+      GetRateResponse.Rate rate = rateResponse.getRate();
+      response.addAsset(
+          buyAssetName, buyAsset.getDecimals(), rate.getPrice(), rate.getPriceDetails());
     }
 
     return response;
@@ -188,8 +190,9 @@ public class Sep38Service {
             .build();
     GetRateResponse rateResponse = this.rateIntegration.getRate(request);
 
+    GetRateResponse.Rate rate = rateResponse.getRate();
     GetPriceResponse.GetPriceResponseBuilder builder =
-        GetPriceResponse.builder().price(rateResponse.getRate().getPrice());
+        GetPriceResponse.builder().price(rate.getPrice()).priceDetails(rate.getPriceDetails());
 
     // Calculate amounts: sellAmount = buyAmount*price or buyAmount = sellAmount/price
     BigDecimal bPrice = decimal(rateResponse.getRate().getPrice());
@@ -321,7 +324,8 @@ public class Sep38Service {
             .expiresAt(rate.getExpiresAt())
             .price(rate.getPrice())
             .sellAsset(request.getSellAssetName())
-            .buyAsset(request.getBuyAssetName());
+            .buyAsset(request.getBuyAssetName())
+            .priceDetails(rate.getPriceDetails());
 
     // Calculate amounts: sellAmount = buyAmount*price or buyAmount = sellAmount/price
     BigDecimal bPrice = decimal(rate.getPrice());
@@ -353,6 +357,7 @@ public class Sep38Service {
             .creatorAccountId(account)
             .creatorMemo(memo)
             .creatorMemoType(memoType)
+            .priceDetails(rate.getPriceDetails())
             .build();
 
     this.sep38QuoteStore.save(newQuote);
@@ -374,6 +379,7 @@ public class Sep38Service {
                     .build()) // TODO where to get StellarId.id?
             .transactionId(newQuote.getTransactionId())
             .createdAt(newQuote.getCreatedAt())
+            .priceDetails(rate.getPriceDetails())
             .build();
 
     eventService.publish(event);
@@ -425,6 +431,7 @@ public class Sep38Service {
         .sellAmount(quote.getSellAmount())
         .buyAsset(quote.getBuyAsset())
         .buyAmount(quote.getBuyAmount())
+        .priceDetails(quote.getPriceDetails())
         .build();
   }
 }

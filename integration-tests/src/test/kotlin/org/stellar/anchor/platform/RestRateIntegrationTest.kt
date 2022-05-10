@@ -19,6 +19,7 @@ import org.stellar.anchor.api.exception.AnchorException
 import org.stellar.anchor.api.exception.BadRequestException
 import org.stellar.anchor.api.exception.NotFoundException
 import org.stellar.anchor.api.exception.ServerErrorException
+import org.stellar.anchor.api.sep.sep38.PriceDetail
 import org.stellar.anchor.platform.callback.RestRateIntegration
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.OkHttpUtil
@@ -47,24 +48,59 @@ class RestRateIntegrationTest {
     unmockkAll()
   }
 
-  private fun getRateResponse(price: String, expiresAt: String? = null): MockResponse {
-    val bodyMap = hashMapOf("rate" to hashMapOf("price" to price))
+  private fun getRateResponse(
+    price: String,
+    expiresAt: String? = null,
+    priceDetails: List<PriceDetail>? = null
+  ): MockResponse {
+    val rate = hashMapOf<String, Any>("price" to price)
+
     if (expiresAt != null) {
-      bodyMap["rate"]!!["expires_at"] = expiresAt
+      rate["expires_at"] = expiresAt
     }
+
+    if (priceDetails != null) {
+      rate["price_details"] = priceDetails
+    }
+
+    val bodyMap = hashMapOf("rate" to rate)
     return MockResponse()
       .addHeader("Content-Type", "application/json")
       .setResponseCode(200)
       .setBody(gson.toJson(bodyMap))
   }
 
+  private fun mockPriceDetails(sellAsset: String?, buyAsset: String?): List<PriceDetail>? {
+    if (sellAsset == null && buyAsset == null) {
+      return null
+    }
+    val priceDetails = mutableListOf<PriceDetail>()
+    if (sellAsset != null) {
+      priceDetails.add(PriceDetail("Sell fee", sellAsset, "1.00"))
+    }
+    if (buyAsset != null) {
+      priceDetails.add(PriceDetail("Buy fee", buyAsset, "0.99"))
+    }
+    return priceDetails
+  }
+
   @Test
   fun test_getRate() {
     val testGetRate = { endpoint: String, getRateRequest: GetRateRequest ->
-      server.enqueue(getRateResponse("1"))
+      server.enqueue(
+        getRateResponse(
+          "1",
+          null,
+          mockPriceDetails(getRateRequest.sellAsset, getRateRequest.buyAsset)
+        )
+      )
 
       val getRateResponse = rateIntegration.getRate(getRateRequest)
-      val wantResponse = GetRateResponse("1")
+      val wantResponse =
+        GetRateResponse.indicative(
+          "1",
+          mockPriceDetails(getRateRequest.sellAsset, getRateRequest.buyAsset)
+        )
       assertEquals(wantResponse, getRateResponse)
 
       val request = server.takeRequest()
@@ -311,6 +347,12 @@ class RestRateIntegrationTest {
 
   @Test
   fun test_getRate_jsonBody() {
+    val priceDetails =
+      mockPriceDetails(
+        "iso4217:USD",
+        "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+      )
+
     val validateRequest =
         { type: GetRateRequest.Type, responseBody: String, wantResponse: GetRateResponse ->
       // mock response
@@ -337,10 +379,26 @@ class RestRateIntegrationTest {
     }
 
     // indicative quote successful response
-    var wantGetRateResponse = GetRateResponse("1.02")
+    var wantGetRateResponse = GetRateResponse.indicative("1.02", priceDetails)
     validateRequest(
       GetRateRequest.Type.INDICATIVE,
-      """{"rate": {"price": "1.02"}}""",
+      """{
+        "rate": {
+          "price": "1.02",
+          "price_details": [
+            {
+              "name": "Sell fee",
+              "value": "1.00",
+              "asset": "iso4217:USD"
+            },
+            {
+              "name": "Buy fee",
+              "value": "0.99",
+              "asset": "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+            }
+          ]
+        }
+      }""".trimMargin(),
       wantGetRateResponse
     )
 
@@ -349,10 +407,28 @@ class RestRateIntegrationTest {
     mockkStatic(Instant::class)
     every { Instant.now() } returns instantNow
 
-    wantGetRateResponse = GetRateResponse("my-id", "1.02", Instant.now())
+    wantGetRateResponse = GetRateResponse.firm("my-id", "1.02", Instant.now(), priceDetails)
     validateRequest(
       GetRateRequest.Type.FIRM,
-      """{"rate": {"price": "1.02", "id": "my-id", "expires_at": "2022-04-30T02:15:44.000Z"} }""",
+      """{
+        "rate": {
+          "price": "1.02",
+          "id": "my-id",
+          "expires_at": "2022-04-30T02:15:44.000Z",
+          "price_details": [
+            {
+              "name": "Sell fee",
+              "value": "1.00",
+              "asset": "iso4217:USD"
+            },
+            {
+              "name": "Buy fee",
+              "value": "0.99",
+              "asset": "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+            }
+          ]
+        }
+      }""".trimMargin(),
       wantGetRateResponse
     )
     verify(exactly = 1) { Instant.now() }
