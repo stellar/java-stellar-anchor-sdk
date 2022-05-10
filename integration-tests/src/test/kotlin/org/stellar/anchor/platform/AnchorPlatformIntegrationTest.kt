@@ -124,7 +124,24 @@ class AnchorPlatformIntegrationTest {
           .build()
       )
     Assertions.assertNotNull(result)
-    val wantBody = """{"rate":{"price":"1.02"}}"""
+    val wantBody =
+      """{
+      "rate":{
+        "price":"1.02",
+        "price_details": [
+          {
+            "name": "Sell fee",
+            "value": "1.00",
+            "asset": "$fiatUSD"
+          },
+          {
+            "name": "Buy fee",
+            "value": "0.99",
+            "asset": "$stellarUSDC"
+          }
+        ]
+      }
+    }""".trimMargin()
     JSONAssert.assertEquals(wantBody, gson.toJson(result), true)
   }
 

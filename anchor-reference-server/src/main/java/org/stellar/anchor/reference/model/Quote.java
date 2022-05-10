@@ -1,11 +1,14 @@
 package org.stellar.anchor.reference.model;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
+import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import lombok.Data;
 import org.stellar.anchor.api.callback.GetRateRequest;
+import org.stellar.anchor.api.sep.sep38.PriceDetail;
 
 @Data
 @Entity
@@ -37,7 +40,10 @@ public class Quote {
 
   String transactionId;
 
-  public static Quote of(GetRateRequest request, String price) {
+  @Convert(converter = PriceDetailListConverter.class)
+  List<PriceDetail> priceDetails;
+
+  public static Quote of(GetRateRequest request) {
     Quote quote = new Quote();
     quote.setId(UUID.randomUUID().toString());
     quote.setSellAsset(request.getSellAsset());
@@ -48,7 +54,6 @@ public class Quote {
     quote.setSellDeliveryMethod(request.getSellDeliveryMethod());
     quote.setCountryCode(request.getCountryCode());
     quote.setCreatedAt(Instant.now());
-    quote.setPrice(price);
     quote.setClientId(request.getClientId());
 
     return quote;

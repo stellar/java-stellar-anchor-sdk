@@ -2,27 +2,34 @@ package org.stellar.anchor.api.callback;
 
 import com.google.gson.annotations.SerializedName;
 import java.time.Instant;
+import java.util.List;
+import lombok.Builder;
 import lombok.Data;
-import reactor.util.annotation.NonNull;
+import lombok.NoArgsConstructor;
+import org.stellar.anchor.api.sep.sep38.PriceDetail;
 import reactor.util.annotation.Nullable;
 
 @Data
+@NoArgsConstructor
 public class GetRateResponse {
   Rate rate;
 
-  public GetRateResponse(@NonNull String price) {
-    this.rate = new Rate();
-    this.rate.price = price;
+  public static GetRateResponse indicative(String price, List<PriceDetail> priceDetails) {
+    GetRateResponse getRateResponse = new GetRateResponse();
+    getRateResponse.setRate(Rate.builder().price(price).priceDetails(priceDetails).build());
+    return getRateResponse;
   }
 
-  public GetRateResponse(@NonNull String id, @NonNull String price, @NonNull Instant expiresAt) {
-    this.rate = new Rate();
-    this.rate.id = id;
-    this.rate.price = price;
-    this.rate.expiresAt = expiresAt;
+  public static GetRateResponse firm(
+      String id, String price, Instant expiresAt, List<PriceDetail> priceDetails) {
+    GetRateResponse getRateResponse = new GetRateResponse();
+    getRateResponse.setRate(
+        Rate.builder().id(id).price(price).expiresAt(expiresAt).priceDetails(priceDetails).build());
+    return getRateResponse;
   }
 
   @Data
+  @Builder
   public static class Rate {
     @Nullable String id;
 
@@ -31,5 +38,8 @@ public class GetRateResponse {
     @SerializedName("expires_at")
     @Nullable
     Instant expiresAt;
+
+    @SerializedName("price_details")
+    List<PriceDetail> priceDetails;
   }
 }
