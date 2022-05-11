@@ -8,8 +8,12 @@ import java.time.format.DateTimeFormatter
 import java.util.*
 import java.util.concurrent.TimeUnit
 import okhttp3.OkHttpClient
+import okhttp3.Request
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import org.skyscreamer.jsonassert.JSONAssert
 import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.core.env.get
@@ -28,6 +32,7 @@ import org.stellar.anchor.platform.callback.RestFeeIntegration
 import org.stellar.anchor.platform.callback.RestRateIntegration
 import org.stellar.anchor.reference.AnchorReferenceServer
 import org.stellar.anchor.util.GsonUtils
+import org.stellar.anchor.util.HealthCheck
 import org.stellar.anchor.util.Sep1Helper
 
 class AnchorPlatformIntegrationTest {
@@ -70,6 +75,29 @@ class AnchorPlatformIntegrationTest {
     }
 
     @AfterAll fun tearDown() {}
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+    strings = ["http://localhost:$SEP_SERVER_PORT", "http://localhost:$REFERENCE_SERVER_PORT"]
+  )
+  fun test_SepServer_health(endpoint: String) {
+    println("$endpoint/health")
+
+    val request =
+      Request.Builder()
+        .url("$endpoint/health")
+        .header("Content-Type", "application/json")
+        .get()
+        .build()
+
+    val response = SepClient.client.newCall(request).execute()
+    val responseBody = response.body?.string()
+    assertNotNull(responseBody)
+
+    val gotHealthCheck = SepClient.gson.fromJson(responseBody, HealthCheck::class.java)
+    val wantHealthCheck = HealthCheck(true)
+    assertEquals(wantHealthCheck, gotHealthCheck)
   }
 
   private fun readSep1Toml(): Sep1Helper.TomlContent {
