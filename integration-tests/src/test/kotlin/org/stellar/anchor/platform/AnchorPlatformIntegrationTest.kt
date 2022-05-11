@@ -11,12 +11,18 @@ import okhttp3.OkHttpClient
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.skyscreamer.jsonassert.JSONAssert
+import org.springframework.context.ConfigurableApplicationContext
+import org.springframework.core.env.get
 import org.stellar.anchor.api.callback.GetFeeRequest
 import org.stellar.anchor.api.callback.GetRateRequest
 import org.stellar.anchor.api.callback.GetRateRequest.Type.FIRM
 import org.stellar.anchor.api.callback.GetRateRequest.Type.INDICATIVE
 import org.stellar.anchor.api.exception.NotFoundException
 import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerRequest
+import org.stellar.anchor.config.AppConfig
+import org.stellar.anchor.config.Sep10Config
+import org.stellar.anchor.config.Sep1Config
+import org.stellar.anchor.config.Sep38Config
 import org.stellar.anchor.platform.callback.RestCustomerIntegration
 import org.stellar.anchor.platform.callback.RestFeeIntegration
 import org.stellar.anchor.platform.callback.RestRateIntegration
@@ -45,6 +51,7 @@ class AnchorPlatformIntegrationTest {
       RestFeeIntegration("http://localhost:$REFERENCE_SERVER_PORT", httpClient, gson)
     const val fiatUSD = "iso4217:USD"
     const val stellarUSDC = "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+    private lateinit var platformServerContext: ConfigurableApplicationContext
     init {
       val props = System.getProperties()
       props.setProperty("REFERENCE_SERVER_CONFIG", "classpath:/anchor-reference-server.yaml")
@@ -52,11 +59,12 @@ class AnchorPlatformIntegrationTest {
     @BeforeAll
     @JvmStatic
     fun setup() {
-      AnchorPlatformServer.start(
-        SEP_SERVER_PORT,
-        "/",
-        mapOf("stellar.anchor.config" to "classpath:/test-anchor-config.yaml")
-      )
+      platformServerContext =
+        AnchorPlatformServer.start(
+          SEP_SERVER_PORT,
+          "/",
+          mapOf("stellar.anchor.config" to "classpath:/integration-test.anchor-config.yaml")
+        )
 
       AnchorReferenceServer.start(REFERENCE_SERVER_PORT, "/")
     }
@@ -208,5 +216,66 @@ class AnchorPlatformIntegrationTest {
     val gotQuote = rri.getRate(GetRateRequest.builder().id(rate.id).build())
     assertEquals(rate.id, gotQuote.rate.id)
     assertEquals("1.02", gotQuote.rate.price)
+  }
+
+  @Test
+  fun testYamlProperties() {
+    val tests =
+      mapOf(
+        "sep1.enabled" to "true",
+        "sep10.enabled" to "true",
+        "sep10.homeDomain" to "localhost:8080",
+        "sep10.signingSeed" to "SAX3AH622R2XT6DXWWSRIDCMMUCCMATBZ5U6XKJWDO7M2EJUBFC3AW5X",
+        "sep38.enabled" to "true",
+        "sep38.quoteIntegrationEndPoint" to "http://localhost:8081",
+        "payment-gateway.circle.name" to "circle",
+        "payment-gateway.circle.enabled" to "true",
+        "spring.jpa.properties.hibernate.dialect" to "org.hibernate.dialect.H2Dialect",
+        "logging.level.root" to "INFO",
+        "server.servlet.context-path" to "/"
+      )
+
+    tests.forEach { assertEquals(it.value, platformServerContext.environment[it.key]) }
+  }
+
+  @Test
+  fun testAppConfig() {
+    val appConfig = platformServerContext.getBean(AppConfig::class.java)
+    assertEquals("Test SDF Network ; September 2015", appConfig.stellarNetworkPassphrase)
+    assertEquals("http://localhost:8080", appConfig.hostUrl)
+    assertEquals(listOf("en"), appConfig.languages)
+    assertEquals("https://horizon-testnet.stellar.org", appConfig.horizonUrl)
+    assertEquals("assets-test.json", appConfig.assets)
+    assertEquals("secret", appConfig.jwtSecretKey)
+  }
+
+  @Test
+  fun testSep1Config() {
+    val sep1Config = platformServerContext.getBean(Sep1Config::class.java)
+    assertEquals(true, sep1Config.isEnabled)
+    assertEquals("sep1/stellar-wks.toml", sep1Config.stellarFile)
+  }
+
+  @Test
+  fun testSep10Config() {
+    val sep10Config = platformServerContext.getBean(Sep10Config::class.java)
+    assertEquals(true, sep10Config.enabled)
+    assertEquals("localhost:8080", sep10Config.homeDomain)
+    assertEquals(false, sep10Config.isClientAttributionRequired)
+    assertEquals(listOf("lobstr.co", "preview.lobstr.co"), sep10Config.clientAttributionAllowList)
+    assertEquals(900, sep10Config.authTimeout)
+    assertEquals(86400, sep10Config.jwtTimeout)
+    assertEquals(
+      "SAX3AH622R2XT6DXWWSRIDCMMUCCMATBZ5U6XKJWDO7M2EJUBFC3AW5X",
+      sep10Config.signingSeed
+    )
+  }
+
+  @Test
+  fun testSep38Config() {
+    val sep38Config = platformServerContext.getBean(Sep38Config::class.java)
+
+    assertEquals(true, sep38Config.isEnabled)
+    assertEquals("http://localhost:8081", sep38Config.quoteIntegrationEndPoint)
   }
 }
