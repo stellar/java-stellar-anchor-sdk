@@ -20,18 +20,18 @@ stellar:
     #  `config-spring-property` is the only `type` value supported in MVP.
     app-config:
       type: config-spring-property
-      settings: app-config                        # The location of the configuration data in this yaml file
+      settings: app-config                        # The absolute location of the configuration data in this yaml file
 
     #
     # Sets how the application access the datastore.
     #
     # If the `type` is `data-spring-jdbc`, Spring Data JDBC will be used to read the application data.
     #
-    # `data-spring-jdbc` is the only `type` value supported in MVP.
+    # `data-spring-jdbc` is the only `type` value supported for now.
     #
     data-access:
       type: data-spring-jdbc
-      settings: data-spring-jdbc-sqlite           # The location of the configuration data in this yaml file
+      settings: data-spring-jdbc-sqlite           # The absolute location of the configuration data in this yaml file
 
 
     #
@@ -39,11 +39,11 @@ stellar:
     #
     # If the `type` is `logging-logback`, Logback will be used to generate the logs.
     #
-    # `logging-logback` is the only `type` value supported in MVP.
+    # `logging-logback` is the only `type` value supported for now.
     #
     logging:
       type: logging-logback
-      settings: logging-logback-settings          # The location of the configuration data in this yaml file
+      settings: logging-logback-settings          # The absolute location of the configuration data in this yaml file
 
 # ************************************
 # Application settings
@@ -63,10 +63,11 @@ app-config:
     hostUrl: http://localhost:8080
 
     # The supported languages defined by RFC4646 (https://datatracker.ietf.org/doc/html/rfc4646)
+    # Currently, only "en" is supported.
     languages: en
 
     # Location of the assets file in `resources` folder.
-    # TODO: Reading the asset JSON file outside the resource filder should be supported.
+    # TODO: Reading the asset JSON file outside the resource folder should be supported.
     assets: assets-test.json
 
     # The secret key of JWT encryption
@@ -105,10 +106,14 @@ app-config:
     # Set the authentication challenge transaction timeout. An expired signed transaction will be rejected.
     # This is the timeout period the client must finish the authentication process. (ie: sign and respond the challenge
     # transaction).
+    #
+    # The value is in seconds.
     authTimeout: 900
 
     # Set the timeout of the authenticated JSON Web Token. An expired JWT will be rejected.
     # This is the timeout period after the client has authenticated.
+    #
+    # The value is in seconds.
     jwtTimeout: 86400
 
     # The private key of the SEP-10 challenge.
