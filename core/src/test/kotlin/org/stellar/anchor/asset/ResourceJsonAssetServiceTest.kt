@@ -32,5 +32,7 @@ internal class ResourceJsonAssetServiceTest {
     assertThrows<JsonSyntaxException> { ResourceJsonAssetService("test_assets.json.bad") }
 
     assertThrows<SepNotFoundException> { ResourceJsonAssetService("not_found.json") }
+
+    assertThrows<SepNotFoundException> { ResourceJsonAssetService("classpath:/test_assets.json") }
   }
 }
