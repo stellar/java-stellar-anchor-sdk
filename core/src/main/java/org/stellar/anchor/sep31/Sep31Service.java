@@ -178,6 +178,9 @@ public class Sep31Service {
         amountIn = reqAmount.add(fee);
         amountOut = reqAmount;
       }
+      // Update transactions
+      txn.setAmountFee(String.valueOf(fee));
+      txn.setAmountFeeAsset(feeAsset);
     } else {
       // With quote
       Sep38Quote quote = sep38QuoteStore.findByQuoteId(request.getQuoteId());
@@ -188,8 +191,6 @@ public class Sep31Service {
     }
 
     // Update transactions
-    txn.setAmountFee(String.valueOf(fee));
-    txn.setAmountFeeAsset(feeAsset);
     txn.setAmountIn(String.valueOf(amountIn));
     txn.setAmountInAsset(amountInAsset);
     txn.setAmountOut(String.valueOf(amountOut));
