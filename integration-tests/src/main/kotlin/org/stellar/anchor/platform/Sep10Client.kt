@@ -27,14 +27,8 @@ class Sep10Client(
   }
 
   fun challenge(): ChallengeResponse {
-    val request =
-      Request.Builder()
-        .url(String.format("%s?account=%s", this.endpoint, walletAccount))
-        .get()
-        .build()
-
-    val response = client.newCall(request).execute()
-    val responseBody = response.body!!.string()
+    val url = String.format("%s?account=%s", this.endpoint, walletAccount)
+    val responseBody = httpGet(url)
     return gson.fromJson(responseBody, ChallengeResponse::class.java)
   }
 
