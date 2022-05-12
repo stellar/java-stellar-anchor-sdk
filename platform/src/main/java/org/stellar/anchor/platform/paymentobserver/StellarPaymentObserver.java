@@ -1,12 +1,14 @@
 package org.stellar.anchor.platform.paymentobserver;
 
-import com.google.gson.Gson;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
+import com.google.gson.annotations.Expose;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import org.jetbrains.annotations.NotNull;
 import org.stellar.anchor.api.exception.SepException;
+import org.stellar.anchor.api.platform.HealthCheckResult;
+import org.stellar.anchor.platform.service.HealthCheckContext;
+import org.stellar.anchor.platform.service.HealthCheckable;
 import org.stellar.anchor.util.Log;
-import org.stellar.sdk.KeyPair;
 import org.stellar.sdk.Server;
 import org.stellar.sdk.requests.EventListener;
 import org.stellar.sdk.requests.PaymentsRequestBuilder;
@@ -17,7 +19,11 @@ import org.stellar.sdk.responses.operations.PathPaymentBaseOperationResponse;
 import org.stellar.sdk.responses.operations.PaymentOperationResponse;
 import shadow.com.google.common.base.Optional;
 
-public class StellarPaymentObserver {
+import java.util.ArrayList;
+import java.util.LinkedList;
+import java.util.List;
+
+public class StellarPaymentObserver implements HealthCheckable {
   final Server server;
   final List<PaymentListener> observers;
   final List<String> accounts;
@@ -122,6 +128,11 @@ public class StellarPaymentObserver {
     return new Builder();
   }
 
+  @Override
+  public int compareTo(@NotNull HealthCheckable other) {
+    return other.getName().compareTo(other.getName());
+  }
+
   public static class Builder {
     String horizonServer = "https://horizon-testnet.stellar.org";
     List<String> accounts = new LinkedList<>();
@@ -156,34 +167,40 @@ public class StellarPaymentObserver {
     }
   }
 
-  public static void main(String[] args) throws InterruptedException {
-    KeyPair account1 =
-        KeyPair.fromSecretSeed("SCBYEX2YH7BH5WVKVR22RW2M3QQR3P2P3NLWIVNNNEZHJ3KZ52E2QKZN");
-    KeyPair account2 =
-        KeyPair.fromSecretSeed("SDPJLASIYSGX7ZKOJZIGJGYGC5F6XKHTPEA7NR2Y6YKKCHIBR2GAPCEZ");
+  @Override
+  public String getName() {
+    return "stellar_payment_observer";
+  }
 
-    PaymentListener dummyObserver =
-        new PaymentListener() {
-          @Override
-          public void onReceived(ObservedPayment payment) {
-            System.out.println("Received:" + new Gson().toJson(payment));
-          }
+  @Override
+  public List<String> getTags() {
+    return List.of("all", "event");
+  }
 
-          @Override
-          public void onSent(ObservedPayment payment) {
-            System.out.println("Sent:" + new Gson().toJson(payment));
-          }
-        };
+  @Override
+  public HealthCheckResult check(HealthCheckContext context) {
+    List<StreamHealth> results = new ArrayList<>();
+    for (SSEStream<OperationResponse> stream : streams) {
+      results.add(new StreamHealth(stream.lastPagingToken()));
+    }
 
-    StellarPaymentObserver watcher =
-        builder()
-            .horizonServer("https://horizon-testnet.stellar.org")
-            .accounts(List.of(account1.getAccountId(), account2.getAccountId()))
-            .observers(List.of(dummyObserver))
-            .build();
+    return new SPOHealthCheckResult(getName(), results);
+  }
 
-    watcher.start();
-    Thread.sleep(300000);
-    watcher.shutdown();
+  @AllArgsConstructor
+  public static class SPOHealthCheckResult implements HealthCheckResult {
+    transient String name;
+
+    List<StreamHealth> streams;
+
+    public String name() {
+      return name;
+    }
+  }
+
+  @Data
+  @AllArgsConstructor
+  private static class StreamHealth {
+    String lastPageToken;
   }
 }

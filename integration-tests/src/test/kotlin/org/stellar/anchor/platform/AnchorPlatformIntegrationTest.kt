@@ -32,7 +32,7 @@ import org.stellar.anchor.platform.callback.RestFeeIntegration
 import org.stellar.anchor.platform.callback.RestRateIntegration
 import org.stellar.anchor.reference.AnchorReferenceServer
 import org.stellar.anchor.util.GsonUtils
-import org.stellar.anchor.util.HealthCheck
+import org.stellar.anchor.api.platform.HealthCheck
 import org.stellar.anchor.util.Sep1Helper
 
 class AnchorPlatformIntegrationTest {
@@ -96,7 +96,7 @@ class AnchorPlatformIntegrationTest {
     assertNotNull(responseBody)
 
     val gotHealthCheck = SepClient.gson.fromJson(responseBody, HealthCheck::class.java)
-    val wantHealthCheck = HealthCheck(true)
+    val wantHealthCheck = HealthCheck()
     assertEquals(wantHealthCheck, gotHealthCheck)
   }
 

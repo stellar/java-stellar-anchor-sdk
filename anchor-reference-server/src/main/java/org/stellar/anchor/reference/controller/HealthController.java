@@ -4,7 +4,9 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
-import org.stellar.anchor.util.HealthCheck;
+import org.stellar.anchor.api.platform.HealthCheck;
+
+import java.util.List;
 
 @RestController
 @CrossOrigin(origins = "*")
@@ -12,6 +14,7 @@ import org.stellar.anchor.util.HealthCheck;
 public class HealthController {
   @RequestMapping(method = {RequestMethod.GET})
   public HealthCheck health() {
-    return new HealthCheck(true);
+    HealthCheck healthCheck = new HealthCheck();
+    return healthCheck.finish(List.of());
   }
 }
