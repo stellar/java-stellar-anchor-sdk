@@ -99,13 +99,12 @@ public class MemoHelper {
     switch (getMemoType(memo)) {
       case MEMO_ID:
         return String.valueOf(((MemoId) memo).getId());
-
       case MEMO_TEXT:
         return ((MemoText) memo).getText();
-
       case MEMO_HASH:
         return ((MemoHash) memo).getHexValue();
-
+      case MEMO_NONE:
+        return "";
       default:
         String memoTypeStr = memoTypeAsString(memo);
         throw new SepException("Unsupported value: " + memoTypeStr);
