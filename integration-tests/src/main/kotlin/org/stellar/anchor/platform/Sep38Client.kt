@@ -4,7 +4,6 @@ import java.time.Instant
 import java.time.format.DateTimeFormatter
 import okhttp3.HttpUrl.Companion.toHttpUrl
 import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
 import org.stellar.anchor.api.sep.sep38.GetPriceResponse
 import org.stellar.anchor.api.sep.sep38.GetPricesResponse
 import org.stellar.anchor.api.sep.sep38.InfoResponse
@@ -13,14 +12,7 @@ import org.stellar.anchor.api.sep.sep38.Sep38QuoteResponse
 class Sep38Client(private val endpoint: String, private val jwt: String) : SepClient() {
   fun getInfo(): InfoResponse {
     println("$endpoint/info")
-    val request =
-      Request.Builder()
-        .url("$endpoint/info")
-        .header("Content-Type", "application/json")
-        .get()
-        .build()
-    val response = client.newCall(request).execute()
-    val responseBody = handleResponse(response)
+    val responseBody = httpGet("$endpoint/info")
     return gson.fromJson(responseBody, InfoResponse::class.java)
   }
 
@@ -35,14 +27,7 @@ class Sep38Client(private val endpoint: String, private val jwt: String) : SepCl
         .addQueryParameter("sell_amount", sellAmount)
     println(urlBuilder.build().toString())
 
-    val request =
-      Request.Builder()
-        .url(urlBuilder.build())
-        .header("Content-Type", "application/json")
-        .get()
-        .build()
-    val response = client.newCall(request).execute()
-    val responseBody = handleResponse(response)
+    val responseBody = httpGet(urlBuilder.build().toString())
     return gson.fromJson(responseBody, GetPricesResponse::class.java)
   }
 
@@ -58,14 +43,7 @@ class Sep38Client(private val endpoint: String, private val jwt: String) : SepCl
         .addQueryParameter("buy_asset", buyAsset)
     println(urlBuilder.build().toString())
 
-    val request =
-      Request.Builder()
-        .url(urlBuilder.build())
-        .header("Content-Type", "application/json")
-        .get()
-        .build()
-    val response = client.newCall(request).execute()
-    val responseBody = handleResponse(response)
+    val responseBody = httpGet(urlBuilder.build().toString())
     return gson.fromJson(responseBody, GetPriceResponse::class.java)
   }
 
@@ -76,29 +54,20 @@ class Sep38Client(private val endpoint: String, private val jwt: String) : SepCl
     expireAfter: Instant? = null
   ): Sep38QuoteResponse {
     // build URL
-    val urlBuilder = this.endpoint.toHttpUrl().newBuilder().addPathSegment("quote")
-    println(urlBuilder.build().toString())
+    println("$endpoint/quote")
 
     // build request body
-    val requestMap =
+    val requestBody =
       hashMapOf(
         "sell_asset" to sellAsset,
         "sell_amount" to sellAmount,
         "buy_asset" to buyAsset,
       )
-    if (expireAfter != null)
-      requestMap["expire_after"] = DateTimeFormatter.ISO_INSTANT.format(expireAfter)
-    val requestBody = gson.toJson(requestMap).toRequestBody(TYPE_JSON)
+    if (expireAfter != null) {
+      requestBody["expire_after"] = DateTimeFormatter.ISO_INSTANT.format(expireAfter)
+    }
 
-    val request =
-      Request.Builder()
-        .url(urlBuilder.build())
-        .header("Authorization", "Bearer $jwt")
-        .header("Content-Type", "application/json")
-        .post(requestBody)
-        .build()
-    val response = client.newCall(request).execute()
-    val responseBody = handleResponse(response)
+    val responseBody = httpPost("$endpoint/quote", requestBody, jwt)
     return gson.fromJson(responseBody, Sep38QuoteResponse::class.java)
   }
 
@@ -108,15 +77,7 @@ class Sep38Client(private val endpoint: String, private val jwt: String) : SepCl
       this.endpoint.toHttpUrl().newBuilder().addPathSegment("quote").addPathSegment(quoteId)
     println(urlBuilder.build().toString())
 
-    val request =
-      Request.Builder()
-        .url(urlBuilder.build())
-        .header("Content-Type", "application/json")
-        .header("Authorization", "Bearer $jwt")
-        .get()
-        .build()
-    val response = client.newCall(request).execute()
-    val responseBody = handleResponse(response)
+    val responseBody = httpGet(urlBuilder.build().toString(), jwt)
     return gson.fromJson(responseBody, Sep38QuoteResponse::class.java)
   }
 }
