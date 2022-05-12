@@ -260,7 +260,7 @@ internal class Sep31ServiceTest {
   }
 
   @Test
-  fun testUpdateAmountsWithQuote() {
+  fun testUpdateAmounts2WithQuote() {
     Sep31Service.Context.get().setTransaction(txn)
     Sep31Service.Context.get().setRequest(request)
     Sep31Service.Context.get().setFee(fee)
@@ -277,7 +277,7 @@ internal class Sep31ServiceTest {
     quote.sellAsset = "USDC"
     quote.buyAmount = "490"
     quote.buyAsset = "BRL"
-    sep31Service.updateAmounts()
+    sep31Service.updateAmounts2()
     assertEquals("100.00", txn.amountIn)
     assertEquals(
       "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
@@ -297,7 +297,7 @@ internal class Sep31ServiceTest {
     quote.sellAsset = "USDC"
     quote.buyAmount = "500"
     quote.buyAsset = "BRL"
-    sep31Service.updateAmounts()
+    sep31Service.updateAmounts2()
     assertEquals("102.00", txn.amountIn)
     assertEquals(
       "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
@@ -318,7 +318,7 @@ internal class Sep31ServiceTest {
     quote.sellAsset = "USDC"
     quote.buyAmount = "500"
     quote.buyAsset = "BRL"
-    sep31Service.updateAmounts()
+    sep31Service.updateAmounts2()
 
     assertEquals("100.00", txn.amountIn)
     assertEquals(
@@ -339,7 +339,7 @@ internal class Sep31ServiceTest {
     quote.sellAsset = "USDC"
     quote.buyAmount = "510"
     quote.buyAsset = "BRL"
-    sep31Service.updateAmounts()
+    sep31Service.updateAmounts2()
     assertEquals("102.00", txn.amountIn)
     assertEquals(
       "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
@@ -347,6 +347,45 @@ internal class Sep31ServiceTest {
     )
     assertEquals("10.00", txn.amountFee)
     assertEquals("BRL", txn.amountFeeAsset)
+    assertEquals("500.00", txn.amountOut)
+    assertEquals("BRL", txn.amountOutAsset)
+  }
+
+  @Test
+  fun testUpdateAmountsWithQuote() {
+    Sep31Service.Context.get().setTransaction(txn)
+    Sep31Service.Context.get().setRequest(request)
+    Sep31Service.Context.get().setFee(fee)
+    every { quoteStore.findByQuoteId(any()) } returns quote
+    request.quoteId = "quote_id"
+
+    // Fee is as sell asset
+    every { sep31Config.paymentType } throws Exception("paymentType must not be called")
+    request.amount = "100"
+    request.assetCode = "USDC"
+    quote.sellAmount = "100"
+    quote.sellAsset = "USDC"
+    // TODO: Add fee information.
+    quote.buyAmount = "490"
+    quote.buyAsset = "BRL"
+    sep31Service.updateAmounts()
+    // TODO: Add fee validation.
+    assertEquals("100.00", txn.amountIn)
+    assertEquals("USDC", txn.amountInAsset)
+    assertEquals("490.00", txn.amountOut)
+    assertEquals("BRL", txn.amountOutAsset)
+
+    request.amount = "102"
+    request.assetCode = "USDC"
+    quote.sellAmount = "102"
+    quote.sellAsset = "USDC"
+    // TODO: Add fee information.
+    quote.buyAmount = "500"
+    quote.buyAsset = "BRL"
+    sep31Service.updateAmounts()
+    // TODO: Add fee validation.
+    assertEquals("102.00", txn.amountIn)
+    assertEquals("USDC", txn.amountInAsset)
     assertEquals("500.00", txn.amountOut)
     assertEquals("BRL", txn.amountOutAsset)
   }

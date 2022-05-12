@@ -241,6 +241,8 @@ data-spring-jdbc-sqlite:
   spring.jpa.hibernate.show_sql: false
   spring.datasource.url: jdbc:sqlite:anchor-proxy.db
   spring.datasource.driver-class-name: org.sqlite.JDBC
+  spring.datasource.max-active: 1 # For SQLite, set this to 1 to avoid database file lock exception.
+  spring.datasource.initial-size: 1 # For SQLite, set this to 1 to avoid database file lock exception.
   spring.datasource.username: admin
   spring.datasource.password: admin
   spring.mvc.converters.preferred-json-mapper: gson
