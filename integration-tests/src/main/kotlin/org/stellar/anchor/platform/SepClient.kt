@@ -9,6 +9,8 @@ import okhttp3.Response
 import org.springframework.http.HttpStatus
 import org.stellar.anchor.api.exception.SepException
 import org.stellar.anchor.api.exception.SepNotAuthorizedException
+import org.stellar.anchor.api.exception.SepNotFoundException
+import org.stellar.anchor.api.sep.SepExceptionResponse
 import org.stellar.anchor.util.GsonUtils
 
 open class SepClient {
@@ -35,7 +37,8 @@ open class SepClient {
   fun httpPost(url: String, requestBody: Map<String, Any>, jwt: String? = null): String? {
     val requestBodyStr = gson.toJson(requestBody).toRequestBody(TYPE_JSON)
 
-    var builder = Request.Builder().url(url).header("Content-Type", "application/json").post(requestBodyStr)
+    var builder =
+      Request.Builder().url(url).header("Content-Type", "application/json").post(requestBodyStr)
     if (jwt != null) {
       builder = builder.header("Authorization", "Bearer $jwt")
     }
@@ -50,18 +53,18 @@ open class SepClient {
 
     println("statusCode: " + response.code)
     println("responseBody: $responseBody")
-    if (response.code == HttpStatus.FORBIDDEN.value()) {
-      throw SepNotAuthorizedException("Forbidden")
-    } else if (!listOf(
-          HttpStatus.OK.value(),
-          HttpStatus.CREATED.value(),
-          HttpStatus.ACCEPTED.value()
-        )
-        .contains(response.code)
-    ) {
-      throw SepException(responseBody)
-    }
+    when (response.code) {
+      HttpStatus.OK.value(), HttpStatus.CREATED.value(), HttpStatus.ACCEPTED.value() ->
+        return responseBody
 
-    return responseBody
+      HttpStatus.FORBIDDEN.value() -> throw SepNotAuthorizedException("Forbidden")
+
+      HttpStatus.NOT_FOUND.value() -> {
+        val sepException = gson.fromJson(responseBody, SepExceptionResponse::class.java)
+        throw SepNotFoundException(sepException.error)
+      }
+
+      else -> throw SepException(responseBody)
+    }
   }
 }

@@ -1,6 +1,8 @@
 package org.stellar.anchor.platform
 
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.Assertions.*
+import org.stellar.anchor.api.exception.SepNotFoundException
 import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest
 import org.stellar.anchor.api.sep.sep12.Sep12Status
 import org.stellar.anchor.util.GsonUtils
@@ -69,6 +71,8 @@ fun sep12TestHappyPath() {
   // currently, not implemented
   assertEquals(200, code)
 
-  gr = sep12Client.getCustomer(pr.id)
-  assertNull(gr!!.id)
+  val id = pr.id
+  val ex: SepNotFoundException = assertThrows { sep12Client.getCustomer(id) }
+  assertEquals("customer for 'id' '$id' not found", ex.message)
+  println(ex)
 }
