@@ -24,6 +24,7 @@ open class SepClient {
         .callTimeout(10, TimeUnit.MINUTES)
         .build()
   }
+
   fun httpGet(url: String, jwt: String? = null): String? {
     var builder = Request.Builder().url(url).header("Content-Type", "application/json").get()
     if (jwt != null) {
@@ -34,6 +35,7 @@ open class SepClient {
     val response = client.newCall(request).execute()
     return handleResponse(response)
   }
+
   fun httpPost(url: String, requestBody: Map<String, Any>, jwt: String? = null): String? {
     val requestBodyStr = gson.toJson(requestBody).toRequestBody(TYPE_JSON)
 
@@ -48,7 +50,7 @@ open class SepClient {
     return handleResponse(response)
   }
 
-  fun handleResponse(response: Response): String? {
+  private fun handleResponse(response: Response): String? {
     val responseBody = response.body?.string()
 
     println("statusCode: " + response.code)
