@@ -1,0 +1,80 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: anchor-platform-reference-server-config
+  namespace: anchor-platform-dev
+data:
+  # TODO: remove all secrets (ex: move to env vars, k8s secrets, vault, etc...)
+  reference-config.yaml: |
+    server:
+      servlet:
+        context-path: /
+        port: 8081
+
+    #
+    # The settings of the anchor reference serer
+    #
+    anchor.settings:
+      version: 0.0.1
+      platformApiEndpoint: https://anchor-sep-server-dev.stellar.org
+
+    event:
+      # The listener type. values: [kafka, sqs, amqp]
+      # If the listener is kafka, the kafka listener is configured in kafka.listener section.
+      # If the listener is sqs, the sqs listener is configured in the sqs.listener section.
+      # If the listener is amqp, the AMQP listner is configured in the ampq.listner section.
+      listenerType: kafka
+
+    kafka.listener:
+      bootstrapServer: anchor-platform-kafka:9092
+      eventTypeToQueue:
+        all: dev_ap_event_single_queue
+        quoteCreated: dev_ap_event_quote_created
+        transactionCreated: dev_ap_event_transaction_created
+        transactionStatusChanged: dev_ap_event_transaction_status_changed
+        transactionError: dev_ap_event_transaction_error
+
+    #
+    # Spring Data JDBC settings for H2
+    #
+    spring.datasource.url: jdbc:h2:mem:test
+    spring.jpa.properties.hibernate.dialect: org.hibernate.dialect.H2Dialect
+
+    # force gson as serializer/deserializer over jackson
+    spring.mvc.converters.preferred-json-mapper: gson
+
+    #
+    # Spring Data JDBC settings for SQLite
+    #
+    #spring.jpa.database-platform=org.stellar.anchor.reference.sqlite.SQLiteDialect
+    #spring.jpa.hibernate.ddl-auto=update
+    #spring.jpa.generate-ddl=true
+    #spring.datasource.url=jdbc:sqlite:anchor-reference-server.db
+    #spring.datasource.driver-class-name=org.sqlite.JDBC
+    #spring.datasource.username=admin
+    #spring.datasource.password=admin
+  
+  stellar-wks.toml: |
+    ACCOUNTS = []
+    VERSION = "0.1.0"
+    NETWORK_PASSPHRASE = "Test SDF Network ; September 2015"
+    SIGNING_KEY = "GCUZ6YLL5RQBTYLTTQLPCM73C5XAIUGK2TIMWQH7HPSGWVS2KJ2F3CHS"
+
+    WEB_AUTH_ENDPOINT = "http://anchor-reference-server-dev.sandbox.kube001.services.stellar-ops.com/auth"
+    TRANSFER_SERVER_SEP0024 = "http://anchor-reference-server-dev.sandbox.kube001.services.stellar-ops.com/sep24"
+    ANCHOR_QUOTE_SERVER = "http://anchor-reference-server-dev.sandbox.kube001.services.stellar-ops.com/sep38"
+
+    [[CURRENCIES]]
+    code = "USDC"
+    issuer = "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+    status = "test"
+    is_asset_anchored = true
+    anchor_asset_type = "fiat"
+    desc = "A test USDC issued by Circle."
+
+    [DOCUMENTATION]
+    ORG_NAME = "Stellar Development Foundation"
+    ORG_URL = "https://www.stellar.org"
+    ORG_DESCRIPTION = "Stellar is an open network for storing and moving money."
+    ORG_LOGO="https://assets-global.website-files.com/5deac75ecad2173c2ccccbc7/5dec8960504967fd31147f62_Stellar_lockup_black_RGB.svg"
+    ORG_SUPPORT_EMAIL="jamie@stellar.org"
