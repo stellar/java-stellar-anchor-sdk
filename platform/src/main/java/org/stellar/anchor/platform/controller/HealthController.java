@@ -1,10 +1,9 @@
 package org.stellar.anchor.platform.controller;
 
+import java.util.List;
 import org.springframework.web.bind.annotation.*;
 import org.stellar.anchor.api.platform.HealthCheck;
 import org.stellar.anchor.platform.service.HealthCheckService;
-
-import java.util.List;
 
 @RestController
 @CrossOrigin(origins = "*")
@@ -15,8 +14,12 @@ public class HealthController {
   HealthController(HealthCheckService healthCheckService) {
     this.healthCheckService = healthCheckService;
   }
+
   @RequestMapping(method = {RequestMethod.GET})
-  public HealthCheck health(@RequestParam List<String> checks) {
+  public HealthCheck health(@RequestParam(required = false) List<String> checks) {
+    if (checks == null) {
+      checks = List.of("all");
+    }
     return healthCheckService.check(checks);
   }
 }

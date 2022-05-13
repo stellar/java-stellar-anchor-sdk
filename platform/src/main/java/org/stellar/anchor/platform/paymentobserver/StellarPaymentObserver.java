@@ -1,7 +1,13 @@
 package org.stellar.anchor.platform.paymentobserver;
 
-import com.google.gson.annotations.Expose;
+import static org.stellar.anchor.util.ReflectionUtil.getField;
+
+import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
 import org.stellar.anchor.api.exception.SepException;
@@ -19,20 +25,17 @@ import org.stellar.sdk.responses.operations.PathPaymentBaseOperationResponse;
 import org.stellar.sdk.responses.operations.PaymentOperationResponse;
 import shadow.com.google.common.base.Optional;
 
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.List;
-
 public class StellarPaymentObserver implements HealthCheckable {
   final Server server;
   final List<PaymentListener> observers;
-  final List<String> accounts;
+  final Collection<String> accounts;
   final List<SSEStream<OperationResponse>> streams;
   final PaymentStreamerCursorStore paymentStreamerCursorStore;
+  final Map<SSEStream<OperationResponse>, String> mapStreamToAccount = new HashMap<>();
 
   StellarPaymentObserver(
       String horizonServer,
-      List<String> accounts,
+      Collection<String> accounts,
       List<PaymentListener> observers,
       PaymentStreamerCursorStore paymentStreamerCursorStore) {
     this.server = new Server(horizonServer);
@@ -46,6 +49,7 @@ public class StellarPaymentObserver implements HealthCheckable {
   public void start() {
     for (String account : accounts) {
       SSEStream<OperationResponse> stream = watch(account);
+      mapStreamToAccount.put(stream, account);
       this.streams.add(stream);
     }
   }
@@ -135,7 +139,7 @@ public class StellarPaymentObserver implements HealthCheckable {
 
   public static class Builder {
     String horizonServer = "https://horizon-testnet.stellar.org";
-    List<String> accounts = new LinkedList<>();
+    Set<String> accounts = new HashSet<>();
     List<PaymentListener> observers = new LinkedList<>();
     PaymentStreamerCursorStore paymentStreamerCursorStore = new MemoryPaymentStreamerCursorStore();
 
@@ -181,26 +185,46 @@ public class StellarPaymentObserver implements HealthCheckable {
   public HealthCheckResult check(HealthCheckContext context) {
     List<StreamHealth> results = new ArrayList<>();
     for (SSEStream<OperationResponse> stream : streams) {
-      results.add(new StreamHealth(stream.lastPagingToken()));
+      StreamHealth.StreamHealthBuilder builder = StreamHealth.builder();
+      builder.account(mapStreamToAccount.get(stream));
+      // populate executorService information
+      ExecutorService executorService = getField(stream, "executorService", null);
+      if (executorService != null) {
+        builder.threadShutdown(executorService.isShutdown());
+        builder.threadTerminated(executorService.isTerminated());
+      }
+
+      builder.stopped(getField(stream, "isStopped", new AtomicBoolean(false)).get());
+
+      AtomicReference<String> lastEventId = getField(stream, "lastEventId", null);
+      if (lastEventId != null) {
+        builder.lastEventId(lastEventId.get());
+      }
+
+      results.add(builder.build());
     }
 
     return new SPOHealthCheckResult(getName(), results);
   }
+}
 
-  @AllArgsConstructor
-  public static class SPOHealthCheckResult implements HealthCheckResult {
-    transient String name;
+@AllArgsConstructor
+class SPOHealthCheckResult implements HealthCheckResult {
+  transient String name;
 
-    List<StreamHealth> streams;
+  List<StreamHealth> streams;
 
-    public String name() {
-      return name;
-    }
+  public String name() {
+    return name;
   }
+}
 
-  @Data
-  @AllArgsConstructor
-  private static class StreamHealth {
-    String lastPageToken;
-  }
+@Data
+@Builder
+class StreamHealth {
+  String account;
+  boolean threadShutdown;
+  boolean threadTerminated;
+  boolean stopped;
+  String lastEventId;
 }

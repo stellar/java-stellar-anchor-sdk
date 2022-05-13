@@ -1,10 +1,9 @@
 package org.stellar.anchor.platform.service;
 
+import java.util.*;
 import org.springframework.stereotype.Service;
 import org.stellar.anchor.api.platform.HealthCheck;
 import org.stellar.anchor.api.platform.HealthCheckResult;
-
-import java.util.*;
 
 @Service
 public class HealthCheckService implements HealthCheckContext {

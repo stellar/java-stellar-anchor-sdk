@@ -1,23 +1,23 @@
 package org.stellar.anchor.api.platform;
 
 import com.google.gson.annotations.SerializedName;
-import lombok.Data;
-
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import lombok.Data;
 
 @Data
 public class HealthCheck {
   Instant started;
 
-  @SerializedName("elapsed_time")
-  Duration elapsedTime;
+  @SerializedName("elapsed_time_ms")
+  Duration elapsedTime = Duration.ZERO;
 
   @SerializedName("number_of_checks")
   int numberOfChecks;
+
   Map<String, HealthCheckResult> checks = new HashMap<>();
 
   public HealthCheck() {

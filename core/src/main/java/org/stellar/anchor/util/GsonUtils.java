@@ -1,7 +1,6 @@
 package org.stellar.anchor.util;
 
 import com.google.gson.*;
-
 import java.lang.reflect.Type;
 import java.time.Duration;
 import java.time.Instant;

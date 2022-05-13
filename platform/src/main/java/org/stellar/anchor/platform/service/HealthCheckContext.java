@@ -1,4 +1,3 @@
 package org.stellar.anchor.platform.service;
 
-public interface HealthCheckContext {
-}
+public interface HealthCheckContext {}
