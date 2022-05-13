@@ -42,7 +42,7 @@ anchor-config.yaml: |
      # clientAttributionDenyList: # use this if we want to black list.
      authTimeout: 900
      jwtTimeout: 86400
-     signingSeed: SBTBRGMPWNLXOZQQQXXZRJKCZPYTAZT5FC4VEAECF2HOBCONTSH4EXKS
+     signingSeed: __replace_with_signingSeed__
 
    # sep-12
    sep12:
