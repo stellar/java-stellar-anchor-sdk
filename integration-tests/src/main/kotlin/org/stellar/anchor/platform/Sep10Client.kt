@@ -1,7 +1,6 @@
 package org.stellar.anchor.platform
 
 import java.net.URL
-import okhttp3.Request
 import org.stellar.anchor.api.exception.SepNotAuthorizedException
 import org.stellar.anchor.api.sep.sep10.ChallengeResponse
 import org.stellar.anchor.api.sep.sep10.ValidationRequest

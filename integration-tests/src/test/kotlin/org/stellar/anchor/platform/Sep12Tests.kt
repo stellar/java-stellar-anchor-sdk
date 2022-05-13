@@ -1,7 +1,7 @@
 package org.stellar.anchor.platform
 
-import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.assertThrows
 import org.stellar.anchor.api.exception.SepNotFoundException
 import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest
 import org.stellar.anchor.api.sep.sep12.Sep12Status

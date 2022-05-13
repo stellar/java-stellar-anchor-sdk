@@ -3,7 +3,6 @@ package org.stellar.anchor.platform
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 import okhttp3.HttpUrl.Companion.toHttpUrl
-import okhttp3.Request
 import org.stellar.anchor.api.sep.sep38.GetPriceResponse
 import org.stellar.anchor.api.sep.sep38.GetPricesResponse
 import org.stellar.anchor.api.sep.sep38.InfoResponse
