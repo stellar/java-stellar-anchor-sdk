@@ -191,28 +191,28 @@ public class TransactionService {
       //        throw new BadRequestException("quote.sell_amount != amount_in");
       //      }
 
-      if (txn.getAmountFeeAsset().equals(quote.getBuyAsset())) {
-        // fee calculated in buying asset
-        // buy_asset = amount_out + amount_fee
-        if (decimal(quote.getBuyAmount())
-                .compareTo(decimal(txn.getAmountOut()).add(decimal(txn.getAmountFee())))
-            != 0) {
-          throw new BadRequestException("quote.buy_amount != amount_fee + amount_out");
-        } else if (txn.getAmountFeeAsset().equals(quote.getSellAsset())) {
-          // fee calculated in selling asset
-          // sell_asset = amount_in + amount_fee
-          if (decimal(quote.getSellAmount())
-                  .compareTo(decimal(txn.getAmountIn()).add(decimal(txn.getAmountFee())))
-              != 0) {
-            throw new BadRequestException("quote.sell_amount != amount_fee + amount_in");
-          }
-        } else {
-          throw new BadRequestException(
-              String.format(
-                  "amount_in_asset(%s) must equal to one of sell_asset(%s) and buy_asset(%s",
-                  txn.getAmountInAsset(), quote.getSellAsset(), quote.getBuyAsset()));
-        }
-      }
+//      if (txn.getAmountFeeAsset().equals(quote.getBuyAsset())) {
+//        // fee calculated in buying asset
+//        // buy_asset = amount_out + amount_fee
+//        if (decimal(quote.getBuyAmount())
+//                .compareTo(decimal(txn.getAmountOut()).add(decimal(txn.getAmountFee())))
+//            != 0) {
+//          throw new BadRequestException("quote.buy_amount != amount_fee + amount_out");
+//        } else if (txn.getAmountFeeAsset().equals(quote.getSellAsset())) {
+//          // fee calculated in selling asset
+//          // sell_asset = amount_in + amount_fee
+//          if (decimal(quote.getSellAmount())
+//                  .compareTo(decimal(txn.getAmountIn()).add(decimal(txn.getAmountFee())))
+//              != 0) {
+//            throw new BadRequestException("quote.sell_amount != amount_fee + amount_in");
+//          }
+//        } else {
+//          throw new BadRequestException(
+//              String.format(
+//                  "amount_in_asset(%s) must equal to one of sell_asset(%s) and buy_asset(%s",
+//                  txn.getAmountInAsset(), quote.getSellAsset(), quote.getBuyAsset()));
+//        }
+//      }
     }
   }
 

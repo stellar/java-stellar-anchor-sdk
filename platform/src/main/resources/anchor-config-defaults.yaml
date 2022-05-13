@@ -32,7 +32,7 @@ stellar:
     data-access:
       type: data-spring-jdbc
       settings: data-spring-jdbc-sqlite           # The absolute location of the configuration data in this yaml file
-
+      #settings: data-spring-jdbc-aws-aurora-postgres
 
     #
     # Sets how the generates the logging information
@@ -245,6 +245,19 @@ data-spring-jdbc-sqlite:
   spring.datasource.initial-size: 1 # For SQLite, set this to 1 to avoid database file lock exception.
   spring.datasource.username: admin
   spring.datasource.password: admin
+  spring.mvc.converters.preferred-json-mapper: gson
+
+data-spring-jdbc-aws-aurora-postgres:
+  spring.jpa.generate-ddl: true
+  spring.jpa.hibernate.ddl-auto: create-drop
+  spring.jpa.database: POSTGRESQL
+  spring.jpa.show-sql: false
+  spring.datasource.driver-class-name: org.postgresql.Driver
+  #spring.datasource.url: jdbc:postgresql://database-2-instance-1.chizvyczscs2.us-east-1.rds.amazonaws.com:5432/
+  #spring.datasource.username: postgres
+  spring.datasource.url: localhost:5432/anchorplatform
+  spring.datasource.username: anchorplatform
+  spring.datasource.password: <password>
   spring.mvc.converters.preferred-json-mapper: gson
 
 data-spring-jdbc-h2:
