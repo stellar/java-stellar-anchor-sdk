@@ -27,8 +27,7 @@ public interface HealthCheckable extends Comparable<HealthCheckable> {
   /**
    * Perform the check.
    *
-   * @param context
    * @return The result specific to the service.
    */
-  HealthCheckResult check(HealthCheckContext context);
+  HealthCheckResult check();
 }

@@ -1,18 +1,19 @@
 package org.stellar.anchor.platform.paymentobserver;
 
+import static org.stellar.anchor.platform.paymentobserver.Status.GREEN;
+import static org.stellar.anchor.platform.paymentobserver.Status.RED;
 import static org.stellar.anchor.util.ReflectionUtil.getField;
 
+import com.google.gson.annotations.SerializedName;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
-import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.platform.HealthCheckResult;
-import org.stellar.anchor.platform.service.HealthCheckContext;
 import org.stellar.anchor.platform.service.HealthCheckable;
 import org.stellar.anchor.util.Log;
 import org.stellar.sdk.Server;
@@ -182,8 +183,9 @@ public class StellarPaymentObserver implements HealthCheckable {
   }
 
   @Override
-  public HealthCheckResult check(HealthCheckContext context) {
+  public HealthCheckResult check() {
     List<StreamHealth> results = new ArrayList<>();
+    Status status = GREEN;
     for (SSEStream<OperationResponse> stream : streams) {
       StreamHealth.StreamHealthBuilder builder = StreamHealth.builder();
       builder.account(mapStreamToAccount.get(stream));
@@ -192,9 +194,18 @@ public class StellarPaymentObserver implements HealthCheckable {
       if (executorService != null) {
         builder.threadShutdown(executorService.isShutdown());
         builder.threadTerminated(executorService.isTerminated());
+        if (executorService.isShutdown() || executorService.isTerminated()) {
+          status = RED;
+        }
+      } else {
+        status = RED;
       }
 
-      builder.stopped(getField(stream, "isStopped", new AtomicBoolean(false)).get());
+      boolean isStopped = getField(stream, "isStopped", new AtomicBoolean(false)).get();
+      builder.stopped(isStopped);
+      if (isStopped) {
+        status = RED;
+      }
 
       AtomicReference<String> lastEventId = getField(stream, "lastEventId", null);
       if (lastEventId != null) {
@@ -204,13 +215,34 @@ public class StellarPaymentObserver implements HealthCheckable {
       results.add(builder.build());
     }
 
-    return new SPOHealthCheckResult(getName(), results);
+    return SPOHealthCheckResult.builder()
+        .name(getName())
+        .streams(results)
+        .status(status.name)
+        .build();
   }
 }
 
-@AllArgsConstructor
+enum Status {
+  RED("red"),
+  GREEN("green");
+
+  String name;
+
+  Status(String name) {
+    this.name = name;
+  }
+}
+
+/** The health check result of StellarPaymentObserver class. */
+@Builder
+@Data
 class SPOHealthCheckResult implements HealthCheckResult {
   transient String name;
+
+  List<String> statuses = List.of("green", "red");
+
+  String status;
 
   List<StreamHealth> streams;
 
@@ -223,8 +255,13 @@ class SPOHealthCheckResult implements HealthCheckResult {
 @Builder
 class StreamHealth {
   String account;
+
+  @SerializedName("thread_shutdown")
   boolean threadShutdown;
+
+  @SerializedName("thread_terminated")
   boolean threadTerminated;
+
   boolean stopped;
   String lastEventId;
 }

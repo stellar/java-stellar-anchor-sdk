@@ -2,7 +2,7 @@ package org.stellar.anchor.platform.controller;
 
 import java.util.List;
 import org.springframework.web.bind.annotation.*;
-import org.stellar.anchor.api.platform.HealthCheck;
+import org.stellar.anchor.api.platform.HealthCheckResponse;
 import org.stellar.anchor.platform.service.HealthCheckService;
 
 @RestController
@@ -16,7 +16,7 @@ public class HealthController {
   }
 
   @RequestMapping(method = {RequestMethod.GET})
-  public HealthCheck health(@RequestParam(required = false) List<String> checks) {
+  public HealthCheckResponse health(@RequestParam(required = false) List<String> checks) {
     if (checks == null) {
       checks = List.of("all");
     }

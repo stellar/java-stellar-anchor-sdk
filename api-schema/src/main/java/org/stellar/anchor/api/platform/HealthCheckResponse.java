@@ -9,7 +9,7 @@ import java.util.Map;
 import lombok.Data;
 
 @Data
-public class HealthCheck {
+public class HealthCheckResponse {
   Instant started;
 
   @SerializedName("elapsed_time_ms")
@@ -18,13 +18,14 @@ public class HealthCheck {
   @SerializedName("number_of_checks")
   int numberOfChecks;
 
-  Map<String, HealthCheckResult> checks = new HashMap<>();
+  Map<String, HealthCheckResult> checks;
 
-  public HealthCheck() {
+  public HealthCheckResponse() {
     this.started = Instant.now();
   }
 
-  public HealthCheck finish(List<HealthCheckResult> results) {
+  public HealthCheckResponse complete(List<HealthCheckResult> results) {
+    checks = new HashMap<>();
     for (HealthCheckResult result : results) {
       checks.put(result.name(), result);
     }
