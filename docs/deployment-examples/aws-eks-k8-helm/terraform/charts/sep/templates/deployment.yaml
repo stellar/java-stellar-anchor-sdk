@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-deployment
+  namespace: anchor-platform
+  labels:
+    app: sep
+    label: anotherlabel
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: sep
+  template:
+    metadata:
+      labels:
+        app: sep
+    spec:
+      containers:
+      - name: sep-server
+        image: stellar/anchor-platform:750858c
+        args: ["--sep-server"]
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: config-volume
+          mountPath: /config
+          readOnly: true
+      volumes:
+      - name: config-volume
+        configMap:
+          name: {{ .Release.Name }}-configmap

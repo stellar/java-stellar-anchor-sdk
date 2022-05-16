@@ -1,0 +1,7 @@
+fullName: anchor-sep
+reference_endpoint: ${reference_endpoint}
+bootstrap_broker: ${bootstrap_broker}
+jwtSecretKey:
+signingSeed: 
+stellar:
+   secretKey:

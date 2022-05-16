@@ -1,0 +1,34 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}-deployment
+  namespace: anchor-platform
+  labels:
+    app: reference
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: reference
+  template:
+    metadata:
+      labels:
+        app: reference
+    spec:
+      containers:
+      - name: reference-server
+        image: stellar/anchor-platform:750858c
+        args: ["--anchor-reference-server"]
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8081
+        volumeMounts:
+        - name: config-volume
+          mountPath: /config
+          readOnly: true
+      volumes:
+      - name: config-volume
+        configMap:
+          name: {{ .Release.Name }}-configmap
+          
+
