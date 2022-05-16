@@ -1,7 +1,6 @@
 package org.stellar.anchor.platform
 
 import java.net.URL
-import okhttp3.Request
 import org.stellar.anchor.api.exception.SepNotAuthorizedException
 import org.stellar.anchor.api.sep.sep10.ChallengeResponse
 import org.stellar.anchor.api.sep.sep10.ValidationRequest
@@ -27,14 +26,8 @@ class Sep10Client(
   }
 
   fun challenge(): ChallengeResponse {
-    val request =
-      Request.Builder()
-        .url(String.format("%s?account=%s", this.endpoint, walletAccount))
-        .get()
-        .build()
-
-    val response = client.newCall(request).execute()
-    val responseBody = response.body!!.string()
+    val url = String.format("%s?account=%s", this.endpoint, walletAccount)
+    val responseBody = httpGet(url)
     return gson.fromJson(responseBody, ChallengeResponse::class.java)
   }
 
