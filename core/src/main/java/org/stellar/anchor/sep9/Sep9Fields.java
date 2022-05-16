@@ -26,6 +26,7 @@ public class Sep9Fields {
           "bank_number",
           "bank_phone_number",
           "bank_branch_number",
+          "clabe_number",
           "tax_id",
           "tax_id_name",
           "occupation",
