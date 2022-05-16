@@ -13,11 +13,16 @@ This documentation will configure AWS Infrastructure, Anchor Platform and a samp
 - Helm Release for Nginx Ingress and AWS Load Balancer Controller Addon
 - LetsEncrypt TLS using Kubernetes CertManager, CertIssuer, and SSL Certificate for Public Load Balancer
 - Validation using Anchor Stellar Tests SEP-31 Validator
-  
+
+# Current Known Issues
+- [Issue 259](https://github.com/stellar/java-stellar-anchor-sdk/issues/259) Project Destruction fails intermittently. Work-around to run destruction repeatedly and/or use AWS console.
+-  
+
 # Steps
 1. AWS and IAM Account
    1. Create an AWS account and IAM user with API credentials and the following permissions:
    2. [todo add all privs here]
 2. Terraform Cloud Account 
-   1. Create a Terraform Cloud account. A single-user free account will suffice.
-3. Create a Terraform Cloud work-space tied to `stellar-anchor-platform SDK repository` add `AWS_SECRET_ACCESS_KEY` and `AWS_ACCESS_KEY_ID` variables for IAM user in step 1.
+   1. Create a Terraform Cloud account. A single-user free account will suffice. Create a Terraform Cloud work-space tied to `stellar-anchor-platform SDK repository`
+   
+   2. Setup Workspace variables `AWS_SECRET_ACCESS_KEY` and `AWS_ACCESS_KEY_ID` variables for IAM user in step 1.
