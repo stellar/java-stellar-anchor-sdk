@@ -19,7 +19,7 @@ class Constants {
     const val TEST_CLIENT_TOML =
       "" +
         "       NETWORK_PASSPHRASE=\"Public Global Stellar Network ; September 2015\"\n" +
-        "       HORIZON_URL=\"https://horizon.stellar.lobstr.co\"\n" +
+        "       HORIZON_URL=\"https://horizon.stellar.org\"\n" +
         "       FEDERATION_SERVER=\"https://preview.lobstr.co/federation/\"\n" +
         "       SIGNING_KEY=\"GACYKME36AI6UYAV7A5ZUA6MG4C4K2VAPNYMW5YLOM6E7GS6FSHDPV4F\"\n"
   }

@@ -5,9 +5,13 @@ import io.mockk.impl.annotations.MockK
 import java.beans.IntrospectionException
 import java.beans.Introspector
 import org.junit.jupiter.api.*
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.*
 import org.slf4j.Logger
+import org.stellar.anchor.Constants.Companion.TEST_HOST_URL
+import org.stellar.anchor.Constants.Companion.TEST_JWT_SECRET
+import org.stellar.anchor.Constants.Companion.TEST_NETWORK_PASS_PHRASE
+import org.stellar.anchor.config.AppConfig
+import org.stellar.anchor.config.PII
 import org.stellar.anchor.util.Log.gson
 import org.stellar.anchor.util.Log.shorter
 
@@ -32,6 +36,13 @@ internal class LogTest {
   class TestBean {
     val field1: String = "1"
     val field2: String = "2"
+  }
+
+  @Suppress("unused")
+  class TestBeanPII {
+    val fieldNoPII: String = "no secret"
+
+    @PII val fieldPII: String = "secret"
   }
 
   @Test
@@ -64,6 +75,55 @@ internal class LogTest {
     val testBean = TestBean()
     Log.infoB("Hello", testBean)
     verify(exactly = 2) { logger.info(ofType(String::class)) }
+  }
+
+  @Test
+  fun testInfoBPII() {
+    val slot = slot<String>()
+    every { logger.info(capture(slot)) } answers {}
+
+    val testBeanPII = TestBeanPII()
+    Log.infoB("Hello", testBeanPII)
+    verify(exactly = 2) { logger.info(ofType(String::class)) }
+    assertFalse(slot.captured.contains("fieldPII"))
+  }
+
+  @Suppress("unused")
+  class TestAppConfig : AppConfig {
+    override fun getStellarNetworkPassphrase(): String {
+      return TEST_NETWORK_PASS_PHRASE
+    }
+
+    override fun getHostUrl(): String {
+      return TEST_HOST_URL
+    }
+
+    override fun getHorizonUrl(): String {
+      return "https://horizon.stellar.org"
+    }
+
+    override fun getJwtSecretKey(): String {
+      return TEST_JWT_SECRET
+    }
+
+    override fun getAssets(): String {
+      return "test_assets_file"
+    }
+
+    override fun getLanguages(): MutableList<String> {
+      return mutableListOf("en")
+    }
+  }
+
+  @Test
+  fun testInfoConfig() {
+    val slot = slot<String>()
+    every { logger.info(capture(slot)) } answers {}
+
+    val testAppConfig = TestAppConfig()
+    Log.infoConfig("Hello", testAppConfig, AppConfig::class.java)
+    verify(exactly = 2) { logger.info(ofType(String::class)) }
+    assertFalse(slot.captured.contains(TEST_JWT_SECRET))
   }
 
   @Test
