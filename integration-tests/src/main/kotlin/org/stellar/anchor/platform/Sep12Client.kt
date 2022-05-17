@@ -16,18 +16,8 @@ val TYPE_JSON = APPLICATION_JSON_CHARSET_UTF_8.toMediaTypeOrNull()
 
 class Sep12Client(private val endpoint: String, private val jwt: String) : SepClient() {
   fun getCustomer(id: String): Sep12GetCustomerResponse? {
-    val request =
-      Request.Builder()
-        .url(String.format(this.endpoint + "/customer?id=%s", id))
-        .header("Authorization", "Bearer $jwt")
-        .get()
-        .build()
-
-    val response = client.newCall(request).execute()
-    if (response.code == HttpStatus.FORBIDDEN.value()) {
-      throw SepNotAuthorizedException("Forbidden")
-    }
-    val responseBody = response.body!!.string()
+    val url = String.format(this.endpoint + "/customer?id=%s", id)
+    val responseBody = httpGet(url, jwt)
     return gson.fromJson(responseBody, Sep12GetCustomerResponse::class.java)
   }
 

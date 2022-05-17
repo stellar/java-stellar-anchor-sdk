@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: anchor-platform-sep-server
+  namespace: anchor-platform-dev
+spec:
+  type: ClusterIP
+  ports:
+  - protocol: TCP
+    port: 8080       # port number the service will listen on
+    targetPort: 8080 # port number pods listen on
+  selector:
+    app: anchor-platform-sep-server

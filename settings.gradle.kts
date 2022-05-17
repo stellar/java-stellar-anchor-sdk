@@ -9,6 +9,7 @@ dependencyResolutionManagement {
       alias("commons.beanutils").to("commons-beanutils:commons-beanutils:1.9.4")
       alias("commons.cli").to("commons-cli:commons-cli:1.5.0")
       alias("commons.codec").to("commons-codec:commons-codec:1.15")
+      alias("commons.io").to("commons-io:commons-io:2.11.0")
       alias("commons.validator").to("commons-validator:commons-validator:1.7")
       alias("google.gson").to("com.google.code.gson:gson:2.8.9")
       alias("httpclient").to("org.apache.httpcomponents:httpclient:4.5.13")
