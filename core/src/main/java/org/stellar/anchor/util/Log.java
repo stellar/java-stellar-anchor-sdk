@@ -140,6 +140,16 @@ public class Log {
   }
 
   /**
+   * Send error log with a specified format.
+   *
+   * @param format The format
+   * @param args The arguments of the format
+   */
+  public static void errorF(final String format, final Object... args) {
+    Logger logger = getLogger();
+    logger.error(format, args);
+  }
+  /**
    * Send exception ERROR log.
    *
    * @param ex The exception.
