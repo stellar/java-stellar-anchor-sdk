@@ -12,10 +12,8 @@ public class HealthCheckService {
   HealthCheckService(List<HealthCheckable> checkables) {
     for (HealthCheckable checkable : checkables) {
       for (String tag : checkable.getTags()) {
-        List<HealthCheckable> checksOfTag = mapCheckable.get(tag);
-        if (checksOfTag == null) {
-          mapCheckable.put(tag, List.of());
-        }
+        List<HealthCheckable> checksOfTag =
+            mapCheckable.computeIfAbsent(tag, k -> new ArrayList<>());
         checksOfTag.add(checkable);
       }
     }
