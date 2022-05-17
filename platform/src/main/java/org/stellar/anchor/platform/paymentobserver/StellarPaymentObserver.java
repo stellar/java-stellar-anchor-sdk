@@ -28,16 +28,16 @@ import shadow.com.google.common.base.Optional;
 
 public class StellarPaymentObserver implements HealthCheckable {
   final Server server;
-  final List<PaymentListener> observers;
-  final Collection<String> accounts;
+  final SortedSet<String> accounts;
+  final Set<PaymentListener> observers;
   final List<SSEStream<OperationResponse>> streams;
   final PaymentStreamerCursorStore paymentStreamerCursorStore;
   final Map<SSEStream<OperationResponse>, String> mapStreamToAccount = new HashMap<>();
 
   StellarPaymentObserver(
       String horizonServer,
-      Collection<String> accounts,
-      List<PaymentListener> observers,
+      SortedSet<String> accounts,
+      Set<PaymentListener> observers,
       PaymentStreamerCursorStore paymentStreamerCursorStore) {
     this.server = new Server(horizonServer);
     this.observers = observers;
@@ -140,8 +140,8 @@ public class StellarPaymentObserver implements HealthCheckable {
 
   public static class Builder {
     String horizonServer = "https://horizon-testnet.stellar.org";
-    Set<String> accounts = new HashSet<>();
-    List<PaymentListener> observers = new LinkedList<>();
+    SortedSet<String> accounts = new TreeSet<>();
+    Set<PaymentListener> observers = new HashSet<>();
     PaymentStreamerCursorStore paymentStreamerCursorStore = new MemoryPaymentStreamerCursorStore();
 
     public Builder() {}

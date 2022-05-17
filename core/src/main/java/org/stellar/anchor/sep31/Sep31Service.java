@@ -83,13 +83,12 @@ public class Sep31Service {
 
     validateAsset();
 
-    String assetName =
-        assetService.getAsset(request.getAssetCode(), request.getAssetIssuer()).getAssetName();
+    AssetInfo assetInfo = assetService.getAsset(request.getAssetCode(), request.getAssetIssuer());
 
     // Pre-validation
     validateAmount(request.getAmount());
     validateLanguage(appConfig, request.getLang());
-    validateRequiredFields(assetName, request.getFields().getTransaction());
+    validateRequiredFields(assetInfo.getCode(), request.getFields().getTransaction());
     validateSenderAndReceiver();
     validateKyc();
     preValidateQuote();
@@ -103,7 +102,7 @@ public class Sep31Service {
             .id(generateSepTransactionId())
             .status(SepTransactionStatus.PENDING_SENDER.toString())
             .stellarAccountId(asset.getDistributionAccount())
-            .amountInAsset(assetName)
+            .amountInAsset(assetInfo.getAssetName())
             .amountIn(request.getAmount())
             .clientDomain(jwtToken.getClientDomain())
             .fields(request.getFields().getTransaction())
@@ -537,7 +536,7 @@ public class Sep31Service {
         assetResponse.setMaxAmount(assetInfo.getSend().getMaxAmount());
         assetResponse.setFields(assetInfo.getSep31().getFields());
         assetResponse.setSep12(assetInfo.getSep31().getSep12());
-        response.getReceive().put(assetInfo.getAssetName(), assetResponse);
+        response.getReceive().put(assetInfo.getCode(), assetResponse);
       }
     }
 
