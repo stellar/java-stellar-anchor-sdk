@@ -1,6 +1,8 @@
 package org.stellar.anchor.platform
 
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.assertThrows
+import org.stellar.anchor.api.exception.SepException
 import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest
 import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionRequest
 import org.stellar.anchor.util.GsonUtils
@@ -31,6 +33,7 @@ fun sep31TestAll(toml: Sep1Helper.TomlContent, jwt: String) {
 
   testSep31TestInfo()
   testSep31PostTransaction()
+  testBadAsset()
 }
 
 fun testSep31TestInfo() {
@@ -50,4 +53,16 @@ fun testSep31PostTransaction() {
   val txnRequest = gson.fromJson(postTxnJson, Sep31PostTransactionRequest::class.java)
   txnRequest.receiverId = pr!!.id
   sep31Client.postTransaction(txnRequest)
+}
+
+fun testBadAsset() {
+  val customer =
+    GsonUtils.getInstance().fromJson(testCustomerJson, Sep12PutCustomerRequest::class.java)
+  val pr = sep12Client.putCustomer(customer)
+
+  // Post Sep31 transaction.
+  val txnRequest = gson.fromJson(postTxnJson, Sep31PostTransactionRequest::class.java)
+  txnRequest.assetCode = "bad-asset-code"
+  txnRequest.receiverId = pr!!.id
+  assertThrows<SepException> { sep31Client.postTransaction(txnRequest) }
 }

@@ -96,7 +96,7 @@ public class Log {
   }
 
   /**
-   * Send debug log.
+   * Send debug log with a specified format.
    *
    * @param format The format
    * @param args The arguments of the format
