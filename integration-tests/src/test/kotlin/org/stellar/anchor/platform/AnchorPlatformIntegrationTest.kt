@@ -10,10 +10,7 @@ import java.util.concurrent.TimeUnit
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.junit.jupiter.api.*
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.ValueSource
+import org.junit.jupiter.api.Assertions.*
 import org.skyscreamer.jsonassert.JSONAssert
 import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.core.env.get
@@ -32,7 +29,6 @@ import org.stellar.anchor.platform.callback.RestFeeIntegration
 import org.stellar.anchor.platform.callback.RestRateIntegration
 import org.stellar.anchor.reference.AnchorReferenceServer
 import org.stellar.anchor.util.GsonUtils
-import org.stellar.anchor.util.HealthCheck
 import org.stellar.anchor.util.Sep1Helper
 
 class AnchorPlatformIntegrationTest {
@@ -77,16 +73,11 @@ class AnchorPlatformIntegrationTest {
     @AfterAll fun tearDown() {}
   }
 
-  @ParameterizedTest
-  @ValueSource(
-    strings = ["http://localhost:$SEP_SERVER_PORT", "http://localhost:$REFERENCE_SERVER_PORT"]
-  )
-  fun test_SepServer_health(endpoint: String) {
-    println("$endpoint/health")
-
+  @Test
+  fun test_PlatformServer_health() {
     val request =
       Request.Builder()
-        .url("$endpoint/health")
+        .url("http://localhost:$SEP_SERVER_PORT/health")
         .header("Content-Type", "application/json")
         .get()
         .build()
@@ -94,10 +85,38 @@ class AnchorPlatformIntegrationTest {
     val response = SepClient.client.newCall(request).execute()
     val responseBody = response.body?.string()
     assertNotNull(responseBody)
+    assertEquals(200, response.code)
 
-    val gotHealthCheck = SepClient.gson.fromJson(responseBody, HealthCheck::class.java)
-    val wantHealthCheck = HealthCheck(true)
-    assertEquals(wantHealthCheck, gotHealthCheck)
+    val result = gson.fromJson(responseBody, HashMap::class.java)
+    assertEquals(result["number_of_checks"], 1.0)
+    assertNotNull(result["checks"])
+    val checks = result["checks"] as Map<*, *>
+    val spo = checks["stellar_payment_observer"] as Map<*, *>
+    assertEquals(spo["status"], "green")
+    val streams = spo["streams"] as List<Map<*, *>>
+    assertEquals(streams[0]["thread_shutdown"], false)
+    assertEquals(streams[0]["thread_terminated"], false)
+    assertEquals(streams[0]["stopped"], false)
+    assertNotNull(streams[0]["lastEventId"])
+  }
+
+  @Test
+  fun test_ReferenceServer_health() {
+    val request =
+      Request.Builder()
+        .url("http://localhost:$REFERENCE_SERVER_PORT/health")
+        .header("Content-Type", "application/json")
+        .get()
+        .build()
+
+    val response = SepClient.client.newCall(request).execute()
+    val responseBody = response.body?.string()
+    assertNotNull(responseBody)
+    assertEquals(200, response.code)
+
+    val result = gson.fromJson(responseBody, HashMap::class.java)
+    assertEquals(result["number_of_checks"], 0.0)
+    assertNotNull(result["checks"])
   }
 
   private fun readSep1Toml(): Sep1Helper.TomlContent {

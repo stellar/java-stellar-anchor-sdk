@@ -1,4 +1,4 @@
-package org.stellar.anchor.sep1;
+package org.stellar.anchor.util;
 
 /** The interface to reads resource external to the application. */
 public interface ResourceReader {

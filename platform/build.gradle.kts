@@ -18,6 +18,7 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-reactor-netty")
 
   implementation(libs.commons.cli)
+  implementation(libs.commons.io)
   implementation(libs.google.gson)
   implementation(libs.java.stellar.sdk)
 

@@ -1,26 +1,16 @@
 package org.stellar.anchor.platform;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
-
 import com.google.gson.Gson;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.Reader;
-import java.io.UncheckedIOException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.core.io.DefaultResourceLoader;
-import org.springframework.core.io.Resource;
-import org.springframework.core.io.ResourceLoader;
-import org.springframework.util.FileCopyUtils;
 import org.stellar.anchor.api.callback.CustomerIntegration;
 import org.stellar.anchor.api.callback.FeeIntegration;
 import org.stellar.anchor.api.callback.RateIntegration;
 import org.stellar.anchor.api.exception.SepNotFoundException;
 import org.stellar.anchor.asset.AssetService;
-import org.stellar.anchor.asset.ResourceJsonAssetService;
 import org.stellar.anchor.config.*;
 import org.stellar.anchor.event.EventPublishService;
 import org.stellar.anchor.filter.Sep10TokenFilter;
@@ -28,9 +18,10 @@ import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.paymentservice.circle.CirclePaymentService;
 import org.stellar.anchor.paymentservice.circle.config.CirclePaymentConfig;
 import org.stellar.anchor.platform.data.*;
+import org.stellar.anchor.platform.service.ResourceReaderAssetService;
 import org.stellar.anchor.platform.service.Sep31DepositInfoGeneratorCircle;
 import org.stellar.anchor.platform.service.Sep31DepositInfoGeneratorSelf;
-import org.stellar.anchor.sep1.ResourceReader;
+import org.stellar.anchor.platform.service.SpringResourceReader;
 import org.stellar.anchor.sep1.Sep1Service;
 import org.stellar.anchor.sep10.JwtService;
 import org.stellar.anchor.sep10.Sep10Service;
@@ -42,6 +33,7 @@ import org.stellar.anchor.sep31.Sep31Service;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
 import org.stellar.anchor.sep38.Sep38Service;
+import org.stellar.anchor.util.ResourceReader;
 
 /** SEP configurations */
 @Configuration
@@ -75,8 +67,9 @@ public class SepConfig {
   }
 
   @Bean
-  AssetService assetService(AppConfig appConfig) throws IOException, SepNotFoundException {
-    return new ResourceJsonAssetService(appConfig.getAssets());
+  AssetService assetService(AppConfig appConfig, ResourceReader resourceReader)
+      throws IOException, SepNotFoundException {
+    return new ResourceReaderAssetService(appConfig.getAssets(), resourceReader);
   }
 
   @Bean
@@ -86,23 +79,7 @@ public class SepConfig {
 
   @Bean
   public ResourceReader resourceReader() {
-    return new ResourceReader() {
-      final ResourceLoader resourceLoader = new DefaultResourceLoader();
-
-      @Override
-      public String readResourceAsString(String path) {
-        Resource resource = resourceLoader.getResource(path);
-        return asString(resource);
-      }
-
-      public String asString(Resource resource) {
-        try (Reader reader = new InputStreamReader(resource.getInputStream(), UTF_8)) {
-          return FileCopyUtils.copyToString(reader);
-        } catch (IOException e) {
-          throw new UncheckedIOException(e);
-        }
-      }
-    };
+    return new SpringResourceReader();
   }
 
   @Bean

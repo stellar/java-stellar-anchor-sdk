@@ -1,8 +1,10 @@
 package org.stellar.anchor.sep1;
 
 import java.io.IOException;
+import org.stellar.anchor.api.exception.SepNotFoundException;
 import org.stellar.anchor.config.Sep1Config;
 import org.stellar.anchor.util.FileUtil;
+import org.stellar.anchor.util.ResourceReader;
 
 public class Sep1Service {
   private final Sep1Config sep1Config;
@@ -28,7 +30,7 @@ public class Sep1Service {
     this.resourceReader = resourceReader;
   }
 
-  public String getStellarToml() throws IOException {
+  public String getStellarToml() throws IOException, SepNotFoundException {
     if (resourceReader == null) {
       return FileUtil.getResourceFileAsString(sep1Config.getStellarFile());
     }

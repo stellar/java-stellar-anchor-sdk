@@ -146,7 +146,7 @@ public class Sep24Controller {
       consumes = {MediaType.APPLICATION_JSON_VALUE},
       method = {RequestMethod.GET})
   public GetTransactionResponse getTransaction(
-      HttpServletRequest request, @RequestBody GetTransactionRequest tr)
+      HttpServletRequest request, @RequestBody(required = false) GetTransactionRequest tr)
       throws SepException, IOException, URISyntaxException {
     debug("/transaction", tr);
     JwtToken token = getSep10Token(request);

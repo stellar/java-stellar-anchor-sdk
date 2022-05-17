@@ -1,11 +1,9 @@
 package org.stellar.anchor.platform
 
-import okhttp3.HttpUrl.Companion.toHttpUrl
-import okhttp3.Request
-import okhttp3.RequestBody.Companion.toRequestBody
 import org.stellar.anchor.api.sep.sep31.Sep31InfoResponse
 import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionRequest
 import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionResponse
+import shadow.com.google.common.reflect.TypeToken
 
 class Sep31Client(private val endpoint: String, private val jwt: String) : SepClient() {
   fun getInfo(): Sep31InfoResponse {
@@ -15,18 +13,13 @@ class Sep31Client(private val endpoint: String, private val jwt: String) : SepCl
   }
 
   fun postTransaction(txnRequest: Sep31PostTransactionRequest): Sep31PostTransactionResponse {
-    val urlBuilder = this.endpoint.toHttpUrl().newBuilder().addPathSegment("transactions")
-    val requestBody = gson.toJson(txnRequest).toRequestBody(TYPE_JSON)
-    val request =
-      Request.Builder()
-        .url(urlBuilder.build())
-        .header("Authorization", "Bearer $jwt")
-        .header("Content-Type", "application/json")
-        .post(requestBody)
-        .build()
+    val url = "$endpoint/transactions"
+    println("POST $url")
 
-    print(gson.toJson(txnRequest))
-    var response = client.newCall(request).execute()
-    return gson.fromJson(handleResponse(response), Sep31PostTransactionResponse::class.java)
+    val type = object : TypeToken<Map<String?, *>?>() {}.type
+    val requestBody: Map<String, Any> = gson.fromJson(gson.toJson(txnRequest), type)
+
+    val responseBody = httpPost(url, requestBody, jwt)
+    return gson.fromJson(responseBody, Sep31PostTransactionResponse::class.java)
   }
 }
