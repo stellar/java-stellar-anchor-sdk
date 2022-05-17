@@ -187,13 +187,13 @@ public class StellarPaymentObserver implements HealthCheckable {
     List<StreamHealth> results = new ArrayList<>();
     Status status = GREEN;
     for (SSEStream<OperationResponse> stream : streams) {
-      StreamHealth.StreamHealthBuilder builder = StreamHealth.builder();
-      builder.account(mapStreamToAccount.get(stream));
+      StreamHealth.StreamHealthBuilder healthBuilder = StreamHealth.builder();
+      healthBuilder.account(mapStreamToAccount.get(stream));
       // populate executorService information
       ExecutorService executorService = getField(stream, "executorService", null);
       if (executorService != null) {
-        builder.threadShutdown(executorService.isShutdown());
-        builder.threadTerminated(executorService.isTerminated());
+        healthBuilder.threadShutdown(executorService.isShutdown());
+        healthBuilder.threadTerminated(executorService.isTerminated());
         if (executorService.isShutdown() || executorService.isTerminated()) {
           status = RED;
         }
@@ -202,17 +202,17 @@ public class StellarPaymentObserver implements HealthCheckable {
       }
 
       boolean isStopped = getField(stream, "isStopped", new AtomicBoolean(false)).get();
-      builder.stopped(isStopped);
+      healthBuilder.stopped(isStopped);
       if (isStopped) {
         status = RED;
       }
 
       AtomicReference<String> lastEventId = getField(stream, "lastEventId", null);
       if (lastEventId != null) {
-        builder.lastEventId(lastEventId.get());
+        healthBuilder.lastEventId(lastEventId.get());
       }
 
-      results.add(builder.build());
+      results.add(healthBuilder.build());
     }
 
     return SPOHealthCheckResult.builder()

@@ -14,11 +14,9 @@ public class HealthCheckService {
       for (String tag : checkable.getTags()) {
         List<HealthCheckable> checksOfTag = mapCheckable.get(tag);
         if (checksOfTag == null) {
-          checksOfTag = List.of(checkable);
-          mapCheckable.put(tag, checksOfTag);
-        } else {
-          checksOfTag.add(checkable);
+          mapCheckable.put(tag, List.of());
         }
+        checksOfTag.add(checkable);
       }
     }
   }
