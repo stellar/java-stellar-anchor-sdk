@@ -81,6 +81,8 @@ public class Sep31Service {
     Context.get().setRequest(request);
     Context.get().setJwtToken(jwtToken);
 
+    validateAsset();
+
     String assetName =
         assetService.getAsset(request.getAssetCode(), request.getAssetIssuer()).getAssetName();
 
@@ -88,7 +90,6 @@ public class Sep31Service {
     validateAmount(request.getAmount());
     validateLanguage(appConfig, request.getLang());
     validateRequiredFields(assetName, request.getFields().getTransaction());
-    validateAsset();
     validateSenderAndReceiver();
     validateKyc();
     preValidateQuote();
