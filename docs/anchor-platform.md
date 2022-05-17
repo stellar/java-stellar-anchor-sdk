@@ -78,3 +78,14 @@ Docker Run:
 docker run -v {/local/path/to/config/file/}:/config -p 8081:8081 stellar-anchor-platform:latest --anchor-reference-server
 ```
 Note: this image can run --sep-server (port: 8080), --anchor-reference-server (port: 8081), --payment-observer
+
+## Event Messaging
+A message queue is also required for the Anchor Platform to publish messages to (and for the Anchor to consumer from).
+The default queueType used (in the anchor-config.yaml file) is "kafka". SQS is also supported. The default Kafka configuration
+should work out of the box, just deploy a local Kafka instance using the docker-compose.yaml file located at 
+`docs/docker-examples/kafka/docker-compose.yaml`
+
+```shell
+cd docs/docker-examples/kafka
+docker compose up
+```
