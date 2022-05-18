@@ -50,18 +50,18 @@ data:
       # sep-12
       sep12:
         enabled: true
-        #customerIntegrationEndpoint: http://references.stellaranchordemo.com
+        #customerIntegrationEndpoint: http://ref.stellaranchordemo.com
         customerIntegrationEndpoint: http://10.0.1.23:8081
     
       # sep-24
       sep24:
         enabled: true
         interactiveJwtExpiration: 3600
-        interactiveUrl: http://references.stellaranchordemo.com/sep24/interactive
+        interactiveUrl: http://ref.stellaranchordemo.com/sep24/interactive
       # sep-31
       sep31:
         enabled: true
-        feeIntegrationEndPoint: http://references.stellaranchordemo.com
+        feeIntegrationEndPoint: http://ref.stellaranchordemo.com
         #
         # paymentType: used to determine how amount_in is calculated from amount in the POST /transaction call
         # Possible values: STRICT_SEND or STRICT_RECEIVE. default=STRICT_SEND
@@ -78,7 +78,7 @@ data:
       # sep-38
       sep38:
         enabled: true
-        quoteIntegrationEndPoint: http://references.stellaranchordemo.com
+        quoteIntegrationEndPoint: http://ref.stellaranchordemo.com
       circle:
         circleUrl: https://api-sandbox.circle.com
         apiKey: secret # circle API key

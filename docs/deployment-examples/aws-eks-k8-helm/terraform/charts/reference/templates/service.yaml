@@ -5,7 +5,9 @@ metadata:
   namespace: anchor-platform
 spec:
   type: NodePort
+  selector:
+    app: reference
   ports:
-  - protocol: TCP
-    port: 8081       # port number the service will listen on
-    targetPort: 8081 # port number pods listen on
+    - protocol: TCP
+      port: 8081       # port number the service will listen on
+      targetPort: 8081 # port number pods listen on

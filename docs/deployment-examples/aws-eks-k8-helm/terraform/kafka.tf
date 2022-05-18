@@ -11,12 +11,12 @@ resource "aws_security_group" "sg" {
 resource "aws_msk_cluster" "anchor_kafka_msk" {
   cluster_name           = "anchorkafka"
   kafka_version          = "2.8.0"
-  number_of_broker_nodes = 3
+  number_of_broker_nodes = 2
 
   broker_node_group_info {
     instance_type   = "kafka.t3.small"
-    ebs_volume_size = 1000
-    client_subnets = module.vpc.private_subnets
+    ebs_volume_size = 500
+    client_subnets = [element(module.vpc.private_subnets, 0), element(module.vpc.private_subnets, 1)]
     security_groups = [aws_security_group.sg.id]
   }
 
