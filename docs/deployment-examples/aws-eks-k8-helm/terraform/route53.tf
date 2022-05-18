@@ -3,12 +3,17 @@ data "aws_route53_zone" "anchor-zone" {
   private_zone = false
 }
 
-data "kubernetes_service" "example" {
+data "kubernetes_service" "sep-service" {
   metadata {
-    name = "terraform-example"
+    name = "sep-service"
   }
 }
 
+data "kubernetes_service" "ref-service" {
+  metadata {
+    name = "sep-service"
+  }
+}
 resource "aws_route53_record" "sep" {
   zone_id = data.aws_route53_zone.anchor-zone.zone_id
   name    = "sep.${data.aws_route53_zone.selected.name}"
