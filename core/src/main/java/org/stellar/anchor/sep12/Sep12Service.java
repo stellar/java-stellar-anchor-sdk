@@ -1,15 +1,12 @@
 package org.stellar.anchor.sep12;
 
 import java.util.stream.Stream;
-import org.stellar.anchor.dto.sep12.Sep12GetCustomerRequest;
-import org.stellar.anchor.dto.sep12.Sep12GetCustomerResponse;
-import org.stellar.anchor.dto.sep12.Sep12PutCustomerRequest;
-import org.stellar.anchor.dto.sep12.Sep12PutCustomerResponse;
-import org.stellar.anchor.exception.AnchorException;
-import org.stellar.anchor.exception.SepException;
-import org.stellar.anchor.exception.SepNotAuthorizedException;
-import org.stellar.anchor.exception.SepValidationException;
-import org.stellar.anchor.integration.customer.CustomerIntegration;
+import org.stellar.anchor.api.callback.CustomerIntegration;
+import org.stellar.anchor.api.exception.*;
+import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerRequest;
+import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerResponse;
+import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest;
+import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerResponse;
 import org.stellar.anchor.sep10.JwtToken;
 import org.stellar.anchor.util.MemoHelper;
 import org.stellar.sdk.xdr.MemoType;
@@ -34,6 +31,9 @@ public class Sep12Service {
     request.setMemo(getMemoForCustomerIntegration(request.getMemo(), token.getAccountMemo()));
     request.setMemoType(
         getMemoTypeForCustomerIntegration(request.getMemo(), request.getMemoType()));
+    if (request.getId() == null && request.getAccount() == null && token.getAccount() != null) {
+      request.setAccount(token.getAccount());
+    }
     return customerIntegration.getCustomer(request);
   }
 
@@ -50,7 +50,31 @@ public class Sep12Service {
     request.setMemo(getMemoForCustomerIntegration(request.getMemo(), token.getAccountMemo()));
     request.setMemoType(
         getMemoTypeForCustomerIntegration(request.getMemo(), request.getMemoType()));
+    if (request.getAccount() == null && token.getAccount() != null) {
+      request.setAccount(token.getAccount());
+    }
     return customerIntegration.putCustomer(request);
+  }
+
+  public void deleteCustomer(JwtToken jwtToken, String account, String memo, String memoType)
+      throws AnchorException {
+    if (!jwtToken.getAccount().equals(account)) {
+      throw new SepNotAuthorizedException(
+          String.format("Not authorized to delete account [%s]", account));
+    }
+
+    Sep12GetCustomerResponse existingCustomer =
+        customerIntegration.getCustomer(
+            Sep12GetCustomerRequest.builder()
+                .account(account)
+                .memo(memo)
+                .memoType(memoType)
+                .build());
+    if (existingCustomer.getId() == null) {
+      throw new SepNotFoundException("User not found.");
+    }
+
+    customerIntegration.deleteCustomer(existingCustomer.getId());
   }
 
   void validateGetOrPutRequest(

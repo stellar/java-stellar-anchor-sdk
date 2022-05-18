@@ -2,17 +2,18 @@ package org.stellar.anchor.platform.controller;
 
 import static org.stellar.anchor.platform.controller.Sep10Helper.getSep10Token;
 
+import com.google.gson.Gson;
+import java.util.HashMap;
+import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import lombok.SneakyThrows;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
-import org.stellar.anchor.dto.sep12.Sep12GetCustomerRequest;
-import org.stellar.anchor.dto.sep12.Sep12GetCustomerResponse;
-import org.stellar.anchor.dto.sep12.Sep12PutCustomerRequest;
-import org.stellar.anchor.dto.sep12.Sep12PutCustomerResponse;
-import org.stellar.anchor.exception.SepValidationException;
+import org.stellar.anchor.api.sep.sep12.*;
 import org.stellar.anchor.sep10.JwtToken;
 import org.stellar.anchor.sep12.Sep12Service;
+import org.stellar.anchor.util.GsonUtils;
 
 @RestController
 @CrossOrigin(origins = "*")
@@ -53,14 +54,64 @@ public class Sep12Controller {
 
   @SneakyThrows
   @CrossOrigin(origins = "*")
+  @ResponseStatus(code = HttpStatus.ACCEPTED)
   @RequestMapping(
       value = "/customer",
       consumes = {MediaType.APPLICATION_JSON_VALUE},
       method = {RequestMethod.PUT})
   public Sep12PutCustomerResponse putCustomer(
-      HttpServletRequest request, @RequestBody Sep12PutCustomerRequest putCustomerRequest)
-      throws SepValidationException {
+      HttpServletRequest request, @RequestBody Sep12PutCustomerRequest putCustomerRequest) {
     JwtToken jwtToken = getSep10Token(request);
     return sep12Service.putCustomer(jwtToken, putCustomerRequest);
+  }
+
+  @SneakyThrows
+  @CrossOrigin(origins = "*")
+  @ResponseStatus(code = HttpStatus.ACCEPTED)
+  @RequestMapping(
+      value = "/customer",
+      method = {RequestMethod.POST, RequestMethod.PUT},
+      consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
+  public Sep12PutCustomerResponse putCustomerMultipart(HttpServletRequest request) {
+    Gson gson = GsonUtils.getInstance();
+    Map<String, String> requestData = new HashMap<>();
+    for (Map.Entry<String, String[]> entry : request.getParameterMap().entrySet()) {
+      requestData.put(entry.getKey(), entry.getValue()[0]);
+    }
+    Sep12PutCustomerRequest putCustomerRequest =
+        gson.fromJson(gson.toJson(requestData), Sep12PutCustomerRequest.class);
+    JwtToken jwtToken = getSep10Token(request);
+    return sep12Service.putCustomer(jwtToken, putCustomerRequest);
+  }
+
+  @SneakyThrows
+  @CrossOrigin(origins = "*")
+  @RequestMapping(
+      value = "/customer/{account}",
+      consumes = {MediaType.APPLICATION_JSON_VALUE},
+      method = {RequestMethod.DELETE})
+  public void deleteCustomer(
+      HttpServletRequest request,
+      @PathVariable String account,
+      @RequestBody(required = false) Sep12DeleteCustomerRequest body) {
+    JwtToken jwtToken = getSep10Token(request);
+    String memo = body != null ? body.getMemo() : null;
+    String memoType = body != null ? body.getMemoType() : null;
+    sep12Service.deleteCustomer(jwtToken, account, memo, memoType);
+  }
+
+  @SneakyThrows
+  @CrossOrigin(origins = "*")
+  @RequestMapping(
+      value = "/customer/{account}",
+      consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE},
+      method = {RequestMethod.DELETE})
+  public void deleteCustomer(
+      HttpServletRequest request,
+      @PathVariable String account,
+      @RequestParam(required = false) String memo,
+      @RequestParam(required = false, name = "memo_type") String memoType) {
+    JwtToken jwtToken = getSep10Token(request);
+    sep12Service.deleteCustomer(jwtToken, account, memo, memoType);
   }
 }

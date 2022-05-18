@@ -8,13 +8,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestClientException;
-import org.stellar.anchor.dto.SepExceptionResponse;
-import org.stellar.anchor.dto.sep10.ChallengeRequest;
-import org.stellar.anchor.dto.sep10.ChallengeResponse;
-import org.stellar.anchor.dto.sep10.ValidationRequest;
-import org.stellar.anchor.dto.sep10.ValidationResponse;
-import org.stellar.anchor.exception.SepException;
-import org.stellar.anchor.exception.SepValidationException;
+import org.stellar.anchor.api.exception.SepException;
+import org.stellar.anchor.api.exception.SepValidationException;
+import org.stellar.anchor.api.sep.SepExceptionResponse;
+import org.stellar.anchor.api.sep.sep10.ChallengeRequest;
+import org.stellar.anchor.api.sep.sep10.ChallengeResponse;
+import org.stellar.anchor.api.sep.sep10.ValidationRequest;
+import org.stellar.anchor.api.sep.sep10.ValidationResponse;
 import org.stellar.anchor.sep10.Sep10Service;
 import org.stellar.sdk.InvalidSep10ChallengeException;
 
@@ -79,8 +79,9 @@ public class Sep10Controller {
     InvalidSep10ChallengeException.class,
     URISyntaxException.class
   })
-  @ResponseStatus(value = org.springframework.http.HttpStatus.BAD_REQUEST)
-  public SepExceptionResponse handleSepValidationException(SepException ex) {
+  @ResponseStatus(value = HttpStatus.BAD_REQUEST)
+  public SepExceptionResponse handleSepValidationException(Exception ex) {
+    errorEx(ex);
     return new SepExceptionResponse(ex.getMessage());
   }
 

@@ -8,33 +8,41 @@ plugins {
 dependencies {
   api(libs.lombok)
 
+  annotationProcessor(libs.lombok)
+  annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
+
   implementation("org.springframework.boot:spring-boot")
   implementation("org.springframework.boot:spring-boot-autoconfigure")
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
   implementation("org.springframework.boot:spring-boot-starter-web")
+  implementation("org.springframework.boot:spring-boot-starter-reactor-netty")
+
   implementation(libs.commons.cli)
+  implementation(libs.commons.io)
   implementation(libs.google.gson)
   implementation(libs.java.stellar.sdk)
+
   implementation(libs.sqlite.jdbc)
   implementation(libs.okhttp3)
-
-  annotationProcessor(libs.lombok)
-  annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
+  implementation(libs.jackson.dataformat.yaml)
+  implementation(libs.log4j2.core)
+  implementation(libs.log4j2.slf4j)
 
   // From projects
+  implementation(project(":api-schema"))
   implementation(project(":core"))
-  implementation(project(":config-spring-property"))
-  implementation(project(":data-spring-jdbc"))
-  implementation(project(":platform-apis"))
+  implementation(project(":payment"))
   implementation(project(":anchor-reference-server"))
+
   testImplementation("org.springframework.boot:spring-boot-starter-test")
+  testImplementation(libs.okhttp3.mockserver)
 }
 
-application { mainClass.set("org.stellar.anchor.platform.ServiceRunner") }
-
-configurations {
-  all {
-    exclude(group = "ch.qos.logback", module = "logback-classic")
-    exclude(group = "org.apache.logging.log4j", module = "log4j-to-slf4j")
+tasks.test {
+  testLogging {
+    exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+    events = setOf(org.gradle.api.tasks.testing.logging.TestLogEvent.FAILED)
   }
 }
+
+tasks { bootJar { enabled = false } }

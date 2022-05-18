@@ -1,7 +1,6 @@
 package org.stellar.anchor.util;
 
 import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
 import java.beans.BeanInfo;
 import java.beans.Introspector;
 import java.beans.PropertyDescriptor;
@@ -12,7 +11,7 @@ import org.slf4j.LoggerFactory;
 
 /** Logging utility functions. */
 public class Log {
-  static final Gson gson = new GsonBuilder().setPrettyPrinting().create();
+  static final Gson gson = GsonUtils.builder().setPrettyPrinting().create();
 
   /**
    * Send msg as INFO log.
@@ -97,7 +96,7 @@ public class Log {
   }
 
   /**
-   * Send debug log.
+   * Send debug log with a specified format.
    *
    * @param format The format
    * @param args The arguments of the format
@@ -108,11 +107,44 @@ public class Log {
   }
 
   /**
+   * Send message to WARN log.
+   *
+   * @param msg The message
+   */
+  public static void warn(String msg) {
+    Logger logger = getLogger();
+    logger.warn(msg);
+  }
+
+  /**
+   * Send exception WARN log.
+   *
+   * @param ex The exception.
+   */
+  public static void warnEx(final Throwable ex) {
+    Logger logger = getLogger();
+    StringWriter sw = new StringWriter();
+    PrintWriter pw = new PrintWriter(sw);
+    ex.printStackTrace(pw);
+    logger.warn(sw.toString());
+  }
+
+  /**
+   * Send message to ERROR log.
+   *
+   * @param msg The message
+   */
+  public static void error(String msg) {
+    Logger logger = getLogger();
+    logger.error(msg);
+  }
+
+  /**
    * Send exception ERROR log.
    *
    * @param ex The exception.
    */
-  public static void errorEx(final Exception ex) {
+  public static void errorEx(final Throwable ex) {
     Logger logger = getLogger();
     StringWriter sw = new StringWriter();
     PrintWriter pw = new PrintWriter(sw);

@@ -6,19 +6,16 @@ import static org.stellar.anchor.util.Log.shorter;
 import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
+import org.stellar.anchor.api.exception.SepException;
+import org.stellar.anchor.api.exception.SepValidationException;
+import org.stellar.anchor.api.sep.sep10.ChallengeRequest;
+import org.stellar.anchor.api.sep.sep10.ChallengeResponse;
+import org.stellar.anchor.api.sep.sep10.ValidationRequest;
+import org.stellar.anchor.api.sep.sep10.ValidationResponse;
 import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.Sep10Config;
-import org.stellar.anchor.dto.sep10.ChallengeRequest;
-import org.stellar.anchor.dto.sep10.ChallengeResponse;
-import org.stellar.anchor.dto.sep10.ValidationRequest;
-import org.stellar.anchor.dto.sep10.ValidationResponse;
-import org.stellar.anchor.exception.SepException;
-import org.stellar.anchor.exception.SepValidationException;
 import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.util.Log;
 import org.stellar.anchor.util.Sep1Helper;
@@ -108,7 +105,7 @@ public class Sep10Service {
     //
     try {
       String clientSigningKey = null;
-      if (challengeRequest.getClientDomain() != null) {
+      if (!Objects.toString(challengeRequest.getClientDomain(), "").isEmpty()) {
         clientSigningKey = getClientAccountId(challengeRequest.getClientDomain());
       }
 

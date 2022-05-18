@@ -1,0 +1,22 @@
+Configutation:
+  name: default
+  Appenders:
+    Console:
+      name: console_appender
+      target: SYSTEM_OUT
+      PatternLayout:
+        pattern: "%d{HH:mm:ss.SSS} %-5level - %c{1.} - %msg%n"
+  Loggers:
+    Root:
+      level: info
+      AppenderRef:
+        - ref: console_appender
+    Logger:
+      - name: org.stellar
+        level: info
+      - name: org.apache
+        level: warn
+      - name: org.hibernate
+        level: warn
+      - name: com.zaxxer
+        level: warn

@@ -4,7 +4,6 @@ import com.google.gson.annotations.SerializedName;
 import lombok.Data;
 
 @Data
-@SuppressWarnings("unused")
 public class JwtToken {
   public JwtToken() {}
 

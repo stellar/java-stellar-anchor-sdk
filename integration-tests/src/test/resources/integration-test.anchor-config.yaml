@@ -1,0 +1,151 @@
+stellar:
+  anchor:
+    # Configure the application from this file after it is loaded in memory
+    # If `config` is in-memory, the yaml file contains all settings for the server.
+    config: in-memory
+    app-config:
+      type: config-spring-property                # Activate [config-spring-property] module
+      settings: app-config                        # The location of the configuration data
+    data-access:
+      type: data-spring-jdbc                      # Activate [config-spring-jdbc] module.
+      settings: data-spring-jdbc-h2         # The location of the configuration data in this file.
+    logging:
+      type: logging-logback
+      settings: logging-logback-settings
+
+#
+# Application settings
+#
+app-config:
+  # general
+  app:
+    stellarNetworkPassphrase: Test SDF Network ; September 2015
+    hostUrl: http://localhost:8080
+    languages: en
+    horizonUrl: https://horizon-testnet.stellar.org
+    assets: assets-test.json
+    jwtSecretKey: secret
+
+  # sep-1
+  sep1:
+    enabled: true
+    stellarFile: sep1/stellar-wks.toml
+
+  # sep-10
+  sep10:
+    enabled: true
+    homeDomain: localhost:8080
+    clientAttributionRequired: false
+    clientAttributionAllowList: lobstr.co,preview.lobstr.co # use this if we want to white list
+    # clientAttributionDenyList: # use this if we want to black list.
+    authTimeout: 900
+    jwtTimeout: 86400
+    signingSeed: SAX3AH622R2XT6DXWWSRIDCMMUCCMATBZ5U6XKJWDO7M2EJUBFC3AW5X
+
+  # sep-12
+  sep12:
+    enabled: true
+    customerIntegrationEndpoint: http://localhost:8081
+
+  # sep-24
+  sep24:
+    enabled: true
+    interactiveJwtExpiration: 3600
+    interactiveUrl: http://localhost:8081/sep24/interactive
+    
+  # sep-31
+  sep31:
+    enabled: true
+    feeIntegrationEndPoint: http://localhost:8081
+    #
+    # paymentType: used to determine how amount_in is calculated from amount in the POST /transaction call
+    # Possible values: STRICT_SEND or STRICT_RECEIVE. default=STRICT_SEND
+    #     STRICT_SEND: amount_in = amount
+    #     STRICT_RECEIVE: amount_in = amount + fee
+    paymentType: STRICT_SEND
+    #
+    # depositInfoGeneratorType: used to choose how the SEP-31 deposit information will be generated, which includes the
+    # deposit address, memo and memo type.
+    # Possible values:
+    #     self: the memo and memo type are generated in the local code, and the distribution account is used for the deposit address.
+    #     circle: the memo and memo type are generated through Circle API, as well as the deposit address.
+    depositInfoGeneratorType: self # self or circle
+
+  # sep-38
+  sep38:
+    enabled: true
+    quoteIntegrationEndPoint: http://localhost:8081
+
+  circle:
+    circleUrl: https://api-sandbox.circle.com
+    apiKey: secret # circle API key
+
+  payment-gateway:
+    #
+    # Payment Circle configurations
+    #
+    circle:
+      name: "circle"
+      enabled: true
+
+    #
+    # Payment Stellar configurations
+    #
+    stellar:
+      enabled: false
+      name: "stellar"
+      horizonUrl: https://horizon-testnet.stellar.org
+      secretKey: secret # stellar account secret key
+
+  circle-payment-observer:
+    enabled: true
+    horizonUrl: https://horizon-testnet.stellar.org
+    stellarNetwork: TESTNET # TESTNET or PUBLIC
+    trackedWallet: all
+
+  event:
+    enabled: true
+    kafkaBootstrapServer: localhost:29092
+    useSingleQueue: false
+    eventTypeToQueue:
+      all: ap_event_single_queue
+      quote_created: ap_event_quote_created
+      transaction_created: ap_event_transaction_created
+      transaction_status_changed: ap_event_transaction_status_changed
+      transaction_error: ap_event_transaction_error
+
+#
+# Spring Data JDBC settings
+#
+data-spring-jdbc-sqlite:
+  spring.jpa.database-platform: org.stellar.anchor.platform.sqlite.SQLiteDialect
+  spring.jpa.hibernate.ddl-auto: update
+  spring.jpa.generate-ddl: true
+  spring.jpa.hibernate.show_sql: false
+  spring.datasource.url: jdbc:sqlite:anchor-proxy.db
+  spring.datasource.driver-class-name: org.sqlite.JDBC
+  spring.datasource.username: admin
+  spring.datasource.password: admin
+  spring.mvc.converters.preferred-json-mapper: gson
+
+data-spring-jdbc-h2:
+  spring.datasource.url: jdbc:h2:mem:test
+  spring.jpa.properties.hibernate.dialect: org.hibernate.dialect.H2Dialect
+
+
+
+#
+# Spring framework configurations
+#
+spring:
+  logging:
+    level:
+      root: INFO
+      org.springframework: INFO
+      org.springframework.web.filter: INFO
+      org.stellar: DEBUG
+  server:
+    servlet:
+      context-path: "/"
+  mvc:
+    async.request-timeout: 6000

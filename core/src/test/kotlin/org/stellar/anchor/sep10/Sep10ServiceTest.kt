@@ -1,6 +1,5 @@
 package org.stellar.anchor.sep10
 
-import com.google.gson.Gson
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import java.io.IOException
@@ -21,14 +20,15 @@ import org.stellar.anchor.Constants.Companion.TEST_JWT_SECRET
 import org.stellar.anchor.Constants.Companion.TEST_MEMO
 import org.stellar.anchor.Constants.Companion.TEST_NETWORK_PASS_PHRASE
 import org.stellar.anchor.Constants.Companion.TEST_SIGNING_SEED
+import org.stellar.anchor.api.exception.SepException
+import org.stellar.anchor.api.exception.SepValidationException
+import org.stellar.anchor.api.sep.sep10.ChallengeRequest
+import org.stellar.anchor.api.sep.sep10.ChallengeRequestTest
+import org.stellar.anchor.api.sep.sep10.ValidationRequest
 import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.Sep10Config
-import org.stellar.anchor.dto.sep10.ChallengeRequest
-import org.stellar.anchor.dto.sep10.ChallengeRequestTest
-import org.stellar.anchor.dto.sep10.ValidationRequest
-import org.stellar.anchor.exception.SepException
-import org.stellar.anchor.exception.SepValidationException
 import org.stellar.anchor.horizon.Horizon
+import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.NetUtil
 import org.stellar.sdk.*
 import org.stellar.sdk.requests.ErrorResponse
@@ -43,7 +43,7 @@ internal class TestSigner(
   @SerializedName("sponsor") val sponsor: String
 ) {
   fun toSigner(): AccountResponse.Signer {
-    val gson = Gson()
+    val gson = GsonUtils.getInstance()
     val json = gson.toJson(this)
     return gson.fromJson(json, AccountResponse.Signer::class.java)
   }
