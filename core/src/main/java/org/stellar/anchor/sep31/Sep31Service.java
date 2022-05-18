@@ -137,7 +137,6 @@ public class Sep31Service {
                     .build())
             .build();
 
-
     eventService.publish(event);
 
     return Sep31PostTransactionResponse.builder()
