@@ -14,7 +14,6 @@ import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.shared.Amount;
-import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.event.EventPublishService;
 import org.stellar.anchor.event.models.*;
 import org.stellar.anchor.platform.data.JdbcSep31TransactionStore;
@@ -30,13 +29,11 @@ import org.stellar.sdk.xdr.MemoType;
 public class PaymentOperationToEventListener implements PaymentListener {
   final JdbcSep31TransactionStore transactionStore;
   final EventPublishService eventService;
-  final AssetService assetService;
 
   PaymentOperationToEventListener(
-      JdbcSep31TransactionStore transactionStore, EventPublishService eventService, AssetService assetService) {
+      JdbcSep31TransactionStore transactionStore, EventPublishService eventService) {
     this.transactionStore = transactionStore;
     this.eventService = eventService;
-    this.assetService = assetService;
   }
 
   @Override
@@ -85,10 +82,8 @@ public class PaymentOperationToEventListener implements PaymentListener {
       return;
     }
 
-    String assetName =
-            assetService.getAsset(payment.getAssetCode(), payment.getAssetIssuer()).getAssetName();
     // Compare asset code
-    if (!txn.getAmountInAsset().equals(assetName)) {
+    if (!txn.getAmountInAsset().equals(payment.getAssetCode())) {
       Log.warn(
           String.format(
               "Payment asset %s does not match the expected asset %s",
@@ -164,6 +159,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
             .amountExpected(new Amount(txn.getAmountIn(), txn.getAmountInAsset()))
             .amountIn(new Amount(payment.getAmount(), payment.getAssetCode()))
             .amountOut(new Amount(txn.getAmountOut(), txn.getAmountOutAsset()))
+            // TODO: fix PATCH transaction fails if getAmountOut is null?
             .amountFee(new Amount(txn.getAmountFee(), txn.getAmountFeeAsset()))
             .quoteId(txn.getQuoteId())
             .startedAt(txn.getStartedAt())

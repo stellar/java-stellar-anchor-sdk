@@ -10,7 +10,6 @@ import org.junit.jupiter.api.Test
 import org.stellar.anchor.api.exception.SepException
 import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.api.shared.Amount
-import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.event.EventPublishService
 import org.stellar.anchor.event.models.*
 import org.stellar.anchor.platform.data.JdbcSep31Transaction
@@ -20,7 +19,6 @@ import org.stellar.anchor.platform.paymentobserver.ObservedPayment
 class PaymentOperationToEventListenerTest {
   @MockK(relaxed = true) private lateinit var transactionStore: JdbcSep31TransactionStore
   @MockK(relaxed = true) private lateinit var eventPublishService: EventPublishService
-  @MockK(relaxed = true) private lateinit var assetService: AssetService
   private lateinit var paymentOperationToEventListener: PaymentOperationToEventListener
 
   @BeforeEach
@@ -28,7 +26,7 @@ class PaymentOperationToEventListenerTest {
     MockKAnnotations.init(this, relaxUnitFun = true)
 
     paymentOperationToEventListener =
-      PaymentOperationToEventListener(transactionStore, eventPublishService, assetService)
+      PaymentOperationToEventListener(transactionStore, eventPublishService)
   }
 
   @Test

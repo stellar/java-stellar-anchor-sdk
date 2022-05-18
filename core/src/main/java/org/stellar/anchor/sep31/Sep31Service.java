@@ -124,6 +124,7 @@ public class Sep31Service {
             .kind(TransactionEvent.Kind.RECEIVE)
             .amountIn(new Amount(txn.getAmountIn(), txn.getAmountInAsset()))
             .amountOut(new Amount(txn.getAmountOut(), txn.getAmountOutAsset()))
+            .amountFee(new Amount(txn.getAmountFee(), txn.getAmountFeeAsset()))
             .quoteId(txn.getQuoteId())
             .startedAt(txn.getStartedAt())
             .sourceAccount(request.getSenderId())
@@ -135,10 +136,6 @@ public class Sep31Service {
                     .memoType(txn.getStellarMemoType())
                     .build())
             .build();
-    // if there is no quote, add the fee to the event
-    if (request.getQuoteId() == null) {
-      event.setAmountFee(new Amount(txn.getAmountFee(), txn.getAmountFeeAsset()));
-    }
 
 
     eventService.publish(event);
@@ -163,7 +160,7 @@ public class Sep31Service {
     String feeAsset = String.valueOf(feeResponse.getAsset());
 
     BigDecimal amountIn;
-    String amountInAsset = reqAsset.getAssetName();
+    String amountInAsset = reqAsset.getCode();
     BigDecimal amountOut;
     String amountOutAsset;
 

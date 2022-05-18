@@ -49,8 +49,6 @@ public class AnchorEventProcessor {
     // NOTE: this code skips processing the received payment and just marks the
     // transaction as complete.
     Log.debug("Updating transaction: %s on Anchor Platform to 'complete'", event.getId());
-    switch(event.getStatus().status) {
-      case "pending_receiver":
         PatchTransactionsRequest txnRequest =
           PatchTransactionsRequest.builder()
             .records(
@@ -58,12 +56,12 @@ public class AnchorEventProcessor {
                 PatchTransactionRequest.builder()
                   .id(event.getId())
                   .status(TransactionEvent.Status.COMPLETED.status)
-//                  .amountFee(
-//                          new Amount(
-//                                  event.getAmountFee().getAmount(), event.getAmountFee().getAsset()))
-//                  .amountOut(
-//                          new Amount(
-//                                  event.getAmountOut().getAmount(), event.getAmountOut().getAsset()))
+                  .amountFee(
+                          new Amount(
+                                  event.getAmountFee().getAmount(), event.getAmountFee().getAsset()))
+                  .amountOut(
+                          new Amount(
+                                  event.getAmountOut().getAmount(), event.getAmountOut().getAsset()))
                   .build()))
             .build();
 
@@ -72,12 +70,5 @@ public class AnchorEventProcessor {
         } catch (IOException | AnchorException ex) {
           Log.errorEx(ex);
         }
-        break;
-      case "pending_sender":
-        break;
-      default:
-        break;
     }
-
-  }
 }
