@@ -1,5 +1,5 @@
 data "aws_route53_zone" "anchor-zone" {
-  name         = "${hosted_zone_name}"
+  name         = "${var.hosted_zone_name}"
   private_zone = false
 }
 
