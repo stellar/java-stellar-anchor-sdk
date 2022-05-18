@@ -7,12 +7,18 @@ data "kubernetes_service" "sep-service" {
   metadata {
     name = "sep-service"
   }
+  depends_on = [
+    resource.helm_release.sep
+  ]
 }
 
 data "kubernetes_service" "ref-service" {
   metadata {
     name = "sep-service"
   }
+  depends_on = [
+      resource.helm_release.reference
+  ]
 }
 resource "aws_route53_record" "sep" {
   zone_id = data.aws_route53_zone.anchor-zone.zone_id
