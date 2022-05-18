@@ -32,7 +32,7 @@ stellar:
     data-access:
       type: data-spring-jdbc
       settings: data-spring-jdbc-sqlite           # The absolute location of the configuration data in this yaml file
-      #settings: data-spring-jdbc-aws-aurora-postgres
+      #settings: data-spring-jdbc-local-postgres    # use local postgres instance
 
     #
     # Sets how the generates the logging information
@@ -253,6 +253,7 @@ data-spring-jdbc-sqlite:
   spring.datasource.username: admin
   spring.datasource.password: admin
   spring.mvc.converters.preferred-json-mapper: gson
+  spring.liquibase.enabled: false    # certain features that liquibase uses (ex: addForeignKeyConstraint) are not supported by sqlite
 
 data-spring-jdbc-aws-aurora-postgres:
   spring.jpa.generate-ddl: true
