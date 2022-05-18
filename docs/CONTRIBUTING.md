@@ -5,10 +5,17 @@
 Check out the [Stellar Contribution Guide](https://github.com/stellar/.github/blob/master/CONTRIBUTING.md) that apply to all Stellar projects.
 
 ## Coding Style Guides
-Check out the [Git Commit and Coding Style Guide](./stellar_anchor_platform_coding_style.md).
+Check out the [Git Commit and Coding Style Guide](./git-and-coding-style.md).
+
+## Logging Levels
+When contributing code, think twice about a given log message because not every bit of information is equally important. 
+Therefore, the logging levels should be used consistently.
+
+Please follow the [Logging Level Guidelines](./logging-level-guidelines.md)
+
 
 ## Development Tools Helps
-Check out the [Development Tools Help](./developer_tools.md).
+Check out the [Development Tools Help](./developer-tools.md).
 
 # Subprojects
 [Core](core.md): The SDK core library.

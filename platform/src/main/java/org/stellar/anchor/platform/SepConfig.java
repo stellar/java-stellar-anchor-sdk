@@ -1,7 +1,6 @@
 package org.stellar.anchor.platform;
 
 import com.google.gson.Gson;
-import java.io.IOException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -9,7 +8,6 @@ import org.springframework.context.annotation.Configuration;
 import org.stellar.anchor.api.callback.CustomerIntegration;
 import org.stellar.anchor.api.callback.FeeIntegration;
 import org.stellar.anchor.api.callback.RateIntegration;
-import org.stellar.anchor.api.exception.SepNotFoundException;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.*;
 import org.stellar.anchor.event.EventPublishService;
@@ -67,8 +65,7 @@ public class SepConfig {
   }
 
   @Bean
-  AssetService assetService(AppConfig appConfig, ResourceReader resourceReader)
-      throws IOException, SepNotFoundException {
+  AssetService assetService(AppConfig appConfig, ResourceReader resourceReader) {
     return new ResourceReaderAssetService(appConfig.getAssets(), resourceReader);
   }
 
