@@ -97,7 +97,6 @@ class AnchorPlatformIntegrationTest {
     assertEquals(streams[0]["thread_shutdown"], false)
     assertEquals(streams[0]["thread_terminated"], false)
     assertEquals(streams[0]["stopped"], false)
-    assertNotNull(streams[0]["lastEventId"])
   }
 
   @Test

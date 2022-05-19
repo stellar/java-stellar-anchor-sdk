@@ -13,7 +13,7 @@ Configutation:
         - ref: console_appender
     Logger:
       - name: org.stellar
-        level: info
+        level: debug
       - name: org.apache
         level: warn
       - name: org.hibernate
