@@ -21,24 +21,20 @@ public class Log {
   /**
    * Send debug log.
    *
-   * @param msg the debug message.
+   * @param message the debug message.
    */
-  public static void debug(final String msg) {
-    debug(msg, null);
+  public static void debug(final String message) {
+    printPlainText(message, null, getLogger()::debug);
   }
 
   /**
    * Send the msg as DEBUG log and detail as JSON.
    *
-   * @param msg the debug message.
+   * @param message the debug message.
    * @param detail The additional object to be logged.
    */
-  public static void debug(final String msg, Object detail) {
-    Logger logger = getLogger();
-    logger.debug(msg);
-    if (detail != null) {
-      logger.debug(gson.toJson(detail));
-    }
+  public static void debug(final String message, Object detail) {
+    printPlainText(message, detail, getLogger()::debug);
   }
 
   /**
@@ -113,24 +109,20 @@ public class Log {
   /**
    * Send msg as INFO log.
    *
-   * @param msg the debug message.
+   * @param message the debug message.
    */
-  public static void info(final String msg) {
-    info(msg, null);
+  public static void info(final String message) {
+    printPlainText(message, null, getLogger()::info);
   }
 
   /**
    * Send msg as INFO log and detail in JSON format.
    *
-   * @param msg the debug message.
+   * @param message the debug message.
    * @param detail The additional object to be logged.
    */
-  public static void info(final String msg, final Object detail) {
-    Logger logger = getLogger();
-    logger.info(msg);
-    if (detail != null) {
-      logger.info(gson.toJson(detail));
-    }
+  public static void info(final String message, final Object detail) {
+    printPlainText(message, detail, getLogger()::info);
   }
 
   /**
@@ -140,8 +132,7 @@ public class Log {
    * @param detail The additional object to be logged.
    */
   public static void infoB(final String msg, final Object detail) {
-    Logger logger = getLogger();
-    printBeanFormat(msg, detail, logger::info);
+    printBeanFormat(msg, detail, getLogger()::info);
   }
 
   /**
@@ -211,6 +202,25 @@ public class Log {
   }
 
   /**
+   * Send TRACE log.
+   *
+   * @param message the trace message.
+   */
+  public static void trace(final String message) {
+    printPlainText(message, null, getLogger()::trace);
+  }
+
+  /**
+   * Send the msg as TRACE log and detail as JSON.
+   *
+   * @param message the trace message.
+   * @param detail The additional object to be logged.
+   */
+  public static void trace(final String message, Object detail) {
+    printPlainText(message, detail, getLogger()::trace);
+  }
+
+  /**
    * Send TRACE log with format.
    *
    * @param format The format
@@ -224,11 +234,20 @@ public class Log {
   /**
    * Send message to WARN log.
    *
-   * @param msg The message
+   * @param message The message
    */
-  public static void warn(String msg) {
-    Logger logger = getLogger();
-    logger.warn(msg);
+  public static void warn(String message) {
+    printPlainText(message, null, getLogger()::warn);
+  }
+
+  /**
+   * Send the msg as WARN log and detail as JSON.
+   *
+   * @param message the warn message.
+   * @param detail The additional object to be logged.
+   */
+  public static void warn(final String message, Object detail) {
+    printPlainText(message, detail, getLogger()::warn);
   }
 
   /**
@@ -260,14 +279,30 @@ public class Log {
     return LoggerFactory.getLogger(cls);
   }
 
-  static void printBeanFormat(final String msg, final Object detail, Consumer<String> output) {
-    output.accept(msg);
+  static void printPlainText(
+      final String message, final Object detail, final Consumer<String> output) {
+    StringWriter sw = new StringWriter();
+    PrintWriter pw = new PrintWriter(sw);
+    if (message != null) {
+      pw.println(message);
+    }
+    if (detail != null) {
+      pw.println(gson.toJson(detail));
+    }
+    output.accept(sw.toString());
+  }
+
+  static void printBeanFormat(final String message, final Object detail, Consumer<String> output) {
+    StringWriter sw = new StringWriter();
+    PrintWriter pw = new PrintWriter(sw);
+    pw.println(message);
     BeanInfo beanInfo;
     try {
       StringBuilder sb = new StringBuilder("{\n");
       beanInfo = Introspector.getBeanInfo(detail.getClass());
       PropertyDescriptor[] pds = beanInfo.getPropertyDescriptors();
-      for (PropertyDescriptor pd : pds) {
+      for (int i = 0; i < pds.length; i++) {
+        PropertyDescriptor pd = pds[i];
         try {
           Field field = detail.getClass().getDeclaredField(pd.getName());
           if (field.isAnnotationPresent(PII.class)) {
@@ -285,7 +320,10 @@ public class Log {
           continue;
         }
         Object value = pd.getReadMethod().invoke(detail);
-        sb.append(String.format("'%s': '%s'\n", pd.getName(), value));
+        pw.print(String.format("'%s': '%s'", pd.getName(), value));
+        if (i != pds.length - 1) {
+          pw.print(",");
+        }
       }
       sb.append("}");
       output.accept(sb.toString());
