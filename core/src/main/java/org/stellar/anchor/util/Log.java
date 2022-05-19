@@ -24,8 +24,7 @@ public class Log {
    * @param msg the debug message.
    */
   public static void debug(final String msg) {
-    Logger logger = getLogger();
-    logger.debug(msg);
+    debug(msg, null);
   }
 
   /**
@@ -43,7 +42,8 @@ public class Log {
   }
 
   /**
-   * Send msg as DEBUG log and detail as a Java bean.
+   * Send msg as DEBUG log and detail as a Java bean. Ignore properties that are annotated
+   * with @PII.
    *
    * @param msg the debug message.
    * @param detail The additional object to be logged.
@@ -80,9 +80,21 @@ public class Log {
    * @param ex The exception.
    */
   public static void errorEx(final Throwable ex) {
+    errorEx(null, ex);
+  }
+
+  /**
+   * Send exception ERROR log with a message.
+   *
+   * @param ex The exception.
+   */
+  public static void errorEx(String msg, final Throwable ex) {
     Logger logger = getLogger();
     StringWriter sw = new StringWriter();
     PrintWriter pw = new PrintWriter(sw);
+    if (msg != null) {
+      pw.println(msg);
+    }
     ex.printStackTrace(pw);
     logger.error(sw.toString());
   }
@@ -104,8 +116,7 @@ public class Log {
    * @param msg the debug message.
    */
   public static void info(final String msg) {
-    Logger logger = getLogger();
-    logger.info(msg);
+    info(msg, null);
   }
 
   /**
@@ -117,11 +128,13 @@ public class Log {
   public static void info(final String msg, final Object detail) {
     Logger logger = getLogger();
     logger.info(msg);
-    logger.info(gson.toJson(detail));
+    if (detail != null) {
+      logger.info(gson.toJson(detail));
+    }
   }
 
   /**
-   * Send msg as INFO log and detail as a Java bean.
+   * Send msg as INFO log and detail as a Java bean. Ignore properties that are annotated with @PII.
    *
    * @param msg the debug message.
    * @param detail The additional object to be logged.
@@ -132,7 +145,7 @@ public class Log {
   }
 
   /**
-   * Send msg and configuration object as INFO log.
+   * Send msg and configuration object as INFO log. Ignore methods that are annotated with @Secret.
    *
    * @param msg the message.
    * @param config the configuration to be logged.
@@ -186,7 +199,8 @@ public class Log {
   }
 
   /**
-   * Send msg as TRACE log and detail as a Java bean.
+   * Send msg as TRACE log and detail as a Java bean. Ignore properties that are annotated
+   * with @PII.
    *
    * @param msg the debug message.
    * @param detail The additional object to be logged.
@@ -264,6 +278,10 @@ public class Log {
         }
 
         if (pd.getReadMethod().isAnnotationPresent(PII.class)) {
+          continue;
+        }
+
+        if (pd.getName().equals("class")) {
           continue;
         }
         Object value = pd.getReadMethod().invoke(detail);

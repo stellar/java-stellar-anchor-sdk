@@ -79,15 +79,19 @@ internal class LogTest {
 
   @Test
   fun testInfoBPII() {
-    val slot = slot<String>()
-    every { logger.info(capture(slot)) } answers {}
+    val slotMessages = mutableListOf<String>()
+    every { logger.info(capture(slotMessages)) } answers {}
 
     val testBeanPII = TestBeanPII()
     Log.infoB("Hello", testBeanPII)
-    verify(exactly = 2) { logger.info(ofType(String::class)) }
-    assertFalse(slot.captured.contains("fieldPII"))
-  }
 
+    verify(exactly = 2) { logger.info(ofType(String::class)) }
+    assertEquals("Hello", slotMessages[0])
+    val wantBean = """{
+'fieldNoPII': 'no secret'
+}""".trimMargin()
+    assertEquals(wantBean, slotMessages[1])
+  }
   @Suppress("unused")
   class TestAppConfig : AppConfig {
     override fun getStellarNetworkPassphrase(): String {
@@ -152,8 +156,14 @@ internal class LogTest {
   @Test
   fun testErrorEx() {
     Log.errorEx(Exception("mock exception"))
-
     verify(exactly = 1) { logger.error(any()) }
+
+    val slot = slot<String>()
+    every { logger.error(capture(slot)) } answers {}
+
+    Log.errorEx("Hello", Exception("mock exception"))
+    assertTrue(slot.captured.contains("Hello"))
+    assertTrue(slot.captured.contains("mock exception"))
   }
 
   @Test

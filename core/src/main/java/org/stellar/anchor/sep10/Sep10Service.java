@@ -1,5 +1,12 @@
 package org.stellar.anchor.sep10;
 
+import static org.stellar.anchor.util.Log.*;
+
+import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.*;
+import java.util.stream.Collectors;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.exception.SepValidationException;
 import org.stellar.anchor.api.sep.sep10.ChallengeRequest;
@@ -14,14 +21,6 @@ import org.stellar.anchor.util.Sep1Helper.TomlContent;
 import org.stellar.sdk.*;
 import org.stellar.sdk.requests.ErrorResponse;
 import org.stellar.sdk.responses.AccountResponse;
-
-import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static org.stellar.anchor.util.Log.*;
 
 /** The Sep-10 protocol service. */
 public class Sep10Service {
@@ -51,7 +50,7 @@ public class Sep10Service {
     // Validations
     //
     if (challengeRequest.getHomeDomain() == null) {
-      infoF("home_domain is not specified. Use {}", sep10Config.getHomeDomain());
+      debugF("home_domain is not specified. Will use the default: {}", sep10Config.getHomeDomain());
       challengeRequest.setHomeDomain(sep10Config.getHomeDomain());
     } else if (!sep10Config.getHomeDomain().equalsIgnoreCase(challengeRequest.getHomeDomain())) {
       infoF("Bad home_domain: {}", challengeRequest.getHomeDomain());
@@ -115,7 +114,7 @@ public class Sep10Service {
     try {
       String clientSigningKey = null;
       if (!Objects.toString(challengeRequest.getClientDomain(), "").isEmpty()) {
-        infoF("Fetching SIGNING_KEY from client_domain: {}", challengeRequest.getClientDomain());
+        debugF("Fetching SIGNING_KEY from client_domain: {}", challengeRequest.getClientDomain());
         clientSigningKey = getClientAccountId(challengeRequest.getClientDomain());
         debugF("SIGNING_KEY from client_domain fetched: {}", clientSigningKey);
       }
