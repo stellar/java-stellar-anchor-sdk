@@ -17,7 +17,6 @@ public class JsonAssetService implements AssetService {
 
   public List<AssetInfo> listAllAssets() {
     // we should make a copy to prevent mutation.
-    Log.infoF("The assets, {} ", this.assets);
     return new ArrayList<>(assets.assets);
   }
 

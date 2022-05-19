@@ -12,7 +12,6 @@ import org.stellar.anchor.Constants.Companion.TEST_JWT_SECRET
 import org.stellar.anchor.Constants.Companion.TEST_NETWORK_PASS_PHRASE
 import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.PII
-import org.stellar.anchor.util.Log.gson
 import org.stellar.anchor.util.Log.shorter
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -56,41 +55,40 @@ internal class LogTest {
 
   @Test
   fun testInfoDebug2() {
+    val slotInfo = slot<String>()
+    every { logger.info(capture(slotInfo)) } answers {}
+
     val detail = Object()
     Log.info("Hello", detail)
-    verify {
-      logger.info("Hello")
-      logger.info(gson.toJson(detail))
-    }
+    verify(exactly = 1) { logger.info(ofType(String::class)) }
+    assertTrue(slotInfo.captured.contains("Hello"))
 
+    val slotDebug = slot<String>()
+    every { logger.debug(capture(slotDebug)) } answers {}
     Log.debug("Hello", detail)
-    verify {
-      logger.debug("Hello")
-      logger.debug(gson.toJson(detail))
-    }
+    verify(exactly = 1) { logger.debug(ofType(String::class)) }
+    assertTrue(slotDebug.captured.contains("Hello"))
   }
 
   @Test
   fun testInfoB() {
     val testBean = TestBean()
     Log.infoB("Hello", testBean)
-    verify(exactly = 2) { logger.info(ofType(String::class)) }
+    verify(exactly = 1) { logger.info(ofType(String::class)) }
   }
 
   @Test
   fun testInfoBPII() {
-    val slotMessages = mutableListOf<String>()
-    every { logger.info(capture(slotMessages)) } answers {}
+    val slot = slot<String>()
+    every { logger.info(capture(slot)) } answers {}
 
     val testBeanPII = TestBeanPII()
     Log.infoB("Hello", testBeanPII)
 
-    verify(exactly = 2) { logger.info(ofType(String::class)) }
-    assertEquals("Hello", slotMessages[0])
-    val wantBean = """{
-'fieldNoPII': 'no secret'
-}""".trimMargin()
-    assertEquals(wantBean, slotMessages[1])
+    verify(exactly = 1) { logger.info(ofType(String::class)) }
+    val wantBean = """{'fieldNoPII': 'no secret'}""".trimMargin()
+    assertTrue(slot.captured.contains("Hello"))
+    assertTrue(slot.captured.contains(wantBean))
   }
   @Suppress("unused")
   class TestAppConfig : AppConfig {
@@ -126,7 +124,7 @@ internal class LogTest {
 
     val testAppConfig = TestAppConfig()
     Log.infoConfig("Hello", testAppConfig, AppConfig::class.java)
-    verify(exactly = 2) { logger.info(ofType(String::class)) }
+    verify(exactly = 1) { logger.info(ofType(String::class)) }
     assertFalse(slot.captured.contains(TEST_JWT_SECRET))
   }
 
@@ -150,7 +148,7 @@ internal class LogTest {
     val testBean = TestBean()
     Log.infoB("Hello", testBean)
 
-    verify(exactly = 2) { logger.info(ofType(String::class)) }
+    verify(exactly = 1) { logger.info(ofType(String::class)) }
   }
 
   @Test

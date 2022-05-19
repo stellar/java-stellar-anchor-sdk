@@ -16,7 +16,7 @@ import org.stellar.anchor.config.Secret;
 
 /** Logging utility functions. */
 public class Log {
-  static final Gson gson = GsonUtils.builder().setPrettyPrinting().create();
+  static final Gson gson = GsonUtils.builder().create();
 
   /**
    * Send debug log.
@@ -138,27 +138,25 @@ public class Log {
   /**
    * Send msg and configuration object as INFO log. Ignore methods that are annotated with @Secret.
    *
-   * @param msg the message.
+   * @param message the message.
    * @param config the configuration to be logged.
    */
-  public static void infoConfig(final String msg, final Object config, final Class<?> configClazz) {
+  public static void infoConfig(
+      final String message, final Object config, final Class<?> configClazz) {
     Logger logger = getLogger();
-    logger.info(msg);
     try {
-      StringBuilder sb = new StringBuilder("{");
+      StringBuilder sb = new StringBuilder(message + "{");
       Method[] methods = configClazz.getMethods();
-      for (int i = 0; i < methods.length; i++) {
-        Method method = methods[i];
-        if (!method.isAnnotationPresent(Secret.class)) {
-          Object result = method.invoke(config);
-          sb.append(String.format("'%s': '%s'", method.getName(), result));
-          if (i != methods.length - 1) {
-            sb.append(",");
-          }
+      for (Method method : methods) {
+        if (method.isAnnotationPresent(Secret.class)) {
+          continue;
         }
+
+        Object result = method.invoke(config);
+        sb.append(String.format("'%s': '%s', ", method.getName(), result));
       }
-      sb.append("}");
-      logger.info(sb.toString());
+      String str = sb.substring(0, sb.length() - 2) + "}";
+      logger.info(str);
     } catch (Exception e) {
       logger.info("Unable to serialize the bean.");
     }
@@ -281,28 +279,24 @@ public class Log {
 
   static void printPlainText(
       final String message, final Object detail, final Consumer<String> output) {
-    StringWriter sw = new StringWriter();
-    PrintWriter pw = new PrintWriter(sw);
+    StringBuilder sb = new StringBuilder();
     if (message != null) {
-      pw.println(message);
+      sb.append(message);
     }
     if (detail != null) {
-      pw.println(gson.toJson(detail));
+      sb.append(gson.toJson(detail));
     }
-    output.accept(sw.toString());
+    output.accept(sb.toString());
   }
 
   static void printBeanFormat(final String message, final Object detail, Consumer<String> output) {
-    StringWriter sw = new StringWriter();
-    PrintWriter pw = new PrintWriter(sw);
-    pw.println(message);
+    StringBuilder sb = new StringBuilder(message);
     BeanInfo beanInfo;
     try {
-      StringBuilder sb = new StringBuilder("{\n");
+      sb.append("{");
       beanInfo = Introspector.getBeanInfo(detail.getClass());
       PropertyDescriptor[] pds = beanInfo.getPropertyDescriptors();
-      for (int i = 0; i < pds.length; i++) {
-        PropertyDescriptor pd = pds[i];
+      for (PropertyDescriptor pd : pds) {
         try {
           Field field = detail.getClass().getDeclaredField(pd.getName());
           if (field.isAnnotationPresent(PII.class)) {
@@ -320,13 +314,10 @@ public class Log {
           continue;
         }
         Object value = pd.getReadMethod().invoke(detail);
-        pw.print(String.format("'%s': '%s'", pd.getName(), value));
-        if (i != pds.length - 1) {
-          pw.print(",");
-        }
+        sb.append(String.format("'%s': '%s', ", pd.getName(), value));
       }
-      sb.append("}");
-      output.accept(sb.toString());
+
+      output.accept(sb.substring(0, sb.length() - 2) + "}");
     } catch (Exception e) {
       output.accept("Unable to serialize the bean.");
     }
