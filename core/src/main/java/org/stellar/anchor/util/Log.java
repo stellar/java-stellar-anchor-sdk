@@ -1,14 +1,13 @@
 package org.stellar.anchor.util;
 
+import com.google.gson.ExclusionStrategy;
+import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
-import java.beans.BeanInfo;
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.function.Consumer;
+import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.stellar.anchor.config.PII;
@@ -16,7 +15,12 @@ import org.stellar.anchor.config.Secret;
 
 /** Logging utility functions. */
 public class Log {
-  static final Gson gson = GsonUtils.builder().create();
+  static final Gson gson;
+
+  static {
+    LogExclusionStrategy strategy = new LogExclusionStrategy();
+    gson = GsonUtils.builder().setExclusionStrategies(strategy).create();
+  }
 
   /**
    * Send debug log.
@@ -24,7 +28,7 @@ public class Log {
    * @param message the debug message.
    */
   public static void debug(final String message) {
-    printPlainText(message, null, getLogger()::debug);
+    logMessageWithJson(message, null, getLogger()::debug);
   }
 
   /**
@@ -33,20 +37,17 @@ public class Log {
    * @param message the debug message.
    * @param detail The additional object to be logged.
    */
-  public static void debug(final String message, Object detail) {
-    printPlainText(message, detail, getLogger()::debug);
+  public static void debug(final String message, final Object detail) {
+    logMessageWithJson(message, detail, getLogger()::debug);
   }
 
   /**
-   * Send msg as DEBUG log and detail as a Java bean. Ignore properties that are annotated
-   * with @PII.
+   * Send detail to INFO log in JSON format.
    *
-   * @param msg the debug message.
    * @param detail The additional object to be logged.
    */
-  public static void debugB(final String msg, final Object detail) {
-    Logger logger = getLogger();
-    printBeanFormat(msg, detail, logger::debug);
+  public static void debug(final Object detail) {
+    logMessageWithJson(null, detail, getLogger()::debug);
   }
 
   /**
@@ -65,9 +66,28 @@ public class Log {
    *
    * @param msg The message
    */
-  public static void error(String msg) {
+  public static void error(final String msg) {
     Logger logger = getLogger();
     logger.error(msg);
+  }
+
+  /**
+   * Send msg as ERROR log and detail in JSON format.
+   *
+   * @param message the debug message.
+   * @param detail The additional object to be logged.
+   */
+  public static void error(final String message, final Object detail) {
+    logMessageWithJson(message, detail, getLogger()::error);
+  }
+
+  /**
+   * Send detail to ERROR log in JSON format.
+   *
+   * @param detail The additional object to be logged.
+   */
+  public static void error(final Object detail) {
+    logMessageWithJson(null, detail, getLogger()::error);
   }
 
   /**
@@ -84,7 +104,7 @@ public class Log {
    *
    * @param ex The exception.
    */
-  public static void errorEx(String msg, final Throwable ex) {
+  public static void errorEx(final String msg, final Throwable ex) {
     Logger logger = getLogger();
     StringWriter sw = new StringWriter();
     PrintWriter pw = new PrintWriter(sw);
@@ -112,7 +132,7 @@ public class Log {
    * @param message the debug message.
    */
   public static void info(final String message) {
-    printPlainText(message, null, getLogger()::info);
+    logMessageWithJson(message, null, getLogger()::info);
   }
 
   /**
@@ -122,44 +142,16 @@ public class Log {
    * @param detail The additional object to be logged.
    */
   public static void info(final String message, final Object detail) {
-    printPlainText(message, detail, getLogger()::info);
+    logMessageWithJson(message, detail, getLogger()::info);
   }
 
   /**
-   * Send msg as INFO log and detail as a Java bean. Ignore properties that are annotated with @PII.
+   * Send detail to INFO log in JSON format.
    *
-   * @param msg the debug message.
    * @param detail The additional object to be logged.
    */
-  public static void infoB(final String msg, final Object detail) {
-    printBeanFormat(msg, detail, getLogger()::info);
-  }
-
-  /**
-   * Send msg and configuration object as INFO log. Ignore methods that are annotated with @Secret.
-   *
-   * @param message the message.
-   * @param config the configuration to be logged.
-   */
-  public static void infoConfig(
-      final String message, final Object config, final Class<?> configClazz) {
-    Logger logger = getLogger();
-    try {
-      StringBuilder sb = new StringBuilder(message + "{");
-      Method[] methods = configClazz.getMethods();
-      for (Method method : methods) {
-        if (method.isAnnotationPresent(Secret.class)) {
-          continue;
-        }
-
-        Object result = method.invoke(config);
-        sb.append(String.format("'%s': '%s', ", method.getName(), result));
-      }
-      String str = sb.substring(0, sb.length() - 2) + "}";
-      logger.info(str);
-    } catch (Exception e) {
-      logger.info("Unable to serialize the bean.");
-    }
+  public static void info(final Object detail) {
+    logMessageWithJson(null, detail, getLogger()::info);
   }
 
   /**
@@ -179,7 +171,7 @@ public class Log {
    * @param account The Stellar account Id.
    * @return The shorter version.
    */
-  public static String shorter(String account) {
+  public static String shorter(final String account) {
     if (account.length() > 11) {
       return account.substring(0, 4) + "..." + account.substring(account.length() - 4);
     } else {
@@ -188,24 +180,12 @@ public class Log {
   }
 
   /**
-   * Send msg as TRACE log and detail as a Java bean. Ignore properties that are annotated
-   * with @PII.
-   *
-   * @param msg the debug message.
-   * @param detail The additional object to be logged.
-   */
-  public static void traceB(final String msg, final Object detail) {
-    Logger logger = getLogger();
-    printBeanFormat(msg, detail, logger::trace);
-  }
-
-  /**
    * Send TRACE log.
    *
    * @param message the trace message.
    */
   public static void trace(final String message) {
-    printPlainText(message, null, getLogger()::trace);
+    logMessageWithJson(message, null, getLogger()::trace);
   }
 
   /**
@@ -215,7 +195,16 @@ public class Log {
    * @param detail The additional object to be logged.
    */
   public static void trace(final String message, Object detail) {
-    printPlainText(message, detail, getLogger()::trace);
+    logMessageWithJson(message, detail, getLogger()::trace);
+  }
+
+  /**
+   * Send detail to TRACE log in JSON format.
+   *
+   * @param detail The additional object to be logged.
+   */
+  public static void trace(final Object detail) {
+    logMessageWithJson(null, detail, getLogger()::trace);
   }
 
   /**
@@ -234,8 +223,8 @@ public class Log {
    *
    * @param message The message
    */
-  public static void warn(String message) {
-    printPlainText(message, null, getLogger()::warn);
+  public static void warn(final String message) {
+    logMessageWithJson(message, null, getLogger()::warn);
   }
 
   /**
@@ -245,7 +234,16 @@ public class Log {
    * @param detail The additional object to be logged.
    */
   public static void warn(final String message, Object detail) {
-    printPlainText(message, detail, getLogger()::warn);
+    logMessageWithJson(message, detail, getLogger()::warn);
+  }
+
+  /**
+   * Send detail to WARN log in JSON format.
+   *
+   * @param detail The additional object to be logged.
+   */
+  public static void warn(final Object detail) {
+    logMessageWithJson(null, detail, getLogger()::warn);
   }
 
   /**
@@ -277,7 +275,7 @@ public class Log {
     return LoggerFactory.getLogger(cls);
   }
 
-  static void printPlainText(
+  static void logMessageWithJson(
       final String message, final Object detail, final Consumer<String> output) {
     StringBuilder sb = new StringBuilder();
     if (message != null) {
@@ -288,38 +286,45 @@ public class Log {
     }
     output.accept(sb.toString());
   }
+}
 
-  static void printBeanFormat(final String message, final Object detail, Consumer<String> output) {
-    StringBuilder sb = new StringBuilder(message);
-    BeanInfo beanInfo;
+class LogExclusionStrategy implements ExclusionStrategy {
+  @Override
+  public boolean shouldSkipField(FieldAttributes f) {
+    // Skip if the field is annotated
+    if (f.getAnnotation(PII.class) != null || f.getAnnotation(Secret.class) != null) {
+      return true;
+    }
+
+    String readMethodName = String.format("get%s", StringUtils.capitalize(f.getName()));
     try {
-      sb.append("{");
-      beanInfo = Introspector.getBeanInfo(detail.getClass());
-      PropertyDescriptor[] pds = beanInfo.getPropertyDescriptors();
-      for (PropertyDescriptor pd : pds) {
-        try {
-          Field field = detail.getClass().getDeclaredField(pd.getName());
-          if (field.isAnnotationPresent(PII.class)) {
-            continue;
-          }
-        } catch (NoSuchFieldException ex) {
-          // do nothing. proceed to check method
-        }
-
-        if (pd.getReadMethod().isAnnotationPresent(PII.class)) {
-          continue;
-        }
-
-        if (pd.getName().equals("class")) {
-          continue;
-        }
-        Object value = pd.getReadMethod().invoke(detail);
-        sb.append(String.format("'%s': '%s', ", pd.getName(), value));
+      // Skip if the readMethod is annotated
+      Class<?> cls = f.getDeclaringClass();
+      Method readMethod = cls.getMethod(readMethodName);
+      if (shouldSkipMethod(readMethod)) {
+        return true;
       }
 
-      output.accept(sb.substring(0, sb.length() - 2) + "}");
-    } catch (Exception e) {
-      output.accept("Unable to serialize the bean.");
+      // Skip if the readMethod of any class-implementing interface is annotated
+      for (Class<?> ifc : cls.getInterfaces()) {
+        readMethod = ifc.getMethod(readMethodName);
+        if (shouldSkipMethod(readMethod)) {
+          return true;
+        }
+      }
+    } catch (NoSuchMethodException e) {
+      // the field does not have a get method
     }
+
+    return false;
+  }
+
+  @Override
+  public boolean shouldSkipClass(Class<?> clazz) {
+    return false;
+  }
+
+  boolean shouldSkipMethod(Method method) {
+    return (method.isAnnotationPresent(PII.class) || method.isAnnotationPresent(Secret.class));
   }
 }

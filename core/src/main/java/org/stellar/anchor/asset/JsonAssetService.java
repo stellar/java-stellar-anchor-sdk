@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.util.GsonUtils;
-import org.stellar.anchor.util.Log;
 
 public class JsonAssetService implements AssetService {
   static final Gson gson = GsonUtils.getInstance();
