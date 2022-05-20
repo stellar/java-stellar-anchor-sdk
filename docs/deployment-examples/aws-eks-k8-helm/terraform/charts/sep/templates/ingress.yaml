@@ -21,8 +21,22 @@ spec:
   - host: www.stellaranchordemo.com
     http:
       paths:
-      - path: /
-        pathType: ImplementationSpecific
+      - path: /info
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Release.Name }}-service
+            port:
+              number: 8080
+      - path: /transactions/
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Release.Name }}-service
+            port:
+              number: 8080
+      - path: /.well-known/stellar.toml
+        pathType: Prefix
         backend:
           service:
             name: {{ .Release.Name }}-service
