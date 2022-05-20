@@ -33,10 +33,10 @@ public class Sep10Service {
   public Sep10Service(
       AppConfig appConfig, Sep10Config sep10Config, Horizon horizon, JwtService jwtService) {
     infoF("Creating Sep10Service");
-    infoConfig("appConfig:", appConfig, AppConfig.class);
+    info("appConfig:", appConfig);
     this.appConfig = appConfig;
 
-    infoConfig("sep10Config:", sep10Config, Sep10Config.class);
+    info("sep10Config:", sep10Config);
     this.sep10Config = sep10Config;
 
     this.horizon = horizon;
@@ -134,10 +134,10 @@ public class Sep10Service {
                   : challengeRequest.getClientDomain(),
               (clientSigningKey == null) ? "" : clientSigningKey);
       // Convert the challenge to response
-      traceB("SEP-10 challenge txn:", txn);
+      trace("SEP-10 challenge txn:", txn);
       ChallengeResponse challengeResponse =
           ChallengeResponse.of(txn.toEnvelopeXdrBase64(), appConfig.getStellarNetworkPassphrase());
-      traceB("challengeResponse:", challengeResponse);
+      trace("challengeResponse:", challengeResponse);
       return challengeResponse;
     } catch (URISyntaxException e) {
       warnF("Invalid HOST_URL: {}", appConfig.getHostUrl());
@@ -177,7 +177,7 @@ public class Sep10Service {
         shorter(challenge.getClientAccountId()),
         challenge.getMatchedHomeDomain());
 
-    traceB("challenge:", challenge);
+    trace("challenge:", challenge);
 
     String clientDomain = null;
     Operation operation =
@@ -189,7 +189,7 @@ public class Sep10Service {
             .findFirst()
             .orElse(null);
 
-    traceB("Challenge operation:", operation);
+    trace("Challenge operation:", operation);
     if (operation != null) {
       clientDomain = new String(((ManageDataOperation) operation).getValue());
     }
@@ -296,7 +296,7 @@ public class Sep10Service {
             new Network(appConfig.getStellarNetworkPassphrase()),
             sep10Config.getHomeDomain(),
             getDomainFromURI(appConfig.getHostUrl()));
-    debugB("challenge:", challenge);
+    debug("challenge:", challenge);
     long issuedAt = challenge.getTransaction().getTimeBounds().getMinTime();
     JwtToken jwtToken =
         JwtToken.of(
@@ -306,7 +306,7 @@ public class Sep10Service {
             issuedAt + sep10Config.getJwtTimeout(),
             challenge.getTransaction().hashHex(),
             clientDomain);
-    debugB("jwtToken:", jwtToken);
+    debug("jwtToken:", jwtToken);
     return jwtService.encode(jwtToken);
   }
 

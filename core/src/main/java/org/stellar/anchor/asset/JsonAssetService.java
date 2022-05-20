@@ -5,7 +5,6 @@ import java.util.ArrayList;
 import java.util.List;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.util.GsonUtils;
-import org.stellar.anchor.util.Log;
 
 public class JsonAssetService implements AssetService {
   static final Gson gson = GsonUtils.getInstance();
@@ -17,7 +16,6 @@ public class JsonAssetService implements AssetService {
 
   public List<AssetInfo> listAllAssets() {
     // we should make a copy to prevent mutation.
-    Log.infoF("The assets, {} ", this.assets);
     return new ArrayList<>(assets.assets);
   }
 
