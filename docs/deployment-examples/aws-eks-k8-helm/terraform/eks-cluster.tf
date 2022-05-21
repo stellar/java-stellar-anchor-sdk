@@ -328,7 +328,7 @@ module "eks" {
     common = {
       
       capacity_type = "SPOT"
-      instance_types = ["t3.small"]
+      instance_types = ["t3.large"]
       desired_size = 5
       min_size     = 5
       max_size     = 6
