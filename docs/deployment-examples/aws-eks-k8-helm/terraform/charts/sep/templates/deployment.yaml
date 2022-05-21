@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
       - name: sep-server
-        image: stellar/anchor-platform:9cea0d1
+        image: reecemarkowsky/testing:latest
         args: ["--sep-server"]
         imagePullPolicy: Always
         ports:
