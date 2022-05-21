@@ -9,16 +9,9 @@ metadata:
 spec:
   ingressClassName: alb
   rules:
- #   - host: ref.stellaranchordemo.com
-    - http:
+    - host: ref.stellaranchordemo.com
+      http:
         paths:
-#          - path: /health
- #           pathType: Prefix
-  #          backend:
-   #           service:
-    #            name: {{ .Release.Name }}-service
-     #           port:
-      #            number: 8081
           - path: /
             pathType: Prefix
             backend:

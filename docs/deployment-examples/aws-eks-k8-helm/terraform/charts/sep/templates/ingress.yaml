@@ -35,6 +35,13 @@ spec:
             name: {{ .Release.Name }}-service
             port:
               number: 8080
+      - path: /customer
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Release.Name }}-service
+            port:
+              number: 8080
       - path: /.well-known/stellar.toml
         pathType: Prefix
         backend:
