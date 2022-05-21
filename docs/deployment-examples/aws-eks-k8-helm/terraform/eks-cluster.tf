@@ -316,7 +316,7 @@ module "eks" {
 
   # EKS Managed Node Group(s)
   eks_managed_node_group_defaults = {
-    instance_types = ["t3.nano", "t3.micro"]
+    instance_types = ["t3.small"]
     update_launch_template_default_version = true
     #iam_role_additional_policies = [
     #  "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore"
@@ -328,7 +328,7 @@ module "eks" {
     common = {
       
       capacity_type = "SPOT"
-      instance_types = ["t3.nano", "t3.micro", "t3.small"]
+      instance_types = ["t3.small"]
       desired_size = 5
       min_size     = 5
       max_size     = 6
