@@ -11,7 +11,8 @@ metadata:
     ingress.kubernetes.io/content-type-nosniff: "true"
     ingress.kubernetes.io/hsts-max-age: "31536000"
     ingress.kubernetes.io/hsts-include-subdomains: "true"
-    nginx.ingress.kubernetes.io/auth-keepalive-timeout: 300
+    nginx.ingress.kubernetes.io/auth-keepalive-timeout: '300'
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: '300'
 spec:
   tls:
     - hosts:
