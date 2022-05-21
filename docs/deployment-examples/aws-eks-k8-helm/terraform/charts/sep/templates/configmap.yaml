@@ -142,10 +142,10 @@ data:
     spring:
       logging:
         level:
-          root: INFO
-          org.springframework: INFO
-          org.springframework.web.filter: INFO
-          org.stellar: INFO
+          root: DEBUG
+          org.springframework: DEBUG
+          org.springframework.web.filter: DEBUG
+          org.stellar: DEBUG
       mvc:
         async.request-timeout: 6000
   stellar-wks.toml: |
