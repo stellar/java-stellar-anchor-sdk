@@ -1,3 +1,4 @@
+.gitignore
 .gradle
 build/
 .idea/
@@ -5,4 +6,5 @@ target/
 *.db
 */out/**
 *.class
+*/bin/*
 .jpb

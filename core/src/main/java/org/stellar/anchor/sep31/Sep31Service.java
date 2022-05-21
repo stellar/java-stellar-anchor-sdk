@@ -5,6 +5,7 @@ import static org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_SEND;
 import static org.stellar.anchor.sep31.Sep31Helper.amountEquals;
 import static org.stellar.anchor.util.MathHelper.decimal;
 import static org.stellar.anchor.util.SepHelper.*;
+import org.stellar.anchor.util.Log;
 
 import java.math.BigDecimal;
 import java.util.*;
@@ -97,6 +98,7 @@ public class Sep31Service {
     queryFee();
 
     AssetInfo asset = Context.get().getAsset();
+    Log.info(String.format("REECEDEBUG: %s", assetName));
     Sep31Transaction txn =
         new Sep31TransactionBuilder(sep31TransactionStore)
             .id(generateSepTransactionId())
