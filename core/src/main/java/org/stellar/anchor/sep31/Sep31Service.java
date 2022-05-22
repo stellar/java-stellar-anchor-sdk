@@ -76,9 +76,11 @@ public class Sep31Service {
   }
 
   public Sep31PostTransactionResponse postTransaction(
-      JwtToken jwtToken, Sep31PostTransactionRequest request) throws AnchorException {
+    JwtToken jwtToken, Sep31PostTransactionRequest request) throws AnchorException {
+    
+    Log.info(String.format("REECEDEBUG: %s", request.toString()));
     Context.reset();
-
+    
     Context.get().setRequest(request);
     Context.get().setJwtToken(jwtToken);
 
