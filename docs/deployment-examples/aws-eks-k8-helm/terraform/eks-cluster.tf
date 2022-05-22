@@ -329,7 +329,7 @@ module "eks" {
       
       capacity_type = "SPOT"
       instance_types = ["t3.micro"]
-      desired_size = 5
+      desired_size = 6
       min_size     = 5
       max_size     = 8
 
