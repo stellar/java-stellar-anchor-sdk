@@ -83,11 +83,13 @@ public class Sep31Service {
     
     Context.get().setRequest(request);
     Context.get().setJwtToken(jwtToken);
+    Log.info(String.format("REECEDEBUG2"));
 
     String assetName =
         assetService.getAsset(request.getAssetCode(), request.getAssetIssuer()).getAssetName();
-
-    // Pre-validation
+    Log.info(String.format("REECEDEBU3G: %s", assetName));
+    
+        // Pre-validation
     validateAmount(request.getAmount());
     validateLanguage(appConfig, request.getLang());
     validateRequiredFields(assetName, request.getFields().getTransaction());
@@ -97,10 +99,12 @@ public class Sep31Service {
     preValidateQuote();
 
     // Query the fee
+    Log.info(String.format("Query The Fee1"));
     queryFee();
+    Log.info(String.format("Query The Fee2"));
 
     AssetInfo asset = Context.get().getAsset();
-    Log.info(String.format("REECEDEBUG: %s", assetName));
+    Log.info(String.format("REECEDEBUG4: %s", assetName));
     Sep31Transaction txn =
         new Sep31TransactionBuilder(sep31TransactionStore)
             .id(generateSepTransactionId())
@@ -111,14 +115,18 @@ public class Sep31Service {
             .clientDomain(jwtToken.getClientDomain())
             .fields(request.getFields().getTransaction())
             .build();
-
+    Log.info(String.format("REECEDEBUG5 txn: %s", txn.toString()));
     Context.get().setTransaction(txn);
 
     updateAmounts();
     updateDepositInfo(txn);
+    Log.info(String.format("REECEDEBUG6 txn: %s", txn.toString()));
 
+    Log.info(String.format("REECEDEBUG7"));
     sep31TransactionStore.save(txn);
+    Log.info(String.format("REECEDEBUG8"));
 
+   
     TransactionEvent event =
         TransactionEvent.builder()
             .eventId(UUID.randomUUID().toString())
@@ -141,8 +149,9 @@ public class Sep31Service {
                     .build())
             .build();
 
-    eventService.publish(event);
-
+            Log.info(String.format("REECEDEBUG9 event:%s", event.toString()));
+            eventService.publish(event);
+            Log.info(String.format("REECEDEBUG10"));
     return Sep31PostTransactionResponse.builder()
         .id(txn.getId())
         .stellarAccountId(Context.get().getAsset().getDistributionAccount())
