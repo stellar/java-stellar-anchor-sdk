@@ -149,6 +149,7 @@ public class Sep10Service {
   public String validateChallenge(String challengeXdr)
       throws IOException, InvalidSep10ChallengeException, URISyntaxException {
     Log.info("Parse challenge string.");
+    Log.info("REECEDEBUG");
     Sep10Challenge.ChallengeTransaction challenge =
         Sep10Challenge.readChallengeTransaction(
             challengeXdr,
