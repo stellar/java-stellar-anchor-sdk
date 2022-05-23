@@ -89,3 +89,13 @@ should work out of the box, just deploy a local Kafka instance using the docker-
 cd docs/docker-examples/kafka
 docker compose up
 ```
+
+## Docker Compose
+You can use docker compose to run everything - Anchor Platform, Reference Server, Kafka, and a Postgres Database.
+Config files for the Anchor Platform and Reference Server are located at `anchor-reference-server/src/main/resources/anchor-reference-server-docker-compose-config.yaml` and 
+`platform/src/main/resources/anchor-docker-compose-config.yaml`. The docker compose file is at the root of the project and will build the Anchor Platform and Reference Server 
+from source before deploying.
+```shell
+docker compose up
+```
+You can test against this setup by running the end-to-end tests (./end-to-end-tests/end_to_end_test.py) using localhost:8080 as the domain.
