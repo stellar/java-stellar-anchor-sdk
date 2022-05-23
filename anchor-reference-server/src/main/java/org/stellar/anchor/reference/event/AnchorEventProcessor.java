@@ -39,6 +39,7 @@ public class AnchorEventProcessor {
       case "transaction_status_changed":
         // TODO fix this - current code only handles payment received
         handleTransactionStatusChangedEvent(event);
+        break;
       case "transaction_error":
       default:
         Log.debug("error: anchor_platform_event - invalid message type '%s'%n", event.getType());

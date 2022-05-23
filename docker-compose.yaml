@@ -1,0 +1,51 @@
+version: '2'
+services:
+  anchor-platform:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    command: --anchor-reference-server --sep-server
+    environment:
+      - STELLAR_ANCHOR_CONFIG=file:/config/anchor-docker-compose-config.yaml
+      - REFERENCE_SERVER_CONFIG_ENV=file:/reference-config/anchor-reference-server-docker-compose-config.yaml
+    depends_on:
+      - db
+      - kafka
+    volumes:
+      - ./platform/src/main/resources:/config
+      - ./anchor-reference-server/src/main/resources:/reference-config
+    ports:
+      - "8080:8080"
+      - "8081:8081"
+
+  db:
+    image: postgres:latest
+    ports:
+      - "5431:5432"  # use 5431 so this doesn't conflict if you have a local postgres instance running
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+
+  zookeeper:
+    platform: linux/x86_64
+    image: confluentinc/cp-zookeeper:latest
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - 2181:2181
+
+  kafka:
+    platform: linux/x86_64
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      - zookeeper
+    ports:
+      - 29092:29092
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://host.docker.internal:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
