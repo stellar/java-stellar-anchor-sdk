@@ -31,8 +31,8 @@ stellar:
     #
     data-access:
       type: data-spring-jdbc
-      settings: data-spring-jdbc-sqlite           # The absolute location of the configuration data in this yaml file
-      #settings: data-spring-jdbc-local-postgres    # use local postgres instance
+      #settings: data-spring-jdbc-sqlite           # The absolute location of the configuration data in this yaml file
+      settings: data-spring-jdbc-local-postgres    # use local postgres instance
 
     #
     # Sets how the generates the logging information
@@ -271,9 +271,9 @@ data-spring-jdbc-local-postgres:
   spring.jpa.database: POSTGRESQL
   spring.jpa.show-sql: false
   spring.datasource.driver-class-name: org.postgresql.Driver
-  spring.datasource.url: jdbc:postgresql://host.docker.internal:5432/anchorplatform
-  spring.datasource.username: anchorplatform
-  spring.datasource.password: <PASSWORD>
+  spring.datasource.url: jdbc:postgresql://host.docker.internal:5431/
+  spring.datasource.username: postgres
+  spring.datasource.password: password
   spring.mvc.converters.preferred-json-mapper: gson
   spring.liquibase.change-log: classpath:/db/changelog/db.changelog-master.yaml
 

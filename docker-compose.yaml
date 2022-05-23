@@ -18,10 +18,13 @@ services:
       - "8080:8080"
       - "8081:8081"
 
-#  db:
-#    image: postgres:latest
-#    ports:
-#      - "5432:5432"
+  db:
+    image: postgres:latest
+    ports:
+      - "5431:5432"  # use 5431 so this doesn't conflict if you have a local postgres instance running
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
 
   zookeeper:
     platform: linux/x86_64
