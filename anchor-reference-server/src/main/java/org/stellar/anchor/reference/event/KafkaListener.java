@@ -1,21 +1,30 @@
 package org.stellar.anchor.reference.event;
 
+import static org.stellar.anchor.api.platform.HealthCheckStatus.GREEN;
+import static org.stellar.anchor.api.platform.HealthCheckStatus.RED;
+
 import java.time.Duration;
 import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import javax.annotation.PreDestroy;
+import lombok.Builder;
+import lombok.Data;
 import org.apache.kafka.clients.consumer.*;
 import org.apache.kafka.common.serialization.StringDeserializer;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
+import org.stellar.anchor.api.platform.HealthCheckResult;
+import org.stellar.anchor.api.platform.HealthCheckStatus;
 import org.stellar.anchor.event.models.AnchorEvent;
 import org.stellar.anchor.event.models.QuoteEvent;
 import org.stellar.anchor.event.models.TransactionEvent;
+import org.stellar.anchor.healthcheck.HealthCheckable;
 import org.stellar.anchor.reference.config.KafkaListenerSettings;
 import org.stellar.anchor.util.Log;
 
-public class KafkaListener extends AbstractEventListener {
+public class KafkaListener extends AbstractEventListener implements HealthCheckable {
   private final KafkaListenerSettings kafkaListenerSettings;
   private final AnchorEventProcessor processor;
   private final ExecutorService executor = Executors.newSingleThreadExecutor();
@@ -86,5 +95,51 @@ public class KafkaListener extends AbstractEventListener {
   public void destroy() {
     consumer.close();
     stop();
+  }
+
+  @Override
+  public int compareTo(@NotNull HealthCheckable other) {
+    return other.getName().compareTo(other.getName());
+  }
+
+  @Override
+  public String getName() {
+    return "kafka_listener";
+  }
+
+  @Override
+  public List<String> getTags() {
+    return List.of("all", "kafka");
+  }
+
+  @Override
+  public HealthCheckResult check() {
+    HealthCheckStatus status = GREEN;
+    if (executor.isTerminated() || executor.isShutdown()) {
+      status = RED;
+    }
+
+    return KafkaHealthCheckResult.builder()
+        .name(getName())
+        .status(status.getName())
+        .running(!executor.isTerminated())
+        .build();
+  }
+}
+
+@Data
+@Builder
+class KafkaHealthCheckResult implements HealthCheckResult {
+  transient String name;
+
+  List<String> statuses = List.of("green", "red");
+
+  String status;
+
+  boolean running;
+
+  @Override
+  public String name() {
+    return name;
   }
 }
