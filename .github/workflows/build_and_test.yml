@@ -88,3 +88,10 @@ jobs:
         run: |
           npm install -g @stellar/anchor-tests
           stellar-anchor-tests --home-domain $HOME_DOMAIN --seps 1 10 12 31 --sep-config platform/src/test/resources/stellar-anchor-tests-sep-config.json
+
+  complete:
+    needs: [build_and_test, sep_validation_suite]
+    runs-on: ubuntu-latest
+    steps:
+      - if: contains(needs.*.result, 'failure')
+        run: exit 1
