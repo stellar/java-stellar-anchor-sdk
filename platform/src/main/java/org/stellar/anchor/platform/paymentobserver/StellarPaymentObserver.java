@@ -1,7 +1,7 @@
 package org.stellar.anchor.platform.paymentobserver;
 
-import static org.stellar.anchor.platform.paymentobserver.Status.GREEN;
-import static org.stellar.anchor.platform.paymentobserver.Status.RED;
+import static org.stellar.anchor.api.platform.HealthCheckStatus.GREEN;
+import static org.stellar.anchor.api.platform.HealthCheckStatus.RED;
 import static org.stellar.anchor.util.ReflectionUtil.getField;
 
 import com.google.gson.annotations.SerializedName;
@@ -14,7 +14,8 @@ import lombok.Data;
 import org.jetbrains.annotations.NotNull;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.platform.HealthCheckResult;
-import org.stellar.anchor.platform.service.HealthCheckable;
+import org.stellar.anchor.api.platform.HealthCheckStatus;
+import org.stellar.anchor.healthcheck.HealthCheckable;
 import org.stellar.anchor.util.Log;
 import org.stellar.sdk.Server;
 import org.stellar.sdk.requests.EventListener;
@@ -185,7 +186,7 @@ public class StellarPaymentObserver implements HealthCheckable {
   @Override
   public HealthCheckResult check() {
     List<StreamHealth> results = new ArrayList<>();
-    Status status = GREEN;
+    HealthCheckStatus status = GREEN;
     for (SSEStream<OperationResponse> stream : streams) {
       StreamHealth.StreamHealthBuilder healthBuilder = StreamHealth.builder();
       healthBuilder.account(mapStreamToAccount.get(stream));
@@ -218,19 +219,8 @@ public class StellarPaymentObserver implements HealthCheckable {
     return SPOHealthCheckResult.builder()
         .name(getName())
         .streams(results)
-        .status(status.name)
+        .status(status.getName())
         .build();
-  }
-}
-
-enum Status {
-  RED("red"),
-  GREEN("green");
-
-  String name;
-
-  Status(String name) {
-    this.name = name;
   }
 }
 
@@ -240,7 +230,7 @@ enum Status {
 class SPOHealthCheckResult implements HealthCheckResult {
   transient String name;
 
-  List<String> statuses = List.of("green", "red");
+  List<String> statuses = List.of(GREEN.getName(), RED.getName());
 
   String status;
 

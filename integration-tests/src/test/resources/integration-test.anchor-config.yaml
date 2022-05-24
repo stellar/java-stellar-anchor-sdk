@@ -127,12 +127,12 @@ data-spring-jdbc-sqlite:
   spring.datasource.username: admin
   spring.datasource.password: admin
   spring.mvc.converters.preferred-json-mapper: gson
+  spring.liquibase.enabled: false
 
 data-spring-jdbc-h2:
   spring.datasource.url: jdbc:h2:mem:test
   spring.jpa.properties.hibernate.dialect: org.hibernate.dialect.H2Dialect
-
-
+  spring.liquibase.enabled: false
 
 #
 # Spring framework configurations

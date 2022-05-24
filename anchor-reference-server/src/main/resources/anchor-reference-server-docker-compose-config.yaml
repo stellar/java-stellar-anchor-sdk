@@ -8,7 +8,7 @@ server:
 #
 anchor.settings:
   version: 0.0.1
-  platformApiEndpoint: http://localhost:8080
+  platformApiEndpoint: http://host.docker.internal:8080
 
 event:
   # The listener type. values: [kafka, sqs, amqp]
@@ -18,7 +18,7 @@ event:
   listenerType: kafka
 
 kafka.listener:
-  bootstrapServer: localhost:29092
+  bootstrapServer: host.docker.internal:29092
   useSingleQueue: false
   eventTypeToQueue:
     all: ap_event_single_queue
@@ -40,7 +40,7 @@ sqs.listener:
   secretKey: <SECRET_KEY>
 
 amqp.listener:
-  endpoint: localhost:5672
+  endpoint: host.docker.internal:5672
 #
 # Spring Data JDBC settings for H2
 #
@@ -68,7 +68,7 @@ spring.mvc.converters.preferred-json-mapper: gson
 #spring.jpa.database: POSTGRESQL
 #spring.jpa.show-sql: false
 #spring.datasource.driver-class-name: org.postgresql.Driver
-#spring.datasource.url: jdbc:postgresql://localhost:5432/anchorplatform
+#spring.datasource.url: jdbc:postgresql://host.docker.internal:5432/anchorplatform
 #spring.datasource.username: anchorplatform
 #spring.datasource.password: <PASSWORD>
 #spring.mvc.converters.preferred-json-mapper: gson

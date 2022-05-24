@@ -31,8 +31,8 @@ stellar:
     #
     data-access:
       type: data-spring-jdbc
-      settings: data-spring-jdbc-sqlite           # The absolute location of the configuration data in this yaml file
-      #settings: data-spring-jdbc-local-postgres    # use local postgres instance
+      #settings: data-spring-jdbc-sqlite           # The absolute location of the configuration data in this yaml file
+      settings: data-spring-jdbc-local-postgres    # use local postgres instance
 
     #
     # Sets how the generates the logging information
@@ -60,7 +60,7 @@ app-config:
     horizonUrl: https://horizon-testnet.stellar.org
 
     # The URL where the platform server can be accessed by the client.
-    hostUrl: http://localhost:8080
+    hostUrl: http://host.docker.internal:8080
 
     # The supported languages defined by RFC4646 (https://datatracker.ietf.org/doc/html/rfc4646)
     # Currently, only "en" is supported.
@@ -95,7 +95,7 @@ app-config:
     enabled: true
 
     # The `home_domain` property of SEP-10. https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#request
-    homeDomain: localhost:8080
+    homeDomain: host.docker.internal:8080
 
     # Set if the client attribution is required
     clientAttributionRequired: false
@@ -129,7 +129,7 @@ app-config:
   sep12:
     enabled: true
     # The callback API endpoint.
-    customerIntegrationEndpoint: http://localhost:8081
+    customerIntegrationEndpoint: http://host.docker.internal:8081
 
   # sep-24
   sep24:
@@ -142,14 +142,14 @@ app-config:
     interactiveJwtExpiration: 3600
 
     # The interactive URL where the platform server will redirect to start the SEP-24 interactive flow.
-    interactiveUrl: http://localhost:8081/sep24/interactive
+    interactiveUrl: http://host.docker.internal:8081/sep24/interactive
 
   # sep-31
   sep31:
     enabled: true
 
     # The callback API endpoint.
-    feeIntegrationEndPoint: http://localhost:8081
+    feeIntegrationEndPoint: http://host.docker.internal:8081
 
     #
     # paymentType: used to determine how amount_in is calculated from amount in the POST /transaction call
@@ -171,7 +171,7 @@ app-config:
     enabled: true
 
     # The callback API endpoint.
-    quoteIntegrationEndPoint: http://localhost:8081
+    quoteIntegrationEndPoint: http://host.docker.internal:8081
 
   circle:
     circleUrl: https://api-sandbox.circle.com
@@ -212,7 +212,7 @@ app-config:
     # If useSingleQueue, all events are published to a single queue
     #   (specified in eventTypeToQueue.all)
     # eventTypeToQueue - a map of the event type to the queue name messages are published to
-    bootstrapServer: localhost:29092
+    bootstrapServer: host.docker.internal:29092
     useSingleQueue: false
     eventTypeToQueue:
       all: ap_event_single_queue
@@ -271,9 +271,9 @@ data-spring-jdbc-local-postgres:
   spring.jpa.database: POSTGRESQL
   spring.jpa.show-sql: false
   spring.datasource.driver-class-name: org.postgresql.Driver
-  spring.datasource.url: jdbc:postgresql://localhost:5432/anchorplatform
-  spring.datasource.username: anchorplatform
-  spring.datasource.password: <PASSWORD>
+  spring.datasource.url: jdbc:postgresql://host.docker.internal:5431/
+  spring.datasource.username: postgres
+  spring.datasource.password: password
   spring.mvc.converters.preferred-json-mapper: gson
   spring.liquibase.change-log: classpath:/db/changelog/db.changelog-master.yaml
 

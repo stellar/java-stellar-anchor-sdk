@@ -8,7 +8,6 @@ import java.time.format.DateTimeFormatter
 import java.util.*
 import java.util.concurrent.TimeUnit
 import okhttp3.OkHttpClient
-import okhttp3.Request
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 import org.skyscreamer.jsonassert.JSONAssert
@@ -31,6 +30,7 @@ import org.stellar.anchor.reference.AnchorReferenceServer
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.Sep1Helper
 
+@TestMethodOrder(MethodOrderer.OrderAnnotation::class)
 class AnchorPlatformIntegrationTest {
   companion object {
     private const val SEP_SERVER_PORT = 8080
@@ -71,52 +71,6 @@ class AnchorPlatformIntegrationTest {
     }
 
     @AfterAll fun tearDown() {}
-  }
-
-  @Test
-  fun test_PlatformServer_health() {
-    val request =
-      Request.Builder()
-        .url("http://localhost:$SEP_SERVER_PORT/health")
-        .header("Content-Type", "application/json")
-        .get()
-        .build()
-
-    val response = SepClient.client.newCall(request).execute()
-    val responseBody = response.body?.string()
-    assertNotNull(responseBody)
-    assertEquals(200, response.code)
-
-    val result = gson.fromJson(responseBody, HashMap::class.java)
-    assertEquals(result["number_of_checks"], 1.0)
-    assertNotNull(result["checks"])
-    val checks = result["checks"] as Map<*, *>
-    val spo = checks["stellar_payment_observer"] as Map<*, *>
-    assertEquals(spo["status"], "green")
-    val streams = spo["streams"] as List<Map<*, *>>
-    assertEquals(streams[0]["thread_shutdown"], false)
-    assertEquals(streams[0]["thread_terminated"], false)
-    assertEquals(streams[0]["stopped"], false)
-    assertNotNull(streams[0]["lastEventId"])
-  }
-
-  @Test
-  fun test_ReferenceServer_health() {
-    val request =
-      Request.Builder()
-        .url("http://localhost:$REFERENCE_SERVER_PORT/health")
-        .header("Content-Type", "application/json")
-        .get()
-        .build()
-
-    val response = SepClient.client.newCall(request).execute()
-    val responseBody = response.body?.string()
-    assertNotNull(responseBody)
-    assertEquals(200, response.code)
-
-    val result = gson.fromJson(responseBody, HashMap::class.java)
-    assertEquals(result["number_of_checks"], 0.0)
-    assertNotNull(result["checks"])
   }
 
   private fun readSep1Toml(): Sep1Helper.TomlContent {
@@ -161,6 +115,12 @@ class AnchorPlatformIntegrationTest {
   }
 
   @Test
+  @Order(7)
+  fun runPlatformTest() {
+    platformTestAll(toml, jwt)
+  }
+
+  @Test
   fun testCustomerIntegration() {
     assertThrows<NotFoundException> {
       rci.getCustomer(Sep12GetCustomerRequest.builder().id("1").build())
@@ -178,7 +138,7 @@ class AnchorPlatformIntegrationTest {
           .buyAsset(stellarUSDC)
           .build()
       )
-    Assertions.assertNotNull(result)
+    assertNotNull(result)
     val wantBody =
       """{
       "rate":{
@@ -213,7 +173,7 @@ class AnchorPlatformIntegrationTest {
           .build()
       )
 
-    Assertions.assertNotNull(result)
+    assertNotNull(result)
     JSONAssert.assertEquals(
       gson.toJson(result),
       """
@@ -240,7 +200,7 @@ class AnchorPlatformIntegrationTest {
             .build()
         )
         .rate
-    Assertions.assertNotNull(rate)
+    assertNotNull(rate)
 
     // check if id is a valid UUID
     val id = rate.id

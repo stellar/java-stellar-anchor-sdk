@@ -1,4 +1,4 @@
-package org.stellar.anchor.platform.service;
+package org.stellar.anchor.healthcheck;
 
 import java.util.List;
 import org.stellar.anchor.api.platform.HealthCheckResult;

@@ -12,7 +12,7 @@ lateinit var sep31Client: Sep31Client
 
 const val postTxnJson =
   """{
-    "amount": "10.0",
+    "amount": "10.00",
     "asset_code": "USDC",
     "asset_issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
     "receiver_id": "MOCK_RECEIVER_ID",
