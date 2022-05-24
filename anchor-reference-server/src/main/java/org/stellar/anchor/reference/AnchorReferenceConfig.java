@@ -19,7 +19,7 @@ public class AnchorReferenceConfig {
     return GsonUtils.builder().create();
   }
 
-  @Bean
+  @Bean(name = "eventListener")
   public AbstractEventListener eventListener(
       EventSettings eventSettings,
       AnchorEventProcessor anchorEventProcessor,

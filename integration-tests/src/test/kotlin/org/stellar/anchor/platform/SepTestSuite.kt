@@ -15,14 +15,25 @@ fun main(args: Array<String>) {
   // Start necessary servers
   val options = Options()
   options.addOption("h", "help", false, "Print this message.")
-  options.addOption("a", "all", false, "Start all servers.")
-  options.addOption("s", "sep-server", false, "Start SEP endpoint test server.")
-  options.addOption("r", "anchor-reference-server", false, "Start anchor reference test server.")
+  options.addOption("a", "start-all", false, "Start all servers.")
+  options.addOption("s", "start-sep-server", false, "Start SEP endpoint test server.")
+  options.addOption(
+    "r",
+    "start-anchor-reference-server",
+    false,
+    "Start anchor reference test server."
+  )
   options.addOption("t", "sep1-toml", true, "The path where the SEP1 TOML file can be read.")
-  val testOptions = Option("p", "tests", false, "SEPS to be test. eg: sep12")
-  testOptions.isRequired = true
-  testOptions.args = Option.UNLIMITED_VALUES
-  options.addOption(testOptions)
+  val sepTestOptions =
+    Option(
+      "p",
+      "tests",
+      false,
+      "Tests to be performed. One or multiple of [sep1,sep10,sep12,sep24,sep31,ref,platform]"
+    )
+  sepTestOptions.isRequired = true
+  sepTestOptions.args = Option.UNLIMITED_VALUES
+  options.addOption(sepTestOptions)
 
   try {
     val parser: CommandLineParser = DefaultParser()
@@ -71,6 +82,10 @@ fun main(args: Array<String>) {
 
     if ("platform" in tests) {
       platformTestAll(toml, getOrCreateJwt(toml)!!)
+    }
+
+    if ("ref" in tests) {
+      referenceServerTestAll()
     }
   } catch (ex: ParseException) {
     printUsage(options)

@@ -50,7 +50,7 @@ open class SepClient {
     return handleResponse(response)
   }
 
-  private fun handleResponse(response: Response): String? {
+  fun handleResponse(response: Response): String? {
     val responseBody = response.body?.string()
 
     println("statusCode: " + response.code)
