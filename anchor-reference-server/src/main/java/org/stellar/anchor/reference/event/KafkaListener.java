@@ -3,6 +3,7 @@ package org.stellar.anchor.reference.event;
 import static org.stellar.anchor.api.platform.HealthCheckStatus.GREEN;
 import static org.stellar.anchor.api.platform.HealthCheckStatus.RED;
 
+import com.google.gson.annotations.SerializedName;
 import java.time.Duration;
 import java.util.List;
 import java.util.Properties;
@@ -37,8 +38,7 @@ public class KafkaListener extends AbstractEventListener implements HealthChecka
     this.executor.submit(this::listen);
   }
 
-  public void listen() {
-    Log.info("Kafka event consumer server started ");
+  Consumer<String, AnchorEvent> createKafkaConsumer() {
     Properties props = new Properties();
 
     props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaListenerSettings.getBootStrapServer());
@@ -50,7 +50,14 @@ public class KafkaListener extends AbstractEventListener implements HealthChecka
     props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
     props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
 
-    Consumer<String, AnchorEvent> consumer = new KafkaConsumer<>(props);
+    return new KafkaConsumer<>(props);
+  }
+
+  public void listen() {
+    Log.info("Kafka event consumer server started ");
+
+    Consumer<String, AnchorEvent> consumer = createKafkaConsumer();
+
     KafkaListenerSettings.Queues q = kafkaListenerSettings.getEventTypeToQueue();
     consumer.subscribe(
         List.of(
@@ -119,11 +126,26 @@ public class KafkaListener extends AbstractEventListener implements HealthChecka
       status = RED;
     }
 
+    boolean kafkaAvailable = validateKafka();
+    if (!kafkaAvailable) {
+      status = RED;
+    }
+
     return KafkaHealthCheckResult.builder()
         .name(getName())
         .status(status.getName())
+        .kafkaAvailable(kafkaAvailable)
         .running(!executor.isTerminated())
         .build();
+  }
+
+  boolean validateKafka() {
+    try (Consumer<String, AnchorEvent> csm = createKafkaConsumer()) {
+      csm.listTopics();
+      return true;
+    } catch (Throwable throwable) {
+      return false;
+    }
   }
 }
 
@@ -132,11 +154,14 @@ public class KafkaListener extends AbstractEventListener implements HealthChecka
 class KafkaHealthCheckResult implements HealthCheckResult {
   transient String name;
 
-  List<String> statuses = List.of("green", "red");
+  List<String> statuses = List.of(GREEN.getName(), RED.getName());
 
   String status;
 
   boolean running;
+
+  @SerializedName("kafka_available")
+  boolean kafkaAvailable;
 
   @Override
   public String name() {

@@ -2,6 +2,7 @@ package org.stellar.anchor.api.platform;
 
 public enum HealthCheckStatus {
   RED("red"),
+  YELLOW("yellow"),
   GREEN("green");
 
   String name;

@@ -20,5 +20,6 @@ fun testReferenceHealth() {
     val kafkaListenerCheck = checks["kafka_listener"] as Map<*, *>
     Assertions.assertEquals(kafkaListenerCheck["status"], "green")
     Assertions.assertEquals(kafkaListenerCheck["running"], true)
+    Assertions.assertEquals(kafkaListenerCheck["kafka_available"], true)
   }
 }

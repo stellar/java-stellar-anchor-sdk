@@ -26,7 +26,8 @@ public class HealthController {
    *    "checks": {
    *      "kafka_listener": {
    *        "status": "green",
-   *        "running": true
+   *        "running": true,
+   *        "kafka_available": true
    *      }
    *    }
    *  }
