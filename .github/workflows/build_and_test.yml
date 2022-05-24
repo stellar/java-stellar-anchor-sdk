@@ -59,7 +59,7 @@ jobs:
   sep_validation_suite:
     needs: [build_and_test]
     runs-on: ubuntu-latest
-    name: Validate SEPs (1, 10, 12, 31, 38)
+    name: Validate SEPs (1, 10, 12, 31)
     env:
       PR_NUMBER: ${{github.event.pull_request.number}}
     steps:
@@ -87,4 +87,4 @@ jobs:
           HOME_DOMAIN: ${{ steps.endpoint-finder.outputs.HOME_DOMAIN }}
         run: |
           npm install -g @stellar/anchor-tests
-          stellar-anchor-tests --home-domain $HOME_DOMAIN --seps 1 10 12 31 38 --sep-config platform/src/test/resources/stellar-anchor-tests-sep-config.json
+          stellar-anchor-tests --home-domain $HOME_DOMAIN --seps 1 10 12 31 --sep-config platform/src/test/resources/stellar-anchor-tests-sep-config.json
