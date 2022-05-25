@@ -2,7 +2,6 @@ package org.stellar.anchor.api.sep.sep38;
 
 import com.google.gson.annotations.SerializedName;
 import java.time.Instant;
-import java.util.List;
 import lombok.Builder;
 import lombok.Data;
 
@@ -16,6 +15,9 @@ public class Sep38QuoteResponse {
 
   String price;
 
+  @SerializedName("total_price")
+  String totalPrice;
+
   @SerializedName("sell_asset")
   String sellAsset;
 
@@ -28,6 +30,5 @@ public class Sep38QuoteResponse {
   @SerializedName("buy_amount")
   String buyAmount;
 
-  @SerializedName("price_details")
-  List<PriceDetail> priceDetails;
+  RateFee fee;
 }

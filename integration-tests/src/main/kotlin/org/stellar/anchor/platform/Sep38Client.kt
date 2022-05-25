@@ -3,6 +3,7 @@ package org.stellar.anchor.platform
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 import okhttp3.HttpUrl.Companion.toHttpUrl
+import org.stellar.anchor.api.callback.GetRateRequest.Context
 import org.stellar.anchor.api.sep.sep38.GetPriceResponse
 import org.stellar.anchor.api.sep.sep38.GetPricesResponse
 import org.stellar.anchor.api.sep.sep38.InfoResponse
@@ -50,6 +51,7 @@ class Sep38Client(private val endpoint: String, private val jwt: String) : SepCl
     sellAsset: String,
     sellAmount: String,
     buyAsset: String,
+    context: Context = Context.SEP31,
     expireAfter: Instant? = null
   ): Sep38QuoteResponse {
     // build URL
@@ -61,6 +63,7 @@ class Sep38Client(private val endpoint: String, private val jwt: String) : SepCl
         "sell_asset" to sellAsset,
         "sell_amount" to sellAmount,
         "buy_asset" to buyAsset,
+        "context" to context,
       )
     if (expireAfter != null) {
       requestBody["expire_after"] = DateTimeFormatter.ISO_INSTANT.format(expireAfter)

@@ -9,6 +9,8 @@ import lombok.Data;
 public class GetRateRequest {
   Type type;
 
+  Context context;
+
   @SerializedName("sell_asset")
   String sellAsset;
 
@@ -39,8 +41,11 @@ public class GetRateRequest {
   String id;
 
   public enum Type {
-    @SerializedName("indicative")
-    INDICATIVE("indicative"),
+    @SerializedName("indicative_prices")
+    INDICATIVE_PRICES("indicative_prices"),
+
+    @SerializedName("indicative_price")
+    INDICATIVE_PRICE("indicative_price"),
 
     @SerializedName("firm")
     FIRM("firm");
@@ -48,6 +53,25 @@ public class GetRateRequest {
     private final String name;
 
     Type(String name) {
+      this.name = name;
+    }
+
+    @Override
+    public String toString() {
+      return name;
+    }
+  }
+
+  public enum Context {
+    @SerializedName("sep6")
+    SEP6("sep6"),
+
+    @SerializedName("sep31")
+    SEP31("sep31");
+
+    private final String name;
+
+    Context(String name) {
       this.name = name;
     }
 

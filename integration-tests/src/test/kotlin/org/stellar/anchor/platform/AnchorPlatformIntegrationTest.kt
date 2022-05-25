@@ -15,8 +15,8 @@ import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.core.env.get
 import org.stellar.anchor.api.callback.GetFeeRequest
 import org.stellar.anchor.api.callback.GetRateRequest
-import org.stellar.anchor.api.callback.GetRateRequest.Type.FIRM
-import org.stellar.anchor.api.callback.GetRateRequest.Type.INDICATIVE
+import org.stellar.anchor.api.callback.GetRateRequest.Context.*
+import org.stellar.anchor.api.callback.GetRateRequest.Type.*
 import org.stellar.anchor.api.exception.NotFoundException
 import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerRequest
 import org.stellar.anchor.config.AppConfig
@@ -128,11 +128,11 @@ class AnchorPlatformIntegrationTest {
   }
 
   @Test
-  fun testRateIndicative() {
+  fun testRate_indicativePrices() {
     val result =
       rri.getRate(
         GetRateRequest.builder()
-          .type(INDICATIVE)
+          .type(INDICATIVE_PRICES)
           .sellAsset(fiatUSD)
           .sellAmount("100")
           .buyAsset(stellarUSDC)
@@ -143,21 +143,110 @@ class AnchorPlatformIntegrationTest {
       """{
       "rate":{
         "price":"1.02",
-        "price_details": [
-          {
-            "name": "Sell fee",
-            "value": "1.00",
-            "asset": "$fiatUSD"
-          },
-          {
-            "name": "Buy fee",
-            "value": "0.99",
-            "asset": "$stellarUSDC"
-          }
-        ]
+        "sell_amount": "100",
+        "buy_amount": "98.0392"
       }
     }""".trimMargin()
     JSONAssert.assertEquals(wantBody, gson.toJson(result), true)
+  }
+
+  @Test
+  fun testRate_indicativePrice() {
+    val result =
+      rri.getRate(
+        GetRateRequest.builder()
+          .type(INDICATIVE_PRICE)
+          .context(SEP31)
+          .sellAsset(fiatUSD)
+          .sellAmount("100")
+          .buyAsset(stellarUSDC)
+          .build()
+      )
+    assertNotNull(result)
+    val wantBody =
+      """{
+      "rate":{
+        "total_price":"1.0303",
+        "price":"1.02",
+        "sell_amount": "100",
+        "buy_amount": "97.0588",
+        "fee": {
+          "total": "1.00",
+          "asset": "$fiatUSD",
+          "details": [
+            {
+              "name": "Sell fee",
+              "description": "Fee related to selling the asset.",
+              "amount": "1.00"
+            }
+          ]
+        }
+      }
+    }""".trimMargin()
+    JSONAssert.assertEquals(wantBody, gson.toJson(result), true)
+  }
+
+  @Test
+  fun testRate_firm() {
+    val rate =
+      rri.getRate(
+          GetRateRequest.builder()
+            .type(FIRM)
+            .context(SEP31)
+            .sellAsset(fiatUSD)
+            .buyAsset(stellarUSDC)
+            .buyAmount("100")
+            .build()
+        )
+        .rate
+    assertNotNull(rate)
+
+    // check if id is a valid UUID
+    val id = rate.id
+    assertDoesNotThrow { UUID.fromString(id) }
+    var gotExpiresAt: Instant? = null
+    val expiresAtStr = rate.expiresAt.toString()
+    assertDoesNotThrow {
+      gotExpiresAt = DateTimeFormatter.ISO_INSTANT.parse(rate.expiresAt.toString(), Instant::from)
+    }
+
+    val wantExpiresAt =
+      ZonedDateTime.now(ZoneId.of("UTC"))
+        .plusDays(1)
+        .withHour(12)
+        .withMinute(0)
+        .withSecond(0)
+        .withNano(0)
+    assertEquals(wantExpiresAt.toInstant(), gotExpiresAt)
+
+    // check if rate was persisted by getting the rate with ID
+    val gotQuote = rri.getRate(GetRateRequest.builder().id(rate.id).build())
+    assertEquals(rate.id, gotQuote.rate.id)
+    assertEquals("1.02", gotQuote.rate.price)
+
+    val wantBody =
+      """{
+      "rate":{
+        "id": "$id",
+        "total_price":"1.03",
+        "price":"1.02",
+        "sell_amount": "103",
+        "buy_amount": "100",
+        "expires_at": "$expiresAtStr",
+        "fee": {
+          "total": "1.00",
+          "asset": "$fiatUSD",
+          "details": [
+            {
+              "name": "Sell fee",
+              "description": "Fee related to selling the asset.",
+              "amount": "1.00"
+            }
+          ]
+        }
+      }
+    }""".trimMargin()
+    JSONAssert.assertEquals(wantBody, gson.toJson(gotQuote), true)
   }
 
   @Test
@@ -186,43 +275,6 @@ class AnchorPlatformIntegrationTest {
       """,
       true
     )
-  }
-
-  @Test
-  fun testGetRateFirm() {
-    val rate =
-      rri.getRate(
-          GetRateRequest.builder()
-            .type(FIRM)
-            .sellAsset(fiatUSD)
-            .buyAsset(stellarUSDC)
-            .buyAmount("100")
-            .build()
-        )
-        .rate
-    assertNotNull(rate)
-
-    // check if id is a valid UUID
-    val id = rate.id
-    assertDoesNotThrow { UUID.fromString(id) }
-    var gotExpiresAt: Instant? = null
-    assertDoesNotThrow {
-      gotExpiresAt = DateTimeFormatter.ISO_INSTANT.parse(rate.expiresAt.toString(), Instant::from)
-    }
-
-    val wantExpiresAt =
-      ZonedDateTime.now(ZoneId.of("UTC"))
-        .plusDays(1)
-        .withHour(12)
-        .withMinute(0)
-        .withSecond(0)
-        .withNano(0)
-    assertEquals(wantExpiresAt.toInstant(), gotExpiresAt)
-
-    // check if rate was persisted by getting the rate with ID
-    val gotQuote = rri.getRate(GetRateRequest.builder().id(rate.id).build())
-    assertEquals(rate.id, gotQuote.rate.id)
-    assertEquals("1.02", gotQuote.rate.price)
   }
 
   @Test

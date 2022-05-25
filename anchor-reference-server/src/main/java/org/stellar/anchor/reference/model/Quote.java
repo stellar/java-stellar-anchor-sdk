@@ -1,14 +1,14 @@
 package org.stellar.anchor.reference.model;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.UUID;
 import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import lombok.Data;
 import org.stellar.anchor.api.callback.GetRateRequest;
-import org.stellar.anchor.api.sep.sep38.PriceDetail;
+import org.stellar.anchor.api.callback.GetRateResponse;
+import org.stellar.anchor.api.sep.sep38.RateFee;
 
 @Data
 @Entity
@@ -16,6 +16,8 @@ public class Quote {
   @Id String id;
 
   String price;
+
+  String totalPrice;
 
   Instant expiresAt;
 
@@ -40,8 +42,8 @@ public class Quote {
 
   String transactionId;
 
-  @Convert(converter = PriceDetailListConverter.class)
-  List<PriceDetail> priceDetails;
+  @Convert(converter = RateFeeConverter.class)
+  RateFee fee;
 
   public static Quote of(GetRateRequest request) {
     Quote quote = new Quote();
@@ -57,5 +59,22 @@ public class Quote {
     quote.setClientId(request.getClientId());
 
     return quote;
+  }
+
+  public GetRateResponse toGetRateResponse() {
+    GetRateResponse.Rate rate =
+        GetRateResponse.Rate.builder()
+            .id(getId())
+            .totalPrice(getTotalPrice())
+            .price(getPrice())
+            .sellAmount(getSellAmount())
+            .buyAmount(getBuyAmount())
+            .expiresAt(getExpiresAt())
+            .fee(getFee())
+            .build();
+
+    GetRateResponse getRateResponse = new GetRateResponse();
+    getRateResponse.setRate(rate);
+    return getRateResponse;
   }
 }

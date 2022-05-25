@@ -47,13 +47,13 @@ fun sep38TestHappyPath() {
 
   // POST {SEP38}/quote with `expires_after`
   printRequest("Calling POST /quote")
-  val expiresAfter = DateTimeFormatter.ISO_INSTANT.parse("2022-04-30T02:15:44.000Z", Instant::from)
+  val expireAfter = DateTimeFormatter.ISO_INSTANT.parse("2022-04-30T02:15:44.000Z", Instant::from)
   postQuote =
     sep38.postQuote(
       "iso4217:USD",
       "100",
       "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
-      expiresAfter
+      expireAfter = expireAfter
     )
   printResponse(postQuote)
 
