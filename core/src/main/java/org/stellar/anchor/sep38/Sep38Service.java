@@ -1,5 +1,6 @@
 package org.stellar.anchor.sep38;
 
+import static org.stellar.anchor.api.callback.GetRateRequest.Context.*;
 import static org.stellar.anchor.util.MathHelper.decimal;
 import static org.stellar.anchor.util.SepHelper.validateAmount;
 
@@ -121,15 +122,16 @@ public class Sep38Service {
     }
   }
 
-  public GetPriceResponse getPrice(
-      String sellAssetName,
-      String sellAmount,
-      String sellDeliveryMethod,
-      String buyAssetName,
-      String buyAmount,
-      String buyDeliveryMethod,
-      String countryCode)
-      throws AnchorException {
+  public GetPriceResponse getPrice(Sep38GetPriceRequest getPriceRequest) throws AnchorException {
+    String sellAssetName = getPriceRequest.getSellAssetName();
+    String sellAmount = getPriceRequest.getSellAmount();
+    String sellDeliveryMethod = getPriceRequest.getSellDeliveryMethod();
+    String buyAssetName = getPriceRequest.getBuyAssetName();
+    String buyAmount = getPriceRequest.getBuyAmount();
+    String buyDeliveryMethod = getPriceRequest.getBuyDeliveryMethod();
+    String countryCode = getPriceRequest.getCountryCode();
+    GetRateRequest.Context context = getPriceRequest.getContext();
+
     if (this.rateIntegration == null) {
       throw new ServerErrorException("internal server error");
     }
@@ -176,10 +178,15 @@ public class Sep38Service {
       }
     }
 
+    // context
+    if (context == null || !List.of(SEP6, SEP31).contains(context)) {
+      throw new BadRequestException("Unsupported context. Should be one of [sep6, sep31].");
+    }
+
     GetRateRequest request =
         GetRateRequest.builder()
             .type(GetRateRequest.Type.INDICATIVE_PRICE)
-            .context(GetRateRequest.Context.SEP6)
+            .context(context)
             .sellAsset(sellAssetName)
             .sellAmount(sellAmount)
             .sellDeliveryMethod(sellDeliveryMethod)
@@ -304,6 +311,12 @@ public class Sep38Service {
       } catch (Exception ex) {
         throw new BadRequestException("expire_after is invalid");
       }
+    }
+
+    // context
+    GetRateRequest.Context context = request.getContext();
+    if (context == null || !List.of(SEP6, SEP31).contains(context)) {
+      throw new BadRequestException("Unsupported context. Should be one of [sep6, sep31].");
     }
 
     GetRateRequest getRateRequest =

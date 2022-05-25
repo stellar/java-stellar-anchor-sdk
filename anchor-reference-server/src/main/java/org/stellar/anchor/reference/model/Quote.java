@@ -73,8 +73,6 @@ public class Quote {
             .fee(getFee())
             .build();
 
-    GetRateResponse getRateResponse = new GetRateResponse();
-    getRateResponse.setRate(rate);
-    return getRateResponse;
+    return new GetRateResponse(rate);
   }
 }

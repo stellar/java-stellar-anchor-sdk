@@ -31,7 +31,12 @@ class Sep38Client(private val endpoint: String, private val jwt: String) : SepCl
     return gson.fromJson(responseBody, GetPricesResponse::class.java)
   }
 
-  fun getPrice(sellAsset: String, sellAmount: String, buyAsset: String): GetPriceResponse {
+  fun getPrice(
+    sellAsset: String,
+    sellAmount: String,
+    buyAsset: String,
+    context: Context
+  ): GetPriceResponse {
     // build URL
     val urlBuilder =
       this.endpoint
@@ -41,6 +46,7 @@ class Sep38Client(private val endpoint: String, private val jwt: String) : SepCl
         .addQueryParameter("sell_asset", sellAsset)
         .addQueryParameter("sell_amount", sellAmount)
         .addQueryParameter("buy_asset", buyAsset)
+        .addQueryParameter("context", context.toString())
     println(urlBuilder.build().toString())
 
     val responseBody = httpGet(urlBuilder.build().toString())

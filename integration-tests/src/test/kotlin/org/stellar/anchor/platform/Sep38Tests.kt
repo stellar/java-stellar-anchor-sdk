@@ -3,6 +3,7 @@ package org.stellar.anchor.platform
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 import kotlin.test.assertEquals
+import org.stellar.anchor.api.callback.GetRateRequest.Context.*
 import org.stellar.anchor.util.Sep1Helper
 
 lateinit var sep38: Sep38Client
@@ -31,7 +32,8 @@ fun sep38TestHappyPath() {
     sep38.getPrice(
       "iso4217:USD",
       "100",
-      "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+      "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+      SEP31
     )
   printResponse(price)
 
@@ -41,7 +43,8 @@ fun sep38TestHappyPath() {
     sep38.postQuote(
       "iso4217:USD",
       "100",
-      "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+      "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+      SEP31
     )
   printResponse(postQuote)
 
@@ -53,6 +56,7 @@ fun sep38TestHappyPath() {
       "iso4217:USD",
       "100",
       "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+      SEP31,
       expireAfter = expireAfter
     )
   printResponse(postQuote)
