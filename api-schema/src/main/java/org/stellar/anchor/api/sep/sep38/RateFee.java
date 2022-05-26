@@ -17,11 +17,6 @@ public class RateFee {
   String asset;
   List<RateFeeDetail> details;
 
-  public RateFee(String asset) {
-    this.total = "0";
-    this.asset = asset;
-  }
-
   public RateFee(String total, String asset) {
     this.total = total;
     this.asset = asset;
@@ -46,7 +41,7 @@ public class RateFee {
     this.details.add(feeDetail);
   }
 
-  private String formatAmount(BigDecimal amount) throws NumberFormatException {
+  private String formatAmount(BigDecimal amount) {
     int decimals = 4;
     BigDecimal newAmount = amount.setScale(decimals, RoundingMode.HALF_DOWN);
 

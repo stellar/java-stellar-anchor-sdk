@@ -23,7 +23,7 @@ public class Sep38Controller {
   private final Sep38Service sep38Service;
   private static final Gson gson = GsonUtils.builder().create();
 
-  public Sep38Controller(Sep38Service sep38Service, Gson gson) {
+  public Sep38Controller(Sep38Service sep38Service) {
     this.sep38Service = sep38Service;
   }
   // TODO: add integration tests

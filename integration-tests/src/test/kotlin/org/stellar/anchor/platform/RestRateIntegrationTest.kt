@@ -94,7 +94,7 @@ class RestRateIntegrationTest {
   private fun mockSellAssetFee(sellAsset: String?): RateFee {
     assertNotNull(sellAsset)
 
-    val rateFee = RateFee(sellAsset)
+    val rateFee = RateFee("0", sellAsset)
     rateFee.addFeeDetail(RateFeeDetail("Sell fee", "2.00"))
     return rateFee
   }
@@ -113,7 +113,7 @@ class RestRateIntegrationTest {
           id = "my-id",
           expiresAt = "2022-04-30T02:15:44.000Z",
           fee = fee
-        ) // dummy response, we're not testing these values
+        ) // This is a dummy response, we're not testing its values
       )
 
       val getRateResponse = rateIntegration.getRate(getRateRequest)

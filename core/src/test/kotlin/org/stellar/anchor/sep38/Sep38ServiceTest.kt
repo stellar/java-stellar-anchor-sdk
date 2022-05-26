@@ -431,7 +431,7 @@ class Sep38ServiceTest {
   private fun mockSellAssetFee(sellAsset: String?): RateFee {
     assertNotNull(sellAsset)
 
-    val rateFee = RateFee(sellAsset)
+    val rateFee = RateFee("0", sellAsset)
     rateFee.addFeeDetail(RateFeeDetail("Sell fee", "1.00"))
     return rateFee
   }

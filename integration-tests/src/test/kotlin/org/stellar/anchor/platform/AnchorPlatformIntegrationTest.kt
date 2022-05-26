@@ -265,14 +265,12 @@ class AnchorPlatformIntegrationTest {
     assertNotNull(result)
     JSONAssert.assertEquals(
       gson.toJson(result),
-      """
-         {
-             "fee": {
-                "asset": "USDC",
-                "amount": "0.30"
-             }
-         }
-      """,
+      """{
+        "fee": {
+          "asset": "USDC",
+          "amount": "0.30"
+        }
+      }""",
       true
     )
   }

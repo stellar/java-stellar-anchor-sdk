@@ -66,20 +66,23 @@ public class GetRateResponse {
     @Nullable String id;
 
     @SerializedName("total_price")
+    @Nullable
     String totalPrice;
 
     String price;
 
     @SerializedName("sell_amount")
+    @Nullable
     String sellAmount;
 
     @SerializedName("buy_amount")
+    @Nullable
     String buyAmount;
 
     @SerializedName("expires_at")
     @Nullable
     Instant expiresAt;
 
-    RateFee fee;
+    @Nullable RateFee fee;
   }
 }

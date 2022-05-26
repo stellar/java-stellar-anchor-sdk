@@ -87,6 +87,8 @@ public class RateService {
       bBuyAmount = decimal(buyAmount).setScale(4, RoundingMode.HALF_DOWN);
     }
 
+    // sell_amount - fee = price * buy_amount // where fee == 0
+    // sell_amount = price * buy_amount
     if (request.getType() == INDICATIVE_PRICES) {
       if (bSellAmount != null) {
         bBuyAmount = bSellAmount.divide(bPrice, RoundingMode.HALF_DOWN);

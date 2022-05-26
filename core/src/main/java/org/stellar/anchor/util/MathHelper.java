@@ -21,8 +21,7 @@ public class MathHelper {
     return BigDecimal.valueOf(value);
   }
 
-  public static String formatAmount(BigDecimal amount, Integer decimals)
-      throws NumberFormatException {
+  public static String formatAmount(BigDecimal amount, Integer decimals) {
     BigDecimal newAmount = amount.setScale(decimals, RoundingMode.HALF_DOWN);
 
     DecimalFormat df = new DecimalFormat();
@@ -33,7 +32,7 @@ public class MathHelper {
     return df.format(newAmount);
   }
 
-  public static String formatAmount(BigDecimal amount) throws NumberFormatException {
+  public static String formatAmount(BigDecimal amount) {
     return formatAmount(amount, 4);
   }
 }
