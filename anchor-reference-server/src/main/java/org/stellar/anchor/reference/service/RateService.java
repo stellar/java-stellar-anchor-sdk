@@ -1,11 +1,11 @@
 package org.stellar.anchor.reference.service;
 
 import static org.stellar.anchor.api.callback.GetRateRequest.Type.*;
+import static org.stellar.anchor.util.MathHelper.*;
 import static org.stellar.anchor.util.SepHelper.validateAmount;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.text.DecimalFormat;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -77,14 +77,14 @@ public class RateService {
     if (price == null) {
       throw new UnprocessableEntityException("the price for the given pair could not be found");
     }
-    BigDecimal bPrice = new BigDecimal(price);
+    BigDecimal bPrice = decimal(price);
 
     BigDecimal bSellAmount = null;
     BigDecimal bBuyAmount = null;
     if (sellAmount != null) {
-      bSellAmount = new BigDecimal(sellAmount).setScale(4, RoundingMode.HALF_DOWN);
+      bSellAmount = decimal(sellAmount).setScale(4, RoundingMode.HALF_DOWN);
     } else {
-      bBuyAmount = new BigDecimal(buyAmount).setScale(4, RoundingMode.HALF_DOWN);
+      bBuyAmount = decimal(buyAmount).setScale(4, RoundingMode.HALF_DOWN);
     }
 
     if (request.getType() == INDICATIVE_PRICES) {
@@ -99,7 +99,7 @@ public class RateService {
     }
 
     RateFee fee = ConversionPrice.getFee(request.getSellAsset(), request.getBuyAsset());
-    BigDecimal bFee = new BigDecimal(fee.getTotal());
+    BigDecimal bFee = decimal(fee.getTotal());
 
     // sell_amount - fee = price * buy_amount     // when `fee` is in `sell_asset`
     if (bSellAmount != null) {
@@ -201,17 +201,5 @@ public class RateService {
       rateFee.addFeeDetail(sellAssetFeeDetail);
       return rateFee;
     }
-  }
-
-  private String formatAmount(BigDecimal amount) throws NumberFormatException {
-    Integer decimals = 4;
-    BigDecimal newAmount = amount.setScale(decimals, RoundingMode.HALF_DOWN);
-
-    DecimalFormat df = new DecimalFormat();
-    df.setMaximumFractionDigits(decimals);
-    df.setMinimumFractionDigits(0);
-    df.setGroupingUsed(false);
-
-    return df.format(newAmount);
   }
 }

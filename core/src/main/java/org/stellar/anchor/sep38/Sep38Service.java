@@ -2,11 +2,11 @@ package org.stellar.anchor.sep38;
 
 import static org.stellar.anchor.api.sep.sep38.Sep38Context.*;
 import static org.stellar.anchor.util.MathHelper.decimal;
+import static org.stellar.anchor.util.MathHelper.formatAmount;
 import static org.stellar.anchor.util.SepHelper.validateAmount;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.text.DecimalFormat;
 import java.time.Instant;
 import java.util.*;
 import org.apache.commons.lang3.StringUtils;
@@ -220,17 +220,6 @@ public class Sep38Service {
             .buyAmount(formatAmount(bBuyAmount, buyAsset.getDecimals()));
 
     return builder.build();
-  }
-
-  private String formatAmount(BigDecimal amount, Integer decimals) throws NumberFormatException {
-    BigDecimal newAmount = amount.setScale(decimals, RoundingMode.HALF_DOWN);
-
-    DecimalFormat df = new DecimalFormat();
-    df.setMaximumFractionDigits(decimals);
-    df.setMinimumFractionDigits(0);
-    df.setGroupingUsed(false);
-
-    return df.format(newAmount);
   }
 
   public Sep38QuoteResponse postQuote(JwtToken token, Sep38PostQuoteRequest request)

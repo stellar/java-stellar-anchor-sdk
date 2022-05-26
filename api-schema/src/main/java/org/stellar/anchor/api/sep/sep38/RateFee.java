@@ -47,7 +47,7 @@ public class RateFee {
   }
 
   private String formatAmount(BigDecimal amount) throws NumberFormatException {
-    Integer decimals = 4;
+    int decimals = 4;
     BigDecimal newAmount = amount.setScale(decimals, RoundingMode.HALF_DOWN);
 
     DecimalFormat df = new DecimalFormat();
