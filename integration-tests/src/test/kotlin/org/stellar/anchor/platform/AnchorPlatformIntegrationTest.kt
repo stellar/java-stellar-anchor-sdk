@@ -15,10 +15,10 @@ import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.core.env.get
 import org.stellar.anchor.api.callback.GetFeeRequest
 import org.stellar.anchor.api.callback.GetRateRequest
-import org.stellar.anchor.api.callback.GetRateRequest.Context.*
 import org.stellar.anchor.api.callback.GetRateRequest.Type.*
 import org.stellar.anchor.api.exception.NotFoundException
 import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerRequest
+import org.stellar.anchor.api.sep.sep38.Sep38Context.*
 import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.Sep10Config
 import org.stellar.anchor.config.Sep1Config

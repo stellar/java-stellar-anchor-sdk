@@ -3,10 +3,11 @@ package org.stellar.anchor.platform
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 import okhttp3.HttpUrl.Companion.toHttpUrl
-import org.stellar.anchor.api.callback.GetRateRequest.Context
 import org.stellar.anchor.api.sep.sep38.GetPriceResponse
 import org.stellar.anchor.api.sep.sep38.GetPricesResponse
 import org.stellar.anchor.api.sep.sep38.InfoResponse
+import org.stellar.anchor.api.sep.sep38.Sep38Context
+import org.stellar.anchor.api.sep.sep38.Sep38Context.*
 import org.stellar.anchor.api.sep.sep38.Sep38QuoteResponse
 
 class Sep38Client(private val endpoint: String, private val jwt: String) : SepClient() {
@@ -35,7 +36,7 @@ class Sep38Client(private val endpoint: String, private val jwt: String) : SepCl
     sellAsset: String,
     sellAmount: String,
     buyAsset: String,
-    context: Context
+    context: Sep38Context
   ): GetPriceResponse {
     // build URL
     val urlBuilder =
@@ -57,7 +58,7 @@ class Sep38Client(private val endpoint: String, private val jwt: String) : SepCl
     sellAsset: String,
     sellAmount: String,
     buyAsset: String,
-    context: Context = Context.SEP31,
+    context: Sep38Context = SEP31,
     expireAfter: Instant? = null
   ): Sep38QuoteResponse {
     // build URL

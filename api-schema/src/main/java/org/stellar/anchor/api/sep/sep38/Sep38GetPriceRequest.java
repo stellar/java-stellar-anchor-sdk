@@ -3,12 +3,11 @@ package org.stellar.anchor.api.sep.sep38;
 import com.google.gson.annotations.SerializedName;
 import lombok.Builder;
 import lombok.Data;
-import org.stellar.anchor.api.callback.GetRateRequest;
 
 @Data
 @Builder
 public class Sep38GetPriceRequest {
-  GetRateRequest.Context context;
+  Sep38Context context;
 
   @SerializedName("sell_asset")
   String sellAssetName;

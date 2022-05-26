@@ -10,7 +10,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.stellar.anchor.api.callback.GetRateRequest
-import org.stellar.anchor.api.callback.GetRateRequest.Context.*
 import org.stellar.anchor.api.callback.GetRateRequest.Type.*
 import org.stellar.anchor.api.callback.GetRateResponse
 import org.stellar.anchor.api.exception.AnchorException
@@ -19,6 +18,7 @@ import org.stellar.anchor.api.exception.NotFoundException
 import org.stellar.anchor.api.exception.ServerErrorException
 import org.stellar.anchor.api.sep.AssetInfo
 import org.stellar.anchor.api.sep.sep38.*
+import org.stellar.anchor.api.sep.sep38.Sep38Context.*
 import org.stellar.anchor.asset.ResourceJsonAssetService
 import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.Sep38Config

@@ -3,13 +3,14 @@ package org.stellar.anchor.api.callback;
 import com.google.gson.annotations.SerializedName;
 import lombok.Builder;
 import lombok.Data;
+import org.stellar.anchor.api.sep.sep38.Sep38Context;
 
 @Data
 @Builder
 public class GetRateRequest {
   Type type;
 
-  Context context;
+  Sep38Context context;
 
   @SerializedName("sell_asset")
   String sellAsset;
@@ -53,25 +54,6 @@ public class GetRateRequest {
     private final String name;
 
     Type(String name) {
-      this.name = name;
-    }
-
-    @Override
-    public String toString() {
-      return name;
-    }
-  }
-
-  public enum Context {
-    @SerializedName("sep6")
-    SEP6("sep6"),
-
-    @SerializedName("sep31")
-    SEP31("sep31");
-
-    private final String name;
-
-    Context(String name) {
       this.name = name;
     }
 

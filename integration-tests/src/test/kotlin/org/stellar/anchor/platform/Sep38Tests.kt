@@ -3,7 +3,7 @@ package org.stellar.anchor.platform
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 import kotlin.test.assertEquals
-import org.stellar.anchor.api.callback.GetRateRequest.Context.*
+import org.stellar.anchor.api.sep.sep38.Sep38Context.*
 import org.stellar.anchor.util.Sep1Helper
 
 lateinit var sep38: Sep38Client

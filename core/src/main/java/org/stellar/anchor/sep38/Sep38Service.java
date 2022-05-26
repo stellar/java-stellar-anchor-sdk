@@ -1,6 +1,6 @@
 package org.stellar.anchor.sep38;
 
-import static org.stellar.anchor.api.callback.GetRateRequest.Context.*;
+import static org.stellar.anchor.api.sep.sep38.Sep38Context.*;
 import static org.stellar.anchor.util.MathHelper.decimal;
 import static org.stellar.anchor.util.SepHelper.validateAmount;
 
@@ -130,7 +130,7 @@ public class Sep38Service {
     String buyAmount = getPriceRequest.getBuyAmount();
     String buyDeliveryMethod = getPriceRequest.getBuyDeliveryMethod();
     String countryCode = getPriceRequest.getCountryCode();
-    GetRateRequest.Context context = getPriceRequest.getContext();
+    Sep38Context context = getPriceRequest.getContext();
 
     if (this.rateIntegration == null) {
       throw new ServerErrorException("internal server error");
@@ -314,7 +314,7 @@ public class Sep38Service {
     }
 
     // context
-    GetRateRequest.Context context = request.getContext();
+    Sep38Context context = request.getContext();
     if (context == null || !List.of(SEP6, SEP31).contains(context)) {
       throw new BadRequestException("Unsupported context. Should be one of [sep6, sep31].");
     }
