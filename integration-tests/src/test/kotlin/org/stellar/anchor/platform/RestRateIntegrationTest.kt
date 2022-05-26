@@ -325,27 +325,97 @@ class RestRateIntegrationTest {
     // 200 where getRateResponse is missing "price"
     validateRequest(200, """{"rate": "missing price"}""", serverErrorException, INDICATIVE_PRICES)
 
-    // 200 for type=firm where getRateResponse is missing "id"
+    // 200 for type=firm|indicative_price where getRateResponse is missing "fee" and "total_price"
     validateRequest(200, """{"rate": {"price": "1"} }""", serverErrorException, FIRM)
+    validateRequest(200, """{"rate": {"price": "1"} }""", serverErrorException, INDICATIVE_PRICE)
+
+    // 200 for type=firm|indicative_price where getRateResponse is missing "fee"
+    validateRequest(
+      200,
+      """{"rate": {"price": "1", "total_price": "1.01"} }""",
+      serverErrorException,
+      FIRM
+    )
+    validateRequest(
+      200,
+      """{"rate": {"price": "1", "total_price": "1.01"} }""",
+      serverErrorException,
+      INDICATIVE_PRICE
+    )
+
+    // 200 for type=firm|indicative_price where getRateResponse is missing "total_price"
+    var body =
+      """{
+      "rate": {
+        "price": "1",
+        "fee": {
+          "total": "1.00",
+          "asset": "iso4217:USD"
+        }
+      }
+    }""".trimMargin()
+    validateRequest(200, body, serverErrorException, FIRM)
+    validateRequest(200, body, serverErrorException, INDICATIVE_PRICE)
+
+    // 200 for type=firm where getRateResponse is missing "id"
+    body =
+      """{
+      "rate": {
+        "price": "1",
+        "total_price": "1.01",
+        "fee": {
+          "total": "1.00",
+          "asset": "iso4217:USD"
+        }
+      }
+    }""".trimMargin()
+    validateRequest(200, body, serverErrorException, FIRM)
 
     // 200 for type=firm where getRateResponse is missing "id" but contains "expires_at"
-    validateRequest(
-      200,
-      """{"rate": {"price": "1", "expires_at": "2022-04-30T02:15:44.000Z"} }""",
-      serverErrorException,
-      FIRM
-    )
+    body =
+      """{
+      "rate": {
+        "price": "1",
+        "total_price": "1.01",
+        "expires_at": "2022-04-30T02:15:44.000Z",
+        "fee": {
+          "total": "1.00",
+          "asset": "iso4217:USD"
+        }
+      }
+    }""".trimMargin()
+    validateRequest(200, body, serverErrorException, FIRM)
 
     // 200 for type=firm where getRateResponse is missing "expires_at"
-    validateRequest(200, """{"rate": {"price": "1", "id": "my-id"} }""", serverErrorException, FIRM)
+    body =
+      """{
+      "rate": {
+        "id": "my-id",
+        "price": "1",
+        "total_price": "1.01",
+        "fee": {
+          "total": "1.00",
+          "asset": "iso4217:USD"
+        }
+      }
+    }""".trimMargin()
+    validateRequest(200, body, serverErrorException, FIRM)
 
     // 200 for type=firm where getRateResponse's "expires_at" is invalid
-    validateRequest(
-      200,
-      """{"rate": {"price": "1", "id": "my-id", "expires_at": "foo bar"} }""",
-      serverErrorException,
-      FIRM
-    )
+    body =
+      """{
+      "rate": {
+        "id": "my-id",
+        "price": "1",
+        "total_price": "1.01",
+        "expires_at": "foo bar",
+        "fee": {
+          "total": "1.00",
+          "asset": "iso4217:USD"
+        }
+      }
+    }""".trimMargin()
+    validateRequest(200, body, serverErrorException, FIRM)
   }
 
   @Test
