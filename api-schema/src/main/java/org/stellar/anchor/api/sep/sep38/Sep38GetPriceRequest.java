@@ -1,34 +1,32 @@
 package org.stellar.anchor.api.sep.sep38;
 
 import com.google.gson.annotations.SerializedName;
-import java.time.Instant;
 import lombok.Builder;
 import lombok.Data;
 
 @Data
 @Builder
-public class Sep38QuoteResponse {
-  String id;
-
-  @SerializedName("expires_at")
-  Instant expiresAt;
-
-  String price;
-
-  @SerializedName("total_price")
-  String totalPrice;
+public class Sep38GetPriceRequest {
+  Sep38Context context;
 
   @SerializedName("sell_asset")
-  String sellAsset;
+  String sellAssetName;
 
   @SerializedName("sell_amount")
   String sellAmount;
 
+  @SerializedName("sell_delivery_method")
+  String sellDeliveryMethod;
+
   @SerializedName("buy_asset")
-  String buyAsset;
+  String buyAssetName;
 
   @SerializedName("buy_amount")
   String buyAmount;
 
-  RateFee fee;
+  @SerializedName("buy_delivery_method")
+  String buyDeliveryMethod;
+
+  @SerializedName("country_code")
+  String countryCode;
 }

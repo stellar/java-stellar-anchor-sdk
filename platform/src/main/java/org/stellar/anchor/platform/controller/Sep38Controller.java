@@ -3,6 +3,8 @@ package org.stellar.anchor.platform.controller;
 import static org.stellar.anchor.platform.controller.Sep10Helper.getSep10Token;
 import static org.stellar.anchor.util.Log.errorEx;
 
+import com.google.gson.Gson;
+import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import lombok.SneakyThrows;
 import org.springframework.http.HttpStatus;
@@ -13,11 +15,13 @@ import org.stellar.anchor.api.sep.SepExceptionResponse;
 import org.stellar.anchor.api.sep.sep38.*;
 import org.stellar.anchor.sep10.JwtToken;
 import org.stellar.anchor.sep38.Sep38Service;
+import org.stellar.anchor.util.GsonUtils;
 
 @RestController
 @RequestMapping("/sep38")
 public class Sep38Controller {
   private final Sep38Service sep38Service;
+  private static final Gson gson = GsonUtils.builder().create();
 
   public Sep38Controller(Sep38Service sep38Service) {
     this.sep38Service = sep38Service;
@@ -52,22 +56,10 @@ public class Sep38Controller {
   @RequestMapping(
       value = "/price",
       method = {RequestMethod.GET})
-  public GetPriceResponse getPrice(
-      @RequestParam(name = "sell_asset") String sellAssetName,
-      @RequestParam(name = "sell_amount", required = false) String sellAmount,
-      @RequestParam(name = "sell_delivery_method", required = false) String sellDeliveryMethod,
-      @RequestParam(name = "buy_asset") String buyAssetName,
-      @RequestParam(name = "buy_amount", required = false) String buyAmount,
-      @RequestParam(name = "buy_delivery_method", required = false) String buyDeliveryMethod,
-      @RequestParam(name = "country_code", required = false) String countryCode) {
-    return sep38Service.getPrice(
-        sellAssetName,
-        sellAmount,
-        sellDeliveryMethod,
-        buyAssetName,
-        buyAmount,
-        buyDeliveryMethod,
-        countryCode);
+  public GetPriceResponse getPrice(@RequestParam Map<String, String> params) {
+    Sep38GetPriceRequest getPriceRequest =
+        gson.fromJson(gson.toJson(params), Sep38GetPriceRequest.class);
+    return sep38Service.getPrice(getPriceRequest);
   }
 
   @SneakyThrows

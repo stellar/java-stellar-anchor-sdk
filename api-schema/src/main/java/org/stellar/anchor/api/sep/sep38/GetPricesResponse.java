@@ -13,17 +13,9 @@ public class GetPricesResponse {
   List<Asset> buyAssets = new ArrayList<>();
 
   public void addAsset(
-      @NonNull String buyAssetName,
-      Integer buyAssetDecimals,
-      @NonNull String price,
-      List<PriceDetail> priceDetails) {
+      @NonNull String buyAssetName, Integer buyAssetDecimals, @NonNull String price) {
     buyAssets.add(
-        Asset.builder()
-            .asset(buyAssetName)
-            .price(price)
-            .decimals(buyAssetDecimals)
-            .priceDetails(priceDetails)
-            .build());
+        Asset.builder().asset(buyAssetName).price(price).decimals(buyAssetDecimals).build());
   }
 
   @Data
@@ -32,8 +24,5 @@ public class GetPricesResponse {
     String asset;
     String price;
     Integer decimals;
-
-    @SerializedName("price_details")
-    List<PriceDetail> priceDetails;
   }
 }
