@@ -97,7 +97,7 @@ resource "aws_lb" "sep" {
   name               = "sep-${var.environment}-alb"
   internal           = false
   load_balancer_type = "application"
-  security_groups    = var.alb_security_groups
+  security_groups    = [aws_security_group.sep_alb.name]
   subnets            = module.vpc.public_subnets
  
   enable_deletion_protection = false
