@@ -121,7 +121,7 @@ resource "aws_alb_target_group" "sep" {
   }
 }
 
-resource "aws_alb_listener" "http" {
+resource "aws_alb_listener" "sep_http" {
   load_balancer_arn = aws_lb.sep.id
   port              = 80
   protocol          = "HTTP"
@@ -137,7 +137,7 @@ resource "aws_alb_listener" "http" {
   }
 }
  
-resource "aws_alb_listener" "https" {
+resource "aws_alb_listener" "sep_https" {
   load_balancer_arn = aws_lb.sep.id
   port              = 443
   protocol          = "HTTPS"
@@ -210,35 +210,17 @@ resource "aws_alb_target_group" "ref" {
   }
 }
 
-resource "aws_alb_listener" "http" {
+resource "aws_alb_listener" "ref_http" {
   load_balancer_arn = aws_lb.ref.id
-  port              = 80
+  port              = 8081
   protocol          = "HTTP"
  
   default_action {
-   type = "redirect"
- 
-   redirect {
-     port        = 443
-     protocol    = "HTTPS"
-     status_code = "HTTP_301"
-   }
+   alb = aws_alb_target_group.ref.arn
+   type             = "forward" 
   }
 }
  
-resource "aws_alb_listener" "https" {
-  load_balancer_arn = aws_lb.ref.id
-  port              = 443
-  protocol          = "HTTPS"
- 
-  ssl_policy        = "ELBSecurityPolicy-2016-08"
-  certificate_arn   = var.alb_tls_cert_arn
- 
-  default_action {
-    alb = aws_alb_target_group.ref.arn
-    type             = "forward"
-  }
-}
 
 
 #resource "aws_iam_policy" "dynamodb" {
