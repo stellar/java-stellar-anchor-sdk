@@ -1,6 +1,6 @@
 resource "aws_security_group" "sep_alb" {
   name   = "sep-${var.environment}-sg-alb"
-  vpc_id = var.vpc_id
+  vpc_id = module.vpc.vpc_id
  
   ingress {
    protocol         = "tcp"
@@ -29,7 +29,7 @@ resource "aws_security_group" "sep_alb" {
 
 resource "aws_security_group" "ref_alb" {
   name   = "ref-${var.environment}-sg-alb"
-  vpc_id = var.vpc_id
+  vpc_id = module.vpc.vpc_id
  
   ingress {
    protocol         = "tcp"
@@ -50,7 +50,7 @@ resource "aws_security_group" "ref_alb" {
 
 resource "aws_security_group" "ecs_tasks" {
   name   = "${var.environment}-anchorplatform-sg-task"
-  vpc_id = var.vpc_id
+  vpc_id = module.vpc.vpc_id
  
   ingress {
    protocol         = "tcp"
