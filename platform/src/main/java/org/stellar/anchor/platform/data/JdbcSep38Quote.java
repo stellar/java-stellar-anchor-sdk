@@ -2,10 +2,8 @@ package org.stellar.anchor.platform.data;
 
 import com.google.gson.annotations.SerializedName;
 import java.time.Instant;
-import javax.persistence.Convert;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
+
 import lombok.Data;
 import org.stellar.anchor.api.sep.sep38.RateFee;
 import org.stellar.anchor.reference.model.RateFeeConverter;
@@ -59,5 +57,6 @@ public class JdbcSep38Quote implements Sep38Quote {
   String transactionId;
 
   @Convert(converter = RateFeeConverter.class)
+  @Column(length = 1023)
   RateFee fee;
 }
