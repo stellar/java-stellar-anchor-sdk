@@ -166,8 +166,8 @@ class AnchorPlatformIntegrationTest {
     val wantBody =
       """{
       "rate":{
-        "total_price":"1.0303",
-        "price":"1.02",
+        "total_price":"1.0303032801",
+        "price":"1.0200002473",
         "sell_amount": "100",
         "buy_amount": "97.0588",
         "fee": {

@@ -451,7 +451,7 @@ class Sep38ServiceTest {
         .buyAsset(stellarUSDC)
         .build()
     every { mockRateIntegration.getRate(getRateReq) } returns
-      GetRateResponse.indicativePrice("1.02", "1.03", "100", "103", mockFee)
+      GetRateResponse.indicativePrice("1.02", "1.03", "100", "97.0874", mockFee)
     sep38Service =
       Sep38Service(
         sep38Service.sep38Config,
@@ -476,7 +476,7 @@ class Sep38ServiceTest {
         .price("1.02")
         .totalPrice("1.03")
         .sellAmount("100")
-        .buyAmount("97.0873786")
+        .buyAmount("97.0874")
         .fee(mockFee)
         .build()
     assertEquals(wantResponse, gotResponse)
@@ -622,7 +622,7 @@ class Sep38ServiceTest {
       GetPriceResponse.builder()
         .price("1.02345678901")
         .totalPrice("1.03345679")
-        .sellAmount("103.3457")
+        .sellAmount("103.3456789")
         .buyAmount("100")
         .fee(mockFee)
         .build()

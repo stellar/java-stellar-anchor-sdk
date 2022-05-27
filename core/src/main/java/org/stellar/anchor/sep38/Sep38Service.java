@@ -196,30 +196,15 @@ public class Sep38Service {
             .countryCode(countryCode)
             .build();
     GetRateResponse rateResponse = this.rateIntegration.getRate(request);
-
     GetRateResponse.Rate rate = rateResponse.getRate();
-    GetPriceResponse.GetPriceResponseBuilder builder =
-        GetPriceResponse.builder()
-            .price(rate.getPrice())
-            .totalPrice(rate.getTotalPrice())
-            .fee(rate.getFee());
 
-    // Calculate amounts: sellAmount = buyAmount * totalPrice
-    BigDecimal bTotalPrice = decimal(rate.getTotalPrice());
-    BigDecimal bSellAmount, bBuyAmount;
-    if (sellAmount != null) {
-      bSellAmount = decimal(sellAmount);
-      bBuyAmount = bSellAmount.divide(bTotalPrice, buyAsset.getDecimals(), RoundingMode.HALF_DOWN);
-    } else {
-      bBuyAmount = decimal(buyAmount);
-      bSellAmount = bBuyAmount.multiply(bTotalPrice);
-    }
-    builder =
-        builder
-            .sellAmount(formatAmount(bSellAmount, sellAsset.getDecimals()))
-            .buyAmount(formatAmount(bBuyAmount, buyAsset.getDecimals()));
-
-    return builder.build();
+    return GetPriceResponse.builder()
+        .price(rate.getPrice())
+        .totalPrice(rate.getTotalPrice())
+        .fee(rate.getFee())
+        .sellAmount(rate.getSellAmount())
+        .buyAmount(rate.getBuyAmount())
+        .build();
   }
 
   public Sep38QuoteResponse postQuote(JwtToken token, Sep38PostQuoteRequest request)

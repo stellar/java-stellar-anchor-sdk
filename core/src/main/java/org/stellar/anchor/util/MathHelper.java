@@ -11,9 +11,14 @@ public class MathHelper {
     return new BigDecimal(value);
   }
 
+  public static BigDecimal decimal(String value, int scale) {
+    if (value == null) return null;
+    return new BigDecimal(value).setScale(scale, RoundingMode.HALF_DOWN);
+  }
+
   public static BigDecimal decimal(String value, AssetInfo asset) {
     if (value == null) return null;
-    return new BigDecimal(value).setScale(asset.getSignificantDecimals(), RoundingMode.HALF_DOWN);
+    return decimal(value, asset.getSignificantDecimals());
   }
 
   public static BigDecimal decimal(Long value) {

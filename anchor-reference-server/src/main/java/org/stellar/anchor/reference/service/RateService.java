@@ -1,11 +1,11 @@
 package org.stellar.anchor.reference.service;
 
+import static java.math.RoundingMode.HALF_DOWN;
 import static org.stellar.anchor.api.callback.GetRateRequest.Type.*;
 import static org.stellar.anchor.util.MathHelper.*;
 import static org.stellar.anchor.util.SepHelper.validateAmount;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.ZonedDateTime;
@@ -28,6 +28,7 @@ import org.stellar.anchor.util.DateUtil;
 @Service
 public class RateService {
   private final QuoteRepo quoteRepo;
+  private static final int scale = 4;
 
   RateService(QuoteRepo quoteRepo) {
     this.quoteRepo = quoteRepo;
@@ -77,21 +78,21 @@ public class RateService {
     if (price == null) {
       throw new UnprocessableEntityException("the price for the given pair could not be found");
     }
-    BigDecimal bPrice = decimal(price);
+    BigDecimal bPrice = decimal(price, scale);
 
     BigDecimal bSellAmount = null;
     BigDecimal bBuyAmount = null;
     if (sellAmount != null) {
-      bSellAmount = decimal(sellAmount).setScale(4, RoundingMode.HALF_DOWN);
+      bSellAmount = decimal(sellAmount, scale);
     } else {
-      bBuyAmount = decimal(buyAmount).setScale(4, RoundingMode.HALF_DOWN);
+      bBuyAmount = decimal(buyAmount, scale);
     }
 
     // sell_amount - fee = price * buy_amount // where fee == 0
     // sell_amount = price * buy_amount
     if (request.getType() == INDICATIVE_PRICES) {
       if (bSellAmount != null) {
-        bBuyAmount = bSellAmount.divide(bPrice, RoundingMode.HALF_DOWN);
+        bBuyAmount = bSellAmount.divide(bPrice, HALF_DOWN);
         buyAmount = formatAmount(bBuyAmount);
       } else {
         bSellAmount = bBuyAmount.multiply(bPrice);
@@ -106,20 +107,23 @@ public class RateService {
     // sell_amount - fee = price * buy_amount     // when `fee` is in `sell_asset`
     if (bSellAmount != null) {
       // buy_amount = (sell_amount - fee) / price
-      bBuyAmount = (bSellAmount.subtract(bFee)).divide(bPrice, RoundingMode.HALF_DOWN);
+      bBuyAmount = (bSellAmount.subtract(bFee)).divide(bPrice, HALF_DOWN);
       if (bBuyAmount.compareTo(BigDecimal.ZERO) < 0) {
         throw new BadRequestException("sell amount must be greater than " + fee.getTotal());
       }
-      buyAmount = formatAmount(bBuyAmount);
+      buyAmount = formatAmount(bBuyAmount, scale);
     } else {
       // sell_amount = (buy_amount * price) + fee
-      bSellAmount = (bBuyAmount.multiply(bPrice)).add(bFee);
-      sellAmount = formatAmount(bSellAmount);
+      bSellAmount = (bBuyAmount.setScale(10, HALF_DOWN).multiply(bPrice)).add(bFee);
+      sellAmount = formatAmount(bSellAmount, scale);
     }
+    // recalibrate price to guarantee the formula is true up to the required decimals
+    bPrice = (bSellAmount.setScale(10, HALF_DOWN).subtract(bFee)).divide(bBuyAmount, HALF_DOWN);
+    price = formatAmount(bPrice, 10);
 
     // total_price = sell_amount / buy_amount
-    BigDecimal bTotalPrice = bSellAmount.divide(bBuyAmount, RoundingMode.HALF_DOWN);
-    String totalPrice = formatAmount(bTotalPrice);
+    BigDecimal bTotalPrice = bSellAmount.divide(bBuyAmount, 10, HALF_DOWN);
+    String totalPrice = formatAmount(bTotalPrice, 10);
 
     if (request.getType() == INDICATIVE_PRICE) {
       return GetRateResponse.indicativePrice(price, totalPrice, sellAmount, buyAmount, fee);
