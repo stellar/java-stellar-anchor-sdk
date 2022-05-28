@@ -163,13 +163,14 @@ resource "aws_alb_listener" "sep_http" {
   }
 }
  
+
 resource "aws_alb_listener" "sep_https" {
   load_balancer_arn = aws_lb.sep.id
   port              = 443
   protocol          = "HTTPS"
  
   ssl_policy        = "ELBSecurityPolicy-2016-08"
-  certificate_arn   = resource.acme_certificate.certificate.arn
+  certificate_arn   =  data.aws_acm_certificate.issued.arn
  
   default_action {
     alb = aws_alb_target_group.sep.id
