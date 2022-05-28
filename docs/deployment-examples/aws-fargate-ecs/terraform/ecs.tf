@@ -1,3 +1,4 @@
+
 resource "aws_ecs_cluster" "sep" {
   name = "sep-${var.environment}-cluster"
 }
@@ -102,7 +103,7 @@ resource "aws_ecs_service" "sep" {
  scheduling_strategy                = "REPLICA"
  
  network_configuration {
-   security_groups  = var.ecs_service_security_groups
+   security_groups  = [aws_security_group.sep_alb.name]
    subnets          = module.vpc.public_subnets
    assign_public_ip = false
  }
@@ -168,7 +169,7 @@ resource "aws_alb_listener" "sep_https" {
   protocol          = "HTTPS"
  
   ssl_policy        = "ELBSecurityPolicy-2016-08"
-  certificate_arn   = var.alb_tls_cert_arn
+  certificate_arn   = resource.acme_certificate.certificate.arn
  
   default_action {
     alb = aws_alb_target_group.sep.id
@@ -191,7 +192,7 @@ resource "aws_ecs_service" "ref" {
  scheduling_strategy                = "REPLICA"
  
  network_configuration {
-   security_groups  = [aws_security_group.sep_alb.name]
+   security_groups  = [aws_security_group.ref_alb.name]
    subnets          = module.vpc.public_subnets
    assign_public_ip = false
  }
