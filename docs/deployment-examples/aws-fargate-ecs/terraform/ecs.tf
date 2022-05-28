@@ -179,7 +179,7 @@ resource "aws_alb_listener" "sep_https" {
   certificate_arn   =  data.aws_acm_certificate.issued.arn
  
   default_action {
-    alb = aws_alb_target_group.sep.id
+    target_group_arn = aws_alb_target_group.sep.id
     type             = "forward"
   }
 }
