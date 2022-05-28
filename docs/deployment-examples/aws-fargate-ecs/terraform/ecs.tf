@@ -241,7 +241,7 @@ resource "aws_alb_listener" "ref_http" {
   protocol          = "HTTP"
  
   default_action {
-   alb = aws_alb_target_group.ref.arn
+   target_group_arn = aws_alb_target_group.ref.arn
    type             = "forward" 
   }
 }
