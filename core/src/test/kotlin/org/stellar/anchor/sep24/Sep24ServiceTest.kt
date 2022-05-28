@@ -445,14 +445,45 @@ internal class Sep24ServiceTest {
 
   @Test
   fun testValidateAndActivateLanguage() {
-    val request = createTestTransationRequest()
-    request["lang"] = "cn"
+    every { appConfig.languages } returns
+      listOf(
+        "en",
+        "es",
+        "fr",
+        "en-US",
+        "en-CA",
+        "es-ES",
+        "fr-FR",
+        "fr-CA",
+        "zh-TW",
+        "zh-CN",
+        "uk-UA"
+      )
+    sep24Service = Sep24Service(appConfig, sep24Config, assetService, jwtService, txnStore)
 
-    every { appConfig.languages } returns listOf("en", "fr")
+    assertEquals("en", sep24Service.validateAndActivateLanguage("pt"))
+    assertEquals("en", sep24Service.validateAndActivateLanguage("uk"))
+    assertEquals("en", sep24Service.validateAndActivateLanguage("zh"))
+    assertEquals("en", sep24Service.validateAndActivateLanguage("en"))
+    assertEquals("es", sep24Service.validateAndActivateLanguage("es"))
+    assertEquals("fr", sep24Service.validateAndActivateLanguage("fr"))
 
-    assertThrows<SepValidationException> {
-      sep24Service.withdraw("/sep24/withdraw", createJwtToken(), request)
-    }
+    assertEquals("fr-FR", sep24Service.validateAndActivateLanguage("fr-BE"))
+    assertEquals("fr-FR", sep24Service.validateAndActivateLanguage("fr-FR"))
+    assertEquals("fr-FR", sep24Service.validateAndActivateLanguage("fr-BE"))
+    assertEquals("fr-CA", sep24Service.validateAndActivateLanguage("fr-CA"))
+    assertEquals("zh-TW", sep24Service.validateAndActivateLanguage("zh-HK"))
+    assertEquals("es-ES", sep24Service.validateAndActivateLanguage("es-AR"))
+    assertEquals("es-ES", sep24Service.validateAndActivateLanguage("es-BR"))
+    assertEquals("uk-UA", sep24Service.validateAndActivateLanguage("uk-RU"))
+    assertEquals("en-US", sep24Service.validateAndActivateLanguage("pt-BR"))
+    assertEquals("en-US", sep24Service.validateAndActivateLanguage("en-UK"))
+    assertEquals("en-CA", sep24Service.validateAndActivateLanguage("en-CA"))
+    assertEquals("en-US", sep24Service.validateAndActivateLanguage("en-US"))
+
+    assertEquals("en-US", sep24Service.validateAndActivateLanguage(null))
+    assertEquals("en-US", sep24Service.validateAndActivateLanguage("good-language"))
+    assertEquals("en", sep24Service.validateAndActivateLanguage("bad language"))
   }
 
   private fun createTestTransaction(kind: String): Sep24Transaction {
