@@ -109,7 +109,7 @@ resource "aws_ecs_service" "sep" {
  }
  
  load_balancer {
-   alb = aws_alb_target_group.sep.arn
+   alb = resource.aws_alb_target_group.sep.arn
    container_name   = "sep-container-${var.environment}"
    container_port   = 8080
  }
@@ -201,7 +201,7 @@ resource "aws_ecs_service" "ref" {
  }
  
  load_balancer {
-   alb = aws_alb_target_group.ref.arn
+   alb = resource.aws_alb_target_group.ref.arn
    container_name   = "ref-container-${var.environment}"
    container_port   = 8080
  }
