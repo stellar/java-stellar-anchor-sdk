@@ -17,7 +17,6 @@ resource "aws_ecs_task_definition" "sep" {
    name        = "${var.environment}-sep"
    image       = "stellar/anchor-platform:9cea0d1"
    essential   = true
-   environment = var.container_environment
    portMappings = [{
      protocol      = "tcp"
      containerPort = 8080
@@ -37,7 +36,6 @@ resource "aws_ecs_task_definition" "ref" {
    name        = "${var.environment}-reference"
    image       = "stellar/anchor-platform:9cea0d1"
    essential   = true
-   environment = var.container_environment
    portMappings = [{
      protocol      = "tcp"
      containerPort = 8081
