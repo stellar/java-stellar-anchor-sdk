@@ -11,6 +11,7 @@ subprojects {
   version = "0.1.0"
 
   repositories {
+    mavenLocal()
     mavenCentral()
     maven { url = uri("https://jitpack.io") }
   }

@@ -39,10 +39,18 @@ public class JdbcSep24TransactionStore implements Sep24TransactionStore {
   }
 
   @Override
-  public List<Sep24Transaction> findTransactions(String accountId, GetTransactionsRequest tr)
+  public List<Sep24Transaction> findTransactions(
+      String accountId, String accountMemo, GetTransactionsRequest tr)
       throws SepValidationException {
-    List<Sep24Transaction> txns =
-        txnRepo.findByStellarAccountAndAssetCodeOrderByStartedAtDesc(accountId, tr.getAssetCode());
+    List<Sep24Transaction> txns;
+    if (accountMemo == null)
+      txns =
+          txnRepo.findByStellarAccountAndAssetCodeOrderByStartedAtDesc(
+              accountId, tr.getAssetCode());
+    else
+      txns =
+          txnRepo.findByStellarAccountAndAccountMemoAndAssetCodeOrderByStartedAtDesc(
+              accountId, accountMemo, tr.getAssetCode());
 
     // TODO: This should be replaced by Couchbase query
     int limit = Integer.MAX_VALUE;

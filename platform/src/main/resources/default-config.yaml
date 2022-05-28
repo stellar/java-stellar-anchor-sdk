@@ -41,7 +41,8 @@ config-spring-property-settings:
     clientAttributionAllowList: lobstr.co,preview.lobstr.co
     authTimeout: 900
     jwtTimeout: 86400
-    signingSeed:
+    signingSeed: 
+    omnibusAccountList:
 
   # sep-24
   sep24:

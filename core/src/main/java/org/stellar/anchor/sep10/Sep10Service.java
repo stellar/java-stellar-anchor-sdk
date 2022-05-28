@@ -55,7 +55,16 @@ public class Sep10Service {
           String.format("home_domain [%s] is not supported.", challengeRequest.getHomeDomain()));
     }
 
-    if (sep10Config.isClientAttributionRequired()) {
+    boolean omnibusWallet =
+        sep10Config.getOmnibusAccountList().contains(challengeRequest.getAccount().trim());
+//    if (omnibusWallet) {
+//      if (challengeRequest.getClientDomain() != null) {
+//        throw new SepValidationException(
+//            "client_domain must not be specified if the account is an omni-wallet account");
+//      }
+//    }
+
+    if (!omnibusWallet && sep10Config.isClientAttributionRequired()) {
       if (challengeRequest.getClientDomain() == null) {
         infoF("ALERT: client domain required and not provided");
         throw new SepValidationException("client_domain is required");
@@ -90,6 +99,7 @@ public class Sep10Service {
     }
 
     // Validate memo. It should be 64-bit positive integer if not null.
+    Memo memo = null;
     try {
       if (challengeRequest.getMemo() != null) {
         int memoInt = Integer.parseInt(challengeRequest.getMemo());
@@ -97,6 +107,7 @@ public class Sep10Service {
           throw new SepValidationException(
               String.format("Invalid memo value: %s", challengeRequest.getMemo()));
         }
+        memo = new MemoId(memoInt);
       }
     } catch (NumberFormatException e) {
       throw new SepValidationException(
@@ -125,7 +136,8 @@ public class Sep10Service {
               (challengeRequest.getClientDomain() == null)
                   ? ""
                   : challengeRequest.getClientDomain(),
-              (clientSigningKey == null) ? "" : clientSigningKey);
+              (clientSigningKey == null) ? "" : clientSigningKey,
+              memo);
       // Convert the challenge to response
       return ChallengeResponse.of(
           txn.toEnvelopeXdrBase64(), appConfig.getStellarNetworkPassphrase());
@@ -144,14 +156,8 @@ public class Sep10Service {
       throw new SepValidationException("{transaction} is required.");
     }
 
-    String clientDomain = validateChallenge(validationRequest.getTransaction());
-    return ValidationResponse.of(
-        generateSep10Jwt(validationRequest.getTransaction(), clientDomain));
-  }
-
-  public String validateChallenge(String challengeXdr)
-      throws IOException, InvalidSep10ChallengeException, URISyntaxException {
-    Log.info("Parse challenge string.");
+    Log.debug("Parse challenge string.");
+    String challengeXdr = validationRequest.getTransaction();
     Sep10Challenge.ChallengeTransaction challenge =
         Sep10Challenge.readChallengeTransaction(
             challengeXdr,
@@ -210,7 +216,8 @@ public class Sep10Service {
           getDomainFromURI(appConfig.getHostUrl()),
           signers);
 
-      return clientDomain;
+      return ValidationResponse.of(
+          generateSep10Jwt(validationRequest.getTransaction(), clientDomain));
     }
 
     // Find the signers of the client account.
@@ -237,7 +244,8 @@ public class Sep10Service {
         threshold,
         signers);
 
-    return clientDomain;
+    return ValidationResponse.of(
+        generateSep10Jwt(validationRequest.getTransaction(), clientDomain));
   }
 
   String getClientAccountId(String clientDomain) throws SepException {
@@ -274,10 +282,13 @@ public class Sep10Service {
             sep10Config.getHomeDomain(),
             getDomainFromURI(appConfig.getHostUrl()));
     long issuedAt = challenge.getTransaction().getTimeBounds().getMinTime();
+    Memo memo = challenge.getTransaction().getMemo();
     JwtToken jwtToken =
         JwtToken.of(
             appConfig.getHostUrl() + "/auth",
-            challenge.getClientAccountId(),
+            (memo == null)
+                ? challenge.getClientAccountId()
+                : challenge.getClientAccountId() + ":" + memo,
             issuedAt,
             issuedAt + sep10Config.getJwtTimeout(),
             challenge.getTransaction().hashHex(),

@@ -13,6 +13,7 @@ public class JwtToken {
   long iat;
   long exp;
   String jti;
+  String account;
 
   @SerializedName(value = "client_domain")
   String clientDomain;
@@ -22,10 +23,6 @@ public class JwtToken {
 
   @SerializedName(value = "muxed_account")
   String muxedAccount;
-
-  public String getAccount() {
-    return this.sub;
-  }
 
   public String getTransactionId() {
     return this.jti;
@@ -52,6 +49,15 @@ public class JwtToken {
     token.exp = exp;
     token.jti = jti;
     token.clientDomain = clientDomain;
+
+    String[] subs = sub.split(":");
+    if (subs.length == 2) {
+      token.account = subs[0];
+      token.accountMemo = subs[1];
+    } else {
+      token.account = sub;
+      token.accountMemo = null;
+    }
     return token;
   }
 }

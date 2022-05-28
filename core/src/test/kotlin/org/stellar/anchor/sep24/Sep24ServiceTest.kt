@@ -31,7 +31,6 @@ import org.stellar.anchor.plugins.asset.ResourceJsonAssetService
 import org.stellar.anchor.sep10.JwtService
 import org.stellar.anchor.sep10.JwtToken
 import org.stellar.anchor.util.DateUtil
-import org.stellar.sdk.MemoHash
 import org.stellar.sdk.MemoId
 import org.stellar.sdk.MemoText
 import org.stellar.sdk.xdr.MemoType
@@ -302,7 +301,8 @@ internal class Sep24ServiceTest {
   @ParameterizedTest
   @ValueSource(strings = ["deposit", "withdrawal"])
   fun testFindTransactions(kind: String) {
-    every { txnStore.findTransactions(TEST_ACCOUNT, any()) } returns createTestTransactions(kind)
+    every { txnStore.findTransactions(TEST_ACCOUNT, any(), any()) } returns
+      createTestTransactions(kind)
     val gtr =
       GetTransactionsRequest.of(TEST_ASSET, kind, 10, "2021-12-20T19:30:58+00:00", "1", "en-US")
     val response = sep24Service.findTransactions(createJwtToken(), gtr)
@@ -422,8 +422,6 @@ internal class Sep24ServiceTest {
     assertTrue(memo is MemoText)
     memo = sep24Service.makeMemo("1234", "id")
     assertTrue(memo is MemoId)
-    memo = sep24Service.makeMemo("A1B2C3", "hash")
-    assertTrue(memo is MemoHash)
   }
 
   @Test

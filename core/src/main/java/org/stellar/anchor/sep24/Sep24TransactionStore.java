@@ -40,8 +40,8 @@ public interface Sep24TransactionStore {
    * @param request The query request.
    * @return The list of transaction documents. If not found, return empty list.
    */
-  List<Sep24Transaction> findTransactions(String accountId, GetTransactionsRequest request)
-      throws SepException;
+  List<Sep24Transaction> findTransactions(
+      String accountId, String accountMemo, GetTransactionsRequest request) throws SepException;
 
   /**
    * Save a transaction.

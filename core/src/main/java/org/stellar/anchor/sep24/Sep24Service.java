@@ -4,8 +4,9 @@ import static org.stellar.anchor.model.Sep24Transaction.Kind.DEPOSIT;
 import static org.stellar.anchor.model.Sep24Transaction.Kind.WITHDRAWAL;
 import static org.stellar.anchor.util.Log.errorEx;
 import static org.stellar.anchor.util.Log.shorter;
+import static org.stellar.anchor.util.SepUtil.memoType;
 import static org.stellar.anchor.util.SepUtil.memoTypeString;
-import static org.stellar.sdk.xdr.MemoType.MEMO_ID;
+import static org.stellar.sdk.xdr.MemoType.*;
 
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -87,10 +88,6 @@ public class Sep24Service {
       throw new SepValidationException("'account' is required");
     }
 
-    if (!sourceAccount.equals(token.getAccount())) {
-      throw new SepValidationException("'account' does not match the one in the token");
-    }
-
     // Verify that the asset code exists in our database, with withdraw enabled.
     AssetResponse asset = assetService.getAsset(assetCode, assetIssuer);
     if (asset == null || !asset.getWithdraw().getEnabled() || !asset.getSep24Enabled()) {
@@ -114,23 +111,31 @@ public class Sep24Service {
       throw new SepValidationException(String.format("invalid account: %s", sourceAccount), ex);
     }
 
+    Memo memo = makeMemo(withdrawRequest.get("memo"), withdrawRequest.get("memo_type"));
+
     String txnId = UUID.randomUUID().toString();
-    Sep24Transaction txn =
+    Sep24TransactionBuilder builder =
         new Sep24TransactionBuilder(txnStore)
             .transactionId(txnId)
             .status(Sep24Transaction.Status.INCOMPLETE.toString())
-            .kind(Sep24Transaction.Kind.WITHDRAWAL.toString())
+            .kind(WITHDRAWAL.toString())
             .amountIn(strAmount)
             .amountOut(strAmount)
             .assetCode(assetCode)
             .assetIssuer(withdrawRequest.get("asset_issuer"))
             .startedAt(Instant.now().getEpochSecond())
             .stellarAccount(token.getAccount())
+            .stellarAccountMemo(token.getAccountMemo())
             .fromAccount(sourceAccount)
             .protocol(Sep24Transaction.Protocol.SEP24.toString())
-            .memoType(memoTypeString(MEMO_ID))
-            .domainClient(token.getClientDomain())
-            .build();
+            .domainClient(token.getClientDomain());
+
+    if (memo != null) {
+      builder.memo(memo.toString());
+      builder.memoType(memoTypeString(memoType(memo)));
+    }
+
+    Sep24Transaction txn = builder.build();
 
     txnStore.save(txn);
 
@@ -189,12 +194,6 @@ public class Sep24Service {
       throw new SepValidationException("'account' is required");
     }
 
-    if (!destinationAccount.equals(token.getAccount())) {
-      throw new SepValidationException("'account' does not match the one in the token");
-    }
-
-    makeMemo(depositRequest.get("memo"), depositRequest.get("memo_type"));
-
     // Verify that the asset code exists in our database, with withdraw enabled.
     AssetResponse asset = assetService.getAsset(assetCode, assetIssuer);
     if (asset == null || !asset.getDeposit().getEnabled() || !asset.getSep24Enabled()) {
@@ -217,23 +216,32 @@ public class Sep24Service {
           String.format("invalid account: %s", destinationAccount), ex);
     }
 
+    Memo memo = makeMemo(depositRequest.get("memo"), depositRequest.get("memo_type"));
+
     String txnId = UUID.randomUUID().toString();
-    Sep24Transaction txn =
+    Sep24TransactionBuilder builder =
         new Sep24TransactionBuilder(txnStore)
             .transactionId(txnId)
             .status(Sep24Transaction.Status.INCOMPLETE.toString())
-            .kind(Sep24Transaction.Kind.DEPOSIT.toString())
+            .kind(DEPOSIT.toString())
             .amountIn(strAmount)
             .amountOut(strAmount)
             .assetCode(assetCode)
             .assetIssuer(depositRequest.get("asset_issuer"))
             .startedAt(Instant.now().getEpochSecond())
             .stellarAccount(token.getAccount())
+            .stellarAccountMemo(token.getAccountMemo())
             .toAccount(destinationAccount)
             .protocol(Sep24Transaction.Protocol.SEP24.toString())
             .domainClient(token.getClientDomain())
-            .claimableBalanceSupported(claimableSupported)
-            .build();
+            .claimableBalanceSupported(claimableSupported);
+
+    if (memo != null) {
+      builder.memo(memo.toString());
+      builder.memoType(memoTypeString(memoType(memo)));
+    }
+
+    Sep24Transaction txn = builder.build();
 
     txnStore.save(txn);
     Log.infoF(
@@ -266,7 +274,8 @@ public class Sep24Service {
     if (assetService.getAsset(txReq.getAssetCode(), null) == null) {
       throw new SepValidationException("asset code is not supported");
     }
-    List<Sep24Transaction> txns = txnStore.findTransactions(token.getAccount(), txReq);
+    List<Sep24Transaction> txns =
+        txnStore.findTransactions(token.getAccount(), token.getAccountMemo(), txReq);
     GetTransactionsResponse result = new GetTransactionsResponse();
     List<TransactionResponse> list = new ArrayList<>();
     for (Sep24Transaction txn : txns) {
@@ -307,6 +316,11 @@ public class Sep24Service {
 
     // We should not return the transaction that belongs to other accounts.
     if (txn == null || !txn.getStellarAccount().equals(token.getAccount())) {
+      throw new SepNotFoundException("transaction is not found");
+    }
+
+    // If the token has a memo, make sure the transaction belongs to the account with the same memo.
+    if (token.getAccountMemo() != null && !token.getAccountMemo().equals(txn.getAccountMemo())) {
       throw new SepNotFoundException("transaction is not found");
     }
 

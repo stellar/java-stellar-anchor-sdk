@@ -48,6 +48,7 @@ public interface Sep24Transaction {
 
   String getStellarAccount();
 
+  // The account from the JWT.
   void setStellarAccount(String stellarAccount);
 
   String getReceivingAnchorAccount();
@@ -106,6 +107,7 @@ public interface Sep24Transaction {
 
   void setAmountFeeAsset(String amountFeeAsset);
 
+  // From JWT account memo
   String getAccountMemo();
 
   void setAccountMemo(String accountMemo);

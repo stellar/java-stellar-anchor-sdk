@@ -16,4 +16,5 @@ public class PropertySep10Config implements Sep10Config {
   private Integer jwtTimeout = 86400;
   private List<String> clientAttributionDenyList;
   private List<String> clientAttributionAllowList;
+  private List<String> omnibusAccountList;
 }

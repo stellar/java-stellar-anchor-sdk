@@ -50,6 +50,11 @@ public class Sep24TransactionBuilder {
     return this;
   }
 
+  public Sep24TransactionBuilder stellarAccountMemo(String accountMemo) {
+    txn.setAccountMemo(accountMemo);
+    return this;
+  }
+
   public Sep24TransactionBuilder receivingAnchorAccount(String receivingAnchorAccount) {
     txn.setReceivingAnchorAccount(receivingAnchorAccount);
     return this;
