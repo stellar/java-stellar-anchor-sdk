@@ -11,6 +11,7 @@ resource "aws_ecs_task_definition" "sep" {
   requires_compatibilities = ["FARGATE"]
   cpu                      = 256
   memory                   = 512
+  family                   = "${var.environment}-sep"
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
   task_role_arn            = aws_iam_role.ecs_task_role.arn
   container_definitions = jsonencode([{
@@ -30,6 +31,7 @@ resource "aws_ecs_task_definition" "ref" {
   requires_compatibilities = ["FARGATE"]
   cpu                      = 256
   memory                   = 512
+    family                   = "${var.environment}-ref"
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
   task_role_arn            = aws_iam_role.ecs_task_role.arn
   container_definitions = jsonencode([{
