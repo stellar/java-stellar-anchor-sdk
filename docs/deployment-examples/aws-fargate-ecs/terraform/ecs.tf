@@ -162,8 +162,11 @@ resource "aws_alb_listener" "sep_http" {
    }
   }
 }
- 
 
+ data "aws_acm_certificate" "issued" {
+  domain   = "www.${data.aws_route53_zone.anchor-zone.name}"
+  statuses = ["ISSUED"]
+}
 resource "aws_alb_listener" "sep_https" {
   load_balancer_arn = aws_lb.sep.id
   port              = 443
@@ -181,7 +184,6 @@ resource "aws_alb_listener" "sep_https" {
 #
 # ref
 #
-
 resource "aws_ecs_service" "ref" {
  name                               = "sep-${var.environment}-service"
  cluster                            = aws_ecs_cluster.ref.id
