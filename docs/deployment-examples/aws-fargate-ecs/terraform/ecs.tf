@@ -67,7 +67,7 @@ EOF
 }
 
 resource "aws_iam_role" "ecs_task_execution_role" {
-  name = "${var.name}-ecsTaskExecutionRole"
+  name = "anchorplatform-ecsTaskExecutionRole"
  
   assume_role_policy = <<EOF
 {
