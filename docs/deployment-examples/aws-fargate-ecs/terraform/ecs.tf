@@ -109,7 +109,7 @@ resource "aws_ecs_service" "sep" {
  }
  
  load_balancer {
-   alb = resource.aws_alb_target_group.sep.arn
+   target_group_arn = aws_alb_target_group.sep.arn
    container_name   = "sep-container-${var.environment}"
    container_port   = 8080
  }
@@ -162,7 +162,10 @@ resource "aws_alb_listener" "sep_http" {
    }
   }
 }
-
+data "aws_route53_zone" "anchor-zone" {
+  name         = "${var.hosted_zone_name}"
+  private_zone = false
+}
  data "aws_acm_certificate" "issued" {
   domain   = "www.${data.aws_route53_zone.anchor-zone.name}"
   statuses = ["ISSUED"]
@@ -201,7 +204,7 @@ resource "aws_ecs_service" "ref" {
  }
  
  load_balancer {
-   alb = resource.aws_alb_target_group.ref.arn
+   target_group_arn = aws_alb_target_group.ref.arn
    container_name   = "ref-container-${var.environment}"
    container_port   = 8080
  }
