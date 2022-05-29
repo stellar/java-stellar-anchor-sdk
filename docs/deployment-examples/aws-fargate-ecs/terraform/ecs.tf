@@ -162,10 +162,6 @@ resource "aws_alb_listener" "sep_http" {
    }
   }
 }
-data "aws_route53_zone" "anchor-zone" {
-  name         = "${var.hosted_zone_name}"
-  private_zone = false
-}
  data "aws_acm_certificate" "issued" {
   domain   = "www.${data.aws_route53_zone.anchor-zone.name}"
   statuses = ["ISSUED"]
