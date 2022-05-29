@@ -30,7 +30,7 @@ resource "tls_private_key" "private_key" {
 
 resource "acme_registration" "registration" {
   account_key_pem = tls_private_key.private_key.private_key_pem
-  email_address   = "reece@stellar.org" # TODO put your own email in here!
+  email_address   = "reece@stellar.org" 
 }
 
 resource "acme_certificate" "certificate" {
