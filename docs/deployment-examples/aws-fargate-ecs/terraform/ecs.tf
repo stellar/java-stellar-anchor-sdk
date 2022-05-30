@@ -103,7 +103,7 @@ resource "aws_ecs_service" "sep" {
  scheduling_strategy                = "REPLICA"
  
  network_configuration {
-   security_groups  = [aws_security_group.sep_alb.name]
+   security_groups  = [aws_security_group.sep_alb.id]
    subnets          = module.vpc.public_subnets
    assign_public_ip = false
  }
@@ -123,7 +123,7 @@ resource "aws_lb" "sep" {
   name               = "sep-${var.environment}-alb"
   internal           = false
   load_balancer_type = "application"
-  security_groups    = [aws_security_group.sep_alb.name]
+  security_groups    = [aws_security_group.sep_alb.id]
   subnets            = module.vpc.public_subnets
  
   enable_deletion_protection = false
@@ -190,7 +190,7 @@ resource "aws_ecs_service" "ref" {
  scheduling_strategy                = "REPLICA"
  
  network_configuration {
-   security_groups  = [aws_security_group.ref_alb.name]
+   security_groups  = [aws_security_group.ref_alb.id]
    subnets          = module.vpc.public_subnets
    assign_public_ip = false
  }
@@ -210,7 +210,7 @@ resource "aws_lb" "ref" {
   name               = "ref-${var.environment}-alb"
   internal           = false
   load_balancer_type = "application"
-  security_groups    = [aws_security_group.ref_alb.name]
+  security_groups    = [aws_security_group.ref_alb.id]
   subnets            = module.vpc.private_subnets
  
   enable_deletion_protection = false
