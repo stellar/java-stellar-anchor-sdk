@@ -51,7 +51,7 @@ resource "acme_certificate" "certificate" {
 }
 
 resource "aws_iam_server_certificate" "sep_cert" {
-  name             = "sep certificate"
+  name             = "sepcert"
   certificate_body = acme_certificate.certificate.certificate_pem
   private_key      = acme_certificate.certificate.private_key_pem
 }
