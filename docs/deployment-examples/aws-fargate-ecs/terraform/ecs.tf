@@ -157,7 +157,7 @@ resource "aws_alb_target_group" "sep" {
    path                = "/health"
    unhealthy_threshold = "2"
   }
-  depends_on = [aws_lb.sep, aws_alb_listener.sep_http]
+  depends_on = [aws_lb.sep, aws_alb_listener.sep_http, aws_alb_listener.sep_https]
 }
 
 resource "aws_alb_listener" "sep_http" {
