@@ -127,8 +127,12 @@ resource "aws_ecs_service" "sep" {
    ignore_changes = [task_definition, desired_count]
  }
  
+  deployment_circuit_breaker {
+   enable=true
+   rollback=true
+ }
  deployment_controller {
-      type = "CODE_DEPLOY"
+      type = "ECS"
   }
 }
 
@@ -157,9 +161,12 @@ resource "aws_ecs_service" "ref" {
  lifecycle {
    ignore_changes = [task_definition, desired_count]
  }
- 
+ deployment_circuit_breaker {
+   enable=true
+   rollback=true
+ }
  deployment_controller {
-      type = "CODE_DEPLOY"
+      type = "ECS"
   }
   depends_on = [aws_alb_listener.sep_http]
 }
