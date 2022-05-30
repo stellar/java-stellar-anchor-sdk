@@ -188,7 +188,7 @@ resource "aws_alb_listener" "sep_https" {
     target_group_arn = aws_alb_target_group.sep.arn
     type             = "forward"
   }
-  depends_on = [aws_lb.sep, data.aws_acm_certificate.issued]
+  depends_on = [aws_lb.sep]
 }
 
 #
