@@ -18,6 +18,7 @@ resource "aws_ecs_task_definition" "sep" {
   container_definitions = jsonencode([{
    name        = "${var.environment}-sep"
    image       = "stellar/anchor-platform:02a79e6"
+   entryPoint  = ["java", "-jar", "/app/anchor-platform-runner.jar", "--sep-server"]
    essential   = true
    portMappings = [{
      protocol      = "tcp"
@@ -38,6 +39,7 @@ resource "aws_ecs_task_definition" "ref" {
   container_definitions = jsonencode([{
    name        = "${var.environment}-ref"
    image       = "stellar/anchor-platform:02a79e6"
+   entryPoint  = ["java", "-jar", "/app/anchor-platform-runner.jar", "--anchor-reference-server"]
    essential   = true
    portMappings = [{
      protocol      = "tcp"
