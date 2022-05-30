@@ -161,7 +161,7 @@ resource "aws_alb_target_group" "sep" {
 }
 
 resource "aws_alb_listener" "sep_http" {
-  load_balancer_arn = aws_lb.sep.id
+  load_balancer_arn = aws_lb.sep.arn
   port              = 80
   protocol          = "HTTP"
  
@@ -178,7 +178,7 @@ resource "aws_alb_listener" "sep_http" {
 }
 
 resource "aws_alb_listener" "sep_https" {
-  load_balancer_arn = aws_lb.sep.id
+  load_balancer_arn = aws_lb.sep.arn
   port              = 443
   protocol          = "HTTPS"
  
@@ -256,7 +256,7 @@ resource "aws_alb_target_group" "ref" {
 }
 
 resource "aws_alb_listener" "ref_http" {
-  load_balancer_arn = aws_lb.ref.id
+  load_balancer_arn = aws_lb.ref.arn
   port              = 8081
   protocol          = "HTTP"
  
