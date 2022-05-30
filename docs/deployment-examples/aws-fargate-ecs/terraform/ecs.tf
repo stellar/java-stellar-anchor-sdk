@@ -224,6 +224,7 @@ resource "aws_ecs_service" "ref" {
  deployment_controller {
       type = "CODE_DEPLOY"
   }
+  depends_on = [aws_alb_listener.sep_http]
 }
 
 resource "aws_lb" "ref" {
