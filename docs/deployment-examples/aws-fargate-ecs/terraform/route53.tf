@@ -31,7 +31,7 @@ resource "tls_private_key" "private_key" {
 resource "acme_registration" "registration" {
   account_key_pem = tls_private_key.private_key.private_key_pem
   email_address   = "reece@stellar.org" 
-  depends_on = [aws_route53_record.sep]
+  depends_on = [aws_route53_record.sep, tls_private_key.private_key]
 }
 
 resource "acme_certificate" "certificate" {
@@ -47,12 +47,12 @@ resource "acme_certificate" "certificate" {
     }
   }
 
-  depends_on = [aws_route53_record.sep, acme_registration.registration]
+  depends_on = [acme_registration.registration]
 }
 
  data "aws_acm_certificate" "issued" {
   domain   = "www.${data.aws_route53_zone.anchor-zone.name}"
   statuses = ["ISSUED"]
-  depends_on = [aws_route53_record.sep, acme_registration.registration, acme_certificate.certificate]
+  depends_on =  [acme_certificate.certificate]
 }
 
