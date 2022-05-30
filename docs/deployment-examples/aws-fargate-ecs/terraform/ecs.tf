@@ -162,11 +162,11 @@ resource "aws_alb_listener" "sep_http" {
    }
   }
 }
- data "aws_acm_certificate" "issued" {
-  domain   = "www.${data.aws_route53_zone.anchor-zone.name}"
-  statuses = ["ISSUED"]
-  depends_on = [acme_registration.registration]
-}
+ #data "aws_acm_certificate" "issued" {
+ # domain   = "www.${data.aws_route53_zone.anchor-zone.name}"
+ # statuses = ["ISSUED"]
+ # depends_on = [acme_registration.registration]
+#}
 resource "aws_alb_listener" "sep_https" {
   load_balancer_arn = aws_lb.sep.id
   port              = 443
