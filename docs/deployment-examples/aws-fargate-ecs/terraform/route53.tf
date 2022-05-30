@@ -53,6 +53,6 @@ resource "acme_certificate" "certificate" {
  data "aws_acm_certificate" "issued" {
   domain   = "www.${data.aws_route53_zone.anchor-zone.name}"
   statuses = ["ISSUED"]
-  depends_on = [aws_route53_record.sep, acme_registration.registration]
+  depends_on = [aws_route53_record.sep, aws_ecs_service.sep, acme_registration.registration]
 }
 
