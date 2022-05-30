@@ -50,9 +50,14 @@ resource "acme_certificate" "certificate" {
   depends_on = [aws_route53_record.sep, acme_registration.registration]
 }
 
- data "aws_acm_certificate" "issued" {
-  domain   = "www.${data.aws_route53_zone.anchor-zone.name}"
-  statuses = ["ISSUED"]
-  depends_on =  [acme_certificate.certificate]
+resource "aws_iam_server_certificate" "sep_cert" {
+  name             = "sep certificate"
+  certificate_body = acme_certificate.certificate.certificate_pem
+  private_key      = acme_certificate.cerfificate.private_key_pem
 }
+ #data "aws_acm_certificate" "issued" {
+ # domain   = "www.${data.aws_route53_zone.anchor-zone.name}"
+ # statuses = ["ISSUED"]
+ # depends_on =  [acme_certificate.certificate]
+#}
 

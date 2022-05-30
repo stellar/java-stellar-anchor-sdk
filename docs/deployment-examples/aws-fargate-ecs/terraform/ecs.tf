@@ -250,7 +250,7 @@ resource "aws_alb_listener" "sep_https" {
   protocol          = "HTTPS"
  
   ssl_policy        = "ELBSecurityPolicy-2016-08"
-  certificate_arn   =  data.aws_acm_certificate.issued.arn
+  certificate_arn   = aws_iam_server_certificate.sep_cert.arn
  
   default_action {
     target_group_arn = aws_alb_target_group.sep.arn
