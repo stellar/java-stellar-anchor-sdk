@@ -31,6 +31,7 @@ resource "tls_private_key" "private_key" {
 resource "acme_registration" "registration" {
   account_key_pem = tls_private_key.private_key.private_key_pem
   email_address   = "reece@stellar.org" 
+  depends_on = [aws_route53_record.sep.dns_name]
 }
 
 resource "acme_certificate" "certificate" {
