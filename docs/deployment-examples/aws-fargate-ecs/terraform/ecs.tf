@@ -147,6 +147,7 @@ resource "aws_alb_target_group" "sep" {
    path                = "/health"
    unhealthy_threshold = "2"
   }
+  depends_on = [aws_lb.sep]
 }
 
 resource "aws_alb_listener" "sep_http" {
@@ -163,7 +164,7 @@ resource "aws_alb_listener" "sep_http" {
      status_code = "HTTP_301"
    }
   }
-  depends_on = [aws.lb.sep]
+  depends_on = [aws_lb.sep]
 }
 resource "aws_alb_listener" "sep_https" {
   load_balancer_arn = aws_lb.sep.id
@@ -177,7 +178,7 @@ resource "aws_alb_listener" "sep_https" {
     target_group_arn = aws_alb_target_group.sep.arn
     type             = "forward"
   }
-  depends_on = [aws.lb.sep]
+  depends_on = [aws_lb.sep]
 }
 
 #
@@ -236,6 +237,7 @@ resource "aws_alb_target_group" "ref" {
    path                = "/health"
    unhealthy_threshold = "2"
   }
+  depends_on = [aws_lb.ref]
 }
 
 resource "aws_alb_listener" "ref_http" {
@@ -247,7 +249,7 @@ resource "aws_alb_listener" "ref_http" {
    target_group_arn = aws_alb_target_group.ref.arn
    type             = "forward" 
   }
-  depends_on = [aws.lb.ref]
+  depends_on = [aws_lb.ref]
 }
  
 
