@@ -98,9 +98,9 @@ resource "aws_ecs_service" "sep" {
  name                               = "${var.environment}-sep-service"
  cluster                            = aws_ecs_cluster.sep.id
  task_definition                    = aws_ecs_task_definition.sep.arn
- desired_count                      = 1
+ desired_count                      = 2
  deployment_minimum_healthy_percent = 100
- deployment_maximum_percent         = 100
+ deployment_maximum_percent         = 200
  launch_type                        = "FARGATE"
  scheduling_strategy                = "REPLICA"
  
@@ -163,6 +163,7 @@ resource "aws_alb_listener" "sep_http" {
      status_code = "HTTP_301"
    }
   }
+  depends_on = [aws.lb.sep]
 }
 resource "aws_alb_listener" "sep_https" {
   load_balancer_arn = aws_lb.sep.id
@@ -176,6 +177,7 @@ resource "aws_alb_listener" "sep_https" {
     target_group_arn = aws_alb_target_group.sep.arn
     type             = "forward"
   }
+  depends_on = [aws.lb.sep]
 }
 
 #
@@ -185,9 +187,9 @@ resource "aws_ecs_service" "ref" {
  name                               = "${var.environment}-ref-service"
  cluster                            = aws_ecs_cluster.ref.id
  task_definition                    = aws_ecs_task_definition.ref.arn
- desired_count                      = 1
+ desired_count                      = 2
  deployment_minimum_healthy_percent = 100
- deployment_maximum_percent         = 100
+ deployment_maximum_percent         = 200
  launch_type                        = "FARGATE"
  scheduling_strategy                = "REPLICA"
  
@@ -245,6 +247,7 @@ resource "aws_alb_listener" "ref_http" {
    target_group_arn = aws_alb_target_group.ref.arn
    type             = "forward" 
   }
+  depends_on = [aws.lb.ref]
 }
  
 
