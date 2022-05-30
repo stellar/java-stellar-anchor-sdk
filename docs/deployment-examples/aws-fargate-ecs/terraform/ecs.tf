@@ -188,7 +188,7 @@ resource "aws_lb" "ref" {
 ####################### Target Group
  
 resource "aws_alb_target_group" "sep" {
-  name        = "sep-${var.environment}-tg"
+  name        = "${var.environment}-sep-tg"
   port        = 80
   protocol    = "HTTP"
   vpc_id      = module.vpc.vpc_id
@@ -206,7 +206,24 @@ resource "aws_alb_target_group" "sep" {
   depends_on = [aws_lb.sep]
 }
 
-
+resource "aws_alb_target_group" "ref" {
+  name        = "${var.environment}-ref-tg"
+  port        = 80
+  protocol    = "HTTP"
+  vpc_id      = module.vpc.vpc_id
+  target_type = "ip"
+ 
+  health_check {
+   healthy_threshold   = "3"
+   interval            = "30"
+   protocol            = "HTTP"
+   matcher             = "200"
+   timeout             = "3"
+   path                = "/health"
+   unhealthy_threshold = "2"
+  }
+  depends_on = [aws_lb.sep]
+}
 
 ####################### LISTENER
 
