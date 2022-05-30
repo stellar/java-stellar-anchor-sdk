@@ -198,7 +198,7 @@ resource "aws_ecs_service" "ref" {
  load_balancer {
    target_group_arn = aws_alb_target_group.ref.arn
    container_name   = "${var.environment}-ref"
-   container_port   = 8080
+   container_port   = 8081
  }
  
  lifecycle {
