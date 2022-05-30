@@ -157,7 +157,7 @@ resource "aws_alb_target_group" "sep" {
    path                = "/health"
    unhealthy_threshold = "2"
   }
-  depends_on = [aws_lb.sep, aws_alb_listener.sep_http, aws_alb_listener.sep_https]
+  depends_on = [aws_lb.sep]
 }
 
 resource "aws_alb_listener" "sep_http" {
@@ -174,8 +174,9 @@ resource "aws_alb_listener" "sep_http" {
      status_code = "HTTP_301"
    }
   }
-  depends_on = [aws_lb.sep]
+  depends_on = [aws_lb.sep, aws_alb_listener.sep_https]
 }
+
 resource "aws_alb_listener" "sep_https" {
   load_balancer_arn = aws_lb.sep.id
   port              = 443
