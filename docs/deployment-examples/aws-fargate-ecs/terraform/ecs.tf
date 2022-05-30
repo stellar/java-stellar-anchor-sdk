@@ -125,6 +125,10 @@ resource "aws_ecs_service" "sep" {
  lifecycle {
    ignore_changes = [task_definition, desired_count]
  }
+ 
+ deployment_controller {
+      type = "CODE_DEPLOY"
+  }
 }
 
 resource "aws_lb" "sep" {
@@ -153,7 +157,7 @@ resource "aws_alb_target_group" "sep" {
    path                = "/health"
    unhealthy_threshold = "2"
   }
-  depends_on = [aws_lb.sep]
+  depends_on = [aws_lb.sep, aws_alb_listener.sep_http]
 }
 
 resource "aws_alb_listener" "sep_http" {
@@ -215,6 +219,10 @@ resource "aws_ecs_service" "ref" {
  lifecycle {
    ignore_changes = [task_definition, desired_count]
  }
+ 
+ deployment_controller {
+      type = "CODE_DEPLOY"
+  }
 }
 
 resource "aws_lb" "ref" {
