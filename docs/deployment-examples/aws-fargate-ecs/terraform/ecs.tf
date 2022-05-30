@@ -26,6 +26,10 @@ resource "aws_ecs_task_definition" "sep" {
      hostPort      = 8080
    }]
   }])
+    volume {
+    name      = "config"
+    host_path = "/config"
+  }
 }
 
 resource "aws_ecs_task_definition" "ref" {
@@ -47,6 +51,10 @@ resource "aws_ecs_task_definition" "ref" {
      hostPort      = 8081
    }]
   }])
+  volume {
+    name      = "config"
+    host_path = "/config"
+  }
 }
 
 resource "aws_iam_role" "ecs_task_role" {
@@ -178,7 +186,7 @@ resource "aws_alb_listener" "sep_https" {
     target_group_arn = aws_alb_target_group.sep.arn
     type             = "forward"
   }
-  depends_on = [aws_lb.sep]
+  depends_on = [aws_lb.sep, data.aws_acm_certificate.issued]
 }
 
 #
