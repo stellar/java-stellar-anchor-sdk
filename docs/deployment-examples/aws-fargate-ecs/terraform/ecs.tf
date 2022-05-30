@@ -36,7 +36,7 @@ resource "aws_ecs_task_definition" "ref" {
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
   task_role_arn            = aws_iam_role.ecs_task_role.arn
   container_definitions = jsonencode([{
-   name        = "${var.environment}-reference"
+   name        = "${var.environment}-ref"
    image       = "stellar/anchor-platform:9cea0d1"
    essential   = true
    portMappings = [{
@@ -93,7 +93,7 @@ resource "aws_iam_role_policy_attachment" "ecs-task-execution-role-policy-attach
 }
 
 resource "aws_ecs_service" "sep" {
- name                               = "sep-${var.environment}-service"
+ name                               = "${var.environment}-sep-service"
  cluster                            = aws_ecs_cluster.sep.id
  task_definition                    = aws_ecs_task_definition.sep.arn
  desired_count                      = 2
@@ -180,7 +180,7 @@ resource "aws_alb_listener" "sep_https" {
 # ref
 #
 resource "aws_ecs_service" "ref" {
- name                               = "sep-${var.environment}-service"
+ name                               = "${var.environment}-ref-service"
  cluster                            = aws_ecs_cluster.ref.id
  task_definition                    = aws_ecs_task_definition.ref.arn
  desired_count                      = 2
