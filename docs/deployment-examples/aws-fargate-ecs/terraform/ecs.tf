@@ -28,7 +28,6 @@ resource "aws_ecs_task_definition" "sep" {
   }])
     volume {
     name      = "config"
-    host_path = "/config"
   }
 }
 
@@ -53,7 +52,6 @@ resource "aws_ecs_task_definition" "ref" {
   }])
   volume {
     name      = "config"
-    host_path = "/config"
   }
 }
 
