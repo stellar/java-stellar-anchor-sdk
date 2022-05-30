@@ -132,7 +132,7 @@ resource "aws_ecs_service" "sep" {
    rollback=true
  }
  deployment_controller {
-      type = "ECS"
+      type = "CODE_DEPLOY"
   }
 }
 
@@ -166,7 +166,7 @@ resource "aws_ecs_service" "ref" {
    rollback=true
  }
  deployment_controller {
-      type = "ECS"
+      type = "CODE_DEPLOY"
   }
   depends_on = [aws_alb_listener.sep_http]
 }
