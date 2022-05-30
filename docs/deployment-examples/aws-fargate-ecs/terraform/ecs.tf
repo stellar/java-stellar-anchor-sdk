@@ -1,12 +1,12 @@
-
+## ECS Cluster
 resource "aws_ecs_cluster" "sep" {
   name = "sep-${var.environment}-cluster"
 }
-
 resource "aws_ecs_cluster" "ref" {
   name = "ref-${var.environment}-cluster"
 }
 
+## Task Definitions
 resource "aws_ecs_task_definition" "sep" {
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
@@ -100,6 +100,7 @@ resource "aws_iam_role_policy_attachment" "ecs-task-execution-role-policy-attach
   policy_arn = "arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
 }
 
+####################### ECS Service
 resource "aws_ecs_service" "sep" {
  name                               = "${var.environment}-sep-service"
  cluster                            = aws_ecs_cluster.sep.id
@@ -131,70 +132,6 @@ resource "aws_ecs_service" "sep" {
   }
 }
 
-resource "aws_lb" "sep" {
-  name               = "sep-${var.environment}-alb"
-  internal           = false
-  load_balancer_type = "application"
-  security_groups    = [aws_security_group.sep_alb.id]
-  subnets            = module.vpc.public_subnets
- 
-  enable_deletion_protection = false
-}
- 
-resource "aws_alb_target_group" "sep" {
-  name        = "sep-${var.environment}-tg"
-  port        = 80
-  protocol    = "HTTP"
-  vpc_id      = module.vpc.vpc_id
-  target_type = "ip"
- 
-  health_check {
-   healthy_threshold   = "3"
-   interval            = "30"
-   protocol            = "HTTP"
-   matcher             = "200"
-   timeout             = "3"
-   path                = "/health"
-   unhealthy_threshold = "2"
-  }
-  depends_on = [aws_lb.sep]
-}
-
-resource "aws_alb_listener" "sep_http" {
-  load_balancer_arn = aws_lb.sep.arn
-  port              = 80
-  protocol          = "HTTP"
- 
-  default_action {
-   type = "redirect"
- 
-   redirect {
-     port        = 443
-     protocol    = "HTTPS"
-     status_code = "HTTP_301"
-   }
-  }
-  depends_on = [aws_lb.sep, aws_alb_listener.sep_https]
-}
-
-resource "aws_alb_listener" "sep_https" {
-  load_balancer_arn = aws_lb.sep.arn
-  port              = 443
-  protocol          = "HTTPS"
- 
-  ssl_policy        = "ELBSecurityPolicy-2016-08"
-  certificate_arn   =  data.aws_acm_certificate.issued.arn
- 
-  default_action {
-    target_group_arn = aws_alb_target_group.sep.arn
-    type             = "forward"
-  }
-  depends_on = [aws_lb.sep]
-}
-
-#
-# ref
-#
 resource "aws_ecs_service" "ref" {
  name                               = "${var.environment}-ref-service"
  cluster                            = aws_ecs_cluster.ref.id
@@ -227,6 +164,16 @@ resource "aws_ecs_service" "ref" {
   depends_on = [aws_alb_listener.sep_http]
 }
 
+####################### ALB 
+resource "aws_lb" "sep" {
+  name               = "sep-${var.environment}-alb"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.sep_alb.id]
+  subnets            = module.vpc.public_subnets
+ 
+  enable_deletion_protection = false
+}
 resource "aws_lb" "ref" {
   name               = "ref-${var.environment}-alb"
   internal           = true
@@ -236,9 +183,12 @@ resource "aws_lb" "ref" {
  
   enable_deletion_protection = false
 }
+
+
+####################### Target Group
  
-resource "aws_alb_target_group" "ref" {
-  name        = "ref-${var.environment}-tg"
+resource "aws_alb_target_group" "sep" {
+  name        = "sep-${var.environment}-tg"
   port        = 80
   protocol    = "HTTP"
   vpc_id      = module.vpc.vpc_id
@@ -253,7 +203,43 @@ resource "aws_alb_target_group" "ref" {
    path                = "/health"
    unhealthy_threshold = "2"
   }
-  depends_on = [aws_lb.ref]
+  depends_on = [aws_lb.sep]
+}
+
+
+
+####################### LISTENER
+
+resource "aws_alb_listener" "sep_http" {
+  load_balancer_arn = aws_lb.sep.arn
+  port              = 80
+  protocol          = "HTTP"
+ 
+  default_action {
+   type = "redirect"
+ 
+   redirect {
+     port        = 443
+     protocol    = "HTTPS"
+     status_code = "HTTP_301"
+   }
+  }
+  depends_on = [aws_lb.sep]
+}
+
+resource "aws_alb_listener" "sep_https" {
+  load_balancer_arn = aws_lb.sep.arn
+  port              = 443
+  protocol          = "HTTPS"
+ 
+  ssl_policy        = "ELBSecurityPolicy-2016-08"
+  certificate_arn   =  data.aws_acm_certificate.issued.arn
+ 
+  default_action {
+    target_group_arn = aws_alb_target_group.sep.arn
+    type             = "forward"
+  }
+  depends_on = [aws_lb.sep]
 }
 
 resource "aws_alb_listener" "ref_http" {
