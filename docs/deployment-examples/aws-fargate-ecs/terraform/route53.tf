@@ -36,7 +36,7 @@ resource "acme_registration" "registration" {
 
 resource "acme_certificate" "certificate" {
   account_key_pem           = acme_registration.registration.account_key_pem
-  common_name               = data.aws_route53_zone.anchor-zone.name
+  common_name               = "www.${data.aws_route53_zone.anchor-zone.name}"
   #subject_alternative_names = ["*.${data.aws_route53_zone.anchor-zone.name}"]
 
   dns_challenge {
