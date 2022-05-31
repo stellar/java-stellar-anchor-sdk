@@ -22,12 +22,12 @@ data "archive_file" "deploy_zip" {
 
   source {
     content  = local.sepconfig
-    filename = "config/anchor-config.yaml"
+    filename = "content/config/anchor-config.yaml"
   }
 
   source {
     content  = local.appspec
-    filename = "config/appspec.yaml"
+    filename = "appspec.yaml"
   }
 }
 
