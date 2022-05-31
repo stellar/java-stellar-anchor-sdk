@@ -36,7 +36,7 @@ resource "aws_s3_bucket_object" "file_upload" {
   #provider         = "aws.regional"
   bucket           = "sepconfig"
   key              = "anchorconfig.zip"
-  content          = data.archive_file.deploypackage.output_path
+  content          = data.archive_file.deploypackage.source_content
 }
 
 
