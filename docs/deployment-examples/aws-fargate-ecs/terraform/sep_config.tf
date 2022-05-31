@@ -1,3 +1,8 @@
+provider "aws" {
+    region = "us-east-1"
+    alias = "regional"
+}
+
 locals {
   sepconfig = templatefile("${path.module}/templates/sep.tftpl",
                {
@@ -26,6 +31,7 @@ locals {
 
 
 resource "aws_s3_bucket_object" "file_upload" {
+  provider         = "aws.regional"
   bucket           = "testbucket"
   key              = "sepconfig"
   content          = local.sepconfig
