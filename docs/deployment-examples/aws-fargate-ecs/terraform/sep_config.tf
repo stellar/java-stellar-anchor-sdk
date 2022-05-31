@@ -27,7 +27,7 @@ data "archive_file" "deploy_zip" {
 
   source {
     content  = local.appspec
-    filename = "config/appspec.yml"
+    filename = "config/appspec.yaml"
   }
 }
 
