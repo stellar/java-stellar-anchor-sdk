@@ -4,10 +4,7 @@ Resources:
   - TargetService:
       Type: AWS::ECS::Service
       Properties:
-        TaskDefinition: "arn:aws:ecs:us-east-2:245943599471:task-definition/dev-sep:5" # Specify the ARN of your task definition (arn:aws:ecs:region:account-id:task-definition/task-definition-family-name:task-definition-revision-number)
+        TaskDefinition: "arn:aws:ecs:us-east-2:245943599471:task-definition/dev-sep:5" 
         LoadBalancerInfo: 
-          ContainerName: "dev-sep" # Specify the name of your Amazon ECS application's container
-          ContainerPort: "8080" # Specify the port for your container where traffic reroutes 
-files:
-  - source: /
-    destination: /config/anchor-config.yaml
+          ContainerName: "dev-sep" 
+          ContainerPort: 8080
