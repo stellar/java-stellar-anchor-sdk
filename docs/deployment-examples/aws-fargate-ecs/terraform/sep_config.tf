@@ -2,7 +2,9 @@ locals {
   sepconfig = templatefile("${path.module}/templates/sep.tftpl",
                {config = {
                    "homeDomain"   = "www.stellaranchordemo.com"
-               }})
+                }
+               }
+               )
 }
   
 
