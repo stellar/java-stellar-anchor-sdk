@@ -1,10 +1,12 @@
-version: 0.1
+--- 
 os: linux
-Resources:
-  - TargetService:
+version: 0.1
+Resources: 
+  - 
+    TargetService: 
       Type: AWS::ECS::Service
-      Properties:
-        TaskDefinition: "arn:aws:ecs:us-east-2:245943599471:task-definition/dev-sep:5" 
+      Properties: 
         LoadBalancerInfo: 
-          ContainerName: "dev-sep" 
+          ContainerName: "dev-sep"
           ContainerPort: 8080
+        TaskDefinition: "arn:aws:ecs:us-east-2:245943599471:task-definition/dev-sep:5"
