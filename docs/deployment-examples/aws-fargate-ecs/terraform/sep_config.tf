@@ -18,17 +18,16 @@ locals {
   
 data "archive_file" "deploy_zip" {
   type        = "zip"
-  output_path = "${path.module}/files/dotfiles.zip"
-  excludes    = [ "${path.module}/unwanted.zip" ]
+  output_path = "${path.module}/generated_files/anchor-platform.zip"
 
   source {
     content  = local.sepconfig
-    filename = "anchor-config.yaml"
+    filename = "config/anchor-config.yaml"
   }
 
   source {
     content  = local.appspec
-    filename = "appspec.yml"
+    filename = "config/appspec.yml"
   }
 }
 
