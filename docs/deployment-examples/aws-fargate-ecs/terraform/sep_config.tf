@@ -28,7 +28,7 @@ locals {
 resource "aws_s3_bucket_object" "file_upload" {
   bucket           = "testbucket"
   key              = "sepconfig"
-  source           = local.sepconfig
+  source           = local.sepconfig.rendered
 }
 
 
