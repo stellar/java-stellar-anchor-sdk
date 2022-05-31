@@ -7,11 +7,19 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.stellar.anchor.Constants
+import org.stellar.anchor.TestHelper
 import org.stellar.anchor.api.callback.CustomerIntegration
 import org.stellar.anchor.api.callback.FeeIntegration
+import org.stellar.anchor.api.exception.AnchorException
+import org.stellar.anchor.api.exception.BadRequestException
+import org.stellar.anchor.api.exception.SepValidationException
 import org.stellar.anchor.api.sep.AssetInfo
+import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerRequest
+import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerResponse
 import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionRequest
+import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionRequest.Sep31TxnFields
 import org.stellar.anchor.api.shared.Amount
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.ResourceJsonAssetService
@@ -21,6 +29,8 @@ import org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_RECEIVE
 import org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_SEND
 import org.stellar.anchor.event.EventPublishService
 import org.stellar.anchor.sep10.JwtService
+import org.stellar.anchor.sep31.Sep31Service.Sep31CustomerInfoNeededException
+import org.stellar.anchor.sep31.Sep31Service.Sep31MissingFieldException
 import org.stellar.anchor.sep38.PojoSep38Quote
 import org.stellar.anchor.sep38.Sep38QuoteStore
 import org.stellar.anchor.util.GsonUtils
@@ -207,6 +217,7 @@ internal class Sep31ServiceTest {
     every { appConfig.stellarNetworkPassphrase } returns Constants.TEST_NETWORK_PASS_PHRASE
     every { appConfig.hostUrl } returns Constants.TEST_HOST_URL
     every { appConfig.jwtSecretKey } returns Constants.TEST_JWT_SECRET
+    every { appConfig.languages } returns listOf("en")
     every { sep31Config.paymentType } returns STRICT_SEND
     every { txnStore.newTransaction() } returns PojoSep31Transaction()
 
@@ -388,5 +399,169 @@ internal class Sep31ServiceTest {
     assertEquals("USDC", txn.amountInAsset)
     assertEquals("500.00", txn.amountOut)
     assertEquals("BRL", txn.amountOutAsset)
+  }
+
+  @Test
+  fun test_postTransaction_failure() {
+    val jwtToken = TestHelper.createJwtToken()
+
+    // missing asset code
+    val postTxRequest = Sep31PostTransactionRequest()
+    var ex: AnchorException = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("asset null:null is not supported.", ex.message)
+
+    // invalid asset code
+    postTxRequest.assetCode = "FOO"
+    ex = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("asset FOO:null is not supported.", ex.message)
+
+    // invalid asset issuer
+    postTxRequest.assetCode = "USDC"
+    postTxRequest.assetIssuer = "BAR"
+    ex = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("asset USDC:BAR is not supported.", ex.message)
+
+    // missing amount
+    postTxRequest.assetIssuer = null
+    ex = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("amount cannot be empty", ex.message)
+
+    // invalid amount (not a number)
+    postTxRequest.amount = "FOO BAR"
+    ex = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("amount is invalid", ex.message)
+
+    // invalid amount (not a positive number)
+    postTxRequest.amount = "-0.01"
+    ex = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("amount should be positive", ex.message)
+
+    // invalid amount (not a positive number)
+    postTxRequest.amount = "0"
+    ex = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("amount should be positive", ex.message)
+
+    // unsupported language
+    postTxRequest.amount = "100"
+    postTxRequest.lang = "es"
+    ex = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
+    assertInstanceOf(SepValidationException::class.java, ex)
+    assertEquals("unsupported language: es", ex.message)
+
+    // missing required fields
+    postTxRequest.lang = null
+    ex = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("'fields' field cannot be empty", ex.message)
+
+    // missing required fields.transaction
+    postTxRequest.fields = Sep31TxnFields(null)
+    ex = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("'fields' field must have one 'transaction' field", ex.message)
+
+    // missing fields [receiver_routing_number, receiver_account_number, type]
+    postTxRequest.fields = Sep31TxnFields(hashMapOf())
+    ex = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
+    assertInstanceOf(Sep31MissingFieldException::class.java, ex)
+    val wantMissingFieldsNames =
+      listOf("receiver_account_number", "type", "receiver_routing_number")
+    val gotMissingFieldsNames = (ex as Sep31MissingFieldException).missingFields.transaction.keys
+    assertTrue(
+      wantMissingFieldsNames.containsAll(gotMissingFieldsNames),
+      "missing field names don't match"
+    )
+    assertTrue(
+      gotMissingFieldsNames.containsAll(wantMissingFieldsNames),
+      "missing field names don't match"
+    )
+
+    // missing receiver_id
+    val fields =
+      hashMapOf(
+        "receiver_account_number" to "1",
+        "type" to "1",
+        "receiver_routing_number" to "SWIFT",
+      )
+    postTxRequest.fields = Sep31TxnFields(fields)
+    ex = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("receiver_id cannot be empty.", ex.message)
+
+    // not found receiver_id
+    every { customerIntegration.getCustomer(any()) } returns null
+    postTxRequest.receiverId = "receiver_foo"
+    ex = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
+    assertInstanceOf(Sep31CustomerInfoNeededException::class.java, ex)
+    assertEquals("sep31-receiver", (ex as Sep31CustomerInfoNeededException).type)
+
+    // missing sender_id
+    val receiverId = "137938d4-43a7-4252-a452-842adcee474c"
+    postTxRequest.receiverId = receiverId
+    var request = Sep12GetCustomerRequest.builder().id(receiverId).build()
+    every { customerIntegration.getCustomer(request) } returns Sep12GetCustomerResponse()
+    ex = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("sender_id cannot be empty.", ex.message)
+
+    // not found receiver_id
+    postTxRequest.senderId = "sender_bar"
+    ex = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
+    assertInstanceOf(Sep31CustomerInfoNeededException::class.java, ex)
+    assertEquals("sep31-sender", (ex as Sep31CustomerInfoNeededException).type)
+
+    // not found quote_id
+    val senderId = "d2bd1412-e2f6-4047-ad70-a1a2f133b25c"
+    postTxRequest.senderId = senderId
+    request = Sep12GetCustomerRequest.builder().id(senderId).build()
+    every { customerIntegration.getCustomer(request) } returns Sep12GetCustomerResponse()
+
+    postTxRequest.quoteId = "not-found-quote-id"
+    every { quoteStore.findByQuoteId(any()) } returns null
+    ex = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("quote(id=not-found-quote-id) was not found.", ex.message)
+
+    // quote and tx amounts don't match
+    val quoteId = "de762cda-a193-4961-861e-57b31fed6eb3"
+    val quote = PojoSep38Quote()
+    quote.sellAmount = "100.1"
+    postTxRequest.amount = "100"
+    postTxRequest.quoteId = quoteId
+    every { quoteStore.findByQuoteId(quoteId) } returns quote
+
+    ex = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals(
+      "Quote sell amount [100.1] is different from the SEP-31 transaction amount [100]",
+      ex.message
+    )
+
+    // quote and tx assets don't match (quote.sell_asset is null)
+    quote.sellAmount = "100.00000"
+    every { quoteStore.findByQuoteId(quoteId) } returns quote
+    ex = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals(
+      "Quote sell asset [null] is different from the SEP-31 transaction asset [stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5]",
+      ex.message
+    )
+
+    // quote and tx assets don't match
+    quote.sellAsset = "stellar:USDC:zzz"
+    every { quoteStore.findByQuoteId(quoteId) } returns quote
+    ex = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals(
+      "Quote sell asset [stellar:USDC:zzz] is different from the SEP-31 transaction asset [stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5]",
+      ex.message
+    )
   }
 }

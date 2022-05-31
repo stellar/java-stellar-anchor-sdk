@@ -21,13 +21,20 @@ fun platformTestAll(toml: Sep1Helper.TomlContent, jwt: String) {
 }
 
 fun testHappyPath() {
-  // Create customer
-  val customer =
-    GsonUtils.getInstance().fromJson(testCustomerJson, Sep12PutCustomerRequest::class.java)
-  val pr = sep12Client.putCustomer(customer)
+  // Create sender customer
+  val senderCustomerRequest =
+    GsonUtils.getInstance().fromJson(testCustomer1Json, Sep12PutCustomerRequest::class.java)
+  val senderCustomer = sep12Client.putCustomer(senderCustomerRequest)
+
+  // Create receiver customer
+  val receiverCustomerRequest =
+    GsonUtils.getInstance().fromJson(testCustomer2Json, Sep12PutCustomerRequest::class.java)
+  val receiverCustomer = sep12Client.putCustomer(receiverCustomerRequest)
+
   // Post Sep31 transaction.
   val txnRequest = gson.fromJson(postTxnJson, Sep31PostTransactionRequest::class.java)
-  txnRequest.receiverId = pr!!.id
+  txnRequest.senderId = senderCustomer!!.id
+  txnRequest.receiverId = receiverCustomer!!.id
   val txnPosted = sep31Client.postTransaction(txnRequest)
 
   val txnQueried = platformApiClient.getTransaction(txnPosted.id)

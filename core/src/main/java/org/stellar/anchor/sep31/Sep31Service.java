@@ -2,7 +2,6 @@ package org.stellar.anchor.sep31;
 
 import static org.stellar.anchor.api.sep.sep31.Sep31InfoResponse.AssetResponse;
 import static org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_SEND;
-import static org.stellar.anchor.sep31.Sep31Helper.amountEquals;
 import static org.stellar.anchor.util.MathHelper.decimal;
 import static org.stellar.anchor.util.SepHelper.*;
 
@@ -77,20 +76,26 @@ public class Sep31Service {
   public Sep31PostTransactionResponse postTransaction(
       JwtToken jwtToken, Sep31PostTransactionRequest request) throws AnchorException {
     Context.reset();
-
     Context.get().setRequest(request);
     Context.get().setJwtToken(jwtToken);
 
-    validateAsset();
-
     AssetInfo assetInfo = assetService.getAsset(request.getAssetCode(), request.getAssetIssuer());
+    if (assetInfo == null) {
+      // the asset is not supported.
+      throw new BadRequestException(
+          String.format(
+              "asset %s:%s is not supported.", request.getAssetCode(), request.getAssetIssuer()));
+    }
+    Context.get().setAsset(assetInfo);
 
     // Pre-validation
     validateAmount(request.getAmount());
     validateLanguage(appConfig, request.getLang());
+    if (request.getFields() == null) {
+      throw new BadRequestException("'fields' field cannot be empty");
+    }
     validateRequiredFields(assetInfo.getCode(), request.getFields().getTransaction());
     validateSenderAndReceiver();
-    validateKyc();
     preValidateQuote();
 
     // Query the fee
@@ -370,27 +375,32 @@ public class Sep31Service {
     Sep31PostTransactionRequest request = Context.get().getRequest();
 
     // Check if quote is provided.
-    if (request.getQuoteId() != null) {
-      Sep38Quote quote = sep38QuoteStore.findByQuoteId(request.getQuoteId());
-      if (quote == null)
-        throw new BadRequestException(
-            String.format("quote(id=%s) was not a valid quote.", request.getQuoteId()));
-      // Check quote amounts
-      if (!amountEquals(quote.getSellAmount(), request.getAmount())) {
-        throw new BadRequestException(
-            String.format(
-                "Quote amount is [%s] different from the sending amount [%s]",
-                quote.getSellAmount(), request.getAmount()));
-      }
-      String assetName =
-          assetService.getAsset(request.getAssetCode(), request.getAssetIssuer()).getAssetName();
-      // check quote asset
-      if (!quote.getSellAsset().equals(assetName)) {
-        throw new BadRequestException(
-            String.format(
-                "Quote asset is [%s] different from the transaction sending asset [%s]",
-                quote.getSellAsset(), assetName));
-      }
+    if (request.getQuoteId() == null) {
+      return;
+    }
+
+    Sep38Quote quote = sep38QuoteStore.findByQuoteId(request.getQuoteId());
+    if (quote == null) {
+      throw new BadRequestException(
+          String.format("quote(id=%s) was not found.", request.getQuoteId()));
+    }
+
+    // Check quote amounts: `post_transaction.amount == quote.sell_amount`
+    if (!amountEquals(request.getAmount(), quote.getSellAmount())) {
+      throw new BadRequestException(
+          String.format(
+              "Quote sell amount [%s] is different from the SEP-31 transaction amount [%s]",
+              quote.getSellAmount(), request.getAmount()));
+    }
+
+    // Check quote asset: `post_transaction.asset == quote.sell_asset`
+    String assetName =
+        assetService.getAsset(request.getAssetCode(), request.getAssetIssuer()).getAssetName();
+    if (!assetName.equals(quote.getSellAsset())) {
+      throw new BadRequestException(
+          String.format(
+              "Quote sell asset [%s] is different from the SEP-31 transaction asset [%s]",
+              quote.getSellAsset(), assetName));
     }
   }
 
@@ -419,45 +429,28 @@ public class Sep31Service {
     Context.get().setFee(fee);
   }
 
-  void validateKyc() throws AnchorException {
+  void validateSenderAndReceiver() throws AnchorException {
     String receiverId = Context.get().getRequest().getReceiverId();
+    if (receiverId == null) {
+      throw new BadRequestException("receiver_id cannot be empty.");
+    }
+
     Sep12GetCustomerRequest request = Sep12GetCustomerRequest.builder().id(receiverId).build();
     Sep12GetCustomerResponse receiver = this.customerIntegration.getCustomer(request);
     if (receiver == null) {
       throw new Sep31CustomerInfoNeededException("sep31-receiver");
     }
 
-    // TODO: More of sender / receiver customer validation should be implemented in /fee or future
-    // /validate-txn API.
-    // TODO: Check sender if sender id is not null. This is also related to if we require senderId
-  }
-
-  void validateSenderAndReceiver() throws BadRequestException {
-    Sep31PostTransactionRequest request = Context.get().getRequest();
-    if (request.getReceiverId() == null || request.getSenderId() == null) {
-      throw new BadRequestException("receiver_id must be provided.");
+    String senderId = Context.get().getRequest().getSenderId();
+    if (senderId == null) {
+      throw new BadRequestException("sender_id cannot be empty.");
     }
-    // TODO: We should discuss how to delegate the decision to delegate the senderId and receiverId
-    // to the anchor.
-  }
 
-  void validateAsset() throws BadRequestException {
-    Sep31PostTransactionRequest request = Context.get().getRequest();
-    String assetCode = request.getAssetCode();
-    String assetIssuer = request.getAssetIssuer();
-    // Check if the asset is supported in SEP-31
-    for (AssetInfo asset : assetService.listAllAssets()) {
-      if (asset.getSep31Enabled()
-          //          && assetInfo.getIssuer().equals(assetIssuer) TODO: Add this back when
-          // demo-wallet sends the issuer.
-          && asset.getCode().equals(assetCode)) {
-        Context.get().setAsset(asset);
-        return;
-      }
+    request = Sep12GetCustomerRequest.builder().id(senderId).build();
+    Sep12GetCustomerResponse sender = this.customerIntegration.getCustomer(request);
+    if (sender == null) {
+      throw new Sep31CustomerInfoNeededException("sep31-sender");
     }
-    // the asset is not supported.
-    throw new BadRequestException(
-        String.format("asset %s:%s is not supported.", assetCode, assetIssuer));
   }
 
   void validateRequiredFields(String assetCode, Map<String, String> fields) throws AnchorException {
