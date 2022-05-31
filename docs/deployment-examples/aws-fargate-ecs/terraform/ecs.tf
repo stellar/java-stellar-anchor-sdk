@@ -128,7 +128,7 @@ resource "aws_ecs_service" "sep" {
  }
  
  deployment_controller {
-      type = "CODE_DEPLOY"
+      type = "CodeDeployToECS"
   }
 }
 
@@ -158,7 +158,7 @@ resource "aws_ecs_service" "ref" {
    ignore_changes = [task_definition, desired_count]
  }
  deployment_controller {
-      type = "CODE_DEPLOY"
+      type = "CodeDeployToECS"
   }
   depends_on = [aws_alb_listener.sep_http]
 }
