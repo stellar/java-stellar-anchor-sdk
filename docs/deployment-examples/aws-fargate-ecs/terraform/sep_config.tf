@@ -3,37 +3,40 @@
 #    alias = "regional"
 #}
 
+resource "local_file" "foo" {
+    content  = "foo!"
+    filename = "${path.module}/foo.bar"
+}
+
+
+
 locals {
-  sepconfig = templatefile("${path.module}/templates/sep.tftpl",
-               {
-                   "homeDomain"   = "www.stellaranchordemo.com"
-                }
-               )
+  sepconfig = templatefile("${path.module}/templates/sep.tftpl",{
+      "homeDomain"   = "www.stellaranchordemo.com"})
+    appspec = templatefile("${path.module}/templates/appspec.tftpl",{})
 }
   
+data "archive_file" "deploypackage" {
+  type        = "zip"
+  output_path = "${path.module}/files/dotfiles.zip"
+  excludes    = [ "${path.module}/unwanted.zip" ]
 
-#Generate the Dockerrun.aws.json with the container information and environment tag
-#resource "local_file" "docker_container_info" {
-#  content  = local.file_content
-#  filename = "./${var.service_name}-${var.environment}-Dockerrun.aws.json"
-#}
+  source {
+    content  = local.sepconfig
+    filename = "anchor-config.yaml"
+  }
 
-#Zip the file
-#data "archive_file" "source" {
-#  type        = "zip"
-#  source_dir  = "./${var.service_name}-${var.environment}-Dockerrun.aws.json"
-#  output_path = "./${var.service_name}-${var.environment}-Dockerrun.aws.json.zip"
-
-# depends_on = [
-#    local_file.docker_container_info
-#  ]
-#}
+  source {
+    content  = local.appspec
+    filename = "appspec.yml"
+  }
+}
 
 resource "aws_s3_bucket_object" "file_upload" {
   #provider         = "aws.regional"
   bucket           = "sepconfig"
-  key              = "anchor-config.yaml"
-  content          = local.sepconfig
+  key              = "anchorconfig.zip"
+  content          = data.archive_file.deploypackage.output_path
 }
 
 
