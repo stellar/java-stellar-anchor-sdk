@@ -23,13 +23,11 @@ locals {
 #  ]
 #}
 
-/*
-#Upload the zip file to s3 bucket under DockerRunFiles folder
+
 resource "aws_s3_bucket_object" "file_upload" {
-  bucket           = var.run_file_bucket
-  key              = "${var.bucket_name}/${var.service_name}-${var.environment}-Dockerrun.aws.json.zip"
-  source           = "${data.archive_file.source.output_path}"
-}
-*/
+  bucket           = "testbucket"
+  key              = "sepconfig"
+  source           = local.sepconfig
+
 
 
