@@ -16,7 +16,7 @@ locals {
     appspec = templatefile("${path.module}/templates/appspec.tftpl",{})
 }
   
-data "archive_file" "deploypackage" {
+data "archive_file" "deploy_zip" {
   type        = "zip"
   output_path = "${path.module}/files/dotfiles.zip"
   excludes    = [ "${path.module}/unwanted.zip" ]
@@ -36,7 +36,7 @@ resource "aws_s3_bucket_object" "file_upload" {
   #provider         = "aws.regional"
   bucket           = "sepconfig"
   key              = "anchorconfig.zip"
-  content          = data.archive_file.deploypackage.source_content
+  source           = archive_file.deploy_zip.output_path
 }
 
 
