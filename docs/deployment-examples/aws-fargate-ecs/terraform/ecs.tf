@@ -17,7 +17,7 @@ resource "aws_ecs_task_definition" "sep" {
   task_role_arn            = aws_iam_role.ecs_task_role.arn
   container_definitions = jsonencode([{
    name        = "${var.environment}-sep"
-   image       = "stellar/anchor-platform:02a79e6"
+   image       = "reecemarkowsky/testing"
    entryPoint  = ["java", "-jar", "/app/anchor-platform-runner.jar", "--sep-server"]
    essential   = true
    portMappings = [{
@@ -38,7 +38,7 @@ resource "aws_ecs_task_definition" "ref" {
   task_role_arn            = aws_iam_role.ecs_task_role.arn
   container_definitions = jsonencode([{
    name        = "${var.environment}-ref"
-   image       = "stellar/anchor-platform:02a79e6"
+   image       = "reecemarkowsky/testing"
    entryPoint  = ["java", "-jar", "/app/anchor-platform-runner.jar", "--anchor-reference-server"]
    essential   = true
    #environment = [
