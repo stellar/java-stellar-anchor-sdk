@@ -143,9 +143,6 @@ resource "aws_ecs_service" "sep" {
    ignore_changes = [task_definition, desired_count]
  }
  
- deployment_controller {
-      type = "CODE_DEPLOY"
-  }
 }
 
 resource "aws_ecs_service" "ref" {
@@ -173,9 +170,6 @@ resource "aws_ecs_service" "ref" {
  lifecycle {
    ignore_changes = [task_definition, desired_count]
  }
- deployment_controller {
-      type = "CODE_DEPLOY"
-  }
   depends_on = [aws_alb_listener.sep_http]
 }
 
