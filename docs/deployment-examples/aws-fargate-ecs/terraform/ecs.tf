@@ -283,17 +283,19 @@ resource "aws_alb_listener" "ref_http" {
 
 
 resource "aws_iam_policy" "logging" {
-  name        = "dev-anchorplatform-task-policy-logs"
+  name        = "anchorplatformlogs"
   description = "Policy that allows access to logs"
  
- policy = <<EOF
+  policy = <<EOF
 {
    "Version": "2012-10-17",
    "Statement": [
        {
            "Effect": "Allow",
            "Action": [
-               "logs:*",
+               "logs:CreateLogStream",
+               "logs:PutLogEvents",
+               "logs:CreateLogGroup"
            ],
            "Resource": "*"
        }
