@@ -139,9 +139,9 @@ resource "aws_ecs_service" "sep" {
    container_port   = 8080
  }
  
- lifecycle {
-   ignore_changes = [task_definition, desired_count]
- }
+ #lifecycle {
+ #  ignore_changes = [task_definition, desired_count]
+ #}
  
 }
 
@@ -167,9 +167,9 @@ resource "aws_ecs_service" "ref" {
    container_port   = 8081
  }
  
- lifecycle {
-   ignore_changes = [task_definition, desired_count]
- }
+ #lifecycle {
+ #  ignore_changes = [task_definition, desired_count]
+ #}
   depends_on = [aws_alb_listener.sep_http]
 }
 
