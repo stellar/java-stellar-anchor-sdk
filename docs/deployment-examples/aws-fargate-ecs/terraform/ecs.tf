@@ -293,9 +293,7 @@ resource "aws_iam_policy" "logging" {
        {
            "Effect": "Allow",
            "Action": [
-               "logs:CreateLogStream",
-               "logs:PutLogEvents",
-               "logs:CreateLogGroup"
+               "logs:*"
            ],
            "Resource": "*"
        }
