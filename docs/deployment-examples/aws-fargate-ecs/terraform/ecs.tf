@@ -218,7 +218,7 @@ resource "aws_alb_target_group" "sep" {
 
 resource "aws_alb_target_group" "ref" {
   name        = "${var.environment}-ref-tg"
-  port        = 80
+  port        = 8081
   protocol    = "HTTP"
   vpc_id      = module.vpc.vpc_id
   target_type = "ip"
