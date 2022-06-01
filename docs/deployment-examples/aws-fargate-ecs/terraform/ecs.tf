@@ -128,9 +128,9 @@ resource "aws_ecs_service" "sep" {
  scheduling_strategy                = "REPLICA"
  
  network_configuration {
-   security_groups  = [aws_security_group.sep_alb.id]
-   subnets          = module.vpc.public_subnets
-   assign_public_ip = true
+   security_groups  = [aws_security_group.SetSecurityGroups.id]
+   subnets          = module.vpc.private_subnets
+   assign_public_ip = false
  }
  
  load_balancer {
@@ -157,7 +157,7 @@ resource "aws_ecs_service" "ref" {
  
  network_configuration {
    security_groups  = [aws_security_group.ref_alb.id]
-   subnets          = module.vpc.public_subnets
+   subnets          = module.vpc.private_subnets
    assign_public_ip = false
  }
  

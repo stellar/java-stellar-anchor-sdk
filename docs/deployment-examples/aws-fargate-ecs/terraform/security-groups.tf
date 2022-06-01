@@ -27,6 +27,27 @@ resource "aws_security_group" "sep_alb" {
   }
 }
 
+resource "aws_security_group" "sep_sg" {
+  name   = "ref-${var.environment}-sg-alb"
+  vpc_id = module.vpc.vpc_id
+ 
+  ingress {
+   protocol         = "tcp"
+   from_port        = 8080
+   to_port          = 8080
+   cidr_blocks      = ["0.0.0.0/0"]
+   ipv6_cidr_blocks = ["::/0"]
+  }
+ 
+  egress {
+   protocol         = "-1"
+   from_port        = 0
+   to_port          = 0
+   cidr_blocks      = ["0.0.0.0/0"]
+   ipv6_cidr_blocks = ["::/0"]
+  }
+}
+
 resource "aws_security_group" "ref_alb" {
   name   = "ref-${var.environment}-sg-alb"
   vpc_id = module.vpc.vpc_id
