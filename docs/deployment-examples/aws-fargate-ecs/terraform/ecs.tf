@@ -209,7 +209,7 @@ resource "aws_alb_target_group" "sep" {
    protocol            = "HTTP"
    matcher             = "200"
    timeout             = "3"
-   path                = "/health"
+   path                = "/.well-known/stellar.toml"
    unhealthy_threshold = "2"
   }
   depends_on = [aws_lb.sep]
