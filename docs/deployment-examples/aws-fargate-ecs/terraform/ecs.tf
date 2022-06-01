@@ -281,7 +281,7 @@ resource "aws_alb_listener" "ref_http" {
 }
  
 
-resource "aws_iam_policy" "create-log-group" {
+resource "aws_iam_policy" "create_log_group" {
   name        = "anchorplatformlogs"
   description = "Create Log Group"
  
@@ -305,5 +305,5 @@ EOF
  
 resource "aws_iam_role_policy_attachment" "ecs-task-role-policy-attachment" {
   role       = aws_iam_role.ecs_task_role.name
-  policy_arn = aws_iam_policy.logging.arn
+  policy_arn = aws_iam_policy.create_log_group.arn
 }
