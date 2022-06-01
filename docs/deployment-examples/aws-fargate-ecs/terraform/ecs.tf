@@ -281,28 +281,27 @@ resource "aws_alb_listener" "ref_http" {
 }
  
 
-
-resource "aws_iam_policy" "logging" {
+resource "aws_iam_policy" "create-log-group" {
   name        = "anchorplatformlogs"
-  description = "Policy that allows access to logs"
+  description = "Create Log Group"
  
   policy = <<EOF
 {
-   "Version": "2012-10-17",
-   "Statement": [
-       {
-           "Effect": "Allow",
-           "Action": [
-               "logs:CreateLogStream",
-               "logs:PutLogEvents",
-               "logs:CreateLogGroup",
-           ],
-           "Resource": "*"
-       }
-   ]
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "logs:CreateLogGroup"
+            ],
+            "Resource": "*"
+        }
+    ]
 }
 EOF
 }
+
+
  
 resource "aws_iam_role_policy_attachment" "ecs-task-role-policy-attachment" {
   role       = aws_iam_role.ecs_task_role.name
