@@ -283,7 +283,7 @@ resource "aws_alb_listener" "ref_http" {
 
 
 resource "aws_iam_policy" "logging" {
-  name        = "${var.name}-task-policy-logs"
+  name        = "dev-anchorplatform-task-policy-logs"
   description = "Policy that allows access to logs"
  
  policy = <<EOF
