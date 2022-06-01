@@ -1,33 +1,14 @@
-version: 0.2
-#run-as: Linux-user-name
-
+version: 0.2`````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````         ```````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````````                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   -=+
 env:
   variables:
     environment: "dev"
-#  parameter-store:
-#    key: "value"
-#    key: "value"
-#  exported-variables:
-#    - variable
-#    - variable
   secrets-manager:
-    DOCKER_LOGIN_PW: "/CodeBuild/dockerLoginPassword"
-#  git-credential-helper: no | yes
-
-#proxy:
-#  upload-artifacts: no | yes
-#  logs: no | yes
-
-#batch:
-#  fast-fail: false | true
-  # build-list:
-  # build-matrix:
-  # build-graph:
-        
+    DOCKER_LOGIN_PW: "/CodeBuild/dockerLoginPassword"     
 phases:
   build:
     commands:
       - docker login -u reecemarkowsky -p $DOCKER_LOGIN_PW
+      - cd docs/deployment-examples/aws-fargate-ecs
       - docker build . -t anchor-config
       - docker tag anchor-platform reecemarkowsky/anchor-config:latest
       - docker push reecemarkowsky/anchor-config:latest

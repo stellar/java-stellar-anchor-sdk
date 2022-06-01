@@ -20,6 +20,9 @@ COPY --from=build /code/service-runner/build/libs/anchor-platform-runner*.jar /a
 RUN mkdir /config
 ENV STELLAR_ANCHOR_CONFIG=file:/config/anchor-config.yaml
 
+COPY anchor-reference-server/src/main/resources/anchor-reference-server.yaml /config/reference-config.yaml
+COPY platform/src/main/resources/anchor-config-defaults.yaml /config/anchor-config.yaml
+
 ENV REFERENCE_SERVER_CONFIG_ENV=file:/config/reference-config.yaml
 
 EXPOSE 8080 8081

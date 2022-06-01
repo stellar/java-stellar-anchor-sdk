@@ -26,9 +26,6 @@ resource "aws_ecs_task_definition" "sep" {
      hostPort      = 8080
    }]
   }])
-    volume {
-    name      = "config"
-  }
 }
 
 resource "aws_ecs_task_definition" "ref" {
@@ -44,15 +41,16 @@ resource "aws_ecs_task_definition" "ref" {
    image       = "stellar/anchor-platform:02a79e6"
    entryPoint  = ["java", "-jar", "/app/anchor-platform-runner.jar", "--anchor-reference-server"]
    essential   = true
+   #environment = [
+   #  { "name" : "STELLAR_ANCHOR_CONFIG", "value" : "/config" },
+   #  { "name" : "string", "value" : "string" }
+   #]
    portMappings = [{
      protocol      = "tcp"
      containerPort = 8081
      hostPort      = 8081
    }]
   }])
-  volume {
-    name      = "config"
-  }
 }
 
 resource "aws_iam_role" "ecs_task_role" {
