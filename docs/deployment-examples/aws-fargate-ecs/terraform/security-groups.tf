@@ -28,7 +28,7 @@ resource "aws_security_group" "sep_alb" {
 }
 
 resource "aws_security_group" "sep" {
-  name   = "ref-${var.environment}-sg-alb"
+  name   = "ref-${var.environment}-sg-sep"
   vpc_id = module.vpc.vpc_id
  
   ingress {
