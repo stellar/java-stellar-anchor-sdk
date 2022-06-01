@@ -205,7 +205,7 @@ resource "aws_alb_target_group" "sep" {
  
   health_check {
    healthy_threshold   = "2"
-   interval            = "300"
+   interval            = "30"
    protocol            = "HTTP"
    matcher             = "200"
    timeout             = "3"
