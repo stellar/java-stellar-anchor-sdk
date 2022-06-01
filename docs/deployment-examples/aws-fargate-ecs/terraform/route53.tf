@@ -54,9 +54,6 @@ resource "aws_route53_record" "ref" {
 resource "aws_acm_certificate" "acm_certificate" {
   domain_name               = "www.${data.aws_route53_zone.anchor-zone.name}"
   validation_method         = "DNS"
-tags {
-    Environment = "dev"
-  }
 lifecycle {
     create_before_destroy = true
   }
