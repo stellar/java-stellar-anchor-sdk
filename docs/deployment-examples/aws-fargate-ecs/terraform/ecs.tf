@@ -23,10 +23,10 @@ resource "aws_ecs_task_definition" "sep" {
    logConfiguration = {
                 "logDriver": "awslogs",
                 "options": {
-                    "awslogs-group": "firelens-container",
+                    "awslogs-group": "anchor-platform",
                     "awslogs-region": "us-east-2",
                     "awslogs-create-group": "true",
-                    "awslogs-stream-prefix": "firelens"
+                    "awslogs-stream-prefix": "sep"
                 }
             }
    portMappings = [{
@@ -52,10 +52,10 @@ resource "aws_ecs_task_definition" "ref" {
    logConfiguration = {
                 "logDriver": "awslogs",
                 "options": {
-                    "awslogs-group": "firelens-container",
+                    "awslogs-group": "anchor-platform",
                     "awslogs-region": "us-east-2",
                     "awslogs-create-group": "true",
-                    "awslogs-stream-prefix": "firelens"
+                    "awslogs-stream-prefix": "ref"
                 }
             }
    essential   = true
