@@ -130,7 +130,7 @@ resource "aws_ecs_service" "sep" {
  network_configuration {
    security_groups  = [aws_security_group.sep_alb.id]
    subnets          = module.vpc.public_subnets
-   assign_public_ip = false
+   assign_public_ip = true
  }
  
  load_balancer {
