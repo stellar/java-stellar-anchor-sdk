@@ -9,11 +9,6 @@ data "aws_route53_zone" "anchor-zone" {
   private_zone = false
 }
 
-data "aws_route53_zone" "sep" {
-  name         = "www.stellaranchordemo.com"
-  private_zone = false
-}
-
 #resource "aws_route53_record" "sep" {
 #  zone_id = data.aws_route53_zone.anchor-zone.zone_id
 #  name    = "www.${data.aws_route53_zone.anchor-zone.name}"
@@ -36,7 +31,7 @@ resource "aws_route53_record" "sep" {
   records         = [each.value.record]
   ttl             = 60
   type            = each.value.type
-  zone_id         = data.aws_route53_zone.sep.zone_id
+  zone_id         = data.aws_route53_zone.anchor-zone.zone_id
 }
 
 
