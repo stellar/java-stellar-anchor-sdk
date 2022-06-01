@@ -74,7 +74,7 @@ resource "acme_certificate" "certificate" {
   depends_on = [aws_route53_record.sep, acme_registration.registration]
 }
 
-resource "aws_acm_certificate" "acm_certificate" {
+resource "aws_acm_certificate" "sep" {
   domain_name               = "www.${data.aws_route53_zone.anchor-zone.name}"
   validation_method         = "DNS"
 lifecycle {
@@ -83,7 +83,7 @@ lifecycle {
 }
 
 resource "aws_acm_certificate_validation" "acm_certificate_validation" {
- certificate_arn = aws_acm_certificate.acm_certificate.arn
+ certificate_arn = aws_acm_certificate.sep.arn
  validation_record_fqdns = [for record in aws_route53_record.sep : record.fqdn]
 }
 
