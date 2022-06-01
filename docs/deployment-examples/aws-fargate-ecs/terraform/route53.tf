@@ -48,8 +48,8 @@ resource "acme_certificate" "certificate" {
     }
   }
 
-  #depends_on = [aws_route53_record.sep, acme_registration.registration]
-#}
+  depends_on = [aws_route53_record.sep, acme_registration.registration]
+}
 
 resource "aws_acm_certificate" "acm_certificate" {
   domain_name               = "www.${data.aws_route53_zone.anchor-zone.name}"
