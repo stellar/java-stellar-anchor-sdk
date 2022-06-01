@@ -103,7 +103,6 @@ public class Sep31Service {
     Log.info(String.format("Query The Fee2"));
 
     AssetInfo asset = Context.get().getAsset();
-    Log.info(String.format("REECEDEBUG4: %s", assetName));
     Sep31Transaction txn =
         new Sep31TransactionBuilder(sep31TransactionStore)
             .id(generateSepTransactionId())
