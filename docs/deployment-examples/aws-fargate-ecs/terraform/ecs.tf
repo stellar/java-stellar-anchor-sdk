@@ -282,7 +282,7 @@ resource "aws_alb_listener" "ref_http" {
  
 
 resource "aws_iam_policy" "create_log_group" {
-  name        = "anchorplatformlogs"
+  name        = "createloggroups"
   description = "Create Log Group"
  
   policy = <<EOF
