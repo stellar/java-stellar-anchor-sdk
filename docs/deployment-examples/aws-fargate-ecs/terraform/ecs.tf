@@ -282,27 +282,27 @@ resource "aws_alb_listener" "ref_http" {
  
 
 
-#resource "aws_iam_policy" "dynamodb" {
-##  name        = "${var.name}-task-policy-dynamodb"
-#  description = "Policy that allows access to DynamoDB"
-# 
-# policy = <<EOF
-#{
-#   "Version": "2012-10-17",
-#   "Statement": [
-#       {
-#           "Effect": "Allow",
-#           "Action": [
-#               "dynamodb:CreateTable",
-#           ],
-#           "Resource": "*"
-#       }
-#   ]
-#}
-#EOF
-#}
+resource "aws_iam_policy" "logging" {
+  name        = "${var.name}-task-policy-logs"
+  description = "Policy that allows access to logs"
  
-#resource "aws_iam_role_policy_attachment" "ecs-task-role-policy-attachment" {
-#  role       = aws_iam_role.ecs_task_role.name
-#  policy_arn = aws_iam_policy.dynamodb.arn
-#}
+ policy = <<EOF
+{
+   "Version": "2012-10-17",
+   "Statement": [
+       {
+           "Effect": "Allow",
+           "Action": [
+               "logs:*",
+           ],
+           "Resource": "*"
+       }
+   ]
+}
+EOF
+}
+ 
+resource "aws_iam_role_policy_attachment" "ecs-task-role-policy-attachment" {
+  role       = aws_iam_role.ecs_task_role.name
+  policy_arn = aws_iam_policy.logging.arn
+}
