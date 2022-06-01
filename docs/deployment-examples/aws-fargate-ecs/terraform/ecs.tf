@@ -20,6 +20,16 @@ resource "aws_ecs_task_definition" "sep" {
    image       = "reecemarkowsky/testing"
    entryPoint  = ["java", "-jar", "/app/anchor-platform-runner.jar", "--sep-server"]
    essential   = true
+   {
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "firelens-container",
+                    "awslogs-region": "us-east-2",
+                    "awslogs-create-group": "true",
+                    "awslogs-stream-prefix": "firelens"
+                }
+            }
    portMappings = [{
      protocol      = "tcp"
      containerPort = 8080
@@ -40,6 +50,16 @@ resource "aws_ecs_task_definition" "ref" {
    name        = "${var.environment}-ref"
    image       = "reecemarkowsky/testing"
    entryPoint  = ["java", "-jar", "/app/anchor-platform-runner.jar", "--anchor-reference-server"]
+   {
+            "logConfiguration": {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "firelens-container",
+                    "awslogs-region": "us-east-2",
+                    "awslogs-create-group": "true",
+                    "awslogs-stream-prefix": "firelens"
+                }
+            }
    essential   = true
    #environment = [
    #  { "name" : "STELLAR_ANCHOR_CONFIG", "value" : "/config" },
