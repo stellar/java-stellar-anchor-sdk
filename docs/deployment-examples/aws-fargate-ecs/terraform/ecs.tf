@@ -205,12 +205,12 @@ resource "aws_alb_target_group" "sep" {
  
   health_check {
    healthy_threshold   = "2"
-   interval            = "30"
+   interval            = "300"
    protocol            = "HTTP"
    matcher             = "200"
-   timeout             = "5"
+   timeout             = "3"
    path                = "/.well-known/stellar.toml"
-   unhealthy_threshold = "10"
+   unhealthy_threshold = "3"
   }
   depends_on = [aws_lb.sep]
 }
