@@ -225,12 +225,12 @@ resource "aws_alb_target_group" "ref" {
  
   health_check {
    healthy_threshold   = "3"
-   interval            = "5"
+   interval            = "15"
    protocol            = "HTTP"
    matcher             = "200"
    timeout             = "3"
    path                = "/health"
-   unhealthy_threshold = "3"
+   unhealthy_threshold = "10"
   }
   depends_on = [aws_lb.sep]
 }
