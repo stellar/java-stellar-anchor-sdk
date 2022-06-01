@@ -3,9 +3,11 @@ package org.stellar.anchor.sep31;
 import static org.stellar.anchor.api.sep.sep31.Sep31InfoResponse.AssetResponse;
 import static org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_SEND;
 import static org.stellar.anchor.util.MathHelper.decimal;
+import static org.stellar.anchor.util.MathHelper.formatAmount;
 import static org.stellar.anchor.util.SepHelper.*;
 
 import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 import lombok.Data;
@@ -13,10 +15,7 @@ import lombok.SneakyThrows;
 import org.stellar.anchor.api.callback.CustomerIntegration;
 import org.stellar.anchor.api.callback.FeeIntegration;
 import org.stellar.anchor.api.callback.GetFeeRequest;
-import org.stellar.anchor.api.exception.AnchorException;
-import org.stellar.anchor.api.exception.BadRequestException;
-import org.stellar.anchor.api.exception.NotFoundException;
-import org.stellar.anchor.api.exception.SepNotFoundException;
+import org.stellar.anchor.api.exception.*;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.AssetInfo.Sep31TxnFieldSpecs;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
@@ -99,25 +98,42 @@ public class Sep31Service {
     preValidateQuote();
 
     // Query the fee
-    queryFee();
+    updateFee();
 
     AssetInfo asset = Context.get().getAsset();
+    Amount fee = Context.get().getFee();
     Sep31Transaction txn =
         new Sep31TransactionBuilder(sep31TransactionStore)
             .id(generateSepTransactionId())
             .status(SepTransactionStatus.PENDING_SENDER.toString())
-            .stellarAccountId(asset.getDistributionAccount())
-            .amountInAsset(assetInfo.getAssetName())
-            .amountIn(request.getAmount())
+            .statusEta(null)
+            .amountFee(fee.getAmount())
+            .amountFeeAsset(fee.getAsset())
+            .startedAt(Instant.now())
+            .completedAt(null)
+            .stellarTransactionId(null)
+            .externalTransactionId(null)
+            .requiredInfoMessage(null)
+            .quoteId(request.getQuoteId())
             .clientDomain(jwtToken.getClientDomain())
+            .requiredInfoUpdates(null)
             .fields(request.getFields().getTransaction())
+            .refunded(null)
+            .refunds(null)
+            // updateAmounts will update these ⬇️
+            .amountIn(request.getAmount())
+            .amountInAsset(assetInfo.getAssetName())
+            .amountOut(null)
+            .amountOutAsset(null)
+            // updateDepositInfo will update these ⬇️
+            .stellarAccountId(asset.getDistributionAccount())
+            .stellarMemo(null)
+            .stellarMemoType(null)
             .build();
 
     Context.get().setTransaction(txn);
-
     updateAmounts();
     updateDepositInfo(txn);
-
     sep31TransactionStore.save(txn);
 
     TransactionEvent event =
@@ -127,11 +143,23 @@ public class Sep31Service {
             .id(txn.getId())
             .sep(TransactionEvent.Sep.SEP_31)
             .kind(TransactionEvent.Kind.RECEIVE)
+            .status(TransactionEvent.Status.PENDING_SENDER)
+            .statusChange(
+                new TransactionEvent.StatusChange(null, TransactionEvent.Status.PENDING_SENDER))
+            .amountExpected(new Amount(txn.getAmountIn(), txn.getAmountInAsset()))
             .amountIn(new Amount(txn.getAmountIn(), txn.getAmountInAsset()))
             .amountOut(new Amount(txn.getAmountOut(), txn.getAmountOutAsset()))
             .amountFee(new Amount(txn.getAmountFee(), txn.getAmountFeeAsset()))
             .quoteId(txn.getQuoteId())
             .startedAt(txn.getStartedAt())
+            .updatedAt(txn.getStartedAt())
+            .completedAt(null)
+            .transferReceivedAt(null)
+            .message(null)
+            .refunds(null)
+            .stellarTransactions(null)
+            .externalTransactionId(null)
+            .custodialTransactionId(null)
             .sourceAccount(request.getSenderId())
             .destinationAccount(request.getReceiverId())
             .creator(
@@ -141,7 +169,6 @@ public class Sep31Service {
                     .memoType(txn.getStellarMemoType())
                     .build())
             .build();
-
     eventService.publish(event);
 
     return Sep31PostTransactionResponse.builder()
@@ -153,53 +180,57 @@ public class Sep31Service {
   }
 
   void updateAmounts() throws AnchorException {
-    Sep31Transaction txn = Context.get().getTransaction();
     Sep31PostTransactionRequest request = Context.get().getRequest();
-    Amount feeResponse = Context.get().getFee();
-    boolean withoutQuote = request.getQuoteId() == null;
+    if (request.getQuoteId() != null) {
+      updateTxAmountsBasedOnQuote();
+      return;
+    }
+    updateTxAmountsWhenNoQuoteWasUsed();
+  }
 
-    AssetInfo reqAsset = assetService.getAsset(request.getAssetCode(), request.getAssetIssuer());
-    BigDecimal reqAmount = decimal(request.getAmount(), reqAsset);
-    BigDecimal fee = decimal(feeResponse.getAmount(), reqAsset);
-    String feeAsset = String.valueOf(feeResponse.getAsset());
+  void updateTxAmountsBasedOnQuote() throws AnchorException {
+    Sep38Quote quote = Context.get().getQuote();
+    if (quote == null) {
+      throw new ServerErrorException("Quote not found.");
+    }
+
+    Sep31Transaction txn = Context.get().getTransaction();
+    txn.setAmountInAsset(quote.getSellAsset());
+    txn.setAmountIn(quote.getSellAmount());
+    txn.setAmountOutAsset(quote.getBuyAsset());
+    txn.setAmountOut(quote.getBuyAmount());
+  }
+
+  void updateTxAmountsWhenNoQuoteWasUsed() throws AnchorException {
+    Sep31PostTransactionRequest request = Context.get().getRequest();
+    Sep31Transaction txn = Context.get().getTransaction();
+    Amount feeResponse = Context.get().getFee();
+
+    AssetInfo reqAsset = Context.get().getAsset();
+    int scale = reqAsset.getSignificantDecimals();
+    BigDecimal reqAmount = decimal(request.getAmount(), scale);
+    BigDecimal fee = decimal(feeResponse.getAmount(), scale);
 
     BigDecimal amountIn;
-    String amountInAsset = reqAsset.getCode();
     BigDecimal amountOut;
-    String amountOutAsset;
-
-    if (withoutQuote) {
-      boolean strictSend = sep31Config.getPaymentType() == STRICT_SEND;
-      // Without quote.
-      amountOutAsset = amountInAsset;
-      if (strictSend) {
-        // amount_in = req.amount
-        // amount_out = amount_in - amount fee
-        amountIn = reqAmount;
-        amountOut = amountIn.subtract(fee);
-      } else {
-        // amount_in = req.amount + fee
-        // amount_out = req.amount
-        amountIn = reqAmount.add(fee);
-        amountOut = reqAmount;
-      }
-      // Update transactions
-      txn.setAmountFee(String.valueOf(fee));
-      txn.setAmountFeeAsset(feeAsset);
+    boolean strictSend = sep31Config.getPaymentType() == STRICT_SEND;
+    if (strictSend) {
+      // amount_in = req.amount
+      // amount_out = amount_in - amount fee
+      amountIn = reqAmount;
+      amountOut = amountIn.subtract(fee);
     } else {
-      // With quote
-      Sep38Quote quote = sep38QuoteStore.findByQuoteId(request.getQuoteId());
-      txn.setQuoteId(request.getQuoteId());
-      amountOutAsset = quote.getBuyAsset();
-      amountIn = decimal(quote.getSellAmount(), reqAsset);
-      amountOut = decimal(quote.getBuyAmount(), reqAsset);
+      // amount_in = req.amount + fee
+      // amount_out = req.amount
+      amountIn = reqAmount.add(fee);
+      amountOut = reqAmount;
     }
 
     // Update transactions
-    txn.setAmountIn(String.valueOf(amountIn));
-    txn.setAmountInAsset(amountInAsset);
-    txn.setAmountOut(String.valueOf(amountOut));
-    txn.setAmountOutAsset(amountOutAsset);
+    txn.setAmountIn(formatAmount(amountIn, scale));
+    txn.setAmountInAsset(reqAsset.getAssetName());
+    txn.setAmountOut(formatAmount(amountOut, scale));
+    txn.setAmountOutAsset(reqAsset.getAssetName());
   }
 
   void updateAmounts2() throws AnchorException {
@@ -402,9 +433,21 @@ public class Sep31Service {
               "Quote sell asset [%s] is different from the SEP-31 transaction asset [%s]",
               quote.getSellAsset(), assetName));
     }
+
+    Context.get().setQuote(quote);
   }
 
-  void queryFee() throws AnchorException {
+  void updateFee() throws AnchorException {
+    Sep38Quote quote = Context.get().getQuote();
+    if (quote != null) {
+      if (quote.getFee() == null) {
+        throw new SepValidationException("Quote is missing the 'fee' field");
+      }
+      Amount fee = new Amount(quote.getFee().getTotal(), quote.getFee().getAsset());
+      Context.get().setFee(fee);
+      return;
+    }
+
     Sep31PostTransactionRequest request = Context.get().getRequest();
     JwtToken token = Context.get().getJwtToken();
     String assetName =
@@ -540,6 +583,7 @@ public class Sep31Service {
   public static class Context {
     Sep31Transaction transaction;
     Sep31PostTransactionRequest request;
+    Sep38Quote quote;
     JwtToken jwtToken;
     Amount fee;
     AssetInfo asset;

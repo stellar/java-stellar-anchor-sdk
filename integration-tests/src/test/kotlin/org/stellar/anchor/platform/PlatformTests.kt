@@ -1,7 +1,6 @@
 package org.stellar.anchor.platform
 
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.*
 import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest
 import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionRequest
 import org.stellar.anchor.reference.client.PlatformApiClient
@@ -41,14 +40,14 @@ fun testHappyPath() {
   assertEquals(txnPosted.id, txnQueried.id)
   assertEquals(txnQueried.status, "pending_sender")
   assertEquals(txnRequest.amount, txnQueried.amountIn.amount)
-  assertEquals(txnRequest.assetCode, txnQueried.amountIn.asset)
+  assertTrue(txnQueried.amountIn.asset.contains(txnRequest.assetCode))
   assertEquals(31, txnQueried.sep)
 }
 
 fun testHealth() {
   val response = platformApiClient.health(listOf("all"))
   assertEquals(response["number_of_checks"], 1.0)
-  Assertions.assertNotNull(response["checks"])
+  assertNotNull(response["checks"])
   val checks = response["checks"] as Map<*, *>
   val spo = checks["stellar_payment_observer"] as Map<*, *>
   assertEquals(spo["status"], "green")

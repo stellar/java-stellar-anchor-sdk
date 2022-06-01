@@ -64,6 +64,11 @@ public class Sep31TransactionBuilder {
     return this;
   }
 
+  public Sep31TransactionBuilder stellarMemo(String stellarMemo) {
+    txn.setStellarMemo(stellarMemo);
+    return this;
+  }
+
   public Sep31TransactionBuilder stellarMemoType(String stellarMemoType) {
     txn.setStellarMemoType(stellarMemoType);
     return this;

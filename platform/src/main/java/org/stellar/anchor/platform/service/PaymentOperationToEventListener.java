@@ -168,7 +168,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
             .completedAt(null)
             .transferReceivedAt(paymentTime)
             .message("Incoming payment for SEP-31 transaction")
-            .refund(null)
+            .refunds(null)
             .stellarTransactions(
                 new StellarTransaction[] {
                   StellarTransaction.builder()
