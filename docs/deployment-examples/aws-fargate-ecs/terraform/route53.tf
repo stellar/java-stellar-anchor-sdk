@@ -26,20 +26,12 @@ resource "aws_route53_record" "sep" {
   zone_id         = data.aws_route53_zone.anchor-zone.zone_id
 }
 
-resource "aws_route53_record" "sep" {
+resource "aws_route53_record" "www" {
   zone_id = data.aws_route53_zone.anchor-zone.zone_id
   name    = "www.${data.aws_route53_zone.anchor-zone.name}"
   type    = "CNAME"
   ttl     = "300"
   records = [aws_lb.sep.dns_name]
-}
-
-resource "aws_route53_record" "ref" {
-  zone_id = data.aws_route53_zone.anchor-zone.zone_id
-  name    = "ref.${data.aws_route53_zone.anchor-zone.name}"
-  type    = "CNAME"
-  ttl     = "300"
-  records = [aws_lb.ref.dns_name]
 }
 
 
