@@ -9,13 +9,13 @@ data "aws_route53_zone" "anchor-zone" {
   private_zone = false
 }
 
-#resource "aws_route53_record" "sep" {
-#  zone_id = data.aws_route53_zone.anchor-zone.zone_id
-#  name    = "www.${data.aws_route53_zone.anchor-zone.name}"
-#  type    = "CNAME"
-#  ttl     = "300"
-#  records = [aws_lb.sep.dns_name]
-#}
+resource "aws_route53_record" "sepwww" {
+  zone_id = data.aws_route53_zone.anchor-zone.zone_id
+  name    = "www.${data.aws_route53_zone.anchor-zone.name}"
+  type    = "CNAME"
+  ttl     = "300"
+  records = [aws_lb.sep.dns_name]
+}
 
 resource "aws_route53_record" "sep" {
   for_each = {
@@ -43,15 +43,15 @@ resource "aws_route53_record" "ref" {
   records = [aws_lb.ref.dns_name]
 }
 
-#resource "tls_private_key" "private_key" {
-#  algorithm = "RSA"
-#}
+resource "tls_private_key" "private_key" {
+  algorithm = "RSA"
+}
 
-#resource "acme_registration" "registration" {
-#  account_key_pem = tls_private_key.private_key.private_key_pem
-#  email_address   = "reece@stellar.org" 
-#  depends_on = [aws_route53_record.sep, tls_private_key.private_key]
-#}
+resource "acme_registration" "registration" {
+  account_key_pem = tls_private_key.private_key.private_key_pem
+  email_address   = "reece@stellar.org" 
+  depends_on = [aws_route53_record.sepwww, tls_private_key.private_key]
+}
 
 #resource "acme_certificate" "certificate" {
 #  account_key_pem           = acme_registration.registration.account_key_pem
