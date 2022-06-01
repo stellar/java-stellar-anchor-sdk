@@ -20,10 +20,10 @@ resource "aws_ecs_task_definition" "sep" {
    image       = "reecemarkowsky/testing"
    entryPoint  = ["java", "-jar", "/app/anchor-platform-runner.jar", "--sep-server"]
    essential   = true
-   "environment" = [
+   environment = [
     { "name" : "APP_CONFIG_KAFKA_PUBLISHER_BOOTSTRAPSERVER", "value" : "http://reecehost:9092" }
    ]
-   environment = 
+
    logConfiguration = {
                 "logDriver": "awslogs",
                 "options": {
