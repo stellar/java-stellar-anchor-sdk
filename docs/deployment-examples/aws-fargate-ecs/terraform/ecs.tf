@@ -286,7 +286,7 @@ resource "aws_iam_policy" "logging" {
   name        = "anchorplatformlogs"
   description = "Policy that allows access to logs"
  
-  policy = <<EOF
+  policy = << EOF
 {
    "Version": "2012-10-17",
    "Statement": [
