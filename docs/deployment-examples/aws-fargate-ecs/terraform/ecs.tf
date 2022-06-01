@@ -198,8 +198,8 @@ resource "aws_lb" "ref" {
  
 resource "aws_alb_target_group" "sep" {
   name        = "${var.environment}-sep-tg"
-  port        = 443
-  protocol    = "HTTS"
+  port        = 8080
+  protocol    = "HTTP"
   vpc_id      = module.vpc.vpc_id
   target_type = "ip"
  
