@@ -1,8 +1,8 @@
-#provider "acme" {
-#  #server_url = "https://acme-staging-v02.api.letsencrypt.org/directory"
+provider "acme" {
+  server_url = "https://acme-staging-v02.api.letsencrypt.org/directory"
 #  server_url = "https://acme-v02.api.letsencrypt.org/directory"
   #server_url = "https://acme-v02.api.letsencrypt.org/directory"
-#}
+}
 
 data "aws_route53_zone" "anchor-zone" {
   name         = "${var.hosted_zone_name}"
