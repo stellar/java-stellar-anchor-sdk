@@ -1,8 +1,7 @@
 package org.stellar.anchor.sep38;
 
 import java.time.Instant;
-import java.util.List;
-import org.stellar.anchor.api.sep.sep38.PriceDetail;
+import org.stellar.anchor.api.sep.sep38.RateFee;
 
 public class Sep38QuoteBuilder {
   final Sep38Quote quote;
@@ -23,6 +22,11 @@ public class Sep38QuoteBuilder {
 
   public Sep38QuoteBuilder price(String price) {
     quote.setPrice(price);
+    return this;
+  }
+
+  public Sep38QuoteBuilder totalPrice(String totalPrice) {
+    quote.setTotalPrice(totalPrice);
     return this;
   }
 
@@ -81,8 +85,8 @@ public class Sep38QuoteBuilder {
     return this;
   }
 
-  public Sep38QuoteBuilder priceDetails(List<PriceDetail> priceDetails) {
-    quote.setPriceDetails(priceDetails);
+  public Sep38QuoteBuilder fee(RateFee fee) {
+    quote.setFee(fee);
     return this;
   }
 

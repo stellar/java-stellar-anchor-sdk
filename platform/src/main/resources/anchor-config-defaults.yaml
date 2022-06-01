@@ -32,7 +32,7 @@ stellar:
     data-access:
       type: data-spring-jdbc
       settings: data-spring-jdbc-sqlite           # The absolute location of the configuration data in this yaml file
-
+      #settings: data-spring-jdbc-local-postgres    # use local postgres instance
 
     #
     # Sets how the generates the logging information
@@ -203,6 +203,7 @@ app-config:
   event:
     # If enabled, publish Events to a queue (publisherType)
     # publisherType - the type of queue to use for event publishing
+    # currently supported publisherType values: kafka, sqs
     enabled: true
     publisherType: kafka
 
@@ -224,6 +225,8 @@ app-config:
     # region - AWS region for the SQS queue
     # accessKey - AWS access key used to publish events to SQS
     # secretKey - AWS secret key to be used with the accessKey
+    # eventTypeToQueue - a map of the event type to the queue name messages are published to
+    # NOTE: The SQS FIFO queues should be pre-created in AWS (Anchor Platform will not create them)
     region: us-east-1
     useSingleQueue: false
     eventTypeToQueue:
@@ -250,10 +253,34 @@ data-spring-jdbc-sqlite:
   spring.datasource.username: admin
   spring.datasource.password: admin
   spring.mvc.converters.preferred-json-mapper: gson
+  spring.liquibase.enabled: false    # certain features that liquibase uses (ex: addForeignKeyConstraint) are not supported by sqlite
+
+data-spring-jdbc-aws-aurora-postgres:
+  spring.jpa.generate-ddl: true
+  spring.jpa.database: POSTGRESQL
+  spring.jpa.show-sql: false
+  spring.datasource.driver-class-name: org.postgresql.Driver
+  spring.datasource.url: jdbc:postgresql://database-2-instance-1.chizvyczscs2.us-east-1.rds.amazonaws.com:5432/
+  spring.datasource.username: postgres
+  spring.datasource.password: <PASSWORD>
+  spring.mvc.converters.preferred-json-mapper: gson
+  spring.liquibase.change-log: classpath:/db/changelog/db.changelog-master.yaml
+
+data-spring-jdbc-local-postgres:
+  spring.jpa.generate-ddl: true
+  spring.jpa.database: POSTGRESQL
+  spring.jpa.show-sql: false
+  spring.datasource.driver-class-name: org.postgresql.Driver
+  spring.datasource.url: jdbc:postgresql://localhost:5432/anchorplatform
+  spring.datasource.username: anchorplatform
+  spring.datasource.password: <PASSWORD>
+  spring.mvc.converters.preferred-json-mapper: gson
+  spring.liquibase.change-log: classpath:/db/changelog/db.changelog-master.yaml
 
 data-spring-jdbc-h2:
   spring.datasource.url: jdbc:h2:mem:test
   spring.jpa.properties.hibernate.dialect: org.hibernate.dialect.H2Dialect
+  spring.liquibase.enabled: false
 
 #
 # Spring framework configurations

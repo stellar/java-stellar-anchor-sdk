@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform
 
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest
 import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionRequest
@@ -16,6 +17,7 @@ fun platformTestAll(toml: Sep1Helper.TomlContent, jwt: String) {
   platformApiClient = PlatformApiClient("http://localhost:8080")
 
   testHappyPath()
+  testHealth()
 }
 
 fun testHappyPath() {
@@ -34,4 +36,17 @@ fun testHappyPath() {
   assertEquals(txnRequest.amount, txnQueried.amountIn.amount)
   assertEquals(txnRequest.assetCode, txnQueried.amountIn.asset)
   assertEquals(31, txnQueried.sep)
+}
+
+fun testHealth() {
+  val response = platformApiClient.health(listOf("all"))
+  assertEquals(response["number_of_checks"], 1.0)
+  Assertions.assertNotNull(response["checks"])
+  val checks = response["checks"] as Map<*, *>
+  val spo = checks["stellar_payment_observer"] as Map<*, *>
+  assertEquals(spo["status"], "green")
+  val streams = spo["streams"] as List<Map<*, *>>
+  assertEquals(streams[0]["thread_shutdown"], false)
+  assertEquals(streams[0]["thread_terminated"], false)
+  assertEquals(streams[0]["stopped"], false)
 }

@@ -1,15 +1,15 @@
 package org.stellar.anchor.sep38;
 
 import java.time.Instant;
-import java.util.List;
 import lombok.Data;
-import org.stellar.anchor.api.sep.sep38.PriceDetail;
+import org.stellar.anchor.api.sep.sep38.RateFee;
 
 @Data
 public class PojoSep38Quote implements Sep38Quote {
   String id;
   Instant expiresAt;
   String price;
+  String totalPrice;
   String sellAsset;
   String sellAmount;
   String sellDeliveryMethod;
@@ -21,5 +21,5 @@ public class PojoSep38Quote implements Sep38Quote {
   String creatorMemo;
   String creatorMemoType;
   String transactionId;
-  List<PriceDetail> priceDetails;
+  RateFee fee;
 }

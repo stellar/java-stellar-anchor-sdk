@@ -3,11 +3,14 @@ package org.stellar.anchor.api.callback;
 import com.google.gson.annotations.SerializedName;
 import lombok.Builder;
 import lombok.Data;
+import org.stellar.anchor.api.sep.sep38.Sep38Context;
 
 @Data
 @Builder
 public class GetRateRequest {
   Type type;
+
+  Sep38Context context;
 
   @SerializedName("sell_asset")
   String sellAsset;
@@ -39,8 +42,11 @@ public class GetRateRequest {
   String id;
 
   public enum Type {
-    @SerializedName("indicative")
-    INDICATIVE("indicative"),
+    @SerializedName("indicative_prices")
+    INDICATIVE_PRICES("indicative_prices"),
+
+    @SerializedName("indicative_price")
+    INDICATIVE_PRICE("indicative_price"),
 
     @SerializedName("firm")
     FIRM("firm");

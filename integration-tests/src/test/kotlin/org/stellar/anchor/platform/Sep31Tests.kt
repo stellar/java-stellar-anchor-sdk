@@ -1,6 +1,8 @@
 package org.stellar.anchor.platform
 
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.assertThrows
+import org.stellar.anchor.api.exception.SepException
 import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest
 import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionRequest
 import org.stellar.anchor.util.GsonUtils
@@ -10,7 +12,7 @@ lateinit var sep31Client: Sep31Client
 
 const val postTxnJson =
   """{
-    "amount": "10.0",
+    "amount": "10.00",
     "asset_code": "USDC",
     "asset_issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
     "receiver_id": "MOCK_RECEIVER_ID",
@@ -31,6 +33,7 @@ fun sep31TestAll(toml: Sep1Helper.TomlContent, jwt: String) {
 
   testSep31TestInfo()
   testSep31PostTransaction()
+  testBadAsset()
 }
 
 fun testSep31TestInfo() {
@@ -50,4 +53,16 @@ fun testSep31PostTransaction() {
   val txnRequest = gson.fromJson(postTxnJson, Sep31PostTransactionRequest::class.java)
   txnRequest.receiverId = pr!!.id
   sep31Client.postTransaction(txnRequest)
+}
+
+fun testBadAsset() {
+  val customer =
+    GsonUtils.getInstance().fromJson(testCustomerJson, Sep12PutCustomerRequest::class.java)
+  val pr = sep12Client.putCustomer(customer)
+
+  // Post Sep31 transaction.
+  val txnRequest = gson.fromJson(postTxnJson, Sep31PostTransactionRequest::class.java)
+  txnRequest.assetCode = "bad-asset-code"
+  txnRequest.receiverId = pr!!.id
+  assertThrows<SepException> { sep31Client.postTransaction(txnRequest) }
 }

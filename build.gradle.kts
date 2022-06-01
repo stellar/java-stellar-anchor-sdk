@@ -56,7 +56,8 @@ subprojects {
     implementation("io.confluent:kafka-json-schema-serializer:7.0.1")
     implementation("org.springframework.kafka:spring-kafka:2.8.4")
     implementation("org.springframework.cloud:spring-cloud-aws-messaging:2.2.6.RELEASE")
-
+    implementation("org.postgresql:postgresql:42.3.5")
+    implementation("org.liquibase:liquibase-core:4.10.0")
 
 
     // The common dependencies are declared here because we would like to have a uniform unit

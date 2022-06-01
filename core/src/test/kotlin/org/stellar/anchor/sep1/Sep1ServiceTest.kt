@@ -18,6 +18,6 @@ internal class Sep1ServiceTest {
     val sep1Service = Sep1Service(sep1Config)
 
     assertNotNull(sep1Service.stellarToml)
-    verify(exactly = 1) { sep1Config.stellarFile }
+    verify(exactly = 3) { sep1Config.stellarFile }
   }
 }

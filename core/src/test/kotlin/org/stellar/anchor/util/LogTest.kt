@@ -2,13 +2,14 @@ package org.stellar.anchor.util
 
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
-import java.beans.IntrospectionException
-import java.beans.Introspector
 import org.junit.jupiter.api.*
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.*
 import org.slf4j.Logger
-import org.stellar.anchor.util.Log.gson
+import org.stellar.anchor.Constants.Companion.TEST_HOST_URL
+import org.stellar.anchor.Constants.Companion.TEST_JWT_SECRET
+import org.stellar.anchor.Constants.Companion.TEST_NETWORK_PASS_PHRASE
+import org.stellar.anchor.config.AppConfig
+import org.stellar.anchor.config.PII
 import org.stellar.anchor.util.Log.shorter
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
@@ -34,66 +35,91 @@ internal class LogTest {
     val field2: String = "2"
   }
 
+  @Suppress("unused")
+  class TestBeanPII {
+    val fieldNoPII: String = "no secret"
+
+    @PII val fieldPII: String = "secret"
+  }
+
+  val wantTestPIIJson = """{"fieldNoPII":"no secret"}"""
+
   @Test
-  fun testInfoDebug() {
+  fun testMessage() {
+    Log.error("Hello")
+    verify { logger.error("Hello") }
+
+    Log.warn("Hello")
+    verify { logger.warn("Hello") }
+
     Log.info("Hello")
     verify { logger.info("Hello") }
 
     Log.debug("Hello")
     verify { logger.debug("Hello") }
+
+    Log.trace("Hello")
+    verify { logger.trace("Hello") }
   }
 
   @Test
-  fun testInfoDebug2() {
-    val detail = Object()
+  fun testMessageJson() {
+    val detail = TestBeanPII()
+
+    Log.error("Hello", detail)
+    verify { logger.error("Hello$wantTestPIIJson") }
+
+    Log.warn("Hello", detail)
+    verify { logger.warn("Hello$wantTestPIIJson") }
+
     Log.info("Hello", detail)
-    verify {
-      logger.info("Hello")
-      logger.info(gson.toJson(detail))
-    }
+    verify { logger.info("Hello$wantTestPIIJson") }
 
     Log.debug("Hello", detail)
-    verify {
-      logger.debug("Hello")
-      logger.debug(gson.toJson(detail))
+    verify { logger.debug("Hello$wantTestPIIJson") }
+
+    Log.trace("Hello", detail)
+    verify { logger.trace("Hello$wantTestPIIJson") }
+  }
+
+  @Suppress("unused")
+  class TestAppConfig : AppConfig {
+    override fun getStellarNetworkPassphrase(): String {
+      return TEST_NETWORK_PASS_PHRASE
     }
-  }
 
-  @Test
-  fun testInfoB() {
-    val testBean = TestBean()
-    Log.infoB("Hello", testBean)
-    verify(exactly = 2) { logger.info(ofType(String::class)) }
-  }
+    override fun getHostUrl(): String {
+      return TEST_HOST_URL
+    }
 
-  @Test
-  fun testInfoDebugF() {
-    Log.infoF("Hello {}", "world")
-    verify(exactly = 1) { logger.info(ofType(String::class), *anyVararg()) }
+    override fun getHorizonUrl(): String {
+      return "https://horizon.stellar.org"
+    }
 
-    Log.debugF("Hello {}", "world")
-    verify(exactly = 1) { logger.debug(ofType(String::class), *anyVararg()) }
-  }
+    override fun getJwtSecretKey(): String {
+      return TEST_JWT_SECRET
+    }
 
-  @Test
-  fun testInfoBException() {
-    mockkStatic(Introspector::class)
-    every { Introspector.getBeanInfo(any()) } answers
-      {
-        throw IntrospectionException("mocked exception")
-      }
+    override fun getAssets(): String {
+      return "test_assets_file"
+    }
 
-    val testBean = TestBean()
-    Log.infoB("Hello", testBean)
-
-    verify(exactly = 2) { logger.info(ofType(String::class)) }
+    override fun getLanguages(): MutableList<String> {
+      return mutableListOf("en")
+    }
   }
 
   @Test
   fun testErrorEx() {
     Log.errorEx(Exception("mock exception"))
-
     verify(exactly = 1) { logger.error(any()) }
+
+    val slot = slot<String>()
+    every { logger.error(capture(slot)) } answers {}
+
+    Log.errorEx("Hello", Exception("mock exception"))
+    assertTrue(slot.captured.contains("Hello"))
+    assertTrue(slot.captured.contains("mock exception"))
   }
 
   @Test

@@ -1,9 +1,9 @@
 package org.stellar.anchor.platform
 
+import com.google.gson.reflect.TypeToken
 import org.stellar.anchor.api.sep.sep31.Sep31InfoResponse
 import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionRequest
 import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionResponse
-import shadow.com.google.common.reflect.TypeToken
 
 class Sep31Client(private val endpoint: String, private val jwt: String) : SepClient() {
   fun getInfo(): Sep31InfoResponse {
