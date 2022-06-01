@@ -20,8 +20,7 @@ resource "aws_ecs_task_definition" "sep" {
    image       = "reecemarkowsky/testing"
    entryPoint  = ["java", "-jar", "/app/anchor-platform-runner.jar", "--sep-server"]
    essential   = true
-   {
-            "logConfiguration": {
+   logConfiguration = {
                 "logDriver": "awslogs",
                 "options": {
                     "awslogs-group": "firelens-container",
@@ -50,8 +49,7 @@ resource "aws_ecs_task_definition" "ref" {
    name        = "${var.environment}-ref"
    image       = "reecemarkowsky/testing"
    entryPoint  = ["java", "-jar", "/app/anchor-platform-runner.jar", "--anchor-reference-server"]
-   {
-            "logConfiguration": {
+   logConfiguration = {
                 "logDriver": "awslogs",
                 "options": {
                     "awslogs-group": "firelens-container",
