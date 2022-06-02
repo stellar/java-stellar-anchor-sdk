@@ -84,7 +84,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
     }
 
     // Compare asset code
-    String paymentAssetName = "stellar:"+payment.getAssetName();
+    String paymentAssetName = "stellar:" + payment.getAssetName();
     if (!txn.getAmountInAsset().equals(paymentAssetName)) {
       Log.warn(
           String.format(
