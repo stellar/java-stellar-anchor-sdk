@@ -131,11 +131,11 @@ class PaymentOperationToEventListenerTest {
     val sep31TxMock = JdbcSep31Transaction()
     sep31TxMock.id = "ceaa7677-a5a7-434e-b02a-8e0801b3e7bd"
     sep31TxMock.amountIn = "10"
-    sep31TxMock.amountInAsset = "FOO"
+    sep31TxMock.amountInAsset = "stellar:FOO:GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364"
     sep31TxMock.amountOut = "20"
-    sep31TxMock.amountOutAsset = "BAR"
+    sep31TxMock.amountOutAsset = "stellar:BAR:GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364"
     sep31TxMock.amountFee = "0.5"
-    sep31TxMock.amountFeeAsset = "FOO"
+    sep31TxMock.amountFeeAsset = "stellar:FOO:GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364"
     sep31TxMock.quoteId = "cef1fc13-3f65-4612-b1f2-502d698c816b"
     sep31TxMock.startedAt = startedAtMock
     sep31TxMock.stellarMemo = "OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ="
@@ -164,10 +164,10 @@ class PaymentOperationToEventListenerTest {
         )
         .sep(TransactionEvent.Sep.SEP_31)
         .kind(TransactionEvent.Kind.RECEIVE)
-        .amountExpected(Amount("10", "FOO"))
-        .amountIn(Amount("10.0000000", "FOO"))
-        .amountOut(Amount("20", "BAR"))
-        .amountFee(Amount("0.5", "FOO"))
+        .amountExpected(Amount("10", "stellar:FOO:GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364"))
+        .amountIn(Amount("10.0000000", "stellar:FOO:GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364"))
+        .amountOut(Amount("20", "stellar:BAR:GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364"))
+        .amountFee(Amount("0.5", "stellar:FOO:GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364"))
         .quoteId("cef1fc13-3f65-4612-b1f2-502d698c816b")
         .startedAt(startedAtMock)
         .updatedAt(createdAt)
