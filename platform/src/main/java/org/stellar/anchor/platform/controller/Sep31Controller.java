@@ -1,6 +1,7 @@
 package org.stellar.anchor.platform.controller;
 
 import static org.stellar.anchor.platform.controller.Sep10Helper.getSep10Token;
+import static org.stellar.anchor.util.Log.debugF;
 import static org.stellar.anchor.util.Log.errorEx;
 
 import javax.servlet.http.HttpServletRequest;
@@ -29,6 +30,7 @@ public class Sep31Controller {
       value = "/info",
       method = {RequestMethod.GET})
   public Sep31InfoResponse getInfo() {
+    debugF("GET /info");
     return sep31Service.getInfo();
   }
 
@@ -42,6 +44,8 @@ public class Sep31Controller {
       HttpServletRequest servletRequest, @RequestBody Sep31PostTransactionRequest request)
       throws AnchorException {
     JwtToken jwtToken = getSep10Token(servletRequest);
+    debugF(
+            "POST /transactions request={}", request);
     return sep31Service.postTransaction(jwtToken, request);
   }
 
