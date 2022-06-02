@@ -1,6 +1,7 @@
 package org.stellar.anchor.platform.service;
 
 import static org.stellar.anchor.api.sep.SepTransactionStatus.ERROR;
+import static org.stellar.anchor.util.MathHelper.*;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -92,8 +93,8 @@ public class PaymentOperationToEventListener implements PaymentListener {
     }
 
     // Check if the payment contains the expected amount (or greater)
-    BigDecimal expectedAmount = new BigDecimal(txn.getAmountIn());
-    BigDecimal gotAmount = new BigDecimal(payment.getAmount());
+    BigDecimal expectedAmount = decimal(txn.getAmountIn());
+    BigDecimal gotAmount = decimal(payment.getAmount());
     if (gotAmount.compareTo(expectedAmount) < 0) {
       Log.warn(
           String.format(

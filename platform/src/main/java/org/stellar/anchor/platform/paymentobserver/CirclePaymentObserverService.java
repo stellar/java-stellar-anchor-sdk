@@ -1,5 +1,7 @@
 package org.stellar.anchor.platform.paymentobserver;
 
+import static org.stellar.anchor.util.MathHelper.*;
+
 import com.google.gson.Gson;
 import java.io.IOException;
 import java.math.BigDecimal;
@@ -262,8 +264,8 @@ public class CirclePaymentObserverService {
         continue;
       }
 
-      BigDecimal transferAmount = new BigDecimal(circleTransfer.getAmount().getAmount());
-      BigDecimal paymentAmount = new BigDecimal(observedPayment.amount);
+      BigDecimal transferAmount = decimal(circleTransfer.getAmount().getAmount());
+      BigDecimal paymentAmount = decimal(observedPayment.amount);
       if (transferAmount.compareTo(paymentAmount) != 0) {
         continue;
       }

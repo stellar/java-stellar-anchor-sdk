@@ -7,6 +7,8 @@ import lombok.Data;
 @Data
 @Builder
 public class Sep38PostQuoteRequest {
+  Sep38Context context;
+
   @SerializedName("sell_asset")
   String sellAssetName;
 
