@@ -57,12 +57,12 @@ public class Sep10Service {
 
     boolean omnibusWallet =
         sep10Config.getOmnibusAccountList().contains(challengeRequest.getAccount().trim());
-//    if (omnibusWallet) {
-//      if (challengeRequest.getClientDomain() != null) {
-//        throw new SepValidationException(
-//            "client_domain must not be specified if the account is an omni-wallet account");
-//      }
-//    }
+        if (omnibusWallet) {
+          if (challengeRequest.getClientDomain() != null) {
+            throw new SepValidationException(
+                "client_domain must not be specified if the account is an omni-wallet account");
+          }
+        }
 
     if (!omnibusWallet && sep10Config.isClientAttributionRequired()) {
       if (challengeRequest.getClientDomain() == null) {
@@ -102,12 +102,12 @@ public class Sep10Service {
     Memo memo = null;
     try {
       if (challengeRequest.getMemo() != null) {
-        int memoInt = Integer.parseInt(challengeRequest.getMemo());
-        if (memoInt <= 0) {
+        long memoLong = Long.parseUnsignedLong(challengeRequest.getMemo());
+        if (memoLong <= 0) {
           throw new SepValidationException(
               String.format("Invalid memo value: %s", challengeRequest.getMemo()));
         }
-        memo = new MemoId(memoInt);
+        memo = new MemoId(memoLong);
       }
     } catch (NumberFormatException e) {
       throw new SepValidationException(
@@ -286,7 +286,7 @@ public class Sep10Service {
     JwtToken jwtToken =
         JwtToken.of(
             appConfig.getHostUrl() + "/auth",
-            (memo == null)
+            (memo == null || memo instanceof MemoNone)
                 ? challenge.getClientAccountId()
                 : challenge.getClientAccountId() + ":" + memo,
             issuedAt,
