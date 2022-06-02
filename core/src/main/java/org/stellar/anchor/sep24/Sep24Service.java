@@ -403,7 +403,7 @@ public class Sep24Service {
     try {
       switch (memoType) {
         case MEMO_ID:
-          return new MemoId(Long.parseLong(memo));
+          return new MemoId(Long.parseUnsignedLong(memo));
         case MEMO_TEXT:
           return new MemoText(memo);
         case MEMO_HASH:
