@@ -84,7 +84,8 @@ public class PaymentOperationToEventListener implements PaymentListener {
     }
 
     // Compare asset code
-    if (!txn.getAmountInAsset().equals(payment.getAssetCode())) {
+    String paymentAssetName = "stellar:"+payment.getAssetName();
+    if (!txn.getAmountInAsset().equals(paymentAssetName)) {
       Log.warn(
           String.format(
               "Payment asset %s does not match the expected asset %s",
@@ -150,7 +151,6 @@ public class PaymentOperationToEventListener implements PaymentListener {
     TransactionEvent event =
         TransactionEvent.builder()
             .eventId(UUID.randomUUID().toString())
-            // TODO: update to TRANSACTION_STATUS_CHANGED:
             .type(TransactionEvent.Type.TRANSACTION_STATUS_CHANGED)
             .id(txn.getId())
             .sep(TransactionEvent.Sep.SEP_31)
@@ -158,7 +158,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
             .status(newStatus)
             .statusChange(statusChange)
             .amountExpected(new Amount(txn.getAmountIn(), txn.getAmountInAsset()))
-            .amountIn(new Amount(payment.getAmount(), payment.getAssetCode()))
+            .amountIn(new Amount(payment.getAmount(), txn.getAmountInAsset()))
             .amountOut(new Amount(txn.getAmountOut(), txn.getAmountOutAsset()))
             // TODO: fix PATCH transaction fails if getAmountOut is null?
             .amountFee(new Amount(txn.getAmountFee(), txn.getAmountFeeAsset()))

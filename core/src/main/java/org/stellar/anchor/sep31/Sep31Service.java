@@ -201,7 +201,7 @@ public class Sep31Service {
     txn.setAmountOut(quote.getBuyAmount());
   }
 
-  void updateTxAmountsWhenNoQuoteWasUsed() throws AnchorException {
+  void updateTxAmountsWhenNoQuoteWasUsed() {
     Sep31PostTransactionRequest request = Context.get().getRequest();
     Sep31Transaction txn = Context.get().getTransaction();
     Amount feeResponse = Context.get().getFee();
@@ -226,11 +226,16 @@ public class Sep31Service {
       amountOut = reqAmount;
     }
 
-    // Update transactions
+    // Update transaction
     txn.setAmountIn(formatAmount(amountIn, scale));
     txn.setAmountInAsset(reqAsset.getAssetName());
     txn.setAmountOut(formatAmount(amountOut, scale));
     txn.setAmountOutAsset(reqAsset.getAssetName());
+
+    // Update fee
+    String feeStr = formatAmount(fee, scale);
+    txn.setAmountFee(feeStr);
+    Context.get().getFee().setAmount(feeStr);
   }
 
   void updateAmounts2() throws AnchorException {
