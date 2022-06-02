@@ -36,10 +36,10 @@ public class AnchorEventProcessor {
     Log.debug(String.format("Received transaction event: %s", event));
     switch (event.getType()) {
       case "transaction_created":
+      case "transaction_error":
         break;
       case "transaction_status_changed":
         handleTransactionStatusChangedEvent(event);
-      case "transaction_error":
         break;
       default:
         Log.debug("error: anchor_platform_event - invalid message type '%s'%n", event.getType());

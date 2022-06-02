@@ -49,6 +49,12 @@ internal class Sep31ServiceTest {
   companion object {
     val gson: Gson = GsonUtils.getInstance()
 
+    private const val stellarUSDC =
+      "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+
+    private const val stellarJPYC =
+      "stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+
     private const val requestJson =
       """
         {
@@ -297,10 +303,7 @@ internal class Sep31ServiceTest {
       txn.amountInAsset
     )
     assertEquals("12500", txn.amountOut)
-    assertEquals(
-      "stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
-      txn.amountOutAsset
-    )
+    assertEquals(stellarJPYC, txn.amountOutAsset)
   }
 
   @Test
@@ -468,7 +471,7 @@ internal class Sep31ServiceTest {
     )
 
     // quote is missing the `fee` field
-    quote.sellAsset = "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+    quote.sellAsset = stellarUSDC
     every { quoteStore.findByQuoteId(quoteId) } returns quote
     ex = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
     assertInstanceOf(SepValidationException::class.java, ex)
@@ -480,15 +483,14 @@ internal class Sep31ServiceTest {
     val tomorrow = Instant.now().plus(1, ChronoUnit.DAYS)
     quote.expiresAt = tomorrow
     quote.id = "my_quote_id"
-    quote.sellAsset = "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+    quote.sellAsset = stellarUSDC
     quote.sellAmount = "100"
-    quote.buyAsset = "stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+    quote.buyAsset = stellarJPYC
     quote.buyAmount = "12500"
     quote.totalPrice = "0.008"
     quote.price = "0.0072"
     quote.expiresAt = Instant.now()
-    quote.fee =
-      RateFee("10", "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5")
+    quote.fee = RateFee("10", stellarUSDC)
     every { quoteStore.findByQuoteId("my_quote_id") } returns quote
 
     val senderId = "d2bd1412-e2f6-4047-ad70-a1a2f133b25c"
@@ -559,7 +561,7 @@ internal class Sep31ServiceTest {
       "id": "$txId",
       "status": "pending_sender",
       "amountFee": "10",
-      "amountFeeAsset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+      "amountFeeAsset": "$stellarUSDC",
       "startedAt": "$txStartedAt",
       "quoteId": "my_quote_id",
       "clientDomain": "vibrant.stellar.org",
@@ -569,9 +571,9 @@ internal class Sep31ServiceTest {
         "receiver_routing_number": "SWIFT"
       },
       "amountIn": "100",
-      "amountInAsset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+      "amountInAsset": "$stellarUSDC",
       "amountOut": "12500",
-      "amountOutAsset": "stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+      "amountOutAsset": "$stellarJPYC",
       "stellarAccountId": "GA7FYRB5VREZKOBIIKHG5AVTPFGWUBPOBF7LTYG4GTMFVIOOD2DWAL7I",
       "stellarMemo": "$memo",
       "stellarMemoType": "hash",
@@ -589,18 +591,10 @@ internal class Sep31ServiceTest {
         .kind(TransactionEvent.Kind.RECEIVE)
         .status(TransactionEvent.Status.PENDING_SENDER)
         .statusChange(TransactionEvent.StatusChange(null, TransactionEvent.Status.PENDING_SENDER))
-        .amountExpected(
-          Amount("100", "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5")
-        )
-        .amountIn(
-          Amount("100", "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5")
-        )
-        .amountOut(
-          Amount("12500", "stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5")
-        )
-        .amountFee(
-          Amount("10", "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5")
-        )
+        .amountExpected(Amount("100", stellarUSDC))
+        .amountIn(Amount("100", stellarUSDC))
+        .amountOut(Amount("12500", stellarJPYC))
+        .amountFee(Amount("10", stellarUSDC))
         .quoteId("my_quote_id")
         .startedAt(txStartedAt)
         .updatedAt(txStartedAt)
