@@ -62,7 +62,7 @@ public class TransactionEvent implements AnchorEvent {
 
   String message;
 
-  Refund refund;
+  Refund[] refunds;
 
   @SerializedName("stellar_transactions")
   StellarTransaction[] stellarTransactions;

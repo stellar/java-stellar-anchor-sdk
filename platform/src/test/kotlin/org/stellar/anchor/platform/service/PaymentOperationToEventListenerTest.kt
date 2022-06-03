@@ -109,6 +109,8 @@ class PaymentOperationToEventListenerTest {
     val startedAtMock = Instant.now().minusSeconds(120)
     val createdAt = Instant.now()
     val createdAtStr = DateTimeFormatter.ISO_INSTANT.format(createdAt)
+    val fooAsset = "stellar:FOO:GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364"
+    val barAsset = "stellar:BAR:GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364"
 
     val p = ObservedPayment.builder().build()
     p.transactionHash = "1ad62e48724426be96cf2cdb65d5dacb8fac2e403e50bedb717bfc8eaf05af30"
@@ -131,11 +133,11 @@ class PaymentOperationToEventListenerTest {
     val sep31TxMock = JdbcSep31Transaction()
     sep31TxMock.id = "ceaa7677-a5a7-434e-b02a-8e0801b3e7bd"
     sep31TxMock.amountIn = "10"
-    sep31TxMock.amountInAsset = "FOO"
+    sep31TxMock.amountInAsset = fooAsset
     sep31TxMock.amountOut = "20"
-    sep31TxMock.amountOutAsset = "BAR"
+    sep31TxMock.amountOutAsset = barAsset
     sep31TxMock.amountFee = "0.5"
-    sep31TxMock.amountFeeAsset = "FOO"
+    sep31TxMock.amountFeeAsset = fooAsset
     sep31TxMock.quoteId = "cef1fc13-3f65-4612-b1f2-502d698c816b"
     sep31TxMock.startedAt = startedAtMock
     sep31TxMock.stellarMemo = "OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ="
@@ -164,10 +166,10 @@ class PaymentOperationToEventListenerTest {
         )
         .sep(TransactionEvent.Sep.SEP_31)
         .kind(TransactionEvent.Kind.RECEIVE)
-        .amountExpected(Amount("10", "FOO"))
-        .amountIn(Amount("10.0000000", "FOO"))
-        .amountOut(Amount("20", "BAR"))
-        .amountFee(Amount("0.5", "FOO"))
+        .amountExpected(Amount("10", fooAsset))
+        .amountIn(Amount("10.0000000", fooAsset))
+        .amountOut(Amount("20", barAsset))
+        .amountFee(Amount("0.5", fooAsset))
         .quoteId("cef1fc13-3f65-4612-b1f2-502d698c816b")
         .startedAt(startedAtMock)
         .updatedAt(createdAt)
