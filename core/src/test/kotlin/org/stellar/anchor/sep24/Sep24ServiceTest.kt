@@ -394,7 +394,7 @@ internal class Sep24ServiceTest {
     assertTrue(memo is MemoText)
     memo = makeMemo("1234", "id")
     assertTrue(memo is MemoId)
-    memo = makeMemo("A1B2C3", "hash")
+    memo = makeMemo("YzVlMzg5ZDMtZGQ4My00NDlmLThhMDctYTUwM2MwM2U=", "hash")
     assertTrue(memo is MemoHash)
   }
 
