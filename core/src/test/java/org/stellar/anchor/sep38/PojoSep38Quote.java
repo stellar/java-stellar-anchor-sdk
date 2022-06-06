@@ -1,20 +1,29 @@
 package org.stellar.anchor.sep38;
 
+import com.google.gson.annotations.SerializedName;
 import java.time.Instant;
 import lombok.Data;
 import org.stellar.anchor.api.sep.sep38.RateFee;
 
 @Data
 public class PojoSep38Quote implements Sep38Quote {
+  @SerializedName("sell_asset")
+  String sellAsset;
+
+  @SerializedName("sell_amount")
+  String sellAmount;
+
+  @SerializedName("buy_asset")
+  String buyAsset;
+
+  @SerializedName("buy_amount")
+  String buyAmount;
+
   String id;
   Instant expiresAt;
   String price;
   String totalPrice;
-  String sellAsset;
-  String sellAmount;
   String sellDeliveryMethod;
-  String buyAsset;
-  String buyAmount;
   String buyDeliveryMethod;
   Instant createdAt;
   String creatorAccountId;

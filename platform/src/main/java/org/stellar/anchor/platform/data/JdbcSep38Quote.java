@@ -3,7 +3,6 @@ package org.stellar.anchor.platform.data;
 import com.google.gson.annotations.SerializedName;
 import java.time.Instant;
 import javax.persistence.*;
-
 import lombok.Data;
 import org.stellar.anchor.api.sep.sep38.RateFee;
 import org.stellar.anchor.reference.model.RateFeeConverter;
