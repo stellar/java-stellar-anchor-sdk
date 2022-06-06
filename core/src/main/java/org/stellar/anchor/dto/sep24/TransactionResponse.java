@@ -74,7 +74,7 @@ public class TransactionResponse {
   static final Gson gson = new Gson();
 
   static String constructMoreInfoUrl(
-      JwtService jwtService, Sep24Config sep24Config, Sep24Transaction txn)
+      JwtService jwtService, Sep24Config sep24Config, Sep24Transaction txn, String lang)
       throws URISyntaxException, MalformedURLException {
 
     JwtToken token =
@@ -96,6 +96,10 @@ public class TransactionResponse {
             .setPath("transaction-status")
             .addParameter("transaction_id", txn.getTransactionId())
             .addParameter("token", jwtService.encode(token));
+
+    if (lang != null) {
+      builder.addParameter("lang", lang);
+    }
 
     return builder.build().toURL().toString();
   }

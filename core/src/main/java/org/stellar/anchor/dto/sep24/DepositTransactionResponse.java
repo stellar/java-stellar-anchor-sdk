@@ -30,6 +30,7 @@ public class DepositTransactionResponse extends TransactionResponse {
       JwtService jwtService,
       Sep24Config sep24Config,
       Sep24Transaction txn,
+      String lang,
       boolean allowMoreInfoUrl)
       throws MalformedURLException, URISyntaxException {
     String strJson = gson.toJson(txn);
@@ -45,7 +46,7 @@ public class DepositTransactionResponse extends TransactionResponse {
     txnR.depositMemoType = txn.getMemoType();
 
     if (allowMoreInfoUrl && needsMoreInfoUrlDeposit.contains(txn.getStatus())) {
-      txnR.moreInfoUrl = constructMoreInfoUrl(jwtService, sep24Config, txn);
+      txnR.moreInfoUrl = constructMoreInfoUrl(jwtService, sep24Config, txn, lang);
     } else {
       txnR.moreInfoUrl = null;
     }
@@ -58,6 +59,7 @@ public class DepositTransactionResponse extends TransactionResponse {
           PENDING_USR_TRANSFER_START.toString(),
           PENDING_USR_TRANSFER_COMPLETE.toString(),
           COMPLETED.toString(),
+          REFUNDED.toString(),
           PENDING_EXTERNAL.toString(),
           PENDING_ANCHOR.toString(),
           PENDING_USER.toString());

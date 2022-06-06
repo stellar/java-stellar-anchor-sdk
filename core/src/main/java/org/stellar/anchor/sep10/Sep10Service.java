@@ -57,12 +57,12 @@ public class Sep10Service {
 
     boolean omnibusWallet =
         sep10Config.getOmnibusAccountList().contains(challengeRequest.getAccount().trim());
-        if (omnibusWallet) {
-          if (challengeRequest.getClientDomain() != null) {
-            throw new SepValidationException(
-                "client_domain must not be specified if the account is an omni-wallet account");
-          }
-        }
+    if (omnibusWallet) {
+      if (challengeRequest.getClientDomain() != null) {
+        throw new SepValidationException(
+            "client_domain must not be specified if the account is an omni-wallet account");
+      }
+    }
 
     if (!omnibusWallet && sep10Config.isClientAttributionRequired()) {
       if (challengeRequest.getClientDomain() == null) {
