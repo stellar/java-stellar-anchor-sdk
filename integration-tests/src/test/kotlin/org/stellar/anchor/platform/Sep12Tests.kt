@@ -10,12 +10,24 @@ import org.stellar.anchor.util.Sep1Helper
 
 lateinit var sep12Client: Sep12Client
 
-const val testCustomerJson =
+const val testCustomer1Json =
   """
 {
   "first_name": "John",
   "last_name": "Doe",
   "address": "123 Washington Street",
+  "city": "San Francisco",
+  "state_or_province": "CA",
+  "address_country_code": "US"
+}
+"""
+
+const val testCustomer2Json =
+  """
+{
+  "first_name": "Jane",
+  "last_name": "Doe",
+  "address": "321 Washington Street",
   "city": "San Francisco",
   "state_or_province": "CA",
   "address_country_code": "US"
@@ -31,7 +43,7 @@ fun sep12TestAll(toml: Sep1Helper.TomlContent, jwt: String) {
 
 fun sep12TestHappyPath() {
   val customer =
-    GsonUtils.getInstance().fromJson(testCustomerJson, Sep12PutCustomerRequest::class.java)
+    GsonUtils.getInstance().fromJson(testCustomer1Json, Sep12PutCustomerRequest::class.java)
 
   // Upload a customer
   printRequest("Calling PUT /customer", customer)

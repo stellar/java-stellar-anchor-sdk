@@ -363,6 +363,6 @@ databaseChangeLog:
             referencedColumnNames: id
             referencedTableName: sep31_transaction
    # Example on how to include additional changelog files
-#  - include:
-#      file: classpath:/db/changelog/17-02-changelog.yaml
+  - include:
+      file: classpath:/db/changelog/2022-05-27.0.add-total_price-and-fee-and-remove-price_details.xml
 

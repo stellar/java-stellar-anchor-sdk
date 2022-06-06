@@ -6,6 +6,8 @@ import okhttp3.HttpUrl.Companion.toHttpUrl
 import org.stellar.anchor.api.sep.sep38.GetPriceResponse
 import org.stellar.anchor.api.sep.sep38.GetPricesResponse
 import org.stellar.anchor.api.sep.sep38.InfoResponse
+import org.stellar.anchor.api.sep.sep38.Sep38Context
+import org.stellar.anchor.api.sep.sep38.Sep38Context.*
 import org.stellar.anchor.api.sep.sep38.Sep38QuoteResponse
 
 class Sep38Client(private val endpoint: String, private val jwt: String) : SepClient() {
@@ -30,7 +32,12 @@ class Sep38Client(private val endpoint: String, private val jwt: String) : SepCl
     return gson.fromJson(responseBody, GetPricesResponse::class.java)
   }
 
-  fun getPrice(sellAsset: String, sellAmount: String, buyAsset: String): GetPriceResponse {
+  fun getPrice(
+    sellAsset: String,
+    sellAmount: String,
+    buyAsset: String,
+    context: Sep38Context
+  ): GetPriceResponse {
     // build URL
     val urlBuilder =
       this.endpoint
@@ -40,6 +47,7 @@ class Sep38Client(private val endpoint: String, private val jwt: String) : SepCl
         .addQueryParameter("sell_asset", sellAsset)
         .addQueryParameter("sell_amount", sellAmount)
         .addQueryParameter("buy_asset", buyAsset)
+        .addQueryParameter("context", context.toString())
     println(urlBuilder.build().toString())
 
     val responseBody = httpGet(urlBuilder.build().toString())
@@ -50,6 +58,7 @@ class Sep38Client(private val endpoint: String, private val jwt: String) : SepCl
     sellAsset: String,
     sellAmount: String,
     buyAsset: String,
+    context: Sep38Context = SEP31,
     expireAfter: Instant? = null
   ): Sep38QuoteResponse {
     // build URL
@@ -61,6 +70,7 @@ class Sep38Client(private val endpoint: String, private val jwt: String) : SepCl
         "sell_asset" to sellAsset,
         "sell_amount" to sellAmount,
         "buy_asset" to buyAsset,
+        "context" to context,
       )
     if (expireAfter != null) {
       requestBody["expire_after"] = DateTimeFormatter.ISO_INSTANT.format(expireAfter)

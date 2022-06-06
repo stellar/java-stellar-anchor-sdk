@@ -2,14 +2,10 @@ package org.stellar.anchor.platform.data;
 
 import com.google.gson.annotations.SerializedName;
 import java.time.Instant;
-import java.util.List;
-import javax.persistence.Convert;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import lombok.Data;
-import org.stellar.anchor.api.sep.sep38.PriceDetail;
-import org.stellar.anchor.reference.model.PriceDetailListConverter;
+import org.stellar.anchor.api.sep.sep38.RateFee;
+import org.stellar.anchor.reference.model.RateFeeConverter;
 import org.stellar.anchor.sep38.Sep38Quote;
 
 @Data
@@ -22,6 +18,9 @@ public class JdbcSep38Quote implements Sep38Quote {
   Instant expiresAt;
 
   String price;
+
+  @SerializedName("total_price")
+  String totalPrice;
 
   @SerializedName("sell_asset")
   String sellAsset;
@@ -56,7 +55,7 @@ public class JdbcSep38Quote implements Sep38Quote {
   @SerializedName("transaction_id")
   String transactionId;
 
-  @SerializedName("price_details")
-  @Convert(converter = PriceDetailListConverter.class)
-  List<PriceDetail> priceDetails;
+  @Convert(converter = RateFeeConverter.class)
+  @Column(length = 1023)
+  RateFee fee;
 }

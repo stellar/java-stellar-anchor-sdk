@@ -19,6 +19,7 @@ import org.stellar.anchor.api.callback.GetRateResponse;
 import org.stellar.anchor.api.callback.RateIntegration;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.ServerErrorException;
+import org.stellar.anchor.util.Log;
 import shadow.com.google.common.reflect.TypeToken;
 
 public class RestRateIntegration implements RateIntegration {
@@ -64,15 +65,26 @@ public class RestRateIntegration implements RateIntegration {
     try {
       getRateResponse = gson.fromJson(responseContent, GetRateResponse.class);
     } catch (Exception e) { // cannot read body from response
+      Log.errorEx("Error parsing body response to GetRateResponse", e);
       throw new ServerErrorException("internal server error", e);
     }
 
     GetRateResponse.Rate rate = getRateResponse.getRate();
     if (rate == null || rate.getPrice() == null) {
+      Log.error("missing 'price' in the GET /rate response");
       throw new ServerErrorException("internal server error");
     }
+
+    if (request.getType() != GetRateRequest.Type.INDICATIVE_PRICES) {
+      if (rate.getFee() == null || rate.getTotalPrice() == null) {
+        Log.error("'fee' and/or 'total_price' are missing in the GET /rate response");
+        throw new ServerErrorException("internal server error");
+      }
+    }
+
     if (request.getType() == GetRateRequest.Type.FIRM) {
       if (rate.getId() == null || rate.getExpiresAt() == null) {
+        Log.error("'id' and/or 'expires_at' are missing in the GET /rate response");
         throw new ServerErrorException("internal server error");
       }
     }

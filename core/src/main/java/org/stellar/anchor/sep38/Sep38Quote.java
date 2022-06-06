@@ -1,8 +1,7 @@
 package org.stellar.anchor.sep38;
 
 import java.time.Instant;
-import java.util.List;
-import org.stellar.anchor.api.sep.sep38.PriceDetail;
+import org.stellar.anchor.api.sep.sep38.RateFee;
 
 public interface Sep38Quote {
   String getId();
@@ -16,6 +15,10 @@ public interface Sep38Quote {
   String getPrice();
 
   void setPrice(String price);
+
+  String getTotalPrice();
+
+  void setTotalPrice(String totalPrice);
 
   String getSellAsset();
 
@@ -61,7 +64,7 @@ public interface Sep38Quote {
 
   void setTransactionId(String transactionId);
 
-  List<PriceDetail> getPriceDetails();
+  RateFee getFee();
 
-  void setPriceDetails(List<PriceDetail> priceDetails);
+  void setFee(RateFee fee);
 }
