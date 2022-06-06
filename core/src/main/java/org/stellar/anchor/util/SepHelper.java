@@ -47,6 +47,10 @@ public class SepHelper {
     return result;
   }
 
+  public static boolean amountEquals(String amount1, String amount2) {
+    return decimal(amount1).compareTo(decimal(amount2)) == 0;
+  }
+
   public static void validateAmount(String amount) throws AnchorException {
     validateAmount("", amount);
   }

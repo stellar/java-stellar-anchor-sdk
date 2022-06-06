@@ -2,9 +2,11 @@ package org.stellar.anchor.api.sep.sep38;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
 public class RateFeeDetail {
   String name;
   String description;

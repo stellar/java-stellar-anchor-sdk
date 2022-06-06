@@ -19,6 +19,7 @@ import org.stellar.anchor.Constants.Companion.TEST_ASSET_ISSUER_ACCOUNT_ID
 import org.stellar.anchor.Constants.Companion.TEST_CLIENT_DOMAIN
 import org.stellar.anchor.Constants.Companion.TEST_TRANSACTION_ID_0
 import org.stellar.anchor.Constants.Companion.TEST_TRANSACTION_ID_1
+import org.stellar.anchor.TestHelper
 import org.stellar.anchor.api.exception.SepException
 import org.stellar.anchor.api.exception.SepNotAuthorizedException
 import org.stellar.anchor.api.exception.SepNotFoundException
@@ -81,15 +82,7 @@ internal class Sep24ServiceTest {
   }
 
   private fun createJwtToken(): JwtToken {
-    val issuedAt: Long = System.currentTimeMillis() / 1000L
-    return JwtToken.of(
-      appConfig.hostUrl + "/auth",
-      TEST_ACCOUNT,
-      issuedAt,
-      issuedAt + 60,
-      "",
-      TEST_CLIENT_DOMAIN
-    )
+    return TestHelper.createJwtToken(TEST_ACCOUNT, appConfig.hostUrl, TEST_CLIENT_DOMAIN)
   }
 
   @Test

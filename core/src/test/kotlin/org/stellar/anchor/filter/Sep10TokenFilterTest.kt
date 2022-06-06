@@ -12,6 +12,7 @@ import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
+import org.stellar.anchor.TestHelper.Companion.createJwtToken
 import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.Sep10Config
 import org.stellar.anchor.filter.BaseTokenFilter.APPLICATION_JSON_VALUE
@@ -25,28 +26,28 @@ internal class Sep10TokenFilterTest {
     private const val PUBLIC_KEY = "GBJDSMTMG4YBP27ZILV665XBISBBNRP62YB7WZA2IQX2HIPK7ABLF4C2"
   }
 
-  lateinit var appConfig: AppConfig
-  lateinit var jwtService: JwtService
-  lateinit var sep10Config: Sep10Config
-  lateinit var sep10TokenFilter: Sep10TokenFilter
-  lateinit var request: HttpServletRequest
-  lateinit var response: HttpServletResponse
-  lateinit var mockFilterChain: FilterChain
-  lateinit var jwtToken: String
+  private lateinit var appConfig: AppConfig
+  private lateinit var jwtService: JwtService
+  private lateinit var sep10Config: Sep10Config
+  private lateinit var sep10TokenFilter: Sep10TokenFilter
+  private lateinit var request: HttpServletRequest
+  private lateinit var response: HttpServletResponse
+  private lateinit var mockFilterChain: FilterChain
+  private lateinit var jwtToken: String
 
   @BeforeEach
   fun setup() {
     this.appConfig = mockk(relaxed = true)
     every { appConfig.jwtSecretKey } returns "secret"
     this.jwtService = JwtService(appConfig)
-    this.sep10Config = mockk<Sep10Config>(relaxed = true)
+    this.sep10Config = mockk(relaxed = true)
     this.sep10TokenFilter = Sep10TokenFilter(sep10Config, jwtService)
-    this.request = mockk<HttpServletRequest>(relaxed = true)
-    this.response = mockk<HttpServletResponse>(relaxed = true)
-    this.mockFilterChain = mockk<FilterChain>(relaxed = true)
+    this.request = mockk(relaxed = true)
+    this.response = mockk(relaxed = true)
+    this.mockFilterChain = mockk(relaxed = true)
 
     every { sep10Config.enabled } returns true
-    this.jwtToken = createJwtToken()
+    this.jwtToken = jwtService.encode(createJwtToken(PUBLIC_KEY, appConfig.hostUrl))
     every { request.getHeader("Authorization") } returns "Bearer $jwtToken"
   }
 
@@ -165,19 +166,5 @@ internal class Sep10TokenFilterTest {
     verify { mockFilterChain.doFilter(request, response) }
     verify(exactly = 1) { request.setAttribute(JWT_TOKEN, any()) }
     assertEquals(jwtToken, jwtService.encode(slot.captured))
-  }
-
-  private fun createJwtToken(): String {
-    val issuedAt: Long = System.currentTimeMillis() / 1000L
-    val jwtToken =
-      JwtToken.of(
-        appConfig.hostUrl + "/auth",
-        PUBLIC_KEY,
-        issuedAt,
-        issuedAt + 60,
-        "",
-        "vibrant.stellar.org"
-      )
-    return jwtService.encode(jwtToken)
   }
 }
