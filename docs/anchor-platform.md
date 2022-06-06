@@ -77,13 +77,20 @@ Note: secrets (credentials, tokens, etc...) are passed to the application via en
 each required environment variables ([Environment Variables](../platform/src/main/resources/example.env) )
 ```shell
 docker run -v {/local/path/to/config/file/}:/config -p 8081:8081 stellar-anchor-platform:latest --anchor-reference-server \
--e JWT_SECRET=secret \
--e SEP10_SIGNING_SEED=SAX3...C3AW5X \
--e CIRCLE_API_KEY=QVBJX0...NjMyZTQ5NWJhNDdlZg== \
--e PAYMENT_GATEWAY_STELLAR_SECRET_KEY=secret \
--e POSTGRES_USERNAME=postgres \
--e POSTGRES_PASSWORD=password
+-e JWT_SECRET='secret' \
+-e SEP10_SIGNING_SEED='SAX3...C3AW5X' \
+-e 'CIRCLE_API_KEY=QVBJX0...NjMyZTQ5NWJhNDdlZg==' \
+-e PAYMENT_GATEWAY_STELLAR_SECRET_KEY='secret' \
+-e POSTGRES_USERNAME='postgres' \
+-e POSTGRES_PASSWORD='password'
 ```
+or pass in an .env file
+```shell
+docker run -v {/local/path/to/config/file/}:/config -p 8081:8081 stellar-anchor-platform:latest --anchor-reference-server \
+--env-file ./my-env-file
+```
+
+
 Note: this image can run --sep-server (port: 8080), --anchor-reference-server (port: 8081), --payment-observer
 
 ## Event Messaging
