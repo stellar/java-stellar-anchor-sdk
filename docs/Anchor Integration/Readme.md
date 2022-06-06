@@ -1,5 +1,7 @@
 # Anchor Integration
 
+> Status: under development
+
 In order to start using the Anchor Platform, there are 4 main steps:
 
 1. Configure the Anchor Platform configuration files and environment variables.
@@ -10,3 +12,5 @@ In order to start using the Anchor Platform, there are 4 main steps:
 [Callback API]: Callbacks%20API.yml
 [Events Schema]: Events%20Schema.yml
 [Platform API]: Platform%20API.yml
+
+More details on how to address these steps will be added later to this repo.
