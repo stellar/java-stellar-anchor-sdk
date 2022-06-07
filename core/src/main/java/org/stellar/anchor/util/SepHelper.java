@@ -9,9 +9,7 @@ import java.util.Objects;
 import java.util.UUID;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
-import org.stellar.anchor.api.exception.SepValidationException;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
-import org.stellar.anchor.config.AppConfig;
 import org.stellar.sdk.xdr.MemoType;
 
 public class SepHelper {
@@ -69,21 +67,6 @@ public class SepHelper {
     }
     if (sAmount.signum() < 1) {
       throw new BadRequestException(messagePrefix + "amount should be positive");
-    }
-  }
-
-  public static String validateLanguage(AppConfig appConfig, String lang)
-      throws SepValidationException {
-    if (lang != null) {
-      List<String> languages = appConfig.getLanguages();
-      if (languages != null && languages.size() > 0) {
-        if (languages.stream().noneMatch(l -> l.equalsIgnoreCase(lang))) {
-          throw new SepValidationException(String.format("unsupported language: %s", lang));
-        }
-      }
-      return lang;
-    } else {
-      return "en-US";
     }
   }
 

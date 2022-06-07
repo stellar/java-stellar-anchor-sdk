@@ -423,18 +423,6 @@ internal class Sep24ServiceTest {
     assertTrue(response.url.indexOf("lang=en-US") != -1)
   }
 
-  @Test
-  fun testValidateLanguage() {
-    val request = createTestTransactionRequest()
-    request["lang"] = "cn"
-
-    every { appConfig.languages } returns listOf("en", "fr")
-
-    assertThrows<SepValidationException> {
-      sep24Service.withdraw("/sep24/withdraw", createJwtToken(), request)
-    }
-  }
-
   private fun createTestTransaction(kind: String): Sep24Transaction {
     val txn = PojoSep24Transaction()
     txn.transactionId = TEST_TRANSACTION_ID_0

@@ -7,6 +7,7 @@ import static org.stellar.anchor.util.Log.shorter;
 import static org.stellar.anchor.util.MathHelper.decimal;
 import static org.stellar.anchor.util.MemoHelper.makeMemo;
 import static org.stellar.anchor.util.SepHelper.*;
+import static org.stellar.anchor.util.SepLanguageHelper.validateLanguage;
 import static org.stellar.sdk.xdr.MemoType.MEMO_ID;
 
 import com.google.gson.Gson;
@@ -176,8 +177,6 @@ public class Sep24Service {
     }
 
     String lang = validateLanguage(appConfig, depositRequest.get("lang"));
-
-    validateLanguage(appConfig, lang);
 
     if (assetCode == null) {
       throw new SepValidationException("missing 'asset_code'");
