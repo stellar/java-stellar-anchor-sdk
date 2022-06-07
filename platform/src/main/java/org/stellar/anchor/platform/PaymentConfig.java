@@ -2,12 +2,16 @@ package org.stellar.anchor.platform;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import okhttp3.OkHttpClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.stellar.anchor.asset.AssetInfo;
+import org.stellar.anchor.api.exception.ServerErrorException;
+import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.AppConfig;
-import org.stellar.anchor.exception.ServerErrorException;
+import org.stellar.anchor.config.CirclePaymentObserverConfig;
+import org.stellar.anchor.horizon.Horizon;
+import org.stellar.anchor.platform.paymentobserver.CirclePaymentObserverService;
 import org.stellar.anchor.platform.paymentobserver.PaymentListener;
 import org.stellar.anchor.platform.paymentobserver.PaymentStreamerCursorStore;
 import org.stellar.anchor.platform.paymentobserver.StellarPaymentObserver;
@@ -62,5 +66,15 @@ public class PaymentConfig {
 
     stellarPaymentObserverService.start();
     return stellarPaymentObserverService;
+  }
+
+  @Bean
+  public CirclePaymentObserverService circlePaymentObserverService(
+      OkHttpClient httpClient,
+      CirclePaymentObserverConfig circlePaymentObserverConfig,
+      Horizon horizon,
+      List<PaymentListener> paymentListeners) {
+    return new CirclePaymentObserverService(
+        httpClient, circlePaymentObserverConfig, horizon, paymentListeners);
   }
 }

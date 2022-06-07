@@ -12,7 +12,7 @@ jobs:
   build_and_test:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
+    - uses: actions/checkout@v3
     - name: Set up JDK 11
       uses: actions/setup-java@v2
       with:
@@ -21,16 +21,17 @@ jobs:
     - name: Clean, Build and Test
       run: |
         ./gradlew clean build
-        echo *** Core test report ***
+        echo *** SEP test report ***
         cat /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/core/build/reports/tests/test/index.html
-        echo *** Payment Circle test report ***
-        cat /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/payment-circle/build/reports/tests/test/index.html
+        echo *** Payment test report ***
+        cat /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/payment/build/reports/tests/test/index.html
         echo *** Platform test report ***
         cat /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/platform/build/reports/tests/test/index.html
         echo *** Anchor reference server test report ***
         cat /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/anchor-reference-server/build/reports/tests/test/index.html
 
   build_and_push_anchor_platform:
+    if: github.event.pull_request == null
     needs: [build_and_test]
     runs-on: ubuntu-latest
     name: Push stellar/anchor-platform:sha to DockerHub
@@ -56,20 +57,25 @@ jobs:
         file: Dockerfile
 
   sep_validation_suite:
-    if: github.event.pull_request != null
     needs: [build_and_test]
     runs-on: ubuntu-latest
-    name: Validate SEPs (1, 38)
+    name: Validate SEPs (1, 10, 12, 31)
+    env:
+      PR_NUMBER: ${{github.event.pull_request.number}}
     steps:
-      - uses: actions/checkout@v1
+      - uses: actions/checkout@v3
 
-      # Find the PR associated with this push, if there is one.
-      - name: Find PR number
-        uses: jwalton/gh-find-current-pr@465461f2b0e83dd1a57b3a04e7c81050705f7391
-        id: findPr
-        with:
-          # Can be "open", "closed", or "all".  Defaults to "open".
-          state: open
+      # Find the server endpoint home domain to run the SEP tests.
+      - name: Find Home Domain (Preview or Dev)
+        id: endpoint-finder
+        run: |
+          export HOME_DOMAIN=https://anchor-sep-server-dev.stellar.org
+          if [ ! -z "$PR_NUMBER" ]
+          then
+            export HOME_DOMAIN=https://anchor-sep-pr$PR_NUMBER.previews.kube001.services.stellar-ops.com
+          fi
+          echo HOME_DOMAIN=$HOME_DOMAIN
+          echo "::set-output name=HOME_DOMAIN::$HOME_DOMAIN"
 
       - name: Install Node
         uses: actions/setup-node@v2
@@ -78,7 +84,14 @@ jobs:
 
       - name: Run Validation Tool
         env:
-          PR: ${{ steps.findPr.outputs.pr }}
+          HOME_DOMAIN: ${{ steps.endpoint-finder.outputs.HOME_DOMAIN }}
         run: |
           npm install -g @stellar/anchor-tests
-          stellar-anchor-tests --home-domain https://anchor-sep-pr$PR.previews.kube001.services.stellar-ops.com --seps 1 38
+          stellar-anchor-tests --home-domain $HOME_DOMAIN --seps 1 10 12 31 --sep-config platform/src/test/resources/stellar-anchor-tests-sep-config.json
+
+  complete:
+    needs: [build_and_test, sep_validation_suite]
+    runs-on: ubuntu-latest
+    steps:
+      - if: contains(needs.*.result, 'failure')
+        run: exit 1

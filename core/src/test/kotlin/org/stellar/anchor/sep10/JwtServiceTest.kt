@@ -1,8 +1,13 @@
 package org.stellar.anchor.sep10
 
+import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.MalformedJwtException
+import io.jsonwebtoken.SignatureAlgorithm
 import io.mockk.every
 import io.mockk.mockk
+import java.nio.charset.StandardCharsets
+import java.util.*
+import org.apache.commons.codec.binary.Base64
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -57,5 +62,32 @@ internal class JwtServiceTest {
     val jwtService = JwtService(appConfig)
 
     assertThrows<MalformedJwtException> { jwtService.decode("This is a bad cipher") }
+  }
+
+  @Test
+  fun testBadTokenAlgorithm() {
+    val appConfig = mockk<AppConfig>()
+    every { appConfig.jwtSecretKey } returns "jwt_secret"
+
+    val jwtService = JwtService(appConfig)
+    val jwtKey =
+      Base64.encodeBase64String(appConfig.jwtSecretKey.toByteArray(StandardCharsets.UTF_8))
+
+    val builder =
+      Jwts.builder()
+        .setId("mock_id")
+        .setIssuer(TEST_ISS)
+        .setSubject(TEST_SUB)
+        .setIssuedAt(Date(System.currentTimeMillis()))
+        .setExpiration(Date(System.currentTimeMillis() + 300000))
+
+    var token = builder.signWith(SignatureAlgorithm.HS256, jwtKey).compact()
+    jwtService.decode(token)
+
+    token = builder.signWith(SignatureAlgorithm.HS384, jwtKey).compact()
+    assertThrows<IllegalArgumentException> { jwtService.decode(token) }
+
+    token = builder.signWith(SignatureAlgorithm.HS512, jwtKey).compact()
+    assertThrows<IllegalArgumentException> { jwtService.decode(token) }
   }
 }

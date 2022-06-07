@@ -8,35 +8,32 @@ plugins {
 dependencies {
   api(libs.lombok)
 
+  annotationProcessor(libs.lombok)
+  annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
+
   implementation("org.springframework.boot:spring-boot")
   implementation("org.springframework.boot:spring-boot-autoconfigure")
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
   implementation("org.springframework.boot:spring-boot-starter-web")
+  implementation("org.springframework.boot:spring-boot-starter-reactor-netty")
+
   implementation(libs.commons.cli)
+  implementation(libs.commons.io)
   implementation(libs.google.gson)
   implementation(libs.java.stellar.sdk)
+
   implementation(libs.sqlite.jdbc)
   implementation(libs.okhttp3)
-
   implementation(libs.jackson.dataformat.yaml)
   implementation(libs.log4j2.core)
   implementation(libs.log4j2.slf4j)
 
-  annotationProcessor(libs.lombok)
-  annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-
-  // TODO: Used by the test suite. To be removed when the test suite is moved to a different
-  // project.
-  implementation("org.junit.jupiter:junit-jupiter-api:5.8.2")
-  implementation("org.junit.jupiter:junit-jupiter-engine:5.8.2")
-  implementation("org.jetbrains.kotlin:kotlin-test-junit5:1.6.10")
-
   // From projects
+  implementation(project(":api-schema"))
   implementation(project(":core"))
-  implementation(project(":config-spring-property"))
-  implementation(project(":data-spring-jdbc"))
-  implementation(project(":platform-apis"))
+  implementation(project(":payment"))
   implementation(project(":anchor-reference-server"))
+
   testImplementation("org.springframework.boot:spring-boot-starter-test")
   testImplementation(libs.okhttp3.mockserver)
 }
@@ -48,12 +45,4 @@ tasks.test {
   }
 }
 
-application { mainClass.set("org.stellar.anchor.platform.ServiceRunner") }
-
-configurations {
-  all {
-    exclude(group = "ch.qos.logback", module = "logback-classic")
-    exclude(group = "org.apache.logging.log4j", module = "log4j-to-slf4j")
-    exclude(group = "org.slf4j", module = "slf4j-log4j12")
-  }
-}
+tasks { bootJar { enabled = false } }

@@ -6,14 +6,16 @@ dependencyResolutionManagement {
   versionCatalogs {
     create("libs") {
       alias("apache.commons.lang3").to("org.apache.commons:commons-lang3:3.12.0")
+      alias("commons.beanutils").to("commons-beanutils:commons-beanutils:1.9.4")
       alias("commons.cli").to("commons-cli:commons-cli:1.5.0")
       alias("commons.codec").to("commons-codec:commons-codec:1.15")
+      alias("commons.io").to("commons-io:commons-io:2.11.0")
       alias("commons.validator").to("commons-validator:commons-validator:1.7")
       alias("google.gson").to("com.google.code.gson:gson:2.8.9")
       alias("httpclient").to("org.apache.httpcomponents:httpclient:4.5.13")
       alias("jackson.dataformat.yaml")
           .to("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.13.2")
-      alias("java.stellar.sdk").to("com.github.stellar:java-stellar-sdk:0.29.0")
+      alias("java.stellar.sdk").to("com.github.stellar:java-stellar-sdk:0.34.0")
       alias("javax.jaxb.api").to("javax.xml.bind:jaxb-api:2.3.1")
       alias("jjwt").to("io.jsonwebtoken:jjwt:0.9.1")
       alias("log4j2.api").to("org.apache.logging.log4j:log4j-api:.17.1")
@@ -33,20 +35,13 @@ dependencyResolutionManagement {
   }
 }
 
+/** APIs and Schemas */
+include("api-schema")
+
 include("core")
 
-/** Configuration management subprojects */
-include("config-spring-property")
-// TODO: include("config-consul")
-
-/** Data access subprojects */
-include("data-spring-jdbc")
-// TODO: include("data-spring-mongo")
-// TODO: include("data-spring-couchbase")
-
 /** Payment subprojects */
-include("payment-circle")
-// TODO: include("payment-stellar")
+include("payment")
 
 /** Anchor Platform */
 include("platform")
@@ -54,5 +49,8 @@ include("platform")
 /** Anchor Reference Server */
 include("anchor-reference-server")
 
-/** Anchor Platform API Schemas */
-include("platform-apis")
+
+/** Integration tests */
+include("integration-tests")
+
+include("service-runner")

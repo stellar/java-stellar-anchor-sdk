@@ -5,7 +5,6 @@ import io.mockk.spyk
 import io.mockk.unmockkAll
 import java.io.File
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -13,7 +12,6 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.context.annotation.AnnotationConfigApplicationContext
-import org.springframework.core.env.get
 import org.springframework.util.ResourceUtils
 
 open class ConfiguratorTest {
@@ -27,11 +25,10 @@ open class ConfiguratorTest {
   fun testSystemEnv(method: String) {
     val applicationContext = AnnotationConfigApplicationContext()
     val propertiesReader = spyk<PropertiesReader>(recordPrivateCalls = true)
-    every { propertiesReader[method]() } returns "classpath:test-anchor-config.yaml"
+    every { propertiesReader[method]() } returns "classpath:test-read.yaml"
 
     propertiesReader.initialize(applicationContext)
     loadConfigurations(applicationContext)
-    testYamlProperties(applicationContext)
   }
 
   @Test
@@ -39,11 +36,10 @@ open class ConfiguratorTest {
     val applicationContext = AnnotationConfigApplicationContext()
     val propertiesReader = spyk<PropertiesReader>(recordPrivateCalls = true)
     every { propertiesReader.getFromUserFolder() } returns
-      ResourceUtils.getFile("classpath:test-anchor-config.yaml")
+      ResourceUtils.getFile("classpath:test-read.yaml")
 
     propertiesReader.initialize(applicationContext)
     loadConfigurations(applicationContext)
-    testYamlProperties(applicationContext)
 
     every { propertiesReader.getFromUserFolder() } returns File("bad file")
     assertThrows<java.lang.IllegalArgumentException> {
@@ -63,24 +59,5 @@ open class ConfiguratorTest {
     PlatformAppConfigurator().initialize(context)
     DataAccessConfigurator().initialize(context)
     SpringFrameworkConfigurator().initialize(context)
-  }
-
-  fun testYamlProperties(context: ConfigurableApplicationContext) {
-    val tests =
-      mapOf(
-        "sep1.enabled" to "true",
-        "sep10.enabled" to "true",
-        "sep10.homeDomain" to "localhost:8080",
-        "sep10.signingSeed" to "SAX3AH622R2XT6DXWWSRIDCMMUCCMATBZ5U6XKJWDO7M2EJUBFC3AW5X",
-        "sep38.enabled" to "true",
-        "sep38.quoteIntegrationEndPoint" to "http://localhost:8081",
-        "payment-gateway.circle.name" to "circle",
-        "payment-gateway.circle.stellarNetwork" to "TESTNET",
-        "spring.jpa.properties.hibernate.dialect" to "org.hibernate.dialect.H2Dialect",
-        "logging.level.root" to "INFO",
-        "server.servlet.context-path" to "/"
-      )
-
-    tests.forEach { entry -> Assertions.assertEquals(entry.value, context.environment[entry.key]) }
   }
 }

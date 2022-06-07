@@ -4,10 +4,10 @@ import static org.stellar.anchor.util.MathHelper.decimal;
 
 import java.math.BigDecimal;
 import org.springframework.stereotype.Service;
-import org.stellar.anchor.exception.BadRequestException;
-import org.stellar.platform.apis.callbacks.requests.GetFeeRequest;
-import org.stellar.platform.apis.callbacks.responses.GetFeeResponse;
-import org.stellar.platform.apis.shared.Amount;
+import org.stellar.anchor.api.callback.GetFeeRequest;
+import org.stellar.anchor.api.callback.GetFeeResponse;
+import org.stellar.anchor.api.exception.BadRequestException;
+import org.stellar.anchor.api.shared.Amount;
 
 @Service
 public class FeeService {

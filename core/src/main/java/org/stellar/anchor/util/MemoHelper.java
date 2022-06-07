@@ -1,44 +1,17 @@
 package org.stellar.anchor.util;
 
-import static org.stellar.sdk.xdr.MemoType.MEMO_ID;
+import static org.stellar.sdk.xdr.MemoType.*;
 
 import java.util.Base64;
+import org.apache.commons.codec.DecoderException;
 import org.apache.commons.codec.binary.Hex;
-import org.stellar.anchor.exception.SepException;
-import org.stellar.anchor.exception.SepValidationException;
-import org.stellar.sdk.Memo;
-import org.stellar.sdk.MemoHash;
-import org.stellar.sdk.MemoId;
-import org.stellar.sdk.MemoText;
+import org.stellar.anchor.api.exception.SepException;
+import org.stellar.anchor.api.exception.SepValidationException;
+import org.stellar.sdk.*;
 import org.stellar.sdk.xdr.MemoType;
 
 public class MemoHelper {
-  public static Memo makeMemo(String memo, String memoType) throws SepException {
-    if (memo == null || memoType == null) {
-      return null;
-    }
-    MemoType mt;
-    switch (memoType) {
-      case "text":
-        mt = MemoType.MEMO_TEXT;
-        break;
-      case "id":
-        mt = MEMO_ID;
-        break;
-      case "hash":
-        mt = MemoType.MEMO_HASH;
-        break;
-      case "none":
-      case "return":
-        throw new SepException("Unsupported value: " + memoType);
-      default:
-        throw new SepValidationException(String.format("Invalid memo type: %s", memoType));
-    }
-
-    return makeMemo(memo, mt);
-  }
-
-  public static String memoType(MemoType memoType) {
+  public static String memoTypeAsString(MemoType memoType) {
     switch (memoType) {
       case MEMO_ID:
         return "id";
@@ -52,6 +25,44 @@ public class MemoHelper {
         return "return";
       default:
         throw new RuntimeException("Unsupported value: " + memoType);
+    }
+  }
+
+  public static String memoTypeAsString(Memo memo) {
+    return memoTypeAsString(getMemoType(memo));
+  }
+
+  private static MemoType getMemoType(Memo memo) {
+    if (memo == null || memo instanceof MemoNone) {
+      return MEMO_NONE;
+    } else if (memo instanceof MemoId) {
+      return MEMO_ID;
+    } else if (memo instanceof MemoText) {
+      return MEMO_TEXT;
+    } else if (memo instanceof MemoHash) {
+      return MEMO_HASH;
+    }
+
+    return MEMO_RETURN;
+  }
+
+  public static Memo makeMemo(String memo, String memoType) throws SepException {
+    if (memo == null || memoType == null) {
+      return null;
+    }
+
+    switch (memoType) {
+      case "text":
+        return makeMemo(memo, MemoType.MEMO_TEXT);
+      case "id":
+        return makeMemo(memo, MemoType.MEMO_ID);
+      case "hash":
+        return makeMemo(memo, MemoType.MEMO_HASH);
+      case "none":
+      case "return":
+        throw new SepException("Unsupported value: " + memoType);
+      default:
+        throw new SepValidationException(String.format("Invalid memo type: %s", memoType));
     }
   }
 
@@ -75,5 +86,28 @@ public class MemoHelper {
 
   public static String convertBase64ToHex(String memo) {
     return Hex.encodeHexString(Base64.getDecoder().decode(memo.getBytes()));
+  }
+
+  public static String convertHexToBase64(String memo) throws DecoderException {
+    return Base64.getEncoder().encodeToString(Hex.decodeHex(memo));
+  }
+
+  public static String memoAsString(Memo memo) throws SepException {
+    if (memo == null) {
+      return null;
+    }
+    switch (getMemoType(memo)) {
+      case MEMO_ID:
+        return String.valueOf(((MemoId) memo).getId());
+      case MEMO_TEXT:
+        return ((MemoText) memo).getText();
+      case MEMO_HASH:
+        return ((MemoHash) memo).getHexValue();
+      case MEMO_NONE:
+        return "";
+      default:
+        String memoTypeStr = memoTypeAsString(memo);
+        throw new SepException("Unsupported value: " + memoTypeStr);
+    }
   }
 }

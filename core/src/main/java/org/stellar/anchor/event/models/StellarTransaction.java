@@ -24,13 +24,3 @@ public class StellarTransaction {
 
   public StellarTransaction() {}
 }
-
-@Data
-@Builder
-@AllArgsConstructor
-class Customers {
-  StellarId sender;
-  StellarId receiver;
-
-  public Customers() {}
-}

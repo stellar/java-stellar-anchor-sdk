@@ -1,6 +1,6 @@
 package org.stellar.anchor.util;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.stellar.anchor.util.PropertyUtil.set;
 
 import java.util.Optional;

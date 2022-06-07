@@ -3,12 +3,12 @@ package org.stellar.anchor.reference.controller;
 import com.google.gson.Gson;
 import java.util.Map;
 import org.springframework.web.bind.annotation.*;
-import org.stellar.anchor.exception.AnchorException;
+import org.stellar.anchor.api.callback.GetRateRequest;
+import org.stellar.anchor.api.callback.GetRateResponse;
+import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.reference.config.AppSettings;
 import org.stellar.anchor.reference.service.RateService;
 import org.stellar.anchor.util.GsonUtils;
-import org.stellar.platform.apis.callbacks.requests.GetRateRequest;
-import org.stellar.platform.apis.callbacks.responses.GetRateResponse;
 
 @RestController
 public class RateController {

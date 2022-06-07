@@ -3,9 +3,11 @@ package org.stellar.anchor.event.models;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.google.gson.annotations.SerializedName;
 import java.time.Instant;
+import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import org.stellar.anchor.api.shared.Amount;
 
 @Data
 @Builder
@@ -27,6 +29,9 @@ public class TransactionEvent implements AnchorEvent {
   Kind kind;
 
   Status status;
+
+  @SerializedName("status_change")
+  StatusChange statusChange;
 
   @SerializedName("amount_expected")
   Amount amountExpected;
@@ -57,7 +62,7 @@ public class TransactionEvent implements AnchorEvent {
 
   String message;
 
-  Refund refund;
+  Refund[] refunds;
 
   @SerializedName("stellar_transactions")
   StellarTransaction[] stellarTransactions;
@@ -93,6 +98,24 @@ public class TransactionEvent implements AnchorEvent {
     Status(String status) {
       this.status = status;
     }
+
+    public static Status from(String statusStr) {
+      for (Status status : values()) {
+        if (Objects.equals(status.status, statusStr)) {
+          return status;
+        }
+      }
+      throw new IllegalArgumentException("No matching constant for [" + statusStr + "]");
+    }
+  }
+
+  @Data
+  @AllArgsConstructor
+  public static class StatusChange {
+    Status from;
+    Status to;
+
+    StatusChange() {}
   }
 
   public enum Sep {
@@ -112,7 +135,7 @@ public class TransactionEvent implements AnchorEvent {
 
   public enum Type {
     TRANSACTION_CREATED("transaction_created"),
-    TRANSACTION_PAYMENT_RECEIVED("transaction_payment_received"),
+    TRANSACTION_STATUS_CHANGED("transaction_status_changed"),
     TRANSACTION_ERROR("transaction_error");
 
     @JsonValue public final String type;
