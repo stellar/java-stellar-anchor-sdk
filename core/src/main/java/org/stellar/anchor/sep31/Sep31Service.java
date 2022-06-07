@@ -199,14 +199,9 @@ public class Sep31Service {
     }
 
     Sep31Transaction txn = Context.get().getTransaction();
-    infoF("Updating transaction ({}) with quote ({}) - inAsset ({}) inAmount ({}) " +
-                    "outAsset ({}) outAmount ({})",
+    debugF("Updating transaction ({}) with quote ({})",
             txn.getId(),
-            quote.getId(),
-            quote.getSellAsset(),
-            quote.getSellAsset(),
-            quote.getBuyAsset(),
-            quote.getBuyAmount()
+            quote.getId()
     );
     txn.setAmountInAsset(quote.getSellAsset());
     txn.setAmountIn(quote.getSellAmount());
@@ -238,14 +233,10 @@ public class Sep31Service {
       amountIn = reqAmount.add(fee);
       amountOut = reqAmount;
     }
-    infoF("Updating transaction ({}) with fee ({}) - inAsset ({}) inAmount ({}) " +
-                    "outAsset ({}) outAmount ({})",
+    debugF("Updating transaction ({}) with fee ({}) - reqAsset ({})",
             txn.getId(),
-            formatAmount(fee, scale),
-            reqAsset.getAssetName(),
-            formatAmount(amountIn, scale),
-            reqAsset.getAssetName(),
-            formatAmount(amountOut, scale)
+            fee,
+            reqAsset
     );
 
     // Update transaction
@@ -394,7 +385,7 @@ public class Sep31Service {
     JwtToken token = Context.get().getJwtToken();
     String assetName =
         assetService.getAsset(request.getAssetCode(), request.getAssetIssuer()).getAssetName();
-    debugF("Requesting fee for request ({})", request);
+    infoF("Requesting fee for request ({})", request);
     Amount fee =
         feeIntegration
             .getFee(
@@ -411,7 +402,7 @@ public class Sep31Service {
                     .clientDomain(token.getClientDomain())
                     .build())
             .getFee();
-    debugF("Fee for request ({}) is ({})", request, fee);
+    infoF("Fee for request ({}) is ({})", request, fee);
     Context.get().setFee(fee);
   }
 
