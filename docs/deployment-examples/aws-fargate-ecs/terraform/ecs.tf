@@ -297,7 +297,8 @@ resource "aws_iam_policy" "create_log_group" {
         {
             "Effect": "Allow",
             "Action": [
-                "logs:CreateLogGroup"
+                "logs:CreateLogGroup",
+                "sqs:*"
             ],
             "Resource": "*"
         }
