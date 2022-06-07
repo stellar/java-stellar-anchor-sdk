@@ -15,7 +15,6 @@ import java.util.List;
 import org.apache.http.client.utils.URIBuilder;
 import org.springframework.beans.BeanUtils;
 import org.stellar.anchor.api.sep.AssetInfo;
-import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.sep.sep24.*;
 import org.stellar.anchor.config.Sep24Config;
 import org.stellar.anchor.sep10.JwtService;
@@ -28,6 +27,7 @@ public class Sep24Helper {
           PENDING_USR_TRANSFER_START.toString(),
           PENDING_USR_TRANSFER_COMPLETE.toString(),
           COMPLETED.toString(),
+          REFUNDED.toString(),
           PENDING_EXTERNAL.toString(),
           PENDING_ANCHOR.toString(),
           PENDING_USER.toString());
@@ -35,7 +35,8 @@ public class Sep24Helper {
       Arrays.asList(
           PENDING_USR_TRANSFER_START.toString(),
           PENDING_USR_TRANSFER_COMPLETE.toString(),
-          SepTransactionStatus.COMPLETED.toString(),
+          COMPLETED.toString(),
+          REFUNDED.toString(),
           PENDING_EXTERNAL.toString(),
           PENDING_ANCHOR.toString(),
           PENDING_USER.toString());
