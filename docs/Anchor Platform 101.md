@@ -20,6 +20,7 @@ Here are the important terminology used in this project:
 - **Wallet**: a frontend application used to interact with the Stellar network on behalf of a user.
 - **Sending Anchor**: a therminology used in the context of [SEP-31]. Refers to an entity that receives funds from a user and forwards it (after taking a fee) to a receiving anchor, in the SEP-31 `Sending Client->Sending Anchor->Receiving Anchor-> Receiving Client` flow.
 - **Receiving Anchor**: a therminology used in the context of [SEP-31]. Refers to an entity that receives funds from a user and forwards it (after taking a fee) to a receiving anchor, in the SEP-31 `Sending Client->Sending Anchor->Receiving Anchor-> Receiving Client` flow. It's the entity the Platform SEP-31 service is currently built for.
+- **Ecosystem Players**: any entity or end-user that's part of the Stellar ecosystem. This includes Anchors, Wallets, Users, Issuers, Payment providers, and others.
 - **Anchor Platform (or Platform)**: the web application that will be exposing public endpoints and APIs. It will be compliant with the [SEPs] to guarantee interoperability in the Stellar network and will delegate business-specific logic to the Anchor Server.
 - **Anchor Server**: a microservice that will be responsible for the Anchor-specific business logic used in the the Anchor Platform. This service will be reached out by the Anchor Platform to perform some actions like:
   - Calculate conversion rates between two assets.

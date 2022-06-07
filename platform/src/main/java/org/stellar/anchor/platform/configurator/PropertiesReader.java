@@ -60,7 +60,8 @@ public class PropertiesReader extends AbstractConfigurator
   }
 
   String getFromSystemEnv() {
-    return System.getenv().get("STELLAR_ANCHOR_CONFIG");
+    return System.getenv()
+        .getOrDefault("STELLAR_ANCHOR_CONFIG", "classpath:/anchor-config-defaults.yaml");
   }
 
   String getFromSystemProperty() {

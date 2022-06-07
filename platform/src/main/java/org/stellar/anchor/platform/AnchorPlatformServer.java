@@ -31,10 +31,6 @@ import org.stellar.anchor.util.GsonUtils;
 @EnableConfigurationProperties
 public class AnchorPlatformServer implements WebMvcConfigurer {
 
-  public static void main(String[] args) {
-    start(8080, "/");
-  }
-
   public static ConfigurableApplicationContext start(
       int port, String contextPath, Map<String, Object> environment) {
     SpringApplicationBuilder builder =
@@ -42,7 +38,7 @@ public class AnchorPlatformServer implements WebMvcConfigurer {
             .bannerMode(OFF)
             .properties(
                 "spring.mvc.converters.preferred-json-mapper=gson",
-                //this allows a developer to use a .env file for local development
+                // this allows a developer to use a .env file for local development
                 "spring.config.import=optional:classpath:example.env[.properties]",
                 String.format("server.port=%d", port),
                 String.format("server.contextPath=%s", contextPath));
