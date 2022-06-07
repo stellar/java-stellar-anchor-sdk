@@ -69,14 +69,13 @@ public class Sep24Service {
 
     Log.infoF(
         "Sep24.withdraw. account={}, memo={}", shorter(token.getAccount()), token.getAccountMemo());
-    String lang = withdrawRequest.get("lang");
     String assetCode = withdrawRequest.get("asset_code");
     String assetIssuer = withdrawRequest.get("asset_issuer");
     String sourceAccount = withdrawRequest.get("account");
     String strAmount = withdrawRequest.get("amount");
     HashMap<String, String> sep9Fields = extractSep9Fields(withdrawRequest);
 
-    validateLanguage(appConfig, lang);
+    String lang = validateLanguage(appConfig, withdrawRequest.get("lang"));
 
     if (assetCode == null) {
       throw new SepValidationException("missing 'asset_code'");
@@ -143,6 +142,7 @@ public class Sep24Service {
             "withdraw",
             buildRedirectJwtToken(fullRequestUrl, token, txn),
             sep9Fields,
+            lang,
             assetCode,
             strAmount,
             txn.getTransactionId()),
@@ -163,7 +163,6 @@ public class Sep24Service {
     Log.infoF(
         "Sep24.deposit. account={}, memo={}", shorter(token.getAccount()), token.getAccountMemo());
 
-    String lang = depositRequest.get("lang");
     String assetCode = depositRequest.get("asset_code");
     String assetIssuer = depositRequest.get("asset_issuer");
     String destinationAccount = depositRequest.get("account");
@@ -175,6 +174,8 @@ public class Sep24Service {
     if (strClaimableSupported != null) {
       claimableSupported = Boolean.parseBoolean(strClaimableSupported.toLowerCase(Locale.ROOT));
     }
+
+    String lang = validateLanguage(appConfig, depositRequest.get("lang"));
 
     validateLanguage(appConfig, lang);
 
@@ -245,6 +246,7 @@ public class Sep24Service {
             "deposit",
             buildRedirectJwtToken(fullRequestUrl, token, txn),
             sep9Fields,
+            lang,
             assetCode,
             strAmount,
             txn.getTransactionId()),
@@ -359,6 +361,7 @@ public class Sep24Service {
       String op,
       JwtToken token,
       HashMap<String, String> sep9Fields,
+      String lang,
       String assetCode,
       String amount,
       String txnId)
@@ -382,6 +385,11 @@ public class Sep24Service {
     if (amount != null) {
       builder.addParameter("amount", amount);
     }
+
+    if (lang != null) {
+      builder.addParameter("lang", lang);
+    }
+
     // Add Sep9 fields to url
     sep9Fields.forEach(builder::addParameter);
 

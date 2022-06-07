@@ -72,7 +72,7 @@ public class SepHelper {
     }
   }
 
-  public static void validateLanguage(AppConfig appConfig, String lang)
+  public static String validateLanguage(AppConfig appConfig, String lang)
       throws SepValidationException {
     if (lang != null) {
       List<String> languages = appConfig.getLanguages();
@@ -81,6 +81,9 @@ public class SepHelper {
           throw new SepValidationException(String.format("unsupported language: %s", lang));
         }
       }
+      return lang;
+    } else {
+      return "en-US";
     }
   }
 
