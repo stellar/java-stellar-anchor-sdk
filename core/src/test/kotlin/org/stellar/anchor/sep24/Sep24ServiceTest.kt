@@ -284,7 +284,8 @@ internal class Sep24ServiceTest {
   @ParameterizedTest
   @ValueSource(strings = ["deposit", "withdrawal"])
   fun testFindTransactions(kind: String) {
-    every { txnStore.findTransactions(TEST_ACCOUNT, any()) } returns createTestTransactions(kind)
+    every { txnStore.findTransactions(TEST_ACCOUNT, any(), any()) } returns
+      createTestTransactions(kind)
     val gtr =
       GetTransactionsRequest.of(TEST_ASSET, kind, 10, "2021-12-20T19:30:58+00:00", "1", "en-US")
     val response = sep24Service.findTransactions(createJwtToken(), gtr)

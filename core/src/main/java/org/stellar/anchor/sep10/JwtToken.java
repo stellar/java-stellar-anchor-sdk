@@ -16,6 +16,8 @@ public class JwtToken {
   @SerializedName(value = "client_domain")
   String clientDomain;
 
+  String account;
+
   @SerializedName(value = "account_memo")
   String accountMemo;
 
@@ -51,6 +53,14 @@ public class JwtToken {
     token.exp = exp;
     token.jti = jti;
     token.clientDomain = clientDomain;
+    String[] subs = sub.split(":", 2);
+    if (subs.length == 2) {
+      token.account = subs[0];
+      token.accountMemo = subs[1];
+    } else {
+      token.account = sub;
+      token.accountMemo = null;
+    }
     return token;
   }
 }

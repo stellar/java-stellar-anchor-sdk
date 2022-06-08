@@ -2,6 +2,7 @@ package org.stellar.anchor.util;
 
 import static org.stellar.anchor.api.sep.SepTransactionStatus.*;
 import static org.stellar.anchor.util.MathHelper.decimal;
+import static org.stellar.sdk.xdr.MemoType.*;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -9,7 +10,9 @@ import java.util.Objects;
 import java.util.UUID;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
+import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
+import org.stellar.sdk.*;
 import org.stellar.sdk.xdr.MemoType;
 
 public class SepHelper {
@@ -45,6 +48,19 @@ public class SepHelper {
     return result;
   }
 
+  public static MemoType memoType(Memo memo) throws SepException {
+    if (memo instanceof MemoId) {
+      return MEMO_ID;
+    } else if (memo instanceof MemoHash) {
+      return MEMO_HASH;
+    } else if (memo instanceof MemoText) {
+      return MEMO_TEXT;
+    } else if (memo instanceof MemoNone) {
+      return MEMO_NONE;
+    }
+    throw new SepException("Unsupported memo type: " + memo.getClass());
+  }
+
   public static boolean amountEquals(String amount1, String amount2) {
     return decimal(amount1).compareTo(decimal(amount2)) == 0;
   }
@@ -78,7 +94,7 @@ public class SepHelper {
    * @return true, if valid. Otherwise false
    */
   public static boolean validateTransactionStatus(String status, int sep) {
-    for (SepTransactionStatus transactionStatus : values()) {
+    for (SepTransactionStatus transactionStatus : SepTransactionStatus.values()) {
       if (transactionStatus.getName().equals(status)) {
         return validateTransactionStatus(transactionStatus, sep);
       }

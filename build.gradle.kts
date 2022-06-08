@@ -11,6 +11,7 @@ subprojects {
   version = "0.1.1"
 
   repositories {
+    mavenLocal()
     mavenCentral()
     maven { url = uri("https://jitpack.io") }
     maven { url = uri("https://packages.confluent.io/maven") }
