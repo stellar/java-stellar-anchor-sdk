@@ -8,7 +8,6 @@ import java.time.format.DateTimeFormatter
 import java.util.*
 import java.util.concurrent.TimeUnit
 import okhttp3.OkHttpClient
-import okhttp3.Request
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 import org.skyscreamer.jsonassert.JSONAssert
@@ -16,10 +15,10 @@ import org.springframework.context.ConfigurableApplicationContext
 import org.springframework.core.env.get
 import org.stellar.anchor.api.callback.GetFeeRequest
 import org.stellar.anchor.api.callback.GetRateRequest
-import org.stellar.anchor.api.callback.GetRateRequest.Type.FIRM
-import org.stellar.anchor.api.callback.GetRateRequest.Type.INDICATIVE
+import org.stellar.anchor.api.callback.GetRateRequest.Type.*
 import org.stellar.anchor.api.exception.NotFoundException
 import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerRequest
+import org.stellar.anchor.api.sep.sep38.Sep38Context.*
 import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.Sep10Config
 import org.stellar.anchor.config.Sep1Config
@@ -31,6 +30,7 @@ import org.stellar.anchor.reference.AnchorReferenceServer
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.Sep1Helper
 
+@TestMethodOrder(MethodOrderer.OrderAnnotation::class)
 class AnchorPlatformIntegrationTest {
   companion object {
     private const val SEP_SERVER_PORT = 8080
@@ -71,51 +71,6 @@ class AnchorPlatformIntegrationTest {
     }
 
     @AfterAll fun tearDown() {}
-  }
-
-  @Test
-  fun test_PlatformServer_health() {
-    val request =
-      Request.Builder()
-        .url("http://localhost:$SEP_SERVER_PORT/health")
-        .header("Content-Type", "application/json")
-        .get()
-        .build()
-
-    val response = SepClient.client.newCall(request).execute()
-    val responseBody = response.body?.string()
-    assertNotNull(responseBody)
-    assertEquals(200, response.code)
-
-    val result = gson.fromJson(responseBody, HashMap::class.java)
-    assertEquals(result["number_of_checks"], 1.0)
-    assertNotNull(result["checks"])
-    val checks = result["checks"] as Map<*, *>
-    val spo = checks["stellar_payment_observer"] as Map<*, *>
-    assertEquals(spo["status"], "green")
-    val streams = spo["streams"] as List<Map<*, *>>
-    assertEquals(streams[0]["thread_shutdown"], false)
-    assertEquals(streams[0]["thread_terminated"], false)
-    assertEquals(streams[0]["stopped"], false)
-  }
-
-  @Test
-  fun test_ReferenceServer_health() {
-    val request =
-      Request.Builder()
-        .url("http://localhost:$REFERENCE_SERVER_PORT/health")
-        .header("Content-Type", "application/json")
-        .get()
-        .build()
-
-    val response = SepClient.client.newCall(request).execute()
-    val responseBody = response.body?.string()
-    assertNotNull(responseBody)
-    assertEquals(200, response.code)
-
-    val result = gson.fromJson(responseBody, HashMap::class.java)
-    assertEquals(result["number_of_checks"], 0.0)
-    assertNotNull(result["checks"])
   }
 
   private fun readSep1Toml(): Sep1Helper.TomlContent {
@@ -160,6 +115,12 @@ class AnchorPlatformIntegrationTest {
   }
 
   @Test
+  @Order(7)
+  fun runPlatformTest() {
+    platformTestAll(toml, jwt)
+  }
+
+  @Test
   fun testCustomerIntegration() {
     assertThrows<NotFoundException> {
       rci.getCustomer(Sep12GetCustomerRequest.builder().id("1").build())
@@ -167,84 +128,84 @@ class AnchorPlatformIntegrationTest {
   }
 
   @Test
-  fun testRateIndicative() {
+  fun testRate_indicativePrices() {
     val result =
       rri.getRate(
         GetRateRequest.builder()
-          .type(INDICATIVE)
+          .type(INDICATIVE_PRICES)
           .sellAsset(fiatUSD)
           .sellAmount("100")
           .buyAsset(stellarUSDC)
           .build()
       )
-    Assertions.assertNotNull(result)
+    assertNotNull(result)
     val wantBody =
       """{
       "rate":{
         "price":"1.02",
-        "price_details": [
-          {
-            "name": "Sell fee",
-            "value": "1.00",
-            "asset": "$fiatUSD"
-          },
-          {
-            "name": "Buy fee",
-            "value": "0.99",
-            "asset": "$stellarUSDC"
-          }
-        ]
+        "sell_amount": "100",
+        "buy_amount": "98.0392"
       }
     }""".trimMargin()
     JSONAssert.assertEquals(wantBody, gson.toJson(result), true)
   }
 
   @Test
-  fun testGetFee() {
+  fun testRate_indicativePrice() {
     val result =
-      rfi.getFee(
-        GetFeeRequest.builder()
-          .sendAmount("10")
-          .sendAsset("USDC")
-          .receiveAsset("USDC")
-          .senderId("sender_id")
-          .receiverId("receiver_id")
+      rri.getRate(
+        GetRateRequest.builder()
+          .type(INDICATIVE_PRICE)
+          .context(SEP31)
+          .sellAsset(fiatUSD)
+          .sellAmount("100")
+          .buyAsset(stellarUSDC)
           .build()
       )
-
-    Assertions.assertNotNull(result)
-    JSONAssert.assertEquals(
-      gson.toJson(result),
-      """
-         {
-             "fee": {
-                "asset": "USDC",
-                "amount": "0.30"
-             }
-         }
-      """,
-      true
-    )
+    assertNotNull(result)
+    val wantBody =
+      """{
+      "rate":{
+        "total_price":"1.0303032801",
+        "price":"1.0200002473",
+        "sell_amount": "100",
+        "buy_amount": "97.0588",
+        "fee": {
+          "total": "1.00",
+          "asset": "$fiatUSD",
+          "details": [
+            {
+              "name": "Sell fee",
+              "description": "Fee related to selling the asset.",
+              "amount": "1.00"
+            }
+          ]
+        }
+      }
+    }""".trimMargin()
+    JSONAssert.assertEquals(wantBody, gson.toJson(result), true)
   }
 
   @Test
-  fun testGetRateFirm() {
+  fun testRate_firm() {
     val rate =
       rri.getRate(
           GetRateRequest.builder()
             .type(FIRM)
+            .context(SEP31)
             .sellAsset(fiatUSD)
             .buyAsset(stellarUSDC)
             .buyAmount("100")
             .build()
         )
         .rate
-    Assertions.assertNotNull(rate)
+    assertNotNull(rate)
 
     // check if id is a valid UUID
     val id = rate.id
     assertDoesNotThrow { UUID.fromString(id) }
     var gotExpiresAt: Instant? = null
+    val expiresAtStr = rate.expiresAt.toString()
     assertDoesNotThrow {
       gotExpiresAt = DateTimeFormatter.ISO_INSTANT.parse(rate.expiresAt.toString(), Instant::from)
     }
@@ -262,6 +223,56 @@ class AnchorPlatformIntegrationTest {
     val gotQuote = rri.getRate(GetRateRequest.builder().id(rate.id).build())
     assertEquals(rate.id, gotQuote.rate.id)
     assertEquals("1.02", gotQuote.rate.price)
+
+    val wantBody =
+      """{
+      "rate":{
+        "id": "$id",
+        "total_price":"1.03",
+        "price":"1.02",
+        "sell_amount": "103",
+        "buy_amount": "100",
+        "expires_at": "$expiresAtStr",
+        "fee": {
+          "total": "1.00",
+          "asset": "$fiatUSD",
+          "details": [
+            {
+              "name": "Sell fee",
+              "description": "Fee related to selling the asset.",
+              "amount": "1.00"
+            }
+          ]
+        }
+      }
+    }""".trimMargin()
+    JSONAssert.assertEquals(wantBody, gson.toJson(gotQuote), true)
+  }
+
+  @Test
+  fun testGetFee() {
+    val result =
+      rfi.getFee(
+        GetFeeRequest.builder()
+          .sendAmount("10")
+          .sendAsset("USDC")
+          .receiveAsset("USDC")
+          .senderId("sender_id")
+          .receiverId("receiver_id")
+          .build()
+      )
+
+    assertNotNull(result)
+    JSONAssert.assertEquals(
+      gson.toJson(result),
+      """{
+        "fee": {
+          "asset": "USDC",
+          "amount": "0.30"
+        }
+      }""",
+      true
+    )
   }
 
   @Test

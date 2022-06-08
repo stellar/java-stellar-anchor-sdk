@@ -12,7 +12,7 @@ lateinit var sep31Client: Sep31Client
 
 const val postTxnJson =
   """{
-    "amount": "10.0",
+    "amount": "10",
     "asset_code": "USDC",
     "asset_issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
     "receiver_id": "MOCK_RECEIVER_ID",
@@ -44,20 +44,26 @@ fun testSep31TestInfo() {
 }
 
 fun testSep31PostTransaction() {
-  // Create customer
-  val customer =
-    GsonUtils.getInstance().fromJson(testCustomerJson, Sep12PutCustomerRequest::class.java)
-  val pr = sep12Client.putCustomer(customer)
+  // Create sender customer
+  val senderCustomerRequest =
+    GsonUtils.getInstance().fromJson(testCustomer1Json, Sep12PutCustomerRequest::class.java)
+  val senderCustomer = sep12Client.putCustomer(senderCustomerRequest)
+
+  // Create receiver customer
+  val receiverCustomerRequest =
+    GsonUtils.getInstance().fromJson(testCustomer2Json, Sep12PutCustomerRequest::class.java)
+  val receiverCustomer = sep12Client.putCustomer(receiverCustomerRequest)
 
   // Post Sep31 transaction.
   val txnRequest = gson.fromJson(postTxnJson, Sep31PostTransactionRequest::class.java)
-  txnRequest.receiverId = pr!!.id
+  txnRequest.senderId = senderCustomer!!.id
+  txnRequest.receiverId = receiverCustomer!!.id
   sep31Client.postTransaction(txnRequest)
 }
 
 fun testBadAsset() {
   val customer =
-    GsonUtils.getInstance().fromJson(testCustomerJson, Sep12PutCustomerRequest::class.java)
+    GsonUtils.getInstance().fromJson(testCustomer1Json, Sep12PutCustomerRequest::class.java)
   val pr = sep12Client.putCustomer(customer)
 
   // Post Sep31 transaction.

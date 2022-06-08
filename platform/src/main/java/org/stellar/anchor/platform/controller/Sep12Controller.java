@@ -1,6 +1,7 @@
 package org.stellar.anchor.platform.controller;
 
 import static org.stellar.anchor.platform.controller.Sep10Helper.getSep10Token;
+import static org.stellar.anchor.util.Log.*;
 
 import com.google.gson.Gson;
 import java.util.HashMap;
@@ -38,6 +39,14 @@ public class Sep12Controller {
       @RequestParam(required = false) String memo,
       @RequestParam(required = false, name = "memo_type") String memoType,
       @RequestParam(required = false) String lang) {
+    debugF(
+            "GET /customer type={} id={} account={} memo={}, memoType={}, lang={}",
+            type,
+            id,
+            account,
+            memo,
+            memoType,
+            lang);
     JwtToken jwtToken = getSep10Token(request);
     Sep12GetCustomerRequest getCustomerRequest =
         Sep12GetCustomerRequest.builder()
@@ -61,6 +70,8 @@ public class Sep12Controller {
       method = {RequestMethod.PUT})
   public Sep12PutCustomerResponse putCustomer(
       HttpServletRequest request, @RequestBody Sep12PutCustomerRequest putCustomerRequest) {
+    debug(
+            "PUT /customer details:", putCustomerRequest);
     JwtToken jwtToken = getSep10Token(request);
     return sep12Service.putCustomer(jwtToken, putCustomerRequest);
   }
@@ -73,6 +84,8 @@ public class Sep12Controller {
       method = {RequestMethod.POST, RequestMethod.PUT},
       consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
   public Sep12PutCustomerResponse putCustomerMultipart(HttpServletRequest request) {
+    debug(
+            "PUT /customer multipart details:", request);
     Gson gson = GsonUtils.getInstance();
     Map<String, String> requestData = new HashMap<>();
     for (Map.Entry<String, String[]> entry : request.getParameterMap().entrySet()) {
@@ -97,6 +110,8 @@ public class Sep12Controller {
     JwtToken jwtToken = getSep10Token(request);
     String memo = body != null ? body.getMemo() : null;
     String memoType = body != null ? body.getMemoType() : null;
+    debugF(
+            "DELETE /customer request={} account={} body={}", request, account, body);
     sep12Service.deleteCustomer(jwtToken, account, memo, memoType);
   }
 
@@ -112,6 +127,8 @@ public class Sep12Controller {
       @RequestParam(required = false) String memo,
       @RequestParam(required = false, name = "memo_type") String memoType) {
     JwtToken jwtToken = getSep10Token(request);
+    debugF(
+            "DELETE /customer request={} account={}", request, account);
     sep12Service.deleteCustomer(jwtToken, account, memo, memoType);
   }
 }

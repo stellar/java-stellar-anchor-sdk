@@ -36,11 +36,11 @@ public class AnchorEventProcessor {
     Log.debug(String.format("Received transaction event: %s", event));
     switch (event.getType()) {
       case "transaction_created":
+      case "transaction_error":
+        break;
       case "transaction_status_changed":
-        // TODO fix this - current code only handles payment received
         handleTransactionStatusChangedEvent(event);
         break;
-      case "transaction_error":
       default:
         Log.debug("error: anchor_platform_event - invalid message type '%s'%n", event.getType());
     }
@@ -57,9 +57,6 @@ public class AnchorEventProcessor {
                     PatchTransactionRequest.builder()
                         .id(event.getId())
                         .status(TransactionEvent.Status.COMPLETED.status)
-                        .amountFee(
-                            new Amount(
-                                event.getAmountFee().getAmount(), event.getAmountFee().getAsset()))
                         .amountOut(
                             new Amount(
                                 event.getAmountOut().getAmount(), event.getAmountOut().getAsset()))
