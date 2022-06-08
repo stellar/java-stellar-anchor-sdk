@@ -1,5 +1,11 @@
 # Anchor Platform 101
 
+- [Anchor Platform 101](#anchor-platform-101)
+  - [Glossary](#glossary)
+  - [Microservices](#microservices)
+  - [Architecture](#architecture)
+  - [Configuration](#configuration)
+
 The Anchor Platform is a web application whose goal is to facilitate Anchor
 integration with the Stellar network in an interoperable way, compiant with the
 [SEP (Stellar Ecosystem Protocols)](https://github.com/stellar/stellar-protocol/tree/master/ecosystem).
@@ -51,9 +57,7 @@ This drastically reduces the amount of code that needs to be written by the Anch
 
 ## Configuration
 
-```text
-// TODO
-```
+To learn how to run and configure this project, please refer to [01 - Running & Configuring the Application](./01%20-%20Running%20%26%20Configuring%20the%20Application.md).
 
 [SEPs]: https://github.com/stellar/stellar-protocol/tree/master/ecosystem
 [SEP-31]: https://stellar.org/protocol/sep-31

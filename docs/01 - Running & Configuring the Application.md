@@ -1,6 +1,6 @@
 # Running & Configuring the Application
 
-- [Running &amp; Configuring the Application](#running--configuring-the-application)
+- [Running & Configuring the Application](#running--configuring-the-application)
   - [Running the Application from Source Code](#running-the-application-from-source-code)
   - [Configuring the Project](#configuring-the-project)
     - [Config Files](#config-files)
@@ -8,9 +8,10 @@
         - [Yaml Search](#yaml-search)
     - [Environment variables](#environment-variables)
     - [Event Messaging](#event-messaging)
-    - [JVM\-Argument based run\-configuration](#jvm-argument-based-run-configuration)
+    - [JVM-Argument based run-configuration](#jvm-argument-based-run-configuration)
   - [Docker](#docker)
   - [Running the Application from Docker](#running-the-application-from-docker)
+  - [Incoming Payments Observer](#incoming-payments-observer)
 
 > Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc.go)
 
@@ -142,6 +143,10 @@ docker compose up
 It will use the default config files [`java-stellar-anchor-sdk/platform/src/main/resources/anchor-config-defaults.yaml`], [`java-stellar-anchor-sdk/anchor-reference-server/src/main/resources/anchor-reference-server.yaml`] and the default environment variables from [`example.env`].
 
 You can test against this setup by running the end-to-end tests ([end_to_end_test.py](../end-to-end-tests/end_to_end_tests.py)) using localhost:8080 as the domain.
+
+## Incoming Payments Observer
+
+The default configuration of the project uses a Stellar network observer to identify incoming Stellar payments. In case the Anchor relies on Circle, it should configure the project to use the Circle Payment Observer. For more information on how to do that, please refer to the [02 - Circle Payment Observer](02%20-%20Circle%20Payment%20Observer.md) section.
 
 [`java-stellar-anchor-sdk/platform/src/main/resources/anchor-config-defaults.yaml`]: ../platform/src/main/resources/anchor-config-defaults.yaml
 [`java-stellar-anchor-sdk/anchor-reference-server/src/main/resources/anchor-reference-server.yaml`]: ../anchor-reference-server/src/main/resources/anchor-reference-server.yaml
