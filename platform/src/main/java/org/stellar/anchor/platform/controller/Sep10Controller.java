@@ -38,7 +38,7 @@ public class Sep10Controller {
       @RequestParam(required = false, name = "client_domain") String clientDomain)
       throws SepException {
     debugF(
-        "/auth account={} memo={} home_domain={}, client_domain={}",
+        "GET /auth account={} memo={} home_domain={}, client_domain={}",
         account,
         memo,
         homeDomain,
@@ -56,7 +56,7 @@ public class Sep10Controller {
   public ValidationResponse validateChallenge(@RequestParam String transaction)
       throws InvalidSep10ChallengeException, IOException, URISyntaxException,
           SepValidationException {
-    debug("/auth transaction={}", transaction);
+    debugF("POST /auth transaction={}", transaction);
     return validateChallenge(ValidationRequest.of(transaction));
   }
 
@@ -69,7 +69,7 @@ public class Sep10Controller {
       @RequestBody(required = false) ValidationRequest validationRequest)
       throws InvalidSep10ChallengeException, IOException, URISyntaxException,
           SepValidationException {
-    debug("/auth details:", validationRequest);
+    debug("POST /auth details:", validationRequest);
     return sep10Service.validateChallenge(validationRequest);
   }
 

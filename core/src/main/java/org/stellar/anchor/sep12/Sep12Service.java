@@ -11,6 +11,9 @@ import org.stellar.anchor.sep10.JwtToken;
 import org.stellar.anchor.util.MemoHelper;
 import org.stellar.sdk.xdr.MemoType;
 
+import static org.stellar.anchor.util.Log.debugF;
+import static org.stellar.anchor.util.Log.infoF;
+
 public class Sep12Service {
   private final CustomerIntegration customerIntegration;
 
@@ -59,6 +62,7 @@ public class Sep12Service {
   public void deleteCustomer(JwtToken jwtToken, String account, String memo, String memoType)
       throws AnchorException {
     if (!jwtToken.getAccount().equals(account)) {
+      infoF("Requester ({}) not authorized to delete account ({})", jwtToken.getAccount(), account);
       throw new SepNotAuthorizedException(
           String.format("Not authorized to delete account [%s]", account));
     }
@@ -71,6 +75,7 @@ public class Sep12Service {
                 .memoType(memoType)
                 .build());
     if (existingCustomer.getId() == null) {
+      infoF("No existing customer found for account={} memo={} memoType={}", account, memo, memoType);
       throw new SepNotFoundException("User not found.");
     }
 
@@ -108,6 +113,7 @@ public class Sep12Service {
     try {
       MemoHelper.makeMemo(memo, memoType);
     } catch (SepException e) {
+      infoF("Invalid memo ({}) for memo_type ({})", memo, memoType);
       throw new SepValidationException("Invalid 'memo' for 'memo_type'");
     }
   }
@@ -116,6 +122,7 @@ public class Sep12Service {
       throws SepException {
     if (id != null) {
       if (account != null || memo != null || memoType != null) {
+        infoF("Request with id ({}) should not have 'account', 'memo', or 'memo_type'", id);
         throw new SepValidationException(
             "A requests with 'id' cannot also have 'account', 'memo', or 'memo_type'");
       }
@@ -132,11 +139,14 @@ public class Sep12Service {
       throws SepException {
     if (requestAccount != null
         && Stream.of(tokenAccount, tokenMuxedAccount).noneMatch(requestAccount::equals)) {
+      infoF("Neither tokenAccount ({}) nor tokenMuxedAccount ({}) match requestAccount ({})", tokenAccount,
+              tokenMuxedAccount, requestAccount);
       throw new SepNotAuthorizedException(
           "The account specified does not match authorization token");
     }
     if (tokenMemo != null && requestMemo != null) {
       if (!tokenMemo.equals(requestMemo) || !requestMemoType.equals(MemoType.MEMO_ID.name())) {
+        infoF("request memo ({}) does not match token memo ID ({}) authorized via SEP-10", requestMemo, tokenMemo);
         throw new SepNotAuthorizedException(
             "The memo specified does not match the memo ID authorized via SEP-10");
       }
