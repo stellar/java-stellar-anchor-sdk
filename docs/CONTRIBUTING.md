@@ -13,16 +13,8 @@ Therefore, the logging levels should be used consistently.
 
 Please follow the [Logging Level Guidelines](./logging-level-guidelines.md)
 
-
 ## Development Tools Helps
 Check out the [Development Tools Help](./developer-tools.md).
-
-# Subprojects
-[Core](core.md): The SDK core library.
-
-[Payment Services](payment-services.md): The payment service library.
-
-[Anchor Platform](anchor-platform.md): The anchor platform Spring Boot application.
 
 # Publishing 
 [How to publish](publishing.md): How to publish `org.stellar.anchor-sdk:core:${version}`.
