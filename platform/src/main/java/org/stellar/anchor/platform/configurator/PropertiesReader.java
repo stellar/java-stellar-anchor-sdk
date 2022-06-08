@@ -42,17 +42,17 @@ public class PropertiesReader extends AbstractConfigurator
       return;
     }
 
-    // Read from the file specified by STELLAR_ANCHOR_CONFIG environment variable.
-    yamlLocation = getFromSystemEnv();
-    if (yamlLocation != null) {
-      loadConfigYaml(applicationContext, yamlLocation);
-      return;
-    }
-
     // Read from $USER_HOME/.anchor/anchor-config.yaml
     File yamlFile = getFromUserFolder();
     if (yamlFile.exists()) {
       loadConfigYaml(new FileSystemResource(yamlFile));
+      return;
+    }
+
+    // Read from the file specified by STELLAR_ANCHOR_CONFIG environment variable.
+    yamlLocation = getFromSystemEnv();
+    if (yamlLocation != null) {
+      loadConfigYaml(applicationContext, yamlLocation);
       return;
     }
 
@@ -74,6 +74,9 @@ public class PropertiesReader extends AbstractConfigurator
 
   void loadConfigYaml(ApplicationContext applicationContext, String location) throws IOException {
     Resource resource = applicationContext.getResource(location);
+    if (!resource.exists()) {
+      throw new IOException("Resource not found");
+    }
     loadConfigYaml(resource);
   }
 
