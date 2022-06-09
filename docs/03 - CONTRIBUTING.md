@@ -1,7 +1,7 @@
 # How to contribute
 
 - [How to contribute](#how-to-contribute)
-  - [Development Tools Helps](#development-tools-helps)
+  - [Development Tools](#development-tools)
   - [How to Build with Gradle](#how-to-build-with-gradle)
     - [Clean](#clean)
     - [Build](#build)
@@ -18,9 +18,9 @@
 
 Check out the [Stellar Contribution Guide](https://github.com/stellar/.github/blob/master/CONTRIBUTING.md) that apply to all Stellar projects.
 
-## Development Tools Helps
+## Development Tools
 
-Check out the [Development Tools Help](./developer-tools.md).
+Check out the [Development Tools](./04%20-%20Developer%20Tools.md).
 
 ## How to Build with Gradle
 
@@ -85,15 +85,16 @@ Resolves: #123
 [`#300`](https://github.com/stellar/java-stellar-anchor-sdk/pull/300) is an example of a pull request that follows these guidelines, and [`29c7ef6`](https://github.com/stellar/java-stellar-anchor-sdk/commit/29c7ef66e94c0b9503ca68e15b07da064a76ee2d) is the commit where it got merged into the main branch.
 
 ### Logging Levels
+
 When contributing code, think twice about a given log message because not every bit of information is equally important. 
 Therefore, the logging levels should be used consistently.
 
-Please follow the [Logging Guidelines](./logging-guidelines.md).
+Please follow the [Logging Guidelines](./05%20-%20Logging%20Guidelines.md).
 
 ## Database Migration
 
-Please refer to [Database Migration Guide](./database-migration.md) for information on this topic.
+Please refer to [Database Migration](./06%20-%20Database%20Migration.md) for information on this topic.
 
 ## Publishing
 
-Please refer to [How to publish](publishing.md) for information on this topic.
+Please refer to [Publishing the SDK](./07%20-%20Publishing%20the%20SDK.md) for information on this topic.
