@@ -111,7 +111,7 @@ docker build -t stellar-anchor-platform:latest .
 Docker Run:
 
 Note: secrets (credentials, tokens, etc...) are passed to the application via environment variables. Use `-e` to pass in
-each required environment variables ([Environment Variables](../platform/src/main/resources/example.env))
+each required environment variables ([Environment Variables](/platform/src/main/resources/example.env))
 
 ```shell
 docker run -v {/local/path/to/config/file/}:/config -p 8081:8081 stellar-anchor-platform:latest --anchor-reference-server \
@@ -134,7 +134,7 @@ Note: this image can run --sep-server (port: 8080), --anchor-reference-server (p
 
 ## Running the Application from Docker
 
-You can use docker compose to run the whole infrastructure - Anchor Platform, Reference Server, Kafka, and a Postgres Database. All you need to do is making use of the [docker-compose.yaml](../docker-compose.yaml) available at the root of the project:
+You can use docker compose to run the whole infrastructure - Anchor Platform, Reference Server, Kafka, and a Postgres Database. All you need to do is making use of the [docker-compose.yaml](/docker-compose.yaml) available at the root of the project:
 
 ```shell
 docker compose up
@@ -142,7 +142,7 @@ docker compose up
 
 It will use the default config files [`java-stellar-anchor-sdk/platform/src/main/resources/anchor-config-defaults.yaml`], [`java-stellar-anchor-sdk/anchor-reference-server/src/main/resources/anchor-reference-server.yaml`] and the default environment variables from [`example.env`].
 
-You can test against this setup by running the end-to-end tests ([end_to_end_test.py](../end-to-end-tests/end_to_end_tests.py)) using localhost:8080 as the domain.
+You can test against this setup by running the end-to-end tests ([end_to_end_test.py](/end-to-end-tests/end_to_end_tests.py)) using localhost:8080 as the domain.
 
 ## Incoming Payments Observer
 
