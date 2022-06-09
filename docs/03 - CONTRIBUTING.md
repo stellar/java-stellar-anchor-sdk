@@ -50,6 +50,8 @@ Run subproject tests: `./gradlew :[subproject]:test`
 
 This project uses [Google Java Format](https://github.com/google/google-java-format) to format the code, it's applied during the build process.
 
+Also, despite the project being written in Java, the tests are written in Kotlin, so please make sure to follow this convention.
+
 ### Git Commit Messages
 
 Write your commit message in the imperative: `"Fix bug"` and not `"Fixed bug"`
