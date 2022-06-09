@@ -276,7 +276,7 @@ public class Sep24Service {
     GetTransactionsResponse result = new GetTransactionsResponse();
     List<TransactionResponse> list = new ArrayList<>();
     for (Sep24Transaction txn : txns) {
-      TransactionResponse transactionResponse = fromTxn(txn);
+      TransactionResponse transactionResponse = fromTxn(txn, txReq.getLang());
       list.add(transactionResponse);
     }
     result.setTransactions(list);
@@ -321,7 +321,7 @@ public class Sep24Service {
       throw new SepNotFoundException("transaction is not found");
     }
 
-    return GetTransactionResponse.of(fromTxn(txn));
+    return GetTransactionResponse.of(fromTxn(txn, txReq.getLang()));
   }
 
   public InfoResponse getInfo() {
@@ -341,13 +341,13 @@ public class Sep24Service {
     return info;
   }
 
-  TransactionResponse fromTxn(Sep24Transaction txn)
+  TransactionResponse fromTxn(Sep24Transaction txn, String lang)
       throws MalformedURLException, URISyntaxException, SepException {
     TransactionResponse response;
     if (txn.getKind().equals(DEPOSIT.toString())) {
-      response = Sep24Helper.fromDepositTxn(jwtService, sep24Config, txn, true);
+      response = Sep24Helper.fromDepositTxn(jwtService, sep24Config, txn, lang, true);
     } else if (txn.getKind().equals(WITHDRAWAL.toString())) {
-      response = Sep24Helper.fromWithdrawTxn(jwtService, sep24Config, txn, true);
+      response = Sep24Helper.fromWithdrawTxn(jwtService, sep24Config, txn, lang, true);
     } else {
       throw new SepException(String.format("unsupported txn kind:%s", txn.getKind()));
     }

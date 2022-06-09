@@ -42,7 +42,7 @@ public class Sep24Helper {
           PENDING_USER.toString());
 
   public static String constructMoreInfoUrl(
-      JwtService jwtService, Sep24Config sep24Config, Sep24Transaction txn)
+      JwtService jwtService, Sep24Config sep24Config, Sep24Transaction txn, String lang)
       throws URISyntaxException, MalformedURLException {
 
     JwtToken token =
@@ -65,6 +65,10 @@ public class Sep24Helper {
             .addParameter("transaction_id", txn.getTransactionId())
             .addParameter("token", jwtService.encode(token));
 
+    if (lang != null) {
+      builder.addParameter("lang", lang);
+    }
+
     return builder.build().toURL().toString();
   }
 
@@ -72,6 +76,7 @@ public class Sep24Helper {
       JwtService jwtService,
       Sep24Config sep24Config,
       Sep24Transaction txn,
+      String lang,
       boolean allowMoreInfoUrl)
       throws MalformedURLException, URISyntaxException {
 
@@ -88,7 +93,7 @@ public class Sep24Helper {
         (txn.getCompletedAt() == null) ? null : DateUtil.toISO8601UTC(txn.getCompletedAt()));
 
     if (allowMoreInfoUrl && needsMoreInfoUrlDeposit.contains(txn.getStatus())) {
-      txnR.setMoreInfoUrl(constructMoreInfoUrl(jwtService, sep24Config, txn));
+      txnR.setMoreInfoUrl(constructMoreInfoUrl(jwtService, sep24Config, txn, lang));
     } else {
       txnR.setMoreInfoUrl(null);
     }
@@ -100,6 +105,7 @@ public class Sep24Helper {
       JwtService jwtService,
       Sep24Config sep24Config,
       Sep24Transaction txn,
+      String lang,
       boolean allowMoreInfoUrl)
       throws MalformedURLException, URISyntaxException {
 
@@ -119,7 +125,7 @@ public class Sep24Helper {
     txnR.setWithdrawAnchorAccount(txn.getReceivingAnchorAccount());
 
     if (allowMoreInfoUrl && needsMoreInfoUrlWithdraw.contains(txn.getStatus())) {
-      txnR.setMoreInfoUrl(constructMoreInfoUrl(jwtService, sep24Config, txn));
+      txnR.setMoreInfoUrl(constructMoreInfoUrl(jwtService, sep24Config, txn, lang));
     } else {
       txnR.setMoreInfoUrl(null);
     }
