@@ -69,9 +69,12 @@ paths:
           description: |
             An identifier for the client application making the request. This ID can be used to offer different fees to different clients.
 
-            Client IDs will be Stellar public keys when the client is initiating a SEP-31 transaction. In this case the client should be a 
-            known SEP-31 sending anchor and the public key will be the Stellar address used to authenticate via SEP-10. Anchors must ensure
-            that the public key specified in the request matches a public key known to belong to the sending anchor.
+            A client ID can be one of the following:
+            1. the `client_domain` if the transaction is initiated from a non-custodial wallet. 
+            2. the Stellar custodial/omnibus account if the transaction is initiated from a custodian, such as Wyre.
+            3. The Stellar account of a SEP-31 sending anchor. In this case the client should be a known SEP-31 sending 
+               anchor and the public key will be the Stellar address used to authenticate via SEP-10. Anchors must ensure
+               that the public key specified in the request matches a public key known to belong to the sending anchor.
           schema:
             type: string
           required: true
