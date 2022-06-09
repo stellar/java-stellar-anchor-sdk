@@ -1,9 +1,16 @@
-# Anchor Platform 101
+<div>
+<img alt="Stellar" src="https://github.com/stellar/.github/raw/master/stellar-logo.png" width="558" />
+<br/>
+<strong>Creating equitable access to the global financial system</strong>
+</div>
 
-- [Anchor Platform 101](#anchor-platform-101)
+# Stellar Anchor Platform
+
+- [Stellar Anchor Platform](#stellar-anchor-platform)
   - [Glossary](#glossary)
   - [Microservices](#microservices)
   - [Architecture](#architecture)
+  - [Subprojects](#subprojects)
   - [Configuration](#configuration)
 
 The Anchor Platform is a web application whose goal is to facilitate Anchor
@@ -54,6 +61,20 @@ The following image shows the architecture of the Anchor Platform, as well as ho
 As you can see, the Anchor Platform receives interactions from ecosystem players and deals with the interoperability part described in the SEPs. The Anchor Server is only called when there is a pending action to be performed.
 
 This drastically reduces the amount of code that needs to be written by the Anchor, and allows them to focus on the business logic that's specific to their businesses and use cases.
+
+## Subprojects
+
+The Stellar Anchor SDK is a collection of projects that make easy to build financial applications on Stellar:
+
+* [api-schema](./api-schema): the API interfaces, request, response classes.
+* [core](./core): the base package for implementing standardized anchor applications.
+* [payment](./payment): implementation of payment service with [Circle API](https://developers.circle.com/reference).
+* [platform](./platform): the anchor platform [Spring Boot Application with WebMVC](https://spring.io/guides/gs/serving-web-content/).
+* [anchor-reference-server](./anchor-reference-server): the reference implementation of the anchor server.
+* [service-runner](./service-runner): the runner class for the platform, reference server and payment observer. 
+* [integration-tests](./integration-tests): the integration tests for the platform, reference server, and payment observers.  
+
+While the project is in its early stages and in active development, it is used in production today by businesses providing services on Stellar.
 
 ## Configuration
 

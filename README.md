@@ -5,7 +5,7 @@
 <h1>Stellar Anchor SDK</h1>
 </div>
 
-The Stellar Anchor SDK is a collection of projects that make easy to build financial applications on Stellar.
+The Stellar Anchor SDK is a collection of projects that make easy to build financial applications on Stellar:
 
 * [api-schema](./api-schema): the API interfaces, request, response classes.
 * [core](./core): the base package for implementing standardized anchor applications.
@@ -17,4 +17,4 @@ The Stellar Anchor SDK is a collection of projects that make easy to build finan
 
 While the project is in its early stages and in active development, it is used in production today by businesses providing services on Stellar.
 
-If you'd like to contribute, see our [contributing guide](./docs/CONTRIBUTING.md).
+If you'd like to contribute, see our [CONTRIBUTING](./docs/03%20-%20CONTRIBUTING.md) section.
