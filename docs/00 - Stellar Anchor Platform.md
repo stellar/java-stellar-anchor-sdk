@@ -6,13 +6,6 @@
 
 # Stellar Anchor Platform
 
-- [Stellar Anchor Platform](#stellar-anchor-platform)
-  - [Glossary](#glossary)
-  - [Microservices](#microservices)
-  - [Architecture](#architecture)
-  - [Subprojects](#subprojects)
-  - [Configuration](#configuration)
-
 The Anchor Platform is a web application whose goal is to facilitate Anchor
 integration with the Stellar network in an interoperable way, compiant with the
 [SEP (Stellar Ecosystem Protocols)](https://github.com/stellar/stellar-protocol/tree/master/ecosystem).
@@ -25,7 +18,22 @@ This way, Anchors willing to integrate with Stellar can use the Anchor Platform
 to speed up their development process, allowing them to focus mainly on the
 business logic that's specific to their businesses and use cases.
 
-> Note: the full documentation can be found under the [`docs` directory](/docs).
+## Table of Content
+
+The full documentation can be found under the [`docs` directory](/docs), under the structure:
+
+- [00 - Stellar Anchor Platform](/docs/00%20-%20Stellar%20Anchor%20Platform.md)
+- [01 - Running & Configuring the Application](/docs/01%20-%20Running%20%26%20Configuring%20the%20Application)
+  - [A - Running & Configuring the Application](/docs/01%20-%20Running%20%26%20Configuring%20the%20Application/A%20-%20Running%20%26%20Configuring%20the%20Application.md)
+  - [B - Circle Payment Observer](/docs/01%20-%20Running%20%26%20Configuring%20the%20Application/B%20-%20Circle%20Payment%20Observer.md)
+- [02 - Contributing](/docs/02%20-%20Contributing)
+  - [A - CONTRIBUTING.md](/docs/02%20-%20Contributing/A%20-%20CONTRIBUTING.md)
+  - [B - Developer Tools](/docs/02%20-%20Contributing/B%20-%20Developer%20Tools.md)
+  - [C - Logging Guidelines](/docs/02%20-%20Contributing/C%20-%20Logging%20Guidelines.md)
+  - [D - Database Migration](/docs/02%20-%20Contributing/D%20-%20Database%20Migration.md)
+  - [E - Publishing the SDK](/docs/02%20-%20Contributing/E%20-%20Publishing%20the%20SDK.md)
+- [03 - Anchor Integration](/docs/03%20-%20Anchor%20Integration) // TODO
+- [04 - Subprojects Usage](/docs/04%20-%20Subprojects%20Usage) // TODO
 
 ## Glossary
 
@@ -58,7 +66,7 @@ In order to deploy this project, you'll need to have the following microservices
 
 The following image shows the architecture of the Anchor Platform, as well as how it interacts with the Anchor Server and the Wallet/Client/Sending Anchor.
 
-![img.jpeg](/docs/img/anchor-platform-components-architecture.jpeg)
+![img.jpeg](/docs/resources/img/anchor-platform-components-architecture.jpeg)
 
 As you can see, the Anchor Platform receives interactions from ecosystem players and deals with the interoperability part described in the SEPs. The Anchor Server is only called when there is a pending action to be performed.
 
@@ -80,11 +88,11 @@ While the project is in its early stages and in active development, it is used i
 
 ## Configuration
 
-To learn how to run and configure this project, please refer to [01 - Running & Configuring the Application](/docs/01%20-%20Running%20%26%20Configuring%20the%20Application.md).
+To learn how to run and configure this project, please refer to [01.A - Running & Configuring the Application](/docs/01%20-%20Running%20%26%20Configuring%20the%20Application/A%20-%20Running%20%26%20Configuring%20the%20Application.md).
 
 ## Contributing
 
-Please refer to our [CONTRIBUTING](/docs/CONTRIBUTING.md) guide for more information on how to contribute to this project.
+Please refer to our [0.2.A - CONTRIBUTING](/docs/02%20-%20Contributing/A%20-%20CONTRIBUTING.md) guide for more information on how to contribute to this project.
 
 [SEPs]: https://github.com/stellar/stellar-protocol/tree/master/ecosystem
 [SEP-31]: https://stellar.org/protocol/sep-31

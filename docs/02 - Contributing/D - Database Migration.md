@@ -24,23 +24,23 @@ Liquibase migration generator tool will need to compare your current database st
 
 To connect a database, go to JPA Structure -> DB connections -> right click `new` -> DB connection
 
-![img_4.png](img/liquibase-db-connection.png)
+![img_4.png](/docs/resources/img/liquibase-db-connection.png)
 
 ### B. Generating & Registering a new Changelog File
 
 1. When data models or table names are changed, a new changelog can be generated. Right click in Liquibase -> New -> Diff Changelog:
 
-    ![img.png](img/liquibase-changelog1.png)
+    ![img.png](/docs/resources/img/liquibase-changelog1.png)
 
 2. Review the changes and generate the changelog.
 
     > Note: `Directory` should be set to ``platform/src/main/resources/db/changelog/`` so all the changelog files are in one place.
 
-    ![img_1.png](img/liquibase-changelog2.png)
+    ![img_1.png](/docs/resources/img/liquibase-changelog2.png)
 
 3. Add the generated changelog file to [`platform/src/main/resources/db/changelog/db.changelog-master.yaml`]
 
-![img_3.png](img/liquibase-changelog3.png)
+![img_3.png](/docs/resources/img/liquibase-changelog3.png)
 
 [Liquibase]: https://www.liquibase.org/
 [`platform/src/main/resources/db/changelog/db.changelog-master.yaml`]: ../platform/src/main/resources/db/changelog/db.changelog-master.yaml

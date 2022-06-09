@@ -20,7 +20,7 @@
 This section covers how to run the application from source code using the provided Kafka docker image configuration, the Anchor Reference server and the secrets provided in the demo configuration files.
 
 1. Clone this repository: `git clone ssh://git@github.com:stellar/java-stellar-anchor-sdk.git`.
-2. Start a Kafka Queue service: `cd docs/docker-examples/kafka && docker compose up`
+2. Start a Kafka Queue service: `cd docs/resources/docker-examples/kafka && docker compose up`
 3. Start the Anchor Reference server: `./gradlew service-runner:bootRun --args=--anchor-reference-server`
     - This would use the default configuration file at [`java-stellar-anchor-sdk/anchor-reference-server/src/main/resources/anchor-reference-server.yaml`], but you can use a custom configuration file by setting the `REFERENCE_SERVER_CONFIG_ENV` environment variable to the path of the configuration file, following the [Path to Yaml](#path-to-yaml) format.
 4. Start the Anchor Platform: `./gradlew service-runner:bootRun --args=--sep-server`
@@ -85,10 +85,10 @@ Secrets are passed to the Anchor Platform (and Anchor Reference Server) via envi
 A message queue is required for the Anchor Platform to publish messages to and for the Anchor to consume messages from.
 The default queueType used (in the anchor-config.yaml file) is "kafka", and SQS is also supported.
 
-The default Kafka configuration should work out of the box if you have a running Kafka available at the correct port. The easiest way for that is by using the docker-compose.yaml file located at `docs/docker-examples/kafka/docker-compose.yaml`:
+The default Kafka configuration should work out of the box if you have a running Kafka available at the correct port. The easiest way for that is by using the docker-compose.yaml file located at `docs/resources/docker-examples/kafka/docker-compose.yaml`:
 
 ```shell
-cd docs/docker-examples/kafka
+cd docs/resources/docker-examples/kafka
 docker compose up
 ```
 
@@ -146,9 +146,9 @@ You can test against this setup by running the end-to-end tests ([end_to_end_tes
 
 ## Incoming Payments Observer
 
-The default configuration of the project uses a Stellar network observer to identify incoming Stellar payments. In case the Anchor relies on Circle, it should configure the project to use the Circle Payment Observer. For more information on how to do that, please refer to the [02 - Circle Payment Observer](02%20-%20Circle%20Payment%20Observer.md) section.
+The default configuration of the project uses a Stellar network observer to identify incoming Stellar payments. In case the Anchor relies on Circle, it should configure the project to use the Circle Payment Observer. For more information on how to do that, please refer to the [01.B - Circle Payment Observer](/docs/01%20-%20Running%20%26%20Configuring%20the%20Application/B%20-%20Circle%20Payment%20Observer.md) section.
 
-[`java-stellar-anchor-sdk/platform/src/main/resources/anchor-config-defaults.yaml`]: ../platform/src/main/resources/anchor-config-defaults.yaml
-[`java-stellar-anchor-sdk/anchor-reference-server/src/main/resources/anchor-reference-server.yaml`]: ../anchor-reference-server/src/main/resources/anchor-reference-server.yaml
-[`example.env`]: ../platform/src/main/resources/example.env
-[`docs/docker-examples/kafka/docker-compose.yaml`]: ../docs/docker-examples/kafka/docker-compose.yaml
+[`java-stellar-anchor-sdk/platform/src/main/resources/anchor-config-defaults.yaml`]: /platform/src/main/resources/anchor-config-defaults.yaml
+[`java-stellar-anchor-sdk/anchor-reference-server/src/main/resources/anchor-reference-server.yaml`]: /anchor-reference-server/src/main/resources/anchor-reference-server.yaml
+[`example.env`]: /platform/src/main/resources/example.env
+[`docs/resources/docker-examples/kafka/docker-compose.yaml`]: /docs/resources/docker-examples/kafka/docker-compose.yaml

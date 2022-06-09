@@ -27,13 +27,13 @@ The project is mostly developed with IntelliJ, therefore we will only cover the 
    2. Configure `Build and run using` to IntellliJ IDEA.
    3. Configure `Run tests using` to IntellliJ IDEA.
    
-   ![configure-intellij-gradle.png](img/configure-intellij-gradle.png)
+   ![configure-intellij-gradle.png](/docs/resources/img/configure-intellij-gradle.png)
 
 4. Refresh the project using Gradle's new configuration:
    1. Open Gradle tool window: `View -> Tool Windows -> Gradle`
    2. Click the `Reload All Gradle Projects` button.
 
-   ![gradle-reload-all.png](img/gradle-reload-all.png)
+   ![gradle-reload-all.png](/docs/resources/img/gradle-reload-all.png)
 
 ## Running the Tests on IntelliJ IDEA
 
@@ -47,7 +47,7 @@ To make sure your configuration worked, please make sure you can run all the tes
 
     > Note ii: this step includes downloading & installing the dependencies, building the project and running it.
 
-    ![running-the-tests.png](img/running-the-tests.png)
+    ![running-the-tests.png](/docs/resources/img/running-the-tests.png)
 
 ## CLI Commands
 

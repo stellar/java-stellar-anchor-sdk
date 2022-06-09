@@ -1,7 +1,7 @@
 # How to contribute
 
 - [How to contribute](#how-to-contribute)
-  - [Development Tools](#development-tools)
+  - [Debeloper Tools](#debeloper-tools)
   - [How to Build with Gradle](#how-to-build-with-gradle)
     - [Clean](#clean)
     - [Build](#build)
@@ -18,9 +18,9 @@
 
 Check out the [Stellar Contribution Guide](https://github.com/stellar/.github/blob/master/CONTRIBUTING.md) that apply to all Stellar projects.
 
-## Development Tools
+## Debeloper Tools
 
-Check out the [Development Tools](/docs/04%20-%20Developer%20Tools.md).
+Check out the [Debeloper Tools](/docs/02%20-%20Contributing/B%20-%20Developer%20Tools.md).
 
 ## How to Build with Gradle
 
@@ -89,12 +89,12 @@ Resolves: #123
 When contributing code, think twice about a given log message because not every bit of information is equally important. 
 Therefore, the logging levels should be used consistently.
 
-Please follow the [Logging Guidelines](/docs/05%20-%20Logging%20Guidelines.md).
+Please follow the [Logging Guidelines](/docs/02%20-%20Contributing/C%20-%20Logging%20Guidelines.md).
 
 ## Database Migration
 
-Please refer to [Database Migration](/docs/06%20-%20Database%20Migration.md) for information on this topic.
+Please refer to [Database Migration](/docs/02%20-%20Contributing/D%20-%20Database%20Migration.md) for information on this topic.
 
 ## Publishing
 
-Please refer to [Publishing the SDK](/docs/07%20-%20Publishing%20the%20SDK.md) for information on this topic.
+Please refer to [Publishing the SDK](/docs/02%20-%20Contributing/E%20-%20Publishing%20the%20SDK.md) for information on this topic.

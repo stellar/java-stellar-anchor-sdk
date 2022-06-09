@@ -14,7 +14,7 @@
 
 Regardless of the logging level, **NEVER** print any PII (Personally Identifiable Information) or any secret in your logs.
 
-![no-giphy.gif](img/no-giphy.gif)
+![no-giphy.gif](/docs/resources/img/no-giphy.gif)
 
 ## Logging Levels
 
