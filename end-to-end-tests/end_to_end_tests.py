@@ -70,16 +70,24 @@ def get_transaction(endpoints, headers, transaction_id):
     return res
 
 
-def create_anchor_test_customer(endpoints, headers):
+SENDING_CLIENT_PAYLOAD = {
+    "first_name": "Allie",
+    "last_name": "Grater",
+    "email_address": "allie@email.com"
+}
+
+RECEIVING_CLIENT_PAYLOAD = {
+    "first_name": "John",
+    "last_name": "Doe",
+    "address": "123 Washington Street",
+    "city": "San Francisco",
+    "state_or_province": "CA",
+    "address_country_code": "US"
+}
+
+
+def create_anchor_test_customer(endpoints, headers, payload):
     print("============= Creating Customer in Anchor Platform ======================")
-    payload = {
-      "first_name": "John",
-      "last_name": "Doe",
-      "address": "123 Washington Street",
-      "city": "San Francisco",
-      "state_or_province": "CA",
-      "address_country_code": "US"
-    }
     create_customer = requests.put(endpoints.ANCHOR_PLATFORM_SEP12_CUSTOMER_ENDPOINT,
                                    data=json.dumps(payload), headers=headers)
     res = json.loads(create_customer.content)
@@ -153,11 +161,10 @@ def test_sep_31_flow(endpoints, keypair, transaction_payload, sep38_payload=None
 
     headers = {"Authorization": f"Bearer {token}", 'Content-Type': 'application/json'}
 
-    receiver_id = create_anchor_test_customer(endpoints, headers)
-
-    sender_id = keypair.public_key
-    transaction_payload["receiver_id"] = receiver_id
+    sender_id = create_anchor_test_customer(endpoints, headers, SENDING_CLIENT_PAYLOAD)
     transaction_payload["sender_id"] = sender_id
+    receiver_id = create_anchor_test_customer(endpoints, headers, RECEIVING_CLIENT_PAYLOAD)
+    transaction_payload["receiver_id"] = receiver_id
 
     if sep38_payload:
         quote = create_anchor_test_quote(endpoints, headers, sep38_payload)
@@ -228,6 +235,7 @@ if __name__ == "__main__":
                 "sell_asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
                 "sell_amount": "10",
                 "buy_asset": "stellar:JPYC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+                "context": "sep31"
             }
 
             TRANSACTION_PAYLOAD_USDC_TO_JPYC = {
@@ -247,6 +255,7 @@ if __name__ == "__main__":
                 "sell_asset": "stellar:JPYC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
                 "sell_amount": "10",
                 "buy_asset": "iso4217:USD",
+                "context": "sep31"
             }
 
             TRANSACTION_PAYLOAD_JPYC_TO_USD = {
@@ -275,6 +284,7 @@ if __name__ == "__main__":
                 "sell_asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
                 "sell_amount": "10",
                 "buy_asset": "stellar:JPYC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+                "context": "sep31"
             }
             test_sep38_create_quote(endpoints, keypair, QUOTE_PAYLOAD_USDC_TO_JPYC)
         else:
