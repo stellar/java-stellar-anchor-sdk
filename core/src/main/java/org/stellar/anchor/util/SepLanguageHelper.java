@@ -11,88 +11,92 @@ import org.stellar.anchor.api.exception.SepValidationException;
 import org.stellar.anchor.config.AppConfig;
 
 public class SepLanguageHelper {
-  static Map<String, Iso3316Language> fallbackLangs = null;
+  static Map<String, Rfc4646Language> alternativeLangs = null;
 
   public static String validateLanguage(AppConfig appConfig, String lang) {
-    if (fallbackLangs == null) {
-      fallbackLangs = prepareFallbackLanguages(appConfig);
+    if (alternativeLangs == null) {
+      alternativeLangs = prepareAlternativeLangs(appConfig);
     }
 
     if (lang != null) {
       List<String> languages = appConfig.getLanguages();
       if (languages != null && languages.size() > 0) {
         if (languages.stream().noneMatch(l -> l.equalsIgnoreCase(lang))) {
-          return getFallbackLanguage(lang);
+          return getAlternative(lang);
         }
       }
       return lang;
     } else {
-      return getFallbackLanguage(lang);
+      return getAlternative(lang);
     }
   }
 
   public static void reset() {
-    fallbackLangs = null;
+    alternativeLangs = null;
   }
 
-  static Map<String, Iso3316Language> prepareFallbackLanguages(AppConfig appConfig) {
-    Map<String, Iso3316Language> fallbacks = new HashMap<>();
+  static Map<String, Rfc4646Language> prepareAlternativeLangs(AppConfig appConfig) {
+    Map<String, Rfc4646Language> alternatives = new HashMap<>();
     appConfig
         .getLanguages()
         .forEach(
             lang -> {
               try {
-                Iso3316Language isoLang = Iso3316Language.of(lang);
-                fallbacks.putIfAbsent(isoLang.getLangKey(), isoLang);
+                Rfc4646Language isoLang = Rfc4646Language.of(lang);
+                alternatives.putIfAbsent(isoLang.getAltLangKey(), isoLang);
               } catch (SepValidationException ex) {
                 errorEx(ex);
               }
             });
-    return fallbacks;
+    return alternatives;
   }
 
-  static final String LANGUAGE_ONLY_DEFAULT = "en";
-  static final String LANGUAGE_DEFAULT = "en-US";
+  static final String LANGUAGE_WITHOUT_LOCALE_DEFAULT = "en";
+  static final String LANGUAGE_WITH_LOCALE_DEFAULT = "en-US";
 
-  static String getFallbackLanguage(String lang) {
+  static String getAlternative(String lang) {
     try {
-      Iso3316Language language = Iso3316Language.of(lang);
-      Iso3316Language fallback = fallbackLangs.get(language.getLangKey());
-      if (fallback == null) {
+      Rfc4646Language language = Rfc4646Language.of(lang);
+      Rfc4646Language alt = alternativeLangs.get(language.getAltLangKey());
+      if (alt == null) {
         if (language.getLocale() == null) {
-          return LANGUAGE_ONLY_DEFAULT;
+          return LANGUAGE_WITHOUT_LOCALE_DEFAULT;
         }
-        return LANGUAGE_DEFAULT;
+        return LANGUAGE_WITH_LOCALE_DEFAULT;
       }
-      return fallback.toString();
+      return alt.toString();
     } catch (SepValidationException e) {
-      return LANGUAGE_DEFAULT;
+      return LANGUAGE_WITH_LOCALE_DEFAULT;
     }
   }
 }
 
+/**
+ * The representation class of RFC-4646 to identify a language.
+ * <a href="https://www.ietf.org/rfc/rfc4646.txt">https://www.ietf.org/rfc/rfc4646.txt</a>
+ */
 @Getter
 @AllArgsConstructor
-class Iso3316Language {
+class Rfc4646Language {
   String language;
   String locale;
 
-  public static Iso3316Language of(String lang) throws SepValidationException {
+  public static Rfc4646Language of(String lang) throws SepValidationException {
     if (lang == null) {
       throw new SepValidationException("lang is null");
     }
     String[] tokens = lang.split("-");
     switch (tokens.length) {
       case 1:
-        return new Iso3316Language(tokens[0], null);
+        return new Rfc4646Language(tokens[0], null);
       case 2:
-        return new Iso3316Language(tokens[0], tokens[1]);
+        return new Rfc4646Language(tokens[0], tokens[1]);
       default:
         throw new SepValidationException(String.format("Invalid language format: %s", lang));
     }
   }
 
-  public String getLangKey() {
+  public String getAltLangKey() {
     if (locale == null) {
       return language;
     }

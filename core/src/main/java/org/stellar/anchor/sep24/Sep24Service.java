@@ -1,22 +1,6 @@
 package org.stellar.anchor.sep24;
 
-import static org.stellar.anchor.api.sep.SepTransactionStatus.INCOMPLETE;
-import static org.stellar.anchor.sep24.Sep24Transaction.Kind.DEPOSIT;
-import static org.stellar.anchor.sep24.Sep24Transaction.Kind.WITHDRAWAL;
-import static org.stellar.anchor.sep9.Sep9Fields.extractSep9Fields;
-import static org.stellar.anchor.util.Log.shorter;
-import static org.stellar.anchor.util.MathHelper.decimal;
-import static org.stellar.anchor.util.MemoHelper.makeMemo;
-import static org.stellar.anchor.util.SepHelper.*;
-import static org.stellar.anchor.util.SepLanguageHelper.validateLanguage;
-
 import com.google.gson.Gson;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.time.Instant;
-import java.util.*;
 import org.apache.http.client.utils.URIBuilder;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.exception.SepNotAuthorizedException;
@@ -32,6 +16,25 @@ import org.stellar.anchor.sep10.JwtToken;
 import org.stellar.anchor.util.Log;
 import org.stellar.sdk.KeyPair;
 import org.stellar.sdk.Memo;
+
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.time.Instant;
+import java.util.*;
+
+import static org.stellar.anchor.api.sep.SepTransactionStatus.INCOMPLETE;
+import static org.stellar.anchor.sep24.Sep24Transaction.Kind.DEPOSIT;
+import static org.stellar.anchor.sep24.Sep24Transaction.Kind.WITHDRAWAL;
+import static org.stellar.anchor.sep9.Sep9Fields.extractSep9Fields;
+import static org.stellar.anchor.util.Log.shorter;
+import static org.stellar.anchor.util.MathHelper.decimal;
+import static org.stellar.anchor.util.MemoHelper.memoType;
+import static org.stellar.anchor.util.MemoHelper.makeMemo;
+import static org.stellar.anchor.util.SepHelper.generateSepTransactionId;
+import static org.stellar.anchor.util.SepHelper.memoTypeString;
+import static org.stellar.anchor.util.SepLanguageHelper.validateLanguage;
 
 public class Sep24Service {
   final Gson gson;
@@ -122,7 +125,7 @@ public class Sep24Service {
             .stellarAccountMemo(token.getAccountMemo())
             .fromAccount(sourceAccount)
             .protocol(Sep24Transaction.Protocol.SEP24.toString())
-            .domainClient(token.getClientDomain());
+            .clientDomain(token.getClientDomain());
 
     if (memo != null) {
       builder.memo(memo.toString());
@@ -231,7 +234,7 @@ public class Sep24Service {
             .stellarAccountMemo(token.getAccountMemo())
             .toAccount(destinationAccount)
             .protocol(Sep24Transaction.Protocol.SEP24.toString())
-            .domainClient(token.getClientDomain())
+            .clientDomain(token.getClientDomain())
             .claimableBalanceSupported(claimableSupported);
 
     if (memo != null) {
@@ -269,7 +272,7 @@ public class Sep24Service {
 
     Log.infoF("Sep24.findTransactions. account={}", shorter(token.getAccount()));
     if (assetService.getAsset(txReq.getAssetCode(), null) == null) {
-      throw new SepValidationException("asset code is not supported");
+      throw new SepValidationException("asset code not supported");
     }
     List<Sep24Transaction> txns =
         txnStore.findTransactions(token.getAccount(), token.getAccountMemo(), txReq);
@@ -313,12 +316,12 @@ public class Sep24Service {
 
     // We should not return the transaction that belongs to other accounts.
     if (txn == null || !txn.getStellarAccount().equals(token.getAccount())) {
-      throw new SepNotFoundException("transaction is not found");
+      throw new SepNotFoundException("transaction not found");
     }
 
     // If the token has a memo, make sure the transaction belongs to the account with the same memo.
     if (token.getAccountMemo() != null && !token.getAccountMemo().equals(txn.getAccountMemo())) {
-      throw new SepNotFoundException("transaction is not found");
+      throw new SepNotFoundException("transaction not found");
     }
 
     return GetTransactionResponse.of(fromTxn(txn, txReq.getLang()));

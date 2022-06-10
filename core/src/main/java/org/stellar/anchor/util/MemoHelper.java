@@ -29,10 +29,10 @@ public class MemoHelper {
   }
 
   public static String memoTypeAsString(Memo memo) {
-    return memoTypeAsString(getMemoType(memo));
+    return memoTypeAsString(memoType(memo));
   }
 
-  private static MemoType getMemoType(Memo memo) {
+  public static MemoType memoType(Memo memo) {
     if (memo == null || memo instanceof MemoNone) {
       return MEMO_NONE;
     } else if (memo instanceof MemoId) {
@@ -96,7 +96,7 @@ public class MemoHelper {
     if (memo == null) {
       return null;
     }
-    switch (getMemoType(memo)) {
+    switch (memoType(memo)) {
       case MEMO_ID:
         return String.valueOf(((MemoId) memo).getId());
       case MEMO_TEXT:

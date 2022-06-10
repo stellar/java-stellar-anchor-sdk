@@ -83,7 +83,7 @@ public class Sep24TransactionBuilder {
     return this;
   }
 
-  public Sep24TransactionBuilder domainClient(String domainClient) {
+  public Sep24TransactionBuilder clientDomain(String domainClient) {
     txn.setDomainClient(domainClient);
     return this;
   }

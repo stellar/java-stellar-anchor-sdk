@@ -48,18 +48,6 @@ public class SepHelper {
     return result;
   }
 
-  public static MemoType memoType(Memo memo) throws SepException {
-    if (memo instanceof MemoId) {
-      return MEMO_ID;
-    } else if (memo instanceof MemoHash) {
-      return MEMO_HASH;
-    } else if (memo instanceof MemoText) {
-      return MEMO_TEXT;
-    } else if (memo instanceof MemoNone) {
-      return MEMO_NONE;
-    }
-    throw new SepException("Unsupported memo type: " + memo.getClass());
-  }
 
   public static boolean amountEquals(String amount1, String amount2) {
     return decimal(amount1).compareTo(decimal(amount2)) == 0;
