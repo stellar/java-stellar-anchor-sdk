@@ -48,6 +48,11 @@ public class Sep24TransactionBuilder {
     return this;
   }
 
+  public Sep24TransactionBuilder stellarAccountMemo(String accountMemo) {
+    txn.setAccountMemo(accountMemo);
+    return this;
+  }
+
   public Sep24TransactionBuilder receivingAnchorAccount(String receivingAnchorAccount) {
     txn.setReceivingAnchorAccount(receivingAnchorAccount);
     return this;
@@ -78,7 +83,7 @@ public class Sep24TransactionBuilder {
     return this;
   }
 
-  public Sep24TransactionBuilder domainClient(String domainClient) {
+  public Sep24TransactionBuilder clientDomain(String domainClient) {
     txn.setDomainClient(domainClient);
     return this;
   }

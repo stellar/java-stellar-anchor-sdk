@@ -58,7 +58,16 @@ public class Sep10Service {
           String.format("home_domain [%s] is not supported.", challengeRequest.getHomeDomain()));
     }
 
-    if (sep10Config.isClientAttributionRequired()) {
+    boolean omnibusWallet =
+        sep10Config.getOmnibusAccountList().contains(challengeRequest.getAccount().trim());
+    if (omnibusWallet) {
+      if (challengeRequest.getClientDomain() != null) {
+        throw new SepValidationException(
+            "client_domain must not be specified if the account is an omni-wallet account");
+      }
+    }
+
+    if (!omnibusWallet && sep10Config.isClientAttributionRequired()) {
       if (challengeRequest.getClientDomain() == null) {
         info("client_domain is required but not provided");
         throw new SepValidationException("client_domain is required");
@@ -92,15 +101,18 @@ public class Sep10Service {
       throw new SepValidationException("Invalid account.");
     }
 
+    Memo memo = null;
+
     // Validate memo. It should be 64-bit positive integer if not null.
     try {
       if (challengeRequest.getMemo() != null) {
-        int memoInt = Integer.parseInt(challengeRequest.getMemo());
-        if (memoInt <= 0) {
+        long memoLong = Long.parseUnsignedLong(challengeRequest.getMemo());
+        if (memoLong <= 0) {
           infoF("Invalid memo value: {}", challengeRequest.getMemo());
           throw new SepValidationException(
               String.format("Invalid memo value: %s", challengeRequest.getMemo()));
         }
+        memo = new MemoId(memoLong);
       }
     } catch (NumberFormatException e) {
       infoF("invalid memo format: {}. Only MEMO_INT is supported", challengeRequest.getMemo());
@@ -132,7 +144,8 @@ public class Sep10Service {
               (challengeRequest.getClientDomain() == null)
                   ? ""
                   : challengeRequest.getClientDomain(),
-              (clientSigningKey == null) ? "" : clientSigningKey);
+              (clientSigningKey == null) ? "" : clientSigningKey,
+              memo);
       // Convert the challenge to response
       trace("SEP-10 challenge txn:", txn);
       ChallengeResponse challengeResponse =
@@ -298,10 +311,13 @@ public class Sep10Service {
             getDomainFromURI(appConfig.getHostUrl()));
     debug("challenge:", challenge);
     long issuedAt = challenge.getTransaction().getTimeBounds().getMinTime();
+    Memo memo = challenge.getTransaction().getMemo();
     JwtToken jwtToken =
         JwtToken.of(
             appConfig.getHostUrl() + "/auth",
-            challenge.getClientAccountId(),
+            (memo == null || memo instanceof MemoNone)
+                ? challenge.getClientAccountId()
+                : challenge.getClientAccountId() + ":" + memo,
             issuedAt,
             issuedAt + sep10Config.getJwtTimeout(),
             challenge.getTransaction().hashHex(),
