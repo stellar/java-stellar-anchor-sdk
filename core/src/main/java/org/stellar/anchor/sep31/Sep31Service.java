@@ -467,9 +467,15 @@ public class Sep31Service {
     response.setReceive(new HashMap<>());
     for (AssetInfo assetInfo : assetInfos) {
       if (assetInfo.getSep31Enabled()) {
+        boolean isQuotesSupported = assetInfo.getSep31().isQuotesSupported();
+        boolean isQuotesRequired = assetInfo.getSep31().isQuotesRequired();
+        if (isQuotesRequired == true && isQuotesSupported == false) {
+          throw new SepValidationException(
+              "if quotes_required is true, quotes_supported must also be true");
+        }
         AssetResponse assetResponse = new AssetResponse();
-        assetResponse.setQuotesSupported(assetInfo.getSep31().isQuotesSupported());
-        assetResponse.setQuotesRequired(assetInfo.getSep31().isQuotesRequired());
+        assetResponse.setQuotesSupported(isQuotesSupported);
+        assetResponse.setQuotesRequired(isQuotesRequired);
         assetResponse.setFeeFixed(assetInfo.getSend().getFeeFixed());
         assetResponse.setFeePercent(assetInfo.getSend().getFeePercent());
         assetResponse.setMinAmount(assetInfo.getSend().getMinAmount());

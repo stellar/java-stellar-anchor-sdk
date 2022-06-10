@@ -283,6 +283,30 @@ internal class Sep31ServiceTest {
   }
 
   @Test
+  fun test_quotesSupportedAndRequiredValidation() {
+    val assetServiceQuotesNotSupported: AssetService = ResourceJsonAssetService(
+            "test_assets.json.quotes_not_supported")
+    val ex: AnchorException = assertThrows {
+      Sep31Service(
+              appConfig,
+              sep31Config,
+              txnStore,
+              sep31DepositInfoGenerator,
+              quoteStore,
+              assetServiceQuotesNotSupported,
+              feeIntegration,
+              customerIntegration,
+              eventPublishService
+      )
+    }
+    assertInstanceOf(SepValidationException::class.java, ex)
+    assertEquals(
+            "if quotes_required is true, quotes_supported must also be true",
+            ex.message
+    )
+  }
+
+  @Test
   fun test_updateTxAmountsBasedOnQuote() {
     Sep31Service.Context.get().setTransaction(txn)
     Sep31Service.Context.get().setRequest(request)
