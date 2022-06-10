@@ -22,18 +22,18 @@ This section covers how to run the application from source code using the provid
 1. Clone this repository: `git clone ssh://git@github.com:stellar/java-stellar-anchor-sdk.git`.
 2. Start a Kafka Queue service: `cd docs/resources/docker-examples/kafka && docker compose up`
 3. Start the Anchor Reference server: `./gradlew service-runner:bootRun --args=--anchor-reference-server`
-    - This would use the default configuration file at [`java-stellar-anchor-sdk/anchor-reference-server/src/main/resources/anchor-reference-server.yaml`], but you can use a custom configuration file by setting the `REFERENCE_SERVER_CONFIG_ENV` environment variable to the path of the configuration file, following the [Path to Yaml](#path-to-yaml) format.
+    - This would use the default configuration file at [`anchor-reference-server.yaml`], but you can use a custom configuration file by setting the `REFERENCE_SERVER_CONFIG_ENV` environment variable to the path of the configuration file, following the [Path to Yaml](#path-to-yaml) format.
 4. Start the Anchor Platform: `./gradlew service-runner:bootRun --args=--sep-server`
-    - This would use the default configuration file at [`java-stellar-anchor-sdk/platform/src/main/resources/anchor-config-defaults.yaml`], but you can use a custom configuration file by setting the `STELLAR_ANCHOR_CONFIG` environment variable to the path of the configuration file, following the [Path to Yaml](#path-to-yaml) format.
+    - This would use the default configuration file at [`anchor-config-defaults.yaml`], but you can use a custom configuration file by setting the `STELLAR_ANCHOR_CONFIG` environment variable to the path of the configuration file, following the [Path to Yaml](#path-to-yaml) format.
 
 ## Configuring the Project
 
 ### Config Files
 
-As mentioned previously, both the Anchor Platform and Anchor Reference server are configured using yaml and they have default conuguration files:
+As mentioned previously, both the Anchor Platform and Anchor Reference server are configured using yaml and they have default configuration files:
 
-- **Anchor Platform** default config file is located at [`java-stellar-anchor-sdk/platform/src/main/resources/anchor-config-defaults.yaml`].
-- **Anchor Reference Server** default config file is located at [`java-stellar-anchor-sdk/anchor-reference-server/src/main/resources/anchor-reference-server.yaml`].
+- **Anchor Platform** default config file is located at [`anchor-config-defaults.yaml`].
+- **Anchor Reference Server** default config file is located at [`anchor-reference-server.yaml`].
 
 In order to use a custom configuration file, you need to set the `STELLAR_ANCHOR_CONFIG` (for Anchor Platform) or the `REFERENCE_SERVER_CONFIG_ENV` (for Anchor Reference Server) environment variable(s) to the path of the configuration file, following the [Path to Yaml](#path-to-yaml) format.
 
@@ -117,7 +117,7 @@ each required environment variables ([Environment Variables](/platform/src/main/
 docker run -v {/local/path/to/config/file/}:/config -p 8081:8081 stellar-anchor-platform:latest --anchor-reference-server \
 -e JWT_SECRET='secret' \
 -e SEP10_SIGNING_SEED='SAX3...C3AW5X' \
--e 'CIRCLE_API_KEY=QVBJX0...NjMyZTQ5NWJhNDdlZg==' \
+-e CIRCLE_API_KEY='QVBJX0...NjMyZTQ5NWJhNDdlZg==' \
 -e PAYMENT_GATEWAY_STELLAR_SECRET_KEY='secret' \
 -e POSTGRES_USERNAME='postgres' \
 -e POSTGRES_PASSWORD='password'
@@ -130,7 +130,9 @@ docker run -v {/local/path/to/config/file/}:/config -p 8081:8081 stellar-anchor-
 --env-file ./my-env-file
 ```
 
-Note: this image can run --sep-server (port: 8080), --anchor-reference-server (port: 8081).
+> Note 1: this image can run --sep-server (port: 8080), --anchor-reference-server (port: 8081).
+
+> Note 2: to check all the available environment variables, please refer to the [`anchor-config-defaults.yaml`] file.
 
 ## Running the Application from Docker
 
@@ -140,7 +142,7 @@ You can use docker compose to run the whole infrastructure - Anchor Platform, Re
 docker compose up
 ```
 
-It will use the default config files [`java-stellar-anchor-sdk/platform/src/main/resources/anchor-config-defaults.yaml`], [`java-stellar-anchor-sdk/anchor-reference-server/src/main/resources/anchor-reference-server.yaml`] and the default environment variables from [`example.env`].
+It will use the default config files [`anchor-config-defaults.yaml`], [`anchor-reference-server.yaml`] and the default environment variables from [`example.env`].
 
 You can test against this setup by running the end-to-end tests ([end_to_end_test.py](/end-to-end-tests/end_to_end_tests.py)) using localhost:8080 as the domain.
 
@@ -148,7 +150,7 @@ You can test against this setup by running the end-to-end tests ([end_to_end_tes
 
 The default configuration of the project uses a Stellar network observer to identify incoming Stellar payments. In case the Anchor relies on Circle, it should configure the project to use the Circle Payment Observer. For more information on how to do that, please refer to the [01.B - Circle Payment Observer](/docs/01%20-%20Running%20%26%20Configuring%20the%20Application/B%20-%20Circle%20Payment%20Observer.md) section.
 
-[`java-stellar-anchor-sdk/platform/src/main/resources/anchor-config-defaults.yaml`]: /platform/src/main/resources/anchor-config-defaults.yaml
-[`java-stellar-anchor-sdk/anchor-reference-server/src/main/resources/anchor-reference-server.yaml`]: /anchor-reference-server/src/main/resources/anchor-reference-server.yaml
+[`anchor-config-defaults.yaml`]: /platform/src/main/resources/anchor-config-defaults.yaml
+[`anchor-reference-server.yaml`]: /anchor-reference-server/src/main/resources/anchor-reference-server.yaml
 [`example.env`]: /platform/src/main/resources/example.env
 [`docs/resources/docker-examples/kafka/docker-compose.yaml`]: /docs/resources/docker-examples/kafka/docker-compose.yaml

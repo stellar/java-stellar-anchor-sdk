@@ -6,17 +6,11 @@
 
 # Stellar Anchor Platform
 
-The Anchor Platform is a web application whose goal is to facilitate Anchor
-integration with the Stellar network in an interoperable way, compiant with the
-[SEP (Stellar Ecosystem Protocols)](https://github.com/stellar/stellar-protocol/tree/master/ecosystem).
+The Anchor Platform is the easiest and fastest way to deploy a [SEP-compatible](https://github.com/stellar/stellar-protocol/tree/master/ecosystem) anchor service.
+ 
+It implements a the majority of standardized API (`SEP`) endpoints that wallets, exchanges, and other applications use, and provides a set of backend HTTPS APIs & callbacks for the anchor to integrate with for specifying fees, exchange rates, and off-chain transaction status updates.
 
-The Anchor Platform will be exposing public endpoints and APIs that provide
-functionalities described in the [SEPs] while abstracting most of the business
-logic necessarry to enable interoperability with the Stellar network.
-
-This way, Anchors willing to integrate with Stellar can use the Anchor Platform
-to speed up their development process, allowing them to focus mainly on the
-business logic that's specific to their businesses and use cases.
+The goal of the Anchor Platform is to abstract all Stellar-specific functionality and requirements for running an anchor, allowing businesses to focus on the core business logic necessary to provide these services.
 
 ## Table of Content
 
@@ -32,8 +26,8 @@ The full documentation can be found under the [`docs` directory](/docs), under t
   - [C - Logging Guidelines](/docs/02%20-%20Contributing/C%20-%20Logging%20Guidelines.md)
   - [D - Database Migration](/docs/02%20-%20Contributing/D%20-%20Database%20Migration.md)
   - [E - Publishing the SDK](/docs/02%20-%20Contributing/E%20-%20Publishing%20the%20SDK.md)
-- [03 - Anchor Integration](/docs/03%20-%20Anchor%20Integration) // TODO
-- [04 - Subprojects Usage](/docs/04%20-%20Subprojects%20Usage) // TODO
+- [03 - Implementing the Anchor Server](/docs/03%20-%20Implementing%20the%20Anchor%20Server) `// TODO`
+- [04 - Subprojects Usage](/docs/04%20-%20Subprojects%20Usage) `// TODO`
 
 ## Glossary
 
@@ -42,10 +36,10 @@ Here are the important terminology used in this project:
 - **Anchor**: on/off ramps of the Stellar network. More information is available [here](https://developers.stellar.org/docs/anchoring-assets/).
 - **Wallet**: a frontend application used to interact with the Stellar network on behalf of a user.
 - **Sending Anchor**: a therminology used in the context of [SEP-31]. Refers to an entity that receives funds from a user and forwards it (after taking a fee) to a receiving anchor, in the SEP-31 `Sending Client->Sending Anchor->Receiving Anchor-> Receiving Client` flow.
-- **Receiving Anchor**: a therminology used in the context of [SEP-31]. Refers to an entity that receives funds from a user and forwards it (after taking a fee) to a receiving anchor, in the SEP-31 `Sending Client->Sending Anchor->Receiving Anchor-> Receiving Client` flow. It's the entity the Platform SEP-31 service is currently built for.
-- **Ecosystem Players**: any entity or end-user that's part of the Stellar ecosystem. This includes Anchors, Wallets, Users, Issuers, Payment providers, and others.
-- **Anchor Platform (or Platform)**: the web application that will be exposing public endpoints and APIs. It will be compliant with the [SEPs] to guarantee interoperability in the Stellar network and will delegate business-specific logic to the Anchor Server.
-- **Anchor Server**: a microservice that will be responsible for the Anchor-specific business logic used in the the Anchor Platform. This service will be reached out by the Anchor Platform to perform some actions like:
+- **Receiving Anchor**: a terminology used in the context of [SEP-31]. Refers to an entity that receives funds from a user and forwards it (after taking a fee) to a receiving client (or recipient), in the SEP-31 `Sending Client->Sending Anchor->Receiving Anchor-> Receiving Client` flow. This is what the Anchor Platform currently implements.
+- **Ecosystem**: the community of entities and users that utilize the Stellar network and/or provide solutions on the Stellar network.
+- **Anchor Platform (or Platform)**: the web application that will be exposing public endpoints and APIs. It is compliant with the [SEPs] to guarantee interoperability in the Stellar network and delegates business-specific logic to the Anchor Server.
+- **Anchor Server**: a microservice that will be responsible for the Anchor-specific business logic used in the the Anchor Platform. This service interacts with the Anchor Platform to perform some actions like:
   - Calculate conversion rates between two assets.
   - Create or update a customer account.
   - Notify the Anchor about an incoming payment.
@@ -68,7 +62,7 @@ The following image shows the architecture of the Anchor Platform, as well as ho
 
 ![img.jpeg](/docs/resources/img/anchor-platform-components-architecture.jpeg)
 
-As you can see, the Anchor Platform receives interactions from ecosystem players and deals with the interoperability part described in the SEPs. The Anchor Server is only called when there is a pending action to be performed.
+As you can see, the Anchor Platform receives interactions from ecosystem participants and deals with the interoperability part described in the SEPs. The Anchor Server is only called when there is a pending action to be performed.
 
 This drastically reduces the amount of code that needs to be written by the Anchor, and allows them to focus on the business logic that's specific to their businesses and use cases.
 
