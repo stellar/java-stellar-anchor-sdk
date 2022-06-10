@@ -22,9 +22,9 @@ This section covers how to run the application from source code using the provid
 1. Clone this repository: `git clone ssh://git@github.com:stellar/java-stellar-anchor-sdk.git`.
 2. Start a Kafka Queue service: `cd docs/resources/docker-examples/kafka && docker compose up`
 3. Start the Anchor Reference server: `./gradlew service-runner:bootRun --args=--anchor-reference-server`
-    - This would use the default configuration file at [`anchor-reference-server.yaml`], but you can use a custom configuration file by setting the `REFERENCE_SERVER_CONFIG_ENV` environment variable to the path of the configuration file, following the [Path to Yaml](#path-to-yaml) format.
+    - This uses the default configuration file at [`anchor-reference-server.yaml`], but you can use a custom configuration file by setting the `REFERENCE_SERVER_CONFIG_ENV` environment variable to the path of the configuration file, following the [Path to Yaml](#path-to-yaml) format.
 4. Start the Anchor Platform: `./gradlew service-runner:bootRun --args=--sep-server`
-    - This would use the default configuration file at [`anchor-config-defaults.yaml`], but you can use a custom configuration file by setting the `STELLAR_ANCHOR_CONFIG` environment variable to the path of the configuration file, following the [Path to Yaml](#path-to-yaml) format.
+    - This uses the default configuration file at [`anchor-config-defaults.yaml`], but you can use a custom configuration file by setting the `STELLAR_ANCHOR_CONFIG` environment variable to the path of the configuration file, following the [Path to Yaml](#path-to-yaml) format.
 
 ## Configuring the Project
 
@@ -65,16 +65,16 @@ The Platform configuration loader tries to fetch the configuration from up to th
     ./gradlew service-runner:bootRun --args=--sep-server -PjvmArgs="-Dstellar.anchor.config=[path-to-yaml]" 
     ```
 
-2. The file `.anchor/anchor-config.yaml` in the user's home directory. If the path of the `yaml` is not specified by the JVM options, the server will search for the `./anchor/anchor-config.yaml` file in the user's home directory.
+2. The file `.anchor/anchor-config.yaml` in the user's home directory. If the path of the `yaml` is not specified by the JVM options, the server searches for the `./anchor/anchor-config.yaml` file in the user's home directory.
 
-3. The system Environment Variable `STELLAR_ANCHOR_CONFIG`. If neither the JVM option nor the file `.anchor/anchor-config.yaml` is found, the server will search for the `STELLAR_ANCHOR_CONFIG`, whose default value is `"classpath:/anchor-config-defaults.yaml"`:
+3. The system Environment Variable `STELLAR_ANCHOR_CONFIG`. If neither the JVM option nor the file `.anchor/anchor-config.yaml` is found, the server searches for the `STELLAR_ANCHOR_CONFIG`, whose default value is `"classpath:/anchor-config-defaults.yaml"`:
 
     ```shell
     STELLAR_ANCHOR_CONFIG=classpath:/anchor-config-defaults.yaml
     ./gradlew service-runner:bootRun --args=--sep-server
     ```
 
-If all of the above fail, the server will fail with an error.
+If all of the above fail, the server fails with an error.
 
 ### Environment variables
 
@@ -142,7 +142,7 @@ You can use docker compose to run the whole infrastructure - Anchor Platform, Re
 docker compose up
 ```
 
-It will use the default config files [`anchor-config-defaults.yaml`], [`anchor-reference-server.yaml`] and the default environment variables from [`example.env`].
+It uses the default config files [`anchor-config-defaults.yaml`], [`anchor-reference-server.yaml`] and the default environment variables from [`example.env`].
 
 You can test against this setup by running the end-to-end tests ([end_to_end_test.py](/end-to-end-tests/end_to_end_tests.py)) using localhost:8080 as the domain.
 
