@@ -107,10 +107,9 @@ internal class Sep24ServiceTest {
       slotTxn.captured.assetIssuer,
       "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
     )
-    assertEquals(slotTxn.captured.stellarAccount, TEST_ACCOUNT)
+    assertEquals(slotTxn.captured.sep10Account, TEST_ACCOUNT)
     assertEquals(slotTxn.captured.fromAccount, TEST_ACCOUNT)
-    assertEquals(slotTxn.captured.domainClient, TEST_CLIENT_DOMAIN)
-    assertEquals(slotTxn.captured.protocol, "sep24")
+    assertEquals(slotTxn.captured.clientDomain, TEST_CLIENT_DOMAIN)
     assertEquals(slotTxn.captured.amountIn, "123.4")
     assertEquals(slotTxn.captured.amountOut, "123.4")
 
@@ -215,10 +214,9 @@ internal class Sep24ServiceTest {
     assertEquals(slotTxn.captured.kind, "deposit")
     assertEquals(slotTxn.captured.assetCode, TEST_ASSET)
     assertEquals(slotTxn.captured.assetIssuer, TEST_ASSET_ISSUER_ACCOUNT_ID)
-    assertEquals(slotTxn.captured.stellarAccount, TEST_ACCOUNT)
+    assertEquals(slotTxn.captured.sep10Account, TEST_ACCOUNT)
     assertEquals(slotTxn.captured.toAccount, TEST_ACCOUNT)
-    assertEquals(slotTxn.captured.domainClient, TEST_CLIENT_DOMAIN)
-    assertEquals(slotTxn.captured.protocol, "sep24")
+    assertEquals(slotTxn.captured.clientDomain, TEST_CLIENT_DOMAIN)
     assertEquals(slotTxn.captured.amountIn, "123.4")
     assertEquals(slotTxn.captured.amountOut, "123.4")
   }
@@ -434,10 +432,10 @@ internal class Sep24ServiceTest {
 
     txn.assetCode = TEST_ASSET
     txn.assetIssuer = TEST_ASSET_ISSUER_ACCOUNT_ID
-    txn.stellarAccount = TEST_ACCOUNT
+    txn.sep10Account = TEST_ACCOUNT
     txn.toAccount = TEST_ACCOUNT
     txn.fromAccount = TEST_ACCOUNT
-    txn.domainClient = TEST_CLIENT_DOMAIN
+    txn.clientDomain = TEST_CLIENT_DOMAIN
     txn.protocol = "sep24"
     txn.amountIn = "321.4"
     txn.amountOut = "321.4"
@@ -457,10 +455,10 @@ internal class Sep24ServiceTest {
 
     txn.assetCode = TEST_ASSET
     txn.assetIssuer = TEST_ASSET_ISSUER_ACCOUNT_ID
-    txn.stellarAccount = TEST_ACCOUNT
+    txn.sep10Account = TEST_ACCOUNT
     txn.toAccount = TEST_ACCOUNT
     txn.fromAccount = TEST_ACCOUNT
-    txn.domainClient = TEST_CLIENT_DOMAIN
+    txn.clientDomain = TEST_CLIENT_DOMAIN
     txn.protocol = "sep24"
     txn.amountIn = "321.4"
     txn.amountOut = "321.4"
@@ -475,10 +473,10 @@ internal class Sep24ServiceTest {
 
     txn.assetCode = TEST_ASSET
     txn.assetIssuer = TEST_ASSET_ISSUER_ACCOUNT_ID
-    txn.stellarAccount = TEST_ACCOUNT
+    txn.sep10Account = TEST_ACCOUNT
     txn.toAccount = TEST_ACCOUNT
     txn.fromAccount = TEST_ACCOUNT
-    txn.domainClient = TEST_CLIENT_DOMAIN
+    txn.clientDomain = TEST_CLIENT_DOMAIN
     txn.protocol = "sep24"
     txn.amountIn = "456.7"
     txn.amountOut = "456.7"

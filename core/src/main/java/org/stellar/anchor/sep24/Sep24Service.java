@@ -123,7 +123,6 @@ public class Sep24Service {
             .stellarAccount(token.getAccount())
             .stellarAccountMemo(token.getAccountMemo())
             .fromAccount(sourceAccount)
-            .protocol(Sep24Transaction.Protocol.SEP24.toString())
             .clientDomain(token.getClientDomain());
 
     if (memo != null) {
@@ -232,7 +231,6 @@ public class Sep24Service {
             .stellarAccount(token.getAccount())
             .stellarAccountMemo(token.getAccountMemo())
             .toAccount(destinationAccount)
-            .protocol(Sep24Transaction.Protocol.SEP24.toString())
             .clientDomain(token.getClientDomain())
             .claimableBalanceSupported(claimableSupported);
 
@@ -314,12 +312,13 @@ public class Sep24Service {
     }
 
     // We should not return the transaction that belongs to other accounts.
-    if (txn == null || !txn.getStellarAccount().equals(token.getAccount())) {
+    if (txn == null || !txn.getSep10Account().equals(token.getAccount())) {
       throw new SepNotFoundException("transaction not found");
     }
 
     // If the token has a memo, make sure the transaction belongs to the account with the same memo.
-    if (token.getAccountMemo() != null && !token.getAccountMemo().equals(txn.getAccountMemo())) {
+    if (token.getAccountMemo() != null
+        && !token.getAccountMemo().equals(txn.getSep10AccountMemo())) {
       throw new SepNotFoundException("transaction not found");
     }
 

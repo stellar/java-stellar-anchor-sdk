@@ -45,11 +45,10 @@ public class JdbcSep24TransactionStore implements Sep24TransactionStore {
     List<Sep24Transaction> txns;
     if (accountMemo == null)
       txns =
-          txnRepo.findByStellarAccountAndAssetCodeOrderByStartedAtDesc(
-              accountId, tr.getAssetCode());
+          txnRepo.findBySep10AccountAndAssetCodeOrderByStartedAtDesc(accountId, tr.getAssetCode());
     else
       txns =
-          txnRepo.findByStellarAccountAndAccountMemoAndAssetCodeOrderByStartedAtDesc(
+          txnRepo.findBySep10AccountAndSep10AccountMemoAndAssetCodeOrderByStartedAtDesc(
               accountId, accountMemo, tr.getAssetCode());
 
     // TODO: This should be replaced by Couchbase query
