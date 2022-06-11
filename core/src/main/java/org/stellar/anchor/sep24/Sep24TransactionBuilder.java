@@ -44,17 +44,17 @@ public class Sep24TransactionBuilder {
   }
 
   public Sep24TransactionBuilder stellarAccount(String stellarAccount) {
-    txn.setStellarAccount(stellarAccount);
+    txn.setSep10Account(stellarAccount);
     return this;
   }
 
   public Sep24TransactionBuilder stellarAccountMemo(String accountMemo) {
-    txn.setAccountMemo(accountMemo);
+    txn.setSep10AccountMemo(accountMemo);
     return this;
   }
 
-  public Sep24TransactionBuilder receivingAnchorAccount(String receivingAnchorAccount) {
-    txn.setReceivingAnchorAccount(receivingAnchorAccount);
+  public Sep24TransactionBuilder withdrawAnchorAccount(String withdrawAnchorAccount) {
+    txn.setWithdrawAnchorAccount(withdrawAnchorAccount);
     return this;
   }
 
@@ -78,13 +78,8 @@ public class Sep24TransactionBuilder {
     return this;
   }
 
-  public Sep24TransactionBuilder protocol(String protocol) {
-    txn.setProtocol(protocol);
-    return this;
-  }
-
   public Sep24TransactionBuilder clientDomain(String domainClient) {
-    txn.setDomainClient(domainClient);
+    txn.setClientDomain(domainClient);
     return this;
   }
 

@@ -10,7 +10,6 @@ import java.util.Objects;
 import java.util.UUID;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
-import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.sdk.*;
 import org.stellar.sdk.xdr.MemoType;
@@ -47,7 +46,6 @@ public class SepHelper {
 
     return result;
   }
-
 
   public static boolean amountEquals(String amount1, String amount2) {
     return decimal(amount1).compareTo(decimal(amount2)) == 0;
