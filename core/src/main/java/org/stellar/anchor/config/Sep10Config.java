@@ -19,4 +19,6 @@ public interface Sep10Config {
   List<String> getClientAttributionDenyList();
 
   List<String> getClientAttributionAllowList();
+
+  List<String> getOmnibusAccountList();
 }

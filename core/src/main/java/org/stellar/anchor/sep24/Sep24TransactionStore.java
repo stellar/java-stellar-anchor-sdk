@@ -38,14 +38,14 @@ public interface Sep24TransactionStore {
   /**
    * Find the transactions filtered and limited the request
    *
-   * @param accountId The Stellar account id.
+   * @param accountId The authenticating Stellar account id.
+   * @param accountMemo The memo of the authenticating account.
    * @param request The query request.
    * @return The list of transaction documents. If not found, return empty list.
    * @throws SepException if error happens
    */
-  List<Sep24Transaction> findTransactions(String accountId, GetTransactionsRequest request)
-      throws SepException;
-
+  List<Sep24Transaction> findTransactions(
+      String accountId, String accountMemo, GetTransactionsRequest request) throws SepException;
   /**
    * Save a transaction.
    *
