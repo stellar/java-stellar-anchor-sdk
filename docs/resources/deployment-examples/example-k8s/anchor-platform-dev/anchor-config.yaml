@@ -149,8 +149,6 @@ stellar-wks.toml: |
  NETWORK_PASSPHRASE = "Test SDF Network ; September 2015"
  SIGNING_KEY = "GDZCLP2PHTWYQ3BWZMC5D4ZUJX5NU4S7YZHC5EBFAFKL6UJUQ5RKDGSY"
 
- TRANSFER_SERVER = "https://anchor-sep-server-dev.stellar.org/sep6"
- TRANSFER_SERVER_SEP0024 = "https://anchor-sep-server-dev.stellar.org/sep24"
  WEB_AUTH_ENDPOINT = "https://anchor-sep-server-dev.stellar.org/auth"
  KYC_SERVER = "https://anchor-sep-server-dev.stellar.org/sep12"
  DIRECT_PAYMENT_SERVER = "https://anchor-sep-server-dev.stellar.org/sep31"

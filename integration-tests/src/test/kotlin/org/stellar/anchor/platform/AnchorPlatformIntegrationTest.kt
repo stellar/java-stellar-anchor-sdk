@@ -70,8 +70,6 @@ class AnchorPlatformIntegrationTest {
 
       AnchorReferenceServer.start(REFERENCE_SERVER_PORT, "/")
     }
-
-    @AfterAll fun tearDown() {}
   }
 
   private fun readSep1Toml(): Sep1Helper.TomlContent {
@@ -311,7 +309,7 @@ class AnchorPlatformIntegrationTest {
   fun testSep1Config() {
     val sep1Config = platformServerContext.getBean(Sep1Config::class.java)
     assertEquals(true, sep1Config.isEnabled)
-    assertEquals("sep1/stellar-wks.toml", sep1Config.stellarFile)
+    assertEquals("classpath:/sep1/test-stellar.toml", sep1Config.stellarFile)
   }
 
   @Test
