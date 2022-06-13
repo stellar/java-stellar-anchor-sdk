@@ -61,7 +61,6 @@ data:
     SIGNING_KEY = "GCUZ6YLL5RQBTYLTTQLPCM73C5XAIUGK2TIMWQH7HPSGWVS2KJ2F3CHS"
 
     WEB_AUTH_ENDPOINT = "http://anchor-reference-server-dev.sandbox.kube001.services.stellar-ops.com/auth"
-    TRANSFER_SERVER_SEP0024 = "http://anchor-reference-server-dev.sandbox.kube001.services.stellar-ops.com/sep24"
     ANCHOR_QUOTE_SERVER = "http://anchor-reference-server-dev.sandbox.kube001.services.stellar-ops.com/sep38"
 
     [[CURRENCIES]]
