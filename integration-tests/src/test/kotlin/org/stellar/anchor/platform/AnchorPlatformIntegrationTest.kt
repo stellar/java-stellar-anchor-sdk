@@ -57,6 +57,7 @@ class AnchorPlatformIntegrationTest {
       val props = System.getProperties()
       props.setProperty("REFERENCE_SERVER_CONFIG", "classpath:/anchor-reference-server.yaml")
     }
+
     @BeforeAll
     @JvmStatic
     fun setup() {

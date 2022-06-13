@@ -19,8 +19,8 @@ public class GetFeeRequest {
   @SerializedName("receive_amount")
   String receiveAmount;
 
-  @SerializedName("client_domain")
-  String clientDomain;
+  @SerializedName("client_id")
+  String clientId;
 
   @SerializedName("sender_id")
   String senderId;

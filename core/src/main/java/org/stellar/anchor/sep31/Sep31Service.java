@@ -396,7 +396,7 @@ public class Sep31Service {
                     .receiveAmount(null)
                     .senderId(request.getSenderId())
                     .receiverId(request.getReceiverId())
-                    .clientDomain(token.getClientDomain())
+                    .clientId(token.getAccount())
                     .build())
             .getFee();
     infoF("Fee for request ({}) is ({})", request, fee);
