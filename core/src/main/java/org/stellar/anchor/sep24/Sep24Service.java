@@ -1,28 +1,12 @@
 package org.stellar.anchor.sep24;
 
-import static org.stellar.anchor.sep24.Sep24Transaction.Kind.DEPOSIT;
-import static org.stellar.anchor.sep24.Sep24Transaction.Kind.WITHDRAWAL;
-import static org.stellar.anchor.sep9.Sep9Fields.extractSep9Fields;
-import static org.stellar.anchor.util.Log.shorter;
-import static org.stellar.anchor.util.MathHelper.decimal;
-import static org.stellar.anchor.util.MemoHelper.makeMemo;
-import static org.stellar.anchor.util.SepHelper.*;
-import static org.stellar.sdk.xdr.MemoType.MEMO_ID;
-
 import com.google.gson.Gson;
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.time.Instant;
-import java.util.*;
 import org.apache.http.client.utils.URIBuilder;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.exception.SepNotAuthorizedException;
 import org.stellar.anchor.api.exception.SepNotFoundException;
 import org.stellar.anchor.api.exception.SepValidationException;
 import org.stellar.anchor.api.sep.AssetInfo;
-import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.sep.sep24.*;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.AppConfig;
@@ -31,6 +15,26 @@ import org.stellar.anchor.sep10.JwtService;
 import org.stellar.anchor.sep10.JwtToken;
 import org.stellar.anchor.util.Log;
 import org.stellar.sdk.KeyPair;
+import org.stellar.sdk.Memo;
+
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.time.Instant;
+import java.util.*;
+
+import static org.stellar.anchor.api.sep.SepTransactionStatus.INCOMPLETE;
+import static org.stellar.anchor.sep24.Sep24Transaction.Kind.DEPOSIT;
+import static org.stellar.anchor.sep24.Sep24Transaction.Kind.WITHDRAWAL;
+import static org.stellar.anchor.sep9.Sep9Fields.extractSep9Fields;
+import static org.stellar.anchor.util.Log.shorter;
+import static org.stellar.anchor.util.MathHelper.decimal;
+import static org.stellar.anchor.util.MemoHelper.memoType;
+import static org.stellar.anchor.util.MemoHelper.makeMemo;
+import static org.stellar.anchor.util.SepHelper.generateSepTransactionId;
+import static org.stellar.anchor.util.SepHelper.memoTypeString;
+import static org.stellar.anchor.util.SepLanguageHelper.validateLanguage;
 
 public class Sep24Service {
   final Gson gson;
@@ -69,14 +73,13 @@ public class Sep24Service {
 
     Log.infoF(
         "Sep24.withdraw. account={}, memo={}", shorter(token.getAccount()), token.getAccountMemo());
-    String lang = withdrawRequest.get("lang");
     String assetCode = withdrawRequest.get("asset_code");
     String assetIssuer = withdrawRequest.get("asset_issuer");
     String sourceAccount = withdrawRequest.get("account");
     String strAmount = withdrawRequest.get("amount");
     HashMap<String, String> sep9Fields = extractSep9Fields(withdrawRequest);
 
-    validateLanguage(appConfig, lang);
+    String lang = validateLanguage(appConfig, withdrawRequest.get("lang"));
 
     if (assetCode == null) {
       throw new SepValidationException("missing 'asset_code'");
@@ -84,10 +87,6 @@ public class Sep24Service {
 
     if (sourceAccount == null) {
       throw new SepValidationException("'account' is required");
-    }
-
-    if (!sourceAccount.equals(token.getAccount())) {
-      throw new SepValidationException("'account' does not match the one in the token");
     }
 
     // Verify that the asset code exists in our database, with withdraw enabled.
@@ -110,24 +109,30 @@ public class Sep24Service {
     } catch (Exception ex) {
       throw new SepValidationException(String.format("invalid account: %s", sourceAccount), ex);
     }
-
+    Memo memo = makeMemo(withdrawRequest.get("memo"), withdrawRequest.get("memo_type"));
     String txnId = UUID.randomUUID().toString();
-    Sep24Transaction txn =
+    Sep24TransactionBuilder builder =
         new Sep24TransactionBuilder(txnStore)
             .transactionId(txnId)
-            .status(SepTransactionStatus.INCOMPLETE.toString())
-            .kind(Sep24Transaction.Kind.WITHDRAWAL.toString())
+            .status(INCOMPLETE.toString())
+            .kind(WITHDRAWAL.toString())
             .amountIn(strAmount)
             .amountOut(strAmount)
             .assetCode(assetCode)
             .assetIssuer(withdrawRequest.get("asset_issuer"))
             .startedAt(Instant.now().getEpochSecond())
             .stellarAccount(token.getAccount())
+            .stellarAccountMemo(token.getAccountMemo())
             .fromAccount(sourceAccount)
             .protocol(Sep24Transaction.Protocol.SEP24.toString())
-            .memoType(memoTypeString(MEMO_ID))
-            .domainClient(token.getClientDomain())
-            .build();
+            .clientDomain(token.getClientDomain());
+
+    if (memo != null) {
+      builder.memo(memo.toString());
+      builder.memoType(memoTypeString(memoType(memo)));
+    }
+
+    Sep24Transaction txn = builder.build();
 
     txnStore.save(txn);
 
@@ -143,6 +148,7 @@ public class Sep24Service {
             "withdraw",
             buildRedirectJwtToken(fullRequestUrl, token, txn),
             sep9Fields,
+            lang,
             assetCode,
             strAmount,
             txn.getTransactionId()),
@@ -163,7 +169,6 @@ public class Sep24Service {
     Log.infoF(
         "Sep24.deposit. account={}, memo={}", shorter(token.getAccount()), token.getAccountMemo());
 
-    String lang = depositRequest.get("lang");
     String assetCode = depositRequest.get("asset_code");
     String assetIssuer = depositRequest.get("asset_issuer");
     String destinationAccount = depositRequest.get("account");
@@ -176,7 +181,7 @@ public class Sep24Service {
       claimableSupported = Boolean.parseBoolean(strClaimableSupported.toLowerCase(Locale.ROOT));
     }
 
-    validateLanguage(appConfig, lang);
+    String lang = validateLanguage(appConfig, depositRequest.get("lang"));
 
     if (assetCode == null) {
       throw new SepValidationException("missing 'asset_code'");
@@ -213,24 +218,31 @@ public class Sep24Service {
           String.format("invalid account: %s", destinationAccount), ex);
     }
 
+    Memo memo = makeMemo(depositRequest.get("memo"), depositRequest.get("memo_type"));
     String txnId = generateSepTransactionId();
-    Sep24Transaction txn =
+    Sep24TransactionBuilder builder =
         new Sep24TransactionBuilder(txnStore)
             .transactionId(txnId)
-            .status(SepTransactionStatus.INCOMPLETE.toString())
-            .kind(Sep24Transaction.Kind.DEPOSIT.toString())
+            .status(INCOMPLETE.toString())
+            .kind(DEPOSIT.toString())
             .amountIn(strAmount)
             .amountOut(strAmount)
             .assetCode(assetCode)
             .assetIssuer(depositRequest.get("asset_issuer"))
             .startedAt(Instant.now().getEpochSecond())
             .stellarAccount(token.getAccount())
+            .stellarAccountMemo(token.getAccountMemo())
             .toAccount(destinationAccount)
             .protocol(Sep24Transaction.Protocol.SEP24.toString())
-            .domainClient(token.getClientDomain())
-            .claimableBalanceSupported(claimableSupported)
-            .build();
+            .clientDomain(token.getClientDomain())
+            .claimableBalanceSupported(claimableSupported);
 
+    if (memo != null) {
+      builder.memo(memo.toString());
+      builder.memoType(memoTypeString(memoType(memo)));
+    }
+
+    Sep24Transaction txn = builder.build();
     txnStore.save(txn);
     Log.infoF(
         "Saved deposit transaction. to={}, amountIn={}, amountOut={}.",
@@ -245,6 +257,7 @@ public class Sep24Service {
             "deposit",
             buildRedirectJwtToken(fullRequestUrl, token, txn),
             sep9Fields,
+            lang,
             assetCode,
             strAmount,
             txn.getTransactionId()),
@@ -259,13 +272,14 @@ public class Sep24Service {
 
     Log.infoF("Sep24.findTransactions. account={}", shorter(token.getAccount()));
     if (assetService.getAsset(txReq.getAssetCode(), null) == null) {
-      throw new SepValidationException("asset code is not supported");
+      throw new SepValidationException("asset code not supported");
     }
-    List<Sep24Transaction> txns = txnStore.findTransactions(token.getAccount(), txReq);
+    List<Sep24Transaction> txns =
+        txnStore.findTransactions(token.getAccount(), token.getAccountMemo(), txReq);
     GetTransactionsResponse result = new GetTransactionsResponse();
     List<TransactionResponse> list = new ArrayList<>();
     for (Sep24Transaction txn : txns) {
-      TransactionResponse transactionResponse = fromTxn(txn);
+      TransactionResponse transactionResponse = fromTxn(txn, txReq.getLang());
       list.add(transactionResponse);
     }
     result.setTransactions(list);
@@ -302,10 +316,15 @@ public class Sep24Service {
 
     // We should not return the transaction that belongs to other accounts.
     if (txn == null || !txn.getStellarAccount().equals(token.getAccount())) {
-      throw new SepNotFoundException("transaction is not found");
+      throw new SepNotFoundException("transaction not found");
     }
 
-    return GetTransactionResponse.of(fromTxn(txn));
+    // If the token has a memo, make sure the transaction belongs to the account with the same memo.
+    if (token.getAccountMemo() != null && !token.getAccountMemo().equals(txn.getAccountMemo())) {
+      throw new SepNotFoundException("transaction not found");
+    }
+
+    return GetTransactionResponse.of(fromTxn(txn, txReq.getLang()));
   }
 
   public InfoResponse getInfo() {
@@ -325,13 +344,13 @@ public class Sep24Service {
     return info;
   }
 
-  TransactionResponse fromTxn(Sep24Transaction txn)
+  TransactionResponse fromTxn(Sep24Transaction txn, String lang)
       throws MalformedURLException, URISyntaxException, SepException {
     TransactionResponse response;
     if (txn.getKind().equals(DEPOSIT.toString())) {
-      response = Sep24Helper.fromDepositTxn(jwtService, sep24Config, txn, true);
+      response = Sep24Helper.fromDepositTxn(jwtService, sep24Config, txn, lang, true);
     } else if (txn.getKind().equals(WITHDRAWAL.toString())) {
-      response = Sep24Helper.fromWithdrawTxn(jwtService, sep24Config, txn, true);
+      response = Sep24Helper.fromWithdrawTxn(jwtService, sep24Config, txn, lang, true);
     } else {
       throw new SepException(String.format("unsupported txn kind:%s", txn.getKind()));
     }
@@ -359,6 +378,7 @@ public class Sep24Service {
       String op,
       JwtToken token,
       HashMap<String, String> sep9Fields,
+      String lang,
       String assetCode,
       String amount,
       String txnId)
@@ -382,6 +402,11 @@ public class Sep24Service {
     if (amount != null) {
       builder.addParameter("amount", amount);
     }
+
+    if (lang != null) {
+      builder.addParameter("lang", lang);
+    }
+
     // Add Sep9 fields to url
     sep9Fields.forEach(builder::addParameter);
 

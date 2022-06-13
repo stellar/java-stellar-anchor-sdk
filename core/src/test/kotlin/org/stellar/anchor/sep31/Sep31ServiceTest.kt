@@ -353,15 +353,9 @@ internal class Sep31ServiceTest {
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("amount should be positive", ex.message)
 
-    // unsupported language
-    postTxRequest.amount = "100"
-    postTxRequest.lang = "es"
-    ex = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
-    assertInstanceOf(SepValidationException::class.java, ex)
-    assertEquals("unsupported language: es", ex.message)
-
     // missing required fields
-    postTxRequest.lang = null
+    postTxRequest.lang = "en"
+    postTxRequest.amount = "1"
     ex = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("'fields' field cannot be empty", ex.message)
