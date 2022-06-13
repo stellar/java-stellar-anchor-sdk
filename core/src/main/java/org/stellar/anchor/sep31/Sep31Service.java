@@ -6,6 +6,7 @@ import static org.stellar.anchor.util.Log.*;
 import static org.stellar.anchor.util.MathHelper.decimal;
 import static org.stellar.anchor.util.MathHelper.formatAmount;
 import static org.stellar.anchor.util.SepHelper.*;
+import static org.stellar.anchor.util.SepLanguageHelper.validateLanguage;
 
 import java.math.BigDecimal;
 import java.time.Instant;
