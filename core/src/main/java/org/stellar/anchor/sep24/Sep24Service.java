@@ -1,6 +1,24 @@
 package org.stellar.anchor.sep24;
 
+import static org.stellar.anchor.api.sep.SepTransactionStatus.INCOMPLETE;
+import static org.stellar.anchor.sep24.Sep24Transaction.Kind.DEPOSIT;
+import static org.stellar.anchor.sep24.Sep24Transaction.Kind.WITHDRAWAL;
+import static org.stellar.anchor.sep9.Sep9Fields.extractSep9Fields;
+import static org.stellar.anchor.util.Log.shorter;
+import static org.stellar.anchor.util.MathHelper.decimal;
+import static org.stellar.anchor.util.MemoHelper.makeMemo;
+import static org.stellar.anchor.util.MemoHelper.memoType;
+import static org.stellar.anchor.util.SepHelper.generateSepTransactionId;
+import static org.stellar.anchor.util.SepHelper.memoTypeString;
+import static org.stellar.anchor.util.SepLanguageHelper.validateLanguage;
+
 import com.google.gson.Gson;
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.time.Instant;
+import java.util.*;
 import org.apache.http.client.utils.URIBuilder;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.exception.SepNotAuthorizedException;
@@ -16,25 +34,6 @@ import org.stellar.anchor.sep10.JwtToken;
 import org.stellar.anchor.util.Log;
 import org.stellar.sdk.KeyPair;
 import org.stellar.sdk.Memo;
-
-import java.io.IOException;
-import java.net.MalformedURLException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.time.Instant;
-import java.util.*;
-
-import static org.stellar.anchor.api.sep.SepTransactionStatus.INCOMPLETE;
-import static org.stellar.anchor.sep24.Sep24Transaction.Kind.DEPOSIT;
-import static org.stellar.anchor.sep24.Sep24Transaction.Kind.WITHDRAWAL;
-import static org.stellar.anchor.sep9.Sep9Fields.extractSep9Fields;
-import static org.stellar.anchor.util.Log.shorter;
-import static org.stellar.anchor.util.MathHelper.decimal;
-import static org.stellar.anchor.util.MemoHelper.memoType;
-import static org.stellar.anchor.util.MemoHelper.makeMemo;
-import static org.stellar.anchor.util.SepHelper.generateSepTransactionId;
-import static org.stellar.anchor.util.SepHelper.memoTypeString;
-import static org.stellar.anchor.util.SepLanguageHelper.validateLanguage;
 
 public class Sep24Service {
   final Gson gson;
