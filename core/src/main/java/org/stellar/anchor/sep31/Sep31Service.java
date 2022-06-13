@@ -95,7 +95,7 @@ public class Sep31Service {
     }
     validateRequiredFields(assetInfo.getCode(), request.getFields().getTransaction());
     validateSenderAndReceiver();
-    preValidateQuote();
+    preValidateQuote(assetInfo.getSep31().isQuotesRequired());
 
     // Query the fee
     updateFee();
@@ -306,8 +306,12 @@ public class Sep31Service {
     }
   }
 
-  void preValidateQuote() throws AnchorException {
+  void preValidateQuote(boolean isQuotesRequired) throws AnchorException {
     Sep31PostTransactionRequest request = Context.get().getRequest();
+
+    if (isQuotesRequired && request.getQuoteId() == null) {
+      throw new BadRequestException("quotes_required is set to true; quote id cannot be empty");
+    }
 
     // Check if quote is provided.
     if (request.getQuoteId() == null) {

@@ -651,4 +651,40 @@ internal class Sep31ServiceTest {
         .build()
     assertEquals(wantResponse, gotResponse)
   }
+
+@Test
+fun test_postTransaction_withoutQuote_quoteRequired() {
+  Sep31Service.Context.get().setAsset(asset)
+  val senderId = "d2bd1412-e2f6-4047-ad70-a1a2f133b25c"
+  val receiverId = "137938d4-43a7-4252-a452-842adcee474c"
+  val postTxRequest = Sep31PostTransactionRequest()
+  postTxRequest.amount = "100"
+  postTxRequest.assetCode = "USDC"
+  postTxRequest.assetIssuer = "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+  postTxRequest.senderId = senderId
+  postTxRequest.receiverId = receiverId
+  postTxRequest.fields =
+          Sep31TxnFields(
+                  hashMapOf(
+                          "receiver_account_number" to "1",
+                          "type" to "1",
+                          "receiver_routing_number" to "SWIFT",
+                  )
+          )
+
+  // Make sure we can get the sender and receiver customers
+  every { customerIntegration.getCustomer(any()) } returns Sep12GetCustomerResponse()
+
+  // POST transaction
+  val jwtToken = TestHelper.createJwtToken()
+  val ex: AnchorException = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
+  assertInstanceOf(BadRequestException::class.java, ex)
+  assertEquals("quotes_required is set to true; quote id cannot be empty", ex.message)
+
+  // verify if the mocks were called
+  var request = Sep12GetCustomerRequest.builder().id(senderId).build()
+  verify(exactly = 1) { customerIntegration.getCustomer(request) }
+  request = Sep12GetCustomerRequest.builder().id(receiverId).build()
+  verify(exactly = 1) { customerIntegration.getCustomer(request) }
+}
 }
