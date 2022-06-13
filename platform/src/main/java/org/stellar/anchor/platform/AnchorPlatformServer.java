@@ -31,10 +31,6 @@ import org.stellar.anchor.util.GsonUtils;
 @EnableConfigurationProperties
 public class AnchorPlatformServer implements WebMvcConfigurer {
 
-  public static void main(String[] args) {
-    start(8080, "/");
-  }
-
   public static ConfigurableApplicationContext start(
       int port, String contextPath, Map<String, Object> environment) {
     SpringApplicationBuilder builder =
