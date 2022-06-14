@@ -218,7 +218,7 @@ public interface Sep24Transaction {
   /**
    * Amount sent by anchor to user at end of transaction as a string with up to 7 decimals. Excludes amount converted to XLM to fund account and any external fees.
    *
-   * @return <code>amount_out<code> field of the SEP-24 transaction history.
+   * @return <code>amount_out</code> field of the SEP-24 transaction history.
    */
   String getAmountOut();
 
