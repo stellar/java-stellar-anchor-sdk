@@ -48,11 +48,11 @@ public class Sep24Helper {
     JwtToken token =
         JwtToken.of(
             "moreInfoUrl",
-            txn.getStellarAccount(),
+            txn.getSep10Account(),
             Instant.now().getEpochSecond(),
             Instant.now().getEpochSecond() + sep24Config.getInteractiveJwtExpiration(),
             txn.getTransactionId(),
-            txn.getDomainClient());
+            txn.getClientDomain());
 
     URI uri = new URI(sep24Config.getInteractiveUrl());
 
@@ -84,6 +84,10 @@ public class Sep24Helper {
     BeanUtils.copyProperties(txn, txnR);
 
     txnR.setId(txn.getTransactionId());
+    txnR.setDepositMemo(txn.getMemo());
+    txnR.setDepositMemoType(txn.getMemoType());
+    txnR.setFrom(txn.getFromAccount());
+    txnR.setTo(txn.getToAccount());
     txnR.setDepositMemo(txn.getMemo());
     txnR.setDepositMemoType(txn.getMemoType());
 
@@ -118,11 +122,11 @@ public class Sep24Helper {
         (txn.getCompletedAt() == null) ? null : DateUtil.toISO8601UTC(txn.getCompletedAt()));
     txnR.setId(txn.getTransactionId());
     txnR.setFrom(txn.getFromAccount());
-    txnR.setTo(txn.getReceivingAnchorAccount());
+    txnR.setTo(txn.getToAccount());
 
     txnR.setWithdrawMemo(txn.getMemo());
     txnR.setWithdrawMemoType(txn.getMemoType());
-    txnR.setWithdrawAnchorAccount(txn.getReceivingAnchorAccount());
+    txnR.setWithdrawAnchorAccount(txn.getWithdrawAnchorAccount());
 
     if (allowMoreInfoUrl && needsMoreInfoUrlWithdraw.contains(txn.getStatus())) {
       txnR.setMoreInfoUrl(constructMoreInfoUrl(jwtService, sep24Config, txn, lang));
