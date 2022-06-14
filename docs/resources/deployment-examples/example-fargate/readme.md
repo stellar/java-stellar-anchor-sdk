@@ -1,21 +1,10 @@
-# Terraform Cloud, EKS, Kubernetes, Helm with Kafka Event Queue (AWS MSK)
-This documentation will configure AWS Infrastructure, Anchor Platform and a sample Receiving Anchor Application. Once deployed you can run the Anchor Validator tool to verify SEP-31 Compliance. The following will be deployed via Terraform:
+# Deployment of Anchor Platform and Receiving Anchor Example Reference Server with Terraform Cloud, AWS ECS/Fargate, SQS
+This documentation will configure AWS Infrastructure, Anchor Platform and a sample Receiving Anchor Application using AWS Fargate. Once deployed you can run the Anchor Validator tool to verify SEP-31 Compliance. The following will be deployed via Terraform:
 - Network
-  - [AWS VPC and Subnets](terraform/vpc.tf)
-  - Public and Private Subnets
-  - Security Groups
-  - [Route53 Hosted Zone](terraform/route53.tf), including Public and Internal CNAMES
-- Kubernetes
-  - [Amazon EKS](terraform/eks-cluster.tf) Cluster
-  - [Nginx Public Ingress Controller](terraform/nginx-release.tf) (ELB for SEP Server)
-  - [AWS Load Balancer Controller Add-on](terraform/internal-aws-lb-controller-release.tf_)] (internal ELB for Reference Server) 
-  - [Helm Charts for Anchor Platform](terraform/anchor-platform-sep-server-release.tf)] Kubernetes (Sep Server) deployment
-  -[Helm Charts for Reference Server](terraform/anchor-platform-reference-server-release.tf) (Receiving Anchor Sample Application) 
-  - [Cert-Manager](terraform/anchor-platform-cert-manager.tf) and LetsEncrypt front-end certificate
-- Event Queue
-  - [Amazon MSK Cluster](terraform/kafka.tf) for event notification 
-
- ![AWS Architecture](images/aws.png)
+  - [AWS VPC, Public/Private Subnets] (terraform/vpc.tf)
+  - [AWS ECS Fargate](terraform/ecs.tf)
+  - [Route53 and AWS ACM Certificates](terraform/route53.tf), including Public and Internal CNAMES
+  - [Amazon SQS](terraform/sqs.tf) Event Queue
 
 # Steps
 1. Pre-requisites
@@ -32,5 +21,3 @@ This documentation will configure AWS Infrastructure, Anchor Platform and a samp
    2. Run Terraform Apply
 4. Run [Stellar Anchor Validation Tool][https://anchor-tests.stellar.org/) to verify your deployment.
 
-# Known Issues
-Known issues are tagged with [label:example-eks](https://github.com/orgs/stellar/projects/24/views/5?filterQuery=label%3A%22example-eks%22_).
