@@ -79,6 +79,10 @@ subprojects {
     testAnnotationProcessor("org.projectlombok:lombok:1.18.22")
   }
 
+  /**
+   * This is to fix the Windows default cp-1252 character encoding that may potentially cause
+   * compilation error
+   */
   tasks.compileJava { options.encoding = "UTF-8" }
 
   tasks.compileTestJava { options.encoding = "UTF-8" }
