@@ -120,8 +120,8 @@ public class Sep24Service {
             .assetCode(assetCode)
             .assetIssuer(withdrawRequest.get("asset_issuer"))
             .startedAt(Instant.now().getEpochSecond())
-            .stellarAccount(token.getAccount())
-            .stellarAccountMemo(token.getAccountMemo())
+            .sep10Account(token.getAccount())
+            .sep10AccountMemo(token.getAccountMemo())
             .fromAccount(sourceAccount)
             .clientDomain(token.getClientDomain());
 
@@ -228,8 +228,8 @@ public class Sep24Service {
             .assetCode(assetCode)
             .assetIssuer(depositRequest.get("asset_issuer"))
             .startedAt(Instant.now().getEpochSecond())
-            .stellarAccount(token.getAccount())
-            .stellarAccountMemo(token.getAccountMemo())
+            .sep10Account(token.getAccount())
+            .sep10AccountMemo(token.getAccountMemo())
             .toAccount(destinationAccount)
             .clientDomain(token.getClientDomain())
             .claimableBalanceSupported(claimableSupported);
