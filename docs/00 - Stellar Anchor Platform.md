@@ -43,9 +43,18 @@ Here are the important terminology used in this project:
   - Calculate conversion rates between two assets.
   - Create or update a customer account.
   - Notify the Anchor about an incoming payment.
+- **Anchor Reference Server**: an Anchor Server implementation that is shipped as part of this repository for testing purposes.
 - **Callback API (`Sync Platform->Anchor`)**: a syncronous API that the Platform will use to gather a business-specific data from the Anchor Server, in order to perform a SEP-compliant operation (like exchange rate or user registration, for instance)
 - **Events Queue (`Async Platform->Anchor`)**: an asyncronous communication venue that the Platform will use to notify the Anchor Server about a pending action, like an income payment that needs to be processed.
 - **Platform API (`Sync Anchor->Platform`)**: a syncronous API that the Anchor can use to fetch information (e.g. transactions or quotes) and also update transactions stored in the Platform database.
+- **[SEPs]**: it means Stellar Ecosystem Proposals and refers to standards that are used by Stellar ecosystem participants to achieve interoperability in the network. The ones implemented by this project are:
+  | Standard |                                  Description                                   | Configurable | Interacts with Anchor Server | Supported by the Platform API | Supported by the SDK |
+  | :------: | :----------------------------------------------------------------------------: | :----------: | :--------------------------: | :---------------------------: | :------------------: |
+  | [SEP-10] |                            Handles authentication.                             |     YES      |              NO              |              YES              |         YES          |
+  | [SEP-12] |                                  Handles KYC.                                  |     YES      |             YES              |              YES              |         YES          |
+  | [SEP-24] |       Handles deposit & withrawal of assets in/out the Stellar network.        |     YES      |              NO              |              No               |         YES          |
+  | [SEP-31] | Used for international remittances. **Only the receiver side is implemented.** |     YES      |             YES              |              YES              |         YES          |
+  | [SEP-38] |                Used for [rfq] **in conjunction with [SEP-31]**.                |     YES      |             YES              |              YES              |         YES          |
 
 ## Microservices
 
@@ -89,4 +98,9 @@ To learn how to run and configure this project, please refer to [01.A - Running 
 Please refer to our [0.2.A - CONTRIBUTING](/docs/02%20-%20Contributing/A%20-%20CONTRIBUTING.md) guide for more information on how to contribute to this project.
 
 [SEPs]: https://github.com/stellar/stellar-protocol/tree/master/ecosystem
+[SEP-10]: https://stellar.org/protocol/sep-10
+[SEP-12]: https://stellar.org/protocol/sep-12
+[SEP-24]: https://stellar.org/protocol/sep-24
 [SEP-31]: https://stellar.org/protocol/sep-31
+[SEP-38]: https://stellar.org/protocol/sep-38
+[rfq]: https://en.wikipedia.org/wiki/Request_for_quotation
