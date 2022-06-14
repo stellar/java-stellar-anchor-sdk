@@ -4,9 +4,7 @@ This documentation will configure AWS Infrastructure, Anchor Platform and a samp
   - [AWS VPC, Public/Private Subnets] (terraform/vpc.tf)
   - [AWS ECS Fargate](terraform/ecs.tf)
   - [Route53 and AWS ACM Certificates](terraform/route53.tf), including Public and Internal CNAMES
-  - [Amazon SQS](terraform/sqs.tf) Cluster
-- Event Queue
-  - [Amazon MSK Cluster](terraform/kafka.tf) for event notification 
+  - [Amazon SQS](terraform/sqs.tf) Event Queue
 
 # Steps
 1. Pre-requisites
