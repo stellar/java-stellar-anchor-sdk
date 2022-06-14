@@ -58,6 +58,7 @@ open class ConfiguratorTest {
     val applicationContext = AnnotationConfigApplicationContext()
     val propertiesReader = spyk<PropertiesReader>(recordPrivateCalls = true)
 
+    every { propertiesReader.fromUserFolder } returns File("not exist")
     every { propertiesReader.getFromSystemEnv() } returns "classpath:test-read.yaml"
     assertDoesNotThrow { propertiesReader.initialize(applicationContext) }
     verify(exactly = 1) { propertiesReader.getFromSystemEnv() }
