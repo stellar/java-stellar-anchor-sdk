@@ -108,7 +108,11 @@ public class Sep12Controller {
     JwtToken jwtToken = getSep10Token(request);
     String memo = body != null ? body.getMemo() : null;
     String memoType = body != null ? body.getMemoType() : null;
-    debugF("DELETE /customer requestURI={} account={} body={}", request.getRequestURI(), account, body);
+    debugF(
+        "DELETE /customer requestURI={} account={} body={}",
+        request.getRequestURI(),
+        account,
+        body);
     sep12Service.deleteCustomer(jwtToken, account, memo, memoType);
   }
 
