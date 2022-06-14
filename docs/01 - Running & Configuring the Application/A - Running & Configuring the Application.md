@@ -13,8 +13,6 @@
   - [Running the Application from Docker](#running-the-application-from-docker)
   - [Incoming Payments Observer](#incoming-payments-observer)
 
-> Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc.go)
-
 ## Running the Application from Source Code
 
 This section covers how to run the application from source code using the provided Kafka docker image configuration, the Anchor Reference server and the secrets provided in the demo configuration files.

@@ -29,7 +29,7 @@ The full documentation can be found under the [`docs` directory](/docs), under t
 - [03 - Implementing the Anchor Server](/docs/03%20-%20Implementing%20the%20Anchor%20Server) `// TODO`
 - [04 - Subprojects Usage](/docs/04%20-%20Subprojects%20Usage) `// TODO`
 
-## Glossary
+## Definitions
 
 Here are the important terminology used in this project:
 
