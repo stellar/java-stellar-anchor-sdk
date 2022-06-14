@@ -83,7 +83,7 @@ public class Sep12Controller {
       method = {RequestMethod.POST, RequestMethod.PUT},
       consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
   public Sep12PutCustomerResponse putCustomerMultipart(HttpServletRequest request) {
-    debug("PUT /customer multipart details:", request);
+    debug("PUT /customer multipart body:", request.getParameterMap());
     Gson gson = GsonUtils.getInstance();
     Map<String, String> requestData = new HashMap<>();
     for (Map.Entry<String, String[]> entry : request.getParameterMap().entrySet()) {
@@ -108,7 +108,7 @@ public class Sep12Controller {
     JwtToken jwtToken = getSep10Token(request);
     String memo = body != null ? body.getMemo() : null;
     String memoType = body != null ? body.getMemoType() : null;
-    debugF("DELETE /customer request={} account={} body={}", request, account, body);
+    debugF("DELETE /customer requestURI={} account={} body={}", request.getRequestURI(), account, body);
     sep12Service.deleteCustomer(jwtToken, account, memo, memoType);
   }
 
@@ -124,7 +124,7 @@ public class Sep12Controller {
       @RequestParam(required = false) String memo,
       @RequestParam(required = false, name = "memo_type") String memoType) {
     JwtToken jwtToken = getSep10Token(request);
-    debugF("DELETE /customer request={} account={}", request, account);
+    debugF("DELETE /customer requestURI={} account={}", request.getRequestURI(), account);
     sep12Service.deleteCustomer(jwtToken, account, memo, memoType);
   }
 }
