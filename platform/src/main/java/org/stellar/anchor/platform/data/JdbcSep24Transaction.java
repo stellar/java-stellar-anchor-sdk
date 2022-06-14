@@ -86,4 +86,14 @@ public class JdbcSep24Transaction implements Sep24Transaction, SepTransaction {
         .filter(p -> p instanceof JdbcSep24RefundPayment)
         .forEach(fp -> refundPayments.add((JdbcSep24RefundPayment) fp));
   }
+
+  @Override
+  public String getId() {
+    return jdbcId.toString();
+  }
+
+  @Override
+  public void setId(String id) {
+    jdbcId = UUID.fromString(id);
+  }
 }
