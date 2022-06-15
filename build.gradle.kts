@@ -58,7 +58,9 @@ subprojects {
     implementation("org.springframework.cloud:spring-cloud-aws-messaging:2.2.6.RELEASE")
     implementation("org.postgresql:postgresql:42.3.5")
     implementation("org.liquibase:liquibase-core:4.10.0")
-
+    implementation("org.springframework.boot:spring-boot-starter-actuator:2.7.0")
+    implementation("io.micrometer:micrometer-registry-prometheus:1.9.0")
+    implementation("org.springframework.boot:spring-boot-starter-aop:2.7.0")
 
     // The common dependencies are declared here because we would like to have a uniform unit
     // testing across all subprojects.

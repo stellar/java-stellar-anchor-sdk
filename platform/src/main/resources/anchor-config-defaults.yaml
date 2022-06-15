@@ -74,7 +74,6 @@ app-config:
     assets: classpath:/assets-test.json
 
     # The secret key of JWT encryption
-    # TODO: Move the secret to a separate secret management module.
     jwtSecretKey: ${JWT_SECRET}
 
   # sep-1

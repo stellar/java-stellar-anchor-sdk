@@ -23,6 +23,8 @@ import org.stellar.anchor.platform.configurator.DataAccessConfigurator;
 import org.stellar.anchor.platform.configurator.PlatformAppConfigurator;
 import org.stellar.anchor.platform.configurator.PropertiesReader;
 import org.stellar.anchor.platform.configurator.SpringFrameworkConfigurator;
+import org.stellar.anchor.platform.data.JdbcSep31TransactionStore;
+import org.stellar.anchor.platform.service.MetricEmitterService;
 import org.stellar.anchor.util.GsonUtils;
 
 @SpringBootApplication
@@ -42,8 +44,9 @@ public class AnchorPlatformServer implements WebMvcConfigurer {
             .bannerMode(OFF)
             .properties(
                 "spring.mvc.converters.preferred-json-mapper=gson",
-                //this allows a developer to use a .env file for local development
+                // this allows a developer to use a .env file for local development
                 "spring.config.import=optional:classpath:example.env[.properties]",
+                "management.endpoints.web.exposure.include=health,info,prometheus",
                 String.format("server.port=%d", port),
                 String.format("server.contextPath=%s", contextPath));
     if (environment != null) {
@@ -86,5 +89,10 @@ public class AnchorPlatformServer implements WebMvcConfigurer {
         throw new RuntimeException(
             String.format("Invalid event publisher: %s", eventConfig.getPublisherType()));
     }
+  }
+
+  @Bean
+  public MetricEmitterService metricService(JdbcSep31TransactionStore sep31TransactionStore) {
+    return new MetricEmitterService(sep31TransactionStore);
   }
 }

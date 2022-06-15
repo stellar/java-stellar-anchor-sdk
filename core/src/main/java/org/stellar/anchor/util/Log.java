@@ -3,6 +3,7 @@ package org.stellar.anchor.util;
 import com.google.gson.ExclusionStrategy;
 import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
+import io.micrometer.core.instrument.Metrics;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.lang.reflect.Method;
@@ -20,6 +21,8 @@ public class Log {
   static {
     LogExclusionStrategy strategy = new LogExclusionStrategy();
     gson = GsonUtils.builder().setExclusionStrategies(strategy).create();
+    Metrics.counter("logger", "type", "error");
+    Metrics.counter("logger", "type", "warning");
   }
 
   /**
@@ -69,6 +72,7 @@ public class Log {
   public static void error(final String msg) {
     Logger logger = getLogger();
     logger.error(msg);
+    Metrics.counter("logger", "type", "error").increment();
   }
 
   /**
@@ -79,6 +83,7 @@ public class Log {
    */
   public static void error(final String message, final Object detail) {
     logMessageWithJson(message, detail, getLogger()::error);
+    Metrics.counter("logger", "type", "error").increment();
   }
 
   /**
@@ -88,6 +93,7 @@ public class Log {
    */
   public static void error(final Object detail) {
     logMessageWithJson(null, detail, getLogger()::error);
+    Metrics.counter("logger", "type", "error").increment();
   }
 
   /**
@@ -97,6 +103,7 @@ public class Log {
    */
   public static void errorEx(final Throwable ex) {
     errorEx(null, ex);
+    Metrics.counter("logger", "type", "error").increment();
   }
 
   /**
@@ -113,6 +120,7 @@ public class Log {
     }
     ex.printStackTrace(pw);
     logger.error(sw.toString());
+    Metrics.counter("logger", "type", "error").increment();
   }
 
   /**
@@ -124,6 +132,7 @@ public class Log {
   public static void errorF(final String format, final Object... args) {
     Logger logger = getLogger();
     logger.error(format, args);
+    Metrics.counter("logger", "type", "error").increment();
   }
 
   /**
@@ -224,7 +233,9 @@ public class Log {
    * @param message The message
    */
   public static void warn(final String message) {
+
     logMessageWithJson(message, null, getLogger()::warn);
+    Metrics.counter("logger", "type", "warn").increment();
   }
 
   /**
@@ -235,6 +246,7 @@ public class Log {
    */
   public static void warn(final String message, Object detail) {
     logMessageWithJson(message, detail, getLogger()::warn);
+    Metrics.counter("logger", "type", "warn").increment();
   }
 
   /**
@@ -244,6 +256,7 @@ public class Log {
    */
   public static void warn(final Object detail) {
     logMessageWithJson(null, detail, getLogger()::warn);
+    Metrics.counter("logger", "type", "warn").increment();
   }
 
   /**
@@ -257,6 +270,7 @@ public class Log {
     PrintWriter pw = new PrintWriter(sw);
     ex.printStackTrace(pw);
     logger.warn(sw.toString());
+    Metrics.counter("logger", "type", "warn").increment();
   }
 
   /**
@@ -268,6 +282,7 @@ public class Log {
   public static void warnF(final String format, final Object... args) {
     Logger logger = getLogger();
     logger.warn(format, args);
+    Metrics.counter("logger", "type", "warn").increment();
   }
 
   static Logger getLogger() {
