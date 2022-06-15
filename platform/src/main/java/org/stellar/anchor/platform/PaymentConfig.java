@@ -3,6 +3,8 @@ package org.stellar.anchor.platform;
 import java.util.List;
 import java.util.stream.Collectors;
 import okhttp3.OkHttpClient;
+import org.springframework.boot.autoconfigure.AutoConfigureOrder;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.stellar.anchor.api.exception.ServerErrorException;
@@ -10,15 +12,27 @@ import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.CirclePaymentObserverConfig;
+import org.stellar.anchor.event.EventPublishService;
 import org.stellar.anchor.horizon.Horizon;
+import org.stellar.anchor.platform.data.JdbcSep31TransactionStore;
 import org.stellar.anchor.platform.paymentobserver.CirclePaymentObserverService;
 import org.stellar.anchor.platform.paymentobserver.PaymentListener;
 import org.stellar.anchor.platform.paymentobserver.PaymentStreamerCursorStore;
 import org.stellar.anchor.platform.paymentobserver.StellarPaymentObserver;
+import org.stellar.anchor.platform.service.PaymentOperationToEventListener;
 
 @Configuration
+@AutoConfigureOrder(3)
 public class PaymentConfig {
   @Bean
+  @ConditionalOnClass(EventPublishService.class)
+  public PaymentListener paymentOperationToEventListener(
+      JdbcSep31TransactionStore transactionStore, EventPublishService eventService) {
+    return new PaymentOperationToEventListener(transactionStore, eventService);
+  }
+
+  @Bean
+  @ConditionalOnClass(PaymentListener.class)
   public StellarPaymentObserver stellarPaymentObserverService(
       AssetService assetService,
       List<PaymentListener> paymentListeners,
@@ -69,6 +83,7 @@ public class PaymentConfig {
   }
 
   @Bean
+  @ConditionalOnClass(PaymentListener.class)
   public CirclePaymentObserverService circlePaymentObserverService(
       OkHttpClient httpClient,
       CirclePaymentObserverConfig circlePaymentObserverConfig,

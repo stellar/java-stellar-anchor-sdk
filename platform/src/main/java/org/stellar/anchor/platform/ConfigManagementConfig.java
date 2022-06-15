@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform;
 
+import org.springframework.boot.autoconfigure.AutoConfigureOrder;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,6 +14,7 @@ import org.stellar.anchor.paymentservice.circle.config.CirclePaymentConfig;
 import org.stellar.anchor.platform.config.*;
 
 @Configuration
+@AutoConfigureOrder(1)
 public class ConfigManagementConfig {
   @Bean
   @ConfigurationProperties(prefix = "app")

@@ -1,6 +1,7 @@
 package org.stellar.anchor.platform.controller;
 
 import java.util.List;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.web.bind.annotation.*;
 import org.stellar.anchor.api.platform.HealthCheckResponse;
 import org.stellar.anchor.platform.service.HealthCheckService;
@@ -8,6 +9,7 @@ import org.stellar.anchor.platform.service.HealthCheckService;
 @RestController
 @CrossOrigin(origins = "*")
 @RequestMapping(value = "/health")
+@DependsOn("healthCheckService")
 public class HealthController {
   HealthCheckService healthCheckService;
 

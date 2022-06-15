@@ -11,6 +11,7 @@ import org.springframework.boot.env.YamlPropertySourceLoader;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.env.ConfigurableEnvironment;
 import org.springframework.core.env.MapPropertySource;
 import org.springframework.core.env.PropertySource;
 import org.springframework.core.io.ClassPathResource;
@@ -23,13 +24,14 @@ public class PropertiesReader extends AbstractConfigurator
   @SneakyThrows
   @Override
   public void initialize(@NotNull ConfigurableApplicationContext applicationContext) {
+    String yamlLocation = applicationContext.getEnvironment().getProperty("stellar.anchor.config");
+
     // Load default values
-    loadConfigYaml(new ClassPathResource("anchor-config-defaults.yaml"));
+    loadConfigYaml(applicationContext, new ClassPathResource("anchor-config-defaults.yaml"));
 
     // If stellar.anchor.config is specified in Spring application properties, use it.
     // This is mainly for the purpose of integration test where we may inject the configuration yaml
     // file from the test resource.
-    String yamlLocation = applicationContext.getEnvironment().getProperty("stellar.anchor.config");
     if (yamlLocation != null) {
       loadConfigYaml(applicationContext, yamlLocation);
       return;
@@ -45,7 +47,7 @@ public class PropertiesReader extends AbstractConfigurator
     // Read from $USER_HOME/.anchor/anchor-config.yaml
     File yamlFile = getFromUserFolder();
     if (yamlFile.exists()) {
-      loadConfigYaml(new FileSystemResource(yamlFile));
+      loadConfigYaml(applicationContext, new FileSystemResource(yamlFile));
       return;
     }
 
@@ -77,16 +79,19 @@ public class PropertiesReader extends AbstractConfigurator
     if (!resource.exists()) {
       throw new IOException("Resource not found");
     }
-    loadConfigYaml(resource);
+    loadConfigYaml(applicationContext, resource);
   }
 
-  void loadConfigYaml(Resource resource) throws IOException {
+  void loadConfigYaml(ApplicationContext applicationContext, Resource resource) throws IOException {
     Properties flattenedProperty = getFlatProperties();
 
     YamlPropertySourceLoader loader = new YamlPropertySourceLoader();
     List<PropertySource<?>> sources = loader.load("yaml", resource);
 
+    ConfigurableEnvironment environment =
+        (ConfigurableEnvironment) applicationContext.getEnvironment();
     for (PropertySource<?> source : sources) {
+      environment.getPropertySources().addFirst(source);
       MapPropertySource mapPropertySource = (MapPropertySource) source;
       for (Map.Entry<String, Object> entry : mapPropertySource.getSource().entrySet()) {
         flattenedProperty.put(entry.getKey(), entry.getValue().toString());

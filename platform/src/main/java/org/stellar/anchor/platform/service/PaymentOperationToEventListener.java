@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import org.apache.commons.codec.DecoderException;
-import org.springframework.stereotype.Component;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
@@ -26,12 +25,11 @@ import org.stellar.anchor.util.Log;
 import org.stellar.anchor.util.MemoHelper;
 import org.stellar.sdk.xdr.MemoType;
 
-@Component
 public class PaymentOperationToEventListener implements PaymentListener {
   final JdbcSep31TransactionStore transactionStore;
   final EventPublishService eventService;
 
-  PaymentOperationToEventListener(
+  public PaymentOperationToEventListener(
       JdbcSep31TransactionStore transactionStore, EventPublishService eventService) {
     this.transactionStore = transactionStore;
     this.eventService = eventService;

@@ -37,7 +37,7 @@ open class ConfiguratorTest {
   }
 
   @Test
-  fun testReadFromUserFolder() {
+  fun testReadFromUserFolder_fileExists() {
     val applicationContext = AnnotationConfigApplicationContext()
     val propertiesReader = spyk<PropertiesReader>(recordPrivateCalls = true)
 
@@ -46,15 +46,21 @@ open class ConfiguratorTest {
     assertDoesNotThrow { propertiesReader.initialize(applicationContext) }
     verify(exactly = 1) { propertiesReader.getFromUserFolder() }
     loadConfigurations(applicationContext)
+  }
+
+  @Test
+  fun testReadFromUserFolder_nonExistentFileDefaultsToEnv() {
+    val applicationContext = AnnotationConfigApplicationContext()
+    val propertiesReader = spyk<PropertiesReader>(recordPrivateCalls = true)
 
     every { propertiesReader.getFromUserFolder() } returns File("bad file")
     assertDoesNotThrow { propertiesReader.initialize(applicationContext) }
-    verify(exactly = 2) { propertiesReader.getFromUserFolder() }
+    verify(exactly = 1) { propertiesReader.getFromUserFolder() }
     loadConfigurations(applicationContext)
   }
 
   @Test
-  fun testGetFromSystemEnv() {
+  fun testGetFromSystemEnv_fileExists() {
     val applicationContext = AnnotationConfigApplicationContext()
     val propertiesReader = spyk<PropertiesReader>(recordPrivateCalls = true)
 
@@ -63,12 +69,18 @@ open class ConfiguratorTest {
     assertDoesNotThrow { propertiesReader.initialize(applicationContext) }
     verify(exactly = 1) { propertiesReader.getFromSystemEnv() }
     loadConfigurations(applicationContext)
+  }
+
+  @Test
+  fun testGetFromSystemEnv_nonExistentFileDefaultsToEnv() {
+    val applicationContext = AnnotationConfigApplicationContext()
+    val propertiesReader = spyk<PropertiesReader>(recordPrivateCalls = true)
 
     every { propertiesReader.getFromSystemEnv() } returns "bad file path"
     val ex = assertThrows<IOException> { propertiesReader.initialize(applicationContext) }
     assertInstanceOf(IOException::class.java, ex)
     assertEquals("Resource not found", ex.message)
-    verify(exactly = 2) { propertiesReader.getFromSystemEnv() }
+    verify(exactly = 1) { propertiesReader.getFromSystemEnv() }
   }
 
   @Test

@@ -1,12 +1,14 @@
 package org.stellar.anchor.platform.service;
 
 import java.util.List;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Service;
 import org.stellar.anchor.api.platform.HealthCheckResponse;
 import org.stellar.anchor.healthcheck.HealthCheckProcessor;
 import org.stellar.anchor.healthcheck.HealthCheckable;
 
 @Service
+@DependsOn("eventService")
 public class HealthCheckService {
   HealthCheckProcessor processor;
 
