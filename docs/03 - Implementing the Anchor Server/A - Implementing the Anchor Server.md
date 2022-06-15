@@ -4,7 +4,10 @@
   - [Pre-requisites](#pre-requisites)
   - [Testing Tools](#testing-tools)
   - [Step-by-step Anchor Server Implementation](#step-by-step-anchor-server-implementation)
-    - [Step 1 - Run the project with the Anchor Demo Server](#step-1---run-the-project-with-the-anchor-demo-server)
+    - [Step 1 - Run the project with the Anchor Reference Server](#step-1---run-the-project-with-the-anchor-reference-server)
+      - [Configuring Step 1](#configuring-step-1)
+      - [Running Step 1](#running-step-1)
+      - [Testing Step 1](#testing-step-1)
     - [Step 2 - Implement Authentication](#step-2---implement-authentication)
     - [Step 3 - Implement KYC](#step-3---implement-kyc)
     - [Step 4 - Implement The Remmitances Receiving Party Without Quotes](#step-4---implement-the-remmitances-receiving-party-without-quotes)
@@ -27,7 +30,7 @@ Before proceeding with this document, please make sure you understand the projec
 
 ## Testing Tools
 
-* [`anchor-tests`](https://www.npmjs.com/package/@stellar/anchor-tests), a.k.a. Anchor Validator:
+* [`anchor-tests`], a.k.a. Anchor Validator:
     * These are smoke tests that verify if the basics of the [SEPs] (interoperability protocols) are working correctly.
     * It can be run from the web interface (https://anchor-tests.stellar.org) or the [command line](https://github.com/stellar/java-stellar-anchor-sdk/blob/6a3db93ee0fb30dda3abaab79957c516bc9aa605/.github/workflows/build_and_test.yml#L90).
     * These tests depend on a successful integration between the Anchor Platform and your Anchor Server. This project shipped with an [Anchor Reference Server](/anchor-reference-server) that can be used for test purposes, but Anchors will be deploying their own Anchor Server containing their core business logic.
@@ -47,7 +50,27 @@ For each new increment in functionality you add to your Anchor Server, there are
 
 > Note: please consider the steps below are all on testnet. We’ll only explicitly suggest Public network in the latest step.
 
-### Step 1 - Run the project with the Anchor Demo Server
+### Step 1 - Run the project with the Anchor Reference Server
+
+This step is meant to guarantee you have the pre-requisites in place to start developing your own Anchor Server.
+
+#### Configuring Step 1
+
+This step will use the default configuration provided in this project, which are in the files [`anchor-config-defaults.yaml`] and [`anchor-reference-server.yaml`]. With that in mind, you don't need to modify anything there if you're deploying the system in tour local machine.
+
+#### Running Step 1
+
+Please follow the steps in [01.A - Running & Configuring the Application](/docs/01%20-%20Running%20%26%20Configuring%20the%20Application/A%20-%20Running%20%26%20Configuring%20the%20Application.md#running-the-application-from-source-code) to run the project with the Anchor Reference Server.
+
+#### Testing Step 1
+
+Proceed to test the project with the [`anchor-tests`] command line tool by running:
+
+```shell
+export HOME_DOMAIN = "http://localhost:8000"  # Platform Server endpoint
+export SEP_CONFIG = "platform/src/test/resources/stellar-anchor-tests-sep-config.json" # SEP configuration file. This file is in the project root but you can use your own.
+stellar-anchor-tests --home-domain $HOME_DOMAIN --seps 1 10 12 31 38 --sep-config $SEP_CONFIG
+```
 
 ### Step 2 - Implement Authentication
 
@@ -75,6 +98,9 @@ If you need quotes, skip to step 5
     
 ### Step 8 - Experiment with the Public Network
 
+[`anchor-config-defaults.yaml`]: /platform/src/main/resources/anchor-config-defaults.yaml
+[`anchor-reference-server.yaml`]: /anchor-reference-server/src/main/resources/anchor-reference-server.yaml
+[`anchor-tests`]: https://www.npmjs.com/package/@stellar/anchor-tests
 [SEPs]: https://github.com/stellar/stellar-protocol/tree/master/ecosystem
 [SEP-10]: https://stellar.org/protocol/sep-10
 [SEP-12]: https://stellar.org/protocol/sep-12
