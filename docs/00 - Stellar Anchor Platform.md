@@ -27,6 +27,7 @@ The full documentation can be found under the [`docs` directory](/docs), under t
   - [D - Database Migration](/docs/02%20-%20Contributing/D%20-%20Database%20Migration.md)
   - [E - Publishing the SDK](/docs/02%20-%20Contributing/E%20-%20Publishing%20the%20SDK.md)
 - [03 - Implementing the Anchor Server](/docs/03%20-%20Implementing%20the%20Anchor%20Server) `// TODO`
+  - [A - Implementing the Anchor Server](/docs/03%20-%20Implementing%20the%20Anchor%20Server/A%20-%20Implementing%20the%20Anchor%20Server.md)
 - [04 - Subprojects Usage](/docs/04%20-%20Subprojects%20Usage) `// TODO`
 
 ## Definitions
