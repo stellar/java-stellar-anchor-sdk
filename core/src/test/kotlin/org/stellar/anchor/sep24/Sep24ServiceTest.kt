@@ -83,16 +83,11 @@ internal class Sep24ServiceTest {
   }
 
   private fun createJwtToken(): JwtToken {
-    return TestHelper.createJwtToken(TEST_ACCOUNT, appConfig.hostUrl, TEST_CLIENT_DOMAIN)
+    return TestHelper.createJwtToken(TEST_ACCOUNT, null, appConfig.hostUrl, TEST_CLIENT_DOMAIN)
   }
 
   private fun createJwtWithMemo(): JwtToken {
-    return TestHelper.createJwtWithMemo(
-      TEST_ACCOUNT,
-      TEST_MEMO,
-      appConfig.hostUrl,
-      TEST_CLIENT_DOMAIN
-    )
+    return TestHelper.createJwtToken(TEST_ACCOUNT, TEST_MEMO, appConfig.hostUrl, TEST_CLIENT_DOMAIN)
   }
 
   @Test
