@@ -48,7 +48,9 @@ public class Sep24Helper {
     JwtToken token =
         JwtToken.of(
             "moreInfoUrl",
-            txn.getSep10Account(),
+            (txn.getSep10AccountMemo() == null || txn.getSep10AccountMemo().length() == 0)
+                ? txn.getSep10Account()
+                : txn.getSep10Account() + ":" + txn.getSep10AccountMemo(),
             Instant.now().getEpochSecond(),
             Instant.now().getEpochSecond() + sep24Config.getInteractiveJwtExpiration(),
             txn.getTransactionId(),

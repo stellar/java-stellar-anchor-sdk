@@ -47,7 +47,7 @@ internal class Sep10TokenFilterTest {
     this.mockFilterChain = mockk(relaxed = true)
 
     every { sep10Config.enabled } returns true
-    this.jwtToken = jwtService.encode(createJwtToken(PUBLIC_KEY, appConfig.hostUrl))
+    this.jwtToken = jwtService.encode(createJwtToken(PUBLIC_KEY, null, appConfig.hostUrl))
     every { request.getHeader("Authorization") } returns "Bearer $jwtToken"
   }
 
