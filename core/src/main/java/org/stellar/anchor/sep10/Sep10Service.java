@@ -57,8 +57,12 @@ public class Sep10Service {
           String.format("home_domain [%s] is not supported.", challengeRequest.getHomeDomain()));
     }
 
-    boolean omnibusWallet =
-        sep10Config.getOmnibusAccountList().contains(challengeRequest.getAccount().trim());
+    boolean omnibusWallet = false;
+    if (sep10Config.getOmnibusAccountList() != null) {
+      omnibusWallet =
+          sep10Config.getOmnibusAccountList().contains(challengeRequest.getAccount().trim());
+    }
+
     if (omnibusWallet) {
       if (challengeRequest.getClientDomain() != null) {
         throw new SepValidationException(

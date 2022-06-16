@@ -302,7 +302,7 @@ class AnchorPlatformIntegrationTest {
     assertEquals("http://localhost:8080", appConfig.hostUrl)
     assertEquals(listOf("en"), appConfig.languages)
     assertEquals("https://horizon-testnet.stellar.org", appConfig.horizonUrl)
-    assertEquals("classpath:/assets-test.json", appConfig.assets)
+    assertEquals("assets-test.json", appConfig.assets)
     assertEquals("secret", appConfig.jwtSecretKey)
   }
 
@@ -310,7 +310,7 @@ class AnchorPlatformIntegrationTest {
   fun testSep1Config() {
     val sep1Config = platformServerContext.getBean(Sep1Config::class.java)
     assertEquals(true, sep1Config.isEnabled)
-    assertEquals("classpath:sep1/stellar-wks.toml", sep1Config.stellarFile)
+    assertEquals("classpath:/sep1/test-stellar.toml", sep1Config.stellarFile)
   }
 
   @Test
