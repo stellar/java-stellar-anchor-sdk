@@ -282,13 +282,14 @@ class AnchorPlatformIntegrationTest {
         "sep10.enabled" to "true",
         "sep10.homeDomain" to "localhost:8080",
         "sep10.signingSeed" to "SAX3AH622R2XT6DXWWSRIDCMMUCCMATBZ5U6XKJWDO7M2EJUBFC3AW5X",
+        "sep24.enabled" to "true",
+        "sep31.enabled" to "true",
         "sep38.enabled" to "true",
         "sep38.quoteIntegrationEndPoint" to "http://localhost:8081",
         "payment-gateway.circle.name" to "circle",
         "payment-gateway.circle.enabled" to "true",
         "spring.jpa.properties.hibernate.dialect" to "org.hibernate.dialect.H2Dialect",
-        "logging.level.root" to "INFO",
-        "server.servlet.context-path" to "/"
+        "logging.level.root" to "INFO"
       )
 
     tests.forEach { assertEquals(it.value, platformServerContext.environment[it.key]) }
@@ -301,7 +302,7 @@ class AnchorPlatformIntegrationTest {
     assertEquals("http://localhost:8080", appConfig.hostUrl)
     assertEquals(listOf("en"), appConfig.languages)
     assertEquals("https://horizon-testnet.stellar.org", appConfig.horizonUrl)
-    assertEquals("assets-test.json", appConfig.assets)
+    assertEquals("classpath:/assets-test.json", appConfig.assets)
     assertEquals("secret", appConfig.jwtSecretKey)
   }
 
@@ -309,7 +310,7 @@ class AnchorPlatformIntegrationTest {
   fun testSep1Config() {
     val sep1Config = platformServerContext.getBean(Sep1Config::class.java)
     assertEquals(true, sep1Config.isEnabled)
-    assertEquals("classpath:/sep1/test-stellar.toml", sep1Config.stellarFile)
+    assertEquals("classpath:sep1/stellar-wks.toml", sep1Config.stellarFile)
   }
 
   @Test

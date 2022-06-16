@@ -43,7 +43,7 @@ public class Sep38Service {
       RateIntegration rateIntegration,
       Sep38QuoteStore sep38QuoteStore,
       EventPublishService eventService) {
-//    debug("sep38Config:", sep38Config);
+    debug("sep38Config:", sep38Config);
     this.sep38Config = sep38Config;
     this.assetService = assetService;
     this.rateIntegration = rateIntegration;
