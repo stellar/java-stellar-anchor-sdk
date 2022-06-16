@@ -33,8 +33,8 @@ public class Sep10Service {
 
   public Sep10Service(
       AppConfig appConfig, Sep10Config sep10Config, Horizon horizon, JwtService jwtService) {
-    debug("appConfig:", appConfig);
-    debug("sep10Config:", sep10Config);
+//    debug("appConfig:", appConfig);
+//    debug("sep10Config:", sep10Config);
     this.appConfig = appConfig;
     this.sep10Config = sep10Config;
     this.horizon = horizon;

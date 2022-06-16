@@ -19,7 +19,7 @@ public class Sep1Service {
    * @param sep1Config The Sep1 configuration.
    */
   public Sep1Service(Sep1Config sep1Config) {
-    debug("sep1Config:", sep1Config);
+//    debug("sep1Config:", sep1Config);
     this.sep1Config = sep1Config;
     Log.info("Sep1Service initialized.");
   }

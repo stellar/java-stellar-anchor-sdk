@@ -49,8 +49,8 @@ public class Sep24Service {
       AssetService assetService,
       JwtService jwtService,
       Sep24TransactionStore txnStore) {
-    debug("appConfig:", appConfig);
-    debug("sep24Config:", sep24Config);
+//    debug("appConfig:", appConfig);
+//    debug("sep24Config:", sep24Config);
     this.gson = gson;
     this.appConfig = appConfig;
     this.sep24Config = sep24Config;

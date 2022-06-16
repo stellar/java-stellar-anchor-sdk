@@ -59,8 +59,8 @@ public class Sep31Service {
       FeeIntegration feeIntegration,
       CustomerIntegration customerIntegration,
       EventPublishService eventService) {
-    debug("appConfig:", appConfig);
-    debug("sep31Config:", sep31Config);
+//    debug("appConfig:", appConfig);
+//    debug("sep31Config:", sep31Config);
     this.appConfig = appConfig;
     this.sep31Config = sep31Config;
     this.sep31TransactionStore = sep31TransactionStore;
