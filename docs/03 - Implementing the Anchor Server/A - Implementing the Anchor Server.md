@@ -65,7 +65,7 @@ This step is meant to guarantee you have the pre-requisites in place to start de
 
 #### Configuring Step 1
 
-In this we use the default configuration provided in this project, which are in the files [`anchor-config-defaults.yaml`] and [`anchor-reference-server.yaml`]. With that in mind, you don't need to modify anything there if you're deploying the system in tour local machine.
+This step will use the default configuration provided in this project, which are in the files [`anchor-config-defaults.yaml`] and [`anchor-reference-server.yaml`]. With that in mind, you don't need to modify anything there if you're deploying the system in tour local machine.
 
 #### Running Step 1
 
@@ -89,14 +89,11 @@ This step does not require any implementation, so you don't need to deploy an An
 
 #### Configuring Step 2
 
-At this point, you should start your own configuration files, based off the default ones:
-
-1. At the config file (default found at [`anchor-config-defaults.yaml`]) you need to define the `app-config.sep1` and `app-config.sep10` sections.
+1. At the config file (ex. [`anchor-config-defaults.yaml`]) you need to define the `app-config.sep10` section.
 2. Expose the `SEP10_SIGNING_SEED` variable containing the Stellar private key to the account your Anchor will use to handshake. It's recommended you have a separate account just for authentication that doesn't hold any funds. Further explanation can be found at [`example.env`].
 3. Make sure you configure your `stellar.toml` with:
    - `WEB_AUTH_ENDPOINT`, the endpoint clients will reach to authenticate. For the Platform, make sure to use `{PLATFORM_HOST}/auth`
    - `SIGNING_KEY`, which is the public key that forms a pair with the private key in `SEP10_SIGNING_SEED`.
-   - The `[[CURRENCIES]]` section.
    - Please refer to [`stellar-wks.toml`] to check how this information is set in the default configuration.
 
 #### Running Step 2

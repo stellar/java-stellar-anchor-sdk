@@ -1,6 +1,5 @@
 package org.stellar.anchor.platform.controller;
 
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.*;
 import org.stellar.anchor.api.exception.AnchorException;
@@ -11,7 +10,6 @@ import org.stellar.anchor.api.platform.PatchTransactionsResponse;
 import org.stellar.anchor.platform.service.TransactionService;
 import org.stellar.anchor.sep31.Sep31Service;
 
-@ConditionalOnClass(Sep31Service.class)
 @RestController
 public class PlatformController {
 

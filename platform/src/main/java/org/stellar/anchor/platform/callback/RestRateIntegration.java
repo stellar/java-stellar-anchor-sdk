@@ -30,7 +30,7 @@ public class RestRateIntegration implements RateIntegration {
   public RestRateIntegration(String anchorEndpoint, OkHttpClient httpClient, Gson gson) {
     try {
       new URI(anchorEndpoint);
-    } catch (URISyntaxException | NullPointerException e) {
+    } catch (URISyntaxException e) {
       throw new IllegalArgumentException("invalid 'baseUri'");
     }
 

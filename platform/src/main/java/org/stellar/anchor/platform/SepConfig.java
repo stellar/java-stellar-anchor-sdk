@@ -2,8 +2,6 @@ package org.stellar.anchor.platform;
 
 import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.AutoConfigureOrder;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -37,7 +35,6 @@ import org.stellar.anchor.util.ResourceReader;
 
 /** SEP configurations */
 @Configuration
-@AutoConfigureOrder(4)
 public class SepConfig {
   public SepConfig() {}
 
@@ -94,7 +91,6 @@ public class SepConfig {
   }
 
   @Bean
-  @ConditionalOnClass(CustomerIntegration.class)
   Sep12Service sep12Service(CustomerIntegration customerIntegration) {
     return new Sep12Service(customerIntegration);
   }
@@ -144,7 +140,6 @@ public class SepConfig {
   }
 
   @Bean
-  @ConditionalOnClass({CustomerIntegration.class, EventPublishService.class})
   Sep31Service sep31Service(
       AppConfig appConfig,
       Sep31Config sep31Config,
@@ -178,7 +173,6 @@ public class SepConfig {
   }
 
   @Bean
-  @ConditionalOnClass({RateIntegration.class, EventPublishService.class})
   Sep38Service sep38Service(
       Sep38Config sep38Config,
       AssetService assetService,

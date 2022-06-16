@@ -6,7 +6,6 @@ import static org.stellar.anchor.util.Log.warnEx;
 import com.google.gson.Gson;
 import java.lang.reflect.Type;
 import java.util.Map;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -20,7 +19,6 @@ import shadow.com.google.common.reflect.TypeToken;
 
 @RestController
 @RequestMapping("/circle-observer")
-@ConditionalOnClass(CirclePaymentObserverService.class)
 public class CirclePaymentObserverController {
   private final Gson gson = new Gson();
   private final CirclePaymentObserverService circlePaymentObserverService;

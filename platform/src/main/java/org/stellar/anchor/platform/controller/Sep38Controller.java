@@ -8,7 +8,6 @@ import com.google.gson.Gson;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import lombok.SneakyThrows;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -21,7 +20,6 @@ import org.stellar.anchor.util.GsonUtils;
 
 @RestController
 @RequestMapping("/sep38")
-@ConditionalOnClass(Sep38Service.class)
 public class Sep38Controller {
   private final Sep38Service sep38Service;
   private static final Gson gson = GsonUtils.builder().create();

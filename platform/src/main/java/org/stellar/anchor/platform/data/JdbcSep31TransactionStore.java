@@ -33,13 +33,14 @@ public class JdbcSep31TransactionStore implements Sep31TransactionStore {
   }
 
   @Override
-  public Sep31Transaction findByTransactionId(@NonNull String transactionId) {
+  public Sep31Transaction findByTransactionId(@NonNull String transactionId)
+      throws AnchorException {
     return transactionRepo.findById(transactionId).orElse(null);
   }
 
   @Override
   public List<? extends Sep31Transaction> findByTransactionIds(
-      @NonNull Collection<String> transactionId) {
+      @NonNull Collection<String> transactionId) throws AnchorException {
     return transactionRepo.findByIds(transactionId);
   }
 

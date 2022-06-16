@@ -8,7 +8,6 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import lombok.SneakyThrows;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -17,7 +16,6 @@ import org.stellar.anchor.sep10.JwtToken;
 import org.stellar.anchor.sep12.Sep12Service;
 import org.stellar.anchor.util.GsonUtils;
 
-@ConditionalOnClass(Sep12Service.class)
 @RestController
 @CrossOrigin(origins = "*")
 @RequestMapping("/sep12")

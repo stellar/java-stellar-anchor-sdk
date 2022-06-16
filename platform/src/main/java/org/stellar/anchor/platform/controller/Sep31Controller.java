@@ -5,7 +5,6 @@ import static org.stellar.anchor.util.Log.debugF;
 import static org.stellar.anchor.util.Log.errorEx;
 
 import javax.servlet.http.HttpServletRequest;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -19,7 +18,6 @@ import org.stellar.anchor.sep31.Sep31Service.Sep31MissingFieldException;
 
 @RestController
 @RequestMapping("sep31")
-@ConditionalOnClass(Sep31Service.class)
 public class Sep31Controller {
   private final Sep31Service sep31Service;
 
