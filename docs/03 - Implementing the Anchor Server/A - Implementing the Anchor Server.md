@@ -13,6 +13,9 @@
       - [Running Step 2](#running-step-2)
       - [Testing Step 2](#testing-step-2)
     - [Step 3 - Implement KYC](#step-3---implement-kyc)
+      - [Configuring Step 3](#configuring-step-3)
+      - [Running Step 3](#running-step-3)
+      - [Testing Step 3](#testing-step-3)
     - [Step 4 - Implement The Remmitances Receiving Party Without Quotes](#step-4---implement-the-remmitances-receiving-party-without-quotes)
     - [Step 5 - Implement RFR - Request for Quotation](#step-5---implement-rfr---request-for-quotation)
     - [Step 6 - Implement The Remmitances Receiving Party With Quotes](#step-6---implement-the-remmitances-receiving-party-with-quotes)
@@ -114,8 +117,31 @@ stellar-anchor-tests --home-domain $HOME_DOMAIN --seps 1 10
 
 ### Step 3 - Implement KYC
 
-[SEP-12].
-    
+This step introduces customer registration and KYC. It is the implementation of [SEP-12], where customers need to be registered and KYCed before some operations can be performed. It is currently mandatory for remittance operations ([SEP-31]).
+
+This step requires both configuration of the Platform and the implementation of the [Callback API] `GET /customer` endpoint in the Anchor Server, where the Anchor should handle the registration and KYC of the customer.
+
+#### Configuring Step 3
+
+1. Update `app-config.sep12` section in your config file (default found at [`anchor-config-defaults.yaml`]) and make sure `app-config.sep12.customerIntegrationEndpoint` points to the callback API in your Anchor Server.
+2. Configure the `stellar.tml` file with `KYC_SERVER={PLATFORM_HOST}/sep12`. Wallets and Sender Anchors will use this endpoint to register and KYC customers and the Platform will pre-process the request and forward it to your Anchor Server.
+
+#### Running Step 3
+
+Here, you'll need to deploy your Anchor Server and run the Anchor Platform using the configuration files you've configured. Remember, your Anchor server should be available at the same address you configured at `app-config.sep12.customerIntegrationEndpoint` and it should expose the [Callback API] `GET /customer` endpoint.
+
+#### Testing Step 3
+
+Proceed to test the project with the [`anchor-tests`] command line tool by running:
+
+```shell
+export HOME_DOMAIN = "http://localhost:8000"  # Platform Server endpoint
+export SEP_CONFIG = ".../sep-config.json"     # SEP configuration file needed for SEP-12 tests
+stellar-anchor-tests --home-domain $HOME_DOMAIN --seps 1 10 12 --sep-config $SEP_CONFIG
+```
+
+> Note: this repo provides a `SEP_CONFIG` file at [stellar-anchor-tests-sep-config.json](/platform/src/test/resources/stellar-anchor-tests-sep-config.json) that you can use for your tests, but keep in mind that if your KYC is more restrictive than the default one, you'll need to update the `SEP_CONFIG` file accordingly.
+
 ### Step 4 - Implement The Remmitances Receiving Party Without Quotes
 
 [SEP-31]
@@ -140,6 +166,7 @@ If you need quotes, skip to step 5
 [`stellar-wks.toml`]: /platform/src/main/resources/sep1/stellar-wks.toml
 [`example.env`]: /platform/src/main/resources/example.env
 [`assets-test.json`]: /platform/src/main/resources/assets-test.json
+[Callback API]: /docs/03%20-%20Implementing%20the%20Anchor%20Server/Callbacks%20API.yml
 [SEPs]: https://github.com/stellar/stellar-protocol/tree/master/ecosystem
 [SEP-10]: https://stellar.org/protocol/sep-10
 [SEP-12]: https://stellar.org/protocol/sep-12
