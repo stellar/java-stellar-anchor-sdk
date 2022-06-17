@@ -303,9 +303,9 @@ Both the [`anchor-tests`] and [Demo Wallet] can be used to test the production e
 [`stellar-wks.toml`]: /platform/src/main/resources/sep1/stellar-wks.toml
 [`example.env`]: /platform/src/main/resources/example.env
 [`assets-test.json`]: /platform/src/main/resources/assets-test.json
-[Callback API]: /docs/03%20-%20Implementing%20the%20Anchor%20Server/Callbacks%20API.yml
-[Events]: /docs/03%20-%20Implementing%20the%20Anchor%20Server/Events%20Schema.yml
-[Platform API]: /docs/03%20-%20Implementing%20the%20Anchor%20Server/Platform%20API.yml
+[Callback API]: /docs/03%20-%20Implementing%20the%20Anchor%20Server/Communication/Callbacks%20API.yml
+[Events]: /docs/03%20-%20Implementing%20the%20Anchor%20Server/Communication/Events%20Schema.yml
+[Platform API]: /docs/03%20-%20Implementing%20the%20Anchor%20Server/Communication/Platform%20API.yml
 [01.B - Circle Payment Observer]: /docs/01%20-%20Running%20%26%20Configuring%20the%20Application/B%20-%20Circle%20Payment%20Observer.md
 [SEPs]: https://github.com/stellar/stellar-protocol/tree/master/ecosystem
 [SEP-10]: https://stellar.org/protocol/sep-10
