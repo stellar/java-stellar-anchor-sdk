@@ -1,3 +1,8 @@
+# SEP-31 Happy Path
+
+Here you can see the happy path for the implementation of remittances with quotes ([SEP-31] with [SEP-38]):
+
+```mermaid
 %% Happy path SEP-31 transaction flow with new customers
 %% View at: https://mermaid.live
 %% Assumptions:
@@ -69,3 +74,7 @@ sequenceDiagram
     Client->>+Platform: GET /transactions?id=
     Platform-->>-Client: transaction complete
     Client-->>Client: notifies sender
+```
+
+[SEP-31]: https://stellar.org/protocol/sep-31
+[SEP-38]: https://stellar.org/protocol/sep-38

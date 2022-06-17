@@ -76,6 +76,89 @@ As you can see, the Anchor Platform receives interactions from ecosystem partici
 
 This drastically reduces the amount of code that needs to be written by the Anchor, and allows them to focus on the business logic that's specific to their businesses and use cases.
 
+## SEP-31 Flow
+
+Here you can see the sequence diagram of the [SEP-31] flow, showing all the stakeholders, as well as the communication between Platform and Anchor Server. Please notice this flow includs quotes ([SEP-38]) but they may not be needed for your use-case:
+
+```mermaid
+%% Happy path SEP-31 transaction flow with new customers
+%% View at: https://mermaid.live
+%% Assumptions:
+%% - The KYC information provided by the sender is valid on first attempt
+%% - The client does not request customer status callbacks
+%% - The anchor successfully delivers off-chain funds on first attempt
+sequenceDiagram
+    title: SEP-31 Transaction Flow
+    participant Client
+    participant Platform
+    participant Anchor
+    participant Stellar
+    participant Recipient
+    Client->>+Platform: GET /.well-known/stellar.toml
+    Platform-->>-Client: SEP-10, 12 & 31 URLs
+    Client->>+Platform: GET [SEP-31]/info
+    Platform-->>-Client: assets, customer types, fees
+    Client->>+Platform: GET [SEP-10]
+    Platform-->>-Client: challenge transaction
+    Client-->>Client: signs challenge
+    Client->>+Platform: POST [SEP-10]
+    Platform-->>Platform: verifies challenge
+    Platform-->>-Client: authentication token
+
+    loop Sending and Receiving Customer
+        Client->>+Platform: GET [SEP-12]/customer?type=
+        Platform->>+Anchor: forwards request
+        Anchor-->>-Platform: fields required
+        Platform-->>Platform: updates customer status (NEEDS_INFO)
+        Platform-->>-Client: forwards response
+        Client-->>Client: collects fields
+        Client->>+Platform: PUT [SEP-12]/customer?type=
+        Platform->>+Anchor: forwards request
+        Anchor-->>Anchor: validates KYC values
+        Anchor-->>-Platform: id, ACCEPTED
+        Platform-->>Platform: updates customer status (ACCEPTED)
+        Platform-->>-Client: forwards response
+    end
+
+    optional Get a Quote if it's Supported/Required
+      Client->>+Platform: GET [SEP-38]/price
+      Platform->>+Anchor: GET /rate?type=indicative_price
+      Anchor-->>-Platform: exchange rate
+      Platform-->>-Client: exchange rate
+      Client-->>Client: confirms rate
+      Client->>+Platform: POST [SEP-38]/quote
+      Platform->>+Anchor: GET /rate?type=firm
+      Anchor-->>-Platform: exchange rate, expiration
+      Platform-->>Client: quote id, rate, expiration
+      Platform->>+Anchor: POST [webhookURL]/quote created
+      Anchor-->>-Platform: 204 No Content
+    end
+
+    Client->>+Platform: POST [SEP-31]/transactions
+    Platform-->>Platform: checks customer statuses, links quote
+    Platform->>+Anchor: GET /fee
+    Anchor-->>Anchor: calculates fee
+    Anchor-->>-Platform: fee
+    Platform-->>Platform: Sets fee on transaction
+    Platform-->>-Client: transaction id, receiving account & memo
+    Platform->>+Anchor: POST [webhookURL]/transactions created
+    Anchor-->>-Platform: 204 No Content
+    Client->>+Stellar: submit Stellar payment
+    Stellar-->>Platform: receives payment, matches w/ transaction
+    Platform-->>Platform: updates transaction status
+    Stellar-->>-Client: success response
+    Platform->>+Anchor: POST [webhookURL]/transactions received
+    Anchor-->>Anchor: queues off-chain payment
+    Anchor-->>-Platform: 204 No Content
+    Anchor->>Recipient: Sends off-chain payment to recipient
+    Anchor->>+Platform: PATCH /transactions
+    Platform-->>Platform: updates transaction to complete
+    Platform-->>-Anchor: updated transaction
+    Client->>+Platform: GET /transactions?id=
+    Platform-->>-Client: transaction complete
+    Client-->>Client: notifies sender
+```
+
 ## Subprojects
 
 The Stellar Anchor SDK is a collection of projects that make easy to build financial applications on Stellar:
