@@ -3,6 +3,7 @@
 - [Implementing the Anchor Server](#implementing-the-anchor-server)
   - [Pre-requisites](#pre-requisites)
   - [Testing Tools](#testing-tools)
+  - [Anchor Server Implementation Resources](#anchor-server-implementation-resources)
   - [Step-by-step Anchor Server Implementation](#step-by-step-anchor-server-implementation)
     - [Step 1 - Run the project with the Anchor Reference Server](#step-1---run-the-project-with-the-anchor-reference-server)
       - [Configuring Step 1](#configuring-step-1)
@@ -47,6 +48,15 @@ Before proceeding with this document, please make sure you understand the projec
 * [Python scripts](/end-to-end-tests/end_to_end_tests.py):
     * They contain end-to-end tests for [SEP-31] with and without [SEP-38].
     * The script takes the role of the Sending Anchor, testing the Platform role as a Receiving Anchor.
+
+## Anchor Server Implementation Resources
+
+In the Step-by-step section below, we will require you to implement the following features:
+- Make available (or deploy) a queue service, such as Kafka or SQS, for instance.
+- Make available a database, such as SQLite, Postgres or MySQL, for instance.
+- Implement what we call the Anchor Server, providing the [Callback API] endpoints. 
+- Connect the Anchor Server with the queue service so it can listen and respond to async [Events].
+- Implement calls to the [Platform API], in order to update the Platform's state on a given transaction.
 
 ## Step-by-step Anchor Server Implementation
 
