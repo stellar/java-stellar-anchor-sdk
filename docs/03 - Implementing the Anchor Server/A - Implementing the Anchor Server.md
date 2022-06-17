@@ -18,6 +18,9 @@
       - [Running Step 3](#running-step-3)
       - [Testing Step 3](#testing-step-3)
     - [Step 4 - Implement The Remmitances Receiving Party Without Quotes](#step-4---implement-the-remmitances-receiving-party-without-quotes)
+      - [Configuring Step 4](#configuring-step-4)
+      - [Running Step 4](#running-step-4)
+      - [Testing Step 4](#testing-step-4)
     - [Step 5 - Implement RFR - Request for Quotation](#step-5---implement-rfr---request-for-quotation)
     - [Step 6 - Implement The Remmitances Receiving Party With Quotes](#step-6---implement-the-remmitances-receiving-party-with-quotes)
     - [Step 7 - Make Sure All Tests Pass](#step-7---make-sure-all-tests-pass)
@@ -65,10 +68,10 @@ In this section, we cover the steps to build your Anchor Server, integrate it wi
 For each new increment in functionality you add to your Anchor Server, there are apropriate configurations and tests that make sure your integration is compliant with the Platform and the [SEPs].
 
 In terms of configuration, there will be 4 main sources:
-- The configuration file that can be defined by and defaults to [`anchor-config-defaults.yaml`].
-- The `stellar.toml` file, that is referenced in the configuration file and defaults to [`stellar-wks.toml`].
+- The configuration file that can be defined by the environment variable `STELLAR_ANCHOR_CONFIG` and defaults to [`anchor-config-defaults.yaml`].
+- The `stellar.toml` file, that is referenced in the configuration file at `app-config.sep1.stellarFile` and defaults to [`stellar-wks.toml`]. It contains the public facing characteristics of the Platform that are essential for interoperability.
 - The environment variables, the only ones that need to be kept secret and safe. You can find a description of them at [`example.env`].
-- The [`assets-test.json`] file, that's used to define the list of supported assets. Currently, it's only used in the [SEP-31] flow.
+- The assets file, that's defined in the config file at `app-config.app.assets` and defaults to [`assets-test.json`]. It's used to define the list of supported assets and their characteristics. Currently, it's only used in the [SEP-31] and [SEP-38] flows.
 
 > Note: please consider the steps below are all on testnet. We’ll only explicitly suggest Public network in the latest step.
 
@@ -89,7 +92,7 @@ Please follow the steps in [01.A - Running & Configuring the Application](/docs/
 Proceed to test the project with the [`anchor-tests`] command line tool by running:
 
 ```shell
-export HOME_DOMAIN = "http://localhost:8000"  # Platform Server endpoint
+export HOME_DOMAIN = "http://localhost:8080"  # Platform Server endpoint
 export SEP_CONFIG = "platform/src/test/resources/stellar-anchor-tests-sep-config.json" # SEP configuration file. This file is in the project root but you can use your own.
 stellar-anchor-tests --home-domain $HOME_DOMAIN --seps 1 10 12 31 38 --sep-config $SEP_CONFIG
 ```
@@ -121,7 +124,7 @@ At this point, you don't even need to have an Anchor Server, just run the Anchor
 Proceed to test the project with the [`anchor-tests`] command line tool by running:
 
 ```shell
-export HOME_DOMAIN = "http://localhost:8000"  # Platform Server endpoint
+export HOME_DOMAIN = "http://localhost:8080"  # Platform Server endpoint
 stellar-anchor-tests --home-domain $HOME_DOMAIN --seps 1 10
 ```
 
@@ -133,8 +136,8 @@ This step requires both configuration of the Platform and the implementation of 
 
 #### Configuring Step 3
 
-1. Update `app-config.sep12` section in your config file (default found at [`anchor-config-defaults.yaml`]) and make sure `app-config.sep12.customerIntegrationEndpoint` points to the callback API in your Anchor Server.
-2. Configure the `stellar.tml` file with `KYC_SERVER={PLATFORM_HOST}/sep12`. Wallets and Sender Anchors will use this endpoint to register and KYC customers and the Platform will pre-process the request and forward it to your Anchor Server.
+1. Update `app-config.sep12` section in your config file (default found at [`anchor-config-defaults.yaml`]) and make sure `app-config.sep12.customerIntegrationEndpoint` points to the [Callback API] in your Anchor Server.
+2. Configure the `stellar.toml` file with `KYC_SERVER={PLATFORM_HOST}/sep12`. Wallets and Sender Anchors will use this endpoint to register and KYC customers and the Platform will pre-process the request and forward it to your Anchor Server.
 
 #### Running Step 3
 
@@ -145,7 +148,7 @@ Here, you'll need to deploy your Anchor Server and run the Anchor Platform using
 Proceed to test the project with the [`anchor-tests`] command line tool by running:
 
 ```shell
-export HOME_DOMAIN = "http://localhost:8000"  # Platform Server endpoint
+export HOME_DOMAIN = "http://localhost:8080"  # Platform Server endpoint
 export SEP_CONFIG = ".../sep-config.json"     # SEP configuration file needed for SEP-12 tests
 stellar-anchor-tests --home-domain $HOME_DOMAIN --seps 1 10 12 --sep-config $SEP_CONFIG
 ```
@@ -154,9 +157,44 @@ stellar-anchor-tests --home-domain $HOME_DOMAIN --seps 1 10 12 --sep-config $SEP
 
 ### Step 4 - Implement The Remmitances Receiving Party Without Quotes
 
-[SEP-31]
-    
-If you need quotes, skip to step 5
+Now we introduce the Platform's Remittances flow ([SEP-31]) for Receiving Anchors that's part of the flow `Sending Client -> Sending Anchor -> Receiving Anchor -> Receiving Client`. The Platform implements all the API standards that [SEP-31] riquires to be interoperable with any [SEP-31] Sending Anchor, and it relies on the Anchor Server to implement the core business logic of the flow, which includes:
+- Registering into the [Events] queue service to watch for incoming `TransactionsEvents` containing updates in the transaction status. Keep in mind that you need to provide/deploy a queue service for this to work.
+- Implementing the [Callback API] `GET /fee` endpoint to return the fee for the transaction.
+
+The platform will also need access to the queue service and a database.
+
+> Note: if you need quotes for your use-case, please skip to step 5.
+
+#### Configuring Step 4
+
+1. Update `app-config.sep31` section in your config file (default found at [`anchor-config-defaults.yaml`]):
+   1. Make sure `app-config.sep31.feeIntegrationEndPoint` points to the [Callback API] in your Anchor Server.
+   2. Decide on how you will configure the `app-config.sep31.paymentType` field.
+   3. Decide on your `app-config.sep31.depositInfoGeneratorType`. If you're using a custodial tool such as [circle.com](circle.com) to receive your payments, please refer to [01.B - Circle Payment Observer].
+2. Configure the `app-config.event` section, as well as the the correspondent publisher configuration. For instance, if you've set `app-config.event.publisherType = kafka`, you'll need to configure `kafka.publisher` accordingly.
+3. Configure the database by setting the `stellar.anchor.data-access` section, as well as the corresponding `data-spring-jdbc-*` sections.
+4. Configure the `stellar.toml` file with `DIRECT_PAYMENT_SERVER={PLATFORM_HOST}/sep31`. Sending Anchors will use this endpoint to create transactions and initiate the remittances along with the Sending Clients.
+
+#### Running Step 4
+
+Here, you'll need to deploy a few services:
+1. The queue service you've configured (ex. Kafka).
+2. The database you've configured (ex. Postgres).
+3. Your Anchor Server, which should be doing all the following:
+   1. Implement the [Callback API] `GET /fee` endpoint.
+   2. Listen to events comming from the queue service.
+   3. Be able to update the Platform with the status of the transaction by reaching the [Platform API] when the transaction status changes from `pending_receiver` to something else.
+4. Run the Anchor Platform using the configuration files you've configured. Remember, your Anchor Server should be available at the same address you configured at `app-config.sep31.feeIntegrationEndpoint` and it should expose the [Callback API] `GET /fee` endpoint.
+
+#### Testing Step 4
+
+Proceed to test the project with the [`anchor-tests`] command line tool by running:
+
+```shell
+export HOME_DOMAIN = "http://localhost:8080"  # Platform Server endpoint
+export SEP_CONFIG = ".../sep-config.json"     # SEP configuration file needed for SEP-12 tests
+stellar-anchor-tests --home-domain $HOME_DOMAIN --seps 1 10 12 31 --sep-config $SEP_CONFIG
+```
     
 ### Step 5 - Implement RFR - Request for Quotation
 
@@ -177,6 +215,9 @@ If you need quotes, skip to step 5
 [`example.env`]: /platform/src/main/resources/example.env
 [`assets-test.json`]: /platform/src/main/resources/assets-test.json
 [Callback API]: /docs/03%20-%20Implementing%20the%20Anchor%20Server/Callbacks%20API.yml
+[Events]: /docs/03%20-%20Implementing%20the%20Anchor%20Server/Events%20Schema.yml
+[Platform API]: /docs/03%20-%20Implementing%20the%20Anchor%20Server/Platform%20API.yml
+[01.B - Circle Payment Observer]: /docs/01%20-%20Running%20%26%20Configuring%20the%20Application/B%20-%20Circle%20Payment%20Observer.md
 [SEPs]: https://github.com/stellar/stellar-protocol/tree/master/ecosystem
 [SEP-10]: https://stellar.org/protocol/sep-10
 [SEP-12]: https://stellar.org/protocol/sep-12
