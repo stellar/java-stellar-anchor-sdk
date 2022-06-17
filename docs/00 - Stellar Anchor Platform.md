@@ -82,7 +82,7 @@ This drastically reduces the amount of code that needs to be written by the Anch
 
 ## SEP-31 Flow
 
-Here you can see the sequence diagram of the [SEP-31] flow, showing all the stakeholders, as well as the communication between Platform and Anchor Server. Please notice this flow includs quotes ([SEP-38]) but they may not be needed for your use-case:
+Here you can see the sequence diagram of the [SEP-31] flow, showing all the stakeholders, as well as the communication between Platform and Anchor Server. Please notice this flow includes quotes ([SEP-38]) but they may not be needed for your use-case:
 
 ```mermaid
 %% Happy path SEP-31 transaction flow with new customers
@@ -94,7 +94,9 @@ Here you can see the sequence diagram of the [SEP-31] flow, showing all the stak
 sequenceDiagram
     title: SEP-31 Transaction Flow
     participant Client
+      Note over Client: In the SEP-31 flow, this is the Sending Anchor.
     participant Platform
+      Note over Platform: In the SEP-31 flow, this is the Receiving Anchor.
     participant Anchor
     participant Stellar
     participant Recipient
