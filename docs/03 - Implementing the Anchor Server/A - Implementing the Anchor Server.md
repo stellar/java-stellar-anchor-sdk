@@ -3,6 +3,7 @@
 - [Implementing the Anchor Server](#implementing-the-anchor-server)
   - [Pre-requisites](#pre-requisites)
   - [Testing Tools](#testing-tools)
+  - [`Anchor Platform <> Anchor Server` Communication](#anchor-platform--anchor-server-communication)
   - [Anchor Server Implementation Resources](#anchor-server-implementation-resources)
   - [Step-by-step Anchor Server Implementation](#step-by-step-anchor-server-implementation)
     - [Step 1 - Run the project with the Anchor Reference Server](#step-1---run-the-project-with-the-anchor-reference-server)
@@ -57,14 +58,21 @@ Before proceeding with this document, please make sure you understand the projec
     * They contain end-to-end tests for [SEP-31] with and without [SEP-38].
     * The script takes the role of the Sending Anchor, testing the Platform role as a Receiving Anchor.
 
+## `Anchor Platform <> Anchor Server` Communication
+
+While the Anchor Platform implements the interoperability part of the [SEPs], it relies on the Anchor Server to implement the business logic, and the communication between these two servers occur in three different ways:
+- **Callback API (`Sync Platform->Anchor`)**: a syncronous API that the Platform will use to gather a business-specific data from the Anchor Server, in order to perform a SEP-compliant operation (like exchange rate or user registration, for instance)
+- **Events Queue (`Async Platform->Anchor`)**: an asyncronous communication venue that the Platform will use to notify the Anchor Server about a pending action, like an incoming payment that needs to be processed.
+- **Platform API (`Sync Anchor->Platform`)**: a syncronous API that the Anchor can use to fetch information (e.g. transactions or quotes) and also update the data of transactions stored in the Platform database.
+
 ## Anchor Server Implementation Resources
 
 In the Step-by-step section below, we will require you to implement the following features:
 - Make available (or deploy) a queue service, such as Kafka or SQS, for instance.
 - Make available a database, such as SQLite, Postgres or MySQL, for instance.
-- Implement what we call the Anchor Server, providing the [Callback API] endpoints. 
-- Connect the Anchor Server with the queue service so it can listen and respond to async [Events].
-- Implement calls to the [Platform API], in order to update the Platform's state on a given transaction.
+- Implement the [Callback API] endpoints. 
+- Connect the Anchor Server with the queue service so it can listen to async [Events].
+- Implement calls to the [Platform API], so the Anchor can update the state of transactions stored in the Platform database.
 
 ## Step-by-step Anchor Server Implementation
 
