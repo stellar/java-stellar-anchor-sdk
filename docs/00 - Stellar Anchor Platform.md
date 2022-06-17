@@ -26,9 +26,13 @@ The full documentation can be found under the [`docs` directory](/docs), under t
   - [C - Logging Guidelines](/docs/02%20-%20Contributing/C%20-%20Logging%20Guidelines.md)
   - [D - Database Migration](/docs/02%20-%20Contributing/D%20-%20Database%20Migration.md)
   - [E - Publishing the SDK](/docs/02%20-%20Contributing/E%20-%20Publishing%20the%20SDK.md)
-- [03 - Implementing the Anchor Server](/docs/03%20-%20Implementing%20the%20Anchor%20Server) `// TODO`
-  - [A - Implementing the Anchor Server](/docs/03%20-%20Implementing%20the%20Anchor%20Server/A%20-%20Implementing%20the%20Anchor%20Server.md)
-- [04 - Subprojects Usage](/docs/04%20-%20Subprojects%20Usage) `// TODO`
+- [03 - Implementing the Anchor Server](/docs/03%20-%20Implementing%20the%20Anchor%20Server)
+  - [Communication](/docs/03%20-%20Implementing%20the%20Anchor%20Server/Communication/)
+    - [Cappback API](/docs/03%20-%20Implementing%20the%20Anchor%20Server/Communication/Callbacks%20API.yml)
+    - [Events Schema](/docs/03%20-%20Implementing%20the%20Anchor%20Server/Communication/Events%20Schema.yml)
+    - [Platform API](/docs/03%20-%20Implementing%20the%20Anchor%20Server/Communication/Platform%20API.yml)
+- [04 - Subprojects Usage](/docs/04%20-%20Subprojects%20Usage) `// In progress...`
+  - [A - Circle Payment Service](/docs/04%20-%20Subprojects%20Usage/A%20-%20Circle%20Payment%20Service.md)
 
 ## Definitions
 
@@ -120,7 +124,7 @@ sequenceDiagram
         Platform-->>-Client: forwards response
     end
 
-    optional Get a Quote if it's Supported/Required
+    opt Get a Quote if Supported or Required
       Client->>+Platform: GET [SEP-38]/price
       Platform->>+Anchor: GET /rate?type=indicative_price
       Anchor-->>-Platform: exchange rate
