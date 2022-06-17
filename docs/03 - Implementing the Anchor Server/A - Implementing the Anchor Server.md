@@ -26,6 +26,9 @@
       - [Running Step 5](#running-step-5)
       - [Testing Step 5](#testing-step-5)
     - [Step 6 - Implement The Remmitances Receiving Party With Quotes](#step-6---implement-the-remmitances-receiving-party-with-quotes)
+      - [Configuring Step 6](#configuring-step-6)
+      - [Running Step 6](#running-step-6)
+      - [Testing Step 6](#testing-step-6)
     - [Step 7 - Make Sure All Tests Pass](#step-7---make-sure-all-tests-pass)
     - [Step 8 - Experiment with the Public Network](#step-8---experiment-with-the-public-network)
 
@@ -195,7 +198,7 @@ Proceed to test the project with the [`anchor-tests`] command line tool by runni
 
 ```shell
 export HOME_DOMAIN = "http://localhost:8080"  # Platform Server endpoint
-export SEP_CONFIG = ".../sep-config.json"     # SEP configuration file needed for SEP-12 tests
+export SEP_CONFIG = ".../sep-config.json"     # SEP configuration file needed for SEP-12 and SEP-31 tests
 stellar-anchor-tests --home-domain $HOME_DOMAIN --seps 1 10 12 31 --sep-config $SEP_CONFIG
 ```
     
@@ -227,14 +230,34 @@ Proceed to test the project with the [`anchor-tests`] command line tool by runni
 
 ```shell
 export HOME_DOMAIN = "http://localhost:8080"  # Platform Server endpoint
-export SEP_CONFIG = ".../sep-config.json"     # SEP configuration file needed for SEP-12 tests
+export SEP_CONFIG = ".../sep-config.json"     # SEP configuration file needed for SEP-12 and SEP-38 tests
 stellar-anchor-tests --home-domain $HOME_DOMAIN --seps 1 10 12 38 --sep-config $SEP_CONFIG
 ```
 
 ### Step 6 - Implement The Remmitances Receiving Party With Quotes
 
-[SEP-31] + [SEP-38]
-    
+This step introduces the Platform's Remittances flow ([SEP-31]) with quotes ([SEP-38]). It is basically the result of a composition between Steps 4 and 5.
+
+This needs the Anchor to configure the assets in [`assets-test.json`] with `quotes_supported: true` and optionally `quotes_required: true`. If quotes are marked as required, the Anchor does not need to implement the [Callback API] `GET /fee` endpoint.
+
+#### Configuring Step 6
+
+To configure the Anchor to receive remittances with quotes, you need to complete both the [Configuring Step 4](#configuring-step-4) and [Configuring Step 5](#configuring-step-5) sections.
+
+#### Running Step 6
+
+This is also a combination of [Running Step 4](#running-step-4) and [Running Step 5](#running-step-5), with one caveat: if all your assets have `quotes_required: true`, you don't need to implement the [Callback API] `GET /fee` endpoint.
+
+#### Testing Step 6
+
+Proceed to test the project with the [`anchor-tests`] command line tool by running:
+
+```shell
+export HOME_DOMAIN = "http://localhost:8080"  # Platform Server endpoint
+export SEP_CONFIG = ".../sep-config.json"     # SEP configuration file needed for SEP-12, SEP-31 and SEP-38 tests.
+stellar-anchor-tests --home-domain $HOME_DOMAIN --seps 1 10 12 31 38 --sep-config $SEP_CONFIG
+```
+
 ### Step 7 - Make Sure All Tests Pass
     
 ### Step 8 - Experiment with the Public Network
