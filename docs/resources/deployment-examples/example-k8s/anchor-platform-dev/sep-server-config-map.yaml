@@ -13,7 +13,7 @@ data:
         config: in-memory
         app-config:
           type: config-spring-property                # Activate [config-spring-property] module
-          settings: app-config                        # The location of the configuration data
+          settings: platform-config                        # The location of the configuration data
         data-access:
           type: data-spring-jdbc                      # Activate [config-spring-jdbc] module.
           settings: data-spring-jdbc-sqlite           # The location of the configuration data in this file.
@@ -24,7 +24,7 @@ data:
     #
     # Application settings
     #
-    app-config:
+    platform-config:
       # general
       app:
         stellarNetworkPassphrase: Test SDF Network ; September 2015
@@ -37,7 +37,7 @@ data:
       # sep-1
       sep1:
         enabled: true
-        stellarFile: file:/config/stellar-wks.toml
+        stellarFile: file:/config/stellar.toml
 
       # sep-10
       sep10:
@@ -164,7 +164,7 @@ data:
       mvc:
         async.request-timeout: 6000
 
-  stellar-wks.toml: |
+  stellar.toml: |
     ACCOUNTS = ["GDZCLP2PHTWYQ3BWZMC5D4ZUJX5NU4S7YZHC5EBFAFKL6UJUQ5RKDGSY"]
     VERSION = "0.1.0"
     NETWORK_PASSPHRASE = "Test SDF Network ; September 2015"
