@@ -22,6 +22,9 @@
       - [Running Step 4](#running-step-4)
       - [Testing Step 4](#testing-step-4)
     - [Step 5 - Implement RFR - Request for Quotation](#step-5---implement-rfr---request-for-quotation)
+      - [Configuring Step 5](#configuring-step-5)
+      - [Running Step 5](#running-step-5)
+      - [Testing Step 5](#testing-step-5)
     - [Step 6 - Implement The Remmitances Receiving Party With Quotes](#step-6---implement-the-remmitances-receiving-party-with-quotes)
     - [Step 7 - Make Sure All Tests Pass](#step-7---make-sure-all-tests-pass)
     - [Step 8 - Experiment with the Public Network](#step-8---experiment-with-the-public-network)
@@ -198,8 +201,36 @@ stellar-anchor-tests --home-domain $HOME_DOMAIN --seps 1 10 12 31 --sep-config $
     
 ### Step 5 - Implement RFR - Request for Quotation
 
-[SEP-38]
-    
+RFR (Request for Quotation) is a mecanism where you can consult an Anchor for the conversion price between two assets. It is implemented in the [SEP-38] protocol and it requires the Anchor Server to implement the [Callback API] `GET /rate` endpoint, and to listen for quotes [Events] coming from the queue service.
+
+You will only need this part if your use-case supports quotes, which is recommended for converting non-equivalent assets such as `USDC <> fiat EURO`.
+
+#### Configuring Step 5
+
+1. Update `app-config.sep38` section in your config file (default found at [`anchor-config-defaults.yaml`]) and make sure `app-config.sep38.quoteIntegrationEndPoint` points to the [Callback API] in your Anchor Server.
+2. Configure the `stellar.toml` file with `ANCHOR_QUOTE_SERVER={PLATFORM_HOST}/sep38`. Wallets and Sender Anchors will use this endpoint to consult on conversion prices and also to register [firm quotes](https://www.investopedia.com/terms/f/firmquote.asp).
+
+#### Running Step 5
+
+The running steps here are very similar to the step 4, you'l need:
+1. The queue service you've configured (ex. Kafka).
+2. The database you've configured (ex. Postgres).
+3. Your Anchor Server, which should be doing all the following:
+   1. Implement the [Callback API] `GET /rate` endpoint.
+   2. Listen to events comming from the queue service. Whenever a quote is created, the Anchor should receive a a Rate [Event].
+   3. Be able to relate a quote with a transaction, when a transaction contains a `quote_id`.
+4. Run the Anchor Platform using the configuration files you've configured. Remember, your Anchor Server should be available at the same address you configured at `app-config.sep38.quoteIntegrationEndPoint` and it should expose the [Callback API] `GET /rate` endpoint.
+
+#### Testing Step 5
+
+Proceed to test the project with the [`anchor-tests`] command line tool by running:
+
+```shell
+export HOME_DOMAIN = "http://localhost:8080"  # Platform Server endpoint
+export SEP_CONFIG = ".../sep-config.json"     # SEP configuration file needed for SEP-12 tests
+stellar-anchor-tests --home-domain $HOME_DOMAIN --seps 1 10 12 38 --sep-config $SEP_CONFIG
+```
+
 ### Step 6 - Implement The Remmitances Receiving Party With Quotes
 
 [SEP-31] + [SEP-38]
