@@ -54,7 +54,7 @@ Before proceeding with this document, please make sure you understand the projec
 	* The demo wallet can be used to test how a wallet (or Sending Anchor) will interact with your infrastructure.
 	* It can be used to test the end-to-end [SEP-31] flow, where the Demo Wallet works like a Sending Anchor while the Platform is the Receiving Anchor.
 	* Please be aware that the Demo Wallet does not use [SEP-38] quotes. To test them, please refer to the Python scripts below.
-* [Python scripts](/end-to-end-tests/end_to_end_tests.py):
+* [Python scripts]:
     * They contain end-to-end tests for [SEP-31] with and without [SEP-38].
     * The script takes the role of the Sending Anchor, testing the Platform role as a Receiving Anchor.
 
@@ -201,6 +201,16 @@ export HOME_DOMAIN = "http://localhost:8080"  # Platform Server endpoint
 export SEP_CONFIG = ".../sep-config.json"     # SEP configuration file needed for SEP-12 and SEP-31 tests
 stellar-anchor-tests --home-domain $HOME_DOMAIN --seps 1 10 12 31 --sep-config $SEP_CONFIG
 ```
+
+Run the Python end-to-end `sep31_flow` test. You'll need to manually update the python script payloads with assets and fields compliant with your use-case requirements:
+
+```shell
+export HOME_DOMAIN = "http://localhost:8080"  # Platform Server endpoint
+export PRIVATE_KEY = "S..."                   # A private key whose public key holds some of the asset used in the SEP-31 test.
+python3 end_to_end_tests.py --domain $HOME_DOMAIN --secret $PRIVATE_KEY --tests sep31_flow
+```
+
+Use Stellar Demo Wallet (https://demo-wallet.stellar.org) to manually test the SEP-31 flow.
     
 ### Step 5 - Implement RFR - Request for Quotation
 
@@ -234,6 +244,14 @@ export SEP_CONFIG = ".../sep-config.json"     # SEP configuration file needed fo
 stellar-anchor-tests --home-domain $HOME_DOMAIN --seps 1 10 12 38 --sep-config $SEP_CONFIG
 ```
 
+Run the Python end-to-end `sep38_create_quote` test. You'll need to manually update the python script payloads with assets and fields compliant with your use-case requirements:
+
+```shell
+export HOME_DOMAIN = "http://localhost:8080"  # Platform Server endpoint
+export PRIVATE_KEY = "S..."                   # A private key whose public key holds some of the asset used in the SEP-38 test.
+python3 end_to_end_tests.py --domain $HOME_DOMAIN --secret $PRIVATE_KEY --tests sep38_create_quote
+```
+
 ### Step 6 - Implement The Remmitances Receiving Party With Quotes
 
 This step introduces the Platform's Remittances flow ([SEP-31]) with quotes ([SEP-38]). It is basically the result of a composition between Steps 4 and 5.
@@ -258,11 +276,20 @@ export SEP_CONFIG = ".../sep-config.json"     # SEP configuration file needed fo
 stellar-anchor-tests --home-domain $HOME_DOMAIN --seps 1 10 12 31 38 --sep-config $SEP_CONFIG
 ```
 
+Run the Python end-to-end `sep31_flow_with_sep38` test. You'll need to manually update the python script payloads with assets and fields compliant with your use-case requirements:
+
+```shell
+export HOME_DOMAIN = "http://localhost:8080"  # Platform Server endpoint
+export PRIVATE_KEY = "S..."                   # A private key whose public key holds some of the assets used in the SEP-31 and the SEP-38 tests.
+python3 end_to_end_tests.py --domain $HOME_DOMAIN --secret $PRIVATE_KEY --tests sep31_flow_with_sep38
+```
+
 ### Step 7 - Make Sure All Tests Pass
     
 ### Step 8 - Experiment with the Public Network
 
 [`anchor-tests`]: https://www.npmjs.com/package/@stellar/anchor-tests
+[Python scripts]: /end-to-end-tests/end_to_end_tests.py
 [`anchor-config-defaults.yaml`]: /platform/src/main/resources/anchor-config-defaults.yaml
 [`anchor-reference-server.yaml`]: /anchor-reference-server/src/main/resources/anchor-reference-server.yaml
 [`stellar-wks.toml`]: /platform/src/main/resources/sep1/stellar-wks.toml
