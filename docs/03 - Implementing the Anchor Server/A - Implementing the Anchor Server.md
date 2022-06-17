@@ -29,8 +29,7 @@
       - [Configuring Step 6](#configuring-step-6)
       - [Running Step 6](#running-step-6)
       - [Testing Step 6](#testing-step-6)
-    - [Step 7 - Make Sure All Tests Pass](#step-7---make-sure-all-tests-pass)
-    - [Step 8 - Experiment with the Public Network](#step-8---experiment-with-the-public-network)
+    - [Step 7 - Experiment with the Public Network](#step-7---experiment-with-the-public-network)
 
 In this section, we will cover how to implement the Anchor Server that interacts with the Anchor Platform.
 
@@ -284,11 +283,12 @@ export PRIVATE_KEY = "S..."                   # A private key whose public key h
 python3 end_to_end_tests.py --domain $HOME_DOMAIN --secret $PRIVATE_KEY --tests sep31_flow_with_sep38
 ```
 
-### Step 7 - Make Sure All Tests Pass
-    
-### Step 8 - Experiment with the Public Network
+### Step 7 - Experiment with the Public Network
+
+Both the [`anchor-tests`] and [Demo Wallet] can be used to test the production environment.
 
 [`anchor-tests`]: https://www.npmjs.com/package/@stellar/anchor-tests
+[Demo Wallet]: https://demo-wallet.stellar.org
 [Python scripts]: /end-to-end-tests/end_to_end_tests.py
 [`anchor-config-defaults.yaml`]: /platform/src/main/resources/anchor-config-defaults.yaml
 [`anchor-reference-server.yaml`]: /anchor-reference-server/src/main/resources/anchor-reference-server.yaml
