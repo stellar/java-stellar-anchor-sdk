@@ -19,7 +19,7 @@ stellar:
     #  `config-spring-property` is the only `type` value supported in MVP.
     app-config:
       type: config-spring-property
-      settings: platform-config                        # The absolute location of the configuration data in this yaml file
+      settings: app-config                        # The absolute location of the configuration data in this yaml file
 
     #
     # Sets how the application access the datastore.
@@ -47,7 +47,7 @@ stellar:
 #
 # Platform application configuration
 #
-platform-config:
+app-config:
   # shared / general application configurations
   app:
     # The stellar network passphrase used to access Horizon server.
