@@ -14,12 +14,15 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestClientException;
 import org.stellar.anchor.api.sep.SepExceptionResponse;
 import org.stellar.anchor.api.sep.sep38.*;
+import org.stellar.anchor.platform.condition.ConditionalOnSepsEnabled;
 import org.stellar.anchor.sep10.JwtToken;
 import org.stellar.anchor.sep38.Sep38Service;
 import org.stellar.anchor.util.GsonUtils;
 
 @RestController
+@CrossOrigin(origins = "*")
 @RequestMapping("/sep38")
+@ConditionalOnSepsEnabled(seps = {"sep38"})
 public class Sep38Controller {
   private final Sep38Service sep38Service;
   private static final Gson gson = GsonUtils.builder().create();
