@@ -1,25 +1,23 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Values.fullName }}-deploy-{{ .Values.service.name }}
-  namespace: {{ .Values.namespace }}
+  name: {{ include "common.name" . }}
+  namespace: anchor-platform
   labels:
-    app.kubernetes.io/name: {{ .Values.fullName }}-{{ .Values.service.name }}
-    helm.sh/chart: {{ $.Chart.Name }}-{{ $.Chart.Version }}
+    app.kubernetes.io/name: {{ include "common.name" . }}
+    helm.sh/chart: {{ include "common.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app.kubernetes.io/name: {{ .Values.fullName }}-{{ .Values.service.name }}
+      app.kubernetes.io/name: {{ .Values.service.name }}
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: {{ .Values.fullName }}-{{ .Values.service.name }}
-        helm.sh/chart: {{ $.Chart.Name }}-{{ $.Chart.Version }}
+        app.kubernetes.io/name: {{ include "common.name" . }}
         app.kubernetes.io/instance: {{ .Release.Name }}
-        app.kubernetes.io/managed-by: {{ .Release.Service }}
     spec:
       containers:
         - name: {{ .Chart.Name }}
@@ -32,9 +30,10 @@ spec:
             readOnly: true
           ports:
             - name: http
-              containerPort: {{ .Values.service.containerPort }}
+              containerPort: 8080
               protocol: TCP
           resources:
+{{ toYaml .Values.resources | indent 12 }}
       volumes:
         - name: config
           configMap:
