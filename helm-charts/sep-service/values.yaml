@@ -18,6 +18,7 @@ ingress:
    ingressClassName: alb
    tls:
       tlsHost: "www.stellaranchordemo.com"
+      secretName: "secret"
 stellar:
    anchor:
       config: in-memory
