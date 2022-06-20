@@ -1,0 +1,35 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+metadata:
+  name: {{ .Values.fullName }}-ing-{{ .Values.service.name }}
+  namespace: {{ .Values.namespace }}
+{{- if .Values.service.annotations }}
+  annotations:
+{{- range $key, $value := .Values.service.annotations }}
+      {{ $key }}: {{ $value }}
+{{- end }}
+{{- end }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.fullName }}-ing-{{ .Values.service.name }}
+    helm.sh/chart: {{ $.Chart.Name }}-{{ $.Chart.Version }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  ingressClassName: {{ .Values.ingress.ingressClassName }}
+  {{- if .Values.ingress.tls }}
+  tls:
+      - hosts:
+        - {{ .Values.ingress.tls.tlsHost }}
+  {{- end }}
+  rules:
+  - host: {{ .Values.ingress.tls.tlsHost }}
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: {{ .Values.fullName }}-svc-{{ .Values.service.name }}
+            port:
+              number: {{ .Values.service.servicePort }}
