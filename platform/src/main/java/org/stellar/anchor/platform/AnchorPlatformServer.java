@@ -16,6 +16,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.stellar.anchor.config.EventConfig;
 import org.stellar.anchor.config.KafkaConfig;
 import org.stellar.anchor.config.SqsConfig;
+import org.stellar.anchor.config.MetricConfig;
 import org.stellar.anchor.event.EventPublishService;
 import org.stellar.anchor.event.KafkaEventService;
 import org.stellar.anchor.event.SqsEventService;
@@ -23,7 +24,7 @@ import org.stellar.anchor.platform.configurator.DataAccessConfigurator;
 import org.stellar.anchor.platform.configurator.PlatformAppConfigurator;
 import org.stellar.anchor.platform.configurator.PropertiesReader;
 import org.stellar.anchor.platform.configurator.SpringFrameworkConfigurator;
-import org.stellar.anchor.platform.data.JdbcSep31TransactionStore;
+import org.stellar.anchor.platform.data.JdbcSep31TransactionRepo;
 import org.stellar.anchor.platform.service.MetricEmitterService;
 import org.stellar.anchor.util.GsonUtils;
 
@@ -45,8 +46,11 @@ public class AnchorPlatformServer implements WebMvcConfigurer {
             .properties(
                 "spring.mvc.converters.preferred-json-mapper=gson",
                 // this allows a developer to use a .env file for local development
+                // TODO: move these configs to the config file when this is fixed -
+                //  https://github.com/stellar/java-stellar-anchor-sdk/issues/297
                 "spring.config.import=optional:classpath:example.env[.properties]",
                 "management.endpoints.web.exposure.include=health,info,prometheus",
+                "management.server.port=8082",     // expose prometheus metrics on a separate port
                 String.format("server.port=%d", port),
                 String.format("server.contextPath=%s", contextPath));
     if (environment != null) {
@@ -92,7 +96,10 @@ public class AnchorPlatformServer implements WebMvcConfigurer {
   }
 
   @Bean
-  public MetricEmitterService metricService(JdbcSep31TransactionStore sep31TransactionStore) {
-    return new MetricEmitterService(sep31TransactionStore);
+  public MetricEmitterService metricService(MetricConfig metricConfig, JdbcSep31TransactionRepo sep31TransactionRepo) {
+    if (metricConfig.isEnabled()){
+      return new MetricEmitterService(sep31TransactionRepo);
+    }
+    return null;
   }
 }

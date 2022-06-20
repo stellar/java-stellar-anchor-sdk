@@ -10,6 +10,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import io.micrometer.core.instrument.Metrics;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.stellar.anchor.api.exception.AnchorException;
@@ -91,6 +93,8 @@ public class TransactionService {
     for (JdbcSep31Transaction txn : txnsToSave) {
       // TODO: consider 2-phase commit DB transaction management.
       txnStore.save(txn);
+      Metrics.counter("sep31.transaction",
+              "status",txn.getStatus()).increment();
     }
     return new PatchTransactionsResponse(responses);
   }

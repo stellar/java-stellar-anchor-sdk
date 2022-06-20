@@ -236,6 +236,12 @@ app-config:
     accessKey: ${SQS_PUBLISHER_ACCESS_KEY}
     secretKey: ${SQS_PUBLISHER_SECRET_KEY}
 
+  metric-emitter-service:
+    # metrics are enabled by default (http request/latency, etc... ), this metric-emitter-service is a separate
+    # service that periodically queries the database for statistics and emits those metrics (this can be db intensive)
+    #
+    enabled: true
+
 #
 # Spring Data JDBC settings
 #
