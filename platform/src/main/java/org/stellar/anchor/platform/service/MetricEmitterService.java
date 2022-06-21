@@ -29,7 +29,7 @@ public class MetricEmitterService {
     this.sep31TransactionStore = sep31TransactionRepo;
     // Create counters
     Metrics.counter("sep31.transaction", "status", "pending_stellar");
-    Metrics.counter("sep31.transaction", "status", "pendin_customer_info_update");
+    Metrics.counter("sep31.transaction", "status", "pending_customer_info_update");
     Metrics.counter("sep31.transaction", "status", "pending_sender");
     Metrics.counter("sep31.transaction", "status", "pending_receiver");
     Metrics.counter("sep31.transaction", "status", "pending_external");
@@ -40,7 +40,7 @@ public class MetricEmitterService {
 
     // create gauges for SEP-31 Transactions - .db indicates that the metrics is pulled from the database
     Metrics.gauge("sep31.transaction.db", Tags.of("status", "pending_stellar"), pendingStellarTxns);
-    Metrics.gauge("sep31.transaction.db", Tags.of("status", "pendin_customer_info_update"), pendingCustomerInfoUpdateTxns);
+    Metrics.gauge("sep31.transaction.db", Tags.of("status", "pending_customer_info_update"), pendingCustomerInfoUpdateTxns);
     Metrics.gauge("sep31.transaction.db", Tags.of("status", "pending_sender"), pendingSenderTxns);
     Metrics.gauge("sep31.transaction.db", Tags.of("status", "pending_receiver"), pendingReceiverTxns);
     Metrics.gauge("sep31.transaction.db", Tags.of("status", "pending_external"), pendingExternalTxns);
