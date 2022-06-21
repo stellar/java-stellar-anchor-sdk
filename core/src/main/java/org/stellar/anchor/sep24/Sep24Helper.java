@@ -2,6 +2,7 @@ package org.stellar.anchor.sep24;
 
 import static javax.print.attribute.standard.JobState.COMPLETED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.*;
+import static org.stellar.anchor.util.Log.debugF;
 import static org.stellar.anchor.util.MathHelper.decimal;
 
 import java.math.BigDecimal;
@@ -15,7 +16,6 @@ import java.util.List;
 import org.apache.http.client.utils.URIBuilder;
 import org.springframework.beans.BeanUtils;
 import org.stellar.anchor.api.sep.AssetInfo;
-import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.sep.sep24.*;
 import org.stellar.anchor.config.Sep24Config;
 import org.stellar.anchor.sep10.JwtService;
@@ -28,6 +28,7 @@ public class Sep24Helper {
           PENDING_USR_TRANSFER_START.toString(),
           PENDING_USR_TRANSFER_COMPLETE.toString(),
           COMPLETED.toString(),
+          REFUNDED.toString(),
           PENDING_EXTERNAL.toString(),
           PENDING_ANCHOR.toString(),
           PENDING_USER.toString());
@@ -35,23 +36,26 @@ public class Sep24Helper {
       Arrays.asList(
           PENDING_USR_TRANSFER_START.toString(),
           PENDING_USR_TRANSFER_COMPLETE.toString(),
-          SepTransactionStatus.COMPLETED.toString(),
+          COMPLETED.toString(),
+          REFUNDED.toString(),
           PENDING_EXTERNAL.toString(),
           PENDING_ANCHOR.toString(),
           PENDING_USER.toString());
 
   public static String constructMoreInfoUrl(
-      JwtService jwtService, Sep24Config sep24Config, Sep24Transaction txn)
+      JwtService jwtService, Sep24Config sep24Config, Sep24Transaction txn, String lang)
       throws URISyntaxException, MalformedURLException {
 
     JwtToken token =
         JwtToken.of(
             "moreInfoUrl",
-            txn.getStellarAccount(),
+            (txn.getSep10AccountMemo() == null || txn.getSep10AccountMemo().length() == 0)
+                ? txn.getSep10Account()
+                : txn.getSep10Account() + ":" + txn.getSep10AccountMemo(),
             Instant.now().getEpochSecond(),
             Instant.now().getEpochSecond() + sep24Config.getInteractiveJwtExpiration(),
             txn.getTransactionId(),
-            txn.getDomainClient());
+            txn.getClientDomain());
 
     URI uri = new URI(sep24Config.getInteractiveUrl());
 
@@ -64,6 +68,10 @@ public class Sep24Helper {
             .addParameter("transaction_id", txn.getTransactionId())
             .addParameter("token", jwtService.encode(token));
 
+    if (lang != null) {
+      builder.addParameter("lang", lang);
+    }
+
     return builder.build().toURL().toString();
   }
 
@@ -71,6 +79,7 @@ public class Sep24Helper {
       JwtService jwtService,
       Sep24Config sep24Config,
       Sep24Transaction txn,
+      String lang,
       boolean allowMoreInfoUrl)
       throws MalformedURLException, URISyntaxException {
 
@@ -80,6 +89,10 @@ public class Sep24Helper {
     txnR.setId(txn.getTransactionId());
     txnR.setDepositMemo(txn.getMemo());
     txnR.setDepositMemoType(txn.getMemoType());
+    txnR.setFrom(txn.getFromAccount());
+    txnR.setTo(txn.getToAccount());
+    txnR.setDepositMemo(txn.getMemo());
+    txnR.setDepositMemoType(txn.getMemoType());
 
     txnR.setStartedAt(
         (txn.getStartedAt() == null) ? null : DateUtil.toISO8601UTC(txn.getStartedAt()));
@@ -87,7 +100,7 @@ public class Sep24Helper {
         (txn.getCompletedAt() == null) ? null : DateUtil.toISO8601UTC(txn.getCompletedAt()));
 
     if (allowMoreInfoUrl && needsMoreInfoUrlDeposit.contains(txn.getStatus())) {
-      txnR.setMoreInfoUrl(constructMoreInfoUrl(jwtService, sep24Config, txn));
+      txnR.setMoreInfoUrl(constructMoreInfoUrl(jwtService, sep24Config, txn, lang));
     } else {
       txnR.setMoreInfoUrl(null);
     }
@@ -99,6 +112,7 @@ public class Sep24Helper {
       JwtService jwtService,
       Sep24Config sep24Config,
       Sep24Transaction txn,
+      String lang,
       boolean allowMoreInfoUrl)
       throws MalformedURLException, URISyntaxException {
 
@@ -111,14 +125,14 @@ public class Sep24Helper {
         (txn.getCompletedAt() == null) ? null : DateUtil.toISO8601UTC(txn.getCompletedAt()));
     txnR.setId(txn.getTransactionId());
     txnR.setFrom(txn.getFromAccount());
-    txnR.setTo(txn.getReceivingAnchorAccount());
+    txnR.setTo(txn.getToAccount());
 
     txnR.setWithdrawMemo(txn.getMemo());
     txnR.setWithdrawMemoType(txn.getMemoType());
-    txnR.setWithdrawAnchorAccount(txn.getReceivingAnchorAccount());
+    txnR.setWithdrawAnchorAccount(txn.getWithdrawAnchorAccount());
 
     if (allowMoreInfoUrl && needsMoreInfoUrlWithdraw.contains(txn.getStatus())) {
-      txnR.setMoreInfoUrl(constructMoreInfoUrl(jwtService, sep24Config, txn));
+      txnR.setMoreInfoUrl(constructMoreInfoUrl(jwtService, sep24Config, txn, lang));
     } else {
       txnR.setMoreInfoUrl(null);
     }
@@ -128,12 +142,15 @@ public class Sep24Helper {
 
   public static TransactionResponse updateRefundInfo(
       TransactionResponse response, Sep24Transaction txn, AssetInfo assetInfo) {
+    debugF("Calculating refund information");
+
     List<? extends Sep24RefundPayment> refundPayments = txn.getRefundPayments();
     response.setRefunded(false);
     BigDecimal totalAmount = BigDecimal.ZERO;
     BigDecimal totalFee = BigDecimal.ZERO;
 
     if (refundPayments != null && refundPayments.size() > 0) {
+      debugF("{} refund payments found", refundPayments.size());
       List<RefundPayment> rps = new ArrayList<>(refundPayments.size());
       for (Sep24RefundPayment refundPayment : refundPayments) {
         if (refundPayment.getAmount() != null)

@@ -78,7 +78,6 @@
           "iso4217:USD"
         ]
       },
-      "sep6_enabled": false,
       "sep24_enabled": true,
       "sep31_enabled": true,
       "sep38_enabled": true
@@ -153,7 +152,6 @@
         ]
       },
       "sep24_enabled": true,
-      "sep6_enabled": true,
       "sep31_enabled": true,
       "sep38_enabled": true
     },
@@ -200,7 +198,6 @@
           }
         ]
       },
-      "sep6_enabled": false,
       "sep31_enabled": false,
       "sep38_enabled": true
     }

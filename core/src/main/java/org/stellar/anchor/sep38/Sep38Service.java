@@ -1,6 +1,8 @@
 package org.stellar.anchor.sep38;
 
-import static org.stellar.anchor.api.sep.sep38.Sep38Context.*;
+import static org.stellar.anchor.api.sep.sep38.Sep38Context.SEP31;
+import static org.stellar.anchor.api.sep.sep38.Sep38Context.SEP6;
+import static org.stellar.anchor.util.Log.debug;
 import static org.stellar.anchor.util.MathHelper.decimal;
 import static org.stellar.anchor.util.MathHelper.formatAmount;
 import static org.stellar.anchor.util.SepHelper.validateAmount;
@@ -41,6 +43,7 @@ public class Sep38Service {
       RateIntegration rateIntegration,
       Sep38QuoteStore sep38QuoteStore,
       EventPublishService eventService) {
+    debug("sep38Config:", sep38Config);
     this.sep38Config = sep38Config;
     this.assetService = assetService;
     this.rateIntegration = rateIntegration;
@@ -49,7 +52,7 @@ public class Sep38Service {
     this.infoResponse = new InfoResponse(this.assetService.listAllAssets());
     assetMap = new HashMap<>();
     this.infoResponse.getAssets().forEach(asset -> assetMap.put(asset.getAsset(), asset));
-    Log.info("Initializing sep38 service.");
+    Log.info("Sep38Service initialized.");
   }
 
   public InfoResponse getInfo() {

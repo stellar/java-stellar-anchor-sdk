@@ -6,6 +6,7 @@ import static org.stellar.anchor.util.Log.*;
 import static org.stellar.anchor.util.MathHelper.decimal;
 import static org.stellar.anchor.util.MathHelper.formatAmount;
 import static org.stellar.anchor.util.SepHelper.*;
+import static org.stellar.anchor.util.SepLanguageHelper.validateLanguage;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -34,6 +35,7 @@ import org.stellar.anchor.event.models.TransactionEvent;
 import org.stellar.anchor.sep10.JwtToken;
 import org.stellar.anchor.sep38.Sep38Quote;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
+import org.stellar.anchor.util.Log;
 
 public class Sep31Service {
   private final AppConfig appConfig;
@@ -57,6 +59,8 @@ public class Sep31Service {
       FeeIntegration feeIntegration,
       CustomerIntegration customerIntegration,
       EventPublishService eventService) {
+    debug("appConfig:", appConfig);
+    debug("sep31Config:", sep31Config);
     this.appConfig = appConfig;
     this.sep31Config = sep31Config;
     this.sep31TransactionStore = sep31TransactionStore;
@@ -67,6 +71,7 @@ public class Sep31Service {
     this.customerIntegration = customerIntegration;
     this.eventService = eventService;
     this.infoResponse = createFromAssets(assetService.listAllAssets());
+    Log.info("Sep31Service initialized.");
   }
 
   public Sep31InfoResponse getInfo() {
@@ -93,7 +98,8 @@ public class Sep31Service {
     validateAmount(request.getAmount());
     validateLanguage(appConfig, request.getLang());
     if (request.getFields() == null) {
-      infoF("POST /transaction with id ({}) cannot have empty `fields`", jwtToken.getTransactionId());
+      infoF(
+          "POST /transaction with id ({}) cannot have empty `fields`", jwtToken.getTransactionId());
       throw new BadRequestException("'fields' field cannot be empty");
     }
     validateRequiredFields(assetInfo.getCode(), request.getFields().getTransaction());
@@ -199,10 +205,7 @@ public class Sep31Service {
     }
 
     Sep31Transaction txn = Context.get().getTransaction();
-    debugF("Updating transaction ({}) with quote ({})",
-            txn.getId(),
-            quote.getId()
-    );
+    debugF("Updating transaction ({}) with quote ({})", txn.getId(), quote.getId());
     txn.setAmountInAsset(quote.getSellAsset());
     txn.setAmountIn(quote.getSellAmount());
     txn.setAmountOutAsset(quote.getBuyAsset());
@@ -233,11 +236,7 @@ public class Sep31Service {
       amountIn = reqAmount.add(fee);
       amountOut = reqAmount;
     }
-    debugF("Updating transaction ({}) with fee ({}) - reqAsset ({})",
-            txn.getId(),
-            fee,
-            reqAsset
-    );
+    debugF("Updating transaction ({}) with fee ({}) - reqAsset ({})", txn.getId(), fee, reqAsset);
 
     // Update transaction
     txn.setAmountIn(formatAmount(amountIn, scale));
@@ -342,10 +341,11 @@ public class Sep31Service {
 
     // Check quote amounts: `post_transaction.amount == quote.sell_amount`
     if (!amountEquals(request.getAmount(), quote.getSellAmount())) {
-      infoF("Quote ({}) - sellAmount ({}) is different from the SEP-31 transaction amount ({})",
-              request.getQuoteId(),
-              quote.getSellAmount(),
-              request.getAmount());
+      infoF(
+          "Quote ({}) - sellAmount ({}) is different from the SEP-31 transaction amount ({})",
+          request.getQuoteId(),
+          quote.getSellAmount(),
+          request.getAmount());
       throw new BadRequestException(
           String.format(
               "Quote sell amount [%s] is different from the SEP-31 transaction amount [%s]",
@@ -356,10 +356,11 @@ public class Sep31Service {
     String assetName =
         assetService.getAsset(request.getAssetCode(), request.getAssetIssuer()).getAssetName();
     if (!assetName.equals(quote.getSellAsset())) {
-      infoF("Quote ({}) - sellAsset ({}) is different from the SEP-31 transaction asset ({})",
-              request.getQuoteId(),
-              quote.getSellAsset(),
-              assetName);
+      infoF(
+          "Quote ({}) - sellAsset ({}) is different from the SEP-31 transaction asset ({})",
+          request.getQuoteId(),
+          quote.getSellAsset(),
+          assetName);
       throw new BadRequestException(
           String.format(
               "Quote sell asset [%s] is different from the SEP-31 transaction asset [%s]",
@@ -399,7 +400,7 @@ public class Sep31Service {
                     .receiveAmount(null)
                     .senderId(request.getSenderId())
                     .receiverId(request.getReceiverId())
-                    .clientDomain(token.getClientDomain())
+                    .clientId(token.getAccount())
                     .build())
             .getFee();
     infoF("Fee for request ({}) is ({})", request, fee);
@@ -436,7 +437,9 @@ public class Sep31Service {
 
   void validateRequiredFields(String assetCode, Map<String, String> fields) throws AnchorException {
     if (fields == null) {
-      infoF("'fields' field must have one 'transaction' field for request ({})", Context.get().getRequest());
+      infoF(
+          "'fields' field must have one 'transaction' field for request ({})",
+          Context.get().getRequest());
       throw new BadRequestException("'fields' field must have one 'transaction' field");
     }
 
@@ -465,7 +468,10 @@ public class Sep31Service {
     sep31MissingTxnFields.setTransaction(missingFields);
 
     if (missingFields.size() > 0) {
-      infoF("Missing SEP-31 fields ({}) for request ({})", sep31MissingTxnFields, Context.get().getRequest());
+      infoF(
+          "Missing SEP-31 fields ({}) for request ({})",
+          sep31MissingTxnFields,
+          Context.get().getRequest());
       throw new Sep31MissingFieldException(sep31MissingTxnFields);
     }
   }

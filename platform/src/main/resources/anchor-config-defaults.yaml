@@ -44,9 +44,9 @@ stellar:
       type: logging-logback
       settings: logging-logback-settings          # The absolute location of the configuration data in this yaml file
 
-# ************************************
-# Application settings
-# ************************************
+#
+# Platform application configuration
+#
 app-config:
   # shared / general application configurations
   app:
@@ -122,6 +122,10 @@ app-config:
     # We highly recommend that this private key should not be used to sign any transactions to submit to the Stellar
     # network.
     signingSeed: ${SEP10_SIGNING_SEED}
+
+    # The list of omnibus account.
+    # The detail of the SEP-10 omnibus account is described at: https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#memos
+    omnibusAccountList:
 
   # sep-12
   sep12:

@@ -110,6 +110,7 @@ public class Log {
    * Send exception ERROR log with a message.
    *
    * @param ex The exception.
+   * @param msg The error message.
    */
   public static void errorEx(final String msg, final Throwable ex) {
     Logger logger = getLogger();

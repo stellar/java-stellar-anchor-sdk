@@ -68,10 +68,10 @@ paths:
           name: client_id
           description: |
             An identifier for the client application making the request. This ID can be used to offer different fees to different clients.
-
-            Client IDs will be Stellar public keys when the client is initiating a SEP-31 transaction. In this case the client should be a 
-            known SEP-31 sending anchor and the public key will be the Stellar address used to authenticate via SEP-10. Anchors must ensure
-            that the public key specified in the request matches a public key known to belong to the sending anchor.
+            A client ID can be one of the following:
+            1. the `client_domain`: In SEP-24, if the transaction is initiated from a non-custodial wallet, the `client_id` must match the `client_domain` if wallet attribution is required. 
+            2. the Stellar custodial/omnibus account: In SEP-24, if the transaction is initiated from a custodian, such as Wyre, the `client_id` should match a known pooled/omnibus account configured in the [`omnibusAccountList`] of the YAML file](https://github.com/stellar/java-stellar-anchor-sdk/blob/main/platform/src/main/resources/anchor-config-defaults.yaml).  
+            3. The Stellar account of a sending anchor: In SEP-31, the `client_id` should match the account of a known SEP-31 sending anchor match the one used to authenticate via SEP-10.
           schema:
             type: string
           required: true
@@ -552,10 +552,10 @@ components:
         rate:
           type: object
           properties:
-            id: 
+            id:
               type: string
               description: Id of the firm quote. NOT USED when `type=indicative*`.
-            expires_at: 
+            expires_at:
               type: string
               format: date-time
               description: Expirations are NOT USED when `type=indicative*`.
