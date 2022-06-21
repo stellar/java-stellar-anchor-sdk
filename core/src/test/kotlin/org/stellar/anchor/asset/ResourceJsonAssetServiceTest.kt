@@ -22,9 +22,9 @@ internal class ResourceJsonAssetServiceTest {
     assertEquals(asset.code, TEST_ASSET)
     assertEquals(asset.issuer, TEST_ASSET_ISSUER_ACCOUNT_ID)
 
-    assertEquals(rjas.getAsset(TEST_ASSET, null).code, TEST_ASSET)
+    assertEquals(rjas.getAsset(TEST_ASSET).code, TEST_ASSET)
 
-    assertNull(rjas.getAsset("NA", null))
+    assertNull(rjas.getAsset("NA"))
   }
 
   @Test

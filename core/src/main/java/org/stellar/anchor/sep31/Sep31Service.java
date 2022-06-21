@@ -89,6 +89,7 @@ public class Sep31Service {
               "asset %s:%s is not supported.", request.getAssetCode(), request.getAssetIssuer()));
     }
     Context.get().setAsset(assetInfo);
+    Context.get().setTransactionFields(request.getFields().getTransaction());
 
     // Pre-validation
     validateAmount(request.getAmount());
@@ -97,9 +98,9 @@ public class Sep31Service {
       infoF("POST /transaction with id ({}) cannot have empty `fields`", jwtToken.getTransactionId());
       throw new BadRequestException("'fields' field cannot be empty");
     }
-    validateRequiredFields(assetInfo.getCode(), request.getFields().getTransaction());
+    validateRequiredFields();
     validateSenderAndReceiver();
-    preValidateQuote(assetInfo.getSep31().isQuotesRequired());
+    preValidateQuote();
 
     // Query the fee
     updateFee();
@@ -301,7 +302,10 @@ public class Sep31Service {
         .getTransaction()
         .forEach((fieldName, fieldValue) -> txn.getFields().put(fieldName, fieldValue));
 
-    validateRequiredFields(txn.getAmountInAsset(), txn.getFields());
+    AssetInfo assetInfo = assetService.getAsset(txn.getAmountInAsset());
+    Context.get().setAsset(assetInfo);
+    Context.get().setTransactionFields(txn.getFields());
+    validateRequiredFields();
 
     Sep31Transaction savedTxn = sep31TransactionStore.save(txn);
 
@@ -326,15 +330,18 @@ public class Sep31Service {
     }
   }
 
-  void preValidateQuote(boolean isQuotesRequired) throws AnchorException {
+  void preValidateQuote() throws AnchorException {
     Sep31PostTransactionRequest request = Context.get().getRequest();
+    AssetInfo assetInfo = Context.get().getAsset();
+    boolean isQuotesRequired = assetInfo.getSep31().isQuotesRequired();
+    boolean isQuotesSupported = assetInfo.getSep31().isQuotesSupported();
 
     if (isQuotesRequired && request.getQuoteId() == null) {
       throw new BadRequestException("quotes_required is set to true; quote id cannot be empty");
     }
 
     // Check if quote is provided.
-    if (request.getQuoteId() == null) {
+    if (!isQuotesSupported || request.getQuoteId() == null) {
       return;
     }
 
@@ -439,7 +446,9 @@ public class Sep31Service {
     }
   }
 
-  void validateRequiredFields(String assetCode, Map<String, String> fields) throws AnchorException {
+  void validateRequiredFields() throws AnchorException {
+    String assetCode = Context.get().getAsset().getCode();
+    Map<String, String> fields = Context.get().getTransactionFields();
     if (fields == null) {
       infoF("'fields' field must have one 'transaction' field for request ({})", Context.get().getRequest());
       throw new BadRequestException("'fields' field must have one 'transaction' field");
@@ -540,6 +549,7 @@ public class Sep31Service {
     JwtToken jwtToken;
     Amount fee;
     AssetInfo asset;
+    Map<String, String> transactionFields;
     static ThreadLocal<Context> context = new ThreadLocal<>();
 
     public static Context get() {

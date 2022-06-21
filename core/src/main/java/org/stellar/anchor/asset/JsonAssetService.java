@@ -19,12 +19,19 @@ public class JsonAssetService implements AssetService {
     return new ArrayList<>(assets.assets);
   }
 
-  public AssetInfo getAsset(String code, String issuer) {
+  public AssetInfo getAsset(String code) {
     for (AssetInfo asset : assets.assets) {
       if (asset.getCode().equals(code)) {
-        if (issuer == null || issuer.equals(asset.getIssuer())) {
           return asset;
-        }
+      }
+    }
+    return null;
+  }
+
+  public AssetInfo getAsset(String code, String issuer) {
+    for (AssetInfo asset : assets.assets) {
+      if (asset.getCode().equals(code) && issuer.equals(asset.getIssuer())) {
+          return asset;
       }
     }
     return null;

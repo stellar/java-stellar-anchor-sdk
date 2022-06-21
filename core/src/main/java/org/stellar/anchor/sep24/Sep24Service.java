@@ -271,7 +271,7 @@ public class Sep24Service {
     }
 
     Log.infoF("Sep24.findTransactions. account={}", shorter(token.getAccount()));
-    if (assetService.getAsset(txReq.getAssetCode(), null) == null) {
+    if (assetService.getAsset(txReq.getAssetCode()) == null) {
       throw new SepValidationException("asset code not supported");
     }
     List<Sep24Transaction> txns =
