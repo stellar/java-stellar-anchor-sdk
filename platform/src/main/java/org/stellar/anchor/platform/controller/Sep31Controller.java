@@ -11,7 +11,8 @@ import org.springframework.web.bind.annotation.*;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.sep.AssetInfo.Sep31TxnFieldSpecs;
 import org.stellar.anchor.api.sep.sep31.*;
-import org.stellar.anchor.platform.condition.ConditionalOnSepsEnabled;
+import org.stellar.anchor.platform.condition.ConditionalOnAllSepsEnabled;
+import org.stellar.anchor.platform.condition.ConditionalOnAnySepsEnabled;
 import org.stellar.anchor.sep10.JwtToken;
 import org.stellar.anchor.sep31.Sep31Service;
 import org.stellar.anchor.sep31.Sep31Service.Sep31CustomerInfoNeededException;
@@ -20,7 +21,7 @@ import org.stellar.anchor.sep31.Sep31Service.Sep31MissingFieldException;
 @RestController
 @CrossOrigin(origins = "*")
 @RequestMapping("sep31")
-@ConditionalOnSepsEnabled(seps = {"sep31"})
+@ConditionalOnAllSepsEnabled(seps = {"sep31"})
 public class Sep31Controller {
   private final Sep31Service sep31Service;
 

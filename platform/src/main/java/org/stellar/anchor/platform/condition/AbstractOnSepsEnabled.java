@@ -8,11 +8,12 @@ import org.springframework.core.annotation.MergedAnnotation;
 import org.springframework.core.annotation.MergedAnnotationPredicates;
 import org.springframework.core.type.AnnotatedTypeMetadata;
 
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class OnSepEnabledCondition extends SpringBootCondition {
+public abstract class AbstractOnSepsEnabled extends SpringBootCondition {
   @Override
   public ConditionOutcome getMatchOutcome(
       ConditionContext context, AnnotatedTypeMetadata metadata) {
@@ -27,25 +28,23 @@ public class OnSepEnabledCondition extends SpringBootCondition {
 
     // Find all annotation attributes
     List<AnnotationAttributes> allAnnotationAttributes =
-        metadata.getAnnotations().stream(ConditionalOnSepsEnabled.class.getName())
+        metadata.getAnnotations().stream(getAnnotatingClass())
             .filter(MergedAnnotationPredicates.unique(MergedAnnotation::getMetaTypes))
             .map(MergedAnnotation::asAnnotationAttributes)
             .collect(Collectors.toList());
 
+    LinkedList<String> seps = new LinkedList<>();
     for (AnnotationAttributes annotationAttributes : allAnnotationAttributes) {
-      // if any sep is enabled in the "seps" value, return a match.
-      String[] seps = (String[]) annotationAttributes.get("seps");
-      for (String sep : seps) {
-        boolean enabled =
-            Boolean.parseBoolean(
-                context
-                    .getEnvironment()
-                    .getProperty(String.format("%s.enabled", sep.toLowerCase())));
-        if (enabled) return ConditionOutcome.match(String.format("%s enabled", className));
+      for (String sep : (String[]) annotationAttributes.get("seps")) {
+        seps.add(sep);
       }
     }
 
-    // Nothing matched.
-    return ConditionOutcome.noMatch(String.format("%s disabled", className));
+    return getMatchOutcome(seps, context, className);
   }
+
+  abstract String getAnnotatingClass();
+
+  abstract ConditionOutcome getMatchOutcome(
+      List<String> seps, ConditionContext context, String className);
 }

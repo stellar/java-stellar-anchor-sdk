@@ -136,7 +136,7 @@ app-config:
 
   # sep-24
   sep24:
-    enabled: false
+    enabled: true
     # Set the timeout of the JSON Web Token returned with the embedded interactive url of the SEP-24 process.
     # An expired JWT will be rejected.
     #
