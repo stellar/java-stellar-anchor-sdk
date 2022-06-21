@@ -6,6 +6,8 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.annotation.PreDestroy;
+
+import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.config.MetricConfig;
 
 import io.micrometer.core.instrument.Tags;
@@ -21,20 +23,35 @@ public class MetricEmitterService {
   AtomicInteger pendingReceiverTxns = new AtomicInteger(0);
   AtomicInteger pendingExternalTxns = new AtomicInteger(0);
   AtomicInteger completedTxns = new AtomicInteger(0);
+  AtomicInteger errorTxns = new AtomicInteger(0);
 
-  public MetricEmitterService(JdbcSep31TransactionRepo sep31TransactionRepo) {
+  public MetricEmitterService(MetricConfig metricConfig, JdbcSep31TransactionRepo sep31TransactionRepo) {
     this.sep31TransactionStore = sep31TransactionRepo;
-    this.executor.scheduleAtFixedRate(new MetricEmitter(), 0, 30, TimeUnit.SECONDS);
-    // create gauges for SEP-31 Transactions
-    Metrics.gauge("sep31.transaction.db", Tags.of("status", "pendingStellar"), pendingStellarTxns);
-    Metrics.gauge("sep31.transaction.db", Tags.of("status", "pendingCustomerInfoUpdate"), pendingCustomerInfoUpdateTxns);
-    Metrics.gauge("sep31.transaction.db", Tags.of("status", "pendingSender"), pendingSenderTxns);
-    Metrics.gauge("sep31.transaction.db", Tags.of("status", "pendingReceiver"), pendingReceiverTxns);
-    Metrics.gauge("sep31.transaction.db", Tags.of("status", "pendingExternal"), pendingExternalTxns);
+    // Create counters
+    Metrics.counter("sep31.transaction", "status", "pending_stellar");
+    Metrics.counter("sep31.transaction", "status", "pendin_customer_info_update");
+    Metrics.counter("sep31.transaction", "status", "pending_sender");
+    Metrics.counter("sep31.transaction", "status", "pending_receiver");
+    Metrics.counter("sep31.transaction", "status", "pending_external");
+    Metrics.counter("sep31.transaction", "status", "completed");
+    Metrics.counter("sep31.transaction", "status", "error");
+    Metrics.counter("logger", "type", "warn");
+    Metrics.counter("logger", "type", "error");
+
+    // create gauges for SEP-31 Transactions - .db indicates that the metrics is pulled from the database
+    Metrics.gauge("sep31.transaction.db", Tags.of("status", "pending_stellar"), pendingStellarTxns);
+    Metrics.gauge("sep31.transaction.db", Tags.of("status", "pendin_customer_info_update"), pendingCustomerInfoUpdateTxns);
+    Metrics.gauge("sep31.transaction.db", Tags.of("status", "pending_sender"), pendingSenderTxns);
+    Metrics.gauge("sep31.transaction.db", Tags.of("status", "pending_receiver"), pendingReceiverTxns);
+    Metrics.gauge("sep31.transaction.db", Tags.of("status", "pending_external"), pendingExternalTxns);
     Metrics.gauge("sep31.transaction.db", Tags.of("status", "completed"), completedTxns);
+    Metrics.gauge("sep31.transaction.db", Tags.of("status", "error"), errorTxns);
 
     // TODO add gauges for SEP-24 Transactions
 
+    if (metricConfig.isEnabled()){
+      this.executor.scheduleAtFixedRate(new MetricEmitter(), 0, 30, TimeUnit.SECONDS);
+    }
   }
 
   class MetricEmitter implements Runnable {
@@ -47,6 +64,7 @@ public class MetricEmitterService {
         pendingReceiverTxns.set(sep31TransactionStore.findByStatusCount("pending_receiver"));
         pendingExternalTxns.set(sep31TransactionStore.findByStatusCount("pending_external"));
         completedTxns.set(sep31TransactionStore.findByStatusCount("completed"));
+        errorTxns.set(sep31TransactionStore.findByStatusCount("error"));
       } catch (Exception ex) {
         Log.errorEx(ex);
       }

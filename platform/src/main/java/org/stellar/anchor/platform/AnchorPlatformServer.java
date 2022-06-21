@@ -94,7 +94,7 @@ public class AnchorPlatformServer implements WebMvcConfigurer {
   @Bean
   public MetricEmitterService metricService(MetricConfig metricConfig, JdbcSep31TransactionRepo sep31TransactionRepo) {
     if (metricConfig.isEnabled()){
-      return new MetricEmitterService(sep31TransactionRepo);
+      return new MetricEmitterService(metricConfig, sep31TransactionRepo);
     }
     return null;
   }

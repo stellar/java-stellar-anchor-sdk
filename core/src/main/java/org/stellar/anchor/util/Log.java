@@ -21,8 +21,6 @@ public class Log {
   static {
     LogExclusionStrategy strategy = new LogExclusionStrategy();
     gson = GsonUtils.builder().setExclusionStrategies(strategy).create();
-    Metrics.counter("logger", "type", "error");
-    Metrics.counter("logger", "type", "warning");
   }
 
   /**
