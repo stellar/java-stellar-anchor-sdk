@@ -92,8 +92,6 @@ public class Sep31Service {
           String.format(
               "asset %s:%s is not supported.", request.getAssetCode(), request.getAssetIssuer()));
     }
-    Context.get().setAsset(assetInfo);
-    Context.get().setTransactionFields(request.getFields().getTransaction());
 
     // Pre-validation
     validateAmount(request.getAmount());
@@ -103,6 +101,10 @@ public class Sep31Service {
           "POST /transaction with id ({}) cannot have empty `fields`", jwtToken.getTransactionId());
       throw new BadRequestException("'fields' field cannot be empty");
     }
+
+    Context.get().setAsset(assetInfo);
+    Context.get().setTransactionFields(request.getFields().getTransaction());
+
     validateRequiredFields();
     validateSenderAndReceiver();
     preValidateQuote();

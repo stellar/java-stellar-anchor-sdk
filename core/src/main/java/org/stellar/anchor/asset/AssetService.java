@@ -22,7 +22,7 @@ public interface AssetService {
 
   /**
    * Get the asset identified by `code` and `issuer`.
-   * Both fields must match to return a match.
+   * If `issuer` is null, match only on `code`.
    *
    * @param code The asset code
    * @param issuer The account ID of the issuer

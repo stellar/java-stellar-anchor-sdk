@@ -29,6 +29,9 @@ public class JsonAssetService implements AssetService {
   }
 
   public AssetInfo getAsset(String code, String issuer) {
+    if (issuer == null) {
+      return getAsset(code);
+    }
     for (AssetInfo asset : assets.assets) {
       if (asset.getCode().equals(code) && issuer.equals(asset.getIssuer())) {
           return asset;
