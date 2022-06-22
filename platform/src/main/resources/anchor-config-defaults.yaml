@@ -30,7 +30,7 @@ stellar:
     #
     data-access:
       type: data-spring-jdbc
-      settings: data-spring-jdbc-sqlite           # The absolute location of the configuration data in this yaml file
+      settings: data-spring-jdbc-h2           # The absolute location of the configuration data in this yaml file
       #settings: data-spring-jdbc-local-postgres    # use local postgres instance
 
     #
@@ -245,6 +245,7 @@ app-config:
     # service that periodically queries the database for statistics and emits those metrics (this can be db intensive)
     #
     enabled: true
+    runInterval: 32   # how many seconds between each update (query the database for metrics)
 
 #
 # Spring Data JDBC settings

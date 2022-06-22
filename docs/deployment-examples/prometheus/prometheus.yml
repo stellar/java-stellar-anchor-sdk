@@ -1,5 +1,5 @@
 # Sample Prometheus config
-# This assumes that your Prometheus instance can access this application on localhost:8080
+# This assumes that your Prometheus instance can access Anchor Platform on localhost:8080
 
 global:
   scrape_interval:     15s # Set the scrape interval to every 15 seconds. Default is every 1 minute.

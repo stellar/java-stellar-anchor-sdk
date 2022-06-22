@@ -81,10 +81,14 @@ public class TransactionService {
     for (PatchTransactionRequest patch : patchRequests) {
       JdbcSep31Transaction txn = (JdbcSep31Transaction) sep31Transactions.get(patch.getId());
       if (txn != null) {
+        String txnOriginalStatus = txn.getStatus();
         // validate and update the transaction.
         updateSep31Transaction(patch, txn);
         // Add them to the to-be-updated lists.
         txnsToSave.add(txn);
+        if(!txnOriginalStatus.equals(txn.getStatus())){
+          //
+        }
         responses.add(fromTransactionToResponse(txn));
       } else {
         throw new BadRequestException(String.format("transaction(id=%s) not found", patch.getId()));
