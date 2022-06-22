@@ -16,3 +16,19 @@ status = "test"
 is_asset_anchored = true
 anchor_asset_type = "fiat"
 desc = "A test USDC issued by Circle."
+
+[[CURRENCIES]]
+code = "USDC"
+issuer = "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+status = "test"
+is_asset_anchored = true
+anchor_asset_type = "fiat"
+desc = "A test USDC issued by Stellar."
+
+[[CURRENCIES]]
+code = "JPYC"
+issuer = "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+status = "test"
+is_asset_anchored = true
+anchor_asset_type = "fiat"
+desc = "A test JPYC issued by Stellar."
