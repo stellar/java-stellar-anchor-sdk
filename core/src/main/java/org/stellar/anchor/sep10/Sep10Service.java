@@ -16,6 +16,7 @@ import org.stellar.anchor.api.sep.sep10.ValidationResponse;
 import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.Sep10Config;
 import org.stellar.anchor.horizon.Horizon;
+import org.stellar.anchor.util.Log;
 import org.stellar.anchor.util.Sep1Helper;
 import org.stellar.anchor.util.Sep1Helper.TomlContent;
 import org.stellar.sdk.*;
@@ -32,16 +33,14 @@ public class Sep10Service {
 
   public Sep10Service(
       AppConfig appConfig, Sep10Config sep10Config, Horizon horizon, JwtService jwtService) {
-    infoF("Creating Sep10Service");
-    info("appConfig:", appConfig);
+    debug("appConfig:", appConfig);
+    debug("sep10Config:", sep10Config);
     this.appConfig = appConfig;
-
-    info("sep10Config:", sep10Config);
     this.sep10Config = sep10Config;
-
     this.horizon = horizon;
     this.jwtService = jwtService;
     this.serverAccountId = KeyPair.fromSecretSeed(sep10Config.getSigningSeed()).getAccountId();
+    Log.info("Sep10Service initialized.");
   }
 
   public ChallengeResponse createChallenge(ChallengeRequest challengeRequest) throws SepException {
@@ -58,8 +57,12 @@ public class Sep10Service {
           String.format("home_domain [%s] is not supported.", challengeRequest.getHomeDomain()));
     }
 
-    boolean omnibusWallet =
-        sep10Config.getOmnibusAccountList().contains(challengeRequest.getAccount().trim());
+    boolean omnibusWallet = false;
+    if (sep10Config.getOmnibusAccountList() != null) {
+      omnibusWallet =
+          sep10Config.getOmnibusAccountList().contains(challengeRequest.getAccount().trim());
+    }
+
     if (omnibusWallet) {
       if (challengeRequest.getClientDomain() != null) {
         throw new SepValidationException(

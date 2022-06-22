@@ -6,6 +6,7 @@ import java.io.IOException;
 import org.stellar.anchor.api.exception.SepNotFoundException;
 import org.stellar.anchor.config.Sep1Config;
 import org.stellar.anchor.util.FileUtil;
+import org.stellar.anchor.util.Log;
 import org.stellar.anchor.util.ResourceReader;
 
 public class Sep1Service {
@@ -18,7 +19,9 @@ public class Sep1Service {
    * @param sep1Config The Sep1 configuration.
    */
   public Sep1Service(Sep1Config sep1Config) {
+    debug("sep1Config:", sep1Config);
     this.sep1Config = sep1Config;
+    Log.info("Sep1Service initialized.");
   }
 
   /**

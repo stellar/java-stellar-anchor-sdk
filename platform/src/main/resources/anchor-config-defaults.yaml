@@ -44,9 +44,9 @@ stellar:
       type: logging-logback
       settings: logging-logback-settings          # The absolute location of the configuration data in this yaml file
 
-# ************************************
-# Application settings
-# ************************************
+#
+# Platform application configuration
+#
 app-config:
   # shared / general application configurations
   app:

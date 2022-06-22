@@ -2,6 +2,7 @@ package org.stellar.anchor.sep24;
 
 import static javax.print.attribute.standard.JobState.COMPLETED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.*;
+import static org.stellar.anchor.util.Log.debugF;
 import static org.stellar.anchor.util.MathHelper.decimal;
 
 import java.math.BigDecimal;
@@ -141,12 +142,15 @@ public class Sep24Helper {
 
   public static TransactionResponse updateRefundInfo(
       TransactionResponse response, Sep24Transaction txn, AssetInfo assetInfo) {
+    debugF("Calculating refund information");
+
     List<? extends Sep24RefundPayment> refundPayments = txn.getRefundPayments();
     response.setRefunded(false);
     BigDecimal totalAmount = BigDecimal.ZERO;
     BigDecimal totalFee = BigDecimal.ZERO;
 
     if (refundPayments != null && refundPayments.size() > 0) {
+      debugF("{} refund payments found", refundPayments.size());
       List<RefundPayment> rps = new ArrayList<>(refundPayments.size());
       for (Sep24RefundPayment refundPayment : refundPayments) {
         if (refundPayment.getAmount() != null)

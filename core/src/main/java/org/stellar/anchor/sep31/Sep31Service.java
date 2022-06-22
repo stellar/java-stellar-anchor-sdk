@@ -35,6 +35,7 @@ import org.stellar.anchor.event.models.TransactionEvent;
 import org.stellar.anchor.sep10.JwtToken;
 import org.stellar.anchor.sep38.Sep38Quote;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
+import org.stellar.anchor.util.Log;
 
 public class Sep31Service {
   private final AppConfig appConfig;
@@ -58,6 +59,8 @@ public class Sep31Service {
       FeeIntegration feeIntegration,
       CustomerIntegration customerIntegration,
       EventPublishService eventService) {
+    debug("appConfig:", appConfig);
+    debug("sep31Config:", sep31Config);
     this.appConfig = appConfig;
     this.sep31Config = sep31Config;
     this.sep31TransactionStore = sep31TransactionStore;
@@ -68,6 +71,7 @@ public class Sep31Service {
     this.customerIntegration = customerIntegration;
     this.eventService = eventService;
     this.infoResponse = createFromAssets(assetService.listAllAssets());
+    Log.info("Sep31Service initialized.");
   }
 
   public Sep31InfoResponse getInfo() {
