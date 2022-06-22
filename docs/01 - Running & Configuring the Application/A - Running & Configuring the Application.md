@@ -7,13 +7,12 @@
       - [Path to Yaml](#path-to-yaml)
         - [Yaml Search](#yaml-search)
     - [Environment variables](#environment-variables)
+    - [Supported Assets](#supported-assets)
     - [Event Messaging](#event-messaging)
     - [JVM-Argument based run-configuration](#jvm-argument-based-run-configuration)
   - [Docker](#docker)
   - [Running the Application from Docker](#running-the-application-from-docker)
   - [Incoming Payments Observer](#incoming-payments-observer)
-
-> Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc.go)
 
 ## Running the Application from Source Code
 
@@ -79,6 +78,10 @@ If all of the above fail, the server fails with an error.
 ### Environment variables
 
 Secrets are passed to the Anchor Platform (and Anchor Reference Server) via environment variables, which can be set either through command line or using a `.env` file. A list of supported environment variables and their descriptions can be found at [`example.env`].
+
+### Supported Assets
+
+The Anchor Platform reads the list of supported assets from a json file whose address is configured in the config file under `app-config.app-assets` and defaults to [`assets-test.json`] ([ref](https://github.com/stellar/java-stellar-anchor-sdk/blob/1f84429f0c5d35cee75445686242643fbd8cffa5/platform/src/main/resources/anchor-config-defaults.yaml#L74)).
 
 ### Event Messaging
 
@@ -154,3 +157,4 @@ The default configuration of the project uses a Stellar network observer to iden
 [`anchor-reference-server.yaml`]: /anchor-reference-server/src/main/resources/anchor-reference-server.yaml
 [`example.env`]: /platform/src/main/resources/example.env
 [`docs/resources/docker-examples/kafka/docker-compose.yaml`]: /docs/resources/docker-examples/kafka/docker-compose.yaml
+[`assets-test.json`]: /platform/src/main/resources/assets-test.json
