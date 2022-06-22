@@ -1,6 +1,13 @@
 # Circle Payment Observer
 
-[Circle API notifications](https://developers.circle.com/docs/notifications-data-models) is an async webhook notifier
+- [Circle Payment Observer](#circle-payment-observer)
+  - [Configuration](#configuration)
+    - [Circle API Key](#circle-api-key)
+    - [Subscribing to Receive Webhook Requests](#subscribing-to-receive-webhook-requests)
+    - [Generating SEP-31 Transactions Using Circle's Memo](#generating-sep-31-transactions-using-circles-memo)
+
+The Circle Payment Observer is meant to be used if Circle is used to receive payments. It uses 
+[Circle API notifications](https://developers.circle.com/docs/notifications-data-models), an async webhook notifier
 implemented by Circle that can notify our server whenever a change is detected by them. It allows observing a variety of
 Circle events, although we will only be observing [`transfer` events](https://developers.circle.com/docs/notifications-data-models#transfer-flow),
 since they are the only ones that can contain information about incoming and outgoing stellar transfers.
@@ -8,8 +15,9 @@ since they are the only ones that can contain information about incoming and out
 ## Configuration
 
 In order to use Circle in the SEP-31 flow, a few basic steps are needed:
+
 1. Make sure you register to Circle and generate an API key.
-2. Register the Platform `{HOST}/circle-observer` endpoint to the Circle subscription service.
+2. Register the Platform `{BASE_URL}/circle-observer` endpoint to the Circle subscription service.
 3. Generate the SEP-31 transactions using a memo provided by Circle.
 
 ### Circle API Key
@@ -19,13 +27,14 @@ to authenticate your Circle requests.
 
 At some point, you'll want to get a production key. In order to do so, go to <https://www.circle.com/> and create a new
 Circle account. The account creation screening process takes around 3 weeks.
-   
+
 ### Subscribing to Receive Webhook Requests
 
 Here are the steps to subscribe to Circle events:
+
 1. Make sure your server is up and running and that it can be reached from an external IP.
 2. Execute a `POST /v1/notifications/subscriptions` request using the `{HOST}/circle-observer` provided by the Platform.
-   * You can use the [Circle API reference](https://developers.circle.com/reference/listsubscriptions) website to do so.
+   - You can use the [Circle API reference](https://developers.circle.com/reference/listsubscriptions) website to do so.
 3. If the request went through successful, Circle will send a `"SubscriptionConfirmation"` notification to your instance
 of the Platform.
 4. Upon receiving the `"SubscriptionConfirmation"` notification, the Platform will automatically reach back to Circle to

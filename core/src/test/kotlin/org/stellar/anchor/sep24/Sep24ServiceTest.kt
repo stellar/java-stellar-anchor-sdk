@@ -17,6 +17,7 @@ import org.stellar.anchor.Constants.Companion.TEST_ACCOUNT
 import org.stellar.anchor.Constants.Companion.TEST_ASSET
 import org.stellar.anchor.Constants.Companion.TEST_ASSET_ISSUER_ACCOUNT_ID
 import org.stellar.anchor.Constants.Companion.TEST_CLIENT_DOMAIN
+import org.stellar.anchor.Constants.Companion.TEST_MEMO
 import org.stellar.anchor.Constants.Companion.TEST_TRANSACTION_ID_0
 import org.stellar.anchor.Constants.Companion.TEST_TRANSACTION_ID_1
 import org.stellar.anchor.TestHelper
@@ -41,7 +42,7 @@ import org.stellar.sdk.MemoText
 
 internal class Sep24ServiceTest {
   companion object {
-    const val TEST_SEP24_INTERACTIVE_URL = "http://test-anchor.stellar.org"
+    const val TEST_SEP24_INTERACTIVE_URL = "https://test-anchor.stellar.org"
   }
 
   @MockK(relaxed = true) lateinit var appConfig: AppConfig
@@ -82,7 +83,11 @@ internal class Sep24ServiceTest {
   }
 
   private fun createJwtToken(): JwtToken {
-    return TestHelper.createJwtToken(TEST_ACCOUNT, appConfig.hostUrl, TEST_CLIENT_DOMAIN)
+    return TestHelper.createJwtToken(TEST_ACCOUNT, null, appConfig.hostUrl, TEST_CLIENT_DOMAIN)
+  }
+
+  private fun createJwtWithMemo(): JwtToken {
+    return TestHelper.createJwtToken(TEST_ACCOUNT, TEST_MEMO, appConfig.hostUrl, TEST_CLIENT_DOMAIN)
   }
 
   @Test
@@ -91,7 +96,8 @@ internal class Sep24ServiceTest {
 
     every { txnStore.save(capture(slotTxn)) } returns null
 
-    val response = sep24Service.withdraw("/sep24/withdraw", createJwtToken(), createTestRequest())
+    var response =
+      sep24Service.withdraw("/sep24/withdraw", createJwtToken(), createTestTransactionRequest())
 
     verify(exactly = 1) { txnStore.save(any()) }
 
@@ -106,23 +112,37 @@ internal class Sep24ServiceTest {
       slotTxn.captured.assetIssuer,
       "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
     )
-    assertEquals(slotTxn.captured.stellarAccount, TEST_ACCOUNT)
+    assertEquals(slotTxn.captured.sep10Account, TEST_ACCOUNT)
     assertEquals(slotTxn.captured.fromAccount, TEST_ACCOUNT)
-    assertEquals(slotTxn.captured.domainClient, TEST_CLIENT_DOMAIN)
-    assertEquals(slotTxn.captured.protocol, "sep24")
+    assertEquals(slotTxn.captured.clientDomain, TEST_CLIENT_DOMAIN)
     assertEquals(slotTxn.captured.amountIn, "123.4")
     assertEquals(slotTxn.captured.amountOut, "123.4")
 
-    val params = URLEncodedUtils.parse(URI(response.url), Charset.forName("UTF-8"))
-    val tokenStrings = params.filter { pair -> pair.name.equals("token") }
+    var params = URLEncodedUtils.parse(URI(response.url), Charset.forName("UTF-8"))
+    var tokenStrings = params.filter { pair -> pair.name.equals("token") }
     assertEquals(tokenStrings.size, 1)
-    val tokenString = tokenStrings[0].value
-    val decodedToken = jwtService.decode(tokenString)
+    var tokenString = tokenStrings[0].value
+    var decodedToken = jwtService.decode(tokenString)
     assertEquals(decodedToken.sub, TEST_ACCOUNT)
     assertEquals(decodedToken.clientDomain, TEST_CLIENT_DOMAIN)
+
+    // Now test with a memo
+    response =
+      sep24Service.withdraw("/sep24/withdraw", createJwtWithMemo(), createTestTransactionRequest())
+
+    params = URLEncodedUtils.parse(URI(response.url), Charset.forName("UTF-8"))
+    tokenStrings = params.filter { pair -> pair.name.equals("token") }
+    assertEquals(tokenStrings.size, 1)
+    tokenString = tokenStrings[0].value
+    decodedToken = jwtService.decode(tokenString)
+    assertEquals(
+      "$TEST_ACCOUNT:$TEST_MEMO",
+      decodedToken.sub,
+    )
+    assertEquals(TEST_CLIENT_DOMAIN, decodedToken.clientDomain)
   }
 
-  private fun createTestRequest(): MutableMap<String, String> {
+  private fun createTestTransactionRequest(): MutableMap<String, String> {
     return mutableMapOf(
       "lang" to "en",
       "asset_code" to TEST_ASSET,
@@ -138,7 +158,7 @@ internal class Sep24ServiceTest {
   @Test
   fun testWithdrawalNoTokenNoRequest() {
     assertThrows<SepValidationException> {
-      sep24Service.withdraw("/sep24/withdrawal", null, createTestRequest())
+      sep24Service.withdraw("/sep24/withdrawal", null, createTestTransactionRequest())
     }
 
     assertThrows<SepValidationException> {
@@ -149,43 +169,43 @@ internal class Sep24ServiceTest {
   @Test
   fun testWithdrawalBadRequest() {
     assertThrows<SepValidationException> {
-      val request = createTestRequest()
+      val request = createTestTransactionRequest()
       request.remove("asset_code")
       sep24Service.withdraw("/sep24/withdrawal", createJwtToken(), request)
     }
 
     assertThrows<SepValidationException> {
-      val request = createTestRequest()
+      val request = createTestTransactionRequest()
       request.remove("account")
       sep24Service.withdraw("/sep24/withdrawal", createJwtToken(), request)
     }
 
     assertThrows<SepValidationException> {
-      val request = createTestRequest()
+      val request = createTestTransactionRequest()
       request["account"] = "G1234"
       sep24Service.withdraw("/sep24/withdrawal", createJwtToken(), request)
     }
 
     assertThrows<SepValidationException> {
-      val request = createTestRequest()
+      val request = createTestTransactionRequest()
       request["asset_code"] = "USDC_NA"
       sep24Service.withdraw("/sep24/withdrawal", createJwtToken(), request)
     }
 
     assertThrows<SepValidationException> {
-      val request = createTestRequest()
+      val request = createTestTransactionRequest()
       request["amount"] = "0"
       sep24Service.withdraw("/sep24/withdrawal", createJwtToken(), request)
     }
 
     assertThrows<SepValidationException> {
-      val request = createTestRequest()
+      val request = createTestTransactionRequest()
       request["amount"] = "10001"
       sep24Service.withdraw("/sep24/withdrawal", createJwtToken(), request)
     }
 
     assertThrows<SepValidationException> {
-      val request = createTestRequest()
+      val request = createTestTransactionRequest()
       request["account"] = "G1234"
       val token = createJwtToken()
       token.sub = "G1234"
@@ -200,9 +220,9 @@ internal class Sep24ServiceTest {
 
     every { txnStore.save(capture(slotTxn)) } returns null
 
-    val request = createTestRequest()
+    val request = createTestTransactionRequest()
     request["claimable_balance_supported"] = claimable_balance_supported
-    val response = sep24Service.deposit("/sep24/deposit", createJwtToken(), request)
+    var response = sep24Service.deposit("/sep24/deposit", createJwtToken(), request)
 
     verify(exactly = 1) { txnStore.save(any()) }
 
@@ -214,18 +234,32 @@ internal class Sep24ServiceTest {
     assertEquals(slotTxn.captured.kind, "deposit")
     assertEquals(slotTxn.captured.assetCode, TEST_ASSET)
     assertEquals(slotTxn.captured.assetIssuer, TEST_ASSET_ISSUER_ACCOUNT_ID)
-    assertEquals(slotTxn.captured.stellarAccount, TEST_ACCOUNT)
+    assertEquals(slotTxn.captured.sep10Account, TEST_ACCOUNT)
     assertEquals(slotTxn.captured.toAccount, TEST_ACCOUNT)
-    assertEquals(slotTxn.captured.domainClient, TEST_CLIENT_DOMAIN)
-    assertEquals(slotTxn.captured.protocol, "sep24")
+    assertEquals(slotTxn.captured.clientDomain, TEST_CLIENT_DOMAIN)
     assertEquals(slotTxn.captured.amountIn, "123.4")
     assertEquals(slotTxn.captured.amountOut, "123.4")
+
+    // Now test with a memo
+    response =
+      sep24Service.withdraw("/sep24/withdraw", createJwtWithMemo(), createTestTransactionRequest())
+
+    val params = URLEncodedUtils.parse(URI(response.url), Charset.forName("UTF-8"))
+    val tokenStrings = params.filter { pair -> pair.name.equals("token") }
+    assertEquals(tokenStrings.size, 1)
+    val tokenString = tokenStrings[0].value
+    val decodedToken = jwtService.decode(tokenString)
+    assertEquals(
+      "$TEST_ACCOUNT:$TEST_MEMO",
+      decodedToken.sub,
+    )
+    assertEquals(TEST_CLIENT_DOMAIN, decodedToken.clientDomain)
   }
 
   @Test
   fun testDepositNoTokenNoRequest() {
     assertThrows<SepValidationException> {
-      sep24Service.deposit("/sep24/deposit", null, createTestRequest())
+      sep24Service.deposit("/sep24/deposit", null, createTestTransactionRequest())
     }
 
     assertThrows<SepValidationException> {
@@ -236,43 +270,43 @@ internal class Sep24ServiceTest {
   @Test
   fun testDepositBadRequest() {
     assertThrows<SepValidationException> {
-      val request = createTestRequest()
+      val request = createTestTransactionRequest()
       request.remove("asset_code")
       sep24Service.deposit("/sep24/deposit", createJwtToken(), request)
     }
 
     assertThrows<SepValidationException> {
-      val request = createTestRequest()
+      val request = createTestTransactionRequest()
       request.remove("account")
       sep24Service.deposit("/sep24/deposit", createJwtToken(), request)
     }
 
     assertThrows<SepValidationException> {
-      val request = createTestRequest()
+      val request = createTestTransactionRequest()
       request["account"] = "G1234"
       sep24Service.deposit("/sep24/deposit", createJwtToken(), request)
     }
 
     assertThrows<SepValidationException> {
-      val request = createTestRequest()
+      val request = createTestTransactionRequest()
       request["asset_code"] = "USDC_NA"
       sep24Service.deposit("/sep24/deposit", createJwtToken(), request)
     }
 
     assertThrows<SepValidationException> {
-      val request = createTestRequest()
+      val request = createTestTransactionRequest()
       request["amount"] = "0"
       sep24Service.deposit("/sep24/deposit", createJwtToken(), request)
     }
 
     assertThrows<SepValidationException> {
-      val request = createTestRequest()
+      val request = createTestTransactionRequest()
       request["amount"] = "10001"
       sep24Service.deposit("/sep24/deposit", createJwtToken(), request)
     }
 
     assertThrows<SepValidationException> {
-      val request = createTestRequest()
+      val request = createTestTransactionRequest()
       request["account"] = "G1234"
       val token = createJwtToken()
       token.sub = "G1234"
@@ -283,8 +317,10 @@ internal class Sep24ServiceTest {
   @ParameterizedTest
   @ValueSource(strings = ["deposit", "withdrawal"])
   fun testFindTransactions(kind: String) {
-    every { txnStore.findTransactions(TEST_ACCOUNT, any()) } returns createTestTransactions(kind)
-    val gtr = GetTransactionsRequest.of(TEST_ASSET, kind, 10, "2021-12-20T19:30:58+00:00", "1")
+    every { txnStore.findTransactions(TEST_ACCOUNT, any(), any()) } returns
+      createTestTransactions(kind)
+    val gtr =
+      GetTransactionsRequest.of(TEST_ASSET, kind, 10, "2021-12-20T19:30:58+00:00", "1", "en-US")
     val response = sep24Service.findTransactions(createJwtToken(), gtr)
 
     assertEquals(response.transactions.size, 2)
@@ -305,13 +341,21 @@ internal class Sep24ServiceTest {
   @ValueSource(strings = ["deposit", "withdrawal"])
   fun testFindTransactionsValidationError(kind: String) {
     assertThrows<SepNotAuthorizedException> {
-      val gtr = GetTransactionsRequest.of(TEST_ASSET, kind, 10, "2021-12-20T19:30:58+00:00", "1")
+      val gtr =
+        GetTransactionsRequest.of(TEST_ASSET, kind, 10, "2021-12-20T19:30:58+00:00", "1", "en-US")
       sep24Service.findTransactions(null, gtr)
     }
 
     assertThrows<SepValidationException> {
       val gtr =
-        GetTransactionsRequest.of("BAD_ASSET_CODE", kind, 10, "2021-12-20T19:30:58+00:00", "1")
+        GetTransactionsRequest.of(
+          "BAD_ASSET_CODE",
+          kind,
+          10,
+          "2021-12-20T19:30:58+00:00",
+          "1",
+          "en-US"
+        )
       sep24Service.findTransactions(createJwtToken(), gtr)
     }
   }
@@ -321,7 +365,7 @@ internal class Sep24ServiceTest {
   fun testFindTransaction(kind: String) {
     every { txnStore.findByTransactionId(any()) } returns createTestTransaction(kind)
 
-    var gtr = GetTransactionRequest(TEST_TRANSACTION_ID_0, null, null)
+    var gtr = GetTransactionRequest(TEST_TRANSACTION_ID_0, null, null, "en-US")
     val response = sep24Service.findTransaction(createJwtToken(), gtr)
 
     assertEquals(response.transaction.id, TEST_TRANSACTION_ID_0)
@@ -333,14 +377,14 @@ internal class Sep24ServiceTest {
 
     // test with stellar transaction Id
     every { txnStore.findByStellarTransactionId(any()) } returns createTestTransaction("deposit")
-    gtr = GetTransactionRequest(null, TEST_TRANSACTION_ID_0, null)
+    gtr = GetTransactionRequest(null, TEST_TRANSACTION_ID_0, null, "en-US")
     sep24Service.findTransaction(createJwtToken(), gtr)
 
     verify(exactly = 1) { txnStore.findByStellarTransactionId(TEST_TRANSACTION_ID_0) }
 
     // test with external transaction Id
     every { txnStore.findByExternalTransactionId(any()) } returns createTestTransaction("deposit")
-    gtr = GetTransactionRequest(null, null, TEST_TRANSACTION_ID_0)
+    gtr = GetTransactionRequest(null, null, TEST_TRANSACTION_ID_0, "en-US")
     sep24Service.findTransaction(createJwtToken(), gtr)
 
     verify(exactly = 1) { txnStore.findByExternalTransactionId(TEST_TRANSACTION_ID_0) }
@@ -350,20 +394,20 @@ internal class Sep24ServiceTest {
   @ValueSource(strings = ["deposit", "withdrawal"])
   fun testFindTransactionValidationError(kind: String) {
     assertThrows<SepNotAuthorizedException> {
-      val gtr = GetTransactionRequest(TEST_TRANSACTION_ID_0, null, null)
+      val gtr = GetTransactionRequest(TEST_TRANSACTION_ID_0, null, null, "en-US")
       sep24Service.findTransaction(null, gtr)
     }
 
     assertThrows<SepValidationException> { sep24Service.findTransaction(createJwtToken(), null) }
 
     assertThrows<SepValidationException> {
-      val gtr = GetTransactionRequest(null, null, null)
+      val gtr = GetTransactionRequest(null, null, null, "en-US")
       sep24Service.findTransaction(createJwtToken(), gtr)
     }
 
     every { txnStore.findByTransactionId(any()) } returns null
     assertThrows<SepNotFoundException> {
-      val gtr = GetTransactionRequest(TEST_TRANSACTION_ID_0, null, null)
+      val gtr = GetTransactionRequest(TEST_TRANSACTION_ID_0, null, null, "en-US")
       sep24Service.findTransaction(createJwtToken(), gtr)
     }
 
@@ -372,7 +416,7 @@ internal class Sep24ServiceTest {
     every { txnStore.findByTransactionId(any()) } returns badTxn
 
     assertThrows<SepException> {
-      val gtr = GetTransactionRequest(TEST_TRANSACTION_ID_0, null, null)
+      val gtr = GetTransactionRequest(TEST_TRANSACTION_ID_0, null, null, "en-US")
       sep24Service.findTransaction(createJwtToken(), gtr)
     }
   }
@@ -399,15 +443,18 @@ internal class Sep24ServiceTest {
   }
 
   @Test
-  fun testValidateAndActivateLanguage() {
-    val request = createTestRequest()
-    request["lang"] = "cn"
+  fun testLang() {
+    val slotTxn = slot<Sep24Transaction>()
 
-    every { appConfig.languages } returns listOf("en", "fr")
+    every { txnStore.save(capture(slotTxn)) } returns null
 
-    assertThrows<SepValidationException> {
-      sep24Service.withdraw("/sep24/withdraw", createJwtToken(), request)
-    }
+    val request = createTestTransactionRequest()
+    request["lang"] = "en"
+    var response = sep24Service.withdraw("/sep24/withdraw", createJwtToken(), request)
+    assertTrue(response.url.indexOf("lang=en") != -1)
+    request.remove("lang")
+    response = sep24Service.withdraw("/sep24/withdraw", createJwtToken(), request)
+    assertTrue(response.url.indexOf("lang=en-US") != -1)
   }
 
   private fun createTestTransaction(kind: String): Sep24Transaction {
@@ -420,10 +467,10 @@ internal class Sep24ServiceTest {
 
     txn.assetCode = TEST_ASSET
     txn.assetIssuer = TEST_ASSET_ISSUER_ACCOUNT_ID
-    txn.stellarAccount = TEST_ACCOUNT
+    txn.sep10Account = TEST_ACCOUNT
     txn.toAccount = TEST_ACCOUNT
     txn.fromAccount = TEST_ACCOUNT
-    txn.domainClient = TEST_CLIENT_DOMAIN
+    txn.clientDomain = TEST_CLIENT_DOMAIN
     txn.protocol = "sep24"
     txn.amountIn = "321.4"
     txn.amountOut = "321.4"
@@ -443,10 +490,10 @@ internal class Sep24ServiceTest {
 
     txn.assetCode = TEST_ASSET
     txn.assetIssuer = TEST_ASSET_ISSUER_ACCOUNT_ID
-    txn.stellarAccount = TEST_ACCOUNT
+    txn.sep10Account = TEST_ACCOUNT
     txn.toAccount = TEST_ACCOUNT
     txn.fromAccount = TEST_ACCOUNT
-    txn.domainClient = TEST_CLIENT_DOMAIN
+    txn.clientDomain = TEST_CLIENT_DOMAIN
     txn.protocol = "sep24"
     txn.amountIn = "321.4"
     txn.amountOut = "321.4"
@@ -461,10 +508,10 @@ internal class Sep24ServiceTest {
 
     txn.assetCode = TEST_ASSET
     txn.assetIssuer = TEST_ASSET_ISSUER_ACCOUNT_ID
-    txn.stellarAccount = TEST_ACCOUNT
+    txn.sep10Account = TEST_ACCOUNT
     txn.toAccount = TEST_ACCOUNT
     txn.fromAccount = TEST_ACCOUNT
-    txn.domainClient = TEST_CLIENT_DOMAIN
+    txn.clientDomain = TEST_CLIENT_DOMAIN
     txn.protocol = "sep24"
     txn.amountIn = "456.7"
     txn.amountOut = "456.7"

@@ -1,4 +1,4 @@
-# Anchor Integration
+# Implementing the Anchor Server
 
 > Status: under development
 
