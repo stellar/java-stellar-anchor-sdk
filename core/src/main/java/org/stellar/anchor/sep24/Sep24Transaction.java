@@ -4,118 +4,260 @@ import java.util.List;
 
 @SuppressWarnings("unused")
 public interface Sep24Transaction {
+
+  /**
+   * The database ID.
+   *
+   * @return The generated database ID.
+   */
   String getId();
 
   void setId(String id);
 
-  String getDocumentType();
-
-  void setDocumentType(String documentType);
-
+  /**
+   * Unique, anchor-generated id for the transaction.
+   *
+   * @return The <code>id</code> field of the SEP-24 transaction history.
+   */
   String getTransactionId();
 
   void setTransactionId(String transactionId);
 
+  /**
+   * <code>transaction_id</code> on Stellar network of the transfer that either completed the
+   * deposit or started the withdrawal.
+   *
+   * @return The <code>stellar_transction_id</code> field of the SEP-24 transaction history.
+   */
   String getStellarTransactionId();
 
   void setStellarTransactionId(String stellarTransactionId);
 
+  /**
+   * ID of transaction on external network that either started the deposit or completed the
+   * withdrawal.
+   *
+   * @return The <code>external_transction_id</code> field of the SEP-24 transaction history.
+   */
   String getExternalTransactionId();
 
   void setExternalTransactionId(String externalTransactionId);
 
+  /**
+   * Processing status of deposit/withdrawal.
+   *
+   * @return The <code>status</code> field of the SEP-24 transaction history.
+   */
   String getStatus();
 
   void setStatus(String status);
 
+  /**
+   * <code>deposit</code> or <code>withdrawal</code> .
+   *
+   * @return The <code>kind</code> field of the SEP-24 transaction history.
+   */
   String getKind();
 
   void setKind(String kind);
 
+  /**
+   * Start date and time of transaction.
+   *
+   * @return The <code>started_at</code> field of the SEP-24 transaction history.
+   */
   Long getStartedAt();
 
   void setStartedAt(Long startedAt);
 
+  /**
+   * The date and time of transaction reaching <code>completed</code> or <code>refunded</code>
+   * status.
+   *
+   * @return <code>completed</code> field of the SEP-24 transaction history.
+   */
   Long getCompletedAt();
 
   void setCompletedAt(Long completedAt);
 
+  /**
+   * The code of the asset of interest. E.g. BTC, ETH, USD, INR, etc.
+   *
+   * @return <code>asset_code</code> field of the SEP-24 transaction history.
+   */
   String getAssetCode();
 
   void setAssetCode(String assetCode);
 
+  /**
+   * The issuer of the stellar asset the user wants to receive for their deposit with the anchor. If
+   * asset_issuer is not provided, the anchor should use the asset issued by themselves as described
+   * in their TOML file.
+   *
+   * @return the asset issuer of the transaction's <code>asset_code</code> .
+   */
   String getAssetIssuer();
 
   void setAssetIssuer(String assetIssuer);
 
-  String getStellarAccount();
+  /**
+   * The Stellar account used to authenticate SEP-10;.
+   *
+   * @return the stellar account.
+   */
+  String getSep10Account();
 
-  void setStellarAccount(String stellarAccount);
+  void setSep10Account(String sep10Account);
 
-  String getReceivingAnchorAccount();
+  /**
+   * The memo used to authenticate SEP-10. This is for pooled/omnibus account authentication.
+   *
+   * @return the memo.
+   */
+  String getSep10AccountMemo();
 
-  void setReceivingAnchorAccount(String receivingAnchorAccount);
+  void setSep10AccountMemo(String sep10AccountMemo);
 
+  /**
+   * If this is a withdrawal, this is the anchor's Stellar account that the user transferred (or
+   * will transfer) their issued asset to.
+   *
+   * @return <code>withdraw_anchor_account</code> field of the SEP-24 transaction history.
+   */
+  String getWithdrawAnchorAccount();
+
+  void setWithdrawAnchorAccount(String withdrawAnchorAccount);
+
+  /**
+   * If withdrawal, the Stellar account the assets were withdrawn from.
+   *
+   * <p>If deposit, sent from address, perhaps BTC, IBAN, or bank account.
+   *
+   * @return <code>from</code> field of the SEP-24 transaction history.
+   */
   String getFromAccount();
 
   void setFromAccount(String fromAccount);
 
+  /**
+   * If withdrawal, sent to address (perhaps BTC, IBAN, or bank account in the case of a withdrawal,
+   * Stellar account in the case of a deposit).
+   *
+   * <p>If deposit, the Stellar account the deposited assets were sent to.
+   *
+   * @return <code>to</code> field of the SEP-24 transaction history.
+   */
   String getToAccount();
 
   void setToAccount(String toAccount);
 
-  String getMemoType();
-
-  void setMemoType(String memoType);
-
+  /**
+   * If withdrawal, this is the memo used when the user transferred to withdraw_anchor_account.
+   * Assigned null if the withdraw is not ready to receive payment, for example if KYC is not
+   * completed.
+   *
+   * <p>If deposit, this is the memo (if any) used to transfer the asset to the to Stellar address
+   *
+   * @return <code>withdraw_memo</code> or <code>deposit_memo</code> of the SEP-24 transaction
+   *     history.
+   */
   String getMemo();
 
   void setMemo(String memo);
 
-  String getProtocol();
+  /**
+   * Type for the <code>memo</code> field.
+   *
+   * @return <code>withdraw_memo_type</code> or <code>deposit_memo_type</code> of the SEP-24
+   *     transaction history.
+   */
+  String getMemoType();
 
-  void setProtocol(String protocol);
+  void setMemoType(String memoType);
 
-  String getDomainClient();
+  /**
+   * The client domain of the wallet that initiated the transaction.
+   *
+   * @return the client domain.
+   */
+  String getClientDomain();
 
-  void setDomainClient(String domainClient);
+  void setClientDomain(String domainClient);
 
+  /**
+   * True if the client supports receiving deposit transactions as a claimable balance, false
+   * otherwise.
+   *
+   * @return <code>true</code> or <code>false</code>
+   */
   Boolean getClaimableBalanceSupported();
 
   void setClaimableBalanceSupported(Boolean claimableBalanceSupported);
 
+  /**
+   * Amount received by anchor at start of transaction as a string with up to 7 decimals. Excludes
+   * any fees charged before the anchor received the funds.
+   *
+   * @return <code>amount_in</code> field of the SEP-24 transaction history.
+   */
   String getAmountIn();
 
   void setAmountIn(String amountIn);
 
-  String getAmountOut();
-
-  void setAmountOut(String amountOut);
-
-  String getAmountFee();
-
-  void setAmountFee(String amountFee);
-
+  /**
+   * The asset received or to be received by the Anchor. Must be present if the deposit/withdraw was
+   * made using non-equivalent assets. The value must be in SEP-38 Asset Identification Format. See
+   * the Asset Exchanges section for more information.
+   *
+   * @return <code>amount_in_asset</code> field of the SEP-24 transaction history.
+   */
   String getAmountInAsset();
 
   void setAmountInAsset(String amountInAsset);
 
+  /**
+   * Amount sent by anchor to user at end of transaction as a string with up to 7 decimals. Excludes
+   * amount converted to XLM to fund account and any external fees.
+   *
+   * @return <code>amount_out</code> field of the SEP-24 transaction history.
+   */
+  String getAmountOut();
+
+  void setAmountOut(String amountOut);
+
+  /**
+   * The asset of the <code>amount_out</code> field.
+   *
+   * @return <code>amount_out_asset</code> field of the SEP-24 transaction history.
+   */
   String getAmountOutAsset();
 
   void setAmountOutAsset(String amountOutAsset);
+  /**
+   * Amount of fee charged by anchor.
+   *
+   * @return <code>amount_fee</code> field of the SEP-24 transaction history.
+   */
+  String getAmountFee();
 
+  void setAmountFee(String amountFee);
+
+  /**
+   * The asset in which fees are calculated in. Must be present if the deposit/withdraw was made
+   * using non-equivalent assets. The value must be in SEP-38 Asset Identification Format. See the
+   * Asset Exchanges section for more information.
+   *
+   * @return <code>amount_fee_asset</code> field of the SEP-24 transaction history.
+   */
   String getAmountFeeAsset();
 
   void setAmountFeeAsset(String amountFeeAsset);
 
-  String getAccountMemo();
-
-  void setAccountMemo(String accountMemo);
-
-  String getMuxedAccount();
-
-  void setMuxedAccount(String muxedAccount);
-
+  /**
+   * The list of refund payments associated with the transaction.
+   *
+   * @return the refund payments
+   */
   List<? extends Sep24RefundPayment> getRefundPayments();
 
   void setRefundPayments(List<? extends Sep24RefundPayment> payments);

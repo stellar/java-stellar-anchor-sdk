@@ -24,7 +24,7 @@ fun testHappyPath() {
   // Create sender customer
   val senderCustomerRequest =
     GsonUtils.getInstance().fromJson(testCustomer1Json, Sep12PutCustomerRequest::class.java)
-  val senderCustomer = sep12Client.putCustomer(senderCustomerRequest)
+  val senderCustomer = sep12Client.putCustomer(senderCustomerRequest, TYPE_MULTIPART_FORM_DATA)
 
   // Create receiver customer
   val receiverCustomerRequest =

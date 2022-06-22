@@ -44,8 +44,7 @@ public class Sep31Controller {
       HttpServletRequest servletRequest, @RequestBody Sep31PostTransactionRequest request)
       throws AnchorException {
     JwtToken jwtToken = getSep10Token(servletRequest);
-    debugF(
-            "POST /transactions request={}", request);
+    debugF("POST /transactions request={}", request);
     return sep31Service.postTransaction(jwtToken, request);
   }
 
@@ -58,8 +57,7 @@ public class Sep31Controller {
       HttpServletRequest servletRequest, @PathVariable(name = "id") String txnId)
       throws AnchorException {
     JwtToken jwtToken = getSep10Token(servletRequest);
-    debugF(
-            "GET /transactions id={}", txnId);
+    debugF("GET /transactions id={}", txnId);
     return sep31Service.getTransaction(txnId);
   }
 
@@ -74,8 +72,7 @@ public class Sep31Controller {
       @RequestBody Sep31PatchTransactionRequest request)
       throws AnchorException {
     JwtToken jwtToken = getSep10Token(servletRequest);
-    debugF(
-            "PATCH /transactions id={} request={}", txnId, request);
+    debugF("PATCH /transactions id={} request={}", txnId, request);
     return sep31Service.patchTransaction(request);
   }
 

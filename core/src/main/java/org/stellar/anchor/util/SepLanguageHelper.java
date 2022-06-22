@@ -72,8 +72,8 @@ public class SepLanguageHelper {
 }
 
 /**
- * The representation class of RFC-4646 to identify a language.
- * <a href="https://www.ietf.org/rfc/rfc4646.txt">https://www.ietf.org/rfc/rfc4646.txt</a>
+ * The representation class of RFC-4646 to identify a language. <a
+ * href="https://www.ietf.org/rfc/rfc4646.txt">https://www.ietf.org/rfc/rfc4646.txt</a>
  */
 @Getter
 @AllArgsConstructor

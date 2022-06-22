@@ -12,8 +12,6 @@ internal class Sep24DtoTests {
     ar.setSignificantDecimals(0)
     ar.getSend()
     ar.setSend(AssetInfo.SendOperation())
-    ar.getSep6Enabled()
-    ar.setSep6Enabled(true)
     ar.getSep31Enabled()
     ar.setSep31Enabled(true)
 

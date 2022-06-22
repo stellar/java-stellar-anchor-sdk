@@ -50,13 +50,13 @@ public class Sep38Controller {
       @RequestParam(name = "buy_delivery_method", required = false) String buyDeliveryMethod,
       @RequestParam(name = "country_code", required = false) String countryCode) {
     debugF(
-            "GET /prices sell_asset={} sell_amount={} sell_delivery_method={} " +
-                    "buyDeliveryMethod={} countryCode={}",
-            sellAssetName,
-            sellAmount,
-            sellDeliveryMethod,
-            buyDeliveryMethod,
-            countryCode);
+        "GET /prices sell_asset={} sell_amount={} sell_delivery_method={} "
+            + "buyDeliveryMethod={} countryCode={}",
+        sellAssetName,
+        sellAmount,
+        sellDeliveryMethod,
+        buyDeliveryMethod,
+        countryCode);
     return sep38Service.getPrices(
         sellAssetName, sellAmount, sellDeliveryMethod, buyDeliveryMethod, countryCode);
   }
@@ -67,8 +67,7 @@ public class Sep38Controller {
       value = "/price",
       method = {RequestMethod.GET})
   public GetPriceResponse getPrice(@RequestParam Map<String, String> params) {
-    debugF(
-            "GET /price params={}", params);
+    debugF("GET /price params={}", params);
     Sep38GetPriceRequest getPriceRequest =
         gson.fromJson(gson.toJson(params), Sep38GetPriceRequest.class);
     return sep38Service.getPrice(getPriceRequest);
@@ -84,8 +83,7 @@ public class Sep38Controller {
   public Sep38QuoteResponse postQuote(
       HttpServletRequest request, @RequestBody Sep38PostQuoteRequest postQuoteRequest) {
     JwtToken jwtToken = getSep10Token(request);
-    debugF(
-            "POSTS /quote request={}", postQuoteRequest);
+    debugF("POSTS /quote request={}", postQuoteRequest);
     return sep38Service.postQuote(jwtToken, postQuoteRequest);
   }
 
@@ -98,8 +96,7 @@ public class Sep38Controller {
   public Sep38QuoteResponse getQuote(
       HttpServletRequest request, @PathVariable(name = "quote_id") String quoteId) {
     JwtToken jwtToken = getSep10Token(request);
-    debugF(
-            "GET /quote id={}", quoteId);
+    debugF("GET /quote id={}", quoteId);
     return sep38Service.getQuote(jwtToken, quoteId);
   }
 
