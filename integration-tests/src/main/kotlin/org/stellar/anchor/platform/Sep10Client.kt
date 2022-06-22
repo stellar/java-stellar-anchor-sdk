@@ -11,16 +11,23 @@ import org.stellar.sdk.Network
 import org.stellar.sdk.Sep10Challenge
 
 class Sep10Client(
-  private val endpoint: String,
-  private val serverAccount: String,
-  private val walletAccount: String,
-  private val walletSigningSeed: String
+    private val endpoint: String,
+    private val serverAccount: String,
+    private val walletAccount: String,
+    private val signingKeys: Array<String>
 ) : SepClient() {
+  constructor(
+      endpoint: String,
+      serverAccount: String,
+      walletAccount: String,
+      signingSeed: String
+  ) : this(endpoint, serverAccount, walletAccount, arrayOf(signingSeed))
+
   fun auth(): String {
     // Call to get challenge
     val challenge = challenge()
     // Sign challenge
-    val txn = sign(challenge, walletSigningSeed, serverAccount)
+    val txn = sign(challenge, signingKeys, serverAccount)
     // Get token from challenge
     return validate(ValidationRequest.of(txn))!!.token
   }
@@ -32,21 +39,22 @@ class Sep10Client(
   }
 
   private fun sign(
-    challengeResponse: ChallengeResponse,
-    signingSeed: String,
-    serverAccount: String
+      challengeResponse: ChallengeResponse,
+      signingKeys: Array<String>,
+      serverAccount: String
   ): String {
     val url = URL(endpoint)
     val webAuthDomain = url.authority
     val challengeTransaction =
-      Sep10Challenge.readChallengeTransaction(
-        challengeResponse.transaction,
-        serverAccount,
-        Network(challengeResponse.networkPassphrase),
-        webAuthDomain, // TODO: home domain may be different than WEB_AUTH_DOMAIN
-        webAuthDomain
-      )
-    challengeTransaction.transaction.sign(KeyPair.fromSecretSeed(signingSeed))
+        Sep10Challenge.readChallengeTransaction(
+            challengeResponse.transaction,
+            serverAccount,
+            Network(challengeResponse.networkPassphrase),
+            webAuthDomain, // TODO: home domain may be different than WEB_AUTH_DOMAIN
+            webAuthDomain)
+    for (signingKey in signingKeys) {
+      challengeTransaction.transaction.sign(KeyPair.fromSecretSeed(signingKey))
+    }
     return challengeTransaction.transaction.toEnvelopeXdrBase64()
   }
 
