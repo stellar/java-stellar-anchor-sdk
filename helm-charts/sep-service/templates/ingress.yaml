@@ -1,9 +1,12 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-metadata:
   name: {{ .Values.fullName }}-ing-{{ .Values.service.name }}
   namespace: {{ .Values.namespace }}
+  {{- if .Values.ingress.metadata }}
+  {{- range $key, $value := .Values.ingress.metadata }}
+  {{- end }}
+  {{- end }}
   {{- if .Values.ingress.annotations }}
   annotations:
     {{- range $key, $value := .Values.ingress.annotations }}
@@ -14,26 +17,29 @@ metadata:
     app.kubernetes.io/name: {{ .Values.fullName }}-ing-{{ .Values.service.name }}
     helm.sh/chart: {{ $.Chart.Name }}-{{ $.Chart.Version }}
     app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
-    app: sep
+    app.kubernetes.io/managed-by: {{ .Release.Service }}  
 spec:
   ingressClassName: {{ .Values.ingress.ingressClassName }}
   {{- if .Values.ingress.tls }}
   tls:
-      - hosts:
-        - {{ .Values.ingress.tls.tlsHost }}
-      {{- if .Values.ingress.tls.secretName }}
-        secretName: {{ .Values.ingress.tls.secretName}}
-      {{- end }}      
+  - hosts:
+    - {{ .Values.ingress.tls.host }}
+    {{- if .Values.ingress.tls.secretName }}
+    secretName: {{ .Values.ingress.tls.secretName}}
+    {{- end }}      
   {{- end }}
+  {{- if .Values.ingress.rules }}
   rules:
-  - host: {{ .Values.ingress.tls.tlsHost }}
+  {{- range .Values.ingress.rules.hosts }}
+  - host: {{ tpl .host $ }}
     http:
       paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: {{ .Values.fullName }}-svc-{{ .Values.service.name }}
-            port:
-              number: {{ .Values.service.servicePort }}
+        - path: {{ .path | quote }}
+          pathType: {{ .pathType| quote }}
+          backend:
+            service:
+              name: {{ tpl .backend.serviceName $ }}
+              port:
+                number: {{ tpl .backend.servicePort $ }}
+  {{- end }}
+  {{- end }}

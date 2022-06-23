@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: {{ include "common.name" . }}
-  namespace: anchor-platform
+  namespace: {{ .Values.namespace }}
   labels:
     app.kubernetes.io/name: {{ include "common.name" . }}
     helm.sh/chart: {{ include "common.chart" . }}
@@ -25,16 +25,16 @@ spec:
           args: ["--sep-server"]
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           volumeMounts:
-          - name: config
+          - name: {{ .Values.service.containerVolumeMount | default "config-volume" | quote }}
             mountPath: /config
             readOnly: true
           ports:
             - name: http
-              containerPort: 8080
+              containerPort: {{ .Values.service.containerPort }}
               protocol: TCP
           resources:
 {{ toYaml .Values.resources | indent 12 }}
       volumes:
-        - name: config
+        - name: {{ .Values.service.containerVolumeMount | default "config-volume" | quote }}
           configMap:
             name: {{ .Values.fullName }}-configmap-{{ .Values.service.name }}

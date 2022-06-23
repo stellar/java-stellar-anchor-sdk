@@ -1,24 +1,40 @@
 fullName: anchor-platform
+namespace: sandbox
 service:
    containerPort: 8080
    servicePort: 8080
    replicas: 1
    type: NodePort
    name: sep
-image: 
+image:
    repo: stellar
    name: anchor-platform
    tag: 022afab
    pullPolicy: Always
 ingress:
+   labels:
+     app: appy
+     test: label_test
    annotations:
-      alb.ingress.kubernetes.io/listen-ports: '[{"HTTPS":443}]'
-      alb.ingress.kubernetes.io/scheme: internet-facing
-      alb.ingress.kubernetes.io/healthcheck-path: /health
-   ingressClassName: alb
+     kubernetes.io/ingress.class: "public"
+     cert-manager.io/cluster-issuer: "default"
+     ingress.kubernetes.io/ssl-redirect: "true"
+     ingress.kubernetes.io/browser-xss-filter: "true"
+     ingress.kubernetes.io/frame-deny: "true"
+     ingress.kubernetes.io/content-type-nosniff: "true"
+     ingress.kubernetes.io/hsts-max-age: "31536000"
+     ingress.kubernetes.io/hsts-include-subdomains: "true"
    tls:
-      tlsHost: "www.stellaranchordemo.com"
-      secretName: "secret"
+     host: "www.stellaranchordemo.com"
+     secretName: anchor-platform-sep-server-cert
+   rules:
+      hosts:
+        - host: "{{ .Values.ingress.tls.host }}"
+          path: /
+          pathType: Prefix
+          backend:
+            servicePort: "{{ .Values.service.containerPort }}"
+            serviceName: "{{ .Values.fullName }}-svc-{{ .Values.service.name }}"
 stellar:
    anchor:
       config: in-memory
@@ -50,21 +66,21 @@ stellar:
          # clientAttributionDenyList: # use this if we want to black list.
          authTimeout: 900
          jwtTimeout: 86400
-         signingSeed: SIGNINGSEED
+         signingSeed: SBTBRGMPWNLXOZQQQXXZRJKCZPYTAZT5FC4VEAECF2HOBCONTSH4EXKS
       sep12:
          enabled: true
-         customerIntegrationEndpoint: http://ref.stellaranchordemo.com
+         customerIntegrationEndpoint: https://anchor-reference-server-dev.stellar.org
       sep24:
          enabled: true
          interactiveJwtExpiration: 3600
-         interactiveUrl: http://ref.stellaranchordemo.com/sep24/interactive
+         interactiveUrl: https://anchor-reference-server-dev.stellar.org/sep24/interactive
       sep31:
          enabled: true
-         feeIntegrationEndPoint: http://ref.stellaranchordemo.com
+         feeIntegrationEndPoint: https://anchor-reference-server-dev.stellar.org
          depositInfoGeneratorType: self # self or circle
       sep38:
          enabled: true
-         quoteIntegrationEndPoint: http://ref.stellaranchordemo.com
+         quoteIntegrationEndPoint: https://anchor-reference-server-dev.stellar.org
       circle:
          circleUrl: https://api-sandbox.circle.com
          apiKey: secret # circle API key
@@ -86,7 +102,7 @@ stellar:
          enabled: true
          publisherType: kafka
       kafka_publisher:
-         bootstrapServer: ${bootstrap_broker}
+         bootstrapServer: anchor-platform-kafka:9092
          useSingleQueue: false
          eventTypeToQueue:
             all: dev_ap_event_single_queue
