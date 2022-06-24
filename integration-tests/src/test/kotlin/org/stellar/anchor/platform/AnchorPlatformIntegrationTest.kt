@@ -18,6 +18,7 @@ import org.stellar.anchor.api.callback.GetRateRequest
 import org.stellar.anchor.api.callback.GetRateRequest.Type.*
 import org.stellar.anchor.api.exception.NotFoundException
 import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerRequest
+import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest
 import org.stellar.anchor.api.sep.sep38.Sep38Context.*
 import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.Sep10Config
@@ -262,14 +263,25 @@ class AnchorPlatformIntegrationTest {
 
   @Test
   fun testGetFee() {
+    // Create sender customer
+    val senderCustomerRequest =
+      GsonUtils.getInstance().fromJson(testCustomer1Json, Sep12PutCustomerRequest::class.java)
+    val senderCustomer = sep12Client.putCustomer(senderCustomerRequest)
+
+    // Create receiver customer
+    val receiverCustomerRequest =
+      GsonUtils.getInstance().fromJson(testCustomer2Json, Sep12PutCustomerRequest::class.java)
+    val receiverCustomer = sep12Client.putCustomer(receiverCustomerRequest)
+
     val result =
       rfi.getFee(
         GetFeeRequest.builder()
           .sendAmount("10")
           .sendAsset("USDC")
           .receiveAsset("USDC")
-          .senderId("sender_id")
-          .receiverId("receiver_id")
+          .senderId(senderCustomer!!.id)
+          .receiverId(receiverCustomer!!.id)
+          .clientId("<client-id>")
           .build()
       )
 

@@ -1,7 +1,6 @@
 package org.stellar.anchor.platform
 
 import io.mockk.*
-import java.io.IOException
 import java.time.Instant
 import java.time.format.DateTimeFormatter
 import java.util.Calendar
@@ -46,7 +45,6 @@ class RestRateIntegrationTest {
   private val gson = GsonUtils.getInstance()
 
   @BeforeEach
-  @Throws(IOException::class)
   fun setUp() {
     server = MockWebServer()
     server.start()
