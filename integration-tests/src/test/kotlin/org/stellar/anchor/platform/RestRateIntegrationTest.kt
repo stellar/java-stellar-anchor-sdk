@@ -24,6 +24,7 @@ import org.stellar.anchor.api.exception.ServerErrorException
 import org.stellar.anchor.api.sep.sep38.RateFee
 import org.stellar.anchor.api.sep.sep38.RateFeeDetail
 import org.stellar.anchor.api.sep.sep38.Sep38Context.*
+import org.stellar.anchor.platform.callback.AuthHelper
 import org.stellar.anchor.platform.callback.RestRateIntegration
 import org.stellar.anchor.reference.model.Quote
 import org.stellar.anchor.sep10.JwtService
@@ -40,6 +41,8 @@ class RestRateIntegrationTest {
   private lateinit var rateIntegration: RestRateIntegration
   private lateinit var mockJwtToken: String
   private val platformToAnchorJwtService = JwtService(PLATFORM_TO_ANCHOR_JWT_SECRET)
+  private val authHelper =
+    AuthHelper(platformToAnchorJwtService, JWT_EXPIRATION_MILLISECONDS, "http://localhost:8080")
   private val gson = GsonUtils.getInstance()
 
   @BeforeEach
@@ -51,9 +54,7 @@ class RestRateIntegrationTest {
       RestRateIntegration(
         server.url("").toString(),
         OkHttpUtil.buildClient(),
-        platformToAnchorJwtService,
-        "http://localhost:8080",
-        JWT_EXPIRATION_MILLISECONDS,
+        authHelper,
         GsonUtils.getInstance()
       )
 

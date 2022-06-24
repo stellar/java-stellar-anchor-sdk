@@ -23,6 +23,7 @@ import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.Sep10Config
 import org.stellar.anchor.config.Sep1Config
 import org.stellar.anchor.config.Sep38Config
+import org.stellar.anchor.platform.callback.AuthHelper
 import org.stellar.anchor.platform.callback.RestCustomerIntegration
 import org.stellar.anchor.platform.callback.RestFeeIntegration
 import org.stellar.anchor.platform.callback.RestRateIntegration
@@ -39,6 +40,12 @@ class AnchorPlatformIntegrationTest {
     private const val PLATFORM_TO_ANCHOR_JWT_SECRET = "myPatformToAnchorJwtSecret"
     private const val JWT_EXPIRATION_MILLISECONDS: Long = 10000
     private val platformToAnchorJwtService = JwtService(PLATFORM_TO_ANCHOR_JWT_SECRET)
+    private val authHelper =
+      AuthHelper(
+        platformToAnchorJwtService,
+        JWT_EXPIRATION_MILLISECONDS,
+        "http://localhost:$SEP_SERVER_PORT"
+      )
 
     private lateinit var toml: Sep1Helper.TomlContent
     private lateinit var jwt: String
@@ -52,14 +59,7 @@ class AnchorPlatformIntegrationTest {
     private val rci =
       RestCustomerIntegration("http://localhost:$REFERENCE_SERVER_PORT", httpClient, gson)
     private val rri =
-      RestRateIntegration(
-        "http://localhost:$REFERENCE_SERVER_PORT",
-        httpClient,
-        platformToAnchorJwtService,
-        "http://localhost:$SEP_SERVER_PORT",
-        JWT_EXPIRATION_MILLISECONDS,
-        gson
-      )
+      RestRateIntegration("http://localhost:$REFERENCE_SERVER_PORT", httpClient, authHelper, gson)
     private val rfi =
       RestFeeIntegration("http://localhost:$REFERENCE_SERVER_PORT", httpClient, gson)
     const val fiatUSD = "iso4217:USD"

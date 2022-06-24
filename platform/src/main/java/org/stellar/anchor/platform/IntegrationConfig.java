@@ -9,6 +9,7 @@ import org.stellar.anchor.api.callback.CustomerIntegration;
 import org.stellar.anchor.api.callback.FeeIntegration;
 import org.stellar.anchor.api.callback.RateIntegration;
 import org.stellar.anchor.config.*;
+import org.stellar.anchor.platform.callback.AuthHelper;
 import org.stellar.anchor.platform.callback.RestCustomerIntegration;
 import org.stellar.anchor.platform.callback.RestFeeIntegration;
 import org.stellar.anchor.platform.callback.RestRateIntegration;
@@ -17,8 +18,11 @@ import org.stellar.anchor.sep10.JwtService;
 @Configuration
 public class IntegrationConfig {
   @Bean
-  JwtService platformToAnchorAuthService(IntegrationAuthConfig integrationAuthConfig) {
-    return new JwtService(integrationAuthConfig.getPlatformToAnchorJwtSecret());
+  AuthHelper authHelper(AppConfig appConfig, IntegrationAuthConfig integrationAuthConfig) {
+    return new AuthHelper(
+        new JwtService(integrationAuthConfig.getPlatformToAnchorJwtSecret()),
+        integrationAuthConfig.getExpirationMilliseconds(),
+        appConfig.getHostUrl());
   }
 
   @Bean
@@ -40,19 +44,9 @@ public class IntegrationConfig {
 
   @Bean
   RateIntegration rateIntegration(
-      AppConfig appConfig,
-      Sep38Config sep38Config,
-      OkHttpClient httpClient,
-      JwtService platformToAnchorAuthService,
-      IntegrationAuthConfig integrationAuthConfig,
-      Gson gson) {
+      Sep38Config sep38Config, OkHttpClient httpClient, AuthHelper authHelper, Gson gson) {
     return new RestRateIntegration(
-        sep38Config.getQuoteIntegrationEndPoint(),
-        httpClient,
-        platformToAnchorAuthService,
-        appConfig.getHostUrl(),
-        integrationAuthConfig.getExpirationMilliseconds(),
-        gson);
+        sep38Config.getQuoteIntegrationEndPoint(), httpClient, authHelper, gson);
   }
 
   @Bean
