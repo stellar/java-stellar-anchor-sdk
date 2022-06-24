@@ -1,10 +1,7 @@
 package org.stellar.anchor.platform
 
 import io.mockk.*
-import java.io.IOException
-import java.time.Instant
-import java.time.format.DateTimeFormatter
-import java.util.Calendar
+import java.util.*
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.hamcrest.CoreMatchers
@@ -15,20 +12,15 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.stellar.anchor.api.callback.GetFeeRequest
-import org.stellar.anchor.api.callback.GetRateRequest
+import org.stellar.anchor.api.callback.GetFeeResponse
 import org.stellar.anchor.api.callback.GetRateRequest.Type.*
-import org.stellar.anchor.api.callback.GetRateResponse
 import org.stellar.anchor.api.exception.AnchorException
 import org.stellar.anchor.api.exception.BadRequestException
 import org.stellar.anchor.api.exception.NotFoundException
 import org.stellar.anchor.api.exception.ServerErrorException
-import org.stellar.anchor.api.sep.sep38.RateFee
-import org.stellar.anchor.api.sep.sep38.RateFeeDetail
 import org.stellar.anchor.api.sep.sep38.Sep38Context.*
 import org.stellar.anchor.platform.callback.AuthHelper
 import org.stellar.anchor.platform.callback.RestFeeIntegration
-import org.stellar.anchor.platform.callback.RestRateIntegration
-import org.stellar.anchor.reference.model.Quote
 import org.stellar.anchor.sep10.JwtService
 import org.stellar.anchor.sep10.JwtToken
 import org.stellar.anchor.util.GsonUtils
@@ -38,6 +30,9 @@ class RestFeeIntegrationTest {
   companion object {
     private const val PLATFORM_TO_ANCHOR_JWT_SECRET = "myPatformToAnchorJwtSecret"
     private const val JWT_EXPIRATION_MILLISECONDS: Long = 100000000
+    private const val fiatUSD = "iso4217:USD"
+    private const val stellarCircleUSDC =
+      "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
   }
   private lateinit var server: MockWebServer
   private lateinit var feeIntegration: RestFeeIntegration
@@ -45,9 +40,9 @@ class RestFeeIntegrationTest {
   private val platformToAnchorJwtService = JwtService(PLATFORM_TO_ANCHOR_JWT_SECRET)
   private val authHelper =
     AuthHelper(platformToAnchorJwtService, JWT_EXPIRATION_MILLISECONDS, "http://localhost:8080")
+  private val gson = GsonUtils.getInstance()
 
   @BeforeEach
-  @Throws(IOException::class)
   fun setUp() {
     server = MockWebServer()
     server.start()
@@ -83,17 +78,67 @@ class RestFeeIntegrationTest {
     unmockkAll()
   }
 
+  private fun mockGetFeeResponse(
+    amount: String,
+    asset: String,
+  ): MockResponse {
+    val fee =
+      hashMapOf(
+        "amount" to amount,
+        "asset" to asset,
+      )
+
+    val bodyMap = hashMapOf("fee" to fee)
+    return MockResponse()
+      .addHeader("Content-Type", "application/json")
+      .setResponseCode(200)
+      .setBody(gson.toJson(bodyMap))
+  }
+
   @Test
   fun test_getFee() {
+    val getFeeRequest =
+      GetFeeRequest.builder()
+        .sendAsset(fiatUSD)
+        .sendAmount("10")
+        .receiveAsset(stellarCircleUSDC)
+        .clientId("<client-id>")
+        .senderId("<sender-id>")
+        .receiverId("<receiver-id>")
+        .build()
+
+    server.enqueue(mockGetFeeResponse("10", fiatUSD))
+
+    val getFeeResponse = feeIntegration.getFee(getFeeRequest)
+    assertInstanceOf(GetFeeResponse::class.java, getFeeResponse)
+
+    val request = server.takeRequest()
+    assertEquals("GET", request.method)
+    assertEquals("application/json", request.headers["Content-Type"])
+    val gotJwtTokenStr = request.headers["Authorization"]!!.split(" ")[1]
+    assertEquals("Bearer $mockJwtToken", request.headers["Authorization"])
+    MatcherAssert.assertThat(
+      request.path,
+      CoreMatchers.endsWith(
+        """
+        /fee
+        ?send_asset=iso4217%3AUSD
+        &receive_asset=stellar%3AUSDC%3AGBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5
+        &send_amount=10
+        &client_id=%3Cclient-id%3E
+        &sender_id=%3Csender-id%3E
+        &receiver_id=%3Creceiver-id%3E""".replace(
+          "\n        ",
+          ""
+        )
+      )
+    )
   }
 
   @Test
   fun test_getFee_errorHandling() {
     val validateRequest =
-        {
-      statusCode: Int,
-      responseBody: String?,
-      wantException: AnchorException ->
+        { statusCode: Int, responseBody: String?, wantException: AnchorException ->
       // mock response
       var mockResponse =
         MockResponse().addHeader("Content-Type", "application/json").setResponseCode(statusCode)
@@ -134,14 +179,6 @@ class RestFeeIntegrationTest {
     validateRequest(422, null, BadRequestException("Bad Request"))
 
     // 500 with body
-    validateRequest(
-      500,
-      """{"error": "foo 500"}""",
-      ServerErrorException("internal server error")
-    )
-  }
-
-  @Test
-  fun test_getFee_jsonBody() {
+    validateRequest(500, """{"error": "foo 500"}""", ServerErrorException("internal server error"))
   }
 }
