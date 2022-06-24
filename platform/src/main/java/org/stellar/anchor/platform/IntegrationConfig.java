@@ -8,15 +8,19 @@ import org.springframework.context.annotation.Configuration;
 import org.stellar.anchor.api.callback.CustomerIntegration;
 import org.stellar.anchor.api.callback.FeeIntegration;
 import org.stellar.anchor.api.callback.RateIntegration;
-import org.stellar.anchor.config.Sep12Config;
-import org.stellar.anchor.config.Sep31Config;
-import org.stellar.anchor.config.Sep38Config;
+import org.stellar.anchor.config.*;
 import org.stellar.anchor.platform.callback.RestCustomerIntegration;
 import org.stellar.anchor.platform.callback.RestFeeIntegration;
 import org.stellar.anchor.platform.callback.RestRateIntegration;
+import org.stellar.anchor.sep10.JwtService;
 
 @Configuration
 public class IntegrationConfig {
+  @Bean
+  JwtService platformToAnchorAuthService(IntegrationAuthConfig integrationAuthConfig) {
+    return new JwtService(integrationAuthConfig.getPlatformToAnchorJwtSecret());
+  }
+
   @Bean
   OkHttpClient httpClient() {
     return new OkHttpClient.Builder()
@@ -35,8 +39,20 @@ public class IntegrationConfig {
   }
 
   @Bean
-  RateIntegration rateIntegration(Sep38Config sep38Config, OkHttpClient httpClient, Gson gson) {
-    return new RestRateIntegration(sep38Config.getQuoteIntegrationEndPoint(), httpClient, gson);
+  RateIntegration rateIntegration(
+      AppConfig appConfig,
+      Sep38Config sep38Config,
+      OkHttpClient httpClient,
+      JwtService platformToAnchorAuthService,
+      IntegrationAuthConfig integrationAuthConfig,
+      Gson gson) {
+    return new RestRateIntegration(
+        sep38Config.getQuoteIntegrationEndPoint(),
+        httpClient,
+        platformToAnchorAuthService,
+        appConfig.getHostUrl(),
+        integrationAuthConfig.getExpirationMilliseconds(),
+        gson);
   }
 
   @Bean

@@ -7,11 +7,13 @@ import lombok.Data;
 public class JwtToken {
   public JwtToken() {}
 
-  String iss;
-  String sub;
-  long iat;
-  long exp;
-  String jti;
+  String iss; // Issuer
+  String sub; // Subject          // Stellar Account
+  long iat; // Issued At
+  long exp; // Expiration Time
+  String jti; // JWT ID           // Stellar Transaction ID
+  // String aud;   // Audience
+  // long nbf;     // Not Before
 
   @SerializedName(value = "client_domain")
   String clientDomain;
@@ -53,14 +55,26 @@ public class JwtToken {
     token.exp = exp;
     token.jti = jti;
     token.clientDomain = clientDomain;
-    String[] subs = sub.split(":", 2);
-    if (subs.length == 2) {
-      token.account = subs[0];
-      token.accountMemo = subs[1];
-    } else {
-      token.account = sub;
-      token.accountMemo = null;
+    if (sub != null) {
+      String[] subs = sub.split(":", 2);
+      if (subs.length == 2) {
+        token.account = subs[0];
+        token.accountMemo = subs[1];
+      } else {
+        // TODO: test for muxed account. If the account is muxed, update both fields `account` and
+        // `muxedAccount`.
+        token.account = sub;
+        token.accountMemo = null;
+      }
     }
+    return token;
+  }
+
+  public static JwtToken of(String iss, long iat, long exp) {
+    JwtToken token = new JwtToken();
+    token.iss = iss;
+    token.iat = iat;
+    token.exp = exp;
     return token;
   }
 }

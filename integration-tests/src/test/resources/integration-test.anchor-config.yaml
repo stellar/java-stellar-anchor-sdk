@@ -26,6 +26,11 @@ app-config:
     assets: assets-test.json
     jwtSecretKey: secret
 
+  integration-auth:
+    platformToAnchorJwtSecret: myPatformToAnchorJwtSecret
+    anchorToPlatformJwtSecret: myAnchorToPlatformJwtSecret
+    expirationMilliseconds: 10000
+
   # sep-1
   sep1:
     enabled: true

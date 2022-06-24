@@ -61,8 +61,8 @@ public class JwtService {
     return JwtToken.of(
         (String) claims.get("iss"),
         (String) claims.get("sub"),
-        Long.valueOf((Integer) claims.get("iat")),
-        Long.valueOf((Integer) claims.get("exp")),
+        Long.parseLong(claims.get("iat").toString()),
+        Long.parseLong(claims.get("exp").toString()),
         (String) claims.get("jti"),
         (String) claims.get("client_domain"));
   }
