@@ -61,7 +61,7 @@ class AnchorPlatformIntegrationTest {
     private val rri =
       RestRateIntegration("http://localhost:$REFERENCE_SERVER_PORT", httpClient, authHelper, gson)
     private val rfi =
-      RestFeeIntegration("http://localhost:$REFERENCE_SERVER_PORT", httpClient, gson)
+      RestFeeIntegration("http://localhost:$REFERENCE_SERVER_PORT", httpClient, authHelper, gson)
     const val fiatUSD = "iso4217:USD"
     const val stellarUSDC = "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
     private lateinit var platformServerContext: ConfigurableApplicationContext

@@ -50,7 +50,9 @@ public class IntegrationConfig {
   }
 
   @Bean
-  FeeIntegration feeIntegration(Sep31Config sep31Config, Gson gson) {
-    return new RestFeeIntegration(sep31Config.getFeeIntegrationEndPoint(), httpClient(), gson);
+  FeeIntegration feeIntegration(
+      Sep31Config sep31Config, OkHttpClient httpClient, AuthHelper authHelper, Gson gson) {
+    return new RestFeeIntegration(
+        sep31Config.getFeeIntegrationEndPoint(), httpClient, authHelper, gson);
   }
 }

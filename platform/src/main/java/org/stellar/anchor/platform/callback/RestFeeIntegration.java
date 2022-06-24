@@ -23,9 +23,11 @@ import shadow.com.google.common.reflect.TypeToken;
 public class RestFeeIntegration implements FeeIntegration {
   private final String feeIntegrationEndPoint;
   private final OkHttpClient httpClient;
+  private final AuthHelper authHelper;
   private final Gson gson;
 
-  public RestFeeIntegration(String feeIntegrationEndPoint, OkHttpClient okHttpClient, Gson gson) {
+  public RestFeeIntegration(
+      String feeIntegrationEndPoint, OkHttpClient okHttpClient, AuthHelper authHelper, Gson gson) {
     try {
       new URI(feeIntegrationEndPoint);
     } catch (URISyntaxException e) {
@@ -34,6 +36,7 @@ public class RestFeeIntegration implements FeeIntegration {
 
     this.feeIntegrationEndPoint = feeIntegrationEndPoint;
     this.httpClient = okHttpClient;
+    this.authHelper = authHelper;
     this.gson = gson;
   }
 
@@ -49,9 +52,15 @@ public class RestFeeIntegration implements FeeIntegration {
           }
         });
     HttpUrl url = urlBuilder.build();
+    String authHeader = "Bearer " + authHelper.createJwtToken();
 
     Request httpRequest =
-        new Request.Builder().url(url).header("Content-Type", "application/json").get().build();
+        new Request.Builder()
+            .url(url)
+            .header("Content-Type", "application/json")
+            .header("Authorization", authHeader)
+            .get()
+            .build();
     Response response = call(httpClient, httpRequest);
     String responseContent = getContent(response);
 
