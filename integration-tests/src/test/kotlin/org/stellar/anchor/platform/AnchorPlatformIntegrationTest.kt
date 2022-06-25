@@ -58,7 +58,12 @@ class AnchorPlatformIntegrationTest {
         .build()
     private val gson: Gson = GsonUtils.getInstance()
     private val rci =
-      RestCustomerIntegration("http://localhost:$REFERENCE_SERVER_PORT", httpClient, gson)
+      RestCustomerIntegration(
+        "http://localhost:$REFERENCE_SERVER_PORT",
+        httpClient,
+        authHelper,
+        gson
+      )
     private val rri =
       RestRateIntegration("http://localhost:$REFERENCE_SERVER_PORT", httpClient, authHelper, gson)
     private val rfi =

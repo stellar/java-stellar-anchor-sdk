@@ -33,7 +33,7 @@ import org.stellar.anchor.util.OkHttpUtil
 
 class RestRateIntegrationTest {
   companion object {
-    private const val PLATFORM_TO_ANCHOR_JWT_SECRET = "myPatformToAnchorJwtSecret"
+    private const val PLATFORM_TO_ANCHOR_JWT_SECRET = "myPlatformToAnchorJwtSecret"
     private const val JWT_EXPIRATION_MILLISECONDS: Long = 100000000
   }
   private lateinit var server: MockWebServer

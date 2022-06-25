@@ -6,7 +6,9 @@ import org.springframework.context.annotation.Configuration;
 
 @Data
 @Configuration
-@ConfigurationProperties(prefix = "amqp.listener")
-public class AmqpListenerSettings {
-  String endpoint;
+@ConfigurationProperties(prefix = "integration-authentication")
+public class IntegrationAuthSettings {
+  String platformToAnchorJwtSecret;
+  String anchorToPlatformJwtSecret;
+  long expirationMilliseconds = 30000;
 }

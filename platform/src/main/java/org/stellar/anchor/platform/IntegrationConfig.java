@@ -37,9 +37,9 @@ public class IntegrationConfig {
 
   @Bean
   CustomerIntegration customerIntegration(
-      Sep12Config sep12Config, OkHttpClient httpClient, Gson gson) {
+      Sep12Config sep12Config, OkHttpClient httpClient, AuthHelper authHelper, Gson gson) {
     return new RestCustomerIntegration(
-        sep12Config.getCustomerIntegrationEndPoint(), httpClient, gson);
+        sep12Config.getCustomerIntegrationEndPoint(), httpClient, authHelper, gson);
   }
 
   @Bean

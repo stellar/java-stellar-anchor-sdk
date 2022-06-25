@@ -24,9 +24,11 @@ import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerResponse;
 public class RestCustomerIntegration implements CustomerIntegration {
   private final String anchorEndpoint;
   private final OkHttpClient httpClient;
+  private final AuthHelper authHelper;
   private final Gson gson;
 
-  public RestCustomerIntegration(String anchorEndpoint, OkHttpClient httpClient, Gson gson) {
+  public RestCustomerIntegration(
+      String anchorEndpoint, OkHttpClient httpClient, AuthHelper authHelper, Gson gson) {
     try {
       new URI(anchorEndpoint);
     } catch (URISyntaxException e) {
@@ -35,6 +37,7 @@ public class RestCustomerIntegration implements CustomerIntegration {
 
     this.anchorEndpoint = anchorEndpoint;
     this.httpClient = httpClient;
+    this.authHelper = authHelper;
     this.gson = gson;
   }
 
@@ -57,8 +60,16 @@ public class RestCustomerIntegration implements CustomerIntegration {
       customerEndpointBuilder.addQueryParameter("type", customerRequest.getType());
     }
     // Call anchor
+    String authHeader = "Bearer " + authHelper.createJwtToken();
     Response response =
-        call(httpClient, new Request.Builder().url(customerEndpointBuilder.build()).get().build());
+        call(
+            httpClient,
+            new Request.Builder()
+                .url(customerEndpointBuilder.build())
+                .header("Content-Type", "application/json")
+                .header("Authorization", authHeader)
+                .get()
+                .build());
     String responseContent = getContent(response);
 
     if (response.code() == HttpStatus.OK.value()) {
@@ -81,10 +92,15 @@ public class RestCustomerIntegration implements CustomerIntegration {
   public Sep12PutCustomerResponse putCustomer(Sep12PutCustomerRequest sep12PutCustomerRequest)
       throws AnchorException {
     PutCustomerRequest customerRequest = fromSep12(sep12PutCustomerRequest, gson);
+    String authHeader = "Bearer " + authHelper.createJwtToken();
     RequestBody requestBody =
         RequestBody.create(gson.toJson(customerRequest), MediaType.get("application/json"));
     Request callbackRequest =
-        new Request.Builder().url(getCustomerUrlBuilder().build()).put(requestBody).build();
+        new Request.Builder()
+            .url(getCustomerUrlBuilder().build())
+            .header("Authorization", authHeader)
+            .put(requestBody)
+            .build();
 
     // Call anchor
     Response response = call(httpClient, callbackRequest);
@@ -105,7 +121,14 @@ public class RestCustomerIntegration implements CustomerIntegration {
   @Override
   public void deleteCustomer(String id) {
     HttpUrl url = getCustomerUrlBuilder().addPathSegment(id).build();
-    Request callbackRequest = new Request.Builder().url(url).delete().build();
+    String authHeader = "Bearer " + authHelper.createJwtToken();
+    Request callbackRequest =
+        new Request.Builder()
+            .url(url)
+            .header("Content-Type", "application/json")
+            .header("Authorization", authHeader)
+            .delete()
+            .build();
 
     // Call anchor
     Response response = call(httpClient, callbackRequest);

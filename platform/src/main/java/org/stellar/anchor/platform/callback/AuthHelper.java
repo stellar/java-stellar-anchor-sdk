@@ -11,7 +11,7 @@ public class AuthHelper {
   private final long jwtExpirationMilliseconds;
   private final String issuerUrl;
 
-  String createJwtToken() {
+  public String createJwtToken() {
     long issuedAt = Calendar.getInstance().getTimeInMillis() / 1000L;
     long expirationTime = issuedAt + (jwtExpirationMilliseconds / 1000L);
     JwtToken token = JwtToken.of(issuerUrl, issuedAt, expirationTime);

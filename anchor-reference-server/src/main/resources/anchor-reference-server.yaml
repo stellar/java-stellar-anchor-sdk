@@ -10,6 +10,21 @@ anchor.settings:
   version: 0.0.1
   platformApiEndpoint: http://localhost:8080
 
+# These are secrets shared between Anchor and Platform that are used to safely communicate from `Platform->Anchor`
+# and `Anchor->Platform`, specially when they are in different clusters.
+#
+# When the receiving part decodes the incoming request token, it needs to verify if the token is still valid (and not expired).
+integration-authentication:
+  # CallbackAPI requests (`Platform->Anchor`) will contain an authentication header whose token was built using this
+  # secret. The Anchor Backend will also store this same secret and use it to decode the incoming token to verify it
+  # came from the Platform.
+  platformToAnchorJwtSecret: myPlatformToAnchorJwtSecret
+  # PlatformAPI requests (`Anchor->Platform`) will contain an authentication header whose token was built using this
+  # secret. The Platform Server will use this secret to decode the incoming token to verify it came from the Anchor.
+  anchorToPlatformJwtSecret: myAnchorToPlatformJwtSecret
+  # Expiration time, in milliseconds, that will be used to build and validate the JWT tokens
+  expirationMilliseconds: 30000
+
 event:
   # The listener type. values: [kafka, sqs, amqp]
   # If the listener is kafka, the kafka listener is configured in kafka.listener section.

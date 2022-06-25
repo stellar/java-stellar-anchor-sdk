@@ -28,8 +28,8 @@ import org.stellar.anchor.util.OkHttpUtil
 
 class RestFeeIntegrationTest {
   companion object {
-    private const val PLATFORM_TO_ANCHOR_JWT_SECRET = "myPatformToAnchorJwtSecret"
-    private const val JWT_EXPIRATION_MILLISECONDS: Long = 100000000
+    private const val PLATFORM_TO_ANCHOR_JWT_SECRET = "myPlatformToAnchorJwtSecret"
+    private const val JWT_EXPIRATION_MILLISECONDS: Long = 1000000
     private const val fiatUSD = "iso4217:USD"
     private const val stellarCircleUSDC =
       "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
