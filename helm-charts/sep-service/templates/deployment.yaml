@@ -29,11 +29,18 @@ spec:
             mountPath: /config
             readOnly: true
           ports:
-            - name: http
-              containerPort: {{ .Values.service.containerPort }}
-              protocol: TCP
+          - name: http
+            containerPort: {{ .Values.service.containerPort }}
+            protocol: TCP
+          {{- if (.Values.deployment).envFrom }}
+          envFrom:
+{{ toYaml .Values.deployment.envFrom | indent 12 }}
+          {{- end }}
+          {{- if (.Values.deployment).resources }}
           resources:
-{{ toYaml .Values.resources | indent 12 }}
+{{- toYaml .Values.deployment.resources | indent 12 }}
+          {{- end }}
+        
       volumes:
         - name: {{ .Values.service.containerVolumeMount | default "config-volume" | quote }}
           configMap:

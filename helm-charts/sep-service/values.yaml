@@ -11,6 +11,10 @@ image:
    name: anchor-platform
    tag: 022afab
    pullPolicy: Always
+deployment:
+   envFrom:
+   - secretRef:
+       name: sepsecrets
 ingress:
    labels:
      app: appy
@@ -25,110 +29,39 @@ ingress:
      ingress.kubernetes.io/hsts-max-age: "31536000"
      ingress.kubernetes.io/hsts-include-subdomains: "true"
    tls:
-     host: "www.stellaranchordemo.com"
+     host: "stellaranchordemo.com"
      secretName: anchor-platform-sep-server-cert
    rules:
       hosts:
-        - host: "{{ .Values.ingress.tls.host }}"
+        - host: "stellaranchordemo.com"
           path: /
           pathType: Prefix
           backend:
             servicePort: "{{ .Values.service.containerPort }}"
             serviceName: "{{ .Values.fullName }}-svc-{{ .Values.service.name }}"
 stellar:
-   anchor:
-      config: in-memory
-      app-config:
-         type: config-spring-property                # Activate [config-spring-property] module
-         settings: "app-config"                        # The location of the configuration data
-      data-access:
-         type: data-spring-jdbc                      # Activate [config-spring-jdbc] module.
-         settings: data-spring-jdbc-sqlite           # The location of the configuration data in this file.
-      logging:
-         type: logging-logback
-         settings: logging-logback-settings
    app_config:
       app:
-         stellarNetworkPassphrase: Test SDF Network ; September 2015
-         hostUrl: https://www.stellaranchordemo.com
-         languages: en
-         horizonUrl: https://horizon-testnet.stellar.org
-         assets: assets-test.json
-         jwtSecretKey: secret
+         hostUrl: https://stellaranchordemo.com
+         jwtSecretKey:  ${JWT_SECRET}
       sep1:
-         enabled: true
-         stellarFile: file:/config/stellar-wks.toml
+        enabled: true
+        stellarFile: file:/config/stellar-wks.toml
       sep10:
-         enabled: true
-         homeDomain: www.stellaranchordemo.com
-         clientAttributionRequired: false
-         clientAttributionAllowList: lobstr.co,preview.lobstr.co # use this if we want to white list
-         # clientAttributionDenyList: # use this if we want to black list.
-         authTimeout: 900
-         jwtTimeout: 86400
-         signingSeed: SBTBRGMPWNLXOZQQQXXZRJKCZPYTAZT5FC4VEAECF2HOBCONTSH4EXKS
+        enabled: true
+        homeDomain: stellaranchordemo.com
+        signingSeed: ${SEP10_SIGNING_SEED}
       sep12:
-         enabled: true
-         customerIntegrationEndpoint: https://anchor-reference-server-dev.stellar.org
-      sep24:
-         enabled: true
-         interactiveJwtExpiration: 3600
-         interactiveUrl: https://anchor-reference-server-dev.stellar.org/sep24/interactive
+        enabled: true
+        customerIntegrationEndpoint: https://anchor-reference-server-dev.stellar.org
       sep31:
-         enabled: true
-         feeIntegrationEndPoint: https://anchor-reference-server-dev.stellar.org
-         depositInfoGeneratorType: self # self or circle
+        enabled: true
+        feeIntegrationEndPoint: https://anchor-reference-server-dev.stellar.org
       sep38:
-         enabled: true
-         quoteIntegrationEndPoint: https://anchor-reference-server-dev.stellar.org
-      circle:
-         circleUrl: https://api-sandbox.circle.com
-         apiKey: secret # circle API key
-      payment-gateway:
-         circle:
-            name: "circle"
-            enabled: true
-         stellar:
-            enabled: false
-            name: "stellar"
-            horizonUrl: https://horizon-testnet.stellar.org
-            secretKey: secret # stellar account secret key
-      circle-payment-observer:
-         enabled: true
-         horizonUrl: https://horizon-testnet.stellar.org
-         stellarNetwork: TESTNET # TESTNET or PUBLIC
-         trackedWallet: all
+        enabled: true
+        quoteIntegrationEndPoint: https://anchor-reference-server-dev.stellar.org
       event:
          enabled: true
          publisherType: kafka
       kafka_publisher:
-         bootstrapServer: anchor-platform-kafka:9092
-         useSingleQueue: false
-         eventTypeToQueue:
-            all: dev_ap_event_single_queue
-            quoteCreated: dev_ap_event_quote_created
-            transactionCreated: dev_ap_event_transaction_created
-            transactionStatusChanged: dev_ap_event_transaction_status_changed
-            transactionError: dev_ap_event_transaction_error
-      data_spring_jdbc_sqlite:
-         spring_jpa_database_platform: org.stellar.anchor.platform.sqlite.SQLiteDialect
-         spring_jpa_hibernate_ddl_auto: update
-         spring_jpa_generate_ddl: true
-         spring_jpa_hibernate_show_sql: false
-         sprint_datasource_url: jdbc:sqlite:anchor_proxy.db
-         sprint_datasource_driver_class_name: org.sqlite.JDBC
-         sprint_datasource_username: admin
-         sprint_datasource_password: admin
-         spring_mvc_converters_preferred_json_mapper: gson
-      data_spring_jdbc_h2:
-         sprint_datasource_url: jdbc:h2:mem:test
-         spring_jpa_properties_hibernate_dialect: org.hibernate.dialect.H2Dialect
-      spring:
-      logging:
-         level:
-            root: DEBUG
-            org.springframework: DEBUG
-            org.springframework.web.filter: DEBUG
-            org.stellar: DEBUG
-      mvc:
-         async.request-timeout: 6000
+         bootstrapServer: kafka-broker:9092
