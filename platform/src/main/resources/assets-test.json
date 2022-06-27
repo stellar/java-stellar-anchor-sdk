@@ -3,8 +3,8 @@
         {
             "schema": "stellar",
             "code": "USDC",
-            "issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
-            "distribution_account": "GD5CC2OLKMW3ZMAFVS2F5J4MGIPANJS3E25E5D5Z4CLS4DHRZTWISTPD",
+            "issuer": "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+            "distribution_account": "GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF",
             "significant_decimals": 2,
             "deposit" : {
                 "enabled": true,
@@ -86,7 +86,7 @@
             "schema": "stellar",
             "code": "JPYC",
             "issuer": "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-            "distribution_account": "GD5CC2OLKMW3ZMAFVS2F5J4MGIPANJS3E25E5D5Z4CLS4DHRZTWISTPD",
+            "distribution_account": "GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF",
             "significant_decimals": 4,
             "deposit" : {
                 "enabled": true,
@@ -157,7 +157,7 @@
             "sep38": {
                 "exchangeable_assets": [
                     "iso4217:USD",
-                    "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                    "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
                 ]
             },
             "sep24_enabled": false,
@@ -189,7 +189,7 @@
             },
             "sep38": {
                 "exchangeable_assets": [
-                    "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+                    "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
                 ],
                 "country_codes": ["USA"],
                 "decimals": 4,

@@ -11,11 +11,11 @@ ANCHOR_QUOTE_SERVER = "http://localhost:8080/sep38"
 
 [[CURRENCIES]]
 code = "USDC"
-issuer = "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+issuer = "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
 status = "test"
 is_asset_anchored = true
 anchor_asset_type = "fiat"
-desc = "A test USDC issued by Circle."
+desc = "A test USDC issued by Stellar."
 
 [[CURRENCIES]]
 code = "JPYC"

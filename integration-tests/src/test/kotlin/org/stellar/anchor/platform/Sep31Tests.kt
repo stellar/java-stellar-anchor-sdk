@@ -14,7 +14,7 @@ const val postTxnJson =
   """{
     "amount": "10",
     "asset_code": "USDC",
-    "asset_issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+    "asset_issuer": "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
     "receiver_id": "MOCK_RECEIVER_ID",
     "sender_id": "MOCK_SENDER_ID",
     "fields": {
