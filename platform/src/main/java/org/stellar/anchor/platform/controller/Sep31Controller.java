@@ -12,7 +12,6 @@ import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.sep.AssetInfo.Sep31TxnFieldSpecs;
 import org.stellar.anchor.api.sep.sep31.*;
 import org.stellar.anchor.platform.condition.ConditionalOnAllSepsEnabled;
-import org.stellar.anchor.platform.condition.ConditionalOnAnySepsEnabled;
 import org.stellar.anchor.sep10.JwtToken;
 import org.stellar.anchor.sep31.Sep31Service;
 import org.stellar.anchor.sep31.Sep31Service.Sep31CustomerInfoNeededException;

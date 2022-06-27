@@ -9,7 +9,6 @@ import org.stellar.anchor.api.exception.SepNotFoundException;
 import org.stellar.anchor.api.sep.SepExceptionResponse;
 import org.stellar.anchor.config.Sep1Config;
 import org.stellar.anchor.platform.condition.ConditionalOnAllSepsEnabled;
-import org.stellar.anchor.platform.condition.ConditionalOnAnySepsEnabled;
 import org.stellar.anchor.sep1.Sep1Service;
 
 @RestController
