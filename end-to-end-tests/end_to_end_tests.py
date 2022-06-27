@@ -220,7 +220,7 @@ if __name__ == "__main__":
             TRANSACTION_PAYLOAD = {
                 "amount": "10.0",
                 "asset_code": "USDC",
-                "asset_issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+                "asset_issuer": "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
                 "fields": {
                     "transaction": {
                         "receiver_routing_number": "r0123",
@@ -232,7 +232,7 @@ if __name__ == "__main__":
             test_sep_31_flow(endpoints, keypair, TRANSACTION_PAYLOAD)
         elif test == "sep31_flow_with_sep38":
             QUOTE_PAYLOAD_USDC_TO_JPYC = {
-                "sell_asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+                "sell_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
                 "sell_amount": "10",
                 "buy_asset": "stellar:JPYC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
                 "context": "sep31"
@@ -241,7 +241,7 @@ if __name__ == "__main__":
             TRANSACTION_PAYLOAD_USDC_TO_JPYC = {
                 "amount": "10.0",
                 "asset_code": "USDC",
-                "asset_issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+                "asset_issuer": "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
                 "fields": {
                     "transaction": {
                         "receiver_routing_number": "r0123",
@@ -281,7 +281,7 @@ if __name__ == "__main__":
         elif test == "sep38_create_quote":
             print("####################### Testing POST Quote #######################")
             QUOTE_PAYLOAD_USDC_TO_JPYC = {
-                "sell_asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+                "sell_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
                 "sell_amount": "10",
                 "buy_asset": "stellar:JPYC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
                 "context": "sep31"
