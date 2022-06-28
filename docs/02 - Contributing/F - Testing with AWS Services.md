@@ -6,9 +6,9 @@ Anchor Platform can be configured to work with the following AWS Services:
 - SQS - Simple Queue Service
 
 
-##Aurora Postgres (with IAM)
+## Aurora Postgres (with IAM)
 
-###AWS Configuration:
+### AWS Configuration:
 Create an Aurora Progres Database in AWS with default settings and `IAM DB authentication` enabled.  
 (https://docs.aws.amazon.com/AmazonRDS/latest/AuroraUserGuide/Aurora.CreateInstance.html)
 
@@ -21,7 +21,7 @@ CREATE USER anchorplatform1;
 GRANT rds_iam TO anchorplatform1;
 ```  
 
-###IAM Settings:
+### IAM Settings:
 Create an IAM policy that allows your database user `anchorplatform1` to be used to connect to the database. Attach this
 policy to the IAM User you plan to use for Anchor Platform. Replace `db-TY6R4WIFG2MTFWQAUCVOX5UQA4` with your database's
 Resource ID
@@ -52,13 +52,13 @@ NOTE: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY and AWS_REGION environment variab
 
 ## MSK - Managed Streaming for Kafka (with IAM)
 
-###MSK Configuration:
+### MSK Configuration:
 1) Under `Cluster Configuration`, set `auto.create.topics.enable=true`
 2) Under `Security Settings`, uncheck `Unauthorized access`
 3) Under `Security Settings`, check `IAM role-based authentication`
 4) After the cluster has been created, you can enable `Public access` under the `Network Settings` if you want Anchor 
 Platform to be able to connect over the internet (eg: you're developing/testing Anchor Platform on your local machine)
-###IAM Settings:
+### IAM Settings:
 Create an IAM policy that allows a user to connect to the Kafka cluster. Attach this
 policy to the IAM User you plan to use for Anchor Platform
 ```text
@@ -79,7 +79,7 @@ policy to the IAM User you plan to use for Anchor Platform
 }
 ```
 
-###Anchor Platform Configuration:
+### Anchor Platform Configuration:
 Refer to the example `kafka.publisher` configuration in `anchor-config-defaults.yaml`. `useIAM` needs to be set to `true`
 
 NOTE: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY and AWS_REGION environment variables need to be set
