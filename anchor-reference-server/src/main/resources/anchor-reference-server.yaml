@@ -17,9 +17,12 @@ event:
   # If the listener is amqp, the AMQP listner is configured in the ampq.listner section.
   listenerType: kafka
 
+# NOTE: AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment variables need to be set if using AWS MSK
 kafka.listener:
   bootstrapServer: localhost:29092
+  #bootstrapServer: b-1-public.democluster1.w7j4hi.c25.kafka.us-east-1.amazonaws.com:9198   # AWS MSK broker example
   useSingleQueue: false
+  useIAM: false   # IAM authentication for AWS MSK
   eventTypeToQueue:
     all: ap_event_single_queue
     quoteCreated: ap_event_quote_created

@@ -7,5 +7,7 @@ public interface KafkaConfig {
 
   boolean isUseSingleQueue();
 
+  boolean isUseIAM();
+
   Map<String, String> getEventTypeToQueue();
 }
