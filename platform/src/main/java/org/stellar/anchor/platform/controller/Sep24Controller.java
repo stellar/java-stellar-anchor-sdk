@@ -19,7 +19,6 @@ import org.stellar.anchor.api.exception.SepValidationException;
 import org.stellar.anchor.api.sep.SepExceptionResponse;
 import org.stellar.anchor.api.sep.sep24.*;
 import org.stellar.anchor.platform.condition.ConditionalOnAllSepsEnabled;
-import org.stellar.anchor.platform.condition.ConditionalOnAnySepsEnabled;
 import org.stellar.anchor.sep10.JwtToken;
 import org.stellar.anchor.sep24.Sep24Service;
 

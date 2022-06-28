@@ -51,7 +51,7 @@ class AnchorPlatformIntegrationTest {
     private val rfi =
       RestFeeIntegration("http://localhost:$REFERENCE_SERVER_PORT", httpClient, gson)
     const val fiatUSD = "iso4217:USD"
-    const val stellarUSDC = "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+    const val stellarUSDC = "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
     private lateinit var platformServerContext: ConfigurableApplicationContext
     init {
       val props = System.getProperties()
