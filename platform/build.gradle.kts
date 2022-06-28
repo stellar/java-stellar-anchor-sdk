@@ -16,6 +16,8 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
   implementation("org.springframework.boot:spring-boot-starter-web")
   implementation("org.springframework.boot:spring-boot-starter-reactor-netty")
+  implementation("com.amazonaws:aws-java-sdk-rds:1.12.248")
+
 
   implementation(libs.commons.cli)
   implementation(libs.commons.io)
