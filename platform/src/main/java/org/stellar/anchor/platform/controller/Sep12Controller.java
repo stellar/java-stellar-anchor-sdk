@@ -12,6 +12,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.stellar.anchor.api.sep.sep12.*;
+import org.stellar.anchor.platform.condition.ConditionalOnAllSepsEnabled;
 import org.stellar.anchor.sep10.JwtToken;
 import org.stellar.anchor.sep12.Sep12Service;
 import org.stellar.anchor.util.GsonUtils;
@@ -19,6 +20,7 @@ import org.stellar.anchor.util.GsonUtils;
 @RestController
 @CrossOrigin(origins = "*")
 @RequestMapping("/sep12")
+@ConditionalOnAllSepsEnabled(seps = {"sep12"})
 public class Sep12Controller {
   private final Sep12Service sep12Service;
 
