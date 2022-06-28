@@ -175,6 +175,71 @@ internal class Sep10ServiceTest {
     println(validationResponse)
   }
 
+  @Test
+  fun test_challengeWithNonExistentAccount_andClientDomain() {
+    // 1 ------ Create Test Transaction
+
+    // serverKP does not exist in the network.
+    val serverWebAuthDomain = TEST_HOME_DOMAIN
+    val serverKP =
+      KeyPair.fromSecretSeed("SDAJYMEVFTAM54RJ7AYWLBMQTXXCSBQATS5M6QZKV6EEW6DPNCBNB6VF")
+
+    // clientDomainKP does not exist in the network. It refers to the wallet (like Lobstr's)
+    // account.
+    val clientDomainKP =
+      KeyPair.fromSecretSeed("SAW6P3PM2R5YP6UOSFORXHLJN7FANH6NXGE3C4LMMYP3XZPREMXLSS6F")
+
+    // The public key of the client that DOES NOT EXIST.
+    val clientKP =
+      KeyPair.fromSecretSeed("SDAX33CQVJMQOHNZROJSJI7RUFHTHG3L6DJIOCO63UZFULO6EBJ574IW")
+
+    val nonce = ByteArray(48)
+    val random = SecureRandom()
+    random.nextBytes(nonce)
+    val base64Encoding = BaseEncoding.base64()
+    val encodedNonce = base64Encoding.encode(nonce).toByteArray()
+
+    val sourceAccount = Account(serverKP.accountId, -1L)
+    val op1DomainNameMandatory =
+      ManageDataOperation.Builder("$serverWebAuthDomain auth", encodedNonce)
+        .setSourceAccount(clientKP.accountId)
+        .build()
+    val op2WebAuthDomainMandatory =
+      ManageDataOperation.Builder("web_auth_domain", serverWebAuthDomain.toByteArray())
+        .setSourceAccount(serverKP.accountId)
+        .build()
+    val op3clientDomainOptional =
+      ManageDataOperation.Builder("client_domain", "lobstr.co".toByteArray())
+        .setSourceAccount(clientDomainKP.accountId)
+        .build()
+
+    val transaction =
+      TransactionBuilder(AccountConverter.enableMuxed(), sourceAccount, Network.TESTNET)
+        .addTimeBounds(TimeBounds.expiresAfter(900))
+        .setBaseFee(100)
+        .addOperation(op1DomainNameMandatory)
+        .addOperation(op2WebAuthDomainMandatory)
+        .addOperation(op3clientDomainOptional)
+        .build()
+
+    transaction.sign(serverKP)
+    transaction.sign(clientDomainKP)
+    transaction.sign(clientKP)
+
+    // 2 ------ Create Services
+    every { sep10Config.signingSeed } returns String(serverKP.secretSeed)
+    every { appConfig.horizonUrl } returns "https://horizon-testnet.stellar.org"
+    every { appConfig.stellarNetworkPassphrase } returns TEST_NETWORK_PASS_PHRASE
+    val horizon = Horizon(appConfig)
+    this.sep10Service = Sep10Service(appConfig, sep10Config, horizon, jwtService)
+
+    // 3 ------ Run tests
+    val validationRequest = ValidationRequest.of(transaction.toEnvelopeXdrBase64())
+    var validationResponse: ValidationResponse? = null
+    assertDoesNotThrow { validationResponse = sep10Service.validateChallenge(validationRequest) }
+    println(validationResponse)
+  }
+
   @ParameterizedTest
   @CsvSource(
     value = ["true,test.client.stellar.org", "false,test.client.stellar.org", "false,null"]
