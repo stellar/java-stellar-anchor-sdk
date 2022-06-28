@@ -1,8 +1,10 @@
 package org.stellar.anchor.sep10
 
+import com.google.common.io.BaseEncoding
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import java.io.IOException
+import java.security.SecureRandom
 import java.util.stream.Stream
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -25,6 +27,7 @@ import org.stellar.anchor.api.exception.SepValidationException
 import org.stellar.anchor.api.sep.sep10.ChallengeRequest
 import org.stellar.anchor.api.sep.sep10.ChallengeRequestTest
 import org.stellar.anchor.api.sep.sep10.ValidationRequest
+import org.stellar.anchor.api.sep.sep10.ValidationResponse
 import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.Sep10Config
 import org.stellar.anchor.horizon.Horizon
@@ -95,6 +98,81 @@ internal class Sep10ServiceTest {
   fun tearDown() {
     clearAllMocks()
     unmockkAll()
+  }
+
+  @Test
+  fun test_challengeWithExistentAccount_Multisig_andClientDomain() {
+    // 1 ------ Create Test Transaction
+
+    // serverKP does not exist in the network.
+    val serverWebAuthDomain = TEST_HOME_DOMAIN
+    val serverKP =
+      KeyPair.fromSecretSeed("SDAJYMEVFTAM54RJ7AYWLBMQTXXCSBQATS5M6QZKV6EEW6DPNCBNB6VF")
+
+    // clientDomainKP does not exist in the network. It refers to the wallet (like Lobstr's)
+    // account.
+    val clientDomainKP =
+      KeyPair.fromSecretSeed("SAW6P3PM2R5YP6UOSFORXHLJN7FANH6NXGE3C4LMMYP3XZPREMXLSS6F")
+
+    // The public key of the client that exists in the network. It has `threshold == 20`.
+    val clientAddress = "GATFRILGQI3LUZKAUZE34YNMSDRBHXHY6OXXG5C2RRPJP7CHLD2QN2ZJ"
+    // Signer (weight:10) of the client account. This is the master/original signer and it EXISTS in
+    // the network.
+    val clientSignerKP1 =
+      KeyPair.fromSecretSeed("SCBUBDVYYKQO4DFUBC7H64YKT2Z6RN2INBG64NRZOFHW46GUXJUEGZOX")
+    // Signer (weight:10) of the client account. It DOES NOT EXIST in the network.
+    val clientSignerKP2 =
+      KeyPair.fromSecretSeed("SCXOGCWQG4J3UDU6VSEK7HI4MOSXZR5D4RZCQG5JDHVYZP2WT27PTOJF")
+    // Signer (weight:1) of the client account. It EXISTS in the network but it's not being used.
+    // val clientSignerKP3 =
+    // KeyPair.fromSecretSeed("SB2XSJHU4LARXL2UDDVERJMYJFIS3YFBN2B3PELPYPIIPTFF6HK746B7")
+
+    val nonce = ByteArray(48)
+    val random = SecureRandom()
+    random.nextBytes(nonce)
+    val base64Encoding = BaseEncoding.base64()
+    val encodedNonce = base64Encoding.encode(nonce).toByteArray()
+
+    val sourceAccount = Account(serverKP.accountId, -1L)
+    val op1DomainNameMandatory =
+      ManageDataOperation.Builder("$serverWebAuthDomain auth", encodedNonce)
+        .setSourceAccount(clientAddress)
+        .build()
+    val op2WebAuthDomainMandatory =
+      ManageDataOperation.Builder("web_auth_domain", serverWebAuthDomain.toByteArray())
+        .setSourceAccount(serverKP.accountId)
+        .build()
+    val op3clientDomainOptional =
+      ManageDataOperation.Builder("client_domain", "lobstr.co".toByteArray())
+        .setSourceAccount(clientDomainKP.accountId)
+        .build()
+
+    val transaction =
+      TransactionBuilder(AccountConverter.enableMuxed(), sourceAccount, Network.TESTNET)
+        .addTimeBounds(TimeBounds.expiresAfter(900))
+        .setBaseFee(100)
+        .addOperation(op1DomainNameMandatory)
+        .addOperation(op2WebAuthDomainMandatory)
+        .addOperation(op3clientDomainOptional)
+        .build()
+
+    transaction.sign(serverKP)
+    transaction.sign(clientDomainKP)
+    transaction.sign(clientSignerKP1)
+    transaction.sign(clientSignerKP2)
+
+    // 2 ------ Create Services
+    every { sep10Config.signingSeed } returns String(serverKP.secretSeed)
+    every { appConfig.horizonUrl } returns "https://horizon-testnet.stellar.org"
+    every { appConfig.stellarNetworkPassphrase } returns TEST_NETWORK_PASS_PHRASE
+    val horizon = Horizon(appConfig)
+    this.sep10Service = Sep10Service(appConfig, sep10Config, horizon, jwtService)
+
+    // 3 ------ Run tests
+    val validationRequest = ValidationRequest.of(transaction.toEnvelopeXdrBase64())
+    var validationResponse: ValidationResponse? = null
+    assertDoesNotThrow { validationResponse = sep10Service.validateChallenge(validationRequest) }
+    println(validationResponse)
   }
 
   @ParameterizedTest
