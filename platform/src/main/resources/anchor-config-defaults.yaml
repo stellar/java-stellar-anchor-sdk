@@ -30,9 +30,9 @@ stellar:
     #
     data-access:
       type: data-spring-jdbc
-      settings: data-spring-jdbc-sqlite           # The absolute location of the configuration data in this yaml file
-      #settings: data-spring-jdbc-local-postgres    # use local postgres instance
-
+      settings: data-spring-jdbc-sqlite              # The absolute location of the configuration data in this yaml file
+      #settings: data-spring-jdbc-local-postgres      # use local postgres instance
+      #settings: data-spring-jdbc-aws-aurora-postgres  # use AWS Aurora Postgres with IAM authentication
     #
     # Sets how the generates the logging information
     #
@@ -215,7 +215,13 @@ app-config:
     # If useSingleQueue, all events are published to a single queue
     #   (specified in eventTypeToQueue.all)
     # eventTypeToQueue - a map of the event type to the queue name messages are published to
+    # useIAM - IAM authentication for AWS MSK
+    # NOTE: MSK - use port 9098 for access from within AWS and port 9198 for public access.
+    #             https://docs.aws.amazon.com/msk/latest/developerguide/port-info.html
+    # NOTE: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY and AWS_REGION environment variables need to be set
     bootstrapServer: localhost:29092
+    #bootstrapServer: b-1-public.democluster1.w7j4hi.c25.kafka.us-east-1.amazonaws.com:9198  # AWS MSK example
+    useIAM: false
     useSingleQueue: false
     eventTypeToQueue:
       all: ap_event_single_queue
@@ -258,14 +264,17 @@ data-spring-jdbc-sqlite:
   spring.mvc.converters.preferred-json-mapper: gson
   spring.liquibase.enabled: false    # certain features that liquibase uses (ex: addForeignKeyConstraint) are not supported by sqlite
 
+# settings for aurora postgres connection using IAM for authentication
+# NOTE: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY and AWS_REGION environment variables need to be set
 data-spring-jdbc-aws-aurora-postgres:
   spring.jpa.generate-ddl: true
   spring.jpa.database: POSTGRESQL
   spring.jpa.show-sql: false
   spring.datasource.driver-class-name: org.postgresql.Driver
-  spring.datasource.url: jdbc:postgresql://database-2-instance-1.chizvyczscs2.us-east-1.rds.amazonaws.com:5432/
-  spring.datasource.username: ${POSTGRES_USERNAME}
-  spring.datasource.password: ${POSTGRES_PASSWORD}
+  spring.datasource.type: org.stellar.anchor.platform.databaseintegration.IAMAuthDataSource
+  spring.datasource.url: jdbc:postgresql://database-aurora-iam-instance-1.chizvyczscs2.us-east-1.rds.amazonaws.com:5432/anchorplatform
+  spring.datasource.username: anchorplatform1
+  spring.datasource.hikari.max-lifetime: 840000    # 14 minutes because IAM tokens are valid for 15min
   spring.mvc.converters.preferred-json-mapper: gson
   spring.liquibase.change-log: classpath:/db/changelog/db.changelog-master.yaml
 

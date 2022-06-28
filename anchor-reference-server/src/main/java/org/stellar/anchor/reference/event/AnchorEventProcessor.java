@@ -23,17 +23,17 @@ public class AnchorEventProcessor {
   }
 
   public void handleQuoteEvent(QuoteEvent event) {
-    Log.debug(String.format("Received quote event: %s", event));
+    Log.debugF("Received quote event: {}", event);
     switch (event.getType()) {
       case "quote_created":
         break;
       default:
-        Log.debug("error: anchor_platform_event - invalid message type '%s'%n", event.getType());
+        Log.debugF("error: anchor_platform_event - invalid message type '{}'", event.getType());
     }
   }
 
   public void handleTransactionEvent(TransactionEvent event) {
-    Log.debug(String.format("Received transaction event: %s", event));
+    Log.debugF("Received transaction event: {}", event);
     switch (event.getType()) {
       case "transaction_created":
       case "transaction_error":
@@ -42,14 +42,14 @@ public class AnchorEventProcessor {
         handleTransactionStatusChangedEvent(event);
         break;
       default:
-        Log.debug("error: anchor_platform_event - invalid message type '%s'%n", event.getType());
+        Log.debugF("error: anchor_platform_event - invalid message type '{}'", event.getType());
     }
   }
 
   public void handleTransactionStatusChangedEvent(TransactionEvent event) {
     // NOTE: this code skips processing the received payment and just marks the
     // transaction as complete.
-    Log.debug("Updating transaction: %s on Anchor Platform to 'complete'", event.getId());
+    Log.debugF("Updating transaction: {} on Anchor Platform to 'complete'", event.getId());
     PatchTransactionsRequest txnRequest =
         PatchTransactionsRequest.builder()
             .records(

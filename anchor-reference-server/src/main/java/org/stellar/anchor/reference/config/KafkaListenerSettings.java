@@ -10,6 +10,7 @@ import org.springframework.context.annotation.Configuration;
 public class KafkaListenerSettings {
   String bootStrapServer;
   Boolean useSingleQueue;
+  Boolean useIAM = false;
   Queues eventTypeToQueue;
 
   @Data
@@ -19,5 +20,9 @@ public class KafkaListenerSettings {
     String transactionCreated;
     String transactionStatusChanged;
     String transactionError;
+  }
+
+  public boolean isUseIAM() {
+    return useIAM;
   }
 }
