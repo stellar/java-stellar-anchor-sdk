@@ -1,4 +1,4 @@
-package org.stellar.anchor.platform.databaseIntegration;
+package org.stellar.anchor.platform.databaseintegration;
 
 import com.amazonaws.auth.DefaultAWSCredentialsProviderChain;
 import com.amazonaws.regions.DefaultAwsRegionProviderChain;

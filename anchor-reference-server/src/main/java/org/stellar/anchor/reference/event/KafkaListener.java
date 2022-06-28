@@ -49,6 +49,12 @@ public class KafkaListener extends AbstractEventListener implements HealthChecka
     props.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
     props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
     props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
+    if (kafkaListenerSettings.isUseIAM()){
+      props.put("security.protocol", "SASL_SSL");
+      props.put("sasl.mechanism", "AWS_MSK_IAM");
+      props.put("sasl.jaas.config", "software.amazon.msk.auth.iam.IAMLoginModule required;");
+      props.put("sasl.client.callback.handler.class", "software.amazon.msk.auth.iam.IAMClientCallbackHandler");
+    }
 
     return new KafkaConsumer<>(props);
   }
