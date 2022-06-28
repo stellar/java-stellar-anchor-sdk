@@ -98,7 +98,11 @@ class AnchorPlatformIntegrationTest {
   @Test
   @Order(4)
   fun runSep24Test() {
-    sep24TestAll(toml, jwt)
+    println("Performing SEP24 tests...")
+    sep24Client = Sep24Client(toml.getString("TRANSFER_SERVER_SEP0024"), jwt)
+
+    testSep24TestInfo()
+    testSep24PostInteractive()
   }
 
   @Test
