@@ -3,7 +3,6 @@ namespace: sandbox
 service:
    containerPort: 8080
    servicePort: 8080
-   replicas: 1
    type: NodePort
    name: sep
 image:
@@ -12,6 +11,7 @@ image:
    tag: 022afab
    pullPolicy: Always
 deployment:
+   replicas: 1
    envFrom:
    - secretRef:
        name: sepsecrets
