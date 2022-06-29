@@ -51,7 +51,7 @@ internal class Sep31ServiceTest {
     val gson: Gson = GsonUtils.getInstance()
 
     private const val stellarUSDC =
-      "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+      "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
 
     private const val stellarJPYC =
       "stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
@@ -476,7 +476,7 @@ internal class Sep31ServiceTest {
     ex = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals(
-      "Quote sell asset [null] is different from the SEP-31 transaction asset [stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5]",
+      "Quote sell asset [null] is different from the SEP-31 transaction asset [stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP]",
       ex.message,
     )
 
@@ -486,7 +486,7 @@ internal class Sep31ServiceTest {
     ex = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals(
-      "Quote sell asset [stellar:USDC:zzz] is different from the SEP-31 transaction asset [stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5]",
+      "Quote sell asset [stellar:USDC:zzz] is different from the SEP-31 transaction asset [stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP]",
       ex.message,
     )
 
@@ -518,7 +518,7 @@ internal class Sep31ServiceTest {
     val postTxRequest = Sep31PostTransactionRequest()
     postTxRequest.amount = "100"
     postTxRequest.assetCode = "USDC"
-    postTxRequest.assetIssuer = "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+    postTxRequest.assetIssuer = "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
     postTxRequest.senderId = senderId
     postTxRequest.receiverId = receiverId
     postTxRequest.quoteId = "my_quote_id"
@@ -656,7 +656,7 @@ internal class Sep31ServiceTest {
     val postTxRequest = Sep31PostTransactionRequest()
     postTxRequest.amount = "100"
     postTxRequest.assetCode = "USDC"
-    postTxRequest.assetIssuer = "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+    postTxRequest.assetIssuer = "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
     postTxRequest.senderId = senderId
     postTxRequest.receiverId = receiverId
     postTxRequest.fields =
