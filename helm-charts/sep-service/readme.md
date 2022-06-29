@@ -42,7 +42,23 @@ stellar:
       spring.mvc.converters.preferred-json-mapper: gson
       spring.liquibase.change-log: classpath:/db/changelog/db.changelog-master.yaml
 ```
-## Basic Configuration
+
+# Secrets Configuration
+The following is an example kubernetes secrets manifest that will store base64 encoded secrets referenced using placeholders in the anchor platform configuration file.  In the following example, by replacing configuration values with ${JWT_SECRET} and ${SEP10_SIGNING_SEED} anchor platform will read those values from environment variables injected by the kubernetes deployment.
+
+```
+apiVersion: v1
+data:
+  JWT_SECRET: c2VjcmV0
+  SEP10_SIGNING_SEED: U0FYM0FINjIyUjJYVDZEWFdXU1JJRENNTVVDQ01BVEJaNVU2WEtKV0RPN00yRUpVQkZDM0FXNVg=
+kind: Secret
+metadata:
+  name: apsigningseed
+  namespace: sandbox
+type: Opaque
+```
+
+## Helm Chart Kubernetes Configuration
 The following table lists the configurable parameters of the Anchor Platform chart and their default values.  These are also reflected in the example [values.yaml](./values.yaml).
 |  Parameter | Description | Required?  | Default Value | 
 |---|---|---|---|
@@ -64,7 +80,7 @@ The following table lists the configurable parameters of the Anchor Platform cha
 | ingress.tls.secretName  | k8 secret holding tls certificate if reqd  | no  | n/a  |
 | ingress.rules  | ingress backend rulues (list)  |   |   |
 
-## Stellar Anchor Platform Configuration
+## Helm Chart Stellar Anchor Platform Configuration
 The following table lists the additional configurable parameters of the Anchor Platform chart and their default values.
 |  Parameter | Description | Required?  | Default Value | 
 |---|---|---|---|
