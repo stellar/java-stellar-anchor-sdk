@@ -6,7 +6,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.*;
-import java.util.stream.Collectors;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.exception.SepValidationException;
 import org.stellar.anchor.api.sep.sep10.ChallengeRequest;
@@ -250,11 +249,20 @@ public class Sep10Service {
     }
 
     // Find the signers of the client account.
-    Set<Sep10Challenge.Signer> signers =
-        Arrays.stream(account.getSigners())
-            .filter(as -> as.getType().equals("ed25519_public_key"))
-            .map(as -> new Sep10Challenge.Signer(as.getKey(), as.getWeight()))
-            .collect(Collectors.toSet());
+    // TODO: remove this workaround after java-stellar-sdk is fixed.
+    Set<Sep10Challenge.Signer> signers = new HashSet<>();
+    for (AccountResponse.Signer as : account.getSigners()) {
+      if (!as.getType().equals("ed25519_public_key")) {
+        continue;
+      }
+      try {
+        KeyPair.fromAccountId(as.getKey());
+      } catch (RuntimeException ex) {
+        continue;
+      }
+
+      signers.add(new Sep10Challenge.Signer(as.getKey(), as.getWeight()));
+    }
 
     // the signatures must be greater than the medium threshold of the account.
     int threshold = account.getThresholds().getMedThreshold();
