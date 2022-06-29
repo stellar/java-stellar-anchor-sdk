@@ -18,12 +18,14 @@ import org.stellar.anchor.api.exception.SepNotFoundException;
 import org.stellar.anchor.api.exception.SepValidationException;
 import org.stellar.anchor.api.sep.SepExceptionResponse;
 import org.stellar.anchor.api.sep.sep24.*;
+import org.stellar.anchor.platform.condition.ConditionalOnAllSepsEnabled;
 import org.stellar.anchor.sep10.JwtToken;
 import org.stellar.anchor.sep24.Sep24Service;
 
 @RestController
 @CrossOrigin(origins = "*")
 @RequestMapping("/sep24")
+@ConditionalOnAllSepsEnabled(seps = {"sep24"})
 public class Sep24Controller {
   private final Sep24Service sep24Service;
 
@@ -126,7 +128,8 @@ public class Sep24Controller {
       @RequestParam(required = false, value = "kind") String kind,
       @RequestParam(required = false, value = "limit") Integer limit,
       @RequestParam(required = false, value = "paging_id") String pagingId,
-      @RequestParam(required = false, value = "no_older_than") String noOlderThan)
+      @RequestParam(required = false, value = "no_older_than") String noOlderThan,
+      @RequestParam(required = false, value = "lang") String lang)
       throws MalformedURLException, URISyntaxException, SepException {
     debugF(
         "/transactions asset_code={} kind={} limit={} no_older_than={} paging_id={}",
@@ -136,7 +139,7 @@ public class Sep24Controller {
         noOlderThan,
         pagingId);
     GetTransactionsRequest gtr =
-        GetTransactionsRequest.of(assetCode, kind, limit, noOlderThan, pagingId);
+        GetTransactionsRequest.of(assetCode, kind, limit, noOlderThan, pagingId, lang);
     return getTransactions(request, gtr);
   }
 
@@ -164,7 +167,8 @@ public class Sep24Controller {
       @RequestParam(required = false, value = "id") String id,
       @RequestParam(required = false, value = "external_transaction_id")
           String externalTransactionId,
-      @RequestParam(required = false, value = "stellar_transaction_id") String stellarTransactionId)
+      @RequestParam(required = false, value = "stellar_transaction_id") String stellarTransactionId,
+      @RequestParam(required = false, value = "lang") String lang)
       throws SepException, IOException, URISyntaxException {
     debugF(
         "/transaction id={} external_transaction_id={} stellar_transaction_id={}",
@@ -172,7 +176,7 @@ public class Sep24Controller {
         externalTransactionId,
         stellarTransactionId);
     GetTransactionRequest tr =
-        new GetTransactionRequest(id, stellarTransactionId, externalTransactionId);
+        new GetTransactionRequest(id, stellarTransactionId, externalTransactionId, lang);
     return getTransaction(request, tr);
   }
 

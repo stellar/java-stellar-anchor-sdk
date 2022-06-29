@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.stellar.anchor.TestHelper.Companion.createJwtToken
 import org.stellar.anchor.api.callback.GetRateRequest
 import org.stellar.anchor.api.callback.GetRateRequest.Type.*
 import org.stellar.anchor.api.callback.GetRateResponse
@@ -25,7 +26,6 @@ import org.stellar.anchor.config.Sep38Config
 import org.stellar.anchor.event.EventPublishService
 import org.stellar.anchor.event.models.QuoteEvent
 import org.stellar.anchor.event.models.StellarId
-import org.stellar.anchor.sep10.JwtToken
 
 class Sep38ServiceTest {
   internal class PropertySep38Config : Sep38Config {
@@ -41,7 +41,7 @@ class Sep38ServiceTest {
   companion object {
     private const val PUBLIC_KEY = "GBJDSMTMG4YBP27ZILV665XBISBBNRP62YB7WZA2IQX2HIPK7ABLF4C2"
     private const val stellarUSDC =
-      "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+      "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
     private const val fiatUSD = "iso4217:USD"
     private const val stellarJPYC =
       "stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
@@ -107,6 +107,7 @@ class Sep38ServiceTest {
     assertNull(stellarJPYC.sellDeliveryMethods)
     assertNull(stellarJPYC.buyDeliveryMethods)
     wantAssets = listOf(fiatUSD, stellarUSDC)
+    println(stellarJPYC.exchangeableAssetNames)
     assertTrue(stellarJPYC.exchangeableAssetNames.containsAll(wantAssets))
     assertTrue(wantAssets.containsAll(stellarJPYC.exchangeableAssetNames))
 
@@ -1496,17 +1497,5 @@ class Sep38ServiceTest {
         .fee(mockFee)
         .build()
     assertEquals(wantQuoteResponse, gotQuoteResponse)
-  }
-
-  private fun createJwtToken(publicKey: String = PUBLIC_KEY): JwtToken {
-    val issuedAt: Long = System.currentTimeMillis() / 1000L
-    return JwtToken.of(
-      appConfig.hostUrl + "/auth",
-      publicKey,
-      issuedAt,
-      issuedAt + 60,
-      "",
-      "vibrant.stellar.org"
-    )
   }
 }

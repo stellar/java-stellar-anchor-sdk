@@ -10,7 +10,6 @@ stellar:
     # `in-memory` is the only `config` value supported in MVP.
     #
     config: in-memory
-
     #
     # Sets how the application configuration values are read.
     #
@@ -31,9 +30,9 @@ stellar:
     #
     data-access:
       type: data-spring-jdbc
-      settings: data-spring-jdbc-sqlite           # The absolute location of the configuration data in this yaml file
-      #settings: data-spring-jdbc-local-postgres    # use local postgres instance
-
+      settings: data-spring-jdbc-sqlite              # The absolute location of the configuration data in this yaml file
+      #settings: data-spring-jdbc-local-postgres      # use local postgres instance
+      #settings: data-spring-jdbc-aws-aurora-postgres  # use AWS Aurora Postgres with IAM authentication
     #
     # Sets how the generates the logging information
     #
@@ -45,9 +44,9 @@ stellar:
       type: logging-logback
       settings: logging-logback-settings          # The absolute location of the configuration data in this yaml file
 
-# ************************************
-# Application settings
-# ************************************
+#
+# Platform application configuration
+#
 app-config:
   # shared / general application configurations
   app:
@@ -76,7 +75,7 @@ app-config:
 
     # The secret key of JWT encryption
     # TODO: Move the secret to a separate secret management module.
-    jwtSecretKey: secret
+    jwtSecretKey: ${JWT_SECRET}
 
   # sep-1
   sep1:
@@ -123,7 +122,11 @@ app-config:
     # The private key of the SEP-10 challenge.
     # We highly recommend that this private key should not be used to sign any transactions to submit to the Stellar
     # network.
-    signingSeed: SAX3AH622R2XT6DXWWSRIDCMMUCCMATBZ5U6XKJWDO7M2EJUBFC3AW5X
+    signingSeed: ${SEP10_SIGNING_SEED}
+
+    # The list of omnibus account.
+    # The detail of the SEP-10 omnibus account is described at: https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#memos
+    omnibusAccountList:
 
   # sep-12
   sep12:
@@ -175,7 +178,7 @@ app-config:
 
   circle:
     circleUrl: https://api-sandbox.circle.com
-    apiKey: QVBJX0tFWTpjOWRjOWU3YjgzNTFhZDIwNWNlODEzYjkyZDEzZTU1YzpkY2U1MzVhMTExYjNjODU1YzQzNjMyZTQ5NWJhNDdlZg== # circle API key
+    apiKey: ${CIRCLE_API_KEY} # circle API key
 
   payment-gateway:
     #
@@ -192,7 +195,7 @@ app-config:
       enabled: false
       name: "stellar"
       horizonUrl: https://horizon-testnet.stellar.org
-      secretKey: secret # stellar account secret key
+      secretKey: ${PAYMENT_GATEWAY_STELLAR_SECRET_KEY} # stellar account secret key
 
   circle-payment-observer:
     enabled: true
@@ -212,7 +215,13 @@ app-config:
     # If useSingleQueue, all events are published to a single queue
     #   (specified in eventTypeToQueue.all)
     # eventTypeToQueue - a map of the event type to the queue name messages are published to
+    # useIAM - IAM authentication for AWS MSK
+    # NOTE: MSK - use port 9098 for access from within AWS and port 9198 for public access.
+    #             https://docs.aws.amazon.com/msk/latest/developerguide/port-info.html
+    # NOTE: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY and AWS_REGION environment variables need to be set
     bootstrapServer: localhost:29092
+    #bootstrapServer: b-1-public.democluster1.w7j4hi.c25.kafka.us-east-1.amazonaws.com:9198  # AWS MSK example
+    useIAM: false
     useSingleQueue: false
     eventTypeToQueue:
       all: ap_event_single_queue
@@ -235,8 +244,8 @@ app-config:
       transaction_created: sdf_dev_ap_event_transaction_created.fifo
       transaction_status_changed: sdf_dev_ap_event_transaction_status_changed.fifo
       transaction_error: sdf_dev_ap_event_transaction_error.fifo
-    accessKey: <ACCESS_KEY>
-    secretKey: <SECRET_KEY>
+    accessKey: ${SQS_PUBLISHER_ACCESS_KEY}
+    secretKey: ${SQS_PUBLISHER_SECRET_KEY}
 
 #
 # Spring Data JDBC settings
@@ -250,19 +259,22 @@ data-spring-jdbc-sqlite:
   spring.datasource.driver-class-name: org.sqlite.JDBC
   spring.datasource.max-active: 1 # For SQLite, set this to 1 to avoid database file lock exception.
   spring.datasource.initial-size: 1 # For SQLite, set this to 1 to avoid database file lock exception.
-  spring.datasource.username: admin
-  spring.datasource.password: admin
+  spring.datasource.username: ${SQLITE_USERNAME}
+  spring.datasource.password: ${SQLITE_PASSWORD}
   spring.mvc.converters.preferred-json-mapper: gson
   spring.liquibase.enabled: false    # certain features that liquibase uses (ex: addForeignKeyConstraint) are not supported by sqlite
 
+# settings for aurora postgres connection using IAM for authentication
+# NOTE: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY and AWS_REGION environment variables need to be set
 data-spring-jdbc-aws-aurora-postgres:
   spring.jpa.generate-ddl: true
   spring.jpa.database: POSTGRESQL
   spring.jpa.show-sql: false
   spring.datasource.driver-class-name: org.postgresql.Driver
-  spring.datasource.url: jdbc:postgresql://database-2-instance-1.chizvyczscs2.us-east-1.rds.amazonaws.com:5432/
-  spring.datasource.username: postgres
-  spring.datasource.password: <PASSWORD>
+  spring.datasource.type: org.stellar.anchor.platform.databaseintegration.IAMAuthDataSource
+  spring.datasource.url: jdbc:postgresql://database-aurora-iam-instance-1.chizvyczscs2.us-east-1.rds.amazonaws.com:5432/anchorplatform
+  spring.datasource.username: anchorplatform1
+  spring.datasource.hikari.max-lifetime: 840000    # 14 minutes because IAM tokens are valid for 15min
   spring.mvc.converters.preferred-json-mapper: gson
   spring.liquibase.change-log: classpath:/db/changelog/db.changelog-master.yaml
 
@@ -272,8 +284,8 @@ data-spring-jdbc-local-postgres:
   spring.jpa.show-sql: false
   spring.datasource.driver-class-name: org.postgresql.Driver
   spring.datasource.url: jdbc:postgresql://localhost:5432/anchorplatform
-  spring.datasource.username: anchorplatform
-  spring.datasource.password: <PASSWORD>
+  spring.datasource.username: ${POSTGRES_USERNAME}
+  spring.datasource.password: ${POSTGRES_PASSWORD}
   spring.mvc.converters.preferred-json-mapper: gson
   spring.liquibase.change-log: classpath:/db/changelog/db.changelog-master.yaml
 

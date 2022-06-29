@@ -14,4 +14,6 @@ public class GetTransactionRequest {
 
   @SerializedName("external_transaction_id")
   String externalTransactionId;
+
+  String lang;
 }

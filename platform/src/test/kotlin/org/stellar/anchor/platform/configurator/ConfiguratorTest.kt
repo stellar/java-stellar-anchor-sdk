@@ -3,10 +3,15 @@ package org.stellar.anchor.platform.configurator
 import io.mockk.every
 import io.mockk.spyk
 import io.mockk.unmockkAll
+import io.mockk.verify
 import java.io.File
+import java.io.IOException
+import kotlin.test.assertEquals
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions.assertInstanceOf
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertDoesNotThrow
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
@@ -35,16 +40,35 @@ open class ConfiguratorTest {
   fun testReadFromUserFolder() {
     val applicationContext = AnnotationConfigApplicationContext()
     val propertiesReader = spyk<PropertiesReader>(recordPrivateCalls = true)
+
     every { propertiesReader.getFromUserFolder() } returns
       ResourceUtils.getFile("classpath:test-read.yaml")
-
-    propertiesReader.initialize(applicationContext)
+    assertDoesNotThrow { propertiesReader.initialize(applicationContext) }
+    verify(exactly = 1) { propertiesReader.getFromUserFolder() }
     loadConfigurations(applicationContext)
 
     every { propertiesReader.getFromUserFolder() } returns File("bad file")
-    assertThrows<java.lang.IllegalArgumentException> {
-      propertiesReader.initialize(applicationContext)
-    }
+    assertDoesNotThrow { propertiesReader.initialize(applicationContext) }
+    verify(exactly = 2) { propertiesReader.getFromUserFolder() }
+    loadConfigurations(applicationContext)
+  }
+
+  @Test
+  fun testGetFromSystemEnv() {
+    val applicationContext = AnnotationConfigApplicationContext()
+    val propertiesReader = spyk<PropertiesReader>(recordPrivateCalls = true)
+
+    every { propertiesReader.fromUserFolder } returns File("not exist")
+    every { propertiesReader.getFromSystemEnv() } returns "classpath:test-read.yaml"
+    assertDoesNotThrow { propertiesReader.initialize(applicationContext) }
+    verify(exactly = 1) { propertiesReader.getFromSystemEnv() }
+    loadConfigurations(applicationContext)
+
+    every { propertiesReader.getFromSystemEnv() } returns "bad file path"
+    val ex = assertThrows<IOException> { propertiesReader.initialize(applicationContext) }
+    assertInstanceOf(IOException::class.java, ex)
+    assertEquals("Resource not found", ex.message)
+    verify(exactly = 2) { propertiesReader.getFromSystemEnv() }
   }
 
   @Test
@@ -55,7 +79,7 @@ open class ConfiguratorTest {
     )
   }
 
-  fun loadConfigurations(context: ConfigurableApplicationContext) {
+  private fun loadConfigurations(context: ConfigurableApplicationContext) {
     PlatformAppConfigurator().initialize(context)
     DataAccessConfigurator().initialize(context)
     SpringFrameworkConfigurator().initialize(context)

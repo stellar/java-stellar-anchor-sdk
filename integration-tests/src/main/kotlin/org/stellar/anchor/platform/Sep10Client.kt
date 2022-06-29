@@ -14,13 +14,20 @@ class Sep10Client(
   private val endpoint: String,
   private val serverAccount: String,
   private val walletAccount: String,
-  private val walletSigningSeed: String
+  private val signingKeys: Array<String>
 ) : SepClient() {
+  constructor(
+    endpoint: String,
+    serverAccount: String,
+    walletAccount: String,
+    signingSeed: String
+  ) : this(endpoint, serverAccount, walletAccount, arrayOf(signingSeed))
+
   fun auth(): String {
     // Call to get challenge
     val challenge = challenge()
     // Sign challenge
-    val txn = sign(challenge, walletSigningSeed, serverAccount)
+    val txn = sign(challenge, signingKeys, serverAccount)
     // Get token from challenge
     return validate(ValidationRequest.of(txn))!!.token
   }
@@ -33,7 +40,7 @@ class Sep10Client(
 
   private fun sign(
     challengeResponse: ChallengeResponse,
-    signingSeed: String,
+    signingKeys: Array<String>,
     serverAccount: String
   ): String {
     val url = URL(endpoint)
@@ -46,7 +53,9 @@ class Sep10Client(
         webAuthDomain, // TODO: home domain may be different than WEB_AUTH_DOMAIN
         webAuthDomain
       )
-    challengeTransaction.transaction.sign(KeyPair.fromSecretSeed(signingSeed))
+    for (signingKey in signingKeys) {
+      challengeTransaction.transaction.sign(KeyPair.fromSecretSeed(signingKey))
+    }
     return challengeTransaction.transaction.toEnvelopeXdrBase64()
   }
 

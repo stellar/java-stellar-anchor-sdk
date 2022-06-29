@@ -118,6 +118,7 @@ internal class Sep10ServiceTest {
         "test.stellar.org",
         any(),
         any(),
+        any(),
         any()
       )
     }
@@ -126,6 +127,7 @@ internal class Sep10ServiceTest {
   private fun createTestChallenge(clientDomain: String, signWithClientDomain: Boolean): String {
     val now = System.currentTimeMillis() / 1000L
     val signer = KeyPair.fromSecretSeed(TEST_SIGNING_SEED)
+    val memo = MemoId(TEST_MEMO.toLong())
     val txn =
       Sep10Challenge.newChallenge(
         signer,
@@ -135,7 +137,8 @@ internal class Sep10ServiceTest {
         TEST_HOME_DOMAIN,
         TimeBounds(now, now + 900),
         clientDomain,
-        if (clientDomain.isEmpty()) "" else clientDomainKeyPair.accountId
+        if (clientDomain.isEmpty()) "" else clientDomainKeyPair.accountId,
+        memo
       )
     txn.sign(clientKeyPair)
     if (clientDomain.isNotEmpty() && signWithClientDomain) {
@@ -151,15 +154,15 @@ internal class Sep10ServiceTest {
 
     val accountResponse = spyk(AccountResponse(clientKeyPair.accountId, 1))
     val signers =
-      Array<AccountResponse.Signer>(1) {
-        TestSigner(clientKeyPair.accountId, "ed25519_public_key", 1, "").toSigner()
-      }
+      arrayOf(TestSigner(clientKeyPair.accountId, "ed25519_public_key", 1, "").toSigner())
 
     every { accountResponse.signers } returns signers
     every { accountResponse.thresholds.medThreshold } returns 1
     every { horizon.server.accounts().account(ofType(String::class)) } returns accountResponse
 
-    sep10Service.validateChallenge(vr)
+    val response = sep10Service.validateChallenge(vr)
+    val jwt = jwtService.decode(response.token)
+    assertEquals("${clientKeyPair.accountId}:$TEST_MEMO", jwt.sub)
   }
 
   @Test
@@ -311,7 +314,7 @@ internal class Sep10ServiceTest {
     val cr = ChallengeRequest.of(TEST_ACCOUNT, TEST_MEMO, TEST_HOME_DOMAIN, TEST_CLIENT_DOMAIN)
 
     every {
-      Sep10Challenge.newChallenge(any(), any(), any(), any(), any(), any(), any(), any())
+      Sep10Challenge.newChallenge(any(), any(), any(), any(), any(), any(), any(), any(), any())
     } answers { throw InvalidSep10ChallengeException("mock exception") }
 
     assertThrows<SepException> { sep10Service.createChallenge(cr) }

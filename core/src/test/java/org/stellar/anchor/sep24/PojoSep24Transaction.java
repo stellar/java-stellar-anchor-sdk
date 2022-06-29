@@ -17,14 +17,15 @@ public class PojoSep24Transaction implements Sep24Transaction {
   Long completedAt;
   String assetCode;
   String assetIssuer;
-  String stellarAccount;
-  String receivingAnchorAccount;
+  String sep10Account;
+  String sep10AccountMemo;
+  String withdrawAnchorAccount;
   String fromAccount;
   String toAccount;
   String memoType;
   String memo;
   String protocol;
-  String domainClient;
+  String clientDomain;
   Boolean claimableBalanceSupported;
   String amountIn;
   String amountOut;
@@ -32,7 +33,6 @@ public class PojoSep24Transaction implements Sep24Transaction {
   String amountInAsset;
   String amountOutAsset;
   String amountFeeAsset;
-  String accountMemo;
   String muxedAccount;
   private List<PojoSep24RefundPayment> refundPayments;
 

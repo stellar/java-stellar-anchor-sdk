@@ -13,12 +13,6 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import org.stellar.anchor.config.EventConfig;
-import org.stellar.anchor.config.KafkaConfig;
-import org.stellar.anchor.config.SqsConfig;
-import org.stellar.anchor.event.EventPublishService;
-import org.stellar.anchor.event.KafkaEventService;
-import org.stellar.anchor.event.SqsEventService;
 import org.stellar.anchor.platform.configurator.DataAccessConfigurator;
 import org.stellar.anchor.platform.configurator.PlatformAppConfigurator;
 import org.stellar.anchor.platform.configurator.PropertiesReader;
@@ -31,10 +25,6 @@ import org.stellar.anchor.util.GsonUtils;
 @EnableConfigurationProperties
 public class AnchorPlatformServer implements WebMvcConfigurer {
 
-  public static void main(String[] args) {
-    start(8080, "/");
-  }
-
   public static ConfigurableApplicationContext start(
       int port, String contextPath, Map<String, Object> environment) {
     SpringApplicationBuilder builder =
@@ -42,6 +32,8 @@ public class AnchorPlatformServer implements WebMvcConfigurer {
             .bannerMode(OFF)
             .properties(
                 "spring.mvc.converters.preferred-json-mapper=gson",
+                // this allows a developer to use a .env file for local development
+                "spring.config.import=optional:classpath:example.env[.properties]",
                 String.format("server.port=%d", port),
                 String.format("server.contextPath=%s", contextPath));
     if (environment != null) {
@@ -69,20 +61,5 @@ public class AnchorPlatformServer implements WebMvcConfigurer {
 
   public static void start(int port, String contextPath) {
     start(port, contextPath, null);
-  }
-
-  @Bean
-  public EventPublishService eventService(
-      EventConfig eventConfig, KafkaConfig kafkaConfig, SqsConfig sqsConfig) {
-    // TODO handle when event publishing is disabled
-    switch (eventConfig.getPublisherType()) {
-      case "kafka":
-        return new KafkaEventService(kafkaConfig);
-      case "sqs":
-        return new SqsEventService(sqsConfig);
-      default:
-        throw new RuntimeException(
-            String.format("Invalid event publisher: %s", eventConfig.getPublisherType()));
-    }
   }
 }

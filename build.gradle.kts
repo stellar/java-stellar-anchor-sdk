@@ -3,6 +3,25 @@ plugins {
   id("com.diffplug.spotless") version "6.2.1"
 }
 
+tasks {
+  register<Copy>("installLocalGitHook") {
+    from("scripts/pre-commit.sh") {
+      rename { it.removeSuffix(".sh") }
+    }
+    into(".git/hooks")
+
+    doLast {
+      project.exec {
+        commandLine("chmod",  "+x", ".git/hooks/pre-commit")
+      }
+    }
+  }
+
+  "build" {
+    dependsOn("installLocalGitHook")
+  }
+}
+
 subprojects {
   apply(plugin = "java")
   apply(plugin = "com.diffplug.spotless")
@@ -11,6 +30,7 @@ subprojects {
   version = "0.1.1"
 
   repositories {
+    mavenLocal()
     mavenCentral()
     maven { url = uri("https://jitpack.io") }
     maven { url = uri("https://packages.confluent.io/maven") }
@@ -48,7 +68,8 @@ subprojects {
   }
 
   dependencies {
-    // This is to fix the missing implementation in JSR305 that causes "unknown enum constant When.MAYBE" warning.
+    // This is to fix the missing implementation in JSR305 that causes "unknown enum constant
+    // When.MAYBE" warning.
     implementation("com.google.code.findbugs:jsr305:3.0.2")
     implementation("com.amazonaws:aws-java-sdk-sqs:1.12.200")
     implementation("org.apache.kafka:kafka-clients:3.1.0")
@@ -58,7 +79,6 @@ subprojects {
     implementation("org.springframework.cloud:spring-cloud-aws-messaging:2.2.6.RELEASE")
     implementation("org.postgresql:postgresql:42.3.5")
     implementation("org.liquibase:liquibase-core:4.10.0")
-
 
     // The common dependencies are declared here because we would like to have a uniform unit
     // testing across all subprojects.
@@ -77,6 +97,16 @@ subprojects {
 
     testAnnotationProcessor("org.projectlombok:lombok:1.18.22")
   }
+
+  /**
+   * This is to fix the Windows default cp-1252 character encoding that may potentially cause
+   * compilation error
+   */
+  tasks.compileJava { options.encoding = "UTF-8" }
+
+  tasks.compileTestJava { options.encoding = "UTF-8" }
+
+  tasks.javadoc { options.encoding = "UTF-8" }
 
   /** JUnit5 should be used for all subprojects. */
   tasks.test { useJUnitPlatform() }

@@ -1,7 +1,6 @@
 package org.stellar.anchor.platform
 
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.*
 import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest
 import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionRequest
 import org.stellar.anchor.reference.client.PlatformApiClient
@@ -14,6 +13,7 @@ fun platformTestAll(toml: Sep1Helper.TomlContent, jwt: String) {
   println("Performing Platform API tests...")
   sep12Client = Sep12Client(toml.getString("KYC_SERVER"), jwt)
   sep31Client = Sep31Client(toml.getString("DIRECT_PAYMENT_SERVER"), jwt)
+  sep38 = Sep38Client(toml.getString("ANCHOR_QUOTE_SERVER"), jwt)
   platformApiClient = PlatformApiClient("http://localhost:8080")
 
   testHappyPath()
@@ -21,27 +21,40 @@ fun platformTestAll(toml: Sep1Helper.TomlContent, jwt: String) {
 }
 
 fun testHappyPath() {
-  // Create customer
-  val customer =
-    GsonUtils.getInstance().fromJson(testCustomerJson, Sep12PutCustomerRequest::class.java)
-  val pr = sep12Client.putCustomer(customer)
+  // Create sender customer
+  val senderCustomerRequest =
+    GsonUtils.getInstance().fromJson(testCustomer1Json, Sep12PutCustomerRequest::class.java)
+  val senderCustomer = sep12Client.putCustomer(senderCustomerRequest, TYPE_MULTIPART_FORM_DATA)
+
+  // Create receiver customer
+  val receiverCustomerRequest =
+    GsonUtils.getInstance().fromJson(testCustomer2Json, Sep12PutCustomerRequest::class.java)
+  val receiverCustomer = sep12Client.putCustomer(receiverCustomerRequest)
+  val quote = sep38.postQuote(
+    "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+    "10",
+    "stellar:JPYC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+  )
+
   // Post Sep31 transaction.
   val txnRequest = gson.fromJson(postTxnJson, Sep31PostTransactionRequest::class.java)
-  txnRequest.receiverId = pr!!.id
+  txnRequest.senderId = senderCustomer!!.id
+  txnRequest.receiverId = receiverCustomer!!.id
+  txnRequest.quoteId = quote.id
   val txnPosted = sep31Client.postTransaction(txnRequest)
 
   val txnQueried = platformApiClient.getTransaction(txnPosted.id)
   assertEquals(txnPosted.id, txnQueried.id)
   assertEquals(txnQueried.status, "pending_sender")
   assertEquals(txnRequest.amount, txnQueried.amountIn.amount)
-  assertEquals(txnRequest.assetCode, txnQueried.amountIn.asset)
+  assertTrue(txnQueried.amountIn.asset.contains(txnRequest.assetCode))
   assertEquals(31, txnQueried.sep)
 }
 
 fun testHealth() {
   val response = platformApiClient.health(listOf("all"))
   assertEquals(response["number_of_checks"], 1.0)
-  Assertions.assertNotNull(response["checks"])
+  assertNotNull(response["checks"])
   val checks = response["checks"] as Map<*, *>
   val spo = checks["stellar_payment_observer"] as Map<*, *>
   assertEquals(spo["status"], "green")

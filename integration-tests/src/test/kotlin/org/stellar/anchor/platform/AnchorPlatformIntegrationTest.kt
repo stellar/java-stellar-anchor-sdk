@@ -51,12 +51,13 @@ class AnchorPlatformIntegrationTest {
     private val rfi =
       RestFeeIntegration("http://localhost:$REFERENCE_SERVER_PORT", httpClient, gson)
     const val fiatUSD = "iso4217:USD"
-    const val stellarUSDC = "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+    const val stellarUSDC = "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
     private lateinit var platformServerContext: ConfigurableApplicationContext
     init {
       val props = System.getProperties()
       props.setProperty("REFERENCE_SERVER_CONFIG", "classpath:/anchor-reference-server.yaml")
     }
+
     @BeforeAll
     @JvmStatic
     fun setup() {
@@ -69,8 +70,6 @@ class AnchorPlatformIntegrationTest {
 
       AnchorReferenceServer.start(REFERENCE_SERVER_PORT, "/")
     }
-
-    @AfterAll fun tearDown() {}
   }
 
   private fun readSep1Toml(): Sep1Helper.TomlContent {
@@ -283,13 +282,14 @@ class AnchorPlatformIntegrationTest {
         "sep10.enabled" to "true",
         "sep10.homeDomain" to "localhost:8080",
         "sep10.signingSeed" to "SAX3AH622R2XT6DXWWSRIDCMMUCCMATBZ5U6XKJWDO7M2EJUBFC3AW5X",
+        "sep24.enabled" to "true",
+        "sep31.enabled" to "true",
         "sep38.enabled" to "true",
         "sep38.quoteIntegrationEndPoint" to "http://localhost:8081",
         "payment-gateway.circle.name" to "circle",
         "payment-gateway.circle.enabled" to "true",
         "spring.jpa.properties.hibernate.dialect" to "org.hibernate.dialect.H2Dialect",
-        "logging.level.root" to "INFO",
-        "server.servlet.context-path" to "/"
+        "logging.level.root" to "INFO"
       )
 
     tests.forEach { assertEquals(it.value, platformServerContext.environment[it.key]) }
@@ -310,7 +310,7 @@ class AnchorPlatformIntegrationTest {
   fun testSep1Config() {
     val sep1Config = platformServerContext.getBean(Sep1Config::class.java)
     assertEquals(true, sep1Config.isEnabled)
-    assertEquals("sep1/stellar-wks.toml", sep1Config.stellarFile)
+    assertEquals("classpath:/sep1/test-stellar.toml", sep1Config.stellarFile)
   }
 
   @Test

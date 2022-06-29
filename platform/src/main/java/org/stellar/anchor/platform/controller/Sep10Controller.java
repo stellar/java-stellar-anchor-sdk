@@ -15,10 +15,13 @@ import org.stellar.anchor.api.sep.sep10.ChallengeRequest;
 import org.stellar.anchor.api.sep.sep10.ChallengeResponse;
 import org.stellar.anchor.api.sep.sep10.ValidationRequest;
 import org.stellar.anchor.api.sep.sep10.ValidationResponse;
+import org.stellar.anchor.platform.condition.ConditionalOnAllSepsEnabled;
 import org.stellar.anchor.sep10.Sep10Service;
 import org.stellar.sdk.InvalidSep10ChallengeException;
 
 @RestController
+@CrossOrigin(origins = "*")
+@ConditionalOnAllSepsEnabled(seps = {"sep10"})
 public class Sep10Controller {
 
   private final Sep10Service sep10Service;
@@ -38,7 +41,7 @@ public class Sep10Controller {
       @RequestParam(required = false, name = "client_domain") String clientDomain)
       throws SepException {
     debugF(
-        "/auth account={} memo={} home_domain={}, client_domain={}",
+        "GET /auth account={} memo={} home_domain={}, client_domain={}",
         account,
         memo,
         homeDomain,
@@ -56,7 +59,7 @@ public class Sep10Controller {
   public ValidationResponse validateChallenge(@RequestParam String transaction)
       throws InvalidSep10ChallengeException, IOException, URISyntaxException,
           SepValidationException {
-    debug("/auth transaction={}", transaction);
+    debugF("POST /auth transaction={}", transaction);
     return validateChallenge(ValidationRequest.of(transaction));
   }
 
@@ -69,7 +72,7 @@ public class Sep10Controller {
       @RequestBody(required = false) ValidationRequest validationRequest)
       throws InvalidSep10ChallengeException, IOException, URISyntaxException,
           SepValidationException {
-    debug("/auth details:", validationRequest);
+    debug("POST /auth details:", validationRequest);
     return sep10Service.validateChallenge(validationRequest);
   }
 

@@ -27,6 +27,15 @@ public class KafkaEventService implements EventPublishService {
     props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaConfig.getBootstrapServer());
     props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
     props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+    if (kafkaConfig.isUseIAM()) {
+      props.put("security.protocol", "SASL_SSL");
+      props.put("sasl.mechanism", "AWS_MSK_IAM");
+      props.put("sasl.jaas.config", "software.amazon.msk.auth.iam.IAMLoginModule required;");
+      props.put(
+          "sasl.client.callback.handler.class",
+          "software.amazon.msk.auth.iam.IAMClientCallbackHandler");
+    }
+
     this.producer = new KafkaProducer<String, AnchorEvent>(props);
 
     this.eventTypeToQueue = kafkaConfig.getEventTypeToQueue();

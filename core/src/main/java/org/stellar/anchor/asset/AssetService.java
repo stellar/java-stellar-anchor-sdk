@@ -13,7 +13,16 @@ public interface AssetService {
   List<AssetInfo> listAllAssets();
 
   /**
+   * Get the asset identified by `code`.
+   *
+   * @param code The asset code
+   * @return an asset with the given code.
+   */
+  AssetInfo getAsset(String code);
+
+  /**
    * Get the asset identified by `code` and `issuer`.
+   * If `issuer` is null, match only on `code`.
    *
    * @param code The asset code
    * @param issuer The account ID of the issuer
