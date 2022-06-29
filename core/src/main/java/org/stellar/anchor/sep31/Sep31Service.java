@@ -19,6 +19,7 @@ import org.stellar.anchor.api.callback.FeeIntegration;
 import org.stellar.anchor.api.callback.GetFeeRequest;
 import org.stellar.anchor.api.exception.*;
 import org.stellar.anchor.api.sep.AssetInfo;
+import org.stellar.anchor.api.sep.AssetInfo.Sep12Operation;
 import org.stellar.anchor.api.sep.AssetInfo.Sep31TxnFieldSpecs;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerRequest;
@@ -427,7 +428,18 @@ public class Sep31Service {
       throw new BadRequestException("receiver_id cannot be empty.");
     }
 
-    Sep12GetCustomerRequest request = Sep12GetCustomerRequest.builder().id(receiverId).build();
+    // TODO: Populate customer type with the first receiver type; this is a temporary fix for cases
+    // where customerType is required
+    Sep12Operation sep12Operation = Context.get().getAsset().getSep31().getSep12();
+    String receiverType = null;
+    if (sep12Operation != null) {
+      Optional<String> receiverTypeOptional =
+          sep12Operation.getReceiver().getTypes().keySet().stream().findFirst();
+      receiverType =
+          receiverTypeOptional.isPresent() ? receiverTypeOptional.get() : null;
+    }
+    Sep12GetCustomerRequest request =
+        Sep12GetCustomerRequest.builder().id(receiverId).type(receiverType).build();
     Sep12GetCustomerResponse receiver = this.customerIntegration.getCustomer(request);
     if (receiver == null) {
       infoF("Customer (receiver) info needed for request ({})", Context.get().getRequest());
@@ -440,7 +452,17 @@ public class Sep31Service {
       throw new BadRequestException("sender_id cannot be empty.");
     }
 
-    request = Sep12GetCustomerRequest.builder().id(senderId).build();
+    // TODO: Populate customer type with the first sender type; this is a temporary fix for cases
+    // where customerType is required
+    String senderType = null;
+    if (sep12Operation != null) {
+      Optional<String> senderTypeOptional =
+          Context.get().getAsset().getSep31().getSep12().getSender().getTypes().keySet().stream()
+              .findFirst();
+      senderType =
+          senderTypeOptional.isPresent() ? senderTypeOptional.get() : null;
+    }
+    request = Sep12GetCustomerRequest.builder().id(senderId).type(senderType).build();
     Sep12GetCustomerResponse sender = this.customerIntegration.getCustomer(request);
     if (sender == null) {
       infoF("Customer (sender) info needed for request ({})", Context.get().getRequest());

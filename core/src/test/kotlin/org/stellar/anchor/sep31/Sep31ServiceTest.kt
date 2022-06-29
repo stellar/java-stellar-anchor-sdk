@@ -430,7 +430,7 @@ internal class Sep31ServiceTest {
     // missing sender_id
     val receiverId = "137938d4-43a7-4252-a452-842adcee474c"
     postTxRequest.receiverId = receiverId
-    var request = Sep12GetCustomerRequest.builder().id(receiverId).build()
+    var request = Sep12GetCustomerRequest.builder().id(receiverId).type("sep31-receiver").build()
     every { customerIntegration.getCustomer(request) } returns Sep12GetCustomerResponse()
     ex = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
     assertInstanceOf(BadRequestException::class.java, ex)
@@ -446,7 +446,7 @@ internal class Sep31ServiceTest {
     // not found quote_id
     val senderId = "d2bd1412-e2f6-4047-ad70-a1a2f133b25c"
     postTxRequest.senderId = senderId
-    request = Sep12GetCustomerRequest.builder().id(senderId).build()
+    request = Sep12GetCustomerRequest.builder().id(senderId).type("sep31-sender").build()
     every { customerIntegration.getCustomer(request) } returns Sep12GetCustomerResponse()
 
     postTxRequest.quoteId = "not-found-quote-id"
@@ -561,9 +561,9 @@ internal class Sep31ServiceTest {
     assertDoesNotThrow { gotResponse = sep31Service.postTransaction(jwtToken, postTxRequest) }
 
     // verify if the mocks were called
-    var request = Sep12GetCustomerRequest.builder().id(senderId).build()
+    var request = Sep12GetCustomerRequest.builder().id(senderId).type("sep31-sender").build()
     verify(exactly = 1) { customerIntegration.getCustomer(request) }
-    request = Sep12GetCustomerRequest.builder().id(receiverId).build()
+    request = Sep12GetCustomerRequest.builder().id(receiverId).type("sep31-receiver").build()
     verify(exactly = 1) { customerIntegration.getCustomer(request) }
     verify(exactly = 1) { quoteStore.findByQuoteId("my_quote_id") }
     verify(exactly = 1) { sep31DepositInfoGenerator.getSep31DepositInfo(any()) }
@@ -678,9 +678,9 @@ internal class Sep31ServiceTest {
     assertEquals("quotes_required is set to true; quote id cannot be empty", ex.message)
 
     // verify if the mocks were called
-    var request = Sep12GetCustomerRequest.builder().id(senderId).build()
+    var request = Sep12GetCustomerRequest.builder().id(senderId).type("sep31-sender").build()
     verify(exactly = 1) { customerIntegration.getCustomer(request) }
-    request = Sep12GetCustomerRequest.builder().id(receiverId).build()
+    request = Sep12GetCustomerRequest.builder().id(receiverId).type("sep31-receiver").build()
     verify(exactly = 1) { customerIntegration.getCustomer(request) }
   }
 
