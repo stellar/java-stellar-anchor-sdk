@@ -68,20 +68,24 @@ public class Sep12Service {
           String.format("Not authorized to delete account [%s]", account));
     }
 
-    Sep12GetCustomerResponse existingCustomer =
-        customerIntegration.getCustomer(
-            Sep12GetCustomerRequest.builder()
-                .account(account)
-                .memo(memo)
-                .memoType(memoType)
-                .build());
-    if (existingCustomer.getId() == null) {
-      infoF(
-          "No existing customer found for account={} memo={} memoType={}", account, memo, memoType);
-      throw new SepNotFoundException("User not found.");
-    }
+    String senderTypes[] = {"sep31-sender", "sep31-receiver"};
+    for (String senderType: senderTypes) {
+      Sep12GetCustomerResponse existingCustomer =
+          customerIntegration.getCustomer(
+              Sep12GetCustomerRequest.builder()
+                  .account(account)
+                  .memo(memo)
+                  .memoType(memoType)
+                  .type(senderType)
+                  .build());
+      if (existingCustomer.getId() == null) {
+        infoF(
+            "No existing customer found for account={} memo={} memoType={}", account, memo, memoType);
+        throw new SepNotFoundException("User not found.");
+      }
 
-    customerIntegration.deleteCustomer(existingCustomer.getId());
+      customerIntegration.deleteCustomer(existingCustomer.getId());
+    }
   }
 
   void validateGetOrPutRequest(
