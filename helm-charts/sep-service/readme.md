@@ -93,6 +93,10 @@ The following table lists the additional configurable parameters of the Anchor P
 | stellar.app_config.app.logLevel | TRACE,DEBUG,INFO,WARN,ERROR,FATAL | INFO |
 | stellar.anchor.data_access.type  | database access type  | yes  | data-spring-jdbc  |
 | stellar.anchor.data_access.setttings  | values config root-level key for jdbc config  | yes | data-spring-jdbc-sqlite  |
+| stellar.toml.documentation.ORG_NAME | organization name to configure stellar.toml | yes | My Organization |
+| stellar.toml.documentation.ORG_URL | your organization URL to configure stellar.toml | yes | https:/myorg.org |
+| stellar.toml.documentation.ORG_DESCRIPTION | your organization description to configure stellar.toml | yes | https://mylogo.png |
+| stellar.toml.documentation.ORG_SUPPORT_EMAIL | your organization support email address  to configure stellar.toml | yes | myname@myorg.org |
 | sep1.enabled | sep1 true if service enabled | yes  | true  |
 | sep10.enabled | sep1 true if service enabled | yes | true |
 | sep10.homeDomain |   |   |   |

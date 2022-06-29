@@ -40,6 +40,12 @@ ingress:
             servicePort: "{{ .Values.service.containerPort }}"
             serviceName: "{{ .Values.fullName }}-svc-{{ .Values.service.name }}"
 stellar:
+   toml:
+      documentation:
+         ORG_NAME: "My Organization"
+         ORG_URL: "https:/myorg.org"
+         ORG_DESCRIPTION: "https://myorglogo.png"
+         ORG_SUPPORT_EMAIL: "myname@myorg.org"
    anchor:
       data_access:
          type: data-spring-jdbc
