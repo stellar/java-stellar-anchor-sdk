@@ -6,7 +6,7 @@ To upgrade the Strimzi operator, you can use the helm upgrade command.
 ## Installing the Chart
 Add the Anchor Platform SEP Service Helm Chart repository:
 ```
-$ helm repo add stellar https:/stellar.org/charts/
+$ helm repo add stellar *stellar-helm-chart-repo* (this will be added once available)
 ```
 To install the chart with the release name my-release:
 ```
