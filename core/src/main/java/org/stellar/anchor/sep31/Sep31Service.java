@@ -433,10 +433,10 @@ public class Sep31Service {
     Sep12Operation sep12Operation = Context.get().getAsset().getSep31().getSep12();
     String receiverType = null;
     if (sep12Operation != null) {
-      java.util.Optional receiverTypeOptional =
+      Optional<String> receiverTypeOptional =
           sep12Operation.getReceiver().getTypes().keySet().stream().findFirst();
       receiverType =
-          receiverTypeOptional.isPresent() ? String.valueOf(receiverTypeOptional.get()) : null;
+          receiverTypeOptional.isPresent() ? receiverTypeOptional.get() : null;
     }
     Sep12GetCustomerRequest request =
         Sep12GetCustomerRequest.builder().id(receiverId).type(receiverType).build();
@@ -456,11 +456,11 @@ public class Sep31Service {
     // where customerType is required
     String senderType = null;
     if (sep12Operation != null) {
-      java.util.Optional senderTypeOptional =
+      Optional<String> senderTypeOptional =
           Context.get().getAsset().getSep31().getSep12().getSender().getTypes().keySet().stream()
               .findFirst();
       senderType =
-          senderTypeOptional.isPresent() ? String.valueOf(senderTypeOptional.get()) : null;
+          senderTypeOptional.isPresent() ? senderTypeOptional.get() : null;
     }
     request = Sep12GetCustomerRequest.builder().id(senderId).type(senderType).build();
     Sep12GetCustomerResponse sender = this.customerIntegration.getCustomer(request);
