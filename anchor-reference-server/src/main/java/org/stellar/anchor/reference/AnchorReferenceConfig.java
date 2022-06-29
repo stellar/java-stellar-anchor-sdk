@@ -48,7 +48,7 @@ public class AnchorReferenceConfig {
    * @return Spring Filter Registration Bean
    */
   @Bean
-  public FilterRegistrationBean<PlatformToAnchorTokenFilter> sep10TokenFilter(
+  public FilterRegistrationBean<PlatformToAnchorTokenFilter> platformToAnchorTokenFilter(
       @Autowired IntegrationAuthSettings integrationAuthSettings) {
     JwtService platformToAnchorJwtService =
         new JwtService(integrationAuthSettings.getPlatformToAnchorJwtSecret());
