@@ -4,7 +4,7 @@ metadata:
   name: {{ .Values.fullName }}-configmap-{{ .Values.service.name }}
   namespace: {{ .Values.namespace }}
 data:
-  # TODO: remove all secrets (ex: move to env vars, k8s secrets, vault, etc...)
+  # TODO: look at moving derived values to _comon.tpl to simplify chart rendering
   anchor-config.yaml: |
     stellar:
       anchor:
@@ -233,9 +233,9 @@ data:
     ORG_LOGO = {{ .Values.stellar.toml.documentation.ORG_LOGO | default "Your Organization Logo URL"}}
     ORG_SUPPORT_EMAIL = {{ .Values.stellar.toml.documentation.ORG_SUPPORT_EMAIL | default "Your Organization email address" }}
     {{- else }}
-    ORG_NAME = "Stellar Development Foundation"
-    ORG_URL = "https://www.stellar.org"
-    ORG_DESCRIPTION = "Stellar is an open network for storing and moving money."
-    ORG_LOGO = "https://assets-global.website-files.com/5deac75ecad2173c2ccccbc7/5dec8960504967fd31147f62_Stellar_lockup_black_RGB.svg"
-    ORG_SUPPORT_EMAIL="jamie@stellar.org"
+    ORG_NAME = "My Organization"
+    ORG_URL = "https://www.myorg.org"
+    ORG_DESCRIPTION = "Please Customize all DOCUMENTATION values for your organization"
+    ORG_LOGO = "https://myorglogo.png"
+    ORG_SUPPORT_EMAIL="myname@myemail.org"
     {{- end }}

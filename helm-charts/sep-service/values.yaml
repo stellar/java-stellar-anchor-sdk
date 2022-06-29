@@ -68,6 +68,8 @@ stellar:
       spring.mvc.converters.preferred-json-mapper: gson
    app_config:
       app:
+         logLevel: INFO
+         stellarNetwork: TESTNET
          hostUrl: https://reece.sandbox.kube001.services.stellar-ops.com
          backendUrl: https://anchor-ref-pr352.previews.kube001.services.stellar-ops.com/?
          jwtSecretKey: ${JWT_SECRET}

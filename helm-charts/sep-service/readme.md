@@ -2,7 +2,10 @@
 ## Introduction
 This chart installs the Stellar Anchor Platform SEP Serviceon Kubernetes cluster using the Helm package manager.
 ## Upgrading your Clusters
-To upgrade the Strimzi operator, you can use the helm upgrade command.
+To upgrade the Anchor Platform, you can use the helm upgrade command. example:
+```
+helm upgrade -f myvalues.yaml -f override.yaml --version 0.1.0 my-release stellar/anchorplatform
+```
 ## Installing the Chart
 Add the Anchor Platform SEP Service Helm Chart repository:
 ```
@@ -84,12 +87,13 @@ The following table lists the configurable parameters of the Anchor Platform cha
 The following table lists the additional configurable parameters of the Anchor Platform chart and their default values.
 |  Parameter | Description | Required?  | Default Value | 
 |---|---|---|---|
-| stellar.anchor.data_access.type  | database access type  | yes  | data-spring-jdbc  |
-| stellar.anchor.data_access.setttings  | values config root-level key for jdbc config  | yes | data-spring-jdbc-sqlite  |
 | stellar.app_config.app.hostUrl  | URL of the Anchor Platform SEP Service   | y  | n/a |
 | stellar.app_config.app.jwtSecretKey | web encryption key | ${JWT_SECRET_KEY} |
+| stellar.app_config.app.stellarNetwork | TESTNET OR PUBNET| TESTNET |
+| stellar.app_config.app.logLevel | TRACE,DEBUG,INFO,WARN,ERROR,FATAL | INFO |
+| stellar.anchor.data_access.type  | database access type  | yes  | data-spring-jdbc  |
+| stellar.anchor.data_access.setttings  | values config root-level key for jdbc config  | yes | data-spring-jdbc-sqlite  |
 | sep1.enabled | sep1 true if service enabled | yes  | true  |
-| sep1.stellarFile | location/name of stellar.toml file on service pod  | n | file:/config/stellar-wks.toml  |
 | sep10.enabled | sep1 true if service enabled | yes | true |
 | sep10.homeDomain |   |   |   |
 | sep10.signingSeed |   |   |   |
