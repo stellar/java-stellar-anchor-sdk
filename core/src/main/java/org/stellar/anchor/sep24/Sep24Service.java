@@ -294,7 +294,7 @@ public class Sep24Service {
     }
 
     infoF("findTransactions. account={}", shorter(token.getAccount()));
-    if (assetService.getAsset(txReq.getAssetCode(), null) == null) {
+    if (assetService.getAsset(txReq.getAssetCode()) == null) {
       infoF(
           "asset code:{} not supported",
           (txReq.getAssetCode() == null) ? "null" : txReq.getAssetCode());
