@@ -5,7 +5,10 @@ import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import java.io.IOException
 import java.security.SecureRandom
+import java.util.concurrent.TimeUnit
 import java.util.stream.Stream
+import okhttp3.OkHttpClient
+import okhttp3.Request
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation
@@ -70,6 +73,12 @@ internal class Sep10ServiceTest {
   private lateinit var sep10Service: Sep10Service
   private val clientKeyPair = KeyPair.random()
   private val clientDomainKeyPair = KeyPair.random()
+  private val httpClient: OkHttpClient =
+    OkHttpClient.Builder()
+      .connectTimeout(10, TimeUnit.MINUTES)
+      .readTimeout(10, TimeUnit.MINUTES)
+      .writeTimeout(10, TimeUnit.MINUTES)
+      .build()
 
   @BeforeEach
   fun setUp() {
@@ -101,31 +110,21 @@ internal class Sep10ServiceTest {
   }
 
   @Test
-  fun test_challengeWithExistentAccount_Multisig_andClientDomain() {
+  fun test_challengeWithExistentAccount_multisig_andClientDomain() {
     // 1 ------ Create Test Transaction
 
     // serverKP does not exist in the network.
     val serverWebAuthDomain = TEST_HOME_DOMAIN
-    val serverKP =
-      KeyPair.fromSecretSeed("SDAJYMEVFTAM54RJ7AYWLBMQTXXCSBQATS5M6QZKV6EEW6DPNCBNB6VF")
+    val serverKP = KeyPair.random()
 
-    // clientDomainKP does not exist in the network. It refers to the wallet (like Lobstr's)
-    // account.
-    val clientDomainKP =
-      KeyPair.fromSecretSeed("SAW6P3PM2R5YP6UOSFORXHLJN7FANH6NXGE3C4LMMYP3XZPREMXLSS6F")
+    // clientDomainKP doesn't exist in the network. Refers to the walletAcc (like Lobstr's)
+    val clientDomainKP = KeyPair.random()
 
-    // The public key of the client that exists in the network. It has `threshold == 20`.
-    val clientAddress = "GATFRILGQI3LUZKAUZE34YNMSDRBHXHY6OXXG5C2RRPJP7CHLD2QN2ZJ"
-    // Signer (weight:10) of the client account. This is the master/original signer and it EXISTS in
-    // the network.
-    val clientSignerKP1 =
-      KeyPair.fromSecretSeed("SCBUBDVYYKQO4DFUBC7H64YKT2Z6RN2INBG64NRZOFHW46GUXJUEGZOX")
-    // Signer (weight:10) of the client account. It DOES NOT EXIST in the network.
-    val clientSignerKP2 =
-      KeyPair.fromSecretSeed("SCXOGCWQG4J3UDU6VSEK7HI4MOSXZR5D4RZCQG5JDHVYZP2WT27PTOJF")
-    // Signer (weight:1) of the client account. It EXISTS in the network but it's not being used.
-    // val clientSignerKP3 =
-    // KeyPair.fromSecretSeed("SB2XSJHU4LARXL2UDDVERJMYJFIS3YFBN2B3PELPYPIIPTFF6HK746B7")
+    // Master account of the multisig. It'll be created in the network.
+    val clientMasterKP = KeyPair.random()
+    val clientAddress = clientMasterKP.accountId
+    // Secondary account of the multisig. It'll be created in the network.
+    val clientSecondaryKP = KeyPair.random()
 
     val nonce = ByteArray(48)
     val random = SecureRandom()
@@ -158,8 +157,8 @@ internal class Sep10ServiceTest {
 
     transaction.sign(serverKP)
     transaction.sign(clientDomainKP)
-    transaction.sign(clientSignerKP1)
-    transaction.sign(clientSignerKP2)
+    transaction.sign(clientMasterKP)
+    transaction.sign(clientSecondaryKP)
 
     // 2 ------ Create Services
     every { sep10Config.signingSeed } returns String(serverKP.secretSeed)
@@ -168,7 +167,44 @@ internal class Sep10ServiceTest {
     val horizon = Horizon(appConfig)
     this.sep10Service = Sep10Service(appConfig, sep10Config, horizon, jwtService)
 
-    // 3 ------ Run tests
+    // 3 ------ Setup multisig
+    var httpRequest =
+      Request.Builder()
+        .url("https://horizon-testnet.stellar.org/friendbot?addr=" + clientMasterKP.accountId)
+        .header("Content-Type", "application/json")
+        .get()
+        .build()
+    var response = httpClient.newCall(httpRequest).execute()
+    assertEquals(200, response.code)
+    httpRequest =
+      Request.Builder()
+        .url("https://horizon-testnet.stellar.org/friendbot?addr=" + clientSecondaryKP.accountId)
+        .header("Content-Type", "application/json")
+        .get()
+        .build()
+    response = httpClient.newCall(httpRequest).execute()
+    assertEquals(200, response.code)
+
+    val clientAccount = horizon.server.accounts().account(clientMasterKP.accountId)
+    val multisigTx =
+      TransactionBuilder(AccountConverter.enableMuxed(), clientAccount, Network.TESTNET)
+        .addTimeBounds(TimeBounds.expiresAfter(900))
+        .setBaseFee(300)
+        .addOperation(
+          SetOptionsOperation.Builder()
+            .setLowThreshold(20)
+            .setMediumThreshold(20)
+            .setHighThreshold(20)
+            .setSigner(Signer.ed25519PublicKey(clientSecondaryKP), 10)
+            .setMasterKeyWeight(10)
+            .build()
+        )
+        .build()
+    multisigTx.sign(clientMasterKP)
+    val txResponse = horizon.server.submitTransaction(multisigTx)
+    println(txResponse)
+
+    // 4 ------ Run tests
     val validationRequest = ValidationRequest.of(transaction.toEnvelopeXdrBase64())
     var validationResponse: ValidationResponse? = null
     assertDoesNotThrow { validationResponse = sep10Service.validateChallenge(validationRequest) }
@@ -181,17 +217,14 @@ internal class Sep10ServiceTest {
 
     // serverKP does not exist in the network.
     val serverWebAuthDomain = TEST_HOME_DOMAIN
-    val serverKP =
-      KeyPair.fromSecretSeed("SDAJYMEVFTAM54RJ7AYWLBMQTXXCSBQATS5M6QZKV6EEW6DPNCBNB6VF")
+    val serverKP = KeyPair.random()
 
     // clientDomainKP does not exist in the network. It refers to the wallet (like Lobstr's)
     // account.
-    val clientDomainKP =
-      KeyPair.fromSecretSeed("SAW6P3PM2R5YP6UOSFORXHLJN7FANH6NXGE3C4LMMYP3XZPREMXLSS6F")
+    val clientDomainKP = KeyPair.random()
 
     // The public key of the client that DOES NOT EXIST.
-    val clientKP =
-      KeyPair.fromSecretSeed("SDAX33CQVJMQOHNZROJSJI7RUFHTHG3L6DJIOCO63UZFULO6EBJ574IW")
+    val clientKP = KeyPair.random()
 
     val nonce = ByteArray(48)
     val random = SecureRandom()
