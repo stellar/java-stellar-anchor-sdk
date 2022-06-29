@@ -3,18 +3,18 @@ namespace: sandbox
 service:
    containerPort: 8080
    servicePort: 8080
+   replicas: 1
    type: NodePort
    name: sep
 image:
    repo: stellar
    name: anchor-platform
-   tag: 022afab
+   tag: 0e4caec
    pullPolicy: Always
 deployment:
-   replicas: 1
    envFrom:
    - secretRef:
-       name: sepsecrets
+       name: apsigningseed
 ingress:
    labels:
      app: appy
@@ -29,27 +29,90 @@ ingress:
      ingress.kubernetes.io/hsts-max-age: "31536000"
      ingress.kubernetes.io/hsts-include-subdomains: "true"
    tls:
-     host: "stellaranchordemo.com"
+     host: "reece.sandbox.kube001.services.stellar-ops.com"
      secretName: anchor-platform-sep-server-cert
    rules:
       hosts:
-        - host: "stellaranchordemo.com"
-          path: /
+        - host: "reece.sandbox.kube001.services.stellar-ops.com"
+          path: /auth
+          pathType: Prefix
+          backend:
+            servicePort: "{{ .Values.service.containerPort }}"
+            serviceName: "{{ .Values.fullName }}-svc-{{ .Values.service.name }}"
+        - host: "reece.sandbox.kube001.services.stellar-ops.com"
+          path: /.well-known
+          pathType: Prefix
+          backend:
+            servicePort: "{{ .Values.service.containerPort }}"
+            serviceName: "{{ .Values.fullName }}-svc-{{ .Values.service.name }}"
+        - host: "reece.sandbox.kube001.services.stellar-ops.com"
+          path: /sep1
+          pathType: Prefix
+          backend:
+            servicePort: "{{ .Values.service.containerPort }}"
+            serviceName: "{{ .Values.fullName }}-svc-{{ .Values.service.name }}"
+        - host: "reece.sandbox.kube001.services.stellar-ops.com"
+          path: /sep10
+          pathType: Prefix
+          backend:
+            servicePort: "{{ .Values.service.containerPort }}"
+            serviceName: "{{ .Values.fullName }}-svc-{{ .Values.service.name }}"
+        - host: "reece.sandbox.kube001.services.stellar-ops.com"
+          path: /sep12
+          pathType: Prefix
+          backend:
+            servicePort: "{{ .Values.service.containerPort }}"
+            serviceName: "{{ .Values.fullName }}-svc-{{ .Values.service.name }}"
+        - host: "reece.sandbox.kube001.services.stellar-ops.com"
+          path: /sep31
+          pathType: Prefix
+          backend:
+            servicePort: "{{ .Values.service.containerPort }}"
+            serviceName: "{{ .Values.fullName }}-svc-{{ .Values.service.name }}"
+        - host: "reece.sandbox.kube001.services.stellar-ops.com"
+          path: /sep38
           pathType: Prefix
           backend:
             servicePort: "{{ .Values.service.containerPort }}"
             serviceName: "{{ .Values.fullName }}-svc-{{ .Values.service.name }}"
 stellar:
+   anchor:
+      data_access:
+         type: data-spring-jdbc
+         settings: data-spring-jdbc-sqlite
+#         settings: data-spring-jdbc-aws-aurora-postgres
+#   data_spring_jdbc_aws_aurora_postgres:
+#      spring.jpa.generate-ddl: true
+#      spring.jpa.database: POSTGRESQL
+#      spring.jpa.show-sql: false
+#      spring.datasource.driver-class-name: org.postgresql.Driver
+#      spring.datasource.type: org.stellar.anchor.platform.databaseintegration.IAMAuthDataSource
+#      spring.datasource.url: jdbc:postgresql://database-aurora-iam-instance-1.chizvyczscs2.us-east-1.rds.amazonaws.com:5432/anchorplatform
+#      spring.datasource.username: anchorplatform1
+#      spring.datasource.hikari.max-lifetime: 840000    # 14 minutes because IAM tokens are valid for 15min
+#      spring.mvc.converters.preferred-json-mapper: gson
+#      spring.liquibase.change-log: classpath:/db/changelog/db.changelog-master.yaml
+   data_spring_jdbc_sqlite:
+      spring.jpa.database-platform: org.stellar.anchor.platform.sqlite.SQLiteDialect
+      spring.jpa.hibernate.ddl-auto: update
+      spring.jpa.generate-ddl: true
+      spring.jpa.hibernate.show_sql: false
+      spring.datasource.url: jdbc:sqlite:anchor-proxy.db
+      spring.datasource.driver-class-name: org.sqlite.JDBC
+      spring.datasource.username: ${SQLITE_USERNAME}
+      spring.datasource.password: ${SQLITE_PASSWORD}
+      spring.mvc.converters.preferred-json-mapper: gson
    app_config:
       app:
-         hostUrl: https://stellaranchordemo.com
-         jwtSecretKey:  ${JWT_SECRET}
+         hostUrl: https://reece.sandbox.kube001.services.stellar-ops.com
+         backendUrl: https://anchor-ref-pr352.previews.kube001.services.stellar-ops.com/?
+         jwtSecretKey: ${JWT_SECRET}
       sep1:
         enabled: true
         stellarFile: file:/config/stellar-wks.toml
       sep10:
         enabled: true
-        homeDomain: stellaranchordemo.com
+        homeDomain: reece.sandbox.kube001.services.stellar-ops.com
         signingSeed: ${SEP10_SIGNING_SEED}
       sep12:
         enabled: true
@@ -64,4 +127,4 @@ stellar:
          enabled: true
          publisherType: kafka
       kafka_publisher:
-         bootstrapServer: kafka-broker:9092
+         bootstrapServer: reecekafka-0.reecekafka-headless.sandbox.svc.cluster.local:9092

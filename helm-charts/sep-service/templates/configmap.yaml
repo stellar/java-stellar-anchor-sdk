@@ -9,32 +9,32 @@ data:
     stellar:
       anchor:
         {{- if .Values.stellar.anchor }}
-        config: {{- .Values.stellar.anchor.config | default "in-memory" }}
+        config: {{ .Values.stellar.anchor.config | default "in-memory" }}
         {{- else }}
         config: in-memory 
         {{- end }}
-        {{- if ((.Values.stellar.anchor).app_config) }}
+        {{- if (.Values.stellar.anchor).app_config }}
         app-config:
-          type: {{- .Values.stellar.anchor.app_config.type | default "config-spring-property" }} # Activate [config-spring-property] module
-          settings: {{- .Values.stellar.anchor.app_config.settings | default "app-config" }}  # The location of the configuration data
+          type: {{ .Values.stellar.anchor.app_config.type | default "config-spring-property" }} # Activate [config-spring-property] module
+          settings: {{ .Values.stellar.anchor.app_config.settings | default "app-config" }}  # The location of the configuration data
        {{- else }}
         app-config:
           type: config-spring-property # Activate [config-spring-property] module
           settings: app-config  # The location of the configuration data
        {{- end }}
-       {{- if ((.Values.stellar.anchor).data_access) }} 
+       {{- if (.Values.stellar.anchor).data_access }} 
         data-access:
-          type: {{- .Values.stellar.anchor.data_access.type | default "data-spring-jdbc" }} # Activate [config-spring-jdbc] module.
-          settings: {{- .Values.stellar.anchor.data_access.settings | default "data-spring-jdbc-sqlite" }}  # The location of the configuration data in this file.
+          type: {{ .Values.stellar.anchor.data_access.type | default "data-spring-jdbc" }} # Activate [config-spring-jdbc] module.
+          settings: {{ .Values.stellar.anchor.data_access.settings | default "data-spring-jdbc-sqlite" }}  # The location of the configuration data in this file.
         {{- else }}
         data-access:
           type: data-spring-jdbc # Activate [config-spring-jdbc] module.
           settings: data-spring-jdbc-sqlite  # The location of the configuration data in this file.
         {{- end }}
-        {{- if ((.Values.stellar.anchor).logging) }}
+        {{- if (.Values.stellar.anchor).logging }}
         logging:
-          type: {{- .Values.stellar.anchor.logging.type | default "logging-logback" }}
-          settings: {{- .Values.stellar.anchor.logging.settings | default "logging-logback-settings" }}
+          type: {{ .Values.stellar.anchor.logging.type | default "logging-logback" }}
+          settings: {{ .Values.stellar.anchor.logging.settings | default "logging-logback-settings" }}
         {{- else }}
         logging:
           type: logging-logback
@@ -178,50 +178,13 @@ data:
           transactionStatusChanged: "dev_ap_event_transaction_status_changed"
           transactionError: "dev_ap_event_transaction_error"
         {{- end }}
-      {{- end }}    
-    {{- if (.Values.stellar.app_config).data_spring_jdbc_sqlite }}
-    data-spring-jdbc-sqlite:
-      spring.jpa.database-platform: {{ .Values.stellar.app_config.data_spring_jdbc_sqlite.spring_jpa_database_platform | default "" }}
-      spring.jpa.hibernate.ddl-auto: {{ .Values.stellar.app_config.data_spring_jdbc_sqlite.spring_jpa_hibernate_ddl_auto | default "update" }}
-      spring.jpa.generate-ddl: {{ .Values.stellar.app_config.data_spring_jdbc_sqlite.spring_jpa_generate_ddl | default "true" }}
-      spring.jpa.hibernate.show_sql: {{ .Values.stellar.app_config.data_spring_jdbc_sqlite.spring_jpa_hibernate_show_sql | default "false" }}
-      spring.datasource.url: {{ .Values.stellar.app_config.data_spring_jdbc_sqlite.spring_datasource_url | default "jdbc:sqlite:anchor-proxy.db" }}
-      spring.datasource.driver-class-name: {{ .Values.stellar.app_config.data_spring_jdbc_sqlite.spring_datasource_driver_class_name | default "org.sqlite.JDBC" }}
-      spring.datasource.username: {{ .Values.stellar.app_config.data_spring_jdbc_sqlite.spring_datasource_username | default "${SQLITE_USERNAME}" }}
-      spring.datasource.password: {{ .Values.stellar.app_config.data_spring_jdbc_sqlite.spring_datasource_password | default "${SQLITE_PASSWORD}" }}
-      spring.mvc.converters.preferred-json-mapper: {{ .Values.stellar.app_config.data_spring_jdbc_sqlite.spring_mvc_converters_preferred_json_mapper | default "gson" }}
-    {{- else }}
-    data-spring-jdbc-sqlite: 
-      spring.jpa.database-platform: org.stellar.anchor.platform.sqlite.SQLiteDialect
-      spring.jpa.hibernate.ddl-auto: update
-      spring.jpa.generate-ddl: true
-      spring.jpa.hibernate.show_sql: false
-      spring.datasource.url: jdbc:sqlite:anchor-proxy.db
-      spring.datasource.driver-class-name: org.sqlite.JDBC
-      spring.datasource.username: ${SQLITE_USERNAME}
-      spring.datasource.password: ${SQLITE_PASSWORD}
-      spring.mvc.converters.preferred-json-mapper: gson
+      {{- end }}     
+    {{- $settings_key := .Values.stellar.anchor.data_access.settings }}
+    {{- $settings := regexReplaceAll "\\W+" .Values.stellar.anchor.data_access.settings "_" }}
+    {{ $settings_key }}:
+    {{- range $key, $value :=  index .Values.stellar $settings }}
+      {{ $key }}: {{ $value }}
     {{- end }}
-    {{- if (.Values.stellar.app_config).data_spring_jdbc_h2 }}
-    data-spring-jdbc-h2:
-      spring.datasource.url: {{ .Values.stellar.app_config.data_spring_jdbc_h2.spring_datasource_url | default "jdbc:h2:mem:test" }}
-      spring.jpa.properties.hibernate.dialect: {{ .Values.stellar.app_config.data_spring_jdbc_h2.spring_jpa_properties_hibernate_dialect | default "org.hibernate.dialect.H2Dialect" }}
-    {{- else }}
-    data-spring-jdbc-h2:
-      spring.datasource.url: jdbc:h2:mem:test
-      spring.jpa.properties.hibernate.dialect: org.hibernate.dialect.H2Dialect
-    {{- end }}
-    {{- if ((.Values.stellar.app_config).spring).logging }}
-    spring:
-      logging:
-        level:
-          root: {{ .Values.stellar.app_config.spring.logging.level.root | default "DEBUG" }}
-          org.springframework: {{ .Values.stellar.app_config.spring.logging.level.org.springframework | default "DEBUG" }}
-          org.springframework.web.filter: {{ .Values.stellar.app_config.spring.logging.level.org.springframework.web.filter | default "DEBUG" }}
-          org.stellar: {{ .Values.stellar.app_config.spring.logging.level.org.stellar | default "DEBUG" }}
-      mvc:
-        async.request-timeout: {{ .Values.stellar.app_config.spring.mvc.async.request_timeout | default 6000 }}
-    {{- else }}
     spring:
       logging:
         level:
@@ -231,7 +194,6 @@ data:
           org.stellar: DEBUG
       mvc:
         async.request-timeout: 6000
-    {{- end }}
   stellar-wks.toml: |
     ACCOUNTS = ["GCHLHDBOKG2JWMJQBTLSL5XG6NO7ESXI2TAQKZXCXWXB5WI2X6W233PR"]
     VERSION = "0.1.0"
