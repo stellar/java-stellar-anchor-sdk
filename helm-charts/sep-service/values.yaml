@@ -34,43 +34,7 @@ ingress:
    rules:
       hosts:
         - host: "reece.sandbox.kube001.services.stellar-ops.com"
-          path: /auth
-          pathType: Prefix
-          backend:
-            servicePort: "{{ .Values.service.containerPort }}"
-            serviceName: "{{ .Values.fullName }}-svc-{{ .Values.service.name }}"
-        - host: "reece.sandbox.kube001.services.stellar-ops.com"
-          path: /.well-known
-          pathType: Prefix
-          backend:
-            servicePort: "{{ .Values.service.containerPort }}"
-            serviceName: "{{ .Values.fullName }}-svc-{{ .Values.service.name }}"
-        - host: "reece.sandbox.kube001.services.stellar-ops.com"
-          path: /sep1
-          pathType: Prefix
-          backend:
-            servicePort: "{{ .Values.service.containerPort }}"
-            serviceName: "{{ .Values.fullName }}-svc-{{ .Values.service.name }}"
-        - host: "reece.sandbox.kube001.services.stellar-ops.com"
-          path: /sep10
-          pathType: Prefix
-          backend:
-            servicePort: "{{ .Values.service.containerPort }}"
-            serviceName: "{{ .Values.fullName }}-svc-{{ .Values.service.name }}"
-        - host: "reece.sandbox.kube001.services.stellar-ops.com"
-          path: /sep12
-          pathType: Prefix
-          backend:
-            servicePort: "{{ .Values.service.containerPort }}"
-            serviceName: "{{ .Values.fullName }}-svc-{{ .Values.service.name }}"
-        - host: "reece.sandbox.kube001.services.stellar-ops.com"
-          path: /sep31
-          pathType: Prefix
-          backend:
-            servicePort: "{{ .Values.service.containerPort }}"
-            serviceName: "{{ .Values.fullName }}-svc-{{ .Values.service.name }}"
-        - host: "reece.sandbox.kube001.services.stellar-ops.com"
-          path: /sep38
+          path: /
           pathType: Prefix
           backend:
             servicePort: "{{ .Values.service.containerPort }}"
