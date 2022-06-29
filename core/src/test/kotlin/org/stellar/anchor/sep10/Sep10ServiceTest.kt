@@ -168,21 +168,13 @@ internal class Sep10ServiceTest {
     this.sep10Service = Sep10Service(appConfig, sep10Config, horizon, jwtService)
 
     // 3 ------ Setup multisig
-    var httpRequest =
+    val httpRequest =
       Request.Builder()
         .url("https://horizon-testnet.stellar.org/friendbot?addr=" + clientMasterKP.accountId)
         .header("Content-Type", "application/json")
         .get()
         .build()
-    var response = httpClient.newCall(httpRequest).execute()
-    assertEquals(200, response.code)
-    httpRequest =
-      Request.Builder()
-        .url("https://horizon-testnet.stellar.org/friendbot?addr=" + clientSecondaryKP.accountId)
-        .header("Content-Type", "application/json")
-        .get()
-        .build()
-    response = httpClient.newCall(httpRequest).execute()
+    val response = httpClient.newCall(httpRequest).execute()
     assertEquals(200, response.code)
 
     val clientAccount = horizon.server.accounts().account(clientMasterKP.accountId)
