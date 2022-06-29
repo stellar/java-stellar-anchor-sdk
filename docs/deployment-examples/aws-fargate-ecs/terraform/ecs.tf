@@ -17,13 +17,9 @@ resource "aws_ecs_task_definition" "sep" {
   task_role_arn            = aws_iam_role.ecs_task_role.arn
   container_definitions = jsonencode([{
    name        = "${var.environment}-sep"
-   image       = "reecemarkowsky/testing"
+   image       = "stellar/anchor-platform:a93e924"
    entryPoint  = ["java", "-jar", "/app/anchor-platform-runner.jar", "--sep-server"]
    essential   = true
-   environment = [
-    { "name" : "APP_CONFIG_KAFKA_PUBLISHER_BOOTSTRAPSERVER", "value" : "http://reecehost:9092" }
-   ]
-
    logConfiguration = {
                 "logDriver": "awslogs",
                 "options": {
