@@ -27,11 +27,11 @@ ingress:
      ingress.kubernetes.io/hsts-max-age: "31536000"
      ingress.kubernetes.io/hsts-include-subdomains: "true"
    tls:
-     host: "reece.sandbox.kube001.services.stellar-ops.com"
+     host: "www.stellaranchordemo.com"
      secretName: anchor-platform-sep-server-cert
    rules:
       hosts:
-        - host: "reece.sandbox.kube001.services.stellar-ops.com"
+        - host: "www.stellaranchordemo.com"
           path: /
           pathType: Prefix
           backend:
@@ -74,7 +74,7 @@ stellar:
       app:
          logLevel: INFO
          stellarNetwork: TESTNET
-         hostUrl: https://reece.sandbox.kube001.services.stellar-ops.com
+         hostUrl: https://www.stellaranchordemo.com
          backendUrl: https://anchor-ref-pr352.previews.kube001.services.stellar-ops.com/?
          jwtSecretKey: ${JWT_SECRET}
       sep1:
@@ -82,7 +82,7 @@ stellar:
         stellarFile: file:/config/stellar-wks.toml
       sep10:
         enabled: true
-        homeDomain: reece.sandbox.kube001.services.stellar-ops.com
+        homeDomain: www.stellaranchordemo.com
         signingSeed: ${SEP10_SIGNING_SEED}
       sep12:
         enabled: true
@@ -97,4 +97,4 @@ stellar:
          enabled: true
          publisherType: kafka
       kafka_publisher:
-         bootstrapServer: reecekafka-0.reecekafka-headless.sandbox.svc.cluster.local:9092
+         bootstrapServer: kafka.bootstrap.host:9092
