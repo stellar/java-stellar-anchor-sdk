@@ -86,7 +86,7 @@ jobs:
         env:
           HOME_DOMAIN: ${{ steps.endpoint-finder.outputs.HOME_DOMAIN }}
         run: |
-          npm install -g @stellar/anchor-tests@0.5.0
+          npm install -g @stellar/anchor-tests
           stellar-anchor-tests --home-domain $HOME_DOMAIN --seps 1 10 12 31 38 --sep-config platform/src/test/resources/stellar-anchor-tests-sep-config.json
 
   complete:

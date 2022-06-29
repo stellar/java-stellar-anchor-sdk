@@ -22,7 +22,7 @@ public class JsonAssetService implements AssetService {
   public AssetInfo getAsset(String code) {
     for (AssetInfo asset : assets.assets) {
       if (asset.getCode().equals(code)) {
-          return asset;
+        return asset;
       }
     }
     return null;
@@ -34,7 +34,7 @@ public class JsonAssetService implements AssetService {
     }
     for (AssetInfo asset : assets.assets) {
       if (asset.getCode().equals(code) && issuer.equals(asset.getIssuer())) {
-          return asset;
+        return asset;
       }
     }
     return null;
