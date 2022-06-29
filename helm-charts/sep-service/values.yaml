@@ -1,5 +1,4 @@
 fullName: anchor-platform
-namespace: sandbox
 service:
    containerPort: 8080
    servicePort: 8080
