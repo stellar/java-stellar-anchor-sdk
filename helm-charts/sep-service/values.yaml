@@ -17,7 +17,6 @@ deployment:
        name: apsigningseed
 ingress:
    labels:
-     app: appy
      test: label_test
    annotations:
      kubernetes.io/ingress.class: "public"

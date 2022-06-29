@@ -3,6 +3,12 @@ kind: Deployment
 metadata:
   name: {{ include "common.name" . }}
   namespace: {{ .Values.namespace }}
+  {{- if .Values.deployment.annotations }}
+  annotations:
+    {{- range $key, $value := .Values.deployment.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+  {{- end }}
   labels:
     app.kubernetes.io/name: {{ include "common.name" . }}
     helm.sh/chart: {{ include "common.chart" . }}

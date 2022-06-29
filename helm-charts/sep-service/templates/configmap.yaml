@@ -4,7 +4,7 @@ metadata:
   name: {{ .Values.fullName }}-configmap-{{ .Values.service.name }}
   namespace: {{ .Values.namespace }}
 data:
-  # TODO: look at moving derived values to _comon.tpl to simplify chart rendering
+  TODO: look at moving derived values to _comon.tpl to simplify chart rendering
   anchor-config.yaml: |
     stellar:
       anchor:
@@ -162,6 +162,7 @@ data:
       {{- if (.Values.stellar.app_config).kafka_publisher }}
       kafka.publisher:
         bootstrapServer: {{ .Values.stellar.app_config.kafka_publisher.bootstrapServer | default "missing_bootstrapServer:port" }}
+        useIAM: {{ .Values.stellar.app_config.kafka_publisher.useIAM | default "true" }}
         useSingleQueue: {{ .Values.stellar.app_config.kafka_publisher.useSingleQueue | default "false" }}
         {{- if (((.Values.stellar.app_config).event).kafka_publisher).eventTypeQueue }}
         eventTypeToQueue:
@@ -227,11 +228,11 @@ data:
     
     [DOCUMENTATION]
     {{- if ((.Values.stellar).toml).documentation }}
-    ORG_NAME = {{ .Values.stellar.toml.documentation.ORG_NAME | default "Your Organization Name" }}
-    ORG_URL = {{ .Values.stellar.toml.documentation.ORG_URL  | default "Your organization URL" }}
-    ORG_DESCRIPTION = {{ .Values.stellar.toml.documentation.ORG_DESCRIPTION | default "Your Organization description" }}
-    ORG_LOGO = {{ .Values.stellar.toml.documentation.ORG_LOGO | default "Your Organization Logo URL"}}
-    ORG_SUPPORT_EMAIL = {{ .Values.stellar.toml.documentation.ORG_SUPPORT_EMAIL | default "Your Organization email address" }}
+    ORG_NAME = {{ .Values.stellar.toml.documentation.ORG_NAME | default "My Organization" | quote }}
+    ORG_URL = {{ .Values.stellar.toml.documentation.ORG_URL  | default "https://www.myorg.org" | quote }}
+    ORG_DESCRIPTION = {{ .Values.stellar.toml.documentation.ORG_DESCRIPTION | default "My Organization description" | quote }}
+    ORG_LOGO = {{ .Values.stellar.toml.documentation.ORG_LOGO | default "https://myorglogo.png" | quote }}
+    ORG_SUPPORT_EMAIL = {{ .Values.stellar.toml.documentation.ORG_SUPPORT_EMAIL | default "myname@myemail.org" | quote }}
     {{- else }}
     ORG_NAME = "My Organization"
     ORG_URL = "https://www.myorg.org"
