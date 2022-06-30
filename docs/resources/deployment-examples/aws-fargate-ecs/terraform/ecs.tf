@@ -41,29 +41,6 @@ resource "aws_ecs_task_definition" "sep" {
    entryPoint  = ["/copy_config.sh"]
    
    essential   = false
-   "secrets": [
-      {
-        "name": "SQS_ACCESS_KEY",
-        "valueFrom": data.aws_ssm_parameter.sqs_access_key.arn
-      },
-      {
-        "name": "SQS_SECRET_KEY",
-        "valueFrom": data.aws_ssm_parameter.sqs_secret_key.arn
-      },
-      {
-        "name": "SQLITE_USERNAME",
-        "valueFrom": data.aws_ssm_parameter.sqlite.arn
-      },
-      {
-        "name": "SQLITE_PASSWORD",
-        "valueFrom": data.aws_ssm_parameter.sqlite.arn
-      },
-      {
-        "name": "SEP_10_SIGNING_SEED",
-        "valueFrom": data.aws_ssm_parameter.sep10_signing_seed.arn
-      },
-   ]
-
    "mountPoints": [
       {
         "readOnly": false,
@@ -90,6 +67,28 @@ resource "aws_ecs_task_definition" "sep" {
    entryPoint = ["/anchor_config/sep.sh"]
    #entryPoint  = ["java", "-jar", "/app/anchor-platform-runner.jar", "--sep-server"]
    essential   = true
+   secrets = [
+      {
+        "name": "SQS_ACCESS_KEY",
+        "valueFrom": data.aws_ssm_parameter.sqs_access_key.arn
+      },
+      {
+        "name": "SQS_SECRET_KEY",
+        "valueFrom": data.aws_ssm_parameter.sqs_secret_key.arn
+      },
+      {
+        "name": "SQLITE_USERNAME",
+        "valueFrom": data.aws_ssm_parameter.sqlite.arn
+      },
+      {
+        "name": "SQLITE_PASSWORD",
+        "valueFrom": data.aws_ssm_parameter.sqlite.arn
+      },
+      {
+        "name": "SEP_10_SIGNING_SEED",
+        "valueFrom": data.aws_ssm_parameter.sep10_signing_seed.arn
+      },
+   ]
 
    "mountPoints": [
       {
