@@ -9,7 +9,6 @@ phases:
     commands:
       - docker login -u reecemarkowsky -p $DOCKER_LOGIN_PW
       - cd docs/resources/deployment-examples/aws-fargate-ecs
-      - go get github.com/b-b3rn4rd/json2ssm
       - aws s3 cp s3://anchorplatformhelmchart/anchor-config.yaml .
       - cat ./anchor-config.yaml
       - docker build . -t anchor-config
