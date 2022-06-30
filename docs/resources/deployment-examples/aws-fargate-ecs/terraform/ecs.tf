@@ -64,8 +64,8 @@ resource "aws_ecs_task_definition" "sep" {
                     "value": "/anchor_config/anchor_config.yaml"
                 },
                 {   
-                    "name": "TEST",
-                    "value": "TEST"
+                    "name": "TEST2",
+                    "value": "TEST2"
                 }
             ],
       logConfiguration = {
