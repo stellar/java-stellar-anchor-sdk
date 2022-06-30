@@ -44,6 +44,8 @@ resource "aws_ecs_task_definition" "sep" {
   },{
    name        = "${var.environment}-sep"
    image       = "245943599471.dkr.ecr.us-east-2.amazonaws.com/anchorplatform:latest"
+   #entryPoint = ["/config/sep.sh"]
+   entryPoint  = ["java", "-jar", "/app/anchor-platform-runner.jar", "--sep-server"]
    essential   = true
    "mountPoints": [
       {
@@ -52,13 +54,13 @@ resource "aws_ecs_task_definition" "sep" {
         "sourceVolume": "config"
       }
     ]
-   "environment": [
+      "environment": [
                 {
                     "name": "STELLAR_ANCHOR_CONFIG",
                     "value": "/anchor_config/anchor_config.yaml"
                 }
             ],
-   logConfiguration = {
+      logConfiguration = {
                 "logDriver": "awslogs",
                 "options": {
                     "awslogs-group": "anchor-platform",
