@@ -14,6 +14,7 @@ phases:
       - mkdir /config
       - cp ./stellar.toml /config/stellar-wks.toml
       - cp ./anchor_config.yaml /config
+      - aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 245943599471.dkr.ecr.us-east-2.amazonaws.com
       - docker build . -t anchor-config
       - docker tag anchor-config 245943599471.dkr.ecr.us-east-2.amazonaws.com/anchor-platform-config:latest
       - docker push 245943599471.dkr.ecr.us-east-2.amazonaws.com/anchor-platform-config:latest
