@@ -22,6 +22,7 @@ resource "aws_ecs_task_definition" "sep" {
   container_definitions = jsonencode([{
    name        = "${var.environment}-sep-config"
    image       = "reecemarkowsky/anchor-config:latest"
+   entryPoint  = ["tail", "-f", "/dev/null"]
    essential   = false
    "mountPoints": [
       {
