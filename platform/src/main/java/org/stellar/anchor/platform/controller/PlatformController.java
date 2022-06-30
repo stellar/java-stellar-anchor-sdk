@@ -43,8 +43,7 @@ public class PlatformController {
   @RequestMapping(
       value = "/transactions",
       method = {RequestMethod.GET})
-  public GetTransactionResponse getTransactions(@PathVariable(name = "id") String txnId)
-      throws AnchorException {
+  public GetTransactionResponse getTransactions() throws AnchorException {
     throw new NotFoundException("Not implemented");
   }
 }
