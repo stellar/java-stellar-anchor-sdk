@@ -1,5 +1,6 @@
 #! /bin/bash
-cp /config_files/* /config
-ls /config
+ls /
+ls /*
+#cp /config_files/* /config
 echo "tailing for eternity..."
 tail -f /dev/null
