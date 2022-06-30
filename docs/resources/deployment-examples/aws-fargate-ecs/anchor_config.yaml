@@ -87,7 +87,7 @@ stellar:
       # The format of the resource is specified as Table 6.1 of the Spring document located at:
       # https://docs.spring.io/spring-framework/docs/3.2.x/spring-framework-reference/html/resources.html
       #
-      stellarFile: file:/anchor_config/stellar-wks.toml
+      stellarFile: file:/anchor_config/stellar_wks.toml
 
     # sep-10
     sep10:

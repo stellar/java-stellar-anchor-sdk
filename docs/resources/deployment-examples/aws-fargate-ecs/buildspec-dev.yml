@@ -12,7 +12,7 @@ phases:
       - aws s3 cp s3://anchorplatformhelmchart/anchor_config.yaml .
       - aws s3 cp s3://anchorplatformhelmchart/stellar.toml .
       - mkdir /config
-      - cp ./stellar.toml /config/stellar-wks.toml
+      - cp ./stellar.toml /config/stellar_wks.toml
       - cp ./anchor_config.yaml /config
       - aws ecr get-login-password --region us-east-2 | docker login --username AWS --password-stdin 245943599471.dkr.ecr.us-east-2.amazonaws.com
       - docker build . -t anchor-config
