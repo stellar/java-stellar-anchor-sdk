@@ -10,7 +10,7 @@ phases:
       - docker login -u reecemarkowsky -p $DOCKER_LOGIN_PW
       - cd docs/resources/deployment-examples/aws-fargate-ecs
       - aws s3 cp s3://anchorplatformhelmchart/anchor_config.yaml .
-      - aws s3 cp s3://stellar.toml .
+      - aws s3 cp s3://anchorplatformhelmchart/stellar.toml .
       - mkdir /config
       - cp ./stellar.toml /config/stellar-wks.toml
       - cp ./anchor_config.yaml /config
