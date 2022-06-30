@@ -264,13 +264,6 @@ stellar:
     spring.mvc.converters.preferred-json-mapper: gson
     spring.liquibase.enabled: false    # certain features that liquibase uses (ex: addForeignKeyConstraint) are not supported by sqlite
 
-  # settings for aurora postgres connection using IAM for authentication
-  # NOTE: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY and AWS_REGION environment variables need to be set
-    data-spring-jdbc-h2:
-      spring.datasource.url: jdbc:h2:mem:test
-      spring.jpa.properties.hibernate.dialect: org.hibernate.dialect.H2Dialect
-      spring.liquibase.enabled: false
-
   #
   # Spring framework configurations
   #
