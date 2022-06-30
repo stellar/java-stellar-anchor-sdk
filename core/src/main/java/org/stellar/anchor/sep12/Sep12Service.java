@@ -70,7 +70,7 @@ public class Sep12Service {
 
     // TODO: Move this into configuration instead of hardcoding customer type values.
     boolean existingCustomerMatch = false;
-    String customerTypes[] = {"sep31-sender", "sep31-receiver"};
+    String customerTypes[] = {"sending_user", "receiving_user"};
     for (String customerType: customerTypes) {
       Sep12GetCustomerResponse existingCustomer =
           customerIntegration.getCustomer(
