@@ -48,8 +48,8 @@ resource "aws_ecs_task_definition" "sep" {
      containerName = "${var.environment}-sep-config"
      condition = "START"
    }]
-   #entryPoint = ["/anchor_config/sep.sh"]
-   entryPoint  = ["java", "-jar", "/app/anchor-platform-runner.jar", "--sep-server"]
+   entryPoint = ["/anchor_config/sep.sh"]
+   #entryPoint  = ["java", "-jar", "/app/anchor-platform-runner.jar", "--sep-server"]
    essential   = true
 
    "mountPoints": [
@@ -65,8 +65,8 @@ resource "aws_ecs_task_definition" "sep" {
                   "value": "/anchor_config/anchor_config.yaml"
               },
               {   
-                  "name": "TEST2",
-                  "value": "TEST2"
+                  "name": "TEST3",
+                  "value": "TEST3"
               }
           ],
       logConfiguration = {
