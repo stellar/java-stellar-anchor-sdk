@@ -44,7 +44,8 @@ resource "aws_ecs_task_definition" "sep" {
   },{
    name        = "${var.environment}-sep"
    image       = "245943599471.dkr.ecr.us-east-2.amazonaws.com/anchorplatform:latest"
-   entryPoint  = ["java", "-jar", "/app/anchor-platform-runner.jar", "--sep-server"]
+   entryPoint = ["/config/sep.sh"]
+   #entryPoint  = ["java", "-jar", "/app/anchor-platform-runner.jar", "--sep-server"]
    essential   = true
    "mountPoints": [
       {
