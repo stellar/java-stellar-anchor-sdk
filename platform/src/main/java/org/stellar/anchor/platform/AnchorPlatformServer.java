@@ -43,7 +43,7 @@ public class AnchorPlatformServer implements WebMvcConfigurer {
       Log.debugF("REECEDEBUG ENVIRONMENT = {}",environment.toString());
       builder.properties(environment);
     } else {
-      Log.debug("REECEDEBUG ENVIRONMENT = null");
+      Log.debugF("REECEDEBUG ENVIRONMENT = null");
     }
 
     SpringApplication springApplication = builder.build();

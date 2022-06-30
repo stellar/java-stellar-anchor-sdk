@@ -16,7 +16,7 @@ import org.springframework.core.env.PropertySource;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.Resource;
-
+import org.stellar.anchor.util.Log;
 public class PropertiesReader extends AbstractConfigurator
     implements ApplicationContextInitializer<ConfigurableApplicationContext> {
 
@@ -52,16 +52,21 @@ public class PropertiesReader extends AbstractConfigurator
     // Read from the file specified by STELLAR_ANCHOR_CONFIG environment variable.
     yamlLocation = getFromSystemEnv();
     if (yamlLocation != null) {
+      Log.debugF("REECEDEBUG yamlLocation exists in Env = {}",yamlLocation);
       loadConfigYaml(applicationContext, yamlLocation);
       return;
+    } else
+    {
+      Log.debugF("REECEDEBUG STELLAR_ANCHOR_CONFIG = null yamlLocation did not exist");
     }
 
     throw new IllegalArgumentException("Unable to load anchor platform configuration file.");
   }
 
   String getFromSystemEnv() {
-    return System.getenv()
-        .getOrDefault("STELLAR_ANCHOR_CONFIG", "classpath:/anchor-config-defaults.yaml");
+    Log.debugF("REECEDEBUG STELLAR_ANCHOR_CONFIG = {}",System.getenv("STELLAR_ANCHOR_CONFIG"));
+    String yamLocation = System.getenv().getOrDefault("STELLAR_ANCHOR_CONFIG", "classpath:/anchor-config-defaults.yaml");
+    return yamLocation;
   }
 
   String getFromSystemProperty() {
