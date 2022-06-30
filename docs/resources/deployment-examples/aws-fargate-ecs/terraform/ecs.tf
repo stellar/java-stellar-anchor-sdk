@@ -47,7 +47,7 @@ resource "aws_ecs_task_definition" "sep" {
    entryPoint = ["/anchor_config/sep.sh"]
    #entryPoint  = ["java", "-jar", "/app/anchor-platform-runner.jar", "--sep-server"]
    essential   = true
-   container_depends_on = [ {
+   "container_depends_on": [ {
      containerName = "${var.environment}-sep-config"
      condition = "START"
    }]
@@ -58,16 +58,16 @@ resource "aws_ecs_task_definition" "sep" {
         "sourceVolume": "config"
       }
     ]
-      "environment": [
-                {
-                    "name": "STELLAR_ANCHOR_CONFIG",
-                    "value": "/anchor_config/anchor_config.yaml"
-                },
-                {   
-                    "name": "TEST2",
-                    "value": "TEST2"
-                }
-            ],
+    "environment": [
+              {
+                  "name": "STELLAR_ANCHOR_CONFIG",
+                  "value": "/anchor_config/anchor_config.yaml"
+              },
+              {   
+                  "name": "TEST2",
+                  "value": "TEST2"
+              }
+          ],
       logConfiguration = {
                 "logDriver": "awslogs",
                 "options": {
