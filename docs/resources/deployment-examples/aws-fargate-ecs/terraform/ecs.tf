@@ -6,6 +6,22 @@ resource "aws_ecs_cluster" "ref" {
   name = "ref-${var.environment}-cluster"
 }
 
+data "aws_ssm_parameter" "sqs_access_key" {
+  name = "SQS_ACCESS_KEY"
+}
+data "aws_ssm_parameter" "sqs_secret_key" {
+  name = "SQS_SECRET_KEY"
+}
+
+data "aws_ssm_parameter" "sqlite" {
+  name = "SQLITE"
+}
+
+data "aws_ssm_parameter" "sep10_signing_seed" {
+  name = "SEP10_SIGNING_SEED"
+}
+
+
 ## Task Definitions
 resource "aws_ecs_task_definition" "sep" {
   network_mode             = "awsvpc"
@@ -25,6 +41,29 @@ resource "aws_ecs_task_definition" "sep" {
    entryPoint  = ["/copy_config.sh"]
    
    essential   = false
+   "secrets": [
+      {
+        "name": "SQS_ACCESS_KEY",
+        "valueFrom": data.aws_ssm_parameter.sqs_access_key.arn
+      },
+      {
+        "name": "SQS_SECRET_KEY",
+        "valueFrom": data.aws_ssm_parameter.sqs_secret_key.arn
+      },
+      {
+        "name": "SQLITE_USERNAME",
+        "valueFrom": data.aws_ssm_parameter.sqlite.arn
+      },
+      {
+        "name": "SQLITE_PASSWORD",
+        "valueFrom": data.aws_ssm_parameter.sqlite.arn
+      },
+      {
+        "name": "SEP_10_SIGNING_SEED",
+        "valueFrom": data.aws_ssm_parameter.sep10_signing_seed.arn
+      },
+   ]
+
    "mountPoints": [
       {
         "readOnly": false,

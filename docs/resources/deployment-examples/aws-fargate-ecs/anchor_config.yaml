@@ -136,7 +136,7 @@ stellar:
 
     # sep-24
     sep24:
-      enabled: true
+      enabled: false
       # Set the timeout of the JSON Web Token returned with the embedded interactive url of the SEP-24 process.
       # An expired JWT will be rejected.
       #
@@ -210,7 +210,7 @@ stellar:
       enabled: true
       publisherType: sqs
 
-    kafka.publisher:
+    #kafka.publisher:
       # kafkaBootstrapServer - the Kafka server used to bootstrap setup
       # If useSingleQueue, all events are published to a single queue
       #   (specified in eventTypeToQueue.all)
@@ -219,16 +219,16 @@ stellar:
       # NOTE: MSK - use port 9098 for access from within AWS and port 9198 for public access.
       #             https://docs.aws.amazon.com/msk/latest/developerguide/port-info.html
       # NOTE: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY and AWS_REGION environment variables need to be set
-      bootstrapServer: localhost:29092
+      #bootstrapServer: localhost:29092
       #bootstrapServer: b-1-public.democluster1.w7j4hi.c25.kafka.us-east-1.amazonaws.com:9198  # AWS MSK example
-      useIAM: false
-      useSingleQueue: false
-      eventTypeToQueue:
-        all: ap_event_single_queue
-        quote_created: ap_event_quote_created
-        transaction_created: ap_event_transaction_created
-        transaction_status_changed: ap_event_transaction_status_changed
-        transaction_error: ap_event_transaction_error
+      #useIAM: false
+      #useSingleQueue: false
+      #eventTypeToQueue:
+      #  all: ap_event_single_queue
+      #  quote_created: ap_event_quote_created
+      #  transaction_created: ap_event_transaction_created
+      #  transaction_status_changed: ap_event_transaction_status_changed
+      #  transaction_error: ap_event_transaction_error
 
     sqs.publisher:
       # region - AWS region for the SQS queue
@@ -238,14 +238,14 @@ stellar:
       # NOTE: The SQS FIFO queues should be pre-created in AWS (Anchor Platform will not create them)
       region: us-east-2
       useSingleQueue: false
+      accessKey: ${SQS_ACCESS_KEY}
+      secretKey: ${SQS_SECRET_KEY}
       eventTypeToQueue:
-        all: SQS_QUEUE_NAME # sdf_dev_ap_event_single_queue.fifo
+        all: dev-platform-queue # sdf_dev_ap_event_single_queue.fifo
         #quote_created: sdf_dev_ap_event_quote_created.fifo
         #transaction_created: sdf_dev_ap_event_transaction_created.fifo
         #ransaction_status_changed: sdf_dev_ap_event_transaction_status_changed.fifo
         #ransaction_error: sdf_dev_ap_event_transaction_error.fifo
-      accessKey: SQS_PUBLISHER_ACCESS_KEY
-      secretKey: SQS_PUBLISHER_SECRET_KEY
 
   #
   # Spring Data JDBC settings
@@ -266,33 +266,10 @@ stellar:
 
   # settings for aurora postgres connection using IAM for authentication
   # NOTE: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY and AWS_REGION environment variables need to be set
-  data-spring-jdbc-aws-aurora-postgres:
-    spring.jpa.generate-ddl: true
-    spring.jpa.database: POSTGRESQL
-    spring.jpa.show-sql: false
-    spring.datasource.driver-class-name: org.postgresql.Driver
-    spring.datasource.type: org.stellar.anchor.platform.databaseintegration.IAMAuthDataSource
-    spring.datasource.url: jdbc:postgresql://database-aurora-iam-instance-1.chizvyczscs2.us-east-1.rds.amazonaws.com:5432/anchorplatform
-    spring.datasource.username: anchorplatform1
-    spring.datasource.hikari.max-lifetime: 840000    # 14 minutes because IAM tokens are valid for 15min
-    spring.mvc.converters.preferred-json-mapper: gson
-    spring.liquibase.change-log: classpath:/db/changelog/db.changelog-master.yaml
-
-  data-spring-jdbc-local-postgres:
-    spring.jpa.generate-ddl: true
-    spring.jpa.database: POSTGRESQL
-    spring.jpa.show-sql: false
-    spring.datasource.driver-class-name: org.postgresql.Driver
-    spring.datasource.url: jdbc:postgresql://localhost:5432/anchorplatform
-    spring.datasource.username: ${POSTGRES_USERNAME}
-    spring.datasource.password: ${POSTGRES_PASSWORD}
-    spring.mvc.converters.preferred-json-mapper: gson
-    spring.liquibase.change-log: classpath:/db/changelog/db.changelog-master.yaml
-
-  data-spring-jdbc-h2:
-    spring.datasource.url: jdbc:h2:mem:test
-    spring.jpa.properties.hibernate.dialect: org.hibernate.dialect.H2Dialect
-    spring.liquibase.enabled: false
+    data-spring-jdbc-h2:
+      spring.datasource.url: jdbc:h2:mem:test
+      spring.jpa.properties.hibernate.dialect: org.hibernate.dialect.H2Dialect
+      spring.liquibase.enabled: false
 
   #
   # Spring framework configurations
