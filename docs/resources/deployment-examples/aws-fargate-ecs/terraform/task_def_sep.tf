@@ -63,6 +63,10 @@ resource "aws_ecs_task_definition" "sep" {
         "name": "SEP_10_SIGNING_SEED",
         "valueFrom": data.aws_ssm_parameter.sep10_signing_seed.arn
       },
+      {
+        "name": "JWT_SECRET",
+        "valueFrom": data.aws_ssm_parameter.jwt_secret.arn
+      }
    ]
 
    "mountPoints": [

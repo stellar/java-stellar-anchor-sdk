@@ -21,6 +21,10 @@ data "aws_ssm_parameter" "sep10_signing_seed" {
   name = "SEP10_SIGNING_SEED"
 }
 
+data "aws_ssm_parameter" "JWT_SECRET" {
+  name = "JWT_SECRET"
+}
+
 
 ## Task Definitions
 
