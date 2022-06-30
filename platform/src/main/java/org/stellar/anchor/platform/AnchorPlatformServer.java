@@ -18,15 +18,18 @@ import org.stellar.anchor.platform.configurator.PlatformAppConfigurator;
 import org.stellar.anchor.platform.configurator.PropertiesReader;
 import org.stellar.anchor.platform.configurator.SpringFrameworkConfigurator;
 import org.stellar.anchor.util.GsonUtils;
+import org.stellar.anchor.util.Log;
 
 @SpringBootApplication
 @EnableJpaRepositories(basePackages = {"org.stellar.anchor.platform.data"})
 @EntityScan(basePackages = {"org.stellar.anchor.platform.data"})
 @EnableConfigurationProperties
 public class AnchorPlatformServer implements WebMvcConfigurer {
-
+  
   public static ConfigurableApplicationContext start(
       int port, String contextPath, Map<String, Object> environment) {
+        Log.debug("REECEDEBUG contextPath = '%s", contextPath);
+        Log.debug("REECEDEBUG ENVIRONMENT = '%s", environment.toString());
     SpringApplicationBuilder builder =
         new SpringApplicationBuilder(AnchorPlatformServer.class)
             .bannerMode(OFF)
@@ -36,12 +39,17 @@ public class AnchorPlatformServer implements WebMvcConfigurer {
                 "spring.config.import=optional:classpath:example.env[.properties]",
                 String.format("server.port=%d", port),
                 String.format("server.contextPath=%s", contextPath));
-    if (environment != null) {
+    
+                if (environment != null) {
+      Log.debug("REECEDEBUG ENVIRONMENT = '%s",environment.toString());
       builder.properties(environment);
+    } else {
+      Log.debug("REECEDEBUG ENVIRONMENT = null");
     }
 
     SpringApplication springApplication = builder.build();
-
+    //Log.debug("springAppliclation = '%s", springApplication.toString());
+    
     // Reads the configuration from sources, such as yaml
     springApplication.addInitializers(new PropertiesReader());
     // Configure SEPs
@@ -50,7 +58,7 @@ public class AnchorPlatformServer implements WebMvcConfigurer {
     springApplication.addInitializers(new DataAccessConfigurator());
     // Configure spring framework
     springApplication.addInitializers(new SpringFrameworkConfigurator());
-
+    Log.debug("PropertySources = '%s", springApplication.getAllSources().toString());
     return springApplication.run();
   }
 
