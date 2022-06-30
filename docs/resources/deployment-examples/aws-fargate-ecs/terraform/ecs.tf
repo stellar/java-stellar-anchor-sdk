@@ -21,7 +21,7 @@ resource "aws_ecs_task_definition" "sep" {
   
   container_definitions = jsonencode([{
    name        = "${var.environment}-sep-config"
-   image       = "reecemarkowsky/anchor-config:latest"
+   image       = "245943599471.dkr.ecr.us-east-2.amazonaws.com/anchor-platform-config:latest"
    entryPoint  = ["tail", "-f", "/dev/null"]
    essential   = false
    "mountPoints": [
@@ -42,7 +42,7 @@ resource "aws_ecs_task_definition" "sep" {
             }
   },{
    name        = "${var.environment}-sep"
-   image       = "stellar/anchor-platform:a93e924"
+   image       = "245943599471.dkr.ecr.us-east-2.amazonaws.com/anchorplatform:latest"
    entryPoint  = ["java", "-jar", "/app/anchor-platform-runner.jar", "--sep-server"]
    essential   = true
    "mountPoints": [
