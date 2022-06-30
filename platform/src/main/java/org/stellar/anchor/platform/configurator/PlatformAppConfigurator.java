@@ -16,7 +16,7 @@ public class PlatformAppConfigurator extends AbstractConfigurator
     Log.debug("REECEDEBUG prop path = '%s", path);
     // Load and add the data access settings to Spring `Environment`
     PropertiesPropertySource pps = createPrefixedPropertySource(path);
-    Log.debug("REECEDEBUG pps = '%s", p.toString());
+    Log.debug("REECEDEBUG pps = '%s", pps.toString());
     applicationContext.getEnvironment().getPropertySources().addFirst(pps);
   }
 }
