@@ -20,6 +20,39 @@ resource "aws_ecs_task_definition" "sep" {
    image       = "stellar/anchor-platform:a93e924"
    entryPoint  = ["java", "-jar", "/app/anchor-platform-runner.jar", "--sep-server"]
    essential   = true
+   "mountPoints": [
+      {
+        "readOnly": true,
+        "containerPath": "/config",
+        "sourceVolume": "config"
+      }
+    ]
+   logConfiguration = {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "anchor-platform",
+                    "awslogs-region": "us-east-2",
+                    "awslogs-create-group": "true",
+                    "awslogs-stream-prefix": "sep"
+                }
+            }
+   portMappings = [{
+     protocol      = "tcp"
+     containerPort = 8080
+     hostPort      = 8080
+   }]
+  },
+  {
+   name        = "${var.environment}-sep-config"
+   image       = "reecemarkowsky/anchor-config:latest"
+   essential   = false
+   "mountPoints": [
+      {
+        "readOnly": false,
+        "containerPath": "/config",
+        "sourceVolume": "config"
+      }
+    ],    
    logConfiguration = {
                 "logDriver": "awslogs",
                 "options": {
@@ -36,7 +69,6 @@ resource "aws_ecs_task_definition" "sep" {
    }]
   }])
 }
-
 resource "aws_ecs_task_definition" "ref" {
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
