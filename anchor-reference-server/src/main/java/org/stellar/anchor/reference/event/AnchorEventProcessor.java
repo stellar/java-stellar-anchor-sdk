@@ -51,15 +51,17 @@ public class AnchorEventProcessor {
     // transaction as complete.
     Log.debugF("Updating transaction: {} on Anchor Platform to 'complete'", event.getId());
     PatchTransactionsRequest txnRequest =
-        new PatchTransactionsRequest(
-            List.of(
-                PatchTransactionRequest.builder()
-                    .id(event.getId())
-                    .status(TransactionEvent.Status.COMPLETED.status)
-                    .amountOut(
-                        new Amount(
-                            event.getAmountOut().getAmount(), event.getAmountOut().getAsset()))
-                    .build()));
+        PatchTransactionsRequest.builder()
+            .records(
+                List.of(
+                    PatchTransactionRequest.builder()
+                        .id(event.getId())
+                        .status(TransactionEvent.Status.COMPLETED.status)
+                        .amountOut(
+                            new Amount(
+                                event.getAmountOut().getAmount(), event.getAmountOut().getAsset()))
+                        .build()))
+            .build();
 
     try {
       platformClient.patchTransaction(txnRequest);

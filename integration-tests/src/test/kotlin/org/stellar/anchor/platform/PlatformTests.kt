@@ -1,8 +1,11 @@
 package org.stellar.anchor.platform
 
 import org.junit.jupiter.api.Assertions.*
+import org.stellar.anchor.api.platform.PatchTransactionRequest
+import org.stellar.anchor.api.platform.PatchTransactionsRequest
 import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest
 import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionRequest
+import org.stellar.anchor.api.shared.Amount
 import org.stellar.anchor.event.models.TransactionEvent
 import org.stellar.anchor.reference.client.PlatformApiClient
 import org.stellar.anchor.util.GsonUtils
@@ -50,6 +53,24 @@ fun testHappyPath() {
   assertEquals(TransactionEvent.Status.PENDING_SENDER.status, getTxResponse.status)
   assertEquals(txnRequest.amount, getTxResponse.amountIn.amount)
   assertTrue(getTxResponse.amountIn.asset.contains(txnRequest.assetCode))
+  assertEquals(31, getTxResponse.sep)
+
+  val patchTxRequest =
+    PatchTransactionRequest.builder()
+      .id(getTxResponse.id)
+      .status(TransactionEvent.Status.COMPLETED.status)
+      .amountOut(Amount(quote.buyAmount, quote.buyAsset))
+      .build()
+  val patchTxResponse =
+    platformApiClient.patchTransaction(
+      PatchTransactionsRequest.builder().records(listOf(patchTxRequest)).build()
+    )
+  assertEquals(1, patchTxResponse.records.size)
+  val patchedTx = patchTxResponse.records[0]
+  assertEquals(getTxResponse.id, patchedTx.id)
+  assertEquals(TransactionEvent.Status.COMPLETED.status, patchedTx.status)
+  assertEquals(quote.buyAmount, patchedTx.amountOut.amount)
+  assertEquals(quote.buyAsset, patchedTx.amountOut.asset)
   assertEquals(31, getTxResponse.sep)
 }
 
