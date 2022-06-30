@@ -20,6 +20,7 @@ import org.stellar.anchor.platform.service.ResourceReaderAssetService;
 import org.stellar.anchor.platform.service.Sep31DepositInfoGeneratorCircle;
 import org.stellar.anchor.platform.service.Sep31DepositInfoGeneratorSelf;
 import org.stellar.anchor.platform.service.SpringResourceReader;
+import org.stellar.anchor.reference.filter.PlatformToAnchorTokenFilter;
 import org.stellar.anchor.sep1.Sep1Service;
 import org.stellar.anchor.sep10.JwtService;
 import org.stellar.anchor.sep10.Sep10Service;
@@ -56,6 +57,26 @@ public class SepConfig {
     registrationBean.addUrlPatterns("/sep31/transactions/*");
     registrationBean.addUrlPatterns("/sep38/quote");
     registrationBean.addUrlPatterns("/sep38/quote/*");
+    return registrationBean;
+  }
+
+  /**
+   * Register anchor-to-platform token filter.
+   *
+   * @return Spring Filter Registration Bean
+   */
+  @Bean
+  public FilterRegistrationBean<PlatformToAnchorTokenFilter> anchorToPlatformTokenFilter(
+      @Autowired IntegrationAuthConfig integrationAuthConfig) {
+    JwtService anchorToPlatformJwtService =
+        new JwtService(integrationAuthConfig.getAnchorToPlatformJwtSecret());
+    FilterRegistrationBean<PlatformToAnchorTokenFilter> registrationBean =
+        new FilterRegistrationBean<>();
+    registrationBean.setFilter(new PlatformToAnchorTokenFilter(anchorToPlatformJwtService));
+    registrationBean.addUrlPatterns("/transactions/*");
+    registrationBean.addUrlPatterns("/transactions");
+    registrationBean.addUrlPatterns("/exchange/quotes/*");
+    registrationBean.addUrlPatterns("/exchange/quotes");
     return registrationBean;
   }
 
