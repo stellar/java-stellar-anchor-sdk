@@ -211,7 +211,7 @@ resource "aws_ecs_service" "sep" {
  name                               = "${var.environment}-sep-service"
  cluster                            = aws_ecs_cluster.sep.id
  task_definition                    = aws_ecs_task_definition.sep.arn
- desired_count                      = 2
+ desired_count                      = 1
  deployment_minimum_healthy_percent = 100
  deployment_maximum_percent         = 200
  launch_type                        = "FARGATE"
@@ -239,7 +239,7 @@ resource "aws_ecs_service" "ref" {
  name                               = "${var.environment}-ref-service"
  cluster                            = aws_ecs_cluster.ref.id
  task_definition                    = aws_ecs_task_definition.ref.arn
- desired_count                      = 2
+ desired_count                      = 1
  deployment_minimum_healthy_percent = 100
  deployment_maximum_percent         = 200
  launch_type                        = "FARGATE"
