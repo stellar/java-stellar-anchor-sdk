@@ -3,6 +3,7 @@ package org.stellar.anchor.platform
 import org.junit.jupiter.api.Assertions.*
 import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest
 import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionRequest
+import org.stellar.anchor.event.models.TransactionEvent
 import org.stellar.anchor.reference.client.PlatformApiClient
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.Sep1Helper
@@ -42,14 +43,14 @@ fun testHappyPath() {
   txnRequest.senderId = senderCustomer!!.id
   txnRequest.receiverId = receiverCustomer!!.id
   txnRequest.quoteId = quote.id
-  val txnPosted = sep31Client.postTransaction(txnRequest)
+  val postTxResponse = sep31Client.postTransaction(txnRequest)
 
-  val txnQueried = platformApiClient.getTransaction(txnPosted.id)
-  assertEquals(txnPosted.id, txnQueried.id)
-  assertEquals(txnQueried.status, "pending_sender")
-  assertEquals(txnRequest.amount, txnQueried.amountIn.amount)
-  assertTrue(txnQueried.amountIn.asset.contains(txnRequest.assetCode))
-  assertEquals(31, txnQueried.sep)
+  val getTxResponse = platformApiClient.getTransaction(postTxResponse.id)
+  assertEquals(postTxResponse.id, getTxResponse.id)
+  assertEquals(TransactionEvent.Status.PENDING_SENDER.status, getTxResponse.status)
+  assertEquals(txnRequest.amount, getTxResponse.amountIn.amount)
+  assertTrue(getTxResponse.amountIn.asset.contains(txnRequest.assetCode))
+  assertEquals(31, getTxResponse.sep)
 }
 
 fun testHealth() {

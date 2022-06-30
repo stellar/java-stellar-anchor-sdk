@@ -1,11 +1,11 @@
 package org.stellar.anchor.api.platform;
 
 import java.util.List;
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
-@Builder
+@AllArgsConstructor
 public class PatchTransactionsRequest {
   List<PatchTransactionRequest> records;
 }
