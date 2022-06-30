@@ -47,6 +47,10 @@ resource "aws_ecs_task_definition" "sep" {
    entryPoint = ["/anchor_config/sep.sh"]
    #entryPoint  = ["java", "-jar", "/app/anchor-platform-runner.jar", "--sep-server"]
    essential   = true
+   container_depends_on = [ {
+     containerName = "${var.environment}-sep-config"
+     condition = "START"
+   }]
    "mountPoints": [
       {
         "readOnly": true,
