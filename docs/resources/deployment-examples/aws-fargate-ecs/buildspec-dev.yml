@@ -15,5 +15,5 @@ phases:
       - cp ./stellar.toml /config/stellar-wks.toml
       - cp ./anchor_config.yaml /config
       - docker build . -t anchor-config
-      - docker tag anchor-platform reecemarkowsky/anchor-config:latest
+      - docker tag anchor-config reecemarkowsky/anchor-config:latest
       - docker push reecemarkowsky/anchor-config:latest
