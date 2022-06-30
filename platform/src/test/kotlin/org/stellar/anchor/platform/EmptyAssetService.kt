@@ -11,4 +11,8 @@ class EmptyAssetService : AssetService {
   override fun getAsset(code: String?, issuer: String?): AssetInfo {
     TODO("Not yet implemented")
   }
+
+  override fun getAsset(code: String?): AssetInfo {
+    TODO("Not yet implemented")
+  }
 }

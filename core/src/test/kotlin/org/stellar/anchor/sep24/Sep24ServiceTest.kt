@@ -110,7 +110,7 @@ internal class Sep24ServiceTest {
     assertEquals(slotTxn.captured.assetCode, "USDC")
     assertEquals(
       slotTxn.captured.assetIssuer,
-      "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+      "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
     )
     assertEquals(slotTxn.captured.sep10Account, TEST_ACCOUNT)
     assertEquals(slotTxn.captured.fromAccount, TEST_ACCOUNT)

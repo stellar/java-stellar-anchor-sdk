@@ -3,6 +3,25 @@ plugins {
   id("com.diffplug.spotless") version "6.2.1"
 }
 
+tasks {
+  register<Copy>("installLocalGitHook") {
+    from("scripts/pre-commit.sh") {
+      rename { it.removeSuffix(".sh") }
+    }
+    into(".git/hooks")
+
+    doLast {
+      project.exec {
+        commandLine("chmod",  "+x", ".git/hooks/pre-commit")
+      }
+    }
+  }
+
+  "build" {
+    dependsOn("installLocalGitHook")
+  }
+}
+
 subprojects {
   apply(plugin = "java")
   apply(plugin = "com.diffplug.spotless")
