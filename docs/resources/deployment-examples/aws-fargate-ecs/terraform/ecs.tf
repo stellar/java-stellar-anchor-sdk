@@ -15,6 +15,10 @@ resource "aws_ecs_task_definition" "sep" {
   family                   = "${var.environment}-sep"
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
   task_role_arn            = aws_iam_role.ecs_task_role.arn
+    volume {
+    name = "config"
+    }
+  
   container_definitions = jsonencode([{
    name        = "${var.environment}-sep-config"
    image       = "reecemarkowsky/anchor-config:latest"
