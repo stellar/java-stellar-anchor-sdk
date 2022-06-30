@@ -62,7 +62,7 @@ resource "aws_ecs_task_definition" "sep" {
     "environment": [
               {
                   "name": "STELLAR_ANCHOR_CONFIG",
-                  "value": "/anchor_config/anchor_config.yaml"
+                  "value": "file:/anchor_config/anchor_config.yaml"
               },
               {   
                   "name": "TEST3",

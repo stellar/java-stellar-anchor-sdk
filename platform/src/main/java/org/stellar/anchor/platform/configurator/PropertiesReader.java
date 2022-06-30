@@ -53,6 +53,7 @@ public class PropertiesReader extends AbstractConfigurator
     yamlLocation = getFromSystemEnv();
     if (yamlLocation != null) {
       Log.debugF("REECEDEBUG yamlLocation exists in Env = {}",yamlLocation);
+      
       loadConfigYaml(applicationContext, yamlLocation);
       return;
     } else
