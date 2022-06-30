@@ -16,6 +16,26 @@ resource "aws_ecs_task_definition" "sep" {
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
   task_role_arn            = aws_iam_role.ecs_task_role.arn
   container_definitions = jsonencode([{
+   name        = "${var.environment}-sep-config"
+   image       = "reecemarkowsky/anchor-config:latest"
+   essential   = false
+   "mountPoints": [
+      {
+        "readOnly": false,
+        "containerPath": "/config",
+        "sourceVolume": "config"
+      }
+    ],    
+   logConfiguration = {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "anchor-platform",
+                    "awslogs-region": "us-east-2",
+                    "awslogs-create-group": "true",
+                    "awslogs-stream-prefix": "sep"
+                }
+            }
+  },{
    name        = "${var.environment}-sep"
    image       = "stellar/anchor-platform:a93e924"
    entryPoint  = ["java", "-jar", "/app/anchor-platform-runner.jar", "--sep-server"]
@@ -41,28 +61,8 @@ resource "aws_ecs_task_definition" "sep" {
      containerPort = 8080
      hostPort      = 8080
    }]
-  },
-  {
-   name        = "${var.environment}-sep-config"
-   image       = "reecemarkowsky/anchor-config:latest"
-   essential   = false
-   "mountPoints": [
-      {
-        "readOnly": false,
-        "containerPath": "/config",
-        "sourceVolume": "config"
-      }
-    ],    
-   logConfiguration = {
-                "logDriver": "awslogs",
-                "options": {
-                    "awslogs-group": "anchor-platform",
-                    "awslogs-region": "us-east-2",
-                    "awslogs-create-group": "true",
-                    "awslogs-stream-prefix": "sep"
-                }
-            }
-  }])
+  }
+  ])
 }
 resource "aws_ecs_task_definition" "ref" {
   network_mode             = "awsvpc"
