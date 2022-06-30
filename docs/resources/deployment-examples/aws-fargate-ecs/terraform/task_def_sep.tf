@@ -39,8 +39,8 @@ resource "aws_ecs_task_definition" "sep" {
      containerName = "${var.environment}-sep-config"
      condition = "START"
    }]
-   entryPoint = ["/anchor_config/sep.sh"]
-   #entryPoint  = ["java", "-jar", "/app/anchor-platform-runner.jar", "--sep-server"]
+   #entryPoint = ["/anchor_config/sep.sh"]
+   entryPoint  = ["java", "-jar", "/app/anchor-platform-runner.jar", "--sep-server"]
    essential   = true
    secrets = [
       {
