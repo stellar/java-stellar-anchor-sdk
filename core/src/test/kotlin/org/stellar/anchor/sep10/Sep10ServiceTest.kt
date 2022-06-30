@@ -32,7 +32,6 @@ import org.stellar.anchor.api.exception.SepValidationException
 import org.stellar.anchor.api.sep.sep10.ChallengeRequest
 import org.stellar.anchor.api.sep.sep10.ChallengeRequestTest
 import org.stellar.anchor.api.sep.sep10.ValidationRequest
-import org.stellar.anchor.api.sep.sep10.ValidationResponse
 import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.Sep10Config
 import org.stellar.anchor.horizon.Horizon
@@ -199,14 +198,11 @@ internal class Sep10ServiceTest {
         )
         .build()
     multisigTx.sign(clientMasterKP)
-    val txResponse = horizon.server.submitTransaction(multisigTx)
-    println(txResponse)
+    horizon.server.submitTransaction(multisigTx)
 
     // 4 ------ Run tests
     val validationRequest = ValidationRequest.of(transaction.toEnvelopeXdrBase64())
-    var validationResponse: ValidationResponse? = null
-    assertDoesNotThrow { validationResponse = sep10Service.validateChallenge(validationRequest) }
-    println(validationResponse)
+    assertDoesNotThrow { sep10Service.validateChallenge(validationRequest) }
   }
 
   @Test
@@ -266,9 +262,7 @@ internal class Sep10ServiceTest {
 
     // 3 ------ Run tests
     val validationRequest = ValidationRequest.of(transaction.toEnvelopeXdrBase64())
-    var validationResponse: ValidationResponse? = null
-    assertDoesNotThrow { validationResponse = sep10Service.validateChallenge(validationRequest) }
-    println(validationResponse)
+    assertDoesNotThrow { sep10Service.validateChallenge(validationRequest) }
   }
 
   @Test
@@ -341,9 +335,7 @@ internal class Sep10ServiceTest {
 
     // 3 ------ Run tests
     val validationRequest = ValidationRequest.of(transaction.toEnvelopeXdrBase64())
-    var validationResponse: ValidationResponse? = null
-    assertDoesNotThrow { validationResponse = sep10Service.validateChallenge(validationRequest) }
-    println(validationResponse)
+    assertDoesNotThrow { sep10Service.validateChallenge(validationRequest) }
   }
 
   @ParameterizedTest
