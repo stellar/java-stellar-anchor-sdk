@@ -113,14 +113,15 @@ resource "aws_alb_target_group" "sep" {
   protocol    = "HTTP"
   vpc_id      = module.vpc.vpc_id
   target_type = "ip"
+  slow_start = 180
  
   health_check {
    healthy_threshold   = "2"
    interval            = "30"
    protocol            = "HTTP"
    matcher             = "200"
-   timeout             = "3"
-   path                = "/.well-known/stellar.toml"
+   timeout             = "10"
+   path                = "/health"
    unhealthy_threshold = "3"
   }
   depends_on = [aws_lb.sep]
@@ -136,10 +137,10 @@ resource "aws_alb_target_group" "ref" {
  
   health_check {
    healthy_threshold   = "3"
-   interval            = "15"
+   interval            = "30"
    protocol            = "HTTP"
    matcher             = "200"
-   timeout             = "3"
+   timeout             = "10"
    path                = "/health"
    unhealthy_threshold = "10"
   }
