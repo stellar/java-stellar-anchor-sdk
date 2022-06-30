@@ -28,8 +28,7 @@ public class AnchorPlatformServer implements WebMvcConfigurer {
   
   public static ConfigurableApplicationContext start(
       int port, String contextPath, Map<String, Object> environment) {
-        Log.debug("REECEDEBUG contextPath = '%s", contextPath);
-        Log.debug("REECEDEBUG ENVIRONMENT = '%s", environment.toString());
+        Log.debugF("REECEDEBUG contextPath = {}", contextPath);
     SpringApplicationBuilder builder =
         new SpringApplicationBuilder(AnchorPlatformServer.class)
             .bannerMode(OFF)
@@ -41,7 +40,7 @@ public class AnchorPlatformServer implements WebMvcConfigurer {
                 String.format("server.contextPath=%s", contextPath));
     
                 if (environment != null) {
-      Log.debug("REECEDEBUG ENVIRONMENT = '%s",environment.toString());
+      Log.debugF("REECEDEBUG ENVIRONMENT = {}",environment.toString());
       builder.properties(environment);
     } else {
       Log.debug("REECEDEBUG ENVIRONMENT = null");
@@ -58,7 +57,7 @@ public class AnchorPlatformServer implements WebMvcConfigurer {
     springApplication.addInitializers(new DataAccessConfigurator());
     // Configure spring framework
     springApplication.addInitializers(new SpringFrameworkConfigurator());
-    Log.debug("PropertySources = '%s", springApplication.getAllSources().toString());
+    Log.debugF("PropertySources = {}", springApplication.getAllSources().toString());
     return springApplication.run();
   }
 

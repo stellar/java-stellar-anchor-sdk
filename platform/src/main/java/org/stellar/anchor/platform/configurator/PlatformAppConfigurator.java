@@ -13,10 +13,10 @@ public class PlatformAppConfigurator extends AbstractConfigurator
     // Find the location of the data-access settings.
 
     String path = getFlatProperties().getProperty("stellar.anchor.app-config.settings");
-    Log.debug("REECEDEBUG prop path = '%s", path);
+    Log.debugF("REECEDEBUG prop path = {}", path);
     // Load and add the data access settings to Spring `Environment`
     PropertiesPropertySource pps = createPrefixedPropertySource(path);
-    Log.debug("REECEDEBUG pps = '%s", pps.toString());
+    Log.debugF("REECEDEBUG pps = {}", pps.toString());
     applicationContext.getEnvironment().getPropertySources().addFirst(pps);
   }
 }
