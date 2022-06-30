@@ -27,7 +27,7 @@ resource "aws_ecs_task_definition" "sep" {
    "mountPoints": [
       {
         "readOnly": false,
-        "containerPath": "/config",
+        "containerPath": "/config_files",
         "sourceVolume": "config"
       }
     ],    
