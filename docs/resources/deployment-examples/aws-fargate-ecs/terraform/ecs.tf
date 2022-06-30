@@ -62,11 +62,6 @@ resource "aws_ecs_task_definition" "sep" {
                     "awslogs-stream-prefix": "sep"
                 }
             }
-   portMappings = [{
-     protocol      = "tcp"
-     containerPort = 8080
-     hostPort      = 8080
-   }]
   }])
 }
 resource "aws_ecs_task_definition" "ref" {
