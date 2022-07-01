@@ -435,8 +435,7 @@ public class Sep31Service {
     if (sep12Operation != null) {
       Optional<String> receiverTypeOptional =
           sep12Operation.getReceiver().getTypes().keySet().stream().findFirst();
-      receiverType =
-          receiverTypeOptional.isPresent() ? receiverTypeOptional.get() : null;
+      receiverType = receiverTypeOptional.isPresent() ? receiverTypeOptional.get() : null;
     }
     Sep12GetCustomerRequest request =
         Sep12GetCustomerRequest.builder().id(receiverId).type(receiverType).build();
@@ -459,8 +458,7 @@ public class Sep31Service {
       Optional<String> senderTypeOptional =
           Context.get().getAsset().getSep31().getSep12().getSender().getTypes().keySet().stream()
               .findFirst();
-      senderType =
-          senderTypeOptional.isPresent() ? senderTypeOptional.get() : null;
+      senderType = senderTypeOptional.isPresent() ? senderTypeOptional.get() : null;
     }
     request = Sep12GetCustomerRequest.builder().id(senderId).type(senderType).build();
     Sep12GetCustomerResponse sender = this.customerIntegration.getCustomer(request);

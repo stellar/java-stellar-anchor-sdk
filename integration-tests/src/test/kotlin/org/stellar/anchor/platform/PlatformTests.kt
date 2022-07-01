@@ -30,11 +30,12 @@ fun testHappyPath() {
   val receiverCustomerRequest =
     GsonUtils.getInstance().fromJson(testCustomer2Json, Sep12PutCustomerRequest::class.java)
   val receiverCustomer = sep12Client.putCustomer(receiverCustomerRequest)
-  val quote = sep38.postQuote(
-    "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-    "10",
-    "stellar:JPYC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-  )
+  val quote =
+    sep38.postQuote(
+      "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+      "10",
+      "stellar:JPYC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+    )
 
   // Post Sep31 transaction.
   val txnRequest = gson.fromJson(postTxnJson, Sep31PostTransactionRequest::class.java)
