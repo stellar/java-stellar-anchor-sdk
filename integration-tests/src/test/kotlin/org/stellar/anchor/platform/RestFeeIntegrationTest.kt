@@ -13,16 +13,14 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.stellar.anchor.api.callback.GetFeeRequest
 import org.stellar.anchor.api.callback.GetFeeResponse
-import org.stellar.anchor.api.callback.GetRateRequest.Type.*
 import org.stellar.anchor.api.exception.AnchorException
 import org.stellar.anchor.api.exception.BadRequestException
 import org.stellar.anchor.api.exception.NotFoundException
 import org.stellar.anchor.api.exception.ServerErrorException
-import org.stellar.anchor.api.sep.sep38.Sep38Context.*
-import org.stellar.anchor.platform.callback.AuthHelper
+import org.stellar.anchor.auth.AuthHelper
+import org.stellar.anchor.auth.JwtService
+import org.stellar.anchor.auth.JwtToken
 import org.stellar.anchor.platform.callback.RestFeeIntegration
-import org.stellar.anchor.sep10.JwtService
-import org.stellar.anchor.sep10.JwtToken
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.OkHttpUtil
 

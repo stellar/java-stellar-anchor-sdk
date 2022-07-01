@@ -1,9 +1,8 @@
-package org.stellar.anchor.reference.filter;
+package org.stellar.anchor.filter;
 
 import org.stellar.anchor.api.exception.SepValidationException;
-import org.stellar.anchor.filter.BaseTokenFilter;
-import org.stellar.anchor.sep10.JwtService;
-import org.stellar.anchor.sep10.JwtToken;
+import org.stellar.anchor.auth.JwtService;
+import org.stellar.anchor.auth.JwtToken;
 
 public class PlatformToAnchorTokenFilter extends BaseTokenFilter {
   public PlatformToAnchorTokenFilter(JwtService jwtService) {

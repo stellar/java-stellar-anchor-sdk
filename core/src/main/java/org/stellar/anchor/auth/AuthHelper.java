@@ -1,9 +1,7 @@
-package org.stellar.anchor.platform.callback;
+package org.stellar.anchor.auth;
 
 import java.util.Calendar;
 import lombok.AllArgsConstructor;
-import org.stellar.anchor.sep10.JwtService;
-import org.stellar.anchor.sep10.JwtToken;
 
 @AllArgsConstructor
 public class AuthHelper {

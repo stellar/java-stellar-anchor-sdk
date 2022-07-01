@@ -8,12 +8,12 @@ import org.springframework.context.annotation.Configuration;
 import org.stellar.anchor.api.callback.CustomerIntegration;
 import org.stellar.anchor.api.callback.FeeIntegration;
 import org.stellar.anchor.api.callback.RateIntegration;
+import org.stellar.anchor.auth.AuthHelper;
+import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.config.*;
-import org.stellar.anchor.platform.callback.AuthHelper;
 import org.stellar.anchor.platform.callback.RestCustomerIntegration;
 import org.stellar.anchor.platform.callback.RestFeeIntegration;
 import org.stellar.anchor.platform.callback.RestRateIntegration;
-import org.stellar.anchor.sep10.JwtService;
 
 @Configuration
 public class IntegrationConfig {

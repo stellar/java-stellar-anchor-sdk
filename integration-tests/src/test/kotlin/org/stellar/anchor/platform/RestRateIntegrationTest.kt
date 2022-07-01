@@ -23,11 +23,11 @@ import org.stellar.anchor.api.exception.ServerErrorException
 import org.stellar.anchor.api.sep.sep38.RateFee
 import org.stellar.anchor.api.sep.sep38.RateFeeDetail
 import org.stellar.anchor.api.sep.sep38.Sep38Context.*
-import org.stellar.anchor.platform.callback.AuthHelper
+import org.stellar.anchor.auth.AuthHelper
+import org.stellar.anchor.auth.JwtService
+import org.stellar.anchor.auth.JwtToken
 import org.stellar.anchor.platform.callback.RestRateIntegration
 import org.stellar.anchor.reference.model.Quote
-import org.stellar.anchor.sep10.JwtService
-import org.stellar.anchor.sep10.JwtToken
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.OkHttpUtil
 

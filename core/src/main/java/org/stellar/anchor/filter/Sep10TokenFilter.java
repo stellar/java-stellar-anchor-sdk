@@ -1,9 +1,9 @@
 package org.stellar.anchor.filter;
 
 import org.stellar.anchor.api.exception.SepValidationException;
+import org.stellar.anchor.auth.JwtService;
+import org.stellar.anchor.auth.JwtToken;
 import org.stellar.anchor.config.Sep10Config;
-import org.stellar.anchor.sep10.JwtService;
-import org.stellar.anchor.sep10.JwtToken;
 
 public class Sep10TokenFilter extends BaseTokenFilter {
   final Sep10Config sep10Config;

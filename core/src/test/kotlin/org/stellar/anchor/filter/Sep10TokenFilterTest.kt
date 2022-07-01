@@ -13,12 +13,12 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.stellar.anchor.TestHelper.Companion.createJwtToken
+import org.stellar.anchor.auth.JwtService
+import org.stellar.anchor.auth.JwtToken
 import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.Sep10Config
 import org.stellar.anchor.filter.BaseTokenFilter.APPLICATION_JSON_VALUE
 import org.stellar.anchor.filter.BaseTokenFilter.JWT_TOKEN
-import org.stellar.anchor.sep10.JwtService
-import org.stellar.anchor.sep10.JwtToken
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class Sep10TokenFilterTest {

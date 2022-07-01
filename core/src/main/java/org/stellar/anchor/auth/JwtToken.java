@@ -1,4 +1,4 @@
-package org.stellar.anchor.sep10;
+package org.stellar.anchor.auth;
 
 import com.google.gson.annotations.SerializedName;
 import lombok.Data;

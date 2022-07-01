@@ -1,4 +1,4 @@
-package org.stellar.anchor.sep10;
+package org.stellar.anchor.auth;
 
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.impl.DefaultJwsHeader;
@@ -33,10 +33,10 @@ public class JwtService {
             .setSubject(token.getSub())
             .setIssuedAt(calIat.getTime())
             .setExpiration(calExp.getTime())
-            .setSubject(token.sub);
+            .setSubject(token.getSub());
 
-    if (token.clientDomain != null) {
-      builder.addClaims(Map.of("client_domain", token.clientDomain));
+    if (token.getClientDomain() != null) {
+      builder.addClaims(Map.of("client_domain", token.getClientDomain()));
     }
 
     return builder.signWith(SignatureAlgorithm.HS256, jwtKey).compact();

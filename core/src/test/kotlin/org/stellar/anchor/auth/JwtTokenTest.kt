@@ -1,4 +1,4 @@
-package org.stellar.anchor.sep10
+package org.stellar.anchor.auth
 
 import java.time.Instant
 import org.junit.jupiter.api.Assertions.assertEquals

@@ -5,6 +5,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.stellar.anchor.auth.JwtService;
+import org.stellar.anchor.filter.PlatformToAnchorTokenFilter;
 import org.stellar.anchor.reference.config.EventSettings;
 import org.stellar.anchor.reference.config.IntegrationAuthSettings;
 import org.stellar.anchor.reference.config.KafkaListenerSettings;
@@ -13,8 +15,6 @@ import org.stellar.anchor.reference.event.AbstractEventListener;
 import org.stellar.anchor.reference.event.AnchorEventProcessor;
 import org.stellar.anchor.reference.event.KafkaListener;
 import org.stellar.anchor.reference.event.SqsListener;
-import org.stellar.anchor.reference.filter.PlatformToAnchorTokenFilter;
-import org.stellar.anchor.sep10.JwtService;
 import org.stellar.anchor.util.GsonUtils;
 
 @Configuration

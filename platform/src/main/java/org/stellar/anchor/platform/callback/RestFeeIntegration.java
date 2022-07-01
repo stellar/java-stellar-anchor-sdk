@@ -18,6 +18,7 @@ import org.stellar.anchor.api.callback.GetFeeRequest;
 import org.stellar.anchor.api.callback.GetFeeResponse;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.ServerErrorException;
+import org.stellar.anchor.auth.AuthHelper;
 import shadow.com.google.common.reflect.TypeToken;
 
 public class RestFeeIntegration implements FeeIntegration {

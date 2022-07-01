@@ -11,8 +11,8 @@ import lombok.SneakyThrows;
 import org.apache.http.HttpStatus;
 import org.stellar.anchor.api.exception.SepValidationException;
 import org.stellar.anchor.api.sep.SepExceptionResponse;
-import org.stellar.anchor.sep10.JwtService;
-import org.stellar.anchor.sep10.JwtToken;
+import org.stellar.anchor.auth.JwtService;
+import org.stellar.anchor.auth.JwtToken;
 import org.stellar.anchor.util.GsonUtils;
 
 public abstract class BaseTokenFilter implements Filter {

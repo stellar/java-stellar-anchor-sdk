@@ -19,6 +19,7 @@ import org.stellar.anchor.api.callback.GetRateResponse;
 import org.stellar.anchor.api.callback.RateIntegration;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.ServerErrorException;
+import org.stellar.anchor.auth.AuthHelper;
 import org.stellar.anchor.util.Log;
 import shadow.com.google.common.reflect.TypeToken;
 
