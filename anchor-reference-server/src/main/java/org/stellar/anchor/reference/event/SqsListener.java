@@ -21,7 +21,7 @@ public class SqsListener extends AbstractEventListener {
 
   public SqsListener(SqsListenerSettings sqsListenerSettings, AnchorEventProcessor processor) {
     String key = sqsListenerSettings.getAccessKey();
-    String region = sqsListenerSettings.getAccessKey().getRegion();
+    String region = sqsListenerSettings.getRegion();
     if (key != null) {
       Log.debugF("sqs listener access key is {}", sqsListenerSettings.getAccessKey());
     } else {
