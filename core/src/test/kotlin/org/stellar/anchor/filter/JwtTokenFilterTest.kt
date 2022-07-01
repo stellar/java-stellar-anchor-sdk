@@ -16,20 +16,18 @@ import org.stellar.anchor.TestHelper.Companion.createJwtToken
 import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.auth.JwtToken
 import org.stellar.anchor.config.AppConfig
-import org.stellar.anchor.config.Sep10Config
-import org.stellar.anchor.filter.BaseTokenFilter.APPLICATION_JSON_VALUE
-import org.stellar.anchor.filter.BaseTokenFilter.JWT_TOKEN
+import org.stellar.anchor.filter.JwtTokenFilter.APPLICATION_JSON_VALUE
+import org.stellar.anchor.filter.JwtTokenFilter.JWT_TOKEN
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-internal class Sep10TokenFilterTest {
+internal class JwtTokenFilterTest {
   companion object {
     private const val PUBLIC_KEY = "GBJDSMTMG4YBP27ZILV665XBISBBNRP62YB7WZA2IQX2HIPK7ABLF4C2"
   }
 
   private lateinit var appConfig: AppConfig
   private lateinit var jwtService: JwtService
-  private lateinit var sep10Config: Sep10Config
-  private lateinit var sep10TokenFilter: Sep10TokenFilter
+  private lateinit var sep10TokenFilter: JwtTokenFilter
   private lateinit var request: HttpServletRequest
   private lateinit var response: HttpServletResponse
   private lateinit var mockFilterChain: FilterChain
@@ -40,13 +38,11 @@ internal class Sep10TokenFilterTest {
     this.appConfig = mockk(relaxed = true)
     every { appConfig.jwtSecretKey } returns "secret"
     this.jwtService = JwtService(appConfig)
-    this.sep10Config = mockk(relaxed = true)
-    this.sep10TokenFilter = Sep10TokenFilter(sep10Config, jwtService)
+    this.sep10TokenFilter = JwtTokenFilter(jwtService)
     this.request = mockk(relaxed = true)
     this.response = mockk(relaxed = true)
     this.mockFilterChain = mockk(relaxed = true)
 
-    every { sep10Config.enabled } returns true
     this.jwtToken = jwtService.encode(createJwtToken(PUBLIC_KEY, null, appConfig.hostUrl))
     every { request.getHeader("Authorization") } returns "Bearer $jwtToken"
   }
@@ -77,10 +73,7 @@ internal class Sep10TokenFilterTest {
 
     sep10TokenFilter.doFilter(request, response, mockFilterChain)
 
-    verify {
-      mockFilterChain.doFilter(request, response)
-      sep10Config wasNot Called
-    }
+    verify { mockFilterChain.doFilter(request, response) }
   }
 
   @ParameterizedTest
@@ -144,7 +137,7 @@ internal class Sep10TokenFilterTest {
     every { request.method } returns method
     val mockJwtService = spyk(jwtService)
     every { mockJwtService.decode(any()) } returns null
-    val filter = Sep10TokenFilter(sep10Config, mockJwtService)
+    val filter = JwtTokenFilter(mockJwtService)
 
     filter.doFilter(request, response, mockFilterChain)
 

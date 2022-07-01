@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConfigurationProperties(prefix = "integration-auth")
 public class IntegrationAuthSettings {
-  String platformToAnchorJwtSecret;
-  String anchorToPlatformJwtSecret;
+  String platformToAnchorSecret;
+  String anchorToPlatformSecret;
   long expirationMilliseconds = 30000;
 }

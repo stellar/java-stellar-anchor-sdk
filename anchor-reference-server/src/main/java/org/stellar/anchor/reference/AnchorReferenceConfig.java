@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.stellar.anchor.auth.AuthHelper;
 import org.stellar.anchor.auth.JwtService;
-import org.stellar.anchor.filter.PlatformToAnchorTokenFilter;
+import org.stellar.anchor.filter.JwtTokenFilter;
 import org.stellar.anchor.reference.config.*;
 import org.stellar.anchor.reference.event.AbstractEventListener;
 import org.stellar.anchor.reference.event.AnchorEventProcessor;
@@ -42,9 +42,9 @@ public class AnchorReferenceConfig {
 
   @Bean
   public Filter platformToAnchorFilter(IntegrationAuthSettings integrationAuthSettings) {
-    String jwtSecret = integrationAuthSettings.getPlatformToAnchorJwtSecret();
+    String jwtSecret = integrationAuthSettings.getPlatformToAnchorSecret();
     JwtService jwtService = new JwtService(jwtSecret);
-    return new PlatformToAnchorTokenFilter(jwtService);
+    return new JwtTokenFilter(jwtService);
   }
 
   /**
@@ -64,7 +64,7 @@ public class AnchorReferenceConfig {
   @Bean
   AuthHelper authHelper(AppSettings appSettings, IntegrationAuthSettings integrationAuthSettings) {
     return new AuthHelper(
-        new JwtService(integrationAuthSettings.getAnchorToPlatformJwtSecret()),
+        new JwtService(integrationAuthSettings.getAnchorToPlatformSecret()),
         integrationAuthSettings.getExpirationMilliseconds(),
         appSettings.getHostUrl());
   }

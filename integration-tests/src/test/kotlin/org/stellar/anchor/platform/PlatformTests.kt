@@ -21,7 +21,7 @@ fun platformTestAll(toml: Sep1Helper.TomlContent, jwt: String) {
   sep31Client = Sep31Client(toml.getString("DIRECT_PAYMENT_SERVER"), jwt)
   sep38 = Sep38Client(toml.getString("ANCHOR_QUOTE_SERVER"), jwt)
 
-  val platformToAnchorJwtService = JwtService("myAnchorToPlatformJwtSecret")
+  val platformToAnchorJwtService = JwtService("myAnchorToPlatformSecret")
   val authHelper = AuthHelper(platformToAnchorJwtService, 900000, "http://localhost:8081")
   platformApiClient = PlatformApiClient(authHelper, "http://localhost:8080")
 

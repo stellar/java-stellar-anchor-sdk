@@ -30,9 +30,9 @@ class RestFeeIntegrationTest {
     private const val stellarCircleUSDC =
       "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
 
-    private const val PLATFORM_TO_ANCHOR_JWT_SECRET = "myPlatformToAnchorJwtSecret"
+    private const val PLATFORM_TO_ANCHOR_SECRET = "myPlatformToAnchorSecret"
     private const val JWT_EXPIRATION_MILLISECONDS: Long = 1000000
-    private val platformToAnchorJwtService = JwtService(PLATFORM_TO_ANCHOR_JWT_SECRET)
+    private val platformToAnchorJwtService = JwtService(PLATFORM_TO_ANCHOR_SECRET)
     private val authHelper =
       AuthHelper(platformToAnchorJwtService, JWT_EXPIRATION_MILLISECONDS, "http://localhost:8080")
   }

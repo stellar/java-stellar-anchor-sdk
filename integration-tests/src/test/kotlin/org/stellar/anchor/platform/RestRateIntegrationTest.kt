@@ -33,9 +33,9 @@ import org.stellar.anchor.util.OkHttpUtil
 
 class RestRateIntegrationTest {
   companion object {
-    private const val PLATFORM_TO_ANCHOR_JWT_SECRET = "myPlatformToAnchorJwtSecret"
+    private const val PLATFORM_TO_ANCHOR_SECRET = "myPlatformToAnchorSecret"
     private const val JWT_EXPIRATION_MILLISECONDS: Long = 100000000
-    private val platformToAnchorJwtService = JwtService(PLATFORM_TO_ANCHOR_JWT_SECRET)
+    private val platformToAnchorJwtService = JwtService(PLATFORM_TO_ANCHOR_SECRET)
     private val authHelper =
       AuthHelper(platformToAnchorJwtService, JWT_EXPIRATION_MILLISECONDS, "http://localhost:8080")
   }

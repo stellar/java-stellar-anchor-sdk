@@ -2,7 +2,6 @@ package org.stellar.anchor.platform;
 
 import com.google.gson.Gson;
 import javax.servlet.Filter;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -13,8 +12,7 @@ import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.config.*;
 import org.stellar.anchor.event.EventPublishService;
-import org.stellar.anchor.filter.PlatformToAnchorTokenFilter;
-import org.stellar.anchor.filter.Sep10TokenFilter;
+import org.stellar.anchor.filter.JwtTokenFilter;
 import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.paymentservice.circle.CirclePaymentService;
 import org.stellar.anchor.paymentservice.circle.config.CirclePaymentConfig;
@@ -46,10 +44,9 @@ public class SepConfig {
    * @return Spring Filter Registration Bean
    */
   @Bean
-  public FilterRegistrationBean<Sep10TokenFilter> sep10TokenFilter(
-      @Autowired Sep10Config sep10Config, @Autowired JwtService jwtService) {
-    FilterRegistrationBean<Sep10TokenFilter> registrationBean = new FilterRegistrationBean<>();
-    registrationBean.setFilter(new Sep10TokenFilter(sep10Config, jwtService));
+  public FilterRegistrationBean<Filter> sep10TokenFilter(JwtService jwtService) {
+    FilterRegistrationBean<Filter> registrationBean = new FilterRegistrationBean<>();
+    registrationBean.setFilter(new JwtTokenFilter(jwtService));
     registrationBean.addUrlPatterns("/sep12/*");
     registrationBean.addUrlPatterns("/sep24/transaction");
     registrationBean.addUrlPatterns("/sep24/transactions*");
@@ -63,9 +60,9 @@ public class SepConfig {
 
   @Bean
   public Filter anchorToPlatformFilter(IntegrationAuthConfig integrationAuthConfig) {
-    String jwtSecret = integrationAuthConfig.getAnchorToPlatformJwtSecret();
+    String jwtSecret = integrationAuthConfig.getAnchorToPlatformSecret();
     JwtService jwtService = new JwtService(jwtSecret);
-    return new PlatformToAnchorTokenFilter(jwtService);
+    return new JwtTokenFilter(jwtService);
   }
 
   /**

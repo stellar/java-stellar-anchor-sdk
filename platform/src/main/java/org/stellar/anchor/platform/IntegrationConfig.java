@@ -20,7 +20,7 @@ public class IntegrationConfig {
   @Bean
   AuthHelper authHelper(AppConfig appConfig, IntegrationAuthConfig integrationAuthConfig) {
     return new AuthHelper(
-        new JwtService(integrationAuthConfig.getPlatformToAnchorJwtSecret()),
+        new JwtService(integrationAuthConfig.getPlatformToAnchorSecret()),
         integrationAuthConfig.getExpirationMilliseconds(),
         appConfig.getHostUrl());
   }

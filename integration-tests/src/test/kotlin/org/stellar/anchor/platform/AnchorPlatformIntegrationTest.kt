@@ -39,9 +39,9 @@ class AnchorPlatformIntegrationTest {
     private const val SEP_SERVER_PORT = 8080
     private const val REFERENCE_SERVER_PORT = 8081
 
-    private const val PLATFORM_TO_ANCHOR_JWT_SECRET = "myPlatformToAnchorJwtSecret"
+    private const val PLATFORM_TO_ANCHOR_SECRET = "myPlatformToAnchorSecret"
     private const val JWT_EXPIRATION_MILLISECONDS: Long = 10000
-    private val platformToAnchorJwtService = JwtService(PLATFORM_TO_ANCHOR_JWT_SECRET)
+    private val platformToAnchorJwtService = JwtService(PLATFORM_TO_ANCHOR_SECRET)
     private val authHelper =
       AuthHelper(
         platformToAnchorJwtService,

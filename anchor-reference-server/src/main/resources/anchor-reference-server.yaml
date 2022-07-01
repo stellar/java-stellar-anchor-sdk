@@ -21,10 +21,10 @@ integration-auth:
   # CallbackAPI requests (`Platform->Anchor`) will contain an authentication header whose token was built using this
   # secret. The Anchor Backend will also store this same secret and use it to decode the incoming token to verify it
   # came from the Platform.
-  platformToAnchorJwtSecret: myPlatformToAnchorJwtSecret
+  platformToAnchorSecret: myPlatformToAnchorSecret
   # PlatformAPI requests (`Anchor->Platform`) will contain an authentication header whose token was built using this
   # secret. The Platform Server will use this secret to decode the incoming token to verify it came from the Anchor.
-  anchorToPlatformJwtSecret: myAnchorToPlatformJwtSecret
+  anchorToPlatformSecret: myAnchorToPlatformSecret
   # Expiration time, in milliseconds, that will be used to build and validate the JWT tokens
   expirationMilliseconds: 30000
 
