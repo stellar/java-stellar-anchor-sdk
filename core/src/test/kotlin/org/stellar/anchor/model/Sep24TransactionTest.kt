@@ -22,7 +22,7 @@ internal class Sep24TransactionTest {
     builder
       .transactionId("txnId")
       .completedAt(10)
-      .receivingAnchorAccount("account")
+      .withdrawAnchorAccount("account")
       .memo("memo")
       .amountFee("20")
       .amountInAsset("USDC_In")

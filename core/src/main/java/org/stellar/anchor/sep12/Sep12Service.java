@@ -10,6 +10,7 @@ import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerResponse;
 import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest;
 import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerResponse;
 import org.stellar.anchor.sep10.JwtToken;
+import org.stellar.anchor.util.Log;
 import org.stellar.anchor.util.MemoHelper;
 import org.stellar.sdk.xdr.MemoType;
 
@@ -18,6 +19,7 @@ public class Sep12Service {
 
   public Sep12Service(CustomerIntegration customerIntegration) {
     this.customerIntegration = customerIntegration;
+    Log.info("Sep12Service initialized.");
   }
 
   public Sep12GetCustomerResponse getCustomer(JwtToken token, Sep12GetCustomerRequest request)
@@ -66,20 +68,28 @@ public class Sep12Service {
           String.format("Not authorized to delete account [%s]", account));
     }
 
-    Sep12GetCustomerResponse existingCustomer =
-        customerIntegration.getCustomer(
-            Sep12GetCustomerRequest.builder()
-                .account(account)
-                .memo(memo)
-                .memoType(memoType)
-                .build());
-    if (existingCustomer.getId() == null) {
+    // TODO: Move this into configuration instead of hardcoding customer type values.
+    boolean existingCustomerMatch = false;
+    String customerTypes[] = {"sending_user", "receiving_user"};
+    for (String customerType: customerTypes) {
+      Sep12GetCustomerResponse existingCustomer =
+          customerIntegration.getCustomer(
+              Sep12GetCustomerRequest.builder()
+                  .account(account)
+                  .memo(memo)
+                  .memoType(memoType)
+                  .type(customerType)
+                  .build());
+      if (existingCustomer.getId() != null) {
+        existingCustomerMatch = true;
+        customerIntegration.deleteCustomer(existingCustomer.getId());
+      }
+    }
+    if (!existingCustomerMatch) {
       infoF(
           "No existing customer found for account={} memo={} memoType={}", account, memo, memoType);
       throw new SepNotFoundException("User not found.");
     }
-
-    customerIntegration.deleteCustomer(existingCustomer.getId());
   }
 
   void validateGetOrPutRequest(

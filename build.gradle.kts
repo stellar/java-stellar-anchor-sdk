@@ -3,6 +3,25 @@ plugins {
   id("com.diffplug.spotless") version "6.2.1"
 }
 
+tasks {
+  register<Copy>("installLocalGitHook") {
+    from("scripts/pre-commit.sh") {
+      rename { it.removeSuffix(".sh") }
+    }
+    into(".git/hooks")
+
+    doLast {
+      project.exec {
+        commandLine("chmod",  "+x", ".git/hooks/pre-commit")
+      }
+    }
+  }
+
+  "build" {
+    dependsOn("installLocalGitHook")
+  }
+}
+
 subprojects {
   apply(plugin = "java")
   apply(plugin = "com.diffplug.spotless")
@@ -79,6 +98,10 @@ subprojects {
     testAnnotationProcessor("org.projectlombok:lombok:1.18.22")
   }
 
+  /**
+   * This is to fix the Windows default cp-1252 character encoding that may potentially cause
+   * compilation error
+   */
   tasks.compileJava { options.encoding = "UTF-8" }
 
   tasks.compileTestJava { options.encoding = "UTF-8" }

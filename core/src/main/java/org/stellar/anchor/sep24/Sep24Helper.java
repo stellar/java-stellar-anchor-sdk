@@ -2,6 +2,7 @@ package org.stellar.anchor.sep24;
 
 import static javax.print.attribute.standard.JobState.COMPLETED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.*;
+import static org.stellar.anchor.util.Log.debugF;
 import static org.stellar.anchor.util.MathHelper.decimal;
 
 import java.math.BigDecimal;
@@ -48,11 +49,13 @@ public class Sep24Helper {
     JwtToken token =
         JwtToken.of(
             "moreInfoUrl",
-            txn.getStellarAccount(),
+            (txn.getSep10AccountMemo() == null || txn.getSep10AccountMemo().length() == 0)
+                ? txn.getSep10Account()
+                : txn.getSep10Account() + ":" + txn.getSep10AccountMemo(),
             Instant.now().getEpochSecond(),
             Instant.now().getEpochSecond() + sep24Config.getInteractiveJwtExpiration(),
             txn.getTransactionId(),
-            txn.getDomainClient());
+            txn.getClientDomain());
 
     URI uri = new URI(sep24Config.getInteractiveUrl());
 
@@ -84,6 +87,10 @@ public class Sep24Helper {
     BeanUtils.copyProperties(txn, txnR);
 
     txnR.setId(txn.getTransactionId());
+    txnR.setDepositMemo(txn.getMemo());
+    txnR.setDepositMemoType(txn.getMemoType());
+    txnR.setFrom(txn.getFromAccount());
+    txnR.setTo(txn.getToAccount());
     txnR.setDepositMemo(txn.getMemo());
     txnR.setDepositMemoType(txn.getMemoType());
 
@@ -118,11 +125,11 @@ public class Sep24Helper {
         (txn.getCompletedAt() == null) ? null : DateUtil.toISO8601UTC(txn.getCompletedAt()));
     txnR.setId(txn.getTransactionId());
     txnR.setFrom(txn.getFromAccount());
-    txnR.setTo(txn.getReceivingAnchorAccount());
+    txnR.setTo(txn.getToAccount());
 
     txnR.setWithdrawMemo(txn.getMemo());
     txnR.setWithdrawMemoType(txn.getMemoType());
-    txnR.setWithdrawAnchorAccount(txn.getReceivingAnchorAccount());
+    txnR.setWithdrawAnchorAccount(txn.getWithdrawAnchorAccount());
 
     if (allowMoreInfoUrl && needsMoreInfoUrlWithdraw.contains(txn.getStatus())) {
       txnR.setMoreInfoUrl(constructMoreInfoUrl(jwtService, sep24Config, txn, lang));
@@ -135,12 +142,15 @@ public class Sep24Helper {
 
   public static TransactionResponse updateRefundInfo(
       TransactionResponse response, Sep24Transaction txn, AssetInfo assetInfo) {
+    debugF("Calculating refund information");
+
     List<? extends Sep24RefundPayment> refundPayments = txn.getRefundPayments();
     response.setRefunded(false);
     BigDecimal totalAmount = BigDecimal.ZERO;
     BigDecimal totalFee = BigDecimal.ZERO;
 
     if (refundPayments != null && refundPayments.size() > 0) {
+      debugF("{} refund payments found", refundPayments.size());
       List<RefundPayment> rps = new ArrayList<>(refundPayments.size());
       for (Sep24RefundPayment refundPayment : refundPayments) {
         if (refundPayment.getAmount() != null)

@@ -15,7 +15,7 @@ dependencyResolutionManagement {
       alias("httpclient").to("org.apache.httpcomponents:httpclient:4.5.13")
       alias("jackson.dataformat.yaml")
           .to("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.13.2")
-      alias("java.stellar.sdk").to("com.github.stellar:java-stellar-sdk:0.34.0")
+      alias("java.stellar.sdk").to("com.github.stellar:java-stellar-sdk:0.34.1")
       alias("javax.jaxb.api").to("javax.xml.bind:jaxb-api:2.3.1")
       alias("jjwt").to("io.jsonwebtoken:jjwt:0.9.1")
       alias("log4j2.api").to("org.apache.logging.log4j:log4j-api:.17.1")

@@ -17,6 +17,7 @@ import org.stellar.anchor.Constants.Companion.TEST_ACCOUNT
 import org.stellar.anchor.Constants.Companion.TEST_ASSET
 import org.stellar.anchor.Constants.Companion.TEST_ASSET_ISSUER_ACCOUNT_ID
 import org.stellar.anchor.Constants.Companion.TEST_CLIENT_DOMAIN
+import org.stellar.anchor.Constants.Companion.TEST_MEMO
 import org.stellar.anchor.Constants.Companion.TEST_TRANSACTION_ID_0
 import org.stellar.anchor.Constants.Companion.TEST_TRANSACTION_ID_1
 import org.stellar.anchor.TestHelper
@@ -82,7 +83,11 @@ internal class Sep24ServiceTest {
   }
 
   private fun createJwtToken(): JwtToken {
-    return TestHelper.createJwtToken(TEST_ACCOUNT, appConfig.hostUrl, TEST_CLIENT_DOMAIN)
+    return TestHelper.createJwtToken(TEST_ACCOUNT, null, appConfig.hostUrl, TEST_CLIENT_DOMAIN)
+  }
+
+  private fun createJwtWithMemo(): JwtToken {
+    return TestHelper.createJwtToken(TEST_ACCOUNT, TEST_MEMO, appConfig.hostUrl, TEST_CLIENT_DOMAIN)
   }
 
   @Test
@@ -91,7 +96,7 @@ internal class Sep24ServiceTest {
 
     every { txnStore.save(capture(slotTxn)) } returns null
 
-    val response =
+    var response =
       sep24Service.withdraw("/sep24/withdraw", createJwtToken(), createTestTransactionRequest())
 
     verify(exactly = 1) { txnStore.save(any()) }
@@ -105,22 +110,36 @@ internal class Sep24ServiceTest {
     assertEquals(slotTxn.captured.assetCode, "USDC")
     assertEquals(
       slotTxn.captured.assetIssuer,
-      "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+      "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
     )
-    assertEquals(slotTxn.captured.stellarAccount, TEST_ACCOUNT)
+    assertEquals(slotTxn.captured.sep10Account, TEST_ACCOUNT)
     assertEquals(slotTxn.captured.fromAccount, TEST_ACCOUNT)
-    assertEquals(slotTxn.captured.domainClient, TEST_CLIENT_DOMAIN)
-    assertEquals(slotTxn.captured.protocol, "sep24")
+    assertEquals(slotTxn.captured.clientDomain, TEST_CLIENT_DOMAIN)
     assertEquals(slotTxn.captured.amountIn, "123.4")
     assertEquals(slotTxn.captured.amountOut, "123.4")
 
-    val params = URLEncodedUtils.parse(URI(response.url), Charset.forName("UTF-8"))
-    val tokenStrings = params.filter { pair -> pair.name.equals("token") }
+    var params = URLEncodedUtils.parse(URI(response.url), Charset.forName("UTF-8"))
+    var tokenStrings = params.filter { pair -> pair.name.equals("token") }
     assertEquals(tokenStrings.size, 1)
-    val tokenString = tokenStrings[0].value
-    val decodedToken = jwtService.decode(tokenString)
+    var tokenString = tokenStrings[0].value
+    var decodedToken = jwtService.decode(tokenString)
     assertEquals(decodedToken.sub, TEST_ACCOUNT)
     assertEquals(decodedToken.clientDomain, TEST_CLIENT_DOMAIN)
+
+    // Now test with a memo
+    response =
+      sep24Service.withdraw("/sep24/withdraw", createJwtWithMemo(), createTestTransactionRequest())
+
+    params = URLEncodedUtils.parse(URI(response.url), Charset.forName("UTF-8"))
+    tokenStrings = params.filter { pair -> pair.name.equals("token") }
+    assertEquals(tokenStrings.size, 1)
+    tokenString = tokenStrings[0].value
+    decodedToken = jwtService.decode(tokenString)
+    assertEquals(
+      "$TEST_ACCOUNT:$TEST_MEMO",
+      decodedToken.sub,
+    )
+    assertEquals(TEST_CLIENT_DOMAIN, decodedToken.clientDomain)
   }
 
   private fun createTestTransactionRequest(): MutableMap<String, String> {
@@ -203,7 +222,7 @@ internal class Sep24ServiceTest {
 
     val request = createTestTransactionRequest()
     request["claimable_balance_supported"] = claimable_balance_supported
-    val response = sep24Service.deposit("/sep24/deposit", createJwtToken(), request)
+    var response = sep24Service.deposit("/sep24/deposit", createJwtToken(), request)
 
     verify(exactly = 1) { txnStore.save(any()) }
 
@@ -215,12 +234,26 @@ internal class Sep24ServiceTest {
     assertEquals(slotTxn.captured.kind, "deposit")
     assertEquals(slotTxn.captured.assetCode, TEST_ASSET)
     assertEquals(slotTxn.captured.assetIssuer, TEST_ASSET_ISSUER_ACCOUNT_ID)
-    assertEquals(slotTxn.captured.stellarAccount, TEST_ACCOUNT)
+    assertEquals(slotTxn.captured.sep10Account, TEST_ACCOUNT)
     assertEquals(slotTxn.captured.toAccount, TEST_ACCOUNT)
-    assertEquals(slotTxn.captured.domainClient, TEST_CLIENT_DOMAIN)
-    assertEquals(slotTxn.captured.protocol, "sep24")
+    assertEquals(slotTxn.captured.clientDomain, TEST_CLIENT_DOMAIN)
     assertEquals(slotTxn.captured.amountIn, "123.4")
     assertEquals(slotTxn.captured.amountOut, "123.4")
+
+    // Now test with a memo
+    response =
+      sep24Service.withdraw("/sep24/withdraw", createJwtWithMemo(), createTestTransactionRequest())
+
+    val params = URLEncodedUtils.parse(URI(response.url), Charset.forName("UTF-8"))
+    val tokenStrings = params.filter { pair -> pair.name.equals("token") }
+    assertEquals(tokenStrings.size, 1)
+    val tokenString = tokenStrings[0].value
+    val decodedToken = jwtService.decode(tokenString)
+    assertEquals(
+      "$TEST_ACCOUNT:$TEST_MEMO",
+      decodedToken.sub,
+    )
+    assertEquals(TEST_CLIENT_DOMAIN, decodedToken.clientDomain)
   }
 
   @Test
@@ -434,10 +467,10 @@ internal class Sep24ServiceTest {
 
     txn.assetCode = TEST_ASSET
     txn.assetIssuer = TEST_ASSET_ISSUER_ACCOUNT_ID
-    txn.stellarAccount = TEST_ACCOUNT
+    txn.sep10Account = TEST_ACCOUNT
     txn.toAccount = TEST_ACCOUNT
     txn.fromAccount = TEST_ACCOUNT
-    txn.domainClient = TEST_CLIENT_DOMAIN
+    txn.clientDomain = TEST_CLIENT_DOMAIN
     txn.protocol = "sep24"
     txn.amountIn = "321.4"
     txn.amountOut = "321.4"
@@ -457,10 +490,10 @@ internal class Sep24ServiceTest {
 
     txn.assetCode = TEST_ASSET
     txn.assetIssuer = TEST_ASSET_ISSUER_ACCOUNT_ID
-    txn.stellarAccount = TEST_ACCOUNT
+    txn.sep10Account = TEST_ACCOUNT
     txn.toAccount = TEST_ACCOUNT
     txn.fromAccount = TEST_ACCOUNT
-    txn.domainClient = TEST_CLIENT_DOMAIN
+    txn.clientDomain = TEST_CLIENT_DOMAIN
     txn.protocol = "sep24"
     txn.amountIn = "321.4"
     txn.amountOut = "321.4"
@@ -475,10 +508,10 @@ internal class Sep24ServiceTest {
 
     txn.assetCode = TEST_ASSET
     txn.assetIssuer = TEST_ASSET_ISSUER_ACCOUNT_ID
-    txn.stellarAccount = TEST_ACCOUNT
+    txn.sep10Account = TEST_ACCOUNT
     txn.toAccount = TEST_ACCOUNT
     txn.fromAccount = TEST_ACCOUNT
-    txn.domainClient = TEST_CLIENT_DOMAIN
+    txn.clientDomain = TEST_CLIENT_DOMAIN
     txn.protocol = "sep24"
     txn.amountIn = "456.7"
     txn.amountOut = "456.7"
