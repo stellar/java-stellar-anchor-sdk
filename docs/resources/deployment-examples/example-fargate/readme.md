@@ -3,8 +3,13 @@ This documentation will configure AWS Infrastructure, Anchor Platform and a samp
 - Network
   - [AWS VPC, Public/Private Subnets] (terraform/vpc.tf)
   - [AWS ECS Fargate](terraform/ecs.tf)
+  - Secrets retrieved from AWS Parameter Store*
+  - Sidecar pattern Configuration task**
   - [Route53 and AWS ACM Certificates](terraform/route53.tf), including Public and Internal CNAMES
   - [Amazon SQS](terraform/sqs.tf) Event Queue
+
+* Currently the sidecar image has been generaged manually. The build spec is included in this repo, but the codebuild project is currently setup manually.
+* Parameters retrieved from AWS parameter store by task definitions are currently added manually.
 
 # Steps
 1. Pre-requisites
