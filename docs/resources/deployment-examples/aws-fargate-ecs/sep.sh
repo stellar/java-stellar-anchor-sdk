@@ -1,6 +1,7 @@
 #! /bin/bash
 echo "ls /anchor_config"
-ls /anchor_config
+cat /anchor_config/anchor_config.yaml
+cat /anchor_config/stellar_wks.toml
 echo "ls /app"
 ls /app
 echo "env"
