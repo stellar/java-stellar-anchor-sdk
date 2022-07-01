@@ -14,6 +14,7 @@ import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.Resource;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.stellar.anchor.util.Log;
 
 @SpringBootApplication
 @EnableConfigurationProperties
@@ -60,13 +61,18 @@ public class AnchorReferenceServer implements WebMvcConfigurer {
   }
 
   static String getProperty(String name, String defaultValue) {
+    Log.debugF("REECE DEBUG getProperty {} default:{}", name, defaultValue);
     String value = System.getenv().get(name);
     if (value == null) {
+      Log.debug("value is null");
       value = System.getProperty(name);
     }
     if (value == null) {
+      Log.debug("value is null");
       value = defaultValue;
     }
+    Log.debugF("REECE DEBUG returing value  {}", name, value);
+    
     return value;
   }
 
