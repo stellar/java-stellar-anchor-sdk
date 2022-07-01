@@ -94,7 +94,7 @@ stellar:
       enabled: true
 
       # The `home_domain` property of SEP-10. https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#request
-      homeDomain: localhost:8080
+      homeDomain: www.stellaranchordemo.com
 
       # Set if the client attribution is required
       clientAttributionRequired: false
@@ -145,7 +145,7 @@ stellar:
       interactiveJwtExpiration: 3600
 
       # The interactive URL where the platform server will redirect to start the SEP-24 interactive flow.
-      interactiveUrl: http://localhost:8081/sep24/interactive
+      interactiveUrl: http://ref.stellaranchordemo.com/sep24/interactive
 
     # sep-31
     sep31:

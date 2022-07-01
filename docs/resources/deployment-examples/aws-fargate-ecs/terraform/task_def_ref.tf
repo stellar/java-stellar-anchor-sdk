@@ -69,6 +69,16 @@ resource "aws_ecs_task_definition" "ref" {
                 }
             }
    essential   = true
+   secrets = [
+      {
+        "name": "SQS_ACCESS_KEY",
+        "valueFrom": data.aws_ssm_parameter.sqs_access_key.arn
+      },
+      {
+        "name": "SQS_SECRET_KEY",
+        "valueFrom": data.aws_ssm_parameter.sqs_secret_key.arn
+      }
+   ]
    portMappings = [{
      protocol      = "tcp"
      containerPort = 8081
