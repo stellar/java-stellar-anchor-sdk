@@ -1,7 +1,7 @@
 # Deployment of Anchor Platform and Receiving Anchor Example Reference Server with Terraform Cloud, AWS ECS/Fargate, SQS
 This documentation will configure AWS Infrastructure, Anchor Platform and a sample Receiving Anchor Application using AWS Fargate. Once deployed you can run the Anchor Validator tool to verify SEP-31 Compliance. The following will be deployed via Terraform:
 - Network
-  - [AWS VPC, Public/Private Subnets](terraform/vpc.tf)
+  - [AWS VPC, Public/Private Subnets] (terraform/vpc.tf)
   - [AWS ECS Fargate](terraform/ecs.tf)
   - [Route53 and AWS ACM Certificates](terraform/route53.tf), including Public and Internal CNAMES
   - [Amazon SQS](terraform/sqs.tf) Event Queue
@@ -20,4 +20,3 @@ This documentation will configure AWS Infrastructure, Anchor Platform and a samp
    1. Run Terraform Plan
    2. Run Terraform Apply
 4. Run [Stellar Anchor Validation Tool][https://anchor-tests.stellar.org/) to verify your deployment.
-

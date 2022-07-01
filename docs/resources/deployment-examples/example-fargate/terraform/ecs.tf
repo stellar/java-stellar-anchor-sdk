@@ -6,94 +6,27 @@ resource "aws_ecs_cluster" "ref" {
   name = "ref-${var.environment}-cluster"
 }
 
+data "aws_ssm_parameter" "sqs_access_key" {
+  name = "SQS_ACCESS_KEY"
+}
+data "aws_ssm_parameter" "sqs_secret_key" {
+  name = "SQS_SECRET_KEY"
+}
+
+data "aws_ssm_parameter" "sqlite" {
+  name = "SQLITE"
+}
+
+data "aws_ssm_parameter" "sep10_signing_seed" {
+  name = "SEP10_SIGNING_SEED"
+}
+
+data "aws_ssm_parameter" "jwt_secret" {
+  name = "JWT_SECRET"
+}
+
 ## Task Definitions
-resource "aws_ecs_task_definition" "sep" {
-  network_mode             = "awsvpc"
-  requires_compatibilities = ["FARGATE"]
-  cpu                      = 256
-  memory                   = 512
-  family                   = "${var.environment}-sep"
-  execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
-  task_role_arn            = aws_iam_role.ecs_task_role.arn
-  container_definitions = jsonencode([{
-   name        = "${var.environment}-sep"
-   image       = "reecemarkowsky/testing"
-   entryPoint  = ["java", "-jar", "/app/anchor-platform-runner.jar", "--sep-server"]
-   essential   = true
-   environment = [
-    { "name" : "APP_CONFIG_KAFKA_PUBLISHER_BOOTSTRAPSERVER", "value" : "http://reecehost:9092" }
-   ]
 
-   logConfiguration = {
-                "logDriver": "awslogs",
-                "options": {
-                    "awslogs-group": "anchor-platform",
-                    "awslogs-region": "us-east-2",
-                    "awslogs-create-group": "true",
-                    "awslogs-stream-prefix": "sep"
-                }
-            }
-   portMappings = [{
-     protocol      = "tcp"
-     containerPort = 8080
-     hostPort      = 8080
-   }]
-  }])
-}
-
-resource "aws_ecs_task_definition" "ref" {
-  network_mode             = "awsvpc"
-  requires_compatibilities = ["FARGATE"]
-  cpu                      = 256
-  memory                   = 512
-    family                   = "${var.environment}-ref"
-  execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
-  task_role_arn            = aws_iam_role.ecs_task_role.arn
-  container_definitions = jsonencode([{
-   name        = "${var.environment}-ref"
-   image       = "reecemarkowsky/testing"
-   entryPoint  = ["java", "-jar", "/app/anchor-platform-runner.jar", "--anchor-reference-server"]
-   logConfiguration = {
-                "logDriver": "awslogs",
-                "options": {
-                    "awslogs-group": "anchor-platform",
-                    "awslogs-region": "us-east-2",
-                    "awslogs-create-group": "true",
-                    "awslogs-stream-prefix": "ref"
-                }
-            }
-   essential   = true
-   #environment = [
-   #  { "name" : "STELLAR_ANCHOR_CONFIG", "value" : "/config" },
-   #  { "name" : "string", "value" : "string" }
-   #]
-   portMappings = [{
-     protocol      = "tcp"
-     containerPort = 8081
-     hostPort      = 8081
-   }]
-  }])
-}
-
-resource "aws_iam_role" "ecs_task_role" {
-  name = "anchorplatform-ecsTaskRole"
- 
-  assume_role_policy = <<EOF
-{
- "Version": "2012-10-17",
- "Statement": [
-   {
-     "Action": "sts:AssumeRole",
-     "Principal": {
-       "Service": "ecs-tasks.amazonaws.com"
-     },
-     "Effect": "Allow",
-     "Sid": ""
-   }
- ]
-}
-EOF
-}
 
 resource "aws_iam_role" "ecs_task_execution_role" {
   name = "anchorplatform-ecsTaskExecutionRole"
@@ -121,39 +54,13 @@ resource "aws_iam_role_policy_attachment" "ecs-task-execution-role-policy-attach
 }
 
 ####################### ECS Service
-resource "aws_ecs_service" "sep" {
- name                               = "${var.environment}-sep-service"
- cluster                            = aws_ecs_cluster.sep.id
- task_definition                    = aws_ecs_task_definition.sep.arn
- desired_count                      = 2
- deployment_minimum_healthy_percent = 100
- deployment_maximum_percent         = 200
- launch_type                        = "FARGATE"
- scheduling_strategy                = "REPLICA"
- 
- network_configuration {
-   security_groups  = [aws_security_group.sep.id]
-   subnets          = module.vpc.private_subnets
-   assign_public_ip = false
- }
- 
- load_balancer {
-   target_group_arn = aws_alb_target_group.sep.arn
-   container_name   = "${var.environment}-sep"
-   container_port   = 8080
- }
- 
- #lifecycle {
- #  ignore_changes = [task_definition, desired_count]
- #}
- 
-}
+
 
 resource "aws_ecs_service" "ref" {
  name                               = "${var.environment}-ref-service"
  cluster                            = aws_ecs_cluster.ref.id
  task_definition                    = aws_ecs_task_definition.ref.arn
- desired_count                      = 2
+ desired_count                      = 1
  deployment_minimum_healthy_percent = 100
  deployment_maximum_percent         = 200
  launch_type                        = "FARGATE"
@@ -206,15 +113,16 @@ resource "aws_alb_target_group" "sep" {
   protocol    = "HTTP"
   vpc_id      = module.vpc.vpc_id
   target_type = "ip"
+  slow_start = 120
  
   health_check {
    healthy_threshold   = "2"
-   interval            = "30"
+   interval            = "45"
    protocol            = "HTTP"
-   matcher             = "200"
-   timeout             = "3"
-   path                = "/.well-known/stellar.toml"
-   unhealthy_threshold = "3"
+   matcher             = "200-299"
+   timeout             = "20"
+   path                = "/health"
+   unhealthy_threshold = "5"
   }
   depends_on = [aws_lb.sep]
 }
@@ -229,12 +137,12 @@ resource "aws_alb_target_group" "ref" {
  
   health_check {
    healthy_threshold   = "3"
-   interval            = "15"
+   interval            = "30"
    protocol            = "HTTP"
-   matcher             = "200"
-   timeout             = "3"
+   matcher             = "200-299"
+   timeout             = "10"
    path                = "/health"
-   unhealthy_threshold = "10"
+   unhealthy_threshold = "5"
   }
   depends_on = [aws_lb.sep]
 }
