@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Data
 @Configuration
-@ConfigurationProperties(prefix = "integration-authentication")
+@ConfigurationProperties(prefix = "integration-auth")
 public class IntegrationAuthSettings {
   String platformToAnchorJwtSecret;
   String anchorToPlatformJwtSecret;

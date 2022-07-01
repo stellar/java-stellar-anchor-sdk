@@ -2,6 +2,9 @@ package org.stellar.anchor.auth;
 
 import com.google.gson.annotations.SerializedName;
 import lombok.Data;
+import org.stellar.sdk.AccountConverter;
+import org.stellar.sdk.KeyPair;
+import org.stellar.sdk.xdr.MuxedAccount;
 
 @Data
 public class JwtToken {
@@ -26,8 +29,10 @@ public class JwtToken {
   @SerializedName(value = "muxed_account")
   String muxedAccount;
 
-  public String getAccount() {
-    return this.sub;
+  Long muxedAccountId;
+
+  public Long getMuxedAccountId() {
+    return this.muxedAccountId;
   }
 
   public String getTransactionId() {
@@ -55,16 +60,30 @@ public class JwtToken {
     token.exp = exp;
     token.jti = jti;
     token.clientDomain = clientDomain;
+
+    // Parse account & memo or muxedAccount & muxedAccountId:
     if (sub != null) {
       String[] subs = sub.split(":", 2);
       if (subs.length == 2) {
         token.account = subs[0];
         token.accountMemo = subs[1];
       } else {
-        // TODO: test for muxed account. If the account is muxed, update both fields `account` and
-        // `muxedAccount`.
         token.account = sub;
         token.accountMemo = null;
+
+        try {
+          MuxedAccount maybeMuxedAccount = AccountConverter.enableMuxed().encode(sub);
+          MuxedAccount.MuxedAccountMed25519 muxedAccount = maybeMuxedAccount.getMed25519();
+          if (muxedAccount == null) {
+            return token;
+          }
+
+          token.muxedAccount = sub;
+          byte[] pubKeyBytes = muxedAccount.getEd25519().getUint256();
+          token.account = KeyPair.fromPublicKey(pubKeyBytes).getAccountId();
+          token.muxedAccountId = muxedAccount.getId().getUint64();
+        } catch (Exception ignored) {
+        }
       }
     }
     return token;

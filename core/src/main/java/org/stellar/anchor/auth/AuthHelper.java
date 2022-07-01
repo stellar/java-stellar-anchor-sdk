@@ -9,10 +9,10 @@ public class AuthHelper {
   private final long jwtExpirationMilliseconds;
   private final String issuerUrl;
 
-  public String createJwtToken() {
+  public String createAuthHeader() {
     long issuedAt = Calendar.getInstance().getTimeInMillis() / 1000L;
     long expirationTime = issuedAt + (jwtExpirationMilliseconds / 1000L);
     JwtToken token = JwtToken.of(issuerUrl, issuedAt, expirationTime);
-    return jwtService.encode(token);
+    return String.format("Bearer %s", jwtService.encode(token));
   }
 }

@@ -55,15 +55,8 @@ public class RestRateIntegration implements RateIntegration {
           }
         });
     HttpUrl url = urlBuilder.build();
-    String authHeader = "Bearer " + authHelper.createJwtToken();
 
-    Request httpRequest =
-        new Request.Builder()
-            .url(url)
-            .header("Content-Type", "application/json")
-            .header("Authorization", authHeader)
-            .get()
-            .build();
+    Request httpRequest = getRequestBuilder().url(url).get().build();
     Response response = call(httpClient, httpRequest);
     String responseContent = getContent(response);
 
@@ -99,5 +92,11 @@ public class RestRateIntegration implements RateIntegration {
       }
     }
     return getRateResponse;
+  }
+
+  Request.Builder getRequestBuilder() {
+    return new Request.Builder()
+        .header("Content-Type", "application/json")
+        .header("Authorization", authHelper.createAuthHeader());
   }
 }

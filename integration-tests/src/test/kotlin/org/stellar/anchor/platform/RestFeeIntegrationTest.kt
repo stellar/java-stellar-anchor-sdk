@@ -26,18 +26,19 @@ import org.stellar.anchor.util.OkHttpUtil
 
 class RestFeeIntegrationTest {
   companion object {
-    private const val PLATFORM_TO_ANCHOR_JWT_SECRET = "myPlatformToAnchorJwtSecret"
-    private const val JWT_EXPIRATION_MILLISECONDS: Long = 1000000
     private const val fiatUSD = "iso4217:USD"
     private const val stellarCircleUSDC =
       "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+
+    private const val PLATFORM_TO_ANCHOR_JWT_SECRET = "myPlatformToAnchorJwtSecret"
+    private const val JWT_EXPIRATION_MILLISECONDS: Long = 1000000
+    private val platformToAnchorJwtService = JwtService(PLATFORM_TO_ANCHOR_JWT_SECRET)
+    private val authHelper =
+      AuthHelper(platformToAnchorJwtService, JWT_EXPIRATION_MILLISECONDS, "http://localhost:8080")
   }
   private lateinit var server: MockWebServer
   private lateinit var feeIntegration: RestFeeIntegration
   private lateinit var mockJwtToken: String
-  private val platformToAnchorJwtService = JwtService(PLATFORM_TO_ANCHOR_JWT_SECRET)
-  private val authHelper =
-    AuthHelper(platformToAnchorJwtService, JWT_EXPIRATION_MILLISECONDS, "http://localhost:8080")
   private val gson = GsonUtils.getInstance()
 
   @BeforeEach
@@ -52,15 +53,15 @@ class RestFeeIntegrationTest {
         GsonUtils.getInstance()
       )
 
+    // Mock calendar to guarantee the jwt token format
     val calendarSingleton = Calendar.getInstance()
     val currentTimeMilliseconds = calendarSingleton.getTimeInMillis()
     mockkObject(calendarSingleton)
     every { calendarSingleton.getTimeInMillis() } returns currentTimeMilliseconds
     every { calendarSingleton.setTimeInMillis(any()) } answers { callOriginal() }
-
     mockkStatic(Calendar::class)
     every { Calendar.getInstance() } returns calendarSingleton
-
+    // mock jwt token based on the mocked calendar
     val jwtToken =
       JwtToken.of(
         "http://localhost:8080",

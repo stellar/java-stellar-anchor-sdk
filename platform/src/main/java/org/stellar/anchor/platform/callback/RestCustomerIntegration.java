@@ -61,16 +61,8 @@ public class RestCustomerIntegration implements CustomerIntegration {
       customerEndpointBuilder.addQueryParameter("type", customerRequest.getType());
     }
     // Call anchor
-    String authHeader = "Bearer " + authHelper.createJwtToken();
     Response response =
-        call(
-            httpClient,
-            new Request.Builder()
-                .url(customerEndpointBuilder.build())
-                .header("Content-Type", "application/json")
-                .header("Authorization", authHeader)
-                .get()
-                .build());
+        call(httpClient, getRequestBuilder().url(customerEndpointBuilder.build()).get().build());
     String responseContent = getContent(response);
 
     if (response.code() == HttpStatus.OK.value()) {
@@ -93,15 +85,10 @@ public class RestCustomerIntegration implements CustomerIntegration {
   public Sep12PutCustomerResponse putCustomer(Sep12PutCustomerRequest sep12PutCustomerRequest)
       throws AnchorException {
     PutCustomerRequest customerRequest = fromSep12(sep12PutCustomerRequest, gson);
-    String authHeader = "Bearer " + authHelper.createJwtToken();
     RequestBody requestBody =
         RequestBody.create(gson.toJson(customerRequest), MediaType.get("application/json"));
     Request callbackRequest =
-        new Request.Builder()
-            .url(getCustomerUrlBuilder().build())
-            .header("Authorization", authHeader)
-            .put(requestBody)
-            .build();
+        getRequestBuilder().url(getCustomerUrlBuilder().build()).put(requestBody).build();
 
     // Call anchor
     Response response = call(httpClient, callbackRequest);
@@ -122,14 +109,7 @@ public class RestCustomerIntegration implements CustomerIntegration {
   @Override
   public void deleteCustomer(String id) {
     HttpUrl url = getCustomerUrlBuilder().addPathSegment(id).build();
-    String authHeader = "Bearer " + authHelper.createJwtToken();
-    Request callbackRequest =
-        new Request.Builder()
-            .url(url)
-            .header("Content-Type", "application/json")
-            .header("Authorization", authHeader)
-            .delete()
-            .build();
+    Request callbackRequest = getRequestBuilder().url(url).delete().build();
 
     // Call anchor
     Response response = call(httpClient, callbackRequest);
@@ -151,6 +131,12 @@ public class RestCustomerIntegration implements CustomerIntegration {
 
   Builder getCustomerUrlBuilder() {
     return get(anchorEndpoint).newBuilder().addPathSegment("customer");
+  }
+
+  Request.Builder getRequestBuilder() {
+    return new Request.Builder()
+        .header("Content-Type", "application/json")
+        .header("Authorization", authHelper.createAuthHeader());
   }
 
   static class Converter {

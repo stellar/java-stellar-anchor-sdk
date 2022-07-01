@@ -1,7 +1,7 @@
 package org.stellar.anchor.reference;
 
 import com.google.gson.Gson;
-import org.springframework.beans.factory.annotation.Autowired;
+import javax.servlet.Filter;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -40,21 +40,24 @@ public class AnchorReferenceConfig {
     }
   }
 
+  @Bean
+  public Filter platformToAnchorFilter(IntegrationAuthSettings integrationAuthSettings) {
+    String jwtSecret = integrationAuthSettings.getPlatformToAnchorJwtSecret();
+    JwtService jwtService = new JwtService(jwtSecret);
+    return new PlatformToAnchorTokenFilter(jwtService);
+  }
+
   /**
    * Register platform-to-anchor token filter.
    *
    * @return Spring Filter Registration Bean
    */
   @Bean
-  public FilterRegistrationBean<PlatformToAnchorTokenFilter> platformToAnchorTokenFilter(
-      @Autowired IntegrationAuthSettings integrationAuthSettings) {
-    JwtService platformToAnchorJwtService =
-        new JwtService(integrationAuthSettings.getPlatformToAnchorJwtSecret());
-    FilterRegistrationBean<PlatformToAnchorTokenFilter> registrationBean =
-        new FilterRegistrationBean<>();
-    registrationBean.setFilter(new PlatformToAnchorTokenFilter(platformToAnchorJwtService));
+  public FilterRegistrationBean<Filter> platformToAnchorTokenFilter(Filter platformToAnchorFilter) {
+    FilterRegistrationBean<Filter> registrationBean = new FilterRegistrationBean<>();
+    registrationBean.setFilter(platformToAnchorFilter);
     registrationBean.addUrlPatterns("/*");
-    registrationBean.addUrlPatterns("/");
+    registrationBean.addUrlPatterns("");
     return registrationBean;
   }
 

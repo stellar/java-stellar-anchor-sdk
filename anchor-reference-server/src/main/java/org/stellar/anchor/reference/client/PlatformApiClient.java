@@ -24,21 +24,13 @@ public class PlatformApiClient extends BaseApiClient {
   }
 
   public GetTransactionResponse getTransaction(String id) throws IOException, AnchorException {
-    String authHeader = "Bearer " + authHelper.createJwtToken();
-    Request request =
-        new Request.Builder()
-            .url(endpoint + "/transactions/" + id)
-            .header("Content-Type", "application/json")
-            .header("Authorization", authHeader)
-            .get()
-            .build();
+    Request request = getRequestBuilder().url(endpoint + "/transactions/" + id).get().build();
     String responseBody = handleResponse(client.newCall(request).execute());
     return gson.fromJson(responseBody, GetTransactionResponse.class);
   }
 
   public PatchTransactionsResponse patchTransaction(PatchTransactionsRequest txnRequest)
       throws IOException, AnchorException {
-    String authHeader = "Bearer " + authHelper.createJwtToken();
     HttpUrl url = HttpUrl.parse(endpoint);
     url =
         new HttpUrl.Builder()
@@ -49,13 +41,7 @@ public class PlatformApiClient extends BaseApiClient {
             .build();
 
     RequestBody requestBody = OkHttpUtil.buildJsonRequestBody(gson.toJson(txnRequest));
-    Request request =
-        new Request.Builder()
-            .url(url)
-            .header("Content-Type", "application/json")
-            .header("Authorization", authHeader)
-            .patch(requestBody)
-            .build();
+    Request request = getRequestBuilder().url(url).patch(requestBody).build();
     Response response = client.newCall(request).execute();
     return gson.fromJson(handleResponse(response), PatchTransactionsResponse.class);
   }
@@ -82,5 +68,11 @@ public class PlatformApiClient extends BaseApiClient {
 
     String responseBody = handleResponse(client.newCall(request).execute());
     return gson.fromJson(responseBody, HashMap.class);
+  }
+
+  Request.Builder getRequestBuilder() {
+    return new Request.Builder()
+        .header("Content-Type", "application/json")
+        .header("Authorization", authHelper.createAuthHeader());
   }
 }

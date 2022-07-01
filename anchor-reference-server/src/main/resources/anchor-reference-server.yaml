@@ -17,7 +17,7 @@ anchor.settings:
 # and `Anchor->Platform`, specially when they are in different clusters.
 #
 # When the receiving part decodes the incoming request token, it needs to verify if the token is still valid (and not expired).
-integration-authentication:
+integration-auth:
   # CallbackAPI requests (`Platform->Anchor`) will contain an authentication header whose token was built using this
   # secret. The Anchor Backend will also store this same secret and use it to decode the incoming token to verify it
   # came from the Platform.

@@ -35,13 +35,13 @@ class RestRateIntegrationTest {
   companion object {
     private const val PLATFORM_TO_ANCHOR_JWT_SECRET = "myPlatformToAnchorJwtSecret"
     private const val JWT_EXPIRATION_MILLISECONDS: Long = 100000000
+    private val platformToAnchorJwtService = JwtService(PLATFORM_TO_ANCHOR_JWT_SECRET)
+    private val authHelper =
+      AuthHelper(platformToAnchorJwtService, JWT_EXPIRATION_MILLISECONDS, "http://localhost:8080")
   }
   private lateinit var server: MockWebServer
   private lateinit var rateIntegration: RestRateIntegration
   private lateinit var mockJwtToken: String
-  private val platformToAnchorJwtService = JwtService(PLATFORM_TO_ANCHOR_JWT_SECRET)
-  private val authHelper =
-    AuthHelper(platformToAnchorJwtService, JWT_EXPIRATION_MILLISECONDS, "http://localhost:8080")
   private val gson = GsonUtils.getInstance()
 
   @BeforeEach
@@ -56,15 +56,15 @@ class RestRateIntegrationTest {
         GsonUtils.getInstance()
       )
 
+    // Mock calendar to guarantee the jwt token format
     val calendarSingleton = Calendar.getInstance()
     val currentTimeMilliseconds = calendarSingleton.getTimeInMillis()
     mockkObject(calendarSingleton)
     every { calendarSingleton.getTimeInMillis() } returns currentTimeMilliseconds
     every { calendarSingleton.setTimeInMillis(any()) } answers { callOriginal() }
-
     mockkStatic(Calendar::class)
     every { Calendar.getInstance() } returns calendarSingleton
-
+    // mock jwt token based on the mocked calendar
     val jwtToken =
       JwtToken.of(
         "http://localhost:8080",
@@ -150,8 +150,6 @@ class RestRateIntegrationTest {
       val request = server.takeRequest()
       assertEquals("GET", request.method)
       assertEquals("application/json", request.headers["Content-Type"])
-      val gotJwtTokenStr = request.headers["Authorization"]!!.split(" ")[1]
-      //      val decodedJwtToken = platformToAnchorJwtService.decode(gotJwtTokenStr)
       assertEquals("Bearer $mockJwtToken", request.headers["Authorization"])
       MatcherAssert.assertThat(request.path, CoreMatchers.endsWith(endpoint))
     }

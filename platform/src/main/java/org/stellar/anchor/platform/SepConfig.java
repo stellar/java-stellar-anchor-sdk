@@ -1,6 +1,7 @@
 package org.stellar.anchor.platform;
 
 import com.google.gson.Gson;
+import javax.servlet.Filter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -60,19 +61,22 @@ public class SepConfig {
     return registrationBean;
   }
 
+  @Bean
+  public Filter anchorToPlatformFilter(IntegrationAuthConfig integrationAuthConfig) {
+    String jwtSecret = integrationAuthConfig.getAnchorToPlatformJwtSecret();
+    JwtService jwtService = new JwtService(jwtSecret);
+    return new PlatformToAnchorTokenFilter(jwtService);
+  }
+
   /**
    * Register anchor-to-platform token filter.
    *
    * @return Spring Filter Registration Bean
    */
   @Bean
-  public FilterRegistrationBean<PlatformToAnchorTokenFilter> anchorToPlatformTokenFilter(
-      @Autowired IntegrationAuthConfig integrationAuthConfig) {
-    JwtService anchorToPlatformJwtService =
-        new JwtService(integrationAuthConfig.getAnchorToPlatformJwtSecret());
-    FilterRegistrationBean<PlatformToAnchorTokenFilter> registrationBean =
-        new FilterRegistrationBean<>();
-    registrationBean.setFilter(new PlatformToAnchorTokenFilter(anchorToPlatformJwtService));
+  public FilterRegistrationBean<Filter> anchorToPlatformTokenFilter(Filter anchorToPlatformFilter) {
+    FilterRegistrationBean<Filter> registrationBean = new FilterRegistrationBean<>();
+    registrationBean.setFilter(anchorToPlatformFilter);
     registrationBean.addUrlPatterns("/transactions/*");
     registrationBean.addUrlPatterns("/transactions");
     registrationBean.addUrlPatterns("/exchange/quotes/*");
