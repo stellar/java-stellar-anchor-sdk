@@ -111,7 +111,8 @@ public class RestCustomerIntegration implements CustomerIntegration {
     Response response = call(httpClient, callbackRequest);
     String responseContent = getContent(response);
 
-    if (response.code() != HttpStatus.OK.value()) {
+    if (response.code() != HttpStatus.NO_CONTENT.value()
+        && response.code() != HttpStatus.OK.value()) {
       throw httpError(responseContent, response.code(), gson);
     }
   }
