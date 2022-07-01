@@ -37,6 +37,7 @@ public class PropertiesReader extends AbstractConfigurator
 
     // Read from Java VM OPTS
     yamlLocation = getFromSystemProperty();
+    Log.debugF("REECE yamlLocation = {}", yamlLocation);
     if (yamlLocation != null) {
       loadConfigYaml(applicationContext, yamlLocation);
       return;
@@ -44,13 +45,16 @@ public class PropertiesReader extends AbstractConfigurator
 
     // Read from $USER_HOME/.anchor/anchor-config.yaml
     File yamlFile = getFromUserFolder();
+    Log.debugF("REECE yamlFile = {}", yamlFile.toString());
     if (yamlFile.exists()) {
+      Log.debugF("REECE yamlFile = {} exists loading it", yamlFile.toString());
       loadConfigYaml(new FileSystemResource(yamlFile));
       return;
     }
 
     // Read from the file specified by STELLAR_ANCHOR_CONFIG environment variable.
     yamlLocation = getFromSystemEnv();
+    Log.debugF("REECE DEBUG yamlLocation={}",yamlLocation);
     if (yamlLocation != null) {
       Log.debugF("REECEDEBUG yamlLocation exists in Env = {}",yamlLocation);
       
