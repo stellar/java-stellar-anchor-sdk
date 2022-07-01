@@ -10,4 +10,5 @@ import org.springframework.context.annotation.Configuration;
 public class AppSettings {
   String version;
   String platformApiEndpoint;
+  String hostUrl;
 }

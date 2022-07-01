@@ -6,6 +6,8 @@ import org.stellar.anchor.api.platform.PatchTransactionsRequest
 import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest
 import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionRequest
 import org.stellar.anchor.api.shared.Amount
+import org.stellar.anchor.auth.AuthHelper
+import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.event.models.TransactionEvent
 import org.stellar.anchor.reference.client.PlatformApiClient
 import org.stellar.anchor.util.GsonUtils
@@ -18,7 +20,10 @@ fun platformTestAll(toml: Sep1Helper.TomlContent, jwt: String) {
   sep12Client = Sep12Client(toml.getString("KYC_SERVER"), jwt)
   sep31Client = Sep31Client(toml.getString("DIRECT_PAYMENT_SERVER"), jwt)
   sep38 = Sep38Client(toml.getString("ANCHOR_QUOTE_SERVER"), jwt)
-  platformApiClient = PlatformApiClient("http://localhost:8080")
+
+  val platformToAnchorJwtService = JwtService("myAnchorToPlatformJwtSecret")
+  val authHelper = AuthHelper(platformToAnchorJwtService, 900000, "http://localhost:8081")
+  platformApiClient = PlatformApiClient(authHelper, "http://localhost:8080")
 
   testHappyPath()
   testHealth()

@@ -5,12 +5,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.stellar.anchor.auth.AuthHelper;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.filter.PlatformToAnchorTokenFilter;
-import org.stellar.anchor.reference.config.EventSettings;
-import org.stellar.anchor.reference.config.IntegrationAuthSettings;
-import org.stellar.anchor.reference.config.KafkaListenerSettings;
-import org.stellar.anchor.reference.config.SqsListenerSettings;
+import org.stellar.anchor.reference.config.*;
 import org.stellar.anchor.reference.event.AbstractEventListener;
 import org.stellar.anchor.reference.event.AnchorEventProcessor;
 import org.stellar.anchor.reference.event.KafkaListener;
@@ -58,5 +56,13 @@ public class AnchorReferenceConfig {
     registrationBean.addUrlPatterns("/*");
     registrationBean.addUrlPatterns("/");
     return registrationBean;
+  }
+
+  @Bean
+  AuthHelper authHelper(AppSettings appSettings, IntegrationAuthSettings integrationAuthSettings) {
+    return new AuthHelper(
+        new JwtService(integrationAuthSettings.getAnchorToPlatformJwtSecret()),
+        integrationAuthSettings.getExpirationMilliseconds(),
+        appSettings.getHostUrl());
   }
 }

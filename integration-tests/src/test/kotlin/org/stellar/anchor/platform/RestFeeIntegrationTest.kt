@@ -113,7 +113,6 @@ class RestFeeIntegrationTest {
     val request = server.takeRequest()
     assertEquals("GET", request.method)
     assertEquals("application/json", request.headers["Content-Type"])
-    val gotJwtTokenStr = request.headers["Authorization"]!!.split(" ")[1]
     assertEquals("Bearer $mockJwtToken", request.headers["Authorization"])
     MatcherAssert.assertThat(
       request.path,

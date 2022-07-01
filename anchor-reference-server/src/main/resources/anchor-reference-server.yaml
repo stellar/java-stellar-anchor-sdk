@@ -10,6 +10,9 @@ anchor.settings:
   version: 0.0.1
   platformApiEndpoint: http://localhost:8080
 
+  # The URL where the anchor reference server can be accessed by the platform.
+  hostUrl: http://localhost:8081
+
 # These are secrets shared between Anchor and Platform that are used to safely communicate from `Platform->Anchor`
 # and `Anchor->Platform`, specially when they are in different clusters.
 #

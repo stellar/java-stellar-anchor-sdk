@@ -11,20 +11,25 @@ import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.platform.GetTransactionResponse;
 import org.stellar.anchor.api.platform.PatchTransactionsRequest;
 import org.stellar.anchor.api.platform.PatchTransactionsResponse;
+import org.stellar.anchor.auth.AuthHelper;
 import org.stellar.anchor.util.OkHttpUtil;
 
 public class PlatformApiClient extends BaseApiClient {
-  private String endpoint;
+  private final AuthHelper authHelper;
+  private final String endpoint;
 
-  public PlatformApiClient(String endpoint) {
+  public PlatformApiClient(AuthHelper authHelper, String endpoint) {
+    this.authHelper = authHelper;
     this.endpoint = endpoint;
   }
 
   public GetTransactionResponse getTransaction(String id) throws IOException, AnchorException {
+    String authHeader = "Bearer " + authHelper.createJwtToken();
     Request request =
         new Request.Builder()
             .url(endpoint + "/transactions/" + id)
             .header("Content-Type", "application/json")
+            .header("Authorization", authHeader)
             .get()
             .build();
     String responseBody = handleResponse(client.newCall(request).execute());
@@ -33,6 +38,7 @@ public class PlatformApiClient extends BaseApiClient {
 
   public PatchTransactionsResponse patchTransaction(PatchTransactionsRequest txnRequest)
       throws IOException, AnchorException {
+    String authHeader = "Bearer " + authHelper.createJwtToken();
     HttpUrl url = HttpUrl.parse(endpoint);
     url =
         new HttpUrl.Builder()
@@ -47,6 +53,7 @@ public class PlatformApiClient extends BaseApiClient {
         new Request.Builder()
             .url(url)
             .header("Content-Type", "application/json")
+            .header("Authorization", authHeader)
             .patch(requestBody)
             .build();
     Response response = client.newCall(request).execute();
