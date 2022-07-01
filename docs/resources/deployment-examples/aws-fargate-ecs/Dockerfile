@@ -1,13 +1,14 @@
 FROM ubuntu:20.04
-RUN mkdir /config
+RUN mkdir /config_files
 ENV STELLAR_ANCHOR_CONFIG=file:/config/anchor-config.yaml
 ENV REFERENCE_SERVER_CONFIG_ENV=file:/config/reference-config.yaml
 ADD ./copy_config.sh /copy_config.sh 
 RUN chmod +x /copy_config.sh
 ADD ./sep.sh /config_files/sep.sh 
 RUN chmod +x /config_files/sep.sh
-ADD ./anchor_config.yaml /config_files/anchor_config.yaml
-ADD ./stellar.toml /config_files/stellar_wks.toml 
+RUN echo $(ls -1 /config)
+ADD ./config/anchor_config.yaml /config_files/anchor_config.yaml
+ADD ./config/stellar.toml /config_files/stellar_wks.toml 
 RUN echo $(ls -1 /config_files)
 RUN echo $(ls -1 /)
 WORKDIR "/docs/deployment-examples/aws-fargate-ecs"
