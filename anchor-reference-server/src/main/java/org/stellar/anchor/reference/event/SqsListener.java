@@ -20,6 +20,18 @@ public class SqsListener extends AbstractEventListener {
   private final AmazonSQSAsync sqsClient;
 
   public SqsListener(SqsListenerSettings sqsListenerSettings, AnchorEventProcessor processor) {
+    String key = sqsListenerSettings.getAccessKey();
+    String region = sqsListenerSettings.getAccessKey().getRegion();
+    if (key != null) {
+      Log.debugF("sqs listener access key is {}", sqsListenerSettings.getAccessKey());
+    } else {
+      Log.debug("sqs access key is null");
+    }
+    if (region != null) {
+      Log.debugF("sqs listener region is {}", sqsListenerSettings.getRegion());
+    } else {
+      Log.debug("sqs region is null");
+    }
     this.processor = processor;
     this.sqsClient =
         AmazonSQSAsyncClientBuilder.standard()
