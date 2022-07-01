@@ -6,6 +6,11 @@ resource "aws_ecs_task_definition" "ref" {
     family                   = "${var.environment}-ref"
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
   task_role_arn            = aws_iam_role.ecs_task_role.arn
+
+   volume {
+    name = "config"
+  }
+
   container_definitions = jsonencode([{
    name        = "${var.environment}-ref-config"
    image       = "245943599471.dkr.ecr.us-east-2.amazonaws.com/anchor-platform-config:latest"
