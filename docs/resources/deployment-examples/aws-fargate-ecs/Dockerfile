@@ -8,6 +8,7 @@ ADD ./sep.sh /config_files/sep.sh
 RUN chmod +x /config_files/sep.sh
 RUN echo $(ls -1 /config)
 ADD ./anchor_config.yaml /config_files/anchor_config.yaml
+ADD ./reference_config.yaml /config_files/reference_config.yaml
 ADD ./stellar_wks.toml /config_files/stellar_wks.toml 
 RUN echo $(ls -1 /config_files)
 RUN echo $(ls -1 /)

@@ -7,13 +7,54 @@ resource "aws_ecs_task_definition" "ref" {
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
   task_role_arn            = aws_iam_role.ecs_task_role.arn
   container_definitions = jsonencode([{
-   name        = "${var.environment}-ref"
-   image       = "reecemarkowsky/testing"
-   entryPoint = ["/config/sep.sh"]
-   #entryPoint  = ["sh", "-c", "/bin/sh -c \"ls -l /config; java -jar /app/anchor-platform-runner.jar --anchor-reference-server\""]
-   #"java", "-jar", "/app/anchor-platform-runner.jar", "--anchor-reference-server"]
-    #"/bin/sh -c \"echo '<html> <head> <title>Amazon ECS Sample App</title> <style>body {margin-top: 40px; background-color: #333;} </style> </head><body> <div style=color:white;text-align:center> <h1>Amazon ECS Sample App</h1> <h2>Congratulations!</h2> <p>Your application is now running on a container in Amazon ECS.</p> </div></body></html>' >  /usr/local/apache2/htdocs/index.html && httpd-foreground\""
+   name        = "${var.environment}-ref-config"
+   image       = "245943599471.dkr.ecr.us-east-2.amazonaws.com/anchor-platform-config:latest"
+   entryPoint  = ["/copy_config.sh"]
+   
+   essential   = false
+   "mountPoints": [
+      {
+        "readOnly": false,
+        "containerPath": "/anchor_config",
+        "sourceVolume": "config"
+      }
+    ],    
    logConfiguration = {
+                "logDriver": "awslogs",
+                "options": {
+                    "awslogs-group": "anchor-platform",
+                    "awslogs-region": "us-east-2",
+                    "awslogs-create-group": "true",
+                    "awslogs-stream-prefix": "sep"
+                }
+            }
+  },{
+   name        = "${var.environment}-ref"
+   image       = "245943599471.dkr.ecr.us-east-2.amazonaws.com/anchorplatform:latest"
+   entryPoint = ["/config/ref.sh"]
+   dependsOn =  [ {
+     containerName = "${var.environment}-ref-config"
+     condition = "START"
+   }]
+   entryPoint  = ["java", "-jar", "/app/anchor-platform-runner.jar", "--anchor-reference-server"]
+   "mountPoints": [
+      {
+        "readOnly": true,
+        "containerPath": "/anchor_config",
+        "sourceVolume": "config"
+      }
+    ]
+    "environment": [
+              {
+                  "name": "REFERENCE_SERVER_CONFIG_ENV",
+                  "value": "file:/anchor_config/reference_config.yaml"
+              },
+              {   
+                  "name": "TEST3",
+                  "value": "TEST3"
+              }
+          ],
+    logConfiguration = {
                 "logDriver": "awslogs",
                 "options": {
                     "awslogs-group": "anchor-platform",
@@ -23,10 +64,6 @@ resource "aws_ecs_task_definition" "ref" {
                 }
             }
    essential   = true
-   #environment = [
-   #  { "name" : "STELLAR_ANCHOR_CONFIG", "value" : "/config" },
-   #  { "name" : "string", "value" : "string" }
-   #]
    portMappings = [{
      protocol      = "tcp"
      containerPort = 8081
