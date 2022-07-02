@@ -2,8 +2,10 @@ package org.stellar.anchor.filter;
 
 import java.io.IOException;
 import javax.servlet.*;
+import lombok.NoArgsConstructor;
 
-public class NoneTokenFilter implements Filter {
+@NoArgsConstructor
+public class NoneFilter implements Filter {
   @Override
   public void init(FilterConfig filterConfig) throws ServletException {}
 

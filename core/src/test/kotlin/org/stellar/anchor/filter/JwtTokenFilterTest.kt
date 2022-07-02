@@ -31,7 +31,6 @@ internal class JwtTokenFilterTest {
   private lateinit var request: HttpServletRequest
   private lateinit var response: HttpServletResponse
   private lateinit var mockFilterChain: FilterChain
-  private lateinit var jwtToken: String
 
   @BeforeEach
   fun setup() {
@@ -42,9 +41,6 @@ internal class JwtTokenFilterTest {
     this.request = mockk(relaxed = true)
     this.response = mockk(relaxed = true)
     this.mockFilterChain = mockk(relaxed = true)
-
-    this.jwtToken = jwtService.encode(createJwtToken(PUBLIC_KEY, null, appConfig.hostUrl))
-    every { request.getHeader("Authorization") } returns "Bearer $jwtToken"
   }
 
   @AfterEach
@@ -92,7 +88,8 @@ internal class JwtTokenFilterTest {
 
   @ParameterizedTest
   @ValueSource(strings = ["GET", "PUT", "POST", "DELETE"])
-  fun testNoBearer() {
+  fun testNoBearer(method: String) {
+    every { request.method } returns method
     every { request.getHeader("Authorization") } returns ""
 
     sep10TokenFilter.doFilter(request, response, mockFilterChain)
@@ -105,7 +102,8 @@ internal class JwtTokenFilterTest {
 
   @ParameterizedTest
   @ValueSource(strings = ["GET", "PUT", "POST", "DELETE"])
-  fun testBearerSplitError() {
+  fun testBearerSplitError(method: String) {
+    every { request.method } returns method
     every { request.getHeader("Authorization") } returns "Bearer123"
 
     sep10TokenFilter.doFilter(request, response, mockFilterChain)
@@ -154,6 +152,8 @@ internal class JwtTokenFilterTest {
     val slot = slot<JwtToken>()
     every { request.setAttribute(JWT_TOKEN, capture(slot)) } answers {}
 
+    val jwtToken = jwtService.encode(createJwtToken(PUBLIC_KEY, null, appConfig.hostUrl))
+    every { request.getHeader("Authorization") } returns "Bearer $jwtToken"
     sep10TokenFilter.doFilter(request, response, mockFilterChain)
 
     verify { mockFilterChain.doFilter(request, response) }
