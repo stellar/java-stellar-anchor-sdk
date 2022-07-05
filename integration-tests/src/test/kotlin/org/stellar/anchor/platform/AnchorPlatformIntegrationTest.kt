@@ -43,7 +43,7 @@ class AnchorPlatformIntegrationTest {
     private const val JWT_EXPIRATION_MILLISECONDS: Long = 10000
     private val platformToAnchorJwtService = JwtService(PLATFORM_TO_ANCHOR_SECRET)
     private val authHelper =
-      AuthHelper(
+      AuthHelper.forJwtToken(
         platformToAnchorJwtService,
         JWT_EXPIRATION_MILLISECONDS,
         "http://localhost:$SEP_SERVER_PORT"

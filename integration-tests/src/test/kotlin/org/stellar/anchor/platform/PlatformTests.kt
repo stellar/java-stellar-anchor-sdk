@@ -22,7 +22,8 @@ fun platformTestAll(toml: Sep1Helper.TomlContent, jwt: String) {
   sep38 = Sep38Client(toml.getString("ANCHOR_QUOTE_SERVER"), jwt)
 
   val platformToAnchorJwtService = JwtService("myAnchorToPlatformSecret")
-  val authHelper = AuthHelper(platformToAnchorJwtService, 900000, "http://localhost:8081")
+  val authHelper =
+    AuthHelper.forJwtToken(platformToAnchorJwtService, 900000, "http://localhost:8081")
   platformApiClient = PlatformApiClient(authHelper, "http://localhost:8080")
 
   testHappyPath()

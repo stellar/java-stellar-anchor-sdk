@@ -27,6 +27,7 @@ app-config:
     jwtSecretKey: secret
 
   integration-auth:
+    authType: JWT_TOKEN
     platformToAnchorSecret: myPlatformToAnchorSecret
     anchorToPlatformSecret: myAnchorToPlatformSecret
     expirationMilliseconds: 30000

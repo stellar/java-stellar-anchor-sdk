@@ -19,10 +19,20 @@ import org.stellar.anchor.platform.callback.RestRateIntegration;
 public class IntegrationConfig {
   @Bean
   AuthHelper authHelper(AppConfig appConfig, IntegrationAuthConfig integrationAuthConfig) {
-    return new AuthHelper(
-        new JwtService(integrationAuthConfig.getPlatformToAnchorSecret()),
-        integrationAuthConfig.getExpirationMilliseconds(),
-        appConfig.getHostUrl());
+    String authSecret = integrationAuthConfig.getPlatformToAnchorSecret();
+    switch (integrationAuthConfig.getAuthType()) {
+      case JWT_TOKEN:
+        return AuthHelper.forJwtToken(
+            new JwtService(authSecret),
+            integrationAuthConfig.getExpirationMilliseconds(),
+            appConfig.getHostUrl());
+
+      case API_KEY:
+        return AuthHelper.forApiKey(authSecret);
+
+      default:
+        return AuthHelper.forNone();
+    }
   }
 
   @Bean

@@ -37,7 +37,11 @@ class RestRateIntegrationTest {
     private const val JWT_EXPIRATION_MILLISECONDS: Long = 100000000
     private val platformToAnchorJwtService = JwtService(PLATFORM_TO_ANCHOR_SECRET)
     private val authHelper =
-      AuthHelper(platformToAnchorJwtService, JWT_EXPIRATION_MILLISECONDS, "http://localhost:8080")
+      AuthHelper.forJwtToken(
+        platformToAnchorJwtService,
+        JWT_EXPIRATION_MILLISECONDS,
+        "http://localhost:8080"
+      )
   }
   private lateinit var server: MockWebServer
   private lateinit var rateIntegration: RestRateIntegration

@@ -18,6 +18,12 @@ anchor.settings:
 #
 # When the receiving part decodes the incoming request token, it needs to verify if the token is still valid (and not expired).
 integration-auth:
+  #
+  # authType: used to determine how the authentication will happen between Anchor and Platform. Can be one of the following:
+  #     NONE
+  #     API_KEY
+  #     JWT_TOKEN
+  authType: JWT_TOKEN
   # CallbackAPI requests (`Platform->Anchor`) will contain an authentication header whose token was built using this
   # secret. The Anchor Backend will also store this same secret and use it to decode the incoming token to verify it
   # came from the Platform.
