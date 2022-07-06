@@ -1,9 +1,8 @@
 package org.stellar.anchor.platform.condition;
 
+import java.util.List;
 import org.springframework.boot.autoconfigure.condition.ConditionOutcome;
 import org.springframework.context.annotation.ConditionContext;
-
-import java.util.List;
 
 public class OnAnySepEnabledCondition extends AbstractOnSepsEnabled {
 

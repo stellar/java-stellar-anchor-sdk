@@ -13,6 +13,7 @@ fun platformTestAll(toml: Sep1Helper.TomlContent, jwt: String) {
   println("Performing Platform API tests...")
   sep12Client = Sep12Client(toml.getString("KYC_SERVER"), jwt)
   sep31Client = Sep31Client(toml.getString("DIRECT_PAYMENT_SERVER"), jwt)
+  sep38 = Sep38Client(toml.getString("ANCHOR_QUOTE_SERVER"), jwt)
   platformApiClient = PlatformApiClient("http://localhost:8080")
 
   testHappyPath()
@@ -29,11 +30,18 @@ fun testHappyPath() {
   val receiverCustomerRequest =
     GsonUtils.getInstance().fromJson(testCustomer2Json, Sep12PutCustomerRequest::class.java)
   val receiverCustomer = sep12Client.putCustomer(receiverCustomerRequest)
+  val quote =
+    sep38.postQuote(
+      "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+      "10",
+      "stellar:JPYC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+    )
 
   // Post Sep31 transaction.
   val txnRequest = gson.fromJson(postTxnJson, Sep31PostTransactionRequest::class.java)
   txnRequest.senderId = senderCustomer!!.id
   txnRequest.receiverId = receiverCustomer!!.id
+  txnRequest.quoteId = quote.id
   val txnPosted = sep31Client.postTransaction(txnRequest)
 
   val txnQueried = platformApiClient.getTransaction(txnPosted.id)
