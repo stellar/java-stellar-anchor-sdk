@@ -230,11 +230,11 @@ public class CustomerService {
     field.setOptional(!type.equals(Customer.Type.SEP31_RECEIVER.toString()));
     return field;
   }
-  public CustomerField createClabeNumberField(String type) {
+  public CustomerField createClabeNumberField(String customerType) {
     CustomerField field = new CustomerField();
     field.setType("string");
     field.setDescription("Bank account number for Mexico");
-    field.setOptional(!type.equals(Customer.Type.SEP31_RECEIVER.toString()));
+    field.setOptional(!customerType.equals(Customer.Type.SEP31_RECEIVER.toString()));
     return field;
   }
 
