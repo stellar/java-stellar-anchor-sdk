@@ -71,7 +71,6 @@ public class CustomerService {
     response.setId(customer.getId());
     return response;
   }
-
   public void delete(String customerId) {
     customerRepo.deleteById(customerId);
   }
@@ -127,6 +126,11 @@ public class CustomerService {
       } else {
         fields.put("bank_number", createBankNumberField(type));
       }
+      if (customer.getClabeNumber() != null) {
+        providedFields.put("clabe_number", createClabeNumberProvidedField());
+      } else {
+        fields.put("clabe_number", createClabeNumberField(type));
+      }
     }
     response.setId(customer.getId());
     response.setFields(fields);
@@ -164,6 +168,9 @@ public class CustomerService {
       if (request.getBankNumber() != null) {
         customer.setBankRoutingNumber(request.getBankNumber());
       }
+      if (request.getClabeNumber() != null) {
+        customer.setClabeNumber(request.getClabeNumber());
+      }
     }
     customerRepo.save(customer);
   }
@@ -180,6 +187,7 @@ public class CustomerService {
     Map<String, CustomerField> map = new HashMap<>();
     map.put("bank_account_number", createBankAccountNumberField(type));
     map.put("bank_number", createBankNumberField(type));
+    map.put("clabe_number", createClabeNumberField(type));
     return map;
   }
 
@@ -222,6 +230,13 @@ public class CustomerService {
     field.setOptional(!type.equals(Customer.Type.SEP31_RECEIVER.toString()));
     return field;
   }
+  public CustomerField createClabeNumberField(String customerType) {
+    CustomerField field = new CustomerField();
+    field.setType("string");
+    field.setDescription("Bank account number for Mexico");
+    field.setOptional(!customerType.equals(Customer.Type.SEP31_RECEIVER.toString()));
+    return field;
+  }
 
   public ProvidedCustomerField createFirstNameProvidedField() {
     ProvidedCustomerField field = new ProvidedCustomerField();
@@ -259,6 +274,14 @@ public class CustomerService {
     ProvidedCustomerField field = new ProvidedCustomerField();
     field.setType("string");
     field.setDescription("bank routing number of the customer");
+    field.setStatus(Customer.Status.ACCEPTED.toString());
+    return field;
+  }
+
+  public ProvidedCustomerField createClabeNumberProvidedField() {
+    ProvidedCustomerField field = new ProvidedCustomerField();
+    field.setType("string");
+    field.setDescription("bank account number for Mexico");
     field.setStatus(Customer.Status.ACCEPTED.toString());
     return field;
   }
