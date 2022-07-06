@@ -20,6 +20,7 @@ import org.stellar.anchor.api.callback.RateIntegration;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.ServerErrorException;
 import org.stellar.anchor.auth.AuthHelper;
+import org.stellar.anchor.util.AuthHeader;
 import org.stellar.anchor.util.Log;
 import shadow.com.google.common.reflect.TypeToken;
 
@@ -95,8 +96,9 @@ public class RestRateIntegration implements RateIntegration {
   }
 
   Request.Builder getRequestBuilder() {
+    AuthHeader<String, String> authHeader = authHelper.createAuthHeader();
     return new Request.Builder()
         .header("Content-Type", "application/json")
-        .header("Authorization", authHelper.createAuthHeader());
+        .header(authHeader.getName(), authHeader.getValue());
   }
 }

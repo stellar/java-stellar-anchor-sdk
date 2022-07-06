@@ -69,7 +69,7 @@ internal class ApiKeyFilterTest {
   @ValueSource(strings = ["GET", "PUT", "POST", "DELETE"])
   fun testNoApiKeyReturnsForbidden(method: String) {
     every { request.method } returns method
-    every { request.getHeader("Authorization") } returns null
+    every { request.getHeader("X-Api-Key") } returns null
 
     apiKeyFilter.doFilter(request, response, mockFilterChain)
     verify(exactly = 1) {
@@ -83,21 +83,7 @@ internal class ApiKeyFilterTest {
   @ValueSource(strings = ["GET", "PUT", "POST", "DELETE"])
   fun testNoBearerInAuthHeaderReturnsForbidden(method: String) {
     every { request.method } returns method
-    every { request.getHeader("Authorization") } returns ""
-
-    apiKeyFilter.doFilter(request, response, mockFilterChain)
-
-    verify(exactly = 1) {
-      response.setStatus(HttpStatus.SC_FORBIDDEN)
-      response.contentType = APPLICATION_JSON_VALUE
-    }
-  }
-
-  @ParameterizedTest
-  @ValueSource(strings = ["GET", "PUT", "POST", "DELETE"])
-  fun testMalformedBearerReturnsForbidden(method: String) {
-    every { request.method } returns method
-    every { request.getHeader("Authorization") } returns "Bearer123"
+    every { request.getHeader("X-Api-Key") } returns ""
 
     apiKeyFilter.doFilter(request, response, mockFilterChain)
 
@@ -111,7 +97,7 @@ internal class ApiKeyFilterTest {
   @ValueSource(strings = ["GET", "PUT", "POST", "DELETE"])
   fun testMismatchingApiKeyReturnsForbidden(method: String) {
     every { request.method } returns method
-    every { request.getHeader("Authorization") } returns "Bearer 123"
+    every { request.getHeader("X-Api-Key") } returns "123"
 
     apiKeyFilter.doFilter(request, response, mockFilterChain)
 
@@ -125,7 +111,7 @@ internal class ApiKeyFilterTest {
   @ValueSource(strings = ["GET", "PUT", "POST", "DELETE"])
   fun testMatchingApiKeySucceeds(method: String) {
     every { request.method } returns method
-    every { request.getHeader("Authorization") } returns "Bearer $API_KEY"
+    every { request.getHeader("X-Api-Key") } returns API_KEY
 
     apiKeyFilter.doFilter(request, response, mockFilterChain)
 

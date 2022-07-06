@@ -2,6 +2,7 @@ package org.stellar.anchor.auth;
 
 import java.util.Calendar;
 import org.stellar.anchor.config.IntegrationAuthConfig.AuthType;
+import org.stellar.anchor.util.AuthHeader;
 
 public class AuthHelper {
   public final AuthType authType;
@@ -33,19 +34,19 @@ public class AuthHelper {
     return new AuthHelper(AuthType.NONE);
   }
 
-  public String createAuthHeader() {
+  public AuthHeader<String, String> createAuthHeader() {
     switch (authType) {
       case JWT_TOKEN:
         long issuedAt = Calendar.getInstance().getTimeInMillis() / 1000L;
         long expirationTime = issuedAt + (jwtExpirationMilliseconds / 1000L);
         JwtToken token = JwtToken.of(issuerUrl, issuedAt, expirationTime);
-        return String.format("Bearer %s", jwtService.encode(token));
+        return new AuthHeader<>("Authorization", "Bearer " + jwtService.encode(token));
 
       case API_KEY:
-        return String.format("Bearer %s", this.apiKey);
+        return new AuthHeader<>("X-Api-Key", apiKey);
 
       default:
-        return null;
+        return new AuthHeader<>("Authorization", null);
     }
   }
 }

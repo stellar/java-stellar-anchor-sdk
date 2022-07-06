@@ -21,6 +21,7 @@ import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerResponse;
 import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest;
 import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerResponse;
 import org.stellar.anchor.auth.AuthHelper;
+import org.stellar.anchor.util.AuthHeader;
 
 public class RestCustomerIntegration implements CustomerIntegration {
   private final String anchorEndpoint;
@@ -134,9 +135,10 @@ public class RestCustomerIntegration implements CustomerIntegration {
   }
 
   Request.Builder getRequestBuilder() {
+    AuthHeader<String, String> authHeader = authHelper.createAuthHeader();
     return new Request.Builder()
         .header("Content-Type", "application/json")
-        .header("Authorization", authHelper.createAuthHeader());
+        .header(authHeader.getName(), authHeader.getValue());
   }
 
   static class Converter {

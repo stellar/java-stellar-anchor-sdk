@@ -19,6 +19,7 @@ import org.stellar.anchor.api.callback.GetFeeResponse;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.ServerErrorException;
 import org.stellar.anchor.auth.AuthHelper;
+import org.stellar.anchor.util.AuthHeader;
 import shadow.com.google.common.reflect.TypeToken;
 
 public class RestFeeIntegration implements FeeIntegration {
@@ -73,8 +74,9 @@ public class RestFeeIntegration implements FeeIntegration {
   }
 
   Request.Builder getRequestBuilder() {
+    AuthHeader<String, String> authHeader = authHelper.createAuthHeader();
     return new Request.Builder()
         .header("Content-Type", "application/json")
-        .header("Authorization", authHelper.createAuthHeader());
+        .header(authHeader.getName(), authHeader.getValue());
   }
 }

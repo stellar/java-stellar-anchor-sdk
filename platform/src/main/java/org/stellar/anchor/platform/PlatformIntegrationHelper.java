@@ -9,6 +9,7 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.springframework.http.HttpStatus;
 import org.stellar.anchor.api.exception.*;
+import org.stellar.anchor.util.Log;
 
 public class PlatformIntegrationHelper {
   public static Response call(OkHttpClient httpClient, Request request)
@@ -59,6 +60,7 @@ public class PlatformIntegrationHelper {
     } else if (responseCode == HttpStatus.NOT_FOUND.value()) {
       return new NotFoundException(errorMessage);
     }
+    Log.error(errorMessage);
     return new ServerErrorException("internal server error");
   }
 

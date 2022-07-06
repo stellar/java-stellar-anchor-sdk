@@ -15,7 +15,7 @@ import org.stellar.anchor.util.GsonUtils;
 public class ApiKeyFilter implements Filter {
   public static final String OPTIONS = "OPTIONS";
   public static final String APPLICATION_JSON_VALUE = "application/json";
-  public static final String HEADER_NAME = "Authorization";
+  public static final String HEADER_NAME = "X-Api-Key";
   final Gson gson;
   final String apiKey;
 
@@ -47,21 +47,8 @@ public class ApiKeyFilter implements Filter {
       return;
     }
 
-    String authorization = request.getHeader(HEADER_NAME);
-    if (authorization == null) {
-      sendForbiddenError(response);
-      return;
-    }
-
-    if (!authorization.contains("Bearer")) {
-      sendForbiddenError(response);
-      return;
-    }
-
-    String gotApiKey;
-    try {
-      gotApiKey = authorization.split(" ")[1];
-    } catch (Exception ex) {
+    String gotApiKey = request.getHeader(HEADER_NAME);
+    if (gotApiKey == null) {
       sendForbiddenError(response);
       return;
     }
