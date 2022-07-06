@@ -28,6 +28,8 @@ public class Customer {
 
   String bankRoutingNumber;
 
+  String clabeNumber;
+
   public enum Type {
     SEP31_SENDER("sep31-sender"),
     SEP31_RECEIVER("sep31-receiver");
