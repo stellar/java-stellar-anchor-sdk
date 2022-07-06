@@ -71,6 +71,7 @@ public class CustomerService {
     response.setId(customer.getId());
     return response;
   }
+
   public void delete(String customerId) {
     customerRepo.deleteById(customerId);
   }
@@ -230,6 +231,7 @@ public class CustomerService {
     field.setOptional(!type.equals(Customer.Type.SEP31_RECEIVER.toString()));
     return field;
   }
+
   public CustomerField createClabeNumberField(String customerType) {
     CustomerField field = new CustomerField();
     field.setType("string");
