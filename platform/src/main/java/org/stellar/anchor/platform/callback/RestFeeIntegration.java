@@ -1,7 +1,7 @@
 package org.stellar.anchor.platform.callback;
 
 import static okhttp3.HttpUrl.get;
-import static org.stellar.anchor.platform.PlatformIntegrationHelper.*;
+import static org.stellar.anchor.platform.callback.PlatformIntegrationHelper.*;
 
 import com.google.gson.Gson;
 import java.lang.reflect.Type;
@@ -19,7 +19,6 @@ import org.stellar.anchor.api.callback.GetFeeResponse;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.ServerErrorException;
 import org.stellar.anchor.auth.AuthHelper;
-import org.stellar.anchor.util.AuthHeader;
 import shadow.com.google.common.reflect.TypeToken;
 
 public class RestFeeIntegration implements FeeIntegration {
@@ -55,7 +54,7 @@ public class RestFeeIntegration implements FeeIntegration {
         });
     HttpUrl url = urlBuilder.build();
 
-    Request httpRequest = getRequestBuilder().url(url).get().build();
+    Request httpRequest = getRequestBuilder(authHelper).url(url).get().build();
     Response response = call(httpClient, httpRequest);
     String responseContent = getContent(response);
 
@@ -71,12 +70,5 @@ public class RestFeeIntegration implements FeeIntegration {
     }
 
     return feeResponse;
-  }
-
-  Request.Builder getRequestBuilder() {
-    AuthHeader<String, String> authHeader = authHelper.createAuthHeader();
-    return new Request.Builder()
-        .header("Content-Type", "application/json")
-        .header(authHeader.getName(), authHeader.getValue());
   }
 }

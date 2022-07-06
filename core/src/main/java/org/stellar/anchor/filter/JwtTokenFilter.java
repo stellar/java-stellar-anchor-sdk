@@ -17,14 +17,13 @@ import org.stellar.anchor.util.GsonUtils;
 
 public class JwtTokenFilter implements Filter {
   public static final String JWT_TOKEN = "token";
-  public static final String OPTIONS = "OPTIONS";
+  private static final String OPTIONS = "OPTIONS";
   public static final String APPLICATION_JSON_VALUE = "application/json";
-  final Gson gson;
-  final JwtService jwtService;
+  private static final Gson gson = GsonUtils.builder().setPrettyPrinting().create();
+  private final JwtService jwtService;
 
   public JwtTokenFilter(JwtService jwtService) {
     this.jwtService = jwtService;
-    this.gson = GsonUtils.builder().setPrettyPrinting().create();
   }
 
   @Override
@@ -91,7 +90,7 @@ public class JwtTokenFilter implements Filter {
     // TODO: Add more validation.
   }
 
-  private void sendForbiddenError(HttpServletResponse response) throws IOException {
+  private static void sendForbiddenError(HttpServletResponse response) throws IOException {
     response.setStatus(HttpStatus.SC_FORBIDDEN);
     response.setContentType(APPLICATION_JSON_VALUE);
     response.getWriter().print(gson.toJson(new SepExceptionResponse("forbidden")));

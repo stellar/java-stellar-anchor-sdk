@@ -1,7 +1,7 @@
 package org.stellar.anchor.platform.callback;
 
 import static okhttp3.HttpUrl.get;
-import static org.stellar.anchor.platform.PlatformIntegrationHelper.*;
+import static org.stellar.anchor.platform.callback.PlatformIntegrationHelper.*;
 import static org.stellar.anchor.platform.callback.RestCustomerIntegration.Converter.fromPlatform;
 import static org.stellar.anchor.platform.callback.RestCustomerIntegration.Converter.fromSep12;
 
@@ -21,7 +21,6 @@ import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerResponse;
 import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest;
 import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerResponse;
 import org.stellar.anchor.auth.AuthHelper;
-import org.stellar.anchor.util.AuthHeader;
 
 public class RestCustomerIntegration implements CustomerIntegration {
   private final String anchorEndpoint;
@@ -63,7 +62,9 @@ public class RestCustomerIntegration implements CustomerIntegration {
     }
     // Call anchor
     Response response =
-        call(httpClient, getRequestBuilder().url(customerEndpointBuilder.build()).get().build());
+        call(
+            httpClient,
+            getRequestBuilder(authHelper).url(customerEndpointBuilder.build()).get().build());
     String responseContent = getContent(response);
 
     if (response.code() == HttpStatus.OK.value()) {
@@ -89,7 +90,7 @@ public class RestCustomerIntegration implements CustomerIntegration {
     RequestBody requestBody =
         RequestBody.create(gson.toJson(customerRequest), MediaType.get("application/json"));
     Request callbackRequest =
-        getRequestBuilder().url(getCustomerUrlBuilder().build()).put(requestBody).build();
+        getRequestBuilder(authHelper).url(getCustomerUrlBuilder().build()).put(requestBody).build();
 
     // Call anchor
     Response response = call(httpClient, callbackRequest);
@@ -110,7 +111,7 @@ public class RestCustomerIntegration implements CustomerIntegration {
   @Override
   public void deleteCustomer(String id) {
     HttpUrl url = getCustomerUrlBuilder().addPathSegment(id).build();
-    Request callbackRequest = getRequestBuilder().url(url).delete().build();
+    Request callbackRequest = getRequestBuilder(authHelper).url(url).delete().build();
 
     // Call anchor
     Response response = call(httpClient, callbackRequest);
@@ -132,13 +133,6 @@ public class RestCustomerIntegration implements CustomerIntegration {
 
   Builder getCustomerUrlBuilder() {
     return get(anchorEndpoint).newBuilder().addPathSegment("customer");
-  }
-
-  Request.Builder getRequestBuilder() {
-    AuthHeader<String, String> authHeader = authHelper.createAuthHeader();
-    return new Request.Builder()
-        .header("Content-Type", "application/json")
-        .header(authHeader.getName(), authHeader.getValue());
   }
 
   static class Converter {

@@ -7,21 +7,21 @@ import java.io.IOException;
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.validation.constraints.NotNull;
 import lombok.SneakyThrows;
 import org.apache.http.HttpStatus;
 import org.stellar.anchor.api.sep.SepExceptionResponse;
 import org.stellar.anchor.util.GsonUtils;
 
 public class ApiKeyFilter implements Filter {
-  public static final String OPTIONS = "OPTIONS";
-  public static final String APPLICATION_JSON_VALUE = "application/json";
-  public static final String HEADER_NAME = "X-Api-Key";
-  final Gson gson;
-  final String apiKey;
+  private static final String OPTIONS = "OPTIONS";
+  private static final String APPLICATION_JSON_VALUE = "application/json";
+  private static final String HEADER_NAME = "X-Api-Key";
+  private static final Gson gson = GsonUtils.builder().setPrettyPrinting().create();
+  private final String apiKey;
 
-  public ApiKeyFilter(String apiKey) {
+  public ApiKeyFilter(@NotNull String apiKey) {
     this.apiKey = apiKey;
-    this.gson = GsonUtils.builder().setPrettyPrinting().create();
   }
 
   @Override
@@ -48,11 +48,6 @@ public class ApiKeyFilter implements Filter {
     }
 
     String gotApiKey = request.getHeader(HEADER_NAME);
-    if (gotApiKey == null) {
-      sendForbiddenError(response);
-      return;
-    }
-
     if (!apiKey.equals(gotApiKey)) {
       sendForbiddenError(response);
       return;
@@ -63,7 +58,7 @@ public class ApiKeyFilter implements Filter {
     filterChain.doFilter(servletRequest, servletResponse);
   }
 
-  private void sendForbiddenError(HttpServletResponse response) throws IOException {
+  private static void sendForbiddenError(HttpServletResponse response) throws IOException {
     response.setStatus(HttpStatus.SC_FORBIDDEN);
     response.setContentType(APPLICATION_JSON_VALUE);
     response.getWriter().print(gson.toJson(new SepExceptionResponse("forbidden")));
