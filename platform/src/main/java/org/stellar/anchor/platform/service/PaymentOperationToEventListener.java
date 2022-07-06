@@ -125,8 +125,8 @@ public class PaymentOperationToEventListener implements PaymentListener {
     // send to the event queue
     sendToQueue(event);
     Metrics.counter(
-            "payment.received", "toAddress", payment.getTo(), "asset", payment.getAssetName())
-        .increment();
+            "payment.received", "asset", payment.getAssetName())
+        .increment(Double.parseDouble(payment.getAmount()));
   }
 
   @Override

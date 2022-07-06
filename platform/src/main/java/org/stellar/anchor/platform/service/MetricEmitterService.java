@@ -49,7 +49,7 @@ public class MetricEmitterService {
 
     // TODO add gauges for SEP-24 Transactions
 
-    if (metricConfig.isEnabled()){
+    if (metricConfig.isOptionalMetricsEnabled()){
       this.executor.scheduleAtFixedRate(new MetricEmitter(), 0, metricConfig.getRunInterval(), TimeUnit.SECONDS);
     }
   }

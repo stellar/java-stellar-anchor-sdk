@@ -93,7 +93,7 @@ public class ConfigManagementConfig {
   }
 
   @Bean
-  @ConfigurationProperties(prefix = "metric-emitter-service")
+  @ConfigurationProperties(prefix = "metrics-service")
   MetricConfig metricConfig() {
     return new PropertyMetricConfig();
   }

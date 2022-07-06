@@ -25,6 +25,9 @@ dependencies {
   implementation(libs.reactor.core)
   implementation(libs.javax.jaxb.api)
   implementation(libs.java.stellar.sdk)
+  implementation("org.springframework.boot:spring-boot-starter-actuator:2.7.0")
+  implementation("io.micrometer:micrometer-registry-prometheus:1.9.0")
+  implementation("org.springframework.boot:spring-boot-starter-aop:2.7.0")
 
   implementation(project(":api-schema"))
 

@@ -6,6 +6,6 @@ import org.stellar.anchor.config.MetricConfig;
 
 @Data
 public class PropertyMetricConfig implements MetricConfig {
-  private boolean enabled = false;
+  private boolean optionalMetricsEnabled = false;
   private Integer runInterval = 30;
 }
