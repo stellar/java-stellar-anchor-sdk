@@ -28,7 +28,7 @@
             },
             "sep31" : {
                 "quotes_supported": true,
-                "quotes_required": true,
+                "quotes_required": false,
                 "sep12": {
                     "sender": {
                         "types": {
@@ -110,7 +110,7 @@
             },
             "sep31" : {
                 "quotes_supported": true,
-                "quotes_required": true,
+                "quotes_required": false,
                 "sep12": {
                     "sender": {
                         "types": {

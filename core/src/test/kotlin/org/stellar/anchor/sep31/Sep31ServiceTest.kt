@@ -32,6 +32,7 @@ import org.stellar.anchor.api.sep.sep38.RateFee
 import org.stellar.anchor.api.shared.Amount
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.ResourceJsonAssetService
+import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.Sep31Config
 import org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_RECEIVE
@@ -39,7 +40,6 @@ import org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_SEND
 import org.stellar.anchor.event.EventPublishService
 import org.stellar.anchor.event.models.StellarId
 import org.stellar.anchor.event.models.TransactionEvent
-import org.stellar.anchor.sep10.JwtService
 import org.stellar.anchor.sep31.Sep31Service.Sep31CustomerInfoNeededException
 import org.stellar.anchor.sep31.Sep31Service.Sep31MissingFieldException
 import org.stellar.anchor.sep38.PojoSep38Quote
