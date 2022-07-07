@@ -6,6 +6,7 @@
     - [Config Files](#config-files)
       - [Path to Yaml](#path-to-yaml)
         - [Yaml Search](#yaml-search)
+    - [Authorization Between Platform<>Anchor](#authorization-between-platformanchor)
     - [Environment variables](#environment-variables)
     - [Supported Assets](#supported-assets)
     - [Event Messaging](#event-messaging)
@@ -74,6 +75,13 @@ The Platform configuration loader tries to fetch the configuration from up to th
     ```
 
 If all of the above fail, the server fails with an error.
+
+### Authorization Between Platform<>Anchor
+
+It's possible to enable/disable authorization headers for requests between Platform and Anchor by editing the `integration-auth` configuration in the Platform config map. You can use different secrets depending on the direction of the requests, i.e. one for `Platform->Anchor` and another for `Anchor->Platform`, and you can choose between the following auth options:
+- `JWT_TOKEN`: where a secret is used to create a jwt token in the sender side, and this same secret is used to decode the token in the receiver side. This token is added to the `Authorization` header.
+- `API_KEY`: where an API key is added directly to the `X-Api-Key` header.
+- `NONE`: where no authorization is used.
 
 ### Environment variables
 

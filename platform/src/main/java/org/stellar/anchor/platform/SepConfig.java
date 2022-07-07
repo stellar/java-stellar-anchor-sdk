@@ -1,7 +1,7 @@
 package org.stellar.anchor.platform;
 
 import com.google.gson.Gson;
-import org.springframework.beans.factory.annotation.Autowired;
+import javax.servlet.Filter;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -9,9 +9,12 @@ import org.stellar.anchor.api.callback.CustomerIntegration;
 import org.stellar.anchor.api.callback.FeeIntegration;
 import org.stellar.anchor.api.callback.RateIntegration;
 import org.stellar.anchor.asset.AssetService;
+import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.config.*;
 import org.stellar.anchor.event.EventPublishService;
-import org.stellar.anchor.filter.Sep10TokenFilter;
+import org.stellar.anchor.filter.ApiKeyFilter;
+import org.stellar.anchor.filter.JwtTokenFilter;
+import org.stellar.anchor.filter.NoneFilter;
 import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.paymentservice.circle.CirclePaymentService;
 import org.stellar.anchor.paymentservice.circle.config.CirclePaymentConfig;
@@ -21,7 +24,6 @@ import org.stellar.anchor.platform.service.Sep31DepositInfoGeneratorCircle;
 import org.stellar.anchor.platform.service.Sep31DepositInfoGeneratorSelf;
 import org.stellar.anchor.platform.service.SpringResourceReader;
 import org.stellar.anchor.sep1.Sep1Service;
-import org.stellar.anchor.sep10.JwtService;
 import org.stellar.anchor.sep10.Sep10Service;
 import org.stellar.anchor.sep12.Sep12Service;
 import org.stellar.anchor.sep24.Sep24Service;
@@ -39,15 +41,24 @@ public class SepConfig {
   public SepConfig() {}
 
   /**
+   * Used by SEP-10 authentication service.
+   *
+   * @return the jwt service used by SEP-10.
+   */
+  @Bean
+  public JwtService jwtService(AppConfig appConfig) {
+    return new JwtService(appConfig);
+  }
+
+  /**
    * Register sep-10 token filter.
    *
    * @return Spring Filter Registration Bean
    */
   @Bean
-  public FilterRegistrationBean<Sep10TokenFilter> sep10TokenFilter(
-      @Autowired Sep10Config sep10Config, @Autowired JwtService jwtService) {
-    FilterRegistrationBean<Sep10TokenFilter> registrationBean = new FilterRegistrationBean<>();
-    registrationBean.setFilter(new Sep10TokenFilter(sep10Config, jwtService));
+  public FilterRegistrationBean<Filter> sep10TokenFilter(JwtService jwtService) {
+    FilterRegistrationBean<Filter> registrationBean = new FilterRegistrationBean<>();
+    registrationBean.setFilter(new JwtTokenFilter(jwtService));
     registrationBean.addUrlPatterns("/sep12/*");
     registrationBean.addUrlPatterns("/sep24/transaction");
     registrationBean.addUrlPatterns("/sep24/transactions*");
@@ -59,9 +70,38 @@ public class SepConfig {
     return registrationBean;
   }
 
+  /**
+   * Register anchor-to-platform token filter.
+   *
+   * @return Spring Filter Registration Bean
+   */
   @Bean
-  public JwtService jwtService(AppConfig appConfig) {
-    return new JwtService(appConfig);
+  public FilterRegistrationBean<Filter> anchorToPlatformTokenFilter(
+      IntegrationAuthConfig integrationAuthConfig) {
+    Filter anchorToPlatformFilter;
+    String authSecret = integrationAuthConfig.getAnchorToPlatformSecret();
+    switch (integrationAuthConfig.getAuthType()) {
+      case JWT_TOKEN:
+        JwtService jwtService = new JwtService(authSecret);
+        anchorToPlatformFilter = new JwtTokenFilter(jwtService);
+        break;
+
+      case API_KEY:
+        anchorToPlatformFilter = new ApiKeyFilter(authSecret);
+        break;
+
+      default:
+        anchorToPlatformFilter = new NoneFilter();
+        break;
+    }
+
+    FilterRegistrationBean<Filter> registrationBean = new FilterRegistrationBean<>();
+    registrationBean.setFilter(anchorToPlatformFilter);
+    registrationBean.addUrlPatterns("/transactions/*");
+    registrationBean.addUrlPatterns("/transactions");
+    registrationBean.addUrlPatterns("/exchange/quotes/*");
+    registrationBean.addUrlPatterns("/exchange/quotes");
+    return registrationBean;
   }
 
   @Bean

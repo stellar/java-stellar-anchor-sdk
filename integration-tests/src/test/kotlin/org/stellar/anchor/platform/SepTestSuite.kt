@@ -1,8 +1,8 @@
 package org.stellar.anchor.platform
 
 import org.apache.commons.cli.*
-import org.stellar.anchor.sep10.JwtService
-import org.stellar.anchor.sep10.JwtToken
+import org.stellar.anchor.auth.JwtService
+import org.stellar.anchor.auth.JwtToken
 import org.stellar.anchor.util.Sep1Helper
 import org.stellar.anchor.util.Sep1Helper.TomlContent
 

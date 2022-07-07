@@ -1,7 +1,7 @@
 package org.stellar.anchor.platform.callback;
 
 import static okhttp3.HttpUrl.get;
-import static org.stellar.anchor.platform.PlatformIntegrationHelper.*;
+import static org.stellar.anchor.platform.callback.PlatformIntegrationHelper.*;
 
 import com.google.gson.Gson;
 import java.lang.reflect.Type;
@@ -19,6 +19,7 @@ import org.stellar.anchor.api.callback.GetRateResponse;
 import org.stellar.anchor.api.callback.RateIntegration;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.ServerErrorException;
+import org.stellar.anchor.auth.AuthHelper;
 import org.stellar.anchor.util.Log;
 import shadow.com.google.common.reflect.TypeToken;
 
@@ -26,8 +27,10 @@ public class RestRateIntegration implements RateIntegration {
   private final String anchorEndpoint;
   private final OkHttpClient httpClient;
   private final Gson gson;
+  private final AuthHelper authHelper;
 
-  public RestRateIntegration(String anchorEndpoint, OkHttpClient httpClient, Gson gson) {
+  public RestRateIntegration(
+      String anchorEndpoint, OkHttpClient httpClient, AuthHelper authHelper, Gson gson) {
     try {
       new URI(anchorEndpoint);
     } catch (URISyntaxException e) {
@@ -36,6 +39,7 @@ public class RestRateIntegration implements RateIntegration {
 
     this.anchorEndpoint = anchorEndpoint;
     this.httpClient = httpClient;
+    this.authHelper = authHelper;
     this.gson = gson;
   }
 
@@ -52,8 +56,7 @@ public class RestRateIntegration implements RateIntegration {
         });
     HttpUrl url = urlBuilder.build();
 
-    Request httpRequest =
-        new Request.Builder().url(url).header("Content-Type", "application/json").get().build();
+    Request httpRequest = getRequestBuilder(authHelper).url(url).get().build();
     Response response = call(httpClient, httpRequest);
     String responseContent = getContent(response);
 

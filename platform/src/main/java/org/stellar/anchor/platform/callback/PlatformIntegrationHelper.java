@@ -1,4 +1,4 @@
-package org.stellar.anchor.platform;
+package org.stellar.anchor.platform.callback;
 
 import com.google.gson.Gson;
 import java.io.IOException;
@@ -9,8 +9,18 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.springframework.http.HttpStatus;
 import org.stellar.anchor.api.exception.*;
+import org.stellar.anchor.auth.AuthHelper;
+import org.stellar.anchor.util.AuthHeader;
+import org.stellar.anchor.util.Log;
 
 public class PlatformIntegrationHelper {
+  public static Request.Builder getRequestBuilder(AuthHelper authHelper) {
+    AuthHeader<String, String> authHeader = authHelper.createAuthHeader();
+    return new Request.Builder()
+        .header("Content-Type", "application/json")
+        .header(authHeader.getName(), authHeader.getValue());
+  }
+
   public static Response call(OkHttpClient httpClient, Request request)
       throws ServiceUnavailableException {
     try {
@@ -59,6 +69,7 @@ public class PlatformIntegrationHelper {
     } else if (responseCode == HttpStatus.NOT_FOUND.value()) {
       return new NotFoundException(errorMessage);
     }
+    Log.error(errorMessage);
     return new ServerErrorException("internal server error");
   }
 
