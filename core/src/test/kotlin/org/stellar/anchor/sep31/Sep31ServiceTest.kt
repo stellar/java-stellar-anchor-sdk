@@ -46,7 +46,7 @@ import org.stellar.anchor.sep38.PojoSep38Quote
 import org.stellar.anchor.sep38.Sep38QuoteStore
 import org.stellar.anchor.util.GsonUtils
 
-internal class Sep31ServiceTest {
+class Sep31ServiceTest {
   companion object {
     val gson: Gson = GsonUtils.getInstance()
 
