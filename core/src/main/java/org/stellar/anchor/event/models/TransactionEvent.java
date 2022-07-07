@@ -74,7 +74,7 @@ public class TransactionEvent implements AnchorEvent {
 
   String message;
 
-  Refund[] refunds;
+  Refund refunds;
 
   @JsonProperty("stellar_transactions")
   @SerializedName("stellar_transactions")
