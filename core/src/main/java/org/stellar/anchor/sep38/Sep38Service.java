@@ -136,6 +136,7 @@ public class Sep38Service {
     Sep38Context context = getPriceRequest.getContext();
 
     if (this.rateIntegration == null) {
+      Log.error("rateIntegration should not be null!");
       throw new ServerErrorException("internal server error");
     }
     validateAsset("sell_", sellAssetName);
