@@ -13,6 +13,8 @@ import org.stellar.anchor.api.sep.sep10.ChallengeRequest;
 import org.stellar.anchor.api.sep.sep10.ChallengeResponse;
 import org.stellar.anchor.api.sep.sep10.ValidationRequest;
 import org.stellar.anchor.api.sep.sep10.ValidationResponse;
+import org.stellar.anchor.auth.JwtService;
+import org.stellar.anchor.auth.JwtToken;
 import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.Sep10Config;
 import org.stellar.anchor.horizon.Horizon;

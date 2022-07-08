@@ -1,6 +1,5 @@
 package org.stellar.anchor.reference.event;
 
-import com.google.gson.Gson;
 import java.io.IOException;
 import java.util.List;
 import org.springframework.stereotype.Component;
@@ -8,6 +7,7 @@ import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.platform.PatchTransactionRequest;
 import org.stellar.anchor.api.platform.PatchTransactionsRequest;
 import org.stellar.anchor.api.shared.Amount;
+import org.stellar.anchor.auth.AuthHelper;
 import org.stellar.anchor.event.models.QuoteEvent;
 import org.stellar.anchor.event.models.TransactionEvent;
 import org.stellar.anchor.reference.client.PlatformApiClient;
@@ -18,8 +18,8 @@ import org.stellar.anchor.util.Log;
 public class AnchorEventProcessor {
   private final PlatformApiClient platformClient;
 
-  AnchorEventProcessor(AppSettings appSettings, Gson gson) {
-    this.platformClient = new PlatformApiClient(appSettings.getPlatformApiEndpoint());
+  AnchorEventProcessor(AppSettings appSettings, AuthHelper authHelper) {
+    this.platformClient = new PlatformApiClient(authHelper, appSettings.getPlatformApiEndpoint());
   }
 
   public void handleQuoteEvent(QuoteEvent event) {

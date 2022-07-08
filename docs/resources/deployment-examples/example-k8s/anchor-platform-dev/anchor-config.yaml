@@ -28,6 +28,13 @@ anchor-config.yaml: |
      assets: assets-test.json
      jwtSecretKey: secret
  
+   # Auth between anchor and platform
+   integration-auth:
+     authType: JWT_TOKEN
+     platformToAnchorSecret: ${PLATFORM_TO_ANCHOR_SECRET}
+     anchorToPlatformSecret: ${ANCHOR_TO_PLATFORM_SECRET}
+     expirationMilliseconds: 30000
+ 
    # sep-1
    sep1:
      enabled: true
