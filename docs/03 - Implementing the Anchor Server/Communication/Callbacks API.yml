@@ -8,6 +8,8 @@ info:
   version: "1.0"
   title: Synchronous Callbacks API
 tags:
+  - name: "Unique Address"
+    description: "(optional) Provide a unique `stellar_address:memo` pair that will be used to correlate a Stellar payment 1-to-1 with a Platform resource, like a SEP-31 transaction."
   - name: "Fees"
     description: "Requests containing data that can be used to calculate transaction fees."
   - name: "Rates"
@@ -17,10 +19,59 @@ tags:
       [SEP-12](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0012.md) requests made from client 
       applications.
 paths:
+  /unique_address:
+    get:
+      description: |
+        If the platform is configured with `depositInfoGeneratorType: api`, the Platform will be executing this request to 
+        the Anchor backend every time a transaction is initiated by a client application.
+
+        The Anchor must guarantee that the memo returned in this request is unique, so it can be mapped 1-to-1 to a Platform
+        resource such as a [SEP-31](https://stellar.org/protocol/sep-31) transaction.
+        
+        It is possible that these memos are never used by the client who initiated the transaction though.
+      tags:
+        - Unique Address
+      parameters:
+        - in: query
+          name: idempotency_key
+          description: |
+            A unique identifier used to allow Anchors to retry the request without causing the operation to be executed multiple times. 
+            Should be a valid `uuid`.
+          schema:
+            type: string
+          required: false
+      responses:
+        '200':
+          description: Success.
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  unique_address:
+                    description: An object containing the unique `stellar_address:memo` pair used to identify a destination.
+                    type: object
+                    properties:
+                      stellar_address:
+                        description: A `G...` stellar address or a `M...` [muxed stellar address](https://developers.stellar.org/docs/glossary/muxed-accounts/) of an **existing** account in the Stellar network.
+                        type: string
+                      memo:
+                        description: A memo used as a acomplementary identifier for a Stellar account address.
+                        type: string
+                    required:
+                      - stellar_address
+
+        '500':
+          description: Error. The Platform will respond to the client application with the same response code and body.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
   /fee:
     get:
       description: |
-        The Platform will make this request to the anchor every time a transaction is initiated by a client application.
+        The Platform will make this request to the anchor every time a transaction is initiated by a client application
+        without a `quote_id`.
 
         The Anchor must ensure that the sending and receiving customers specified in the request meet the KYC requirements
         necessary to partake in the transaction described in the request.
