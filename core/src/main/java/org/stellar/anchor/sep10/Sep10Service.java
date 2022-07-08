@@ -65,6 +65,12 @@ public class Sep10Service {
           sep10Config.getOmnibusAccountList().contains(challengeRequest.getAccount().trim());
     }
 
+    if (sep10Config.isRequireKnownOmnibusAccount() && !omnibusWallet){
+      // validate that requesting account is allowed access
+      infoF("requesting account: {} is not in allow list", challengeRequest.getAccount().trim());
+      throw new SepValidationException("unable to process");
+    }
+
     if (omnibusWallet) {
       if (challengeRequest.getClientDomain() != null) {
         throw new SepValidationException(

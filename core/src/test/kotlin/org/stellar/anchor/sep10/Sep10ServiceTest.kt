@@ -562,6 +562,33 @@ internal class Sep10ServiceTest {
     assertThrows<SepException> { sep10Service.createChallenge(cr) }
   }
 
+  @Test
+  fun testRequireKnownObnibusAccount() {
+    every { sep10Config.isRequireKnownOmnibusAccount } returns true
+    every { sep10Config.omnibusAccountList } returns listOf(TEST_ACCOUNT)
+    val cr = ChallengeRequest.of(TEST_ACCOUNT, TEST_MEMO, TEST_HOME_DOMAIN, null)
+
+    assertDoesNotThrow{ sep10Service.createChallenge(cr) }
+  }
+
+  @Test
+  fun testRequireKnownObnibusAccountDisabled() {
+    every { sep10Config.isRequireKnownOmnibusAccount } returns false
+    val cr = ChallengeRequest.of(TEST_ACCOUNT, TEST_MEMO, TEST_HOME_DOMAIN, null)
+    every { sep10Config.omnibusAccountList } returns listOf("G321E23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP")
+
+    assertDoesNotThrow{ sep10Service.createChallenge(cr) }
+  }
+
+  @Test
+  fun testRequireKnownObnibusAccountUnknownAccount() {
+    every { sep10Config.isRequireKnownOmnibusAccount } returns true
+    val cr = ChallengeRequest.of(TEST_ACCOUNT, TEST_MEMO, TEST_HOME_DOMAIN, null)
+    every { sep10Config.omnibusAccountList } returns listOf("G321E23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP")
+
+    assertThrows<SepException> { sep10Service.createChallenge(cr) }
+  }
+
   @ParameterizedTest
   @CsvSource(
     value =
