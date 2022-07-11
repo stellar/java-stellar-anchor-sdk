@@ -29,6 +29,7 @@ import org.stellar.anchor.Constants.Companion.TEST_MEMO
 import org.stellar.anchor.Constants.Companion.TEST_NETWORK_PASS_PHRASE
 import org.stellar.anchor.Constants.Companion.TEST_SIGNING_SEED
 import org.stellar.anchor.api.exception.SepException
+import org.stellar.anchor.api.exception.SepNotAuthorizedException
 import org.stellar.anchor.api.exception.SepValidationException
 import org.stellar.anchor.api.sep.sep10.ChallengeRequest
 import org.stellar.anchor.api.sep.sep10.ChallengeRequestTest
@@ -490,12 +491,12 @@ internal class Sep10ServiceTest {
     // Test client domain rejection
     cr.clientDomain = TEST_CLIENT_DOMAIN
     every { sep10Config.clientAttributionDenyList } returns listOf(TEST_CLIENT_DOMAIN, "")
-    assertThrows<SepValidationException> { sep10Service.createChallenge(cr) }
+    assertThrows<SepNotAuthorizedException> { sep10Service.createChallenge(cr) }
 
     every { sep10Config.clientAttributionDenyList } returns listOf("")
     every { sep10Config.clientAttributionAllowList } returns listOf("")
     // Test client domain not allowed
-    assertThrows<SepValidationException> { sep10Service.createChallenge(cr) }
+    assertThrows<SepNotAuthorizedException> { sep10Service.createChallenge(cr) }
   }
 
   @Test
@@ -572,14 +573,13 @@ internal class Sep10ServiceTest {
     assertDoesNotThrow { sep10Service.createChallenge(cr) }
     verify(exactly = 1) { sep10Config.isRequireKnownOmnibusAccount }
     verify(exactly = 2) { sep10Config.omnibusAccountList }
-
   }
 
   @Test
   fun testRequireKnownOmnibusAccountDisabled() {
     every { sep10Config.isRequireKnownOmnibusAccount } returns false
     every { sep10Config.omnibusAccountList } returns
-            listOf("G321E23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP")
+      listOf("G321E23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP")
     val cr = ChallengeRequest.of(TEST_ACCOUNT, TEST_MEMO, TEST_HOME_DOMAIN, null)
 
     assertDoesNotThrow { sep10Service.createChallenge(cr) }
@@ -591,13 +591,13 @@ internal class Sep10ServiceTest {
   fun testRequireKnownOmnibusAccountUnknownAccount() {
     every { sep10Config.isRequireKnownOmnibusAccount } returns true
     every { sep10Config.omnibusAccountList } returns
-            listOf("G321E23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP")
+      listOf("G321E23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP")
     val cr = ChallengeRequest.of(TEST_ACCOUNT, TEST_MEMO, TEST_HOME_DOMAIN, null)
 
     val ex = assertThrows<SepException> { sep10Service.createChallenge(cr) }
     verify(exactly = 1) { sep10Config.isRequireKnownOmnibusAccount }
     verify(exactly = 2) { sep10Config.omnibusAccountList }
-    assertInstanceOf(SepException::class.java, ex)
+    assertInstanceOf(SepNotAuthorizedException::class.java, ex)
     assertEquals("unable to process", ex.message)
   }
 
