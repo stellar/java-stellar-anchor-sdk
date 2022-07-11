@@ -29,6 +29,11 @@ paths:
         resource such as a [SEP-31](https://stellar.org/protocol/sep-31) transaction.
         
         It is possible that these memos are never used by the client who initiated the transaction though.
+        
+        Here is how this flow would be used for Receiving Anchors that need to create their unique `stellar_address:memo` pairs
+        outside the platform, using Circle:
+        
+        [![](https://mermaid.ink/img/pako:eNqlVV1v2jAU_StXedo0Aqr6lodKiNGtD9NQYW-RJmPfEAvHzmKnqEL8993ECQFq0NrlyfHHOcfnfngfcSMwSiKLf2rUHL9KtqlYkWqgz0mnMIHlfBHf38GqYtoy7qTR8KjMDnbS5ZBGe86UWjO-nS6eDpNaS0L6zYSo0No08kglq5zksmTawdKhUqwKLKAWUm9gqnluAuufnpGjfKEtn2GhmMtMVdzedQ1pJiuu0M-fs8YPD19CPAksfi5XsLdY3t8dJm7wwnoYUxIsGQG37IA1syiADHQ5QtlhAzc6k5u6Yg2eh2u-kI5LfV51At_mq5vMYdThzt4RwkGNpAOBwVoZvuU5kxo6kPGA4vfHdDQOyXlGV1fagsYdeCGUKNYHvpeUFFiYNKLAyGp8U98lyxCUD_JQyP0gaDHRhdkepZY2RwpjLVWbNE0Yu_I4SQlfGc3aOzRdkxKfJ-hw5zD3-EpWd1WXwA-2xb4Gif-1QO36Q342vlEEfcoKdMidpTS5gIKclSUlkYDa9g79rwvn8eh9OGqxdNdGyUmDmr80Uo5hOG1dTzozAbKjUUGqynBEIjkiknwHJmvHGTXDUauiv3DvhTPt7xERZkoOdocr8Yrx09XsO-z7ltFWeDjjSkHlK0JZaR1ztR1_JPN_tagtwVXEf22kbasK9NFJIkXjGM-Rb1sqD9_b_DbJ31kyb-RL3ZxgHWKqo1FUIE1IQS_ivuFIIzpTYBolNBSYsVq55k070Fbv9FxIZ6ooyZiyOIpY7czyVfPjhN_VPavd7OEvzu2WAA)](https://mermaid.live/edit#pako:eNqlVV1v2jAU_StXedo0Aqr6lodKiNGtD9NQYW-RJmPfEAvHzmKnqEL8993ECQFq0NrlyfHHOcfnfngfcSMwSiKLf2rUHL9KtqlYkWqgz0mnMIHlfBHf38GqYtoy7qTR8KjMDnbS5ZBGe86UWjO-nS6eDpNaS0L6zYSo0No08kglq5zksmTawdKhUqwKLKAWUm9gqnluAuufnpGjfKEtn2GhmMtMVdzedQ1pJiuu0M-fs8YPD19CPAksfi5XsLdY3t8dJm7wwnoYUxIsGQG37IA1syiADHQ5QtlhAzc6k5u6Yg2eh2u-kI5LfV51At_mq5vMYdThzt4RwkGNpAOBwVoZvuU5kxo6kPGA4vfHdDQOyXlGV1fagsYdeCGUKNYHvpeUFFiYNKLAyGp8U98lyxCUD_JQyP0gaDHRhdkepZY2RwpjLVWbNE0Yu_I4SQlfGc3aOzRdkxKfJ-hw5zD3-EpWd1WXwA-2xb4Gif-1QO36Q342vlEEfcoKdMidpTS5gIKclSUlkYDa9g79rwvn8eh9OGqxdNdGyUmDmr80Uo5hOG1dTzozAbKjUUGqynBEIjkiknwHJmvHGTXDUauiv3DvhTPt7xERZkoOdocr8Yrx09XsO-z7ltFWeDjjSkHlK0JZaR1ztR1_JPN_tagtwVXEf22kbasK9NFJIkXjGM-Rb1sqD9_b_DbJ31kyb-RL3ZxgHWKqo1FUIE1IQS_ivuFIIzpTYBolNBSYsVq55k070Fbv9FxIZ6ooyZiyOIpY7czyVfPjhN_VPavd7OEvzu2WAA)
       tags:
         - Unique Address
       parameters:
