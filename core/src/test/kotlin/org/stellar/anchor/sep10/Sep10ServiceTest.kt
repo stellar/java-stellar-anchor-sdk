@@ -13,6 +13,7 @@ import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertInstanceOf
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
@@ -563,30 +564,41 @@ internal class Sep10ServiceTest {
   }
 
   @Test
-  fun testRequireKnownObnibusAccount() {
+  fun testRequireKnownOmnibusAccount() {
     every { sep10Config.isRequireKnownOmnibusAccount } returns true
     every { sep10Config.omnibusAccountList } returns listOf(TEST_ACCOUNT)
     val cr = ChallengeRequest.of(TEST_ACCOUNT, TEST_MEMO, TEST_HOME_DOMAIN, null)
 
-    assertDoesNotThrow{ sep10Service.createChallenge(cr) }
+    assertDoesNotThrow { sep10Service.createChallenge(cr) }
+    verify(exactly = 1) { sep10Config.isRequireKnownOmnibusAccount }
+    verify(exactly = 2) { sep10Config.omnibusAccountList }
+
   }
 
   @Test
-  fun testRequireKnownObnibusAccountDisabled() {
+  fun testRequireKnownOmnibusAccountDisabled() {
     every { sep10Config.isRequireKnownOmnibusAccount } returns false
+    every { sep10Config.omnibusAccountList } returns
+            listOf("G321E23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP")
     val cr = ChallengeRequest.of(TEST_ACCOUNT, TEST_MEMO, TEST_HOME_DOMAIN, null)
-    every { sep10Config.omnibusAccountList } returns listOf("G321E23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP")
 
-    assertDoesNotThrow{ sep10Service.createChallenge(cr) }
+    assertDoesNotThrow { sep10Service.createChallenge(cr) }
+    verify(exactly = 1) { sep10Config.isRequireKnownOmnibusAccount }
+    verify(exactly = 2) { sep10Config.omnibusAccountList }
   }
 
   @Test
-  fun testRequireKnownObnibusAccountUnknownAccount() {
+  fun testRequireKnownOmnibusAccountUnknownAccount() {
     every { sep10Config.isRequireKnownOmnibusAccount } returns true
+    every { sep10Config.omnibusAccountList } returns
+            listOf("G321E23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP")
     val cr = ChallengeRequest.of(TEST_ACCOUNT, TEST_MEMO, TEST_HOME_DOMAIN, null)
-    every { sep10Config.omnibusAccountList } returns listOf("G321E23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP")
 
-    assertThrows<SepException> { sep10Service.createChallenge(cr) }
+    val ex = assertThrows<SepException> { sep10Service.createChallenge(cr) }
+    verify(exactly = 1) { sep10Config.isRequireKnownOmnibusAccount }
+    verify(exactly = 2) { sep10Config.omnibusAccountList }
+    assertInstanceOf(SepException::class.java, ex)
+    assertEquals("unable to process", ex.message)
   }
 
   @ParameterizedTest
