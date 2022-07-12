@@ -9,7 +9,7 @@ info:
   title: Synchronous Callbacks API
 tags:
   - name: "Unique Address"
-    description: "(optional) Provide a unique `stellar_address:memo` pair that will be used to correlate a Stellar payment 1-to-1 with a Platform resource, like a SEP-31 transaction."
+    description: "(optional) Provide a unique `stellar_address:memo` pair that will be used to correlate a Stellar payment 1-to-1 with a Platform resource such as a [SEP-31](https://stellar.org/protocol/sep-31) transaction."
   - name: "Fees"
     description: "Requests containing data that can be used to calculate transaction fees."
   - name: "Rates"
@@ -33,18 +33,9 @@ paths:
         Here is how this flow would be used for Receiving Anchors that need to create their unique `stellar_address:memo` pairs
         outside the platform, using Circle:
         
-        [![](https://mermaid.ink/img/pako:eNqlVV1v2jAU_StXedo0Aqr6lodKiNGtD9NQYW-RJmPfEAvHzmKnqEL8993ECQFq0NrlyfHHOcfnfngfcSMwSiKLf2rUHL9KtqlYkWqgz0mnMIHlfBHf38GqYtoy7qTR8KjMDnbS5ZBGe86UWjO-nS6eDpNaS0L6zYSo0No08kglq5zksmTawdKhUqwKLKAWUm9gqnluAuufnpGjfKEtn2GhmMtMVdzedQ1pJiuu0M-fs8YPD19CPAksfi5XsLdY3t8dJm7wwnoYUxIsGQG37IA1syiADHQ5QtlhAzc6k5u6Yg2eh2u-kI5LfV51At_mq5vMYdThzt4RwkGNpAOBwVoZvuU5kxo6kPGA4vfHdDQOyXlGV1fagsYdeCGUKNYHvpeUFFiYNKLAyGp8U98lyxCUD_JQyP0gaDHRhdkepZY2RwpjLVWbNE0Yu_I4SQlfGc3aOzRdkxKfJ-hw5zD3-EpWd1WXwA-2xb4Gif-1QO36Q342vlEEfcoKdMidpTS5gIKclSUlkYDa9g79rwvn8eh9OGqxdNdGyUmDmr80Uo5hOG1dTzozAbKjUUGqynBEIjkiknwHJmvHGTXDUauiv3DvhTPt7xERZkoOdocr8Yrx09XsO-z7ltFWeDjjSkHlK0JZaR1ztR1_JPN_tagtwVXEf22kbasK9NFJIkXjGM-Rb1sqD9_b_DbJ31kyb-RL3ZxgHWKqo1FUIE1IQS_ivuFIIzpTYBolNBSYsVq55k070Fbv9FxIZ6ooyZiyOIpY7czyVfPjhN_VPavd7OEvzu2WAA)](https://mermaid.live/edit#pako:eNqlVV1v2jAU_StXedo0Aqr6lodKiNGtD9NQYW-RJmPfEAvHzmKnqEL8993ECQFq0NrlyfHHOcfnfngfcSMwSiKLf2rUHL9KtqlYkWqgz0mnMIHlfBHf38GqYtoy7qTR8KjMDnbS5ZBGe86UWjO-nS6eDpNaS0L6zYSo0No08kglq5zksmTawdKhUqwKLKAWUm9gqnluAuufnpGjfKEtn2GhmMtMVdzedQ1pJiuu0M-fs8YPD19CPAksfi5XsLdY3t8dJm7wwnoYUxIsGQG37IA1syiADHQ5QtlhAzc6k5u6Yg2eh2u-kI5LfV51At_mq5vMYdThzt4RwkGNpAOBwVoZvuU5kxo6kPGA4vfHdDQOyXlGV1fagsYdeCGUKNYHvpeUFFiYNKLAyGp8U98lyxCUD_JQyP0gaDHRhdkepZY2RwpjLVWbNE0Yu_I4SQlfGc3aOzRdkxKfJ-hw5zD3-EpWd1WXwA-2xb4Gif-1QO36Q342vlEEfcoKdMidpTS5gIKclSUlkYDa9g79rwvn8eh9OGqxdNdGyUmDmr80Uo5hOG1dTzozAbKjUUGqynBEIjkiknwHJmvHGTXDUauiv3DvhTPt7xERZkoOdocr8Yrx09XsO-z7ltFWeDjjSkHlK0JZaR1ztR1_JPN_tagtwVXEf22kbasK9NFJIkXjGM-Rb1sqD9_b_DbJ31kyb-RL3ZxgHWKqo1FUIE1IQS_ivuFIIzpTYBolNBSYsVq55k070Fbv9FxIZ6ooyZiyOIpY7czyVfPjhN_VPavd7OEvzu2WAA)
+        [![](https://mermaid.ink/img/pako:eNqlVV1v2jAU_StXedo0Aqr6lodKiNGtD9NQYW-RJmPfEAvHzmKnqEL8993ECQFq0NrlyfHHOcfnfngfcSMwSiKLf2rUHL9KtqlYkWqgz0mnMIHlfBHf38GqYtoy7qTR8KjMDnbS5ZBGe86UWjO-nS6eDpNaS0L6zYSo0No08kglq5zksmTawdKhUqwKLKAWUm9gqnluAuufnpGjfKEtn2GhmMtMVdzedQ1pJiuu0M-fs8YPD19CPAksfi5XsLdY3t8dJm7wwnoYUxIsGQG37IA1syiADHQ5QtlhAzc6k5u6Yg2eh2u-kI5LfV51At_mq5vMYdThzt4RwkGNpAOBwVoZvuU5kxo6kPGA4vfHdDQOyXlGV1fagsYdeCGUKNYHvpeUFFiYNKLAyGp8U98lyxCUD_JQyP0gaDHRhdkepZY2RwpjLVWbNE0Yu_I4SQlfGc3aOzRdkxKfJ-hw5zD3-EpWd1WXwA-2xb4Gif-1QO36Q342vlEEfcoKdMidpTS5gIKclSUlkYDa9g79rwvn8eh9OGqxdNdGyUmDmr80Uo5hOG1dTzozAbKjUUGqynBEIjkiknwHJmvHGTXDUauiv3DvhTPt7xERZkoOdocr8Yrx09XsO-z7ltFWeDjjSkHlK0JZaR1ztR1_JPN_tagtwVXEf22kbasK9NFJIkXjGM-Rb1sqD9_b_DbJ31kyb-RL3Zxou-44GkUF0o8U9BruG_w0ov0FplFCQ4EZq5Vr3rMDbfUuz4V0poqSjCmLo4jVzixfNT9O-F3dk9rNHv4CY--UbA)](https://mermaid.live/edit#pako:eNqlVV1v2jAU_StXedo0Aqr6lodKiNGtD9NQYW-RJmPfEAvHzmKnqEL8993ECQFq0NrlyfHHOcfnfngfcSMwSiKLf2rUHL9KtqlYkWqgz0mnMIHlfBHf38GqYtoy7qTR8KjMDnbS5ZBGe86UWjO-nS6eDpNaS0L6zYSo0No08kglq5zksmTawdKhUqwKLKAWUm9gqnluAuufnpGjfKEtn2GhmMtMVdzedQ1pJiuu0M-fs8YPD19CPAksfi5XsLdY3t8dJm7wwnoYUxIsGQG37IA1syiADHQ5QtlhAzc6k5u6Yg2eh2u-kI5LfV51At_mq5vMYdThzt4RwkGNpAOBwVoZvuU5kxo6kPGA4vfHdDQOyXlGV1fagsYdeCGUKNYHvpeUFFiYNKLAyGp8U98lyxCUD_JQyP0gaDHRhdkepZY2RwpjLVWbNE0Yu_I4SQlfGc3aOzRdkxKfJ-hw5zD3-EpWd1WXwA-2xb4Gif-1QO36Q342vlEEfcoKdMidpTS5gIKclSUlkYDa9g79rwvn8eh9OGqxdNdGyUmDmr80Uo5hOG1dTzozAbKjUUGqynBEIjkiknwHJmvHGTXDUauiv3DvhTPt7xERZkoOdocr8Yrx09XsO-z7ltFWeDjjSkHlK0JZaR1ztR1_JPN_tagtwVXEf22kbasK9NFJIkXjGM-Rb1sqD9_b_DbJ31kyb-RL3Zxou-44GkUF0o8U9BruG_w0ov0FplFCQ4EZq5Vr3rMDbfUuz4V0poqSjCmLo4jVzixfNT9O-F3dk9rNHv4CY--UbA)
       tags:
         - Unique Address
-      parameters:
-        - in: query
-          name: idempotency_key
-          description: |
-            A unique identifier used to allow Anchors to retry the request without causing the operation to be executed multiple times. 
-            Should be a valid `uuid`.
-          schema:
-            type: string
-          required: false
       responses:
         '200':
           description: Success.
