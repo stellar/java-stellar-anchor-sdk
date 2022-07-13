@@ -231,8 +231,8 @@ app-config:
     publisherType: kafka
 
   metrics-service:
-    optionalMetricsEnabled: true
-    runInterval: 31
+    optionalMetricsEnabled: true    # optional metrics that periodically query the database
+    runInterval: 30                 # interval to query the database to generate the optional metrics
 
   kafka.publisher:
     # kafkaBootstrapServer - the Kafka server used to bootstrap setup
