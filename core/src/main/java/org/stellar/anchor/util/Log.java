@@ -180,11 +180,10 @@ public class Log {
    * @return The shorter version.
    */
   public static String shorter(final String account) {
-    if (account.length() > 11) {
-      return account.substring(0, 4) + "..." + account.substring(account.length() - 4);
-    } else {
+    if (account == null || account.length() <= 11) {
       return account;
     }
+    return account.substring(0, 4) + "..." + account.substring(account.length() - 4);
   }
 
   /**

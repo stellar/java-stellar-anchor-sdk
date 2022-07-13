@@ -1,9 +1,16 @@
 package org.stellar.anchor.sep10
 
+import com.google.common.io.BaseEncoding
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import java.io.IOException
+import java.security.SecureRandom
+import java.util.concurrent.TimeUnit
 import java.util.stream.Stream
+import okhttp3.OkHttpClient
+import okhttp3.Request
+import okhttp3.mockwebserver.MockResponse
+import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.MethodOrderer.OrderAnnotation
@@ -25,9 +32,11 @@ import org.stellar.anchor.api.exception.SepValidationException
 import org.stellar.anchor.api.sep.sep10.ChallengeRequest
 import org.stellar.anchor.api.sep.sep10.ChallengeRequestTest
 import org.stellar.anchor.api.sep.sep10.ValidationRequest
+import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.Sep10Config
 import org.stellar.anchor.horizon.Horizon
+import org.stellar.anchor.util.FileUtil
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.NetUtil
 import org.stellar.sdk.*
@@ -57,6 +66,9 @@ internal class Sep10ServiceTest {
     fun homeDomains(): Stream<String> {
       return Stream.of(null, TEST_HOME_DOMAIN)
     }
+
+    val testAccountWithNoncompliantSigner: String =
+      FileUtil.getResourceFileAsString("test_account_with_noncompliant_signer.json")
   }
 
   @MockK(relaxed = true) private lateinit var appConfig: AppConfig
@@ -67,6 +79,12 @@ internal class Sep10ServiceTest {
   private lateinit var sep10Service: Sep10Service
   private val clientKeyPair = KeyPair.random()
   private val clientDomainKeyPair = KeyPair.random()
+  private val httpClient: OkHttpClient =
+    OkHttpClient.Builder()
+      .connectTimeout(10, TimeUnit.MINUTES)
+      .readTimeout(10, TimeUnit.MINUTES)
+      .writeTimeout(10, TimeUnit.MINUTES)
+      .build()
 
   @BeforeEach
   fun setUp() {
@@ -95,6 +113,230 @@ internal class Sep10ServiceTest {
   fun tearDown() {
     clearAllMocks()
     unmockkAll()
+  }
+
+  @Test
+  fun test_challengeWithExistentAccount_multisig_andClientDomain() {
+    // 1 ------ Create Test Transaction
+
+    // serverKP does not exist in the network.
+    val serverWebAuthDomain = TEST_HOME_DOMAIN
+    val serverKP = KeyPair.random()
+
+    // clientDomainKP doesn't exist in the network. Refers to the walletAcc (like Lobstr's)
+    val clientDomainKP = KeyPair.random()
+
+    // Master account of the multisig. It'll be created in the network.
+    val clientMasterKP = KeyPair.random()
+    val clientAddress = clientMasterKP.accountId
+    // Secondary account of the multisig. It'll be created in the network.
+    val clientSecondaryKP = KeyPair.random()
+
+    val nonce = ByteArray(48)
+    val random = SecureRandom()
+    random.nextBytes(nonce)
+    val base64Encoding = BaseEncoding.base64()
+    val encodedNonce = base64Encoding.encode(nonce).toByteArray()
+
+    val sourceAccount = Account(serverKP.accountId, -1L)
+    val op1DomainNameMandatory =
+      ManageDataOperation.Builder("$serverWebAuthDomain auth", encodedNonce)
+        .setSourceAccount(clientAddress)
+        .build()
+    val op2WebAuthDomainMandatory =
+      ManageDataOperation.Builder("web_auth_domain", serverWebAuthDomain.toByteArray())
+        .setSourceAccount(serverKP.accountId)
+        .build()
+    val op3clientDomainOptional =
+      ManageDataOperation.Builder("client_domain", "lobstr.co".toByteArray())
+        .setSourceAccount(clientDomainKP.accountId)
+        .build()
+
+    val transaction =
+      TransactionBuilder(AccountConverter.enableMuxed(), sourceAccount, Network.TESTNET)
+        .addTimeBounds(TimeBounds.expiresAfter(900))
+        .setBaseFee(100)
+        .addOperation(op1DomainNameMandatory)
+        .addOperation(op2WebAuthDomainMandatory)
+        .addOperation(op3clientDomainOptional)
+        .build()
+
+    transaction.sign(serverKP)
+    transaction.sign(clientDomainKP)
+    transaction.sign(clientMasterKP)
+    transaction.sign(clientSecondaryKP)
+
+    // 2 ------ Create Services
+    every { sep10Config.signingSeed } returns String(serverKP.secretSeed)
+    every { appConfig.horizonUrl } returns "https://horizon-testnet.stellar.org"
+    every { appConfig.stellarNetworkPassphrase } returns TEST_NETWORK_PASS_PHRASE
+    val horizon = Horizon(appConfig)
+    this.sep10Service = Sep10Service(appConfig, sep10Config, horizon, jwtService)
+
+    // 3 ------ Setup multisig
+    val httpRequest =
+      Request.Builder()
+        .url("https://horizon-testnet.stellar.org/friendbot?addr=" + clientMasterKP.accountId)
+        .header("Content-Type", "application/json")
+        .get()
+        .build()
+    val response = httpClient.newCall(httpRequest).execute()
+    assertEquals(200, response.code)
+
+    val clientAccount = horizon.server.accounts().account(clientMasterKP.accountId)
+    val multisigTx =
+      TransactionBuilder(AccountConverter.enableMuxed(), clientAccount, Network.TESTNET)
+        .addTimeBounds(TimeBounds.expiresAfter(900))
+        .setBaseFee(300)
+        .addOperation(
+          SetOptionsOperation.Builder()
+            .setLowThreshold(20)
+            .setMediumThreshold(20)
+            .setHighThreshold(20)
+            .setSigner(Signer.ed25519PublicKey(clientSecondaryKP), 10)
+            .setMasterKeyWeight(10)
+            .build()
+        )
+        .build()
+    multisigTx.sign(clientMasterKP)
+    horizon.server.submitTransaction(multisigTx)
+
+    // 4 ------ Run tests
+    val validationRequest = ValidationRequest.of(transaction.toEnvelopeXdrBase64())
+    assertDoesNotThrow { sep10Service.validateChallenge(validationRequest) }
+  }
+
+  @Test
+  fun test_challengeWithNonExistentAccount_andClientDomain() {
+    // 1 ------ Create Test Transaction
+
+    // serverKP does not exist in the network.
+    val serverWebAuthDomain = TEST_HOME_DOMAIN
+    val serverKP = KeyPair.random()
+
+    // clientDomainKP does not exist in the network. It refers to the wallet (like Lobstr's)
+    // account.
+    val clientDomainKP = KeyPair.random()
+
+    // The public key of the client that DOES NOT EXIST.
+    val clientKP = KeyPair.random()
+
+    val nonce = ByteArray(48)
+    val random = SecureRandom()
+    random.nextBytes(nonce)
+    val base64Encoding = BaseEncoding.base64()
+    val encodedNonce = base64Encoding.encode(nonce).toByteArray()
+
+    val sourceAccount = Account(serverKP.accountId, -1L)
+    val op1DomainNameMandatory =
+      ManageDataOperation.Builder("$serverWebAuthDomain auth", encodedNonce)
+        .setSourceAccount(clientKP.accountId)
+        .build()
+    val op2WebAuthDomainMandatory =
+      ManageDataOperation.Builder("web_auth_domain", serverWebAuthDomain.toByteArray())
+        .setSourceAccount(serverKP.accountId)
+        .build()
+    val op3clientDomainOptional =
+      ManageDataOperation.Builder("client_domain", "lobstr.co".toByteArray())
+        .setSourceAccount(clientDomainKP.accountId)
+        .build()
+
+    val transaction =
+      TransactionBuilder(AccountConverter.enableMuxed(), sourceAccount, Network.TESTNET)
+        .addTimeBounds(TimeBounds.expiresAfter(900))
+        .setBaseFee(100)
+        .addOperation(op1DomainNameMandatory)
+        .addOperation(op2WebAuthDomainMandatory)
+        .addOperation(op3clientDomainOptional)
+        .build()
+
+    transaction.sign(serverKP)
+    transaction.sign(clientDomainKP)
+    transaction.sign(clientKP)
+
+    // 2 ------ Create Services
+    every { sep10Config.signingSeed } returns String(serverKP.secretSeed)
+    every { appConfig.horizonUrl } returns "https://horizon-testnet.stellar.org"
+    every { appConfig.stellarNetworkPassphrase } returns TEST_NETWORK_PASS_PHRASE
+    val horizon = Horizon(appConfig)
+    this.sep10Service = Sep10Service(appConfig, sep10Config, horizon, jwtService)
+
+    // 3 ------ Run tests
+    val validationRequest = ValidationRequest.of(transaction.toEnvelopeXdrBase64())
+    assertDoesNotThrow { sep10Service.validateChallenge(validationRequest) }
+  }
+
+  @Test
+  fun test_challengeWithExistentAccount_multisigWithInvalidEdDSAPublicKey_andClientDomain() {
+    // 1 ------ Mock client account and its response from horizon
+    // The public key of the client that exists thanks to a mockk
+    // GDFWZYGUNUFW4H3PP3DSNGTDFBUHO6NUFPQ6FAPMCKEJ6EHDKX2CV2IM
+    val clientKP =
+      KeyPair.fromSecretSeed("SAUNXQPM7VDH3WMDRHJ2WIN27KD23XD4AZPE62V76Q2SJPXR3DQWEOPX")
+    val mockHorizon = MockWebServer()
+    mockHorizon.start()
+
+    mockHorizon.enqueue(
+      MockResponse()
+        .addHeader("Content-Type", "application/json")
+        .setBody(testAccountWithNoncompliantSigner)
+    )
+    val mockHorizonUrl = mockHorizon.url("").toString()
+
+    // 2 ------ Create Test Transaction
+
+    // serverKP does not exist in the network.
+    val serverWebAuthDomain = TEST_HOME_DOMAIN
+    // GDFWZYGUNUFW4H3PP3DSNGTDFBUHO6NUFPQ6FAPMCKEJ6EHDKX2CV2IM
+    val serverKP = KeyPair.random()
+
+    // clientDomainKP does not exist in the network. It refers to the wallet (like Lobstr's)
+    // account.
+    val clientDomainKP = KeyPair.random()
+
+    val nonce = ByteArray(48)
+    val random = SecureRandom()
+    random.nextBytes(nonce)
+    val base64Encoding = BaseEncoding.base64()
+    val encodedNonce = base64Encoding.encode(nonce).toByteArray()
+
+    val sourceAccount = Account(serverKP.accountId, -1L)
+    val op1DomainNameMandatory =
+      ManageDataOperation.Builder("$serverWebAuthDomain auth", encodedNonce)
+        .setSourceAccount(clientKP.accountId)
+        .build()
+    val op2WebAuthDomainMandatory =
+      ManageDataOperation.Builder("web_auth_domain", serverWebAuthDomain.toByteArray())
+        .setSourceAccount(serverKP.accountId)
+        .build()
+    val op3clientDomainOptional =
+      ManageDataOperation.Builder("client_domain", "lobstr.co".toByteArray())
+        .setSourceAccount(clientDomainKP.accountId)
+        .build()
+
+    val transaction =
+      TransactionBuilder(AccountConverter.enableMuxed(), sourceAccount, Network.TESTNET)
+        .addTimeBounds(TimeBounds.expiresAfter(900))
+        .setBaseFee(100)
+        .addOperation(op1DomainNameMandatory)
+        .addOperation(op2WebAuthDomainMandatory)
+        .addOperation(op3clientDomainOptional)
+        .build()
+
+    transaction.sign(serverKP)
+    transaction.sign(clientDomainKP)
+    transaction.sign(clientKP)
+
+    // 2 ------ Create Services
+    every { sep10Config.signingSeed } returns String(serverKP.secretSeed)
+    every { appConfig.horizonUrl } returns mockHorizonUrl
+    every { appConfig.stellarNetworkPassphrase } returns TEST_NETWORK_PASS_PHRASE
+    val horizon = Horizon(appConfig)
+    this.sep10Service = Sep10Service(appConfig, sep10Config, horizon, jwtService)
+
+    // 3 ------ Run tests
+    val validationRequest = ValidationRequest.of(transaction.toEnvelopeXdrBase64())
+    assertDoesNotThrow { sep10Service.validateChallenge(validationRequest) }
   }
 
   @ParameterizedTest

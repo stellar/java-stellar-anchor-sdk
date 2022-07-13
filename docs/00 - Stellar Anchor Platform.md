@@ -166,6 +166,8 @@ sequenceDiagram
     Client-->>Client: notifies sender
 ```
 
+> Note: in terms of database usage for SEP-31, our tests indicate that each SEP-31 (with SEP-38) transaction occupies ~2KB of space in the database. The tests also indicate the data space usage tends to decrease as the number of SEP-31 transactions increases. These results were achieved by executing 500 SEP-31 transactions on a Postgres database.
+
 ## Subprojects
 
 The Stellar Anchor SDK is a collection of projects that make easy to build financial applications on Stellar:

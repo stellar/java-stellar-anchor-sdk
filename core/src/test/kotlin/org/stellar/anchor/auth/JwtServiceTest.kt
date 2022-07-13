@@ -1,4 +1,4 @@
-package org.stellar.anchor.sep10
+package org.stellar.anchor.auth
 
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.MalformedJwtException

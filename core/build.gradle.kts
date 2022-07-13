@@ -34,6 +34,7 @@ dependencies {
   // Lombok should be used by all sub-projects to reduce Java verbosity
   annotationProcessor(libs.lombok)
 
+  testImplementation(libs.okhttp3.mockserver)
   testImplementation(libs.servlet.api)
   testImplementation(libs.slf4j.api)
 }

@@ -21,6 +21,12 @@ public class ConfigManagementConfig {
   }
 
   @Bean
+  @ConfigurationProperties(prefix = "integration-auth")
+  IntegrationAuthConfig integrationAuthConfig() {
+    return new PropertyIntegrationAuthConfig();
+  }
+
+  @Bean
   @ConfigurationProperties(prefix = "sep1")
   Sep1Config sep1Config() {
     return new PropertySep1Config();

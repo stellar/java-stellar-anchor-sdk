@@ -18,7 +18,8 @@ const val testCustomer1Json =
   "address": "123 Washington Street",
   "city": "San Francisco",
   "state_or_province": "CA",
-  "address_country_code": "US"
+  "address_country_code": "US",
+  "clabe_number": "1234"
 }
 """
 

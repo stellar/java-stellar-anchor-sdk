@@ -3,6 +3,9 @@ package org.stellar.anchor.sep31
 import com.google.gson.Gson
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
+import java.time.Instant
+import java.time.temporal.ChronoUnit
+import java.util.*
 import org.apache.commons.lang3.StringUtils
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
@@ -29,6 +32,7 @@ import org.stellar.anchor.api.sep.sep38.RateFee
 import org.stellar.anchor.api.shared.Amount
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.ResourceJsonAssetService
+import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.Sep31Config
 import org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_RECEIVE
@@ -36,17 +40,13 @@ import org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_SEND
 import org.stellar.anchor.event.EventPublishService
 import org.stellar.anchor.event.models.StellarId
 import org.stellar.anchor.event.models.TransactionEvent
-import org.stellar.anchor.sep10.JwtService
 import org.stellar.anchor.sep31.Sep31Service.Sep31CustomerInfoNeededException
 import org.stellar.anchor.sep31.Sep31Service.Sep31MissingFieldException
 import org.stellar.anchor.sep38.PojoSep38Quote
 import org.stellar.anchor.sep38.Sep38QuoteStore
 import org.stellar.anchor.util.GsonUtils
-import java.time.Instant
-import java.time.temporal.ChronoUnit
-import java.util.*
 
-internal class Sep31ServiceTest {
+class Sep31ServiceTest {
   companion object {
     val gson: Gson = GsonUtils.getInstance()
 
@@ -285,9 +285,10 @@ internal class Sep31ServiceTest {
 
   @Test
   fun test_quotesSupportedAndRequiredValidation() {
-    val assetServiceQuotesNotSupported: AssetService = ResourceJsonAssetService(
-      "test_assets.json.quotes_required_but_not_supported",
-    )
+    val assetServiceQuotesNotSupported: AssetService =
+      ResourceJsonAssetService(
+        "test_assets.json.quotes_required_but_not_supported",
+      )
     val ex: AnchorException = assertThrows {
       Sep31Service(
         appConfig,
@@ -686,20 +687,22 @@ internal class Sep31ServiceTest {
 
   @Test
   fun test_postTransaction_quoteNotSupported() {
-    val assetServiceQuotesNotSupported: AssetService = ResourceJsonAssetService(
-      "test_assets.json.quotes_not_supported",
-    )
-    sep31Service = Sep31Service(
-      appConfig,
-      sep31Config,
-      txnStore,
-      sep31DepositInfoGenerator,
-      quoteStore,
-      assetServiceQuotesNotSupported,
-      feeIntegration,
-      customerIntegration,
-      eventPublishService,
-    )
+    val assetServiceQuotesNotSupported: AssetService =
+      ResourceJsonAssetService(
+        "test_assets.json.quotes_not_supported",
+      )
+    sep31Service =
+      Sep31Service(
+        appConfig,
+        sep31Config,
+        txnStore,
+        sep31DepositInfoGenerator,
+        quoteStore,
+        assetServiceQuotesNotSupported,
+        feeIntegration,
+        customerIntegration,
+        eventPublishService,
+      )
 
     val senderId = "d2bd1412-e2f6-4047-ad70-a1a2f133b25c"
     val receiverId = "137938d4-43a7-4252-a452-842adcee474c"
@@ -719,12 +722,13 @@ internal class Sep31ServiceTest {
       )
 
     // Provide fee response.
-    every { feeIntegration.getFee(any()) } returns GetFeeResponse(
-      Amount(
-        "2",
-         "stellar:USDC",
-      ),
-    )
+    every { feeIntegration.getFee(any()) } returns
+      GetFeeResponse(
+        Amount(
+          "2",
+          "stellar:USDC",
+        ),
+      )
 
     // POST transaction
     val jwtToken = TestHelper.createJwtToken()

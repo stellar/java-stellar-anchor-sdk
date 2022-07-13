@@ -28,12 +28,12 @@ import org.stellar.anchor.api.sep.sep31.*;
 import org.stellar.anchor.api.sep.sep31.Sep31GetTransactionResponse.TransactionResponse;
 import org.stellar.anchor.api.shared.Amount;
 import org.stellar.anchor.asset.AssetService;
+import org.stellar.anchor.auth.JwtToken;
 import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.Sep31Config;
 import org.stellar.anchor.event.EventPublishService;
 import org.stellar.anchor.event.models.StellarId;
 import org.stellar.anchor.event.models.TransactionEvent;
-import org.stellar.anchor.sep10.JwtToken;
 import org.stellar.anchor.sep38.Sep38Quote;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
 import org.stellar.anchor.util.Log;
@@ -435,8 +435,7 @@ public class Sep31Service {
     if (sep12Operation != null) {
       Optional<String> receiverTypeOptional =
           sep12Operation.getReceiver().getTypes().keySet().stream().findFirst();
-      receiverType =
-          receiverTypeOptional.isPresent() ? receiverTypeOptional.get() : null;
+      receiverType = receiverTypeOptional.isPresent() ? receiverTypeOptional.get() : null;
     }
     Sep12GetCustomerRequest request =
         Sep12GetCustomerRequest.builder().id(receiverId).type(receiverType).build();
@@ -459,8 +458,7 @@ public class Sep31Service {
       Optional<String> senderTypeOptional =
           Context.get().getAsset().getSep31().getSep12().getSender().getTypes().keySet().stream()
               .findFirst();
-      senderType =
-          senderTypeOptional.isPresent() ? senderTypeOptional.get() : null;
+      senderType = senderTypeOptional.isPresent() ? senderTypeOptional.get() : null;
     }
     request = Sep12GetCustomerRequest.builder().id(senderId).type(senderType).build();
     Sep12GetCustomerResponse sender = this.customerIntegration.getCustomer(request);
