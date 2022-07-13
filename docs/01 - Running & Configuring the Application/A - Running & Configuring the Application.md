@@ -173,7 +173,7 @@ The format of anchor platform's logs can be set by the `LOG_APPENDER` environmen
 * `console_appender`: `timestamp - level - location - message`
 * `console_json_appender`: json of the format below
 
-```
+```json
 {
     "time": timestamp,
     "source": logger,
@@ -181,6 +181,6 @@ The format of anchor platform's logs can be set by the `LOG_APPENDER` environmen
     "event" {
         "message": message,
         "severity": level,
-    },
+    }
 }
 ```
