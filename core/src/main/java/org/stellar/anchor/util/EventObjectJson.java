@@ -6,6 +6,5 @@ import lombok.Setter;
 public class EventObjectJson {
   @Getter @Setter String message;
 
-  @Getter @Setter  String severity;
+  @Getter @Setter String severity;
 }
-
