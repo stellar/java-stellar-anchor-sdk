@@ -12,7 +12,7 @@ resource "aws_ecs_task_definition" "sep" {
   
   container_definitions = jsonencode([{
    name        = "${var.environment}-sep-config"
-   image       = "245943599471.dkr.ecr.us-east-2.amazonaws.com/anchor-platform-config:latest"
+   image       = "${var.aws_account}.dkr.ecr.${var.aws_region}.amazonaws.com/${aws_ecr_repository.anchor_config.name}:latest"
    entryPoint  = ["/copy_config.sh"]
    
    essential   = false
@@ -34,13 +34,13 @@ resource "aws_ecs_task_definition" "sep" {
             }
   },{
    name        = "${var.environment}-sep"
-   image       = "245943599471.dkr.ecr.us-east-2.amazonaws.com/anchorplatform:latest"
+   image       = "stellar/anchor-platform:latest"
    dependsOn =  [ {
      containerName = "${var.environment}-sep-config"
      condition = "START"
    }]
-   entryPoint = ["/anchor_config/sep.sh"]
-   #entryPoint  = ["java", "-jar", "/app/anchor-platform-runner.jar", "--sep-server"]
+   #entryPoint = ["/anchor_config/sep.sh"]
+   entryPoint  = ["java", "-jar", "/app/anchor-platform-runner.jar", "--sep-server"]
    essential   = true
    secrets = [
       {
@@ -53,11 +53,11 @@ resource "aws_ecs_task_definition" "sep" {
       },
       {
         "name": "SQLITE_USERNAME",
-        "valueFrom": data.aws_ssm_parameter.sqlite.arn
+        "valueFrom": data.aws_ssm_parameter.sqlite_username.arn
       },
       {
         "name": "SQLITE_PASSWORD",
-        "valueFrom": data.aws_ssm_parameter.sqlite.arn
+        "valueFrom": data.aws_ssm_parameter.sqlite_password.arn
       },
       {
         "name": "SEP_10_SIGNING_SEED",

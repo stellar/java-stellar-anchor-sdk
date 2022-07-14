@@ -6,30 +6,36 @@ resource "aws_ecs_cluster" "ref" {
   name = "ref-${var.environment}-cluster"
 }
 
-data "aws_ssm_parameter" "sqs_access_key" {
-  name = "SQS_ACCESS_KEY"
-}
-data "aws_ssm_parameter" "sqs_secret_key" {
-  name = "SQS_SECRET_KEY"
-}
-
-data "aws_ssm_parameter" "sqlite" {
-  name = "SQLITE"
-}
-
-data "aws_ssm_parameter" "sep10_signing_seed" {
-  name = "SEP10_SIGNING_SEED"
-}
-
-data "aws_ssm_parameter" "jwt_secret" {
-  name = "JWT_SECRET"
-}
-
 ## Task Definitions
 
 
+resource "aws_iam_policy" "anchor_ssm_secrets" {
+  name        = "${var.environment}-anchor_ssm_secrets_policy"
+  path        = "/"
+  description = "RO access to ssm"
+
+  # Terraform's "jsonencode" function converts a
+  # Terraform expression result to valid JSON syntax.
+  policy = jsonencode(
+    {
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ssm:Describe*",
+                "ssm:Get*",
+                "ssm:List*"
+            ],
+            "Resource": "*"
+        }
+    ]
+}
+  )
+}
+
 resource "aws_iam_role" "ecs_task_execution_role" {
-  name = "anchorplatform-ecsTaskExecutionRole"
+  name = "${var.environment}-anchorplatform-ecsTaskExecutionRole"
  
   assume_role_policy = <<EOF
 {
@@ -220,4 +226,9 @@ EOF
 resource "aws_iam_role_policy_attachment" "ecs-task-role-policy-attachment" {
   role       = aws_iam_role.ecs_task_execution_role.name
   policy_arn = aws_iam_policy.create_log_group.arn
+}
+
+resource "aws_iam_role_policy_attachment" "ecs-task-ssm-policy-attachment" {
+  role       = aws_iam_role.ecs_task_execution_role.name
+  policy_arn = aws_iam_policy.anchor_ssm_secrets.arn
 }

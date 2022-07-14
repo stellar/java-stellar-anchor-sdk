@@ -88,7 +88,7 @@ resource "aws_ecs_task_definition" "ref" {
 }
 
 resource "aws_iam_role" "ecs_task_role" {
-  name = "anchorplatform-ecsTaskRole"
+  name = "${var.environment}-anchor-platform-ecsTaskRole"
  
   assume_role_policy = <<EOF
 {

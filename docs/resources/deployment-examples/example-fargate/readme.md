@@ -3,13 +3,8 @@ This documentation will configure AWS Infrastructure, Anchor Platform and a samp
 - Network
   - [AWS VPC, Public/Private Subnets] (terraform/vpc.tf)
   - [AWS ECS Fargate](terraform/ecs.tf)
-  - Secrets retrieved from AWS Parameter Store*
-  - Sidecar pattern Configuration task**
   - [Route53 and AWS ACM Certificates](terraform/route53.tf), including Public and Internal CNAMES
   - [Amazon SQS](terraform/sqs.tf) Event Queue
-
-* Currently the sidecar image has been generaged manually. The build spec is included in this repo, but the codebuild project is currently setup manually.
-* Parameters retrieved from AWS parameter store by task definitions are currently added manually.
 
 # Steps
 1. Pre-requisites
@@ -20,8 +15,29 @@ This documentation will configure AWS Infrastructure, Anchor Platform and a samp
       1. Create a Terraform Cloud account. 
       2. Create a Terraform Cloud work-space tied to `stellar-anchor-platform SDK repository`
       3. Setup Workspace variables `AWS_SECRET_ACCESS_KEY` and `AWS_ACCESS_KEY_ID` variables for IAM user in step 1.
-2. Add Workspace variable of DNS Hosted Zone ARN
+2. Add Terraform Workspace variables
 3. Deploy Anchor Platform Example
    1. Run Terraform Plan
    2. Run Terraform Apply
 4. Run [Stellar Anchor Validation Tool][https://anchor-tests.stellar.org/) to verify your deployment.
+
+# Terraform User Policy
+Terraform user used to deploy requires the following policy:
+```
+{
+    "Version": "2012-10-17",
+    "Statement": [
+       {
+            "Effect": "Allow",
+            "Action": [
+
+            ],
+            "Resource": "*"
+        }
+```
+
+
+# Example Detail
+## ECS Cluster
+
+## Task Definitions

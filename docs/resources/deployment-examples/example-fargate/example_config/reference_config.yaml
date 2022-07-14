@@ -1,0 +1,45 @@
+server:
+  servlet:
+    context-path: /
+    port: 8081
+#
+# The settings of the anchor reference serer
+#
+anchor.settings:
+  version: 0.0.1
+  platformApiEndpoint: https://www.stellaranchordemo.com
+event:
+  # The listener type. values: [kafka, sqs, amqp]
+  # If the listener is kafka, the kafka listener is configured in kafka.listener section.
+  # If the listener is sqs, the sqs listener is configured in the sqs.listener section.
+  # If the listener is amqp, the AMQP listner is configured in the ampq.listner section.
+  listenerType: sqs
+sqs.listener:
+  region: us-east-2
+  useSingleQueue: true
+  eventTypeToQueue:
+    all: dev-platform-queue
+    quote_created: sdf_dev_ap_event_quote_created.fifo
+    transaction_created: sdf_dev_ap_event_transaction_created.fifo
+    transaction_status_changed: sdf_dev_ap_event_transaction_status_changed.fifo
+    transaction_error: sdf_dev_ap_event_transaction_error.fifo
+  accessKey: ${SQS_ACCESS_KEY}
+  secretKey: ${SQS_SECRET_KEY}
+
+#
+# Spring Data JDBC settings for H2
+#
+spring.datasource.url: jdbc:h2:mem:test
+spring.jpa.properties.hibernate.dialect: org.hibernate.dialect.H2Dialect
+# force gson as serializer/deserializer over jackson
+spring.mvc.converters.preferred-json-mapper: gson
+#
+# Spring Data JDBC settings for SQLite
+#
+#spring.jpa.database-platform=org.stellar.anchor.reference.sqlite.SQLiteDialect
+#spring.jpa.hibernate.ddl-auto=update
+#spring.jpa.generate-ddl=true
+#spring.datasource.url=jdbc:sqlite:anchor-reference-server.db
+#spring.datasource.driver-class-name=org.sqlite.JDBC
+#spring.datasource.username=admin
+#spring.datasource.password=admin
