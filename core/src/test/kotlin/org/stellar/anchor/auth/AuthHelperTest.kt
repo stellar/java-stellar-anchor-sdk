@@ -1,11 +1,10 @@
 package org.stellar.anchor.auth
 
-import io.mockk.every
-import io.mockk.mockkObject
-import io.mockk.mockkStatic
+import io.mockk.*
 import java.util.*
 import kotlin.test.assertEquals
 import kotlin.test.assertNull
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import org.stellar.anchor.config.IntegrationAuthConfig.AuthType
@@ -14,6 +13,12 @@ import org.stellar.anchor.util.AuthHeader
 class AuthHelperTest {
   companion object {
     const val JWT_EXPIRATION_MILLISECONDS: Long = 90000
+  }
+
+  @AfterEach
+  fun teardown() {
+    clearAllMocks()
+    unmockkAll()
   }
 
   @ParameterizedTest
