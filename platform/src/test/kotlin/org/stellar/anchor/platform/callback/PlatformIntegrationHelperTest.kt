@@ -16,6 +16,7 @@ import org.stellar.anchor.config.IntegrationAuthConfig.AuthType
 class PlatformIntegrationHelperTest {
   companion object {
     const val JWT_EXPIRATION_MILLISECONDS: Long = 90000
+    const val TEST_HOME_DOMAIN = "http://localhost:8080"
   }
 
   @ParameterizedTest
@@ -35,40 +36,40 @@ class PlatformIntegrationHelperTest {
         // mock jwt token based on the mocked calendar
         val wantJwtToken =
           JwtToken.of(
-            "http://localhost:8080",
+            TEST_HOME_DOMAIN,
             currentTimeMilliseconds / 1000L,
             (currentTimeMilliseconds + JWT_EXPIRATION_MILLISECONDS) / 1000L
           )
 
         val jwtService = JwtService("secret")
         val authHelper =
-          AuthHelper.forJwtToken(jwtService, JWT_EXPIRATION_MILLISECONDS, "http://localhost:8080")
+          AuthHelper.forJwtToken(jwtService, JWT_EXPIRATION_MILLISECONDS, TEST_HOME_DOMAIN)
 
         val gotRequestBuilder = PlatformIntegrationHelper.getRequestBuilder(authHelper)
-        val gotRequest = gotRequestBuilder.url("http://localhost:8080").get().build()
+        val gotRequest = gotRequestBuilder.url(TEST_HOME_DOMAIN).get().build()
         val wantRequestBuilder: Request.Builder =
           Request.Builder()
             .header("Content-Type", "application/json")
             .header("Authorization", "Bearer ${jwtService.encode(wantJwtToken)}")
-        val wantRequest = wantRequestBuilder.url("http://localhost:8080").get().build()
+        val wantRequest = wantRequestBuilder.url(TEST_HOME_DOMAIN).get().build()
         assertEquals(wantRequest.headers, gotRequest.headers)
       }
       AuthType.API_KEY -> {
         val authHelper = AuthHelper.forApiKey("secret")
         val gotRequestBuilder = PlatformIntegrationHelper.getRequestBuilder(authHelper)
-        val gotRequest = gotRequestBuilder.url("http://localhost:8080").get().build()
+        val gotRequest = gotRequestBuilder.url(TEST_HOME_DOMAIN).get().build()
         val wantRequestBuilder: Request.Builder =
           Request.Builder().header("Content-Type", "application/json").header("X-Api-Key", "secret")
-        val wantRequest = wantRequestBuilder.url("http://localhost:8080").get().build()
+        val wantRequest = wantRequestBuilder.url(TEST_HOME_DOMAIN).get().build()
         assertEquals(wantRequest.headers, gotRequest.headers)
       }
       AuthType.NONE -> {
         val authHelper = AuthHelper.forNone()
         val gotRequestBuilder = PlatformIntegrationHelper.getRequestBuilder(authHelper)
-        val gotRequest = gotRequestBuilder.url("http://localhost:8080").get().build()
+        val gotRequest = gotRequestBuilder.url(TEST_HOME_DOMAIN).get().build()
         val wantRequestBuilder: Request.Builder =
           Request.Builder().header("Content-Type", "application/json")
-        val wantRequest = wantRequestBuilder.url("http://localhost:8080").get().build()
+        val wantRequest = wantRequestBuilder.url(TEST_HOME_DOMAIN).get().build()
         assertEquals(wantRequest.headers, gotRequest.headers)
       }
       else -> {
