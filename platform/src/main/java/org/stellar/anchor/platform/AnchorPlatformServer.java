@@ -35,13 +35,14 @@ public class AnchorPlatformServer implements WebMvcConfigurer {
             .bannerMode(OFF)
             .properties(
                 // TODO: move these configs to the config file when this is fixed and get rid of
-                // disableMetrics param -
+                //       disableMetrics param -
                 //  https://github.com/stellar/java-stellar-anchor-sdk/issues/297
                 "spring.mvc.converters.preferred-json-mapper=gson",
                 // this allows a developer to use a .env file for local development
                 "spring.config.import=optional:classpath:example.env[.properties]",
                 String.format("server.port=%d", port),
                 String.format("server.contextPath=%s", contextPath));
+
     if (!disableMetrics) {
       builder.properties(
           "management.endpoints.web.exposure.include=health,info,prometheus",

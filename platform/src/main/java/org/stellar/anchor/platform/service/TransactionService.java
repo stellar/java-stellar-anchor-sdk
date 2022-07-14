@@ -76,6 +76,7 @@ public class TransactionService {
 
     List<JdbcSep31Transaction> txnsToSave = new LinkedList<>();
     List<GetTransactionResponse> responses = new LinkedList<>();
+    List<JdbcSep31Transaction> statusUpdatedTxns = new LinkedList<>();
 
     for (PatchTransactionRequest patch : patchRequests) {
       JdbcSep31Transaction txn = (JdbcSep31Transaction) sep31Transactions.get(patch.getId());
@@ -86,7 +87,7 @@ public class TransactionService {
         // Add them to the to-be-updated lists.
         txnsToSave.add(txn);
         if (!txnOriginalStatus.equals(txn.getStatus())) {
-          //
+          statusUpdatedTxns.add(txn);
         }
         responses.add(fromTransactionToResponse(txn));
       } else {
@@ -96,6 +97,8 @@ public class TransactionService {
     for (JdbcSep31Transaction txn : txnsToSave) {
       // TODO: consider 2-phase commit DB transaction management.
       txnStore.save(txn);
+    }
+    for (JdbcSep31Transaction txn : statusUpdatedTxns) {
       Metrics.counter("sep31.transaction", "status", txn.getStatus()).increment();
     }
     return new PatchTransactionsResponse(responses);
