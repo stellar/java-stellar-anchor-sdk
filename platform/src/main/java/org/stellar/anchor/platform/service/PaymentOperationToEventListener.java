@@ -140,13 +140,13 @@ public class PaymentOperationToEventListener implements PaymentListener {
     TransactionEvent.StatusChange statusChange =
         new TransactionEvent.StatusChange(oldStatus, newStatus);
 
-    StellarId senderStellarId =
+    StellarId senderStellarId = StellarId.builder().account(payment.getFrom()).build();
+    StellarId receiverStellarId =
         StellarId.builder()
-            .account(payment.getFrom())
+            .account(payment.getTo())
             .memo(txn.getStellarMemo())
             .memoType(txn.getStellarMemoType())
             .build();
-    StellarId receiverStellarId = StellarId.builder().account(payment.getTo()).build();
 
     TransactionEvent event =
         TransactionEvent.builder()

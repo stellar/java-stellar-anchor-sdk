@@ -146,13 +146,13 @@ class PaymentOperationToEventListenerTest {
 
     every { transactionStore.findByStellarMemo(capture(slotMemo)) } returns sep31TxMock
 
-    val wantSenderStellarId =
+    val wantSenderStellarId = StellarId.builder().account(p.from).build()
+    val wantReceiverStellarId =
       StellarId.builder()
-        .account(p.from)
+        .account(p.to)
         .memo("OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ=")
         .memoType("hash")
         .build()
-    val wantReceiverStellarId = StellarId.builder().account(p.to).build()
     val wantEvent =
       TransactionEvent.builder()
         .type(TransactionEvent.Type.TRANSACTION_STATUS_CHANGED)
