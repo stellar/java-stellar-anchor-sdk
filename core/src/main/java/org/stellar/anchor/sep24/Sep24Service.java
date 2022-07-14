@@ -27,10 +27,10 @@ import org.stellar.anchor.api.exception.SepValidationException;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.sep24.*;
 import org.stellar.anchor.asset.AssetService;
+import org.stellar.anchor.auth.JwtService;
+import org.stellar.anchor.auth.JwtToken;
 import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.Sep24Config;
-import org.stellar.anchor.sep10.JwtService;
-import org.stellar.anchor.sep10.JwtToken;
 import org.stellar.sdk.KeyPair;
 import org.stellar.sdk.Memo;
 

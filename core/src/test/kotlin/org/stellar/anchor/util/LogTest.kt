@@ -124,7 +124,7 @@ internal class LogTest {
 
   @Test
   fun testShorter() {
-    assertThrows<NullPointerException> { shorter(null) }
+    assertNull(shorter(null))
     assertEquals(shorter("123"), "123")
     assertEquals(shorter(""), "")
     assertEquals(shorter("12345678"), "12345678")

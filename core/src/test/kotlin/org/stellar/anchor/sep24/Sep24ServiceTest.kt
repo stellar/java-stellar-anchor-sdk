@@ -29,10 +29,10 @@ import org.stellar.anchor.api.sep.sep24.GetTransactionRequest
 import org.stellar.anchor.api.sep.sep24.GetTransactionsRequest
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.ResourceJsonAssetService
+import org.stellar.anchor.auth.JwtService
+import org.stellar.anchor.auth.JwtToken
 import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.Sep24Config
-import org.stellar.anchor.sep10.JwtService
-import org.stellar.anchor.sep10.JwtToken
 import org.stellar.anchor.util.DateUtil
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.MemoHelper.makeMemo

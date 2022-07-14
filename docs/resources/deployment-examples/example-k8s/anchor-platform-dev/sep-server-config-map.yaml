@@ -33,6 +33,13 @@ data:
         horizonUrl: https://horizon-testnet.stellar.org
         assets: assets-test.json
         jwtSecretKey: secret
+      
+      # integration Auth between Anchor and Platform
+      integration-auth:
+        authType: JWT_TOKEN
+        platformToAnchorSecret: myPlatformToAnchorSecret
+        anchorToPlatformSecret: myAnchorToPlatformSecret
+        expirationMilliseconds: 30000
     
       # sep-1
       sep1:
