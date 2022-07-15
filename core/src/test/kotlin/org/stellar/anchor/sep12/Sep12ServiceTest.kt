@@ -3,14 +3,11 @@ package org.stellar.anchor.sep12
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import java.time.Instant
-import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.assertDoesNotThrow
 import org.stellar.anchor.api.callback.CustomerIntegration
-import org.stellar.anchor.api.exception.SepException
-import org.stellar.anchor.api.exception.SepNotAuthorizedException
-import org.stellar.anchor.api.exception.SepValidationException
+import org.stellar.anchor.api.exception.*
 import org.stellar.anchor.api.sep.sep12.*
 import org.stellar.anchor.auth.JwtToken
 
@@ -21,23 +18,17 @@ class Sep12ServiceTest {
     const val TEST_MUXED_ACCOUNT =
       "MBFZNZTFSI6TWLVAID7VOLCIFX2PMUOS2X7U6H4TNK4PAPSHPWMMUAAAAAAAAAPCIA2IM"
     const val CLIENT_DOMAIN = "demo-wallet.stellar.org"
+    const val TEST_HOST_URL = "http://localhost:8080"
   }
 
   private val issuedAt = Instant.now().epochSecond
   private val expiresAt = issuedAt + 9000
-  private lateinit var mockAnchor: MockWebServer
-  private lateinit var mockAnchorUrl: String
 
   private lateinit var sep12Service: Sep12Service
   @MockK(relaxed = true) lateinit var customerIntegration: CustomerIntegration
 
   @BeforeEach
   fun setup() {
-    // mock Anchor backend
-    mockAnchor = MockWebServer()
-    mockAnchor.start()
-    mockAnchorUrl = mockAnchor.url("").toString()
-
     MockKAnnotations.init(this, relaxUnitFun = true)
     sep12Service = Sep12Service(customerIntegration)
   }
@@ -213,7 +204,87 @@ class Sep12ServiceTest {
     assertEquals(mockCustomerResponse, sep12GetCustomerResponse)
   }
 
+  @Test
+  fun test_deleteCustomer_validation() {
+    every { customerIntegration.deleteCustomer(any()) } just Runs
+
+    // PART 1 - account without memo
+    // throws exception if request is missing the account
+    var jwtToken = createJwtToken(TEST_ACCOUNT)
+    var ex: AnchorException = assertThrows {
+      sep12Service.deleteCustomer(jwtToken, null, null, null)
+    }
+    assertInstanceOf(SepNotAuthorizedException::class.java, ex)
+    assertEquals("Not authorized to delete account [null] with memo [null]", ex.message)
+
+    // throws exception if request account is different from token account
+    ex = assertThrows { sep12Service.deleteCustomer(jwtToken, "foo", null, null) }
+    assertInstanceOf(SepNotAuthorizedException::class.java, ex)
+    assertEquals("Not authorized to delete account [foo] with memo [null]", ex.message)
+
+    // succeeds if request account is equals the token's
+    assertDoesNotThrow { sep12Service.deleteCustomer(jwtToken, TEST_ACCOUNT, null, null) }
+
+    // PART 2 - account with memo
+    // throws exception if request is missing the memo
+    jwtToken = createJwtToken("$TEST_ACCOUNT:$TEST_MEMO")
+    ex = assertThrows { sep12Service.deleteCustomer(jwtToken, TEST_ACCOUNT, null, null) }
+    assertInstanceOf(SepNotAuthorizedException::class.java, ex)
+    assertEquals("Not authorized to delete account [$TEST_ACCOUNT] with memo [null]", ex.message)
+
+    // throws exception if request account is different from token account
+    ex = assertThrows { sep12Service.deleteCustomer(jwtToken, TEST_ACCOUNT, "bar", null) }
+    assertInstanceOf(SepNotAuthorizedException::class.java, ex)
+    assertEquals("Not authorized to delete account [$TEST_ACCOUNT] with memo [bar]", ex.message)
+
+    // succeeds if request account and memo are equal the token's
+    assertDoesNotThrow { sep12Service.deleteCustomer(jwtToken, TEST_ACCOUNT, TEST_MEMO, null) }
+
+    // PART 3 - muxed account
+    // throws exception if request is missing the memo
+    jwtToken = createJwtToken(TEST_MUXED_ACCOUNT)
+    ex = assertThrows { sep12Service.deleteCustomer(jwtToken, TEST_ACCOUNT, null, null) }
+    assertInstanceOf(SepNotAuthorizedException::class.java, ex)
+    assertEquals("Not authorized to delete account [$TEST_ACCOUNT] with memo [null]", ex.message)
+
+    // throws exception if request account is different from token account
+    ex = assertThrows { sep12Service.deleteCustomer(jwtToken, TEST_ACCOUNT, "bar", null) }
+    assertInstanceOf(SepNotAuthorizedException::class.java, ex)
+    assertEquals("Not authorized to delete account [$TEST_ACCOUNT] with memo [bar]", ex.message)
+
+    // succeeds if request account is equals the token's and the memo is equals the token muxed id
+    assertDoesNotThrow { sep12Service.deleteCustomer(jwtToken, TEST_ACCOUNT, TEST_MEMO, null) }
+
+    // succeeds if request account is equals the token's muxed account
+    assertDoesNotThrow { sep12Service.deleteCustomer(jwtToken, TEST_MUXED_ACCOUNT, null, null) }
+  }
+
+  @Test
+  fun test_deleteCustomer_handleCustomerIntegration() {
+    every { customerIntegration.deleteCustomer(any()) } just Runs
+
+    // attempting to delete a non-existent customer returns 404
+    val mockNoCustomerFound = Sep12GetCustomerResponse()
+    every { customerIntegration.getCustomer(any()) } returns mockNoCustomerFound
+
+    val jwtToken = createJwtToken("$TEST_ACCOUNT:$TEST_MEMO")
+    val ex: AnchorException = assertThrows {
+      sep12Service.deleteCustomer(jwtToken, TEST_ACCOUNT, TEST_MEMO, null)
+    }
+    assertInstanceOf(SepNotFoundException::class.java, ex)
+    assertEquals("User not found.", ex.message)
+    verify(exactly = 2) { customerIntegration.getCustomer(any()) }
+
+    // attempting to delete a valid customer succeeds
+    val mockValidCustomerFound = Sep12GetCustomerResponse()
+    mockValidCustomerFound.id = "customer-id"
+    every { customerIntegration.getCustomer(any()) } returns mockValidCustomerFound
+    assertDoesNotThrow { sep12Service.deleteCustomer(jwtToken, TEST_ACCOUNT, TEST_MEMO, null) }
+    verify(exactly = 4) { customerIntegration.getCustomer(any()) }
+    verify(exactly = 2) { customerIntegration.deleteCustomer(any()) }
+  }
+
   private fun createJwtToken(subject: String): JwtToken {
-    return JwtToken.of("$mockAnchorUrl/auth", subject, issuedAt, expiresAt, "", CLIENT_DOMAIN)
+    return JwtToken.of("$TEST_HOST_URL/auth", subject, issuedAt, expiresAt, "", CLIENT_DOMAIN)
   }
 }

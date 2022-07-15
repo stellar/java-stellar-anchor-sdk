@@ -44,10 +44,25 @@ public class Sep12Service {
 
   public void deleteCustomer(JwtToken jwtToken, String account, String memo, String memoType)
       throws AnchorException {
-    if (!jwtToken.getAccount().equals(account)) {
+    boolean isAccountAuthenticated =
+        Stream.of(jwtToken.getAccount(), jwtToken.getMuxedAccount())
+            .filter(Objects::nonNull)
+            .anyMatch(tokenAccount -> Objects.equals(tokenAccount, account));
+
+    boolean isMemoAuthenticated = memo == null;
+    String muxedAccountId = Objects.toString(jwtToken.getMuxedAccountId(), null);
+    if (muxedAccountId != null) {
+      if (!Objects.equals(jwtToken.getMuxedAccount(), account)) {
+        isMemoAuthenticated = Objects.equals(muxedAccountId, memo);
+      }
+    } else if (jwtToken.getAccountMemo() != null) {
+      isMemoAuthenticated = Objects.equals(jwtToken.getAccountMemo(), memo);
+    }
+
+    if (!isAccountAuthenticated || !isMemoAuthenticated) {
       infoF("Requester ({}) not authorized to delete account ({})", jwtToken.getAccount(), account);
       throw new SepNotAuthorizedException(
-          String.format("Not authorized to delete account [%s]", account));
+          String.format("Not authorized to delete account [%s] with memo [%s]", account, memo));
     }
 
     // TODO: Move this into configuration instead of hardcoding customer type values.
