@@ -11,7 +11,7 @@ import org.stellar.anchor.api.callback.CustomerIntegration
 import org.stellar.anchor.api.exception.SepException
 import org.stellar.anchor.api.exception.SepNotAuthorizedException
 import org.stellar.anchor.api.exception.SepValidationException
-import org.stellar.anchor.api.sep.sep12.Sep12CustomerRequestBase
+import org.stellar.anchor.api.sep.sep12.*
 import org.stellar.anchor.auth.JwtToken
 
 class Sep12ServiceTest {
@@ -170,6 +170,47 @@ class Sep12ServiceTest {
     }
     assertInstanceOf(SepValidationException::class.java, ex)
     assertEquals("Invalid 'memo' for 'memo_type'", ex.message)
+  }
+
+  @Test
+  fun test_putCustomer() {
+    val mockCustomerResponse = Sep12PutCustomerResponse()
+    every { customerIntegration.putCustomer(any()) } returns mockCustomerResponse
+
+    val mockPutRequest = mockk<Sep12PutCustomerRequest>(relaxed = true)
+    every { mockPutRequest.account } returns null
+    every { mockPutRequest.memo } returns null
+    every { mockPutRequest.memoType } returns null
+
+    val jwtToken = createJwtToken(TEST_ACCOUNT)
+    var sep12PutCustomerResponse: Sep12PutCustomerResponse? = null
+    assertDoesNotThrow {
+      sep12PutCustomerResponse = sep12Service.putCustomer(jwtToken, mockPutRequest)
+    }
+
+    verify(exactly = 1) { mockPutRequest.account = TEST_ACCOUNT }
+    assertEquals(mockCustomerResponse, sep12PutCustomerResponse)
+  }
+
+  @Test
+  fun test_getCustomer() {
+    val mockCustomerResponse = Sep12GetCustomerResponse()
+    every { customerIntegration.getCustomer(any()) } returns mockCustomerResponse
+
+    val mockGetRequest = mockk<Sep12GetCustomerRequest>(relaxed = true)
+    every { mockGetRequest.id } returns null
+    every { mockGetRequest.account } returns null
+    every { mockGetRequest.memo } returns null
+    every { mockGetRequest.memoType } returns null
+
+    val jwtToken = createJwtToken(TEST_ACCOUNT)
+    var sep12GetCustomerResponse: Sep12GetCustomerResponse? = null
+    assertDoesNotThrow {
+      sep12GetCustomerResponse = sep12Service.getCustomer(jwtToken, mockGetRequest)
+    }
+
+    verify(exactly = 1) { mockGetRequest.account = TEST_ACCOUNT }
+    assertEquals(mockCustomerResponse, sep12GetCustomerResponse)
   }
 
   private fun createJwtToken(subject: String): JwtToken {
