@@ -15,10 +15,13 @@ import org.stellar.anchor.util.Log;
 
 public class PlatformIntegrationHelper {
   public static Request.Builder getRequestBuilder(AuthHelper authHelper) {
+    Request.Builder requestBuilder =
+        new Request.Builder().header("Content-Type", "application/json");
+
     AuthHeader<String, String> authHeader = authHelper.createAuthHeader();
-    return new Request.Builder()
-        .header("Content-Type", "application/json")
-        .header(authHeader.getName(), authHeader.getValue());
+    return authHeader == null
+        ? requestBuilder
+        : requestBuilder.header(authHeader.getName(), authHeader.getValue());
   }
 
   public static Response call(OkHttpClient httpClient, Request request)
