@@ -181,3 +181,21 @@ They can be enabled with the following configs:
 [`example.env`]: /platform/src/main/resources/example.env
 [`docs/resources/docker-examples/kafka/docker-compose.yaml`]: /docs/resources/docker-examples/kafka/docker-compose.yaml
 [`assets-test.json`]: /platform/src/main/resources/assets-test.json
+
+## Logging
+
+The format of anchor platform's logs can be set by the `LOG_APPENDER` environment variable. Supported values include:
+* `console_appender`: `timestamp - level - location - message`
+* `console_json_appender`: json of the format below
+
+```json
+{
+    "time": timestamp,
+    "source": logger,
+    "index": location,
+    "event" {
+        "message": message,
+        "severity": level,
+    }
+}
+```
