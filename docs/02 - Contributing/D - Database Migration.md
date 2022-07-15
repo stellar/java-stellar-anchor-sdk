@@ -11,7 +11,8 @@ and Spring will automatically apply the changes to the database (if Flyway is en
 
 ## Applying Migrations
 
-This project is configured to apply any pending migrations automatically when the application is started. This can be 
+This project is configured to apply any pending migrations automatically when the application is started. If you want
+to manually apply migrations (https://flywaydb.org/documentation/getstarted/firststeps/commandline), auto-apply can be 
 disabled in the Anchor Platform Configuration:
 ```text
 spring.flyway.enabled: false
@@ -45,9 +46,9 @@ To connect a database, go to JPA Structure -> DB connections -> right click `new
     ![img_3.png](/docs/resources/img/flyway-changelog2.png)
 
 3. Review the changes and generate the migration file.
-   > Note: The migration file format =``<Prefix><Version>__<Description>.sql``
+   > Note: The migration file format =`<Prefix><Version>__<Description>.sql`
 
-    > Note: `Directory` should be set to ``platform/src/main/resources/db/migration/`` so all the changelog files are in one place.
+    > Note: `Directory` should be set to `platform/src/main/resources/db/migration/` so all the changelog files are in one place.
 
     ![img_1.png](/docs/resources/img/flyway-changelog3.png)
 
