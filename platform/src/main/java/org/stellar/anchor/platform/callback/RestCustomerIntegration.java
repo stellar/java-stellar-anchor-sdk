@@ -6,8 +6,10 @@ import static org.stellar.anchor.platform.callback.RestCustomerIntegration.Conve
 import static org.stellar.anchor.platform.callback.RestCustomerIntegration.Converter.fromSep12;
 
 import com.google.gson.Gson;
+import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Map;
 import lombok.SneakyThrows;
 import okhttp3.*;
 import okhttp3.HttpUrl.Builder;
@@ -21,6 +23,8 @@ import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerResponse;
 import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest;
 import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerResponse;
 import org.stellar.anchor.auth.AuthHelper;
+import org.stellar.anchor.util.Log;
+import shadow.com.google.common.reflect.TypeToken;
 
 public class RestCustomerIntegration implements CustomerIntegration {
   private final String anchorEndpoint;
@@ -43,44 +47,41 @@ public class RestCustomerIntegration implements CustomerIntegration {
   }
 
   @Override
-  public Sep12GetCustomerResponse getCustomer(Sep12GetCustomerRequest sep12GetCustomerRequest)
+  public Sep12GetCustomerResponse getCustomer(Sep12GetCustomerRequest customerRequest)
       throws AnchorException {
-    GetCustomerRequest customerRequest = fromSep12(sep12GetCustomerRequest, gson);
-    Builder customerEndpointBuilder = getCustomerUrlBuilder();
-    if (customerRequest.getId() != null) {
-      customerEndpointBuilder.addQueryParameter("id", customerRequest.getId());
-    } else {
-      customerEndpointBuilder.addQueryParameter("account", customerRequest.getAccount());
-      if (customerRequest.getMemo() != null && customerRequest.getMemoType() != null) {
-        customerEndpointBuilder
-            .addQueryParameter("memo", customerRequest.getMemo())
-            .addQueryParameter("memo_type", customerRequest.getMemoType());
-      }
-    }
-    if (customerRequest.getType() != null) {
-      customerEndpointBuilder.addQueryParameter("type", customerRequest.getType());
-    }
-    // Call anchor
-    Response response =
-        call(
-            httpClient,
-            getRequestBuilder(authHelper).url(customerEndpointBuilder.build()).get().build());
+    // prepare request
+    Builder urlBuilder = getCustomerUrlBuilder();
+    Type type = new TypeToken<Map<String, ?>>() {}.getType();
+    Map<String, String> paramsMap = gson.fromJson(gson.toJson(customerRequest), type);
+    paramsMap.forEach(
+        (key, value) -> {
+          if (value != null) {
+            urlBuilder.addQueryParameter(key, value);
+          }
+        });
+    HttpUrl url = urlBuilder.build();
+
+    // Make request
+    Response response = call(httpClient, getRequestBuilder(authHelper).url(url).get().build());
     String responseContent = getContent(response);
 
-    if (response.code() == HttpStatus.OK.value()) {
-      GetCustomerResponse getCustomerResponse;
-      try {
-        getCustomerResponse = gson.fromJson(responseContent, GetCustomerResponse.class);
-      } catch (Exception e) { // cannot read body from response
-        throw new ServerErrorException("internal server error", e);
-      }
-      if (getCustomerResponse.getStatus() == null) {
-        throw new ServerErrorException("internal server error");
-      }
-      return fromPlatform(getCustomerResponse, gson);
-    } else {
+    if (response.code() != HttpStatus.OK.value()) {
       throw httpError(responseContent, response.code(), gson);
     }
+
+    Sep12GetCustomerResponse getCustomerResponse;
+    try {
+      getCustomerResponse = fromPlatform(responseContent, gson);
+    } catch (Exception e) { // cannot read body from response
+      throw new ServerErrorException("internal server error", e);
+    }
+
+    if (getCustomerResponse.getStatus() == null) {
+      Log.error("GET {callbackAPI}/customer response is missing the status field");
+      throw new ServerErrorException(
+          "internal server error: result from Anchor backend is invalid");
+    }
+    return getCustomerResponse;
   }
 
   @Override
@@ -136,9 +137,8 @@ public class RestCustomerIntegration implements CustomerIntegration {
   }
 
   static class Converter {
-    public static Sep12GetCustomerResponse fromPlatform(GetCustomerResponse response, Gson gson) {
-      String json = gson.toJson(response);
-      return gson.fromJson(json, Sep12GetCustomerResponse.class);
+    public static Sep12GetCustomerResponse fromPlatform(String body, Gson gson) {
+      return gson.fromJson(body, Sep12GetCustomerResponse.class);
     }
 
     public static Sep12PutCustomerResponse fromPlatform(PutCustomerResponse response, Gson gson) {
