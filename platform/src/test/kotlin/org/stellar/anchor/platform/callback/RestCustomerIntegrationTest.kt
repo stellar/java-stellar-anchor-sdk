@@ -12,6 +12,7 @@ import org.hamcrest.CoreMatchers
 import org.hamcrest.MatcherAssert
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
+import org.skyscreamer.jsonassert.JSONAssert
 import org.stellar.anchor.api.exception.AnchorException
 import org.stellar.anchor.api.exception.BadRequestException
 import org.stellar.anchor.api.exception.ServerErrorException
@@ -19,11 +20,17 @@ import org.stellar.anchor.api.sep.sep12.Field
 import org.stellar.anchor.api.sep.sep12.ProvidedField
 import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerRequest
 import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerResponse
+import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest
+import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerResponse
 import org.stellar.anchor.api.sep.sep12.Sep12Status
 import org.stellar.anchor.auth.AuthHelper
 import org.stellar.anchor.util.GsonUtils
 
 class RestCustomerIntegrationTest {
+  companion object {
+    const val TEST_ACCOUNT = "GBFZNZTFSI6TWLVAID7VOLCIFX2PMUOS2X7U6H4TNK4PAPSHPWMMUIZG"
+  }
+
   private val httpClient: OkHttpClient =
     OkHttpClient.Builder()
       .connectTimeout(10, TimeUnit.MINUTES)
@@ -151,7 +158,7 @@ class RestCustomerIntegrationTest {
     MatcherAssert.assertThat(request.path, CoreMatchers.endsWith(wantEndpoint))
     assertEquals("", request.body.readUtf8())
 
-    // invalid request status code
+    // invalid response status code
     mockAnchor.enqueue(
       MockResponse()
         .setResponseCode(400)
@@ -160,5 +167,71 @@ class RestCustomerIntegrationTest {
     ex = assertThrows { customerIntegration.getCustomer(getCustomerRequest) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("foo bar went wrong", ex.message)
+  }
+
+  @Test
+  fun test_putCustomer() {
+    val putCustomerRequest =
+      Sep12PutCustomerRequest.builder()
+        .id("customer-id")
+        .account(TEST_ACCOUNT)
+        .memo("memo")
+        .firstName("John")
+        .lastName("Doe")
+        .build()
+
+    mockAnchor.enqueue(MockResponse().setResponseCode(200).setBody("""{"id": "customer-id"}"""))
+
+    val wantResponse = Sep12PutCustomerResponse()
+    wantResponse.id = "customer-id"
+
+    val gotResponse = customerIntegration.putCustomer(putCustomerRequest)
+    assertEquals(wantResponse, gotResponse)
+
+    val request = mockAnchor.takeRequest()
+    assertEquals("PUT", request.method)
+    assertEquals("application/json; charset=utf-8", request.headers["Content-Type"])
+    assertNull(request.headers["Authorization"])
+    val wantEndpoint = """/customer"""
+    MatcherAssert.assertThat(request.path, CoreMatchers.endsWith(wantEndpoint))
+    val wantBody =
+      """{
+      "id": "customer-id",
+      "account": "$TEST_ACCOUNT",
+      "memo": "memo",
+      "first_name": "John",
+      "last_name": "Doe"
+    }""".trimMargin()
+    JSONAssert.assertEquals(wantBody, request.body.readUtf8(), true)
+  }
+
+  @Test
+  fun test_putCustomer_failure() {
+    // invalid customer.status in the response
+    val putCustomerRequest =
+      Sep12PutCustomerRequest.builder().id("customer-id").account(TEST_ACCOUNT).build()
+
+    // invalid response status code
+    mockAnchor.enqueue(
+      MockResponse()
+        .setResponseCode(400)
+        .setBody("""{"error": "foo bar went wrong"}""".trimMargin())
+    )
+    val ex: AnchorException = assertThrows { customerIntegration.putCustomer(putCustomerRequest) }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("foo bar went wrong", ex.message)
+
+    val request = mockAnchor.takeRequest()
+    assertEquals("PUT", request.method)
+    assertEquals("application/json; charset=utf-8", request.headers["Content-Type"])
+    assertNull(request.headers["Authorization"])
+    val wantEndpoint = """/customer"""
+    MatcherAssert.assertThat(request.path, CoreMatchers.endsWith(wantEndpoint))
+    val wantBody =
+      """{
+      "id": "customer-id",
+      "account": "$TEST_ACCOUNT"
+    }""".trimMargin()
+    JSONAssert.assertEquals(wantBody, request.body.readUtf8(), true)
   }
 }
