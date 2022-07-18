@@ -154,7 +154,7 @@ class RestCustomerIntegrationTest {
     assertEquals("GET", request.method)
     assertEquals("application/json", request.headers["Content-Type"])
     assertNull(request.headers["Authorization"])
-    val wantEndpoint = """/customer?id=customer-id"""
+    val wantEndpoint = "/customer?id=customer-id"
     MatcherAssert.assertThat(request.path, CoreMatchers.endsWith(wantEndpoint))
     assertEquals("", request.body.readUtf8())
 
@@ -192,7 +192,7 @@ class RestCustomerIntegrationTest {
     assertEquals("PUT", request.method)
     assertEquals("application/json; charset=utf-8", request.headers["Content-Type"])
     assertNull(request.headers["Authorization"])
-    val wantEndpoint = """/customer"""
+    val wantEndpoint = "/customer"
     MatcherAssert.assertThat(request.path, CoreMatchers.endsWith(wantEndpoint))
     val wantBody =
       """{
@@ -225,7 +225,7 @@ class RestCustomerIntegrationTest {
     assertEquals("PUT", request.method)
     assertEquals("application/json; charset=utf-8", request.headers["Content-Type"])
     assertNull(request.headers["Authorization"])
-    val wantEndpoint = """/customer"""
+    val wantEndpoint = "/customer"
     MatcherAssert.assertThat(request.path, CoreMatchers.endsWith(wantEndpoint))
     val wantBody =
       """{
@@ -233,5 +233,20 @@ class RestCustomerIntegrationTest {
       "account": "$TEST_ACCOUNT"
     }""".trimMargin()
     JSONAssert.assertEquals(wantBody, request.body.readUtf8(), true)
+  }
+
+  @Test
+  fun test_deleteCustomer() {
+    mockAnchor.enqueue(MockResponse().setResponseCode(204))
+
+    customerIntegration.deleteCustomer("customer-id")
+
+    val request = mockAnchor.takeRequest()
+    assertEquals("DELETE", request.method)
+    assertEquals("application/json", request.headers["Content-Type"])
+    assertNull(request.headers["Authorization"])
+    val wantEndpoint = "/customer/customer-id"
+    MatcherAssert.assertThat(request.path, CoreMatchers.endsWith(wantEndpoint))
+    assertEquals("", request.body.readUtf8())
   }
 }
