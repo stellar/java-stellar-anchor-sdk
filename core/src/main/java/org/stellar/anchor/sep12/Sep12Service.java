@@ -15,9 +15,12 @@ import org.stellar.sdk.xdr.MemoType;
 
 public class Sep12Service {
   private final CustomerIntegration customerIntegration;
+  private final Sep12CustomerStore sep12CustomerStore;
 
-  public Sep12Service(CustomerIntegration customerIntegration) {
+  public Sep12Service(
+      CustomerIntegration customerIntegration, Sep12CustomerStore sep12CustomerStore) {
     this.customerIntegration = customerIntegration;
+    this.sep12CustomerStore = sep12CustomerStore;
     Log.info("Sep12Service initialized.");
   }
 

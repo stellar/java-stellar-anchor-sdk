@@ -25,6 +25,7 @@ import org.stellar.anchor.platform.service.Sep31DepositInfoGeneratorSelf;
 import org.stellar.anchor.platform.service.SpringResourceReader;
 import org.stellar.anchor.sep1.Sep1Service;
 import org.stellar.anchor.sep10.Sep10Service;
+import org.stellar.anchor.sep12.Sep12CustomerStore;
 import org.stellar.anchor.sep12.Sep12Service;
 import org.stellar.anchor.sep24.Sep24Service;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
@@ -131,8 +132,14 @@ public class SepConfig {
   }
 
   @Bean
-  Sep12Service sep12Service(CustomerIntegration customerIntegration) {
-    return new Sep12Service(customerIntegration);
+  Sep12CustomerStore sep12CustomerStore(JdbcSep12CustomerRepo customerRepo) {
+    return new JdbcSep12CustomerStore(customerRepo);
+  }
+
+  @Bean
+  Sep12Service sep12Service(
+      CustomerIntegration customerIntegration, Sep12CustomerStore sep12CustomerStore) {
+    return new Sep12Service(customerIntegration, sep12CustomerStore);
   }
 
   @Bean

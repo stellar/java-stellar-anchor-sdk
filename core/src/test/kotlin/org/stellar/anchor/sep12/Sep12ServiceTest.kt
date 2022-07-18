@@ -26,11 +26,12 @@ class Sep12ServiceTest {
 
   private lateinit var sep12Service: Sep12Service
   @MockK(relaxed = true) private lateinit var customerIntegration: CustomerIntegration
+  @MockK(relaxed = true) private lateinit var customerStore: Sep12CustomerStore
 
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
-    sep12Service = Sep12Service(customerIntegration)
+    sep12Service = Sep12Service(customerIntegration, customerStore)
   }
 
   @AfterEach

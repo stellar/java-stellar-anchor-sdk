@@ -106,7 +106,7 @@ public class Sep12PutCustomerRequest implements Sep12CustomerRequestBase {
   String idNumber;
 
   @SerializedName("ip_address")
-  String ip_address;
+  String ipAddress;
 
   String sex;
 }
