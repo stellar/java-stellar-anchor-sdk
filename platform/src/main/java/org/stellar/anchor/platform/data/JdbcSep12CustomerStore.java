@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform.data;
 
+import org.jetbrains.annotations.NotNull;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.sep12.Sep12Customer;
 import org.stellar.anchor.sep12.Sep12CustomerStore;
@@ -14,6 +15,11 @@ public class JdbcSep12CustomerStore implements Sep12CustomerStore {
   @Override
   public Sep12Customer newInstance() {
     return new JdbcSep12Customer();
+  }
+
+  @Override
+  public Sep12Customer findById(@NotNull String id) {
+    return customerRepo.findById(id).orElse(null);
   }
 
   @Override

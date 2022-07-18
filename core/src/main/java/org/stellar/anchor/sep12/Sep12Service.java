@@ -2,6 +2,7 @@ package org.stellar.anchor.sep12;
 
 import static org.stellar.anchor.util.Log.infoF;
 
+import com.google.gson.Gson;
 import java.util.Objects;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
@@ -9,6 +10,7 @@ import org.stellar.anchor.api.callback.CustomerIntegration;
 import org.stellar.anchor.api.exception.*;
 import org.stellar.anchor.api.sep.sep12.*;
 import org.stellar.anchor.auth.JwtToken;
+import org.stellar.anchor.util.GsonUtils;
 import org.stellar.anchor.util.Log;
 import org.stellar.anchor.util.MemoHelper;
 import org.stellar.sdk.xdr.MemoType;
@@ -16,6 +18,7 @@ import org.stellar.sdk.xdr.MemoType;
 public class Sep12Service {
   private final CustomerIntegration customerIntegration;
   private final Sep12CustomerStore sep12CustomerStore;
+  private static final Gson gson = GsonUtils.getInstance();
 
   public Sep12Service(
       CustomerIntegration customerIntegration, Sep12CustomerStore sep12CustomerStore) {
@@ -31,7 +34,64 @@ public class Sep12Service {
       request.setAccount(token.getAccount());
     }
 
-    return customerIntegration.getCustomer(request);
+    Sep12GetCustomerResponse customerResponse = customerIntegration.getCustomer(request);
+
+    if (customerResponse.getId() != null) {
+      Sep12Customer customer = sep12CustomerStore.findById(customerResponse.getId());
+      boolean shouldSave = false;
+      if (customer == null) {
+        customer =
+            new Sep12CustomerBuilder(sep12CustomerStore)
+                .id(customerResponse.getId())
+                .account(request.getAccount())
+                .memo(request.getMemo())
+                .memoType(request.getMemoType())
+                .type(request.getType())
+                .lang(request.getLang())
+                .status(customerResponse.getStatus())
+                .message(customerResponse.getMessage())
+                .fields(customerResponse.getFields())
+                .providedFields(customerResponse.getProvidedFields())
+                .build();
+        shouldSave = true;
+      } else {
+        if (!Objects.equals(customer.getType(), request.getType())) {
+          customer.setType(request.getType());
+          shouldSave = true;
+        }
+
+        if (!Objects.equals(customer.getLang(), request.getLang())) {
+          customer.setLang(request.getLang());
+          shouldSave = true;
+        }
+
+        if (!Objects.equals(customer.getStatus(), customerResponse.getStatus())) {
+          customer.setStatus(customerResponse.getStatus());
+          shouldSave = true;
+        }
+
+        if (!Objects.equals(customer.getMessage(), customerResponse.getMessage())) {
+          customer.setMessage(customerResponse.getMessage());
+          shouldSave = true;
+        }
+
+        if (!Objects.equals(customer.getFields(), customerResponse.getFields())) {
+          customer.setFields(customerResponse.getFields());
+          shouldSave = true;
+        }
+
+        if (!Objects.equals(customer.getProvidedFields(), customerResponse.getProvidedFields())) {
+          customer.setProvidedFields(customerResponse.getProvidedFields());
+          shouldSave = true;
+        }
+      }
+
+      if (shouldSave) {
+        sep12CustomerStore.save(customer);
+      }
+    }
+
+    return customerResponse;
   }
 
   public Sep12PutCustomerResponse putCustomer(JwtToken token, Sep12PutCustomerRequest request)

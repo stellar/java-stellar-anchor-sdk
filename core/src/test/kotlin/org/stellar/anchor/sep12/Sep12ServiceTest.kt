@@ -10,6 +10,7 @@ import org.stellar.anchor.api.callback.CustomerIntegration
 import org.stellar.anchor.api.exception.*
 import org.stellar.anchor.api.sep.sep12.*
 import org.stellar.anchor.auth.JwtToken
+import org.stellar.anchor.util.GsonUtils
 
 class Sep12ServiceTest {
   companion object {
@@ -21,8 +22,28 @@ class Sep12ServiceTest {
     private const val TEST_HOST_URL = "http://localhost:8080"
   }
 
+  private val gson = GsonUtils.getInstance()
   private val issuedAt = Instant.now().epochSecond
   private val expiresAt = issuedAt + 9000
+  private val mockFields =
+    mapOf<String, Field>(
+      "email_address" to
+        Field.builder()
+          .type(Field.Type.STRING)
+          .description("email address of the customer")
+          .optional(false)
+          .build()
+    )
+  private val mockProvidedFields =
+    mapOf<String, ProvidedField>(
+      "last_name" to
+        ProvidedField.builder()
+          .type(Field.Type.STRING)
+          .description("The customer's last name")
+          .optional(false)
+          .status(Sep12Status.ACCEPTED)
+          .build()
+    )
 
   private lateinit var sep12Service: Sep12Service
   @MockK(relaxed = true) private lateinit var customerIntegration: CustomerIntegration
@@ -187,23 +208,103 @@ class Sep12ServiceTest {
 
   @Test
   fun test_getCustomer() {
-    val mockCustomerResponse = Sep12GetCustomerResponse()
+    // mock customer store
+    var sep12Customer = slot<Sep12Customer>()
+    every { customerStore.save(capture(sep12Customer)) } returns mockk(relaxed = true)
+    every { customerStore.newInstance() } returns PojoSep12Customer()
+    every { customerStore.findById("customer-id") } returns null
+
+    // mock `GET {callbackApi}/customer` response
     val getRequestSlot = slot<Sep12GetCustomerRequest>()
+    val mockCustomerResponse = Sep12GetCustomerResponse()
+    mockCustomerResponse.id = "customer-id"
+    mockCustomerResponse.status = Sep12Status.ACCEPTED
+    mockCustomerResponse.fields = mockFields
+    mockCustomerResponse.providedFields = mockProvidedFields
+    mockCustomerResponse.message = "foo bar"
     every { customerIntegration.getCustomer(capture(getRequestSlot)) } returns mockCustomerResponse
 
-    val mockGetRequest = Sep12GetCustomerRequest.builder().build()
+    // Execute the request
+    val mockGetRequest =
+      Sep12GetCustomerRequest.builder()
+        .memo(TEST_MEMO)
+        .memoType("text")
+        .type("sep31_sender")
+        .lang("en")
+        .build()
     val jwtToken = createJwtToken(TEST_ACCOUNT)
-    var sep12GetCustomerResponse: Sep12GetCustomerResponse? = null
+    var sep12GetCustomerResponse1: Sep12GetCustomerResponse? = null
     assertDoesNotThrow {
-      sep12GetCustomerResponse = sep12Service.getCustomer(jwtToken, mockGetRequest)
+      sep12GetCustomerResponse1 = sep12Service.getCustomer(jwtToken, mockGetRequest)
     }
 
+    // validate the request
+    val wantGetRequest =
+      Sep12GetCustomerRequest.builder()
+        .account(TEST_ACCOUNT)
+        .memo(TEST_MEMO)
+        .memoType("text")
+        .type("sep31_sender")
+        .lang("en")
+        .build()
+    assertEquals(wantGetRequest, getRequestSlot.captured)
+
+    // validate the response
     verify(exactly = 1) { customerIntegration.getCustomer(any()) }
     assertEquals(TEST_ACCOUNT, mockGetRequest.account)
-    assertEquals(mockCustomerResponse, sep12GetCustomerResponse)
+    assertEquals(mockCustomerResponse, sep12GetCustomerResponse1)
 
-    val wantGetRequest = Sep12GetCustomerRequest.builder().account(TEST_ACCOUNT).build()
-    assertEquals(wantGetRequest, getRequestSlot.captured)
+    // assert that a new customer was created in the database
+    verify(exactly = 1) { customerStore.findById("customer-id") }
+    verify(exactly = 1) { customerStore.save(any()) }
+    val wantSep12Customer =
+      Sep12CustomerBuilder(customerStore)
+        .id("customer-id")
+        .account(TEST_ACCOUNT)
+        .memo(TEST_MEMO)
+        .memoType("text")
+        .type("sep31_sender")
+        .lang("en")
+        .status(Sep12Status.ACCEPTED)
+        .message("foo bar")
+        .fields(mockFields)
+        .providedFields(mockProvidedFields)
+        .build()
+    assertEquals(wantSep12Customer, sep12Customer.captured)
+
+    // assert that if a customer already exists and it doesn't need to be updated, we won't call
+    // the save method.
+    every { customerStore.findById("customer-id") } returns wantSep12Customer
+    var sep12GetCustomerResponse2: Sep12GetCustomerResponse? = null
+    assertDoesNotThrow {
+      sep12GetCustomerResponse2 = sep12Service.getCustomer(jwtToken, mockGetRequest)
+    }
+    assertEquals(sep12GetCustomerResponse1, sep12GetCustomerResponse2)
+    verify(exactly = 2) { customerStore.findById("customer-id") }
+    verify(exactly = 1) { customerStore.save(any()) }
+
+    // assert that if the customer will get updated if the database values are different from the
+    // values coming from the Anchor.
+    sep12Customer = slot()
+    every { customerStore.save(capture(sep12Customer)) } returns mockk(relaxed = true)
+
+    val outdatedSep12Customer =
+      gson.fromJson(gson.toJson(wantSep12Customer), PojoSep12Customer::class.java)
+    outdatedSep12Customer.type = "old_type"
+    outdatedSep12Customer.lang = "pt"
+    outdatedSep12Customer.status = Sep12Status.PROCESSING
+    outdatedSep12Customer.message = null
+    outdatedSep12Customer.fields = null
+    outdatedSep12Customer.providedFields = null
+    every { customerStore.findById("customer-id") } returns outdatedSep12Customer
+    var sep12GetCustomerResponse3: Sep12GetCustomerResponse? = null
+    assertDoesNotThrow {
+      sep12GetCustomerResponse3 = sep12Service.getCustomer(jwtToken, mockGetRequest)
+    }
+    assertEquals(sep12GetCustomerResponse1, sep12GetCustomerResponse3)
+    verify(exactly = 3) { customerStore.findById("customer-id") }
+    verify(exactly = 2) { customerStore.save(any()) }
+    assertEquals(wantSep12Customer, sep12Customer.captured)
   }
 
   @Test
