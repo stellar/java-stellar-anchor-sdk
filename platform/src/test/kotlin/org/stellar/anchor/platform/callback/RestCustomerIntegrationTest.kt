@@ -142,9 +142,6 @@ class RestCustomerIntegrationTest {
 
     mockAnchor.enqueue(MockResponse().setResponseCode(200).setBody("{}".trimMargin()))
 
-    val wantResponse = Sep12GetCustomerResponse()
-    wantResponse.id = "customer-id"
-
     var ex: AnchorException = assertThrows { customerIntegration.getCustomer(getCustomerRequest) }
     assertInstanceOf(ServerErrorException::class.java, ex)
     assertEquals("internal server error: result from Anchor backend is invalid", ex.message)
