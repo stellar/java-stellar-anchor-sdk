@@ -71,7 +71,7 @@ public class RestCustomerIntegration implements CustomerIntegration {
 
     Sep12GetCustomerResponse getCustomerResponse;
     try {
-      getCustomerResponse = fromPlatformGetResponse(responseContent, gson);
+      getCustomerResponse = sep12GetResponseFromCallbackApiBody(responseContent, gson);
     } catch (Exception e) { // cannot read body from response
       throw new ServerErrorException("internal server error", e);
     }
@@ -88,7 +88,7 @@ public class RestCustomerIntegration implements CustomerIntegration {
   public Sep12PutCustomerResponse putCustomer(Sep12PutCustomerRequest sep12PutCustomerRequest)
       throws AnchorException {
     HttpUrl url = getCustomerUrlBuilder().build();
-    RequestBody requestBody = bodyFromSep12(sep12PutCustomerRequest, gson);
+    RequestBody requestBody = requestBodyFromSep12Request(sep12PutCustomerRequest, gson);
     Request callbackRequest = getRequestBuilder(authHelper).url(url).put(requestBody).build();
 
     // Call anchor
@@ -101,15 +101,14 @@ public class RestCustomerIntegration implements CustomerIntegration {
     }
 
     try {
-      return fromPlatformPutResponse(responseContent, gson);
+      return sep12PutResponseFromCallbackApiBody(responseContent, gson);
     } catch (Exception e) {
       throw new ServerErrorException("internal server error", e);
     }
   }
 
-  @SneakyThrows
   @Override
-  public void deleteCustomer(String id) {
+  public void deleteCustomer(String id) throws AnchorException {
     HttpUrl url = getCustomerUrlBuilder().addPathSegment(id).build();
     Request callbackRequest = getRequestBuilder(authHelper).url(url).delete().build();
 
@@ -117,8 +116,7 @@ public class RestCustomerIntegration implements CustomerIntegration {
     Response response = call(httpClient, callbackRequest);
     String responseContent = getContent(response);
 
-    if (response.code() != HttpStatus.NO_CONTENT.value()
-        && response.code() != HttpStatus.OK.value()) {
+    if (!List.of(HttpStatus.OK.value(), HttpStatus.NO_CONTENT.value()).contains(response.code())) {
       throw httpError(responseContent, response.code(), gson);
     }
   }
@@ -136,25 +134,18 @@ public class RestCustomerIntegration implements CustomerIntegration {
   }
 
   static class Converter {
-    public static Sep12GetCustomerResponse fromPlatformGetResponse(String body, Gson gson) {
+    public static Sep12GetCustomerResponse sep12GetResponseFromCallbackApiBody(
+        String body, Gson gson) {
       return gson.fromJson(body, Sep12GetCustomerResponse.class);
     }
 
-    public static Sep12PutCustomerResponse fromPlatformPutResponse(String body, Gson gson) {
+    public static Sep12PutCustomerResponse sep12PutResponseFromCallbackApiBody(
+        String body, Gson gson) {
       return gson.fromJson(body, Sep12PutCustomerResponse.class);
     }
 
-    public static GetCustomerRequest fromSep12(Sep12GetCustomerRequest request, Gson gson) {
-      String json = gson.toJson(request);
-      return gson.fromJson(json, GetCustomerRequest.class);
-    }
-
-    public static PutCustomerRequest fromSep12(Sep12PutCustomerRequest request, Gson gson) {
-      String json = gson.toJson(request);
-      return gson.fromJson(json, PutCustomerRequest.class);
-    }
-
-    public static RequestBody bodyFromSep12(Sep12PutCustomerRequest request, Gson gson) {
+    public static RequestBody requestBodyFromSep12Request(
+        Sep12PutCustomerRequest request, Gson gson) {
       return RequestBody.create(gson.toJson(request), MediaType.get("application/json"));
     }
   }

@@ -28,7 +28,7 @@ import org.stellar.anchor.util.GsonUtils
 
 class RestCustomerIntegrationTest {
   companion object {
-    const val TEST_ACCOUNT = "GBFZNZTFSI6TWLVAID7VOLCIFX2PMUOS2X7U6H4TNK4PAPSHPWMMUIZG"
+    private const val TEST_ACCOUNT = "GBFZNZTFSI6TWLVAID7VOLCIFX2PMUOS2X7U6H4TNK4PAPSHPWMMUIZG"
   }
 
   private val httpClient: OkHttpClient =
@@ -138,7 +138,6 @@ class RestCustomerIntegrationTest {
 
   @Test
   fun test_getCustomer_failure() {
-    // invalid customer.status in the response
     val getCustomerRequest = Sep12GetCustomerRequest.builder().id("customer-id").build()
 
     mockAnchor.enqueue(MockResponse().setResponseCode(200).setBody("{}".trimMargin()))
@@ -207,7 +206,6 @@ class RestCustomerIntegrationTest {
 
   @Test
   fun test_putCustomer_failure() {
-    // invalid customer.status in the response
     val putCustomerRequest =
       Sep12PutCustomerRequest.builder().id("customer-id").account(TEST_ACCOUNT).build()
 
@@ -239,7 +237,7 @@ class RestCustomerIntegrationTest {
   fun test_deleteCustomer() {
     mockAnchor.enqueue(MockResponse().setResponseCode(204))
 
-    customerIntegration.deleteCustomer("customer-id")
+    assertDoesNotThrow { customerIntegration.deleteCustomer("customer-id") }
 
     val request = mockAnchor.takeRequest()
     assertEquals("DELETE", request.method)

@@ -98,7 +98,8 @@ public class Sep12Service {
 
   void validateRequestAndTokenAccounts(
       @NotNull Sep12CustomerRequestBase requestBase, @NotNull JwtToken token) throws SepException {
-    // Validate request.account - This field should match the sub value of the decoded SEP-10 JWT.
+    // Validate request.account - SEP-12 says: This field should match the `sub` value of the
+    // decoded SEP-10 JWT.
     String tokenAccount = token.getAccount();
     String tokenMuxedAccount = token.getMuxedAccount();
     String customerAccount = requestBase.getAccount();
@@ -119,16 +120,16 @@ public class Sep12Service {
     String tokenSubMemo = token.getAccountMemo();
     String tokenMuxedAccountId = Objects.toString(token.getMuxedAccountId(), null);
     String tokenMemo = tokenMuxedAccountId != null ? tokenMuxedAccountId : tokenSubMemo;
-    //  If the JWT's sub field does not contain a muxed account or memo then the memo request
-    // parameters may contain any value.
+    // SEP-12 says: If the JWT's `sub` field does not contain a muxed account or memo then the memo
+    // request parameters may contain any value.
     if (tokenMemo == null) {
       return;
     }
 
-    // If a memo is present in the decoded SEP-10 JWT's sub value, it must match this parameter
-    // value. If a muxed account is used as the JWT's sub value, memos sent in requests must match
-    // the 64-bit integer subaccount ID of the muxed account. See the Shared Account's section for
-    // more information.
+    // SEP-12 says: If a memo is present in the decoded SEP-10 JWT's `sub` value, it must match this
+    // parameter value. If a muxed account is used as the JWT's `sub` value, memos sent in requests
+    // must match the 64-bit integer subaccount ID of the muxed account. See the Shared Account's
+    // section for more information.
     String requestMemo = requestBase.getMemo();
     if (Objects.equals(tokenMemo, requestMemo)) {
       return;
@@ -151,8 +152,8 @@ public class Sep12Service {
     }
     String memoTypeId = MemoHelper.memoTypeAsString(MemoType.MEMO_ID);
     String memoType = Objects.toString(requestBase.getMemoType(), memoTypeId);
-    // If a memo is present in the decoded SEP-10 JWT's sub value, this parameter (memoType) can be
-    // ignored:
+    // SEP-12 says: If a memo is present in the decoded SEP-10 JWT's `sub` value, this parameter
+    // (memoType) can be ignored:
     if (token.getAccountMemo() != null || token.getMuxedAccountId() != null) {
       memoType = MemoHelper.memoTypeAsString(MemoType.MEMO_ID);
     }

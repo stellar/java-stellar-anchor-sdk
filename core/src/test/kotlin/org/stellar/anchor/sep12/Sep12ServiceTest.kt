@@ -13,19 +13,19 @@ import org.stellar.anchor.auth.JwtToken
 
 class Sep12ServiceTest {
   companion object {
-    const val TEST_ACCOUNT = "GBFZNZTFSI6TWLVAID7VOLCIFX2PMUOS2X7U6H4TNK4PAPSHPWMMUIZG"
-    const val TEST_MEMO = "123456"
-    const val TEST_MUXED_ACCOUNT =
+    private const val TEST_ACCOUNT = "GBFZNZTFSI6TWLVAID7VOLCIFX2PMUOS2X7U6H4TNK4PAPSHPWMMUIZG"
+    private const val TEST_MEMO = "123456"
+    private const val TEST_MUXED_ACCOUNT =
       "MBFZNZTFSI6TWLVAID7VOLCIFX2PMUOS2X7U6H4TNK4PAPSHPWMMUAAAAAAAAAPCIA2IM"
-    const val CLIENT_DOMAIN = "demo-wallet.stellar.org"
-    const val TEST_HOST_URL = "http://localhost:8080"
+    private const val CLIENT_DOMAIN = "demo-wallet.stellar.org"
+    private const val TEST_HOST_URL = "http://localhost:8080"
   }
 
   private val issuedAt = Instant.now().epochSecond
   private val expiresAt = issuedAt + 9000
 
   private lateinit var sep12Service: Sep12Service
-  @MockK(relaxed = true) lateinit var customerIntegration: CustomerIntegration
+  @MockK(relaxed = true) private lateinit var customerIntegration: CustomerIntegration
 
   @BeforeEach
   fun setup() {
@@ -92,7 +92,7 @@ class Sep12ServiceTest {
     assertInstanceOf(SepNotAuthorizedException::class.java, ex)
     assertEquals("The memo specified does not match the memo ID authorized via SEP-10", ex.message)
 
-    // If the token has a memo that's equals from the request's, succeed!
+    // If the token has a memo that's equals the request's, succeed!
     jwtToken = createJwtToken("$TEST_ACCOUNT:$TEST_MEMO")
     every { mockRequestBase.memo } returns TEST_MEMO
     assertDoesNotThrow { sep12Service.validateRequestAndTokenMemos(mockRequestBase, jwtToken) }
@@ -104,7 +104,7 @@ class Sep12ServiceTest {
     assertInstanceOf(SepNotAuthorizedException::class.java, ex)
     assertEquals("The memo specified does not match the memo ID authorized via SEP-10", ex.message)
 
-    // If the token has a memo that's equals from the request's Muxed id, succeed!
+    // If the token has a memo that's equals the request's Muxed id, succeed!
     jwtToken = createJwtToken(TEST_MUXED_ACCOUNT)
     every { mockRequestBase.memo } returns TEST_MEMO
     assertDoesNotThrow { sep12Service.validateRequestAndTokenMemos(mockRequestBase, jwtToken) }
@@ -121,7 +121,7 @@ class Sep12ServiceTest {
     verify(exactly = 1) { mockRequestBase.memo }
     verify(exactly = 1) { mockRequestBase.memoType = null }
 
-    // if the request memo is present but memoType is empty, default to MEMO_ID
+    // if the request memo is present but memoType is empty, default memoType to MEMO_ID
     every { mockRequestBase.memo } returns TEST_MEMO
     every { mockRequestBase.memoType } returns null
     assertDoesNotThrow { sep12Service.updateRequestMemoAndMemoType(mockRequestBase, jwtToken) }
@@ -166,42 +166,43 @@ class Sep12ServiceTest {
   @Test
   fun test_putCustomer() {
     val mockCustomerResponse = Sep12PutCustomerResponse()
-    every { customerIntegration.putCustomer(any()) } returns mockCustomerResponse
+    val putRequestSlot = slot<Sep12PutCustomerRequest>()
+    every { customerIntegration.putCustomer(capture(putRequestSlot)) } returns mockCustomerResponse
 
-    val mockPutRequest = mockk<Sep12PutCustomerRequest>(relaxed = true)
-    every { mockPutRequest.account } returns null
-    every { mockPutRequest.memo } returns null
-    every { mockPutRequest.memoType } returns null
-
+    val mockPutRequest = Sep12PutCustomerRequest.builder().build()
     val jwtToken = createJwtToken(TEST_ACCOUNT)
     var sep12PutCustomerResponse: Sep12PutCustomerResponse? = null
     assertDoesNotThrow {
       sep12PutCustomerResponse = sep12Service.putCustomer(jwtToken, mockPutRequest)
     }
 
-    verify(exactly = 1) { mockPutRequest.account = TEST_ACCOUNT }
+    verify(exactly = 1) { customerIntegration.putCustomer(any()) }
+    assertEquals(TEST_ACCOUNT, mockPutRequest.account)
     assertEquals(mockCustomerResponse, sep12PutCustomerResponse)
+
+    val wantPutRequest = Sep12PutCustomerRequest.builder().account(TEST_ACCOUNT).build()
+    assertEquals(wantPutRequest, putRequestSlot.captured)
   }
 
   @Test
   fun test_getCustomer() {
     val mockCustomerResponse = Sep12GetCustomerResponse()
-    every { customerIntegration.getCustomer(any()) } returns mockCustomerResponse
+    val getRequestSlot = slot<Sep12GetCustomerRequest>()
+    every { customerIntegration.getCustomer(capture(getRequestSlot)) } returns mockCustomerResponse
 
-    val mockGetRequest = mockk<Sep12GetCustomerRequest>(relaxed = true)
-    every { mockGetRequest.id } returns null
-    every { mockGetRequest.account } returns null
-    every { mockGetRequest.memo } returns null
-    every { mockGetRequest.memoType } returns null
-
+    val mockGetRequest = Sep12GetCustomerRequest.builder().build()
     val jwtToken = createJwtToken(TEST_ACCOUNT)
     var sep12GetCustomerResponse: Sep12GetCustomerResponse? = null
     assertDoesNotThrow {
       sep12GetCustomerResponse = sep12Service.getCustomer(jwtToken, mockGetRequest)
     }
 
-    verify(exactly = 1) { mockGetRequest.account = TEST_ACCOUNT }
+    verify(exactly = 1) { customerIntegration.getCustomer(any()) }
+    assertEquals(TEST_ACCOUNT, mockGetRequest.account)
     assertEquals(mockCustomerResponse, sep12GetCustomerResponse)
+
+    val wantGetRequest = Sep12GetCustomerRequest.builder().account(TEST_ACCOUNT).build()
+    assertEquals(wantGetRequest, getRequestSlot.captured)
   }
 
   @Test
@@ -261,7 +262,8 @@ class Sep12ServiceTest {
 
   @Test
   fun test_deleteCustomer_handleCustomerIntegration() {
-    every { customerIntegration.deleteCustomer(any()) } just Runs
+    val deleteCustomerIdSlot = slot<String>()
+    every { customerIntegration.deleteCustomer(capture(deleteCustomerIdSlot)) } just Runs
 
     // attempting to delete a non-existent customer returns 404
     val mockNoCustomerFound = Sep12GetCustomerResponse()
@@ -282,6 +284,9 @@ class Sep12ServiceTest {
     assertDoesNotThrow { sep12Service.deleteCustomer(jwtToken, TEST_ACCOUNT, TEST_MEMO, null) }
     verify(exactly = 4) { customerIntegration.getCustomer(any()) }
     verify(exactly = 2) { customerIntegration.deleteCustomer(any()) }
+
+    val wantDeleteCustomerId = "customer-id"
+    assertEquals(wantDeleteCustomerId, deleteCustomerIdSlot.captured)
   }
 
   private fun createJwtToken(subject: String): JwtToken {
