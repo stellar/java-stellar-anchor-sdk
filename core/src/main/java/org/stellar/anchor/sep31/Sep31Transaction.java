@@ -98,6 +98,14 @@ public interface Sep31Transaction {
 
   void setClientDomain(String clientDomain);
 
+  void setSenderId(String sourceId);
+
+  String getSenderId();
+
+  void setReceiverId(String destinationId);
+
+  String getReceiverId();
+
   interface Refunds {
 
     String getAmountRefunded();

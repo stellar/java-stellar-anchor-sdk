@@ -130,6 +130,16 @@ public class Sep31TransactionBuilder {
     return this;
   }
 
+  public Sep31TransactionBuilder senderId(String senderId) {
+    txn.setSenderId(senderId);
+    return this;
+  }
+
+  public Sep31TransactionBuilder receiverId(String receiverId) {
+    txn.setReceiverId(receiverId);
+    return this;
+  }
+
   public Sep31Transaction build() {
     return txn;
   }
