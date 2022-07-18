@@ -16,7 +16,7 @@ components:
     QuoteEvent:
       type: object
       properties:
-        eventId:
+        event_id:
           type: string
         type:
           type: string
@@ -75,7 +75,7 @@ components:
             - total
             - asset
       required:
-        - eventId
+        - event_id
         - type
         - id
         - sell_asset
@@ -89,7 +89,7 @@ components:
     TransactionEvent:
       type: object
       properties:
-        eventId:
+        event_id:
           type: string
         type:
           type: string

@@ -1,6 +1,7 @@
 package org.stellar.anchor.auth;
 
 import java.util.Calendar;
+import javax.annotation.Nullable;
 import org.stellar.anchor.config.IntegrationAuthConfig.AuthType;
 import org.stellar.anchor.util.AuthHeader;
 
@@ -34,6 +35,7 @@ public class AuthHelper {
     return new AuthHelper(AuthType.NONE);
   }
 
+  @Nullable
   public AuthHeader<String, String> createAuthHeader() {
     switch (authType) {
       case JWT_TOKEN:
@@ -46,7 +48,7 @@ public class AuthHelper {
         return new AuthHeader<>("X-Api-Key", apiKey);
 
       default:
-        return new AuthHeader<>("Authorization", null);
+        return null;
     }
   }
 }

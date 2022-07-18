@@ -24,7 +24,7 @@ internal class JwtServiceTest {
   }
 
   @Test
-  fun testcodec() {
+  fun testCodec() {
     val appConfig = mockk<AppConfig>()
     every { appConfig.jwtSecretKey } returns "jwt_secret"
 
