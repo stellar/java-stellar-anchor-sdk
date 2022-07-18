@@ -28,8 +28,7 @@ public class AnchorReferenceServer implements WebMvcConfigurer {
             .bannerMode(OFF)
             .properties(
                 String.format("server.port=%d", port),
-                String.format("server.contextPath=%s", contextPath),
-                "spring.liquibase.enabled=false");
+                String.format("server.contextPath=%s", contextPath));
 
     SpringApplication app = builder.build();
     app.addInitializers(new PropertySourceInitializer());
