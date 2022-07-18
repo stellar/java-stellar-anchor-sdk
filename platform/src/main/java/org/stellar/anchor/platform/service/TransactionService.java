@@ -99,7 +99,8 @@ public class TransactionService {
       txnStore.save(txn);
     }
     for (JdbcSep31Transaction txn : statusUpdatedTxns) {
-      Metrics.counter("sep31.transaction", "status", txn.getStatus()).increment();
+      Metrics.counter(AnchorMetrics.SEP31_TRANSACTION.toString(), "status", txn.getStatus())
+          .increment();
     }
     return new PatchTransactionsResponse(responses);
   }

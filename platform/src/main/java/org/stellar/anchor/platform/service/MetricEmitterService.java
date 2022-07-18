@@ -26,30 +26,67 @@ public class MetricEmitterService {
       MetricConfig metricConfig, JdbcSep31TransactionRepo sep31TransactionRepo) {
     this.sep31TransactionStore = sep31TransactionRepo;
     // Create counters
-    Metrics.counter("sep31.transaction", "status", "pending_stellar");
-    Metrics.counter("sep31.transaction", "status", "pending_customer_info_update");
-    Metrics.counter("sep31.transaction", "status", "pending_sender");
-    Metrics.counter("sep31.transaction", "status", "pending_receiver");
-    Metrics.counter("sep31.transaction", "status", "pending_external");
-    Metrics.counter("sep31.transaction", "status", "completed");
-    Metrics.counter("sep31.transaction", "status", "error");
-    Metrics.counter("logger", "type", "warn");
-    Metrics.counter("logger", "type", "error");
+    Metrics.counter(
+        AnchorMetrics.SEP31_TRANSACTION.toString(),
+        "status",
+        AnchorMetrics.TAG_SEP31_STATUS_PENDING_STELLAR.toString());
+    Metrics.counter(
+        AnchorMetrics.SEP31_TRANSACTION.toString(),
+        "status",
+        AnchorMetrics.TAG_SEP31_STATUS_PENDING_CUSTOMER.toString());
+    Metrics.counter(
+        AnchorMetrics.SEP31_TRANSACTION.toString(),
+        "status",
+        AnchorMetrics.TAG_SEP31_STATUS_PENDING_SENDER.toString());
+    Metrics.counter(
+        AnchorMetrics.SEP31_TRANSACTION.toString(),
+        "status",
+        AnchorMetrics.TAG_SEP31_STATUS_PENDING_RECEIVER.toString());
+    Metrics.counter(
+        AnchorMetrics.SEP31_TRANSACTION.toString(),
+        "status",
+        AnchorMetrics.TAG_SEP31_STATUS_PENDING_EXTERNAL.toString());
+    Metrics.counter(
+        AnchorMetrics.SEP31_TRANSACTION.toString(),
+        "status",
+        AnchorMetrics.TAG_SEP31_STATUS_COMPLETED.toString());
+    Metrics.counter(
+        AnchorMetrics.SEP31_TRANSACTION.toString(),
+        "status",
+        AnchorMetrics.TAG_SEP31_STATUS_ERROR.toString());
+    Metrics.counter(AnchorMetrics.LOGGER.toString(), "type", "warn");
+    Metrics.counter(AnchorMetrics.LOGGER.toString(), "type", "error");
 
-    // create gauges for SEP-31 Transactions - .db indicates that the metrics is pulled from the
+    // create gauges for SEP-31 Transactions - .db indicates that the metric is pulled from the
     // database
-    Metrics.gauge("sep31.transaction.db", Tags.of("status", "pending_stellar"), pendingStellarTxns);
     Metrics.gauge(
-        "sep31.transaction.db",
-        Tags.of("status", "pending_customer_info_update"),
+        AnchorMetrics.SEP31_TRANSACTION_DB.toString(),
+        Tags.of("status", AnchorMetrics.TAG_SEP31_STATUS_PENDING_STELLAR.toString()),
+        pendingStellarTxns);
+    Metrics.gauge(
+        AnchorMetrics.SEP31_TRANSACTION_DB.toString(),
+        Tags.of("status", AnchorMetrics.TAG_SEP31_STATUS_PENDING_CUSTOMER.toString()),
         pendingCustomerInfoUpdateTxns);
-    Metrics.gauge("sep31.transaction.db", Tags.of("status", "pending_sender"), pendingSenderTxns);
     Metrics.gauge(
-        "sep31.transaction.db", Tags.of("status", "pending_receiver"), pendingReceiverTxns);
+        AnchorMetrics.SEP31_TRANSACTION_DB.toString(),
+        Tags.of("status", AnchorMetrics.TAG_SEP31_STATUS_PENDING_SENDER.toString()),
+        pendingSenderTxns);
     Metrics.gauge(
-        "sep31.transaction.db", Tags.of("status", "pending_external"), pendingExternalTxns);
-    Metrics.gauge("sep31.transaction.db", Tags.of("status", "completed"), completedTxns);
-    Metrics.gauge("sep31.transaction.db", Tags.of("status", "error"), errorTxns);
+        AnchorMetrics.SEP31_TRANSACTION_DB.toString(),
+        Tags.of("status", AnchorMetrics.TAG_SEP31_STATUS_PENDING_RECEIVER.toString()),
+        pendingReceiverTxns);
+    Metrics.gauge(
+        AnchorMetrics.SEP31_TRANSACTION_DB.toString(),
+        Tags.of("status", AnchorMetrics.TAG_SEP31_STATUS_PENDING_EXTERNAL.toString()),
+        pendingExternalTxns);
+    Metrics.gauge(
+        AnchorMetrics.SEP31_TRANSACTION_DB.toString(),
+        Tags.of("status", AnchorMetrics.TAG_SEP31_STATUS_COMPLETED.toString()),
+        completedTxns);
+    Metrics.gauge(
+        AnchorMetrics.SEP31_TRANSACTION_DB.toString(),
+        Tags.of("status", AnchorMetrics.TAG_SEP31_STATUS_ERROR.toString()),
+        errorTxns);
 
     // TODO add gauges for SEP-24 Transactions
 

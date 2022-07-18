@@ -104,7 +104,8 @@ public class PaymentOperationToEventListener implements PaymentListener {
               payment.getAmount(), txn.getAmountIn()));
       txn.setStatus(ERROR.getName());
       saveTransaction(txn);
-      Metrics.counter("sep31.transaction", "status", ERROR.getName()).increment();
+      Metrics.counter(AnchorMetrics.SEP31_TRANSACTION.toString(), "status", ERROR.getName())
+          .increment();
       return;
     }
 
@@ -124,7 +125,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
     }
     // send to the event queue
     sendToQueue(event);
-    Metrics.counter("payment.received", "asset", payment.getAssetName())
+    Metrics.counter(AnchorMetrics.PAYMENT_RECEIVED.toString(), "asset", payment.getAssetName())
         .increment(Double.parseDouble(payment.getAmount()));
   }
 
