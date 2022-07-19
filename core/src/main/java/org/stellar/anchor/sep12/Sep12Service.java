@@ -3,6 +3,10 @@ package org.stellar.anchor.sep12;
 import static org.stellar.anchor.util.Log.infoF;
 
 import com.google.gson.Gson;
+import java.lang.reflect.Type;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
@@ -14,6 +18,7 @@ import org.stellar.anchor.util.GsonUtils;
 import org.stellar.anchor.util.Log;
 import org.stellar.anchor.util.MemoHelper;
 import org.stellar.sdk.xdr.MemoType;
+import shadow.com.google.common.reflect.TypeToken;
 
 public class Sep12Service {
   private final CustomerIntegration customerIntegration;
@@ -102,7 +107,50 @@ public class Sep12Service {
       request.setAccount(token.getAccount());
     }
 
-    return customerIntegration.putCustomer(request);
+    Sep12PutCustomerResponse putCustomerResponse = customerIntegration.putCustomer(request);
+
+    if (putCustomerResponse.getId() != null) {
+      Sep12Customer customer = sep12CustomerStore.findById(putCustomerResponse.getId());
+      boolean shouldSave = false;
+      if (customer == null) {
+        customer =
+            new Sep12CustomerBuilder(sep12CustomerStore)
+                .id(putCustomerResponse.getId())
+                .account(request.getAccount())
+                .memo(request.getMemo())
+                .memoType(request.getMemoType())
+                .type(request.getType())
+                .lang(request.getLanguageCode())
+                .build();
+        shouldSave = true;
+      }
+
+      Type mapType = new TypeToken<Map<String, String>>() {}.getType();
+      Map<String, String> requestFields = gson.fromJson(gson.toJson(request), mapType);
+      for (var entry : requestFields.entrySet()) {
+        if (List.of("id", "account", "memo", "memo_type", "type", "language_code")
+            .contains(entry.getKey())) {
+          continue;
+        }
+
+        HashMap<String, ProvidedField> providedFields =
+            new HashMap<>(Objects.requireNonNullElse(customer.getProvidedFields(), Map.of()));
+        ProvidedField newProvidedField =
+            ProvidedField.builder().status(Sep12Status.PROCESSING).build();
+        if (newProvidedField.equals(providedFields.get(entry.getKey()))) {
+          continue;
+        }
+        providedFields.put(entry.getKey(), newProvidedField);
+        customer.setProvidedFields(providedFields);
+        shouldSave = true;
+      }
+
+      if (shouldSave) {
+        sep12CustomerStore.save(customer);
+      }
+    }
+
+    return putCustomerResponse;
   }
 
   public void deleteCustomer(JwtToken jwtToken, String account, String memo, String memoType)

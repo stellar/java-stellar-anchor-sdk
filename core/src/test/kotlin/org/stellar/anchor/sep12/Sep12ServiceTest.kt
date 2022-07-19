@@ -187,23 +187,93 @@ class Sep12ServiceTest {
 
   @Test
   fun test_putCustomer() {
-    val mockCustomerResponse = Sep12PutCustomerResponse()
+    // mock customer store
+    var sep12Customer = slot<Sep12Customer>()
+    every { customerStore.save(capture(sep12Customer)) } returns mockk(relaxed = true)
+    every { customerStore.newInstance() } returns PojoSep12Customer()
+    every { customerStore.findById("customer-id") } returns null
+
+    // mock `PUT {callbackApi}/customer` response
     val putRequestSlot = slot<Sep12PutCustomerRequest>()
+    val mockCustomerResponse = Sep12PutCustomerResponse()
+    mockCustomerResponse.id = "customer-id"
     every { customerIntegration.putCustomer(capture(putRequestSlot)) } returns mockCustomerResponse
 
-    val mockPutRequest = Sep12PutCustomerRequest.builder().build()
+    // Execute the request
+    val mockPutRequest =
+      Sep12PutCustomerRequest.builder()
+        .account(TEST_ACCOUNT)
+        .memo(TEST_MEMO)
+        .memoType("id")
+        .type("sending_user")
+        .firstName("John")
+        .build()
     val jwtToken = createJwtToken(TEST_ACCOUNT)
-    var sep12PutCustomerResponse: Sep12PutCustomerResponse? = null
+    var sep12PutCustomerResponse1: Sep12PutCustomerResponse? = null
     assertDoesNotThrow {
-      sep12PutCustomerResponse = sep12Service.putCustomer(jwtToken, mockPutRequest)
+      sep12PutCustomerResponse1 = sep12Service.putCustomer(jwtToken, mockPutRequest)
     }
 
+    // validate the request
+    val wantPutRequest =
+      Sep12PutCustomerRequest.builder()
+        .account(TEST_ACCOUNT)
+        .memo(TEST_MEMO)
+        .memoType("id")
+        .type("sending_user")
+        .firstName("John")
+        .build()
+    assertEquals(wantPutRequest, putRequestSlot.captured)
+
+    // validate the response
     verify(exactly = 1) { customerIntegration.putCustomer(any()) }
     assertEquals(TEST_ACCOUNT, mockPutRequest.account)
-    assertEquals(mockCustomerResponse, sep12PutCustomerResponse)
+    assertEquals(mockCustomerResponse, sep12PutCustomerResponse1)
 
-    val wantPutRequest = Sep12PutCustomerRequest.builder().account(TEST_ACCOUNT).build()
-    assertEquals(wantPutRequest, putRequestSlot.captured)
+    // assert that a new customer was created in the database
+    verify(exactly = 1) { customerStore.findById("customer-id") }
+    verify(exactly = 1) { customerStore.save(any()) }
+    val wantSep12Customer =
+      Sep12CustomerBuilder(customerStore)
+        .id("customer-id")
+        .account(TEST_ACCOUNT)
+        .memo(TEST_MEMO)
+        .memoType("id")
+        .type("sending_user")
+        .providedFields(
+          mapOf(
+            "first_name" to ProvidedField.builder().status(Sep12Status.PROCESSING).build(),
+          )
+        )
+        .build()
+    assertEquals(wantSep12Customer, sep12Customer.captured)
+
+    // assert that if a customer already exists and it doesn't need to be updated, we won't call
+    // the save method.
+    every { customerStore.findById("customer-id") } returns wantSep12Customer
+    var sep12PutCustomerResponse2: Sep12PutCustomerResponse? = null
+    assertDoesNotThrow {
+      sep12PutCustomerResponse2 = sep12Service.putCustomer(jwtToken, mockPutRequest)
+    }
+    assertEquals(sep12PutCustomerResponse1, sep12PutCustomerResponse2)
+    verify(exactly = 2) { customerStore.findById("customer-id") }
+    verify(exactly = 1) { customerStore.save(any()) }
+
+    // assert that if the customer will get updated if a new value is added
+    sep12Customer = slot()
+    every { customerStore.save(capture(sep12Customer)) } returns mockk(relaxed = true)
+
+    mockPutRequest.lastName = "Doe"
+    var sep12PutCustomerResponse3: Sep12PutCustomerResponse? = null
+    assertDoesNotThrow {
+      sep12PutCustomerResponse3 = sep12Service.putCustomer(jwtToken, mockPutRequest)
+    }
+    assertEquals(sep12PutCustomerResponse1, sep12PutCustomerResponse3)
+    verify(exactly = 3) { customerStore.findById("customer-id") }
+    verify(exactly = 2) { customerStore.save(any()) }
+    wantSep12Customer.providedFields["last_name"] =
+      ProvidedField.builder().status(Sep12Status.PROCESSING).build()
+    assertEquals(wantSep12Customer, sep12Customer.captured)
   }
 
   @Test
