@@ -123,7 +123,7 @@ public class StellarPaymentObserver implements HealthCheckable {
 
           @Override
           public void onFailure(Optional<Throwable> exception, Optional<Integer> statusCode) {
-            Log.errorEx(exception.get());
+            Log.errorEx("stellar payment observer error: ", exception.get());
             // TODO: The stream seems closed when failure happens. Improve the reliability of the
             // stream.
           }

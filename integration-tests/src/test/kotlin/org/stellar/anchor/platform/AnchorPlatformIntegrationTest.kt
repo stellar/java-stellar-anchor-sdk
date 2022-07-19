@@ -84,7 +84,8 @@ class AnchorPlatformIntegrationTest {
         AnchorPlatformServer.start(
           SEP_SERVER_PORT,
           "/",
-          mapOf("stellar.anchor.config" to "classpath:/integration-test.anchor-config.yaml")
+          mapOf("stellar.anchor.config" to "classpath:/integration-test.anchor-config.yaml"),
+          true
         )
 
       AnchorReferenceServer.start(REFERENCE_SERVER_PORT, "/")

@@ -25,6 +25,7 @@ dependencies {
   implementation(libs.reactor.core)
   implementation(libs.javax.jaxb.api)
   implementation(libs.java.stellar.sdk)
+  implementation("io.micrometer:micrometer-registry-prometheus:1.9.0")
 
   implementation(project(":api-schema"))
 

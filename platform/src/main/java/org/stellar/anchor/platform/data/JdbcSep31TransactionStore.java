@@ -69,4 +69,8 @@ public class JdbcSep31TransactionStore implements Sep31TransactionStore {
     Optional<JdbcSep31Transaction> optTxn = transactionRepo.findByStellarAccountId(accountId);
     return optTxn.orElse(null);
   }
+
+  public Integer findByStatusCount(String status) {
+    return transactionRepo.findByStatusCount(status);
+  }
 }
