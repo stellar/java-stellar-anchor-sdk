@@ -32,22 +32,7 @@ public class Sep12Service {
     }
 
     Sep12GetCustomerResponse customerResponse = customerIntegration.getCustomer(request);
-
-    if (customerResponse.getId() != null) {
-      Sep12CustomerId customer = sep12CustomerStore.findById(customerResponse.getId());
-      boolean shouldSave = false;
-      if (customer == null) {
-        customer =
-            new Sep12CustomerBuilder(sep12CustomerStore)
-                .id(customerResponse.getId())
-                .account(request.getAccount())
-                .memo(request.getMemo())
-                .memoType(request.getMemoType())
-                .build();
-        sep12CustomerStore.save(customer);
-      }
-    }
-
+    saveNewCustomerToDatabaseIfNeeded(customerResponse.getId(), request);
     return customerResponse;
   }
 
@@ -60,21 +45,7 @@ public class Sep12Service {
     }
 
     Sep12PutCustomerResponse putCustomerResponse = customerIntegration.putCustomer(request);
-
-    if (putCustomerResponse.getId() != null) {
-      Sep12CustomerId customer = sep12CustomerStore.findById(putCustomerResponse.getId());
-      if (customer == null) {
-        customer =
-            new Sep12CustomerBuilder(sep12CustomerStore)
-                .id(putCustomerResponse.getId())
-                .account(request.getAccount())
-                .memo(request.getMemo())
-                .memoType(request.getMemoType())
-                .build();
-        sep12CustomerStore.save(customer);
-      }
-    }
-
+    saveNewCustomerToDatabaseIfNeeded(putCustomerResponse.getId(), request);
     return putCustomerResponse;
   }
 
@@ -206,5 +177,26 @@ public class Sep12Service {
 
     requestBase.setMemo(memo);
     requestBase.setMemoType(memoType);
+  }
+
+  private void saveNewCustomerToDatabaseIfNeeded(
+      String customerId, Sep12CustomerRequestBase requestBase) throws SepException {
+    if (customerId == null) {
+      return;
+    }
+
+    Sep12CustomerId customer = sep12CustomerStore.findById(customerId);
+    if (customer != null) {
+      return;
+    }
+
+    customer =
+        new Sep12CustomerBuilder(sep12CustomerStore)
+            .id(customerId)
+            .account(requestBase.getAccount())
+            .memo(requestBase.getMemo())
+            .memoType(requestBase.getMemoType())
+            .build();
+    sep12CustomerStore.save(customer);
   }
 }
