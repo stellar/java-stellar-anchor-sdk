@@ -598,7 +598,9 @@ class Sep31ServiceTest {
       "stellarAccountId": "GA7FYRB5VREZKOBIIKHG5AVTPFGWUBPOBF7LTYG4GTMFVIOOD2DWAL7I",
       "stellarMemo": "$memo",
       "stellarMemoType": "hash",
-      "stellarTransactions": []
+      "stellarTransactions": [],
+      "receiverId":"137938d4-43a7-4252-a452-842adcee474c",
+      "senderId":"d2bd1412-e2f6-4047-ad70-a1a2f133b25c"
     }""".trimMargin()
     JSONAssert.assertEquals(wantTx, gotTx, true)
 

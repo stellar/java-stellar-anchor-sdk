@@ -133,6 +133,8 @@ public class Sep31Service {
             .fields(request.getFields().getTransaction())
             .refunded(null)
             .refunds(null)
+            .senderId(Context.get().getRequest().getSenderId())
+            .receiverId(Context.get().getRequest().getReceiverId())
             // updateAmounts will update these ⬇️
             .amountIn(request.getAmount())
             .amountInAsset(assetInfo.getAssetName())

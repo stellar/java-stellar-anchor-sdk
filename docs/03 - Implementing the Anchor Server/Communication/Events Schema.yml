@@ -16,7 +16,7 @@ components:
     QuoteEvent:
       type: object
       properties:
-        eventId:
+        event_id:
           type: string
         type:
           type: string
@@ -75,7 +75,7 @@ components:
             - total
             - asset
       required:
-        - eventId
+        - event_id
         - type
         - id
         - sell_asset
@@ -89,7 +89,7 @@ components:
     TransactionEvent:
       type: object
       properties:
-        eventId:
+        event_id:
           type: string
         type:
           type: string
@@ -160,8 +160,10 @@ components:
           type: string
         source_account:
           type: string
+          description: The SEP-12 user ID of the source account.
         destination_account:
           type: string
+          description: The SEP-12 user ID of the destination account.
         customers:
           type: object
           properties:

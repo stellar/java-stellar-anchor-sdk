@@ -14,6 +14,7 @@
   - [Docker](#docker)
   - [Running the Application from Docker](#running-the-application-from-docker)
   - [Incoming Payments Observer](#incoming-payments-observer)
+  - [Metrics](#metrics)
 
 ## Running the Application from Source Code
 
@@ -145,7 +146,7 @@ docker run -v {/local/path/to/config/file/}:/config -p 8081:8081 stellar-anchor-
 
 > Note 2: to check all the available environment variables, please refer to the [`anchor-config-defaults.yaml`] file.
 
-## Running the Application from Docker
+## Running the Application with Docker Compose
 
 You can use docker compose to run the whole infrastructure - Anchor Platform, Reference Server, Kafka, and a Postgres Database. All you need to do is making use of the [docker-compose.yaml](/docker-compose.yaml) available at the root of the project:
 
@@ -160,6 +161,20 @@ You can test against this setup by running the end-to-end tests ([end_to_end_tes
 ## Incoming Payments Observer
 
 The default configuration of the project uses a Stellar network observer to identify incoming Stellar payments. In case the Anchor relies on Circle, it should configure the project to use the Circle Payment Observer. For more information on how to do that, please refer to the [01.B - Circle Payment Observer](/docs/01%20-%20Running%20%26%20Configuring%20the%20Application/B%20-%20Circle%20Payment%20Observer.md) section.
+
+
+## Metrics
+The Anchor Platform exposes a Prometheus metrics endpoint at `<host>:8082/actuator/prometheus`. All standard Spring 
+Boot Actuator metrics are enabled by default. There are certain metrics that periodically poll the database (eg: for 
+the count of transactions in each state); these metrics are disabled by default. 
+They can be enabled with the following configs:
+
+```text
+  metrics-service:
+    optionalMetricsEnabled: true    # optional metrics that periodically query the database
+    runInterval: 30                 # interval to query the database to generate the optional metrics
+```
+
 
 [`anchor-config-defaults.yaml`]: /platform/src/main/resources/anchor-config-defaults.yaml
 [`anchor-reference-server.yaml`]: /anchor-reference-server/src/main/resources/anchor-reference-server.yaml

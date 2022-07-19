@@ -30,7 +30,7 @@ stellar:
     #
     data-access:
       type: data-spring-jdbc
-      settings: data-spring-jdbc-sqlite              # The absolute location of the configuration data in this yaml file
+      settings: data-spring-jdbc-h2              # The absolute location of the configuration data in this yaml file
       #settings: data-spring-jdbc-local-postgres      # use local postgres instance
       #settings: data-spring-jdbc-aws-aurora-postgres  # use AWS Aurora Postgres with IAM authentication
     #
@@ -230,6 +230,10 @@ app-config:
     enabled: true
     publisherType: kafka
 
+  metrics-service:
+    optionalMetricsEnabled: true    # optional metrics that periodically query the database
+    runInterval: 30                 # interval to query the database to generate the optional metrics
+
   kafka.publisher:
     # kafkaBootstrapServer - the Kafka server used to bootstrap setup
     # If useSingleQueue, all events are published to a single queue
@@ -282,7 +286,7 @@ data-spring-jdbc-sqlite:
   spring.datasource.username: ${SQLITE_USERNAME}
   spring.datasource.password: ${SQLITE_PASSWORD}
   spring.mvc.converters.preferred-json-mapper: gson
-  spring.liquibase.enabled: false    # certain features that liquibase uses (ex: addForeignKeyConstraint) are not supported by sqlite
+  spring.flyway.enabled: false    # certain features that flyway uses (ex: addForeignKeyConstraint) are not supported by sqlite
 
 # settings for aurora postgres connection using IAM for authentication
 # NOTE: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY and AWS_REGION environment variables need to be set
@@ -296,23 +300,29 @@ data-spring-jdbc-aws-aurora-postgres:
   spring.datasource.username: anchorplatform1
   spring.datasource.hikari.max-lifetime: 840000    # 14 minutes because IAM tokens are valid for 15min
   spring.mvc.converters.preferred-json-mapper: gson
-  spring.liquibase.change-log: classpath:/db/changelog/db.changelog-master.yaml
+  spring.flyway.user: postgres
+  spring.flyway.password: password   # can use a token value if authenticating via IAM
+  spring.flyway.url: jdbc:postgresql://database-aurora-iam-instance-1.chizvyczscs2.us-east-1.rds.amazonaws.com:5432/anchorplatform
+  spring.flyway.locations: classpath:/db/migration
 
 data-spring-jdbc-local-postgres:
   spring.jpa.generate-ddl: true
   spring.jpa.database: POSTGRESQL
   spring.jpa.show-sql: false
   spring.datasource.driver-class-name: org.postgresql.Driver
-  spring.datasource.url: jdbc:postgresql://localhost:5432/anchorplatform
+  spring.datasource.url: jdbc:postgresql://localhost:5431/anchorplatform
   spring.datasource.username: ${POSTGRES_USERNAME}
   spring.datasource.password: ${POSTGRES_PASSWORD}
   spring.mvc.converters.preferred-json-mapper: gson
-  spring.liquibase.change-log: classpath:/db/changelog/db.changelog-master.yaml
+  spring.flyway.user: ${POSTGRES_USERNAME}
+  spring.flyway.password: ${POSTGRES_PASSWORD}
+  spring.flyway.url: jdbc:postgresql://localhost:5431/anchorplatform
+  spring.flyway.locations: classpath:/db/migration
 
 data-spring-jdbc-h2:
   spring.datasource.url: jdbc:h2:mem:test
   spring.jpa.properties.hibernate.dialect: org.hibernate.dialect.H2Dialect
-  spring.liquibase.enabled: false
+  spring.flyway.enabled: false
 
 #
 # Spring framework configurations

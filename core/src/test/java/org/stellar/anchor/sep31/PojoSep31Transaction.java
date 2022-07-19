@@ -36,5 +36,7 @@ public class PojoSep31Transaction implements Sep31Transaction {
   Instant transferReceivedAt;
   String message;
   String amountExpected;
+  String receiverId;
+  String senderId;
   Set<StellarTransaction> stellarTransactions = new java.util.LinkedHashSet<>();
 }
