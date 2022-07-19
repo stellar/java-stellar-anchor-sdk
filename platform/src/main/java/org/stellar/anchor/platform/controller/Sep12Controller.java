@@ -103,6 +103,7 @@ public class Sep12Controller {
       value = "/customer/{account}",
       consumes = {MediaType.APPLICATION_JSON_VALUE},
       method = {RequestMethod.DELETE})
+  @ResponseStatus(code = HttpStatus.OK)
   public void deleteCustomer(
       HttpServletRequest request,
       @PathVariable String account,
@@ -124,6 +125,7 @@ public class Sep12Controller {
       value = "/customer/{account}",
       consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE},
       method = {RequestMethod.DELETE})
+  @ResponseStatus(code = HttpStatus.OK)
   public void deleteCustomer(
       HttpServletRequest request,
       @PathVariable String account,

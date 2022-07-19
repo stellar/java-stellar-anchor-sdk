@@ -18,6 +18,7 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-reactor-netty")
   implementation("com.amazonaws:aws-java-sdk-rds:1.12.248")
   implementation("software.amazon.msk:aws-msk-iam-auth:1.1.4")
+  implementation("org.flywaydb:flyway-core:8.5.13")
 
 
   implementation(libs.commons.cli)
