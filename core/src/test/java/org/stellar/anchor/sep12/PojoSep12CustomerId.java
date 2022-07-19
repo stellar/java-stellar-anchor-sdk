@@ -4,7 +4,7 @@ import com.google.gson.annotations.SerializedName;
 import lombok.Data;
 
 @Data
-public class PojoSep12Customer implements Sep12Customer {
+public class PojoSep12CustomerId implements Sep12CustomerId {
   String id;
 
   String account;

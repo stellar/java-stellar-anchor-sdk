@@ -1,6 +1,6 @@
 package org.stellar.anchor.sep12;
 
-public interface Sep12Customer {
+public interface Sep12CustomerId {
   String getId();
 
   void setId(String id);

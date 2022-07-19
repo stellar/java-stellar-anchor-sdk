@@ -1,7 +1,7 @@
 package org.stellar.anchor.sep12;
 
 public class Sep12CustomerBuilder {
-  private final Sep12Customer customer;
+  private final Sep12CustomerId customer;
 
   public Sep12CustomerBuilder(Sep12CustomerStore customerStore) {
     customer = customerStore.newInstance();
@@ -27,7 +27,7 @@ public class Sep12CustomerBuilder {
     return this;
   }
 
-  public Sep12Customer build() {
+  public Sep12CustomerId build() {
     return customer;
   }
 }

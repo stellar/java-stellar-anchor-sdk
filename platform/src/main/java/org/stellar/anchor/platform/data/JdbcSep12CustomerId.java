@@ -5,13 +5,13 @@ import com.vladmihalcea.hibernate.type.json.JsonType;
 import javax.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.TypeDef;
-import org.stellar.anchor.sep12.Sep12Customer;
+import org.stellar.anchor.sep12.Sep12CustomerId;
 
 @Data
 @Entity
-@Table(name = "sep12_customer")
+@Table(name = "sep12_customer_id")
 @TypeDef(name = "json", typeClass = JsonType.class)
-public class JdbcSep12Customer implements Sep12Customer {
+public class JdbcSep12CustomerId implements Sep12CustomerId {
   @Id String id;
 
   String account;

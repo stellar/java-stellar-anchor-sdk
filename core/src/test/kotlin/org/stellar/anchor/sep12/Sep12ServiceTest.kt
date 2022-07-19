@@ -186,9 +186,9 @@ class Sep12ServiceTest {
   @Test
   fun test_putCustomer() {
     // mock customer store
-    var sep12Customer = slot<Sep12Customer>()
-    every { customerStore.save(capture(sep12Customer)) } returns mockk(relaxed = true)
-    every { customerStore.newInstance() } returns PojoSep12Customer()
+    var sep12CustomerId = slot<Sep12CustomerId>()
+    every { customerStore.save(capture(sep12CustomerId)) } returns mockk(relaxed = true)
+    every { customerStore.newInstance() } returns PojoSep12CustomerId()
     every { customerStore.findById("customer-id") } returns null
 
     // mock `PUT {callbackApi}/customer` response
@@ -238,7 +238,7 @@ class Sep12ServiceTest {
         .memo(TEST_MEMO)
         .memoType("id")
         .build()
-    assertEquals(wantSep12Customer, sep12Customer.captured)
+    assertEquals(wantSep12Customer, sep12CustomerId.captured)
 
     // assert that if a customer already exists and it doesn't need to be updated, we won't call
     // the save method.
@@ -255,9 +255,9 @@ class Sep12ServiceTest {
   @Test
   fun test_getCustomer() {
     // mock customer store
-    var sep12Customer = slot<Sep12Customer>()
-    every { customerStore.save(capture(sep12Customer)) } returns mockk(relaxed = true)
-    every { customerStore.newInstance() } returns PojoSep12Customer()
+    var sep12CustomerId = slot<Sep12CustomerId>()
+    every { customerStore.save(capture(sep12CustomerId)) } returns mockk(relaxed = true)
+    every { customerStore.newInstance() } returns PojoSep12CustomerId()
     every { customerStore.findById("customer-id") } returns null
 
     // mock `GET {callbackApi}/customer` response
@@ -310,7 +310,7 @@ class Sep12ServiceTest {
         .memo(TEST_MEMO)
         .memoType("text")
         .build()
-    assertEquals(wantSep12Customer, sep12Customer.captured)
+    assertEquals(wantSep12Customer, sep12CustomerId.captured)
 
     // assert that if a customer already exists and it doesn't need to be updated, we won't call
     // the save method.

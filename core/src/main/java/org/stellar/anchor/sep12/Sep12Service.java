@@ -34,7 +34,7 @@ public class Sep12Service {
     Sep12GetCustomerResponse customerResponse = customerIntegration.getCustomer(request);
 
     if (customerResponse.getId() != null) {
-      Sep12Customer customer = sep12CustomerStore.findById(customerResponse.getId());
+      Sep12CustomerId customer = sep12CustomerStore.findById(customerResponse.getId());
       boolean shouldSave = false;
       if (customer == null) {
         customer =
@@ -62,7 +62,7 @@ public class Sep12Service {
     Sep12PutCustomerResponse putCustomerResponse = customerIntegration.putCustomer(request);
 
     if (putCustomerResponse.getId() != null) {
-      Sep12Customer customer = sep12CustomerStore.findById(putCustomerResponse.getId());
+      Sep12CustomerId customer = sep12CustomerStore.findById(putCustomerResponse.getId());
       if (customer == null) {
         customer =
             new Sep12CustomerBuilder(sep12CustomerStore)
