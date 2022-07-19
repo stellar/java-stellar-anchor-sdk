@@ -30,4 +30,9 @@ public class JdbcSep12CustomerStore implements Sep12CustomerStore {
     }
     return customerRepo.save((JdbcSep12CustomerId) sep12CustomerId);
   }
+
+  @Override
+  public void delete(String customerId) throws SepException {
+    customerRepo.deleteById(customerId);
+  }
 }

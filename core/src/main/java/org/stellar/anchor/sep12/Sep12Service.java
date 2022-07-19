@@ -113,9 +113,11 @@ public class Sep12Service {
                   .memoType(memoType)
                   .type(customerType)
                   .build());
-      if (existingCustomer.getId() != null) {
+      String customerId = existingCustomer.getId();
+      if (customerId != null) {
         existingCustomerMatch = true;
-        customerIntegration.deleteCustomer(existingCustomer.getId());
+        customerIntegration.deleteCustomer(customerId);
+        sep12CustomerStore.delete(customerId);
       }
     }
     if (!existingCustomerMatch) {

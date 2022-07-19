@@ -186,7 +186,7 @@ class Sep12ServiceTest {
   @Test
   fun test_putCustomer() {
     // mock customer store
-    var sep12CustomerId = slot<Sep12CustomerId>()
+    val sep12CustomerId = slot<Sep12CustomerId>()
     every { customerStore.save(capture(sep12CustomerId)) } returns mockk(relaxed = true)
     every { customerStore.newInstance() } returns PojoSep12CustomerId()
     every { customerStore.findById("customer-id") } returns null
@@ -255,7 +255,7 @@ class Sep12ServiceTest {
   @Test
   fun test_getCustomer() {
     // mock customer store
-    var sep12CustomerId = slot<Sep12CustomerId>()
+    val sep12CustomerId = slot<Sep12CustomerId>()
     every { customerStore.save(capture(sep12CustomerId)) } returns mockk(relaxed = true)
     every { customerStore.newInstance() } returns PojoSep12CustomerId()
     every { customerStore.findById("customer-id") } returns null
@@ -380,7 +380,12 @@ class Sep12ServiceTest {
   }
 
   @Test
-  fun test_deleteCustomer_handleCustomerIntegration() {
+  fun test_deleteCustomer() {
+    // mock customer store
+    val customerId = slot<String>()
+    every { customerStore.delete(capture(customerId)) } just Runs
+
+    // mock callbackApi customer integration
     val deleteCustomerIdSlot = slot<String>()
     every { customerIntegration.deleteCustomer(capture(deleteCustomerIdSlot)) } just Runs
 
@@ -395,17 +400,22 @@ class Sep12ServiceTest {
     assertInstanceOf(SepNotFoundException::class.java, ex)
     assertEquals("User not found.", ex.message)
     verify(exactly = 2) { customerIntegration.getCustomer(any()) }
+    verify(exactly = 0) { customerIntegration.deleteCustomer(any()) }
+    verify(exactly = 0) { customerStore.delete(any()) }
 
-    // attempting to delete a valid customer succeeds
+    // customer deletion succeeds
     val mockValidCustomerFound = Sep12GetCustomerResponse()
     mockValidCustomerFound.id = "customer-id"
     every { customerIntegration.getCustomer(any()) } returns mockValidCustomerFound
     assertDoesNotThrow { sep12Service.deleteCustomer(jwtToken, TEST_ACCOUNT, TEST_MEMO, null) }
     verify(exactly = 4) { customerIntegration.getCustomer(any()) }
+    // callback API is called twice
     verify(exactly = 2) { customerIntegration.deleteCustomer(any()) }
-
     val wantDeleteCustomerId = "customer-id"
     assertEquals(wantDeleteCustomerId, deleteCustomerIdSlot.captured)
+    // database deletion is called twice
+    verify(exactly = 2) { customerStore.delete(any()) }
+    assertEquals(wantDeleteCustomerId, customerId.captured)
   }
 
   private fun createJwtToken(subject: String): JwtToken {

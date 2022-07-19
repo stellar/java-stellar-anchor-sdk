@@ -10,4 +10,6 @@ public interface Sep12CustomerStore {
 
   @SuppressWarnings("UnusedReturnValue")
   Sep12CustomerId save(Sep12CustomerId sep12CustomerId) throws SepException;
+
+  void delete(String customerId) throws SepException;
 }
