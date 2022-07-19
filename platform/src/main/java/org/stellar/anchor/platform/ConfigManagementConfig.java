@@ -97,4 +97,10 @@ public class ConfigManagementConfig {
   SqsConfig sqsConfig() {
     return new PropertySqsConfig();
   }
+
+  @Bean
+  @ConfigurationProperties(prefix = "metrics-service")
+  MetricConfig metricConfig() {
+    return new PropertyMetricConfig();
+  }
 }
