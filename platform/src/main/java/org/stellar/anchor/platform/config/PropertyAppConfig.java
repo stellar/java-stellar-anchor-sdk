@@ -38,7 +38,7 @@ public class PropertyAppConfig implements AppConfig, Validator  {
       errors.rejectValue(
           "assets",
           "doesNotExist-assets",
-          "assets resource does not resolve");
+          "assets resource file could not be found");
     }
   }
 }
