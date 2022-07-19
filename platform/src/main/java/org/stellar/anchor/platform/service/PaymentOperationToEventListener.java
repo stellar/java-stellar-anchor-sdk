@@ -3,6 +3,7 @@ package org.stellar.anchor.platform.service;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.ERROR;
 import static org.stellar.anchor.util.MathHelper.*;
 
+import io.micrometer.core.instrument.Metrics;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
@@ -103,6 +104,8 @@ public class PaymentOperationToEventListener implements PaymentListener {
               payment.getAmount(), txn.getAmountIn()));
       txn.setStatus(ERROR.getName());
       saveTransaction(txn);
+      Metrics.counter(AnchorMetrics.SEP31_TRANSACTION.toString(), "status", ERROR.getName())
+          .increment();
       return;
     }
 
@@ -113,12 +116,17 @@ public class PaymentOperationToEventListener implements PaymentListener {
       txn.setStellarTransactionId(payment.getTransactionHash());
       try {
         transactionStore.save(txn);
+        Metrics.counter(
+                "sep31.transaction", "status", SepTransactionStatus.PENDING_RECEIVER.toString())
+            .increment();
       } catch (SepException ex) {
         Log.errorEx(ex);
       }
     }
     // send to the event queue
     sendToQueue(event);
+    Metrics.counter(AnchorMetrics.PAYMENT_RECEIVED.toString(), "asset", payment.getAssetName())
+        .increment(Double.parseDouble(payment.getAmount()));
   }
 
   @Override
