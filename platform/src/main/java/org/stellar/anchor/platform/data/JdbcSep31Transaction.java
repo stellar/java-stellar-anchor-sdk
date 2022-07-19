@@ -75,6 +75,12 @@ public class JdbcSep31Transaction implements Sep31Transaction, SepTransaction {
   @SerializedName("client_domain")
   String clientDomain;
 
+  @SerializedName("sender_id")
+  String senderId;
+
+  @SerializedName("receiver_id")
+  String receiverId;
+
   // Ignored by JPA and Gson
   @SerializedName("required_info_updates")
   @Transient
