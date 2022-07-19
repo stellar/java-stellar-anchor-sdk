@@ -2,11 +2,6 @@ package org.stellar.anchor.sep12;
 
 import static org.stellar.anchor.util.Log.infoF;
 
-import com.google.gson.Gson;
-import java.lang.reflect.Type;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
@@ -14,16 +9,13 @@ import org.stellar.anchor.api.callback.CustomerIntegration;
 import org.stellar.anchor.api.exception.*;
 import org.stellar.anchor.api.sep.sep12.*;
 import org.stellar.anchor.auth.JwtToken;
-import org.stellar.anchor.util.GsonUtils;
 import org.stellar.anchor.util.Log;
 import org.stellar.anchor.util.MemoHelper;
 import org.stellar.sdk.xdr.MemoType;
-import shadow.com.google.common.reflect.TypeToken;
 
 public class Sep12Service {
   private final CustomerIntegration customerIntegration;
   private final Sep12CustomerStore sep12CustomerStore;
-  private static final Gson gson = GsonUtils.getInstance();
 
   public Sep12Service(
       CustomerIntegration customerIntegration, Sep12CustomerStore sep12CustomerStore) {
@@ -51,47 +43,7 @@ public class Sep12Service {
                 .account(request.getAccount())
                 .memo(request.getMemo())
                 .memoType(request.getMemoType())
-                .type(request.getType())
-                .lang(request.getLang())
-                .status(customerResponse.getStatus())
-                .message(customerResponse.getMessage())
-                .fields(customerResponse.getFields())
-                .providedFields(customerResponse.getProvidedFields())
                 .build();
-        shouldSave = true;
-      } else {
-        if (!Objects.equals(customer.getType(), request.getType())) {
-          customer.setType(request.getType());
-          shouldSave = true;
-        }
-
-        if (!Objects.equals(customer.getLang(), request.getLang())) {
-          customer.setLang(request.getLang());
-          shouldSave = true;
-        }
-
-        if (!Objects.equals(customer.getStatus(), customerResponse.getStatus())) {
-          customer.setStatus(customerResponse.getStatus());
-          shouldSave = true;
-        }
-
-        if (!Objects.equals(customer.getMessage(), customerResponse.getMessage())) {
-          customer.setMessage(customerResponse.getMessage());
-          shouldSave = true;
-        }
-
-        if (!Objects.equals(customer.getFields(), customerResponse.getFields())) {
-          customer.setFields(customerResponse.getFields());
-          shouldSave = true;
-        }
-
-        if (!Objects.equals(customer.getProvidedFields(), customerResponse.getProvidedFields())) {
-          customer.setProvidedFields(customerResponse.getProvidedFields());
-          shouldSave = true;
-        }
-      }
-
-      if (shouldSave) {
         sep12CustomerStore.save(customer);
       }
     }
@@ -111,7 +63,6 @@ public class Sep12Service {
 
     if (putCustomerResponse.getId() != null) {
       Sep12Customer customer = sep12CustomerStore.findById(putCustomerResponse.getId());
-      boolean shouldSave = false;
       if (customer == null) {
         customer =
             new Sep12CustomerBuilder(sep12CustomerStore)
@@ -119,33 +70,7 @@ public class Sep12Service {
                 .account(request.getAccount())
                 .memo(request.getMemo())
                 .memoType(request.getMemoType())
-                .type(request.getType())
-                .lang(request.getLanguageCode())
                 .build();
-        shouldSave = true;
-      }
-
-      Type mapType = new TypeToken<Map<String, String>>() {}.getType();
-      Map<String, String> requestFields = gson.fromJson(gson.toJson(request), mapType);
-      for (var entry : requestFields.entrySet()) {
-        if (List.of("id", "account", "memo", "memo_type", "type", "language_code")
-            .contains(entry.getKey())) {
-          continue;
-        }
-
-        HashMap<String, ProvidedField> providedFields =
-            new HashMap<>(Objects.requireNonNullElse(customer.getProvidedFields(), Map.of()));
-        ProvidedField newProvidedField =
-            ProvidedField.builder().status(Sep12Status.PROCESSING).build();
-        if (newProvidedField.equals(providedFields.get(entry.getKey()))) {
-          continue;
-        }
-        providedFields.put(entry.getKey(), newProvidedField);
-        customer.setProvidedFields(providedFields);
-        shouldSave = true;
-      }
-
-      if (shouldSave) {
         sep12CustomerStore.save(customer);
       }
     }

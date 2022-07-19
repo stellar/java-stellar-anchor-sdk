@@ -10,7 +10,6 @@ import org.stellar.anchor.api.callback.CustomerIntegration
 import org.stellar.anchor.api.exception.*
 import org.stellar.anchor.api.sep.sep12.*
 import org.stellar.anchor.auth.JwtToken
-import org.stellar.anchor.util.GsonUtils
 
 class Sep12ServiceTest {
   companion object {
@@ -22,7 +21,6 @@ class Sep12ServiceTest {
     private const val TEST_HOST_URL = "http://localhost:8080"
   }
 
-  private val gson = GsonUtils.getInstance()
   private val issuedAt = Instant.now().epochSecond
   private val expiresAt = issuedAt + 9000
   private val mockFields =
@@ -239,12 +237,6 @@ class Sep12ServiceTest {
         .account(TEST_ACCOUNT)
         .memo(TEST_MEMO)
         .memoType("id")
-        .type("sending_user")
-        .providedFields(
-          mapOf(
-            "first_name" to ProvidedField.builder().status(Sep12Status.PROCESSING).build(),
-          )
-        )
         .build()
     assertEquals(wantSep12Customer, sep12Customer.captured)
 
@@ -258,22 +250,6 @@ class Sep12ServiceTest {
     assertEquals(sep12PutCustomerResponse1, sep12PutCustomerResponse2)
     verify(exactly = 2) { customerStore.findById("customer-id") }
     verify(exactly = 1) { customerStore.save(any()) }
-
-    // assert that if the customer will get updated if a new value is added
-    sep12Customer = slot()
-    every { customerStore.save(capture(sep12Customer)) } returns mockk(relaxed = true)
-
-    mockPutRequest.lastName = "Doe"
-    var sep12PutCustomerResponse3: Sep12PutCustomerResponse? = null
-    assertDoesNotThrow {
-      sep12PutCustomerResponse3 = sep12Service.putCustomer(jwtToken, mockPutRequest)
-    }
-    assertEquals(sep12PutCustomerResponse1, sep12PutCustomerResponse3)
-    verify(exactly = 3) { customerStore.findById("customer-id") }
-    verify(exactly = 2) { customerStore.save(any()) }
-    wantSep12Customer.providedFields["last_name"] =
-      ProvidedField.builder().status(Sep12Status.PROCESSING).build()
-    assertEquals(wantSep12Customer, sep12Customer.captured)
   }
 
   @Test
@@ -333,12 +309,6 @@ class Sep12ServiceTest {
         .account(TEST_ACCOUNT)
         .memo(TEST_MEMO)
         .memoType("text")
-        .type("sep31_sender")
-        .lang("en")
-        .status(Sep12Status.ACCEPTED)
-        .message("foo bar")
-        .fields(mockFields)
-        .providedFields(mockProvidedFields)
         .build()
     assertEquals(wantSep12Customer, sep12Customer.captured)
 
@@ -352,29 +322,6 @@ class Sep12ServiceTest {
     assertEquals(sep12GetCustomerResponse1, sep12GetCustomerResponse2)
     verify(exactly = 2) { customerStore.findById("customer-id") }
     verify(exactly = 1) { customerStore.save(any()) }
-
-    // assert that if the customer will get updated if the database values are different from the
-    // values coming from the Anchor.
-    sep12Customer = slot()
-    every { customerStore.save(capture(sep12Customer)) } returns mockk(relaxed = true)
-
-    val outdatedSep12Customer =
-      gson.fromJson(gson.toJson(wantSep12Customer), PojoSep12Customer::class.java)
-    outdatedSep12Customer.type = "old_type"
-    outdatedSep12Customer.lang = "pt"
-    outdatedSep12Customer.status = Sep12Status.PROCESSING
-    outdatedSep12Customer.message = null
-    outdatedSep12Customer.fields = null
-    outdatedSep12Customer.providedFields = null
-    every { customerStore.findById("customer-id") } returns outdatedSep12Customer
-    var sep12GetCustomerResponse3: Sep12GetCustomerResponse? = null
-    assertDoesNotThrow {
-      sep12GetCustomerResponse3 = sep12Service.getCustomer(jwtToken, mockGetRequest)
-    }
-    assertEquals(sep12GetCustomerResponse1, sep12GetCustomerResponse3)
-    verify(exactly = 3) { customerStore.findById("customer-id") }
-    verify(exactly = 2) { customerStore.save(any()) }
-    assertEquals(wantSep12Customer, sep12Customer.captured)
   }
 
   @Test
