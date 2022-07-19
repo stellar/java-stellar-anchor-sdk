@@ -89,7 +89,8 @@ class ApiKeyAuthIntegrationTest {
       AnchorPlatformServer.start(
         PLATFORM_SERVER_PORT,
         "/",
-        mapOf("stellar.anchor.config" to "file:${newFilePath.toStr()}")
+        mapOf("stellar.anchor.config" to "file:${newFilePath.toStr()}"),
+        true
       )
   }
 
