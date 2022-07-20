@@ -6,6 +6,7 @@ import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.Validator;
 import org.stellar.anchor.config.CircleConfig;
+
 @Data
 public class PropertyCircleConfig implements CircleConfig, Validator {
   String circleUrl;

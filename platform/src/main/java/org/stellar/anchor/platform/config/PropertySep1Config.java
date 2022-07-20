@@ -1,9 +1,9 @@
 package org.stellar.anchor.platform.config;
 
 import lombok.Data;
-import org.stellar.anchor.config.Sep1Config;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
+import org.stellar.anchor.config.Sep1Config;
 import org.stellar.anchor.platform.service.SpringResourceReader;
 import org.stellar.anchor.util.ResourceReader;
 
@@ -21,12 +21,10 @@ public class PropertySep1Config implements Sep1Config, Validator {
   public void validate(Object target, Errors errors) {
     Sep1Config config = (Sep1Config) target;
 
-    ResourceReader reader =  new SpringResourceReader();
+    ResourceReader reader = new SpringResourceReader();
     if (!reader.checkResourceExists(config.getStellarFile())) {
       errors.rejectValue(
-          "stellarFile",
-          "doesNotExist-stellarFile",
-          "stellarFile resource does not resolve");
+          "stellarFile", "doesNotExist-stellarFile", "stellarFile resource does not resolve");
     }
   }
 }
