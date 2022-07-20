@@ -221,6 +221,8 @@ public class Sep31Service {
     txn.setAmountIn(quote.getSellAmount());
     txn.setAmountOutAsset(quote.getBuyAsset());
     txn.setAmountOut(quote.getBuyAmount());
+    txn.setAmountFee(quote.getFee().getTotal());
+    txn.setAmountFeeAsset(quote.getFee().getAsset());
   }
 
   void updateTxAmountsWhenNoQuoteWasUsed() {
@@ -258,6 +260,7 @@ public class Sep31Service {
     // Update fee
     String feeStr = formatAmount(fee, scale);
     txn.setAmountFee(feeStr);
+    txn.setAmountFeeAsset(feeResponse.getAsset());
     Context.get().getFee().setAmount(feeStr);
   }
 
@@ -274,6 +277,7 @@ public class Sep31Service {
       info("Unable to get transaction, 'id' is not provided");
       throw new BadRequestException("'id' is not provided");
     }
+
     Sep31Transaction txn = sep31TransactionStore.findByTransactionId(id);
     if (txn == null) {
       infoF("Transaction ({}) not found", id);
