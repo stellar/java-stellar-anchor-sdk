@@ -262,7 +262,7 @@ class Sep31ServiceTest {
     clearAllMocks()
     unmockkAll()
   }
-
+  
   @Test
   fun test_updateTxAmountsWhenNoQuoteWasUsed() {
     Sep31Service.Context.get().setTransaction(txn)
@@ -745,5 +745,50 @@ class Sep31ServiceTest {
         .stellarMemoType("")
         .build()
     assertEquals(wantResponse, gotResponse)
+  }
+
+  @Test
+  fun test_info_response() {
+    val info = sep31Service.info
+    val jpyc = info.receive.get("JPYC")!!
+    val usdc = info.receive.get("USDC")!!
+
+    // Test correctness of reading test_assets.json
+    assertTrue(jpyc.enabled)
+    assertTrue(jpyc.quotesSupported)
+    assertTrue(jpyc.quotesRequired)
+    assertEquals(0, jpyc.feeFixed)
+    assertEquals(0, jpyc.feePercent)
+    assertEquals(1, jpyc.minAmount)
+    assertEquals(1000000, jpyc.maxAmount)
+    assertNotNull(jpyc.sep12)
+    assertNotNull(jpyc.sep12.sender)
+    assertNotNull(jpyc.sep12.sender.types)
+    assertEquals(1, jpyc.sep12.sender.types.size)
+    assertNotNull(jpyc.sep12.receiver)
+    assertNotNull(jpyc.sep12.receiver.types)
+    assertEquals(1, jpyc.sep12.receiver.types.size)
+    assertNotNull(jpyc.fields.transaction)
+    assertEquals(3, jpyc.fields.transaction.size)
+
+    assertTrue(usdc.enabled)
+    assertTrue(usdc.quotesSupported)
+    assertTrue(usdc.quotesRequired)
+    assertEquals(0, usdc.feeFixed)
+    assertEquals(0, usdc.feePercent)
+    assertEquals(1, usdc.minAmount)
+    assertEquals(1000000, usdc.maxAmount)
+    assertNotNull(usdc.sep12)
+    assertNotNull(usdc.sep12.sender)
+    assertNotNull(usdc.sep12.sender.types)
+    assertEquals(3, usdc.sep12.sender.types.size)
+    assertNotNull(usdc.sep12.receiver)
+    assertNotNull(usdc.sep12.receiver.types)
+    assertEquals(2, usdc.sep12.receiver.types.size)
+    assertNotNull(usdc.fields.transaction)
+    assertEquals(3, usdc.fields.transaction.size)
+
+
+    print(info)
   }
 }
