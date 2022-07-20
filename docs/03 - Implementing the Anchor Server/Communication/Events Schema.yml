@@ -160,8 +160,10 @@ components:
           type: string
         source_account:
           type: string
+          description: The SEP-12 user ID of the source account.
         destination_account:
           type: string
+          description: The SEP-12 user ID of the destination account.
         customers:
           type: object
           properties:

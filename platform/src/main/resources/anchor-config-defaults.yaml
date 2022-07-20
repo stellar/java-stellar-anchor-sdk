@@ -30,7 +30,7 @@ stellar:
     #
     data-access:
       type: data-spring-jdbc
-      settings: data-spring-jdbc-sqlite              # The absolute location of the configuration data in this yaml file
+      settings: data-spring-jdbc-h2              # The absolute location of the configuration data in this yaml file
       #settings: data-spring-jdbc-local-postgres      # use local postgres instance
       #settings: data-spring-jdbc-aws-aurora-postgres  # use AWS Aurora Postgres with IAM authentication
     #
@@ -229,6 +229,10 @@ app-config:
     # currently supported publisherType values: kafka, sqs
     enabled: true
     publisherType: kafka
+
+  metrics-service:
+    optionalMetricsEnabled: true    # optional metrics that periodically query the database
+    runInterval: 30                 # interval to query the database to generate the optional metrics
 
   kafka.publisher:
     # kafkaBootstrapServer - the Kafka server used to bootstrap setup

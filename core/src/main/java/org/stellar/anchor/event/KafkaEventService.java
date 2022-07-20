@@ -1,5 +1,6 @@
 package org.stellar.anchor.event;
 
+import io.micrometer.core.instrument.Metrics;
 import java.util.Map;
 import java.util.Properties;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -52,6 +53,9 @@ public class KafkaEventService implements EventPublishService {
       ProducerRecord<String, AnchorEvent> record = new ProducerRecord<>(topic, event);
       record.headers().add(new RecordHeader("type", event.getType().getBytes()));
       producer.send(record);
+      Metrics.counter(
+              "event.published", "class", event.getClass().getSimpleName(), "type", event.getType())
+          .increment();
     } catch (Exception ex) {
       Log.errorEx(ex);
     }
