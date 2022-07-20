@@ -2,7 +2,6 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: {{ .Values.fullName }}-configmap-{{ .Values.service.name }}
-  namespace: {{ .Release.Namespace }}
 data:
   # TODO: remove all secrets (ex: move to env vars, k8s secrets, vault, etc...)
   anchor-config.yaml: |
@@ -54,6 +53,11 @@ data:
         languages: en
         assets: {{ .Values.stellar.app_config.app.assets | default "assets-test.json" }}
         jwtSecretKey: {{ .Values.stellar.app_config.app.jwtSecretKey | default "${JWT_SECRET}" }}
+      integration-auth:
+        authType: JWT_TOKEN
+        platformToAnchorSecret: {{ .Values.stellar.app_config.app.platformToAnchorSecret | default "${PLATFORM_TO_ANCHOR_SECRET}" }}
+        anchorToPlatformSecret: {{ .Values.stellar.app_config.app.anchorToPlatformSecret | default "${ANCHOR_TO_PLATFORM_SECRET}" }}
+        expirationMilliseconds: {{ .Values.stellar.app_config.app.expirationMilliseconds | default 30000 }}
       sep1:
         enabled: true
         stellarFile: file:/config/stellar-wks.toml
@@ -67,6 +71,11 @@ data:
         authTimeout: {{ .Values.stellar.app_config.sep10.authTimeout | default 900 }}
         jwtTimeout: {{ .Values.stellar.app_config.sep10.jwtTimeout | default 86400 }}
         signingSeed: {{ .Values.stellar.app_config.sep10.signingSeed | default "${SEP10_SIGNING_SEED}" }} 
+        requireKnownOmnibusAccount: {{ .Values.stellar.app_config.sep10.requireKnownOmnibusAccount | default "false" }}
+        {{- if .Values.stellar.app_config.sep10.omnibusAccountList }}
+        omnibusAccountList: 
+{{- $.Values.stellar.app_config.sep10.omnibusAccountList | toYaml | nindent 10 }}
+        {{- end }}
       {{- else }}
       sep10:
         enabled: true
@@ -77,6 +86,7 @@ data:
         authTimeout: 900
         jwtTimeout: 86400
         signingSeed: ${SEP10_SIGNING_SEED}
+
       {{- end }}
       # sep-12
       {{- if ((.Values.stellar.app_config).sep12) }}
@@ -106,9 +116,11 @@ data:
         enabled: {{ .Values.stellar.app_config.sep31.enabled | default "true" }}
         feeIntegrationEndPoint: {{ .Values.stellar.app_config.sep31.feeIntegrationEndPoint | default .Values.stellar.app_config.app.backendUrl }}
         depositInfoGeneratorType: {{ .Values.stellar.app_config.sep31.depositInfoGeneratorType | default "self" }}
+        paymentType: {{ .Values.stellar.app_config.sep31.paymentType | default "STRICT_SEND" }}
       {{- else }}
         enabled: "true"
         feeIntegrationEndPoint: {{ .Values.stellar.app_config.app.backendUrl }}
+        paymentType: STRICT_SEND
       {{- end }}
       # sep-38
       sep38:
@@ -121,8 +133,8 @@ data:
       {{- end }}
       {{- if ((.Values.stellar.app_config).circle) }}
       circle:
-        circleUrl: {{ .Values.stellar.app_config.circle.circleUrl }}
-        apiKey: {{ .Values.stellar.app_config.circle.apiKey }}
+        circleUrl: {{ .Values.stellar.app_config.circle.circleUrl | default "https://api-sandbox.circle.com" }}
+        apiKey: {{ .Values.stellar.app_config.circle.apiKey | default "${CIRCLE_API_KEY}" }}
       {{- end }}
       {{- if (.Values.stellar.app_config).payment_gateway }}
       payment-gateway:
@@ -162,7 +174,7 @@ data:
       {{- if (.Values.stellar.app_config).kafka_publisher }}
       kafka.publisher:
         bootstrapServer: {{ .Values.stellar.app_config.kafka_publisher.bootstrapServer | default "missing_bootstrapServer:port" }}
-        useIAM: {{ .Values.stellar.app_config.kafka_publisher.useIAM | default "true" }}
+        useIAM: {{ .Values.stellar.app_config.kafka_publisher.useIAM | default "false" }}
         useSingleQueue: {{ .Values.stellar.app_config.kafka_publisher.useSingleQueue | default "false" }}
         {{- if (((.Values.stellar.app_config).event).kafka_publisher).eventTypeQueue }}
         eventTypeToQueue:
@@ -189,10 +201,10 @@ data:
     spring:
       logging:
         level:
-          root: DEBUG
-          org.springframework: DEBUG
-          org.springframework.web.filter: DEBUG
-          org.stellar: DEBUG
+          root: INFO
+          org.springframework: INFO
+          org.springframework.web.filter: INFO
+          org.stellar: INFO
       mvc:
         async.request-timeout: 6000
   stellar-wks.toml: |

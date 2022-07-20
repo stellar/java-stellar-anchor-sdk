@@ -8,14 +8,34 @@ service:
 image:
    repo: stellar
    name: anchor-platform
-   tag: 0e4caec
+   tag: latest
    pullPolicy: Always
 deployment:
+   serviceAccountName: default
+   # liveness, readiness and startup probe overrides
+   startupProbePeriodSeconds: 10
+   startupProbeFailureThreshold: 30
+   # additional volume mounts 
+   volumeMounts:
+      secrets:
+         - name: apsigningseed
+           mountPath: signingseed
+      configMaps:
+         - name: assets
+           mountPath: assets
+   hosts:
+     - host: "www.stellaranchordemo.com"
+       path: /
+       pathType: Prefix
+       backend:
+         servicePort: "{{ .Values.service.containerPort }}"
+         serviceName: "{{ .Values.fullName }}-svc-{{ .Values.service.name }}"
    envFrom:
    - secretRef:
        name: apsigningseed
 ingress:
    labels:
+     app: appy
      test: label_test
    annotations:
      kubernetes.io/ingress.class: "public"
@@ -40,10 +60,10 @@ ingress:
 stellar:
    toml:
       documentation:
-         ORG_NAME: "My Organization"
-         ORG_URL: "https:/myorg.org"
-         ORG_DESCRIPTION: "https://myorglogo.png"
-         ORG_SUPPORT_EMAIL: "myname@myorg.org"
+         ORG_NAME: "your_org"
+         ORG_URL: "https:/your_org.org"
+         ORG_DESCRIPTION: "https://your_org_logo.png"
+         ORG_SUPPORT_EMAIL: "your_email@your_org.org"
    anchor:
       data_access:
          type: data-spring-jdbc
@@ -70,20 +90,24 @@ stellar:
       spring.datasource.username: ${SQLITE_USERNAME}
       spring.datasource.password: ${SQLITE_PASSWORD}
       spring.mvc.converters.preferred-json-mapper: gson
+      spring.flyway.enabled: false
    app_config:
       app:
-         logLevel: INFO
          stellarNetwork: TESTNET
          hostUrl: https://www.stellaranchordemo.com
-         backendUrl: https://anchor-ref-pr352.previews.kube001.services.stellar-ops.com/?
+         backendUrl: https://anchor-reference-server-dev.stellar.org
          jwtSecretKey: ${JWT_SECRET}
+         assets: file:/assets/assets.json # use file if you add your assets using config map
       sep1:
         enabled: true
-        stellarFile: file:/config/stellar-wks.toml
+        stellarFile: file:/config/stellar-wks.toml 
       sep10:
         enabled: true
         homeDomain: www.stellaranchordemo.com
         signingSeed: ${SEP10_SIGNING_SEED}
+        requireKnownOmnibusAccount: false
+        omnibusAccountList:
+          # - GC5KRPVW4TFA6ORIGTOFM3DEG6DSLACRXGDN3LNCAI7IPAGIWMVXUHVS
       sep12:
         enabled: true
         customerIntegrationEndpoint: https://anchor-reference-server-dev.stellar.org
@@ -93,8 +117,28 @@ stellar:
       sep38:
         enabled: true
         quoteIntegrationEndPoint: https://anchor-reference-server-dev.stellar.org
+      circle:
+         circleUrl: https://api-sandbox.circle.com
+         apiKey: ${CIRCLE_API_KEY}
       event:
          enabled: true
          publisherType: kafka
       kafka_publisher:
          bootstrapServer: kafka.bootstrap.host:9092
+      circle_payment_observer:
+         enabled: true
+      payment_gateway:
+         circle:
+            enabled: true
+         stellar:
+            enabled: false
+            name: "stellar"
+            horizonUrl: https://horizon-testnet.stellar.org
+            secretKey: secret # stellar account secret key
+      spring:
+         logging:
+            level:
+               root: DEBUG
+               org.springframework: DEBUG
+               org.springframework.web.filter: DEBUG
+               org.stellar: DEBUG
