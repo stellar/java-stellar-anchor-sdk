@@ -1,0 +1,25 @@
+ACCOUNTS = ["GCHLHDBOKG2JWMJQBTLSL5XG6NO7ESXI2TAQKZXCXWXB5WI2X6W233PR"]
+VERSION = "0.1.0"
+NETWORK_PASSPHRASE = "Test SDF Network ; September 2015"
+SIGNING_KEY = "GCHLHDBOKG2JWMJQBTLSL5XG6NO7ESXI2TAQKZXCXWXB5WI2X6W233PR"
+TRANSFER_SERVER = "https://www.stellaranchordemo.com/sep6"
+TRANSFER_SERVER_SEP0024 = "https://www.stellaranchordemo.com/sep24"
+WEB_AUTH_ENDPOINT = "https://www.stellaranchordemo.com/auth"
+KYC_SERVER = "https://www.stellaranchordemo.com/sep12"
+DIRECT_PAYMENT_SERVER = "https://www.stellaranchordemo.com/sep31"
+ANCHOR_QUOTE_SERVER = "https://www.stellaranchordemo.com/sep38"
+
+[[CURRENCIES]]
+code = "USDC"
+issuer = "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+status = "test"
+is_asset_anchored = true
+anchor_asset_type = "fiat"
+desc = "A test USDC issued by Circle."
+
+[DOCUMENTATION]
+ORG_NAME = "your_org_name"
+ORG_URL = "https://your_org_url.png"
+ORG_DESCRIPTION = "your_org_description"
+ORG_LOGO = "https://your_org_logo.png"
+ORG_SUPPORT_EMAIL = "email@your.org"
