@@ -15,7 +15,7 @@ event:
   # If the listener is amqp, the AMQP listner is configured in the ampq.listner section.
   listenerType: sqs
 sqs.listener:
-  region: us-east-2
+  region: ${var.aws_region}
   useSingleQueue: true
   eventTypeToQueue:
     all: dev-platform-queue

@@ -1,6 +1,6 @@
 
 data "aws_route53_zone" "anchor-zone" {
-  name         = var.hosted_zone_name
+  name         = "${var.hosted_zone_name}"
   private_zone = false
 }
 
@@ -38,14 +38,14 @@ resource "aws_route53_record" "ref" {
 }
 
 resource "aws_acm_certificate" "sep" {
-  domain_name       = "www.${data.aws_route53_zone.anchor-zone.name}"
-  validation_method = "DNS"
-  lifecycle {
+  domain_name               = "www.${data.aws_route53_zone.anchor-zone.name}"
+  validation_method         = "DNS"
+lifecycle {
     create_before_destroy = true
   }
 }
 
 resource "aws_acm_certificate_validation" "acm_certificate_validation" {
-  certificate_arn         = aws_acm_certificate.sep.arn
-  validation_record_fqdns = [for record in aws_route53_record.sep : record.fqdn]
+ certificate_arn = aws_acm_certificate.sep.arn
+ validation_record_fqdns = [for record in aws_route53_record.sep : record.fqdn]
 }

@@ -10,7 +10,4 @@ cat /anchor_config/stellar_wks.toml
 cat /anchor_config/reference_config.yaml
 echo "ls /anchor_config"
 ls /anchor_config
-echo "hello world3"
-echo "tailing for eternity..."
-tail -f /dev/null
-    
+echo "Configuration has been copied to shared volume. Exiting Config Volume"

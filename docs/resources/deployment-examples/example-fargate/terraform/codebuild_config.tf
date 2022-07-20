@@ -1,9 +1,9 @@
 
 locals {
   subnet_arns = formatlist(
-    "arn:aws:ec2:us-east-2:245943599471:subnet/%s",
-    module.vpc.private_subnets
-  )
+                    "arn:aws:ec2:${var.aws_region}:${var.aws_account}:subnet/%s",
+                    module.vpc.private_subnets
+                )
 }
 
 resource "aws_ecr_repository" "anchor_config" {
@@ -30,23 +30,23 @@ resource "aws_s3_bucket_acl" "anchor_config" {
 resource "aws_s3_bucket_object" "anchor_config" {
   bucket = aws_s3_bucket.anchor_config.id
   key    = "anchor_config.yaml"
-  acl    = "private" # or can be "public-read"
+  acl    = "private"  # or can be "public-read"
   source = "../example_config/anchor_config.yaml"
-  etag   = filemd5("../example_config/anchor_config.yaml")
+  etag = filemd5("../example_config/anchor_config.yaml")
 }
 resource "aws_s3_bucket_object" "reference_config" {
   bucket = aws_s3_bucket.anchor_config.id
   key    = "reference_config.yaml"
-  acl    = "private" # or can be "public-read"
+  acl    = "private"  # or can be "public-read"
   source = "../example_config/reference_config.yaml"
-  etag   = filemd5("../example_config/reference_config.yaml")
+  etag = filemd5("../example_config/reference_config.yaml")
 }
 resource "aws_s3_bucket_object" "stellar_toml" {
   bucket = aws_s3_bucket.anchor_config.id
   key    = "stellar.toml"
-  acl    = "private" # or can be "public-read"
+  acl    = "private"  # or can be "public-read"
   source = "../example_config/stellar.toml"
-  etag   = filemd5("../example_config/stellar.toml")
+  etag = filemd5("../example_config/stellar.toml")
 }
 
 resource "aws_iam_role" "codebuild_role" {
@@ -73,114 +73,106 @@ resource "aws_iam_role_policy" "codebuild_policy" {
 
   policy = jsonencode(
     {
-      "Version" : "2012-10-17",
-      "Statement" : [
-        { "Effect" : "Allow",
-          "Resource" : [
-            "${var.docker_password_arn}"
-          ],
-          "Action" : [
-            "secretsmanager:GetSecretValue"
-          ]
-        },
-        {
-          "Effect" : "Allow",
-          "Resource" : [
-            "arn:aws:logs:*",
-          ],
-          "Action" : [
-            "logs:CreateLogGroup",
-            "logs:CreateLogStream",
-            "logs:PutLogEvents"
-          ]
-        },
-        {
-          "Effect" : "Allow",
-          "Resource" : [
-            "*"
-          ],
-          "Action" : [
-            "ecr:GetAuthorizationToken",
-            "ecr:BatchCheckLayerAvailability",
-            "ecr:GetDownloadUrlForLayer",
-            "ecr:GetRepositoryPolicy",
-            "ecr:DescribeRepositories",
-            "ecr:ListImages",
-            "ecr:DescribeImages",
-            "ecr:BatchGetImage",
-            "ecr:GetLifecyclePolicy",
-            "ecr:GetLifecyclePolicyPreview",
-            "ecr:ListTagsForResource",
-            "ecr:DescribeImageScanFindings",
-            "ecr:BatchGetImage",
-            "ecr:BatchCheckLayerAvailability",
-            "ecr:CompleteLayerUpload",
-            "ecr:GetDownloadUrlForLayer",
-            "ecr:InitiateLayerUpload",
-            "ecr:PutImage",
-            "ecr:UploadLayerPart"
-          ]
-        },
-        {
-          "Effect" : "Allow",
-          "Resource" : [
-            "*"
-          ],
-          "Action" : [
-            "ec2:DescribeSubnets",
-            "ec2:CreateNetworkInterface",
-            "ec2:DescribeDhcpOptions",
-            "ec2:DescribeNetworkInterfaces",
-            "ec2:DeleteNetworkInterface",
-            "ec2:DescribeSubnets",
-            "ec2:DescribeSecurityGroups",
-            "ec2:DescribeVpcs"
-          ]
-        },
-        {
-          "Effect" : "Allow",
-          "Action" : [
-            "ec2:CreateNetworkInterfacePermission"
-          ],
-          "Resource" : [
-            "arn:aws:ec2:us-east-2:245943599471:network-interface/*"
-          ],
-          "Condition" : {
-            "StringEquals" : {
-              "ec2:Subnet" : local.subnet_arns,
-              "ec2:AuthorizedService" : "codebuild.amazonaws.com"
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Effect": "Allow",
+                "Resource": [
+                    "arn:aws:logs:*",
+                ],
+                "Action": [
+                    "logs:CreateLogGroup",
+                    "logs:CreateLogStream",
+                    "logs:PutLogEvents"
+                ]
+            },
+            {
+                "Effect": "Allow",
+                "Resource": [
+                    "*"
+                ],
+                "Action": [
+                  "ecr:GetAuthorizationToken",
+                  "ecr:BatchCheckLayerAvailability",
+                  "ecr:GetDownloadUrlForLayer",
+                  "ecr:GetRepositoryPolicy",
+                  "ecr:DescribeRepositories",
+                  "ecr:ListImages",
+                  "ecr:DescribeImages",
+                  "ecr:BatchGetImage",
+                  "ecr:GetLifecyclePolicy",
+                  "ecr:GetLifecyclePolicyPreview",
+                  "ecr:ListTagsForResource",
+                  "ecr:DescribeImageScanFindings",
+                  "ecr:BatchGetImage",
+                  "ecr:BatchCheckLayerAvailability",
+                  "ecr:CompleteLayerUpload",
+                  "ecr:GetDownloadUrlForLayer",
+                  "ecr:InitiateLayerUpload",
+                  "ecr:PutImage",
+                  "ecr:UploadLayerPart"
+                ]
+            },
+            {
+                "Effect": "Allow",
+                "Resource": [
+                    "*"
+                ],
+                "Action": [
+                    "ec2:DescribeSubnets",
+                    "ec2:CreateNetworkInterface",
+                    "ec2:DescribeDhcpOptions",
+                    "ec2:DescribeNetworkInterfaces",
+                    "ec2:DeleteNetworkInterface",
+                    "ec2:DescribeSubnets",
+                    "ec2:DescribeSecurityGroups",
+                    "ec2:DescribeVpcs"
+                ]
+            },
+            {
+                "Effect": "Allow",
+                "Action": [
+                  "ec2:CreateNetworkInterfacePermission"
+                ],
+                "Resource": [
+                  "arn:aws:ec2:${var.aws_region}:${var.aws_account}:network-interface/*"
+                ],
+                "Condition": {
+                  "StringEquals": {
+                    "ec2:Subnet": local.subnet_arns,
+                    "ec2:AuthorizedService": "codebuild.amazonaws.com"
+                  }
+                }
+              },
+            {
+                "Effect": "Allow",
+                "Resource": [
+                    "arn:aws:s3:::${aws_s3_bucket.anchor_config.bucket}/*",
+                    "arn:aws:s3:::${aws_s3_bucket.anchor_config.bucket}"
+                ],
+                "Action": [
+                    "s3:GetObject",
+                    "s3:GetObjectVersion",
+                    "s3:GetBucketAcl",
+                    "s3:GetBucketLocation",
+                    "s3:ListBucket"
+                ]
+            },
+            {
+                "Effect": "Allow",
+                "Action": [
+                    "codebuild:CreateReportGroup",
+                    "codebuild:CreateReport",
+                    "codebuild:UpdateReport",
+                    "codebuild:BatchPutTestCases",
+                    "codebuild:BatchPutCodeCoverages"
+                ],
+                "Resource": [
+                    "arn:aws:codebuild:${var.aws_region}:${var.aws_account}:report-group/${var.environment}-anchor-config"
+                ]
             }
-          }
-        },
-        {
-          "Effect" : "Allow",
-          "Resource" : [
-            "arn:aws:s3:::${aws_s3_bucket.anchor_config.bucket}/*",
-            "arn:aws:s3:::${aws_s3_bucket.anchor_config.bucket}"
-          ],
-          "Action" : [
-            "s3:GetObject",
-            "s3:GetObjectVersion",
-            "s3:GetBucketAcl",
-            "s3:GetBucketLocation",
-            "s3:ListBucket"
-          ]
-        },
-        {
-          "Effect" : "Allow",
-          "Action" : [
-            "codebuild:CreateReportGroup",
-            "codebuild:CreateReport",
-            "codebuild:UpdateReport",
-            "codebuild:BatchPutTestCases",
-            "codebuild:BatchPutCodeCoverages"
-          ],
-          "Resource" : [
-            "arn:aws:codebuild:us-east-2:245943599471:report-group/${var.environment}-anchor-config"
-          ]
-        }
-      ]
-  })
+        ]
+    })
 }
 
 
@@ -201,36 +193,31 @@ resource "aws_codebuild_project" "codebuild_config" {
     type                        = "LINUX_CONTAINER"
     image_pull_credentials_type = "CODEBUILD"
 
-    environment_variable {
-      name  = "ANCHOR_CONFIG_ENVIRONMENT"
-      value = var.environment
-    }
+      environment_variable {
+        name  = "ANCHOR_CONFIG_ENVIRONMENT"
+        value = "${var.environment}"
+      }
 
-    environment_variable {
-      name  = "ANCHOR_CONFIG_S3_BUCKET"
-      value = "${var.environment}-anchor-config"
-    }
-    environment_variable {
-      name  = "ANCHOR_CONFIG_ECR_REPO"
-      value = aws_ecr_repository.anchor_config.name
-    }
+      environment_variable {
+        name  = "ANCHOR_CONFIG_S3_BUCKET"
+        value = "${var.environment}-anchor-config"
+      }
+      environment_variable {
+       name  = "ANCHOR_CONFIG_ECR_REPO"
+        value = aws_ecr_repository.anchor_config.name
+      }
 
-    environment_variable {
-      name  = "AWS_ACCOUNT"
-      value = var.aws_account
-    }
+      environment_variable {
+        name  = "AWS_ACCOUNT"
+        value = var.aws_account
+      }
 
-    environment_variable {
-      name  = "AWS_REGION"
-      value = var.aws_region
-    }
+       environment_variable {
+        name  = "AWS_REGION"
+        value = var.aws_region
+      }
 
-    environment_variable {
-      name  = "ANCHOR_CONFIG_DOCKER_LOGIN_SECRET"
-      value = "/CodeBuild/dockerLoginPassword"
     }
-
-  }
 
   logs_config {
     cloudwatch_logs {
@@ -238,12 +225,12 @@ resource "aws_codebuild_project" "codebuild_config" {
       stream_name = "codebuild"
     }
   }
-
+  
   # source location temporary
   source {
     type            = "GITHUB"
     buildspec       = var.anchor_config_build_spec
-    location        = var.anchor_config_repository
+    location        = var.anchor_config_repository 
     git_clone_depth = 1
 
     git_submodules_config {
@@ -254,7 +241,7 @@ resource "aws_codebuild_project" "codebuild_config" {
   source_version = "refs/heads/fargate"
 
   vpc_config {
-    vpc_id  = module.vpc.vpc_id
+    vpc_id = module.vpc.vpc_id
     subnets = module.vpc.private_subnets
 
     security_group_ids = [aws_security_group.sep.id]

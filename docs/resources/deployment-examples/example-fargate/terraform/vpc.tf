@@ -1,21 +1,12 @@
-variable "region" {
-  default     = "us-east-2"
-  description = "AWS region"
-}
-
 provider "aws" {
-  region = var.region
+  region = var.aws_region
 }
 
 data "aws_availability_zones" "available" {}
-resource "random_string" "suffix" {
-  length  = 8
-  special = false
-}
 
 resource "aws_eip" "nat" {
   count = 3
-  vpc   = true
+  vpc = true
 }
 module "vpc" {
   source  = "terraform-aws-modules/vpc/aws"
@@ -29,6 +20,6 @@ module "vpc" {
   enable_nat_gateway   = true
   single_nat_gateway   = false
   reuse_nat_ips        = true
-  external_nat_ip_ids  = aws_eip.nat.*.id
+  external_nat_ip_ids = "${aws_eip.nat.*.id}" 
   enable_dns_hostnames = true
 }

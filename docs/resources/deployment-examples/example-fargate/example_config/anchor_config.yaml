@@ -234,7 +234,7 @@ app-config:
     # secretKey - AWS secret key to be used with the accessKey
     # eventTypeToQueue - a map of the event type to the queue name messages are published to
     # NOTE: The SQS FIFO queues should be pre-created in AWS (Anchor Platform will not create them)
-    region: us-east-2
+    region: ${var.aws_region}
     useSingleQueue: false
     eventTypeToQueue:
       all: SQS_QUEUE_NAME # sdf_dev_ap_event_single_queue.fifo

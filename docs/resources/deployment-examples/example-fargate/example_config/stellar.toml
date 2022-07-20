@@ -18,8 +18,8 @@ anchor_asset_type = "fiat"
 desc = "A test USDC issued by Circle."
 
 [DOCUMENTATION]
-ORG_NAME = "Stellar Development Foundation"
+ORG_NAME = "your_org_name"
 ORG_URL = "https://your_org_url.png"
-ORG_DESCRIPTION = "Stellar Network"
-ORG_LOGO = "https://myorglogo.png"
-ORG_SUPPORT_EMAIL = "abcd@stellar.org"
+ORG_DESCRIPTION = "your_org_description"
+ORG_LOGO = "https://your_org_logo.png"
+ORG_SUPPORT_EMAIL = "email@your.org"

@@ -60,8 +60,6 @@ There are two ECS Clusters in this example.  The `SEP Service` runs in one clust
 
 <img width="971" alt="image" src="https://user-images.githubusercontent.com/98427531/179147580-b9da19ab-ea05-4a08-ad9a-868be8d3442b.png">
 
-There are two ECS Clusters in this example.  The `SEP Service` runs in one cluster to support the front end `SEP-31 protocol` service.  The `Reference Service` cluster hosts an example receiving anchor backend service.   Both services include a load-balancer which calles `/health` endpoints to determine listener target health. Both clusters are deployed in a `private subnet`. The `SEP Service` loadbalancer is deployed in a public subnet to enable public internet access. As a back-end service, the `Reference Service` loadbalancer is deployed in `private` subnet.
-
 # Task Definitions
 There are two task definitions for the `fargate deployment example`. The `SEP` task definition defines the SEP Service task that will be deployed to the `SEP Service` in the `SEP Cluster`. The `Reference` task definition defines the reference example service deployed in the `Reference Service` cluster.  Both the `Sep` and `Reference` task definitions have a container list with the `Stellar/Anchor-Platform` and a configuration sidecar container for deploying configuration.  
 
