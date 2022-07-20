@@ -278,6 +278,11 @@ public class Sep31Service {
       throw new BadRequestException("'id' is not provided");
     }
 
+    if (id.length() == 0) {
+      info("Empty transaction ID is not allowed");
+      throw new BadRequestException("'id' is empty");
+    }
+
     Sep31Transaction txn = sep31TransactionStore.findByTransactionId(id);
     if (txn == null) {
       infoF("Transaction ({}) not found", id);
@@ -543,7 +548,7 @@ public class Sep31Service {
                 .stellarTransactionId(txn.getStellarTransactionId())
                 .externalTransactionId(txn.getExternalTransactionId())
                 .refunded(txn.getRefunded())
-                // TODO: handle this post-mvp
+                // TODO: handle refund after mvp
                 // .refunds(txn.getRefunds())
                 .requiredInfoMessage(txn.getRequiredInfoMessage())
                 .requiredInfoUpdates(txn.getRequiredInfoUpdates())
