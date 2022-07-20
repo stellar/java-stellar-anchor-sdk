@@ -145,6 +145,10 @@ class PaymentOperationToEventListenerTest {
     sep31TxMock.status = SepTransactionStatus.PENDING_SENDER.toString()
     sep31TxMock.senderId = "76d834d4-6747-4095-a4de-e519f91f3f15"
     sep31TxMock.receiverId = "af5f9032-3e18-4ba4-8b4e-4220e237791b"
+    sep31TxMock.creator =
+      StellarId.builder()
+        .account("GBE4B7KE62NUBFLYT3BIG4OP5DAXBQX2GSZZOVAYXQKJKIU7P6V2R2N4")
+        .build()
 
     every { transactionStore.findByStellarMemo(capture(slotMemo)) } returns sep31TxMock
 
@@ -179,7 +183,11 @@ class PaymentOperationToEventListenerTest {
         .message("Incoming payment for SEP-31 transaction")
         .sourceAccount("76d834d4-6747-4095-a4de-e519f91f3f15")
         .destinationAccount("af5f9032-3e18-4ba4-8b4e-4220e237791b")
-        .creator(wantSenderStellarId)
+        .creator(
+          StellarId.builder()
+            .account("GBE4B7KE62NUBFLYT3BIG4OP5DAXBQX2GSZZOVAYXQKJKIU7P6V2R2N4")
+            .build()
+        )
         .customers(Customers(wantSenderStellarId, wantReceiverStellarId))
         .stellarTransactions(
           arrayOf(

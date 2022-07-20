@@ -201,7 +201,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
             .sourceAccount(txn.getSenderId())
             .destinationAccount(txn.getReceiverId())
             .customers(new Customers(senderStellarId, receiverStellarId))
-            .creator(senderStellarId)
+            .creator(txn.getCreator())
             .build();
     return event;
   }

@@ -113,6 +113,14 @@ public class Sep31Service {
     // Query the fee
     updateFee();
 
+    // Get the creator's stellarId
+    StellarId creatorStellarId =
+        StellarId.builder()
+            .account(Objects.requireNonNullElse(jwtToken.getMuxedAccount(), jwtToken.getAccount()))
+            .memo(jwtToken.getAccountMemo())
+            .memoType(jwtToken.getAccountMemo() == null ? null : "id")
+            .build();
+
     AssetInfo asset = Context.get().getAsset();
     Amount fee = Context.get().getFee();
     Sep31Transaction txn =
@@ -135,6 +143,7 @@ public class Sep31Service {
             .refunds(null)
             .senderId(Context.get().getRequest().getSenderId())
             .receiverId(Context.get().getRequest().getReceiverId())
+            .creator(creatorStellarId)
             // updateAmounts will update these ⬇️
             .amountIn(request.getAmount())
             .amountInAsset(assetInfo.getAssetName())
@@ -177,12 +186,7 @@ public class Sep31Service {
             .custodialTransactionId(null)
             .sourceAccount(request.getSenderId())
             .destinationAccount(request.getReceiverId())
-            .creator(
-                StellarId.builder()
-                    .account(txn.getStellarAccountId())
-                    .memo(txn.getStellarMemo())
-                    .memoType(txn.getStellarMemoType())
-                    .build())
+            .creator(creatorStellarId)
             .build();
     eventService.publish(event);
 

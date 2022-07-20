@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import org.stellar.anchor.api.sep.AssetInfo;
+import org.stellar.anchor.event.models.StellarId;
 
 public class Sep31TransactionBuilder {
   final Sep31Transaction txn;
@@ -137,6 +138,11 @@ public class Sep31TransactionBuilder {
 
   public Sep31TransactionBuilder receiverId(String receiverId) {
     txn.setReceiverId(receiverId);
+    return this;
+  }
+
+  public Sep31TransactionBuilder creator(StellarId creator) {
+    txn.setCreator(creator);
     return this;
   }
 
