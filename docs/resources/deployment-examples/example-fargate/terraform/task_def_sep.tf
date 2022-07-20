@@ -68,8 +68,8 @@ resource "aws_ecs_task_definition" "sep" {
         "valueFrom": data.aws_ssm_parameter.jwt_secret.arn
       },
       {
-        "name": "ANCHOR_TO_PLATFORM_SECRET",
-        "valueFrom": data.aws_ssm_parameter.anchor_to_platform_secret.arn
+        "name": "PLATFORM_TO_ANCHOR_SECRET",
+        "valueFrom": data.aws_ssm_parameter.platform_to_anchor_secret.arn
       }
    ]
 
