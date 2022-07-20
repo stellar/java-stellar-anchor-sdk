@@ -690,6 +690,9 @@ class Sep31ServiceTest {
 
   @Test
   fun test_postTransaction_quoteNotSupported() {
+    every { sep31DepositInfoGenerator.getSep31DepositInfo(any()) } returns
+      Sep31DepositInfo("GA7FYRB5VREZKOBIIKHG5AVTPFGWUBPOBF7LTYG4GTMFVIOOD2DWAL7I", "123456", "id")
+
     val assetServiceQuotesNotSupported: AssetService =
       ResourceJsonAssetService(
         "test_assets.json.quotes_not_supported",
@@ -742,8 +745,8 @@ class Sep31ServiceTest {
       Sep31PostTransactionResponse.builder()
         .id(gotResponse!!.id)
         .stellarAccountId("GA7FYRB5VREZKOBIIKHG5AVTPFGWUBPOBF7LTYG4GTMFVIOOD2DWAL7I")
-        .stellarMemo("")
-        .stellarMemoType("")
+        .stellarMemo("123456")
+        .stellarMemoType("id")
         .build()
     assertEquals(wantResponse, gotResponse)
   }

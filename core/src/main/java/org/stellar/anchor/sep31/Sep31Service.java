@@ -192,7 +192,7 @@ public class Sep31Service {
 
     return Sep31PostTransactionResponse.builder()
         .id(txn.getId())
-        .stellarAccountId(Context.get().getAsset().getDistributionAccount())
+        .stellarAccountId(txn.getStellarAccountId())
         .stellarMemo(txn.getStellarMemo())
         .stellarMemoType(txn.getStellarMemoType())
         .build();
