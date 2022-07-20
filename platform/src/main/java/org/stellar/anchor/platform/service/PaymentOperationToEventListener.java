@@ -198,8 +198,8 @@ public class PaymentOperationToEventListener implements PaymentListener {
                 })
             .externalTransactionId(payment.getExternalTransactionId())
             .custodialTransactionId(null)
-            .sourceAccount(txn.getSenderId())
-            .destinationAccount(txn.getReceiverId())
+            .sourceAccount(payment.getFrom())
+            .destinationAccount(payment.getTo())
             .customers(new Customers(senderStellarId, receiverStellarId))
             .creator(txn.getCreator())
             .build();

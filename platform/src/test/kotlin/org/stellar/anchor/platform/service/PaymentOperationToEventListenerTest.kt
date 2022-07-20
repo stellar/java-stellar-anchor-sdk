@@ -181,8 +181,8 @@ class PaymentOperationToEventListenerTest {
         .updatedAt(createdAt)
         .transferReceivedAt(createdAt)
         .message("Incoming payment for SEP-31 transaction")
-        .sourceAccount("76d834d4-6747-4095-a4de-e519f91f3f15")
-        .destinationAccount("af5f9032-3e18-4ba4-8b4e-4220e237791b")
+        .sourceAccount("GAJKV32ZXP5QLYHPCMLTV5QCMNJR3W6ZKFP6HMDN67EM2ULDHHDGEZYO")
+        .destinationAccount("GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364")
         .creator(
           StellarId.builder()
             .account("GBE4B7KE62NUBFLYT3BIG4OP5DAXBQX2GSZZOVAYXQKJKIU7P6V2R2N4")
