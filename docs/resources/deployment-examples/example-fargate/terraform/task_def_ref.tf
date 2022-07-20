@@ -73,6 +73,10 @@ resource "aws_ecs_task_definition" "ref" {
       {
         "name": "SQS_SECRET_KEY",
         "valueFrom": data.aws_ssm_parameter.sqs_secret_key.arn
+      },
+      {
+        "name": "PLATFORM_TO_ANCHOR_SECRET",
+        "valueFrom": data.aws_ssm_parameter.platform_to_anchor_secret.arn
       }
    ]
    portMappings = [{
