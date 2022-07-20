@@ -97,29 +97,36 @@ components:
             - transaction_created
             - transaction_status_changed
             - transaction_error
-          description:
-            transaction_created - a transaction was created via SEP31 ;
+          description: |
+            The transaction event type. Can be one of the following:
+            - `transaction_created` - a transaction was created via SEP31.<br />
+            - `transaction_status_changed` - a transaction status change happened. The detail of the status change is described in the `status_change` field.<br />
+            - `transaction_error` - error processing the transaction<br />
             
-            transaction_status_changed - a transaction status change happened. The detail of the status change is described in the `status_change` field.
-            
-            transaction_error - error processing the transaction
         id:
           type: string
+          description: "The id of the transaction."
         sep:
           type: integer
+          description: "The SEP for which this Transaction is. Currently, the only supported one is `31`."
           enum: [31]
         kind:
           type: string
+          description: "The kind of transaction event. Currently, the only supported one is `receive`."
           enum: ["receive"]
         status:
           type: string
+          description: |
+            The status of the transaction according with the latest Platform update. Currently, we're supporting all [SEP-31 states](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0031.md#get-transaction).
           enum: [
             "pending_sender",
             "pending_stellar",
             "pending_customer_info_update",
+            "pending_transaction_info_update",
             "pending_receiver",
             "pending_external",
             "completed",
+            "expired",
             "error"
           ]
         status_change:
@@ -134,6 +141,7 @@ components:
           $ref: '#/components/schemas/Amount'
         quote_id:
           type: string
+          description: "The id of the [SEP-38](https://stellar.org/protocol/sep-38) firm quote used for this transaction."
         started_at:
           type: string
           format: date-time
@@ -143,11 +151,14 @@ components:
         completed_at:
           type: string
           format: date-time
+          description: "When the transaction was marked as completed or when it was fully refunded."
         transfer_received_at:
           type: string
           format: date-time
+          description: "When the Stellar transaction related to this object was received."
         message:
           type: string
+          description: "This field may contain any clarifying message related to this Transaction."
         refunds:
           $ref: '#/components/schemas/Refunds'
         stellar_transactions:
@@ -156,16 +167,18 @@ components:
             $ref: '#/components/schemas/StellarTransaction'
         external_transaction_id:
           type: string
+          description: "The id of an external transaction triggered and handled by the Anchor Backend."
         custodial_transaction_id:
           type: string
         source_account:
           type: string
-          description: The SEP-12 user ID of the source account.
+          description: "The Stellar account who sent the payment that originated this event. Should be present if this event was originated from a payment."
         destination_account:
           type: string
-          description: The SEP-12 user ID of the destination account.
+          description: "The Stellar account who received the payment that originated this event. Should be present if this event was originated from a payment."
         customers:
           type: object
+          description: "This field should contain the `account+memo` of the sending and receiving customers created through [SEP-12](https://stellar.org/protocol/sep-12)."
           properties:
             sender:
               $ref: '#/components/schemas/StellarId'
