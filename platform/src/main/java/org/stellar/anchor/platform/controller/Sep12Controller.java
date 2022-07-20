@@ -12,13 +12,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.stellar.anchor.api.sep.sep12.*;
-import org.stellar.anchor.sep10.JwtToken;
+import org.stellar.anchor.auth.JwtToken;
+import org.stellar.anchor.platform.condition.ConditionalOnAllSepsEnabled;
 import org.stellar.anchor.sep12.Sep12Service;
 import org.stellar.anchor.util.GsonUtils;
 
 @RestController
 @CrossOrigin(origins = "*")
 @RequestMapping("/sep12")
+@ConditionalOnAllSepsEnabled(seps = {"sep12"})
 public class Sep12Controller {
   private final Sep12Service sep12Service;
 
@@ -40,13 +42,13 @@ public class Sep12Controller {
       @RequestParam(required = false, name = "memo_type") String memoType,
       @RequestParam(required = false) String lang) {
     debugF(
-            "GET /customer type={} id={} account={} memo={}, memoType={}, lang={}",
-            type,
-            id,
-            account,
-            memo,
-            memoType,
-            lang);
+        "GET /customer type={} id={} account={} memo={}, memoType={}, lang={}",
+        type,
+        id,
+        account,
+        memo,
+        memoType,
+        lang);
     JwtToken jwtToken = getSep10Token(request);
     Sep12GetCustomerRequest getCustomerRequest =
         Sep12GetCustomerRequest.builder()
@@ -70,8 +72,7 @@ public class Sep12Controller {
       method = {RequestMethod.PUT})
   public Sep12PutCustomerResponse putCustomer(
       HttpServletRequest request, @RequestBody Sep12PutCustomerRequest putCustomerRequest) {
-    debug(
-            "PUT /customer details:", putCustomerRequest);
+    debug("PUT /customer details:", putCustomerRequest);
     JwtToken jwtToken = getSep10Token(request);
     return sep12Service.putCustomer(jwtToken, putCustomerRequest);
   }
@@ -84,8 +85,7 @@ public class Sep12Controller {
       method = {RequestMethod.POST, RequestMethod.PUT},
       consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
   public Sep12PutCustomerResponse putCustomerMultipart(HttpServletRequest request) {
-    debug(
-            "PUT /customer multipart details:", request);
+    debug("PUT /customer multipart body:", request.getParameterMap());
     Gson gson = GsonUtils.getInstance();
     Map<String, String> requestData = new HashMap<>();
     for (Map.Entry<String, String[]> entry : request.getParameterMap().entrySet()) {
@@ -103,6 +103,7 @@ public class Sep12Controller {
       value = "/customer/{account}",
       consumes = {MediaType.APPLICATION_JSON_VALUE},
       method = {RequestMethod.DELETE})
+  @ResponseStatus(code = HttpStatus.OK)
   public void deleteCustomer(
       HttpServletRequest request,
       @PathVariable String account,
@@ -111,7 +112,10 @@ public class Sep12Controller {
     String memo = body != null ? body.getMemo() : null;
     String memoType = body != null ? body.getMemoType() : null;
     debugF(
-            "DELETE /customer request={} account={} body={}", request, account, body);
+        "DELETE /customer requestURI={} account={} body={}",
+        request.getRequestURI(),
+        account,
+        body);
     sep12Service.deleteCustomer(jwtToken, account, memo, memoType);
   }
 
@@ -121,14 +125,14 @@ public class Sep12Controller {
       value = "/customer/{account}",
       consumes = {MediaType.APPLICATION_FORM_URLENCODED_VALUE, MediaType.MULTIPART_FORM_DATA_VALUE},
       method = {RequestMethod.DELETE})
+  @ResponseStatus(code = HttpStatus.OK)
   public void deleteCustomer(
       HttpServletRequest request,
       @PathVariable String account,
       @RequestParam(required = false) String memo,
       @RequestParam(required = false, name = "memo_type") String memoType) {
     JwtToken jwtToken = getSep10Token(request);
-    debugF(
-            "DELETE /customer request={} account={}", request, account);
+    debugF("DELETE /customer requestURI={} account={}", request.getRequestURI(), account);
     sep12Service.deleteCustomer(jwtToken, account, memo, memoType);
   }
 }

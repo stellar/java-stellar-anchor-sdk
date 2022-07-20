@@ -2,6 +2,7 @@ package org.stellar.anchor.util;
 
 import static org.stellar.anchor.api.sep.SepTransactionStatus.*;
 import static org.stellar.anchor.util.MathHelper.decimal;
+import static org.stellar.sdk.xdr.MemoType.*;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -9,9 +10,8 @@ import java.util.Objects;
 import java.util.UUID;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
-import org.stellar.anchor.api.exception.SepValidationException;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
-import org.stellar.anchor.config.AppConfig;
+import org.stellar.sdk.*;
 import org.stellar.sdk.xdr.MemoType;
 
 public class SepHelper {
@@ -72,18 +72,6 @@ public class SepHelper {
     }
   }
 
-  public static void validateLanguage(AppConfig appConfig, String lang)
-      throws SepValidationException {
-    if (lang != null) {
-      List<String> languages = appConfig.getLanguages();
-      if (languages != null && languages.size() > 0) {
-        if (languages.stream().noneMatch(l -> l.equalsIgnoreCase(lang))) {
-          throw new SepValidationException(String.format("unsupported language: %s", lang));
-        }
-      }
-    }
-  }
-
   /**
    * Checks if the status is valid in a SEP.
    *
@@ -92,7 +80,7 @@ public class SepHelper {
    * @return true, if valid. Otherwise false
    */
   public static boolean validateTransactionStatus(String status, int sep) {
-    for (SepTransactionStatus transactionStatus : values()) {
+    for (SepTransactionStatus transactionStatus : SepTransactionStatus.values()) {
       if (transactionStatus.getName().equals(status)) {
         return validateTransactionStatus(transactionStatus, sep);
       }

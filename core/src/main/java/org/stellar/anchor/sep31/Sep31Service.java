@@ -6,6 +6,7 @@ import static org.stellar.anchor.util.Log.*;
 import static org.stellar.anchor.util.MathHelper.decimal;
 import static org.stellar.anchor.util.MathHelper.formatAmount;
 import static org.stellar.anchor.util.SepHelper.*;
+import static org.stellar.anchor.util.SepLanguageHelper.validateLanguage;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -18,6 +19,7 @@ import org.stellar.anchor.api.callback.FeeIntegration;
 import org.stellar.anchor.api.callback.GetFeeRequest;
 import org.stellar.anchor.api.exception.*;
 import org.stellar.anchor.api.sep.AssetInfo;
+import org.stellar.anchor.api.sep.AssetInfo.Sep12Operation;
 import org.stellar.anchor.api.sep.AssetInfo.Sep31TxnFieldSpecs;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerRequest;
@@ -26,14 +28,15 @@ import org.stellar.anchor.api.sep.sep31.*;
 import org.stellar.anchor.api.sep.sep31.Sep31GetTransactionResponse.TransactionResponse;
 import org.stellar.anchor.api.shared.Amount;
 import org.stellar.anchor.asset.AssetService;
+import org.stellar.anchor.auth.JwtToken;
 import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.Sep31Config;
 import org.stellar.anchor.event.EventPublishService;
 import org.stellar.anchor.event.models.StellarId;
 import org.stellar.anchor.event.models.TransactionEvent;
-import org.stellar.anchor.sep10.JwtToken;
 import org.stellar.anchor.sep38.Sep38Quote;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
+import org.stellar.anchor.util.Log;
 
 public class Sep31Service {
   private final AppConfig appConfig;
@@ -57,6 +60,8 @@ public class Sep31Service {
       FeeIntegration feeIntegration,
       CustomerIntegration customerIntegration,
       EventPublishService eventService) {
+    debug("appConfig:", appConfig);
+    debug("sep31Config:", sep31Config);
     this.appConfig = appConfig;
     this.sep31Config = sep31Config;
     this.sep31TransactionStore = sep31TransactionStore;
@@ -67,6 +72,7 @@ public class Sep31Service {
     this.customerIntegration = customerIntegration;
     this.eventService = eventService;
     this.infoResponse = createFromAssets(assetService.listAllAssets());
+    Log.info("Sep31Service initialized.");
   }
 
   public Sep31InfoResponse getInfo() {
@@ -87,16 +93,20 @@ public class Sep31Service {
           String.format(
               "asset %s:%s is not supported.", request.getAssetCode(), request.getAssetIssuer()));
     }
-    Context.get().setAsset(assetInfo);
 
     // Pre-validation
     validateAmount(request.getAmount());
     validateLanguage(appConfig, request.getLang());
     if (request.getFields() == null) {
-      infoF("POST /transaction with id ({}) cannot have empty `fields`", jwtToken.getTransactionId());
+      infoF(
+          "POST /transaction with id ({}) cannot have empty `fields`", jwtToken.getTransactionId());
       throw new BadRequestException("'fields' field cannot be empty");
     }
-    validateRequiredFields(assetInfo.getCode(), request.getFields().getTransaction());
+
+    Context.get().setAsset(assetInfo);
+    Context.get().setTransactionFields(request.getFields().getTransaction());
+
+    validateRequiredFields();
     validateSenderAndReceiver();
     preValidateQuote();
 
@@ -123,6 +133,8 @@ public class Sep31Service {
             .fields(request.getFields().getTransaction())
             .refunded(null)
             .refunds(null)
+            .senderId(Context.get().getRequest().getSenderId())
+            .receiverId(Context.get().getRequest().getReceiverId())
             // updateAmounts will update these ⬇️
             .amountIn(request.getAmount())
             .amountInAsset(assetInfo.getAssetName())
@@ -199,10 +211,7 @@ public class Sep31Service {
     }
 
     Sep31Transaction txn = Context.get().getTransaction();
-    debugF("Updating transaction ({}) with quote ({})",
-            txn.getId(),
-            quote.getId()
-    );
+    debugF("Updating transaction ({}) with quote ({})", txn.getId(), quote.getId());
     txn.setAmountInAsset(quote.getSellAsset());
     txn.setAmountIn(quote.getSellAmount());
     txn.setAmountOutAsset(quote.getBuyAsset());
@@ -233,11 +242,7 @@ public class Sep31Service {
       amountIn = reqAmount.add(fee);
       amountOut = reqAmount;
     }
-    debugF("Updating transaction ({}) with fee ({}) - reqAsset ({})",
-            txn.getId(),
-            fee,
-            reqAsset
-    );
+    debugF("Updating transaction ({}) with fee ({}) - reqAsset ({})", txn.getId(), fee, reqAsset);
 
     // Update transaction
     txn.setAmountIn(formatAmount(amountIn, scale));
@@ -300,7 +305,10 @@ public class Sep31Service {
         .getTransaction()
         .forEach((fieldName, fieldValue) -> txn.getFields().put(fieldName, fieldValue));
 
-    validateRequiredFields(txn.getAmountInAsset(), txn.getFields());
+    AssetInfo assetInfo = assetService.getAsset(txn.getAmountInAsset());
+    Context.get().setAsset(assetInfo);
+    Context.get().setTransactionFields(txn.getFields());
+    validateRequiredFields();
 
     Sep31Transaction savedTxn = sep31TransactionStore.save(txn);
 
@@ -327,9 +335,16 @@ public class Sep31Service {
 
   void preValidateQuote() throws AnchorException {
     Sep31PostTransactionRequest request = Context.get().getRequest();
+    AssetInfo assetInfo = Context.get().getAsset();
+    boolean isQuotesRequired = assetInfo.getSep31().isQuotesRequired();
+    boolean isQuotesSupported = assetInfo.getSep31().isQuotesSupported();
+
+    if (isQuotesRequired && request.getQuoteId() == null) {
+      throw new BadRequestException("quotes_required is set to true; quote id cannot be empty");
+    }
 
     // Check if quote is provided.
-    if (request.getQuoteId() == null) {
+    if (!isQuotesSupported || request.getQuoteId() == null) {
       return;
     }
 
@@ -342,10 +357,11 @@ public class Sep31Service {
 
     // Check quote amounts: `post_transaction.amount == quote.sell_amount`
     if (!amountEquals(request.getAmount(), quote.getSellAmount())) {
-      infoF("Quote ({}) - sellAmount ({}) is different from the SEP-31 transaction amount ({})",
-              request.getQuoteId(),
-              quote.getSellAmount(),
-              request.getAmount());
+      infoF(
+          "Quote ({}) - sellAmount ({}) is different from the SEP-31 transaction amount ({})",
+          request.getQuoteId(),
+          quote.getSellAmount(),
+          request.getAmount());
       throw new BadRequestException(
           String.format(
               "Quote sell amount [%s] is different from the SEP-31 transaction amount [%s]",
@@ -356,10 +372,11 @@ public class Sep31Service {
     String assetName =
         assetService.getAsset(request.getAssetCode(), request.getAssetIssuer()).getAssetName();
     if (!assetName.equals(quote.getSellAsset())) {
-      infoF("Quote ({}) - sellAsset ({}) is different from the SEP-31 transaction asset ({})",
-              request.getQuoteId(),
-              quote.getSellAsset(),
-              assetName);
+      infoF(
+          "Quote ({}) - sellAsset ({}) is different from the SEP-31 transaction asset ({})",
+          request.getQuoteId(),
+          quote.getSellAsset(),
+          assetName);
       throw new BadRequestException(
           String.format(
               "Quote sell asset [%s] is different from the SEP-31 transaction asset [%s]",
@@ -399,7 +416,7 @@ public class Sep31Service {
                     .receiveAmount(null)
                     .senderId(request.getSenderId())
                     .receiverId(request.getReceiverId())
-                    .clientDomain(token.getClientDomain())
+                    .clientId(token.getAccount())
                     .build())
             .getFee();
     infoF("Fee for request ({}) is ({})", request, fee);
@@ -413,7 +430,17 @@ public class Sep31Service {
       throw new BadRequestException("receiver_id cannot be empty.");
     }
 
-    Sep12GetCustomerRequest request = Sep12GetCustomerRequest.builder().id(receiverId).build();
+    // TODO: Populate customer type with the first receiver type; this is a temporary fix for cases
+    // where customerType is required
+    Sep12Operation sep12Operation = Context.get().getAsset().getSep31().getSep12();
+    String receiverType = null;
+    if (sep12Operation != null) {
+      Optional<String> receiverTypeOptional =
+          sep12Operation.getReceiver().getTypes().keySet().stream().findFirst();
+      receiverType = receiverTypeOptional.isPresent() ? receiverTypeOptional.get() : null;
+    }
+    Sep12GetCustomerRequest request =
+        Sep12GetCustomerRequest.builder().id(receiverId).type(receiverType).build();
     Sep12GetCustomerResponse receiver = this.customerIntegration.getCustomer(request);
     if (receiver == null) {
       infoF("Customer (receiver) info needed for request ({})", Context.get().getRequest());
@@ -426,7 +453,16 @@ public class Sep31Service {
       throw new BadRequestException("sender_id cannot be empty.");
     }
 
-    request = Sep12GetCustomerRequest.builder().id(senderId).build();
+    // TODO: Populate customer type with the first sender type; this is a temporary fix for cases
+    // where customerType is required
+    String senderType = null;
+    if (sep12Operation != null) {
+      Optional<String> senderTypeOptional =
+          Context.get().getAsset().getSep31().getSep12().getSender().getTypes().keySet().stream()
+              .findFirst();
+      senderType = senderTypeOptional.isPresent() ? senderTypeOptional.get() : null;
+    }
+    request = Sep12GetCustomerRequest.builder().id(senderId).type(senderType).build();
     Sep12GetCustomerResponse sender = this.customerIntegration.getCustomer(request);
     if (sender == null) {
       infoF("Customer (sender) info needed for request ({})", Context.get().getRequest());
@@ -434,9 +470,13 @@ public class Sep31Service {
     }
   }
 
-  void validateRequiredFields(String assetCode, Map<String, String> fields) throws AnchorException {
+  void validateRequiredFields() throws AnchorException {
+    String assetCode = Context.get().getAsset().getCode();
+    Map<String, String> fields = Context.get().getTransactionFields();
     if (fields == null) {
-      infoF("'fields' field must have one 'transaction' field for request ({})", Context.get().getRequest());
+      infoF(
+          "'fields' field must have one 'transaction' field for request ({})",
+          Context.get().getRequest());
       throw new BadRequestException("'fields' field must have one 'transaction' field");
     }
 
@@ -465,7 +505,10 @@ public class Sep31Service {
     sep31MissingTxnFields.setTransaction(missingFields);
 
     if (missingFields.size() > 0) {
-      infoF("Missing SEP-31 fields ({}) for request ({})", sep31MissingTxnFields, Context.get().getRequest());
+      infoF(
+          "Missing SEP-31 fields ({}) for request ({})",
+          sep31MissingTxnFields,
+          Context.get().getRequest());
       throw new Sep31MissingFieldException(sep31MissingTxnFields);
     }
   }
@@ -505,9 +548,15 @@ public class Sep31Service {
     response.setReceive(new HashMap<>());
     for (AssetInfo assetInfo : assetInfos) {
       if (assetInfo.getSep31Enabled()) {
+        boolean isQuotesSupported = assetInfo.getSep31().isQuotesSupported();
+        boolean isQuotesRequired = assetInfo.getSep31().isQuotesRequired();
+        if (isQuotesRequired == true && isQuotesSupported == false) {
+          throw new SepValidationException(
+              "if quotes_required is true, quotes_supported must also be true");
+        }
         AssetResponse assetResponse = new AssetResponse();
-        assetResponse.setQuotesSupported(assetInfo.getSep31().isQuotesSupported());
-        assetResponse.setQuotesRequired(assetInfo.getSep31().isQuotesRequired());
+        assetResponse.setQuotesSupported(isQuotesSupported);
+        assetResponse.setQuotesRequired(isQuotesRequired);
         assetResponse.setFeeFixed(assetInfo.getSend().getFeeFixed());
         assetResponse.setFeePercent(assetInfo.getSend().getFeePercent());
         assetResponse.setMinAmount(assetInfo.getSend().getMinAmount());
@@ -529,6 +578,7 @@ public class Sep31Service {
     JwtToken jwtToken;
     Amount fee;
     AssetInfo asset;
+    Map<String, String> transactionFields;
     static ThreadLocal<Context> context = new ThreadLocal<>();
 
     public static Context get() {

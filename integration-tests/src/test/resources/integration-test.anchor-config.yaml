@@ -26,10 +26,16 @@ app-config:
     assets: assets-test.json
     jwtSecretKey: secret
 
+  integration-auth:
+    authType: JWT_TOKEN
+    platformToAnchorSecret: myPlatformToAnchorSecret
+    anchorToPlatformSecret: myAnchorToPlatformSecret
+    expirationMilliseconds: 30000
+
   # sep-1
   sep1:
     enabled: true
-    stellarFile: sep1/stellar-wks.toml
+    stellarFile: classpath:/sep1/test-stellar.toml
 
   # sep-10
   sep10:
@@ -52,7 +58,7 @@ app-config:
     enabled: true
     interactiveJwtExpiration: 3600
     interactiveUrl: http://localhost:8081/sep24/interactive
-    
+
   # sep-31
   sep31:
     enabled: true
@@ -104,8 +110,18 @@ app-config:
     trackedWallet: all
 
   event:
+    # If enabled, publish Events to a queue (publisherType)
+    # publisherType - the type of queue to use for event publishing
+    # currently supported publisherType values: kafka, sqs
     enabled: true
-    kafkaBootstrapServer: localhost:29092
+    publisherType: kafka
+
+  kafka.publisher:
+    # kafkaBootstrapServer - the Kafka server used to bootstrap setup
+    # If useSingleQueue, all events are published to a single queue
+    #   (specified in eventTypeToQueue.all)
+    # eventTypeToQueue - a map of the event type to the queue name messages are published to
+    bootstrapServer: localhost:29092
     useSingleQueue: false
     eventTypeToQueue:
       all: ap_event_single_queue
@@ -113,6 +129,8 @@ app-config:
       transaction_created: ap_event_transaction_created
       transaction_status_changed: ap_event_transaction_status_changed
       transaction_error: ap_event_transaction_error
+
+
 
 #
 # Spring Data JDBC settings

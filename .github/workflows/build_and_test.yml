@@ -53,13 +53,13 @@ jobs:
       uses: docker/build-push-action@7f9d37fa544684fb73bfe4835ed7214c255ce02b
       with:
         push: true
-        tags: stellar/anchor-platform:${{ steps.get_tag.outputs.TAG }}
+        tags: stellar/anchor-platform:${{ steps.get_tag.outputs.TAG }},stellar/anchor-platform:latest
         file: Dockerfile
 
   sep_validation_suite:
     needs: [build_and_test]
     runs-on: ubuntu-latest
-    name: Validate SEPs (1, 10, 12, 31)
+    name: Validate SEPs (1, 10, 12, 31, 38)
     env:
       PR_NUMBER: ${{github.event.pull_request.number}}
     steps:
@@ -87,7 +87,7 @@ jobs:
           HOME_DOMAIN: ${{ steps.endpoint-finder.outputs.HOME_DOMAIN }}
         run: |
           npm install -g @stellar/anchor-tests
-          stellar-anchor-tests --home-domain $HOME_DOMAIN --seps 1 10 12 31 --sep-config platform/src/test/resources/stellar-anchor-tests-sep-config.json
+          stellar-anchor-tests --home-domain $HOME_DOMAIN --seps 1 10 12 31 38 --sep-config platform/src/test/resources/stellar-anchor-tests-sep-config.json
 
   complete:
     needs: [build_and_test, sep_validation_suite]

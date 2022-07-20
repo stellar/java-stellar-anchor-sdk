@@ -1,13 +1,14 @@
 package org.stellar.anchor.platform
 
 import org.apache.commons.cli.*
-import org.stellar.anchor.sep10.JwtService
-import org.stellar.anchor.sep10.JwtToken
+import org.stellar.anchor.auth.JwtService
+import org.stellar.anchor.auth.JwtToken
 import org.stellar.anchor.util.Sep1Helper
 import org.stellar.anchor.util.Sep1Helper.TomlContent
 
-var CLIENT_WALLET_ACCOUNT = "GAIUIZPHLIHQEMNJGSZKCEUWHAZVGUZDBDMO2JXNAJZZZVNSVHQCEWJ4"
-var CLIENT_WALLET_SECRET = "SAXKNDNU4FE2PCM5SOUXNXIQ7ZLCQMRZMMQAC2SIKZH7BAHQTTOLTIHW"
+var CLIENT_WALLET_ACCOUNT = "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+var CLIENT_WALLET_SECRET = "SBHTWEF5U7FK53FLGDMBQYGXRUJ24VBM3M6VDXCHRIGCRG3Z64PH45LW"
+
 var jwt: String? = null
 val jwtService = JwtService("secret")
 

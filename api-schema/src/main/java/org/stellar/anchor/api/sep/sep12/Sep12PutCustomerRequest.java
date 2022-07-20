@@ -1,6 +1,7 @@
 package org.stellar.anchor.api.sep.sep12;
 
 import com.google.gson.annotations.SerializedName;
+import lombok.Builder;
 import lombok.Data;
 
 /**
@@ -9,7 +10,8 @@ import lombok.Data;
  * <p>https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0012.md#request-1
  */
 @Data
-public class Sep12PutCustomerRequest {
+@Builder
+public class Sep12PutCustomerRequest implements Sep12CustomerRequestBase {
   String id;
   String account;
   String memo;
@@ -67,6 +69,9 @@ public class Sep12PutCustomerRequest {
 
   @SerializedName("bank_branch_number")
   String bankBranchNumber;
+
+  @SerializedName("clabe_number")
+  String clabeNumber;
 
   @SerializedName("tax_id")
   String taxId;

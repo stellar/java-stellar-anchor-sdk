@@ -37,5 +37,8 @@
       "receiver_routing_number": "456",
       "type": "SWIFT"
     }
+  },
+  "38": {
+    "contexts": ["sep31"]
   }
 }

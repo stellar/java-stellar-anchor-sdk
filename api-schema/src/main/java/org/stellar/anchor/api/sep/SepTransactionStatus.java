@@ -18,6 +18,7 @@ public enum SepTransactionStatus {
   PENDING_CUSTOMER_INFO_UPDATE(
       "pending_customer_info_update", "waiting for more transaction information"),
   COMPLETED("completed", "complete"),
+  REFUNDED("refunded", "the deposit/withdrawal is fully refunded"),
   ERROR("error", "error"),
   PENDING_EXTERNAL("pending_external", "waiting on an external entity"),
   PENDING_STELLAR("pending_stellar", "stellar is executing the transaction");

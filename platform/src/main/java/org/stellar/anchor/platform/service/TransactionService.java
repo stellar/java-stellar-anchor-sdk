@@ -5,6 +5,7 @@ import static org.stellar.anchor.sep31.Sep31Helper.allAmountAvailable;
 import static org.stellar.anchor.sep31.Sep31Helper.validateStatus;
 import static org.stellar.anchor.util.MathHelper.decimal;
 
+import io.micrometer.core.instrument.Metrics;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -75,14 +76,19 @@ public class TransactionService {
 
     List<JdbcSep31Transaction> txnsToSave = new LinkedList<>();
     List<GetTransactionResponse> responses = new LinkedList<>();
+    List<JdbcSep31Transaction> statusUpdatedTxns = new LinkedList<>();
 
     for (PatchTransactionRequest patch : patchRequests) {
       JdbcSep31Transaction txn = (JdbcSep31Transaction) sep31Transactions.get(patch.getId());
       if (txn != null) {
+        String txnOriginalStatus = txn.getStatus();
         // validate and update the transaction.
         updateSep31Transaction(patch, txn);
         // Add them to the to-be-updated lists.
         txnsToSave.add(txn);
+        if (!txnOriginalStatus.equals(txn.getStatus())) {
+          statusUpdatedTxns.add(txn);
+        }
         responses.add(fromTransactionToResponse(txn));
       } else {
         throw new BadRequestException(String.format("transaction(id=%s) not found", patch.getId()));
@@ -91,6 +97,10 @@ public class TransactionService {
     for (JdbcSep31Transaction txn : txnsToSave) {
       // TODO: consider 2-phase commit DB transaction management.
       txnStore.save(txn);
+    }
+    for (JdbcSep31Transaction txn : statusUpdatedTxns) {
+      Metrics.counter(AnchorMetrics.SEP31_TRANSACTION.toString(), "status", txn.getStatus())
+          .increment();
     }
     return new PatchTransactionsResponse(responses);
   }

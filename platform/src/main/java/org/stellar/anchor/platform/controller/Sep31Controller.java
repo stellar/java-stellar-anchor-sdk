@@ -11,13 +11,16 @@ import org.springframework.web.bind.annotation.*;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.sep.AssetInfo.Sep31TxnFieldSpecs;
 import org.stellar.anchor.api.sep.sep31.*;
-import org.stellar.anchor.sep10.JwtToken;
+import org.stellar.anchor.auth.JwtToken;
+import org.stellar.anchor.platform.condition.ConditionalOnAllSepsEnabled;
 import org.stellar.anchor.sep31.Sep31Service;
 import org.stellar.anchor.sep31.Sep31Service.Sep31CustomerInfoNeededException;
 import org.stellar.anchor.sep31.Sep31Service.Sep31MissingFieldException;
 
 @RestController
+@CrossOrigin(origins = "*")
 @RequestMapping("sep31")
+@ConditionalOnAllSepsEnabled(seps = {"sep31"})
 public class Sep31Controller {
   private final Sep31Service sep31Service;
 
@@ -44,8 +47,7 @@ public class Sep31Controller {
       HttpServletRequest servletRequest, @RequestBody Sep31PostTransactionRequest request)
       throws AnchorException {
     JwtToken jwtToken = getSep10Token(servletRequest);
-    debugF(
-            "POST /transactions request={}", request);
+    debugF("POST /transactions request={}", request);
     return sep31Service.postTransaction(jwtToken, request);
   }
 
@@ -58,8 +60,7 @@ public class Sep31Controller {
       HttpServletRequest servletRequest, @PathVariable(name = "id") String txnId)
       throws AnchorException {
     JwtToken jwtToken = getSep10Token(servletRequest);
-    debugF(
-            "GET /transactions id={}", txnId);
+    debugF("GET /transactions id={}", txnId);
     return sep31Service.getTransaction(txnId);
   }
 
@@ -74,8 +75,7 @@ public class Sep31Controller {
       @RequestBody Sep31PatchTransactionRequest request)
       throws AnchorException {
     JwtToken jwtToken = getSep10Token(servletRequest);
-    debugF(
-            "PATCH /transactions id={} request={}", txnId, request);
+    debugF("PATCH /transactions id={} request={}", txnId, request);
     return sep31Service.patchTransaction(request);
   }
 

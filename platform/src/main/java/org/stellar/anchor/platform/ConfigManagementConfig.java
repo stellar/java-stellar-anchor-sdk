@@ -21,6 +21,12 @@ public class ConfigManagementConfig {
   }
 
   @Bean
+  @ConfigurationProperties(prefix = "integration-auth")
+  IntegrationAuthConfig integrationAuthConfig() {
+    return new PropertyIntegrationAuthConfig();
+  }
+
+  @Bean
   @ConfigurationProperties(prefix = "sep1")
   Sep1Config sep1Config() {
     return new PropertySep1Config();
@@ -90,5 +96,11 @@ public class ConfigManagementConfig {
   @ConfigurationProperties(prefix = "sqs.publisher")
   SqsConfig sqsConfig() {
     return new PropertySqsConfig();
+  }
+
+  @Bean
+  @ConfigurationProperties(prefix = "metrics-service")
+  MetricConfig metricConfig() {
+    return new PropertyMetricConfig();
   }
 }

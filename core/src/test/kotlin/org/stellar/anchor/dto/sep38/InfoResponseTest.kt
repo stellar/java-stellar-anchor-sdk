@@ -27,7 +27,7 @@ class InfoResponseTest {
     assertEquals(3, assetMap.size)
 
     val stellarUSDC =
-      assetMap["stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"]
+      assetMap["stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"]
     assertNotNull(stellarUSDC)
     assertNull(stellarUSDC!!.countryCodes)
     assertNull(stellarUSDC.sellDeliveryMethods)
@@ -44,7 +44,7 @@ class InfoResponseTest {
     assertNull(stellarJPYC.sellDeliveryMethods)
     assertNull(stellarJPYC.buyDeliveryMethods)
     wantAssets =
-      listOf("iso4217:USD", "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5")
+      listOf("iso4217:USD", "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP")
     assertTrue(stellarJPYC.exchangeableAssetNames.containsAll(wantAssets))
     assertTrue(wantAssets.containsAll(stellarJPYC.exchangeableAssetNames))
 
@@ -66,7 +66,7 @@ class InfoResponseTest {
     wantAssets =
       listOf(
         "stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
-        "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+        "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
       )
     assertTrue(fiatUSD.exchangeableAssetNames.containsAll(wantAssets))
     assertTrue(wantAssets.containsAll(fiatUSD.exchangeableAssetNames))
