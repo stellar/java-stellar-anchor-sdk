@@ -82,9 +82,7 @@ app-config:
     enabled: true
     quoteIntegrationEndPoint: http://localhost:8081
 
-  circle:
-    circleUrl: https://api-sandbox.circle.com
-    apiKey: secret # circle API key
+
 
   payment-gateway:
     #

@@ -196,10 +196,6 @@ app-config:
     # The callback API endpoint.
     quoteIntegrationEndPoint: http://localhost:8081
 
-  circle:
-    circleUrl: https://api-sandbox.circle.com
-    apiKey: ${CIRCLE_API_KEY} # circle API key
-
   payment-gateway:
     #
     # Payment Circle configurations
