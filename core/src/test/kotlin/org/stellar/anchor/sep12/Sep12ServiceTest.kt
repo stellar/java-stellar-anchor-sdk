@@ -186,16 +186,17 @@ class Sep12ServiceTest {
   @Test
   fun test_putCustomer() {
     // mock customer store
-    val sep12CustomerId = slot<Sep12CustomerId>()
-    every { customerStore.save(capture(sep12CustomerId)) } returns mockk(relaxed = true)
+    val savedSep12CustomerId = slot<Sep12CustomerId>()
+    every { customerStore.save(capture(savedSep12CustomerId)) } returns mockk(relaxed = true)
     every { customerStore.newInstance() } returns PojoSep12CustomerId()
     every { customerStore.findById("customer-id") } returns null
 
     // mock `PUT {callbackApi}/customer` response
-    val putRequestSlot = slot<Sep12PutCustomerRequest>()
-    val mockCustomerResponse = Sep12PutCustomerResponse()
-    mockCustomerResponse.id = "customer-id"
-    every { customerIntegration.putCustomer(capture(putRequestSlot)) } returns mockCustomerResponse
+    val callbackApiPutRequestSlot = slot<Sep12PutCustomerRequest>()
+    val mockCallbackApiPutCustomerResponse = Sep12PutCustomerResponse()
+    mockCallbackApiPutCustomerResponse.id = "customer-id"
+    every { customerIntegration.putCustomer(capture(callbackApiPutRequestSlot)) } returns
+      mockCallbackApiPutCustomerResponse
 
     // Execute the request
     val mockPutRequest =
@@ -213,7 +214,7 @@ class Sep12ServiceTest {
     }
 
     // validate the request
-    val wantPutRequest =
+    val wantCallbackApiPutRequest =
       Sep12PutCustomerRequest.builder()
         .account(TEST_ACCOUNT)
         .memo(TEST_MEMO)
@@ -221,33 +222,34 @@ class Sep12ServiceTest {
         .type("sending_user")
         .firstName("John")
         .build()
-    assertEquals(wantPutRequest, putRequestSlot.captured)
+    assertEquals(wantCallbackApiPutRequest, callbackApiPutRequestSlot.captured)
 
     // validate the response
     verify(exactly = 1) { customerIntegration.putCustomer(any()) }
     assertEquals(TEST_ACCOUNT, mockPutRequest.account)
-    assertEquals(mockCustomerResponse, sep12PutCustomerResponse1)
+    assertEquals(mockCallbackApiPutCustomerResponse, sep12PutCustomerResponse1)
 
     // assert that a new customer was created in the database
     verify(exactly = 1) { customerStore.findById("customer-id") }
     verify(exactly = 1) { customerStore.save(any()) }
-    val wantSep12Customer =
+    val wantSavedSep12Customer =
       Sep12CustomerBuilder(customerStore)
         .id("customer-id")
         .account(TEST_ACCOUNT)
         .memo(TEST_MEMO)
         .memoType("id")
         .build()
-    assertEquals(wantSep12Customer, sep12CustomerId.captured)
+    assertEquals(wantSavedSep12Customer, savedSep12CustomerId.captured)
 
     // assert that if a customer already exists and it doesn't need to be updated, we won't call
     // the save method.
-    every { customerStore.findById("customer-id") } returns wantSep12Customer
+    every { customerStore.findById("customer-id") } returns wantSavedSep12Customer
     var sep12PutCustomerResponse2: Sep12PutCustomerResponse? = null
     assertDoesNotThrow {
       sep12PutCustomerResponse2 = sep12Service.putCustomer(jwtToken, mockPutRequest)
     }
     assertEquals(sep12PutCustomerResponse1, sep12PutCustomerResponse2)
+    verify(exactly = 2) { customerIntegration.putCustomer(any()) }
     verify(exactly = 2) { customerStore.findById("customer-id") }
     verify(exactly = 1) { customerStore.save(any()) }
   }
@@ -255,20 +257,21 @@ class Sep12ServiceTest {
   @Test
   fun test_getCustomer() {
     // mock customer store
-    val sep12CustomerId = slot<Sep12CustomerId>()
-    every { customerStore.save(capture(sep12CustomerId)) } returns mockk(relaxed = true)
+    var savedSep12CustomerId = slot<Sep12CustomerId>()
+    every { customerStore.save(capture(savedSep12CustomerId)) } returns mockk(relaxed = true)
     every { customerStore.newInstance() } returns PojoSep12CustomerId()
     every { customerStore.findById("customer-id") } returns null
 
     // mock `GET {callbackApi}/customer` response
-    val getRequestSlot = slot<Sep12GetCustomerRequest>()
-    val mockCustomerResponse = Sep12GetCustomerResponse()
-    mockCustomerResponse.id = "customer-id"
-    mockCustomerResponse.status = Sep12Status.ACCEPTED
-    mockCustomerResponse.fields = mockFields
-    mockCustomerResponse.providedFields = mockProvidedFields
-    mockCustomerResponse.message = "foo bar"
-    every { customerIntegration.getCustomer(capture(getRequestSlot)) } returns mockCustomerResponse
+    val callbackApiGetRequestSlot = slot<Sep12GetCustomerRequest>()
+    val mockCallbackApiGetCustomerResponse = Sep12GetCustomerResponse()
+    mockCallbackApiGetCustomerResponse.id = "customer-id"
+    mockCallbackApiGetCustomerResponse.status = Sep12Status.ACCEPTED
+    mockCallbackApiGetCustomerResponse.fields = mockFields
+    mockCallbackApiGetCustomerResponse.providedFields = mockProvidedFields
+    mockCallbackApiGetCustomerResponse.message = "foo bar"
+    every { customerIntegration.getCustomer(capture(callbackApiGetRequestSlot)) } returns
+      mockCallbackApiGetCustomerResponse
 
     // Execute the request
     val mockGetRequest =
@@ -285,7 +288,7 @@ class Sep12ServiceTest {
     }
 
     // validate the request
-    val wantGetRequest =
+    val wantCallbackApiGetRequest =
       Sep12GetCustomerRequest.builder()
         .account(TEST_ACCOUNT)
         .memo(TEST_MEMO)
@@ -293,35 +296,65 @@ class Sep12ServiceTest {
         .type("sep31_sender")
         .lang("en")
         .build()
-    assertEquals(wantGetRequest, getRequestSlot.captured)
+    assertEquals(wantCallbackApiGetRequest, callbackApiGetRequestSlot.captured)
 
     // validate the response
     verify(exactly = 1) { customerIntegration.getCustomer(any()) }
     assertEquals(TEST_ACCOUNT, mockGetRequest.account)
-    assertEquals(mockCustomerResponse, sep12GetCustomerResponse1)
+    assertEquals(mockCallbackApiGetCustomerResponse, sep12GetCustomerResponse1)
 
     // assert that a new customer was created in the database
     verify(exactly = 1) { customerStore.findById("customer-id") }
     verify(exactly = 1) { customerStore.save(any()) }
-    val wantSep12Customer =
+    val wantSavedSep12Customer =
       Sep12CustomerBuilder(customerStore)
         .id("customer-id")
         .account(TEST_ACCOUNT)
         .memo(TEST_MEMO)
         .memoType("text")
         .build()
-    assertEquals(wantSep12Customer, sep12CustomerId.captured)
+    assertEquals(wantSavedSep12Customer, savedSep12CustomerId.captured)
 
     // assert that if a customer already exists and it doesn't need to be updated, we won't call
     // the save method.
-    every { customerStore.findById("customer-id") } returns wantSep12Customer
+    every { customerStore.findById("customer-id") } returns wantSavedSep12Customer
     var sep12GetCustomerResponse2: Sep12GetCustomerResponse? = null
     assertDoesNotThrow {
       sep12GetCustomerResponse2 = sep12Service.getCustomer(jwtToken, mockGetRequest)
     }
     assertEquals(sep12GetCustomerResponse1, sep12GetCustomerResponse2)
+    verify(exactly = 2) { customerIntegration.getCustomer(any()) }
     verify(exactly = 2) { customerStore.findById("customer-id") }
     verify(exactly = 1) { customerStore.save(any()) }
+
+    // assert that if a customer already exists but there is new data to be added, it will be
+    // updated.
+    savedSep12CustomerId = slot()
+    every { customerStore.save(capture(savedSep12CustomerId)) } returns mockk(relaxed = true)
+    every { customerStore.newInstance() } returns PojoSep12CustomerId()
+    val idOnlySavedSep12Customer = Sep12CustomerBuilder(customerStore).id("customer-id").build()
+    every { customerStore.findById("customer-id") } returns idOnlySavedSep12Customer
+
+    var sep12GetCustomerResponse3: Sep12GetCustomerResponse? = null
+    assertDoesNotThrow {
+      sep12GetCustomerResponse3 = sep12Service.getCustomer(jwtToken, mockGetRequest)
+    }
+    assertEquals(sep12GetCustomerResponse1, sep12GetCustomerResponse3)
+    verify(exactly = 3) { customerIntegration.getCustomer(any()) }
+
+    verify(exactly = 3) { customerStore.findById("customer-id") }
+    verify(exactly = 2) { customerStore.save(any()) }
+    assertEquals(wantSavedSep12Customer, savedSep12CustomerId.captured)
+
+    // assert that, if no customer exists not even in the callback API, we won't save anything.
+    every { customerIntegration.getCustomer(capture(callbackApiGetRequestSlot)) } throws
+      NotFoundException("Not found")
+    val ex: Exception = assertThrows { sep12Service.getCustomer(jwtToken, mockGetRequest) }
+    assertInstanceOf(NotFoundException::class.java, ex)
+    assertEquals("Not found", ex.message)
+    verify(exactly = 4) { customerIntegration.getCustomer(any()) }
+    verify(exactly = 3) { customerStore.findById("customer-id") }
+    verify(exactly = 2) { customerStore.save(any()) }
   }
 
   @Test

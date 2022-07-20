@@ -13,7 +13,6 @@ dependencyResolutionManagement {
       alias("commons.validator").to("commons-validator:commons-validator:1.7")
       alias("google.gson").to("com.google.code.gson:gson:2.8.9")
       alias("httpclient").to("org.apache.httpcomponents:httpclient:4.5.13")
-      alias("hibernate.types").to("com.vladmihalcea:hibernate-types-52:2.16.3")
       alias("jackson.dataformat.yaml")
           .to("com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.13.2")
       alias("java.stellar.sdk").to("com.github.stellar:java-stellar-sdk:0.34.1")

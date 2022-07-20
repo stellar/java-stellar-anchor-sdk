@@ -26,7 +26,6 @@ dependencies {
   implementation(libs.commons.cli)
   implementation(libs.commons.io)
   implementation(libs.google.gson)
-  implementation(libs.hibernate.types)
   implementation(libs.java.stellar.sdk)
 
   implementation(libs.sqlite.jdbc)

@@ -186,17 +186,36 @@ public class Sep12Service {
     }
 
     Sep12CustomerId customer = sep12CustomerStore.findById(customerId);
-    if (customer != null) {
+    if (customer == null) {
+      customer =
+          new Sep12CustomerBuilder(sep12CustomerStore)
+              .id(customerId)
+              .account(requestBase.getAccount())
+              .memo(requestBase.getMemo())
+              .memoType(requestBase.getMemoType())
+              .build();
+      sep12CustomerStore.save(customer);
       return;
     }
 
-    customer =
-        new Sep12CustomerBuilder(sep12CustomerStore)
-            .id(customerId)
-            .account(requestBase.getAccount())
-            .memo(requestBase.getMemo())
-            .memoType(requestBase.getMemoType())
-            .build();
-    sep12CustomerStore.save(customer);
+    boolean shouldSave = false;
+    if (customer.getAccount() == null && requestBase.getAccount() != null) {
+      customer.setAccount(requestBase.getAccount());
+      shouldSave = true;
+    }
+
+    if (customer.getMemo() == null && requestBase.getMemo() != null) {
+      customer.setMemo(requestBase.getMemo());
+      shouldSave = true;
+    }
+
+    if (customer.getMemoType() == null && requestBase.getMemoType() != null) {
+      customer.setMemoType(requestBase.getMemoType());
+      shouldSave = true;
+    }
+
+    if (shouldSave) {
+      sep12CustomerStore.save(customer);
+    }
   }
 }
