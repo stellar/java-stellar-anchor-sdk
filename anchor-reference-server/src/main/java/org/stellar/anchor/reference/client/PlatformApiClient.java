@@ -11,22 +11,21 @@ import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.platform.GetTransactionResponse;
 import org.stellar.anchor.api.platform.PatchTransactionsRequest;
 import org.stellar.anchor.api.platform.PatchTransactionsResponse;
+import org.stellar.anchor.auth.AuthHelper;
+import org.stellar.anchor.util.AuthHeader;
 import org.stellar.anchor.util.OkHttpUtil;
 
 public class PlatformApiClient extends BaseApiClient {
-  private String endpoint;
+  private final AuthHelper authHelper;
+  private final String endpoint;
 
-  public PlatformApiClient(String endpoint) {
+  public PlatformApiClient(AuthHelper authHelper, String endpoint) {
+    this.authHelper = authHelper;
     this.endpoint = endpoint;
   }
 
   public GetTransactionResponse getTransaction(String id) throws IOException, AnchorException {
-    Request request =
-        new Request.Builder()
-            .url(endpoint + "/transactions/" + id)
-            .header("Content-Type", "application/json")
-            .get()
-            .build();
+    Request request = getRequestBuilder().url(endpoint + "/transactions/" + id).get().build();
     String responseBody = handleResponse(client.newCall(request).execute());
     return gson.fromJson(responseBody, GetTransactionResponse.class);
   }
@@ -43,12 +42,7 @@ public class PlatformApiClient extends BaseApiClient {
             .build();
 
     RequestBody requestBody = OkHttpUtil.buildJsonRequestBody(gson.toJson(txnRequest));
-    Request request =
-        new Request.Builder()
-            .url(url)
-            .header("Content-Type", "application/json")
-            .patch(requestBody)
-            .build();
+    Request request = getRequestBuilder().url(url).patch(requestBody).build();
     Response response = client.newCall(request).execute();
     return gson.fromJson(handleResponse(response), PatchTransactionsResponse.class);
   }
@@ -75,5 +69,15 @@ public class PlatformApiClient extends BaseApiClient {
 
     String responseBody = handleResponse(client.newCall(request).execute());
     return gson.fromJson(responseBody, HashMap.class);
+  }
+
+  Request.Builder getRequestBuilder() {
+    Request.Builder requestBuilder =
+        new Request.Builder().header("Content-Type", "application/json");
+
+    AuthHeader<String, String> authHeader = authHelper.createAuthHeader();
+    return authHeader == null
+        ? requestBuilder
+        : requestBuilder.header(authHeader.getName(), authHeader.getValue());
   }
 }

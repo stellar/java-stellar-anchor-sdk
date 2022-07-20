@@ -1,13 +1,15 @@
 package org.stellar.anchor.platform.callback;
 
 import static okhttp3.HttpUrl.get;
-import static org.stellar.anchor.platform.PlatformIntegrationHelper.*;
-import static org.stellar.anchor.platform.callback.RestCustomerIntegration.Converter.fromPlatform;
-import static org.stellar.anchor.platform.callback.RestCustomerIntegration.Converter.fromSep12;
+import static org.stellar.anchor.platform.callback.PlatformIntegrationHelper.*;
+import static org.stellar.anchor.platform.callback.RestCustomerIntegration.Converter.*;
 
 import com.google.gson.Gson;
+import java.lang.reflect.Type;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.List;
+import java.util.Map;
 import lombok.SneakyThrows;
 import okhttp3.*;
 import okhttp3.HttpUrl.Builder;
@@ -20,13 +22,18 @@ import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerRequest;
 import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerResponse;
 import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest;
 import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerResponse;
+import org.stellar.anchor.auth.AuthHelper;
+import org.stellar.anchor.util.Log;
+import shadow.com.google.common.reflect.TypeToken;
 
 public class RestCustomerIntegration implements CustomerIntegration {
   private final String anchorEndpoint;
   private final OkHttpClient httpClient;
+  private final AuthHelper authHelper;
   private final Gson gson;
 
-  public RestCustomerIntegration(String anchorEndpoint, OkHttpClient httpClient, Gson gson) {
+  public RestCustomerIntegration(
+      String anchorEndpoint, OkHttpClient httpClient, AuthHelper authHelper, Gson gson) {
     try {
       new URI(anchorEndpoint);
     } catch (URISyntaxException e) {
@@ -35,83 +42,81 @@ public class RestCustomerIntegration implements CustomerIntegration {
 
     this.anchorEndpoint = anchorEndpoint;
     this.httpClient = httpClient;
+    this.authHelper = authHelper;
     this.gson = gson;
   }
 
   @Override
-  public Sep12GetCustomerResponse getCustomer(Sep12GetCustomerRequest sep12GetCustomerRequest)
+  public Sep12GetCustomerResponse getCustomer(Sep12GetCustomerRequest customerRequest)
       throws AnchorException {
-    GetCustomerRequest customerRequest = fromSep12(sep12GetCustomerRequest, gson);
-    Builder customerEndpointBuilder = getCustomerUrlBuilder();
-    if (customerRequest.getId() != null) {
-      customerEndpointBuilder.addQueryParameter("id", customerRequest.getId());
-    } else {
-      customerEndpointBuilder.addQueryParameter("account", customerRequest.getAccount());
-      if (customerRequest.getMemo() != null && customerRequest.getMemoType() != null) {
-        customerEndpointBuilder
-            .addQueryParameter("memo", customerRequest.getMemo())
-            .addQueryParameter("memo_type", customerRequest.getMemoType());
-      }
-    }
-    if (customerRequest.getType() != null) {
-      customerEndpointBuilder.addQueryParameter("type", customerRequest.getType());
-    }
-    // Call anchor
-    Response response =
-        call(httpClient, new Request.Builder().url(customerEndpointBuilder.build()).get().build());
+    // prepare request
+    Builder urlBuilder = getCustomerUrlBuilder();
+    Type type = new TypeToken<Map<String, ?>>() {}.getType();
+    Map<String, String> paramsMap = gson.fromJson(gson.toJson(customerRequest), type);
+    paramsMap.forEach(
+        (key, value) -> {
+          if (value != null) {
+            urlBuilder.addQueryParameter(key, value);
+          }
+        });
+    HttpUrl url = urlBuilder.build();
+
+    // Make request
+    Response response = call(httpClient, getRequestBuilder(authHelper).url(url).get().build());
     String responseContent = getContent(response);
 
-    if (response.code() == HttpStatus.OK.value()) {
-      GetCustomerResponse getCustomerResponse;
-      try {
-        getCustomerResponse = gson.fromJson(responseContent, GetCustomerResponse.class);
-      } catch (Exception e) { // cannot read body from response
-        throw new ServerErrorException("internal server error", e);
-      }
-      if (getCustomerResponse.getStatus() == null) {
-        throw new ServerErrorException("internal server error");
-      }
-      return fromPlatform(getCustomerResponse, gson);
-    } else {
+    if (response.code() != HttpStatus.OK.value()) {
       throw httpError(responseContent, response.code(), gson);
     }
+
+    Sep12GetCustomerResponse getCustomerResponse;
+    try {
+      getCustomerResponse = sep12GetResponseFromCallbackApiBody(responseContent, gson);
+    } catch (Exception e) { // cannot read body from response
+      throw new ServerErrorException("internal server error", e);
+    }
+
+    if (getCustomerResponse.getStatus() == null) {
+      Log.error("GET {callbackAPI}/customer response is missing the status field");
+      throw new ServerErrorException(
+          "internal server error: result from Anchor backend is invalid");
+    }
+    return getCustomerResponse;
   }
 
   @Override
   public Sep12PutCustomerResponse putCustomer(Sep12PutCustomerRequest sep12PutCustomerRequest)
       throws AnchorException {
-    PutCustomerRequest customerRequest = fromSep12(sep12PutCustomerRequest, gson);
-    RequestBody requestBody =
-        RequestBody.create(gson.toJson(customerRequest), MediaType.get("application/json"));
-    Request callbackRequest =
-        new Request.Builder().url(getCustomerUrlBuilder().build()).put(requestBody).build();
+    HttpUrl url = getCustomerUrlBuilder().build();
+    RequestBody requestBody = requestBodyFromSep12Request(sep12PutCustomerRequest, gson);
+    Request callbackRequest = getRequestBuilder(authHelper).url(url).put(requestBody).build();
 
     // Call anchor
     Response response = call(httpClient, callbackRequest);
     String responseContent = getContent(response);
 
-    if (response.code() == HttpStatus.OK.value()) {
-      try {
-        return fromPlatform(gson.fromJson(responseContent, PutCustomerResponse.class), gson);
-      } catch (Exception e) {
-        throw new ServerErrorException("internal server error", e);
-      }
-    } else {
+    if (!List.of(HttpStatus.OK.value(), HttpStatus.CREATED.value(), HttpStatus.ACCEPTED.value())
+        .contains(response.code())) {
       throw httpError(responseContent, response.code(), gson);
+    }
+
+    try {
+      return sep12PutResponseFromCallbackApiBody(responseContent, gson);
+    } catch (Exception e) {
+      throw new ServerErrorException("internal server error", e);
     }
   }
 
-  @SneakyThrows
   @Override
-  public void deleteCustomer(String id) {
+  public void deleteCustomer(String id) throws AnchorException {
     HttpUrl url = getCustomerUrlBuilder().addPathSegment(id).build();
-    Request callbackRequest = new Request.Builder().url(url).delete().build();
+    Request callbackRequest = getRequestBuilder(authHelper).url(url).delete().build();
 
     // Call anchor
     Response response = call(httpClient, callbackRequest);
     String responseContent = getContent(response);
 
-    if (response.code() != HttpStatus.OK.value()) {
+    if (!List.of(HttpStatus.OK.value(), HttpStatus.NO_CONTENT.value()).contains(response.code())) {
       throw httpError(responseContent, response.code(), gson);
     }
   }
@@ -129,24 +134,19 @@ public class RestCustomerIntegration implements CustomerIntegration {
   }
 
   static class Converter {
-    public static Sep12GetCustomerResponse fromPlatform(GetCustomerResponse response, Gson gson) {
-      String json = gson.toJson(response);
-      return gson.fromJson(json, Sep12GetCustomerResponse.class);
+    public static Sep12GetCustomerResponse sep12GetResponseFromCallbackApiBody(
+        String body, Gson gson) {
+      return gson.fromJson(body, Sep12GetCustomerResponse.class);
     }
 
-    public static Sep12PutCustomerResponse fromPlatform(PutCustomerResponse response, Gson gson) {
-      String json = gson.toJson(response);
-      return gson.fromJson(json, Sep12PutCustomerResponse.class);
+    public static Sep12PutCustomerResponse sep12PutResponseFromCallbackApiBody(
+        String body, Gson gson) {
+      return gson.fromJson(body, Sep12PutCustomerResponse.class);
     }
 
-    public static GetCustomerRequest fromSep12(Sep12GetCustomerRequest request, Gson gson) {
-      String json = gson.toJson(request);
-      return gson.fromJson(json, GetCustomerRequest.class);
-    }
-
-    public static PutCustomerRequest fromSep12(Sep12PutCustomerRequest request, Gson gson) {
-      String json = gson.toJson(request);
-      return gson.fromJson(json, PutCustomerRequest.class);
+    public static RequestBody requestBodyFromSep12Request(
+        Sep12PutCustomerRequest request, Gson gson) {
+      return RequestBody.create(gson.toJson(request), MediaType.get("application/json"));
     }
   }
 }

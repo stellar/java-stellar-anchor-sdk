@@ -10,6 +10,30 @@ anchor.settings:
   version: 0.0.1
   platformApiEndpoint: http://localhost:8080
 
+  # The URL where the anchor reference server can be accessed by the platform.
+  hostUrl: http://localhost:8081
+
+# These are secrets shared between Anchor and Platform that are used to safely communicate from `Platform->Anchor`
+# and `Anchor->Platform`, specially when they are in different clusters.
+#
+# When the receiving part decodes the incoming request token, it needs to verify if the token is still valid (and not expired).
+integration-auth:
+  #
+  # authType: used to determine how the authentication will happen between Anchor and Platform. Can be one of the following:
+  #     NONE: no authentication is used
+  #     API_KEY: the authentication is done using an API key added to the `X-Api-Key` header.
+  #     JWT_TOKEN: the authentication is done using a JWT token added to the `Authorization` header. this token is generated from the secret key.
+  authType: JWT_TOKEN
+  # CallbackAPI requests (`Platform->Anchor`) will contain an authentication header whose token was built using this
+  # secret. The Anchor Backend will also store this same secret and use it to decode the incoming token to verify it
+  # came from the Platform.
+  platformToAnchorSecret: myPlatformToAnchorSecret
+  # PlatformAPI requests (`Anchor->Platform`) will contain an authentication header whose token was built using this
+  # secret. The Platform Server will use this secret to decode the incoming token to verify it came from the Anchor.
+  anchorToPlatformSecret: myAnchorToPlatformSecret
+  # Expiration time, in milliseconds, that will be used to build and validate the JWT tokens
+  expirationMilliseconds: 30000
+
 event:
   # The listener type. values: [kafka, sqs, amqp]
   # If the listener is kafka, the kafka listener is configured in kafka.listener section.
@@ -17,9 +41,12 @@ event:
   # If the listener is amqp, the AMQP listner is configured in the ampq.listner section.
   listenerType: kafka
 
+# NOTE: AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment variables need to be set if using AWS MSK
 kafka.listener:
   bootstrapServer: localhost:29092
+  #bootstrapServer: b-1-public.democluster1.w7j4hi.c25.kafka.us-east-1.amazonaws.com:9198   # AWS MSK broker example
   useSingleQueue: false
+  useIAM: false   # IAM authentication for AWS MSK
   eventTypeToQueue:
     all: ap_event_single_queue
     quoteCreated: ap_event_quote_created
@@ -46,6 +73,7 @@ amqp.listener:
 #
 spring.datasource.url: jdbc:h2:mem:test
 spring.jpa.properties.hibernate.dialect: org.hibernate.dialect.H2Dialect
+spring.flyway.enabled: false
 
 # force gson as serializer/deserializer over jackson
 spring.mvc.converters.preferred-json-mapper: gson

@@ -1,6 +1,6 @@
 package org.stellar.anchor
 
-import org.stellar.anchor.sep10.JwtToken
+import org.stellar.anchor.auth.JwtToken
 
 class TestHelper {
   companion object {

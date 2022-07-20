@@ -1,0 +1,312 @@
+stellar:
+  anchor:
+    # Set the source of the configuration. The configuration source determines how the anchor platofrm
+    # server fetch the configuration values.
+    #
+    # If `config` is `in-memory`, this yaml file contains all settings for the server.
+    #
+    # `in-memory` is the only `config` value supported in MVP.
+    #
+    config: in-memory
+    #
+    # Sets how the application configuration values are read.
+    #
+    #  If `type` is `config-spring-property`, the platform server will use the Spring's `@ConfigruationProperties` to
+    #      read populate the configuration values.
+    #
+    #  `config-spring-property` is the only `type` value supported in MVP.
+    app-config:
+      type: config-spring-property
+      settings: app-config                        # The absolute location of the configuration data in this yaml file
+
+    #
+    # Sets how the application access the datastore.
+    #
+    # If the `type` is `data-spring-jdbc`, Spring Data JDBC will be used to read the application data.
+    #
+    # `data-spring-jdbc` is the only `type` value supported for now.
+    #
+    data-access:
+      type: data-spring-jdbc
+      settings: data-spring-jdbc-sqlite              # The absolute location of the configuration data in this yaml file
+      #settings: data-spring-jdbc-local-postgres      # use local postgres instance
+      #settings: data-spring-jdbc-aws-aurora-postgres  # use AWS Aurora Postgres with IAM authentication
+    #
+    # Sets how the generates the logging information
+    #
+    # If the `type` is `logging-logback`, Logback will be used to generate the logs.
+    #
+    # `logging-logback` is the only `type` value supported for now.
+    #
+    logging:
+      type: logging-logback
+      settings: logging-logback-settings          # The absolute location of the configuration data in this yaml file
+
+  #
+  # Platform application configuration
+  #
+app-config:
+  # shared / general application configurations
+  app:
+    # The stellar network passphrase used to access Horizon server.
+    # For Pubnet: use 'Public Global Stellar Network ; September 2015'
+    # For Testnet: use 'Test SDF Network ; September 2015'
+    stellarNetworkPassphrase: Test SDF Network ; September 2015
+
+    # The endpoint of the horizon server.
+    horizonUrl: https://horizon-testnet.stellar.org
+
+    # The URL where the platform server can be accessed by the client.
+    hostUrl: https://www.stellaranchordemo.com
+
+    # The supported languages defined by RFC4646 (https://datatracker.ietf.org/doc/html/rfc4646)
+    # Currently, only "en" is supported.
+    languages: en
+
+    # Location of the assets file.
+    #
+    # The format of the resource is specified as Table 6.1 of the Spring document located at:
+    # https://docs.spring.io/spring-framework/docs/3.2.x/spring-framework-reference/html/resources.html
+    #
+    # Valid resource schemes are: ["classpath:", "file:", "http:", "https"]
+    assets: classpath:/assets-test.json
+
+    # The secret key of JWT encryption
+    # TODO: Move the secret to a separate secret management module.
+    jwtSecretKey: ${JWT_SECRET}
+
+  integration-auth:
+    authType: JWT_TOKEN
+    platformToAnchorSecret: ${PLATFORM_TO_ANCHOR_SECRET}
+    anchorToPlatformSecret: ${ANCHOR_TO_PLATFORM_SECRET}
+    expirationMilliseconds: 30000
+    
+  # sep-1
+  sep1:
+    enabled: true
+    #
+    # The stellarFile is the location where to retrieve the content as the return value
+    # of the `/.well-known/stellar.toml`.
+    #
+    # The format of the resource is specified as Table 6.1 of the Spring document located at:
+    # https://docs.spring.io/spring-framework/docs/3.2.x/spring-framework-reference/html/resources.html
+    #
+    stellarFile: file:/anchor_config/stellar_wks.toml
+
+  # sep-10
+  sep10:
+    enabled: true
+
+    # The `home_domain` property of SEP-10. https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#request
+    homeDomain: www.stellaranchordemo.com
+
+    # Set if the client attribution is required
+    clientAttributionRequired: false
+
+    # Set the white list of the client domain. The domains are comma-separated
+    # Although it is allowed to set both the allow-list and the deny-list, it is not helpful if both are set.
+    clientAttributionAllowList: lobstr.co,preview.lobstr.co
+
+    # Set the black list of the client domain.
+    # clientAttributionDenyList:
+
+    # Set the authentication challenge transaction timeout. An expired signed transaction will be rejected.
+    # This is the timeout period the client must finish the authentication process. (ie: sign and respond the challenge
+    # transaction).
+    #
+    # The value is in seconds.
+    authTimeout: 900
+
+    # Set the timeout of the authenticated JSON Web Token. An expired JWT will be rejected.
+    # This is the timeout period after the client has authenticated.
+    #
+    # The value is in seconds.
+    jwtTimeout: 86400
+
+    # The private key of the SEP-10 challenge.
+    # We highly recommend that this private key should not be used to sign any transactions to submit to the Stellar
+    # network.
+    signingSeed: ${SEP10_SIGNING_SEED}
+
+    # The list of omnibus account.
+    # The detail of the SEP-10 omnibus account is described at: https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#memos
+    omnibusAccountList:
+
+  # sep-12
+  sep12:
+    enabled: true
+    # The callback API endpoint.
+    customerIntegrationEndpoint: http://ref.stellaranchordemo.com:8081
+
+  # sep-24
+  sep24:
+    enabled: true
+    # Set the timeout of the JSON Web Token returned with the embedded interactive url of the SEP-24 process.
+    # An expired JWT will be rejected.
+    #
+    # If the interactive flow needs to access the platform server, the interactive process must finish within
+    # the specified timeout period.
+    interactiveJwtExpiration: 3600
+
+    # The interactive URL where the platform server will redirect to start the SEP-24 interactive flow.
+    interactiveUrl: http://localhost:8081/sep24/interactive
+
+  # sep-31
+  sep31:
+    enabled: true
+
+    # The callback API endpoint.
+    feeIntegrationEndPoint: http://ref.stellaranchordemo.com:8081
+
+    #
+    # paymentType: used to determine how amount_in is calculated from amount in the POST /transaction call
+    # Possible values: STRICT_SEND or STRICT_RECEIVE. default=STRICT_SEND
+    #     STRICT_SEND: amount_in = amount
+    #     STRICT_RECEIVE: amount_in = amount + fee
+    paymentType: STRICT_SEND
+
+    #
+    # depositInfoGeneratorType: used to choose how the SEP-31 deposit information will be generated, which includes the
+    # deposit address, memo and memo type.
+    # Possible values:
+    #     self: the memo and memo type are generated in the local code, and the distribution account is used for the deposit address.
+    #     circle: the memo and memo type are generated through Circle API, as well as the deposit address.
+    depositInfoGeneratorType: self # self or circle
+
+  # sep-38
+  sep38:
+    enabled: true
+
+    # The callback API endpoint.
+    quoteIntegrationEndPoint: http://ref.stellaranchordemo.com:8081
+
+  circle:
+    circleUrl: https://api-sandbox.circle.com
+    apiKey: ${CIRCLE_API_KEY} # circle API key
+
+  payment-gateway:
+    #
+    # Payment Circle configurations
+    #
+    circle:
+      name: "circle"
+      enabled: true
+
+    #
+    # Payment Stellar configurations
+    #
+    stellar:
+      enabled: false
+      name: "stellar"
+      horizonUrl: https://horizon-testnet.stellar.org
+      secretKey: ${PAYMENT_GATEWAY_STELLAR_SECRET_KEY} # stellar account secret key
+
+  circle-payment-observer:
+    enabled: true
+    horizonUrl: https://horizon-testnet.stellar.org
+    stellarNetwork: TESTNET # TESTNET or PUBLIC
+    trackedWallet: all
+
+  event:
+    # If enabled, publish Events to a queue (publisherType)
+    # publisherType - the type of queue to use for event publishing
+    # currently supported publisherType values: kafka, sqs
+    enabled: true
+    publisherType: sqs
+
+  kafka.publisher:
+    # kafkaBootstrapServer - the Kafka server used to bootstrap setup
+    # If useSingleQueue, all events are published to a single queue
+    #   (specified in eventTypeToQueue.all)
+    # eventTypeToQueue - a map of the event type to the queue name messages are published to
+    # useIAM - IAM authentication for AWS MSK
+    # NOTE: MSK - use port 9098 for access from within AWS and port 9198 for public access.
+    #             https://docs.aws.amazon.com/msk/latest/developerguide/port-info.html
+    # NOTE: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY and AWS_REGION environment variables need to be set
+    bootstrapServer: localhost:29092
+    #bootstrapServer: b-1-public.democluster1.w7j4hi.c25.kafka.us-east-1.amazonaws.com:9198  # AWS MSK example
+    useIAM: false
+    useSingleQueue: false
+    eventTypeToQueue:
+      all: ap_event_single_queue
+      quote_created: ap_event_quote_created
+      transaction_created: ap_event_transaction_created
+      transaction_status_changed: ap_event_transaction_status_changed
+      transaction_error: ap_event_transaction_error
+
+  sqs.publisher:
+    # region - AWS region for the SQS queue
+    # accessKey - AWS access key used to publish events to SQS
+    # secretKey - AWS secret key to be used with the accessKey
+    # eventTypeToQueue - a map of the event type to the queue name messages are published to
+    # NOTE: The SQS FIFO queues should be pre-created in AWS (Anchor Platform will not create them)
+    region: ${var.aws_region}
+    useSingleQueue: false
+    eventTypeToQueue:
+      all: SQS_QUEUE_NAME # sdf_dev_ap_event_single_queue.fifo
+      #quote_created: sdf_dev_ap_event_quote_created.fifo
+      #transaction_created: sdf_dev_ap_event_transaction_created.fifo
+      #ransaction_status_changed: sdf_dev_ap_event_transaction_status_changed.fifo
+      #ransaction_error: sdf_dev_ap_event_transaction_error.fifo
+    accessKey: ${SQS_PUBLISHER_ACCESS_KEY}
+    secretKey: ${SQS_PUBLISHER_SECRET_KEY}
+
+#
+# Spring Data JDBC settings
+#
+data-spring-jdbc-sqlite:
+  spring.jpa.database-platform: org.stellar.anchor.platform.sqlite.SQLiteDialect
+  spring.jpa.hibernate.ddl-auto: update
+  spring.jpa.generate-ddl: true
+  spring.jpa.hibernate.show_sql: false
+  spring.datasource.url: jdbc:sqlite:anchor-proxy.db
+  spring.datasource.driver-class-name: org.sqlite.JDBC
+  spring.datasource.max-active: 1 # For SQLite, set this to 1 to avoid database file lock exception.
+  spring.datasource.initial-size: 1 # For SQLite, set this to 1 to avoid database file lock exception.
+  spring.datasource.username: ${SQLITE_USERNAME}
+  spring.datasource.password: ${SQLITE_PASSWORD}
+  spring.mvc.converters.preferred-json-mapper: gson
+  spring.liquibase.enabled: false    # certain features that liquibase uses (ex: addForeignKeyConstraint) are not supported by sqlite
+
+# settings for aurora postgres connection using IAM for authentication
+# NOTE: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY and AWS_REGION environment variables need to be set
+data-spring-jdbc-aws-aurora-postgres:
+  spring.jpa.generate-ddl: true
+  spring.jpa.database: POSTGRESQL
+  spring.jpa.show-sql: false
+  spring.datasource.driver-class-name: org.postgresql.Driver
+  spring.datasource.type: org.stellar.anchor.platform.databaseintegration.IAMAuthDataSource
+  spring.datasource.url: jdbc:postgresql://database-aurora-iam-instance-1.chizvyczscs2.us-east-1.rds.amazonaws.com:5432/anchorplatform
+  spring.datasource.username: anchorplatform1
+  spring.datasource.hikari.max-lifetime: 840000    # 14 minutes because IAM tokens are valid for 15min
+  spring.mvc.converters.preferred-json-mapper: gson
+  spring.liquibase.change-log: classpath:/db/changelog/db.changelog-master.yaml
+
+data-spring-jdbc-local-postgres:
+  spring.jpa.generate-ddl: true
+  spring.jpa.database: POSTGRESQL
+  spring.jpa.show-sql: false
+  spring.datasource.driver-class-name: org.postgresql.Driver
+  spring.datasource.url: jdbc:postgresql://localhost:5432/anchorplatform
+  spring.datasource.username: ${POSTGRES_USERNAME}
+  spring.datasource.password: ${POSTGRES_PASSWORD}
+  spring.mvc.converters.preferred-json-mapper: gson
+  spring.liquibase.change-log: classpath:/db/changelog/db.changelog-master.yaml
+
+data-spring-jdbc-h2:
+  spring.datasource.url: jdbc:h2:mem:test
+  spring.jpa.properties.hibernate.dialect: org.hibernate.dialect.H2Dialect
+  spring.liquibase.enabled: false
+
+#
+# Spring framework configurations
+#
+spring:
+  logging:
+    level:
+      root: DEBUG
+      org.springframework: DEBUG
+      org.springframework.web.filter: DEBUG
+      org.stellar: DEBUG
+  mvc:
+    async.request-timeout: 6000

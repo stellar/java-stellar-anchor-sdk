@@ -1,5 +1,6 @@
 package org.stellar.anchor.event.models;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonValue;
 import com.google.gson.annotations.SerializedName;
 import java.time.Instant;
@@ -13,6 +14,7 @@ import org.stellar.anchor.api.shared.Amount;
 @Builder
 @AllArgsConstructor
 public class TransactionEvent implements AnchorEvent {
+  @JsonProperty("event_id")
   @SerializedName("event_id")
   String eventId;
 
@@ -30,52 +32,67 @@ public class TransactionEvent implements AnchorEvent {
 
   Status status;
 
+  @JsonProperty("status_change")
   @SerializedName("status_change")
   StatusChange statusChange;
 
+  @JsonProperty("amount_expected")
   @SerializedName("amount_expected")
   Amount amountExpected;
 
+  @JsonProperty("amount_in")
   @SerializedName("amount_in")
   Amount amountIn;
 
+  @JsonProperty("amount_out")
   @SerializedName("amount_out")
   Amount amountOut;
 
+  @JsonProperty("amount_fee")
   @SerializedName("amount_fee")
   Amount amountFee;
 
+  @JsonProperty("quote_id")
   @SerializedName("quote_id")
   String quoteId;
 
+  @JsonProperty("started_at")
   @SerializedName("started_at")
   Instant startedAt;
 
+  @JsonProperty("updated_at")
   @SerializedName("updated_at")
   Instant updatedAt;
 
+  @JsonProperty("completed_at")
   @SerializedName("completed_at")
   Instant completedAt;
 
+  @JsonProperty("transfer_received_at")
   @SerializedName("transfer_received_at")
   Instant transferReceivedAt;
 
   String message;
 
-  Refund[] refunds;
+  Refund refunds;
 
+  @JsonProperty("stellar_transactions")
   @SerializedName("stellar_transactions")
   StellarTransaction[] stellarTransactions;
 
+  @JsonProperty("external_transaction_id")
   @SerializedName("external_transaction_id")
   String externalTransactionId;
 
+  @JsonProperty("custodial_transaction_id")
   @SerializedName("custodial_transaction_id")
   String custodialTransactionId;
 
+  @JsonProperty("source_account")
   @SerializedName("source_account")
   String sourceAccount;
 
+  @JsonProperty("destination_account")
   @SerializedName("destination_account")
   String destinationAccount;
 

@@ -8,11 +8,14 @@ import java.net.URISyntaxException;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.stellar.anchor.api.exception.SepException;
+import org.stellar.anchor.api.exception.SepNotAuthorizedException;
 import org.stellar.anchor.api.exception.SepValidationException;
 import org.stellar.anchor.api.sep.sep10.ChallengeRequest;
 import org.stellar.anchor.api.sep.sep10.ChallengeResponse;
 import org.stellar.anchor.api.sep.sep10.ValidationRequest;
 import org.stellar.anchor.api.sep.sep10.ValidationResponse;
+import org.stellar.anchor.auth.JwtService;
+import org.stellar.anchor.auth.JwtToken;
 import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.Sep10Config;
 import org.stellar.anchor.horizon.Horizon;
@@ -63,6 +66,12 @@ public class Sep10Service {
           sep10Config.getOmnibusAccountList().contains(challengeRequest.getAccount().trim());
     }
 
+    if (sep10Config.isRequireKnownOmnibusAccount() && !omnibusWallet) {
+      // validate that requesting account is allowed access
+      infoF("requesting account: {} is not in allow list", challengeRequest.getAccount().trim());
+      throw new SepNotAuthorizedException("unable to process");
+    }
+
     if (omnibusWallet) {
       if (challengeRequest.getClientDomain() != null) {
         throw new SepValidationException(
@@ -83,7 +92,7 @@ public class Sep10Service {
         infoF(
             "client_domain({}) provided is in the configured deny list",
             challengeRequest.getClientDomain());
-        throw new SepValidationException("unable to process.");
+        throw new SepNotAuthorizedException("unable to process.");
       }
 
       List<String> allowList = sep10Config.getClientAttributionAllowList();
@@ -93,7 +102,7 @@ public class Sep10Service {
         infoF(
             "client_domain provided ({}) is not in configured allow list",
             challengeRequest.getClientDomain());
-        throw new SepValidationException("unable to process");
+        throw new SepNotAuthorizedException("unable to process");
       }
     }
     // Validate account

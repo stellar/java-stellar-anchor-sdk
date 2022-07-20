@@ -78,6 +78,27 @@ app-config:
     # TODO: Move the secret to a separate secret management module.
     jwtSecretKey: secret
 
+  # These are secrets shared between Anchor and Platform that are used to safely communicate from `Platform->Anchor`
+  # and `Anchor->Platform`, specially when they are in different clusters.
+  #
+  # When the receiving part decodes the incoming request token, it needs to verify if the token is still valid (and not expired).
+  integration-auth:
+    #
+    # authType: used to determine how the authentication will happen between Anchor and Platform. Can be one of the following:
+    #     NONE: no authentication is used
+    #     API_KEY: the authentication is done using an API key added to the `X-Api-Key` header.
+    #     JWT_TOKEN: the authentication is done using a JWT token added to the `Authorization` header. this token is generated from the secret key.
+    authType: JWT_TOKEN
+    # CallbackAPI requests (`Platform->Anchor`) will contain an authentication header whose token was built using this
+    # secret. The Anchor Backend will also store this same secret and use it to decode the incoming token to verify it
+    # came from the Platform.
+    platformToAnchorSecret: myPlatformToAnchorSecret
+    # PlatformAPI requests (`Anchor->Platform`) will contain an authentication header whose token was built using this
+    # secret. The Platform Server will use this secret to decode the incoming token to verify it came from the Anchor.
+    anchorToPlatformSecret: myAnchorToPlatformSecret
+    # Expiration time, in milliseconds, that will be used to build and validate the JWT tokens
+    expirationMilliseconds: 30000
+
   # sep-1
   sep1:
     enabled: true
@@ -124,6 +145,13 @@ app-config:
     # We highly recommend that this private key should not be used to sign any transactions to submit to the Stellar
     # network.
     signingSeed: SAX3AH622R2XT6DXWWSRIDCMMUCCMATBZ5U6XKJWDO7M2EJUBFC3AW5X
+
+    # The list of omnibus account.
+    # The detail of the SEP-10 omnibus account is described at: https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#memos
+    omnibusAccountList:
+
+    # Require authenticating clients to be in the omnibusAccountList, defaults to true
+    requireKnownOmnibusAccount: false
 
   # sep-12
   sep12:
@@ -275,7 +303,10 @@ data-spring-jdbc-local-postgres:
   spring.datasource.username: postgres
   spring.datasource.password: password
   spring.mvc.converters.preferred-json-mapper: gson
-  spring.liquibase.change-log: classpath:/db/changelog/db.changelog-master.yaml
+  spring.flyway.user: postgres
+  spring.flyway.password: password
+  spring.flyway.url: jdbc:postgresql://host.docker.internal:5431/
+  spring.flyway.locations: classpath:/db/migration
 
 data-spring-jdbc-h2:
   spring.datasource.url: jdbc:h2:mem:test

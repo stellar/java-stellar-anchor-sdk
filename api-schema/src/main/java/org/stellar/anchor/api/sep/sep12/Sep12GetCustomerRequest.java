@@ -11,7 +11,7 @@ import lombok.Data;
  */
 @Data
 @Builder
-public class Sep12GetCustomerRequest {
+public class Sep12GetCustomerRequest implements Sep12CustomerRequestBase {
   String id;
   String account;
   String memo;

@@ -2,14 +2,13 @@ package org.stellar.anchor.sep12;
 
 import static org.stellar.anchor.util.Log.infoF;
 
+import java.util.Objects;
 import java.util.stream.Stream;
+import org.jetbrains.annotations.NotNull;
 import org.stellar.anchor.api.callback.CustomerIntegration;
 import org.stellar.anchor.api.exception.*;
-import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerRequest;
-import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerResponse;
-import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest;
-import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerResponse;
-import org.stellar.anchor.sep10.JwtToken;
+import org.stellar.anchor.api.sep.sep12.*;
+import org.stellar.anchor.auth.JwtToken;
 import org.stellar.anchor.util.Log;
 import org.stellar.anchor.util.MemoHelper;
 import org.stellar.sdk.xdr.MemoType;
@@ -24,140 +23,150 @@ public class Sep12Service {
 
   public Sep12GetCustomerResponse getCustomer(JwtToken token, Sep12GetCustomerRequest request)
       throws AnchorException {
-    validateGetOrPutRequest(
-        request.getId(),
-        request.getAccount(),
-        request.getMemo(),
-        request.getMemoType(),
-        token.getAccount(),
-        token.getMuxedAccount(),
-        token.getAccountMemo());
-    request.setMemo(getMemoForCustomerIntegration(request.getMemo(), token.getAccountMemo()));
-    request.setMemoType(
-        getMemoTypeForCustomerIntegration(request.getMemo(), request.getMemoType()));
+    validateGetOrPutRequest(request, token);
     if (request.getId() == null && request.getAccount() == null && token.getAccount() != null) {
       request.setAccount(token.getAccount());
     }
+
     return customerIntegration.getCustomer(request);
   }
 
   public Sep12PutCustomerResponse putCustomer(JwtToken token, Sep12PutCustomerRequest request)
       throws AnchorException {
-    validateGetOrPutRequest(
-        request.getId(),
-        request.getAccount(),
-        request.getMemo(),
-        request.getMemoType(),
-        token.getAccount(),
-        token.getMuxedAccount(),
-        token.getAccountMemo());
-    request.setMemo(getMemoForCustomerIntegration(request.getMemo(), token.getAccountMemo()));
-    request.setMemoType(
-        getMemoTypeForCustomerIntegration(request.getMemo(), request.getMemoType()));
+    validateGetOrPutRequest(request, token);
+
     if (request.getAccount() == null && token.getAccount() != null) {
       request.setAccount(token.getAccount());
     }
+
     return customerIntegration.putCustomer(request);
   }
 
   public void deleteCustomer(JwtToken jwtToken, String account, String memo, String memoType)
       throws AnchorException {
-    if (!jwtToken.getAccount().equals(account)) {
-      infoF("Requester ({}) not authorized to delete account ({})", jwtToken.getAccount(), account);
-      throw new SepNotAuthorizedException(
-          String.format("Not authorized to delete account [%s]", account));
+    boolean isAccountAuthenticated =
+        Stream.of(jwtToken.getAccount(), jwtToken.getMuxedAccount())
+            .filter(Objects::nonNull)
+            .anyMatch(tokenAccount -> Objects.equals(tokenAccount, account));
+
+    boolean isMemoAuthenticated = memo == null;
+    String muxedAccountId = Objects.toString(jwtToken.getMuxedAccountId(), null);
+    if (muxedAccountId != null) {
+      if (!Objects.equals(jwtToken.getMuxedAccount(), account)) {
+        isMemoAuthenticated = Objects.equals(muxedAccountId, memo);
+      }
+    } else if (jwtToken.getAccountMemo() != null) {
+      isMemoAuthenticated = Objects.equals(jwtToken.getAccountMemo(), memo);
     }
 
-    Sep12GetCustomerResponse existingCustomer =
-        customerIntegration.getCustomer(
-            Sep12GetCustomerRequest.builder()
-                .account(account)
-                .memo(memo)
-                .memoType(memoType)
-                .build());
-    if (existingCustomer.getId() == null) {
+    if (!isAccountAuthenticated || !isMemoAuthenticated) {
+      infoF("Requester ({}) not authorized to delete account ({})", jwtToken.getAccount(), account);
+      throw new SepNotAuthorizedException(
+          String.format("Not authorized to delete account [%s] with memo [%s]", account, memo));
+    }
+
+    // TODO: Move this into configuration instead of hardcoding customer type values.
+    boolean existingCustomerMatch = false;
+    String[] customerTypes = {"sending_user", "receiving_user"};
+    for (String customerType : customerTypes) {
+      Sep12GetCustomerResponse existingCustomer =
+          customerIntegration.getCustomer(
+              Sep12GetCustomerRequest.builder()
+                  .account(account)
+                  .memo(memo)
+                  .memoType(memoType)
+                  .type(customerType)
+                  .build());
+      if (existingCustomer.getId() != null) {
+        existingCustomerMatch = true;
+        customerIntegration.deleteCustomer(existingCustomer.getId());
+      }
+    }
+    if (!existingCustomerMatch) {
       infoF(
           "No existing customer found for account={} memo={} memoType={}", account, memo, memoType);
       throw new SepNotFoundException("User not found.");
     }
-
-    customerIntegration.deleteCustomer(existingCustomer.getId());
   }
 
-  void validateGetOrPutRequest(
-      String customerId,
-      String requestAccount,
-      String requestMemo,
-      String requestMemoType,
-      String tokenAccount,
-      String tokenMuxedAccount,
-      String tokenMemo)
+  void validateGetOrPutRequest(Sep12CustomerRequestBase requestBase, JwtToken token)
       throws SepException {
-    validateIdXorMemoIsPresent(customerId, requestAccount, requestMemo, requestMemoType);
-    validateMemoRequestAndTokenValuesMatch(
-        requestAccount, requestMemo, requestMemoType, tokenAccount, tokenMuxedAccount, tokenMemo);
-    validateMemo(requestMemo, requestMemoType);
+    validateRequestAndTokenAccounts(requestBase, token);
+    validateRequestAndTokenMemos(requestBase, token);
+    updateRequestMemoAndMemoType(requestBase, token);
   }
 
-  String getMemoTypeForCustomerIntegration(String memo, String requestMemoType) {
-    String memoType = null;
-    if (memo != null) {
-      memoType = (requestMemoType != null) ? requestMemoType : MemoType.MEMO_ID.name();
-    }
-    return memoType;
-  }
-
-  String getMemoForCustomerIntegration(String requestMemo, String tokenMemo) {
-    return requestMemo != null ? requestMemo : tokenMemo;
-  }
-
-  void validateMemo(String memo, String memoType) throws SepException {
-    try {
-      MemoHelper.makeMemo(memo, memoType);
-    } catch (SepException e) {
-      infoF("Invalid memo ({}) for memo_type ({})", memo, memoType);
-      throw new SepValidationException("Invalid 'memo' for 'memo_type'");
-    }
-  }
-
-  void validateIdXorMemoIsPresent(String id, String account, String memo, String memoType)
-      throws SepException {
-    if (id != null) {
-      if (account != null || memo != null || memoType != null) {
-        infoF("Request with id ({}) should not have 'account', 'memo', or 'memo_type'", id);
-        throw new SepValidationException(
-            "A requests with 'id' cannot also have 'account', 'memo', or 'memo_type'");
-      }
-    }
-  }
-
-  void validateMemoRequestAndTokenValuesMatch(
-      String requestAccount,
-      String requestMemo,
-      String requestMemoType,
-      String tokenAccount,
-      String tokenMuxedAccount,
-      String tokenMemo)
-      throws SepException {
-    if (requestAccount != null
-        && Stream.of(tokenAccount, tokenMuxedAccount).noneMatch(requestAccount::equals)) {
+  void validateRequestAndTokenAccounts(
+      @NotNull Sep12CustomerRequestBase requestBase, @NotNull JwtToken token) throws SepException {
+    // Validate request.account - SEP-12 says: This field should match the `sub` value of the
+    // decoded SEP-10 JWT.
+    String tokenAccount = token.getAccount();
+    String tokenMuxedAccount = token.getMuxedAccount();
+    String customerAccount = requestBase.getAccount();
+    if (customerAccount != null
+        && Stream.of(tokenAccount, tokenMuxedAccount).noneMatch(customerAccount::equals)) {
       infoF(
-          "Neither tokenAccount ({}) nor tokenMuxedAccount ({}) match requestAccount ({})",
+          "Neither tokenAccount ({}) nor tokenMuxedAccount ({}) match customerAccount ({})",
           tokenAccount,
           tokenMuxedAccount,
-          requestAccount);
+          customerAccount);
       throw new SepNotAuthorizedException(
           "The account specified does not match authorization token");
     }
-    if (tokenMemo != null && requestMemo != null) {
-      if (!tokenMemo.equals(requestMemo) || !requestMemoType.equals(MemoType.MEMO_ID.name())) {
-        infoF(
-            "request memo ({}) does not match token memo ID ({}) authorized via SEP-10",
-            requestMemo,
-            tokenMemo);
-        throw new SepNotAuthorizedException(
-            "The memo specified does not match the memo ID authorized via SEP-10");
-      }
+  }
+
+  void validateRequestAndTokenMemos(Sep12CustomerRequestBase requestBase, @NotNull JwtToken token)
+      throws SepException {
+    String tokenSubMemo = token.getAccountMemo();
+    String tokenMuxedAccountId = Objects.toString(token.getMuxedAccountId(), null);
+    String tokenMemo = tokenMuxedAccountId != null ? tokenMuxedAccountId : tokenSubMemo;
+    // SEP-12 says: If the JWT's `sub` field does not contain a muxed account or memo then the memo
+    // request parameters may contain any value.
+    if (tokenMemo == null) {
+      return;
     }
+
+    // SEP-12 says: If a memo is present in the decoded SEP-10 JWT's `sub` value, it must match this
+    // parameter value. If a muxed account is used as the JWT's `sub` value, memos sent in requests
+    // must match the 64-bit integer subaccount ID of the muxed account. See the Shared Account's
+    // section for more information.
+    String requestMemo = requestBase.getMemo();
+    if (Objects.equals(tokenMemo, requestMemo)) {
+      return;
+    }
+
+    infoF(
+        "request memo ({}) does not match token memo ID ({}) authorized via SEP-10",
+        requestMemo,
+        tokenMemo);
+    throw new SepNotAuthorizedException(
+        "The memo specified does not match the memo ID authorized via SEP-10");
+  }
+
+  void updateRequestMemoAndMemoType(@NotNull Sep12CustomerRequestBase requestBase, JwtToken token)
+      throws SepException {
+    String memo = requestBase.getMemo();
+    if (memo == null) {
+      requestBase.setMemoType(null);
+      return;
+    }
+    String memoTypeId = MemoHelper.memoTypeAsString(MemoType.MEMO_ID);
+    String memoType = Objects.toString(requestBase.getMemoType(), memoTypeId);
+    // SEP-12 says: If a memo is present in the decoded SEP-10 JWT's `sub` value, this parameter
+    // (memoType) can be ignored:
+    if (token.getAccountMemo() != null || token.getMuxedAccountId() != null) {
+      memoType = MemoHelper.memoTypeAsString(MemoType.MEMO_ID);
+    }
+
+    try {
+      MemoHelper.makeMemo(memo, memoType);
+    } catch (Exception e) {
+      infoF("Invalid memo ({}) for memo_type ({})", memo, memoType);
+      Log.warnEx(e);
+      throw new SepValidationException("Invalid 'memo' for 'memo_type'");
+    }
+
+    requestBase.setMemo(memo);
+    requestBase.setMemoType(memoType);
   }
 }
