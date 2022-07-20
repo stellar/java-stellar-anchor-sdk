@@ -20,4 +20,8 @@ resource "aws_ecs_service" "sep" {
    container_port   = 8080
  }
  
+ #lifecycle {
+ #  ignore_changes = [task_definition, desired_count]
+ #}
+ 
 }

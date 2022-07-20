@@ -92,6 +92,40 @@ data "aws_ssm_parameter" "sqs_secret_key" {
 
 }
 
+resource "aws_ssm_parameter" "platform_to_anchor_secret" {
+  name  = "/${var.environment}/anchorplatform/PLATFORM_TO_ANCHOR_SECRET"
+  type  = "SecureString"
+  value = "${var.platform_to_anchor_secret}"
+
+    tags = {
+    environment = "${var.environment}"
+  }
+}
+
+data "aws_ssm_parameter" "platform_to_anchor_secret" {
+  name  = "/${var.environment}/anchorplatform/PLATFORM_TO_ANCHOR_SECRET" 
+  depends_on = [aws_ssm_parameter.platform_to_anchor_secret]
+
+}
+resource "aws_ssm_parameter" "anchor_to_platform_secret" {
+  name  = "/${var.environment}/anchorplatform/ANCHOR_TO_PLATFORM_SECRET"
+  type  = "SecureString"
+  value = "${var.anchor_to_platform_secret}"
+
+    tags = {
+    environment = "${var.environment}"
+  }
+}
+
+data "aws_ssm_parameter" "anchor_to_platform_secret" {
+  name  = "/${var.environment}/anchorplatform/ANCHOR_TO_PLATFORM_SECRET" 
+  depends_on = [aws_ssm_parameter.anchor_to_platform_secret]
+
+}
+
+
+
+
 
 
 

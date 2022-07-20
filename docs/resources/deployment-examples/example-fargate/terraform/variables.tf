@@ -34,6 +34,14 @@ variable  "sqs_secret_key" {
   type = string
 }
 
+variable  "platform_to_anchor_secret" {
+  type = string
+}
+
+variable  "anchor_to_platform_secret" {
+  type = string
+}
+
 variable "anchor_config_build_spec" {
   type = string
   default = "docs/resources/deployment-examples/aws-fargate-ecs/buildspec-dev.yml"
