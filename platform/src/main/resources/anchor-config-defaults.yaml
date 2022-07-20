@@ -148,7 +148,7 @@ app-config:
     # The detail of the SEP-10 omnibus account is described at: https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#memos
     omnibusAccountList:
 
-    # Require authenticating clients to be in the omnibusAccountList, defaults to true
+    # Require authenticating clients to be in the omnibusAccountList
     requireKnownOmnibusAccount: false
 
   # sep-12
