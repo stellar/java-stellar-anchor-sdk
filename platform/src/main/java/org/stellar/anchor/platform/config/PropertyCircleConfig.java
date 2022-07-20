@@ -7,25 +7,32 @@ import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.Validator;
 import org.stellar.anchor.config.CircleConfig;
 @Data
-public class PropertyCircleConfig implements CircleConfig, Validator {
+public class PropertyCircleConfig implements CircleConfig {
   String circleUrl;
 
   String apiKey;
 
-  public boolean validate() {
-    Errors errors = new BindException(this, "circleConfig");
+  public BindException validate() {
+    /*Errors errors = new BindException(this, "circleConfig");
     ValidationUtils.invokeValidator(this, this, errors);
-    return !errors.hasErrors();
+    return !errors.hasErrors();*/
+    BindException errors = new BindException(this, "circleConfig");
+    ValidationUtils.rejectIfEmptyOrWhitespace(errors, "circleUrl", "empty-circleUrl");
+    ValidationUtils.rejectIfEmptyOrWhitespace(errors, "apiKey", "empty-apiKey");
+    //return !errors.hasErrors();
+    return errors;
   }
 
-  @Override
+  /*@Override
   public boolean supports(Class<?> clazz) {
     return CircleConfig.class.isAssignableFrom(clazz);
   }
 
   @Override
   public void validate(Object target, Errors errors) {
-    ValidationUtils.rejectIfEmptyOrWhitespace(errors, "circleUrl", "empty-circleUrl");
-    ValidationUtils.rejectIfEmptyOrWhitespace(errors, "apiKey", "empty-apiKey");
-  }
+    if (i am not needed) {
+      return;
+    }
+
+  }*/
 }

@@ -16,14 +16,15 @@ open class Sep31ConfigTest {
         val sep31Config = PropertySep31Config(circleConfig)
         sep31Config.setDepositInfoGeneratorType(CIRCLE)
 
-        var errors = BindException(sep31Config, "sep31Config")
+        val errors = BindException(sep31Config, "sep31Config")
         ValidationUtils.invokeValidator(sep31Config, sep31Config, errors)
         assertEquals(1, errors.errorCount)
-        errors.message?.let { assertContains(it, "badConfig-circleConfig") }
+        errors.message?.let { assertContains(it, "badConfig-circle") }
 
-        errors = BindException(circleConfig, "circleConfig")
-        ValidationUtils.invokeValidator(circleConfig, circleConfig, errors)
-        assertEquals(1, errors.errorCount)
-        errors.message?.let { assertContains(it, "empty-apiKey") }
+        //errors = BindException(circleConfig, "circleConfig")
+        //ValidationUtils.invokeValidator(circleConfig, circleConfig, errors)
+        val circleErrors = circleConfig.validate()
+        assertEquals(1, circleErrors.errorCount)
+        circleErrors.message?.let { assertContains(it, "empty-apiKey") }
     }
 }
