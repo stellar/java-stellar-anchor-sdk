@@ -4,4 +4,6 @@ public interface CircleConfig {
   String getCircleUrl();
 
   String getApiKey();
+
+  boolean validate();
 }

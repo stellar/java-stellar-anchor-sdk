@@ -7,6 +7,7 @@ import com.amazonaws.services.sqs.AmazonSQSAsyncClientBuilder;
 import com.amazonaws.services.sqs.model.MessageAttributeValue;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
 import com.google.gson.Gson;
+import io.micrometer.core.instrument.Metrics;
 import java.util.Map;
 import org.stellar.anchor.config.SqsConfig;
 import org.stellar.anchor.event.models.AnchorEvent;
@@ -57,7 +58,9 @@ public class SqsEventService implements EventPublishService {
               .withDataType("String")
               .withStringValue(event.getClass().getSimpleName()));
       sqsClient.sendMessage(sendMessageRequest);
-
+      Metrics.counter(
+              "event.published", "class", event.getClass().getSimpleName(), "type", event.getType())
+          .increment();
     } catch (Exception ex) {
       Log.errorEx(ex);
     }

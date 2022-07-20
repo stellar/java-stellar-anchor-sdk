@@ -21,4 +21,6 @@ public interface Sep10Config {
   List<String> getClientAttributionAllowList();
 
   List<String> getOmnibusAccountList();
+
+  boolean isRequireKnownOmnibusAccount();
 }

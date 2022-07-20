@@ -8,7 +8,7 @@
 
 The Anchor Platform is the easiest and fastest way to deploy a [SEP-compatible](https://github.com/stellar/stellar-protocol/tree/master/ecosystem) anchor service.
  
-It implements a the majority of standardized API (`SEP`) endpoints that wallets, exchanges, and other applications use, and provides a set of backend HTTPS APIs & callbacks for the anchor to integrate with for specifying fees, exchange rates, and off-chain transaction status updates.
+It implements the majority of standardized API (`SEP`) endpoints that wallets, exchanges, and other applications use, and provides a set of backend HTTPS APIs & callbacks for the anchor to integrate with for specifying fees, exchange rates, and off-chain transaction status updates.
 
 The goal of the Anchor Platform is to abstract all Stellar-specific functionality and requirements for running an anchor, allowing businesses to focus on the core business logic necessary to provide these services.
 
@@ -29,7 +29,7 @@ The full documentation can be found under the [`docs` directory](/docs), under t
   - [F - Testing with AWS Services](/docs/02%20-%20Contributing/F%20-%20Testing%20with%20AWS%20Services.md)
 - [03 - Implementing the Anchor Server](/docs/03%20-%20Implementing%20the%20Anchor%20Server)
   - [Communication](/docs/03%20-%20Implementing%20the%20Anchor%20Server/Communication/)
-    - [Cappback API](/docs/03%20-%20Implementing%20the%20Anchor%20Server/Communication/Callbacks%20API.yml)
+    - [Callback API](/docs/03%20-%20Implementing%20the%20Anchor%20Server/Communication/Callbacks%20API.yml)
     - [Events Schema](/docs/03%20-%20Implementing%20the%20Anchor%20Server/Communication/Events%20Schema.yml)
     - [Platform API](/docs/03%20-%20Implementing%20the%20Anchor%20Server/Communication/Platform%20API.yml)
 - [04 - Subprojects Usage](/docs/04%20-%20Subprojects%20Usage) `// In progress...`
