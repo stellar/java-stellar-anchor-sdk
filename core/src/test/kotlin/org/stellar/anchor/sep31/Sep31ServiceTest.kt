@@ -23,6 +23,7 @@ import org.stellar.anchor.api.sep.AssetInfo
 import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerRequest
 import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerResponse
 import org.stellar.anchor.api.sep.sep31.Sep31DepositInfo
+import org.stellar.anchor.api.sep.sep31.Sep31PatchTransactionRequest
 import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionRequest
 import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionRequest.Sep31TxnFields
 import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionResponse
@@ -38,8 +39,7 @@ import org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_SEND
 import org.stellar.anchor.event.EventPublishService
 import org.stellar.anchor.event.models.StellarId
 import org.stellar.anchor.event.models.TransactionEvent
-import org.stellar.anchor.sep31.Sep31Service.Sep31CustomerInfoNeededException
-import org.stellar.anchor.sep31.Sep31Service.Sep31MissingFieldException
+import org.stellar.anchor.sep31.Sep31Service.*
 import org.stellar.anchor.sep38.PojoSep38Quote
 import org.stellar.anchor.sep38.Sep38QuoteStore
 import org.stellar.anchor.util.GsonUtils
@@ -170,18 +170,32 @@ class Sep31ServiceTest {
 
     private const val txnJson =
         """
-        {
-          "id": "a2392add-87c9-42f0-a5c1-5f1728030b68",
-          "status": "pending_sender",
-          "stellar_account_id": "GAYR3FVW2PCXTNHHWHEAFOCKZQV4PEY2ZKGIKB47EKPJ3GSBYA52XJBY",
-          "client_domain": "demo-wallet-server.stellar.org",
-          "fields": {
-            "receiver_account_number": "1",
-            "type": "SWIFT",
-            "receiver_routing_number": "1"
-          },
-          "stellarTransactions": []
+    {
+      "id": "a2392add-87c9-42f0-a5c1-5f1728030b68",
+      "status": "pending_sender",
+      "stellarAccountId": "GAYR3FVW2PCXTNHHWHEAFOCKZQV4PEY2ZKGIKB47EKPJ3GSBYA52XJBY",
+      "amountIn": "100",
+      "amountInAsset": "USDC",
+      "clientDomain": "demo-wallet-server.stellar.org",
+      "fields": {
+        "receiver_account_number": "1",
+        "type": "SWIFT",
+        "receiver_routing_number": "1"
+      },
+      "stellarTransactions": [],
+      "requiredInfoUpdates" : {
+        "transaction" : {
+          "type": {
+            "description": "type of deposit to make",
+            "choices": [
+              "SEPA",
+              "SWIFT"
+            ],
+            "optional": false
+          }
         }
+      }
+    }
     """
 
     private const val quoteJson =
@@ -198,6 +212,17 @@ class Sep31ServiceTest {
         "fee": {
           "total": "10.00",
           "asset": "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+        }
+      }
+  """
+    private const val patchTxnRequestJson =
+        """
+      {
+        "id": "a2392add-87c9-42f0-a5c1-5f1728030b68",
+        "fields": {
+          "transaction": {
+            "type": "SEPA"
+          }
         }
       }
   """
@@ -223,6 +248,7 @@ class Sep31ServiceTest {
   private lateinit var fee: Amount
   private lateinit var asset: AssetInfo
   private lateinit var quote: PojoSep38Quote
+  private lateinit var patchRequest: Sep31PatchTransactionRequest
 
   @BeforeEach
   fun setUp() {
@@ -253,6 +279,7 @@ class Sep31ServiceTest {
     fee = gson.fromJson(feeJson, Amount::class.java)
     asset = gson.fromJson(assetJson, AssetInfo::class.java)
     quote = gson.fromJson(quoteJson, PojoSep38Quote::class.java)
+    patchRequest = gson.fromJson(patchTxnRequestJson, Sep31PatchTransactionRequest::class.java)
   }
 
   @AfterEach
@@ -263,10 +290,10 @@ class Sep31ServiceTest {
 
   @Test
   fun test_updateTxAmountsWhenNoQuoteWasUsed() {
-    Sep31Service.Context.get().setTransaction(txn)
-    Sep31Service.Context.get().setRequest(request)
-    Sep31Service.Context.get().setFee(fee)
-    Sep31Service.Context.get().setAsset(asset)
+    Context.get().setTransaction(txn)
+    Context.get().setRequest(request)
+    Context.get().setFee(fee)
+    Context.get().setAsset(asset)
     every { sep31Config.paymentType } returns STRICT_SEND
 
     request.amount = "100"
@@ -309,10 +336,10 @@ class Sep31ServiceTest {
 
   @Test
   fun test_updateTxAmountsBasedOnQuote() {
-    Sep31Service.Context.get().setTransaction(txn)
-    Sep31Service.Context.get().setRequest(request)
-    Sep31Service.Context.get().setFee(fee)
-    Sep31Service.Context.get().setQuote(quote)
+    Context.get().setTransaction(txn)
+    Context.get().setRequest(request)
+    Context.get().setFee(fee)
+    Context.get().setQuote(quote)
 
     // Fee is as sell asset
     every { sep31Config.paymentType } throws Exception("paymentType must not be called")
@@ -331,9 +358,8 @@ class Sep31ServiceTest {
     assertEquals(stellarJPYC, txn.amountOutAsset)
 
     // Test null quote failure
-    Sep31Service.Context.get().setQuote(null)
-    val exception =
-        assertThrows<ServerErrorException> { sep31Service.updateTxAmountsBasedOnQuote() }
+    Context.get().setQuote(null)
+    assertThrows<ServerErrorException> { sep31Service.updateTxAmountsBasedOnQuote() }
   }
   @Test
   fun test_getTransaction() {
@@ -362,6 +388,47 @@ class Sep31ServiceTest {
     assertEquals(tr.refunded, txn.refunded)
     assertEquals(tr.requiredInfoMessage, txn.requiredInfoMessage)
     assertEquals(tr.requiredInfoUpdates, txn.requiredInfoUpdates)
+  }
+
+  @Test
+  fun test_patchTransaction() {
+    txn.status = "pending_transaction_info_update"
+    every { txnStore.findByTransactionId("a2392add-87c9-42f0-a5c1-5f1728030b68") } returns txn
+    sep31Service.patchTransaction(patchRequest)
+    // TODO: Add more saved transaction field validation
+  }
+
+  @Test
+  fun test_patchTransaction_failure() {
+    val ex1 = assertThrows<BadRequestException> { sep31Service.patchTransaction(null) }
+    assertEquals("request cannot be null", ex1.message)
+
+    val ex2 =
+        assertThrows<BadRequestException> {
+          sep31Service.patchTransaction(Sep31PatchTransactionRequest.builder().build())
+        }
+    assertEquals("id cannot be null or empty", ex2.message)
+
+    every { txnStore.findByTransactionId(any()) } returns null
+    val ex3 = assertThrows<NotFoundException> { sep31Service.patchTransaction(patchRequest) }
+    assertEquals("transaction (id=${patchRequest.id}) not found", ex3.message)
+
+    patchRequest.fields.transaction.clear()
+    patchRequest.fields.transaction["unexpected_field"] = "unexpected_field_value"
+    txn.status = "pending_transaction_info_update"
+    every { txnStore.findByTransactionId(any()) } returns txn
+    val ex4 = assertThrows<BadRequestException> { sep31Service.patchTransaction(patchRequest) }
+    assertEquals("[unexpected_field] is not a expected field", ex4.message)
+
+    txn.requiredInfoUpdates = null
+    every { txnStore.findByTransactionId(any()) } returns txn
+    val ex5 = assertThrows<BadRequestException> { sep31Service.patchTransaction(patchRequest) }
+    assertEquals("Transaction (${txn.id}) is not expecting any updates", ex5.message)
+
+    txn.status = "completed"
+    every { txnStore.findByTransactionId(any()) } returns txn
+    val ex6 = assertThrows<BadRequestException> { sep31Service.patchTransaction(patchRequest) }
+    assertEquals("transaction (id=${txn.id}) does not need update", ex6.message)
   }
 
   @Test
@@ -685,7 +752,7 @@ class Sep31ServiceTest {
 
   @Test
   fun test_postTransaction_withoutQuote_quoteRequired() {
-    Sep31Service.Context.get().setAsset(asset)
+    Context.get().setAsset(asset)
     val senderId = "d2bd1412-e2f6-4047-ad70-a1a2f133b25c"
     val receiverId = "137938d4-43a7-4252-a452-842adcee474c"
     val postTxRequest = Sep31PostTransactionRequest()
@@ -821,5 +888,25 @@ class Sep31ServiceTest {
     assertEquals(3, usdc.fields.transaction.size)
 
     print(info)
+  }
+
+  @Test
+  fun test_validateRequiredFields() {
+    val assetInfo = assetService.getAsset("USDC")
+    Context.get().setAsset(assetInfo)
+    Context.get().setTransactionFields(txn.fields)
+    sep31Service.validateRequiredFields()
+
+    assetInfo.code = "BAD"
+    val ex1 = assertThrows<BadRequestException> { sep31Service.validateRequiredFields() }
+    assertEquals("Asset [BAD] has no fields definition", ex1.message)
+
+    Context.get().setAsset(null)
+    val ex2 = assertThrows<BadRequestException> { sep31Service.validateRequiredFields() }
+    assertEquals("Missing asset information.", ex2.message)
+
+    Context.get().setTransactionFields(null)
+    val ex3 = assertThrows<BadRequestException> { sep31Service.validateRequiredFields() }
+    assertEquals("'fields' field must have one 'transaction' field", ex3.message)
   }
 }
