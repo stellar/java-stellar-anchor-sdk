@@ -15,4 +15,5 @@ public class PropertySep10Config implements Sep10Config {
   private List<String> clientAttributionDenyList;
   private List<String> clientAttributionAllowList;
   private List<String> omnibusAccountList;
+  private boolean requireKnownOmnibusAccount;
 }

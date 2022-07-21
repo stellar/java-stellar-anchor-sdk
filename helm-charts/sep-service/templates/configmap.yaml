@@ -1,0 +1,254 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.fullName }}-configmap-{{ .Values.service.name }}
+data:
+  # TODO: remove all secrets (ex: move to env vars, k8s secrets, vault, etc...)
+  anchor-config.yaml: |
+    stellar:
+      anchor:
+        {{- if .Values.stellar.anchor }}
+        config: {{ .Values.stellar.anchor.config | default "in-memory" }}
+        {{- else }}
+        config: in-memory 
+        {{- end }}
+        {{- if (.Values.stellar.anchor).app_config }}
+        app-config:
+          type: {{ .Values.stellar.anchor.app_config.type | default "config-spring-property" }} # Activate [config-spring-property] module
+          settings: {{ .Values.stellar.anchor.app_config.settings | default "app-config" }}  # The location of the configuration data
+       {{- else }}
+        app-config:
+          type: config-spring-property # Activate [config-spring-property] module
+          settings: app-config  # The location of the configuration data
+       {{- end }}
+       {{- if (.Values.stellar.anchor).data_access }} 
+        data-access:
+          type: {{ .Values.stellar.anchor.data_access.type | default "data-spring-jdbc" }} # Activate [config-spring-jdbc] module.
+          settings: {{ .Values.stellar.anchor.data_access.settings | default "data-spring-jdbc-sqlite" }}  # The location of the configuration data in this file.
+        {{- else }}
+        data-access:
+          type: data-spring-jdbc # Activate [config-spring-jdbc] module.
+          settings: data-spring-jdbc-sqlite  # The location of the configuration data in this file.
+        {{- end }}
+        {{- if (.Values.stellar.anchor).logging }}
+        logging:
+          type: {{ .Values.stellar.anchor.logging.type | default "logging-logback" }}
+          settings: {{ .Values.stellar.anchor.logging.settings | default "logging-logback-settings" }}
+        {{- else }}
+        logging:
+          type: logging-logback
+          settings: logging-logback-settings
+        {{- end }}
+    app-config:
+      app:
+        stellarNetwork: {{ .Values.stellar.app_config.app.stellarNetwork | default "TESTNET" }}
+      {{- if eq .Values.stellar.app_config.app.stellarNetwork "PUBNET" }} 
+        stellarNetworkPassphrase: Public Global Stellar Network ; September 2015 
+        horizonUrl: https://horizon.stellar.org
+      {{- else }} 
+        stellarNetworkPassphrase: {{ .Values.stellar.app_config.app.stellarNetworkPassphrase | default "Test SDF Network ; September 2015" }} 
+        horizonUrl: {{ .Values.stellar.app_config.app.horizonUrl | default "https://horizon-testnet.stellar.org" }}
+      {{- end }}
+        hostUrl: {{ .Values.stellar.app_config.app.hostUrl }}
+        languages: en
+        assets: {{ .Values.stellar.app_config.app.assets | default "assets-test.json" }}
+        jwtSecretKey: {{ .Values.stellar.app_config.app.jwtSecretKey | default "${JWT_SECRET}" }}
+      integration-auth:
+        authType: JWT_TOKEN
+        platformToAnchorSecret: {{ .Values.stellar.app_config.app.platformToAnchorSecret | default "${PLATFORM_TO_ANCHOR_SECRET}" }}
+        anchorToPlatformSecret: {{ .Values.stellar.app_config.app.anchorToPlatformSecret | default "${ANCHOR_TO_PLATFORM_SECRET}" }}
+        expirationMilliseconds: {{ .Values.stellar.app_config.app.expirationMilliseconds | default 30000 }}
+      sep1:
+        enabled: true
+        stellarFile: file:/config/stellar-wks.toml
+      {{- if ((.Values.stellar.app_config).sep10) }}
+      sep10:
+        enabled: {{ .Values.stellar.app_config.sep10.enabled | default "true" }}
+        homeDomain: {{ .Values.stellar.app_config.sep10.homeDomain }}
+        clientAttributionRequired: {{ .Values.stellar.app_config.sep10.clientAttributionRequired | default "false" }}
+        clientAttributionAllowList: {{ .Values.stellar.app_config.sep10.clientAttributionAllowList | default "lobstr.co,preview.lobstr.co" }}
+        # clientAttributionDenyList: # use this if we want to black list.
+        authTimeout: {{ .Values.stellar.app_config.sep10.authTimeout | default 900 }}
+        jwtTimeout: {{ .Values.stellar.app_config.sep10.jwtTimeout | default 86400 }}
+        signingSeed: {{ .Values.stellar.app_config.sep10.signingSeed | default "${SEP10_SIGNING_SEED}" }} 
+        requireKnownOmnibusAccount: {{ .Values.stellar.app_config.sep10.requireKnownOmnibusAccount | default "false" }}
+        {{- if .Values.stellar.app_config.sep10.omnibusAccountList }}
+        omnibusAccountList: 
+{{- $.Values.stellar.app_config.sep10.omnibusAccountList | toYaml | nindent 10 }}
+        {{- end }}
+      {{- else }}
+      sep10:
+        enabled: true
+        homeDomain: "your_home_domain.com"
+        clientAttributionRequired: "false"
+        clientAttributionAllowList: "lobstr.co,preview.lobstr.co"
+        # clientAttributionDenyList: # use this if we want to black list.
+        authTimeout: 900
+        jwtTimeout: 86400
+        signingSeed: ${SEP10_SIGNING_SEED}
+
+      {{- end }}
+      # sep-12
+      {{- if ((.Values.stellar.app_config).sep12) }}
+      sep12:
+        enabled: {{ .Values.stellar.app_config.sep12.enabled | default "true" | toYaml }}
+        customerIntegrationEndpoint: {{ .Values.stellar.app_config.sep12.customerIntegrationEndpoint | default .Values.stellar.app_config.app.backendUrl }}
+      {{- else }}
+      sep12:
+        enabled:  "true"
+        customerIntegrationEndpoint: {{ .Values.stellar.app_config.app.backendUrl }}
+      {{- end }}
+      # sep-24
+      {{- if ((.Values.stellar.app_config).sep24) }}
+      sep24:
+        enabled: {{ .Values.stellar.app_config.sep24.enabled | default "true" }}
+        interactiveJwtExpiration: {{ .Values.stellar.app_config.sep24.interactiveJwtExpiration | default 3600 }}
+        interactiveUrl: {{ .Values.stellar.app_config.sep24.interactiveUrl | default .Values.stellar.app_config.app.backendUrl }}
+      {{- else }}
+      sep24:
+        enabled: "false"
+        interactiveJwtExpiration: 3600
+        interactiveUrl: {{ .Values.stellar.app_config.app.backendUrl }}
+      {{- end }}
+      # sep-31
+      sep31:
+      {{- if ((.Values.stellar.app_config).sep31) }}
+        enabled: {{ .Values.stellar.app_config.sep31.enabled | default "true" }}
+        feeIntegrationEndPoint: {{ .Values.stellar.app_config.sep31.feeIntegrationEndPoint | default .Values.stellar.app_config.app.backendUrl }}
+        depositInfoGeneratorType: {{ .Values.stellar.app_config.sep31.depositInfoGeneratorType | default "self" }}
+        paymentType: {{ .Values.stellar.app_config.sep31.paymentType | default "STRICT_SEND" }}
+      {{- else }}
+        enabled: "true"
+        feeIntegrationEndPoint: {{ .Values.stellar.app_config.app.backendUrl }}
+        paymentType: STRICT_SEND
+      {{- end }}
+      # sep-38
+      sep38:
+      {{- if ((.Values.stellar.app_config).sep38) }}
+        enabled: {{ .Values.stellar.app_config.sep38.enabled | default "true" }}
+        quoteIntegrationEndPoint: {{ .Values.stellar.app_config.sep38.quoteIntegrationEndPoint | default .Values.stellar.app_config.app.backendUrl }}
+      {{- else }}
+        enabled: "true"
+        quoteIntegrationEndPoint: {{ .Values.stellar.app_config.app.backendUrl }}
+      {{- end }}
+      {{- if ((.Values.stellar.app_config).circle) }}
+      circle:
+        circleUrl: {{ .Values.stellar.app_config.circle.circleUrl | default "https://api-sandbox.circle.com" }}
+        apiKey: {{ .Values.stellar.app_config.circle.apiKey | default "${CIRCLE_API_KEY}" }}
+      {{- end }}
+      {{- if (.Values.stellar.app_config).payment_gateway }}
+      payment-gateway:
+        {{- if ((.Values.stellar.app_config).payment_gateway).circle }}
+        circle:
+          name: {{ .Values.stellar.app_config.payment_gateway.circle.name | default "circle" }}
+          enabled: {{ .Values.stellar.app_config.payment_gateway.circle.enabled | default "true" }}
+        {{- end }}
+        {{- if ((.Values.stellar.app_config).payment_gateway).stellar }}
+        stellar:
+          enabled: {{ .Values.stellar.app_config.payment_gateway.stellar.enabled | default "false" }}
+          name: {{ .Values.stellar.app_config.payment_gateway.stellar.name | default "stellar" }}
+          horizonUrl: {{ .Values.stellar.app_config.app.horizonUrl | default "https://horizon-testnet.stellar.org" }}
+          secretKey:  {{ .Values.stellar.app_config.payment_gateway.stellar.secretKey | default "${PAYMENT_GATEWAY_STELLAR_SECRET_KEY}"  }} # stellar account secret key
+        {{- end }}
+      {{- end }}
+      {{- if (.Values.stellar.app_config).circle_payment_observer }}
+      circle-payment-observer:
+        enabled: {{ .Values.stellar.app_config.circle_payment_observer.enabled | default "true" }}
+        horizonUrl: {{ .Values.stellar.app_config.circle_payment_observer.horizonUrl | default "https://horizon-testnet.stellar.org" }}
+        stellarNetwork: {{ .Values.stellar.app_config.circle_payment_observer.stellarNetwork | default "TESTNET" }}
+        trackedWallet: {{ .Values.stellar.app_config.circle_payment_observer.trackedWallet | default "all" }}
+      {{- end }}
+      {{- if (.Values.stellar.app_config).event }}
+      event:
+        # If enabled, publish Events to a queue (publisherType)
+        # publisherType - the type of queue to use for event publishing
+        enabled: {{ .Values.stellar.app_config.event.enabled | default "true" }}
+        publisherType: {{ .Values.stellar.app_config.event.publisherType | default "kafka" }}
+      {{- else }}
+      event:
+        # If enabled, publish Events to a queue (publisherType)
+        # publisherType - the type of queue to use for event publishing
+        enabled: false
+        publisherType: kafka
+      {{- end }}
+      {{- if (.Values.stellar.app_config).kafka_publisher }}
+      kafka.publisher:
+        bootstrapServer: {{ .Values.stellar.app_config.kafka_publisher.bootstrapServer | default "missing_bootstrapServer:port" }}
+        useIAM: {{ .Values.stellar.app_config.kafka_publisher.useIAM | default "false" }}
+        useSingleQueue: {{ .Values.stellar.app_config.kafka_publisher.useSingleQueue | default "false" }}
+        {{- if (((.Values.stellar.app_config).event).kafka_publisher).eventTypeQueue }}
+        eventTypeToQueue:
+          all: {{ .Values.stellar.app_config.kafka_publisher.eventTypeToQueue.all | default "dev_ap_event_single_queue" }}
+          quoteCreated: {{ .Values.stellar.app_config.kafka_publisher.eventTypeToQueue.quoteCreated | default "dev_ap_event_quote_created" }}
+          transactionCreated: {{ .Values.stellar.app_config.kafka_publisher.eventTypeToQueue.transactionCreated | default "dev_ap_event_transaction_created"}}
+          transactionStatusChanged: {{ .Values.stellar.app_config.kafka_publisher.eventTypeToQueue.transactionStatusChanged | default "dev_ap_event_transaction_status_changed" }}
+          transactionError: {{ .Values.stellar.app_config.kafka_publisher.eventTypeToQueue.transactionError | default "dev_ap_event_transaction_error" }}
+        {{- else }}
+        eventTypeToQueue:  
+          all: "dev_ap_event_single_queue"
+          quoteCreated: "dev_ap_event_quote_created"
+          transactionCreated: "dev_ap_event_transaction_created"
+          transactionStatusChanged: "dev_ap_event_transaction_status_changed"
+          transactionError: "dev_ap_event_transaction_error"
+        {{- end }}
+      {{- end }}     
+    {{- $settings_key := .Values.stellar.anchor.data_access.settings }}
+    {{- $settings := regexReplaceAll "\\W+" .Values.stellar.anchor.data_access.settings "_" }}
+    {{ $settings_key }}:
+    {{- range $key, $value :=  index .Values.stellar $settings }}
+      {{ $key }}: {{ $value }}
+    {{- end }}
+    spring:
+      logging:
+        level:
+          root: INFO
+          org.springframework: INFO
+          org.springframework.web.filter: INFO
+          org.stellar: INFO
+      mvc:
+        async.request-timeout: 6000
+  stellar-wks.toml: |
+    ACCOUNTS = ["GCHLHDBOKG2JWMJQBTLSL5XG6NO7ESXI2TAQKZXCXWXB5WI2X6W233PR"]
+    VERSION = "0.1.0"
+    NETWORK_PASSPHRASE = "Test SDF Network ; September 2015"
+    SIGNING_KEY = "GCHLHDBOKG2JWMJQBTLSL5XG6NO7ESXI2TAQKZXCXWXB5WI2X6W233PR"
+    TRANSFER_SERVER = "{{ .Values.stellar.app_config.app.hostUrl }}/sep6"
+    TRANSFER_SERVER_SEP0024 = "{{ .Values.stellar.app_config.app.hostUrl }}/sep24"
+    WEB_AUTH_ENDPOINT = "{{ .Values.stellar.app_config.app.hostUrl }}/auth"
+    KYC_SERVER = "{{ .Values.stellar.app_config.app.hostUrl }}/sep12"
+    DIRECT_PAYMENT_SERVER = "{{ .Values.stellar.app_config.app.hostUrl }}/sep31"
+    ANCHOR_QUOTE_SERVER = "{{ .Values.stellar.app_config.app.hostUrl }}/sep38"
+    
+    [[CURRENCIES]]
+    {{- if ((.Values.stellar).toml).currencies }}
+    {{- range .Values.stellar.toml.currencies }}
+    code = {{ .code | quote }}
+    issuer = {{ .issuer | quote }}
+    status = {{ .status | quote }}
+    is_asset_anchored = {{ .is_asset_anchored }}
+    anchor_asset_type = {{ .anchor_asset_type }}
+    desc = {{ .desc | quote }}
+    {{- end }}
+    {{- else }}
+    code = "USDC"
+    issuer = "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+    status = "test"
+    is_asset_anchored = true
+    anchor_asset_type = "fiat"
+    desc = "A test USDC issued by Circle."
+    {{- end }}
+    
+    [DOCUMENTATION]
+    {{- if ((.Values.stellar).toml).documentation }}
+    ORG_NAME = {{ .Values.stellar.toml.documentation.ORG_NAME | default "My Organization" | quote }}
+    ORG_URL = {{ .Values.stellar.toml.documentation.ORG_URL  | default "https://www.myorg.org" | quote }}
+    ORG_DESCRIPTION = {{ .Values.stellar.toml.documentation.ORG_DESCRIPTION | default "My Organization description" | quote }}
+    ORG_LOGO = {{ .Values.stellar.toml.documentation.ORG_LOGO | default "https://myorglogo.png" | quote }}
+    ORG_SUPPORT_EMAIL = {{ .Values.stellar.toml.documentation.ORG_SUPPORT_EMAIL | default "myname@myemail.org" | quote }}
+    {{- else }}
+    ORG_NAME = "My Organization"
+    ORG_URL = "https://www.myorg.org"
+    ORG_DESCRIPTION = "Please Customize all DOCUMENTATION values for your organization"
+    ORG_LOGO = "https://myorglogo.png"
+    ORG_SUPPORT_EMAIL="myname@myemail.org"
+    {{- end }}

@@ -1,0 +1,46 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.fullName }}-ing-{{ .Values.service.name }}
+  {{- if .Values.ingress.metadata }}
+  {{- range $key, $value := .Values.ingress.metadata }}
+  {{- end }}
+  {{- end }}
+  {{- if .Values.ingress.annotations }}
+  annotations:
+    {{- range $key, $value := .Values.ingress.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+  {{- end }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.fullName }}-ing-{{ .Values.service.name }}
+    helm.sh/chart: {{ $.Chart.Name }}-{{ $.Chart.Version }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}  
+spec:
+  {{- if .Values.ingress.ingressClassName }}
+  ingressClassName: {{ .Values.ingress.ingressClassName }}
+  {{- end }}
+  {{- if .Values.ingress.tls }}
+  tls:
+  - hosts:
+    - {{ .Values.ingress.tls.host }}
+    {{- if .Values.ingress.tls.secretName }}
+    secretName: {{ .Values.ingress.tls.secretName}}
+    {{- end }}      
+  {{- end }}
+  {{- if .Values.ingress.rules }}
+  rules:
+  {{- range .Values.ingress.rules.hosts }}
+  - host: {{ tpl .host $ }}
+    http:
+      paths:
+        - path: {{ .path | quote }}
+          pathType: {{ .pathType| quote }}
+          backend:
+            service:
+              name: {{ tpl .backend.serviceName $ }}
+              port:
+                number: {{ tpl .backend.servicePort $ }}
+  {{- end }}
+  {{- end }}
