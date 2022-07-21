@@ -21,8 +21,6 @@ open class Sep31ConfigTest {
         assertEquals(1, errors.errorCount)
         errors.message?.let { assertContains(it, "badConfig-circle") }
 
-        //errors = BindException(circleConfig, "circleConfig")
-        //ValidationUtils.invokeValidator(circleConfig, circleConfig, errors)
         val circleErrors = circleConfig.validate()
         assertEquals(1, circleErrors.errorCount)
         circleErrors.message?.let { assertContains(it, "empty-apiKey") }

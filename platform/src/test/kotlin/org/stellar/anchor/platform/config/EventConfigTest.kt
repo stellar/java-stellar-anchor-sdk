@@ -51,10 +51,46 @@ open class EventConfigTest {
         ValidationUtils.invokeValidator(eventConfig, eventConfig, errors)
         assertEquals(0, errors.errorCount)
     }
-        /* Test missing... assertEquals(1, errors.errorCount)
+
+    @Test
+    fun testKafkaMissingFields() {
+        val kafkaConfig = PropertyKafkaConfig()
+        kafkaConfig.isUseSingleQueue = true
+        kafkaConfig.eventTypeToQueue = HashMap<String, String>()
+
+        val eventConfig = PropertyEventConfig(kafkaConfig, PropertySqsConfig())
+        eventConfig.isEnabled = true
+        eventConfig.publisherType = "kafka"
+        val errors = BindException(eventConfig, "eventConfig")
+
+        ValidationUtils.invokeValidator(eventConfig, eventConfig, errors)
+        assertEquals(1, errors.errorCount)
         errors.message?.let { assertContains(it, "badConfig-kafka") }
 
         val kafkaErrors = kafkaConfig.validate()
         assertEquals(1, kafkaErrors.errorCount)
-        kafkaErrors.message?.let { assertContains(it, "empty-apiKey") }*/
+        kafkaErrors.message?.let { assertContains(it, "empty-bootstrapServer") }
+    }
+
+    @Test
+    fun testSqsMissingFields() {
+        val sqsConfig = PropertySqsConfig()
+        sqsConfig.isUseSingleQueue = true
+        sqsConfig.eventTypeToQueue = HashMap<String, String>()
+        sqsConfig.accessKey = "accessKey"
+        sqsConfig.secretKey = "secretKey"
+
+        val eventConfig = PropertyEventConfig(PropertyKafkaConfig(), sqsConfig)
+        eventConfig.isEnabled = true
+        eventConfig.publisherType = "sqs"
+        val errors = BindException(eventConfig, "eventConfig")
+
+        ValidationUtils.invokeValidator(eventConfig, eventConfig, errors)
+        assertEquals(1, errors.errorCount)
+        errors.message?.let { assertContains(it, "badConfig-sqs") }
+
+        val sqsErrors = sqsConfig.validate()
+        assertEquals(1, sqsErrors.errorCount)
+        sqsErrors.message?.let { assertContains(it, "empty-region") }
+    }
 }

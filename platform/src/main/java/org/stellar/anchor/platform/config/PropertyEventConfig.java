@@ -38,14 +38,14 @@ public class PropertyEventConfig implements EventConfig, Validator {
       if (config.getPublisherType().equals("kafka")) {
         if (kafkaConfig.validate().hasErrors()) {
           errors.rejectValue(
-              "kafka",
+              "kafkaConfig",
               "badConfig-kafka",
               "publisherType set to kafka, but kafka config not properly configured");
         }
       } else if (config.getPublisherType().equals("sqs")) {
         if (sqsConfig.validate().hasErrors()) {
           errors.rejectValue(
-              "sqs",
+              "sqsConfig",
               "badConfig-sqs",
               "publisherType set to sqs, but sqs config not properly configured");
         }
