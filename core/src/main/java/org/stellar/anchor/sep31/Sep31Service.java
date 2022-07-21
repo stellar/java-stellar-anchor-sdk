@@ -1,5 +1,17 @@
 package org.stellar.anchor.sep31;
 
+import static org.stellar.anchor.api.sep.sep31.Sep31InfoResponse.AssetResponse;
+import static org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_SEND;
+import static org.stellar.anchor.util.Log.*;
+import static org.stellar.anchor.util.MathHelper.decimal;
+import static org.stellar.anchor.util.MathHelper.formatAmount;
+import static org.stellar.anchor.util.SepHelper.*;
+import static org.stellar.anchor.util.SepLanguageHelper.validateLanguage;
+
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.*;
+import java.util.stream.Collectors;
 import lombok.Data;
 import lombok.SneakyThrows;
 import org.stellar.anchor.api.callback.CustomerIntegration;
@@ -25,19 +37,6 @@ import org.stellar.anchor.event.models.TransactionEvent;
 import org.stellar.anchor.sep38.Sep38Quote;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
 import org.stellar.anchor.util.Log;
-
-import java.math.BigDecimal;
-import java.time.Instant;
-import java.util.*;
-import java.util.stream.Collectors;
-
-import static org.stellar.anchor.api.sep.sep31.Sep31InfoResponse.AssetResponse;
-import static org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_SEND;
-import static org.stellar.anchor.util.Log.*;
-import static org.stellar.anchor.util.MathHelper.decimal;
-import static org.stellar.anchor.util.MathHelper.formatAmount;
-import static org.stellar.anchor.util.SepHelper.*;
-import static org.stellar.anchor.util.SepLanguageHelper.validateLanguage;
 
 public class Sep31Service {
   private final AppConfig appConfig;
