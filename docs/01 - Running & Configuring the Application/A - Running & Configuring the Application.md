@@ -175,6 +175,9 @@ They can be enabled with the following configs:
     runInterval: 30                 # interval to query the database to generate the optional metrics
 ```
 
+A Grafana dashboard for the Anchor Platform can be found at `docs/resources/grafana-dashboard/anchor-platform-grafana-dashboard.json`
+and imported into your Grafana instance to visualized the Prometheus metrics.
+
 
 [`anchor-config-defaults.yaml`]: /platform/src/main/resources/anchor-config-defaults.yaml
 [`anchor-reference-server.yaml`]: /anchor-reference-server/src/main/resources/anchor-reference-server.yaml
@@ -193,7 +196,7 @@ The format of anchor platform's logs can be set by the `LOG_APPENDER` environmen
     "time": timestamp,
     "source": logger,
     "index": location,
-    "event" {
+    "event": {
         "message": message,
         "severity": level,
     }

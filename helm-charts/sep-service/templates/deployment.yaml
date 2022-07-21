@@ -1,0 +1,99 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "common.name" . }}
+  {{- if (.Values.deployment).annotations }}
+  annotations:
+    {{- range $key, $value := .Values.deployment.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+  {{- end }}
+  labels:
+    app.kubernetes.io/name: {{ include "common.name" . }}
+    helm.sh/chart: {{ include "common.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: {{ .Values.service.name }}
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "common.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+    spec:
+      {{- if (.Values.deployment).serviceAccountName }}
+      serviceAccountName: {{ .Values.deployment.serviceAccountName | default "default" }}
+      {{- end }}
+      containers:
+        - name: {{ .Chart.Name }}
+          image: "{{ .Values.image.repo }}/{{ .Values.image.name }}:{{ .Values.image.tag }}"
+          args: ["--sep-server"]
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          startupProbe:
+            httpGet:
+              path: {{ .Values.deployment.startupProbePath | default "/health" }}
+              port: {{ .Values.deployment.startupProbePort | default 8080 }}
+            failureThreshold: {{ .Values.deployment.startupProbeFailureThreshold | default 10 }}
+            periodSeconds: {{ .Values.deployment.startupProbePeriodSeconds | default 15 }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.deployment.livenessProbePath | default "/health" }}
+              port: {{ .Values.deployment.livenessProbePort | default 8080 }}
+            initialDelaySeconds: {{ .Values.deployment.livenessProbeInitialDelaySeconds | default 30 }}
+            failureThreshold: {{ .Values.deployment.livenessProbeFailureThreshold | default 2 }}
+            periodSeconds: {{ .Values.deployment.livenessProbePeriodSeconds | default 3 }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.deployment.readinessProbePath | default "/health" }}
+              port: {{ .Values.deployment.livenessProbePort | default 8080 }}
+            initialDelaySeconds: {{ .Values.deployment.readinessProbeInitialDelaySeconds | default 30 }}
+            periodSeconds: {{ .Values.deployment.readinessProbePeriodSeconds | default 3 }}
+          volumeMounts:
+            - name: sep-config-volume
+              mountPath: /config
+              readOnly: true
+          {{- if ((.Values.deployment).volumeMounts).configMaps }}
+          {{- range $conf := .Values.deployment.volumeMounts.configMaps }}
+            - mountPath: {{ $conf.mountPath }}
+              name: {{ $conf.name }}-volume
+          {{- end }}
+          {{- end }}
+          {{- if ((.Values.deployment).volumeMounts).secrets }}
+          {{- range $secret := .Values.deployment.volumeMounts.secrets }}
+            - mountPath: {{ $secret.mountPath | default $secret.name }}
+              name: {{ $secret.name }}-volume
+          {{- end }}
+          {{- end }}
+          ports:
+          - name: http
+            containerPort: {{ .Values.service.containerPort }}
+            protocol: TCP
+          {{- if (.Values.deployment).envFrom }}
+          envFrom:
+{{ toYaml .Values.deployment.envFrom | indent 12 }}
+          {{- end }}
+          {{- if (.Values.deployment).resources }}
+          resources:
+{{- toYaml .Values.deployment.resources | indent 12 }}
+          {{- end }}     
+      volumes:
+        - name: sep-config-volume
+          configMap:
+            name: {{ .Values.fullName }}-configmap-{{ .Values.service.name }}
+      {{- if ((.Values.deployment).volumeMounts).configMaps }}
+      {{- range $conf := .Values.deployment.volumeMounts.configMaps }}
+        - name: {{ $conf.name }}-volume
+          configMap:
+            name: {{ $conf.name }}
+      {{- end }}
+      {{- end }}
+      {{- if ((.Values.deployment).volumeMounts).secrets }}
+      {{- range $secret := .Values.deployment.volumeMounts.secrets }}
+        - name: {{ $secret.name }}-volume
+          secret:
+            secretName: {{ $secret.name }}
+      {{- end }}
+      {{- end }}
