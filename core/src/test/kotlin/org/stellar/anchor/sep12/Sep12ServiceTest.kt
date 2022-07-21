@@ -45,12 +45,11 @@ class Sep12ServiceTest {
 
   private lateinit var sep12Service: Sep12Service
   @MockK(relaxed = true) private lateinit var customerIntegration: CustomerIntegration
-  @MockK(relaxed = true) private lateinit var customerStore: Sep12CustomerStore
 
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
-    sep12Service = Sep12Service(customerIntegration, customerStore)
+    sep12Service = Sep12Service(customerIntegration)
   }
 
   @AfterEach
@@ -185,12 +184,6 @@ class Sep12ServiceTest {
 
   @Test
   fun test_putCustomer() {
-    // mock customer store
-    val savedSep12CustomerId = slot<Sep12CustomerId>()
-    every { customerStore.save(capture(savedSep12CustomerId)) } returns mockk(relaxed = true)
-    every { customerStore.newInstance() } returns PojoSep12CustomerId()
-    every { customerStore.findById("customer-id") } returns null
-
     // mock `PUT {callbackApi}/customer` response
     val callbackApiPutRequestSlot = slot<Sep12PutCustomerRequest>()
     val mockCallbackApiPutCustomerResponse = Sep12PutCustomerResponse()
@@ -228,40 +221,10 @@ class Sep12ServiceTest {
     verify(exactly = 1) { customerIntegration.putCustomer(any()) }
     assertEquals(TEST_ACCOUNT, mockPutRequest.account)
     assertEquals(mockCallbackApiPutCustomerResponse, sep12PutCustomerResponse1)
-
-    // assert that a new customer was created in the database
-    verify(exactly = 1) { customerStore.findById("customer-id") }
-    verify(exactly = 1) { customerStore.save(any()) }
-    val wantSavedSep12Customer =
-      Sep12CustomerBuilder(customerStore)
-        .id("customer-id")
-        .account(TEST_ACCOUNT)
-        .memo(TEST_MEMO)
-        .memoType("id")
-        .build()
-    assertEquals(wantSavedSep12Customer, savedSep12CustomerId.captured)
-
-    // assert that if a customer already exists and it doesn't need to be updated, we won't call
-    // the save method.
-    every { customerStore.findById("customer-id") } returns wantSavedSep12Customer
-    var sep12PutCustomerResponse2: Sep12PutCustomerResponse? = null
-    assertDoesNotThrow {
-      sep12PutCustomerResponse2 = sep12Service.putCustomer(jwtToken, mockPutRequest)
-    }
-    assertEquals(sep12PutCustomerResponse1, sep12PutCustomerResponse2)
-    verify(exactly = 2) { customerIntegration.putCustomer(any()) }
-    verify(exactly = 2) { customerStore.findById("customer-id") }
-    verify(exactly = 1) { customerStore.save(any()) }
   }
 
   @Test
   fun test_getCustomer() {
-    // mock customer store
-    var savedSep12CustomerId = slot<Sep12CustomerId>()
-    every { customerStore.save(capture(savedSep12CustomerId)) } returns mockk(relaxed = true)
-    every { customerStore.newInstance() } returns PojoSep12CustomerId()
-    every { customerStore.findById("customer-id") } returns null
-
     // mock `GET {callbackApi}/customer` response
     val callbackApiGetRequestSlot = slot<Sep12GetCustomerRequest>()
     val mockCallbackApiGetCustomerResponse = Sep12GetCustomerResponse()
@@ -302,59 +265,6 @@ class Sep12ServiceTest {
     verify(exactly = 1) { customerIntegration.getCustomer(any()) }
     assertEquals(TEST_ACCOUNT, mockGetRequest.account)
     assertEquals(mockCallbackApiGetCustomerResponse, sep12GetCustomerResponse1)
-
-    // assert that a new customer was created in the database
-    verify(exactly = 1) { customerStore.findById("customer-id") }
-    verify(exactly = 1) { customerStore.save(any()) }
-    val wantSavedSep12Customer =
-      Sep12CustomerBuilder(customerStore)
-        .id("customer-id")
-        .account(TEST_ACCOUNT)
-        .memo(TEST_MEMO)
-        .memoType("text")
-        .build()
-    assertEquals(wantSavedSep12Customer, savedSep12CustomerId.captured)
-
-    // assert that if a customer already exists and it doesn't need to be updated, we won't call
-    // the save method.
-    every { customerStore.findById("customer-id") } returns wantSavedSep12Customer
-    var sep12GetCustomerResponse2: Sep12GetCustomerResponse? = null
-    assertDoesNotThrow {
-      sep12GetCustomerResponse2 = sep12Service.getCustomer(jwtToken, mockGetRequest)
-    }
-    assertEquals(sep12GetCustomerResponse1, sep12GetCustomerResponse2)
-    verify(exactly = 2) { customerIntegration.getCustomer(any()) }
-    verify(exactly = 2) { customerStore.findById("customer-id") }
-    verify(exactly = 1) { customerStore.save(any()) }
-
-    // assert that if a customer already exists but there is new data to be added, it will be
-    // updated.
-    savedSep12CustomerId = slot()
-    every { customerStore.save(capture(savedSep12CustomerId)) } returns mockk(relaxed = true)
-    every { customerStore.newInstance() } returns PojoSep12CustomerId()
-    val idOnlySavedSep12Customer = Sep12CustomerBuilder(customerStore).id("customer-id").build()
-    every { customerStore.findById("customer-id") } returns idOnlySavedSep12Customer
-
-    var sep12GetCustomerResponse3: Sep12GetCustomerResponse? = null
-    assertDoesNotThrow {
-      sep12GetCustomerResponse3 = sep12Service.getCustomer(jwtToken, mockGetRequest)
-    }
-    assertEquals(sep12GetCustomerResponse1, sep12GetCustomerResponse3)
-    verify(exactly = 3) { customerIntegration.getCustomer(any()) }
-
-    verify(exactly = 3) { customerStore.findById("customer-id") }
-    verify(exactly = 2) { customerStore.save(any()) }
-    assertEquals(wantSavedSep12Customer, savedSep12CustomerId.captured)
-
-    // assert that, if no customer exists not even in the callback API, we won't save anything.
-    every { customerIntegration.getCustomer(capture(callbackApiGetRequestSlot)) } throws
-      NotFoundException("Not found")
-    val ex: Exception = assertThrows { sep12Service.getCustomer(jwtToken, mockGetRequest) }
-    assertInstanceOf(NotFoundException::class.java, ex)
-    assertEquals("Not found", ex.message)
-    verify(exactly = 4) { customerIntegration.getCustomer(any()) }
-    verify(exactly = 3) { customerStore.findById("customer-id") }
-    verify(exactly = 2) { customerStore.save(any()) }
   }
 
   @Test
@@ -414,10 +324,6 @@ class Sep12ServiceTest {
 
   @Test
   fun test_deleteCustomer() {
-    // mock customer store
-    val customerId = slot<String>()
-    every { customerStore.delete(capture(customerId)) } just Runs
-
     // mock callbackApi customer integration
     val deleteCustomerIdSlot = slot<String>()
     every { customerIntegration.deleteCustomer(capture(deleteCustomerIdSlot)) } just Runs
@@ -434,7 +340,6 @@ class Sep12ServiceTest {
     assertEquals("User not found.", ex.message)
     verify(exactly = 2) { customerIntegration.getCustomer(any()) }
     verify(exactly = 0) { customerIntegration.deleteCustomer(any()) }
-    verify(exactly = 0) { customerStore.delete(any()) }
 
     // customer deletion succeeds
     val mockValidCustomerFound = Sep12GetCustomerResponse()
@@ -446,9 +351,6 @@ class Sep12ServiceTest {
     verify(exactly = 2) { customerIntegration.deleteCustomer(any()) }
     val wantDeleteCustomerId = "customer-id"
     assertEquals(wantDeleteCustomerId, deleteCustomerIdSlot.captured)
-    // database deletion is called twice
-    verify(exactly = 2) { customerStore.delete(any()) }
-    assertEquals(wantDeleteCustomerId, customerId.captured)
   }
 
   private fun createJwtToken(subject: String): JwtToken {

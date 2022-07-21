@@ -15,12 +15,9 @@ import org.stellar.sdk.xdr.MemoType;
 
 public class Sep12Service {
   private final CustomerIntegration customerIntegration;
-  private final Sep12CustomerStore sep12CustomerStore;
 
-  public Sep12Service(
-      CustomerIntegration customerIntegration, Sep12CustomerStore sep12CustomerStore) {
+  public Sep12Service(CustomerIntegration customerIntegration) {
     this.customerIntegration = customerIntegration;
-    this.sep12CustomerStore = sep12CustomerStore;
     Log.info("Sep12Service initialized.");
   }
 
@@ -31,9 +28,7 @@ public class Sep12Service {
       request.setAccount(token.getAccount());
     }
 
-    Sep12GetCustomerResponse customerResponse = customerIntegration.getCustomer(request);
-    saveNewCustomerToDatabaseIfNeeded(customerResponse.getId(), request);
-    return customerResponse;
+    return customerIntegration.getCustomer(request);
   }
 
   public Sep12PutCustomerResponse putCustomer(JwtToken token, Sep12PutCustomerRequest request)
@@ -44,9 +39,7 @@ public class Sep12Service {
       request.setAccount(token.getAccount());
     }
 
-    Sep12PutCustomerResponse putCustomerResponse = customerIntegration.putCustomer(request);
-    saveNewCustomerToDatabaseIfNeeded(putCustomerResponse.getId(), request);
-    return putCustomerResponse;
+    return customerIntegration.putCustomer(request);
   }
 
   public void deleteCustomer(JwtToken jwtToken, String account, String memo, String memoType)
@@ -84,11 +77,9 @@ public class Sep12Service {
                   .memoType(memoType)
                   .type(customerType)
                   .build());
-      String customerId = existingCustomer.getId();
-      if (customerId != null) {
+      if (existingCustomer.getId() != null) {
         existingCustomerMatch = true;
-        customerIntegration.deleteCustomer(customerId);
-        sep12CustomerStore.delete(customerId);
+        customerIntegration.deleteCustomer(existingCustomer.getId());
       }
     }
     if (!existingCustomerMatch) {
@@ -177,45 +168,5 @@ public class Sep12Service {
 
     requestBase.setMemo(memo);
     requestBase.setMemoType(memoType);
-  }
-
-  private void saveNewCustomerToDatabaseIfNeeded(
-      String customerId, Sep12CustomerRequestBase requestBase) throws SepException {
-    if (customerId == null) {
-      return;
-    }
-
-    Sep12CustomerId customer = sep12CustomerStore.findById(customerId);
-    if (customer == null) {
-      customer =
-          new Sep12CustomerBuilder(sep12CustomerStore)
-              .id(customerId)
-              .account(requestBase.getAccount())
-              .memo(requestBase.getMemo())
-              .memoType(requestBase.getMemoType())
-              .build();
-      sep12CustomerStore.save(customer);
-      return;
-    }
-
-    boolean shouldSave = false;
-    if (customer.getAccount() == null && requestBase.getAccount() != null) {
-      customer.setAccount(requestBase.getAccount());
-      shouldSave = true;
-    }
-
-    if (customer.getMemo() == null && requestBase.getMemo() != null) {
-      customer.setMemo(requestBase.getMemo());
-      shouldSave = true;
-    }
-
-    if (customer.getMemoType() == null && requestBase.getMemoType() != null) {
-      customer.setMemoType(requestBase.getMemoType());
-      shouldSave = true;
-    }
-
-    if (shouldSave) {
-      sep12CustomerStore.save(customer);
-    }
   }
 }
