@@ -12,15 +12,12 @@ import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.api.shared.Amount
 import org.stellar.anchor.event.EventPublishService
 import org.stellar.anchor.event.models.*
-import org.stellar.anchor.platform.data.JdbcSep12CustomerStore
 import org.stellar.anchor.platform.data.JdbcSep31Transaction
 import org.stellar.anchor.platform.data.JdbcSep31TransactionStore
 import org.stellar.anchor.platform.paymentobserver.ObservedPayment
-import org.stellar.anchor.sep12.Sep12CustomerId
 
 class PaymentOperationToEventListenerTest {
   @MockK(relaxed = true) private lateinit var transactionStore: JdbcSep31TransactionStore
-  @MockK(relaxed = true) private lateinit var customerStore: JdbcSep12CustomerStore
   @MockK(relaxed = true) private lateinit var eventPublishService: EventPublishService
   private lateinit var paymentOperationToEventListener: PaymentOperationToEventListener
 
@@ -29,7 +26,7 @@ class PaymentOperationToEventListenerTest {
     MockKAnnotations.init(this, relaxUnitFun = true)
 
     paymentOperationToEventListener =
-      PaymentOperationToEventListener(transactionStore, customerStore, eventPublishService)
+      PaymentOperationToEventListener(transactionStore, eventPublishService)
   }
 
   @Test
@@ -133,17 +130,7 @@ class PaymentOperationToEventListenerTest {
     p.id = "755914248193"
 
     val senderId = "d2bd1412-e2f6-4047-ad70-a1a2f133b25c"
-    val senderCustomerId = mockk<Sep12CustomerId>(relaxed = true)
-    every { senderCustomerId.id } returns senderId
-    every { senderCustomerId.memo } returns "foo"
-    every { senderCustomerId.memoType } returns "id"
-    every { customerStore.findById(senderId) } returns senderCustomerId
     val receiverId = "137938d4-43a7-4252-a452-842adcee474c"
-    val receiverCustomerId = mockk<Sep12CustomerId>(relaxed = true)
-    every { senderCustomerId.id } returns receiverId
-    every { senderCustomerId.memo } returns "bar"
-    every { senderCustomerId.memoType } returns "id"
-    every { customerStore.findById(receiverId) } returns receiverCustomerId
 
     val slotMemo = slot<String>()
     val sep31TxMock = JdbcSep31Transaction()
@@ -197,7 +184,12 @@ class PaymentOperationToEventListenerTest {
             .account("GBE4B7KE62NUBFLYT3BIG4OP5DAXBQX2GSZZOVAYXQKJKIU7P6V2R2N4")
             .build()
         )
-        .customers(Customers(senderCustomerId.toStellarId(), receiverCustomerId.toStellarId()))
+        .customers(
+          Customers(
+            StellarId.builder().id(senderId).build(),
+            StellarId.builder().id(receiverId).build()
+          )
+        )
         .stellarTransactions(
           arrayOf(
             StellarTransaction.builder()

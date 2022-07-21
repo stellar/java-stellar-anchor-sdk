@@ -41,8 +41,6 @@ import org.stellar.anchor.event.EventPublishService
 import org.stellar.anchor.event.models.Customers
 import org.stellar.anchor.event.models.StellarId
 import org.stellar.anchor.event.models.TransactionEvent
-import org.stellar.anchor.sep12.PojoSep12CustomerId
-import org.stellar.anchor.sep12.Sep12CustomerStore
 import org.stellar.anchor.sep31.Sep31Service.Sep31CustomerInfoNeededException
 import org.stellar.anchor.sep31.Sep31Service.Sep31MissingFieldException
 import org.stellar.anchor.sep38.PojoSep38Quote
@@ -210,7 +208,6 @@ class Sep31ServiceTest {
 
   private val assetService: AssetService = ResourceJsonAssetService("test_assets.json")
 
-  @MockK(relaxed = true) private lateinit var customerStore: Sep12CustomerStore
   @MockK(relaxed = true) private lateinit var txnStore: Sep31TransactionStore
 
   @MockK(relaxed = true) lateinit var appConfig: AppConfig
@@ -245,7 +242,6 @@ class Sep31ServiceTest {
       Sep31Service(
         appConfig,
         sep31Config,
-        customerStore,
         txnStore,
         sep31DepositInfoGenerator,
         quoteStore,
@@ -298,7 +294,6 @@ class Sep31ServiceTest {
       Sep31Service(
         appConfig,
         sep31Config,
-        customerStore,
         txnStore,
         sep31DepositInfoGenerator,
         quoteStore,
@@ -521,18 +516,7 @@ class Sep31ServiceTest {
     every { quoteStore.findByQuoteId("my_quote_id") } returns quote
 
     val senderId = "d2bd1412-e2f6-4047-ad70-a1a2f133b25c"
-    val senderCustomerId = PojoSep12CustomerId()
-    senderCustomerId.id = senderId
-    senderCustomerId.memo = "foo"
-    senderCustomerId.memoType = "id"
-    every { customerStore.findById(senderId) } returns senderCustomerId
     val receiverId = "137938d4-43a7-4252-a452-842adcee474c"
-    val receiverCustomerId = PojoSep12CustomerId()
-    receiverCustomerId.id = receiverId
-    receiverCustomerId.memo = "bar"
-    receiverCustomerId.memoType = "id"
-    every { customerStore.findById(receiverId) } returns receiverCustomerId
-
     val postTxRequest = Sep31PostTransactionRequest()
     postTxRequest.amount = "100"
     postTxRequest.assetCode = "USDC"
@@ -650,7 +634,12 @@ class Sep31ServiceTest {
         .custodialTransactionId(null)
         .sourceAccount(null)
         .destinationAccount(null)
-        .customers(Customers(senderCustomerId.toStellarId(), receiverCustomerId.toStellarId()))
+        .customers(
+          Customers(
+            StellarId.builder().id(senderId).build(),
+            StellarId.builder().id(receiverId).build()
+          )
+        )
         .creator(
           StellarId.builder()
             .account("GBJDSMTMG4YBP27ZILV665XBISBBNRP62YB7WZA2IQX2HIPK7ABLF4C2")
@@ -719,7 +708,6 @@ class Sep31ServiceTest {
       Sep31Service(
         appConfig,
         sep31Config,
-        customerStore,
         txnStore,
         sep31DepositInfoGenerator,
         quoteStore,

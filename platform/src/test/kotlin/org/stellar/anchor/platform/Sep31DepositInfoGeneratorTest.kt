@@ -25,7 +25,6 @@ import org.stellar.anchor.paymentservice.circle.config.CirclePaymentConfig
 import org.stellar.anchor.platform.data.JdbcSep31Transaction
 import org.stellar.anchor.platform.service.Sep31DepositInfoGeneratorCircle
 import org.stellar.anchor.platform.service.Sep31DepositInfoGeneratorSelf
-import org.stellar.anchor.sep12.Sep12CustomerStore
 import org.stellar.anchor.sep31.*
 import org.stellar.anchor.sep38.Sep38QuoteStore
 import org.stellar.anchor.util.GsonUtils
@@ -55,7 +54,6 @@ class Sep31DepositInfoGeneratorTest {
   private val assetService: AssetService = ResourceJsonAssetService("test_assets.json")
 
   @MockK(relaxed = true) private lateinit var txnStore: Sep31TransactionStore
-  @MockK(relaxed = true) private lateinit var customerStore: Sep12CustomerStore
   @MockK(relaxed = true) private lateinit var appConfig: AppConfig
   @MockK(relaxed = true) private lateinit var sep31Config: Sep31Config
   @MockK(relaxed = true) private lateinit var sep31DepositInfoGenerator: Sep31DepositInfoGenerator
@@ -74,7 +72,6 @@ class Sep31DepositInfoGeneratorTest {
       Sep31Service(
         appConfig,
         sep31Config,
-        customerStore,
         txnStore,
         sep31DepositInfoGenerator,
         quoteStore,
@@ -99,7 +96,6 @@ class Sep31DepositInfoGeneratorTest {
       Sep31Service(
         appConfig,
         sep31Config,
-        customerStore,
         txnStore,
         Sep31DepositInfoGeneratorSelf(), // set deposit info generator
         quoteStore,
@@ -188,7 +184,6 @@ class Sep31DepositInfoGeneratorTest {
       Sep31Service(
         appConfig,
         sep31Config,
-        customerStore,
         txnStore,
         depositInfoGenerator, // set deposit info generator
         quoteStore,

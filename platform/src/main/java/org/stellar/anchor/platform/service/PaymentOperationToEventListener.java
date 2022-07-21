@@ -20,7 +20,6 @@ import org.stellar.anchor.event.EventPublishService;
 import org.stellar.anchor.event.models.*;
 import org.stellar.anchor.platform.paymentobserver.ObservedPayment;
 import org.stellar.anchor.platform.paymentobserver.PaymentListener;
-import org.stellar.anchor.sep12.Sep12CustomerStore;
 import org.stellar.anchor.sep31.Sep31Transaction;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.util.GsonUtils;
@@ -31,15 +30,11 @@ import org.stellar.sdk.xdr.MemoType;
 @Component
 public class PaymentOperationToEventListener implements PaymentListener {
   final Sep31TransactionStore transactionStore;
-  final Sep12CustomerStore customerStore;
   final EventPublishService eventService;
 
   PaymentOperationToEventListener(
-      Sep31TransactionStore transactionStore,
-      Sep12CustomerStore customerStore,
-      EventPublishService eventService) {
+      Sep31TransactionStore transactionStore, EventPublishService eventService) {
     this.transactionStore = transactionStore;
-    this.customerStore = customerStore;
     this.eventService = eventService;
   }
 
@@ -153,8 +148,8 @@ public class PaymentOperationToEventListener implements PaymentListener {
     TransactionEvent.StatusChange statusChange =
         new TransactionEvent.StatusChange(oldStatus, newStatus);
 
-    StellarId senderStellarId = customerStore.findById(txn.getSenderId()).toStellarId();
-    StellarId receiverStellarId = customerStore.findById(txn.getReceiverId()).toStellarId();
+    StellarId senderStellarId = StellarId.builder().id(txn.getSenderId()).build();
+    StellarId receiverStellarId = StellarId.builder().id(txn.getReceiverId()).build();
     TransactionEvent event =
         TransactionEvent.builder()
             .eventId(UUID.randomUUID().toString())
