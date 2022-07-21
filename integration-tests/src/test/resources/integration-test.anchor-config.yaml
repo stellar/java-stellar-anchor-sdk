@@ -5,7 +5,7 @@ stellar:
     config: in-memory
     app-config:
       type: config-spring-property                # Activate [config-spring-property] module
-      settings: app-config                        # The location of the configuration data
+      settings: platform-config                        # The location of the configuration data
     data-access:
       type: data-spring-jdbc                      # Activate [config-spring-jdbc] module.
       settings: data-spring-jdbc-h2         # The location of the configuration data in this file.
@@ -14,9 +14,9 @@ stellar:
       settings: logging-logback-settings
 
 #
-# Application settings
+# Platform server settings
 #
-app-config:
+platform-config:
   # general
   app:
     stellarNetworkPassphrase: Test SDF Network ; September 2015
