@@ -8,7 +8,7 @@ services:
     environment:
       - STELLAR_ANCHOR_CONFIG=file:/config/anchor-docker-compose-config.yaml
       - REFERENCE_SERVER_CONFIG_ENV=file:/reference-config/anchor-reference-server-docker-compose-config.yaml
-      - LOG_APPENDER=console_json_appender
+      - LOG_APPENDER=console_appender
     depends_on:
       - db
       - kafka
