@@ -32,8 +32,10 @@ import org.stellar.anchor.auth.JwtToken;
 import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.Sep31Config;
 import org.stellar.anchor.event.EventPublishService;
+import org.stellar.anchor.event.models.Customers;
 import org.stellar.anchor.event.models.StellarId;
 import org.stellar.anchor.event.models.TransactionEvent;
+import org.stellar.anchor.sep12.Sep12CustomerStore;
 import org.stellar.anchor.sep38.Sep38Quote;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
 import org.stellar.anchor.util.Log;
@@ -41,6 +43,7 @@ import org.stellar.anchor.util.Log;
 public class Sep31Service {
   private final AppConfig appConfig;
   private final Sep31Config sep31Config;
+  private final Sep12CustomerStore sep12CustomerStore;
   private final Sep31TransactionStore sep31TransactionStore;
   private final Sep31DepositInfoGenerator sep31DepositInfoGenerator;
   private final Sep38QuoteStore sep38QuoteStore;
@@ -53,6 +56,7 @@ public class Sep31Service {
   public Sep31Service(
       AppConfig appConfig,
       Sep31Config sep31Config,
+      Sep12CustomerStore sep12CustomerStore,
       Sep31TransactionStore sep31TransactionStore,
       Sep31DepositInfoGenerator sep31DepositInfoGenerator,
       Sep38QuoteStore sep38QuoteStore,
@@ -64,6 +68,7 @@ public class Sep31Service {
     debug("sep31Config:", sep31Config);
     this.appConfig = appConfig;
     this.sep31Config = sep31Config;
+    this.sep12CustomerStore = sep12CustomerStore;
     this.sep31TransactionStore = sep31TransactionStore;
     this.sep31DepositInfoGenerator = sep31DepositInfoGenerator;
     this.sep38QuoteStore = sep38QuoteStore;
@@ -160,6 +165,8 @@ public class Sep31Service {
     updateDepositInfo(txn);
     sep31TransactionStore.save(txn);
 
+    StellarId senderStellarId = sep12CustomerStore.findById(txn.getSenderId()).toStellarId();
+    StellarId receiverStellarId = sep12CustomerStore.findById(txn.getReceiverId()).toStellarId();
     TransactionEvent event =
         TransactionEvent.builder()
             .eventId(UUID.randomUUID().toString())
@@ -184,8 +191,9 @@ public class Sep31Service {
             .stellarTransactions(null)
             .externalTransactionId(null)
             .custodialTransactionId(null)
-            .sourceAccount(request.getSenderId())
-            .destinationAccount(request.getReceiverId())
+            .sourceAccount(null)
+            .destinationAccount(null)
+            .customers(new Customers(senderStellarId, receiverStellarId))
             .creator(creatorStellarId)
             .build();
     eventService.publish(event);

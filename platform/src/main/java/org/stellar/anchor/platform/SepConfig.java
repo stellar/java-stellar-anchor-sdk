@@ -183,6 +183,7 @@ public class SepConfig {
   Sep31Service sep31Service(
       AppConfig appConfig,
       Sep31Config sep31Config,
+      Sep12CustomerStore sep12CustomerStore,
       Sep31TransactionStore sep31TransactionStore,
       Sep31DepositInfoGenerator sep31DepositInfoGenerator,
       Sep38QuoteStore sep38QuoteStore,
@@ -193,6 +194,7 @@ public class SepConfig {
     return new Sep31Service(
         appConfig,
         sep31Config,
+        sep12CustomerStore,
         sep31TransactionStore,
         sep31DepositInfoGenerator,
         sep38QuoteStore,
