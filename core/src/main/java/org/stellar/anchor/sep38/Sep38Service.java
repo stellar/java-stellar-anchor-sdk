@@ -190,6 +190,9 @@ public class Sep38Service {
     }
 
     // Check SEP31 send limits
+    if (sellAsset == null) {
+      throw new BadRequestException("Unsupported sell asset.");
+    }
     String[] assetCode = sellAsset.getAsset().split(":");
     AssetInfo asset = assetService.getAsset(assetCode[1]);
     Long sendMinLimit = asset.getSend().getMinAmount();
@@ -316,6 +319,9 @@ public class Sep38Service {
     }
 
     // Check SEP31 send limits
+    if (sellAsset == null) {
+      throw new BadRequestException("Unsupported sell asset.");
+    }
     String[] assetCode = sellAsset.getAsset().split(":");
     AssetInfo asset = assetService.getAsset(assetCode[1]);
     Long sendMinLimit = asset.getSend().getMinAmount();

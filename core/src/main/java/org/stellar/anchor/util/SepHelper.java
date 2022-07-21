@@ -80,10 +80,10 @@ public class SepHelper {
     BigDecimal bdMin = new BigDecimal(min);
     BigDecimal bdMax = new BigDecimal(max);
     if (sAmount.compareTo(bdMin) == -1) {
-      throw new BadRequestException(messagePrefix + "amount less than min limit");
+      throw new BadRequestException(String.format("%samount less than min limit", messagePrefix));
     }
     if (sAmount.compareTo(bdMax) == 1) {
-      throw new BadRequestException(messagePrefix + "amount exceeds max limit");
+      throw new BadRequestException(String.format("%samount exceeds max limit", messagePrefix));
     }
   }
 
