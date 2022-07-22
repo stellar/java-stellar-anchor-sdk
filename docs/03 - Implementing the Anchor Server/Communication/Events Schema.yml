@@ -177,7 +177,10 @@ components:
           description: "The Stellar account who received the payment that originated this event. Should be present if this event was originated from a Stellar payment."
         customers:
           type: object
-          description: "This field should contain the `id` or the **deprecated** `account+memo` identification pair of the sending and receiving customers created through [SEP-12](https://stellar.org/protocol/sep-12)."
+          description: |
+            Identification info of the sending and receiving customers created through [SEP-12](https://stellar.org/protocol/sep-12).
+            
+            This field should contain the `id` and optionally the `account` and `memo`, if the ID is not enough to fully identify the customer.
           properties:
             sender:
               $ref: '#/components/schemas/StellarId'
