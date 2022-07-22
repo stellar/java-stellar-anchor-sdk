@@ -294,7 +294,7 @@ public class Sep31Service {
       throw new BadRequestException("request cannot be null");
     }
 
-    if (request.getId() == null || request.getId().isEmpty()) {
+    if (Objects.toString(request.getId(), "").isEmpty()) {
       infoF("id cannot be null or empty");
       throw new BadRequestException("id cannot be null or empty");
     }

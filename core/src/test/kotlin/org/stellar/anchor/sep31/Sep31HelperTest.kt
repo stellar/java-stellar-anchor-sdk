@@ -28,16 +28,17 @@ class Sep31HelperTest {
 
   @ParameterizedTest
   @ValueSource(
-      strings =
-          [
-              "pending_stellar",
-              "pending_sender",
-              "pending_customer_info_update",
-              "pending_transaction_info_update",
-              "pending_receiver",
-              "pending_sender",
-              "completed",
-              "error"])
+    strings =
+      [
+        "pending_stellar",
+        "pending_sender",
+        "pending_customer_info_update",
+        "pending_transaction_info_update",
+        "pending_receiver",
+        "pending_sender",
+        "completed",
+        "error"]
+  )
   fun test_validateStatus(status: String) {
     val txn = PojoSep31Transaction()
     txn.status = status
@@ -49,7 +50,7 @@ class Sep31HelperTest {
   @ValueSource(strings = ["Error", "erroR", ""])
   fun test_validateStatus_failure(status: String?) {
     val txn = PojoSep31Transaction()
-      txn.status = status
+    txn.status = status
     val ex = assertThrows<BadRequestException> { Sep31Helper.validateStatus(txn) }
     assertEquals("'$status' is not a valid status of SEP31.", ex.message)
   }

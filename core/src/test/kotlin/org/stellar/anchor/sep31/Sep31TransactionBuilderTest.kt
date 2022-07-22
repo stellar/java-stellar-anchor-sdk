@@ -21,24 +21,21 @@ class Sep31TransactionBuilderTest {
     every { txnStore.newRefundPayment() } returns PojoSep31RefundPayment()
 
     val refundPayments =
-        listOf(
-            RefundPaymentBuilder(txnStore)
-                .id("de762cda-a193-4961-861e-57b31fed6eb3")
-                .amount("10")
-                .fee("1")
-                .build(),
-            (RefundPaymentBuilder(txnStore)
-                .id("aa762cda-a193-4961-861e-57b31fed6eb3")
-                .amount("20")
-                .fee("1")
-                .build()))
+      listOf(
+        RefundPaymentBuilder(txnStore)
+          .id("de762cda-a193-4961-861e-57b31fed6eb3")
+          .amount("10")
+          .fee("1")
+          .build(),
+        (RefundPaymentBuilder(txnStore)
+          .id("aa762cda-a193-4961-861e-57b31fed6eb3")
+          .amount("20")
+          .fee("1")
+          .build())
+      )
 
     val refunds =
-        RefundsBuilder(txnStore)
-            .amountRefunded("32")
-            .amountFee("3")
-            .payments(refundPayments)
-            .build()
+      RefundsBuilder(txnStore).amountRefunded("32").amountFee("3").payments(refundPayments).build()
 
     assertEquals("32", refunds.amountRefunded)
     assertEquals("3", refunds.amountFee)
