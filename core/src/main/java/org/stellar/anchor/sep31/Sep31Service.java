@@ -111,11 +111,7 @@ public class Sep31Service {
     Context.get().setAsset(assetInfo);
     Context.get().setTransactionFields(request.getFields().getTransaction());
 
-    // TODO: When there are missing required fields, we should catch Sep31MissingFieldException and
-    // set the status to pending_transaction_info_update
     validateRequiredFields();
-    // TODO: When there are missing customer information, we should catch
-    // Sep31CustomerInfoNeededException and the status to pending_customer_info_update
     validateSenderAndReceiver();
     preValidateQuote();
 
@@ -277,13 +273,8 @@ public class Sep31Service {
   }
 
   public Sep31GetTransactionResponse getTransaction(String id) throws AnchorException {
-    if (id == null) {
-      info("Unable to get transaction, 'id' is not provided");
-      throw new BadRequestException("'id' is not provided");
-    }
-
-    if (id.length() == 0) {
-      info("Empty transaction ID is not allowed");
+    if (Objects.toString(id, "").isEmpty()) {
+      info("Empty 'id'");
       throw new BadRequestException("'id' is empty");
     }
 
