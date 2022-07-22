@@ -1,9 +1,11 @@
 package org.stellar.anchor.sep31
 
-import org.junit.jupiter.api.Assertions.assertFalse
-import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.NullSource
+import org.junit.jupiter.params.provider.ValueSource
 import org.stellar.anchor.api.exception.BadRequestException
 
 class Sep31HelperTest {
@@ -24,33 +26,31 @@ class Sep31HelperTest {
     assertTrue(Sep31Helper.allAmountAvailable(txn))
   }
 
-  @Test
-  fun test_validateStatus() {
+  @ParameterizedTest
+  @ValueSource(
+      strings =
+          [
+              "pending_stellar",
+              "pending_sender",
+              "pending_customer_info_update",
+              "pending_transaction_info_update",
+              "pending_receiver",
+              "pending_sender",
+              "completed",
+              "error"])
+  fun test_validateStatus(status: String) {
     val txn = PojoSep31Transaction()
-    txn.status = "pending_stellar"
+    txn.status = status
     Sep31Helper.validateStatus(txn)
-    txn.status = "pending_sender"
-    Sep31Helper.validateStatus(txn)
-    txn.status = "pending_customer_info_update"
-    Sep31Helper.validateStatus(txn)
-    txn.status = "pending_transaction_info_update"
-    Sep31Helper.validateStatus(txn)
-    txn.status = "pending_receiver"
-    Sep31Helper.validateStatus(txn)
-    txn.status = "pending_sender"
-    Sep31Helper.validateStatus(txn)
-    txn.status = "completed"
-    Sep31Helper.validateStatus(txn)
-    txn.status = "error"
-    Sep31Helper.validateStatus(txn)
+  }
 
-    txn.status = "Error"
-    assertThrows<BadRequestException> { Sep31Helper.validateStatus(txn) }
-    txn.status = "erroR"
-    assertThrows<BadRequestException> { Sep31Helper.validateStatus(txn) }
-    txn.status = ""
-    assertThrows<BadRequestException> { Sep31Helper.validateStatus(txn) }
-    txn.status = null
-    assertThrows<BadRequestException> { Sep31Helper.validateStatus(txn) }
+  @ParameterizedTest
+  @NullSource
+  @ValueSource(strings = ["Error", "erroR", ""])
+  fun test_validateStatus_failure(status: String?) {
+    val txn = PojoSep31Transaction()
+      txn.status = status
+    val ex = assertThrows<BadRequestException> { Sep31Helper.validateStatus(txn) }
+    assertEquals("'$status' is not a valid status of SEP31.", ex.message)
   }
 }
