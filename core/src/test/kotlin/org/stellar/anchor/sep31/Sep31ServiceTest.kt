@@ -367,7 +367,8 @@ class Sep31ServiceTest {
     assertThrows<BadRequestException> { sep31Service.getTransaction("") }
 
     every { txnStore.findByTransactionId("not_found") } returns null
-    assertThrows<NotFoundException> { sep31Service.getTransaction("not_found") }
+    val ex = assertThrows<NotFoundException> { sep31Service.getTransaction("not_found") }
+    assertEquals("transaction (id=not_found) not found", ex.message)
 
     every { txnStore.findByTransactionId("found") } returns txn
     val getTransactionResponse = sep31Service.getTransaction("found")
