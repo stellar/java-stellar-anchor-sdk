@@ -13,5 +13,6 @@ public class JdbcSep31Refunds implements Sep31Transaction.Refunds {
   @SerializedName("amount_fee")
   String amountFee;
 
+  @SerializedName("payments")
   List<Sep31Transaction.RefundPayment> refundPayments;
 }

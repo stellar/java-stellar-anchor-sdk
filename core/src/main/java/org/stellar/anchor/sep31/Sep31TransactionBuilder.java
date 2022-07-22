@@ -1,7 +1,6 @@
 package org.stellar.anchor.sep31;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.Map;
 import org.stellar.anchor.api.sep.AssetInfo;
 
@@ -142,51 +141,5 @@ public class Sep31TransactionBuilder {
 
   public Sep31Transaction build() {
     return txn;
-  }
-
-  public class RefundsBuilder {
-    Sep31Transaction.Refunds refunds;
-
-    RefundsBuilder() {
-      refunds = factory.newRefunds();
-    }
-
-    RefundsBuilder amountRefunded(String amountRefunded) {
-      refunds.setAmountRefunded(amountRefunded);
-      return this;
-    }
-
-    RefundsBuilder amountFee(String amountFee) {
-      refunds.setAmountFee(amountFee);
-      return this;
-    }
-
-    RefundsBuilder payments(List<Sep31Transaction.RefundPayment> payments) {
-      refunds.setRefundPayments(payments);
-      return this;
-    }
-  }
-
-  public class RefundPaymentBuilder {
-    Sep31Transaction.RefundPayment refundPayment;
-
-    RefundPaymentBuilder() {
-      refundPayment = factory.newRefundPayment();
-    }
-
-    RefundPaymentBuilder id(String id) {
-      refundPayment.setId(id);
-      return this;
-    }
-
-    RefundPaymentBuilder amount(String amount) {
-      refundPayment.setAmount(amount);
-      return this;
-    }
-
-    RefundPaymentBuilder fee(String fee) {
-      refundPayment.setFee(fee);
-      return this;
-    }
   }
 }
