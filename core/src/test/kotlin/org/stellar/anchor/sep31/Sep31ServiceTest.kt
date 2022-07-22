@@ -22,11 +22,8 @@ import org.stellar.anchor.api.exception.*
 import org.stellar.anchor.api.sep.AssetInfo
 import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerRequest
 import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerResponse
-import org.stellar.anchor.api.sep.sep31.Sep31DepositInfo
-import org.stellar.anchor.api.sep.sep31.Sep31PatchTransactionRequest
-import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionRequest
+import org.stellar.anchor.api.sep.sep31.*
 import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionRequest.Sep31TxnFields
-import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionResponse
 import org.stellar.anchor.api.sep.sep38.RateFee
 import org.stellar.anchor.api.shared.Amount
 import org.stellar.anchor.asset.AssetService
@@ -847,48 +844,27 @@ class Sep31ServiceTest {
     assertEquals(wantResponse, gotResponse)
   }
 
+  val jpycJson =
+      """
+    {"enabled":true,"quotes_supported":true,"quotes_required":true,"fee_fixed":0,"fee_percent":0,"min_amount":1,"max_amount":1000000,"sep12":{"sender":{"types":{"sep31-sender":{"description":"Japanese citizens"}}},"receiver":{"types":{"sep31-receiver":{"description":"Japanese citizens receiving USD"}}}},"fields":{"transaction":{"receiver_routing_number":{"description":"routing number of the destination bank account","optional":false},"receiver_account_number":{"description":"bank account number of the destination","optional":false},"type":{"description":"type of deposit to make","choices":["ACH","SWIFT","WIRE"],"optional":false}}}}
+  """.trimIndent()
+
+  val usdcJson =
+      """
+    {"enabled":true,"quotes_supported":true,"quotes_required":true,"fee_fixed":0,"fee_percent":0,"min_amount":1,"max_amount":1000000,"sep12":{"sender":{"types":{"sep31-sender":{"description":"U.S. citizens limited to sending payments of less than ${'$'}10,000 in value"},"sep31-large-sender":{"description":"U.S. citizens that do not have sending limits"},"sep31-foreign-sender":{"description":"non-U.S. citizens sending payments of less than ${'$'}10,000 in value"}}},"receiver":{"types":{"sep31-receiver":{"description":"U.S. citizens receiving USD"},"sep31-foreign-receiver":{"description":"non-U.S. citizens receiving USD"}}}},"fields":{"transaction":{"receiver_routing_number":{"description":"routing number of the destination bank account","optional":false},"receiver_account_number":{"description":"bank account number of the destination","optional":false},"type":{"description":"type of deposit to make","choices":["SEPA","SWIFT"],"optional":false}}}}
+  """.trimIndent()
+
   @Test
   fun test_info_response() {
     val info = sep31Service.info
-    val jpyc = info.receive.get("JPYC")!!
-    val usdc = info.receive.get("USDC")!!
+    val gotJpyc = info.receive.get("JPYC")!!
+    val gotUsdc = info.receive.get("USDC")!!
 
-    // Test correctness of reading test_assets.json
-    assertTrue(jpyc.enabled)
-    assertTrue(jpyc.quotesSupported)
-    assertTrue(jpyc.quotesRequired)
-    assertEquals(0, jpyc.feeFixed)
-    assertEquals(0, jpyc.feePercent)
-    assertEquals(1, jpyc.minAmount)
-    assertEquals(1000000, jpyc.maxAmount)
-    assertNotNull(jpyc.sep12)
-    assertNotNull(jpyc.sep12.sender)
-    assertNotNull(jpyc.sep12.sender.types)
-    assertEquals(1, jpyc.sep12.sender.types.size)
-    assertNotNull(jpyc.sep12.receiver)
-    assertNotNull(jpyc.sep12.receiver.types)
-    assertEquals(1, jpyc.sep12.receiver.types.size)
-    assertNotNull(jpyc.fields.transaction)
-    assertEquals(3, jpyc.fields.transaction.size)
+    val wantJpyc = gson.fromJson(jpycJson, Sep31InfoResponse.AssetResponse::class.java)
+    val wantUsdc = gson.fromJson(usdcJson, Sep31InfoResponse.AssetResponse::class.java)
 
-    assertTrue(usdc.enabled)
-    assertTrue(usdc.quotesSupported)
-    assertTrue(usdc.quotesRequired)
-    assertEquals(0, usdc.feeFixed)
-    assertEquals(0, usdc.feePercent)
-    assertEquals(1, usdc.minAmount)
-    assertEquals(1000000, usdc.maxAmount)
-    assertNotNull(usdc.sep12)
-    assertNotNull(usdc.sep12.sender)
-    assertNotNull(usdc.sep12.sender.types)
-    assertEquals(3, usdc.sep12.sender.types.size)
-    assertNotNull(usdc.sep12.receiver)
-    assertNotNull(usdc.sep12.receiver.types)
-    assertEquals(2, usdc.sep12.receiver.types.size)
-    assertNotNull(usdc.fields.transaction)
-    assertEquals(3, usdc.fields.transaction.size)
-
-    print(info)
+    assertEquals(wantJpyc, gotJpyc)
+    assertEquals(wantUsdc, gotUsdc)
   }
 
   @Test
