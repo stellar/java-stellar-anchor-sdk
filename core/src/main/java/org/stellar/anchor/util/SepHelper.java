@@ -55,7 +55,8 @@ public class SepHelper {
     validateAmount("", amount);
   }
 
-  public static void validateAmount(String messagePrefix, String amount) throws AnchorException {
+  public static BigDecimal validateAmount(String messagePrefix, String amount)
+      throws AnchorException {
     // assetName
     if (Objects.toString(amount, "").isEmpty()) {
       throw new BadRequestException(messagePrefix + "amount cannot be empty");
@@ -69,6 +70,20 @@ public class SepHelper {
     }
     if (sAmount.signum() < 1) {
       throw new BadRequestException(messagePrefix + "amount should be positive");
+    }
+    return sAmount;
+  }
+
+  public static void validateAmountLimit(String messagePrefix, String amount, Long min, Long max)
+      throws AnchorException {
+    BigDecimal sAmount = validateAmount("", amount);
+    BigDecimal bdMin = new BigDecimal(min);
+    BigDecimal bdMax = new BigDecimal(max);
+    if (sAmount.compareTo(bdMin) == -1) {
+      throw new BadRequestException(String.format("%samount less than min limit", messagePrefix));
+    }
+    if (sAmount.compareTo(bdMax) == 1) {
+      throw new BadRequestException(String.format("%samount exceeds max limit", messagePrefix));
     }
   }
 

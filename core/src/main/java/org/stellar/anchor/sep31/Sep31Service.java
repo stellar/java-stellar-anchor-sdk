@@ -96,6 +96,11 @@ public class Sep31Service {
 
     // Pre-validation
     validateAmount(request.getAmount());
+    validateAmountLimit(
+        "sell_",
+        request.getAmount(),
+        assetInfo.getSend().getMinAmount(),
+        assetInfo.getSend().getMaxAmount());
     validateLanguage(appConfig, request.getLang());
     if (request.getFields() == null) {
       infoF(
