@@ -129,6 +129,9 @@ class PaymentOperationToEventListenerTest {
       "AAAAAgAAAAAQfdFrLDgzSIIugR73qs8U0ZiKbwBUclTTPh5thlbgnAAAB9AAAACwAAAABAAAAAEAAAAAAAAAAAAAAABiMbeEAAAAAAAAABQAAAAAAAAAAAAAAADcXPrnCDi+IDcGSvu/HjP779qjBv6K9Sie8i3WDySaIgAAAAA8M2CAAAAAAAAAAAAAAAAAJXdMB+xylKwEPk1tOLU82vnDM0u15RsK6/HCKsY1O3MAAAAAPDNggAAAAAAAAAAAAAAAALn+JaJ9iXEcrPeRFqEMGo6WWFeOwW15H/vvCOuMqCsSAAAAADwzYIAAAAAAAAAAAAAAAADbWpHlX0LQjIjY0x8jWkclnQDK8jFmqhzCmB+1EusXwAAAAAA8M2CAAAAAAAAAAAAAAAAAmy3UTqTnhNzIg8TjCYiRh9l07ls0Hi5FTqelhfZ4KqAAAAAAPDNggAAAAAAAAAAAAAAAAIwiZIIbYJn7MbHrrM+Pg85c6Lcn0ZGLb8NIiXLEIPTnAAAAADwzYIAAAAAAAAAAAAAAAAAYEjPKA/6lDpr/w1Cfif2hK4GHeNODhw0kk4kgLrmPrQAAAAA8M2CAAAAAAAAAAAAAAAAASMrE32C3vL39cj84pIg2mt6OkeWBz5OSZn0eypcjS4IAAAAAPDNggAAAAAAAAAAAAAAAAIuxsI+2mSeh3RkrkcpQ8bMqE7nXUmdvgwyJS/dBThIPAAAAADwzYIAAAAAAAAAAAAAAAACuZxdjR/GXaymdc9y5WFzz2A8Yk5hhgzBZsQ9R0/BmZwAAAAA8M2CAAAAAAAAAAAAAAAAAAtWBvyq0ToNovhQHSLeQYu7UzuqbVrm0i3d1TjRm7WEAAAAAPDNggAAAAAAAAAAAAAAAANtrzNON0u1IEGKmVsm80/Av+BKip0ioeS/4E+Ejs9YPAAAAADwzYIAAAAAAAAAAAAAAAAD+ejNcgNcKjR/ihUx1ikhdz5zmhzvRET3LGd7oOiBlTwAAAAA8M2CAAAAAAAAAAAAAAAAASXG3P6KJjS6e0dzirbso8vRvZKo6zETUsEv7OSP8XekAAAAAPDNggAAAAAAAAAAAAAAAAC5orVpxxvGEB8ISTho2YdOPZJrd7UBj1Bt8TOjLOiEKAAAAADwzYIAAAAAAAAAAAAAAAAAOQR7AqdGyIIMuFLw9JQWtHqsUJD94kHum7SJS9PXkOwAAAAA8M2CAAAAAAAAAAAAAAAAAIosijRx7xSP/+GA6eAjGeV9wJtKDySP+OJr90euE1yQAAAAAPDNggAAAAAAAAAAAAAAAAKlHXWQvwNPeT4Pp1oJDiOpcKwS3d9sho+ha+6pyFwFqAAAAADwzYIAAAAAAAAAAAAAAAABjCjnoL8+FEP0LByZA9PfMLwU1uAX4Cb13rVs83e1UZAAAAAA8M2CAAAAAAAAAAAAAAAAAokhNCZNGq9uAkfKTNoNGr5XmmMoY5poQEmp8OVbit7IAAAAAPDNggAAAAAAAAAABhlbgnAAAAEBa9csgF5/0wxrYM6oVsbM4Yd+/3uVIplS6iLmPOS4xf8oLQLtjKKKIIKmg9Gc/yYm3icZyU7icy9hGjcujenMN"
     p.id = "755914248193"
 
+    val senderId = "d2bd1412-e2f6-4047-ad70-a1a2f133b25c"
+    val receiverId = "137938d4-43a7-4252-a452-842adcee474c"
+
     val slotMemo = slot<String>()
     val sep31TxMock = JdbcSep31Transaction()
     sep31TxMock.id = "ceaa7677-a5a7-434e-b02a-8e0801b3e7bd"
@@ -143,18 +146,15 @@ class PaymentOperationToEventListenerTest {
     sep31TxMock.stellarMemo = "OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ="
     sep31TxMock.stellarMemoType = "hash"
     sep31TxMock.status = SepTransactionStatus.PENDING_SENDER.toString()
-    sep31TxMock.senderId = "76d834d4-6747-4095-a4de-e519f91f3f15"
-    sep31TxMock.receiverId = "af5f9032-3e18-4ba4-8b4e-4220e237791b"
+    sep31TxMock.senderId = senderId
+    sep31TxMock.receiverId = receiverId
+    sep31TxMock.creator =
+      StellarId.builder()
+        .account("GBE4B7KE62NUBFLYT3BIG4OP5DAXBQX2GSZZOVAYXQKJKIU7P6V2R2N4")
+        .build()
 
     every { transactionStore.findByStellarMemo(capture(slotMemo)) } returns sep31TxMock
 
-    val wantSenderStellarId =
-      StellarId.builder()
-        .account(p.from)
-        .memo("OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ=")
-        .memoType("hash")
-        .build()
-    val wantReceiverStellarId = StellarId.builder().account(p.to).build()
     val wantEvent =
       TransactionEvent.builder()
         .type(TransactionEvent.Type.TRANSACTION_STATUS_CHANGED)
@@ -177,10 +177,19 @@ class PaymentOperationToEventListenerTest {
         .updatedAt(createdAt)
         .transferReceivedAt(createdAt)
         .message("Incoming payment for SEP-31 transaction")
-        .sourceAccount("76d834d4-6747-4095-a4de-e519f91f3f15")
-        .destinationAccount("af5f9032-3e18-4ba4-8b4e-4220e237791b")
-        .creator(wantSenderStellarId)
-        .customers(Customers(wantSenderStellarId, wantReceiverStellarId))
+        .sourceAccount("GAJKV32ZXP5QLYHPCMLTV5QCMNJR3W6ZKFP6HMDN67EM2ULDHHDGEZYO")
+        .destinationAccount("GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364")
+        .creator(
+          StellarId.builder()
+            .account("GBE4B7KE62NUBFLYT3BIG4OP5DAXBQX2GSZZOVAYXQKJKIU7P6V2R2N4")
+            .build()
+        )
+        .customers(
+          Customers(
+            StellarId.builder().id(senderId).build(),
+            StellarId.builder().id(receiverId).build()
+          )
+        )
         .stellarTransactions(
           arrayOf(
             StellarTransaction.builder()

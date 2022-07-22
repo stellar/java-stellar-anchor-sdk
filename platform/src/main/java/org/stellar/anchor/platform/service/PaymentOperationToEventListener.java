@@ -148,14 +148,8 @@ public class PaymentOperationToEventListener implements PaymentListener {
     TransactionEvent.StatusChange statusChange =
         new TransactionEvent.StatusChange(oldStatus, newStatus);
 
-    StellarId senderStellarId =
-        StellarId.builder()
-            .account(payment.getFrom())
-            .memo(txn.getStellarMemo())
-            .memoType(txn.getStellarMemoType())
-            .build();
-    StellarId receiverStellarId = StellarId.builder().account(payment.getTo()).build();
-
+    StellarId senderStellarId = StellarId.builder().id(txn.getSenderId()).build();
+    StellarId receiverStellarId = StellarId.builder().id(txn.getReceiverId()).build();
     TransactionEvent event =
         TransactionEvent.builder()
             .eventId(UUID.randomUUID().toString())
@@ -198,10 +192,10 @@ public class PaymentOperationToEventListener implements PaymentListener {
                 })
             .externalTransactionId(payment.getExternalTransactionId())
             .custodialTransactionId(null)
-            .sourceAccount(txn.getSenderId())
-            .destinationAccount(txn.getReceiverId())
+            .sourceAccount(payment.getFrom())
+            .destinationAccount(payment.getTo())
             .customers(new Customers(senderStellarId, receiverStellarId))
-            .creator(senderStellarId)
+            .creator(txn.getCreator())
             .build();
     return event;
   }

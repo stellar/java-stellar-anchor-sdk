@@ -34,6 +34,7 @@ import org.stellar.anchor.config.Sep31Config
 import org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_RECEIVE
 import org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_SEND
 import org.stellar.anchor.event.EventPublishService
+import org.stellar.anchor.event.models.Customers
 import org.stellar.anchor.event.models.StellarId
 import org.stellar.anchor.event.models.TransactionEvent
 import org.stellar.anchor.sep31.Sep31Service.*
@@ -654,7 +655,7 @@ class Sep31ServiceTest {
     every { txnStore.save(capture(slotTxn)) } returns null
 
     // POST transaction
-    val jwtToken = TestHelper.createJwtToken()
+    val jwtToken = TestHelper.createJwtToken(accountMemo = TestHelper.TEST_MEMO)
     var gotResponse: Sep31PostTransactionResponse? = null
     assertDoesNotThrow { gotResponse = sep31Service.postTransaction(jwtToken, postTxRequest) }
 
@@ -697,7 +698,10 @@ class Sep31ServiceTest {
       "stellarMemoType": "hash",
       "stellarTransactions": [],
       "receiverId":"137938d4-43a7-4252-a452-842adcee474c",
-      "senderId":"d2bd1412-e2f6-4047-ad70-a1a2f133b25c"
+      "senderId":"d2bd1412-e2f6-4047-ad70-a1a2f133b25c",
+      "creator": {
+        "account": "GBJDSMTMG4YBP27ZILV665XBISBBNRP62YB7WZA2IQX2HIPK7ABLF4C2"
+      }
     }""".trimMargin()
     JSONAssert.assertEquals(wantTx, gotTx, true)
 
@@ -725,13 +729,17 @@ class Sep31ServiceTest {
         .stellarTransactions(null)
         .externalTransactionId(null)
         .custodialTransactionId(null)
-        .sourceAccount(senderId)
-        .destinationAccount(receiverId)
+        .sourceAccount(null)
+        .destinationAccount(null)
+        .customers(
+          Customers(
+            StellarId.builder().id(senderId).build(),
+            StellarId.builder().id(receiverId).build()
+          )
+        )
         .creator(
           StellarId.builder()
-            .account("GA7FYRB5VREZKOBIIKHG5AVTPFGWUBPOBF7LTYG4GTMFVIOOD2DWAL7I")
-            .memo(memo)
-            .memoType("hash")
+            .account("GBJDSMTMG4YBP27ZILV665XBISBBNRP62YB7WZA2IQX2HIPK7ABLF4C2")
             .build(),
         )
         .build()
@@ -786,6 +794,9 @@ class Sep31ServiceTest {
 
   @Test
   fun test_postTransaction_quoteNotSupported() {
+    every { sep31DepositInfoGenerator.getSep31DepositInfo(any()) } returns
+      Sep31DepositInfo("GA7FYRB5VREZKOBIIKHG5AVTPFGWUBPOBF7LTYG4GTMFVIOOD2DWAL7I", "123456", "id")
+
     val assetServiceQuotesNotSupported: AssetService =
       ResourceJsonAssetService(
         "test_assets.json.quotes_not_supported",
@@ -838,8 +849,8 @@ class Sep31ServiceTest {
       Sep31PostTransactionResponse.builder()
         .id(gotResponse!!.id)
         .stellarAccountId("GA7FYRB5VREZKOBIIKHG5AVTPFGWUBPOBF7LTYG4GTMFVIOOD2DWAL7I")
-        .stellarMemo("")
-        .stellarMemoType("")
+        .stellarMemo("123456")
+        .stellarMemoType("id")
         .build()
     assertEquals(wantResponse, gotResponse)
   }
