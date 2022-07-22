@@ -151,6 +151,8 @@ class PaymentOperationToEventListenerTest {
     sep31TxMock.creator =
       StellarId.builder()
         .account("GBE4B7KE62NUBFLYT3BIG4OP5DAXBQX2GSZZOVAYXQKJKIU7P6V2R2N4")
+        .memo("123456")
+        .memoType("id")
         .build()
 
     every { transactionStore.findByStellarMemo(capture(slotMemo)) } returns sep31TxMock
@@ -182,6 +184,8 @@ class PaymentOperationToEventListenerTest {
         .creator(
           StellarId.builder()
             .account("GBE4B7KE62NUBFLYT3BIG4OP5DAXBQX2GSZZOVAYXQKJKIU7P6V2R2N4")
+            .memo("123456")
+            .memoType("id")
             .build()
         )
         .customers(

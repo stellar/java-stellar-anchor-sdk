@@ -99,16 +99,16 @@ components:
             - transaction_error
           description: |
             The transaction event type. Can be one of the following:
-            - `transaction_created` - a transaction was created via SEP31.<br />
-            - `transaction_status_changed` - a transaction status change happened. The detail of the status change is described in the `status_change` field.<br />
-            - `transaction_error` - error processing the transaction<br />
-            
+            - `transaction_created` - a transaction was created through the SEP endpoints.
+            - `transaction_status_changed` - the status of a transaction has changed. The detail of the status change is described in the `status_change` field.
+            - `transaction_error` - error processing the transaction.
+
         id:
           type: string
           description: "The id of the transaction."
         sep:
           type: integer
-          description: "The SEP for which this Transaction is. Currently, the only supported one is `31`."
+          description: "The SEP related to this TransactionEvent. Currently, only `31` is supported."
           enum: [31]
         kind:
           type: string
@@ -141,7 +141,7 @@ components:
           $ref: '#/components/schemas/Amount'
         quote_id:
           type: string
-          description: "The id of the [SEP-38](https://stellar.org/protocol/sep-38) firm quote used for this transaction."
+          description: "The id of the [SEP-38](https://stellar.org/protocol/sep-38) firm quote used for the transaction."
         started_at:
           type: string
           format: date-time
@@ -151,14 +151,14 @@ components:
         completed_at:
           type: string
           format: date-time
-          description: "When the transaction was marked as completed or when it was fully refunded."
+          description: "When the transaction was marked as `completed` or when it was fully refunded."
         transfer_received_at:
           type: string
           format: date-time
           description: "When the Stellar transaction related to this object was received."
         message:
           type: string
-          description: "This field may contain any clarifying message related to this Transaction."
+          description: "This field may contain any clarifying message related to this TransactionEvent or to the transaction itself."
         refunds:
           $ref: '#/components/schemas/Refunds'
         stellar_transactions:
@@ -167,18 +167,18 @@ components:
             $ref: '#/components/schemas/StellarTransaction'
         external_transaction_id:
           type: string
-          description: "The id of an external transaction triggered and handled by the Anchor Backend."
+          description: "The id of an external transaction to be handled by the Anchor Backend."
         custodial_transaction_id:
           type: string
         source_account:
           type: string
-          description: "The Stellar account who sent the payment that originated this event. Should be present if this event was originated from a payment."
+          description: "The Stellar account who sent the payment that originated this event. Should be present if this event was originated from a Stellar payment."
         destination_account:
           type: string
-          description: "The Stellar account who received the payment that originated this event. Should be present if this event was originated from a payment."
+          description: "The Stellar account who received the payment that originated this event. Should be present if this event was originated from a Stellar payment."
         customers:
           type: object
-          description: "This field should contain the `account+memo` of the sending and receiving customers created through [SEP-12](https://stellar.org/protocol/sep-12)."
+          description: "This field should contain the `id` or the **deprecated** `account+memo` identification pair of the sending and receiving customers created through [SEP-12](https://stellar.org/protocol/sep-12)."
           properties:
             sender:
               $ref: '#/components/schemas/StellarId'
@@ -232,9 +232,13 @@ components:
     StellarId:
       type: object
       description:
-        StellarId's are objects that identify an on-chain entity. Both end users and SEP-31 senders can be identified
-        with StellarId's. Id's for SEP-31 senders will never include a `memo` or `memo_type`.
+        StellarId's are objects that identify a SEP entity. Both end-users and SEP-31 senders/receivers can be identified
+        with a StellarId. Id's for SEP-12 customers, and consequently SEP-31 senders/receivers, will never include a `memo`
+        or `memo_type`.
       properties:
+        id:
+          type: string
+          description: The `id` of the customer registered through SEP-12.
         account:
           type: string
           description: Either the Stellar account or Muxed account address of the on-chain entity.
