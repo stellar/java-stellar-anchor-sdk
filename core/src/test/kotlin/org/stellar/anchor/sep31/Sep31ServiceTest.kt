@@ -926,6 +926,7 @@ class Sep31ServiceTest {
     // With quote
     Context.get().setQuote(quote)
     quote.fee = null
-    assertThrows<SepValidationException> { sep31Service.updateFee() }
+    val ex = assertThrows<SepValidationException> { sep31Service.updateFee() }
+    assertEquals("Quote is missing the 'fee' field", ex.message)
   }
 }
