@@ -6,6 +6,7 @@ import static org.stellar.anchor.util.Log.debug;
 import static org.stellar.anchor.util.MathHelper.decimal;
 import static org.stellar.anchor.util.MathHelper.formatAmount;
 import static org.stellar.anchor.util.SepHelper.validateAmount;
+import static org.stellar.anchor.util.SepHelper.validateAmountLimit;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -19,6 +20,7 @@ import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.NotFoundException;
 import org.stellar.anchor.api.exception.ServerErrorException;
+import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.sep38.*;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtToken;
@@ -187,6 +189,20 @@ public class Sep38Service {
       throw new BadRequestException("Unsupported context. Should be one of [sep6, sep31].");
     }
 
+    // Check SEP31 send limits
+    if (sellAsset == null) {
+      throw new BadRequestException("Unsupported sell asset.");
+    }
+    String[] assetCode = sellAsset.getAsset().split(":");
+    AssetInfo asset = assetService.getAsset(assetCode[1]);
+    Long sendMinLimit = asset.getSend().getMinAmount();
+    Long sendMaxLimit = asset.getSend().getMaxAmount();
+
+    // SEP31: when sell_amount is specified
+    if (context == SEP31 && sellAmount != null) {
+      validateAmountLimit("sell_", sellAmount, sendMinLimit, sendMaxLimit);
+    }
+
     GetRateRequest request =
         GetRateRequest.builder()
             .type(GetRateRequest.Type.INDICATIVE_PRICE)
@@ -201,6 +217,11 @@ public class Sep38Service {
             .build();
     GetRateResponse rateResponse = this.rateIntegration.getRate(request);
     GetRateResponse.Rate rate = rateResponse.getRate();
+
+    // SEP31: when buy_amount is specified (sell amount found from rate integration)
+    if (context == SEP31 && buyAmount != null) {
+      validateAmountLimit("sell_", rate.getSellAmount(), sendMinLimit, sendMaxLimit);
+    }
 
     return GetPriceResponse.builder()
         .price(rate.getPrice())
@@ -297,6 +318,20 @@ public class Sep38Service {
       throw new BadRequestException("Unsupported context. Should be one of [sep6, sep31].");
     }
 
+    // Check SEP31 send limits
+    if (sellAsset == null) {
+      throw new BadRequestException("Unsupported sell asset.");
+    }
+    String[] assetCode = sellAsset.getAsset().split(":");
+    AssetInfo asset = assetService.getAsset(assetCode[1]);
+    Long sendMinLimit = asset.getSend().getMinAmount();
+    Long sendMaxLimit = asset.getSend().getMaxAmount();
+
+    // SEP31: when sell_amount is specified
+    if (context == SEP31 && request.getSellAmount() != null) {
+      validateAmountLimit("sell_", request.getSellAmount(), sendMinLimit, sendMaxLimit);
+    }
+
     GetRateRequest getRateRequest =
         GetRateRequest.builder()
             .type(GetRateRequest.Type.FIRM)
@@ -336,6 +371,11 @@ public class Sep38Service {
     String sellAmount = formatAmount(bSellAmount, sellAsset.getDecimals());
     String buyAmount = formatAmount(bBuyAmount, buyAsset.getDecimals());
     builder = builder.sellAmount(sellAmount).buyAmount(buyAmount);
+
+    // SEP31: when buy_amount is specified (sell amount found from rate integration)
+    if (context == SEP31 && buyAmount != null) {
+      validateAmountLimit("sell_", rate.getSellAmount(), sendMinLimit, sendMaxLimit);
+    }
 
     // save firm quote in the local database
     Sep38Quote newQuote =
