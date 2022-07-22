@@ -114,7 +114,7 @@ public class Sep31Service {
     // TODO: When there are missing required fields, we should catch Sep31MissingFieldException and
     // set the status to pending_transaction_info_update
     validateRequiredFields();
-    // TODO: When there are missing customer infroamtion, we should catch
+    // TODO: When there are missing customer information, we should catch
     // Sep31CustomerInfoNeededException and the status to pending_customer_info_update
     validateSenderAndReceiver();
     preValidateQuote();
