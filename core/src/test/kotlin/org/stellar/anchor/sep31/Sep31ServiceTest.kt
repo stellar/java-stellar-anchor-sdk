@@ -603,9 +603,7 @@ class Sep31ServiceTest {
       "receiverId":"137938d4-43a7-4252-a452-842adcee474c",
       "senderId":"d2bd1412-e2f6-4047-ad70-a1a2f133b25c",
       "creator": {
-        "account": "GBJDSMTMG4YBP27ZILV665XBISBBNRP62YB7WZA2IQX2HIPK7ABLF4C2",
-        "memo": "123456",
-        "memo_type": "id"
+        "account": "GBJDSMTMG4YBP27ZILV665XBISBBNRP62YB7WZA2IQX2HIPK7ABLF4C2"
       }
     }""".trimMargin()
     JSONAssert.assertEquals(wantTx, gotTx, true)
@@ -645,8 +643,6 @@ class Sep31ServiceTest {
         .creator(
           StellarId.builder()
             .account("GBJDSMTMG4YBP27ZILV665XBISBBNRP62YB7WZA2IQX2HIPK7ABLF4C2")
-            .memo("123456")
-            .memoType("id")
             .build(),
         )
         .build()

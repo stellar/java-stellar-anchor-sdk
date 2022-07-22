@@ -118,8 +118,6 @@ public class Sep31Service {
     StellarId creatorStellarId =
         StellarId.builder()
             .account(Objects.requireNonNullElse(jwtToken.getMuxedAccount(), jwtToken.getAccount()))
-            .memo(jwtToken.getAccountMemo())
-            .memoType(jwtToken.getAccountMemo() == null ? null : "id")
             .build();
 
     AssetInfo asset = Context.get().getAsset();

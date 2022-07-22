@@ -246,18 +246,6 @@ components:
         account:
           type: string
           description: Either the Stellar account or Muxed account address of the on-chain entity.
-        memo:
-          type: string
-          description:
-            The memo unique identifys the on-chain entity when paired with `StellarId.account`. Memos are not valid if
-            `StellarId.account` is a Muxed account.
-        memo_type:
-          type: string
-          description: The type of `StellarId.memo`.
-          enum:
-            - hash
-            - text
-            - id
     StellarTransaction:
       type: object
       properties:

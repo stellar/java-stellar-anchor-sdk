@@ -374,8 +374,6 @@ public class Sep38Service {
             .creator(
                 StellarId.builder()
                     .account(newQuote.getCreatorAccountId())
-                    .memo(newQuote.getCreatorMemo())
-                    .memoType(newQuote.getCreatorMemoType())
                     .build()) // TODO where to get StellarId.id?
             .transactionId(newQuote.getTransactionId())
             .createdAt(newQuote.getCreatedAt())
