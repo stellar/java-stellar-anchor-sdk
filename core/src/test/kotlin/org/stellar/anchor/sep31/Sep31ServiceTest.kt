@@ -897,13 +897,16 @@ class Sep31ServiceTest {
     Context.get().setQuote(quote)
     request.destinationAsset = "USDC"
     sep31Service.updateFee()
+    var fee = Context.get().getFee()
+    assertEquals(quote.fee.total, fee.amount)
+    assertEquals(quote.fee.asset, fee.asset)
 
     // No quote
     every { feeIntegration.getFee(any()) } returns GetFeeResponse(Amount("10", "USDC"))
     Context.get().setQuote(null)
     request.destinationAsset = "USDC"
     sep31Service.updateFee()
-    var fee = Context.get().getFee()
+    fee = Context.get().getFee()
     assertEquals("10", fee.amount)
     assertEquals("USDC", fee.asset)
 
