@@ -18,6 +18,8 @@ jobs:
       with:
         java-version: '11'
         distribution: 'adopt'
+    - name: Check code formatting
+      run: ./gradlew spotlessCheck || echo "❌ Your code is not properly formatted. You can run './gradlew spotlessApply' to format it. 👀"
     - name: Clean, Build and Test
       run: |
         ./gradlew clean build

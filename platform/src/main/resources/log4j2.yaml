@@ -52,7 +52,7 @@ Configutation:
     Root:
       level: info
       AppenderRef:
-        - ref: ${env:LOG_APPENDER:-console_splunk_json_appender}
+        - ref: ${env:LOG_APPENDER:-console_appender}
     Logger:
       - name: org.stellar
         level: debug

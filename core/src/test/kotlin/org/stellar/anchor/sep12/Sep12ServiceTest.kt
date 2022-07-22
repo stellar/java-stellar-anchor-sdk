@@ -23,6 +23,25 @@ class Sep12ServiceTest {
 
   private val issuedAt = Instant.now().epochSecond
   private val expiresAt = issuedAt + 9000
+  private val mockFields =
+    mapOf<String, Field>(
+      "email_address" to
+        Field.builder()
+          .type(Field.Type.STRING)
+          .description("email address of the customer")
+          .optional(false)
+          .build()
+    )
+  private val mockProvidedFields =
+    mapOf<String, ProvidedField>(
+      "last_name" to
+        ProvidedField.builder()
+          .type(Field.Type.STRING)
+          .description("The customer's last name")
+          .optional(false)
+          .status(Sep12Status.ACCEPTED)
+          .build()
+    )
 
   private lateinit var sep12Service: Sep12Service
   @MockK(relaxed = true) private lateinit var customerIntegration: CustomerIntegration
@@ -165,44 +184,87 @@ class Sep12ServiceTest {
 
   @Test
   fun test_putCustomer() {
-    val mockCustomerResponse = Sep12PutCustomerResponse()
-    val putRequestSlot = slot<Sep12PutCustomerRequest>()
-    every { customerIntegration.putCustomer(capture(putRequestSlot)) } returns mockCustomerResponse
+    // mock `PUT {callbackApi}/customer` response
+    val callbackApiPutRequestSlot = slot<Sep12PutCustomerRequest>()
+    val mockCallbackApiPutCustomerResponse = Sep12PutCustomerResponse()
+    mockCallbackApiPutCustomerResponse.id = "customer-id"
+    every { customerIntegration.putCustomer(capture(callbackApiPutRequestSlot)) } returns
+      mockCallbackApiPutCustomerResponse
 
-    val mockPutRequest = Sep12PutCustomerRequest.builder().build()
+    // Execute the request
+    val mockPutRequest =
+      Sep12PutCustomerRequest.builder()
+        .account(TEST_ACCOUNT)
+        .memo(TEST_MEMO)
+        .memoType("id")
+        .type("sending_user")
+        .firstName("John")
+        .build()
     val jwtToken = createJwtToken(TEST_ACCOUNT)
-    var sep12PutCustomerResponse: Sep12PutCustomerResponse? = null
+    var sep12PutCustomerResponse1: Sep12PutCustomerResponse? = null
     assertDoesNotThrow {
-      sep12PutCustomerResponse = sep12Service.putCustomer(jwtToken, mockPutRequest)
+      sep12PutCustomerResponse1 = sep12Service.putCustomer(jwtToken, mockPutRequest)
     }
 
+    // validate the request
+    val wantCallbackApiPutRequest =
+      Sep12PutCustomerRequest.builder()
+        .account(TEST_ACCOUNT)
+        .memo(TEST_MEMO)
+        .memoType("id")
+        .type("sending_user")
+        .firstName("John")
+        .build()
+    assertEquals(wantCallbackApiPutRequest, callbackApiPutRequestSlot.captured)
+
+    // validate the response
     verify(exactly = 1) { customerIntegration.putCustomer(any()) }
     assertEquals(TEST_ACCOUNT, mockPutRequest.account)
-    assertEquals(mockCustomerResponse, sep12PutCustomerResponse)
-
-    val wantPutRequest = Sep12PutCustomerRequest.builder().account(TEST_ACCOUNT).build()
-    assertEquals(wantPutRequest, putRequestSlot.captured)
+    assertEquals(mockCallbackApiPutCustomerResponse, sep12PutCustomerResponse1)
   }
 
   @Test
   fun test_getCustomer() {
-    val mockCustomerResponse = Sep12GetCustomerResponse()
-    val getRequestSlot = slot<Sep12GetCustomerRequest>()
-    every { customerIntegration.getCustomer(capture(getRequestSlot)) } returns mockCustomerResponse
+    // mock `GET {callbackApi}/customer` response
+    val callbackApiGetRequestSlot = slot<Sep12GetCustomerRequest>()
+    val mockCallbackApiGetCustomerResponse = Sep12GetCustomerResponse()
+    mockCallbackApiGetCustomerResponse.id = "customer-id"
+    mockCallbackApiGetCustomerResponse.status = Sep12Status.ACCEPTED
+    mockCallbackApiGetCustomerResponse.fields = mockFields
+    mockCallbackApiGetCustomerResponse.providedFields = mockProvidedFields
+    mockCallbackApiGetCustomerResponse.message = "foo bar"
+    every { customerIntegration.getCustomer(capture(callbackApiGetRequestSlot)) } returns
+      mockCallbackApiGetCustomerResponse
 
-    val mockGetRequest = Sep12GetCustomerRequest.builder().build()
+    // Execute the request
+    val mockGetRequest =
+      Sep12GetCustomerRequest.builder()
+        .memo(TEST_MEMO)
+        .memoType("text")
+        .type("sep31_sender")
+        .lang("en")
+        .build()
     val jwtToken = createJwtToken(TEST_ACCOUNT)
-    var sep12GetCustomerResponse: Sep12GetCustomerResponse? = null
+    var sep12GetCustomerResponse1: Sep12GetCustomerResponse? = null
     assertDoesNotThrow {
-      sep12GetCustomerResponse = sep12Service.getCustomer(jwtToken, mockGetRequest)
+      sep12GetCustomerResponse1 = sep12Service.getCustomer(jwtToken, mockGetRequest)
     }
 
+    // validate the request
+    val wantCallbackApiGetRequest =
+      Sep12GetCustomerRequest.builder()
+        .account(TEST_ACCOUNT)
+        .memo(TEST_MEMO)
+        .memoType("text")
+        .type("sep31_sender")
+        .lang("en")
+        .build()
+    assertEquals(wantCallbackApiGetRequest, callbackApiGetRequestSlot.captured)
+
+    // validate the response
     verify(exactly = 1) { customerIntegration.getCustomer(any()) }
     assertEquals(TEST_ACCOUNT, mockGetRequest.account)
-    assertEquals(mockCustomerResponse, sep12GetCustomerResponse)
-
-    val wantGetRequest = Sep12GetCustomerRequest.builder().account(TEST_ACCOUNT).build()
-    assertEquals(wantGetRequest, getRequestSlot.captured)
+    assertEquals(mockCallbackApiGetCustomerResponse, sep12GetCustomerResponse1)
   }
 
   @Test
@@ -261,7 +323,8 @@ class Sep12ServiceTest {
   }
 
   @Test
-  fun test_deleteCustomer_handleCustomerIntegration() {
+  fun test_deleteCustomer() {
+    // mock callbackApi customer integration
     val deleteCustomerIdSlot = slot<String>()
     every { customerIntegration.deleteCustomer(capture(deleteCustomerIdSlot)) } just Runs
 
@@ -276,15 +339,16 @@ class Sep12ServiceTest {
     assertInstanceOf(SepNotFoundException::class.java, ex)
     assertEquals("User not found.", ex.message)
     verify(exactly = 2) { customerIntegration.getCustomer(any()) }
+    verify(exactly = 0) { customerIntegration.deleteCustomer(any()) }
 
-    // attempting to delete a valid customer succeeds
+    // customer deletion succeeds
     val mockValidCustomerFound = Sep12GetCustomerResponse()
     mockValidCustomerFound.id = "customer-id"
     every { customerIntegration.getCustomer(any()) } returns mockValidCustomerFound
     assertDoesNotThrow { sep12Service.deleteCustomer(jwtToken, TEST_ACCOUNT, TEST_MEMO, null) }
     verify(exactly = 4) { customerIntegration.getCustomer(any()) }
+    // callback API is called twice
     verify(exactly = 2) { customerIntegration.deleteCustomer(any()) }
-
     val wantDeleteCustomerId = "customer-id"
     assertEquals(wantDeleteCustomerId, deleteCustomerIdSlot.captured)
   }

@@ -1,11 +1,11 @@
 package org.stellar.anchor.platform.config
 
+import kotlin.test.assertContains
+import kotlin.test.assertEquals
 import kotlin.test.fail
 import org.junit.jupiter.api.*
 import org.springframework.validation.BindException
 import org.springframework.validation.ValidationUtils
-import kotlin.test.assertContains
-import kotlin.test.assertEquals
 
 open class AppConfigTest {
   @Test
@@ -33,8 +33,8 @@ open class AppConfigTest {
     appConfig.setHostUrl("localhost:8080")
     val errors = BindException(appConfig, "appConfig")
     ValidationUtils.invokeValidator(appConfig, appConfig, errors)
-      assertEquals(1, errors.errorCount)
-      errors.message?.let { assertContains(it, "empty-jwtSecretKey") }
+    assertEquals(1, errors.errorCount)
+    errors.message?.let { assertContains(it, "empty-jwtSecretKey") }
   }
 
   @Test
