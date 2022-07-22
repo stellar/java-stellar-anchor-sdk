@@ -122,7 +122,6 @@ components:
             "pending_sender",
             "pending_stellar",
             "pending_customer_info_update",
-            "pending_transaction_info_update",
             "pending_receiver",
             "pending_external",
             "completed",
@@ -172,7 +171,7 @@ components:
           type: string
         source_account:
           type: string
-          description: "The Stellar account who sent the payment that originated this event. Should be present if this event was originated from a Stellar payment."
+          description: "The Stellar account whose balance was debited in the payment that originated this event. Should be present if this event was originated from a Stellar payment."
         destination_account:
           type: string
           description: "The Stellar account who received the payment that originated this event. Should be present if this event was originated from a Stellar payment."
@@ -231,10 +230,11 @@ components:
                 format: date-time
     StellarId:
       type: object
-      description:
-        StellarId's are objects that identify a SEP entity. Both end-users and SEP-31 senders/receivers can be identified
-        with a StellarId. Id's for SEP-12 customers, and consequently SEP-31 senders/receivers, will never include a `memo`
-        or `memo_type`.
+      description: |
+        StellarId's are objects that identify end-users and SEP-31 Sending Anchors, but not SEP-31 Receiving Anchors.
+
+        Id's for SEP-12 customers, and consequently SEP-31 Sending Anchors, will need a `memo` and `memo_type`
+        if the `id` is not enough to fully identify them.
       properties:
         id:
           type: string
