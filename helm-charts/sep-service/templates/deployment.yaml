@@ -17,7 +17,7 @@ spec:
   replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app.kubernetes.io/name: {{ .Values.service.name }}
+      app.kubernetes.io/name: {{ include "common.name" . }}
   template:
     metadata:
       labels:
@@ -71,6 +71,10 @@ spec:
           - name: http
             containerPort: {{ .Values.service.containerPort }}
             protocol: TCP
+          {{- if (.Values.deployment).env }}
+          env:
+{{ toYaml .Values.deployment.env | indent 12 }}
+          {{- end }}
           {{- if (.Values.deployment).envFrom }}
           envFrom:
 {{ toYaml .Values.deployment.envFrom | indent 12 }}
