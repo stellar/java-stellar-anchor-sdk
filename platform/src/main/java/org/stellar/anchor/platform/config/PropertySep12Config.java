@@ -1,10 +1,26 @@
 package org.stellar.anchor.platform.config;
 
 import lombok.Data;
+import org.springframework.validation.Errors;
+import org.springframework.validation.ValidationUtils;
+import org.springframework.validation.Validator;
 import org.stellar.anchor.config.Sep12Config;
 
 @Data
-public class PropertySep12Config implements Sep12Config {
+public class PropertySep12Config implements Sep12Config, Validator {
   Boolean enabled;
   String customerIntegrationEndPoint;
+
+  @Override
+  public boolean supports(Class<?> clazz) {
+    return Sep12Config.class.isAssignableFrom(clazz);
+  }
+
+  @Override
+  public void validate(Object target, Errors errors) {
+    Sep12Config config = (Sep12Config) target;
+
+    ValidationUtils.rejectIfEmpty(
+        errors, "customerIntegrationEndPoint", "empty-customerIntegrationEndPoint");
+  }
 }

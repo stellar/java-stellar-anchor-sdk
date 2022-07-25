@@ -52,8 +52,8 @@ public class ConfigManagementConfig {
 
   @Bean
   @ConfigurationProperties(prefix = "sep31")
-  Sep31Config sep31Config(CircleConfig circleConfig) {
-    return new PropertySep31Config(circleConfig);
+  Sep31Config sep31Config() {
+    return new PropertySep31Config(circleConfig());
   }
 
   @Bean
@@ -83,7 +83,7 @@ public class ConfigManagementConfig {
   @Bean
   @ConfigurationProperties(prefix = "event")
   EventConfig eventConfig() {
-    return new PropertyEventConfig();
+    return new PropertyEventConfig(kafkaConfig(), sqsConfig());
   }
 
   @Bean
