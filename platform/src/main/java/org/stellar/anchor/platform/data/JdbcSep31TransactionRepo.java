@@ -7,6 +7,7 @@ import lombok.NonNull;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
+import org.springframework.transaction.annotation.Transactional;
 import org.stellar.anchor.sep31.Sep31Transaction;
 
 public interface JdbcSep31TransactionRepo extends CrudRepository<JdbcSep31Transaction, String> {

@@ -36,6 +36,15 @@ paths:
         [![](https://mermaid.ink/img/pako:eNqlVV1v2jAU_StXedo0Aqr6lodKiNGtD9NQYW-RJmPfEAvHzmKnqEL8993ECQFq0NrlyfHHOcfnfngfcSMwSiKLf2rUHL9KtqlYkWqgz0mnMIHlfBHf38GqYtoy7qTR8KjMDnbS5ZBGe86UWjO-nS6eDpNaS0L6zYSo0No08kglq5zksmTawdKhUqwKLKAWUm9gqnluAuufnpGjfKEtn2GhmMtMVdzedQ1pJiuu0M-fs8YPD19CPAksfi5XsLdY3t8dJm7wwnoYUxIsGQG37IA1syiADHQ5QtlhAzc6k5u6Yg2eh2u-kI5LfV51At_mq5vMYdThzt4RwkGNpAOBwVoZvuU5kxo6kPGA4vfHdDQOyXlGV1fagsYdeCGUKNYHvpeUFFiYNKLAyGp8U98lyxCUD_JQyP0gaDHRhdkepZY2RwpjLVWbNE0Yu_I4SQlfGc3aOzRdkxKfJ-hw5zD3-EpWd1WXwA-2xb4Gif-1QO36Q342vlEEfcoKdMidpTS5gIKclSUlkYDa9g79rwvn8eh9OGqxdNdGyUmDmr80Uo5hOG1dTzozAbKjUUGqynBEIjkiknwHJmvHGTXDUauiv3DvhTPt7xERZkoOdocr8Yrx09XsO-z7ltFWeDjjSkHlK0JZaR1ztR1_JPN_tagtwVXEf22kbasK9NFJIkXjGM-Rb1sqD9_b_DbJ31kyb-RL3Zxou-44GkUF0o8U9BruG_w0ov0FplFCQ4EZq5Vr3rMDbfUuz4V0poqSjCmLo4jVzixfNT9O-F3dk9rNHv4CY--UbA)](https://mermaid.live/edit#pako:eNqlVV1v2jAU_StXedo0Aqr6lodKiNGtD9NQYW-RJmPfEAvHzmKnqEL8993ECQFq0NrlyfHHOcfnfngfcSMwSiKLf2rUHL9KtqlYkWqgz0mnMIHlfBHf38GqYtoy7qTR8KjMDnbS5ZBGe86UWjO-nS6eDpNaS0L6zYSo0No08kglq5zksmTawdKhUqwKLKAWUm9gqnluAuufnpGjfKEtn2GhmMtMVdzedQ1pJiuu0M-fs8YPD19CPAksfi5XsLdY3t8dJm7wwnoYUxIsGQG37IA1syiADHQ5QtlhAzc6k5u6Yg2eh2u-kI5LfV51At_mq5vMYdThzt4RwkGNpAOBwVoZvuU5kxo6kPGA4vfHdDQOyXlGV1fagsYdeCGUKNYHvpeUFFiYNKLAyGp8U98lyxCUD_JQyP0gaDHRhdkepZY2RwpjLVWbNE0Yu_I4SQlfGc3aOzRdkxKfJ-hw5zD3-EpWd1WXwA-2xb4Gif-1QO36Q342vlEEfcoKdMidpTS5gIKclSUlkYDa9g79rwvn8eh9OGqxdNdGyUmDmr80Uo5hOG1dTzozAbKjUUGqynBEIjkiknwHJmvHGTXDUauiv3DvhTPt7xERZkoOdocr8Yrx09XsO-z7ltFWeDjjSkHlK0JZaR1ztR1_JPN_tagtwVXEf22kbasK9NFJIkXjGM-Rb1sqD9_b_DbJ31kyb-RL3Zxou-44GkUF0o8U9BruG_w0ov0FplFCQ4EZq5Vr3rMDbfUuz4V0poqSjCmLo4jVzixfNT9O-F3dk9rNHv4CY--UbA)
       tags:
         - Unique Address
+      parameters:
+        - in: query
+          name: transaction_id
+          description: |
+            The platform server will save the posted transaction and pass the `transaction_id` through this endpoing. 
+            If the anchor wish to return transaction-dependent unique_address, the anchor may query the [`GET /transactions` endpoint of the Platform API](https://github.com/stellar/java-stellar-anchor-sdk/blob/main/docs/03%20-%20Implementing%20the%20Anchor%20Server/Communication/Platform%20API.yml).
+          schema:
+            type: string
+          required: true
       responses:
         '200':
           description: Success.
