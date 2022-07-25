@@ -117,7 +117,8 @@ components:
         status:
           type: string
           description: |
-            The status of the transaction according with the latest Platform update. Currently, we're supporting all [SEP-31 states](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0031.md#get-transaction).
+            The status of the transaction according with the latest Platform update. Currently, we're supporting all 
+            [SEP-31 states](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0031.md#get-transaction), exept for `pending_transaction_info_update`.
           enum: [
             "pending_sender",
             "pending_stellar",
@@ -178,9 +179,8 @@ components:
         customers:
           type: object
           description: |
-            Identification info of the sending and receiving customers created through [SEP-12](https://stellar.org/protocol/sep-12).
-            
-            This field should contain the `id` and optionally the `account` and `memo`, if the ID is not enough to fully identify the customer.
+            The Identification info of the sending and receiving customers. If they were created through [SEP-12](https://stellar.org/protocol/sep-12),
+            this object should contain the SEP-12 customer `id`. Otherwise, the `account` address of the customer.
           properties:
             sender:
               $ref: '#/components/schemas/StellarId'

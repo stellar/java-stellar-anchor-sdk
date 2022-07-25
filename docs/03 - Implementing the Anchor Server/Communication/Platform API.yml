@@ -331,6 +331,9 @@ components:
           type: string
         customers:
           type: object
+          description: |
+            The Identification info of the sending and receiving customers. If they were created through [SEP-12](https://stellar.org/protocol/sep-12),
+            this object should contain the SEP-12 customer `id`. Otherwise, the `account` address of the customer.
           properties:
             sender:
               $ref: '#/components/schemas/StellarId'
@@ -432,25 +435,19 @@ components:
           format: date-time
     StellarId:
       type: object
-      description:
-        StellarId's are objects that identify an on-chain entity. Both end users and SEP-31 senders can be identified 
-        with StellarId's. Id's for SEP-31 senders will never include a `memo` or `memo_type`.
+      description: |
+        StellarId's are objects that identify end-users and SEP-31 Sending Anchors, but not SEP-31 Receiving Anchors.
+
+        For a SEP-12 customer, the `id` field should be sufficient to fully identify the customer in the Anchor Backend.
+        
+        For a SEP-31 Sending Anchor, the `account` field should be used.
       properties:
+        id:
+          type: string
+          description: The `id` of the customer registered through SEP-12.
         account:
           type: string
           description: Either the Stellar account or Muxed account address of the on-chain entity.
-        memo:
-          type: string
-          description:
-            The memo unique identifys the on-chain entity when paired with `StellarId.account`. Memos are not valid if 
-            `StellarId.account` is a Muxed account.
-        memo_type:
-          type: string
-          description: The type of `StellarId.memo`.
-          enum:
-            - hash
-            - text
-            - id
     StellarTransaction:
       type: object
       required:
