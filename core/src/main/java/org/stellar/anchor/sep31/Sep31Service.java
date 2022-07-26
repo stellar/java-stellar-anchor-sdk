@@ -12,9 +12,9 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
+import javax.transaction.Transactional;
 import lombok.Data;
 import lombok.SneakyThrows;
-import javax.transaction.Transactional;
 import org.stellar.anchor.api.callback.CustomerIntegration;
 import org.stellar.anchor.api.callback.FeeIntegration;
 import org.stellar.anchor.api.callback.GetFeeRequest;
@@ -275,7 +275,7 @@ public class Sep31Service {
     Context.get().getFee().setAmount(feeStr);
   }
 
-  private void updateDepositInfo() throws AnchorException {
+  void updateDepositInfo() throws AnchorException {
     Sep31Transaction txn = Context.get().getTransaction();
     Sep31DepositInfo depositInfo = sep31DepositInfoGenerator.generate(txn);
     infoF("Updating transaction ({}) with depositInfo ({})", txn.getId(), depositInfo);
