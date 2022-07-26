@@ -16,6 +16,7 @@ public interface Sep31Config {
 
   enum DepositInfoGeneratorType {
     SELF,
-    CIRCLE
+    CIRCLE,
+    API
   }
 }

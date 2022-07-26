@@ -21,6 +21,12 @@ public class ConfigManagementConfig {
   }
 
   @Bean
+  @ConfigurationProperties(prefix = "callback")
+  CallbackConfig callbackConfig() {
+    return new PropertyCallbackConfig();
+  }
+
+  @Bean
   @ConfigurationProperties(prefix = "integration-auth")
   IntegrationAuthConfig integrationAuthConfig() {
     return new PropertyIntegrationAuthConfig();

@@ -636,7 +636,7 @@ class Sep31ServiceTest {
     // mock sep31 deposit info generation
     val txForDepositInfoGenerator = slot<Sep31Transaction>()
     every {
-      sep31DepositInfoGenerator.getSep31DepositInfo(capture(txForDepositInfoGenerator))
+      sep31DepositInfoGenerator.generate(capture(txForDepositInfoGenerator))
     } answers
       {
         val tx: Sep31Transaction = txForDepositInfoGenerator.captured
@@ -665,7 +665,7 @@ class Sep31ServiceTest {
     request = Sep12GetCustomerRequest.builder().id(receiverId).type("sep31-receiver").build()
     verify(exactly = 1) { customerIntegration.getCustomer(request) }
     verify(exactly = 1) { quoteStore.findByQuoteId("my_quote_id") }
-    verify(exactly = 1) { sep31DepositInfoGenerator.getSep31DepositInfo(any()) }
+    verify(exactly = 1) { sep31DepositInfoGenerator.generate(any()) }
     verify(exactly = 1) { eventPublishService.publish(any()) }
 
     // validate the values of the saved sep31Transaction

@@ -162,7 +162,8 @@ public class Sep31Service {
     Context.get().setTransaction(txn);
     updateAmounts();
     updateDepositInfo(txn);
-    sep31TransactionStore.save(txn);
+    Sep31Transaction savedTxn = sep31TransactionStore.save(txn);
+
 
     StellarId senderStellarId = StellarId.builder().id(txn.getSenderId()).build();
     StellarId receiverStellarId = StellarId.builder().id(txn.getReceiverId()).build();
@@ -271,7 +272,7 @@ public class Sep31Service {
   }
 
   private void updateDepositInfo(Sep31Transaction txn) {
-    Sep31DepositInfo depositInfo = sep31DepositInfoGenerator.getSep31DepositInfo(txn);
+    Sep31DepositInfo depositInfo = sep31DepositInfoGenerator.generate(txn);
     infoF("Updating transaction ({}) with depositInfo ({})", txn.getId(), depositInfo);
     txn.setStellarAccountId(depositInfo.getStellarAddress());
     txn.setStellarMemo(depositInfo.getMemo());

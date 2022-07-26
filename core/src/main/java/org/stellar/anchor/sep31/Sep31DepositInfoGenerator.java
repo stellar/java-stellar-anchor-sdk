@@ -9,5 +9,5 @@ public interface Sep31DepositInfoGenerator {
    * @param txn the original SEP-31 transaction the deposit info will be used for.
    * @return a Sep31DepositInfo instance containing the destination address, memo and memoType.
    */
-  Sep31DepositInfo getSep31DepositInfo(Sep31Transaction txn);
+  Sep31DepositInfo generate(Sep31Transaction txn);
 }
