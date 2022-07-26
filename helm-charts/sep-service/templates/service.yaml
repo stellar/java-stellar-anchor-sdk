@@ -21,7 +21,7 @@ spec:
   type: {{ .Values.service.type }}
   ports:
   - protocol: TCP
-    port: {{ .Values.service.servicePort }}       # port number the service will listen on
-    targetPort: {{ .Values.service.targetPort }}  # port number pods listen on
+    port: {{ .Values.service.servicePort | default 8080}}       # port number the service will listen on
+    targetPort: {{ .Values.service.targetPort | default 8080 }}  # port number pods listen on
   selector:
     app.kubernetes.io/name: {{ .Values.service.name }} 
