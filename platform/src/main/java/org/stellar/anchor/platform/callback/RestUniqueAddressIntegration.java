@@ -40,7 +40,11 @@ public class RestUniqueAddressIntegration implements UniqueAddressIntegration {
   public GetUniqueAddressResponse getUniqueAddressResponse(String transactionId)
       throws AnchorException {
     HttpUrl url =
-        okhttp3.HttpUrl.get(anchorEndpoint).newBuilder().addPathSegment("unique_address").build();
+        okhttp3.HttpUrl.get(anchorEndpoint)
+            .newBuilder()
+            .addQueryParameter("transaction_id", transactionId)
+            .addPathSegment("unique_address")
+            .build();
     Request request = getRequestBuilder(authHelper).url(url).get().build();
     Response response = call(httpClient, request);
     String content = getContent(response);

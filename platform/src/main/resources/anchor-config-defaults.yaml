@@ -76,7 +76,7 @@ app-config:
     # The secret key of JWT encryption
     jwtSecretKey: ${JWT_SECRET}
 
-  callback-api:
+  anchor-callback:
     endpoint: http://localhost:8081
 
   # These are secrets shared between Anchor and Platform that are used to safely communicate from `Platform->Anchor`

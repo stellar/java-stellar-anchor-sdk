@@ -21,7 +21,7 @@ public class ConfigManagementConfig {
   }
 
   @Bean
-  @ConfigurationProperties(prefix = "callback")
+  @ConfigurationProperties(prefix = "anchor-callback")
   CallbackConfig callbackConfig() {
     return new PropertyCallbackConfig();
   }
