@@ -650,7 +650,10 @@ class Sep31ServiceTest {
 
     // mock transaction save
     val slotTxn = slot<Sep31Transaction>()
-    every { txnStore.save(capture(slotTxn)) } returns null
+    every { txnStore.save(capture(slotTxn)) } answers {
+      firstArg<Sep31Transaction>().id = "ABC-123"
+      firstArg()
+    }
 
     // POST transaction
     val jwtToken = TestHelper.createJwtToken(accountMemo = TestHelper.TEST_MEMO)
@@ -792,8 +795,13 @@ class Sep31ServiceTest {
 
   @Test
   fun test_postTransaction_quoteNotSupported() {
-    every { sep31DepositInfoGenerator.getSep31DepositInfo(any()) } returns
+    every { sep31DepositInfoGenerator.generate(any()) } returns
       Sep31DepositInfo("GA7FYRB5VREZKOBIIKHG5AVTPFGWUBPOBF7LTYG4GTMFVIOOD2DWAL7I", "123456", "id")
+
+    every {txnStore.save(any())} answers {
+      firstArg<Sep31Transaction>().id = "ABC-123"
+      firstArg()
+    }
 
     val assetServiceQuotesNotSupported: AssetService =
       ResourceJsonAssetService(

@@ -163,8 +163,11 @@ public class Sep31Service {
 
     Context.get().setTransaction(txn);
     updateAmounts();
-    Sep31Transaction savedTxn = sep31TransactionStore.save(txn);
-    updateDepositInfo(savedTxn);
+
+    Context.get().setTransaction(sep31TransactionStore.save(txn));
+    txn = Context.get().getTransaction();
+
+    updateDepositInfo();
 
     StellarId senderStellarId = StellarId.builder().id(txn.getSenderId()).build();
     StellarId receiverStellarId = StellarId.builder().id(txn.getReceiverId()).build();
@@ -272,7 +275,8 @@ public class Sep31Service {
     Context.get().getFee().setAmount(feeStr);
   }
 
-  private void updateDepositInfo(Sep31Transaction txn) throws AnchorException {
+  private void updateDepositInfo() throws AnchorException {
+    Sep31Transaction txn = Context.get().getTransaction();
     Sep31DepositInfo depositInfo = sep31DepositInfoGenerator.generate(txn);
     infoF("Updating transaction ({}) with depositInfo ({})", txn.getId(), depositInfo);
     txn.setStellarAccountId(depositInfo.getStellarAddress());
