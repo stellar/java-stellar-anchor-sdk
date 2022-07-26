@@ -11,8 +11,8 @@ import org.stellar.anchor.util.UrlValidationUtil;
 
 @Data
 public class PropertySep12Config implements Sep12Config, Validator {
-  Boolean enabled;
-  String customerIntegrationEndPoint;
+  Boolean enabled = false;
+  String customerIntegrationEndpoint;
 
   @Override
   public boolean supports(Class<?> clazz) {
@@ -25,9 +25,9 @@ public class PropertySep12Config implements Sep12Config, Validator {
 
     if (config.getEnabled()) {
       ValidationUtils.rejectIfEmpty(
-          errors, "customerIntegrationEndPoint", "empty-customerIntegrationEndPoint");
+          errors, "customerIntegrationEndpoint", "empty-customerIntegrationEndpoint");
 
-      UrlValidationUtil.rejectIfMalformed(config.getCustomerIntegrationEndPoint(), "customerIntegrationEndpoint", errors);
+      UrlValidationUtil.rejectIfMalformed(config.getCustomerIntegrationEndpoint(), "customerIntegrationEndpoint", errors);
     }
   }
 }
