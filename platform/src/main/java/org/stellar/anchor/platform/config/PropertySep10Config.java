@@ -36,8 +36,6 @@ public class PropertySep10Config implements Sep10Config, Validator {
     if (config.getEnabled()) {
       ValidationUtils.rejectIfEmptyOrWhitespace(errors, "homeDomain", "empty-homeDomain");
       ValidationUtils.rejectIfEmptyOrWhitespace(errors, "signingSeed", "empty-signingSeed");
-
-      UrlValidationUtil.rejectIfMalformed(config.getHomeDomain(), "homeDomain", errors);
     }
   }
 }
