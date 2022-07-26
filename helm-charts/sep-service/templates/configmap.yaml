@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Values.fullName }}-configmap-{{ .Values.service.name }}
+  name: {{ .Values.fullName }}
 data:
   # TODO: remove all secrets (ex: move to env vars, k8s secrets, vault, etc...)
   anchor-config.yaml: |
