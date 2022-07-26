@@ -94,7 +94,7 @@ Here you can see the sequence diagram of the [SEP-31] flow, showing all the stak
 %% - The anchor successfully delivers off-chain funds on first attempt
 sequenceDiagram
     title: SEP-31 Transaction Flow
-    participant Client
+    participant Client as SEP-31 Sending Anchor
       Note over Client: In the SEP-31 flow, this is the Sending Anchor.
     participant Platform
       Note over Platform: In the SEP-31 flow, this is the Receiving Anchor.
@@ -127,7 +127,7 @@ sequenceDiagram
         Platform-->>-Client: forwards response
     end
 
-    opt Get a Quote if Supported or Required
+    opt Get a Quote if Quotes are Supported or Required
       Client->>+Platform: GET [SEP-38]/price
       Platform->>+Anchor: GET /rate?type=indicative_price
       Anchor-->>-Platform: exchange rate
@@ -143,21 +143,49 @@ sequenceDiagram
 
     Client->>+Platform: POST [SEP-31]/transactions
     Platform-->>Platform: checks customer statuses, links quote
-    Platform->>+Anchor: GET /fee
-    Anchor-->>Anchor: calculates fee
-    Anchor-->>-Platform: fee
+    
+    opt Get the Fee if Quotes Were Not Used
+      Platform->>+Anchor: GET /fee
+      Anchor-->>Anchor: calculates fee
+      Anchor-->>-Platform: fee
+    end
+    
     Platform-->>Platform: Sets fee on transaction
     Platform-->>-Client: transaction id, receiving account & memo
+
     Platform->>+Anchor: POST [webhookURL]/transactions created
     Anchor-->>-Platform: 204 No Content
     Client->>+Stellar: submit Stellar payment
     Stellar-->>Platform: receives payment, matches w/ transaction
-    Platform-->>Platform: updates transaction status
+    Platform-->>Platform: updates transaction status to `pending_receiver`
     Stellar-->>-Client: success response
     Platform->>+Anchor: POST [webhookURL]/transactions received
     Anchor-->>Anchor: queues off-chain payment
     Anchor-->>-Platform: 204 No Content
     Anchor->>Recipient: Sends off-chain payment to recipient
+
+    opt Mismatched info when delivering value to the Recipient (or a similar error)
+      Recipient-->>Anchor: error: Recipient info was wrong
+      Anchor-->>Anchor: Updates the receiver customer info from ACCEPTED to NEEDS_INFO
+      Anchor->>Platform: PATCH /transactions to mark the status as `pending_customer_info_update`
+      Platform-->>Platform: updates transaction to `pending_customer_info_update`
+      Client->>+Platform: GET /transactions?id=
+      Platform-->>-Client: transaction `pending_customer_info_update`
+
+      Client->>+Platform: PUT [SEP-12]/customer?type=
+      Platform->>+Anchor: forwards request
+      Anchor-->>Anchor: validates KYC values
+      Anchor-->>-Platform: id, ACCEPTED
+      Platform-->>-Client: forwards response
+
+      Platform-->>Platform: updates transaction status to `pending_receiver`
+      Platform->>+Anchor: POST [webhookURL]/transactions with the status change
+      Anchor-->>Anchor: queues off-chain payment
+      Anchor-->>-Platform: 204 No Content
+      Anchor->>Recipient: Sends off-chain payment to recipient
+    end
+
+    Recipient-->>Anchor: successfully delivered funds to Recipient
     Anchor->>+Platform: PATCH /transactions
     Platform-->>Platform: updates transaction to complete
     Platform-->>-Anchor: updated transaction
