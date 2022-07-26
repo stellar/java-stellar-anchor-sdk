@@ -13,7 +13,7 @@ open class Sep12ConfigTest {
     fun testSep12ConfigValid() {
         val sep12Config = PropertySep12Config()
         sep12Config.enabled = true
-        sep12Config.customerIntegrationEndpoint = "localhost:8081"
+        sep12Config.customerIntegrationEndPoint = "https://localhost:8081"
 
         val errors = BindException(sep12Config, "sep12Config")
         ValidationUtils.invokeValidator(sep12Config, sep12Config, errors)
@@ -27,7 +27,7 @@ open class Sep12ConfigTest {
         val errors = BindException(sep12Config, "sep12Config")
         ValidationUtils.invokeValidator(sep12Config, sep12Config, errors)
         assertEquals(2, errors.errorCount)
-        errors.message?.let { assertContains(it, "empty-customerIntegrationEndpoint") }
-        errors.message?.let { assertContains(it, "invalidUrl-customerIntegrationEndpoint") }
+        errors.message?.let { assertContains(it, "empty-customerIntegrationEndPoint") }
+        errors.message?.let { assertContains(it, "invalidUrl-customerIntegrationEndPoint") }
     }
 }

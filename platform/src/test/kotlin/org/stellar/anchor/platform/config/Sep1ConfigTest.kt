@@ -12,6 +12,7 @@ open class Sep1ConfigTest {
     @Test
     fun testSep1ConfigValid() {
         val sep1Config = PropertySep1Config()
+        sep1Config.enabled = true
         sep1Config.stellarFile = "classpath:/sep1/stellar-wks.toml"
 
         val errors = BindException(sep1Config, "sep1Config")
@@ -22,6 +23,7 @@ open class Sep1ConfigTest {
     @Test
     fun testSep1ConfigBadFile() {
         val sep1Config = PropertySep1Config()
+        sep1Config.enabled = true
         sep1Config.stellarFile = "classpath:/sep1/stellar-dne.toml"
 
         val errors = BindException(sep1Config, "sep1Config")

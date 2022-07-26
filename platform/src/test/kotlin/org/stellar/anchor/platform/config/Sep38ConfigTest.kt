@@ -12,6 +12,7 @@ open class Sep38ConfigTest {
     @Test
     fun testSep38ConfigValid() {
         val sep38Config = PropertySep38Config()
+        sep38Config.enabled = true
         sep38Config.quoteIntegrationEndPoint = "http://localhost:8081"
 
         val errors = BindException(sep38Config, "sep38Config")
@@ -21,11 +22,12 @@ open class Sep38ConfigTest {
     @Test
     fun testSep38ConfigBadQuoteIntegrationEndpoint() {
         val sep38Config = PropertySep38Config()
+        sep38Config.enabled = true
         sep38Config.quoteIntegrationEndPoint = "not-a-url"
 
         val errors = BindException(sep38Config, "sep38Config")
         ValidationUtils.invokeValidator(sep38Config, sep38Config, errors)
         assertEquals(1, errors.errorCount)
-        errors.message?.let { assertContains(it, "invalidUrl-quoteIntegrationEndpoint") }
+        errors.message?.let { assertContains(it, "invalidUrl-quoteIntegrationEndPoint") }
     }
 }

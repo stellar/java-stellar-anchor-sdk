@@ -27,7 +27,7 @@ public class PropertySep38Config implements Sep38Config, Validator {
       ValidationUtils.rejectIfEmpty(
           errors, "quoteIntegrationEndPoint", "empty-quoteIntegrationEndPoint");
 
-      UrlValidationUtil.rejectIfMalformed(config.getQuoteIntegrationEndPoint(), "quoteIntegrationEndpoint", errors);
+      UrlValidationUtil.rejectIfMalformed(config.getQuoteIntegrationEndPoint(), "quoteIntegrationEndPoint", errors);
     }
   }
 }
