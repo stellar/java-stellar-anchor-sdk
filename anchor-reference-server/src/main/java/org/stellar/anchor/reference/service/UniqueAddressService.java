@@ -1,12 +1,11 @@
 package org.stellar.anchor.reference.service;
 
+import java.util.Objects;
 import org.springframework.stereotype.Service;
 import org.stellar.anchor.api.callback.GetUniqueAddressResponse;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.reference.config.AppSettings;
 import org.stellar.anchor.util.MemoHelper;
-
-import java.util.Objects;
 
 @Service
 public class UniqueAddressService {

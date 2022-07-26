@@ -635,9 +635,7 @@ class Sep31ServiceTest {
 
     // mock sep31 deposit info generation
     val txForDepositInfoGenerator = slot<Sep31Transaction>()
-    every {
-      sep31DepositInfoGenerator.generate(capture(txForDepositInfoGenerator))
-    } answers
+    every { sep31DepositInfoGenerator.generate(capture(txForDepositInfoGenerator)) } answers
       {
         val tx: Sep31Transaction = txForDepositInfoGenerator.captured
         var memo = StringUtils.truncate(tx.id, 32)

@@ -1,6 +1,11 @@
 package org.stellar.anchor.platform.callback;
 
+import static org.stellar.anchor.platform.callback.PlatformIntegrationHelper.*;
+
 import com.google.gson.Gson;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.List;
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -9,14 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.stellar.anchor.api.callback.GetUniqueAddressResponse;
 import org.stellar.anchor.api.callback.UniqueAddressIntegration;
 import org.stellar.anchor.api.exception.AnchorException;
-import org.stellar.anchor.api.exception.ServiceUnavailableException;
 import org.stellar.anchor.auth.AuthHelper;
-
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.util.List;
-
-import static org.stellar.anchor.platform.callback.PlatformIntegrationHelper.*;
 
 public class RestUniqueAddressIntegration implements UniqueAddressIntegration {
   private final String anchorEndpoint;

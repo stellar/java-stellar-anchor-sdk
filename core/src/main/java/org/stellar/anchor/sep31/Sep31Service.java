@@ -14,6 +14,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 import lombok.Data;
 import lombok.SneakyThrows;
+import javax.transaction.Transactional;
 import org.stellar.anchor.api.callback.CustomerIntegration;
 import org.stellar.anchor.api.callback.FeeIntegration;
 import org.stellar.anchor.api.callback.GetFeeRequest;
@@ -80,6 +81,7 @@ public class Sep31Service {
     return infoResponse;
   }
 
+  @Transactional(rollbackOn = {AnchorException.class, RuntimeException.class})
   public Sep31PostTransactionResponse postTransaction(
       JwtToken jwtToken, Sep31PostTransactionRequest request) throws AnchorException {
     Context.reset();
@@ -161,9 +163,8 @@ public class Sep31Service {
 
     Context.get().setTransaction(txn);
     updateAmounts();
-    updateDepositInfo(txn);
     Sep31Transaction savedTxn = sep31TransactionStore.save(txn);
-
+    updateDepositInfo(savedTxn);
 
     StellarId senderStellarId = StellarId.builder().id(txn.getSenderId()).build();
     StellarId receiverStellarId = StellarId.builder().id(txn.getReceiverId()).build();
@@ -271,7 +272,7 @@ public class Sep31Service {
     Context.get().getFee().setAmount(feeStr);
   }
 
-  private void updateDepositInfo(Sep31Transaction txn) {
+  private void updateDepositInfo(Sep31Transaction txn) throws AnchorException {
     Sep31DepositInfo depositInfo = sep31DepositInfoGenerator.generate(txn);
     infoF("Updating transaction ({}) with depositInfo ({})", txn.getId(), depositInfo);
     txn.setStellarAccountId(depositInfo.getStellarAddress());
@@ -294,6 +295,7 @@ public class Sep31Service {
     return fromTransactionToResponse(txn);
   }
 
+  @Transactional(rollbackOn = {AnchorException.class, RuntimeException.class})
   public Sep31GetTransactionResponse patchTransaction(Sep31PatchTransactionRequest request)
       throws AnchorException {
     if (request == null) {

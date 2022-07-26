@@ -3,11 +3,8 @@ package org.stellar.anchor.reference.controller;
 import com.google.gson.Gson;
 import org.springframework.web.bind.annotation.*;
 import org.stellar.anchor.api.callback.GetUniqueAddressResponse;
-import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.reference.service.UniqueAddressService;
 import org.stellar.anchor.util.GsonUtils;
-
-import java.util.Map;
 
 @RestController
 public class UniqueAddressController {
