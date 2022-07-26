@@ -28,7 +28,7 @@ public class PropertySep12Config implements Sep12Config, Validator {
 
     UrlConnectionStatus urlStatus = UrlValidationUtil.validateUrl(config.getCustomerIntegrationEndPoint());
     if (urlStatus == UrlConnectionStatus.MALFORMED) {
-      errors.rejectValue("customerIntegrationEndPoint", "invalidUrl-quoteIntegrationEndpoint", "customerIntegrationEndPoint is not in valid format");
+      errors.rejectValue("customerIntegrationEndPoint", "invalidUrl-customerIntegrationEndPoint", "customerIntegrationEndPoint is not in valid format");
     } else if (urlStatus == UrlConnectionStatus.UNREACHABLE) {
       Log.error("customerIntegrationEndPoint field invalid: cannot connect to customer integration endpoint");
     }
