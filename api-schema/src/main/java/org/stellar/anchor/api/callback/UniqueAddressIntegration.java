@@ -9,5 +9,5 @@ public interface UniqueAddressIntegration {
    * @param transactionId
    * @return The GetUniqueAddressResponse
    */
-  GetUniqueAddressResponse getUniqueAddressResponse(String transactionId) throws AnchorException;
+  GetUniqueAddressResponse getUniqueAddress(String transactionId) throws AnchorException;
 }
