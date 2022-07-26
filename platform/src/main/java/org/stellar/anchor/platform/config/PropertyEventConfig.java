@@ -3,13 +3,12 @@ package org.stellar.anchor.platform.config;
 import static org.stellar.anchor.config.Sep31Config.DepositInfoGeneratorType.CIRCLE;
 
 import lombok.Data;
+import org.springframework.validation.BindException;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.Validator;
-import org.stellar.anchor.config.CircleConfig;
 import org.stellar.anchor.config.EventConfig;
 import org.stellar.anchor.config.KafkaConfig;
-import org.stellar.anchor.config.Sep31Config;
 import org.stellar.anchor.config.SqsConfig;
 
 @Data
@@ -36,18 +35,26 @@ public class PropertyEventConfig implements EventConfig, Validator {
     if (config.isEnabled()) {
       ValidationUtils.rejectIfEmptyOrWhitespace(errors, "publisherType", "");
       if (config.getPublisherType().equals("kafka")) {
-        if (kafkaConfig.validate().hasErrors()) {
+        BindException validation = kafkaConfig.validate();
+        if (validation.hasErrors()) {
+          String errorString = validation.getAllErrors().get(0).toString();
           errors.rejectValue(
               "kafkaConfig",
               "badConfig-kafka",
-              "publisherType set to kafka, but kafka config not properly configured");
+              String.format(
+                  "publisherType set to kafka, but kafka config not properly configured: %s",
+                  errorString));
         }
       } else if (config.getPublisherType().equals("sqs")) {
-        if (sqsConfig.validate().hasErrors()) {
+        BindException validation = sqsConfig.validate();
+        if (validation.hasErrors()) {
+          String errorString = validation.getAllErrors().get(0).toString();
           errors.rejectValue(
               "sqsConfig",
               "badConfig-sqs",
-              "publisherType set to sqs, but sqs config not properly configured");
+              String.format(
+                  "publisherType set to sqs, but sqs config not properly configured: %s",
+                  errorString));
         }
       } else {
         errors.rejectValue(

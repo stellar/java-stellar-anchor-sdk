@@ -3,6 +3,7 @@ package org.stellar.anchor.platform;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.geo.Circle;
 import org.stellar.anchor.config.*;
 import org.stellar.anchor.config.CirclePaymentObserverConfig;
 import org.stellar.anchor.config.EventConfig;
@@ -52,8 +53,8 @@ public class ConfigManagementConfig {
 
   @Bean
   @ConfigurationProperties(prefix = "sep31")
-  Sep31Config sep31Config() {
-    return new PropertySep31Config(circleConfig());
+  Sep31Config sep31Config(CircleConfig circleConfig) {
+    return new PropertySep31Config(circleConfig);
   }
 
   @Bean
@@ -82,8 +83,8 @@ public class ConfigManagementConfig {
 
   @Bean
   @ConfigurationProperties(prefix = "event")
-  EventConfig eventConfig() {
-    return new PropertyEventConfig(kafkaConfig(), sqsConfig());
+  EventConfig eventConfig(KafkaConfig kafkaConfig, SqsConfig sqsConfig) {
+    return new PropertyEventConfig(kafkaConfig, sqsConfig);
   }
 
   @Bean

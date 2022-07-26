@@ -30,7 +30,7 @@ public class PropertySep10Config implements Sep10Config, Validator {
   public void validate(Object target, Errors errors) {
     Sep10Config config = (Sep10Config) target;
 
-    ValidationUtils.rejectIfEmpty(errors, "homeDomain", "empty-homeDomain");
-    ValidationUtils.rejectIfEmpty(errors, "signingSeed", "empty-signingSeed");
+    ValidationUtils.rejectIfEmptyOrWhitespace(errors, "homeDomain", "empty-homeDomain");
+    ValidationUtils.rejectIfEmptyOrWhitespace(errors, "signingSeed", "empty-signingSeed");
   }
 }

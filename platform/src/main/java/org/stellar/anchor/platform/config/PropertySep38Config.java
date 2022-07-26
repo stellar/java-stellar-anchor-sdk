@@ -5,6 +5,9 @@ import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.Validator;
 import org.stellar.anchor.config.Sep38Config;
+import org.stellar.anchor.util.Log;
+import org.stellar.anchor.util.UrlConnectionStatus;
+import org.stellar.anchor.util.UrlValidationUtil;
 
 @Data
 public class PropertySep38Config implements Sep38Config, Validator {
@@ -22,5 +25,12 @@ public class PropertySep38Config implements Sep38Config, Validator {
 
     ValidationUtils.rejectIfEmpty(
         errors, "quoteIntegrationEndPoint", "empty-quoteIntegrationEndPoint");
+
+    UrlConnectionStatus urlStatus = UrlValidationUtil.validateUrl(config.getQuoteIntegrationEndPoint());
+    if (urlStatus == UrlConnectionStatus.MALFORMED) {
+      errors.rejectValue("quoteIntegrationEndPoint", "invalidUrl-quoteIntegrationEndpoint", "quoteIntegrationEndpoint is not in valid format");
+    } else if (urlStatus == UrlConnectionStatus.UNREACHABLE) {
+      Log.error("quoteIntegrationEndpoint field invalid: cannot connect to quote integration endpoint");
+    }
   }
 }

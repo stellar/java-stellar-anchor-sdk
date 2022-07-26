@@ -4,7 +4,11 @@ import lombok.Data;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.Validator;
+import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.CirclePaymentObserverConfig;
+import org.stellar.anchor.util.Log;
+import org.stellar.anchor.util.UrlConnectionStatus;
+import org.stellar.anchor.util.UrlValidationUtil;
 
 @Data
 public class PropertyCirclePaymentObserverConfig implements CirclePaymentObserverConfig, Validator {
@@ -20,10 +24,17 @@ public class PropertyCirclePaymentObserverConfig implements CirclePaymentObserve
 
   @Override
   public void validate(Object target, Errors errors) {
-    CirclePaymentObserverConfig config = (CirclePaymentObserverConfig) target;
+    PropertyCirclePaymentObserverConfig config = (PropertyCirclePaymentObserverConfig) target;
 
-    ValidationUtils.rejectIfEmpty(errors, "stellarNetwork", "empty-stellarNetwork");
-    ValidationUtils.rejectIfEmpty(errors, "horizonUrl", "empty-horizonUrl");
-    ValidationUtils.rejectIfEmpty(errors, "trackedWallet", "empty-trackedWallet");
+    ValidationUtils.rejectIfEmptyOrWhitespace(errors, "stellarNetwork", "empty-stellarNetwork");
+    ValidationUtils.rejectIfEmptyOrWhitespace(errors, "horizonUrl", "empty-horizonUrl");
+    ValidationUtils.rejectIfEmptyOrWhitespace(errors, "trackedWallet", "empty-trackedWallet");
+
+    UrlConnectionStatus horizonUrlStatus = UrlValidationUtil.validateUrl(config.getHorizonUrl());
+    if (horizonUrlStatus == UrlConnectionStatus.MALFORMED) {
+      errors.rejectValue("horizonUrl", "invalidUrl-horizonUrl", "horizon url is not in valid format");
+    } else if (horizonUrlStatus == UrlConnectionStatus.UNREACHABLE) {
+      Log.error("horizonUrl field invalid: cannot connect to horizon url");
+    }
   }
 }

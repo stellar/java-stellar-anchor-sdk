@@ -10,19 +10,22 @@ import kotlin.test.assertEquals
 
 open class Sep38ConfigTest {
     @Test
-    fun testSep31WithCircleConfig() {
-        val circleConfig = PropertyCircleConfig()
-        circleConfig.setCircleUrl("https://api-sandbox.circle.com")
-        val sep31Config = PropertySep31Config(circleConfig)
-        sep31Config.setDepositInfoGeneratorType(CIRCLE)
+    fun testSep38ConfigValid() {
+        val sep38Config = PropertySep38Config()
+        sep38Config.quoteIntegrationEndPoint = "http://localhost:8081"
 
-        val errors = BindException(sep31Config, "sep31Config")
-        ValidationUtils.invokeValidator(sep31Config, sep31Config, errors)
+        val errors = BindException(sep38Config, "sep38Config")
+        ValidationUtils.invokeValidator(sep38Config, sep38Config, errors)
+        assertEquals(0, errors.errorCount)
+    }
+    @Test
+    fun testSep38ConfigBadQuoteIntegrationEndpoint() {
+        val sep38Config = PropertySep38Config()
+        sep38Config.quoteIntegrationEndPoint = "not-a-url"
+
+        val errors = BindException(sep38Config, "sep38Config")
+        ValidationUtils.invokeValidator(sep38Config, sep38Config, errors)
         assertEquals(1, errors.errorCount)
-        errors.message?.let { assertContains(it, "badConfig-circle") }
-
-        val circleErrors = circleConfig.validate()
-        assertEquals(1, circleErrors.errorCount)
-        circleErrors.message?.let { assertContains(it, "empty-apiKey") }
+        errors.message?.let { assertContains(it, "invalidUrl-quoteIntegrationEndpoint") }
     }
 }
