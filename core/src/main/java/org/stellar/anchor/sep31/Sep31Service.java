@@ -32,6 +32,7 @@ import org.stellar.anchor.auth.JwtToken;
 import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.Sep31Config;
 import org.stellar.anchor.event.EventPublishService;
+import org.stellar.anchor.event.models.Customers;
 import org.stellar.anchor.event.models.StellarId;
 import org.stellar.anchor.event.models.TransactionEvent;
 import org.stellar.anchor.sep38.Sep38Quote;
@@ -118,6 +119,12 @@ public class Sep31Service {
     // Query the fee
     updateFee();
 
+    // Get the creator's stellarId
+    StellarId creatorStellarId =
+        StellarId.builder()
+            .account(Objects.requireNonNullElse(jwtToken.getMuxedAccount(), jwtToken.getAccount()))
+            .build();
+
     AssetInfo asset = Context.get().getAsset();
     Amount fee = Context.get().getFee();
     Sep31Transaction txn =
@@ -140,6 +147,7 @@ public class Sep31Service {
             .refunds(null)
             .senderId(Context.get().getRequest().getSenderId())
             .receiverId(Context.get().getRequest().getReceiverId())
+            .creator(creatorStellarId)
             // updateAmounts will update these ⬇️
             .amountIn(request.getAmount())
             .amountInAsset(assetInfo.getAssetName())
@@ -156,6 +164,8 @@ public class Sep31Service {
     updateDepositInfo(txn);
     sep31TransactionStore.save(txn);
 
+    StellarId senderStellarId = StellarId.builder().id(txn.getSenderId()).build();
+    StellarId receiverStellarId = StellarId.builder().id(txn.getReceiverId()).build();
     TransactionEvent event =
         TransactionEvent.builder()
             .eventId(UUID.randomUUID().toString())
@@ -180,20 +190,16 @@ public class Sep31Service {
             .stellarTransactions(null)
             .externalTransactionId(null)
             .custodialTransactionId(null)
-            .sourceAccount(request.getSenderId())
-            .destinationAccount(request.getReceiverId())
-            .creator(
-                StellarId.builder()
-                    .account(txn.getStellarAccountId())
-                    .memo(txn.getStellarMemo())
-                    .memoType(txn.getStellarMemoType())
-                    .build())
+            .sourceAccount(null)
+            .destinationAccount(null)
+            .customers(new Customers(senderStellarId, receiverStellarId))
+            .creator(creatorStellarId)
             .build();
     eventService.publish(event);
 
     return Sep31PostTransactionResponse.builder()
         .id(txn.getId())
-        .stellarAccountId(Context.get().getAsset().getDistributionAccount())
+        .stellarAccountId(txn.getStellarAccountId())
         .stellarMemo(txn.getStellarMemo())
         .stellarMemoType(txn.getStellarMemoType())
         .build();

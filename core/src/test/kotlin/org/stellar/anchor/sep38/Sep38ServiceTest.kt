@@ -928,36 +928,38 @@ class Sep38ServiceTest {
     assertEquals("Unsupported context. Should be one of [sep6, sep31].", ex.message)
 
     // sell_amount should be within limit
-    ex = assertThrows {
-      sep38Service.postQuote(
-        token,
-        Sep38PostQuoteRequest.builder()
-          .sellAssetName(fiatUSD)
-          .sellAmount("100000000")
-          .sellDeliveryMethod("WIRE")
-          .context(SEP31)
-          .buyAssetName(stellarUSDC)
-          .countryCode("USA")
-          .build()
-      )
-    }
+    ex =
+      assertThrows {
+        sep38Service.postQuote(
+          token,
+          Sep38PostQuoteRequest.builder()
+            .sellAssetName(fiatUSD)
+            .sellAmount("100000000")
+            .sellDeliveryMethod("WIRE")
+            .context(SEP31)
+            .buyAssetName(stellarUSDC)
+            .countryCode("USA")
+            .build()
+        )
+      }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("sell_amount exceeds max limit", ex.message)
 
     // sell_amount should be positive
-    ex = assertThrows {
-      sep38Service.postQuote(
-        token,
-        Sep38PostQuoteRequest.builder()
-          .sellAssetName(fiatUSD)
-          .sellAmount("0.5")
-          .sellDeliveryMethod("WIRE")
-          .context(SEP31)
-          .buyAssetName(stellarUSDC)
-          .countryCode("USA")
-          .build()
-      )
-    }
+    ex =
+      assertThrows {
+        sep38Service.postQuote(
+          token,
+          Sep38PostQuoteRequest.builder()
+            .sellAssetName(fiatUSD)
+            .sellAmount("0.5")
+            .sellDeliveryMethod("WIRE")
+            .context(SEP31)
+            .buyAssetName(stellarUSDC)
+            .countryCode("USA")
+            .build()
+        )
+      }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("sell_amount less than min limit", ex.message)
 
@@ -970,19 +972,20 @@ class Sep38ServiceTest {
         "100000000",
         mockSellAssetFee(fiatUSD)
       )
-    ex = assertThrows {
-      sep38Service.postQuote(
-        token,
-        Sep38PostQuoteRequest.builder()
-          .sellAssetName(fiatUSD)
-          .sellDeliveryMethod("WIRE")
-          .context(SEP31)
-          .buyAssetName(stellarUSDC)
-          .buyAmount("100000000")
-          .countryCode("USA")
-          .build()
-      )
-    }
+    ex =
+      assertThrows {
+        sep38Service.postQuote(
+          token,
+          Sep38PostQuoteRequest.builder()
+            .sellAssetName(fiatUSD)
+            .sellDeliveryMethod("WIRE")
+            .context(SEP31)
+            .buyAssetName(stellarUSDC)
+            .buyAmount("100000000")
+            .countryCode("USA")
+            .build()
+        )
+      }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("sell_amount exceeds max limit", ex.message)
   }
@@ -1090,7 +1093,7 @@ class Sep38ServiceTest {
         .expiresAt(tomorrow)
         .price("1.02")
         .totalPrice("1.03")
-        .creator(StellarId.builder().account(PUBLIC_KEY).memo(null).memoType(null).build())
+        .creator(StellarId.builder().account(PUBLIC_KEY).build())
         .transactionId(null)
         .createdAt(savedQuote.createdAt)
         .fee(mockFee)
@@ -1200,7 +1203,7 @@ class Sep38ServiceTest {
         .expiresAt(tomorrow)
         .price("1.02")
         .totalPrice("1.03")
-        .creator(StellarId.builder().account(PUBLIC_KEY).memo(null).memoType(null).build())
+        .creator(StellarId.builder().account(PUBLIC_KEY).build())
         .transactionId(null)
         .createdAt(savedQuote.createdAt)
         .fee(mockFee)
@@ -1319,7 +1322,7 @@ class Sep38ServiceTest {
         .expiresAt(tomorrow)
         .price("1.02")
         .totalPrice("1.03")
-        .creator(StellarId.builder().account(PUBLIC_KEY).memo(null).memoType(null).build())
+        .creator(StellarId.builder().account(PUBLIC_KEY).build())
         .transactionId(null)
         .createdAt(savedQuote.createdAt)
         .fee(mockFee)
@@ -1438,7 +1441,7 @@ class Sep38ServiceTest {
         .expiresAt(tomorrow)
         .price("1.02")
         .totalPrice("1.03")
-        .creator(StellarId.builder().account(PUBLIC_KEY).memo(null).memoType(null).build())
+        .creator(StellarId.builder().account(PUBLIC_KEY).build())
         .transactionId(null)
         .createdAt(savedQuote.createdAt)
         .fee(mockFee)

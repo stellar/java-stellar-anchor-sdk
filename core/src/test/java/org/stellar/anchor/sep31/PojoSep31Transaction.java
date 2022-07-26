@@ -5,6 +5,7 @@ import java.util.Map;
 import java.util.Set;
 import lombok.Data;
 import org.stellar.anchor.api.sep.AssetInfo;
+import org.stellar.anchor.event.models.StellarId;
 import org.stellar.anchor.event.models.StellarTransaction;
 
 @Data
@@ -38,5 +39,6 @@ public class PojoSep31Transaction implements Sep31Transaction {
   String amountExpected;
   String receiverId;
   String senderId;
+  StellarId creator;
   Set<StellarTransaction> stellarTransactions = new java.util.LinkedHashSet<>();
 }
