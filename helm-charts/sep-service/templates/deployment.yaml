@@ -86,7 +86,7 @@ spec:
       volumes:
         - name: sep-config-volume
           configMap:
-            name: {{ .Values.fullName }}-configmap-{{ .Values.service.name }}
+            name: {{ .Values.fullName }}
       {{- if ((.Values.deployment).volumeMounts).configMaps }}
       {{- range $conf := .Values.deployment.volumeMounts.configMaps }}
         - name: {{ $conf.name }}-volume
