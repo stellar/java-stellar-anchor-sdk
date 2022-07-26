@@ -24,4 +24,4 @@ spec:
     port: {{ .Values.service.servicePort | default 8080}}       # port number the service will listen on
     targetPort: {{ .Values.service.targetPort | default 8080 }}  # port number pods listen on
   selector:
-    app.kubernetes.io/name: {{ .Values.service.name }} 
+    app.kubernetes.io/name: {{ .Values.fullName }}
