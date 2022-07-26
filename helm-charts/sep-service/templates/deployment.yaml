@@ -21,7 +21,7 @@ spec:
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: {{ include "common.name" . }}
+        app.kubernetes.io/name: {{ .Values.fullName }}
         app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
       {{- if (.Values.deployment).serviceAccountName }}
