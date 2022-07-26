@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ include "common.name" . }}
+  name: {{ .Values.fullName }}-deploy-{{ .Values.service.name }}
   {{- if (.Values.deployment).annotations }}
   annotations:
     {{- range $key, $value := .Values.deployment.annotations }}
