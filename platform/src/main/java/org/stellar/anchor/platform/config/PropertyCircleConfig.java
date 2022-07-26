@@ -21,6 +21,8 @@ public class PropertyCircleConfig implements CircleConfig {
     BindException errors = new BindException(this, "circleConfig");
     ValidationUtils.rejectIfEmptyOrWhitespace(errors, "circleUrl", "empty-circleUrl");
     ValidationUtils.rejectIfEmptyOrWhitespace(errors, "apiKey", "empty-apiKey");
+
+    UrlValidationUtil.rejectIfMalformed(circleUrl, "circleUrl", errors);
     return errors;
   }
 }

@@ -32,9 +32,14 @@ public class PropertyEventConfig implements EventConfig, Validator {
   @Override
   public void validate(Object target, Errors errors) {
     EventConfig config = (EventConfig) target;
-    if (config.isEnabled()) {
-      ValidationUtils.rejectIfEmptyOrWhitespace(errors, "publisherType", "");
-      if (config.getPublisherType().equals("kafka")) {
+    if (!config.isEnabled()) {
+      return;
+    }
+
+    ValidationUtils.rejectIfEmptyOrWhitespace(errors, "publisherType", "");
+
+    switch (config.getPublisherType()) {
+      case "kafka":
         BindException validation = kafkaConfig.validate();
         if (validation.hasErrors()) {
           String errorString = validation.getAllErrors().get(0).toString();
@@ -45,8 +50,9 @@ public class PropertyEventConfig implements EventConfig, Validator {
                   "publisherType set to kafka, but kafka config not properly configured: %s",
                   errorString));
         }
-      } else if (config.getPublisherType().equals("sqs")) {
-        BindException validation = sqsConfig.validate();
+        break;
+      case "sqs":
+        validation = sqsConfig.validate();
         if (validation.hasErrors()) {
           String errorString = validation.getAllErrors().get(0).toString();
           errors.rejectValue(
@@ -56,10 +62,10 @@ public class PropertyEventConfig implements EventConfig, Validator {
                   "publisherType set to sqs, but sqs config not properly configured: %s",
                   errorString));
         }
-      } else {
+        break;
+      default:
         errors.rejectValue(
             "publisherType", "invalidType-publisherType", "publisherType set to unknown type");
-      }
     }
   }
 }

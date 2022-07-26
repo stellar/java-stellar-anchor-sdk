@@ -23,14 +23,11 @@ public class PropertySep12Config implements Sep12Config, Validator {
   public void validate(Object target, Errors errors) {
     Sep12Config config = (Sep12Config) target;
 
-    ValidationUtils.rejectIfEmpty(
-        errors, "customerIntegrationEndPoint", "empty-customerIntegrationEndPoint");
+    if (config.getEnabled()) {
+      ValidationUtils.rejectIfEmpty(
+          errors, "customerIntegrationEndPoint", "empty-customerIntegrationEndPoint");
 
-    UrlConnectionStatus urlStatus = UrlValidationUtil.validateUrl(config.getCustomerIntegrationEndPoint());
-    if (urlStatus == UrlConnectionStatus.MALFORMED) {
-      errors.rejectValue("customerIntegrationEndPoint", "invalidUrl-customerIntegrationEndPoint", "customerIntegrationEndPoint is not in valid format");
-    } else if (urlStatus == UrlConnectionStatus.UNREACHABLE) {
-      Log.error("customerIntegrationEndPoint field invalid: cannot connect to customer integration endpoint");
+      UrlValidationUtil.rejectIfMalformed(config.getCustomerIntegrationEndPoint(), "customerIntegrationEndpoint", errors);
     }
   }
 }

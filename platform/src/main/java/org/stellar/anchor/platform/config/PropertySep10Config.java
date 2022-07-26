@@ -7,6 +7,9 @@ import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.Validator;
 import org.stellar.anchor.config.CirclePaymentObserverConfig;
 import org.stellar.anchor.config.Sep10Config;
+import org.stellar.anchor.util.Log;
+import org.stellar.anchor.util.UrlConnectionStatus;
+import org.stellar.anchor.util.UrlValidationUtil;
 
 @Data
 public class PropertySep10Config implements Sep10Config, Validator {
@@ -30,7 +33,11 @@ public class PropertySep10Config implements Sep10Config, Validator {
   public void validate(Object target, Errors errors) {
     Sep10Config config = (Sep10Config) target;
 
-    ValidationUtils.rejectIfEmptyOrWhitespace(errors, "homeDomain", "empty-homeDomain");
-    ValidationUtils.rejectIfEmptyOrWhitespace(errors, "signingSeed", "empty-signingSeed");
+    if (config.getEnabled()) {
+      ValidationUtils.rejectIfEmptyOrWhitespace(errors, "homeDomain", "empty-homeDomain");
+      ValidationUtils.rejectIfEmptyOrWhitespace(errors, "signingSeed", "empty-signingSeed");
+
+      UrlValidationUtil.rejectIfMalformed(config.getHomeDomain(), "homeDomain", errors);
+    }
   }
 }

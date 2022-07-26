@@ -4,9 +4,10 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import org.springframework.validation.Errors;
 
 public class UrlValidationUtil {
-  public static UrlConnectionStatus validateUrl(String urlString) {
+  static UrlConnectionStatus validateUrl(String urlString) {
     try {
       URL url = new URL(urlString);
       URLConnection conn = url.openConnection();
@@ -19,23 +20,16 @@ public class UrlValidationUtil {
     return UrlConnectionStatus.VALID;
   }
 
-
-  /*boolean checkHealth(String endpoint) throws java.io.IOException {
-    Request request =
-        new Request.Builder()
-            .url(endpoint + "/health")
-            .header("Content-Type", "application/json")
-            .get()
-            .build();
-
-    OkHttpClient client =
-        new OkHttpClient.Builder()
-            .connectTimeout(10, TimeUnit.MINUTES)
-            .readTimeout(10, TimeUnit.MINUTES)
-            .writeTimeout(10, TimeUnit.MINUTES)
-            .callTimeout(10, TimeUnit.MINUTES)
-            .build();
-    Response response = client.newCall(request).execute();
-    String responseBody = response.body().string();
-    return true;*/
+  public static void rejectIfMalformed(String url, String fieldName, Errors errors) {
+    UrlConnectionStatus urlStatus = validateUrl(url);
+    if (urlStatus == UrlConnectionStatus.MALFORMED) {
+      errors.rejectValue(
+          fieldName,
+          String.format("invalidUrl-%s", fieldName),
+          String.format("%s is not in valid format", fieldName));
+    } else if (urlStatus == UrlConnectionStatus.UNREACHABLE) {
+      Log.error(
+          String.format("%s field invalid: cannot connect to %s", fieldName, fieldName));
+    }
+  }
 }

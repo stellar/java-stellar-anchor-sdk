@@ -21,10 +21,12 @@ public class PropertySep1Config implements Sep1Config, Validator {
   public void validate(Object target, Errors errors) {
     Sep1Config config = (Sep1Config) target;
 
-    ResourceReader reader = new SpringResourceReader();
-    if (!reader.checkResourceExists(config.getStellarFile())) {
-      errors.rejectValue(
-          "stellarFile", "doesNotExist-stellarFile", "stellarFile resource does not resolve");
+    if (config.isEnabled()) {
+      ResourceReader reader = new SpringResourceReader();
+      if (!reader.checkResourceExists(config.getStellarFile())) {
+        errors.rejectValue(
+            "stellarFile", "doesNotExist-stellarFile", "stellarFile resource does not resolve");
+      }
     }
   }
 }

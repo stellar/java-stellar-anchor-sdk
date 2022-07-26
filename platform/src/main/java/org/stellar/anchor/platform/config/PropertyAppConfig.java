@@ -42,17 +42,7 @@ public class PropertyAppConfig implements AppConfig, Validator {
           "assets", "doesNotExist-assets", "assets resource file could not be found");
     }
 
-    UrlConnectionStatus hostUrlStatus = UrlValidationUtil.validateUrl(config.getHostUrl());
-    if (hostUrlStatus == UrlConnectionStatus.MALFORMED) {
-      errors.rejectValue("hostUrl", "invalidUrl-hostUrl", "host url is not in valid format");
-    } else if (hostUrlStatus == UrlConnectionStatus.UNREACHABLE) {
-      Log.error("hostUrl field invalid: cannot connect to host url");
-    }
-    UrlConnectionStatus horizonUrlStatus = UrlValidationUtil.validateUrl(config.getHorizonUrl());
-    if (horizonUrlStatus == UrlConnectionStatus.MALFORMED) {
-      errors.rejectValue("horizonUrl", "invalidUrl-horizonUrl", "horizon url is not in valid format");
-    } else if (horizonUrlStatus == UrlConnectionStatus.UNREACHABLE) {
-      Log.error("horizonUrl field invalid: cannot connect to horizon url");
-    }
+    UrlValidationUtil.rejectIfMalformed(config.getHostUrl(), "hostUrl", errors);
+    UrlValidationUtil.rejectIfMalformed(config.getHorizonUrl(), "horizonUrl", errors);
   }
 }

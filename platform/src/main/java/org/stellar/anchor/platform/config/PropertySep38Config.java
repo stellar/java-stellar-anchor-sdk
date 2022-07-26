@@ -23,14 +23,11 @@ public class PropertySep38Config implements Sep38Config, Validator {
   public void validate(Object target, Errors errors) {
     Sep38Config config = (Sep38Config) target;
 
-    ValidationUtils.rejectIfEmpty(
-        errors, "quoteIntegrationEndPoint", "empty-quoteIntegrationEndPoint");
+    if (config.isEnabled()) {
+      ValidationUtils.rejectIfEmpty(
+          errors, "quoteIntegrationEndPoint", "empty-quoteIntegrationEndPoint");
 
-    UrlConnectionStatus urlStatus = UrlValidationUtil.validateUrl(config.getQuoteIntegrationEndPoint());
-    if (urlStatus == UrlConnectionStatus.MALFORMED) {
-      errors.rejectValue("quoteIntegrationEndPoint", "invalidUrl-quoteIntegrationEndpoint", "quoteIntegrationEndpoint is not in valid format");
-    } else if (urlStatus == UrlConnectionStatus.UNREACHABLE) {
-      Log.error("quoteIntegrationEndpoint field invalid: cannot connect to quote integration endpoint");
+      UrlValidationUtil.rejectIfMalformed(config.getQuoteIntegrationEndPoint(), "quoteIntegrationEndpoint", errors);
     }
   }
 }
