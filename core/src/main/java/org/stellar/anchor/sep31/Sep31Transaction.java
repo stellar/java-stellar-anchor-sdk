@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import org.stellar.anchor.api.sep.AssetInfo;
+import org.stellar.anchor.api.sep.sep31.Sep31GetTransactionResponse;
 import org.stellar.anchor.event.models.StellarId;
 
 public interface Sep31Transaction {
@@ -138,5 +139,34 @@ public interface Sep31Transaction {
     String getFee();
 
     void setFee(String fee);
+  }
+
+  default Sep31GetTransactionResponse toSep31GetTransactionResponse() {
+    return Sep31GetTransactionResponse.builder()
+        .transaction(
+            Sep31GetTransactionResponse.TransactionResponse.builder()
+                .id(getId())
+                .status(getStatus())
+                .statusEta(getStatusEta())
+                .amountIn(getAmountIn())
+                .amountInAsset(getAmountInAsset())
+                .amountOut(getAmountOut())
+                .amountOutAsset(getAmountOutAsset())
+                .amountFee(getAmountFee())
+                .amountFeeAsset(getAmountFeeAsset())
+                .stellarAccountId(getStellarAccountId())
+                .stellarMemo(getStellarMemo())
+                .stellarMemoType(getStellarMemoType())
+                .startedAt(getStartedAt())
+                .completedAt(getCompletedAt())
+                .stellarTransactionId(getStellarTransactionId())
+                .externalTransactionId(getExternalTransactionId())
+                .refunded(getRefunded())
+                // TODO: handle refund after mvp
+                // .refunds(txn.getRefunds())
+                .requiredInfoMessage(getRequiredInfoMessage())
+                .requiredInfoUpdates(getRequiredInfoUpdates())
+                .build())
+        .build();
   }
 }

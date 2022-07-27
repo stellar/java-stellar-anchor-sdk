@@ -26,7 +26,6 @@ import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerRequest;
 import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerResponse;
 import org.stellar.anchor.api.sep.sep31.*;
-import org.stellar.anchor.api.sep.sep31.Sep31GetTransactionResponse.TransactionResponse;
 import org.stellar.anchor.api.shared.Amount;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtToken;
@@ -296,7 +295,7 @@ public class Sep31Service {
       throw new NotFoundException(String.format("transaction (id=%s) not found", id));
     }
 
-    return fromTransactionToResponse(txn);
+    return txn.toSep31GetTransactionResponse();
   }
 
   @Transactional(rollbackOn = {AnchorException.class, RuntimeException.class})
@@ -342,8 +341,7 @@ public class Sep31Service {
     validateRequiredFields();
 
     Sep31Transaction savedTxn = sep31TransactionStore.save(txn);
-
-    return fromTransactionToResponse(savedTxn);
+    return savedTxn.toSep31GetTransactionResponse();
   }
 
   void validatePatchTransactionFields(Sep31Transaction txn, Sep31PatchTransactionRequest request)
@@ -549,35 +547,6 @@ public class Sep31Service {
           Context.get().getRequest());
       throw new Sep31MissingFieldException(sep31MissingTxnFields);
     }
-  }
-
-  Sep31GetTransactionResponse fromTransactionToResponse(Sep31Transaction txn) {
-    return Sep31GetTransactionResponse.builder()
-        .transaction(
-            TransactionResponse.builder()
-                .id(txn.getId())
-                .status(txn.getStatus())
-                .statusEta(txn.getStatusEta())
-                .amountIn(txn.getAmountIn())
-                .amountInAsset(txn.getAmountInAsset())
-                .amountOut(txn.getAmountOut())
-                .amountOutAsset(txn.getAmountOutAsset())
-                .amountFee(txn.getAmountFee())
-                .amountFeeAsset(txn.getAmountFeeAsset())
-                .stellarAccountId(txn.getStellarAccountId())
-                .stellarMemo(txn.getStellarMemo())
-                .stellarMemoType(txn.getStellarMemoType())
-                .startedAt(txn.getStartedAt())
-                .completedAt(txn.getCompletedAt())
-                .stellarTransactionId(txn.getStellarTransactionId())
-                .externalTransactionId(txn.getExternalTransactionId())
-                .refunded(txn.getRefunded())
-                // TODO: handle refund after mvp
-                // .refunds(txn.getRefunds())
-                .requiredInfoMessage(txn.getRequiredInfoMessage())
-                .requiredInfoUpdates(txn.getRequiredInfoUpdates())
-                .build())
-        .build();
   }
 
   @SneakyThrows
