@@ -96,6 +96,7 @@ public class Sep31Service {
           String.format(
               "asset %s:%s is not supported.", request.getAssetCode(), request.getAssetIssuer()));
     }
+    Context.get().setAsset(assetInfo);
 
     // Pre-validation
     validateAmount(request.getAmount());
@@ -105,17 +106,24 @@ public class Sep31Service {
         assetInfo.getSend().getMinAmount(),
         assetInfo.getSend().getMaxAmount());
     validateLanguage(appConfig, request.getLang());
-    // TODO: check if `fields` is needed
+
+    /*
+     * TODO:
+     *  - conclude if we can drop the usage of `fields`.
+     * TODO: if we can't stop using fields, we should:
+     *  - check if `fields` are needed. If not, ignore this part of the code
+     *  - make sure fields are not getting stored in the database
+     *  - make sure fields are being forwarded in the TransactionEvent
+     */
     if (request.getFields() == null) {
       infoF(
           "POST /transaction with id ({}) cannot have empty `fields`", jwtToken.getTransactionId());
       throw new BadRequestException("'fields' field cannot be empty");
     }
-
-    Context.get().setAsset(assetInfo);
     Context.get().setTransactionFields(request.getFields().getTransaction());
-
     validateRequiredFields();
+
+    // Validation that execute HTTP requests
     validateSenderAndReceiver();
     preValidateQuote();
 
@@ -128,7 +136,6 @@ public class Sep31Service {
             .account(Objects.requireNonNullElse(jwtToken.getMuxedAccount(), jwtToken.getAccount()))
             .build();
 
-    AssetInfo asset = Context.get().getAsset();
     Amount fee = Context.get().getFee();
     Sep31Transaction txn =
         new Sep31TransactionBuilder(sep31TransactionStore)
@@ -157,7 +164,7 @@ public class Sep31Service {
             .amountOut(null)
             .amountOutAsset(null)
             // updateDepositInfo will update these ⬇️
-            .stellarAccountId(asset.getDistributionAccount())
+            .stellarAccountId(assetInfo.getDistributionAccount())
             .stellarMemo(null)
             .stellarMemoType(null)
             .build();
@@ -447,8 +454,7 @@ public class Sep31Service {
     }
 
     // Check quote asset: `post_transaction.asset == quote.sell_asset`
-    String assetName =
-        assetService.getAsset(request.getAssetCode(), request.getAssetIssuer()).getAssetName();
+    String assetName = Context.get().getAsset().getAssetName();
     if (!assetName.equals(quote.getSellAsset())) {
       infoF(
           "Quote ({}) - sellAsset ({}) is different from the SEP-31 transaction asset ({})",
@@ -486,8 +492,7 @@ public class Sep31Service {
 
     Sep31PostTransactionRequest request = Context.get().getRequest();
     JwtToken token = Context.get().getJwtToken();
-    String assetName =
-        assetService.getAsset(request.getAssetCode(), request.getAssetIssuer()).getAssetName();
+    String assetName = Context.get().getAsset().getAssetName();
     infoF("Requesting fee for request ({})", request);
     Amount fee =
         feeIntegration
@@ -589,8 +594,8 @@ public class Sep31Service {
           String.format("Asset [%s] has no fields definition", assetInfo.getCode()));
     }
 
-    Map<String, String> fields = Context.get().getTransactionFields();
-    if (fields == null) {
+    Map<String, String> requestFields = Context.get().getTransactionFields();
+    if (requestFields == null) {
       infoF(
           "'fields' field must have one 'transaction' field for request ({})",
           Context.get().getRequest());
@@ -603,7 +608,7 @@ public class Sep31Service {
                 entry -> {
                   AssetInfo.Sep31TxnFieldSpec field = entry.getValue();
                   if (field.isOptional()) return false;
-                  return fields.get(entry.getKey()) == null;
+                  return requestFields.get(entry.getKey()) == null;
                 })
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
@@ -649,14 +654,14 @@ public class Sep31Service {
 
   @Data
   public static class Context {
-    Sep31Transaction transaction;
-    Sep31PostTransactionRequest request;
-    Sep38Quote quote;
-    JwtToken jwtToken;
-    Amount fee;
-    AssetInfo asset;
-    Map<String, String> transactionFields;
-    static ThreadLocal<Context> context = new ThreadLocal<>();
+    private Sep31Transaction transaction;
+    private Sep31PostTransactionRequest request;
+    private Sep38Quote quote;
+    private JwtToken jwtToken;
+    private Amount fee;
+    private AssetInfo asset;
+    private Map<String, String> transactionFields;
+    private static ThreadLocal<Context> context = new ThreadLocal<>();
 
     public static Context get() {
       if (context.get() == null) {
