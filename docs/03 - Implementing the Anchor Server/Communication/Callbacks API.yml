@@ -41,7 +41,7 @@ paths:
           name: transaction_id
           description: |
             The platform server will save the posted transaction and pass the `transaction_id` through this endpoint. 
-            If the anchor wish to return transaction-dependent unique_address, the anchor may query the [`GET /transactions` endpoint of the Platform API](https://github.com/stellar/java-stellar-anchor-sdk/blob/main/docs/03%20-%20Implementing%20the%20Anchor%20Server/Communication/Platform%20API.yml).
+            If the anchor wishes to return transaction-dependent unique_address, the anchor may query the [`GET /transactions` endpoint of the Platform API](https://github.com/stellar/java-stellar-anchor-sdk/blob/main/docs/03%20-%20Implementing%20the%20Anchor%20Server/Communication/Platform%20API.yml).
           schema:
             type: string
           required: true
