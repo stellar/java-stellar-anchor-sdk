@@ -11,11 +11,11 @@ open class AppConfigTest {
   @Test
   fun testAppConfigValid() {
     val appConfig = PropertyAppConfig()
-    appConfig.setJwtSecretKey("secret")
-    appConfig.setAssets("test_assets.json")
-    appConfig.setHorizonUrl("https://horizon-testnet.stellar.org")
-    appConfig.setStellarNetworkPassphrase("Test SDF Network ; September 2015")
-    appConfig.setHostUrl("localhost:8080")
+    appConfig.jwtSecretKey = "secret"
+    appConfig.assets = "test_assets.json"
+    appConfig.horizonUrl = "https://horizon-testnet.stellar.org"
+    appConfig.stellarNetworkPassphrase = "Test SDF Network ; September 2015"
+    appConfig.hostUrl = "http://localhost:8080"
     val errors = BindException(appConfig, "appConfig")
     ValidationUtils.invokeValidator(appConfig, appConfig, errors)
     if (errors.hasErrors()) {
@@ -27,10 +27,10 @@ open class AppConfigTest {
   @Test
   fun testAppConfigMissingSecret() {
     val appConfig = PropertyAppConfig()
-    appConfig.setAssets("test_assets.json")
-    appConfig.setHorizonUrl("https://horizon-testnet.stellar.org")
-    appConfig.setStellarNetworkPassphrase("Test SDF Network ; September 2015")
-    appConfig.setHostUrl("localhost:8080")
+    appConfig.assets = "test_assets.json"
+    appConfig.horizonUrl = "https://horizon-testnet.stellar.org"
+    appConfig.stellarNetworkPassphrase = "Test SDF Network ; September 2015"
+    appConfig.hostUrl = "http://localhost:8080"
     val errors = BindException(appConfig, "appConfig")
     ValidationUtils.invokeValidator(appConfig, appConfig, errors)
     assertEquals(1, errors.errorCount)
@@ -40,14 +40,28 @@ open class AppConfigTest {
   @Test
   fun testAppConfigBadAsset() {
     val appConfig = PropertyAppConfig()
-    appConfig.setJwtSecretKey("secret")
-    appConfig.setAssets("test_assets_does_not_exist.json")
-    appConfig.setHorizonUrl("https://horizon-testnet.stellar.org")
-    appConfig.setStellarNetworkPassphrase("Test SDF Network ; September 2015")
-    appConfig.setHostUrl("localhost:8080")
+    appConfig.jwtSecretKey = "secret"
+    appConfig.assets = "test_assets_does_not_exist.json"
+    appConfig.horizonUrl = "https://horizon-testnet.stellar.org"
+    appConfig.stellarNetworkPassphrase = "Test SDF Network ; September 2015"
+    appConfig.hostUrl = "http://localhost:8080"
     val errors = BindException(appConfig, "appConfig")
     ValidationUtils.invokeValidator(appConfig, appConfig, errors)
     assertEquals(1, errors.errorCount)
     errors.message?.let { assertContains(it, "doesNotExist-assets") }
+  }
+
+  @Test
+  fun testAppConfigBadHorizonUrl() {
+    val appConfig = PropertyAppConfig()
+    appConfig.jwtSecretKey = "secret"
+    appConfig.assets = "test_assets.json"
+    appConfig.horizonUrl = "not-a-url"
+    appConfig.stellarNetworkPassphrase = "Test SDF Network ; September 2015"
+    appConfig.hostUrl = "http://localhost:2222"
+    val errors = BindException(appConfig, "appConfig")
+    ValidationUtils.invokeValidator(appConfig, appConfig, errors)
+    assertEquals(1, errors.errorCount)
+    errors.message?.let { assertContains(it, "invalidUrl-horizonUrl") }
   }
 }
