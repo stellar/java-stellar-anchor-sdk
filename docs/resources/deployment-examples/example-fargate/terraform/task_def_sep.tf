@@ -41,6 +41,13 @@ resource "aws_ecs_task_definition" "sep" {
    }]
    #entryPoint = ["/anchor_config/sep.sh"]
    entryPoint  = ["java", "-jar", "/app/anchor-platform-runner.jar", "--sep-server"]
+   healthCheck = {
+      Command = [ "CMD-SHELL", "curl -f http://localhost:8080/health || exit 1" ],
+      Interval = 5,
+      Retries = 10,
+      StartPeriod = 60,
+      Timeout = 5
+   }
    essential   = true
    secrets = [
       {
