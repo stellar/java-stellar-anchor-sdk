@@ -1,6 +1,7 @@
 package org.stellar.anchor.config;
 
 import java.util.Map;
+import org.springframework.validation.BindException;
 
 public interface SqsConfig {
   String getRegion();
@@ -12,4 +13,6 @@ public interface SqsConfig {
   String getAccessKey();
 
   String getSecretKey();
+
+  BindException validate();
 }
