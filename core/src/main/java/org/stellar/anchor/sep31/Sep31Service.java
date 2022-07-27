@@ -211,6 +211,12 @@ public class Sep31Service {
         .build();
   }
 
+  /**
+   * Will update the amountIn, amountOut and amountFee, as well as the assets, taking into account
+   * if quotes or if the {callbackApi}/fee endpoint was used.
+   *
+   * @throws AnchorException is something went wrong.
+   */
   void updateAmounts() throws AnchorException {
     Sep31PostTransactionRequest request = Context.get().getRequest();
     if (request.getQuoteId() != null) {
@@ -220,7 +226,12 @@ public class Sep31Service {
     updateTxAmountsWhenNoQuoteWasUsed();
   }
 
-  void updateTxAmountsBasedOnQuote() throws AnchorException {
+  /**
+   * updateTxAmountsBasedOnQuote will update the amountIn, amountOut and fee based on the quote.
+   *
+   * @throws ServerErrorException if the quote object is missing
+   */
+  void updateTxAmountsBasedOnQuote() throws ServerErrorException {
     Sep38Quote quote = Context.get().getQuote();
     if (quote == null) {
       infoF("Quote for transaction ({}) not found", Context.get().getTransaction().getId());
@@ -237,6 +248,10 @@ public class Sep31Service {
     txn.setAmountFeeAsset(quote.getFee().getAsset());
   }
 
+  /**
+   * updateTxAmountsWhenNoQuoteWasUsed will update the transaction amountIn and amountOut based on
+   * the request amount and the fee.
+   */
   void updateTxAmountsWhenNoQuoteWasUsed() {
     Sep31PostTransactionRequest request = Context.get().getRequest();
     Sep31Transaction txn = Context.get().getTransaction();
@@ -276,6 +291,10 @@ public class Sep31Service {
     Context.get().getFee().setAmount(feeStr);
   }
 
+  /**
+   * updateDepositInfo will populate the transaction's deposit information (stellar_account_id, memo
+   * and memo_type), as provided by the sep31DepositInfoGenerator.
+   */
   void updateDepositInfo() throws AnchorException {
     Sep31Transaction txn = Context.get().getTransaction();
     Sep31DepositInfo depositInfo = sep31DepositInfoGenerator.generate(txn);
@@ -346,6 +365,16 @@ public class Sep31Service {
     return savedTxn.toSep31GetTransactionResponse();
   }
 
+  /**
+   * validatePatchTransactionFields will validate if the fields provided in the PATCH request are
+   * expected by the transaction.
+   *
+   * @param txn is the Sep31Transaction already stored in the database.
+   * @param request is the Sep31PatchTransactionRequest request
+   * @throws BadRequestException if the stored request is not expecting any info update.
+   * @throws BadRequestException if one of the provided fields is not being expected by the stored
+   *     transaction.
+   */
   void validatePatchTransactionFields(Sep31Transaction txn, Sep31PatchTransactionRequest request)
       throws BadRequestException {
     if (txn.getRequiredInfoUpdates() == null
@@ -354,23 +383,35 @@ public class Sep31Service {
       throw new BadRequestException(
           String.format("Transaction (%s) is not expecting any updates", txn.getId()));
     }
+
     Map<String, AssetInfo.Sep31TxnFieldSpec> expectedFields =
         txn.getRequiredInfoUpdates().getTransaction();
-    Map<String, String> fields = request.getFields().getTransaction();
-    // validate if any of the fields from the request is not expected in the transaction.
-    List<String> unexpectedFields =
-        fields.keySet().stream()
-            .filter(key -> !expectedFields.containsKey(key))
-            .collect(Collectors.toList());
+    Map<String, String> requestFields = request.getFields().getTransaction();
 
-    if (unexpectedFields.size() > 0) {
-      infoF("{} is not a expected field", unexpectedFields.get(0));
-      throw new BadRequestException(
-          String.format("[%s] is not a expected field", unexpectedFields.get(0)));
+    // validate if any of the fields from the request is not expected in the transaction.
+    for (String fieldName : requestFields.keySet()) {
+      if (!expectedFields.containsKey(fieldName)) {
+        infoF("{} is not a expected field", fieldName);
+        throw new BadRequestException(String.format("[%s] is not a expected field", fieldName));
+      }
     }
   }
 
-  void preValidateQuote() throws AnchorException {
+  /**
+   * preValidateQuote will validate if the requested asset supports/requires quotes.
+   *
+   * <p>If quotes are supported and a `quote_id` was provided, this method will: - fetch the quote
+   * using the callbackAPI. - validate if the quote is valid. - validate if the transaction fields
+   * are compliant with the quote fields. - update the Context with the quote data.
+   *
+   * @throws BadRequestException if quotes are required but none was used in the request.
+   * @throws BadRequestException if a quote with the provided id could not be found.
+   * @throws BadRequestException if the transaction `amount` is different from the quote
+   *     `sell_amount`.
+   * @throws BadRequestException if the transaction `asset` is different from the quote
+   *     `sell_asset`.
+   */
+  void preValidateQuote() throws BadRequestException {
     Sep31PostTransactionRequest request = Context.get().getRequest();
     AssetInfo assetInfo = Context.get().getAsset();
     boolean isQuotesRequired = assetInfo.getSep31().isQuotesRequired();
@@ -423,7 +464,15 @@ public class Sep31Service {
     Context.get().setQuote(quote);
   }
 
-  void updateFee() throws AnchorException {
+  /**
+   * updateFee will update the transaction fee. If a quote was used, it will get the quote info and
+   * use the quote fees for it, otherwise it will call `GET {callbackAPI}/fee` to get the fee
+   * information
+   *
+   * @throws SepValidationException if the quote is missing the `fee` field.
+   * @throws AnchorException if something else goes wrong.
+   */
+  void updateFee() throws SepValidationException, AnchorException {
     Sep38Quote quote = Context.get().getQuote();
     if (quote != null) {
       if (quote.getFee() == null) {
