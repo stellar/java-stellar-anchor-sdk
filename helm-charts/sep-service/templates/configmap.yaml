@@ -92,11 +92,11 @@ data:
       {{- if ((.Values.stellar.app_config).sep12) }}
       sep12:
         enabled: {{ .Values.stellar.app_config.sep12.enabled | default "true" | toYaml }}
-        customerIntegrationEndpoint: https://anchor-reference-server-dev.stellar.org #{{ .Values.stellar.app_config.sep12.customerIntegrationEndpoint | default .Values.stellar.app_config.app.backendUrl }}
+        customerIntegrationEndpoint: {{ .Values.stellar.app_config.sep12.customerIntegrationEndpoint | default .Values.stellar.app_config.app.backendUrl }}
       {{- else }}
       sep12:
         enabled:  "true"
-        customerIntegrationEndpoint: https://anchor-reference-server-dev.stellar.org #{{ .Values.stellar.app_config.app.backendUrl }}
+        customerIntegrationEndpoint: {{ .Values.stellar.app_config.app.backendUrl }}
       {{- end }}
       # sep-24
       {{- if ((.Values.stellar.app_config).sep24) }}
@@ -114,22 +114,22 @@ data:
       sep31:
       {{- if ((.Values.stellar.app_config).sep31) }}
         enabled: {{ .Values.stellar.app_config.sep31.enabled | default "true" }}
-        feeIntegrationEndPoint: https://anchor-reference-server-dev.stellar.org #{{ .Values.stellar.app_config.sep31.feeIntegrationEndPoint | default .Values.stellar.app_config.app.backendUrl }}
+        feeIntegrationEndPoint: {{ .Values.stellar.app_config.sep31.feeIntegrationEndPoint | default .Values.stellar.app_config.app.backendUrl }}
         depositInfoGeneratorType: {{ .Values.stellar.app_config.sep31.depositInfoGeneratorType | default "self" }}
         paymentType: {{ .Values.stellar.app_config.sep31.paymentType | default "STRICT_SEND" }}
       {{- else }}
         enabled: "true"
-        feeIntegrationEndPoint: https://anchor-reference-server-dev.stellar.org #{{ .Values.stellar.app_config.app.backendUrl }}
+        feeIntegrationEndPoint: {{ .Values.stellar.app_config.app.backendUrl }}
         paymentType: STRICT_SEND
       {{- end }}
       # sep-38
       sep38:
       {{- if ((.Values.stellar.app_config).sep38) }}
         enabled: {{ .Values.stellar.app_config.sep38.enabled | default "true" }}
-        quoteIntegrationEndPoint: https://anchor-reference-server-dev.stellar.org # {{ .Values.stellar.app_config.sep38.quoteIntegrationEndPoint | default .Values.stellar.app_config.app.backendUrl }}
+        quoteIntegrationEndPoint: {{ .Values.stellar.app_config.sep38.quoteIntegrationEndPoint | default .Values.stellar.app_config.app.backendUrl }}
       {{- else }}
         enabled: "true"
-        quoteIntegrationEndPoint: https://anchor-reference-server-dev.stellar.org #{{ .Values.stellar.app_config.app.backendUrl }}
+        quoteIntegrationEndPoint: {{ .Values.stellar.app_config.app.backendUrl }}
       {{- end }}
       {{- if ((.Values.stellar.app_config).circle) }}
       circle:
