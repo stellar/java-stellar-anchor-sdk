@@ -22,6 +22,7 @@ import org.stellar.anchor.api.exception.*
 import org.stellar.anchor.api.sep.AssetInfo
 import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerRequest
 import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerResponse
+import org.stellar.anchor.api.sep.sep12.Sep12Status
 import org.stellar.anchor.api.sep.sep31.*
 import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionRequest.Sep31TxnFields
 import org.stellar.anchor.api.sep.sep38.RateFee
@@ -526,11 +527,20 @@ class Sep31ServiceTest {
     assertInstanceOf(Sep31CustomerInfoNeededException::class.java, ex)
     assertEquals("sep31-receiver", (ex as Sep31CustomerInfoNeededException).type)
 
-    // missing sender_id
+    // receiver status is not ACCEPTED
     val receiverId = "137938d4-43a7-4252-a452-842adcee474c"
     postTxRequest.receiverId = receiverId
     var request = Sep12GetCustomerRequest.builder().id(receiverId).type("sep31-receiver").build()
-    every { customerIntegration.getCustomer(request) } returns Sep12GetCustomerResponse()
+    val mockReceiver = Sep12GetCustomerResponse()
+    mockReceiver.id = receiverId
+    every { customerIntegration.getCustomer(request) } returns mockReceiver
+    ex = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
+    assertInstanceOf(Sep31CustomerInfoNeededException::class.java, ex)
+    assertEquals("sep31-receiver", (ex as Sep31CustomerInfoNeededException).type)
+
+    // missing sender_id
+    mockReceiver.status = Sep12Status.ACCEPTED
+    every { customerIntegration.getCustomer(request) } returns mockReceiver
     ex = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("sender_id cannot be empty.", ex.message)
@@ -541,12 +551,21 @@ class Sep31ServiceTest {
     assertInstanceOf(Sep31CustomerInfoNeededException::class.java, ex)
     assertEquals("sep31-sender", (ex as Sep31CustomerInfoNeededException).type)
 
-    // ----- QUOTE_ID IS USED ⬇️ -----
-    // not found quote_id
+    // sender status is not ACCEPTED
     val senderId = "d2bd1412-e2f6-4047-ad70-a1a2f133b25c"
     postTxRequest.senderId = senderId
     request = Sep12GetCustomerRequest.builder().id(senderId).type("sep31-sender").build()
-    every { customerIntegration.getCustomer(request) } returns Sep12GetCustomerResponse()
+    val mockSender = Sep12GetCustomerResponse()
+    mockSender.id = receiverId
+    every { customerIntegration.getCustomer(request) } returns mockSender
+    ex = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
+    assertInstanceOf(Sep31CustomerInfoNeededException::class.java, ex)
+    assertEquals("sep31-sender", (ex as Sep31CustomerInfoNeededException).type)
+
+    // ----- QUOTE_ID IS USED ⬇️ -----
+    // not found quote_id
+    mockSender.status = Sep12Status.ACCEPTED
+    every { customerIntegration.getCustomer(request) } returns mockSender
 
     postTxRequest.quoteId = "not-found-quote-id"
     every { quoteStore.findByQuoteId(any()) } returns null
@@ -631,7 +650,9 @@ class Sep31ServiceTest {
       )
 
     // Make sure we can get the sender and receiver customers
-    every { customerIntegration.getCustomer(any()) } returns Sep12GetCustomerResponse()
+    val mockCustomer = Sep12GetCustomerResponse()
+    mockCustomer.status = Sep12Status.ACCEPTED
+    every { customerIntegration.getCustomer(any()) } returns mockCustomer
 
     // mock sep31 deposit info generation
     val txForDepositInfoGenerator = slot<Sep31Transaction>()
@@ -779,7 +800,9 @@ class Sep31ServiceTest {
       )
 
     // Make sure we can get the sender and receiver customers
-    every { customerIntegration.getCustomer(any()) } returns Sep12GetCustomerResponse()
+    val mockCustomer = Sep12GetCustomerResponse()
+    mockCustomer.status = Sep12Status.ACCEPTED
+    every { customerIntegration.getCustomer(any()) } returns mockCustomer
 
     // POST transaction
     val jwtToken = TestHelper.createJwtToken()
@@ -847,6 +870,11 @@ class Sep31ServiceTest {
           "stellar:USDC",
         ),
       )
+
+    // Make sure we can get the sender and receiver customers
+    val mockCustomer = Sep12GetCustomerResponse()
+    mockCustomer.status = Sep12Status.ACCEPTED
+    every { customerIntegration.getCustomer(any()) } returns mockCustomer
 
     // POST transaction
     val jwtToken = TestHelper.createJwtToken()

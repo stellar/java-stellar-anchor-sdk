@@ -25,6 +25,7 @@ import org.stellar.anchor.api.sep.AssetInfo.Sep31TxnFieldSpecs;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerRequest;
 import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerResponse;
+import org.stellar.anchor.api.sep.sep12.Sep12Status;
 import org.stellar.anchor.api.sep.sep31.*;
 import org.stellar.anchor.api.shared.Amount;
 import org.stellar.anchor.asset.AssetService;
@@ -459,7 +460,17 @@ public class Sep31Service {
     Context.get().setFee(fee);
   }
 
-  void validateSenderAndReceiver() throws AnchorException {
+  /**
+   * validateSenderAndReceiver will validate if the SEP-31 sender and receiver exist and their
+   * status is ACCEPTED.
+   *
+   * @throws BadRequestException if `sender_id` or `receiver_id` is empty.
+   * @throws Sep31CustomerInfoNeededException if the SEP-12 customer does not exist or if its status
+   *     is not ACCEPTED.
+   * @throws AnchorException is something else went wrong.
+   */
+  private void validateSenderAndReceiver()
+      throws AnchorException, BadRequestException, Sep31CustomerInfoNeededException {
     String receiverId = Context.get().getRequest().getReceiverId();
     if (receiverId == null) {
       infoF("'receiver_id' cannot be empty for request ({})", Context.get().getRequest());
@@ -478,7 +489,7 @@ public class Sep31Service {
     Sep12GetCustomerRequest request =
         Sep12GetCustomerRequest.builder().id(receiverId).type(receiverType).build();
     Sep12GetCustomerResponse receiver = this.customerIntegration.getCustomer(request);
-    if (receiver == null) {
+    if (receiver == null || receiver.getStatus() != Sep12Status.ACCEPTED) {
       infoF("Customer (receiver) info needed for request ({})", Context.get().getRequest());
       throw new Sep31CustomerInfoNeededException("sep31-receiver");
     }
@@ -500,7 +511,7 @@ public class Sep31Service {
     }
     request = Sep12GetCustomerRequest.builder().id(senderId).type(senderType).build();
     Sep12GetCustomerResponse sender = this.customerIntegration.getCustomer(request);
-    if (sender == null) {
+    if (sender == null || sender.getStatus() != Sep12Status.ACCEPTED) {
       infoF("Customer (sender) info needed for request ({})", Context.get().getRequest());
       throw new Sep31CustomerInfoNeededException("sep31-sender");
     }
