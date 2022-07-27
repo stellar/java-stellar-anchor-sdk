@@ -28,16 +28,17 @@ class Sep31DepositInfoGeneratorApiTest {
 
   @ParameterizedTest
   @CsvSource(
-      value = [",", "123,id", "ABCD,text", "OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ=,hash"])
+    value = [",", "123,id", "ABCD,text", "OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ=,hash"]
+  )
   fun test_generate(memo: String?, memoType: String?) {
     val uniqueAddress =
-        GetUniqueAddressResponse.UniqueAddress.builder()
-            .stellarAddress(stellarAddress)
-            .memo(memo)
-            .memoType(memoType)
-            .build()
+      GetUniqueAddressResponse.UniqueAddress.builder()
+        .stellarAddress(stellarAddress)
+        .memo(memo)
+        .memoType(memoType)
+        .build()
     val uniqueAddressResponse =
-        GetUniqueAddressResponse.builder().uniqueAddress(uniqueAddress).build()
+      GetUniqueAddressResponse.builder().uniqueAddress(uniqueAddress).build()
 
     every { txn.getId() } returns txnId
     every { uniqueAddressIntegration.getUniqueAddress(any()) } returns uniqueAddressResponse
@@ -53,13 +54,13 @@ class Sep31DepositInfoGeneratorApiTest {
   @CsvSource(value = ["A123,id", "=,hash"])
   fun test_generate_error(memo: String?, memoType: String?) {
     val uniqueAddress =
-        GetUniqueAddressResponse.UniqueAddress.builder()
-            .stellarAddress(stellarAddress)
-            .memo(memo)
-            .memoType(memoType)
-            .build()
+      GetUniqueAddressResponse.UniqueAddress.builder()
+        .stellarAddress(stellarAddress)
+        .memo(memo)
+        .memoType(memoType)
+        .build()
     val uniqueAddressResponse =
-        GetUniqueAddressResponse.builder().uniqueAddress(uniqueAddress).build()
+      GetUniqueAddressResponse.builder().uniqueAddress(uniqueAddress).build()
 
     every { txn.getId() } returns txnId
     every { uniqueAddressIntegration.getUniqueAddress(any()) } returns uniqueAddressResponse
@@ -73,9 +74,9 @@ class Sep31DepositInfoGeneratorApiTest {
   fun test_generate_integration_exception(statusCode: Int) {
     every { txn.getId() } returns txnId
     every { uniqueAddressIntegration.getUniqueAddress(any()) } answers
-        {
-          throw HttpException(statusCode)
-        }
+      {
+        throw HttpException(statusCode)
+      }
 
     val generator = Sep31DepositInfoGeneratorApi(uniqueAddressIntegration)
     val ex = assertThrows<HttpException> { generator.generate(txn) }

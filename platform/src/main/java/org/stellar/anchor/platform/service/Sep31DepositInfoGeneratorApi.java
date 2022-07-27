@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform.service;
 
+import java.util.Objects;
 import org.stellar.anchor.api.callback.GetUniqueAddressResponse;
 import org.stellar.anchor.api.callback.UniqueAddressIntegration;
 import org.stellar.anchor.api.exception.AnchorException;
@@ -7,8 +8,6 @@ import org.stellar.anchor.api.sep.sep31.Sep31DepositInfo;
 import org.stellar.anchor.sep31.Sep31DepositInfoGenerator;
 import org.stellar.anchor.sep31.Sep31Transaction;
 import org.stellar.anchor.util.MemoHelper;
-
-import java.util.Objects;
 
 public class Sep31DepositInfoGeneratorApi implements Sep31DepositInfoGenerator {
   private UniqueAddressIntegration uniqueAddressIntegration;
@@ -19,8 +18,7 @@ public class Sep31DepositInfoGeneratorApi implements Sep31DepositInfoGenerator {
 
   @Override
   public Sep31DepositInfo generate(Sep31Transaction txn) throws AnchorException {
-    GetUniqueAddressResponse response =
-        uniqueAddressIntegration.getUniqueAddress(txn.getId());
+    GetUniqueAddressResponse response = uniqueAddressIntegration.getUniqueAddress(txn.getId());
     GetUniqueAddressResponse.UniqueAddress uniqueAddress = response.getUniqueAddress();
     if (uniqueAddress.getMemo() == null) {
       uniqueAddress.setMemo("");
