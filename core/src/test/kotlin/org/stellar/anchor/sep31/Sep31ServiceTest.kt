@@ -407,7 +407,7 @@ class Sep31ServiceTest {
       assertThrows<BadRequestException> {
         sep31Service.patchTransaction(Sep31PatchTransactionRequest.builder().build())
       }
-    assertEquals("id cannot be null or empty", ex2.message)
+    assertEquals("id cannot be null nor empty", ex2.message)
 
     every { txnStore.findByTransactionId(any()) } returns null
     val ex3 = assertThrows<NotFoundException> { sep31Service.patchTransaction(patchRequest) }

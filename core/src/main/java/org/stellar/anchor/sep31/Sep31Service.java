@@ -309,18 +309,17 @@ public class Sep31Service {
 
     if (Objects.toString(request.getId(), "").isEmpty()) {
       infoF("id cannot be null or empty");
-      throw new BadRequestException("id cannot be null or empty");
+      throw new BadRequestException("id cannot be null nor empty");
     }
 
     Context.reset();
 
     Sep31Transaction txn = sep31TransactionStore.findByTransactionId(request.getId());
-    Context.get().setTransaction(txn);
-
     if (txn == null) {
       infoF("Transaction ({}) not found", request.getId());
       throw new NotFoundException(String.format("transaction (id=%s) not found", request.getId()));
     }
+    Context.get().setTransaction(txn);
 
     // validate if the transaction is in the pending_transaction_info_update status
     if (!Objects.equals(
@@ -509,7 +508,6 @@ public class Sep31Service {
   }
 
   void validateRequiredFields() throws AnchorException {
-    AssetInfo assetInfo = Context.get().getAsset();
     Map<String, String> fields = Context.get().getTransactionFields();
     if (fields == null) {
       infoF(
@@ -518,6 +516,7 @@ public class Sep31Service {
       throw new BadRequestException("'fields' field must have one 'transaction' field");
     }
 
+    AssetInfo assetInfo = Context.get().getAsset();
     if (assetInfo == null) {
       infoF("Missing asset information for request ({})", Context.get().getRequest());
       throw new BadRequestException("Missing asset information.");

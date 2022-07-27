@@ -14,9 +14,10 @@ public enum SepTransactionStatus {
   TOO_LARGE("too_large", "the transaction amount is too big"),
   PENDING_SENDER("pending_sender", null),
   PENDING_RECEIVER("pending_receiver", null),
-  PENDING_TRANSACTION_INFO_UPDATE("pending_transaction_info_update", null),
+  PENDING_TRANSACTION_INFO_UPDATE(
+      "pending_transaction_info_update", "waiting for more transaction information"),
   PENDING_CUSTOMER_INFO_UPDATE(
-      "pending_customer_info_update", "waiting for more transaction information"),
+      "pending_customer_info_update", "waiting for more customer information"),
   COMPLETED("completed", "complete"),
   REFUNDED("refunded", "the deposit/withdrawal is fully refunded"),
   ERROR("error", "error"),
