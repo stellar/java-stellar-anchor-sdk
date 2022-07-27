@@ -45,7 +45,7 @@ resource "aws_ecs_task_definition" "sep" {
       Command = [ "CMD-SHELL", "curl -f http://localhost:8080/health || exit 1" ],
       Interval = 5,
       Retries = 10,
-      StartPeriod = 60,
+      StartPeriod = 120,
       Timeout = 5
    }
    essential   = true
