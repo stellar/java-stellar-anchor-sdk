@@ -140,7 +140,7 @@ data:
       payment-gateway:
         {{- if ((.Values.stellar.app_config).payment_gateway).circle }}
         circle:
-          name: "{{ .Values.stellar.app_config.payment_gateway.circle.name | default "circle" }}""
+          name: {{ .Values.stellar.app_config.payment_gateway.circle.name | default "circle" }}
           enabled: {{ .Values.stellar.app_config.payment_gateway.circle.enabled | default "true" }}
         {{- end }}
         {{- if ((.Values.stellar.app_config).payment_gateway).stellar }}
