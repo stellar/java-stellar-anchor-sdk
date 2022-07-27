@@ -13,7 +13,7 @@ metadata:
     {{- range $key, $value := .Values.service.labels }}
     {{- end }}
     {{- end }}
-    app.kubernetes.io/name: {{ .Values.fullName }}-svc-{{ .Values.service.name }}
+    app.kubernetes.io/name: {{ .Values.fullName }}
     helm.sh/chart: {{ $.Chart.Name }}-{{ $.Chart.Version }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
@@ -21,7 +21,7 @@ spec:
   type: {{ .Values.service.type }}
   ports:
   - protocol: TCP
-    port: {{ .Values.service.servicePort }}       # port number the service will listen on
-    targetPort: {{ .Values.service.targetPort }}  # port number pods listen on
+    port: {{ .Values.service.servicePort | default 8080}}       # port number the service will listen on
+    targetPort: {{ .Values.service.targetPort | default 8080 }}  # port number pods listen on
   selector:
-    app.kubernetes.io/name: {{ .Values.service.name }} 
+    app.kubernetes.io/name: {{ .Values.fullName }}
