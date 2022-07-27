@@ -72,7 +72,7 @@ public class Sep31Service {
     this.feeIntegration = feeIntegration;
     this.customerIntegration = customerIntegration;
     this.eventService = eventService;
-    this.infoResponse = createFromAssets(assetService.listAllAssets());
+    this.infoResponse = sep31InfoResponseFromAssetInfoList(assetService.listAllAssets());
     Log.info("Sep31Service initialized.");
   }
 
@@ -104,6 +104,7 @@ public class Sep31Service {
         assetInfo.getSend().getMinAmount(),
         assetInfo.getSend().getMaxAmount());
     validateLanguage(appConfig, request.getLang());
+    // TODO: check if `fields` is needed
     if (request.getFields() == null) {
       infoF(
           "POST /transaction with id ({}) cannot have empty `fields`", jwtToken.getTransactionId());
@@ -550,7 +551,7 @@ public class Sep31Service {
   }
 
   @SneakyThrows
-  static Sep31InfoResponse createFromAssets(List<AssetInfo> assetInfos) {
+  private static Sep31InfoResponse sep31InfoResponseFromAssetInfoList(List<AssetInfo> assetInfos) {
     Sep31InfoResponse response = new Sep31InfoResponse();
     response.setReceive(new HashMap<>());
     for (AssetInfo assetInfo : assetInfos) {

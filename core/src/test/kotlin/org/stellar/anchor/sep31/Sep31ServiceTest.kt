@@ -535,7 +535,7 @@ class Sep31ServiceTest {
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("sender_id cannot be empty.", ex.message)
 
-    // not found receiver_id
+    // not found sender_id
     postTxRequest.senderId = "sender_bar"
     ex = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
     assertInstanceOf(Sep31CustomerInfoNeededException::class.java, ex)
