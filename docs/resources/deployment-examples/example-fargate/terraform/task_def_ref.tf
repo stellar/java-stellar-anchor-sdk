@@ -13,7 +13,7 @@ resource "aws_ecs_task_definition" "ref" {
 
   container_definitions = jsonencode([{
    name        = "${var.environment}-ref-config"
-   image       = "stellar/anchor-platform:${var.image_tag}"
+   image       = "${var.aws_account}.dkr.ecr.${var.aws_region}.amazonaws.com/${aws_ecr_repository.anchor_config.name}:latest"
    entryPoint  = ["/copy_config.sh"]
    
    essential   = false
