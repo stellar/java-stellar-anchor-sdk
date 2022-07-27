@@ -30,13 +30,13 @@ resource "aws_ecs_task_definition" "ref" {
                     "awslogs-group": "anchor-platform",
                     "awslogs-region": "${var.aws_region}",
                     "awslogs-create-group": "true",
-                    "awslogs-stream-prefix": "sep"
+                    "awslogs-stream-prefix": "ref-config"
                 }
             }
-  },{
+  },
+  {
    name        = "${var.environment}-ref"
    image       = "stellar/anchor-platform:${var.image_tag}"
-   entryPoint = ["/config/ref.sh"]
    dependsOn =  [ {
      containerName = "${var.environment}-ref-config"
      condition = "START"
