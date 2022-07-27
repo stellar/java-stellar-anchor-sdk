@@ -3,7 +3,7 @@ package org.stellar.anchor.reference.model;
 import com.google.gson.Gson;
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
-import org.stellar.anchor.event.models.StellarId;
+import org.stellar.anchor.api.shared.StellarId;
 import org.stellar.anchor.util.GsonUtils;
 
 @Converter

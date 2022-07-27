@@ -3,7 +3,7 @@ package org.stellar.anchor.sep31;
 import java.time.Instant;
 import java.util.Map;
 import org.stellar.anchor.api.sep.AssetInfo;
-import org.stellar.anchor.event.models.StellarId;
+import org.stellar.anchor.api.shared.StellarId;
 
 public class Sep31TransactionBuilder {
   final Sep31Transaction txn;

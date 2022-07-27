@@ -7,6 +7,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
 import org.stellar.anchor.api.shared.Amount;
+import org.stellar.anchor.api.shared.Customers;
+import org.stellar.anchor.api.shared.StellarId;
 
 @Data
 @SuperBuilder
@@ -86,21 +88,5 @@ public class GetTransactionResponse {
     String destinationAccount;
 
     Amount amount;
-  }
-
-  @Data
-  public static class Customers {
-    StellarId sender;
-    StellarId receiver;
-  }
-
-  @Data
-  public static class StellarId {
-    String id;
-    String account;
-    String memo;
-
-    @SerializedName("memo_type")
-    String memoType;
   }
 }

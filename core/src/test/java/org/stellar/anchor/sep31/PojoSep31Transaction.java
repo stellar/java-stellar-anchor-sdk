@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.Set;
 import lombok.Data;
 import org.stellar.anchor.api.sep.AssetInfo;
-import org.stellar.anchor.event.models.StellarId;
+import org.stellar.anchor.api.shared.StellarId;
 import org.stellar.anchor.event.models.StellarTransaction;
 
 @Data

@@ -9,6 +9,8 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import org.stellar.anchor.api.shared.Amount;
+import org.stellar.anchor.api.shared.Customers;
+import org.stellar.anchor.api.shared.StellarId;
 
 @Data
 @Builder

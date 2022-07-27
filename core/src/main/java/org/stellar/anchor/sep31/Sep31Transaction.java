@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Map;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.sep31.Sep31GetTransactionResponse;
-import org.stellar.anchor.event.models.StellarId;
+import org.stellar.anchor.api.shared.StellarId;
 
 public interface Sep31Transaction {
   String getId();
