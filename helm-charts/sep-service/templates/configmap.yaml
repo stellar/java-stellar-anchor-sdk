@@ -106,7 +106,7 @@ data:
         interactiveUrl: {{ .Values.stellar.app_config.sep24.interactiveUrl | default .Values.stellar.app_config.app.backendUrl }}
       {{- else }}
       sep24:
-        enabled: "false"
+        enabled: false
         interactiveJwtExpiration: 3600
         interactiveUrl: {{ .Values.stellar.app_config.app.backendUrl }}
       {{- end }}
@@ -140,7 +140,7 @@ data:
       payment-gateway:
         {{- if ((.Values.stellar.app_config).payment_gateway).circle }}
         circle:
-          name: {{ .Values.stellar.app_config.payment_gateway.circle.name | default "circle" }}
+          name: "{{ .Values.stellar.app_config.payment_gateway.circle.name | default "circle" }}""
           enabled: {{ .Values.stellar.app_config.payment_gateway.circle.enabled | default "true" }}
         {{- end }}
         {{- if ((.Values.stellar.app_config).payment_gateway).stellar }}
