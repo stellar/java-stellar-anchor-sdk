@@ -888,22 +888,35 @@ class Sep31ServiceTest {
 
   @Test
   fun test_validateRequiredFields() {
+    val ex1 = assertThrows<BadRequestException> { sep31Service.validateRequiredFields() }
+    assertEquals("Missing asset information.", ex1.message)
+
     val assetInfo = assetService.getAsset("USDC")
     Context.get().setAsset(assetInfo)
-    Context.get().setTransactionFields(txn.fields)
-    sep31Service.validateRequiredFields()
-
     assetInfo.code = "BAD"
-    val ex1 = assertThrows<BadRequestException> { sep31Service.validateRequiredFields() }
-    assertEquals("Asset [BAD] has no fields definition", ex1.message)
-
-    Context.get().setAsset(null)
     val ex2 = assertThrows<BadRequestException> { sep31Service.validateRequiredFields() }
-    assertEquals("Missing asset information.", ex2.message)
+    assertEquals("Asset [BAD] has no fields definition", ex2.message)
 
-    Context.get().setTransactionFields(null)
+    assetInfo.code = "USDC"
     val ex3 = assertThrows<BadRequestException> { sep31Service.validateRequiredFields() }
     assertEquals("'fields' field must have one 'transaction' field", ex3.message)
+
+    Context.get().setTransactionFields(mapOf())
+    val ex4 = assertThrows<Sep31MissingFieldException> { sep31Service.validateRequiredFields() }
+    val wantMissingFields = AssetInfo.Sep31TxnFieldSpecs()
+    wantMissingFields.transaction =
+      mapOf(
+        "receiver_account_number" to
+          AssetInfo.Sep31TxnFieldSpec("bank account number of the destination", null, false),
+        "type" to
+          AssetInfo.Sep31TxnFieldSpec("type of deposit to make", listOf("SEPA", "SWIFT"), false),
+        "receiver_routing_number" to
+          AssetInfo.Sep31TxnFieldSpec("routing number of the destination bank account", null, false)
+      )
+    assertEquals(wantMissingFields, ex4.missingFields)
+
+    Context.get().setTransactionFields(txn.fields)
+    assertDoesNotThrow { sep31Service.validateRequiredFields() }
   }
 
   @Test

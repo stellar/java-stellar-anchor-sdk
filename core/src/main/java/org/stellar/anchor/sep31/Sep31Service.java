@@ -506,15 +506,16 @@ public class Sep31Service {
     }
   }
 
-  void validateRequiredFields() throws AnchorException {
-    Map<String, String> fields = Context.get().getTransactionFields();
-    if (fields == null) {
-      infoF(
-          "'fields' field must have one 'transaction' field for request ({})",
-          Context.get().getRequest());
-      throw new BadRequestException("'fields' field must have one 'transaction' field");
-    }
-
+  /**
+   * validateRequiredFields will validate if the fields provided in the `POST /transactions` or
+   * `PATCH /transactions/{id}` request body contains all the fields expected by the Anchor, and
+   * pre-configured in the `app-config.app.assets`.
+   *
+   * @throws BadRequestException if the asset is invalid or id the fields are missing from the
+   *     request
+   * @throws Sep31MissingFieldException if not all fields were provided.
+   */
+  void validateRequiredFields() throws BadRequestException, Sep31MissingFieldException {
     AssetInfo assetInfo = Context.get().getAsset();
     if (assetInfo == null) {
       infoF("Missing asset information for request ({})", Context.get().getRequest());
@@ -526,6 +527,14 @@ public class Sep31Service {
       infoF("Asset [{}] has no fields definition", Context.get().getRequest());
       throw new BadRequestException(
           String.format("Asset [%s] has no fields definition", assetInfo.getCode()));
+    }
+
+    Map<String, String> fields = Context.get().getTransactionFields();
+    if (fields == null) {
+      infoF(
+          "'fields' field must have one 'transaction' field for request ({})",
+          Context.get().getRequest());
+      throw new BadRequestException("'fields' field must have one 'transaction' field");
     }
 
     Map<String, AssetInfo.Sep31TxnFieldSpec> missingFields =
