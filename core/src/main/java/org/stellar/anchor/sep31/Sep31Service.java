@@ -630,29 +630,4 @@ public class Sep31Service {
       context.set(null);
     }
   }
-
-  public static class Sep31MissingFieldException extends AnchorException {
-    private final Sep31TxnFieldSpecs missingFields;
-
-    public Sep31MissingFieldException(Sep31TxnFieldSpecs missingFields) {
-      super();
-      this.missingFields = missingFields;
-    }
-
-    public Sep31TxnFieldSpecs getMissingFields() {
-      return missingFields;
-    }
-  }
-
-  public static class Sep31CustomerInfoNeededException extends AnchorException {
-    private final String type;
-
-    Sep31CustomerInfoNeededException(String type) {
-      this.type = type;
-    }
-
-    public String getType() {
-      return type;
-    }
-  }
 }
