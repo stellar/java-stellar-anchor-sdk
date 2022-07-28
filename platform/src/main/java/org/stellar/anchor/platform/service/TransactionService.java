@@ -38,7 +38,7 @@ public class TransactionService {
   static List<String> validStatuses =
       List.of(
           PENDING_STELLAR.getName(),
-          PENDING_TRANSACTION_INFO_UPDATE.getName(),
+          PENDING_CUSTOMER_INFO_UPDATE.getName(),
           PENDING_RECEIVER.getName(),
           PENDING_EXTERNAL.getName(),
           COMPLETED.getName(),
