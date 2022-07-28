@@ -13,6 +13,11 @@ anchor.settings:
   # The URL where the anchor reference server can be accessed by the platform.
   hostUrl: http://localhost:8081
 
+  # The Stellar wallet to which the customer will send the Stellar assets.
+  distributionWallet: GCHLHDBOKG2JWMJQBTLSL5XG6NO7ESXI2TAQKZXCXWXB5WI2X6W233PR
+  distributionWalletMemo:
+  distributionWalletMemoType:
+
 # These are secrets shared between Anchor and Platform that are used to safely communicate from `Platform->Anchor`
 # and `Anchor->Platform`, specially when they are in different clusters.
 #
