@@ -9,7 +9,7 @@ public interface IntegrationAuthConfig {
   @Secret
   String getAnchorToPlatformSecret();
 
-  long getExpirationMilliseconds();
+  Long getExpirationMilliseconds();
 
   enum AuthType {
     NONE,
