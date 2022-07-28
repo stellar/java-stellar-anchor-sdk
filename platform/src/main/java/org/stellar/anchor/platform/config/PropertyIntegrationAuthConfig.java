@@ -15,7 +15,7 @@ public class PropertyIntegrationAuthConfig implements IntegrationAuthConfig, Val
   AuthType authType = NONE;
   String platformToAnchorSecret;
   String anchorToPlatformSecret;
-  long expirationMilliseconds = 10000;
+  Long expirationMilliseconds;
 
   @Override
   public boolean supports(Class<?> clazz) {

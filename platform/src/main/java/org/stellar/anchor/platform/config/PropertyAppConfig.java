@@ -8,6 +8,7 @@ import org.springframework.validation.Validator;
 import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.platform.service.SpringResourceReader;
 import org.stellar.anchor.util.ResourceReader;
+import org.stellar.anchor.util.UrlValidationUtil;
 
 @Data
 public class PropertyAppConfig implements AppConfig, Validator {
@@ -38,5 +39,8 @@ public class PropertyAppConfig implements AppConfig, Validator {
       errors.rejectValue(
           "assets", "doesNotExist-assets", "assets resource file could not be found");
     }
+
+    UrlValidationUtil.rejectIfMalformed(config.getHostUrl(), "hostUrl", errors);
+    UrlValidationUtil.rejectIfMalformed(config.getHorizonUrl(), "horizonUrl", errors);
   }
 }

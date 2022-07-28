@@ -86,16 +86,16 @@ app-config:
     #     NONE: no authentication is used
     #     API_KEY: the authentication is done using an API key added to the `X-Api-Key` header.
     #     JWT_TOKEN: the authentication is done using a JWT token added to the `Authorization` header. this token is generated from the secret key.
-    authType: JWT_TOKEN
+    authType: NONE
     # CallbackAPI requests (`Platform->Anchor`) will contain an authentication header whose token was built using this
     # secret. The Anchor Backend will also store this same secret and use it to decode the incoming token to verify it
     # came from the Platform.
-    platformToAnchorSecret: ${PLATFORM_TO_ANCHOR_SECRET}
+    platformToAnchorSecret:
     # PlatformAPI requests (`Anchor->Platform`) will contain an authentication header whose token was built using this
     # secret. The Platform Server will use this secret to decode the incoming token to verify it came from the Anchor.
-    anchorToPlatformSecret: ${ANCHOR_TO_PLATFORM_SECRET}
+    anchorToPlatformSecret:
     # Expiration time, in milliseconds, that will be used to build and validate the JWT tokens
-    expirationMilliseconds: 30000
+    expirationMilliseconds:
 
   # sep-1
   sep1:
@@ -234,7 +234,7 @@ app-config:
     publisherType: kafka
 
   metrics-service:
-    optionalMetricsEnabled: true    # optional metrics that periodically query the database
+    optionalMetricsEnabled: false    # optional metrics that periodically query the database
     runInterval: 30                 # interval to query the database to generate the optional metrics
 
   kafka.publisher:

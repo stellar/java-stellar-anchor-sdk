@@ -31,12 +31,14 @@ public class PropertySep31Config implements Sep31Config, Validator {
   @Override
   public void validate(Object target, Errors errors) {
     Sep31Config config = (Sep31Config) target;
-    if (config.getDepositInfoGeneratorType().equals(CIRCLE)) {
-      if (!circleConfig.validate()) {
-        errors.rejectValue(
-            "circleConfig",
-            "badConfig-circleConfig",
-            "circle set at depositInfoGeneratorType, but circle config not properly configured");
+    if (config.isEnabled()) {
+      if (config.getDepositInfoGeneratorType().equals(CIRCLE)) {
+        if (circleConfig.validate().hasErrors()) {
+          errors.rejectValue(
+              "circleConfig",
+              "badConfig-circle",
+              "depositInfoGeneratorType set as circle, but circle config not properly configured");
+        }
       }
     }
   }

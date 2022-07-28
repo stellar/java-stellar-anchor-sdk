@@ -82,8 +82,8 @@ public class ConfigManagementConfig {
 
   @Bean
   @ConfigurationProperties(prefix = "event")
-  EventConfig eventConfig() {
-    return new PropertyEventConfig();
+  EventConfig eventConfig(KafkaConfig kafkaConfig, SqsConfig sqsConfig) {
+    return new PropertyEventConfig(kafkaConfig, sqsConfig);
   }
 
   @Bean

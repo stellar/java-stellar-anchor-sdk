@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Values.fullName }}-configmap-{{ .Values.service.name }}
+  name: {{ .Values.fullName }}
 data:
   # TODO: remove all secrets (ex: move to env vars, k8s secrets, vault, etc...)
   anchor-config.yaml: |
@@ -57,7 +57,15 @@ data:
         authType: JWT_TOKEN
         platformToAnchorSecret: {{ .Values.stellar.app_config.app.platformToAnchorSecret | default "${PLATFORM_TO_ANCHOR_SECRET}" }}
         anchorToPlatformSecret: {{ .Values.stellar.app_config.app.anchorToPlatformSecret | default "${ANCHOR_TO_PLATFORM_SECRET}" }}
-        expirationMilliseconds: {{ .Values.stellar.app_config.app.expirationMilliseconds | default 30000 }}
+        expirationMilliseconds: {{ .Values.stellar.app_config.app.expirationMilliseconds | default 30000 }}      
+      # The anchor callback configuration
+      anchor-callback:
+        # The CallbackAPI endpoint
+      {{- if ((.Values.stellar.app_config).anchor_callback) }}
+        endpoint: {{ .Values.stellar.app_config.anchor_callback.customerIntegrationEndpoint | default .Values.stellar.app_config.app.backendUrl }}   
+      {{- else }}
+        endpoint: {{ .Values.stellar.app_config.app.backendUrl }} 
+      {{- end }}
       sep1:
         enabled: true
         stellarFile: file:/config/stellar-wks.toml
@@ -106,7 +114,7 @@ data:
         interactiveUrl: {{ .Values.stellar.app_config.sep24.interactiveUrl | default .Values.stellar.app_config.app.backendUrl }}
       {{- else }}
       sep24:
-        enabled: "false"
+        enabled: false
         interactiveJwtExpiration: 3600
         interactiveUrl: {{ .Values.stellar.app_config.app.backendUrl }}
       {{- end }}
@@ -171,6 +179,9 @@ data:
         enabled: false
         publisherType: kafka
       {{- end }}
+      metrics-service:
+        optionalMetricsEnabled: false   # optional metrics that periodically query the database
+        runInterval: 30                 # interval to query the database to generate the optional metrics
       {{- if (.Values.stellar.app_config).kafka_publisher }}
       kafka.publisher:
         bootstrapServer: {{ .Values.stellar.app_config.kafka_publisher.bootstrapServer | default "missing_bootstrapServer:port" }}
@@ -208,10 +219,10 @@ data:
       mvc:
         async.request-timeout: 6000
   stellar-wks.toml: |
-    ACCOUNTS = ["GCHLHDBOKG2JWMJQBTLSL5XG6NO7ESXI2TAQKZXCXWXB5WI2X6W233PR"]
+    ACCOUNTS = ["GDZCLP2PHTWYQ3BWZMC5D4ZUJX5NU4S7YZHC5EBFAFKL6UJUQ5RKDGSY"]
     VERSION = "0.1.0"
     NETWORK_PASSPHRASE = "Test SDF Network ; September 2015"
-    SIGNING_KEY = "GCHLHDBOKG2JWMJQBTLSL5XG6NO7ESXI2TAQKZXCXWXB5WI2X6W233PR"
+    SIGNING_KEY = "GDZCLP2PHTWYQ3BWZMC5D4ZUJX5NU4S7YZHC5EBFAFKL6UJUQ5RKDGSY"
     TRANSFER_SERVER = "{{ .Values.stellar.app_config.app.hostUrl }}/sep6"
     TRANSFER_SERVER_SEP0024 = "{{ .Values.stellar.app_config.app.hostUrl }}/sep24"
     WEB_AUTH_ENDPOINT = "{{ .Values.stellar.app_config.app.hostUrl }}/auth"
@@ -231,7 +242,7 @@ data:
     {{- end }}
     {{- else }}
     code = "USDC"
-    issuer = "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+    issuer = "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
     status = "test"
     is_asset_anchored = true
     anchor_asset_type = "fiat"
