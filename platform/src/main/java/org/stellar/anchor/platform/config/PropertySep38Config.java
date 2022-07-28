@@ -5,8 +5,6 @@ import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.Validator;
 import org.stellar.anchor.config.Sep38Config;
-import org.stellar.anchor.util.Log;
-import org.stellar.anchor.util.UrlConnectionStatus;
 import org.stellar.anchor.util.UrlValidationUtil;
 
 @Data
@@ -27,7 +25,8 @@ public class PropertySep38Config implements Sep38Config, Validator {
       ValidationUtils.rejectIfEmpty(
           errors, "quoteIntegrationEndPoint", "empty-quoteIntegrationEndPoint");
 
-      UrlValidationUtil.rejectIfMalformed(config.getQuoteIntegrationEndPoint(), "quoteIntegrationEndPoint", errors);
+      UrlValidationUtil.rejectIfMalformed(
+          config.getQuoteIntegrationEndPoint(), "quoteIntegrationEndPoint", errors);
     }
   }
 }

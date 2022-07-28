@@ -5,11 +5,7 @@ import lombok.Data;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.Validator;
-import org.stellar.anchor.config.CirclePaymentObserverConfig;
 import org.stellar.anchor.config.Sep10Config;
-import org.stellar.anchor.util.Log;
-import org.stellar.anchor.util.UrlConnectionStatus;
-import org.stellar.anchor.util.UrlValidationUtil;
 
 @Data
 public class PropertySep10Config implements Sep10Config, Validator {
