@@ -20,7 +20,7 @@ public class PropertyCirclePaymentObserverConfig implements CirclePaymentObserve
   public void validate(Object target, Errors errors) {
     PropertyCirclePaymentObserverConfig config = (PropertyCirclePaymentObserverConfig) target;
 
-    if(config.enabled) {
+    if (config.enabled) {
       ValidationUtils.rejectIfEmptyOrWhitespace(errors, "trackedWallet", "empty-trackedWallet");
     }
   }

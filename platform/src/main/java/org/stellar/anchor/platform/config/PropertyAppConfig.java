@@ -7,9 +7,7 @@ import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.Validator;
 import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.platform.service.SpringResourceReader;
-import org.stellar.anchor.util.Log;
 import org.stellar.anchor.util.ResourceReader;
-import org.stellar.anchor.util.UrlConnectionStatus;
 import org.stellar.anchor.util.UrlValidationUtil;
 
 @Data
