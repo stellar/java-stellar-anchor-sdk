@@ -18,6 +18,12 @@ data:
       version: 0.0.1
       platformApiEndpoint: https://anchor-sep-server-dev.stellar.org
 
+    integration-auth:
+      authType: JWT_TOKEN
+      platformToAnchorSecret: myPlatformToAnchorSecret
+      anchorToPlatformSecret: myAnchorToPlatformSecret
+      expirationMilliseconds: 30000
+    
     event:
       # The listener type. values: [kafka, sqs, amqp]
       # If the listener is kafka, the kafka listener is configured in kafka.listener section.
@@ -42,6 +48,7 @@ data:
 
     # force gson as serializer/deserializer over jackson
     spring.mvc.converters.preferred-json-mapper: gson
+    spring.flyway.enabled: false
 
     #
     # Spring Data JDBC settings for SQLite

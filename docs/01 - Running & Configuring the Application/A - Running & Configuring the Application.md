@@ -6,14 +6,15 @@
     - [Config Files](#config-files)
       - [Path to Yaml](#path-to-yaml)
         - [Yaml Search](#yaml-search)
+    - [Authorization Between Platform<>Anchor](#authorization-between-platformanchor)
     - [Environment variables](#environment-variables)
+    - [Supported Assets](#supported-assets)
     - [Event Messaging](#event-messaging)
     - [JVM-Argument based run-configuration](#jvm-argument-based-run-configuration)
   - [Docker](#docker)
   - [Running the Application from Docker](#running-the-application-from-docker)
   - [Incoming Payments Observer](#incoming-payments-observer)
-
-> Created by [gh-md-toc](https://github.com/ekalinin/github-markdown-toc.go)
+  - [Metrics](#metrics)
 
 ## Running the Application from Source Code
 
@@ -76,9 +77,20 @@ The Platform configuration loader tries to fetch the configuration from up to th
 
 If all of the above fail, the server fails with an error.
 
+### Authorization Between Platform<>Anchor
+
+It's possible to enable/disable authorization headers for requests between Platform and Anchor by editing the `integration-auth` configuration in the Platform config map. You can use different secrets depending on the direction of the requests, i.e. one for `Platform->Anchor` and another for `Anchor->Platform`, and you can choose between the following auth options:
+- `JWT_TOKEN`: where a secret is used to create a jwt token in the sender side, and this same secret is used to decode the token in the receiver side. This token is added to the `Authorization` header.
+- `API_KEY`: where an API key is added directly to the `X-Api-Key` header.
+- `NONE`: where no authorization is used.
+
 ### Environment variables
 
 Secrets are passed to the Anchor Platform (and Anchor Reference Server) via environment variables, which can be set either through command line or using a `.env` file. A list of supported environment variables and their descriptions can be found at [`example.env`].
+
+### Supported Assets
+
+The Anchor Platform reads the list of supported assets from a json file whose address is configured in the config file under `app-config.app-assets` and defaults to [`assets-test.json`] ([ref](https://github.com/stellar/java-stellar-anchor-sdk/blob/1f84429f0c5d35cee75445686242643fbd8cffa5/platform/src/main/resources/anchor-config-defaults.yaml#L74)).
 
 ### Event Messaging
 
@@ -134,7 +146,7 @@ docker run -v {/local/path/to/config/file/}:/config -p 8081:8081 stellar-anchor-
 
 > Note 2: to check all the available environment variables, please refer to the [`anchor-config-defaults.yaml`] file.
 
-## Running the Application from Docker
+## Running the Application with Docker Compose
 
 You can use docker compose to run the whole infrastructure - Anchor Platform, Reference Server, Kafka, and a Postgres Database. All you need to do is making use of the [docker-compose.yaml](/docker-compose.yaml) available at the root of the project:
 
@@ -150,7 +162,43 @@ You can test against this setup by running the end-to-end tests ([end_to_end_tes
 
 The default configuration of the project uses a Stellar network observer to identify incoming Stellar payments. In case the Anchor relies on Circle, it should configure the project to use the Circle Payment Observer. For more information on how to do that, please refer to the [01.B - Circle Payment Observer](/docs/01%20-%20Running%20%26%20Configuring%20the%20Application/B%20-%20Circle%20Payment%20Observer.md) section.
 
+
+## Metrics
+The Anchor Platform exposes a Prometheus metrics endpoint at `<host>:8082/actuator/prometheus`. All standard Spring 
+Boot Actuator metrics are enabled by default. There are certain metrics that periodically poll the database (eg: for 
+the count of transactions in each state); these metrics are disabled by default. 
+They can be enabled with the following configs:
+
+```text
+  metrics-service:
+    optionalMetricsEnabled: true    # optional metrics that periodically query the database
+    runInterval: 30                 # interval to query the database to generate the optional metrics
+```
+
+A Grafana dashboard for the Anchor Platform can be found at `docs/resources/grafana-dashboard/anchor-platform-grafana-dashboard.json`
+and imported into your Grafana instance to visualized the Prometheus metrics.
+
+
 [`anchor-config-defaults.yaml`]: /platform/src/main/resources/anchor-config-defaults.yaml
 [`anchor-reference-server.yaml`]: /anchor-reference-server/src/main/resources/anchor-reference-server.yaml
 [`example.env`]: /platform/src/main/resources/example.env
 [`docs/resources/docker-examples/kafka/docker-compose.yaml`]: /docs/resources/docker-examples/kafka/docker-compose.yaml
+[`assets-test.json`]: /platform/src/main/resources/assets-test.json
+
+## Logging
+
+The format of anchor platform's logs can be set by the `LOG_APPENDER` environment variable. Supported values include:
+* `console_appender`: `timestamp - level - location - message`
+* `console_json_appender`: json of the format below
+
+```json
+{
+    "time": timestamp,
+    "source": logger,
+    "index": location,
+    "event": {
+        "message": message,
+        "severity": level,
+    }
+}
+```

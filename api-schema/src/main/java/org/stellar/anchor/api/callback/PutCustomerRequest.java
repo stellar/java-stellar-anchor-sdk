@@ -47,7 +47,7 @@ public class PutCustomerRequest {
   Instant birthDate;
 
   @SerializedName("birth_place")
-  Instant birthPlace;
+  String birthPlace;
 
   @SerializedName("birth_country_code")
   String birthCountryCode;
@@ -63,6 +63,9 @@ public class PutCustomerRequest {
 
   @SerializedName("bank_branch_number")
   String bankBranchNumber;
+
+  @SerializedName("clabe_number")
+  String clabeNumber;
 
   @SerializedName("tax_id")
   String taxId;

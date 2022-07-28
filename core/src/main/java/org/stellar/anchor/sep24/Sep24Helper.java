@@ -17,9 +17,9 @@ import org.apache.http.client.utils.URIBuilder;
 import org.springframework.beans.BeanUtils;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.sep24.*;
+import org.stellar.anchor.auth.JwtService;
+import org.stellar.anchor.auth.JwtToken;
 import org.stellar.anchor.config.Sep24Config;
-import org.stellar.anchor.sep10.JwtService;
-import org.stellar.anchor.sep10.JwtToken;
 import org.stellar.anchor.util.DateUtil;
 
 public class Sep24Helper {

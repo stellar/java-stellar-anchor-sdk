@@ -27,10 +27,10 @@ import org.stellar.anchor.api.exception.SepValidationException;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.sep24.*;
 import org.stellar.anchor.asset.AssetService;
+import org.stellar.anchor.auth.JwtService;
+import org.stellar.anchor.auth.JwtToken;
 import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.Sep24Config;
-import org.stellar.anchor.sep10.JwtService;
-import org.stellar.anchor.sep10.JwtToken;
 import org.stellar.sdk.KeyPair;
 import org.stellar.sdk.Memo;
 
@@ -294,7 +294,7 @@ public class Sep24Service {
     }
 
     infoF("findTransactions. account={}", shorter(token.getAccount()));
-    if (assetService.getAsset(txReq.getAssetCode(), null) == null) {
+    if (assetService.getAsset(txReq.getAssetCode()) == null) {
       infoF(
           "asset code:{} not supported",
           (txReq.getAssetCode() == null) ? "null" : txReq.getAssetCode());

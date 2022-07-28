@@ -17,7 +17,7 @@ public class Sep31DepositInfoGeneratorCircle implements Sep31DepositInfoGenerato
   }
 
   @Override
-  public Sep31DepositInfo getSep31DepositInfo(Sep31Transaction txn) {
+  public Sep31DepositInfo generate(Sep31Transaction txn) {
     return circlePaymentService
         .getDistributionAccountAddress()
         .flatMap(circlePaymentService::createNewStellarAddress)

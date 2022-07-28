@@ -3,6 +3,25 @@ plugins {
   id("com.diffplug.spotless") version "6.2.1"
 }
 
+tasks {
+  register<Copy>("installLocalGitHook") {
+    from("scripts/pre-commit.sh") {
+      rename { it.removeSuffix(".sh") }
+    }
+    into(".git/hooks")
+
+    doLast {
+      project.exec {
+        commandLine("chmod",  "+x", ".git/hooks/pre-commit")
+      }
+    }
+  }
+
+  "build" {
+    dependsOn("installLocalGitHook")
+  }
+}
+
 subprojects {
   apply(plugin = "java")
   apply(plugin = "com.diffplug.spotless")
@@ -59,7 +78,7 @@ subprojects {
     implementation("org.springframework.kafka:spring-kafka:2.8.4")
     implementation("org.springframework.cloud:spring-cloud-aws-messaging:2.2.6.RELEASE")
     implementation("org.postgresql:postgresql:42.3.5")
-    implementation("org.liquibase:liquibase-core:4.10.0")
+    implementation("org.apache.logging.log4j:log4j-layout-template-json:2.14.1")
 
     // The common dependencies are declared here because we would like to have a uniform unit
     // testing across all subprojects.

@@ -10,6 +10,7 @@ lateinit var sep24Client: Sep24Client
 const val withdrawJson =
   """{
     "asset_code": "USDC",
+    "asset_issuer": "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
     "account": "GAIUIZPHLIHQEMNJGSZKCEUWHAZVGUZDBDMO2JXNAJZZZVNSVHQCEWJ4",
     "lang": "en"
 }"""

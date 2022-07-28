@@ -1,0 +1,21 @@
+version: 0.2
+env:
+  variables:
+    environment: "$ANCHOR_CONFIG_ENVIRONMENT"
+    ANCHOR_CONFIG_S3_BUCKET: "$ANCHOR_CONFIG_S3_BUCKET"
+    ANCHOR_CONFIG_ECR_REPO: "$ANCHOR_CONFIG_ECR_REPO"
+    AWS_ACCOUNT: "$AWS_ACCOUNT"
+    AWS_REGION: "$AWS_REGION"    
+phases:
+  build:
+    commands:
+      - cd docs/resources/deployment-examples/aws-fargate-ecs
+      - aws s3 ls s3://$ANCHOR_CONFIG_S3_BUCKET
+      - aws s3 cp s3://$ANCHOR_CONFIG_S3_BUCKET/anchor_config.yaml .
+      - aws s3 cp s3://$ANCHOR_CONFIG_S3_BUCKET/stellar.toml ./stellar_wks.toml
+      - aws s3 cp s3://$ANCHOR_CONFIG_S3_BUCKET/reference_config.yaml .
+      - mkdir /config
+      - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $AWS_ACCOUNT.dkr.ecr.$AWS_REGION.amazonaws.com
+      - docker build . -t anchor-config
+      - docker tag anchor-config $AWS_ACCOUNT.dkr.ecr.$AWS_REGION.amazonaws.com/$ANCHOR_CONFIG_ECR_REPO:latest 
+      - docker push $AWS_ACCOUNT.dkr.ecr.$AWS_REGION.amazonaws.com/$ANCHOR_CONFIG_ECR_REPO:latest 

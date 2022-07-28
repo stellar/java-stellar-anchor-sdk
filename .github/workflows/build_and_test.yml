@@ -18,6 +18,8 @@ jobs:
       with:
         java-version: '11'
         distribution: 'adopt'
+    - name: Check code formatting
+      run: ./gradlew spotlessCheck || echo "❌ Your code is not properly formatted. You can run './gradlew spotlessApply' to format it. 👀"
     - name: Clean, Build and Test
       run: |
         ./gradlew clean build
@@ -53,7 +55,7 @@ jobs:
       uses: docker/build-push-action@7f9d37fa544684fb73bfe4835ed7214c255ce02b
       with:
         push: true
-        tags: stellar/anchor-platform:${{ steps.get_tag.outputs.TAG }}
+        tags: stellar/anchor-platform:${{ steps.get_tag.outputs.TAG }},stellar/anchor-platform:latest
         file: Dockerfile
 
   sep_validation_suite:

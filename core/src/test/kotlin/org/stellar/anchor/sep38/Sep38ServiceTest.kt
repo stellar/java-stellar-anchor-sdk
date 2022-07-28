@@ -41,7 +41,7 @@ class Sep38ServiceTest {
   companion object {
     private const val PUBLIC_KEY = "GBJDSMTMG4YBP27ZILV665XBISBBNRP62YB7WZA2IQX2HIPK7ABLF4C2"
     private const val stellarUSDC =
-      "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+      "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
     private const val fiatUSD = "iso4217:USD"
     private const val stellarJPYC =
       "stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
@@ -107,6 +107,7 @@ class Sep38ServiceTest {
     assertNull(stellarJPYC.sellDeliveryMethods)
     assertNull(stellarJPYC.buyDeliveryMethods)
     wantAssets = listOf(fiatUSD, stellarUSDC)
+    println(stellarJPYC.exchangeableAssetNames)
     assertTrue(stellarJPYC.exchangeableAssetNames.containsAll(wantAssets))
     assertTrue(wantAssets.containsAll(stellarJPYC.exchangeableAssetNames))
 
@@ -426,6 +427,33 @@ class Sep38ServiceTest {
     ex = assertThrows { sep38Service.getPrice(getPriceRequestBuilder.build()) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("Unsupported context. Should be one of [sep6, sep31].", ex.message)
+
+    // sell_amount should be within limit
+    getPriceRequestBuilder = getPriceRequestBuilder.context(SEP31).sellAmount("100000000")
+    ex = assertThrows { sep38Service.getPrice(getPriceRequestBuilder.build()) }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("sell_amount exceeds max limit", ex.message)
+
+    // sell_amount should be positive
+    getPriceRequestBuilder = getPriceRequestBuilder.context(SEP31).sellAmount("0.5")
+    ex = assertThrows { sep38Service.getPrice(getPriceRequestBuilder.build()) }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("sell_amount less than min limit", ex.message)
+
+    // buy_amount specified, but resulting sell_amount should be within limit
+    getPriceRequestBuilder = getPriceRequestBuilder.sellAmount(null)
+    getPriceRequestBuilder = getPriceRequestBuilder.buyAssetName(stellarUSDC).buyAmount("100000000")
+    every { mockRateIntegration.getRate(any()) } returns
+      GetRateResponse.indicativePrice(
+        "1.02",
+        "1.03",
+        "102000000",
+        "100000000",
+        mockSellAssetFee(fiatUSD)
+      )
+    ex = assertThrows { sep38Service.getPrice(getPriceRequestBuilder.build()) }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("sell_amount exceeds max limit", ex.message)
   }
 
   private fun mockSellAssetFee(sellAsset: String?): RateFee {
@@ -898,6 +926,68 @@ class Sep38ServiceTest {
       }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("Unsupported context. Should be one of [sep6, sep31].", ex.message)
+
+    // sell_amount should be within limit
+    ex =
+      assertThrows {
+        sep38Service.postQuote(
+          token,
+          Sep38PostQuoteRequest.builder()
+            .sellAssetName(fiatUSD)
+            .sellAmount("100000000")
+            .sellDeliveryMethod("WIRE")
+            .context(SEP31)
+            .buyAssetName(stellarUSDC)
+            .countryCode("USA")
+            .build()
+        )
+      }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("sell_amount exceeds max limit", ex.message)
+
+    // sell_amount should be positive
+    ex =
+      assertThrows {
+        sep38Service.postQuote(
+          token,
+          Sep38PostQuoteRequest.builder()
+            .sellAssetName(fiatUSD)
+            .sellAmount("0.5")
+            .sellDeliveryMethod("WIRE")
+            .context(SEP31)
+            .buyAssetName(stellarUSDC)
+            .countryCode("USA")
+            .build()
+        )
+      }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("sell_amount less than min limit", ex.message)
+
+    // buy_amount specified, but resulting sell_amount should be within limit
+    every { mockRateIntegration.getRate(any()) } returns
+      GetRateResponse.indicativePrice(
+        "1.02",
+        "1.03",
+        "102000000",
+        "100000000",
+        mockSellAssetFee(fiatUSD)
+      )
+    ex =
+      assertThrows {
+        sep38Service.postQuote(
+          token,
+          Sep38PostQuoteRequest.builder()
+            .sellAssetName(fiatUSD)
+            .sellDeliveryMethod("WIRE")
+            .context(SEP31)
+            .buyAssetName(stellarUSDC)
+            .buyAmount("100000000")
+            .countryCode("USA")
+            .build()
+        )
+      }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("sell_amount exceeds max limit", ex.message)
   }
 
   @Test
@@ -1003,7 +1093,7 @@ class Sep38ServiceTest {
         .expiresAt(tomorrow)
         .price("1.02")
         .totalPrice("1.03")
-        .creator(StellarId.builder().account(PUBLIC_KEY).memo(null).memoType(null).build())
+        .creator(StellarId.builder().account(PUBLIC_KEY).build())
         .transactionId(null)
         .createdAt(savedQuote.createdAt)
         .fee(mockFee)
@@ -1113,7 +1203,7 @@ class Sep38ServiceTest {
         .expiresAt(tomorrow)
         .price("1.02")
         .totalPrice("1.03")
-        .creator(StellarId.builder().account(PUBLIC_KEY).memo(null).memoType(null).build())
+        .creator(StellarId.builder().account(PUBLIC_KEY).build())
         .transactionId(null)
         .createdAt(savedQuote.createdAt)
         .fee(mockFee)
@@ -1232,7 +1322,7 @@ class Sep38ServiceTest {
         .expiresAt(tomorrow)
         .price("1.02")
         .totalPrice("1.03")
-        .creator(StellarId.builder().account(PUBLIC_KEY).memo(null).memoType(null).build())
+        .creator(StellarId.builder().account(PUBLIC_KEY).build())
         .transactionId(null)
         .createdAt(savedQuote.createdAt)
         .fee(mockFee)
@@ -1351,7 +1441,7 @@ class Sep38ServiceTest {
         .expiresAt(tomorrow)
         .price("1.02")
         .totalPrice("1.03")
-        .creator(StellarId.builder().account(PUBLIC_KEY).memo(null).memoType(null).build())
+        .creator(StellarId.builder().account(PUBLIC_KEY).build())
         .transactionId(null)
         .createdAt(savedQuote.createdAt)
         .fee(mockFee)
