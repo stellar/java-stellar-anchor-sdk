@@ -39,7 +39,7 @@ public class RestUniqueAddressIntegration implements UniqueAddressIntegration {
   @Override
   public GetUniqueAddressResponse getUniqueAddress(String transactionId) throws AnchorException {
     HttpUrl url =
-        okhttp3.HttpUrl.get(anchorEndpoint)
+        HttpUrl.get(anchorEndpoint)
             .newBuilder()
             .addQueryParameter("transaction_id", transactionId)
             .addPathSegment("unique_address")

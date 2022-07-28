@@ -1,6 +1,7 @@
 package org.stellar.anchor.platform;
 
 import com.google.gson.Gson;
+import java.util.concurrent.TimeUnit;
 import okhttp3.OkHttpClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,8 +16,6 @@ import org.stellar.anchor.platform.callback.RestCustomerIntegration;
 import org.stellar.anchor.platform.callback.RestFeeIntegration;
 import org.stellar.anchor.platform.callback.RestRateIntegration;
 import org.stellar.anchor.platform.callback.RestUniqueAddressIntegration;
-
-import java.util.concurrent.TimeUnit;
 
 @Configuration
 public class IntegrationConfig {

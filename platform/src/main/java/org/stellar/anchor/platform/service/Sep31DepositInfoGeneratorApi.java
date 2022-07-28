@@ -20,15 +20,9 @@ public class Sep31DepositInfoGeneratorApi implements Sep31DepositInfoGenerator {
   public Sep31DepositInfo generate(Sep31Transaction txn) throws AnchorException {
     GetUniqueAddressResponse response = uniqueAddressIntegration.getUniqueAddress(txn.getId());
     GetUniqueAddressResponse.UniqueAddress uniqueAddress = response.getUniqueAddress();
-    if (uniqueAddress.getMemo() == null) {
-      uniqueAddress.setMemo("");
-    }
 
-    if (uniqueAddress.getMemoType() == null) {
-      uniqueAddress.setMemoType("");
-    }
-
-    if (!Objects.toString(uniqueAddress.getMemo(), "").isEmpty()) {
+    if (!Objects.toString(uniqueAddress.getMemo(), "").isEmpty()
+        && !Objects.toString(uniqueAddress.getMemoType(), "").isEmpty()) {
       // Check the validity of the returned memo and memo type
       MemoHelper.makeMemo(uniqueAddress.getMemo(), uniqueAddress.getMemoType());
     }

@@ -1,9 +1,12 @@
 package org.stellar.anchor.platform.service
 
 import io.mockk.MockKAnnotations
+import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
+import io.mockk.unmockkAll
 import java.util.*
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.assertThrows
@@ -26,6 +29,12 @@ class Sep31DepositInfoGeneratorApiTest {
     MockKAnnotations.init(this, relaxUnitFun = true)
   }
 
+  @AfterEach
+  fun teardown() {
+    clearAllMocks()
+    unmockkAll()
+  }
+
   @ParameterizedTest
   @CsvSource(
     value = [",", "123,id", "ABCD,text", "OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ=,hash"]
@@ -46,8 +55,8 @@ class Sep31DepositInfoGeneratorApiTest {
     val generator = Sep31DepositInfoGeneratorApi(uniqueAddressIntegration)
     val depositInfo = generator.generate(txn)
     assertEquals(stellarAddress, depositInfo.stellarAddress)
-    assertEquals(Objects.toString(memo, ""), depositInfo.memo)
-    assertEquals(Objects.toString(memoType, ""), depositInfo.memoType)
+    assertEquals(memo, depositInfo.memo)
+    assertEquals(memoType, depositInfo.memoType)
   }
 
   @ParameterizedTest
@@ -73,10 +82,7 @@ class Sep31DepositInfoGeneratorApiTest {
   @ValueSource(ints = [500, 501])
   fun test_generate_integration_exception(statusCode: Int) {
     every { txn.getId() } returns txnId
-    every { uniqueAddressIntegration.getUniqueAddress(any()) } answers
-      {
-        throw HttpException(statusCode)
-      }
+    every { uniqueAddressIntegration.getUniqueAddress(any()) } throws HttpException(statusCode)
 
     val generator = Sep31DepositInfoGeneratorApi(uniqueAddressIntegration)
     val ex = assertThrows<HttpException> { generator.generate(txn) }
