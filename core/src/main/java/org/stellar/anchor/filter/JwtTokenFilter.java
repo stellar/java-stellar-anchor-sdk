@@ -45,7 +45,8 @@ public class JwtTokenFilter implements Filter {
     HttpServletRequest request = (HttpServletRequest) servletRequest;
     HttpServletResponse response = (HttpServletResponse) servletResponse;
     Log.infoF(
-        "Applying JwtTokenFilter on request {}?{}",
+        "Applying JwtTokenFilter on request {} {}?{}",
+        request.getMethod(),
         request.getRequestURL().toString(),
         request.getQueryString());
 
