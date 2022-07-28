@@ -15,7 +15,8 @@ public class UniqueAddressService {
 
   UniqueAddressService(AppSettings appSettings) throws SepException {
     this.distributionWallet = appSettings.getDistributionWallet();
-    if (!Objects.toString(appSettings.getDistributionWalletMemo()).isEmpty()) {
+    if (!Objects.toString(appSettings.getDistributionWalletMemo(), "").isEmpty()
+        && !Objects.toString(appSettings.getDistributionWalletMemoType(), "").isEmpty()) {
       // check if memo and memoType are valid
       MemoHelper.makeMemo(
           appSettings.getDistributionWalletMemo(), appSettings.getDistributionWalletMemoType());
