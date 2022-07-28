@@ -42,6 +42,7 @@ public class TransactionService {
           PENDING_RECEIVER.getName(),
           PENDING_EXTERNAL.getName(),
           COMPLETED.getName(),
+          EXPIRED.getName(),
           ERROR.getName());
 
   TransactionService(

@@ -111,6 +111,7 @@ public class TransactionEvent implements AnchorEvent {
     PENDING_RECEIVER("pending_receiver"),
     PENDING_EXTERNAL("pending_external"),
     COMPLETED("completed"),
+    EXPIRED("expired"),
     ERROR("error");
 
     @JsonValue public final String status;

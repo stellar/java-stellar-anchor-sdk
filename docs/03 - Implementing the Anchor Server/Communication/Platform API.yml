@@ -76,6 +76,7 @@ paths:
               "pending_receiver",
               "pending_external",
               "completed",
+              "expired",
               "error"
             ]
       responses:

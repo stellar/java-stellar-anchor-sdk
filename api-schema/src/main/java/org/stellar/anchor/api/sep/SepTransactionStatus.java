@@ -20,6 +20,9 @@ public enum SepTransactionStatus {
       "pending_customer_info_update", "waiting for more customer information"),
   COMPLETED("completed", "complete"),
   REFUNDED("refunded", "the deposit/withdrawal is fully refunded"),
+  EXPIRED(
+      "expired",
+      " funds were never received by the anchor and the transaction is considered abandoned by the Sending Client. If a SEP-38 quote was specified when the transaction was initiated, the transaction should expire when the quote expires, otherwise anchors are responsible for determining when transactions are considered expired."),
   ERROR("error", "error"),
   PENDING_EXTERNAL("pending_external", "waiting on an external entity"),
   PENDING_STELLAR("pending_stellar", "stellar is executing the transaction");
