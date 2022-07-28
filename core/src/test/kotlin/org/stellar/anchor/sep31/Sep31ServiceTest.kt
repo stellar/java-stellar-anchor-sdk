@@ -712,6 +712,7 @@ class Sep31ServiceTest {
         "type": "1",
         "receiver_routing_number": "SWIFT"
       },
+      "amountExpected": "100",
       "amountIn": "100",
       "amountInAsset": "$stellarUSDC",
       "amountOut": "12500",

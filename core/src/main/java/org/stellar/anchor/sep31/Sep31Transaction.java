@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.sep31.Sep31GetTransactionResponse;
+import org.stellar.anchor.api.shared.Customers;
 import org.stellar.anchor.api.shared.StellarId;
 
 public interface Sep31Transaction {
@@ -19,6 +20,10 @@ public interface Sep31Transaction {
   Long getStatusEta();
 
   void setStatusEta(Long statusEta);
+
+  String getAmountExpected();
+
+  void setAmountExpected(String amountExpected);
 
   String getAmountIn();
 
@@ -59,6 +64,14 @@ public interface Sep31Transaction {
   Instant getStartedAt();
 
   void setStartedAt(Instant startedAt);
+
+  Instant getUpdatedAt();
+
+  void setUpdatedAt(Instant updatedAt);
+
+  Instant getTransferReceivedAt();
+
+  void setTransferReceivedAt(Instant transferReceivedAt);
 
   Instant getCompletedAt();
 
@@ -139,6 +152,12 @@ public interface Sep31Transaction {
     String getFee();
 
     void setFee(String fee);
+  }
+
+  default Customers getCustomers() {
+    return new Customers(
+        StellarId.builder().id(getSenderId()).build(),
+        StellarId.builder().id(getReceiverId()).build());
   }
 
   default Sep31GetTransactionResponse toSep31GetTransactionResponse() {

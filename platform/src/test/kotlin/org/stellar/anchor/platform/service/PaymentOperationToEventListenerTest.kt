@@ -137,6 +137,7 @@ class PaymentOperationToEventListenerTest {
     val slotMemo = slot<String>()
     val sep31TxMock = JdbcSep31Transaction()
     sep31TxMock.id = "ceaa7677-a5a7-434e-b02a-8e0801b3e7bd"
+    sep31TxMock.amountExpected = "10"
     sep31TxMock.amountIn = "10"
     sep31TxMock.amountInAsset = fooAsset
     sep31TxMock.amountOut = "20"
@@ -145,6 +146,8 @@ class PaymentOperationToEventListenerTest {
     sep31TxMock.amountFeeAsset = fooAsset
     sep31TxMock.quoteId = "cef1fc13-3f65-4612-b1f2-502d698c816b"
     sep31TxMock.startedAt = startedAtMock
+    sep31TxMock.updatedAt = createdAt
+    sep31TxMock.transferReceivedAt = createdAt
     sep31TxMock.stellarMemo = "OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ="
     sep31TxMock.stellarMemoType = "hash"
     sep31TxMock.status = SepTransactionStatus.PENDING_SENDER.toString()

@@ -29,6 +29,11 @@ public class Sep31TransactionBuilder {
     return this;
   }
 
+  public Sep31TransactionBuilder amountExpected(String amountExpected) {
+    txn.setAmountExpected(amountExpected);
+    return this;
+  }
+
   public Sep31TransactionBuilder amountIn(String amountIn) {
     txn.setAmountIn(amountIn);
     return this;
@@ -71,6 +76,16 @@ public class Sep31TransactionBuilder {
 
   public Sep31TransactionBuilder stellarMemoType(String stellarMemoType) {
     txn.setStellarMemoType(stellarMemoType);
+    return this;
+  }
+
+  public Sep31TransactionBuilder updatedAt(Instant updatedAt) {
+    txn.setUpdatedAt(updatedAt);
+    return this;
+  }
+
+  public Sep31TransactionBuilder transferReceivedAt(Instant transferReceivedAt) {
+    txn.setTransferReceivedAt(transferReceivedAt);
     return this;
   }
 

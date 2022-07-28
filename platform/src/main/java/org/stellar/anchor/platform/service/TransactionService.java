@@ -9,9 +9,9 @@ import io.micrometer.core.instrument.Metrics;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
-import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
@@ -24,16 +24,17 @@ import org.stellar.anchor.api.platform.PatchTransactionsResponse;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.shared.Amount;
 import org.stellar.anchor.asset.AssetService;
-import org.stellar.anchor.platform.data.JdbcSep31Transaction;
-import org.stellar.anchor.platform.data.JdbcSep31TransactionStore;
+import org.stellar.anchor.event.models.TransactionEvent;
 import org.stellar.anchor.sep31.Sep31Transaction;
+import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep38.Sep38Quote;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
+import org.stellar.anchor.util.Log;
 
 @Service
 public class TransactionService {
   private final Sep38QuoteStore quoteStore;
-  private final JdbcSep31TransactionStore txnStore;
+  private final Sep31TransactionStore txnStore;
   private final List<AssetInfo> assets;
   static List<String> validStatuses =
       List.of(
@@ -45,23 +46,24 @@ public class TransactionService {
           ERROR.getName());
 
   TransactionService(
-      Sep38QuoteStore quoteStore, JdbcSep31TransactionStore txnStore, AssetService assetService) {
+      Sep38QuoteStore quoteStore, Sep31TransactionStore txnStore, AssetService assetService) {
     this.quoteStore = quoteStore;
     this.txnStore = txnStore;
     this.assets = assetService.listAllAssets();
   }
 
   public GetTransactionResponse getTransaction(String txnId) throws AnchorException {
-    JdbcSep31Transaction txn = (JdbcSep31Transaction) txnStore.findByTransactionId(txnId);
+    if (Objects.toString(txnId, "").isEmpty()) {
+      Log.info("Rejecting GET {platformApi}/transaction/:id because the id is empty.");
+      throw new BadRequestException("transaction id cannot be empty");
+    }
+
+    Sep31Transaction txn = txnStore.findByTransactionId(txnId);
     if (txn == null) {
       throw new NotFoundException(String.format("transaction (id=%s) is not found", txnId));
     }
 
-    GetTransactionResponse txnResponse = fromTransactionToResponse(txn);
-    GetTransactionResponse response = new GetTransactionResponse();
-    BeanUtils.copyProperties(txnResponse, response);
-
-    return response;
+    return fromTransactionToResponse(txn);
   }
 
   public PatchTransactionsResponse patchTransactions(PatchTransactionsRequest request)
@@ -74,12 +76,12 @@ public class TransactionService {
         fetchedTxns.stream()
             .collect(Collectors.toMap(Sep31Transaction::getId, Function.identity()));
 
-    List<JdbcSep31Transaction> txnsToSave = new LinkedList<>();
+    List<Sep31Transaction> txnsToSave = new LinkedList<>();
     List<GetTransactionResponse> responses = new LinkedList<>();
-    List<JdbcSep31Transaction> statusUpdatedTxns = new LinkedList<>();
+    List<Sep31Transaction> statusUpdatedTxns = new LinkedList<>();
 
     for (PatchTransactionRequest patch : patchRequests) {
-      JdbcSep31Transaction txn = (JdbcSep31Transaction) sep31Transactions.get(patch.getId());
+      Sep31Transaction txn = sep31Transactions.get(patch.getId());
       if (txn != null) {
         String txnOriginalStatus = txn.getStatus();
         // validate and update the transaction.
@@ -94,21 +96,22 @@ public class TransactionService {
         throw new BadRequestException(String.format("transaction(id=%s) not found", patch.getId()));
       }
     }
-    for (JdbcSep31Transaction txn : txnsToSave) {
+    for (Sep31Transaction txn : txnsToSave) {
       // TODO: consider 2-phase commit DB transaction management.
       txnStore.save(txn);
     }
-    for (JdbcSep31Transaction txn : statusUpdatedTxns) {
+    for (Sep31Transaction txn : statusUpdatedTxns) {
       Metrics.counter(AnchorMetrics.SEP31_TRANSACTION.toString(), "status", txn.getStatus())
           .increment();
     }
     return new PatchTransactionsResponse(responses);
   }
 
-  GetTransactionResponse fromTransactionToResponse(JdbcSep31Transaction txn) {
+  GetTransactionResponse fromTransactionToResponse(Sep31Transaction txn) {
     return GetTransactionResponse.builder()
         .id(txn.getId())
         .sep(31)
+        .kind(TransactionEvent.Kind.RECEIVE.getKind())
         .status(txn.getStatus())
         .amountExpected(new Amount(txn.getAmountExpected(), txn.getAmountInAsset()))
         .amountIn(new Amount(txn.getAmountIn(), txn.getAmountInAsset()))
@@ -119,13 +122,17 @@ public class TransactionService {
         .updatedAt(txn.getUpdatedAt())
         .completedAt(txn.getCompletedAt())
         .transferReceivedAt(txn.getTransferReceivedAt())
-        .message(txn.getMessage())
-        .externalId(txn.getExternalTransactionId())
-        // TODO: Add support for [refunds, stellarTransaction, custodialId, creator]
+        .message(txn.getRequiredInfoMessage()) // TODO: are these meant to be the same?
+        // TODO: .refunds(...)
+        // TODO: .stellarTransactions(...)
+        .externalTransactionId(txn.getExternalTransactionId())
+        // TODO .custodialTransactionId(txn.get)
+        .customers(txn.getCustomers())
+        .creator(txn.getCreator())
         .build();
   }
 
-  void updateSep31Transaction(PatchTransactionRequest ptr, JdbcSep31Transaction txn)
+  void updateSep31Transaction(PatchTransactionRequest ptr, Sep31Transaction txn)
       throws AnchorException {
     if (ptr.getStatus() != null) {
       validatePlatformApiStatus(ptr.getStatus());
@@ -150,7 +157,7 @@ public class TransactionService {
       txn.setTransferReceivedAt(ptr.getTransferReceivedAt());
     }
     if (ptr.getMessage() != null) {
-      txn.setMessage(ptr.getMessage());
+      txn.setRequiredInfoMessage(ptr.getMessage());
     }
     if (ptr.getExternalTransactionId() != null) {
       txn.setExternalTransactionId(ptr.getExternalTransactionId());
@@ -178,7 +185,7 @@ public class TransactionService {
     }
   }
 
-  void validateQuoteAndAmounts(JdbcSep31Transaction txn) throws AnchorException {
+  void validateQuoteAndAmounts(Sep31Transaction txn) throws AnchorException {
     // amount_in = amount_out + amount_fee
     if (txn.getQuoteId() == null) {
       // without exchange
@@ -226,7 +233,7 @@ public class TransactionService {
     }
   }
 
-  void validateTimestamps(JdbcSep31Transaction txn) throws BadRequestException {
+  void validateTimestamps(Sep31Transaction txn) throws BadRequestException {
     if (txn.getTransferReceivedAt() != null
         && txn.getTransferReceivedAt().compareTo(txn.getStartedAt()) < 0) {
       throw new BadRequestException(

@@ -159,6 +159,7 @@ public class Sep31Service {
             .receiverId(Context.get().getRequest().getReceiverId())
             .creator(creatorStellarId)
             // updateAmounts will update these ⬇️
+            .amountExpected(request.getAmount())
             .amountIn(request.getAmount())
             .amountInAsset(assetInfo.getAssetName())
             .amountOut(null)
@@ -189,7 +190,7 @@ public class Sep31Service {
             .status(TransactionEvent.Status.PENDING_SENDER)
             .statusChange(
                 new TransactionEvent.StatusChange(null, TransactionEvent.Status.PENDING_SENDER))
-            .amountExpected(new Amount(txn.getAmountIn(), txn.getAmountInAsset()))
+            .amountExpected(new Amount(txn.getAmountExpected(), txn.getAmountInAsset()))
             .amountIn(new Amount(txn.getAmountIn(), txn.getAmountInAsset()))
             .amountOut(new Amount(txn.getAmountOut(), txn.getAmountOutAsset()))
             .amountFee(new Amount(txn.getAmountFee(), txn.getAmountFeeAsset()))
@@ -249,6 +250,7 @@ public class Sep31Service {
     debugF("Updating transaction ({}) with quote ({})", txn.getId(), quote.getId());
     txn.setAmountInAsset(quote.getSellAsset());
     txn.setAmountIn(quote.getSellAmount());
+    txn.setAmountExpected(quote.getSellAmount());
     txn.setAmountOutAsset(quote.getBuyAsset());
     txn.setAmountOut(quote.getBuyAmount());
     txn.setAmountFee(quote.getFee().getTotal());
@@ -287,6 +289,7 @@ public class Sep31Service {
 
     // Update transaction
     txn.setAmountIn(formatAmount(amountIn, scale));
+    txn.setAmountExpected(formatAmount(amountIn, scale));
     txn.setAmountInAsset(reqAsset.getAssetName());
     txn.setAmountOut(formatAmount(amountOut, scale));
     txn.setAmountOutAsset(reqAsset.getAssetName());

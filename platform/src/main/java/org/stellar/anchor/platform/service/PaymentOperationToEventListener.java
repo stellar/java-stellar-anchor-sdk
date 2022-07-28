@@ -116,6 +116,10 @@ public class PaymentOperationToEventListener implements PaymentListener {
     if (txn.getStatus().equals(SepTransactionStatus.PENDING_SENDER.toString())) {
       txn.setStatus(SepTransactionStatus.PENDING_RECEIVER.toString());
       txn.setStellarTransactionId(payment.getTransactionHash());
+      Instant paymentTime =
+          DateTimeFormatter.ISO_INSTANT.parse(payment.getCreatedAt(), Instant::from);
+      txn.setUpdatedAt(paymentTime);
+      txn.setTransferReceivedAt(paymentTime);
       try {
         transactionStore.save(txn);
         Metrics.counter(
@@ -142,9 +146,6 @@ public class PaymentOperationToEventListener implements PaymentListener {
   }
 
   TransactionEvent receivedPaymentToEvent(Sep31Transaction txn, ObservedPayment payment) {
-    Instant paymentTime =
-        DateTimeFormatter.ISO_INSTANT.parse(payment.getCreatedAt(), Instant::from);
-
     TransactionEvent.Status oldStatus = TransactionEvent.Status.from(txn.getStatus());
     TransactionEvent.Status newStatus = TransactionEvent.Status.PENDING_RECEIVER;
     TransactionEvent.StatusChange statusChange =
@@ -161,16 +162,16 @@ public class PaymentOperationToEventListener implements PaymentListener {
             .kind(TransactionEvent.Kind.RECEIVE)
             .status(newStatus)
             .statusChange(statusChange)
-            .amountExpected(new Amount(txn.getAmountIn(), txn.getAmountInAsset()))
+            .amountExpected(new Amount(txn.getAmountExpected(), txn.getAmountInAsset()))
             .amountIn(new Amount(payment.getAmount(), txn.getAmountInAsset()))
             .amountOut(new Amount(txn.getAmountOut(), txn.getAmountOutAsset()))
             // TODO: fix PATCH transaction fails if getAmountOut is null?
             .amountFee(new Amount(txn.getAmountFee(), txn.getAmountFeeAsset()))
             .quoteId(txn.getQuoteId())
             .startedAt(txn.getStartedAt())
-            .updatedAt(paymentTime)
+            .updatedAt(txn.getUpdatedAt())
             .completedAt(null)
-            .transferReceivedAt(paymentTime)
+            .transferReceivedAt(txn.getTransferReceivedAt())
             .message("Incoming payment for SEP-31 transaction")
             .refunds(null)
             .stellarTransactions(
@@ -179,7 +180,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
                       .id(payment.getTransactionHash())
                       .memo(txn.getStellarMemo())
                       .memoType(txn.getStellarMemoType())
-                      .createdAt(paymentTime)
+                      .createdAt(txn.getTransferReceivedAt())
                       .envelope(payment.getTransactionEnvelope())
                       .payments(
                           new Payment[] {

@@ -52,11 +52,11 @@ public class GetTransactionResponse {
   @SerializedName("stellar_transactions")
   List<StellarTransaction> stellarTransactions;
 
-  @SerializedName("external_id")
-  String externalId;
+  @SerializedName("external_transaction_id")
+  String externalTransactionId;
 
-  @SerializedName("custodial_id")
-  String custodialId;
+  @SerializedName("custodial_transaction_id")
+  String custodialTransactionId;
 
   Customers customers;
   StellarId creator;

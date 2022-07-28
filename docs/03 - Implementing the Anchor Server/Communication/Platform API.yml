@@ -168,6 +168,12 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Transaction'
+        '400':
+          description: "Bad Request"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
         '404':
           description: "Transaction not found."
           content:
