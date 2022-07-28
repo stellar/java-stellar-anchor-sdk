@@ -30,7 +30,7 @@ resource "aws_ecs_task_definition" "sep" {
                     "awslogs-region": "${var.aws_region}",
                     "awslogs-create-group": "true",
                     "awslogs-stream-prefix": "sep",
-                    "awslogs-multiline-pattern": "^[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3} \w+ -", 
+                    "awslogs-multiline-pattern": "^[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3} \\w+ -", 
                 }
             }
   },{
