@@ -12,6 +12,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
+import javax.transaction.Transactional;
 import lombok.Data;
 import lombok.SneakyThrows;
 import org.stellar.anchor.api.callback.CustomerIntegration;
@@ -80,6 +81,7 @@ public class Sep31Service {
     return infoResponse;
   }
 
+  @Transactional(rollbackOn = {AnchorException.class, RuntimeException.class})
   public Sep31PostTransactionResponse postTransaction(
       JwtToken jwtToken, Sep31PostTransactionRequest request) throws AnchorException {
     Context.reset();
@@ -161,8 +163,11 @@ public class Sep31Service {
 
     Context.get().setTransaction(txn);
     updateAmounts();
-    updateDepositInfo(txn);
-    sep31TransactionStore.save(txn);
+
+    Context.get().setTransaction(sep31TransactionStore.save(txn));
+    txn = Context.get().getTransaction();
+
+    updateDepositInfo();
 
     StellarId senderStellarId = StellarId.builder().id(txn.getSenderId()).build();
     StellarId receiverStellarId = StellarId.builder().id(txn.getReceiverId()).build();
@@ -270,8 +275,9 @@ public class Sep31Service {
     Context.get().getFee().setAmount(feeStr);
   }
 
-  private void updateDepositInfo(Sep31Transaction txn) {
-    Sep31DepositInfo depositInfo = sep31DepositInfoGenerator.getSep31DepositInfo(txn);
+  void updateDepositInfo() throws AnchorException {
+    Sep31Transaction txn = Context.get().getTransaction();
+    Sep31DepositInfo depositInfo = sep31DepositInfoGenerator.generate(txn);
     infoF("Updating transaction ({}) with depositInfo ({})", txn.getId(), depositInfo);
     txn.setStellarAccountId(depositInfo.getStellarAddress());
     txn.setStellarMemo(depositInfo.getMemo());
@@ -293,6 +299,7 @@ public class Sep31Service {
     return fromTransactionToResponse(txn);
   }
 
+  @Transactional(rollbackOn = {AnchorException.class, RuntimeException.class})
   public Sep31GetTransactionResponse patchTransaction(Sep31PatchTransactionRequest request)
       throws AnchorException {
     if (request == null) {

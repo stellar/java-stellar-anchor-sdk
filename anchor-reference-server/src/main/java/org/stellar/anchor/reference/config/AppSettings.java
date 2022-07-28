@@ -11,4 +11,7 @@ public class AppSettings {
   String version;
   String platformApiEndpoint;
   String hostUrl;
+  String distributionWallet;
+  String distributionWalletMemo;
+  String distributionWalletMemoType;
 }
