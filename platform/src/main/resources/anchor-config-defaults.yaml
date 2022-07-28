@@ -234,7 +234,7 @@ app-config:
     publisherType: kafka
 
   metrics-service:
-    optionalMetricsEnabled: true    # optional metrics that periodically query the database
+    optionalMetricsEnabled: false    # optional metrics that periodically query the database
     runInterval: 30                 # interval to query the database to generate the optional metrics
 
   kafka.publisher:
