@@ -6,6 +6,7 @@ import org.stellar.anchor.api.callback.GetUniqueAddressResponse;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.reference.config.AppSettings;
 import org.stellar.anchor.util.MemoHelper;
+import org.stellar.sdk.KeyPair;
 
 @Service
 public class UniqueAddressService {
@@ -15,6 +16,17 @@ public class UniqueAddressService {
 
   UniqueAddressService(AppSettings appSettings) throws SepException {
     this.distributionWallet = appSettings.getDistributionWallet();
+    if (Objects.toString(appSettings.getDistributionWallet(), "").isEmpty()) {
+      throw new SepException("distributionWallet is empty");
+    }
+
+    try {
+      KeyPair.fromAccountId(this.distributionWallet);
+    } catch (Exception ex) {
+      throw new SepException(
+          String.format("Invalid distributionWallet: [%s]", this.distributionWallet));
+    }
+
     if (!Objects.toString(appSettings.getDistributionWalletMemo(), "").isEmpty()
         && !Objects.toString(appSettings.getDistributionWalletMemoType(), "").isEmpty()) {
       // check if memo and memoType are valid
