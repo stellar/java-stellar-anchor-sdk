@@ -4,7 +4,10 @@ import com.google.gson.annotations.SerializedName;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 /**
  * Refer to SEP-12.
@@ -12,6 +15,9 @@ import lombok.Data;
  * <p>https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0012.md#fields
  */
 @Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class Field {
   Type type;
   String description;

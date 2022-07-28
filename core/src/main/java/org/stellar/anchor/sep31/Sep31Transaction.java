@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import org.stellar.anchor.api.sep.AssetInfo;
+import org.stellar.anchor.event.models.StellarId;
 
 public interface Sep31Transaction {
   String getId();
@@ -97,6 +98,18 @@ public interface Sep31Transaction {
   String getClientDomain();
 
   void setClientDomain(String clientDomain);
+
+  void setSenderId(String sourceId);
+
+  String getSenderId();
+
+  void setReceiverId(String destinationId);
+
+  String getReceiverId();
+
+  StellarId getCreator();
+
+  void setCreator(StellarId creator);
 
   interface Refunds {
 

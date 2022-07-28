@@ -1,9 +1,9 @@
 package org.stellar.anchor.platform
 
 import io.mockk.*
-import java.io.IOException
 import java.time.Instant
 import java.time.format.DateTimeFormatter
+import java.util.Calendar
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.hamcrest.CoreMatchers
@@ -23,18 +23,32 @@ import org.stellar.anchor.api.exception.ServerErrorException
 import org.stellar.anchor.api.sep.sep38.RateFee
 import org.stellar.anchor.api.sep.sep38.RateFeeDetail
 import org.stellar.anchor.api.sep.sep38.Sep38Context.*
+import org.stellar.anchor.auth.AuthHelper
+import org.stellar.anchor.auth.JwtService
+import org.stellar.anchor.auth.JwtToken
 import org.stellar.anchor.platform.callback.RestRateIntegration
 import org.stellar.anchor.reference.model.Quote
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.OkHttpUtil
 
 class RestRateIntegrationTest {
+  companion object {
+    private const val PLATFORM_TO_ANCHOR_SECRET = "myPlatformToAnchorSecret"
+    private const val JWT_EXPIRATION_MILLISECONDS: Long = 100000000
+    private val platformToAnchorJwtService = JwtService(PLATFORM_TO_ANCHOR_SECRET)
+    private val authHelper =
+      AuthHelper.forJwtToken(
+        platformToAnchorJwtService,
+        JWT_EXPIRATION_MILLISECONDS,
+        "http://localhost:8080"
+      )
+  }
   private lateinit var server: MockWebServer
   private lateinit var rateIntegration: RestRateIntegration
+  private lateinit var mockJwtToken: String
   private val gson = GsonUtils.getInstance()
 
   @BeforeEach
-  @Throws(IOException::class)
   fun setUp() {
     server = MockWebServer()
     server.start()
@@ -42,8 +56,26 @@ class RestRateIntegrationTest {
       RestRateIntegration(
         server.url("").toString(),
         OkHttpUtil.buildClient(),
+        authHelper,
         GsonUtils.getInstance()
       )
+
+    // Mock calendar to guarantee the jwt token format
+    val calendarSingleton = Calendar.getInstance()
+    val currentTimeMilliseconds = calendarSingleton.getTimeInMillis()
+    mockkObject(calendarSingleton)
+    every { calendarSingleton.getTimeInMillis() } returns currentTimeMilliseconds
+    every { calendarSingleton.setTimeInMillis(any()) } answers { callOriginal() }
+    mockkStatic(Calendar::class)
+    every { Calendar.getInstance() } returns calendarSingleton
+    // mock jwt token based on the mocked calendar
+    val jwtToken =
+      JwtToken.of(
+        "http://localhost:8080",
+        currentTimeMilliseconds / 1000L,
+        (currentTimeMilliseconds + JWT_EXPIRATION_MILLISECONDS) / 1000L
+      )
+    mockJwtToken = platformToAnchorJwtService.encode(jwtToken)
   }
 
   @AfterEach
@@ -122,7 +154,7 @@ class RestRateIntegrationTest {
       val request = server.takeRequest()
       assertEquals("GET", request.method)
       assertEquals("application/json", request.headers["Content-Type"])
-      assertEquals(null, request.headers["Authorization"])
+      assertEquals("Bearer $mockJwtToken", request.headers["Authorization"])
       MatcherAssert.assertThat(request.path, CoreMatchers.endsWith(endpoint))
     }
 
@@ -267,7 +299,7 @@ class RestRateIntegrationTest {
       val request = server.takeRequest()
       assertEquals("GET", request.method)
       assertEquals("application/json", request.headers["Content-Type"])
-      assertEquals(null, request.headers["Authorization"])
+      assertEquals("Bearer $mockJwtToken", request.headers["Authorization"])
       MatcherAssert.assertThat(request.path, CoreMatchers.endsWith("/rate?type=$type"))
       assertEquals("", request.body.readUtf8())
     }
@@ -442,7 +474,7 @@ class RestRateIntegrationTest {
       val request = server.takeRequest()
       assertEquals("GET", request.method)
       assertEquals("application/json", request.headers["Content-Type"])
-      assertEquals(null, request.headers["Authorization"])
+      assertEquals("Bearer $mockJwtToken", request.headers["Authorization"])
       MatcherAssert.assertThat(request.path, CoreMatchers.endsWith("/rate?type=$type"))
       assertEquals("", request.body.readUtf8())
     }

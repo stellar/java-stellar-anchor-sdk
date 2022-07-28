@@ -2,15 +2,57 @@ Configutation:
   name: default
   Appenders:
     Console:
-      name: console_appender
-      target: SYSTEM_OUT
-      PatternLayout:
-        pattern: "%d{HH:mm:ss.SSS} %-5level - %c{1.} - %msg%n"
+      - name: console_appender
+        target: SYSTEM_OUT
+        PatternLayout:
+          pattern: "%d{HH:mm:ss.SSS} %-5level - %c{1.} - %msg%n"
+      - name: console_splunk_json_appender
+        target: SYSTEM_OUT
+        JSONTemplateLayout:
+            eventTemplate: |
+              {
+                "time": {
+                  "$resolver": "timestamp",
+                  "epoch": {
+                    "unit": "secs",
+                    "rounded": true
+                  }
+                },
+                "source": {
+                  "$resolver": "logger",
+                  "field": "name"
+                },
+                "index": {
+                    "$resolver": "thread",
+                    "field": "name"
+                },
+                "event": {
+                  "message" : {
+                    "$resolver": "message",
+                    "stringified": true
+                  },
+                  "severity": {
+                    "$resolver": "level",
+                    "field": "name"
+                  },
+                  "error_message": {
+                      "$resolver": "exception",
+                      "field": "message"
+                  },
+                  "error_stack_trace": {
+                    "$resolver": "exception",
+                    "field": "stackTrace",
+                    "stackTrace": {
+                      "stringified": true
+                    }
+                  }
+                }
+              }
   Loggers:
     Root:
       level: info
       AppenderRef:
-        - ref: console_appender
+        - ref: ${env:LOG_APPENDER:-console_appender}
     Logger:
       - name: org.stellar
         level: debug

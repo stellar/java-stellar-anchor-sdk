@@ -18,14 +18,22 @@ public class GetTransactionsRequest {
 
   String kind;
 
+  String lang;
+
   public static GetTransactionsRequest of(
-      String assetCode, String kind, Integer limit, String noOlderThan, String pagingId) {
+      String assetCode,
+      String kind,
+      Integer limit,
+      String noOlderThan,
+      String pagingId,
+      String lang) {
     GetTransactionsRequest r = new GetTransactionsRequest();
     r.assetCode = assetCode;
     r.kind = kind;
     r.limit = limit;
     r.noOlderThan = noOlderThan;
     r.pagingId = pagingId;
+    r.lang = lang;
     return r;
   }
 }

@@ -6,7 +6,7 @@ import org.springframework.context.annotation.Configuration;
 
 @Data
 @Configuration
-@ConfigurationProperties(prefix = "kafka.listener")
+@ConfigurationProperties(prefix = "amqp.listener")
 public class AmqpListenerSettings {
   String endpoint;
 }

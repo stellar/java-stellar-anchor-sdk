@@ -18,7 +18,10 @@ import org.stellar.anchor.api.callback.GetRateRequest
 import org.stellar.anchor.api.callback.GetRateRequest.Type.*
 import org.stellar.anchor.api.exception.NotFoundException
 import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerRequest
+import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest
 import org.stellar.anchor.api.sep.sep38.Sep38Context.*
+import org.stellar.anchor.auth.AuthHelper
+import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.Sep10Config
 import org.stellar.anchor.config.Sep1Config
@@ -35,6 +38,17 @@ class AnchorPlatformIntegrationTest {
   companion object {
     private const val SEP_SERVER_PORT = 8080
     private const val REFERENCE_SERVER_PORT = 8081
+
+    private const val PLATFORM_TO_ANCHOR_SECRET = "myPlatformToAnchorSecret"
+    private const val JWT_EXPIRATION_MILLISECONDS: Long = 10000
+    private val platformToAnchorJwtService = JwtService(PLATFORM_TO_ANCHOR_SECRET)
+    private val authHelper =
+      AuthHelper.forJwtToken(
+        platformToAnchorJwtService,
+        JWT_EXPIRATION_MILLISECONDS,
+        "http://localhost:$SEP_SERVER_PORT"
+      )
+
     private lateinit var toml: Sep1Helper.TomlContent
     private lateinit var jwt: String
     private val httpClient: OkHttpClient =
@@ -45,18 +59,24 @@ class AnchorPlatformIntegrationTest {
         .build()
     private val gson: Gson = GsonUtils.getInstance()
     private val rci =
-      RestCustomerIntegration("http://localhost:$REFERENCE_SERVER_PORT", httpClient, gson)
+      RestCustomerIntegration(
+        "http://localhost:$REFERENCE_SERVER_PORT",
+        httpClient,
+        authHelper,
+        gson
+      )
     private val rri =
-      RestRateIntegration("http://localhost:$REFERENCE_SERVER_PORT", httpClient, gson)
+      RestRateIntegration("http://localhost:$REFERENCE_SERVER_PORT", httpClient, authHelper, gson)
     private val rfi =
-      RestFeeIntegration("http://localhost:$REFERENCE_SERVER_PORT", httpClient, gson)
+      RestFeeIntegration("http://localhost:$REFERENCE_SERVER_PORT", httpClient, authHelper, gson)
     const val fiatUSD = "iso4217:USD"
-    const val stellarUSDC = "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+    const val stellarUSDC = "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
     private lateinit var platformServerContext: ConfigurableApplicationContext
     init {
       val props = System.getProperties()
       props.setProperty("REFERENCE_SERVER_CONFIG", "classpath:/anchor-reference-server.yaml")
     }
+
     @BeforeAll
     @JvmStatic
     fun setup() {
@@ -64,13 +84,12 @@ class AnchorPlatformIntegrationTest {
         AnchorPlatformServer.start(
           SEP_SERVER_PORT,
           "/",
-          mapOf("stellar.anchor.config" to "classpath:/integration-test.anchor-config.yaml")
+          mapOf("stellar.anchor.config" to "classpath:/integration-test.anchor-config.yaml"),
+          true
         )
 
       AnchorReferenceServer.start(REFERENCE_SERVER_PORT, "/")
     }
-
-    @AfterAll fun tearDown() {}
   }
 
   private fun readSep1Toml(): Sep1Helper.TomlContent {
@@ -251,14 +270,25 @@ class AnchorPlatformIntegrationTest {
 
   @Test
   fun testGetFee() {
+    // Create sender customer
+    val senderCustomerRequest =
+      GsonUtils.getInstance().fromJson(testCustomer1Json, Sep12PutCustomerRequest::class.java)
+    val senderCustomer = sep12Client.putCustomer(senderCustomerRequest)
+
+    // Create receiver customer
+    val receiverCustomerRequest =
+      GsonUtils.getInstance().fromJson(testCustomer2Json, Sep12PutCustomerRequest::class.java)
+    val receiverCustomer = sep12Client.putCustomer(receiverCustomerRequest)
+
     val result =
       rfi.getFee(
         GetFeeRequest.builder()
           .sendAmount("10")
           .sendAsset("USDC")
           .receiveAsset("USDC")
-          .senderId("sender_id")
-          .receiverId("receiver_id")
+          .senderId(senderCustomer!!.id)
+          .receiverId(receiverCustomer!!.id)
+          .clientId("<client-id>")
           .build()
       )
 
@@ -283,13 +313,14 @@ class AnchorPlatformIntegrationTest {
         "sep10.enabled" to "true",
         "sep10.homeDomain" to "localhost:8080",
         "sep10.signingSeed" to "SAX3AH622R2XT6DXWWSRIDCMMUCCMATBZ5U6XKJWDO7M2EJUBFC3AW5X",
+        "sep24.enabled" to "true",
+        "sep31.enabled" to "true",
         "sep38.enabled" to "true",
         "sep38.quoteIntegrationEndPoint" to "http://localhost:8081",
         "payment-gateway.circle.name" to "circle",
         "payment-gateway.circle.enabled" to "true",
         "spring.jpa.properties.hibernate.dialect" to "org.hibernate.dialect.H2Dialect",
-        "logging.level.root" to "INFO",
-        "server.servlet.context-path" to "/"
+        "logging.level.root" to "INFO"
       )
 
     tests.forEach { assertEquals(it.value, platformServerContext.environment[it.key]) }
@@ -310,7 +341,7 @@ class AnchorPlatformIntegrationTest {
   fun testSep1Config() {
     val sep1Config = platformServerContext.getBean(Sep1Config::class.java)
     assertEquals(true, sep1Config.isEnabled)
-    assertEquals("sep1/stellar-wks.toml", sep1Config.stellarFile)
+    assertEquals("classpath:/sep1/test-stellar.toml", sep1Config.stellarFile)
   }
 
   @Test

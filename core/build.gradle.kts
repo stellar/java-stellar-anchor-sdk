@@ -25,12 +25,15 @@ dependencies {
   implementation(libs.reactor.core)
   implementation(libs.javax.jaxb.api)
   implementation(libs.java.stellar.sdk)
+  implementation("io.micrometer:micrometer-registry-prometheus:1.9.0")
+  implementation("javax.transaction:javax.transaction-api:1.3")
 
   implementation(project(":api-schema"))
 
   // Lombok should be used by all sub-projects to reduce Java verbosity
   annotationProcessor(libs.lombok)
 
+  testImplementation(libs.okhttp3.mockserver)
   testImplementation(libs.servlet.api)
   testImplementation(libs.slf4j.api)
 }
