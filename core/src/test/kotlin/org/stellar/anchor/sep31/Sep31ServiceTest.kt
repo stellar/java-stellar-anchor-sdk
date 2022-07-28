@@ -635,7 +635,9 @@ class Sep31ServiceTest {
 
     // mock sep31 deposit info generation
     val txForDepositInfoGenerator = slot<Sep31Transaction>()
-    every { sep31DepositInfoGenerator.generate(capture(txForDepositInfoGenerator)) } answers
+    every {
+      sep31DepositInfoGenerator.getSep31DepositInfo(capture(txForDepositInfoGenerator))
+    } answers
       {
         val tx: Sep31Transaction = txForDepositInfoGenerator.captured
         var memo = StringUtils.truncate(tx.id, 32)
@@ -650,11 +652,7 @@ class Sep31ServiceTest {
 
     // mock transaction save
     val slotTxn = slot<Sep31Transaction>()
-    every { txnStore.save(capture(slotTxn)) } answers
-      {
-        firstArg<Sep31Transaction>().id = "ABC-123"
-        firstArg()
-      }
+    every { txnStore.save(capture(slotTxn)) } returns null
 
     // POST transaction
     val jwtToken = TestHelper.createJwtToken(accountMemo = TestHelper.TEST_MEMO)
@@ -667,7 +665,7 @@ class Sep31ServiceTest {
     request = Sep12GetCustomerRequest.builder().id(receiverId).type("sep31-receiver").build()
     verify(exactly = 1) { customerIntegration.getCustomer(request) }
     verify(exactly = 1) { quoteStore.findByQuoteId("my_quote_id") }
-    verify(exactly = 1) { sep31DepositInfoGenerator.generate(any()) }
+    verify(exactly = 1) { sep31DepositInfoGenerator.getSep31DepositInfo(any()) }
     verify(exactly = 1) { eventPublishService.publish(any()) }
 
     // validate the values of the saved sep31Transaction
@@ -796,14 +794,8 @@ class Sep31ServiceTest {
 
   @Test
   fun test_postTransaction_quoteNotSupported() {
-    every { sep31DepositInfoGenerator.generate(any()) } returns
+    every { sep31DepositInfoGenerator.getSep31DepositInfo(any()) } returns
       Sep31DepositInfo("GA7FYRB5VREZKOBIIKHG5AVTPFGWUBPOBF7LTYG4GTMFVIOOD2DWAL7I", "123456", "id")
-
-    every { txnStore.save(any()) } answers
-      {
-        firstArg<Sep31Transaction>().id = "ABC-123"
-        firstArg()
-      }
 
     val assetServiceQuotesNotSupported: AssetService =
       ResourceJsonAssetService(

@@ -5,8 +5,6 @@ public interface Sep31Config {
 
   String getFeeIntegrationEndPoint();
 
-  String getUniqueAddressIntegrationEndPoint();
-
   PaymentType getPaymentType();
 
   DepositInfoGeneratorType getDepositInfoGeneratorType();
@@ -18,7 +16,6 @@ public interface Sep31Config {
 
   enum DepositInfoGeneratorType {
     SELF,
-    CIRCLE,
-    API
+    CIRCLE
   }
 }

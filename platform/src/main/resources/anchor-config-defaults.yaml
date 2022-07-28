@@ -76,9 +76,6 @@ app-config:
     # The secret key of JWT encryption
     jwtSecretKey: ${JWT_SECRET}
 
-  anchor-callback:
-    endpoint: http://localhost:8081
-
   # These are secrets shared between Anchor and Platform that are used to safely communicate from `Platform->Anchor`
   # and `Anchor->Platform`, specially when they are in different clusters.
   #
@@ -177,11 +174,8 @@ app-config:
   sep31:
     enabled: true
 
-    # The /fee callback API endpoint.
+    # The callback API endpoint.
     feeIntegrationEndPoint: http://localhost:8081
-
-    # The /unique_address callback API endpoint.
-    uniqueAddressIntegrationEndPoint: http://localhost:8081
 
     #
     # paymentType: used to determine how amount_in is calculated from amount in the POST /transaction call
@@ -196,8 +190,7 @@ app-config:
     # Possible values:
     #     self: the memo and memo type are generated in the local code, and the distribution account is used for the deposit address.
     #     circle: the memo and memo type are generated through Circle API, as well as the deposit address.
-    #     api: the memo and memo type are generated through calling the anchor's GET /unique_address endpoint.
-    depositInfoGeneratorType: self # self or circle or api
+    depositInfoGeneratorType: self # self or circle
 
   # sep-38
   sep38:

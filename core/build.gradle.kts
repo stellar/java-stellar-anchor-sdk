@@ -26,7 +26,6 @@ dependencies {
   implementation(libs.javax.jaxb.api)
   implementation(libs.java.stellar.sdk)
   implementation("io.micrometer:micrometer-registry-prometheus:1.9.0")
-  implementation("javax.transaction:javax.transaction-api:1.3")
 
   implementation(project(":api-schema"))
 

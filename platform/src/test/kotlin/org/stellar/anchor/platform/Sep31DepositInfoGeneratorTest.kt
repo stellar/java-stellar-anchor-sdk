@@ -1,8 +1,9 @@
-package org.stellar.anchor.sep31
+package org.stellar.anchor.platform
 
 import com.google.gson.Gson
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
+import java.lang.reflect.Method
 import java.util.*
 import okhttp3.mockwebserver.Dispatcher
 import okhttp3.mockwebserver.MockResponse
@@ -10,11 +11,8 @@ import okhttp3.mockwebserver.MockWebServer
 import okhttp3.mockwebserver.RecordedRequest
 import org.apache.commons.lang3.StringUtils
 import org.junit.jupiter.api.*
-import org.junit.jupiter.params.ParameterizedTest
-import org.junit.jupiter.params.provider.CsvSource
 import org.stellar.anchor.api.callback.CustomerIntegration
 import org.stellar.anchor.api.callback.FeeIntegration
-import org.stellar.anchor.api.sep.sep31.Sep31DepositInfo
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.ResourceJsonAssetService
 import org.stellar.anchor.config.AppConfig
@@ -27,6 +25,7 @@ import org.stellar.anchor.paymentservice.circle.config.CirclePaymentConfig
 import org.stellar.anchor.platform.data.JdbcSep31Transaction
 import org.stellar.anchor.platform.service.Sep31DepositInfoGeneratorCircle
 import org.stellar.anchor.platform.service.Sep31DepositInfoGeneratorSelf
+import org.stellar.anchor.sep31.*
 import org.stellar.anchor.sep38.Sep38QuoteStore
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.sdk.Server
@@ -118,8 +117,10 @@ class Sep31DepositInfoGeneratorTest {
     wantMemo = String(Base64.getEncoder().encode(wantMemo.toByteArray()))
     Assertions.assertEquals("YTIzOTJhZGQtODdjOS00MmYwLWE1YzEtNWYxNzI4MDM=", wantMemo)
 
-    Sep31Service.Context.get().transaction = txn
-    assertDoesNotThrow { sep31Service.updateDepositInfo() }
+    val updateDepositInfoMethod: Method =
+      Sep31Service::class.java.getDeclaredMethod("updateDepositInfo", Sep31Transaction::class.java)
+    assert(updateDepositInfoMethod.trySetAccessible())
+    assertDoesNotThrow { updateDepositInfoMethod.invoke(sep31Service, txn) }
 
     Assertions.assertEquals(
       "GAYR3FVW2PCXTNHHWHEAFOCKZQV4PEY2ZKGIKB47EKPJ3GSBYA52XJBY",
@@ -195,8 +196,10 @@ class Sep31DepositInfoGeneratorTest {
     Assertions.assertNull(txn.stellarMemoType)
     Assertions.assertNull(txn.stellarMemo)
 
-    Sep31Service.Context.get().transaction = txn
-    assertDoesNotThrow { sep31Service.updateDepositInfo() }
+    val updateDepositInfoMethod: Method =
+      Sep31Service::class.java.getDeclaredMethod("updateDepositInfo", Sep31Transaction::class.java)
+    assert(updateDepositInfoMethod.trySetAccessible())
+    assertDoesNotThrow { updateDepositInfoMethod.invoke(sep31Service, txn) }
 
     Assertions.assertEquals(
       "GAYF33NNNMI2Z6VNRFXQ64D4E4SF77PM46NW3ZUZEEU5X7FCHAZCMHKU",
@@ -204,42 +207,5 @@ class Sep31DepositInfoGeneratorTest {
     )
     Assertions.assertEquals("text", txn.stellarMemoType)
     Assertions.assertEquals("2454278437550473431", txn.stellarMemo)
-  }
-
-  @ParameterizedTest
-  @CsvSource(
-    value = [",", "YTIzOTJhZGQtODdjOS00MmYwLWE1YzEtNWYxNzI4MDM=,hash", "123,id", "John Doe,text"]
-  )
-  fun test_updateDepositInfo_api(memo: String?, memoType: String?) {
-    val nonEmptyMemo = Objects.toString(memo, "")
-    val nonEmptyMemoType = Objects.toString(memoType, "")
-    every { sep31DepositInfoGenerator.generate(any()) } returns
-      Sep31DepositInfo(
-        "GAYR3FVW2PCXTNHHWHEAFOCKZQV4PEY2ZKGIKB47EKPJ3GSBYA52XJBY",
-        nonEmptyMemo,
-        nonEmptyMemoType
-      )
-
-    Assertions.assertEquals("a2392add-87c9-42f0-a5c1-5f1728030b68", txn.id)
-    Assertions.assertEquals(
-      "GAYR3FVW2PCXTNHHWHEAFOCKZQV4PEY2ZKGIKB47EKPJ3GSBYA52XJBY",
-      txn.stellarAccountId
-    )
-    Assertions.assertNull(txn.stellarMemoType)
-    Assertions.assertNull(txn.stellarMemo)
-
-    var wantMemo = StringUtils.truncate("a2392add-87c9-42f0-a5c1-5f1728030b68", 32)
-    wantMemo = String(Base64.getEncoder().encode(wantMemo.toByteArray()))
-    Assertions.assertEquals("YTIzOTJhZGQtODdjOS00MmYwLWE1YzEtNWYxNzI4MDM=", wantMemo)
-
-    Sep31Service.Context.get().transaction = txn
-    assertDoesNotThrow { sep31Service.updateDepositInfo() }
-
-    Assertions.assertEquals(
-      "GAYR3FVW2PCXTNHHWHEAFOCKZQV4PEY2ZKGIKB47EKPJ3GSBYA52XJBY",
-      txn.stellarAccountId
-    )
-    Assertions.assertEquals(nonEmptyMemo, txn.stellarMemo)
-    Assertions.assertEquals(nonEmptyMemoType, txn.stellarMemoType)
   }
 }
