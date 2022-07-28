@@ -29,7 +29,7 @@ resource "aws_ecs_task_definition" "sep" {
                     "awslogs-group": "anchorplatform",
                     "awslogs-region": "${var.aws_region}",
                     "awslogs-create-group": "true",
-                    "awslogs-stream-prefix": "sep",
+                    "awslogs-stream-prefix": "sep-config",
                     "awslogs-multiline-pattern": "^[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3} \\w+ -", 
                 }
             }
@@ -95,14 +95,16 @@ resource "aws_ecs_task_definition" "sep" {
                   "value": "TEST3"
               }
           ],
-      logConfiguration = {
+       logConfiguration = {
                 "logDriver": "awslogs",
                 "options": {
-                    "awslogs-group": "anchor-platform",
+                    "awslogs-group": "anchorplatform",
                     "awslogs-region": "${var.aws_region}",
                     "awslogs-create-group": "true",
-                    "awslogs-stream-prefix": "sep"
+                    "awslogs-stream-prefix": "sep-service",
+                    "awslogs-multiline-pattern": "^[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3} \\w+ -", 
                 }
+            
             }
    portMappings = [{
      protocol      = "tcp"
