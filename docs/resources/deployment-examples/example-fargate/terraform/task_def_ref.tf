@@ -13,7 +13,7 @@ resource "aws_ecs_task_definition" "ref" {
 
   container_definitions = jsonencode([{
    name        = "${var.environment}-ref-config"
-   image       = "${aws_ecr_repository.anchor_config.repository_url}:latest"
+   image       = "${var.aws_account}.dkr.ecr.${var.aws_region}.amazonaws.com/${aws_ecr_repository.anchor_config.name}:latest"
    entryPoint  = ["/copy_config.sh"]
    
    essential   = false
@@ -30,13 +30,13 @@ resource "aws_ecs_task_definition" "ref" {
                     "awslogs-group": "anchor-platform",
                     "awslogs-region": "${var.aws_region}",
                     "awslogs-create-group": "true",
-                    "awslogs-stream-prefix": "sep"
+                    "awslogs-stream-prefix": "ref-config"
                 }
             }
-  },{
+  },
+  {
    name        = "${var.environment}-ref"
    image       = "stellar/anchor-platform:${var.image_tag}"
-   entryPoint = ["/config/ref.sh"]
    dependsOn =  [ {
      containerName = "${var.environment}-ref-config"
      condition = "START"
@@ -74,9 +74,17 @@ resource "aws_ecs_task_definition" "ref" {
         "name": "SQS_SECRET_KEY",
         "valueFrom": data.aws_ssm_parameter.sqs_secret_key.arn
       },
+       {
+        "name": "PLATFORM_TO_ANCHOR_SECRET",
+        "valueFrom": data.aws_ssm_parameter.platform_to_anchor_secret.arn
+      },
       {
         "name": "ANCHOR_TO_PLATFORM_SECRET",
         "valueFrom": data.aws_ssm_parameter.anchor_to_platform_secret.arn
+      },
+      {
+        "name": "JWT_SECRET",
+        "valueFrom": data.aws_ssm_parameter.jwt_secret.arn
       }
    ]
    portMappings = [{

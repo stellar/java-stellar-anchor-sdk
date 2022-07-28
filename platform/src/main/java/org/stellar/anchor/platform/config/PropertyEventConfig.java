@@ -1,7 +1,5 @@
 package org.stellar.anchor.platform.config;
 
-import static org.stellar.anchor.config.Sep31Config.DepositInfoGeneratorType.CIRCLE;
-
 import lombok.Data;
 import org.springframework.validation.BindException;
 import org.springframework.validation.Errors;

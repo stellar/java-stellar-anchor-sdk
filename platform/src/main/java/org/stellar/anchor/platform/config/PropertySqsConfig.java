@@ -3,9 +3,7 @@ package org.stellar.anchor.platform.config;
 import java.util.Map;
 import lombok.Data;
 import org.springframework.validation.BindException;
-import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
-import org.springframework.validation.Validator;
 import org.stellar.anchor.config.SqsConfig;
 
 @Data

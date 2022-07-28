@@ -43,7 +43,8 @@ public class ApiKeyFilter implements Filter {
     HttpServletRequest request = (HttpServletRequest) servletRequest;
     HttpServletResponse response = (HttpServletResponse) servletResponse;
     Log.infoF(
-        "Applying ApiKeyFilter on request {}?{}",
+        "Applying ApiKeyFilter on request {} {}?{}",
+        request.getMethod(),
         request.getRequestURL().toString(),
         request.getQueryString());
 

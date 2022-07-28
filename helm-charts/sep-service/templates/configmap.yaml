@@ -57,7 +57,15 @@ data:
         authType: JWT_TOKEN
         platformToAnchorSecret: {{ .Values.stellar.app_config.app.platformToAnchorSecret | default "${PLATFORM_TO_ANCHOR_SECRET}" }}
         anchorToPlatformSecret: {{ .Values.stellar.app_config.app.anchorToPlatformSecret | default "${ANCHOR_TO_PLATFORM_SECRET}" }}
-        expirationMilliseconds: {{ .Values.stellar.app_config.app.expirationMilliseconds | default 30000 }}
+        expirationMilliseconds: {{ .Values.stellar.app_config.app.expirationMilliseconds | default 30000 }}      
+      # The anchor callback configuration
+      anchor-callback:
+        # The CallbackAPI endpoint
+      {{- if ((.Values.stellar.app_config).anchor_callback) }}
+        endpoint: {{ .Values.stellar.app_config.anchor_callback.customerIntegrationEndpoint | default .Values.stellar.app_config.app.backendUrl }}   
+      {{- else }}
+        endpoint: {{ .Values.stellar.app_config.app.backendUrl }} 
+      {{- end }}
       sep1:
         enabled: true
         stellarFile: file:/config/stellar-wks.toml

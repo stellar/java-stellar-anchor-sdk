@@ -3,7 +3,6 @@ package org.stellar.anchor.platform;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.geo.Circle;
 import org.stellar.anchor.config.*;
 import org.stellar.anchor.config.CirclePaymentObserverConfig;
 import org.stellar.anchor.config.EventConfig;

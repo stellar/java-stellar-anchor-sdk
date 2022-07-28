@@ -27,8 +27,10 @@ stellar:
     # `data-spring-jdbc` is the only `type` value supported for now.
     #
     data-access:
-      type: data-spring-jdbc
-      settings: data-spring-jdbc-sqlite              # The absolute location of the configuration data in this yaml file
+      type: data-spring-jdbc                      # Activate [config-spring-jdbc] module.
+      settings: data-spring-jdbc-h2 
+      #type: data-spring-jdbc
+      #settings: data-spring-jdbc-sqlite              # The absolute location of the configuration data in this yaml file
       #settings: data-spring-jdbc-local-postgres      # use local postgres instance
       #settings: data-spring-jdbc-aws-aurora-postgres  # use AWS Aurora Postgres with IAM authentication
     #
@@ -76,7 +78,7 @@ app-config:
     jwtSecretKey: ${JWT_SECRET}
 
   integration-auth:
-    authType: JWT_TOKEN
+    authType: NONE
     platformToAnchorSecret: ${PLATFORM_TO_ANCHOR_SECRET}
     anchorToPlatformSecret: ${ANCHOR_TO_PLATFORM_SECRET}
     expirationMilliseconds: 30000
@@ -214,6 +216,10 @@ app-config:
     enabled: true
     publisherType: sqs
 
+  metrics-service:
+    optionalMetricsEnabled: false    # optional metrics that periodically query the database
+    runInterval: 30       
+
   kafka.publisher:
     # kafkaBootstrapServer - the Kafka server used to bootstrap setup
     # If useSingleQueue, all events are published to a single queue
@@ -266,7 +272,7 @@ data-spring-jdbc-sqlite:
   spring.datasource.username: ${SQLITE_USERNAME}
   spring.datasource.password: ${SQLITE_PASSWORD}
   spring.mvc.converters.preferred-json-mapper: gson
-  spring.liquibase.enabled: false    # certain features that liquibase uses (ex: addForeignKeyConstraint) are not supported by sqlite
+  spring.flyway.enabled: false    # certain features that liquibase uses (ex: addForeignKeyConstraint) are not supported by sqlite
 
 # settings for aurora postgres connection using IAM for authentication
 # NOTE: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY and AWS_REGION environment variables need to be set
@@ -296,7 +302,7 @@ data-spring-jdbc-local-postgres:
 data-spring-jdbc-h2:
   spring.datasource.url: jdbc:h2:mem:test
   spring.jpa.properties.hibernate.dialect: org.hibernate.dialect.H2Dialect
-  spring.liquibase.enabled: false
+  spring.flyway.enabled: false
 
 #
 # Spring framework configurations
