@@ -6,10 +6,7 @@ import static org.stellar.anchor.sep31.Sep31Helper.validateStatus;
 import static org.stellar.anchor.util.MathHelper.decimal;
 
 import io.micrometer.core.instrument.Metrics;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
@@ -23,6 +20,8 @@ import org.stellar.anchor.api.platform.PatchTransactionsRequest;
 import org.stellar.anchor.api.platform.PatchTransactionsResponse;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.shared.Amount;
+import org.stellar.anchor.api.shared.Refund;
+import org.stellar.anchor.api.shared.RefundPayment;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.event.models.TransactionEvent;
 import org.stellar.anchor.sep31.Sep31Transaction;
@@ -108,6 +107,38 @@ public class TransactionService {
   }
 
   GetTransactionResponse fromTransactionToResponse(Sep31Transaction txn) {
+    Sep31Transaction.Refunds txnRefunds = txn.getRefunds();
+    Refund refunds = null;
+    if (txnRefunds != null) {
+      String amountInAsset = txn.getAmountInAsset();
+      RefundPayment[] payments = null;
+      Refund.RefundBuilder refundsBuilder =
+          Refund.builder()
+              .amountRefunded(new Amount(txnRefunds.getAmountRefunded(), amountInAsset))
+              .amountFee(new Amount(txnRefunds.getAmountFee(), amountInAsset));
+
+      // populate refunds payments
+      for (int i = 0; i < txnRefunds.getRefundPayments().size(); i++) {
+        Sep31Transaction.RefundPayment refundPayment = txnRefunds.getRefundPayments().get(i);
+        RefundPayment platformRefundPayment =
+            RefundPayment.builder()
+                .id(refundPayment.getId())
+                .idType(RefundPayment.IdType.STELLAR)
+                .amount(new Amount(refundPayment.getAmount(), amountInAsset))
+                .fee(new Amount(refundPayment.getFee(), amountInAsset))
+                .requestedAt(null)
+                .refundedAt(null)
+                .build();
+
+        if (payments == null) {
+          payments = new RefundPayment[txnRefunds.getRefundPayments().size()];
+        }
+        payments[i] = platformRefundPayment;
+      }
+
+      refunds = refundsBuilder.payments(payments).build();
+    }
+
     return GetTransactionResponse.builder()
         .id(txn.getId())
         .sep(31)
@@ -123,7 +154,7 @@ public class TransactionService {
         .completedAt(txn.getCompletedAt())
         .transferReceivedAt(txn.getTransferReceivedAt())
         .message(txn.getRequiredInfoMessage()) // TODO: are these meant to be the same?
-        // TODO: .refunds(...)
+        .refunds(refunds)
         // TODO: .stellarTransactions(...)
         .externalTransactionId(txn.getExternalTransactionId())
         // TODO .custodialTransactionId(txn.get)
