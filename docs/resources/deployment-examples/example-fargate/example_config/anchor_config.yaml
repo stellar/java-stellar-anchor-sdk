@@ -214,6 +214,10 @@ app-config:
     enabled: true
     publisherType: sqs
 
+  metrics-service:
+    optionalMetricsEnabled: false    # optional metrics that periodically query the database
+    runInterval: 30       
+
   kafka.publisher:
     # kafkaBootstrapServer - the Kafka server used to bootstrap setup
     # If useSingleQueue, all events are published to a single queue
