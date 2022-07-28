@@ -5,6 +5,8 @@ public interface Sep31Config {
 
   String getFeeIntegrationEndPoint();
 
+  String getUniqueAddressIntegrationEndPoint();
+
   PaymentType getPaymentType();
 
   DepositInfoGeneratorType getDepositInfoGeneratorType();

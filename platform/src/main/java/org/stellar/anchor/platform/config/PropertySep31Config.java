@@ -13,7 +13,8 @@ import org.stellar.anchor.config.Sep31Config;
 @Data
 public class PropertySep31Config implements Sep31Config, Validator {
   boolean enabled = false;
-  String feeIntegrationEndPoint = "http://localhost:8081";
+  String feeIntegrationEndPoint;
+  String uniqueAddressIntegrationEndPoint;
   PaymentType paymentType = STRICT_SEND;
   DepositInfoGeneratorType depositInfoGeneratorType = SELF;
 

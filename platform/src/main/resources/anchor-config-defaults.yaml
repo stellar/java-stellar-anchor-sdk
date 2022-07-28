@@ -177,8 +177,11 @@ app-config:
   sep31:
     enabled: true
 
-    # The callback API endpoint.
+    # The /fee callback API endpoint.
     feeIntegrationEndPoint: http://localhost:8081
+
+    # The /unique_address callback API endpoint.
+    uniqueAddressIntegrationEndPoint: http://localhost:8081
 
     #
     # paymentType: used to determine how amount_in is calculated from amount in the POST /transaction call
