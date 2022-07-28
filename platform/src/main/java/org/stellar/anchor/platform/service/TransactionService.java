@@ -139,6 +139,14 @@ public class TransactionService {
       refunds = refundsBuilder.payments(payments).build();
     }
 
+    List<GetTransactionResponse.StellarTransaction> stellarTransactions = null;
+    if (!Objects.toString(txn.getStellarTransactionId(), "").isEmpty()) {
+      GetTransactionResponse.StellarTransaction stellarTxn =
+          new GetTransactionResponse.StellarTransaction();
+      stellarTxn.setId(txn.getStellarTransactionId());
+      stellarTransactions = List.of(stellarTxn);
+    }
+
     return GetTransactionResponse.builder()
         .id(txn.getId())
         .sep(31)
@@ -153,9 +161,9 @@ public class TransactionService {
         .updatedAt(txn.getUpdatedAt())
         .completedAt(txn.getCompletedAt())
         .transferReceivedAt(txn.getTransferReceivedAt())
-        .message(txn.getRequiredInfoMessage()) // TODO: are these meant to be the same?
+        .message(txn.getRequiredInfoMessage()) // Assuming these meant to be the same.
         .refunds(refunds)
-        // TODO: .stellarTransactions(...)
+        .stellarTransactions(stellarTransactions)
         .externalTransactionId(txn.getExternalTransactionId())
         // TODO .custodialTransactionId(txn.get)
         .customers(txn.getCustomers())

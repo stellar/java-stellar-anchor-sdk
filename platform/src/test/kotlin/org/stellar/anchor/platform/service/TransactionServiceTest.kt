@@ -167,6 +167,10 @@ class TransactionServiceTest {
           )
         )
         .build()
+
+    val wantStellarTransaction = GetTransactionResponse.StellarTransaction()
+    wantStellarTransaction.id = "2b862ac297c93e2db43fc58d407cc477396212bce5e6d5f61789f963d5a11300"
+
     val wantGetTransactionResponse: GetTransactionResponse =
       GetTransactionResponse.builder()
         .id(txId)
@@ -184,7 +188,7 @@ class TransactionServiceTest {
         .transferReceivedAt(mockTransferReceivedAt)
         .message("Please don't forget to foo bar")
         .refunds(wantRefunds)
-        // TODO: .stellarTransactions()
+        .stellarTransactions(listOf(wantStellarTransaction))
         .externalTransactionId("external-tx-id")
         .customers(
           Customers(
