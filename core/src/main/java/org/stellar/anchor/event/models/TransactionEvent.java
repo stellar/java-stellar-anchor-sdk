@@ -9,6 +9,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import org.stellar.anchor.api.shared.Amount;
+import org.stellar.anchor.api.shared.Customers;
+import org.stellar.anchor.api.shared.Refund;
+import org.stellar.anchor.api.shared.StellarId;
 
 @Data
 @Builder
@@ -104,10 +107,10 @@ public class TransactionEvent implements AnchorEvent {
     PENDING_SENDER("pending_sender"),
     PENDING_STELLAR("pending_stellar"),
     PENDING_CUSTOMER_INFO_UPDATE("pending_customer_info_update"),
-    PENDING_TRANSACTION_INFO_UPDATE("pending_transaction_info_update"),
     PENDING_RECEIVER("pending_receiver"),
     PENDING_EXTERNAL("pending_external"),
     COMPLETED("completed"),
+    EXPIRED("expired"),
     ERROR("error");
 
     @JsonValue public final String status;

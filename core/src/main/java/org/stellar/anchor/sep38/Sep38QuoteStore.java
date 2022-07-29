@@ -12,9 +12,8 @@ public interface Sep38QuoteStore {
    *
    * @param quoteId The quote ID
    * @return The quote document. null if not found.
-   * @throws SepException if error happens
    */
-  Sep38Quote findByQuoteId(@NonNull String quoteId) throws SepException;
+  Sep38Quote findByQuoteId(@NonNull String quoteId);
 
   /**
    * Save a quote.

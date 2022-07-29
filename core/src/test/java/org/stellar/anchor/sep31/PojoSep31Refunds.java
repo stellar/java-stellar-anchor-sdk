@@ -1,12 +1,34 @@
 package org.stellar.anchor.sep31;
 
+import java.util.ArrayList;
 import java.util.List;
 import lombok.Data;
-import org.stellar.anchor.sep31.Sep31Transaction.RefundPayment;
 
 @Data
-public class PojoSep31Refunds implements Sep31Transaction.Refunds {
+public class PojoSep31Refunds implements Refunds {
   String amountRefunded;
   String amountFee;
-  List<RefundPayment> refundPayments;
+  List<PojoSep31RefundPayment> refundPayments;
+
+  @Override
+  public void setRefundPayments(List<RefundPayment> refundPayments) {
+    if (refundPayments == null) {
+      this.refundPayments = null;
+      return;
+    }
+
+    List<PojoSep31RefundPayment> newRefundPayments = new ArrayList<>();
+    for (RefundPayment rp : refundPayments) {
+      newRefundPayments.add(new PojoSep31RefundPayment(rp.getId(), rp.getAmount(), rp.getFee()));
+    }
+    this.refundPayments = newRefundPayments;
+  }
+
+  @Override
+  public List<RefundPayment> getRefundPayments() {
+    if (this.refundPayments == null) {
+      return null;
+    }
+    return new ArrayList<>(this.refundPayments);
+  }
 }

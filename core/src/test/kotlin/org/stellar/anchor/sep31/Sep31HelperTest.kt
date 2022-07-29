@@ -37,6 +37,7 @@ class Sep31HelperTest {
         "pending_receiver",
         "pending_sender",
         "completed",
+        "expired",
         "error"]
   )
   fun test_validateStatus(status: String) {
