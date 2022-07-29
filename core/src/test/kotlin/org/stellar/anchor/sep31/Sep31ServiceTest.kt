@@ -4,6 +4,7 @@ import com.google.gson.Gson
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import java.time.Instant
+import java.time.format.DateTimeFormatter
 import java.time.temporal.ChronoUnit
 import java.util.*
 import org.apache.commons.lang3.StringUtils
@@ -172,15 +173,25 @@ class Sep31ServiceTest {
     {
       "id": "a2392add-87c9-42f0-a5c1-5f1728030b68",
       "status": "pending_sender",
-      "stellarAccountId": "GAYR3FVW2PCXTNHHWHEAFOCKZQV4PEY2ZKGIKB47EKPJ3GSBYA52XJBY",
+      "statusEta": "100",
       "amountIn": "100",
       "amountInAsset": "USDC",
+      "amountOut": "98",
+      "amountOutAsset": "USD",
+      "amountFee": "2",
+      "amountFeeAsset": "USDC",
+      "stellarAccountId": "GAYR3FVW2PCXTNHHWHEAFOCKZQV4PEY2ZKGIKB47EKPJ3GSBYA52XJBY",
+      "stellarMemo": "123456",
+      "stellarMemoType": "text",
+      "startedAt": "2022-04-18T14:00:00.000Z",
+      "transferReceivedAt": "2022-04-18T14:30:00.000Z",
+      "updatedAt": "2022-04-18T15:00:00.000Z",
+      "completedAt": "2022-04-18T15:00:00.000Z",
+      "stellarTransactionId": "18db1b8dffa78a0567faadeab7b08b7be8b3f65c40018d609cc530b757e67bc2",
+      "externalTransactionId": "external-id",
+      "requiredInfoMessage": "Don't forget to foo bar",
+      "quoteId": "quote_id",
       "clientDomain": "demo-wallet-server.stellar.org",
-      "fields": {
-        "receiver_account_number": "1",
-        "type": "SWIFT",
-        "receiver_routing_number": "1"
-      },
       "requiredInfoUpdates" : {
         "transaction" : {
           "type": {
@@ -192,6 +203,35 @@ class Sep31ServiceTest {
             "optional": false
           }
         }
+      },
+      "fields": {
+        "receiver_account_number": "1",
+        "type": "SWIFT",
+        "receiver_routing_number": "1"
+      },
+      "refunded": true,
+      "refunds": {
+        "amountRefunded": "90",
+        "amountFee": "8",
+        "refundPayments": [
+          {
+            "id": "111",
+            "amount": "50",
+            "fee": 4
+          },
+          {
+            "id": "222",
+            "amount": "40",
+            "fee": 4
+          }
+        ]
+      },
+      "stellarTransactions": [],
+      "amountExpected": "100",
+      "receiverId": "6820d44d-0881-4c94-aa55-1f4166b912f0",
+      "senderId": "3e3fa1f8-f24f-4be0-aab9-407b17753624",
+      "creator": {
+        "id": "5d35ef3f-9b80-457d-90e5-ad888536c6b9"
       }
     }
     """
@@ -360,6 +400,7 @@ class Sep31ServiceTest {
     val ex = assertThrows<ServerErrorException> { sep31Service.updateTxAmountsBasedOnQuote() }
     assertEquals("Quote not found.", ex.message)
   }
+
   @Test
   fun test_getTransaction() {
     assertThrows<BadRequestException> { sep31Service.getTransaction(null) }
@@ -370,24 +411,66 @@ class Sep31ServiceTest {
     assertEquals("transaction (id=not_found) not found", ex.message)
 
     every { txnStore.findByTransactionId("found") } returns txn
-    val getTransactionResponse = sep31Service.getTransaction("found")
-    val tr = getTransactionResponse.transaction
-    assertEquals(tr.status, txn.status)
-    if (tr.statusEta != null) assertEquals(tr.statusEta, txn.statusEta)
-    assertEquals(tr.amountIn, txn.amountIn)
-    assertEquals(tr.amountInAsset, txn.amountInAsset)
-    assertEquals(tr.amountOut, txn.amountOut)
-    assertEquals(tr.amountOutAsset, txn.amountOutAsset)
-    assertEquals(tr.amountFee, txn.amountFee)
-    assertEquals(tr.amountFeeAsset, txn.amountFeeAsset)
-    assertEquals(tr.stellarMemo, txn.stellarMemo)
-    assertEquals(tr.stellarMemoType, txn.stellarMemoType)
-    assertEquals(tr.completedAt, txn.completedAt)
-    assertEquals(tr.stellarTransactionId, txn.stellarTransactionId)
-    assertEquals(tr.externalTransactionId, txn.externalTransactionId)
-    assertEquals(tr.refunded, txn.refunded)
-    assertEquals(tr.requiredInfoMessage, txn.requiredInfoMessage)
-    assertEquals(tr.requiredInfoUpdates, txn.requiredInfoUpdates)
+    val gotTxResponse = sep31Service.getTransaction("found")
+
+    val wantStartedAt =
+      DateTimeFormatter.ISO_INSTANT.parse("2022-04-18T14:00:00.000Z", Instant::from)
+    val wantCompletedAt =
+      DateTimeFormatter.ISO_INSTANT.parse("2022-04-18T15:00:00.000Z", Instant::from)
+    val wantRefunds =
+      Sep31GetTransactionResponse.Refunds.builder()
+        .amountRefunded("90")
+        .amountFee("8")
+        .payments(
+          listOf(
+            Sep31GetTransactionResponse.Sep31RefundPayment.builder()
+              .id("111")
+              .amount("50")
+              .fee("4")
+              .build(),
+            Sep31GetTransactionResponse.Sep31RefundPayment.builder()
+              .id("222")
+              .amount("40")
+              .fee("4")
+              .build(),
+          )
+        )
+        .build()
+
+    val wantRequiredInfoUpdates = AssetInfo.Sep31TxnFieldSpecs()
+    wantRequiredInfoUpdates.transaction =
+      mapOf(
+        "type" to
+          AssetInfo.Sep31TxnFieldSpec("type of deposit to make", listOf("SEPA", "SWIFT"), false)
+      )
+
+    val wantTxResponse =
+      Sep31GetTransactionResponse(
+        Sep31GetTransactionResponse.TransactionResponse.builder()
+          .id("a2392add-87c9-42f0-a5c1-5f1728030b68")
+          .status("pending_sender")
+          .statusEta(100)
+          .amountIn("100")
+          .amountInAsset("USDC")
+          .amountOut("98")
+          .amountOutAsset("USD")
+          .amountFee("2")
+          .amountFeeAsset("USDC")
+          .stellarAccountId("GAYR3FVW2PCXTNHHWHEAFOCKZQV4PEY2ZKGIKB47EKPJ3GSBYA52XJBY")
+          .stellarMemo("123456")
+          .stellarMemoType("text")
+          .startedAt(wantStartedAt)
+          .completedAt(wantCompletedAt)
+          .stellarTransactionId("18db1b8dffa78a0567faadeab7b08b7be8b3f65c40018d609cc530b757e67bc2")
+          .externalTransactionId("external-id")
+          .refunded(true)
+          .refunds(wantRefunds)
+          .requiredInfoMessage("Don't forget to foo bar")
+          .requiredInfoUpdates(wantRequiredInfoUpdates)
+          .build()
+      )
+
+    assertEquals(wantTxResponse, gotTxResponse)
   }
 
   @Test

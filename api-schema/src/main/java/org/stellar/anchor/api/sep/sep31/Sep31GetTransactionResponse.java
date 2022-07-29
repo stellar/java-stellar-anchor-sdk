@@ -3,12 +3,16 @@ package org.stellar.anchor.api.sep.sep31;
 import com.google.gson.annotations.SerializedName;
 import java.time.Instant;
 import java.util.List;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.stellar.anchor.api.sep.AssetInfo;
 
 @Data
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class Sep31GetTransactionResponse {
   TransactionResponse transaction;
 
