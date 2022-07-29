@@ -46,7 +46,7 @@ The following table lists the configurable parameters of the Anchor Platform cha
 | ingress.annotations | ingress annotations (list)  | no  | n/a  |
 | ingress.tls.host  | tls certificate hostname | no  | n/a  |
 | ingress.tls.secretName  | k8 secret holding tls certificate if reqd  | no  | n/a  |
-| ingress.rules  | ingress backend rulues (list)  |   |   |
+| ingress.rules  | ingress backend rules (list)  |   |   |
 
 ### Database
 Unless you are using sql-lite (default configuration) your values.yaml should contain database access configuration, it should contain both the stellar.anchor.data_access.type (currently only `data-spring-jdbc` is supported) and `stellar.anchor.data_access.setttings` which contains the name of the  yaml key (nested under key `stellar`) containing your database configuration settings.  For example, if you plan to use AWS Aurora, you would set the data_access type and settings along with the configuration for database access as follows:
@@ -105,7 +105,7 @@ The following table lists the additional configurable parameters of the Anchor P
 | stellar.app_config.app.integration_auth.platformToAnchorSecret | secret value | ${PLATFORM_TO_ANCHOR_SECRET} |
 | stellar.app_config.app.integration_auth.anchorToPlatformSecret | secret value | ${ANCHOR_TO_PLATFORM_SECRET} |
 | stellar.app_config.app.integration_auth.expirationMilliseconds | Expiration ms | 30000 |
-| stellar.app_config.app.anchor_callback |  | 30000 |
+| stellar.app_config.app.anchor_callback | unique address endpoint | NONE  |
 | sep1.enabled | sep1 true if service enabled | yes  | true  |
 | sep10.enabled | sep1 true if service enabled | yes | true |
 | sep10.homeDomain |   |   |   |
