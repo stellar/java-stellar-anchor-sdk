@@ -24,6 +24,7 @@ import org.stellar.anchor.platform.data.JdbcSep31Refunds
 import org.stellar.anchor.platform.data.JdbcSep31Transaction
 import org.stellar.anchor.sep31.*
 import org.stellar.anchor.sep38.Sep38QuoteStore
+import org.stellar.anchor.util.TestUtils.callPrivate
 
 class TransactionServiceTest {
   companion object {
@@ -205,13 +206,14 @@ class TransactionServiceTest {
     // fails if listAllAssets is empty
     every { assetService.listAllAssets() } returns listOf()
     val mockAsset = Amount("10", fiatUSD)
-    var ex = assertThrows<AnchorException> { transactionService.validateAsset(mockAsset) }
+    var ex =
+      assertThrows<AnchorException> { callPrivate(transactionService, "validateAsset", mockAsset) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("'$fiatUSD' is not a supported asset.", ex.message)
 
     // fails if listAllAssets does not contain the desired asset
     this.assetService = ResourceJsonAssetService("test_assets.json")
-    ex = assertThrows { transactionService.validateAsset(mockAsset) }
+    ex = assertThrows { callPrivate(transactionService, "validateAsset", mockAsset) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("'$fiatUSD' is not a supported asset.", ex.message)
   }
@@ -221,6 +223,6 @@ class TransactionServiceTest {
     this.assetService = ResourceJsonAssetService("test_assets.json")
     transactionService = TransactionService(sep38QuoteStore, sep31TransactionStore, assetService)
     val mockAsset = Amount("10", fiatUSD)
-    assertDoesNotThrow { transactionService.validateAsset(mockAsset) }
+    assertDoesNotThrow { callPrivate(transactionService, "validateAsset", mockAsset) }
   }
 }

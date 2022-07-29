@@ -217,7 +217,13 @@ public class TransactionService {
     }
   }
 
-  void validateAsset(Amount amount) throws BadRequestException {
+  /**
+   * validateAsset will validate if the asset used in the provided `amount` is supported.
+   *
+   * @param amount is the object containing the asset full name and the amount.
+   * @throws BadRequestException if the provided asset is not supported
+   */
+  private void validateAsset(Amount amount) throws BadRequestException {
     if (amount != null) {
       if (assets.stream()
           .noneMatch(assetInfo -> assetInfo.getAssetName().equals(amount.getAsset()))) {
