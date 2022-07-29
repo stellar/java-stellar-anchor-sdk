@@ -30,6 +30,7 @@ import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep38.Sep38Quote;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
 import org.stellar.anchor.util.Log;
+import org.stellar.anchor.util.SepHelper;
 
 @Service
 public class TransactionService {
@@ -181,17 +182,17 @@ public class TransactionService {
       txn.setStatus(ptr.getStatus());
     }
     if (ptr.getAmountIn() != null) {
-      validateAsset(ptr.getAmountIn());
+      validateAsset("amount_in", ptr.getAmountIn());
       txn.setAmountIn(ptr.getAmountIn().getAmount());
       txn.setAmountInAsset(ptr.getAmountIn().getAsset());
     }
     if (ptr.getAmountOut() != null) {
-      validateAsset(ptr.getAmountOut());
+      validateAsset("amount_out", ptr.getAmountOut());
       txn.setAmountOut(ptr.getAmountOut().getAmount());
       txn.setAmountOutAsset(ptr.getAmountOut().getAsset());
     }
     if (ptr.getAmountFee() != null) {
-      validateAsset(ptr.getAmountFee());
+      validateAsset("amount_fee", ptr.getAmountFee());
       txn.setAmountFee(ptr.getAmountFee().getAmount());
       txn.setAmountFeeAsset(ptr.getAmountFee().getAsset());
     }
@@ -225,18 +226,30 @@ public class TransactionService {
   }
 
   /**
-   * validateAsset will validate if the asset used in the provided `amount` is supported.
+   * validateAsset will validate if the provided amount has valid values and if its asset is
+   * supported.
    *
    * @param amount is the object containing the asset full name and the amount.
    * @throws BadRequestException if the provided asset is not supported
    */
-  private void validateAsset(Amount amount) throws BadRequestException {
-    if (amount != null) {
-      if (assets.stream()
-          .noneMatch(assetInfo -> assetInfo.getAssetName().equals(amount.getAsset()))) {
-        throw new BadRequestException(
-            String.format("'%s' is not a supported asset.", amount.getAsset()));
-      }
+  private void validateAsset(String fieldName, Amount amount) throws BadRequestException {
+    if (amount == null) {
+      return;
+    }
+
+    // asset amount needs to be non-empty and valid
+    SepHelper.validateAmount(fieldName + ".", amount.getAmount());
+
+    // asset name cannot be empty
+    if (Objects.toString(amount.getAsset(), "").isEmpty()) {
+      throw new BadRequestException(fieldName + ".asset cannot be empty");
+    }
+
+    // asset name needs to be supported
+    if (assets.stream()
+        .noneMatch(assetInfo -> assetInfo.getAssetName().equals(amount.getAsset()))) {
+      throw new BadRequestException(
+          String.format("'%s' is not a supported asset.", amount.getAsset()));
     }
   }
 

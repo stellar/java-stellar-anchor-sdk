@@ -206,17 +206,61 @@ class TransactionServiceTest {
 
   @Test
   fun test_validateAsset_failure() {
+    // fails if amount_in.amount is null
+    var assetAmount = Amount(null, null)
+    var ex =
+      assertThrows<AnchorException> {
+        callPrivate(transactionService, "validateAsset", "amount_in", assetAmount)
+      }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("amount_in.amount cannot be empty", ex.message)
+
+    // fails if amount_in.amount is empty
+    assetAmount = Amount("", null)
+    ex = assertThrows { callPrivate(transactionService, "validateAsset", "amount_in", assetAmount) }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("amount_in.amount cannot be empty", ex.message)
+
+    // fails if amount_in.amount is invalid
+    assetAmount = Amount("abc", null)
+    ex = assertThrows { callPrivate(transactionService, "validateAsset", "amount_in", assetAmount) }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("amount_in.amount is invalid", ex.message)
+
+    // fails if amount_in.amount is negative
+    assetAmount = Amount("-1", null)
+    ex = assertThrows { callPrivate(transactionService, "validateAsset", "amount_in", assetAmount) }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("amount_in.amount should be positive", ex.message)
+
+    // fails if amount_in.amount is zero
+    assetAmount = Amount("0", null)
+    ex = assertThrows { callPrivate(transactionService, "validateAsset", "amount_in", assetAmount) }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("amount_in.amount should be positive", ex.message)
+
+    // fails if amount_in.asset is null
+    assetAmount = Amount("10", null)
+    ex = assertThrows { callPrivate(transactionService, "validateAsset", "amount_in", assetAmount) }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("amount_in.asset cannot be empty", ex.message)
+
+    // fails if amount_in.asset is empty
+    assetAmount = Amount("10", "")
+    ex = assertThrows { callPrivate(transactionService, "validateAsset", "amount_in", assetAmount) }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("amount_in.asset cannot be empty", ex.message)
+
     // fails if listAllAssets is empty
     every { assetService.listAllAssets() } returns listOf()
     val mockAsset = Amount("10", fiatUSD)
-    var ex =
-      assertThrows<AnchorException> { callPrivate(transactionService, "validateAsset", mockAsset) }
+    ex = assertThrows { callPrivate(transactionService, "validateAsset", "amount_in", mockAsset) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("'$fiatUSD' is not a supported asset.", ex.message)
 
     // fails if listAllAssets does not contain the desired asset
     this.assetService = ResourceJsonAssetService("test_assets.json")
-    ex = assertThrows { callPrivate(transactionService, "validateAsset", mockAsset) }
+    ex = assertThrows { callPrivate(transactionService, "validateAsset", "amount_in", mockAsset) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("'$fiatUSD' is not a supported asset.", ex.message)
   }
@@ -226,7 +270,7 @@ class TransactionServiceTest {
     this.assetService = ResourceJsonAssetService("test_assets.json")
     transactionService = TransactionService(sep38QuoteStore, sep31TransactionStore, assetService)
     val mockAsset = Amount("10", fiatUSD)
-    assertDoesNotThrow { callPrivate(transactionService, "validateAsset", mockAsset) }
+    assertDoesNotThrow { callPrivate(transactionService, "validateAsset", "amount_in", mockAsset) }
   }
 
   @ParameterizedTest

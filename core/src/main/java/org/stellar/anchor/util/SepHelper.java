@@ -56,7 +56,7 @@ public class SepHelper {
   }
 
   public static BigDecimal validateAmount(String messagePrefix, String amount)
-      throws AnchorException {
+      throws BadRequestException {
     // assetName
     if (Objects.toString(amount, "").isEmpty()) {
       throw new BadRequestException(messagePrefix + "amount cannot be empty");
