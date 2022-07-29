@@ -30,11 +30,25 @@ public class PojoSep31Transaction implements Sep31Transaction {
   AssetInfo.Sep31TxnFieldSpecs requiredInfoUpdates;
   Map<String, String> fields;
   Boolean refunded;
-  Refunds refunds;
+  PojoSep31Refunds refunds;
   Instant updatedAt;
   Instant transferReceivedAt;
   String amountExpected;
   String receiverId;
   String senderId;
   StellarId creator;
+
+  @Override
+  public void setRefunds(Refunds refunds) {
+    if (refunds == null) {
+      this.refunds = null;
+      return;
+    }
+
+    PojoSep31Refunds newRefunds = new PojoSep31Refunds();
+    newRefunds.setAmountRefunded(refunds.getAmountRefunded());
+    newRefunds.setAmountFee(refunds.getAmountFee());
+    newRefunds.setRefundPayments(refunds.getRefundPayments());
+    this.refunds = newRefunds;
+  }
 }
