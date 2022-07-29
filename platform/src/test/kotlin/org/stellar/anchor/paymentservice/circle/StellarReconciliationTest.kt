@@ -18,7 +18,8 @@ import org.stellar.sdk.Server
 import reactor.netty.http.client.HttpClient
 
 class StellarReconciliationTest {
-  internal class StellarReconciliationImpl(private val horizonUrl: String) : StellarReconciliation {
+  internal class StellarReconciliationImpl(private val horizonUrl: String) :
+    StellarReconciliation {
     private val _horizonServer: Server = Server(this.horizonUrl)
 
     override fun getWebClient(authenticated: Boolean): HttpClient {

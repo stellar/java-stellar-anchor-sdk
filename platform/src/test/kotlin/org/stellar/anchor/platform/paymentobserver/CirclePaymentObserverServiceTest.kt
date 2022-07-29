@@ -324,7 +324,8 @@ class CirclePaymentObserverServiceTest {
     val circleTransfer = CircleTransfer()
     circleTransfer.transactionHash =
       "b9d0b2292c4e09e8eb22d036171491e87b8d2086bf8b265874c8d182cb9c9020"
-    circleTransfer.amount = CircleBalance("USD", "1.234")
+    circleTransfer.amount =
+      CircleBalance("USD", "1.234")
 
     val mockedTransaction = mockk<TransactionResponse>()
     every { mockedTransaction.sourceAccount } returns
@@ -459,7 +460,8 @@ class CirclePaymentObserverServiceTest {
     assertNull(observedPayment)
 
     // if asset type is not AssetTypeCreditAlphaNum, returns null
-    circleTransfer.amount = CircleBalance("USD", "1.234")
+    circleTransfer.amount =
+      CircleBalance("USD", "1.234")
 
     val mockedTransaction = mockk<TransactionResponse>()
     every { mockedTransaction.sourceAccount } returns

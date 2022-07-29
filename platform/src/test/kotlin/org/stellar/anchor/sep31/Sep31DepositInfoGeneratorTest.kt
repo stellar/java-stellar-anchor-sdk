@@ -177,7 +177,12 @@ class Sep31DepositInfoGeneratorTest {
     every { horizon.server } returns Server(server.url("").toString())
     every { horizon.stellarNetworkPassphrase } returns "Test SDF Network ; September 2015"
 
-    val circlePaymentService = CirclePaymentService(circlePaymentConfig, circleConfig, horizon)
+    val circlePaymentService =
+      CirclePaymentService(
+        circlePaymentConfig,
+        circleConfig,
+        horizon
+      )
     val depositInfoGenerator = Sep31DepositInfoGeneratorCircle(circlePaymentService)
     sep31Service =
       Sep31Service(

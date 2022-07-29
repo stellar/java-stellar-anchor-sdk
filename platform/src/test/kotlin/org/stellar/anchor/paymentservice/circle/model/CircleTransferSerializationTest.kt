@@ -55,10 +55,10 @@ class CircleTransferSerializationTest {
     wantTransfer.id = "a8997020-3da7-4543-bc4a-5ae8c7ce346d"
     wantTransfer.source = CircleTransactionParty.wallet("1000066041")
     wantTransfer.destination =
-      CircleTransactionParty.stellar(
-        "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S",
-        null
-      )
+        CircleTransactionParty.stellar(
+            "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S",
+            null
+        )
     wantTransfer.amount = CircleBalance("USD", "1.00")
     wantTransfer.transactionHash =
       "5239ee055b1083231c6bdaaa921d3e4b3bc090577fbd909815bd5d7fe68091ef"
@@ -94,10 +94,10 @@ class CircleTransferSerializationTest {
     transfer.id = "a8997020-3da7-4543-bc4a-5ae8c7ce346d"
     transfer.source = CircleTransactionParty.wallet("1000066041")
     transfer.destination =
-      CircleTransactionParty.stellar(
-        "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S",
-        null
-      )
+        CircleTransactionParty.stellar(
+            "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S",
+            null
+        )
     transfer.amount = CircleBalance("USD", "1.00")
     transfer.transactionHash = "5239ee055b1083231c6bdaaa921d3e4b3bc090577fbd909815bd5d7fe68091ef"
     transfer.status = CirclePaymentStatus.COMPLETE

@@ -2,8 +2,8 @@ package org.stellar.anchor.paymentservice.circle.model.request;
 
 import java.util.HashMap;
 import lombok.Data;
-import org.stellar.anchor.paymentservice.circle.model.CircleBalance;
 import org.stellar.anchor.paymentservice.circle.model.CircleTransactionParty;
+import org.stellar.anchor.paymentservice.circle.model.CircleBalance;
 
 @Data
 public class CircleSendTransactionRequest {
