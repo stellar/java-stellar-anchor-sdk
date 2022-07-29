@@ -126,35 +126,6 @@ public interface Sep31Transaction {
 
   void setCreator(StellarId creator);
 
-  interface Refunds {
-
-    String getAmountRefunded();
-
-    void setAmountRefunded(String amountRefunded);
-
-    String getAmountFee();
-
-    void setAmountFee(String amountFee);
-
-    List<RefundPayment> getRefundPayments();
-
-    void setRefundPayments(List<RefundPayment> refundPayments);
-  }
-
-  interface RefundPayment {
-    String getId();
-
-    void setId(String id);
-
-    String getAmount();
-
-    void setAmount(String amount);
-
-    String getFee();
-
-    void setFee(String fee);
-  }
-
   default Customers getCustomers() {
     return new Customers(
         StellarId.builder().id(getSenderId()).build(),
@@ -166,7 +137,7 @@ public interface Sep31Transaction {
     if (this.getRefunds() != null) {
       List<Sep31GetTransactionResponse.Sep31RefundPayment> payments = null;
       if (this.getRefunds().getRefundPayments() != null) {
-        for (Sep31Transaction.RefundPayment refundPayment : this.getRefunds().getRefundPayments()) {
+        for (RefundPayment refundPayment : this.getRefunds().getRefundPayments()) {
           if (payments == null) {
             payments = new ArrayList<>();
           }

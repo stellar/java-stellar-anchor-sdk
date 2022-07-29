@@ -2,11 +2,9 @@ package org.stellar.anchor.sep31;
 
 import java.time.Instant;
 import java.util.Map;
-import java.util.Set;
 import lombok.Data;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.shared.StellarId;
-import org.stellar.anchor.event.models.StellarTransaction;
 
 @Data
 public class PojoSep31Transaction implements Sep31Transaction {
@@ -35,10 +33,8 @@ public class PojoSep31Transaction implements Sep31Transaction {
   Refunds refunds;
   Instant updatedAt;
   Instant transferReceivedAt;
-  String message;
   String amountExpected;
   String receiverId;
   String senderId;
   StellarId creator;
-  Set<StellarTransaction> stellarTransactions = new java.util.LinkedHashSet<>();
 }

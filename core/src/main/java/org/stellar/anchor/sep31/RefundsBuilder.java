@@ -3,7 +3,7 @@ package org.stellar.anchor.sep31;
 import java.util.List;
 
 public class RefundsBuilder {
-  private final Sep31Transaction.Refunds refunds;
+  private final Refunds refunds;
 
   public RefundsBuilder(Sep31TransactionStore factory) {
     refunds = factory.newRefunds();
@@ -19,12 +19,12 @@ public class RefundsBuilder {
     return this;
   }
 
-  public RefundsBuilder payments(List<Sep31Transaction.RefundPayment> payments) {
+  public RefundsBuilder payments(List<RefundPayment> payments) {
     refunds.setRefundPayments(payments);
     return this;
   }
 
-  public Sep31Transaction.Refunds build() {
+  public Refunds build() {
     return refunds;
   }
 }

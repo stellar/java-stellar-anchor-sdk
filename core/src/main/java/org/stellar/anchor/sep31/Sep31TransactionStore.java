@@ -9,9 +9,9 @@ import org.stellar.anchor.api.exception.SepException;
 public interface Sep31TransactionStore {
   Sep31Transaction newTransaction();
 
-  Sep31Transaction.Refunds newRefunds();
+  Refunds newRefunds();
 
-  Sep31Transaction.RefundPayment newRefundPayment();
+  RefundPayment newRefundPayment();
 
   /**
    * Find the Sep31Transaction by transaction_id

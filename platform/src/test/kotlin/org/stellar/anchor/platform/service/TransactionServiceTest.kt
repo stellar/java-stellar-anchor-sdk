@@ -18,6 +18,7 @@ import org.stellar.anchor.api.exception.NotFoundException
 import org.stellar.anchor.api.platform.GetTransactionResponse
 import org.stellar.anchor.api.sep.AssetInfo
 import org.stellar.anchor.api.shared.*
+import org.stellar.anchor.api.shared.RefundPayment
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.event.models.TransactionEvent
 import org.stellar.anchor.platform.data.JdbcSep31RefundPayment.JdbcRefundPayment
@@ -147,7 +148,7 @@ class TransactionServiceTest {
         .amountRefunded(Amount("90.0000", fiatUSD))
         .amountFee(Amount("8.0000", fiatUSD))
         .payments(
-          arrayOf<RefundPayment>(
+          arrayOf(
             RefundPayment.builder()
               .id("1111")
               .idType(RefundPayment.IdType.STELLAR)

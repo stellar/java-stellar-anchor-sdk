@@ -12,6 +12,7 @@ import lombok.Setter;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.shared.StellarId;
 import org.stellar.anchor.reference.model.StellarIdConverter;
+import org.stellar.anchor.sep31.Refunds;
 import org.stellar.anchor.sep31.Sep31Transaction;
 import org.stellar.anchor.util.GsonUtils;
 

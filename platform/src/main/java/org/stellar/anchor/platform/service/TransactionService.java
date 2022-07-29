@@ -24,6 +24,7 @@ import org.stellar.anchor.api.shared.Refund;
 import org.stellar.anchor.api.shared.RefundPayment;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.event.models.TransactionEvent;
+import org.stellar.anchor.sep31.Refunds;
 import org.stellar.anchor.sep31.Sep31Transaction;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep38.Sep38Quote;
@@ -108,7 +109,7 @@ public class TransactionService {
   }
 
   GetTransactionResponse fromTransactionToResponse(Sep31Transaction txn) {
-    Sep31Transaction.Refunds txnRefunds = txn.getRefunds();
+    Refunds txnRefunds = txn.getRefunds();
     Refund refunds = null;
     if (txnRefunds != null) {
       String amountInAsset = txn.getAmountInAsset();
@@ -120,7 +121,8 @@ public class TransactionService {
 
       // populate refunds payments
       for (int i = 0; i < txnRefunds.getRefundPayments().size(); i++) {
-        Sep31Transaction.RefundPayment refundPayment = txnRefunds.getRefundPayments().get(i);
+        org.stellar.anchor.sep31.RefundPayment refundPayment =
+            txnRefunds.getRefundPayments().get(i);
         RefundPayment platformRefundPayment =
             RefundPayment.builder()
                 .id(refundPayment.getId())
