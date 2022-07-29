@@ -6,12 +6,9 @@ import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.unmockkAll
 import java.time.Instant
-import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertInstanceOf
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
 import org.stellar.anchor.api.exception.AnchorException
 import org.stellar.anchor.api.exception.BadRequestException
 import org.stellar.anchor.api.exception.NotFoundException
@@ -20,6 +17,7 @@ import org.stellar.anchor.api.sep.AssetInfo
 import org.stellar.anchor.api.shared.*
 import org.stellar.anchor.api.shared.RefundPayment
 import org.stellar.anchor.asset.AssetService
+import org.stellar.anchor.asset.ResourceJsonAssetService
 import org.stellar.anchor.event.models.TransactionEvent
 import org.stellar.anchor.platform.data.JdbcSep31RefundPayment.JdbcRefundPayment
 import org.stellar.anchor.platform.data.JdbcSep31Refunds
@@ -200,5 +198,29 @@ class TransactionServiceTest {
         .creator(StellarId("141ee445-f32c-4c38-9d25-f4475d6c5558", null))
         .build()
     assertEquals(wantGetTransactionResponse, gotGetTransactionResponse)
+  }
+
+  @Test
+  fun test_validateAsset_failure() {
+    // fails if listAllAssets is empty
+    every { assetService.listAllAssets() } returns listOf()
+    val mockAsset = Amount("10", fiatUSD)
+    var ex = assertThrows<AnchorException> { transactionService.validateAsset(mockAsset) }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("'$fiatUSD' is not a supported asset.", ex.message)
+
+    // fails if listAllAssets does not contain the desired asset
+    this.assetService = ResourceJsonAssetService("test_assets.json")
+    ex = assertThrows { transactionService.validateAsset(mockAsset) }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("'$fiatUSD' is not a supported asset.", ex.message)
+  }
+
+  @Test
+  fun test_validateAsset() {
+    this.assetService = ResourceJsonAssetService("test_assets.json")
+    transactionService = TransactionService(sep38QuoteStore, sep31TransactionStore, assetService)
+    val mockAsset = Amount("10", fiatUSD)
+    assertDoesNotThrow { transactionService.validateAsset(mockAsset) }
   }
 }
