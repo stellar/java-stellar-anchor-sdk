@@ -61,9 +61,75 @@ metadata:
 type: Opaque
 ```
 
+# Assets Configuration
+The following is an example  of the `assets` configuration that can be set in the helm chart's `values.yaml`.
+Not setting this section will pass in an empty assets list.
+
+```
+assets:
+  - "schema": "stellar"
+    "code": "USDC"
+    "issuer": "GYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYYY"
+    "distribution_account": "GZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ"
+    "significant_decimals": 2
+    "deposit":
+      "enabled": true
+      "fee_minimum": 0
+      "fee_percent": 0
+      "min_amount": 0
+      "max_amount": 10000
+    "withdraw":
+      "enabled": true
+      "fee_fixed": 0
+      "fee_percent": 0
+      "min_amount": 0
+      "max_amount": 10000
+    "send":
+      "fee_fixed": 0
+      "fee_percent": 0
+      "min_amount": 0
+      "max_amount": 10000
+    "sep31":
+      "quotes_supported": true
+      "quotes_required": true
+      "sep12":
+        "sender":
+          "types":
+            "sep31-sender":
+              "description": "U.S. citizens limited to sending payments of less than $10,000 in value"
+            "sep31-large-sender":
+              "description": "U.S. citizens that do not have sending limits"
+            "sep31-foreign-sender":
+              "description": "non-U.S. citizens sending payments of less than $10,000 in value"
+        "receiver":
+          "types":
+            "sep31-receiver":
+              "description": "U.S. citizens receiving USD"
+            "sep31-foreign-receiver":
+              "description": "non-U.S. citizens receiving USD"
+      "fields":
+        "transaction":
+          "receiver_routing_number":
+            "description": "routing number of the destination bank account"
+          "receiver_account_number":
+            "description": "bank account number of the destination"
+          "type":
+            "description": "type of deposit to make"
+            "choices":
+              - "SEPA"
+              - "SWIFT"
+    "sep38":
+      "exchangeable_assets":
+        - "stellar:USDC:GXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX"
+        - "iso4217:USD"
+    "sep24_enabled": true
+    "sep31_enabled": true
+    "sep38_enabled": true
+```
+
 ## Helm Chart Kubernetes Configuration
 The following table lists the configurable parameters of the Anchor Platform chart and their default values.  These are also reflected in the example [values.yaml](./values.yaml).
-|  Parameter | Description | Required?  | Default Value | 
+|  Parameter | Description | Required?  | Default Value |
 |---|---|---|---|
 |  fullName | customize anchor platform k8s resource names  eg < fullName >-configmap-< service.name >  |  yes  | anchor-platform  |
 | service.containerPort | ingress backend container port   | yes  | 8080  |
@@ -85,7 +151,7 @@ The following table lists the configurable parameters of the Anchor Platform cha
 
 ## Helm Chart Stellar Anchor Platform Configuration
 The following table lists the additional configurable parameters of the Anchor Platform chart and their default values.
-|  Parameter | Description | Required?  | Default Value | 
+|  Parameter | Description | Required?  | Default Value |
 |---|---|---|---|
 | stellar.app_config.app.hostUrl  | URL of the Anchor Platform SEP Service   | y  | n/a |
 | stellar.app_config.app.jwtSecretKey | web encryption key | ${JWT_SECRET_KEY} |
@@ -111,3 +177,4 @@ The following table lists the additional configurable parameters of the Anchor P
 | event.publisherType  | kafka|sqs  | no  | kafka  |
 | kafka_publisher.bootstrapServer  | kafka broker host:port | no | n/a  |
 | kafka_publisher.useIAM  | use IAM Authentication for MSK  | no | true  |
+| assets | see [Assets Configuration](#assets-configuration) | yes | [] |

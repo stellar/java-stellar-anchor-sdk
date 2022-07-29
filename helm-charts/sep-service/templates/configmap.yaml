@@ -66,11 +66,13 @@ data:
       {{- else }}
         endpoint: {{ .Values.stellar.app_config.app.backendUrl }} 
       {{- end }}
+      # sep-1
       sep1:
         enabled: true
         stellarFile: file:/config/stellar-wks.toml
-      {{- if ((.Values.stellar.app_config).sep10) }}
+      # sep-10
       sep10:
+      {{- if ((.Values.stellar.app_config).sep10) }}
         enabled: {{ .Values.stellar.app_config.sep10.enabled | default "true" }}
         homeDomain: {{ .Values.stellar.app_config.sep10.homeDomain }}
         clientAttributionRequired: {{ .Values.stellar.app_config.sep10.clientAttributionRequired | default "false" }}
@@ -85,7 +87,6 @@ data:
 {{- $.Values.stellar.app_config.sep10.omnibusAccountList | toYaml | nindent 10 }}
         {{- end }}
       {{- else }}
-      sep10:
         enabled: true
         homeDomain: "your_home_domain.com"
         clientAttributionRequired: "false"
@@ -94,26 +95,23 @@ data:
         authTimeout: 900
         jwtTimeout: 86400
         signingSeed: ${SEP10_SIGNING_SEED}
-
       {{- end }}
       # sep-12
-      {{- if ((.Values.stellar.app_config).sep12) }}
       sep12:
+      {{- if ((.Values.stellar.app_config).sep12) }}
         enabled: {{ .Values.stellar.app_config.sep12.enabled | default "true" | toYaml }}
         customerIntegrationEndpoint: {{ .Values.stellar.app_config.sep12.customerIntegrationEndpoint | default .Values.stellar.app_config.app.backendUrl }}
       {{- else }}
-      sep12:
         enabled:  "true"
         customerIntegrationEndpoint: {{ .Values.stellar.app_config.app.backendUrl }}
       {{- end }}
       # sep-24
-      {{- if ((.Values.stellar.app_config).sep24) }}
       sep24:
+      {{- if ((.Values.stellar.app_config).sep24) }}
         enabled: {{ .Values.stellar.app_config.sep24.enabled | default "true" }}
         interactiveJwtExpiration: {{ .Values.stellar.app_config.sep24.interactiveJwtExpiration | default 3600 }}
         interactiveUrl: {{ .Values.stellar.app_config.sep24.interactiveUrl | default .Values.stellar.app_config.app.backendUrl }}
       {{- else }}
-      sep24:
         enabled: false
         interactiveJwtExpiration: 3600
         interactiveUrl: {{ .Values.stellar.app_config.app.backendUrl }}
@@ -263,3 +261,17 @@ data:
     ORG_LOGO = "https://myorglogo.png"
     ORG_SUPPORT_EMAIL="myname@myemail.org"
     {{- end }}
+---
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: assets
+data:
+  assets.json: |
+    {
+      {{- if .Values.assets }}
+      "assets": {{ toPrettyJson .Values.assets | indent 4 }}
+      {{- else }}
+      "assets: []
+      {{- end }}
+    }
