@@ -3,6 +3,7 @@ package org.stellar.anchor.api.sep;
 import com.google.gson.annotations.SerializedName;
 import java.util.List;
 import java.util.Map;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @SuppressWarnings("unused")
@@ -133,10 +134,13 @@ public class AssetInfo {
   }
 
   @Data
+  @AllArgsConstructor
   public static class Sep31TxnFieldSpec {
     String description;
     List<String> choices;
     boolean optional;
+
+    public Sep31TxnFieldSpec() {}
   }
 
   @Data

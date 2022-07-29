@@ -16,7 +16,10 @@
       "receivingClient": {
         "first_name": "Lee",
         "last_name": "Sun",
-        "email_address": "lee@email.com"
+        "email_address": "lee@email.com",
+        "clabe_number": "1234",
+        "bank_number": "abcd",
+        "bank_account_number": "1234"
       },
       "toBeDeleted": {
         "first_name": "Jane",

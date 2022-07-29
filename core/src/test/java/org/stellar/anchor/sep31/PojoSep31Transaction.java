@@ -2,11 +2,9 @@ package org.stellar.anchor.sep31;
 
 import java.time.Instant;
 import java.util.Map;
-import java.util.Set;
 import lombok.Data;
 import org.stellar.anchor.api.sep.AssetInfo;
-import org.stellar.anchor.event.models.StellarId;
-import org.stellar.anchor.event.models.StellarTransaction;
+import org.stellar.anchor.api.shared.StellarId;
 
 @Data
 public class PojoSep31Transaction implements Sep31Transaction {
@@ -32,13 +30,25 @@ public class PojoSep31Transaction implements Sep31Transaction {
   AssetInfo.Sep31TxnFieldSpecs requiredInfoUpdates;
   Map<String, String> fields;
   Boolean refunded;
-  Refunds refunds;
+  PojoSep31Refunds refunds;
   Instant updatedAt;
   Instant transferReceivedAt;
-  String message;
   String amountExpected;
   String receiverId;
   String senderId;
   StellarId creator;
-  Set<StellarTransaction> stellarTransactions = new java.util.LinkedHashSet<>();
+
+  @Override
+  public void setRefunds(Refunds refunds) {
+    if (refunds == null) {
+      this.refunds = null;
+      return;
+    }
+
+    PojoSep31Refunds newRefunds = new PojoSep31Refunds();
+    newRefunds.setAmountRefunded(refunds.getAmountRefunded());
+    newRefunds.setAmountFee(refunds.getAmountFee());
+    newRefunds.setRefundPayments(refunds.getRefundPayments());
+    this.refunds = newRefunds;
+  }
 }

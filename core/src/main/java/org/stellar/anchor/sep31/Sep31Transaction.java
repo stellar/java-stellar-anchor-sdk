@@ -1,10 +1,13 @@
 package org.stellar.anchor.sep31;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.stellar.anchor.api.sep.AssetInfo;
-import org.stellar.anchor.event.models.StellarId;
+import org.stellar.anchor.api.sep.sep31.Sep31GetTransactionResponse;
+import org.stellar.anchor.api.shared.Customers;
+import org.stellar.anchor.api.shared.StellarId;
 
 public interface Sep31Transaction {
   String getId();
@@ -18,6 +21,10 @@ public interface Sep31Transaction {
   Long getStatusEta();
 
   void setStatusEta(Long statusEta);
+
+  String getAmountExpected();
+
+  void setAmountExpected(String amountExpected);
 
   String getAmountIn();
 
@@ -58,6 +65,14 @@ public interface Sep31Transaction {
   Instant getStartedAt();
 
   void setStartedAt(Instant startedAt);
+
+  Instant getUpdatedAt();
+
+  void setUpdatedAt(Instant updatedAt);
+
+  Instant getTransferReceivedAt();
+
+  void setTransferReceivedAt(Instant transferReceivedAt);
 
   Instant getCompletedAt();
 
@@ -111,32 +126,63 @@ public interface Sep31Transaction {
 
   void setCreator(StellarId creator);
 
-  interface Refunds {
-
-    String getAmountRefunded();
-
-    void setAmountRefunded(String amountRefunded);
-
-    String getAmountFee();
-
-    void setAmountFee(String amountFee);
-
-    List<RefundPayment> getRefundPayments();
-
-    void setRefundPayments(List<RefundPayment> refundPayments);
+  default Customers getCustomers() {
+    return new Customers(
+        StellarId.builder().id(getSenderId()).build(),
+        StellarId.builder().id(getReceiverId()).build());
   }
 
-  interface RefundPayment {
-    String getId();
+  default Sep31GetTransactionResponse toSep31GetTransactionResponse() {
+    Sep31GetTransactionResponse.Refunds refunds = null;
+    if (this.getRefunds() != null) {
+      List<Sep31GetTransactionResponse.Sep31RefundPayment> payments = null;
+      if (this.getRefunds().getRefundPayments() != null) {
+        for (RefundPayment refundPayment : this.getRefunds().getRefundPayments()) {
+          if (payments == null) {
+            payments = new ArrayList<>();
+          }
 
-    void setId(String id);
+          payments.add(
+              Sep31GetTransactionResponse.Sep31RefundPayment.builder()
+                  .id(refundPayment.getId())
+                  .amount(refundPayment.getAmount())
+                  .fee(refundPayment.getFee())
+                  .build());
+        }
+      }
 
-    String getAmount();
+      refunds =
+          Sep31GetTransactionResponse.Refunds.builder()
+              .amountRefunded(this.getRefunds().getAmountRefunded())
+              .amountFee(this.getRefunds().getAmountFee())
+              .payments(payments)
+              .build();
+    }
 
-    void setAmount(String amount);
-
-    String getFee();
-
-    void setFee(String fee);
+    return Sep31GetTransactionResponse.builder()
+        .transaction(
+            Sep31GetTransactionResponse.TransactionResponse.builder()
+                .id(getId())
+                .status(getStatus())
+                .statusEta(getStatusEta())
+                .amountIn(getAmountIn())
+                .amountInAsset(getAmountInAsset())
+                .amountOut(getAmountOut())
+                .amountOutAsset(getAmountOutAsset())
+                .amountFee(getAmountFee())
+                .amountFeeAsset(getAmountFeeAsset())
+                .stellarAccountId(getStellarAccountId())
+                .stellarMemo(getStellarMemo())
+                .stellarMemoType(getStellarMemoType())
+                .startedAt(getStartedAt())
+                .completedAt(getCompletedAt())
+                .stellarTransactionId(getStellarTransactionId())
+                .externalTransactionId(getExternalTransactionId())
+                .refunded(getRefunded())
+                .refunds(refunds)
+                .requiredInfoMessage(getRequiredInfoMessage())
+                .requiredInfoUpdates(getRequiredInfoUpdates())
+                .build())
+        .build();
   }
 }
