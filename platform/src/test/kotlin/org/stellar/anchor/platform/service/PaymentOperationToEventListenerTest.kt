@@ -16,7 +16,7 @@ import org.stellar.anchor.event.EventPublishService
 import org.stellar.anchor.event.models.*
 import org.stellar.anchor.platform.data.JdbcSep31Transaction
 import org.stellar.anchor.platform.data.JdbcSep31TransactionStore
-import org.stellar.anchor.platform.paymentobserver.ObservedPayment
+import org.stellar.anchor.platform.payment.observer.circle.ObservedPayment
 
 class PaymentOperationToEventListenerTest {
   @MockK(relaxed = true) private lateinit var transactionStore: JdbcSep31TransactionStore

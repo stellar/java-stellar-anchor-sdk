@@ -22,8 +22,8 @@ import org.stellar.anchor.config.CircleConfig
 import org.stellar.anchor.config.Sep31Config
 import org.stellar.anchor.event.EventPublishService
 import org.stellar.anchor.horizon.Horizon
-import org.stellar.anchor.paymentservice.circle.CirclePaymentService
-import org.stellar.anchor.paymentservice.circle.config.CirclePaymentConfig
+import org.stellar.anchor.platform.payment.observer.circle.CirclePaymentService
+import org.stellar.anchor.platform.payment.config.CirclePaymentConfig
 import org.stellar.anchor.platform.data.JdbcSep31Transaction
 import org.stellar.anchor.platform.service.Sep31DepositInfoGeneratorCircle
 import org.stellar.anchor.platform.service.Sep31DepositInfoGeneratorSelf

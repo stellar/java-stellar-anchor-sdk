@@ -28,20 +28,21 @@ import org.skyscreamer.jsonassert.JSONAssert
 import org.stellar.anchor.api.exception.HttpException
 import org.stellar.anchor.config.CircleConfig
 import org.stellar.anchor.horizon.Horizon
-import org.stellar.anchor.paymentservice.circle.config.CirclePaymentConfig
-import org.stellar.anchor.paymentservice.circle.model.CircleBlockchainAddress
-import org.stellar.anchor.paymentservice.circle.model.CircleWallet
-import org.stellar.anchor.paymentservice.circle.model.CircleWireDepositInstructions
-import org.stellar.anchor.paymentservice.circle.model.response.CircleDetailResponse
-import org.stellar.anchor.paymentservice.circle.model.response.CircleListResponse
-import org.stellar.anchor.paymentservice.circle.util.CircleAsset
+import org.stellar.anchor.platform.payment.common.*
+import org.stellar.anchor.platform.payment.config.CirclePaymentConfig
+import org.stellar.anchor.platform.payment.observer.circle.CirclePaymentService
+import org.stellar.anchor.platform.payment.observer.circle.model.CircleBlockchainAddress
+import org.stellar.anchor.platform.payment.observer.circle.model.CircleWallet
+import org.stellar.anchor.platform.payment.observer.circle.model.CircleWireDepositInstructions
+import org.stellar.anchor.platform.payment.observer.circle.model.response.CircleDetailResponse
+import org.stellar.anchor.platform.payment.observer.circle.model.response.CircleListResponse
+import org.stellar.anchor.platform.payment.observer.circle.util.CircleAsset
 import org.stellar.anchor.util.FileUtil
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.sdk.Network
 import org.stellar.sdk.Server
 import org.stellar.sdk.responses.Page
 import org.stellar.sdk.responses.operations.OperationResponse
-import paymentservice.*
 import reactor.core.publisher.Mono
 import shadow.com.google.common.reflect.TypeToken
 
@@ -723,7 +724,11 @@ class CirclePaymentServiceTest {
         ),
       payment?.destinationAccount
     )
-    assertEquals(Balance("0.91", "circle:USD"), payment?.balance)
+    assertEquals(
+        Balance(
+            "0.91",
+            "circle:USD"
+        ), payment?.balance)
     assertEquals(Payment.Status.PENDING, payment?.status)
     assertNull(payment?.errorCode)
 
@@ -854,7 +859,9 @@ class CirclePaymentServiceTest {
             PaymentNetwork.STELLAR,
             "GBG7VGZFH4TU2GS7WL5LMPYFNP64ZFR23XEGAV7GPEEXKWOR2DKCYPCK",
             "test tag",
-            Account.Capabilities(PaymentNetwork.STELLAR)
+            Account.Capabilities(
+                PaymentNetwork.STELLAR
+            )
         ),
       payment?.destinationAccount
     )
@@ -998,11 +1005,17 @@ class CirclePaymentServiceTest {
         Account(
             PaymentNetwork.BANK_WIRE,
             "6c87da10-feb8-484f-822c-2083ed762d25",
-            Account.Capabilities(PaymentNetwork.BANK_WIRE)
+            Account.Capabilities(
+                PaymentNetwork.BANK_WIRE
+            )
         ),
       payment?.destinationAccount
     )
-    assertEquals(Balance("0.91", "iso4217:USD"), payment?.balance)
+    assertEquals(
+        Balance(
+            "0.91",
+            "iso4217:USD"
+        ), payment?.balance)
     assertEquals(Payment.Status.PENDING, payment?.status)
     assertNull(payment?.errorCode)
 
@@ -1134,7 +1147,8 @@ class CirclePaymentServiceTest {
         getTransfersMono.block()!!.toPaymentHistory(50, merchantAccount, "1000066041")
     }
 
-    val wantPaymentHistory = PaymentHistory(merchantAccount)
+    val wantPaymentHistory =
+        PaymentHistory(merchantAccount)
     wantPaymentHistory.beforeCursor = "c58e2613-a808-4075-956c-e576787afb3b"
 
     val gson = Gson()
@@ -1149,7 +1163,8 @@ class CirclePaymentServiceTest {
             "1000067536",
             CircleWallet.defaultCapabilities()
         )
-    p1.balance = Balance("0.91", "circle:USD")
+    p1.balance =
+        Balance("0.91", "circle:USD")
     p1.status = Payment.Status.PENDING
     p1.createdAt = instantFromString("2022-02-07T19:50:23.408Z")
     p1.updatedAt = instantFromString("2022-02-07T19:50:23.408Z")
@@ -1162,10 +1177,13 @@ class CirclePaymentServiceTest {
         Account(
             PaymentNetwork.STELLAR,
             "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S",
-            Account.Capabilities(PaymentNetwork.STELLAR)
+            Account.Capabilities(
+                PaymentNetwork.STELLAR
+            )
         )
     p2.destinationAccount = merchantAccount
-    p2.balance = Balance("1.50", "circle:USD")
+    p2.balance =
+        Balance("1.50", "circle:USD")
     p2.idTag = "fb8947c67856d8eb444211c1927d92bcf14abcfb34cdd27fc9e604b15d208fd1"
     p2.status = Payment.Status.SUCCESSFUL
     p2.createdAt = instantFromString("2022-02-07T18:02:17.999Z")
@@ -1180,7 +1198,9 @@ class CirclePaymentServiceTest {
         Account(
             PaymentNetwork.STELLAR,
             "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S",
-            Account.Capabilities(PaymentNetwork.STELLAR)
+            Account.Capabilities(
+                PaymentNetwork.STELLAR
+            )
         )
     p3.balance =
         Balance(
@@ -1230,7 +1250,8 @@ class CirclePaymentServiceTest {
       paymentHistory = getTransfersMono.block()!!.toPaymentHistory(2, merchantAccount, "1000066041")
     }
 
-    val wantPaymentHistory = PaymentHistory(merchantAccount)
+    val wantPaymentHistory =
+        PaymentHistory(merchantAccount)
     wantPaymentHistory.beforeCursor = "c58e2613-a808-4075-956c-e576787afb3b"
     wantPaymentHistory.afterCursor = "a8997020-3da7-4543-bc4a-5ae8c7ce346d"
 
@@ -1246,7 +1267,8 @@ class CirclePaymentServiceTest {
             "1000067536",
             CircleWallet.defaultCapabilities()
         )
-    p1.balance = Balance("0.91", "circle:USD")
+    p1.balance =
+        Balance("0.91", "circle:USD")
     p1.status = Payment.Status.PENDING
     p1.createdAt = instantFromString("2022-02-07T19:50:23.408Z")
     p1.updatedAt = instantFromString("2022-02-07T19:50:23.408Z")
@@ -1260,7 +1282,9 @@ class CirclePaymentServiceTest {
         Account(
             PaymentNetwork.STELLAR,
             "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S",
-            Account.Capabilities(PaymentNetwork.STELLAR)
+            Account.Capabilities(
+                PaymentNetwork.STELLAR
+            )
         )
     p2.balance =
         Balance(
@@ -1307,7 +1331,8 @@ class CirclePaymentServiceTest {
       paymentHistory = getPayoutsMono.block()!!.toPaymentHistory(50, merchantAccount)
     }
 
-    val wantPaymentHistory = PaymentHistory(merchantAccount)
+    val wantPaymentHistory =
+        PaymentHistory(merchantAccount)
     wantPaymentHistory.beforeCursor = "6588a352-5131-4711-a264-e405f38d752d"
 
     val p = Payment()
@@ -1317,9 +1342,12 @@ class CirclePaymentServiceTest {
         Account(
             PaymentNetwork.BANK_WIRE,
             "6c87da10-feb8-484f-822c-2083ed762d25",
-            Account.Capabilities(PaymentNetwork.BANK_WIRE)
+            Account.Capabilities(
+                PaymentNetwork.BANK_WIRE
+            )
         )
-    p.balance = Balance("3.00", "iso4217:USD")
+    p.balance =
+        Balance("3.00", "iso4217:USD")
     p.status = Payment.Status.SUCCESSFUL
     p.createdAt = instantFromString("2022-02-03T15:41:25.286Z")
     p.updatedAt = instantFromString("2022-02-03T16:00:31.697Z")
@@ -1361,7 +1389,8 @@ class CirclePaymentServiceTest {
       paymentHistory = getPayoutsMono.block()!!.toPaymentHistory(1, merchantAccount)
     }
 
-    val wantPaymentHistory = PaymentHistory(merchantAccount)
+    val wantPaymentHistory =
+        PaymentHistory(merchantAccount)
     wantPaymentHistory.beforeCursor = "6588a352-5131-4711-a264-e405f38d752d"
     wantPaymentHistory.afterCursor = "6588a352-5131-4711-a264-e405f38d752d"
 
@@ -1372,9 +1401,12 @@ class CirclePaymentServiceTest {
         Account(
             PaymentNetwork.BANK_WIRE,
             "6c87da10-feb8-484f-822c-2083ed762d25",
-            Account.Capabilities(PaymentNetwork.BANK_WIRE)
+            Account.Capabilities(
+                PaymentNetwork.BANK_WIRE
+            )
         )
-    p.balance = Balance("3.00", "iso4217:USD")
+    p.balance =
+        Balance("3.00", "iso4217:USD")
     p.status = Payment.Status.SUCCESSFUL
     p.createdAt = instantFromString("2022-02-03T15:41:25.286Z")
     p.updatedAt = instantFromString("2022-02-03T16:00:31.697Z")
@@ -1417,7 +1449,8 @@ class CirclePaymentServiceTest {
       paymentHistory = getPaymentsMono.block()!!.toPaymentHistory(50, merchantAccount)
     }
 
-    val wantPaymentHistory = PaymentHistory(merchantAccount)
+    val wantPaymentHistory =
+        PaymentHistory(merchantAccount)
     wantPaymentHistory.beforeCursor = "acc622bf-89e1-447c-8588-1bdead8e41a3"
 
     val p = Payment()
@@ -1426,10 +1459,13 @@ class CirclePaymentServiceTest {
         Account(
             PaymentNetwork.BANK_WIRE,
             "a4e76642-81c5-47ca-9229-ebd64efd74a7",
-            Account.Capabilities(PaymentNetwork.BANK_WIRE)
+            Account.Capabilities(
+                PaymentNetwork.BANK_WIRE
+            )
         )
     p.destinationAccount = merchantAccount
-    p.balance = Balance("1000.00", "circle:USD")
+    p.balance =
+        Balance("1000.00", "circle:USD")
     p.status = Payment.Status.SUCCESSFUL
     p.createdAt = instantFromString("2022-02-21T19:20:01.438Z")
     p.updatedAt = instantFromString("2022-02-21T19:28:01.901Z")
@@ -1472,7 +1508,8 @@ class CirclePaymentServiceTest {
       paymentHistory = getPaymentsMono.block()!!.toPaymentHistory(1, merchantAccount)
     }
 
-    val wantPaymentHistory = PaymentHistory(merchantAccount)
+    val wantPaymentHistory =
+        PaymentHistory(merchantAccount)
     wantPaymentHistory.beforeCursor = "acc622bf-89e1-447c-8588-1bdead8e41a3"
     wantPaymentHistory.afterCursor = "acc622bf-89e1-447c-8588-1bdead8e41a3"
 
@@ -1482,10 +1519,13 @@ class CirclePaymentServiceTest {
         Account(
             PaymentNetwork.BANK_WIRE,
             "a4e76642-81c5-47ca-9229-ebd64efd74a7",
-            Account.Capabilities(PaymentNetwork.BANK_WIRE)
+            Account.Capabilities(
+                PaymentNetwork.BANK_WIRE
+            )
         )
     p.destinationAccount = merchantAccount
-    p.balance = Balance("1000.00", "circle:USD")
+    p.balance =
+        Balance("1000.00", "circle:USD")
     p.status = Payment.Status.SUCCESSFUL
     p.createdAt = instantFromString("2022-02-21T19:20:01.438Z")
     p.updatedAt = instantFromString("2022-02-21T19:28:01.901Z")
@@ -1575,7 +1615,8 @@ class CirclePaymentServiceTest {
       }
     }
 
-    val wantPaymentHistory = PaymentHistory(merchantAccount)
+    val wantPaymentHistory =
+        PaymentHistory(merchantAccount)
     assertEquals(wantPaymentHistory, paymentHistory)
 
     val request = server.takeRequest()
@@ -1637,7 +1678,8 @@ class CirclePaymentServiceTest {
     val getAccountHistoryMono = service.getAccountPaymentHistory("1000066041", null, null)
     assertDoesNotThrow { paymentHistory = getAccountHistoryMono.block() }
 
-    val wantPaymentHistory = PaymentHistory(merchantAccount)
+    val wantPaymentHistory =
+        PaymentHistory(merchantAccount)
     wantPaymentHistory.beforeCursor =
       "c58e2613-a808-4075-956c-e576787afb3b:6588a352-5131-4711-a264-e405f38d752d:acc622bf-89e1-447c-8588-1bdead8e41a3"
 
@@ -1650,10 +1692,13 @@ class CirclePaymentServiceTest {
         Account(
             PaymentNetwork.BANK_WIRE,
             "a4e76642-81c5-47ca-9229-ebd64efd74a7",
-            Account.Capabilities(PaymentNetwork.BANK_WIRE)
+            Account.Capabilities(
+                PaymentNetwork.BANK_WIRE
+            )
         )
     p0.destinationAccount = merchantAccount
-    p0.balance = Balance("1000.00", "circle:USD")
+    p0.balance =
+        Balance("1000.00", "circle:USD")
     p0.status = Payment.Status.SUCCESSFUL
     p0.createdAt = instantFromString("2022-02-21T19:20:01.438Z")
     p0.updatedAt = instantFromString("2022-02-21T19:28:01.901Z")
@@ -1669,7 +1714,8 @@ class CirclePaymentServiceTest {
             "1000067536",
             CircleWallet.defaultCapabilities()
         )
-    p1.balance = Balance("0.91", "circle:USD")
+    p1.balance =
+        Balance("0.91", "circle:USD")
     p1.status = Payment.Status.PENDING
     p1.createdAt = instantFromString("2022-02-07T19:50:23.408Z")
     p1.updatedAt = instantFromString("2022-02-07T19:50:23.408Z")
@@ -1682,10 +1728,13 @@ class CirclePaymentServiceTest {
         Account(
             PaymentNetwork.STELLAR,
             "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S",
-            Account.Capabilities(PaymentNetwork.STELLAR)
+            Account.Capabilities(
+                PaymentNetwork.STELLAR
+            )
         )
     p2.destinationAccount = merchantAccount
-    p2.balance = Balance("1.50", "circle:USD")
+    p2.balance =
+        Balance("1.50", "circle:USD")
     p2.idTag = "fb8947c67856d8eb444211c1927d92bcf14abcfb34cdd27fc9e604b15d208fd1"
     p2.status = Payment.Status.SUCCESSFUL
     p2.createdAt = instantFromString("2022-02-07T18:02:17.999Z")
@@ -1700,9 +1749,12 @@ class CirclePaymentServiceTest {
         Account(
             PaymentNetwork.BANK_WIRE,
             "6c87da10-feb8-484f-822c-2083ed762d25",
-            Account.Capabilities(PaymentNetwork.BANK_WIRE)
+            Account.Capabilities(
+                PaymentNetwork.BANK_WIRE
+            )
         )
-    p3.balance = Balance("3.00", "iso4217:USD")
+    p3.balance =
+        Balance("3.00", "iso4217:USD")
     p3.status = Payment.Status.SUCCESSFUL
     p3.createdAt = instantFromString("2022-02-03T15:41:25.286Z")
     p3.updatedAt = instantFromString("2022-02-03T16:00:31.697Z")
@@ -1716,7 +1768,9 @@ class CirclePaymentServiceTest {
         Account(
             PaymentNetwork.STELLAR,
             "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S",
-            Account.Capabilities(PaymentNetwork.STELLAR)
+            Account.Capabilities(
+                PaymentNetwork.STELLAR
+            )
         )
     p4.balance =
         Balance(
@@ -1982,12 +2036,22 @@ class CirclePaymentServiceTest {
   @Test
   fun test_getDepositInstructions_parameterValidation() {
     // empty beneficiary account id
-    var config = DepositRequirements(null, null, null, null)
+    var config = DepositRequirements(
+        null,
+        null,
+        null,
+        null
+    )
     var ex: HttpException = assertThrows { service.getDepositInstructions(config).block() }
     assertEquals(HttpException(400, "beneficiary account id cannot be empty"), ex)
 
     // invalid currency name
-    config = DepositRequirements("1000066041", null, null, null)
+    config = DepositRequirements(
+        "1000066041",
+        null,
+        null,
+        null
+    )
     ex = assertThrows { service.getDepositInstructions(config).block() }
     assertEquals(
       HttpException(400, "the only receiving currency in a circle account is \"circle:USD\""),

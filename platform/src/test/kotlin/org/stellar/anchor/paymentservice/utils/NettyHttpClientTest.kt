@@ -2,7 +2,7 @@ package org.stellar.anchor.paymentservice.utils
 
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
-import org.stellar.anchor.paymentservice.circle.util.NettyHttpClient
+import org.stellar.anchor.platform.payment.observer.circle.util.NettyHttpClient
 
 class NettyHttpClientTest {
   @Test

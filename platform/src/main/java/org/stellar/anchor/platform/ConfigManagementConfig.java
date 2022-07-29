@@ -4,12 +4,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.stellar.anchor.config.*;
-import org.stellar.anchor.config.CirclePaymentObserverConfig;
-import org.stellar.anchor.config.EventConfig;
-import org.stellar.anchor.config.KafkaConfig;
-import org.stellar.anchor.config.SqsConfig;
-import org.stellar.anchor.payment.config.PropertyCirclePaymentConfig;
-import org.stellar.anchor.paymentservice.circle.config.CirclePaymentConfig;
 import org.stellar.anchor.platform.config.*;
 
 @Configuration
@@ -66,12 +60,6 @@ public class ConfigManagementConfig {
   @ConfigurationProperties(prefix = "circle")
   CircleConfig circleConfig() {
     return new PropertyCircleConfig();
-  }
-
-  @Bean
-  @ConfigurationProperties(prefix = "payment-gateway.circle")
-  CirclePaymentConfig circlePaymentConfig() {
-    return new PropertyCirclePaymentConfig();
   }
 
   @Bean

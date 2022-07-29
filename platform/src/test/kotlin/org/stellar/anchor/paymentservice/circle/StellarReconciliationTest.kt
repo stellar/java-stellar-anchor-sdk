@@ -11,8 +11,9 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertDoesNotThrow
-import org.stellar.anchor.paymentservice.circle.model.CircleTransfer
-import org.stellar.anchor.paymentservice.circle.util.NettyHttpClient
+import org.stellar.anchor.platform.payment.observer.circle.StellarReconciliation
+import org.stellar.anchor.platform.payment.observer.circle.model.CircleTransfer
+import org.stellar.anchor.platform.payment.observer.circle.util.NettyHttpClient
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.sdk.Server
 import reactor.netty.http.client.HttpClient
