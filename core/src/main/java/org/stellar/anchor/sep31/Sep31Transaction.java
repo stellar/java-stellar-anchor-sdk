@@ -1,6 +1,7 @@
 package org.stellar.anchor.sep31;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.stellar.anchor.api.sep.AssetInfo;
@@ -161,6 +162,32 @@ public interface Sep31Transaction {
   }
 
   default Sep31GetTransactionResponse toSep31GetTransactionResponse() {
+    Sep31GetTransactionResponse.Refunds refunds = null;
+    if (this.getRefunds() != null) {
+      List<Sep31GetTransactionResponse.Sep31RefundPayment> payments = null;
+      if (this.getRefunds().getRefundPayments() != null) {
+        for (Sep31Transaction.RefundPayment refundPayment : this.getRefunds().getRefundPayments()) {
+          if (payments == null) {
+            payments = new ArrayList<>();
+          }
+
+          payments.add(
+              Sep31GetTransactionResponse.Sep31RefundPayment.builder()
+                  .id(refundPayment.getId())
+                  .amount(refundPayment.getAmount())
+                  .fee(refundPayment.getFee())
+                  .build());
+        }
+      }
+
+      refunds =
+          Sep31GetTransactionResponse.Refunds.builder()
+              .amountRefunded(this.getRefunds().getAmountRefunded())
+              .amountFee(this.getRefunds().getAmountFee())
+              .payments(payments)
+              .build();
+    }
+
     return Sep31GetTransactionResponse.builder()
         .transaction(
             Sep31GetTransactionResponse.TransactionResponse.builder()
@@ -181,8 +208,7 @@ public interface Sep31Transaction {
                 .stellarTransactionId(getStellarTransactionId())
                 .externalTransactionId(getExternalTransactionId())
                 .refunded(getRefunded())
-                // TODO: handle refund after mvp
-                // .refunds(txn.getRefunds())
+                .refunds(refunds)
                 .requiredInfoMessage(getRequiredInfoMessage())
                 .requiredInfoUpdates(getRequiredInfoUpdates())
                 .build())

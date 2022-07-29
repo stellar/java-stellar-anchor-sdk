@@ -71,6 +71,7 @@ public class Sep31GetTransactionResponse {
   }
 
   @Data
+  @Builder
   public static class Refunds {
     @SerializedName("amount_refunded")
     String amountRefunded;
@@ -82,8 +83,9 @@ public class Sep31GetTransactionResponse {
   }
 
   @Data
+  @Builder
   public static class Sep31RefundPayment {
-    String Id;
+    String id;
     String amount;
     String fee;
   }
