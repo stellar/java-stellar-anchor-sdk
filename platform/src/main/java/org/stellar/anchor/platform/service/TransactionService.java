@@ -177,7 +177,7 @@ public class TransactionService {
   void updateSep31Transaction(PatchTransactionRequest ptr, Sep31Transaction txn)
       throws AnchorException {
     if (ptr.getStatus() != null) {
-      validatePlatformApiStatus(ptr.getStatus());
+      validateIfStatusIsSupported(ptr.getStatus());
       txn.setStatus(ptr.getStatus());
     }
     if (ptr.getAmountIn() != null) {
@@ -211,7 +211,14 @@ public class TransactionService {
     validateTimestamps(txn);
   }
 
-  private void validatePlatformApiStatus(String status) throws BadRequestException {
+  /**
+   * validateIfStatusIsSupported will check if the provided string is a SepTransactionStatus
+   * supported by the PlatformAPI
+   *
+   * @param status a String representing the SepTransactionStatus
+   * @throws BadRequestException if the provided status is not supported
+   */
+  private void validateIfStatusIsSupported(String status) throws BadRequestException {
     if (!validStatuses.contains(status)) {
       throw new BadRequestException(String.format("invalid status(%s)", status));
     }

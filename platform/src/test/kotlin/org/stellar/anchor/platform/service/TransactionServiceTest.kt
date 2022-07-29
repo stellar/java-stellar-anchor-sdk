@@ -9,11 +9,14 @@ import java.time.Instant
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertInstanceOf
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import org.stellar.anchor.api.exception.AnchorException
 import org.stellar.anchor.api.exception.BadRequestException
 import org.stellar.anchor.api.exception.NotFoundException
 import org.stellar.anchor.api.platform.GetTransactionResponse
 import org.stellar.anchor.api.sep.AssetInfo
+import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.api.shared.*
 import org.stellar.anchor.api.shared.RefundPayment
 import org.stellar.anchor.asset.AssetService
@@ -224,5 +227,47 @@ class TransactionServiceTest {
     transactionService = TransactionService(sep38QuoteStore, sep31TransactionStore, assetService)
     val mockAsset = Amount("10", fiatUSD)
     assertDoesNotThrow { callPrivate(transactionService, "validateAsset", mockAsset) }
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+    value = SepTransactionStatus::class,
+    mode = EnumSource.Mode.EXCLUDE,
+    names =
+      [
+        "PENDING_STELLAR",
+        "PENDING_CUSTOMER_INFO_UPDATE",
+        "PENDING_RECEIVER",
+        "PENDING_EXTERNAL",
+        "COMPLETED",
+        "EXPIRED",
+        "ERROR"]
+  )
+  fun test_validateIfStatusIsSupported_failure(sepTxnStatus: SepTransactionStatus) {
+    val ex: Exception = assertThrows {
+      callPrivate(transactionService, "validateIfStatusIsSupported", sepTxnStatus.getName())
+    }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("invalid status(${sepTxnStatus.getName()})", ex.message)
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+    value = SepTransactionStatus::class,
+    mode = EnumSource.Mode.INCLUDE,
+    names =
+      [
+        "PENDING_STELLAR",
+        "PENDING_CUSTOMER_INFO_UPDATE",
+        "PENDING_RECEIVER",
+        "PENDING_EXTERNAL",
+        "COMPLETED",
+        "EXPIRED",
+        "ERROR"]
+  )
+  fun test_validateIfStatusIsSupported(sepTxnStatus: SepTransactionStatus) {
+    assertDoesNotThrow {
+      callPrivate(transactionService, "validateIfStatusIsSupported", sepTxnStatus.getName())
+    }
   }
 }
