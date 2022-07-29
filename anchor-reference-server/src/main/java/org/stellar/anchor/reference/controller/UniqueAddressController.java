@@ -1,15 +1,14 @@
 package org.stellar.anchor.reference.controller;
 
-import com.google.gson.Gson;
 import org.springframework.web.bind.annotation.*;
 import org.stellar.anchor.api.callback.GetUniqueAddressResponse;
 import org.stellar.anchor.reference.service.UniqueAddressService;
-import org.stellar.anchor.util.GsonUtils;
+import org.stellar.anchor.util.ConditionalOnPropertyNotEmpty;
 
 @RestController
+@ConditionalOnPropertyNotEmpty("anchor.settings.distributionWallet")
 public class UniqueAddressController {
   final UniqueAddressService uniqueAddressService;
-  static final Gson gson = GsonUtils.builder().create();
 
   public UniqueAddressController(UniqueAddressService uniqueAddressService) {
     this.uniqueAddressService = uniqueAddressService;
