@@ -8,23 +8,6 @@ service:
 image: 
    repo: stellar
    name: anchor-platform
-   tag: 89bece0
-   #tag: "1299714" worked
-   # docker pull stellar/anchor-platform:1299714
-   # tag: 37ef1fb #8 days ago failed
-   #tag: 41bcd38 # 8 days ago working
-   #tag: 3d97b51 9 days ago working
-   #tag: 9bbea30 10 days ago working
-   #tag: 632ca64 10 days ago
-   # working tag: ff0559e
-   #tag: 89bece0
-   # broken tag: 75981ff
-   # tag: a8f920a
-   # Not oWorking tag: af43af1
-   # working tag: 1fcdb06
-   # tag: 631544e works
-   # tag: 20abf59 (works)
-   # tag: e25776b liquibase errors
    tag: latest
    pullPolicy: Always
 deployment:
