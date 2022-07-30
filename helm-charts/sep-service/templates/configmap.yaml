@@ -167,7 +167,7 @@ data:
         trackedWallet: {{ .Values.stellar.app_config.circle_payment_observer.trackedWallet | default "all" }}
       {{- end }}
       {{- if (.Values.stellar.app_config).event }}
-      event:
+      event: 
         # If enabled, publish Events to a queue (publisherType)
         # publisherType - the type of queue to use for event publishing
         enabled: {{ .Values.stellar.app_config.event.enabled | default "true" }}
@@ -219,10 +219,10 @@ data:
       mvc:
         async.request-timeout: 6000
   stellar-wks.toml: |
-    ACCOUNTS = ["GDZCLP2PHTWYQ3BWZMC5D4ZUJX5NU4S7YZHC5EBFAFKL6UJUQ5RKDGSY"]
-    VERSION = "0.1.0"
-    NETWORK_PASSPHRASE = "Test SDF Network ; September 2015"
-    SIGNING_KEY = "GDZCLP2PHTWYQ3BWZMC5D4ZUJX5NU4S7YZHC5EBFAFKL6UJUQ5RKDGSY"
+    ACCOUNTS = {{ .Values.stellar.toml.accounts | default "GDZCLP2PHTWYQ3BWZMC5D4ZUJX5NU4S7YZHC5EBFAFKL6UJUQ5RKDGSY" }}
+    VERSION = "{{ .Values.stellar.toml.version | default "0.1.0" }}"
+    NETWORK_PASSPHRASE = "{{ .Values.stellar.app_config.app.stellarNetworkPassphrase | default "Test SDF Network ; September 2015" }}"
+    SIGNING_KEY = "{{ .Values.stellar.toml.signing_key | default "GDZCLP2PHTWYQ3BWZMC5D4ZUJX5NU4S7YZHC5EBFAFKL6UJUQ5RKDGSY" }}"
     TRANSFER_SERVER = "{{ .Values.stellar.app_config.app.hostUrl }}/sep6"
     TRANSFER_SERVER_SEP0024 = "{{ .Values.stellar.app_config.app.hostUrl }}/sep24"
     WEB_AUTH_ENDPOINT = "{{ .Values.stellar.app_config.app.hostUrl }}/auth"
