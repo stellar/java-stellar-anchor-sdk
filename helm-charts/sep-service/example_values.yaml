@@ -27,7 +27,7 @@ deployment:
        pathType: Prefix
        backend:
          servicePort: "{{ .Values.service.containerPort }}"
-         serviceName: "{{ .Values.fullName }}-svc-{{ .Values.service.name }}"
+         serviceName: "{{ .Values.fullName }}"
    env:
    - name: STELLAR_ANCHOR_CONFIG
      value: file:/config/anchor-config.yaml
@@ -57,7 +57,7 @@ ingress:
           pathType: Prefix
           backend:
             servicePort: "{{ .Values.service.containerPort }}"
-            serviceName: "{{ .Values.fullName }}-svc-{{ .Values.service.name }}"
+            serviceName: "{{ .Values.fullName }}"
 stellar:
    toml:
       #accounts: ['"GCHLHDBOKG2JWMJQBTLSL5XG6NO7ESXI2TAQKZXCXWXB5WI2X6W233PR"'] 

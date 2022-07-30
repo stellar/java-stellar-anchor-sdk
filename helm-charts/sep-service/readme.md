@@ -1,6 +1,6 @@
 # Anchor Platform SEP Service Helm Chart
 ## Introduction
-This chart installs the Stellar Anchor Platform SEP Serviceon Kubernetes cluster using the Helm package manager.
+This chart installs the Stellar Anchor Platform SEP Service on Kubernetes cluster using the Helm package manager. 
 ## Upgrading your Clusters
 To upgrade the Anchor Platform, you can use the helm upgrade command. example:
 ```
@@ -13,8 +13,10 @@ $ helm repo add stellar *stellar-helm-chart-repo* (this will be added once avail
 ```
 To install the chart with the release name my-release:
 ```
-$ helm install my-release stellar/anchorplatform
+$ helm install my-release stellar/anchorplatform -f values.yaml
 ```
+
+An example [values.yaml](example_values.yaml) is provided in this repository. A [description](#configuration) of available chart parameters and the expected values is provided below.
 ## Uninstalling the Chart
 To uninstall/delete the my-release deployment:
 
