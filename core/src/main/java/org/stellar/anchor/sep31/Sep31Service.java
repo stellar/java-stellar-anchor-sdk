@@ -25,16 +25,16 @@ import org.stellar.anchor.api.sep.AssetInfo.Sep31TxnFieldSpecs;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerRequest;
 import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerResponse;
+import org.stellar.anchor.api.sep.sep12.Sep12Status;
 import org.stellar.anchor.api.sep.sep31.*;
-import org.stellar.anchor.api.sep.sep31.Sep31GetTransactionResponse.TransactionResponse;
 import org.stellar.anchor.api.shared.Amount;
+import org.stellar.anchor.api.shared.Customers;
+import org.stellar.anchor.api.shared.StellarId;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtToken;
 import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.Sep31Config;
 import org.stellar.anchor.event.EventPublishService;
-import org.stellar.anchor.event.models.Customers;
-import org.stellar.anchor.event.models.StellarId;
 import org.stellar.anchor.event.models.TransactionEvent;
 import org.stellar.anchor.sep38.Sep38Quote;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
@@ -73,7 +73,7 @@ public class Sep31Service {
     this.feeIntegration = feeIntegration;
     this.customerIntegration = customerIntegration;
     this.eventService = eventService;
-    this.infoResponse = createFromAssets(assetService.listAllAssets());
+    this.infoResponse = sep31InfoResponseFromAssetInfoList(assetService.listAllAssets());
     Log.info("Sep31Service initialized.");
   }
 
@@ -96,6 +96,7 @@ public class Sep31Service {
           String.format(
               "asset %s:%s is not supported.", request.getAssetCode(), request.getAssetIssuer()));
     }
+    Context.get().setAsset(assetInfo);
 
     // Pre-validation
     validateAmount(request.getAmount());
@@ -105,16 +106,24 @@ public class Sep31Service {
         assetInfo.getSend().getMinAmount(),
         assetInfo.getSend().getMaxAmount());
     validateLanguage(appConfig, request.getLang());
+
+    /*
+     * TODO:
+     *  - conclude if we can drop the usage of `fields`.
+     * TODO: if we can't stop using fields, we should:
+     *  - check if `fields` are needed. If not, ignore this part of the code
+     *  - make sure fields are not getting stored in the database
+     *  - make sure fields are being forwarded in the TransactionEvent
+     */
     if (request.getFields() == null) {
       infoF(
           "POST /transaction with id ({}) cannot have empty `fields`", jwtToken.getTransactionId());
       throw new BadRequestException("'fields' field cannot be empty");
     }
-
-    Context.get().setAsset(assetInfo);
     Context.get().setTransactionFields(request.getFields().getTransaction());
-
     validateRequiredFields();
+
+    // Validation that execute HTTP requests
     validateSenderAndReceiver();
     preValidateQuote();
 
@@ -127,7 +136,6 @@ public class Sep31Service {
             .account(Objects.requireNonNullElse(jwtToken.getMuxedAccount(), jwtToken.getAccount()))
             .build();
 
-    AssetInfo asset = Context.get().getAsset();
     Amount fee = Context.get().getFee();
     Sep31Transaction txn =
         new Sep31TransactionBuilder(sep31TransactionStore)
@@ -151,12 +159,13 @@ public class Sep31Service {
             .receiverId(Context.get().getRequest().getReceiverId())
             .creator(creatorStellarId)
             // updateAmounts will update these ⬇️
+            .amountExpected(request.getAmount())
             .amountIn(request.getAmount())
             .amountInAsset(assetInfo.getAssetName())
             .amountOut(null)
             .amountOutAsset(null)
             // updateDepositInfo will update these ⬇️
-            .stellarAccountId(asset.getDistributionAccount())
+            .stellarAccountId(assetInfo.getDistributionAccount())
             .stellarMemo(null)
             .stellarMemoType(null)
             .build();
@@ -181,7 +190,7 @@ public class Sep31Service {
             .status(TransactionEvent.Status.PENDING_SENDER)
             .statusChange(
                 new TransactionEvent.StatusChange(null, TransactionEvent.Status.PENDING_SENDER))
-            .amountExpected(new Amount(txn.getAmountIn(), txn.getAmountInAsset()))
+            .amountExpected(new Amount(txn.getAmountExpected(), txn.getAmountInAsset()))
             .amountIn(new Amount(txn.getAmountIn(), txn.getAmountInAsset()))
             .amountOut(new Amount(txn.getAmountOut(), txn.getAmountOutAsset()))
             .amountFee(new Amount(txn.getAmountFee(), txn.getAmountFeeAsset()))
@@ -210,6 +219,12 @@ public class Sep31Service {
         .build();
   }
 
+  /**
+   * Will update the amountIn, amountOut and amountFee, as well as the assets, taking into account
+   * if quotes or if the {callbackApi}/fee endpoint was used.
+   *
+   * @throws AnchorException is something went wrong.
+   */
   void updateAmounts() throws AnchorException {
     Sep31PostTransactionRequest request = Context.get().getRequest();
     if (request.getQuoteId() != null) {
@@ -219,7 +234,12 @@ public class Sep31Service {
     updateTxAmountsWhenNoQuoteWasUsed();
   }
 
-  void updateTxAmountsBasedOnQuote() throws AnchorException {
+  /**
+   * updateTxAmountsBasedOnQuote will update the amountIn, amountOut and fee based on the quote.
+   *
+   * @throws ServerErrorException if the quote object is missing
+   */
+  void updateTxAmountsBasedOnQuote() throws ServerErrorException {
     Sep38Quote quote = Context.get().getQuote();
     if (quote == null) {
       infoF("Quote for transaction ({}) not found", Context.get().getTransaction().getId());
@@ -230,12 +250,17 @@ public class Sep31Service {
     debugF("Updating transaction ({}) with quote ({})", txn.getId(), quote.getId());
     txn.setAmountInAsset(quote.getSellAsset());
     txn.setAmountIn(quote.getSellAmount());
+    txn.setAmountExpected(quote.getSellAmount());
     txn.setAmountOutAsset(quote.getBuyAsset());
     txn.setAmountOut(quote.getBuyAmount());
     txn.setAmountFee(quote.getFee().getTotal());
     txn.setAmountFeeAsset(quote.getFee().getAsset());
   }
 
+  /**
+   * updateTxAmountsWhenNoQuoteWasUsed will update the transaction amountIn and amountOut based on
+   * the request amount and the fee.
+   */
   void updateTxAmountsWhenNoQuoteWasUsed() {
     Sep31PostTransactionRequest request = Context.get().getRequest();
     Sep31Transaction txn = Context.get().getTransaction();
@@ -264,6 +289,7 @@ public class Sep31Service {
 
     // Update transaction
     txn.setAmountIn(formatAmount(amountIn, scale));
+    txn.setAmountExpected(formatAmount(amountIn, scale));
     txn.setAmountInAsset(reqAsset.getAssetName());
     txn.setAmountOut(formatAmount(amountOut, scale));
     txn.setAmountOutAsset(reqAsset.getAssetName());
@@ -275,6 +301,10 @@ public class Sep31Service {
     Context.get().getFee().setAmount(feeStr);
   }
 
+  /**
+   * updateDepositInfo will populate the transaction's deposit information (stellar_account_id, memo
+   * and memo_type), as provided by the sep31DepositInfoGenerator.
+   */
   void updateDepositInfo() throws AnchorException {
     Sep31Transaction txn = Context.get().getTransaction();
     Sep31DepositInfo depositInfo = sep31DepositInfoGenerator.generate(txn);
@@ -296,7 +326,7 @@ public class Sep31Service {
       throw new NotFoundException(String.format("transaction (id=%s) not found", id));
     }
 
-    return fromTransactionToResponse(txn);
+    return txn.toSep31GetTransactionResponse();
   }
 
   @Transactional(rollbackOn = {AnchorException.class, RuntimeException.class})
@@ -309,18 +339,17 @@ public class Sep31Service {
 
     if (Objects.toString(request.getId(), "").isEmpty()) {
       infoF("id cannot be null or empty");
-      throw new BadRequestException("id cannot be null or empty");
+      throw new BadRequestException("id cannot be null nor empty");
     }
 
     Context.reset();
 
     Sep31Transaction txn = sep31TransactionStore.findByTransactionId(request.getId());
-    Context.get().setTransaction(txn);
-
     if (txn == null) {
       infoF("Transaction ({}) not found", request.getId());
       throw new NotFoundException(String.format("transaction (id=%s) not found", request.getId()));
     }
+    Context.get().setTransaction(txn);
 
     // validate if the transaction is in the pending_transaction_info_update status
     if (!Objects.equals(
@@ -343,10 +372,19 @@ public class Sep31Service {
     validateRequiredFields();
 
     Sep31Transaction savedTxn = sep31TransactionStore.save(txn);
-
-    return fromTransactionToResponse(savedTxn);
+    return savedTxn.toSep31GetTransactionResponse();
   }
 
+  /**
+   * validatePatchTransactionFields will validate if the fields provided in the PATCH request are
+   * expected by the transaction.
+   *
+   * @param txn is the Sep31Transaction already stored in the database.
+   * @param request is the Sep31PatchTransactionRequest request
+   * @throws BadRequestException if the stored request is not expecting any info update.
+   * @throws BadRequestException if one of the provided fields is not being expected by the stored
+   *     transaction.
+   */
   void validatePatchTransactionFields(Sep31Transaction txn, Sep31PatchTransactionRequest request)
       throws BadRequestException {
     if (txn.getRequiredInfoUpdates() == null
@@ -355,23 +393,35 @@ public class Sep31Service {
       throw new BadRequestException(
           String.format("Transaction (%s) is not expecting any updates", txn.getId()));
     }
+
     Map<String, AssetInfo.Sep31TxnFieldSpec> expectedFields =
         txn.getRequiredInfoUpdates().getTransaction();
-    Map<String, String> fields = request.getFields().getTransaction();
-    // validate if any of the fields from the request is not expected in the transaction.
-    List<String> unexpectedFields =
-        fields.keySet().stream()
-            .filter(key -> !expectedFields.containsKey(key))
-            .collect(Collectors.toList());
+    Map<String, String> requestFields = request.getFields().getTransaction();
 
-    if (unexpectedFields.size() > 0) {
-      infoF("{} is not a expected field", unexpectedFields.get(0));
-      throw new BadRequestException(
-          String.format("[%s] is not a expected field", unexpectedFields.get(0)));
+    // validate if any of the fields from the request is not expected in the transaction.
+    for (String fieldName : requestFields.keySet()) {
+      if (!expectedFields.containsKey(fieldName)) {
+        infoF("{} is not a expected field", fieldName);
+        throw new BadRequestException(String.format("[%s] is not a expected field", fieldName));
+      }
     }
   }
 
-  void preValidateQuote() throws AnchorException {
+  /**
+   * preValidateQuote will validate if the requested asset supports/requires quotes.
+   *
+   * <p>If quotes are supported and a `quote_id` was provided, this method will: - fetch the quote
+   * using the callbackAPI. - validate if the quote is valid. - validate if the transaction fields
+   * are compliant with the quote fields. - update the Context with the quote data.
+   *
+   * @throws BadRequestException if quotes are required but none was used in the request.
+   * @throws BadRequestException if a quote with the provided id could not be found.
+   * @throws BadRequestException if the transaction `amount` is different from the quote
+   *     `sell_amount`.
+   * @throws BadRequestException if the transaction `asset` is different from the quote
+   *     `sell_asset`.
+   */
+  void preValidateQuote() throws BadRequestException {
     Sep31PostTransactionRequest request = Context.get().getRequest();
     AssetInfo assetInfo = Context.get().getAsset();
     boolean isQuotesRequired = assetInfo.getSep31().isQuotesRequired();
@@ -407,8 +457,7 @@ public class Sep31Service {
     }
 
     // Check quote asset: `post_transaction.asset == quote.sell_asset`
-    String assetName =
-        assetService.getAsset(request.getAssetCode(), request.getAssetIssuer()).getAssetName();
+    String assetName = Context.get().getAsset().getAssetName();
     if (!assetName.equals(quote.getSellAsset())) {
       infoF(
           "Quote ({}) - sellAsset ({}) is different from the SEP-31 transaction asset ({})",
@@ -424,7 +473,15 @@ public class Sep31Service {
     Context.get().setQuote(quote);
   }
 
-  void updateFee() throws AnchorException {
+  /**
+   * updateFee will update the transaction fee. If a quote was used, it will get the quote info and
+   * use the quote fees for it, otherwise it will call `GET {callbackAPI}/fee` to get the fee
+   * information
+   *
+   * @throws SepValidationException if the quote is missing the `fee` field.
+   * @throws AnchorException if something else goes wrong.
+   */
+  void updateFee() throws SepValidationException, AnchorException {
     Sep38Quote quote = Context.get().getQuote();
     if (quote != null) {
       if (quote.getFee() == null) {
@@ -438,8 +495,7 @@ public class Sep31Service {
 
     Sep31PostTransactionRequest request = Context.get().getRequest();
     JwtToken token = Context.get().getJwtToken();
-    String assetName =
-        assetService.getAsset(request.getAssetCode(), request.getAssetIssuer()).getAssetName();
+    String assetName = Context.get().getAsset().getAssetName();
     infoF("Requesting fee for request ({})", request);
     Amount fee =
         feeIntegration
@@ -461,7 +517,17 @@ public class Sep31Service {
     Context.get().setFee(fee);
   }
 
-  void validateSenderAndReceiver() throws AnchorException {
+  /**
+   * validateSenderAndReceiver will validate if the SEP-31 sender and receiver exist and their
+   * status is ACCEPTED.
+   *
+   * @throws BadRequestException if `sender_id` or `receiver_id` is empty.
+   * @throws Sep31CustomerInfoNeededException if the SEP-12 customer does not exist or if its status
+   *     is not ACCEPTED.
+   * @throws AnchorException is something else went wrong.
+   */
+  private void validateSenderAndReceiver()
+      throws AnchorException, BadRequestException, Sep31CustomerInfoNeededException {
     String receiverId = Context.get().getRequest().getReceiverId();
     if (receiverId == null) {
       infoF("'receiver_id' cannot be empty for request ({})", Context.get().getRequest());
@@ -480,7 +546,7 @@ public class Sep31Service {
     Sep12GetCustomerRequest request =
         Sep12GetCustomerRequest.builder().id(receiverId).type(receiverType).build();
     Sep12GetCustomerResponse receiver = this.customerIntegration.getCustomer(request);
-    if (receiver == null) {
+    if (receiver == null || receiver.getStatus() != Sep12Status.ACCEPTED) {
       infoF("Customer (receiver) info needed for request ({})", Context.get().getRequest());
       throw new Sep31CustomerInfoNeededException("sep31-receiver");
     }
@@ -502,22 +568,23 @@ public class Sep31Service {
     }
     request = Sep12GetCustomerRequest.builder().id(senderId).type(senderType).build();
     Sep12GetCustomerResponse sender = this.customerIntegration.getCustomer(request);
-    if (sender == null) {
+    if (sender == null || sender.getStatus() != Sep12Status.ACCEPTED) {
       infoF("Customer (sender) info needed for request ({})", Context.get().getRequest());
       throw new Sep31CustomerInfoNeededException("sep31-sender");
     }
   }
 
-  void validateRequiredFields() throws AnchorException {
+  /**
+   * validateRequiredFields will validate if the fields provided in the `POST /transactions` or
+   * `PATCH /transactions/{id}` request body contains all the fields expected by the Anchor, and
+   * pre-configured in the `app-config.app.assets`.
+   *
+   * @throws BadRequestException if the asset is invalid or id the fields are missing from the
+   *     request
+   * @throws Sep31MissingFieldException if not all fields were provided.
+   */
+  void validateRequiredFields() throws BadRequestException, Sep31MissingFieldException {
     AssetInfo assetInfo = Context.get().getAsset();
-    Map<String, String> fields = Context.get().getTransactionFields();
-    if (fields == null) {
-      infoF(
-          "'fields' field must have one 'transaction' field for request ({})",
-          Context.get().getRequest());
-      throw new BadRequestException("'fields' field must have one 'transaction' field");
-    }
-
     if (assetInfo == null) {
       infoF("Missing asset information for request ({})", Context.get().getRequest());
       throw new BadRequestException("Missing asset information.");
@@ -530,13 +597,21 @@ public class Sep31Service {
           String.format("Asset [%s] has no fields definition", assetInfo.getCode()));
     }
 
+    Map<String, String> requestFields = Context.get().getTransactionFields();
+    if (requestFields == null) {
+      infoF(
+          "'fields' field must have one 'transaction' field for request ({})",
+          Context.get().getRequest());
+      throw new BadRequestException("'fields' field must have one 'transaction' field");
+    }
+
     Map<String, AssetInfo.Sep31TxnFieldSpec> missingFields =
         fieldSpecs.getFields().getTransaction().entrySet().stream()
             .filter(
                 entry -> {
                   AssetInfo.Sep31TxnFieldSpec field = entry.getValue();
                   if (field.isOptional()) return false;
-                  return fields.get(entry.getKey()) == null;
+                  return requestFields.get(entry.getKey()) == null;
                 })
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
@@ -552,37 +627,8 @@ public class Sep31Service {
     }
   }
 
-  Sep31GetTransactionResponse fromTransactionToResponse(Sep31Transaction txn) {
-    return Sep31GetTransactionResponse.builder()
-        .transaction(
-            TransactionResponse.builder()
-                .id(txn.getId())
-                .status(txn.getStatus())
-                .statusEta(txn.getStatusEta())
-                .amountIn(txn.getAmountIn())
-                .amountInAsset(txn.getAmountInAsset())
-                .amountOut(txn.getAmountOut())
-                .amountOutAsset(txn.getAmountOutAsset())
-                .amountFee(txn.getAmountFee())
-                .amountFeeAsset(txn.getAmountFeeAsset())
-                .stellarAccountId(txn.getStellarAccountId())
-                .stellarMemo(txn.getStellarMemo())
-                .stellarMemoType(txn.getStellarMemoType())
-                .startedAt(txn.getStartedAt())
-                .completedAt(txn.getCompletedAt())
-                .stellarTransactionId(txn.getStellarTransactionId())
-                .externalTransactionId(txn.getExternalTransactionId())
-                .refunded(txn.getRefunded())
-                // TODO: handle refund after mvp
-                // .refunds(txn.getRefunds())
-                .requiredInfoMessage(txn.getRequiredInfoMessage())
-                .requiredInfoUpdates(txn.getRequiredInfoUpdates())
-                .build())
-        .build();
-  }
-
   @SneakyThrows
-  static Sep31InfoResponse createFromAssets(List<AssetInfo> assetInfos) {
+  private static Sep31InfoResponse sep31InfoResponseFromAssetInfoList(List<AssetInfo> assetInfos) {
     Sep31InfoResponse response = new Sep31InfoResponse();
     response.setReceive(new HashMap<>());
     for (AssetInfo assetInfo : assetInfos) {
@@ -611,14 +657,14 @@ public class Sep31Service {
 
   @Data
   public static class Context {
-    Sep31Transaction transaction;
-    Sep31PostTransactionRequest request;
-    Sep38Quote quote;
-    JwtToken jwtToken;
-    Amount fee;
-    AssetInfo asset;
-    Map<String, String> transactionFields;
-    static ThreadLocal<Context> context = new ThreadLocal<>();
+    private Sep31Transaction transaction;
+    private Sep31PostTransactionRequest request;
+    private Sep38Quote quote;
+    private JwtToken jwtToken;
+    private Amount fee;
+    private AssetInfo asset;
+    private Map<String, String> transactionFields;
+    private static ThreadLocal<Context> context = new ThreadLocal<>();
 
     public static Context get() {
       if (context.get() == null) {
@@ -629,31 +675,6 @@ public class Sep31Service {
 
     public static void reset() {
       context.set(null);
-    }
-  }
-
-  public static class Sep31MissingFieldException extends AnchorException {
-    private final Sep31TxnFieldSpecs missingFields;
-
-    public Sep31MissingFieldException(Sep31TxnFieldSpecs missingFields) {
-      super();
-      this.missingFields = missingFields;
-    }
-
-    public Sep31TxnFieldSpecs getMissingFields() {
-      return missingFields;
-    }
-  }
-
-  public static class Sep31CustomerInfoNeededException extends AnchorException {
-    private final String type;
-
-    Sep31CustomerInfoNeededException(String type) {
-      this.type = type;
-    }
-
-    public String getType() {
-      return type;
     }
   }
 }

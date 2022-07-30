@@ -5,6 +5,7 @@ import java.time.Instant;
 import lombok.Builder;
 import lombok.Data;
 import org.stellar.anchor.api.shared.Amount;
+import org.stellar.anchor.api.shared.Refund;
 
 @Data
 @Builder
@@ -25,7 +26,7 @@ public class PatchTransactionRequest {
   Instant transferReceivedAt;
 
   String message;
-  Refunds refunds;
+  Refund refunds;
 
   @SerializedName("external_transaction_id")
   String externalTransactionId;

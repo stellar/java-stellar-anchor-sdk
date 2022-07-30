@@ -147,5 +147,6 @@ public class SepHelper {
           PENDING_RECEIVER,
           PENDING_EXTERNAL,
           COMPLETED,
+          EXPIRED,
           ERROR);
 }

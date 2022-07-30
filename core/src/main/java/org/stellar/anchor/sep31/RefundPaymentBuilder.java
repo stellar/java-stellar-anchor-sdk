@@ -1,9 +1,7 @@
 package org.stellar.anchor.sep31;
 
-import org.stellar.anchor.sep31.Sep31Transaction.RefundPayment;
-
 public class RefundPaymentBuilder {
-  RefundPayment refundPayment;
+  private final RefundPayment refundPayment;
 
   public RefundPaymentBuilder(Sep31TransactionStore factory) {
     refundPayment = factory.newRefundPayment();

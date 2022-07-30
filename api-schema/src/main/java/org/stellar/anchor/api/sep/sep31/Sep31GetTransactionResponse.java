@@ -3,12 +3,16 @@ package org.stellar.anchor.api.sep.sep31;
 import com.google.gson.annotations.SerializedName;
 import java.time.Instant;
 import java.util.List;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.stellar.anchor.api.sep.AssetInfo;
 
 @Data
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class Sep31GetTransactionResponse {
   TransactionResponse transaction;
 
@@ -71,6 +75,7 @@ public class Sep31GetTransactionResponse {
   }
 
   @Data
+  @Builder
   public static class Refunds {
     @SerializedName("amount_refunded")
     String amountRefunded;
@@ -82,8 +87,9 @@ public class Sep31GetTransactionResponse {
   }
 
   @Data
+  @Builder
   public static class Sep31RefundPayment {
-    String Id;
+    String id;
     String amount;
     String fee;
   }
