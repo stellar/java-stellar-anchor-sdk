@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: {{ .Values.fullName }}
+  name: {{ .Values.fullName }}-ing-{{ .Values.service.name }}
   {{- if .Values.ingress.metadata }}
   {{- range $key, $value := .Values.ingress.metadata }}
   {{- end }}
@@ -13,7 +13,7 @@ metadata:
     {{- end }}
   {{- end }}
   labels:
-    app.kubernetes.io/name: {{ .Values.fullName }}
+    app.kubernetes.io/name: {{ .Values.fullName }}-ing-{{ .Values.service.name }}
     helm.sh/chart: {{ $.Chart.Name }}-{{ $.Chart.Version }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}  
@@ -32,7 +32,6 @@ spec:
   {{- if .Values.ingress.rules }}
   rules:
   {{- range .Values.ingress.rules.hosts }}
-  {{- $fullName := .Values.fullName -}}
   - host: {{ tpl .host $ }}
     http:
       paths:
@@ -40,7 +39,7 @@ spec:
           pathType: {{ .pathType| quote }}
           backend:
             service:
-              name: {{ tpl .backend.serviceName $ | default $fullName }}
+              name: {{ tpl .backend.serviceName $ }}
               port:
                 number: {{ tpl .backend.servicePort $ }}
   {{- end }}
