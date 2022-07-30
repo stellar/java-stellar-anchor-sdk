@@ -219,7 +219,7 @@ data:
       mvc:
         async.request-timeout: 6000
   stellar-wks.toml: |
-    ACCOUNTS = {{ .Values.stellar.toml.accounts | default "GDZCLP2PHTWYQ3BWZMC5D4ZUJX5NU4S7YZHC5EBFAFKL6UJUQ5RKDGSY" }}
+    ACCOUNTS = {{ .Values.stellar.toml.accounts | default ['"GDZCLP2PHTWYQ3BWZMC5D4ZUJX5NU4S7YZHC5EBFAFKL6UJUQ5RKDGSY'"] }}
     VERSION = "{{ .Values.stellar.toml.version | default "0.1.0" }}"
     NETWORK_PASSPHRASE = "{{ .Values.stellar.app_config.app.stellarNetworkPassphrase | default "Test SDF Network ; September 2015" }}"
     SIGNING_KEY = "{{ .Values.stellar.toml.signing_key | default "GDZCLP2PHTWYQ3BWZMC5D4ZUJX5NU4S7YZHC5EBFAFKL6UJUQ5RKDGSY" }}"
