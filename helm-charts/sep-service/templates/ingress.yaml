@@ -39,7 +39,7 @@ spec:
           pathType: {{ .pathType| quote }}
           backend:
             service:
-              name: {{ .Values.fullName }}
+              name: {{ tpl .backend.serviceName $ | default .Values.fullName }}
               port:
                 number: {{ tpl .backend.servicePort $ }}
   {{- end }}
