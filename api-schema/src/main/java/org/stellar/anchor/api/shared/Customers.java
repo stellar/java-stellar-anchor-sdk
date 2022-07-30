@@ -1,4 +1,4 @@
-package org.stellar.anchor.event.models;
+package org.stellar.anchor.api.shared;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

@@ -14,11 +14,15 @@ public enum SepTransactionStatus {
   TOO_LARGE("too_large", "the transaction amount is too big"),
   PENDING_SENDER("pending_sender", null),
   PENDING_RECEIVER("pending_receiver", null),
-  PENDING_TRANSACTION_INFO_UPDATE("pending_transaction_info_update", null),
+  PENDING_TRANSACTION_INFO_UPDATE(
+      "pending_transaction_info_update", "waiting for more transaction information"),
   PENDING_CUSTOMER_INFO_UPDATE(
-      "pending_customer_info_update", "waiting for more transaction information"),
+      "pending_customer_info_update", "waiting for more customer information"),
   COMPLETED("completed", "complete"),
   REFUNDED("refunded", "the deposit/withdrawal is fully refunded"),
+  EXPIRED(
+      "expired",
+      " funds were never received by the anchor and the transaction is considered abandoned by the Sending Client. If a SEP-38 quote was specified when the transaction was initiated, the transaction should expire when the quote expires, otherwise anchors are responsible for determining when transactions are considered expired."),
   ERROR("error", "error"),
   PENDING_EXTERNAL("pending_external", "waiting on an external entity"),
   PENDING_STELLAR("pending_stellar", "stellar is executing the transaction");

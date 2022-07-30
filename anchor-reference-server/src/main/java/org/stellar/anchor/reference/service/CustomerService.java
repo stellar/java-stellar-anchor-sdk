@@ -162,16 +162,14 @@ public class CustomerService {
     if (request.getEmailAddress() != null) {
       customer.setEmail(request.getEmailAddress());
     }
-    if (Customer.Type.SEP31_RECEIVER.toString().equals(request.getType())) {
-      if (request.getBankAccountNumber() != null) {
-        customer.setBankAccountNumber(request.getBankAccountNumber());
-      }
-      if (request.getBankNumber() != null) {
-        customer.setBankRoutingNumber(request.getBankNumber());
-      }
-      if (request.getClabeNumber() != null) {
-        customer.setClabeNumber(request.getClabeNumber());
-      }
+    if (request.getBankAccountNumber() != null) {
+      customer.setBankAccountNumber(request.getBankAccountNumber());
+    }
+    if (request.getBankNumber() != null) {
+      customer.setBankRoutingNumber(request.getBankNumber());
+    }
+    if (request.getClabeNumber() != null) {
+      customer.setClabeNumber(request.getClabeNumber());
     }
     customerRepo.save(customer);
   }
