@@ -79,13 +79,13 @@ stellar:
 #     spring.jpa.show-sql: false
 #     spring.datasource.driver-class-name: org.postgresql.Driver
 #     spring.datasource.type: org.stellar.anchor.platform.databaseintegration.IAMAuthDataSource
-#     spring.datasource.url: jdbc:postgresql://database-aurora-iam-instance-1.chizvyczscs2.us-east-1.rds.amazonaws.com:5432/anchorplatform
-#     spring.datasource.username: anchorplatform1
+#     spring.datasource.url: jdbc:postgresql://database-aurora.region.amazonaws.com:port/instance
+#     spring.datasource.username: ${DB_USERNAME}
 #     spring.datasource.hikari.max-lifetime: 840000    # 14 minutes because IAM tokens are valid for 15min
 ##     spring.mvc.converters.preferred-json-mapper: gson
-#     spring.flyway.user: postgres
-#     spring.flyway.password: password   # can use a token value if authenticating via IAM
-#     spring.flyway.url: jdbc:postgresql://database-aurora-iam-instance-1.chizvyczscs2.us-east-1.rds.amazonaws.com:5432/anchorplatform
+#     spring.flyway.user: ${FLYWAY_USER}
+#     spring.flyway.password: ${FLYWAY_PASSWORD} # can use a token value if authenticating via IAM
+#     spring.flyway.url: jdbc:postgresql://database-aurora.region.rds.amazonaws.com:port/instance
 #     spring.flyway.locations: classpath:/db/migration
    data_spring_jdbc_sqlite:
       spring.jpa.database-platform: org.stellar.anchor.platform.sqlite.SQLiteDialect
