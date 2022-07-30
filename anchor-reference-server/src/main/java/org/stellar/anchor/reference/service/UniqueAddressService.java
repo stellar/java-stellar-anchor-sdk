@@ -5,10 +5,12 @@ import org.springframework.stereotype.Service;
 import org.stellar.anchor.api.callback.GetUniqueAddressResponse;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.reference.config.AppSettings;
+import org.stellar.anchor.util.ConditionalOnPropertyNotEmpty;
 import org.stellar.anchor.util.MemoHelper;
 import org.stellar.sdk.KeyPair;
 
 @Service
+@ConditionalOnPropertyNotEmpty("anchor.settings.distributionWallet")
 public class UniqueAddressService {
   String distributionWallet;
   String distributionWalletMemo;

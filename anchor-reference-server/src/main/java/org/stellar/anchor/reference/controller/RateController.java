@@ -6,7 +6,6 @@ import org.springframework.web.bind.annotation.*;
 import org.stellar.anchor.api.callback.GetRateRequest;
 import org.stellar.anchor.api.callback.GetRateResponse;
 import org.stellar.anchor.api.exception.AnchorException;
-import org.stellar.anchor.reference.config.AppSettings;
 import org.stellar.anchor.reference.service.RateService;
 import org.stellar.anchor.util.GsonUtils;
 
@@ -15,7 +14,7 @@ public class RateController {
   private final RateService rateService;
   private static final Gson gson = GsonUtils.builder().create();
 
-  public RateController(AppSettings appSettings, RateService rateService) {
+  public RateController(RateService rateService) {
     this.rateService = rateService;
   }
 

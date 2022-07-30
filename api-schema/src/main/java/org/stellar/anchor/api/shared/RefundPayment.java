@@ -1,4 +1,4 @@
-package org.stellar.anchor.event.models;
+package org.stellar.anchor.api.shared;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.SerializedName;
@@ -6,7 +6,6 @@ import java.time.Instant;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import org.stellar.anchor.api.shared.Amount;
 
 @Data
 @Builder

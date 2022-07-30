@@ -22,12 +22,12 @@ import org.stellar.anchor.api.exception.NotFoundException;
 import org.stellar.anchor.api.exception.ServerErrorException;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.sep38.*;
+import org.stellar.anchor.api.shared.StellarId;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtToken;
 import org.stellar.anchor.config.Sep38Config;
 import org.stellar.anchor.event.EventPublishService;
 import org.stellar.anchor.event.models.QuoteEvent;
-import org.stellar.anchor.event.models.StellarId;
 import org.stellar.anchor.util.Log;
 
 public class Sep38Service {

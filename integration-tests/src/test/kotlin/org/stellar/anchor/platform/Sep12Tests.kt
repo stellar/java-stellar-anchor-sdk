@@ -15,11 +15,14 @@ const val testCustomer1Json =
 {
   "first_name": "John",
   "last_name": "Doe",
+  "email_address": "johndoe@test.com",
   "address": "123 Washington Street",
   "city": "San Francisco",
   "state_or_province": "CA",
   "address_country_code": "US",
-  "clabe_number": "1234"
+  "clabe_number": "1234",
+  "bank_number": "abcd",
+  "bank_account_number": "1234"
 }
 """
 
@@ -28,10 +31,14 @@ const val testCustomer2Json =
 {
   "first_name": "Jane",
   "last_name": "Doe",
+  "email_address": "janedoe@test.com",
   "address": "321 Washington Street",
   "city": "San Francisco",
   "state_or_province": "CA",
-  "address_country_code": "US"
+  "address_country_code": "US",
+  "clabe_number": "5678",
+  "bank_number": "efgh",
+  "bank_account_number": "5678"
 }
 """
 
@@ -45,6 +52,7 @@ fun sep12TestAll(toml: Sep1Helper.TomlContent, jwt: String) {
 fun sep12TestHappyPath() {
   val customer =
     GsonUtils.getInstance().fromJson(testCustomer1Json, Sep12PutCustomerRequest::class.java)
+  customer.emailAddress = null
 
   // Upload a customer
   printRequest("Calling PUT /customer", customer)
@@ -60,8 +68,6 @@ fun sep12TestHappyPath() {
   assertEquals(pr.id, gr?.id)
 
   customer.emailAddress = "john.doe@stellar.org"
-  customer.bankAccountNumber = "1234"
-  customer.bankNumber = "abcd"
   customer.type = "sep31-receiver"
 
   // Modify the customer

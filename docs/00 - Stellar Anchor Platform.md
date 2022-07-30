@@ -28,7 +28,7 @@ The full documentation can be found under the [`docs` directory](/docs), under t
   - [E - Publishing the SDK](/docs/02%20-%20Contributing/E%20-%20Publishing%20the%20SDK.md)
   - [F - Testing with AWS Services](/docs/02%20-%20Contributing/F%20-%20Testing%20with%20AWS%20Services.md)
 - [03 - Implementing the Anchor Server](/docs/03%20-%20Implementing%20the%20Anchor%20Server)
-  - [Communication](/docs/03%20-%20Implementing%20the%20Anchor%20Server/Communication/)
+  - [Communication](/docs/03%20-%20Implementing%20the%20Anchor%20Server/Communication)
     - [Callback API](/docs/03%20-%20Implementing%20the%20Anchor%20Server/Communication/Callbacks%20API.yml)
     - [Events Schema](/docs/03%20-%20Implementing%20the%20Anchor%20Server/Communication/Events%20Schema.yml)
     - [Platform API](/docs/03%20-%20Implementing%20the%20Anchor%20Server/Communication/Platform%20API.yml)
@@ -41,24 +41,24 @@ Here are the important terminology used in this project:
 
 - **Anchor**: on/off ramps of the Stellar network. More information is available [here](https://developers.stellar.org/docs/anchoring-assets/).
 - **Wallet**: a frontend application used to interact with the Stellar network on behalf of a user.
-- **Sending Anchor**: a therminology used in the context of [SEP-31]. Refers to an entity that receives funds from a user and forwards it (after taking a fee) to a receiving anchor, in the SEP-31 `Sending Client->Sending Anchor->Receiving Anchor-> Receiving Client` flow.
+- **Sending Anchor**: a terminology used in the context of [SEP-31]. Refers to an entity that receives funds from a user and forwards it (after taking a fee) to a receiving anchor, in the SEP-31 `Sending Client->Sending Anchor->Receiving Anchor-> Receiving Client` flow.
 - **Receiving Anchor**: a terminology used in the context of [SEP-31]. Refers to an entity that receives funds from a user and forwards it (after taking a fee) to a receiving client (or recipient), in the SEP-31 `Sending Client->Sending Anchor->Receiving Anchor-> Receiving Client` flow. This is what the Anchor Platform currently implements.
 - **Ecosystem**: the community of entities and users that utilize the Stellar network and/or provide solutions on the Stellar network.
 - **Anchor Platform (or Platform)**: the web application that will be exposing public endpoints and APIs. It is compliant with the [SEPs] to guarantee interoperability in the Stellar network and delegates business-specific logic to the Anchor Server.
-- **Anchor Server**: a microservice that will be responsible for the Anchor-specific business logic used in the the Anchor Platform. This service interacts with the Anchor Platform to perform some actions like:
+- **Anchor Server**: a microservice that will be responsible for the Anchor-specific business logic used in the Anchor Platform. This service interacts with the Anchor Platform to perform some actions like:
   - Calculate conversion rates between two assets.
   - Create or update a customer account.
   - Notify the Anchor about an incoming payment.
 - **Anchor Reference Server**: an Anchor Server implementation that is shipped as part of this repository for testing purposes.
-- **Callback API (`Sync Platform->Anchor`)**: a syncronous API that the Platform will use to gather a business-specific data from the Anchor Server, in order to perform a SEP-compliant operation (like exchange rate or user registration, for instance)
-- **Events Queue (`Async Platform->Anchor`)**: an asyncronous communication venue that the Platform will use to notify the Anchor Server about a pending action, like an incoming payment that needs to be processed.
-- **Platform API (`Sync Anchor->Platform`)**: a syncronous API that the Anchor can use to fetch information (e.g. transactions or quotes) and also update the data of transactions stored in the Platform database.
+- **Callback API (`Sync Platform->Anchor`)**: a synchronous API that the Platform will use to gather a business-specific data from the Anchor Server, in order to perform a SEP-compliant operation (like exchange rate or user registration, for instance)
+- **Events Queue (`Async Platform->Anchor`)**: an asynchronous communication venue that the Platform will use to notify the Anchor Server about a pending action, like an incoming payment that needs to be processed.
+- **Platform API (`Sync Anchor->Platform`)**: a synchronous API that the Anchor can use to fetch information (e.g. transactions or quotes) and also update the data of transactions stored in the Platform database.
 - **[SEPs]**: it means Stellar Ecosystem Proposals and refers to standards that are used by Stellar ecosystem participants to achieve interoperability in the network. The ones implemented by this project are:
   | Standard |                                  Description                                   | Configurable | Interacts with Anchor Server | Supported by the Platform API | Supported by the SDK |
   | :------: | :----------------------------------------------------------------------------: | :----------: | :--------------------------: | :---------------------------: | :------------------: |
   | [SEP-10] |                            Handles authentication.                             |     YES      |              NO              |              YES              |         YES          |
   | [SEP-12] |                                  Handles KYC.                                  |     YES      |             YES              |              YES              |         YES          |
-  | [SEP-24] |       Handles deposit & withrawal of assets in/out the Stellar network.        |     YES      |              NO              |              No               |         YES          |
+  | [SEP-24] |       Handles deposit & withdrawal of assets in/out the Stellar network.       |     YES      |              NO              |              NO               |         YES          |
   | [SEP-31] | Used for international remittances. **Only the receiver side is implemented.** |     YES      |             YES              |              YES              |         YES          |
   | [SEP-38] |                Used for [rfq] **in conjunction with [SEP-31]**.                |     YES      |             YES              |              YES              |         YES          |
 
@@ -69,7 +69,7 @@ In order to deploy this project, you'll need to have the following microservices
 - **Database Server**: usually, you'll use a relational database like MySQL or PostgreSQL, but we also support SQLite, commonly used in local development.
 - **Queue Service**: we currently support [Kafka](https://kafka.apache.org/) and [Amazon SQS](https://aws.amazon.com/sqs/).
 - **Anchor Platform Server**: this is the main application that will be providing public endpoints for your Anchor application.
-- **Anchor Server**: this is the microservice that will be responsible for the Anchor-specific business logic used in the the Anchor Platform.
+- **Anchor Server**: this is the microservice that will be responsible for the Anchor-specific business logic used in the Anchor Platform.
 
 ## Architecture
 
@@ -94,7 +94,7 @@ Here you can see the sequence diagram of the [SEP-31] flow, showing all the stak
 %% - The anchor successfully delivers off-chain funds on first attempt
 sequenceDiagram
     title: SEP-31 Transaction Flow
-    participant Client
+    participant Client as SEP-31 Sending Anchor
       Note over Client: In the SEP-31 flow, this is the Sending Anchor.
     participant Platform
       Note over Platform: In the SEP-31 flow, this is the Receiving Anchor.
@@ -127,7 +127,7 @@ sequenceDiagram
         Platform-->>-Client: forwards response
     end
 
-    opt Get a Quote if Supported or Required
+    opt Get a Quote if Quotes are Supported or Required
       Client->>+Platform: GET [SEP-38]/price
       Platform->>+Anchor: GET /rate?type=indicative_price
       Anchor-->>-Platform: exchange rate
@@ -143,21 +143,49 @@ sequenceDiagram
 
     Client->>+Platform: POST [SEP-31]/transactions
     Platform-->>Platform: checks customer statuses, links quote
-    Platform->>+Anchor: GET /fee
-    Anchor-->>Anchor: calculates fee
-    Anchor-->>-Platform: fee
+    
+    opt Get the Fee if Quotes Were Not Used
+      Platform->>+Anchor: GET /fee
+      Anchor-->>Anchor: calculates fee
+      Anchor-->>-Platform: fee
+    end
+    
     Platform-->>Platform: Sets fee on transaction
     Platform-->>-Client: transaction id, receiving account & memo
+
     Platform->>+Anchor: POST [webhookURL]/transactions created
     Anchor-->>-Platform: 204 No Content
     Client->>+Stellar: submit Stellar payment
     Stellar-->>Platform: receives payment, matches w/ transaction
-    Platform-->>Platform: updates transaction status
+    Platform-->>Platform: updates transaction status to `pending_receiver`
     Stellar-->>-Client: success response
     Platform->>+Anchor: POST [webhookURL]/transactions received
     Anchor-->>Anchor: queues off-chain payment
     Anchor-->>-Platform: 204 No Content
     Anchor->>Recipient: Sends off-chain payment to recipient
+
+    opt Mismatched info when delivering value to the Recipient (or a similar error)
+      Recipient-->>Anchor: error: Recipient info was wrong
+      Anchor-->>Anchor: Updates the receiver customer info from ACCEPTED to NEEDS_INFO
+      Anchor->>Platform: PATCH /transactions to mark the status as `pending_customer_info_update`
+      Platform-->>Platform: updates transaction to `pending_customer_info_update`
+      Client->>+Platform: GET /transactions?id=
+      Platform-->>-Client: transaction `pending_customer_info_update`
+
+      Client->>+Platform: PUT [SEP-12]/customer?type=
+      Platform->>+Anchor: forwards request
+      Anchor-->>Anchor: validates KYC values
+      Anchor-->>-Platform: id, ACCEPTED
+      Platform-->>-Client: forwards response
+
+      Platform-->>Platform: updates transaction status to `pending_receiver`
+      Platform->>+Anchor: POST [webhookURL]/transactions with the status change
+      Anchor-->>Anchor: queues off-chain payment
+      Anchor-->>-Platform: 204 No Content
+      Anchor->>Recipient: Sends off-chain payment to recipient
+    end
+
+    Recipient-->>Anchor: successfully delivered funds to Recipient
     Anchor->>+Platform: PATCH /transactions
     Platform-->>Platform: updates transaction to complete
     Platform-->>-Anchor: updated transaction
