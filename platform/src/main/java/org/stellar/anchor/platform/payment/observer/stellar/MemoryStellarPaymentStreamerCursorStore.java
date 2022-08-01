@@ -1,7 +1,5 @@
 package org.stellar.anchor.platform.payment.observer.stellar;
 
-import org.stellar.anchor.platform.payment.observer.stellar.StellarPaymentStreamerCursorStore;
-
 import java.util.HashMap;
 import java.util.Map;
 

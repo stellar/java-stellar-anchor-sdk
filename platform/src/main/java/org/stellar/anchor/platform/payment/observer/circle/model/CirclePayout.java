@@ -6,10 +6,10 @@ import java.lang.reflect.Type;
 import java.time.Instant;
 import java.util.Map;
 import lombok.Data;
-import org.stellar.anchor.util.GsonUtils;
 import org.stellar.anchor.platform.payment.common.Account;
 import org.stellar.anchor.platform.payment.common.Payment;
 import org.stellar.anchor.platform.payment.common.PaymentNetwork;
+import org.stellar.anchor.util.GsonUtils;
 import shadow.com.google.common.reflect.TypeToken;
 
 @Data

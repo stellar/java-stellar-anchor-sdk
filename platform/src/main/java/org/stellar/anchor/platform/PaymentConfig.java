@@ -11,10 +11,10 @@ import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.CirclePaymentObserverConfig;
 import org.stellar.anchor.horizon.Horizon;
-import org.stellar.anchor.platform.payment.observer.circle.CirclePaymentObserverService;
 import org.stellar.anchor.platform.payment.observer.PaymentListener;
-import org.stellar.anchor.platform.payment.observer.stellar.StellarPaymentStreamerCursorStore;
+import org.stellar.anchor.platform.payment.observer.circle.CirclePaymentObserverService;
 import org.stellar.anchor.platform.payment.observer.stellar.StellarPaymentObserver;
+import org.stellar.anchor.platform.payment.observer.stellar.StellarPaymentStreamerCursorStore;
 
 @Configuration
 public class PaymentConfig {

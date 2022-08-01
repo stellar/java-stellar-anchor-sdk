@@ -4,10 +4,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.Data;
-import org.stellar.anchor.platform.payment.observer.circle.util.CircleAsset;
 import org.stellar.anchor.platform.payment.common.Account;
 import org.stellar.anchor.platform.payment.common.DepositInstructions;
 import org.stellar.anchor.platform.payment.common.PaymentNetwork;
+import org.stellar.anchor.platform.payment.observer.circle.util.CircleAsset;
 
 @Data
 public class CircleWallet {

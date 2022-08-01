@@ -2,9 +2,9 @@ package org.stellar.anchor.platform.payment.observer.circle.model.response;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import org.stellar.anchor.platform.payment.observer.circle.model.CirclePayment;
 import org.stellar.anchor.platform.payment.common.Account;
 import org.stellar.anchor.platform.payment.common.PaymentHistory;
+import org.stellar.anchor.platform.payment.observer.circle.model.CirclePayment;
 
 @EqualsAndHashCode(callSuper = true)
 @Data

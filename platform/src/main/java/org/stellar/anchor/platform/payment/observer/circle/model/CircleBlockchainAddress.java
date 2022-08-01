@@ -1,10 +1,10 @@
 package org.stellar.anchor.platform.payment.observer.circle.model;
 
 import lombok.Data;
-import org.stellar.anchor.platform.payment.observer.circle.util.CircleAsset;
-import org.stellar.sdk.Network;
 import org.stellar.anchor.platform.payment.common.DepositInstructions;
 import org.stellar.anchor.platform.payment.common.PaymentNetwork;
+import org.stellar.anchor.platform.payment.observer.circle.util.CircleAsset;
+import org.stellar.sdk.Network;
 import reactor.util.annotation.NonNull;
 import reactor.util.annotation.Nullable;
 

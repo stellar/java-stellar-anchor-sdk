@@ -16,8 +16,8 @@ import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.platform.HealthCheckResult;
 import org.stellar.anchor.api.platform.HealthCheckStatus;
 import org.stellar.anchor.healthcheck.HealthCheckable;
-import org.stellar.anchor.platform.payment.observer.circle.ObservedPayment;
 import org.stellar.anchor.platform.payment.observer.PaymentListener;
+import org.stellar.anchor.platform.payment.observer.circle.ObservedPayment;
 import org.stellar.anchor.util.Log;
 import org.stellar.sdk.Server;
 import org.stellar.sdk.requests.EventListener;
@@ -145,7 +145,8 @@ public class StellarPaymentObserver implements HealthCheckable {
     String horizonServer = "https://horizon-testnet.stellar.org";
     SortedSet<String> accounts = new TreeSet<>();
     Set<PaymentListener> observers = new HashSet<>();
-    StellarPaymentStreamerCursorStore paymentStreamerCursorStore = new MemoryStellarPaymentStreamerCursorStore();
+    StellarPaymentStreamerCursorStore paymentStreamerCursorStore =
+        new MemoryStellarPaymentStreamerCursorStore();
 
     public Builder() {}
 
@@ -164,7 +165,8 @@ public class StellarPaymentObserver implements HealthCheckable {
       return this;
     }
 
-    public Builder paymentTokenStore(StellarPaymentStreamerCursorStore stellarPaymentStreamerCursorStore) {
+    public Builder paymentTokenStore(
+        StellarPaymentStreamerCursorStore stellarPaymentStreamerCursorStore) {
       this.paymentStreamerCursorStore = stellarPaymentStreamerCursorStore;
       return this;
     }

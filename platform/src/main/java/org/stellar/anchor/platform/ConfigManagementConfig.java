@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.stellar.anchor.config.*;
 import org.stellar.anchor.platform.config.*;
+import org.stellar.anchor.platform.payment.config.CirclePaymentConfig;
 
 @Configuration
 public class ConfigManagementConfig {
@@ -66,6 +67,11 @@ public class ConfigManagementConfig {
   @ConfigurationProperties(prefix = "circle-payment-observer")
   CirclePaymentObserverConfig circlePaymentObserverConfig() {
     return new PropertyCirclePaymentObserverConfig();
+  }
+
+  @Bean
+  CirclePaymentConfig circlePaymentConfig() {
+    return new CirclePaymentConfig();
   }
 
   @Bean
