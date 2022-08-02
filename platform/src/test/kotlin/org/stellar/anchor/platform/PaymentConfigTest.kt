@@ -72,7 +72,7 @@ class PaymentConfigTest {
 
     // appConfig is null
     val mockPaymentStreamerCursorStore = mockk<StellarPaymentStreamerCursorStore>()
-    every { mockPaymentStreamerCursorStore.load(any()) } returns null
+    every { mockPaymentStreamerCursorStore.load() } returns null
     ex =
       assertThrows {
         paymentConfig.stellarPaymentObserverService(

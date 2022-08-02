@@ -2,6 +2,7 @@ package org.stellar.anchor.platform;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import lombok.SneakyThrows;
 import okhttp3.OkHttpClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,12 +20,12 @@ import org.stellar.anchor.platform.payment.observer.stellar.StellarPaymentStream
 @Configuration
 public class PaymentConfig {
   @Bean
+  @SneakyThrows
   public StellarPaymentObserver stellarPaymentObserverService(
       AssetService assetService,
       List<PaymentListener> paymentListeners,
       StellarPaymentStreamerCursorStore stellarPaymentStreamerCursorStore,
-      AppConfig appConfig)
-      throws ServerErrorException {
+      AppConfig appConfig) {
     // validate assetService
     if (assetService == null || assetService.listAllAssets() == null) {
       throw new ServerErrorException("Asset service cannot be empty.");

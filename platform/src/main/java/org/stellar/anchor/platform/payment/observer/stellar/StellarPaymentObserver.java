@@ -1,17 +1,10 @@
 package org.stellar.anchor.platform.payment.observer.stellar;
 
-import static org.stellar.anchor.api.platform.HealthCheckStatus.GREEN;
-import static org.stellar.anchor.api.platform.HealthCheckStatus.RED;
-import static org.stellar.anchor.util.ReflectionUtil.getField;
-
 import com.google.gson.annotations.SerializedName;
-import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 import lombok.Builder;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
+import org.stellar.anchor.api.exception.AlreadyExistsException;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.platform.HealthCheckResult;
 import org.stellar.anchor.api.platform.HealthCheckStatus;
@@ -29,51 +22,58 @@ import org.stellar.sdk.responses.operations.PathPaymentBaseOperationResponse;
 import org.stellar.sdk.responses.operations.PaymentOperationResponse;
 import shadow.com.google.common.base.Optional;
 
+import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
+
+import static org.stellar.anchor.api.platform.HealthCheckStatus.GREEN;
+import static org.stellar.anchor.api.platform.HealthCheckStatus.RED;
+import static org.stellar.anchor.util.ReflectionUtil.getField;
+
 public class StellarPaymentObserver implements HealthCheckable {
   final Server server;
-  final SortedSet<String> observingAccounts;
   final Set<PaymentListener> observers;
-  final List<SSEStream<OperationResponse>> streams;
   final StellarPaymentStreamerCursorStore paymentStreamerCursorStore;
   final Map<SSEStream<OperationResponse>, String> mapStreamToAccount = new HashMap<>();
+  final ObservingAccounts obs = new ObservingAccounts();
+  SSEStream<OperationResponse> stream;
+
+  String acct = null;
 
   StellarPaymentObserver(
       String horizonServer,
-      SortedSet<String> observingAccounts,
+      SortedSet<String> residentAccounts,
       Set<PaymentListener> observers,
-      StellarPaymentStreamerCursorStore paymentStreamerCursorStore) {
+      StellarPaymentStreamerCursorStore paymentStreamerCursorStore)
+      throws AlreadyExistsException {
     this.server = new Server(horizonServer);
     this.observers = observers;
-    this.observingAccounts = observingAccounts;
-    this.streams = new ArrayList<>(observingAccounts.size());
     this.paymentStreamerCursorStore = paymentStreamerCursorStore;
+    for (String account : residentAccounts) {
+      obs.add(account, false);
+      acct = account;
+    }
   }
 
   /** Start watching the accounts. */
   public void start() {
-    for (String account : observingAccounts) {
-      SSEStream<OperationResponse> stream = watch(account);
-      mapStreamToAccount.put(stream, account);
-      this.streams.add(stream);
-    }
+    this.stream = watch();
   }
 
   /** Graceful shutdown. */
   public void shutdown() {
-    for (SSEStream<OperationResponse> stream : streams) {
-      stream.close();
-    }
+    this.stream.close();
   }
 
-  public SSEStream<OperationResponse> watch(String account) {
+  public SSEStream<OperationResponse> watch() {
     PaymentsRequestBuilder paymentsRequest =
         server
             .payments()
-            .forAccount(account)
+            .forAccount(acct)
             .includeTransactions(true)
-            .limit(200)
             .order(RequestBuilder.Order.ASC);
-    String lastToken = paymentStreamerCursorStore.load(account);
+    String lastToken = paymentStreamerCursorStore.load();
     if (lastToken != null) {
       paymentsRequest.cursor(lastToken);
     }
@@ -83,7 +83,7 @@ public class StellarPaymentObserver implements HealthCheckable {
           @Override
           public void onEvent(OperationResponse operationResponse) {
             if (!operationResponse.isTransactionSuccessful()) {
-              paymentStreamerCursorStore.save(account, operationResponse.getPagingToken());
+              paymentStreamerCursorStore.save(operationResponse.getPagingToken());
               return;
             }
 
@@ -108,10 +108,10 @@ public class StellarPaymentObserver implements HealthCheckable {
 
             if (observedPayment != null) {
               try {
-                if (observedPayment.getTo().equals(account)) {
+                if (obs.isObserved(observedPayment.getTo())) {
                   final ObservedPayment finalObservedPayment = observedPayment;
                   observers.forEach(observer -> observer.onReceived(finalObservedPayment));
-                } else if (observedPayment.getFrom().equals(account)) {
+                } else if (obs.isObserved(observedPayment.getFrom())) {
                   final ObservedPayment finalObservedPayment = observedPayment;
                   observers.forEach(observer -> observer.onSent(finalObservedPayment));
                 }
@@ -120,7 +120,7 @@ public class StellarPaymentObserver implements HealthCheckable {
               }
             }
 
-            paymentStreamerCursorStore.save(account, operationResponse.getPagingToken());
+            paymentStreamerCursorStore.save(operationResponse.getPagingToken());
           }
 
           @Override
@@ -171,7 +171,7 @@ public class StellarPaymentObserver implements HealthCheckable {
       return this;
     }
 
-    public StellarPaymentObserver build() {
+    public StellarPaymentObserver build() throws AlreadyExistsException {
       return new StellarPaymentObserver(
           horizonServer, observingAccounts, observers, paymentStreamerCursorStore);
     }
@@ -191,34 +191,33 @@ public class StellarPaymentObserver implements HealthCheckable {
   public HealthCheckResult check() {
     List<StreamHealth> results = new ArrayList<>();
     HealthCheckStatus status = GREEN;
-    for (SSEStream<OperationResponse> stream : streams) {
-      StreamHealth.StreamHealthBuilder healthBuilder = StreamHealth.builder();
-      healthBuilder.account(mapStreamToAccount.get(stream));
-      // populate executorService information
-      ExecutorService executorService = getField(stream, "executorService", null);
-      if (executorService != null) {
-        healthBuilder.threadShutdown(executorService.isShutdown());
-        healthBuilder.threadTerminated(executorService.isTerminated());
-        if (executorService.isShutdown() || executorService.isTerminated()) {
-          status = RED;
-        }
-      } else {
+
+    StreamHealth.StreamHealthBuilder healthBuilder = StreamHealth.builder();
+    healthBuilder.account(mapStreamToAccount.get(stream));
+    // populate executorService information
+    ExecutorService executorService = getField(stream, "executorService", null);
+    if (executorService != null) {
+      healthBuilder.threadShutdown(executorService.isShutdown());
+      healthBuilder.threadTerminated(executorService.isTerminated());
+      if (executorService.isShutdown() || executorService.isTerminated()) {
         status = RED;
       }
-
-      boolean isStopped = getField(stream, "isStopped", new AtomicBoolean(false)).get();
-      healthBuilder.stopped(isStopped);
-      if (isStopped) {
-        status = RED;
-      }
-
-      AtomicReference<String> lastEventId = getField(stream, "lastEventId", null);
-      if (lastEventId != null) {
-        healthBuilder.lastEventId(lastEventId.get());
-      }
-
-      results.add(healthBuilder.build());
+    } else {
+      status = RED;
     }
+
+    boolean isStopped = getField(stream, "isStopped", new AtomicBoolean(false)).get();
+    healthBuilder.stopped(isStopped);
+    if (isStopped) {
+      status = RED;
+    }
+
+    AtomicReference<String> lastEventId = getField(stream, "lastEventId", null);
+    if (lastEventId != null) {
+      healthBuilder.lastEventId(lastEventId.get());
+    }
+
+    results.add(healthBuilder.build());
 
     return SPOHealthCheckResult.builder()
         .name(getName())

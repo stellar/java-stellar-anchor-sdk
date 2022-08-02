@@ -9,9 +9,11 @@ import lombok.Data;
 @Access(AccessType.FIELD)
 @Table(name = "stellar_account_page_token")
 public class PaymentStreamerCursor {
+  public static final String SINGLETON_ID = "ALL";
+
   @Id
-  @SerializedName("account_id")
-  String accountId;
+  @SerializedName("id")
+  String id = SINGLETON_ID;
 
   String cursor;
 }
