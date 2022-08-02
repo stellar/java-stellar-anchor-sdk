@@ -9,9 +9,7 @@ dependencies {
   implementation(libs.commons.cli)
   implementation(libs.okhttp3)
 
-
   // From projects
-  implementation(project(":payment"))
   implementation(project(":platform"))
   implementation(project(":anchor-reference-server"))
 }

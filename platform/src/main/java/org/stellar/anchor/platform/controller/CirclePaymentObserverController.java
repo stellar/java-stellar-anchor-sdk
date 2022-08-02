@@ -14,7 +14,7 @@ import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.ServerErrorException;
 import org.stellar.anchor.api.exception.UnprocessableEntityException;
 import org.stellar.anchor.api.sep.SepExceptionResponse;
-import org.stellar.anchor.platform.paymentobserver.CirclePaymentObserverService;
+import org.stellar.anchor.platform.payment.observer.circle.CirclePaymentObserverService;
 import shadow.com.google.common.reflect.TypeToken;
 
 @RestController
