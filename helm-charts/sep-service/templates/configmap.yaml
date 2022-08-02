@@ -1,3 +1,15 @@
+{{- if .Values.assets }}
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: assets
+data:
+  assets.json: |
+    {
+      "assets": {{ toPrettyJson .Values.assets | indent 4 }}
+    }
+---
+{{- end }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -261,17 +273,3 @@ data:
     ORG_LOGO = "https://myorglogo.png"
     ORG_SUPPORT_EMAIL="myname@myemail.org"
     {{- end }}
----
-kind: ConfigMap
-apiVersion: v1
-metadata:
-  name: assets
-data:
-  assets.json: |
-    {
-      {{- if .Values.assets }}
-      "assets": {{ toPrettyJson .Values.assets | indent 4 }}
-      {{- else }}
-      "assets: []
-      {{- end }}
-    }
