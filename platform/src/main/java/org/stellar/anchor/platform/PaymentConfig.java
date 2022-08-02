@@ -58,7 +58,7 @@ public class PaymentConfig {
             .horizonServer(appConfig.getHorizonUrl())
             .paymentTokenStore(stellarPaymentStreamerCursorStore)
             .observers(paymentListeners)
-            .accounts(
+            .observingAccounts(
                 stellarAssets.stream()
                     .map(AssetInfo::getDistributionAccount)
                     .collect(Collectors.toList()))

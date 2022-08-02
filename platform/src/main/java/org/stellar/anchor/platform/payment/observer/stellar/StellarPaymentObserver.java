@@ -31,7 +31,7 @@ import shadow.com.google.common.base.Optional;
 
 public class StellarPaymentObserver implements HealthCheckable {
   final Server server;
-  final SortedSet<String> accounts;
+  final SortedSet<String> observingAccounts;
   final Set<PaymentListener> observers;
   final List<SSEStream<OperationResponse>> streams;
   final StellarPaymentStreamerCursorStore paymentStreamerCursorStore;
@@ -39,19 +39,19 @@ public class StellarPaymentObserver implements HealthCheckable {
 
   StellarPaymentObserver(
       String horizonServer,
-      SortedSet<String> accounts,
+      SortedSet<String> observingAccounts,
       Set<PaymentListener> observers,
       StellarPaymentStreamerCursorStore paymentStreamerCursorStore) {
     this.server = new Server(horizonServer);
     this.observers = observers;
-    this.accounts = accounts;
-    this.streams = new ArrayList<>(accounts.size());
+    this.observingAccounts = observingAccounts;
+    this.streams = new ArrayList<>(observingAccounts.size());
     this.paymentStreamerCursorStore = paymentStreamerCursorStore;
   }
 
   /** Start watching the accounts. */
   public void start() {
-    for (String account : accounts) {
+    for (String account : observingAccounts) {
       SSEStream<OperationResponse> stream = watch(account);
       mapStreamToAccount.put(stream, account);
       this.streams.add(stream);
@@ -143,7 +143,7 @@ public class StellarPaymentObserver implements HealthCheckable {
 
   public static class Builder {
     String horizonServer = "https://horizon-testnet.stellar.org";
-    SortedSet<String> accounts = new TreeSet<>();
+    SortedSet<String> observingAccounts = new TreeSet<>();
     Set<PaymentListener> observers = new HashSet<>();
     StellarPaymentStreamerCursorStore paymentStreamerCursorStore =
         new MemoryStellarPaymentStreamerCursorStore();
@@ -155,8 +155,8 @@ public class StellarPaymentObserver implements HealthCheckable {
       return this;
     }
 
-    public Builder accounts(List<String> accounts) {
-      this.accounts.addAll(accounts);
+    public Builder observingAccounts(List<String> accounts) {
+      this.observingAccounts.addAll(accounts);
       return this;
     }
 
@@ -173,7 +173,7 @@ public class StellarPaymentObserver implements HealthCheckable {
 
     public StellarPaymentObserver build() {
       return new StellarPaymentObserver(
-          horizonServer, accounts, observers, paymentStreamerCursorStore);
+          horizonServer, observingAccounts, observers, paymentStreamerCursorStore);
     }
   }
 
