@@ -37,7 +37,6 @@ dependencies {
   // From projects
   implementation(project(":api-schema"))
   implementation(project(":core"))
-  implementation(project(":payment"))
   implementation(project(":anchor-reference-server"))
 
   testImplementation("org.springframework.boot:spring-boot-starter-test")
