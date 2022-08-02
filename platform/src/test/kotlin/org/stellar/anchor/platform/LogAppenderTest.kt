@@ -39,18 +39,19 @@ class LogAppenderTest {
 
   @ParameterizedTest
   @CsvSource(
-      value =
-          [
-              "error,error_message,ERROR",
-              "warn,warn_message,WARN",
-              "info,info_message,INFO",
-              "debug,debug_message,DEBUG",
-              "trace,trace_message,TRACE",
-          ])
+    value =
+      [
+        "error,error_message,ERROR",
+        "warn,warn_message,WARN",
+        "info,info_message,INFO",
+        "debug,debug_message,DEBUG",
+        "trace,trace_message,TRACE",
+      ]
+  )
   fun test_logger_outputAccurateLoggerName(
-      methodName: String,
-      wantMessage: String,
-      wantLevelName: String
+    methodName: String,
+    wantMessage: String,
+    wantLevelName: String
   ) {
     when (methodName) {
       "error" -> Log.error(wantMessage)

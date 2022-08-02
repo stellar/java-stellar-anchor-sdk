@@ -40,9 +40,6 @@ include("api-schema")
 
 include("core")
 
-/** Payment subprojects */
-include("payment")
-
 /** Anchor Platform */
 include("platform")
 

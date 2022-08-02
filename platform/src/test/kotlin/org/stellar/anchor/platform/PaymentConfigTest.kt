@@ -9,8 +9,8 @@ import org.stellar.anchor.api.exception.ServerErrorException
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.ResourceJsonAssetService
 import org.stellar.anchor.config.AppConfig
-import org.stellar.anchor.platform.paymentobserver.PaymentListener
-import org.stellar.anchor.platform.paymentobserver.PaymentStreamerCursorStore
+import org.stellar.anchor.platform.payment.observer.PaymentListener
+import org.stellar.anchor.platform.payment.observer.stellar.StellarPaymentStreamerCursorStore
 
 class PaymentConfigTest {
   @Test
@@ -71,7 +71,7 @@ class PaymentConfigTest {
     assertEquals("Payment streamer cursor store cannot be empty.", ex.message)
 
     // appConfig is null
-    val mockPaymentStreamerCursorStore = mockk<PaymentStreamerCursorStore>()
+    val mockPaymentStreamerCursorStore = mockk<StellarPaymentStreamerCursorStore>()
     every { mockPaymentStreamerCursorStore.load(any()) } returns null
     ex =
       assertThrows {
