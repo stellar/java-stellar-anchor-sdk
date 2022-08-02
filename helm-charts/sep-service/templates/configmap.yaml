@@ -187,7 +187,7 @@ data:
         bootstrapServer: {{ .Values.stellar.app_config.kafka_publisher.bootstrapServer | default "missing_bootstrapServer:port" }}
         useIAM: {{ .Values.stellar.app_config.kafka_publisher.useIAM | default "false" }}
         useSingleQueue: {{ .Values.stellar.app_config.kafka_publisher.useSingleQueue | default "false" }}
-        {{- if (((.Values.stellar.app_config).event).kafka_publisher).eventTypeQueue }}
+        {{- if ((.Values.stellar.app_config).kafka_publisher).eventTypeQueue }}
         eventTypeToQueue:
           all: {{ .Values.stellar.app_config.kafka_publisher.eventTypeToQueue.all | default "dev_ap_event_single_queue" }}
           quoteCreated: {{ .Values.stellar.app_config.kafka_publisher.eventTypeToQueue.quoteCreated | default "dev_ap_event_quote_created" }}
