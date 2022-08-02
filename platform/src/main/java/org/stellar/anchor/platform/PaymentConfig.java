@@ -11,10 +11,10 @@ import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.CirclePaymentObserverConfig;
 import org.stellar.anchor.horizon.Horizon;
-import org.stellar.anchor.platform.paymentobserver.CirclePaymentObserverService;
-import org.stellar.anchor.platform.paymentobserver.PaymentListener;
-import org.stellar.anchor.platform.paymentobserver.PaymentStreamerCursorStore;
-import org.stellar.anchor.platform.paymentobserver.StellarPaymentObserver;
+import org.stellar.anchor.platform.payment.observer.PaymentListener;
+import org.stellar.anchor.platform.payment.observer.circle.CirclePaymentObserverService;
+import org.stellar.anchor.platform.payment.observer.stellar.StellarPaymentObserver;
+import org.stellar.anchor.platform.payment.observer.stellar.StellarPaymentStreamerCursorStore;
 
 @Configuration
 public class PaymentConfig {
@@ -22,7 +22,7 @@ public class PaymentConfig {
   public StellarPaymentObserver stellarPaymentObserverService(
       AssetService assetService,
       List<PaymentListener> paymentListeners,
-      PaymentStreamerCursorStore paymentStreamerCursorStore,
+      StellarPaymentStreamerCursorStore stellarPaymentStreamerCursorStore,
       AppConfig appConfig)
       throws ServerErrorException {
     // validate assetService
@@ -44,7 +44,7 @@ public class PaymentConfig {
     }
 
     // validate paymentStreamerCursorStore
-    if (paymentStreamerCursorStore == null) {
+    if (stellarPaymentStreamerCursorStore == null) {
       throw new ServerErrorException("Payment streamer cursor store cannot be empty.");
     }
 
@@ -56,7 +56,7 @@ public class PaymentConfig {
     StellarPaymentObserver stellarPaymentObserverService =
         StellarPaymentObserver.builder()
             .horizonServer(appConfig.getHorizonUrl())
-            .paymentTokenStore(paymentStreamerCursorStore)
+            .paymentTokenStore(stellarPaymentStreamerCursorStore)
             .observers(paymentListeners)
             .accounts(
                 stellarAssets.stream()
