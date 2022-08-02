@@ -40,12 +40,12 @@ The following table lists the configurable parameters of the Anchor Platform cha
 | image.name  | dockerhub image name  | yes  | anchor-platform  |
 | image.tag  | dockerhub anchorplatform dag  | yes | latest |
 | deployment.replicas  | number of instances  | yes  | 1 |
-| deployment.envFrom | kubernetes secrets name | no  | n/a  |
-| ingress.metadata  | ingress metadata (list)  | no  | n/a |
-| ingress.labels  | ingress labels (list)  | no | n/a  |
-| ingress.annotations | ingress annotations (list)  | no  | n/a  |
-| ingress.tls.host  | tls certificate hostname | no  | n/a  |
-| ingress.tls.secretName  | k8 secret holding tls certificate if reqd  | no  | n/a  |
+| deployment.envFrom | kubernetes secrets name | no  | N/A  |
+| ingress.metadata  | ingress metadata (list)  | no  | N/A |
+| ingress.labels  | ingress labels (list)  | no | N/A  |
+| ingress.annotations | ingress annotations (list)  | no  | N/A  |
+| ingress.tls.host  | tls certificate hostname | no  | N/A  |
+| ingress.tls.secretName  | k8 secret holding tls certificate if reqd  | no  | N/A  |
 | ingress.rules  | ingress backend rules (list)  |   |   |
 
 ### Database
@@ -91,32 +91,32 @@ type: Opaque
 The following table lists the additional configurable parameters of the Anchor Platform chart and their default values.
 |  Parameter | Description | Required?  | Default Value | 
 |---|---|---|---|
-| stellar.app_config.app.hostUrl  | URL of the Anchor Platform SEP Service   | y  | n/a |
-| stellar.app_config.app.jwtSecretKey | web encryption key | ${JWT_SECRET_KEY} |
-| stellar.app_config.app.stellarNetwork | TESTNET OR PUBNET| TESTNET |
-| stellar.app_config.app.logLevel | TRACE,DEBUG,INFO,WARN,ERROR,FATAL | INFO |
+| stellar.app_config.app.hostUrl  | URL of the Anchor Platform SEP Service   | y  | N/A |
+| stellar.app_config.app.jwtSecretKey | web encryption key | y | ${JWT_SECRET_KEY} | N/A | 
+| stellar.app_config.app.stellarNetwork | TESTNET OR PUBNET| n | TESTNET |
+| stellar.app_config.app.logLevel | TRACE,DEBUG,INFO,WARN,ERROR,FATAL | n | INFO |
 | stellar.anchor.data_access.type  | database access type  | yes  | data-spring-jdbc  |
 | stellar.anchor.data_access.setttings  | values config root-level key for jdbc config  | yes | data-spring-jdbc-sqlite  |
 | stellar.toml.documentation.ORG_NAME | organization name to configure stellar.toml | yes | My Organization |
 | stellar.toml.documentation.ORG_URL | your organization URL to configure stellar.toml | yes | https:/myorg.org |
 | stellar.toml.documentation.ORG_DESCRIPTION | your organization description to configure stellar.toml | yes | https://mylogo.png |
 | stellar.toml.documentation.ORG_SUPPORT_EMAIL | your organization support email address  to configure stellar.toml | yes | myname@myorg.org |
-| stellar.app_config.app.integration_auth.auth_type | NONE, JWT_TOKEN, API_KEY | NONE |
-| stellar.app_config.app.integration_auth.platformToAnchorSecret | secret value | ${PLATFORM_TO_ANCHOR_SECRET} |
-| stellar.app_config.app.integration_auth.anchorToPlatformSecret | secret value | ${ANCHOR_TO_PLATFORM_SECRET} |
-| stellar.app_config.app.integration_auth.expirationMilliseconds | Expiration ms | 30000 |
-| stellar.app_config.app.anchor_callback | unique address endpoint | NONE  |
+| stellar.app_config.app.integration_auth.auth_type | Anchor Platform to Anchor Backend Authentication type JWT_TOKEN, API_KEY or NONE | n | NONE |
+| stellar.app_config.app.integration_auth.platformToAnchorSecret | secret value | n | ${PLATFORM_TO_ANCHOR_SECRET} |
+| stellar.app_config.app.integration_auth.anchorToPlatformSecret | secret value | n | ${ANCHOR_TO_PLATFORM_SECRET} |
+| stellar.app_config.app.integration_auth.expirationMilliseconds | integration auth credential expiration ms | n | 30000 |
+| stellar.app_config.app.anchor_callback | endpoint to retrieve unique address & memo for sep 31 post /transaction  | n | N/A  |
 | sep1.enabled | sep1 true if service enabled | yes  | true  |
 | sep10.enabled | sep1 true if service enabled | yes | true |
-| sep10.homeDomain |   |   |   |
-| sep10.signingSeed |   |   |   |
+| sep10.homeDomain | a domain hosting a SEP-1 stellar.toml   |  n | N/A  |
+| sep10.signingSeed | secret key of Stellar Account used for auth. (public key in stellar.toml ACCOUNTS)  | y | N/A |
 | sep12.enabled  | sep1 true if service enabled | yes | true |
-| sep12.customerIntegrationEndpoint| URL of SEP 12 KYC Endpoint  | no  | n/a  |
+| sep12.customerIntegrationEndpoint| URL of SEP 12 KYC Endpoint  | no  | N/A  |
 | sep31.enabled  | sep1 true if service enabled | yes | true |
-| sep31.feeIntegrationEndPoint  | URL of Fees Endpoint  | no  | n/a  |
+| sep31.feeIntegrationEndPoint  | URL of Fees Endpoint  | no  | N/A  |
 | sep38.enabled  | sep1 true if service enabled | yes | true |
-| sep38.quoteIntegrationEndPoint  | URL of Quotes Endpoint  | no  | n/a  |
+| sep38.quoteIntegrationEndPoint  | URL of Quotes Endpoint  | no  | N/A  |
 | event.enabled  | sep1 true if event service enabled | yes | true |
 | event.publisherType  | kafka|sqs  | no  | kafka  |
-| kafka_publisher.bootstrapServer  | kafka broker host:port | no | n/a  |
+| kafka_publisher.bootstrapServer  | kafka broker host:port | no | N/A  |
 | kafka_publisher.useIAM  | use IAM Authentication for MSK  | no | true  |
