@@ -133,11 +133,13 @@ data:
       {{- if ((.Values.stellar.app_config).sep31) }}
         enabled: {{ .Values.stellar.app_config.sep31.enabled | default "true" }}
         feeIntegrationEndPoint: {{ .Values.stellar.app_config.sep31.feeIntegrationEndPoint | default .Values.stellar.app_config.app.backendUrl }}
+        uniqueAddressIntegrationEndPoint: {{ .Values.stellar.app_config.sep31.uniqueAddressIntegrationEndPoint  | default .Values.stellar.app_config.app.backendUrl}}
         depositInfoGeneratorType: {{ .Values.stellar.app_config.sep31.depositInfoGeneratorType | default "self" }}
         paymentType: {{ .Values.stellar.app_config.sep31.paymentType | default "STRICT_SEND" }}
       {{- else }}
         enabled: "true"
         feeIntegrationEndPoint: {{ .Values.stellar.app_config.app.backendUrl }}
+        uniqueAddressIntegrationEndPoint: {{ .Values.stellar.app_config.app.backendUrl }}
         paymentType: STRICT_SEND
       {{- end }}
       # sep-38

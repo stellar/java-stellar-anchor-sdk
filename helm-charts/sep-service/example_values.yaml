@@ -128,6 +128,7 @@ stellar:
       sep31:
         enabled: true
         feeIntegrationEndPoint: https://anchor-reference-server-dev.stellar.org
+        uniqueAddressIntegrationEndPoint: https://anchor-reference-server-dev.stellar.org
       sep38:
         enabled: true
         quoteIntegrationEndPoint: https://anchor-reference-server-dev.stellar.org
