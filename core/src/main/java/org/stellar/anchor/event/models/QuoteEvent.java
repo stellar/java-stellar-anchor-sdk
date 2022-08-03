@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import org.stellar.anchor.api.sep.sep38.RateFee;
+import org.stellar.anchor.api.shared.StellarId;
 
 @Data
 @Builder

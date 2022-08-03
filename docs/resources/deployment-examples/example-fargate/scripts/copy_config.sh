@@ -1,6 +1,4 @@
 #! /bin/bash
-echo "ls /config"
-ls /config
 cp -v /config_files/stellar_wks.toml /anchor_config
 cp -v /config_files/anchor_config.yaml /anchor_config
 cp -v /config_files/reference_config.yaml /anchor_config

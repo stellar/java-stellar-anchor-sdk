@@ -12,6 +12,7 @@ import lombok.SneakyThrows;
 import org.apache.http.HttpStatus;
 import org.stellar.anchor.api.sep.SepExceptionResponse;
 import org.stellar.anchor.util.GsonUtils;
+import org.stellar.anchor.util.Log;
 
 public class ApiKeyFilter implements Filter {
   private static final String OPTIONS = "OPTIONS";
@@ -41,6 +42,11 @@ public class ApiKeyFilter implements Filter {
 
     HttpServletRequest request = (HttpServletRequest) servletRequest;
     HttpServletResponse response = (HttpServletResponse) servletResponse;
+    Log.infoF(
+        "Applying ApiKeyFilter on request {} {}?{}",
+        request.getMethod(),
+        request.getRequestURL().toString(),
+        request.getQueryString());
 
     if (request.getMethod().equals(OPTIONS)) {
       filterChain.doFilter(servletRequest, servletResponse);
@@ -59,6 +65,7 @@ public class ApiKeyFilter implements Filter {
   }
 
   private static void sendForbiddenError(HttpServletResponse response) throws IOException {
+    error("Forbidden: ApiKeyFilter failed to authenticate the request.");
     response.setStatus(HttpStatus.SC_FORBIDDEN);
     response.setContentType(APPLICATION_JSON_VALUE);
     response.getWriter().print(gson.toJson(new SepExceptionResponse("forbidden")));

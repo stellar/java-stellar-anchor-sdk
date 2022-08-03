@@ -6,7 +6,7 @@ Configutation:
         target: SYSTEM_OUT
         PatternLayout:
           pattern: "%d{HH:mm:ss.SSS} %-5level - %c{1.} - %msg%n"
-      - name: console_json_appender
+      - name: console_splunk_json_appender
         target: SYSTEM_OUT
         JSONTemplateLayout:
             eventTemplate: |
@@ -34,6 +34,17 @@ Configutation:
                   "severity": {
                     "$resolver": "level",
                     "field": "name"
+                  },
+                  "error_message": {
+                      "$resolver": "exception",
+                      "field": "message"
+                  },
+                  "error_stack_trace": {
+                    "$resolver": "exception",
+                    "field": "stackTrace",
+                    "stackTrace": {
+                      "stringified": true
+                    }
                   }
                 }
               }
@@ -41,7 +52,7 @@ Configutation:
     Root:
       level: info
       AppenderRef:
-        - ref: ${env:LOG_APPENDER:-console_json_appender}
+        - ref: ${env:LOG_APPENDER:-console_appender}
     Logger:
       - name: org.stellar
         level: debug
