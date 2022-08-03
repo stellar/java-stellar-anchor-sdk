@@ -179,6 +179,9 @@ app-config:
     # The callback API endpoint.
     feeIntegrationEndPoint: http://host.docker.internal:8081
 
+    # The /unique_address callback API endpoint.
+    uniqueAddressIntegrationEndPoint: http://host.docker.internal:8081
+
     #
     # paymentType: used to determine how amount_in is calculated from amount in the POST /transaction call
     # Possible values: STRICT_SEND or STRICT_RECEIVE. default=STRICT_SEND
