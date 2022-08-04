@@ -208,7 +208,8 @@ class Sep31DepositInfoGeneratorTest {
 
   @ParameterizedTest
   @CsvSource(
-    value = [",", "YTIzOTJhZGQtODdjOS00MmYwLWE1YzEtNWYxNzI4MDM=,hash", "123,id", "John Doe,text"]
+    value =
+      [",none", "YTIzOTJhZGQtODdjOS00MmYwLWE1YzEtNWYxNzI4MDM=,hash", "123,id", "John Doe,text"]
   )
   fun test_updateDepositInfo_api(memo: String?, memoType: String?) {
     val nonEmptyMemo = Objects.toString(memo, "")
