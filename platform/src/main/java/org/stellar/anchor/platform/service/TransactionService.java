@@ -3,6 +3,7 @@ package org.stellar.anchor.platform.service;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.*;
 import static org.stellar.anchor.sep31.Sep31Helper.allAmountAvailable;
 import static org.stellar.anchor.util.MathHelper.decimal;
+import static org.stellar.anchor.util.MathHelper.isEqualsAsDecimals;
 
 import io.micrometer.core.instrument.Metrics;
 import java.util.*;
@@ -105,6 +106,14 @@ public class TransactionService {
     return new PatchTransactionsResponse(responses);
   }
 
+  /**
+   * updateSep31Transaction will inject the new values from the PatchTransactionRequest into the
+   * database Sep31Transaction and validate them to make sure they are compliant.
+   *
+   * @param ptr is the PatchTransactionRequest containing the updated values.
+   * @param txn is the Sep31Transaction stored in the database that needs to be updated.
+   * @throws AnchorException if any of the new values is invalid or non-compliant.
+   */
   void updateSep31Transaction(PatchTransactionRequest ptr, Sep31Transaction txn)
       throws AnchorException {
     if (ptr.getStatus() != null) {
@@ -131,7 +140,7 @@ public class TransactionService {
         throw new BadRequestException(
             String.format(
                 "the `transfer_received_at(%s)` cannot be earlier than 'started_at(%s)'",
-                txn.getTransferReceivedAt().toString(), txn.getStartedAt().toString()));
+                ptr.getTransferReceivedAt().toString(), txn.getStartedAt().toString()));
       }
       txn.setTransferReceivedAt(ptr.getTransferReceivedAt());
     }
@@ -192,7 +201,7 @@ public class TransactionService {
 
   void validateQuoteAndAmounts(Sep31Transaction txn) throws AnchorException {
     // amount_in = amount_out + amount_fee
-    if (txn.getQuoteId() == null) {
+    if (Objects.toString(txn.getQuoteId(), "").isEmpty()) {
       // without exchange
       if (allAmountAvailable(txn))
         if (decimal(txn.getAmountIn())
@@ -207,33 +216,29 @@ public class TransactionService {
                 "invalid quote_id(id=%s) found in transaction(id=%s)",
                 txn.getQuoteId(), txn.getId()));
       }
-      // TODO: Commenting out for now to get SEP38 working, Jamie will update SEP31 fee handling
-      // logic
-      //      if (!decimal(quote.getSellAmount()).equals(decimal(txn.getAmountIn()))) {
-      //        throw new BadRequestException("quote.sell_amount != amount_in");
-      //      }
 
-      if (txn.getAmountFeeAsset().equals(quote.getBuyAsset())) {
-        // fee calculated in buying asset
-        // buy_asset = amount_out + amount_fee
-        if (decimal(quote.getBuyAmount())
-                .compareTo(decimal(txn.getAmountOut()).add(decimal(txn.getAmountFee())))
-            != 0) {
-          throw new BadRequestException("quote.buy_amount != amount_fee + amount_out");
-        } else if (txn.getAmountFeeAsset().equals(quote.getSellAsset())) {
-          // fee calculated in selling asset
-          // sell_asset = amount_in + amount_fee
-          if (decimal(quote.getSellAmount())
-                  .compareTo(decimal(txn.getAmountIn()).add(decimal(txn.getAmountFee())))
-              != 0) {
-            throw new BadRequestException("quote.sell_amount != amount_fee + amount_in");
-          }
-        } else {
-          throw new BadRequestException(
-              String.format(
-                  "amount_in_asset(%s) must equal to one of sell_asset(%s) and buy_asset(%s",
-                  txn.getAmountInAsset(), quote.getSellAsset(), quote.getBuyAsset()));
-        }
+      if (!Objects.equals(txn.getAmountInAsset(), quote.getSellAsset())) {
+        throw new BadRequestException("transaction.amount_in_asset != quote.sell_asset");
+      }
+
+      if (!isEqualsAsDecimals(txn.getAmountIn(), quote.getSellAmount())) {
+        throw new BadRequestException("transaction.amount_in != quote.sell_amount");
+      }
+
+      if (!Objects.equals(txn.getAmountOutAsset(), quote.getBuyAsset())) {
+        throw new BadRequestException("transaction.amount_out_asset != quote.buy_asset");
+      }
+
+      if (!isEqualsAsDecimals(txn.getAmountOut(), quote.getBuyAmount())) {
+        throw new BadRequestException("transaction.amount_out != quote.buy_amount");
+      }
+
+      if (!Objects.equals(txn.getAmountFeeAsset(), quote.getFee().getAsset())) {
+        throw new BadRequestException("transaction.amount_fee_asset != quote.fee.asset");
+      }
+
+      if (!isEqualsAsDecimals(txn.getAmountFee(), quote.getFee().getTotal())) {
+        throw new BadRequestException("amount_fee != sum(quote.fee.total)");
       }
     }
   }
