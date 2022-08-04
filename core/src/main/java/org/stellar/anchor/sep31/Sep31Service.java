@@ -214,8 +214,12 @@ public class Sep31Service {
     return Sep31PostTransactionResponse.builder()
         .id(txn.getId())
         .stellarAccountId(txn.getStellarAccountId())
-        .stellarMemo(txn.getStellarMemo())
-        .stellarMemoType(txn.getStellarMemoType())
+        .stellarMemo(
+            Objects.toString(txn.getStellarMemo(), "").isEmpty() ? null : txn.getStellarMemo())
+        .stellarMemoType(
+            Objects.toString(txn.getStellarMemoType(), "").isEmpty()
+                ? null
+                : txn.getStellarMemoType())
         .build();
   }
 
