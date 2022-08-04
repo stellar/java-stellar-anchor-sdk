@@ -19,11 +19,7 @@ import org.stellar.anchor.api.platform.PatchTransactionsRequest;
 import org.stellar.anchor.api.platform.PatchTransactionsResponse;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.shared.Amount;
-import org.stellar.anchor.api.shared.Refund;
-import org.stellar.anchor.api.shared.RefundPayment;
 import org.stellar.anchor.asset.AssetService;
-import org.stellar.anchor.event.models.TransactionEvent;
-import org.stellar.anchor.sep31.Refunds;
 import org.stellar.anchor.sep31.RefundsBuilder;
 import org.stellar.anchor.sep31.Sep31Transaction;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
@@ -65,7 +61,7 @@ public class TransactionService {
       throw new NotFoundException(String.format("transaction (id=%s) is not found", txnId));
     }
 
-    return fromTransactionToResponse(txn);
+    return txn.toPlatformApiGetTransactionResponse();
   }
 
   public PatchTransactionsResponse patchTransactions(PatchTransactionsRequest request)
@@ -93,7 +89,7 @@ public class TransactionService {
         if (!txnOriginalStatus.equals(txn.getStatus())) {
           statusUpdatedTxns.add(txn);
         }
-        responses.add(fromTransactionToResponse(txn));
+        responses.add(txn.toPlatformApiGetTransactionResponse());
       } else {
         throw new BadRequestException(String.format("transaction(id=%s) not found", patch.getId()));
       }
@@ -107,72 +103,6 @@ public class TransactionService {
           .increment();
     }
     return new PatchTransactionsResponse(responses);
-  }
-
-  GetTransactionResponse fromTransactionToResponse(Sep31Transaction txn) {
-    Refunds txnRefunds = txn.getRefunds();
-    Refund refunds = null;
-    if (txnRefunds != null) {
-      String amountInAsset = txn.getAmountInAsset();
-      RefundPayment[] payments = null;
-      Refund.RefundBuilder refundsBuilder =
-          Refund.builder()
-              .amountRefunded(new Amount(txnRefunds.getAmountRefunded(), amountInAsset))
-              .amountFee(new Amount(txnRefunds.getAmountFee(), amountInAsset));
-
-      // populate refunds payments
-      for (int i = 0; i < txnRefunds.getRefundPayments().size(); i++) {
-        org.stellar.anchor.sep31.RefundPayment refundPayment =
-            txnRefunds.getRefundPayments().get(i);
-        RefundPayment platformRefundPayment =
-            RefundPayment.builder()
-                .id(refundPayment.getId())
-                .idType(RefundPayment.IdType.STELLAR)
-                .amount(new Amount(refundPayment.getAmount(), amountInAsset))
-                .fee(new Amount(refundPayment.getFee(), amountInAsset))
-                .requestedAt(null)
-                .refundedAt(null)
-                .build();
-
-        if (payments == null) {
-          payments = new RefundPayment[txnRefunds.getRefundPayments().size()];
-        }
-        payments[i] = platformRefundPayment;
-      }
-
-      refunds = refundsBuilder.payments(payments).build();
-    }
-
-    List<GetTransactionResponse.StellarTransaction> stellarTransactions = null;
-    if (!Objects.toString(txn.getStellarTransactionId(), "").isEmpty()) {
-      GetTransactionResponse.StellarTransaction stellarTxn =
-          new GetTransactionResponse.StellarTransaction();
-      stellarTxn.setId(txn.getStellarTransactionId());
-      stellarTransactions = List.of(stellarTxn);
-    }
-
-    return GetTransactionResponse.builder()
-        .id(txn.getId())
-        .sep(31)
-        .kind(TransactionEvent.Kind.RECEIVE.getKind())
-        .status(txn.getStatus())
-        .amountExpected(new Amount(txn.getAmountExpected(), txn.getAmountInAsset()))
-        .amountIn(new Amount(txn.getAmountIn(), txn.getAmountInAsset()))
-        .amountOut(new Amount(txn.getAmountOut(), txn.getAmountOutAsset()))
-        .amountFee(new Amount(txn.getAmountFee(), txn.getAmountFeeAsset()))
-        .quoteId(txn.getQuoteId())
-        .startedAt(txn.getStartedAt())
-        .updatedAt(txn.getUpdatedAt())
-        .completedAt(txn.getCompletedAt())
-        .transferReceivedAt(txn.getTransferReceivedAt())
-        .message(txn.getRequiredInfoMessage()) // Assuming these meant to be the same.
-        .refunds(refunds)
-        .stellarTransactions(stellarTransactions)
-        .externalTransactionId(txn.getExternalTransactionId())
-        // TODO .custodialTransactionId(txn.get)
-        .customers(txn.getCustomers())
-        .creator(txn.getCreator())
-        .build();
   }
 
   void updateSep31Transaction(PatchTransactionRequest ptr, Sep31Transaction txn)
