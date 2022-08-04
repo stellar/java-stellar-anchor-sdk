@@ -18,7 +18,7 @@ public class UniqueAddressController {
       value = "/unique_address",
       method = {RequestMethod.GET})
   @ResponseBody
-  public GetUniqueAddressResponse getRate(
+  public GetUniqueAddressResponse getUniqueAddress(
       @RequestParam(name = "transaction_id") String transactionId) {
     return uniqueAddressService.getUniqueAddress(transactionId);
   }
