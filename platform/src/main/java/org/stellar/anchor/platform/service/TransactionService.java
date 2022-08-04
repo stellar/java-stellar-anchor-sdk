@@ -24,6 +24,7 @@ import org.stellar.anchor.api.shared.RefundPayment;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.event.models.TransactionEvent;
 import org.stellar.anchor.sep31.Refunds;
+import org.stellar.anchor.sep31.RefundsBuilder;
 import org.stellar.anchor.sep31.Sep31Transaction;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep38.Sep38Quote;
@@ -207,7 +208,10 @@ public class TransactionService {
     if (ptr.getMessage() != null) {
       txn.setRequiredInfoMessage(ptr.getMessage());
     }
-    // TODO: Update the [refunds] field
+    if (ptr.getRefunds() != null) {
+      txn.setRefunds(new RefundsBuilder(txnStore).fromPlatformApiRefunds(ptr.getRefunds()));
+      // TODO: validate refunds
+    }
     if (ptr.getExternalTransactionId() != null) {
       txn.setExternalTransactionId(ptr.getExternalTransactionId());
     }
