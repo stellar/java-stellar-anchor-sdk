@@ -102,10 +102,10 @@ jobs:
       - name: Find Home Domain (Preview or Dev)
         id: endpoint-finder
         run: |
-          export HOME_DOMAIN=https://anchor-sep-server-dev.stellar.org
+          export HOME_DOMAIN=anchor-sep-server-dev.stellar.org
           if [ ! -z "$PR_NUMBER" ]
           then
-            export HOME_DOMAIN=https://anchor-sep-pr$PR_NUMBER.previews.kube001.services.stellar-ops.com
+            export HOME_DOMAIN=anchor-sep-pr$PR_NUMBER.previews.kube001.services.stellar-ops.com
           fi
           echo HOME_DOMAIN=$HOME_DOMAIN
           echo "::set-output name=HOME_DOMAIN::$HOME_DOMAIN"
@@ -123,5 +123,5 @@ jobs:
     needs: [build_and_test, sep_validation_suite, end_to_end_test]
     runs-on: ubuntu-latest
     steps:
-      - if: contains(needs.*.result, 'failure')
+      - if: contains(needs.*.result, 'failure') || failure()
         run: exit 1
