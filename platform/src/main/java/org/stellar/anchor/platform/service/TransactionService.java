@@ -2,7 +2,6 @@ package org.stellar.anchor.platform.service;
 
 import static org.stellar.anchor.api.sep.SepTransactionStatus.*;
 import static org.stellar.anchor.sep31.Sep31Helper.allAmountAvailable;
-import static org.stellar.anchor.sep31.Sep31Helper.validateStatus;
 import static org.stellar.anchor.util.MathHelper.decimal;
 
 import io.micrometer.core.instrument.Metrics;
@@ -197,19 +196,23 @@ public class TransactionService {
       txn.setAmountFeeAsset(ptr.getAmountFee().getAsset());
     }
     if (ptr.getTransferReceivedAt() != null) {
+      if (ptr.getTransferReceivedAt().compareTo(txn.getStartedAt()) < 0) {
+        throw new BadRequestException(
+            String.format(
+                "the `transfer_received_at(%s)` cannot be earlier than 'started_at(%s)'",
+                txn.getTransferReceivedAt().toString(), txn.getStartedAt().toString()));
+      }
       txn.setTransferReceivedAt(ptr.getTransferReceivedAt());
     }
     if (ptr.getMessage() != null) {
       txn.setRequiredInfoMessage(ptr.getMessage());
     }
+    // TODO: Update the [refunds] field
     if (ptr.getExternalTransactionId() != null) {
       txn.setExternalTransactionId(ptr.getExternalTransactionId());
     }
-    // TODO: Update [refunds] field
 
-    validateStatus(txn);
     validateQuoteAndAmounts(txn);
-    validateTimestamps(txn);
   }
 
   /**
@@ -298,16 +301,6 @@ public class TransactionService {
                   txn.getAmountInAsset(), quote.getSellAsset(), quote.getBuyAsset()));
         }
       }
-    }
-  }
-
-  void validateTimestamps(Sep31Transaction txn) throws BadRequestException {
-    if (txn.getTransferReceivedAt() != null
-        && txn.getTransferReceivedAt().compareTo(txn.getStartedAt()) < 0) {
-      throw new BadRequestException(
-          String.format(
-              "the `transfer_receved_at(%s)` cannot be earlier than 'started_at(%s)'",
-              txn.getTransferReceivedAt().toString(), txn.getStartedAt().toString()));
     }
   }
 }
