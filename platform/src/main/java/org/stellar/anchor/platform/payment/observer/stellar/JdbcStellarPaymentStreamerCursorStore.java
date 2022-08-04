@@ -1,10 +1,10 @@
 package org.stellar.anchor.platform.payment.observer.stellar;
 
-import static org.stellar.anchor.platform.data.PaymentStreamerCursor.SINGLETON_ID;
+import static org.stellar.anchor.platform.model.PaymentStreamerCursor.SINGLETON_ID;
 
 import java.util.Optional;
 import org.springframework.stereotype.Component;
-import org.stellar.anchor.platform.data.PaymentStreamerCursor;
+import org.stellar.anchor.platform.model.PaymentStreamerCursor;
 import org.stellar.anchor.platform.data.PaymentStreamerCursorRepo;
 
 @Component

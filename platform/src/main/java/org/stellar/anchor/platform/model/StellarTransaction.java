@@ -1,10 +1,11 @@
-package org.stellar.anchor.platform.data;
+package org.stellar.anchor.platform.model;
 
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
 import java.time.Instant;
 import javax.persistence.*;
 import lombok.Data;
+import org.stellar.anchor.platform.data.JdbcSep31Transaction;
 import org.stellar.anchor.util.GsonUtils;
 
 @Entity
