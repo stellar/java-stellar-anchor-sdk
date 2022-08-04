@@ -78,12 +78,14 @@ data:
         #     STRICT_SEND: amount_in = amount
         #     STRICT_RECEIVE: amount_in = amount + fee
         paymentType: STRICT_SEND
+    
         #
         # depositInfoGeneratorType: used to choose how the SEP-31 deposit information will be generated, which includes the
         # deposit address, memo and memo type.
         # Possible values:
         #     self: the memo and memo type are generated in the local code, and the distribution account is used for the deposit address.
         #     circle: the memo and memo type are generated through Circle API, as well as the deposit address.
+        #     api: the memo and memo type are generated through calling the anchor's GET /unique_address endpoint.
         depositInfoGeneratorType: self # self or circle
 
       # sep-38

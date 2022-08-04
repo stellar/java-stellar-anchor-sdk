@@ -14,7 +14,7 @@ anchor.settings:
   hostUrl: http://localhost:8081
 
   # The Stellar wallet to which the customer will send the Stellar assets.
-  distributionWallet: GCHLHDBOKG2JWMJQBTLSL5XG6NO7ESXI2TAQKZXCXWXB5WI2X6W233PR
+  distributionWallet: GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF
   distributionWalletMemo:
   distributionWalletMemoType:
 
