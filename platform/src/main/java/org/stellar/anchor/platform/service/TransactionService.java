@@ -219,7 +219,7 @@ public class TransactionService {
    * @param status a String representing the SepTransactionStatus
    * @throws BadRequestException if the provided status is not supported
    */
-  private void validateIfStatusIsSupported(String status) throws BadRequestException {
+  void validateIfStatusIsSupported(String status) throws BadRequestException {
     if (!validStatuses.contains(status)) {
       throw new BadRequestException(String.format("invalid status(%s)", status));
     }
@@ -232,7 +232,7 @@ public class TransactionService {
    * @param amount is the object containing the asset full name and the amount.
    * @throws BadRequestException if the provided asset is not supported
    */
-  private void validateAsset(String fieldName, Amount amount) throws BadRequestException {
+  void validateAsset(String fieldName, Amount amount) throws BadRequestException {
     if (amount == null) {
       return;
     }
