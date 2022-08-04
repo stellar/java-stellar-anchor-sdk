@@ -118,7 +118,7 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           if [ -f end-to-end-tests/requirements.txt ]; then pip install -r end-to-end-tests/requirements.txt; fi
-          python end-to-end-tests/end_to_end_tests.py --domain ${{ steps.endpoint-finder.outputs.HOME_DOMAIN }} --tests all --secret ${{ secrets.E2E_TEST_SECRET }}
+          python end-to-end-tests/end_to_end_tests.py --domain ${{ steps.endpoint-finder.outputs.HOME_DOMAIN }} --tests all --secret SDLE32FFTGZT4O6MAUHUUEUNFK3MTH4Q2VJR2TQFYCECJBGDSE2LJILV
   complete:
     needs: [build_and_test, sep_validation_suite, end_to_end_test]
     runs-on: ubuntu-latest
