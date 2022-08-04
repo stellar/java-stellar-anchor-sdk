@@ -17,6 +17,9 @@ data:
     anchor.settings:
       version: 0.0.1
       platformApiEndpoint: https://anchor-sep-server-dev.stellar.org
+      distributionWallet: GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF
+      distributionWalletMemo:
+      distributionWalletMemoType:    
 
     integration-auth:
       authType: JWT_TOKEN
