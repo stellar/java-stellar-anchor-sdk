@@ -238,7 +238,7 @@ resource "aws_codebuild_project" "codebuild_config" {
     }
   }
 
-  source_version = "refs/heads/fargate"
+  source_version = var.codebuild_source_version
 
   vpc_config {
     vpc_id = module.vpc.vpc_id
