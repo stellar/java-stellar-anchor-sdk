@@ -6,6 +6,7 @@ import static org.stellar.anchor.util.MathHelper.decimal;
 import static org.stellar.anchor.util.MathHelper.isEqualsAsDecimals;
 
 import io.micrometer.core.instrument.Metrics;
+import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -21,6 +22,7 @@ import org.stellar.anchor.api.platform.PatchTransactionsResponse;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.shared.Amount;
 import org.stellar.anchor.asset.AssetService;
+import org.stellar.anchor.sep31.Refunds;
 import org.stellar.anchor.sep31.RefundsBuilder;
 import org.stellar.anchor.sep31.Sep31Transaction;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
@@ -43,6 +45,11 @@ public class TransactionService {
           COMPLETED.getName(),
           EXPIRED.getName(),
           ERROR.getName());
+
+  static boolean isStatusError(String status) {
+    return List.of(PENDING_CUSTOMER_INFO_UPDATE.getName(), EXPIRED.getName(), ERROR.getName())
+        .contains(status);
+  }
 
   TransactionService(
       Sep38QuoteStore quoteStore, Sep31TransactionStore txnStore, AssetService assetService) {
@@ -116,26 +123,52 @@ public class TransactionService {
    */
   void updateSep31Transaction(PatchTransactionRequest ptr, Sep31Transaction txn)
       throws AnchorException {
-    if (ptr.getStatus() != null) {
+    boolean txWasUpdated = false;
+    boolean txWasCompleted = false;
+    boolean shouldClearMessageStatus =
+        !Objects.toString(ptr.getStatus(), "").isEmpty()
+            && !isStatusError(ptr.getStatus())
+            && !Objects.toString(txn.getStatus(), "").isEmpty()
+            && isStatusError(txn.getStatus());
+
+    if (ptr.getStatus() != null && !Objects.equals(txn.getStatus(), ptr.getStatus())) {
       validateIfStatusIsSupported(ptr.getStatus());
+      txWasCompleted =
+          !Objects.equals(txn.getStatus(), COMPLETED.getName())
+              && Objects.equals(ptr.getStatus(), COMPLETED.getName());
       txn.setStatus(ptr.getStatus());
+      txWasUpdated = true;
     }
-    if (ptr.getAmountIn() != null) {
+
+    if (ptr.getAmountIn() != null
+        && (!Objects.equals(txn.getAmountIn(), ptr.getAmountIn().getAmount())
+            || !Objects.equals(txn.getAmountInAsset(), ptr.getAmountIn().getAsset()))) {
       validateAsset("amount_in", ptr.getAmountIn());
       txn.setAmountIn(ptr.getAmountIn().getAmount());
       txn.setAmountInAsset(ptr.getAmountIn().getAsset());
+      txWasUpdated = true;
     }
-    if (ptr.getAmountOut() != null) {
+
+    if (ptr.getAmountOut() != null
+        && (!Objects.equals(txn.getAmountOut(), ptr.getAmountOut().getAmount())
+            || !Objects.equals(txn.getAmountOutAsset(), ptr.getAmountOut().getAsset()))) {
       validateAsset("amount_out", ptr.getAmountOut());
       txn.setAmountOut(ptr.getAmountOut().getAmount());
       txn.setAmountOutAsset(ptr.getAmountOut().getAsset());
+      txWasUpdated = true;
     }
-    if (ptr.getAmountFee() != null) {
+
+    if (ptr.getAmountFee() != null
+        && (!Objects.equals(txn.getAmountFee(), ptr.getAmountFee().getAmount())
+            || !Objects.equals(txn.getAmountFeeAsset(), ptr.getAmountFee().getAsset()))) {
       validateAsset("amount_fee", ptr.getAmountFee());
       txn.setAmountFee(ptr.getAmountFee().getAmount());
       txn.setAmountFeeAsset(ptr.getAmountFee().getAsset());
+      txWasUpdated = true;
     }
-    if (ptr.getTransferReceivedAt() != null) {
+
+    if (ptr.getTransferReceivedAt() != null
+        && ptr.getTransferReceivedAt().compareTo(txn.getStartedAt()) != 0) {
       if (ptr.getTransferReceivedAt().compareTo(txn.getStartedAt()) < 0) {
         throw new BadRequestException(
             String.format(
@@ -143,19 +176,43 @@ public class TransactionService {
                 ptr.getTransferReceivedAt().toString(), txn.getStartedAt().toString()));
       }
       txn.setTransferReceivedAt(ptr.getTransferReceivedAt());
+      txWasUpdated = true;
     }
+
     if (ptr.getMessage() != null) {
-      txn.setRequiredInfoMessage(ptr.getMessage());
+      if (!Objects.equals(txn.getRequiredInfoMessage(), ptr.getMessage())) {
+        txn.setRequiredInfoMessage(ptr.getMessage());
+        txWasUpdated = true;
+      }
+    } else if (shouldClearMessageStatus) {
+      txn.setRequiredInfoMessage(null);
     }
+
     if (ptr.getRefunds() != null) {
-      txn.setRefunds(new RefundsBuilder(txnStore).fromPlatformApiRefunds(ptr.getRefunds()));
+      Refunds updatedRefunds =
+          new RefundsBuilder(txnStore).fromPlatformApiRefunds(ptr.getRefunds());
       // TODO: validate refunds
+      if (!Objects.equals(txn.getRefunds(), updatedRefunds)) {
+        txn.setRefunds(new RefundsBuilder(txnStore).fromPlatformApiRefunds(ptr.getRefunds()));
+        txWasUpdated = true;
+      }
     }
-    if (ptr.getExternalTransactionId() != null) {
+
+    if (ptr.getExternalTransactionId() != null
+        && !Objects.equals(txn.getExternalTransactionId(), ptr.getExternalTransactionId())) {
       txn.setExternalTransactionId(ptr.getExternalTransactionId());
+      txWasUpdated = true;
     }
 
     validateQuoteAndAmounts(txn);
+
+    Instant now = Instant.now();
+    if (txWasUpdated) {
+      txn.setUpdatedAt(now);
+    }
+    if (txWasCompleted) {
+      txn.setCompletedAt(now);
+    }
   }
 
   /**

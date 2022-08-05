@@ -72,6 +72,23 @@ public class CustomerService {
     return response;
   }
 
+  /**
+   * ATTENTION: this function is used for testing purposes only. Don't implement it!
+   *
+   * @param customerId is the id of the customer to be marked as NEEDS_INFO.
+   * @throws NotFoundException if the user was not found.
+   */
+  public void invalidateCustomerClabe(String customerId) throws NotFoundException {
+    Optional<Customer> maybeCustomer = customerRepo.findById(customerId);
+    String notFoundMessage = String.format("customer for 'id' '%s' not found", customerId);
+    if (maybeCustomer.isEmpty()) {
+      throw new NotFoundException(notFoundMessage);
+    }
+    Customer customer = maybeCustomer.get();
+    customer.setClabeNumber(null);
+    customerRepo.save(customer);
+  }
+
   public void delete(String customerId) {
     customerRepo.deleteById(customerId);
   }

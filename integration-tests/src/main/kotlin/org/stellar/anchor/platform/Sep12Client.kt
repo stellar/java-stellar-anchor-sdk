@@ -20,8 +20,11 @@ const val MULTIPART_FORM_DATA_CHARSET_UTF_8 = "multipart/form-data; charset=utf-
 val TYPE_MULTIPART_FORM_DATA = MULTIPART_FORM_DATA_CHARSET_UTF_8.toMediaType()
 
 class Sep12Client(private val endpoint: String, private val jwt: String) : SepClient() {
-  fun getCustomer(id: String): Sep12GetCustomerResponse? {
-    val url = String.format(this.endpoint + "/customer?id=%s", id)
+  fun getCustomer(id: String, type: String? = null): Sep12GetCustomerResponse? {
+    var url = String.format(this.endpoint + "/customer?id=%s", id)
+    if (type != null) {
+      url += "&type=$type"
+    }
     val responseBody = httpGet(url, jwt)
     return gson.fromJson(responseBody, Sep12GetCustomerResponse::class.java)
   }
@@ -81,5 +84,14 @@ class Sep12Client(private val endpoint: String, private val jwt: String) : SepCl
       throw SepNotAuthorizedException("Forbidden")
     }
     return response.code
+  }
+
+  /**
+   * Used for test purposes only. This will delete the customer clabe so it will change to
+   * NEEDS_INFO in case it's a receiving customer.
+   */
+  fun invalidateCustomerClabe(id: String) {
+    val url = String.format("http://localhost:8081/invalidate_clabe/%s", id)
+    httpGet(url, jwt)
   }
 }

@@ -4,8 +4,7 @@ import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import java.time.Instant
 import org.junit.jupiter.api.*
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertInstanceOf
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import org.stellar.anchor.api.exception.AnchorException
@@ -16,14 +15,16 @@ import org.stellar.anchor.api.platform.PatchTransactionRequest
 import org.stellar.anchor.api.sep.AssetInfo
 import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.api.shared.*
-import org.stellar.anchor.api.shared.RefundPayment
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.ResourceJsonAssetService
 import org.stellar.anchor.event.models.TransactionEvent
 import org.stellar.anchor.platform.data.JdbcSep31RefundPayment.JdbcRefundPayment
 import org.stellar.anchor.platform.data.JdbcSep31Refunds
 import org.stellar.anchor.platform.data.JdbcSep31Transaction
-import org.stellar.anchor.sep31.*
+import org.stellar.anchor.sep31.RefundPaymentBuilder
+import org.stellar.anchor.sep31.RefundsBuilder
+import org.stellar.anchor.sep31.Sep31TransactionBuilder
+import org.stellar.anchor.sep31.Sep31TransactionStore
 import org.stellar.anchor.sep38.Sep38Quote
 import org.stellar.anchor.sep38.Sep38QuoteStore
 
@@ -376,15 +377,21 @@ class TransactionServiceTest {
     this.assetService = ResourceJsonAssetService("test_assets.json")
     transactionService = TransactionService(sep38QuoteStore, sep31TransactionStore, assetService)
 
+    assertEquals(mockSep31Transaction.startedAt, mockSep31Transaction.updatedAt)
+    assertNull(mockSep31Transaction.completedAt)
     assertDoesNotThrow {
       transactionService.updateSep31Transaction(mockPatchTransactionRequest, mockSep31Transaction)
     }
+    assertTrue(mockSep31Transaction.updatedAt > mockSep31Transaction.startedAt)
+    assertTrue(mockSep31Transaction.updatedAt == mockSep31Transaction.completedAt)
+
     val wantSep31TransactionUpdated = JdbcSep31Transaction()
     wantSep31TransactionUpdated.id = txId
     wantSep31TransactionUpdated.status = "completed"
     wantSep31TransactionUpdated.quoteId = quoteId
     wantSep31TransactionUpdated.startedAt = mockStartedAt
-    wantSep31TransactionUpdated.updatedAt = mockStartedAt
+    wantSep31TransactionUpdated.updatedAt = mockSep31Transaction.updatedAt
+    wantSep31TransactionUpdated.completedAt = mockSep31Transaction.completedAt
     wantSep31TransactionUpdated.amountIn = "100"
     wantSep31TransactionUpdated.amountInAsset = fiatUSD
     wantSep31TransactionUpdated.amountOut = "98"

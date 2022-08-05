@@ -41,4 +41,12 @@ public class CustomerController {
   public void deleteCustomer(@PathVariable String id) {
     customerService.delete(id);
   }
+
+  /** ATTENTION: this function is used for testing purposes only. Don't implement it! */
+  @RequestMapping(
+      value = "/invalidate_clabe/{id}",
+      method = {RequestMethod.GET})
+  public void putCustomer(@PathVariable String id) throws NotFoundException {
+    customerService.invalidateCustomerClabe(id);
+  }
 }
