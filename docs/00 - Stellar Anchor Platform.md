@@ -112,7 +112,8 @@ sequenceDiagram
     Platform-->>Platform: verifies challenge
     Platform-->>-Client: authentication token
 
-    loop Sending and Receiving Customer
+    rect rgb(243,249,255)
+      loop Sending and Receiving Customer
         Client->>+Platform: GET [SEP-12]/customer?type=
         Platform->>+Anchor: forwards request
         Anchor-->>-Platform: fields required
@@ -125,29 +126,34 @@ sequenceDiagram
         Anchor-->>-Platform: id, ACCEPTED
         Platform-->>Platform: updates customer status (ACCEPTED)
         Platform-->>-Client: forwards response
+      end
     end
 
-    opt Get a Quote if Quotes are Supported or Required
-      Client->>+Platform: GET [SEP-38]/price
-      Platform->>+Anchor: GET /rate?type=indicative_price
-      Anchor-->>-Platform: exchange rate
-      Platform-->>-Client: exchange rate
-      Client-->>Client: confirms rate
-      Client->>+Platform: POST [SEP-38]/quote
-      Platform->>+Anchor: GET /rate?type=firm
-      Anchor-->>-Platform: exchange rate, expiration
-      Platform-->>Client: quote id, rate, expiration
-      Platform->>+Anchor: POST [webhookURL]/quote created
-      Anchor-->>-Platform: 204 No Content
+    rect rgb(249,255,243)
+      opt Get a Quote if Quotes are Supported or Required
+        Client->>+Platform: GET [SEP-38]/price
+        Platform->>+Anchor: GET /rate?type=indicative_price
+        Anchor-->>-Platform: exchange rate
+        Platform-->>-Client: exchange rate
+        Client-->>Client: confirms rate
+        Client->>+Platform: POST [SEP-38]/quote
+        Platform->>+Anchor: GET /rate?type=firm
+        Anchor-->>-Platform: exchange rate, expiration
+        Platform-->>Client: quote id, rate, expiration
+        Platform->>+Anchor: POST [webhookURL]/quote created
+        Anchor-->>-Platform: 204 No Content
+      end
     end
 
     Client->>+Platform: POST [SEP-31]/transactions
     Platform-->>Platform: checks customer statuses, links quote
     
-    opt Get the Fee if Quotes Were Not Used
-      Platform->>+Anchor: GET /fee
-      Anchor-->>Anchor: calculates fee
-      Anchor-->>-Platform: fee
+    rect rgb(249,255,243)
+      opt Get the Fee if Quotes Were Not Used
+        Platform->>+Anchor: GET /fee
+        Anchor-->>Anchor: calculates fee
+        Anchor-->>-Platform: fee
+      end
     end
     
     Platform-->>Platform: Sets fee on transaction
@@ -164,32 +170,34 @@ sequenceDiagram
     Anchor-->>-Platform: 204 No Content
     Anchor->>Recipient: Sends off-chain payment to recipient
 
-    opt Mismatched info when delivering value to the Recipient (or a similar error)
-      Recipient-->>Anchor: error: Recipient info was wrong
-      Anchor-->>Anchor: Updates the receiver customer info from ACCEPTED to NEEDS_INFO
-      Anchor->>+Platform: PATCH /transactions to mark the status as `pending_customer_info_update`
-      Platform-->>Platform: updates transaction to `pending_customer_info_update`
-      Platform-->>-Anchor: updated transaction
-      Client->>+Platform: GET /transactions?id=
-      Platform-->>-Client: transaction `pending_customer_info_update`
+    rect rgb(255,243,249)
+      opt Mismatched info when delivering value to the Recipient (or a similar error)
+        Recipient-->>Anchor: error: Recipient info was wrong
+        Anchor-->>Anchor: Updates the receiver customer info from ACCEPTED to NEEDS_INFO
+        Anchor->>+Platform: PATCH /transactions to mark the status as `pending_customer_info_update`
+        Platform-->>Platform: updates transaction to `pending_customer_info_update`
+        Platform-->>-Anchor: updated transaction
+        Client->>+Platform: GET /transactions?id=
+        Platform-->>-Client: transaction `pending_customer_info_update`
 
-      Client->>+Platform: GET [SEP-12]/customer?id=&type=
-      Platform->>+Anchor: forwards request
-      Anchor-->>Anchor: validates KYC values
-      Anchor-->>-Platform: id, NEEDS_INFO, fields
-      Platform-->>-Client: forwards response
+        Client->>+Platform: GET [SEP-12]/customer?id=&type=
+        Platform->>+Anchor: forwards request
+        Anchor-->>Anchor: validates KYC values
+        Anchor-->>-Platform: id, NEEDS_INFO, fields
+        Platform-->>-Client: forwards response
 
-      Client->>+Platform: PUT [SEP-12]/customer?id=&type=
-      Platform->>+Anchor: forwards request
-      Anchor-->>Anchor: validates KYC values
-      Anchor-->>-Platform: id, ACCEPTED
-      Platform-->>-Client: forwards response
+        Client->>+Platform: PUT [SEP-12]/customer?id=&type=
+        Platform->>+Anchor: forwards request
+        Anchor-->>Anchor: validates KYC values
+        Anchor-->>-Platform: id, ACCEPTED
+        Platform-->>-Client: forwards response
 
-      Anchor->>+Platform: PATCH /transactions to mark the status as `pending_receiver`
-      Platform-->>Platform: updates transaction to `pending_receiver`
-      Platform-->>-Anchor: updated transaction
-      Anchor-->>Anchor: queues off-chain payment
-      Anchor->>Recipient: Sends off-chain payment to recipient
+        Anchor->>+Platform: PATCH /transactions to mark the status as `pending_receiver`
+        Platform-->>Platform: updates transaction to `pending_receiver`
+        Platform-->>-Anchor: updated transaction
+        Anchor-->>Anchor: queues off-chain payment
+        Anchor->>Recipient: Sends off-chain payment to recipient
+      end
     end
 
     Recipient-->>Anchor: successfully delivered funds to Recipient
