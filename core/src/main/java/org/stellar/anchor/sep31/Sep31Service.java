@@ -7,6 +7,8 @@ import static org.stellar.anchor.util.MathHelper.decimal;
 import static org.stellar.anchor.util.MathHelper.formatAmount;
 import static org.stellar.anchor.util.SepHelper.*;
 import static org.stellar.anchor.util.SepLanguageHelper.validateLanguage;
+import static org.stellar.anchor.util.StringHelper.isEmpty;
+import static org.stellar.sdk.xdr.MemoType.MEMO_NONE;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -214,8 +216,9 @@ public class Sep31Service {
     return Sep31PostTransactionResponse.builder()
         .id(txn.getId())
         .stellarAccountId(txn.getStellarAccountId())
-        .stellarMemo(txn.getStellarMemo())
-        .stellarMemoType(txn.getStellarMemoType())
+        .stellarMemo(isEmpty(txn.getStellarMemo()) ? "" : txn.getStellarMemo())
+        .stellarMemoType(
+            isEmpty(txn.getStellarMemoType()) ? MEMO_NONE.name() : txn.getStellarMemoType())
         .build();
   }
 
@@ -311,7 +314,7 @@ public class Sep31Service {
     infoF("Updating transaction ({}) with depositInfo ({})", txn.getId(), depositInfo);
     txn.setStellarAccountId(depositInfo.getStellarAddress());
     txn.setStellarMemo(depositInfo.getMemo());
-    txn.setStellarMemoType(depositInfo.getMemoType());
+    txn.setStellarMemoType(isEmpty(depositInfo.getMemoType()) ? "none" : depositInfo.getMemoType());
   }
 
   public Sep31GetTransactionResponse getTransaction(String id) throws AnchorException {
