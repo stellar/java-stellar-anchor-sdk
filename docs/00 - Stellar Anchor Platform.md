@@ -167,27 +167,34 @@ sequenceDiagram
     opt Mismatched info when delivering value to the Recipient (or a similar error)
       Recipient-->>Anchor: error: Recipient info was wrong
       Anchor-->>Anchor: Updates the receiver customer info from ACCEPTED to NEEDS_INFO
-      Anchor->>Platform: PATCH /transactions to mark the status as `pending_customer_info_update`
+      Anchor->>+Platform: PATCH /transactions to mark the status as `pending_customer_info_update`
       Platform-->>Platform: updates transaction to `pending_customer_info_update`
+      Platform-->>-Anchor: updated transaction
       Client->>+Platform: GET /transactions?id=
       Platform-->>-Client: transaction `pending_customer_info_update`
 
-      Client->>+Platform: PUT [SEP-12]/customer?type=
+      Client->>+Platform: GET [SEP-12]/customer?id=&type=
+      Platform->>+Anchor: forwards request
+      Anchor-->>Anchor: validates KYC values
+      Anchor-->>-Platform: id, NEEDS_INFO, fields
+      Platform-->>-Client: forwards response
+
+      Client->>+Platform: PUT [SEP-12]/customer?id=&type=
       Platform->>+Anchor: forwards request
       Anchor-->>Anchor: validates KYC values
       Anchor-->>-Platform: id, ACCEPTED
       Platform-->>-Client: forwards response
 
-      Platform-->>Platform: updates transaction status to `pending_receiver`
-      Platform->>+Anchor: POST [webhookURL]/transactions with the status change
+      Anchor->>+Platform: PATCH /transactions to mark the status as `pending_receiver`
+      Platform-->>Platform: updates transaction to `pending_receiver`
+      Platform-->>-Anchor: updated transaction
       Anchor-->>Anchor: queues off-chain payment
-      Anchor-->>-Platform: 204 No Content
       Anchor->>Recipient: Sends off-chain payment to recipient
     end
 
     Recipient-->>Anchor: successfully delivered funds to Recipient
-    Anchor->>+Platform: PATCH /transactions
-    Platform-->>Platform: updates transaction to complete
+    Anchor->>+Platform: PATCH /transactions to mark the status as `completed`
+    Platform-->>Platform: updates transaction to `completed`
     Platform-->>-Anchor: updated transaction
     Client->>+Platform: GET /transactions?id=
     Platform-->>-Client: transaction complete
