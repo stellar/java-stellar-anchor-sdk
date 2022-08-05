@@ -1,5 +1,6 @@
 package org.stellar.anchor.util;
 
+import static org.stellar.anchor.util.StringHelper.isEmpty;
 import static org.stellar.sdk.xdr.MemoType.*;
 
 import java.util.Base64;
@@ -47,8 +48,8 @@ public class MemoHelper {
   }
 
   public static Memo makeMemo(String memo, String memoType) throws SepException {
-    if (memo == null || memoType == null) {
-      return null;
+    if (isEmpty(memoType)) {
+      memoType = "none";
     }
 
     switch (memoType) {
@@ -59,6 +60,7 @@ public class MemoHelper {
       case "hash":
         return makeMemo(memo, MemoType.MEMO_HASH);
       case "none":
+        return makeMemo(memo, MemoType.MEMO_NONE);
       case "return":
         throw new SepException("Unsupported value: " + memoType);
       default:
@@ -75,6 +77,11 @@ public class MemoHelper {
           return new MemoText(memo);
         case MEMO_HASH:
           return new MemoHash(convertBase64ToHex(memo));
+        case MEMO_NONE:
+          if (isEmpty(memo)) {
+            return new MemoNone();
+          }
+          throw new SepException("memo must be empty when memoType is none");
         default:
           throw new SepException("Unsupported value: " + memoType);
       }
