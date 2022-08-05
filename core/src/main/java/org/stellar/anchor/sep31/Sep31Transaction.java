@@ -101,11 +101,11 @@ public interface Sep31Transaction {
 
   String getRequiredInfoMessage();
 
+  void setRequiredInfoMessage(String requiredInfoMessage);
+
   Map<String, String> getFields();
 
   void setFields(Map<String, String> fields);
-
-  void setRequiredInfoMessage(String requiredInfoMessage);
 
   AssetInfo.Sep31TxnFieldSpecs getRequiredInfoUpdates();
 

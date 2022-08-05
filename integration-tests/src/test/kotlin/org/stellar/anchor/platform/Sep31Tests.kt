@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform
 
+import kotlin.test.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.assertThrows
 import org.stellar.anchor.api.exception.SepException
@@ -33,7 +34,7 @@ fun sep31TestAll(toml: Sep1Helper.TomlContent, jwt: String) {
   sep38 = Sep38Client(toml.getString("ANCHOR_QUOTE_SERVER"), jwt)
 
   testSep31TestInfo()
-  testSep31PostTransaction()
+  testSep31PostAndGetTransaction()
   testBadAsset()
 }
 
@@ -44,7 +45,7 @@ fun testSep31TestInfo() {
   assertTrue(info.receive.isNotEmpty())
 }
 
-fun testSep31PostTransaction() {
+fun testSep31PostAndGetTransaction() {
   // Create sender customer
   val senderCustomerRequest =
     GsonUtils.getInstance().fromJson(testCustomer1Json, Sep12PutCustomerRequest::class.java)
@@ -63,12 +64,23 @@ fun testSep31PostTransaction() {
       "stellar:JPYC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
     )
 
-  // Post Sep31 transaction.
+  // POST Sep31 transaction
   val txnRequest = gson.fromJson(postTxnJson, Sep31PostTransactionRequest::class.java)
   txnRequest.senderId = senderCustomer!!.id
   txnRequest.receiverId = receiverCustomer!!.id
   txnRequest.quoteId = quote.id
-  sep31Client.postTransaction(txnRequest)
+  val postTxResponse = sep31Client.postTransaction(txnRequest)
+  assertEquals(
+    "GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF",
+    postTxResponse.stellarAccountId
+  )
+
+  // GET Sep31 transaction
+  val getTxResponse = sep31Client.getTransaction(postTxResponse.id)
+  assertEquals(postTxResponse.id, getTxResponse.transaction.id)
+  assertEquals(postTxResponse.stellarAccountId, getTxResponse.transaction.stellarAccountId)
+  assertEquals(postTxResponse.stellarMemo, getTxResponse.transaction.stellarMemo)
+  assertEquals(postTxResponse.stellarMemoType, getTxResponse.transaction.stellarMemoType)
 }
 
 fun testBadAsset() {
