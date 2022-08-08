@@ -9,17 +9,23 @@ import org.stellar.anchor.platform.data.PaymentObservingAccountRepo;
 public class PaymentObservingAccountStore {
   PaymentObservingAccountRepo repo;
 
+  public PaymentObservingAccountStore(PaymentObservingAccountRepo repo) {
+    this.repo = repo;
+  }
+
   List<PaymentObservingAccount> list() {
     List<PaymentObservingAccount> result = new ArrayList<>();
     repo.findAll().forEach(result::add);
     return result;
   }
 
-  void add(String account, Instant startAt) {
+  void addOrUpdate(String account, Instant lastObserved) {
     PaymentObservingAccount poa = repo.findByAccount(account);
     if (poa == null) {
-      poa = new PaymentObservingAccount(account, startAt);
+      poa = new PaymentObservingAccount(account, lastObserved);
       repo.save(poa);
+    } else {
+      poa.setLastObserved(lastObserved);
     }
   }
 

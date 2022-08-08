@@ -3,56 +3,50 @@ package org.stellar.anchor.platform.payment.observer.stellar;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import javax.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
-import org.stellar.anchor.api.exception.AlreadyExistsException;
+import org.stellar.anchor.platform.data.PaymentObservingAccount;
 
 public class PaymentObservingAccountsManager {
-  PriorityQueue<ObservingAccount> expiringAccounts;
-  HashMap<String, ObservingAccount> allAccounts;
+  Map<String, ObservingAccount> allAccounts;
   private PaymentObservingAccountStore store;
 
   public PaymentObservingAccountsManager(PaymentObservingAccountStore store) {
     this.store = store;
-    allAccounts = new HashMap<>();
-    expiringAccounts = new PriorityQueue<>(Comparator.comparing(account -> account.startAt));
+    allAccounts = new ConcurrentHashMap<>();
   }
 
   @PostConstruct
-  void initiialize() {
-    System.out.println("post construct");
+  void initialize() {
+    List<PaymentObservingAccount> accounts = store.list();
+    for (PaymentObservingAccount account : accounts) {
+      ObservingAccount oa =
+          new ObservingAccount(account.getAccount(), account.getLastObserved(), true);
+      upsert(oa);
+    }
   }
 
   /**
-   * Adds an account to be observed.
+   * Adds an account to be observed. If the account is being observed, it will be updated.
    *
    * @param account The account being observed.
    * @param expiring true if the account can be expired. false, otherwise.
    */
-  public void add(String account, Boolean expiring) throws AlreadyExistsException {
-    add(new ObservingAccount(account, Instant.now(), expiring));
+  public void upsert(String account, Boolean expiring) {
+    if (account != null && expiring != null) {
+      upsert(new ObservingAccount(account, Instant.now(), expiring));
+    }
   }
 
   /**
-   * Addes an account to be observed.
+   * Add an account to be observed. If the account is being observed, it will be updated.
    *
    * @param observingAccount The account being observed.
    */
-  public void add(ObservingAccount observingAccount) throws AlreadyExistsException {
-    synchronized (this) {
-      if (allAccounts.get(observingAccount.account) != null)
-        throw new AlreadyExistsException(
-            String.format("The account %s is already being observed", observingAccount.account));
-
-      if (observingAccount.expiring) {
-        expiringAccounts.add(observingAccount);
-      }
+  public void upsert(ObservingAccount observingAccount) {
+    if (observingAccount != null) {
       allAccounts.put(observingAccount.account, observingAccount);
-
-      // we only manage expiring accounts.
-      if (observingAccount.expiring) {
-        store.add(observingAccount.account, observingAccount.startAt);
-      }
     }
   }
 
@@ -62,12 +56,10 @@ public class PaymentObservingAccountsManager {
    * @param account The account being removed.
    */
   public void remove(String account) {
-    synchronized (this) {
+    if (account != null) {
       ObservingAccount targetAccount = allAccounts.get(account);
       if (targetAccount != null) {
         allAccounts.remove(account);
-        expiringAccounts.remove(targetAccount);
-        store.remove(account);
       }
     }
   }
@@ -82,40 +74,39 @@ public class PaymentObservingAccountsManager {
   }
 
   /**
-   * Check if the account is being observed.
+   * Check if the account is being observed. If the account is being observed, the lastObserved
+   * timestamp of the observing account will be updated.
    *
    * @param account The account to be checked.
    * @return true if the account is being observed. false, otherwise.
    */
-  public boolean isObserving(String account) {
-    return allAccounts.get(account) != null;
+  public boolean observe(String account) {
+    ObservingAccount acct = allAccounts.get(account);
+    if (acct == null) return false;
+    acct.lastObserved = Instant.now();
+    return true;
   }
 
   /**
-   * Purge expired accounts
+   * Evict expired accounts
    *
-   * @param maxAge purge all accounts that are older than maxAge
+   * @param maxAge evict all accounts that are older than maxAge
    */
-  public void purge(Duration maxAge) {
-    synchronized (this) {
-      do {
-        ObservingAccount oldest = expiringAccounts.peek();
-        if (oldest == null) break; // the list is empty
+  public void evict(Duration maxAge) {
+    for (ObservingAccount acct : getAccounts()) {
+      if (!acct.expiring) continue;
 
-        Duration age = Duration.between(Instant.now(), oldest.startAt).abs();
-        if (age.compareTo(maxAge) < 0) break; // nothing older
-
-        // remove
-        expiringAccounts.poll();
-        allAccounts.remove(oldest.account);
-      } while (true);
+      Duration age = Duration.between(Instant.now(), acct.lastObserved).abs();
+      if (age.compareTo(maxAge) > 0) {
+        allAccounts.remove(acct.account);
+      }
     }
   }
 
   @AllArgsConstructor
   public static class ObservingAccount {
     String account;
-    Instant startAt;
+    Instant lastObserved;
 
     Boolean expiring;
   }

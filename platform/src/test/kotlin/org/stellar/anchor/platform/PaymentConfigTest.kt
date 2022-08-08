@@ -126,7 +126,8 @@ class PaymentConfigTest {
     val mockPaymentListener = mockk<PaymentListener>()
     val mockPaymentListeners = listOf(mockPaymentListener)
 
-    val paymentObservingAccountsManager = PaymentObservingAccountsManager(paymentObservingAccountStore)
+    val paymentObservingAccountsManager =
+      PaymentObservingAccountsManager(paymentObservingAccountStore)
 
     val mockAppConfig = mockk<AppConfig>()
     every { mockAppConfig.horizonUrl } returns "https://horizon-testnet.stellar.org"

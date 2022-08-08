@@ -6,20 +6,19 @@ import lombok.SneakyThrows;
 import okhttp3.OkHttpClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.stellar.anchor.api.exception.AlreadyExistsException;
 import org.stellar.anchor.api.exception.ServerErrorException;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.CirclePaymentObserverConfig;
 import org.stellar.anchor.horizon.Horizon;
+import org.stellar.anchor.platform.data.PaymentObservingAccountRepo;
 import org.stellar.anchor.platform.payment.observer.PaymentListener;
 import org.stellar.anchor.platform.payment.observer.circle.CirclePaymentObserverService;
 import org.stellar.anchor.platform.payment.observer.stellar.PaymentObservingAccountStore;
 import org.stellar.anchor.platform.payment.observer.stellar.PaymentObservingAccountsManager;
 import org.stellar.anchor.platform.payment.observer.stellar.StellarPaymentObserver;
 import org.stellar.anchor.platform.payment.observer.stellar.StellarPaymentStreamerCursorStore;
-import org.stellar.anchor.util.Log;
 
 @Configuration
 public class PaymentConfig {
@@ -69,13 +68,8 @@ public class PaymentConfig {
 
     stellarAssets.forEach(
         assetInfo -> {
-          try {
-            if (!paymentObservingAccountsManager.isObserving(assetInfo.getDistributionAccount())) {
-              paymentObservingAccountsManager.add(assetInfo.getDistributionAccount(), false);
-            }
-          } catch (AlreadyExistsException aeex) {
-            // ignore the duplicated account.
-            Log.errorEx(aeex);
+          if (!paymentObservingAccountsManager.observe(assetInfo.getDistributionAccount())) {
+            paymentObservingAccountsManager.upsert(assetInfo.getDistributionAccount(), false);
           }
         });
 
@@ -90,8 +84,8 @@ public class PaymentConfig {
   }
 
   @Bean
-  public PaymentObservingAccountStore observingAccountStore() {
-    return new PaymentObservingAccountStore();
+  public PaymentObservingAccountStore observingAccountStore(PaymentObservingAccountRepo repo) {
+    return new PaymentObservingAccountStore(repo);
   }
 
   @Bean

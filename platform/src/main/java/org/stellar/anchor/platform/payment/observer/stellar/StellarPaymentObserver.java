@@ -97,10 +97,10 @@ public class StellarPaymentObserver implements HealthCheckable {
 
             if (observedPayment != null) {
               try {
-                if (paymentObservingAccountsManager.isObserving(observedPayment.getTo())) {
+                if (paymentObservingAccountsManager.observe(observedPayment.getTo())) {
                   final ObservedPayment finalObservedPayment = observedPayment;
                   observers.forEach(observer -> observer.onReceived(finalObservedPayment));
-                } else if (paymentObservingAccountsManager.isObserving(observedPayment.getFrom())) {
+                } else if (paymentObservingAccountsManager.observe(observedPayment.getFrom())) {
                   final ObservedPayment finalObservedPayment = observedPayment;
                   observers.forEach(observer -> observer.onSent(finalObservedPayment));
                 }
@@ -223,7 +223,7 @@ public class StellarPaymentObserver implements HealthCheckable {
 class SPOHealthCheckResult implements HealthCheckResult {
   transient String name;
 
-  List<String> statuses = List.of(GREEN.getName(), RED.getName());
+  List<String> statuses;
 
   String status;
 
