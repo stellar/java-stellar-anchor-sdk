@@ -12,5 +12,5 @@ ADD ./reference_config.yaml /config_files/reference_config.yaml
 ADD ./stellar_wks.toml /config_files/stellar_wks.toml 
 RUN echo $(ls -1 /config_files)
 RUN echo $(ls -1 /)
-WORKDIR "/docs/deployment-examples/aws-fargate-ecs"
+WORKDIR "/docs/resources/deployment-examples/example-fargate"
 ENTRYPOINT ["/copy_config.sh"]
