@@ -3,16 +3,24 @@ package org.stellar.anchor.platform.payment.observer.stellar;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
+import javax.annotation.PostConstruct;
 import lombok.AllArgsConstructor;
 import org.stellar.anchor.api.exception.AlreadyExistsException;
 
-public class ObservingAccounts {
-  PriorityQueue<ObservedAccount> expiringAccounts;
-  HashMap<String, ObservedAccount> allAccounts;
+public class PaymentObservingAccountsManager {
+  PriorityQueue<ObservingAccount> expiringAccounts;
+  HashMap<String, ObservingAccount> allAccounts;
+  private PaymentObservingAccountStore store;
 
-  public ObservingAccounts() {
+  public PaymentObservingAccountsManager(PaymentObservingAccountStore store) {
+    this.store = store;
     allAccounts = new HashMap<>();
     expiringAccounts = new PriorityQueue<>(Comparator.comparing(account -> account.startAt));
+  }
+
+  @PostConstruct
+  void initiialize() {
+    System.out.println("post construct");
   }
 
   /**
@@ -22,23 +30,29 @@ public class ObservingAccounts {
    * @param expiring true if the account can be expired. false, otherwise.
    */
   public void add(String account, Boolean expiring) throws AlreadyExistsException {
-    if (allAccounts.get(account) != null)
-      throw new AlreadyExistsException(
-          String.format("The account %s is already being observed", account));
-    add(new ObservedAccount(account, Instant.now(), expiring));
+    add(new ObservingAccount(account, Instant.now(), expiring));
   }
 
   /**
    * Addes an account to be observed.
    *
-   * @param observedAccount The account being observed.
+   * @param observingAccount The account being observed.
    */
-  public void add(ObservedAccount observedAccount) {
+  public void add(ObservingAccount observingAccount) throws AlreadyExistsException {
     synchronized (this) {
-      if (observedAccount.expiring) {
-        expiringAccounts.add(observedAccount);
+      if (allAccounts.get(observingAccount.account) != null)
+        throw new AlreadyExistsException(
+            String.format("The account %s is already being observed", observingAccount.account));
+
+      if (observingAccount.expiring) {
+        expiringAccounts.add(observingAccount);
       }
-      allAccounts.put(observedAccount.account, observedAccount);
+      allAccounts.put(observingAccount.account, observingAccount);
+
+      // we only manage expiring accounts.
+      if (observingAccount.expiring) {
+        store.add(observingAccount.account, observingAccount.startAt);
+      }
     }
   }
 
@@ -49,10 +63,11 @@ public class ObservingAccounts {
    */
   public void remove(String account) {
     synchronized (this) {
-      ObservedAccount targetAccount = allAccounts.get(account);
+      ObservingAccount targetAccount = allAccounts.get(account);
       if (targetAccount != null) {
         allAccounts.remove(account);
         expiringAccounts.remove(targetAccount);
+        store.remove(account);
       }
     }
   }
@@ -62,7 +77,7 @@ public class ObservingAccounts {
    *
    * @return The list of observed accounts.
    */
-  public List<ObservedAccount> getAccounts() {
+  public List<ObservingAccount> getAccounts() {
     return new ArrayList<>(allAccounts.values());
   }
 
@@ -72,7 +87,7 @@ public class ObservingAccounts {
    * @param account The account to be checked.
    * @return true if the account is being observed. false, otherwise.
    */
-  public boolean isObserved(String account) {
+  public boolean isObserving(String account) {
     return allAccounts.get(account) != null;
   }
 
@@ -84,7 +99,7 @@ public class ObservingAccounts {
   public void purge(Duration maxAge) {
     synchronized (this) {
       do {
-        ObservedAccount oldest = expiringAccounts.peek();
+        ObservingAccount oldest = expiringAccounts.peek();
         if (oldest == null) break; // the list is empty
 
         Duration age = Duration.between(Instant.now(), oldest.startAt).abs();
@@ -98,7 +113,7 @@ public class ObservingAccounts {
   }
 
   @AllArgsConstructor
-  public static class ObservedAccount {
+  public static class ObservingAccount {
     String account;
     Instant startAt;
 

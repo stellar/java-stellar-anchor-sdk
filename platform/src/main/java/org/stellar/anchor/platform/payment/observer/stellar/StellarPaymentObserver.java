@@ -1,6 +1,14 @@
 package org.stellar.anchor.platform.payment.observer.stellar;
 
+import static org.stellar.anchor.api.platform.HealthCheckStatus.GREEN;
+import static org.stellar.anchor.api.platform.HealthCheckStatus.RED;
+import static org.stellar.anchor.util.ReflectionUtil.getField;
+
 import com.google.gson.annotations.SerializedName;
+import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import lombok.Builder;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
@@ -22,38 +30,23 @@ import org.stellar.sdk.responses.operations.PathPaymentBaseOperationResponse;
 import org.stellar.sdk.responses.operations.PaymentOperationResponse;
 import shadow.com.google.common.base.Optional;
 
-import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
-
-import static org.stellar.anchor.api.platform.HealthCheckStatus.GREEN;
-import static org.stellar.anchor.api.platform.HealthCheckStatus.RED;
-import static org.stellar.anchor.util.ReflectionUtil.getField;
-
 public class StellarPaymentObserver implements HealthCheckable {
   final Server server;
   final Set<PaymentListener> observers;
   final StellarPaymentStreamerCursorStore paymentStreamerCursorStore;
   final Map<SSEStream<OperationResponse>, String> mapStreamToAccount = new HashMap<>();
-  final ObservingAccounts obs = new ObservingAccounts();
+  final PaymentObservingAccountsManager paymentObservingAccountsManager;
   SSEStream<OperationResponse> stream;
-
-  String acct = null;
 
   StellarPaymentObserver(
       String horizonServer,
-      SortedSet<String> residentAccounts,
       Set<PaymentListener> observers,
-      StellarPaymentStreamerCursorStore paymentStreamerCursorStore)
-      throws AlreadyExistsException {
+      PaymentObservingAccountsManager paymentObservingAccountsManager,
+      StellarPaymentStreamerCursorStore paymentStreamerCursorStore) {
     this.server = new Server(horizonServer);
     this.observers = observers;
+    this.paymentObservingAccountsManager = paymentObservingAccountsManager;
     this.paymentStreamerCursorStore = paymentStreamerCursorStore;
-    for (String account : residentAccounts) {
-      obs.add(account, false);
-      acct = account;
-    }
   }
 
   /** Start watching the accounts. */
@@ -68,11 +61,7 @@ public class StellarPaymentObserver implements HealthCheckable {
 
   public SSEStream<OperationResponse> watch() {
     PaymentsRequestBuilder paymentsRequest =
-        server
-            .payments()
-            .forAccount(acct)
-            .includeTransactions(true)
-            .order(RequestBuilder.Order.ASC);
+        server.payments().includeTransactions(true).order(RequestBuilder.Order.ASC);
     String lastToken = paymentStreamerCursorStore.load();
     if (lastToken != null) {
       paymentsRequest.cursor(lastToken);
@@ -108,10 +97,10 @@ public class StellarPaymentObserver implements HealthCheckable {
 
             if (observedPayment != null) {
               try {
-                if (obs.isObserved(observedPayment.getTo())) {
+                if (paymentObservingAccountsManager.isObserving(observedPayment.getTo())) {
                   final ObservedPayment finalObservedPayment = observedPayment;
                   observers.forEach(observer -> observer.onReceived(finalObservedPayment));
-                } else if (obs.isObserved(observedPayment.getFrom())) {
+                } else if (paymentObservingAccountsManager.isObserving(observedPayment.getFrom())) {
                   final ObservedPayment finalObservedPayment = observedPayment;
                   observers.forEach(observer -> observer.onSent(finalObservedPayment));
                 }
@@ -143,20 +132,15 @@ public class StellarPaymentObserver implements HealthCheckable {
 
   public static class Builder {
     String horizonServer = "https://horizon-testnet.stellar.org";
-    SortedSet<String> observingAccounts = new TreeSet<>();
     Set<PaymentListener> observers = new HashSet<>();
     StellarPaymentStreamerCursorStore paymentStreamerCursorStore =
         new MemoryStellarPaymentStreamerCursorStore();
+    private PaymentObservingAccountsManager paymentObservingAccountsManager;
 
     public Builder() {}
 
     public Builder horizonServer(String horizonServer) {
       this.horizonServer = horizonServer;
-      return this;
-    }
-
-    public Builder observingAccounts(List<String> accounts) {
-      this.observingAccounts.addAll(accounts);
       return this;
     }
 
@@ -171,9 +155,15 @@ public class StellarPaymentObserver implements HealthCheckable {
       return this;
     }
 
+    public Builder paymentObservingAccountManager(
+        PaymentObservingAccountsManager paymentObservingAccountsManager) {
+      this.paymentObservingAccountsManager = paymentObservingAccountsManager;
+      return this;
+    }
+
     public StellarPaymentObserver build() throws AlreadyExistsException {
       return new StellarPaymentObserver(
-          horizonServer, observingAccounts, observers, paymentStreamerCursorStore);
+          horizonServer, observers, paymentObservingAccountsManager, paymentStreamerCursorStore);
     }
   }
 

@@ -6,7 +6,6 @@ import java.util.UUID;
 import javax.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.stellar.anchor.platform.model.SepTransaction;
 import org.stellar.anchor.sep24.Sep24RefundPayment;
 import org.stellar.anchor.sep24.Sep24Transaction;
 

@@ -1,4 +1,4 @@
-package org.stellar.anchor.platform.model;
+package org.stellar.anchor.platform.data;
 
 import com.google.gson.annotations.SerializedName;
 import javax.persistence.*;
