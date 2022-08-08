@@ -14,7 +14,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.stellar.anchor.api.exception.AlreadyExistsException
 
-class ManagerPaymentObservingAccountsManagerTest {
+class PaymentObservingAccountsManagerTest {
   @MockK private lateinit var paymentObservingAccountStore: PaymentObservingAccountStore
 
   @BeforeEach

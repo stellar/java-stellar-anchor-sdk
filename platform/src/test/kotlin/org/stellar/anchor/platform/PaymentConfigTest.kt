@@ -12,12 +12,13 @@ import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.ResourceJsonAssetService
 import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.platform.payment.observer.PaymentListener
+import org.stellar.anchor.platform.payment.observer.stellar.PaymentObservingAccountStore
 import org.stellar.anchor.platform.payment.observer.stellar.PaymentObservingAccountsManager
 import org.stellar.anchor.platform.payment.observer.stellar.StellarPaymentStreamerCursorStore
 
 class PaymentConfigTest {
-  @MockK private lateinit var paymentObservingAccountsManager: PaymentObservingAccountsManager
   @MockK private lateinit var paymentStreamerCursorStore: StellarPaymentStreamerCursorStore
+  @MockK private lateinit var paymentObservingAccountStore: PaymentObservingAccountStore
 
   @BeforeEach
   fun setUp() {
@@ -124,6 +125,8 @@ class PaymentConfigTest {
     val assetService: AssetService = ResourceJsonAssetService("test_assets.json")
     val mockPaymentListener = mockk<PaymentListener>()
     val mockPaymentListeners = listOf(mockPaymentListener)
+
+    val paymentObservingAccountsManager = PaymentObservingAccountsManager(paymentObservingAccountStore)
 
     val mockAppConfig = mockk<AppConfig>()
     every { mockAppConfig.horizonUrl } returns "https://horizon-testnet.stellar.org"
