@@ -42,11 +42,16 @@ public class CustomerController {
     customerService.delete(id);
   }
 
-  /** ATTENTION: this function is used for testing purposes only. Don't implement it! */
+  /**
+   * ATTENTION: this function is used for testing purposes only.
+   *
+   * <p>This endpoint is used to delete a customer's `clabe_number`, which would make its state
+   * change to NEEDS_INFO if it's a receiving customer.
+   */
   @RequestMapping(
       value = "/invalidate_clabe/{id}",
       method = {RequestMethod.GET})
-  public void putCustomer(@PathVariable String id) throws NotFoundException {
+  public void invalidateCustomerClabe(@PathVariable String id) throws NotFoundException {
     customerService.invalidateCustomerClabe(id);
   }
 }

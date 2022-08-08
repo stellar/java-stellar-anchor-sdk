@@ -87,8 +87,10 @@ class Sep12Client(private val endpoint: String, private val jwt: String) : SepCl
   }
 
   /**
-   * Used for test purposes only. This will delete the customer clabe so it will change to
-   * NEEDS_INFO in case it's a receiving customer.
+   * ATTENTION: this function is used for testing purposes only.
+   *
+   * <p>This endpoint is used to delete a customer's `clabe_number`, which would make its state
+   * change to NEEDS_INFO if it's a receiving customer.
    */
   fun invalidateCustomerClabe(id: String) {
     val url = String.format("http://localhost:8081/invalidate_clabe/%s", id)

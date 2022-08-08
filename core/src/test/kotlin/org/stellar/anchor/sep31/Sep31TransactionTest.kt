@@ -6,12 +6,15 @@ import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.unmockkAll
 import java.time.Instant
+import kotlin.test.assertEquals
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.stellar.anchor.api.platform.GetTransactionResponse
 import org.stellar.anchor.api.sep.AssetInfo
+import org.stellar.anchor.api.sep.sep31.Sep31GetTransactionResponse
+import org.stellar.anchor.api.sep.sep31.Sep31GetTransactionResponse.Sep31RefundPayment
 import org.stellar.anchor.api.shared.*
 import org.stellar.anchor.api.shared.RefundPayment
 import org.stellar.anchor.event.models.TransactionEvent
@@ -26,32 +29,29 @@ class Sep31TransactionTest {
   }
 
   @MockK(relaxed = true) private lateinit var sep31TransactionStore: Sep31TransactionStore
+  private lateinit var sep31Transaction: Sep31Transaction
+
+  private val txId = "a4baff5f-778c-43d6-bbef-3e9fb41d096e"
+
+  // mock time
+  private val mockStartedAt = Instant.now().minusSeconds(180)
+  private val mockUpdatedAt = mockStartedAt.plusSeconds(60)
+  private val mockTransferReceivedAt = mockUpdatedAt.plusSeconds(60)
+  private val mockCompletedAt = mockTransferReceivedAt.plusSeconds(60)
 
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
-  }
-
-  @AfterEach
-  fun tearDown() {
-    clearAllMocks()
-    unmockkAll()
-  }
-
-  @Test
-  fun test_toPlatformApiGetTransactionResponse() {
-    val txId = "a4baff5f-778c-43d6-bbef-3e9fb41d096e"
 
     // Mock the store
     every { sep31TransactionStore.newTransaction() } returns PojoSep31Transaction()
     every { sep31TransactionStore.newRefunds() } returns PojoSep31Refunds()
     every { sep31TransactionStore.newRefundPayment() } answers { PojoSep31RefundPayment() }
 
-    // mock time
-    val mockStartedAt = Instant.now().minusSeconds(180)
-    val mockUpdatedAt = mockStartedAt.plusSeconds(60)
-    val mockTransferReceivedAt = mockUpdatedAt.plusSeconds(60)
-    val mockCompletedAt = mockTransferReceivedAt.plusSeconds(60)
+    // Mock the store
+    every { sep31TransactionStore.newTransaction() } returns PojoSep31Transaction()
+    every { sep31TransactionStore.newRefunds() } returns PojoSep31Refunds()
+    every { sep31TransactionStore.newRefundPayment() } answers { PojoSep31RefundPayment() }
 
     // mock refunds
     val mockRefundPayment1 =
@@ -74,7 +74,7 @@ class Sep31TransactionTest {
       )
 
     // mock the database SEP-31 transaction
-    val sep31Transaction =
+    sep31Transaction =
       Sep31TransactionBuilder(sep31TransactionStore)
         .id(txId)
         .status(TransactionEvent.Status.PENDING_RECEIVER.status)
@@ -105,9 +105,16 @@ class Sep31TransactionTest {
         .receiverId("31212353-f265-4dba-9eb4-0bbeda3ba7f2")
         .creator(StellarId("141ee445-f32c-4c38-9d25-f4475d6c5558", null))
         .build()
+  }
 
-    val gotGetTransactionResponse = sep31Transaction.toPlatformApiGetTransactionResponse()
+  @AfterEach
+  fun tearDown() {
+    clearAllMocks()
+    unmockkAll()
+  }
 
+  @Test
+  fun test_toPlatformApiGetTransactionResponse() {
     val wantRefunds: Refund =
       Refund.builder()
         .amountRefunded(Amount("90.0000", fiatUSD))
@@ -164,6 +171,63 @@ class Sep31TransactionTest {
         )
         .creator(StellarId("141ee445-f32c-4c38-9d25-f4475d6c5558", null))
         .build()
+
+    val gotGetTransactionResponse = sep31Transaction.toPlatformApiGetTransactionResponse()
     Assertions.assertEquals(wantGetTransactionResponse, gotGetTransactionResponse)
+  }
+
+  @Test
+  fun test_toSep31GetTransactionResponse() {
+    val refunds =
+      Sep31GetTransactionResponse.Refunds.builder()
+        .amountRefunded("90.0000")
+        .amountFee("8.0000")
+        .payments(
+          listOf<Sep31RefundPayment>(
+            Sep31RefundPayment.builder().id("1111").amount("50.0000").fee("4.0000").build(),
+            Sep31RefundPayment.builder().id("2222").amount("40.0000").fee("4.0000").build()
+          )
+        )
+        .build()
+
+    val requiredInfoUpdates = AssetInfo.Sep31TxnFieldSpecs()
+    requiredInfoUpdates.transaction =
+      mapOf(
+        "receiver_account_number" to
+          AssetInfo.Sep31TxnFieldSpec("bank account number of the destination", null, false)
+      )
+
+    val wantSep31GetTransactionResponse =
+      Sep31GetTransactionResponse.builder()
+        .transaction(
+          Sep31GetTransactionResponse.TransactionResponse.builder()
+            .id(txId)
+            .status(TransactionEvent.Status.PENDING_RECEIVER.status)
+            .statusEta(120)
+            .amountIn("100.0000")
+            .amountInAsset(fiatUSD)
+            .amountOut("98.0000000")
+            .amountOutAsset(stellarUSDC)
+            .amountFee("2.0000")
+            .amountFeeAsset(fiatUSD)
+            .stellarAccountId(TEST_ACCOUNT)
+            .stellarMemo(TEST_MEMO)
+            .stellarMemoType("text")
+            .startedAt(mockStartedAt)
+            .completedAt(mockCompletedAt)
+            .stellarTransactionId(
+              "2b862ac297c93e2db43fc58d407cc477396212bce5e6d5f61789f963d5a11300"
+            )
+            .externalTransactionId("external-tx-id")
+            .refunded(true)
+            .refunds(refunds)
+            .requiredInfoMessage("Please don't forget to foo bar")
+            .requiredInfoUpdates(requiredInfoUpdates)
+            .build()
+        )
+        .build()
+
+    val gotSep31GetTransactionResponse = sep31Transaction.toSep31GetTransactionResponse()
+    assertEquals(wantSep31GetTransactionResponse, gotSep31GetTransactionResponse)
   }
 }

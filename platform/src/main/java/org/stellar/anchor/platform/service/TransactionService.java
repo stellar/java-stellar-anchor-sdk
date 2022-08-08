@@ -190,10 +190,10 @@ public class TransactionService {
 
     if (ptr.getRefunds() != null) {
       Refunds updatedRefunds =
-          new RefundsBuilder(txnStore).fromPlatformApiRefunds(ptr.getRefunds());
+          new RefundsBuilder(txnStore).loadPlatformApiRefunds(ptr.getRefunds());
       // TODO: validate refunds
       if (!Objects.equals(txn.getRefunds(), updatedRefunds)) {
-        txn.setRefunds(new RefundsBuilder(txnStore).fromPlatformApiRefunds(ptr.getRefunds()));
+        txn.setRefunds(updatedRefunds);
         txWasUpdated = true;
       }
     }

@@ -31,7 +31,18 @@ public class RefundsBuilder {
     return refunds;
   }
 
-  public Refunds fromPlatformApiRefunds(org.stellar.anchor.api.shared.Refund platformApiRefunds) {
+  /**
+   * loadPlatformApiRefunds will load the values from the PlatformApi Refund object into the SEP-31
+   * Refunds object.
+   *
+   * @param platformApiRefunds is the platformApi's Refund object.
+   * @return a SEP-31 Refunds object.
+   */
+  public Refunds loadPlatformApiRefunds(org.stellar.anchor.api.shared.Refund platformApiRefunds) {
+    if (platformApiRefunds == null) {
+      return null;
+    }
+
     ArrayList<RefundPayment> payments = null;
     for (org.stellar.anchor.api.shared.RefundPayment platformApiRefundPayment :
         platformApiRefunds.getPayments()) {
@@ -39,13 +50,9 @@ public class RefundsBuilder {
         payments = new ArrayList<>();
       }
 
-      RefundPayment newRefundPayment =
+      payments.add(
           new RefundPaymentBuilder(this.factory)
-              .id(platformApiRefundPayment.getId())
-              .amount(platformApiRefundPayment.getAmount().getAmount())
-              .fee(platformApiRefundPayment.getFee().getAmount())
-              .build();
-      payments.add(newRefundPayment);
+              .loadPlatformApiRefundPayment(platformApiRefundPayment));
     }
 
     return this.amountRefunded(platformApiRefunds.getAmountRefunded().getAmount())

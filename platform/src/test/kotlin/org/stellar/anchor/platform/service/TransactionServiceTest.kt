@@ -402,7 +402,7 @@ class TransactionServiceTest {
     wantSep31TransactionUpdated.externalTransactionId = "external-id"
     wantSep31TransactionUpdated.transferReceivedAt = mockTransferReceivedAt
     wantSep31TransactionUpdated.refunds =
-      RefundsBuilder(sep31TransactionStore).fromPlatformApiRefunds(mockRefunds)
+      RefundsBuilder(sep31TransactionStore).loadPlatformApiRefunds(mockRefunds)
     assertEquals(wantSep31TransactionUpdated, mockSep31Transaction)
   }
 }

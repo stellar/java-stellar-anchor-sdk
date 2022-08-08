@@ -6,6 +6,7 @@ import org.junit.jupiter.api.assertThrows
 import org.stellar.anchor.api.exception.SepException
 import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest
 import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionRequest
+import org.stellar.anchor.event.models.TransactionEvent
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.Sep1Helper
 
@@ -81,6 +82,7 @@ fun testSep31PostAndGetTransaction() {
   assertEquals(postTxResponse.stellarAccountId, getTxResponse.transaction.stellarAccountId)
   assertEquals(postTxResponse.stellarMemo, getTxResponse.transaction.stellarMemo)
   assertEquals(postTxResponse.stellarMemoType, getTxResponse.transaction.stellarMemoType)
+  assertEquals(TransactionEvent.Status.PENDING_SENDER.status, getTxResponse.transaction.status)
 }
 
 fun testBadAsset() {

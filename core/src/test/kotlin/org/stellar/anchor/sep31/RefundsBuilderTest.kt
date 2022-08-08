@@ -36,6 +36,7 @@ class RefundsBuilderTest {
 
   @Test
   fun test_allBuilderFields() {
+    // mock the refundPaymentsList
     val refundPayment1 = PojoSep31RefundPayment()
     refundPayment1.id = "111"
     refundPayment1.amount = "5"
@@ -44,25 +45,42 @@ class RefundsBuilderTest {
     refundPayment2.id = "222"
     refundPayment2.amount = "5"
     refundPayment2.fee = "1"
-    val mockRefundPaymentList = listOf(refundPayment1, refundPayment2)
+    val refundPaymentList = listOf(refundPayment1, refundPayment2)
 
+    // mock the Refunds object we want
+    val wantRefunds = PojoSep31Refunds()
+    wantRefunds.amountRefunded = "10"
+    wantRefunds.amountFee = "2"
+    wantRefunds.refundPayments = refundPaymentList
+
+    // build the Refunds object.
     val gotRefunds =
       RefundsBuilder(sep31TransactionStore)
         .amountRefunded("10")
         .amountFee("2")
-        .payments(mockRefundPaymentList)
+        .payments(refundPaymentList)
         .build()
-
-    val wantRefunds = PojoSep31Refunds()
-    wantRefunds.amountRefunded = "10"
-    wantRefunds.amountFee = "2"
-    wantRefunds.refundPayments = mockRefundPaymentList
-
     assertEquals(wantRefunds, gotRefunds)
   }
 
   @Test
-  fun test_fromPlatformApiRefunds() {
+  fun test_loadPlatformApiRefunds() {
+    // Mock the SEP-31 Refunds object we want
+    val mockRefundPayment1 = PojoSep31RefundPayment()
+    mockRefundPayment1.id = "A"
+    mockRefundPayment1.amount = "50"
+    mockRefundPayment1.fee = "4"
+    val mockRefundPayment2 = PojoSep31RefundPayment()
+    mockRefundPayment2.id = "B"
+    mockRefundPayment2.amount = "50"
+    mockRefundPayment2.fee = "4"
+    val mockRefundPaymentList = listOf(mockRefundPayment1, mockRefundPayment2)
+    val wantSep31Refunds = PojoSep31Refunds()
+    wantSep31Refunds.amountRefunded = "100"
+    wantSep31Refunds.amountFee = "8"
+    wantSep31Refunds.refundPayments = mockRefundPaymentList
+
+    // mock the PlatformApi Refund
     val platformApiRefund =
       org.stellar.anchor.api.shared.Refund.builder()
         .amountRefunded(Amount("100", fiatUSD))
@@ -89,23 +107,9 @@ class RefundsBuilderTest {
         )
         .build()
 
+    // build the SEP-31 Refunds object
     val gotSep31Refunds =
-      RefundsBuilder(sep31TransactionStore).fromPlatformApiRefunds(platformApiRefund)
-
-    val mockRefundPayment1 = PojoSep31RefundPayment()
-    mockRefundPayment1.id = "A"
-    mockRefundPayment1.amount = "50"
-    mockRefundPayment1.fee = "4"
-    val mockRefundPayment2 = PojoSep31RefundPayment()
-    mockRefundPayment2.id = "B"
-    mockRefundPayment2.amount = "50"
-    mockRefundPayment2.fee = "4"
-    val mockRefundPaymentList = listOf(mockRefundPayment1, mockRefundPayment2)
-    val wantSep31Refunds = PojoSep31Refunds()
-    wantSep31Refunds.amountRefunded = "100"
-    wantSep31Refunds.amountFee = "8"
-    wantSep31Refunds.refundPayments = mockRefundPaymentList
-
+      RefundsBuilder(sep31TransactionStore).loadPlatformApiRefunds(platformApiRefund)
     assertEquals(wantSep31Refunds, gotSep31Refunds)
   }
 }

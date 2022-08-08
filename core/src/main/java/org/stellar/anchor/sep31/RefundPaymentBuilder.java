@@ -25,4 +25,23 @@ public class RefundPaymentBuilder {
   public RefundPayment build() {
     return refundPayment;
   }
+
+  /**
+   * loadPlatformApiRefundPayment will load the values from the PlatformApi RefundPayment object
+   * into the SEP-31 RefundPayment object.
+   *
+   * @param platformApiRefundPayment is the platformApi's RefundPayment object.
+   * @return a SEP-31 RefundPayment object.
+   */
+  public RefundPayment loadPlatformApiRefundPayment(
+      org.stellar.anchor.api.shared.RefundPayment platformApiRefundPayment) {
+    if (platformApiRefundPayment == null) {
+      return null;
+    }
+
+    return this.id(platformApiRefundPayment.getId())
+        .amount(platformApiRefundPayment.getAmount().getAmount())
+        .fee(platformApiRefundPayment.getFee().getAmount())
+        .build();
+  }
 }

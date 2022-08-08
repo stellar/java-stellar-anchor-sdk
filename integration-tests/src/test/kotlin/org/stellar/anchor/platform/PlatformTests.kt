@@ -105,7 +105,7 @@ fun testSep31UnhappyPath() {
   // Create receiver customer
   val receiverCustomerRequest =
     GsonUtils.getInstance().fromJson(testCustomer2Json, Sep12PutCustomerRequest::class.java)
-  var receiverCustomer = sep12Client.putCustomer(receiverCustomerRequest)
+  val receiverCustomer = sep12Client.putCustomer(receiverCustomerRequest)
   val quote =
     sep38.postQuote(
       "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
@@ -113,7 +113,7 @@ fun testSep31UnhappyPath() {
       "stellar:JPYC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
     )
 
-  // POST SEP-31 transaction.
+  // POST SEP-31 transaction
   val txnRequest = gson.fromJson(postTxnJson, Sep31PostTransactionRequest::class.java)
   txnRequest.senderId = senderCustomer!!.id
   txnRequest.receiverId = receiverCustomer!!.id
@@ -157,7 +157,7 @@ fun testSep31UnhappyPath() {
   assertEquals("The receiving customer clabe_number is invalid!", patchedTx.message)
 
   // GET SEP-31 transaction should return PENDING_CUSTOMER_INFO_UPDATE with a message
-  val gotSep31TxResponse = sep31Client.getTransaction(postTxResponse.id)
+  var gotSep31TxResponse = sep31Client.getTransaction(postTxResponse.id)
   assertEquals(postTxResponse.id, gotSep31TxResponse.transaction.id)
   assertEquals(
     TransactionEvent.Status.PENDING_CUSTOMER_INFO_UPDATE.status,
@@ -196,5 +196,12 @@ fun testSep31UnhappyPath() {
   assertEquals(31, patchedTx.sep)
   assertNull(patchedTx.message)
   assertTrue(patchedTx.startedAt < patchedTx.updatedAt)
-  assertTrue(patchedTx.updatedAt == patchedTx.completedAt)
+  assertEquals(patchedTx.updatedAt, patchedTx.completedAt)
+
+  // GET SEP-31 transaction should return COMPLETED with no message
+  gotSep31TxResponse = sep31Client.getTransaction(postTxResponse.id)
+  assertEquals(postTxResponse.id, gotSep31TxResponse.transaction.id)
+  assertEquals(TransactionEvent.Status.COMPLETED.status, gotSep31TxResponse.transaction.status)
+  assertNull(gotSep31TxResponse.transaction.requiredInfoMessage)
+  assertEquals(patchedTx.completedAt, gotSep31TxResponse.transaction.completedAt)
 }
