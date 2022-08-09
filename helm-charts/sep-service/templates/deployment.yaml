@@ -17,12 +17,12 @@ spec:
       labels:
         app.kubernetes.io/name: {{ .Values.fullName }}
         app.kubernetes.io/instance: {{ .Release.Name }}
-    {{- if (.Values.deployment).annotations }}
-    annotations:
-      {{- range $key, $value := .Values.deployment.annotations }}
-        {{ $key }}: {{ $value | quote }}
-        {{- end }}
-    {{- end }}
+      {{- if (.Values.deployment).annotations }}
+      annotations:
+        {{- range $key, $value := .Values.deployment.annotations }}
+          {{ $key }}: {{ $value | quote }}
+          {{- end }}
+      {{- end }}
     spec:
       {{- if (.Values.deployment).serviceAccountName }}
       serviceAccountName: {{ .Values.deployment.serviceAccountName | default "default" }}
