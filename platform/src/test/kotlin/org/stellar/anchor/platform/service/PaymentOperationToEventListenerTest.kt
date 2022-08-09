@@ -17,11 +17,14 @@ import org.stellar.anchor.event.models.*
 import org.stellar.anchor.platform.data.JdbcSep31Transaction
 import org.stellar.anchor.platform.data.JdbcSep31TransactionStore
 import org.stellar.anchor.platform.payment.observer.circle.ObservedPayment
+import org.stellar.anchor.sep31.Sep31Transaction
+import org.stellar.anchor.util.GsonUtils
 
 class PaymentOperationToEventListenerTest {
   @MockK(relaxed = true) private lateinit var transactionStore: JdbcSep31TransactionStore
   @MockK(relaxed = true) private lateinit var eventPublishService: EventPublishService
   private lateinit var paymentOperationToEventListener: PaymentOperationToEventListener
+  private val gson = GsonUtils.getInstance()
 
   @BeforeEach
   fun setup() {
@@ -158,7 +161,11 @@ class PaymentOperationToEventListenerTest {
         .account("GBE4B7KE62NUBFLYT3BIG4OP5DAXBQX2GSZZOVAYXQKJKIU7P6V2R2N4")
         .build()
 
-    every { transactionStore.findByStellarMemo(capture(slotMemo)) } returns sep31TxMock
+    val sep31TxCopy = gson.fromJson(gson.toJson(sep31TxMock), JdbcSep31Transaction::class.java)
+    every { transactionStore.findByStellarMemo(capture(slotMemo)) } returns sep31TxCopy
+
+    val slotTx = slot<Sep31Transaction>()
+    every { transactionStore.save(capture(slotTx)) } returns sep31TxMock
 
     val wantEvent =
       TransactionEvent.builder()
@@ -236,5 +243,15 @@ class PaymentOperationToEventListenerTest {
 
     wantEvent.eventId = slotEvent.captured.eventId
     assertEquals(wantEvent, slotEvent.captured)
+
+    // wantSep31Tx
+    val wantSep31Tx = gson.fromJson(gson.toJson(sep31TxMock), JdbcSep31Transaction::class.java)
+    wantSep31Tx.status = TransactionEvent.Status.PENDING_RECEIVER.status
+    wantSep31Tx.stellarTransactionId =
+      "1ad62e48724426be96cf2cdb65d5dacb8fac2e403e50bedb717bfc8eaf05af30"
+    wantSep31Tx.transferReceivedAt = transferReceivedAt
+    wantSep31Tx.updatedAt = transferReceivedAt
+
+    assertEquals(wantSep31Tx, slotTx.captured)
   }
 }
