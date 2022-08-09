@@ -16,8 +16,6 @@ import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.shared.Amount;
-import org.stellar.anchor.api.shared.Customers;
-import org.stellar.anchor.api.shared.StellarId;
 import org.stellar.anchor.event.EventPublishService;
 import org.stellar.anchor.event.models.*;
 import org.stellar.anchor.platform.payment.observer.PaymentListener;
@@ -97,6 +95,8 @@ public class PaymentOperationToEventListener implements PaymentListener {
     }
 
     // Check if the payment contains the expected amount (or greater)
+    Instant paymentTime =
+        DateTimeFormatter.ISO_INSTANT.parse(payment.getCreatedAt(), Instant::from);
     BigDecimal expectedAmount = decimal(txn.getAmountIn());
     BigDecimal gotAmount = decimal(payment.getAmount());
     if (gotAmount.compareTo(expectedAmount) < 0) {
@@ -105,6 +105,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
               "Payment amount %s is smaller than the expected amount %s",
               payment.getAmount(), txn.getAmountIn()));
       txn.setStatus(ERROR.getName());
+      txn.setUpdatedAt(paymentTime);
       saveTransaction(txn);
       Metrics.counter(AnchorMetrics.SEP31_TRANSACTION.toString(), "status", ERROR.getName())
           .increment();
@@ -112,24 +113,23 @@ public class PaymentOperationToEventListener implements PaymentListener {
     }
 
     // Set the transaction status.
-    TransactionEvent event = receivedPaymentToEvent(txn, payment);
+    TransactionEvent.Status oldStatus = TransactionEvent.Status.from(txn.getStatus());
+    TransactionEvent.Status newStatus = TransactionEvent.Status.PENDING_RECEIVER;
+    TransactionEvent.StatusChange statusChange =
+        new TransactionEvent.StatusChange(oldStatus, newStatus);
     if (txn.getStatus().equals(SepTransactionStatus.PENDING_SENDER.toString())) {
       txn.setStatus(SepTransactionStatus.PENDING_RECEIVER.toString());
-      txn.setStellarTransactionId(payment.getTransactionHash());
-      Instant paymentTime =
-          DateTimeFormatter.ISO_INSTANT.parse(payment.getCreatedAt(), Instant::from);
       txn.setUpdatedAt(paymentTime);
       txn.setTransferReceivedAt(paymentTime);
-      try {
-        transactionStore.save(txn);
-        Metrics.counter(
-                "sep31.transaction", "status", SepTransactionStatus.PENDING_RECEIVER.toString())
-            .increment();
-      } catch (SepException ex) {
-        Log.errorEx(ex);
-      }
+      txn.setStellarTransactionId(payment.getTransactionHash());
+      saveTransaction(txn);
+      Metrics.counter(
+              "sep31.transaction", "status", SepTransactionStatus.PENDING_RECEIVER.toString())
+          .increment();
     }
+
     // send to the event queue
+    TransactionEvent event = receivedPaymentToEvent(txn, payment, statusChange);
     sendToQueue(event);
     Metrics.counter(AnchorMetrics.PAYMENT_RECEIVED.toString(), "asset", payment.getAssetName())
         .increment(Double.parseDouble(payment.getAmount()));
@@ -145,14 +145,8 @@ public class PaymentOperationToEventListener implements PaymentListener {
     Log.info("Sent to event queue" + GsonUtils.getInstance().toJson(event));
   }
 
-  TransactionEvent receivedPaymentToEvent(Sep31Transaction txn, ObservedPayment payment) {
-    TransactionEvent.Status oldStatus = TransactionEvent.Status.from(txn.getStatus());
-    TransactionEvent.Status newStatus = TransactionEvent.Status.PENDING_RECEIVER;
-    TransactionEvent.StatusChange statusChange =
-        new TransactionEvent.StatusChange(oldStatus, newStatus);
-
-    StellarId senderStellarId = StellarId.builder().id(txn.getSenderId()).build();
-    StellarId receiverStellarId = StellarId.builder().id(txn.getReceiverId()).build();
+  TransactionEvent receivedPaymentToEvent(
+      Sep31Transaction txn, ObservedPayment payment, TransactionEvent.StatusChange statusChange) {
     TransactionEvent event =
         TransactionEvent.builder()
             .eventId(UUID.randomUUID().toString())
@@ -160,7 +154,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
             .id(txn.getId())
             .sep(TransactionEvent.Sep.SEP_31)
             .kind(TransactionEvent.Kind.RECEIVE)
-            .status(newStatus)
+            .status(statusChange.getTo())
             .statusChange(statusChange)
             .amountExpected(new Amount(txn.getAmountExpected(), txn.getAmountInAsset()))
             .amountIn(new Amount(payment.getAmount(), txn.getAmountInAsset()))
@@ -197,7 +191,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
             .custodialTransactionId(null)
             .sourceAccount(payment.getFrom())
             .destinationAccount(payment.getTo())
-            .customers(new Customers(senderStellarId, receiverStellarId))
+            .customers(txn.getCustomers())
             .creator(txn.getCreator())
             .build();
     return event;
