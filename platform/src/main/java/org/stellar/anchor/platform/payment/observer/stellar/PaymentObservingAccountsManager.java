@@ -1,11 +1,8 @@
 package org.stellar.anchor.platform.payment.observer.stellar;
 
-import lombok.AllArgsConstructor;
-import org.stellar.anchor.api.exception.ValueValidationException;
-import org.stellar.anchor.platform.data.PaymentObservingAccount;
-import org.stellar.anchor.util.Log;
+import static java.time.temporal.ChronoUnit.DAYS;
+import static java.time.temporal.ChronoUnit.HOURS;
 
-import javax.annotation.PostConstruct;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -15,9 +12,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
-
-import static java.time.temporal.ChronoUnit.DAYS;
-import static java.time.temporal.ChronoUnit.HOURS;
+import javax.annotation.PostConstruct;
+import lombok.AllArgsConstructor;
+import org.stellar.anchor.api.exception.ValueValidationException;
+import org.stellar.anchor.platform.data.PaymentObservingAccount;
+import org.stellar.anchor.util.Log;
 
 public class PaymentObservingAccountsManager {
   Map<String, ObservingAccount> allAccounts;

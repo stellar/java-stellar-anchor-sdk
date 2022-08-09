@@ -1,12 +1,11 @@
 package org.stellar.anchor.platform.payment.observer.stellar;
 
-import org.stellar.anchor.platform.data.PaymentObservingAccount;
-import org.stellar.anchor.platform.data.PaymentObservingAccountRepo;
-import org.stellar.anchor.util.Log;
-
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import org.stellar.anchor.platform.data.PaymentObservingAccount;
+import org.stellar.anchor.platform.data.PaymentObservingAccountRepo;
+import org.stellar.anchor.util.Log;
 
 public class PaymentObservingAccountStore {
   PaymentObservingAccountRepo repo;

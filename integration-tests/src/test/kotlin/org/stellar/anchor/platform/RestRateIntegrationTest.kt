@@ -557,6 +557,6 @@ class RestRateIntegrationTest {
       }""".trimMargin(),
       wantGetRateResponse
     )
-    verify(exactly = 1) { Instant.now() }
+    verify(atLeast = 1) { Instant.now() }
   }
 }
