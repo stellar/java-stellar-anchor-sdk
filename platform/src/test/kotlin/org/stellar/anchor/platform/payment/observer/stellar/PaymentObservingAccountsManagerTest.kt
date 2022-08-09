@@ -127,6 +127,8 @@ class PaymentObservingAccountsManagerTest {
     obs.evict(Duration.of(1, HOURS))
     assertEquals(3, obs.accounts.size)
 
+    Thread.sleep(10)
+
     // Evict all expiring
     obs.evict(Duration.ZERO)
     assertEquals(1, obs.accounts.size)
