@@ -236,6 +236,8 @@ if __name__ == "__main__":
     keypair = Keypair.from_secret(args.secret)
     tests = TESTS if args.tests[0] == "all" else args.tests
 
+    exit(1)  # test git action failure catching
+
     for test in tests:
         if test == "sep31_flow":
             print("####################### Testing SEP-31 Send Flow #######################")
