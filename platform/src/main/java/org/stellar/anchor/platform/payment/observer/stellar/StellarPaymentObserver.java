@@ -12,7 +12,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import lombok.Builder;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
-import org.stellar.anchor.api.exception.AlreadyExistsException;
+import org.stellar.anchor.api.exception.ValueValidationException;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.platform.HealthCheckResult;
 import org.stellar.anchor.api.platform.HealthCheckStatus;
@@ -161,7 +161,7 @@ public class StellarPaymentObserver implements HealthCheckable {
       return this;
     }
 
-    public StellarPaymentObserver build() throws AlreadyExistsException {
+    public StellarPaymentObserver build() throws ValueValidationException {
       return new StellarPaymentObserver(
           horizonServer, observers, paymentObservingAccountsManager, paymentStreamerCursorStore);
     }

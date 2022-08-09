@@ -1,10 +1,12 @@
 package org.stellar.anchor.platform.payment.observer.stellar;
 
+import org.stellar.anchor.platform.data.PaymentObservingAccount;
+import org.stellar.anchor.platform.data.PaymentObservingAccountRepo;
+import org.stellar.anchor.util.Log;
+
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
-import org.stellar.anchor.platform.data.PaymentObservingAccount;
-import org.stellar.anchor.platform.data.PaymentObservingAccountRepo;
 
 public class PaymentObservingAccountStore {
   PaymentObservingAccountRepo repo;
@@ -14,24 +16,33 @@ public class PaymentObservingAccountStore {
   }
 
   List<PaymentObservingAccount> list() {
+    Log.debug("Retrieving the list of observing account from the store.");
     List<PaymentObservingAccount> result = new ArrayList<>();
     repo.findAll().forEach(result::add);
     return result;
   }
 
-  void addOrUpdate(String account, Instant lastObserved) {
+  void upsert(String account, Instant lastObserved) {
+    Log.infoF("Upserting account[{}, {}]", account, lastObserved);
     PaymentObservingAccount poa = repo.findByAccount(account);
     if (poa == null) {
       poa = new PaymentObservingAccount(account, lastObserved);
+      Log.infoF("Save account[{}, {}] to data store", account, lastObserved);
       repo.save(poa);
     } else {
-      poa.setLastObserved(lastObserved);
+      if (lastObserved.isAfter(poa.getLastObserved())) {
+        // save if newer
+        poa.setLastObserved(lastObserved);
+        Log.infoF("Update account[{}, {}] to data store", account, lastObserved);
+        repo.save(poa);
+      }
     }
   }
 
-  void remove(String account) {
+  void delete(String account) {
     PaymentObservingAccount poa = repo.findByAccount(account);
     if (poa != null) {
+      Log.infoF("Delete account[{}]", account);
       repo.delete(poa);
     }
   }

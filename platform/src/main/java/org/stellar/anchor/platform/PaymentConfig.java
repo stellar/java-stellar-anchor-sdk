@@ -66,12 +66,11 @@ public class PaymentConfig {
             .paymentObservingAccountManager(paymentObservingAccountsManager)
             .build();
 
-    stellarAssets.forEach(
-        assetInfo -> {
-          if (!paymentObservingAccountsManager.observe(assetInfo.getDistributionAccount())) {
-            paymentObservingAccountsManager.upsert(assetInfo.getDistributionAccount(), false);
-          }
-        });
+    for (AssetInfo assetInfo : stellarAssets) {
+      if (!paymentObservingAccountsManager.observe(assetInfo.getDistributionAccount())) {
+        paymentObservingAccountsManager.upsert(assetInfo.getDistributionAccount(), false);
+      }
+    }
 
     stellarPaymentObserverService.start();
     return stellarPaymentObserverService;

@@ -1,16 +1,27 @@
 package org.stellar.anchor.platform.payment.observer.stellar;
 
+import lombok.AllArgsConstructor;
+import org.stellar.anchor.api.exception.ValueValidationException;
+import org.stellar.anchor.platform.data.PaymentObservingAccount;
+import org.stellar.anchor.util.Log;
+
+import javax.annotation.PostConstruct;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import javax.annotation.PostConstruct;
-import lombok.AllArgsConstructor;
-import org.stellar.anchor.platform.data.PaymentObservingAccount;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+
+import static java.time.temporal.ChronoUnit.DAYS;
+import static java.time.temporal.ChronoUnit.HOURS;
 
 public class PaymentObservingAccountsManager {
   Map<String, ObservingAccount> allAccounts;
-  private PaymentObservingAccountStore store;
+  private final PaymentObservingAccountStore store;
 
   public PaymentObservingAccountsManager(PaymentObservingAccountStore store) {
     this.store = store;
@@ -18,12 +29,26 @@ public class PaymentObservingAccountsManager {
   }
 
   @PostConstruct
-  void initialize() {
+  public void initialize() throws ValueValidationException {
     List<PaymentObservingAccount> accounts = store.list();
     for (PaymentObservingAccount account : accounts) {
       ObservingAccount oa =
           new ObservingAccount(account.getAccount(), account.getLastObserved(), true);
       upsert(oa);
+    }
+
+    // Start the eviction task
+    ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+    scheduler.scheduleAtFixedRate(
+        this::evictAndPersist, 60, getEvictPeriod().getSeconds(), TimeUnit.SECONDS);
+  }
+
+  public void evictAndPersist() {
+    Log.info("Evicting old accounts...");
+    this.evict(getEvictMaxAge());
+    Log.info("Persisting accounts...");
+    for (ObservingAccount account : this.getAccounts()) {
+      store.upsert(account.account, account.lastObserved);
     }
   }
 
@@ -33,7 +58,7 @@ public class PaymentObservingAccountsManager {
    * @param account The account being observed.
    * @param expiring true if the account can be expired. false, otherwise.
    */
-  public void upsert(String account, Boolean expiring) {
+  public void upsert(String account, Boolean expiring) throws ValueValidationException {
     if (account != null && expiring != null) {
       upsert(new ObservingAccount(account, Instant.now(), expiring));
     }
@@ -44,9 +69,21 @@ public class PaymentObservingAccountsManager {
    *
    * @param observingAccount The account being observed.
    */
-  public void upsert(ObservingAccount observingAccount) {
+  public void upsert(ObservingAccount observingAccount) throws ValueValidationException {
     if (observingAccount != null) {
-      allAccounts.put(observingAccount.account, observingAccount);
+      ObservingAccount existingAccount = allAccounts.get(observingAccount.account);
+      if (existingAccount == null) {
+        allAccounts.put(observingAccount.account, observingAccount);
+        // update the database
+        store.upsert(observingAccount.account, observingAccount.lastObserved);
+      } else {
+        if (!observingAccount.expiring.equals(existingAccount.expiring))
+          throw new ValueValidationException(
+              String.format(
+                  "The expiring flag cannot be modified. Account=[%s]", observingAccount.account));
+        existingAccount.account = observingAccount.account;
+        existingAccount.lastObserved = observingAccount.lastObserved;
+      }
     }
   }
 
@@ -99,6 +136,7 @@ public class PaymentObservingAccountsManager {
       Duration age = Duration.between(Instant.now(), acct.lastObserved).abs();
       if (age.compareTo(maxAge) > 0) {
         allAccounts.remove(acct.account);
+        store.delete(acct.account);
       }
     }
   }
@@ -107,7 +145,14 @@ public class PaymentObservingAccountsManager {
   public static class ObservingAccount {
     String account;
     Instant lastObserved;
-
     Boolean expiring;
+  }
+
+  Duration getEvictPeriod() {
+    return Duration.of(1, HOURS);
+  }
+
+  Duration getEvictMaxAge() {
+    return Duration.of(1, DAYS);
   }
 }
