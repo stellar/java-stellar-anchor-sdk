@@ -98,7 +98,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      # Find the server endpoint home domain to run the SEP tests.
+      # Find the server endpoint home domain to run the End to End tests on.
       - name: Find Home Domain (Preview or Dev)
         id: endpoint-finder
         run: |
