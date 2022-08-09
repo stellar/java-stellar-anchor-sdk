@@ -1,8 +1,10 @@
+// The alias call in plugins scope produces IntelliJ false error which is suppressed here.
+@Suppress("DSL_SCOPE_VIOLATION")
 plugins {
   application
-  id("org.springframework.boot") version "2.6.3"
-  id("io.spring.dependency-management") version "1.0.11.RELEASE"
-  id("org.jetbrains.kotlin.jvm") version "1.6.10"
+  alias(libs.plugins.spring.boot)
+  alias(libs.plugins.spring.dependency.management)
+  alias(libs.plugins.kotlin.jvm)
 }
 
 dependencies {
@@ -18,7 +20,7 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-reactor-netty")
   implementation("org.springframework.boot:spring-boot-starter-actuator")
   implementation("org.springframework.boot:spring-boot-starter-aop")
-  implementation("org.springframework.kafka:spring-kafka")
+  implementation(libs.spring.kafka)
 
   implementation(libs.aws.rds)
   implementation(libs.commons.cli)

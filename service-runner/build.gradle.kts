@@ -1,7 +1,12 @@
+@Suppress(
+  // The alias call in plugins scope produces IntelliJ false error which is suppressed here.
+  "DSL_SCOPE_VIOLATION"
+)
+
 plugins {
   application
-  id("org.springframework.boot") version "2.6.3"
-  id("io.spring.dependency-management") version "1.0.11.RELEASE"
+  alias(libs.plugins.spring.boot)
+  alias(libs.plugins.spring.dependency.management)
 }
 
 dependencies {

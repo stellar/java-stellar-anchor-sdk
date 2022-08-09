@@ -1,6 +1,8 @@
+// The alias call in plugins scope produces IntelliJ false error which is suppressed here.
+@Suppress("DSL_SCOPE_VIOLATION")
 plugins {
   java
-  id("com.diffplug.spotless") version "6.2.1"
+  alias(libs.plugins.spotless)
 }
 
 tasks {

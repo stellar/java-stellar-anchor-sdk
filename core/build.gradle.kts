@@ -1,8 +1,10 @@
+// The alias call in plugins scope produces IntelliJ false error which is suppressed here.
+@Suppress("DSL_SCOPE_VIOLATION")
 plugins {
   `java-library`
   `maven-publish`
   signing
-  id("org.jetbrains.kotlin.jvm") version "1.6.10"
+  alias(libs.plugins.kotlin.jvm)
 }
 
 version = "1.0.2"
@@ -14,7 +16,8 @@ dependencies {
   api(libs.lombok)
 
   //  TODO: To be removed or simplified. Spring has its own way of dependency management.
-  implementation("org.springframework.kafka:spring-kafka:2.8.4")
+  implementation(libs.spring.kafka)
+
   implementation(libs.bundles.kafka)
 
   // TODO: Consider to simplify

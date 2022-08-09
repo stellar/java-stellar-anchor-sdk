@@ -1,8 +1,10 @@
+// The alias call in plugins scope produces IntelliJ false error which is suppressed here.
+@Suppress("DSL_SCOPE_VIOLATION")
 plugins {
   `java-library`
-  id("org.springframework.boot") version "2.6.3"
-  id("io.spring.dependency-management") version "1.0.11.RELEASE"
-  id("org.jetbrains.kotlin.jvm") version "1.6.10"
+  alias(libs.plugins.spring.boot)
+  alias(libs.plugins.spring.dependency.management)
+  alias(libs.plugins.kotlin.jvm)
 }
 
 dependencies {
@@ -29,9 +31,6 @@ dependencies {
 
   testImplementation(libs.okhttp3.mockserver)
   testImplementation("org.springframework.boot:spring-boot-starter-test")
-
 }
 
 tasks { bootJar { enabled = false } }
-
-
