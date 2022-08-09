@@ -8,11 +8,13 @@ plugins {
 dependencies {
   api(libs.lombok)
 
+  implementation("org.springframework.kafka:spring-kafka:2.8.4")
   implementation("org.springframework.boot:spring-boot")
   implementation("org.springframework.boot:spring-boot-autoconfigure")
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
   implementation("org.springframework.boot:spring-boot-starter-web")
-  implementation("com.h2database:h2")
+
+  implementation(libs.h2database)
   implementation(libs.sqlite.jdbc)
   implementation(libs.google.gson)
   implementation(libs.java.stellar.sdk)
@@ -22,9 +24,6 @@ dependencies {
   implementation(project(":core"))
 
   annotationProcessor(libs.lombok)
-  annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
-
-  testImplementation("org.springframework.boot:spring-boot-starter-test")
 }
 
 application { mainClass.set("org.stellar.anchor.reference.AnchorReferenceServer") }

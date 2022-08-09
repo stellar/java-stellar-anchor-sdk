@@ -13,7 +13,15 @@ dependencies {
   compileOnly(libs.slf4j.api)
   api(libs.lombok)
 
-  implementation("commons-beanutils:commons-beanutils:1.9.4")
+  //  TODO: To be removed or simplified. Spring has its own way of dependency management.
+  implementation("org.springframework.kafka:spring-kafka:2.8.4")
+  implementation(libs.bundles.kafka)
+
+  // TODO: Consider to simplify
+  implementation(libs.micrometer.prometheus)
+  implementation(libs.javax.transaction.api)
+
+  implementation(libs.commons.beanutils)
   implementation(libs.apache.commons.lang3)
   implementation(libs.log4j2.core)
   implementation(libs.httpclient)
@@ -25,8 +33,6 @@ dependencies {
   implementation(libs.reactor.core)
   implementation(libs.javax.jaxb.api)
   implementation(libs.java.stellar.sdk)
-  implementation("io.micrometer:micrometer-registry-prometheus:1.9.0")
-  implementation("javax.transaction:javax.transaction-api:1.3")
 
   implementation(project(":api-schema"))
 

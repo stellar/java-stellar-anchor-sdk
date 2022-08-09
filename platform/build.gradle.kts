@@ -16,15 +16,14 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
   implementation("org.springframework.boot:spring-boot-starter-web")
   implementation("org.springframework.boot:spring-boot-starter-reactor-netty")
-  implementation("com.amazonaws:aws-java-sdk-rds:1.12.248")
-  implementation("software.amazon.msk:aws-msk-iam-auth:1.1.4")
-  implementation("org.springframework.boot:spring-boot-starter-actuator:2.7.0")
-  implementation("org.springframework.boot:spring-boot-starter-aop:2.7.0")
-  implementation("org.flywaydb:flyway-core:8.5.13")
+  implementation("org.springframework.boot:spring-boot-starter-actuator")
+  implementation("org.springframework.boot:spring-boot-starter-aop")
+  implementation("org.springframework.kafka:spring-kafka")
 
-
+  implementation(libs.aws.rds)
   implementation(libs.commons.cli)
   implementation(libs.commons.io)
+  implementation(libs.flyway.core)
   implementation(libs.google.gson)
   implementation(libs.java.stellar.sdk)
 
@@ -38,6 +37,8 @@ dependencies {
   implementation(project(":api-schema"))
   implementation(project(":core"))
   implementation(project(":anchor-reference-server"))
+
+  annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
   testImplementation("org.springframework.boot:spring-boot-starter-test")
   testImplementation(libs.okhttp3.mockserver)
