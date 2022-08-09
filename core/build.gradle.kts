@@ -4,7 +4,6 @@ plugins {
   `java-library`
   `maven-publish`
   signing
-  alias(libs.plugins.kotlin.jvm)
 }
 
 version = "1.0.2"
