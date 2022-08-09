@@ -1,12 +1,15 @@
 package org.stellar.anchor.platform.service;
 
 import static org.stellar.anchor.api.sep.SepTransactionStatus.ERROR;
+import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_RECEIVER;
+import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_SENDER;
 import static org.stellar.anchor.util.MathHelper.*;
 
 import io.micrometer.core.instrument.Metrics;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
@@ -95,8 +98,6 @@ public class PaymentOperationToEventListener implements PaymentListener {
     }
 
     // Check if the payment contains the expected amount (or greater)
-    Instant paymentTime =
-        DateTimeFormatter.ISO_INSTANT.parse(payment.getCreatedAt(), Instant::from);
     BigDecimal expectedAmount = decimal(txn.getAmountIn());
     BigDecimal gotAmount = decimal(payment.getAmount());
     if (gotAmount.compareTo(expectedAmount) < 0) {
@@ -104,11 +105,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
           String.format(
               "Payment amount %s is smaller than the expected amount %s",
               payment.getAmount(), txn.getAmountIn()));
-      txn.setStatus(ERROR.getName());
-      txn.setUpdatedAt(paymentTime);
-      saveTransaction(txn);
-      Metrics.counter(AnchorMetrics.SEP31_TRANSACTION.toString(), "status", ERROR.getName())
-          .increment();
+      updateTransactionStatusTo(ERROR, txn, payment);
       return;
     }
 
@@ -117,15 +114,8 @@ public class PaymentOperationToEventListener implements PaymentListener {
     TransactionEvent.Status newStatus = TransactionEvent.Status.PENDING_RECEIVER;
     TransactionEvent.StatusChange statusChange =
         new TransactionEvent.StatusChange(oldStatus, newStatus);
-    if (txn.getStatus().equals(SepTransactionStatus.PENDING_SENDER.toString())) {
-      txn.setStatus(SepTransactionStatus.PENDING_RECEIVER.toString());
-      txn.setUpdatedAt(paymentTime);
-      txn.setTransferReceivedAt(paymentTime);
-      txn.setStellarTransactionId(payment.getTransactionHash());
-      saveTransaction(txn);
-      Metrics.counter(
-              "sep31.transaction", "status", SepTransactionStatus.PENDING_RECEIVER.toString())
-          .increment();
+    if (txn.getStatus().equals(PENDING_SENDER.toString())) {
+      updateTransactionStatusTo(PENDING_RECEIVER, txn, payment);
     }
 
     // send to the event queue
@@ -195,6 +185,45 @@ public class PaymentOperationToEventListener implements PaymentListener {
             .creator(txn.getCreator())
             .build();
     return event;
+  }
+
+  void updateTransactionStatusTo(
+      SepTransactionStatus newStatus, Sep31Transaction txn, ObservedPayment payment) {
+    // parse payment creation time
+    Instant paymentTime = null;
+    try {
+      paymentTime = DateTimeFormatter.ISO_INSTANT.parse(payment.getCreatedAt(), Instant::from);
+    } catch (DateTimeParseException | NullPointerException ex) {
+      Log.error(
+          String.format("error parsing payment.getCreatedAt() (%s).", payment.getCreatedAt()));
+      ex.printStackTrace();
+    }
+
+    // update the transaction differently based on the new status
+    switch (newStatus) {
+      case ERROR:
+        if (paymentTime != null) {
+          txn.setUpdatedAt(paymentTime);
+        }
+        txn.setStatus(ERROR.getName());
+        saveTransaction(txn);
+        Metrics.counter(AnchorMetrics.SEP31_TRANSACTION.toString(), "status", ERROR.getName())
+            .increment();
+        break;
+
+      case PENDING_RECEIVER:
+        if (paymentTime != null) {
+          txn.setUpdatedAt(paymentTime);
+          txn.setTransferReceivedAt(paymentTime);
+        }
+        txn.setStatus(PENDING_RECEIVER.toString());
+        txn.setStellarTransactionId(payment.getTransactionHash());
+        saveTransaction(txn);
+        Metrics.counter("sep31.transaction", "status", PENDING_RECEIVER.toString()).increment();
+
+      default:
+        Log.errorF("Unsupported new status {}.", newStatus);
+    }
   }
 
   void saveTransaction(Sep31Transaction txn) {

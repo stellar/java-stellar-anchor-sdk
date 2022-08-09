@@ -98,9 +98,12 @@ class PaymentOperationToEventListenerTest {
     slotMemo = slot()
     p.transactionMemo = "my_memo_5"
     p.assetCode = "FOO"
+    p.assetName = "FOO:GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364"
     p.amount = "9.9999999"
+    p.createdAt = "2022-08-09T17:32:44Z"
     sep31TxMock = JdbcSep31Transaction()
-    sep31TxMock.amountInAsset = "FOO"
+    sep31TxMock.amountInAsset =
+      "stellar:FOO:GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364"
     sep31TxMock.amountIn = "10"
     every { transactionStore.findByStellarMemo(capture(slotMemo)) } returns sep31TxMock
     paymentOperationToEventListener.onReceived(p)
