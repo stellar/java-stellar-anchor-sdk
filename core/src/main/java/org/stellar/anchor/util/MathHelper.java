@@ -27,6 +27,11 @@ public class MathHelper {
   }
 
   public static boolean equalsAsDecimals(String valueA, String valueB) {
+    if (valueA == null && valueB == null) {
+      return true;
+    } else if (valueA == null || valueB == null) {
+      return false;
+    }
     return decimal(valueA).compareTo(decimal(valueB)) == 0;
   }
 
