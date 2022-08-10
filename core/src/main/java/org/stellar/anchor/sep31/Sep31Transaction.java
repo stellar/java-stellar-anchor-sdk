@@ -1,7 +1,6 @@
 package org.stellar.anchor.sep31;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import org.stellar.anchor.api.platform.GetTransactionResponse;
@@ -137,31 +136,15 @@ public interface Sep31Transaction {
         StellarId.builder().id(getReceiverId()).build());
   }
 
+  /**
+   * Create a Sep31GetTransactionResponse object out of this SEP-31 Transaction object.
+   *
+   * @return a Sep31GetTransactionResponse object.
+   */
   default Sep31GetTransactionResponse toSep31GetTransactionResponse() {
     Sep31GetTransactionResponse.Refunds refunds = null;
     if (getRefunds() != null) {
-      List<Sep31GetTransactionResponse.Sep31RefundPayment> payments = null;
-      if (getRefunds().getRefundPayments() != null) {
-        for (RefundPayment refundPayment : getRefunds().getRefundPayments()) {
-          if (payments == null) {
-            payments = new ArrayList<>();
-          }
-
-          payments.add(
-              Sep31GetTransactionResponse.Sep31RefundPayment.builder()
-                  .id(refundPayment.getId())
-                  .amount(refundPayment.getAmount())
-                  .fee(refundPayment.getFee())
-                  .build());
-        }
-      }
-
-      refunds =
-          Sep31GetTransactionResponse.Refunds.builder()
-              .amountRefunded(getRefunds().getAmountRefunded())
-              .amountFee(getRefunds().getAmountFee())
-              .payments(payments)
-              .build();
+      refunds = getRefunds().toSep31TransactionResponseRefunds();
     }
 
     return Sep31GetTransactionResponse.builder()
@@ -191,6 +174,11 @@ public interface Sep31Transaction {
         .build();
   }
 
+  /**
+   * Create a PlatformApi GetTransactionResponse object out of this SEP-31 Transaction object.
+   *
+   * @return a PlatformApi GetTransactionResponse object.
+   */
   default org.stellar.anchor.api.platform.GetTransactionResponse
       toPlatformApiGetTransactionResponse() {
     Refund refunds = null;

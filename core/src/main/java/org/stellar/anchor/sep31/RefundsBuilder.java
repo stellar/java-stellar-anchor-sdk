@@ -4,10 +4,8 @@ import java.util.List;
 
 public class RefundsBuilder {
   private final Refunds refunds;
-  private final Sep31TransactionStore factory;
 
   public RefundsBuilder(Sep31TransactionStore factory) {
-    this.factory = factory;
     refunds = factory.newRefunds();
   }
 
