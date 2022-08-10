@@ -26,7 +26,7 @@ public class MathHelper {
     return BigDecimal.valueOf(value);
   }
 
-  public static boolean isEqualsAsDecimals(String valueA, String valueB) {
+  public static boolean equalsAsDecimals(String valueA, String valueB) {
     return decimal(valueA).compareTo(decimal(valueB)) == 0;
   }
 

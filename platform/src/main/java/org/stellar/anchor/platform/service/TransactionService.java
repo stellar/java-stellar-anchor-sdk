@@ -3,7 +3,7 @@ package org.stellar.anchor.platform.service;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.*;
 import static org.stellar.anchor.sep31.Sep31Helper.allAmountAvailable;
 import static org.stellar.anchor.util.MathHelper.decimal;
-import static org.stellar.anchor.util.MathHelper.isEqualsAsDecimals;
+import static org.stellar.anchor.util.MathHelper.equalsAsDecimals;
 
 import io.micrometer.core.instrument.Metrics;
 import java.time.Instant;
@@ -277,7 +277,7 @@ public class TransactionService {
         throw new BadRequestException("transaction.amount_in_asset != quote.sell_asset");
       }
 
-      if (!isEqualsAsDecimals(txn.getAmountIn(), quote.getSellAmount())) {
+      if (!equalsAsDecimals(txn.getAmountIn(), quote.getSellAmount())) {
         throw new BadRequestException("transaction.amount_in != quote.sell_amount");
       }
 
@@ -285,7 +285,7 @@ public class TransactionService {
         throw new BadRequestException("transaction.amount_out_asset != quote.buy_asset");
       }
 
-      if (!isEqualsAsDecimals(txn.getAmountOut(), quote.getBuyAmount())) {
+      if (!equalsAsDecimals(txn.getAmountOut(), quote.getBuyAmount())) {
         throw new BadRequestException("transaction.amount_out != quote.buy_amount");
       }
 
@@ -293,7 +293,7 @@ public class TransactionService {
         throw new BadRequestException("transaction.amount_fee_asset != quote.fee.asset");
       }
 
-      if (!isEqualsAsDecimals(txn.getAmountFee(), quote.getFee().getTotal())) {
+      if (!equalsAsDecimals(txn.getAmountFee(), quote.getFee().getTotal())) {
         throw new BadRequestException("amount_fee != sum(quote.fee.total)");
       }
     }
