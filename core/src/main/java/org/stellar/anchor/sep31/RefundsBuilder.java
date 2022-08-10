@@ -44,12 +44,11 @@ public class RefundsBuilder {
     }
 
     ArrayList<RefundPayment> payments = null;
+    if (platformApiRefunds.getPayments() != null || platformApiRefunds.getPayments().length == 0) {
+      payments = new ArrayList<>();
+    }
     for (org.stellar.anchor.api.shared.RefundPayment platformApiRefundPayment :
         platformApiRefunds.getPayments()) {
-      if (payments == null) {
-        payments = new ArrayList<>();
-      }
-
       payments.add(
           new RefundPaymentBuilder(this.factory)
               .loadPlatformApiRefundPayment(platformApiRefundPayment));
