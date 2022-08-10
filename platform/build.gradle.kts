@@ -20,8 +20,9 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-reactor-netty")
   implementation("org.springframework.boot:spring-boot-starter-actuator")
   implementation("org.springframework.boot:spring-boot-starter-aop")
-  implementation(libs.spring.kafka)
 
+  implementation(libs.spring.aws.messaging)
+  implementation(libs.spring.kafka)
   implementation(libs.aws.rds)
   implementation(libs.commons.cli)
   implementation(libs.commons.io)
@@ -39,8 +40,6 @@ dependencies {
   implementation(project(":api-schema"))
   implementation(project(":core"))
   implementation(project(":anchor-reference-server"))
-
-  annotationProcessor("org.springframework.boot:spring-boot-configuration-processor")
 
   testImplementation("org.springframework.boot:spring-boot-starter-test")
   testImplementation(libs.okhttp3.mockserver)

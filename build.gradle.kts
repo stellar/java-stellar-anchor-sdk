@@ -62,8 +62,6 @@ subprojects {
   }
 
   dependencies {
-    implementation("org.springframework.cloud:spring-cloud-aws-messaging:2.2.6.RELEASE")
-
     // This is to fix the missing implementation in JSR305 that causes "unknown enum constant
     // When.MAYBE" warning.
     implementation(rootProject.libs.findbugs.jsr305)

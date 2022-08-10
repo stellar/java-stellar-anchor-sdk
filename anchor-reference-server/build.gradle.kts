@@ -14,8 +14,9 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-autoconfigure")
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
   implementation("org.springframework.boot:spring-boot-starter-web")
-  implementation(libs.spring.kafka)
 
+  implementation(libs.spring.aws.messaging)
+  implementation(libs.spring.kafka)
   implementation(libs.h2database)
   implementation(libs.sqlite.jdbc)
   implementation(libs.google.gson)
