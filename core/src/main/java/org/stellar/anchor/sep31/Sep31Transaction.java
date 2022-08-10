@@ -4,7 +4,6 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import org.stellar.anchor.api.platform.GetTransactionResponse;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.sep31.Sep31GetTransactionResponse;
@@ -13,6 +12,7 @@ import org.stellar.anchor.api.shared.Customers;
 import org.stellar.anchor.api.shared.Refund;
 import org.stellar.anchor.api.shared.StellarId;
 import org.stellar.anchor.event.models.TransactionEvent;
+import org.stellar.anchor.util.StringHelper;
 
 public interface Sep31Transaction {
   String getId();
@@ -199,7 +199,7 @@ public interface Sep31Transaction {
     }
 
     List<GetTransactionResponse.StellarTransaction> stellarTransactions = null;
-    if (!Objects.toString(getStellarTransactionId(), "").isEmpty()) {
+    if (!StringHelper.isEmpty(getStellarTransactionId())) {
       GetTransactionResponse.StellarTransaction stellarTxn =
           new GetTransactionResponse.StellarTransaction();
       stellarTxn.setId(getStellarTransactionId());

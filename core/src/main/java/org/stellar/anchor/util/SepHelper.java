@@ -6,7 +6,6 @@ import static org.stellar.sdk.xdr.MemoType.*;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
@@ -58,7 +57,7 @@ public class SepHelper {
   public static BigDecimal validateAmount(String messagePrefix, String amount)
       throws BadRequestException {
     // assetName
-    if (Objects.toString(amount, "").isEmpty()) {
+    if (StringHelper.isEmpty(amount)) {
       throw new BadRequestException(messagePrefix + "amount cannot be empty");
     }
 

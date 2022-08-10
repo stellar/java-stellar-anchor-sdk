@@ -29,6 +29,7 @@ import org.stellar.anchor.sep38.Sep38Quote;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
 import org.stellar.anchor.util.Log;
 import org.stellar.anchor.util.SepHelper;
+import org.stellar.anchor.util.StringHelper;
 
 @Service
 public class TransactionService {
@@ -125,9 +126,9 @@ public class TransactionService {
     boolean txWasUpdated = false;
     boolean txWasCompleted = false;
     boolean shouldClearMessageStatus =
-        !Objects.toString(ptr.getStatus(), "").isEmpty()
+        !StringHelper.isEmpty(ptr.getStatus())
             && !isStatusError(ptr.getStatus())
-            && !Objects.toString(txn.getStatus(), "").isEmpty()
+            && !StringHelper.isEmpty(txn.getStatus())
             && isStatusError(txn.getStatus());
 
     if (ptr.getStatus() != null && !Objects.equals(txn.getStatus(), ptr.getStatus())) {
@@ -242,7 +243,7 @@ public class TransactionService {
     SepHelper.validateAmount(fieldName + ".", amount.getAmount());
 
     // asset name cannot be empty
-    if (Objects.toString(amount.getAsset(), "").isEmpty()) {
+    if (StringHelper.isEmpty(amount.getAsset())) {
       throw new BadRequestException(fieldName + ".asset cannot be empty");
     }
 
@@ -256,7 +257,7 @@ public class TransactionService {
 
   void validateQuoteAndAmounts(Sep31Transaction txn) throws AnchorException {
     // amount_in = amount_out + amount_fee
-    if (Objects.toString(txn.getQuoteId(), "").isEmpty()) {
+    if (StringHelper.isEmpty(txn.getQuoteId())) {
       // without exchange
       if (allAmountAvailable(txn))
         if (decimal(txn.getAmountIn())
