@@ -1,6 +1,5 @@
 package org.stellar.anchor.sep31;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class RefundsBuilder {
@@ -29,34 +28,5 @@ public class RefundsBuilder {
 
   public Refunds build() {
     return refunds;
-  }
-
-  /**
-   * loadPlatformApiRefunds will load the values from the PlatformApi Refund object into the SEP-31
-   * Refunds object.
-   *
-   * @param platformApiRefunds is the platformApi's Refund object.
-   * @return a SEP-31 Refunds object.
-   */
-  public Refunds loadPlatformApiRefunds(org.stellar.anchor.api.shared.Refund platformApiRefunds) {
-    if (platformApiRefunds == null) {
-      return null;
-    }
-
-    ArrayList<RefundPayment> payments = null;
-    if (platformApiRefunds.getPayments() != null || platformApiRefunds.getPayments().length == 0) {
-      payments = new ArrayList<>();
-    }
-    for (org.stellar.anchor.api.shared.RefundPayment platformApiRefundPayment :
-        platformApiRefunds.getPayments()) {
-      payments.add(
-          new RefundPaymentBuilder(this.factory)
-              .loadPlatformApiRefundPayment(platformApiRefundPayment));
-    }
-
-    return this.amountRefunded(platformApiRefunds.getAmountRefunded().getAmount())
-        .amountFee(platformApiRefunds.getAmountFee().getAmount())
-        .payments(payments)
-        .build();
   }
 }

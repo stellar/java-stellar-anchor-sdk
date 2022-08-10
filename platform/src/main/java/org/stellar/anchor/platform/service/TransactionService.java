@@ -23,7 +23,6 @@ import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.shared.Amount;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.sep31.Refunds;
-import org.stellar.anchor.sep31.RefundsBuilder;
 import org.stellar.anchor.sep31.Sep31Transaction;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep38.Sep38Quote;
@@ -189,8 +188,7 @@ public class TransactionService {
     }
 
     if (ptr.getRefunds() != null) {
-      Refunds updatedRefunds =
-          new RefundsBuilder(txnStore).loadPlatformApiRefunds(ptr.getRefunds());
+      Refunds updatedRefunds = Refunds.of(ptr.getRefunds(), txnStore);
       // TODO: validate refunds
       if (!Objects.equals(txn.getRefunds(), updatedRefunds)) {
         txn.setRefunds(updatedRefunds);

@@ -15,16 +15,14 @@ import org.stellar.anchor.api.platform.PatchTransactionRequest
 import org.stellar.anchor.api.sep.AssetInfo
 import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.api.shared.*
+import org.stellar.anchor.api.shared.RefundPayment
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.ResourceJsonAssetService
 import org.stellar.anchor.event.models.TransactionEvent
 import org.stellar.anchor.platform.data.JdbcSep31RefundPayment.JdbcRefundPayment
 import org.stellar.anchor.platform.data.JdbcSep31Refunds
 import org.stellar.anchor.platform.data.JdbcSep31Transaction
-import org.stellar.anchor.sep31.RefundPaymentBuilder
-import org.stellar.anchor.sep31.RefundsBuilder
-import org.stellar.anchor.sep31.Sep31TransactionBuilder
-import org.stellar.anchor.sep31.Sep31TransactionStore
+import org.stellar.anchor.sep31.*
 import org.stellar.anchor.sep38.Sep38Quote
 import org.stellar.anchor.sep38.Sep38QuoteStore
 
@@ -401,8 +399,7 @@ class TransactionServiceTest {
     wantSep31TransactionUpdated.requiredInfoMessage = "Remittance was successfully completed."
     wantSep31TransactionUpdated.externalTransactionId = "external-id"
     wantSep31TransactionUpdated.transferReceivedAt = mockTransferReceivedAt
-    wantSep31TransactionUpdated.refunds =
-      RefundsBuilder(sep31TransactionStore).loadPlatformApiRefunds(mockRefunds)
+    wantSep31TransactionUpdated.refunds = Refunds.of(mockRefunds, sep31TransactionStore)
     assertEquals(wantSep31TransactionUpdated, mockSep31Transaction)
   }
 }
