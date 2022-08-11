@@ -10,6 +10,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+
 import lombok.AllArgsConstructor;
 import org.stellar.anchor.api.exception.ValueValidationException;
 import org.stellar.anchor.platform.data.PaymentObservingAccount;
@@ -39,6 +41,14 @@ public class PaymentObservingAccountsManager {
     ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     scheduler.scheduleAtFixedRate(
         this::evictAndPersist, 60, getEvictPeriod().getSeconds(), TimeUnit.SECONDS);
+  }
+
+  /**
+   * We should flush the allAccounts map to the store when we shutdown. 
+   */
+  @PreDestroy
+  public void shutdown() {
+    evictAndPersist();
   }
 
   public void evictAndPersist() {
