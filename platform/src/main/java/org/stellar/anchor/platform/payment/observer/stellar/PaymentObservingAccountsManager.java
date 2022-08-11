@@ -1,8 +1,5 @@
 package org.stellar.anchor.platform.payment.observer.stellar;
 
-import static java.time.temporal.ChronoUnit.DAYS;
-import static java.time.temporal.ChronoUnit.HOURS;
-
 import java.time.Duration;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -17,6 +14,8 @@ import lombok.AllArgsConstructor;
 import org.stellar.anchor.api.exception.ValueValidationException;
 import org.stellar.anchor.platform.data.PaymentObservingAccount;
 import org.stellar.anchor.util.Log;
+
+import static java.time.temporal.ChronoUnit.*;
 
 public class PaymentObservingAccountsManager {
   Map<String, ObservingAccount> allAccounts;
@@ -44,7 +43,7 @@ public class PaymentObservingAccountsManager {
 
   public void evictAndPersist() {
     Log.info("Evicting old accounts...");
-    this.evict(getEvictMaxAge());
+    this.evict(getEvictMaxIdleTime());
     Log.info("Persisting accounts...");
     for (ObservingAccount account : this.getAccounts()) {
       store.upsert(account.account, account.lastObserved);
@@ -137,7 +136,7 @@ public class PaymentObservingAccountsManager {
     return Duration.of(1, HOURS);
   }
 
-  Duration getEvictMaxAge() {
-    return Duration.of(1, DAYS);
+  Duration getEvictMaxIdleTime() {
+    return Duration.of(7, DAYS);
   }
 }

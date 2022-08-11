@@ -144,11 +144,11 @@ class PaymentObservingAccountsManagerTest {
     assertEquals(4, obs.accounts.size)
     Thread.sleep(10)
 
-    every { obs.evictMaxAge } returns Duration.of(1, DAYS)
+    every { obs.evictMaxIdleTime } returns Duration.of(1, DAYS)
     obs.evictAndPersist()
     assertEquals(4, obs.accounts.size)
 
-    every { obs.evictMaxAge } returns Duration.ZERO
+    every { obs.evictMaxIdleTime } returns Duration.ZERO
     obs.evictAndPersist()
     assertEquals(0, obs.accounts.size)
     verify(exactly = 1) {
