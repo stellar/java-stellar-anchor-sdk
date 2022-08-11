@@ -100,7 +100,9 @@ public class StellarPaymentObserver implements HealthCheckable {
                 if (paymentObservingAccountsManager.observe(observedPayment.getTo())) {
                   final ObservedPayment finalObservedPayment = observedPayment;
                   observers.forEach(observer -> observer.onReceived(finalObservedPayment));
-                } else if (paymentObservingAccountsManager.observe(observedPayment.getFrom())) {
+                }
+                if (paymentObservingAccountsManager.observe(observedPayment.getFrom())
+                    && !observedPayment.getTo().equals(observedPayment.getFrom())) {
                   final ObservedPayment finalObservedPayment = observedPayment;
                   observers.forEach(observer -> observer.onSent(finalObservedPayment));
                 }
@@ -108,7 +110,6 @@ public class StellarPaymentObserver implements HealthCheckable {
                 Log.errorEx(t);
               }
             }
-
             paymentStreamerCursorStore.save(operationResponse.getPagingToken());
           }
 

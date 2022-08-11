@@ -16,9 +16,9 @@ public class PaymentObservingAccountStore {
 
   List<PaymentObservingAccount> list() {
     Log.debug("Retrieving the list of observing account from the store.");
-    List<PaymentObservingAccount> result = new ArrayList<>();
-    repo.findAll().forEach(result::add);
-    return result;
+    List<PaymentObservingAccount> paymentObservingAccounts = new ArrayList<>();
+    repo.findAll().forEach(paymentObservingAccounts::add);
+    return paymentObservingAccounts;
   }
 
   void upsert(String account, Instant lastObserved) {
@@ -28,13 +28,11 @@ public class PaymentObservingAccountStore {
       poa = new PaymentObservingAccount(account, lastObserved);
       Log.infoF("Save account[{}, {}] to data store", account, lastObserved);
       repo.save(poa);
-    } else {
-      if (lastObserved.isAfter(poa.getLastObserved())) {
-        // save if newer
-        poa.setLastObserved(lastObserved);
-        Log.infoF("Update account[{}, {}] to data store", account, lastObserved);
-        repo.save(poa);
-      }
+    } else if (lastObserved.isAfter(poa.getLastObserved())) {
+      // save if newer
+      poa.setLastObserved(lastObserved);
+      Log.infoF("Update account[{}, {}] to data store", account, lastObserved);
+      repo.save(poa);
     }
   }
 
@@ -43,6 +41,8 @@ public class PaymentObservingAccountStore {
     if (poa != null) {
       Log.infoF("Delete account[{}]", account);
       repo.delete(poa);
+    } else {
+      Log.warnF("Account[{}] cannot be found for deletion.", account);
     }
   }
 }

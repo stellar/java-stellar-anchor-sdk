@@ -76,7 +76,7 @@ public class PaymentObservingAccountsManager {
         // update the database
         store.upsert(observingAccount.account, observingAccount.lastObserved);
       } else {
-        if (!observingAccount.expiring.equals(existingAccount.expiring))
+        if (!observingAccount.canExpire.equals(existingAccount.canExpire))
           throw new ValueValidationException(
               String.format(
                   "The expiring flag cannot be modified. Account=[%s]", observingAccount.account));
@@ -126,14 +126,14 @@ public class PaymentObservingAccountsManager {
   /**
    * Evict expired accounts
    *
-   * @param maxAge evict all accounts that are older than maxAge
+   * @param maxIdleTime evict all accounts that are older than maxAge
    */
-  public void evict(Duration maxAge) {
+  public void evict(Duration maxIdleTime) {
     for (ObservingAccount acct : getAccounts()) {
-      if (!acct.expiring) continue;
+      if (!acct.canExpire) continue;
 
-      Duration age = Duration.between(Instant.now(), acct.lastObserved).abs();
-      if (age.compareTo(maxAge) > 0) {
+      Duration idleTime = Duration.between(Instant.now(), acct.lastObserved).abs();
+      if (idleTime.compareTo(maxIdleTime) > 0) {
         allAccounts.remove(acct.account);
         store.delete(acct.account);
       }
@@ -144,7 +144,7 @@ public class PaymentObservingAccountsManager {
   public static class ObservingAccount {
     String account;
     Instant lastObserved;
-    Boolean expiring;
+    Boolean canExpire;
   }
 
   Duration getEvictPeriod() {
