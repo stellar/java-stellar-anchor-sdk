@@ -2,6 +2,7 @@ package org.stellar.anchor.platform.payment.observer.stellar;
 
 import java.time.Duration;
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -44,7 +45,7 @@ public class PaymentObservingAccountsManager {
   }
 
   /**
-   * We should flush the allAccounts map to the store when we shutdown. 
+   * We should flush the allAccounts map to the store when we shutdown.
    */
   @PreDestroy
   public void shutdown() {
@@ -143,10 +144,10 @@ public class PaymentObservingAccountsManager {
   }
 
   Duration getEvictPeriod() {
-    return Duration.of(1, HOURS);
+    return Duration.of(5, MINUTES);
   }
 
   Duration getEvictMaxIdleTime() {
-    return Duration.of(7, DAYS);
+    return Duration.of(30, DAYS);
   }
 }
