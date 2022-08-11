@@ -87,20 +87,6 @@ public class PaymentObservingAccountsManager {
   }
 
   /**
-   * Remove the account from the observed account list.
-   *
-   * @param account The account being removed.
-   */
-  public void remove(String account) {
-    if (account != null) {
-      ObservingAccount targetAccount = allAccounts.get(account);
-      if (targetAccount != null) {
-        allAccounts.remove(account);
-      }
-    }
-  }
-
-  /**
    * Gets the list of observed accounts.
    *
    * @return The list of observed accounts.
