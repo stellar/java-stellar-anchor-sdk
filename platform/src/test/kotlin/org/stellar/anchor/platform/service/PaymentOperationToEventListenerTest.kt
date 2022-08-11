@@ -17,11 +17,14 @@ import org.stellar.anchor.event.models.*
 import org.stellar.anchor.platform.data.JdbcSep31Transaction
 import org.stellar.anchor.platform.data.JdbcSep31TransactionStore
 import org.stellar.anchor.platform.payment.observer.circle.ObservedPayment
+import org.stellar.anchor.sep31.Sep31Transaction
+import org.stellar.anchor.util.GsonUtils
 
 class PaymentOperationToEventListenerTest {
   @MockK(relaxed = true) private lateinit var transactionStore: JdbcSep31TransactionStore
   @MockK(relaxed = true) private lateinit var eventPublishService: EventPublishService
   private lateinit var paymentOperationToEventListener: PaymentOperationToEventListener
+  private val gson = GsonUtils.getInstance()
 
   @BeforeEach
   fun setup() {
@@ -95,9 +98,12 @@ class PaymentOperationToEventListenerTest {
     slotMemo = slot()
     p.transactionMemo = "my_memo_5"
     p.assetCode = "FOO"
+    p.assetName = "FOO:GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364"
     p.amount = "9.9999999"
+    p.createdAt = "2022-08-09T17:32:44Z"
     sep31TxMock = JdbcSep31Transaction()
-    sep31TxMock.amountInAsset = "FOO"
+    sep31TxMock.amountInAsset =
+      "stellar:FOO:GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364"
     sep31TxMock.amountIn = "10"
     every { transactionStore.findByStellarMemo(capture(slotMemo)) } returns sep31TxMock
     paymentOperationToEventListener.onReceived(p)
@@ -109,8 +115,8 @@ class PaymentOperationToEventListenerTest {
   @Test
   fun test_onReceiver_success() {
     val startedAtMock = Instant.now().minusSeconds(120)
-    val createdAt = Instant.now()
-    val createdAtStr = DateTimeFormatter.ISO_INSTANT.format(createdAt)
+    val transferReceivedAt = Instant.now()
+    val transferReceivedAtStr = DateTimeFormatter.ISO_INSTANT.format(transferReceivedAt)
     val fooAsset = "stellar:FOO:GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364"
     val barAsset = "stellar:BAR:GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364"
 
@@ -126,7 +132,7 @@ class PaymentOperationToEventListenerTest {
     p.sourceAccount = "GCJKWN7ELKOXLDHJTOU4TZOEJQL7TYVVTQFR676MPHHUIUDAHUA7QGJ4"
     p.from = "GAJKV32ZXP5QLYHPCMLTV5QCMNJR3W6ZKFP6HMDN67EM2ULDHHDGEZYO"
     p.to = "GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364"
-    p.createdAt = createdAtStr
+    p.createdAt = transferReceivedAtStr
     p.transactionEnvelope =
       "AAAAAgAAAAAQfdFrLDgzSIIugR73qs8U0ZiKbwBUclTTPh5thlbgnAAAB9AAAACwAAAABAAAAAEAAAAAAAAAAAAAAABiMbeEAAAAAAAAABQAAAAAAAAAAAAAAADcXPrnCDi+IDcGSvu/HjP779qjBv6K9Sie8i3WDySaIgAAAAA8M2CAAAAAAAAAAAAAAAAAJXdMB+xylKwEPk1tOLU82vnDM0u15RsK6/HCKsY1O3MAAAAAPDNggAAAAAAAAAAAAAAAALn+JaJ9iXEcrPeRFqEMGo6WWFeOwW15H/vvCOuMqCsSAAAAADwzYIAAAAAAAAAAAAAAAADbWpHlX0LQjIjY0x8jWkclnQDK8jFmqhzCmB+1EusXwAAAAAA8M2CAAAAAAAAAAAAAAAAAmy3UTqTnhNzIg8TjCYiRh9l07ls0Hi5FTqelhfZ4KqAAAAAAPDNggAAAAAAAAAAAAAAAAIwiZIIbYJn7MbHrrM+Pg85c6Lcn0ZGLb8NIiXLEIPTnAAAAADwzYIAAAAAAAAAAAAAAAAAYEjPKA/6lDpr/w1Cfif2hK4GHeNODhw0kk4kgLrmPrQAAAAA8M2CAAAAAAAAAAAAAAAAASMrE32C3vL39cj84pIg2mt6OkeWBz5OSZn0eypcjS4IAAAAAPDNggAAAAAAAAAAAAAAAAIuxsI+2mSeh3RkrkcpQ8bMqE7nXUmdvgwyJS/dBThIPAAAAADwzYIAAAAAAAAAAAAAAAACuZxdjR/GXaymdc9y5WFzz2A8Yk5hhgzBZsQ9R0/BmZwAAAAA8M2CAAAAAAAAAAAAAAAAAAtWBvyq0ToNovhQHSLeQYu7UzuqbVrm0i3d1TjRm7WEAAAAAPDNggAAAAAAAAAAAAAAAANtrzNON0u1IEGKmVsm80/Av+BKip0ioeS/4E+Ejs9YPAAAAADwzYIAAAAAAAAAAAAAAAAD+ejNcgNcKjR/ihUx1ikhdz5zmhzvRET3LGd7oOiBlTwAAAAA8M2CAAAAAAAAAAAAAAAAASXG3P6KJjS6e0dzirbso8vRvZKo6zETUsEv7OSP8XekAAAAAPDNggAAAAAAAAAAAAAAAAC5orVpxxvGEB8ISTho2YdOPZJrd7UBj1Bt8TOjLOiEKAAAAADwzYIAAAAAAAAAAAAAAAAAOQR7AqdGyIIMuFLw9JQWtHqsUJD94kHum7SJS9PXkOwAAAAA8M2CAAAAAAAAAAAAAAAAAIosijRx7xSP/+GA6eAjGeV9wJtKDySP+OJr90euE1yQAAAAAPDNggAAAAAAAAAAAAAAAAKlHXWQvwNPeT4Pp1oJDiOpcKwS3d9sho+ha+6pyFwFqAAAAADwzYIAAAAAAAAAAAAAAAABjCjnoL8+FEP0LByZA9PfMLwU1uAX4Cb13rVs83e1UZAAAAAA8M2CAAAAAAAAAAAAAAAAAokhNCZNGq9uAkfKTNoNGr5XmmMoY5poQEmp8OVbit7IAAAAAPDNggAAAAAAAAAABhlbgnAAAAEBa9csgF5/0wxrYM6oVsbM4Yd+/3uVIplS6iLmPOS4xf8oLQLtjKKKIIKmg9Gc/yYm3icZyU7icy9hGjcujenMN"
     p.id = "755914248193"
@@ -146,8 +152,8 @@ class PaymentOperationToEventListenerTest {
     sep31TxMock.amountFeeAsset = fooAsset
     sep31TxMock.quoteId = "cef1fc13-3f65-4612-b1f2-502d698c816b"
     sep31TxMock.startedAt = startedAtMock
-    sep31TxMock.updatedAt = createdAt
-    sep31TxMock.transferReceivedAt = createdAt
+    sep31TxMock.updatedAt = startedAtMock
+    sep31TxMock.transferReceivedAt = null // the event should have a valid `transferReceivedAt`
     sep31TxMock.stellarMemo = "OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ="
     sep31TxMock.stellarMemoType = "hash"
     sep31TxMock.status = SepTransactionStatus.PENDING_SENDER.toString()
@@ -158,7 +164,11 @@ class PaymentOperationToEventListenerTest {
         .account("GBE4B7KE62NUBFLYT3BIG4OP5DAXBQX2GSZZOVAYXQKJKIU7P6V2R2N4")
         .build()
 
-    every { transactionStore.findByStellarMemo(capture(slotMemo)) } returns sep31TxMock
+    val sep31TxCopy = gson.fromJson(gson.toJson(sep31TxMock), JdbcSep31Transaction::class.java)
+    every { transactionStore.findByStellarMemo(capture(slotMemo)) } returns sep31TxCopy
+
+    val slotTx = slot<Sep31Transaction>()
+    every { transactionStore.save(capture(slotTx)) } returns sep31TxMock
 
     val wantEvent =
       TransactionEvent.builder()
@@ -179,8 +189,8 @@ class PaymentOperationToEventListenerTest {
         .amountFee(Amount("0.5", fooAsset))
         .quoteId("cef1fc13-3f65-4612-b1f2-502d698c816b")
         .startedAt(startedAtMock)
-        .updatedAt(createdAt)
-        .transferReceivedAt(createdAt)
+        .updatedAt(transferReceivedAt)
+        .transferReceivedAt(transferReceivedAt)
         .message("Incoming payment for SEP-31 transaction")
         .sourceAccount("GAJKV32ZXP5QLYHPCMLTV5QCMNJR3W6ZKFP6HMDN67EM2ULDHHDGEZYO")
         .destinationAccount("GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364")
@@ -201,7 +211,7 @@ class PaymentOperationToEventListenerTest {
               .id("1ad62e48724426be96cf2cdb65d5dacb8fac2e403e50bedb717bfc8eaf05af30")
               .memo("OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ=")
               .memoType("hash")
-              .createdAt(createdAt)
+              .createdAt(transferReceivedAt)
               .envelope(
                 "AAAAAgAAAAAQfdFrLDgzSIIugR73qs8U0ZiKbwBUclTTPh5thlbgnAAAB9AAAACwAAAABAAAAAEAAAAAAAAAAAAAAABiMbeEAAAAAAAAABQAAAAAAAAAAAAAAADcXPrnCDi+IDcGSvu/HjP779qjBv6K9Sie8i3WDySaIgAAAAA8M2CAAAAAAAAAAAAAAAAAJXdMB+xylKwEPk1tOLU82vnDM0u15RsK6/HCKsY1O3MAAAAAPDNggAAAAAAAAAAAAAAAALn+JaJ9iXEcrPeRFqEMGo6WWFeOwW15H/vvCOuMqCsSAAAAADwzYIAAAAAAAAAAAAAAAADbWpHlX0LQjIjY0x8jWkclnQDK8jFmqhzCmB+1EusXwAAAAAA8M2CAAAAAAAAAAAAAAAAAmy3UTqTnhNzIg8TjCYiRh9l07ls0Hi5FTqelhfZ4KqAAAAAAPDNggAAAAAAAAAAAAAAAAIwiZIIbYJn7MbHrrM+Pg85c6Lcn0ZGLb8NIiXLEIPTnAAAAADwzYIAAAAAAAAAAAAAAAAAYEjPKA/6lDpr/w1Cfif2hK4GHeNODhw0kk4kgLrmPrQAAAAA8M2CAAAAAAAAAAAAAAAAASMrE32C3vL39cj84pIg2mt6OkeWBz5OSZn0eypcjS4IAAAAAPDNggAAAAAAAAAAAAAAAAIuxsI+2mSeh3RkrkcpQ8bMqE7nXUmdvgwyJS/dBThIPAAAAADwzYIAAAAAAAAAAAAAAAACuZxdjR/GXaymdc9y5WFzz2A8Yk5hhgzBZsQ9R0/BmZwAAAAA8M2CAAAAAAAAAAAAAAAAAAtWBvyq0ToNovhQHSLeQYu7UzuqbVrm0i3d1TjRm7WEAAAAAPDNggAAAAAAAAAAAAAAAANtrzNON0u1IEGKmVsm80/Av+BKip0ioeS/4E+Ejs9YPAAAAADwzYIAAAAAAAAAAAAAAAAD+ejNcgNcKjR/ihUx1ikhdz5zmhzvRET3LGd7oOiBlTwAAAAA8M2CAAAAAAAAAAAAAAAAASXG3P6KJjS6e0dzirbso8vRvZKo6zETUsEv7OSP8XekAAAAAPDNggAAAAAAAAAAAAAAAAC5orVpxxvGEB8ISTho2YdOPZJrd7UBj1Bt8TOjLOiEKAAAAADwzYIAAAAAAAAAAAAAAAAAOQR7AqdGyIIMuFLw9JQWtHqsUJD94kHum7SJS9PXkOwAAAAA8M2CAAAAAAAAAAAAAAAAAIosijRx7xSP/+GA6eAjGeV9wJtKDySP+OJr90euE1yQAAAAAPDNggAAAAAAAAAAAAAAAAKlHXWQvwNPeT4Pp1oJDiOpcKwS3d9sho+ha+6pyFwFqAAAAADwzYIAAAAAAAAAAAAAAAABjCjnoL8+FEP0LByZA9PfMLwU1uAX4Cb13rVs83e1UZAAAAAA8M2CAAAAAAAAAAAAAAAAAokhNCZNGq9uAkfKTNoNGr5XmmMoY5poQEmp8OVbit7IAAAAAPDNggAAAAAAAAAABhlbgnAAAAEBa9csgF5/0wxrYM6oVsbM4Yd+/3uVIplS6iLmPOS4xf8oLQLtjKKKIIKmg9Gc/yYm3icZyU7icy9hGjcujenMN"
               )
@@ -236,5 +246,15 @@ class PaymentOperationToEventListenerTest {
 
     wantEvent.eventId = slotEvent.captured.eventId
     assertEquals(wantEvent, slotEvent.captured)
+
+    // wantSep31Tx
+    val wantSep31Tx = gson.fromJson(gson.toJson(sep31TxMock), JdbcSep31Transaction::class.java)
+    wantSep31Tx.status = TransactionEvent.Status.PENDING_RECEIVER.status
+    wantSep31Tx.stellarTransactionId =
+      "1ad62e48724426be96cf2cdb65d5dacb8fac2e403e50bedb717bfc8eaf05af30"
+    wantSep31Tx.transferReceivedAt = transferReceivedAt
+    wantSep31Tx.updatedAt = transferReceivedAt
+
+    assertEquals(wantSep31Tx, slotTx.captured)
   }
 }
