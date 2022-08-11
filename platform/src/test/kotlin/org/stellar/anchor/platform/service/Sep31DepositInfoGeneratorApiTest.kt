@@ -59,7 +59,7 @@ class Sep31DepositInfoGeneratorApiTest {
       GetUniqueAddressResponse.builder().uniqueAddress(uniqueAddress).build()
 
     // Check the manager is not observing the account
-    assertFalse(paymentObservingAccountsManager.observe(uniqueAddress.stellarAddress))
+    assertFalse(paymentObservingAccountsManager.lookupAndUpdate(uniqueAddress.stellarAddress))
 
     every { txn.getId() } returns txnId
     every { uniqueAddressIntegration.getUniqueAddress(any()) } returns uniqueAddressResponse
@@ -72,7 +72,7 @@ class Sep31DepositInfoGeneratorApiTest {
     assertEquals(memoType, depositInfo.memoType)
 
     // Check if the manager is observing the account
-    assertTrue(paymentObservingAccountsManager.observe(uniqueAddress.stellarAddress))
+    assertTrue(paymentObservingAccountsManager.lookupAndUpdate(uniqueAddress.stellarAddress))
   }
 
   @ParameterizedTest
@@ -95,7 +95,7 @@ class Sep31DepositInfoGeneratorApiTest {
     assertThrows<Exception> { generator.generate(txn) }
 
     // Make sure the address does not go into manager when exception happens
-    assertFalse(paymentObservingAccountsManager.observe(uniqueAddress.stellarAddress))
+    assertFalse(paymentObservingAccountsManager.lookupAndUpdate(uniqueAddress.stellarAddress))
   }
 
   @ParameterizedTest

@@ -67,7 +67,7 @@ public class PaymentConfig {
             .build();
 
     for (AssetInfo assetInfo : stellarAssets) {
-      if (!paymentObservingAccountsManager.observe(assetInfo.getDistributionAccount())) {
+      if (!paymentObservingAccountsManager.lookupAndUpdate(assetInfo.getDistributionAccount())) {
         paymentObservingAccountsManager.upsert(assetInfo.getDistributionAccount(), false);
       }
     }

@@ -96,13 +96,13 @@ public class PaymentObservingAccountsManager {
   }
 
   /**
-   * Check if the account is being observed. If the account is being observed, the lastObserved
+   * Look up if the account is being observed. If the account is being observed, the lastObserved
    * timestamp of the observing account will be updated.
    *
    * @param account The account to be checked.
    * @return true if the account is being observed. false, otherwise.
    */
-  public boolean observe(String account) {
+  public boolean lookupAndUpdate(String account) {
     ObservingAccount acct = allAccounts.get(account);
     if (acct == null) return false;
     acct.lastObserved = Instant.now();

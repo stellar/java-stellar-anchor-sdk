@@ -97,11 +97,11 @@ public class StellarPaymentObserver implements HealthCheckable {
 
             if (observedPayment != null) {
               try {
-                if (paymentObservingAccountsManager.observe(observedPayment.getTo())) {
+                if (paymentObservingAccountsManager.lookupAndUpdate(observedPayment.getTo())) {
                   final ObservedPayment finalObservedPayment = observedPayment;
                   observers.forEach(observer -> observer.onReceived(finalObservedPayment));
                 }
-                if (paymentObservingAccountsManager.observe(observedPayment.getFrom())
+                if (paymentObservingAccountsManager.lookupAndUpdate(observedPayment.getFrom())
                     && !observedPayment.getTo().equals(observedPayment.getFrom())) {
                   final ObservedPayment finalObservedPayment = observedPayment;
                   observers.forEach(observer -> observer.onSent(finalObservedPayment));

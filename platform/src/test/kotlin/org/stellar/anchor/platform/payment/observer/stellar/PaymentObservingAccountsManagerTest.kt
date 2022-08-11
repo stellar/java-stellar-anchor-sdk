@@ -52,14 +52,9 @@ class PaymentObservingAccountsManagerTest {
 
     assertEquals(3, obs.accounts.size)
 
-    obs.remove(null)
-    assertEquals(3, obs.accounts.size)
-
-    obs.remove("GCIWQDKACLW26UJXY5CTLULVYUOYROZPAPDDYEQKNGIERVOAXSPLABMB")
-    obs.remove("GCIWQDKACLW26UJXY5CTLULVYUOYROZPAPDDYEQKNGIERVOAXSPLABMB")
-    assertEquals(2, obs.accounts.size)
-    assertTrue(obs.observe("GCK5ECMM67ZN7RWGUSDKQAW6CAF6Q5WYK2VQJ276SJMINU6WVCIQW6BL"))
-    assertTrue(obs.observe("GAPBFA5ZYG5VVKN7WPMH6K5CBXGU2AM5ED7S54VX27J7S222NKMTWKR6"))
+    assertTrue(obs.lookupAndUpdate("GCIWQDKACLW26UJXY5CTLULVYUOYROZPAPDDYEQKNGIERVOAXSPLABMB"))
+    assertTrue(obs.lookupAndUpdate("GCK5ECMM67ZN7RWGUSDKQAW6CAF6Q5WYK2VQJ276SJMINU6WVCIQW6BL"))
+    assertTrue(obs.lookupAndUpdate("GAPBFA5ZYG5VVKN7WPMH6K5CBXGU2AM5ED7S54VX27J7S222NKMTWKR6"))
   }
 
   @Test
@@ -108,7 +103,7 @@ class PaymentObservingAccountsManagerTest {
 
     // Evict GB4DZFFUWC64MZ3BQ433ME7QBODCSFZRBOLWEWEMJIVHABTWGT3W2Q22
     obs.evict(Duration.of(23, HOURS))
-    assertFalse(obs.observe("GB4DZFFUWC64MZ3BQ433ME7QBODCSFZRBOLWEWEMJIVHABTWGT3W2Q22"))
+    assertFalse(obs.lookupAndUpdate("GB4DZFFUWC64MZ3BQ433ME7QBODCSFZRBOLWEWEMJIVHABTWGT3W2Q22"))
     assertEquals(4, obs.accounts.size)
 
     // Test idempotency
@@ -116,12 +111,12 @@ class PaymentObservingAccountsManagerTest {
     assertEquals(4, obs.accounts.size)
 
     // Update the last observed timestamp to avoid being evicted
-    assertTrue(obs.observe("GAPBFA5ZYG5VVKN7WPMH6K5CBXGU2AM5ED7S54VX27J7S222NKMTWKR6"))
+    assertTrue(obs.lookupAndUpdate("GAPBFA5ZYG5VVKN7WPMH6K5CBXGU2AM5ED7S54VX27J7S222NKMTWKR6"))
     obs.evict(Duration.of(11, HOURS))
     assertEquals(4, obs.accounts.size)
 
     // Make sure observing random account return false
-    assertFalse(obs.observe("GBXXYA2NZPCS2LHLXBWOQ6UXXRCH3N5YVTYWZ4DEVYTEWVFV7R7MEKSV"))
+    assertFalse(obs.lookupAndUpdate("GBXXYA2NZPCS2LHLXBWOQ6UXXRCH3N5YVTYWZ4DEVYTEWVFV7R7MEKSV"))
 
     // Evict another one
     obs.evict(Duration.of(1, HOURS))
