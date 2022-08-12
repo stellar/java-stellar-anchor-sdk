@@ -37,6 +37,7 @@ jobs:
     name: Push stellar/anchor-platform:sha to DockerHub
     steps:
     - uses: actions/checkout@v3
+    
     - name: Get image tag (short sha)
       shell: bash
       id: get_tag
