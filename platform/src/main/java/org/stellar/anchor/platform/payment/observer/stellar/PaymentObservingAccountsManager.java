@@ -1,8 +1,10 @@
 package org.stellar.anchor.platform.payment.observer.stellar;
 
+import static java.time.temporal.ChronoUnit.DAYS;
+import static java.time.temporal.ChronoUnit.MINUTES;
+
 import java.time.Duration;
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -12,13 +14,10 @@ import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-
 import lombok.AllArgsConstructor;
 import org.stellar.anchor.api.exception.ValueValidationException;
 import org.stellar.anchor.platform.data.PaymentObservingAccount;
 import org.stellar.anchor.util.Log;
-
-import static java.time.temporal.ChronoUnit.*;
 
 public class PaymentObservingAccountsManager {
   Map<String, ObservingAccount> allAccounts;
@@ -34,7 +33,8 @@ public class PaymentObservingAccountsManager {
     List<PaymentObservingAccount> accounts = store.list();
     for (PaymentObservingAccount account : accounts) {
       ObservingAccount oa =
-          new ObservingAccount(account.getAccount(), account.getLastObserved(), true);
+          new ObservingAccount(
+              account.getAccount(), account.getLastObserved(), AccountType.TRANSIENT);
       upsert(oa);
     }
 
@@ -45,7 +45,8 @@ public class PaymentObservingAccountsManager {
   }
 
   /**
-   * We should flush the allAccounts map to the store when we shutdown.
+   * The shutdown hook that is run when Spring terminates. The allAccounts map will be evicted and
+   * flushed.
    */
   @PreDestroy
   public void shutdown() {
@@ -65,11 +66,11 @@ public class PaymentObservingAccountsManager {
    * Adds an account to be observed. If the account is being observed, it will be updated.
    *
    * @param account The account being observed.
-   * @param expiring true if the account can be expired. false, otherwise.
+   * @param type true The account type.
    */
-  public void upsert(String account, Boolean expiring) throws ValueValidationException {
-    if (account != null && expiring != null) {
-      upsert(new ObservingAccount(account, Instant.now(), expiring));
+  public void upsert(String account, AccountType type) throws ValueValidationException {
+    if (account != null && type != null) {
+      upsert(new ObservingAccount(account, Instant.now(), type));
     }
   }
 
@@ -78,7 +79,7 @@ public class PaymentObservingAccountsManager {
    *
    * @param observingAccount The account being observed.
    */
-  public void upsert(ObservingAccount observingAccount) throws ValueValidationException {
+  public void upsert(ObservingAccount observingAccount) {
     if (observingAccount != null) {
       ObservingAccount existingAccount = allAccounts.get(observingAccount.account);
       if (existingAccount == null) {
@@ -86,12 +87,11 @@ public class PaymentObservingAccountsManager {
         // update the database
         store.upsert(observingAccount.account, observingAccount.lastObserved);
       } else {
-        if (!observingAccount.canExpire.equals(existingAccount.canExpire))
-          throw new ValueValidationException(
-              String.format(
-                  "The expiring flag cannot be modified. Account=[%s]", observingAccount.account));
         existingAccount.account = observingAccount.account;
         existingAccount.lastObserved = observingAccount.lastObserved;
+        if (existingAccount.type == AccountType.TRANSIENT) {
+          existingAccount.type = observingAccount.type;
+        }
       }
     }
   }
@@ -126,7 +126,7 @@ public class PaymentObservingAccountsManager {
    */
   public void evict(Duration maxIdleTime) {
     for (ObservingAccount acct : getAccounts()) {
-      if (!acct.canExpire) continue;
+      if (acct.type == AccountType.RESIDENTIAL) continue;
 
       Duration idleTime = Duration.between(Instant.now(), acct.lastObserved).abs();
       if (idleTime.compareTo(maxIdleTime) > 0) {
@@ -136,11 +136,17 @@ public class PaymentObservingAccountsManager {
     }
   }
 
+  public enum AccountType {
+    TRANSIENT, // the account is transient and can be flushed out of the list.
+    RESIDENTIAL // the account is residential and will stay in the list. For example, a
+    // distribution account
+  }
+
   @AllArgsConstructor
   public static class ObservingAccount {
     String account;
     Instant lastObserved;
-    Boolean canExpire;
+    AccountType type;
   }
 
   Duration getEvictPeriod() {

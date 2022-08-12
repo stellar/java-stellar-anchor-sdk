@@ -1,5 +1,7 @@
 package org.stellar.anchor.platform.service;
 
+import static org.stellar.anchor.platform.payment.observer.stellar.PaymentObservingAccountsManager.AccountType.TRANSIENT;
+
 import java.util.Objects;
 import org.stellar.anchor.api.callback.GetUniqueAddressResponse;
 import org.stellar.anchor.api.callback.UniqueAddressIntegration;
@@ -12,8 +14,8 @@ import org.stellar.anchor.sep31.Sep31Transaction;
 import org.stellar.anchor.util.MemoHelper;
 
 public class Sep31DepositInfoGeneratorApi implements Sep31DepositInfoGenerator {
-  private UniqueAddressIntegration uniqueAddressIntegration;
-  private PaymentObservingAccountsManager paymentObservingAccountsManager;
+  private final UniqueAddressIntegration uniqueAddressIntegration;
+  private final PaymentObservingAccountsManager paymentObservingAccountsManager;
 
   public Sep31DepositInfoGeneratorApi(
       UniqueAddressIntegration uniqueAddressIntegration,
@@ -39,7 +41,7 @@ public class Sep31DepositInfoGeneratorApi implements Sep31DepositInfoGenerator {
     }
 
     // Add to payment observer manager so that we get events of the stellar address.
-    paymentObservingAccountsManager.upsert(uniqueAddress.getStellarAddress(), true);
+    paymentObservingAccountsManager.upsert(uniqueAddress.getStellarAddress(), TRANSIENT);
 
     return new Sep31DepositInfo(
         uniqueAddress.getStellarAddress(), uniqueAddress.getMemo(), uniqueAddress.getMemoType());

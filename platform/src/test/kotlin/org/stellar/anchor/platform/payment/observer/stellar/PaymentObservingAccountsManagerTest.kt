@@ -11,6 +11,8 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.stellar.anchor.platform.data.PaymentObservingAccount
+import org.stellar.anchor.platform.payment.observer.stellar.PaymentObservingAccountsManager.AccountType.RESIDENTIAL
+import org.stellar.anchor.platform.payment.observer.stellar.PaymentObservingAccountsManager.AccountType.TRANSIENT
 
 class PaymentObservingAccountsManagerTest {
   @MockK private lateinit var paymentObservingAccountStore: PaymentObservingAccountStore
@@ -46,9 +48,9 @@ class PaymentObservingAccountsManagerTest {
     val obs = PaymentObservingAccountsManager(paymentObservingAccountStore)
     obs.initialize()
 
-    obs.upsert("GCIWQDKACLW26UJXY5CTLULVYUOYROZPAPDDYEQKNGIERVOAXSPLABMB", true)
-    obs.upsert("GCK5ECMM67ZN7RWGUSDKQAW6CAF6Q5WYK2VQJ276SJMINU6WVCIQW6BL", true)
-    obs.upsert("GAPBFA5ZYG5VVKN7WPMH6K5CBXGU2AM5ED7S54VX27J7S222NKMTWKR6", true)
+    obs.upsert("GCIWQDKACLW26UJXY5CTLULVYUOYROZPAPDDYEQKNGIERVOAXSPLABMB", TRANSIENT)
+    obs.upsert("GCK5ECMM67ZN7RWGUSDKQAW6CAF6Q5WYK2VQJ276SJMINU6WVCIQW6BL", TRANSIENT)
+    obs.upsert("GAPBFA5ZYG5VVKN7WPMH6K5CBXGU2AM5ED7S54VX27J7S222NKMTWKR6", TRANSIENT)
 
     assertEquals(3, obs.accounts.size)
 
@@ -63,9 +65,9 @@ class PaymentObservingAccountsManagerTest {
     obs.initialize()
 
     assertEquals(3, obs.accounts.size)
-    obs.upsert("GB4DZFFUWC64MZ3BQ433ME7QBODCSFZRBOLWEWEMJIVHABTWGT3W2Q22", true)
+    obs.upsert("GB4DZFFUWC64MZ3BQ433ME7QBODCSFZRBOLWEWEMJIVHABTWGT3W2Q22", TRANSIENT)
     assertDoesNotThrow {
-      obs.upsert("GB4DZFFUWC64MZ3BQ433ME7QBODCSFZRBOLWEWEMJIVHABTWGT3W2Q22", true)
+      obs.upsert("GB4DZFFUWC64MZ3BQ433ME7QBODCSFZRBOLWEWEMJIVHABTWGT3W2Q22", TRANSIENT)
     }
     assertEquals(4, obs.accounts.size)
   }
@@ -87,7 +89,7 @@ class PaymentObservingAccountsManagerTest {
       PaymentObservingAccountsManager.ObservingAccount(
         "GB4DZFFUWC64MZ3BQ433ME7QBODCSFZRBOLWEWEMJIVHABTWGT3W2Q22",
         Instant.now().minus(24, HOURS),
-        true
+        TRANSIENT
       )
     )
 
@@ -95,7 +97,7 @@ class PaymentObservingAccountsManagerTest {
       PaymentObservingAccountsManager.ObservingAccount(
         "GCC2B7LML6UBKBA7NOMLCR57HPKMFHRO2VTZGSIMRLXDMECBXQ44MOYO",
         Instant.now().minus(100, DAYS),
-        false
+        RESIDENTIAL
       )
     )
 
@@ -140,7 +142,7 @@ class PaymentObservingAccountsManagerTest {
     obs.evictAndPersist()
     assertEquals(3, obs.accounts.size)
 
-    obs.upsert("GBXXYA2NZPCS2LHLXBWOQ6UXXRCH3N5YVTYWZ4DEVYTEWVFV7R7MEKSV", true)
+    obs.upsert("GBXXYA2NZPCS2LHLXBWOQ6UXXRCH3N5YVTYWZ4DEVYTEWVFV7R7MEKSV", TRANSIENT)
     assertEquals(4, obs.accounts.size)
     Thread.sleep(10)
 

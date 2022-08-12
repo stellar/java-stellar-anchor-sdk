@@ -66,9 +66,12 @@ public class PaymentConfig {
             .paymentObservingAccountManager(paymentObservingAccountsManager)
             .build();
 
+    // Add distribution wallet to the observing list as type RESIDENTIAL
     for (AssetInfo assetInfo : stellarAssets) {
       if (!paymentObservingAccountsManager.lookupAndUpdate(assetInfo.getDistributionAccount())) {
-        paymentObservingAccountsManager.upsert(assetInfo.getDistributionAccount(), false);
+        paymentObservingAccountsManager.upsert(
+            assetInfo.getDistributionAccount(),
+            PaymentObservingAccountsManager.AccountType.RESIDENTIAL);
       }
     }
 
