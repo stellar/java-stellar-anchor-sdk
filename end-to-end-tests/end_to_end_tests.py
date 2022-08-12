@@ -21,6 +21,8 @@ STELLAR_TESTNET_NETWORK_PASSPHRASE = "Test SDF Network ; September 2015"
 HORIZON_URI = "https://horizon-testnet.stellar.org"
 FRIENDBOT_URI = "https://friendbot.stellar.org"
 
+TRANSACTION_STATUS_COMPLETE = "completed"
+
 
 class Endpoints:
     def __init__(self, domain, use_http=True):
@@ -139,14 +141,28 @@ def send_asset(asset, source_secret_key, receiver_public_key, memo_hash):
     response = server.submit_transaction(transaction)
 
 
-def poll_transaction_status(endpoints, headers, transaction_id):
+def poll_transaction_status(endpoints, headers, transaction_id, status=TRANSACTION_STATUS_COMPLETE, timeout=120,
+                        poll_interval=2):
+    """
+    :param endpoints: Anchor Platform endpoints
+    :param headers: Request headers
+    :param transaction_id: Transaction ID to poll for completion
+    :param status: The desired status to poll for
+    :param timeout: Time (in seconds) to poll for the desired status
+    :param poll_interval: Time (in seconds) between each poll attempt
+    :return:
+    """
+    attempt = 1
     print("============= Polling Transaction Status from Anchor Platform ===========")
-    while True:
-        status = get_transaction(endpoints, headers, transaction_id)["transaction"]["status"]
-        print(f"transaction - {transaction_id} status is {status}")
-        if status == "completed":
+    while True and attempt*poll_interval <= timeout:
+        transaction_status = get_transaction(endpoints, headers, transaction_id)["transaction"]["status"]
+        print(f"attempt #{attempt} - transaction - {transaction_id} status is {transaction_status}")
+        if transaction_status == status:
             break
-        time.sleep(3)
+        attempt += 1
+        time.sleep(poll_interval)
+    else:
+        raise Exception("error: timed out while polling transaction status")
     print("=========================================================================")
 
 def test_sep_31_flow(endpoints, keypair, transaction_payload, sep38_payload=None):
@@ -182,8 +198,11 @@ def test_sep_31_flow(endpoints, keypair, transaction_payload, sep38_payload=None
     asset = Asset(transaction_payload["asset_code"], transaction_payload["asset_issuer"])
     send_asset(asset, secret_key, transaction["stellar_account_id"], memo_hash)
 
-    poll_transaction_status(endpoints, headers, transaction["id"])
-
+    try:
+        poll_transaction_status(endpoints, headers, transaction["id"])
+    except Exception as e:
+        print(e)
+        exit(1)
 
 def test_sep38_create_quote(endpoints, keypair, payload):
     token = get_anchor_platform_token(endpoints, keypair.public_key, keypair.secret)
