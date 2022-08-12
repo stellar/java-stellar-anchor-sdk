@@ -2,10 +2,11 @@ package org.stellar.anchor.platform.service;
 
 import static org.stellar.anchor.api.sep.SepTransactionStatus.*;
 import static org.stellar.anchor.sep31.Sep31Helper.allAmountAvailable;
-import static org.stellar.anchor.sep31.Sep31Helper.validateStatus;
 import static org.stellar.anchor.util.MathHelper.decimal;
+import static org.stellar.anchor.util.MathHelper.equalsAsDecimals;
 
 import io.micrometer.core.instrument.Metrics;
+import java.time.Instant;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -20,16 +21,15 @@ import org.stellar.anchor.api.platform.PatchTransactionsRequest;
 import org.stellar.anchor.api.platform.PatchTransactionsResponse;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.shared.Amount;
-import org.stellar.anchor.api.shared.Refund;
-import org.stellar.anchor.api.shared.RefundPayment;
 import org.stellar.anchor.asset.AssetService;
-import org.stellar.anchor.event.models.TransactionEvent;
 import org.stellar.anchor.sep31.Refunds;
 import org.stellar.anchor.sep31.Sep31Transaction;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep38.Sep38Quote;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
 import org.stellar.anchor.util.Log;
+import org.stellar.anchor.util.SepHelper;
+import org.stellar.anchor.util.StringHelper;
 
 @Service
 public class TransactionService {
@@ -45,6 +45,11 @@ public class TransactionService {
           COMPLETED.getName(),
           EXPIRED.getName(),
           ERROR.getName());
+
+  static boolean isStatusError(String status) {
+    return List.of(PENDING_CUSTOMER_INFO_UPDATE.getName(), EXPIRED.getName(), ERROR.getName())
+        .contains(status);
+  }
 
   TransactionService(
       Sep38QuoteStore quoteStore, Sep31TransactionStore txnStore, AssetService assetService) {
@@ -64,7 +69,7 @@ public class TransactionService {
       throw new NotFoundException(String.format("transaction (id=%s) is not found", txnId));
     }
 
-    return fromTransactionToResponse(txn);
+    return txn.toPlatformApiGetTransactionResponse();
   }
 
   public PatchTransactionsResponse patchTransactions(PatchTransactionsRequest request)
@@ -92,7 +97,7 @@ public class TransactionService {
         if (!txnOriginalStatus.equals(txn.getStatus())) {
           statusUpdatedTxns.add(txn);
         }
-        responses.add(fromTransactionToResponse(txn));
+        responses.add(txn.toPlatformApiGetTransactionResponse());
       } else {
         throw new BadRequestException(String.format("transaction(id=%s) not found", patch.getId()));
       }
@@ -108,128 +113,151 @@ public class TransactionService {
     return new PatchTransactionsResponse(responses);
   }
 
-  GetTransactionResponse fromTransactionToResponse(Sep31Transaction txn) {
-    Refunds txnRefunds = txn.getRefunds();
-    Refund refunds = null;
-    if (txnRefunds != null) {
-      String amountInAsset = txn.getAmountInAsset();
-      RefundPayment[] payments = null;
-      Refund.RefundBuilder refundsBuilder =
-          Refund.builder()
-              .amountRefunded(new Amount(txnRefunds.getAmountRefunded(), amountInAsset))
-              .amountFee(new Amount(txnRefunds.getAmountFee(), amountInAsset));
-
-      // populate refunds payments
-      for (int i = 0; i < txnRefunds.getRefundPayments().size(); i++) {
-        org.stellar.anchor.sep31.RefundPayment refundPayment =
-            txnRefunds.getRefundPayments().get(i);
-        RefundPayment platformRefundPayment =
-            RefundPayment.builder()
-                .id(refundPayment.getId())
-                .idType(RefundPayment.IdType.STELLAR)
-                .amount(new Amount(refundPayment.getAmount(), amountInAsset))
-                .fee(new Amount(refundPayment.getFee(), amountInAsset))
-                .requestedAt(null)
-                .refundedAt(null)
-                .build();
-
-        if (payments == null) {
-          payments = new RefundPayment[txnRefunds.getRefundPayments().size()];
-        }
-        payments[i] = platformRefundPayment;
-      }
-
-      refunds = refundsBuilder.payments(payments).build();
-    }
-
-    List<GetTransactionResponse.StellarTransaction> stellarTransactions = null;
-    if (!Objects.toString(txn.getStellarTransactionId(), "").isEmpty()) {
-      GetTransactionResponse.StellarTransaction stellarTxn =
-          new GetTransactionResponse.StellarTransaction();
-      stellarTxn.setId(txn.getStellarTransactionId());
-      stellarTransactions = List.of(stellarTxn);
-    }
-
-    return GetTransactionResponse.builder()
-        .id(txn.getId())
-        .sep(31)
-        .kind(TransactionEvent.Kind.RECEIVE.getKind())
-        .status(txn.getStatus())
-        .amountExpected(new Amount(txn.getAmountExpected(), txn.getAmountInAsset()))
-        .amountIn(new Amount(txn.getAmountIn(), txn.getAmountInAsset()))
-        .amountOut(new Amount(txn.getAmountOut(), txn.getAmountOutAsset()))
-        .amountFee(new Amount(txn.getAmountFee(), txn.getAmountFeeAsset()))
-        .quoteId(txn.getQuoteId())
-        .startedAt(txn.getStartedAt())
-        .updatedAt(txn.getUpdatedAt())
-        .completedAt(txn.getCompletedAt())
-        .transferReceivedAt(txn.getTransferReceivedAt())
-        .message(txn.getRequiredInfoMessage()) // Assuming these meant to be the same.
-        .refunds(refunds)
-        .stellarTransactions(stellarTransactions)
-        .externalTransactionId(txn.getExternalTransactionId())
-        // TODO .custodialTransactionId(txn.get)
-        .customers(txn.getCustomers())
-        .creator(txn.getCreator())
-        .build();
-  }
-
+  /**
+   * updateSep31Transaction will inject the new values from the PatchTransactionRequest into the
+   * database Sep31Transaction and validate them to make sure they are compliant.
+   *
+   * @param ptr is the PatchTransactionRequest containing the updated values.
+   * @param txn is the Sep31Transaction stored in the database that needs to be updated.
+   * @throws AnchorException if any of the new values is invalid or non-compliant.
+   */
   void updateSep31Transaction(PatchTransactionRequest ptr, Sep31Transaction txn)
       throws AnchorException {
-    if (ptr.getStatus() != null) {
-      validatePlatformApiStatus(ptr.getStatus());
+    boolean txWasUpdated = false;
+    boolean txWasCompleted = false;
+    boolean shouldClearMessageStatus =
+        !StringHelper.isEmpty(ptr.getStatus())
+            && !isStatusError(ptr.getStatus())
+            && !StringHelper.isEmpty(txn.getStatus())
+            && isStatusError(txn.getStatus());
+
+    if (ptr.getStatus() != null && !Objects.equals(txn.getStatus(), ptr.getStatus())) {
+      validateIfStatusIsSupported(ptr.getStatus());
+      txWasCompleted =
+          !Objects.equals(txn.getStatus(), COMPLETED.getName())
+              && Objects.equals(ptr.getStatus(), COMPLETED.getName());
       txn.setStatus(ptr.getStatus());
+      txWasUpdated = true;
     }
-    if (ptr.getAmountIn() != null) {
-      validateAsset(ptr.getAmountIn());
+
+    if (ptr.getAmountIn() != null
+        && (!Objects.equals(txn.getAmountIn(), ptr.getAmountIn().getAmount())
+            || !Objects.equals(txn.getAmountInAsset(), ptr.getAmountIn().getAsset()))) {
+      validateAsset("amount_in", ptr.getAmountIn());
       txn.setAmountIn(ptr.getAmountIn().getAmount());
       txn.setAmountInAsset(ptr.getAmountIn().getAsset());
+      txWasUpdated = true;
     }
-    if (ptr.getAmountOut() != null) {
-      validateAsset(ptr.getAmountOut());
+
+    if (ptr.getAmountOut() != null
+        && (!Objects.equals(txn.getAmountOut(), ptr.getAmountOut().getAmount())
+            || !Objects.equals(txn.getAmountOutAsset(), ptr.getAmountOut().getAsset()))) {
+      validateAsset("amount_out", ptr.getAmountOut());
       txn.setAmountOut(ptr.getAmountOut().getAmount());
       txn.setAmountOutAsset(ptr.getAmountOut().getAsset());
+      txWasUpdated = true;
     }
-    if (ptr.getAmountFee() != null) {
-      validateAsset(ptr.getAmountFee());
+
+    if (ptr.getAmountFee() != null
+        && (!Objects.equals(txn.getAmountFee(), ptr.getAmountFee().getAmount())
+            || !Objects.equals(txn.getAmountFeeAsset(), ptr.getAmountFee().getAsset()))) {
+      validateAsset("amount_fee", ptr.getAmountFee());
       txn.setAmountFee(ptr.getAmountFee().getAmount());
       txn.setAmountFeeAsset(ptr.getAmountFee().getAsset());
+      txWasUpdated = true;
     }
-    if (ptr.getTransferReceivedAt() != null) {
-      txn.setTransferReceivedAt(ptr.getTransferReceivedAt());
-    }
-    if (ptr.getMessage() != null) {
-      txn.setRequiredInfoMessage(ptr.getMessage());
-    }
-    if (ptr.getExternalTransactionId() != null) {
-      txn.setExternalTransactionId(ptr.getExternalTransactionId());
-    }
-    // TODO: Update [refunds] field
 
-    validateStatus(txn);
+    if (ptr.getTransferReceivedAt() != null
+        && ptr.getTransferReceivedAt().compareTo(txn.getStartedAt()) != 0) {
+      if (ptr.getTransferReceivedAt().compareTo(txn.getStartedAt()) < 0) {
+        throw new BadRequestException(
+            String.format(
+                "the `transfer_received_at(%s)` cannot be earlier than 'started_at(%s)'",
+                ptr.getTransferReceivedAt().toString(), txn.getStartedAt().toString()));
+      }
+      txn.setTransferReceivedAt(ptr.getTransferReceivedAt());
+      txWasUpdated = true;
+    }
+
+    if (ptr.getMessage() != null) {
+      if (!Objects.equals(txn.getRequiredInfoMessage(), ptr.getMessage())) {
+        txn.setRequiredInfoMessage(ptr.getMessage());
+        txWasUpdated = true;
+      }
+    } else if (shouldClearMessageStatus) {
+      txn.setRequiredInfoMessage(null);
+    }
+
+    if (ptr.getRefunds() != null) {
+      Refunds updatedRefunds = Refunds.of(ptr.getRefunds(), txnStore);
+      // TODO: validate refunds
+      if (!Objects.equals(txn.getRefunds(), updatedRefunds)) {
+        txn.setRefunds(updatedRefunds);
+        txWasUpdated = true;
+      }
+    }
+
+    if (ptr.getExternalTransactionId() != null
+        && !Objects.equals(txn.getExternalTransactionId(), ptr.getExternalTransactionId())) {
+      txn.setExternalTransactionId(ptr.getExternalTransactionId());
+      txWasUpdated = true;
+    }
+
     validateQuoteAndAmounts(txn);
-    validateTimestamps(txn);
+
+    Instant now = Instant.now();
+    if (txWasUpdated) {
+      txn.setUpdatedAt(now);
+    }
+    if (txWasCompleted) {
+      txn.setCompletedAt(now);
+    }
   }
 
-  private void validatePlatformApiStatus(String status) throws BadRequestException {
+  /**
+   * validateIfStatusIsSupported will check if the provided string is a SepTransactionStatus
+   * supported by the PlatformAPI
+   *
+   * @param status a String representing the SepTransactionStatus
+   * @throws BadRequestException if the provided status is not supported
+   */
+  void validateIfStatusIsSupported(String status) throws BadRequestException {
     if (!validStatuses.contains(status)) {
       throw new BadRequestException(String.format("invalid status(%s)", status));
     }
   }
 
-  void validateAsset(Amount amount) throws BadRequestException {
-    if (amount != null) {
-      if (assets.stream()
-          .noneMatch(assetInfo -> assetInfo.getAssetName().equals(amount.getAsset()))) {
-        throw new BadRequestException(
-            String.format("'%s' is not a supported asset.", amount.getAsset()));
-      }
+  /**
+   * validateAsset will validate if the provided amount has valid values and if its asset is
+   * supported.
+   *
+   * @param amount is the object containing the asset full name and the amount.
+   * @throws BadRequestException if the provided asset is not supported
+   */
+  void validateAsset(String fieldName, Amount amount) throws BadRequestException {
+    if (amount == null) {
+      return;
+    }
+
+    // asset amount needs to be non-empty and valid
+    SepHelper.validateAmount(fieldName + ".", amount.getAmount());
+
+    // asset name cannot be empty
+    if (StringHelper.isEmpty(amount.getAsset())) {
+      throw new BadRequestException(fieldName + ".asset cannot be empty");
+    }
+
+    // asset name needs to be supported
+    if (assets.stream()
+        .noneMatch(assetInfo -> assetInfo.getAssetName().equals(amount.getAsset()))) {
+      throw new BadRequestException(
+          String.format("'%s' is not a supported asset.", amount.getAsset()));
     }
   }
 
   void validateQuoteAndAmounts(Sep31Transaction txn) throws AnchorException {
     // amount_in = amount_out + amount_fee
-    if (txn.getQuoteId() == null) {
+    if (StringHelper.isEmpty(txn.getQuoteId())) {
       // without exchange
       if (allAmountAvailable(txn))
         if (decimal(txn.getAmountIn())
@@ -244,44 +272,30 @@ public class TransactionService {
                 "invalid quote_id(id=%s) found in transaction(id=%s)",
                 txn.getQuoteId(), txn.getId()));
       }
-      // TODO: Commenting out for now to get SEP38 working, Jamie will update SEP31 fee handling
-      // logic
-      //      if (!decimal(quote.getSellAmount()).equals(decimal(txn.getAmountIn()))) {
-      //        throw new BadRequestException("quote.sell_amount != amount_in");
-      //      }
 
-      if (txn.getAmountFeeAsset().equals(quote.getBuyAsset())) {
-        // fee calculated in buying asset
-        // buy_asset = amount_out + amount_fee
-        if (decimal(quote.getBuyAmount())
-                .compareTo(decimal(txn.getAmountOut()).add(decimal(txn.getAmountFee())))
-            != 0) {
-          throw new BadRequestException("quote.buy_amount != amount_fee + amount_out");
-        } else if (txn.getAmountFeeAsset().equals(quote.getSellAsset())) {
-          // fee calculated in selling asset
-          // sell_asset = amount_in + amount_fee
-          if (decimal(quote.getSellAmount())
-                  .compareTo(decimal(txn.getAmountIn()).add(decimal(txn.getAmountFee())))
-              != 0) {
-            throw new BadRequestException("quote.sell_amount != amount_fee + amount_in");
-          }
-        } else {
-          throw new BadRequestException(
-              String.format(
-                  "amount_in_asset(%s) must equal to one of sell_asset(%s) and buy_asset(%s",
-                  txn.getAmountInAsset(), quote.getSellAsset(), quote.getBuyAsset()));
-        }
+      if (!Objects.equals(txn.getAmountInAsset(), quote.getSellAsset())) {
+        throw new BadRequestException("transaction.amount_in_asset != quote.sell_asset");
       }
-    }
-  }
 
-  void validateTimestamps(Sep31Transaction txn) throws BadRequestException {
-    if (txn.getTransferReceivedAt() != null
-        && txn.getTransferReceivedAt().compareTo(txn.getStartedAt()) < 0) {
-      throw new BadRequestException(
-          String.format(
-              "the `transfer_receved_at(%s)` cannot be earlier than 'started_at(%s)'",
-              txn.getTransferReceivedAt().toString(), txn.getStartedAt().toString()));
+      if (!equalsAsDecimals(txn.getAmountIn(), quote.getSellAmount())) {
+        throw new BadRequestException("transaction.amount_in != quote.sell_amount");
+      }
+
+      if (!Objects.equals(txn.getAmountOutAsset(), quote.getBuyAsset())) {
+        throw new BadRequestException("transaction.amount_out_asset != quote.buy_asset");
+      }
+
+      if (!equalsAsDecimals(txn.getAmountOut(), quote.getBuyAmount())) {
+        throw new BadRequestException("transaction.amount_out != quote.buy_amount");
+      }
+
+      if (!Objects.equals(txn.getAmountFeeAsset(), quote.getFee().getAsset())) {
+        throw new BadRequestException("transaction.amount_fee_asset != quote.fee.asset");
+      }
+
+      if (!equalsAsDecimals(txn.getAmountFee(), quote.getFee().getTotal())) {
+        throw new BadRequestException("amount_fee != sum(quote.fee.total)");
+      }
     }
   }
 }

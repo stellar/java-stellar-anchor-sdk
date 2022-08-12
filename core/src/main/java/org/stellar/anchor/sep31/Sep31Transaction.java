@@ -1,13 +1,17 @@
 package org.stellar.anchor.sep31;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import org.stellar.anchor.api.platform.GetTransactionResponse;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.sep31.Sep31GetTransactionResponse;
+import org.stellar.anchor.api.shared.Amount;
 import org.stellar.anchor.api.shared.Customers;
+import org.stellar.anchor.api.shared.Refund;
 import org.stellar.anchor.api.shared.StellarId;
+import org.stellar.anchor.event.models.TransactionEvent;
+import org.stellar.anchor.util.StringHelper;
 
 public interface Sep31Transaction {
   String getId();
@@ -96,11 +100,11 @@ public interface Sep31Transaction {
 
   String getRequiredInfoMessage();
 
+  void setRequiredInfoMessage(String requiredInfoMessage);
+
   Map<String, String> getFields();
 
   void setFields(Map<String, String> fields);
-
-  void setRequiredInfoMessage(String requiredInfoMessage);
 
   AssetInfo.Sep31TxnFieldSpecs getRequiredInfoUpdates();
 
@@ -132,31 +136,15 @@ public interface Sep31Transaction {
         StellarId.builder().id(getReceiverId()).build());
   }
 
+  /**
+   * Create a Sep31GetTransactionResponse object out of this SEP-31 Transaction object.
+   *
+   * @return a Sep31GetTransactionResponse object.
+   */
   default Sep31GetTransactionResponse toSep31GetTransactionResponse() {
     Sep31GetTransactionResponse.Refunds refunds = null;
-    if (this.getRefunds() != null) {
-      List<Sep31GetTransactionResponse.Sep31RefundPayment> payments = null;
-      if (this.getRefunds().getRefundPayments() != null) {
-        for (RefundPayment refundPayment : this.getRefunds().getRefundPayments()) {
-          if (payments == null) {
-            payments = new ArrayList<>();
-          }
-
-          payments.add(
-              Sep31GetTransactionResponse.Sep31RefundPayment.builder()
-                  .id(refundPayment.getId())
-                  .amount(refundPayment.getAmount())
-                  .fee(refundPayment.getFee())
-                  .build());
-        }
-      }
-
-      refunds =
-          Sep31GetTransactionResponse.Refunds.builder()
-              .amountRefunded(this.getRefunds().getAmountRefunded())
-              .amountFee(this.getRefunds().getAmountFee())
-              .payments(payments)
-              .build();
+    if (getRefunds() != null) {
+      refunds = getRefunds().toSep31TransactionResponseRefunds();
     }
 
     return Sep31GetTransactionResponse.builder()
@@ -183,6 +171,50 @@ public interface Sep31Transaction {
                 .requiredInfoMessage(getRequiredInfoMessage())
                 .requiredInfoUpdates(getRequiredInfoUpdates())
                 .build())
+        .build();
+  }
+
+  /**
+   * Create a PlatformApi GetTransactionResponse object out of this SEP-31 Transaction object.
+   *
+   * @return a PlatformApi GetTransactionResponse object.
+   */
+  default org.stellar.anchor.api.platform.GetTransactionResponse
+      toPlatformApiGetTransactionResponse() {
+    Refund refunds = null;
+    if (getRefunds() != null) {
+      refunds = getRefunds().toPlatformApiRefund(getAmountInAsset());
+    }
+
+    List<GetTransactionResponse.StellarTransaction> stellarTransactions = null;
+    if (!StringHelper.isEmpty(getStellarTransactionId())) {
+      GetTransactionResponse.StellarTransaction stellarTxn =
+          new GetTransactionResponse.StellarTransaction();
+      stellarTxn.setId(getStellarTransactionId());
+      stellarTransactions = List.of(stellarTxn);
+    }
+
+    return org.stellar.anchor.api.platform.GetTransactionResponse.builder()
+        .id(getId())
+        .sep(31)
+        .kind(TransactionEvent.Kind.RECEIVE.getKind())
+        .status(getStatus())
+        .amountExpected(new Amount(getAmountExpected(), getAmountInAsset()))
+        .amountIn(new Amount(getAmountIn(), getAmountInAsset()))
+        .amountOut(new Amount(getAmountOut(), getAmountOutAsset()))
+        .amountFee(new Amount(getAmountFee(), getAmountFeeAsset()))
+        .quoteId(getQuoteId())
+        .startedAt(getStartedAt())
+        .updatedAt(getUpdatedAt())
+        .completedAt(getCompletedAt())
+        .transferReceivedAt(getTransferReceivedAt())
+        .message(getRequiredInfoMessage()) // Assuming these are meant to be the same.
+        .refunds(refunds)
+        .stellarTransactions(stellarTransactions)
+        .externalTransactionId(getExternalTransactionId())
+        // TODO .custodialTransactionId(txn.get)
+        .customers(getCustomers())
+        .creator(getCreator())
         .build();
   }
 }
