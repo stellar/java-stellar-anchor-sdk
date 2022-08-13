@@ -7,11 +7,13 @@ import lombok.Data;
 @Data
 @Entity
 @Access(AccessType.FIELD)
-@Table(name = "stellar_account_page_token")
+@Table(name = "stellar_payment_observer_page_token")
 public class PaymentStreamerCursor {
+  public static final String SINGLETON_ID = "SINGLETON_ID";
+
   @Id
-  @SerializedName("account_id")
-  String accountId;
+  @SerializedName("id")
+  String id = SINGLETON_ID;
 
   String cursor;
 }

@@ -1,5 +1,7 @@
 package org.stellar.anchor.platform.payment.observer.stellar;
 
+import static org.stellar.anchor.platform.data.PaymentStreamerCursor.SINGLETON_ID;
+
 import java.util.Optional;
 import org.springframework.stereotype.Component;
 import org.stellar.anchor.platform.data.PaymentStreamerCursor;
@@ -14,19 +16,21 @@ public class JdbcStellarPaymentStreamerCursorStore implements StellarPaymentStre
   }
 
   @Override
-  public void save(String account, String cursor) {
-    PaymentStreamerCursor paymentStreamerCursor = this.repo.findByAccountId(account).orElse(null);
+  public void save(String cursor) {
+    PaymentStreamerCursor paymentStreamerCursor = this.repo.findById(SINGLETON_ID).orElse(null);
     if (paymentStreamerCursor == null) {
       paymentStreamerCursor = new PaymentStreamerCursor();
     }
-    paymentStreamerCursor.setAccountId(account);
+
+    paymentStreamerCursor.setId(SINGLETON_ID);
     paymentStreamerCursor.setCursor(cursor);
+
     this.repo.save(paymentStreamerCursor);
   }
 
   @Override
-  public String load(String account) {
-    Optional<PaymentStreamerCursor> pageToken = repo.findByAccountId(account);
+  public String load() {
+    Optional<PaymentStreamerCursor> pageToken = repo.findById(SINGLETON_ID);
     return pageToken.map(PaymentStreamerCursor::getCursor).orElse(null);
   }
 }
