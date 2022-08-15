@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import org.stellar.anchor.api.callback.CustomerIntegration;
 import org.stellar.anchor.api.callback.FeeIntegration;
 import org.stellar.anchor.api.callback.RateIntegration;
+import org.stellar.anchor.api.callback.UniqueAddressIntegration;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.config.*;
@@ -16,13 +17,11 @@ import org.stellar.anchor.filter.ApiKeyFilter;
 import org.stellar.anchor.filter.JwtTokenFilter;
 import org.stellar.anchor.filter.NoneFilter;
 import org.stellar.anchor.horizon.Horizon;
-import org.stellar.anchor.paymentservice.circle.CirclePaymentService;
-import org.stellar.anchor.paymentservice.circle.config.CirclePaymentConfig;
 import org.stellar.anchor.platform.data.*;
-import org.stellar.anchor.platform.service.ResourceReaderAssetService;
-import org.stellar.anchor.platform.service.Sep31DepositInfoGeneratorCircle;
-import org.stellar.anchor.platform.service.Sep31DepositInfoGeneratorSelf;
-import org.stellar.anchor.platform.service.SpringResourceReader;
+import org.stellar.anchor.platform.payment.config.CirclePaymentConfig;
+import org.stellar.anchor.platform.payment.observer.circle.CirclePaymentService;
+import org.stellar.anchor.platform.payment.observer.stellar.PaymentObservingAccountsManager;
+import org.stellar.anchor.platform.service.*;
 import org.stellar.anchor.sep1.Sep1Service;
 import org.stellar.anchor.sep10.Sep10Service;
 import org.stellar.anchor.sep12.Sep12Service;
@@ -159,21 +158,21 @@ public class SepConfig {
   }
 
   @Bean
-  Sep31DepositInfoGenerator sep31DepositInfoGeneratorCircle(
-      CirclePaymentService circlePaymentService) {
-    return new Sep31DepositInfoGeneratorCircle(circlePaymentService);
-  }
-
-  @Bean
   Sep31DepositInfoGenerator sep31DepositInfoGenerator(
-      Sep31Config sep31Config, Sep31DepositInfoGenerator sep31DepositInfoGeneratorCircle) {
+      Sep31Config sep31Config,
+      CirclePaymentService circlePaymentService,
+      PaymentObservingAccountsManager paymentObservingAccountsManager,
+      UniqueAddressIntegration uniqueAddressIntegration) {
     switch (sep31Config.getDepositInfoGeneratorType()) {
       case SELF:
         return new Sep31DepositInfoGeneratorSelf();
 
       case CIRCLE:
-        return sep31DepositInfoGeneratorCircle;
+        return new Sep31DepositInfoGeneratorCircle(circlePaymentService);
 
+      case API:
+        return new Sep31DepositInfoGeneratorApi(
+            uniqueAddressIntegration, paymentObservingAccountsManager);
       default:
         throw new RuntimeException("Not supported");
     }

@@ -1,9 +1,9 @@
 package org.stellar.anchor.sep31;
 
 import java.time.Instant;
-import java.util.List;
 import java.util.Map;
 import org.stellar.anchor.api.sep.AssetInfo;
+import org.stellar.anchor.api.shared.StellarId;
 
 public class Sep31TransactionBuilder {
   final Sep31Transaction txn;
@@ -26,6 +26,11 @@ public class Sep31TransactionBuilder {
 
   public Sep31TransactionBuilder statusEta(Long statusEta) {
     txn.setStatusEta(statusEta);
+    return this;
+  }
+
+  public Sep31TransactionBuilder amountExpected(String amountExpected) {
+    txn.setAmountExpected(amountExpected);
     return this;
   }
 
@@ -74,6 +79,16 @@ public class Sep31TransactionBuilder {
     return this;
   }
 
+  public Sep31TransactionBuilder updatedAt(Instant updatedAt) {
+    txn.setUpdatedAt(updatedAt);
+    return this;
+  }
+
+  public Sep31TransactionBuilder transferReceivedAt(Instant transferReceivedAt) {
+    txn.setTransferReceivedAt(transferReceivedAt);
+    return this;
+  }
+
   public Sep31TransactionBuilder startedAt(Instant startedAt) {
     txn.setStartedAt(startedAt);
     return this;
@@ -99,7 +114,7 @@ public class Sep31TransactionBuilder {
     return this;
   }
 
-  public Sep31TransactionBuilder refunds(Sep31Transaction.Refunds refunds) {
+  public Sep31TransactionBuilder refunds(Refunds refunds) {
     txn.setRefunds(refunds);
     return this;
   }
@@ -140,53 +155,12 @@ public class Sep31TransactionBuilder {
     return this;
   }
 
+  public Sep31TransactionBuilder creator(StellarId creator) {
+    txn.setCreator(creator);
+    return this;
+  }
+
   public Sep31Transaction build() {
     return txn;
-  }
-
-  public class RefundsBuilder {
-    Sep31Transaction.Refunds refunds;
-
-    RefundsBuilder() {
-      refunds = factory.newRefunds();
-    }
-
-    RefundsBuilder amountRefunded(String amountRefunded) {
-      refunds.setAmountRefunded(amountRefunded);
-      return this;
-    }
-
-    RefundsBuilder amountFee(String amountFee) {
-      refunds.setAmountFee(amountFee);
-      return this;
-    }
-
-    RefundsBuilder payments(List<Sep31Transaction.RefundPayment> payments) {
-      refunds.setRefundPayments(payments);
-      return this;
-    }
-  }
-
-  public class RefundPaymentBuilder {
-    Sep31Transaction.RefundPayment refundPayment;
-
-    RefundPaymentBuilder() {
-      refundPayment = factory.newRefundPayment();
-    }
-
-    RefundPaymentBuilder id(String id) {
-      refundPayment.setId(id);
-      return this;
-    }
-
-    RefundPaymentBuilder amount(String amount) {
-      refundPayment.setAmount(amount);
-      return this;
-    }
-
-    RefundPaymentBuilder fee(String fee) {
-      refundPayment.setFee(fee);
-      return this;
-    }
   }
 }

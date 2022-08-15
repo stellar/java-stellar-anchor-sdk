@@ -6,7 +6,6 @@ import static org.stellar.sdk.xdr.MemoType.*;
 
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Objects;
 import java.util.UUID;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
@@ -55,9 +54,10 @@ public class SepHelper {
     validateAmount("", amount);
   }
 
-  public static void validateAmount(String messagePrefix, String amount) throws AnchorException {
+  public static BigDecimal validateAmount(String messagePrefix, String amount)
+      throws BadRequestException {
     // assetName
-    if (Objects.toString(amount, "").isEmpty()) {
+    if (StringHelper.isEmpty(amount)) {
       throw new BadRequestException(messagePrefix + "amount cannot be empty");
     }
 
@@ -69,6 +69,20 @@ public class SepHelper {
     }
     if (sAmount.signum() < 1) {
       throw new BadRequestException(messagePrefix + "amount should be positive");
+    }
+    return sAmount;
+  }
+
+  public static void validateAmountLimit(String messagePrefix, String amount, Long min, Long max)
+      throws AnchorException {
+    BigDecimal sAmount = validateAmount("", amount);
+    BigDecimal bdMin = new BigDecimal(min);
+    BigDecimal bdMax = new BigDecimal(max);
+    if (sAmount.compareTo(bdMin) == -1) {
+      throw new BadRequestException(String.format("%samount less than min limit", messagePrefix));
+    }
+    if (sAmount.compareTo(bdMax) == 1) {
+      throw new BadRequestException(String.format("%samount exceeds max limit", messagePrefix));
     }
   }
 
@@ -132,5 +146,6 @@ public class SepHelper {
           PENDING_RECEIVER,
           PENDING_EXTERNAL,
           COMPLETED,
+          EXPIRED,
           ERROR);
 }

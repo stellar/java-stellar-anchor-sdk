@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
       - name: reference-server
-        image: docker-registry.services.stellar-ops.com/dev/anchor-platform:98e5ae9
+        image: stellar/anchor-platform:latest
         args: ["--anchor-reference-server"]
         imagePullPolicy: Always
         ports:

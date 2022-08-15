@@ -9,7 +9,9 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestClientException;
 import org.stellar.anchor.api.exception.SepException;
+import org.stellar.anchor.api.exception.SepNotAuthorizedException;
 import org.stellar.anchor.api.exception.SepValidationException;
+import org.stellar.anchor.api.sep.SepAuthorizationExceptionResponse;
 import org.stellar.anchor.api.sep.SepExceptionResponse;
 import org.stellar.anchor.api.sep.sep10.ChallengeRequest;
 import org.stellar.anchor.api.sep.sep10.ChallengeResponse;
@@ -86,6 +88,15 @@ public class Sep10Controller {
   public SepExceptionResponse handleSepValidationException(Exception ex) {
     errorEx(ex);
     return new SepExceptionResponse(ex.getMessage());
+  }
+
+  @ExceptionHandler({
+    SepNotAuthorizedException.class,
+  })
+  @ResponseStatus(value = HttpStatus.FORBIDDEN)
+  public SepAuthorizationExceptionResponse handleSepAuthorizationException(Exception ex) {
+    errorEx(ex);
+    return new SepAuthorizationExceptionResponse(ex.getMessage());
   }
 
   @ExceptionHandler(RestClientException.class)

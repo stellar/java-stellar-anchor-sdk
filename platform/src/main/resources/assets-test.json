@@ -74,8 +74,7 @@
             },
             "sep38": {
                 "exchangeable_assets": [
-                    "iso4217:USD",
-                    "stellar:JPYC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+                    "iso4217:USD"
                 ]
             },
             "sep24_enabled": true,
@@ -156,8 +155,7 @@
             },
             "sep38": {
                 "exchangeable_assets": [
-                    "iso4217:USD",
-                    "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+                    "iso4217:USD"
                 ]
             },
             "sep24_enabled": false,
@@ -189,7 +187,8 @@
             },
             "sep38": {
                 "exchangeable_assets": [
-                    "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+                    "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+                    "stellar:JPYC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
                 ],
                 "country_codes": ["USA"],
                 "decimals": 4,

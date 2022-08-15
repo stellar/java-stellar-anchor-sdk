@@ -7,14 +7,15 @@ import java.time.Instant;
 import java.util.Map;
 import java.util.Set;
 import javax.persistence.*;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.Data;
 import org.stellar.anchor.api.sep.AssetInfo;
+import org.stellar.anchor.api.shared.StellarId;
+import org.stellar.anchor.reference.model.StellarIdConverter;
+import org.stellar.anchor.sep31.Refunds;
 import org.stellar.anchor.sep31.Sep31Transaction;
 import org.stellar.anchor.util.GsonUtils;
 
-@Getter
-@Setter
+@Data
 @Entity
 @Access(AccessType.FIELD)
 @Table(name = "sep31_transaction")
@@ -81,6 +82,10 @@ public class JdbcSep31Transaction implements Sep31Transaction, SepTransaction {
   @SerializedName("receiver_id")
   String receiverId;
 
+  @Convert(converter = StellarIdConverter.class)
+  @Column(length = 2047)
+  StellarId creator;
+
   // Ignored by JPA and Gson
   @SerializedName("required_info_updates")
   @Transient
@@ -135,7 +140,6 @@ public class JdbcSep31Transaction implements Sep31Transaction, SepTransaction {
 
   Instant updatedAt;
   Instant transferReceivedAt;
-  String message;
   String amountExpected;
 
   @OneToMany(fetch = FetchType.EAGER, mappedBy = "sep31Transaction")

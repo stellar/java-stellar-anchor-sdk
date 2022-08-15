@@ -76,6 +76,9 @@ app-config:
     # The secret key of JWT encryption
     jwtSecretKey: ${JWT_SECRET}
 
+  anchor-callback:
+    endpoint: http://localhost:8081
+
   # These are secrets shared between Anchor and Platform that are used to safely communicate from `Platform->Anchor`
   # and `Anchor->Platform`, specially when they are in different clusters.
   #
@@ -86,16 +89,16 @@ app-config:
     #     NONE: no authentication is used
     #     API_KEY: the authentication is done using an API key added to the `X-Api-Key` header.
     #     JWT_TOKEN: the authentication is done using a JWT token added to the `Authorization` header. this token is generated from the secret key.
-    authType: JWT_TOKEN
+    authType: NONE
     # CallbackAPI requests (`Platform->Anchor`) will contain an authentication header whose token was built using this
     # secret. The Anchor Backend will also store this same secret and use it to decode the incoming token to verify it
     # came from the Platform.
-    platformToAnchorSecret: ${PLATFORM_TO_ANCHOR_SECRET}
+    platformToAnchorSecret:
     # PlatformAPI requests (`Anchor->Platform`) will contain an authentication header whose token was built using this
     # secret. The Platform Server will use this secret to decode the incoming token to verify it came from the Anchor.
-    anchorToPlatformSecret: ${ANCHOR_TO_PLATFORM_SECRET}
+    anchorToPlatformSecret:
     # Expiration time, in milliseconds, that will be used to build and validate the JWT tokens
-    expirationMilliseconds: 30000
+    expirationMilliseconds:
 
   # sep-1
   sep1:
@@ -148,6 +151,9 @@ app-config:
     # The detail of the SEP-10 omnibus account is described at: https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#memos
     omnibusAccountList:
 
+    # Require authenticating clients to be in the omnibusAccountList
+    requireKnownOmnibusAccount: false
+
   # sep-12
   sep12:
     enabled: true
@@ -171,8 +177,11 @@ app-config:
   sep31:
     enabled: true
 
-    # The callback API endpoint.
+    # The /fee callback API endpoint.
     feeIntegrationEndPoint: http://localhost:8081
+
+    # The /unique_address callback API endpoint.
+    uniqueAddressIntegrationEndPoint: http://localhost:8081
 
     #
     # paymentType: used to determine how amount_in is calculated from amount in the POST /transaction call
@@ -187,7 +196,8 @@ app-config:
     # Possible values:
     #     self: the memo and memo type are generated in the local code, and the distribution account is used for the deposit address.
     #     circle: the memo and memo type are generated through Circle API, as well as the deposit address.
-    depositInfoGeneratorType: self # self or circle
+    #     api: the memo and memo type are generated through calling the anchor's GET /unique_address endpoint.
+    depositInfoGeneratorType: self # self or circle or api
 
   # sep-38
   sep38:
@@ -231,7 +241,7 @@ app-config:
     publisherType: kafka
 
   metrics-service:
-    optionalMetricsEnabled: true    # optional metrics that periodically query the database
+    optionalMetricsEnabled: false    # optional metrics that periodically query the database
     runInterval: 30                 # interval to query the database to generate the optional metrics
 
   kafka.publisher:

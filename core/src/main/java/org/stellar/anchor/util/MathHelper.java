@@ -26,6 +26,15 @@ public class MathHelper {
     return BigDecimal.valueOf(value);
   }
 
+  public static boolean equalsAsDecimals(String valueA, String valueB) {
+    if (valueA == null && valueB == null) {
+      return true;
+    } else if (valueA == null || valueB == null) {
+      return false;
+    }
+    return decimal(valueA).compareTo(decimal(valueB)) == 0;
+  }
+
   public static String formatAmount(BigDecimal amount, Integer decimals) {
     BigDecimal newAmount = amount.setScale(decimals, RoundingMode.HALF_DOWN);
 

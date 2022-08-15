@@ -14,6 +14,7 @@ import org.stellar.anchor.api.sep.SepExceptionResponse;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.auth.JwtToken;
 import org.stellar.anchor.util.GsonUtils;
+import org.stellar.anchor.util.Log;
 
 public class JwtTokenFilter implements Filter {
   public static final String JWT_TOKEN = "token";
@@ -43,6 +44,11 @@ public class JwtTokenFilter implements Filter {
 
     HttpServletRequest request = (HttpServletRequest) servletRequest;
     HttpServletResponse response = (HttpServletResponse) servletResponse;
+    Log.infoF(
+        "Applying JwtTokenFilter on request {} {}?{}",
+        request.getMethod(),
+        request.getRequestURL().toString(),
+        request.getQueryString());
 
     if (request.getMethod().equals(OPTIONS)) {
       filterChain.doFilter(servletRequest, servletResponse);
@@ -91,6 +97,7 @@ public class JwtTokenFilter implements Filter {
   }
 
   private static void sendForbiddenError(HttpServletResponse response) throws IOException {
+    error("Forbidden: JwtTokenFilter failed to authenticate the request.");
     response.setStatus(HttpStatus.SC_FORBIDDEN);
     response.setContentType(APPLICATION_JSON_VALUE);
     response.getWriter().print(gson.toJson(new SepExceptionResponse("forbidden")));

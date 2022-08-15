@@ -46,6 +46,10 @@ public class PlatformIntegrationHelper {
   }
 
   public static AnchorException httpError(String responseContent, int responseCode, Gson gson) {
+    Log.infoF(
+        "Error returned from the Anchor Backend.\nresponseCode={}\nContent={}",
+        responseCode,
+        responseContent);
     ErrorResponse errorResponse;
     try {
       errorResponse = gson.fromJson(responseContent, ErrorResponse.class);

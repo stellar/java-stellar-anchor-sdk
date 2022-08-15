@@ -9,4 +9,12 @@ public interface ResourceReader {
    * @return The content of the resource.
    */
   String readResourceAsString(String path);
+
+  /**
+   * Checks whether the resource exists.
+   *
+   * @param path The location of the resource.
+   * @return True if the resource is found, False otherwise.
+   */
+  boolean checkResourceExists(String path);
 }

@@ -72,6 +72,26 @@ public class CustomerService {
     return response;
   }
 
+  /**
+   * ATTENTION: this function is used for testing purposes only.
+   *
+   * <p>This method is used to delete a customer's `clabe_number`, which would make its state change
+   * to NEEDS_INFO if it's a receiving customer.
+   *
+   * @param customerId is the id of the customer whose `clabe_number` will be deleted.
+   * @throws NotFoundException if the user was not found.
+   */
+  public void invalidateCustomerClabe(String customerId) throws NotFoundException {
+    Optional<Customer> maybeCustomer = customerRepo.findById(customerId);
+    if (maybeCustomer.isEmpty()) {
+      throw new NotFoundException(String.format("customer for 'id' '%s' not found", customerId));
+    }
+
+    Customer customer = maybeCustomer.get();
+    customer.setClabeNumber(null);
+    customerRepo.save(customer);
+  }
+
   public void delete(String customerId) {
     customerRepo.deleteById(customerId);
   }
@@ -162,16 +182,14 @@ public class CustomerService {
     if (request.getEmailAddress() != null) {
       customer.setEmail(request.getEmailAddress());
     }
-    if (Customer.Type.SEP31_RECEIVER.toString().equals(request.getType())) {
-      if (request.getBankAccountNumber() != null) {
-        customer.setBankAccountNumber(request.getBankAccountNumber());
-      }
-      if (request.getBankNumber() != null) {
-        customer.setBankRoutingNumber(request.getBankNumber());
-      }
-      if (request.getClabeNumber() != null) {
-        customer.setClabeNumber(request.getClabeNumber());
-      }
+    if (request.getBankAccountNumber() != null) {
+      customer.setBankAccountNumber(request.getBankAccountNumber());
+    }
+    if (request.getBankNumber() != null) {
+      customer.setBankRoutingNumber(request.getBankNumber());
+    }
+    if (request.getClabeNumber() != null) {
+      customer.setClabeNumber(request.getClabeNumber());
     }
     customerRepo.save(customer);
   }

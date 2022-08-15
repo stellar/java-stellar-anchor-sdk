@@ -1,8 +1,8 @@
 package org.stellar.anchor.platform.service;
 
 import org.stellar.anchor.api.sep.sep31.Sep31DepositInfo;
-import org.stellar.anchor.paymentservice.circle.CirclePaymentService;
-import org.stellar.anchor.paymentservice.circle.model.CircleBlockchainAddress;
+import org.stellar.anchor.platform.payment.observer.circle.CirclePaymentService;
+import org.stellar.anchor.platform.payment.observer.circle.model.CircleBlockchainAddress;
 import org.stellar.anchor.sep31.Sep31DepositInfoGenerator;
 import org.stellar.anchor.sep31.Sep31Transaction;
 import org.stellar.anchor.util.MemoHelper;
@@ -17,7 +17,7 @@ public class Sep31DepositInfoGeneratorCircle implements Sep31DepositInfoGenerato
   }
 
   @Override
-  public Sep31DepositInfo getSep31DepositInfo(Sep31Transaction txn) {
+  public Sep31DepositInfo generate(Sep31Transaction txn) {
     return circlePaymentService
         .getDistributionAccountAddress()
         .flatMap(circlePaymentService::createNewStellarAddress)

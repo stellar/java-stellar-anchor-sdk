@@ -20,6 +20,11 @@ public class SpringResourceReader implements ResourceReader {
     return asString(resourceLoader.getResource(path));
   }
 
+  @Override
+  public boolean checkResourceExists(String path) {
+    return resourceLoader.getResource(path).exists();
+  }
+
   public String asString(Resource resource) {
     try (Reader reader = new InputStreamReader(resource.getInputStream(), UTF_8)) {
       return IOUtils.toString(reader);

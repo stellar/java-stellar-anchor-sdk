@@ -12,5 +12,5 @@ public class IntegrationAuthSettings {
   AuthType authType = AuthType.NONE;
   String platformToAnchorSecret;
   String anchorToPlatformSecret;
-  long expirationMilliseconds = 30000;
+  Long expirationMilliseconds;
 }
