@@ -4,17 +4,20 @@ plugins {
   `java-library`
   `maven-publish`
   signing
+  alias(libs.plugins.kotlin.jvm)
 }
 
 version = "1.0.2"
 
 dependencies {
   compileOnly(libs.servlet.api)
-
   compileOnly(libs.slf4j.api)
+
   api(libs.lombok)
 
-  //  TODO: To be removed or simplified. Spring has its own way of dependency management.
+  // Lombok should be used by all sub-projects to reduce Java verbosity
+  annotationProcessor(libs.lombok)
+
   implementation(libs.spring.kafka)
 
   implementation(libs.bundles.kafka)
@@ -37,9 +40,6 @@ dependencies {
   implementation(libs.java.stellar.sdk)
 
   implementation(project(":api-schema"))
-
-  // Lombok should be used by all sub-projects to reduce Java verbosity
-  annotationProcessor(libs.lombok)
 
   testImplementation(libs.okhttp3.mockserver)
   testImplementation(libs.servlet.api)

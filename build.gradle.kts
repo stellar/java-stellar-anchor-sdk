@@ -79,9 +79,7 @@ subprojects {
     // subproject task as of today.
     //
     testImplementation(rootProject.libs.bundles.junit)
-    testImplementation(rootProject.libs.bundles.kotlin)
     testImplementation(rootProject.libs.jsonassert)
-    testImplementation(rootProject.libs.mockk)
 
     testAnnotationProcessor(rootProject.libs.lombok)
   }
