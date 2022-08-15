@@ -140,6 +140,12 @@ class AnchorPlatformIntegrationTest {
   }
 
   @Test
+  @Order(8)
+  fun runSep31UnhappyPath() {
+    testSep31UnhappyPath()
+  }
+
+  @Test
   fun testCustomerIntegration() {
     assertThrows<NotFoundException> {
       rci.getCustomer(Sep12GetCustomerRequest.builder().id("1").build())

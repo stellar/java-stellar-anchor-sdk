@@ -1,37 +1,36 @@
 package org.stellar.anchor.platform.service
 
-import io.mockk.MockKAnnotations
-import io.mockk.clearAllMocks
-import io.mockk.every
+import io.mockk.*
 import io.mockk.impl.annotations.MockK
-import io.mockk.unmockkAll
 import java.time.Instant
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertInstanceOf
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import org.stellar.anchor.api.exception.AnchorException
 import org.stellar.anchor.api.exception.BadRequestException
 import org.stellar.anchor.api.exception.NotFoundException
 import org.stellar.anchor.api.platform.GetTransactionResponse
+import org.stellar.anchor.api.platform.PatchTransactionRequest
 import org.stellar.anchor.api.sep.AssetInfo
+import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.api.shared.*
 import org.stellar.anchor.api.shared.RefundPayment
 import org.stellar.anchor.asset.AssetService
+import org.stellar.anchor.asset.ResourceJsonAssetService
 import org.stellar.anchor.event.models.TransactionEvent
 import org.stellar.anchor.platform.data.JdbcSep31RefundPayment.JdbcRefundPayment
 import org.stellar.anchor.platform.data.JdbcSep31Refunds
 import org.stellar.anchor.platform.data.JdbcSep31Transaction
 import org.stellar.anchor.sep31.*
+import org.stellar.anchor.sep38.Sep38Quote
 import org.stellar.anchor.sep38.Sep38QuoteStore
 
 class TransactionServiceTest {
   companion object {
     private const val fiatUSD = "iso4217:USD"
     private const val stellarUSDC =
-      "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+      "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
     private const val TEST_ACCOUNT = "GCHLHDBOKG2JWMJQBTLSL5XG6NO7ESXI2TAQKZXCXWXB5WI2X6W233PR"
     private const val TEST_MEMO = "test memo"
   }
@@ -200,5 +199,207 @@ class TransactionServiceTest {
         .creator(StellarId("141ee445-f32c-4c38-9d25-f4475d6c5558", null))
         .build()
     assertEquals(wantGetTransactionResponse, gotGetTransactionResponse)
+  }
+
+  @Test
+  fun test_validateAsset_failure() {
+    // fails if amount_in.amount is null
+    var assetAmount = Amount(null, null)
+    var ex =
+      assertThrows<AnchorException> { transactionService.validateAsset("amount_in", assetAmount) }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("amount_in.amount cannot be empty", ex.message)
+
+    // fails if amount_in.amount is empty
+    assetAmount = Amount("", null)
+    ex = assertThrows { transactionService.validateAsset("amount_in", assetAmount) }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("amount_in.amount cannot be empty", ex.message)
+
+    // fails if amount_in.amount is invalid
+    assetAmount = Amount("abc", null)
+    ex = assertThrows { transactionService.validateAsset("amount_in", assetAmount) }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("amount_in.amount is invalid", ex.message)
+
+    // fails if amount_in.amount is negative
+    assetAmount = Amount("-1", null)
+    ex = assertThrows { transactionService.validateAsset("amount_in", assetAmount) }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("amount_in.amount should be positive", ex.message)
+
+    // fails if amount_in.amount is zero
+    assetAmount = Amount("0", null)
+    ex = assertThrows { transactionService.validateAsset("amount_in", assetAmount) }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("amount_in.amount should be positive", ex.message)
+
+    // fails if amount_in.asset is null
+    assetAmount = Amount("10", null)
+    ex = assertThrows { transactionService.validateAsset("amount_in", assetAmount) }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("amount_in.asset cannot be empty", ex.message)
+
+    // fails if amount_in.asset is empty
+    assetAmount = Amount("10", "")
+    ex = assertThrows { transactionService.validateAsset("amount_in", assetAmount) }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("amount_in.asset cannot be empty", ex.message)
+
+    // fails if listAllAssets is empty
+    every { assetService.listAllAssets() } returns listOf()
+    val mockAsset = Amount("10", fiatUSD)
+    ex = assertThrows { transactionService.validateAsset("amount_in", mockAsset) }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("'$fiatUSD' is not a supported asset.", ex.message)
+
+    // fails if listAllAssets does not contain the desired asset
+    this.assetService = ResourceJsonAssetService("test_assets.json")
+    ex = assertThrows { transactionService.validateAsset("amount_in", mockAsset) }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("'$fiatUSD' is not a supported asset.", ex.message)
+  }
+
+  @Test
+  fun test_validateAsset() {
+    this.assetService = ResourceJsonAssetService("test_assets.json")
+    transactionService = TransactionService(sep38QuoteStore, sep31TransactionStore, assetService)
+    val mockAsset = Amount("10", fiatUSD)
+    assertDoesNotThrow { transactionService.validateAsset("amount_in", mockAsset) }
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+    value = SepTransactionStatus::class,
+    mode = EnumSource.Mode.EXCLUDE,
+    names =
+      [
+        "PENDING_STELLAR",
+        "PENDING_CUSTOMER_INFO_UPDATE",
+        "PENDING_RECEIVER",
+        "PENDING_EXTERNAL",
+        "COMPLETED",
+        "EXPIRED",
+        "ERROR"]
+  )
+  fun test_validateIfStatusIsSupported_failure(sepTxnStatus: SepTransactionStatus) {
+    val ex: Exception = assertThrows {
+      transactionService.validateIfStatusIsSupported(sepTxnStatus.getName())
+    }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("invalid status(${sepTxnStatus.getName()})", ex.message)
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+    value = SepTransactionStatus::class,
+    mode = EnumSource.Mode.INCLUDE,
+    names =
+      [
+        "PENDING_STELLAR",
+        "PENDING_CUSTOMER_INFO_UPDATE",
+        "PENDING_RECEIVER",
+        "PENDING_EXTERNAL",
+        "COMPLETED",
+        "EXPIRED",
+        "ERROR"]
+  )
+  fun test_validateIfStatusIsSupported(sepTxnStatus: SepTransactionStatus) {
+    assertDoesNotThrow { transactionService.validateIfStatusIsSupported(sepTxnStatus.getName()) }
+  }
+
+  @Test
+  fun test_updateSep31Transaction() {
+    val txId = "my-tx-id"
+    val quoteId = "my-quote-id"
+
+    // mock times
+    val mockStartedAt = Instant.now().minusSeconds(180)
+    val mockTransferReceivedAt = mockStartedAt.plusSeconds(60)
+
+    val mockRefunds: Refund =
+      Refund.builder()
+        .amountRefunded(Amount("90.0000", fiatUSD))
+        .amountFee(Amount("8.0000", fiatUSD))
+        .payments(
+          arrayOf(
+            RefundPayment.builder()
+              .id("1111")
+              .idType(RefundPayment.IdType.STELLAR)
+              .amount(Amount("50.0000", fiatUSD))
+              .fee(Amount("4.0000", fiatUSD))
+              .requestedAt(null)
+              .refundedAt(null)
+              .build(),
+            RefundPayment.builder()
+              .id("2222")
+              .idType(RefundPayment.IdType.STELLAR)
+              .amount(Amount("40.0000", fiatUSD))
+              .fee(Amount("4.0000", fiatUSD))
+              .requestedAt(null)
+              .refundedAt(null)
+              .build()
+          )
+        )
+        .build()
+
+    val mockPatchTransactionRequest =
+      PatchTransactionRequest.builder()
+        .id(txId)
+        .status("completed")
+        .amountIn(Amount("100", fiatUSD))
+        .amountOut(Amount("98", stellarUSDC))
+        .amountFee(Amount("2", fiatUSD))
+        .transferReceivedAt(mockTransferReceivedAt)
+        .message("Remittance was successfully completed.")
+        .refunds(mockRefunds)
+        .externalTransactionId("external-id")
+        .build()
+
+    val mockSep31Transaction = JdbcSep31Transaction()
+    mockSep31Transaction.id = txId
+    mockSep31Transaction.quoteId = quoteId
+    mockSep31Transaction.startedAt = mockStartedAt
+    mockSep31Transaction.updatedAt = mockStartedAt
+
+    val mockSep38Quote = mockk<Sep38Quote>(relaxed = true)
+    every { mockSep38Quote.id } returns quoteId
+    every { mockSep38Quote.sellAmount } returns "100"
+    every { mockSep38Quote.sellAsset } returns fiatUSD
+    every { mockSep38Quote.buyAmount } returns "98"
+    every { mockSep38Quote.buyAsset } returns stellarUSDC
+    every { mockSep38Quote.fee.total } returns "2"
+    every { mockSep38Quote.fee.asset } returns fiatUSD
+    every { sep38QuoteStore.findByQuoteId(quoteId) } returns mockSep38Quote
+
+    this.assetService = ResourceJsonAssetService("test_assets.json")
+    transactionService = TransactionService(sep38QuoteStore, sep31TransactionStore, assetService)
+
+    assertEquals(mockSep31Transaction.startedAt, mockSep31Transaction.updatedAt)
+    assertNull(mockSep31Transaction.completedAt)
+    assertDoesNotThrow {
+      transactionService.updateSep31Transaction(mockPatchTransactionRequest, mockSep31Transaction)
+    }
+    assertTrue(mockSep31Transaction.updatedAt > mockSep31Transaction.startedAt)
+    assertTrue(mockSep31Transaction.updatedAt == mockSep31Transaction.completedAt)
+
+    val wantSep31TransactionUpdated = JdbcSep31Transaction()
+    wantSep31TransactionUpdated.id = txId
+    wantSep31TransactionUpdated.status = "completed"
+    wantSep31TransactionUpdated.quoteId = quoteId
+    wantSep31TransactionUpdated.startedAt = mockStartedAt
+    wantSep31TransactionUpdated.updatedAt = mockSep31Transaction.updatedAt
+    wantSep31TransactionUpdated.completedAt = mockSep31Transaction.completedAt
+    wantSep31TransactionUpdated.amountIn = "100"
+    wantSep31TransactionUpdated.amountInAsset = fiatUSD
+    wantSep31TransactionUpdated.amountOut = "98"
+    wantSep31TransactionUpdated.amountOutAsset = stellarUSDC
+    wantSep31TransactionUpdated.amountFee = "2"
+    wantSep31TransactionUpdated.amountFeeAsset = fiatUSD
+    wantSep31TransactionUpdated.requiredInfoMessage = "Remittance was successfully completed."
+    wantSep31TransactionUpdated.externalTransactionId = "external-id"
+    wantSep31TransactionUpdated.transferReceivedAt = mockTransferReceivedAt
+    wantSep31TransactionUpdated.refunds = Refunds.of(mockRefunds, sep31TransactionStore)
+    assertEquals(wantSep31TransactionUpdated, mockSep31Transaction)
   }
 }

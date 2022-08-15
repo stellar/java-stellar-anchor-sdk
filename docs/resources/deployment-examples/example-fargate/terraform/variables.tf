@@ -44,7 +44,7 @@ variable  "anchor_to_platform_secret" {
 
 variable "anchor_config_build_spec" {
   type = string
-  default = "docs/resources/deployment-examples/aws-fargate-ecs/buildspec-dev.yml"
+  default = "docs/resources/deployment-examples/example-fargate/buildspec-dev.yml"
 }
 
 variable "codebuild_source_version" {

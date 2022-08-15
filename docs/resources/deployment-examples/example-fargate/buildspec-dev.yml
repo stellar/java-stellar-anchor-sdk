@@ -9,7 +9,7 @@ env:
 phases:
   build:
     commands:
-      - cd docs/resources/deployment-examples/aws-fargate-ecs
+      - cd docs/resources/deployment-examples/example-fargate
       - aws s3 ls s3://$ANCHOR_CONFIG_S3_BUCKET
       - aws s3 cp s3://$ANCHOR_CONFIG_S3_BUCKET/anchor_config.yaml .
       - aws s3 cp s3://$ANCHOR_CONFIG_S3_BUCKET/stellar.toml ./stellar_wks.toml

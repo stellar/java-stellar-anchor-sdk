@@ -1,4 +1,4 @@
-package org.stellar.anchor.platform.model;
+package org.stellar.anchor.platform.data;
 
 import java.util.List;
 import javax.persistence.Entity;
