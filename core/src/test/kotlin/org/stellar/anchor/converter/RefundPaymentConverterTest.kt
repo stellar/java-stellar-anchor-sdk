@@ -1,4 +1,4 @@
-package org.stellar.anchor.sep31
+package org.stellar.anchor.converter
 
 import io.mockk.MockKAnnotations
 import io.mockk.clearAllMocks
@@ -12,8 +12,10 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.stellar.anchor.api.sep.sep31.Sep31GetTransactionResponse
 import org.stellar.anchor.api.shared.Amount
+import org.stellar.anchor.sep31.PojoSep31RefundPayment
+import org.stellar.anchor.sep31.Sep31TransactionStore
 
-class RefundPaymentTest {
+class RefundPaymentConverterTest {
   companion object {
     private const val stellarUSDC =
       "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
@@ -52,9 +54,9 @@ class RefundPaymentTest {
     wantRefundPayment.amount = "50"
     wantRefundPayment.fee = "4"
 
+    // build the SEP-31 RefundPayment object
     val gotSep31RefundPayment =
-      RefundPayment.callbackConverter(sep31TransactionStore, stellarUSDC)
-        .inverse(mockPlatformApiRefundPayment)
+      RefundPaymentConverter.toDatabaseEntity(sep31TransactionStore, mockPlatformApiRefundPayment)
     assertEquals(wantRefundPayment, gotSep31RefundPayment)
   }
 
@@ -71,8 +73,7 @@ class RefundPaymentTest {
       Sep31GetTransactionResponse.Sep31RefundPayment.builder().id("A").amount("50").fee("4").build()
 
     // build the Sep31GetTransactionResponse.Sep31RefundPayment object
-    val gotSep31RefundPayment =
-      RefundPayment.sep31Converter(sep31TransactionStore).convert(mockRefundPayment)
+    val gotSep31RefundPayment = RefundPaymentConverter.toSepProtocolDto(mockRefundPayment)
     assertEquals(wantSep31RefundPayment, gotSep31RefundPayment)
   }
 
@@ -97,7 +98,7 @@ class RefundPaymentTest {
 
     // build the SEP-31 RefundPayment object
     val gotPlatformApiRefundPayment =
-      RefundPayment.callbackConverter(sep31TransactionStore, stellarUSDC).convert(mockRefundPayment)
+      RefundPaymentConverter.toPlatformApiDto(mockRefundPayment, stellarUSDC)
     assertEquals(wantPlatformApiRefundPayment, gotPlatformApiRefundPayment)
   }
 }

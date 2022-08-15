@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import org.stellar.anchor.api.sep.sep31.Sep31GetTransactionResponse;
 import org.stellar.anchor.api.shared.Amount;
+import org.stellar.anchor.converter.RefundPaymentConverter;
 
 public interface Refunds {
 
@@ -29,7 +30,7 @@ public interface Refunds {
   default Sep31GetTransactionResponse.Refunds toSep31TransactionResponseRefunds() {
     List<Sep31GetTransactionResponse.Sep31RefundPayment> payments =
         getRefundPayments().stream()
-            .map(RefundPayment::toSep31RefundPayment)
+            .map(RefundPaymentConverter::toSepProtocolDto)
             .collect(Collectors.toList());
 
     return Sep31GetTransactionResponse.Refunds.builder()
@@ -49,7 +50,7 @@ public interface Refunds {
     // build payments
     org.stellar.anchor.api.shared.RefundPayment[] payments =
         getRefundPayments().stream()
-            .map(refundPayment -> refundPayment.toPlatformApiRefundPayment(assetName))
+            .map(refundPayment -> RefundPaymentConverter.toPlatformApiDto(refundPayment, assetName))
             .toArray(org.stellar.anchor.api.shared.RefundPayment[]::new);
 
     return org.stellar.anchor.api.shared.Refund.builder()
@@ -78,7 +79,7 @@ public interface Refunds {
 
     ArrayList<RefundPayment> payments =
         Arrays.stream(platformApiRefunds.getPayments())
-            .map(refundPayment -> RefundPayment.of(refundPayment, factory))
+            .map(refundPayment -> RefundPaymentConverter.toDatabaseEntity(factory, refundPayment))
             .collect(Collectors.toCollection(ArrayList::new));
     refunds.setRefundPayments(payments);
 

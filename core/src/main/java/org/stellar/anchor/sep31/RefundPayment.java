@@ -1,5 +1,6 @@
 package org.stellar.anchor.sep31;
 
+import org.stellar.anchor.api.converter.Converter;
 import org.stellar.anchor.api.sep.sep31.Sep31GetTransactionResponse;
 import org.stellar.anchor.api.shared.Amount;
 
@@ -16,55 +17,108 @@ public interface RefundPayment {
 
   void setFee(String fee);
 
-  /**
-   * Will create a Sep31GetTransactionResponse.Sep31RefundPayment object out of this SEP-31
-   * RefundPayment object.
-   *
-   * @return a Sep31GetTransactionResponse.Sep31RefundPayment.
-   */
-  default Sep31GetTransactionResponse.Sep31RefundPayment toSep31RefundPayment() {
-    return Sep31GetTransactionResponse.Sep31RefundPayment.builder()
-        .id(getId())
-        .amount(getAmount())
-        .fee(getFee())
-        .build();
+  static Sep31RefundPaymentConverter sep31Converter(Sep31TransactionStore factory) {
+    return new Sep31RefundPaymentConverter(factory);
   }
 
-  /**
-   * Will create a PlatformApi RefundPayment object out of this SEP-31 RefundPayment object.
-   *
-   * @param assetName is the full asset name in the {schema}:{code}:{issuer} format.
-   * @return a PlatformApi RefundPayment object.
-   */
-  default org.stellar.anchor.api.shared.RefundPayment toPlatformApiRefundPayment(String assetName) {
-    return org.stellar.anchor.api.shared.RefundPayment.builder()
-        .id(getId())
-        .idType(org.stellar.anchor.api.shared.RefundPayment.IdType.STELLAR)
-        .amount(new Amount(getAmount(), assetName))
-        .fee(new Amount(getFee(), assetName))
-        .requestedAt(null)
-        .refundedAt(null)
-        .build();
+  static CallbackApiRefundPaymentConverter callbackConverter(
+      Sep31TransactionStore factory, String assetName) {
+    return new CallbackApiRefundPaymentConverter(factory, assetName);
   }
 
-  /**
-   * Will create a SEP-31 RefundPayment object out of a PlatformApi RefundPayment object.
-   *
-   * @param platformApiRefundPayment is the platformApi's RefundPayment object.
-   * @param factory is a Sep31TransactionStore instance used to build the object.
-   * @return a SEP-31 RefundPayment object.
-   */
-  static RefundPayment of(
-      org.stellar.anchor.api.shared.RefundPayment platformApiRefundPayment,
-      Sep31TransactionStore factory) {
-    if (platformApiRefundPayment == null) {
-      return null;
+  class Sep31RefundPaymentConverter
+      extends Converter<RefundPayment, Sep31GetTransactionResponse.Sep31RefundPayment> {
+    private final Sep31TransactionStore factory;
+
+    public Sep31RefundPaymentConverter(Sep31TransactionStore factory) {
+      super(null, null);
+      this.factory = factory;
     }
 
-    RefundPayment refundPayment = factory.newRefundPayment();
-    refundPayment.setId(platformApiRefundPayment.getId());
-    refundPayment.setAmount(platformApiRefundPayment.getAmount().getAmount());
-    refundPayment.setFee(platformApiRefundPayment.getFee().getAmount());
-    return refundPayment;
+    /**
+     * Converts a SEP-31 database Entity into a SEP-31 protocol response DTO (Data Transfer Object).
+     *
+     * @param refundPayment is the RefundPayment database Entity to be converted.
+     * @return a Sep31GetTransactionResponse.Sep31RefundPayment DTO (Data Transfer Object).
+     */
+    @Override
+    public Sep31GetTransactionResponse.Sep31RefundPayment convert(RefundPayment refundPayment) {
+      if (refundPayment == null) {
+        return null;
+      }
+
+      return Sep31GetTransactionResponse.Sep31RefundPayment.builder()
+          .id(refundPayment.getId())
+          .amount(refundPayment.getAmount())
+          .fee(refundPayment.getFee())
+          .build();
+    }
+
+    public RefundPayment inverse(
+        Sep31GetTransactionResponse.Sep31RefundPayment sep31RefundPaymentResponse) {
+      if (sep31RefundPaymentResponse == null) {
+        return null;
+      }
+      RefundPayment refundPayment = factory.newRefundPayment();
+      refundPayment.setAmount(sep31RefundPaymentResponse.getAmount());
+      refundPayment.setFee(sep31RefundPaymentResponse.getFee());
+      refundPayment.setId(sep31RefundPaymentResponse.getId());
+      return refundPayment;
+    }
+  }
+
+  class CallbackApiRefundPaymentConverter
+      extends Converter<RefundPayment, org.stellar.anchor.api.shared.RefundPayment> {
+    Sep31TransactionStore factory;
+    String assetName;
+
+    public CallbackApiRefundPaymentConverter(Sep31TransactionStore factory, String assetName) {
+      super(null, null);
+      this.factory = factory;
+      this.assetName = assetName;
+    }
+
+    /**
+     * Converts a SEP-31 database Entity into a platformApi's RefundPayment DTO (Data Transfer
+     * Object).
+     *
+     * @param refundPayment is the RefundPayment database Entity to be converted.
+     * @return a PlatformApi's RefundPayment DTO (Data Transfer Object).
+     */
+    @Override
+    public org.stellar.anchor.api.shared.RefundPayment convert(RefundPayment refundPayment) {
+      if (refundPayment == null) {
+        return null;
+      }
+
+      return org.stellar.anchor.api.shared.RefundPayment.builder()
+          .id(refundPayment.getId())
+          .idType(org.stellar.anchor.api.shared.RefundPayment.IdType.STELLAR)
+          .amount(new Amount(refundPayment.getAmount(), assetName))
+          .fee(new Amount(refundPayment.getFee(), assetName))
+          .requestedAt(null)
+          .refundedAt(null)
+          .build();
+    }
+
+    /**
+     * Converts a platformApi's RefundPayment DTO (Data Transfer Object) into a RefundPayment
+     * database Entity.
+     *
+     * @param sep31RefundPayment is the CallbackApi's RefundPayment DTO to be converted.
+     * @return a RefundPayment database Entity.
+     */
+    @Override
+    public RefundPayment inverse(org.stellar.anchor.api.shared.RefundPayment sep31RefundPayment) {
+      if (sep31RefundPayment == null) {
+        return null;
+      }
+
+      RefundPayment refundPayment = this.factory.newRefundPayment();
+      refundPayment.setId(sep31RefundPayment.getId());
+      refundPayment.setAmount(sep31RefundPayment.getAmount().getAmount());
+      refundPayment.setFee(sep31RefundPayment.getFee().getAmount());
+      return refundPayment;
+    }
   }
 }

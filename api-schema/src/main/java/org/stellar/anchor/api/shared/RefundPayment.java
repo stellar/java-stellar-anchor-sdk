@@ -7,6 +7,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 
+/** The CallbackAPI DTO class for RefundPayment. */
 @Data
 @Builder
 @AllArgsConstructor
