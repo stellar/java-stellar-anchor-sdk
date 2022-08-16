@@ -5,6 +5,7 @@ SUDO := $(shell docker version >/dev/null 2>&1 || echo "sudo")
 LABEL ?= $(shell git rev-parse --short HEAD)$(and $(shell git status -s),-dirty-$(shell id -u -n))
 # If TAG is not provided set default value
 TAG ?= stellar/anchor-platform:$(LABEL)
+E2E_TAG ?= stellar/anchor-platform-e2e-test:$(LABEL)
 # https://github.com/opencontainers/image-spec/blob/master/annotations.md
 BUILD_DATE := $(shell date -u +%FT%TZ)
 
@@ -14,3 +15,10 @@ docker-build:
 
 docker-push:
 	$(SUDO) docker push $(TAG)
+
+docker-build-e2e-test:
+	$(SUDO) docker build -f end-to-end-tests/Dockerfile --pull --label org.opencontainers.image.created="$(BUILD_DATE)" \
+	-t $(E2E_TAG) .
+
+docker-push-e2e-test:
+	$(SUDO) docker push $(E2E_TAG)
