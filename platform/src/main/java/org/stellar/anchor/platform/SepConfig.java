@@ -20,6 +20,7 @@ import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.platform.data.*;
 import org.stellar.anchor.platform.payment.config.CirclePaymentConfig;
 import org.stellar.anchor.platform.payment.observer.circle.CirclePaymentService;
+import org.stellar.anchor.platform.payment.observer.stellar.PaymentObservingAccountsManager;
 import org.stellar.anchor.platform.service.*;
 import org.stellar.anchor.sep1.Sep1Service;
 import org.stellar.anchor.sep10.Sep10Service;
@@ -160,6 +161,7 @@ public class SepConfig {
   Sep31DepositInfoGenerator sep31DepositInfoGenerator(
       Sep31Config sep31Config,
       CirclePaymentService circlePaymentService,
+      PaymentObservingAccountsManager paymentObservingAccountsManager,
       UniqueAddressIntegration uniqueAddressIntegration) {
     switch (sep31Config.getDepositInfoGeneratorType()) {
       case SELF:
@@ -169,7 +171,8 @@ public class SepConfig {
         return new Sep31DepositInfoGeneratorCircle(circlePaymentService);
 
       case API:
-        return new Sep31DepositInfoGeneratorApi(uniqueAddressIntegration);
+        return new Sep31DepositInfoGeneratorApi(
+            uniqueAddressIntegration, paymentObservingAccountsManager);
       default:
         throw new RuntimeException("Not supported");
     }
