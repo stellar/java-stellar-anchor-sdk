@@ -1,0 +1,110 @@
+[versions]
+# Library versions
+apache-commons-lang3 = "3.12.0"
+aws-iam-auth = "1.1.4"
+aws-rds = "1.12.248"
+aws-sqs = "1.12.200"
+commons-beanutils = "1.9.4"
+commons-cli = "1.5.0"
+commons-codec = "1.15"
+commons-io = "2.11.0"
+commons-validator = "1.7"
+findbugs-jsr305 = "3.0.2"
+flyway-core = "8.5.13"
+google-gson = "2.8.9"
+httpclient = "4.5.13"
+h2database = "1.4.200"
+jackson-dataformat-yaml = "2.13.2"
+java-stellar-sdk = "0.34.1"
+javax-jaxb-api = "2.3.1"
+javax-transaction-api = "1.3"
+jjwt = "0.9.1"
+jsonassert = "1.5.0"
+junit = "5.8.2"
+junit-suite-engine = "1.8.2"
+kafka = "3.1.0"
+kafka-json-schema = "7.0.1"
+kotlin = "1.6.20"
+log4j = "2.17.1"
+log4j-template-json = "2.14.1"
+lombok = "1.18.22"
+mockk = "1.12.2"
+micrometer-prometheus = "1.9.0"
+okhttp3 = "4.9.3"
+postgresql = "42.3.5"
+reactor-core = "3.4.14"
+reactor-netty = "1.0.15"
+servlet-api = "2.5"
+spring-kafka = "2.8.4"
+spring-aws-messaging = "2.2.6.RELEASE"
+sqlite-jdbc = "3.34.0"
+slf4j = "1.7.35"
+toml4j = "0.7.2"
+
+
+# Plugin versions
+spotless = "6.2.1"
+spring-boot = "2.6.3"
+spring-dependency-management = "1.0.11.RELEASE"
+
+[libraries]
+apache-commons-lang3 = { module = "org.apache.commons:commons-lang3", version.ref = "apache-commons-lang3" }
+aws-rds = { module = "com.amazonaws:aws-java-sdk-rds", version.ref = "aws-rds" }
+aws-sqs = { module = "com.amazonaws:aws-java-sdk-sqs", version.ref = "aws-sqs" }
+aws-iam-auth = { module = "software.amazon.msk:aws-msk-iam-auth", version.ref = "aws-iam-auth" }
+commons-beanutils = { module = "commons-beanutils:commons-beanutils", version.ref = "commons-beanutils" }
+commons-cli = { module = "commons-cli:commons-cli", version.ref = "commons-cli" }
+commons-codec = { module = "commons-codec:commons-codec", version.ref = "commons-codec" }
+commons-io = { module = "commons-io:commons-io", version.ref = "commons-io" }
+commons-validator = { module = "commons-validator:commons-validator", version.ref = "commons-validator" }
+findbugs-jsr305 = { module = "com.google.code.findbugs:jsr305", version.ref = "findbugs-jsr305" }
+flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway-core" }
+google-gson = { module = "com.google.code.gson:gson", version.ref = "google-gson" }
+httpclient = { module = "org.apache.httpcomponents:httpclient", version.ref = "httpclient" }
+h2database = { module = "com.h2database:h2", version.ref = "h2database" }
+jackson-dataformat-yaml = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml", version.ref = "jackson-dataformat-yaml" }
+java-stellar-sdk = { module = "com.github.stellar:java-stellar-sdk", version.ref = "java-stellar-sdk" }
+javax-jaxb-api = { module = "javax.xml.bind:jaxb-api", version.ref = "javax-jaxb-api" }
+javax-transaction-api = { module = "javax.transaction:javax.transaction-api", version.ref = "javax-transaction-api" }
+jjwt = { module = "io.jsonwebtoken:jjwt", version.ref = "jjwt" }
+jsonassert = { module = "org.skyscreamer:jsonassert", version.ref = "jsonassert" }
+junit-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "junit" }
+junit-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit" }
+junit-params = { module = "org.junit.jupiter:junit-jupiter-params", version.ref = "junit" }
+junit-suite-engine = { module = "org.junit.platform:junit-platform-suite-engine", version.ref = "junit-suite-engine" }
+kafka-clients = { module = "org.apache.kafka:kafka-clients", version.ref = "kafka" }
+kafka-connect = { module = "org.apache.kafka:connect", version.ref = "kafka" }
+kafka-json-schema = { module = "io.confluent:kafka-json-schema-serializer", version.ref = "kafka-json-schema" }
+kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
+kotlin-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit5", version.ref = "kotlin" }
+log4j2-slf4j = { module = "org.apache.logging.log4j:log4j-slf4j-impl", version.ref = "log4j" }
+log4j2-core = { module = "org.apache.logging.log4j:log4j-core", version.ref = "log4j" }
+log4j2-api = { module = "org.apache.logging.log4j:log4j-api", version.ref = "log4j" }
+# TODO: upgrade to log4j2
+log4j-template-json = { module = "org.apache.logging.log4j:log4j-layout-template-json", version.ref = "log4j-template-json" }
+lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
+micrometer-prometheus = { module = "io.micrometer:micrometer-registry-prometheus", version.ref = "micrometer-prometheus" }
+mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+okhttp3 = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp3" }
+okhttp3-mockserver = { module = "com.squareup.okhttp3:mockwebserver", version.ref = "okhttp3" }
+postgresql = { module = "org.postgresql:postgresql", version.ref = "postgresql" }
+reactor-core = { module = "io.projectreactor:reactor-core", version.ref = "reactor-core" }
+reactor-netty = { module = "io.projectreactor.netty:reactor-netty", version.ref = "reactor-netty" }
+servlet-api = { module = "javax.servlet:servlet-api", version.ref = "servlet-api" }
+sqlite-jdbc = { module = "org.xerial:sqlite-jdbc", version.ref = "sqlite-jdbc" }
+slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
+slf4j-log4j12 = { module = "org.slf4j:slf4j-log4j12", version.ref = "slf4j" }
+toml4j = { module = "com.moandjiezana.toml:toml4j", version.ref = "toml4j" }
+spring-kafka = { module = "org.springframework.kafka:spring-kafka", version.ref = "spring-kafka" }
+spring-aws-messaging = { module = "org.springframework.cloud:spring-cloud-aws-messaging", version.ref = "spring-aws-messaging" }
+
+[bundles]
+slf4j = ["slf4j-api", "slf4j-log4j12"]
+junit = ["junit-api", "junit-engine", "junit-params", "junit-suite-engine", "kotlin-stdlib", "kotlin-junit", "mockk"]
+kafka = ["kafka-clients", "kafka-connect", "kafka-json-schema"]
+
+[plugins]
+spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
+spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }
+spring-dependency-management = { id = "io.spring.dependency-management", version.ref = "spring-dependency-management" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }

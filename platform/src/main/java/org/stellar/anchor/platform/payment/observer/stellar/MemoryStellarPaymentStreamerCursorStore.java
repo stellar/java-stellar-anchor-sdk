@@ -5,14 +5,15 @@ import java.util.Map;
 
 public class MemoryStellarPaymentStreamerCursorStore implements StellarPaymentStreamerCursorStore {
   Map<String, String> mapTokens = new HashMap<>();
+  String cursor = null;
 
   @Override
-  public void save(String account, String cursor) {
-    mapTokens.put(account, cursor);
+  public void save(String cursor) {
+    this.cursor = cursor;
   }
 
   @Override
-  public String load(String account) {
-    return mapTokens.get(account);
+  public String load() {
+    return this.cursor;
   }
 }

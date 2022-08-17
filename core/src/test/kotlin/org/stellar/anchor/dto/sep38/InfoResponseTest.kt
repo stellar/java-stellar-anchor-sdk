@@ -1,5 +1,8 @@
 package org.stellar.anchor.dto.sep38
 
+import io.mockk.clearAllMocks
+import io.mockk.unmockkAll
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -15,6 +18,12 @@ class InfoResponseTest {
     val rjas = ResourceJsonAssetService("test_assets.json")
     assets = rjas.listAllAssets()
     assertEquals(3, assets.size)
+  }
+
+  @AfterEach
+  fun teardown() {
+    clearAllMocks()
+    unmockkAll()
   }
 
   @Test
