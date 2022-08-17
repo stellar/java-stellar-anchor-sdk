@@ -1,0 +1,90 @@
+#######################################################################
+## Anchor Platform - Example Config
+##
+## An example config to get Anchor Platform up and running.
+## This is only meant to be a reference.
+## For a list of all config options, see <LINK_TO_DOCUMENTATION>.
+#######################################################################
+
+##################################
+## Required System Configuration
+##################################
+version: 0.2
+
+data:
+  url: jdbc:h2:mem:test
+  # Specify additional options below
+  # options:
+
+# The anchor server callback API endpoint for customer, fee, quote, and unique url integration.
+callbackApi:
+  baseUrl: https://localhost:8080
+  authType: NONE
+  # Specify additional options below
+  # options:
+
+stellarNetwork:
+  # Use `TESTNET` or `PUBNET` network
+  network: TESTNET
+  horizonUrl: https://horizon-testnet.stellar.org
+  networkPassphrase: 'Test SDF Network ; September 2015'
+
+#################################
+## Optional System Configuration
+##################################
+events:
+  enabled: true
+  publisherType: kafka
+  options:
+    bootstrapServer: localhost:29092
+
+logging:
+  level: INFO
+
+metrics:
+  enabled: true
+
+language: en
+
+#######################
+## SEP Configuration
+#######################
+sep1:
+  enabled: true
+  ## Can be specified as an external file (`file:stellar.toml`) or in-file toml definition
+  stellarFile: | 
+    ACCOUNTS = []
+    VERSION = "0.1.0"
+    NETWORK_PASSPHRASE = "Test SDF Network ; September 2015"
+    SIGNING_KEY = "GCHLHDBOKG2JWMJQBTLSL5XG6NO7ESXI2TAQKZXCXWXB5WI2X6W233PR"
+  
+    WEB_AUTH_ENDPOINT = "http://localhost:8080/auth"
+    KYC_SERVER = "http://localhost:8080/sep12"
+    TRANSFER_SERVER_SEP0024 = "http://localhost:8080/sep24"
+    DIRECT_PAYMENT_SERVER = "http://localhost:8080/sep31"
+    ANCHOR_QUOTE_SERVER = "http://localhost:8080/sep38"
+  
+    [ [ CURRENCIES ] ]
+    code = "USDC"
+    issuer = "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+    status = "test"
+    is_asset_anchored = true
+    anchor_asset_type = "fiat"
+    desc = "A test USDC issued by Stellar."
+
+sep12:
+  enabled: true
+
+sep31:
+  enabled: true
+
+#########################
+## Assets Configuration
+#########################
+# Can be specified as external file (`file:assets.yaml`) or in-file
+assets:
+  - schema: stellar
+    code: USDC
+    issuer: GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP
+    significant_decimals: 2
+
