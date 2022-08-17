@@ -35,7 +35,16 @@ public class Field {
     NUMBER("number"),
 
     @SerializedName("date")
-    DATE("date");
+    DATE("date"),
+
+    @SerializedName("country_code")
+    COUNTRY_CODE("country_code"),
+
+    @SerializedName("phone_number")
+    PHONE_NUMBER("phone_number"),
+
+    @SerializedName("language_code")
+    LANGUAGE_CODE("language_code");
 
     private final String name;
 
