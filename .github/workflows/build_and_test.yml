@@ -29,7 +29,6 @@ jobs:
         cat /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/platform/build/reports/tests/test/index.html
         echo *** Anchor reference server test report ***
         cat /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/anchor-reference-server/build/reports/tests/test/index.html
-
   build_and_push_anchor_platform:
     if: github.event.pull_request == null
     needs: [build_and_test]
@@ -37,7 +36,7 @@ jobs:
     name: Push stellar/anchor-platform:sha to DockerHub
     steps:
     - uses: actions/checkout@v3
-
+    
     - name: Get image tag (short sha)
       shell: bash
       id: get_tag
@@ -76,7 +75,6 @@ jobs:
           fi
           echo HOME_DOMAIN=$HOME_DOMAIN
           echo "::set-output name=HOME_DOMAIN::$HOME_DOMAIN"
-
       - name: Install Node
         uses: actions/setup-node@v2
         with:
@@ -88,7 +86,6 @@ jobs:
         run: |
           npm install -g @stellar/anchor-tests
           stellar-anchor-tests --home-domain $HOME_DOMAIN --seps 1 10 12 31 38 --sep-config platform/src/test/resources/stellar-anchor-tests-sep-config.json
-
   complete:
     needs: [build_and_test, sep_validation_suite]
     runs-on: ubuntu-latest
