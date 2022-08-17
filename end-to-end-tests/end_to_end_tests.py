@@ -1,5 +1,3 @@
-#!/usr/bin/env python2.7
-
 import argparse
 
 import requests
@@ -158,7 +156,7 @@ def poll_transaction_status(endpoints, headers, transaction_id, status=TRANSACTI
     print("============= Polling Transaction Status from Anchor Platform ===========")
     while True and attempt*poll_interval <= timeout:
         transaction_status = get_transaction(endpoints, headers, transaction_id)["transaction"]["status"]
-        print("attempt #{} - transaction - {} status is {}".format(attempt, transaction_id, transaction_status))
+        print(f"attempt #{attempt} - transaction - {transaction_id} status is {transaction_status}")
         if transaction_status == status:
             break
         attempt += 1
@@ -180,7 +178,7 @@ def test_sep_31_flow(endpoints, keypair, transaction_payload, sep38_payload=None
 
     token = get_anchor_platform_token(endpoints, public_key, secret_key)
 
-    headers = {"Authorization": "Bearer {}".format(token), 'Content-Type': 'application/json'}
+    headers = {"Authorization": f"Bearer {token}", 'Content-Type': 'application/json'}
 
     sender_id = create_anchor_test_customer(endpoints, headers, SENDING_CLIENT_PAYLOAD)
     transaction_payload["sender_id"] = sender_id
@@ -209,7 +207,7 @@ def test_sep_31_flow(endpoints, keypair, transaction_payload, sep38_payload=None
 def test_sep38_create_quote(endpoints, keypair, payload):
     token = get_anchor_platform_token(endpoints, keypair.public_key, keypair.secret)
 
-    headers = {"Authorization": "Bearer {}".format(token), 'Content-Type': 'application/json'}
+    headers = {"Authorization": f"Bearer {token}", 'Content-Type': 'application/json'}
     #res = requests.get("http://localhost:8080/sep38/prices?sell_asset=iso4217:USD&sell_amount=10", headers=headers)
     #print(res.content)
     quote = create_anchor_test_quote(endpoints, headers, payload)
@@ -226,7 +224,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     #parser.add_argument('--verbose', '-v', help="verbose mode", type=bool, default=False) TODO
     #parser.add_argument('--load-size', "-ls", help="number of tests to execute (multithreaded)", type=int, default=1)
-    parser.add_argument('--tests', "-t", nargs="*", help="names of tests to execute: {}".format(TESTS), default=TESTS)
+    parser.add_argument('--tests', "-t", nargs="*", help=f"names of tests to execute: {TESTS}", default=TESTS)
     parser.add_argument('--domain', "-d", help="The Anchor Platform endpoint", default="http://localhost:8000")
     parser.add_argument('--secret', "-s", help="The secret key used for transactions")
 
@@ -312,4 +310,4 @@ if __name__ == "__main__":
             }
             test_sep38_create_quote(endpoints, keypair, QUOTE_PAYLOAD_USDC_TO_JPYC)
         else:
-            exit("Error: unknown test {}".format(test))
+            exit(f"Error: unknown test {test}")
