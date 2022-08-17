@@ -128,6 +128,7 @@ sep10:
   ## @param: enabled
   ## @type: bool
   ## Whether to enable SEP-10 for this instance of AP server.
+  ## If true, @required_secrets: SEP10_SIGNING_SEED
   #
   enabled: false
 
