@@ -71,10 +71,16 @@ callbackApi:
     ## @type: int
     ## Expiration time, in milliseconds, that will be used to build and validate the JWT tokens
     #
-    expirationMilliseconds: 1000
+    expirationMilliseconds: 30000
 
 
 paymentObserver:
+  ## @param: enabled
+  ## @type: bool
+  ## Whether to enable a circle payment observer
+  #
+  enabled: false
+
   ## @param: circleUrl
   ## @type: string
   ## Circle api endpoint.
@@ -108,7 +114,7 @@ sep1:
   ## @type: bool
   ## Whether to enable SEP-1 for this instance of AP server.
   #
-  enabled: true
+  enabled: false
 
   ## @param: stellarFile
   ## @type: string
@@ -123,7 +129,7 @@ sep10:
   ## @type: bool
   ## Whether to enable SEP-10 for this instance of AP server.
   #
-  enabled: true
+  enabled: false
 
   ## @param: homeDomain
   ## @type: string
