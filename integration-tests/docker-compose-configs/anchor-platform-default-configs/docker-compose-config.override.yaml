@@ -1,0 +1,32 @@
+version: '2'
+services:
+  anchor-platform:
+    volumes:
+      # add mounts for the new config directory
+      - ./anchor-platform-default-configs:/config
+    ports:
+      # override ports, do not append
+      - "8080:8080"
+      - "8081:8081"
+
+  db:
+    environment:
+      - PGPORT=5440
+    ports:
+      # override ports, do not append
+      - "5440:5440"
+
+  zookeeper:
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - 2181:2181
+
+  kafka:
+    ports:
+      - # TODO: might need to change this
+      - 29092:29092
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://host.docker.internal:29092

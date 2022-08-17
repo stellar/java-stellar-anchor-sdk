@@ -1,0 +1,35 @@
+version: '2'
+services:
+  anchor-platform:
+    build:
+      context: ../../
+      dockerfile: integration-tests/docker-compose-configs/Dockerfile
+    command: --anchor-reference-server --sep-server
+    environment:
+      - STELLAR_ANCHOR_CONFIG=file:/config/anchor-platform-docker-compose-config.yaml
+      - REFERENCE_SERVER_CONFIG_ENV=file:/config/anchor-reference-server-docker-compose-config.yaml
+      - LOG_APPENDER=console_appender
+    depends_on:
+      - db
+      - kafka
+
+  db:
+    image: postgres:latest
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+
+  zookeeper:
+    platform: linux/x86_64
+    image: confluentinc/cp-zookeeper:latest
+
+  kafka:
+    platform: linux/x86_64
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
