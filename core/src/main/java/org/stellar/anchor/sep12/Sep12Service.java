@@ -24,10 +24,6 @@ public class Sep12Service {
   public Sep12GetCustomerResponse getCustomer(JwtToken token, Sep12GetCustomerRequest request)
       throws AnchorException {
     validateGetOrPutRequest(request, token);
-    if (request.getId() == null && request.getAccount() == null && token.getAccount() != null) {
-      request.setAccount(token.getAccount());
-    }
-
     return customerIntegration.getCustomer(request);
   }
 

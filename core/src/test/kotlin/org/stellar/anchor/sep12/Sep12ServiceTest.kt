@@ -239,6 +239,7 @@ class Sep12ServiceTest {
     // Execute the request
     val mockGetRequest =
       Sep12GetCustomerRequest.builder()
+        .account(TEST_ACCOUNT)
         .memo(TEST_MEMO)
         .memoType("text")
         .type("sep31_sender")
