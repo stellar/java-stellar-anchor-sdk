@@ -60,7 +60,7 @@ fun sep12TestHappyPath() {
   printResponse(pr)
 
   // make sure the customer was uploaded correctly.
-  printRequest("Calling GET /customer", customer)
+  printRequest("Calling GET /customer", customer.id)
   var gr = sep12Client.getCustomer(pr!!.id)
   printResponse(gr)
 
@@ -69,6 +69,18 @@ fun sep12TestHappyPath() {
 
   customer.emailAddress = "john.doe@stellar.org"
   customer.type = "sep31-receiver"
+
+  // make sure a request without parameters will return a NEEDS_INFO response without the user id
+  printRequest("Calling GET /customer without id")
+  val noCustomer = sep12Client.getCustomer()
+  assertNotNull(noCustomer)
+  assertEquals(Sep12Status.NEEDS_INFO, noCustomer?.status)
+  assertNull(noCustomer?.id)
+  assertNull(noCustomer?.providedFields)
+  assertNull(noCustomer?.message)
+  assertNotNull(noCustomer?.fields)
+  assertEquals(3, noCustomer?.fields?.size)
+  printResponse(noCustomer)
 
   // Modify the customer
   printRequest("Calling PUT /customer", customer)

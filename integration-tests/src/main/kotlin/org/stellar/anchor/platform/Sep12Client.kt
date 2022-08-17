@@ -1,10 +1,8 @@
 package org.stellar.anchor.platform
 
-import okhttp3.MediaType
+import okhttp3.*
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import okhttp3.MediaType.Companion.toMediaType
-import okhttp3.MultipartBody
-import okhttp3.Request
-import okhttp3.RequestBody
 import okhttp3.RequestBody.Companion.toRequestBody
 import org.springframework.http.HttpStatus
 import org.stellar.anchor.api.exception.SepNotAuthorizedException
@@ -20,12 +18,18 @@ const val MULTIPART_FORM_DATA_CHARSET_UTF_8 = "multipart/form-data; charset=utf-
 val TYPE_MULTIPART_FORM_DATA = MULTIPART_FORM_DATA_CHARSET_UTF_8.toMediaType()
 
 class Sep12Client(private val endpoint: String, private val jwt: String) : SepClient() {
-  fun getCustomer(id: String, type: String? = null): Sep12GetCustomerResponse? {
-    var url = String.format(this.endpoint + "/customer?id=%s", id)
-    if (type != null) {
-      url += "&type=$type"
+  fun getCustomer(id: String? = null, type: String? = null): Sep12GetCustomerResponse? {
+    val url: HttpUrl = "$endpoint/customer".toHttpUrlOrNull()!!
+    var builder: HttpUrl.Builder =
+      HttpUrl.Builder().scheme(url.scheme).host(url.host).port(url.port)
+    url.pathSegments.forEach { builder = builder.addPathSegment(it) }
+    if (id != null) {
+      builder = builder.addQueryParameter("id", id)
     }
-    val responseBody = httpGet(url, jwt)
+    if (type != null) {
+      builder = builder.addQueryParameter("type", type)
+    }
+    val responseBody = httpGet(builder.build().toString(), jwt)
     return gson.fromJson(responseBody, Sep12GetCustomerResponse::class.java)
   }
 

@@ -246,9 +246,9 @@ class Sep12ServiceTest {
         .lang("en")
         .build()
     val jwtToken = createJwtToken(TEST_ACCOUNT)
-    var sep12GetCustomerResponse1: Sep12GetCustomerResponse? = null
+    var sep12GetCustomerResponse: Sep12GetCustomerResponse? = null
     assertDoesNotThrow {
-      sep12GetCustomerResponse1 = sep12Service.getCustomer(jwtToken, mockGetRequest)
+      sep12GetCustomerResponse = sep12Service.getCustomer(jwtToken, mockGetRequest)
     }
 
     // validate the request
@@ -265,7 +265,36 @@ class Sep12ServiceTest {
     // validate the response
     verify(exactly = 1) { customerIntegration.getCustomer(any()) }
     assertEquals(TEST_ACCOUNT, mockGetRequest.account)
-    assertEquals(mockCallbackApiGetCustomerResponse, sep12GetCustomerResponse1)
+    assertEquals(mockCallbackApiGetCustomerResponse, sep12GetCustomerResponse)
+  }
+
+  @Test
+  fun test_getCustomer_emptyFields() {
+    // mock `GET {callbackApi}/customer` response
+    val callbackApiGetRequestSlot = slot<Sep12GetCustomerRequest>()
+    val mockCallbackApiGetCustomerResponse = Sep12GetCustomerResponse()
+    mockCallbackApiGetCustomerResponse.id = null
+    mockCallbackApiGetCustomerResponse.status = Sep12Status.NEEDS_INFO
+    mockCallbackApiGetCustomerResponse.fields = mockFields
+    every { customerIntegration.getCustomer(capture(callbackApiGetRequestSlot)) } returns
+      mockCallbackApiGetCustomerResponse
+
+    // Execute the request
+    val mockGetRequest = Sep12GetCustomerRequest.builder().type("sep31_sender").build()
+    val jwtToken = createJwtToken(TEST_ACCOUNT)
+    var sep12GetCustomerResponse: Sep12GetCustomerResponse? = null
+    assertDoesNotThrow {
+      sep12GetCustomerResponse = sep12Service.getCustomer(jwtToken, mockGetRequest)
+    }
+
+    // validate the request
+    val wantCallbackApiGetRequest = Sep12GetCustomerRequest.builder().type("sep31_sender").build()
+    assertEquals(wantCallbackApiGetRequest, callbackApiGetRequestSlot.captured)
+
+    // validate the response
+    verify(exactly = 1) { customerIntegration.getCustomer(any()) }
+    assertNull(mockGetRequest.account)
+    assertEquals(mockCallbackApiGetCustomerResponse, sep12GetCustomerResponse)
   }
 
   @Test
