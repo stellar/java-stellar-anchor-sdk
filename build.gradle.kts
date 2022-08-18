@@ -17,11 +17,6 @@ tasks {
   "build" { dependsOn("installLocalGitHook") }
 }
 
-allprojects {
-  group = "org.stellar.anchor-sdk"
-  version = "1.2.3"
-}
-
 subprojects {
   apply(plugin = "java")
   apply(plugin = "com.diffplug.spotless")
@@ -111,3 +106,20 @@ subprojects {
     }
   }
 }
+
+allprojects {
+  group = "org.stellar.anchor-sdk"
+  version = "1.2.3"
+
+  tasks.jar {
+    manifest {
+      attributes(
+        mapOf(
+          "Implementation-Title" to project.name,
+          "Implementation-Version" to project.version
+        )
+      )
+    }
+  }
+}
+
