@@ -3,6 +3,7 @@
 plugins {
   java
   alias(libs.plugins.spotless)
+  alias(libs.plugins.kotlin.jvm) apply false
 }
 
 tasks {
