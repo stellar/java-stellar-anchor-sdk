@@ -16,12 +16,14 @@ tasks {
   "build" { dependsOn("installLocalGitHook") }
 }
 
+allprojects {
+  group = "org.stellar.anchor-sdk"
+  version = "1.2.3"
+}
+
 subprojects {
   apply(plugin = "java")
   apply(plugin = "com.diffplug.spotless")
-
-  group = "org.stellar.anchor-sdk"
-  version = "0.1.1"
 
   repositories {
     mavenLocal()
