@@ -10,8 +10,6 @@ import lombok.Data;
 
 @Data
 public class HealthCheckResponse {
-  final String version;
-
   final Instant started;
 
   @SerializedName("elapsed_time_ms")
@@ -24,7 +22,6 @@ public class HealthCheckResponse {
 
   public HealthCheckResponse() {
     this.started = Instant.now();
-    this.version = "pending"; // Hardcoded version
   }
 
   public HealthCheckResponse complete(List<HealthCheckResult> results) {
