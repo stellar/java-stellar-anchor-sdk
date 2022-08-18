@@ -15,14 +15,16 @@ labels: release
 - [ ] Update this ticket name to reflect the new version number, following the pattern "Release `0.1.0`".
 - [ ] Cut a branch for the new release out of the `develop` branch, following the gitflow naming pattern `release/0.1.0`.
 - [ ] Update the code to use this version number.
-- [ ] Update the CHANGELOG.md file with the new version number and release notes.
+- [ ] Update the [CHANGELOG.md] file with the new version number and release notes.
 - [ ] Run tests and linting. **Not only CI/CD tests, but also manual tests to make sure the release is up and running, and that it's stable!**
 - [ ] Make all changes necessary to make sure the release is ready to be published. If new issues are found on manual tests, improve the CI so these issues can be automatically detected next time.
 - [ ] When the team is confident the release is stable, you'll need to create two pull requests:
   - [ ] `release/0.1.0 -> main`: this should require two approvals.
   - [ ] `release/0.1.0 -> develop`: ideally, this should be merged after the `main` branch is merged.
-- [ ] Create a new release on GitHub with the name `0.1.0` and the changes from the CHANGELOG.md file.
+- [ ] Create a new release on GitHub with the name `0.1.0` and the changes from the [CHANGELOG.md] file.
   - The release should trigger the release process on GitHub that will:
     1. Publish a new version of the docker image to Docker Hub.
     2. Publish a new version of the SDK to jitpack and
     3. Automatically upload the jar file to the GH release.
+
+[CHANGELOG.md]: ../../CHANGELOG.md
