@@ -303,6 +303,11 @@ class Sep12ServiceTest {
     // succeeds if request account and memo are equal the token's
     assertDoesNotThrow { sep12Service.deleteCustomer(jwtToken, TEST_ACCOUNT, TEST_MEMO, null) }
 
+    // succeeds if the request account is equals the token's, and the token memo is empty while the
+    // request's is not
+    jwtToken = createJwtToken(TEST_ACCOUNT)
+    assertDoesNotThrow { sep12Service.deleteCustomer(jwtToken, TEST_ACCOUNT, "foo_bar", null) }
+
     // PART 3 - muxed account
     // throws exception if request is missing the memo
     jwtToken = createJwtToken(TEST_MUXED_ACCOUNT)
@@ -332,7 +337,7 @@ class Sep12ServiceTest {
     val mockNoCustomerFound = Sep12GetCustomerResponse()
     every { customerIntegration.getCustomer(any()) } returns mockNoCustomerFound
 
-    val jwtToken = createJwtToken("$TEST_ACCOUNT:$TEST_MEMO")
+    val jwtToken = createJwtToken(TEST_ACCOUNT)
     val ex: AnchorException = assertThrows {
       sep12Service.deleteCustomer(jwtToken, TEST_ACCOUNT, TEST_MEMO, null)
     }
