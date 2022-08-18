@@ -12,7 +12,7 @@ internal class ChallengeRequestTest {
   }
 
   @Test
-  fun of() {
+  fun `test ChallanegeRequest creation`() {
     val cr = ChallengeRequest.of(TEST_ACCOUNT, TEST_MEMO, TEST_HOME_DOMAIN, TEST_CLIENT_DOMAIN)
     assertEquals(TEST_ACCOUNT, cr.account)
     assertEquals(TEST_MEMO, cr.memo)

@@ -23,7 +23,7 @@ class AuthHelperTest {
 
   @ParameterizedTest
   @EnumSource(AuthType::class)
-  fun test_createAuthHeader(authType: AuthType) {
+  fun `test AuthHeader creation based on the AuthType`(authType: AuthType) {
     when (authType) {
       AuthType.JWT_TOKEN -> {
         // Mock calendar to guarantee the jwt token format

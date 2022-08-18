@@ -50,7 +50,7 @@ internal class JwtTokenFilterTest {
   }
 
   @Test
-  fun testBadServlet() {
+  fun `make sure bad servlet throws exception`() {
     val mockServletRequest = mockk<ServletRequest>(relaxed = true)
     val mockServletResponse = mockk<ServletResponse>(relaxed = true)
 
@@ -64,7 +64,7 @@ internal class JwtTokenFilterTest {
   }
 
   @Test
-  fun testOptions() {
+  fun `test OPTIONS method works fine without auth header`() {
     every { request.method } returns "OPTIONS"
 
     sep10TokenFilter.doFilter(request, response, mockFilterChain)
@@ -74,7 +74,7 @@ internal class JwtTokenFilterTest {
 
   @ParameterizedTest
   @ValueSource(strings = ["GET", "PUT", "POST", "DELETE"])
-  fun testNoTokenForbidden(method: String) {
+  fun `make sure FORBIDDEN is returned when no token exists`(method: String) {
     every { request.method } returns method
     every { request.getHeader("Authorization") } returns null
 
