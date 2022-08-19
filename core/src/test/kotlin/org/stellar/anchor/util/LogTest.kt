@@ -2,8 +2,11 @@ package org.stellar.anchor.util
 
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.TestInstance
 import org.slf4j.Logger
 import org.stellar.anchor.Constants.Companion.TEST_HOST_URL
 import org.stellar.anchor.Constants.Companion.TEST_JWT_SECRET
@@ -45,7 +48,7 @@ internal class LogTest {
   val wantTestPIIJson = """{"fieldNoPII":"no secret"}"""
 
   @Test
-  fun testMessage() {
+  fun `test log messages`() {
     Log.error("Hello")
     verify { logger.error("Hello") }
 
@@ -63,7 +66,7 @@ internal class LogTest {
   }
 
   @Test
-  fun testMessageJson() {
+  fun `test log messages with JSON format`() {
     val detail = TestBeanPII()
 
     Log.error("Hello", detail)
@@ -110,7 +113,7 @@ internal class LogTest {
   }
 
   @Test
-  fun testErrorEx() {
+  fun `test errorEx`() {
     Log.errorEx(Exception("mock exception"))
     verify(exactly = 1) { logger.error(any()) }
 
@@ -123,7 +126,7 @@ internal class LogTest {
   }
 
   @Test
-  fun testShorter() {
+  fun `test shorter string conversion`() {
     assertNull(shorter(null))
     assertEquals(shorter("123"), "123")
     assertEquals(shorter(""), "")
@@ -133,7 +136,7 @@ internal class LogTest {
   }
 
   @Test
-  fun testGetLogger() {
+  fun `test getLogger`() {
     unmockkAll()
     val logger = Log.getLogger()
     assertNotNull(logger)

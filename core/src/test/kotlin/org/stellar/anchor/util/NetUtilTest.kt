@@ -28,7 +28,7 @@ internal class NetUtilTest {
   }
 
   @Test
-  fun testFetch() {
+  fun `test fetch()`() {
     mockkStatic(NetUtil::class)
     every { NetUtil.getCall(any()) } returns mockCall
     every { mockCall.execute() } returns mockResponse
@@ -44,7 +44,7 @@ internal class NetUtilTest {
   }
 
   @Test
-  fun testFetchExcpeption() {
+  fun `test fetch() throws exception`() {
     mockkStatic(NetUtil::class)
     every { NetUtil.getCall(any()) } returns mockCall
     every { mockCall.execute() } returns mockResponse
@@ -56,7 +56,7 @@ internal class NetUtilTest {
   }
 
   @Test
-  fun testGetCall() {
+  fun `test getCall()`() {
     val request = OkHttpUtil.buildGetRequest("https://www.stellar.org")
     assertNotNull(NetUtil.getCall(request))
   }
