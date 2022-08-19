@@ -119,7 +119,7 @@ public class MetricEmitterService {
   @PostConstruct
   public void start() {
     if (metricConfig != null) {
-      if (metricConfig.isOptionalMetricsEnabled()) {
+      if (metricConfig.getExtrasEnabled()) {
         this.executor.scheduleAtFixedRate(
             new MetricEmitter(), 10, metricConfig.getRunInterval(), TimeUnit.SECONDS);
       }

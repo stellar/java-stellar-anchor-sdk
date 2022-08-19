@@ -34,6 +34,7 @@ import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.ResourceJsonAssetService
 import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.config.AppConfig
+import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.config.Sep31Config
 import org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_RECEIVE
 import org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_SEND
@@ -271,6 +272,7 @@ class Sep31ServiceTest {
   @MockK(relaxed = true) private lateinit var txnStore: Sep31TransactionStore
 
   @MockK(relaxed = true) lateinit var appConfig: AppConfig
+  @MockK(relaxed = true) lateinit var secretConfig: SecretConfig
   @MockK(relaxed = true) lateinit var sep31Config: Sep31Config
   @MockK(relaxed = true) lateinit var sep31DepositInfoGenerator: Sep31DepositInfoGenerator
   @MockK(relaxed = true) lateinit var quoteStore: Sep38QuoteStore
@@ -293,11 +295,11 @@ class Sep31ServiceTest {
     MockKAnnotations.init(this, relaxUnitFun = true)
     every { appConfig.stellarNetworkPassphrase } returns Constants.TEST_NETWORK_PASS_PHRASE
     every { appConfig.hostUrl } returns Constants.TEST_HOST_URL
-    every { appConfig.jwtSecretKey } returns Constants.TEST_JWT_SECRET
+    every { secretConfig.jwtSecretKey } returns Constants.TEST_JWT_SECRET
     every { appConfig.languages } returns listOf("en")
     every { sep31Config.paymentType } returns STRICT_SEND
     every { txnStore.newTransaction() } returns PojoSep31Transaction()
-    jwtService = spyk(JwtService(appConfig))
+    jwtService = spyk(JwtService(secretConfig))
 
     sep31Service =
       Sep31Service(

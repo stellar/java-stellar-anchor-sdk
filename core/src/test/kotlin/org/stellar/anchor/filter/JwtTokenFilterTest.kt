@@ -16,6 +16,7 @@ import org.stellar.anchor.TestHelper.Companion.createJwtToken
 import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.auth.JwtToken
 import org.stellar.anchor.config.AppConfig
+import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.filter.JwtTokenFilter.APPLICATION_JSON_VALUE
 import org.stellar.anchor.filter.JwtTokenFilter.JWT_TOKEN
 
@@ -26,6 +27,7 @@ internal class JwtTokenFilterTest {
   }
 
   private lateinit var appConfig: AppConfig
+  private lateinit var secretConfig: SecretConfig
   private lateinit var jwtService: JwtService
   private lateinit var sep10TokenFilter: JwtTokenFilter
   private lateinit var request: HttpServletRequest
@@ -35,8 +37,9 @@ internal class JwtTokenFilterTest {
   @BeforeEach
   fun setup() {
     this.appConfig = mockk(relaxed = true)
-    every { appConfig.jwtSecretKey } returns "secret"
-    this.jwtService = JwtService(appConfig)
+    this.secretConfig = mockk(relaxed = true)
+    every { secretConfig.jwtSecretKey } returns "secret"
+    this.jwtService = JwtService(secretConfig)
     this.sep10TokenFilter = JwtTokenFilter(jwtService)
     this.request = mockk(relaxed = true)
     this.response = mockk(relaxed = true)

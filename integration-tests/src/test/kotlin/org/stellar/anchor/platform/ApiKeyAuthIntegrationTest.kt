@@ -34,36 +34,19 @@ import org.stellar.anchor.util.OkHttpUtil
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class ApiKeyAuthIntegrationTest {
   companion object {
-    init {
-      System.setProperty("REFERENCE_SERVER_CONFIG", "classpath:/anchor-reference-server.yaml")
-    }
-
-    private val gson = GsonUtils.getInstance()
-
-    // platform config file
-    private const val ORIGINAL_PLATFORM_CONFIG_FILE = "integration-test.anchor-config.yaml"
-    private const val NEW_PLATFORM_CONFIG_FILE = "integration-test.anchor-config.api-key.yaml"
-    private const val NEW_PLATFORM_CONFIG_FILE_PATH = "src/test/resources/$NEW_PLATFORM_CONFIG_FILE"
-    private const val PLATFORM_SERVER_PORT = 8888
-
-    // Auth
     private const val ANCHOR_TO_PLATFORM_SECRET = "myAnchorToPlatformSecret"
     private const val PLATFORM_TO_ANCHOR_SECRET = "myPlatformToAnchorSecret"
+    private const val PLATFORM_SERVER_PORT = 8888
   }
-
-  private lateinit var platformServerContext: ConfigurableApplicationContext
-  private lateinit var mockAnchor: MockWebServer
+  private val gson = GsonUtils.getInstance()
   private val httpClient: OkHttpClient =
     OkHttpClient.Builder()
       .connectTimeout(10, TimeUnit.MINUTES)
       .readTimeout(10, TimeUnit.MINUTES)
       .writeTimeout(10, TimeUnit.MINUTES)
       .build()
-
-  private fun getDummyRequestBody(method: String): RequestBody? {
-    return if (method != "PATCH") null
-    else OkHttpUtil.buildJsonRequestBody(gson.toJson(mapOf("foo" to "bar")))
-  }
+  private lateinit var platformServerContext: ConfigurableApplicationContext
+  private lateinit var mockAnchor: MockWebServer
 
   @BeforeAll
   fun setup() {
@@ -72,23 +55,21 @@ class ApiKeyAuthIntegrationTest {
     mockAnchor.start()
     val mockAnchorUrl = mockAnchor.url("").toString()
 
-    // Update Platform authType and Anchor backend address
-    val resource = javaClass.getResource("/$ORIGINAL_PLATFORM_CONFIG_FILE")
-    val sourceFile = Paths.get(resource!!.toURI()).toFile()
-    var fileText: String = FileReader(sourceFile).readText()
-    fileText = fileText.replace("authType: JWT_TOKEN", "authType: API_KEY")
-    fileText = fileText.replace("http://localhost:8081", mockAnchorUrl)
-
-    Files.deleteIfExists(Paths.get(NEW_PLATFORM_CONFIG_FILE_PATH))
-    val newFilePath = Files.createFile(Paths.get(NEW_PLATFORM_CONFIG_FILE_PATH))
-    Files.writeString(newFilePath, fileText)
-
     // Start platform
     platformServerContext =
       AnchorPlatformServer.start(
         PLATFORM_SERVER_PORT,
         "/",
-        mapOf("stellar.anchor.config" to "file:${newFilePath.toStr()}"),
+        mapOf(
+          "stellar_anchor_config" to "classpath:integration-test.anchor-config.yaml",
+          "secret.sep10.jwt_secret" to "secret",
+          "secret.sep10.signing_seed" to "SAKXNWVTRVR4SJSHZUDB2CLJXEQHRT62MYQWA2HBB7YBOTCFJJJ55BZF",
+          "platform_api.auth.type" to "API_KEY",
+          "secret.platform_api.auth_secret" to ANCHOR_TO_PLATFORM_SECRET,
+          "callback_api.base_url" to mockAnchorUrl,
+          "callback_api.auth.type" to "API_KEY",
+          "secret.callback_api.auth_secret" to PLATFORM_TO_ANCHOR_SECRET
+        ),
         true
       )
   }
@@ -97,8 +78,6 @@ class ApiKeyAuthIntegrationTest {
   fun teardown() {
     clearAllMocks()
     unmockkAll()
-    val exists = Files.deleteIfExists(Paths.get(NEW_PLATFORM_CONFIG_FILE_PATH))
-    println("File $NEW_PLATFORM_CONFIG_FILE_PATH exists? $exists")
   }
 
   @ParameterizedTest
@@ -204,5 +183,10 @@ class ApiKeyAuthIntegrationTest {
       )
     MatcherAssert.assertThat(request.path, CoreMatchers.endsWith(wantEndpoint))
     assertEquals("", request.body.readUtf8())
+  }
+
+  private fun getDummyRequestBody(method: String): RequestBody? {
+    return if (method != "PATCH") null
+    else OkHttpUtil.buildJsonRequestBody(gson.toJson(mapOf("proposedAssetsJson" to "bar")))
   }
 }

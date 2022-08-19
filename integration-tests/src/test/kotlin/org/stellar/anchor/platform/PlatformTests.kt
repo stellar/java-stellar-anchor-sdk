@@ -84,9 +84,11 @@ fun testHappyPath() {
   assertEquals(31, getTxResponse.sep)
 }
 
+@Suppress("UNCHECKED_CAST")
 fun testHealth() {
   val response = platformApiClient.health(listOf("all"))
   assertEquals(5, response.size)
+  assertEquals(response["number_of_checks"], 2.0)
   assertNotNull(response["checks"])
   assertEquals(0.0, response["number_of_checks"])
   assertNotNull(response["started_at"])

@@ -1,0 +1,61 @@
+package org.stellar.anchor.platform.configurator;
+
+import java.util.Properties;
+import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.env.PropertiesPropertySource;
+import org.stellar.anchor.api.exception.InvalidConfigException;
+
+/**
+ * The SpringConfigAdapter is NOT thread-safe.
+ *
+ * <p>* * *
+ */
+public abstract class SpringConfigAdapter {
+  Properties props = new Properties();
+
+  protected void set(String name, boolean value) {
+    props.put(name, value);
+  }
+
+  protected void set(String name, int value) {
+    props.put(name, value);
+  }
+
+  protected void set(String name, String value) throws InvalidConfigException {
+    props.setProperty(name, value);
+  }
+
+  protected void copy(ConfigMap config, String from, String to) throws InvalidConfigException {
+    copy(config, from, to, null);
+  }
+
+  protected void copy(ConfigMap config, String from, String to, String defaultValue)
+      throws InvalidConfigException {
+    String value = config.getString(from);
+    if (value == null) {
+      if (defaultValue == null) {
+        throw new InvalidConfigException(String.format("config[%s] is not defined", from));
+      }
+      value = defaultValue;
+    }
+    set(to, value);
+  }
+
+  protected String get(String name) {
+    return props.getProperty(name);
+  }
+
+  void sendToSpring(ConfigurableApplicationContext applicationContext, ConfigMap config)
+      throws InvalidConfigException {
+    props.clear();
+
+    sendToSpring(config);
+
+    applicationContext
+        .getEnvironment()
+        .getPropertySources()
+        .addFirst(new PropertiesPropertySource(this.getClass().getSimpleName(), props));
+  }
+
+  abstract void sendToSpring(ConfigMap config) throws InvalidConfigException;
+}

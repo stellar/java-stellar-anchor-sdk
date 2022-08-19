@@ -9,9 +9,6 @@ public interface Sep10Config {
 
   Boolean getEnabled();
 
-  @Secret
-  String getSigningSeed();
-
   Integer getAuthTimeout();
 
   Integer getJwtTimeout();

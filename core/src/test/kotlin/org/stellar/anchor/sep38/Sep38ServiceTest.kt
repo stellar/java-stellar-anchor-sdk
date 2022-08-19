@@ -23,6 +23,7 @@ import org.stellar.anchor.api.sep.sep38.Sep38Context.*
 import org.stellar.anchor.api.shared.StellarId
 import org.stellar.anchor.asset.ResourceJsonAssetService
 import org.stellar.anchor.config.AppConfig
+import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.config.Sep38Config
 import org.stellar.anchor.event.EventPublishService
 import org.stellar.anchor.event.models.QuoteEvent
@@ -31,10 +32,6 @@ class Sep38ServiceTest {
   internal class PropertySep38Config : Sep38Config {
     override fun isEnabled(): Boolean {
       return true
-    }
-
-    override fun getQuoteIntegrationEndPoint(): String? {
-      return null
     }
   }
 
@@ -57,6 +54,7 @@ class Sep38ServiceTest {
 
   // sep10 related:
   @MockK(relaxed = true) private lateinit var appConfig: AppConfig
+  @MockK(relaxed = true) private lateinit var secretConfig: SecretConfig
 
   @BeforeEach
   fun setUp() {
@@ -69,7 +67,7 @@ class Sep38ServiceTest {
     assertEquals(3, assets.size)
 
     // sep10 related:
-    every { appConfig.jwtSecretKey } returns "secret"
+    every { secretConfig.jwtSecretKey } returns "secret"
 
     // store/db related:
     every { quoteStore.newInstance() } returns PojoSep38Quote()

@@ -17,6 +17,7 @@ import org.stellar.anchor.api.sep.sep10.ValidationResponse;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.auth.JwtToken;
 import org.stellar.anchor.config.AppConfig;
+import org.stellar.anchor.config.SecretConfig;
 import org.stellar.anchor.config.Sep10Config;
 import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.util.Log;
@@ -29,20 +30,27 @@ import org.stellar.sdk.responses.AccountResponse;
 /** The Sep-10 protocol service. */
 public class Sep10Service {
   final AppConfig appConfig;
+  final SecretConfig secretConfig;
   final Sep10Config sep10Config;
   final Horizon horizon;
   final JwtService jwtService;
   final String serverAccountId;
 
   public Sep10Service(
-      AppConfig appConfig, Sep10Config sep10Config, Horizon horizon, JwtService jwtService) {
+      AppConfig appConfig,
+      SecretConfig secretConfig,
+      Sep10Config sep10Config,
+      Horizon horizon,
+      JwtService jwtService) {
     debug("appConfig:", appConfig);
     debug("sep10Config:", sep10Config);
     this.appConfig = appConfig;
+    this.secretConfig = secretConfig;
     this.sep10Config = sep10Config;
     this.horizon = horizon;
     this.jwtService = jwtService;
-    this.serverAccountId = KeyPair.fromSecretSeed(sep10Config.getSigningSeed()).getAccountId();
+    this.serverAccountId =
+        KeyPair.fromSecretSeed(secretConfig.getSep10SigningSeed()).getAccountId();
     Log.info("Sep10Service initialized.");
   }
 
@@ -143,7 +151,7 @@ public class Sep10Service {
         debugF("SIGNING_KEY from client_domain fetched: {}", clientSigningKey);
       }
 
-      KeyPair signer = KeyPair.fromSecretSeed(sep10Config.getSigningSeed());
+      KeyPair signer = KeyPair.fromSecretSeed(secretConfig.getSep10SigningSeed());
       long now = System.currentTimeMillis() / 1000L;
       Transaction txn =
           Sep10Challenge.newChallenge(

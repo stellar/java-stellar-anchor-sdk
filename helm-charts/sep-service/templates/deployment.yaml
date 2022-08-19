@@ -20,8 +20,8 @@ spec:
       {{- if (.Values.deployment).annotations }}
       annotations:
         {{- range $key, $value := .Values.deployment.annotations }}
-          {{ $key }}: {{ $value | quote }}
-          {{- end }}
+        {{ $key }}: {{ $value | quote }}
+        {{- end }}
       {{- end }}
     spec:
       {{- if (.Values.deployment).serviceAccountName }}
@@ -30,10 +30,8 @@ spec:
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repo }}/{{ .Values.image.name }}:{{ .Values.image.tag }}"
-          args:
-            - --sep-server
-            - --stellar-observer
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args: ["--sep-server --stellar-observer"]
+          imagePullPolicy: {{ .Values.image.pullPolicy | default "Always" }}
           startupProbe:
             httpGet:
               path: {{ .Values.deployment.startupProbePath | default "/health" }}
@@ -57,46 +55,37 @@ spec:
             - name: sep-config-volume
               mountPath: /config
               readOnly: true
-          {{- if ((.Values.deployment).volumeMounts).configMaps }}
-          {{- range $conf := .Values.deployment.volumeMounts.configMaps }}
+          {{- if .Values.deployment.volumeMounts.configMaps }}
+            {{- range $conf := .Values.deployment.volumeMounts.configMaps }}
             - mountPath: {{ $conf.mountPath }}
               name: {{ $conf.name }}-volume
+            {{- end }}
           {{- end }}
-          {{- end }}
-          {{- if ((.Values.deployment).volumeMounts).secrets }}
-          {{- range $secret := .Values.deployment.volumeMounts.secrets }}
+          {{- if .Values.deployment.volumeMounts.secrets }}
+            {{- range $secret := .Values.deployment.volumeMounts.secrets }}
             - mountPath: {{ $secret.mountPath | default $secret.name }}
               name: {{ $secret.name }}-volume
-          {{- end }}
+            {{- end }}
           {{- end }}
           ports:
           - name: http
             containerPort: {{ .Values.service.containerPort }}
             protocol: TCP
-          {{- if (.Values.deployment).env }}
-          env:
-{{ toYaml .Values.deployment.env | indent 12 }}
-          {{- end }}
-          {{- if (.Values.deployment).envFrom }}
-          envFrom:
-{{ toYaml .Values.deployment.envFrom | indent 12 }}
-          {{- end }}
-          {{- if (.Values.deployment).resources }}
-          resources:
-{{- toYaml .Values.deployment.resources | indent 12 }}
+          {{- if .Values.deployment.envVars }}
+          {{- toYaml .Values.deployment.envVars | nindent 10 }}
           {{- end }}     
       volumes:
         - name: sep-config-volume
           configMap:
             name: {{ .Values.fullName }}
-      {{- if ((.Values.deployment).volumeMounts).configMaps }}
+      {{- if .Values.deployment.volumeMounts.configMaps }}
       {{- range $conf := .Values.deployment.volumeMounts.configMaps }}
         - name: {{ $conf.name }}-volume
           configMap:
             name: {{ $conf.name }}
       {{- end }}
       {{- end }}
-      {{- if ((.Values.deployment).volumeMounts).secrets }}
+      {{- if .Values.deployment.volumeMounts.secrets }}
       {{- range $secret := .Values.deployment.volumeMounts.secrets }}
         - name: {{ $secret.name }}-volume
           secret:

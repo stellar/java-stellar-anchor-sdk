@@ -9,10 +9,5 @@ public interface AppConfig {
 
   String getHorizonUrl();
 
-  @Secret
-  String getJwtSecretKey();
-
-  String getAssets();
-
   List<String> getLanguages();
 }

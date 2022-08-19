@@ -1,51 +1,46 @@
 package org.stellar.anchor.sep1;
 
-import static org.stellar.anchor.util.Log.*;
+import static org.stellar.anchor.util.Log.debug;
+import static org.stellar.anchor.util.Log.debugF;
 
 import java.io.IOException;
-import org.stellar.anchor.api.exception.SepNotFoundException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import org.stellar.anchor.config.Sep1Config;
-import org.stellar.anchor.util.FileUtil;
 import org.stellar.anchor.util.Log;
-import org.stellar.anchor.util.ResourceReader;
+import org.stellar.anchor.util.NetUtil;
 
 public class Sep1Service {
-  private final Sep1Config sep1Config;
-  private ResourceReader resourceReader;
+  private String tomlValue;
 
   /**
    * Construct the Sep1Service that reads the stellar.toml content from Java resource.
    *
    * @param sep1Config The Sep1 configuration.
    */
-  public Sep1Service(Sep1Config sep1Config) {
-    debug("sep1Config:", sep1Config);
-    this.sep1Config = sep1Config;
-    Log.info("Sep1Service initialized.");
-  }
+  public Sep1Service(Sep1Config sep1Config) throws IOException {
+    if (sep1Config.isEnabled()) {
+      debug("sep1Config:", sep1Config);
+      switch (sep1Config.getType().toLowerCase()) {
+        case "string":
+          debug("reading stellar.toml from config[sep1.toml.value]");
+          tomlValue = sep1Config.getValue();
+          break;
+        case "file":
+          debugF("reading stellar.toml from {}", sep1Config.getValue());
+          tomlValue = Files.readString(Path.of(sep1Config.getValue()));
+          break;
+        case "url":
+          debugF("reading stellar.toml from {}", sep1Config.getValue());
+          tomlValue = NetUtil.fetch(sep1Config.getValue());
+          break;
+      }
 
-  /**
-   * Construct the Sep1Service that reads the stellar.toml content by the resourceReader.
-   *
-   * @param sep1Config The Sep1 configuration.
-   * @param resourceReader The resource reader that reads the sep1 contents.
-   */
-  public Sep1Service(Sep1Config sep1Config, ResourceReader resourceReader) {
-    this.sep1Config = sep1Config;
-    this.resourceReader = resourceReader;
-  }
-
-  public String getStellarToml() throws IOException, SepNotFoundException {
-    infoF("reading SEP1 TOML: {}", sep1Config.getStellarFile());
-    if (resourceReader == null) {
-      debugF("reading SEP1 TOML from file system. path={}", sep1Config.getStellarFile());
-      return FileUtil.getResourceFileAsString(sep1Config.getStellarFile());
+      Log.info("Sep1Service initialized.");
     }
+  }
 
-    debugF(
-        "reading SEP1 TOML from resource reader({}). path={}",
-        resourceReader.getClass().getSimpleName(),
-        sep1Config.getStellarFile());
-    return resourceReader.readResourceAsString(sep1Config.getStellarFile());
+  public String getStellarToml() {
+    return tomlValue;
   }
 }

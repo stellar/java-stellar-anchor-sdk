@@ -35,6 +35,7 @@ import org.stellar.anchor.api.sep.sep10.ChallengeRequest
 import org.stellar.anchor.api.sep.sep10.ValidationRequest
 import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.config.AppConfig
+import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.config.Sep10Config
 import org.stellar.anchor.horizon.Horizon
 import org.stellar.anchor.util.FileUtil
@@ -73,6 +74,7 @@ internal class Sep10ServiceTest {
   }
 
   @MockK(relaxed = true) private lateinit var appConfig: AppConfig
+  @MockK(relaxed = true) private lateinit var secretConfig: SecretConfig
   @MockK(relaxed = true) private lateinit var sep10Config: Sep10Config
   @MockK(relaxed = true) private lateinit var horizon: Horizon
 
@@ -90,7 +92,6 @@ internal class Sep10ServiceTest {
   @BeforeEach
   fun setUp() {
     MockKAnnotations.init(this, relaxUnitFun = true)
-    every { sep10Config.signingSeed } returns TEST_SIGNING_SEED
     every { sep10Config.homeDomain } returns TEST_HOME_DOMAIN
     every { sep10Config.clientAttributionDenyList } returns listOf("")
     every { sep10Config.clientAttributionAllowList } returns listOf(TEST_CLIENT_DOMAIN)
@@ -99,15 +100,17 @@ internal class Sep10ServiceTest {
 
     every { appConfig.stellarNetworkPassphrase } returns TEST_NETWORK_PASS_PHRASE
     every { appConfig.hostUrl } returns TEST_HOST_URL
-    every { appConfig.jwtSecretKey } returns TEST_JWT_SECRET
+
+    every { secretConfig.sep10SigningSeed } returns TEST_SIGNING_SEED
+    every { secretConfig.jwtSecretKey } returns TEST_JWT_SECRET
 
     mockkStatic(NetUtil::class)
     mockkStatic(Sep10Challenge::class)
 
     every { NetUtil.fetch(any()) } returns TEST_CLIENT_TOML
 
-    this.jwtService = spyk(JwtService(appConfig))
-    this.sep10Service = Sep10Service(appConfig, sep10Config, horizon, jwtService)
+    this.jwtService = spyk(JwtService(secretConfig))
+    this.sep10Service = Sep10Service(appConfig, secretConfig, sep10Config, horizon, jwtService)
   }
 
   @AfterEach
@@ -155,7 +158,9 @@ internal class Sep10ServiceTest {
 
     val transaction =
       TransactionBuilder(AccountConverter.enableMuxed(), sourceAccount, Network.TESTNET)
-        .addTimeBounds(TimeBounds.expiresAfter(900))
+        .addPreconditions(
+          TransactionPreconditions.builder().timeBounds(TimeBounds.expiresAfter(900)).build()
+        )
         .setBaseFee(100)
         .addOperation(op1DomainNameMandatory)
         .addOperation(op2WebAuthDomainMandatory)
@@ -168,11 +173,11 @@ internal class Sep10ServiceTest {
     transaction.sign(clientSecondaryKP)
 
     // 2 ------ Create Services
-    every { sep10Config.signingSeed } returns String(serverKP.secretSeed)
+    every { secretConfig.sep10SigningSeed } returns String(serverKP.secretSeed)
     every { appConfig.horizonUrl } returns "https://horizon-testnet.stellar.org"
     every { appConfig.stellarNetworkPassphrase } returns TEST_NETWORK_PASS_PHRASE
     val horizon = Horizon(appConfig)
-    this.sep10Service = Sep10Service(appConfig, sep10Config, horizon, jwtService)
+    this.sep10Service = Sep10Service(appConfig, secretConfig, sep10Config, horizon, jwtService)
 
     // 3 ------ Setup multisig
     val httpRequest =
@@ -187,7 +192,9 @@ internal class Sep10ServiceTest {
     val clientAccount = horizon.server.accounts().account(clientMasterKP.accountId)
     val multisigTx =
       TransactionBuilder(AccountConverter.enableMuxed(), clientAccount, Network.TESTNET)
-        .addTimeBounds(TimeBounds.expiresAfter(900))
+        .addPreconditions(
+          TransactionPreconditions.builder().timeBounds(TimeBounds.expiresAfter(900)).build()
+        )
         .setBaseFee(300)
         .addOperation(
           SetOptionsOperation.Builder()
@@ -244,7 +251,9 @@ internal class Sep10ServiceTest {
 
     val transaction =
       TransactionBuilder(AccountConverter.enableMuxed(), sourceAccount, Network.TESTNET)
-        .addTimeBounds(TimeBounds.expiresAfter(900))
+        .addPreconditions(
+          TransactionPreconditions.builder().timeBounds(TimeBounds.expiresAfter(900)).build()
+        )
         .setBaseFee(100)
         .addOperation(op1DomainNameMandatory)
         .addOperation(op2WebAuthDomainMandatory)
@@ -256,11 +265,11 @@ internal class Sep10ServiceTest {
     transaction.sign(clientKP)
 
     // 2 ------ Create Services
-    every { sep10Config.signingSeed } returns String(serverKP.secretSeed)
+    every { secretConfig.sep10SigningSeed } returns String(serverKP.secretSeed)
     every { appConfig.horizonUrl } returns "https://horizon-testnet.stellar.org"
     every { appConfig.stellarNetworkPassphrase } returns TEST_NETWORK_PASS_PHRASE
     val horizon = Horizon(appConfig)
-    this.sep10Service = Sep10Service(appConfig, sep10Config, horizon, jwtService)
+    this.sep10Service = Sep10Service(appConfig, secretConfig, sep10Config, horizon, jwtService)
 
     // 3 ------ Run tests
     val validationRequest = ValidationRequest.of(transaction.toEnvelopeXdrBase64())
@@ -317,7 +326,9 @@ internal class Sep10ServiceTest {
 
     val transaction =
       TransactionBuilder(AccountConverter.enableMuxed(), sourceAccount, Network.TESTNET)
-        .addTimeBounds(TimeBounds.expiresAfter(900))
+        .addPreconditions(
+          TransactionPreconditions.builder().timeBounds(TimeBounds.expiresAfter(900)).build()
+        )
         .setBaseFee(100)
         .addOperation(op1DomainNameMandatory)
         .addOperation(op2WebAuthDomainMandatory)
@@ -329,11 +340,11 @@ internal class Sep10ServiceTest {
     transaction.sign(clientKP)
 
     // 2 ------ Create Services
-    every { sep10Config.signingSeed } returns String(serverKP.secretSeed)
+    every { secretConfig.sep10SigningSeed } returns String(serverKP.secretSeed)
     every { appConfig.horizonUrl } returns mockHorizonUrl
     every { appConfig.stellarNetworkPassphrase } returns TEST_NETWORK_PASS_PHRASE
     val horizon = Horizon(appConfig)
-    this.sep10Service = Sep10Service(appConfig, sep10Config, horizon, jwtService)
+    this.sep10Service = Sep10Service(appConfig, secretConfig, sep10Config, horizon, jwtService)
 
     // 3 ------ Run tests
     val validationRequest = ValidationRequest.of(transaction.toEnvelopeXdrBase64())

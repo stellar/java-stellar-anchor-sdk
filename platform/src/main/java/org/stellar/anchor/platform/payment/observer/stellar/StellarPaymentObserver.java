@@ -169,7 +169,7 @@ public class StellarPaymentObserver implements HealthCheckable {
 
   @Override
   public int compareTo(@NotNull HealthCheckable other) {
-    return other.getName().compareTo(other.getName());
+    return this.getName().compareTo(other.getName());
   }
 
   public static class Builder {

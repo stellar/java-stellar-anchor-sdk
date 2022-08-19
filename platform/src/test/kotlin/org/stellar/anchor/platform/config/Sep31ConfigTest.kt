@@ -5,6 +5,7 @@ import kotlin.test.assertEquals
 import org.junit.jupiter.api.*
 import org.springframework.validation.BindException
 import org.springframework.validation.ValidationUtils
+import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.config.Sep31Config.DepositInfoGeneratorType.CIRCLE
 
 open class Sep31ConfigTest {
@@ -13,7 +14,10 @@ open class Sep31ConfigTest {
     val circleConfig = PropertyCircleConfig()
     circleConfig.circleUrl = "https://api-sandbox.circle.com"
     circleConfig.apiKey = "apikey"
-    val sep31Config = PropertySep31Config(circleConfig)
+    val callbackApiConfig = CallbackApiConfig(PropertySecretConfig())
+    callbackApiConfig.baseUrl = "http://localhost:8080"
+
+    val sep31Config = PropertySep31Config(circleConfig, callbackApiConfig)
     sep31Config.depositInfoGeneratorType = CIRCLE
 
     val errors = BindException(sep31Config, "sep31Config")
@@ -28,7 +32,10 @@ open class Sep31ConfigTest {
   fun testSep31BadCircleConfig() {
     val circleConfig = PropertyCircleConfig()
     circleConfig.circleUrl = "https://api-sandbox.circle.com"
-    val sep31Config = PropertySep31Config(circleConfig)
+    val callbackApiConfig = CallbackApiConfig(PropertySecretConfig())
+    callbackApiConfig.baseUrl = "http://localhost:8080"
+
+    val sep31Config = PropertySep31Config(circleConfig, callbackApiConfig)
     sep31Config.enabled = true
     sep31Config.depositInfoGeneratorType = CIRCLE
 

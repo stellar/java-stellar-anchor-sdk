@@ -8,9 +8,10 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import org.stellar.anchor.auth.AuthHelper
+import org.stellar.anchor.auth.AuthType
+import org.stellar.anchor.auth.AuthType.*
 import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.auth.JwtToken
-import org.stellar.anchor.config.IntegrationAuthConfig.AuthType
 
 class PlatformIntegrationHelperTest {
   companion object {
@@ -28,7 +29,7 @@ class PlatformIntegrationHelperTest {
   @EnumSource(AuthType::class)
   fun test_getRequestBuilder(authType: AuthType) {
     when (authType) {
-      AuthType.JWT_TOKEN -> {
+      JWT_TOKEN -> {
         // Mock calendar to guarantee the jwt token format
         val calendarSingleton = Calendar.getInstance()
         val currentTimeMilliseconds = calendarSingleton.timeInMillis
@@ -59,7 +60,7 @@ class PlatformIntegrationHelperTest {
         val wantRequest = wantRequestBuilder.url(TEST_HOME_DOMAIN).get().build()
         assertEquals(wantRequest.headers, gotRequest.headers)
       }
-      AuthType.API_KEY -> {
+      API_KEY -> {
         val authHelper = AuthHelper.forApiKey("secret")
         val gotRequestBuilder = PlatformIntegrationHelper.getRequestBuilder(authHelper)
         val gotRequest = gotRequestBuilder.url(TEST_HOME_DOMAIN).get().build()
@@ -68,7 +69,7 @@ class PlatformIntegrationHelperTest {
         val wantRequest = wantRequestBuilder.url(TEST_HOME_DOMAIN).get().build()
         assertEquals(wantRequest.headers, gotRequest.headers)
       }
-      AuthType.NONE -> {
+      NONE -> {
         val authHelper = AuthHelper.forNone()
         val gotRequestBuilder = PlatformIntegrationHelper.getRequestBuilder(authHelper)
         val gotRequest = gotRequestBuilder.url(TEST_HOME_DOMAIN).get().build()
