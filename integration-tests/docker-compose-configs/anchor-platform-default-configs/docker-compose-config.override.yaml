@@ -25,8 +25,11 @@ services:
 
   kafka:
     ports:
-      - # TODO: might need to change this
+      # TODO: might need to change this
       - 29092:29092
     environment:
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://host.docker.internal:29092
+
+  end-to-end-tests:
+    command: --domain host.docker.internal:8080 --tests sep38_create_quote --secret SAKKERITEDMIDMV34G2VRRWHXCZQUDG4XQ3L6WSIZHN5U5LLWIJQJEBE

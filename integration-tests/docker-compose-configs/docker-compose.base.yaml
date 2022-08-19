@@ -33,3 +33,10 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  end-to-end-tests:
+    build:
+      context: ../../
+      dockerfile: end-to-end-tests/Dockerfile
+    depends_on:
+      - anchor-platform

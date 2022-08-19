@@ -37,7 +37,7 @@ app-config:
 
   sep1:
     enabled: true
-    stellarFile: classpath:sep1/stellar-wks.toml
+    stellarFile: file:config/stellar.toml
 
   # sep-10
   sep10:
