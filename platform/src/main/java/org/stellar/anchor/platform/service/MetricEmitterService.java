@@ -92,7 +92,7 @@ public class MetricEmitterService {
 
     if (metricConfig.isOptionalMetricsEnabled()) {
       this.executor.scheduleAtFixedRate(
-          new MetricEmitter(), 0, metricConfig.getRunInterval(), TimeUnit.SECONDS);
+          new MetricEmitter(), 10, metricConfig.getRunInterval(), TimeUnit.SECONDS);
     }
   }
 
