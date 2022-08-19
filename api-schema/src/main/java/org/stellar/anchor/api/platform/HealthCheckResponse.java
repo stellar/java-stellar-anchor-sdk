@@ -7,10 +7,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.Data;
+import org.stellar.anchor.api.shared.Metadata;
 
 @Data
 public class HealthCheckResponse {
   final Instant started;
+
+  final String version = Metadata.getVersion();
 
   @SerializedName("elapsed_time_ms")
   Duration elapsedTime = Duration.ZERO;
