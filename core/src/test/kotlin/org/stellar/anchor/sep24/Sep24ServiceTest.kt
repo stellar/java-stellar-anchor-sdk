@@ -91,7 +91,7 @@ internal class Sep24ServiceTest {
   }
 
   @Test
-  fun testWithdraw() {
+  fun `test withdraw ok`() {
     val slotTxn = slot<Sep24Transaction>()
 
     every { txnStore.save(capture(slotTxn)) } returns null
@@ -156,7 +156,7 @@ internal class Sep24ServiceTest {
   }
 
   @Test
-  fun testWithdrawalNoTokenNoRequest() {
+  fun `test withdrawal with no token and no request failure`() {
     assertThrows<SepValidationException> {
       sep24Service.withdraw("/sep24/withdrawal", null, createTestTransactionRequest())
     }
@@ -167,7 +167,7 @@ internal class Sep24ServiceTest {
   }
 
   @Test
-  fun testWithdrawalBadRequest() {
+  fun `test withdraw with bad requests`() {
     assertThrows<SepValidationException> {
       val request = createTestTransactionRequest()
       request.remove("asset_code")
@@ -215,7 +215,7 @@ internal class Sep24ServiceTest {
 
   @ParameterizedTest
   @ValueSource(strings = ["true", "false"])
-  fun testDeposit(claimable_balance_supported: String) {
+  fun `test deposit`(claimable_balance_supported: String) {
     val slotTxn = slot<Sep24Transaction>()
 
     every { txnStore.save(capture(slotTxn)) } returns null
@@ -257,7 +257,7 @@ internal class Sep24ServiceTest {
   }
 
   @Test
-  fun testDepositNoTokenNoRequest() {
+  fun `test deposit with no token and no request`() {
     assertThrows<SepValidationException> {
       sep24Service.deposit("/sep24/deposit", null, createTestTransactionRequest())
     }
@@ -268,7 +268,7 @@ internal class Sep24ServiceTest {
   }
 
   @Test
-  fun testDepositBadRequest() {
+  fun `test deposit with bad requests`() {
     assertThrows<SepValidationException> {
       val request = createTestTransactionRequest()
       request.remove("asset_code")
@@ -316,7 +316,7 @@ internal class Sep24ServiceTest {
 
   @ParameterizedTest
   @ValueSource(strings = ["deposit", "withdrawal"])
-  fun testFindTransactions(kind: String) {
+  fun `test find transactions`(kind: String) {
     every { txnStore.findTransactions(TEST_ACCOUNT, any(), any()) } returns
       createTestTransactions(kind)
     val gtr =
@@ -339,7 +339,7 @@ internal class Sep24ServiceTest {
 
   @ParameterizedTest
   @ValueSource(strings = ["deposit", "withdrawal"])
-  fun testFindTransactionsValidationError(kind: String) {
+  fun `test find transactions with validation error`(kind: String) {
     assertThrows<SepNotAuthorizedException> {
       val gtr =
         GetTransactionsRequest.of(TEST_ASSET, kind, 10, "2021-12-20T19:30:58+00:00", "1", "en-US")
@@ -362,7 +362,7 @@ internal class Sep24ServiceTest {
 
   @ParameterizedTest
   @ValueSource(strings = ["deposit", "withdrawal"])
-  fun testFindTransaction(kind: String) {
+  fun `test find one transaction`(kind: String) {
     every { txnStore.findByTransactionId(any()) } returns createTestTransaction(kind)
 
     var gtr = GetTransactionRequest(TEST_TRANSACTION_ID_0, null, null, "en-US")
@@ -392,7 +392,7 @@ internal class Sep24ServiceTest {
 
   @ParameterizedTest
   @ValueSource(strings = ["deposit", "withdrawal"])
-  fun testFindTransactionValidationError(kind: String) {
+  fun `test find transaction validation error`(kind: String) {
     assertThrows<SepNotAuthorizedException> {
       val gtr = GetTransactionRequest(TEST_TRANSACTION_ID_0, null, null, "en-US")
       sep24Service.findTransaction(null, gtr)
@@ -422,7 +422,7 @@ internal class Sep24ServiceTest {
   }
 
   @Test
-  fun testGetInfo() {
+  fun `test GET info`() {
     val response = sep24Service.info
 
     assertEquals(3, response.deposit.size)
@@ -433,7 +433,7 @@ internal class Sep24ServiceTest {
   }
 
   @Test
-  fun testMakeMemo() {
+  fun `test make memo`() {
     var memo = makeMemo("this_is_a_test_memo", "text")
     assertTrue(memo is MemoText)
     memo = makeMemo("1234", "id")
@@ -443,7 +443,7 @@ internal class Sep24ServiceTest {
   }
 
   @Test
-  fun testLang() {
+  fun `test lang`() {
     val slotTxn = slot<Sep24Transaction>()
 
     every { txnStore.save(capture(slotTxn)) } returns null

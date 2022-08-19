@@ -9,7 +9,7 @@ import org.stellar.sdk.xdr.MemoType
 
 internal class MemoHelperTest {
   @Test
-  fun testMakeMemoError() {
+  fun `Test makeMemo error`() {
     assertThrows<SepValidationException> { MemoHelper.makeMemo("memo", "bad_type") }
 
     assertThrows<SepValidationException> { MemoHelper.makeMemo("bad_number", "id") }
@@ -26,7 +26,7 @@ internal class MemoHelperTest {
   }
 
   @Test
-  fun test_memoHashConversion() {
+  fun `test memo hash conversion`() {
     val wantHex = "39623738663066612d393366392d343139382d386439332d6537366664303834"
     val gotHex = MemoHelper.convertBase64ToHex("OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ=")
     assertEquals(wantHex, gotHex)
