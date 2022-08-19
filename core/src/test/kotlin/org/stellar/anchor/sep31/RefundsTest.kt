@@ -37,7 +37,7 @@ class RefundsTest {
   }
 
   @Test
-  fun test_toSep31TransactionResponseRefunds() {
+  fun `test conversion to sep31 transaction response refunds`() {
     // mock the SEP-31 Refunds object
     val mockRefundPayment1 = PojoSep31RefundPayment()
     mockRefundPayment1.id = "A"
@@ -80,7 +80,7 @@ class RefundsTest {
   }
 
   @Test
-  fun test_toPlatformApiRefund() {
+  fun `test conversion to CallbackApi Refund`() {
     // mock the SEP-31 Refunds object
     val mockRefundPayment1 = PojoSep31RefundPayment()
     mockRefundPayment1.id = "A"
@@ -129,8 +129,8 @@ class RefundsTest {
   }
 
   @Test
-  fun test_of() {
-    // mock the PlatformApi Refund
+  fun `test CallbackApi Refund creation`() {
+    // mock the CallbackApi Refund
     val mockPlatformApiRefund =
       org.stellar.anchor.api.shared.Refund.builder()
         .amountRefunded(Amount("100", fiatUSD))

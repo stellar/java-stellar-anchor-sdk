@@ -6,6 +6,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
+import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import org.stellar.anchor.config.MetricConfig;
 import org.stellar.anchor.platform.data.JdbcSep31TransactionRepo;
@@ -13,6 +14,7 @@ import org.stellar.anchor.util.Log;
 
 public class MetricEmitterService {
   private final ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+  private MetricConfig metricConfig;
   private final JdbcSep31TransactionRepo sep31TransactionStore;
   AtomicInteger pendingStellarTxns = new AtomicInteger(0);
   AtomicInteger pendingCustomerInfoUpdateTxns = new AtomicInteger(0);
@@ -24,6 +26,7 @@ public class MetricEmitterService {
 
   public MetricEmitterService(
       MetricConfig metricConfig, JdbcSep31TransactionRepo sep31TransactionRepo) {
+    this.metricConfig = metricConfig;
     this.sep31TransactionStore = sep31TransactionRepo;
     // Create counters
     Metrics.counter(
@@ -89,11 +92,6 @@ public class MetricEmitterService {
         errorTxns);
 
     // TODO add gauges for SEP-24 Transactions
-
-    if (metricConfig.isOptionalMetricsEnabled()) {
-      this.executor.scheduleAtFixedRate(
-          new MetricEmitter(), 0, metricConfig.getRunInterval(), TimeUnit.SECONDS);
-    }
   }
 
   class MetricEmitter implements Runnable {
@@ -113,12 +111,18 @@ public class MetricEmitterService {
     }
   }
 
+  @PreDestroy
   public void stop() {
     executor.shutdownNow();
   }
 
-  @PreDestroy
-  public void destroy() {
-    stop();
+  @PostConstruct
+  public void start() {
+    if (metricConfig != null) {
+      if (metricConfig.isOptionalMetricsEnabled()) {
+        this.executor.scheduleAtFixedRate(
+            new MetricEmitter(), 10, metricConfig.getRunInterval(), TimeUnit.SECONDS);
+      }
+    }
   }
 }

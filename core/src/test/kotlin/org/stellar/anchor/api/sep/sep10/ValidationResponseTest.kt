@@ -9,7 +9,7 @@ internal class ValidationResponseTest {
   }
 
   @Test
-  fun of() {
+  fun `test creation of ValidationResponse`() {
     val vr = ValidationResponse.of(TEST_TOKEN)
     assertEquals(TEST_TOKEN, vr.token)
   }

@@ -16,7 +16,7 @@ internal class HorizonTest {
   }
 
   @Test
-  fun testHorizon() {
+  fun `test the correctness of Horizon creation`() {
     val appConfig = mockk<AppConfig>()
     every { appConfig.horizonUrl } returns TEST_HORIZON_URI
     every { appConfig.stellarNetworkPassphrase } returns TEST_HORIZON_PASSPHRASE
