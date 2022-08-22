@@ -230,22 +230,6 @@ def wait_for_anchor_platform_ready(domain, poll_interval=3, timeout=180):
         print("error: timed out while polling for readiness")
         exit(1)
 
-def wait_for_anchor_platform_ready2(domain, keypair, poll_interval=3, timeout=180):
-    print(f"attempting to get a token to check for readiness")
-    attempt = 1
-    while attempt*poll_interval <= timeout:
-        try:
-            get_anchor_platform_token(endpoints, keypair.public_key, keypair.secret)
-            print("anchor platform is ready")
-            return
-        except Exception as e:
-            print(e)
-        attempt += 1
-        time.sleep(poll_interval)
-    else:
-        print("error: timed out while trying to get token")
-        exit(1)
-
 
 if __name__ == "__main__":
     TESTS = [
@@ -275,8 +259,6 @@ if __name__ == "__main__":
 
     endpoints = Endpoints(args.domain)
     keypair = Keypair.from_secret(args.secret)
-
-    #wait_for_anchor_platform_ready2(endpoints, keypair)
 
     tests = TESTS if args.tests[0] == "all" else args.tests
 
