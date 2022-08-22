@@ -66,6 +66,13 @@ public class StellarPaymentObserver implements HealthCheckable {
     this.stream.close();
   }
 
+  /**
+   * fetchStreamingCursor will gather a starting cursor for the streamer. If there is a cursor
+   * already stored in the database, that value will be returned. Otherwise, this method will fetch
+   * the most recent cursor from the Network and use that as a starting point.
+   *
+   * @return the starting point to start streaming from.
+   */
   String fetchStreamingCursor() {
     // Use database value, if any.
     String lastToken = paymentStreamerCursorStore.load();
