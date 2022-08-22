@@ -11,6 +11,11 @@ anchor.settings:
   platformApiEndpoint: http://host.docker.internal:8080
   hostUrl: http://host.docker.internal:8081
 
+  # The Stellar wallet to which the customer will send the Stellar assets.
+  distributionWallet: GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF
+  distributionWalletMemo:
+  distributionWalletMemoType:
+
 integration-auth:
   authType: JWT_TOKEN
   platformToAnchorSecret: myPlatformToAnchorSecret

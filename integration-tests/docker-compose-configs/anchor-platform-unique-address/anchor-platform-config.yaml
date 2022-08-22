@@ -68,7 +68,7 @@ app-config:
     feeIntegrationEndPoint: http://host.docker.internal:8081
     uniqueAddressIntegrationEndPoint: http://host.docker.internal:8081
     paymentType: STRICT_SEND
-    depositInfoGeneratorType: self # self or circle
+    depositInfoGeneratorType: api # self or circle or api
 
   sep38:
     enabled: true
