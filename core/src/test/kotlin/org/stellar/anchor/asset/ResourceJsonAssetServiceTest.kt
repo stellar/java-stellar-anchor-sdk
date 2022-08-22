@@ -11,7 +11,7 @@ import org.stellar.anchor.api.exception.SepNotFoundException
 
 internal class ResourceJsonAssetServiceTest {
   @Test
-  fun getListAllAssets() {
+  fun `test assets listing`() {
     val rjas = ResourceJsonAssetService("test_assets.json")
     assertEquals(3, rjas.assets.getAssets().size)
 
@@ -28,7 +28,7 @@ internal class ResourceJsonAssetServiceTest {
   }
 
   @Test
-  fun testJsonNotFound() {
+  fun `test asset JSON file not found`() {
     assertThrows<JsonSyntaxException> { ResourceJsonAssetService("test_assets.json.bad") }
 
     assertThrows<SepNotFoundException> { ResourceJsonAssetService("not_found.json") }
