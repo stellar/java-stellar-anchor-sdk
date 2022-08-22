@@ -1,5 +1,5 @@
 import argparse
-
+import os
 import requests
 import json
 import base64
@@ -47,6 +47,7 @@ def get_anchor_platform_token(endpoints, public_key, secret_key):
         endpoints.ANCHOR_PLATFORM_AUTH_ENDPOINT,
         data={"transaction": envelope.to_xdr()},
     )
+    print(response)
     content = json.loads(response.content)
     return content["token"]
 
@@ -250,7 +251,8 @@ if __name__ == "__main__":
     TESTS = [
         "sep31_flow",
         "sep31_flow_with_sep38",
-        "sep38_create_quote"
+        "sep38_create_quote",
+        "omnibus_allowlist"
     ]
 
     parser = argparse.ArgumentParser()
@@ -258,9 +260,14 @@ if __name__ == "__main__":
     #parser.add_argument('--load-size', "-ls", help="number of tests to execute (multithreaded)", type=int, default=1)
     parser.add_argument('--tests', "-t", nargs="*", help=f"names of tests to execute: {TESTS}", default=TESTS)
     parser.add_argument('--domain', "-d", help="The Anchor Platform endpoint", default="http://localhost:8000")
-    parser.add_argument('--secret', "-s", help="The secret key used for transactions")
+    parser.add_argument('--secret', "-s", help="The secret key used for transactions", default=os.environ.get('E2E_SECRET'))
+    parser.add_argument('--delay', help="Seconds to delay before running the tests", default=0)
 
     args = parser.parse_args()
+
+    if args.delay:
+        print(f"delaying start by {args.delay} seconds")
+        time.sleep(int(args.delay))
 
     domain = args.domain
 
@@ -269,7 +276,7 @@ if __name__ == "__main__":
     endpoints = Endpoints(args.domain)
     keypair = Keypair.from_secret(args.secret)
 
-    wait_for_anchor_platform_ready2(endpoints, keypair)
+    #wait_for_anchor_platform_ready2(endpoints, keypair)
 
     tests = TESTS if args.tests[0] == "all" else args.tests
 
@@ -346,5 +353,18 @@ if __name__ == "__main__":
                 "context": "sep31"
             }
             test_sep38_create_quote(endpoints, keypair, QUOTE_PAYLOAD_USDC_TO_JPYC)
+        elif test == "omnibus_allowlist":
+            print("####################### Testing Omnibus Allowlist #######################")
+            print(f"Omnibus Allowlist - testing with allowed key: {keypair.public_key}")
+            response = requests.get(endpoints.ANCHOR_PLATFORM_AUTH_ENDPOINT, {"account": keypair.public_key})
+            assert response.status_code == 200, f"return code is 200, got: {response.status_code}"
+            print(f"Omnibus Allowlist - testing with allowed key: {keypair.public_key} - success")
+
+            random_kp = Keypair.random()
+            print(f"Omnibus Allowlist - testing with disallowed (random) key: {random_kp.public_key}")
+            response = requests.get(endpoints.ANCHOR_PLATFORM_AUTH_ENDPOINT, {"account": random_kp.public_key})
+            assert response.status_code == 403, f"return code is 403, got: {response.status_code}"
+            print(f"Omnibus Allowlist - testing with disallowed (random) key: {random_kp.public_key} - success")
+
         else:
             exit(f"Error: unknown test {test}")

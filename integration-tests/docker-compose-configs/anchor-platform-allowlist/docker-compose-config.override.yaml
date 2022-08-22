@@ -3,7 +3,7 @@ services:
   anchor-platform-server:
     volumes:
       # add mounts for the new config directory
-      - ./anchor-platform-default-configs:/config
+      - ./anchor-platform-allowlist:/config
     ports:
       # override ports, do not append
       - "8080:8080"
@@ -11,7 +11,7 @@ services:
   anchor-reference-server:
     volumes:
       # add mounts for the new config directory
-      - ./anchor-platform-default-configs:/config
+      - ./anchor-platform-allowlist:/config
     ports:
       # override ports, do not append
       - "8081:8081"
@@ -39,4 +39,4 @@ services:
       KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://host.docker.internal:29092
 
   end-to-end-tests:
-    command: --domain host.docker.internal:8080 --tests all
+    command: --domain host.docker.internal:8080 --tests omnibus_allowlist

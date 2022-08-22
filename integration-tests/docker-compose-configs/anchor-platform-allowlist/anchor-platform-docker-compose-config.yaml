@@ -14,11 +14,7 @@ stellar:
       type: logging-logback
       settings: logging-logback-settings          # The absolute location of the configuration data in this yaml file
 
-# ************************************
-# Application settings
-# ************************************
 app-config:
-  # shared / general application configurations
   app:
     stellarNetworkPassphrase: Test SDF Network ; September 2015
     horizonUrl: https://horizon-testnet.stellar.org
@@ -38,7 +34,6 @@ app-config:
     enabled: true
     stellarFile: file:config/stellar.toml
 
-  # sep-10
   sep10:
     enabled: true
     homeDomain: host.docker.internal:8080
@@ -49,9 +44,11 @@ app-config:
 
     signingSeed: SAX3AH622R2XT6DXWWSRIDCMMUCCMATBZ5U6XKJWDO7M2EJUBFC3AW5X
 
-    omnibusAccountList:
+    omnibusAccountList: "\
+      GAB24L6CPBKSMQOBXJ5PRA6I66X4TGZHPAEI2CMPNLC6I2WX646OYCAV,\
+      GAB24L6CPBKSMQOBXJ5PRA6I66X4TGZHPAEI2CMPNLC6I2WX646OYCAA"
 
-    requireKnownOmnibusAccount: false
+    requireKnownOmnibusAccount: true
 
   sep12:
     enabled: true

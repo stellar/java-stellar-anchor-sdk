@@ -1,14 +1,24 @@
 version: '2'
 services:
-  anchor-platform:
+  anchor-platform-server:
     build:
       context: ../../
       dockerfile: integration-tests/docker-compose-configs/Dockerfile
-    command: --anchor-reference-server --sep-server
+    command: --sep-server
     environment:
       - STELLAR_ANCHOR_CONFIG=file:/config/anchor-platform-docker-compose-config.yaml
-      - REFERENCE_SERVER_CONFIG_ENV=file:/config/anchor-reference-server-docker-compose-config.yaml
       - LOG_APPENDER=console_appender
+    depends_on:
+      - db
+      - kafka
+
+  anchor-reference-server:
+    build:
+      context: ../../
+      dockerfile: integration-tests/docker-compose-configs/Dockerfile
+    command: --anchor-reference-server
+    environment:
+      - REFERENCE_SERVER_CONFIG_ENV=file:/config/anchor-reference-server-docker-compose-config.yaml
     depends_on:
       - db
       - kafka
@@ -39,4 +49,7 @@ services:
       context: ../../
       dockerfile: end-to-end-tests/Dockerfile
     depends_on:
-      - anchor-platform
+      - anchor-platform-server
+      - anchor-reference-server
+    environment:
+      - E2E_SECRET=${E2E_SECRET?err}
