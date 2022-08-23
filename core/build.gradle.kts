@@ -1,19 +1,32 @@
+// The alias call in plugins scope produces IntelliJ false error which is suppressed here.
+@Suppress("DSL_SCOPE_VIOLATION")
 plugins {
   `java-library`
   `maven-publish`
   signing
-  id("org.jetbrains.kotlin.jvm") version "1.6.10"
+  alias(libs.plugins.kotlin.jvm)
 }
 
 version = "1.0.2"
 
 dependencies {
   compileOnly(libs.servlet.api)
-
   compileOnly(libs.slf4j.api)
+
   api(libs.lombok)
 
-  implementation("commons-beanutils:commons-beanutils:1.9.4")
+  // Lombok should be used by all sub-projects to reduce Java verbosity
+  annotationProcessor(libs.lombok)
+
+  implementation(libs.spring.kafka)
+
+  implementation(libs.bundles.kafka)
+
+  // TODO: Consider to simplify
+  implementation(libs.micrometer.prometheus)
+  implementation(libs.javax.transaction.api)
+
+  implementation(libs.commons.beanutils)
   implementation(libs.apache.commons.lang3)
   implementation(libs.log4j2.core)
   implementation(libs.httpclient)
@@ -25,13 +38,8 @@ dependencies {
   implementation(libs.reactor.core)
   implementation(libs.javax.jaxb.api)
   implementation(libs.java.stellar.sdk)
-  implementation("io.micrometer:micrometer-registry-prometheus:1.9.0")
-  implementation("javax.transaction:javax.transaction-api:1.3")
 
   implementation(project(":api-schema"))
-
-  // Lombok should be used by all sub-projects to reduce Java verbosity
-  annotationProcessor(libs.lombok)
 
   testImplementation(libs.okhttp3.mockserver)
   testImplementation(libs.servlet.api)

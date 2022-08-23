@@ -140,7 +140,6 @@ public class JdbcSep31Transaction implements Sep31Transaction, SepTransaction {
 
   Instant updatedAt;
   Instant transferReceivedAt;
-  String message;
   String amountExpected;
 
   @OneToMany(fetch = FetchType.EAGER, mappedBy = "sep31Transaction")

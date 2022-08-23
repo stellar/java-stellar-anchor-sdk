@@ -5,9 +5,8 @@ import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.unmockkAll
-import java.util.*
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
@@ -16,17 +15,27 @@ import org.junit.jupiter.params.provider.ValueSource
 import org.stellar.anchor.api.callback.GetUniqueAddressResponse
 import org.stellar.anchor.api.callback.UniqueAddressIntegration
 import org.stellar.anchor.api.exception.HttpException
+import org.stellar.anchor.platform.payment.observer.stellar.PaymentObservingAccountStore
+import org.stellar.anchor.platform.payment.observer.stellar.PaymentObservingAccountsManager
 import org.stellar.anchor.sep31.Sep31Transaction
 
 class Sep31DepositInfoGeneratorApiTest {
   @MockK(relaxed = true) private lateinit var uniqueAddressIntegration: UniqueAddressIntegration
+
   @MockK(relaxed = true) private lateinit var txn: Sep31Transaction
+
+  @MockK private lateinit var paymentObservingAccountStore: PaymentObservingAccountStore
+
+  // Do not mock the manager
+  private lateinit var paymentObservingAccountsManager: PaymentObservingAccountsManager
+
   val txnId = "this_is_a_transaction_id"
   val stellarAddress = "GBJDSMTMG4YBP27ZILV665XBISBBNRP62YB7WZA2IQX2HIPK7ABLF4C2"
 
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
+    paymentObservingAccountsManager = PaymentObservingAccountsManager(paymentObservingAccountStore)
   }
 
   @AfterEach
@@ -49,14 +58,21 @@ class Sep31DepositInfoGeneratorApiTest {
     val uniqueAddressResponse =
       GetUniqueAddressResponse.builder().uniqueAddress(uniqueAddress).build()
 
+    // Check the manager is not observing the account
+    assertFalse(paymentObservingAccountsManager.lookupAndUpdate(uniqueAddress.stellarAddress))
+
     every { txn.getId() } returns txnId
     every { uniqueAddressIntegration.getUniqueAddress(any()) } returns uniqueAddressResponse
 
-    val generator = Sep31DepositInfoGeneratorApi(uniqueAddressIntegration)
+    val generator =
+      Sep31DepositInfoGeneratorApi(uniqueAddressIntegration, paymentObservingAccountsManager)
     val depositInfo = generator.generate(txn)
     assertEquals(stellarAddress, depositInfo.stellarAddress)
     assertEquals(memo, depositInfo.memo)
     assertEquals(memoType, depositInfo.memoType)
+
+    // Check if the manager is observing the account
+    assertTrue(paymentObservingAccountsManager.lookupAndUpdate(uniqueAddress.stellarAddress))
   }
 
   @ParameterizedTest
@@ -74,8 +90,12 @@ class Sep31DepositInfoGeneratorApiTest {
     every { txn.getId() } returns txnId
     every { uniqueAddressIntegration.getUniqueAddress(any()) } returns uniqueAddressResponse
 
-    val generator = Sep31DepositInfoGeneratorApi(uniqueAddressIntegration)
+    val generator =
+      Sep31DepositInfoGeneratorApi(uniqueAddressIntegration, paymentObservingAccountsManager)
     assertThrows<Exception> { generator.generate(txn) }
+
+    // Make sure the address does not go into manager when exception happens
+    assertFalse(paymentObservingAccountsManager.lookupAndUpdate(uniqueAddress.stellarAddress))
   }
 
   @ParameterizedTest
@@ -84,7 +104,8 @@ class Sep31DepositInfoGeneratorApiTest {
     every { txn.getId() } returns txnId
     every { uniqueAddressIntegration.getUniqueAddress(any()) } throws HttpException(statusCode)
 
-    val generator = Sep31DepositInfoGeneratorApi(uniqueAddressIntegration)
+    val generator =
+      Sep31DepositInfoGeneratorApi(uniqueAddressIntegration, paymentObservingAccountsManager)
     val ex = assertThrows<HttpException> { generator.generate(txn) }
     assertEquals(statusCode, ex.statusCode)
   }
