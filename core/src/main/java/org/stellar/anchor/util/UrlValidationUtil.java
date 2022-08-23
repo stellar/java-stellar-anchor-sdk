@@ -34,7 +34,7 @@ public class UrlValidationUtil {
           String.format("invalidUrl-%s", fieldName),
           String.format("%s is not in valid format", fieldName));
     } else if (urlStatus == UrlConnectionStatus.UNREACHABLE) {
-      Log.error(String.format("%s field invalid: cannot connect to %s", fieldName, fieldName));
+      Log.error(String.format("%s field invalid: cannot connect to %s", fieldName, url));
     }
   }
 }
