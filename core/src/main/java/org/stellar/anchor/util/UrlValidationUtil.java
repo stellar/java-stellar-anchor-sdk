@@ -8,10 +8,16 @@ import org.springframework.validation.Errors;
 
 public class UrlValidationUtil {
   static UrlConnectionStatus validateUrl(String urlString) {
+    return validateUrl(urlString, false);
+  }
+
+  static UrlConnectionStatus validateUrl(String urlString, boolean testConnection) {
     try {
       URL url = new URL(urlString);
-      URLConnection conn = url.openConnection();
-      conn.connect();
+      if (testConnection) {
+        URLConnection conn = url.openConnection();
+        conn.connect();
+      }
     } catch (MalformedURLException e) {
       return UrlConnectionStatus.MALFORMED;
     } catch (IOException e) {
