@@ -346,7 +346,7 @@ if __name__ == "__main__":
             print(f"Omnibus Allowlist - testing with disallowed (random) key: {random_kp.public_key}")
             response = requests.get(endpoints.ANCHOR_PLATFORM_AUTH_ENDPOINT, {"account": random_kp.public_key})
             assert response.status_code == 403, f"return code is 403, got: {response.status_code}"
-            print(f"Omnibus Allowlist - testing with disallowed (random) key: {random_kp.public_key} - success")
+            print(f"Omnibus Allowlist - testing with disallowed (random) key: {random_kp.public_key} expecting 403 error - success")
 
         else:
             exit(f"Error: unknown test {test}")

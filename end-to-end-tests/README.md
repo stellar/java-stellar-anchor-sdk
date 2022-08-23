@@ -20,6 +20,10 @@ Same as **sep31_flow** but a SEP38 quote is requested before step 4 and the "quo
 ###sep38_create_quote
 Request a SEP38 quote from the Anchor Platform
 
+###omnibus_allowlist
+Test the omnibus allowlist feature in SEP-10. If the supplied account is not in the `omnibusAllowList`, the request 
+should be rejected with a 403 error. 
+
 ###all
 Run all the available tests
 

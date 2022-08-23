@@ -1,3 +1,5 @@
+# Configuration Description - set depositInfoGeneratorType: api, this will tell Anchor Platform to contact the
+#                             Anchor Reference Server for a destination account/memo to be used in a SEP-31 transaction
 version: '2'
 services:
   anchor-platform-server:

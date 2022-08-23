@@ -1,3 +1,4 @@
+# Configuration Description - enable to omnibusAllowList feature to check if an account is whitelisted for SEP-10
 version: '2'
 services:
   anchor-platform-server:
