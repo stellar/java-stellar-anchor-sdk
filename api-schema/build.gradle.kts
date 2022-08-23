@@ -6,7 +6,7 @@ plugins {
 tasks {
     processResources {
         doFirst {
-            val existingFile = file("$buildDir/resources/main/app.properties")
+            val existingFile = file("$buildDir/resources/main/metadata.properties")
             println(existingFile.exists())
             existingFile.delete()
             println(existingFile.exists())

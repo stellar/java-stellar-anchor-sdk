@@ -11,7 +11,7 @@ public class Metadata {
     if (projectProperties == null) {
       projectProperties = new Properties();
       try {
-        projectProperties.load(Metadata.class.getResourceAsStream("/app.properties"));
+        projectProperties.load(Metadata.class.getResourceAsStream("/metadata.properties"));
       } catch (IOException ex) {
         ex.printStackTrace();
       }
