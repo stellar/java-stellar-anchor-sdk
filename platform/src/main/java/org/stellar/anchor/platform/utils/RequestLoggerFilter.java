@@ -28,7 +28,12 @@ public class RequestLoggerFilter extends OncePerRequestFilter {
     StringBuffer logMessage =
         new StringBuffer("\n\tREST Request:\n")
             .append("\t\t[METHOD: " + request.getMethod() + "]\n")
-            .append("\t\t[PATH: " + request.getRequestURI() + "]\n");
+            .append("\t\t[PATH: " + request.getRequestURI());
+
+    if (request.getQueryString() != null) {
+      logMessage.append("?").append(request.getQueryString());
+    }
+    logMessage.append("]\n");
     if (request.getAuthType() != null) {
       logMessage.append("\t\t[AUTH_TYPE: " + request.getAuthType() + "]\n");
     }
@@ -51,9 +56,17 @@ public class RequestLoggerFilter extends OncePerRequestFilter {
     logMessage
         .append("\tREST Response:\n")
         .append("\t\t[RESPONSE STATUS: " + response.getStatus() + "]\n")
-        .append("\t\t[RESPONSE BODY: " + getBody(wrappedResponse) + "]\n");
+        .append("\t\t[RESPONSE BODY: ");
 
-    logMessage.append("\tDuration (milliseconds): " + duration + "\n");
+    getBody(wrappedResponse)
+        .lines()
+        .forEach(
+            line -> {
+              logMessage.append("\n\t\t\t").append(line);
+            });
+    logMessage.append("\n\t\t]\n");
+
+    logMessage.append("\tREST Duration (milliseconds): " + duration);
 
     Log.info(logMessage.toString());
 
