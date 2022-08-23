@@ -73,7 +73,7 @@ configuration (refer to: [End to End Tests](/end-to-end-tests/README.md)).
 ### Running Tests:
 1) Build the Anchor Platform and end-to-end test images:
    ```text
-   make build-docker-compose-tests:
+   make build-docker-compose-tests
    ```  
 2) Create a `.env` file and add the **STELLAR_SECRET** to be used to run the end-to-end tests
    ```text
