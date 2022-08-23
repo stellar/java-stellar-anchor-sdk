@@ -44,7 +44,7 @@ language: en
 #######################
 sep1:
   enabled: true
-  stellar_file: https://localhost:8080/assets.yaml #'file:sep1/stellar-wks.toml'
+  stellar_file: https://localhost:8080/assets.yaml
 
 sep10:
   enabled: true
