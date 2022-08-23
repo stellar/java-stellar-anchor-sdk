@@ -48,7 +48,7 @@ public class RequestLoggerFilter extends OncePerRequestFilter {
                     .queryParams(request.getQueryString())
                     .authType(request.getAuthType())
                     .principalName(principalName)
-                    .clientId(request.getRemoteAddr()) // TODO: use a separate method
+                    .clientId(getClientIpAddress(request))
                     .build())
             .response(
                 RequestResponseMessage.Response.builder()
@@ -84,5 +84,39 @@ public class RequestLoggerFilter extends OncePerRequestFilter {
     } catch (UnsupportedEncodingException ex) {
       return "Unsupported Encoding";
     }
+  }
+
+  public static String getClientIpAddress(HttpServletRequest request) {
+    final String[] IP_HEADER_CANDIDATES = {
+      "X-Forwarded-For",
+      "X-Real-IP",
+      "Proxy-Client-IP",
+      "WL-Proxy-Client-IP",
+      "HTTP_X_FORWARDED_FOR",
+      "HTTP_X_FORWARDED",
+      "HTTP_X_CLUSTER_CLIENT_IP",
+      "HTTP_CLIENT_IP",
+      "HTTP_FORWARDED_FOR",
+      "HTTP_FORWARDED",
+      "HTTP_VIA",
+      "REMOTE_ADDR"
+    };
+
+    String ip = request.getRemoteAddr();
+
+    for (String headerName : IP_HEADER_CANDIDATES) {
+      String headerValue = request.getHeader(headerName);
+      if (headerValue != null
+          && headerValue.length() != 0
+          && !"unknown".equalsIgnoreCase(headerValue)) {
+        ip = headerValue.split(",")[0];
+        break;
+      }
+    }
+
+    if (ip.equals("0:0:0:0:0:0:0:1")) {
+      ip = "127.0.0.1";
+    }
+    return ip;
   }
 }
