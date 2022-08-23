@@ -7,7 +7,7 @@ import org.springframework.context.annotation.Configuration;
 import org.stellar.anchor.platform.utils.RequestLoggerFilter;
 
 @Configuration
-public class RequestLoggableConfig {
+public class RequestLoggerConfig {
   @Bean
   public FilterRegistrationBean<Filter> requestLoggerFilter() {
     FilterRegistrationBean<Filter> registrationBean = new FilterRegistrationBean<>();
