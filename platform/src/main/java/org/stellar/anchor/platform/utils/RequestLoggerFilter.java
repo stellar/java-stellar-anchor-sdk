@@ -25,22 +25,6 @@ public class RequestLoggerFilter extends OncePerRequestFilter {
       throws ServletException, IOException {
 
     long startTime = System.currentTimeMillis();
-    StringBuffer logMessage =
-        new StringBuffer("\n\tREST Request:\n")
-            .append("\t\t[METHOD: " + request.getMethod() + "]\n")
-            .append("\t\t[PATH: " + request.getRequestURI());
-
-    if (request.getQueryString() != null) {
-      logMessage.append("?").append(request.getQueryString());
-    }
-    logMessage.append("]\n");
-    if (request.getAuthType() != null) {
-      logMessage.append("\t\t[AUTH_TYPE: " + request.getAuthType() + "]\n");
-    }
-    if (request.getUserPrincipal() != null) {
-      logMessage.append("\t\t[PRINCIPAL_NAME: " + request.getUserPrincipal().getName() + "]\n");
-    }
-    logMessage.append("\t\t[CLIENT IP: " + request.getRemoteAddr() + "]\n");
 
     // ========= Log request and response payload ("body") ========
     // We CANNOT simply read the request payload here, because then the InputStream would be
@@ -53,22 +37,28 @@ public class RequestLoggerFilter extends OncePerRequestFilter {
     filterChain.doFilter(wrappedRequest, wrappedResponse);
     long duration = System.currentTimeMillis() - startTime;
 
-    logMessage
-        .append("\tREST Response:\n")
-        .append("\t\t[RESPONSE STATUS: " + response.getStatus() + "]\n")
-        .append("\t\t[RESPONSE BODY: ");
+    String principalName =
+        request.getUserPrincipal() == null ? null : request.getUserPrincipal().getName();
+    RequestResponseMessage requestResponseMessage =
+        RequestResponseMessage.builder()
+            .request(
+                RequestResponseMessage.Request.builder()
+                    .method(request.getMethod())
+                    .path(request.getRequestURI())
+                    .queryParams(request.getQueryString())
+                    .authType(request.getAuthType())
+                    .principalName(principalName)
+                    .clientId(request.getRemoteAddr()) // TODO: use a separate method
+                    .build())
+            .response(
+                RequestResponseMessage.Response.builder()
+                    .statusCode(response.getStatus())
+                    .responseBody(getBody(wrappedResponse))
+                    .build())
+            .durationMilliseconds(duration)
+            .build();
 
-    getBody(wrappedResponse)
-        .lines()
-        .forEach(
-            line -> {
-              logMessage.append("\n\t\t\t").append(line);
-            });
-    logMessage.append("\n\t\t]\n");
-
-    logMessage.append("\tREST Duration (milliseconds): " + duration);
-
-    Log.info(logMessage.toString());
+    Log.info(requestResponseMessage.toString());
 
     // IMPORTANT: copy content of response back into original response:
     wrappedResponse.copyBodyToResponse();
