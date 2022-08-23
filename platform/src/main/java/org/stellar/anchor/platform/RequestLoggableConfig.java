@@ -1,21 +1,19 @@
 package org.stellar.anchor.platform;
 
-import org.springframework.boot.autoconfigure.web.servlet.DispatcherServletAutoConfiguration;
-import org.springframework.boot.web.servlet.ServletRegistrationBean;
+import javax.servlet.Filter;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.stellar.anchor.platform.utils.LoggableDispatcherServlet;
+import org.stellar.anchor.platform.utils.RequestLoggerFilter;
 
 @Configuration
 public class RequestLoggableConfig {
   @Bean
-  public ServletRegistrationBean<LoggableDispatcherServlet> dispatcherRegistration(
-      LoggableDispatcherServlet dispatcherServlet) {
-    return new ServletRegistrationBean<>(dispatcherServlet);
-  }
-
-  @Bean(name = DispatcherServletAutoConfiguration.DEFAULT_DISPATCHER_SERVLET_BEAN_NAME)
-  public LoggableDispatcherServlet dispatcherServlet() {
-    return new LoggableDispatcherServlet();
+  public FilterRegistrationBean<Filter> requestLoggerFilter() {
+    FilterRegistrationBean<Filter> registrationBean = new FilterRegistrationBean<>();
+    registrationBean.setFilter(new RequestLoggerFilter());
+    registrationBean.addUrlPatterns("/");
+    registrationBean.addUrlPatterns("/*");
+    return registrationBean;
   }
 }
