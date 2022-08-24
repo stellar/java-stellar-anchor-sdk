@@ -200,30 +200,23 @@ public class PaymentOperationToEventListener implements PaymentListener {
     }
 
     // update the transaction differently based on the new status
-    switch (newStatus) {
-      case ERROR:
-        if (paymentTime != null) {
-          txn.setUpdatedAt(paymentTime);
-        }
-        txn.setStatus(ERROR.getName());
-        saveTransaction(txn);
-        Metrics.counter(AnchorMetrics.SEP31_TRANSACTION.toString(), "status", ERROR.getName())
-            .increment();
-        break;
-
-      case PENDING_RECEIVER:
-        if (paymentTime != null) {
-          txn.setUpdatedAt(paymentTime);
-          txn.setTransferReceivedAt(paymentTime);
-        }
-        txn.setStatus(PENDING_RECEIVER.toString());
-        txn.setStellarTransactionId(payment.getTransactionHash());
-        saveTransaction(txn);
-        Metrics.counter("sep31.transaction", "status", PENDING_RECEIVER.toString()).increment();
-
-      default:
-        Log.errorF("Unsupported new status {}.", newStatus);
+    if (!List.of(ERROR, PENDING_RECEIVER).contains(newStatus)) {
+      Log.errorF("Unsupported new status {}.", newStatus);
+      return;
     }
+
+    if (paymentTime != null) {
+      txn.setUpdatedAt(paymentTime);
+
+      if (newStatus == PENDING_RECEIVER) {
+        txn.setTransferReceivedAt(paymentTime);
+      }
+    }
+    txn.setStatus(newStatus.toString());
+    txn.setStellarTransactionId(payment.getTransactionHash());
+    saveTransaction(txn);
+    Metrics.counter(AnchorMetrics.SEP31_TRANSACTION.toString(), "status", newStatus.toString())
+        .increment();
   }
 
   void saveTransaction(Sep31Transaction txn) {
