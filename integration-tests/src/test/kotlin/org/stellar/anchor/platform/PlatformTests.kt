@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform
 
+import java.time.temporal.ChronoUnit.SECONDS
 import org.junit.jupiter.api.Assertions.*
 import org.stellar.anchor.api.platform.PatchTransactionRequest
 import org.stellar.anchor.api.platform.PatchTransactionsRequest
@@ -203,5 +204,8 @@ fun testSep31UnhappyPath() {
   assertEquals(postTxResponse.id, gotSep31TxResponse.transaction.id)
   assertEquals(TransactionEvent.Status.COMPLETED.status, gotSep31TxResponse.transaction.status)
   assertNull(gotSep31TxResponse.transaction.requiredInfoMessage)
-  assertEquals(patchedTx.completedAt, gotSep31TxResponse.transaction.completedAt)
+  assertEquals(
+    patchedTx.completedAt.truncatedTo(SECONDS),
+    gotSep31TxResponse.transaction.completedAt.truncatedTo(SECONDS)
+  )
 }

@@ -49,17 +49,17 @@ public class Sep12Service {
             .filter(Objects::nonNull)
             .anyMatch(tokenAccount -> Objects.equals(tokenAccount, account));
 
-    boolean isMemoAuthenticated = memo == null;
+    boolean isMemoMissingAuthentication = false;
     String muxedAccountId = Objects.toString(jwtToken.getMuxedAccountId(), null);
     if (muxedAccountId != null) {
       if (!Objects.equals(jwtToken.getMuxedAccount(), account)) {
-        isMemoAuthenticated = Objects.equals(muxedAccountId, memo);
+        isMemoMissingAuthentication = !Objects.equals(muxedAccountId, memo);
       }
     } else if (jwtToken.getAccountMemo() != null) {
-      isMemoAuthenticated = Objects.equals(jwtToken.getAccountMemo(), memo);
+      isMemoMissingAuthentication = !Objects.equals(jwtToken.getAccountMemo(), memo);
     }
 
-    if (!isAccountAuthenticated || !isMemoAuthenticated) {
+    if (!isAccountAuthenticated || isMemoMissingAuthentication) {
       infoF("Requester ({}) not authorized to delete account ({})", jwtToken.getAccount(), account);
       throw new SepNotAuthorizedException(
           String.format("Not authorized to delete account [%s] with memo [%s]", account, memo));

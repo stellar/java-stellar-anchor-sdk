@@ -24,7 +24,7 @@ internal class JwtServiceTest {
   }
 
   @Test
-  fun testCodec() {
+  fun `test apply JWT encoding and decoding and make sure the original values are not changed`() {
     val appConfig = mockk<AppConfig>()
     every { appConfig.jwtSecretKey } returns "jwt_secret"
 
@@ -55,7 +55,7 @@ internal class JwtServiceTest {
   }
 
   @Test
-  fun testBadCipher() {
+  fun `make sure decoding bad cipher test throws an error`() {
     val appConfig = mockk<AppConfig>()
     every { appConfig.jwtSecretKey } returns "jwt_secret"
 
@@ -65,7 +65,7 @@ internal class JwtServiceTest {
   }
 
   @Test
-  fun testBadTokenAlgorithm() {
+  fun `make sure JwtService only decodes HS256`() {
     val appConfig = mockk<AppConfig>()
     every { appConfig.jwtSecretKey } returns "jwt_secret"
 

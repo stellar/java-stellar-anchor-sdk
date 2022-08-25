@@ -59,7 +59,7 @@ class Sep12ServiceTest {
   }
 
   @Test
-  fun test_validateRequestAndTokenAccounts() {
+  fun `test validate request and token accounts`() {
     val mockRequestBase = mockk<Sep12CustomerRequestBase>(relaxed = true)
 
     // request account fails if not the same as token account
@@ -91,7 +91,7 @@ class Sep12ServiceTest {
   }
 
   @Test
-  fun test_validateRequestAndTokenMemos() {
+  fun `test validate request and token memos`() {
     val mockRequestBase = mockk<Sep12CustomerRequestBase>(relaxed = true)
 
     // If the token doesn't have a memo nor a Muxed account id, does not fail for empty request memo
@@ -130,7 +130,7 @@ class Sep12ServiceTest {
   }
 
   @Test
-  fun test_updateRequestMemoAndMemoType() {
+  fun `test update request memo and memo type`() {
     val mockRequestBase = mockk<Sep12CustomerRequestBase>(relaxed = true)
 
     // if the request doesn't have any kind of memo, make sure the memo type is empty and return
@@ -183,7 +183,7 @@ class Sep12ServiceTest {
   }
 
   @Test
-  fun test_putCustomer() {
+  fun `Test put customer request ok`() {
     // mock `PUT {callbackApi}/customer` response
     val callbackApiPutRequestSlot = slot<Sep12PutCustomerRequest>()
     val mockCallbackApiPutCustomerResponse = Sep12PutCustomerResponse()
@@ -224,7 +224,7 @@ class Sep12ServiceTest {
   }
 
   @Test
-  fun test_getCustomer() {
+  fun `Test get customer request ok`() {
     // mock `GET {callbackApi}/customer` response
     val callbackApiGetRequestSlot = slot<Sep12GetCustomerRequest>()
     val mockCallbackApiGetCustomerResponse = Sep12GetCustomerResponse()
@@ -268,7 +268,7 @@ class Sep12ServiceTest {
   }
 
   @Test
-  fun test_deleteCustomer_validation() {
+  fun `test delete customer validation`() {
     every { customerIntegration.deleteCustomer(any()) } just Runs
 
     // PART 1 - account without memo
@@ -303,6 +303,11 @@ class Sep12ServiceTest {
     // succeeds if request account and memo are equal the token's
     assertDoesNotThrow { sep12Service.deleteCustomer(jwtToken, TEST_ACCOUNT, TEST_MEMO, null) }
 
+    // succeeds if the request account is equals the token's, and the token memo is empty while the
+    // request's is not
+    jwtToken = createJwtToken(TEST_ACCOUNT)
+    assertDoesNotThrow { sep12Service.deleteCustomer(jwtToken, TEST_ACCOUNT, "foo_bar", null) }
+
     // PART 3 - muxed account
     // throws exception if request is missing the memo
     jwtToken = createJwtToken(TEST_MUXED_ACCOUNT)
@@ -323,7 +328,7 @@ class Sep12ServiceTest {
   }
 
   @Test
-  fun test_deleteCustomer() {
+  fun `test delete customer`() {
     // mock callbackApi customer integration
     val deleteCustomerIdSlot = slot<String>()
     every { customerIntegration.deleteCustomer(capture(deleteCustomerIdSlot)) } just Runs
@@ -332,7 +337,7 @@ class Sep12ServiceTest {
     val mockNoCustomerFound = Sep12GetCustomerResponse()
     every { customerIntegration.getCustomer(any()) } returns mockNoCustomerFound
 
-    val jwtToken = createJwtToken("$TEST_ACCOUNT:$TEST_MEMO")
+    val jwtToken = createJwtToken(TEST_ACCOUNT)
     val ex: AnchorException = assertThrows {
       sep12Service.deleteCustomer(jwtToken, TEST_ACCOUNT, TEST_MEMO, null)
     }

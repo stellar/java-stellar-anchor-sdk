@@ -3,6 +3,7 @@ rootProject.name = "java-stellar-anchor-sdk"
 /** APIs and Schemas */
 include("api-schema")
 
+/** SDK */
 include("core")
 
 /** Anchor Platform */

@@ -2,11 +2,10 @@ package org.stellar.anchor.api.sep.sep24
 
 import org.junit.jupiter.api.Test
 import org.stellar.anchor.api.sep.AssetInfo
-import org.stellar.anchor.api.sep.sep24.*
 
 internal class Sep24DtoTests {
   @Test
-  fun testAssetInfoCoverage() {
+  fun `test to cover AssetInfo`() {
     val ar = AssetInfo()
     ar.getSignificantDecimals()
     ar.setSignificantDecimals(0)
@@ -35,7 +34,7 @@ internal class Sep24DtoTests {
   }
 
   @Test
-  fun testWithdrawDepositTransactionResponseCoverage() {
+  fun `test to cover WithdrawDepositTransactionResponse`() {
     val dtr = DepositTransactionResponse()
     dtr.setDepositMemo("")
     dtr.getDepositMemo()
@@ -59,13 +58,13 @@ internal class Sep24DtoTests {
   }
 
   @Test
-  fun testGetTransactionRequestCoverage() {
+  fun `test to cover GetTransactionRequest`() {
     val gtr = GetTransactionRequest("", "", "", "")
     gtr.canEqual(Object())
   }
 
   @Test
-  fun testInfoResponseCoverage() {
+  fun `test to cover InfoResponse`() {
     val ir = InfoResponse()
     ir.getFeatureFlags()
     ir.setFeatureFlags(InfoResponse.FeatureFlagResponse())
@@ -82,7 +81,7 @@ internal class Sep24DtoTests {
   }
 
   @Test
-  fun testInteractiveTransactionResponseCoverage() {
+  fun `test to cover InteractiveTransactionResponse`() {
     val itr = InteractiveTransactionResponse("", "", "")
     itr.getType()
     itr.setType("")
@@ -94,7 +93,7 @@ internal class Sep24DtoTests {
   }
 
   @Test
-  fun testTransactionResponseCoverage() {
+  fun `test to cover TransactionResponse`() {
     val tr = TransactionResponse()
     tr.getStatus_eta()
     tr.setStatus_eta(1)

@@ -23,7 +23,7 @@ internal class Sep31PostTransactionRequestTest {
 }"""
 
   @Test
-  fun test() {
+  fun `test parsing JSON string to the Sep31PostTransactionRequest`() {
     val request = gson.fromJson(postTxnJson, Sep31PostTransactionRequest::class.java)
     JSONAssert.assertEquals(postTxnJson, gson.toJson(request), false)
   }

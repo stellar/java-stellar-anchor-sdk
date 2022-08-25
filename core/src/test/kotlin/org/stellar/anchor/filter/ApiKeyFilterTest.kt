@@ -40,7 +40,7 @@ internal class ApiKeyFilterTest {
   }
 
   @Test
-  fun testOptionsMethodDoesntNeedAuth() {
+  fun `test the OPTIONS Method does not need AUTH`() {
     every { request.method } returns "OPTIONS"
 
     apiKeyFilter.doFilter(request, response, mockFilterChain)
@@ -49,7 +49,7 @@ internal class ApiKeyFilterTest {
   }
 
   @Test
-  fun testBadServletIsNotAccepted() {
+  fun `make sure bad servlet is not accepted`() {
     val mockServletRequest = mockk<ServletRequest>(relaxed = true)
     val mockServletResponse = mockk<ServletResponse>(relaxed = true)
 
@@ -67,7 +67,7 @@ internal class ApiKeyFilterTest {
 
   @ParameterizedTest
   @ValueSource(strings = ["GET", "PUT", "POST", "DELETE"])
-  fun testNoApiKeyReturnsForbidden(method: String) {
+  fun `make sure FORBIDDEN is returned when no X-Api-Key is not specified`(method: String) {
     every { request.method } returns method
     every { request.getHeader("X-Api-Key") } returns null
 
@@ -81,7 +81,7 @@ internal class ApiKeyFilterTest {
 
   @ParameterizedTest
   @ValueSource(strings = ["GET", "PUT", "POST", "DELETE"])
-  fun testNoBearerInAuthHeaderReturnsForbidden(method: String) {
+  fun `make sure FORBIDDEN is returned when no BEARER in the auth header`(method: String) {
     every { request.method } returns method
     every { request.getHeader("X-Api-Key") } returns ""
 
@@ -95,7 +95,7 @@ internal class ApiKeyFilterTest {
 
   @ParameterizedTest
   @ValueSource(strings = ["GET", "PUT", "POST", "DELETE"])
-  fun testMismatchingApiKeyReturnsForbidden(method: String) {
+  fun `make sure FORBIDDEN is returned when having mismatching api key`(method: String) {
     every { request.method } returns method
     every { request.getHeader("X-Api-Key") } returns "123"
 
@@ -109,7 +109,7 @@ internal class ApiKeyFilterTest {
 
   @ParameterizedTest
   @ValueSource(strings = ["GET", "PUT", "POST", "DELETE"])
-  fun testMatchingApiKeySucceeds(method: String) {
+  fun `test matching api key returns OK`(method: String) {
     every { request.method } returns method
     every { request.getHeader("X-Api-Key") } returns API_KEY
 

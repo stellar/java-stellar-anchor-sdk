@@ -50,7 +50,7 @@ internal class JwtTokenFilterTest {
   }
 
   @Test
-  fun testBadServlet() {
+  fun `make sure bad servlet throws exception`() {
     val mockServletRequest = mockk<ServletRequest>(relaxed = true)
     val mockServletResponse = mockk<ServletResponse>(relaxed = true)
 
@@ -64,7 +64,7 @@ internal class JwtTokenFilterTest {
   }
 
   @Test
-  fun testOptions() {
+  fun `test OPTIONS method works fine without auth header`() {
     every { request.method } returns "OPTIONS"
 
     sep10TokenFilter.doFilter(request, response, mockFilterChain)
@@ -74,7 +74,7 @@ internal class JwtTokenFilterTest {
 
   @ParameterizedTest
   @ValueSource(strings = ["GET", "PUT", "POST", "DELETE"])
-  fun testNoTokenForbidden(method: String) {
+  fun `make sure FORBIDDEN is returned when no token exists`(method: String) {
     every { request.method } returns method
     every { request.getHeader("Authorization") } returns null
 
@@ -88,7 +88,7 @@ internal class JwtTokenFilterTest {
 
   @ParameterizedTest
   @ValueSource(strings = ["GET", "PUT", "POST", "DELETE"])
-  fun testNoBearer(method: String) {
+  fun `make sure FORBIDDEN is returned when encounter an empty token`(method: String) {
     every { request.method } returns method
     every { request.getHeader("Authorization") } returns ""
 
@@ -102,7 +102,7 @@ internal class JwtTokenFilterTest {
 
   @ParameterizedTest
   @ValueSource(strings = ["GET", "PUT", "POST", "DELETE"])
-  fun testBearerSplitError(method: String) {
+  fun `make sure Bearer123 does not cause confusion and return FORBIDDEN`(method: String) {
     every { request.method } returns method
     every { request.getHeader("Authorization") } returns "Bearer123"
 
@@ -116,7 +116,7 @@ internal class JwtTokenFilterTest {
 
   @ParameterizedTest
   @ValueSource(strings = ["GET", "PUT", "POST", "DELETE"])
-  fun testValidationError(method: String) {
+  fun `make sure validate() exception returns FORBIDDEN and does not cause 500`(method: String) {
     every { request.method } returns method
     val mockFilter = spyk(sep10TokenFilter)
     every { mockFilter.validate(any()) } answers { throw Exception("Not validate") }
@@ -131,7 +131,9 @@ internal class JwtTokenFilterTest {
 
   @ParameterizedTest
   @ValueSource(strings = ["GET", "PUT", "POST", "DELETE"])
-  fun testNullToken(method: String) {
+  fun `make sure FORBIDDEN is returned when null token is decoded and does not cause 500 `(
+    method: String
+  ) {
     every { request.method } returns method
     val mockJwtService = spyk(jwtService)
     every { mockJwtService.decode(any()) } returns null
@@ -147,7 +149,7 @@ internal class JwtTokenFilterTest {
 
   @ParameterizedTest
   @ValueSource(strings = ["GET", "PUT", "POST", "DELETE"])
-  fun testValidToken(method: String) {
+  fun `make sure a valid token returns OK`(method: String) {
     every { request.method } returns method
     val slot = slot<JwtToken>()
     every { request.setAttribute(JWT_TOKEN, capture(slot)) } answers {}

@@ -5,7 +5,7 @@ import org.stellar.sdk.xdr.MemoType
 
 internal class SepHelperTest {
   @Test
-  fun test() {
+  fun `test memoType conversion`() {
     assert(SepHelper.memoTypeString(MemoType.MEMO_ID).equals("id"))
     assert(SepHelper.memoTypeString(MemoType.MEMO_HASH).equals("hash"))
     assert(SepHelper.memoTypeString(MemoType.MEMO_TEXT).equals("text"))
