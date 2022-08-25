@@ -24,6 +24,7 @@ dependencies {
   implementation(libs.spring.aws.messaging)
   implementation(libs.spring.kafka)
   implementation(libs.aws.rds)
+  implementation(libs.aws.iam.auth)
   implementation(libs.commons.cli)
   implementation(libs.commons.io)
   implementation(libs.flyway.core)
