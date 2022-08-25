@@ -4,7 +4,6 @@ import io.jsonwebtoken.*;
 import io.jsonwebtoken.impl.DefaultJwsHeader;
 import java.nio.charset.StandardCharsets;
 import java.util.Calendar;
-import java.util.Map;
 import org.apache.commons.codec.binary.Base64;
 import org.stellar.anchor.config.AppConfig;
 
@@ -36,7 +35,7 @@ public class JwtService {
             .setSubject(token.getSub());
 
     if (token.getClientDomain() != null) {
-      builder.addClaims(Map.of("client_domain", token.getClientDomain()));
+      builder.claim("client_domain", token.getClientDomain());
     }
 
     return builder.signWith(SignatureAlgorithm.HS256, jwtKey).compact();
@@ -46,7 +45,7 @@ public class JwtService {
   public JwtToken decode(String cipher) {
     JwtParser jwtParser = Jwts.parser();
     jwtParser.setSigningKey(jwtKey);
-    Jwt jwt = jwtParser.parse(cipher);
+    Jwt jwt = jwtParser.parseClaimsJws(cipher);
     Header header = jwt.getHeader();
     if (!(header instanceof DefaultJwsHeader)) {
       // This should not happen
