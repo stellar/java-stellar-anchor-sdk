@@ -18,7 +18,7 @@ class SepLanguageHelperTest {
     SepLanguageHelper.reset()
   }
   @Test
-  fun testValidateLanguage() {
+  fun `test validateLanguage()`() {
     every { appConfig.languages } returns
       listOf(
         "en",

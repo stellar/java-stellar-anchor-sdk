@@ -7,8 +7,6 @@ plugins {
   alias(libs.plugins.kotlin.jvm)
 }
 
-version = "1.0.2"
-
 dependencies {
   compileOnly(libs.servlet.api)
   compileOnly(libs.slf4j.api)

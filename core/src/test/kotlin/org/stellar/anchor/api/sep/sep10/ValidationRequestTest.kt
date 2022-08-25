@@ -9,7 +9,7 @@ internal class ValidationRequestTest {
   }
 
   @Test
-  fun testOf() {
+  fun `test creation of ValidationRequest`() {
     val vr = ValidationRequest.of(TEST_TRANSACTION)
     assertEquals(TEST_TRANSACTION, vr.transaction)
   }
