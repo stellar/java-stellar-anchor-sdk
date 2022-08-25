@@ -170,7 +170,7 @@ sep10:
   jwt_timeout: 86400
 
   ## @param: omnibus_account_list
-  ## A comma-separated list of omnibus accounts.
+  ## A comma-separated list of omnibus accounts (comma separated).
   ## The SEP-10 omnibus account is described at:
   ##     https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#memos
   #
@@ -286,6 +286,7 @@ events:
   ## @param: publisher_type
   ## @supported_values: `kafka`, `sqs`
   ## The type of queue to use for event publishing
+  ##
   #
   publisher_type: kafka
 
@@ -303,13 +304,19 @@ events:
 
     ## @param: use_IAM
     ## @type: boolean
-    ## Use IAM authentication for AWS MSK.
+    ## Use IAM authentication for AWS MSK or AWS SQS.
+    ## SQS FIFO queues should be pre-created in AWS (Anchor Platform will not create them)
     ## If true, @required_secrets:
     ##    AWS_ACCESS_KEY_ID
     ##    AWS_SECRET_ACCESS_KEY
-    ##    AWS_REGION
     #
     use_IAM: false
+
+    ## @param: region
+    ## @type: string
+    ## AWS region for the queue. Can also be defined as environment variable: AWS_REGION
+    #
+    aws_region: us-east-1
 
     ## @param: use_single_queue
     ## @type: boolean
@@ -325,35 +332,6 @@ events:
       transaction_created: ap_event_transaction_created
       transaction_status_changed: ap_event_transaction_status_changed
       transaction_error: ap_event_transaction_error
-
-    ################################################################################################
-    ### Example options for SQS queue configuration
-    ###
-    #
-    ## SQS FIFO queues should be pre-created in AWS (Anchor Platform will not create them)
-    ## @required_secrets:
-    ##    SQS_PUBLISHER_ACCESS_KEY: AWS access key used to publish events to SQS
-    ##    SQS_PUBLISHER_SECRET_KEY: AWS secret key to be used with the accessKey
-    #
-    ## @param: region
-    ## @type: string
-    ## AWS region for the SQS queue
-    # region: us-east-1
-    #
-    ## @param: use_single_queue
-    ## @type: boolean
-    # use_single_queue: false
-    #
-    ## @param: event_type_to_queue
-    ## @type: map
-    ## Map of the event type to the queue name messages are published to
-    # event_type_to_queue:
-    #   all: sdf_dev_ap_event_single_queue.fifo
-    #   quote_created: sdf_dev_ap_event_quote_created.fifo
-    #   transaction_created: sdf_dev_ap_event_transaction_created.fifo
-    #   transaction_status_changed: sdf_dev_ap_event_transaction_status_changed.fifo
-    #   transaction_error: sdf_dev_ap_event_transaction_error.fifo
-    ################################################################################################
 
 
 #########################
@@ -388,86 +366,58 @@ assets:
 ## Data Configuration
 ################################
 data:
-  ## @param: url
-  ## @type: string
-  ## Location of the database
+
+  ## DB credentials are specified in @environment_variables DATA_USERNAME, DATA_PASSWORD
+
+  ## @param: type
+  ## @supported_values:
+  ##    `h2` (in-memory), `sqlite` (local), `postgres` (local), `aurora` (postgres on AWS)
+  ## Type of storage.
+  ## If this is set to `aurora`,
+  ##    @required_secrets: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION
   #
-  url: jdbc:h2:mem:test
+  type: h2
+
   options:
-    spring.jpa.properties.hibernate.dialect: org.hibernate.dialect.H2Dialect
-    spring.flyway.enabled: false
 
-  ##################################################################################################
-  ### Example config for local SQLite db
-  ###
-  #  options:
-  #    spring.jpa.database-platform: org.stellar.anchor.platform.sqlite.SQLiteDialect
-  #    spring.jpa.hibernate.ddl-auto: update
-  #    spring.jpa.generate-ddl: true
-  #    spring.jpa.hibernate.show_sql: false
-  #    spring.datasource.url: jdbc:sqlite:anchor-proxy.db
-  #    spring.datasource.driver-class-name: org.sqlite.JDBC
-  #
-  #    ## @parameter: spring.datasource.max-active
-  #    ## For SQLite, set this to 1 to avoid database file lock exception
-  #    spring.datasource.max-active: 1
-  #
-  #    ## @parameter: spring.datasource.initial-size
-  #    ## For SQLite, set this to 1 to avoid database file lock exception
-  #    spring.datasource.initial-size: 1
-  #    spring.datasource.username: ${SQLITE_USERNAME}
-  #    spring.datasource.password: ${SQLITE_PASSWORD}
-  #    spring.mvc.converters.preferred-json-mapper: gson
-  #
-  #    ## @parameter: spring.flyway.enabled
-  #    ## Disabled because certain features that flyway uses (ex: addForeignKeyConstraint) are not
-  #    ## supported by sqlite
-  #    spring.flyway.enabled: false
-  ##################################################################################################
+    ## @param: url
+    ## @type: string
+    ## Location of the database
+    #
+    url: jdbc:h2:mem:test
 
-  ##################################################################################################
-  ### Example config for Aurora postgres connection using IAM for authentication
-  ### @required_secrets: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION
-  ###
-  #  options:
-  #    spring.jpa.generate-ddl: true
-  #    spring.jpa.database: POSTGRESQL
-  #    spring.jpa.show-sql: false
-  #    spring.datasource.driver-class-name: org.postgresql.Driver
-  #    spring.datasource.type: org.stellar.anchor.platform.databaseintegration.IAMAuthDataSource
-  #    spring.datasource.url: jdbc:postgresql://database-aurora-iam-instance-1.chizvyczscs2.us-east-1.rds.amazonaws.com:5432/anchorplatform
-  #    spring.datasource.username: anchorplatform1
-  #
-  #    ## @parameter: spring.datasource.hikari.max-lifetime
-  #    ## Recommended setting is 14 minutes because IAM tokens are valid for 15 min
-  #    spring.datasource.hikari.max-lifetime: 840000
-  #
-  #    spring.mvc.converters.preferred-json-mapper: gson
-  #    spring.flyway.user: postgres
-  #
-  #    ## @parameter: spring.flyway.password
-  #    ## Alternative: Can use a token value if authenticating via IAM
-  #    spring.flyway.password: password
-  #
-  #    spring.flyway.url: jdbc:postgresql://database-aurora-iam-instance-1.chizvyczscs2.us-east-1.rds.amazonaws.com:5432/anchorplatform
-  #    spring.flyway.locations: classpath:/db/migration
-  ##################################################################################################
+    ## @param: initial_connection_pool_size
+    ## @type: integer
+    ## Initial number of connections
+    ## For `sqlite`, set this to 1 to avoid database file lock exception
+    #
+    initial_connection_pool_size: 1
 
-  ##################################################################################################
-  ### Example config for local postgres instance
-  ### @required_secrets: POSTGRES_USERNAME, POSTGRES_PASSWORD
-  #  options:
-  #    spring.jpa.generate-ddl: true
-  #    spring.jpa.database: POSTGRESQL
-  #    spring.jpa.show-sql: false
-  #    spring.datasource.driver-class-name: org.postgresql.Driver
-  #    spring.datasource.url: jdbc:postgresql://localhost:5431/anchorplatform
-  #    spring.datasource.username: ${POSTGRES_USERNAME}
-  #    spring.datasource.password: ${POSTGRES_PASSWORD}
-  #    spring.mvc.converters.preferred-json-mapper: gson
-  #    spring.flyway.user: ${POSTGRES_USERNAME}
-  #    spring.flyway.password: ${POSTGRES_PASSWORD}
-  #    spring.flyway.url: jdbc:postgresql://localhost:5431/anchorplatform
-  #    spring.flyway.locations: classpath:/db/migration
-  ##################################################################################################
+    ## @param: max_active_connections
+    ## @type: integer
+    ## Maximum number of db active connections
+    ## For `sqlite`, set this to 1 to avoid database file lock exception
+    #
+    max_active_connections: 1
 
+    ## @param: flyway_enabled
+    ## @type: bool
+    ## Whether to enable flyway.
+    ## Should be disabled for `sqlite` because certain features that flyway uses
+    ## (ex: addForeignKeyConstraint) are not supported.
+    #
+    flyway_enabled: false
+
+    ## @param: flyway_enabled
+    ## @type: string
+    ## Location on disk where migrations are stored if flyway is enabled.
+    #
+    flyway_location: /db/mirgrations
+
+    ## @param: hikari_max_lifetime
+    ## @type: integer
+    ## Maximum connection time before expiration
+    ## Only valid when database `type` is `aurora`.
+    ## Recommended setting is 14 minutes because IAM tokens are valid for 15 min.
+    #
+    # hikari_max_lifetime: 840000
