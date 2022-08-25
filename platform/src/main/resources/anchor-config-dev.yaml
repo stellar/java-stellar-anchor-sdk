@@ -11,7 +11,7 @@
 version: 1
 
 data:
-  url: jdbc:h2:mem:test
+  type: h2
 
 # The anchor server callback API endpoint for customer, fee, quote, and unique url integration.
 callback_api:

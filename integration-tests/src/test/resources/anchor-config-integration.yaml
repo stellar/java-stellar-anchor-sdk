@@ -5,13 +5,12 @@
 ##################################
 ## Required System Configuration
 ##################################
-version: 0.2
+version: 1
 
 data:
-  url: jdbc:h2:mem:test
+  type: h2
   options:
-    spring.jpa.properties.hibernate.dialect: org.hibernate.dialect.H2Dialect
-    spring.liquibase.enabled: false
+    url: jdbc:h2:mem:test
 
 # The anchor server callback API endpoint for customer, fee, quote, and unique url integration.
 callback_api:
