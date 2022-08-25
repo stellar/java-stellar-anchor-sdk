@@ -1,11 +1,13 @@
 # Configuration Description - set depositInfoGeneratorType: api, this will tell Anchor Platform to contact the
-#                             Anchor Reference Server for a destination account/memo to be used in a SEP-31 transaction
+#                              Anchor Reference Server for a destination account/memo to be used in a SEP-31 transaction
+#                           - set distributionWallet: GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF, in
+#                              the Anchor Reference Server
 version: '2'
 services:
   anchor-platform-server:
     volumes:
       # add mounts for the new config directory
-      - ./anchor-platform-unique-address:/config
+      - ./anchor-platform-unique-address:/config_override
     ports:
       # override ports, do not append
       - "8080:8080"
@@ -13,7 +15,7 @@ services:
   anchor-reference-server:
     volumes:
       # add mounts for the new config directory
-      - ./anchor-platform-unique-address:/config
+      - ./anchor-platform-unique-address:/config_override
     ports:
       # override ports, do not append
       - "8081:8081"

@@ -4,10 +4,18 @@ services:
     build:
       context: ../../
       dockerfile: integration-tests/docker-compose-configs/Dockerfile
-    command: --sep-server
+    entrypoint: ["/bin/sh", "-c" ,
+                 "cp -rf /config_defaults/* /config
+                 && if [ -d \"/config_override\" ]; then cp -rf /config_override/* /config; fi 
+                 && java -jar /app/anchor-platform-runner.jar --sep-server"]
     environment:
       - STELLAR_ANCHOR_CONFIG=file:/config/anchor-platform-config.yaml
       - LOG_APPENDER=console_appender
+    volumes:
+      # add mounts for the new config directory
+      - ./anchor-platform-default-configs:/config_defaults
+    tmpfs:
+      - /config
     depends_on:
       - db
       - kafka
@@ -16,9 +24,17 @@ services:
     build:
       context: ../../
       dockerfile: integration-tests/docker-compose-configs/Dockerfile
-    command: --anchor-reference-server
+    entrypoint: [ "/bin/sh", "-c" ,
+                 "cp -rf /config_defaults/* /config
+                 && if [ -d \"/config_override\" ]; then cp -rf /config_override/* /config; fi 
+                 && java -jar /app/anchor-platform-runner.jar --anchor-reference-server" ]
     environment:
       - REFERENCE_SERVER_CONFIG_ENV=file:/config/anchor-reference-server-config.yaml
+    volumes:
+      # add mounts for the new config directory
+      - ./anchor-platform-default-configs:/config_defaults
+    tmpfs:
+      - /config
     depends_on:
       - db
       - kafka

@@ -8,6 +8,9 @@ TAG ?= stellar/anchor-platform:$(LABEL)
 E2E_TAG ?= stellar/anchor-platform-e2e-test:$(LABEL)
 # https://github.com/opencontainers/image-spec/blob/master/annotations.md
 BUILD_DATE := $(shell date -u +%FT%TZ)
+DOCKER_COMPOSE_TEST_CONFIG_DIR = integration-tests/docker-compose-configs
+DOCKER_COMPOSE_TEST_BASE_FILE := $(DOCKER_COMPOSE_TEST_CONFIG_DIR)/docker-compose.base.yaml
+DOCKER_COMPOSE_TEST_OVERRIDE_FILE = docker-compose-config.override.yaml
 
 docker-build:
 	$(SUDO) docker build -f Dockerfile --pull --label org.opencontainers.image.created="$(BUILD_DATE)" \
@@ -26,35 +29,35 @@ docker-push-e2e-test:
 build-docker-compose-tests:
 	docker-compose -f integration-tests/docker-compose-configs/docker-compose.base.yaml build --no-cache
 
-run-all-e2e-tests:
+run-e2e-test-all:
 	make run-e2e-test-default-config
 	make run-e2e-test-allowlist
 	make run-e2e-test-unique-address
 
 run-e2e-test-default-config:
-	$(SUDO) docker-compose -f integration-tests/docker-compose-configs/docker-compose.base.yaml \
-	-f integration-tests/docker-compose-configs/anchor-platform-default-configs/docker-compose-config.override.yaml rm -f
+	$(SUDO) docker-compose -f $(DOCKER_COMPOSE_TEST_BASE_FILE) \
+	-f $(DOCKER_COMPOSE_TEST_CONFIG_DIR)/anchor-platform-default-configs/$(DOCKER_COMPOSE_TEST_OVERRIDE_FILE) rm -f
 
-	$(SUDO) docker-compose --env-file integration-tests/docker-compose-configs/.env \
-	-f integration-tests/docker-compose-configs/docker-compose.base.yaml \
-	-f integration-tests/docker-compose-configs/anchor-platform-default-configs/docker-compose-config.override.yaml \
+	$(SUDO) docker-compose --env-file $(DOCKER_COMPOSE_TEST_CONFIG_DIR)/.env \
+	-f $(DOCKER_COMPOSE_TEST_BASE_FILE) \
+	-f $(DOCKER_COMPOSE_TEST_CONFIG_DIR)/anchor-platform-default-configs/$(DOCKER_COMPOSE_TEST_OVERRIDE_FILE) \
 	up --exit-code-from end-to-end-tests
 
 run-e2e-test-allowlist:
-	$(SUDO) docker-compose -f integration-tests/docker-compose-configs/docker-compose.base.yaml \
-	-f integration-tests/docker-compose-configs/anchor-platform-allowlist/docker-compose-config.override.yaml rm -f
+	$(SUDO) docker-compose -f $(DOCKER_COMPOSE_TEST_BASE_FILE) \
+	-f $(DOCKER_COMPOSE_TEST_CONFIG_DIR)/anchor-platform-allowlist/$(DOCKER_COMPOSE_TEST_OVERRIDE_FILE) rm -f
 
-	$(SUDO) docker-compose --env-file integration-tests/docker-compose-configs/.env \
-	-f integration-tests/docker-compose-configs/docker-compose.base.yaml \
-	-f integration-tests/docker-compose-configs/anchor-platform-allowlist/docker-compose-config.override.yaml \
+	$(SUDO) docker-compose --env-file $(DOCKER_COMPOSE_TEST_CONFIG_DIR)/.env \
+	-f $(DOCKER_COMPOSE_TEST_BASE_FILE) \
+	-f $(DOCKER_COMPOSE_TEST_CONFIG_DIR)/anchor-platform-allowlist/$(DOCKER_COMPOSE_TEST_OVERRIDE_FILE) \
 	up --exit-code-from end-to-end-tests
 
 run-e2e-test-unique-address:
-	$(SUDO) docker-compose -f integration-tests/docker-compose-configs/docker-compose.base.yaml \
-	-f integration-tests/docker-compose-configs/anchor-platform-unique-address/docker-compose-config.override.yaml rm -f
+	$(SUDO) docker-compose -f $(DOCKER_COMPOSE_TEST_BASE_FILE) \
+	-f $(DOCKER_COMPOSE_TEST_CONFIG_DIR)/anchor-platform-unique-address/$(DOCKER_COMPOSE_TEST_OVERRIDE_FILE) rm -f
 
-	$(SUDO) docker-compose --env-file integration-tests/docker-compose-configs/.env \
-	-f integration-tests/docker-compose-configs/docker-compose.base.yaml \
-	-f integration-tests/docker-compose-configs/anchor-platform-unique-address/docker-compose-config.override.yaml \
+	$(SUDO) docker-compose --env-file $(DOCKER_COMPOSE_TEST_CONFIG_DIR)/.env \
+	-f $(DOCKER_COMPOSE_TEST_BASE_FILE) \
+	-f $(DOCKER_COMPOSE_TEST_CONFIG_DIR)/anchor-platform-unique-address/$(DOCKER_COMPOSE_TEST_OVERRIDE_FILE) \
 	up --exit-code-from end-to-end-tests
 

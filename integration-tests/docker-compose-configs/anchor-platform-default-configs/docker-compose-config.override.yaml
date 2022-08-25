@@ -2,17 +2,10 @@
 version: '2'
 services:
   anchor-platform-server:
-    volumes:
-      # add mounts for the new config directory
-      - ./anchor-platform-default-configs:/config
     ports:
       # override ports, do not append
       - "8080:8080"
-
   anchor-reference-server:
-    volumes:
-      # add mounts for the new config directory
-      - ./anchor-platform-default-configs:/config
     ports:
       # override ports, do not append
       - "8081:8081"

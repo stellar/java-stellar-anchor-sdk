@@ -2,7 +2,7 @@ FROM openjdk:11-jdk AS build
 WORKDIR /code
 COPY . .
 RUN pwd && ls
-RUN ./gradlew clean bootJar --stacktrace
+RUN ./gradlew clean build -x test --stacktrace
 
 FROM ubuntu:20.04
 
