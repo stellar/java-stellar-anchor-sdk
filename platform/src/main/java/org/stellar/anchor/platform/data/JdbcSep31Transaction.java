@@ -87,11 +87,6 @@ public class JdbcSep31Transaction implements Sep31Transaction, SepTransaction {
   StellarId creator;
 
   // Ignored by JPA and Gson
-  @SerializedName("required_info_updates")
-  @Transient
-  AssetInfo.Sep31TxnFieldSpecs requiredInfoUpdates;
-
-  // Ignored by JPA and Gson
   @SerializedName("fields")
   @Transient
   Map<String, String> fields;
@@ -107,6 +102,11 @@ public class JdbcSep31Transaction implements Sep31Transaction, SepTransaction {
       this.fields = gson.fromJson(fieldsJson, new TypeToken<Map<String, String>>() {}.getType());
     }
   }
+
+  // Ignored by JPA and Gson
+  @SerializedName("required_info_updates")
+  @Transient
+  AssetInfo.Sep31TxnFieldSpecs requiredInfoUpdates;
 
   @Access(AccessType.PROPERTY)
   @Column(name = "requiredInfoUpdates")

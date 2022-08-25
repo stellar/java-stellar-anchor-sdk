@@ -2,7 +2,6 @@ package org.stellar.anchor.platform.service;
 
 import static org.stellar.anchor.api.sep.SepTransactionStatus.ERROR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_RECEIVER;
-import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_SENDER;
 import static org.stellar.anchor.util.MathHelper.*;
 
 import io.micrometer.core.instrument.Metrics;
@@ -97,6 +96,10 @@ public class PaymentOperationToEventListener implements PaymentListener {
       return;
     }
 
+    TransactionEvent.Status oldStatus = TransactionEvent.Status.from(txn.getStatus());
+    TransactionEvent.Status newStatus;
+    String message;
+
     // Check if the payment contains the expected amount (or greater)
     BigDecimal expectedAmount = decimal(txn.getAmountIn());
     BigDecimal gotAmount = decimal(payment.getAmount());
@@ -106,20 +109,25 @@ public class PaymentOperationToEventListener implements PaymentListener {
               "Payment amount %s is smaller than the expected amount %s",
               payment.getAmount(), txn.getAmountIn()));
       updateTransactionStatusTo(ERROR, txn, payment);
-      return;
+
+      newStatus = TransactionEvent.Status.ERROR;
+      message =
+          String.format(
+              "The incoming payment amount was insufficient! Expected: \"%s\", Received: \"%s\"",
+              formatAmount(expectedAmount), formatAmount(gotAmount));
+    } else {
+      updateTransactionStatusTo(PENDING_RECEIVER, txn, payment);
+
+      newStatus = TransactionEvent.Status.PENDING_RECEIVER;
+      message = "Incoming payment for SEP-31 transaction";
     }
 
     // Set the transaction status.
-    TransactionEvent.Status oldStatus = TransactionEvent.Status.from(txn.getStatus());
-    TransactionEvent.Status newStatus = TransactionEvent.Status.PENDING_RECEIVER;
     TransactionEvent.StatusChange statusChange =
         new TransactionEvent.StatusChange(oldStatus, newStatus);
-    if (txn.getStatus().equals(PENDING_SENDER.toString())) {
-      updateTransactionStatusTo(PENDING_RECEIVER, txn, payment);
-    }
 
     // send to the event queue
-    TransactionEvent event = receivedPaymentToEvent(txn, payment, statusChange);
+    TransactionEvent event = receivedPaymentToEvent(txn, payment, statusChange, message);
     sendToQueue(event);
     Metrics.counter(AnchorMetrics.PAYMENT_RECEIVED.toString(), "asset", payment.getAssetName())
         .increment(Double.parseDouble(payment.getAmount()));
@@ -136,7 +144,10 @@ public class PaymentOperationToEventListener implements PaymentListener {
   }
 
   TransactionEvent receivedPaymentToEvent(
-      Sep31Transaction txn, ObservedPayment payment, TransactionEvent.StatusChange statusChange) {
+      Sep31Transaction txn,
+      ObservedPayment payment,
+      TransactionEvent.StatusChange statusChange,
+      String message) {
     TransactionEvent event =
         TransactionEvent.builder()
             .eventId(UUID.randomUUID().toString())
@@ -156,7 +167,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
             .updatedAt(txn.getUpdatedAt())
             .completedAt(null)
             .transferReceivedAt(txn.getTransferReceivedAt())
-            .message("Incoming payment for SEP-31 transaction")
+            .message(message)
             .refunds(null)
             .stellarTransactions(
                 new StellarTransaction[] {
@@ -164,7 +175,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
                       .id(payment.getTransactionHash())
                       .memo(txn.getStellarMemo())
                       .memoType(txn.getStellarMemoType())
-                      .createdAt(txn.getTransferReceivedAt())
+                      .createdAt(parsePaymentTime(payment.getCreatedAt()))
                       .envelope(payment.getTransactionEnvelope())
                       .payments(
                           new Payment[] {
@@ -187,17 +198,20 @@ public class PaymentOperationToEventListener implements PaymentListener {
     return event;
   }
 
+  Instant parsePaymentTime(String paymentTimeStr) {
+    try {
+      return DateTimeFormatter.ISO_INSTANT.parse(paymentTimeStr, Instant::from);
+    } catch (DateTimeParseException | NullPointerException ex) {
+      Log.error(String.format("error parsing paymentTimeStr (%s).", paymentTimeStr));
+      ex.printStackTrace();
+      return null;
+    }
+  }
+
   void updateTransactionStatusTo(
       SepTransactionStatus newStatus, Sep31Transaction txn, ObservedPayment payment) {
     // parse payment creation time
-    Instant paymentTime = null;
-    try {
-      paymentTime = DateTimeFormatter.ISO_INSTANT.parse(payment.getCreatedAt(), Instant::from);
-    } catch (DateTimeParseException | NullPointerException ex) {
-      Log.error(
-          String.format("error parsing payment.getCreatedAt() (%s).", payment.getCreatedAt()));
-      ex.printStackTrace();
-    }
+    Instant paymentTime = parsePaymentTime(payment.getCreatedAt());
 
     // update the transaction differently based on the new status
     if (!List.of(ERROR, PENDING_RECEIVER).contains(newStatus)) {
