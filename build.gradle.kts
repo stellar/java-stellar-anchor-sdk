@@ -63,6 +63,7 @@ subprojects {
     implementation(rootProject.libs.aws.sqs)
     implementation(rootProject.libs.postgresql)
     implementation(rootProject.libs.bundles.kafka)
+    implementation(rootProject.libs.spring.kafka)
 
     // TODO: we should use log4j2
     implementation(rootProject.libs.log4j.template.json)
