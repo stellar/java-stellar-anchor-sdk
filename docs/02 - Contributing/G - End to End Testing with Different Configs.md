@@ -69,13 +69,7 @@ directory.
     	make <name-of-your-new-test>
     
     <name-of-your-new-test>:
-		$(SUDO) docker-compose -f $(DOCKER_COMPOSE_TEST_BASE_FILE) \
-		-f $(DOCKER_COMPOSE_TEST_CONFIG_DIR)/<new-config-directory>/$(DOCKER_COMPOSE_TEST_OVERRIDE_FILE) rm -f
-
-		$(SUDO) docker-compose --env-file $(DOCKER_COMPOSE_TEST_CONFIG_DIR)/.env \
-		-f $(DOCKER_COMPOSE_TEST_BASE_FILE) \
-		-f $(DOCKER_COMPOSE_TEST_CONFIG_DIR)/<new-config-directory>/$(DOCKER_COMPOSE_TEST_OVERRIDE_FILE) \
-		up --exit-code-from end-to-end-tests
+		$(call run_tests,<name-of-your-new-test>)
     ```
 
 

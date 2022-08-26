@@ -8,9 +8,6 @@ TAG ?= stellar/anchor-platform:$(LABEL)
 E2E_TAG ?= stellar/anchor-platform-e2e-test:$(LABEL)
 # https://github.com/opencontainers/image-spec/blob/master/annotations.md
 BUILD_DATE := $(shell date -u +%FT%TZ)
-DOCKER_COMPOSE_TEST_CONFIG_DIR = integration-tests/docker-compose-configs
-DOCKER_COMPOSE_TEST_BASE_FILE := $(DOCKER_COMPOSE_TEST_CONFIG_DIR)/docker-compose.base.yaml
-DOCKER_COMPOSE_TEST_OVERRIDE_FILE = docker-compose-config.override.yaml
 
 docker-build:
 	$(SUDO) docker build -f Dockerfile --pull --label org.opencontainers.image.created="$(BUILD_DATE)" \
