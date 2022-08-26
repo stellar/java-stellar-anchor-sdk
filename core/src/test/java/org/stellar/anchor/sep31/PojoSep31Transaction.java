@@ -25,6 +25,7 @@ public class PojoSep31Transaction implements Sep31Transaction {
   Instant startedAt;
   Instant completedAt;
   String stellarTransactionId;
+  List<StellarTransaction> stellarTransactions;
   String externalTransactionId;
   String requiredInfoMessage;
   String quoteId;
@@ -39,7 +40,6 @@ public class PojoSep31Transaction implements Sep31Transaction {
   String receiverId;
   String senderId;
   StellarId creator;
-  List<StellarTransaction> stellarTransactions;
 
   @Override
   public void setRefunds(Refunds refunds) {

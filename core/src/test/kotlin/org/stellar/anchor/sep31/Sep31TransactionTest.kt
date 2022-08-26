@@ -30,6 +30,7 @@ class Sep31TransactionTest {
 
   @MockK(relaxed = true) private lateinit var sep31TransactionStore: Sep31TransactionStore
   private lateinit var sep31Transaction: Sep31Transaction
+  private lateinit var stellarTransaction: StellarTransaction
 
   private val txId = "a4baff5f-778c-43d6-bbef-3e9fb41d096e"
 
@@ -73,6 +74,26 @@ class Sep31TransactionTest {
           AssetInfo.Sep31TxnFieldSpec("bank account number of the destination", null, false),
       )
 
+    stellarTransaction =
+      StellarTransaction.builder()
+        .id("2b862ac297c93e2db43fc58d407cc477396212bce5e6d5f61789f963d5a11300")
+        .memo("my-memo")
+        .memoType("text")
+        .createdAt(mockTransferReceivedAt)
+        .envelope("here_comes_the_envelope")
+        .payments(
+          listOf(
+            StellarPayment.builder()
+              .id("4609238642995201")
+              .amount(Amount("100.0000", fiatUSD))
+              .paymentType(StellarPayment.Type.PAYMENT)
+              .sourceAccount("GAS4OW4HKJCC2D6VWUHVFR3MJRRVQBXBFQ3LCZJXBR7TWOOBJWE4SRWZ")
+              .destinationAccount("GBQC7NCZMQIPWN6ASUJYIDKDPRK34IOIZNQE5WOHPQH536VMOMQVJTN7")
+              .build()
+          )
+        )
+        .build()
+
     // mock the database SEP-31 transaction
     sep31Transaction =
       Sep31TransactionBuilder(sep31TransactionStore)
@@ -94,6 +115,7 @@ class Sep31TransactionTest {
         .transferReceivedAt(mockTransferReceivedAt)
         .completedAt(mockCompletedAt)
         .stellarTransactionId("2b862ac297c93e2db43fc58d407cc477396212bce5e6d5f61789f963d5a11300")
+        .stellarTransactions(listOf(stellarTransaction))
         .externalTransactionId("external-tx-id")
         .refunded(true)
         .refunds(mockRefunds)
@@ -141,9 +163,6 @@ class Sep31TransactionTest {
         )
         .build()
 
-    val wantStellarTransaction = GetTransactionResponse.StellarTransaction()
-    wantStellarTransaction.id = "2b862ac297c93e2db43fc58d407cc477396212bce5e6d5f61789f963d5a11300"
-
     val wantGetTransactionResponse: GetTransactionResponse =
       GetTransactionResponse.builder()
         .id(txId)
@@ -161,7 +180,7 @@ class Sep31TransactionTest {
         .transferReceivedAt(mockTransferReceivedAt)
         .message("Please don't forget to foo bar")
         .refunds(wantRefunds)
-        .stellarTransactions(listOf(wantStellarTransaction))
+        .stellarTransactions(listOf(stellarTransaction))
         .externalTransactionId("external-tx-id")
         .customers(
           Customers(

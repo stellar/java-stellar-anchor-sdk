@@ -459,18 +459,19 @@ components:
       type: object
       required:
         - id
-        - memo
-        - memo_type
         - created_at
         - envelope
         - payments
       properties:
         id:
           type: string
+          description: The ID of the transaction in the Stellar network.
         memo:
           type: string
+          description: The memo of the transaction in the Stellar network.
         memo_type:
           type: string
+          description: The memo type of the transaction in the Stellar network. Should be present if memo is not null.
           enum:
             - text
             - hash
@@ -478,19 +479,37 @@ components:
         created_at:
           type: string
           format: date-time
+          description: The time the transaction was registered in the Stellar network.
         envelope:
           type: string
+          description: The transaction envelope, containing all the transaction information.
         payments:
           type: array
           items:
             type: object
+            required:
+              - id
+              - payment_type
+              - source_account
+              - destination_account
+              - amount
             properties:
-              operationId:
+              id:
                 type: string
+                description: The ID of the payment in the Stellar Network.
+              payment_type:
+                type: string
+                description: The type of payment in the Stellar Network.
+                enum:
+                  - payment
+                  - path_payment
+                default: payment
               source_account:
                 type: string
+                description: The account being debited in the Stellar Network.
               destination_account:
                 type: string
+                description: The account being credited in the Stellar Network.
               amount:
                 $ref: '#/components/schemas/Amount'
     Error:

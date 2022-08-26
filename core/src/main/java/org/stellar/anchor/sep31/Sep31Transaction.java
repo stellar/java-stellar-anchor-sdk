@@ -3,12 +3,10 @@ package org.stellar.anchor.sep31;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
-import org.stellar.anchor.api.platform.GetTransactionResponse;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.sep31.Sep31GetTransactionResponse;
 import org.stellar.anchor.api.shared.*;
 import org.stellar.anchor.event.models.TransactionEvent;
-import org.stellar.anchor.util.StringHelper;
 
 public interface Sep31Transaction {
   String getId();
@@ -83,6 +81,10 @@ public interface Sep31Transaction {
 
   void setStellarTransactionId(String stellarTransactionId);
 
+  List<StellarTransaction> getStellarTransactions();
+
+  void setStellarTransactions(List<StellarTransaction> stellarTransactions);
+
   String getExternalTransactionId();
 
   void setExternalTransactionId(String externalTransactionId);
@@ -132,10 +134,6 @@ public interface Sep31Transaction {
         StellarId.builder().id(getSenderId()).build(),
         StellarId.builder().id(getReceiverId()).build());
   }
-
-  List<StellarTransaction> getStellarTransactions();
-
-  void setStellarTransactions(List<StellarTransaction> stellarTransactions);
 
   /**
    * Create a Sep31GetTransactionResponse object out of this SEP-31 Transaction object.
@@ -187,14 +185,6 @@ public interface Sep31Transaction {
       refunds = getRefunds().toPlatformApiRefund(getAmountInAsset());
     }
 
-    List<GetTransactionResponse.StellarTransaction> stellarTransactions = null;
-    if (!StringHelper.isEmpty(getStellarTransactionId())) {
-      GetTransactionResponse.StellarTransaction stellarTxn =
-          new GetTransactionResponse.StellarTransaction();
-      stellarTxn.setId(getStellarTransactionId());
-      stellarTransactions = List.of(stellarTxn);
-    }
-
     return org.stellar.anchor.api.platform.GetTransactionResponse.builder()
         .id(getId())
         .sep(31)
@@ -211,7 +201,7 @@ public interface Sep31Transaction {
         .transferReceivedAt(getTransferReceivedAt())
         .message(getRequiredInfoMessage()) // Assuming these are meant to be the same.
         .refunds(refunds)
-        .stellarTransactions(stellarTransactions)
+        .stellarTransactions(getStellarTransactions())
         .externalTransactionId(getExternalTransactionId())
         // TODO .custodialTransactionId(txn.get)
         .customers(getCustomers())

@@ -69,6 +69,10 @@ public class JdbcSep31Transaction implements Sep31Transaction, SepTransaction {
   @SerializedName("stellar_transaction_id")
   String stellarTransactionId;
 
+  @Column(columnDefinition = "json")
+  @Type(type = "json")
+  List<StellarTransaction> stellarTransactions;
+
   @SerializedName("external_transaction_id")
   String externalTransactionId;
 
@@ -146,8 +150,4 @@ public class JdbcSep31Transaction implements Sep31Transaction, SepTransaction {
   Instant updatedAt;
   Instant transferReceivedAt;
   String amountExpected;
-
-  @Column(columnDefinition = "json")
-  @Type(type = "json")
-  List<StellarTransaction> stellarTransactions;
 }
