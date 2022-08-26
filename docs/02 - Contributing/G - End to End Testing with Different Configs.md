@@ -13,7 +13,7 @@ Please refer to [End to End Tests](/end-to-end-tests/README.md) for information 
 
 
 ### Anchor Platform Configuration Files:
-Each **directory** in `integration-tests/docker-compose-configs/anchor-platform-default-configs` contains all the 
+Each **directory** in `integration-tests/docker-compose-configs` contains all the 
 configuration files necessary for a full Anchor Platform deployment.
 1) `anchor-platform-config` - the configuration file for **Anchor Platform**
 2) `anchor-reference-server-config.yaml` - the configuration file for the **Anchor Reference Server**
