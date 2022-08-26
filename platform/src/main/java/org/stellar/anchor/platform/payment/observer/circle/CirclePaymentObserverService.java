@@ -6,7 +6,6 @@ import com.google.gson.Gson;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -63,10 +62,8 @@ public class CirclePaymentObserverService {
     this.observers = observers;
   }
 
-  public void handleCircleNotification(Map<String, Object> requestBody)
+  public void handleCircleNotification(CircleNotification circleNotification)
       throws UnprocessableEntityException, BadRequestException, ServerErrorException {
-    CircleNotification circleNotification =
-        gson.fromJson(gson.toJson(requestBody), CircleNotification.class);
     String type = Objects.toString(circleNotification.getType(), "");
 
     switch (type) {
