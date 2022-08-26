@@ -34,30 +34,21 @@ run-e2e-test-all:
 	make run-e2e-test-allowlist
 	make run-e2e-test-unique-address
 
-run-e2e-test-default-config:
-	$(SUDO) docker-compose -f $(DOCKER_COMPOSE_TEST_BASE_FILE) \
-	-f $(DOCKER_COMPOSE_TEST_CONFIG_DIR)/anchor-platform-default-configs/$(DOCKER_COMPOSE_TEST_OVERRIDE_FILE) rm -f
+define run_tests
+	$(SUDO) docker-compose -f integration-tests/docker-compose-configs/docker-compose.base.yaml \
+	-f integration-tests/docker-compose-configs/$(1)/docker-compose-config.override.yaml rm -f
 
-	$(SUDO) docker-compose --env-file $(DOCKER_COMPOSE_TEST_CONFIG_DIR)/.env \
-	-f $(DOCKER_COMPOSE_TEST_BASE_FILE) \
-	-f $(DOCKER_COMPOSE_TEST_CONFIG_DIR)/anchor-platform-default-configs/$(DOCKER_COMPOSE_TEST_OVERRIDE_FILE) \
+	$(SUDO) docker-compose --env-file integration-tests/docker-compose-configs/.env \
+	-f integration-tests/docker-compose-configs/docker-compose.base.yaml \
+	-f integration-tests/docker-compose-configs/$(1)/docker-compose-config.override.yaml \
 	up --exit-code-from end-to-end-tests
+endef
+
+run-e2e-test-default-config:
+	$(call run_tests,anchor-platform-default-configs)
 
 run-e2e-test-allowlist:
-	$(SUDO) docker-compose -f $(DOCKER_COMPOSE_TEST_BASE_FILE) \
-	-f $(DOCKER_COMPOSE_TEST_CONFIG_DIR)/anchor-platform-allowlist/$(DOCKER_COMPOSE_TEST_OVERRIDE_FILE) rm -f
-
-	$(SUDO) docker-compose --env-file $(DOCKER_COMPOSE_TEST_CONFIG_DIR)/.env \
-	-f $(DOCKER_COMPOSE_TEST_BASE_FILE) \
-	-f $(DOCKER_COMPOSE_TEST_CONFIG_DIR)/anchor-platform-allowlist/$(DOCKER_COMPOSE_TEST_OVERRIDE_FILE) \
-	up --exit-code-from end-to-end-tests
+	$(call run_tests,anchor-platform-allowlist)
 
 run-e2e-test-unique-address:
-	$(SUDO) docker-compose -f $(DOCKER_COMPOSE_TEST_BASE_FILE) \
-	-f $(DOCKER_COMPOSE_TEST_CONFIG_DIR)/anchor-platform-unique-address/$(DOCKER_COMPOSE_TEST_OVERRIDE_FILE) rm -f
-
-	$(SUDO) docker-compose --env-file $(DOCKER_COMPOSE_TEST_CONFIG_DIR)/.env \
-	-f $(DOCKER_COMPOSE_TEST_BASE_FILE) \
-	-f $(DOCKER_COMPOSE_TEST_CONFIG_DIR)/anchor-platform-unique-address/$(DOCKER_COMPOSE_TEST_OVERRIDE_FILE) \
-	up --exit-code-from end-to-end-tests
-
+	$(call run_tests,anchor-platform-unique-address)
