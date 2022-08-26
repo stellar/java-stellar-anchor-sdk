@@ -49,6 +49,10 @@ public class AnchorEventProcessor {
   public void handleTransactionStatusChangedEvent(TransactionEvent event) {
     // NOTE: this code skips processing the received payment and just marks the
     // transaction as complete.
+    if (event.getStatus() == TransactionEvent.Status.ERROR) {
+      return;
+    }
+
     Log.debugF("Updating transaction: {} on Anchor Platform to 'complete'", event.getId());
     PatchTransactionsRequest txnRequest =
         PatchTransactionsRequest.builder()
