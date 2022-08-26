@@ -43,9 +43,7 @@ app-config:
     jwtTimeout: 86400
 
     signingSeed: SAX3AH622R2XT6DXWWSRIDCMMUCCMATBZ5U6XKJWDO7M2EJUBFC3AW5X
-    omnibusAccountList: |
-      GAB24L6CPBKSMQOBXJ5PRA6I66X4TGZHPAEI2CMPNLC6I2WX646OYCAV,
-      GAB24L6CPBKSMQOBXJ5PRA6I66X4TGZHPAEI2CMPNLC6I2WX646OYCAA
+    omnibusAccountList: ${OMNIBUS_ALLOWLIST_KEYS}
 
     #  leaving this here for future testing
     #    omnibusAccountList:

@@ -5,6 +5,8 @@ services:
     volumes:
       # add mounts for the new config directory
       - ./anchor-platform-allowlist:/config_override
+    environment:
+      - OMNIBUS_ALLOWLIST_KEYS=${OMNIBUS_ALLOWLIST_KEYS?err}
     ports:
       # override ports, do not append
       - "8080:8080"

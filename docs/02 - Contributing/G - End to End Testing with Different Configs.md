@@ -14,7 +14,10 @@ Please refer to [End to End Tests](/end-to-end-tests/README.md) for information 
 
 ### Anchor Platform Configuration Files:
 Each **directory** in `integration-tests/docker-compose-configs` contains all the 
-configuration files necessary for a full Anchor Platform deployment.
+configuration files necessary for a full Anchor Platform deployment. **Note**: Except for
+`docker-compose-config.override.yaml`, all other files will replace the default ones if provided, and 
+if not provided, the default ones from 
+`integration-tests/docker-compose-configs/anchor-platform-default-configs` will be used.
 1) `anchor-platform-config` - the configuration file for **Anchor Platform**
 2) `anchor-reference-server-config.yaml` - the configuration file for the **Anchor Reference Server**
 3) `assets-test.json` - the assets file to be used by the **Anchor Platform**
@@ -81,9 +84,14 @@ directory.
    ```text
    make build-docker-compose-tests
    ```  
-2) Create a `.env` file and add the **STELLAR_SECRET** to be used to run the end-to-end tests
+2) Create a `.env` file and add the **STELLAR_SECRET** to be used to run the end-to-end tests.
+   
+   a) **OMNIBUS_ALLOWLIST_KEYS** is used for the e2e allowlist test, one of the keys should be the public key that 
+      corresponds to the <STELLAR_SECRET>. These comma separated values
+      will be used for the `omnibusAllowList` value in `anchor-platform-allowlist/anchor-platform-config.yaml`
    ```text
    E2E_SECRET=<STELLAR_SECRET>
+   OMNIBUS_ALLOWLIST_KEYS=<OMNIBUS_ALLOWLIST_KEYS>
    ```
 3) Run the end-to-end test on all the different configs:
    ```text

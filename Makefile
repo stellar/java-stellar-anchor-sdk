@@ -41,7 +41,7 @@ define run_tests
 	$(SUDO) docker-compose --env-file integration-tests/docker-compose-configs/.env \
 	-f integration-tests/docker-compose-configs/docker-compose.base.yaml \
 	-f integration-tests/docker-compose-configs/$(1)/docker-compose-config.override.yaml \
-	up --exit-code-from end-to-end-tests
+	up --exit-code-from end-to-end-tests || echo "E2E Test Failed: $(1)"
 endef
 
 run-e2e-test-default-config:
