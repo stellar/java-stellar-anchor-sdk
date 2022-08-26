@@ -3,13 +3,17 @@ package org.stellar.anchor.platform.data;
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
 import com.google.gson.reflect.TypeToken;
+import com.vladmihalcea.hibernate.type.json.JsonType;
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import javax.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.shared.StellarId;
+import org.stellar.anchor.api.shared.StellarTransaction;
 import org.stellar.anchor.reference.model.StellarIdConverter;
 import org.stellar.anchor.sep31.Refunds;
 import org.stellar.anchor.sep31.Sep31Transaction;
@@ -19,6 +23,7 @@ import org.stellar.anchor.util.GsonUtils;
 @Entity
 @Access(AccessType.FIELD)
 @Table(name = "sep31_transaction")
+@TypeDef(name = "json", typeClass = JsonType.class)
 public class JdbcSep31Transaction implements Sep31Transaction, SepTransaction {
   static Gson gson = GsonUtils.getInstance();
 
@@ -142,6 +147,7 @@ public class JdbcSep31Transaction implements Sep31Transaction, SepTransaction {
   Instant transferReceivedAt;
   String amountExpected;
 
-  @OneToMany(fetch = FetchType.EAGER, mappedBy = "sep31Transaction")
-  Set<StellarTransaction> stellarTransactions = new java.util.LinkedHashSet<>();
+  @Column(columnDefinition = "json")
+  @Type(type = "json")
+  List<StellarTransaction> stellarTransactions;
 }

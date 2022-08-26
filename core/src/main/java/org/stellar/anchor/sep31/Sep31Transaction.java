@@ -6,10 +6,7 @@ import java.util.Map;
 import org.stellar.anchor.api.platform.GetTransactionResponse;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.sep31.Sep31GetTransactionResponse;
-import org.stellar.anchor.api.shared.Amount;
-import org.stellar.anchor.api.shared.Customers;
-import org.stellar.anchor.api.shared.Refund;
-import org.stellar.anchor.api.shared.StellarId;
+import org.stellar.anchor.api.shared.*;
 import org.stellar.anchor.event.models.TransactionEvent;
 import org.stellar.anchor.util.StringHelper;
 
@@ -135,6 +132,10 @@ public interface Sep31Transaction {
         StellarId.builder().id(getSenderId()).build(),
         StellarId.builder().id(getReceiverId()).build());
   }
+
+  List<StellarTransaction> getStellarTransactions();
+
+  void setStellarTransactions(List<StellarTransaction> stellarTransactions);
 
   /**
    * Create a Sep31GetTransactionResponse object out of this SEP-31 Transaction object.
