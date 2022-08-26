@@ -339,7 +339,7 @@ if __name__ == "__main__":
             print("####################### Testing Omnibus Allowlist #######################")
             print(f"Omnibus Allowlist - testing with allowed key: {keypair.public_key}")
             response = requests.get(endpoints.ANCHOR_PLATFORM_AUTH_ENDPOINT, {"account": keypair.public_key})
-            assert response.status_code == 200, f"return code is 200, got: {response.status_code}"
+            assert response.status_code == 200, f"return code should be 200, got: {response.status_code}"
             print(f"Omnibus Allowlist - testing with allowed key: {keypair.public_key} - success")
 
             random_kp = Keypair.random()
