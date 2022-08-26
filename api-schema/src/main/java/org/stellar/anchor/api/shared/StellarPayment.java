@@ -1,6 +1,9 @@
 package org.stellar.anchor.api.shared;
 
 import com.google.gson.annotations.SerializedName;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import lombok.Builder;
 import lombok.Data;
 
@@ -37,5 +40,24 @@ public class StellarPayment {
     public String toString() {
       return name;
     }
+  }
+
+  public static List<StellarPayment> addOrUpdatePayments(
+      List<StellarPayment> paymentList, StellarPayment... newPayments) {
+    HashMap<String, StellarPayment> paymentHashMap = new HashMap<>();
+
+    if (paymentList != null) {
+      for (StellarPayment p : paymentList) {
+        paymentHashMap.put(p.getId(), p);
+      }
+    }
+
+    if (newPayments != null) {
+      for (StellarPayment p : newPayments) {
+        paymentHashMap.put(p.getId(), p);
+      }
+    }
+
+    return new ArrayList<>(paymentHashMap.values());
   }
 }
