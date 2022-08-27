@@ -60,8 +60,9 @@ jobs:
       with:
         username: ${{ secrets.DOCKERHUB_USERNAME }}
         password: ${{ secrets.DOCKERHUB_TOKEN }}
-        repository: stellar/java-stellar-anchor-sdk
-        short-description: ${{ github.event.repository.description }}
+        repository: stellar/anchor-platform
+        # readme-filepath: "./docs/00 - Stellar Anchor Platform.md"
+        # short-description: ${{ github.event.repository.description }} For more information, go to https://github.com/stellar/java-stellar-anchor-sdk.
 
   sep_validation_suite:
     needs: [build_and_test]
