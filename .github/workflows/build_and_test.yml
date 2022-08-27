@@ -56,6 +56,14 @@ jobs:
         tags: stellar/anchor-platform:${{ steps.get_tag.outputs.TAG }},stellar/anchor-platform:latest
         file: Dockerfile
 
+    - name: Update repo description in DockerHub
+      uses: peter-evans/dockerhub-description@da890086d39c735e41d8823c8a95bde4302c3d64
+      with:
+        username: ${{ secrets.DOCKERHUB_USERNAME }}
+        password: ${{ secrets.DOCKERHUB_TOKEN }}
+        repository: stellar/java-stellar-anchor-sdk
+        short-description: ${{ github.event.repository.description }}
+
   sep_validation_suite:
     needs: [build_and_test]
     runs-on: ubuntu-latest
