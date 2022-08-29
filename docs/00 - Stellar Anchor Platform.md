@@ -59,7 +59,7 @@ Here are the important terminology used in this project:
   | :------: | :----------------------------------------------------------------------------: | :----------: | :--------------------------: | :---------------------------: | :------------------: |
   | [SEP-10] |                            Handles authentication.                             |     YES      |              NO              |              YES              |         YES          |
   | [SEP-12] |                                  Handles KYC.                                  |     YES      |             YES              |              YES              |         YES          |
-  | [SEP-24] |       Handles deposit & withdrawal of assets in/out the Stellar network.       |     YES      |              NO              |              NO               |         YES          |
+  | [SEP-24] |       Handles deposit & withdrawal of assets in/out the Stellar network.       |     NO       |              NO              |              NO               |         NO           |
   | [SEP-31] | Used for international remittances. **Only the receiver side is implemented.** |     YES      |             YES              |              YES              |         YES          |
   | [SEP-38] |                Used for [rfq] **in conjunction with [SEP-31]**.                |     YES      |             YES              |              YES              |         YES          |
 
