@@ -74,7 +74,6 @@ stellar:
          settings: data-spring-jdbc-sqlite
 #         settings: data-spring-jdbc-aws-aurora-postgres
 #   data_spring_jdbc_aws_aurora_postgres:
-#     spring.jpa.generate-ddl: true
 #     spring.jpa.database: POSTGRESQL
 #     spring.jpa.show-sql: false
 #     spring.datasource.driver-class-name: org.postgresql.Driver

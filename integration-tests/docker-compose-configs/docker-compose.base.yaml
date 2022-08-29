@@ -1,13 +1,11 @@
 version: '2'
 services:
   anchor-platform-server:
+    image: anchor-platform
     build:
       context: ../../
       dockerfile: integration-tests/docker-compose-configs/Dockerfile
-    entrypoint: ["/bin/sh", "-c" ,
-                 "cp -rf /config_defaults/* /config
-                 && if [ -d \"/config_override\" ]; then cp -rf /config_override/* /config; fi 
-                 && java -jar /app/anchor-platform-runner.jar --sep-server"]
+    command: "--sep-server"
     environment:
       - STELLAR_ANCHOR_CONFIG=file:/config/anchor-platform-config.yaml
       - LOG_APPENDER=console_appender
@@ -21,13 +19,8 @@ services:
       - kafka
 
   anchor-reference-server:
-    build:
-      context: ../../
-      dockerfile: integration-tests/docker-compose-configs/Dockerfile
-    entrypoint: [ "/bin/sh", "-c" ,
-                 "cp -rf /config_defaults/* /config
-                 && if [ -d \"/config_override\" ]; then cp -rf /config_override/* /config; fi 
-                 && java -jar /app/anchor-platform-runner.jar --anchor-reference-server" ]
+    image: anchor-platform
+    command: --anchor-reference-server
     environment:
       - REFERENCE_SERVER_CONFIG_ENV=file:/config/anchor-reference-server-config.yaml
     volumes:
@@ -36,8 +29,7 @@ services:
     tmpfs:
       - /config
     depends_on:
-      - db
-      - kafka
+      - anchor-platform-server
 
   db:
     image: postgres:latest

@@ -110,7 +110,6 @@ app-config:
       transaction_error: ap_event_transaction_error
 
 data-spring-jdbc-local-postgres:
-  spring.jpa.generate-ddl: true
   spring.jpa.database: POSTGRESQL
   spring.jpa.show-sql: false
   spring.datasource.driver-class-name: org.postgresql.Driver
