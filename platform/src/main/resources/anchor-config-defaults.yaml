@@ -304,7 +304,6 @@ data-spring-jdbc-sqlite:
 # settings for aurora postgres connection using IAM for authentication
 # NOTE: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY and AWS_REGION environment variables need to be set
 data-spring-jdbc-aws-aurora-postgres:
-  spring.jpa.generate-ddl: true
   spring.jpa.database: POSTGRESQL
   spring.jpa.show-sql: false
   spring.datasource.driver-class-name: org.postgresql.Driver
@@ -319,7 +318,6 @@ data-spring-jdbc-aws-aurora-postgres:
   spring.flyway.locations: classpath:/db/migration
 
 data-spring-jdbc-local-postgres:
-  spring.jpa.generate-ddl: true
   spring.jpa.database: POSTGRESQL
   spring.jpa.show-sql: false
   spring.datasource.driver-class-name: org.postgresql.Driver

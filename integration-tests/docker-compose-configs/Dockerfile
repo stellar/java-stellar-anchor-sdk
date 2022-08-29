@@ -11,4 +11,7 @@ RUN apt-get update && \
 
 COPY --from=build /code/service-runner/build/libs/anchor-platform-runner*.jar /app/anchor-platform-runner.jar
 
-ENTRYPOINT ["java", "-jar", "/app/anchor-platform-runner.jar"]
+COPY --from=build /code/integration-tests/docker-compose-configs/docker-entrypoint.sh /app/docker-entrypoint.sh
+RUN chmod +x /app/docker-entrypoint.sh
+
+ENTRYPOINT ["/app/docker-entrypoint.sh"]
