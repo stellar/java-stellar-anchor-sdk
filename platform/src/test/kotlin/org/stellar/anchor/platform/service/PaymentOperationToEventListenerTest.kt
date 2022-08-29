@@ -250,7 +250,7 @@ class PaymentOperationToEventListenerTest {
   }
 
   @Test
-  fun `test onReceiver gets the expected amount and sends the event with ERROR status`() {
+  fun `test onReceiver gets less than the expected amount it sends the PENDING_RECEIVER status with a message`() {
     val startedAtMock = Instant.now().minusSeconds(120)
     val transferReceivedAt = Instant.now()
     val transferReceivedAtStr = DateTimeFormatter.ISO_INSTANT.format(transferReceivedAt)
@@ -336,11 +336,11 @@ class PaymentOperationToEventListenerTest {
       TransactionEvent.builder()
         .type(TransactionEvent.Type.TRANSACTION_STATUS_CHANGED)
         .id("ceaa7677-a5a7-434e-b02a-8e0801b3e7bd")
-        .status(TransactionEvent.Status.ERROR)
+        .status(TransactionEvent.Status.PENDING_RECEIVER)
         .statusChange(
           TransactionEvent.StatusChange(
             TransactionEvent.Status.PENDING_SENDER,
-            TransactionEvent.Status.ERROR
+            TransactionEvent.Status.PENDING_RECEIVER
           )
         )
         .sep(TransactionEvent.Sep.SEP_31)
@@ -384,7 +384,7 @@ class PaymentOperationToEventListenerTest {
 
     // wantSep31Tx
     val wantSep31Tx = gson.fromJson(gson.toJson(sep31TxMock), JdbcSep31Transaction::class.java)
-    wantSep31Tx.status = TransactionEvent.Status.ERROR.status
+    wantSep31Tx.status = TransactionEvent.Status.PENDING_RECEIVER.status
     wantSep31Tx.stellarTransactionId =
       "1ad62e48724426be96cf2cdb65d5dacb8fac2e403e50bedb717bfc8eaf05af30"
     wantSep31Tx.transferReceivedAt = null

@@ -121,6 +121,11 @@ public class TransactionEvent implements AnchorEvent {
       this.status = status;
     }
 
+    @Override
+    public String toString() {
+      return this.status;
+    }
+
     public static Status from(String statusStr) {
       for (Status status : values()) {
         if (Objects.equals(status.status, statusStr)) {
