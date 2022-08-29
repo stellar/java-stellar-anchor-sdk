@@ -2,9 +2,9 @@
 ## Anchor Platform - Integration Test Config
 #######################################################################
 
-##################################
-## Required System Configuration
-##################################
+###########################
+## System Configuration
+##########################
 version: 1
 
 data:
@@ -23,9 +23,6 @@ stellar_network:
   horizon_url: https://horizon-testnet.stellar.org
   network_passphrase: 'Test SDF Network ; September 2015'
 
-#################################
-## Optional System Configuration
-##################################
 events:
   enabled: true
   publisher_type: kafka

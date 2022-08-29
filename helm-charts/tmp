@@ -1,0 +1,46 @@
+
+#  stellar-wks.toml: |
+#    ACCOUNTS = {{ .Values.stellar.toml.accounts | default "[\"GDZCLP2PHTWYQ3BWZMC5D4ZUJX5NU4S7YZHC5EBFAFKL6UJUQ5RKDGSY\"]" }}
+#    VERSION = "{{ .Values.stellar.toml.version | default "0.1.0" }}"
+#    NETWORK_PASSPHRASE = "{{ .Values.stellar.app_config.app.stellarNetworkPassphrase | default "Test SDF Network ; September 2015" }}"
+#    SIGNING_KEY = "{{ .Values.stellar.toml.signing_key | default "GDZCLP2PHTWYQ3BWZMC5D4ZUJX5NU4S7YZHC5EBFAFKL6UJUQ5RKDGSY" }}"
+#    TRANSFER_SERVER = "{{ .Values.stellar.app_config.app.hostUrl }}/sep6"
+#    TRANSFER_SERVER_SEP0024 = "{{ .Values.stellar.app_config.app.hostUrl }}/sep24"
+#    WEB_AUTH_ENDPOINT = "{{ .Values.stellar.app_config.app.hostUrl }}/auth"
+#    KYC_SERVER = "{{ .Values.stellar.app_config.app.hostUrl }}/sep12"
+#    DIRECT_PAYMENT_SERVER = "{{ .Values.stellar.app_config.app.hostUrl }}/sep31"
+#    ANCHOR_QUOTE_SERVER = "{{ .Values.stellar.app_config.app.hostUrl }}/sep38"
+#
+#    [[CURRENCIES]]
+#    {{- if ((.Values.stellar).toml).currencies }}
+#    {{- range .Values.stellar.toml.currencies }}
+#    code = {{ .code | quote }}
+#    issuer = {{ .issuer | quote }}
+#    status = {{ .status | quote }}
+#    is_asset_anchored = {{ .is_asset_anchored }}
+#    anchor_asset_type = {{ .anchor_asset_type }}
+#    desc = {{ .desc | quote }}
+#    {{- end }}
+#    {{- else }}
+#    code = "USDC"
+#    issuer = "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+#    status = "test"
+#    is_asset_anchored = true
+#    anchor_asset_type = "fiat"
+#    desc = "A test USDC issued by Circle."
+#    {{- end }}
+#
+#    [DOCUMENTATION]
+#    {{- if ((.Values.stellar).toml).documentation }}
+#    ORG_NAME = {{ .Values.stellar.toml.documentation.ORG_NAME | default "My Organization" | quote }}
+#    ORG_URL = {{ .Values.stellar.toml.documentation.ORG_URL  | default "https://www.myorg.org" | quote }}
+#    ORG_DESCRIPTION = {{ .Values.stellar.toml.documentation.ORG_DESCRIPTION | default "My Organization description" | quote }}
+#    ORG_LOGO = {{ .Values.stellar.toml.documentation.ORG_LOGO | default "https://myorglogo.png" | quote }}
+#    ORG_SUPPORT_EMAIL = {{ .Values.stellar.toml.documentation.ORG_SUPPORT_EMAIL | default "myname@myemail.org" | quote }}
+#    {{- else }}
+#    ORG_NAME = "My Organization"
+#    ORG_URL = "https://www.myorg.org"
+#    ORG_DESCRIPTION = "Please Customize all DOCUMENTATION values for your organization"
+#    ORG_LOGO = "https://myorglogo.png"
+#    ORG_SUPPORT_EMAIL="myname@myemail.org"
+#    {{- end }}
