@@ -11,6 +11,30 @@ class StellarTransactionTest {
   }
 
   private val createdAt = Instant.now()
+  private val mockPayment1 =
+    StellarPayment.builder()
+      .id("1111")
+      .amount(Amount("100.0000", stellarUSDC))
+      .paymentType(StellarPayment.Type.PAYMENT)
+      .sourceAccount("GAS4OW4HKJCC2D6VWUHVFR3MJRRVQBXBFQ3LCZJXBR7TWOOBJWE4SRWZ")
+      .destinationAccount("GBQC7NCZMQIPWN6ASUJYIDKDPRK34IOIZNQE5WOHPQH536VMOMQVJTN7")
+      .build()
+  private val mockPayment2 =
+    StellarPayment.builder()
+      .id("2222")
+      .amount(Amount("200.0000", stellarUSDC))
+      .paymentType(StellarPayment.Type.PAYMENT)
+      .sourceAccount("GAS4OW4HKJCC2D6VWUHVFR3MJRRVQBXBFQ3LCZJXBR7TWOOBJWE4SRWZ")
+      .destinationAccount("GBQC7NCZMQIPWN6ASUJYIDKDPRK34IOIZNQE5WOHPQH536VMOMQVJTN7")
+      .build()
+  private val mockPayment3 =
+    StellarPayment.builder()
+      .id("3333")
+      .amount(Amount("300.0000", stellarUSDC))
+      .paymentType(StellarPayment.Type.PAYMENT)
+      .sourceAccount("GAS4OW4HKJCC2D6VWUHVFR3MJRRVQBXBFQ3LCZJXBR7TWOOBJWE4SRWZ")
+      .destinationAccount("GBQC7NCZMQIPWN6ASUJYIDKDPRK34IOIZNQE5WOHPQH536VMOMQVJTN7")
+      .build()
 
   @Test
   fun `test addOrUpdateTransactions with empty tx list`() {
@@ -25,17 +49,7 @@ class StellarTransactionTest {
           .memoType("text")
           .createdAt(createdAt)
           .envelope("here_comes_the_envelope")
-          .payments(
-            listOf(
-              StellarPayment.builder()
-                .id("4609238642995201")
-                .amount(Amount("100.0000", stellarUSDC))
-                .paymentType(StellarPayment.Type.PAYMENT)
-                .sourceAccount("GAS4OW4HKJCC2D6VWUHVFR3MJRRVQBXBFQ3LCZJXBR7TWOOBJWE4SRWZ")
-                .destinationAccount("GBQC7NCZMQIPWN6ASUJYIDKDPRK34IOIZNQE5WOHPQH536VMOMQVJTN7")
-                .build()
-            )
-          )
+          .payments(listOf(mockPayment1))
           .build()
       )
 
@@ -47,17 +61,7 @@ class StellarTransactionTest {
           .memoType("text")
           .createdAt(createdAt)
           .envelope("here_comes_the_envelope")
-          .payments(
-            listOf(
-              StellarPayment.builder()
-                .id("4609238642995201")
-                .amount(Amount("100.0000", stellarUSDC))
-                .paymentType(StellarPayment.Type.PAYMENT)
-                .sourceAccount("GAS4OW4HKJCC2D6VWUHVFR3MJRRVQBXBFQ3LCZJXBR7TWOOBJWE4SRWZ")
-                .destinationAccount("GBQC7NCZMQIPWN6ASUJYIDKDPRK34IOIZNQE5WOHPQH536VMOMQVJTN7")
-                .build()
-            )
-          )
+          .payments(listOf(mockPayment1))
           .build()
       )
 
@@ -74,17 +78,7 @@ class StellarTransactionTest {
           .memoType("text")
           .createdAt(createdAt)
           .envelope("here_comes_the_envelope")
-          .payments(
-            listOf(
-              StellarPayment.builder()
-                .id("4609238642995201")
-                .amount(Amount("100.0000", stellarUSDC))
-                .paymentType(StellarPayment.Type.PAYMENT)
-                .sourceAccount("GAS4OW4HKJCC2D6VWUHVFR3MJRRVQBXBFQ3LCZJXBR7TWOOBJWE4SRWZ")
-                .destinationAccount("GBQC7NCZMQIPWN6ASUJYIDKDPRK34IOIZNQE5WOHPQH536VMOMQVJTN7")
-                .build()
-            )
-          )
+          .payments(listOf(mockPayment1))
           .build()
       )
 
@@ -97,17 +91,7 @@ class StellarTransactionTest {
           .memoType("text")
           .createdAt(createdAt)
           .envelope("here_comes_the_envelope")
-          .payments(
-            listOf(
-              StellarPayment.builder()
-                .id("4609238642995201")
-                .amount(Amount("100.0000", stellarUSDC))
-                .paymentType(StellarPayment.Type.PAYMENT)
-                .sourceAccount("GAS4OW4HKJCC2D6VWUHVFR3MJRRVQBXBFQ3LCZJXBR7TWOOBJWE4SRWZ")
-                .destinationAccount("GBQC7NCZMQIPWN6ASUJYIDKDPRK34IOIZNQE5WOHPQH536VMOMQVJTN7")
-                .build()
-            )
-          )
+          .payments(listOf(mockPayment1))
           .build()
       )
 
@@ -119,17 +103,7 @@ class StellarTransactionTest {
           .memoType("text")
           .createdAt(createdAt)
           .envelope("here_comes_the_envelope")
-          .payments(
-            listOf(
-              StellarPayment.builder()
-                .id("4609238642995201")
-                .amount(Amount("100.0000", stellarUSDC))
-                .paymentType(StellarPayment.Type.PAYMENT)
-                .sourceAccount("GAS4OW4HKJCC2D6VWUHVFR3MJRRVQBXBFQ3LCZJXBR7TWOOBJWE4SRWZ")
-                .destinationAccount("GBQC7NCZMQIPWN6ASUJYIDKDPRK34IOIZNQE5WOHPQH536VMOMQVJTN7")
-                .build()
-            )
-          )
+          .payments(listOf(mockPayment1))
           .build()
       )
 
@@ -142,7 +116,7 @@ class StellarTransactionTest {
       listOf(
         StellarTransaction.builder()
           .id("2b862ac297c93e2db43fc58d407cc477396212bce5e6d5f61789f963d5a11300")
-          .payments(listOf(StellarPayment.builder().id("4609238642995201").build()))
+          .payments(listOf(StellarPayment.builder().id("1111").build()))
           .build()
       )
 
@@ -155,17 +129,7 @@ class StellarTransactionTest {
           .memoType("text")
           .createdAt(createdAt)
           .envelope("here_comes_the_envelope")
-          .payments(
-            listOf(
-              StellarPayment.builder()
-                .id("4609238642995201")
-                .amount(Amount("100.0000", stellarUSDC))
-                .paymentType(StellarPayment.Type.PAYMENT)
-                .sourceAccount("GAS4OW4HKJCC2D6VWUHVFR3MJRRVQBXBFQ3LCZJXBR7TWOOBJWE4SRWZ")
-                .destinationAccount("GBQC7NCZMQIPWN6ASUJYIDKDPRK34IOIZNQE5WOHPQH536VMOMQVJTN7")
-                .build()
-            )
-          )
+          .payments(listOf(mockPayment1))
           .build()
       )
 
@@ -177,17 +141,7 @@ class StellarTransactionTest {
           .memoType("text")
           .createdAt(createdAt)
           .envelope("here_comes_the_envelope")
-          .payments(
-            listOf(
-              StellarPayment.builder()
-                .id("4609238642995201")
-                .amount(Amount("100.0000", stellarUSDC))
-                .paymentType(StellarPayment.Type.PAYMENT)
-                .sourceAccount("GAS4OW4HKJCC2D6VWUHVFR3MJRRVQBXBFQ3LCZJXBR7TWOOBJWE4SRWZ")
-                .destinationAccount("GBQC7NCZMQIPWN6ASUJYIDKDPRK34IOIZNQE5WOHPQH536VMOMQVJTN7")
-                .build()
-            )
-          )
+          .payments(listOf(mockPayment1))
           .build()
       )
 
@@ -204,17 +158,7 @@ class StellarTransactionTest {
           .memoType("text")
           .createdAt(createdAt)
           .envelope("here_comes_the_envelope")
-          .payments(
-            listOf(
-              StellarPayment.builder()
-                .id("1111")
-                .amount(Amount("100.0000", stellarUSDC))
-                .paymentType(StellarPayment.Type.PAYMENT)
-                .sourceAccount("GAS4OW4HKJCC2D6VWUHVFR3MJRRVQBXBFQ3LCZJXBR7TWOOBJWE4SRWZ")
-                .destinationAccount("GBQC7NCZMQIPWN6ASUJYIDKDPRK34IOIZNQE5WOHPQH536VMOMQVJTN7")
-                .build()
-            )
-          )
+          .payments(listOf(mockPayment1))
           .build()
       )
 
@@ -227,24 +171,7 @@ class StellarTransactionTest {
           .memoType("text")
           .createdAt(createdAt)
           .envelope("here_comes_the_envelope")
-          .payments(
-            listOf(
-              StellarPayment.builder()
-                .id("2222")
-                .amount(Amount("200.0000", stellarUSDC))
-                .paymentType(StellarPayment.Type.PAYMENT)
-                .sourceAccount("GAS4OW4HKJCC2D6VWUHVFR3MJRRVQBXBFQ3LCZJXBR7TWOOBJWE4SRWZ")
-                .destinationAccount("GBQC7NCZMQIPWN6ASUJYIDKDPRK34IOIZNQE5WOHPQH536VMOMQVJTN7")
-                .build(),
-              StellarPayment.builder()
-                .id("3333")
-                .amount(Amount("300.0000", stellarUSDC))
-                .paymentType(StellarPayment.Type.PAYMENT)
-                .sourceAccount("GAS4OW4HKJCC2D6VWUHVFR3MJRRVQBXBFQ3LCZJXBR7TWOOBJWE4SRWZ")
-                .destinationAccount("GBQC7NCZMQIPWN6ASUJYIDKDPRK34IOIZNQE5WOHPQH536VMOMQVJTN7")
-                .build()
-            )
-          )
+          .payments(listOf(mockPayment2, mockPayment3))
           .build()
       )
 
@@ -256,31 +183,7 @@ class StellarTransactionTest {
           .memoType("text")
           .createdAt(createdAt)
           .envelope("here_comes_the_envelope")
-          .payments(
-            listOf(
-              StellarPayment.builder()
-                .id("1111")
-                .amount(Amount("100.0000", stellarUSDC))
-                .paymentType(StellarPayment.Type.PAYMENT)
-                .sourceAccount("GAS4OW4HKJCC2D6VWUHVFR3MJRRVQBXBFQ3LCZJXBR7TWOOBJWE4SRWZ")
-                .destinationAccount("GBQC7NCZMQIPWN6ASUJYIDKDPRK34IOIZNQE5WOHPQH536VMOMQVJTN7")
-                .build(),
-              StellarPayment.builder()
-                .id("2222")
-                .amount(Amount("200.0000", stellarUSDC))
-                .paymentType(StellarPayment.Type.PAYMENT)
-                .sourceAccount("GAS4OW4HKJCC2D6VWUHVFR3MJRRVQBXBFQ3LCZJXBR7TWOOBJWE4SRWZ")
-                .destinationAccount("GBQC7NCZMQIPWN6ASUJYIDKDPRK34IOIZNQE5WOHPQH536VMOMQVJTN7")
-                .build(),
-              StellarPayment.builder()
-                .id("3333")
-                .amount(Amount("300.0000", stellarUSDC))
-                .paymentType(StellarPayment.Type.PAYMENT)
-                .sourceAccount("GAS4OW4HKJCC2D6VWUHVFR3MJRRVQBXBFQ3LCZJXBR7TWOOBJWE4SRWZ")
-                .destinationAccount("GBQC7NCZMQIPWN6ASUJYIDKDPRK34IOIZNQE5WOHPQH536VMOMQVJTN7")
-                .build()
-            )
-          )
+          .payments(listOf(mockPayment1, mockPayment2, mockPayment3))
           .build()
       )
 
@@ -306,17 +209,7 @@ class StellarTransactionTest {
           .memoType("text")
           .createdAt(createdAt)
           .envelope("here_comes_the_envelope")
-          .payments(
-            listOf(
-              StellarPayment.builder()
-                .id("2222")
-                .amount(Amount("200.0000", stellarUSDC))
-                .paymentType(StellarPayment.Type.PAYMENT)
-                .sourceAccount("GAS4OW4HKJCC2D6VWUHVFR3MJRRVQBXBFQ3LCZJXBR7TWOOBJWE4SRWZ")
-                .destinationAccount("GBQC7NCZMQIPWN6ASUJYIDKDPRK34IOIZNQE5WOHPQH536VMOMQVJTN7")
-                .build(),
-            )
-          )
+          .payments(listOf(mockPayment2))
           .build(),
         StellarTransaction.builder()
           .id("C")
@@ -324,17 +217,7 @@ class StellarTransactionTest {
           .memoType("text")
           .createdAt(createdAt)
           .envelope("here_comes_the_envelope")
-          .payments(
-            listOf(
-              StellarPayment.builder()
-                .id("3333")
-                .amount(Amount("300.0000", stellarUSDC))
-                .paymentType(StellarPayment.Type.PATH_PAYMENT)
-                .sourceAccount("GAS4OW4HKJCC2D6VWUHVFR3MJRRVQBXBFQ3LCZJXBR7TWOOBJWE4SRWZ")
-                .destinationAccount("GBQC7NCZMQIPWN6ASUJYIDKDPRK34IOIZNQE5WOHPQH536VMOMQVJTN7")
-                .build(),
-            )
-          )
+          .payments(listOf(mockPayment3))
           .build()
       )
 
@@ -350,17 +233,7 @@ class StellarTransactionTest {
           .memoType("text")
           .createdAt(createdAt)
           .envelope("here_comes_the_envelope")
-          .payments(
-            listOf(
-              StellarPayment.builder()
-                .id("2222")
-                .amount(Amount("200.0000", stellarUSDC))
-                .paymentType(StellarPayment.Type.PAYMENT)
-                .sourceAccount("GAS4OW4HKJCC2D6VWUHVFR3MJRRVQBXBFQ3LCZJXBR7TWOOBJWE4SRWZ")
-                .destinationAccount("GBQC7NCZMQIPWN6ASUJYIDKDPRK34IOIZNQE5WOHPQH536VMOMQVJTN7")
-                .build(),
-            )
-          )
+          .payments(listOf(mockPayment2))
           .build(),
         StellarTransaction.builder()
           .id("C")
@@ -368,17 +241,7 @@ class StellarTransactionTest {
           .memoType("text")
           .createdAt(createdAt)
           .envelope("here_comes_the_envelope")
-          .payments(
-            listOf(
-              StellarPayment.builder()
-                .id("3333")
-                .amount(Amount("300.0000", stellarUSDC))
-                .paymentType(StellarPayment.Type.PATH_PAYMENT)
-                .sourceAccount("GAS4OW4HKJCC2D6VWUHVFR3MJRRVQBXBFQ3LCZJXBR7TWOOBJWE4SRWZ")
-                .destinationAccount("GBQC7NCZMQIPWN6ASUJYIDKDPRK34IOIZNQE5WOHPQH536VMOMQVJTN7")
-                .build(),
-            )
-          )
+          .payments(listOf(mockPayment3))
           .build()
       )
 

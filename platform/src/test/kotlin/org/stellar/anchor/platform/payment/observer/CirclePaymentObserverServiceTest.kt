@@ -368,7 +368,6 @@ class CirclePaymentObserverServiceTest {
       "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S"
     every { mockedTransaction.envelopeXdr } returns "my_envelope_xdr"
     every { mockedTransaction.memo } returns Memo.text("my_text_memo")
-    every { mockedTransaction.ledger } returns 1234
 
     val usdcAsset =
       AssetTypeCreditAlphaNum4("USDC", "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5")
@@ -443,7 +442,6 @@ class CirclePaymentObserverServiceTest {
         .transactionMemo("my_text_memo")
         .transactionMemoType("text")
         .transactionEnvelope("my_envelope_xdr")
-        .transactionLedgerNumber(1234)
         .build()
     assertEquals(wantObservedPayment, slotObservedPayment.captured)
   }
@@ -507,7 +505,6 @@ class CirclePaymentObserverServiceTest {
       "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S"
     every { mockedTransaction.envelopeXdr } returns "my_envelope_xdr"
     every { mockedTransaction.memo } returns Memo.text("my_text_memo")
-    every { mockedTransaction.ledger } returns 5678
 
     val usdcAsset =
       AssetTypeCreditAlphaNum4("USDC", "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5")
@@ -548,7 +545,6 @@ class CirclePaymentObserverServiceTest {
         .transactionMemo("my_text_memo")
         .transactionMemoType("text")
         .transactionEnvelope("my_envelope_xdr")
-        .transactionLedgerNumber(5678)
         .build()
     assertEquals(wantObservedPayment, observedPayment)
   }

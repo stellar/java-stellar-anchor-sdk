@@ -38,7 +38,6 @@ public class ObservedPayment {
   String transactionMemo;
   String transactionMemoType;
   String transactionEnvelope;
-  Long transactionLedgerNumber;
 
   public static ObservedPayment fromPaymentOperationResponse(PaymentOperationResponse paymentOp)
       throws SepException {
@@ -71,7 +70,6 @@ public class ObservedPayment {
         .transactionMemo(MemoHelper.memoAsString(memo))
         .transactionMemoType(MemoHelper.memoTypeAsString(memo))
         .transactionEnvelope(paymentOp.getTransaction().get().getEnvelopeXdr())
-        .transactionLedgerNumber(paymentOp.getTransaction().get().getLedger())
         .build();
   }
 
@@ -119,7 +117,6 @@ public class ObservedPayment {
         .transactionMemo(MemoHelper.memoAsString(memo))
         .transactionMemoType(MemoHelper.memoTypeAsString(memo))
         .transactionEnvelope(pathPaymentOp.getTransaction().get().getEnvelopeXdr())
-        .transactionLedgerNumber(pathPaymentOp.getTransaction().get().getLedger())
         .build();
   }
 
