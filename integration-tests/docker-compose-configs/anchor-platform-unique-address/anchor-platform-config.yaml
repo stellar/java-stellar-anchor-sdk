@@ -1,0 +1,133 @@
+
+stellar:
+  anchor:
+    config: in-memory
+    app-config:
+      type: config-spring-property
+      settings: app-config                        # The absolute location of the configuration data in this yaml file
+
+    data-access:
+      type: data-spring-jdbc
+      settings: data-spring-jdbc-local-postgres    # use local postgres instance
+
+    logging:
+      type: logging-logback
+      settings: logging-logback-settings          # The absolute location of the configuration data in this yaml file
+
+# ************************************
+# Application settings
+# ************************************
+app-config:
+  # shared / general application configurations
+  app:
+    stellarNetworkPassphrase: Test SDF Network ; September 2015
+    horizonUrl: https://horizon-testnet.stellar.org
+    hostUrl: http://host.docker.internal:8080
+    languages: en
+    assets: file:config/assets-test.json
+
+    jwtSecretKey: secret
+
+  integration-auth:
+    authType: JWT_TOKEN
+    platformToAnchorSecret: myPlatformToAnchorSecret
+    anchorToPlatformSecret: myAnchorToPlatformSecret
+    expirationMilliseconds: 30000
+
+  sep1:
+    enabled: true
+    stellarFile: file:config/stellar.toml
+
+  # sep-10
+  sep10:
+    enabled: true
+    homeDomain: host.docker.internal:8080
+    clientAttributionRequired: false
+    clientAttributionAllowList: lobstr.co,preview.lobstr.co
+    authTimeout: 900
+    jwtTimeout: 86400
+
+    signingSeed: SAX3AH622R2XT6DXWWSRIDCMMUCCMATBZ5U6XKJWDO7M2EJUBFC3AW5X
+
+    omnibusAccountList:
+
+    requireKnownOmnibusAccount: false
+
+  sep12:
+    enabled: true
+    customerIntegrationEndpoint: http://host.docker.internal:8081
+
+  sep24:
+    enabled: true
+    interactiveJwtExpiration: 3600
+
+    interactiveUrl: http://host.docker.internal:8081/sep24/interactive
+
+  sep31:
+    enabled: true
+    feeIntegrationEndPoint: http://host.docker.internal:8081
+    uniqueAddressIntegrationEndPoint: http://host.docker.internal:8081
+    paymentType: STRICT_SEND
+    depositInfoGeneratorType: api # self or circle or api
+
+  sep38:
+    enabled: true
+    quoteIntegrationEndPoint: http://host.docker.internal:8081
+
+  circle:
+    circleUrl: https://api-sandbox.circle.com
+    apiKey: QVBJX0tFWTpjOWRjOWU3YjgzNTFhZDIwNWNlODEzYjkyZDEzZTU1YzpkY2U1MzVhMTExYjNjODU1YzQzNjMyZTQ5NWJhNDdlZg== # circle API key
+
+  payment-gateway:
+    circle:
+      name: "circle"
+      enabled: true
+
+    stellar:
+      enabled: false
+      name: "stellar"
+      horizonUrl: https://horizon-testnet.stellar.org
+      secretKey: secret # stellar account secret key
+
+  circle-payment-observer:
+    enabled: true
+    horizonUrl: https://horizon-testnet.stellar.org
+    stellarNetwork: TESTNET # TESTNET or PUBLIC
+    trackedWallet: all
+
+  event:
+    enabled: true
+    publisherType: kafka
+
+  kafka.publisher:
+    bootstrapServer: host.docker.internal:29092
+    useSingleQueue: false
+    eventTypeToQueue:
+      all: ap_event_single_queue
+      quote_created: ap_event_quote_created
+      transaction_created: ap_event_transaction_created
+      transaction_status_changed: ap_event_transaction_status_changed
+      transaction_error: ap_event_transaction_error
+
+data-spring-jdbc-local-postgres:
+  spring.jpa.database: POSTGRESQL
+  spring.jpa.show-sql: false
+  spring.datasource.driver-class-name: org.postgresql.Driver
+  spring.datasource.url: jdbc:postgresql://host.docker.internal:5440/
+  spring.datasource.username: postgres
+  spring.datasource.password: password
+  spring.mvc.converters.preferred-json-mapper: gson
+  spring.flyway.user: postgres
+  spring.flyway.password: password
+  spring.flyway.url: jdbc:postgresql://host.docker.internal:5440/
+  spring.flyway.locations: classpath:/db/migration
+
+spring:
+  logging:
+    level:
+      root: INFO
+      org.springframework: INFO
+      org.springframework.web.filter: INFO
+      org.stellar: INFO
+  mvc:
+    async.request-timeout: 6000

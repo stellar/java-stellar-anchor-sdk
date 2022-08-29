@@ -1,0 +1,48 @@
+server:
+  servlet:
+    context-path: /
+    port: 8081
+
+#
+# The settings of the anchor reference serer
+#
+anchor.settings:
+  version: 0.0.1
+  platformApiEndpoint: http://host.docker.internal:8080
+  hostUrl: http://host.docker.internal:8081
+
+  # The Stellar wallet to which the customer will send the Stellar assets.
+  distributionWallet: GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF
+  distributionWalletMemo:
+  distributionWalletMemoType:
+
+integration-auth:
+  authType: JWT_TOKEN
+  platformToAnchorSecret: myPlatformToAnchorSecret
+  anchorToPlatformSecret: myAnchorToPlatformSecret
+  expirationMilliseconds: 30000
+
+event:
+  listenerType: kafka
+
+kafka.listener:
+  bootstrapServer: host.docker.internal:29092
+  useSingleQueue: false
+  eventTypeToQueue:
+    all: ap_event_single_queue
+    quoteCreated: ap_event_quote_created
+    transactionCreated: ap_event_transaction_created
+    transactionStatusChanged: ap_event_transaction_status_changed
+    transactionError: ap_event_transaction_error
+
+amqp.listener:
+  endpoint: host.docker.internal:5672
+#
+# Spring Data JDBC settings for H2
+#
+spring.datasource.url: jdbc:h2:mem:test
+spring.jpa.properties.hibernate.dialect: org.hibernate.dialect.H2Dialect
+spring.flyway.enabled: false
+
+# force gson as serializer/deserializer over jackson
+spring.mvc.converters.preferred-json-mapper: gson

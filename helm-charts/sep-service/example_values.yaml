@@ -74,7 +74,6 @@ stellar:
          settings: data-spring-jdbc-sqlite
 #         settings: data-spring-jdbc-aws-aurora-postgres
 #   data_spring_jdbc_aws_aurora_postgres:
-#     spring.jpa.generate-ddl: true
 #     spring.jpa.database: POSTGRESQL
 #     spring.jpa.show-sql: false
 #     spring.datasource.driver-class-name: org.postgresql.Driver
@@ -120,8 +119,9 @@ stellar:
         signingSeed: ${SEP10_SIGNING_SEED}
         requireKnownOmnibusAccount: false
         omnibusAccountList:
-          # - GDOHXZYP5ABGCTKAEROOJFN6X5GY7VQNXFNK2SHSAD32GSVMUJBPG75E
-          # - GC5KRPVW4TFA6ORIGTOFM3DEG6DSLACRXGDN3LNCAI7IPAGIWMVXUHVS 
+#        omnibusAccountList: |
+#          GAB24L6CPBKSMQOBXJ5PRA6I66X4TGZHPAEI2CMPNLC6I2WX646OYCAV,
+#          GAB24L6CPBKSMQOBXJ5PRA6I66X4TGZHPAEI2CMPNLC6I2WX646OYCAA
       sep12:
         enabled: true
         customerIntegrationEndpoint: https://anchor-reference-server-dev.stellar.org

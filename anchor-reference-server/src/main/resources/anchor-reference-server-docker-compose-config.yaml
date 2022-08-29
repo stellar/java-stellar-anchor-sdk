@@ -72,7 +72,6 @@ spring.mvc.converters.preferred-json-mapper: gson
 #
 # Spring Data JDBC settings for Postgres
 #
-#spring.jpa.generate-ddl: true
 #spring.jpa.database: POSTGRESQL
 #spring.jpa.show-sql: false
 #spring.datasource.driver-class-name: org.postgresql.Driver
