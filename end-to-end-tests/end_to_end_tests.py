@@ -21,7 +21,6 @@ STELLAR_TESTNET_NETWORK_PASSPHRASE = "Test SDF Network ; September 2015"
 HORIZON_URI = "https://horizon-testnet.stellar.org"
 FRIENDBOT_URI = "https://friendbot.stellar.org"
 
-TRANSACTION_STATUS_ERROR = "error"
 TRANSACTION_STATUS_COMPLETE = "completed"
 
 
@@ -112,7 +111,7 @@ def create_anchor_test_transaction(endpoints, headers, payload, quote_id=None):
     return res
 
 
-def send_asset(asset, source_secret_key, receiver_public_key, memo_hash, send_amount="10"):
+def send_asset(asset, source_secret_key, receiver_public_key, memo_hash):
     print("============= Send Asset on Stellar Network =============================")
 
     source_keypair = Keypair.from_secret(source_secret_key)
@@ -130,7 +129,7 @@ def send_asset(asset, source_secret_key, receiver_public_key, memo_hash, send_am
             base_fee=base_fee,
         )
             .add_hash_memo(memo_hash)
-            .append_payment_op(receiver_public_key, asset, send_amount)
+            .append_payment_op(receiver_public_key, asset, "10")
             .set_timeout(30)
             .build()
     )
@@ -166,13 +165,12 @@ def poll_transaction_status(endpoints, headers, transaction_id, status=TRANSACTI
         raise Exception("error: timed out while polling transaction status")
     print("=========================================================================")
 
-def test_sep_31_flow(endpoints, keypair, transaction_payload, sep38_payload=None, send_amount="10", expected_status=TRANSACTION_STATUS_COMPLETE):
+def test_sep_31_flow(endpoints, keypair, transaction_payload, sep38_payload=None):
     """
     :param endpoints: Anchor Platform endpoints
     :param keypair: Stellar Account keypair
     :param transaction_payload: Payload to create a transaction in the Anchor Platform
     :param sep38_payload: Payload to request a quote from the Anchor Platform and use that quote in the sep31 request
-    :param expected_status: The status expected to see in the transaction after the payment is sent
     :return:
     """
     public_key = keypair.public_key
@@ -198,10 +196,10 @@ def test_sep_31_flow(endpoints, keypair, transaction_payload, sep38_payload=None
     memo_hash = base64.b64decode(memo_hash)
 
     asset = Asset(transaction_payload["asset_code"], transaction_payload["asset_issuer"])
-    send_asset(asset, secret_key, transaction["stellar_account_id"], memo_hash, send_amount)
+    send_asset(asset, secret_key, transaction["stellar_account_id"], memo_hash)
 
     try:
-        poll_transaction_status(endpoints=endpoints, headers=headers, transaction_id=transaction["id"], status=expected_status)
+        poll_transaction_status(endpoints, headers, transaction["id"])
     except Exception as e:
         print(e)
         exit(1)
@@ -220,8 +218,7 @@ if __name__ == "__main__":
     TESTS = [
         "sep31_flow",
         "sep31_flow_with_sep38",
-        "sep38_create_quote",
-        "sep31_flow_insufficient_amount"
+        "sep38_create_quote"
     ]
 
     parser = argparse.ArgumentParser()
@@ -255,20 +252,6 @@ if __name__ == "__main__":
                 }
             }
             test_sep_31_flow(endpoints, keypair, TRANSACTION_PAYLOAD)
-        elif test == "sep31_flow_insufficient_amount":
-            TRANSACTION_PAYLOAD = {
-                "amount": "10.0",
-                "asset_code": "USDC",
-                "asset_issuer": "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-                "fields": {
-                    "transaction": {
-                        "receiver_routing_number": "r0123",
-                        "receiver_account_number": "a0456",
-                        "type": "SWIFT"
-                    }
-                }
-            }
-            test_sep_31_flow(endpoints, keypair, TRANSACTION_PAYLOAD, None, "9", TRANSACTION_STATUS_ERROR)
         elif test == "sep31_flow_with_sep38":
             QUOTE_PAYLOAD_USDC_TO_JPYC = {
                 "sell_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
