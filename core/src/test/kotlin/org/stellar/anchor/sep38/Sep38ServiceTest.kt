@@ -82,7 +82,7 @@ class Sep38ServiceTest {
   }
 
   @Test
-  fun test_getInfo() {
+  fun `test GET info`() {
     val infoResponse = sep38Service.getInfo()
     assertEquals(3, infoResponse.assets.size)
 
@@ -133,7 +133,7 @@ class Sep38ServiceTest {
   }
 
   @Test
-  fun test_getPrices_failure() {
+  fun `Test GET prices failure`() {
     // empty rateIntegration should throw an error
     var ex: AnchorException = assertThrows { sep38Service.getPrices(null, null, null, null, null) }
     assertInstanceOf(ServerErrorException::class.java, ex)
@@ -192,7 +192,7 @@ class Sep38ServiceTest {
   }
 
   @Test
-  fun test_getPrices_minimumParameters() {
+  fun `test get prices with minimum parameters`() {
     // mock rate integration
     val mockRateIntegration = mockk<MockRateIntegration>()
     val getRateReq1 =
@@ -233,7 +233,7 @@ class Sep38ServiceTest {
   }
 
   @Test
-  fun test_getPrices_allParameters() {
+  fun `test get prices with all parameters`() {
     // mock rate integration
     val mockRateIntegration = mockk<MockRateIntegration>()
     val getRateReq1 =
@@ -278,7 +278,7 @@ class Sep38ServiceTest {
   }
 
   @Test
-  fun test_getPrices_filterWithBuyDeliveryMethod() {
+  fun `Test get prices filter with buy delivery method`() {
     // mock rate integration
     val mockRateIntegration = mockk<MockRateIntegration>()
     val getRateReq1 =
@@ -311,7 +311,7 @@ class Sep38ServiceTest {
   }
 
   @Test
-  fun test_getPrice_failure() {
+  fun `test GET price failure`() {
     var getPriceRequestBuilder = Sep38GetPriceRequest.builder()
 
     // empty rateIntegration should throw an error
@@ -465,7 +465,7 @@ class Sep38ServiceTest {
   }
 
   @Test
-  fun test_getPrice_minimumParametersWithSellAmount() {
+  fun `test GET price with minimum parameters and sell amount`() {
     val mockFee = mockSellAssetFee(fiatUSD)
 
     // mock rate integration
@@ -511,7 +511,7 @@ class Sep38ServiceTest {
   }
 
   @Test
-  fun test_getPrice_minimumParametersWithBuyAmount() {
+  fun `test get price with minimum parameters and buy amount`() {
     val mockFee = mockSellAssetFee(fiatUSD)
 
     // mock rate integration
@@ -557,7 +557,7 @@ class Sep38ServiceTest {
   }
 
   @Test
-  fun test_getPrice_allParametersWithSellAmount() {
+  fun `test GET price all parameters with sell amount`() {
     val mockFee = mockSellAssetFee(fiatUSD)
 
     // mock rate integration
@@ -607,7 +607,7 @@ class Sep38ServiceTest {
   }
 
   @Test
-  fun test_getPrice_allParametersWithBuyAmount() {
+  fun `test GET price all parameters with buy amount`() {
     val mockFee = mockSellAssetFee(fiatUSD)
 
     // mock rate integration
@@ -658,7 +658,7 @@ class Sep38ServiceTest {
   }
 
   @Test
-  fun test_postQuote_failure() {
+  fun `test POST quote failures`() {
     // empty rateIntegration should throw an error
     var ex: AnchorException = assertThrows {
       sep38Service.postQuote(null, Sep38PostQuoteRequest.builder().build())
@@ -991,7 +991,7 @@ class Sep38ServiceTest {
   }
 
   @Test
-  fun test_postQuote_minimumParametersWithSellAmount() {
+  fun `test POST quote with minimum parameters and sell amount`() {
     val mockFee = mockSellAssetFee(fiatUSD)
 
     // mock rate integration
@@ -1102,7 +1102,7 @@ class Sep38ServiceTest {
   }
 
   @Test
-  fun test_postQuote_minimumParametersWithBuyAmount() {
+  fun `test POST quote with minimum parameters and buy amount`() {
     val mockFee = mockSellAssetFee(fiatUSD)
 
     // mock rate integration
@@ -1212,7 +1212,7 @@ class Sep38ServiceTest {
   }
 
   @Test
-  fun test_postQuote_allParametersWithSellAmount() {
+  fun `test POST quote with all parameters and sell amount`() {
     val mockFee = mockSellAssetFee(fiatUSD)
     val now = Instant.now()
     val tomorrow = now.plus(1, ChronoUnit.DAYS)
@@ -1331,7 +1331,7 @@ class Sep38ServiceTest {
   }
 
   @Test
-  fun test_postQuote_allParametersWithBuyAmount() {
+  fun `Test POST quote with all parameters and buy amount`() {
     val mockFee = mockSellAssetFee(fiatUSD)
     val now = Instant.now()
     val tomorrow = now.plus(1, ChronoUnit.DAYS)
@@ -1450,7 +1450,7 @@ class Sep38ServiceTest {
   }
 
   @Test
-  fun test_getQuote_failure() {
+  fun `test GET quote failure`() {
     // empty sep38QuoteStore should throw an error
     var ex: AnchorException = assertThrows { sep38Service.getQuote(null, null) }
     assertInstanceOf(ServerErrorException::class.java, ex)
@@ -1535,7 +1535,7 @@ class Sep38ServiceTest {
   }
 
   @Test
-  fun test_getQuote() {
+  fun `Test GET quote`() {
     val mockFee = mockSellAssetFee(fiatUSD)
 
     // mocked quote store

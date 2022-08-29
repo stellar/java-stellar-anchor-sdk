@@ -10,7 +10,7 @@ internal class ChallengeResponseTest {
   }
 
   @Test
-  fun testOf() {
+  fun `test creation of ChallengeResponse`() {
     val cr = ChallengeResponse.of(TEST_TRANSACTION, TEST_NETWORKPHRASE)
     assertEquals(TEST_TRANSACTION, cr.transaction)
     assertEquals(TEST_NETWORKPHRASE, cr.networkPassphrase)

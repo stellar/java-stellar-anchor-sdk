@@ -34,7 +34,7 @@ class RefundPaymentTest {
   }
 
   @Test
-  fun test_toSep31RefundPayment() {
+  fun `test to sep31 refund payment`() {
     // mock the SEP-31 RefundPayment object
     val mockRefundPayment = PojoSep31RefundPayment()
     mockRefundPayment.id = "A"
@@ -51,7 +51,7 @@ class RefundPaymentTest {
   }
 
   @Test
-  fun test_toPlatformApiRefundPayment() {
+  fun `test to platform api refund payment`() {
     // mock the SEP-31 RefundPayment object
     val mockRefundPayment = PojoSep31RefundPayment()
     mockRefundPayment.id = "A"
@@ -75,7 +75,7 @@ class RefundPaymentTest {
   }
 
   @Test
-  fun test_of() {
+  fun `test PlatformApi Refund object creation`() {
     // mock the PlatformApi RefundPayment object
     val mockPlatformApiRefundPayment =
       org.stellar.anchor.api.shared.RefundPayment.builder()

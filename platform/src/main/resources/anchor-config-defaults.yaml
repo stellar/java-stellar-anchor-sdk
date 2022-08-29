@@ -147,8 +147,11 @@ app-config:
     # network.
     signingSeed: ${SEP10_SIGNING_SEED}
 
-    # The list of omnibus account.
+    # The list of omnibus accounts (comma separated).
     # The detail of the SEP-10 omnibus account is described at: https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#memos
+    # omnibusAccountList: |
+    #   GAB24L6CPBKSMQOBXJ5PRA6I66X4TGZHPAEI2CMPNLC6I2WX646OYCAV,
+    #   GAB24L6CPBKSMQOBXJ5PRA6I66X4TGZHPAEI2CMPNLC6I2WX646OYCAA
     omnibusAccountList:
 
     # Require authenticating clients to be in the omnibusAccountList

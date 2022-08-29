@@ -4,7 +4,6 @@ import static org.stellar.anchor.util.Log.errorEx;
 import static org.stellar.anchor.util.Log.warnEx;
 
 import com.google.gson.Gson;
-import java.lang.reflect.Type;
 import java.util.Map;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -15,7 +14,7 @@ import org.stellar.anchor.api.exception.ServerErrorException;
 import org.stellar.anchor.api.exception.UnprocessableEntityException;
 import org.stellar.anchor.api.sep.SepExceptionResponse;
 import org.stellar.anchor.platform.payment.observer.circle.CirclePaymentObserverService;
-import shadow.com.google.common.reflect.TypeToken;
+import org.stellar.anchor.platform.payment.observer.circle.model.CircleNotification;
 
 @RestController
 @RequestMapping("/circle-observer")
@@ -36,7 +35,13 @@ public class CirclePaymentObserverController {
   public void handleCircleNotificationJson(
       @RequestBody(required = false) Map<String, Object> requestBody)
       throws UnprocessableEntityException, BadRequestException, ServerErrorException {
-    circlePaymentObserverService.handleCircleNotification(requestBody);
+    try {
+      CircleNotification circleNotification =
+          gson.fromJson(gson.toJson(requestBody), CircleNotification.class);
+      circlePaymentObserverService.handleCircleNotification(circleNotification);
+    } catch (Exception ex) {
+      throw new BadRequestException("Error parsing the request.");
+    }
   }
 
   @CrossOrigin(origins = "*")
@@ -46,9 +51,8 @@ public class CirclePaymentObserverController {
       consumes = {MediaType.TEXT_PLAIN_VALUE})
   public void handleCircleNotificationTextPlain(@RequestBody(required = false) String jsonBodyStr)
       throws UnprocessableEntityException, BadRequestException, ServerErrorException {
-    Type type = new TypeToken<Map<String, ?>>() {}.getType();
-    Map<String, Object> requestBody = gson.fromJson(jsonBodyStr, type);
-    circlePaymentObserverService.handleCircleNotification(requestBody);
+    CircleNotification circleNotification = gson.fromJson(jsonBodyStr, CircleNotification.class);
+    circlePaymentObserverService.handleCircleNotification(circleNotification);
   }
 
   @ExceptionHandler(UnprocessableEntityException.class)

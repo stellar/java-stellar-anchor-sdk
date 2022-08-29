@@ -1,0 +1,45 @@
+# Configuration Description - enable to omnibusAllowList feature to check if an account is whitelisted for SEP-10
+version: '2'
+services:
+  anchor-platform-server:
+    volumes:
+      # add mounts for the new config directory
+      - ./anchor-platform-allowlist:/config_override
+    environment:
+      - OMNIBUS_ALLOWLIST_KEYS=${OMNIBUS_ALLOWLIST_KEYS?err}
+    ports:
+      # override ports, do not append
+      - "8080:8080"
+
+  anchor-reference-server:
+    volumes:
+      # add mounts for the new config directory
+      - ./anchor-platform-allowlist:/config_override
+    ports:
+      # override ports, do not append
+      - "8081:8081"
+
+  db:
+    environment:
+      - PGPORT=5440
+    ports:
+      # override ports, do not append
+      - "5440:5440"
+
+  zookeeper:
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - 2181:2181
+
+  kafka:
+    ports:
+      # TODO: might need to change this
+      - 29092:29092
+    environment:
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://host.docker.internal:29092
+
+  end-to-end-tests:
+    command: --domain host.docker.internal:8080 --tests omnibus_allowlist

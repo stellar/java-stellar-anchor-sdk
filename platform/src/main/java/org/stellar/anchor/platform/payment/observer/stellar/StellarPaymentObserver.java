@@ -5,6 +5,7 @@ import static org.stellar.anchor.api.platform.HealthCheckStatus.RED;
 import static org.stellar.anchor.util.ReflectionUtil.getField;
 
 import com.google.gson.annotations.SerializedName;
+import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -25,12 +26,18 @@ import org.stellar.sdk.requests.EventListener;
 import org.stellar.sdk.requests.PaymentsRequestBuilder;
 import org.stellar.sdk.requests.RequestBuilder;
 import org.stellar.sdk.requests.SSEStream;
+import org.stellar.sdk.responses.Page;
 import org.stellar.sdk.responses.operations.OperationResponse;
 import org.stellar.sdk.responses.operations.PathPaymentBaseOperationResponse;
 import org.stellar.sdk.responses.operations.PaymentOperationResponse;
 import shadow.com.google.common.base.Optional;
 
 public class StellarPaymentObserver implements HealthCheckable {
+  /** The maximum number of results the Stellar Blockchain can return. */
+  private static final int MAX_RESULTS = 200;
+  /** The minimum number of results the Stellar Blockchain can return. */
+  private static final int MIN_RESULTS = 1;
+
   final Server server;
   final Set<PaymentListener> observers;
   final StellarPaymentStreamerCursorStore paymentStreamerCursorStore;
@@ -59,13 +66,47 @@ public class StellarPaymentObserver implements HealthCheckable {
     this.stream.close();
   }
 
-  public SSEStream<OperationResponse> watch() {
-    PaymentsRequestBuilder paymentsRequest =
-        server.payments().includeTransactions(true).order(RequestBuilder.Order.ASC);
+  /**
+   * fetchStreamingCursor will gather a starting cursor for the streamer. If there is a cursor
+   * already stored in the database, that value will be returned. Otherwise, this method will fetch
+   * the most recent cursor from the Network and use that as a starting point.
+   *
+   * @return the starting point to start streaming from.
+   */
+  String fetchStreamingCursor() {
+    // Use database value, if any.
     String lastToken = paymentStreamerCursorStore.load();
     if (lastToken != null) {
-      paymentsRequest.cursor(lastToken);
+      return lastToken;
     }
+
+    // Otherwise, fetch the latest value from the network.
+    Page<OperationResponse> pageOpResponse;
+    try {
+      pageOpResponse =
+          server.payments().order(RequestBuilder.Order.DESC).limit(MIN_RESULTS).execute();
+    } catch (IOException e) {
+      Log.errorEx("Error fetching the latest /payments result.", e);
+      return null;
+    }
+
+    if (pageOpResponse == null
+        || pageOpResponse.getRecords() == null
+        || pageOpResponse.getRecords().size() == 0) {
+      return null;
+    }
+    return pageOpResponse.getRecords().get(0).getPagingToken();
+  }
+
+  public SSEStream<OperationResponse> watch() {
+    String latestCursor = fetchStreamingCursor();
+    PaymentsRequestBuilder paymentsRequest =
+        server
+            .payments()
+            .includeTransactions(true)
+            .cursor(latestCursor)
+            .order(RequestBuilder.Order.ASC)
+            .limit(MAX_RESULTS);
 
     return paymentsRequest.stream(
         new EventListener<>() {
