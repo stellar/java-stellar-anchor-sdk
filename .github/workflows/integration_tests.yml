@@ -1,0 +1,16 @@
+name: Integration Tests
+
+on:
+  pull_request: # TODO: change the triggers before merging
+
+jobs:
+  integration_tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Build end-to-end test images
+        run: make build-docker-compose-tests
+
+      - name: Run end-to-end tests (Default)
+        run: make run-e2e-test-default-config
