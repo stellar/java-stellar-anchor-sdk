@@ -110,7 +110,7 @@ subprojects {
 
 allprojects {
   group = "org.stellar.anchor-sdk"
-  version = "1.2.3"
+  version = "1.1.0"
 
   tasks.jar {
     manifest {
@@ -122,5 +122,9 @@ allprojects {
       )
     }
   }
+}
+
+tasks.register("printVersionName") {
+  println(rootProject.version.toString())
 }
 
