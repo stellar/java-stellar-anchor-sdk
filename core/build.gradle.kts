@@ -62,7 +62,7 @@ publishing {
             pom {
               name.set("stellar-anchor-sdk")
               description.set("Stellar Anchor SDK - Java")
-              url.set("https://www.github.com/stellar/java-stellar-anchor-sdk")
+              url.set("https://github.com/stellar/java-stellar-anchor-sdk")
               licenses {
                 license {
                   name.set("Apache 2.0")
