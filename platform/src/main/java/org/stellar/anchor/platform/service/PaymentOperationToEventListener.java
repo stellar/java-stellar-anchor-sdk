@@ -50,7 +50,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
     // Check if the payment contains the expected asset type
     if (!List.of("credit_alphanum4", "credit_alphanum12").contains(payment.getAssetType())) {
       // Asset type does not match
-      Log.info("Not an issued asset");
+      Log.infoF("{} is not an issued asset.", payment.getAssetType());
       return;
     }
 
@@ -61,7 +61,8 @@ public class PaymentOperationToEventListener implements PaymentListener {
       try {
         memo = MemoHelper.convertHexToBase64(payment.getTransactionMemo());
       } catch (DecoderException ex) {
-        Log.warn("Not a HEX string");
+        Log.warnF(
+            "The memo type is \"hash\" but the memo string {} could not be parsed as such.", memo);
         Log.warnEx(ex);
       }
     }
@@ -71,16 +72,12 @@ public class PaymentOperationToEventListener implements PaymentListener {
     try {
       txn = transactionStore.findByStellarMemo(memo);
       if (txn == null) {
-        Log.info(
-            String.format(
-                "Not expecting any transaction with the memo %s.", payment.getTransactionMemo()));
+        Log.infoF("Not expecting any transaction with the memo {}.", payment.getTransactionMemo());
         return;
       }
     } catch (AnchorException e) {
-      Log.error(
-          String.format(
-              "error finding transaction that matches the memo (%s).",
-              payment.getTransactionMemo()));
+      Log.errorF(
+          "Error finding transaction that matches the memo {}.", payment.getTransactionMemo());
       e.printStackTrace();
       return;
     }
@@ -88,10 +85,10 @@ public class PaymentOperationToEventListener implements PaymentListener {
     // Compare asset code
     String paymentAssetName = "stellar:" + payment.getAssetName();
     if (!txn.getAmountInAsset().equals(paymentAssetName)) {
-      Log.warn(
-          String.format(
-              "Payment asset %s does not match the expected asset %s",
-              payment.getAssetCode(), txn.getAmountInAsset()));
+      Log.warnF(
+          "Payment asset {} does not match the expected asset {}.",
+          payment.getAssetCode(),
+          txn.getAmountInAsset());
       return;
     }
 
@@ -175,7 +172,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
 
   private void sendToQueue(TransactionEvent event) {
     eventService.publish(event);
-    Log.info("Sent to event queue" + GsonUtils.getInstance().toJson(event));
+    Log.infoF("Sent to event queue {}", GsonUtils.getInstance().toJson(event));
   }
 
   TransactionEvent receivedPaymentToEvent(
@@ -220,7 +217,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
     try {
       return DateTimeFormatter.ISO_INSTANT.parse(paymentTimeStr, Instant::from);
     } catch (DateTimeParseException | NullPointerException ex) {
-      Log.error(String.format("error parsing paymentTimeStr (%s).", paymentTimeStr));
+      Log.errorF("Error parsing paymentTimeStr {}.", paymentTimeStr);
       ex.printStackTrace();
       return null;
     }
