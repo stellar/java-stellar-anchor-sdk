@@ -128,7 +128,6 @@ public class PaymentOperationToEventListener implements PaymentListener {
     BigDecimal expectedAmount = decimal(txn.getAmountIn());
     BigDecimal gotAmount = decimal(payment.getAmount());
     String message = "Incoming payment for SEP-31 transaction";
-    ;
     if (gotAmount.compareTo(expectedAmount) >= 0) {
       Log.info(message);
       txn.setTransferReceivedAt(paymentTime);
