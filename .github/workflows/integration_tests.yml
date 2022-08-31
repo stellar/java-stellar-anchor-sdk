@@ -9,8 +9,14 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Build end-to-end test images
+      - name: Build images for end-to-end tests
         run: make build-docker-compose-tests
 
-      - name: Run end-to-end tests (Default)
+      - name: Run end-to-end tests (Default Config)
         run: make run-e2e-test-default-config
+
+      - name: Run end-to-end tests (Allowlist)
+        run: make run-e2e-test-allowlist
+
+      - name: Run end-to-end tests (Unique Address)
+        run: make run-e2e-test-unique-address
