@@ -6,10 +6,7 @@ import java.util.List;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.experimental.SuperBuilder;
-import org.stellar.anchor.api.shared.Amount;
-import org.stellar.anchor.api.shared.Customers;
-import org.stellar.anchor.api.shared.Refund;
-import org.stellar.anchor.api.shared.StellarId;
+import org.stellar.anchor.api.shared.*;
 
 @Data
 @SuperBuilder
@@ -61,33 +58,4 @@ public class GetTransactionResponse {
 
   Customers customers;
   StellarId creator;
-
-  @Data
-  public static class StellarTransaction {
-    String id;
-    String memo;
-
-    @SerializedName("memo_type")
-    String memoType;
-
-    @SerializedName("created_at")
-    Instant createdAt;
-
-    String envelope;
-    Payment payment;
-  }
-
-  @Data
-  public static class Payment {
-    @SerializedName("operation_id")
-    String operationId;
-
-    @SerializedName("source_account")
-    String sourceAccount;
-
-    @SerializedName("destination_account")
-    String destinationAccount;
-
-    Amount amount;
-  }
 }

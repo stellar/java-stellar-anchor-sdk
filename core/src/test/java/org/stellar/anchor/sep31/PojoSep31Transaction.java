@@ -1,10 +1,12 @@
 package org.stellar.anchor.sep31;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import lombok.Data;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.shared.StellarId;
+import org.stellar.anchor.api.shared.StellarTransaction;
 
 @Data
 public class PojoSep31Transaction implements Sep31Transaction {
@@ -23,6 +25,7 @@ public class PojoSep31Transaction implements Sep31Transaction {
   Instant startedAt;
   Instant completedAt;
   String stellarTransactionId;
+  List<StellarTransaction> stellarTransactions;
   String externalTransactionId;
   String requiredInfoMessage;
   String quoteId;
