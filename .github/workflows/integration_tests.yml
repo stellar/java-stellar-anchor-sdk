@@ -15,8 +15,8 @@ jobs:
       - name: Run end-to-end tests (Default Config)
         run: make run-e2e-test-default-config
 
-      - name: Run end-to-end tests (Allowlist)
-        run: make run-e2e-test-allowlist
+      # - name: Run end-to-end tests (Allowlist)
+      #   run: make run-e2e-test-allowlist
 
-      - name: Run end-to-end tests (Unique Address)
-        run: make run-e2e-test-unique-address
+      # - name: Run end-to-end tests (Unique Address)
+      #   run: make run-e2e-test-unique-address
