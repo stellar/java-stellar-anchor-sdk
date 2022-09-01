@@ -6,19 +6,23 @@ on:
 jobs:
   integration_tests:
     runs-on: ubuntu-latest
+    env:
+        E2E_SECRET: ${{ secrets.E2E_SECRET }}
+        OMNIBUS_ALLOWLIST_KEYS: ${{ secrets.OMNIBUS_ALLOWLIST_KEYS }}
+
     steps:
       - uses: actions/checkout@v3
 
       - name: Test if envs are available
         run: |
-          echo ${{ secrets.OMNIBUS_ALLOWLIST_KEYS }}
-          echo ${{ secrets.OMNIBUS_ALLOWLIST_KEYS:0:3 }}...${{ secrets.OMNIBUS_ALLOWLIST_KEYS: -3 }}
+          echo ${E2E_SECRET:0:3}...${E2E_SECRET: -3}
+          echo ${OMNIBUS_ALLOWLIST_KEYS:0:3}...${OMNIBUS_ALLOWLIST_KEYS: -3}
 
-      - name: Build images for end-to-end tests
-        run: make build-docker-compose-tests
+      # - name: Build images for end-to-end tests
+      #   run: make build-docker-compose-tests
 
-      - name: Run end-to-end tests (Default Config)
-        run: make run-e2e-test-default-config
+      # - name: Run end-to-end tests (Default Config)
+      #   run: make run-e2e-test-default-config
 
       # - name: Run end-to-end tests (Allowlist)
       #   run: make run-e2e-test-allowlist
