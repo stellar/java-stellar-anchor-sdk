@@ -1,7 +1,14 @@
 name: Integration Tests
 
 on:
-  pull_request: # TODO: change the triggers before merging
+  workflow_call: # Allows this workflow to be called from another workflow
+  push:
+    branches: 
+      - main
+      - develop
+      - 'release/**'
+      - 'releases/**'
+      - 'hotfix/**'
 
 jobs:
   end_to_end_tests:

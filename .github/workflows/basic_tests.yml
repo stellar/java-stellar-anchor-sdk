@@ -4,7 +4,7 @@
 name: Basic Tests
 
 on:
-  # pull_request: # TODO: uncomment before merging
+  pull_request:
   workflow_call: # Allows this workflow to be called from another workflow
 
 jobs:
