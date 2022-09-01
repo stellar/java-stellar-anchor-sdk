@@ -71,6 +71,12 @@ directory.
     <name-of-your-new-test>:
 		$(call run_tests,<name-of-your-new-test>)
     ```
+1) Update the `end_to_end_tests.yml` GitHub Action by adding a new step to run the new configuration (Note: replace `<name-of-your-new-test>` and 
+`<new-test-description>`):
+    ```yaml
+    - name: Run end-to-end tests (<new-test-description>)
+      run: make <name-of-your-new-test>
+    ```
 
 
 ### Running Tests:
