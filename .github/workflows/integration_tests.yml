@@ -9,6 +9,11 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
+      - name: Test if envs are available
+        run: |
+          echo ${{ secrets.OMNIBUS_ALLOWLIST_KEYS }}
+          echo ${{ secrets.OMNIBUS_ALLOWLIST_KEYS:0:3 }}...${{ secrets.OMNIBUS_ALLOWLIST_KEYS: -3 }}
+
       - name: Build images for end-to-end tests
         run: make build-docker-compose-tests
 
