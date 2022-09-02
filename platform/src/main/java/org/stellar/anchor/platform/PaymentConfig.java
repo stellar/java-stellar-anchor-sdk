@@ -6,6 +6,7 @@ import lombok.SneakyThrows;
 import okhttp3.OkHttpClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Profile;
 import org.stellar.anchor.api.exception.ServerErrorException;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.asset.AssetService;
@@ -23,6 +24,7 @@ import org.stellar.anchor.platform.payment.observer.stellar.StellarPaymentStream
 @Configuration
 public class PaymentConfig {
   @Bean
+  @Profile("stellar-observer")
   @SneakyThrows
   public StellarPaymentObserver stellarPaymentObserverService(
       AssetService assetService,
