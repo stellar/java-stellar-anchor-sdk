@@ -13,6 +13,8 @@ public class ServiceRunner {
     options.addOption("h", "help", false, "Print this message.");
     options.addOption("a", "all", false, "Start all servers.");
     options.addOption("s", "sep-server", false, "Start SEP endpoint server.");
+    options.addOption(
+        "o", "stellar-observer", false, "Start Observer that streams from the Stellar blockchain.");
     options.addOption("r", "anchor-reference-server", false, "Start anchor reference server.");
 
     CommandLineParser parser = new DefaultParser();
@@ -22,6 +24,11 @@ public class ServiceRunner {
       boolean anyServerStarted = false;
       if (cmd.hasOption("sep-server") || cmd.hasOption("all")) {
         startSepServer();
+        anyServerStarted = true;
+      }
+
+      if (cmd.hasOption("stellar-observer") || cmd.hasOption("all")) {
+        startStellarObserver();
         anyServerStarted = true;
       }
 
@@ -49,6 +56,15 @@ public class ServiceRunner {
       contextPath = DEFAULT_CONTEXTPATH;
     }
     AnchorPlatformServer.start(port, contextPath);
+  }
+
+  static void startStellarObserver() {
+    StellarObservingService.start();
+    try {
+      Thread.currentThread().join();
+    } catch (InterruptedException e) {
+      e.printStackTrace();
+    }
   }
 
   static void startAnchorReferenceServer() {
