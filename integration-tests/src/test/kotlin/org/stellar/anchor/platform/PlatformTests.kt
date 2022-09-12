@@ -129,7 +129,8 @@ fun testSep31UnhappyPath() {
   assertTrue(getTxResponse.amountIn.asset.contains(txnRequest.assetCode))
   assertEquals(31, getTxResponse.sep)
   assertNull(getTxResponse.completedAt)
-  assertTrue(getTxResponse.updatedAt > getTxResponse.startedAt)
+  assertNotNull(getTxResponse.startedAt)
+  assertEquals(getTxResponse.updatedAt, getTxResponse.startedAt)
 
   // Modify the customer by erasing its clabe_number to simulate an invalid clabe_number
   sep12Client.invalidateCustomerClabe(receiverCustomer.id)
@@ -156,6 +157,7 @@ fun testSep31UnhappyPath() {
   assertEquals(TransactionEvent.Status.PENDING_CUSTOMER_INFO_UPDATE.status, patchedTx.status)
   assertEquals(31, patchedTx.sep)
   assertEquals("The receiving customer clabe_number is invalid!", patchedTx.message)
+  assertTrue(patchedTx.updatedAt > patchedTx.startedAt)
 
   // GET SEP-31 transaction should return PENDING_CUSTOMER_INFO_UPDATE with a message
   var gotSep31TxResponse = sep31Client.getTransaction(postTxResponse.id)

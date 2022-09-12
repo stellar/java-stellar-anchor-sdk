@@ -2,6 +2,7 @@ package org.stellar.anchor.platform;
 
 import static org.springframework.boot.Banner.Mode.OFF;
 
+import java.util.Map;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -24,7 +25,7 @@ import org.stellar.anchor.platform.configurator.SpringFrameworkConfigurator;
 @EnableConfigurationProperties
 public class StellarObservingService implements WebMvcConfigurer {
 
-  public static ConfigurableApplicationContext start() {
+  public static ConfigurableApplicationContext start(Map<String, Object> environment) {
     SpringApplicationBuilder builder =
         new SpringApplicationBuilder(StellarObservingService.class)
             .bannerMode(OFF)
@@ -36,6 +37,10 @@ public class StellarObservingService implements WebMvcConfigurer {
                 // this allows a developer to use a .env file for local development
                 "spring.config.import=optional:classpath:example.env[.properties]",
                 "spring.profiles.active=stellar-observer");
+
+    if (environment != null) {
+      builder.properties(environment);
+    }
 
     SpringApplication springApplication = builder.build();
 
@@ -49,5 +54,9 @@ public class StellarObservingService implements WebMvcConfigurer {
     springApplication.addInitializers(new SpringFrameworkConfigurator());
 
     return springApplication.run();
+  }
+
+  public static ConfigurableApplicationContext start() {
+    return start(null);
   }
 }
