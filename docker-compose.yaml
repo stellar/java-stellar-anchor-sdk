@@ -4,7 +4,7 @@ services:
     build:
       context: .
       dockerfile: ./Dockerfile
-    command: --anchor-reference-server --sep-server
+    command: --anchor-reference-server --sep-server --stellar-observer
     environment:
       - STELLAR_ANCHOR_CONFIG=file:/config/anchor-docker-compose-config.yaml
       - REFERENCE_SERVER_CONFIG_ENV=file:/reference-config/anchor-reference-server-docker-compose-config.yaml

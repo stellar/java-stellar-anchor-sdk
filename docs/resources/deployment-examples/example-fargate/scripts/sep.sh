@@ -8,4 +8,4 @@ echo "env"
 env
 echo "starting anchor platform..."
 export _JAVA_OPTIONS=-Dlogging.level.org.springframework=DEBUG
-java -jar /app/anchor-platform-runner.jar --sep-server
+java -jar /app/anchor-platform-runner.jar --sep-server --stellar-observer

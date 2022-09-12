@@ -41,7 +41,7 @@ resource "aws_ecs_task_definition" "sep" {
      condition = "START"
    }]
    #entryPoint = ["/anchor_config/sep.sh"]
-   entryPoint  = ["java", "-jar", "/app/anchor-platform-runner.jar", "--sep-server"]
+   entryPoint  = ["java", "-jar", "/app/anchor-platform-runner.jar", "--sep-server", "--stellar-observer"]
    essential   = true
    secrets = [
       {

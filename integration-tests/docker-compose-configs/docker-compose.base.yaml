@@ -5,7 +5,7 @@ services:
     build:
       context: ../../
       dockerfile: integration-tests/docker-compose-configs/Dockerfile
-    command: "--sep-server"
+    command: ["--sep-server", "--stellar-observer"]
     environment:
       - STELLAR_ANCHOR_CONFIG=file:/config/anchor-platform-config.yaml
       - LOG_APPENDER=console_appender
