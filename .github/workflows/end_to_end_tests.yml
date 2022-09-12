@@ -2,6 +2,7 @@ name: Integration Tests
 
 on:
   workflow_call: # Allows this workflow to be called from another workflow
+  pull_request:
   push:
     branches: 
       - main
