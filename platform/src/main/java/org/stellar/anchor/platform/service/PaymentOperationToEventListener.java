@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import org.apache.commons.codec.DecoderException;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.SepException;
@@ -29,6 +30,7 @@ import org.stellar.anchor.util.MemoHelper;
 import org.stellar.sdk.xdr.MemoType;
 
 @Component
+@Profile("stellar-observer")
 public class PaymentOperationToEventListener implements PaymentListener {
   final Sep31TransactionStore transactionStore;
   final EventPublishService eventService;
