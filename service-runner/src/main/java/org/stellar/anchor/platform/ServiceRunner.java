@@ -59,16 +59,7 @@ public class ServiceRunner {
   }
 
   static void startStellarObserver() {
-    new Thread(
-            () -> {
-              StellarObservingService.start();
-              try {
-                Thread.currentThread().join();
-              } catch (InterruptedException e) {
-                e.printStackTrace();
-              }
-            })
-        .start();
+    StellarObservingService.start();
   }
 
   static void startAnchorReferenceServer() {

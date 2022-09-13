@@ -86,15 +86,7 @@ class AnchorPlatformIntegrationTest {
 
       ServiceRunner.startAnchorReferenceServer()
 
-      Thread {
-          StellarObservingService.start(configMap)
-          try {
-            Thread.currentThread().join()
-          } catch (e: InterruptedException) {
-            e.printStackTrace()
-          }
-        }
-        .start()
+      StellarObservingService.start(configMap)
     }
   }
 
