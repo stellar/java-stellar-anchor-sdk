@@ -24,12 +24,20 @@ jobs:
     - name: Clean, Build and Test
       run: |
         ./gradlew clean build
+
+    - name: Print Test Results
+      if: success() || failure()
+      run: |
         echo *** SEP test report ***
         cat /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/core/build/reports/tests/test/index.html
         echo *** Platform test report ***
         cat /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/platform/build/reports/tests/test/index.html
         echo *** Anchor reference server test report ***
         cat /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/anchor-reference-server/build/reports/tests/test/index.html
+        echo *** Integration test report ***
+        cat /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/integration-tests/build/reports/tests/test/index.html
+        echo *** API Schema test report ***
+        cat /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/api-schema/build/reports/tests/test/index.html
 
   sep_validation_suite:
     needs: [build_and_test]
