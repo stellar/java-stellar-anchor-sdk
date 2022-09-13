@@ -128,7 +128,7 @@ fun testSep31UnhappyPath() {
   assertEquals(31, getTxResponse.sep)
   assertNull(getTxResponse.completedAt)
   assertNotNull(getTxResponse.startedAt)
-  assertEquals(getTxResponse.updatedAt, getTxResponse.startedAt)
+  assertTrue(getTxResponse.updatedAt >= getTxResponse.startedAt)
 
   // Modify the customer by erasing its clabe_number to simulate an invalid clabe_number
   sep12Client.invalidateCustomerClabe(receiverCustomer.id)

@@ -25,6 +25,7 @@ jobs:
       run: ./gradlew clean build
 
     - name: Print Test Results
+      if: success() || failure()
       run: |
         echo *** API Schema test report ***
         cat /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/api-schema/build/reports/tests/test/index.html
