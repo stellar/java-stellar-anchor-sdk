@@ -27,15 +27,15 @@ jobs:
     - name: Print Test Results
       if: success() || failure()
       run: |
-        echo *** API Schema test report ***
+        echo "\n\n*** API Schema test report ***\n"
         cat /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/api-schema/build/reports/tests/test/index.html
-        echo *** SEP test report ***
+        echo "\n\n*** SEP test report ***\n"
         cat /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/core/build/reports/tests/test/index.html
-        echo *** Platform test report ***
+        echo "\n\n*** Platform test report ***\n"
         cat /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/platform/build/reports/tests/test/index.html
-        echo *** Integration tests report ***
+        echo "\n\n*** Integration tests report ***\n"
         cat /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/integration-tests/build/reports/tests/test/index.html
-        echo *** Anchor reference server test report ***
+        echo "\n\n*** Anchor reference server test report ***\n"
         cat /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/anchor-reference-server/build/reports/tests/test/index.html
 
   sep_validation_suite:
