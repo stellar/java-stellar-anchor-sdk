@@ -2,7 +2,7 @@ name: Integration Tests
 
 on:
   workflow_call: # Allows this workflow to be called from another workflow
-  pull_request:
+  pull_request: # TODO: REMOVE BEFORE MERGING!
   push:
     branches: 
       - main

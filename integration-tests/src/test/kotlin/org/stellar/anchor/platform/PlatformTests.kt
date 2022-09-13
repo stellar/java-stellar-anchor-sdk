@@ -85,16 +85,14 @@ fun testHappyPath() {
 }
 
 fun testHealth() {
-  //  val response = platformApiClient.health(listOf("all"))
-  //  assertEquals(response["number_of_checks"], 1.0)
-  //  assertNotNull(response["checks"])
-  //  val checks = response["checks"] as Map<*, *>
-  //  val spo = checks["stellar_payment_observer"] as Map<*, *>
-  //  assertEquals(spo["status"], "green")
-  //  val streams = spo["streams"] as List<Map<*, *>>
-  //  assertEquals(streams[0]["thread_shutdown"], false)
-  //  assertEquals(streams[0]["thread_terminated"], false)
-  //  assertEquals(streams[0]["stopped"], false)
+  val response = platformApiClient.health(listOf("all"))
+  assertEquals(5, response.size)
+  assertNotNull(response["checks"])
+  assertEquals(0.0, response["number_of_checks"])
+  assertNotNull(response["started_at"])
+  assertNotNull(response["elapsed_time_ms"])
+  assertNotNull(response["number_of_checks"])
+  assertNotNull(response["version"])
 }
 
 fun testSep31UnhappyPath() {
