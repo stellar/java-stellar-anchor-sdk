@@ -1,6 +1,7 @@
 package org.stellar.anchor.platform;
 
 import org.apache.commons.cli.*;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.stellar.anchor.reference.AnchorReferenceServer;
 
 public class ServiceRunner {
@@ -45,7 +46,7 @@ public class ServiceRunner {
     }
   }
 
-  static void startSepServer() {
+  static ConfigurableApplicationContext startSepServer() {
     String strPort = System.getProperty("SEP_SERVER_PORT");
     int port = DEFAULT_SEP_SERVER_PORT;
     if (strPort != null) {
@@ -55,7 +56,7 @@ public class ServiceRunner {
     if (contextPath == null) {
       contextPath = DEFAULT_CONTEXTPATH;
     }
-    AnchorPlatformServer.start(port, contextPath);
+    return AnchorPlatformServer.start(port, contextPath);
   }
 
   static void startStellarObserver() {

@@ -62,7 +62,7 @@ public class AnchorPlatformServer implements WebMvcConfigurer {
     return springApplication.run();
   }
 
-  public static void start(int port, String contextPath) {
-    start(port, contextPath, null, false);
+  public static ConfigurableApplicationContext start(int port, String contextPath) {
+    return start(port, contextPath, null, false);
   }
 }

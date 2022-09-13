@@ -71,21 +71,17 @@ class AnchorPlatformIntegrationTest {
     const val fiatUSD = "iso4217:USD"
     const val stellarUSDC = "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
     private lateinit var platformServerContext: ConfigurableApplicationContext
-    init {
-      System.setProperty("REFERENCE_SERVER_CONFIG", "classpath:/anchor-reference-server.yaml")
-    }
 
     @BeforeAll
     @JvmStatic
     fun setup() {
-      val configMap =
-        mapOf("stellar.anchor.config" to "classpath:/integration-test.anchor-config.yaml")
-
-      platformServerContext = AnchorPlatformServer.start(SEP_SERVER_PORT, "/", configMap, true)
-
+      System.setProperty("REFERENCE_SERVER_CONFIG", "classpath:/anchor-reference-server.yaml")
       ServiceRunner.startAnchorReferenceServer()
 
-      StellarObservingService.start(configMap)
+      SystemUtil.setEnv("STELLAR_ANCHOR_CONFIG", "classpath:/integration-test.anchor-config.yaml")
+      platformServerContext = ServiceRunner.startSepServer()
+      ServiceRunner.startStellarObserver()
+      SystemUtil.setEnv("STELLAR_ANCHOR_CONFIG", null)
     }
   }
 
