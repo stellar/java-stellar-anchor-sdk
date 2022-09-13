@@ -22,12 +22,18 @@ jobs:
       run: ./gradlew spotlessCheck || echo "❌ Your code is not properly formatted. You can run './gradlew spotlessApply' to format it. 👀"
 
     - name: Clean, Build and Test
+      run: ./gradlew clean build
+
+    - name: Print Test Results
       run: |
-        ./gradlew clean build
+        echo *** API Schema test report ***
+        cat /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/api-schema/build/reports/tests/test/index.html
         echo *** SEP test report ***
         cat /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/core/build/reports/tests/test/index.html
         echo *** Platform test report ***
         cat /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/platform/build/reports/tests/test/index.html
+        echo *** Integration tests report ***
+        cat /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/integration-tests/build/reports/tests/test/index.html
         echo *** Anchor reference server test report ***
         cat /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/anchor-reference-server/build/reports/tests/test/index.html
 
