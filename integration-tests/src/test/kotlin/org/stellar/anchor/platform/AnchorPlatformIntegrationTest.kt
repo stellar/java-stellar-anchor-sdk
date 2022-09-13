@@ -72,8 +72,7 @@ class AnchorPlatformIntegrationTest {
     const val stellarUSDC = "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
     private lateinit var platformServerContext: ConfigurableApplicationContext
     init {
-      val props = System.getProperties()
-      props.setProperty("REFERENCE_SERVER_CONFIG", "classpath:/anchor-reference-server.yaml")
+      System.setProperty("REFERENCE_SERVER_CONFIG", "classpath:/anchor-reference-server.yaml")
     }
 
     @BeforeAll

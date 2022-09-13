@@ -35,8 +35,7 @@ import org.stellar.anchor.util.OkHttpUtil
 class ApiKeyAuthIntegrationTest {
   companion object {
     init {
-      val props = System.getProperties()
-      props.setProperty("REFERENCE_SERVER_CONFIG", "classpath:/anchor-reference-server.yaml")
+      System.setProperty("REFERENCE_SERVER_CONFIG", "classpath:/anchor-reference-server.yaml")
     }
 
     private val gson = GsonUtils.getInstance()
