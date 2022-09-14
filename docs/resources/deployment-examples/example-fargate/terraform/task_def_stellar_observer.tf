@@ -3,7 +3,7 @@ resource "aws_ecs_task_definition" "sep" {
   requires_compatibilities = ["FARGATE"]
   cpu                      = 256
   memory                   = 512
-  family                   = "${var.environment}-sep"
+  family                   = "${var.environment}-stellar-observer"
   execution_role_arn       = aws_iam_role.ecs_task_execution_role.arn
   task_role_arn            = aws_iam_role.ecs_task_role.arn
   volume {
@@ -11,7 +11,7 @@ resource "aws_ecs_task_definition" "sep" {
   }
   
   container_definitions = jsonencode([{
-   name        = "${var.environment}-sep-config"
+   name        = "${var.environment}-stellar-observer"
    image       = "${var.aws_account}.dkr.ecr.${var.aws_region}.amazonaws.com/${aws_ecr_repository.anchor_config.name}:latest"
    entryPoint  = ["/copy_config.sh"]
    
@@ -29,19 +29,19 @@ resource "aws_ecs_task_definition" "sep" {
                     "awslogs-group": "anchorplatform",
                     "awslogs-region": "${var.aws_region}",
                     "awslogs-create-group": "true",
-                    "awslogs-stream-prefix": "sep-config",
+                    "awslogs-stream-prefix": "stellar-observer",
                     "awslogs-multiline-pattern": "^[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3} \\w+ -", 
                 }
             }
   },{
-   name        = "${var.environment}-sep"
+   name        = "${var.environment}-sep" //?
    image       = "stellar/anchor-platform:${var.image_tag}"
    dependsOn =  [ {
-     containerName = "${var.environment}-sep-config"
+     containerName = "${var.environment}-stellar-observer"
      condition = "START"
    }]
    #entryPoint = ["/anchor_config/sep.sh"]
-   entryPoint  = ["java", "-jar", "/app/anchor-platform-runner.jar", "--sep-server"]
+   entryPoint  = ["java", "-jar", "/app/anchor-platform-runner.jar", "--stellar-observer"]
    essential   = true
    secrets = [
       {
@@ -86,18 +86,18 @@ resource "aws_ecs_task_definition" "sep" {
       }
     ]
     "environment": [
-              {
-                  "name": "STELLAR_ANCHOR_CONFIG",
-                  "value": "file:/anchor_config/anchor_config.yaml"
-              }
-          ],
+        {
+            "name": "STELLAR_ANCHOR_CONFIG",
+            "value": "file:/anchor_config/anchor_config.yaml"
+        }
+    ],
        logConfiguration = {
                 "logDriver": "awslogs",
                 "options": {
                     "awslogs-group": "anchorplatform",
                     "awslogs-region": "${var.aws_region}",
                     "awslogs-create-group": "true",
-                    "awslogs-stream-prefix": "sep-service",
+                    "awslogs-stream-prefix": "stellar-observer",
                     "awslogs-multiline-pattern": "^[0-9]{2}:[0-9]{2}:[0-9]{2}.[0-9]{3} \\w+ -", 
                 }
             

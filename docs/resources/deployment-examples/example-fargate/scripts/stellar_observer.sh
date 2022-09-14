@@ -6,6 +6,6 @@ echo "ls /app"
 ls /app
 echo "env"
 env
-echo "starting anchor platform..."
+echo "starting stellar observer..."
 export _JAVA_OPTIONS=-Dlogging.level.org.springframework=DEBUG
-java -jar /app/anchor-platform-runner.jar --sep-server
+java -jar /app/anchor-platform-runner.jar --stellar-observer
