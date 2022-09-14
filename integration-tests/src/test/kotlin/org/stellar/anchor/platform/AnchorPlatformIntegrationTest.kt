@@ -19,7 +19,7 @@ import org.stellar.anchor.api.callback.GetRateRequest.Type.*
 import org.stellar.anchor.api.exception.NotFoundException
 import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerRequest
 import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest
-import org.stellar.anchor.api.sep.sep38.Sep38Context.*
+import org.stellar.anchor.api.sep.sep38.Sep38Context.SEP31
 import org.stellar.anchor.auth.AuthHelper
 import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.config.AppConfig
@@ -29,7 +29,6 @@ import org.stellar.anchor.config.Sep38Config
 import org.stellar.anchor.platform.callback.RestCustomerIntegration
 import org.stellar.anchor.platform.callback.RestFeeIntegration
 import org.stellar.anchor.platform.callback.RestRateIntegration
-import org.stellar.anchor.reference.AnchorReferenceServer
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.Sep1Helper
 
@@ -72,23 +71,17 @@ class AnchorPlatformIntegrationTest {
     const val fiatUSD = "iso4217:USD"
     const val stellarUSDC = "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
     private lateinit var platformServerContext: ConfigurableApplicationContext
-    init {
-      val props = System.getProperties()
-      props.setProperty("REFERENCE_SERVER_CONFIG", "classpath:/anchor-reference-server.yaml")
-    }
 
     @BeforeAll
     @JvmStatic
     fun setup() {
-      platformServerContext =
-        AnchorPlatformServer.start(
-          SEP_SERVER_PORT,
-          "/",
-          mapOf("stellar.anchor.config" to "classpath:/integration-test.anchor-config.yaml"),
-          true
-        )
+      System.setProperty("REFERENCE_SERVER_CONFIG", "classpath:/anchor-reference-server.yaml")
+      ServiceRunner.startAnchorReferenceServer()
 
-      AnchorReferenceServer.start(REFERENCE_SERVER_PORT, "/")
+      SystemUtil.setEnv("STELLAR_ANCHOR_CONFIG", "classpath:/integration-test.anchor-config.yaml")
+      platformServerContext = ServiceRunner.startSepServer()
+      ServiceRunner.startStellarObserver()
+      SystemUtil.setEnv("STELLAR_ANCHOR_CONFIG", null)
     }
   }
 
@@ -325,7 +318,7 @@ class AnchorPlatformIntegrationTest {
         "sep38.quoteIntegrationEndPoint" to "http://localhost:8081",
         "payment-gateway.circle.name" to "circle",
         "payment-gateway.circle.enabled" to "true",
-        "spring.jpa.properties.hibernate.dialect" to "org.hibernate.dialect.H2Dialect",
+        "spring.jpa.database-platform" to "org.stellar.anchor.platform.sqlite.SQLiteDialect",
         "logging.level.root" to "INFO"
       )
 

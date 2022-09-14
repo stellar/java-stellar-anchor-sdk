@@ -787,6 +787,7 @@ class Sep31ServiceTest {
       "amountFee": "10",
       "amountFeeAsset": "$stellarUSDC",
       "startedAt": "$txStartedAt",
+      "updatedAt": "$txStartedAt",
       "quoteId": "my_quote_id",
       "clientDomain": "vibrant.stellar.org",
       "fields": {

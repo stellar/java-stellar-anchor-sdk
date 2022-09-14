@@ -1,0 +1,33 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: anchor-platform-stellar-observer
+  namespace: anchor-platform-dev
+  labels:
+    app: anchor-platform-stellar-observer
+  annotations:
+    fluxcd.io/automated: "true"
+    reloader.stakater.com/auto: "true"
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: anchor-platform-stellar-observer
+  template:
+    metadata:
+      labels:
+        app: anchor-platform-stellar-observer
+    spec:
+      containers:
+      - name: stellar-observer
+        image: stellar/anchor-platform:latest
+        args: ["--stellar-observer"]
+        imagePullPolicy: Always
+        volumeMounts:
+        - name: config-volume
+          mountPath: /config
+          readOnly: true
+      volumes:
+      - name: config-volume
+        configMap:
+          name: anchor-platform-sep-server-config
