@@ -4,8 +4,8 @@ import java.util.Map;
 import lombok.Data;
 import org.springframework.validation.BindException;
 import org.springframework.validation.ValidationUtils;
-import org.stellar.anchor.config.PublisherConfig;
 import org.stellar.anchor.config.EventTypeToQueueConfig;
+import org.stellar.anchor.config.PublisherConfig;
 
 @Data
 public class PropertyPublisherConfig implements PublisherConfig {

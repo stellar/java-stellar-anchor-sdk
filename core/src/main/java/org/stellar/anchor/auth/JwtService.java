@@ -4,7 +4,6 @@ import io.jsonwebtoken.*;
 import io.jsonwebtoken.impl.DefaultJwsHeader;
 import java.nio.charset.StandardCharsets;
 import java.util.Calendar;
-
 import lombok.Getter;
 import org.apache.commons.codec.binary.Base64;
 import org.stellar.anchor.config.SecretConfig;

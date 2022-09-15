@@ -1,7 +1,7 @@
 package org.stellar.anchor.platform.config;
 
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
 import lombok.Data;
 import org.stellar.anchor.config.EventTypeToQueueConfig;
 
@@ -29,5 +29,4 @@ public class PropertyEventTypeToQueueConfig implements EventTypeToQueueConfig {
   public Map<String, String> getEventTypeToQueueMap() {
     return this.eventTypeToQueueMap;
   }
-
 }

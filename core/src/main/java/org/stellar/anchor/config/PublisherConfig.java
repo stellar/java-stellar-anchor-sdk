@@ -20,4 +20,3 @@ public interface PublisherConfig {
 
   String getSecretKey();
 }
-

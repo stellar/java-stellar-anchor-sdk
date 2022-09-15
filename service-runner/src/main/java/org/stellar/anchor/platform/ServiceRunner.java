@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform;
 
+import java.util.Map;
 import org.apache.commons.cli.*;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.stellar.anchor.reference.AnchorReferenceServer;
@@ -24,7 +25,7 @@ public class ServiceRunner {
       CommandLine cmd = parser.parse(options, args);
       boolean anyServerStarted = false;
       if (cmd.hasOption("sep-server") || cmd.hasOption("all")) {
-        startSepServer();
+        startSepServer(DEFAULT_SEP_SERVER_PORT, DEFAULT_CONTEXTPATH, null);
         anyServerStarted = true;
       }
 
@@ -46,21 +47,21 @@ public class ServiceRunner {
     }
   }
 
-  static ConfigurableApplicationContext startSepServer() {
-    String strPort = System.getProperty("SEP_SERVER_PORT");
-    int port = DEFAULT_SEP_SERVER_PORT;
-    if (strPort != null) {
-      port = Integer.parseInt(strPort);
-    }
-    String contextPath = System.getProperty("SEP_CONTEXTPATH");
-    if (contextPath == null) {
-      contextPath = DEFAULT_CONTEXTPATH;
-    }
-    return AnchorPlatformServer.start(port, contextPath);
+  static ConfigurableApplicationContext startSepServer(
+      int port, String contextPath, Map<String, Object> env) {
+    //    String strPort = System.getProperty("SEP_SERVER_PORT");
+    //    if (strPort != null) {
+    //      port = Integer.parseInt(strPort);
+    //    }
+    //    String contextPath = System.getProperty("SEP_CONTEXTPATH");
+    //    if (contextPath == null) {
+    //      contextPath = DEFAULT_CONTEXTPATH;
+    //    }
+    return AnchorPlatformServer.start(port, contextPath, env, true);
   }
 
-  static void startStellarObserver() {
-    StellarObservingService.start();
+  static ConfigurableApplicationContext startStellarObserver() {
+    return StellarObservingService.start();
   }
 
   static void startAnchorReferenceServer() {

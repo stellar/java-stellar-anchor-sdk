@@ -39,9 +39,7 @@ public class PropertyEventConfig implements EventConfig, Validator {
       errors.rejectValue(
           "publisherConfig",
           "badPublisherConfig",
-          String.format(
-              "event publisher not properly configured: %s",
-              errorString));
+          String.format("event publisher not properly configured: %s", errorString));
     }
   }
 }

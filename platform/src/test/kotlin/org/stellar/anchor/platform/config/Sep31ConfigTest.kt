@@ -5,7 +5,6 @@ import kotlin.test.assertEquals
 import org.junit.jupiter.api.*
 import org.springframework.validation.BindException
 import org.springframework.validation.ValidationUtils
-import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.config.Sep31Config.DepositInfoGeneratorType.CIRCLE
 
 open class Sep31ConfigTest {

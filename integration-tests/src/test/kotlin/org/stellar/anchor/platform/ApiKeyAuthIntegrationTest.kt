@@ -1,11 +1,7 @@
 package org.stellar.anchor.platform
 
-import io.mockk.InternalPlatformDsl.toStr
 import io.mockk.clearAllMocks
 import io.mockk.unmockkAll
-import java.io.FileReader
-import java.nio.file.Files
-import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertEquals
 import okhttp3.OkHttpClient

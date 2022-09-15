@@ -3,7 +3,6 @@ package org.stellar.anchor.platform.config;
 import lombok.Data;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
-import org.stellar.anchor.config.CircleConfig;
 import org.stellar.anchor.config.Sep12Config;
 
 @Data

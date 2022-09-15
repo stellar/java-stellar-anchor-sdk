@@ -82,7 +82,7 @@ class AnchorPlatformIntegrationTest {
     @JvmStatic
     fun setup() {
       platformServerContext =
-        AnchorPlatformServer.start(
+        ServiceRunner.startSepServer(
           SEP_SERVER_PORT,
           "/",
           mapOf(
@@ -90,12 +90,8 @@ class AnchorPlatformIntegrationTest {
             "secret.sep10.jwt_secret" to "secret",
             "secret.sep10.signing_seed" to
               "SAKXNWVTRVR4SJSHZUDB2CLJXEQHRT62MYQWA2HBB7YBOTCFJJJ55BZF"
-          ),
-          true
+          )
         )
-
-      // TODO: Fix
-      platformServerContext = ServiceRunner.startSepServer()
       ServiceRunner.startStellarObserver()
 
       AnchorReferenceServer.start(REFERENCE_SERVER_PORT, "/")

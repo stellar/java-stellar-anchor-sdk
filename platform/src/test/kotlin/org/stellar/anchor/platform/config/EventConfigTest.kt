@@ -20,9 +20,7 @@ open class EventConfigTest {
   @Test
   fun testEnabledForKafka() {
     // Events correctly configured for kafka
-    val kafkaConfig = PropertyPublisherConfig(
-      PropertyEventTypeToQueueConfig()
-    )
+    val kafkaConfig = PropertyPublisherConfig(PropertyEventTypeToQueueConfig())
     kafkaConfig.isUseSingleQueue = true
     kafkaConfig.bootstrapServer = "localhost:29092"
     kafkaConfig.eventTypeToQueue = HashMap<String, String>()
@@ -55,9 +53,7 @@ open class EventConfigTest {
 
   @Test
   fun testKafkaMissingFields() {
-    val kafkaConfig = PropertyPublisherConfig(
-      PropertyEventTypeToQueueConfig()
-    )
+    val kafkaConfig = PropertyPublisherConfig(PropertyEventTypeToQueueConfig())
     kafkaConfig.isUseSingleQueue = true
     kafkaConfig.eventTypeToQueue = HashMap<String, String>()
 
