@@ -283,7 +283,7 @@ sep31:
   payment_type: STRICT_SEND
 
   ## @param: deposit_info_generator_type
-  ## @default: STRICT_SEND
+  ## @default: self
   ## Used to choose how the SEP-31 deposit information will be generated, which includes the
   ##     deposit address, memo and memo type.
   ## @supported_values:
