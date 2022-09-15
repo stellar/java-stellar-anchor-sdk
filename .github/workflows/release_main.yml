@@ -32,7 +32,7 @@ jobs:
       uses: docker/build-push-action@7f9d37fa544684fb73bfe4835ed7214c255ce02b
       with:
         push: true
-        tags: stellar/anchor-platform:${{ GITHUB_REF_NAME }},stellar/anchor-platform:latest
+        tags: stellar/anchor-platform:${{ github.event.release.tag_name }},stellar/anchor-platform:latest
         file: Dockerfile
 
   complete:
