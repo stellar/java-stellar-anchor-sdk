@@ -7,10 +7,14 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import lombok.Data;
+import org.stellar.anchor.api.shared.Metadata;
 
 @Data
 public class HealthCheckResponse {
-  final Instant started;
+  @SerializedName("started_at")
+  final Instant startedAt;
+
+  final String version = Metadata.getVersion();
 
   @SerializedName("elapsed_time_ms")
   Duration elapsedTime = Duration.ZERO;
@@ -21,7 +25,7 @@ public class HealthCheckResponse {
   Map<String, HealthCheckResult> checks;
 
   public HealthCheckResponse() {
-    this.started = Instant.now();
+    this.startedAt = Instant.now();
   }
 
   public HealthCheckResponse complete(List<HealthCheckResult> results) {
@@ -30,7 +34,7 @@ public class HealthCheckResponse {
       checks.put(result.name(), result);
     }
     numberOfChecks = checks.size();
-    elapsedTime = Duration.between(started, Instant.now());
+    elapsedTime = Duration.between(startedAt, Instant.now());
     return this;
   }
 

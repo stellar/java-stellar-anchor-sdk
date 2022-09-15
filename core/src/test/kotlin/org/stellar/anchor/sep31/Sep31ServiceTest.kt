@@ -327,7 +327,7 @@ class Sep31ServiceTest {
   }
 
   @Test
-  fun test_updateTxAmountsWhenNoQuoteWasUsed() {
+  fun `test update transaction amounts when no quote was used`() {
     Context.get().setTransaction(txn)
     Context.get().setRequest(request)
     Context.get().setFee(fee)
@@ -347,7 +347,7 @@ class Sep31ServiceTest {
   }
 
   @Test
-  fun test_quotesSupportedAndRequiredValidation() {
+  fun `test quotes supported and required validation`() {
     val assetServiceQuotesNotSupported: AssetService =
       ResourceJsonAssetService(
         "test_assets.json.quotes_required_but_not_supported",
@@ -373,7 +373,7 @@ class Sep31ServiceTest {
   }
 
   @Test
-  fun test_updateTxAmountsBasedOnQuote() {
+  fun `test update tx amounts based on quote`() {
     Context.get().setTransaction(txn)
     Context.get().setRequest(request)
     Context.get().setFee(fee)
@@ -402,7 +402,7 @@ class Sep31ServiceTest {
   }
 
   @Test
-  fun test_getTransaction() {
+  fun `test GET transaction`() {
     assertThrows<BadRequestException> { sep31Service.getTransaction(null) }
     assertThrows<BadRequestException> { sep31Service.getTransaction("") }
 
@@ -474,7 +474,7 @@ class Sep31ServiceTest {
   }
 
   @Test
-  fun test_patchTransaction() {
+  fun `test PATCH transaction ok`() {
     txn.status = "pending_transaction_info_update"
     every { txnStore.findByTransactionId("a2392add-87c9-42f0-a5c1-5f1728030b68") } returns txn
     sep31Service.patchTransaction(patchRequest)
@@ -482,7 +482,7 @@ class Sep31ServiceTest {
   }
 
   @Test
-  fun test_patchTransaction_failure() {
+  fun `test PATCH transaction failure`() {
     val ex1 = assertThrows<BadRequestException> { sep31Service.patchTransaction(null) }
     assertEquals("request cannot be null", ex1.message)
 
@@ -515,7 +515,7 @@ class Sep31ServiceTest {
   }
 
   @Test
-  fun test_postTransaction_failure() {
+  fun `test POST transaction failures`() {
     val jwtToken = TestHelper.createJwtToken()
 
     // missing asset code
@@ -699,7 +699,7 @@ class Sep31ServiceTest {
   }
 
   @Test
-  fun test_postTransaction_withQuote() {
+  fun `test POST transaction with quote`() {
     val tomorrow = Instant.now().plus(1, ChronoUnit.DAYS)
     quote.expiresAt = tomorrow
     quote.id = "my_quote_id"
@@ -787,6 +787,7 @@ class Sep31ServiceTest {
       "amountFee": "10",
       "amountFeeAsset": "$stellarUSDC",
       "startedAt": "$txStartedAt",
+      "updatedAt": "$txStartedAt",
       "quoteId": "my_quote_id",
       "clientDomain": "vibrant.stellar.org",
       "fields": {
@@ -862,7 +863,7 @@ class Sep31ServiceTest {
   }
 
   @Test
-  fun test_postTransaction_withoutQuote_quoteRequired() {
+  fun `test POST transaction without quote and quote is required`() {
     Context.get().setAsset(asset)
     val senderId = "d2bd1412-e2f6-4047-ad70-a1a2f133b25c"
     val receiverId = "137938d4-43a7-4252-a452-842adcee474c"
@@ -900,7 +901,7 @@ class Sep31ServiceTest {
   }
 
   @Test
-  fun test_postTransaction_quoteNotSupported() {
+  fun `test post transaction when quote is not supported`() {
     every { sep31DepositInfoGenerator.generate(any()) } returns
       Sep31DepositInfo("GA7FYRB5VREZKOBIIKHG5AVTPFGWUBPOBF7LTYG4GTMFVIOOD2DWAL7I", "123456", "id")
 
@@ -984,7 +985,7 @@ class Sep31ServiceTest {
   """.trimIndent()
 
   @Test
-  fun test_info_response() {
+  fun `test INFO response`() {
     val info = sep31Service.info
     val gotJpyc = info.receive.get("JPYC")!!
     val gotUsdc = info.receive.get("USDC")!!
@@ -997,7 +998,8 @@ class Sep31ServiceTest {
   }
 
   @Test
-  fun test_validateRequiredFields() {
+  fun `test validate required fields`() {
+    Context.reset()
     val ex1 = assertThrows<BadRequestException> { sep31Service.validateRequiredFields() }
     assertEquals("Missing asset information.", ex1.message)
 
@@ -1030,7 +1032,7 @@ class Sep31ServiceTest {
   }
 
   @Test
-  fun test_updateFee() {
+  fun `Test update fee ok`() {
     val jwtToken = TestHelper.createJwtToken()
     Context.get().setRequest(request)
     Context.get().setJwtToken(jwtToken)
@@ -1060,7 +1062,7 @@ class Sep31ServiceTest {
   }
 
   @Test
-  fun test_updateFee_failure() {
+  fun `test update fee failure`() {
     val jwtToken = TestHelper.createJwtToken()
     Context.get().setRequest(request)
     Context.get().setJwtToken(jwtToken)

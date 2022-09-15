@@ -11,7 +11,7 @@ import org.stellar.anchor.config.Sep1Config
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class Sep1ServiceTest {
   @Test
-  fun testToml() {
+  fun `simple test if the toml file is read`() {
     val sep1Config = mockk<Sep1Config>()
     every { sep1Config.stellarFile } returns "test_stellar.toml"
 

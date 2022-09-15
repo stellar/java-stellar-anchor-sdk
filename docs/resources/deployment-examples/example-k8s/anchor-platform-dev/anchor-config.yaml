@@ -123,7 +123,6 @@ anchor-config.yaml: |
  data-spring-jdbc-sqlite:
    spring.jpa.database-platform: org.stellar.anchor.platform.sqlite.SQLiteDialect
    spring.jpa.hibernate.ddl-auto: update
-   spring.jpa.generate-ddl: true
    spring.jpa.hibernate.show_sql: false
    spring.datasource.url: jdbc:sqlite:anchor-proxy.db
    spring.datasource.driver-class-name: org.sqlite.JDBC

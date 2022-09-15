@@ -26,6 +26,8 @@ This section covers how to run the application from source code using the provid
     - This uses the default configuration file at [`anchor-reference-server.yaml`], but you can use a custom configuration file by setting the `REFERENCE_SERVER_CONFIG_ENV` environment variable to the path of the configuration file, following the [Path to Yaml](#path-to-yaml) format.
 4. Start the Anchor Platform: `./gradlew service-runner:bootRun --args=--sep-server`
     - This uses the default configuration file at [`anchor-config-defaults.yaml`], but you can use a custom configuration file by setting the `STELLAR_ANCHOR_CONFIG` environment variable to the path of the configuration file, following the [Path to Yaml](#path-to-yaml) format.
+5. Start the Stellar Observer: `./gradlew service-runner:bootRun --args=--stellar-observer`
+    - This also uses the default configuration file at [`anchor-config-defaults.yaml`], but you can use a custom configuration file by setting the `STELLAR_ANCHOR_CONFIG` environment variable to the path of the configuration file, following the [Path to Yaml](#path-to-yaml) format.
 
 ## Configuring the Project
 
@@ -63,7 +65,7 @@ The Platform configuration loader tries to fetch the configuration from up to th
 1. The JVM Option `-Dstellar.anchor.config`, for instance:
 
     ```shell
-    ./gradlew service-runner:bootRun --args=--sep-server -PjvmArgs="-Dstellar.anchor.config=[path-to-yaml]" 
+    ./gradlew service-runner:bootRun --args="--sep-server --stellar-observer" -PjvmArgs="-Dstellar.anchor.config=[path-to-yaml]" 
     ```
 
 2. The file `.anchor/anchor-config.yaml` in the user's home directory. If the path of the `yaml` is not specified by the JVM options, the server searches for the `./anchor/anchor-config.yaml` file in the user's home directory.
@@ -72,7 +74,7 @@ The Platform configuration loader tries to fetch the configuration from up to th
 
     ```shell
     STELLAR_ANCHOR_CONFIG=classpath:/anchor-config-defaults.yaml
-    ./gradlew service-runner:bootRun --args=--sep-server
+    ./gradlew service-runner:bootRun --args="--sep-server --stellar-observer"
     ```
 
 If all of the above fail, the server fails with an error.
@@ -142,7 +144,7 @@ docker run -v {/local/path/to/config/file/}:/config -p 8081:8081 stellar-anchor-
 --env-file ./my-env-file
 ```
 
-> Note 1: this image can run --sep-server (port: 8080), --anchor-reference-server (port: 8081).
+> Note 1: this image can run --sep-server (port: 8080), --anchor-reference-server (port: 8081) and --stellar-observer (no port needed).
 
 > Note 2: to check all the available environment variables, please refer to the [`anchor-config-defaults.yaml`] file.
 

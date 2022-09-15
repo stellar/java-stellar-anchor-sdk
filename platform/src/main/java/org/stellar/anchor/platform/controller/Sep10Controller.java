@@ -49,7 +49,12 @@ public class Sep10Controller {
         homeDomain,
         clientDomain);
     ChallengeRequest challengeRequest =
-        ChallengeRequest.of(account, memo, homeDomain, clientDomain);
+        ChallengeRequest.builder()
+            .account(account)
+            .memo(memo)
+            .homeDomain(homeDomain)
+            .clientDomain(clientDomain)
+            .build();
     return sep10Service.createChallenge(challengeRequest);
   }
 

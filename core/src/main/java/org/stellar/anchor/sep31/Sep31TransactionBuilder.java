@@ -1,9 +1,11 @@
 package org.stellar.anchor.sep31;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.shared.StellarId;
+import org.stellar.anchor.api.shared.StellarTransaction;
 
 public class Sep31TransactionBuilder {
   final Sep31Transaction txn;
@@ -101,6 +103,11 @@ public class Sep31TransactionBuilder {
 
   public Sep31TransactionBuilder stellarTransactionId(String stellarTransactionId) {
     txn.setStellarTransactionId(stellarTransactionId);
+    return this;
+  }
+
+  public Sep31TransactionBuilder stellarTransactions(List<StellarTransaction> stellarTransactions) {
+    txn.setStellarTransactions(stellarTransactions);
     return this;
   }
 

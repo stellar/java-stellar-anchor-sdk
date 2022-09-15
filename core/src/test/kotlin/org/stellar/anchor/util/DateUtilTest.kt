@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test
 
 internal class DateUtilTest {
   @Test
-  fun testISO8601() {
+  fun `test fromISO8601UTC`() {
     val t1 = System.currentTimeMillis() / 1000
     val t2 = DateUtil.fromISO8601UTC(DateUtil.toISO8601UTC(t1))
     assert(t1 == t2)
