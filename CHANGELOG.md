@@ -1,6 +1,6 @@
 # Changelog
 
-## 1.2.0
+## 1.1.0
 
 * SDK support for [SEP-1], [SEP-10], [SEP-12], [SEP-31] & [SEP-38].
 * API support for [SEP-1], [SEP-10], [SEP-12], [SEP-31] & [SEP-38].
