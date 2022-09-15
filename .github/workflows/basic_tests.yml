@@ -5,6 +5,9 @@ name: Basic Tests
 
 on:
   pull_request:
+    branches-ignore:  # ignoring these patterns because this workflow is already being manually called from `release_release.yml`.
+      - 'release/**'
+      - 'releases/**'
   workflow_call: # Allows this workflow to be called from another workflow
 
 jobs:
