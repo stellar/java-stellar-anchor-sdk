@@ -33,10 +33,7 @@ payment_observer.circle_url:
 payment_observer.enabled:
 payment_observer.tracked_wallet:
 platform_api.auth.type:
-secret.callback_api.secret:
-secret.jwt_secret:
-secret.platform_api.secret:
-secret.sep10_signing_seed:
+platform_api.auth.expiration_milliseconds:
 sep1.enabled:
 sep1.toml.type:
 sep1.toml.value:

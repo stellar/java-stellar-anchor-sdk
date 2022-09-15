@@ -60,11 +60,9 @@ callback_api:
     ##     JWT_TOKEN: The authentication is done using a JWT token added to the `Authorization`
     ##         header. This token is generated from the secret key.
     ##
-    ## If the type is not NONE, the secret must be set by the
-    ## environment variable: `secret.callback_api.auth_secret`
+    ## If the type is not NONE, the secret must be set by the environment variable: `secret.callback_api.auth_secret`
     ##
     ## The value of the secret depends on the type specified.
-    ##
     ##    If type is JWT_TOKEN - the secret key of JWT encryption
     ##    If type is API_KEY: - CallbackAPI requests (`Platform->Anchor`) will contain an
     ##        authentication header whose token was built using this secret. The Anchor Backend will
@@ -88,11 +86,10 @@ platform_api:
     ##     JWT_TOKEN: The authentication is done using a JWT token added to the `Authorization`
     ##         header. This token is generated from the secret key.
     ##
-    ## If the type is not NONE, the secret must be set by the
-    ## environment variable: `secret.callback_api.auth_secret`
+    ## If the type is not NONE, the secret must be set by the environment variable: `secret.platform_api.auth_secret`
     ##
     ## The value of the secret depends on the type specified.
-    ##
+    ##    If type is JWT_TOKEN - the secret key of JWT encryption
     ##    If type is API_KEY: -
     ##        PlatformAPI requests (`Anchor->Platform`) will contain an
     ##        authentication header whose token was built using this secret. The Platform Server will
@@ -102,6 +99,11 @@ platform_api:
     #
     type: NONE
 
+    ## @param: expiration_milliseconds
+    ## @type: int
+    ## Expiration time, in milliseconds, that will be used to build and validate the JWT tokens
+    #
+    expiration_milliseconds: 30000
 
 payment_observer:
   ## @param: enabled

@@ -7,7 +7,7 @@ import java.util.List;
 import lombok.Data;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
-import org.stellar.anchor.auth.AuthType;
+import org.stellar.anchor.auth.AuthInfo;
 
 @Data
 public class PlatformApiConfig implements Validator {
@@ -19,7 +19,7 @@ public class PlatformApiConfig implements Validator {
   }
 
   public void setAuth(AuthInfo auth) {
-    auth.secret = secretConfig.getPlatformApiSecret();
+    auth.setSecret(secretConfig.getPlatformApiSecret());
     this.auth = auth;
   }
 
@@ -40,11 +40,5 @@ public class PlatformApiConfig implements Validator {
                 + config.getAuth().getType());
       }
     }
-  }
-
-  @Data
-  public static class AuthInfo {
-    AuthType type;
-    String secret;
   }
 }
