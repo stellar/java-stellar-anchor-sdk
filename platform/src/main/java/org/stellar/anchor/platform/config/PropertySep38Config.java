@@ -7,7 +7,7 @@ import org.stellar.anchor.config.Sep38Config;
 
 @Data
 public class PropertySep38Config implements Sep38Config, Validator {
-  boolean enabled = false;
+  boolean enabled;
 
   @Override
   public boolean supports(Class<?> clazz) {

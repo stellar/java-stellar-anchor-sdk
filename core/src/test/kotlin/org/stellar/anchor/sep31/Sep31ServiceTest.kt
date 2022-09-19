@@ -295,7 +295,7 @@ class Sep31ServiceTest {
     MockKAnnotations.init(this, relaxUnitFun = true)
     every { appConfig.stellarNetworkPassphrase } returns Constants.TEST_NETWORK_PASS_PHRASE
     every { appConfig.hostUrl } returns Constants.TEST_HOST_URL
-    every { secretConfig.jwtSecretKey } returns Constants.TEST_JWT_SECRET
+    every { secretConfig.sep10JwtSecretKey } returns Constants.TEST_JWT_SECRET
     every { appConfig.languages } returns listOf("en")
     every { sep31Config.paymentType } returns STRICT_SEND
     every { txnStore.newTransaction() } returns PojoSep31Transaction()

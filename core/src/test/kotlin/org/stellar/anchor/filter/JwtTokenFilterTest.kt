@@ -38,7 +38,7 @@ internal class JwtTokenFilterTest {
   fun setup() {
     this.appConfig = mockk(relaxed = true)
     this.secretConfig = mockk(relaxed = true)
-    every { secretConfig.jwtSecretKey } returns "secret"
+    every { secretConfig.sep10JwtSecretKey } returns "secret"
     this.jwtService = JwtService(secretConfig)
     this.sep10TokenFilter = JwtTokenFilter(jwtService)
     this.request = mockk(relaxed = true)

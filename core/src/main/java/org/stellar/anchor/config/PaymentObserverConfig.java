@@ -4,6 +4,4 @@ public interface PaymentObserverConfig {
   boolean isEnabled();
 
   String getTrackedWallet();
-
-  String getCircleUrl();
 }

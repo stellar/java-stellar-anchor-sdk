@@ -12,7 +12,7 @@ import org.stellar.anchor.config.Sep31Config;
 
 @Data
 public class PropertySep31Config implements Sep31Config, Validator {
-  boolean enabled = false;
+  boolean enabled;
   String feeIntegrationEndPoint;
   String uniqueAddressIntegrationEndPoint;
   PaymentType paymentType = STRICT_SEND;

@@ -1,5 +1,6 @@
 package org.stellar.anchor.api.exception;
 
+import java.util.Arrays;
 import java.util.List;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
@@ -8,17 +9,16 @@ import org.apache.commons.lang3.StringUtils;
 public class InvalidConfigException extends AnchorException {
   List<String> messages;
 
-  public InvalidConfigException(String message, Exception cause) {
-    super(message, cause);
-  }
-
-  public InvalidConfigException(String message) {
-    super(message);
-    messages = List.of(message);
+  public InvalidConfigException(String... messages) {
+    this(Arrays.asList(messages), null);
   }
 
   public InvalidConfigException(List<String> messages) {
-    super(StringUtils.join(messages, System.lineSeparator()));
+    this(messages, null);
+  }
+
+  public InvalidConfigException(List<String> messages, Exception cause) {
+    super(StringUtils.join(messages, System.lineSeparator()), cause);
     this.messages = messages;
   }
 }

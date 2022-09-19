@@ -13,7 +13,7 @@ public class JwtService {
   final String jwtKey;
 
   public JwtService(SecretConfig secretConfig) {
-    this(secretConfig.getJwtSecretKey());
+    this(secretConfig.getSep10JwtSecretKey());
   }
 
   public JwtService(String secretKey) {

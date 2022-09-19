@@ -1,6 +1,6 @@
 package org.stellar.anchor.platform.service;
 
-import static org.stellar.anchor.util.Log.debug;
+import static org.stellar.anchor.util.Log.debugF;
 
 import java.util.List;
 import org.springframework.context.annotation.DependsOn;
@@ -16,8 +16,7 @@ public class HealthCheckService {
 
   public HealthCheckService(List<HealthCheckable> checkables) {
     checkables.forEach(
-        checkable ->
-            debug(String.format("[%s] is added to health check list.", checkable.getName())));
+        checkable -> debugF("{} is added to the health check list.", checkable.getName()));
     processor = new HealthCheckProcessor(checkables);
   }
 

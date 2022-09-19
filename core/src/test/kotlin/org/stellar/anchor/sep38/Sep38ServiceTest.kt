@@ -67,7 +67,7 @@ class Sep38ServiceTest {
     assertEquals(3, assets.size)
 
     // sep10 related:
-    every { secretConfig.jwtSecretKey } returns "secret"
+    every { secretConfig.sep10JwtSecretKey } returns "secret"
 
     // store/db related:
     every { quoteStore.newInstance() } returns PojoSep38Quote()

@@ -10,7 +10,6 @@ import org.stellar.anchor.config.PaymentObserverConfig;
 public class PropertyPaymentObserverConfig implements PaymentObserverConfig, Validator {
   private boolean enabled = false;
   private String trackedWallet = "all";
-  private String circleUrl;
 
   @Override
   public boolean supports(Class<?> clazz) {

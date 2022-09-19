@@ -47,7 +47,7 @@ public class PropertySep10Config implements Sep10Config, Validator {
             "empty-sep10SigningSeed",
             "Please set environment variable secret.sep10.signing_seed");
       }
-      if (isEmpty(secretConfig.getJwtSecretKey()) || isEmpty(jwtService.getJwtKey())) {
+      if (isEmpty(secretConfig.getSep10JwtSecretKey()) || isEmpty(jwtService.getJwtKey())) {
         errors.rejectValue(
             null,
             "empty-sep10JwtSecret",

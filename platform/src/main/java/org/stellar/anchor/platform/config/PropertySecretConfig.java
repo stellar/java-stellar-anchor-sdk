@@ -7,7 +7,7 @@ import org.stellar.anchor.config.SecretConfig;
 @Data
 public class PropertySecretConfig implements SecretConfig {
   @Value("${secret.sep10.jwt_secret:#{null}}")
-  private String jwtSecretKey;
+  private String sep10JwtSecretKey;
 
   @Value("${secret.sep10.signing_seed:#{null}}")
   private String sep10SigningSeed;

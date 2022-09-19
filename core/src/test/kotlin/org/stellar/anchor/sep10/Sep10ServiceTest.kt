@@ -102,7 +102,7 @@ internal class Sep10ServiceTest {
     every { appConfig.hostUrl } returns TEST_HOST_URL
 
     every { secretConfig.sep10SigningSeed } returns TEST_SIGNING_SEED
-    every { secretConfig.jwtSecretKey } returns TEST_JWT_SECRET
+    every { secretConfig.sep10JwtSecretKey } returns TEST_JWT_SECRET
 
     mockkStatic(NetUtil::class)
     mockkStatic(Sep10Challenge::class)

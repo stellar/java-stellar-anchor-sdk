@@ -66,7 +66,7 @@ internal class Sep24ServiceTest {
     MockKAnnotations.init(this, relaxUnitFun = true)
     every { appConfig.stellarNetworkPassphrase } returns Constants.TEST_NETWORK_PASS_PHRASE
     every { appConfig.hostUrl } returns Constants.TEST_HOST_URL
-    every { secretConfig.jwtSecretKey } returns Constants.TEST_JWT_SECRET
+    every { secretConfig.sep10JwtSecretKey } returns Constants.TEST_JWT_SECRET
 
     every { sep24Config.interactiveUrl } returns TEST_SEP24_INTERACTIVE_URL
     every { sep24Config.interactiveJwtExpiration } returns 1000

@@ -7,7 +7,7 @@ import org.stellar.anchor.config.Sep12Config;
 
 @Data
 public class PropertySep12Config implements Sep12Config, Validator {
-  Boolean enabled = false;
+  Boolean enabled;
   String customerIntegrationEndPoint;
 
   public PropertySep12Config(CallbackApiConfig callbackApiConfig) {

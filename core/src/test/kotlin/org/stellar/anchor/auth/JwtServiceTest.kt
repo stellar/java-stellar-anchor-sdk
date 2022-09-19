@@ -26,7 +26,7 @@ internal class JwtServiceTest {
   @Test
   fun `test apply JWT encoding and decoding and make sure the original values are not changed`() {
     val secretConfig = mockk<SecretConfig>()
-    every { secretConfig.jwtSecretKey } returns "jwt_secret"
+    every { secretConfig.sep10JwtSecretKey } returns "jwt_secret"
 
     val jwtService = JwtService(secretConfig)
     val token =
@@ -57,7 +57,7 @@ internal class JwtServiceTest {
   @Test
   fun `make sure decoding bad cipher test throws an error`() {
     val secretConfig = mockk<SecretConfig>()
-    every { secretConfig.jwtSecretKey } returns "jwt_secret"
+    every { secretConfig.sep10JwtSecretKey } returns "jwt_secret"
 
     val jwtService = JwtService(secretConfig)
 
@@ -67,11 +67,11 @@ internal class JwtServiceTest {
   @Test
   fun `make sure JwtService only decodes HS256`() {
     val secretConfig = mockk<SecretConfig>()
-    every { secretConfig.jwtSecretKey } returns "jwt_secret"
+    every { secretConfig.sep10JwtSecretKey } returns "jwt_secret"
 
     val jwtService = JwtService(secretConfig)
     val jwtKey =
-      Base64.encodeBase64String(secretConfig.jwtSecretKey.toByteArray(StandardCharsets.UTF_8))
+      Base64.encodeBase64String(secretConfig.sep10JwtSecretKey.toByteArray(StandardCharsets.UTF_8))
 
     val builder =
       Jwts.builder()
