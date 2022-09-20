@@ -43,19 +43,19 @@ class CirclePaymentObserverServiceTest {
   private lateinit var server: MockWebServer
 
   fun mockSslServerAndClient(): Pair<MockWebServer, OkHttpClient> {
-    // certificate
+    // create mocked certificate
     val localhost = InetAddress.getByName("localhost").canonicalHostName
     val localhostCertificate =
       HeldCertificate.Builder().addSubjectAlternativeName(localhost).build()
     val serverCertificates =
       HandshakeCertificates.Builder().heldCertificate(localhostCertificate).build()
 
-    // server
+    // create mock server
     val server = MockWebServer()
     server.useHttps(serverCertificates.sslSocketFactory(), false) // enforce "https"
     server.start()
 
-    // client
+    // create client with trusted certificate
     val clientCertificates =
       HandshakeCertificates.Builder()
         .addTrustedCertificate(localhostCertificate.certificate)
