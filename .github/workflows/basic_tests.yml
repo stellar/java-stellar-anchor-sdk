@@ -6,6 +6,9 @@ name: Basic Tests
 on:
   pull_request:
   workflow_call: # Allows this workflow to be called from another workflow
+  push:
+    branches: 
+      - main
 
 jobs:
   build_and_test:
@@ -44,6 +47,7 @@ jobs:
     name: Validate SEPs (1, 10, 12, 31, 38)
     env:
       PR_NUMBER: ${{github.event.pull_request.number}}
+      BRANCH_NAME: ${{github.ref}} # e.g. refs/heads/main
     steps:
       - uses: actions/checkout@v3
 
@@ -52,10 +56,13 @@ jobs:
         id: endpoint-finder
         run: |
           export HOME_DOMAIN=https://anchor-sep-server-dev.stellar.org
-          if [ ! -z "$PR_NUMBER" ]
-          then
-            export HOME_DOMAIN=https://anchor-sep-pr$PR_NUMBER.previews.kube001.services.stellar-ops.com
+          
+          if [[ ! -z "$PR_NUMBER" ]]; then
+              export HOME_DOMAIN=https://anchor-sep-pr$PR_NUMBER.previews.kube001.services.stellar-ops.com
+          elif [[ $BRANCH_NAME = refs/heads/main ]]; then
+              export HOME_DOMAIN=https://anchor-sep-server-prd.stellar.org
           fi
+
           echo HOME_DOMAIN=$HOME_DOMAIN
           echo "::set-output name=HOME_DOMAIN::$HOME_DOMAIN"
 
