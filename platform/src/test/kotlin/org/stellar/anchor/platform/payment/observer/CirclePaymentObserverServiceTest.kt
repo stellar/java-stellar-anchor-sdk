@@ -3,9 +3,12 @@ package org.stellar.anchor.platform.payment.observer
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import java.io.IOException
+import java.net.InetAddress
 import okhttp3.OkHttpClient
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
+import okhttp3.tls.HandshakeCertificates
+import okhttp3.tls.HeldCertificate
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
@@ -38,6 +41,32 @@ class CirclePaymentObserverServiceTest {
   @MockK private lateinit var circlePaymentObserverService: CirclePaymentObserverService
   @MockK private lateinit var paymentListener: PaymentListener
   private lateinit var server: MockWebServer
+
+  fun mockSslServerAndClient(): Pair<MockWebServer, OkHttpClient> {
+    // certificate
+    val localhost = InetAddress.getByName("localhost").canonicalHostName
+    val localhostCertificate =
+      HeldCertificate.Builder().addSubjectAlternativeName(localhost).build()
+    val serverCertificates =
+      HandshakeCertificates.Builder().heldCertificate(localhostCertificate).build()
+
+    // server
+    val server = MockWebServer()
+    server.useHttps(serverCertificates.sslSocketFactory(), false) // enforce "https"
+    server.start()
+
+    // client
+    val clientCertificates =
+      HandshakeCertificates.Builder()
+        .addTrustedCertificate(localhostCertificate.certificate)
+        .build()
+    val httpClient =
+      OkHttpClient.Builder()
+        .sslSocketFactory(clientCertificates.sslSocketFactory(), clientCertificates.trustManager)
+        .build()
+
+    return Pair(server, httpClient)
+  }
 
   @BeforeEach
   fun setUp() {
@@ -92,6 +121,8 @@ class CirclePaymentObserverServiceTest {
 
   @Test
   fun test_handleCircleNotification_handleSubscriptionConfirmationNotification() {
+    val (server, newHttpClient) = mockSslServerAndClient()
+
     // missing subscribeUrl
     var subConfirmationNotification = mapOf("Type" to "SubscriptionConfirmation")
 
@@ -121,7 +152,6 @@ class CirclePaymentObserverServiceTest {
     assertInstanceOf(BadRequestException::class.java, ex)
 
     // Failing http request
-    val newHttpClient = OkHttpClient.Builder().build()
     circlePaymentObserverService =
       CirclePaymentObserverService(
         newHttpClient,

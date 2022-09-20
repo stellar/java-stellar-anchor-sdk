@@ -46,6 +46,7 @@ dependencies {
 
   testImplementation("org.springframework.boot:spring-boot-starter-test")
   testImplementation(libs.okhttp3.mockserver)
+  testImplementation(libs.okhttp3.tls)
 }
 
 tasks.test {
