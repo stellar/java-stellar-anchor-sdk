@@ -27,6 +27,7 @@ import org.stellar.anchor.platform.payment.observer.circle.util.CircleAsset;
 import org.stellar.anchor.util.GsonUtils;
 import org.stellar.anchor.util.Log;
 import org.stellar.anchor.util.StellarNetworkHelper;
+import org.stellar.anchor.util.StringHelper;
 import org.stellar.sdk.Network;
 import org.stellar.sdk.Server;
 import org.stellar.sdk.responses.Page;
@@ -91,9 +92,14 @@ public class CirclePaymentObserverService {
   public void handleSubscriptionConfirmationNotification(CircleNotification circleNotification)
       throws BadRequestException {
     String subscribeUrl = circleNotification.getSubscribeUrl();
-    if (subscribeUrl == null) {
+    if (StringHelper.isEmpty(subscribeUrl)) {
       throw new BadRequestException(
           "Notification body of type SubscriptionConfirmation is missing subscription URL.");
+    }
+
+    // sanitize
+    if (!subscribeUrl.startsWith("https://")) {
+      throw new BadRequestException("The subscription URL schema is not of type \"https\".");
     }
 
     Request httpRequest =
