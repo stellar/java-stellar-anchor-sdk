@@ -17,6 +17,7 @@ resource "aws_ecr_repository" "anchor_config" {
 
 resource "aws_s3_bucket" "anchor_config" {
   bucket = "${var.environment}-anchor-config"
+  block_public_acls = true
   tags = {
     Environment = "${var.environment}"
   }
