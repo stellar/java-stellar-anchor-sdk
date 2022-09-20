@@ -36,6 +36,7 @@ postgresql = "42.4.1"
 reactor-core = "3.4.14"
 reactor-netty = "1.0.15"
 servlet-api = "2.5"
+snakeyaml = "1.32"
 spring-kafka = "2.9.1"
 spring-aws-messaging = "2.2.6.RELEASE"
 sqlite-jdbc = "3.34.0"
@@ -82,6 +83,7 @@ kotlin-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit5", version.ref
 log4j2-slf4j = { module = "org.apache.logging.log4j:log4j-slf4j-impl", version.ref = "log4j" }
 log4j2-core = { module = "org.apache.logging.log4j:log4j-core", version.ref = "log4j" }
 log4j2-api = { module = "org.apache.logging.log4j:log4j-api", version.ref = "log4j" }
+snakeyaml = { module = "org.yaml:snakeyaml", version.ref = "snakeyaml"}
 # TODO: upgrade to log4j2
 log4j-template-json = { module = "org.apache.logging.log4j:log4j-layout-template-json", version.ref = "log4j-template-json" }
 lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }

@@ -11,6 +11,7 @@ dependencies {
   implementation("org.springframework.boot:spring-boot")
   implementation("org.springframework.boot:spring-boot-autoconfigure")
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+  implementation(libs.snakeyaml)
   implementation("org.springframework.boot:spring-boot-starter-web")
 
   implementation(libs.commons.cli)
