@@ -54,11 +54,11 @@ open class Sep1ConfigTest {
   @ValueSource(strings = ["string", "file", "url"])
   fun `test Sep1Config empty values`(type: String) {
     var errors = validate(PropertySep1Config(true, type, null))
-    assertEquals(1, errors.errorCount)
+    assertEquals(2, errors.errorCount)
     errors.message?.let { assertContains(it, "empty-sep1Value") }
 
     errors = validate(PropertySep1Config(true, type, ""))
-    assertEquals(1, errors.errorCount)
+    assertEquals(2, errors.errorCount)
     errors.message?.let { assertContains(it, "empty-sep1Value") }
   }
 
