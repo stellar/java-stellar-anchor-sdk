@@ -13,7 +13,7 @@ public class ConfigMap {
     data = new HashMap<>();
   }
 
-  public int getVersion() throws InvalidConfigException {
+  public int getVersion() {
     return version;
   }
 
@@ -27,12 +27,6 @@ public class ConfigMap {
 
   public void put(String key, String value, ConfigSource source) {
     data.put(key, new ConfigEntry(value, source));
-  }
-
-  public ConfigEntry pop(String key) {
-    ConfigEntry entry = data.get(key);
-    if (entry != null) data.remove(key);
-    return entry;
   }
 
   public void remove(String name) {
@@ -58,6 +52,7 @@ public class ConfigMap {
   }
 
   public Boolean getBoolean(String key) {
+
     return Boolean.parseBoolean(getString(key));
   }
 
@@ -65,7 +60,7 @@ public class ConfigMap {
     return data.keySet();
   }
 
-  public Map<String, String> map() {
+  public Map<String, String> toStringMap() {
     return data.entrySet().stream()
         .collect(Collectors.toMap(Map.Entry::getKey, entry -> entry.getValue().getValue()));
   }

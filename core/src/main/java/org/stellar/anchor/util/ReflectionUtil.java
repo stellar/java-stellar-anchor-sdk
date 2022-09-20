@@ -10,7 +10,6 @@ public class ReflectionUtil {
       // populate executorService information
       Field field = SSEStream.class.getDeclaredField(fieldName);
       field.setAccessible(true);
-      Object value = field.get(target);
       return (T) field.get(target);
     } catch (NoSuchFieldException | IllegalAccessException nsfex) {
       return defaultValue;

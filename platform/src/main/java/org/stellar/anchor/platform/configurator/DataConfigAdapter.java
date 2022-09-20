@@ -75,7 +75,7 @@ public class DataConfigAdapter extends SpringConfigAdapter {
           "spring.flyway.enabled");
 
   @Override
-  void sendToSpring(ConfigMap config) throws InvalidConfigException {
+  void updateSpringEnv(ConfigMap config) throws InvalidConfigException {
     // Set our default value to start with
     setSpringDataDefaults();
 
@@ -109,6 +109,7 @@ public class DataConfigAdapter extends SpringConfigAdapter {
           copy(config, "data.password", "spring.flyway.password");
           copy(config, "data.url", "spring.flyway.url");
         }
+        break;
       case "aurora":
         set("spring.datasource.driver-class-name", "org.postgresql.Driver");
         set("spring.datasource.name", "anchor-platform");
@@ -154,7 +155,7 @@ public class DataConfigAdapter extends SpringConfigAdapter {
     allFields.forEach(
         field -> {
           if (get(field) == null) {
-            Log.warnF("{} is not set.", field);
+            Log.infoF("{} is not set.", field);
           }
         });
   }

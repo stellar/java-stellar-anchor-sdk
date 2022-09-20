@@ -8,7 +8,7 @@ import org.stellar.anchor.config.EventTypeToQueueConfig;
 @Data
 public class PropertyEventTypeToQueueConfig implements EventTypeToQueueConfig {
 
-  private Map<String, String> eventTypeToQueueMap = null;
+  private Map<String, String> eventTypeToQueueMap;
 
   private String all = "ap_event_single_queue";
   private String quote_created = "ap_event_quote_created";
@@ -17,7 +17,7 @@ public class PropertyEventTypeToQueueConfig implements EventTypeToQueueConfig {
   private String transaction_error = "ap_event_transaction_error";
 
   public PropertyEventTypeToQueueConfig() {
-    this.eventTypeToQueueMap = new HashMap<String, String>();
+    this.eventTypeToQueueMap = new HashMap<>();
     this.eventTypeToQueueMap.put("all", this.all);
     this.eventTypeToQueueMap.put("quote_created", this.quote_created);
     this.eventTypeToQueueMap.put("transaction_created", this.transaction_created);

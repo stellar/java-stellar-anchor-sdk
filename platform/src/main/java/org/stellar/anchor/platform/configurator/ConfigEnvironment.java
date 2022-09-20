@@ -11,10 +11,10 @@ public class ConfigEnvironment {
   static Map<String, String> env;
 
   static {
-    reset();
+    rebuild();
   }
 
-  public static void reset() {
+  public static void rebuild() {
     env = new HashMap<>();
     for (Map.Entry<String, String> entry : System.getenv().entrySet()) {
       env.put(normalize(entry.getKey()), entry.getValue());

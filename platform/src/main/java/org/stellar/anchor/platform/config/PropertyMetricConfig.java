@@ -23,7 +23,7 @@ public class PropertyMetricConfig implements MetricConfig, Validator {
   }
 
   @Override
-  public boolean getExtrasEnabled() {
+  public boolean isExtrasEnabled() {
     return this.extrasEnabled;
   }
 }

@@ -10,12 +10,10 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.header.internals.RecordHeader;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
-import org.springframework.stereotype.Component;
 import org.stellar.anchor.config.PublisherConfig;
 import org.stellar.anchor.event.models.AnchorEvent;
 import org.stellar.anchor.util.Log;
 
-@Component
 public class KafkaEventService implements EventPublishService {
   final Producer<String, AnchorEvent> producer;
   final Map<String, String> eventTypeToQueue;
@@ -36,7 +34,7 @@ public class KafkaEventService implements EventPublishService {
           "software.amazon.msk.auth.iam.IAMClientCallbackHandler");
     }
 
-    this.producer = new KafkaProducer<String, AnchorEvent>(props);
+    this.producer = new KafkaProducer<>(props);
     this.eventTypeToQueue = kafkaConfig.getEventTypeToQueue();
 
     this.useSingleQueue = kafkaConfig.isUseSingleQueue();

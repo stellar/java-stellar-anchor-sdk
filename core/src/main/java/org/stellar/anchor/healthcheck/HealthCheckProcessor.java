@@ -9,9 +9,9 @@ public class HealthCheckProcessor {
 
   public HealthCheckProcessor(List<HealthCheckable> checkables) {
     for (HealthCheckable checkable : checkables) {
-      for (String tag : checkable.getTags()) {
+      for (HealthCheckable.Tags tag : checkable.getTags()) {
         List<HealthCheckable> checksOfTag =
-            mapCheckable.computeIfAbsent(tag, k -> new ArrayList<>());
+            mapCheckable.computeIfAbsent(tag.toString(), k -> new ArrayList<>());
         checksOfTag.add(checkable);
       }
     }

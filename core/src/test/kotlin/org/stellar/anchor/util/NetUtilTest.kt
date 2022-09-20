@@ -78,6 +78,7 @@ internal class NetUtilTest {
     assertTrue(isUrlValid("ftp://ftp.stellar.org/a/"))
     assertTrue(isUrlValid("file:///home/johndoe/a.toml"))
   }
+
   @Test
   fun `test bad urls with isUrlValid()`() {
     assertFalse(isUrlValid("http:// www.stellar.org"))

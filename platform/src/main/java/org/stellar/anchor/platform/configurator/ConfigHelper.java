@@ -7,17 +7,14 @@ import static org.stellar.anchor.util.StringHelper.isEmpty;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import org.springframework.boot.env.YamlPropertySourceLoader;
 import org.springframework.core.env.MapPropertySource;
-import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.core.env.PropertySource;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.platform.configurator.ConfigMap.ConfigSource;
 import org.stellar.anchor.util.Log;
-import org.stellar.anchor.util.PrefixedProperties;
 
 public class ConfigHelper {
   public static ConfigMap loadConfig(Resource resource, ConfigSource configSource)
@@ -45,7 +42,7 @@ public class ConfigHelper {
     ConfigMap config = new ConfigMap();
 
     // Determine the version.
-    // if system.env['versiion'] is not defined, use the latest version.
+    // if system.env['version'] is not defined, use the latest version.
     int version;
     String strVersion = ConfigEnvironment.getenv("version");
     if (strVersion == null) {
@@ -62,10 +59,10 @@ public class ConfigHelper {
       }
     }
 
-    ConfigReader configDef = new ConfigReader(version);
+    ConfigReader configSchema = new ConfigReader(version);
     config.setVersion(version);
     for (String name : ConfigEnvironment.names()) {
-      if (!isEmpty(name) && configDef.has(name) && !name.equals("version")) {
+      if (!isEmpty(name) && configSchema.has(name) && !name.equals("version")) {
         // the envarg is defined in this version
         config.put(name, ConfigEnvironment.getenv(name), ENV);
       }
@@ -79,13 +76,6 @@ public class ConfigHelper {
 
   public static ConfigMap loadDefaultConfig() throws IOException {
     return loadConfig(new ClassPathResource("config/anchor-config-default-values.yaml"), DEFAULT);
-  }
-
-  public static PropertiesPropertySource createPrefixedPropertySource(
-      String prefix, Properties props) {
-    PrefixedProperties prefixedProp =
-        new PrefixedProperties(prefix.endsWith(".") ? prefix : prefix + ".", props);
-    return new PropertiesPropertySource(prefix, prefixedProp);
   }
 
   public static String suggestedSchema() throws IOException {

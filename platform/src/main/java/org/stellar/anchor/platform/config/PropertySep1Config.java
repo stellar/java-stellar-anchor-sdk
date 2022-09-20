@@ -91,6 +91,12 @@ public class PropertySep1Config implements Sep1Config, Validator {
                     config.getValue()));
             break;
         }
+      } else {
+        ValidationUtils.rejectIfEmptyOrWhitespace(
+                errors,
+                "value",
+                "empty-sep1TypeOrValue",
+                "Both the [sep1.toml.type] and [sep1.toml.value] must be specified if enabled");
       }
     }
   }

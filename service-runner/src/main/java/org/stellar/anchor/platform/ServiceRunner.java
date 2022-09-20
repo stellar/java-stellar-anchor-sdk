@@ -49,14 +49,6 @@ public class ServiceRunner {
 
   static ConfigurableApplicationContext startSepServer(
       int port, String contextPath, Map<String, Object> env) {
-    //    String strPort = System.getProperty("SEP_SERVER_PORT");
-    //    if (strPort != null) {
-    //      port = Integer.parseInt(strPort);
-    //    }
-    //    String contextPath = System.getProperty("SEP_CONTEXTPATH");
-    //    if (contextPath == null) {
-    //      contextPath = DEFAULT_CONTEXTPATH;
-    //    }
     return AnchorPlatformServer.start(port, contextPath, env, true);
   }
 

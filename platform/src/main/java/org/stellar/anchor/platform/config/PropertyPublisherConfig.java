@@ -12,12 +12,12 @@ public class PropertyPublisherConfig implements PublisherConfig {
   private String bootstrapServer;
   private Boolean useSingleQueue;
 
-  private Boolean useIAM = false;
+  private Boolean useIAM;
   private String region;
   private String accessKey;
   private String secretKey;
 
-  private Map<String, String> eventTypeToQueue = null;
+  private Map<String, String> eventTypeToQueue;
 
   public PropertyPublisherConfig(EventTypeToQueueConfig eventTypeToQueueConfig) {
     this.eventTypeToQueue = eventTypeToQueueConfig.getEventTypeToQueueMap();

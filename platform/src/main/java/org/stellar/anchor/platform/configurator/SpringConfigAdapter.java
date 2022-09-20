@@ -6,9 +6,13 @@ import org.springframework.core.env.PropertiesPropertySource;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 
 /**
- * The SpringConfigAdapter is NOT thread-safe.
+ * The SpringConfigAdapter is the abstract base class of the configuration adapters that reads the
+ * values from the configuration and sets the Spring environment fields.
  *
- * <p>* * *
+ * <p>The subclass of the SpringConfigAdapter must override the sendToSpring() function to read from
+ * the configMap and sets up the Spring environment properly.
+ *
+ * <p>The SpringConfigAdapter is NOT thread-safe.
  */
 public abstract class SpringConfigAdapter {
   Properties props = new Properties();
@@ -45,11 +49,11 @@ public abstract class SpringConfigAdapter {
     return props.getProperty(name);
   }
 
-  void sendToSpring(ConfigurableApplicationContext applicationContext, ConfigMap config)
+  void updateSpringEnv(ConfigurableApplicationContext applicationContext, ConfigMap config)
       throws InvalidConfigException {
     props.clear();
 
-    sendToSpring(config);
+    updateSpringEnv(config);
 
     applicationContext
         .getEnvironment()
@@ -57,5 +61,5 @@ public abstract class SpringConfigAdapter {
         .addFirst(new PropertiesPropertySource(this.getClass().getSimpleName(), props));
   }
 
-  abstract void sendToSpring(ConfigMap config) throws InvalidConfigException;
+  abstract void updateSpringEnv(ConfigMap config) throws InvalidConfigException;
 }

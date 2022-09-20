@@ -18,7 +18,7 @@ public class ConfigReader {
 
   public ConfigReader(int version) throws InvalidConfigException {
     try {
-      configDef = loadConfig(new ClassPathResource(getVersionDefFile(version)), VERSION_DEF);
+      configDef = loadConfig(new ClassPathResource(getVersionSchemaFile(version)), VERSION_DEF);
       this.version = version;
     } catch (IOException e) {
       throw new InvalidConfigException(String.format("version:%s is not a defined", version));
@@ -79,7 +79,7 @@ public class ConfigReader {
     return updatedConfigMap;
   }
 
-  static String getVersionDefFile(Integer version) {
+  static String getVersionSchemaFile(Integer version) {
     return String.format("config/anchor-config-schema-v%d.yaml", version);
   }
 }

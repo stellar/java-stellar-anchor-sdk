@@ -27,7 +27,7 @@ class ConfigManagerTest {
         DEFAULT
       )
 
-    every { ConfigReader.getVersionDefFile(any()) } answers
+    every { ConfigReader.getVersionSchemaFile(any()) } answers
       {
         String.format(
           "org/stellar/anchor/platform/configurator/def/config-def-v%d.yaml",
@@ -84,7 +84,7 @@ class ConfigManagerTest {
     System.setProperty("stellar.bianca", "white")
     System.setProperty("stellar.deimos", "satellite")
 
-    ConfigEnvironment.reset()
+    ConfigEnvironment.rebuild()
 
     val wantedConfig =
       ConfigHelper.loadConfig(

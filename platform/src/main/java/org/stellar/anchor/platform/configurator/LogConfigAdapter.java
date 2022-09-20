@@ -11,7 +11,7 @@ import org.stellar.anchor.api.exception.InvalidConfigException;
 public class LogConfigAdapter extends SpringConfigAdapter {
 
   @Override
-  void sendToSpring(ConfigMap config) throws InvalidConfigException {
+  void updateSpringEnv(ConfigMap config) throws InvalidConfigException {
     copy(config, "logging.level", "logging.level.root");
     copy(config, "logging.stellar_level", "logging.level.org.stellar");
 
@@ -32,19 +32,14 @@ public class LogConfigAdapter extends SpringConfigAdapter {
   }
 
   private Level getLog4j2Level(String level) throws InvalidConfigException {
-    switch (level.toLowerCase()) {
-      case "trace":
-        return Level.TRACE;
-      case "debug":
-        return Level.DEBUG;
-      case "info":
-        return Level.INFO;
-      case "warn":
-        return Level.WARN;
-      case "error":
-        return Level.ERROR;
-      case "fatal":
-        return Level.FATAL;
+    switch (level.toUpperCase()) {
+      case "TRACE":
+      case "DEBUG":
+      case "INFO":
+      case "WARN":
+      case "ERROR":
+      case "FATAL":
+        return Level.getLevel(level.toUpperCase());
       default:
         throw new InvalidConfigException("Invalid config[logger.level]=" + level);
     }

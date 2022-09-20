@@ -2,6 +2,8 @@ package org.stellar.anchor.reference.event;
 
 import static org.stellar.anchor.api.platform.HealthCheckStatus.GREEN;
 import static org.stellar.anchor.api.platform.HealthCheckStatus.RED;
+import static org.stellar.anchor.healthcheck.HealthCheckable.Tags.ALL;
+import static org.stellar.anchor.healthcheck.HealthCheckable.Tags.KAFKA;
 
 import com.google.gson.annotations.SerializedName;
 import java.time.Duration;
@@ -123,8 +125,8 @@ public class KafkaListener extends AbstractEventListener implements HealthChecka
   }
 
   @Override
-  public List<String> getTags() {
-    return List.of("all", "kafka");
+  public List<Tags> getTags() {
+    return List.of(ALL, KAFKA);
   }
 
   @Override

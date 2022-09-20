@@ -22,7 +22,7 @@ public interface HealthCheckable extends Comparable<HealthCheckable> {
    *
    * @return the tags
    */
-  List<String> getTags();
+  List<Tags> getTags();
 
   /**
    * Perform the check.
@@ -30,4 +30,22 @@ public interface HealthCheckable extends Comparable<HealthCheckable> {
    * @return The result specific to the service.
    */
   HealthCheckResult check();
+
+  enum Tags {
+    ALL("all"),
+    KAFKA("kafka"),
+    EVENT("evnet"),
+    CONFIG("config");
+
+    private String name;
+
+    Tags(String name) {
+      this.name = name;
+    }
+
+    @Override
+    public String toString() {
+      return name;
+    }
+  }
 }

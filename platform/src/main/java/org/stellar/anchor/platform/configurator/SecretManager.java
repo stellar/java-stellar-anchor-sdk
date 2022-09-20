@@ -43,8 +43,4 @@ public class SecretManager
     PropertiesPropertySource pps = new PropertiesPropertySource("secret", props);
     applicationContext.getEnvironment().getPropertySources().addFirst(pps);
   }
-
-  public List<String> getSecretVars() {
-    return secretVars;
-  }
 }

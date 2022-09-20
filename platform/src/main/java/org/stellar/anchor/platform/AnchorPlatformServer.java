@@ -43,7 +43,7 @@ public class AnchorPlatformServer implements WebMvcConfigurer {
       for (String name : environment.keySet()) {
         System.setProperty(name, String.valueOf(environment.get(name)));
       }
-      ConfigEnvironment.reset();
+      ConfigEnvironment.rebuild();
     }
 
     SpringApplication springApplication = builder.build();
