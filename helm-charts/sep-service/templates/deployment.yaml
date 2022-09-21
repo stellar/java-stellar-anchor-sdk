@@ -30,7 +30,7 @@ spec:
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repo }}/{{ .Values.image.name }}:{{ .Values.image.tag }}"
-          args: ["--sep-server --stellar-observer"]
+          args: [{{ join ", " .Values.deployment.args }}]
           imagePullPolicy: {{ .Values.image.pullPolicy | default "Always" }}
           startupProbe:
             httpGet:

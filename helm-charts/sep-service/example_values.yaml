@@ -11,6 +11,9 @@ image:
    tag: latest
    pullPolicy: Always
 deployment:
+    args:
+      - '"--sep-server"'
+      - '"--stellar-observer"'
    startupProbePeriodSeconds: 10
    startupProbeFailureThreshold: 30
    serviceAccountName: default
