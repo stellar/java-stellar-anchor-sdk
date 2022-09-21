@@ -1,7 +1,7 @@
 package org.stellar.anchor.platform.configurator;
 
 import static org.stellar.anchor.platform.configurator.ConfigHelper.loadConfig;
-import static org.stellar.anchor.platform.configurator.ConfigMap.ConfigSource.VERSION_DEF;
+import static org.stellar.anchor.platform.configurator.ConfigMap.ConfigSource.VERSION_SCHEMA;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 
 import java.io.IOException;
@@ -14,11 +14,11 @@ import org.stellar.anchor.util.Log;
 
 public class ConfigReader {
   private final int version;
-  ConfigMap configDef;
+  ConfigMap configSchema;
 
   public ConfigReader(int version) throws InvalidConfigException {
     try {
-      configDef = loadConfig(new ClassPathResource(getVersionSchemaFile(version)), VERSION_DEF);
+      configSchema = loadConfig(new ClassPathResource(getVersionSchemaFile(version)), VERSION_SCHEMA);
       this.version = version;
     } catch (IOException e) {
       throw new InvalidConfigException(String.format("version:%s is not a defined", version));
@@ -26,17 +26,17 @@ public class ConfigReader {
   }
 
   public boolean has(String name) {
-    if (configDef.getString(name) == null) {
+    if (configSchema.getString(name) == null) {
       return false;
     }
 
-    return isEmpty(configDef.getString(name));
+    return isEmpty(configSchema.getString(name));
   }
 
   public void validate(ConfigMap configMap) throws InvalidConfigException {
     List<String> errors = new LinkedList<>();
     for (String key : configMap.names()) {
-      if (this.configDef.getString(key) == null) {
+      if (this.configSchema.getString(key) == null) {
         errors.add(
             String.format(
                 "Invalid configuration: %s=%s. (version=%d)",
@@ -58,7 +58,7 @@ public class ConfigReader {
             key -> {
               ConfigEntry entry = configMap.get(key);
               String value = entry.getValue();
-              String configLocation = configDef.getString(key);
+              String configLocation = configSchema.getString(key);
               if (configLocation != null) {
                 if (isEmpty(configLocation)) {
                   // Copy value

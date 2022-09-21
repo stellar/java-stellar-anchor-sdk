@@ -81,13 +81,13 @@ public class ConfigHelper {
   public static String suggestedSchema() throws IOException {
     ConfigMap config = loadDefaultConfig();
     for (String name : config.names()) {
-      config.put(name, "", VERSION_DEF);
+      config.put(name, "", VERSION_SCHEMA);
     }
 
-    config.put("secret.sep10_signing_seed", "", VERSION_DEF);
-    config.put("secret.jwt_secret", "", VERSION_DEF);
-    config.put("secret.platform_api.secret", "", VERSION_DEF);
-    config.put("secret.callback_api.secret", "", VERSION_DEF);
+    config.put("secret.sep10_signing_seed", "", VERSION_SCHEMA);
+    config.put("secret.jwt_secret", "", VERSION_SCHEMA);
+    config.put("secret.platform_api.secret", "", VERSION_SCHEMA);
+    config.put("secret.callback_api.secret", "", VERSION_SCHEMA);
 
     return config.printToString();
   }

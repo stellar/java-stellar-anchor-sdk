@@ -85,7 +85,7 @@ public class ConfigMap {
     FILE,
     ENV,
     DEFAULT,
-    VERSION_DEF
+    VERSION_SCHEMA
   }
 
   @Data
