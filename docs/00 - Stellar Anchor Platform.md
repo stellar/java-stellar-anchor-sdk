@@ -1,4 +1,5 @@
-[![Docker](https://badgen.net/github/release/stellar/java-stellar-anchor-sdk?icon=github&label=Latest%20release)](https://github.com/stellar/java-stellar-anchor-sdk/releases)
+[![GitHub Version](https://badgen.net/github/release/stellar/java-stellar-anchor-sdk?icon=github&label=Latest%20release)](https://github.com/stellar/java-stellar-anchor-sdk/releases)
+[![License](https://badgen.net/badge/license/Apache2/blue?icon=github&label=License)](https://github.com/stellar/java-stellar-anchor-sdk/blob/develop/LICENSE)
 
 <div>
 <img alt="Stellar" src="https://github.com/stellar/.github/raw/master/stellar-logo.png" width="558" />
