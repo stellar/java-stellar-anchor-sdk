@@ -30,7 +30,6 @@ public class PropertyAssetsService implements AssetService {
   }
 
   public List<AssetInfo> listAllAssets() {
-    // we should make a copy to prevent mutation.
     return new ArrayList<>(assets.getAssets());
   }
 

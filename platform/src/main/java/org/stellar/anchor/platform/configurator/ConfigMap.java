@@ -26,7 +26,7 @@ public class ConfigMap {
   }
 
   public void put(String key, String value, ConfigSource source) {
-    data.put(key, new ConfigEntry(value, source));
+    data.put(key, new ConfigEntry(value.trim(), source));
   }
 
   public void remove(String name) {

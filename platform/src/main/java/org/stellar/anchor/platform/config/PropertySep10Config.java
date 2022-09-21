@@ -13,9 +13,9 @@ import org.stellar.anchor.config.Sep10Config;
 
 @Data
 public class PropertySep10Config implements Sep10Config, Validator {
+  private Boolean enabled;
   private String homeDomain;
   private boolean clientAttributionRequired = false;
-  private Boolean enabled = true;
   private Integer authTimeout = 900;
   private Integer jwtTimeout = 86400;
   private List<String> clientAttributionDenyList;

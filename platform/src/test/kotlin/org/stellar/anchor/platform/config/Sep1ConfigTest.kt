@@ -12,6 +12,31 @@ import org.springframework.validation.BindException
 import org.springframework.validation.ValidationUtils
 
 open class Sep1ConfigTest {
+  companion object {
+    fun getTestTomlAsFile(): String {
+      val resource: URL =
+        Sep1ConfigTest::class.java.getResource(
+          "/org/stellar/anchor/platform/config/sep1-stellar-test.toml"
+        ) as
+                URL
+      return Paths.get(resource.toURI()).toFile().absolutePath
+    }
+
+    fun getTestTomlAsUrl(): String {
+      val resource: URL =
+        Sep1ConfigTest::class.java.getResource(
+          "/org/stellar/anchor/platform/config/sep1-stellar-test.toml"
+        ) as
+                URL
+      return resource.toString()
+    }
+
+    fun validate(config: PropertySep1Config): BindException {
+      val errors = BindException(config, "sep1Config")
+      ValidationUtils.invokeValidator(config, config, errors)
+      return errors
+    }
+  }
 
   @ParameterizedTest
   @ValueSource(strings = ["file", "FILE", "File"])
@@ -71,31 +96,5 @@ open class Sep1ConfigTest {
     errors = validate(PropertySep1Config(true, "", "test value"))
     assertEquals(1, errors.errorCount)
     errors.message?.let { assertContains(it, "empty-sep1Type") }
-  }
-
-  companion object {
-    fun getTestTomlAsFile(): String {
-      val resource: URL =
-        Sep1ConfigTest::class.java.getResource(
-          "/org/stellar/anchor/platform/config/sep1-stellar-test.toml"
-        ) as
-          URL
-      return Paths.get(resource.toURI()).toFile().absolutePath
-    }
-
-    fun getTestTomlAsUrl(): String {
-      val resource: URL =
-        Sep1ConfigTest::class.java.getResource(
-          "/org/stellar/anchor/platform/config/sep1-stellar-test.toml"
-        ) as
-          URL
-      return resource.toString()
-    }
-
-    fun validate(config: PropertySep1Config): BindException {
-      val errors = BindException(config, "sep1Config")
-      ValidationUtils.invokeValidator(config, config, errors)
-      return errors
-    }
   }
 }

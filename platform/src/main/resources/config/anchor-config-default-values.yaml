@@ -44,7 +44,8 @@ callback_api:
   ## @param: baseUrl
   ## @type: string
   ## @supported_prefixes: http:, https:
-  ## The anchor server callback API endpoint for customer, fee, quote, and unique url integration.
+  ## The base URL of the Anchor Backend server that implements the callback API endpoints described in the
+  ## "Callbacks API.yml" spec, which are: `/customer`, `/fee`, `/rate, and `/unique_address`.
   #
   base_url: http://localhost:8081
 
@@ -60,7 +61,7 @@ callback_api:
     ##     JWT_TOKEN: The authentication is done using a JWT token added to the `Authorization`
     ##         header. This token is generated from the secret key.
     ##
-    ## If the type is not NONE, the secret must be set by the environment variable: `secret.callback_api.auth_secret`
+    ## If the type is not NONE, the secret must be set by the following environment variable: `secret.callback_api.auth_secret`
     ##
     ## The value of the secret depends on the type specified.
     ##    If type is JWT_TOKEN - the secret key of JWT encryption
@@ -86,16 +87,14 @@ platform_api:
     ##     JWT_TOKEN: The authentication is done using a JWT token added to the `Authorization`
     ##         header. This token is generated from the secret key.
     ##
-    ## If the type is not NONE, the secret must be set by the environment variable: `secret.platform_api.auth_secret`
+    ## If the type is not NONE, the secret must be set by the following environment variable: `secret.platform_api.auth_secret`
     ##
     ## The value of the secret depends on the type specified.
-    ##    If type is JWT_TOKEN - the secret key of JWT encryption
-    ##    If type is API_KEY: -
-    ##        PlatformAPI requests (`Anchor->Platform`) will contain an
-    ##        authentication header whose token was built using this secret. The Platform Server will
-    ##        use this secret to decode the incoming token to verify it came from the Anchor.
-    ##        also store this same secret and use it to decode the incoming token to verify it
-    ##        came from the Platform.
+    ##    If type is JWT_TOKEN – the secret key used to encode/decode the JWT token.
+    ##    If type is API_KEY   – the secret is the API_KEY itself.
+    ## Secrets are shared on both sides (Platform and Anchor) and are used in CallbackAPI
+    ## requests (`Platform->Anchor`) so the Anchor can ensure the party making the request
+    ## is the Platform
     #
     type: NONE
 
@@ -167,7 +166,7 @@ sep1:
     ## @type: string
     #
     value: |
-      
+
 
 sep10:
 
@@ -243,6 +242,8 @@ sep12:
   enabled: false
 
 sep24:
+
+  ## SEP24 in experimental.
 
   ## @param: enabled
   ## @type: bool

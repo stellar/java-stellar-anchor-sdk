@@ -1,6 +1,7 @@
 package org.stellar.anchor.platform.service;
 
 import static org.stellar.anchor.util.Log.debugF;
+import static org.stellar.anchor.util.Log.warnF;
 
 import java.util.List;
 import org.springframework.context.annotation.DependsOn;
@@ -17,6 +18,9 @@ public class HealthCheckService {
   public HealthCheckService(List<HealthCheckable> checkables) {
     checkables.forEach(
         checkable -> debugF("{} is added to the health check list.", checkable.getName()));
+    if (checkables.size() == 0) {
+      warnF("No health-checkable services are found");
+    }
     processor = new HealthCheckProcessor(checkables);
   }
 
