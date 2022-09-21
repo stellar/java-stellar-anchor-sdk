@@ -139,6 +139,7 @@ public class Sep31Service {
             .build();
 
     Amount fee = Context.get().getFee();
+    Instant now = Instant.now();
     Sep31Transaction txn =
         new Sep31TransactionBuilder(sep31TransactionStore)
             .id(generateSepTransactionId())
@@ -146,7 +147,8 @@ public class Sep31Service {
             .statusEta(null)
             .amountFee(fee.getAmount())
             .amountFeeAsset(fee.getAsset())
-            .startedAt(Instant.now())
+            .startedAt(now)
+            .updatedAt(now) // this will be overwritten by the sep31TransactionStore#save method.
             .completedAt(null)
             .stellarTransactionId(null)
             .externalTransactionId(null)

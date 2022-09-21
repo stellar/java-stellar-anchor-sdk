@@ -30,13 +30,8 @@ spec:
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repo }}/{{ .Values.image.name }}:{{ .Values.image.tag }}"
-<<<<<<< HEAD
-          args: ["--sep-server"]
-          imagePullPolicy: {{ .Values.image.pullPolicy }}
-=======
           args: [{{ join ", " .Values.deployment.args }}]
           imagePullPolicy: {{ .Values.image.pullPolicy | default "Always" }}
->>>>>>> 1a5a02ee (k8s args)
           startupProbe:
             httpGet:
               path: {{ .Values.deployment.startupProbePath | default "/health" }}

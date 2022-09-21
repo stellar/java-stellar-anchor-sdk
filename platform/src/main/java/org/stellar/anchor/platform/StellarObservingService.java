@@ -4,6 +4,7 @@ import static org.springframework.boot.Banner.Mode.OFF;
 
 import java.util.Map;
 import org.springframework.boot.SpringApplication;
+import org.springframework.boot.WebApplicationType;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.builder.SpringApplicationBuilder;
@@ -17,33 +18,26 @@ import org.stellar.anchor.platform.configurator.PlatformAppConfigurator;
 import org.stellar.anchor.platform.configurator.PropertiesReader;
 import org.stellar.anchor.platform.configurator.SpringFrameworkConfigurator;
 
-@Profile("default")
+@Profile("stellar-observer")
 @SpringBootApplication
 @EnableJpaRepositories(basePackages = {"org.stellar.anchor.platform.data"})
 @EntityScan(basePackages = {"org.stellar.anchor.platform.data"})
 @EnableConfigurationProperties
-public class AnchorPlatformServer implements WebMvcConfigurer {
+public class StellarObservingService implements WebMvcConfigurer {
 
-  public static ConfigurableApplicationContext start(
-      int port, String contextPath, Map<String, Object> environment, boolean disableMetrics) {
+  public static ConfigurableApplicationContext start(Map<String, Object> environment) {
     SpringApplicationBuilder builder =
-        new SpringApplicationBuilder(AnchorPlatformServer.class)
+        new SpringApplicationBuilder(StellarObservingService.class)
             .bannerMode(OFF)
+            .web(WebApplicationType.NONE)
             .properties(
-                // TODO: move these configs to the config file when this is fixed and get rid of
-                //       disableMetrics param -
-                //  https://github.com/stellar/java-stellar-anchor-sdk/issues/297
+                // TODO: update when the ticket
+                // https://github.com/stellar/java-stellar-anchor-sdk/issues/297 is completed.
                 "spring.mvc.converters.preferred-json-mapper=gson",
                 // this allows a developer to use a .env file for local development
                 "spring.config.import=optional:classpath:example.env[.properties]",
-                String.format("server.port=%d", port),
-                String.format("server.contextPath=%s", contextPath));
+                "spring.profiles.active=stellar-observer");
 
-    if (!disableMetrics) {
-      builder.properties(
-          "management.endpoints.web.exposure.include=health,info,prometheus",
-          "management.server.port=8082");
-    }
     if (environment != null) {
       builder.properties(environment);
     }
@@ -62,7 +56,7 @@ public class AnchorPlatformServer implements WebMvcConfigurer {
     return springApplication.run();
   }
 
-  public static ConfigurableApplicationContext start(int port, String contextPath) {
-    return start(port, contextPath, null, false);
+  public static ConfigurableApplicationContext start() {
+    return start(null);
   }
 }

@@ -1,4 +1,4 @@
-name: "Release from the Develop Branch"
+name: "develop Branch"
 
 on:
   push:
@@ -10,9 +10,9 @@ jobs:
     uses: ./.github/workflows/basic_tests.yml  # use the callable tests job to run tests
   
   build_and_push_docker_image:
+    name: Push to DockerHub # stellar/anchor-platform:{sha} and stellar/anchor-platform:edge
     needs: [tests]
     runs-on: ubuntu-latest
-    name: Push stellar/anchor-platform:sha to DockerHub
     steps:
     - uses: actions/checkout@v3
     

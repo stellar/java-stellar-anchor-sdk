@@ -1,7 +1,4 @@
-# This workflow will build a Java project with Maven, and cache/restore any dependencies to improve the workflow execution time
-# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-maven
-
-name: Release
+name: Release Published
 
 on:
   release:
@@ -16,9 +13,9 @@ jobs:
     uses: ./.github/workflows/end_to_end_tests.yml  # execute the callable end_to_end_tests.yml
   
   build_and_push_docker_image:
+    name: Push to DockerHub # stellar/anchor-platform:{VERSION}
     needs: [tests]
     runs-on: ubuntu-latest
-    name: Push stellar/anchor-platform:VERSION to DockerHub
     steps:
     - uses: actions/checkout@v3
     
@@ -32,7 +29,7 @@ jobs:
       uses: docker/build-push-action@7f9d37fa544684fb73bfe4835ed7214c255ce02b
       with:
         push: true
-        tags: stellar/anchor-platform:${{ GITHUB_REF_NAME }},stellar/anchor-platform:latest
+        tags: stellar/anchor-platform:${{ github.event.release.tag_name }},stellar/anchor-platform:latest
         file: Dockerfile
 
   complete:

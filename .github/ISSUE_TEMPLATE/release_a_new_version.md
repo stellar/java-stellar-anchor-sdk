@@ -23,9 +23,8 @@ labels: release
   - [ ] `release/0.1.0 -> main`: this should require two approvals.
   - [ ] `release/0.1.0 -> develop`: ideally, this should be merged after the `main` branch is merged.
 - [ ] Create a new release on GitHub with the name `0.1.0` and the changes from the [CHANGELOG.md] file.
-  - **Work-In-Progress:** The release should trigger the release process on GitHub that will:
-    1. Publish a new version of the docker image to Docker Hub.
-    2. Publish a new version of the SDK to jitpack and
-    3. Automatically upload the jar file to the GH release.
+  - [ ] The release will automatically publish a new version of the docker image to Docker Hub.
+  - [ ] You'll need to manually publish a new version of the SDK to jitpack and
+  - [ ] You'll need to manually upload the jar file from jitpack to the GH release.
 
 [CHANGELOG.md]: ../../CHANGELOG.md

@@ -13,7 +13,7 @@ stellar:
     #
     # Sets how the application configuration values are read.
     #
-    #  If `type` is `config-spring-property`, the platform server will use the Spring's `@ConfigruationProperties` to
+    #  If `type` is `config-spring-property`, the platform server will use the Spring's `@ConfigurationProperties` to
     #      read populate the configuration values.
     #
     #  `config-spring-property` is the only `type` value supported in MVP.
@@ -30,8 +30,9 @@ stellar:
     #
     data-access:
       type: data-spring-jdbc
-      settings: data-spring-jdbc-h2              # The absolute location of the configuration data in this yaml file
-      #settings: data-spring-jdbc-local-postgres      # use local postgres instance
+      settings: data-spring-jdbc-sqlite                # The absolute location of the configuration data in this yaml file
+      #settings: data-spring-jdbc-h2                   # use in-memory database. It cannot be shared between server and observer though.
+      #settings: data-spring-jdbc-local-postgres       # use local postgres instance
       #settings: data-spring-jdbc-aws-aurora-postgres  # use AWS Aurora Postgres with IAM authentication
     #
     # Sets how the generates the logging information
@@ -294,8 +295,8 @@ data-spring-jdbc-sqlite:
   spring.jpa.hibernate.show_sql: false
   spring.datasource.url: jdbc:sqlite:anchor-proxy.db
   spring.datasource.driver-class-name: org.sqlite.JDBC
-  spring.datasource.max-active: 1 # For SQLite, set this to 1 to avoid database file lock exception.
-  spring.datasource.initial-size: 1 # For SQLite, set this to 1 to avoid database file lock exception.
+  spring.datasource.max-active: 2 # For SQLite, set this to 2 to avoid database file lock exception, while letting both sep-server and stellar-observer use it.
+  spring.datasource.initial-size: 2 # For SQLite, set this to 2 to avoid database file lock exception, while letting both sep-server and stellar-observer use it.
   spring.datasource.username: ${SQLITE_USERNAME}
   spring.datasource.password: ${SQLITE_PASSWORD}
   spring.mvc.converters.preferred-json-mapper: gson

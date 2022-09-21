@@ -15,6 +15,27 @@ services:
     tmpfs:
       - /config
     depends_on:
+      - kafka
+      - db
+      - stellar-observer
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  stellar-observer:
+    image: anchor-platform
+    build:
+      context: ../../
+      dockerfile: integration-tests/docker-compose-configs/Dockerfile
+    command: "--stellar-observer"
+    environment:
+      - STELLAR_ANCHOR_CONFIG=file:/config/anchor-platform-config.yaml
+      - LOG_APPENDER=console_appender
+    volumes:
+      # add mounts for the new config directory
+      - ./anchor-platform-default-configs:/config_defaults
+    tmpfs:
+      - /config
+    depends_on:
       - db
       - kafka
     extra_hosts:
