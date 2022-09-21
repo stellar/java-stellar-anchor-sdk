@@ -30,7 +30,7 @@ spec:
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repo }}/{{ .Values.image.name }}:{{ .Values.image.tag }}"
-          args: [{{ join ", " .Values.deployment.args | default ( "--sep_server" | quote ) }}]
+          args: [{{ join ", " .Values.deployment.args | default ( "--sep-server" | quote ) }}]
           imagePullPolicy: {{ .Values.image.pullPolicy | default "Always" }}
           startupProbe:
             httpGet:
