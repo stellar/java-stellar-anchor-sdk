@@ -7,7 +7,7 @@ import kotlin.test.assertNull
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
-import org.stellar.anchor.config.IntegrationAuthConfig.AuthType
+import org.stellar.anchor.auth.AuthType.*
 import org.stellar.anchor.util.AuthHeader
 
 class AuthHelperTest {
@@ -25,7 +25,7 @@ class AuthHelperTest {
   @EnumSource(AuthType::class)
   fun `test AuthHeader creation based on the AuthType`(authType: AuthType) {
     when (authType) {
-      AuthType.JWT_TOKEN -> {
+      JWT_TOKEN -> {
         // Mock calendar to guarantee the jwt token format
         val calendarSingleton = Calendar.getInstance()
         val currentTimeMilliseconds = calendarSingleton.timeInMillis
@@ -51,13 +51,13 @@ class AuthHelperTest {
           AuthHeader("Authorization", "Bearer ${jwtService.encode(wantJwtToken)}")
         assertEquals(wantAuthHeader, gotAuthHeader)
       }
-      AuthType.API_KEY -> {
+      API_KEY -> {
         val authHelper = AuthHelper.forApiKey("secret")
         val gotAuthHeader = authHelper.createAuthHeader()
         val wantAuthHeader = AuthHeader("X-Api-Key", "secret")
         assertEquals(wantAuthHeader, gotAuthHeader)
       }
-      AuthType.NONE -> {
+      NONE -> {
         val authHelper = AuthHelper.forNone()
         val authHeader = authHelper.createAuthHeader()
         assertNull(authHeader)

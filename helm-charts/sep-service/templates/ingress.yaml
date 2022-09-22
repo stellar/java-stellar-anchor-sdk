@@ -3,8 +3,9 @@ kind: Ingress
 metadata:
   name: {{ .Values.fullName }}-ing-{{ .Values.service.name }}
   {{- if .Values.ingress.metadata }}
-  {{- range $key, $value := .Values.ingress.metadata }}
-  {{- end }}
+    {{- range $key, $value := .Values.ingress.metadata }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
   {{- end }}
   {{- if .Values.ingress.annotations }}
   annotations:

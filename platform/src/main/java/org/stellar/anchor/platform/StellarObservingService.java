@@ -13,10 +13,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Profile;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import org.stellar.anchor.platform.configurator.DataAccessConfigurator;
-import org.stellar.anchor.platform.configurator.PlatformAppConfigurator;
-import org.stellar.anchor.platform.configurator.PropertiesReader;
-import org.stellar.anchor.platform.configurator.SpringFrameworkConfigurator;
+import org.stellar.anchor.platform.configurator.ConfigManager;
 
 @Profile("stellar-observer")
 @SpringBootApplication
@@ -44,15 +41,7 @@ public class StellarObservingService implements WebMvcConfigurer {
 
     SpringApplication springApplication = builder.build();
 
-    // Reads the configuration from sources, such as yaml
-    springApplication.addInitializers(new PropertiesReader());
-    // Configure SEPs
-    springApplication.addInitializers(new PlatformAppConfigurator());
-    // Configure databases
-    springApplication.addInitializers(new DataAccessConfigurator());
-    // Configure spring framework
-    springApplication.addInitializers(new SpringFrameworkConfigurator());
-
+    springApplication.addInitializers(ConfigManager.getInstance());
     return springApplication.run();
   }
 

@@ -310,8 +310,8 @@ class RestRateIntegrationTest {
     // 400 with body
     validateRequest(
       400,
-      """{"error": "foo 400"}""",
-      BadRequestException("foo 400"),
+      """{"error": "proposedAssetsJson 400"}""",
+      BadRequestException("proposedAssetsJson 400"),
       INDICATIVE_PRICES
     )
 
@@ -321,8 +321,8 @@ class RestRateIntegrationTest {
     // 404 with body
     validateRequest(
       404,
-      """{"error": "foo 404"}""",
-      NotFoundException("foo 404"),
+      """{"error": "proposedAssetsJson 404"}""",
+      NotFoundException("proposedAssetsJson 404"),
       INDICATIVE_PRICES
     )
 
@@ -332,15 +332,15 @@ class RestRateIntegrationTest {
     // 422 with body
     validateRequest(
       422,
-      """{"error": "foo 422"}""",
-      BadRequestException("foo 422"),
+      """{"error": "proposedAssetsJson 422"}""",
+      BadRequestException("proposedAssetsJson 422"),
       INDICATIVE_PRICES
     )
 
     // 500
     validateRequest(
       500,
-      """{"error": "foo 500"}""",
+      """{"error": "proposedAssetsJson 500"}""",
       ServerErrorException("internal server error"),
       INDICATIVE_PRICES
     )
@@ -440,7 +440,7 @@ class RestRateIntegrationTest {
         "id": "my-id",
         "price": "1",
         "total_price": "1.01",
-        "expires_at": "foo bar",
+        "expires_at": "proposedAssetsJson bar",
         "fee": {
           "total": "1.00",
           "asset": "iso4217:USD"

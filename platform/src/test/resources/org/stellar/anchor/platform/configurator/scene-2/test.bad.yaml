@@ -1,0 +1,9 @@
+version: 1
+
+stellar:
+  apollo: star # bad key
+  bianca: white
+  ceilo: sky
+
+horizon:
+  aster: star # only valid in version 2

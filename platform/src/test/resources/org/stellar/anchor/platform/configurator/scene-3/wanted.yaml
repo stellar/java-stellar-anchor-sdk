@@ -1,0 +1,8 @@
+version: 3
+
+stellar:
+  bianca: white
+  deimos: satellite
+
+horizon:
+  aster: star

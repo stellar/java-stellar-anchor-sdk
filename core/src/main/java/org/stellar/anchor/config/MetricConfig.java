@@ -1,7 +1,7 @@
 package org.stellar.anchor.config;
 
 public interface MetricConfig {
-  boolean isOptionalMetricsEnabled();
+  boolean isExtrasEnabled();
 
   Integer getRunInterval();
 }

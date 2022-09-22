@@ -1,0 +1,9 @@
+version: 3
+
+stellar:
+  bianca:
+#  ceilo: # deleted
+  deimos: # added
+
+horizon:
+  aster:

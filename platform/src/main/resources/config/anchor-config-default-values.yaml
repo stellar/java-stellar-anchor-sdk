@@ -1,0 +1,489 @@
+####################################################################################################
+## Anchor Platform - Default Configuration
+##
+## Values not defined in the user config use the default values defined here.
+####################################################################################################
+
+version: 1
+
+##############################
+## Application Configuration
+##############################
+
+## @param: host_url
+## @type: string
+## @supported_prefixes: http:, https:
+## The anchor platform host url.
+#
+host_url: http://localhost:8080
+
+stellar_network:
+  ## @param: network
+  ## Whether to use testnet (TESTNET) or pubnet (PUBNET)
+  #
+  network: TESTNET
+
+  ## @param: network_passphrase
+  ## @type: string
+  ## The stellar network passphrase used to access Horizon server.
+  ## For pubnet: use 'Public Global Stellar Network ; September 2015'
+  ## For testnet: use 'Test SDF Network ; September 2015'
+  #
+  network_passphrase: Test SDF Network ; September 2015
+
+  ## @param: horizon_url
+  ## @type: string
+  ## A horizon server endpoint.
+  ## @required_secret:
+  ##     PAYMENT_GATEWAY_STELLAR_SECRET_KEY - stellar account secret key
+  #
+  horizon_url: https://horizon-testnet.stellar.org
+
+
+callback_api:
+  ## @param: baseUrl
+  ## @type: string
+  ## @supported_prefixes: http:, https:
+  ## The base URL of the Anchor Backend server that implements the callback API endpoints described in the
+  ## "Callbacks API.yml" spec, which are: `/customer`, `/fee`, `/rate, and `/unique_address`.
+  #
+  base_url: http://localhost:8081
+
+  ## Authentication config for Anchor server and Anchor Platform server to safely communicate,
+  ## particularly when housed in different clusters.
+  ## The receiving party should verify that an incoming request token is still valid.
+  #
+  auth:
+    ## @param: type
+    ## @supported_values: NONE, API_KEY, JWT_TOKEN
+    ##     NONE: no authentication is used
+    ##     API_KEY: The authentication is done using an API key added to the `X-Api-Key` header.
+    ##     JWT_TOKEN: The authentication is done using a JWT token added to the `Authorization`
+    ##         header. This token is generated from the secret key.
+    ##
+    ## If the type is not NONE, the secret must be set by the following environment variable: `secret.callback_api.auth_secret`
+    ##
+    ## The value of the secret depends on the type specified.
+    ##    If type is JWT_TOKEN – the secret key used to encode/decode the JWT token.
+    ##    If type is API_KEY   – the secret is the API_KEY itself.
+    ## Secrets are shared on both sides (Platform and Anchor) and are used in CallbackAPI
+    ## requests (`Platform->Anchor`) so the Anchor can ensure the party making the request
+    ## is the Platform
+    #
+    type: NONE
+
+    ## @param: expiration_milliseconds
+    ## @type: int
+    ## Expiration time, in milliseconds, that will be used to build and validate the JWT tokens
+    #
+    expiration_milliseconds: 30000
+
+platform_api:
+  auth:
+    ## @param: type
+    ## @supported_values: NONE, API_KEY, JWT_TOKEN
+    ##     NONE: no authentication is used
+    ##     API_KEY: The authentication is done using an API key added to the `X-Api-Key` header.
+    ##     JWT_TOKEN: The authentication is done using a JWT token added to the `Authorization`
+    ##         header. This token is generated from the secret key.
+    ##
+    ## If the type is not NONE, the secret must be set by the following environment variable: `secret.platform_api.auth_secret`
+    ##
+    ## The value of the secret depends on the type specified.
+    ##    If type is JWT_TOKEN – the secret key used to encode/decode the JWT token.
+    ##    If type is API_KEY   – the secret is the API_KEY itself.
+    ## Secrets are shared on both sides (Platform and Anchor) and are used in PlatformAPI
+    ## requests (`Anchor->Platform`) so the Platform can ensure the party making the request
+    ## is the Anchor.
+    #
+    type: NONE
+
+    ## @param: expiration_milliseconds
+    ## @type: int
+    ## Expiration time, in milliseconds, that will be used to build and validate the JWT tokens
+    #
+    expiration_milliseconds: 30000
+
+payment_observer:
+  ## @param: enabled
+  ## @type: bool
+  ## Whether to enable a circle payment observer
+  #
+  enabled: false
+
+  ## @param: circle_url
+  ## @type: string
+  ## Circle api endpoint.
+  #
+  circle_url: https://api-sandbox.circle.com
+
+
+  ## @param: tracked_wallet
+  ## @type: string
+  ## The id of the wallet to track. 'all' indicates that events for all wallets are tracked.
+  #
+  tracked_wallet: all
+
+
+## @param: languages
+## @supported_values: en
+## The supported languages defined by RFC4646 (https://datatracker.ietf.org/doc/html/rfc4646)
+#
+languages: en
+
+logging:
+  ## @param: level
+  ## @type: string
+  ## The root logger logging level
+  level: INFO
+
+  ## @param: level
+  ## @type: string
+  ## The "org.stellar" logger logging level.
+  stellar_level: INFO
+
+######################
+## SEP configuration
+######################
+sep1:
+
+  ## @param: enabled
+  ## @type: bool
+  ## Whether to enable SEP-1 for this instance of AP server.
+  #
+  enabled: false
+
+  toml:
+    ## @param: type
+    ## @type: string
+    ## @supported_values:
+    ##     `string`: value contains the content of the stellar toml file
+    ##     `file`: value contains the path to the stellar toml file
+    ##     `url`: value contains the url to the content of the stellar toml file
+    type: string
+
+    ## @param: value
+    ## @type: string
+    #
+    value: |
+
+
+sep10:
+
+  ## @param: enabled
+  ## @type: bool
+  ## Whether to enable SEP-10 for this instance of AP server.
+  ## If true, @required_secrets: SEP10_SIGNING_SEED
+  #
+  enabled: false
+
+  ## If `enabled` is set to True, the following two secrets must be set via the environment
+  ## variables.
+  ## `secret.sep10_signing_seed`: The private key for signing challenge transactions.
+  ## `secret.sep10_jwt_secret`: The JWT encryption key.
+  #
+
+  ## @param: home_domain
+  ## @type: string
+  ## The `home_domain` property of SEP-10. https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#request
+  #
+  home_domain: localhost:8080
+
+  ## @param: client_attribution_required
+  ## @type: bool
+  ## Set if the client attribution is required
+  #
+  client_attribution_required: false
+
+  ## @param: client_attribution_allow_list
+  ## Set the white list of the client domain. The domains are comma-separated.
+  #
+  client_attribution_allow_list: lobstr.co,preview.lobstr.co
+
+  ## @param: client_attribution_deny_list
+  ## Set the black list of the client domain. The domains are comma-separated.
+  #
+  client_attribution_deny_list:
+
+  ## @param: auth_timeout
+  ## @type: integer
+  ## Set the authentication challenge transaction timeout in seconds. An expired signed transaction will be rejected.
+  ## This is the timeout period the client must finish the authentication process. (ie: sign and respond the challenge
+  ## transaction).
+  #
+  auth_timeout: 900
+
+  ## @param: jwt_timeout
+  ## @type: integer
+  ## Set the timeout in seconds of the authenticated JSON Web Token. An expired JWT will be rejected.
+  ## This is the timeout period after the client has authenticated.
+  #
+  jwt_timeout: 86400
+
+  ## @param: omnibus_account_list
+  ## A comma-separated list of omnibus accounts (comma separated).
+  ## The SEP-10 omnibus account is described at:
+  ##     https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#memos
+  #
+  omnibus_account_list:
+
+  ## @param: require_known_omnibus_account
+  ## @type: bool
+  ## Whether to require authenticating clients to be in the omnibusAccountList
+  #
+  require_known_omnibus_account: false
+
+sep12:
+
+  ## @param: enabled
+  ## @type: bool
+  ## Whether to enable SEP-12 for this instance of AP server.
+  #
+  enabled: false
+
+sep24:
+
+  ## SEP24 in experimental.
+
+  ## @param: enabled
+  ## @type: bool
+  ## Whether to enable SEP-24 for this instance of AP server.
+  #
+  enabled: false
+
+  ## @param: interactive_jwt_expiration
+  ## @type: integer
+  ## Set the timeout in seconds of the JSON Web Token returned with the embedded interactive url of the SEP-24 process.
+  ## An expired JWT will be rejected.
+  ##
+  ## If the interactive flow needs to access the platform server, the interactive process must finish within
+  ## the specified timeout period.
+  #
+  interactive_jwt_expiration: 3600
+
+  ## @param: interactive_url
+  ## @type: string
+  ## The interactive URL where the platform server will redirect to start the SEP-24 interactive flow.
+  #
+  interactive_url: http://localhost:8080/sep24/interactive
+
+sep31:
+
+  ## @param: enabled
+  ## @type: bool
+  ## Whether to enable SEP-31 for this instance of AP server.
+  #
+  enabled: false
+
+  ## @param: payment_type
+  ## @default: STRICT_SEND
+  ## Used to determine how amount_in is calculated from amount in the POST /transaction call
+  ## @supported_values:
+  ##     STRICT_SEND: amount_in = amount
+  ##     STRICT_RECEIVE: amount_in = amount + fee
+  payment_type: STRICT_SEND
+
+  ## @param: deposit_info_generator_type
+  ## @default: self
+  ## Used to choose how the SEP-31 deposit information will be generated, which includes the
+  ##     deposit address, memo and memo type.
+  ## @supported_values:
+  ##     self: the memo and memo type are generated in the local code, and the distribution account is used for the deposit address.
+  ##     circle: the memo and memo type are generated through Circle API, as well as the deposit address.
+  ##     api: the memo and memo type are generated through calling the anchor's GET /unique_address endpoint.
+  #
+  deposit_info_generator_type: self
+
+sep38:
+  ## @param: enabled
+  ## @type: bool
+  ## Whether to enable SEP-38 for this instance of AP server.
+  #
+  enabled: true
+
+
+##########################
+## Metrics Configuration
+##########################
+metrics:
+  ## @param: enabled
+  ## @type: bool
+  ## If true, enable metrics.
+  #
+  enabled: false
+
+  ## @param: extras_enabled
+  ## @type: bool
+  ## If true, enable extra metrics.
+  #
+  extras_enabled: false
+
+  ## @param: run_interval
+  ## @type: integer
+  ## Interval in seconds to query the database to generate metrics
+  #
+  run_interval: 30
+
+
+#########################
+## Events Configuration.
+#########################
+## The events being sent from the platform are the ones described in the `Events Schema.yml` file
+events:
+
+  ## @param: enabled
+  ## @type: bool
+  ## Whether to enable events.
+  #
+  enabled: false
+
+  ## @param: publisher_type
+  ## @supported_values: `kafka`, `sqs`
+  ## The type of queue to use for event publishing
+  ##
+  #
+  publisher_type: kafka
+
+
+  options:
+
+    ## @param: bootstrap_server
+    ## @type: string
+    ## The Kafka server used to bootstrap setup
+    ## For MSK, use port 9098 for access from within AWS and port 9198 for public access and specify
+    ## AWS credentials.
+    ## https://docs.aws.amazon.com/msk/latest/developerguide/port-info.html
+    #
+    bootstrap_server: localhost:29092
+
+    ## @param: use_IAM
+    ## @type: boolean
+    ## Use IAM authentication for AWS MSK or AWS SQS.
+    ## SQS FIFO queues should be pre-created in AWS (Anchor Platform will not create them)
+    ## If true, @required_secrets:
+    ##    AWS_ACCESS_KEY_ID
+    ##    AWS_SECRET_ACCESS_KEY
+    #
+    use_IAM: false
+
+    ## @param: region
+    ## @type: string
+    ## AWS region for the queue. Can also be defined as environment variable: AWS_REGION
+    #
+    aws_region: us-east-1
+
+    ## @param: use_single_queue
+    ## @type: boolean
+    ## If true, all events are published to a single queue (specified in eventTypeToQueue.all)
+    use_single_queue: false
+
+    ## @param: event_type_to_queue
+    ## @type: map
+    ## Mapping of the event type to the queue name that messages are published to
+    event_type_to_queue:
+      all: ap_event_single_queue
+      quote_created: ap_event_quote_created
+      transaction_created: ap_event_transaction_created
+      transaction_status_changed: ap_event_transaction_status_changed
+      transaction_error: ap_event_transaction_error
+
+
+#########################
+## Assets Configuration
+#########################
+## Assets are empty by default. Please see `integration-test.anchor-config.yaml` for reference.
+## Accepts file reference (eg. 'file:assets.yaml') or in-line definition.
+assets:
+  ## @param: type
+  ## @supported_values: `json`
+  ## Describe the asset definition.
+  #
+  type: json
+
+  ## @param: value
+  ## @type: string
+  ## Example of yaml definition:
+  ##   { "assets":
+  ##     [{
+  ##       "schema": "stellar"
+  ##       "code": "USDC"
+  ##       "issuer": "G..."
+  ##       "distribution_account": "G..."
+  ##        ....
+  ##     }]
+  ##   }
+  #
+  value: ""
+
+
+################################
+## Data Configuration
+################################
+data:
+
+  ## DB credentials are specified in @environment_variables DATA_USERNAME, DATA_PASSWORD
+
+  ## @param: type
+  ## @supported_values:
+  ##    `h2` (in-memory), `sqlite` (local), `postgres` (local), `aurora` (postgres on AWS)
+  ## Type of storage.
+  ## If this is set to `aurora`,
+  ##    @required_secrets: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION
+  #
+  type: h2
+
+  ## @param: url
+  ## @type: string
+  ## Location of the database
+  #
+  url: jdbc:h2:mem:anchor-platform
+
+  ## @param: username
+  ## @type: string
+  ## The username for database connection
+  #
+  username:
+
+
+  ## @param: username
+  ## @type: string
+  ## The password for database connection
+  #
+  password:
+
+  ## @param: initial_connection_pool_size
+  ## @type: integer
+  ## Initial number of connections
+  ## For `sqlite`, set this to 1 to avoid database file lock exception
+  #
+  initial_connection_pool_size: 1
+
+  ## @param: max_active_connections
+  ## @type: integer
+  ## Maximum number of db active connections
+  ## For `sqlite`, set this to 1 to avoid database file lock exception
+  #
+  max_active_connections: 10
+
+  ## @param: flyway_enabled
+  ## @type: bool
+  ## Whether to enable flyway.
+  ## Should be disabled for `sqlite` because certain features that flyway uses
+  ## (ex: addForeignKeyConstraint) are not supported.
+  #
+  flyway_enabled: false
+
+  ## @param: flyway_enabled
+  ## @type: string
+  ## Location on disk where migrations are stored if flyway is enabled.
+  #
+  flyway_location: /db/migration
+
+  ## @param: hikari_max_lifetime
+  ## @type: integer
+  ## Maximum connection time before expiration
+  ## Only valid when database `type` is `aurora`.
+  ## Recommended setting is 14 minutes because IAM tokens are valid for 15 min.
+  #
+  # hikari_max_lifetime: 840000
+

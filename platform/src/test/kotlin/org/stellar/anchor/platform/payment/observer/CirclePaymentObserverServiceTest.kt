@@ -14,7 +14,7 @@ import org.junit.jupiter.api.assertThrows
 import org.stellar.anchor.api.exception.AnchorException
 import org.stellar.anchor.api.exception.BadRequestException
 import org.stellar.anchor.api.exception.UnprocessableEntityException
-import org.stellar.anchor.config.CirclePaymentObserverConfig
+import org.stellar.anchor.config.PaymentObserverConfig
 import org.stellar.anchor.horizon.Horizon
 import org.stellar.anchor.platform.payment.observer.circle.CirclePaymentObserverService
 import org.stellar.anchor.platform.payment.observer.circle.ObservedPayment
@@ -34,7 +34,7 @@ import org.stellar.sdk.responses.operations.PaymentOperationResponse
 class CirclePaymentObserverServiceTest {
   @MockK private lateinit var httpClient: OkHttpClient
   @MockK private lateinit var horizon: Horizon
-  @MockK private lateinit var circlePaymentObserverConfig: CirclePaymentObserverConfig
+  @MockK private lateinit var circlePaymentObserverConfig: PaymentObserverConfig
   @MockK private lateinit var circlePaymentObserverService: CirclePaymentObserverService
   @MockK private lateinit var paymentListener: PaymentListener
   private lateinit var server: MockWebServer

@@ -5,7 +5,6 @@ import java.time.format.DateTimeFormatter
 import kotlin.test.assertEquals
 import org.junit.jupiter.api.assertThrows
 import org.stellar.anchor.api.exception.SepException
-import org.stellar.anchor.api.sep.sep38.GetPriceResponse
 import org.stellar.anchor.api.sep.sep38.Sep38Context.*
 import org.stellar.anchor.util.Sep1Helper
 
@@ -74,15 +73,13 @@ fun sep38TestHappyPath() {
 
 fun testSellOverAssetLimit() {
   printRequest("Calling GET /price")
-  var price: GetPriceResponse?
 
   assertThrows<SepException> {
-    price =
-      sep38.getPrice(
-        "iso4217:USD",
-        "10000000000",
-        "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-        SEP31
-      )
+    sep38.getPrice(
+      "iso4217:USD",
+      "10000000000",
+      "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+      SEP31
+    )
   }
 }

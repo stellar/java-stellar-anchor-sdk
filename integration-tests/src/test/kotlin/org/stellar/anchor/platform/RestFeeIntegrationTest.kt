@@ -181,6 +181,10 @@ class RestFeeIntegrationTest {
     validateRequest(422, null, BadRequestException("Bad Request"))
 
     // 500 with body
-    validateRequest(500, """{"error": "foo 500"}""", ServerErrorException("internal server error"))
+    validateRequest(
+      500,
+      """{"error": "proposedAssetsJson 500"}""",
+      ServerErrorException("internal server error")
+    )
   }
 }

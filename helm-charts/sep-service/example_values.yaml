@@ -36,7 +36,9 @@ deployment:
      value: file:/config/anchor-config.yaml
    envFrom:
    - secretRef:
-       name: apsigningseed
+       name: anchor-platform-secrets
+   - configMapRef:
+       name: {{ .Values.fullName }}-config-env-vars
 ingress:
    labels:
      app: appy
@@ -61,102 +63,78 @@ ingress:
           backend:
             servicePort: "{{ .Values.service.containerPort }}"
             serviceName: "{{ .Values.fullName }}-svc-{{ .Values.service.name }}"
-stellar:
-   toml:
-      #accounts: ['"GCHLHDBOKG2JWMJQBTLSL5XG6NO7ESXI2TAQKZXCXWXB5WI2X6W233PR"'] 
-      signing_key: "GCHLHDBOKG2JWMJQBTLSL5XG6NO7ESXI2TAQKZXCXWXB5WI2X6W233PR"
-      documentation:
-         ORG_NAME: "Stellar Development Foundation"
-         ORG_URL: "https://www.stellar.org"
-         ORG_DESCRIPTION: "Stellar Network"
-         ORG_URL: "https://your_org_url.png"
-         ORG_SUPPORT_EMAIL: "reece@stellar.org"
-   anchor:
-      data_access:
-         type: data-spring-jdbc
-         settings: data-spring-jdbc-sqlite
-#         settings: data-spring-jdbc-aws-aurora-postgres
-#   data_spring_jdbc_aws_aurora_postgres:
-#     spring.jpa.database: POSTGRESQL
-#     spring.jpa.show-sql: false
-#     spring.datasource.driver-class-name: org.postgresql.Driver
-#     spring.datasource.type: org.stellar.anchor.platform.databaseintegration.IAMAuthDataSource
-#     spring.datasource.url: jdbc:postgresql://database-aurora.region.amazonaws.com:port/instance
-#     spring.datasource.username: ${DB_USERNAME}
-#     spring.datasource.hikari.max-lifetime: 840000    # 14 minutes because IAM tokens are valid for 15min
-##     spring.mvc.converters.preferred-json-mapper: gson
-#     spring.flyway.user: ${FLYWAY_USER}
-#     spring.flyway.password: ${FLYWAY_PASSWORD} # can use a token value if authenticating via IAM
-#     spring.flyway.url: jdbc:postgresql://database-aurora.region.rds.amazonaws.com:port/instance
-#     spring.flyway.locations: classpath:/db/migration
-   data_spring_jdbc_sqlite:
-      spring.jpa.database-platform: org.stellar.anchor.platform.sqlite.SQLiteDialect
-      spring.jpa.hibernate.ddl-auto: update
-      spring.jpa.generate-ddl: true
-      spring.jpa.hibernate.show_sql: false
-      spring.datasource.url: jdbc:sqlite:anchor-proxy.db
-      spring.datasource.driver-class-name: org.sqlite.JDBC
-      spring.datasource.username: ${SQLITE_USERNAME}
-      spring.datasource.password: ${SQLITE_PASSWORD}
-      spring.mvc.converters.preferred-json-mapper: gson
-      spring.flyway.user: ${SQLITE_USERNAME}
-      spring.flyway.password: ${SQLITE_USERNAME} # can use a token value if authenticating via IAM
-      spring.flyway.url: jdbc:sqlite:anchor-proxy.db
-      spring.flyway.locations: classpath:/db/migration
-      #spring.flyway.enabled: false
-   app_config:
-      app:
-         stellarNetwork: TESTNET
-         hostUrl: https://your_anchor_domain.com
-         backendUrl: https://your_anchor_domain.com
-         jwtSecretKey: ${JWT_SECRET}
-         assets: file:/assets/assets.json
-         platformToAnchorSecret: ${PLATFORM_TO_ANCHOR_SECRET}
-         anchorToPlatformSecret: ${ANCHOR_TO_PLATFORM_SECRET}
-      sep1:
-        enabled: true
-        stellarFile: file:/config/stellar-wks.toml
-      sep10: 
-        enabled: true
-        homeDomain: your_anchor_domain.com
-        signingSeed: ${SEP10_SIGNING_SEED}
-        requireKnownOmnibusAccount: false
-        omnibusAccountList:
-#        omnibusAccountList: |
-#          GAB24L6CPBKSMQOBXJ5PRA6I66X4TGZHPAEI2CMPNLC6I2WX646OYCAV,
-#          GAB24L6CPBKSMQOBXJ5PRA6I66X4TGZHPAEI2CMPNLC6I2WX646OYCAA
-      sep12:
-        enabled: true
-        customerIntegrationEndpoint: https://anchor-reference-server-dev.stellar.org
-      sep31:
-        enabled: true
-        feeIntegrationEndPoint: https://anchor-reference-server-dev.stellar.org
-        uniqueAddressIntegrationEndPoint: https://anchor-reference-server-dev.stellar.org
-      sep38:
-        enabled: true
-        quoteIntegrationEndPoint: https://anchor-reference-server-dev.stellar.org
-      circle:
-         circleUrl: https://api-sandbox.circle.com
-         apiKey: ${CIRCLE_API_KEY}
-      event:
-         enabled: true
-         publisherType: kafka
-      kafka_publisher:
-         bootstrapServer: reecekafka-0.reecekafka-headless.sandbox.svc.cluster.local:9092 
-      circle_payment_observer:
-         enabled: true
-      payment_gateway:
-         circle:
-            enabled: true
-         stellar:
-            enabled: false
-            name: "stellar"
-            horizonUrl: https://horizon-testnet.stellar.org
-            secretKey: secret # stellar account secret key
-      spring:
-         logging:
-            level:
-               root: DEBUG
-               org.springframework: DEBUG
-               org.springframework.web.filter: DEBUG
-               org.stellar: DEBUG
+
+app_config:
+  host_url: https://your_anchor_domain.com
+  stellar_network.network: TESTNET
+  callback_api.base_url: https://your_anchor_domain.com
+  callback_api.auth.type: JWT_TOKEN
+  sep1.enabled: true
+  sep10.enabled: true
+  sep10.home_domain: your_anchor_domain.com
+  sep12.enabled: true
+  sep31.enabled: true
+  sep31.deposit_info_generator_type: api
+  sep38.enabled: true
+  data.type: h2
+  assets.type: json
+
+toml_config: |
+  ACCOUNTS = []
+  VERSION = "0.1.0"
+  NETWORK_PASSPHRASE = "Test SDF Network ; September 2015"
+  SIGNING_KEY = "GDZCLP2PHTWYQ3BWZMC5D4ZUJX5NU4S7YZHC5EBFAFKL6UJUQ5RKDGSY"
+  TRANSFER_SERVER = "https://your_anchor_domain.com/sep6"
+  TRANSFER_SERVER_SEP0024 = "https://your_anchor_domain.com/sep24"
+  WEB_AUTH_ENDPOINT = "https://your_anchor_domain.com/auth"
+  KYC_SERVER = "https://your_anchor_domain.com/sep12"
+  DIRECT_PAYMENT_SERVER = "https://your_anchor_domain.com/sep31"
+  ANCHOR_QUOTE_SERVER = "https://your_anchor_domain.com//sep38"
+  
+  [[CURRENCIES]]
+  code = "USDC"
+  issuer = "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+  status = "test"
+  is_asset_anchored = true
+  anchor_asset_type = "fiat"
+  desc = "A test USDC issued by Circle."
+  
+  [DOCUMENTATION]
+  ORG_NAME = "Your Anchor Domain"
+  ORG_URL = "https://your_anchor_domain.org"
+  ORG_DESCRIPTION = "Your anchor domain"
+  ORG_SUPPORT_EMAIL="support@your_anchor_domain.org"
+
+assets_config: |
+  {
+    "assets": [
+      {
+        "schema": "stellar",
+        "code": "USDC",
+        "issuer": "GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+        "distribution_account": "GBJDTHT4562X2H37JMOE6IUTZZSDU6RYGYUNFYCHVFG3J4MYJIMU33HK",
+        "significant_decimals": 2,
+        "deposit" : {
+          "enabled": true,
+          "fee_minimum": 0,
+          "fee_percent": 0,
+          "min_amount": 0,
+          "max_amount": 10000
+        },
+        "withdraw": {
+          "enabled": true,
+          "fee_fixed": 0,
+          "fee_percent": 0,
+          "min_amount": 0,
+          "max_amount": 10000
+        },
+        "send": {
+          "fee_fixed": 0,
+          "fee_percent": 0,
+          "min_amount": 0,
+          "max_amount": 10000
+        }
+      }
+    ]
+  }
+

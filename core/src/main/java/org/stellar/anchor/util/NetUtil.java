@@ -1,6 +1,7 @@
 package org.stellar.anchor.util;
 
 import java.io.IOException;
+import java.net.URL;
 import java.util.Objects;
 import okhttp3.Call;
 import okhttp3.Request;
@@ -13,6 +14,16 @@ public class NetUtil {
 
     if (response.body() == null) return "";
     return Objects.requireNonNull(response.body()).string();
+  }
+
+  public static boolean isUrlValid(String url) {
+    /* Try creating a valid URL */
+    try {
+      new URL(url).toURI();
+      return true;
+    } catch (Exception e) {
+      return false;
+    }
   }
 
   static Call getCall(Request request) {

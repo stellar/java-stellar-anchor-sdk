@@ -6,20 +6,17 @@ import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.Validator;
 import org.stellar.anchor.config.EventConfig;
-import org.stellar.anchor.config.KafkaConfig;
-import org.stellar.anchor.config.SqsConfig;
+import org.stellar.anchor.config.PublisherConfig;
 
 @Data
 public class PropertyEventConfig implements EventConfig, Validator {
   private boolean enabled = false;
   private String publisherType;
 
-  KafkaConfig kafkaConfig;
-  SqsConfig sqsConfig;
+  PublisherConfig publisherConfig;
 
-  public PropertyEventConfig(KafkaConfig kafkaConfig, SqsConfig sqsConfig) {
-    this.kafkaConfig = kafkaConfig;
-    this.sqsConfig = sqsConfig;
+  public PropertyEventConfig(PublisherConfig kafkaConfig) {
+    this.publisherConfig = kafkaConfig;
   }
 
   @Override
@@ -36,34 +33,13 @@ public class PropertyEventConfig implements EventConfig, Validator {
 
     ValidationUtils.rejectIfEmptyOrWhitespace(errors, "publisherType", "");
 
-    switch (config.getPublisherType()) {
-      case "kafka":
-        BindException validation = kafkaConfig.validate();
-        if (validation.hasErrors()) {
-          String errorString = validation.getAllErrors().get(0).toString();
-          errors.rejectValue(
-              "kafkaConfig",
-              "badConfig-kafka",
-              String.format(
-                  "publisherType set to kafka, but kafka config not properly configured: %s",
-                  errorString));
-        }
-        break;
-      case "sqs":
-        validation = sqsConfig.validate();
-        if (validation.hasErrors()) {
-          String errorString = validation.getAllErrors().get(0).toString();
-          errors.rejectValue(
-              "sqsConfig",
-              "badConfig-sqs",
-              String.format(
-                  "publisherType set to sqs, but sqs config not properly configured: %s",
-                  errorString));
-        }
-        break;
-      default:
-        errors.rejectValue(
-            "publisherType", "invalidType-publisherType", "publisherType set to unknown type");
+    BindException validation = publisherConfig.validate(config.getPublisherType());
+    if (validation.hasErrors()) {
+      String errorString = validation.getAllErrors().get(0).toString();
+      errors.rejectValue(
+          "publisherConfig",
+          "badPublisherConfig",
+          String.format("event publisher not properly configured: %s", errorString));
     }
   }
 }

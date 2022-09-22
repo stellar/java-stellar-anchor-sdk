@@ -9,7 +9,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.slf4j.Logger
 import org.stellar.anchor.Constants.Companion.TEST_HOST_URL
-import org.stellar.anchor.Constants.Companion.TEST_JWT_SECRET
 import org.stellar.anchor.Constants.Companion.TEST_NETWORK_PASS_PHRASE
 import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.PII
@@ -97,14 +96,6 @@ internal class LogTest {
 
     override fun getHorizonUrl(): String {
       return "https://horizon.stellar.org"
-    }
-
-    override fun getJwtSecretKey(): String {
-      return TEST_JWT_SECRET
-    }
-
-    override fun getAssets(): String {
-      return "test_assets_file"
     }
 
     override fun getLanguages(): MutableList<String> {

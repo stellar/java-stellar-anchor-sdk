@@ -9,7 +9,7 @@ import com.amazonaws.services.sqs.model.SendMessageRequest;
 import com.google.gson.Gson;
 import io.micrometer.core.instrument.Metrics;
 import java.util.Map;
-import org.stellar.anchor.config.SqsConfig;
+import org.stellar.anchor.config.PublisherConfig;
 import org.stellar.anchor.event.models.AnchorEvent;
 import org.stellar.anchor.util.Log;
 
@@ -18,7 +18,7 @@ public class SqsEventService implements EventPublishService {
   final Map<String, String> eventTypeToQueue;
   final boolean useSingleQueue;
 
-  public SqsEventService(SqsConfig sqsConfig) {
+  public SqsEventService(PublisherConfig sqsConfig) {
     this.sqsClient =
         AmazonSQSAsyncClientBuilder.standard()
             .withRegion(sqsConfig.getRegion())
