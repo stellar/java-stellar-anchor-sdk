@@ -92,9 +92,9 @@ platform_api:
     ## The value of the secret depends on the type specified.
     ##    If type is JWT_TOKEN – the secret key used to encode/decode the JWT token.
     ##    If type is API_KEY   – the secret is the API_KEY itself.
-    ## Secrets are shared on both sides (Platform and Anchor) and are used in CallbackAPI
-    ## requests (`Platform->Anchor`) so the Anchor can ensure the party making the request
-    ## is the Platform
+    ## Secrets are shared on both sides (Platform and Anchor) and are used in PlatformAPI
+    ## requests (`Anchor->Platform`) so the Platform can ensure the party making the request
+    ## is the Anchor.
     #
     type: NONE
 
@@ -391,7 +391,7 @@ events:
 #########################
 ## Assets Configuration
 #########################
-## Assets are empty by default. Please see <👋 DON'T FORGET ME👋 > for reference.
+## Assets are empty by default. Please see `integration-test.anchor-config.yaml` for reference.
 ## Accepts file reference (eg. 'file:assets.yaml') or in-line definition.
 assets:
   ## @param: type
