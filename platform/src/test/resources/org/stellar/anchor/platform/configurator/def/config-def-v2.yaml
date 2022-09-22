@@ -1,0 +1,10 @@
+version: 2
+
+
+stellar:
+  aster: horizon.aster # moved to horizon.apollo
+  bianca:
+  ceilo:
+
+horizon:
+  aster:

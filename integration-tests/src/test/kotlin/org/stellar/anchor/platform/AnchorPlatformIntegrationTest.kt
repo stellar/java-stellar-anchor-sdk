@@ -12,7 +12,6 @@ import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 import org.skyscreamer.jsonassert.JSONAssert
 import org.springframework.context.ConfigurableApplicationContext
-import org.springframework.core.env.get
 import org.stellar.anchor.api.callback.GetFeeRequest
 import org.stellar.anchor.api.callback.GetRateRequest
 import org.stellar.anchor.api.callback.GetRateRequest.Type.*
@@ -29,6 +28,7 @@ import org.stellar.anchor.config.Sep38Config
 import org.stellar.anchor.platform.callback.RestCustomerIntegration
 import org.stellar.anchor.platform.callback.RestFeeIntegration
 import org.stellar.anchor.platform.callback.RestRateIntegration
+import org.stellar.anchor.reference.AnchorReferenceServer
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.Sep1Helper
 
@@ -37,9 +37,12 @@ class AnchorPlatformIntegrationTest {
   companion object {
     private const val SEP_SERVER_PORT = 8080
     private const val REFERENCE_SERVER_PORT = 8081
-
     private const val PLATFORM_TO_ANCHOR_SECRET = "myPlatformToAnchorSecret"
     private const val JWT_EXPIRATION_MILLISECONDS: Long = 10000
+    private const val FIAT_USD = "iso4217:USD"
+    private const val STELLAR_USD =
+      "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+
     private val platformToAnchorJwtService = JwtService(PLATFORM_TO_ANCHOR_SECRET)
     private val authHelper =
       AuthHelper.forJwtToken(
@@ -64,24 +67,34 @@ class AnchorPlatformIntegrationTest {
         authHelper,
         gson
       )
-    private val rri =
+    private val rriClient =
       RestRateIntegration("http://localhost:$REFERENCE_SERVER_PORT", httpClient, authHelper, gson)
-    private val rfi =
+    private val rfiClient =
       RestFeeIntegration("http://localhost:$REFERENCE_SERVER_PORT", httpClient, authHelper, gson)
-    const val fiatUSD = "iso4217:USD"
-    const val stellarUSDC = "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+
     private lateinit var platformServerContext: ConfigurableApplicationContext
+    init {
+      val props = System.getProperties()
+      props.setProperty("REFERENCE_SERVER_CONFIG", "classpath:/anchor-reference-server.yaml")
+    }
 
     @BeforeAll
     @JvmStatic
     fun setup() {
-      System.setProperty("REFERENCE_SERVER_CONFIG", "classpath:/anchor-reference-server.yaml")
-      ServiceRunner.startAnchorReferenceServer()
-
-      SystemUtil.setEnv("STELLAR_ANCHOR_CONFIG", "classpath:/integration-test.anchor-config.yaml")
-      platformServerContext = ServiceRunner.startSepServer()
+      platformServerContext =
+        ServiceRunner.startSepServer(
+          SEP_SERVER_PORT,
+          "/",
+          mapOf(
+            "stellar_anchor_config" to "classpath:integration-test.anchor-config.yaml",
+            "secret.sep10.jwt_secret" to "secret",
+            "secret.sep10.signing_seed" to
+              "SAKXNWVTRVR4SJSHZUDB2CLJXEQHRT62MYQWA2HBB7YBOTCFJJJ55BZF"
+          )
+        )
       ServiceRunner.startStellarObserver()
-      SystemUtil.setEnv("STELLAR_ANCHOR_CONFIG", null)
+
+      AnchorReferenceServer.start(REFERENCE_SERVER_PORT, "/")
     }
   }
 
@@ -148,12 +161,12 @@ class AnchorPlatformIntegrationTest {
   @Test
   fun testRate_indicativePrices() {
     val result =
-      rri.getRate(
+      rriClient.getRate(
         GetRateRequest.builder()
           .type(INDICATIVE_PRICES)
-          .sellAsset(fiatUSD)
+          .sellAsset(FIAT_USD)
           .sellAmount("100")
-          .buyAsset(stellarUSDC)
+          .buyAsset(STELLAR_USD)
           .build()
       )
     assertNotNull(result)
@@ -171,13 +184,13 @@ class AnchorPlatformIntegrationTest {
   @Test
   fun testRate_indicativePrice() {
     val result =
-      rri.getRate(
+      rriClient.getRate(
         GetRateRequest.builder()
           .type(INDICATIVE_PRICE)
           .context(SEP31)
-          .sellAsset(fiatUSD)
+          .sellAsset(FIAT_USD)
           .sellAmount("100")
-          .buyAsset(stellarUSDC)
+          .buyAsset(STELLAR_USD)
           .build()
       )
     assertNotNull(result)
@@ -190,7 +203,7 @@ class AnchorPlatformIntegrationTest {
         "buy_amount": "97.0588",
         "fee": {
           "total": "1.00",
-          "asset": "$fiatUSD",
+          "asset": "$FIAT_USD",
           "details": [
             {
               "name": "Sell fee",
@@ -207,12 +220,12 @@ class AnchorPlatformIntegrationTest {
   @Test
   fun testRate_firm() {
     val rate =
-      rri.getRate(
+      rriClient.getRate(
           GetRateRequest.builder()
             .type(FIRM)
             .context(SEP31)
-            .sellAsset(fiatUSD)
-            .buyAsset(stellarUSDC)
+            .sellAsset(FIAT_USD)
+            .buyAsset(STELLAR_USD)
             .buyAmount("100")
             .build()
         )
@@ -238,7 +251,7 @@ class AnchorPlatformIntegrationTest {
     assertEquals(wantExpiresAt.toInstant(), gotExpiresAt)
 
     // check if rate was persisted by getting the rate with ID
-    val gotQuote = rri.getRate(GetRateRequest.builder().id(rate.id).build())
+    val gotQuote = rriClient.getRate(GetRateRequest.builder().id(rate.id).build())
     assertEquals(rate.id, gotQuote.rate.id)
     assertEquals("1.02", gotQuote.rate.price)
 
@@ -253,7 +266,7 @@ class AnchorPlatformIntegrationTest {
         "expires_at": "$expiresAtStr",
         "fee": {
           "total": "1.00",
-          "asset": "$fiatUSD",
+          "asset": "$FIAT_USD",
           "details": [
             {
               "name": "Sell fee",
@@ -280,7 +293,7 @@ class AnchorPlatformIntegrationTest {
     val receiverCustomer = sep12Client.putCustomer(receiverCustomerRequest)
 
     val result =
-      rfi.getFee(
+      rfiClient.getFee(
         GetFeeRequest.builder()
           .sendAmount("10")
           .sendAsset("USDC")
@@ -305,42 +318,18 @@ class AnchorPlatformIntegrationTest {
   }
 
   @Test
-  fun testYamlProperties() {
-    val tests =
-      mapOf(
-        "sep1.enabled" to "true",
-        "sep10.enabled" to "true",
-        "sep10.homeDomain" to "localhost:8080",
-        "sep10.signingSeed" to "SAX3AH622R2XT6DXWWSRIDCMMUCCMATBZ5U6XKJWDO7M2EJUBFC3AW5X",
-        "sep24.enabled" to "true",
-        "sep31.enabled" to "true",
-        "sep38.enabled" to "true",
-        "sep38.quoteIntegrationEndPoint" to "http://localhost:8081",
-        "payment-gateway.circle.name" to "circle",
-        "payment-gateway.circle.enabled" to "true",
-        "spring.jpa.database-platform" to "org.stellar.anchor.platform.sqlite.SQLiteDialect",
-        "logging.level.root" to "INFO"
-      )
-
-    tests.forEach { assertEquals(it.value, platformServerContext.environment[it.key]) }
-  }
-
-  @Test
   fun testAppConfig() {
     val appConfig = platformServerContext.getBean(AppConfig::class.java)
     assertEquals("Test SDF Network ; September 2015", appConfig.stellarNetworkPassphrase)
     assertEquals("http://localhost:8080", appConfig.hostUrl)
     assertEquals(listOf("en"), appConfig.languages)
     assertEquals("https://horizon-testnet.stellar.org", appConfig.horizonUrl)
-    assertEquals("assets-test.json", appConfig.assets)
-    assertEquals("secret", appConfig.jwtSecretKey)
   }
 
   @Test
   fun testSep1Config() {
     val sep1Config = platformServerContext.getBean(Sep1Config::class.java)
     assertEquals(true, sep1Config.isEnabled)
-    assertEquals("classpath:/sep1/test-stellar.toml", sep1Config.stellarFile)
   }
 
   @Test
@@ -352,17 +341,11 @@ class AnchorPlatformIntegrationTest {
     assertEquals(listOf("lobstr.co", "preview.lobstr.co"), sep10Config.clientAttributionAllowList)
     assertEquals(900, sep10Config.authTimeout)
     assertEquals(86400, sep10Config.jwtTimeout)
-    assertEquals(
-      "SAX3AH622R2XT6DXWWSRIDCMMUCCMATBZ5U6XKJWDO7M2EJUBFC3AW5X",
-      sep10Config.signingSeed
-    )
   }
 
   @Test
   fun testSep38Config() {
     val sep38Config = platformServerContext.getBean(Sep38Config::class.java)
-
     assertEquals(true, sep38Config.isEnabled)
-    assertEquals("http://localhost:8081", sep38Config.quoteIntegrationEndPoint)
   }
 }

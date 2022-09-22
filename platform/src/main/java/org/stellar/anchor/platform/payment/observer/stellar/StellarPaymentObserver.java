@@ -2,6 +2,8 @@ package org.stellar.anchor.platform.payment.observer.stellar;
 
 import static org.stellar.anchor.api.platform.HealthCheckStatus.GREEN;
 import static org.stellar.anchor.api.platform.HealthCheckStatus.RED;
+import static org.stellar.anchor.healthcheck.HealthCheckable.Tags.ALL;
+import static org.stellar.anchor.healthcheck.HealthCheckable.Tags.EVENT;
 import static org.stellar.anchor.util.ReflectionUtil.getField;
 
 import com.google.gson.annotations.SerializedName;
@@ -169,7 +171,7 @@ public class StellarPaymentObserver implements HealthCheckable {
 
   @Override
   public int compareTo(@NotNull HealthCheckable other) {
-    return other.getName().compareTo(other.getName());
+    return this.getName().compareTo(other.getName());
   }
 
   public static class Builder {
@@ -215,8 +217,8 @@ public class StellarPaymentObserver implements HealthCheckable {
   }
 
   @Override
-  public List<String> getTags() {
-    return List.of("all", "event");
+  public List<Tags> getTags() {
+    return List.of(ALL, EVENT);
   }
 
   @Override

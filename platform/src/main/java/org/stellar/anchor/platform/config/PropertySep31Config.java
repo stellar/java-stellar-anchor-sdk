@@ -12,7 +12,7 @@ import org.stellar.anchor.config.Sep31Config;
 
 @Data
 public class PropertySep31Config implements Sep31Config, Validator {
-  boolean enabled = false;
+  boolean enabled;
   String feeIntegrationEndPoint;
   String uniqueAddressIntegrationEndPoint;
   PaymentType paymentType = STRICT_SEND;
@@ -20,8 +20,10 @@ public class PropertySep31Config implements Sep31Config, Validator {
 
   CircleConfig circleConfig;
 
-  public PropertySep31Config(CircleConfig circleConfig) {
+  public PropertySep31Config(CircleConfig circleConfig, CallbackApiConfig callbackApiConfig) {
     this.circleConfig = circleConfig;
+    this.feeIntegrationEndPoint = callbackApiConfig.getBaseUrl();
+    this.uniqueAddressIntegrationEndPoint = callbackApiConfig.getBaseUrl();
   }
 
   @Override

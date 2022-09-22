@@ -13,7 +13,10 @@ open class Sep31ConfigTest {
     val circleConfig = PropertyCircleConfig()
     circleConfig.circleUrl = "https://api-sandbox.circle.com"
     circleConfig.apiKey = "apikey"
-    val sep31Config = PropertySep31Config(circleConfig)
+    val callbackApiConfig = CallbackApiConfig(PropertySecretConfig())
+    callbackApiConfig.baseUrl = "http://localhost:8080"
+
+    val sep31Config = PropertySep31Config(circleConfig, callbackApiConfig)
     sep31Config.depositInfoGeneratorType = CIRCLE
 
     val errors = BindException(sep31Config, "sep31Config")
@@ -28,7 +31,10 @@ open class Sep31ConfigTest {
   fun testSep31BadCircleConfig() {
     val circleConfig = PropertyCircleConfig()
     circleConfig.circleUrl = "https://api-sandbox.circle.com"
-    val sep31Config = PropertySep31Config(circleConfig)
+    val callbackApiConfig = CallbackApiConfig(PropertySecretConfig())
+    callbackApiConfig.baseUrl = "http://localhost:8080"
+
+    val sep31Config = PropertySep31Config(circleConfig, callbackApiConfig)
     sep31Config.enabled = true
     sep31Config.depositInfoGeneratorType = CIRCLE
 

@@ -12,10 +12,8 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.Profile;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import org.stellar.anchor.platform.configurator.DataAccessConfigurator;
-import org.stellar.anchor.platform.configurator.PlatformAppConfigurator;
-import org.stellar.anchor.platform.configurator.PropertiesReader;
-import org.stellar.anchor.platform.configurator.SpringFrameworkConfigurator;
+import org.stellar.anchor.platform.configurator.ConfigEnvironment;
+import org.stellar.anchor.platform.configurator.ConfigManager;
 
 @Profile("default")
 @SpringBootApplication
@@ -23,7 +21,6 @@ import org.stellar.anchor.platform.configurator.SpringFrameworkConfigurator;
 @EntityScan(basePackages = {"org.stellar.anchor.platform.data"})
 @EnableConfigurationProperties
 public class AnchorPlatformServer implements WebMvcConfigurer {
-
   public static ConfigurableApplicationContext start(
       int port, String contextPath, Map<String, Object> environment, boolean disableMetrics) {
     SpringApplicationBuilder builder =
@@ -34,8 +31,6 @@ public class AnchorPlatformServer implements WebMvcConfigurer {
                 //       disableMetrics param -
                 //  https://github.com/stellar/java-stellar-anchor-sdk/issues/297
                 "spring.mvc.converters.preferred-json-mapper=gson",
-                // this allows a developer to use a .env file for local development
-                "spring.config.import=optional:classpath:example.env[.properties]",
                 String.format("server.port=%d", port),
                 String.format("server.contextPath=%s", contextPath));
 
@@ -45,19 +40,15 @@ public class AnchorPlatformServer implements WebMvcConfigurer {
           "management.server.port=8082");
     }
     if (environment != null) {
-      builder.properties(environment);
+      for (String name : environment.keySet()) {
+        System.setProperty(name, String.valueOf(environment.get(name)));
+      }
+      ConfigEnvironment.rebuild();
     }
 
     SpringApplication springApplication = builder.build();
 
-    // Reads the configuration from sources, such as yaml
-    springApplication.addInitializers(new PropertiesReader());
-    // Configure SEPs
-    springApplication.addInitializers(new PlatformAppConfigurator());
-    // Configure databases
-    springApplication.addInitializers(new DataAccessConfigurator());
-    // Configure spring framework
-    springApplication.addInitializers(new SpringFrameworkConfigurator());
+    springApplication.addInitializers(ConfigManager.getInstance());
 
     return springApplication.run();
   }

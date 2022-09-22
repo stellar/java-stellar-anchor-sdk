@@ -11,7 +11,7 @@ import org.apache.commons.codec.binary.Base64
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.stellar.anchor.config.AppConfig
+import org.stellar.anchor.config.SecretConfig
 
 internal class JwtServiceTest {
   companion object {
@@ -25,10 +25,10 @@ internal class JwtServiceTest {
 
   @Test
   fun `test apply JWT encoding and decoding and make sure the original values are not changed`() {
-    val appConfig = mockk<AppConfig>()
-    every { appConfig.jwtSecretKey } returns "jwt_secret"
+    val secretConfig = mockk<SecretConfig>()
+    every { secretConfig.sep10JwtSecretKey } returns "jwt_secret"
 
-    val jwtService = JwtService(appConfig)
+    val jwtService = JwtService(secretConfig)
     val token =
       JwtToken.of(
         TEST_ISS,
@@ -56,22 +56,22 @@ internal class JwtServiceTest {
 
   @Test
   fun `make sure decoding bad cipher test throws an error`() {
-    val appConfig = mockk<AppConfig>()
-    every { appConfig.jwtSecretKey } returns "jwt_secret"
+    val secretConfig = mockk<SecretConfig>()
+    every { secretConfig.sep10JwtSecretKey } returns "jwt_secret"
 
-    val jwtService = JwtService(appConfig)
+    val jwtService = JwtService(secretConfig)
 
     assertThrows<MalformedJwtException> { jwtService.decode("This is a bad cipher") }
   }
 
   @Test
   fun `make sure JwtService only decodes HS256`() {
-    val appConfig = mockk<AppConfig>()
-    every { appConfig.jwtSecretKey } returns "jwt_secret"
+    val secretConfig = mockk<SecretConfig>()
+    every { secretConfig.sep10JwtSecretKey } returns "jwt_secret"
 
-    val jwtService = JwtService(appConfig)
+    val jwtService = JwtService(secretConfig)
     val jwtKey =
-      Base64.encodeBase64String(appConfig.jwtSecretKey.toByteArray(StandardCharsets.UTF_8))
+      Base64.encodeBase64String(secretConfig.sep10JwtSecretKey.toByteArray(StandardCharsets.UTF_8))
 
     val builder =
       Jwts.builder()

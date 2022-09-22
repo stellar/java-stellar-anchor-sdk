@@ -1,5 +1,7 @@
 package org.stellar.anchor.reference.service;
 
+import static org.stellar.anchor.util.Log.*;
+
 import java.util.List;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Service;
@@ -13,6 +15,9 @@ public class HealthCheckService {
   HealthCheckProcessor processor;
 
   public HealthCheckService(List<HealthCheckable> checkables) {
+    checkables.forEach(
+        checkable ->
+            debug(String.format("[%s] is added to health check list.", checkable.getName())));
     processor = new HealthCheckProcessor(checkables);
   }
 

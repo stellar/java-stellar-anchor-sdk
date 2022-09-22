@@ -2,7 +2,6 @@ package org.stellar.anchor.auth;
 
 import java.util.Calendar;
 import javax.annotation.Nullable;
-import org.stellar.anchor.config.IntegrationAuthConfig.AuthType;
 import org.stellar.anchor.util.AuthHeader;
 
 public class AuthHelper {

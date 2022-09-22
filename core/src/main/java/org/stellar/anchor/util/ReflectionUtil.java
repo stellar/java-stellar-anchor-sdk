@@ -4,6 +4,7 @@ import java.lang.reflect.Field;
 import org.stellar.sdk.requests.SSEStream;
 
 public class ReflectionUtil {
+  @SuppressWarnings("unchecked")
   public static <T> T getField(Object target, String fieldName, T defaultValue) {
     try {
       // populate executorService information

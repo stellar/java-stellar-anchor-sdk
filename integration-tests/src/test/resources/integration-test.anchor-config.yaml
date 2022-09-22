@@ -1,172 +1,271 @@
-stellar:
-  anchor:
-    # Configure the application from this file after it is loaded in memory
-    # If `config` is in-memory, the yaml file contains all settings for the server.
-    config: in-memory
-    app-config:
-      type: config-spring-property                # Activate [config-spring-property] module
-      settings: app-config                        # The location of the configuration data
-    data-access:
-      type: data-spring-jdbc                      # Activate [config-spring-jdbc] module.
-      settings: data-spring-jdbc-sqlite         # The location of the configuration data in this file.
-    logging:
-      type: logging-logback
-      settings: logging-logback-settings
+version: 1
 
-#
-# Application settings
-#
-app-config:
-  # general
-  app:
-    stellarNetworkPassphrase: Test SDF Network ; September 2015
-    hostUrl: http://localhost:8080
-    languages: en
-    horizonUrl: https://horizon-testnet.stellar.org
-    assets: assets-test.json
-    jwtSecretKey: secret
+logging:
+  level: INFO
+  stellar_level: DEBUG
 
-  integration-auth:
-    authType: JWT_TOKEN
-    platformToAnchorSecret: myPlatformToAnchorSecret
-    anchorToPlatformSecret: myAnchorToPlatformSecret
-    expirationMilliseconds: 30000
+sep1:
+  enabled: true
+  toml:
+    type: string
+    value: |
+      ACCOUNTS = [ "GCSGSR6KQQ5BP2FXVPWRL6SWPUSFWLVONLIBJZUKTVQB5FYJFVL6XOXE" ]
+      VERSION = "0.1.0"
+      SIGNING_KEY = "GBDYDBJKQBJK4GY4V7FAONSFF2IBJSKNTBYJ65F5KCGBY2BIGPGGLJOH"
+      NETWORK_PASSPHRASE = "Test SDF Network ; September 2015"
+      
+      WEB_AUTH_ENDPOINT = "http://localhost:8080/auth"
+      KYC_SERVER = "http://localhost:8080/sep12"
+      TRANSFER_SERVER_SEP0024 = "http://localhost:8080/sep24"
+      DIRECT_PAYMENT_SERVER = "http://localhost:8080/sep31"
+      ANCHOR_QUOTE_SERVER = "http://localhost:8080/sep38"
+      
+      [[CURRENCIES]]
+      code = "SRT"
+      issuer = "GCDNJUBQSX7AJWLJACMJ7I4BC3Z47BQUTMHEICZLE6MU4KQBRYG5JY6B"
+      status = "test"
+      is_asset_anchored = false
+      anchor_asset_type = "other"
+      desc = "A fake anchored asset to use with this example anchor server."
+      
+      [DOCUMENTATION]
+      ORG_NAME = "Stellar Development Foundation"
+      ORG_URL = "https://stellar.org"
+      ORG_DESCRIPTION = "SEP 24 reference server."
+      ORG_KEYBASE = "stellar.public"
+      ORG_TWITTER = "StellarOrg"
+      ORG_GITHUB = "stellar"
 
-  # sep-1
-  sep1:
-    enabled: true
-    stellarFile: classpath:/sep1/test-stellar.toml
+sep10:
+  enabled: true
 
-  # sep-10
-  sep10:
-    enabled: true
-    homeDomain: localhost:8080
-    clientAttributionRequired: false
-    clientAttributionAllowList: lobstr.co,preview.lobstr.co # use this if we want to white list
-    # clientAttributionDenyList: # use this if we want to black list.
-    authTimeout: 900
-    jwtTimeout: 86400
-    signingSeed: SAX3AH622R2XT6DXWWSRIDCMMUCCMATBZ5U6XKJWDO7M2EJUBFC3AW5X
+sep12:
+  enabled: true
 
-  # sep-12
-  sep12:
-    enabled: true
-    customerIntegrationEndpoint: http://localhost:8081
+sep24:
+  enabled: true
 
-  # sep-24
-  sep24:
-    enabled: true
-    interactiveJwtExpiration: 3600
-    interactiveUrl: http://localhost:8081/sep24/interactive
+sep31:
+  enabled: true
 
-  # sep-31
-  sep31:
-    enabled: true
-    feeIntegrationEndPoint: http://localhost:8081
-    uniqueAddressIntegrationEndPoint: http://localhost:8081
-    #
-    # paymentType: used to determine how amount_in is calculated from amount in the POST /transaction call
-    # Possible values: STRICT_SEND or STRICT_RECEIVE. default=STRICT_SEND
-    #     STRICT_SEND: amount_in = amount
-    #     STRICT_RECEIVE: amount_in = amount + fee
-    paymentType: STRICT_SEND
-    #
-    # depositInfoGeneratorType: used to choose how the SEP-31 deposit information will be generated, which includes the
-    # deposit address, memo and memo type.
-    # Possible values:
-    #     self: the memo and memo type are generated in the local code, and the distribution account is used for the deposit address.
-    #     circle: the memo and memo type are generated through Circle API, as well as the deposit address.
-    depositInfoGeneratorType: self # self or circle
+sep38:
+  enabled: true
 
-  # sep-38
-  sep38:
-    enabled: true
-    quoteIntegrationEndPoint: http://localhost:8081
-
-  circle:
-    circleUrl: https://api-sandbox.circle.com
-    apiKey: secret # circle API key
-
-  payment-gateway:
-    #
-    # Payment Circle configurations
-    #
-    circle:
-      name: "circle"
-      enabled: true
-
-    #
-    # Payment Stellar configurations
-    #
-    stellar:
-      enabled: false
-      name: "stellar"
-      horizonUrl: https://horizon-testnet.stellar.org
-      secretKey: secret # stellar account secret key
-
-  circle-payment-observer:
-    enabled: true
-    horizonUrl: https://horizon-testnet.stellar.org
-    stellarNetwork: TESTNET # TESTNET or PUBLIC
-    trackedWallet: all
-
-  event:
-    # If enabled, publish Events to a queue (publisherType)
-    # publisherType - the type of queue to use for event publishing
-    # currently supported publisherType values: kafka, sqs
-    enabled: true
-    publisherType: kafka
-
-  kafka.publisher:
-    # kafkaBootstrapServer - the Kafka server used to bootstrap setup
-    # If useSingleQueue, all events are published to a single queue
-    #   (specified in eventTypeToQueue.all)
-    # eventTypeToQueue - a map of the event type to the queue name messages are published to
-    bootstrapServer: localhost:29092
-    useSingleQueue: false
-    eventTypeToQueue:
-      all: ap_event_single_queue
-      quote_created: ap_event_quote_created
-      transaction_created: ap_event_transaction_created
-      transaction_status_changed: ap_event_transaction_status_changed
-      transaction_error: ap_event_transaction_error
-
-
-
-#
-# Spring Data JDBC settings
-#
-data-spring-jdbc-sqlite:
-  spring.jpa.database-platform: org.stellar.anchor.platform.sqlite.SQLiteDialect
-  spring.jpa.hibernate.ddl-auto: update
-  spring.jpa.generate-ddl: true
-  spring.jpa.hibernate.show_sql: false
-  spring.datasource.url: jdbc:sqlite:anchor-proxy.db
-  spring.datasource.driver-class-name: org.sqlite.JDBC
-  spring.datasource.max-active: 2
-  spring.datasource.initial-size: 2
-  spring.datasource.username: admin
-  spring.datasource.password: admin
-  spring.mvc.converters.preferred-json-mapper: gson
-  spring.liquibase.enabled: false
-
-data-spring-jdbc-h2:
-  spring.datasource.url: jdbc:h2:mem:test
-  spring.jpa.properties.hibernate.dialect: org.hibernate.dialect.H2Dialect
-  spring.liquibase.enabled: false
-
-#
-# Spring framework configurations
-#
-spring:
-  logging:
-    level:
-      root: INFO
-      org.springframework: INFO
-      org.springframework.web.filter: INFO
-      org.stellar: DEBUG
-  server:
-    servlet:
-      context-path: "/"
-  mvc:
-    async.request-timeout: 6000
+assets:
+  type: json
+  value: |
+    {
+      "assets": [
+          {
+              "schema": "stellar",
+              "code": "USDC",
+              "issuer": "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+             "distribution_account": "GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF",
+              "significant_decimals": 2,
+              "deposit" : {
+                  "enabled": true,
+                  "fee_minimum": 0,
+                  "fee_percent": 0,
+                  "min_amount": 1,
+                  "max_amount": 1000000
+              },
+              "withdraw": {
+                  "enabled": true,
+                  "fee_fixed": 0,
+                  "fee_percent": 0,
+                  "min_amount": 1,
+                  "max_amount": 1000000
+              },
+              "send": {
+                  "fee_fixed": 0,
+                  "fee_percent": 0,
+                  "min_amount": 1,
+                  "max_amount": 1000000
+              },
+              "sep31" : {
+                  "quotes_supported": true,
+                  "quotes_required": false,
+                  "sep12": {
+                      "sender": {
+                          "types": {
+                              "sep31-sender": {
+                                  "description": "U.S. citizens limited to sending payments of less than $10,000 in value"
+                              },
+                              "sep31-large-sender": {
+                                  "description": "U.S. citizens that do not have sending limits"
+                              },
+                              "sep31-foreign-sender": {
+                                  "description": "non-U.S. citizens sending payments of less than $10,000 in value"
+                              }
+                          }
+                      },
+                      "receiver": {
+                          "types": {
+                              "sep31-receiver": {
+                                  "description": "U.S. citizens receiving USD"
+                              },
+                              "sep31-foreign-receiver": {
+                                  "description": "non-U.S. citizens receiving USD"
+                              }
+                          }
+                      }
+                  },
+                  "fields": {
+                      "transaction": {
+                          "receiver_routing_number": {
+                              "description": "routing number of the destination bank account"
+                          },
+                          "receiver_account_number": {
+                              "description": "bank account number of the destination"
+                          },
+                          "type": {
+                              "description": "type of deposit to make",
+                              "choices": [
+                                  "SEPA",
+                                  "SWIFT"
+                              ]
+                          }
+                      }
+                  }
+              },
+              "sep38": {
+                  "exchangeable_assets": [
+                      "iso4217:USD"
+                  ]
+              },
+              "sep24_enabled": true,
+              "sep31_enabled": true,
+              "sep38_enabled": true
+          },
+          {
+              "schema": "stellar",
+              "code": "JPYC",
+              "issuer": "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+              "distribution_account": "GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF",
+              "significant_decimals": 4,
+              "deposit" : {
+                  "enabled": true,
+                  "fee_minimum": 0,
+                  "fee_percent": 0,
+                  "min_amount": 1,
+                  "max_amount": 1000000
+              },
+              "withdraw": {
+                  "enabled": true,
+                  "fee_fixed": 0,
+                  "fee_percent": 0,
+                  "min_amount": 1,
+                  "max_amount": 1000000
+              },
+              "send": {
+                  "fee_fixed": 0,
+                  "fee_percent": 0,
+                  "min_amount": 1,
+                  "max_amount": 1000000
+              },
+              "sep31" : {
+                  "quotes_supported": true,
+                  "quotes_required": false,
+                  "sep12": {
+                      "sender": {
+                          "types": {
+                              "sep31-sender": {
+                                  "description": "U.S. citizens limited to sending payments of less than $10,000 in value"
+                              },
+                              "sep31-large-sender": {
+                                  "description": "U.S. citizens that do not have sending limits"
+                              },
+                              "sep31-foreign-sender": {
+                                  "description": "non-U.S. citizens sending payments of less than $10,000 in value"
+                              }
+                          }
+                      },
+                      "receiver": {
+                          "types": {
+                              "sep31-receiver": {
+                                  "description": "U.S. citizens receiving JPY"
+                              },
+                              "sep31-foreign-receiver": {
+                                  "description": "non-U.S. citizens receiving JPY"
+                              }
+                          }
+                      }
+                  },
+                  "fields": {
+                      "transaction": {
+                          "receiver_routing_number": {
+                              "description": "routing number of the destination bank account"
+                          },
+                          "receiver_account_number": {
+                              "description": "bank account number of the destination"
+                          },
+                          "type": {
+                              "description": "type of deposit to make",
+                              "choices": [
+                                  "SEPA",
+                                  "SWIFT"
+                              ]
+                          }
+                      }
+                  }
+              },
+              "sep38": {
+                  "exchangeable_assets": [
+                      "iso4217:USD"
+                  ]
+              },
+              "sep24_enabled": false,
+              "sep31_enabled": true,
+              "sep38_enabled": true
+          },
+          {
+              "schema": "iso4217",
+              "code": "USD",
+              "deposit" : {
+                  "enabled": true,
+                  "fee_minimum": 0,
+                  "fee_percent": 0,
+                  "min_amount": 0,
+                  "max_amount": 10000
+              },
+              "withdraw": {
+                  "enabled": true,
+                  "fee_fixed": 0,
+                  "fee_percent": 0,
+                  "min_amount": 0,
+                  "max_amount": 10000
+              },
+              "send": {
+                  "fee_fixed": 0,
+                  "fee_percent": 0,
+                  "min_amount": 0,
+                  "max_amount": 10000
+              },
+              "sep38": {
+                  "exchangeable_assets": [
+                      "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+                      "stellar:JPYC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+                  ],
+                  "country_codes": ["USA"],
+                  "decimals": 4,
+                  "sell_delivery_methods": [
+                      {
+                          "name": "WIRE",
+                          "description": "Send USD directly to the Anchor's bank account."
+                      }
+                  ],
+                  "buy_delivery_methods": [
+                      {
+                          "name": "WIRE",
+                          "description": "Have USD sent directly to your bank account."
+                      }
+                  ]
+              },
+              "sep24_enabled": false,
+              "sep31_enabled": false,
+              "sep38_enabled": true
+          }
+      ]
+    }
+    
+    

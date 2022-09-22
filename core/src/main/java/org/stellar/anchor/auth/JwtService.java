@@ -4,18 +4,23 @@ import io.jsonwebtoken.*;
 import io.jsonwebtoken.impl.DefaultJwsHeader;
 import java.nio.charset.StandardCharsets;
 import java.util.Calendar;
+import lombok.Getter;
 import org.apache.commons.codec.binary.Base64;
-import org.stellar.anchor.config.AppConfig;
+import org.stellar.anchor.config.SecretConfig;
 
+@Getter
 public class JwtService {
   final String jwtKey;
 
-  public JwtService(AppConfig appConfig) {
-    this(appConfig.getJwtSecretKey());
+  public JwtService(SecretConfig secretConfig) {
+    this(secretConfig.getSep10JwtSecretKey());
   }
 
   public JwtService(String secretKey) {
-    this.jwtKey = Base64.encodeBase64String(secretKey.getBytes(StandardCharsets.UTF_8));
+    this.jwtKey =
+        (secretKey == null)
+            ? null
+            : Base64.encodeBase64String(secretKey.getBytes(StandardCharsets.UTF_8));
   }
 
   public String encode(JwtToken token) {

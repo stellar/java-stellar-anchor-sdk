@@ -32,6 +32,7 @@ import org.stellar.anchor.asset.ResourceJsonAssetService
 import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.auth.JwtToken
 import org.stellar.anchor.config.AppConfig
+import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.config.Sep24Config
 import org.stellar.anchor.util.DateUtil
 import org.stellar.anchor.util.GsonUtils
@@ -46,6 +47,7 @@ internal class Sep24ServiceTest {
   }
 
   @MockK(relaxed = true) lateinit var appConfig: AppConfig
+  @MockK(relaxed = true) lateinit var secretConfig: SecretConfig
 
   @MockK(relaxed = true) lateinit var sep24Config: Sep24Config
 
@@ -64,14 +66,14 @@ internal class Sep24ServiceTest {
     MockKAnnotations.init(this, relaxUnitFun = true)
     every { appConfig.stellarNetworkPassphrase } returns Constants.TEST_NETWORK_PASS_PHRASE
     every { appConfig.hostUrl } returns Constants.TEST_HOST_URL
-    every { appConfig.jwtSecretKey } returns Constants.TEST_JWT_SECRET
+    every { secretConfig.sep10JwtSecretKey } returns Constants.TEST_JWT_SECRET
 
     every { sep24Config.interactiveUrl } returns TEST_SEP24_INTERACTIVE_URL
     every { sep24Config.interactiveJwtExpiration } returns 1000
 
     every { txnStore.newInstance() } returns PojoSep24Transaction()
 
-    jwtService = spyk(JwtService(appConfig))
+    jwtService = spyk(JwtService(secretConfig))
 
     sep24Service = Sep24Service(gson, appConfig, sep24Config, assetService, jwtService, txnStore)
   }

@@ -15,7 +15,7 @@ import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.exception.ServerErrorException;
 import org.stellar.anchor.api.exception.UnprocessableEntityException;
-import org.stellar.anchor.config.CirclePaymentObserverConfig;
+import org.stellar.anchor.config.PaymentObserverConfig;
 import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.platform.payment.observer.PaymentListener;
 import org.stellar.anchor.platform.payment.observer.circle.model.CircleNotification;
@@ -49,7 +49,7 @@ public class CirclePaymentObserverService {
 
   public CirclePaymentObserverService(
       OkHttpClient httpClient,
-      CirclePaymentObserverConfig circlePaymentObserverConfig,
+      PaymentObserverConfig circlePaymentObserverConfig,
       Horizon horizon,
       List<PaymentListener> observers) {
     this.httpClient = httpClient;
