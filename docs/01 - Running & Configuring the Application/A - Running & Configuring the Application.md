@@ -25,9 +25,10 @@ This section covers how to run the application from source code using the provid
 3. Start the Anchor Reference server: `./gradlew service-runner:bootRun --args=--anchor-reference-server`
     - This uses the default configuration file at [`anchor-reference-server.yaml`], but you can use a custom configuration file by setting the `REFERENCE_SERVER_CONFIG_ENV` environment variable to the path of the configuration file, following the [Path to Yaml](#path-to-yaml) format.
 4. Start the Anchor Platform: `./gradlew service-runner:bootRun --args=--sep-server`
-    - This uses the default configuration file at [`anchor-config-defaults.yaml`], but you can use a custom configuration file by setting the `STELLAR_ANCHOR_CONFIG` environment variable to the path of the configuration file, following the [Path to Yaml](#path-to-yaml) format.
+    - This step requires you to set up a `STELLAR_ANCHOR_CONFIG`. You can test the application by using the default one with `export STELLAR_ANCHOR_CONFIG=file:<full-path-to-java-stellar-anchor-sdk>/platform/src/main/resources/example.anchor-config.yaml`,  
+    - Eventually you'll need to set up your own configuration based on the `anchor-config-default-values.yaml`. 
 5. Start the Stellar Observer: `./gradlew service-runner:bootRun --args=--stellar-observer`
-    - This also uses the default configuration file at [`anchor-config-defaults.yaml`], but you can use a custom configuration file by setting the `STELLAR_ANCHOR_CONFIG` environment variable to the path of the configuration file, following the [Path to Yaml](#path-to-yaml) format.
+    - This also needs the `STELLAR_ANCHOR_CONFIG` previously mentioned.
 
 ## Configuring the Project
 
@@ -171,7 +172,7 @@ Boot Actuator metrics are enabled by default. There are certain metrics that per
 the count of transactions in each state); these metrics are disabled by default. 
 They can be enabled with the following configs:
 
-```text
+```yaml
   metrics-service:
     optionalMetricsEnabled: true    # optional metrics that periodically query the database
     runInterval: 30                 # interval to query the database to generate the optional metrics
