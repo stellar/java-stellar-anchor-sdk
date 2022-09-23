@@ -299,7 +299,7 @@ sep38:
   ## @type: bool
   ## Whether to enable SEP-38 for this instance of AP server.
   #
-  enabled: true
+  enabled: false
 
 
 ##########################
