@@ -31,6 +31,7 @@ public class AnchorPlatformServer implements WebMvcConfigurer {
                 //       disableMetrics param -
                 //  https://github.com/stellar/java-stellar-anchor-sdk/issues/297
                 "spring.mvc.converters.preferred-json-mapper=gson",
+                "spring.config.import=optional:classpath:example.env[.properties]",
                 String.format("server.port=%d", port),
                 String.format("server.contextPath=%s", contextPath));
 
