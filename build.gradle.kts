@@ -96,7 +96,39 @@ subprojects {
 
     javadoc { options.encoding = "UTF-8" }
 
-    test { useJUnitPlatform() }
+    test {
+      useJUnitPlatform()
+
+      testLogging {
+        events("SKIPPED", "FAILED")
+        showExceptions = true
+        showCauses = true
+        showStackTraces = true
+        showStandardStreams = true
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL // test with type SHORT
+
+        afterSuite(
+          KotlinClosure2({ desc: TestDescriptor, result: TestResult ->
+            if (desc.parent == null) {
+              val output = result.run {
+                "Results: $resultType (" +
+                    "$testCount tests, " +
+                    "$successfulTestCount successes, " +
+                    "$failedTestCount failures, " +
+                    "$skippedTestCount skipped" +
+                    ")"
+              }
+              val testResultLine = "|  $output  |"
+              val repeatLength = testResultLine.length
+              val separationLine = "-".repeat(repeatLength)
+              println(separationLine)
+              println(testResultLine)
+              println(separationLine)
+            }
+          })
+        )
+      }
+    }
   }
 
   configurations {
