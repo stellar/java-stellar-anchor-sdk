@@ -104,7 +104,7 @@ public class DataConfigAdapter extends SpringConfigAdapter {
         copy(config, "data.url", "spring.datasource.url");
         copy(config, "data.username", "spring.datasource.username");
         copy(config, "data.password", "spring.datasource.password");
-        if (config.getString("flyway.enabled").equalsIgnoreCase("true")) {
+        if (config.getString("flyway.enabled", "").equalsIgnoreCase("true")) {
           set("spring.flyway.enabled", true);
           set("spring.flyway.locations", "classpath:/db/migration");
           copy(config, "data.username", "spring.flyway.user");
@@ -123,7 +123,7 @@ public class DataConfigAdapter extends SpringConfigAdapter {
         copy(config, "data.url", "spring.datasource.url");
         copy(config, "data.username", "spring.datasource.username");
         copy(config, "data.password", "spring.datasource.password");
-        if (config.getString("flyway.enabled").equalsIgnoreCase("true")) {
+        if (config.getString("flyway.enabled", "").equalsIgnoreCase("true")) {
           set("spring.flyway.enabled", true);
           set("spring.flyway.locations", "classpath:/db/migration");
           copy(config, "data.username", "spring.flyway.user");
@@ -139,7 +139,7 @@ public class DataConfigAdapter extends SpringConfigAdapter {
         copy(config, "data.url", "spring.datasource.url");
         copy(config, "data.username", "spring.datasource.username");
         copy(config, "data.password", "spring.datasource.password");
-        if (config.getString("flyway.enabled").equalsIgnoreCase("true")) {
+        if (config.getString("flyway.enabled", "").equalsIgnoreCase("true")) {
           set("spring.flyway.enabled", true);
           set("spring.flyway.locations", "classpath:/db/migration");
           copy(config, "data.username", "spring.flyway.user");
