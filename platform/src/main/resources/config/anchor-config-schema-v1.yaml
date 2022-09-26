@@ -4,6 +4,7 @@ callback_api.auth.expiration_milliseconds:
 callback_api.auth.type:
 callback_api.base_url:
 data.flyway_enabled:
+data.ddl_auto:
 data.flyway_location:
 data.initial_connection_pool_size:
 data.max_active_connections:
