@@ -30,14 +30,14 @@ logging:
   stellar_level: INFO
 
 data:
-  type: h2
-  url: jdbc:h2:mem:anchor-platform
-  username: ${DATA_USERNAME}
-  password: ${DATA_PASSWORD}
-  initial_connection_pool_size: 1
+  type: sqlite
+  url: jdbc:sqlite:anchor-platform.db
+  username: SQLITE_USERNAME # TODO: use secrets
+  password: SQLITE_PASSWORD # TODO: use secrets
+  initial_connection_pool_size: 2
   max_active_connections: 10
-  flyway_enabled: false
-  flyway_location: /db/migration
+  flyway_enabled: true
+  ddl_auto: update
 
 sep1:
   enabled: true
