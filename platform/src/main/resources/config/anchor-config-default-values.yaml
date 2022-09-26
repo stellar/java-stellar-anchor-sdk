@@ -479,7 +479,7 @@ data:
   ##      `create-drop`:  Creates schema at the startup and destroys the schema on context closure. Useful for unit tests.
   ##      `validate`:	  Only checks if the Schema matches the Entities. If the schema doesn't match, then the application startup will fail. Makes no changes to the database.
   ##      `update`:	      Updates the schema only if necessary. For example, If a new field was added in an entity, then it will simply alter the table for a new column without destroying the data.
-  ## This value will be used to configure `spring.jpa.hibernate.ddl-auto`.
+  ## This value will be used to configure `spring.jpa.hibernate.ddl-auto` in non-memory databases like SQLite, Postgres, etc.
   ## ATTENTION: it should not be used in production!
   #
   ddl_auto: none

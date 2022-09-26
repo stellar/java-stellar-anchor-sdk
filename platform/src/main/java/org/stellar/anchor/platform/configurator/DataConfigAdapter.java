@@ -92,7 +92,6 @@ public class DataConfigAdapter extends SpringConfigAdapter {
         set("spring.datasource.url", "jdbc:h2:mem:test");
         set("spring.jpa.database-platform", "org.hibernate.dialect.H2Dialect");
         set("spring.jpa.properties.hibernate.dialect", "org.hibernate.dialect.H2Dialect");
-        copy(config, "data.ddl_auto", "spring.jpa.hibernate.ddl-auto");
         copy(config, "data.username", "spring.datasource.username");
         copy(config, "data.password", "spring.datasource.password");
         break;
