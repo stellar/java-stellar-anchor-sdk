@@ -183,11 +183,11 @@ A Grafana dashboard for the Anchor Platform can be found at `docs/resources/graf
 and imported into your Grafana instance to visualized the Prometheus metrics.
 
 
-[`anchor-config-defaults.yaml`]: /platform/src/main/resources/anchor-config-defaults.yaml
-[`anchor-reference-server.yaml`]: /anchor-reference-server/src/main/resources/anchor-reference-server.yaml
-[`example.env`]: /platform/src/main/resources/example.env
-[`docs/resources/docker-examples/kafka/docker-compose.yaml`]: /docs/resources/docker-examples/kafka/docker-compose.yaml
-[`assets-test.json`]: /platform/src/main/resources/assets-test.json
+[`anchor-config-defaults.yaml`]: ../../platform/src/main/resources/anchor-config-defaults.yaml
+[`anchor-reference-server.yaml`]: ../../anchor-reference-server/src/main/resources/anchor-reference-server.yaml
+[`example.env`]: ../../platform/src/main/resources/example.env
+[`docs/resources/docker-examples/kafka/docker-compose.yaml`]: ../../docs/resources/docker-examples/kafka/docker-compose.yaml
+[`assets-test.json`]: ../../platform/src/main/resources/assets-test.json
 
 ## Logging
 
