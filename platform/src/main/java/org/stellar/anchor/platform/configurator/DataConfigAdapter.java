@@ -99,10 +99,11 @@ public class DataConfigAdapter extends SpringConfigAdapter {
         set("spring.datasource.driver-class-name", "org.sqlite.JDBC");
         set("spring.datasource.name", "anchor-platform");
         set("spring.jpa.database-platform", "org.stellar.anchor.platform.sqlite.SQLiteDialect");
+        copy(config, "data.ddl_auto", "spring.jpa.hibernate.ddl-auto");
         copy(config, "data.url", "spring.datasource.url");
         copy(config, "data.username", "spring.datasource.username");
         copy(config, "data.password", "spring.datasource.password");
-        if (config.getString("flyway.enabled").equalsIgnoreCase("true")) {
+        if (config.getString("flyway.enabled", "").equalsIgnoreCase("true")) {
           set("spring.flyway.enabled", true);
           set("spring.flyway.locations", "classpath:/db/migration");
           copy(config, "data.username", "spring.flyway.user");
@@ -117,10 +118,11 @@ public class DataConfigAdapter extends SpringConfigAdapter {
         set(
             "spring.datasource.hikari.max-lifetime",
             840000); // 14 minutes because IAM tokens are valid for 15 min
+        copy(config, "data.ddl_auto", "spring.jpa.hibernate.ddl-auto");
         copy(config, "data.url", "spring.datasource.url");
         copy(config, "data.username", "spring.datasource.username");
         copy(config, "data.password", "spring.datasource.password");
-        if (config.getString("flyway.enabled").equalsIgnoreCase("true")) {
+        if (config.getString("flyway.enabled", "").equalsIgnoreCase("true")) {
           set("spring.flyway.enabled", true);
           set("spring.flyway.locations", "classpath:/db/migration");
           copy(config, "data.username", "spring.flyway.user");
@@ -132,10 +134,11 @@ public class DataConfigAdapter extends SpringConfigAdapter {
         set("spring.datasource.driver-class-name", "org.postgresql.Driver");
         set("spring.datasource.name", "anchor-platform");
         set("spring.jpa.database-platform", "org.hibernate.dialect.PostgreSQL9Dialect");
+        copy(config, "data.ddl_auto", "spring.jpa.hibernate.ddl-auto");
         copy(config, "data.url", "spring.datasource.url");
         copy(config, "data.username", "spring.datasource.username");
         copy(config, "data.password", "spring.datasource.password");
-        if (config.getString("flyway.enabled").equalsIgnoreCase("true")) {
+        if (config.getString("flyway.enabled", "").equalsIgnoreCase("true")) {
           set("spring.flyway.enabled", true);
           set("spring.flyway.locations", "classpath:/db/migration");
           copy(config, "data.username", "spring.flyway.user");
