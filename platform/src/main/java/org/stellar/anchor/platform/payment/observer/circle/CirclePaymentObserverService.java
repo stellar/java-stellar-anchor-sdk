@@ -1,6 +1,7 @@
 package org.stellar.anchor.platform.payment.observer.circle;
 
 import static org.stellar.anchor.util.MathHelper.*;
+import static org.stellar.anchor.util.StringHelper.*;
 
 import com.google.gson.Gson;
 import java.io.IOException;
@@ -91,9 +92,14 @@ public class CirclePaymentObserverService {
   public void handleSubscriptionConfirmationNotification(CircleNotification circleNotification)
       throws BadRequestException {
     String subscribeUrl = circleNotification.getSubscribeUrl();
-    if (subscribeUrl == null) {
+    if (isEmpty(subscribeUrl)) {
       throw new BadRequestException(
           "Notification body of type SubscriptionConfirmation is missing subscription URL.");
+    }
+
+    // sanitize
+    if (!subscribeUrl.toLowerCase().startsWith("https://")) {
+      throw new BadRequestException("The subscription URL schema is not of type \"https\".");
     }
 
     Request httpRequest =

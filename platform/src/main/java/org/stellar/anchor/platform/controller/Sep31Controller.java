@@ -68,6 +68,7 @@ public class Sep31Controller {
   @ResponseStatus(code = HttpStatus.OK)
   @RequestMapping(
       value = "/transactions/{id}",
+      consumes = {MediaType.APPLICATION_JSON_VALUE},
       method = {RequestMethod.PATCH})
   public Sep31GetTransactionResponse patchTransaction(
       HttpServletRequest servletRequest,
