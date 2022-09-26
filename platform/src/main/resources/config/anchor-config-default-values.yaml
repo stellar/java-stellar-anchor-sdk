@@ -330,62 +330,75 @@ metrics:
 #########################
 ## The events being sent from the platform are the ones described in the `Events Schema.yml` file
 events:
-
   ## @param: enabled
   ## @type: bool
   ## Whether to enable events.
   #
   enabled: false
 
+  ## @param: event_type_to_queue
+  ## @type: map
+  ## Mapping of the event type to the queue name that messages are published to
+  event_type_to_queue:
+    quote_created: ap_event_quote_created
+    transaction_created: ap_event_transaction_created
+    transaction_status_changed: ap_event_transaction_status_changed
+    transaction_error: ap_event_transaction_error
+
   ## @param: publisher_type
-  ## @supported_values: `kafka`, `sqs`
+  ## @supported_values: `kafka`, `sqs`, or `msk`
   ## The type of queue to use for event publishing
   #
-  publisher_type: kafka
+  publisher:
+    type: kafka
+
+    ## If the value of `events.publisher.type` is "kafka", the `events.publisher.kafka` field must be defined.
+    kafka:
+      ## @param: bootstrap_server
+      ## @type: string
+      ## The Kafka server used to bootstrap setup
+      ## For MSK, use port 9098 for access from within AWS and port 9198 for public access and specify
+      ## AWS credentials.
+      ## https://docs.aws.amazon.com/msk/latest/developerguide/port-info.html
+      #
+      bootstrap_server: localhost:29092
 
 
-  options:
+    ## If the value of `publisher.type` is "sqs", the `events.publisher.sqs` field must be defined.
+    sqs:
+      ## @param: use_IAM
+      ## @type: boolean
+      ## Use IAM authentication for AWS MSK or AWS SQS.
+      ## SQS FIFO queues should be pre-created in AWS (Anchor Platform will not create them)
+      ## If true, @required_secrets:
+      ##    secret.event.publisher.aws_access_key_id
+      ##    secret.event.publisher.aws_secret_access_key
+      #
+      use_IAM: false
 
-    ## @param: bootstrap_server
-    ## @type: string
-    ## The Kafka server used to bootstrap setup
-    ## For MSK, use port 9098 for access from within AWS and port 9198 for public access and specify
-    ## AWS credentials.
-    ## https://docs.aws.amazon.com/msk/latest/developerguide/port-info.html
-    #
-    bootstrap_server: localhost:29092
+      ## @param: region
+      ## @type: string
+      ## AWS region for the queue. Can also be defined as environment variable: AWS_REGION
+      #
+      aws_region: us-east-1
 
-    ## @param: use_IAM
-    ## @type: boolean
-    ## Use IAM authentication for AWS MSK or AWS SQS.
-    ## SQS FIFO queues should be pre-created in AWS (Anchor Platform will not create them)
-    ## If true, @required_secrets:
-    ##    AWS_ACCESS_KEY_ID
-    ##    AWS_SECRET_ACCESS_KEY
-    #
-    use_IAM: false
+    ## If the value of `publisher.type` is "msk", the `events.publisher.msk` field must be defined.
+    msk:
+      ## @param: use_IAM
+      ## @type: boolean
+      ## Use IAM authentication for AWS MSK or AWS SQS.
+      ## SQS FIFO queues should be pre-created in AWS (Anchor Platform will not create them)
+      ## If true, @required_secrets:
+      ##    secret.event.publisher.aws_access_key_id
+      ##    secret.event.publisher.aws_secret_access_key
+      #
+      use_IAM: false
 
-    ## @param: region
-    ## @type: string
-    ## AWS region for the queue. Can also be defined as environment variable: AWS_REGION
-    #
-    aws_region: us-east-1
-
-    ## @param: use_single_queue
-    ## @type: boolean
-    ## If true, all events are published to a single queue (specified in eventTypeToQueue.all)
-    use_single_queue: false
-
-    ## @param: event_type_to_queue
-    ## @type: map
-    ## Mapping of the event type to the queue name that messages are published to
-    event_type_to_queue:
-      all: ap_event_single_queue
-      quote_created: ap_event_quote_created
-      transaction_created: ap_event_transaction_created
-      transaction_status_changed: ap_event_transaction_status_changed
-      transaction_error: ap_event_transaction_error
-
+      ## @param: region
+      ## @type: string
+      ## AWS region for the queue. Can also be defined as environment variable: AWS_REGION
+      #
+      aws_region: us-east-1
 
 #########################
 ## Assets Configuration
