@@ -18,7 +18,8 @@ public class ConfigReader {
 
   public ConfigReader(int version) throws InvalidConfigException {
     try {
-      configSchema = loadConfig(new ClassPathResource(getVersionSchemaFile(version)), VERSION_SCHEMA);
+      configSchema =
+          loadConfig(new ClassPathResource(getVersionSchemaFile(version)), VERSION_SCHEMA);
       this.version = version;
     } catch (IOException e) {
       throw new InvalidConfigException(String.format("version:%s is not a defined", version));
