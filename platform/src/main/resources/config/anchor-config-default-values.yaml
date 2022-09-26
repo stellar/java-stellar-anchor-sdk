@@ -299,7 +299,7 @@ sep38:
   ## @type: bool
   ## Whether to enable SEP-38 for this instance of AP server.
   #
-  enabled: true
+  enabled: false
 
 
 ##########################
@@ -340,7 +340,6 @@ events:
   ## @param: publisher_type
   ## @supported_values: `kafka`, `sqs`
   ## The type of queue to use for event publishing
-  ##
   #
   publisher_type: kafka
 
@@ -472,6 +471,18 @@ data:
   ## (ex: addForeignKeyConstraint) are not supported.
   #
   flyway_enabled: false
+
+  ## @param: ddl_auto
+  ## @supported_values:
+  ##      `none`:	      (default) No database Schema initialization
+  ##      `create`:	      Drops and creates the schema at the application startup. With this option, all your data will be gone on each startup.
+  ##      `create-drop`:  Creates schema at the startup and destroys the schema on context closure. Useful for unit tests.
+  ##      `validate`:	  Only checks if the Schema matches the Entities. If the schema doesn't match, then the application startup will fail. Makes no changes to the database.
+  ##      `update`:	      Updates the schema only if necessary. For example, If a new field was added in an entity, then it will simply alter the table for a new column without destroying the data.
+  ## This value will be used to configure `spring.jpa.hibernate.ddl-auto` in non-memory databases like SQLite, Postgres, etc.
+  ## ATTENTION: it should not be used in production!
+  #
+  ddl_auto: none
 
   ## @param: flyway_enabled
   ## @type: string
