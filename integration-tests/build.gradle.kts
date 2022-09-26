@@ -11,7 +11,7 @@ dependencies {
   implementation("org.springframework.boot:spring-boot")
   implementation("org.springframework.boot:spring-boot-autoconfigure")
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-  implementation(libs.snakeyaml)
+  implementation(libs.snakeyaml) // used to force the version of snakeyaml (used by springboot) to a safer one.
   implementation("org.springframework.boot:spring-boot-starter-web")
 
   implementation(libs.commons.cli)
