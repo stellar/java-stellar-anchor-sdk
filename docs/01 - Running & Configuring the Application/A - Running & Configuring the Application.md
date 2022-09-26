@@ -26,7 +26,8 @@ This section covers how to run the application from source code using the provid
     - This uses the default configuration file at [`anchor-reference-server.yaml`], but you can use a custom configuration file by setting the `REFERENCE_SERVER_CONFIG_ENV` environment variable to the path of the configuration file, following the [Path to Yaml](#path-to-yaml) format.
 4. Start the Anchor Platform: `./gradlew service-runner:bootRun --args=--sep-server`
     - This step requires you to set up a `STELLAR_ANCHOR_CONFIG`. You can test the application by using the default one with `export STELLAR_ANCHOR_CONFIG=file:<full-path-to-java-stellar-anchor-sdk>/platform/src/main/resources/example.anchor-config.yaml`,  
-    - Eventually you'll need to set up your own configuration based on the `anchor-config-default-values.yaml`. 
+    - Eventually you'll need to set up your own configuration based on the `anchor-config-default-values.yaml`.
+    - You will need to export additional environment variables, depending on your configuration. An example of the variables you may need can be found in [`example.env`]
 5. Start the Stellar Observer: `./gradlew service-runner:bootRun --args=--stellar-observer`
     - This also needs the `STELLAR_ANCHOR_CONFIG` previously mentioned.
 
