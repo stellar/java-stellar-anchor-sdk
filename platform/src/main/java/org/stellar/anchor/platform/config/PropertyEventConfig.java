@@ -1,17 +1,16 @@
 package org.stellar.anchor.platform.config;
 
 import lombok.Data;
-import org.json.Property;
 import org.stellar.anchor.config.event.EventConfig;
-import org.stellar.anchor.config.event.EventTypeToQueueConfig;
-import org.stellar.anchor.config.event.PublisherConfig;
+
+import java.util.Map;
 
 @Data
 //  public class PropertyEventConfig implements EventConfig, Validator {
 public class PropertyEventConfig implements EventConfig {
   private boolean enabled = false;
   private PropertyPublisherConfig publisher;
-  private EventTypeToQueueConfig eventTypeToQueue;
+  private Map<String, String> eventTypeToQueue;
 
   //  @Override
   //  public boolean supports(Class<?> clazz) {

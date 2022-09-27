@@ -16,7 +16,7 @@ public class EventService {
 
   public EventService(EventConfig eventConfig) {
     this.eventConfig = eventConfig;
-    this.eventTypeMapping = eventConfig.getEventTypeToQueue().getMapping();
+    this.eventTypeMapping = eventConfig.getEventTypeToQueue();
   }
 
   public void setEventPublisher(EventPublisher eventPublisher) {

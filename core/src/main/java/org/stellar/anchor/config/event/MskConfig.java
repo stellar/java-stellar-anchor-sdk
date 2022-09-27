@@ -5,5 +5,5 @@ import lombok.Data;
 @Data
 public class MskConfig extends KafkaConfig {
   boolean useIAM;
-  String region;
+  String awsRegion;
 }

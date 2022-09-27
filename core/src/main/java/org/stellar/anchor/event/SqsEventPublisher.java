@@ -16,7 +16,7 @@ public class SqsEventPublisher extends EventPublisher {
       SqsConfig sqsConfig) {
     this.sqsClient =
         AmazonSQSAsyncClientBuilder.standard()
-            .withRegion(sqsConfig.getRegion())
+            .withRegion(sqsConfig.getAwsRegion())
             .build();
   }
 

@@ -6,7 +6,6 @@ import lombok.Data;
 public class KafkaConfig implements PublisherConfigDetail {
   String bootstrapServers;
   String clientId;
-  ProducerType producerType;
   int retries;
   int lingerMs;
 
