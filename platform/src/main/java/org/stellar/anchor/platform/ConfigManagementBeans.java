@@ -40,6 +40,9 @@ public class ConfigManagementBeans {
     return new PlatformApiConfig(secretConfig);
   }
 
+  /**********************************
+   * SEP configurations
+   */
   @Bean
   @ConfigurationProperties(prefix = "sep1")
   Sep1Config sep1Config() {
@@ -75,17 +78,13 @@ public class ConfigManagementBeans {
   Sep38Config sep38Config() {
     return new PropertySep38Config();
   }
-
+  /**********************************
+   * Payment observer configurations
+   */
   @Bean
   @ConfigurationProperties(prefix = "circle")
   CircleConfig circleConfig() {
     return new PropertyCircleConfig();
-  }
-
-  @Bean
-  @ConfigurationProperties
-  PropertySecretConfig secretConfig() {
-    return new PropertySecretConfig();
   }
 
   @Bean
@@ -99,27 +98,36 @@ public class ConfigManagementBeans {
     return new CirclePaymentConfig();
   }
 
+  /**********************************
+   * Event configurations
+   */
+  //  @Bean
+  //  @ConfigurationProperties(prefix = "events.event-type-to-queue")
+  //  EventTypeToQueueConfig eventTypeToQueueConfig() {
+  //    return new PropertyEventTypeToQueueConfig();
+  //  }
+  //
+  //  @Bean
+  //  @ConfigurationProperties(prefix = "events.publisher")
+  //  PublisherConfig publisherConfig() {
+  //    return new PropertyPublisherConfig();
+  //  }
+
   @Bean
   @ConfigurationProperties(prefix = "events")
-  EventConfig eventConfig(PublisherConfig publisherConfig) {
-    return new PropertyEventConfig(publisherConfig);
-  }
-
-  @Bean
-  @ConfigurationProperties(prefix = "events.options")
-  PublisherConfig publisherConfig(EventTypeToQueueConfig eventTypeToQueueConfig) {
-    return new PropertyPublisherConfig(eventTypeToQueueConfig);
-  }
-
-  @Bean
-  @ConfigurationProperties(prefix = "events.options.event-type-to-queue")
-  EventTypeToQueueConfig eventTypeToQueueConfig() {
-    return new PropertyEventTypeToQueueConfig();
+  PropertyEventConfig eventConfig() {
+    return new PropertyEventConfig();
   }
 
   @Bean
   @ConfigurationProperties(prefix = "metrics")
   MetricConfig metricConfig() {
     return new PropertyMetricConfig();
+  }
+
+  @Bean
+  @ConfigurationProperties
+  PropertySecretConfig secretConfig() {
+    return new PropertySecretConfig();
   }
 }

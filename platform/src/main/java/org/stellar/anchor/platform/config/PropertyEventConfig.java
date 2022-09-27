@@ -1,45 +1,39 @@
 package org.stellar.anchor.platform.config;
 
 import lombok.Data;
-import org.springframework.validation.BindException;
-import org.springframework.validation.Errors;
-import org.springframework.validation.ValidationUtils;
-import org.springframework.validation.Validator;
-import org.stellar.anchor.config.EventConfig;
-import org.stellar.anchor.config.PublisherConfig;
+import org.json.Property;
+import org.stellar.anchor.config.event.EventConfig;
+import org.stellar.anchor.config.event.EventTypeToQueueConfig;
+import org.stellar.anchor.config.event.PublisherConfig;
 
 @Data
-public class PropertyEventConfig implements EventConfig, Validator {
+//  public class PropertyEventConfig implements EventConfig, Validator {
+public class PropertyEventConfig implements EventConfig {
   private boolean enabled = false;
-  private String publisherType;
+  private PropertyPublisherConfig publisher;
+  private EventTypeToQueueConfig eventTypeToQueue;
 
-  PublisherConfig publisherConfig;
+  //  @Override
+  //  public boolean supports(Class<?> clazz) {
+  //    return PropertyEventConfig.class.isAssignableFrom(clazz);
+  //  }
 
-  public PropertyEventConfig(PublisherConfig kafkaConfig) {
-    this.publisherConfig = kafkaConfig;
-  }
-
-  @Override
-  public boolean supports(Class<?> clazz) {
-    return PropertyEventConfig.class.isAssignableFrom(clazz);
-  }
-
-  @Override
-  public void validate(Object target, Errors errors) {
-    EventConfig config = (EventConfig) target;
-    if (!config.isEnabled()) {
-      return;
-    }
-
-    ValidationUtils.rejectIfEmptyOrWhitespace(errors, "publisherType", "");
-
-    BindException validation = publisherConfig.validate(config.getPublisherType());
-    if (validation.hasErrors()) {
-      String errorString = validation.getAllErrors().get(0).toString();
-      errors.rejectValue(
-          "publisherConfig",
-          "badPublisherConfig",
-          String.format("event publisher not properly configured: %s", errorString));
-    }
-  }
+  //  @Override
+  //  public void validate(Object target, Errors errors) {
+  //    EventConfig config = (EventConfig) target;
+  //    if (!config.isEnabled()) {
+  //      return;
+  //    }
+  //
+  //    ValidationUtils.rejectIfEmptyOrWhitespace(errors, "publisherType", "");
+  //
+  //    BindException validation = publisherConfig.validate(config.getPublisherType());
+  //    if (validation.hasErrors()) {
+  //      String errorString = validation.getAllErrors().get(0).toString();
+  //      errors.rejectValue(
+  //          "publisherConfig",
+  //          "badPublisherConfig",
+  //          String.format("event publisher not properly configured: %s", errorString));
+  //    }
+  //  }
 }
