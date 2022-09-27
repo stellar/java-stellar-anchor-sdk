@@ -357,12 +357,10 @@ events:
       ## @param: bootstrap_server
       ## @type: string
       ## The Kafka server used to bootstrap setup
-      ## For MSK, use port 9098 for access from within AWS and port 9198 for public access and specify
       ## AWS credentials.
       ## https://docs.aws.amazon.com/msk/latest/developerguide/port-info.html
       #
       bootstrap_server: localhost:29092
-
 
     ## If the value of `publisher.type` is "sqs", the `events.publisher.sqs` field must be defined.
     sqs:
@@ -399,6 +397,14 @@ events:
       ## AWS region for the queue. Can also be defined as environment variable: AWS_REGION
       #
       aws_region: us-east-1
+
+      ## @param: bootstrap_server
+      ## @type: string
+      ## The Kafka server used to bootstrap setup in AWS
+      ## AWS credentials.
+      ## https://docs.aws.amazon.com/msk/latest/developerguide/port-info.html
+      #
+      bootstrap_server: # b-1-public.democluster1.w7j4hi.c25.kafka.us-east-1.amazonaws.com:9198
 
 #########################
 ## Assets Configuration

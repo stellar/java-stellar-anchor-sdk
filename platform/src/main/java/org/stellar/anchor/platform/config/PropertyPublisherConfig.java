@@ -4,34 +4,14 @@ import java.util.Map;
 import lombok.Data;
 import org.springframework.validation.BindException;
 import org.springframework.validation.ValidationUtils;
-import org.stellar.anchor.config.EventTypeToQueueConfig;
-import org.stellar.anchor.config.PublisherConfig;
+import org.stellar.anchor.config.event.*;
 
 @Data
 public class PropertyPublisherConfig implements PublisherConfig {
-  private String bootstrapServer;
-  private Boolean useSingleQueue;
-
-  private Boolean useIAM;
-  private String region;
-  private String accessKey;
-  private String secretKey;
-
-  private Map<String, String> eventTypeToQueue;
-
-  public PropertyPublisherConfig(EventTypeToQueueConfig eventTypeToQueueConfig) {
-    this.eventTypeToQueue = eventTypeToQueueConfig.getEventTypeToQueueMap();
-  }
-
-  @Override
-  public boolean isUseSingleQueue() {
-    return useSingleQueue;
-  }
-
-  @Override
-  public boolean isUseIAM() {
-    return useIAM;
-  }
+  String type;
+  KafkaConfig kafka;
+  SqsConfig sqs;
+  MskConfig msk;
 
   public BindException validate(String publisherType) {
     BindException errors = new BindException(this, "publisherConfig");

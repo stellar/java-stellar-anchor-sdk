@@ -2,29 +2,38 @@ package org.stellar.anchor.platform;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.stellar.anchor.config.*;
-import org.stellar.anchor.event.EventPublishService;
-import org.stellar.anchor.event.KafkaEventService;
-import org.stellar.anchor.event.NoopEventService;
-import org.stellar.anchor.event.SqsEventService;
+import org.stellar.anchor.api.exception.InvalidConfigException;
+import org.stellar.anchor.event.*;
+import org.stellar.anchor.platform.config.PropertyEventConfig;
+
+import static org.stellar.anchor.util.Log.errorF;
 
 @Configuration
 public class EventsBeans {
   @Bean
-  public EventPublishService eventService(
-      EventConfig eventConfig, PublisherConfig publisherConfig) {
+  public EventService eventService(PropertyEventConfig eventConfig) throws InvalidConfigException {
+    EventService eventService = new EventService(eventConfig);
     if (!eventConfig.isEnabled()) {
-      return new NoopEventService();
+      eventService.setEventPublisher(new NoopEventPublisher());
     }
-    // TODO handle when event publishing is disabled
-    switch (eventConfig.getPublisherType()) {
+    String publisherType = eventConfig.getPublisher().getType();
+    switch (publisherType) {
       case "kafka":
-        return new KafkaEventService(publisherConfig);
+        eventService.setEventPublisher(
+            new KafkaEventPublisher(eventConfig.getPublisher().getKafka()));
+        break;
       case "sqs":
-        return new SqsEventService(publisherConfig);
+        eventService.setEventPublisher(new SqsEventPublisher(eventConfig.getPublisher().getSqs()));
+        break;
+      case "msk":
+        eventService.setEventPublisher(new MskEventPublisher(eventConfig.getPublisher().getMsk()));
+        break;
       default:
-        throw new RuntimeException(
-            String.format("Invalid event publisher: %s", eventConfig.getPublisherType()));
+        errorF("Invalid event publisher: {}", publisherType);
+        throw new InvalidConfigException(
+            String.format("Invalid event publisher: %s", publisherType));
     }
+
+    return eventService;
   }
 }
