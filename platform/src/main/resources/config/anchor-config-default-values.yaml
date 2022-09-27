@@ -360,7 +360,10 @@ events:
       ## AWS credentials.
       ## https://docs.aws.amazon.com/msk/latest/developerguide/port-info.html
       #
-      bootstrap_server: localhost:29092
+      bootstrap_servers: localhost:29092
+      client_id:
+      retries: 1
+      linger_ms: 1000
 
     ## If the value of `publisher.type` is "sqs", the `events.publisher.sqs` field must be defined.
     sqs:
@@ -405,6 +408,11 @@ events:
       ## https://docs.aws.amazon.com/msk/latest/developerguide/port-info.html
       #
       bootstrap_server: # b-1-public.democluster1.w7j4hi.c25.kafka.us-east-1.amazonaws.com:9198
+      client_id:
+      retries: 1
+      linger_ms: 1000
+
+
 
 #########################
 ## Assets Configuration

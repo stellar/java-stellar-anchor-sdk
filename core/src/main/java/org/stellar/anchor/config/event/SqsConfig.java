@@ -5,5 +5,5 @@ import lombok.Data;
 @Data
 public class SqsConfig implements PublisherConfigDetail {
   boolean useIAM;
-  String region;
+  String awsRegion;
 }

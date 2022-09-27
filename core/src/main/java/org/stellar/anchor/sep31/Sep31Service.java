@@ -1,20 +1,5 @@
 package org.stellar.anchor.sep31;
 
-import static org.stellar.anchor.api.sep.sep31.Sep31InfoResponse.AssetResponse;
-import static org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_SEND;
-import static org.stellar.anchor.util.Log.*;
-import static org.stellar.anchor.util.MathHelper.decimal;
-import static org.stellar.anchor.util.MathHelper.formatAmount;
-import static org.stellar.anchor.util.SepHelper.*;
-import static org.stellar.anchor.util.SepLanguageHelper.validateLanguage;
-import static org.stellar.anchor.util.StringHelper.isEmpty;
-import static org.stellar.sdk.xdr.MemoType.MEMO_NONE;
-
-import java.math.BigDecimal;
-import java.time.Instant;
-import java.util.*;
-import java.util.stream.Collectors;
-import javax.transaction.Transactional;
 import lombok.Data;
 import lombok.SneakyThrows;
 import org.stellar.anchor.api.callback.CustomerIntegration;
@@ -36,11 +21,27 @@ import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtToken;
 import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.Sep31Config;
-import org.stellar.anchor.event.EventPublishService;
+import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.event.models.TransactionEvent;
 import org.stellar.anchor.sep38.Sep38Quote;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
 import org.stellar.anchor.util.Log;
+
+import javax.transaction.Transactional;
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static org.stellar.anchor.api.sep.sep31.Sep31InfoResponse.AssetResponse;
+import static org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_SEND;
+import static org.stellar.anchor.util.Log.*;
+import static org.stellar.anchor.util.MathHelper.decimal;
+import static org.stellar.anchor.util.MathHelper.formatAmount;
+import static org.stellar.anchor.util.SepHelper.*;
+import static org.stellar.anchor.util.SepLanguageHelper.validateLanguage;
+import static org.stellar.anchor.util.StringHelper.isEmpty;
+import static org.stellar.sdk.xdr.MemoType.MEMO_NONE;
 
 public class Sep31Service {
   private final AppConfig appConfig;
@@ -52,7 +53,7 @@ public class Sep31Service {
   private final FeeIntegration feeIntegration;
   private final CustomerIntegration customerIntegration;
   private final Sep31InfoResponse infoResponse;
-  private final EventPublishService eventService;
+  private final EventService eventService;
 
   public Sep31Service(
       AppConfig appConfig,
@@ -63,7 +64,7 @@ public class Sep31Service {
       AssetService assetService,
       FeeIntegration feeIntegration,
       CustomerIntegration customerIntegration,
-      EventPublishService eventService) {
+      EventService eventService) {
     debug("appConfig:", appConfig);
     debug("sep31Config:", sep31Config);
     this.appConfig = appConfig;
