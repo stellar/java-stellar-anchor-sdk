@@ -18,7 +18,7 @@ open class Sep1ConfigTest {
         Sep1ConfigTest::class.java.getResource(
           "/org/stellar/anchor/platform/config/sep1-stellar-test.toml"
         ) as
-                URL
+          URL
       return Paths.get(resource.toURI()).toFile().absolutePath
     }
 
@@ -27,7 +27,7 @@ open class Sep1ConfigTest {
         Sep1ConfigTest::class.java.getResource(
           "/org/stellar/anchor/platform/config/sep1-stellar-test.toml"
         ) as
-                URL
+          URL
       return resource.toString()
     }
 

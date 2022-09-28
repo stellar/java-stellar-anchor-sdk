@@ -1,128 +1,358 @@
+version: 1
 
-stellar:
-  anchor:
-    config: in-memory
-    app-config:
-      type: config-spring-property
-      settings: app-config                        # The absolute location of the configuration data in this yaml file
+logging:
+  level: INFO
+  stellar_level: DEBUG
 
-    data-access:
-      type: data-spring-jdbc
-      settings: data-spring-jdbc-local-postgres    # use local postgres instance
+callback_api:
+  base_url: http://host.docker.internal:8081
+  auth:
+    type: JWT_TOKEN
+    expiration_milliseconds: 30000
 
-    logging:
-      type: logging-logback
-      settings: logging-logback-settings          # The absolute location of the configuration data in this yaml file
+platform_api:
+  auth:
+    type: JWT_TOKEN
+    expiration_milliseconds: 30000
 
-app-config:
-  app:
-    stellarNetworkPassphrase: Test SDF Network ; September 2015
-    horizonUrl: https://horizon-testnet.stellar.org
-    hostUrl: http://host.docker.internal:8080
-    languages: en
-    assets: file:config/assets-test.json
+events:
+  enabled: true
+  options:
+    bootstrap_server: host.docker.internal:29092
 
-    jwtSecretKey: secret
+sep1:
+  enabled: true
+  toml:
+    type: string
+    value: |
+      ACCOUNTS = []
+      VERSION = "0.1.0"
+      NETWORK_PASSPHRASE = "Test SDF Network ; September 2015"
+      SIGNING_KEY = "GCHLHDBOKG2JWMJQBTLSL5XG6NO7ESXI2TAQKZXCXWXB5WI2X6W233PR"
+      
+      WEB_AUTH_ENDPOINT = "http://host.docker.internal:8080/auth"
+      KYC_SERVER = "http://host.docker.internal:8080/sep12"
+      TRANSFER_SERVER_SEP0024 = "http://host.docker.internal:8080/sep24"
+      DIRECT_PAYMENT_SERVER = "http://host.docker.internal:8080/sep31"
+      ANCHOR_QUOTE_SERVER = "http://host.docker.internal:8080/sep38"
+      
+      [[CURRENCIES]]
+      code = "USDC"
+      issuer = "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+      status = "test"
+      is_asset_anchored = true
+      anchor_asset_type = "fiat"
+      desc = "A test USDC issued by Stellar."
+      
+      [[CURRENCIES]]
+      code = "JPYC"
+      issuer = "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+      status = "test"
+      is_asset_anchored = true
+      anchor_asset_type = "fiat"
+      desc = "A test JPYC issued by Stellar."
 
-  integration-auth:
-    authType: JWT_TOKEN
-    platformToAnchorSecret: myPlatformToAnchorSecret
-    anchorToPlatformSecret: myAnchorToPlatformSecret
-    expirationMilliseconds: 30000
+sep10:
+  enabled: true
+  home_domain: host.docker.internal:8080
 
-  sep1:
-    enabled: true
-    stellarFile: file:config/stellar.toml
+sep12:
+  enabled: true
 
-  sep10:
-    enabled: true
-    homeDomain: host.docker.internal:8080
-    clientAttributionRequired: false
-    clientAttributionAllowList: lobstr.co,preview.lobstr.co
-    authTimeout: 900
-    jwtTimeout: 86400
+sep24:
+  enabled: true
+  interactiveUrl: http://host.docker.internal:8081/sep24/interactive
 
-    signingSeed: SAX3AH622R2XT6DXWWSRIDCMMUCCMATBZ5U6XKJWDO7M2EJUBFC3AW5X
+sep31:
+  enabled: true
 
-    omnibusAccountList:
+sep38:
+  enabled: true
 
-    requireKnownOmnibusAccount: false
+assets:
+  type: json
+  value: |
+    {
+      "assets": [
+          {
+              "schema": "stellar",
+              "code": "USDC",
+              "issuer": "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+             "distribution_account": "GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF",
+              "significant_decimals": 2,
+              "deposit" : {
+                  "enabled": true,
+                  "fee_minimum": 0,
+                  "fee_percent": 0,
+                  "min_amount": 1,
+                  "max_amount": 1000000
+              },
+              "withdraw": {
+                  "enabled": true,
+                  "fee_fixed": 0,
+                  "fee_percent": 0,
+                  "min_amount": 1,
+                  "max_amount": 1000000
+              },
+              "send": {
+                  "fee_fixed": 0,
+                  "fee_percent": 0,
+                  "min_amount": 1,
+                  "max_amount": 1000000
+              },
+              "sep31" : {
+                  "quotes_supported": true,
+                  "quotes_required": false,
+                  "sep12": {
+                      "sender": {
+                          "types": {
+                              "sep31-sender": {
+                                  "description": "U.S. citizens limited to sending payments of less than $10,000 in value"
+                              },
+                              "sep31-large-sender": {
+                                  "description": "U.S. citizens that do not have sending limits"
+                              },
+                              "sep31-foreign-sender": {
+                                  "description": "non-U.S. citizens sending payments of less than $10,000 in value"
+                              }
+                          }
+                      },
+                      "receiver": {
+                          "types": {
+                              "sep31-receiver": {
+                                  "description": "U.S. citizens receiving USD"
+                              },
+                              "sep31-foreign-receiver": {
+                                  "description": "non-U.S. citizens receiving USD"
+                              }
+                          }
+                      }
+                  },
+                  "fields": {
+                      "transaction": {
+                          "receiver_routing_number": {
+                              "description": "routing number of the destination bank account"
+                          },
+                          "receiver_account_number": {
+                              "description": "bank account number of the destination"
+                          },
+                          "type": {
+                              "description": "type of deposit to make",
+                              "choices": [
+                                  "SEPA",
+                                  "SWIFT"
+                              ]
+                          }
+                      }
+                  }
+              },
+              "sep38": {
+                  "exchangeable_assets": [
+                      "iso4217:USD"
+                  ]
+              },
+              "sep24_enabled": true,
+              "sep31_enabled": true,
+              "sep38_enabled": true
+          },
+          {
+              "schema": "stellar",
+              "code": "JPYC",
+              "issuer": "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+              "distribution_account": "GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF",
+              "significant_decimals": 4,
+              "deposit" : {
+                  "enabled": true,
+                  "fee_minimum": 0,
+                  "fee_percent": 0,
+                  "min_amount": 1,
+                  "max_amount": 1000000
+              },
+              "withdraw": {
+                  "enabled": true,
+                  "fee_fixed": 0,
+                  "fee_percent": 0,
+                  "min_amount": 1,
+                  "max_amount": 1000000
+              },
+              "send": {
+                  "fee_fixed": 0,
+                  "fee_percent": 0,
+                  "min_amount": 1,
+                  "max_amount": 1000000
+              },
+              "sep31" : {
+                  "quotes_supported": true,
+                  "quotes_required": false,
+                  "sep12": {
+                      "sender": {
+                          "types": {
+                              "sep31-sender": {
+                                  "description": "U.S. citizens limited to sending payments of less than $10,000 in value"
+                              },
+                              "sep31-large-sender": {
+                                  "description": "U.S. citizens that do not have sending limits"
+                              },
+                              "sep31-foreign-sender": {
+                                  "description": "non-U.S. citizens sending payments of less than $10,000 in value"
+                              }
+                          }
+                      },
+                      "receiver": {
+                          "types": {
+                              "sep31-receiver": {
+                                  "description": "U.S. citizens receiving JPY"
+                              },
+                              "sep31-foreign-receiver": {
+                                  "description": "non-U.S. citizens receiving JPY"
+                              }
+                          }
+                      }
+                  },
+                  "fields": {
+                      "transaction": {
+                          "receiver_routing_number": {
+                              "description": "routing number of the destination bank account"
+                          },
+                          "receiver_account_number": {
+                              "description": "bank account number of the destination"
+                          },
+                          "type": {
+                              "description": "type of deposit to make",
+                              "choices": [
+                                  "SEPA",
+                                  "SWIFT"
+                              ]
+                          }
+                      }
+                  }
+              },
+              "sep38": {
+                  "exchangeable_assets": [
+                      "iso4217:USD"
+                  ]
+              },
+              "sep24_enabled": false,
+              "sep31_enabled": true,
+              "sep38_enabled": true
+          },
+          {
+              "schema": "iso4217",
+              "code": "USD",
+              "deposit" : {
+                  "enabled": true,
+                  "fee_minimum": 0,
+                  "fee_percent": 0,
+                  "min_amount": 0,
+                  "max_amount": 10000
+              },
+              "withdraw": {
+                  "enabled": true,
+                  "fee_fixed": 0,
+                  "fee_percent": 0,
+                  "min_amount": 0,
+                  "max_amount": 10000
+              },
+              "send": {
+                  "fee_fixed": 0,
+                  "fee_percent": 0,
+                  "min_amount": 0,
+                  "max_amount": 10000
+              },
+              "sep38": {
+                  "exchangeable_assets": [
+                      "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+                      "stellar:JPYC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+                  ],
+                  "country_codes": ["USA"],
+                  "decimals": 4,
+                  "sell_delivery_methods": [
+                      {
+                          "name": "WIRE",
+                          "description": "Send USD directly to the Anchor's bank account."
+                      }
+                  ],
+                  "buy_delivery_methods": [
+                      {
+                          "name": "WIRE",
+                          "description": "Have USD sent directly to your bank account."
+                      }
+                  ]
+              },
+              "sep24_enabled": false,
+              "sep31_enabled": false,
+              "sep38_enabled": true
+          }
+      ]
+    }
 
-  sep12:
-    enabled: true
-    customerIntegrationEndpoint: http://host.docker.internal:8081
+################################
+## Data Configuration
+################################
+data:
 
-  sep24:
-    enabled: true
-    interactiveJwtExpiration: 3600
+  ## DB credentials are specified in @environment_variables DATA_USERNAME, DATA_PASSWORD
 
-    interactiveUrl: http://host.docker.internal:8081/sep24/interactive
+  ## @param: type
+  ## @supported_values:
+  ##    `h2` (in-memory), `sqlite` (local), `postgres` (local), `aurora` (postgres on AWS)
+  ## Type of storage.
+  ## If this is set to `aurora`,
+  ##    @required_secrets: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION
+  #
+  type: postgres
 
-  sep31:
-    enabled: true
-    feeIntegrationEndPoint: http://host.docker.internal:8081
-    uniqueAddressIntegrationEndPoint: http://host.docker.internal:8081
-    paymentType: STRICT_SEND
-    depositInfoGeneratorType: self # self or circle
+  ## @param: url
+  ## @type: string
+  ## Location of the database
+  #
+  url: jdbc:postgresql://host.docker.internal:5440/
 
-  sep38:
-    enabled: true
-    quoteIntegrationEndPoint: http://host.docker.internal:8081
+  ## @param: username
+  ## @type: string
+  ## The username for database connection
+  #
+  username: postgres
 
-  circle:
-    circleUrl: https://api-sandbox.circle.com
-    apiKey: QVBJX0tFWTpjOWRjOWU3YjgzNTFhZDIwNWNlODEzYjkyZDEzZTU1YzpkY2U1MzVhMTExYjNjODU1YzQzNjMyZTQ5NWJhNDdlZg== # circle API key
 
-  payment-gateway:
-    circle:
-      name: "circle"
-      enabled: true
+  ## @param: username
+  ## @type: string
+  ## The password for database connection
+  #
+  password: password
 
-    stellar:
-      enabled: false
-      name: "stellar"
-      horizonUrl: https://horizon-testnet.stellar.org
-      secretKey: secret # stellar account secret key
+  ## @param: initial_connection_pool_size
+  ## @type: integer
+  ## Initial number of connections
+  ## For `sqlite`, set this to 1 to avoid database file lock exception
+  #
+  initial_connection_pool_size: 1
 
-  circle-payment-observer:
-    enabled: true
-    horizonUrl: https://horizon-testnet.stellar.org
-    stellarNetwork: TESTNET # TESTNET or PUBLIC
-    trackedWallet: all
+  ## @param: max_active_connections
+  ## @type: integer
+  ## Maximum number of db active connections
+  ## For `sqlite`, set this to 1 to avoid database file lock exception
+  #
+  max_active_connections: 10
 
-  event:
-    enabled: true
-    publisherType: kafka
+  ## @param: flyway_enabled
+  ## @type: bool
+  ## Whether to enable flyway.
+  ## Should be disabled for `sqlite` because certain features that flyway uses
+  ## (ex: addForeignKeyConstraint) are not supported.
+  #
+  flyway_enabled: true
 
-  kafka.publisher:
-    bootstrapServer: host.docker.internal:29092
-    useSingleQueue: false
-    eventTypeToQueue:
-      all: ap_event_single_queue
-      quote_created: ap_event_quote_created
-      transaction_created: ap_event_transaction_created
-      transaction_status_changed: ap_event_transaction_status_changed
-      transaction_error: ap_event_transaction_error
+  ## @param: flyway_enabled
+  ## @type: string
+  ## Location on disk where migrations are stored if flyway is enabled.
+  #
+  flyway_location: /db/migration
 
-data-spring-jdbc-local-postgres:
-  spring.jpa.database: POSTGRESQL
-  spring.jpa.show-sql: false
-  spring.datasource.driver-class-name: org.postgresql.Driver
-  spring.datasource.url: jdbc:postgresql://host.docker.internal:5440/
-  spring.datasource.username: postgres
-  spring.datasource.password: password
-  spring.mvc.converters.preferred-json-mapper: gson
-  spring.flyway.user: postgres
-  spring.flyway.password: password
-  spring.flyway.url: jdbc:postgresql://host.docker.internal:5440/
-  spring.flyway.locations: classpath:/db/migration
-
-spring:
-  logging:
-    level:
-      root: INFO
-      org.springframework: INFO
-      org.springframework.web.filter: INFO
-      org.stellar: INFO
-  mvc:
-    async.request-timeout: 6000
+  ## @param: hikari_max_lifetime
+  ## @type: integer
+  ## Maximum connection time before expiration
+  ## Only valid when database `type` is `aurora`.
+  ## Recommended setting is 14 minutes because IAM tokens are valid for 15 min.
+  #
+  # hikari_max_lifetime: 840000
