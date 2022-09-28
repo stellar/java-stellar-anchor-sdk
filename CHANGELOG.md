@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.1.1
+
+Update the version of Helm Chart.
+
 ## 1.1.0
 
 * SDK support for [SEP-1], [SEP-10], [SEP-12], [SEP-31] & [SEP-38].
