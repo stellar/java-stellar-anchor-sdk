@@ -16,6 +16,7 @@ dependencies {
   implementation("org.springframework.boot:spring-boot")
   implementation("org.springframework.boot:spring-boot-autoconfigure")
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
+  implementation(libs.snakeyaml) // used to force the version of snakeyaml (used by springboot) to a safer one.
   implementation("org.springframework.boot:spring-boot-starter-web")
   implementation("org.springframework.boot:spring-boot-starter-reactor-netty")
   implementation("org.springframework.boot:spring-boot-starter-actuator")
@@ -45,6 +46,7 @@ dependencies {
 
   testImplementation("org.springframework.boot:spring-boot-starter-test")
   testImplementation(libs.okhttp3.mockserver)
+  testImplementation(libs.okhttp3.tls)
 }
 
 tasks.test {

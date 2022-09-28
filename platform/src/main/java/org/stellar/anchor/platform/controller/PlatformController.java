@@ -1,6 +1,7 @@
 package org.stellar.anchor.platform.controller;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.NotFoundException;
@@ -32,6 +33,7 @@ public class PlatformController {
   @ResponseStatus(code = HttpStatus.OK)
   @RequestMapping(
       value = "/transactions",
+      consumes = {MediaType.APPLICATION_JSON_VALUE},
       method = {RequestMethod.PATCH})
   public PatchTransactionsResponse patchTransactions(@RequestBody PatchTransactionsRequest request)
       throws AnchorException {

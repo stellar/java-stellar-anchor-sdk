@@ -7,6 +7,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.stellar.anchor.api.exception.SepValidationException;
+import org.stellar.anchor.util.Log;
+import org.stellar.anchor.util.StringHelper;
 
 /** The controller that implement the endpoints of the Sep24 interactive flow. */
 @Controller
@@ -20,9 +22,18 @@ public class Sep24InteractiveController {
   @ResponseBody
   public String interactive(HttpServletRequest request) throws SepValidationException {
     String operation = request.getParameter("operation");
-    if (operation == null) throw new SepValidationException("Missing [operation] parameter.");
-    if (operation.equals("withdraw")) return "The sep24 interactive WITHDRAW starts here.";
-    else if (operation.equals("deposit")) return "The sep24 interactive DEPOSIT starts here.";
-    else return String.format("Undefined operation %s", operation);
+    if (StringHelper.isEmpty(operation)) {
+      throw new SepValidationException("Missing [operation] parameter.");
+    }
+
+    switch (operation.toLowerCase()) {
+      case "deposit":
+        return "The sep24 interactive DEPOSIT starts here.";
+      case "withdraw":
+        return "The sep24 interactive WITHDRAW starts here.";
+      default:
+        Log.warnF("Unsupported operation {}", operation);
+        return "The only supported operations are \"deposit\" or \"withdraw\"";
+    }
   }
 }

@@ -1,5 +1,6 @@
 package org.stellar.anchor.reference.controller;
 
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.stellar.anchor.api.callback.GetCustomerRequest;
 import org.stellar.anchor.api.callback.GetCustomerResponse;
@@ -28,6 +29,7 @@ public class CustomerController {
   /** Puts a customer */
   @RequestMapping(
       value = "/customer",
+      consumes = {MediaType.APPLICATION_JSON_VALUE},
       method = {RequestMethod.PUT})
   public PutCustomerResponse putCustomer(@RequestBody PutCustomerRequest request)
       throws NotFoundException {

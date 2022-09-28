@@ -62,6 +62,7 @@ subprojects {
     implementation(rootProject.libs.findbugs.jsr305)
     implementation(rootProject.libs.aws.sqs)
     implementation(rootProject.libs.postgresql)
+    implementation(rootProject.libs.scala.library) // used to force the version of scala-library (used by kafka-json-schema-serializer) to a safer one.
     implementation(rootProject.libs.bundles.kafka)
     implementation(rootProject.libs.spring.kafka)
 
@@ -110,7 +111,7 @@ subprojects {
 
 allprojects {
   group = "org.stellar.anchor-sdk"
-  version = "1.1.0"
+  version = "1.1.1"
 
   tasks.jar {
     manifest {
