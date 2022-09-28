@@ -1,9 +1,16 @@
-name: "develop Branch"
+# This workflow will build a docker image and push to docker hub
+# This workflow is triggered:
+#   1. When commits are pushed or merged onto `develop` branch
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-maven
+
+
+name: Push/Merge to `develop` Branch
 
 on:
+  workflow_dispatch:
   push:
     branches: 
-      - develop
+      - develop # when commits are pushed or merged onto `develop` branch
 
 jobs:
   tests:
