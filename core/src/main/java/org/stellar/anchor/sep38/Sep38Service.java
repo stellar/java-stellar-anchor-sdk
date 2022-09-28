@@ -1,5 +1,17 @@
 package org.stellar.anchor.sep38;
 
+import static org.stellar.anchor.api.sep.sep38.Sep38Context.SEP31;
+import static org.stellar.anchor.api.sep.sep38.Sep38Context.SEP6;
+import static org.stellar.anchor.util.Log.debug;
+import static org.stellar.anchor.util.MathHelper.decimal;
+import static org.stellar.anchor.util.MathHelper.formatAmount;
+import static org.stellar.anchor.util.SepHelper.validateAmount;
+import static org.stellar.anchor.util.SepHelper.validateAmountLimit;
+
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.Instant;
+import java.util.*;
 import org.apache.commons.lang3.StringUtils;
 import org.stellar.anchor.api.callback.GetRateRequest;
 import org.stellar.anchor.api.callback.GetRateResponse;
@@ -14,23 +26,9 @@ import org.stellar.anchor.api.shared.StellarId;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtToken;
 import org.stellar.anchor.config.Sep38Config;
-import org.stellar.anchor.event.EventPublishService;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.event.models.QuoteEvent;
 import org.stellar.anchor.util.Log;
-
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.time.Instant;
-import java.util.*;
-
-import static org.stellar.anchor.api.sep.sep38.Sep38Context.SEP31;
-import static org.stellar.anchor.api.sep.sep38.Sep38Context.SEP6;
-import static org.stellar.anchor.util.Log.debug;
-import static org.stellar.anchor.util.MathHelper.decimal;
-import static org.stellar.anchor.util.MathHelper.formatAmount;
-import static org.stellar.anchor.util.SepHelper.validateAmount;
-import static org.stellar.anchor.util.SepHelper.validateAmountLimit;
 
 public class Sep38Service {
   final Sep38Config sep38Config;

@@ -101,18 +101,6 @@ public class ConfigManagementBeans {
   /**********************************
    * Event configurations
    */
-  //  @Bean
-  //  @ConfigurationProperties(prefix = "events.event-type-to-queue")
-  //  EventTypeToQueueConfig eventTypeToQueueConfig() {
-  //    return new PropertyEventTypeToQueueConfig();
-  //  }
-  //
-  //  @Bean
-  //  @ConfigurationProperties(prefix = "events.publisher")
-  //  PublisherConfig publisherConfig() {
-  //    return new PropertyPublisherConfig();
-  //  }
-
   @Bean
   @ConfigurationProperties(prefix = "events")
   PropertyEventConfig eventConfig() {

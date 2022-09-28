@@ -1,12 +1,12 @@
 package org.stellar.anchor.platform;
 
+import static org.stellar.anchor.util.Log.errorF;
+
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.event.*;
 import org.stellar.anchor.platform.config.PropertyEventConfig;
-
-import static org.stellar.anchor.util.Log.errorF;
 
 @Configuration
 public class EventsBeans {
