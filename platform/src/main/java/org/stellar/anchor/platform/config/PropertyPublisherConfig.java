@@ -11,24 +11,4 @@ public class PropertyPublisherConfig implements PublisherConfig {
   KafkaConfig kafka;
   SqsConfig sqs;
   MskConfig msk;
-
-  public BindException validate(String publisherType) {
-    BindException errors = new BindException(this, "publisherConfig");
-    switch (publisherType) {
-      case "kafka":
-        ValidationUtils.rejectIfEmptyOrWhitespace(
-            errors, "bootstrapServer", "empty-bootstrapServer");
-        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "useSingleQueue", "empty-useSingleQueue");
-        break;
-      case "sqs":
-        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "region", "empty-region");
-        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "accessKey", "empty-accessKey");
-        ValidationUtils.rejectIfEmptyOrWhitespace(errors, "secretKey", "empty-secretKey");
-        break;
-      default:
-        errors.rejectValue(
-            "publisherType", "invalidType-publisherType", "publisherType set to unknown type");
-    }
-    return errors;
-  }
 }

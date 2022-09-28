@@ -18,7 +18,7 @@ public class SqsEventPublisher extends EventPublisher {
   }
 
   @Override
-  public void publish(EventService eventService, AnchorEvent event) {
+  public void publish(AnchorEvent event) {
     try {
       // TODO implement batching
       // TODO retry logic?

@@ -26,7 +26,7 @@ public class EventService {
   public void publish(AnchorEvent event) {
     if (eventConfig.isEnabled()) {
       // publish the event
-      eventPublisher.publish(this, event);
+      eventPublisher.publish(event);
       // update metrics
       Metrics.counter(
               "event.published", "class", event.getClass().getSimpleName(), "type", event.getType())

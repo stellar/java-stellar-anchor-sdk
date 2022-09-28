@@ -78,6 +78,7 @@ public class ConfigManagementBeans {
   Sep38Config sep38Config() {
     return new PropertySep38Config();
   }
+
   /**********************************
    * Payment observer configurations
    */

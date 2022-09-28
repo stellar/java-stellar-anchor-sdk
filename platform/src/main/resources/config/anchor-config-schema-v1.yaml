@@ -17,6 +17,7 @@ events.event_type_to_queue.quote_created:
 events.event_type_to_queue.transaction_created:
 events.event_type_to_queue.transaction_error:
 events.event_type_to_queue.transaction_status_changed:
+events.publisher.kafka.batch_size:
 events.publisher.kafka.bootstrap_servers:
 events.publisher.kafka.client_id:
 events.publisher.kafka.linger_ms:

@@ -29,7 +29,7 @@ public class KafkaEventPublisher extends EventPublisher {
   }
 
   @Override
-  public void publish(EventService eventService, AnchorEvent event) {
+  public void publish(AnchorEvent event) {
     try {
       String topic = eventService.getQueue(event.getType());
       ProducerRecord<String, AnchorEvent> record = new ProducerRecord<>(topic, event);
