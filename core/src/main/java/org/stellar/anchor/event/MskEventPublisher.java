@@ -1,12 +1,11 @@
 package org.stellar.anchor.event;
 
+import java.util.Properties;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 import org.stellar.anchor.config.event.MskConfig;
 import org.stellar.anchor.util.Log;
-
-import java.util.Properties;
 
 public class MskEventPublisher extends KafkaEventPublisher {
   public MskEventPublisher(MskConfig mskConfig) {

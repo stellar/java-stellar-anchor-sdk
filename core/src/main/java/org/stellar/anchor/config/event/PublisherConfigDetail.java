@@ -1,4 +1,3 @@
 package org.stellar.anchor.config.event;
 
-public interface PublisherConfigDetail {
-}
+public interface PublisherConfigDetail {}

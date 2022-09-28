@@ -14,7 +14,6 @@ import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.config.*;
-import org.stellar.anchor.event.EventPublishService;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.filter.JwtTokenFilter;
 import org.stellar.anchor.horizon.Horizon;

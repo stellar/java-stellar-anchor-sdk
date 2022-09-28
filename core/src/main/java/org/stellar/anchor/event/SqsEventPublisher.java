@@ -12,12 +12,9 @@ import org.stellar.anchor.util.Log;
 public class SqsEventPublisher extends EventPublisher {
   final AmazonSQSAsync sqsClient;
 
-  public SqsEventPublisher(
-      SqsConfig sqsConfig) {
+  public SqsEventPublisher(SqsConfig sqsConfig) {
     this.sqsClient =
-        AmazonSQSAsyncClientBuilder.standard()
-            .withRegion(sqsConfig.getAwsRegion())
-            .build();
+        AmazonSQSAsyncClientBuilder.standard().withRegion(sqsConfig.getAwsRegion()).build();
   }
 
   @Override

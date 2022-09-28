@@ -1,12 +1,11 @@
 package org.stellar.anchor.event;
 
+import static org.stellar.anchor.util.Log.errorF;
+
 import io.micrometer.core.instrument.Metrics;
+import java.util.Map;
 import org.stellar.anchor.config.event.EventConfig;
 import org.stellar.anchor.event.models.AnchorEvent;
-
-import java.util.Map;
-
-import static org.stellar.anchor.util.Log.errorF;
 
 public class EventService {
   private final EventConfig eventConfig;

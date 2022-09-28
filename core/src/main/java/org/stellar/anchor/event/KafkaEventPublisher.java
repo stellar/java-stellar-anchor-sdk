@@ -1,7 +1,5 @@
 package org.stellar.anchor.event;
 
-import io.micrometer.core.instrument.Metrics;
-import java.util.Map;
 import java.util.Properties;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
@@ -11,13 +9,11 @@ import org.apache.kafka.common.header.internals.RecordHeader;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 import org.stellar.anchor.config.event.KafkaConfig;
-import org.stellar.anchor.config.event.PublisherConfig;
 import org.stellar.anchor.event.models.AnchorEvent;
 import org.stellar.anchor.util.Log;
 
 public class KafkaEventPublisher extends EventPublisher {
   Producer<String, AnchorEvent> producer;
-
 
   public KafkaEventPublisher(KafkaConfig kafkaConfig) {
     Log.debugF("kafkaConfig: {}", kafkaConfig);
