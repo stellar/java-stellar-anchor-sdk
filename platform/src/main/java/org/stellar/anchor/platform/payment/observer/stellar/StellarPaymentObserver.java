@@ -21,6 +21,7 @@ import org.stellar.anchor.api.platform.HealthCheckStatus;
 import org.stellar.anchor.healthcheck.HealthCheckable;
 import org.stellar.anchor.platform.payment.observer.PaymentListener;
 import org.stellar.anchor.platform.payment.observer.circle.ObservedPayment;
+import org.stellar.anchor.platform.utils.ExponentialBackoffUtil;
 import org.stellar.anchor.util.Log;
 import org.stellar.sdk.Server;
 import org.stellar.sdk.requests.EventListener;
@@ -45,6 +46,8 @@ public class StellarPaymentObserver implements HealthCheckable {
   final Map<SSEStream<OperationResponse>, String> mapStreamToAccount = new HashMap<>();
   final PaymentObservingAccountsManager paymentObservingAccountsManager;
   SSEStream<OperationResponse> stream;
+
+  private final ExponentialBackoffUtil exponentialBackoff = new ExponentialBackoffUtil();
 
   StellarPaymentObserver(
       String horizonServer,
@@ -72,6 +75,8 @@ public class StellarPaymentObserver implements HealthCheckable {
     if (this.stream != null) {
       this.shutdown();
     }
+    exponentialBackoff.sleep();
+    exponentialBackoff.increaseSleepSeconds();
     this.start();
   }
 
@@ -148,28 +153,31 @@ public class StellarPaymentObserver implements HealthCheckable {
             if (observedPayment != null) {
               try {
                 if (paymentObservingAccountsManager.lookupAndUpdate(observedPayment.getTo())) {
-                  final ObservedPayment finalObservedPayment = observedPayment;
-                  observers.forEach(
-                      observer -> {
-                        // restart the observer from where it stopped, in case the queue fails to
-                        // publish the message.
-                        try {
-                          observer.onReceived(finalObservedPayment);
-                        } catch (EventPublishException ex) {
-                          Log.errorEx("Failed to send event to observer.", ex);
-                          Log.info("Restarting the Stellar observer.");
-                          restart();
-                        }
-                      });
+                  for (PaymentListener listener : observers) {
+                    listener.onReceived(observedPayment);
+                  }
                 }
+
                 if (paymentObservingAccountsManager.lookupAndUpdate(observedPayment.getFrom())
                     && !observedPayment.getTo().equals(observedPayment.getFrom())) {
                   final ObservedPayment finalObservedPayment = observedPayment;
                   observers.forEach(observer -> observer.onSent(finalObservedPayment));
                 }
+
+              } catch (EventPublishException ex) {
+                // restart the observer from where it stopped, in case the queue fails to
+                // publish the message.
+                Log.errorEx("Failed to send event to observer.", ex);
+                Log.info("Restarting the Stellar observer.");
+                restart();
+                return;
               } catch (Throwable t) {
-                Log.errorEx(t);
+                Log.errorEx("Something went wrong in the streamer", t);
+                restart();
+                return;
               }
+
+              exponentialBackoff.resetSleepSeconds();
             }
 
             paymentStreamerCursorStore.save(operationResponse.getPagingToken());
