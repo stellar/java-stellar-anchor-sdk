@@ -13,6 +13,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import lombok.Builder;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
+import org.stellar.anchor.api.exception.EventPublishException;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.exception.ValueValidationException;
 import org.stellar.anchor.api.platform.HealthCheckResult;
@@ -64,6 +65,14 @@ public class StellarPaymentObserver implements HealthCheckable {
   /** Graceful shutdown. */
   public void shutdown() {
     this.stream.close();
+    this.stream = null;
+  }
+
+  private void restart() {
+    if (this.stream != null) {
+      this.shutdown();
+    }
+    this.start();
   }
 
   /**
@@ -98,7 +107,7 @@ public class StellarPaymentObserver implements HealthCheckable {
     return pageOpResponse.getRecords().get(0).getPagingToken();
   }
 
-  public SSEStream<OperationResponse> watch() {
+  private SSEStream<OperationResponse> watch() {
     String latestCursor = fetchStreamingCursor();
     PaymentsRequestBuilder paymentsRequest =
         server
@@ -140,7 +149,18 @@ public class StellarPaymentObserver implements HealthCheckable {
               try {
                 if (paymentObservingAccountsManager.lookupAndUpdate(observedPayment.getTo())) {
                   final ObservedPayment finalObservedPayment = observedPayment;
-                  observers.forEach(observer -> observer.onReceived(finalObservedPayment));
+                  observers.forEach(
+                      observer -> {
+                        // restart the observer from where it stopped, in case the queue fails to
+                        // publish the message.
+                        try {
+                          observer.onReceived(finalObservedPayment);
+                        } catch (EventPublishException ex) {
+                          Log.errorEx("Failed to send event to observer.", ex);
+                          Log.info("Restarting the Stellar observer.");
+                          restart();
+                        }
+                      });
                 }
                 if (paymentObservingAccountsManager.lookupAndUpdate(observedPayment.getFrom())
                     && !observedPayment.getTo().equals(observedPayment.getFrom())) {
@@ -151,6 +171,7 @@ public class StellarPaymentObserver implements HealthCheckable {
                 Log.errorEx(t);
               }
             }
+
             paymentStreamerCursorStore.save(operationResponse.getPagingToken());
           }
 

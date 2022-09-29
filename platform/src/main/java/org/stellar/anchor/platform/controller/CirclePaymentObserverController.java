@@ -11,6 +11,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestClientException;
 import org.stellar.anchor.api.exception.BadRequestException;
+import org.stellar.anchor.api.exception.EventPublishException;
 import org.stellar.anchor.api.exception.ServerErrorException;
 import org.stellar.anchor.api.exception.UnprocessableEntityException;
 import org.stellar.anchor.api.sep.SepExceptionResponse;
@@ -52,7 +53,8 @@ public class CirclePaymentObserverController {
       method = {RequestMethod.POST, RequestMethod.GET, RequestMethod.HEAD},
       consumes = {MediaType.TEXT_PLAIN_VALUE})
   public void handleCircleNotificationTextPlain(@RequestBody(required = false) String jsonBodyStr)
-      throws UnprocessableEntityException, BadRequestException, ServerErrorException {
+      throws UnprocessableEntityException, BadRequestException, ServerErrorException,
+          EventPublishException {
     CircleNotification circleNotification = gson.fromJson(jsonBodyStr, CircleNotification.class);
     circlePaymentObserverService.handleCircleNotification(circleNotification);
   }
