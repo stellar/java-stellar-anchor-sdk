@@ -95,17 +95,20 @@ metrics:
   run_interval: 30
 
 events:
-  enabled: true
-  publisher_type: kafka
-  options:
-    bootstrap_server: localhost:29092
-    use_single_queue: false
-    event_type_to_queue:
-      all: ap_event_single_queue
-      quote_created: ap_event_quote_created
-      transaction_created: ap_event_transaction_created
-      transaction_status_changed: ap_event_transaction_status_changed
-      transaction_error: ap_event_transaction_error
+  enabled: false
+  event_type_to_queue:
+    quote_created: ap_event_quote_created
+    transaction_created: ap_event_transaction_created
+    transaction_status_changed: ap_event_transaction_status_changed
+    transaction_error: ap_event_transaction_error
+  publisher:
+    type: kafka
+    kafka:
+      bootstrap_servers: localhost:29092
+      client_id:
+      retries: 1
+      linger_ms: 1000
+      batch_size: 10
 
 assets:
   type: json

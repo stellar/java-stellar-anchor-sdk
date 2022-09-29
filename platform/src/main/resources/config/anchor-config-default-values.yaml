@@ -375,9 +375,8 @@ events:
       ## @type: boolean
       ## Use IAM authentication for AWS MSK or AWS SQS.
       ## SQS FIFO queues should be pre-created in AWS (Anchor Platform will not create them)
-      ## If true, @required_secrets:
-      ##    secret.event.publisher.aws_access_key_id
-      ##    secret.event.publisher.aws_secret_access_key
+      ## If true, please follow the `Set up AWS Credentials and Region for Development`
+      ## at https://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/setup-credentials.html
       #
       use_IAM: false
 
@@ -393,9 +392,9 @@ events:
       ## @type: boolean
       ## Use IAM authentication for AWS MSK or AWS SQS.
       ## SQS FIFO queues should be pre-created in AWS (Anchor Platform will not create them)
-      ## If true, @required_secrets:
-      ##    secret.event.publisher.aws_access_key_id
-      ##    secret.event.publisher.aws_secret_access_key
+      ##
+      ## If true, please follow the `Set up AWS Credentials and Region for Development`
+      ## at https://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/setup-credentials.html
       #
       use_IAM: false
 
@@ -454,8 +453,9 @@ data:
   ## @supported_values:
   ##    `h2` (in-memory), `sqlite` (local), `postgres` (local), `aurora` (postgres on AWS)
   ## Type of storage.
-  ## If this is set to `aurora`,
-  ##    @required_secrets: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION
+  ## If this is set to `aurora`, please follow the `Set up AWS Credentials and Region for Development`
+  ## at https://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/setup-credentials.html
+  #
   #
   type: h2
 

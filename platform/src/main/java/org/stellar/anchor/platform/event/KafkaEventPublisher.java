@@ -13,15 +13,22 @@ import org.stellar.anchor.event.models.AnchorEvent;
 import org.stellar.anchor.platform.config.KafkaConfig;
 import org.stellar.anchor.util.Log;
 
+import static org.apache.kafka.clients.producer.ProducerConfig.*;
+
 public class KafkaEventPublisher implements EventPublisher {
   Producer<String, AnchorEvent> producer;
 
   public KafkaEventPublisher(KafkaConfig kafkaConfig) {
     Log.debugF("kafkaConfig: {}", kafkaConfig);
     Properties props = new Properties();
-    props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaConfig.getBootstrapServers());
-    props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
-    props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+    props.put(BOOTSTRAP_SERVERS_CONFIG, kafkaConfig.getBootstrapServers());
+    props.put(KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
+    props.put(VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
+    props.put(CLIENT_ID_CONFIG, kafkaConfig.getClientId());
+    props.put(RETRIES_CONFIG, kafkaConfig.getRetries());
+    props.put(LINGER_MS_CONFIG, kafkaConfig.getLingerMs());
+    props.put(BATCH_SIZE_CONFIG, kafkaConfig.getBatchSize());
+
     createPublisher(props);
   }
 
