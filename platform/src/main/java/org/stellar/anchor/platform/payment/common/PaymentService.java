@@ -13,13 +13,6 @@ public interface PaymentService {
   PaymentNetwork getPaymentNetwork();
 
   /**
-   * Gets the name of the service.
-   *
-   * @return The name of the service
-   */
-  String getName();
-
-  /**
    * API request that pings the server to make sure it's up and running.
    *
    * @return asynchronous stream with a Void value. If no exception is thrown it means the request

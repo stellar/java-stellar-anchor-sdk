@@ -8,4 +8,6 @@ public interface SecretConfig {
   String getCallbackApiSecret();
 
   String getPlatformApiSecret();
+
+  String getCircleApiKey();
 }

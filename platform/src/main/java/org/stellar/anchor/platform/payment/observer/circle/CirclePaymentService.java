@@ -10,10 +10,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 import org.apache.commons.validator.routines.EmailValidator;
 import org.stellar.anchor.api.exception.HttpException;
-import org.stellar.anchor.config.CircleConfig;
+import org.stellar.anchor.config.PaymentObserverConfig;
 import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.platform.payment.common.*;
-import org.stellar.anchor.platform.payment.config.CirclePaymentConfig;
 import org.stellar.anchor.platform.payment.observer.circle.model.*;
 import org.stellar.anchor.platform.payment.observer.circle.model.request.CircleSendTransactionRequest;
 import org.stellar.anchor.platform.payment.observer.circle.model.response.*;
@@ -30,9 +29,7 @@ import shadow.com.google.common.reflect.TypeToken;
 
 public class CirclePaymentService
     implements PaymentService, CircleResponseErrorHandler, StellarReconciliation {
-  private final CirclePaymentConfig circlePaymentConfig;
-
-  private final CircleConfig circleConfig;
+  private final PaymentObserverConfig paymentObserverConfig;
 
   private final Server horizonServer;
 
@@ -49,10 +46,9 @@ public class CirclePaymentService
    * wallet and a bank account configured.
    */
   public CirclePaymentService(
-      CirclePaymentConfig circlePaymentConfig, CircleConfig circleConfig, Horizon horizon) {
+      PaymentObserverConfig paymentObserverConfig, Horizon horizon) {
     super();
-    this.circlePaymentConfig = circlePaymentConfig;
-    this.circleConfig = circleConfig;
+    this.paymentObserverConfig = paymentObserverConfig;
     this.horizonServer = horizon.getServer();
 
     this.stellarNetwork = toStellarNetwork(horizon.getStellarNetworkPassphrase());
@@ -68,20 +64,15 @@ public class CirclePaymentService
     return this.paymentNetwork;
   }
 
-  @Override
-  public String getName() {
-    return circlePaymentConfig.getName();
-  }
-
   public HttpClient getWebClient(boolean authenticated) {
     if (webClient == null) {
-      this.webClient = NettyHttpClient.withBaseUrl(this.circleConfig.getCircleUrl());
+      this.webClient = NettyHttpClient.withBaseUrl(this.paymentObserverConfig.getCircleUrl());
     }
     if (!authenticated) {
       return webClient;
     }
     return webClient.headers(
-        h -> h.add(HttpHeaderNames.AUTHORIZATION, "Bearer " + this.circleConfig.getApiKey()));
+        h -> h.add(HttpHeaderNames.AUTHORIZATION, "Bearer " + this.paymentObserverConfig.getApiKey()));
   }
 
   /**

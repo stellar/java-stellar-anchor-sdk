@@ -18,7 +18,8 @@ public class SecretManager
           "secret.sep10.jwt_secret",
           "secret.sep10.signing_seed",
           "secret.callback_api.auth_secret",
-          "secret.platform_api.auth_secret");
+          "secret.platform_api.auth_secret",
+          "secret.circle.api_key");
 
   static SecretManager secretManager = new SecretManager();
 

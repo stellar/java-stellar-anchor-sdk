@@ -7,7 +7,7 @@ import java.util.Objects;
 import lombok.Data;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
-import org.stellar.anchor.config.CircleConfig;
+import org.stellar.anchor.config.PaymentObserverConfig;
 import org.stellar.anchor.config.Sep31Config;
 
 @Data
@@ -18,10 +18,10 @@ public class PropertySep31Config implements Sep31Config, Validator {
   PaymentType paymentType = STRICT_SEND;
   DepositInfoGeneratorType depositInfoGeneratorType = SELF;
 
-  CircleConfig circleConfig;
+  PaymentObserverConfig paymentObserverConfig;
 
-  public PropertySep31Config(CircleConfig circleConfig, CallbackApiConfig callbackApiConfig) {
-    this.circleConfig = circleConfig;
+  public PropertySep31Config(CallbackApiConfig callbackApiConfig, PaymentObserverConfig paymentObserverConfig) {
+    this.paymentObserverConfig = paymentObserverConfig;
     this.feeIntegrationEndPoint = callbackApiConfig.getBaseUrl();
     this.uniqueAddressIntegrationEndPoint = callbackApiConfig.getBaseUrl();
   }
@@ -35,14 +35,15 @@ public class PropertySep31Config implements Sep31Config, Validator {
   public void validate(Object target, Errors errors) {
     Sep31Config config = (Sep31Config) target;
     if (config.isEnabled()) {
-      if (config.getDepositInfoGeneratorType().equals(CIRCLE)) {
-        if (circleConfig.validate().hasErrors()) {
+      /*if (config.getDepositInfoGeneratorType().equals(CIRCLE)) {
+        if (paymentObserverConfig.validate().hasErrors()) {
           errors.rejectValue(
-              "circleConfig",
-              "badConfig-circle",
+              "paymentObserverConfig",
+              "badConfig-paymentObserverConfig",
               "depositInfoGeneratorType set as circle, but circle config not properly configured");
         }
-      } else if (config.getDepositInfoGeneratorType().equals(API)) {
+      } else */
+      if (config.getDepositInfoGeneratorType().equals(API)) {
         if (Objects.toString(uniqueAddressIntegrationEndPoint, "").isEmpty()) {
           errors.rejectValue(
               "uniqueAddressIntegrationEndPoint",

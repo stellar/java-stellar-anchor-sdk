@@ -50,7 +50,7 @@ public class CirclePaymentObserverService {
 
   public CirclePaymentObserverService(
       OkHttpClient httpClient,
-      PaymentObserverConfig circlePaymentObserverConfig,
+      PaymentObserverConfig paymentObserverConfig,
       Horizon horizon,
       List<PaymentListener> observers) {
     this.httpClient = httpClient;
@@ -59,7 +59,7 @@ public class CirclePaymentObserverService {
     String[] assetIdPieces = CircleAsset.stellarUSDC(stellarNetwork).split(":");
     this.usdcIssuer = assetIdPieces[assetIdPieces.length - 1];
     this.horizonServer = horizon.getServer();
-    this.trackedWallet = circlePaymentObserverConfig.getTrackedWallet();
+    this.trackedWallet = paymentObserverConfig.getTrackedWallet();
     this.observers = observers;
   }
 

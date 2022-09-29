@@ -18,7 +18,6 @@ import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.filter.JwtTokenFilter;
 import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.platform.data.*;
-import org.stellar.anchor.platform.payment.config.CirclePaymentConfig;
 import org.stellar.anchor.platform.payment.observer.circle.CirclePaymentService;
 import org.stellar.anchor.platform.payment.observer.stellar.PaymentObservingAccountsManager;
 import org.stellar.anchor.platform.service.PropertyAssetsService;
@@ -120,8 +119,8 @@ public class SepServiceBeans {
 
   @Bean
   CirclePaymentService circlePaymentService(
-      CirclePaymentConfig circlePaymentConfig, CircleConfig circleConfig, Horizon horizon) {
-    return new CirclePaymentService(circlePaymentConfig, circleConfig, horizon);
+      PaymentObserverConfig paymentObserverConfig, Horizon horizon) {
+    return new CirclePaymentService(paymentObserverConfig, horizon);
   }
 
   @Bean

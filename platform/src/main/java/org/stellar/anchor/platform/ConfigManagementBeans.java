@@ -7,7 +7,6 @@ import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.config.*;
 import org.stellar.anchor.platform.config.*;
 import org.stellar.anchor.platform.configurator.ConfigManager;
-import org.stellar.anchor.platform.payment.config.CirclePaymentConfig;
 
 @Configuration
 public class ConfigManagementBeans {
@@ -17,7 +16,7 @@ public class ConfigManagementBeans {
   }
 
   @Bean
-  @ConfigurationProperties(prefix = "")
+  @ConfigurationProperties()
   AppConfig appConfig() {
     return new PropertyAppConfig();
   }
@@ -40,9 +39,6 @@ public class ConfigManagementBeans {
     return new PlatformApiConfig(secretConfig);
   }
 
-  /**********************************
-   * SEP configurations
-   */
   @Bean
   @ConfigurationProperties(prefix = "sep1")
   Sep1Config sep1Config() {
@@ -69,8 +65,9 @@ public class ConfigManagementBeans {
 
   @Bean
   @ConfigurationProperties(prefix = "sep31")
-  Sep31Config sep31Config(CircleConfig circleConfig, CallbackApiConfig callbackApiConfig) {
-    return new PropertySep31Config(circleConfig, callbackApiConfig);
+  Sep31Config sep31Config(
+      PaymentObserverConfig paymentObserverConfig, CallbackApiConfig callbackApiConfig) {
+    return new PropertySep31Config(callbackApiConfig, paymentObserverConfig);
   }
 
   @Bean
@@ -82,26 +79,17 @@ public class ConfigManagementBeans {
   /**********************************
    * Payment observer configurations
    */
-  @Bean
-  @ConfigurationProperties(prefix = "circle")
-  CircleConfig circleConfig() {
-    return new PropertyCircleConfig();
-  }
 
   @Bean
   @ConfigurationProperties(prefix = "payment-observer")
-  PaymentObserverConfig paymentObserverConfig() {
-    return new PropertyPaymentObserverConfig();
-  }
-
-  @Bean
-  CirclePaymentConfig circlePaymentConfig() {
-    return new CirclePaymentConfig();
+  PaymentObserverConfig paymentObserverConfig(SecretConfig secretConfig) {
+    return new PropertyPaymentObserverConfig(secretConfig);
   }
 
   /**********************************
    * Event configurations
    */
+
   @Bean
   @ConfigurationProperties(prefix = "events")
   PropertyEventConfig eventConfig() {

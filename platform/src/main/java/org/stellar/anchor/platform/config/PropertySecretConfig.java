@@ -17,4 +17,7 @@ public class PropertySecretConfig implements SecretConfig {
 
   @Value("${secret.platform_api.auth_secret:#{null}}")
   private String platformApiSecret = null;
+
+  @Value("${secret.circle.api_key:#{null}}")
+  private String circleApiKey = null;
 }
