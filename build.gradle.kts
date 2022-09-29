@@ -102,7 +102,7 @@ subprojects {
       testLogging {
         events("SKIPPED", "FAILED")
         showExceptions = true
-        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL // test with type SHORT
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
       }
     }
   }
