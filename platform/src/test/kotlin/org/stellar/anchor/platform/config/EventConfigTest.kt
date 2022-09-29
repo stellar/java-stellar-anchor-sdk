@@ -5,8 +5,6 @@ import kotlin.test.assertEquals
 import org.junit.jupiter.api.Test
 import org.springframework.validation.BindException
 import org.springframework.validation.ValidationUtils
-import org.stellar.anchor.config.event.KafkaConfig
-import org.stellar.anchor.config.event.SqsConfig
 
 open class EventConfigTest {
   @Test

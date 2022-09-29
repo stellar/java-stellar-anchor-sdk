@@ -22,7 +22,7 @@ events.publisher.kafka.bootstrap_servers:
 events.publisher.kafka.client_id:
 events.publisher.kafka.linger_ms:
 events.publisher.kafka.retries:
-events.publisher.msk.aws_region:
+events.publisher.msk.batch_size:
 events.publisher.msk.bootstrap_server:
 events.publisher.msk.client_id:
 events.publisher.msk.linger_ms:

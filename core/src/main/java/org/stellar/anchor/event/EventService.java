@@ -19,14 +19,13 @@ public class EventService {
   }
 
   public void setEventPublisher(EventPublisher eventPublisher) {
-    eventPublisher.setEventService(this);
     this.eventPublisher = eventPublisher;
   }
 
   public void publish(AnchorEvent event) {
     if (eventConfig.isEnabled()) {
       // publish the event
-      eventPublisher.publish(event);
+      eventPublisher.publish(getQueue(event.getType()), event);
       // update metrics
       Metrics.counter(
               "event.published", "class", event.getClass().getSimpleName(), "type", event.getType())

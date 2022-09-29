@@ -35,14 +35,9 @@ public class PropertyEventConfig implements EventConfig, Validator {
       case "msk":
         ValidationUtils.rejectIfEmptyOrWhitespace(
             errors,
-            "publisher.msk.awsRegion",
-            "empty-aws-region",
-            "aws_region must be defined for SQS publisher");
-        ValidationUtils.rejectIfEmptyOrWhitespace(
-            errors,
             "publisher.msk.useIAM",
-            "empty-use-iam",
-            "use_IAM must be defined for SQS publisher");
+            "empty-msk-use-iam",
+            "use_IAM must be defined for MSK publisher");
         // continue to the kafka case. DO NOT break
       case "kafka":
         ValidationUtils.rejectIfEmptyOrWhitespace(
@@ -54,12 +49,22 @@ public class PropertyEventConfig implements EventConfig, Validator {
             "retries must be set for KAFKA/MSK publisher");
         ValidationUtils.rejectIfEmptyOrWhitespace(
             errors,
+            "publisher.kafka.batchSize",
+            "empty-batch-size",
+            "batch_size must be set for KAFKA/MSK publisher");
+        ValidationUtils.rejectIfEmptyOrWhitespace(
+            errors,
             "publisher.kafka.lingerMs",
             "empty-linger-ms",
             "linger_ms must be set for KAFKA/MSK publisher");
 
         break;
       case "sqs":
+        ValidationUtils.rejectIfEmptyOrWhitespace(
+            errors,
+            "publisher.sqs.useIAM",
+            "empty-sqs-use-iam",
+            "use_IAM must be defined for SQS publisher");
         ValidationUtils.rejectIfEmptyOrWhitespace(
             errors,
             "publisher.sqs.awsRegion",

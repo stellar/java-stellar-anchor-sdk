@@ -399,12 +399,6 @@ events:
       #
       use_IAM: false
 
-      ## @param: region
-      ## @type: string
-      ## AWS region for the queue. Can also be defined as environment variable: AWS_REGION
-      #
-      aws_region: us-east-1
-
       ## @param: bootstrap_server
       ## @type: string
       ## The Kafka server used to bootstrap setup in AWS
@@ -412,11 +406,14 @@ events:
       ## https://docs.aws.amazon.com/msk/latest/developerguide/port-info.html
       #
       bootstrap_server: # b-1-public.democluster1.w7j4hi.c25.kafka.us-east-1.amazonaws.com:9198
+      # The client ID. If left empty, it is randomly generated.
       client_id:
+      # Determines how many times the producer will attempt to send a message before marking it as failed.
       retries: 1
+      # Determines the time to wait before sending messages out to Kafka.
       linger_ms: 1000
-
-
+      # Determines the maximum amount of data to be collected before sending the batch.
+      batch_size: 10
 
 #########################
 ## Assets Configuration

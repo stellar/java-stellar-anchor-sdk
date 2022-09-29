@@ -4,7 +4,7 @@ import java.util.Map;
 
 public interface EventConfig {
   /**
-   * Indicates of the event service is enabled.
+   * Indicates if the event service is enabled.
    *
    * @return
    *     <pre>true</pre>

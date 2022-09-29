@@ -1,4 +1,4 @@
-package org.stellar.anchor.event;
+package org.stellar.anchor.platform.event;
 
 import java.util.Properties;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -8,11 +8,12 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.header.internals.RecordHeader;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
-import org.stellar.anchor.config.event.KafkaConfig;
+import org.stellar.anchor.event.EventPublisher;
 import org.stellar.anchor.event.models.AnchorEvent;
+import org.stellar.anchor.platform.config.KafkaConfig;
 import org.stellar.anchor.util.Log;
 
-public class KafkaEventPublisher extends EventPublisher {
+public class KafkaEventPublisher implements EventPublisher {
   Producer<String, AnchorEvent> producer;
 
   public KafkaEventPublisher(KafkaConfig kafkaConfig) {
@@ -29,10 +30,9 @@ public class KafkaEventPublisher extends EventPublisher {
   }
 
   @Override
-  public void publish(AnchorEvent event) {
+  public void publish(String queue, AnchorEvent event) {
     try {
-      String topic = eventService.getQueue(event.getType());
-      ProducerRecord<String, AnchorEvent> record = new ProducerRecord<>(topic, event);
+      ProducerRecord<String, AnchorEvent> record = new ProducerRecord<>(queue, event);
       record.headers().add(new RecordHeader("type", event.getType().getBytes()));
       producer.send(record);
     } catch (Exception ex) {

@@ -7,6 +7,10 @@ import org.springframework.context.annotation.Configuration;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.event.*;
 import org.stellar.anchor.platform.config.PropertyEventConfig;
+import org.stellar.anchor.platform.event.KafkaEventPublisher;
+import org.stellar.anchor.platform.event.MskEventPublisher;
+import org.stellar.anchor.platform.event.NoopEventPublisher;
+import org.stellar.anchor.platform.event.SqsEventPublisher;
 
 @Configuration
 public class EventsBeans {

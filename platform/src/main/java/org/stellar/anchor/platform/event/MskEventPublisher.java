@@ -1,10 +1,10 @@
-package org.stellar.anchor.event;
+package org.stellar.anchor.platform.event;
 
 import java.util.Properties;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
-import org.stellar.anchor.config.event.MskConfig;
+import org.stellar.anchor.platform.config.MskConfig;
 import org.stellar.anchor.util.Log;
 
 public class MskEventPublisher extends KafkaEventPublisher {
@@ -19,7 +19,7 @@ public class MskEventPublisher extends KafkaEventPublisher {
     if (mskConfig.isUseIAM()) {
       props.put("security.protocol", "SASL_SSL");
       props.put("sasl.mechanism", "AWS_MSK_IAM");
-      props.put("sasl.jaas.config", "software.amazon.msk.auth.iam.IAMLoginModule required;");
+      props.put("sasl.jaas.config", "software.amazon.msk.auth.iam.IAMLoginModule");
       props.put(
           "sasl.client.callback.handler.class",
           "software.amazon.msk.auth.iam.IAMClientCallbackHandler");

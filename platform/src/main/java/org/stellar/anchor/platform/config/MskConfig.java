@@ -1,4 +1,4 @@
-package org.stellar.anchor.config.event;
+package org.stellar.anchor.platform.config;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -7,5 +7,4 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = true)
 public class MskConfig extends KafkaConfig {
   boolean useIAM;
-  String awsRegion;
 }
