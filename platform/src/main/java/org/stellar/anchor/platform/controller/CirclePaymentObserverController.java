@@ -5,6 +5,7 @@ import static org.stellar.anchor.util.Log.warnEx;
 
 import com.google.gson.Gson;
 import java.util.Map;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +19,7 @@ import org.stellar.anchor.platform.payment.observer.circle.model.CircleNotificat
 
 @RestController
 @RequestMapping("/circle-observer")
+@Profile("default")
 public class CirclePaymentObserverController {
   private final Gson gson = new Gson();
   private final CirclePaymentObserverService circlePaymentObserverService;

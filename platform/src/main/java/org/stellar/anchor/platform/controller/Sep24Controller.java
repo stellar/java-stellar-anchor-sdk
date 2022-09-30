@@ -9,6 +9,7 @@ import java.net.URISyntaxException;
 import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -26,6 +27,7 @@ import org.stellar.anchor.sep24.Sep24Service;
 @CrossOrigin(origins = "*")
 @RequestMapping("/sep24")
 @ConditionalOnAllSepsEnabled(seps = {"sep24"})
+@Profile("default")
 public class Sep24Controller {
   private final Sep24Service sep24Service;
 
