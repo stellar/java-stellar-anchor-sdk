@@ -1,12 +1,17 @@
-# This workflow will build a Java project with Maven, and cache/restore any dependencies to improve the workflow execution time
-# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-maven
+# This workflow will build a Java project with Gradle.
+# This workflow is triggered:
+#   1. Called from other workflows.
+#   2. On every pull request
+#   3. When commits are pushed or merged onto `main` branch
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-maven
 
 name: Basic Tests
 
 on:
-  pull_request:
-  workflow_call: # Allows this workflow to be called from another workflow
-  push:
+  workflow_dispatch: 
+  workflow_call: # allows this workflow to be called from another workflow
+  pull_request:  # when a pull request is created.
+  push:          # when commits are pushed or merged onto `main` branch
     branches: 
       - main
 

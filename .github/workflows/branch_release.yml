@@ -1,6 +1,7 @@
-name: "release/** Branch"
+name: Push/Merge to any `release` Branches
 
 on:
+  workflow_dispatch:
   push:
     branches: 
       - 'release/**'
