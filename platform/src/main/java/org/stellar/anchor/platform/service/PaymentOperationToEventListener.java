@@ -14,6 +14,7 @@ import org.apache.commons.codec.DecoderException;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.stellar.anchor.api.exception.AnchorException;
+import org.stellar.anchor.api.exception.EventPublishException;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.shared.Amount;
 import org.stellar.anchor.api.shared.StellarPayment;
@@ -42,7 +43,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
   }
 
   @Override
-  public void onReceived(ObservedPayment payment) {
+  public void onReceived(ObservedPayment payment) throws EventPublishException {
     // Check if payment is connected to a transaction
     if (Objects.toString(payment.getTransactionHash(), "").isEmpty()
         || Objects.toString(payment.getTransactionMemo(), "").isEmpty()) {
@@ -169,10 +170,10 @@ public class PaymentOperationToEventListener implements PaymentListener {
 
   @Override
   public void onSent(ObservedPayment payment) {
-    // noop
+    Log.debug("NOOP PaymentOperationToEventListener#onSent was called.");
   }
 
-  private void sendToQueue(TransactionEvent event) {
+  private void sendToQueue(TransactionEvent event) throws EventPublishException {
     eventService.publish(event);
     Log.infoF("Sent to event queue {}", GsonUtils.getInstance().toJson(event));
   }
