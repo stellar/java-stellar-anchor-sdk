@@ -21,7 +21,7 @@ import org.stellar.anchor.api.platform.HealthCheckStatus;
 import org.stellar.anchor.healthcheck.HealthCheckable;
 import org.stellar.anchor.platform.payment.observer.PaymentListener;
 import org.stellar.anchor.platform.payment.observer.circle.ObservedPayment;
-import org.stellar.anchor.platform.utils.ExponentialBackoffTimer;
+import org.stellar.anchor.util.ExponentialBackoffTimer;
 import org.stellar.anchor.util.Log;
 import org.stellar.sdk.Server;
 import org.stellar.sdk.requests.EventListener;
