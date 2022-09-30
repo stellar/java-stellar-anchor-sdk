@@ -7,7 +7,7 @@ import org.stellar.anchor.reference.AnchorReferenceServer;
 public class ServiceRunner {
   public static final int DEFAULT_SEP_SERVER_PORT = 8080;
   public static final int DEFAULT_ANCHOR_REFERENCE_SERVER_PORT = 8081;
-  public static final int DEFAULT_OBSERVER_HEALTH_SERVER_PORT = 8083;
+  public static final int DEFAULT_STELLAR_OBSERVER_SERVER_PORT = 8083;
   public static final String DEFAULT_CONTEXT_PATH = "/";
 
   public static void main(String[] args) {
@@ -61,12 +61,12 @@ public class ServiceRunner {
   }
 
   static void startStellarObserver() {
-    String strPort = System.getProperty("OBSERVER_HEALTH_SERVER_PORT");
-    int port = DEFAULT_OBSERVER_HEALTH_SERVER_PORT;
+    String strPort = System.getProperty("STELLAR_OBSERVER_SERVER_PORT");
+    int port = DEFAULT_STELLAR_OBSERVER_SERVER_PORT;
     if (strPort != null) {
       port = Integer.parseInt(strPort);
     }
-    String contextPath = System.getProperty("SEP_CONTEXTPATH");
+    String contextPath = System.getProperty("STELLAR_OBSERVER_CONTEXT_PATH");
     if (contextPath == null) {
       contextPath = DEFAULT_CONTEXT_PATH;
     }
