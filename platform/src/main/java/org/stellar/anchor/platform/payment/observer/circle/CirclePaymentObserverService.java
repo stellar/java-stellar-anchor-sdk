@@ -12,6 +12,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import org.stellar.anchor.api.exception.*;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.exception.ServerErrorException;
@@ -64,7 +65,8 @@ public class CirclePaymentObserverService {
   }
 
   public void handleCircleNotification(CircleNotification circleNotification)
-      throws UnprocessableEntityException, BadRequestException, ServerErrorException {
+      throws UnprocessableEntityException, BadRequestException, ServerErrorException,
+          EventPublishException {
     String type = Objects.toString(circleNotification.getType(), "");
 
     switch (type) {
@@ -142,7 +144,8 @@ public class CirclePaymentObserverService {
    * @throws ServerErrorException when there's an error trying to fetch the Stellar network.
    */
   public void handleTransferNotification(CircleNotification circleNotification)
-      throws BadRequestException, UnprocessableEntityException, ServerErrorException {
+      throws BadRequestException, UnprocessableEntityException, ServerErrorException,
+          EventPublishException {
     if (circleNotification.getMessage() == null) {
       throw new BadRequestException("Notification body of type Notification is missing a message.");
     }
@@ -207,8 +210,9 @@ public class CirclePaymentObserverService {
     }
 
     if (isWalletTracked(destination)) {
-      final ObservedPayment finalObservedPayment = observedPayment;
-      observers.forEach(observer -> observer.onReceived(finalObservedPayment));
+      for (PaymentListener listener : observers) {
+        listener.onReceived(observedPayment);
+      }
     } else {
       final ObservedPayment finalObservedPayment1 = observedPayment;
       observers.forEach(observer -> observer.onSent(finalObservedPayment1));

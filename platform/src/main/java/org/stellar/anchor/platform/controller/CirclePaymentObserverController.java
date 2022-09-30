@@ -11,6 +11,7 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestClientException;
 import org.stellar.anchor.api.exception.BadRequestException;
+import org.stellar.anchor.api.exception.EventPublishException;
 import org.stellar.anchor.api.exception.ServerErrorException;
 import org.stellar.anchor.api.exception.UnprocessableEntityException;
 import org.stellar.anchor.api.sep.SepExceptionResponse;
@@ -36,12 +37,12 @@ public class CirclePaymentObserverController {
       consumes = {MediaType.APPLICATION_JSON_VALUE})
   public void handleCircleNotificationJson(
       @RequestBody(required = false) Map<String, Object> requestBody)
-      throws UnprocessableEntityException, BadRequestException, ServerErrorException {
+      throws EventPublishException, BadRequestException, ServerErrorException {
     try {
       CircleNotification circleNotification =
           gson.fromJson(gson.toJson(requestBody), CircleNotification.class);
       circlePaymentObserverService.handleCircleNotification(circleNotification);
-    } catch (Exception ex) {
+    } catch (UnprocessableEntityException ex) {
       throw new BadRequestException("Error parsing the request.");
     }
   }
@@ -52,7 +53,8 @@ public class CirclePaymentObserverController {
       method = {RequestMethod.POST, RequestMethod.GET, RequestMethod.HEAD},
       consumes = {MediaType.TEXT_PLAIN_VALUE})
   public void handleCircleNotificationTextPlain(@RequestBody(required = false) String jsonBodyStr)
-      throws UnprocessableEntityException, BadRequestException, ServerErrorException {
+      throws UnprocessableEntityException, BadRequestException, ServerErrorException,
+          EventPublishException {
     CircleNotification circleNotification = gson.fromJson(jsonBodyStr, CircleNotification.class);
     circlePaymentObserverService.handleCircleNotification(circleNotification);
   }
