@@ -1,7 +1,5 @@
 package org.stellar.anchor.platform.utils;
 
-import org.stellar.anchor.util.Log;
-
 /**
  * ExponentialBackoffUtil is used to do an exponential back-off, where the sleep time is doubled
  * every time, until things succeed and the `resetSleepSeconds()` method is called.
@@ -40,11 +38,7 @@ public class ExponentialBackoffTimer {
     sleepSeconds = initialSleepSeconds;
   }
 
-  public void sleep() {
-    try {
-      wait(sleepSeconds * 1000);
-    } catch (InterruptedException ex) {
-      Log.errorEx(ex);
-    }
+  public void sleep() throws InterruptedException {
+    wait(sleepSeconds * 1000);
   }
 }

@@ -76,9 +76,14 @@ public class StellarPaymentObserver implements HealthCheckable {
     if (this.stream != null) {
       this.shutdown();
     }
-    exponentialBackoffTimer.sleep();
-    exponentialBackoffTimer.increase();
-    this.start();
+
+    try {
+      exponentialBackoffTimer.sleep();
+      exponentialBackoffTimer.increase();
+      this.start();
+    } catch (InterruptedException ex) {
+      Log.errorEx(ex);
+    }
   }
 
   /**
@@ -173,7 +178,9 @@ public class StellarPaymentObserver implements HealthCheckable {
                 return;
               } catch (Throwable t) {
                 Log.errorEx("Something went wrong in the streamer", t);
-                restart();
+                if (!Thread.interrupted()) {
+                  restart();
+                }
                 return;
               }
 
