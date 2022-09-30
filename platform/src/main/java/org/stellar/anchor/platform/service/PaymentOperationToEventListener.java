@@ -170,7 +170,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
 
   @Override
   public void onSent(ObservedPayment payment) {
-    Log.info("NOOP PaymentOperationToEventListener#onSent was called.");
+    Log.debug("NOOP PaymentOperationToEventListener#onSent was called.");
   }
 
   private void sendToQueue(TransactionEvent event) throws EventPublishException {

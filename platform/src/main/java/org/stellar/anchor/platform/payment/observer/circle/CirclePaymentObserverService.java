@@ -201,13 +201,7 @@ public class CirclePaymentObserverService {
 
     if (isWalletTracked(destination)) {
       for (PaymentListener listener : observers) {
-        try {
-          listener.onReceived(observedPayment);
-        } catch (EventPublishException ex) {
-          Log.errorEx("Failed to send event to observer.", ex);
-          Log.info("Restarting the Stellar observer.");
-          throw ex;
-        }
+        listener.onReceived(observedPayment);
       }
     } else {
       final ObservedPayment finalObservedPayment1 = observedPayment;

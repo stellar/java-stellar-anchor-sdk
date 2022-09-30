@@ -21,7 +21,7 @@ import org.stellar.anchor.api.platform.HealthCheckStatus;
 import org.stellar.anchor.healthcheck.HealthCheckable;
 import org.stellar.anchor.platform.payment.observer.PaymentListener;
 import org.stellar.anchor.platform.payment.observer.circle.ObservedPayment;
-import org.stellar.anchor.platform.utils.ExponentialBackoffUtil;
+import org.stellar.anchor.platform.utils.ExponentialBackoffTimer;
 import org.stellar.anchor.util.Log;
 import org.stellar.sdk.Server;
 import org.stellar.sdk.requests.EventListener;
@@ -47,7 +47,7 @@ public class StellarPaymentObserver implements HealthCheckable {
   final PaymentObservingAccountsManager paymentObservingAccountsManager;
   SSEStream<OperationResponse> stream;
 
-  private final ExponentialBackoffUtil exponentialBackoff = new ExponentialBackoffUtil();
+  private final ExponentialBackoffTimer exponentialBackoffTimer = new ExponentialBackoffTimer();
 
   StellarPaymentObserver(
       String horizonServer,
@@ -72,11 +72,12 @@ public class StellarPaymentObserver implements HealthCheckable {
   }
 
   private void restart() {
+    Log.info("Restarting the Stellar observer.");
     if (this.stream != null) {
       this.shutdown();
     }
-    exponentialBackoff.sleep();
-    exponentialBackoff.increaseSleepSeconds();
+    exponentialBackoffTimer.sleep();
+    exponentialBackoffTimer.increase();
     this.start();
   }
 
@@ -112,7 +113,7 @@ public class StellarPaymentObserver implements HealthCheckable {
     return pageOpResponse.getRecords().get(0).getPagingToken();
   }
 
-  private SSEStream<OperationResponse> watch() {
+  SSEStream<OperationResponse> watch() {
     String latestCursor = fetchStreamingCursor();
     PaymentsRequestBuilder paymentsRequest =
         server
@@ -168,7 +169,6 @@ public class StellarPaymentObserver implements HealthCheckable {
                 // restart the observer from where it stopped, in case the queue fails to
                 // publish the message.
                 Log.errorEx("Failed to send event to observer.", ex);
-                Log.info("Restarting the Stellar observer.");
                 restart();
                 return;
               } catch (Throwable t) {
@@ -177,7 +177,7 @@ public class StellarPaymentObserver implements HealthCheckable {
                 return;
               }
 
-              exponentialBackoff.resetSleepSeconds();
+              exponentialBackoffTimer.reset();
             }
 
             paymentStreamerCursorStore.save(operationResponse.getPagingToken());

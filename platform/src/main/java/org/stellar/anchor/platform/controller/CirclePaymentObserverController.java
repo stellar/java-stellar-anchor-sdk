@@ -37,12 +37,12 @@ public class CirclePaymentObserverController {
       consumes = {MediaType.APPLICATION_JSON_VALUE})
   public void handleCircleNotificationJson(
       @RequestBody(required = false) Map<String, Object> requestBody)
-      throws UnprocessableEntityException, BadRequestException, ServerErrorException {
+      throws EventPublishException, BadRequestException, ServerErrorException {
     try {
       CircleNotification circleNotification =
           gson.fromJson(gson.toJson(requestBody), CircleNotification.class);
       circlePaymentObserverService.handleCircleNotification(circleNotification);
-    } catch (Exception ex) {
+    } catch (UnprocessableEntityException ex) {
       throw new BadRequestException("Error parsing the request.");
     }
   }

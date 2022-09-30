@@ -52,7 +52,6 @@ public class KafkaEventService implements EventPublishService {
       try {
         producer.send(record).get();
       } catch (Exception ex) {
-        ex.printStackTrace();
         throw new EventPublishException("Failed to publish event to Kafka.", ex);
       }
 

@@ -6,7 +6,7 @@ import org.stellar.anchor.util.Log;
  * ExponentialBackoffUtil is used to do an exponential back-off, where the sleep time is doubled
  * every time, until things succeed and the `resetSleepSeconds()` method is called.
  */
-public class ExponentialBackoffUtil {
+public class ExponentialBackoffTimer {
   private static final long DEFAULT_INITIAL_SLEEP_SECONDS = 1;
   private static final long DEFAULT_MAX_SLEEP_SECONDS = 300; // 5 minutes
 
@@ -14,11 +14,11 @@ public class ExponentialBackoffUtil {
   private final long maxSleepSeconds;
   private long sleepSeconds;
 
-  public ExponentialBackoffUtil() {
+  public ExponentialBackoffTimer() {
     this(DEFAULT_INITIAL_SLEEP_SECONDS, DEFAULT_MAX_SLEEP_SECONDS);
   }
 
-  public ExponentialBackoffUtil(long initialSleepSeconds, long maxSleepSeconds) {
+  public ExponentialBackoffTimer(long initialSleepSeconds, long maxSleepSeconds) {
     if (initialSleepSeconds < 1) {
       throw new IllegalArgumentException(
           "The formula 'initialSleepSeconds >= 1' is not being respected.");
@@ -32,11 +32,11 @@ public class ExponentialBackoffUtil {
     this.maxSleepSeconds = maxSleepSeconds;
   }
 
-  public void increaseSleepSeconds() {
+  public void increase() {
     sleepSeconds = Long.max(sleepSeconds * 2, maxSleepSeconds);
   }
 
-  public void resetSleepSeconds() {
+  public void reset() {
     sleepSeconds = initialSleepSeconds;
   }
 
