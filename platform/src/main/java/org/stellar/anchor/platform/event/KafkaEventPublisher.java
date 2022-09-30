@@ -1,6 +1,8 @@
 package org.stellar.anchor.platform.event;
 
 import java.util.Properties;
+
+import lombok.NoArgsConstructor;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -15,6 +17,7 @@ import org.stellar.anchor.util.Log;
 
 import static org.apache.kafka.clients.producer.ProducerConfig.*;
 
+@NoArgsConstructor
 public class KafkaEventPublisher implements EventPublisher {
   Producer<String, AnchorEvent> producer;
 
