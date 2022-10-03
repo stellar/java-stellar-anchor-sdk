@@ -15,7 +15,7 @@ import org.stellar.anchor.api.shared.Customers
 import org.stellar.anchor.api.shared.StellarId
 import org.stellar.anchor.api.shared.StellarPayment
 import org.stellar.anchor.api.shared.StellarTransaction
-import org.stellar.anchor.event.EventPublishService
+import org.stellar.anchor.event.EventService
 import org.stellar.anchor.event.models.*
 import org.stellar.anchor.platform.data.JdbcSep31Transaction
 import org.stellar.anchor.platform.data.JdbcSep31TransactionStore
@@ -25,7 +25,7 @@ import org.stellar.anchor.util.GsonUtils
 
 class PaymentOperationToEventListenerTest {
   @MockK(relaxed = true) private lateinit var transactionStore: JdbcSep31TransactionStore
-  @MockK(relaxed = true) private lateinit var eventPublishService: EventPublishService
+  @MockK(relaxed = true) private lateinit var eventPublishService: EventService
   private lateinit var paymentOperationToEventListener: PaymentOperationToEventListener
   private val gson = GsonUtils.getInstance()
 

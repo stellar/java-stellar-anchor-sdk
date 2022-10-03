@@ -1,23 +1,18 @@
 package org.stellar.anchor.platform.config;
 
+import java.util.Map;
 import lombok.Data;
-import org.springframework.validation.BindException;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.Validator;
-import org.stellar.anchor.config.EventConfig;
-import org.stellar.anchor.config.PublisherConfig;
+import org.stellar.anchor.config.event.EventConfig;
+import org.stellar.anchor.config.event.PublisherConfig;
 
 @Data
 public class PropertyEventConfig implements EventConfig, Validator {
   private boolean enabled = false;
-  private String publisherType;
-
-  PublisherConfig publisherConfig;
-
-  public PropertyEventConfig(PublisherConfig kafkaConfig) {
-    this.publisherConfig = kafkaConfig;
-  }
+  private PropertyPublisherConfig publisher;
+  private Map<String, String> eventTypeToQueue;
 
   @Override
   public boolean supports(Class<?> clazz) {
@@ -31,15 +26,54 @@ public class PropertyEventConfig implements EventConfig, Validator {
       return;
     }
 
-    ValidationUtils.rejectIfEmptyOrWhitespace(errors, "publisherType", "");
+    // Validate publisher type
+    ValidationUtils.rejectIfEmptyOrWhitespace(errors, "publisher.type", "");
 
-    BindException validation = publisherConfig.validate(config.getPublisherType());
-    if (validation.hasErrors()) {
-      String errorString = validation.getAllErrors().get(0).toString();
-      errors.rejectValue(
-          "publisherConfig",
-          "badPublisherConfig",
-          String.format("event publisher not properly configured: %s", errorString));
+    PublisherConfig publisherConfig = config.getPublisher();
+    String publisherType = publisherConfig.getType();
+    switch (publisherType) {
+      case "msk":
+        ValidationUtils.rejectIfEmptyOrWhitespace(
+            errors,
+            "publisher.msk.useIAM",
+            "empty-msk-use-iam",
+            "use_IAM must be defined for MSK publisher");
+        // continue to the kafka case. DO NOT break
+      case "kafka":
+        ValidationUtils.rejectIfEmptyOrWhitespace(
+            errors, "publisher.kafka.bootstrapServers", "empty-bootstrapServer");
+        ValidationUtils.rejectIfEmptyOrWhitespace(
+            errors,
+            "publisher.kafka.retries",
+            "empty-retries",
+            "retries must be set for KAFKA/MSK publisher");
+        ValidationUtils.rejectIfEmptyOrWhitespace(
+            errors,
+            "publisher.kafka.batchSize",
+            "empty-batch-size",
+            "batch_size must be set for KAFKA/MSK publisher");
+        ValidationUtils.rejectIfEmptyOrWhitespace(
+            errors,
+            "publisher.kafka.lingerMs",
+            "empty-linger-ms",
+            "linger_ms must be set for KAFKA/MSK publisher");
+
+        break;
+      case "sqs":
+        ValidationUtils.rejectIfEmptyOrWhitespace(
+            errors,
+            "publisher.sqs.useIAM",
+            "empty-sqs-use-iam",
+            "use_IAM must be defined for SQS publisher");
+        ValidationUtils.rejectIfEmptyOrWhitespace(
+            errors,
+            "publisher.sqs.awsRegion",
+            "empty-aws-region",
+            "aws_region must be defined for SQS publisher");
+        break;
+      default:
+        errors.rejectValue(
+            "publisherType", "invalidType-publisherType", "publisherType set to unknown type");
     }
   }
 }
