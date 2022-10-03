@@ -66,7 +66,6 @@ stellar:
          ORG_NAME: "Stellar Development Foundation"
          ORG_URL: "https://www.stellar.org"
          ORG_DESCRIPTION: "Stellar Network"
-         ORG_URL: "https://your_org_url.png"
          ORG_SUPPORT_EMAIL: "reece@stellar.org"
    anchor:
       data_access:
