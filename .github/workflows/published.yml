@@ -9,9 +9,11 @@ on:
 jobs:
   tests:
     uses: ./.github/workflows/basic_tests.yml  # execute the callable basic_tests.yml
+    secrets: inherit # pass all secrets
 
   end_to_end_tests:
     uses: ./.github/workflows/end_to_end_tests.yml  # execute the callable end_to_end_tests.yml
+    secrets: inherit # pass all secrets
   
   build_and_push_docker_image:
     name: Push to DockerHub # stellar/anchor-platform:{VERSION}
