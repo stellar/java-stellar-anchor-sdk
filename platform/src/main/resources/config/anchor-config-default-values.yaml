@@ -111,19 +111,35 @@ payment_observer:
   #
   enabled: false
 
-  ## @param: circle_url
-  ## @type: string
-  ## Circle api endpoint.
-  #
-  circle_url: https://api-sandbox.circle.com
+  network:
+    ## @param: type
+    ## @supported_values: `stellar`, `circle`
+    ## The type of payment network.
+    #
+    type: stellar
+    stellar:
+      ## @param: max_results
+      ## @type: int
+      ## The maximum number of results the Stellar Blockchain can return.
+      max_results: 200
 
+      ## @param: min_results
+      ## @type: int
+      ## The minimum number of results the Stellar Blockchain can return.
+      min_results: 1
 
-  ## @param: tracked_wallet
-  ## @type: string
-  ## The id of the wallet to track. 'all' indicates that events for all wallets are tracked.
-  #
-  tracked_wallet: all
+    circle:
+      ## @param: circle_url
+      ## @type: string
+      ## Circle api endpoint.
+      #
+      url:  https://api-sandbox.circle.com
 
+      ## @param: tracked_wallet
+      ## @type: string
+      ## The list of ids of the wallets to track. 'all' indicates that events for all wallets are tracked.
+      #
+      tracked_wallet: all
 
 ## @param: languages
 ## @supported_values: en
