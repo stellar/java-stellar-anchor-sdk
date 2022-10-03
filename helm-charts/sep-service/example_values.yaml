@@ -28,6 +28,10 @@ deployment:
        backend:
          servicePort: "{{ .Values.service.containerPort }}"
          serviceName: "{{ .Values.fullName }}-svc-{{ .Values.service.name }}"
+   annotations:
+        prometheus.io/path: /actuator/prometheus
+        prometheus.io/port: "8082"
+        prometheus.io/scrape: "true"
    env:
    - name: STELLAR_ANCHOR_CONFIG
      value: file:/config/anchor-config.yaml
