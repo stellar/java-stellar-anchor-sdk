@@ -28,6 +28,10 @@ deployment:
        backend:
          servicePort: "{{ .Values.service.containerPort }}"
          serviceName: "{{ .Values.fullName }}-svc-{{ .Values.service.name }}"
+   annotations:
+        prometheus.io/path: /actuator/prometheus
+        prometheus.io/port: "8082"
+        prometheus.io/scrape: "true"
    env:
    - name: STELLAR_ANCHOR_CONFIG
      value: file:/config/anchor-config.yaml
@@ -66,7 +70,6 @@ stellar:
          ORG_NAME: "Stellar Development Foundation"
          ORG_URL: "https://www.stellar.org"
          ORG_DESCRIPTION: "Stellar Network"
-         ORG_URL: "https://your_org_url.png"
          ORG_SUPPORT_EMAIL: "reece@stellar.org"
    anchor:
       data_access:
