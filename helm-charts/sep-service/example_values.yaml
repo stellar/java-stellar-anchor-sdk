@@ -11,6 +11,15 @@ image:
    tag: latest
    pullPolicy: Always
 deployment:
+   dedicatedStellarObserver:
+      port: 8083
+      probePath: "/health"
+      probePort: 8083
+      probePeriodSeconds: 15
+      initialDelaySeconds: 60
+      # probe type specifics:
+      startupProbeFailureThreshold: 10
+      livenessProbeFailureThreshold: 2
    startupProbePeriodSeconds: 10
    startupProbeFailureThreshold: 30
    serviceAccountName: default
@@ -21,13 +30,6 @@ deployment:
       configMaps:
          - name: assets
            mountPath: assets
-   hosts:
-     - host: "your_anchor_domain.com"
-       path: /
-       pathType: Prefix
-       backend:
-         servicePort: "{{ .Values.service.containerPort }}"
-         serviceName: "{{ .Values.fullName }}-svc-{{ .Values.service.name }}"
    annotations:
         prometheus.io/path: /actuator/prometheus
         prometheus.io/port: "8082"
@@ -53,6 +55,7 @@ ingress:
      ingress.kubernetes.io/hsts-include-subdomains: "true"
    tls:
      host: "your_anchor_domain.com"
+     observerHost: "observer.your_anchor_domain.com"
      secretName: anchor-platform-sep-server-cert 
    rules:
       hosts:
@@ -62,6 +65,12 @@ ingress:
           backend:
             servicePort: "{{ .Values.service.containerPort }}"
             serviceName: "{{ .Values.fullName }}-svc-{{ .Values.service.name }}"
+   observerHosts:
+        - host: "observer.your_anchor_domain.com"
+          path: /
+          pathType: Prefix
+          backend:
+            serviceName: "{{ .Values.fullName }}-svc-{{ .Values.service.name }}-observer"
 stellar:
    toml:
       #accounts: ['"GCHLHDBOKG2JWMJQBTLSL5XG6NO7ESXI2TAQKZXCXWXB5WI2X6W233PR"'] 
