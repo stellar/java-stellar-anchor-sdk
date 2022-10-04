@@ -54,6 +54,7 @@ public class PlatformIntegrationHelper {
     try {
       errorResponse = gson.fromJson(responseContent, ErrorResponse.class);
     } catch (Exception e) { // cannot read body from response
+      Log.errorF("Failed to parse responseContent {} to an ErrorResponse object.", responseContent);
       return new ServerErrorException("internal server error", e);
     }
 
@@ -76,7 +77,7 @@ public class PlatformIntegrationHelper {
     } else if (responseCode == HttpStatus.NOT_FOUND.value()) {
       return new NotFoundException(errorMessage);
     }
-    Log.error(errorMessage);
+    Log.errorF("Unsupported status code {} with body {}", responseCode, errorResponse);
     return new ServerErrorException("internal server error");
   }
 
