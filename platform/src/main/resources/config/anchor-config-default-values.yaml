@@ -115,23 +115,15 @@ payment_observer:
     ## @param: type
     ## @supported_values: `stellar`, `circle`
     ## The type of payment network.
+    ## If the type is `stellar`, we do not need any additional configuration.
+    ## If the type is `circle`, the `payment_observer.network.circle` must be configured correctly.
     #
     type: stellar
-    stellar:
-      ## @param: max_results
-      ## @type: int
-      ## The maximum number of results the Stellar Blockchain can return.
-      max_results: 200
-
-      ## @param: min_results
-      ## @type: int
-      ## The minimum number of results the Stellar Blockchain can return.
-      min_results: 1
-
     circle:
       ## @param: circle_url
       ## @type: string
       ## Circle api endpoint.
+      ## The API key must be configured in `secret.circle.api_key`.
       #
       url:  https://api-sandbox.circle.com
 
@@ -139,7 +131,7 @@ payment_observer:
       ## @type: string
       ## The list of ids of the wallets to track. 'all' indicates that events for all wallets are tracked.
       #
-      tracked_wallet: all
+      tracked_wallets: all
 
 ## @param: languages
 ## @supported_values: en
