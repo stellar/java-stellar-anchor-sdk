@@ -113,9 +113,8 @@ spec:
 
 ---
 # Stellar Observer
+{{- $stellarObserverDeployment := ((.Values.stellarObserver).deployment) }}
 {{- if (.Values.stellarObserver).enabled }}
-{{- $stellarObserverDeployment := ((.Values.stellarObserver).deployment) -}}
-
 apiVersion: apps/v1
 kind: Deployment
 metadata:
