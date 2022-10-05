@@ -298,6 +298,7 @@ class TransactionServiceTest {
         "PENDING_RECEIVER",
         "PENDING_EXTERNAL",
         "COMPLETED",
+        "REFUNDED",
         "EXPIRED",
         "ERROR"]
   )
