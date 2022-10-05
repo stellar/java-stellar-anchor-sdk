@@ -32,7 +32,7 @@ spec:
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repo }}/{{ .Values.image.name }}:{{ .Values.image.tag }}"
-          {{- if .Values.deployment.dedicatedStellarObserver }}
+          {{- if (.Values.stellarObserver).enabled }}
           args: ["--sep-server"]
           {{- else }}
           args: ["--sep-server", "--stellar-observer"]
@@ -112,7 +112,8 @@ spec:
       {{- end }}
 
 # Stellar Observer
-{{- if .Values.deployment.dedicatedStellarObserver }}
+{{- if (.Values.stellarObserver).enabled }}
+{{- $stellarObserverDeployment := ((.Values.stellarObserver).deployment) -}}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -150,23 +151,23 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           startupProbe:
             httpGet:
-              path: {{ .Values.deployment.dedicatedStellarObserver.probePath | default "/health" }}
-              port: {{ .Values.deployment.dedicatedStellarObserver.probePort | default 8083 }}
-            failureThreshold: {{ .Values.deployment.dedicatedStellarObserver.startupProbeFailureThreshold | default 10 }}
-            periodSeconds: {{ .Values.deployment.dedicatedStellarObserver.probePeriodSeconds | default 15 }}
+              path: {{ $stellarObserverDeployment.probePath | default "/health" }}
+              port: {{ $stellarObserverDeployment.port | default 8083 }}
+            failureThreshold: {{ $stellarObserverDeployment.startupProbeFailureThreshold | default 10 }}
+            periodSeconds: {{ $stellarObserverDeployment.probePeriodSeconds | default 15 }}
           livenessProbe:
             httpGet:
-              path: {{ .Values.deployment.dedicatedStellarObserver.probePath | default "/health" }}
-              port: {{ .Values.deployment.dedicatedStellarObserver.probePort | default 8083 }}
-            initialDelaySeconds: {{ .Values.deployment.dedicatedStellarObserver.initialDelaySeconds | default 30 }}
-            failureThreshold: {{ .Values.deployment.dedicatedStellarObserver.livenessProbeFailureThreshold | default 2 }}
-            periodSeconds: {{ .Values.deployment.dedicatedStellarObserver.probePeriodSeconds | default 15 }}
+              path: {{ $stellarObserverDeployment.probePath | default "/health" }}
+              port: {{ $stellarObserverDeployment.port | default 8083 }}
+            initialDelaySeconds: {{ $stellarObserverDeployment.initialDelaySeconds | default 30 }}
+            failureThreshold: {{ $stellarObserverDeployment.livenessProbeFailureThreshold | default 2 }}
+            periodSeconds: {{ $stellarObserverDeployment.probePeriodSeconds | default 15 }}
           readinessProbe:
             httpGet:
-              path: {{ .Values.deployment.dedicatedStellarObserver.probePath | default "/health" }}
-              port: {{ .Values.deployment.dedicatedStellarObserver.probePort | default 8083 }}
-            initialDelaySeconds: {{ .Values.deployment.dedicatedStellarObserver.initialDelaySeconds | default 30 }}
-            periodSeconds: {{ .Values.deployment.dedicatedStellarObserver.probePeriodSeconds | default 15 }}
+              path: {{ $stellarObserverDeployment.probePath | default "/health" }}
+              port: {{ $stellarObserverDeployment.port | default 8083 }}
+            initialDelaySeconds: {{ $stellarObserverDeployment.initialDelaySeconds | default 30 }}
+            periodSeconds: {{ $stellarObserverDeployment.probePeriodSeconds | default 15 }}
           volumeMounts:
             - name: sep-config-volume
               mountPath: /config
@@ -185,7 +186,7 @@ spec:
           {{- end }}
           ports:
           - name: http
-            containerPort: {{ .Values.deployment.dedicatedStellarObserver.port | default 8083 }}
+            containerPort: {{ $stellarObserverDeployment.port | default 8083 }}
             protocol: TCP
           {{- if (.Values.deployment).env }}
           env:

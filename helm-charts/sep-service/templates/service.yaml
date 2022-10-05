@@ -30,7 +30,7 @@ spec:
 
 
 # Stellar Observer
-{{- if .Values.deployment.dedicatedStellarObserver }}
+{{- if (.Values.stellarObserver).enabled }}
 ---
 apiVersion: v1
 kind: Service
@@ -55,8 +55,8 @@ spec:
   type: {{ .Values.service.type }}
   ports:
   - protocol: TCP
-    port: {{ .Values.deployment.dedicatedStellarObserver.port | default 8083}}       # port number the service will listen on
-    targetPort: {{ .Values.deployment.dedicatedStellarObserver.port | default 8083 }}  # port number pods listen on
+    port: {{ ((.Values.stellarObserver).deployment).port | default 8083}}         # port number the service will listen on
+    targetPort: {{ ((.Values.stellarObserver).deployment).port | default 8083 }}  # port number pods listen on
   selector:
     app.kubernetes.io/name: {{ .Values.fullName }}-observer
 {{- end }}
