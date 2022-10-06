@@ -55,8 +55,18 @@ ingress:
           backend:
             servicePort: "{{ .Values.service.containerPort }}"
             serviceName: "{{ .Values.fullName }}-svc-{{ .Values.service.name }}"
+# If you want to have a dedicated stellar-observer service, you need to
+# uncomment the `stellarObserver` section below.
+#
+# Attention! If you use the stellar observer as a separate service – by setting
+# `stellarObserver.enabled` flag to `true` – you must use a shared database that
+# will be accessible by both deployments (sep-server and stellar-observer).
+# In-memory databases won't work.
 stellarObserver:
+   # This will enable the stellar-observer service as a separate deployment:
    enabled: true
+   # The stellarObserver.deployment section is optional, the templates have
+   # default values.
    deployment:
       port: 8083
       probePath: "/health"
@@ -66,10 +76,10 @@ stellarObserver:
       livenessProbeFailureThreshold: 2
    ingress:
       tls:
-         host: "observer.your_anchor_domain.com"
+         host: "observer.your_anchor_domain.com"    # Replace this with a valid host name
       rules:
          hosts:
-         - host: "observer.your_anchor_domain.com"
+         - host: "observer.your_anchor_domain.com"  # Replace this with a valid host name
            path: /
            pathType: Prefix
            backend:
