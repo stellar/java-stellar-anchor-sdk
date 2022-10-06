@@ -55,6 +55,7 @@ ingress:
           backend:
             servicePort: "{{ .Values.service.containerPort }}"
             serviceName: "{{ .Values.fullName }}-svc-{{ .Values.service.name }}"
+#
 # If you want to have a dedicated stellar-observer service, you need to
 # uncomment the `stellarObserver` section below.
 #
@@ -62,26 +63,27 @@ ingress:
 # `stellarObserver.enabled` flag to `true` – you must use a shared database that
 # will be accessible by both deployments (sep-server and stellar-observer).
 # In-memory databases won't work.
-stellarObserver:
-   # This will enable the stellar-observer service as a separate deployment:
-   enabled: true
-   # The stellarObserver.deployment section is optional, the templates have
-   # default values.
-   deployment:
-      port: 8083
-      probePath: "/health"
-      probePeriodSeconds: 15
-      initialDelaySeconds: 60
-      startupProbeFailureThreshold: 10
-      livenessProbeFailureThreshold: 2
-   ingress:
-      tls:
-         host: "observer.your_anchor_domain.com"    # Replace this with a valid host name
-      rules:
-         hosts:
-         - host: "observer.your_anchor_domain.com"  # Replace this with a valid host name
-           path: /
-           pathType: Prefix
+# stellarObserver:
+#    # This will enable the stellar-observer service as a separate deployment:
+#    enabled: true
+#    # The stellarObserver.deployment section is optional, the templates have
+#    # default values.
+#    deployment:
+#       port: 8083
+#       probePath: "/health"
+#       probePeriodSeconds: 15
+#       initialDelaySeconds: 60
+#       startupProbeFailureThreshold: 10
+#       livenessProbeFailureThreshold: 2
+#    ingress:
+#       tls:
+#          host: "observer.your_anchor_domain.com"    # Replace this with a valid host name
+#       rules:
+#          hosts:
+#          - host: "observer.your_anchor_domain.com"  # Replace this with a valid host name
+#            path: /
+#            pathType: Prefix
+#
 stellar:
    toml:
       #accounts: ['"GCHLHDBOKG2JWMJQBTLSL5XG6NO7ESXI2TAQKZXCXWXB5WI2X6W233PR"'] 
