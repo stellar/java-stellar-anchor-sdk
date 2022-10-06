@@ -50,35 +50,31 @@ public class PlatformIntegrationHelper {
         "Error returned from the Anchor Backend.\nresponseCode={}\nContent={}",
         responseCode,
         responseContent);
-    ErrorResponse errorResponse;
+    ErrorResponse errorResponse = null;
     try {
       errorResponse = gson.fromJson(responseContent, ErrorResponse.class);
-    } catch (Exception e) { // cannot read body from response
-      Log.errorF("Failed to parse responseContent {} to an ErrorResponse object.", responseContent);
-      return new ServerErrorException("internal server error", e);
+    } catch (Exception e) {
+      // cannot read body from response
+      Log.warn("Failed to parse responseContent to an ErrorResponse object.");
     }
 
-    // Handle 422
-    String errorMessage;
-    if (responseCode == HttpStatus.UNPROCESSABLE_ENTITY.value()) {
-      errorMessage =
-          (errorResponse != null)
-              ? errorResponse.getError()
-              : HttpStatus.BAD_REQUEST.getReasonPhrase();
-      return new BadRequestException(errorMessage);
-    }
-
-    errorMessage =
+    String errorMessage =
         (errorResponse != null)
             ? errorResponse.getError()
-            : HttpStatus.valueOf(responseCode).getReasonPhrase();
-    if (responseCode == HttpStatus.BAD_REQUEST.value()) {
-      return new BadRequestException(errorMessage);
-    } else if (responseCode == HttpStatus.NOT_FOUND.value()) {
-      return new NotFoundException(errorMessage);
+            : (responseCode == 422)
+                ? HttpStatus.BAD_REQUEST.getReasonPhrase()
+                : HttpStatus.valueOf(responseCode).getReasonPhrase();
+
+    switch (responseCode) {
+      case 422:
+      case 400:
+        return new BadRequestException(errorMessage);
+      case 404:
+        return new NotFoundException(errorMessage);
+      default:
+        Log.errorF("Unsupported status code {}.", responseCode);
+        return new ServerErrorException("internal server error");
     }
-    Log.errorF("Unsupported status code {} with body {}", responseCode, errorResponse);
-    return new ServerErrorException("internal server error");
   }
 
   @Data
