@@ -65,11 +65,11 @@ public class PlatformIntegrationHelper {
                 ? HttpStatus.BAD_REQUEST.getReasonPhrase()
                 : HttpStatus.valueOf(responseCode).getReasonPhrase();
 
-    switch (responseCode) {
-      case 422:
-      case 400:
+    switch (HttpStatus.valueOf(responseCode)) {
+      case UNPROCESSABLE_ENTITY: // 422
+      case BAD_REQUEST: // 400
         return new BadRequestException(errorMessage);
-      case 404:
+      case NOT_FOUND: // 404
         return new NotFoundException(errorMessage);
       default:
         Log.errorF("Unsupported status code {}.", responseCode);
