@@ -48,6 +48,7 @@ spec:
   {{- end }}
 
 # Stellar Observer
+{{- $root := . }}
 {{- $stellarObserver := (.Values.stellarObserver) }}
 {{- if $stellarObserver.enabled }}
 ---
@@ -92,7 +93,7 @@ spec:
           pathType: {{ .pathType | quote }}
           backend:
             service:
-              name: {{ tpl .backend.serviceName $ }}
+              name: {{ $root.Values.fullName }}-svc-{{ $root.Values.service.name }}-observer
               port:
                 number: {{ $stellarObserver.deployment.port | default 8083 }}
   {{- end }}

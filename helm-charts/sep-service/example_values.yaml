@@ -82,8 +82,6 @@ stellarObserver:
          - host: "observer.your_anchor_domain.com"  # Replace this with a valid host name
            path: /
            pathType: Prefix
-           backend:
-             serviceName: "{{ .Values.fullName }}-svc-{{ .Values.service.name }}-observer"
 stellar:
    toml:
       #accounts: ['"GCHLHDBOKG2JWMJQBTLSL5XG6NO7ESXI2TAQKZXCXWXB5WI2X6W233PR"'] 
