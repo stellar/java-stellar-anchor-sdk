@@ -1,3 +1,5 @@
+# SEP Server
+---
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
@@ -35,7 +37,7 @@ spec:
   - host: {{ tpl .host $ }}
     http:
       paths:
-        - path: {{ .path | quote }}
+        - path: {{ .path }}
           pathType: {{ .pathType| quote }}
           backend:
             service:
@@ -44,3 +46,56 @@ spec:
                 number: {{ tpl .backend.servicePort $ }}
   {{- end }}
   {{- end }}
+
+# Stellar Observer
+{{- $root := . }}
+{{- $stellarObserver := (.Values.stellarObserver) }}
+{{- if $stellarObserver.enabled }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.fullName }}-ing-{{ .Values.service.name }}-observer
+  {{- if .Values.ingress.metadata }}
+  {{- range $key, $value := .Values.ingress.metadata }}
+  {{- end }}
+  {{- end }}
+  {{- if .Values.ingress.annotations }}
+  annotations:
+    {{- range $key, $value := .Values.ingress.annotations }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+  {{- end }}
+  labels:
+    app.kubernetes.io/name: {{ .Values.fullName }}-ing-{{ .Values.service.name }}-observer
+    helm.sh/chart: {{ $.Chart.Name }}-{{ $.Chart.Version }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}  
+spec:
+  {{- if .Values.ingress.ingressClassName }}
+  ingressClassName: {{ .Values.ingress.ingressClassName }}
+  {{- end }}
+  {{- if .Values.ingress.tls }}
+  tls:
+  - hosts:
+    - {{ $stellarObserver.ingress.tls.host }}
+    {{- if .Values.ingress.tls.secretName }}
+    secretName: {{ .Values.ingress.tls.secretName }}
+    {{- end }}      
+  {{- end }}
+  {{- if .Values.ingress.rules }}
+  rules:
+  {{- range $stellarObserver.ingress.rules.hosts }}
+  - host: {{ tpl .host $ }}
+    http:
+      paths:
+        - path: {{ .path }}
+          pathType: {{ .pathType | quote }}
+          backend:
+            service:
+              name: {{ $root.Values.fullName }}-svc-{{ $root.Values.service.name }}-observer
+              port:
+                number: {{ $stellarObserver.deployment.port | default 8083 }}
+  {{- end }}
+  {{- end }}
+{{- end }}
