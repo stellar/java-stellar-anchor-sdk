@@ -18,7 +18,11 @@ public class SecretManager
           "secret.sep10.jwt_secret",
           "secret.sep10.signing_seed",
           "secret.callback_api.auth_secret",
-          "secret.platform_api.auth_secret");
+          "secret.platform_api.auth_secret",
+          "secret.data.username",
+          "secret.data.password");
+
+  Properties props = new Properties();
 
   static SecretManager secretManager = new SecretManager();
 
@@ -31,10 +35,9 @@ public class SecretManager
   @Override
   public void initialize(@NotNull ConfigurableApplicationContext applicationContext) {
     info("Secret manager started.");
-    Properties props = new Properties();
     secretVars.forEach(
         var -> {
-          String secret = ConfigEnvironment.getenv(var);
+          String secret = ConfigEnvironment.getToUpperEnv(var);
           if (isNotEmpty(secret)) {
             props.put(var, secret);
           }

@@ -17,4 +17,10 @@ public class PropertySecretConfig implements SecretConfig {
 
   @Value("${secret.platform_api.auth_secret:#{null}}")
   private String platformApiSecret = null;
+
+  @Value("${secret.data.username:#{null}}")
+  private String dataUsername = null;
+
+  @Value("${secret.data.password:#{null}}")
+  private String dataPassword = null;
 }

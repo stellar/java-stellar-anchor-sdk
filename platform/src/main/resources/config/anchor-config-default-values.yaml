@@ -465,19 +465,6 @@ data:
   #
   url: jdbc:h2:mem:anchor-platform
 
-  ## @param: username
-  ## @type: string
-  ## The username for database connection
-  #
-  username:
-
-
-  ## @param: username
-  ## @type: string
-  ## The password for database connection
-  #
-  password:
-
   ## @param: initial_connection_pool_size
   ## @type: integer
   ## Initial number of connections

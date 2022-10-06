@@ -1,11 +1,11 @@
 package org.stellar.anchor.platform.event;
 
-import java.util.Properties;
+import static org.apache.kafka.clients.producer.ProducerConfig.*;
 
+import java.util.Properties;
 import lombok.NoArgsConstructor;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
-import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.header.internals.RecordHeader;
 import org.apache.kafka.common.serialization.StringSerializer;
@@ -14,8 +14,6 @@ import org.stellar.anchor.event.EventPublisher;
 import org.stellar.anchor.event.models.AnchorEvent;
 import org.stellar.anchor.platform.config.KafkaConfig;
 import org.stellar.anchor.util.Log;
-
-import static org.apache.kafka.clients.producer.ProducerConfig.*;
 
 @NoArgsConstructor
 public class KafkaEventPublisher implements EventPublisher {
