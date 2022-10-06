@@ -398,7 +398,7 @@ public class Sep38Service {
             .build();
 
     // TODO: open the connection with DB and only commit/save after publishing the event:
-    newQuote = this.sep38QuoteStore.save(newQuote);
+    this.sep38QuoteStore.save(newQuote);
 
     QuoteEvent event =
         QuoteEvent.builder()
