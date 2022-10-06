@@ -65,25 +65,16 @@ public class ConfigHelper {
     config.setVersion(version);
     Map<String, String> sysEnvVarNameToNormalizedName = new HashMap<>();
 
-<<<<<<< Updated upstream
     // Maintain a map of system env variable names (POSIX standard - uppercase and underscores only)
-    // to the internal
-=======
-    // Maintain a map of system env variable names (POSIX standard - uppercase and underscores only) to the internal
->>>>>>> Stashed changes
-    // config name
+    // to the internal config name
     for (String name : configSchema.configSchema.names()) {
       sysEnvVarNameToNormalizedName.put(StringHelper.toUpperSnake(name), name);
     }
 
     for (String name : ConfigEnvironment.names()) {
-<<<<<<< Updated upstream
       if (!isEmpty(name)
           && configSchema.has(sysEnvVarNameToNormalizedName.get(name))
           && !name.equals("VERSION")) {
-=======
-      if (!isEmpty(name) && configSchema.has(sysEnvVarNameToNormalizedName.get(name)) && !name.equals("VERSION")) {
->>>>>>> Stashed changes
         // the envarg is defined in this version
         config.put(sysEnvVarNameToNormalizedName.get(name), ConfigEnvironment.getenv(name), ENV);
       }

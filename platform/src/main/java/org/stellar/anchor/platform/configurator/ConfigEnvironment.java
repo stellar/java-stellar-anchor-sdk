@@ -1,12 +1,5 @@
 package org.stellar.anchor.platform.configurator;
 
-<<<<<<< Updated upstream
-=======
-import org.stellar.anchor.util.StringHelper;
-
-import static org.stellar.anchor.platform.configurator.ConfigHelper.normalize;
-
->>>>>>> Stashed changes
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -41,11 +34,7 @@ public class ConfigEnvironment {
     return env.get(name);
   }
 
-<<<<<<< Updated upstream
   public static String getToUpperEnv(String name) {
-=======
-  public static String getToUpperEnv(String name){
->>>>>>> Stashed changes
     return env.get(StringHelper.toUpperSnake(name));
   }
 

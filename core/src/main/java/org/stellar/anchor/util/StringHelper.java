@@ -24,10 +24,7 @@ public class StringHelper {
         .replaceAll("-", "_")
         .toLowerCase();
   }
-<<<<<<< Updated upstream
 
-=======
->>>>>>> Stashed changes
   public static String toUpperSnake(String camel) {
     return camel
         .replaceAll("([A-Z]+)([A-Z][a-z])", "$1_$2")
