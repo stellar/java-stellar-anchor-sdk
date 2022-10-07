@@ -1,6 +1,7 @@
-name: "release/** Branch"
+name: Push/Merge to any `release` Branches
 
 on:
+  workflow_dispatch:
   push:
     branches: 
       - 'release/**'
@@ -9,6 +10,7 @@ on:
 jobs:
   tests:
     uses: ./.github/workflows/basic_tests.yml  # use the callable tests job to run tests
+    secrets: inherit # pass all secrets
   
   build_and_push_docker_image:
     name: Push to DockerHub # stellar/anchor-platform:sha

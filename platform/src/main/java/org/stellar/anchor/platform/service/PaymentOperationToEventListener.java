@@ -1,6 +1,7 @@
 package org.stellar.anchor.platform.service;
 
-import static org.stellar.anchor.util.MathHelper.*;
+import static org.stellar.anchor.util.MathHelper.decimal;
+import static org.stellar.anchor.util.MathHelper.formatAmount;
 
 import io.micrometer.core.instrument.Metrics;
 import java.math.BigDecimal;
@@ -18,8 +19,8 @@ import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.shared.Amount;
 import org.stellar.anchor.api.shared.StellarPayment;
 import org.stellar.anchor.api.shared.StellarTransaction;
-import org.stellar.anchor.event.EventPublishService;
-import org.stellar.anchor.event.models.*;
+import org.stellar.anchor.event.EventService;
+import org.stellar.anchor.event.models.TransactionEvent;
 import org.stellar.anchor.platform.payment.observer.PaymentListener;
 import org.stellar.anchor.platform.payment.observer.circle.ObservedPayment;
 import org.stellar.anchor.sep31.Sep31Transaction;
@@ -33,10 +34,10 @@ import org.stellar.sdk.xdr.MemoType;
 @Profile("stellar-observer")
 public class PaymentOperationToEventListener implements PaymentListener {
   final Sep31TransactionStore transactionStore;
-  final EventPublishService eventService;
+  final EventService eventService;
 
   PaymentOperationToEventListener(
-      Sep31TransactionStore transactionStore, EventPublishService eventService) {
+      Sep31TransactionStore transactionStore, EventService eventService) {
     this.transactionStore = transactionStore;
     this.eventService = eventService;
   }
