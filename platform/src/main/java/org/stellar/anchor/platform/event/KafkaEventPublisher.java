@@ -23,7 +23,7 @@ public class KafkaEventPublisher implements EventPublisher {
   public KafkaEventPublisher(KafkaConfig kafkaConfig) {
     Log.debugF("kafkaConfig: {}", kafkaConfig);
     Properties props = new Properties();
-    props.put(BOOTSTRAP_SERVERS_CONFIG, kafkaConfig.getBootstrapServers());
+    props.put(BOOTSTRAP_SERVERS_CONFIG, kafkaConfig.getBootstrapServer());
     props.put(KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
     props.put(VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
     props.put(CLIENT_ID_CONFIG, kafkaConfig.getClientId());
