@@ -8,6 +8,7 @@ import java.time.format.DateTimeFormatter
 import java.util.*
 import java.util.concurrent.TimeUnit
 import okhttp3.OkHttpClient
+import okhttp3.Request
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 import org.skyscreamer.jsonassert.JSONAssert
@@ -37,6 +38,7 @@ class AnchorPlatformIntegrationTest {
   companion object {
     private const val SEP_SERVER_PORT = 8080
     private const val REFERENCE_SERVER_PORT = 8081
+    private const val OBSERVER_HEALTH_SERVER_PORT = 8083
     private const val PLATFORM_TO_ANCHOR_SECRET = "myPlatformToAnchorSecret"
     private const val JWT_EXPIRATION_MILLISECONDS: Long = 10000
     private const val FIAT_USD = "iso4217:USD"
@@ -81,18 +83,15 @@ class AnchorPlatformIntegrationTest {
     @BeforeAll
     @JvmStatic
     fun setup() {
-      platformServerContext =
-        ServiceRunner.startSepServer(
-          SEP_SERVER_PORT,
-          "/",
-          mapOf(
-            "stellar_anchor_config" to "classpath:integration-test.anchor-config.yaml",
-            "secret.sep10.jwt_secret" to "secret",
-            "secret.sep10.signing_seed" to
-              "SAKXNWVTRVR4SJSHZUDB2CLJXEQHRT62MYQWA2HBB7YBOTCFJJJ55BZF"
-          )
+      val envMap =
+        mapOf(
+          "stellar_anchor_config" to "classpath:integration-test.anchor-config.yaml",
+          "secret.sep10.jwt_secret" to "secret",
+          "secret.sep10.signing_seed" to "SAKXNWVTRVR4SJSHZUDB2CLJXEQHRT62MYQWA2HBB7YBOTCFJJJ55BZF"
         )
-      ServiceRunner.startStellarObserver()
+
+      platformServerContext = ServiceRunner.startSepServer(SEP_SERVER_PORT, "/", envMap)
+      ServiceRunner.startStellarObserver(OBSERVER_HEALTH_SERVER_PORT, "/", envMap)
 
       AnchorReferenceServer.start(REFERENCE_SERVER_PORT, "/")
     }
@@ -347,5 +346,31 @@ class AnchorPlatformIntegrationTest {
   fun testSep38Config() {
     val sep38Config = platformServerContext.getBean(Sep38Config::class.java)
     assertEquals(true, sep38Config.isEnabled)
+  }
+
+  @Test
+  fun testStellarObserverHealth() {
+    val httpRequest =
+      Request.Builder()
+        .url("http://localhost:$OBSERVER_HEALTH_SERVER_PORT/health")
+        .header("Content-Type", "application/json")
+        .get()
+        .build()
+    val response = httpClient.newCall(httpRequest).execute()
+    assertEquals(200, response.code)
+
+    val responseBody = gson.fromJson(response.body!!.string(), HashMap::class.java)
+    assertEquals(5, responseBody.size)
+    assertNotNull(responseBody["started_at"])
+    assertNotNull(responseBody["elapsed_time_ms"])
+    assertNotNull(responseBody["number_of_checks"])
+    assertEquals(2.0, responseBody["number_of_checks"])
+    assertNotNull(responseBody["version"])
+    assertNotNull(responseBody["checks"])
+
+    val checks = responseBody["checks"] as Map<*, *>
+    assertEquals(2, checks.size)
+    assertNotNull(checks["config"])
+    assertNotNull(checks["stellar_payment_observer"])
   }
 }

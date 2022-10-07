@@ -4,6 +4,7 @@ import static org.stellar.anchor.util.Log.errorF;
 
 import io.micrometer.core.instrument.Metrics;
 import java.util.Map;
+import org.stellar.anchor.api.exception.EventPublishException;
 import org.stellar.anchor.config.event.EventConfig;
 import org.stellar.anchor.event.models.AnchorEvent;
 
@@ -22,7 +23,7 @@ public class EventService {
     this.eventPublisher = eventPublisher;
   }
 
-  public void publish(AnchorEvent event) {
+  public void publish(AnchorEvent event) throws EventPublishException {
     if (eventConfig.isEnabled()) {
       // publish the event
       eventPublisher.publish(getQueue(event.getType()), event);

@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import lombok.SneakyThrows;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -21,6 +22,7 @@ import org.stellar.anchor.util.GsonUtils;
 @CrossOrigin(origins = "*")
 @RequestMapping("/sep12")
 @ConditionalOnAllSepsEnabled(seps = {"sep12"})
+@Profile("default")
 public class Sep12Controller {
   private final Sep12Service sep12Service;
 

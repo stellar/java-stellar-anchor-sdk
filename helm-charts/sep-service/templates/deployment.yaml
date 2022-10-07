@@ -71,6 +71,9 @@ spec:
           - name: http
             containerPort: {{ .Values.service.containerPort }}
             protocol: TCP
+          - name: metrics
+            containerPort: 8082
+            protocol: TCP
           {{- if .Values.deployment.envVars }}
           {{- toYaml .Values.deployment.envVars | nindent 10 }}
           {{- end }}     
