@@ -15,14 +15,14 @@ deployment:
    startupProbeFailureThreshold: 30
    serviceAccountName: default
    volumeMounts:
-      secrets:
+      secrets: # TODO: add your secrets here:
          - name: apsigningseed
            mountPath: signingseed 
-      configMaps:
+      configMaps: # TODO: add your config maps here:
          - name: assets
            mountPath: assets
    hosts:
-     - host: "your_anchor_domain.com"
+     - host: "<your_anchor_domain.com>"
        path: /
        pathType: Prefix
        backend:
@@ -41,11 +41,11 @@ deployment:
       - secretRef:
           name: anchor-platform-secrets
       - configMapRef:
-          name: "{{ .Values.fullName }}-config-env-vars"  # remember to rename this
+          name: "{{ .Values.fullName }}-config-env-vars"  # TODO: remember to rename this
 ingress:
    labels:
-     app: appy
-     test: label_test
+     app: <appy>
+     test: <label_test>
    annotations:
      kubernetes.io/ingress.class: "public"
      cert-manager.io/cluster-issuer: "default"
@@ -56,11 +56,11 @@ ingress:
      ingress.kubernetes.io/hsts-max-age: "31536000"
      ingress.kubernetes.io/hsts-include-subdomains: "true"
    tls:
-     host: "your_anchor_domain.com"
-     secretName: anchor-platform-sep-server-cert 
+     host: "<your_anchor_domain.com>"
+     secretName: <name-of-your-cert-secret>
    rules:
       hosts:
-        - host: "your_anchor_domain.com"
+        - host: "<your_anchor_domain.com>"
           path: /
           pathType: Prefix
           backend:
@@ -88,41 +88,78 @@ ingress:
 #       livenessProbeFailureThreshold: 2
 #    ingress:
 #       tls:
-#          host: "observer.your_anchor_domain.com"    # Replace this with a valid host name
+#          host: "<observer.your_anchor_domain.com>"    # Replace this with a valid host name
 #       rules:
 #          hosts:
-#          - host: "observer.your_anchor_domain.com"  # Replace this with a valid host name
+#          - host: "<observer.your_anchor_domain.com>"  # Replace this with a valid host name
 #            path: /
 #            pathType: Prefix
 #
 # The following configurations (`app_config`, `toml_config`, and `assets_config`)
 # will be used to configure the app(s) (both sep-server and stellar-observer).
 app_config:
-  host_url: https://your_anchor_domain.com
+  version: 1
+  #
+  # Database (h2):
+  data.type: h2
+  #
+  # Database (PostgreSQL):
+  # data.type: postgres
+  # data.url: jdbc:postgresql://<host>:<port>/<database_name>
+  # data.username: POSTGRES_USERNAME  # TODO: use secrets
+  # data.password: POSTGRES_PASSWORD  # TODO: use secrets
+  # data.initial_connection_pool_size: 3
+  # data.max_active_connections: 10
+  # data.flyway_enabled: true
+  # data.ddl_auto: update
+  # data.flyway_location: /db/migration
+  #
+  host_url: https://<your_anchor_domain.com>
   stellar_network.network: TESTNET
-  callback_api.base_url: https://your_anchor_domain.com
+  stellar_network.network_passphrase: Test SDF Network ; September 2015
+  stellar_network.horizon_url: https://horizon-testnet.stellar.org
+  callback_api.base_url: https://<your_anchor_domain.com>
   callback_api.auth.type: JWT_TOKEN
+  platform_api.auth.type: JWT_TOKEN
+  payment_observer.enabled: false
+  languages: en
   sep1.enabled: true
+  # `sep1.toml.value` is being set by the helm chart from `toml_config`.
   sep10.enabled: true
-  sep10.home_domain: your_anchor_domain.com
+  sep10.home_domain: <your_anchor_domain.com>
   sep12.enabled: true
+  sep24.enabled: false
   sep31.enabled: true
+  sep31.payment_type: STRICT_SEND
   sep31.deposit_info_generator_type: api
   sep38.enabled: true
-  data.type: h2
+  metrics.enabled: true
+  metrics.extras_enabled: true
+  metrics.run_interval: 30
+  # Events (kafka):
+  events.enabled: true
+  events.event_type_to_queue.quote_created: preview-id_ap_event_quote_created
+  events.event_type_to_queue.transaction_created: preview-id_ap_event_transaction_created
+  events.event_type_to_queue.transaction_status_changed: preview-id_ap_event_transaction_status_changed
+  events.event_type_to_queue.transaction_error: preview-id_ap_event_transaction_error
+  events.publisher.type: kafka
+  events.publisher.kafka.bootstrap_server: <kafka-host>:<kafka-port>
+  events.publisher.kafka.client_id:
+  events.publisher.kafka.retries: 1
+  events.publisher.kafka.linger_ms: 1000
+  events.publisher.kafka.batch_size: 10
   assets.type: json
+  # `assets.value` is being set by the helm chart from `assets_config`.
 
 toml_config: |
   ACCOUNTS = []
   VERSION = "0.1.0"
   NETWORK_PASSPHRASE = "Test SDF Network ; September 2015"
   SIGNING_KEY = "GDZCLP2PHTWYQ3BWZMC5D4ZUJX5NU4S7YZHC5EBFAFKL6UJUQ5RKDGSY"
-  TRANSFER_SERVER = "https://your_anchor_domain.com/sep6"
-  TRANSFER_SERVER_SEP0024 = "https://your_anchor_domain.com/sep24"
-  WEB_AUTH_ENDPOINT = "https://your_anchor_domain.com/auth"
-  KYC_SERVER = "https://your_anchor_domain.com/sep12"
-  DIRECT_PAYMENT_SERVER = "https://your_anchor_domain.com/sep31"
-  ANCHOR_QUOTE_SERVER = "https://your_anchor_domain.com//sep38"
+  WEB_AUTH_ENDPOINT = "https://<your_anchor_domain.com>/auth"
+  KYC_SERVER = "https://<your_anchor_domain.com>/sep12"
+  DIRECT_PAYMENT_SERVER = "https://<your_anchor_domain.com>/sep31"
+  ANCHOR_QUOTE_SERVER = "https://<your_anchor_domain.com>//sep38"
   
   [[CURRENCIES]]
   code = "USDC"
@@ -133,10 +170,10 @@ toml_config: |
   desc = "A test USDC issued by Circle."
   
   [DOCUMENTATION]
-  ORG_NAME = "Your Anchor Domain"
-  ORG_URL = "https://your_anchor_domain.org"
-  ORG_DESCRIPTION = "Your anchor domain"
-  ORG_SUPPORT_EMAIL="support@your_anchor_domain.org"
+  ORG_NAME = "<Your org name>"
+  ORG_URL = "https://<your_anchor_domain.com>"
+  ORG_DESCRIPTION = "<Your org description>"
+  ORG_SUPPORT_EMAIL="<your-support-email@<your_anchor_domain.com>"
 
 assets_config: |
   {
