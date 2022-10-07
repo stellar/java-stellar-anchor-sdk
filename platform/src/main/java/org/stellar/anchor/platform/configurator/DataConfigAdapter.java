@@ -92,8 +92,6 @@ public class DataConfigAdapter extends SpringConfigAdapter {
         set("spring.datasource.url", "jdbc:h2:mem:test");
         set("spring.jpa.database-platform", "org.hibernate.dialect.H2Dialect");
         set("spring.jpa.properties.hibernate.dialect", "org.hibernate.dialect.H2Dialect");
-        set("spring.datasource.username", SecretManager.getInstance().get("secret.data.username"));
-        set("spring.datasource.password", SecretManager.getInstance().get("secret.data.password"));
         break;
       case "sqlite":
         set("spring.datasource.driver-class-name", "org.sqlite.JDBC");
@@ -114,7 +112,7 @@ public class DataConfigAdapter extends SpringConfigAdapter {
         copy(config, "data.url", "spring.datasource.url");
         set("spring.datasource.username", SecretManager.getInstance().get("secret.data.username"));
         set("spring.datasource.password", SecretManager.getInstance().get("secret.data.password"));
-        if (config.getString("flyway.enabled", "").equalsIgnoreCase("true")) {
+        if (config.getString("data.flyway_enabled", "").equalsIgnoreCase("true")) {
           set("spring.flyway.enabled", true);
           set("spring.flyway.locations", "classpath:/db/migration");
           set("spring.flyway.user", SecretManager.getInstance().get("secret.data.username"));
@@ -129,7 +127,7 @@ public class DataConfigAdapter extends SpringConfigAdapter {
         copy(config, "data.url", "spring.datasource.url");
         set("spring.datasource.username", SecretManager.getInstance().get("secret.data.username"));
         set("spring.datasource.password", SecretManager.getInstance().get("secret.data.password"));
-        if (config.getString("flyway.enabled", "").equalsIgnoreCase("true")) {
+        if (config.getString("data.flyway_enabled", "").equalsIgnoreCase("true")) {
           set("spring.flyway.enabled", true);
           set("spring.flyway.locations", "classpath:/db/migration");
           set("spring.flyway.user", SecretManager.getInstance().get("secret.data.username"));

@@ -37,7 +37,7 @@ public class SecretManager
     info("Secret manager started.");
     secretVars.forEach(
         var -> {
-          String secret = ConfigEnvironment.getPosixFormEnvVal(var);
+          String secret = ConfigEnvironment.getenv(var);
           if (isNotEmpty(secret)) {
             props.put(var, secret);
           }
