@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform.controller;
 
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -11,6 +12,7 @@ import org.stellar.anchor.api.platform.PatchTransactionsResponse;
 import org.stellar.anchor.platform.service.TransactionService;
 
 @RestController
+@Profile("default")
 public class PlatformController {
 
   private final TransactionService transactionService;

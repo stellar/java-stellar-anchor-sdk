@@ -43,6 +43,7 @@ public class TransactionService {
           PENDING_RECEIVER.getName(),
           PENDING_EXTERNAL.getName(),
           COMPLETED.getName(),
+          REFUNDED.getName(),
           EXPIRED.getName(),
           ERROR.getName());
 
