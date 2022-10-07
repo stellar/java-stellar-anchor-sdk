@@ -13,7 +13,7 @@ public class MskEventPublisher extends KafkaEventPublisher {
   public MskEventPublisher(MskConfig mskConfig) {
     Log.debugF("MskConfig: {}", mskConfig);
     Properties props = new Properties();
-    props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, mskConfig.getBootstrapServers());
+    props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, mskConfig.getBootstrapServer());
     props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
     props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
     props.put(CLIENT_ID_CONFIG, mskConfig.getClientId());

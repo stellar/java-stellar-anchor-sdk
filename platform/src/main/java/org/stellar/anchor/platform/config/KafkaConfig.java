@@ -8,7 +8,7 @@ public class KafkaConfig {
    * A comma-separated list of host:port pairs that are the addresses of one or more brokers in a
    * Kafka cluster, e.g. localhost:9092 or localhost:9092,another.host:9092.
    */
-  String bootstrapServers;
+  String bootstrapServer;
 
   /** The client ID. If left empty, it is randomly generated. */
   String clientId;

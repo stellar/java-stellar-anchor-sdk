@@ -41,7 +41,7 @@ public class PropertyEventConfig implements EventConfig, Validator {
         // continue to the kafka case. DO NOT break
       case "kafka":
         ValidationUtils.rejectIfEmptyOrWhitespace(
-            errors, "publisher.kafka.bootstrapServers", "empty-bootstrapServer");
+            errors, "publisher.kafka.bootstrapServer", "empty-bootstrapServer");
         ValidationUtils.rejectIfEmptyOrWhitespace(
             errors,
             "publisher.kafka.retries",

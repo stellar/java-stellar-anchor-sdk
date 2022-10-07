@@ -23,7 +23,7 @@ open class EventConfigTest {
     val eventConfig = PropertyEventConfig()
     val kafkaConfig = KafkaConfig()
 
-    kafkaConfig.bootstrapServers = "localhost:29092"
+    kafkaConfig.bootstrapServer = "localhost:29092"
     eventConfig.publisher = PropertyPublisherConfig()
     eventConfig.publisher.type = "kafka"
     eventConfig.publisher.kafka = kafkaConfig
