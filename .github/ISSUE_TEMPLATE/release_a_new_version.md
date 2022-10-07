@@ -28,7 +28,7 @@ labels: release
   - [ ] You'll need to manually publish a new version of the SDK to jitpack and
   - [ ] You'll need to manually upload the jar file from jitpack to the GH release.
 - [ ] If necessary, open a PR for stellar/helm-charts and [update with the latest helm chart](https://docs.google.com/document/d/10ujUQZvBCMUyciObQPouxjtlnOdI5OpAz2Pk1LFdDDE) to publish
-  - [ ] Bump chart version. 
+  - [ ] Bump helm chart version. 
 
 [CHANGELOG.md]: ../../CHANGELOG.md
 [docs/00 - Stellar Anchor Platform.md]: ../../docs/00%20-%20Stellar%20Anchor%20Platform.md
