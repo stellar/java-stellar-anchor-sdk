@@ -44,7 +44,7 @@ fun main(args: Array<String>) {
     if (cmd.hasOption("sep-server") || cmd.hasOption("all")) {
       ServiceRunner.startSepServer(
         ServiceRunner.DEFAULT_SEP_SERVER_PORT,
-        ServiceRunner.DEFAULT_CONTEXTPATH,
+        ServiceRunner.DEFAULT_CONTEXT_PATH,
         null
       )
     }

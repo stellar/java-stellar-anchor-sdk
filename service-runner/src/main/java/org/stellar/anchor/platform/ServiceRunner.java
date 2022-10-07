@@ -8,7 +8,8 @@ import org.stellar.anchor.reference.AnchorReferenceServer;
 public class ServiceRunner {
   public static final int DEFAULT_SEP_SERVER_PORT = 8080;
   public static final int DEFAULT_ANCHOR_REFERENCE_SERVER_PORT = 8081;
-  public static final String DEFAULT_CONTEXTPATH = "/";
+  public static final int DEFAULT_STELLAR_OBSERVER_SERVER_PORT = 8083;
+  public static final String DEFAULT_CONTEXT_PATH = "/";
 
   public static void main(String[] args) {
     Options options = new Options();
@@ -25,12 +26,12 @@ public class ServiceRunner {
       CommandLine cmd = parser.parse(options, args);
       boolean anyServerStarted = false;
       if (cmd.hasOption("sep-server") || cmd.hasOption("all")) {
-        startSepServer(DEFAULT_SEP_SERVER_PORT, DEFAULT_CONTEXTPATH, null);
+        startSepServer(DEFAULT_SEP_SERVER_PORT, DEFAULT_CONTEXT_PATH, null);
         anyServerStarted = true;
       }
 
       if (cmd.hasOption("stellar-observer") || cmd.hasOption("all")) {
-        startStellarObserver();
+        startStellarObserver(DEFAULT_STELLAR_OBSERVER_SERVER_PORT, DEFAULT_CONTEXT_PATH, null);
         anyServerStarted = true;
       }
 
@@ -52,8 +53,9 @@ public class ServiceRunner {
     return AnchorPlatformServer.start(port, contextPath, env, true);
   }
 
-  static ConfigurableApplicationContext startStellarObserver() {
-    return StellarObservingService.start();
+  static ConfigurableApplicationContext startStellarObserver(
+      int port, String contextPath, Map<String, Object> env) {
+    return StellarObservingService.start(port, contextPath, env);
   }
 
   static void startAnchorReferenceServer() {
@@ -62,9 +64,9 @@ public class ServiceRunner {
     if (strPort != null) {
       port = Integer.parseInt(strPort);
     }
-    String contextPath = System.getProperty("ANCHOR_REFERENCE_CONTEXTPATH");
+    String contextPath = System.getProperty("ANCHOR_REFERENCE_CONTEXT_PATH");
     if (contextPath == null) {
-      contextPath = DEFAULT_CONTEXTPATH;
+      contextPath = DEFAULT_CONTEXT_PATH;
     }
     AnchorReferenceServer.start(port, contextPath);
   }

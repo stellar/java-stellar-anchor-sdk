@@ -1,6 +1,7 @@
 package org.stellar.anchor.platform.controller;
 
 import java.io.IOException;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -14,6 +15,7 @@ import org.stellar.anchor.sep1.Sep1Service;
 @RestController
 @CrossOrigin(origins = "*")
 @ConditionalOnAllSepsEnabled(seps = {"sep1"})
+@Profile("default")
 public class Sep1Controller {
   private final Sep1Config sep1Config;
   private final Sep1Service sep1Service;
