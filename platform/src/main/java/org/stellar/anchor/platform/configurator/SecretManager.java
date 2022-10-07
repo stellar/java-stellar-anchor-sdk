@@ -37,7 +37,7 @@ public class SecretManager
     info("Secret manager started.");
     secretVars.forEach(
         var -> {
-          String secret = ConfigEnvironment.getToUpperEnv(var);
+          String secret = ConfigEnvironment.getPosixFormEnvVal(var);
           if (isNotEmpty(secret)) {
             props.put(var, secret);
           }
@@ -45,5 +45,9 @@ public class SecretManager
     // Set Platform configurations
     PropertiesPropertySource pps = new PropertiesPropertySource("secret", props);
     applicationContext.getEnvironment().getPropertySources().addFirst(pps);
+  }
+
+  public String get(String key) {
+    return props.getProperty(key);
   }
 }

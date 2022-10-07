@@ -15,7 +15,11 @@ public class ConfigEnvironment {
 
   public static void rebuild() {
     env = new HashMap<>();
-    env.putAll(System.getenv());
+
+    // Read all env variables and convert everything to POSIX form
+    for (Map.Entry<String, String> entry : System.getenv().entrySet()) {
+      env.put(StringHelper.toPosixForm(entry.getKey()), entry.getValue());
+    }
 
     Properties sysProps = System.getProperties();
     for (Map.Entry<Object, Object> entry : sysProps.entrySet()) {
@@ -34,8 +38,8 @@ public class ConfigEnvironment {
     return env.get(name);
   }
 
-  public static String getToUpperEnv(String name) {
-    return env.get(StringHelper.toUpperSnake(name));
+  public static String getPosixFormEnvVal(String name) {
+    return env.get(StringHelper.toPosixForm(name));
   }
 
   public static Collection<String> names() {

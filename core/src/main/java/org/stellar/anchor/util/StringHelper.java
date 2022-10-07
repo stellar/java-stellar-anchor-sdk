@@ -25,7 +25,7 @@ public class StringHelper {
         .toLowerCase();
   }
 
-  public static String toUpperSnake(String camel) {
+  public static String toPosixForm(String camel) {
     return camel
         .replaceAll("([A-Z]+)([A-Z][a-z])", "$1_$2")
         .replaceAll("([a-z])([A-Z])", "$1_$2")
