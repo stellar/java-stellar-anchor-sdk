@@ -1,46 +1,28 @@
-package org.stellar.anchor.event;
+package org.stellar.anchor.platform.event;
 
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.AmazonSQSAsyncClientBuilder;
 import com.amazonaws.services.sqs.model.MessageAttributeValue;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
 import com.google.gson.Gson;
-import io.micrometer.core.instrument.Metrics;
-import java.util.Map;
-import org.stellar.anchor.config.PublisherConfig;
+import org.stellar.anchor.event.EventPublisher;
 import org.stellar.anchor.event.models.AnchorEvent;
+import org.stellar.anchor.platform.config.SqsConfig;
 import org.stellar.anchor.util.Log;
 
-public class SqsEventService implements EventPublishService {
+public class SqsEventPublisher implements EventPublisher {
   final AmazonSQSAsync sqsClient;
-  final Map<String, String> eventTypeToQueue;
-  final boolean useSingleQueue;
 
-  public SqsEventService(PublisherConfig sqsConfig) {
+  public SqsEventPublisher(SqsConfig sqsConfig) {
     this.sqsClient =
-        AmazonSQSAsyncClientBuilder.standard()
-            .withRegion(sqsConfig.getRegion())
-            .withCredentials(
-                new AWSStaticCredentialsProvider(
-                    new BasicAWSCredentials(sqsConfig.getAccessKey(), sqsConfig.getSecretKey())))
-            .build();
-
-    this.eventTypeToQueue = sqsConfig.getEventTypeToQueue();
-    this.useSingleQueue = sqsConfig.isUseSingleQueue();
+        AmazonSQSAsyncClientBuilder.standard().withRegion(sqsConfig.getAwsRegion()).build();
   }
 
-  public void publish(AnchorEvent event) {
+  @Override
+  public void publish(String queue, AnchorEvent event) {
     try {
       // TODO implement batching
       // TODO retry logic?
-      String queue;
-      if (useSingleQueue) {
-        queue = eventTypeToQueue.get("all");
-      } else {
-        queue = eventTypeToQueue.get(event.getType());
-      }
       Gson gson = new Gson();
       String eventStr = gson.toJson(event);
 
@@ -58,9 +40,7 @@ public class SqsEventService implements EventPublishService {
               .withDataType("String")
               .withStringValue(event.getClass().getSimpleName()));
       sqsClient.sendMessage(sendMessageRequest);
-      Metrics.counter(
-              "event.published", "class", event.getClass().getSimpleName(), "type", event.getType())
-          .increment();
+
     } catch (Exception ex) {
       Log.errorEx(ex);
     }

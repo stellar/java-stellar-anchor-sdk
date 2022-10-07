@@ -2,7 +2,7 @@ package org.stellar.anchor.platform.config
 
 import kotlin.test.assertContains
 import kotlin.test.assertEquals
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Test
 import org.springframework.validation.BindException
 import org.springframework.validation.ValidationUtils
 
@@ -10,7 +10,7 @@ open class EventConfigTest {
   @Test
   fun testDisabledEventConfig() {
     // events are disabled
-    val eventConfig = PropertyEventConfig(null)
+    val eventConfig = PropertyEventConfig()
     eventConfig.isEnabled = false
     val errors = BindException(eventConfig, "eventConfig")
     ValidationUtils.invokeValidator(eventConfig, eventConfig, errors)
@@ -20,14 +20,15 @@ open class EventConfigTest {
   @Test
   fun testEnabledForKafka() {
     // Events correctly configured for kafka
-    val kafkaConfig = PropertyPublisherConfig(PropertyEventTypeToQueueConfig())
-    kafkaConfig.isUseSingleQueue = true
-    kafkaConfig.bootstrapServer = "localhost:29092"
-    kafkaConfig.eventTypeToQueue = HashMap<String, String>()
+    val eventConfig = PropertyEventConfig()
+    val kafkaConfig = KafkaConfig()
 
-    val eventConfig = PropertyEventConfig(kafkaConfig)
+    kafkaConfig.bootstrapServers = "localhost:29092"
+    eventConfig.publisher = PropertyPublisherConfig()
+    eventConfig.publisher.type = "kafka"
+    eventConfig.publisher.kafka = kafkaConfig
     eventConfig.isEnabled = true
-    eventConfig.publisherType = "kafka"
+
     val errors = BindException(eventConfig, "eventConfig")
     ValidationUtils.invokeValidator(eventConfig, eventConfig, errors)
     assertEquals(0, errors.errorCount)
@@ -35,17 +36,16 @@ open class EventConfigTest {
 
   @Test
   fun testEnabledForSqs() {
-    // Events correctly configured for sqs
-    val sqsConfig = PropertyPublisherConfig(PropertyEventTypeToQueueConfig())
-    sqsConfig.accessKey = "accessKey"
-    sqsConfig.secretKey = "secretKey"
-    sqsConfig.isUseSingleQueue = true
-    sqsConfig.region = "region"
-    sqsConfig.eventTypeToQueue = HashMap<String, String>()
+    // Events correctly configured for kafka
+    val eventConfig = PropertyEventConfig()
+    val sqsConfig = SqsConfig()
 
-    val eventConfig = PropertyEventConfig(sqsConfig)
+    sqsConfig.awsRegion = "us-east"
+    eventConfig.publisher = PropertyPublisherConfig()
+    eventConfig.publisher.type = "sqs"
+    eventConfig.publisher.sqs = sqsConfig
     eventConfig.isEnabled = true
-    eventConfig.publisherType = "sqs"
+
     val errors = BindException(eventConfig, "eventConfig")
     ValidationUtils.invokeValidator(eventConfig, eventConfig, errors)
     assertEquals(0, errors.errorCount)
@@ -53,43 +53,33 @@ open class EventConfigTest {
 
   @Test
   fun testKafkaMissingFields() {
-    val kafkaConfig = PropertyPublisherConfig(PropertyEventTypeToQueueConfig())
-    kafkaConfig.isUseSingleQueue = true
-    kafkaConfig.eventTypeToQueue = HashMap<String, String>()
+    val eventConfig = PropertyEventConfig()
+    val kafkaConfig = KafkaConfig()
 
-    val eventConfig = PropertyEventConfig(kafkaConfig)
+    eventConfig.publisher = PropertyPublisherConfig()
+    eventConfig.publisher.type = "kafka"
+    eventConfig.publisher.kafka = kafkaConfig
     eventConfig.isEnabled = true
-    eventConfig.publisherType = "kafka"
-    val errors = BindException(eventConfig, "eventConfig")
 
+    val errors = BindException(eventConfig, "eventConfig")
     ValidationUtils.invokeValidator(eventConfig, eventConfig, errors)
     assertEquals(1, errors.errorCount)
-    errors.message?.let { assertContains(it, "badPublisherConfig") }
-
-    val kafkaErrors = kafkaConfig.validate(eventConfig.publisherType)
-    assertEquals(1, kafkaErrors.errorCount)
-    kafkaErrors.message?.let { assertContains(it, "empty-bootstrapServer") }
+    errors.message?.let { assertContains(it, "empty-bootstrapServer") }
   }
 
   @Test
   fun testSqsMissingFields() {
-    val sqsConfig = PropertyPublisherConfig(PropertyEventTypeToQueueConfig())
-    sqsConfig.isUseSingleQueue = true
-    sqsConfig.eventTypeToQueue = HashMap<String, String>()
-    sqsConfig.accessKey = "accessKey"
-    sqsConfig.secretKey = "secretKey"
+    val eventConfig = PropertyEventConfig()
+    val sqsConfig = SqsConfig()
 
-    val eventConfig = PropertyEventConfig(sqsConfig)
+    eventConfig.publisher = PropertyPublisherConfig()
+    eventConfig.publisher.type = "sqs"
+    eventConfig.publisher.sqs = sqsConfig
     eventConfig.isEnabled = true
-    eventConfig.publisherType = "sqs"
-    val errors = BindException(eventConfig, "eventConfig")
 
+    val errors = BindException(eventConfig, "eventConfig")
     ValidationUtils.invokeValidator(eventConfig, eventConfig, errors)
     assertEquals(1, errors.errorCount)
-    errors.message?.let { assertContains(it, "badPublisherConfig") }
-
-    val sqsErrors = sqsConfig.validate(eventConfig.publisherType)
-    assertEquals(1, sqsErrors.errorCount)
-    sqsErrors.message?.let { assertContains(it, "empty-region") }
+    errors.message?.let { assertContains(it, "empty-aws-region") }
   }
 }

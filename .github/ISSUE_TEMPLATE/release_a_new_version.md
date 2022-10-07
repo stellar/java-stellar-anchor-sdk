@@ -23,10 +23,10 @@ labels: release
 - [ ] When the team is confident the release is stable, you'll need to create two pull requests:
   - [ ] `release/0.1.0 -> main`: this should require two approvals.
   - [ ] `release/0.1.0 -> develop`: ideally, this should be merged after the `main` branch is merged.
-- [ ] Create a new release on GitHub with the name `0.1.0` and the changes from the [CHANGELOG.md] file.
+- [ ] After the release(e.g. `0.1.0`) branch is merged to `main`, create a new release on GitHub with the name `0.1.0` and the changes from the [CHANGELOG.md] file.
   - [ ] The release will automatically publish a new version of the docker image to Docker Hub.
-  - [ ] You'll need to manually publish a new version of the SDK to jitpack and
-  - [ ] You'll need to manually upload the jar file from jitpack to the GH release.
+  - You'll need to manually publish a new version of the SDK to [Maven Central](https://search.maven.org/search?q=g:org.stellar.anchor-sdk).
+  - [ ] You'll need to manually upload the jar file from [Maven Central](https://search.maven.org/search?q=g:org.stellar.anchor-sdk) to the GH release.
 
 [CHANGELOG.md]: ../../CHANGELOG.md
 [docs/00 - Stellar Anchor Platform.md]: ../../docs/00%20-%20Stellar%20Anchor%20Platform.md

@@ -38,9 +38,9 @@ import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.config.Sep31Config
 import org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_RECEIVE
 import org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_SEND
-import org.stellar.anchor.event.EventPublishService
+import org.stellar.anchor.event.EventService
 import org.stellar.anchor.event.models.TransactionEvent
-import org.stellar.anchor.sep31.Sep31Service.*
+import org.stellar.anchor.sep31.Sep31Service.Context
 import org.stellar.anchor.sep38.PojoSep38Quote
 import org.stellar.anchor.sep38.Sep38QuoteStore
 import org.stellar.anchor.util.GsonUtils
@@ -278,7 +278,7 @@ class Sep31ServiceTest {
   @MockK(relaxed = true) lateinit var quoteStore: Sep38QuoteStore
   @MockK(relaxed = true) lateinit var feeIntegration: FeeIntegration
   @MockK(relaxed = true) lateinit var customerIntegration: CustomerIntegration
-  @MockK(relaxed = true) lateinit var eventPublishService: EventPublishService
+  @MockK(relaxed = true) lateinit var eventPublishService: EventService
 
   private lateinit var jwtService: JwtService
   private lateinit var sep31Service: Sep31Service

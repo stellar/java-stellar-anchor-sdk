@@ -14,7 +14,7 @@ import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.config.*;
-import org.stellar.anchor.event.EventPublishService;
+import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.filter.JwtTokenFilter;
 import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.platform.data.*;
@@ -155,7 +155,7 @@ public class SepServiceBeans {
       AssetService assetService,
       FeeIntegration feeIntegration,
       CustomerIntegration customerIntegration,
-      EventPublishService eventPublishService) {
+      EventService eventService) {
     return new Sep31Service(
         appConfig,
         sep31Config,
@@ -165,7 +165,7 @@ public class SepServiceBeans {
         assetService,
         feeIntegration,
         customerIntegration,
-        eventPublishService);
+        eventService);
   }
 
   @Bean
@@ -184,7 +184,7 @@ public class SepServiceBeans {
       AssetService assetService,
       RateIntegration rateIntegration,
       Sep38QuoteStore sep38QuoteStore,
-      EventPublishService eventService) {
+      EventService eventService) {
     return new Sep38Service(
         sep38Config, assetService, rateIntegration, sep38QuoteStore, eventService);
   }
