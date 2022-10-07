@@ -17,8 +17,10 @@ platform_api:
 
 events:
   enabled: true
-  options:
-    bootstrap_server: host.docker.internal:29092
+  publisher:
+    type: kafka
+    kafka:
+      bootstrap_servers: host.docker.internal:29092
 
 sep1:
   enabled: true
