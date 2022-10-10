@@ -51,6 +51,8 @@ jobs:
       - name: Find Home Domain (Preview or Dev)
         id: endpoint-finder
         run: |
+          echo ${{github.event.pull_request.number}}
+          echo $PR_NUMBER
           export HOME_DOMAIN=https://anchor-sep-server-dev.stellar.org
           if [ ! -z "$PR_NUMBER" ]
           then
