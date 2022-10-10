@@ -6,9 +6,9 @@ on:
     branches: 
       - main
       - develop
-      - 'release/**'
-      - 'releases/**'
-      - 'hotfix/**'
+#      - 'release/**'
+#      - 'releases/**'
+#      - 'hotfix/**'
 
 jobs:
   end_to_end_tests:
