@@ -3,8 +3,8 @@ name: "Release from the release/** Branch"
 on:
   push:
     branches: 
-      - 'release/**'
-      - 'releases/**'
+      - 'release123/**'
+      - 'releases123/**'
 
 jobs:
   tests:
