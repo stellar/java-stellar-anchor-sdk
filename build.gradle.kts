@@ -96,7 +96,15 @@ subprojects {
 
     javadoc { options.encoding = "UTF-8" }
 
-    test { useJUnitPlatform() }
+    test {
+      useJUnitPlatform()
+
+      testLogging {
+        events("SKIPPED", "FAILED")
+        showExceptions = true
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+      }
+    }
   }
 
   configurations {
@@ -110,7 +118,7 @@ subprojects {
 
 allprojects {
   group = "org.stellar.anchor-sdk"
-  version = "1.1.1"
+  version = "1.2.0"
 
   tasks.jar {
     manifest {

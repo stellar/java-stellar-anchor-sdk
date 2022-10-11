@@ -3,13 +3,11 @@ package org.stellar.anchor.event;
 import io.micrometer.core.instrument.Metrics;
 import java.util.Map;
 import java.util.Properties;
-import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.Producer;
-import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.clients.producer.ProducerRecord;
+import org.apache.kafka.clients.producer.*;
 import org.apache.kafka.common.header.internals.RecordHeader;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
+import org.stellar.anchor.api.exception.EventPublishException;
 import org.stellar.anchor.config.KafkaConfig;
 import org.stellar.anchor.event.models.AnchorEvent;
 import org.stellar.anchor.util.Log;
@@ -39,7 +37,7 @@ public class KafkaEventService implements EventPublishService {
     this.useSingleQueue = kafkaConfig.isUseSingleQueue();
   }
 
-  public void publish(AnchorEvent event) {
+  public void publish(AnchorEvent event) throws EventPublishException {
     try {
       String topic;
       if (useSingleQueue) {
@@ -49,7 +47,14 @@ public class KafkaEventService implements EventPublishService {
       }
       ProducerRecord<String, AnchorEvent> record = new ProducerRecord<>(topic, event);
       record.headers().add(new RecordHeader("type", event.getType().getBytes()));
-      producer.send(record);
+
+      // If the queue is offline, throw an exception
+      try {
+        producer.send(record).get();
+      } catch (Exception ex) {
+        throw new EventPublishException("Failed to publish event to Kafka.", ex);
+      }
+
       Metrics.counter(
               "event.published", "class", event.getClass().getSimpleName(), "type", event.getType())
           .increment();
