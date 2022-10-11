@@ -9,8 +9,8 @@ on:
       - published
 
 jobs:
-  tests:
-    uses: ./.github/workflows/basic_tests.yml  # execute the callable basic_tests.yml
+#  tests:
+#    uses: ./.github/workflows/basic_tests.yml  # execute the callable basic_tests.yml
 
   end_to_end_tests:
     uses: ./.github/workflows/end_to_end_tests.yml  # execute the callable end_to_end_tests.yml
