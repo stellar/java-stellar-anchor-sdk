@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.2.1
+* Fix gson serialization error of the Refunds object. [#626](https://github.com/stellar/java-stellar-anchor-sdk/issues/626)
+
 ## 1.2.0
 * Add Stellar observer retries with exponential back-off timer [#607](https://github.com/stellar/java-stellar-anchor-sdk/pull/607)
 * Add health check endpoint to the Stellar observer [#602](https://github.com/stellar/java-stellar-anchor-sdk/pull/602)
