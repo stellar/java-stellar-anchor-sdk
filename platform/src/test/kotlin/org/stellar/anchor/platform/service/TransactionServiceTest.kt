@@ -3,8 +3,11 @@ package org.stellar.anchor.platform.service
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import java.time.Instant
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import org.stellar.anchor.api.exception.AnchorException
@@ -19,7 +22,7 @@ import org.stellar.anchor.api.shared.RefundPayment
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.ResourceJsonAssetService
 import org.stellar.anchor.event.models.TransactionEvent
-import org.stellar.anchor.platform.data.JdbcSep31RefundPayment.JdbcRefundPayment
+import org.stellar.anchor.platform.data.JdbcSep31RefundPayment
 import org.stellar.anchor.platform.data.JdbcSep31Refunds
 import org.stellar.anchor.platform.data.JdbcSep31Transaction
 import org.stellar.anchor.sep31.*
@@ -78,7 +81,7 @@ class TransactionServiceTest {
     // Mock the store
     every { sep31TransactionStore.newTransaction() } returns JdbcSep31Transaction()
     every { sep31TransactionStore.newRefunds() } returns JdbcSep31Refunds()
-    every { sep31TransactionStore.newRefundPayment() } answers { JdbcRefundPayment() }
+    every { sep31TransactionStore.newRefundPayment() } answers { JdbcSep31RefundPayment() }
 
     // mock time
     val mockStartedAt = Instant.now().minusSeconds(180)
