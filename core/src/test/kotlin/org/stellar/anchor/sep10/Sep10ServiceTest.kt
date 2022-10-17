@@ -5,8 +5,12 @@ import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import java.io.IOException
 import java.security.SecureRandom
+import java.security.cert.X509Certificate
 import java.util.concurrent.TimeUnit
 import java.util.stream.Stream
+import javax.net.ssl.SSLContext
+import javax.net.ssl.TrustManager
+import javax.net.ssl.X509TrustManager
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.mockwebserver.MockResponse
@@ -80,12 +84,8 @@ internal class Sep10ServiceTest {
   private lateinit var sep10Service: Sep10Service
   private val clientKeyPair = KeyPair.random()
   private val clientDomainKeyPair = KeyPair.random()
-  private val httpClient: OkHttpClient =
-    OkHttpClient.Builder()
-      .connectTimeout(10, TimeUnit.MINUTES)
-      .readTimeout(10, TimeUnit.MINUTES)
-      .writeTimeout(10, TimeUnit.MINUTES)
-      .build()
+
+  private lateinit var httpClient: OkHttpClient
 
   @BeforeEach
   fun setUp() {
@@ -108,12 +108,38 @@ internal class Sep10ServiceTest {
 
     this.jwtService = spyk(JwtService(appConfig))
     this.sep10Service = Sep10Service(appConfig, sep10Config, horizon, jwtService)
+
+    this.httpClient = `create httpClient that trust all certificates`()
   }
 
   @AfterEach
   fun tearDown() {
     clearAllMocks()
     unmockkAll()
+  }
+
+  fun `create httpClient that trust all certificates`(): OkHttpClient {
+    val trustAllCerts =
+      arrayOf<TrustManager>(
+        object : X509TrustManager {
+          override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
+
+          override fun checkServerTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
+
+          override fun getAcceptedIssuers() = arrayOf<X509Certificate>()
+        }
+      )
+
+    // Install the all-trusting trust manager
+    val sslContext = SSLContext.getInstance("SSL")
+    sslContext.init(null, trustAllCerts, SecureRandom())
+    return OkHttpClient.Builder()
+      .connectTimeout(10, TimeUnit.MINUTES)
+      .readTimeout(10, TimeUnit.MINUTES)
+      .writeTimeout(10, TimeUnit.MINUTES)
+      .sslSocketFactory(sslContext.socketFactory, trustAllCerts[0] as X509TrustManager)
+      .hostnameVerifier { _, _ -> true }
+      .build()
   }
 
   @Test
