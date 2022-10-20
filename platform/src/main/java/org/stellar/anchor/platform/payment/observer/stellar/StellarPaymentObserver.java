@@ -287,11 +287,7 @@ public class StellarPaymentObserver implements HealthCheckable {
 
     results.add(healthBuilder.build());
 
-    return SPOHealthCheckResult.builder()
-        .name(getName())
-        .streams(results)
-        .status(status.getName())
-        .build();
+    return SPOHealthCheckResult.builder().name(getName()).streams(results).status(status).build();
   }
 }
 
@@ -301,9 +297,9 @@ public class StellarPaymentObserver implements HealthCheckable {
 class SPOHealthCheckResult implements HealthCheckResult {
   transient String name;
 
-  List<String> statuses;
+  List<HealthCheckStatus> statuses;
 
-  String status;
+  HealthCheckStatus status;
 
   List<StreamHealth> streams;
 
