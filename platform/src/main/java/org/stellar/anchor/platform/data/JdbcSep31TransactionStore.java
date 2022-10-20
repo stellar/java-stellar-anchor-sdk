@@ -31,7 +31,7 @@ public class JdbcSep31TransactionStore implements Sep31TransactionStore {
 
   @Override
   public RefundPayment newRefundPayment() {
-    return new JdbcSep31RefundPayment.JdbcRefundPayment();
+    return new JdbcSep31RefundPayment();
   }
 
   @Override
