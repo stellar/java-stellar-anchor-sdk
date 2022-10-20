@@ -143,7 +143,7 @@ public class JdbcSep31Transaction implements Sep31Transaction, SepTransaction {
 
   public void setRefundsJson(String refundsJson) {
     if (refundsJson != null) {
-      this.refunds = gson.fromJson(refundsJson, Refunds.class);
+      this.refunds = gson.fromJson(refundsJson, JdbcSep31Refunds.class);
     }
   }
 
