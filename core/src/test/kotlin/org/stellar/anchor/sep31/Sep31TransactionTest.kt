@@ -136,7 +136,7 @@ class Sep31TransactionTest {
   }
 
   @Test
-  fun test_toPlatformApiGetTransactionResponse() {
+  fun `test PlatformApiGetTransactionResponse correctness`() {
     val wantRefunds: Refund =
       Refund.builder()
         .amountRefunded(Amount("90.0000", fiatUSD))
@@ -196,7 +196,7 @@ class Sep31TransactionTest {
   }
 
   @Test
-  fun test_toSep31GetTransactionResponse() {
+  fun `test Sep31GetTransactionResponse correctness`() {
     val refunds =
       Sep31GetTransactionResponse.Refunds.builder()
         .amountRefunded("90.0000")
