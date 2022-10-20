@@ -41,28 +41,29 @@ public class StellarPaymentObserver implements HealthCheckable {
   private static final int MIN_RESULTS = 1;
 
   final Server server;
-  final Set<PaymentListener> observers;
+  final Set<PaymentListener> paymentListeners;
   final StellarPaymentStreamerCursorStore paymentStreamerCursorStore;
   final Map<SSEStream<OperationResponse>, String> mapStreamToAccount = new HashMap<>();
   final PaymentObservingAccountsManager paymentObservingAccountsManager;
   SSEStream<OperationResponse> stream;
 
-  private final ExponentialBackoffTimer exponentialBackoffTimer = new ExponentialBackoffTimer();
+  final ExponentialBackoffTimer exponentialBackoffTimer = new ExponentialBackoffTimer();
+  boolean healthy = true;
 
   StellarPaymentObserver(
       String horizonServer,
-      Set<PaymentListener> observers,
+      Set<PaymentListener> paymentListeners,
       PaymentObservingAccountsManager paymentObservingAccountsManager,
       StellarPaymentStreamerCursorStore paymentStreamerCursorStore) {
     this.server = new Server(horizonServer);
-    this.observers = observers;
+    this.paymentListeners = paymentListeners;
     this.paymentObservingAccountsManager = paymentObservingAccountsManager;
     this.paymentStreamerCursorStore = paymentStreamerCursorStore;
   }
 
   /** Start watching the accounts. */
   public void start() {
-    this.stream = watch();
+    this.stream = startSSEStream();
   }
 
   /** Graceful shutdown. */
@@ -84,6 +85,42 @@ public class StellarPaymentObserver implements HealthCheckable {
     } catch (InterruptedException ex) {
       Log.errorEx(ex);
     }
+  }
+
+  SSEStream<OperationResponse> startSSEStream() {
+    String latestCursor = fetchStreamingCursor();
+    PaymentsRequestBuilder paymentsRequest =
+        server
+            .payments()
+            .includeTransactions(true)
+            .cursor(latestCursor)
+            .order(RequestBuilder.Order.ASC)
+            .limit(MAX_RESULTS);
+
+    return paymentsRequest.stream(
+        new EventListener<>() {
+          @Override
+          public void onEvent(OperationResponse operationResponse) {
+            handleEvent(operationResponse);
+          }
+
+          @Override
+          public void onFailure(Optional<Throwable> exception, Optional<Integer> statusCode) {
+            handleFailure(exception, statusCode);
+          }
+        });
+  }
+
+  void handleFailure(Optional<Throwable> exception, Optional<Integer> statusCode) {
+    // The SSEStreamer has internal errors. We will give up and let the container manager to
+    // restart.
+    Log.errorEx("stellar payment observer error: ", exception.get());
+
+    // Stop the SSEStream
+    stream.close();
+
+    // Mark the observer unhealthy
+    healthy = false;
   }
 
   /**
@@ -118,85 +155,61 @@ public class StellarPaymentObserver implements HealthCheckable {
     return pageOpResponse.getRecords().get(0).getPagingToken();
   }
 
-  SSEStream<OperationResponse> watch() {
-    String latestCursor = fetchStreamingCursor();
-    PaymentsRequestBuilder paymentsRequest =
-        server
-            .payments()
-            .includeTransactions(true)
-            .cursor(latestCursor)
-            .order(RequestBuilder.Order.ASC)
-            .limit(MAX_RESULTS);
+  void handleEvent(OperationResponse operationResponse) {
+    if (!operationResponse.isTransactionSuccessful()) {
+      paymentStreamerCursorStore.save(operationResponse.getPagingToken());
+      return;
+    }
 
-    return paymentsRequest.stream(
-        new EventListener<>() {
-          @Override
-          public void onEvent(OperationResponse operationResponse) {
-            if (!operationResponse.isTransactionSuccessful()) {
-              paymentStreamerCursorStore.save(operationResponse.getPagingToken());
-              return;
-            }
+    ObservedPayment observedPayment = null;
+    try {
+      if (operationResponse instanceof PaymentOperationResponse) {
+        PaymentOperationResponse payment = (PaymentOperationResponse) operationResponse;
+        observedPayment = ObservedPayment.fromPaymentOperationResponse(payment);
+      } else if (operationResponse instanceof PathPaymentBaseOperationResponse) {
+        PathPaymentBaseOperationResponse pathPayment =
+            (PathPaymentBaseOperationResponse) operationResponse;
+        observedPayment = ObservedPayment.fromPathPaymentOperationResponse(pathPayment);
+      }
+    } catch (SepException ex) {
+      Log.warn(
+          String.format(
+              "Payment of id %s contains unsupported memo %s.",
+              operationResponse.getId(),
+              operationResponse.getTransaction().get().getMemo().toString()));
+      Log.warnEx(ex);
+    }
 
-            ObservedPayment observedPayment = null;
-            try {
-              if (operationResponse instanceof PaymentOperationResponse) {
-                PaymentOperationResponse payment = (PaymentOperationResponse) operationResponse;
-                observedPayment = ObservedPayment.fromPaymentOperationResponse(payment);
-              } else if (operationResponse instanceof PathPaymentBaseOperationResponse) {
-                PathPaymentBaseOperationResponse pathPayment =
-                    (PathPaymentBaseOperationResponse) operationResponse;
-                observedPayment = ObservedPayment.fromPathPaymentOperationResponse(pathPayment);
-              }
-            } catch (SepException ex) {
-              Log.warn(
-                  String.format(
-                      "Payment of id %s contains unsupported memo %s.",
-                      operationResponse.getId(),
-                      operationResponse.getTransaction().get().getMemo().toString()));
-              Log.warnEx(ex);
-            }
-
-            if (observedPayment != null) {
-              try {
-                if (paymentObservingAccountsManager.lookupAndUpdate(observedPayment.getTo())) {
-                  for (PaymentListener listener : observers) {
-                    listener.onReceived(observedPayment);
-                  }
-                }
-
-                if (paymentObservingAccountsManager.lookupAndUpdate(observedPayment.getFrom())
-                    && !observedPayment.getTo().equals(observedPayment.getFrom())) {
-                  final ObservedPayment finalObservedPayment = observedPayment;
-                  observers.forEach(observer -> observer.onSent(finalObservedPayment));
-                }
-
-              } catch (EventPublishException ex) {
-                // restart the observer from where it stopped, in case the queue fails to
-                // publish the message.
-                Log.errorEx("Failed to send event to observer.", ex);
-                restart();
-                return;
-              } catch (Throwable t) {
-                Log.errorEx("Something went wrong in the streamer", t);
-                if (!Thread.interrupted()) {
-                  restart();
-                }
-                return;
-              }
-
-              exponentialBackoffTimer.reset();
-            }
-
-            paymentStreamerCursorStore.save(operationResponse.getPagingToken());
+    if (observedPayment != null) {
+      try {
+        if (paymentObservingAccountsManager.lookupAndUpdate(observedPayment.getTo())) {
+          for (PaymentListener listener : paymentListeners) {
+            listener.onReceived(observedPayment);
           }
+        }
 
-          @Override
-          public void onFailure(Optional<Throwable> exception, Optional<Integer> statusCode) {
-            Log.errorEx("stellar payment observer error: ", exception.get());
-            // TODO: The stream seems closed when failure happens. Improve the reliability of the
-            // stream.
-          }
-        });
+        if (paymentObservingAccountsManager.lookupAndUpdate(observedPayment.getFrom())
+            && !observedPayment.getTo().equals(observedPayment.getFrom())) {
+          final ObservedPayment finalObservedPayment = observedPayment;
+          paymentListeners.forEach(observer -> observer.onSent(finalObservedPayment));
+        }
+
+      } catch (EventPublishException ex) {
+        // restart the observer from where it stopped, in case the queue fails to
+        // publish the message.
+        Log.errorEx("Failed to send event to payment listeners.", ex);
+        restart();
+        return;
+      } catch (Throwable t) {
+        Log.errorEx("Something went wrong in the observer", t);
+        restart();
+        return;
+      }
+
+      exponentialBackoffTimer.reset();
+    }
+
+    paymentStreamerCursorStore.save(operationResponse.getPagingToken());
   }
 
   public static Builder builder() {
@@ -258,7 +271,7 @@ public class StellarPaymentObserver implements HealthCheckable {
   @Override
   public HealthCheckResult check() {
     List<StreamHealth> results = new ArrayList<>();
-    HealthCheckStatus status = GREEN;
+    HealthCheckStatus status = (healthy) ? GREEN : RED;
 
     StreamHealth.StreamHealthBuilder healthBuilder = StreamHealth.builder();
     healthBuilder.account(mapStreamToAccount.get(stream));
@@ -274,15 +287,19 @@ public class StellarPaymentObserver implements HealthCheckable {
       status = RED;
     }
 
-    boolean isStopped = getField(stream, "isStopped", new AtomicBoolean(false)).get();
-    healthBuilder.stopped(isStopped);
-    if (isStopped) {
-      status = RED;
+    AtomicBoolean isStopped = getField(stream, "isStopped", new AtomicBoolean(false));
+    if (isStopped != null) {
+      healthBuilder.stopped(isStopped.get());
+      if (isStopped.get()) {
+        status = RED;
+      }
     }
 
     AtomicReference<String> lastEventId = getField(stream, "lastEventId", null);
-    if (lastEventId != null) {
+    if (lastEventId != null && lastEventId.get() != null) {
       healthBuilder.lastEventId(lastEventId.get());
+    } else {
+      healthBuilder.lastEventId("-1");
     }
 
     results.add(healthBuilder.build());
@@ -320,5 +337,7 @@ class StreamHealth {
   boolean threadTerminated;
 
   boolean stopped;
+
+  @SerializedName("last_event_id")
   String lastEventId;
 }

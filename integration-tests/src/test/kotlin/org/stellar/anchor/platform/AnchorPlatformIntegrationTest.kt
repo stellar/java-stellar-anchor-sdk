@@ -393,7 +393,7 @@ class AnchorPlatformIntegrationTest {
 
     val stellarPaymentObserverCheck = checks["stellar_payment_observer"] as Map<*, *>
     assertEquals(2, stellarPaymentObserverCheck.size)
-    assertEquals("green", stellarPaymentObserverCheck["status"])
+    assertEquals("GREEN", stellarPaymentObserverCheck["status"])
 
     val observerStreams = stellarPaymentObserverCheck["streams"] as List<*>
     assertEquals(1, observerStreams.size)
@@ -403,6 +403,6 @@ class AnchorPlatformIntegrationTest {
     assertEquals(false, stream1["thread_shutdown"])
     assertEquals(false, stream1["thread_terminated"])
     assertEquals(false, stream1["stopped"])
-    assertNotNull(stream1["lastEventId"])
+    assertNotNull(stream1["last_event_id"])
   }
 }

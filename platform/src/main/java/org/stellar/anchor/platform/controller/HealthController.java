@@ -1,13 +1,10 @@
 package org.stellar.anchor.platform.controller;
 
 import java.util.List;
-import java.util.Map;
-
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.stellar.anchor.api.platform.HealthCheckResponse;
-import org.stellar.anchor.api.platform.HealthCheckResult;
 import org.stellar.anchor.api.platform.HealthCheckStatus;
 import org.stellar.anchor.platform.service.HealthCheckService;
 
