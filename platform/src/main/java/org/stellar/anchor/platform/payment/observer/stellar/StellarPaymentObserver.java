@@ -343,6 +343,13 @@ public class StellarPaymentObserver implements HealthCheckable {
       healthBuilder.lastEventId("-1");
     }
 
+    if (lastActivityTime == null) {
+      healthBuilder.silenceDurationSeconds("0");
+    } else {
+      healthBuilder.silenceDurationSeconds(
+          String.valueOf(Duration.between(lastActivityTime, Instant.now()).getSeconds()));
+    }
+
     results.add(healthBuilder.build());
 
     return SPOHealthCheckResult.builder().name(getName()).streams(results).status(status).build();
@@ -381,4 +388,7 @@ class StreamHealth {
 
   @SerializedName("last_event_id")
   String lastEventId;
+
+  @SerializedName("silence_duration_seconds")
+  String silenceDurationSeconds;
 }

@@ -398,7 +398,7 @@ class AnchorPlatformIntegrationTest {
     assertEquals(1, observerStreams.size)
 
     val stream1 = observerStreams[0] as Map<*, *>
-    assertEquals(4, stream1.size)
+    assertEquals(5, stream1.size)
     assertEquals(false, stream1["thread_shutdown"])
     assertEquals(false, stream1["thread_terminated"])
     assertEquals(false, stream1["stopped"])
