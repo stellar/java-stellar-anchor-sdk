@@ -47,11 +47,12 @@ public class StellarPaymentObserver implements HealthCheckable {
   /** The minimum number of results the Stellar Blockchain can return. */
   private static final int MIN_RESULTS = 1;
 
-  /**
-   * If the observer had been silent for longer than MAX_SILENT_DURATION, it will be marked
-   * unhealthy.
-   */
-  private static final long MAX_SILENT_DURATION = 5; // max silence is 20 seconds
+  // If the observer had been silent for longer than MAX_SILENT_DURATION, it will be marked
+  // unhealthy.
+  private static final long MAX_SILENT_TIMEOUT = 90;
+
+  // The time interval between silence checks
+  private static final long SILENCE_CHECK_INTERVAL = 5;
 
   final Server server;
   final Set<PaymentListener> paymentListeners;
@@ -85,7 +86,7 @@ public class StellarPaymentObserver implements HealthCheckable {
     watcher.scheduleAtFixedRate(
         this::watchTransactionTimeout,
         10,
-        10,
+        SILENCE_CHECK_INTERVAL,
         TimeUnit.SECONDS); // TODO: The period should be made configurable in version 2.x
   }
 
@@ -94,7 +95,7 @@ public class StellarPaymentObserver implements HealthCheckable {
     if (lastActivityTime != null) {
       Duration silenceDuration = Duration.between(lastActivityTime, now);
       debugF("The observer had been silent for {} seconds", silenceDuration.getSeconds());
-      if (silenceDuration.getSeconds() > MAX_SILENT_DURATION) {
+      if (silenceDuration.getSeconds() > MAX_SILENT_TIMEOUT) {
         infoF(
             "The observer had been silent for {} seconds. Marking it unhealthy",
             silenceDuration.getSeconds());
