@@ -2,12 +2,19 @@ package org.stellar.anchor.platform.payment.observer.stellar;
 
 import static org.stellar.anchor.api.platform.HealthCheckStatus.GREEN;
 import static org.stellar.anchor.api.platform.HealthCheckStatus.RED;
+import static org.stellar.anchor.util.Log.debugF;
+import static org.stellar.anchor.util.Log.infoF;
 import static org.stellar.anchor.util.ReflectionUtil.getField;
 
 import com.google.gson.annotations.SerializedName;
 import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 import lombok.Builder;
@@ -40,6 +47,12 @@ public class StellarPaymentObserver implements HealthCheckable {
   /** The minimum number of results the Stellar Blockchain can return. */
   private static final int MIN_RESULTS = 1;
 
+  /**
+   * If the observer had been silent for longer than MAX_SILENT_DURATION, it will be marked
+   * unhealthy.
+   */
+  private static final long MAX_SILENT_DURATION = 5; // max silence is 20 seconds
+
   final Server server;
   final Set<PaymentListener> paymentListeners;
   final StellarPaymentStreamerCursorStore paymentStreamerCursorStore;
@@ -49,6 +62,9 @@ public class StellarPaymentObserver implements HealthCheckable {
 
   final ExponentialBackoffTimer exponentialBackoffTimer = new ExponentialBackoffTimer();
   boolean healthy = true;
+  Instant lastActivityTime;
+
+  ScheduledExecutorService watcher = Executors.newSingleThreadScheduledExecutor();
 
   StellarPaymentObserver(
       String horizonServer,
@@ -64,12 +80,35 @@ public class StellarPaymentObserver implements HealthCheckable {
   /** Start watching the accounts. */
   public void start() {
     this.stream = startSSEStream();
+    this.healthy = true;
+    infoF("Starting the observer watcher");
+    watcher.scheduleAtFixedRate(
+        this::watchTransactionTimeout,
+        10,
+        10,
+        TimeUnit.SECONDS); // TODO: The period should be made configurable in version 2.x
+  }
+
+  private void watchTransactionTimeout() {
+    Instant now = Instant.now();
+    if (lastActivityTime != null) {
+      Duration silenceDuration = Duration.between(lastActivityTime, now);
+      debugF("The observer had been silent for {} seconds", silenceDuration.getSeconds());
+      if (silenceDuration.getSeconds() > MAX_SILENT_DURATION) {
+        infoF(
+            "The observer had been silent for {} seconds. Marking it unhealthy",
+            silenceDuration.getSeconds());
+        this.healthy = false;
+      }
+    }
   }
 
   /** Graceful shutdown. */
   public void shutdown() {
     this.stream.close();
     this.stream = null;
+    this.healthy = false;
+    watcher.shutdown();
   }
 
   private void restart() {
@@ -101,6 +140,8 @@ public class StellarPaymentObserver implements HealthCheckable {
         new EventListener<>() {
           @Override
           public void onEvent(OperationResponse operationResponse) {
+            debugF("received event {}", operationResponse.getId());
+            lastActivityTime = Instant.now();
             handleEvent(operationResponse);
           }
 

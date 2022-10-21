@@ -8,7 +8,7 @@ stellar:
       settings: app-config                        # The location of the configuration data
     data-access:
       type: data-spring-jdbc                      # Activate [config-spring-jdbc] module.
-      settings: data-spring-jdbc-sqlite         # The location of the configuration data in this file.
+      settings: data-spring-jdbc-h2               # The location of the configuration data in this file.
     logging:
       type: logging-logback
       settings: logging-logback-settings

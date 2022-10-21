@@ -320,7 +320,6 @@ class AnchorPlatformIntegrationTest {
         "sep38.quoteIntegrationEndPoint" to "http://localhost:8081",
         "payment-gateway.circle.name" to "circle",
         "payment-gateway.circle.enabled" to "true",
-        "spring.jpa.database-platform" to "org.stellar.anchor.platform.sqlite.SQLiteDialect",
         "logging.level.root" to "INFO"
       )
 
