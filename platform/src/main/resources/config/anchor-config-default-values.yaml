@@ -359,7 +359,7 @@ events:
       ## A comma-separated list of host:port pairs that are the addresses of one or more brokers in a Kafka cluster,
       ## e.g. localhost:9092 or localhost:9092,another.host:9092.
       #
-      bootstrap_servers: localhost:29092
+      bootstrap_server: localhost:29092
       # The client ID. If left empty, it is randomly generated.
       client_id:
       # Determines how many times the producer will attempt to send a message before marking it as failed.
