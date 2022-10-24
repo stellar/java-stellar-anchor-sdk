@@ -447,7 +447,7 @@ assets:
 ################################
 data:
 
-  ## DB credentials are specified in @environment_variables DATA_USERNAME, DATA_PASSWORD
+  ## DB credentials are specified in @environment_variables SECRET_DATA_USERNAME, SECRET_DATA_PASSWORD
 
   ## @param: type
   ## @supported_values:
