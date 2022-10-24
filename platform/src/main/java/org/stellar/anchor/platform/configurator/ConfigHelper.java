@@ -44,7 +44,7 @@ public class ConfigHelper {
     ConfigMap config = new ConfigMap();
 
     // Determine the version.
-    // if system.env['version'] is not defined, use the latest version.
+    // if system.env['VERSION'] is not defined, use the latest version.
     int version;
     String strVersion = ConfigEnvironment.getenv("VERSION");
     if (strVersion == null) {
