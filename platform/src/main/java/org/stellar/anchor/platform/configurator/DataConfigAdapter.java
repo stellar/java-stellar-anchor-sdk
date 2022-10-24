@@ -92,8 +92,6 @@ public class DataConfigAdapter extends SpringConfigAdapter {
         set("spring.datasource.url", "jdbc:h2:mem:test");
         set("spring.jpa.database-platform", "org.hibernate.dialect.H2Dialect");
         set("spring.jpa.properties.hibernate.dialect", "org.hibernate.dialect.H2Dialect");
-        copy(config, "data.username", "spring.datasource.username");
-        copy(config, "data.password", "spring.datasource.password");
         break;
       case "sqlite":
         set("spring.datasource.driver-class-name", "org.sqlite.JDBC");
@@ -101,15 +99,8 @@ public class DataConfigAdapter extends SpringConfigAdapter {
         set("spring.jpa.database-platform", "org.stellar.anchor.platform.sqlite.SQLiteDialect");
         copy(config, "data.ddl_auto", "spring.jpa.hibernate.ddl-auto");
         copy(config, "data.url", "spring.datasource.url");
-        copy(config, "data.username", "spring.datasource.username");
-        copy(config, "data.password", "spring.datasource.password");
-        if (config.getString("flyway.enabled", "").equalsIgnoreCase("true")) {
-          set("spring.flyway.enabled", true);
-          set("spring.flyway.locations", "classpath:/db/migration");
-          copy(config, "data.username", "spring.flyway.user");
-          copy(config, "data.password", "spring.flyway.password");
-          copy(config, "data.url", "spring.flyway.url");
-        }
+        set("spring.datasource.username", SecretManager.getInstance().get("secret.data.username"));
+        set("spring.datasource.password", SecretManager.getInstance().get("secret.data.password"));
         break;
       case "aurora":
         set("spring.datasource.driver-class-name", "org.postgresql.Driver");
@@ -118,15 +109,14 @@ public class DataConfigAdapter extends SpringConfigAdapter {
         set(
             "spring.datasource.hikari.max-lifetime",
             840000); // 14 minutes because IAM tokens are valid for 15 min
-        copy(config, "data.ddl_auto", "spring.jpa.hibernate.ddl-auto");
         copy(config, "data.url", "spring.datasource.url");
-        copy(config, "data.username", "spring.datasource.username");
-        copy(config, "data.password", "spring.datasource.password");
-        if (config.getString("flyway.enabled", "").equalsIgnoreCase("true")) {
+        set("spring.datasource.username", SecretManager.getInstance().get("secret.data.username"));
+        set("spring.datasource.password", SecretManager.getInstance().get("secret.data.password"));
+        if (config.getString("data.flyway_enabled", "").equalsIgnoreCase("true")) {
           set("spring.flyway.enabled", true);
           set("spring.flyway.locations", "classpath:/db/migration");
-          copy(config, "data.username", "spring.flyway.user");
-          copy(config, "data.password", "spring.flyway.password");
+          set("spring.flyway.user", SecretManager.getInstance().get("secret.data.username"));
+          set("spring.flyway.password", SecretManager.getInstance().get("secret.data.password"));
           copy(config, "data.url", "spring.flyway.url");
         }
         break;
@@ -134,15 +124,14 @@ public class DataConfigAdapter extends SpringConfigAdapter {
         set("spring.datasource.driver-class-name", "org.postgresql.Driver");
         set("spring.datasource.name", "anchor-platform");
         set("spring.jpa.database-platform", "org.hibernate.dialect.PostgreSQL9Dialect");
-        copy(config, "data.ddl_auto", "spring.jpa.hibernate.ddl-auto");
         copy(config, "data.url", "spring.datasource.url");
-        copy(config, "data.username", "spring.datasource.username");
-        copy(config, "data.password", "spring.datasource.password");
-        if (config.getString("flyway.enabled", "").equalsIgnoreCase("true")) {
+        set("spring.datasource.username", SecretManager.getInstance().get("secret.data.username"));
+        set("spring.datasource.password", SecretManager.getInstance().get("secret.data.password"));
+        if (config.getString("data.flyway_enabled", "").equalsIgnoreCase("true")) {
           set("spring.flyway.enabled", true);
           set("spring.flyway.locations", "classpath:/db/migration");
-          copy(config, "data.username", "spring.flyway.user");
-          copy(config, "data.password", "spring.flyway.password");
+          set("spring.flyway.user", SecretManager.getInstance().get("secret.data.username"));
+          set("spring.flyway.password", SecretManager.getInstance().get("secret.data.password"));
           copy(config, "data.url", "spring.flyway.url");
         }
         break;

@@ -8,10 +8,8 @@ data.flyway_enabled:
 data.flyway_location:
 data.initial_connection_pool_size:
 data.max_active_connections:
-data.password:
 data.type:
 data.url:
-data.username:
 events.enabled:
 events.event_type_to_queue.quote_created:
 events.event_type_to_queue.transaction_created:
@@ -43,10 +41,6 @@ payment_observer.enabled:
 payment_observer.tracked_wallet:
 platform_api.auth.expiration_milliseconds:
 platform_api.auth.type:
-secret.callback_api.secret:
-secret.jwt_secret:
-secret.platform_api.secret:
-secret.sep10_signing_seed:
 sep1.enabled:
 sep1.toml.type:
 sep1.toml.value:

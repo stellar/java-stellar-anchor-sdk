@@ -447,7 +447,7 @@ assets:
 ################################
 data:
 
-  ## DB credentials are specified in @environment_variables DATA_USERNAME, DATA_PASSWORD
+  ## DB credentials are specified in @environment_variables SECRET_DATA_USERNAME, SECRET_DATA_PASSWORD
 
   ## @param: type
   ## @supported_values:
@@ -464,19 +464,6 @@ data:
   ## Location of the database
   #
   url: jdbc:h2:mem:anchor-platform
-
-  ## @param: username
-  ## @type: string
-  ## The username for database connection
-  #
-  username:
-
-
-  ## @param: username
-  ## @type: string
-  ## The password for database connection
-  #
-  password:
 
   ## @param: initial_connection_pool_size
   ## @type: integer

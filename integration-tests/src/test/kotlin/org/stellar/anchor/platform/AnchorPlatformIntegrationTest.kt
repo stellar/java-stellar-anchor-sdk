@@ -87,7 +87,9 @@ class AnchorPlatformIntegrationTest {
         mapOf(
           "stellar_anchor_config" to "classpath:integration-test.anchor-config.yaml",
           "secret.sep10.jwt_secret" to "secret",
-          "secret.sep10.signing_seed" to "SAKXNWVTRVR4SJSHZUDB2CLJXEQHRT62MYQWA2HBB7YBOTCFJJJ55BZF"
+          "secret.sep10.signing_seed" to "SAKXNWVTRVR4SJSHZUDB2CLJXEQHRT62MYQWA2HBB7YBOTCFJJJ55BZF",
+          "secret.data.username" to "user1",
+          "secret.data.password" to "password"
         )
 
       platformServerContext = ServiceRunner.startSepServer(SEP_SERVER_PORT, "/", envMap)
