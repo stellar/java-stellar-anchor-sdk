@@ -20,7 +20,7 @@ events:
   publisher:
     type: kafka
     kafka:
-      bootstrap_servers: host.docker.internal:29092
+      bootstrap_server: host.docker.internal:29092
 
 sep1:
   enabled: true
@@ -293,7 +293,7 @@ assets:
 ################################
 data:
 
-  ## DB credentials are specified in @environment_variables DATA_USERNAME, DATA_PASSWORD
+  ## DB credentials are specified in @environment_variables SECRET_DATA_USERNAME, SECRET_DATA_PASSWORD
 
   ## @param: type
   ## @supported_values:
@@ -309,19 +309,6 @@ data:
   ## Location of the database
   #
   url: jdbc:postgresql://host.docker.internal:5440/
-
-  ## @param: username
-  ## @type: string
-  ## The username for database connection
-  #
-  username: postgres
-
-
-  ## @param: username
-  ## @type: string
-  ## The password for database connection
-  #
-  password: password
 
   ## @param: initial_connection_pool_size
   ## @type: integer

@@ -10,8 +10,10 @@ services:
       - STELLAR_ANCHOR_CONFIG=file:/config/anchor-platform-config.yaml
       - SECRET_SEP10_SIGNING_SEED=SAX3AH622R2XT6DXWWSRIDCMMUCCMATBZ5U6XKJWDO7M2EJUBFC3AW5X
       - SECRET_SEP10_JWT_SECRET=secret
-      - SECRET.PLATFORM_API.AUTH_SECRET=myAnchorToPlatformSecret
-      - SECRET.CALLBACK_API.AUTH_SECRET=myPlatformToAnchorSecret
+      - SECRET_PLATFORM_API_AUTH_SECRET=myAnchorToPlatformSecret
+      - SECRET_CALLBACK_API_AUTH_SECRET=myPlatformToAnchorSecret
+      - SECRET_DATA_USERNAME=postgres
+      - SECRET_DATA_PASSWORD=password
       - LOG_APPENDER=console_appender
     volumes:
       # add mounts for the new config directory
@@ -34,8 +36,10 @@ services:
       - STELLAR_ANCHOR_CONFIG=file:/config/anchor-platform-config.yaml
       - SECRET_SEP10_SIGNING_SEED=SAX3AH622R2XT6DXWWSRIDCMMUCCMATBZ5U6XKJWDO7M2EJUBFC3AW5X
       - SECRET_SEP10_JWT_SECRET=secret
-      - SECRET.PLATFORM_API.AUTH_SECRET=myAnchorToPlatformSecret
-      - SECRET.CALLBACK_API.AUTH_SECRET=myPlatformToAnchorSecret
+      - SECRET_PLATFORM_API_AUTH_SECRET=myAnchorToPlatformSecret
+      - SECRET_CALLBACK_API_AUTH_SECRET=myPlatformToAnchorSecret
+      - SECRET_DATA_USERNAME=postgres
+      - SECRET_DATA_PASSWORD=password
       - LOG_APPENDER=console_appender
     volumes:
       # add mounts for the new config directory
