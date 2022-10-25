@@ -46,4 +46,3 @@ spec:
                 number: {{ tpl .backend.servicePort $ }}
   {{- end }}
   {{- end }}
-{{- end }}
