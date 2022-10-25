@@ -49,7 +49,7 @@ public class StellarPaymentObserver implements HealthCheckable {
 
   // If the observer had been silent for longer than SILENC_TIMEOUT, a SilenceTimeoutException will
   // be thrown to trigger reconnections.
-  private static final long SILENCE_TIMEOUT = 10;
+  private static final long SILENCE_TIMEOUT = 90;
   // If the observer has more than 2 SILENCE_TIMEOUT_RETRIES, it will be marked unhealthy
   private static final long SILENCE_TIMEOUT_RETRIES = 2;
 
