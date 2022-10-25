@@ -39,6 +39,16 @@ data:
   flyway_enabled: true
   ddl_auto: update
 
+#data:
+#  type: postgres
+#  url: jdbc:postgresql://localhost:5432/anchorplatform
+#  username: anchorplatform
+#  password:
+#  initial_connection_pool_size: 3
+#  max_active_connections: 10
+#  flyway_enabled: true
+#  ddl_auto: update
+
 sep1:
   enabled: true
   toml:
@@ -104,7 +114,7 @@ events:
   publisher:
     type: kafka
     kafka:
-      bootstrap_servers: localhost:29092
+      bootstrap_server: localhost:29092
       client_id:
       retries: 1
       linger_ms: 1000

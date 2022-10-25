@@ -1,6 +1,6 @@
 package org.stellar.anchor.platform.configurator;
 
-import static org.stellar.anchor.platform.configurator.ConfigHelper.normalize;
+import static org.stellar.anchor.util.StringHelper.toPosixForm;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -16,13 +16,15 @@ public class ConfigEnvironment {
 
   public static void rebuild() {
     env = new HashMap<>();
+
+    // Read all env variables and convert everything to POSIX form
     for (Map.Entry<String, String> entry : System.getenv().entrySet()) {
-      env.put(normalize(entry.getKey()), entry.getValue());
+      env.put(toPosixForm(entry.getKey()), entry.getValue());
     }
 
     Properties sysProps = System.getProperties();
     for (Map.Entry<Object, Object> entry : sysProps.entrySet()) {
-      env.put(normalize(String.valueOf(entry.getKey())), String.valueOf(entry.getValue()));
+      env.put(toPosixForm(String.valueOf(entry.getKey())), String.valueOf(entry.getValue()));
     }
   }
 
@@ -34,7 +36,7 @@ public class ConfigEnvironment {
    * @return the value of the environment variable.
    */
   public static String getenv(String name) {
-    return env.get(ConfigHelper.normalize(name));
+    return env.get(toPosixForm(name));
   }
 
   public static Collection<String> names() {

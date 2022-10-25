@@ -5,6 +5,7 @@ import static org.stellar.anchor.util.StringHelper.camelToSnake;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.springframework.boot.env.YamlPropertySourceLoader;
@@ -15,6 +16,7 @@ import org.springframework.core.io.Resource;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.platform.configurator.ConfigMap.ConfigSource;
 import org.stellar.anchor.util.Log;
+import org.stellar.anchor.util.StringHelper;
 
 public class ConfigHelper {
   public static ConfigMap loadConfig(Resource resource, ConfigSource configSource)
@@ -42,9 +44,9 @@ public class ConfigHelper {
     ConfigMap config = new ConfigMap();
 
     // Determine the version.
-    // if system.env['version'] is not defined, use the latest version.
+    // if system.env['VERSION'] is not defined, use the latest version.
     int version;
-    String strVersion = ConfigEnvironment.getenv("version");
+    String strVersion = ConfigEnvironment.getenv("VERSION");
     if (strVersion == null) {
       Log.infoF("System env['version'] is not defined. version:{} is assumed}", latestVersion);
       version = latestVersion;
@@ -61,10 +63,20 @@ public class ConfigHelper {
 
     ConfigReader configSchema = new ConfigReader(version);
     config.setVersion(version);
+    Map<String, String> posixFormToNormalizedName = new HashMap<>();
+
+    // Maintain a map of system env variable names (POSIX standard - uppercase and underscores only)
+    // to the internal config name
+    for (String name : configSchema.configSchema.names()) {
+      posixFormToNormalizedName.put(StringHelper.toPosixForm(name), name);
+    }
+
     for (String name : ConfigEnvironment.names()) {
-      if (!isEmpty(name) && configSchema.has(name) && !name.equals("version")) {
+      if (!isEmpty(name)
+          && configSchema.has(posixFormToNormalizedName.get(name))
+          && !name.equals("VERSION")) {
         // the envarg is defined in this version
-        config.put(name, ConfigEnvironment.getenv(name), ENV);
+        config.put(posixFormToNormalizedName.get(name), ConfigEnvironment.getenv(name), ENV);
       }
     }
     return config;
@@ -88,6 +100,8 @@ public class ConfigHelper {
     config.put("secret.jwt_secret", "", VERSION_SCHEMA);
     config.put("secret.platform_api.secret", "", VERSION_SCHEMA);
     config.put("secret.callback_api.secret", "", VERSION_SCHEMA);
+    config.put("secret.data.username", "", VERSION_SCHEMA);
+    config.put("secret.data.password", "", VERSION_SCHEMA);
 
     return config.printToString();
   }

@@ -14,6 +14,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.stellar.anchor.platform.configurator.ConfigEnvironment;
 import org.stellar.anchor.platform.configurator.ConfigManager;
+import org.stellar.anchor.platform.configurator.SecretManager;
 
 @Profile("default")
 @SpringBootApplication
@@ -48,6 +49,7 @@ public class AnchorPlatformServer implements WebMvcConfigurer {
 
     SpringApplication springApplication = builder.build();
 
+    springApplication.addInitializers(SecretManager.getInstance());
     springApplication.addInitializers(ConfigManager.getInstance());
 
     return springApplication.run();

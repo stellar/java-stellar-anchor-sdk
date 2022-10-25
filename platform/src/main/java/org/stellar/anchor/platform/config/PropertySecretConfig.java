@@ -1,20 +1,22 @@
 package org.stellar.anchor.platform.config;
 
-import lombok.Data;
-import org.springframework.beans.factory.annotation.Value;
 import org.stellar.anchor.config.SecretConfig;
+import org.stellar.anchor.platform.configurator.SecretManager;
 
-@Data
 public class PropertySecretConfig implements SecretConfig {
-  @Value("${secret.sep10.jwt_secret:#{null}}")
-  private String sep10JwtSecretKey;
+  public String getSep10JwtSecretKey() {
+    return SecretManager.getInstance().get("secret.sep10.jwt_secret");
+  }
 
-  @Value("${secret.sep10.signing_seed:#{null}}")
-  private String sep10SigningSeed;
+  public String getSep10SigningSeed() {
+    return SecretManager.getInstance().get("secret.sep10.signing_seed");
+  }
 
-  @Value("${secret.callback_api.auth_secret:#{null}}")
-  private String callbackApiSecret = null;
+  public String getCallbackApiSecret() {
+    return SecretManager.getInstance().get("secret.callback_api.auth_secret");
+  }
 
-  @Value("${secret.platform_api.auth_secret:#{null}}")
-  private String platformApiSecret = null;
+  public String getPlatformApiSecret() {
+    return SecretManager.getInstance().get("secret.platform_api.auth_secret");
+  }
 }

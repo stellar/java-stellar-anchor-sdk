@@ -360,7 +360,7 @@ events:
       ## A comma-separated list of host:port pairs that are the addresses of one or more brokers in a Kafka cluster,
       ## e.g. localhost:9092 or localhost:9092,another.host:9092.
       #
-      bootstrap_servers: localhost:29092
+      bootstrap_server: localhost:29092
       # The client ID. If left empty, it is randomly generated.
       client_id:
       # Determines how many times the producer will attempt to send a message before marking it as failed.
@@ -448,7 +448,7 @@ assets:
 ################################
 data:
 
-  ## DB credentials are specified in @environment_variables DATA_USERNAME, DATA_PASSWORD
+  ## DB credentials are specified in @environment_variables SECRET_DATA_USERNAME, SECRET_DATA_PASSWORD
 
   ## @param: type
   ## @supported_values:
@@ -465,19 +465,6 @@ data:
   ## Location of the database
   #
   url: jdbc:h2:mem:anchor-platform
-
-  ## @param: username
-  ## @type: string
-  ## The username for database connection
-  #
-  username:
-
-
-  ## @param: username
-  ## @type: string
-  ## The password for database connection
-  #
-  password:
 
   ## @param: initial_connection_pool_size
   ## @type: integer
