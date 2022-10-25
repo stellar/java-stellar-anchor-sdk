@@ -132,14 +132,14 @@ class StellarPaymentObserverTest {
   }
 
   @Test
-  fun `test if SSEStream exception will leave the observer in unhealthy state`() {
+  fun `test if SSEStream exception will leave the observer in STREAM_ERROR state`() {
     val stream: SSEStream<OperationResponse> = mockk(relaxed = true)
     val observer =
       spyk(StellarPaymentObserver(TEST_HORIZON_URI, null, null, paymentStreamerCursorStore))
     every { observer.startSSEStream() } returns stream
     observer.start()
-    observer.handleFailure(Optional.of(SSLProtocolException("")), Optional.of(500))
-    assertEquals(false, observer.healthy)
+    observer.handleFailure(Optional.of(SSLProtocolException("")))
+    assertEquals(ObserverStatus.STREAM_ERROR, observer.status)
 
     val checkResult = observer.check()
     assertEquals(RED, checkResult.status)

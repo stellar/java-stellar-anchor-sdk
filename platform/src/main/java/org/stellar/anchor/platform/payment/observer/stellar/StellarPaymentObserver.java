@@ -1,7 +1,7 @@
 package org.stellar.anchor.platform.payment.observer.stellar;
 
-import static org.stellar.anchor.api.platform.HealthCheckStatus.GREEN;
-import static org.stellar.anchor.api.platform.HealthCheckStatus.RED;
+import static org.stellar.anchor.api.platform.HealthCheckStatus.*;
+import static org.stellar.anchor.platform.payment.observer.stellar.ObserverStatus.*;
 import static org.stellar.anchor.util.Log.debugF;
 import static org.stellar.anchor.util.Log.infoF;
 import static org.stellar.anchor.util.ReflectionUtil.getField;
@@ -47,9 +47,11 @@ public class StellarPaymentObserver implements HealthCheckable {
   /** The minimum number of results the Stellar Blockchain can return. */
   private static final int MIN_RESULTS = 1;
 
-  // If the observer had been silent for longer than MAX_SILENT_DURATION, it will be marked
-  // unhealthy.
-  private static final long MAX_SILENT_TIMEOUT = 90;
+  // If the observer had been silent for longer than SILENC_TIMEOUT, a SilenceTimeoutException will
+  // be thrown to trigger reconnections.
+  private static final long SILENCE_TIMEOUT = 10;
+  // If the observer has more than 2 SILENCE_TIMEOUT_RETRIES, it will be marked unhealthy
+  private static final long SILENCE_TIMEOUT_RETRIES = 2;
 
   // The time interval between silence checks
   private static final long SILENCE_CHECK_INTERVAL = 5;
@@ -61,11 +63,16 @@ public class StellarPaymentObserver implements HealthCheckable {
   final PaymentObservingAccountsManager paymentObservingAccountsManager;
   SSEStream<OperationResponse> stream;
 
-  final ExponentialBackoffTimer exponentialBackoffTimer = new ExponentialBackoffTimer();
-  boolean healthy = true;
+  final ExponentialBackoffTimer publishingBackoffTimer = new ExponentialBackoffTimer();
+  final ExponentialBackoffTimer streamBackoffTimer = new ExponentialBackoffTimer();
+  int silenceTimeoutCount = 0;
+
+  ObserverStatus status = RUNNING;
+
   Instant lastActivityTime;
 
-  ScheduledExecutorService watcher = Executors.newSingleThreadScheduledExecutor();
+  ScheduledExecutorService silenceWatcher = Executors.newSingleThreadScheduledExecutor();
+  ScheduledExecutorService statusWatcher = Executors.newSingleThreadScheduledExecutor();
 
   StellarPaymentObserver(
       String horizonServer,
@@ -78,57 +85,45 @@ public class StellarPaymentObserver implements HealthCheckable {
     this.paymentStreamerCursorStore = paymentStreamerCursorStore;
   }
 
-  /** Start watching the accounts. */
+  /** Start the observer. */
   public void start() {
-    this.stream = startSSEStream();
-    this.healthy = true;
-    infoF("Starting the observer watcher");
-    watcher.scheduleAtFixedRate(
-        this::watchTransactionTimeout,
-        10,
+    infoF("Starting the SSEStream");
+    startStream();
+
+    infoF("Starting the observer silence watcher");
+    silenceWatcher.scheduleAtFixedRate(
+        this::checkSilence,
+        1,
         SILENCE_CHECK_INTERVAL,
         TimeUnit.SECONDS); // TODO: The period should be made configurable in version 2.x
+
+    infoF("Starting the status watcher");
+    statusWatcher.scheduleWithFixedDelay(this::checkStatus, 1, 1, TimeUnit.SECONDS);
+
+    setStatus(RUNNING);
   }
 
-  private void watchTransactionTimeout() {
-    Instant now = Instant.now();
-    if (lastActivityTime != null) {
-      Duration silenceDuration = Duration.between(lastActivityTime, now);
-      debugF("The observer had been silent for {} seconds", silenceDuration.getSeconds());
-      if (silenceDuration.getSeconds() > MAX_SILENT_TIMEOUT) {
-        infoF(
-            "The observer had been silent for {} seconds. Marking it unhealthy",
-            silenceDuration.getSeconds());
-        this.healthy = false;
-      }
-    }
-  }
-
-  /** Graceful shutdown. */
+  /** Graceful shut down the observer */
   public void shutdown() {
-    this.stream.close();
-    this.stream = null;
-    this.healthy = false;
-    watcher.shutdown();
+    infoF("Shutting down the SSEStream");
+    stopStream();
+
+    infoF("Stopping the silence watcher");
+    silenceWatcher.shutdown();
+
+    infoF("Stopping the status watcher");
+    statusWatcher.shutdown();
+    setStatus(SHUTDOWN);
   }
 
-  private void restart() {
-    Log.info("Restarting the Stellar observer.");
-    if (this.stream != null) {
-      this.shutdown();
-    }
-
-    try {
-      exponentialBackoffTimer.sleep();
-      exponentialBackoffTimer.increase();
-      this.start();
-    } catch (InterruptedException ex) {
-      Log.errorEx(ex);
-    }
+  void startStream() {
+    this.stream = startSSEStream();
   }
 
   SSEStream<OperationResponse> startSSEStream() {
     String latestCursor = fetchStreamingCursor();
+    debugF("SSEStream last cursor={}", latestCursor);
+
     PaymentsRequestBuilder paymentsRequest =
         server
             .payments()
@@ -136,33 +131,112 @@ public class StellarPaymentObserver implements HealthCheckable {
             .cursor(latestCursor)
             .order(RequestBuilder.Order.ASC)
             .limit(MAX_RESULTS);
-
     return paymentsRequest.stream(
         new EventListener<>() {
           @Override
           public void onEvent(OperationResponse operationResponse) {
             debugF("received event {}", operationResponse.getId());
+            // clear stream timeout/reconnect status
             lastActivityTime = Instant.now();
+            silenceTimeoutCount = 0;
+            streamBackoffTimer.reset();
             handleEvent(operationResponse);
           }
 
           @Override
           public void onFailure(Optional<Throwable> exception, Optional<Integer> statusCode) {
-            handleFailure(exception, statusCode);
+            handleFailure(exception);
           }
         });
   }
 
-  void handleFailure(Optional<Throwable> exception, Optional<Integer> statusCode) {
-    // The SSEStreamer has internal errors. We will give up and let the container manager to
-    // restart.
-    Log.errorEx("stellar payment observer error: ", exception.get());
+  void stopStream() {
+    if (this.stream != null) {
+      this.stream.close();
+      this.stream = null;
+    }
+  }
 
-    // Stop the SSEStream
-    stream.close();
+  void checkSilence() {
+    Instant now = Instant.now();
+    if (lastActivityTime != null) {
+      Duration silenceDuration = Duration.between(lastActivityTime, now);
+      debugF("The observer had been silent for {} seconds", silenceDuration.getSeconds());
+      if (silenceDuration.getSeconds() > SILENCE_TIMEOUT) {
+        infoF("The observer had been silent for {} seconds.", silenceDuration.getSeconds());
+        setStatus(SILENCE_ERROR);
+      }
+    }
+  }
 
-    // Mark the observer unhealthy
-    healthy = false;
+  void restartStream() {
+    infoF("Restarting the stream");
+    stopStream();
+    startStream();
+    setStatus(RUNNING);
+  }
+
+  void checkStatus() {
+    switch (status) {
+      case NEEDS_SHUTDOWN:
+        infoF("shut down the observer");
+        shutdown();
+        break;
+      case STREAM_ERROR:
+        // We got stream connection error. We will use the backoff timer to reconnect.
+        // If the backoff timer reaches max, we will shut down the observer
+        if (streamBackoffTimer.isTimerMaxed()) {
+          infoF("The streamer backoff timer is maxed. Shutdown the observer");
+          setStatus(NEEDS_SHUTDOWN);
+        } else {
+          try {
+            infoF(
+                "The streamer needs restart. Start backoff timer: {} seconds",
+                streamBackoffTimer.currentTimer());
+            streamBackoffTimer.sleep();
+            streamBackoffTimer.increase();
+            restartStream();
+          } catch (InterruptedException e) {
+            // if this thread is interrupted, we are shutting down the status watcher.
+            infoF("The status watcher is interrupted. Shutdown the observer");
+            setStatus(NEEDS_SHUTDOWN);
+          }
+        }
+        break;
+      case SILENCE_ERROR:
+        infoF("The silence reconnection count: {}", silenceTimeoutCount);
+        // We got the silence error. If silence reconnect too many times, we will shut down the
+        // observer.
+        if (silenceTimeoutCount >= SILENCE_TIMEOUT_RETRIES) {
+          infoF(
+              "The silence error has happened for too many times:{}. Shutdown the observer",
+              silenceTimeoutCount);
+          setStatus(NEEDS_SHUTDOWN);
+        } else {
+          restartStream();
+          lastActivityTime = Instant.now();
+          silenceTimeoutCount++;
+        }
+        break;
+      case PUBLISHER_ERROR:
+        try {
+          infoF(
+              "Start the publishing backoff timer: {} seconds",
+              publishingBackoffTimer.currentTimer());
+          publishingBackoffTimer.sleep();
+          publishingBackoffTimer.increase();
+          restartStream();
+        } catch (InterruptedException e) {
+          // if this thread is interrupted, we are shutting down the status watcher.
+          setStatus(NEEDS_SHUTDOWN);
+        }
+        break;
+      case RUNNING:
+      case SHUTDOWN:
+      default:
+        // NOOP
+        break;
+    }
   }
 
   /**
@@ -222,7 +296,9 @@ public class StellarPaymentObserver implements HealthCheckable {
       Log.warnEx(ex);
     }
 
-    if (observedPayment != null) {
+    if (observedPayment == null) {
+      paymentStreamerCursorStore.save(operationResponse.getPagingToken());
+    } else {
       try {
         if (paymentObservingAccountsManager.lookupAndUpdate(observedPayment.getTo())) {
           for (PaymentListener listener : paymentListeners) {
@@ -236,22 +312,33 @@ public class StellarPaymentObserver implements HealthCheckable {
           paymentListeners.forEach(observer -> observer.onSent(finalObservedPayment));
         }
 
+        publishingBackoffTimer.reset();
+        paymentStreamerCursorStore.save(operationResponse.getPagingToken());
       } catch (EventPublishException ex) {
         // restart the observer from where it stopped, in case the queue fails to
         // publish the message.
         Log.errorEx("Failed to send event to payment listeners.", ex);
-        restart();
-        return;
+        setStatus(PUBLISHER_ERROR);
       } catch (Throwable t) {
-        Log.errorEx("Something went wrong in the observer", t);
-        restart();
-        return;
+        Log.errorEx("Something went wrong in the observer while sending the event", t);
+        setStatus(PUBLISHER_ERROR);
       }
-
-      exponentialBackoffTimer.reset();
     }
+  }
 
-    paymentStreamerCursorStore.save(operationResponse.getPagingToken());
+  void handleFailure(Optional<Throwable> exception) {
+    // The SSEStreamer has internal errors. We will give up and let the container
+    // manager to
+    // restart.
+    Log.errorEx("stellar payment observer stream error: ", exception.get());
+
+    // Mark the observer unhealthy
+    setStatus(STREAM_ERROR);
+  }
+
+  void setStatus(ObserverStatus status) {
+    debugF("Setting status to {}", status);
+    this.status = status;
   }
 
   public static Builder builder() {
@@ -313,7 +400,23 @@ public class StellarPaymentObserver implements HealthCheckable {
   @Override
   public HealthCheckResult check() {
     List<StreamHealth> results = new ArrayList<>();
-    HealthCheckStatus status = (healthy) ? GREEN : RED;
+
+    HealthCheckStatus status;
+    switch (this.status) {
+      case STREAM_ERROR:
+      case SILENCE_ERROR:
+      case PUBLISHER_ERROR:
+        status = YELLOW;
+        break;
+      case NEEDS_SHUTDOWN:
+      case SHUTDOWN:
+        status = RED;
+        break;
+      case RUNNING:
+      default:
+        status = GREEN;
+        break;
+    }
 
     StreamHealth.StreamHealthBuilder healthBuilder = StreamHealth.builder();
     healthBuilder.account(mapStreamToAccount.get(stream));
@@ -392,4 +495,13 @@ class StreamHealth {
 
   @SerializedName("silence_duration_seconds")
   String silenceDurationSeconds;
+}
+
+enum ObserverStatus {
+  RUNNING,
+  STREAM_ERROR,
+  SILENCE_ERROR,
+  PUBLISHER_ERROR,
+  NEEDS_SHUTDOWN,
+  SHUTDOWN,
 }
