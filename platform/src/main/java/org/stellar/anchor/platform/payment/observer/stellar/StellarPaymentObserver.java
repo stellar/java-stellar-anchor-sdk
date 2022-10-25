@@ -448,9 +448,9 @@ public class StellarPaymentObserver implements HealthCheckable {
     }
 
     if (lastActivityTime == null) {
-      healthBuilder.silenceDurationSeconds("0");
+      healthBuilder.silenceSinceLastEvent("0");
     } else {
-      healthBuilder.silenceDurationSeconds(
+      healthBuilder.silenceSinceLastEvent(
           String.valueOf(Duration.between(lastActivityTime, Instant.now()).getSeconds()));
     }
 
@@ -493,8 +493,8 @@ class StreamHealth {
   @SerializedName("last_event_id")
   String lastEventId;
 
-  @SerializedName("silence_duration_seconds")
-  String silenceDurationSeconds;
+  @SerializedName("seconds_since_last_event")
+  String silenceSinceLastEvent;
 }
 
 enum ObserverStatus {
