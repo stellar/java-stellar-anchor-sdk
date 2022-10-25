@@ -1,8 +1,5 @@
 package org.stellar.anchor.platform.service;
 
-import static org.stellar.anchor.api.sep.SepTransactionStatus.ERROR;
-import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_RECEIVER;
-import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_SENDER;
 import static org.stellar.anchor.util.MathHelper.*;
 
 import io.micrometer.core.instrument.Metrics;
@@ -14,11 +11,14 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import org.apache.commons.codec.DecoderException;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
 import org.stellar.anchor.api.exception.AnchorException;
+import org.stellar.anchor.api.exception.EventPublishException;
 import org.stellar.anchor.api.exception.SepException;
-import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.shared.Amount;
+import org.stellar.anchor.api.shared.StellarPayment;
+import org.stellar.anchor.api.shared.StellarTransaction;
 import org.stellar.anchor.event.EventPublishService;
 import org.stellar.anchor.event.models.*;
 import org.stellar.anchor.platform.payment.observer.PaymentListener;
@@ -31,6 +31,7 @@ import org.stellar.anchor.util.MemoHelper;
 import org.stellar.sdk.xdr.MemoType;
 
 @Component
+@Profile("stellar-observer")
 public class PaymentOperationToEventListener implements PaymentListener {
   final Sep31TransactionStore transactionStore;
   final EventPublishService eventService;
@@ -42,7 +43,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
   }
 
   @Override
-  public void onReceived(ObservedPayment payment) {
+  public void onReceived(ObservedPayment payment) throws EventPublishException {
     // Check if payment is connected to a transaction
     if (Objects.toString(payment.getTransactionHash(), "").isEmpty()
         || Objects.toString(payment.getTransactionMemo(), "").isEmpty()) {
@@ -52,7 +53,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
     // Check if the payment contains the expected asset type
     if (!List.of("credit_alphanum4", "credit_alphanum12").contains(payment.getAssetType())) {
       // Asset type does not match
-      Log.warn("Not an issued asset");
+      Log.infoF("{} is not an issued asset.", payment.getAssetType());
       return;
     }
 
@@ -63,7 +64,8 @@ public class PaymentOperationToEventListener implements PaymentListener {
       try {
         memo = MemoHelper.convertHexToBase64(payment.getTransactionMemo());
       } catch (DecoderException ex) {
-        Log.warn("Not a HEX string");
+        Log.warnF(
+            "The memo type is \"hash\" but the memo string {} could not be parsed as such.", memo);
         Log.warnEx(ex);
       }
     }
@@ -72,71 +74,116 @@ public class PaymentOperationToEventListener implements PaymentListener {
     Sep31Transaction txn;
     try {
       txn = transactionStore.findByStellarMemo(memo);
+      if (txn == null) {
+        Log.infoF("Not expecting any transaction with the memo {}.", payment.getTransactionMemo());
+        return;
+      }
     } catch (AnchorException e) {
-      Log.error(
-          String.format(
-              "error finding transaction that matches the memo (%s).",
-              payment.getTransactionMemo()));
+      Log.errorF(
+          "Error finding transaction that matches the memo {}.", payment.getTransactionMemo());
       e.printStackTrace();
-      return;
-    }
-    if (txn == null) {
-      Log.info(
-          String.format(
-              "Not expecting any transaction with the memo %s.", payment.getTransactionMemo()));
       return;
     }
 
     // Compare asset code
     String paymentAssetName = "stellar:" + payment.getAssetName();
     if (!txn.getAmountInAsset().equals(paymentAssetName)) {
-      Log.warn(
-          String.format(
-              "Payment asset %s does not match the expected asset %s",
-              payment.getAssetCode(), txn.getAmountInAsset()));
+      Log.warnF(
+          "Payment asset {} does not match the expected asset {}.",
+          payment.getAssetCode(),
+          txn.getAmountInAsset());
       return;
     }
+
+    // parse payment creation time
+    Instant paymentTime = parsePaymentTime(payment.getCreatedAt());
+
+    // Build Stellar Transaction object
+    StellarTransaction stellarTransaction =
+        StellarTransaction.builder()
+            .id(payment.getTransactionHash())
+            .memo(txn.getStellarMemo())
+            .memoType(txn.getStellarMemoType())
+            .createdAt(paymentTime)
+            .envelope(payment.getTransactionEnvelope())
+            .payments(
+                List.of(
+                    StellarPayment.builder()
+                        .id(payment.getId())
+                        .paymentType(
+                            payment.getType() == ObservedPayment.Type.PAYMENT
+                                ? StellarPayment.Type.PAYMENT
+                                : StellarPayment.Type.PATH_PAYMENT)
+                        .sourceAccount(payment.getFrom())
+                        .destinationAccount(payment.getTo())
+                        .amount(new Amount(payment.getAmount(), payment.getAssetName()))
+                        .build()))
+            .build();
+
+    // Update statuses
+    TransactionEvent.Status oldStatus = TransactionEvent.Status.from(txn.getStatus());
+    TransactionEvent.Status newStatus = TransactionEvent.Status.PENDING_RECEIVER;
 
     // Check if the payment contains the expected amount (or greater)
     BigDecimal expectedAmount = decimal(txn.getAmountIn());
     BigDecimal gotAmount = decimal(payment.getAmount());
-    if (gotAmount.compareTo(expectedAmount) < 0) {
-      Log.warn(
+    String message = "Incoming payment for SEP-31 transaction";
+    if (gotAmount.compareTo(expectedAmount) >= 0) {
+      Log.info(message);
+      txn.setTransferReceivedAt(paymentTime);
+    } else {
+      message =
           String.format(
-              "Payment amount %s is smaller than the expected amount %s",
-              payment.getAmount(), txn.getAmountIn()));
-      updateTransactionStatusTo(ERROR, txn, payment);
-      return;
+              "The incoming payment amount was insufficient! Expected: \"%s\", Received: \"%s\"",
+              formatAmount(expectedAmount), formatAmount(gotAmount));
+      Log.warn(message);
     }
 
-    // Set the transaction status.
-    TransactionEvent.Status oldStatus = TransactionEvent.Status.from(txn.getStatus());
-    TransactionEvent.Status newStatus = TransactionEvent.Status.PENDING_RECEIVER;
-    TransactionEvent.StatusChange statusChange =
-        new TransactionEvent.StatusChange(oldStatus, newStatus);
-    if (txn.getStatus().equals(PENDING_SENDER.toString())) {
-      updateTransactionStatusTo(PENDING_RECEIVER, txn, payment);
+    // Update the database transaction fields
+    txn.setUpdatedAt(paymentTime);
+    txn.setStatus(newStatus.toString());
+    txn.setStellarTransactionId(payment.getTransactionHash());
+    List<StellarTransaction> stellarTransactions =
+        StellarTransaction.addOrUpdateTransactions(
+            txn.getStellarTransactions(), stellarTransaction);
+    txn.setStellarTransactions(stellarTransactions);
+    // Save
+    try {
+      transactionStore.save(txn);
+    } catch (SepException ex) {
+      Log.errorEx("Error saving Sep31Transaction upon received event", ex);
     }
 
     // send to the event queue
-    TransactionEvent event = receivedPaymentToEvent(txn, payment, statusChange);
+    TransactionEvent.StatusChange statusChange =
+        new TransactionEvent.StatusChange(oldStatus, newStatus);
+    TransactionEvent event =
+        receivedPaymentToEvent(txn, payment, statusChange, message, stellarTransaction);
     sendToQueue(event);
+
+    // Update metrics
+    Metrics.counter(AnchorMetrics.SEP31_TRANSACTION.toString(), "status", newStatus.toString())
+        .increment();
     Metrics.counter(AnchorMetrics.PAYMENT_RECEIVED.toString(), "asset", payment.getAssetName())
         .increment(Double.parseDouble(payment.getAmount()));
   }
 
   @Override
   public void onSent(ObservedPayment payment) {
-    // noop
+    Log.debug("NOOP PaymentOperationToEventListener#onSent was called.");
   }
 
-  private void sendToQueue(TransactionEvent event) {
+  private void sendToQueue(TransactionEvent event) throws EventPublishException {
     eventService.publish(event);
-    Log.info("Sent to event queue" + GsonUtils.getInstance().toJson(event));
+    Log.infoF("Sent to event queue {}", GsonUtils.getInstance().toJson(event));
   }
 
   TransactionEvent receivedPaymentToEvent(
-      Sep31Transaction txn, ObservedPayment payment, TransactionEvent.StatusChange statusChange) {
+      Sep31Transaction txn,
+      ObservedPayment payment,
+      TransactionEvent.StatusChange statusChange,
+      String message,
+      StellarTransaction newStellarTransaction) {
     TransactionEvent event =
         TransactionEvent.builder()
             .eventId(UUID.randomUUID().toString())
@@ -156,27 +203,9 @@ public class PaymentOperationToEventListener implements PaymentListener {
             .updatedAt(txn.getUpdatedAt())
             .completedAt(null)
             .transferReceivedAt(txn.getTransferReceivedAt())
-            .message("Incoming payment for SEP-31 transaction")
+            .message(message)
             .refunds(null)
-            .stellarTransactions(
-                new StellarTransaction[] {
-                  StellarTransaction.builder()
-                      .id(payment.getTransactionHash())
-                      .memo(txn.getStellarMemo())
-                      .memoType(txn.getStellarMemoType())
-                      .createdAt(txn.getTransferReceivedAt())
-                      .envelope(payment.getTransactionEnvelope())
-                      .payments(
-                          new Payment[] {
-                            Payment.builder()
-                                .operationId(payment.getId())
-                                .sourceAccount(payment.getFrom())
-                                .destinationAccount(payment.getTo())
-                                .amount(new Amount(payment.getAmount(), payment.getAssetName()))
-                                .build()
-                          })
-                      .build()
-                })
+            .stellarTransactions(List.of(newStellarTransaction))
             .externalTransactionId(payment.getExternalTransactionId())
             .custodialTransactionId(null)
             .sourceAccount(payment.getFrom())
@@ -187,50 +216,13 @@ public class PaymentOperationToEventListener implements PaymentListener {
     return event;
   }
 
-  void updateTransactionStatusTo(
-      SepTransactionStatus newStatus, Sep31Transaction txn, ObservedPayment payment) {
-    // parse payment creation time
-    Instant paymentTime = null;
+  Instant parsePaymentTime(String paymentTimeStr) {
     try {
-      paymentTime = DateTimeFormatter.ISO_INSTANT.parse(payment.getCreatedAt(), Instant::from);
+      return DateTimeFormatter.ISO_INSTANT.parse(paymentTimeStr, Instant::from);
     } catch (DateTimeParseException | NullPointerException ex) {
-      Log.error(
-          String.format("error parsing payment.getCreatedAt() (%s).", payment.getCreatedAt()));
+      Log.errorF("Error parsing paymentTimeStr {}.", paymentTimeStr);
       ex.printStackTrace();
-    }
-
-    // update the transaction differently based on the new status
-    switch (newStatus) {
-      case ERROR:
-        if (paymentTime != null) {
-          txn.setUpdatedAt(paymentTime);
-        }
-        txn.setStatus(ERROR.getName());
-        saveTransaction(txn);
-        Metrics.counter(AnchorMetrics.SEP31_TRANSACTION.toString(), "status", ERROR.getName())
-            .increment();
-        break;
-
-      case PENDING_RECEIVER:
-        if (paymentTime != null) {
-          txn.setUpdatedAt(paymentTime);
-          txn.setTransferReceivedAt(paymentTime);
-        }
-        txn.setStatus(PENDING_RECEIVER.toString());
-        txn.setStellarTransactionId(payment.getTransactionHash());
-        saveTransaction(txn);
-        Metrics.counter("sep31.transaction", "status", PENDING_RECEIVER.toString()).increment();
-
-      default:
-        Log.errorF("Unsupported new status {}.", newStatus);
-    }
-  }
-
-  void saveTransaction(Sep31Transaction txn) {
-    try {
-      transactionStore.save(txn);
-    } catch (SepException ex) {
-      Log.errorEx(ex);
+      return null;
     }
   }
 }

@@ -6,16 +6,12 @@ import com.google.gson.Gson;
 import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
-import org.stellar.anchor.api.exception.BadRequestException;
-import org.stellar.anchor.api.exception.SepException;
-import org.stellar.anchor.api.exception.ServerErrorException;
-import org.stellar.anchor.api.exception.UnprocessableEntityException;
+import org.stellar.anchor.api.exception.*;
 import org.stellar.anchor.config.CirclePaymentObserverConfig;
 import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.platform.payment.observer.PaymentListener;
@@ -63,10 +59,9 @@ public class CirclePaymentObserverService {
     this.observers = observers;
   }
 
-  public void handleCircleNotification(Map<String, Object> requestBody)
-      throws UnprocessableEntityException, BadRequestException, ServerErrorException {
-    CircleNotification circleNotification =
-        gson.fromJson(gson.toJson(requestBody), CircleNotification.class);
+  public void handleCircleNotification(CircleNotification circleNotification)
+      throws UnprocessableEntityException, BadRequestException, ServerErrorException,
+          EventPublishException {
     String type = Objects.toString(circleNotification.getType(), "");
 
     switch (type) {
@@ -139,7 +134,8 @@ public class CirclePaymentObserverService {
    * @throws ServerErrorException when there's an error trying to fetch the Stellar network.
    */
   public void handleTransferNotification(CircleNotification circleNotification)
-      throws BadRequestException, UnprocessableEntityException, ServerErrorException {
+      throws BadRequestException, UnprocessableEntityException, ServerErrorException,
+          EventPublishException {
     if (circleNotification.getMessage() == null) {
       throw new BadRequestException("Notification body of type Notification is missing a message.");
     }
@@ -204,8 +200,9 @@ public class CirclePaymentObserverService {
     }
 
     if (isWalletTracked(destination)) {
-      final ObservedPayment finalObservedPayment = observedPayment;
-      observers.forEach(observer -> observer.onReceived(finalObservedPayment));
+      for (PaymentListener listener : observers) {
+        listener.onReceived(observedPayment);
+      }
     } else {
       final ObservedPayment finalObservedPayment1 = observedPayment;
       observers.forEach(observer -> observer.onSent(finalObservedPayment1));

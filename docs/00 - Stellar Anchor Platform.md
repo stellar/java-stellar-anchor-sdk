@@ -27,6 +27,7 @@ The full documentation can be found under the [`docs` directory](/docs), under t
   - [D - Database Migration](/docs/02%20-%20Contributing/D%20-%20Database%20Migration.md)
   - [E - Publishing the SDK](/docs/02%20-%20Contributing/E%20-%20Publishing%20the%20SDK.md)
   - [F - Testing with AWS Services](/docs/02%20-%20Contributing/F%20-%20Testing%20with%20AWS%20Services.md)
+  - [G - End to End Testing with Different Configs](/docs/02%20-%20Contributing/G%20-%20End%20to%20End%20Testing%20with%20Different%20Configs.md)
 - [03 - Implementing the Anchor Server](/docs/03%20-%20Implementing%20the%20Anchor%20Server)
   - [Communication](/docs/03%20-%20Implementing%20the%20Anchor%20Server/Communication)
     - [Callback API](/docs/03%20-%20Implementing%20the%20Anchor%20Server/Communication/Callbacks%20API.yml)
@@ -58,7 +59,7 @@ Here are the important terminology used in this project:
   | :------: | :----------------------------------------------------------------------------: | :----------: | :--------------------------: | :---------------------------: | :------------------: |
   | [SEP-10] |                            Handles authentication.                             |     YES      |              NO              |              YES              |         YES          |
   | [SEP-12] |                                  Handles KYC.                                  |     YES      |             YES              |              YES              |         YES          |
-  | [SEP-24] |       Handles deposit & withdrawal of assets in/out the Stellar network.       |     YES      |              NO              |              NO               |         YES          |
+  | [SEP-24] |       Handles deposit & withdrawal of assets in/out the Stellar network.       |     NO       |              NO              |              NO               |         NO           |
   | [SEP-31] | Used for international remittances. **Only the receiver side is implemented.** |     YES      |             YES              |              YES              |         YES          |
   | [SEP-38] |                Used for [rfq] **in conjunction with [SEP-31]**.                |     YES      |             YES              |              YES              |         YES          |
 

@@ -27,11 +27,10 @@ stellar:
     # `data-spring-jdbc` is the only `type` value supported for now.
     #
     data-access:
-      type: data-spring-jdbc                      # Activate [config-spring-jdbc] module.
-      settings: data-spring-jdbc-h2 
-      #type: data-spring-jdbc
-      #settings: data-spring-jdbc-sqlite              # The absolute location of the configuration data in this yaml file
-      #settings: data-spring-jdbc-local-postgres      # use local postgres instance
+      type: data-spring-jdbc                           # Activate [config-spring-jdbc] module.
+      settings: data-spring-jdbc-sqlite                # The absolute location of the configuration data in this yaml file
+      #settings: data-spring-jdbc-h2
+      #settings: data-spring-jdbc-local-postgres       # use local postgres instance
       #settings: data-spring-jdbc-aws-aurora-postgres  # use AWS Aurora Postgres with IAM authentication
     #
     # Sets how the generates the logging information

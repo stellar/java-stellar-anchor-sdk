@@ -21,13 +21,10 @@ deployment:
       configMaps:
          - name: assets
            mountPath: assets
-   hosts:
-     - host: "your_anchor_domain.com"
-       path: /
-       pathType: Prefix
-       backend:
-         servicePort: "{{ .Values.service.containerPort }}"
-         serviceName: "{{ .Values.fullName }}-svc-{{ .Values.service.name }}"
+   annotations:
+        prometheus.io/path: /actuator/prometheus
+        prometheus.io/port: "8082"
+        prometheus.io/scrape: "true"
    env:
    - name: STELLAR_ANCHOR_CONFIG
      value: file:/config/anchor-config.yaml
@@ -58,6 +55,35 @@ ingress:
           backend:
             servicePort: "{{ .Values.service.containerPort }}"
             serviceName: "{{ .Values.fullName }}-svc-{{ .Values.service.name }}"
+#
+# If you want to have a dedicated stellar-observer service, you need to
+# uncomment the `stellarObserver` section below.
+#
+# Attention! If you use the stellar observer as a separate service – by setting
+# `stellarObserver.enabled` flag to `true` – you must use a shared database that
+# will be accessible by both deployments (sep-server and stellar-observer).
+# In-memory databases won't work.
+# stellarObserver:
+#    # This will enable the stellar-observer service as a separate deployment:
+#    enabled: true
+#    # The stellarObserver.deployment section is optional, the templates have
+#    # default values.
+#    deployment:
+#       port: 8083
+#       probePath: "/health"
+#       probePeriodSeconds: 15
+#       initialDelaySeconds: 60
+#       startupProbeFailureThreshold: 10
+#       livenessProbeFailureThreshold: 2
+#    ingress:
+#       tls:
+#          host: "observer.your_anchor_domain.com"    # Replace this with a valid host name
+#       rules:
+#          hosts:
+#          - host: "observer.your_anchor_domain.com"  # Replace this with a valid host name
+#            path: /
+#            pathType: Prefix
+#
 stellar:
    toml:
       #accounts: ['"GCHLHDBOKG2JWMJQBTLSL5XG6NO7ESXI2TAQKZXCXWXB5WI2X6W233PR"'] 
@@ -66,7 +92,6 @@ stellar:
          ORG_NAME: "Stellar Development Foundation"
          ORG_URL: "https://www.stellar.org"
          ORG_DESCRIPTION: "Stellar Network"
-         ORG_URL: "https://your_org_url.png"
          ORG_SUPPORT_EMAIL: "reece@stellar.org"
    anchor:
       data_access:
@@ -74,7 +99,6 @@ stellar:
          settings: data-spring-jdbc-sqlite
 #         settings: data-spring-jdbc-aws-aurora-postgres
 #   data_spring_jdbc_aws_aurora_postgres:
-#     spring.jpa.generate-ddl: true
 #     spring.jpa.database: POSTGRESQL
 #     spring.jpa.show-sql: false
 #     spring.datasource.driver-class-name: org.postgresql.Driver
@@ -120,8 +144,9 @@ stellar:
         signingSeed: ${SEP10_SIGNING_SEED}
         requireKnownOmnibusAccount: false
         omnibusAccountList:
-          # - GDOHXZYP5ABGCTKAEROOJFN6X5GY7VQNXFNK2SHSAD32GSVMUJBPG75E
-          # - GC5KRPVW4TFA6ORIGTOFM3DEG6DSLACRXGDN3LNCAI7IPAGIWMVXUHVS 
+#        omnibusAccountList: |
+#          GAB24L6CPBKSMQOBXJ5PRA6I66X4TGZHPAEI2CMPNLC6I2WX646OYCAV,
+#          GAB24L6CPBKSMQOBXJ5PRA6I66X4TGZHPAEI2CMPNLC6I2WX646OYCAA
       sep12:
         enabled: true
         customerIntegrationEndpoint: https://anchor-reference-server-dev.stellar.org

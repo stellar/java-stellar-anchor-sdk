@@ -31,7 +31,7 @@ internal class NoneFilterTest {
 
   @ParameterizedTest
   @ValueSource(strings = ["GET", "PUT", "POST", "DELETE", "OPTIONS"])
-  fun testAllPass(method: String) {
+  fun `test NoneFilter works without Authorization header`(method: String) {
     every { request.method } returns method
     every { request.getHeader("Authorization") } returns null
 

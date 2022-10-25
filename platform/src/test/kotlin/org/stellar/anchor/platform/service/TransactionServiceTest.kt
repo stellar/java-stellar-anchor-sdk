@@ -3,8 +3,11 @@ package org.stellar.anchor.platform.service
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import java.time.Instant
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import org.stellar.anchor.api.exception.AnchorException
@@ -19,7 +22,7 @@ import org.stellar.anchor.api.shared.RefundPayment
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.ResourceJsonAssetService
 import org.stellar.anchor.event.models.TransactionEvent
-import org.stellar.anchor.platform.data.JdbcSep31RefundPayment.JdbcRefundPayment
+import org.stellar.anchor.platform.data.JdbcSep31RefundPayment
 import org.stellar.anchor.platform.data.JdbcSep31Refunds
 import org.stellar.anchor.platform.data.JdbcSep31Transaction
 import org.stellar.anchor.sep31.*
@@ -78,13 +81,34 @@ class TransactionServiceTest {
     // Mock the store
     every { sep31TransactionStore.newTransaction() } returns JdbcSep31Transaction()
     every { sep31TransactionStore.newRefunds() } returns JdbcSep31Refunds()
-    every { sep31TransactionStore.newRefundPayment() } answers { JdbcRefundPayment() }
+    every { sep31TransactionStore.newRefundPayment() } answers { JdbcSep31RefundPayment() }
 
     // mock time
     val mockStartedAt = Instant.now().minusSeconds(180)
     val mockUpdatedAt = mockStartedAt.plusSeconds(60)
     val mockTransferReceivedAt = mockUpdatedAt.plusSeconds(60)
     val mockCompletedAt = mockTransferReceivedAt.plusSeconds(60)
+
+    // mock the stellar transaction
+    val stellarTransaction =
+      StellarTransaction.builder()
+        .id("2b862ac297c93e2db43fc58d407cc477396212bce5e6d5f61789f963d5a11300")
+        .memo("my-memo")
+        .memoType("text")
+        .createdAt(mockTransferReceivedAt)
+        .envelope("here_comes_the_envelope")
+        .payments(
+          listOf(
+            StellarPayment.builder()
+              .id("4609238642995201")
+              .amount(Amount("100.0000", fiatUSD))
+              .paymentType(StellarPayment.Type.PAYMENT)
+              .sourceAccount("GAS4OW4HKJCC2D6VWUHVFR3MJRRVQBXBFQ3LCZJXBR7TWOOBJWE4SRWZ")
+              .destinationAccount("GBQC7NCZMQIPWN6ASUJYIDKDPRK34IOIZNQE5WOHPQH536VMOMQVJTN7")
+              .build()
+          )
+        )
+        .build()
 
     // mock refunds
     val mockRefundPayment1 =
@@ -127,6 +151,7 @@ class TransactionServiceTest {
         .transferReceivedAt(mockTransferReceivedAt)
         .completedAt(mockCompletedAt)
         .stellarTransactionId("2b862ac297c93e2db43fc58d407cc477396212bce5e6d5f61789f963d5a11300")
+        .stellarTransactions(listOf(stellarTransaction))
         .externalTransactionId("external-tx-id")
         .refunded(true)
         .refunds(mockRefunds)
@@ -168,9 +193,6 @@ class TransactionServiceTest {
         )
         .build()
 
-    val wantStellarTransaction = GetTransactionResponse.StellarTransaction()
-    wantStellarTransaction.id = "2b862ac297c93e2db43fc58d407cc477396212bce5e6d5f61789f963d5a11300"
-
     val wantGetTransactionResponse: GetTransactionResponse =
       GetTransactionResponse.builder()
         .id(txId)
@@ -188,7 +210,7 @@ class TransactionServiceTest {
         .transferReceivedAt(mockTransferReceivedAt)
         .message("Please don't forget to foo bar")
         .refunds(wantRefunds)
-        .stellarTransactions(listOf(wantStellarTransaction))
+        .stellarTransactions(listOf(stellarTransaction))
         .externalTransactionId("external-tx-id")
         .customers(
           Customers(
@@ -279,6 +301,7 @@ class TransactionServiceTest {
         "PENDING_RECEIVER",
         "PENDING_EXTERNAL",
         "COMPLETED",
+        "REFUNDED",
         "EXPIRED",
         "ERROR"]
   )

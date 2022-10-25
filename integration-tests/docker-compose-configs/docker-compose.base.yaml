@@ -1,0 +1,96 @@
+version: '2'
+services:
+  anchor-platform-server:
+    image: anchor-platform
+    build:
+      context: ../../
+      dockerfile: integration-tests/docker-compose-configs/Dockerfile
+    command: "--sep-server"
+    environment:
+      - STELLAR_ANCHOR_CONFIG=file:/config/anchor-platform-config.yaml
+      - LOG_APPENDER=console_appender
+    volumes:
+      # add mounts for the new config directory
+      - ./anchor-platform-default-configs:/config_defaults
+    tmpfs:
+      - /config
+    depends_on:
+      - kafka
+      - db
+      - stellar-observer
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  stellar-observer:
+    image: anchor-platform
+    build:
+      context: ../../
+      dockerfile: integration-tests/docker-compose-configs/Dockerfile
+    command: "--stellar-observer"
+    environment:
+      - STELLAR_ANCHOR_CONFIG=file:/config/anchor-platform-config.yaml
+      - LOG_APPENDER=console_appender
+    volumes:
+      # add mounts for the new config directory
+      - ./anchor-platform-default-configs:/config_defaults
+    tmpfs:
+      - /config
+    depends_on:
+      - db
+      - kafka
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  anchor-reference-server:
+    image: anchor-platform
+    command: --anchor-reference-server
+    environment:
+      - REFERENCE_SERVER_CONFIG_ENV=file:/config/anchor-reference-server-config.yaml
+    volumes:
+      # add mounts for the new config directory
+      - ./anchor-platform-default-configs:/config_defaults
+    tmpfs:
+      - /config
+    depends_on:
+      - anchor-platform-server
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  db:
+    image: postgres:latest
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  zookeeper:
+    platform: linux/x86_64
+    image: confluentinc/cp-zookeeper:latest
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  kafka:
+    platform: linux/x86_64
+    image: confluentinc/cp-kafka:latest
+    depends_on:
+      - zookeeper
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  end-to-end-tests:
+    build:
+      context: ../../
+      dockerfile: end-to-end-tests/Dockerfile
+    depends_on:
+      - anchor-platform-server
+      - anchor-reference-server
+    environment:
+      - E2E_SECRET=${E2E_SECRET?err}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

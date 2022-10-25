@@ -8,6 +8,7 @@ import java.time.format.DateTimeFormatter
 import java.util.*
 import java.util.concurrent.TimeUnit
 import okhttp3.OkHttpClient
+import okhttp3.Request
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 import org.skyscreamer.jsonassert.JSONAssert
@@ -19,7 +20,7 @@ import org.stellar.anchor.api.callback.GetRateRequest.Type.*
 import org.stellar.anchor.api.exception.NotFoundException
 import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerRequest
 import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest
-import org.stellar.anchor.api.sep.sep38.Sep38Context.*
+import org.stellar.anchor.api.sep.sep38.Sep38Context.SEP31
 import org.stellar.anchor.auth.AuthHelper
 import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.config.AppConfig
@@ -29,7 +30,6 @@ import org.stellar.anchor.config.Sep38Config
 import org.stellar.anchor.platform.callback.RestCustomerIntegration
 import org.stellar.anchor.platform.callback.RestFeeIntegration
 import org.stellar.anchor.platform.callback.RestRateIntegration
-import org.stellar.anchor.reference.AnchorReferenceServer
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.Sep1Helper
 
@@ -38,6 +38,7 @@ class AnchorPlatformIntegrationTest {
   companion object {
     private const val SEP_SERVER_PORT = 8080
     private const val REFERENCE_SERVER_PORT = 8081
+    private const val OBSERVER_HEALTH_SERVER_PORT = 8083
 
     private const val PLATFORM_TO_ANCHOR_SECRET = "myPlatformToAnchorSecret"
     private const val JWT_EXPIRATION_MILLISECONDS: Long = 10000
@@ -72,23 +73,17 @@ class AnchorPlatformIntegrationTest {
     const val fiatUSD = "iso4217:USD"
     const val stellarUSDC = "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
     private lateinit var platformServerContext: ConfigurableApplicationContext
-    init {
-      val props = System.getProperties()
-      props.setProperty("REFERENCE_SERVER_CONFIG", "classpath:/anchor-reference-server.yaml")
-    }
 
     @BeforeAll
     @JvmStatic
     fun setup() {
-      platformServerContext =
-        AnchorPlatformServer.start(
-          SEP_SERVER_PORT,
-          "/",
-          mapOf("stellar.anchor.config" to "classpath:/integration-test.anchor-config.yaml"),
-          true
-        )
+      System.setProperty("REFERENCE_SERVER_CONFIG", "classpath:/anchor-reference-server.yaml")
+      ServiceRunner.startAnchorReferenceServer()
 
-      AnchorReferenceServer.start(REFERENCE_SERVER_PORT, "/")
+      SystemUtil.setEnv("STELLAR_ANCHOR_CONFIG", "classpath:/integration-test.anchor-config.yaml")
+      platformServerContext = ServiceRunner.startSepServer()
+      ServiceRunner.startStellarObserver()
+      SystemUtil.setEnv("STELLAR_ANCHOR_CONFIG", null)
     }
   }
 
@@ -325,7 +320,7 @@ class AnchorPlatformIntegrationTest {
         "sep38.quoteIntegrationEndPoint" to "http://localhost:8081",
         "payment-gateway.circle.name" to "circle",
         "payment-gateway.circle.enabled" to "true",
-        "spring.jpa.properties.hibernate.dialect" to "org.hibernate.dialect.H2Dialect",
+        "spring.jpa.database-platform" to "org.stellar.anchor.platform.sqlite.SQLiteDialect",
         "logging.level.root" to "INFO"
       )
 
@@ -371,5 +366,43 @@ class AnchorPlatformIntegrationTest {
 
     assertEquals(true, sep38Config.isEnabled)
     assertEquals("http://localhost:8081", sep38Config.quoteIntegrationEndPoint)
+  }
+
+  @Test
+  fun testStellarObserverHealth() {
+    val httpRequest =
+      Request.Builder()
+        .url("http://localhost:$OBSERVER_HEALTH_SERVER_PORT/health")
+        .header("Content-Type", "application/json")
+        .get()
+        .build()
+    val response = httpClient.newCall(httpRequest).execute()
+    assertEquals(200, response.code)
+
+    val responseBody = gson.fromJson(response.body!!.string(), HashMap::class.java)
+    assertEquals(5, responseBody.size)
+    assertNotNull(responseBody["started_at"])
+    assertNotNull(responseBody["elapsed_time_ms"])
+    assertNotNull(responseBody["number_of_checks"])
+    assertEquals(1.0, responseBody["number_of_checks"])
+    assertNotNull(responseBody["version"])
+    assertNotNull(responseBody["checks"])
+
+    val checks = responseBody["checks"] as Map<*, *>
+    assertEquals(1, checks.size)
+
+    val stellarPaymentObserverCheck = checks["stellar_payment_observer"] as Map<*, *>
+    assertEquals(2, stellarPaymentObserverCheck.size)
+    assertEquals("green", stellarPaymentObserverCheck["status"])
+
+    val observerStreams = stellarPaymentObserverCheck["streams"] as List<*>
+    assertEquals(1, observerStreams.size)
+
+    val stream1 = observerStreams[0] as Map<*, *>
+    assertEquals(4, stream1.size)
+    assertEquals(false, stream1["thread_shutdown"])
+    assertEquals(false, stream1["thread_terminated"])
+    assertEquals(false, stream1["stopped"])
+    assertNotNull(stream1["lastEventId"])
   }
 }

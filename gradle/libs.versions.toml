@@ -14,6 +14,7 @@ flyway-core = "8.5.13"
 google-gson = "2.8.9"
 httpclient = "4.5.13"
 h2database = "1.4.200"
+hibernate-types = "2.18.0"
 jackson-dataformat-yaml = "2.13.2"
 java-stellar-sdk = "0.34.1"
 javax-jaxb-api = "2.3.1"
@@ -62,6 +63,7 @@ flyway-core = { module = "org.flywaydb:flyway-core", version.ref = "flyway-core"
 google-gson = { module = "com.google.code.gson:gson", version.ref = "google-gson" }
 httpclient = { module = "org.apache.httpcomponents:httpclient", version.ref = "httpclient" }
 h2database = { module = "com.h2database:h2", version.ref = "h2database" }
+hibernate-types = { module = "com.vladmihalcea:hibernate-types-55", version.ref = "hibernate-types" }
 jackson-dataformat-yaml = { module = "com.fasterxml.jackson.dataformat:jackson-dataformat-yaml", version.ref = "jackson-dataformat-yaml" }
 java-stellar-sdk = { module = "com.github.stellar:java-stellar-sdk", version.ref = "java-stellar-sdk" }
 javax-jaxb-api = { module = "javax.xml.bind:jaxb-api", version.ref = "javax-jaxb-api" }
@@ -100,9 +102,8 @@ spring-aws-messaging = { module = "org.springframework.cloud:spring-cloud-aws-me
 
 [bundles]
 slf4j = ["slf4j-api", "slf4j-log4j12"]
-junit = ["junit-api", "junit-engine", "junit-params", "junit-suite-engine"]
+junit = ["junit-api", "junit-engine", "junit-params", "junit-suite-engine", "kotlin-stdlib", "kotlin-junit", "mockk"]
 kafka = ["kafka-clients", "kafka-connect", "kafka-json-schema"]
-kotlin = ["kotlin-stdlib", "kotlin-junit"]
 
 [plugins]
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }

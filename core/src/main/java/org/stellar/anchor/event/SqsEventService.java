@@ -6,9 +6,11 @@ import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.AmazonSQSAsyncClientBuilder;
 import com.amazonaws.services.sqs.model.MessageAttributeValue;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
+import com.amazonaws.services.sqs.model.SendMessageResult;
 import com.google.gson.Gson;
 import io.micrometer.core.instrument.Metrics;
 import java.util.Map;
+import org.stellar.anchor.api.exception.EventPublishException;
 import org.stellar.anchor.config.SqsConfig;
 import org.stellar.anchor.event.models.AnchorEvent;
 import org.stellar.anchor.util.Log;
@@ -57,7 +59,18 @@ public class SqsEventService implements EventPublishService {
           new MessageAttributeValue()
               .withDataType("String")
               .withStringValue(event.getClass().getSimpleName()));
-      sqsClient.sendMessage(sendMessageRequest);
+      SendMessageResult sendMessageResult = sqsClient.sendMessage(sendMessageRequest);
+
+      // If the queue is offline, throw an exception
+      int statusCode = sendMessageResult.getSdkHttpMetadata().getHttpStatusCode();
+      if (statusCode < 200 || statusCode > 299) {
+        Log.error("failed to send message to SQS");
+        throw new EventPublishException(
+            String.format(
+                "Failed to publish event to AWS SQS. [StatusCode: %d] [Metadata: %s]",
+                statusCode, sendMessageResult.getSdkHttpMetadata().toString()));
+      }
+
       Metrics.counter(
               "event.published", "class", event.getClass().getSimpleName(), "type", event.getType())
           .increment();

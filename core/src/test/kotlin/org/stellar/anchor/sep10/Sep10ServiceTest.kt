@@ -5,8 +5,12 @@ import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import java.io.IOException
 import java.security.SecureRandom
+import java.security.cert.X509Certificate
 import java.util.concurrent.TimeUnit
 import java.util.stream.Stream
+import javax.net.ssl.SSLContext
+import javax.net.ssl.TrustManager
+import javax.net.ssl.X509TrustManager
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.mockwebserver.MockResponse
@@ -32,7 +36,6 @@ import org.stellar.anchor.api.exception.SepException
 import org.stellar.anchor.api.exception.SepNotAuthorizedException
 import org.stellar.anchor.api.exception.SepValidationException
 import org.stellar.anchor.api.sep.sep10.ChallengeRequest
-import org.stellar.anchor.api.sep.sep10.ChallengeRequestTest
 import org.stellar.anchor.api.sep.sep10.ValidationRequest
 import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.config.AppConfig
@@ -81,12 +84,8 @@ internal class Sep10ServiceTest {
   private lateinit var sep10Service: Sep10Service
   private val clientKeyPair = KeyPair.random()
   private val clientDomainKeyPair = KeyPair.random()
-  private val httpClient: OkHttpClient =
-    OkHttpClient.Builder()
-      .connectTimeout(10, TimeUnit.MINUTES)
-      .readTimeout(10, TimeUnit.MINUTES)
-      .writeTimeout(10, TimeUnit.MINUTES)
-      .build()
+
+  private lateinit var httpClient: OkHttpClient
 
   @BeforeEach
   fun setUp() {
@@ -109,6 +108,8 @@ internal class Sep10ServiceTest {
 
     this.jwtService = spyk(JwtService(appConfig))
     this.sep10Service = Sep10Service(appConfig, sep10Config, horizon, jwtService)
+
+    this.httpClient = `create httpClient that trust all certificates`()
   }
 
   @AfterEach
@@ -117,8 +118,32 @@ internal class Sep10ServiceTest {
     unmockkAll()
   }
 
+  fun `create httpClient that trust all certificates`(): OkHttpClient {
+    val trustAllCerts =
+      arrayOf<TrustManager>(
+        object : X509TrustManager {
+          override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
+
+          override fun checkServerTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
+
+          override fun getAcceptedIssuers() = arrayOf<X509Certificate>()
+        }
+      )
+
+    // Install the all-trusting trust manager
+    val sslContext = SSLContext.getInstance("SSL")
+    sslContext.init(null, trustAllCerts, SecureRandom())
+    return OkHttpClient.Builder()
+      .connectTimeout(10, TimeUnit.MINUTES)
+      .readTimeout(10, TimeUnit.MINUTES)
+      .writeTimeout(10, TimeUnit.MINUTES)
+      .sslSocketFactory(sslContext.socketFactory, trustAllCerts[0] as X509TrustManager)
+      .hostnameVerifier { _, _ -> true }
+      .build()
+  }
+
   @Test
-  fun test_challengeWithExistentAccount_multisig_andClientDomain() {
+  fun `test the challenge with existent account, multisig, and client domain`() {
     // 1 ------ Create Test Transaction
 
     // serverKP does not exist in the network.
@@ -209,7 +234,7 @@ internal class Sep10ServiceTest {
   }
 
   @Test
-  fun test_challengeWithNonExistentAccount_andClientDomain() {
+  fun `test challenge with non existent account and client domain`() {
     // 1 ------ Create Test Transaction
 
     // serverKP does not exist in the network.
@@ -269,7 +294,7 @@ internal class Sep10ServiceTest {
   }
 
   @Test
-  fun test_challengeWithExistentAccount_multisigWithInvalidEdDSAPublicKey_andClientDomain() {
+  fun `test challenge with existent account multisig with invalid ed dsa public key and client domain`() {
     // 1 ------ Mock client account and its response from horizon
     // The public key of the client that exists thanks to a mockk
     // GDFWZYGUNUFW4H3PP3DSNGTDFBUHO6NUFPQ6FAPMCKEJ6EHDKX2CV2IM
@@ -345,9 +370,15 @@ internal class Sep10ServiceTest {
   @CsvSource(
     value = ["true,test.client.stellar.org", "false,test.client.stellar.org", "false,null"]
   )
-  fun testOkCreateChallenge(clientAttributionRequired: String, clientDomain: String) {
+  fun `test create challenge ok`(clientAttributionRequired: String, clientDomain: String) {
     every { sep10Config.isClientAttributionRequired } returns clientAttributionRequired.toBoolean()
-    val cr = ChallengeRequest.of(TEST_ACCOUNT, TEST_MEMO, TEST_HOME_DOMAIN, TEST_CLIENT_DOMAIN)
+    val cr =
+      ChallengeRequest.builder()
+        .account(TEST_ACCOUNT)
+        .memo(TEST_MEMO)
+        .homeDomain(TEST_HOME_DOMAIN)
+        .clientDomain(TEST_CLIENT_DOMAIN)
+        .build()
     cr.clientDomain = if (clientDomain == "null") null else clientDomain
 
     val challengeResponse = sep10Service.createChallenge(cr)
@@ -392,7 +423,7 @@ internal class Sep10ServiceTest {
   }
 
   @Test
-  fun testOkValidateChallengeClientAccountOnNetwork() {
+  fun `test validate challenge when client account is on Stellar network`() {
     val vr = ValidationRequest()
     vr.transaction = createTestChallenge("", false)
 
@@ -410,7 +441,7 @@ internal class Sep10ServiceTest {
   }
 
   @Test
-  fun testValidateChallengeWithClientDomain() {
+  fun `test validate challenge with client domain`() {
     val accountResponse = spyk(AccountResponse(clientKeyPair.accountId, 1))
     val signers =
       arrayOf(
@@ -446,7 +477,7 @@ internal class Sep10ServiceTest {
   }
 
   @Test
-  fun testOkValidateChallengeClientAccountNotOnNetwork() {
+  fun `test validate challenge when client account is not on network`() {
     val vr = ValidationRequest()
     vr.transaction = createTestChallenge("", false)
 
@@ -460,7 +491,7 @@ internal class Sep10ServiceTest {
 
   @Suppress("CAST_NEVER_SUCCEEDS")
   @Test
-  fun testErrValidateChallengeBadRequest() {
+  fun `Test validate challenge with bad request`() {
     assertThrows<SepValidationException> {
       sep10Service.validateChallenge(null as? ValidationRequest)
     }
@@ -471,8 +502,14 @@ internal class Sep10ServiceTest {
   }
 
   @Test
-  fun testErrBadHomeDomainCreateChallenge() {
-    val cr = ChallengeRequest.of(TEST_ACCOUNT, TEST_MEMO, TEST_HOME_DOMAIN, TEST_CLIENT_DOMAIN)
+  fun `Test bad home domain create challenge failure`() {
+    val cr =
+      ChallengeRequest.builder()
+        .account(TEST_ACCOUNT)
+        .memo(TEST_MEMO)
+        .homeDomain(TEST_HOME_DOMAIN)
+        .clientDomain(TEST_CLIENT_DOMAIN)
+        .build()
     cr.homeDomain = "bad.homedomain.com"
 
     assertThrows<SepValidationException> { sep10Service.createChallenge(cr) }
@@ -480,9 +517,15 @@ internal class Sep10ServiceTest {
 
   @ParameterizedTest
   @MethodSource("homeDomains")
-  fun testClientDomainFailure(homeDomain: String?) {
+  fun `test client domain failures`(homeDomain: String?) {
     every { sep10Config.isClientAttributionRequired } returns true
-    val cr = ChallengeRequest.of(TEST_ACCOUNT, TEST_MEMO, TEST_HOME_DOMAIN, TEST_CLIENT_DOMAIN)
+    val cr =
+      ChallengeRequest.builder()
+        .account(TEST_ACCOUNT)
+        .memo(TEST_MEMO)
+        .homeDomain(TEST_HOME_DOMAIN)
+        .clientDomain(TEST_CLIENT_DOMAIN)
+        .build()
     cr.homeDomain = homeDomain
     cr.clientDomain = null
 
@@ -500,9 +543,15 @@ internal class Sep10ServiceTest {
   }
 
   @Test
-  fun testBadAccount() {
+  fun `test createChallenge() with bad account`() {
     every { sep10Config.isClientAttributionRequired } returns false
-    val cr = ChallengeRequest.of(TEST_ACCOUNT, TEST_MEMO, TEST_HOME_DOMAIN, TEST_CLIENT_DOMAIN)
+    val cr =
+      ChallengeRequest.builder()
+        .account(TEST_ACCOUNT)
+        .memo(TEST_MEMO)
+        .homeDomain(TEST_HOME_DOMAIN)
+        .clientDomain(TEST_CLIENT_DOMAIN)
+        .build()
     cr.account = "GXXX"
 
     assertThrows<SepValidationException> { sep10Service.createChallenge(cr) }
@@ -510,15 +559,15 @@ internal class Sep10ServiceTest {
 
   @ParameterizedTest
   @ValueSource(strings = ["ABC", "12AB", "-1", "0", Integer.MIN_VALUE.toString()])
-  fun testBadMemo(badMemo: String) {
+  fun `test createChallenge() with bad memo`(badMemo: String) {
     every { sep10Config.isClientAttributionRequired } returns false
     val cr =
-      ChallengeRequest.of(
-        ChallengeRequestTest.TEST_ACCOUNT,
-        TEST_MEMO,
-        TEST_HOME_DOMAIN,
-        TEST_CLIENT_DOMAIN
-      )
+      ChallengeRequest.builder()
+        .account(TEST_ACCOUNT)
+        .memo(TEST_MEMO)
+        .homeDomain(TEST_HOME_DOMAIN)
+        .clientDomain(TEST_CLIENT_DOMAIN)
+        .build()
     cr.account = TEST_ACCOUNT
     cr.memo = badMemo
 
@@ -526,7 +575,7 @@ internal class Sep10ServiceTest {
   }
 
   @Test
-  fun testGetClientAccountIdFailure() {
+  fun `test getClientAccountId failure`() {
     mockkStatic(NetUtil::class)
     every { NetUtil.fetch(any()) } returns
       "       NETWORK_PASSPHRASE=\"Public Global Stellar Network ; September 2015\"\n"
@@ -543,9 +592,15 @@ internal class Sep10ServiceTest {
   }
 
   @Test
-  fun testAppConfigBadHostURL() {
+  fun `test appConfig with bad hostUrl`() {
     every { sep10Config.isClientAttributionRequired } returns false
-    val cr = ChallengeRequest.of(TEST_ACCOUNT, TEST_MEMO, TEST_HOME_DOMAIN, TEST_CLIENT_DOMAIN)
+    val cr =
+      ChallengeRequest.builder()
+        .account(TEST_ACCOUNT)
+        .memo(TEST_MEMO)
+        .homeDomain(TEST_HOME_DOMAIN)
+        .clientDomain(TEST_CLIENT_DOMAIN)
+        .build()
 
     every { appConfig.hostUrl } returns "This is bad URL"
 
@@ -553,9 +608,15 @@ internal class Sep10ServiceTest {
   }
 
   @Test
-  fun testCreateChallengeSigningError() {
+  fun `test createChallenge signing error`() {
     every { sep10Config.isClientAttributionRequired } returns false
-    val cr = ChallengeRequest.of(TEST_ACCOUNT, TEST_MEMO, TEST_HOME_DOMAIN, TEST_CLIENT_DOMAIN)
+    val cr =
+      ChallengeRequest.builder()
+        .account(TEST_ACCOUNT)
+        .memo(TEST_MEMO)
+        .homeDomain(TEST_HOME_DOMAIN)
+        .clientDomain(TEST_CLIENT_DOMAIN)
+        .build()
 
     every {
       Sep10Challenge.newChallenge(any(), any(), any(), any(), any(), any(), any(), any(), any())
@@ -565,10 +626,16 @@ internal class Sep10ServiceTest {
   }
 
   @Test
-  fun testRequireKnownOmnibusAccount() {
+  fun `test createChallenge() ok when isRequireKnownOmnibusAccount is enabled`() {
     every { sep10Config.isRequireKnownOmnibusAccount } returns true
     every { sep10Config.omnibusAccountList } returns listOf(TEST_ACCOUNT)
-    val cr = ChallengeRequest.of(TEST_ACCOUNT, TEST_MEMO, TEST_HOME_DOMAIN, null)
+    val cr =
+      ChallengeRequest.builder()
+        .account(TEST_ACCOUNT)
+        .memo(TEST_MEMO)
+        .homeDomain(TEST_HOME_DOMAIN)
+        .clientDomain(null)
+        .build()
 
     assertDoesNotThrow { sep10Service.createChallenge(cr) }
     verify(exactly = 1) { sep10Config.isRequireKnownOmnibusAccount }
@@ -576,11 +643,17 @@ internal class Sep10ServiceTest {
   }
 
   @Test
-  fun testRequireKnownOmnibusAccountDisabled() {
+  fun `Test createChallenge() when isRequireKnownOmnibusAccount is not enabled`() {
     every { sep10Config.isRequireKnownOmnibusAccount } returns false
     every { sep10Config.omnibusAccountList } returns
       listOf("G321E23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP")
-    val cr = ChallengeRequest.of(TEST_ACCOUNT, TEST_MEMO, TEST_HOME_DOMAIN, null)
+    val cr =
+      ChallengeRequest.builder()
+        .account(TEST_ACCOUNT)
+        .memo(TEST_MEMO)
+        .homeDomain(TEST_HOME_DOMAIN)
+        .clientDomain(null)
+        .build()
 
     assertDoesNotThrow { sep10Service.createChallenge(cr) }
     verify(exactly = 1) { sep10Config.isRequireKnownOmnibusAccount }
@@ -588,11 +661,17 @@ internal class Sep10ServiceTest {
   }
 
   @Test
-  fun testRequireKnownOmnibusAccountUnknownAccount() {
+  fun `test createChallenge() failure when isRequireKnownOmnibusAccount is enabled and account mis-match`() {
     every { sep10Config.isRequireKnownOmnibusAccount } returns true
     every { sep10Config.omnibusAccountList } returns
       listOf("G321E23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP")
-    val cr = ChallengeRequest.of(TEST_ACCOUNT, TEST_MEMO, TEST_HOME_DOMAIN, null)
+    val cr =
+      ChallengeRequest.builder()
+        .account(TEST_ACCOUNT)
+        .memo(TEST_MEMO)
+        .homeDomain(TEST_HOME_DOMAIN)
+        .clientDomain(null)
+        .build()
 
     val ex = assertThrows<SepException> { sep10Service.createChallenge(cr) }
     verify(exactly = 1) { sep10Config.isRequireKnownOmnibusAccount }
@@ -611,7 +690,7 @@ internal class Sep10ServiceTest {
         "http://test.stellar.org:9800,test.stellar.org:9800",
       ]
   )
-  fun testGetDomainFromURI(testUri: String, compareDomain: String) {
+  fun `test getDomain from uri`(testUri: String, compareDomain: String) {
     val domain = sep10Service.getDomainFromURI(testUri)
     assertEquals(domain, compareDomain)
   }

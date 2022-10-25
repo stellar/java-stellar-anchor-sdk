@@ -27,7 +27,7 @@ class InfoResponseTest {
   }
 
   @Test
-  fun test_constructor() {
+  fun `test the InfoResponse construction`() {
     val infoResponse = InfoResponse(assets)
     assertEquals(3, infoResponse.assets.size)
 

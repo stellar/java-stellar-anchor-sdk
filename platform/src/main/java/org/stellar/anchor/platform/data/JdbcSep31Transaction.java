@@ -3,13 +3,17 @@ package org.stellar.anchor.platform.data;
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
 import com.google.gson.reflect.TypeToken;
+import com.vladmihalcea.hibernate.type.json.JsonType;
 import java.time.Instant;
+import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import javax.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.Type;
+import org.hibernate.annotations.TypeDef;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.shared.StellarId;
+import org.stellar.anchor.api.shared.StellarTransaction;
 import org.stellar.anchor.reference.model.StellarIdConverter;
 import org.stellar.anchor.sep31.Refunds;
 import org.stellar.anchor.sep31.Sep31Transaction;
@@ -19,6 +23,7 @@ import org.stellar.anchor.util.GsonUtils;
 @Entity
 @Access(AccessType.FIELD)
 @Table(name = "sep31_transaction")
+@TypeDef(name = "json", typeClass = JsonType.class)
 public class JdbcSep31Transaction implements Sep31Transaction, SepTransaction {
   static Gson gson = GsonUtils.getInstance();
 
@@ -64,6 +69,10 @@ public class JdbcSep31Transaction implements Sep31Transaction, SepTransaction {
   @SerializedName("stellar_transaction_id")
   String stellarTransactionId;
 
+  @Column(columnDefinition = "json")
+  @Type(type = "json")
+  List<StellarTransaction> stellarTransactions;
+
   @SerializedName("external_transaction_id")
   String externalTransactionId;
 
@@ -87,11 +96,6 @@ public class JdbcSep31Transaction implements Sep31Transaction, SepTransaction {
   StellarId creator;
 
   // Ignored by JPA and Gson
-  @SerializedName("required_info_updates")
-  @Transient
-  AssetInfo.Sep31TxnFieldSpecs requiredInfoUpdates;
-
-  // Ignored by JPA and Gson
   @SerializedName("fields")
   @Transient
   Map<String, String> fields;
@@ -107,6 +111,11 @@ public class JdbcSep31Transaction implements Sep31Transaction, SepTransaction {
       this.fields = gson.fromJson(fieldsJson, new TypeToken<Map<String, String>>() {}.getType());
     }
   }
+
+  // Ignored by JPA and Gson
+  @SerializedName("required_info_updates")
+  @Transient
+  AssetInfo.Sep31TxnFieldSpecs requiredInfoUpdates;
 
   @Access(AccessType.PROPERTY)
   @Column(name = "requiredInfoUpdates")
@@ -134,14 +143,11 @@ public class JdbcSep31Transaction implements Sep31Transaction, SepTransaction {
 
   public void setRefundsJson(String refundsJson) {
     if (refundsJson != null) {
-      this.refunds = gson.fromJson(refundsJson, Refunds.class);
+      this.refunds = gson.fromJson(refundsJson, JdbcSep31Refunds.class);
     }
   }
 
   Instant updatedAt;
   Instant transferReceivedAt;
   String amountExpected;
-
-  @OneToMany(fetch = FetchType.EAGER, mappedBy = "sep31Transaction")
-  Set<StellarTransaction> stellarTransactions = new java.util.LinkedHashSet<>();
 }

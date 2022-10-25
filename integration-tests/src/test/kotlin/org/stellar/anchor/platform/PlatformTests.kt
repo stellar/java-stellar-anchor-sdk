@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform
 
+import java.time.temporal.ChronoUnit.SECONDS
 import org.junit.jupiter.api.Assertions.*
 import org.stellar.anchor.api.platform.PatchTransactionRequest
 import org.stellar.anchor.api.platform.PatchTransactionsRequest
@@ -85,15 +86,13 @@ fun testHappyPath() {
 
 fun testHealth() {
   val response = platformApiClient.health(listOf("all"))
-  assertEquals(response["number_of_checks"], 1.0)
+  assertEquals(5, response.size)
   assertNotNull(response["checks"])
-  val checks = response["checks"] as Map<*, *>
-  val spo = checks["stellar_payment_observer"] as Map<*, *>
-  assertEquals(spo["status"], "green")
-  val streams = spo["streams"] as List<Map<*, *>>
-  assertEquals(streams[0]["thread_shutdown"], false)
-  assertEquals(streams[0]["thread_terminated"], false)
-  assertEquals(streams[0]["stopped"], false)
+  assertEquals(0.0, response["number_of_checks"])
+  assertNotNull(response["started_at"])
+  assertNotNull(response["elapsed_time_ms"])
+  assertNotNull(response["number_of_checks"])
+  assertNotNull(response["version"])
 }
 
 fun testSep31UnhappyPath() {
@@ -128,7 +127,8 @@ fun testSep31UnhappyPath() {
   assertTrue(getTxResponse.amountIn.asset.contains(txnRequest.assetCode))
   assertEquals(31, getTxResponse.sep)
   assertNull(getTxResponse.completedAt)
-  assertTrue(getTxResponse.updatedAt > getTxResponse.startedAt)
+  assertNotNull(getTxResponse.startedAt)
+  assertTrue(getTxResponse.updatedAt >= getTxResponse.startedAt)
 
   // Modify the customer by erasing its clabe_number to simulate an invalid clabe_number
   sep12Client.invalidateCustomerClabe(receiverCustomer.id)
@@ -155,6 +155,7 @@ fun testSep31UnhappyPath() {
   assertEquals(TransactionEvent.Status.PENDING_CUSTOMER_INFO_UPDATE.status, patchedTx.status)
   assertEquals(31, patchedTx.sep)
   assertEquals("The receiving customer clabe_number is invalid!", patchedTx.message)
+  assertTrue(patchedTx.updatedAt > patchedTx.startedAt)
 
   // GET SEP-31 transaction should return PENDING_CUSTOMER_INFO_UPDATE with a message
   var gotSep31TxResponse = sep31Client.getTransaction(postTxResponse.id)
@@ -203,5 +204,8 @@ fun testSep31UnhappyPath() {
   assertEquals(postTxResponse.id, gotSep31TxResponse.transaction.id)
   assertEquals(TransactionEvent.Status.COMPLETED.status, gotSep31TxResponse.transaction.status)
   assertNull(gotSep31TxResponse.transaction.requiredInfoMessage)
-  assertEquals(patchedTx.completedAt, gotSep31TxResponse.transaction.completedAt)
+  assertEquals(
+    patchedTx.completedAt.truncatedTo(SECONDS),
+    gotSep31TxResponse.transaction.completedAt.truncatedTo(SECONDS)
+  )
 }

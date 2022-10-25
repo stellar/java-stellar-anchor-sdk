@@ -2,7 +2,6 @@ package org.stellar.anchor.platform;
 
 import static org.springframework.boot.Banner.Mode.OFF;
 
-import com.google.gson.Gson;
 import java.util.Map;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -10,18 +9,15 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Profile;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import org.stellar.anchor.config.MetricConfig;
 import org.stellar.anchor.platform.configurator.DataAccessConfigurator;
 import org.stellar.anchor.platform.configurator.PlatformAppConfigurator;
 import org.stellar.anchor.platform.configurator.PropertiesReader;
 import org.stellar.anchor.platform.configurator.SpringFrameworkConfigurator;
-import org.stellar.anchor.platform.data.JdbcSep31TransactionRepo;
-import org.stellar.anchor.platform.service.MetricEmitterService;
-import org.stellar.anchor.util.GsonUtils;
 
+@Profile("default")
 @SpringBootApplication
 @EnableJpaRepositories(basePackages = {"org.stellar.anchor.platform.data"})
 @EntityScan(basePackages = {"org.stellar.anchor.platform.data"})
@@ -66,18 +62,7 @@ public class AnchorPlatformServer implements WebMvcConfigurer {
     return springApplication.run();
   }
 
-  @Bean
-  public Gson gson() {
-    return GsonUtils.builder().create();
-  }
-
-  public static void start(int port, String contextPath) {
-    start(port, contextPath, null, false);
-  }
-
-  @Bean
-  public MetricEmitterService metricService(
-      MetricConfig metricConfig, JdbcSep31TransactionRepo sep31TransactionRepo) {
-    return new MetricEmitterService(metricConfig, sep31TransactionRepo);
+  public static ConfigurableApplicationContext start(int port, String contextPath) {
+    return start(port, contextPath, null, false);
   }
 }

@@ -23,6 +23,6 @@ public class Sep24InteractiveController {
     if (operation == null) throw new SepValidationException("Missing [operation] parameter.");
     if (operation.equals("withdraw")) return "The sep24 interactive WITHDRAW starts here.";
     else if (operation.equals("deposit")) return "The sep24 interactive DEPOSIT starts here.";
-    else return "Undefined operation " + operation;
+    else return String.format("Undefined operation %s", operation);
   }
 }

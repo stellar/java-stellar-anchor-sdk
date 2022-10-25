@@ -89,10 +89,6 @@ resource "aws_ecs_task_definition" "sep" {
               {
                   "name": "STELLAR_ANCHOR_CONFIG",
                   "value": "file:/anchor_config/anchor_config.yaml"
-              },
-              {   
-                  "name": "TEST3",
-                  "value": "TEST3"
               }
           ],
        logConfiguration = {

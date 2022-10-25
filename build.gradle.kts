@@ -3,6 +3,7 @@
 plugins {
   java
   alias(libs.plugins.spotless)
+  alias(libs.plugins.kotlin.jvm) apply false
 }
 
 tasks {
@@ -20,9 +21,6 @@ subprojects {
   apply(plugin = "java")
   apply(plugin = "com.diffplug.spotless")
 
-  group = "org.stellar.anchor-sdk"
-  version = "0.1.1"
-
   repositories {
     mavenLocal()
     mavenCentral()
@@ -32,9 +30,6 @@ subprojects {
 
   /** Specifies JDK-11 */
   java { toolchain { languageVersion.set(JavaLanguageVersion.of(11)) } }
-
-  /** Enforces google-java-format at Java compilation. */
-  tasks.named("compileJava") { this.dependsOn("spotlessApply") }
 
   spotless {
     val javaVersion = System.getProperty("java.version")
@@ -68,6 +63,7 @@ subprojects {
     implementation(rootProject.libs.aws.sqs)
     implementation(rootProject.libs.postgresql)
     implementation(rootProject.libs.bundles.kafka)
+    implementation(rootProject.libs.spring.kafka)
 
     // TODO: we should use log4j2
     implementation(rootProject.libs.log4j.template.json)
@@ -79,9 +75,7 @@ subprojects {
     // subproject task as of today.
     //
     testImplementation(rootProject.libs.bundles.junit)
-    testImplementation(rootProject.libs.bundles.kotlin)
     testImplementation(rootProject.libs.jsonassert)
-    testImplementation(rootProject.libs.mockk)
 
     testAnnotationProcessor(rootProject.libs.lombok)
   }
@@ -90,14 +84,28 @@ subprojects {
    * This is to fix the Windows default cp-1252 character encoding that may potentially cause
    * compilation error
    */
-  tasks.compileJava { options.encoding = "UTF-8" }
+  tasks {
+    compileJava {
+      options.encoding = "UTF-8"
 
-  tasks.compileTestJava { options.encoding = "UTF-8" }
+      /** Enforces google-java-format at Java compilation. */
+      dependsOn("spotlessApply")
+    }
 
-  tasks.javadoc { options.encoding = "UTF-8" }
+    compileTestJava { options.encoding = "UTF-8" }
 
-  /** JUnit5 should be used for all subprojects. */
-  tasks.test { useJUnitPlatform() }
+    javadoc { options.encoding = "UTF-8" }
+
+    test {
+      useJUnitPlatform()
+
+      testLogging {
+        events("SKIPPED", "FAILED")
+        showExceptions = true
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+      }
+    }
+  }
 
   configurations {
     all {
@@ -107,3 +115,24 @@ subprojects {
     }
   }
 }
+
+allprojects {
+  group = "org.stellar.anchor-sdk"
+  version = "1.2.1"
+
+  tasks.jar {
+    manifest {
+      attributes(
+        mapOf(
+          "Implementation-Title" to project.name,
+          "Implementation-Version" to project.version
+        )
+      )
+    }
+  }
+}
+
+tasks.register("printVersionName") {
+  println(rootProject.version.toString())
+}
+

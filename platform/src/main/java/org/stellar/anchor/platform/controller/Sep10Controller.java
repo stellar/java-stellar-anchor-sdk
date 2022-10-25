@@ -4,6 +4,7 @@ import static org.stellar.anchor.util.Log.*;
 
 import java.io.IOException;
 import java.net.URISyntaxException;
+import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -24,6 +25,7 @@ import org.stellar.sdk.InvalidSep10ChallengeException;
 @RestController
 @CrossOrigin(origins = "*")
 @ConditionalOnAllSepsEnabled(seps = {"sep10"})
+@Profile("default")
 public class Sep10Controller {
 
   private final Sep10Service sep10Service;
@@ -49,7 +51,12 @@ public class Sep10Controller {
         homeDomain,
         clientDomain);
     ChallengeRequest challengeRequest =
-        ChallengeRequest.of(account, memo, homeDomain, clientDomain);
+        ChallengeRequest.builder()
+            .account(account)
+            .memo(memo)
+            .homeDomain(homeDomain)
+            .clientDomain(clientDomain)
+            .build();
     return sep10Service.createChallenge(challengeRequest);
   }
 
