@@ -158,13 +158,16 @@ public class StellarPaymentObserver implements HealthCheckable {
   }
 
   void checkSilence() {
-    Instant now = Instant.now();
-    if (lastActivityTime != null) {
-      Duration silenceDuration = Duration.between(lastActivityTime, now);
-      debugF("The observer had been silent for {} seconds", silenceDuration.getSeconds());
-      if (silenceDuration.getSeconds() > SILENCE_TIMEOUT) {
-        infoF("The observer had been silent for {} seconds.", silenceDuration.getSeconds());
-        setStatus(SILENCE_ERROR);
+    if (status != NEEDS_SHUTDOWN && status != SHUTDOWN) {
+      Instant now = Instant.now();
+      if (lastActivityTime != null) {
+        Duration silenceDuration = Duration.between(lastActivityTime, now);
+        if (silenceDuration.getSeconds() > SILENCE_TIMEOUT) {
+          infoF("The observer had been silent for {} seconds.", silenceDuration.getSeconds());
+          setStatus(SILENCE_ERROR);
+        } else {
+          debugF("The observer had been silent for {} seconds.", silenceDuration.getSeconds());
+        }
       }
     }
   }
@@ -421,30 +424,32 @@ public class StellarPaymentObserver implements HealthCheckable {
     StreamHealth.StreamHealthBuilder healthBuilder = StreamHealth.builder();
     healthBuilder.account(mapStreamToAccount.get(stream));
     // populate executorService information
-    ExecutorService executorService = getField(stream, "executorService", null);
-    if (executorService != null) {
-      healthBuilder.threadShutdown(executorService.isShutdown());
-      healthBuilder.threadTerminated(executorService.isTerminated());
-      if (executorService.isShutdown() || executorService.isTerminated()) {
+    if (stream != null) {
+      ExecutorService executorService = getField(stream, "executorService", null);
+      if (executorService != null) {
+        healthBuilder.threadShutdown(executorService.isShutdown());
+        healthBuilder.threadTerminated(executorService.isTerminated());
+        if (executorService.isShutdown() || executorService.isTerminated()) {
+          status = RED;
+        }
+      } else {
         status = RED;
       }
-    } else {
-      status = RED;
-    }
 
-    AtomicBoolean isStopped = getField(stream, "isStopped", new AtomicBoolean(false));
-    if (isStopped != null) {
-      healthBuilder.stopped(isStopped.get());
-      if (isStopped.get()) {
-        status = RED;
+      AtomicBoolean isStopped = getField(stream, "isStopped", new AtomicBoolean(false));
+      if (isStopped != null) {
+        healthBuilder.stopped(isStopped.get());
+        if (isStopped.get()) {
+          status = RED;
+        }
       }
-    }
 
-    AtomicReference<String> lastEventId = getField(stream, "lastEventId", null);
-    if (lastEventId != null && lastEventId.get() != null) {
-      healthBuilder.lastEventId(lastEventId.get());
-    } else {
-      healthBuilder.lastEventId("-1");
+      AtomicReference<String> lastEventId = getField(stream, "lastEventId", null);
+      if (lastEventId != null && lastEventId.get() != null) {
+        healthBuilder.lastEventId(lastEventId.get());
+      } else {
+        healthBuilder.lastEventId("-1");
+      }
     }
 
     if (lastActivityTime == null) {
