@@ -319,7 +319,6 @@ class AnchorPlatformIntegrationTest {
   }
 
   @Test
-
   fun testAppConfig() {
     val appConfig = platformServerContext.getBean(AppConfig::class.java)
     assertEquals("Test SDF Network ; September 2015", appConfig.stellarNetworkPassphrase)
@@ -373,9 +372,9 @@ class AnchorPlatformIntegrationTest {
 
     val checks = responseBody["checks"] as Map<*, *>
 
-//    assertEquals(2, checks.size)
-//    assertNotNull(checks["config"])
-//    assertNotNull(checks["stellar_payment_observer"])
+    //    assertEquals(2, checks.size)
+    //    assertNotNull(checks["config"])
+    //    assertNotNull(checks["stellar_payment_observer"])
 
     assertEquals(1, checks.size)
 
