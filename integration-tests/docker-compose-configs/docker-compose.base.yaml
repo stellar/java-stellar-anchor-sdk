@@ -8,7 +8,7 @@ services:
     command: "--sep-server"
     environment:
       - STELLAR_ANCHOR_CONFIG=file:/config/anchor-platform-config.yaml
-      - SECRET_SEP10_SIGNING_SEED=SAX3AH622R2XT6DXWWSRIDCMMUCCMATBZ5U6XKJWDO7M2EJUBFC3AW5X
+      - SECRET_SEP10_SIGNING_SEED=${SECRET_SEP10_SIGNING_SEED?err}
       - SECRET_SEP10_JWT_SECRET=secret
       - SECRET_PLATFORM_API_AUTH_SECRET=myAnchorToPlatformSecret
       - SECRET_CALLBACK_API_AUTH_SECRET=myPlatformToAnchorSecret
@@ -34,7 +34,7 @@ services:
     command: "--stellar-observer"
     environment:
       - STELLAR_ANCHOR_CONFIG=file:/config/anchor-platform-config.yaml
-      - SECRET_SEP10_SIGNING_SEED=SAX3AH622R2XT6DXWWSRIDCMMUCCMATBZ5U6XKJWDO7M2EJUBFC3AW5X
+      - SECRET_SEP10_SIGNING_SEED=${SECRET_SEP10_SIGNING_SEED?err}
       - SECRET_SEP10_JWT_SECRET=secret
       - SECRET_PLATFORM_API_AUTH_SECRET=myAnchorToPlatformSecret
       - SECRET_CALLBACK_API_AUTH_SECRET=myPlatformToAnchorSecret
