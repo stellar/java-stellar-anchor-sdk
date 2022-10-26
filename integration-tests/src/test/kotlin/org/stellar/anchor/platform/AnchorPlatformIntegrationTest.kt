@@ -319,6 +319,7 @@ class AnchorPlatformIntegrationTest {
   }
 
   @Test
+
   fun testAppConfig() {
     val appConfig = platformServerContext.getBean(AppConfig::class.java)
     assertEquals("Test SDF Network ; September 2015", appConfig.stellarNetworkPassphrase)
@@ -371,8 +372,25 @@ class AnchorPlatformIntegrationTest {
     assertNotNull(responseBody["checks"])
 
     val checks = responseBody["checks"] as Map<*, *>
-    assertEquals(2, checks.size)
-    assertNotNull(checks["config"])
-    assertNotNull(checks["stellar_payment_observer"])
+
+//    assertEquals(2, checks.size)
+//    assertNotNull(checks["config"])
+//    assertNotNull(checks["stellar_payment_observer"])
+
+    assertEquals(1, checks.size)
+
+    val stellarPaymentObserverCheck = checks["stellar_payment_observer"] as Map<*, *>
+    assertEquals(2, stellarPaymentObserverCheck.size)
+    assertEquals("GREEN", stellarPaymentObserverCheck["status"])
+
+    val observerStreams = stellarPaymentObserverCheck["streams"] as List<*>
+    assertEquals(1, observerStreams.size)
+
+    val stream1 = observerStreams[0] as Map<*, *>
+    assertEquals(5, stream1.size)
+    assertEquals(false, stream1["thread_shutdown"])
+    assertEquals(false, stream1["thread_terminated"])
+    assertEquals(false, stream1["stopped"])
+    assertNotNull(stream1["last_event_id"])
   }
 }
