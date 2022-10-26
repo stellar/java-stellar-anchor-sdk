@@ -4,15 +4,20 @@ import com.google.gson.reflect.TypeToken
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import java.io.IOException
+import javax.net.ssl.SSLProtocolException
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.stellar.anchor.api.platform.HealthCheckStatus.RED
 import org.stellar.sdk.Server
 import org.stellar.sdk.requests.RequestBuilder
+import org.stellar.sdk.requests.SSEStream
 import org.stellar.sdk.responses.GsonSingleton
 import org.stellar.sdk.responses.Page
 import org.stellar.sdk.responses.operations.OperationResponse
+import shadow.com.google.common.base.Optional
 
 class StellarPaymentObserverTest {
   companion object {
@@ -124,5 +129,19 @@ class StellarPaymentObserverTest {
         .execute()
     }
     assertEquals("4322708489777153", gotCursor)
+  }
+
+  @Test
+  fun `test if SSEStream exception will leave the observer in STREAM_ERROR state`() {
+    val stream: SSEStream<OperationResponse> = mockk(relaxed = true)
+    val observer =
+      spyk(StellarPaymentObserver(TEST_HORIZON_URI, null, null, paymentStreamerCursorStore))
+    every { observer.startSSEStream() } returns stream
+    observer.start()
+    observer.handleFailure(Optional.of(SSLProtocolException("")))
+    assertEquals(ObserverStatus.STREAM_ERROR, observer.status)
+
+    val checkResult = observer.check()
+    assertEquals(RED, checkResult.status)
   }
 }
