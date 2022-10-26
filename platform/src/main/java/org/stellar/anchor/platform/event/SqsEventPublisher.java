@@ -41,6 +41,7 @@ public class SqsEventPublisher implements EventPublisher {
           new MessageAttributeValue()
               .withDataType("String")
               .withStringValue(event.getClass().getSimpleName()));
+      
       SendMessageResult sendMessageResult = sqsClient.sendMessage(sendMessageRequest);
 
       // If the queue is offline, throw an exception

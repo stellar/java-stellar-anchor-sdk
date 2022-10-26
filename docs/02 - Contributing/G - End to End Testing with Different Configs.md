@@ -92,6 +92,7 @@ directory.
    ```text
    E2E_SECRET=<STELLAR_SECRET>
    OMNIBUS_ALLOWLIST_KEYS=<OMNIBUS_ALLOWLIST_KEYS>
+   SECRET_SEP10_SIGNING_SEED=<SECRET_SEP10_SIGNING_SEED>
    ```
 3) Run the end-to-end test on all the different configs:
    ```text

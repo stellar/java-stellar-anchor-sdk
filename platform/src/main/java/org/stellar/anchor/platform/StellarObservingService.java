@@ -13,6 +13,7 @@ import org.springframework.context.annotation.Profile;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.stellar.anchor.platform.configurator.ConfigManager;
+import org.stellar.anchor.platform.configurator.SecretManager;
 
 @Profile("stellar-observer")
 @SpringBootApplication
@@ -42,6 +43,7 @@ public class StellarObservingService implements WebMvcConfigurer {
 
     SpringApplication springApplication = builder.build();
 
+    springApplication.addInitializers(SecretManager.getInstance());
     springApplication.addInitializers(ConfigManager.getInstance());
     return springApplication.run();
   }

@@ -87,7 +87,8 @@ platform_api:
     ##     JWT_TOKEN: The authentication is done using a JWT token added to the `Authorization`
     ##         header. This token is generated from the secret key.
     ##
-    ## If the type is not NONE, the secret must be set by the following environment variable: `secret.platform_api.auth_secret`
+    ## If the type is not NONE, the secret must be set by the following environment variables:
+    ##  `secret.platform_api.auth_secret`, `secret.callback_api.auth_secret`
     ##
     ## The value of the secret depends on the type specified.
     ##    If type is JWT_TOKEN – the secret key used to encode/decode the JWT token.
