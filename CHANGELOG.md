@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.2
+* Detects and handle silent and errored SSEStream. [#632](https://github.com/stellar/java-stellar-anchor-sdk/issues/632)
+* When the health status is RED, set the status code to 500.
+
 ## 1.2.1
 * Fix gson serialization error of the Refunds object. [#626](https://github.com/stellar/java-stellar-anchor-sdk/issues/626) 
 
