@@ -5,7 +5,6 @@ import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.unmockkAll
-import java.util.*
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
@@ -37,7 +36,7 @@ class HealthControllerTest {
     every { stellarPaymentObserver.tags } returns
       listOf(HealthCheckable.Tags.ALL, HealthCheckable.Tags.EVENT)
 
-    val healthCheckService = HealthCheckService(Optional.of(stellarPaymentObserver))
+    val healthCheckService = HealthCheckService(listOf(stellarPaymentObserver))
     val healthController = HealthController(healthCheckService)
 
     // RED should result 500
