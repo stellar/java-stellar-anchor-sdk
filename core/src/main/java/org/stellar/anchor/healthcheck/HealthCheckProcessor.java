@@ -21,7 +21,7 @@ public class HealthCheckProcessor {
     HealthCheckResponse healthCheckResponse = new HealthCheckResponse();
     SortedSet<HealthCheckable> checkSet = new TreeSet<>();
     for (String checkTag : checkTags) {
-      List<HealthCheckable> checkables = mapCheckable.get(checkTag);
+      List<HealthCheckable> checkables = mapCheckable.get(checkTag.toLowerCase());
       if (checkables != null) checkSet.addAll(checkables);
     }
 

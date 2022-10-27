@@ -1,8 +1,11 @@
 package org.stellar.anchor.platform.controller;
 
 import java.util.List;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.stellar.anchor.api.platform.HealthCheckResponse;
+import org.stellar.anchor.api.platform.HealthCheckStatus;
 import org.stellar.anchor.platform.service.HealthCheckService;
 
 @RestController
@@ -16,10 +19,20 @@ public class HealthController {
   }
 
   @RequestMapping(method = {RequestMethod.GET})
-  public HealthCheckResponse health(@RequestParam(required = false) List<String> checks) {
+  public ResponseEntity<HealthCheckResponse> health(
+      @RequestParam(required = false) List<String> checks) {
     if (checks == null) {
       checks = List.of("all");
     }
-    return healthCheckService.check(checks);
+    HealthCheckResponse healthCheckResponse = healthCheckService.check(checks);
+
+    boolean unhealthy =
+        healthCheckResponse.getChecks().values().stream()
+            .anyMatch(result -> result.getStatus() == HealthCheckStatus.RED);
+    if (unhealthy) {
+      return new ResponseEntity<>(healthCheckResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+    } else {
+      return ResponseEntity.ok(healthCheckResponse);
+    }
   }
 }
