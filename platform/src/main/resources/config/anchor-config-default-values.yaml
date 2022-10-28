@@ -112,20 +112,38 @@ payment_observer:
   #
   enabled: false
 
-  ## @param: circle_url
+  ## @param: type
   ## @type: string
-  ## Circle api endpoint.
+  ## @supported_values:
+  ##    `stellar`: the observer will observer transactions from the Stellar network
   #
-  circle_url: https://api-sandbox.circle.com
+  type: stellar
+  stellar:
+    #
+    # The interval in seconds when the silence check will run.
+    silence_check_interval: 5
 
+    # The silence_timeout in seconds.
+    #
+    # If the observer had been silent for longer than the timeout value, the observer will try to reconnect to the stellar network.
+    silence_timeout: 90
 
-  ## @param: tracked_wallet
-  ## @type: string
-  ## The id of the wallet to track. 'all' indicates that events for all wallets are tracked.
-  #
-  tracked_wallet: all
+    # The maximum number of silence timeout retries before the observer will give up.
+    # Setting the silence_timeout_retires to -1 will result in indefinite retires.
+    silence_timeout_retries: 5
 
+    # The initial backoff (cool-down) time (in seconds) before reconnecting to the Stellar network
+    initial_stream_backoff_time: 1
 
+    # The maximum backoff (cool-down) time (in seconds) before reconnecting to the Stellar network
+    max_stream_backoff_time: 300
+
+    # The initial backoff (cool-down) time (in seconds) before reconnecting to the event publisher
+    initial_event_backoff_time: 1
+
+    # The initial backoff (cool-down) time (in seconds) before reconnecting to the event publisher
+    max_event_backoff_time: 1
+  
 ## @param: languages
 ## @supported_values: en
 ## The supported languages defined by RFC4646 (https://datatracker.ietf.org/doc/html/rfc4646)
