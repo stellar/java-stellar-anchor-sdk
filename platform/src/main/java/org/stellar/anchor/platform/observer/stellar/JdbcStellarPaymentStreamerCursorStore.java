@@ -1,4 +1,4 @@
-package org.stellar.anchor.platform.payment.observer.stellar;
+package org.stellar.anchor.platform.observer.stellar;
 
 import static org.stellar.anchor.platform.data.PaymentStreamerCursor.SINGLETON_ID;
 

@@ -19,12 +19,13 @@ import org.stellar.anchor.api.exception.BadRequestException
 import org.stellar.anchor.api.exception.UnprocessableEntityException
 import org.stellar.anchor.config.PaymentObserverConfig
 import org.stellar.anchor.horizon.Horizon
-import org.stellar.anchor.platform.payment.observer.circle.CirclePaymentObserverService
-import org.stellar.anchor.platform.payment.observer.circle.ObservedPayment
-import org.stellar.anchor.platform.payment.observer.circle.model.CircleBalance
-import org.stellar.anchor.platform.payment.observer.circle.model.CircleNotification
-import org.stellar.anchor.platform.payment.observer.circle.model.CircleTransactionParty
-import org.stellar.anchor.platform.payment.observer.circle.model.CircleTransfer
+import org.stellar.anchor.platform.observer.PaymentListener
+import org.stellar.anchor.platform.observer.circle.CirclePaymentObserverService
+import org.stellar.anchor.platform.observer.circle.ObservedPayment
+import org.stellar.anchor.platform.observer.circle.model.CircleBalance
+import org.stellar.anchor.platform.observer.circle.model.CircleNotification
+import org.stellar.anchor.platform.observer.circle.model.CircleTransactionParty
+import org.stellar.anchor.platform.observer.circle.model.CircleTransfer
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.sdk.AssetTypeCreditAlphaNum4
 import org.stellar.sdk.Memo
@@ -74,12 +75,12 @@ class CirclePaymentObserverServiceTest {
 
     every { horizon.stellarNetworkPassphrase } returns "Test SDF Network ; September 2015"
     circlePaymentObserverService =
-      CirclePaymentObserverService(
-        httpClient,
-        circlePaymentObserverConfig,
-        horizon,
-        listOf(paymentListener)
-      )
+        CirclePaymentObserverService(
+            httpClient,
+            circlePaymentObserverConfig,
+            horizon,
+            listOf(paymentListener)
+        )
 
     server = MockWebServer()
     server.start()
@@ -153,12 +154,12 @@ class CirclePaymentObserverServiceTest {
 
     // Failing http request
     circlePaymentObserverService =
-      CirclePaymentObserverService(
-        newHttpClient,
-        circlePaymentObserverConfig,
-        horizon,
-        listOf(paymentListener)
-      )
+        CirclePaymentObserverService(
+            newHttpClient,
+            circlePaymentObserverConfig,
+            horizon,
+            listOf(paymentListener)
+        )
 
     val badRequestResponse =
       MockResponse()
@@ -324,12 +325,12 @@ class CirclePaymentObserverServiceTest {
     // Not trading USDC
     every { circlePaymentObserverConfig.trackedWallet } returns "all"
     circlePaymentObserverService =
-      CirclePaymentObserverService(
-        httpClient,
-        circlePaymentObserverConfig,
-        horizon,
-        listOf(paymentListener)
-      )
+        CirclePaymentObserverService(
+            httpClient,
+            circlePaymentObserverConfig,
+            horizon,
+            listOf(paymentListener)
+        )
     messageJson =
       """{
       "notificationType": "transfers",
@@ -380,18 +381,19 @@ class CirclePaymentObserverServiceTest {
     } returns mockedOpResponsePage
 
     circlePaymentObserverService =
-      CirclePaymentObserverService(
-        httpClient,
-        circlePaymentObserverConfig,
-        horizon,
-        listOf(paymentListener)
-      )
+        CirclePaymentObserverService(
+            httpClient,
+            circlePaymentObserverConfig,
+            horizon,
+            listOf(paymentListener)
+        )
 
     // Mock horizon call
     val circleTransfer = CircleTransfer()
     circleTransfer.transactionHash =
       "b9d0b2292c4e09e8eb22d036171491e87b8d2086bf8b265874c8d182cb9c9020"
-    circleTransfer.amount = CircleBalance("USD", "1.234")
+    circleTransfer.amount =
+        CircleBalance("USD", "1.234")
 
     val mockedTransaction = mockk<TransactionResponse>()
     every { mockedTransaction.sourceAccount } returns
@@ -491,12 +493,12 @@ class CirclePaymentObserverServiceTest {
         .execute()
     } returns mockedOpResponsePage
     circlePaymentObserverService =
-      CirclePaymentObserverService(
-        httpClient,
-        circlePaymentObserverConfig,
-        horizon,
-        listOf(paymentListener)
-      )
+        CirclePaymentObserverService(
+            httpClient,
+            circlePaymentObserverConfig,
+            horizon,
+            listOf(paymentListener)
+        )
 
     // if the response is empty, returns null
     val circleTransfer = CircleTransfer()
@@ -528,7 +530,8 @@ class CirclePaymentObserverServiceTest {
     assertNull(observedPayment)
 
     // if asset type is not AssetTypeCreditAlphaNum, returns null
-    circleTransfer.amount = CircleBalance("USD", "1.234")
+    circleTransfer.amount =
+        CircleBalance("USD", "1.234")
 
     val mockedTransaction = mockk<TransactionResponse>()
     every { mockedTransaction.sourceAccount } returns
@@ -594,12 +597,12 @@ class CirclePaymentObserverServiceTest {
     // when tracked == "all", it's always approved
     every { circlePaymentObserverConfig.trackedWallet } returns "all"
     circlePaymentObserverService =
-      CirclePaymentObserverService(
-        httpClient,
-        circlePaymentObserverConfig,
-        horizon,
-        listOf(paymentListener)
-      )
+        CirclePaymentObserverService(
+            httpClient,
+            circlePaymentObserverConfig,
+            horizon,
+            listOf(paymentListener)
+        )
     party = CircleTransactionParty.wallet("11111")
     isWalletTracked = circlePaymentObserverService.isWalletTracked(party)
     assertTrue(isWalletTracked)
@@ -611,12 +614,12 @@ class CirclePaymentObserverServiceTest {
     // when tracked == "11111", only the wallet with that ID is approved
     every { circlePaymentObserverConfig.trackedWallet } returns "11111"
     circlePaymentObserverService =
-      CirclePaymentObserverService(
-        httpClient,
-        circlePaymentObserverConfig,
-        horizon,
-        listOf(paymentListener)
-      )
+        CirclePaymentObserverService(
+            httpClient,
+            circlePaymentObserverConfig,
+            horizon,
+            listOf(paymentListener)
+        )
     party = CircleTransactionParty.wallet("11111")
     isWalletTracked = circlePaymentObserverService.isWalletTracked(party)
     assertTrue(isWalletTracked)

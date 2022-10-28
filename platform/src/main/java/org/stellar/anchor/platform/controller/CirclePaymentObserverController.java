@@ -15,8 +15,8 @@ import org.stellar.anchor.api.exception.EventPublishException;
 import org.stellar.anchor.api.exception.ServerErrorException;
 import org.stellar.anchor.api.exception.UnprocessableEntityException;
 import org.stellar.anchor.api.sep.SepExceptionResponse;
-import org.stellar.anchor.platform.payment.observer.circle.CirclePaymentObserverService;
-import org.stellar.anchor.platform.payment.observer.circle.model.CircleNotification;
+import org.stellar.anchor.platform.observer.circle.CirclePaymentObserverService;
+import org.stellar.anchor.platform.observer.circle.model.CircleNotification;
 
 @RestController
 @RequestMapping("/circle-observer")

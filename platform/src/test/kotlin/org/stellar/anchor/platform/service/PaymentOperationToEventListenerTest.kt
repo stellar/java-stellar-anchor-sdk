@@ -19,7 +19,7 @@ import org.stellar.anchor.event.EventService
 import org.stellar.anchor.event.models.*
 import org.stellar.anchor.platform.data.JdbcSep31Transaction
 import org.stellar.anchor.platform.data.JdbcSep31TransactionStore
-import org.stellar.anchor.platform.payment.observer.circle.ObservedPayment
+import org.stellar.anchor.platform.observer.circle.ObservedPayment
 import org.stellar.anchor.sep31.Sep31Transaction
 import org.stellar.anchor.util.GsonUtils
 

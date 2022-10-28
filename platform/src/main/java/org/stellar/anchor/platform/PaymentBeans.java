@@ -1,9 +1,6 @@
 package org.stellar.anchor.platform;
 
-import java.util.List;
-import java.util.stream.Collectors;
 import lombok.SneakyThrows;
-import okhttp3.OkHttpClient;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -11,22 +8,22 @@ import org.stellar.anchor.api.exception.ServerErrorException;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.AppConfig;
-import org.stellar.anchor.config.PaymentObserverConfig;
-import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.platform.data.PaymentObservingAccountRepo;
-import org.stellar.anchor.platform.payment.observer.PaymentListener;
-import org.stellar.anchor.platform.payment.observer.circle.CirclePaymentObserverService;
-import org.stellar.anchor.platform.payment.observer.stellar.PaymentObservingAccountStore;
-import org.stellar.anchor.platform.payment.observer.stellar.PaymentObservingAccountsManager;
-import org.stellar.anchor.platform.payment.observer.stellar.StellarPaymentObserver;
-import org.stellar.anchor.platform.payment.observer.stellar.StellarPaymentStreamerCursorStore;
+import org.stellar.anchor.platform.observer.PaymentListener;
+import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountStore;
+import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountsManager;
+import org.stellar.anchor.platform.observer.stellar.StellarPaymentObserver;
+import org.stellar.anchor.platform.observer.stellar.StellarPaymentStreamerCursorStore;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Configuration
 public class PaymentBeans {
   @Bean
   @Profile("stellar-observer")
   @SneakyThrows
-  public StellarPaymentObserver stellarPaymentObserverService(
+  public StellarPaymentObserver stellarPaymentObserver(
       AssetService assetService,
       List<PaymentListener> paymentListeners,
       StellarPaymentStreamerCursorStore stellarPaymentStreamerCursorStore,
@@ -60,7 +57,7 @@ public class PaymentBeans {
       throw new ServerErrorException("App config cannot be empty.");
     }
 
-    StellarPaymentObserver stellarPaymentObserverService =
+    StellarPaymentObserver stellarPaymentObserver =
         StellarPaymentObserver.builder()
             .horizonServer(appConfig.getHorizonUrl())
             .paymentTokenStore(stellarPaymentStreamerCursorStore)
@@ -77,8 +74,8 @@ public class PaymentBeans {
       }
     }
 
-    stellarPaymentObserverService.start();
-    return stellarPaymentObserverService;
+    stellarPaymentObserver.start();
+    return stellarPaymentObserver;
   }
 
   @Bean
@@ -90,15 +87,5 @@ public class PaymentBeans {
   @Bean
   public PaymentObservingAccountStore observingAccountStore(PaymentObservingAccountRepo repo) {
     return new PaymentObservingAccountStore(repo);
-  }
-
-  @Bean
-  public CirclePaymentObserverService circlePaymentObserverService(
-      OkHttpClient httpClient,
-      PaymentObserverConfig circlePaymentObserverConfig,
-      Horizon horizon,
-      List<PaymentListener> paymentListeners) {
-    return new CirclePaymentObserverService(
-        httpClient, circlePaymentObserverConfig, horizon, paymentListeners);
   }
 }

@@ -11,8 +11,10 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.stellar.anchor.platform.data.PaymentObservingAccount
-import org.stellar.anchor.platform.payment.observer.stellar.PaymentObservingAccountsManager.AccountType.RESIDENTIAL
-import org.stellar.anchor.platform.payment.observer.stellar.PaymentObservingAccountsManager.AccountType.TRANSIENT
+import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountStore
+import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountsManager
+import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountsManager.AccountType.RESIDENTIAL
+import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountsManager.AccountType.TRANSIENT
 
 class PaymentObservingAccountsManagerTest {
   @MockK private lateinit var paymentObservingAccountStore: PaymentObservingAccountStore
@@ -45,7 +47,9 @@ class PaymentObservingAccountsManagerTest {
 
   @Test
   fun test_addAndRemove_success() {
-    val obs = PaymentObservingAccountsManager(paymentObservingAccountStore)
+    val obs = PaymentObservingAccountsManager(
+        paymentObservingAccountStore
+    )
     obs.initialize()
 
     obs.upsert("GCIWQDKACLW26UJXY5CTLULVYUOYROZPAPDDYEQKNGIERVOAXSPLABMB", TRANSIENT)
@@ -61,7 +65,9 @@ class PaymentObservingAccountsManagerTest {
 
   @Test
   fun test_add_invalid() {
-    val obs = PaymentObservingAccountsManager(paymentObservingAccountStore)
+    val obs = PaymentObservingAccountsManager(
+        paymentObservingAccountStore
+    )
     obs.initialize()
 
     assertEquals(3, obs.accounts.size)
@@ -74,7 +80,9 @@ class PaymentObservingAccountsManagerTest {
 
   @Test
   fun test_evict() {
-    val obs = PaymentObservingAccountsManager(paymentObservingAccountStore)
+    val obs = PaymentObservingAccountsManager(
+        paymentObservingAccountStore
+    )
 
     obs.initialize()
 
@@ -133,7 +141,11 @@ class PaymentObservingAccountsManagerTest {
 
   @Test
   fun test_whenEvictAndPersist_thenSuccessful() {
-    val obs = spyk(PaymentObservingAccountsManager(paymentObservingAccountStore))
+    val obs = spyk(
+        PaymentObservingAccountsManager(
+            paymentObservingAccountStore
+        )
+    )
     assertEquals(0, obs.accounts.size)
 
     obs.initialize()

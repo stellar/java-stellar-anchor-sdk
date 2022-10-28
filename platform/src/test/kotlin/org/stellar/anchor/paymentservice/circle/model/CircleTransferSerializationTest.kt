@@ -8,10 +8,10 @@ import kotlin.test.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
-import org.stellar.anchor.platform.payment.observer.circle.model.CircleBalance
-import org.stellar.anchor.platform.payment.observer.circle.model.CirclePaymentStatus
-import org.stellar.anchor.platform.payment.observer.circle.model.CircleTransactionParty
-import org.stellar.anchor.platform.payment.observer.circle.model.CircleTransfer
+import org.stellar.anchor.platform.observer.circle.model.CircleBalance
+import org.stellar.anchor.platform.observer.circle.model.CirclePaymentStatus
+import org.stellar.anchor.platform.observer.circle.model.CircleTransactionParty
+import org.stellar.anchor.platform.observer.circle.model.CircleTransfer
 import org.stellar.anchor.util.GsonUtils
 
 class CircleTransferSerializationTest {
@@ -63,7 +63,8 @@ class CircleTransferSerializationTest {
         "GAC2OWWDD75GCP4II35UCLYA7JB6LDDZUBZQLYANAVIHIRJAAQBSCL2S",
         null
       )
-    wantTransfer.amount = CircleBalance("USD", "1.00")
+    wantTransfer.amount =
+        CircleBalance("USD", "1.00")
     wantTransfer.transactionHash =
       "5239ee055b1083231c6bdaaa921d3e4b3bc090577fbd909815bd5d7fe68091ef"
     wantTransfer.status = CirclePaymentStatus.COMPLETE

@@ -1,4 +1,4 @@
-package org.stellar.anchor.platform.payment.observer.stellar;
+package org.stellar.anchor.platform.observer.stellar;
 
 import static java.time.temporal.ChronoUnit.DAYS;
 import static java.time.temporal.ChronoUnit.MINUTES;

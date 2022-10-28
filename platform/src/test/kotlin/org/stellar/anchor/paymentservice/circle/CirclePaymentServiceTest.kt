@@ -30,13 +30,13 @@ import org.stellar.anchor.config.CircleConfig
 import org.stellar.anchor.horizon.Horizon
 import org.stellar.anchor.platform.payment.common.*
 import org.stellar.anchor.platform.payment.config.CirclePaymentConfig
-import org.stellar.anchor.platform.payment.observer.circle.CirclePaymentService
-import org.stellar.anchor.platform.payment.observer.circle.model.CircleBlockchainAddress
-import org.stellar.anchor.platform.payment.observer.circle.model.CircleWallet
-import org.stellar.anchor.platform.payment.observer.circle.model.CircleWireDepositInstructions
-import org.stellar.anchor.platform.payment.observer.circle.model.response.CircleDetailResponse
-import org.stellar.anchor.platform.payment.observer.circle.model.response.CircleListResponse
-import org.stellar.anchor.platform.payment.observer.circle.util.CircleAsset
+import org.stellar.anchor.platform.observer.circle.CirclePaymentService
+import org.stellar.anchor.platform.observer.circle.model.CircleBlockchainAddress
+import org.stellar.anchor.platform.observer.circle.model.CircleWallet
+import org.stellar.anchor.platform.observer.circle.model.CircleWireDepositInstructions
+import org.stellar.anchor.platform.observer.circle.model.response.CircleDetailResponse
+import org.stellar.anchor.platform.observer.circle.model.response.CircleListResponse
+import org.stellar.anchor.platform.observer.circle.util.CircleAsset
 import org.stellar.anchor.util.FileUtil
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.sdk.Network
@@ -124,7 +124,11 @@ class CirclePaymentServiceTest {
     every { horizon.stellarNetworkPassphrase } returns "Test SDF Network ; September 2015"
     every { horizon.server } returns Server(server.url("").toString())
 
-    service = CirclePaymentService(circlePaymentConfig, circleConfig, horizon)
+    service = CirclePaymentService(
+        circlePaymentConfig,
+        circleConfig,
+        horizon
+    )
   }
 
   @AfterEach
@@ -1650,25 +1654,31 @@ class CirclePaymentServiceTest {
 
     val wantAddresses = ArrayList<CircleBlockchainAddress>()
     wantAddresses.add(
-      CircleBlockchainAddress(
-        "GAYF33NNNMI2Z6VNRFXQ64D4E4SF77PM46NW3ZUZEEU5X7FCHAZCMHKU",
-        "2454278437550473431",
-        "USD",
-        "XLM"
-      )
+        CircleBlockchainAddress(
+            "GAYF33NNNMI2Z6VNRFXQ64D4E4SF77PM46NW3ZUZEEU5X7FCHAZCMHKU",
+            "2454278437550473431",
+            "USD",
+            "XLM"
+        )
     )
     wantAddresses.add(
-      CircleBlockchainAddress(
-        "GAYF33NNNMI2Z6VNRFXQ64D4E4SF77PM46NW3ZUZEEU5X7FCHAZCMHKU",
-        "4560730744420812493",
-        "USD",
-        "XLM"
-      )
+        CircleBlockchainAddress(
+            "GAYF33NNNMI2Z6VNRFXQ64D4E4SF77PM46NW3ZUZEEU5X7FCHAZCMHKU",
+            "4560730744420812493",
+            "USD",
+            "XLM"
+        )
     )
     wantAddresses.add(
-      CircleBlockchainAddress("TLiSMwSrVp8YZaqt7RRcAZoptT1kmpA9sC", null, "USD", "TRX")
+        CircleBlockchainAddress(
+            "TLiSMwSrVp8YZaqt7RRcAZoptT1kmpA9sC",
+            null,
+            "USD",
+            "TRX"
+        )
     )
-    val wantResponse = CircleListResponse<CircleBlockchainAddress>()
+    val wantResponse =
+        CircleListResponse<CircleBlockchainAddress>()
     wantResponse.data = wantAddresses
 
     assertEquals(wantResponse, response)
@@ -1701,14 +1711,15 @@ class CirclePaymentServiceTest {
     var response: CircleDetailResponse<CircleBlockchainAddress>? = null
     assertDoesNotThrow { response = service.createNewStellarAddress("1000066041").block() }
 
-    val wantResponse = CircleDetailResponse<CircleBlockchainAddress>()
+    val wantResponse =
+        CircleDetailResponse<CircleBlockchainAddress>()
     wantResponse.data =
-      CircleBlockchainAddress(
-        "GAYF33NNNMI2Z6VNRFXQ64D4E4SF77PM46NW3ZUZEEU5X7FCHAZCMHKU",
-        "2454278437550473431",
-        "USD",
-        "XLM"
-      )
+        CircleBlockchainAddress(
+            "GAYF33NNNMI2Z6VNRFXQ64D4E4SF77PM46NW3ZUZEEU5X7FCHAZCMHKU",
+            "2454278437550473431",
+            "USD",
+            "XLM"
+        )
 
     assertEquals(wantResponse, response)
 
@@ -1751,12 +1762,12 @@ class CirclePaymentServiceTest {
     assertDoesNotThrow { address = service.getOrCreateStellarAddress("1000066041").block() }
 
     val wantAddress =
-      CircleBlockchainAddress(
-        "GAYF33NNNMI2Z6VNRFXQ64D4E4SF77PM46NW3ZUZEEU5X7FCHAZCMHKU",
-        "2454278437550473431",
-        "USD",
-        "XLM"
-      )
+        CircleBlockchainAddress(
+            "GAYF33NNNMI2Z6VNRFXQ64D4E4SF77PM46NW3ZUZEEU5X7FCHAZCMHKU",
+            "2454278437550473431",
+            "USD",
+            "XLM"
+        )
     assertEquals(wantAddress, address)
 
     assertEquals(2, server.requestCount)
@@ -1801,7 +1812,8 @@ class CirclePaymentServiceTest {
       response = service.getWireDepositInstructions("1000066041", "bank-id-here").block()
     }
 
-    val wantWireInstructions = CircleWireDepositInstructions()
+    val wantWireInstructions =
+        CircleWireDepositInstructions()
     wantWireInstructions.trackingRef = "CIR2KMMZEJ"
     val wantBeneficiary = CircleWireDepositInstructions.Beneficiary()
     wantBeneficiary.name = "CIRCLE INTERNET FINANCIAL INC"
@@ -1819,7 +1831,8 @@ class CirclePaymentServiceTest {
     wantBeneficiaryBank.accountNumber = "1000000001"
     wantWireInstructions.beneficiaryBank = wantBeneficiaryBank
 
-    val wantResponse = CircleDetailResponse<CircleWireDepositInstructions>()
+    val wantResponse =
+        CircleDetailResponse<CircleWireDepositInstructions>()
     wantResponse.data = wantWireInstructions
     assertEquals(wantResponse, response)
 

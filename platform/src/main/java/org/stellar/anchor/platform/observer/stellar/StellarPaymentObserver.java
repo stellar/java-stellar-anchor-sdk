@@ -1,24 +1,6 @@
-package org.stellar.anchor.platform.payment.observer.stellar;
-
-import static org.stellar.anchor.api.platform.HealthCheckStatus.*;
-import static org.stellar.anchor.healthcheck.HealthCheckable.Tags.ALL;
-import static org.stellar.anchor.healthcheck.HealthCheckable.Tags.EVENT;
-import static org.stellar.anchor.platform.payment.observer.stellar.ObserverStatus.*;
-import static org.stellar.anchor.util.Log.debugF;
-import static org.stellar.anchor.util.Log.infoF;
-import static org.stellar.anchor.util.ReflectionUtil.getField;
+package org.stellar.anchor.platform.observer.stellar;
 
 import com.google.gson.annotations.SerializedName;
-import java.io.IOException;
-import java.time.Duration;
-import java.time.Instant;
-import java.util.*;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
 import lombok.Builder;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
@@ -28,8 +10,8 @@ import org.stellar.anchor.api.exception.ValueValidationException;
 import org.stellar.anchor.api.platform.HealthCheckResult;
 import org.stellar.anchor.api.platform.HealthCheckStatus;
 import org.stellar.anchor.healthcheck.HealthCheckable;
-import org.stellar.anchor.platform.payment.observer.PaymentListener;
-import org.stellar.anchor.platform.payment.observer.circle.ObservedPayment;
+import org.stellar.anchor.platform.observer.ObservedPayment;
+import org.stellar.anchor.platform.observer.PaymentListener;
 import org.stellar.anchor.util.ExponentialBackoffTimer;
 import org.stellar.anchor.util.Log;
 import org.stellar.sdk.Server;
@@ -42,6 +24,25 @@ import org.stellar.sdk.responses.operations.OperationResponse;
 import org.stellar.sdk.responses.operations.PathPaymentBaseOperationResponse;
 import org.stellar.sdk.responses.operations.PaymentOperationResponse;
 import shadow.com.google.common.base.Optional;
+
+import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
+
+import static org.stellar.anchor.api.platform.HealthCheckStatus.*;
+import static org.stellar.anchor.healthcheck.HealthCheckable.Tags.ALL;
+import static org.stellar.anchor.healthcheck.HealthCheckable.Tags.EVENT;
+import static org.stellar.anchor.platform.observer.stellar.ObserverStatus.*;
+import static org.stellar.anchor.util.Log.debugF;
+import static org.stellar.anchor.util.Log.infoF;
+import static org.stellar.anchor.util.ReflectionUtil.getField;
 
 public class StellarPaymentObserver implements HealthCheckable {
   /** The maximum number of results the Stellar Blockchain can return. */

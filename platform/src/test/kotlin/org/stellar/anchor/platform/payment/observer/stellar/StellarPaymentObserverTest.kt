@@ -11,6 +11,9 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.stellar.anchor.api.platform.HealthCheckStatus.RED
+import org.stellar.anchor.platform.observer.stellar.ObserverStatus
+import org.stellar.anchor.platform.observer.stellar.StellarPaymentObserver
+import org.stellar.anchor.platform.observer.stellar.StellarPaymentStreamerCursorStore
 import org.stellar.sdk.Server
 import org.stellar.sdk.requests.RequestBuilder
 import org.stellar.sdk.requests.SSEStream
@@ -42,7 +45,12 @@ class StellarPaymentObserverTest {
     // 1 - If there is a stored cursor, we'll use that.
     every { paymentStreamerCursorStore.load() } returns "123"
     var stellarObserver =
-      StellarPaymentObserver(TEST_HORIZON_URI, null, null, paymentStreamerCursorStore)
+        StellarPaymentObserver(
+            TEST_HORIZON_URI,
+            null,
+            null,
+            paymentStreamerCursorStore
+        )
 
     var gotCursor = stellarObserver.fetchStreamingCursor()
     assertEquals("123", gotCursor)
@@ -53,7 +61,12 @@ class StellarPaymentObserverTest {
     every { paymentStreamerCursorStore.load() } returns null
     mockkConstructor(Server::class)
     stellarObserver =
-      StellarPaymentObserver(TEST_HORIZON_URI, null, null, paymentStreamerCursorStore)
+        StellarPaymentObserver(
+            TEST_HORIZON_URI,
+            null,
+            null,
+            paymentStreamerCursorStore
+        )
 
     // 2.1 If fetching from the network throws an error, we return `null`
     every {
@@ -135,7 +148,14 @@ class StellarPaymentObserverTest {
   fun `test if SSEStream exception will leave the observer in STREAM_ERROR state`() {
     val stream: SSEStream<OperationResponse> = mockk(relaxed = true)
     val observer =
-      spyk(StellarPaymentObserver(TEST_HORIZON_URI, null, null, paymentStreamerCursorStore))
+      spyk(
+          StellarPaymentObserver(
+              TEST_HORIZON_URI,
+              null,
+              null,
+              paymentStreamerCursorStore
+          )
+      )
     every { observer.startSSEStream() } returns stream
     observer.start()
     observer.handleFailure(Optional.of(SSLProtocolException("")))
