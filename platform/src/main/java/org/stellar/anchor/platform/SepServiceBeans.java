@@ -1,8 +1,6 @@
 package org.stellar.anchor.platform;
 
 import com.google.gson.Gson;
-import java.io.IOException;
-import javax.servlet.Filter;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,12 +16,9 @@ import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.filter.JwtTokenFilter;
 import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.platform.data.*;
-import org.stellar.anchor.platform.payment.config.CirclePaymentConfig;
-import org.stellar.anchor.platform.observer.circle.CirclePaymentService;
 import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountsManager;
 import org.stellar.anchor.platform.service.PropertyAssetsService;
 import org.stellar.anchor.platform.service.Sep31DepositInfoGeneratorApi;
-import org.stellar.anchor.platform.service.Sep31DepositInfoGeneratorCircle;
 import org.stellar.anchor.platform.service.Sep31DepositInfoGeneratorSelf;
 import org.stellar.anchor.sep1.Sep1Service;
 import org.stellar.anchor.sep10.Sep10Service;
@@ -35,6 +30,9 @@ import org.stellar.anchor.sep31.Sep31Service;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
 import org.stellar.anchor.sep38.Sep38Service;
+
+import javax.servlet.Filter;
+import java.io.IOException;
 
 /** SEP configurations */
 @Configuration
@@ -119,24 +117,13 @@ public class SepServiceBeans {
   }
 
   @Bean
-  CirclePaymentService circlePaymentService(
-      CirclePaymentConfig circlePaymentConfig, CircleConfig circleConfig, Horizon horizon) {
-    return new CirclePaymentService(circlePaymentConfig, circleConfig, horizon);
-  }
-
-  @Bean
   Sep31DepositInfoGenerator sep31DepositInfoGenerator(
       Sep31Config sep31Config,
-      CirclePaymentService circlePaymentService,
       PaymentObservingAccountsManager paymentObservingAccountsManager,
       UniqueAddressIntegration uniqueAddressIntegration) {
     switch (sep31Config.getDepositInfoGeneratorType()) {
       case SELF:
         return new Sep31DepositInfoGeneratorSelf();
-
-      case CIRCLE:
-        return new Sep31DepositInfoGeneratorCircle(circlePaymentService);
-
       case API:
         return new Sep31DepositInfoGeneratorApi(
             uniqueAddressIntegration, paymentObservingAccountsManager);

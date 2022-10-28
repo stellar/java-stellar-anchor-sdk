@@ -6,10 +6,10 @@ import lombok.Data;
 import org.jetbrains.annotations.NotNull;
 import org.stellar.anchor.api.exception.EventPublishException;
 import org.stellar.anchor.api.exception.SepException;
-import org.stellar.anchor.api.exception.ValueValidationException;
 import org.stellar.anchor.api.platform.HealthCheckResult;
 import org.stellar.anchor.api.platform.HealthCheckStatus;
 import org.stellar.anchor.healthcheck.HealthCheckable;
+import org.stellar.anchor.platform.config.PaymentObserverConfig.StellarPaymentObserverConfig;
 import org.stellar.anchor.platform.observer.ObservedPayment;
 import org.stellar.anchor.platform.observer.PaymentListener;
 import org.stellar.anchor.util.ExponentialBackoffTimer;
@@ -28,7 +28,10 @@ import shadow.com.google.common.base.Optional;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
@@ -50,24 +53,20 @@ public class StellarPaymentObserver implements HealthCheckable {
   /** The minimum number of results the Stellar Blockchain can return. */
   private static final int MIN_RESULTS = 1;
 
-  // If the observer had been silent for longer than SILENC_TIMEOUT, a SilenceTimeoutException will
-  // be thrown to trigger reconnections.
-  private static final long SILENCE_TIMEOUT = 90;
-  // If the observer has more than 2 SILENCE_TIMEOUT_RETRIES, it will be marked unhealthy
-  private static final long SILENCE_TIMEOUT_RETRIES = 2;
-
-  // The time interval between silence checks
-  private static final long SILENCE_CHECK_INTERVAL = 5;
-
   final Server server;
-  final Set<PaymentListener> paymentListeners;
+  private StellarPaymentObserverConfig config;
+  final List<PaymentListener> paymentListeners;
   final StellarPaymentStreamerCursorStore paymentStreamerCursorStore;
   final Map<SSEStream<OperationResponse>, String> mapStreamToAccount = new HashMap<>();
   final PaymentObservingAccountsManager paymentObservingAccountsManager;
   SSEStream<OperationResponse> stream;
 
-  final ExponentialBackoffTimer publishingBackoffTimer = new ExponentialBackoffTimer();
-  final ExponentialBackoffTimer streamBackoffTimer = new ExponentialBackoffTimer();
+  final ExponentialBackoffTimer publishingBackoffTimer =
+      new ExponentialBackoffTimer(
+          config.getInitialEventBackoffTime(), config.getMaxEventBackoffTime());
+  final ExponentialBackoffTimer streamBackoffTimer =
+      new ExponentialBackoffTimer(
+          config.getInitialStreamBackoffTime(), config.getMaxStreamBackoffTime());
   int silenceTimeoutCount = 0;
 
   ObserverStatus status = RUNNING;
@@ -77,12 +76,14 @@ public class StellarPaymentObserver implements HealthCheckable {
   ScheduledExecutorService silenceWatcher = Executors.newSingleThreadScheduledExecutor();
   ScheduledExecutorService statusWatcher = Executors.newSingleThreadScheduledExecutor();
 
-  StellarPaymentObserver(
+  public StellarPaymentObserver(
       String horizonServer,
-      Set<PaymentListener> paymentListeners,
+      StellarPaymentObserverConfig config,
+      List<PaymentListener> paymentListeners,
       PaymentObservingAccountsManager paymentObservingAccountsManager,
       StellarPaymentStreamerCursorStore paymentStreamerCursorStore) {
     this.server = new Server(horizonServer);
+    this.config = config;
     this.paymentListeners = paymentListeners;
     this.paymentObservingAccountsManager = paymentObservingAccountsManager;
     this.paymentStreamerCursorStore = paymentStreamerCursorStore;
@@ -97,7 +98,7 @@ public class StellarPaymentObserver implements HealthCheckable {
     silenceWatcher.scheduleAtFixedRate(
         this::checkSilence,
         1,
-        SILENCE_CHECK_INTERVAL,
+        config.getSilenceCheckInterval(),
         TimeUnit.SECONDS); // TODO: The period should be made configurable in version 2.x
 
     infoF("Starting the status watcher");
@@ -165,7 +166,7 @@ public class StellarPaymentObserver implements HealthCheckable {
       Instant now = Instant.now();
       if (lastActivityTime != null) {
         Duration silenceDuration = Duration.between(lastActivityTime, now);
-        if (silenceDuration.getSeconds() > SILENCE_TIMEOUT) {
+        if (silenceDuration.getSeconds() > config.getSilenceTimeout()) {
           infoF("The observer had been silent for {} seconds.", silenceDuration.getSeconds());
           setStatus(SILENCE_ERROR);
         } else {
@@ -213,7 +214,7 @@ public class StellarPaymentObserver implements HealthCheckable {
         infoF("The silence reconnection count: {}", silenceTimeoutCount);
         // We got the silence error. If silence reconnect too many times, we will shut down the
         // observer.
-        if (silenceTimeoutCount >= SILENCE_TIMEOUT_RETRIES) {
+        if (silenceTimeoutCount >= config.getSilenceTimeoutRetries()) {
           infoF(
               "The silence error has happened for too many times:{}. Shutdown the observer",
               silenceTimeoutCount);
@@ -347,50 +348,9 @@ public class StellarPaymentObserver implements HealthCheckable {
     this.status = status;
   }
 
-  public static Builder builder() {
-    return new Builder();
-  }
-
   @Override
   public int compareTo(@NotNull HealthCheckable other) {
     return this.getName().compareTo(other.getName());
-  }
-
-  public static class Builder {
-    String horizonServer = "https://horizon-testnet.stellar.org";
-    Set<PaymentListener> observers = new HashSet<>();
-    StellarPaymentStreamerCursorStore paymentStreamerCursorStore =
-        new MemoryStellarPaymentStreamerCursorStore();
-    private PaymentObservingAccountsManager paymentObservingAccountsManager;
-
-    public Builder() {}
-
-    public Builder horizonServer(String horizonServer) {
-      this.horizonServer = horizonServer;
-      return this;
-    }
-
-    public Builder observers(List<PaymentListener> observers) {
-      this.observers.addAll(observers);
-      return this;
-    }
-
-    public Builder paymentTokenStore(
-        StellarPaymentStreamerCursorStore stellarPaymentStreamerCursorStore) {
-      this.paymentStreamerCursorStore = stellarPaymentStreamerCursorStore;
-      return this;
-    }
-
-    public Builder paymentObservingAccountManager(
-        PaymentObservingAccountsManager paymentObservingAccountsManager) {
-      this.paymentObservingAccountsManager = paymentObservingAccountsManager;
-      return this;
-    }
-
-    public StellarPaymentObserver build() throws ValueValidationException {
-      return new StellarPaymentObserver(
-          horizonServer, observers, paymentObservingAccountsManager, paymentStreamerCursorStore);
-    }
   }
 
   @Override

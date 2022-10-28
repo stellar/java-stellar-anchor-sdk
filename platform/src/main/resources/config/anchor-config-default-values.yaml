@@ -120,9 +120,9 @@ payment_observer:
   type: stellar
   stellar:
     #
-    # The interval in seconds when the silence check will run.
+    # The interval in seconds when the silence check will run.  
     silence_check_interval: 5
-
+    
     # The silence_timeout in seconds.
     #
     # If the observer had been silent for longer than the timeout value, the observer will try to reconnect to the stellar network.
@@ -131,19 +131,19 @@ payment_observer:
     # The maximum number of silence timeout retries before the observer will give up.
     # Setting the silence_timeout_retires to -1 will result in indefinite retires.
     silence_timeout_retries: 5
-
-    # The initial backoff (cool-down) time (in seconds) before reconnecting to the Stellar network
+    
+    # The initial backoff (cool-down) time (in seconds) before reconnecting to the Stellar network 
     initial_stream_backoff_time: 1
-
-    # The maximum backoff (cool-down) time (in seconds) before reconnecting to the Stellar network
+    
+    # The maximum backoff (cool-down) time (in seconds) before reconnecting to the Stellar network 
     max_stream_backoff_time: 300
-
-    # The initial backoff (cool-down) time (in seconds) before reconnecting to the event publisher
+    
+    # The initial backoff (cool-down) time (in seconds) before reconnecting to the event publisher 
     initial_event_backoff_time: 1
-
-    # The initial backoff (cool-down) time (in seconds) before reconnecting to the event publisher
+    
+    # The initial backoff (cool-down) time (in seconds) before reconnecting to the event publisher 
     max_event_backoff_time: 1
-  
+
 ## @param: languages
 ## @supported_values: en
 ## The supported languages defined by RFC4646 (https://datatracker.ietf.org/doc/html/rfc4646)

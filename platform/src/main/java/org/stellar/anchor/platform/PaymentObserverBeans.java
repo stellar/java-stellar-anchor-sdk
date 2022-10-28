@@ -8,6 +8,7 @@ import org.stellar.anchor.api.exception.ServerErrorException;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.AppConfig;
+import org.stellar.anchor.platform.config.PaymentObserverConfig;
 import org.stellar.anchor.platform.data.PaymentObservingAccountRepo;
 import org.stellar.anchor.platform.observer.PaymentListener;
 import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountStore;
@@ -19,7 +20,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Configuration
-public class PaymentBeans {
+public class PaymentObserverBeans {
   @Bean
   @Profile("stellar-observer")
   @SneakyThrows
@@ -28,7 +29,8 @@ public class PaymentBeans {
       List<PaymentListener> paymentListeners,
       StellarPaymentStreamerCursorStore stellarPaymentStreamerCursorStore,
       PaymentObservingAccountsManager paymentObservingAccountsManager,
-      AppConfig appConfig) {
+      AppConfig appConfig,
+      PaymentObserverConfig paymentObserverConfig) {
     // validate assetService
     if (assetService == null || assetService.listAllAssets() == null) {
       throw new ServerErrorException("Asset service cannot be empty.");
@@ -58,12 +60,12 @@ public class PaymentBeans {
     }
 
     StellarPaymentObserver stellarPaymentObserver =
-        StellarPaymentObserver.builder()
-            .horizonServer(appConfig.getHorizonUrl())
-            .paymentTokenStore(stellarPaymentStreamerCursorStore)
-            .observers(paymentListeners)
-            .paymentObservingAccountManager(paymentObservingAccountsManager)
-            .build();
+        new StellarPaymentObserver(
+            appConfig.getHorizonUrl(),
+            paymentObserverConfig.getStellar(),
+            paymentListeners,
+            paymentObservingAccountsManager,
+            stellarPaymentStreamerCursorStore);
 
     // Add distribution wallet to the observing list as type RESIDENTIAL
     for (AssetInfo assetInfo : stellarAssets) {

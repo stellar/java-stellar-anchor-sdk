@@ -16,7 +16,7 @@ import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountStore
 import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountsManager
 import org.stellar.anchor.platform.observer.stellar.StellarPaymentStreamerCursorStore
 
-class PaymentBeansTest {
+class PaymentObserverBeansTest {
   @MockK private lateinit var paymentStreamerCursorStore: StellarPaymentStreamerCursorStore
   @MockK private lateinit var paymentObservingAccountStore: PaymentObservingAccountStore
 
@@ -34,14 +34,14 @@ class PaymentBeansTest {
   @Test
   fun test_stellarPaymentObserverService_failure() {
     val assetService: AssetService = ResourceJsonAssetService("test_assets.json")
-    val paymentBeans = PaymentBeans()
+    val paymentObserverBeans = PaymentObserverBeans()
     val mockPaymentListener = mockk<PaymentListener>()
     val mockPaymentListeners = listOf(mockPaymentListener)
 
     // assetService is null
     var ex =
       assertThrows<ServerErrorException> {
-        paymentBeans.stellarPaymentObserver(null, null, null, null, null)
+        paymentObserverBeans.stellarPaymentObserver(null, null, null, null, null)
       }
     assertInstanceOf(ServerErrorException::class.java, ex)
     assertEquals("Asset service cannot be empty.", ex.message)
@@ -51,7 +51,7 @@ class PaymentBeansTest {
     every { mockEmptyAssetService.listAllAssets() } returns null
     ex =
       assertThrows {
-        paymentBeans.stellarPaymentObserver(mockEmptyAssetService, null, null, null, null)
+        paymentObserverBeans.stellarPaymentObserver(mockEmptyAssetService, null, null, null, null)
       }
     assertInstanceOf(ServerErrorException::class.java, ex)
     assertEquals("Asset service cannot be empty.", ex.message)
@@ -61,7 +61,7 @@ class PaymentBeansTest {
     every { mockStellarLessAssetService.listAllAssets() } returns listOf()
     ex =
       assertThrows {
-        paymentBeans.stellarPaymentObserver(
+        paymentObserverBeans.stellarPaymentObserver(
           mockStellarLessAssetService,
           null,
           null,
@@ -75,7 +75,7 @@ class PaymentBeansTest {
     // paymentListeners is null
     ex =
       assertThrows {
-        paymentBeans.stellarPaymentObserver(assetService, null, null, null, null)
+        paymentObserverBeans.stellarPaymentObserver(assetService, null, null, null, null)
       }
     assertInstanceOf(ServerErrorException::class.java, ex)
     assertEquals("The stellar payment observer service needs at least one listener.", ex.message)
@@ -83,7 +83,7 @@ class PaymentBeansTest {
     // paymentListeners is empty
     ex =
       assertThrows {
-        paymentBeans.stellarPaymentObserver(assetService, listOf(), null, null, null)
+        paymentObserverBeans.stellarPaymentObserver(assetService, listOf(), null, null, null)
       }
     assertInstanceOf(ServerErrorException::class.java, ex)
     assertEquals("The stellar payment observer service needs at least one listener.", ex.message)
@@ -91,7 +91,7 @@ class PaymentBeansTest {
     // paymentStreamerCursorStore is null
     ex =
       assertThrows {
-        paymentBeans.stellarPaymentObserver(
+        paymentObserverBeans.stellarPaymentObserver(
           assetService,
           mockPaymentListeners,
           null,
@@ -106,7 +106,7 @@ class PaymentBeansTest {
     every { paymentStreamerCursorStore.load() } returns null
     ex =
       assertThrows {
-        paymentBeans.stellarPaymentObserver(
+        paymentObserverBeans.stellarPaymentObserver(
           assetService,
           mockPaymentListeners,
           paymentStreamerCursorStore,
@@ -121,7 +121,7 @@ class PaymentBeansTest {
   @Test
   fun test_givenGoodManager_whenConstruct_thenOk() {
     // success!
-    val paymentBeans = PaymentBeans()
+    val paymentObserverBeans = PaymentObserverBeans()
     val assetService: AssetService = ResourceJsonAssetService("test_assets.json")
     val mockPaymentListener = mockk<PaymentListener>()
     val mockPaymentListeners = listOf(mockPaymentListener)
@@ -134,7 +134,7 @@ class PaymentBeansTest {
     val mockAppConfig = mockk<AppConfig>()
     every { mockAppConfig.horizonUrl } returns "https://horizon-testnet.stellar.org"
     assertDoesNotThrow {
-      paymentBeans.stellarPaymentObserver(
+      paymentObserverBeans.stellarPaymentObserver(
         assetService,
         mockPaymentListeners,
         paymentStreamerCursorStore,
