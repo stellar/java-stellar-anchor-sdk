@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.stellar.anchor.api.platform.HealthCheckStatus.RED
+import org.stellar.anchor.platform.config.PaymentObserverConfig.StellarPaymentObserverConfig
 import org.stellar.sdk.Server
 import org.stellar.sdk.requests.RequestBuilder
 import org.stellar.sdk.requests.SSEStream
@@ -26,6 +27,8 @@ class StellarPaymentObserverTest {
 
   @MockK lateinit var paymentStreamerCursorStore: StellarPaymentStreamerCursorStore
   @MockK lateinit var paymentObservingAccountsManager: PaymentObservingAccountsManager
+
+  val stellarPaymentObserverConfig = StellarPaymentObserverConfig(1, 5, 1, 1, 2, 1, 2)
 
   @BeforeEach
   fun setUp() {
@@ -45,7 +48,7 @@ class StellarPaymentObserverTest {
     var stellarObserver =
       StellarPaymentObserver(
         TEST_HORIZON_URI,
-        null,
+        stellarPaymentObserverConfig,
         null,
         paymentObservingAccountsManager,
         paymentStreamerCursorStore
@@ -62,7 +65,7 @@ class StellarPaymentObserverTest {
     stellarObserver =
       StellarPaymentObserver(
         TEST_HORIZON_URI,
-        null,
+        stellarPaymentObserverConfig,
         null,
         paymentObservingAccountsManager,
         paymentStreamerCursorStore
@@ -151,7 +154,7 @@ class StellarPaymentObserverTest {
       spyk(
         StellarPaymentObserver(
           TEST_HORIZON_URI,
-          null,
+          stellarPaymentObserverConfig,
           null,
           paymentObservingAccountsManager,
           paymentStreamerCursorStore

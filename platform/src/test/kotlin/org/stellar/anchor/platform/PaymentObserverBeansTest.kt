@@ -12,6 +12,7 @@ import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.ResourceJsonAssetService
 import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.platform.config.PaymentObserverConfig
+import org.stellar.anchor.platform.config.PaymentObserverConfig.StellarPaymentObserverConfig
 import org.stellar.anchor.platform.observer.PaymentListener
 import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountStore
 import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountsManager
@@ -126,7 +127,7 @@ class PaymentObserverBeansTest {
         )
       }
     assertInstanceOf(ServerErrorException::class.java, ex)
-    assertEquals("App config cannot be empty.", ex.message)
+    assertEquals("AppConfig cannot be empty.", ex.message)
   }
 
   @Test
@@ -142,7 +143,11 @@ class PaymentObserverBeansTest {
 
     val mockAppConfig = mockk<AppConfig>()
     val mockPaymentObserverConfig = mockk<PaymentObserverConfig>()
+
     every { mockAppConfig.horizonUrl } returns "https://horizon-testnet.stellar.org"
+    every { mockPaymentObserverConfig.stellar } returns
+      StellarPaymentObserverConfig(1, 5, 1, 1, 2, 1, 2)
+
     assertDoesNotThrow {
       paymentObserverBeans.stellarPaymentObserver(
         assetService,
