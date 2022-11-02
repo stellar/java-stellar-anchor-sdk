@@ -1,6 +1,16 @@
 package org.stellar.anchor.platform.service;
 
+import static org.stellar.anchor.util.MathHelper.decimal;
+import static org.stellar.anchor.util.MathHelper.formatAmount;
+
 import io.micrometer.core.instrument.Metrics;
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 import org.apache.commons.codec.DecoderException;
 import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Component;
@@ -20,17 +30,6 @@ import org.stellar.anchor.util.GsonUtils;
 import org.stellar.anchor.util.Log;
 import org.stellar.anchor.util.MemoHelper;
 import org.stellar.sdk.xdr.MemoType;
-
-import java.math.BigDecimal;
-import java.time.Instant;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
-
-import static org.stellar.anchor.util.MathHelper.decimal;
-import static org.stellar.anchor.util.MathHelper.formatAmount;
 
 @Component
 @Profile("stellar-observer")

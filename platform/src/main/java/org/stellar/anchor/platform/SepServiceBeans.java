@@ -1,6 +1,8 @@
 package org.stellar.anchor.platform;
 
 import com.google.gson.Gson;
+import java.io.IOException;
+import javax.servlet.Filter;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -30,9 +32,6 @@ import org.stellar.anchor.sep31.Sep31Service;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
 import org.stellar.anchor.sep38.Sep38Service;
-
-import javax.servlet.Filter;
-import java.io.IOException;
 
 /** SEP configurations */
 @Configuration

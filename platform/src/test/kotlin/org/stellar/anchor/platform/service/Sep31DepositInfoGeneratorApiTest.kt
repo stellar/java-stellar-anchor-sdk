@@ -35,10 +35,7 @@ class Sep31DepositInfoGeneratorApiTest {
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
-    paymentObservingAccountsManager =
-      PaymentObservingAccountsManager(
-        paymentObservingAccountStore
-      )
+    paymentObservingAccountsManager = PaymentObservingAccountsManager(paymentObservingAccountStore)
   }
 
   @AfterEach

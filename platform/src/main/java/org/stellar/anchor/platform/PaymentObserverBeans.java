@@ -1,5 +1,7 @@
 package org.stellar.anchor.platform;
 
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,9 +17,6 @@ import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountStore
 import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountsManager;
 import org.stellar.anchor.platform.observer.stellar.StellarPaymentObserver;
 import org.stellar.anchor.platform.observer.stellar.StellarPaymentStreamerCursorStore;
-
-import java.util.List;
-import java.util.stream.Collectors;
 
 @Configuration
 public class PaymentObserverBeans {
@@ -56,7 +55,11 @@ public class PaymentObserverBeans {
 
     // validate appConfig
     if (appConfig == null) {
-      throw new ServerErrorException("App config cannot be empty.");
+      throw new ServerErrorException("AppConfig cannot be empty.");
+    }
+
+    if (paymentObserverConfig == null) {
+      throw new ServerErrorException("PaymentObserverConfig cannot be empty.");
     }
 
     StellarPaymentObserver stellarPaymentObserver =

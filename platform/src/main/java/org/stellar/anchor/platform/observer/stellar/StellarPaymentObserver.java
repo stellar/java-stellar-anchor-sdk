@@ -1,6 +1,27 @@
 package org.stellar.anchor.platform.observer.stellar;
 
+import static org.stellar.anchor.api.platform.HealthCheckStatus.*;
+import static org.stellar.anchor.healthcheck.HealthCheckable.Tags.ALL;
+import static org.stellar.anchor.healthcheck.HealthCheckable.Tags.EVENT;
+import static org.stellar.anchor.platform.observer.stellar.ObserverStatus.*;
+import static org.stellar.anchor.util.Log.debugF;
+import static org.stellar.anchor.util.Log.infoF;
+import static org.stellar.anchor.util.ReflectionUtil.getField;
+
 import com.google.gson.annotations.SerializedName;
+import java.io.IOException;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import lombok.Builder;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
@@ -25,28 +46,6 @@ import org.stellar.sdk.responses.operations.PathPaymentBaseOperationResponse;
 import org.stellar.sdk.responses.operations.PaymentOperationResponse;
 import shadow.com.google.common.base.Optional;
 
-import java.io.IOException;
-import java.time.Duration;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicReference;
-
-import static org.stellar.anchor.api.platform.HealthCheckStatus.*;
-import static org.stellar.anchor.healthcheck.HealthCheckable.Tags.ALL;
-import static org.stellar.anchor.healthcheck.HealthCheckable.Tags.EVENT;
-import static org.stellar.anchor.platform.observer.stellar.ObserverStatus.*;
-import static org.stellar.anchor.util.Log.debugF;
-import static org.stellar.anchor.util.Log.infoF;
-import static org.stellar.anchor.util.ReflectionUtil.getField;
-
 public class StellarPaymentObserver implements HealthCheckable {
   /** The maximum number of results the Stellar Blockchain can return. */
   private static final int MAX_RESULTS = 200;
@@ -61,12 +60,8 @@ public class StellarPaymentObserver implements HealthCheckable {
   final PaymentObservingAccountsManager paymentObservingAccountsManager;
   SSEStream<OperationResponse> stream;
 
-  final ExponentialBackoffTimer publishingBackoffTimer =
-      new ExponentialBackoffTimer(
-          config.getInitialEventBackoffTime(), config.getMaxEventBackoffTime());
-  final ExponentialBackoffTimer streamBackoffTimer =
-      new ExponentialBackoffTimer(
-          config.getInitialStreamBackoffTime(), config.getMaxStreamBackoffTime());
+  ExponentialBackoffTimer publishingBackoffTimer;
+  ExponentialBackoffTimer streamBackoffTimer;
   int silenceTimeoutCount = 0;
 
   ObserverStatus status = RUNNING;
@@ -87,6 +82,13 @@ public class StellarPaymentObserver implements HealthCheckable {
     this.paymentListeners = paymentListeners;
     this.paymentObservingAccountsManager = paymentObservingAccountsManager;
     this.paymentStreamerCursorStore = paymentStreamerCursorStore;
+
+    publishingBackoffTimer =
+        new ExponentialBackoffTimer(
+            config.getInitialEventBackoffTime(), config.getMaxEventBackoffTime());
+    streamBackoffTimer =
+        new ExponentialBackoffTimer(
+            config.getInitialStreamBackoffTime(), config.getMaxStreamBackoffTime());
   }
 
   /** Start the observer. */
@@ -212,9 +214,10 @@ public class StellarPaymentObserver implements HealthCheckable {
         break;
       case SILENCE_ERROR:
         infoF("The silence reconnection count: {}", silenceTimeoutCount);
-        // We got the silence error. If silence reconnect too many times, we will shut down the
-        // observer.
-        if (silenceTimeoutCount >= config.getSilenceTimeoutRetries()) {
+        // We got the silence error. If silence reconnect too many times and the max retries is
+        // greater than zero, we will shut down the observer.
+        if (config.getSilenceTimeoutRetries() > 0
+            && silenceTimeoutCount >= config.getSilenceTimeoutRetries()) {
           infoF(
               "The silence error has happened for too many times:{}. Shutdown the observer",
               silenceTimeoutCount);

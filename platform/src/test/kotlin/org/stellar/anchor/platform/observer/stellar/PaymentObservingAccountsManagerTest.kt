@@ -1,4 +1,4 @@
-package org.stellar.anchor.platform.payment.observer.stellar
+package org.stellar.anchor.platform.observer.stellar
 
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
@@ -11,8 +11,6 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.stellar.anchor.platform.data.PaymentObservingAccount
-import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountStore
-import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountsManager
 import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountsManager.AccountType.RESIDENTIAL
 import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountsManager.AccountType.TRANSIENT
 
@@ -23,20 +21,16 @@ class PaymentObservingAccountsManagerTest {
   fun setUp() {
     MockKAnnotations.init(this, relaxed = true)
     every { paymentObservingAccountStore.list() } returns
-      listOf(
-        PaymentObservingAccount(
-          "GCK5ECMM67ZN7RWGUSDKQAW6CAF6Q5WYK2VQJ276SJMINU6WVCIQW6BL",
-          Instant.now().minus(0, HOURS)
-        ),
-        PaymentObservingAccount(
-          "GCIWQDKACLW26UJXY5CTLULVYUOYROZPAPDDYEQKNGIERVOAXSPLABMB",
-          Instant.now().minus(2, HOURS)
-        ),
-        PaymentObservingAccount(
-          "GAPBFA5ZYG5VVKN7WPMH6K5CBXGU2AM5ED7S54VX27J7S222NKMTWKR6",
-          Instant.now().minus(12, HOURS)
-        )
-      )
+        listOf(
+            PaymentObservingAccount(
+                "GCK5ECMM67ZN7RWGUSDKQAW6CAF6Q5WYK2VQJ276SJMINU6WVCIQW6BL",
+                Instant.now().minus(0, HOURS)),
+            PaymentObservingAccount(
+                "GCIWQDKACLW26UJXY5CTLULVYUOYROZPAPDDYEQKNGIERVOAXSPLABMB",
+                Instant.now().minus(2, HOURS)),
+            PaymentObservingAccount(
+                "GAPBFA5ZYG5VVKN7WPMH6K5CBXGU2AM5ED7S54VX27J7S222NKMTWKR6",
+                Instant.now().minus(12, HOURS)))
   }
 
   @AfterEach
@@ -47,9 +41,7 @@ class PaymentObservingAccountsManagerTest {
 
   @Test
   fun test_addAndRemove_success() {
-    val obs = PaymentObservingAccountsManager(
-        paymentObservingAccountStore
-    )
+    val obs = PaymentObservingAccountsManager(paymentObservingAccountStore)
     obs.initialize()
 
     obs.upsert("GCIWQDKACLW26UJXY5CTLULVYUOYROZPAPDDYEQKNGIERVOAXSPLABMB", TRANSIENT)
@@ -65,9 +57,7 @@ class PaymentObservingAccountsManagerTest {
 
   @Test
   fun test_add_invalid() {
-    val obs = PaymentObservingAccountsManager(
-        paymentObservingAccountStore
-    )
+    val obs = PaymentObservingAccountsManager(paymentObservingAccountStore)
     obs.initialize()
 
     assertEquals(3, obs.accounts.size)
@@ -80,9 +70,7 @@ class PaymentObservingAccountsManagerTest {
 
   @Test
   fun test_evict() {
-    val obs = PaymentObservingAccountsManager(
-        paymentObservingAccountStore
-    )
+    val obs = PaymentObservingAccountsManager(paymentObservingAccountStore)
 
     obs.initialize()
 
@@ -94,20 +82,16 @@ class PaymentObservingAccountsManagerTest {
     assertEquals(3, obs.accounts.size)
 
     obs.upsert(
-      PaymentObservingAccountsManager.ObservingAccount(
-        "GB4DZFFUWC64MZ3BQ433ME7QBODCSFZRBOLWEWEMJIVHABTWGT3W2Q22",
-        Instant.now().minus(24, HOURS),
-        TRANSIENT
-      )
-    )
+        PaymentObservingAccountsManager.ObservingAccount(
+            "GB4DZFFUWC64MZ3BQ433ME7QBODCSFZRBOLWEWEMJIVHABTWGT3W2Q22",
+            Instant.now().minus(24, HOURS),
+            TRANSIENT))
 
     obs.upsert(
-      PaymentObservingAccountsManager.ObservingAccount(
-        "GCC2B7LML6UBKBA7NOMLCR57HPKMFHRO2VTZGSIMRLXDMECBXQ44MOYO",
-        Instant.now().minus(100, DAYS),
-        RESIDENTIAL
-      )
-    )
+        PaymentObservingAccountsManager.ObservingAccount(
+            "GCC2B7LML6UBKBA7NOMLCR57HPKMFHRO2VTZGSIMRLXDMECBXQ44MOYO",
+            Instant.now().minus(100, DAYS),
+            RESIDENTIAL))
 
     assertEquals(5, obs.accounts.size)
 
@@ -141,11 +125,7 @@ class PaymentObservingAccountsManagerTest {
 
   @Test
   fun test_whenEvictAndPersist_thenSuccessful() {
-    val obs = spyk(
-        PaymentObservingAccountsManager(
-            paymentObservingAccountStore
-        )
-    )
+    val obs = spyk(PaymentObservingAccountsManager(paymentObservingAccountStore))
     assertEquals(0, obs.accounts.size)
 
     obs.initialize()
@@ -167,23 +147,19 @@ class PaymentObservingAccountsManagerTest {
     assertEquals(0, obs.accounts.size)
     verify(exactly = 1) {
       paymentObservingAccountStore.delete(
-        "GBXXYA2NZPCS2LHLXBWOQ6UXXRCH3N5YVTYWZ4DEVYTEWVFV7R7MEKSV"
-      )
+          "GBXXYA2NZPCS2LHLXBWOQ6UXXRCH3N5YVTYWZ4DEVYTEWVFV7R7MEKSV")
     }
     verify(exactly = 1) {
       paymentObservingAccountStore.delete(
-        "GCK5ECMM67ZN7RWGUSDKQAW6CAF6Q5WYK2VQJ276SJMINU6WVCIQW6BL"
-      )
+          "GCK5ECMM67ZN7RWGUSDKQAW6CAF6Q5WYK2VQJ276SJMINU6WVCIQW6BL")
     }
     verify(exactly = 1) {
       paymentObservingAccountStore.delete(
-        "GCIWQDKACLW26UJXY5CTLULVYUOYROZPAPDDYEQKNGIERVOAXSPLABMB"
-      )
+          "GCIWQDKACLW26UJXY5CTLULVYUOYROZPAPDDYEQKNGIERVOAXSPLABMB")
     }
     verify(exactly = 1) {
       paymentObservingAccountStore.delete(
-        "GAPBFA5ZYG5VVKN7WPMH6K5CBXGU2AM5ED7S54VX27J7S222NKMTWKR6"
-      )
+          "GAPBFA5ZYG5VVKN7WPMH6K5CBXGU2AM5ED7S54VX27J7S222NKMTWKR6")
     }
     verify(exactly = 4) { paymentObservingAccountStore.delete(any()) }
   }
