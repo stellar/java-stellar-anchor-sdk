@@ -19,6 +19,7 @@ import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.core.io.Resource;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.api.platform.HealthCheckResult;
+import org.stellar.anchor.api.platform.HealthCheckStatus;
 import org.stellar.anchor.healthcheck.HealthCheckable;
 import org.stellar.anchor.util.Log;
 
@@ -184,12 +185,12 @@ class ConfigManagerHealthCheckResult implements HealthCheckResult {
   }
 
   @Override
-  public List<String> getStatuses() {
+  public List<HealthCheckStatus> getStatuses() {
     return List.of();
   }
 
   @Override
-  public String getStatus() {
-    return GREEN.toString();
+  public HealthCheckStatus getStatus() {
+    return GREEN;
   }
 }

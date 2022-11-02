@@ -143,7 +143,7 @@ public class KafkaListener extends AbstractEventListener implements HealthChecka
 
     return KafkaHealthCheckResult.builder()
         .name(getName())
-        .status(status.getName())
+        .status(status)
         .kafkaAvailable(kafkaAvailable)
         .running(!executor.isTerminated())
         .build();
@@ -164,9 +164,9 @@ public class KafkaListener extends AbstractEventListener implements HealthChecka
 class KafkaHealthCheckResult implements HealthCheckResult {
   transient String name;
 
-  List<String> statuses;
+  List<HealthCheckStatus> statuses = List.of(GREEN, RED);
 
-  String status;
+  HealthCheckStatus status;
 
   boolean running;
 

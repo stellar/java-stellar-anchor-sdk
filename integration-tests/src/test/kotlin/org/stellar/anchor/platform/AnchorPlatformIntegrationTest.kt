@@ -178,7 +178,8 @@ class AnchorPlatformIntegrationTest {
         "sell_amount": "100",
         "buy_amount": "98.0392"
       }
-    }""".trimMargin()
+    }"""
+        .trimMargin()
     JSONAssert.assertEquals(wantBody, gson.toJson(result), true)
   }
 
@@ -214,14 +215,16 @@ class AnchorPlatformIntegrationTest {
           ]
         }
       }
-    }""".trimMargin()
+    }"""
+        .trimMargin()
     JSONAssert.assertEquals(wantBody, gson.toJson(result), true)
   }
 
   @Test
   fun testRate_firm() {
     val rate =
-      rriClient.getRate(
+      rriClient
+        .getRate(
           GetRateRequest.builder()
             .type(FIRM)
             .context(SEP31)
@@ -277,7 +280,8 @@ class AnchorPlatformIntegrationTest {
           ]
         }
       }
-    }""".trimMargin()
+    }"""
+        .trimMargin()
     JSONAssert.assertEquals(wantBody, gson.toJson(gotQuote), true)
   }
 
@@ -371,8 +375,23 @@ class AnchorPlatformIntegrationTest {
     assertNotNull(responseBody["checks"])
 
     val checks = responseBody["checks"] as Map<*, *>
+
     assertEquals(2, checks.size)
     assertNotNull(checks["config"])
     assertNotNull(checks["stellar_payment_observer"])
+
+    val stellarPaymentObserverCheck = checks["stellar_payment_observer"] as Map<*, *>
+    assertEquals(2, stellarPaymentObserverCheck.size)
+    assertEquals("GREEN", stellarPaymentObserverCheck["status"])
+
+    val observerStreams = stellarPaymentObserverCheck["streams"] as List<*>
+    assertEquals(1, observerStreams.size)
+
+    val stream1 = observerStreams[0] as Map<*, *>
+    assertEquals(5, stream1.size)
+    assertEquals(false, stream1["thread_shutdown"])
+    assertEquals(false, stream1["thread_terminated"])
+    assertEquals(false, stream1["stopped"])
+    assertNotNull(stream1["last_event_id"])
   }
 }
