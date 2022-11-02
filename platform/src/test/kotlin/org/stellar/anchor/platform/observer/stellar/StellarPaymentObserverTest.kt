@@ -3,6 +3,8 @@ package org.stellar.anchor.platform.observer.stellar
 import com.google.gson.reflect.TypeToken
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
+import java.io.IOException
+import javax.net.ssl.SSLProtocolException
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
@@ -16,8 +18,6 @@ import org.stellar.sdk.responses.GsonSingleton
 import org.stellar.sdk.responses.Page
 import org.stellar.sdk.responses.operations.OperationResponse
 import shadow.com.google.common.base.Optional
-import java.io.IOException
-import javax.net.ssl.SSLProtocolException
 
 class StellarPaymentObserverTest {
   companion object {
@@ -43,12 +43,13 @@ class StellarPaymentObserverTest {
     // 1 - If there is a stored cursor, we'll use that.
     every { paymentStreamerCursorStore.load() } returns "123"
     var stellarObserver =
-        StellarPaymentObserver(
-            TEST_HORIZON_URI,
-            null,
-            null,
-            paymentObservingAccountsManager,
-            paymentStreamerCursorStore)
+      StellarPaymentObserver(
+        TEST_HORIZON_URI,
+        null,
+        null,
+        paymentObservingAccountsManager,
+        paymentStreamerCursorStore
+      )
 
     var gotCursor = stellarObserver.fetchStreamingCursor()
     assertEquals("123", gotCursor)
@@ -59,56 +60,57 @@ class StellarPaymentObserverTest {
     every { paymentStreamerCursorStore.load() } returns null
     mockkConstructor(Server::class)
     stellarObserver =
-        StellarPaymentObserver(
-            TEST_HORIZON_URI,
-            null,
-            null,
-            paymentObservingAccountsManager,
-            paymentStreamerCursorStore)
+      StellarPaymentObserver(
+        TEST_HORIZON_URI,
+        null,
+        null,
+        paymentObservingAccountsManager,
+        paymentStreamerCursorStore
+      )
 
     // 2.1 If fetching from the network throws an error, we return `null`
     every {
       constructedWith<Server>(EqMatcher(TEST_HORIZON_URI))
-          .payments()
-          .order(RequestBuilder.Order.DESC)
-          .limit(1)
-          .execute()
+        .payments()
+        .order(RequestBuilder.Order.DESC)
+        .limit(1)
+        .execute()
     } throws IOException("Some IO Problem happened!")
 
     gotCursor = stellarObserver.fetchStreamingCursor()
     verify(exactly = 2) { paymentStreamerCursorStore.load() }
     verify(exactly = 1) {
       constructedWith<Server>(EqMatcher(TEST_HORIZON_URI))
-          .payments()
-          .order(RequestBuilder.Order.DESC)
-          .limit(1)
-          .execute()
+        .payments()
+        .order(RequestBuilder.Order.DESC)
+        .limit(1)
+        .execute()
     }
     assertNull(gotCursor)
 
     // 2.2 If fetching from the network does not return any result, we return `null`
     every {
       constructedWith<Server>(EqMatcher(TEST_HORIZON_URI))
-          .payments()
-          .order(RequestBuilder.Order.DESC)
-          .limit(1)
-          .execute()
+        .payments()
+        .order(RequestBuilder.Order.DESC)
+        .limit(1)
+        .execute()
     } returns null
 
     gotCursor = stellarObserver.fetchStreamingCursor()
     verify(exactly = 3) { paymentStreamerCursorStore.load() }
     verify(exactly = 2) {
       constructedWith<Server>(EqMatcher(TEST_HORIZON_URI))
-          .payments()
-          .order(RequestBuilder.Order.DESC)
-          .limit(1)
-          .execute()
+        .payments()
+        .order(RequestBuilder.Order.DESC)
+        .limit(1)
+        .execute()
     }
     assertNull(gotCursor)
 
     // 2.3 If fetching from the network returns a value, use that.
     val opPageJson =
-        """{
+      """{
       "_embedded": {
         "records": [
           {
@@ -120,24 +122,24 @@ class StellarPaymentObserverTest {
     }"""
     val operationPageType = object : TypeToken<Page<OperationResponse?>?>() {}.type
     val operationPage: Page<OperationResponse> =
-        GsonSingleton.getInstance().fromJson(opPageJson, operationPageType)
+      GsonSingleton.getInstance().fromJson(opPageJson, operationPageType)
 
     every {
       constructedWith<Server>(EqMatcher(TEST_HORIZON_URI))
-          .payments()
-          .order(RequestBuilder.Order.DESC)
-          .limit(1)
-          .execute()
+        .payments()
+        .order(RequestBuilder.Order.DESC)
+        .limit(1)
+        .execute()
     } returns operationPage
 
     gotCursor = stellarObserver.fetchStreamingCursor()
     verify(exactly = 4) { paymentStreamerCursorStore.load() }
     verify(exactly = 3) {
       constructedWith<Server>(EqMatcher(TEST_HORIZON_URI))
-          .payments()
-          .order(RequestBuilder.Order.DESC)
-          .limit(1)
-          .execute()
+        .payments()
+        .order(RequestBuilder.Order.DESC)
+        .limit(1)
+        .execute()
     }
     assertEquals("4322708489777153", gotCursor)
   }
@@ -146,13 +148,15 @@ class StellarPaymentObserverTest {
   fun `test if SSEStream exception will leave the observer in STREAM_ERROR state`() {
     val stream: SSEStream<OperationResponse> = mockk(relaxed = true)
     val observer =
-        spyk(
-            StellarPaymentObserver(
-                TEST_HORIZON_URI,
-                null,
-                null,
-                paymentObservingAccountsManager,
-                paymentStreamerCursorStore))
+      spyk(
+        StellarPaymentObserver(
+          TEST_HORIZON_URI,
+          null,
+          null,
+          paymentObservingAccountsManager,
+          paymentStreamerCursorStore
+        )
+      )
     every { observer.startSSEStream() } returns stream
     observer.start()
     observer.handleFailure(Optional.of(SSLProtocolException("")))

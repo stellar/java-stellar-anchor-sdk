@@ -6,6 +6,7 @@ import io.mockk.clearAllMocks
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.unmockkAll
+import java.util.*
 import org.apache.commons.lang3.StringUtils
 import org.junit.jupiter.api.*
 import org.junit.jupiter.params.ParameterizedTest
@@ -22,14 +23,13 @@ import org.stellar.anchor.platform.data.JdbcSep31Transaction
 import org.stellar.anchor.platform.service.Sep31DepositInfoGeneratorSelf
 import org.stellar.anchor.sep38.Sep38QuoteStore
 import org.stellar.anchor.util.GsonUtils
-import java.util.*
 
 class Sep31DepositInfoGeneratorTest {
   companion object {
     val gson: Gson = GsonUtils.getInstance()
 
     private const val txnJson =
-        """
+      """
         {
           "id": "a2392add-87c9-42f0-a5c1-5f1728030b68",
           "status": "pending_sender",
@@ -63,16 +63,17 @@ class Sep31DepositInfoGeneratorTest {
   fun setUp() {
     MockKAnnotations.init(this, relaxUnitFun = true)
     sep31Service =
-        Sep31Service(
-            appConfig,
-            sep31Config,
-            txnStore,
-            sep31DepositInfoGenerator,
-            quoteStore,
-            assetService,
-            feeIntegration,
-            customerIntegration,
-            eventPublishService)
+      Sep31Service(
+        appConfig,
+        sep31Config,
+        txnStore,
+        sep31DepositInfoGenerator,
+        quoteStore,
+        assetService,
+        feeIntegration,
+        customerIntegration,
+        eventPublishService
+      )
 
     txn = gson.fromJson(txnJson, JdbcSep31Transaction::class.java)
   }
@@ -86,20 +87,23 @@ class Sep31DepositInfoGeneratorTest {
   @Test
   fun test_updateDepositInfo_self() {
     sep31Service =
-        Sep31Service(
-            appConfig,
-            sep31Config,
-            txnStore,
-            Sep31DepositInfoGeneratorSelf(), // set deposit info generator
-            quoteStore,
-            assetService,
-            feeIntegration,
-            customerIntegration,
-            eventPublishService)
+      Sep31Service(
+        appConfig,
+        sep31Config,
+        txnStore,
+        Sep31DepositInfoGeneratorSelf(), // set deposit info generator
+        quoteStore,
+        assetService,
+        feeIntegration,
+        customerIntegration,
+        eventPublishService
+      )
 
     Assertions.assertEquals("a2392add-87c9-42f0-a5c1-5f1728030b68", txn.id)
     Assertions.assertEquals(
-        "GAYR3FVW2PCXTNHHWHEAFOCKZQV4PEY2ZKGIKB47EKPJ3GSBYA52XJBY", txn.stellarAccountId)
+      "GAYR3FVW2PCXTNHHWHEAFOCKZQV4PEY2ZKGIKB47EKPJ3GSBYA52XJBY",
+      txn.stellarAccountId
+    )
     Assertions.assertNull(txn.stellarMemoType)
     Assertions.assertNull(txn.stellarMemo)
 
@@ -111,27 +115,33 @@ class Sep31DepositInfoGeneratorTest {
     assertDoesNotThrow { sep31Service.updateDepositInfo() }
 
     Assertions.assertEquals(
-        "GAYR3FVW2PCXTNHHWHEAFOCKZQV4PEY2ZKGIKB47EKPJ3GSBYA52XJBY", txn.stellarAccountId)
+      "GAYR3FVW2PCXTNHHWHEAFOCKZQV4PEY2ZKGIKB47EKPJ3GSBYA52XJBY",
+      txn.stellarAccountId
+    )
     Assertions.assertEquals("hash", txn.stellarMemoType)
     Assertions.assertEquals("YTIzOTJhZGQtODdjOS00MmYwLWE1YzEtNWYxNzI4MDM=", txn.stellarMemo)
   }
 
   @ParameterizedTest
   @CsvSource(
-      value =
-          [",none", "YTIzOTJhZGQtODdjOS00MmYwLWE1YzEtNWYxNzI4MDM=,hash", "123,id", "John Doe,text"])
+    value =
+      [",none", "YTIzOTJhZGQtODdjOS00MmYwLWE1YzEtNWYxNzI4MDM=,hash", "123,id", "John Doe,text"]
+  )
   fun test_updateDepositInfo_api(memo: String?, memoType: String?) {
     val nonEmptyMemo = Objects.toString(memo, "")
     val nonEmptyMemoType = Objects.toString(memoType, "")
     every { sep31DepositInfoGenerator.generate(any()) } returns
-        Sep31DepositInfo(
-            "GAYR3FVW2PCXTNHHWHEAFOCKZQV4PEY2ZKGIKB47EKPJ3GSBYA52XJBY",
-            nonEmptyMemo,
-            nonEmptyMemoType)
+      Sep31DepositInfo(
+        "GAYR3FVW2PCXTNHHWHEAFOCKZQV4PEY2ZKGIKB47EKPJ3GSBYA52XJBY",
+        nonEmptyMemo,
+        nonEmptyMemoType
+      )
 
     Assertions.assertEquals("a2392add-87c9-42f0-a5c1-5f1728030b68", txn.id)
     Assertions.assertEquals(
-        "GAYR3FVW2PCXTNHHWHEAFOCKZQV4PEY2ZKGIKB47EKPJ3GSBYA52XJBY", txn.stellarAccountId)
+      "GAYR3FVW2PCXTNHHWHEAFOCKZQV4PEY2ZKGIKB47EKPJ3GSBYA52XJBY",
+      txn.stellarAccountId
+    )
     Assertions.assertNull(txn.stellarMemoType)
     Assertions.assertNull(txn.stellarMemo)
 
@@ -143,7 +153,9 @@ class Sep31DepositInfoGeneratorTest {
     assertDoesNotThrow { sep31Service.updateDepositInfo() }
 
     Assertions.assertEquals(
-        "GAYR3FVW2PCXTNHHWHEAFOCKZQV4PEY2ZKGIKB47EKPJ3GSBYA52XJBY", txn.stellarAccountId)
+      "GAYR3FVW2PCXTNHHWHEAFOCKZQV4PEY2ZKGIKB47EKPJ3GSBYA52XJBY",
+      txn.stellarAccountId
+    )
     Assertions.assertEquals(nonEmptyMemo, txn.stellarMemo)
     Assertions.assertEquals(nonEmptyMemoType, txn.stellarMemoType)
   }

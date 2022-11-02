@@ -59,27 +59,27 @@ public class PaymentObserverConfig implements Validator {
         if (config.stellar.silenceTimeoutRetries < 1) {
           errors.reject(
               "invalid-payment-observer-stellar-silence-timeout-retries",
-              "The payment_observer.stellar.silence_timeout_retries must be greater than 1");
+              "The payment_observer.stellar.silence_timeout_retries must be equal or greater than 1");
         }
-        if (config.stellar.initialStreamBackoffTime < 1) {
+        if (config.stellar.initialStreamBackoffTime <= 1) {
           errors.reject(
               "invalid-payment-observer-stellar-initial-stream-backoff-time",
-              "The payment_observer.stellar.initial_stream_backoff must be greater than 1");
+              "The payment_observer.stellar.initial_stream_backoff must be equal or greater than 1");
         }
-        if (config.stellar.maxStreamBackoffTime < 2) {
+        if (config.stellar.maxStreamBackoffTime <= 2) {
           errors.reject(
               "invalid-payment-observer-stellar-max-stream-backoff-time",
-              "The payment_observer.stellar.max_stream_backoff must be greater than 1");
+              "The payment_observer.stellar.max_stream_backoff must be equal or greater than 2");
         }
-        if (config.stellar.initialEventBackoffTime < 1) {
+        if (config.stellar.initialEventBackoffTime <= 1) {
           errors.reject(
               "invalid-payment-observer-stellar-initial-event-backoff-time",
-              "The payment_observer.stellar.initial_event_backoff_time must be greater than 1");
+              "The payment_observer.stellar.initial_event_backoff_time must be equal or greater than 1");
         }
-        if (config.stellar.maxEventBackoffTime < 2) {
+        if (config.stellar.maxEventBackoffTime <= 2) {
           errors.reject(
               "invalid-payment-observer-stellar-max-event-backoff-time",
-              "The payment_observer.stellar.max_event_backoff_time must be greater than 1");
+              "The payment_observer.stellar.max_event_backoff_time must be equal or greater than 2");
         }
       }
     }

@@ -1,10 +1,10 @@
 package org.stellar.anchor.platform.config
 
+import kotlin.test.assertEquals
 import org.junit.jupiter.api.Test
 import org.springframework.validation.BindException
 import org.springframework.validation.ValidationUtils
 import org.stellar.anchor.config.Sep31Config.DepositInfoGeneratorType.API
-import kotlin.test.assertEquals
 
 open class Sep31ConfigTest {
   @Test

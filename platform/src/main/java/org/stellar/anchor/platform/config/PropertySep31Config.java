@@ -1,16 +1,15 @@
 package org.stellar.anchor.platform.config;
 
+import static org.stellar.anchor.config.Sep31Config.DepositInfoGeneratorType.API;
+import static org.stellar.anchor.config.Sep31Config.DepositInfoGeneratorType.SELF;
+import static org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_SEND;
+
+import java.util.Objects;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 import org.stellar.anchor.config.Sep31Config;
-
-import java.util.Objects;
-
-import static org.stellar.anchor.config.Sep31Config.DepositInfoGeneratorType.API;
-import static org.stellar.anchor.config.Sep31Config.DepositInfoGeneratorType.SELF;
-import static org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_SEND;
 
 @Data
 public class PropertySep31Config implements Sep31Config, Validator {

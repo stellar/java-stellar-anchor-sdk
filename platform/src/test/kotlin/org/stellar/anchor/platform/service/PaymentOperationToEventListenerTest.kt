@@ -2,6 +2,9 @@ package org.stellar.anchor.platform.service
 
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
+import java.time.Instant
+import java.time.format.DateTimeFormatter
+import kotlin.test.assertEquals
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -15,9 +18,6 @@ import org.stellar.anchor.platform.data.JdbcSep31TransactionStore
 import org.stellar.anchor.platform.observer.ObservedPayment
 import org.stellar.anchor.sep31.Sep31Transaction
 import org.stellar.anchor.util.GsonUtils
-import java.time.Instant
-import java.time.format.DateTimeFormatter
-import kotlin.test.assertEquals
 
 class PaymentOperationToEventListenerTest {
   @MockK(relaxed = true) private lateinit var transactionStore: JdbcSep31TransactionStore
