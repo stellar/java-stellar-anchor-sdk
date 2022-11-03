@@ -106,12 +106,6 @@ platform_api:
     expiration_milliseconds: 30000
 
 payment_observer:
-  ## @param: enabled
-  ## @type: bool
-  ## Whether to enable a circle payment observer
-  #
-  enabled: false
-
   ## @param: type
   ## @type: string
   ## @supported_values:

@@ -10,7 +10,6 @@ import org.springframework.validation.Validator;
 
 @Data
 public class PaymentObserverConfig implements Validator {
-  boolean enabled;
   PaymentObserverType type;
   StellarPaymentObserverConfig stellar;
 
