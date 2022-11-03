@@ -53,6 +53,7 @@ jobs:
     env:
       PR_NUMBER: ${{github.event.pull_request.number}}
       BRANCH_NAME: ${{github.ref}} # e.g. refs/heads/main
+      NODE_TLS_REJECT_UNAUTHORIZED: 0
     steps:
       - uses: actions/checkout@v3
 
