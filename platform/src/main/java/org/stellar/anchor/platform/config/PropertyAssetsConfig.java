@@ -1,6 +1,7 @@
 package org.stellar.anchor.platform.config;
 
 import lombok.Data;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 import org.stellar.anchor.config.AssetsConfig;
@@ -11,10 +12,10 @@ public class PropertyAssetsConfig implements AssetsConfig, Validator {
   String value;
 
   @Override
-  public boolean supports(Class<?> clazz) {
+  public boolean supports(@NotNull Class<?> clazz) {
     return AssetsConfig.class.isAssignableFrom(clazz);
   }
 
   @Override
-  public void validate(Object target, Errors errors) {}
+  public void validate(@NotNull Object target, @NotNull Errors errors) {}
 }

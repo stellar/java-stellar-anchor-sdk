@@ -6,6 +6,7 @@ import org.apache.logging.log4j.LogManager
 import org.apache.logging.log4j.core.Appender
 import org.apache.logging.log4j.core.LogEvent
 import org.apache.logging.log4j.core.LoggerContext
+import org.apache.logging.log4j.core.config.LoggerConfig
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
@@ -14,13 +15,20 @@ import org.junit.jupiter.params.provider.CsvSource
 import org.stellar.anchor.util.*
 
 class LogAppenderTest {
-  private val appender = mockk<Appender>()
-  private val capturedLogEvent = slot<LogEvent>()
-  private val loggerContext: LoggerContext = LogManager.getContext(false) as LoggerContext
-  private val rootLoggerConfig = loggerContext.configuration.getLoggerConfig("org.stellar")
-  private val lastLevel = rootLoggerConfig.level
+  private lateinit var appender: Appender
+  private lateinit var capturedLogEvent: CapturingSlot<LogEvent>
+  private lateinit var loggerContext: LoggerContext
+  private lateinit var rootLoggerConfig: LoggerConfig
+  private lateinit var lastLevel: Level
+
   @BeforeEach
   fun setup() {
+    appender = mockk()
+    capturedLogEvent = slot()
+    loggerContext = LogManager.getContext(false) as LoggerContext
+    rootLoggerConfig = loggerContext.configuration.getLoggerConfig("org.stellar")
+    lastLevel = rootLoggerConfig.level
+
     every { appender.name } returns "mock appender"
     every { appender.isStarted } returns true
     every { appender.append(capture(capturedLogEvent)) }

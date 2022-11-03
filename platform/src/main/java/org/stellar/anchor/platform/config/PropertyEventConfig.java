@@ -2,6 +2,7 @@ package org.stellar.anchor.platform.config;
 
 import java.util.Map;
 import lombok.Data;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.Validator;
@@ -15,12 +16,12 @@ public class PropertyEventConfig implements EventConfig, Validator {
   private Map<String, String> eventTypeToQueue;
 
   @Override
-  public boolean supports(Class<?> clazz) {
+  public boolean supports(@NotNull Class<?> clazz) {
     return PropertyEventConfig.class.isAssignableFrom(clazz);
   }
 
   @Override
-  public void validate(Object target, Errors errors) {
+  public void validate(@NotNull Object target, @NotNull Errors errors) {
     EventConfig config = (EventConfig) target;
     if (!config.isEnabled()) {
       return;

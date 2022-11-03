@@ -1,6 +1,7 @@
 package org.stellar.anchor.platform.config;
 
 import lombok.Data;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 import org.stellar.anchor.config.AppConfig;
@@ -13,12 +14,12 @@ public class PropertyMetricConfig implements MetricConfig, Validator {
   private Integer runInterval = 30;
 
   @Override
-  public boolean supports(Class<?> clazz) {
+  public boolean supports(@NotNull Class<?> clazz) {
     return AppConfig.class.isAssignableFrom(clazz);
   }
 
   @Override
-  public void validate(Object target, Errors errors) {
+  public void validate(@NotNull Object target, @NotNull Errors errors) {
     System.out.println("here");
   }
 
