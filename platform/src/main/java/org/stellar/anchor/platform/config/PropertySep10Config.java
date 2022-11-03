@@ -4,6 +4,7 @@ import static org.stellar.anchor.util.StringHelper.isEmpty;
 
 import java.util.List;
 import lombok.Data;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.Validator;
@@ -31,12 +32,12 @@ public class PropertySep10Config implements Sep10Config, Validator {
   }
 
   @Override
-  public boolean supports(Class<?> clazz) {
+  public boolean supports(@NotNull Class<?> clazz) {
     return Sep10Config.class.isAssignableFrom(clazz);
   }
 
   @Override
-  public void validate(Object target, Errors errors) {
+  public void validate(@NotNull Object target, @NotNull Errors errors) {
     Sep10Config config = (Sep10Config) target;
 
     if (config.getEnabled()) {
