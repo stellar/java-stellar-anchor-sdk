@@ -1,5 +1,5 @@
 # Configuration Description - default Anchor Platform configuration, also used as a template for new configurations
-version: '2'
+version: '2.4'
 services:
   anchor-platform-server:
     ports:
