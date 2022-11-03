@@ -42,7 +42,7 @@ directory.
    configuration (refer to: [End to End Tests](/end-to-end-tests/README.md)).
 
    ```text
-   version: '2'
+   version: '2.4'
    services:
      anchor-platform-server:
        volumes:
