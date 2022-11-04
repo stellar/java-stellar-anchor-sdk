@@ -44,7 +44,7 @@ the Anchor Reference server and the secrets provided in the demo configuration f
 As mentioned previously, both the Anchor Platform and Anchor Reference server are configured using yaml and they have 
 default configuration files:
 
-- **Anchor Platform** default config file is located at [`anchor-config-defaults-values.yaml`].
+- **Anchor Platform** default config file is located at [`anchor-config-default-values.yaml`].
 - **Anchor Reference Server** default config file is located at [`anchor-reference-server.yaml`].
 
 The default configuration files are very self-explanatory and contain tons of comments to explain what each 
@@ -196,20 +196,21 @@ Note: secrets (credentials, tokens, etc...) are passed to the application via en
 each required environment variables ([Environment Variables](/platform/src/main/resources/example.env))
 
 ```shell
-docker run -v </local/path/to/config/file>:/config -p 8081:8081 stellar-anchor-platform:latest --sep-server \
+docker run -v </local/path/to/config/file>:/config -p 8080:8080 \
 -e SECRET_SEP10_JWT_SECRET='secret' \
 -e SECRET_SEP10_SIGNING_SEED='SAX3...C3AW5X' \
 -e SECRET_PLATFORM_API_AUTH_SECRET=myAnchorToPlatformSecret
 -e SECRET_CALLBACK_API_AUTH_SECRET=myPlatformToAnchorSecret
 -e SECRET_DATA_USERNAME='postgres' \
--e SECRET_DATA_PASSWORD='password'
+-e SECRET_DATA_PASSWORD='password' \
+stellar-anchor-platform:latest --sep-server
 ```
 
 or pass in a .env file
 
 ```shell
-docker run -v {/local/path/to/config/file/}:/config -p 8081:8081 stellar-anchor-platform:latest --sep-server \
---env-file ./my-env-file
+docker run -v {/local/path/to/config/file/}:/config -p 8080:8080 \
+--env-file ./my-env-file stellar-anchor-platform:latest --sep-server
 ```
 
 > Note 1: this image can run --sep-server (port: 8080), --anchor-reference-server (port: 8081) and --stellar-observer 
@@ -256,9 +257,10 @@ A Grafana dashboard for the Anchor Platform can be found at `docs/resources/graf
 and imported into your Grafana instance to visualized the Prometheus metrics.
 
 
-[`anchor-config-defaults.yaml`]: ../../platform/src/main/resources/config/anchor-config-default-values.yaml
+[`anchor-config-default-values.yaml`]: ../../platform/src/main/resources/config/anchor-config-default-values.yaml
 [`anchor-reference-server.yaml`]: ../../anchor-reference-server/src/main/resources/anchor-reference-server.yaml
 [`example.env`]: ../../platform/src/main/resources/example.env
+['example.anchor-config.yaml']: ../../platform/src/main/resources/example.anchor-config.yaml
 [`docs/resources/docker-examples/kafka/docker-compose.yaml`]: ../../docs/resources/docker-examples/kafka/docker-compose.yaml
 
 ## Logging

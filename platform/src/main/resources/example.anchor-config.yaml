@@ -32,8 +32,6 @@ logging:
 data:
   type: sqlite
   url: jdbc:sqlite:anchor-platform.db
-  username: SQLITE_USERNAME # TODO: use secrets
-  password: SQLITE_PASSWORD # TODO: use secrets
   initial_connection_pool_size: 2
   max_active_connections: 10
   flyway_enabled: true

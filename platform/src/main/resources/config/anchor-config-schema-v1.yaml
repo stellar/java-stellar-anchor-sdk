@@ -34,6 +34,7 @@ languages:
 logging.level:
 logging.stellar_level:
 metrics.enabled:
+metrics.port:
 metrics.extras_enabled:
 metrics.run_interval:
 payment_observer.enabled:
