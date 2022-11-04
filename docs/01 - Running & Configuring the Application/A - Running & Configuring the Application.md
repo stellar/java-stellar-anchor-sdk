@@ -117,7 +117,7 @@ EVENTS_PUBLISHER_TYPE=kafka
 ### Secrets
 Secrets are passed to the Anchor Platform (and Anchor Reference Server) via environment variables, which can be set 
 either through command line or using a `.env` file. A list of secret environment variables and their descriptions
-can be found in the [`example.env`] file. The following environment variables are required:
+can be found in the [`example.env`] file. The following environment variables are required for the Anchor Platform:
 
 Note: secrets will always start with 'SECRET'
 
