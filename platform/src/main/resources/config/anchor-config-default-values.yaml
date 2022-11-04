@@ -204,7 +204,11 @@ sep10:
 
   ## @param: client_attribution_required
   ## @type: bool
-  ## Set if the client attribution is required
+  ## Set if the client attribution is required. Client Attribution requires clients to verify their identity by passing
+  ## a domain in the challenge transaction request and signing the challenge with the ``SIGNING_KEY`` on that domain's
+  ## SEP-1 stellar.toml. See the SEP-10 section `Verifying Client Application Identity` for more information
+  ## (https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#verifying-client-application-identity).
+
   #
   client_attribution_required: false
 
@@ -321,13 +325,19 @@ sep38:
 metrics:
   ## @param: enabled
   ## @type: bool
-  ## If true, enable metrics.
+  ## If true, enable metrics endpoints for third-party services (ex: prometheus) to scrape
   #
   enabled: false
 
+  ## @param: port
+  ## @type: int
+  ## The port to expose the metrics endpoints on
+  port: 8082
+
   ## @param: extras_enabled
   ## @type: bool
-  ## If true, enable extra metrics.
+  ## If true, enable extra metrics (these metrics periodically query the database to get the current state of the
+  ## system)
   #
   extras_enabled: false
 
