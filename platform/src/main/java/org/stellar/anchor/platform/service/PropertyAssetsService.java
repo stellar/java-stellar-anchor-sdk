@@ -11,6 +11,9 @@ import org.stellar.anchor.config.AssetsConfig;
 import org.stellar.anchor.util.GsonUtils;
 import org.stellar.anchor.util.Log;
 
+import static org.stellar.anchor.util.Log.error;
+import static org.stellar.anchor.util.Log.infoF;
+
 public class PropertyAssetsService implements AssetService {
   static final Gson gson = GsonUtils.getInstance();
   Assets assets;
@@ -20,10 +23,14 @@ public class PropertyAssetsService implements AssetService {
       case JSON:
         String assetsJson = assetsConfig.getValue();
         assets = gson.fromJson(assetsJson, Assets.class);
+        if (assets == null || assets.getAssets() == null || assets.getAssets().size() == 0) {
+          error("Invalid asset defined. assets JSON=", assetsJson);
+          throw new InvalidConfigException(String.format("Invalid assets defined in configuration. Please check the logs for details."));
+        }
         break;
       case YAML:
       default:
-        Log.infoF("assets type {} is not supported", assetsConfig.getType());
+        infoF("assets type {} is not supported", assetsConfig.getType());
         throw new InvalidConfigException(
             String.format("assets type %s is not supported", assetsConfig.getType()));
     }
