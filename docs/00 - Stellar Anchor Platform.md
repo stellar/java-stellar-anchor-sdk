@@ -26,7 +26,6 @@ The full documentation can be found under the [`docs` directory](/docs), under t
 - [00 - Stellar Anchor Platform](/docs/00%20-%20Stellar%20Anchor%20Platform.md)
 - [01 - Running & Configuring the Application](/docs/01%20-%20Running%20%26%20Configuring%20the%20Application)
   - [A - Running & Configuring the Application](/docs/01%20-%20Running%20%26%20Configuring%20the%20Application/A%20-%20Running%20%26%20Configuring%20the%20Application.md)
-  - [B - Circle Payment Observer](/docs/01%20-%20Running%20%26%20Configuring%20the%20Application/B%20-%20Circle%20Payment%20Observer.md)
 - [02 - Contributing](/docs/02%20-%20Contributing)
   - [A - CONTRIBUTING.md](/docs/02%20-%20Contributing/A%20-%20CONTRIBUTING.md)
   - [B - Developer Tools](/docs/02%20-%20Contributing/B%20-%20Developer%20Tools.md)
@@ -40,8 +39,6 @@ The full documentation can be found under the [`docs` directory](/docs), under t
     - [Callback API](/docs/03%20-%20Implementing%20the%20Anchor%20Server/Communication/Callbacks%20API.yml)
     - [Events Schema](/docs/03%20-%20Implementing%20the%20Anchor%20Server/Communication/Events%20Schema.yml)
     - [Platform API](/docs/03%20-%20Implementing%20the%20Anchor%20Server/Communication/Platform%20API.yml)
-- [04 - Subprojects Usage](/docs/04%20-%20Subprojects%20Usage) `// In progress...`
-  - [A - Circle Payment Service](/docs/04%20-%20Subprojects%20Usage/A%20-%20Circle%20Payment%20Service.md)
 
 ## Definitions
 
@@ -225,7 +222,6 @@ The Stellar Anchor SDK is a collection of projects that make easy to build finan
 
 * [api-schema](/api-schema): the API interfaces, request, response classes.
 * [core](/core): the base package for implementing standardized anchor applications.
-* [payment](/payment): implementation of payment service with [Circle API](https://developers.circle.com/reference).
 * [platform](/platform): the anchor platform [Spring Boot Application with WebMVC](https://spring.io/guides/gs/serving-web-content/).
 * [anchor-reference-server](/anchor-reference-server): the reference implementation of the anchor server.
 * [service-runner](/service-runner): the runner class for the platform, reference server and payment observer. 
