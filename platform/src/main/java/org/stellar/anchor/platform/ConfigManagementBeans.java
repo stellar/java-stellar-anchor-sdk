@@ -7,7 +7,6 @@ import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.config.*;
 import org.stellar.anchor.platform.config.*;
 import org.stellar.anchor.platform.configurator.ConfigManager;
-import org.stellar.anchor.platform.payment.config.CirclePaymentConfig;
 
 @Configuration
 public class ConfigManagementBeans {
@@ -69,8 +68,8 @@ public class ConfigManagementBeans {
 
   @Bean
   @ConfigurationProperties(prefix = "sep31")
-  Sep31Config sep31Config(CircleConfig circleConfig, CallbackApiConfig callbackApiConfig) {
-    return new PropertySep31Config(circleConfig, callbackApiConfig);
+  Sep31Config sep31Config(CallbackApiConfig callbackApiConfig) {
+    return new PropertySep31Config(callbackApiConfig);
   }
 
   @Bean
@@ -82,21 +81,11 @@ public class ConfigManagementBeans {
   /**********************************
    * Payment observer configurations
    */
-  @Bean
-  @ConfigurationProperties(prefix = "circle")
-  CircleConfig circleConfig() {
-    return new PropertyCircleConfig();
-  }
 
   @Bean
   @ConfigurationProperties(prefix = "payment-observer")
-  PaymentObserverConfig paymentObserverConfig() {
-    return new PropertyPaymentObserverConfig();
-  }
-
-  @Bean
-  CirclePaymentConfig circlePaymentConfig() {
-    return new CirclePaymentConfig();
+  public PaymentObserverConfig paymentObserverConfig() {
+    return new PaymentObserverConfig();
   }
 
   /**********************************

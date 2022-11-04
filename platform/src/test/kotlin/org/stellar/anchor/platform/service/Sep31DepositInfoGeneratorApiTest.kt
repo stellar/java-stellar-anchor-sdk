@@ -15,8 +15,8 @@ import org.junit.jupiter.params.provider.ValueSource
 import org.stellar.anchor.api.callback.GetUniqueAddressResponse
 import org.stellar.anchor.api.callback.UniqueAddressIntegration
 import org.stellar.anchor.api.exception.HttpException
-import org.stellar.anchor.platform.payment.observer.stellar.PaymentObservingAccountStore
-import org.stellar.anchor.platform.payment.observer.stellar.PaymentObservingAccountsManager
+import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountStore
+import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountsManager
 import org.stellar.anchor.sep31.Sep31Transaction
 
 class Sep31DepositInfoGeneratorApiTest {

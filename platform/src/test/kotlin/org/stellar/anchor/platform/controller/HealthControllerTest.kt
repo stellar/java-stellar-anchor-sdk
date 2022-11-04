@@ -14,7 +14,7 @@ import org.stellar.anchor.api.platform.HealthCheckResult
 import org.stellar.anchor.api.platform.HealthCheckStatus
 import org.stellar.anchor.api.platform.HealthCheckStatus.*
 import org.stellar.anchor.healthcheck.HealthCheckable
-import org.stellar.anchor.platform.payment.observer.stellar.StellarPaymentObserver
+import org.stellar.anchor.platform.observer.stellar.StellarPaymentObserver
 import org.stellar.anchor.platform.service.HealthCheckService
 
 class HealthControllerTest {

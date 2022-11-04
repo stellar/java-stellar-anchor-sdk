@@ -10,16 +10,12 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.stellar.anchor.api.exception.SepException
 import org.stellar.anchor.api.sep.SepTransactionStatus
-import org.stellar.anchor.api.shared.Amount
-import org.stellar.anchor.api.shared.Customers
-import org.stellar.anchor.api.shared.StellarId
-import org.stellar.anchor.api.shared.StellarPayment
-import org.stellar.anchor.api.shared.StellarTransaction
+import org.stellar.anchor.api.shared.*
 import org.stellar.anchor.event.EventService
-import org.stellar.anchor.event.models.*
+import org.stellar.anchor.event.models.TransactionEvent
 import org.stellar.anchor.platform.data.JdbcSep31Transaction
 import org.stellar.anchor.platform.data.JdbcSep31TransactionStore
-import org.stellar.anchor.platform.payment.observer.circle.ObservedPayment
+import org.stellar.anchor.platform.observer.ObservedPayment
 import org.stellar.anchor.sep31.Sep31Transaction
 import org.stellar.anchor.util.GsonUtils
 

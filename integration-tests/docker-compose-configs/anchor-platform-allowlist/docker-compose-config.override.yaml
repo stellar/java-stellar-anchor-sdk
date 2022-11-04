@@ -1,5 +1,5 @@
 # Configuration Description - enable to omnibusAllowList feature to check if an account is whitelisted for SEP-10
-version: '2'
+version: '2.4'
 services:
   anchor-platform-server:
     volumes:
