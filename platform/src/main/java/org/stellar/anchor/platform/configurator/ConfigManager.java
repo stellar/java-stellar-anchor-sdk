@@ -23,14 +23,19 @@ import org.stellar.anchor.api.platform.HealthCheckStatus;
 import org.stellar.anchor.healthcheck.HealthCheckable;
 import org.stellar.anchor.util.Log;
 
-public abstract class ConfigManager
+public class ConfigManager
     implements ApplicationContextInitializer<ConfigurableApplicationContext>, HealthCheckable {
 
   static final String STELLAR_ANCHOR_CONFIG = "STELLAR_ANCHOR_CONFIG";
+  static final ConfigManager configManager = new ConfigManager();
 
   ConfigMap configMap;
 
   ConfigManager() {}
+
+  public static ConfigManager getInstance() {
+    return configManager;
+  }
 
   @SneakyThrows
   @Override

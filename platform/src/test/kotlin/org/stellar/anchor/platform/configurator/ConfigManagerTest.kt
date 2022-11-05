@@ -19,7 +19,7 @@ class ConfigManagerTest {
     mockkStatic(ConfigReader::class)
     mockkStatic(ConfigHelper::class)
 
-    configManager = spyk(SepConfigManager.getInstance())
+    configManager = spyk(ConfigManager.getInstance())
 
     every { ConfigHelper.loadDefaultConfig() } returns
       ConfigHelper.loadConfig(
