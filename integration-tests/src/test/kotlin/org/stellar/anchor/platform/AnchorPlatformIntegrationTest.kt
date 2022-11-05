@@ -1,6 +1,12 @@
 package org.stellar.anchor.platform
 
 import com.google.gson.Gson
+import java.time.Instant
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+import java.util.*
+import java.util.concurrent.TimeUnit
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.junit.jupiter.api.*
@@ -26,12 +32,6 @@ import org.stellar.anchor.platform.callback.RestRateIntegration
 import org.stellar.anchor.reference.AnchorReferenceServer
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.Sep1Helper
-import java.time.Instant
-import java.time.ZoneId
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
-import java.util.*
-import java.util.concurrent.TimeUnit
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
 class AnchorPlatformIntegrationTest {
@@ -43,31 +43,36 @@ class AnchorPlatformIntegrationTest {
     private const val JWT_EXPIRATION_MILLISECONDS: Long = 10000
     private const val FIAT_USD = "iso4217:USD"
     private const val STELLAR_USD =
-        "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+      "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
 
     private val platformToAnchorJwtService = JwtService(PLATFORM_TO_ANCHOR_SECRET)
     private val authHelper =
-        AuthHelper.forJwtToken(
-            platformToAnchorJwtService,
-            JWT_EXPIRATION_MILLISECONDS,
-            "http://localhost:$SEP_SERVER_PORT")
+      AuthHelper.forJwtToken(
+        platformToAnchorJwtService,
+        JWT_EXPIRATION_MILLISECONDS,
+        "http://localhost:$SEP_SERVER_PORT"
+      )
 
     private lateinit var toml: Sep1Helper.TomlContent
     private lateinit var jwt: String
     private val httpClient: OkHttpClient =
-        OkHttpClient.Builder()
-            .connectTimeout(10, TimeUnit.MINUTES)
-            .readTimeout(10, TimeUnit.MINUTES)
-            .writeTimeout(10, TimeUnit.MINUTES)
-            .build()
+      OkHttpClient.Builder()
+        .connectTimeout(10, TimeUnit.MINUTES)
+        .readTimeout(10, TimeUnit.MINUTES)
+        .writeTimeout(10, TimeUnit.MINUTES)
+        .build()
     private val gson: Gson = GsonUtils.getInstance()
     private val rci =
-        RestCustomerIntegration(
-            "http://localhost:$REFERENCE_SERVER_PORT", httpClient, authHelper, gson)
+      RestCustomerIntegration(
+        "http://localhost:$REFERENCE_SERVER_PORT",
+        httpClient,
+        authHelper,
+        gson
+      )
     private val rriClient =
-        RestRateIntegration("http://localhost:$REFERENCE_SERVER_PORT", httpClient, authHelper, gson)
+      RestRateIntegration("http://localhost:$REFERENCE_SERVER_PORT", httpClient, authHelper, gson)
     private val rfiClient =
-        RestFeeIntegration("http://localhost:$REFERENCE_SERVER_PORT", httpClient, authHelper, gson)
+      RestFeeIntegration("http://localhost:$REFERENCE_SERVER_PORT", httpClient, authHelper, gson)
 
     private lateinit var platformServerContext: ConfigurableApplicationContext
     init {
@@ -79,17 +84,17 @@ class AnchorPlatformIntegrationTest {
     @JvmStatic
     fun setup() {
       val envMap =
-          mapOf(
-              "sep_server.port" to SEP_SERVER_PORT,
-              "sep_server.context_path" to "/",
-              "payment_observer.port" to OBSERVER_HEALTH_SERVER_PORT,
-              "payment_observer.context_path" to "/",
-              "stellar_anchor_config" to "classpath:integration-test.anchor-config.yaml",
-              "secret.sep10.jwt_secret" to "secret",
-              "secret.sep10.signing_seed" to
-                  "SAKXNWVTRVR4SJSHZUDB2CLJXEQHRT62MYQWA2HBB7YBOTCFJJJ55BZF",
-              "secret.data.username" to "user1",
-              "secret.data.password" to "password")
+        mapOf(
+          "sep_server.port" to SEP_SERVER_PORT,
+          "sep_server.context_path" to "/",
+          "payment_observer.port" to OBSERVER_HEALTH_SERVER_PORT,
+          "payment_observer.context_path" to "/",
+          "stellar_anchor_config" to "classpath:integration-test.anchor-config.yaml",
+          "secret.sep10.jwt_secret" to "secret",
+          "secret.sep10.signing_seed" to "SAKXNWVTRVR4SJSHZUDB2CLJXEQHRT62MYQWA2HBB7YBOTCFJJJ55BZF",
+          "secret.data.username" to "user1",
+          "secret.data.password" to "password"
+        )
 
       platformServerContext = ServiceRunner.startSepServer(envMap)
       ServiceRunner.startStellarObserver(envMap)
@@ -161,16 +166,17 @@ class AnchorPlatformIntegrationTest {
   @Test
   fun testRate_indicativePrices() {
     val result =
-        rriClient.getRate(
-            GetRateRequest.builder()
-                .type(INDICATIVE_PRICES)
-                .sellAsset(FIAT_USD)
-                .sellAmount("100")
-                .buyAsset(STELLAR_USD)
-                .build())
+      rriClient.getRate(
+        GetRateRequest.builder()
+          .type(INDICATIVE_PRICES)
+          .sellAsset(FIAT_USD)
+          .sellAmount("100")
+          .buyAsset(STELLAR_USD)
+          .build()
+      )
     assertNotNull(result)
     val wantBody =
-        """{
+      """{
       "rate":{
         "price":"1.02",
         "sell_amount": "100",
@@ -183,17 +189,18 @@ class AnchorPlatformIntegrationTest {
   @Test
   fun testRate_indicativePrice() {
     val result =
-        rriClient.getRate(
-            GetRateRequest.builder()
-                .type(INDICATIVE_PRICE)
-                .context(SEP31)
-                .sellAsset(FIAT_USD)
-                .sellAmount("100")
-                .buyAsset(STELLAR_USD)
-                .build())
+      rriClient.getRate(
+        GetRateRequest.builder()
+          .type(INDICATIVE_PRICE)
+          .context(SEP31)
+          .sellAsset(FIAT_USD)
+          .sellAmount("100")
+          .buyAsset(STELLAR_USD)
+          .build()
+      )
     assertNotNull(result)
     val wantBody =
-        """{
+      """{
       "rate":{
         "total_price":"1.0303032801",
         "price":"1.0200002473",
@@ -218,16 +225,16 @@ class AnchorPlatformIntegrationTest {
   @Test
   fun testRate_firm() {
     val rate =
-        rriClient
-            .getRate(
-                GetRateRequest.builder()
-                    .type(FIRM)
-                    .context(SEP31)
-                    .sellAsset(FIAT_USD)
-                    .buyAsset(STELLAR_USD)
-                    .buyAmount("100")
-                    .build())
-            .rate
+      rriClient.getRate(
+          GetRateRequest.builder()
+            .type(FIRM)
+            .context(SEP31)
+            .sellAsset(FIAT_USD)
+            .buyAsset(STELLAR_USD)
+            .buyAmount("100")
+            .build()
+        )
+        .rate
     assertNotNull(rate)
 
     // check if id is a valid UUID
@@ -240,12 +247,12 @@ class AnchorPlatformIntegrationTest {
     }
 
     val wantExpiresAt =
-        ZonedDateTime.now(ZoneId.of("UTC"))
-            .plusDays(1)
-            .withHour(12)
-            .withMinute(0)
-            .withSecond(0)
-            .withNano(0)
+      ZonedDateTime.now(ZoneId.of("UTC"))
+        .plusDays(1)
+        .withHour(12)
+        .withMinute(0)
+        .withSecond(0)
+        .withNano(0)
     assertEquals(wantExpiresAt.toInstant(), gotExpiresAt)
 
     // check if rate was persisted by getting the rate with ID
@@ -254,7 +261,7 @@ class AnchorPlatformIntegrationTest {
     assertEquals("1.02", gotQuote.rate.price)
 
     val wantBody =
-        """{
+      """{
       "rate":{
         "id": "$id",
         "total_price":"1.03",
@@ -282,35 +289,37 @@ class AnchorPlatformIntegrationTest {
   fun testGetFee() {
     // Create sender customer
     val senderCustomerRequest =
-        GsonUtils.getInstance().fromJson(testCustomer1Json, Sep12PutCustomerRequest::class.java)
+      GsonUtils.getInstance().fromJson(testCustomer1Json, Sep12PutCustomerRequest::class.java)
     val senderCustomer = sep12Client.putCustomer(senderCustomerRequest)
 
     // Create receiver customer
     val receiverCustomerRequest =
-        GsonUtils.getInstance().fromJson(testCustomer2Json, Sep12PutCustomerRequest::class.java)
+      GsonUtils.getInstance().fromJson(testCustomer2Json, Sep12PutCustomerRequest::class.java)
     val receiverCustomer = sep12Client.putCustomer(receiverCustomerRequest)
 
     val result =
-        rfiClient.getFee(
-            GetFeeRequest.builder()
-                .sendAmount("10")
-                .sendAsset("USDC")
-                .receiveAsset("USDC")
-                .senderId(senderCustomer!!.id)
-                .receiverId(receiverCustomer!!.id)
-                .clientId("<client-id>")
-                .build())
+      rfiClient.getFee(
+        GetFeeRequest.builder()
+          .sendAmount("10")
+          .sendAsset("USDC")
+          .receiveAsset("USDC")
+          .senderId(senderCustomer!!.id)
+          .receiverId(receiverCustomer!!.id)
+          .clientId("<client-id>")
+          .build()
+      )
 
     assertNotNull(result)
     JSONAssert.assertEquals(
-        gson.toJson(result),
-        """{
+      gson.toJson(result),
+      """{
         "fee": {
           "asset": "USDC",
           "amount": "0.30"
         }
       }""",
-        true)
+      true
+    )
   }
 
   @Test
@@ -348,11 +357,11 @@ class AnchorPlatformIntegrationTest {
   @Test
   fun testStellarObserverHealth() {
     val httpRequest =
-        Request.Builder()
-            .url("http://localhost:$OBSERVER_HEALTH_SERVER_PORT/health")
-            .header("Content-Type", "application/json")
-            .get()
-            .build()
+      Request.Builder()
+        .url("http://localhost:$OBSERVER_HEALTH_SERVER_PORT/health")
+        .header("Content-Type", "application/json")
+        .get()
+        .build()
     val response = httpClient.newCall(httpRequest).execute()
     assertEquals(200, response.code)
 

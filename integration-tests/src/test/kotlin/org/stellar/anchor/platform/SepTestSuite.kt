@@ -19,14 +19,19 @@ fun main(args: Array<String>) {
   options.addOption("a", "start-all", false, "Start all servers.")
   options.addOption("s", "start-sep-server", false, "Start SEP endpoint test server.")
   options.addOption(
-      "r", "start-anchor-reference-server", false, "Start anchor reference test server.")
+    "r",
+    "start-anchor-reference-server",
+    false,
+    "Start anchor reference test server."
+  )
   options.addOption("t", "sep1-toml", true, "The path where the SEP1 TOML file can be read.")
   val sepTestOptions =
-      Option(
-          "p",
-          "tests",
-          false,
-          "Tests to be performed. One or multiple of [sep1,sep10,sep12,sep24,sep31,ref,platform]")
+    Option(
+      "p",
+      "tests",
+      false,
+      "Tests to be performed. One or multiple of [sep1,sep10,sep12,sep24,sep31,ref,platform]"
+    )
   sepTestOptions.isRequired = true
   sepTestOptions.args = Option.UNLIMITED_VALUES
   options.addOption(sepTestOptions)
@@ -47,11 +52,11 @@ fun main(args: Array<String>) {
 
     // Read TOML file
     val tomlString =
-        if (cmd.hasOption("sep1-toml")) {
-          resourceAsString(cmd.getOptionValue("t"))
-        } else {
-          resourceAsString("classpath:/sep1/test-stellar.toml")
-        }
+      if (cmd.hasOption("sep1-toml")) {
+        resourceAsString(cmd.getOptionValue("t"))
+      } else {
+        resourceAsString("classpath:/sep1/test-stellar.toml")
+      }
 
     val toml = Sep1Helper.parse(tomlString)
     val tests = cmd.getOptionValues("p")
@@ -92,13 +97,14 @@ fun getOrCreateJwt(tomlContent: TomlContent): String? {
   if (jwt == null) {
     val issuedAt: Long = System.currentTimeMillis() / 1000L
     val token =
-        JwtToken.of(
-            tomlContent.getString("WEB_AUTH_ENDPOINT"),
-            CLIENT_WALLET_ACCOUNT,
-            issuedAt,
-            issuedAt + 60,
-            "",
-            null)
+      JwtToken.of(
+        tomlContent.getString("WEB_AUTH_ENDPOINT"),
+        CLIENT_WALLET_ACCOUNT,
+        issuedAt,
+        issuedAt + 60,
+        "",
+        null
+      )
     jwt = jwtService.encode(token)
   }
 
