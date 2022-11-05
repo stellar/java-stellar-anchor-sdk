@@ -1,5 +1,7 @@
 package org.stellar.anchor.platform.config;
 
+import static org.stellar.anchor.util.Log.error;
+
 import com.google.gson.JsonSyntaxException;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
@@ -9,8 +11,6 @@ import org.stellar.anchor.asset.Assets;
 import org.stellar.anchor.config.AssetsConfig;
 import org.stellar.anchor.util.GsonUtils;
 import org.stellar.anchor.util.StringHelper;
-
-import static org.stellar.anchor.util.Log.error;
 
 @Data
 public class PropertyAssetsConfig implements AssetsConfig, Validator {

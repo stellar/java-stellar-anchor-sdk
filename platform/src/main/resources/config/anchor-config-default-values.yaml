@@ -106,6 +106,12 @@ platform_api:
     expiration_milliseconds: 30000
 
 payment_observer:
+  # The context path of the Stellar observer server
+  context_path: /
+
+  # The listening port of the Stellar observer server
+  port: 8083
+
   ## @param: type
   ## @type: string
   ## @supported_values:
@@ -158,6 +164,16 @@ logging:
 ######################
 ## SEP configuration
 ######################
+sep_server:
+  # The context path of the SEP server
+  context_path: /
+
+  # The listening port of the SEP server
+  port: 8080
+
+  # the management server port
+  management_server_port: 8082
+
 sep1:
 
   ## @param: enabled

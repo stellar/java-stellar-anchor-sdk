@@ -11,7 +11,7 @@ import org.stellar.anchor.platform.configurator.ConfigMap.ConfigSource.FILE
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
 class ConfigManagerTest {
-  lateinit var configManager: ConfigManager
+  private lateinit var configManager: ConfigManager
 
   @BeforeEach
   fun setUp() {
@@ -19,7 +19,7 @@ class ConfigManagerTest {
     mockkStatic(ConfigReader::class)
     mockkStatic(ConfigHelper::class)
 
-    configManager = spyk(ConfigManager.getInstance())
+    configManager = spyk(SepConfigManager.getInstance())
 
     every { ConfigHelper.loadDefaultConfig() } returns
       ConfigHelper.loadConfig(
