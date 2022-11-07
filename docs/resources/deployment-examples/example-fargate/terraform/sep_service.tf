@@ -28,7 +28,7 @@ resource "aws_ecs_service" "sep" {
 
 resource "aws_ecs_service" "stellar_observer" {
  name                               = "${var.environment}-stellar-observer-service"
- cluster                            = aws_ecs_cluster.sep.id
+ cluster                            = aws_ecs_cluster.ref.id
  task_definition                    = aws_ecs_task_definition.stellar_observer.arn
  desired_count                      = 1
  deployment_minimum_healthy_percent = 100
