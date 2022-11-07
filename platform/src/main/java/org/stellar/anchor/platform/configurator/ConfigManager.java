@@ -23,11 +23,11 @@ import org.stellar.anchor.api.platform.HealthCheckStatus;
 import org.stellar.anchor.healthcheck.HealthCheckable;
 import org.stellar.anchor.util.Log;
 
-public class ConfigManager
+public abstract class ConfigManager
     implements ApplicationContextInitializer<ConfigurableApplicationContext>, HealthCheckable {
 
   static final String STELLAR_ANCHOR_CONFIG = "STELLAR_ANCHOR_CONFIG";
-  static final ConfigManager configManager = new ConfigManager();
+  static final ConfigManager configManager = new DefaultConfigManager();
 
   ConfigMap configMap;
 
@@ -35,21 +35,6 @@ public class ConfigManager
 
   public static ConfigManager getInstance() {
     return configManager;
-  }
-
-  @SneakyThrows
-  @Override
-  public void initialize(@NotNull ConfigurableApplicationContext applicationContext) {
-    // Read configuration from system environment variables, configuration file, and default values
-    info("Read and process configurations");
-    configMap = processConfigurations(applicationContext);
-
-    // Make sure no secret is leaked.
-    sanitize(configMap);
-
-    // Send values to Spring
-    sendToSpring(
-        applicationContext, configMap, List.of(new LogConfigAdapter(), new DataConfigAdapter()));
   }
 
   void sanitize(ConfigMap configMap) {
@@ -192,5 +177,23 @@ class ConfigManagerHealthCheckResult implements HealthCheckResult {
   @Override
   public HealthCheckStatus getStatus() {
     return GREEN;
+  }
+}
+
+class DefaultConfigManager extends ConfigManager {
+
+  @SneakyThrows
+  @Override
+  public void initialize(ConfigurableApplicationContext applicationContext) {
+    // Read configuration from system environment variables, configuration file, and default values
+    info("Read and process configurations");
+    configMap = processConfigurations(applicationContext);
+
+    // Make sure no secret is leaked.
+    sanitize(configMap);
+
+    // Send values to Spring
+    sendToSpring(
+        applicationContext, configMap, List.of(new LogConfigAdapter(), new DataConfigAdapter()));
   }
 }

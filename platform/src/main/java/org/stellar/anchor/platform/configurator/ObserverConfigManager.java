@@ -1,5 +1,7 @@
 package org.stellar.anchor.platform.configurator;
 
+import static org.stellar.anchor.util.Log.info;
+
 import java.util.List;
 import lombok.SneakyThrows;
 import org.jetbrains.annotations.NotNull;
@@ -18,8 +20,18 @@ public class ObserverConfigManager extends ConfigManager {
   @SneakyThrows
   @Override
   public void initialize(@NotNull ConfigurableApplicationContext applicationContext) {
-    super.initialize(applicationContext);
-    sendToSpring(applicationContext, configMap, List.of(new ObserverConfigAdapter()));
+    // Read configuration from system environment variables, configuration file, and default values
+    info("Read and process configurations");
+    configMap = processConfigurations(applicationContext);
+
+    // Make sure no secret is leaked.
+    sanitize(configMap);
+
+    // Send values to Spring
+    sendToSpring(
+        applicationContext,
+        configMap,
+        List.of(new LogConfigAdapter(), new DataConfigAdapter(), new ObserverConfigAdapter()));
   }
 }
 
