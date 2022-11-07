@@ -26,7 +26,7 @@ resource "aws_ecs_service" "sep" {
  
 }
 
-esource "aws_ecs_service" "stellar_observer" {
+resource "aws_ecs_service" "stellar_observer" {
  name                               = "${var.environment}-stellar-observer-service"
  cluster                            = aws_ecs_cluster.sep.id
  task_definition                    = aws_ecs_task_definition.stellar_observer.arn
