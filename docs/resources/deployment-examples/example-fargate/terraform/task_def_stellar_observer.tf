@@ -37,7 +37,7 @@ resource "aws_ecs_task_definition" "stellar-observer" {
    name        = "${var.environment}-stellar-observer-service" 
    image       = "stellar/anchor-platform:${var.image_tag}"
    dependsOn =  [ {
-     containerName = "${var.environment}-stellar-observe-config"
+     containerName = "${var.environment}-stellar-observer-config"
      condition = "START"
    }]
    #entryPoint = ["/anchor_config/sep.sh"]
