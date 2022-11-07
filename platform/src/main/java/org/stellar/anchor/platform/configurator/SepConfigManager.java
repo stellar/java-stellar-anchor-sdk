@@ -42,8 +42,11 @@ class SepServerConfigAdapter extends SpringConfigAdapter {
     copy(config, "sep_server.port", "server.port");
     set("spring.mvc.converters.preferred-json-mapper", "gson");
     if (config.getBoolean("metrics.enabled")) {
+      set("management.endpoints.enabled-by-default", true);
       copy(config, "sep_server.management_server_port", "server.port");
       set("management.endpoints.web.exposure.include", "health,info,prometheus");
+    } else {
+      set("management.endpoints.enabled-by-default", false);
     }
   }
 }
