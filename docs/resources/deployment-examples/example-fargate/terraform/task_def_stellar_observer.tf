@@ -11,7 +11,7 @@ resource "aws_ecs_task_definition" "stellar-observer" {
   }
   
   container_definitions = jsonencode([{
-   name        = "${var.environment}-stellar-observer"
+   name        = "${var.environment}-stellar-observer-config"
    image       = "${var.aws_account}.dkr.ecr.${var.aws_region}.amazonaws.com/${aws_ecr_repository.anchor_config.name}:latest"
    entryPoint  = ["/copy_config.sh"]
    
@@ -34,10 +34,10 @@ resource "aws_ecs_task_definition" "stellar-observer" {
                 }
             }
   },{
-   name        = "${var.environment}-stellar-observer" 
+   name        = "${var.environment}-stellar-observer-service" 
    image       = "stellar/anchor-platform:${var.image_tag}"
    dependsOn =  [ {
-     containerName = "${var.environment}-stellar-observer"
+     containerName = "${var.environment}-stellar-observe-config"
      condition = "START"
    }]
    #entryPoint = ["/anchor_config/sep.sh"]
