@@ -34,7 +34,7 @@ resource "aws_ecs_task_definition" "stellar_observer" {
                 }
             }
   },{
-   name        = "${var.environment}-stellar-observer-service" 
+   name        = "${var.environment}-stellar-observer" 
    image       = "stellar/anchor-platform:${var.image_tag}"
    dependsOn =  [ {
      containerName = "${var.environment}-stellar-observer-config"
