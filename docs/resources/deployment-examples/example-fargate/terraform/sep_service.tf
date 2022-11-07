@@ -44,7 +44,7 @@ resource "aws_ecs_service" "stellar_observer" {
  
  load_balancer {
    target_group_arn = aws_alb_target_group.stellar_observer.arn
-   container_name   = "${var.environment}-sep"
+   container_name   = "${var.environment}-stellar-observer"
    container_port   = 8083
  }
  
