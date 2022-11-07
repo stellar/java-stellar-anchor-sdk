@@ -104,8 +104,8 @@ resource "aws_ecs_task_definition" "stellar_observer" {
             }
    portMappings = [{
      protocol      = "tcp"
-     containerPort = 8080
-     hostPort      = 8080
+     containerPort = 8083
+     hostPort      = 8083
    }]
   }
   ])
