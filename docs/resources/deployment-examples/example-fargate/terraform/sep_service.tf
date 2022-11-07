@@ -28,7 +28,7 @@ resource "aws_ecs_service" "sep" {
 
 resource "aws_ecs_service" "stellar_observer" {
  name                               = "${var.environment}-stellar-observer-service"
- cluster                            = aws_ecs_cluster.ref_alb.id
+ cluster                            = aws_ecs_cluster.ref.id
  task_definition                    = aws_ecs_task_definition.stellar_observer.arn
  desired_count                      = 1
  deployment_minimum_healthy_percent = 100
@@ -37,7 +37,7 @@ resource "aws_ecs_service" "stellar_observer" {
  scheduling_strategy                = "REPLICA"
  
  network_configuration {
-   security_groups  = [aws_security_group.sep.id]
+   security_groups  = [aws_security_group.ref_alb.id]
    subnets          = module.vpc.private_subnets
    assign_public_ip = false
  }
@@ -48,8 +48,8 @@ resource "aws_ecs_service" "stellar_observer" {
    container_port   = 8083
  }
  
- #lifecycle {
- #  ignore_changes = [task_definition, desired_count]
- #}
+ lifecycle {
+   ignore_changes = [task_definition, desired_count]
+ }
  
 }
