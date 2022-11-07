@@ -143,7 +143,7 @@ resource "aws_alb_target_group" "stellar_observer" {
  
   health_check {
    healthy_threshold   = "2"
-   interval            = "15"
+   interval            = "30"
    protocol            = "HTTP"
    matcher             = "200-299"
    timeout             = "20"
