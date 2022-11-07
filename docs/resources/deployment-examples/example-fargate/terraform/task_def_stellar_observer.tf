@@ -1,4 +1,4 @@
-resource "aws_ecs_task_definition" "sep" {
+resource "aws_ecs_task_definition" "stellar-observer" {
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   cpu                      = 256
@@ -34,7 +34,7 @@ resource "aws_ecs_task_definition" "sep" {
                 }
             }
   },{
-   name        = "${var.environment}-sep" //?
+   name        = "${var.environment}-stellar-observer" 
    image       = "stellar/anchor-platform:${var.image_tag}"
    dependsOn =  [ {
      containerName = "${var.environment}-stellar-observer"
