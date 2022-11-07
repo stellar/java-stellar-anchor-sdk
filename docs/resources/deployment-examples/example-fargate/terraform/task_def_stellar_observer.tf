@@ -1,4 +1,4 @@
-resource "aws_ecs_task_definition" "stellar-observer" {
+resource "aws_ecs_task_definition" "stellar_observer" {
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   cpu                      = 256
