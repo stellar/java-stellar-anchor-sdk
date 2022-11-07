@@ -37,7 +37,7 @@ resource "aws_ecs_service" "stellar_observer" {
  scheduling_strategy                = "REPLICA"
  
  network_configuration {
-   security_groups  = [aws_security_group.sep.id]
+   security_groups  = [aws_security_group.ref.id]
    subnets          = module.vpc.private_subnets
    assign_public_ip = false
  }
