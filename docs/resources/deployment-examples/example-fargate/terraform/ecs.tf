@@ -139,11 +139,11 @@ resource "aws_alb_target_group" "stellar_observer" {
   protocol    = "HTTP"
   vpc_id      = module.vpc.vpc_id
   target_type = "ip"
-  slow_start = 120
+  slow_start = 60
  
   health_check {
    healthy_threshold   = "2"
-   interval            = "45"
+   interval            = "15"
    protocol            = "HTTP"
    matcher             = "200-299"
    timeout             = "20"

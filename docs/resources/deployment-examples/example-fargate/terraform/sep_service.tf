@@ -48,8 +48,8 @@ resource "aws_ecs_service" "stellar_observer" {
    container_port   = 8083
  }
  
- #lifecycle {
- #  ignore_changes = [task_definition, desired_count]
- #}
+ lifecycle {
+   ignore_changes = [task_definition, desired_count]
+ }
  
 }
