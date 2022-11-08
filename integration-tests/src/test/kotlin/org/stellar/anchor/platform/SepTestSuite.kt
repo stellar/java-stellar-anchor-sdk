@@ -42,11 +42,7 @@ fun main(args: Array<String>) {
 
     // Start sep server if enabled.
     if (cmd.hasOption("sep-server") || cmd.hasOption("all")) {
-      ServiceRunner.startSepServer(
-        ServiceRunner.DEFAULT_SEP_SERVER_PORT,
-        ServiceRunner.DEFAULT_CONTEXT_PATH,
-        null
-      )
+      ServiceRunner.startSepServer(null)
     }
 
     // Start anchor reference server if enabled.

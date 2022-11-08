@@ -106,6 +106,12 @@ platform_api:
     expiration_milliseconds: 30000
 
 payment_observer:
+  # The context path of the Stellar observer server
+  context_path: /
+
+  # The listening port of the Stellar observer server
+  port: 8083
+
   ## @param: type
   ## @type: string
   ## @supported_values:
@@ -158,6 +164,16 @@ logging:
 ######################
 ## SEP configuration
 ######################
+sep_server:
+  # The context path of the SEP server
+  context_path: /
+
+  # The listening port of the SEP server
+  port: 8080
+
+  # the management server port
+  management_server_port: 8082
+
 sep1:
 
   ## @param: enabled
@@ -322,17 +338,13 @@ sep38:
 ##########################
 ## Metrics Configuration
 ##########################
+## The metrics are exposed at the port specified by sep_server.management_server_port
 metrics:
   ## @param: enabled
   ## @type: bool
   ## If true, enable metrics endpoints for third-party services (ex: prometheus) to scrape
   #
   enabled: false
-
-  ## @param: port
-  ## @type: int
-  ## The port to expose the metrics endpoints on
-  port: 8082
 
   ## @param: extras_enabled
   ## @type: bool

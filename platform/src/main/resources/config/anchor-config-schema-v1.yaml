@@ -34,10 +34,10 @@ languages:
 logging.level:
 logging.stellar_level:
 metrics.enabled:
-metrics.port:
 metrics.extras_enabled:
 metrics.run_interval:
-payment_observer.enabled:
+payment_observer.context_path:
+payment_observer.port:
 payment_observer.stellar.initial_event_backoff_time:
 payment_observer.stellar.initial_stream_backoff_time:
 payment_observer.stellar.max_event_backoff_time:
@@ -74,6 +74,9 @@ sep31.deposit_info_generator_type:
 sep31.enabled:
 sep31.payment_type:
 sep38.enabled:
+sep_server.context_path:
+sep_server.management_server_port:
+sep_server.port:
 stellar_network.horizon_url:
 stellar_network.network:
 stellar_network.network_passphrase:

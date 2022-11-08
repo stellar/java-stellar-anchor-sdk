@@ -85,6 +85,10 @@ class AnchorPlatformIntegrationTest {
     fun setup() {
       val envMap =
         mapOf(
+          "sep_server.port" to SEP_SERVER_PORT,
+          "sep_server.context_path" to "/",
+          "payment_observer.port" to OBSERVER_HEALTH_SERVER_PORT,
+          "payment_observer.context_path" to "/",
           "stellar_anchor_config" to "classpath:integration-test.anchor-config.yaml",
           "secret.sep10.jwt_secret" to "secret",
           "secret.sep10.signing_seed" to "SAKXNWVTRVR4SJSHZUDB2CLJXEQHRT62MYQWA2HBB7YBOTCFJJJ55BZF",
@@ -92,8 +96,8 @@ class AnchorPlatformIntegrationTest {
           "secret.data.password" to "password"
         )
 
-      platformServerContext = ServiceRunner.startSepServer(SEP_SERVER_PORT, "/", envMap)
-      ServiceRunner.startStellarObserver(OBSERVER_HEALTH_SERVER_PORT, "/", envMap)
+      platformServerContext = ServiceRunner.startSepServer(envMap)
+      ServiceRunner.startStellarObserver(envMap)
 
       AnchorReferenceServer.start(REFERENCE_SERVER_PORT, "/")
     }
