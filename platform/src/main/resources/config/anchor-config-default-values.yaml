@@ -338,17 +338,13 @@ sep38:
 ##########################
 ## Metrics Configuration
 ##########################
+## The metrics are exposed at the port specified by sep_server.management_server_port
 metrics:
   ## @param: enabled
   ## @type: bool
   ## If true, enable metrics endpoints for third-party services (ex: prometheus) to scrape
   #
   enabled: false
-
-  ## @param: port
-  ## @type: int
-  ## The port to expose the metrics endpoints on
-  port: 8082
 
   ## @param: extras_enabled
   ## @type: bool

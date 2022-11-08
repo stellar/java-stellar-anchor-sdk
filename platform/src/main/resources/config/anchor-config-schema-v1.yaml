@@ -35,7 +35,6 @@ logging.level:
 logging.stellar_level:
 metrics.enabled:
 metrics.extras_enabled:
-metrics.port:
 metrics.run_interval:
 payment_observer.context_path:
 payment_observer.port:
