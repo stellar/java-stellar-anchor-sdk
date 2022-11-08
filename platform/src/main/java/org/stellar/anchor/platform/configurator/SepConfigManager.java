@@ -38,12 +38,12 @@ public class SepConfigManager extends ConfigManager {
 class SepServerConfigAdapter extends SpringConfigAdapter {
   @Override
   void updateSpringEnv(ConfigMap config) throws InvalidConfigException {
-    copy(config, "sep_server.context_path", "server.contextPath");
+    copy(config, "sep_server.context_path", "server.servlet.context-path");
     copy(config, "sep_server.port", "server.port");
     set("spring.mvc.converters.preferred-json-mapper", "gson");
     if (config.getBoolean("metrics.enabled")) {
       set("management.endpoints.enabled-by-default", true);
-      copy(config, "sep_server.management_server_port", "server.port");
+      copy(config, "sep_server.management_server_port", "management.server.port");
       set("management.endpoints.web.exposure.include", "health,info,prometheus");
     } else {
       set("management.endpoints.enabled-by-default", false);
