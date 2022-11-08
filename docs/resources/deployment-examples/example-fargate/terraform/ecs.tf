@@ -84,9 +84,9 @@ resource "aws_ecs_service" "ref" {
    container_port   = 8081
  }
  
- #lifecycle {
- #  ignore_changes = [task_definition, desired_count]
- #}
+ lifecycle {
+   ignore_changes = [task_definition, desired_count]
+ }
   depends_on = [aws_alb_listener.sep_http]
 }
 
@@ -131,6 +131,26 @@ resource "aws_alb_target_group" "sep" {
    unhealthy_threshold = "5"
   }
   depends_on = [aws_lb.sep]
+}
+
+resource "aws_alb_target_group" "stellar_observer" {
+  name        = "${var.environment}-stellar-observer-tg"
+  port        = 8083
+  protocol    = "HTTP"
+  vpc_id      = module.vpc.vpc_id
+  target_type = "ip"
+  slow_start = 60
+ 
+  health_check {
+   healthy_threshold   = "2"
+   interval            = "30"
+   protocol            = "HTTP"
+   matcher             = "200-299"
+   timeout             = "20"
+   path                = "/health"
+   unhealthy_threshold = "5"
+  }
+  depends_on = [aws_lb.ref]
 }
 
 
@@ -194,6 +214,18 @@ resource "aws_alb_listener" "ref_http" {
  
   default_action {
    target_group_arn = aws_alb_target_group.ref.arn
+   type             = "forward" 
+  }
+  depends_on = [aws_lb.ref]
+}
+
+resource "aws_alb_listener" "stellar_observer" {
+  load_balancer_arn = aws_lb.ref.arn
+  port              = 8083
+  protocol          = "HTTP"
+ 
+  default_action {
+   target_group_arn = aws_alb_target_group.stellar_observer.arn
    type             = "forward" 
   }
   depends_on = [aws_lb.ref]

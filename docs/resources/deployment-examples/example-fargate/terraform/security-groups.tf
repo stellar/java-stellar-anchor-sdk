@@ -55,7 +55,7 @@ resource "aws_security_group" "ref_alb" {
   ingress {
    protocol         = "tcp"
    from_port        = 8081
-   to_port          = 8081
+   to_port          = 8083
    cidr_blocks      = ["0.0.0.0/0"]
    ipv6_cidr_blocks = ["::/0"]
   }
