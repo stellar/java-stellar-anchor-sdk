@@ -43,8 +43,8 @@ public class KafkaListener extends AbstractEventListener implements HealthChecka
 
     props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaListenerSettings.getBootStrapServer());
     props.put(ConsumerConfig.GROUP_ID_CONFIG, "group_one1");
-    // props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");  // start reading from
-    // earliest available message
+    // props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+    // start reading from the earliest available message
     props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
     props.put(JsonDeserializer.TRUSTED_PACKAGES, "*");
     props.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
@@ -141,7 +141,7 @@ public class KafkaListener extends AbstractEventListener implements HealthChecka
 
     return KafkaHealthCheckResult.builder()
         .name(getName())
-        .status(status.getName())
+        .status(status)
         .kafkaAvailable(kafkaAvailable)
         .running(!executor.isTerminated())
         .build();
@@ -162,9 +162,9 @@ public class KafkaListener extends AbstractEventListener implements HealthChecka
 class KafkaHealthCheckResult implements HealthCheckResult {
   transient String name;
 
-  List<String> statuses = List.of(GREEN.getName(), RED.getName());
+  List<HealthCheckStatus> statuses = List.of(GREEN, RED);
 
-  String status;
+  HealthCheckStatus status;
 
   boolean running;
 

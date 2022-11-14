@@ -1,4 +1,4 @@
-resource "aws_ecs_task_definition" "sep" {
+resource "aws_ecs_task_definition" "stellar_observer" {
   network_mode             = "awsvpc"
   requires_compatibilities = ["FARGATE"]
   cpu                      = 256
@@ -11,7 +11,7 @@ resource "aws_ecs_task_definition" "sep" {
   }
   
   container_definitions = jsonencode([{
-   name        = "${var.environment}-stellar-observer"
+   name        = "${var.environment}-stellar-observer-config"
    image       = "${var.aws_account}.dkr.ecr.${var.aws_region}.amazonaws.com/${aws_ecr_repository.anchor_config.name}:latest"
    entryPoint  = ["/copy_config.sh"]
    
@@ -34,10 +34,10 @@ resource "aws_ecs_task_definition" "sep" {
                 }
             }
   },{
-   name        = "${var.environment}-sep" //?
+   name        = "${var.environment}-stellar-observer" 
    image       = "stellar/anchor-platform:${var.image_tag}"
    dependsOn =  [ {
-     containerName = "${var.environment}-stellar-observer"
+     containerName = "${var.environment}-stellar-observer-config"
      condition = "START"
    }]
    #entryPoint = ["/anchor_config/sep.sh"]
@@ -104,8 +104,8 @@ resource "aws_ecs_task_definition" "sep" {
             }
    portMappings = [{
      protocol      = "tcp"
-     containerPort = 8080
-     hostPort      = 8080
+     containerPort = 8083
+     hostPort      = 8083
    }]
   }
   ])

@@ -10,12 +10,12 @@ public interface HealthCheckResult {
    *
    * @return the list of health check status.
    */
-  List<String> getStatuses();
+  List<HealthCheckStatus> getStatuses();
 
   /**
    * the current status of the health check result.
    *
    * @return the status.
    */
-  String getStatus();
+  HealthCheckStatus getStatus();
 }
