@@ -2,6 +2,7 @@ package org.stellar.anchor.platform.config;
 
 import java.util.List;
 import lombok.Data;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
@@ -23,12 +24,12 @@ public class PropertyAppConfig implements AppConfig, Validator {
   private List<String> languages;
 
   @Override
-  public boolean supports(Class<?> clazz) {
+  public boolean supports(@NotNull Class<?> clazz) {
     return AppConfig.class.isAssignableFrom(clazz);
   }
 
   @Override
-  public void validate(Object target, Errors errors) {
+  public void validate(@NotNull Object target, Errors errors) {
     AppConfig config = (AppConfig) target;
 
     ValidationUtils.rejectIfEmpty(

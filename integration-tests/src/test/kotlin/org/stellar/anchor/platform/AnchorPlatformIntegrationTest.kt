@@ -8,6 +8,7 @@ import java.time.format.DateTimeFormatter
 import java.util.*
 import java.util.concurrent.TimeUnit
 import okhttp3.OkHttpClient
+import okhttp3.Request
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 import org.skyscreamer.jsonassert.JSONAssert
@@ -37,6 +38,7 @@ class AnchorPlatformIntegrationTest {
   companion object {
     private const val SEP_SERVER_PORT = 8080
     private const val REFERENCE_SERVER_PORT = 8081
+    private const val OBSERVER_HEALTH_SERVER_PORT = 8083
     private const val PLATFORM_TO_ANCHOR_SECRET = "myPlatformToAnchorSecret"
     private const val JWT_EXPIRATION_MILLISECONDS: Long = 10000
     private const val FIAT_USD = "iso4217:USD"
@@ -81,18 +83,21 @@ class AnchorPlatformIntegrationTest {
     @BeforeAll
     @JvmStatic
     fun setup() {
-      platformServerContext =
-        ServiceRunner.startSepServer(
-          SEP_SERVER_PORT,
-          "/",
-          mapOf(
-            "stellar_anchor_config" to "classpath:integration-test.anchor-config.yaml",
-            "secret.sep10.jwt_secret" to "secret",
-            "secret.sep10.signing_seed" to
-              "SAKXNWVTRVR4SJSHZUDB2CLJXEQHRT62MYQWA2HBB7YBOTCFJJJ55BZF"
-          )
+      val envMap =
+        mapOf(
+          "sep_server.port" to SEP_SERVER_PORT,
+          "sep_server.context_path" to "/",
+          "payment_observer.port" to OBSERVER_HEALTH_SERVER_PORT,
+          "payment_observer.context_path" to "/",
+          "stellar_anchor_config" to "classpath:integration-test.anchor-config.yaml",
+          "secret.sep10.jwt_secret" to "secret",
+          "secret.sep10.signing_seed" to "SAKXNWVTRVR4SJSHZUDB2CLJXEQHRT62MYQWA2HBB7YBOTCFJJJ55BZF",
+          "secret.data.username" to "user1",
+          "secret.data.password" to "password"
         )
-      ServiceRunner.startStellarObserver()
+
+      platformServerContext = ServiceRunner.startSepServer(envMap)
+      ServiceRunner.startStellarObserver(envMap)
 
       AnchorReferenceServer.start(REFERENCE_SERVER_PORT, "/")
     }
@@ -347,5 +352,46 @@ class AnchorPlatformIntegrationTest {
   fun testSep38Config() {
     val sep38Config = platformServerContext.getBean(Sep38Config::class.java)
     assertEquals(true, sep38Config.isEnabled)
+  }
+
+  @Test
+  fun testStellarObserverHealth() {
+    val httpRequest =
+      Request.Builder()
+        .url("http://localhost:$OBSERVER_HEALTH_SERVER_PORT/health")
+        .header("Content-Type", "application/json")
+        .get()
+        .build()
+    val response = httpClient.newCall(httpRequest).execute()
+    assertEquals(200, response.code)
+
+    val responseBody = gson.fromJson(response.body!!.string(), HashMap::class.java)
+    assertEquals(5, responseBody.size)
+    assertNotNull(responseBody["started_at"])
+    assertNotNull(responseBody["elapsed_time_ms"])
+    assertNotNull(responseBody["number_of_checks"])
+    assertEquals(2.0, responseBody["number_of_checks"])
+    assertNotNull(responseBody["version"])
+    assertNotNull(responseBody["checks"])
+
+    val checks = responseBody["checks"] as Map<*, *>
+
+    assertEquals(2, checks.size)
+    assertNotNull(checks["config"])
+    assertNotNull(checks["stellar_payment_observer"])
+
+    val stellarPaymentObserverCheck = checks["stellar_payment_observer"] as Map<*, *>
+    assertEquals(2, stellarPaymentObserverCheck.size)
+    assertEquals("GREEN", stellarPaymentObserverCheck["status"])
+
+    val observerStreams = stellarPaymentObserverCheck["streams"] as List<*>
+    assertEquals(1, observerStreams.size)
+
+    val stream1 = observerStreams[0] as Map<*, *>
+    assertEquals(5, stream1.size)
+    assertEquals(false, stream1["thread_shutdown"])
+    assertEquals(false, stream1["thread_terminated"])
+    assertEquals(false, stream1["stopped"])
+    assertNotNull(stream1["last_event_id"])
   }
 }

@@ -4,7 +4,9 @@ import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.AmazonSQSAsyncClientBuilder;
 import com.amazonaws.services.sqs.model.MessageAttributeValue;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
+import com.amazonaws.services.sqs.model.SendMessageResult;
 import com.google.gson.Gson;
+import org.stellar.anchor.api.exception.EventPublishException;
 import org.stellar.anchor.event.EventPublisher;
 import org.stellar.anchor.event.models.AnchorEvent;
 import org.stellar.anchor.platform.config.SqsConfig;
@@ -19,7 +21,7 @@ public class SqsEventPublisher implements EventPublisher {
   }
 
   @Override
-  public void publish(String queue, AnchorEvent event) {
+  public void publish(String queue, AnchorEvent event) throws EventPublishException {
     try {
       // TODO implement batching
       // TODO retry logic?
@@ -39,8 +41,20 @@ public class SqsEventPublisher implements EventPublisher {
           new MessageAttributeValue()
               .withDataType("String")
               .withStringValue(event.getClass().getSimpleName()));
-      sqsClient.sendMessage(sendMessageRequest);
 
+      SendMessageResult sendMessageResult = sqsClient.sendMessage(sendMessageRequest);
+
+      // If the queue is offline, throw an exception
+      int statusCode = sendMessageResult.getSdkHttpMetadata().getHttpStatusCode();
+      if (statusCode < 200 || statusCode > 299) {
+        Log.error("failed to send message to SQS");
+        throw new EventPublishException(
+            String.format(
+                "Failed to publish event to AWS SQS. [StatusCode: %d] [Metadata: %s]",
+                statusCode, sendMessageResult.getSdkHttpMetadata().toString()));
+      }
+    } catch (EventPublishException ex) {
+      throw ex;
     } catch (Exception ex) {
       Log.errorEx(ex);
     }

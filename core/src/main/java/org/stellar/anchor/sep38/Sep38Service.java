@@ -397,6 +397,7 @@ public class Sep38Service {
             .fee(rate.getFee())
             .build();
 
+    // TODO: open the connection with DB and only commit/save after publishing the event:
     this.sep38QuoteStore.save(newQuote);
 
     QuoteEvent event =

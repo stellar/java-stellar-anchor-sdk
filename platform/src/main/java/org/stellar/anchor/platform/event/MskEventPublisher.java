@@ -1,20 +1,19 @@
 package org.stellar.anchor.platform.event;
 
+import static org.apache.kafka.clients.producer.ProducerConfig.*;
+
+import java.util.Properties;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 import org.stellar.anchor.platform.config.MskConfig;
 import org.stellar.anchor.util.Log;
 
-import java.util.Properties;
-
-import static org.apache.kafka.clients.producer.ProducerConfig.*;
-
 public class MskEventPublisher extends KafkaEventPublisher {
   public MskEventPublisher(MskConfig mskConfig) {
     Log.debugF("MskConfig: {}", mskConfig);
     Properties props = new Properties();
-    props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, mskConfig.getBootstrapServers());
+    props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, mskConfig.getBootstrapServer());
     props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
     props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
     props.put(CLIENT_ID_CONFIG, mskConfig.getClientId());

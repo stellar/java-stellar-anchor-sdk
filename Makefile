@@ -32,7 +32,8 @@ run-e2e-test-all:
 	make run-e2e-test-unique-address
 
 define run_tests
-	$(SUDO) docker-compose -f integration-tests/docker-compose-configs/docker-compose.base.yaml \
+	$(SUDO) docker-compose --env-file integration-tests/docker-compose-configs/.env \
+	-f integration-tests/docker-compose-configs/docker-compose.base.yaml \
 	-f integration-tests/docker-compose-configs/$(1)/docker-compose-config.override.yaml rm -f
 
 	$(SUDO) docker-compose --env-file integration-tests/docker-compose-configs/.env \

@@ -2,6 +2,7 @@ package org.stellar.anchor.platform.config;
 
 import java.util.List;
 import lombok.Data;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 import org.stellar.anchor.auth.AuthInfo;
@@ -26,12 +27,12 @@ public class CallbackApiConfig implements Validator {
   }
 
   @Override
-  public boolean supports(Class<?> clazz) {
+  public boolean supports(@NotNull Class<?> clazz) {
     return CallbackApiConfig.class.isAssignableFrom(clazz);
   }
 
   @Override
-  public void validate(Object target, Errors errors) {
+  public void validate(@NotNull Object target, @NotNull Errors errors) {
     CallbackApiConfig config = (CallbackApiConfig) target;
 
     if (List.of(AuthType.API_KEY, AuthType.JWT_TOKEN).contains(config.getAuth().getType())) {

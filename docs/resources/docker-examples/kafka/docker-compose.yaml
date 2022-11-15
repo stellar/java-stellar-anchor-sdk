@@ -1,4 +1,4 @@
-version: '2'
+version: '2.4'
 services:
   zookeeper:
     platform: linux/x86_64

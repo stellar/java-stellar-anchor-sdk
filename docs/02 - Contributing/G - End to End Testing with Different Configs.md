@@ -42,7 +42,7 @@ directory.
    configuration (refer to: [End to End Tests](/end-to-end-tests/README.md)).
 
    ```text
-   version: '2'
+   version: '2.4'
    services:
      anchor-platform-server:
        volumes:
@@ -92,6 +92,7 @@ directory.
    ```text
    E2E_SECRET=<STELLAR_SECRET>
    OMNIBUS_ALLOWLIST_KEYS=<OMNIBUS_ALLOWLIST_KEYS>
+   SECRET_SEP10_SIGNING_SEED=<SECRET_SEP10_SIGNING_SEED>
    ```
 3) Run the end-to-end test on all the different configs:
    ```text

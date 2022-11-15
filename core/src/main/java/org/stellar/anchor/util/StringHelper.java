@@ -24,4 +24,13 @@ public class StringHelper {
         .replaceAll("-", "_")
         .toLowerCase();
   }
+
+  public static String toPosixForm(String camel) {
+    return camel
+        .replaceAll("([A-Z]+)([A-Z][a-z])", "$1_$2")
+        .replaceAll("([a-z])([A-Z])", "$1_$2")
+        .replaceAll("-", "_")
+        .replaceAll("\\.", "_")
+        .toUpperCase();
+  }
 }

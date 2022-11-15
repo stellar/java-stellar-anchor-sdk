@@ -12,7 +12,8 @@ import okhttp3.mockwebserver.MockWebServer
 import org.hamcrest.CoreMatchers
 import org.hamcrest.MatcherAssert
 import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertNotEquals
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -54,9 +55,9 @@ class ApiKeyAuthIntegrationTest {
     // Start platform
     platformServerContext =
       AnchorPlatformServer.start(
-        PLATFORM_SERVER_PORT,
-        "/",
         mapOf(
+          "sep_server.port" to PLATFORM_SERVER_PORT,
+          "sep_server.context_path" to "/",
           "stellar_anchor_config" to "classpath:integration-test.anchor-config.yaml",
           "secret.sep10.jwt_secret" to "secret",
           "secret.sep10.signing_seed" to "SAKXNWVTRVR4SJSHZUDB2CLJXEQHRT62MYQWA2HBB7YBOTCFJJJ55BZF",
@@ -65,8 +66,7 @@ class ApiKeyAuthIntegrationTest {
           "callback_api.base_url" to mockAnchorUrl,
           "callback_api.auth.type" to "API_KEY",
           "secret.callback_api.auth_secret" to PLATFORM_TO_ANCHOR_SECRET
-        ),
-        true
+        )
       )
   }
 

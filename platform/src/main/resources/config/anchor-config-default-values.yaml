@@ -87,7 +87,8 @@ platform_api:
     ##     JWT_TOKEN: The authentication is done using a JWT token added to the `Authorization`
     ##         header. This token is generated from the secret key.
     ##
-    ## If the type is not NONE, the secret must be set by the following environment variable: `secret.platform_api.auth_secret`
+    ## If the type is not NONE, the secret must be set by the following environment variables:
+    ##  `secret.platform_api.auth_secret`, `secret.callback_api.auth_secret`
     ##
     ## The value of the secret depends on the type specified.
     ##    If type is JWT_TOKEN – the secret key used to encode/decode the JWT token.
@@ -105,25 +106,43 @@ platform_api:
     expiration_milliseconds: 30000
 
 payment_observer:
-  ## @param: enabled
-  ## @type: bool
-  ## Whether to enable a circle payment observer
-  #
-  enabled: false
+  # The context path of the Stellar observer server
+  context_path: /
 
-  ## @param: circle_url
+  # The listening port of the Stellar observer server
+  port: 8083
+
+  ## @param: type
   ## @type: string
-  ## Circle api endpoint.
+  ## @supported_values:
+  ##    `stellar`: the observer will observer transactions from the Stellar network
   #
-  circle_url: https://api-sandbox.circle.com
+  type: stellar
+  stellar:
+    #
+    # The interval in seconds when the silence check will run.  
+    silence_check_interval: 5
+    
+    # The silence_timeout in seconds.
+    #
+    # If the observer had been silent for longer than the timeout value, the observer will try to reconnect to the stellar network.
+    silence_timeout: 90
 
-
-  ## @param: tracked_wallet
-  ## @type: string
-  ## The id of the wallet to track. 'all' indicates that events for all wallets are tracked.
-  #
-  tracked_wallet: all
-
+    # The maximum number of silence timeout retries before the observer will give up.
+    # Setting the silence_timeout_retires to -1 will result in indefinite retires.
+    silence_timeout_retries: 5
+    
+    # The initial backoff (cool-down) time (in seconds) before reconnecting to the Stellar network 
+    initial_stream_backoff_time: 1
+    
+    # The maximum backoff (cool-down) time (in seconds) before reconnecting to the Stellar network 
+    max_stream_backoff_time: 300
+    
+    # The initial backoff (cool-down) time (in seconds) before reconnecting to the event publisher 
+    initial_event_backoff_time: 1
+    
+    # The initial backoff (cool-down) time (in seconds) before reconnecting to the event publisher 
+    max_event_backoff_time: 1
 
 ## @param: languages
 ## @supported_values: en
@@ -145,6 +164,16 @@ logging:
 ######################
 ## SEP configuration
 ######################
+sep_server:
+  # The context path of the SEP server
+  context_path: /
+
+  # The listening port of the SEP server
+  port: 8080
+
+  # the management server port
+  management_server_port: 8082
+
 sep1:
 
   ## @param: enabled
@@ -191,7 +220,11 @@ sep10:
 
   ## @param: client_attribution_required
   ## @type: bool
-  ## Set if the client attribution is required
+  ## Set if the client attribution is required. Client Attribution requires clients to verify their identity by passing
+  ## a domain in the challenge transaction request and signing the challenge with the ``SIGNING_KEY`` on that domain's
+  ## SEP-1 stellar.toml. See the SEP-10 section `Verifying Client Application Identity` for more information
+  ## (https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#verifying-client-application-identity).
+
   #
   client_attribution_required: false
 
@@ -305,16 +338,18 @@ sep38:
 ##########################
 ## Metrics Configuration
 ##########################
+## The metrics are exposed at the port specified by sep_server.management_server_port
 metrics:
   ## @param: enabled
   ## @type: bool
-  ## If true, enable metrics.
+  ## If true, enable metrics endpoints for third-party services (ex: prometheus) to scrape
   #
   enabled: false
 
   ## @param: extras_enabled
   ## @type: bool
-  ## If true, enable extra metrics.
+  ## If true, enable extra metrics (these metrics periodically query the database to get the current state of the
+  ## system)
   #
   extras_enabled: false
 
@@ -359,7 +394,7 @@ events:
       ## A comma-separated list of host:port pairs that are the addresses of one or more brokers in a Kafka cluster,
       ## e.g. localhost:9092 or localhost:9092,another.host:9092.
       #
-      bootstrap_servers: localhost:29092
+      bootstrap_server: localhost:29092
       # The client ID. If left empty, it is randomly generated.
       client_id:
       # Determines how many times the producer will attempt to send a message before marking it as failed.
@@ -447,7 +482,7 @@ assets:
 ################################
 data:
 
-  ## DB credentials are specified in @environment_variables DATA_USERNAME, DATA_PASSWORD
+  ## DB credentials are specified in @environment_variables SECRET_DATA_USERNAME, SECRET_DATA_PASSWORD
 
   ## @param: type
   ## @supported_values:
@@ -464,19 +499,6 @@ data:
   ## Location of the database
   #
   url: jdbc:h2:mem:anchor-platform
-
-  ## @param: username
-  ## @type: string
-  ## The username for database connection
-  #
-  username:
-
-
-  ## @param: username
-  ## @type: string
-  ## The password for database connection
-  #
-  password:
 
   ## @param: initial_connection_pool_size
   ## @type: integer
