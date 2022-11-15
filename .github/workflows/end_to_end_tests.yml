@@ -17,7 +17,7 @@ jobs:
     env:
         E2E_SECRET: ${{ secrets.E2E_SECRET }}
         OMNIBUS_ALLOWLIST_KEYS: ${{ secrets.OMNIBUS_ALLOWLIST_KEYS }}
-        SECRET_SEP10_SIGNING_SEED: ${{ secrets.SEP10_SIGNING_SEED }}
+        SECRET_SEP10_SIGNING_SEED: ${{ secrets.SECRET_SEP10_SIGNING_SEED }}
 
     steps:
       - uses: actions/checkout@v3
