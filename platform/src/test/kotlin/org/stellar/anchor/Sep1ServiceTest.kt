@@ -40,7 +40,8 @@ class Sep1ServiceTest {
           ORG_KEYBASE = "stellar.public"
           ORG_TWITTER = "StellarOrg"
           ORG_GITHUB = "stellar"
-        """.trimIndent()
+        """
+      .trimIndent()
 
   @Test
   fun `test Sep1Service reading toml from inline string`() {

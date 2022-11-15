@@ -18,6 +18,7 @@ dependencies {
   implementation(libs.java.stellar.sdk)
   implementation(libs.google.gson)
   implementation(libs.okhttp3)
+  implementation(libs.log4j2.api)
   implementation(libs.log4j2.core)
   implementation(libs.log4j2.slf4j)
 

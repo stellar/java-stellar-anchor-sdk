@@ -51,81 +51,75 @@ class PaymentObserverBeansTest {
     // assetService.listAllAssets() is null
     val mockEmptyAssetService = mockk<AssetService>()
     every { mockEmptyAssetService.listAllAssets() } returns null
-    ex =
-      assertThrows {
-        paymentObserverBeans.stellarPaymentObserver(
-          mockEmptyAssetService,
-          null,
-          null,
-          null,
-          null,
-          null
-        )
-      }
+    ex = assertThrows {
+      paymentObserverBeans.stellarPaymentObserver(
+        mockEmptyAssetService,
+        null,
+        null,
+        null,
+        null,
+        null
+      )
+    }
     assertInstanceOf(ServerErrorException::class.java, ex)
     assertEquals("Asset service cannot be empty.", ex.message)
 
     // assetService.listAllAssets() doesn't contain stellar assets
     val mockStellarLessAssetService = mockk<AssetService>()
     every { mockStellarLessAssetService.listAllAssets() } returns listOf()
-    ex =
-      assertThrows {
-        paymentObserverBeans.stellarPaymentObserver(
-          mockStellarLessAssetService,
-          null,
-          null,
-          null,
-          null,
-          null
-        )
-      }
+    ex = assertThrows {
+      paymentObserverBeans.stellarPaymentObserver(
+        mockStellarLessAssetService,
+        null,
+        null,
+        null,
+        null,
+        null
+      )
+    }
     assertInstanceOf(ServerErrorException::class.java, ex)
     assertEquals("Asset service should contain at least one Stellar asset.", ex.message)
 
     // paymentListeners is null
-    ex =
-      assertThrows {
-        paymentObserverBeans.stellarPaymentObserver(assetService, null, null, null, null, null)
-      }
+    ex = assertThrows {
+      paymentObserverBeans.stellarPaymentObserver(assetService, null, null, null, null, null)
+    }
     assertInstanceOf(ServerErrorException::class.java, ex)
     assertEquals("The stellar payment observer service needs at least one listener.", ex.message)
 
     // paymentListeners is empty
-    ex =
-      assertThrows {
-        paymentObserverBeans.stellarPaymentObserver(assetService, listOf(), null, null, null, null)
-      }
+    ex = assertThrows {
+      paymentObserverBeans.stellarPaymentObserver(assetService, listOf(), null, null, null, null)
+    }
     assertInstanceOf(ServerErrorException::class.java, ex)
     assertEquals("The stellar payment observer service needs at least one listener.", ex.message)
 
     // paymentStreamerCursorStore is null
-    ex =
-      assertThrows {
-        paymentObserverBeans.stellarPaymentObserver(
-          assetService,
-          mockPaymentListeners,
-          null,
-          null,
-          null,
-          null
-        )
-      }
+    ex = assertThrows {
+      paymentObserverBeans.stellarPaymentObserver(
+        assetService,
+        mockPaymentListeners,
+        null,
+        null,
+        null,
+        null
+      )
+    }
     assertInstanceOf(ServerErrorException::class.java, ex)
     assertEquals("Payment streamer cursor store cannot be empty.", ex.message)
 
     // appConfig is null
     every { paymentStreamerCursorStore.load() } returns null
-    ex =
-      assertThrows {
-        paymentObserverBeans.stellarPaymentObserver(
-          assetService,
-          mockPaymentListeners,
-          paymentStreamerCursorStore,
-          null,
-          null,
-          null
-        )
-      }
+    ex = assertThrows {
+      paymentObserverBeans.stellarPaymentObserver(
+        assetService,
+        mockPaymentListeners,
+        paymentStreamerCursorStore,
+        null,
+        null,
+        null
+      )
+    }
     assertInstanceOf(ServerErrorException::class.java, ex)
     assertEquals("AppConfig cannot be empty.", ex.message)
   }

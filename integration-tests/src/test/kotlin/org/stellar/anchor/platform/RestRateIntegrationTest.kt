@@ -175,10 +175,8 @@ class RestRateIntegrationTest {
         &sell_asset=iso4217%3AUSD
         &sell_amount=100
         &sell_delivery_method=WIRE
-        &country_code=USA""".replace(
-        "\n        ",
-        ""
-      ),
+        &country_code=USA"""
+        .replace("\n        ", ""),
       getRateRequest
     )
 
@@ -203,10 +201,8 @@ class RestRateIntegrationTest {
         &sell_delivery_method=WIRE
         &buy_asset=stellar%3AUSDC%3AGA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN
         &buy_delivery_method=CASH
-        &country_code=USA""".replace(
-        "\n        ",
-        ""
-      ),
+        &country_code=USA"""
+        .replace("\n        ", ""),
       getRateRequest
     )
 
@@ -231,10 +227,8 @@ class RestRateIntegrationTest {
         &sell_delivery_method=WIRE
         &buy_asset=stellar%3AUSDC%3AGA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN
         &buy_delivery_method=CASH
-        &country_code=USA""".replace(
-        "\n        ",
-        ""
-      ),
+        &country_code=USA"""
+        .replace("\n        ", ""),
       getRateRequest
     )
 
@@ -265,10 +259,8 @@ class RestRateIntegrationTest {
         &buy_delivery_method=WIRE
         &country_code=USA
         &expire_after=2022-04-30T02%3A15%3A44.000Z
-        &client_id=GDGWTSQKQQAT2OXRSFLADMN4F6WJQMPJ5MIOKIZ2AMBYUI67MJA4WRLA""".replace(
-        "\n        ",
-        ""
-      ),
+        &client_id=GDGWTSQKQQAT2OXRSFLADMN4F6WJQMPJ5MIOKIZ2AMBYUI67MJA4WRLA"""
+        .replace("\n        ", ""),
       getRateRequest
     )
   }
@@ -276,33 +268,33 @@ class RestRateIntegrationTest {
   @Test
   fun test_getRate_errorHandling() {
     val validateRequest =
-        {
-      statusCode: Int,
-      responseBody: String?,
-      wantException: AnchorException,
-      type: GetRateRequest.Type ->
-      // mock response
-      var mockResponse =
-        MockResponse().addHeader("Content-Type", "application/json").setResponseCode(statusCode)
-      if (responseBody != null) mockResponse = mockResponse.setBody(responseBody)
-      server.enqueue(mockResponse)
+      {
+        statusCode: Int,
+        responseBody: String?,
+        wantException: AnchorException,
+        type: GetRateRequest.Type ->
+        // mock response
+        var mockResponse =
+          MockResponse().addHeader("Content-Type", "application/json").setResponseCode(statusCode)
+        if (responseBody != null) mockResponse = mockResponse.setBody(responseBody)
+        server.enqueue(mockResponse)
 
-      // execute command
-      val dummyRequest = GetRateRequest.builder().type(type).build()
-      val ex = assertThrows<AnchorException> { rateIntegration.getRate(dummyRequest) }
+        // execute command
+        val dummyRequest = GetRateRequest.builder().type(type).build()
+        val ex = assertThrows<AnchorException> { rateIntegration.getRate(dummyRequest) }
 
-      // validate exception
-      assertEquals(wantException.javaClass, ex.javaClass)
-      assertEquals(wantException.message, ex.message)
+        // validate exception
+        assertEquals(wantException.javaClass, ex.javaClass)
+        assertEquals(wantException.message, ex.message)
 
-      // validateRequest
-      val request = server.takeRequest()
-      assertEquals("GET", request.method)
-      assertEquals("application/json", request.headers["Content-Type"])
-      assertEquals("Bearer $mockJwtToken", request.headers["Authorization"])
-      MatcherAssert.assertThat(request.path, CoreMatchers.endsWith("/rate?type=$type"))
-      assertEquals("", request.body.readUtf8())
-    }
+        // validateRequest
+        val request = server.takeRequest()
+        assertEquals("GET", request.method)
+        assertEquals("application/json", request.headers["Content-Type"])
+        assertEquals("Bearer $mockJwtToken", request.headers["Authorization"])
+        MatcherAssert.assertThat(request.path, CoreMatchers.endsWith("/rate?type=$type"))
+        assertEquals("", request.body.readUtf8())
+      }
 
     // 400 without body
     validateRequest(400, null, BadRequestException("Bad Request"), INDICATIVE_PRICES)
@@ -385,7 +377,8 @@ class RestRateIntegrationTest {
           "asset": "iso4217:USD"
         }
       }
-    }""".trimMargin()
+    }"""
+        .trimMargin()
     validateRequest(200, body, serverErrorException, FIRM)
     validateRequest(200, body, serverErrorException, INDICATIVE_PRICE)
 
@@ -400,7 +393,8 @@ class RestRateIntegrationTest {
           "asset": "iso4217:USD"
         }
       }
-    }""".trimMargin()
+    }"""
+        .trimMargin()
     validateRequest(200, body, serverErrorException, FIRM)
 
     // 200 for type=firm where getRateResponse is missing "id" but contains "expires_at"
@@ -415,7 +409,8 @@ class RestRateIntegrationTest {
           "asset": "iso4217:USD"
         }
       }
-    }""".trimMargin()
+    }"""
+        .trimMargin()
     validateRequest(200, body, serverErrorException, FIRM)
 
     // 200 for type=firm where getRateResponse is missing "expires_at"
@@ -430,7 +425,8 @@ class RestRateIntegrationTest {
           "asset": "iso4217:USD"
         }
       }
-    }""".trimMargin()
+    }"""
+        .trimMargin()
     validateRequest(200, body, serverErrorException, FIRM)
 
     // 200 for type=firm where getRateResponse's "expires_at" is invalid
@@ -446,7 +442,8 @@ class RestRateIntegrationTest {
           "asset": "iso4217:USD"
         }
       }
-    }""".trimMargin()
+    }"""
+        .trimMargin()
     validateRequest(200, body, serverErrorException, FIRM)
   }
 
@@ -455,29 +452,29 @@ class RestRateIntegrationTest {
     val fee = mockSellAssetFee("iso4217:USD")
 
     val validateRequest =
-        { type: GetRateRequest.Type, responseBody: String, wantResponse: GetRateResponse ->
-      // mock response
-      val mockResponse =
-        MockResponse()
-          .addHeader("Content-Type", "application/json")
-          .setResponseCode(200)
-          .setBody(responseBody)
-      server.enqueue(mockResponse)
+      { type: GetRateRequest.Type, responseBody: String, wantResponse: GetRateResponse ->
+        // mock response
+        val mockResponse =
+          MockResponse()
+            .addHeader("Content-Type", "application/json")
+            .setResponseCode(200)
+            .setBody(responseBody)
+        server.enqueue(mockResponse)
 
-      // execute command
-      val dummyRequest = GetRateRequest.builder().type(type).build()
-      var gotResponse: GetRateResponse? = null
-      assertDoesNotThrow { gotResponse = rateIntegration.getRate(dummyRequest) }
-      assertEquals(wantResponse, gotResponse)
+        // execute command
+        val dummyRequest = GetRateRequest.builder().type(type).build()
+        var gotResponse: GetRateResponse? = null
+        assertDoesNotThrow { gotResponse = rateIntegration.getRate(dummyRequest) }
+        assertEquals(wantResponse, gotResponse)
 
-      // validateRequest
-      val request = server.takeRequest()
-      assertEquals("GET", request.method)
-      assertEquals("application/json", request.headers["Content-Type"])
-      assertEquals("Bearer $mockJwtToken", request.headers["Authorization"])
-      MatcherAssert.assertThat(request.path, CoreMatchers.endsWith("/rate?type=$type"))
-      assertEquals("", request.body.readUtf8())
-    }
+        // validateRequest
+        val request = server.takeRequest()
+        assertEquals("GET", request.method)
+        assertEquals("application/json", request.headers["Content-Type"])
+        assertEquals("Bearer $mockJwtToken", request.headers["Authorization"])
+        MatcherAssert.assertThat(request.path, CoreMatchers.endsWith("/rate?type=$type"))
+        assertEquals("", request.body.readUtf8())
+      }
 
     // indicative_prices quote successful response
     var wantGetRateResponse = GetRateResponse.indicativePrices("1.02", "102", "100")
@@ -489,7 +486,8 @@ class RestRateIntegrationTest {
           "sell_amount": "102",
           "buy_amount": "100"
         }
-      }""".trimMargin(),
+      }"""
+        .trimMargin(),
       wantGetRateResponse
     )
 
@@ -514,7 +512,8 @@ class RestRateIntegrationTest {
             ]
           }
         }
-      }""".trimMargin(),
+      }"""
+        .trimMargin(),
       wantGetRateResponse
     )
 
@@ -554,7 +553,8 @@ class RestRateIntegrationTest {
             ]
           }
         }
-      }""".trimMargin(),
+      }"""
+        .trimMargin(),
       wantGetRateResponse
     )
     verify(atLeast = 1) { Instant.now() }
