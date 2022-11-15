@@ -61,7 +61,7 @@ resource "aws_ecs_task_definition" "sep" {
         "valueFrom": data.aws_ssm_parameter.sqlite_password.arn
       },
       {
-        "name": "SEP_10_SIGNING_SEED",
+        "name": "SEP10_SIGNING_SEED",
         "valueFrom": data.aws_ssm_parameter.sep10_signing_seed.arn
       },
       {
