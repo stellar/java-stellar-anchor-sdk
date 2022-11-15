@@ -66,7 +66,7 @@ data:
         assets: {{ .Values.stellar.app_config.app.assets | default "assets-test.json" }}
         jwtSecretKey: {{ .Values.stellar.app_config.app.jwtSecretKey | default "${JWT_SECRET}" }}
       integration-auth:
-        authType: JWT_TOKEN
+        authType: {{ .Values.stellar.app_config.app.authType | default "JWT_TOKEN" }}
         platformToAnchorSecret: {{ .Values.stellar.app_config.app.platformToAnchorSecret | default "${PLATFORM_TO_ANCHOR_SECRET}" }}
         anchorToPlatformSecret: {{ .Values.stellar.app_config.app.anchorToPlatformSecret | default "${ANCHOR_TO_PLATFORM_SECRET}" }}
         expirationMilliseconds: {{ .Values.stellar.app_config.app.expirationMilliseconds | default 30000 }}      
