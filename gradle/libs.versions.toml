@@ -23,7 +23,7 @@ jjwt = "0.9.1"
 jsonassert = "1.5.0"
 junit = "5.8.2"
 junit-suite-engine = "1.8.2"
-kafka = "3.1.2"
+kafka = "3.3.1"
 kafka-json-schema = "7.0.1"
 kotlin = "1.7.20"
 log4j = "2.19.0"
@@ -40,6 +40,7 @@ servlet-api = "2.5"
 snakeyaml = "1.32"
 spring-kafka = "2.9.1"
 spring-aws-messaging = "2.2.6.RELEASE"
+aws-java-sdk-s3 = "1.12.342"
 sqlite-jdbc = "3.34.0"
 slf4j = "1.7.35"
 toml4j = "0.7.2"
@@ -104,6 +105,7 @@ slf4j-log4j12 = { module = "org.slf4j:slf4j-log4j12", version.ref = "slf4j" }
 toml4j = { module = "com.moandjiezana.toml:toml4j", version.ref = "toml4j" }
 spring-kafka = { module = "org.springframework.kafka:spring-kafka", version.ref = "spring-kafka" }
 spring-aws-messaging = { module = "org.springframework.cloud:spring-cloud-aws-messaging", version.ref = "spring-aws-messaging" }
+aws-java-sdk-s3 = { module = "com.amazonaws:aws-java-sdk-s3", version.ref = "aws-java-sdk-s3" }
 
 [bundles]
 slf4j = ["slf4j-api", "slf4j-log4j12"]
