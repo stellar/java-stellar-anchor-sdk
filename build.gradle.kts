@@ -71,8 +71,6 @@ subprojects {
     // for security vulnerabilities.
     implementation(rootProject.libs.spring.aws.messaging)
     implementation(rootProject.libs.aws.java.sdk.s3)
-    implementation("commons-validator:commons-validator:1.7")
-
 
     // The common dependencies are declared here because we would like to have a uniform unit
     // testing across all subprojects.
