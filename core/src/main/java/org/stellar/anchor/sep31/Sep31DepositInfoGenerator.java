@@ -9,6 +9,7 @@ public interface Sep31DepositInfoGenerator {
    *
    * @param txn the original SEP-31 transaction the deposit info will be used for.
    * @return a Sep31DepositInfo instance containing the destination address, memo and memoType.
+   * @throws AnchorException if the deposit info cannot be generated
    */
   Sep31DepositInfo generate(Sep31Transaction txn) throws AnchorException;
 }

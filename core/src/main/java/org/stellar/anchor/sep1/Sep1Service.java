@@ -18,6 +18,8 @@ public class Sep1Service {
    * Construct the Sep1Service that reads the stellar.toml content from Java resource.
    *
    * @param sep1Config The Sep1 configuration.
+   * @throws IOException if the file cannot be read.
+   * @throws InvalidConfigException if invalid type is specified.
    */
   public Sep1Service(Sep1Config sep1Config) throws IOException, InvalidConfigException {
     if (sep1Config.isEnabled()) {
