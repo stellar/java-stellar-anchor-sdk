@@ -27,7 +27,7 @@ internal class Sep1ServiceTest {
   @Test
   fun `disabled Sep1Service should return null string as toml value`() {
     every { sep1Config.isEnabled } returns false
-    var sep1Service = Sep1Service(sep1Config)
+    val sep1Service = Sep1Service(sep1Config)
     assertEquals(null, sep1Service.stellarToml)
   }
 
