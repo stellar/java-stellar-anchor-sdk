@@ -1,10 +1,10 @@
 package org.stellar.anchor.sep1
 
-import io.mockk.*
+import io.mockk.MockKAnnotations
+import io.mockk.every
 import io.mockk.impl.annotations.MockK
-import java.nio.file.Files
+import io.mockk.mockkStatic
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
@@ -12,6 +12,7 @@ import org.junit.jupiter.api.assertThrows
 import org.stellar.anchor.api.exception.InvalidConfigException
 import org.stellar.anchor.config.Sep1Config
 import org.stellar.anchor.util.NetUtil
+import java.nio.file.Files
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class Sep1ServiceTest {
