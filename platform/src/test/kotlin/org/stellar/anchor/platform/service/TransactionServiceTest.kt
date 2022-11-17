@@ -303,7 +303,8 @@ class TransactionServiceTest {
         "COMPLETED",
         "REFUNDED",
         "EXPIRED",
-        "ERROR"]
+        "ERROR"
+      ]
   )
   fun test_validateIfStatusIsSupported_failure(sepTxnStatus: SepTransactionStatus) {
     val ex: Exception = assertThrows {
@@ -325,7 +326,8 @@ class TransactionServiceTest {
         "PENDING_EXTERNAL",
         "COMPLETED",
         "EXPIRED",
-        "ERROR"]
+        "ERROR"
+      ]
   )
   fun test_validateIfStatusIsSupported(sepTxnStatus: SepTransactionStatus) {
     assertDoesNotThrow { transactionService.validateIfStatusIsSupported(sepTxnStatus.getName()) }

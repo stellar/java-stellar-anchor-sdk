@@ -53,7 +53,7 @@ subprojects {
       googleJavaFormat()
     }
 
-    kotlin { ktfmt("0.30").googleStyle() }
+    kotlin { ktfmt("0.41").googleStyle() }
   }
 
   dependencies {
@@ -65,9 +65,12 @@ subprojects {
     implementation(rootProject.libs.scala.library) // used to force the version of scala-library (used by kafka-json-schema-serializer) to a safer one.
     implementation(rootProject.libs.bundles.kafka)
     implementation(rootProject.libs.spring.kafka)
-
-    // TODO: we should use log4j2
     implementation(rootProject.libs.log4j.template.json)
+
+    // Although the following libraries are transitive dependencies, we are including them here to override the version
+    // for security vulnerabilities.
+    implementation(rootProject.libs.spring.aws.messaging)
+    implementation(rootProject.libs.aws.java.sdk.s3)
 
     // The common dependencies are declared here because we would like to have a uniform unit
     // testing across all subprojects.

@@ -13,7 +13,8 @@ class JdbcSep31TransactionTest {
               "amount_fee": "5",
               "refundPayments": null
             }
-        """.trimIndent()
+        """
+      .trimIndent()
 
   private val refundsJsonWithRefundPayment =
     """
@@ -33,7 +34,8 @@ class JdbcSep31TransactionTest {
                 }
               ]
             }
-        """.trimIndent()
+        """
+      .trimIndent()
 
   @Test
   fun `test JdbcSep31Transaction refunds Json conversion`() {

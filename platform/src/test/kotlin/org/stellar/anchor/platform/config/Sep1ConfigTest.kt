@@ -15,19 +15,17 @@ open class Sep1ConfigTest {
   companion object {
     fun getTestTomlAsFile(): String {
       val resource: URL =
-        Sep1ConfigTest::class.java.getResource(
-          "/org/stellar/anchor/platform/config/sep1-stellar-test.toml"
-        ) as
-          URL
+        Sep1ConfigTest::class
+          .java
+          .getResource("/org/stellar/anchor/platform/config/sep1-stellar-test.toml") as URL
       return Paths.get(resource.toURI()).toFile().absolutePath
     }
 
     fun getTestTomlAsUrl(): String {
       val resource: URL =
-        Sep1ConfigTest::class.java.getResource(
-          "/org/stellar/anchor/platform/config/sep1-stellar-test.toml"
-        ) as
-          URL
+        Sep1ConfigTest::class
+          .java
+          .getResource("/org/stellar/anchor/platform/config/sep1-stellar-test.toml") as URL
       return resource.toString()
     }
 

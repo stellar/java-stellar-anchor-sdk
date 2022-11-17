@@ -129,10 +129,8 @@ class RestFeeIntegrationTest {
         &send_amount=10
         &client_id=%3Cclient-id%3E
         &sender_id=%3Csender-id%3E
-        &receiver_id=%3Creceiver-id%3E""".replace(
-          "\n        ",
-          ""
-        )
+        &receiver_id=%3Creceiver-id%3E"""
+          .replace("\n        ", "")
       )
     )
   }
@@ -140,29 +138,29 @@ class RestFeeIntegrationTest {
   @Test
   fun test_getFee_errorHandling() {
     val validateRequest =
-        { statusCode: Int, responseBody: String?, wantException: AnchorException ->
-      // mock response
-      var mockResponse =
-        MockResponse().addHeader("Content-Type", "application/json").setResponseCode(statusCode)
-      if (responseBody != null) mockResponse = mockResponse.setBody(responseBody)
-      server.enqueue(mockResponse)
+      { statusCode: Int, responseBody: String?, wantException: AnchorException ->
+        // mock response
+        var mockResponse =
+          MockResponse().addHeader("Content-Type", "application/json").setResponseCode(statusCode)
+        if (responseBody != null) mockResponse = mockResponse.setBody(responseBody)
+        server.enqueue(mockResponse)
 
-      // execute command
-      val dummyRequest = GetFeeRequest.builder().build()
-      val ex = assertThrows<AnchorException> { feeIntegration.getFee(dummyRequest) }
+        // execute command
+        val dummyRequest = GetFeeRequest.builder().build()
+        val ex = assertThrows<AnchorException> { feeIntegration.getFee(dummyRequest) }
 
-      // validate exception
-      assertEquals(wantException.javaClass, ex.javaClass)
-      assertEquals(wantException.message, ex.message)
+        // validate exception
+        assertEquals(wantException.javaClass, ex.javaClass)
+        assertEquals(wantException.message, ex.message)
 
-      // validateRequest
-      val request = server.takeRequest()
-      assertEquals("GET", request.method)
-      assertEquals("application/json", request.headers["Content-Type"])
-      assertEquals("Bearer $mockJwtToken", request.headers["Authorization"])
-      MatcherAssert.assertThat(request.path, CoreMatchers.endsWith("/fee"))
-      assertEquals("", request.body.readUtf8())
-    }
+        // validateRequest
+        val request = server.takeRequest()
+        assertEquals("GET", request.method)
+        assertEquals("application/json", request.headers["Content-Type"])
+        assertEquals("Bearer $mockJwtToken", request.headers["Authorization"])
+        MatcherAssert.assertThat(request.path, CoreMatchers.endsWith("/fee"))
+        assertEquals("", request.body.readUtf8())
+      }
 
     // 400 without body
     validateRequest(400, null, BadRequestException("Bad Request"))

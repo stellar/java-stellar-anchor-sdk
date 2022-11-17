@@ -13,9 +13,9 @@ findbugs-jsr305 = "3.0.2"
 flyway-core = "8.5.13"
 google-gson = "2.8.9"
 httpclient = "4.5.13"
-h2database = "1.4.200"
+h2database = "2.1.214"
 hibernate-types = "2.18.0"
-jackson-dataformat-yaml = "2.13.2"
+jackson-dataformat-yaml = "2.14.0"
 java-stellar-sdk = "0.34.1"
 javax-jaxb-api = "2.3.1"
 javax-transaction-api = "1.3"
@@ -23,16 +23,16 @@ jjwt = "0.9.1"
 jsonassert = "1.5.0"
 junit = "5.8.2"
 junit-suite-engine = "1.8.2"
-kafka = "3.1.2"
+kafka = "3.3.1"
 kafka-json-schema = "7.0.1"
-kotlin = "1.6.20"
-log4j = "2.17.1"
-log4j-template-json = "2.17.1"
+kotlin = "1.7.20"
+log4j = "2.19.0"
+log4j-template-json = "2.19.0"
 lombok = "1.18.22"
 mockk = "1.12.2"
 micrometer-prometheus = "1.9.0"
 okhttp3 = "4.9.3"
-postgresql = "42.4.1"
+postgresql = "42.5.0"
 reactor-core = "3.4.14"
 reactor-netty = "1.0.15"
 scala-library = "2.13.9"
@@ -40,15 +40,16 @@ servlet-api = "2.5"
 snakeyaml = "1.32"
 spring-kafka = "2.9.1"
 spring-aws-messaging = "2.2.6.RELEASE"
+aws-java-sdk-s3 = "1.12.342"
 sqlite-jdbc = "3.34.0"
 slf4j = "1.7.35"
 toml4j = "0.7.2"
 
 
 # Plugin versions
-spotless = "6.2.1"
+spotless = "6.9.1"
 spring-boot = "2.6.8"
-spring-dependency-management = "1.0.11.RELEASE"
+spring-dependency-management = "1.1.0"
 
 [libraries]
 apache-commons-lang3 = { module = "org.apache.commons:commons-lang3", version.ref = "apache-commons-lang3" }
@@ -84,7 +85,7 @@ kotlin-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit5", version.ref
 log4j2-slf4j = { module = "org.apache.logging.log4j:log4j-slf4j-impl", version.ref = "log4j" }
 log4j2-core = { module = "org.apache.logging.log4j:log4j-core", version.ref = "log4j" }
 log4j2-api = { module = "org.apache.logging.log4j:log4j-api", version.ref = "log4j" }
-snakeyaml = { module = "org.yaml:snakeyaml", version.ref = "snakeyaml"}
+snakeyaml = { module = "org.yaml:snakeyaml", version.ref = "snakeyaml" }
 # TODO: upgrade to log4j2
 log4j-template-json = { module = "org.apache.logging.log4j:log4j-layout-template-json", version.ref = "log4j-template-json" }
 lombok = { module = "org.projectlombok:lombok", version.ref = "lombok" }
@@ -104,6 +105,7 @@ slf4j-log4j12 = { module = "org.slf4j:slf4j-log4j12", version.ref = "slf4j" }
 toml4j = { module = "com.moandjiezana.toml:toml4j", version.ref = "toml4j" }
 spring-kafka = { module = "org.springframework.kafka:spring-kafka", version.ref = "spring-kafka" }
 spring-aws-messaging = { module = "org.springframework.cloud:spring-cloud-aws-messaging", version.ref = "spring-aws-messaging" }
+aws-java-sdk-s3 = { module = "com.amazonaws:aws-java-sdk-s3", version.ref = "aws-java-sdk-s3" }
 
 [bundles]
 slf4j = ["slf4j-api", "slf4j-log4j12"]
