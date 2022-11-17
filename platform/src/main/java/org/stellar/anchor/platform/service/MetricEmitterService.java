@@ -16,13 +16,13 @@ public class MetricEmitterService {
   private final ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
   private final MetricConfig metricConfig;
   private final JdbcSep31TransactionRepo sep31TransactionStore;
-  AtomicInteger pendingStellarTxns = new AtomicInteger(0);
-  AtomicInteger pendingCustomerInfoUpdateTxns = new AtomicInteger(0);
-  AtomicInteger pendingSenderTxns = new AtomicInteger(0);
-  AtomicInteger pendingReceiverTxns = new AtomicInteger(0);
-  AtomicInteger pendingExternalTxns = new AtomicInteger(0);
-  AtomicInteger completedTxns = new AtomicInteger(0);
-  AtomicInteger errorTxns = new AtomicInteger(0);
+  final AtomicInteger pendingStellarTxns = new AtomicInteger(0);
+  final AtomicInteger pendingCustomerInfoUpdateTxns = new AtomicInteger(0);
+  final AtomicInteger pendingSenderTxns = new AtomicInteger(0);
+  final AtomicInteger pendingReceiverTxns = new AtomicInteger(0);
+  final AtomicInteger pendingExternalTxns = new AtomicInteger(0);
+  final AtomicInteger completedTxns = new AtomicInteger(0);
+  final AtomicInteger errorTxns = new AtomicInteger(0);
 
   public MetricEmitterService(
       MetricConfig metricConfig, JdbcSep31TransactionRepo sep31TransactionRepo) {

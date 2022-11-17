@@ -76,7 +76,6 @@ public abstract class ConfigManager
     info("reading default configuration values");
     // Load default values
     ConfigMap latestConfig = loadDefaultConfig();
-    ConfigMap config = latestConfig;
 
     infoF("default configuration version={}", latestConfig.getVersion());
     // Check if default config is consistent with the definition
@@ -90,17 +89,17 @@ public abstract class ConfigManager
     if (configFileResource != null) {
       infoF("reading configuration file from {}", configFileResource.getURL());
       ConfigMap yamlConfig = loadConfig(configFileResource, FILE);
-      config.merge(updateToLatestConfig(latestConfig, yamlConfig));
+      latestConfig.merge(updateToLatestConfig(latestConfig, yamlConfig));
     }
 
     // Read and process the environment variable
     ConfigMap envConfig = loadConfigFromEnv(latestConfig.getVersion());
     if (envConfig != null) {
       info("Processing system environment variables");
-      config.merge(updateToLatestConfig(latestConfig, envConfig));
+      latestConfig.merge(updateToLatestConfig(latestConfig, envConfig));
     }
 
-    return config;
+    return latestConfig;
   }
 
   ConfigMap updateToLatestConfig(ConfigMap latestConfig, ConfigMap config)

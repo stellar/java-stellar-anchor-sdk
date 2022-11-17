@@ -15,8 +15,8 @@ import org.stellar.anchor.reference.repo.CustomerRepo;
 @Service
 public class FeeService {
   private final CustomerRepo customerRepo;
-  BigDecimal feePercent = decimal("0.02"); // fixed 2% fee.
-  BigDecimal feeFixed = decimal("0.1");
+  final BigDecimal feePercent = decimal("0.02"); // fixed 2% fee.
+  final BigDecimal feeFixed = decimal("0.1");
 
   FeeService(CustomerRepo customerRepo) {
     this.customerRepo = customerRepo;

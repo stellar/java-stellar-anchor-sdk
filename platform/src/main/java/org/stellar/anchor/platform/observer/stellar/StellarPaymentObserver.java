@@ -60,16 +60,16 @@ public class StellarPaymentObserver implements HealthCheckable {
   final PaymentObservingAccountsManager paymentObservingAccountsManager;
   SSEStream<OperationResponse> stream;
 
-  ExponentialBackoffTimer publishingBackoffTimer;
-  ExponentialBackoffTimer streamBackoffTimer;
+  final ExponentialBackoffTimer publishingBackoffTimer;
+  final ExponentialBackoffTimer streamBackoffTimer;
   int silenceTimeoutCount = 0;
 
   ObserverStatus status = RUNNING;
 
   Instant lastActivityTime;
 
-  ScheduledExecutorService silenceWatcher = Executors.newSingleThreadScheduledExecutor();
-  ScheduledExecutorService statusWatcher = Executors.newSingleThreadScheduledExecutor();
+  final ScheduledExecutorService silenceWatcher = Executors.newSingleThreadScheduledExecutor();
+  final ScheduledExecutorService statusWatcher = Executors.newSingleThreadScheduledExecutor();
 
   public StellarPaymentObserver(
       String horizonServer,

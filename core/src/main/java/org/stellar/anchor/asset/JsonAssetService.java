@@ -8,7 +8,7 @@ import org.stellar.anchor.util.GsonUtils;
 
 public class JsonAssetService implements AssetService {
   static final Gson gson = GsonUtils.getInstance();
-  Assets assets;
+  final Assets assets;
 
   public JsonAssetService(String assetJson) {
     this.assets = gson.fromJson(assetJson, Assets.class);

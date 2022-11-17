@@ -121,7 +121,7 @@ public class SepHelper {
     }
   }
 
-  static List<SepTransactionStatus> sep24Statuses =
+  static final List<SepTransactionStatus> sep24Statuses =
       List.of(
           INCOMPLETE,
           PENDING_USR_TRANSFER_START,
@@ -137,7 +137,7 @@ public class SepHelper {
           TOO_LARGE,
           ERROR);
 
-  static List<SepTransactionStatus> sep31Statuses =
+  static final List<SepTransactionStatus> sep31Statuses =
       List.of(
           PENDING_SENDER,
           PENDING_STELLAR,

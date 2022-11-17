@@ -50,7 +50,7 @@ import org.stellar.anchor.util.Log;
  * </pre>
  */
 public class DataConfigAdapter extends SpringConfigAdapter {
-  List<String> allFields =
+  final List<String> allFields =
       Arrays.asList(
           "spring.datasource.driver-class-name",
           "spring.datasource.name",

@@ -111,8 +111,8 @@ public class Sep31Controller {
   }
 
   private class Sep31CustomerInfoNeededResponse {
-    String error;
-    String type;
+    final String error;
+    final String type;
 
     public Sep31CustomerInfoNeededResponse(String type) {
       this.error = "customer_info_needed";

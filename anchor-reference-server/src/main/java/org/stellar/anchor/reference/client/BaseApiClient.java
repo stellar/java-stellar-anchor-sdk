@@ -13,8 +13,8 @@ import org.stellar.anchor.api.exception.SepNotAuthorizedException;
 import org.stellar.anchor.util.GsonUtils;
 
 public abstract class BaseApiClient {
-  static Gson gson = GsonUtils.getInstance();
-  static OkHttpClient client =
+  static final Gson gson = GsonUtils.getInstance();
+  static final OkHttpClient client =
       new OkHttpClient.Builder()
           .connectTimeout(10, TimeUnit.MINUTES)
           .readTimeout(10, TimeUnit.MINUTES)

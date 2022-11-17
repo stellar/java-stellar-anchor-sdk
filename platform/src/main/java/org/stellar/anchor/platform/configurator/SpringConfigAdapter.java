@@ -15,7 +15,7 @@ import org.stellar.anchor.api.exception.InvalidConfigException;
  * <p>The SpringConfigAdapter is NOT thread-safe.
  */
 public abstract class SpringConfigAdapter {
-  Properties props = new Properties();
+  final Properties props = new Properties();
 
   protected void set(String name, boolean value) {
     props.put(name, value);

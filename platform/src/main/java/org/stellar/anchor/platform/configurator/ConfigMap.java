@@ -7,7 +7,7 @@ import org.stellar.anchor.api.exception.InvalidConfigException;
 
 public class ConfigMap {
   int version;
-  Map<String, ConfigEntry> data;
+  final Map<String, ConfigEntry> data;
 
   // ConfigMap keys will be in normalized form (dot separated hierarchy)
   public ConfigMap() {

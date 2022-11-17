@@ -20,7 +20,7 @@ import org.stellar.anchor.platform.data.PaymentObservingAccount;
 import org.stellar.anchor.util.Log;
 
 public class PaymentObservingAccountsManager {
-  Map<String, ObservingAccount> allAccounts;
+  final Map<String, ObservingAccount> allAccounts;
   private final PaymentObservingAccountStore store;
 
   public PaymentObservingAccountsManager(PaymentObservingAccountStore store) {
