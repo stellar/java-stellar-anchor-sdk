@@ -72,14 +72,23 @@ public class ConfigMap {
     }
   }
 
-  public boolean sameAs(ConfigMap anotherMap) {
+  @Override
+  public boolean equals(Object obj) {
+    if (!(obj instanceof ConfigMap)) {
+      return false;
+    }
+
+    ConfigMap anotherMap = (ConfigMap) obj;
+    if (data.size() != anotherMap.data.size()) {
+      return false;
+    }
+
     for (String key : names()) {
       if (!anotherMap.getString(key).equals(getString(key))) {
         return false;
       }
     }
-
-    return data.size() == anotherMap.data.size();
+    return true;
   }
 
   public enum ConfigSource {
