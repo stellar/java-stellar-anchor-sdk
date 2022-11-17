@@ -7,7 +7,6 @@ import java.util.StringTokenizer;
 import org.apache.commons.beanutils.PropertyUtils;
 
 public class PropertyUtil {
-  @SuppressWarnings("unchecked")
   public static void set(Object instance, String path, Object value)
       throws ReflectiveOperationException {
     Target location = findTarget(instance, path, true);
@@ -19,7 +18,6 @@ public class PropertyUtil {
     }
   }
 
-  @SuppressWarnings("unchecked")
   public static Optional<Object> get(Object bean, String path) {
     try {
       Target target = findTarget(bean, path, false);
@@ -36,7 +34,6 @@ public class PropertyUtil {
     }
   }
 
-  @SuppressWarnings("unchecked")
   static Target findTarget(Object target, String path, boolean create)
       throws ReflectiveOperationException {
     StringTokenizer st = new StringTokenizer(path, ".");

@@ -1,4 +1,4 @@
-@file:Suppress("unused", "unused", "unused", "unused", "unused")
+@file:Suppress("unused")
 
 package org.stellar.anchor.platform.service
 
@@ -31,7 +31,7 @@ import org.stellar.anchor.sep31.*
 import org.stellar.anchor.sep38.Sep38Quote
 import org.stellar.anchor.sep38.Sep38QuoteStore
 
-@Suppress("unused", "unused")
+@Suppress("unused")
 class TransactionServiceTest {
   companion object {
     private const val fiatUSD = "iso4217:USD"

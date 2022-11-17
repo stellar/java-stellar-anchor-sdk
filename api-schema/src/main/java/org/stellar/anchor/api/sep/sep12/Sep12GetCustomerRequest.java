@@ -7,7 +7,21 @@ import lombok.Data;
 /**
  * Refer to SEP-12.
  *
- * <p>https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0012.md#request
+ * <p><<<<<<< Updated upstream
+ *
+ * <p><<<<<<< Updated upstream
+ *
+ * <p><a
+ * href="https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0012.md#request">...</a>
+ * ======= <a
+ * href="https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0012.md#request">...</a>
+ * >>>>>>> Stashed changes ======= <<<<<<< Updated upstream
+ *
+ * <p><a
+ * href="https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0012.md#request">...</a>
+ * ======= <a
+ * href="https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0012.md#request">...</a>
+ * >>>>>>> Stashed changes >>>>>>> Stashed changes
  */
 @Data
 @Builder

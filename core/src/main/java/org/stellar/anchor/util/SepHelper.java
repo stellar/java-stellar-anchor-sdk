@@ -10,7 +10,6 @@ import java.util.UUID;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
-import org.stellar.sdk.*;
 import org.stellar.sdk.xdr.MemoType;
 
 public class SepHelper {
