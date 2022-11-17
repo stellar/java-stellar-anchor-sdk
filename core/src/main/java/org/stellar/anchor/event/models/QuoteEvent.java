@@ -65,6 +65,7 @@ public class QuoteEvent implements AnchorEvent {
   RateFee fee;
 
   public enum Type {
+    UNDEFINED("undefined"),
     QUOTE_CREATED("quote_created");
 
     @JsonValue public final String type;

@@ -30,17 +30,9 @@ public abstract class SpringConfigAdapter {
   }
 
   protected void copy(ConfigMap config, String from, String to) throws InvalidConfigException {
-    copy(config, from, to, null);
-  }
-
-  protected void copy(ConfigMap config, String from, String to, String defaultValue)
-      throws InvalidConfigException {
     String value = config.getString(from);
     if (value == null) {
-      if (defaultValue == null) {
-        throw new InvalidConfigException(String.format("config[%s] is not defined", from));
-      }
-      value = defaultValue;
+      throw new InvalidConfigException(String.format("config[%s] is not defined", from));
     }
     set(to, value);
   }

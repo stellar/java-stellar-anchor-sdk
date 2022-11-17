@@ -146,6 +146,7 @@ public class TransactionEvent implements AnchorEvent {
   }
 
   public enum Sep {
+    SEP_24(24),
     SEP_31(31);
 
     private final Integer sep;
@@ -173,6 +174,7 @@ public class TransactionEvent implements AnchorEvent {
   }
 
   public enum Kind {
+    UNDEFINED("undefined"),
     RECEIVE("receive");
 
     public final String kind;
