@@ -7,6 +7,7 @@ import org.hibernate.dialect.function.StandardSQLFunction;
 import org.hibernate.dialect.function.VarArgsSQLFunction;
 import org.hibernate.type.StringType;
 
+@SuppressWarnings("SameReturnValue")
 public class SQLiteDialect extends Dialect {
   public SQLiteDialect() {
     registerColumnType(Types.BIT, "integer");
