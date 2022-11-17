@@ -1,16 +1,15 @@
 package org.stellar.anchor.sep1;
 
-import org.stellar.anchor.api.exception.InvalidConfigException;
-import org.stellar.anchor.config.Sep1Config;
-import org.stellar.anchor.util.Log;
-import org.stellar.anchor.util.NetUtil;
+import static org.stellar.anchor.util.Log.debug;
+import static org.stellar.anchor.util.Log.debugF;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-
-import static org.stellar.anchor.util.Log.debug;
-import static org.stellar.anchor.util.Log.debugF;
+import org.stellar.anchor.api.exception.InvalidConfigException;
+import org.stellar.anchor.config.Sep1Config;
+import org.stellar.anchor.util.Log;
+import org.stellar.anchor.util.NetUtil;
 
 public class Sep1Service {
   private String tomlValue;
