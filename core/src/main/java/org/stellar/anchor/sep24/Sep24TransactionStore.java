@@ -5,6 +5,7 @@ import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.sep.sep24.GetTransactionsRequest;
 
 /** This interface is for the SEP adapter service to query/save the transaction document. */
+@SuppressWarnings("RedundantThrows")
 public interface Sep24TransactionStore {
   Sep24Transaction newInstance();
 

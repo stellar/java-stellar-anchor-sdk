@@ -6,6 +6,7 @@ import lombok.NonNull;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.SepException;
 
+@SuppressWarnings("RedundantThrows")
 public interface Sep31TransactionStore {
   Sep31Transaction newTransaction();
 

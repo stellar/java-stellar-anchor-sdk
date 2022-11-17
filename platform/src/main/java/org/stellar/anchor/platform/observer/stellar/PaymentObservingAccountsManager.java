@@ -15,7 +15,6 @@ import java.util.concurrent.TimeUnit;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import lombok.AllArgsConstructor;
-import org.stellar.anchor.api.exception.ValueValidationException;
 import org.stellar.anchor.platform.data.PaymentObservingAccount;
 import org.stellar.anchor.util.Log;
 
@@ -29,7 +28,7 @@ public class PaymentObservingAccountsManager {
   }
 
   @PostConstruct
-  public void initialize() throws ValueValidationException {
+  public void initialize() {
     List<PaymentObservingAccount> accounts = store.list();
     for (PaymentObservingAccount account : accounts) {
       ObservingAccount oa =
@@ -68,7 +67,7 @@ public class PaymentObservingAccountsManager {
    * @param account The account being observed.
    * @param type true The account type.
    */
-  public void upsert(String account, AccountType type) throws ValueValidationException {
+  public void upsert(String account, AccountType type) {
     if (account != null && type != null) {
       upsert(new ObservingAccount(account, Instant.now(), type));
     }

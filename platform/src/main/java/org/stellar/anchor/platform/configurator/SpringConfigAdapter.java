@@ -25,7 +25,7 @@ public abstract class SpringConfigAdapter {
     props.put(name, value);
   }
 
-  protected void set(String name, String value) throws InvalidConfigException {
+  protected void set(String name, String value) {
     props.setProperty(name, value);
   }
 
