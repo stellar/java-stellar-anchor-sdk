@@ -4,6 +4,7 @@ import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.mockkStatic
+import java.nio.file.Files
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -12,7 +13,6 @@ import org.junit.jupiter.api.assertThrows
 import org.stellar.anchor.api.exception.InvalidConfigException
 import org.stellar.anchor.config.Sep1Config
 import org.stellar.anchor.util.NetUtil
-import java.nio.file.Files
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class Sep1ServiceTest {

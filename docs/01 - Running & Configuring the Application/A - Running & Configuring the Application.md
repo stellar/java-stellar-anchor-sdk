@@ -271,12 +271,12 @@ The format of anchor platform's logs can be set by the `LOG_APPENDER` environmen
 
 ```json
 {
-    "time": timestamp,
-    "source": logger,
-    "index": location,
+    "time": "2001-01-09 01:05:01",
+    "source": "o.s.a.p.ServiceRunner",
+    "index": "location",
     "event": {
-        "message": message,
-        "severity": level,
+        "message": "Starting ServiceRunner using Java 11.0.16...",
+        "severity": "DEBUG"
     }
 }
 ```

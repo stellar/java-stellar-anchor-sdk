@@ -24,8 +24,7 @@ import org.stellar.anchor.platform.configurator.SepConfigManager;
 public class AnchorPlatformServer implements WebMvcConfigurer {
   public static ConfigurableApplicationContext start(Map<String, Object> environment) {
     SpringApplicationBuilder builder =
-        new SpringApplicationBuilder(AnchorPlatformServer.class)
-            .bannerMode(OFF);
+        new SpringApplicationBuilder(AnchorPlatformServer.class).bannerMode(OFF);
 
     if (environment != null) {
       for (String name : environment.keySet()) {
