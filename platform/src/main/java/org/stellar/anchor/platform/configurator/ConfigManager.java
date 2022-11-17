@@ -27,13 +27,14 @@ public abstract class ConfigManager
     implements ApplicationContextInitializer<ConfigurableApplicationContext>, HealthCheckable {
 
   static final String STELLAR_ANCHOR_CONFIG = "STELLAR_ANCHOR_CONFIG";
-  static final ConfigManager configManager = new DefaultConfigManager();
+  static ConfigManager configManager;
 
   ConfigMap configMap;
 
   ConfigManager() {}
 
   public static ConfigManager getInstance() {
+    if (configManager == null) configManager = new DefaultConfigManager();
     return configManager;
   }
 
@@ -183,7 +184,7 @@ class DefaultConfigManager extends ConfigManager {
 
   @SneakyThrows
   @Override
-  public void initialize(ConfigurableApplicationContext applicationContext) {
+  public void initialize(@NotNull ConfigurableApplicationContext applicationContext) {
     // Read configuration from system environment variables, configuration file, and default values
     info("Read and process configurations");
     configMap = processConfigurations(applicationContext);
