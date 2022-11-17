@@ -53,7 +53,7 @@ public class StellarPaymentObserver implements HealthCheckable {
   private static final int MIN_RESULTS = 1;
 
   final Server server;
-  private StellarPaymentObserverConfig config;
+  private final StellarPaymentObserverConfig config;
   final List<PaymentListener> paymentListeners;
   final StellarPaymentStreamerCursorStore paymentStreamerCursorStore;
   final Map<SSEStream<OperationResponse>, String> mapStreamToAccount = new HashMap<>();

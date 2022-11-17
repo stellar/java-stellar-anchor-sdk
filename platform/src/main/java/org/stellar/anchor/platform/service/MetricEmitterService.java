@@ -14,7 +14,7 @@ import org.stellar.anchor.util.Log;
 
 public class MetricEmitterService {
   private final ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
-  private MetricConfig metricConfig;
+  private final MetricConfig metricConfig;
   private final JdbcSep31TransactionRepo sep31TransactionStore;
   AtomicInteger pendingStellarTxns = new AtomicInteger(0);
   AtomicInteger pendingCustomerInfoUpdateTxns = new AtomicInteger(0);

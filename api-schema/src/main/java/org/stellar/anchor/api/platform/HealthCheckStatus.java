@@ -5,7 +5,7 @@ public enum HealthCheckStatus {
   YELLOW("yellow"),
   GREEN("green");
 
-  String name;
+  final String name;
 
   HealthCheckStatus(String name) {
     this.name = name;
