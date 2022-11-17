@@ -1,4 +1,4 @@
-@file:Suppress("unused", "unused", "unused")
+@file:Suppress("unused")
 
 package org.stellar.anchor.platform.controller
 

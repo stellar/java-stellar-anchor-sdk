@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package org.stellar.anchor.platform.observer.stellar
 
 import com.google.gson.reflect.TypeToken

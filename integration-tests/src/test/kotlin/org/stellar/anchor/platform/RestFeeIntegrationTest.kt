@@ -1,4 +1,4 @@
-@file:Suppress("SameParameterValue", "SameParameterValue", "SameParameterValue")
+@file:Suppress("SameParameterValue")
 
 package org.stellar.anchor.platform
 

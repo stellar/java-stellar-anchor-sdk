@@ -7,10 +7,6 @@ import java.net.URLConnection;
 import org.springframework.validation.Errors;
 
 public class UrlValidationUtil {
-  static UrlConnectionStatus validateUrl(String urlString) {
-    return validateUrl(urlString, false);
-  }
-
   static UrlConnectionStatus validateUrl(String urlString, boolean testConnection) {
     try {
       URL url = new URL(urlString);
