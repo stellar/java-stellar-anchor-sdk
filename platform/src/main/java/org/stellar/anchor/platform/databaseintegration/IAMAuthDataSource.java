@@ -9,6 +9,7 @@ import org.springframework.data.util.Pair;
 
 // Used by the data-spring-jdbc-aws-aurora-postgres settings to allow authentication to the db via
 // AWS IAM
+@SuppressWarnings("unused")
 public class IAMAuthDataSource extends HikariDataSource {
   @Override
   public String getPassword() {

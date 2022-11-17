@@ -1,3 +1,5 @@
+@file:Suppress("unused", "unused", "unused")
+
 package org.stellar.anchor.platform.controller
 
 import io.mockk.MockKAnnotations
@@ -17,6 +19,7 @@ import org.stellar.anchor.healthcheck.HealthCheckable
 import org.stellar.anchor.platform.observer.stellar.StellarPaymentObserver
 import org.stellar.anchor.platform.service.HealthCheckService
 
+@Suppress("unused")
 class HealthControllerTest {
   @MockK private lateinit var stellarPaymentObserver: StellarPaymentObserver
 
