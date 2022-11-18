@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform.condition;
 
+import java.util.Arrays;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
@@ -34,9 +35,7 @@ public abstract class AbstractOnSepsEnabled extends SpringBootCondition {
 
     LinkedList<String> seps = new LinkedList<>();
     for (AnnotationAttributes annotationAttributes : allAnnotationAttributes) {
-      for (String sep : (String[]) annotationAttributes.get("seps")) {
-        seps.add(sep);
-      }
+      seps.addAll(Arrays.asList((String[]) annotationAttributes.get("seps")));
     }
 
     return getMatchOutcome(seps, context, className);

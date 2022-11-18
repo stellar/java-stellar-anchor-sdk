@@ -1,4 +1,4 @@
-@file:Suppress("unused")
+@file:Suppress("SameParameterValue", "SameParameterValue", "SameParameterValue")
 
 package org.stellar.anchor.sep38
 

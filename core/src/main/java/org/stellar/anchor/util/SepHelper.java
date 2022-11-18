@@ -77,10 +77,10 @@ public class SepHelper {
     BigDecimal sAmount = validateAmount("", amount);
     BigDecimal bdMin = new BigDecimal(min);
     BigDecimal bdMax = new BigDecimal(max);
-    if (sAmount.compareTo(bdMin) == -1) {
+    if (sAmount.compareTo(bdMin) < 0) {
       throw new BadRequestException(String.format("%samount less than min limit", messagePrefix));
     }
-    if (sAmount.compareTo(bdMax) == 1) {
+    if (sAmount.compareTo(bdMax) > 0) {
       throw new BadRequestException(String.format("%samount exceeds max limit", messagePrefix));
     }
   }

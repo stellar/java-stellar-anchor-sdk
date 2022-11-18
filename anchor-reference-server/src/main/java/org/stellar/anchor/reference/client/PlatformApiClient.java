@@ -8,6 +8,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import org.stellar.anchor.api.exception.AnchorException;
+import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.api.platform.GetTransactionResponse;
 import org.stellar.anchor.api.platform.PatchTransactionsRequest;
 import org.stellar.anchor.api.platform.PatchTransactionsResponse;
@@ -33,6 +34,9 @@ public class PlatformApiClient extends BaseApiClient {
   public PatchTransactionsResponse patchTransaction(PatchTransactionsRequest txnRequest)
       throws IOException, AnchorException {
     HttpUrl url = HttpUrl.parse(endpoint);
+    if (url == null)
+      throw new InvalidConfigException(
+          String.format("Invalid endpoint: %s of the client.", endpoint));
     url =
         new HttpUrl.Builder()
             .scheme(url.scheme())
@@ -49,6 +53,9 @@ public class PlatformApiClient extends BaseApiClient {
 
   public HashMap<?, ?> health(List<String> checks) throws IOException, AnchorException {
     HttpUrl url = HttpUrl.parse(endpoint);
+    if (url == null)
+      throw new InvalidConfigException(
+          String.format("Invalid endpoint: %s of the client.", endpoint));
     HttpUrl.Builder builder =
         new HttpUrl.Builder()
             .scheme(url.scheme())

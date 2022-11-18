@@ -1,5 +1,3 @@
-@file:Suppress("unused")
-
 package org.stellar.anchor.util
 
 import io.mockk.MockKAnnotations

@@ -23,8 +23,9 @@ public abstract class BaseApiClient {
           .build();
 
   String handleResponse(Response response) throws AnchorException, IOException {
-    String responseBody = response.body().string();
+    if (response.body() == null) throw new SepException("Empty response");
 
+    String responseBody = response.body().string();
     if (response.code() == HttpStatus.FORBIDDEN.value()) {
       throw new SepNotAuthorizedException("Forbidden");
     } else if (!List.of(

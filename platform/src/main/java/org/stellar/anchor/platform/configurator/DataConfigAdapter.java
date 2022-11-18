@@ -152,7 +152,7 @@ public class DataConfigAdapter extends SpringConfigAdapter {
         });
   }
 
-  void setSpringDataDefaults() throws InvalidConfigException {
+  void setSpringDataDefaults() {
     set("spring.datasource.generate-unique-name", "false");
 
     set("spring.datasource.hikari.connection-timeout ", 20000); // in ms
