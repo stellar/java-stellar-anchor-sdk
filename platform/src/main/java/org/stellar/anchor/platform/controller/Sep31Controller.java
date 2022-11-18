@@ -60,7 +60,7 @@ public class Sep31Controller {
       value = "/transactions/{id}",
       method = {RequestMethod.GET})
   public Sep31GetTransactionResponse getTransaction(
-      HttpServletRequest servletRequest, @PathVariable(name = "id") String txnId)
+      HttpServletRequest ignoredServletRequest, @PathVariable(name = "id") String txnId)
       throws AnchorException {
     debugF("GET /transactions id={}", txnId);
     return sep31Service.getTransaction(txnId);
@@ -73,7 +73,7 @@ public class Sep31Controller {
       consumes = {MediaType.APPLICATION_JSON_VALUE},
       method = {RequestMethod.PATCH})
   public Sep31GetTransactionResponse patchTransaction(
-      HttpServletRequest servletRequest,
+      HttpServletRequest ignoredServletRequest,
       @PathVariable(name = "id") String txnId,
       @RequestBody Sep31PatchTransactionRequest request)
       throws AnchorException {
