@@ -5,7 +5,7 @@ logging:
   stellar_level: DEBUG
 
 callback_api:
-  base_url: http://host.docker.internal:8081
+  base_url: http://localhost:8081
   auth:
     type: JWT_TOKEN
     expiration_milliseconds: 30000
@@ -20,7 +20,7 @@ events:
   publisher:
     type: kafka
     kafka:
-      bootstrap_server: host.docker.internal:29092
+      bootstrap_server: kafka:29092
 
 sep1:
   enabled: true
@@ -32,11 +32,11 @@ sep1:
       NETWORK_PASSPHRASE = "Test SDF Network ; September 2015"
       SIGNING_KEY = "GCHLHDBOKG2JWMJQBTLSL5XG6NO7ESXI2TAQKZXCXWXB5WI2X6W233PR"
       
-      WEB_AUTH_ENDPOINT = "http://host.docker.internal:8080/auth"
-      KYC_SERVER = "http://host.docker.internal:8080/sep12"
-      TRANSFER_SERVER_SEP0024 = "http://host.docker.internal:8080/sep24"
-      DIRECT_PAYMENT_SERVER = "http://host.docker.internal:8080/sep31"
-      ANCHOR_QUOTE_SERVER = "http://host.docker.internal:8080/sep38"
+      WEB_AUTH_ENDPOINT = "http://localhost:8080/auth"
+      KYC_SERVER = "http://localhost:8080/sep12"
+      TRANSFER_SERVER_SEP0024 = "http://localhost:8080/sep24"
+      DIRECT_PAYMENT_SERVER = "http://localhost:8080/sep31"
+      ANCHOR_QUOTE_SERVER = "http://localhost:8080/sep38"
       
       [[CURRENCIES]]
       code = "USDC"
@@ -56,14 +56,14 @@ sep1:
 
 sep10:
   enabled: true
-  home_domain: host.docker.internal:8080
+  home_domain: localhost:8080
 
 sep12:
   enabled: true
 
 sep24:
   enabled: true
-  interactiveUrl: http://host.docker.internal:8081/sep24/interactive
+  interactiveUrl: http://localhost:8081/sep24/interactive
 
 sep31:
   enabled: true
@@ -308,7 +308,7 @@ data:
   ## @type: string
   ## Location of the database
   #
-  url: jdbc:postgresql://host.docker.internal:5440/
+  url: jdbc:postgresql://db:5432/
 
   ## @param: initial_connection_pool_size
   ## @type: integer

@@ -9,6 +9,12 @@ services:
       - STELLAR_ANCHOR_CONFIG=file:/config/anchor-docker-compose-config.yaml
       - REFERENCE_SERVER_CONFIG_ENV=file:/reference-config/anchor-reference-server-docker-compose-config.yaml
       - LOG_APPENDER=console_appender
+      - SECRET_DATA_USERNAME=postgres
+      - SECRET_DATA_PASSWORD=password
+      - SECRET_PLATFORM_API_AUTH_SECRET=myAnchorToPlatformSecret
+      - SECRET_CALLBACK_API_AUTH_SECRET=myPlatformToAnchorSecret
+      - SECRET_SEP10_JWT_SECRET=secret
+      - SECRET_SEP10_SIGNING_SEED=SAX3AH622R2XT6DXWWSRIDCMMUCCMATBZ5U6XKJWDO7M2EJUBFC3AW5X
     depends_on:
       - db
       - kafka
@@ -46,7 +52,7 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://host.docker.internal:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1

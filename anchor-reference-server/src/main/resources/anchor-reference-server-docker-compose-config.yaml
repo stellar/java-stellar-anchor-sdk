@@ -8,8 +8,8 @@ server:
 #
 anchor.settings:
   version: 0.0.1
-  platformApiEndpoint: http://host.docker.internal:8080
-  hostUrl: http://host.docker.internal:8081
+  platformApiEndpoint: http://localhost:8080
+  hostUrl: http://localhost:8081
 
 integration-auth:
   authType: JWT_TOKEN
@@ -25,7 +25,7 @@ event:
   listenerType: kafka
 
 kafka.listener:
-  bootstrapServer: host.docker.internal:29092
+  bootstrapServer: kafka:29092
   useSingleQueue: false
   eventTypeToQueue:
     all: ap_event_single_queue
