@@ -133,16 +133,16 @@ payment_observer:
     silence_timeout_retries: 5
     
     # The initial backoff (cool-down) time (in seconds) before reconnecting to the Stellar network 
-    initial_stream_backoff_time: 1
+    initial_stream_backoff_time: 5
     
     # The maximum backoff (cool-down) time (in seconds) before reconnecting to the Stellar network 
     max_stream_backoff_time: 300
     
     # The initial backoff (cool-down) time (in seconds) before reconnecting to the event publisher 
-    initial_event_backoff_time: 1
+    initial_event_backoff_time: 5
     
     # The initial backoff (cool-down) time (in seconds) before reconnecting to the event publisher 
-    max_event_backoff_time: 1
+    max_event_backoff_time: 300
 
 ## @param: languages
 ## @supported_values: en

@@ -38,12 +38,20 @@ public class PaymentObserverConfig implements Validator {
   @Override
   public void validate(@NotNull Object target, @NotNull Errors errors) {
     PaymentObserverConfig config = (PaymentObserverConfig) target;
+    validateStellar(config, errors);
+    validateConfig(config, errors);
+  }
+
+  void validateConfig(PaymentObserverConfig config, Errors errors) {
     ValidationUtils.rejectIfEmptyOrWhitespace(
         errors,
         "payment_observer.type",
         "empty-payment-observer-type",
         "payment_observer.type must not be empty");
-    if (config.type.equals(PaymentObserverType.STELLAR)) {
+  }
+
+  void validateStellar(PaymentObserverConfig config, Errors errors) {
+    if (PaymentObserverType.STELLAR.equals(config.type)) {
       if (config.stellar == null) {
         errors.reject(
             "empty-payment-observer-stellar",
