@@ -12,8 +12,11 @@ COPY --from=build /code/service-runner/build/libs/anchor-platform-runner*.jar /a
 
 WORKDIR /app
 
-ENV DATADOG_JAVA_AGENT_VERSION=0.75.0
+# can enable datadog agent via JAVA_OPTS env variable, ex:
+# JAVA_OPTIONS="${JAVA_OPTIONS} -javaagent:/app/dd-java-agent.jar"
+ARG DATADOG_JAVA_AGENT_VERSION=0.75.0
 RUN wget --quiet --retry-connrefused --waitretry=1 --read-timeout=10 --timeout=10 --output-document /app/dd-java-agent.jar \
     https://repository.sonatype.org/service/local/repositories/central-proxy/content/com/datadoghq/dd-java-agent/${DATADOG_JAVA_AGENT_VERSION}/dd-java-agent-${DATADOG_JAVA_AGENT_VERSION}.jar && \
-    chmod +x /app/dd-java-agent.jar     
-ENTRYPOINT ["java", "-javaagent:dd-java-agent.jar", "-jar", "/app/anchor-platform-runner.jar"]
+    chmod +x /app/dd-java-agent.jar
+
+ENTRYPOINT ["java", "-jar", "/app/anchor-platform-runner.jar"]
