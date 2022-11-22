@@ -29,6 +29,7 @@ import org.stellar.anchor.sep31.*
 import org.stellar.anchor.sep38.Sep38Quote
 import org.stellar.anchor.sep38.Sep38QuoteStore
 
+@Suppress("unused")
 class TransactionServiceTest {
   companion object {
     private const val fiatUSD = "iso4217:USD"

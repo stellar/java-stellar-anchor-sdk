@@ -1,3 +1,5 @@
+@file:Suppress("unused", "SameParameterValue")
+
 package org.stellar.anchor.sep38
 
 import io.mockk.*
@@ -23,7 +25,6 @@ import org.stellar.anchor.api.sep.sep38.Sep38Context.SEP31
 import org.stellar.anchor.api.sep.sep38.Sep38Context.SEP6
 import org.stellar.anchor.api.shared.StellarId
 import org.stellar.anchor.asset.ResourceJsonAssetService
-import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.config.Sep38Config
 import org.stellar.anchor.event.EventService
@@ -54,7 +55,6 @@ class Sep38ServiceTest {
   @MockK(relaxed = true) private lateinit var eventService: EventService
 
   // sep10 related:
-  @MockK(relaxed = true) private lateinit var appConfig: AppConfig
   @MockK(relaxed = true) private lateinit var secretConfig: SecretConfig
 
   @BeforeEach

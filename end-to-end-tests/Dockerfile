@@ -7,4 +7,4 @@ RUN pip3 install -r requirements.txt
 
 COPY end-to-end-tests/. .
 
-Entrypoint [ "python3", "end_to_end_tests.py"]
+ENTRYPOINT [ "python3", "end_to_end_tests.py"]

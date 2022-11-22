@@ -25,8 +25,7 @@ public class PropertyAssetsService implements AssetService {
         if (assets == null || assets.getAssets() == null || assets.getAssets().size() == 0) {
           error("Invalid asset defined. assets JSON=", assetsJson);
           throw new InvalidConfigException(
-              String.format(
-                  "Invalid assets defined in configuration. Please check the logs for details."));
+              "Invalid assets defined in configuration. Please check the logs for details.");
         }
         break;
       case YAML:

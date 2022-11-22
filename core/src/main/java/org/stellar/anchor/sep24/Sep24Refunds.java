@@ -2,6 +2,7 @@ package org.stellar.anchor.sep24;
 
 import java.util.List;
 
+@SuppressWarnings("unused")
 public interface Sep24Refunds {
   String getAmountRefunded();
 

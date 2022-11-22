@@ -50,7 +50,7 @@ import org.stellar.anchor.util.Log;
  * </pre>
  */
 public class DataConfigAdapter extends SpringConfigAdapter {
-  List<String> allFields =
+  final List<String> allFields =
       Arrays.asList(
           "spring.datasource.driver-class-name",
           "spring.datasource.name",
@@ -152,7 +152,7 @@ public class DataConfigAdapter extends SpringConfigAdapter {
         });
   }
 
-  void setSpringDataDefaults() throws InvalidConfigException {
+  void setSpringDataDefaults() {
     set("spring.datasource.generate-unique-name", "false");
 
     set("spring.datasource.hikari.connection-timeout ", 20000); // in ms

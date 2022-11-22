@@ -26,6 +26,7 @@ public class MathHelper {
     return BigDecimal.valueOf(value);
   }
 
+  @SuppressWarnings("BooleanMethodIsAlwaysInverted")
   public static boolean equalsAsDecimals(String valueA, String valueB) {
     if (valueA == null && valueB == null) {
       return true;

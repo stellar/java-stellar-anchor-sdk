@@ -8,7 +8,7 @@ import org.stellar.anchor.platform.data.PaymentObservingAccountRepo;
 import org.stellar.anchor.util.Log;
 
 public class PaymentObservingAccountStore {
-  PaymentObservingAccountRepo repo;
+  final PaymentObservingAccountRepo repo;
 
   public PaymentObservingAccountStore(PaymentObservingAccountRepo repo) {
     this.repo = repo;

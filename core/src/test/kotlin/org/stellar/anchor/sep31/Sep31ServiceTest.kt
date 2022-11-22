@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package org.stellar.anchor.sep31
 
 import com.google.gson.Gson

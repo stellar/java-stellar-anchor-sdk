@@ -54,10 +54,12 @@ public class InfoResponse {
 
     private transient Integer decimals;
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean supportsSellDeliveryMethod(String deliveryMethod) {
       return supportsDeliveryMethod(sellDeliveryMethods, deliveryMethod);
     }
 
+    @SuppressWarnings("BooleanMethodIsAlwaysInverted")
     public boolean supportsBuyDeliveryMethod(String deliveryMethod) {
       return supportsDeliveryMethod(buyDeliveryMethods, deliveryMethod);
     }

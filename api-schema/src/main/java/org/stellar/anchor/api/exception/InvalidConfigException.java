@@ -7,7 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 
 @Getter
 public class InvalidConfigException extends AnchorException {
-  List<String> messages;
+  final List<String> messages;
 
   public InvalidConfigException(String... messages) {
     this(Arrays.asList(messages), null);

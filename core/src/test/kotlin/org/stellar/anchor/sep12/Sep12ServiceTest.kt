@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package org.stellar.anchor.sep12
 
 import io.mockk.*

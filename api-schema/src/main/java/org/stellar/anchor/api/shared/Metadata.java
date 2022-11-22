@@ -20,6 +20,7 @@ public class Metadata {
     return projectProperties;
   }
 
+  @SuppressWarnings("unused")
   private static String get(String key) {
     return get(key, null);
   }

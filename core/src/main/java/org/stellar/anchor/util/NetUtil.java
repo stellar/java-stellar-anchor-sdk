@@ -16,6 +16,7 @@ public class NetUtil {
     return Objects.requireNonNull(response.body()).string();
   }
 
+  @SuppressWarnings("BooleanMethodIsAlwaysInverted")
   public static boolean isUrlValid(String url) {
     /* Try creating a valid URL */
     try {

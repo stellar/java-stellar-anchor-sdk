@@ -19,7 +19,7 @@ import org.stellar.sdk.KeyPair;
 @Service
 @ConditionalOnPropertyNotEmpty("anchor.settings.distributionWallet")
 public class UniqueAddressService {
-  AppSettings appSettings;
+  final AppSettings appSettings;
 
   UniqueAddressService(AppSettings appSettings) throws SepException {
     this.appSettings = appSettings;

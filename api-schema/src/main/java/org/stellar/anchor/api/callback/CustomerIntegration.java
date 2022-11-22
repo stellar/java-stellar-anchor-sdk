@@ -40,6 +40,7 @@ public interface CustomerIntegration {
    * @return The response.
    * @throws AnchorException if error happens
    */
+  @SuppressWarnings("RedundantThrows")
   PutCustomerVerificationResponse putVerification(PutCustomerVerificationRequest request)
       throws AnchorException;
 }

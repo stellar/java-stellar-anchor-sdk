@@ -35,7 +35,6 @@ import org.stellar.sdk.KeyPair;
 import org.stellar.sdk.Memo;
 
 public class Sep24Service {
-  final Gson gson;
   final AppConfig appConfig;
   final Sep24Config sep24Config;
   final AssetService assetService;
@@ -51,7 +50,6 @@ public class Sep24Service {
       Sep24TransactionStore txnStore) {
     debug("appConfig:", appConfig);
     debug("sep24Config:", sep24Config);
-    this.gson = gson;
     this.appConfig = appConfig;
     this.sep24Config = sep24Config;
     this.assetService = assetService;

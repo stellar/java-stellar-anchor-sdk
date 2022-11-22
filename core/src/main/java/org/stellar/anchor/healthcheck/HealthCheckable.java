@@ -37,7 +37,7 @@ public interface HealthCheckable extends Comparable<HealthCheckable> {
     EVENT("evnet"),
     CONFIG("config");
 
-    private String name;
+    private final String name;
 
     Tags(String name) {
       this.name = name;

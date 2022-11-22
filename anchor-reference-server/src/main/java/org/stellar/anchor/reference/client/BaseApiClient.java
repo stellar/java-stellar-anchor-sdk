@@ -13,8 +13,8 @@ import org.stellar.anchor.api.exception.SepNotAuthorizedException;
 import org.stellar.anchor.util.GsonUtils;
 
 public abstract class BaseApiClient {
-  static Gson gson = GsonUtils.getInstance();
-  static OkHttpClient client =
+  static final Gson gson = GsonUtils.getInstance();
+  static final OkHttpClient client =
       new OkHttpClient.Builder()
           .connectTimeout(10, TimeUnit.MINUTES)
           .readTimeout(10, TimeUnit.MINUTES)
@@ -23,8 +23,9 @@ public abstract class BaseApiClient {
           .build();
 
   String handleResponse(Response response) throws AnchorException, IOException {
-    String responseBody = response.body().string();
+    if (response.body() == null) throw new SepException("Empty response");
 
+    String responseBody = response.body().string();
     if (response.code() == HttpStatus.FORBIDDEN.value()) {
       throw new SepNotAuthorizedException("Forbidden");
     } else if (!List.of(

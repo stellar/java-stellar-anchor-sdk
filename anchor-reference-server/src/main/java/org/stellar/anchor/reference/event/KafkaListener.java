@@ -164,7 +164,7 @@ public class KafkaListener extends AbstractEventListener implements HealthChecka
 class KafkaHealthCheckResult implements HealthCheckResult {
   transient String name;
 
-  List<HealthCheckStatus> statuses = List.of(GREEN, RED);
+  List<HealthCheckStatus> statuses;
 
   HealthCheckStatus status;
 

@@ -13,7 +13,7 @@ dependencies {
 
   api(libs.lombok)
 
-  // Lombok should be used by all sub-projects to reduce Java verbosity
+  // Lombok should be used by all subprojects to reduce Java verbosity
   annotationProcessor(libs.lombok)
 
   implementation(libs.spring.kafka)

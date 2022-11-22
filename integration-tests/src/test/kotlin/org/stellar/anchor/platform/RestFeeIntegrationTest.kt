@@ -1,3 +1,5 @@
+@file:Suppress("SameParameterValue")
+
 package org.stellar.anchor.platform
 
 import io.mockk.*

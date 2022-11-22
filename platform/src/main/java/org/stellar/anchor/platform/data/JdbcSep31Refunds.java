@@ -23,9 +23,7 @@ public class JdbcSep31Refunds implements Refunds {
     if (refundPayments == null) return null;
     // getPayments() is made for Gson serialization.
     List<RefundPayment> payments = new ArrayList<>(refundPayments.size());
-    for (JdbcSep31RefundPayment refundPayment : refundPayments) {
-      payments.add(refundPayment);
-    }
+    payments.addAll(refundPayments);
     return payments;
   }
 

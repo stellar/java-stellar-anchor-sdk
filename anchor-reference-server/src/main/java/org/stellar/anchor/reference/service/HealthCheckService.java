@@ -12,7 +12,7 @@ import org.stellar.anchor.healthcheck.HealthCheckable;
 @Service
 @DependsOn("eventListener")
 public class HealthCheckService {
-  HealthCheckProcessor processor;
+  final HealthCheckProcessor processor;
 
   public HealthCheckService(List<HealthCheckable> checkables) {
     checkables.forEach(

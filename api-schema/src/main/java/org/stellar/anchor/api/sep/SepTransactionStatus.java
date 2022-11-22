@@ -43,6 +43,7 @@ public enum SepTransactionStatus {
     return name;
   }
 
+  @SuppressWarnings("unused")
   public String getDescription() {
     return description;
   }

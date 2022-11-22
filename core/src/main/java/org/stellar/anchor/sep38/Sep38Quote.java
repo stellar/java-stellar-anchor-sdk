@@ -40,6 +40,7 @@ public interface Sep38Quote {
 
   void setBuyAmount(String buyAmount);
 
+  @SuppressWarnings("unused")
   String getBuyDeliveryMethod();
 
   void setBuyDeliveryMethod(String buyDeliveryMethod);

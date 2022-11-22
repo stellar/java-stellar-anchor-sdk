@@ -5,6 +5,7 @@ import static org.stellar.anchor.util.Log.debugF;
 import static org.stellar.anchor.util.Log.errorEx;
 
 import javax.servlet.http.HttpServletRequest;
+import lombok.Data;
 import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -59,9 +60,8 @@ public class Sep31Controller {
       value = "/transactions/{id}",
       method = {RequestMethod.GET})
   public Sep31GetTransactionResponse getTransaction(
-      HttpServletRequest servletRequest, @PathVariable(name = "id") String txnId)
+      HttpServletRequest ignoredServletRequest, @PathVariable(name = "id") String txnId)
       throws AnchorException {
-    JwtToken jwtToken = getSep10Token(servletRequest);
     debugF("GET /transactions id={}", txnId);
     return sep31Service.getTransaction(txnId);
   }
@@ -73,11 +73,10 @@ public class Sep31Controller {
       consumes = {MediaType.APPLICATION_JSON_VALUE},
       method = {RequestMethod.PATCH})
   public Sep31GetTransactionResponse patchTransaction(
-      HttpServletRequest servletRequest,
+      HttpServletRequest ignoredServletRequest,
       @PathVariable(name = "id") String txnId,
       @RequestBody Sep31PatchTransactionRequest request)
       throws AnchorException {
-    JwtToken jwtToken = getSep10Token(servletRequest);
     debugF("PATCH /transactions id={} request={}", txnId, request);
     return sep31Service.patchTransaction(request);
   }
@@ -110,9 +109,10 @@ public class Sep31Controller {
     }
   }
 
-  private class Sep31CustomerInfoNeededResponse {
-    String error;
-    String type;
+  @Data
+  static class Sep31CustomerInfoNeededResponse {
+    final String error;
+    final String type;
 
     public Sep31CustomerInfoNeededResponse(String type) {
       this.error = "customer_info_needed";

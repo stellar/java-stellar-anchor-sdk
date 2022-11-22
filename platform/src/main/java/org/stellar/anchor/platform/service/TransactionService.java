@@ -36,7 +36,7 @@ public class TransactionService {
   private final Sep38QuoteStore quoteStore;
   private final Sep31TransactionStore txnStore;
   private final List<AssetInfo> assets;
-  static List<String> validStatuses =
+  static final List<String> validStatuses =
       List.of(
           PENDING_STELLAR.getName(),
           PENDING_CUSTOMER_INFO_UPDATE.getName(),

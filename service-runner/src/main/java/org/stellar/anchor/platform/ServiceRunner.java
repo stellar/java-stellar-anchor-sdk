@@ -59,7 +59,6 @@ public class ServiceRunner {
     if (strPort != null) {
       port = Integer.parseInt(strPort);
     }
-    String contextPath = System.getProperty("ANCHOR_REFERENCE_CONTEXT_PATH");
     AnchorReferenceServer.start(port, "/");
   }
 

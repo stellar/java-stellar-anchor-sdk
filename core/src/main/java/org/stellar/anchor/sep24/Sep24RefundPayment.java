@@ -1,5 +1,6 @@
 package org.stellar.anchor.sep24;
 
+@SuppressWarnings("unused")
 public interface Sep24RefundPayment {
   /**
    * The payment ID that can be used to identify the refund payment. This is either a Stellar

@@ -8,6 +8,7 @@ import org.stellar.anchor.api.sep.sep31.Sep31GetTransactionResponse;
 import org.stellar.anchor.api.shared.*;
 import org.stellar.anchor.event.models.TransactionEvent;
 
+@SuppressWarnings("unused")
 public interface Sep31Transaction {
   String getId();
 

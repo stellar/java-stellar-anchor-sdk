@@ -185,36 +185,34 @@ public class PaymentOperationToEventListener implements PaymentListener {
       TransactionEvent.StatusChange statusChange,
       String message,
       StellarTransaction newStellarTransaction) {
-    TransactionEvent event =
-        TransactionEvent.builder()
-            .eventId(UUID.randomUUID().toString())
-            .type(TransactionEvent.Type.TRANSACTION_STATUS_CHANGED)
-            .id(txn.getId())
-            .sep(TransactionEvent.Sep.SEP_31)
-            .kind(TransactionEvent.Kind.RECEIVE)
-            .status(statusChange.getTo())
-            .statusChange(statusChange)
-            .amountExpected(new Amount(txn.getAmountExpected(), txn.getAmountInAsset()))
-            .amountIn(new Amount(payment.getAmount(), txn.getAmountInAsset()))
-            .amountOut(new Amount(txn.getAmountOut(), txn.getAmountOutAsset()))
-            // TODO: fix PATCH transaction fails if getAmountOut is null?
-            .amountFee(new Amount(txn.getAmountFee(), txn.getAmountFeeAsset()))
-            .quoteId(txn.getQuoteId())
-            .startedAt(txn.getStartedAt())
-            .updatedAt(txn.getUpdatedAt())
-            .completedAt(null)
-            .transferReceivedAt(txn.getTransferReceivedAt())
-            .message(message)
-            .refunds(null)
-            .stellarTransactions(List.of(newStellarTransaction))
-            .externalTransactionId(payment.getExternalTransactionId())
-            .custodialTransactionId(null)
-            .sourceAccount(payment.getFrom())
-            .destinationAccount(payment.getTo())
-            .customers(txn.getCustomers())
-            .creator(txn.getCreator())
-            .build();
-    return event;
+    return TransactionEvent.builder()
+        .eventId(UUID.randomUUID().toString())
+        .type(TransactionEvent.Type.TRANSACTION_STATUS_CHANGED)
+        .id(txn.getId())
+        .sep(TransactionEvent.Sep.SEP_31)
+        .kind(TransactionEvent.Kind.RECEIVE)
+        .status(statusChange.getTo())
+        .statusChange(statusChange)
+        .amountExpected(new Amount(txn.getAmountExpected(), txn.getAmountInAsset()))
+        .amountIn(new Amount(payment.getAmount(), txn.getAmountInAsset()))
+        .amountOut(new Amount(txn.getAmountOut(), txn.getAmountOutAsset()))
+        // TODO: fix PATCH transaction fails if getAmountOut is null?
+        .amountFee(new Amount(txn.getAmountFee(), txn.getAmountFeeAsset()))
+        .quoteId(txn.getQuoteId())
+        .startedAt(txn.getStartedAt())
+        .updatedAt(txn.getUpdatedAt())
+        .completedAt(null)
+        .transferReceivedAt(txn.getTransferReceivedAt())
+        .message(message)
+        .refunds(null)
+        .stellarTransactions(List.of(newStellarTransaction))
+        .externalTransactionId(payment.getExternalTransactionId())
+        .custodialTransactionId(null)
+        .sourceAccount(payment.getFrom())
+        .destinationAccount(payment.getTo())
+        .customers(txn.getCustomers())
+        .creator(txn.getCreator())
+        .build();
   }
 
   Instant parsePaymentTime(String paymentTimeStr) {

@@ -3,7 +3,7 @@ package org.stellar.anchor.platform
 import io.mockk.*
 import java.time.Instant
 import java.time.format.DateTimeFormatter
-import java.util.Calendar
+import java.util.*
 import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.hamcrest.CoreMatchers
@@ -22,7 +22,7 @@ import org.stellar.anchor.api.exception.NotFoundException
 import org.stellar.anchor.api.exception.ServerErrorException
 import org.stellar.anchor.api.sep.sep38.RateFee
 import org.stellar.anchor.api.sep.sep38.RateFeeDetail
-import org.stellar.anchor.api.sep.sep38.Sep38Context.*
+import org.stellar.anchor.api.sep.sep38.Sep38Context.SEP31
 import org.stellar.anchor.auth.AuthHelper
 import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.auth.JwtToken
