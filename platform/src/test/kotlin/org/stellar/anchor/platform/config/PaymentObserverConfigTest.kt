@@ -42,7 +42,8 @@ class PaymentObserverConfigTest {
         "90,5,5,0,300,5,300,1,invalid-payment-observer-stellar-initial-stream-backoff-time",
         "90,5,5,5,0,5,300,1,invalid-payment-observer-stellar-max-stream-backoff-time",
         "90,5,5,5,300,0,300,1,invalid-payment-observer-stellar-initial-event-backoff-time",
-        "90,5,5,5,300,5,0,1,invalid-payment-observer-stellar-max-event-backoff-time"]
+        "90,5,5,5,300,5,0,1,invalid-payment-observer-stellar-max-event-backoff-time"
+      ]
   )
   fun `test invalid stellar config`(
     p0: String,
@@ -70,7 +71,7 @@ class PaymentObserverConfigTest {
     config.validateStellar(config, errors)
     assertEquals(errorCount.toInt(), errors.errorCount)
     if (errors.errorCount > 0) {
-      assertEquals(errorCode, errors.allErrors.get(0).code)
+      assertEquals(errorCode, errors.allErrors[0].code)
     }
   }
 
@@ -79,6 +80,6 @@ class PaymentObserverConfigTest {
     config.setStellar(null)
     config.validateStellar(config, errors)
     assertEquals(1, errors.errorCount)
-    assertEquals("empty-payment-observer-stellar", errors.allErrors.get(0).code)
+    assertEquals("empty-payment-observer-stellar", errors.allErrors[0].code)
   }
 }

@@ -22,59 +22,104 @@ public class PropertyEventConfig implements EventConfig, Validator {
 
   @Override
   public void validate(@NotNull Object target, @NotNull Errors errors) {
-    EventConfig config = (EventConfig) target;
+    PropertyEventConfig config = (PropertyEventConfig) target;
     if (!config.isEnabled()) {
       return;
     }
 
-    // Validate publisher type
-    ValidationUtils.rejectIfEmptyOrWhitespace(errors, "publisher.type", "");
+    validateConfig(config, errors);
 
     PublisherConfig publisherConfig = config.getPublisher();
     String publisherType = publisherConfig.getType();
     switch (publisherType) {
       case "msk":
-        ValidationUtils.rejectIfEmptyOrWhitespace(
-            errors,
-            "publisher.msk.useIAM",
-            "empty-msk-use-iam",
-            "use_IAM must be defined for MSK publisher");
+        validateMsk(config, errors);
+        break;
         // continue to the kafka case. DO NOT break
       case "kafka":
-        ValidationUtils.rejectIfEmptyOrWhitespace(
-            errors, "publisher.kafka.bootstrapServer", "empty-bootstrapServer");
-        ValidationUtils.rejectIfEmptyOrWhitespace(
-            errors,
-            "publisher.kafka.retries",
-            "empty-retries",
-            "retries must be set for KAFKA/MSK publisher");
-        ValidationUtils.rejectIfEmptyOrWhitespace(
-            errors,
-            "publisher.kafka.batchSize",
-            "empty-batch-size",
-            "batch_size must be set for KAFKA/MSK publisher");
-        ValidationUtils.rejectIfEmptyOrWhitespace(
-            errors,
-            "publisher.kafka.lingerMs",
-            "empty-linger-ms",
-            "linger_ms must be set for KAFKA/MSK publisher");
-
+        validateKafka(config, errors);
         break;
       case "sqs":
-        ValidationUtils.rejectIfEmptyOrWhitespace(
-            errors,
-            "publisher.sqs.useIAM",
-            "empty-sqs-use-iam",
-            "use_IAM must be defined for SQS publisher");
-        ValidationUtils.rejectIfEmptyOrWhitespace(
-            errors,
-            "publisher.sqs.awsRegion",
-            "empty-aws-region",
-            "aws_region must be defined for SQS publisher");
+        validateSqs(config, errors);
         break;
       default:
         errors.rejectValue(
-            "publisherType", "invalidType-publisherType", "publisherType set to unknown type");
+            "publisher.type",
+            "invalidType-publisher-type",
+            "events.publisher.type must be one of 'kafka', 'sqs', or msk");
     }
+  }
+
+  void validateSqs(EventConfig config, Errors errors) {
+    ValidationUtils.rejectIfEmptyOrWhitespace(
+        errors,
+        "publisher.sqs.useIAM",
+        "empty-sqs-use-iam",
+        "use_IAM must be defined for SQS publisher");
+    ValidationUtils.rejectIfEmptyOrWhitespace(
+        errors,
+        "publisher.sqs.awsRegion",
+        "empty-sqs-aws-region",
+        "aws_region must be defined for SQS publisher");
+  }
+
+  void validateKafka(PropertyEventConfig config, Errors errors) {
+    ValidationUtils.rejectIfEmptyOrWhitespace(
+        errors, "publisher.kafka.bootstrapServer", "empty-kafka-bootstrap-server");
+    if (config.publisher.kafka.retries < 0) {
+      errors.rejectValue(
+          "publisher.kafka.retries",
+          "bad-kafka-retries",
+          "events.publisher.kafka.retries must be greater than 0");
+    }
+
+    if (config.publisher.kafka.lingerMs < 0) {
+      errors.rejectValue(
+          "publisher.kafka.lingerMs",
+          "bad-kafka-linger-ms",
+          "events.publisher.kafka.linger_ms must be greater than 0");
+    }
+
+    if (config.publisher.kafka.batchSize < 0) {
+      errors.rejectValue(
+          "publisher.kafka.batchSize",
+          "bad-kafka-batch-size",
+          "events.publisher.kafka.batch_size must be greater than 0");
+    }
+  }
+
+  void validateMsk(PropertyEventConfig config, Errors errors) {
+    ValidationUtils.rejectIfEmptyOrWhitespace(
+        errors, "publisher.msk.bootstrapServer", "empty-msk-bootstrap-server");
+
+    if (config.publisher.msk.retries < 0) {
+      errors.rejectValue(
+          "publisher.msk.retries",
+          "bad-msk-retries",
+          "events.publisher.msk.retries must be greater than 0");
+    }
+
+    if (config.publisher.msk.lingerMs < 0) {
+      errors.rejectValue(
+          "publisher.msk.lingerMs",
+          "bad-msk-linger-ms",
+          "events.publisher.msk.linger_ms must be greater than 0");
+    }
+
+    if (config.publisher.msk.batchSize < 0) {
+      errors.rejectValue(
+          "publisher.msk.batchSize",
+          "bad-msk-batch-size",
+          "events.publisher.msk.batch_size must be greater than 0");
+    }
+  }
+
+  void validateConfig(EventConfig config, Errors errors) {
+    // Validate publisher type
+    ValidationUtils.rejectIfEmptyOrWhitespace(errors, "publisher.type", "empty-publisher-type");
+    ValidationUtils.rejectIfEmptyOrWhitespace(
+        errors,
+        "publisher.event_type_to_queue.quote_created",
+        "empty-publisher-event_type-to-queue");
   }
 }

@@ -42,7 +42,7 @@ class CallbackApiConfigTest {
     config.baseUrl = "http://localhost; 8080"
     config.validateBaseUrl(config, errors)
     assertEquals(1, errors.errorCount)
-    assertEquals("mal-formatted-callback-api-base-url", errors.allErrors.get(0).code)
+    assertEquals("mal-formatted-callback-api-base-url", errors.allErrors[0].code)
   }
 
   @Test
@@ -51,7 +51,7 @@ class CallbackApiConfigTest {
     config.baseUrl = ""
     config.validateBaseUrl(config, errors)
     assertEquals(2, errors.errorCount)
-    assertEquals("empty-callback-api-base-url", errors.allErrors.get(0).code)
+    assertEquals("empty-callback-api-base-url", errors.allErrors[0].code)
   }
 
   @Test
@@ -70,6 +70,6 @@ class CallbackApiConfigTest {
     config.setAuth(AuthInfo(JWT_TOKEN, null, "30000"))
     config.validateAuth(config, errors)
     assertEquals(1, errors.errorCount)
-    assertEquals("empty-secret-callback-api-secret", errors.allErrors.get(0).code)
+    assertEquals("empty-secret-callback-api-secret", errors.allErrors[0].code)
   }
 }
