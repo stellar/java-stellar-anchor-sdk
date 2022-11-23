@@ -27,11 +27,11 @@ Updates the transaction with the amounts & fees collected in the interactive flo
 
 This action is only relevant for SEP-24, because SEP-6 & SEP-31 receive the amounts in their respective transaction initiation endpoints, and the platform requests fee information immediately.
 
-```json
+```js
 [
   {
     "jsonrpc": "2.0",
-    "method": "complete_interactive_flow",
+    "method": "notify_interactive_flow_complete",
     "params": {
       "transaction_id": "1840201241",
       "amount_in": {
@@ -52,21 +52,15 @@ This action is only relevant for SEP-24, because SEP-6 & SEP-31 receive the amou
 ]
 ```
 
-### request_funds
+### request_offchain_funds
 
-Updates the transaction with the information needed for the user / sender to send funds. This is relevant to all SEPs.
+Updates the transaction with the information needed for the user / sender to send funds off-chain. This is relevant for SEP-6 & 24
 
-Currently, SEP-31 support in the Anchor Platform assumes the business is ready to receive funds if the customers have passed KYC in SEP-12. The Platform requests this information in the GET /unique_address endpoint.
-
-However, we’ve learned that partners may have transaction-specific information to review (like AML compliance) per transaction. So in the future (or for initial SEP-24/SEP-6 support), the Platform should support the business not returning the information required for the user to send funds immediately, and support this action for providing that information later.
-
-Deposit case:
-
-```json
+```js
 [
   {
     "jsonrpc": "2.0",
-    "method": "request_funds",
+    "method": "request_offchain_funds",
     "params": {
       "transaction_id": "59014132454",
       "message": "Make an ACH or wire transfer to The Company with address 123 Address & reference number 123",
@@ -80,13 +74,15 @@ Deposit case:
 ]
 ```
 
-Withdraw / send case:
+### request_stellar_funds
 
-```json
+Updates the transaction with information needed for the user / sender to send funds on-chain. This is relavant to all SEPs.
+
+```js
 [
   {
     "jsonrpc": "2.0",
-    "method": "request_funds",
+    "method": "request_stellar_funds",
     "params": {
       "transaction_id": "59014132454",
       "message": "make a payment to the provided Stellar account & memo",
@@ -97,24 +93,23 @@ Withdraw / send case:
 ]
 ```
 
-### notify_funds_received
+### notify_offchain_funds_received
 
-Update the user / sender that funds have been received either off-chain or on-chain. If the Anchor Platform has been configured to detect inbound payments, this action is unnecessary unless the business wants to provide a more specific status message.
+Update the user / sender that funds have been received off-chain. 
 
 The business may also update the amounts using this action, to support the case where the user / sender sent an amount different than was originally specified. 
 
 If SEP-38 quotes were used, changing amounts is not accepted. In this case the business should cancel/expire/error the transaction and request the user initiate a new transaction with the updated amounts or refund the amount received.
 
-```json
+```js
 [
   {
     "jsonrpc": "2.0",
-    "method": "notify_funds_received",
+    "method": "notify_offchain_funds_received",
     "params": {
       "transaction_id": "59014132454",
-      "stellar_transaction_id": "0dac12813c0dca12ce3...", // if withdraw / send & AP not configured to detect payments
-      "funds_received_at": "<UTC datetime>", // if AP not configured to detect payments
-      "external_transaction_id": "18012412399", // if deposit
+      "funds_received_at": "<UTC datetime>",
+      "external_transaction_id": "18012412399",
       "amount_in": { // amounts only passed if update needed
         "amount": "105",
         "asset": "iso4217:USD"
@@ -128,6 +123,100 @@ If SEP-38 quotes were used, changing amounts is not accepted. In this case the b
         "asset": "stellar:USDC:G..."
       },
       "message": "funds have been received"
+    }
+  }
+]
+```
+
+### notify_stellar_funds_received
+
+Updates the user / sender that funds have been received on Stellar. If the Anchor Platform has been configured to detect inbound payments, this action is unnecessary unless the business wants to provide a more specific status message.
+
+The business may also update the amounts using this action, to support the case where the user / sender sent an amount different than was originally specified. 
+
+If SEP-38 quotes were used, changing amounts is not accepted. In this case the business should cancel/expire/error the transaction and request the user initiate a new transaction with the updated amounts or refund the amount received.
+
+```js
+[
+  {
+    "jsonrpc": "2.0",
+    "method": "notify_stellar_funds_received",
+    "params": {
+      "transaction_id": "59014132454",
+      "stellar_transaction_id": "0dac12813c0dca12ce3...",
+      "funds_received_at": "<UTC datetime>",
+      "amount_in": { // amounts only passed if update needed
+        "amount": "105",
+        "asset": "iso4217:USD"
+      },
+      "amount_fee": {
+        "amount": "5",
+        "asset": "iso4217:USD"
+      },
+      "amount_out": {
+        "amount": "100",
+        "asset": "stellar:USDC:G..."
+      },
+      "message": "funds have been received"
+    }
+  }
+]
+```
+
+### notify_offchain_funds_delivered
+
+Updates the transaction to notify the user / sender that the business has initiated or completed the off-chain payment.
+
+If the non-Stellar payment rails used by the business can provide information on whether the funds have been delivered, then it is preferred that the business update the payment as “pending_external”. If the fails used do not provide this information, or at a later time the funds are delivered, the business should update the transaction as delivered.
+
+```js
+[
+  {
+    "jsonrpc": "2.0",
+    "method": "notify_funds_sent",
+    "params": {
+      "transaction_id": "59014132454",
+      "funds_delivered_at": "<UTC datetime>",
+      "external_transaction_id": "18012412399",
+      "message": "an ACH transfer has been initiated and your funds should be deposited into your  account within 3-5 business days",
+    }
+  }
+]
+```
+
+### notify_stellar_funds_delivered
+
+Updates the transaction to notify the user / sender that the business has sent the on-chain payment. Only necessary if the Anchor Platform is not configured to send Stellar payments. Use `make_stellar_payment` to send Stellar payments using the Platform.
+
+```js
+[
+  {
+    "jsonrpc": "2.0",
+    "method": "notify_stellar_funds_delivered",
+    "params": {
+      "transaction_id": "59014132454",
+      "stellar_transaction_id": "0dac12813c0dca12ce3...",
+      "funds_sent_at": "<UTC datetime>",
+      "message": "an ACH transfer has been initiated and your funds should be deposited into your  account within 3-5 business days",
+    }
+  }
+]
+```
+
+### notify_funds_available
+
+Used when the business does not deliver funds and instead requires the user / recipient to pick up or collect funds off-chain.
+
+```js
+[
+  {
+    "jsonrpc": "2.0",
+    "method": "notify_offchain_funds_available",
+    "params": {
+      "transaction_id": "59014132454",
+      "funds_made_available_at": "<UTC datetime>",
+      "external_transaction_id": "18012412399",
+      "message": "pick up cash at 123 Address",
     }
   }
 ]
@@ -147,7 +236,7 @@ The Platform will wait until a trustline is established or the payment is cancel
 
 The Platform will automatically update transaction statuses and make status callbacks as necessary throughout this process.
 
-```json
+```js
 [
   {
     "jsonrpc": "2.0",
@@ -169,7 +258,7 @@ Refunds and any fees charged will always be denominated in units of the asset or
 
 Because the business could make multiple refund payments, an idempotency key is required.  JSON RPC uses the “id” attribute for idempotency.
 
-```json
+```js
 [
   {
     "jsonrpc": "2.0",
@@ -192,14 +281,32 @@ Payment cancellations can be requested but are not guaranteed. If the Anchor Pla
 
 If a request to horizon or the configured custodian has not occurred, the Anchor Platform will remove the payment from its queue and update the transaction’s state accordingly.
 
-```json
+```js
 [
   {
     "jsonrpc": "2.0",
     "method": "cancel_stellar_payment",
     "params": {
+      "transaction_id": "184018401"
+    }
+  }
+]
+```
+
+### cancel_stellar_refund
+
+Payment cancellations can be requested but are not guaranteed. If the Anchor Platform has submitted a Stellar transaction to Horizon or queued the payment through the configured custodian before detecting the cancellation request, the payment may still occur.
+
+If a request to horizon or the configured custodian has not occurred, the Anchor Platform will remove the payment from its queue and update the transaction’s state accordingly.
+
+```js
+[
+  {
+    "jsonrpc": "2.0",
+    "method": "cancel_stellar_refund",
+    "params": {
       "transaction_id": "184018401",
-      "refund_id": null
+      "refund_id": "502033"
     }
   }
 ]
