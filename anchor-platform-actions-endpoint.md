@@ -27,7 +27,7 @@ Updates the transaction with the amounts & fees collected in the interactive flo
 
 This action is only relevant for SEP-24, because SEP-6 & SEP-31 receive the amounts in their respective transaction initiation endpoints, and the platform requests fee information immediately.
 
-```js
+```json
 [
   {
     "jsonrpc": "2.0",
@@ -56,7 +56,7 @@ This action is only relevant for SEP-24, because SEP-6 & SEP-31 receive the amou
 
 Updates the transaction with the information needed for the user / sender to send funds off-chain. This is relevant for SEP-6 & 24
 
-```js
+```json
 [
   {
     "jsonrpc": "2.0",
@@ -78,7 +78,7 @@ Updates the transaction with the information needed for the user / sender to sen
 
 Updates the transaction with information needed for the user / sender to send funds on-chain. This is relavant to all SEPs.
 
-```js
+```json
 [
   {
     "jsonrpc": "2.0",
@@ -101,7 +101,7 @@ The business may also update the amounts using this action, to support the case 
 
 If SEP-38 quotes were used, changing amounts is not accepted. In this case the business should cancel/expire/error the transaction and request the user initiate a new transaction with the updated amounts or refund the amount received.
 
-```js
+```json
 [
   {
     "jsonrpc": "2.0",
@@ -136,7 +136,7 @@ The business may also update the amounts using this action, to support the case 
 
 If SEP-38 quotes were used, changing amounts is not accepted. In this case the business should cancel/expire/error the transaction and request the user initiate a new transaction with the updated amounts or refund the amount received.
 
-```js
+```json
 [
   {
     "jsonrpc": "2.0",
@@ -169,7 +169,7 @@ Updates the transaction to notify the user / sender that the business has initia
 
 If the non-Stellar payment rails used by the business can provide information on whether the funds have been delivered, then it is preferred that the business update the payment as “pending_external”. If the fails used do not provide this information, or at a later time the funds are delivered, the business should update the transaction as delivered.
 
-```js
+```json
 [
   {
     "jsonrpc": "2.0",
@@ -188,7 +188,7 @@ If the non-Stellar payment rails used by the business can provide information on
 
 Updates the transaction to notify the user / sender that the business has sent the on-chain payment. Only necessary if the Anchor Platform is not configured to send Stellar payments. Use `make_stellar_payment` to send Stellar payments using the Platform.
 
-```js
+```json
 [
   {
     "jsonrpc": "2.0",
@@ -207,7 +207,7 @@ Updates the transaction to notify the user / sender that the business has sent t
 
 Used when the business does not deliver funds and instead requires the user / recipient to pick up or collect funds off-chain.
 
-```js
+```json
 [
   {
     "jsonrpc": "2.0",
@@ -236,7 +236,7 @@ The Platform will wait until a trustline is established or the payment is cancel
 
 The Platform will automatically update transaction statuses and make status callbacks as necessary throughout this process.
 
-```js
+```json
 [
   {
     "jsonrpc": "2.0",
@@ -258,7 +258,7 @@ Refunds and any fees charged will always be denominated in units of the asset or
 
 Because the business could make multiple refund payments, an idempotency key is required.  JSON RPC uses the “id” attribute for idempotency.
 
-```js
+```json
 [
   {
     "jsonrpc": "2.0",
@@ -277,7 +277,7 @@ Because the business could make multiple refund payments, an idempotency key is 
 
 ### notify_stellar_refund_delivered
 
-```js
+```json
 [
   {
     "jsonrpc": "2.0",
@@ -300,7 +300,7 @@ Payment cancellations can be requested but are not guaranteed. If the Anchor Pla
 
 If a request to horizon or the configured custodian has not occurred, the Anchor Platform will remove the payment from its queue and update the transaction’s state accordingly.
 
-```js
+```json
 [
   {
     "jsonrpc": "2.0",
@@ -318,7 +318,7 @@ Payment cancellations can be requested but are not guaranteed. If the Anchor Pla
 
 If a request to horizon or the configured custodian has not occurred, the Anchor Platform will remove the payment from its queue and update the transaction’s state accordingly.
 
-```js
+```json
 [
   {
     "jsonrpc": "2.0",
@@ -335,7 +335,7 @@ If a request to horizon or the configured custodian has not occurred, the Anchor
 
 Lets say a _deposit_ interactive flow was served, the user completed the flow, and the business is ready to receive funds. Note that its possible to notify the platform that the interactive flow is complete without being ready to receive funds. In this case you would send the 2nd object included in the payload below at a later time.
 
-```js
+```json
 [
   {
     "jsonrpc": "2.0",
@@ -369,7 +369,7 @@ Lets say a _deposit_ interactive flow was served, the user completed the flow, a
 
 Ok, now the user has send the ACH transfer to the correct bank account, with the correct reference number, and for the expected amount. Lets notify the wallet and send funds to the user.
 
-```js
+```json
 [
   {
     "jsonrpc": "2.0",
@@ -399,7 +399,7 @@ Lets say a _withdraw_ interactive flow was served, the user completed the flow, 
 
 Also, if the business wanted the anchor platform to generate the receive address & memo, they would just omit those attributes and make sure the Anchor Platform is configured to connect to their custody service.
 
-```js
+```json
 [
   {
     "jsonrpc": "2.0",
@@ -435,7 +435,7 @@ Also, if the business wanted the anchor platform to generate the receive address
 
 Now lets say the user sends the Stellar payment. Remember, the business uses another system to detect inbound payments and doesn't use the Anchor Platform's payment observer. So the business should update the Platform with that information. 
 
-```js
+```json
 [
   {
     "jsonrpc": "2.0",
@@ -452,7 +452,7 @@ Now lets say the user sends the Stellar payment. Remember, the business uses ano
 
 And then the business initiates the ACH deposit. The business knows it will take some time to deliver, but won't be able to know when it is officially delivered, so it updates as complete on their end.
 
-```js
+```json
 [
   {
     "jsonrpc": "2.0",
@@ -469,7 +469,7 @@ And then the business initiates the ACH deposit. The business knows it will take
 
 But wait! An error occured trying to send the ACH deposit. The business sends a refund payment over Stellar using some other system, and updates the Anchor Platform.
 
-```js
+```json
 [
   {
     "jsonrpc": "2.0",
