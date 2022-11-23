@@ -1,4 +1,4 @@
-# Anchor Platform API - POST /actions
+# Anchor Platform RPC API
 
 ## Background
 
@@ -275,6 +275,25 @@ Because the business could make multiple refund payments, an idempotency key is 
 ]
 ```
 
+### notify_stellar_refund_delivered
+
+```js
+[
+  {
+    "jsonrpc": "2.0",
+    "method": "notify_stellar_refund_delivered",
+    "params": {
+      "transaction_id": "17402749012",
+      "refund": {
+        "id": "0dac12813c0dca12ce3...",
+        "amount": "10.0",
+        "fee": "2.0"
+      }
+    }
+  }
+]
+```
+
 ### cancel_stellar_payment
 
 Payment cancellations can be requested but are not guaranteed. If the Anchor Platform has submitted a Stellar transaction to Horizon or queued the payment through the configured custodian before detecting the cancellation request, the payment may still occur.
@@ -307,6 +326,161 @@ If a request to horizon or the configured custodian has not occurred, the Anchor
     "params": {
       "transaction_id": "184018401",
       "refund_id": "502033"
+    }
+  }
+]
+```
+
+## Example: SEP-24 deposit, using Anchor Platform for payments
+
+Lets say a _deposit_ interactive flow was served, the user completed the flow, and the business is ready to receive funds. Note that its possible to notify the platform that the interactive flow is complete without being ready to receive funds. In this case you would send the 2nd object included in the payload below at a later time.
+
+```js
+[
+  {
+    "jsonrpc": "2.0",
+    "method": "notify_interactive_flow_complete",
+    "params": {
+      "transaction_id": "1840201241",
+      "amount_in": {
+        "amount": "105",
+        "asset": "iso4217:USD"
+      },
+      "amount_fee": {
+        "amount": "5",
+        "asset": "iso4217:USD"
+      },
+      "amount_out": {
+        "amount": "100",
+        "asset": "stellar:USDC:G..."
+      }
+    }
+  },
+  {
+    "jsonrpc": "2.0",
+    "method": "request_offchain_funds",
+    "params": {
+      "transaction_id": "1840201241",
+      "message": "Make an ACH or wire transfer to The Company with address 123 Address & reference number 123"
+    }
+  }
+]
+```
+
+Ok, now the user has send the ACH transfer to the correct bank account, with the correct reference number, and for the expected amount. Lets notify the wallet and send funds to the user.
+
+```js
+[
+  {
+    "jsonrpc": "2.0",
+    "method": "notify_offchain_funds_received",
+    "params": {
+      "transaction_id": "1840201241",
+      "funds_received_at": "<UTC datetime>",
+      "external_transaction_id": "18012412399",
+      "message": "funds have been received"
+    } 
+  },
+  {
+    "jsonrpc": "2.0",
+    "method": "make_stellar_payment",
+    "params": {
+      "transaction_id": "1840201241"
+    }
+  }
+]
+```
+
+Thats it! Done.
+
+## Example: SEP-24 withdraw, not using Anchor Platform for payments, refund occurs
+
+Lets say a _withdraw_ interactive flow was served, the user completed the flow, and the business is ready to receive funds on Stellar. Note that its possible to notify the platform that the interactive flow is complete without being ready to receive funds. In this case you would send the 2nd object included in the payload below at a later time.
+
+Also, if the business wanted the anchor platform to generate the receive address & memo, they would just omit those attributes and make sure the Anchor Platform is configured to connect to their custody service.
+
+```js
+[
+  {
+    "jsonrpc": "2.0",
+    "method": "notify_interactive_flow_complete",
+    "params": {
+      "transaction_id": "1840201241",
+      "amount_in": {
+        "amount": "105",
+        "asset": "stellar:USDC:G..."
+      },
+      "amount_fee": {
+        "amount": "5",
+        "asset": "stellar:USDC:G..."
+      },
+      "amount_out": {
+        "amount": "100",
+        "asset": "iso4217:USD"
+      }
+    }
+  },
+  {
+    "jsonrpc": "2.0",
+    "method": "request_stellar_funds",
+    "params": {
+      "transaction_id": "1840201241",
+      "message": "make a payment to the provided Stellar account & memo",
+      "stellar_account": "G...",
+      "memo": "175001348"
+    }
+  }
+]
+```
+
+Now lets say the user sends the Stellar payment. Remember, the business uses another system to detect inbound payments and doesn't use the Anchor Platform's payment observer. So the business should update the Platform with that information. 
+
+```js
+[
+  {
+    "jsonrpc": "2.0",
+    "method": "notify_stellar_funds_received",
+    "params": {
+      "transaction_id": "1840201241",
+      "stellar_transaction_id": "0dac12813c0dca12ce3...",
+      "funds_received_at": "<UTC datetime>",
+      "message": "funds have been received, processing ACH deposit"
+    }
+  }
+]
+```
+
+And then the business initiates the ACH deposit. The business knows it will take some time to deliver, but won't be able to know when it is officially delivered, so it updates as complete on their end.
+
+```js
+[
+  {
+    "jsonrpc": "2.0",
+    "method": "notify_offchain_funds_delivered",
+    "params": {
+      "transaction_id": "1840201241",
+      "funds_delivered_at": "<UTC datetime>",
+      "external_transaction_id": "18012412399",
+      "message": "an ACH transfer has been initiated and your funds should be deposited into your  account within 3-5 business days",
+    }
+  }
+]
+```
+
+But wait! An error occured trying to send the ACH deposit. The business sends a refund payment over Stellar using some other system, and updates the Anchor Platform.
+
+```js
+[
+  {
+    "jsonrpc": "2.0",
+    "method": "notify_stellar_refund_delivered",
+    "params": {
+      "transaction_id": "17402749012",
+      "refund": {
+        "id": "0dac12813c0dca12ce3...",
+        "amount": "10.0",
+        "fee": "2.0"
+      }
     }
   }
 ]
