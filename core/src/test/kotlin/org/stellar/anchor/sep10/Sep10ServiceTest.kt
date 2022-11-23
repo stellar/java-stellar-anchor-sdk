@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package org.stellar.anchor.sep10
 
 import com.google.common.io.BaseEncoding

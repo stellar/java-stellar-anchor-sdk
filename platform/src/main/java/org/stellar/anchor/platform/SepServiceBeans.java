@@ -79,7 +79,7 @@ public class SepServiceBeans {
   }
 
   @Bean
-  Sep1Service sep1Service(Sep1Config sep1Config) throws IOException {
+  Sep1Service sep1Service(Sep1Config sep1Config) throws IOException, InvalidConfigException {
     return new Sep1Service(sep1Config);
   }
 

@@ -146,6 +146,8 @@ public class TransactionEvent implements AnchorEvent {
   }
 
   public enum Sep {
+    @SuppressWarnings("unused")
+    SEP_24(24),
     SEP_31(31);
 
     private final Integer sep;
@@ -163,6 +165,7 @@ public class TransactionEvent implements AnchorEvent {
   public enum Type {
     TRANSACTION_CREATED("transaction_created"),
     TRANSACTION_STATUS_CHANGED("transaction_status_changed"),
+    @SuppressWarnings("unused")
     TRANSACTION_ERROR("transaction_error");
 
     @JsonValue public final String type;
@@ -173,6 +176,8 @@ public class TransactionEvent implements AnchorEvent {
   }
 
   public enum Kind {
+    @SuppressWarnings("unused")
+    UNDEFINED("undefined"),
     RECEIVE("receive");
 
     public final String kind;

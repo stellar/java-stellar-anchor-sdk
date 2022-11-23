@@ -38,7 +38,8 @@ class Sep31HelperTest {
         "pending_sender",
         "completed",
         "expired",
-        "error"]
+        "error"
+      ]
   )
   fun `test validate status`(status: String) {
     val txn = PojoSep31Transaction()

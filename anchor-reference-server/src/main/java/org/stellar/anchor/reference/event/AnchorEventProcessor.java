@@ -24,11 +24,8 @@ public class AnchorEventProcessor {
 
   public void handleQuoteEvent(QuoteEvent event) {
     Log.debugF("Received quote event: {}", event);
-    switch (event.getType()) {
-      case "quote_created":
-        break;
-      default:
-        Log.debugF("error: anchor_platform_event - invalid message type '{}'", event.getType());
+    if (!"quote_created".equals(event.getType())) {
+      Log.debugF("error: anchor_platform_event - invalid message type '{}'", event.getType());
     }
   }
 

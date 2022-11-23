@@ -84,7 +84,8 @@ class ApiKeyAuthIntegrationTest {
         "PATCH,/transactions",
         "GET,/transactions/my_id",
         "GET,/exchange/quotes",
-        "GET,/exchange/quotes/id"]
+        "GET,/exchange/quotes/id"
+      ]
   )
   fun test_incomingPlatformAuth_emptyApiKey_authFails(method: String, endpoint: String) {
     val httpRequest =
@@ -105,7 +106,8 @@ class ApiKeyAuthIntegrationTest {
         "PATCH,/transactions",
         "GET,/transactions/my_id",
         "GET,/exchange/quotes",
-        "GET,/exchange/quotes/id"]
+        "GET,/exchange/quotes/id"
+      ]
   )
   fun test_incomingPlatformAuth_apiKey_authPasses(method: String, endpoint: String) {
     val httpRequest =
@@ -137,7 +139,8 @@ class ApiKeyAuthIntegrationTest {
           "asset": "iso4217:USD"
         }
       }
-    }""".trimMargin()
+    }"""
+            .trimMargin()
         )
     )
     val sep38Service = platformServerContext.getBean(Sep38Service::class.java)
@@ -173,10 +176,8 @@ class ApiKeyAuthIntegrationTest {
         &sell_asset=iso4217%3AUSD
         &sell_amount=100
         &buy_asset=stellar%3AUSDC%3AGDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP
-        """.replace(
-        "\n        ",
-        ""
-      )
+        """
+        .replace("\n        ", "")
     MatcherAssert.assertThat(request.path, CoreMatchers.endsWith(wantEndpoint))
     assertEquals("", request.body.readUtf8())
   }

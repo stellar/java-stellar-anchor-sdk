@@ -9,10 +9,8 @@ import org.stellar.anchor.api.shared.StellarTransaction;
 
 public class Sep31TransactionBuilder {
   final Sep31Transaction txn;
-  final Sep31TransactionStore factory;
 
   public Sep31TransactionBuilder(Sep31TransactionStore factory) {
-    this.factory = factory;
     this.txn = factory.newTransaction();
   }
 

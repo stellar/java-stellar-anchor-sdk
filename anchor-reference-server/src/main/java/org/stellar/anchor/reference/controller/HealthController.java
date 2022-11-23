@@ -9,7 +9,7 @@ import org.stellar.anchor.reference.service.HealthCheckService;
 @CrossOrigin(origins = "*")
 @RequestMapping(value = "/health")
 public class HealthController {
-  HealthCheckService healthCheckService;
+  final HealthCheckService healthCheckService;
 
   HealthController(HealthCheckService healthCheckService) {
     this.healthCheckService = healthCheckService;

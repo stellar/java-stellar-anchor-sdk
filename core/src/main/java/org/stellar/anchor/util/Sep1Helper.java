@@ -14,7 +14,7 @@ public class Sep1Helper {
   }
 
   public static class TomlContent {
-    private Toml toml;
+    private final Toml toml;
 
     TomlContent(URL url) throws IOException {
       String tomlValue = NetUtil.fetch(url.toString());

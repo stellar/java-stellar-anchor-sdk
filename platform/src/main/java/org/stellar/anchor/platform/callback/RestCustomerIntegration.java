@@ -15,7 +15,6 @@ import okhttp3.*;
 import okhttp3.HttpUrl.Builder;
 import org.springframework.http.HttpStatus;
 import org.stellar.anchor.api.callback.*;
-import org.stellar.anchor.api.callback.CustomerIntegration;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.ServerErrorException;
 import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerRequest;

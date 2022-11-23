@@ -29,6 +29,7 @@ import org.stellar.anchor.sep31.*
 import org.stellar.anchor.sep38.Sep38Quote
 import org.stellar.anchor.sep38.Sep38QuoteStore
 
+@Suppress("unused")
 class TransactionServiceTest {
   companion object {
     private const val fiatUSD = "iso4217:USD"
@@ -303,7 +304,8 @@ class TransactionServiceTest {
         "COMPLETED",
         "REFUNDED",
         "EXPIRED",
-        "ERROR"]
+        "ERROR"
+      ]
   )
   fun test_validateIfStatusIsSupported_failure(sepTxnStatus: SepTransactionStatus) {
     val ex: Exception = assertThrows {
@@ -325,7 +327,8 @@ class TransactionServiceTest {
         "PENDING_EXTERNAL",
         "COMPLETED",
         "EXPIRED",
-        "ERROR"]
+        "ERROR"
+      ]
   )
   fun test_validateIfStatusIsSupported(sepTxnStatus: SepTransactionStatus) {
     assertDoesNotThrow { transactionService.validateIfStatusIsSupported(sepTxnStatus.getName()) }

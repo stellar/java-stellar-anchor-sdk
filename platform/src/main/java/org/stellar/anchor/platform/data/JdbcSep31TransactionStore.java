@@ -5,7 +5,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import lombok.NonNull;
-import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.sep31.RefundPayment;
 import org.stellar.anchor.sep31.Refunds;
@@ -35,19 +34,18 @@ public class JdbcSep31TransactionStore implements Sep31TransactionStore {
   }
 
   @Override
-  public Sep31Transaction findByTransactionId(@NonNull String transactionId)
-      throws AnchorException {
+  public Sep31Transaction findByTransactionId(@NonNull String transactionId) {
     return transactionRepo.findById(transactionId).orElse(null);
   }
 
   @Override
   public List<? extends Sep31Transaction> findByTransactionIds(
-      @NonNull Collection<String> transactionId) throws AnchorException {
+      @NonNull Collection<String> transactionId) {
     return transactionRepo.findByIds(transactionId);
   }
 
   @Override
-  public Sep31Transaction findByStellarMemo(@NonNull String memo) throws AnchorException {
+  public Sep31Transaction findByStellarMemo(@NonNull String memo) {
     return transactionRepo.findByStellarMemo(memo).orElse(null);
   }
 

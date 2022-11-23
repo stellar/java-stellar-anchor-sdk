@@ -221,6 +221,7 @@ def wait_for_anchor_platform_ready(domain, poll_interval=3, timeout=180):
         try:
             toml = fetch_stellar_toml(domain, use_http=True)
             print("anchor platform is ready")
+            time.sleep(30)
             return
         except Exception as e:
             print(e)

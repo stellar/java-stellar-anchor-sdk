@@ -10,7 +10,6 @@ import java.util.UUID;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
-import org.stellar.sdk.*;
 import org.stellar.sdk.xdr.MemoType;
 
 public class SepHelper {
@@ -78,10 +77,10 @@ public class SepHelper {
     BigDecimal sAmount = validateAmount("", amount);
     BigDecimal bdMin = new BigDecimal(min);
     BigDecimal bdMax = new BigDecimal(max);
-    if (sAmount.compareTo(bdMin) == -1) {
+    if (sAmount.compareTo(bdMin) < 0) {
       throw new BadRequestException(String.format("%samount less than min limit", messagePrefix));
     }
-    if (sAmount.compareTo(bdMax) == 1) {
+    if (sAmount.compareTo(bdMax) > 0) {
       throw new BadRequestException(String.format("%samount exceeds max limit", messagePrefix));
     }
   }
@@ -121,7 +120,7 @@ public class SepHelper {
     }
   }
 
-  static List<SepTransactionStatus> sep24Statuses =
+  static final List<SepTransactionStatus> sep24Statuses =
       List.of(
           INCOMPLETE,
           PENDING_USR_TRANSFER_START,
@@ -137,7 +136,7 @@ public class SepHelper {
           TOO_LARGE,
           ERROR);
 
-  static List<SepTransactionStatus> sep31Statuses =
+  static final List<SepTransactionStatus> sep31Statuses =
       List.of(
           PENDING_SENDER,
           PENDING_STELLAR,

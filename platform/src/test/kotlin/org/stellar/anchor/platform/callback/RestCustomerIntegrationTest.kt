@@ -94,7 +94,8 @@ class RestCustomerIntegrationTest {
                 "status": "ACCEPTED"
               }
             }
-        }""".trimMargin()
+        }"""
+            .trimMargin()
         )
     )
 
@@ -128,10 +129,8 @@ class RestCustomerIntegrationTest {
         &memo_type=memoType
         &type=sending_user
         &lang=en
-        """.replace(
-        "\n        ",
-        ""
-      )
+        """
+        .replace("\n        ", "")
     MatcherAssert.assertThat(request.path, CoreMatchers.endsWith(wantEndpoint))
     assertEquals("", request.body.readUtf8())
   }
@@ -197,7 +196,8 @@ class RestCustomerIntegrationTest {
       "memo": "memo",
       "first_name": "John",
       "last_name": "Doe"
-    }""".trimMargin()
+    }"""
+        .trimMargin()
     JSONAssert.assertEquals(wantBody, request.body.readUtf8(), true)
   }
 
@@ -226,7 +226,8 @@ class RestCustomerIntegrationTest {
       """{
       "id": "customer-id",
       "account": "$TEST_ACCOUNT"
-    }""".trimMargin()
+    }"""
+        .trimMargin()
     JSONAssert.assertEquals(wantBody, request.body.readUtf8(), true)
   }
 

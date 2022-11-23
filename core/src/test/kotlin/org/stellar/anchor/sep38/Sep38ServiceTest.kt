@@ -1,3 +1,5 @@
+@file:Suppress("unused", "SameParameterValue")
+
 package org.stellar.anchor.sep38
 
 import io.mockk.*
@@ -23,7 +25,6 @@ import org.stellar.anchor.api.sep.sep38.Sep38Context.SEP31
 import org.stellar.anchor.api.sep.sep38.Sep38Context.SEP6
 import org.stellar.anchor.api.shared.StellarId
 import org.stellar.anchor.asset.ResourceJsonAssetService
-import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.config.Sep38Config
 import org.stellar.anchor.event.EventService
@@ -54,7 +55,6 @@ class Sep38ServiceTest {
   @MockK(relaxed = true) private lateinit var eventService: EventService
 
   // sep10 related:
-  @MockK(relaxed = true) private lateinit var appConfig: AppConfig
   @MockK(relaxed = true) private lateinit var secretConfig: SecretConfig
 
   @BeforeEach
@@ -709,256 +709,236 @@ class Sep38ServiceTest {
     assertEquals("sell_asset cannot be empty", ex.message)
 
     // nonexistent sell_asset
-    ex =
-      assertThrows {
-        sep38Service.postQuote(
-          token,
-          Sep38PostQuoteRequest.builder().sellAssetName("foo:bar").build()
-        )
-      }
+    ex = assertThrows {
+      sep38Service.postQuote(
+        token,
+        Sep38PostQuoteRequest.builder().sellAssetName("foo:bar").build()
+      )
+    }
     assertInstanceOf(NotFoundException::class.java, ex)
     assertEquals("sell_asset not found", ex.message)
 
     // empty buy_asset
-    ex =
-      assertThrows {
-        sep38Service.postQuote(
-          token,
-          Sep38PostQuoteRequest.builder().sellAssetName(fiatUSD).build()
-        )
-      }
+    ex = assertThrows {
+      sep38Service.postQuote(token, Sep38PostQuoteRequest.builder().sellAssetName(fiatUSD).build())
+    }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("buy_asset cannot be empty", ex.message)
 
     // nonexistent buy_asset
-    ex =
-      assertThrows {
-        sep38Service.postQuote(
-          token,
-          Sep38PostQuoteRequest.builder().sellAssetName(fiatUSD).buyAssetName("foo:bar").build()
-        )
-      }
+    ex = assertThrows {
+      sep38Service.postQuote(
+        token,
+        Sep38PostQuoteRequest.builder().sellAssetName(fiatUSD).buyAssetName("foo:bar").build()
+      )
+    }
     assertInstanceOf(NotFoundException::class.java, ex)
     assertEquals("buy_asset not found", ex.message)
 
     // both sell_amount & buy_amount are empty
-    ex =
-      assertThrows {
-        sep38Service.postQuote(
-          token,
-          Sep38PostQuoteRequest.builder().sellAssetName(fiatUSD).buyAssetName(stellarUSDC).build()
-        )
-      }
+    ex = assertThrows {
+      sep38Service.postQuote(
+        token,
+        Sep38PostQuoteRequest.builder().sellAssetName(fiatUSD).buyAssetName(stellarUSDC).build()
+      )
+    }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("Please provide either sell_amount or buy_amount", ex.message)
 
     // both sell_amount & buy_amount are filled
-    ex =
-      assertThrows {
-        sep38Service.postQuote(
-          token,
-          Sep38PostQuoteRequest.builder()
-            .sellAssetName(fiatUSD)
-            .sellAmount("100")
-            .buyAssetName(stellarUSDC)
-            .buyAmount("100")
-            .build()
-        )
-      }
+    ex = assertThrows {
+      sep38Service.postQuote(
+        token,
+        Sep38PostQuoteRequest.builder()
+          .sellAssetName(fiatUSD)
+          .sellAmount("100")
+          .buyAssetName(stellarUSDC)
+          .buyAmount("100")
+          .build()
+      )
+    }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("Please provide either sell_amount or buy_amount", ex.message)
 
     // invalid (not a number) sell_amount
-    ex =
-      assertThrows {
-        sep38Service.postQuote(
-          token,
-          Sep38PostQuoteRequest.builder()
-            .sellAssetName(fiatUSD)
-            .sellAmount("foo")
-            .buyAssetName(stellarUSDC)
-            .build()
-        )
-      }
+    ex = assertThrows {
+      sep38Service.postQuote(
+        token,
+        Sep38PostQuoteRequest.builder()
+          .sellAssetName(fiatUSD)
+          .sellAmount("foo")
+          .buyAssetName(stellarUSDC)
+          .build()
+      )
+    }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("sell_amount is invalid", ex.message)
 
     // sell_amount should be positive
-    ex =
-      assertThrows {
-        sep38Service.postQuote(
-          token,
-          Sep38PostQuoteRequest.builder()
-            .sellAssetName(fiatUSD)
-            .sellAmount("-0.01")
-            .buyAssetName(stellarUSDC)
-            .build()
-        )
-      }
+    ex = assertThrows {
+      sep38Service.postQuote(
+        token,
+        Sep38PostQuoteRequest.builder()
+          .sellAssetName(fiatUSD)
+          .sellAmount("-0.01")
+          .buyAssetName(stellarUSDC)
+          .build()
+      )
+    }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("sell_amount should be positive", ex.message)
 
     // sell_amount should be positive
-    ex =
-      assertThrows {
-        sep38Service.postQuote(
-          token,
-          Sep38PostQuoteRequest.builder()
-            .sellAssetName(fiatUSD)
-            .sellAmount("0")
-            .buyAssetName(stellarUSDC)
-            .build()
-        )
-      }
+    ex = assertThrows {
+      sep38Service.postQuote(
+        token,
+        Sep38PostQuoteRequest.builder()
+          .sellAssetName(fiatUSD)
+          .sellAmount("0")
+          .buyAssetName(stellarUSDC)
+          .build()
+      )
+    }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("sell_amount should be positive", ex.message)
 
     // invalid (not a number) buy_amount
-    ex =
-      assertThrows {
-        sep38Service.postQuote(
-          token,
-          Sep38PostQuoteRequest.builder()
-            .sellAssetName(fiatUSD)
-            .buyAssetName(stellarUSDC)
-            .buyAmount("bar")
-            .build()
-        )
-      }
+    ex = assertThrows {
+      sep38Service.postQuote(
+        token,
+        Sep38PostQuoteRequest.builder()
+          .sellAssetName(fiatUSD)
+          .buyAssetName(stellarUSDC)
+          .buyAmount("bar")
+          .build()
+      )
+    }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("buy_amount is invalid", ex.message)
 
     // buy_amount should be positive
-    ex =
-      assertThrows {
-        sep38Service.postQuote(
-          token,
-          Sep38PostQuoteRequest.builder()
-            .sellAssetName(fiatUSD)
-            .buyAssetName(stellarUSDC)
-            .buyAmount("-0.02")
-            .build()
-        )
-      }
+    ex = assertThrows {
+      sep38Service.postQuote(
+        token,
+        Sep38PostQuoteRequest.builder()
+          .sellAssetName(fiatUSD)
+          .buyAssetName(stellarUSDC)
+          .buyAmount("-0.02")
+          .build()
+      )
+    }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("buy_amount should be positive", ex.message)
 
     // buy_amount should be positive
-    ex =
-      assertThrows {
-        sep38Service.postQuote(
-          token,
-          Sep38PostQuoteRequest.builder()
-            .sellAssetName(fiatUSD)
-            .buyAssetName(stellarUSDC)
-            .buyAmount("0")
-            .build()
-        )
-      }
+    ex = assertThrows {
+      sep38Service.postQuote(
+        token,
+        Sep38PostQuoteRequest.builder()
+          .sellAssetName(fiatUSD)
+          .buyAssetName(stellarUSDC)
+          .buyAmount("0")
+          .build()
+      )
+    }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("buy_amount should be positive", ex.message)
 
     // unsupported sell_delivery_method
-    ex =
-      assertThrows {
-        sep38Service.postQuote(
-          token,
-          Sep38PostQuoteRequest.builder()
-            .sellAssetName(fiatUSD)
-            .sellAmount("1.23")
-            .sellDeliveryMethod("FOO")
-            .buyAssetName(stellarUSDC)
-            .build()
-        )
-      }
+    ex = assertThrows {
+      sep38Service.postQuote(
+        token,
+        Sep38PostQuoteRequest.builder()
+          .sellAssetName(fiatUSD)
+          .sellAmount("1.23")
+          .sellDeliveryMethod("FOO")
+          .buyAssetName(stellarUSDC)
+          .build()
+      )
+    }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("Unsupported sell delivery method", ex.message)
 
     // unsupported buy_delivery_method
-    ex =
-      assertThrows {
-        sep38Service.postQuote(
-          token,
-          Sep38PostQuoteRequest.builder()
-            .sellAssetName(fiatUSD)
-            .sellAmount("1.23")
-            .sellDeliveryMethod("WIRE")
-            .buyAssetName(stellarUSDC)
-            .buyDeliveryMethod("BAR")
-            .build()
-        )
-      }
+    ex = assertThrows {
+      sep38Service.postQuote(
+        token,
+        Sep38PostQuoteRequest.builder()
+          .sellAssetName(fiatUSD)
+          .sellAmount("1.23")
+          .sellDeliveryMethod("WIRE")
+          .buyAssetName(stellarUSDC)
+          .buyDeliveryMethod("BAR")
+          .build()
+      )
+    }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("Unsupported buy delivery method", ex.message)
 
     // unsupported country_code
-    ex =
-      assertThrows {
-        sep38Service.postQuote(
-          token,
-          Sep38PostQuoteRequest.builder()
-            .sellAssetName(fiatUSD)
-            .sellAmount("1.23")
-            .sellDeliveryMethod("WIRE")
-            .buyAssetName(stellarUSDC)
-            .countryCode("BRA")
-            .build()
-        )
-      }
+    ex = assertThrows {
+      sep38Service.postQuote(
+        token,
+        Sep38PostQuoteRequest.builder()
+          .sellAssetName(fiatUSD)
+          .sellAmount("1.23")
+          .sellDeliveryMethod("WIRE")
+          .buyAssetName(stellarUSDC)
+          .countryCode("BRA")
+          .build()
+      )
+    }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("Unsupported country code", ex.message)
 
     // unsupported expire_after
-    ex =
-      assertThrows {
-        sep38Service.postQuote(
-          token,
-          Sep38PostQuoteRequest.builder()
-            .sellAssetName(fiatUSD)
-            .sellAmount("1.23")
-            .sellDeliveryMethod("WIRE")
-            .buyAssetName(stellarUSDC)
-            .countryCode("USA")
-            .expireAfter("2022-04-18T23:33:24.629719Z")
-            .build()
-        )
-      }
+    ex = assertThrows {
+      sep38Service.postQuote(
+        token,
+        Sep38PostQuoteRequest.builder()
+          .sellAssetName(fiatUSD)
+          .sellAmount("1.23")
+          .sellDeliveryMethod("WIRE")
+          .buyAssetName(stellarUSDC)
+          .countryCode("USA")
+          .expireAfter("2022-04-18T23:33:24.629719Z")
+          .build()
+      )
+    }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("Unsupported context. Should be one of [sep6, sep31].", ex.message)
 
     // sell_amount should be within limit
-    ex =
-      assertThrows {
-        sep38Service.postQuote(
-          token,
-          Sep38PostQuoteRequest.builder()
-            .sellAssetName(fiatUSD)
-            .sellAmount("100000000")
-            .sellDeliveryMethod("WIRE")
-            .context(SEP31)
-            .buyAssetName(stellarUSDC)
-            .countryCode("USA")
-            .build()
-        )
-      }
+    ex = assertThrows {
+      sep38Service.postQuote(
+        token,
+        Sep38PostQuoteRequest.builder()
+          .sellAssetName(fiatUSD)
+          .sellAmount("100000000")
+          .sellDeliveryMethod("WIRE")
+          .context(SEP31)
+          .buyAssetName(stellarUSDC)
+          .countryCode("USA")
+          .build()
+      )
+    }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("sell_amount exceeds max limit", ex.message)
 
     // sell_amount should be positive
-    ex =
-      assertThrows {
-        sep38Service.postQuote(
-          token,
-          Sep38PostQuoteRequest.builder()
-            .sellAssetName(fiatUSD)
-            .sellAmount("0.5")
-            .sellDeliveryMethod("WIRE")
-            .context(SEP31)
-            .buyAssetName(stellarUSDC)
-            .countryCode("USA")
-            .build()
-        )
-      }
+    ex = assertThrows {
+      sep38Service.postQuote(
+        token,
+        Sep38PostQuoteRequest.builder()
+          .sellAssetName(fiatUSD)
+          .sellAmount("0.5")
+          .sellDeliveryMethod("WIRE")
+          .context(SEP31)
+          .buyAssetName(stellarUSDC)
+          .countryCode("USA")
+          .build()
+      )
+    }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("sell_amount less than min limit", ex.message)
 
@@ -971,20 +951,19 @@ class Sep38ServiceTest {
         "100000000",
         mockSellAssetFee(fiatUSD)
       )
-    ex =
-      assertThrows {
-        sep38Service.postQuote(
-          token,
-          Sep38PostQuoteRequest.builder()
-            .sellAssetName(fiatUSD)
-            .sellDeliveryMethod("WIRE")
-            .context(SEP31)
-            .buyAssetName(stellarUSDC)
-            .buyAmount("100000000")
-            .countryCode("USA")
-            .build()
-        )
-      }
+    ex = assertThrows {
+      sep38Service.postQuote(
+        token,
+        Sep38PostQuoteRequest.builder()
+          .sellAssetName(fiatUSD)
+          .sellDeliveryMethod("WIRE")
+          .context(SEP31)
+          .buyAssetName(stellarUSDC)
+          .buyAmount("100000000")
+          .countryCode("USA")
+          .build()
+      )
+    }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("sell_amount exceeds max limit", ex.message)
   }

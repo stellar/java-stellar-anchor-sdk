@@ -15,6 +15,7 @@ import org.stellar.anchor.config.PII;
 import org.stellar.anchor.config.Secret;
 
 /** Logging utility functions. */
+@SuppressWarnings("unused")
 public class Log {
   static final Gson gson;
 

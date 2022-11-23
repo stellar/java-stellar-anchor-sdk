@@ -7,7 +7,7 @@ import org.stellar.anchor.api.exception.InvalidConfigException;
 
 public class ConfigMap {
   int version;
-  Map<String, ConfigEntry> data;
+  final Map<String, ConfigEntry> data;
 
   // ConfigMap keys will be in normalized form (dot separated hierarchy)
   public ConfigMap() {
@@ -72,14 +72,23 @@ public class ConfigMap {
     }
   }
 
-  public boolean sameAs(ConfigMap anotherMap) {
+  @Override
+  public boolean equals(Object obj) {
+    if (!(obj instanceof ConfigMap)) {
+      return false;
+    }
+
+    ConfigMap anotherMap = (ConfigMap) obj;
+    if (data.size() != anotherMap.data.size()) {
+      return false;
+    }
+
     for (String key : names()) {
       if (!anotherMap.getString(key).equals(getString(key))) {
         return false;
       }
     }
-
-    return data.size() == anotherMap.data.size();
+    return true;
   }
 
   public enum ConfigSource {

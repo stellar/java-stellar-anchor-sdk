@@ -39,7 +39,7 @@ public class KafkaEventPublisher implements EventPublisher {
   }
 
   @Override
-  public void publish(String queue, AnchorEvent event) throws EventPublishException {
+  public void publish(String queue, AnchorEvent event) {
     try {
       ProducerRecord<String, AnchorEvent> record = new ProducerRecord<>(queue, event);
       record.headers().add(new RecordHeader("type", event.getType().getBytes()));

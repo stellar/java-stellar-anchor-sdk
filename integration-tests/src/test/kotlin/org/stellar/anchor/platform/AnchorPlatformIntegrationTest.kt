@@ -182,7 +182,8 @@ class AnchorPlatformIntegrationTest {
         "sell_amount": "100",
         "buy_amount": "98.0392"
       }
-    }""".trimMargin()
+    }"""
+        .trimMargin()
     JSONAssert.assertEquals(wantBody, gson.toJson(result), true)
   }
 
@@ -218,14 +219,16 @@ class AnchorPlatformIntegrationTest {
           ]
         }
       }
-    }""".trimMargin()
+    }"""
+        .trimMargin()
     JSONAssert.assertEquals(wantBody, gson.toJson(result), true)
   }
 
   @Test
   fun testRate_firm() {
     val rate =
-      rriClient.getRate(
+      rriClient
+        .getRate(
           GetRateRequest.builder()
             .type(FIRM)
             .context(SEP31)
@@ -281,7 +284,8 @@ class AnchorPlatformIntegrationTest {
           ]
         }
       }
-    }""".trimMargin()
+    }"""
+        .trimMargin()
     JSONAssert.assertEquals(wantBody, gson.toJson(gotQuote), true)
   }
 

@@ -57,7 +57,7 @@ class ConfigManagerTest {
       )
     val gotConfig = configManager.processConfigurations(null)
 
-    assertTrue(gotConfig.sameAs(wantedConfig))
+    assertTrue(gotConfig.equals(wantedConfig))
   }
 
   @Test
@@ -93,6 +93,6 @@ class ConfigManagerTest {
       )
     val gotConfig = configManager.processConfigurations(null)
 
-    assertTrue(gotConfig.sameAs(wantedConfig))
+    assertTrue(gotConfig.equals(wantedConfig))
   }
 }

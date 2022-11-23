@@ -13,7 +13,7 @@ import org.springframework.core.env.PropertiesPropertySource;
 
 public class SecretManager
     implements ApplicationContextInitializer<ConfigurableApplicationContext> {
-  List<String> secretVars =
+  final List<String> secretVars =
       Arrays.asList(
           "secret.sep10.jwt_secret",
           "secret.sep10.signing_seed",
@@ -22,9 +22,9 @@ public class SecretManager
           "secret.data.username",
           "secret.data.password");
 
-  Properties props = new Properties();
+  final Properties props = new Properties();
 
-  static SecretManager secretManager = new SecretManager();
+  static final SecretManager secretManager = new SecretManager();
 
   private SecretManager() {}
 

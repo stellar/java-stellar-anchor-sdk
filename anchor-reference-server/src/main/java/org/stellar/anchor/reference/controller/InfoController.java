@@ -8,7 +8,7 @@ import org.stellar.anchor.reference.config.AppSettings;
 @RestController
 public class InfoController {
 
-  private AppSettings appSettings;
+  private final AppSettings appSettings;
 
   public InfoController(AppSettings appSettings) {
     this.appSettings = appSettings;

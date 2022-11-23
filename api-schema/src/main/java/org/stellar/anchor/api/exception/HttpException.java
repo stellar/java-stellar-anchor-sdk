@@ -15,14 +15,6 @@ public class HttpException extends RuntimeException {
     this(statusCode, null, null, null);
   }
 
-  public HttpException(int statusCode, @Nullable String reason) {
-    this(statusCode, reason, null, null);
-  }
-
-  public HttpException(int statusCode, @Nullable String reason, @Nullable String internalCode) {
-    this(statusCode, reason, internalCode, null);
-  }
-
   public HttpException(
       int statusCode,
       @Nullable String reason,

@@ -15,7 +15,7 @@ import org.stellar.anchor.api.exception.InvalidConfigException;
  * <p>The SpringConfigAdapter is NOT thread-safe.
  */
 public abstract class SpringConfigAdapter {
-  Properties props = new Properties();
+  final Properties props = new Properties();
 
   protected void set(String name, boolean value) {
     props.put(name, value);
@@ -25,22 +25,14 @@ public abstract class SpringConfigAdapter {
     props.put(name, value);
   }
 
-  protected void set(String name, String value) throws InvalidConfigException {
+  protected void set(String name, String value) {
     props.setProperty(name, value);
   }
 
   protected void copy(ConfigMap config, String from, String to) throws InvalidConfigException {
-    copy(config, from, to, null);
-  }
-
-  protected void copy(ConfigMap config, String from, String to, String defaultValue)
-      throws InvalidConfigException {
     String value = config.getString(from);
     if (value == null) {
-      if (defaultValue == null) {
-        throw new InvalidConfigException(String.format("config[%s] is not defined", from));
-      }
-      value = defaultValue;
+      throw new InvalidConfigException(String.format("config[%s] is not defined", from));
     }
     set(to, value);
   }

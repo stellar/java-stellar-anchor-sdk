@@ -10,9 +10,8 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 /**
- * Refer to SEP-12.
- *
- * <p>https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0012.md#fields
+ * Refer to SEP-12. <a
+ * href="https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0012.md#fields">...</a>
  */
 @Data
 @Builder
