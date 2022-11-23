@@ -78,8 +78,8 @@ public class ConfigManagementBeans {
 
   @Bean
   @ConfigurationProperties(prefix = "sep31")
-  Sep31Config sep31Config(CallbackApiConfig callbackApiConfig) {
-    return new PropertySep31Config(callbackApiConfig);
+  Sep31Config sep31Config() {
+    return new PropertySep31Config();
   }
 
   @Bean
