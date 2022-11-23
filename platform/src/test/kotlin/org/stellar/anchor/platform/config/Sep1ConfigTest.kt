@@ -68,9 +68,12 @@ open class Sep1ConfigTest {
   @ParameterizedTest
   @ValueSource(strings = ["bad file", "c:/hello"])
   fun `test file of Sep1Config does not exist`(file: String) {
-    val errors = validate(PropertySep1Config(true, "file", file))
+    var errors = validate(PropertySep1Config(true, "file", file))
     assertEquals(1, errors.errorCount)
-    errors.message?.let { assertContains(it, "doesNotExist-sep1Value") }
+    assertEquals("sep1-toml-value-does-not-exist", errors.allErrors.get(0).code)
+
+    errors = validate(PropertySep1Config(false, "file", file))
+    assertEquals(0, errors.errorCount)
   }
 
   @ParameterizedTest
@@ -78,21 +81,21 @@ open class Sep1ConfigTest {
   fun `test Sep1Config empty values`(type: String) {
     var errors = validate(PropertySep1Config(true, type, null))
     assertEquals(2, errors.errorCount)
-    errors.message?.let { assertContains(it, "empty-sep1Value") }
+    errors.message?.let { assertContains(it, "sep1-toml-value-empty") }
 
     errors = validate(PropertySep1Config(true, type, ""))
     assertEquals(2, errors.errorCount)
-    errors.message?.let { assertContains(it, "empty-sep1Value") }
+    errors.message?.let { assertContains(it, "sep1-toml-value-empty") }
   }
 
   @Test
   fun `test Sep1Config empty types`() {
     var errors = validate(PropertySep1Config(true, null, "test value"))
     assertEquals(1, errors.errorCount)
-    errors.message?.let { assertContains(it, "empty-sep1Type") }
+    errors.message?.let { assertContains(it, "sep1-toml-type-empty") }
 
     errors = validate(PropertySep1Config(true, "", "test value"))
     assertEquals(1, errors.errorCount)
-    errors.message?.let { assertContains(it, "empty-sep1Type") }
+    errors.message?.let { assertContains(it, "sep1-toml-type-empty") }
   }
 }
