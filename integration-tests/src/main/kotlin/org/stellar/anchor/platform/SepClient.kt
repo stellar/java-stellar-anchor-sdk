@@ -13,7 +13,7 @@ import org.stellar.anchor.api.exception.SepNotFoundException
 import org.stellar.anchor.api.sep.SepExceptionResponse
 import org.stellar.anchor.util.GsonUtils
 
-class SepClient {
+open class SepClient {
   companion object {
     val gson: Gson = GsonUtils.getInstance()
     val client =
