@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.validation.BindException
 import org.springframework.validation.ValidationUtils
 
-open class AppConfigTest {
+class AppConfigTest {
   @Test
   fun testAppConfigValid() {
     val appConfig = PropertyAppConfig()

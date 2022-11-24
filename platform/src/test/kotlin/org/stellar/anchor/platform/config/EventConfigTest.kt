@@ -11,7 +11,7 @@ import org.springframework.validation.BindException
 import org.springframework.validation.Errors
 import org.springframework.validation.ValidationUtils
 
-open class EventConfigTest {
+class EventConfigTest {
   lateinit var config: PropertyEventConfig
   lateinit var errors: Errors
 
