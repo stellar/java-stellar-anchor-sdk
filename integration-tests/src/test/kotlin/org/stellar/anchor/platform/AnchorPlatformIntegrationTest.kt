@@ -347,7 +347,6 @@ class AnchorPlatformIntegrationTest {
     assertEquals(true, sep10Config.enabled)
     assertEquals("localhost:8080", sep10Config.homeDomain)
     assertEquals(false, sep10Config.isClientAttributionRequired)
-    assertEquals(listOf("lobstr.co", "preview.lobstr.co"), sep10Config.clientAttributionAllowList)
     assertEquals(900, sep10Config.authTimeout)
     assertEquals(86400, sep10Config.jwtTimeout)
   }
