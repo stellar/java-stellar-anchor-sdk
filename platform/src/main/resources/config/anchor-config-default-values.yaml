@@ -231,7 +231,7 @@ sep10:
   ## @param: client_attribution_allow_list
   ## Set the white list of the client domain. The domains are comma-separated.
   #
-  client_attribution_allow_list: lobstr.co,preview.lobstr.co
+  client_attribution_allow_list:
 
   ## @param: client_attribution_deny_list
   ## Set the black list of the client domain. The domains are comma-separated.

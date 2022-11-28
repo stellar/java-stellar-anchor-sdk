@@ -4,7 +4,6 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
-import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.config.*;
 import org.stellar.anchor.platform.config.*;
 import org.stellar.anchor.platform.configurator.ConfigManager;
@@ -60,8 +59,8 @@ public class ConfigManagementBeans {
 
   @Bean
   @ConfigurationProperties(prefix = "sep10")
-  Sep10Config sep10Config(SecretConfig secretConfig, JwtService jwtService) {
-    return new PropertySep10Config(secretConfig, jwtService);
+  Sep10Config sep10Config(SecretConfig secretConfig) {
+    return new PropertySep10Config(secretConfig);
   }
 
   @Bean
