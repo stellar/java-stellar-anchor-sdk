@@ -1,36 +1,104 @@
 package org.stellar.anchor.platform.config
 
-import kotlin.test.assertContains
-import kotlin.test.assertEquals
-import kotlin.test.fail
-import org.junit.jupiter.api.Test
+import java.util.stream.Stream
+import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.MethodSource
+import org.junit.jupiter.params.provider.NullSource
+import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.validation.BindException
-import org.springframework.validation.ValidationUtils
+import org.springframework.validation.Errors
 
 class AppConfigTest {
-  @Test
-  fun testAppConfigValid() {
-    val appConfig = PropertyAppConfig()
-    appConfig.horizonUrl = "https://horizon-testnet.stellar.org"
-    appConfig.stellarNetworkPassphrase = "Test SDF Network ; September 2015"
-    appConfig.hostUrl = "http://localhost:8080"
-    val errors = BindException(appConfig, "appConfig")
-    ValidationUtils.invokeValidator(appConfig, appConfig, errors)
-    if (errors.hasErrors()) {
-      errors.printStackTrace()
-      fail("found validation error(s)")
-    }
+  lateinit var config: PropertyAppConfig
+  lateinit var errors: Errors
+
+  @BeforeEach
+  fun setUp() {
+    config = PropertyAppConfig()
+    config.stellarNetworkPassphrase = "Test SDF Network ; September 2015"
+    config.horizonUrl = "https://horizon-testnet.stellar.org"
+    config.hostUrl = "http://localhost:8080"
+    errors = BindException(config, "config")
   }
 
-  @Test
-  fun testAppConfigBadHorizonUrl() {
-    val appConfig = PropertyAppConfig()
-    appConfig.horizonUrl = "not-a-url"
-    appConfig.stellarNetworkPassphrase = "Test SDF Network ; September 2015"
-    appConfig.hostUrl = "http://localhost:2222"
-    val errors = BindException(appConfig, "appConfig")
-    ValidationUtils.invokeValidator(appConfig, appConfig, errors)
-    assertEquals(1, errors.errorCount)
-    errors.message?.let { assertContains(it, "invalidUrl-horizonUrl") }
+  @ParameterizedTest
+  @NullSource
+  @ValueSource(strings = [""])
+  fun `test empty host_url`(url: String?) {
+    config.hostUrl = url
+    config.validateConfig(config, errors)
+    assertErrorCode(errors, "host-url-empty")
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = ["https://stellar.org", "https://stellar.org:8080"])
+  fun `test valid host_url`(url: String) {
+    config.hostUrl = url
+    config.validateConfig(config, errors)
+    assertFalse(errors.hasErrors())
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = ["https ://stellar.org", "stellar.org", "abc"])
+  fun `test invalid host_url`(url: String) {
+    config.hostUrl = url
+    config.validateConfig(config, errors)
+    assertErrorCode(errors, "host-url-invalid")
+  }
+
+  @ParameterizedTest
+  @NullSource
+  @ValueSource(strings = [""])
+  fun `test empty horizon_url`(url: String?) {
+    config.horizonUrl = url
+    config.validateConfig(config, errors)
+    assertErrorCode(errors, "horizon-url-empty")
+  }
+  @ParameterizedTest
+  @ValueSource(
+    strings = ["https://horizon-testnet.stellar.org", "https://horizon-testnet.stellar.org:8080"]
+  )
+  fun `test valid horizon_url`(url: String) {
+    config.hostUrl = url
+    config.validateConfig(config, errors)
+    assertFalse(errors.hasErrors())
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = ["https://horizon-testnet.stellar. org", "stellar.org", "abc"])
+  fun `test invalid horizon_url`(url: String) {
+    config.hostUrl = url
+    config.validateConfig(config, errors)
+    assertErrorCode(errors, "host-url-invalid")
+  }
+
+  @ParameterizedTest
+  @NullSource
+  @MethodSource("validLanguages")
+  fun `test valid languages`(langs: List<String>?) {
+    config.languages = langs
+    config.validateLanguage(config, errors)
+    assertFalse(errors.hasErrors())
+  }
+
+  @ParameterizedTest
+  @MethodSource("invalidLanguages")
+  fun `test invalid languages`(langs: List<String>) {
+    config.languages = langs
+    config.validateLanguage(config, errors)
+    assertErrorCode(errors, "languages-invalid")
+  }
+
+  companion object {
+    @JvmStatic
+    fun validLanguages(): Stream<List<String>> {
+      return Stream.of(listOf(), listOf("en", "en-us", "EN", "EN-US"), listOf("zh-tw", "zh"))
+    }
+    @JvmStatic
+    fun invalidLanguages(): Stream<List<String>> {
+      return Stream.of(listOf("1234", "EN", "EN-US"))
+    }
   }
 }

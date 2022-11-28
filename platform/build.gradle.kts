@@ -16,7 +16,9 @@ dependencies {
   implementation("org.springframework.boot:spring-boot")
   implementation("org.springframework.boot:spring-boot-autoconfigure")
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-  implementation(libs.snakeyaml) // used to force the version of snakeyaml (used by springboot) to a safer one.
+  implementation(
+    libs.snakeyaml
+  ) // used to force the version of snakeyaml (used by springboot) to a safer one.
   implementation("org.springframework.boot:spring-boot-starter-web")
   implementation("org.springframework.boot:spring-boot-starter-reactor-netty")
   implementation("org.springframework.boot:spring-boot-starter-actuator")
@@ -24,6 +26,7 @@ dependencies {
 
   implementation(libs.spring.aws.messaging)
   implementation(libs.spring.kafka)
+  implementation(libs.abdera)
   implementation(libs.aws.rds)
   implementation(libs.aws.iam.auth)
   implementation(libs.commons.cli)
