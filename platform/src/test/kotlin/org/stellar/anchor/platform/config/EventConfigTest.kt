@@ -69,37 +69,6 @@ class EventConfigTest {
       assertEquals(errorCode, errors.allErrors[0].code)
     }
   }
-  //  @Test
-  //  fun testKafkaMissingFields() {
-  //    val eventConfig = PropertyEventConfig()
-  //    val kafkaConfig = KafkaConfig()
-  //
-  //    eventConfig.publisher = PropertyPublisherConfig()
-  //    eventConfig.publisher.type = "kafka"
-  //    eventConfig.publisher.kafka = kafkaConfig
-  //    eventConfig.isEnabled = true
-  //
-  //    val errors = BindException(eventConfig, "eventConfig")
-  //    ValidationUtils.invokeValidator(eventConfig, eventConfig, errors)
-  //    assertEquals(1, errors.errorCount)
-  //    errors.message?.let { assertContains(it, "empty-bootstrapServer") }
-  //  }
-  //
-  //  @Test
-  //  fun testSqsMissingFields() {
-  //    val eventConfig = PropertyEventConfig()
-  //    val sqsConfig = SqsConfig()
-  //
-  //    eventConfig.publisher = PropertyPublisherConfig()
-  //    eventConfig.publisher.type = "sqs"
-  //    eventConfig.publisher.sqs = sqsConfig
-  //    eventConfig.isEnabled = true
-  //
-  //    val errors = BindException(eventConfig, "eventConfig")
-  //    ValidationUtils.invokeValidator(eventConfig, eventConfig, errors)
-  //    assertEquals(1, errors.errorCount)
-  //    errors.message?.let { assertContains(it, "empty-aws-region") }
-  //  }
 
   companion object {
     @JvmStatic
@@ -108,21 +77,21 @@ class EventConfigTest {
         Arguments.of(0, "no-error", KafkaConfig("localhost:29092", "client_id", 5, 10, 500)),
         Arguments.of(
           1,
-          "bad-kafka-retries",
+          "kafka-retries-invalid",
           KafkaConfig("localhost:29092", "client_id", -1, 10, 500)
         ),
         Arguments.of(
           1,
-          "bad-kafka-linger-ms",
+          "kafka-linger-ms-invalid",
           KafkaConfig("localhost:29092", "client_id", 5, -10, 500)
         ),
         Arguments.of(
           1,
-          "bad-kafka-batch-size",
+          "kafka-batch-size-invalid",
           KafkaConfig("localhost:29092", "client_id", 5, 10, -1)
         ),
-        Arguments.of(1, "empty-kafka-bootstrap-server", KafkaConfig("", "client_id", 1, 10, 500)),
-        Arguments.of(1, "empty-kafka-bootstrap-server", KafkaConfig(null, "client_id", 1, 10, 500))
+        Arguments.of(1, "kafka-bootstrap-server-empty", KafkaConfig("", "client_id", 1, 10, 500)),
+        Arguments.of(1, "kafka-bootstrap-server-empty", KafkaConfig(null, "client_id", 1, 10, 500))
       )
     }
 
@@ -131,8 +100,8 @@ class EventConfigTest {
       return Stream.of(
         Arguments.of(0, "no-error", SqsConfig(true, "us-east-1")),
         Arguments.of(0, "no-error", SqsConfig(false, "us-east-1")),
-        Arguments.of(1, "empty-sqs-aws-region", SqsConfig(true, null)),
-        Arguments.of(1, "empty-sqs-aws-region", SqsConfig(false, null))
+        Arguments.of(1, "sqs-aws-region-empty", SqsConfig(true, null)),
+        Arguments.of(1, "sqs-aws-region-empty", SqsConfig(false, null))
       )
     }
 
@@ -142,23 +111,23 @@ class EventConfigTest {
         Arguments.of(0, "no-error", MskConfig(true, "localhost:29092", "client_id", 5, 10, 500)),
         Arguments.of(
           1,
-          "bad-msk-retries",
+          "msk-retries-invalid",
           MskConfig(true, "localhost:29092", "client_id", -1, 10, 500)
         ),
         Arguments.of(
           1,
-          "bad-msk-linger-ms",
+          "msk-linger-ms-invalid",
           MskConfig(true, "localhost:29092", "client_id", 5, -10, 500)
         ),
         Arguments.of(
           1,
-          "bad-msk-batch-size",
+          "msk-batch-size-invalid",
           MskConfig(true, "localhost:29092", "client_id", 5, 10, -1)
         ),
-        Arguments.of(1, "empty-msk-bootstrap-server", MskConfig(true, "", "client_id", 1, 10, 500)),
+        Arguments.of(1, "msk-bootstrap-server-empty", MskConfig(true, "", "client_id", 1, 10, 500)),
         Arguments.of(
           1,
-          "empty-msk-bootstrap-server",
+          "msk-bootstrap-server-empty",
           MskConfig(true, null, "client_id", 1, 10, 500)
         )
       )
