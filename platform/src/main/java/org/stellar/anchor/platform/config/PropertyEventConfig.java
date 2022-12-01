@@ -22,17 +22,18 @@ public class PropertyEventConfig implements EventConfig, Validator {
 
   public PropertyEventConfig() {
     ConfigMap configMap = SepConfigManager.getInstance().getConfigMap();
-
-    eventTypeToQueue.put(
-        "quote_created", configMap.getString("events.event_type_to_queue.quote_created"));
-    eventTypeToQueue.put(
-        "transaction_created",
-        configMap.getString("events.event_type_to_queue.transaction_created"));
-    eventTypeToQueue.put(
-        "transaction_status_changed",
-        configMap.getString("events.transaction_status_changed.quote_created"));
-    eventTypeToQueue.put(
-        "transaction_error", configMap.getString("events.event_type_to_queue.transaction_error"));
+    if (configMap != null) {
+      eventTypeToQueue.put(
+          "quote_created", configMap.getString("events.event_type_to_queue.quote_created"));
+      eventTypeToQueue.put(
+          "transaction_created",
+          configMap.getString("events.event_type_to_queue.transaction_created"));
+      eventTypeToQueue.put(
+          "transaction_status_changed",
+          configMap.getString("events.transaction_status_changed.quote_created"));
+      eventTypeToQueue.put(
+          "transaction_error", configMap.getString("events.event_type_to_queue.transaction_error"));
+    }
   }
 
   @Override
@@ -105,7 +106,9 @@ public class PropertyEventConfig implements EventConfig, Validator {
   void validateSqs(PropertyEventConfig config, Errors errors) {
     if (isEmpty(config.getPublisher().getSqs().awsRegion)) {
       errors.rejectValue(
-          "publisher.sqs.useIAM", "sqs-use-iam-empty", "use_IAM must be defined for SQS publisher");
+          "publisher.sqs.awsRegion",
+          "sqs-aws-region-empty",
+          "events.publisher.sqs.aws_region must be defined");
     }
   }
 

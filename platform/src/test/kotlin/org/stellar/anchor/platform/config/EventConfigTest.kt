@@ -18,6 +18,11 @@ class EventConfigTest {
   @BeforeEach
   fun setUp() {
     config = PropertyEventConfig()
+    config.eventTypeToQueue.put("quote_created", "ap_quote_created")
+    config.eventTypeToQueue.put("transaction_created", "ap_transaction_created")
+    config.eventTypeToQueue.put("transaction_status_changed", "ap_transaction_status_changed")
+    config.eventTypeToQueue.put("transaction_error", "ap_transaction_error")
+
     errors = BindException(config, "config")
   }
 
