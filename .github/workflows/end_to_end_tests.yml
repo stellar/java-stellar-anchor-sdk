@@ -6,10 +6,10 @@ on:
   push:
     branches: 
       - main
-      - develop
-      - 'release/**'
-      - 'releases/**'
-      - 'hotfix/**'
+#      - develop
+#      - 'release/**'
+#      - 'releases/**'
+#      - 'hotfix/**'
 
 jobs:
   end_to_end_tests:
