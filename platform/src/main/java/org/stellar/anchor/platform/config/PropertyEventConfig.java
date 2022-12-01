@@ -1,5 +1,8 @@
 package org.stellar.anchor.platform.config;
 
+import static org.stellar.anchor.util.StringHelper.isEmpty;
+
+import java.util.HashMap;
 import java.util.Map;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
@@ -8,12 +11,29 @@ import org.springframework.validation.ValidationUtils;
 import org.springframework.validation.Validator;
 import org.stellar.anchor.config.event.EventConfig;
 import org.stellar.anchor.config.event.PublisherConfig;
+import org.stellar.anchor.platform.configurator.ConfigMap;
+import org.stellar.anchor.platform.configurator.SepConfigManager;
 
 @Data
 public class PropertyEventConfig implements EventConfig, Validator {
   private boolean enabled = false;
   private PropertyPublisherConfig publisher;
-  private Map<String, String> eventTypeToQueue;
+  private Map<String, String> eventTypeToQueue = new HashMap<>();
+
+  public PropertyEventConfig() {
+    ConfigMap configMap = SepConfigManager.getInstance().getConfigMap();
+
+    eventTypeToQueue.put(
+        "quote_created", configMap.getString("events.event_type_to_queue.quote_created"));
+    eventTypeToQueue.put(
+        "transaction_created",
+        configMap.getString("events.event_type_to_queue.transaction_created"));
+    eventTypeToQueue.put(
+        "transaction_status_changed",
+        configMap.getString("events.transaction_status_changed.quote_created"));
+    eventTypeToQueue.put(
+        "transaction_error", configMap.getString("events.event_type_to_queue.transaction_error"));
+  }
 
   @Override
   public boolean supports(@NotNull Class<?> clazz) {
@@ -27,7 +47,7 @@ public class PropertyEventConfig implements EventConfig, Validator {
       return;
     }
 
-    //    validateConfig(config, errors);
+    validateConfig(config, errors);
 
     PublisherConfig publisherConfig = config.getPublisher();
     String publisherType = publisherConfig.getType();
@@ -51,41 +71,42 @@ public class PropertyEventConfig implements EventConfig, Validator {
   }
 
   void validateConfig(EventConfig config, Errors errors) {
-    // Validate publisher type
-    ValidationUtils.rejectIfEmptyOrWhitespace(errors, "publisher.type", "publisher-type-empty");
-    ValidationUtils.rejectIfEmptyOrWhitespace(
-        errors,
-        "publisher.event_type_to_queue.quote_created",
-        "publisher-event-type-to-queue-quote-created-empty",
-        "events.publisher.event_type_to_queue.quote_created is not defined. Please specify the queue to publish the QUOTE_CREATED event");
-    ValidationUtils.rejectIfEmptyOrWhitespace(
-        errors,
-        "publisher.event_type_to_queue.transaction_created",
-        "publisher-event-type-to-queue-transaction-created-empty",
-        "events.publisher.event_type_to_queue.transaction_created is not defined. Please specify the queue to publish the TRANSACTION_CREATED event");
-    ValidationUtils.rejectIfEmptyOrWhitespace(
-        errors,
-        "publisher.event_type_to_queue.transaction_status_changed",
-        "publisher-event-type-to-queue-transaction-status-changed-empty",
-        "events.publisher.event_type_to_queue.transaction_status_changed is not defined. Please specify the queue to publish the TRANSACTION_STATUS_CHANGED event");
-    ValidationUtils.rejectIfEmptyOrWhitespace(
-        errors,
-        "publisher.event_type_to_queue.transaction_error",
-        "publisher-event-type-to-queue-transaction-error-empty",
-        "events.publisher.event_type_to_queue.transaction_error is not defined. Please specify the queue to publish the TRANSACTION_ERROR event");
+    if (config.getPublisher() == null)
+      errors.rejectValue(
+          "publisher.type",
+          "publisher-type-empty",
+          "events.publisher.type is not defined. Please specify the type: KAFKA, SQS, or MSK");
+    if (isEmpty(config.getEventTypeToQueue().get("quote_created"))) {
+      errors.rejectValue(
+          "publisher.event_type_to_queue.quote_created",
+          "publisher-event-type-to-queue-quote-created-empty",
+          "events.publisher.event_type_to_queue.quote_created is not defined. Please specify the queue to publish the QUOTE_CREATED event");
+    }
+    if (isEmpty(config.getEventTypeToQueue().get("transaction_created"))) {
+      errors.rejectValue(
+          "publisher.event_type_to_queue.transaction_created",
+          "publisher-event-type-to-transaction_created-empty",
+          "events.publisher.event_type_to_queue.transaction_created is not defined. Please specify the queue to publish the QUOTE_CREATED event");
+    }
+    if (isEmpty(config.getEventTypeToQueue().get("transaction_status_changed"))) {
+      errors.rejectValue(
+          "publisher.event_type_to_queue.transaction_status_changed",
+          "publisher-event-type-to-queue-transaction_status_changed-empty",
+          "events.publisher.event_type_to_queue.transaction_status_changed is not defined. Please specify the queue to publish the QUOTE_CREATED event");
+    }
+    if (isEmpty(config.getEventTypeToQueue().get("transaction_error"))) {
+      errors.rejectValue(
+          "publisher.event_type_to_queue.transaction_error",
+          "publisher-event-type-to-queue-transaction_error-empty",
+          "events.publisher.event_type_to_queue.transaction_error is not defined. Please specify the queue to publish the QUOTE_CREATED event");
+    }
   }
 
-  void validateSqs(EventConfig config, Errors errors) {
-    ValidationUtils.rejectIfEmptyOrWhitespace(
-        errors,
-        "publisher.sqs.useIAM",
-        "sqs-use-iam-empty",
-        "use_IAM must be defined for SQS publisher");
-    ValidationUtils.rejectIfEmptyOrWhitespace(
-        errors,
-        "publisher.sqs.awsRegion",
-        "sqs-aws-region-empty",
-        "aws_region must be defined for SQS publisher");
+  void validateSqs(PropertyEventConfig config, Errors errors) {
+    if (isEmpty(config.getPublisher().getSqs().awsRegion)) {
+      errors.rejectValue(
+          "publisher.sqs.useIAM", "sqs-use-iam-empty", "use_IAM must be defined for SQS publisher");
+    }
   }
 
   void validateKafka(PropertyEventConfig config, Errors errors) {

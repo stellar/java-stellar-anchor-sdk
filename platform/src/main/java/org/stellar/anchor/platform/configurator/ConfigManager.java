@@ -38,6 +38,10 @@ public abstract class ConfigManager
     return configManager;
   }
 
+  public ConfigMap getConfigMap() {
+    return configMap;
+  }
+
   void sanitize(ConfigMap configMap) {
     SecretManager.getInstance()
         .secretVars
