@@ -7,12 +7,8 @@ import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import java.io.IOException
 import java.security.SecureRandom
-import java.security.cert.X509Certificate
 import java.util.concurrent.TimeUnit
 import java.util.stream.Stream
-import javax.net.ssl.SSLContext
-import javax.net.ssl.TrustManager
-import javax.net.ssl.X509TrustManager
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.mockwebserver.MockResponse
@@ -113,7 +109,7 @@ internal class Sep10ServiceTest {
 
     this.jwtService = spyk(JwtService(secretConfig))
     this.sep10Service = Sep10Service(appConfig, secretConfig, sep10Config, horizon, jwtService)
-    this.httpClient = `create httpClient that trust all certificates`()
+    this.httpClient = `create httpClient`()
   }
 
   @AfterEach
@@ -122,26 +118,11 @@ internal class Sep10ServiceTest {
     unmockkAll()
   }
 
-  fun `create httpClient that trust all certificates`(): OkHttpClient {
-    val trustAllCerts =
-      arrayOf<TrustManager>(
-        object : X509TrustManager {
-          override fun checkClientTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
-
-          override fun checkServerTrusted(chain: Array<out X509Certificate>?, authType: String?) {}
-
-          override fun getAcceptedIssuers() = arrayOf<X509Certificate>()
-        }
-      )
-
-    // Install the all-trusting trust manager
-    val sslContext = SSLContext.getInstance("SSL")
-    sslContext.init(null, trustAllCerts, SecureRandom())
+  private fun `create httpClient`(): OkHttpClient {
     return OkHttpClient.Builder()
       .connectTimeout(10, TimeUnit.MINUTES)
       .readTimeout(10, TimeUnit.MINUTES)
       .writeTimeout(10, TimeUnit.MINUTES)
-      .sslSocketFactory(sslContext.socketFactory, trustAllCerts[0] as X509TrustManager)
       .hostnameVerifier { _, _ -> true }
       .build()
   }

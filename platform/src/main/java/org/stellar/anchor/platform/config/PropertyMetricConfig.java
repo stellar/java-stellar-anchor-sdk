@@ -9,7 +9,7 @@ import org.stellar.anchor.config.MetricConfig;
 
 @Data
 public class PropertyMetricConfig implements MetricConfig, Validator {
-  private boolean enbaled = false;
+  private boolean enabled = false;
   private boolean extrasEnabled = false;
   private Integer runInterval = 30;
 

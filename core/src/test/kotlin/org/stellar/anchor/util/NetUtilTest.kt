@@ -10,6 +10,10 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.NullSource
+import org.junit.jupiter.params.provider.ValueSource
+import org.stellar.anchor.util.NetUtil.isServerPortValid
 import org.stellar.anchor.util.NetUtil.isUrlValid
 
 internal class NetUtilTest {
@@ -64,31 +68,84 @@ internal class NetUtilTest {
     assertNotNull(NetUtil.getCall(request))
   }
 
-  @Test
-  fun `test good urls with isUrlValid()`() {
-    assertTrue(isUrlValid("http://www.stellar.org"))
-    assertTrue(isUrlValid("https://www.stellar.org/"))
-    assertTrue(isUrlValid("https://www.stellar.org/.well-known/stellar.toml"))
-    assertTrue(isUrlValid("https://www.stellar.org/sep1?q=123&p=false"))
-    assertTrue(isUrlValid("https://www.stellar.org/sep1?q=&p=false"))
-    assertTrue(isUrlValid("https://www.stellar.org/a/b/c"))
-    assertTrue(isUrlValid("https://www.stellar.org/a/"))
-    assertTrue(isUrlValid("http://192.168.100.1"))
-    assertTrue(isUrlValid("http://192.168.100.1/a/"))
-    assertTrue(isUrlValid("ftp://ftp.stellar.org"))
-    assertTrue(isUrlValid("ftp://ftp.stellar.org/a/b/c"))
-    assertTrue(isUrlValid("ftp://ftp.stellar.org/a/"))
-    assertTrue(isUrlValid("file:///home/johndoe/a.toml"))
+  @ParameterizedTest
+  @ValueSource(
+    strings =
+      [
+        "http://www.stellar.org",
+        "http://www.stellar.org:8000",
+        "https://www.stellar.org/",
+        "https://www.stellar.org/.well-known/stellar.toml",
+        "https://www.stellar.org/sep1?q=123&p=false",
+        "https://www.stellar.org/sep1?q=&p=false",
+        "https://www.stellar.org/a/b/c",
+        "https://www.stellar.org/a/",
+        "http://192.168.100.1",
+        "http://192.168.100.1/a/",
+        "ftp://ftp.stellar.org",
+        "ftp://ftp.stellar.org/a/b/c",
+        "ftp://ftp.stellar.org/a/",
+        "file:///home/johndoe/a.toml"
+      ]
+  )
+  fun `test valid urls with isUrlValid()`(testValue: String?) {
+    assertTrue(isUrlValid(testValue))
   }
 
-  @Test
-  fun `test bad urls with isUrlValid()`() {
-    assertFalse(isUrlValid("http:// www.stellar.org"))
-    assertFalse(isUrlValid("https:// www.stellar.org"))
-    assertFalse(isUrlValid("https:// www.stellar.org/a /"))
-    assertFalse(isUrlValid("https:// www.stellar.org/a?p=123&q= false"))
-    assertFalse(isUrlValid("https://192.168.100 .1"))
-    assertFalse(isUrlValid("abc://www.stellar.org"))
-    assertFalse(isUrlValid("http:// www.stellar.org"))
+  @ParameterizedTest
+  @NullSource
+  @ValueSource(
+    strings =
+      [
+        "http:// www.stellar.org",
+        "https:// www.stellar.org",
+        "https:// www.stellar.org/a /",
+        "https:// www.stellar.org/a?p=123&q= false",
+        "https://192.168.100 .1",
+        "abc://www.stellar.org",
+        "http:// www.stellar.org",
+        "http://www.stellar.org:-100",
+        "http://www.stellar.org:abc",
+        ""
+      ]
+  )
+  fun `test bad urls with isUrlValid()`(testValue: String?) {
+    assertFalse(isUrlValid(testValue))
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+    strings =
+      [
+        "www.stellar.org",
+        "localhost",
+        "127.0.0.1",
+        "8.8.8.8",
+        "stellar.org",
+        "localhost",
+        "localhost:8080",
+        "127.0.0.1:8080"
+      ]
+  )
+  fun `test valid server port with isServerPortValid`(testValue: String) {
+    assertTrue(isServerPortValid(testValue))
+  }
+
+  @ParameterizedTest
+  @NullSource
+  @ValueSource(
+    strings =
+      [
+        "www1.stellar.org",
+        "www .stellar.org",
+        "localhost:88080",
+        "localhost:-10",
+        "localhos",
+        "I am not a good host name",
+        ""
+      ]
+  )
+  fun `test bad server port with isServerPortValid`(testValue: String?) {
+    assertFalse(isServerPortValid(testValue))
   }
 }

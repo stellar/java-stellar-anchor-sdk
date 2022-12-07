@@ -1,8 +1,12 @@
 package org.stellar.anchor.platform.config;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
 public class KafkaConfig {
   /**
    * A comma-separated list of host:port pairs that are the addresses of one or more brokers in a

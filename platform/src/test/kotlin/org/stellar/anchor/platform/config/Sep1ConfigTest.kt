@@ -11,7 +11,7 @@ import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.validation.BindException
 import org.springframework.validation.ValidationUtils
 
-open class Sep1ConfigTest {
+class Sep1ConfigTest {
   companion object {
     fun getTestTomlAsFile(): String {
       val resource: URL =
@@ -58,41 +58,53 @@ open class Sep1ConfigTest {
   }
 
   @ParameterizedTest
-  @NullSource
-  @ValueSource(strings = ["bad", "strin g", ""])
+  @ValueSource(strings = ["bad", "strin g"])
   fun `test bad Sep1Config values`(type: String?) {
     val errors = validate(PropertySep1Config(true, type, getTestTomlAsUrl()))
     assertEquals(1, errors.errorCount)
+    assertEquals("sep1-toml-type-invalid", errors.allErrors[0].code)
+  }
+
+  @ParameterizedTest
+  @NullSource
+  @ValueSource(strings = [""])
+  fun `test empty Sep1Config values`(type: String?) {
+    val errors = validate(PropertySep1Config(true, type, getTestTomlAsUrl()))
+    assertEquals(1, errors.errorCount)
+    assertEquals("sep1-toml-type-empty", errors.allErrors[0].code)
   }
 
   @ParameterizedTest
   @ValueSource(strings = ["bad file", "c:/hello"])
   fun `test file of Sep1Config does not exist`(file: String) {
-    val errors = validate(PropertySep1Config(true, "file", file))
+    var errors = validate(PropertySep1Config(true, "file", file))
     assertEquals(1, errors.errorCount)
-    errors.message?.let { assertContains(it, "doesNotExist-sep1Value") }
+    assertEquals("sep1-toml-value-file-does-not-exist", errors.allErrors[0].code)
+
+    errors = validate(PropertySep1Config(false, "file", file))
+    assertEquals(0, errors.errorCount)
   }
 
   @ParameterizedTest
   @ValueSource(strings = ["string", "file", "url"])
   fun `test Sep1Config empty values`(type: String) {
     var errors = validate(PropertySep1Config(true, type, null))
-    assertEquals(2, errors.errorCount)
-    errors.message?.let { assertContains(it, "empty-sep1Value") }
+    assertEquals(1, errors.errorCount)
+    assertEquals("sep1-toml-value-empty", errors.allErrors[0].code)
 
     errors = validate(PropertySep1Config(true, type, ""))
-    assertEquals(2, errors.errorCount)
-    errors.message?.let { assertContains(it, "empty-sep1Value") }
+    assertEquals(1, errors.errorCount)
+    assertEquals("sep1-toml-value-empty", errors.allErrors[0].code)
   }
 
   @Test
   fun `test Sep1Config empty types`() {
     var errors = validate(PropertySep1Config(true, null, "test value"))
     assertEquals(1, errors.errorCount)
-    errors.message?.let { assertContains(it, "empty-sep1Type") }
+    errors.message?.let { assertContains(it, "sep1-toml-type-empty") }
 
     errors = validate(PropertySep1Config(true, "", "test value"))
     assertEquals(1, errors.errorCount)
-    errors.message?.let { assertContains(it, "empty-sep1Type") }
+    errors.message?.let { assertContains(it, "sep1-toml-type-empty") }
   }
 }

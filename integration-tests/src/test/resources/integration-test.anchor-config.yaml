@@ -51,6 +51,9 @@ sep31:
 sep38:
   enabled: true
 
+events:
+  enabled: true
+
 assets:
   type: json
   value: |

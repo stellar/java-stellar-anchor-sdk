@@ -1,6 +1,6 @@
 package org.stellar.anchor.platform.config;
 
-import static org.stellar.anchor.util.StringHelper.isNotEmpty;
+import static org.stellar.anchor.util.StringHelper.isEmpty;
 
 import java.io.File;
 import lombok.AllArgsConstructor;
@@ -37,67 +37,61 @@ public class PropertySep1Config implements Sep1Config, Validator {
     Sep1Config config = (Sep1Config) target;
 
     if (config.isEnabled()) {
-      ValidationUtils.rejectIfEmptyOrWhitespace(
-          errors,
-          "type",
-          "empty-sep1Type",
-          "The value of config[sep1.toml.type] is must be specified");
-      ValidationUtils.rejectIfEmptyOrWhitespace(
-          errors,
-          "value",
-          "empty-sep1Value",
-          "The value of config[sep1.toml.value] is must be specified");
+      validateConfig(config, errors);
+      if (!errors.hasErrors()) validateTomlTypeAndValue(config, errors);
+    }
+  }
 
-      if (isNotEmpty(config.getValue()) && isNotEmpty(config.getType())) {
-        switch (config.getType().toLowerCase()) {
-          case "string":
-            try {
-              Sep1Helper.parse(config.getValue());
-            } catch (IllegalStateException isex) {
-              errors.rejectValue(
-                  "value",
-                  "invalid-sep1Value",
-                  String.format(
-                      "config[sep1.toml.value] does not contain a valid TOML. %s",
-                      isex.getMessage()));
-            }
-            break;
-          case "url":
-            if (!NetUtil.isUrlValid(config.getValue())) {
-              errors.rejectValue(
-                  "value",
-                  "invalid-sep1Value",
-                  String.format(
-                      "config[sep1.toml.value]=%s is not a valid URL", config.getValue()));
-            }
-            break;
-          case "file":
-            File file = new File(config.getValue());
-            if (!file.exists()) {
-              errors.rejectValue(
-                  "value",
-                  "doesNotExist-sep1Value",
-                  String.format(
-                      "config[sep1.toml.value]=%s specifies a file that does not exist",
-                      config.getValue()));
-            }
-            break;
-          default:
+  void validateTomlTypeAndValue(Sep1Config config, Errors errors) {
+    if (isEmpty(config.getType())) {
+      errors.rejectValue("type", "sep1-toml-type-empty", "sep1.toml.type must not be empty");
+    } else {
+      switch (config.getType().toLowerCase()) {
+        case "string":
+          try {
+            Sep1Helper.parse(config.getValue());
+          } catch (IllegalStateException isex) {
             errors.rejectValue(
-                "type",
-                "invalid-sep1Type",
+                "value",
+                "sep1-toml-value-string-invalid",
                 String.format(
-                    "'%s' is not a valid config[sep1.toml.type]. Only 'string', 'url' and 'file' are supported",
-                    config.getValue()));
-            break;
-        }
-      } else {
-        ValidationUtils.rejectIfEmptyOrWhitespace(
-            errors,
-            "value",
-            "empty-sep1TypeOrValue",
-            "Both the [sep1.toml.type] and [sep1.toml.value] must be specified if enabled");
+                    "sep1.toml.value does not contain a valid TOML. %s", isex.getMessage()));
+          }
+          break;
+        case "url":
+          if (!NetUtil.isUrlValid(config.getValue())) {
+            errors.rejectValue(
+                "value",
+                "sep1-toml-value-url-invalid",
+                String.format("sep1.toml.value=%s is not a valid URL", config.getValue()));
+          }
+          break;
+        case "file":
+          File file = new File(config.getValue());
+          if (!file.exists()) {
+            errors.rejectValue(
+                "value",
+                "sep1-toml-value-file-does-not-exist",
+                String.format(
+                    "sep1.toml.value=%s specifies a file that does not exist", config.getValue()));
+          }
+          break;
+        default:
+          errors.rejectValue(
+              "type",
+              "sep1-toml-type-invalid",
+              String.format(
+                  "'%s' is not a valid sep1.toml.type. Only 'string', 'url' and 'file' are supported",
+                  config.getValue()));
+          break;
       }
     }
+  }
+
+  void validateConfig(Sep1Config ignoredConfig, Errors errors) {
+    ValidationUtils.rejectIfEmptyOrWhitespace(
+        errors, "type", "sep1-toml-type-empty", "sep1.toml.type is must be specified");
+    ValidationUtils.rejectIfEmptyOrWhitespace(
+        errors, "value", "sep1-toml-value-empty", "sep1.toml.value is must be specified");
   }
 }
