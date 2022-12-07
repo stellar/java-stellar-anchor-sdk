@@ -52,7 +52,7 @@ public class PropertySep10Config implements Sep10Config, Validator {
       errors.rejectValue(
           null,
           "sep10-signing-seed-empty",
-          "Please set environment variable SECRET.SEP10.SIGNING_SEED");
+          "Please set environment variable SECRET_SEP10_SIGNING_SEED");
     }
 
     if (!isEmpty(secretConfig.getSep10SigningSeed())) {
@@ -62,7 +62,7 @@ public class PropertySep10Config implements Sep10Config, Validator {
         errors.rejectValue(
             null,
             "sep10-signing-seed-invalid",
-            "The signing seed of SECRET.SEP10.SIGNING_SEED is invalid");
+            "The signing seed of SECRET_SEP10_SIGNING_SEED is invalid");
       }
     }
 
@@ -70,7 +70,7 @@ public class PropertySep10Config implements Sep10Config, Validator {
       errors.rejectValue(
           null,
           "sep10-jwt-secret-empty",
-          "Please set environment variable SECRET.SEP10.JWT_SECRET");
+          "Please set environment variable SECRET_SEP10_JWT_SECRET");
     }
 
     if (!isEmpty(config.getHomeDomain())) {
