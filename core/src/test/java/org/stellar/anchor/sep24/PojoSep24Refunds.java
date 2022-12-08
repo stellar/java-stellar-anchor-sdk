@@ -7,5 +7,5 @@ import lombok.Data;
 public class PojoSep24Refunds implements Sep24Refunds {
   String amountRefunded;
   String amountFee;
-  List<Sep24RefundPayment> payments;
+  List<Sep24RefundPayment> refundPayments;
 }

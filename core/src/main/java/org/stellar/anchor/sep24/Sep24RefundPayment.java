@@ -11,13 +11,7 @@ public interface Sep24RefundPayment {
    */
   String getId();
 
-  /**
-   * <code>stellar</code> or <code>external</code>.
-   *
-   * @return the type.
-   */
-  String getIdType();
-
+  void setId(String id);
   /**
    * The amount sent back to the user for the payment identified by id, in units of amount_in_asset.
    *
@@ -25,10 +19,13 @@ public interface Sep24RefundPayment {
    */
   String getAmount();
 
+  void setAmount(String amount);
   /**
    * The amount charged as a fee for processing the refund, in units of amount_in_asset.
    *
    * @return the fee.
    */
   String getFee();
+
+  void setFee(String fee);
 }

@@ -20,7 +20,6 @@ import org.stellar.anchor.api.sep.sep24.*;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.auth.JwtToken;
 import org.stellar.anchor.config.Sep24Config;
-import org.stellar.anchor.util.DateUtil;
 
 public class Sep24Helper {
   private static final List<String> needsMoreInfoUrlDeposit =
@@ -49,9 +48,7 @@ public class Sep24Helper {
     JwtToken token =
         JwtToken.of(
             "moreInfoUrl",
-            (txn.getSep10AccountMemo() == null || txn.getSep10AccountMemo().length() == 0)
-                ? txn.getSep10Account()
-                : txn.getSep10Account() + ":" + txn.getSep10AccountMemo(),
+            txn.getSep10Account(),
             Instant.now().getEpochSecond(),
             Instant.now().getEpochSecond() + sep24Config.getInteractiveJwtExpiration(),
             txn.getTransactionId(),
@@ -94,10 +91,8 @@ public class Sep24Helper {
     txnR.setDepositMemo(txn.getMemo());
     txnR.setDepositMemoType(txn.getMemoType());
 
-    txnR.setStartedAt(
-        (txn.getStartedAt() == null) ? null : DateUtil.toISO8601UTC(txn.getStartedAt()));
-    txnR.setCompletedAt(
-        (txn.getCompletedAt() == null) ? null : DateUtil.toISO8601UTC(txn.getCompletedAt()));
+    txnR.setStartedAt((txn.getStartedAt() == null) ? null : txn.getStartedAt());
+    txnR.setCompletedAt((txn.getCompletedAt() == null) ? null : txn.getCompletedAt());
 
     if (allowMoreInfoUrl && needsMoreInfoUrlDeposit.contains(txn.getStatus())) {
       txnR.setMoreInfoUrl(constructMoreInfoUrl(jwtService, sep24Config, txn, lang));
@@ -119,10 +114,8 @@ public class Sep24Helper {
     WithdrawTransactionResponse txnR = new WithdrawTransactionResponse();
     BeanUtils.copyProperties(txn, txnR);
 
-    txnR.setStartedAt(
-        (txn.getStartedAt() == null) ? null : DateUtil.toISO8601UTC(txn.getStartedAt()));
-    txnR.setCompletedAt(
-        (txn.getCompletedAt() == null) ? null : DateUtil.toISO8601UTC(txn.getCompletedAt()));
+    txnR.setStartedAt((txn.getStartedAt() == null) ? null : txn.getStartedAt());
+    txnR.setCompletedAt((txn.getCompletedAt() == null) ? null : txn.getCompletedAt());
     txnR.setId(txn.getTransactionId());
     txnR.setFrom(txn.getFromAccount());
     txnR.setTo(txn.getToAccount());
@@ -144,7 +137,9 @@ public class Sep24Helper {
       TransactionResponse response, Sep24Transaction txn, AssetInfo assetInfo) {
     debugF("Calculating refund information");
 
-    List<? extends Sep24RefundPayment> refundPayments = txn.getRefundPayments();
+    if (txn.getRefunds() == null) return response;
+
+    List<Sep24RefundPayment> refundPayments = txn.getRefunds().getRefundPayments();
     response.setRefunded(false);
     BigDecimal totalAmount = BigDecimal.ZERO;
     BigDecimal totalFee = BigDecimal.ZERO;

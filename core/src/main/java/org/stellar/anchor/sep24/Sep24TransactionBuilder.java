@@ -1,5 +1,7 @@
 package org.stellar.anchor.sep24;
 
+import java.time.Instant;
+
 @SuppressWarnings("unused")
 public class Sep24TransactionBuilder {
   final Sep24Transaction txn;
@@ -24,32 +26,27 @@ public class Sep24TransactionBuilder {
   }
 
   public Sep24TransactionBuilder assetCode(String assetCode) {
-    txn.setAssetCode(assetCode);
+    txn.setRequestAssetCode(assetCode);
     return this;
   }
 
   public Sep24TransactionBuilder assetIssuer(String assetIssuer) {
-    txn.setAssetIssuer(assetIssuer);
+    txn.setRequestAssetIssuer(assetIssuer);
     return this;
   }
 
-  public Sep24TransactionBuilder startedAt(long time) {
+  public Sep24TransactionBuilder startedAt(Instant time) {
     txn.setStartedAt(time);
     return this;
   }
 
-  public Sep24TransactionBuilder completedAt(long time) {
+  public Sep24TransactionBuilder completedAt(Instant time) {
     txn.setCompletedAt(time);
     return this;
   }
 
   public Sep24TransactionBuilder sep10Account(String stellarAccount) {
     txn.setSep10Account(stellarAccount);
-    return this;
-  }
-
-  public Sep24TransactionBuilder sep10AccountMemo(String accountMemo) {
-    txn.setSep10AccountMemo(accountMemo);
     return this;
   }
 

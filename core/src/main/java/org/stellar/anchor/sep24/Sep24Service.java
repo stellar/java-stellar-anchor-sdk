@@ -129,9 +129,8 @@ public class Sep24Service {
             .amountOut(strAmount)
             .assetCode(assetCode)
             .assetIssuer(withdrawRequest.get("asset_issuer"))
-            .startedAt(Instant.now().getEpochSecond())
+            .startedAt(Instant.now())
             .sep10Account(token.getAccount())
-            .sep10AccountMemo(token.getAccountMemo())
             .fromAccount(sourceAccount)
             .clientDomain(token.getClientDomain());
 
@@ -249,9 +248,8 @@ public class Sep24Service {
             .amountOut(strAmount)
             .assetCode(assetCode)
             .assetIssuer(depositRequest.get("asset_issuer"))
-            .startedAt(Instant.now().getEpochSecond())
+            .startedAt(Instant.now())
             .sep10Account(token.getAccount())
-            .sep10AccountMemo(token.getAccountMemo())
             .toAccount(destinationAccount)
             .clientDomain(token.getClientDomain())
             .claimableBalanceSupported(claimableSupported);
@@ -349,7 +347,7 @@ public class Sep24Service {
 
     // If the token has a memo, make sure the transaction belongs to the account with the same memo.
     if (token.getAccountMemo() != null
-        && !token.getAccountMemo().equals(txn.getSep10AccountMemo())) {
+        && txn.getSep10Account().equals(token.getAccount() + ":" + token.getAccountMemo())) {
       infoF(
           "no transactions found with account:{} memo:{}",
           token.getAccount(),
@@ -396,7 +394,8 @@ public class Sep24Service {
     }
 
     // Calculate refund information.
-    AssetInfo assetInfo = assetService.getAsset(txn.getAssetCode(), txn.getAssetIssuer());
+    AssetInfo assetInfo =
+        assetService.getAsset(txn.getRequestAssetCode(), txn.getRequestAssetIssuer());
     return Sep24Helper.updateRefundInfo(response, txn, assetInfo);
   }
 

@@ -2,6 +2,7 @@ package org.stellar.anchor.model
 
 import io.mockk.every
 import io.mockk.mockk
+import java.time.Instant
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import org.stellar.anchor.sep24.PojoSep24Transaction
@@ -14,10 +15,11 @@ internal class Sep24TransactionTest {
     val store = mockk<Sep24TransactionStore>()
     every { store.newInstance() } returns PojoSep24Transaction()
     val builder = Sep24TransactionBuilder(store)
+    val instantNow = Instant.now()
     var txn =
       builder
         .transactionId("txnId")
-        .completedAt(10)
+        .completedAt(instantNow)
         .withdrawAnchorAccount("account")
         .memo("memo")
         .amountFee("20")
@@ -27,7 +29,7 @@ internal class Sep24TransactionTest {
         .build()
 
     assertEquals(txn.transactionId, "txnId")
-    assertEquals(txn.completedAt, 10)
+    assertEquals(txn.completedAt, instantNow)
     assertEquals(txn.withdrawAnchorAccount, "account")
     assertEquals(txn.memo, "memo")
     assertEquals(txn.amountFee, "20")

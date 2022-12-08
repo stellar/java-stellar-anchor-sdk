@@ -8,7 +8,8 @@ import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import javax.persistence.*;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.stellar.anchor.api.sep.AssetInfo;
@@ -19,7 +20,8 @@ import org.stellar.anchor.sep31.Refunds;
 import org.stellar.anchor.sep31.Sep31Transaction;
 import org.stellar.anchor.util.GsonUtils;
 
-@Data
+@Getter
+@Setter
 @Entity
 @Access(AccessType.FIELD)
 @Table(name = "sep31_transaction")

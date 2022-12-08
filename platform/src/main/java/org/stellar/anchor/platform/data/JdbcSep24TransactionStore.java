@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform.data;
 
+import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -57,23 +58,17 @@ public class JdbcSep24TransactionStore implements Sep24TransactionStore {
       limit = tr.getLimit();
     }
 
-    final long noOlderThan;
-    final long olderThan;
+    Instant noOlderThan = Instant.EPOCH;
+    Instant olderThan = Instant.now();
 
     if (tr.getPagingId() != null) {
       Sep24Transaction txn = txnRepo.findOneByTransactionId(tr.getPagingId());
-      if (txn == null) {
-        olderThan = System.currentTimeMillis() / 1000;
-      } else {
+      if (txn != null) {
         olderThan = txn.getStartedAt();
       }
-    } else {
-      olderThan = System.currentTimeMillis() / 1000;
     }
 
-    if (tr.getNoOlderThan() == null) {
-      noOlderThan = 0L;
-    } else {
+    if (tr.getNoOlderThan() != null) {
       try {
         noOlderThan = DateUtil.fromISO8601UTC(tr.getNoOlderThan());
       } catch (DateTimeParseException dtpex) {
@@ -82,13 +77,17 @@ public class JdbcSep24TransactionStore implements Sep24TransactionStore {
       }
     }
 
+    final Instant finalNoOlderThan = noOlderThan;
+    final Instant finalOlderThan = olderThan;
+
     txns =
         txns.stream()
             .filter(txn -> (tr.getKind() == null || tr.getKind().equals(txn.getKind())))
-            .filter(txn -> (txn.getStartedAt() >= noOlderThan - 1))
-            .filter(txn -> (txn.getStartedAt() < olderThan - 1))
+            .filter(txn -> (txn.getStartedAt().isAfter(finalNoOlderThan)))
+            .filter(txn -> (txn.getStartedAt().isBefore(finalOlderThan)))
             .limit(limit)
             .collect(Collectors.toList());
+
     return txns;
   }
 

@@ -9,7 +9,9 @@ import java.util.List;
 import java.util.UUID;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
+import org.stellar.anchor.api.exception.InvalidStellarAccountException;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
+import org.stellar.sdk.KeyPair;
 import org.stellar.sdk.xdr.MemoType;
 
 public class SepHelper {
@@ -43,6 +45,29 @@ public class SepHelper {
     }
 
     return result;
+  }
+
+  /**
+   * Retrieves the memo of the account.
+   *
+   * @param strAccount
+   * @return If the account is in the format of 1) G..., returns null 2) G...:memo, returns the memo
+   *     3) M..., returns null
+   */
+  public static String getAccountMemo(String strAccount) throws InvalidStellarAccountException {
+    String[] tokens = strAccount.split(":");
+    switch (tokens.length) {
+      case 1:
+        // Check if the account is a valid G... or M...
+        KeyPair.fromAccountId(tokens[0]);
+        return null;
+      case 2:
+        KeyPair.fromAccountId(tokens[0]);
+        return tokens[1];
+      default:
+        throw new InvalidStellarAccountException(
+            String.format("Invalid stellar account: %s", strAccount));
+    }
   }
 
   public static boolean amountEquals(String amount1, String amount2) {

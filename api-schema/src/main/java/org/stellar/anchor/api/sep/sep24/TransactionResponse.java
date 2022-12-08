@@ -1,6 +1,7 @@
 package org.stellar.anchor.api.sep.sep24;
 
 import com.google.gson.annotations.SerializedName;
+import java.time.Instant;
 import lombok.Data;
 
 @Data
@@ -36,10 +37,10 @@ public class TransactionResponse {
   String amountFeeAsset;
 
   @SerializedName("started_at")
-  String startedAt = "";
+  Instant startedAt;
 
   @SerializedName("completed_at")
-  String completedAt = "";
+  Instant completedAt;
 
   @SerializedName("stellar_transaction_id")
   String stellarTransactionId = "";
