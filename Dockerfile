@@ -11,6 +11,6 @@ RUN apt-get update && \
 COPY --from=build /code/service-runner/build/libs/anchor-platform-runner*.jar /app/anchor-platform-runner.jar
 
 COPY .github/kubernetes-ingress-controller-fake-certificate.pem /usr/local/share/ca-certificates
-RUN /usr/local/share/ca-certificates
+RUN update-ca-certificates
 
 ENTRYPOINT ["java", "-jar", "/app/anchor-platform-runner.jar"]
