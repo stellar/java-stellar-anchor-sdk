@@ -492,13 +492,14 @@ data:
   ## at https://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/setup-credentials.html
   #
   #
-  type: h2
-
+#  type: h2
+  type: sqlite
   ## @param: url
   ## @type: string
   ## Location of the database
   #
-  url: jdbc:h2:mem:anchor-platform
+#  url: jdbc:h2:mem:anchor-platform
+  url: jdbc:sqlite:anchor-proxy.db
 
   ## @param: initial_connection_pool_size
   ## @type: integer

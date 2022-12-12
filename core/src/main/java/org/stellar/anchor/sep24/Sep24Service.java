@@ -166,14 +166,14 @@ public class Sep24Service {
   public InteractiveTransactionResponse deposit(
       String fullRequestUrl, JwtToken token, Map<String, String> depositRequest)
       throws SepException, MalformedURLException, URISyntaxException {
-    info("Creating withdrawal transaction.");
+    info("Creating deposit transaction.");
     if (token == null) {
       info("missing SEP-10 token");
       throw new SepValidationException("missing token");
     }
 
     if (depositRequest == null) {
-      info("missing withdraw request");
+      info("missing deposit request");
       throw new SepValidationException("no request");
     }
 

@@ -16,7 +16,7 @@ public class TransactionResponse {
   Integer status_eta;
 
   @SerializedName("more_info_url")
-  String moreInfoUrl = "";
+  String moreInfoUrl = "http://www.stellar.org";
 
   @SerializedName("amount_in")
   String amountIn = "0";
@@ -37,10 +37,10 @@ public class TransactionResponse {
   String amountFeeAsset;
 
   @SerializedName("started_at")
-  Instant startedAt;
+  Instant startedAt = Instant.EPOCH;
 
   @SerializedName("completed_at")
-  Instant completedAt;
+  Instant completedAt = Instant.EPOCH;
 
   @SerializedName("stellar_transaction_id")
   String stellarTransactionId = "";

@@ -217,7 +217,7 @@ assets:
                       "iso4217:USD"
                   ]
               },
-              "sep24_enabled": false,
+              "sep24_enabled": true,
               "sep31_enabled": true,
               "sep38_enabled": true
           },

@@ -97,7 +97,8 @@ public class DataConfigAdapter extends SpringConfigAdapter {
         set("spring.datasource.driver-class-name", "org.sqlite.JDBC");
         set("spring.datasource.name", "anchor-platform");
         set("spring.jpa.database-platform", "org.stellar.anchor.platform.sqlite.SQLiteDialect");
-        copy(config, "data.ddl_auto", "spring.jpa.hibernate.ddl-auto");
+        set("spring.jpa.hibernate.ddl-auto", "update");
+        //        copy(config, "data.ddl_auto", "spring.jpa.hibernate.ddl-auto");
         copy(config, "data.url", "spring.datasource.url");
         set("spring.datasource.username", SecretManager.getInstance().get("secret.data.username"));
         set("spring.datasource.password", SecretManager.getInstance().get("secret.data.password"));

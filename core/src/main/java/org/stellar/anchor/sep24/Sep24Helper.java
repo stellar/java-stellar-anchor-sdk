@@ -5,6 +5,7 @@ import static org.stellar.anchor.api.sep.SepTransactionStatus.*;
 import static org.stellar.anchor.util.Log.debugF;
 import static org.stellar.anchor.util.MathHelper.decimal;
 
+import com.google.gson.Gson;
 import java.math.BigDecimal;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -20,6 +21,7 @@ import org.stellar.anchor.api.sep.sep24.*;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.auth.JwtToken;
 import org.stellar.anchor.config.Sep24Config;
+import org.stellar.anchor.util.GsonUtils;
 
 public class Sep24Helper {
   private static final List<String> needsMoreInfoUrlDeposit =
@@ -40,6 +42,8 @@ public class Sep24Helper {
           PENDING_EXTERNAL.toString(),
           PENDING_ANCHOR.toString(),
           PENDING_USER.toString());
+
+  private static Gson gson = GsonUtils.getInstance();
 
   public static String constructMoreInfoUrl(
       JwtService jwtService, Sep24Config sep24Config, Sep24Transaction txn, String lang)
@@ -80,24 +84,20 @@ public class Sep24Helper {
       boolean allowMoreInfoUrl)
       throws MalformedURLException, URISyntaxException {
 
-    DepositTransactionResponse txnR = new DepositTransactionResponse();
-    BeanUtils.copyProperties(txn, txnR);
+    DepositTransactionResponse txnR =
+        gson.fromJson(gson.toJson(txn), DepositTransactionResponse.class);
 
     txnR.setId(txn.getTransactionId());
     txnR.setDepositMemo(txn.getMemo());
     txnR.setDepositMemoType(txn.getMemoType());
-    txnR.setFrom(txn.getFromAccount());
-    txnR.setTo(txn.getToAccount());
-    txnR.setDepositMemo(txn.getMemo());
-    txnR.setDepositMemoType(txn.getMemoType());
 
-    txnR.setStartedAt((txn.getStartedAt() == null) ? null : txn.getStartedAt());
-    txnR.setCompletedAt((txn.getCompletedAt() == null) ? null : txn.getCompletedAt());
+    if (txn.getFromAccount() != null) txnR.setFrom(txn.getFromAccount());
+    if (txn.getToAccount() != null) txnR.setTo(txn.getToAccount());
+    if (txn.getStartedAt() != null) txnR.setStartedAt(txn.getStartedAt());
+    if (txn.getCompletedAt() != null) txnR.setCompletedAt(txn.getCompletedAt());
 
     if (allowMoreInfoUrl && needsMoreInfoUrlDeposit.contains(txn.getStatus())) {
       txnR.setMoreInfoUrl(constructMoreInfoUrl(jwtService, sep24Config, txn, lang));
-    } else {
-      txnR.setMoreInfoUrl(null);
     }
 
     return txnR;
@@ -111,23 +111,21 @@ public class Sep24Helper {
       boolean allowMoreInfoUrl)
       throws MalformedURLException, URISyntaxException {
 
-    WithdrawTransactionResponse txnR = new WithdrawTransactionResponse();
-    BeanUtils.copyProperties(txn, txnR);
+    WithdrawTransactionResponse txnR =
+        gson.fromJson(gson.toJson(txn), WithdrawTransactionResponse.class);
 
-    txnR.setStartedAt((txn.getStartedAt() == null) ? null : txn.getStartedAt());
-    txnR.setCompletedAt((txn.getCompletedAt() == null) ? null : txn.getCompletedAt());
     txnR.setId(txn.getTransactionId());
-    txnR.setFrom(txn.getFromAccount());
-    txnR.setTo(txn.getToAccount());
-
     txnR.setWithdrawMemo(txn.getMemo());
     txnR.setWithdrawMemoType(txn.getMemoType());
     txnR.setWithdrawAnchorAccount(txn.getWithdrawAnchorAccount());
 
+    if (txn.getFromAccount() != null) txnR.setFrom(txn.getFromAccount());
+    if (txn.getToAccount() != null) txnR.setTo(txn.getToAccount());
+    if (txn.getStartedAt() != null) txnR.setStartedAt(txn.getStartedAt());
+    if (txn.getCompletedAt() != null) txnR.setCompletedAt(txn.getCompletedAt());
+
     if (allowMoreInfoUrl && needsMoreInfoUrlWithdraw.contains(txn.getStatus())) {
       txnR.setMoreInfoUrl(constructMoreInfoUrl(jwtService, sep24Config, txn, lang));
-    } else {
-      txnR.setMoreInfoUrl(null);
     }
 
     return txnR;
