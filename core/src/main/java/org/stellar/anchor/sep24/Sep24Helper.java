@@ -43,7 +43,7 @@ public class Sep24Helper {
           PENDING_ANCHOR.toString(),
           PENDING_USER.toString());
 
-  private static Gson gson = GsonUtils.getInstance();
+  private static final Gson gson = GsonUtils.getInstance();
 
   public static String constructMoreInfoUrl(
       JwtService jwtService, Sep24Config sep24Config, Sep24Transaction txn, String lang)
@@ -87,14 +87,10 @@ public class Sep24Helper {
     DepositTransactionResponse txnR =
         gson.fromJson(gson.toJson(txn), DepositTransactionResponse.class);
 
-    txnR.setId(txn.getTransactionId());
+    setSharedTransactionResponseFields(txnR, txn);
+
     txnR.setDepositMemo(txn.getMemo());
     txnR.setDepositMemoType(txn.getMemoType());
-
-    if (txn.getFromAccount() != null) txnR.setFrom(txn.getFromAccount());
-    if (txn.getToAccount() != null) txnR.setTo(txn.getToAccount());
-    if (txn.getStartedAt() != null) txnR.setStartedAt(txn.getStartedAt());
-    if (txn.getCompletedAt() != null) txnR.setCompletedAt(txn.getCompletedAt());
 
     if (allowMoreInfoUrl && needsMoreInfoUrlDeposit.contains(txn.getStatus())) {
       txnR.setMoreInfoUrl(constructMoreInfoUrl(jwtService, sep24Config, txn, lang));
@@ -114,21 +110,26 @@ public class Sep24Helper {
     WithdrawTransactionResponse txnR =
         gson.fromJson(gson.toJson(txn), WithdrawTransactionResponse.class);
 
-    txnR.setId(txn.getTransactionId());
+    setSharedTransactionResponseFields(txnR, txn);
+
     txnR.setWithdrawMemo(txn.getMemo());
     txnR.setWithdrawMemoType(txn.getMemoType());
     txnR.setWithdrawAnchorAccount(txn.getWithdrawAnchorAccount());
-
-    if (txn.getFromAccount() != null) txnR.setFrom(txn.getFromAccount());
-    if (txn.getToAccount() != null) txnR.setTo(txn.getToAccount());
-    if (txn.getStartedAt() != null) txnR.setStartedAt(txn.getStartedAt());
-    if (txn.getCompletedAt() != null) txnR.setCompletedAt(txn.getCompletedAt());
 
     if (allowMoreInfoUrl && needsMoreInfoUrlWithdraw.contains(txn.getStatus())) {
       txnR.setMoreInfoUrl(constructMoreInfoUrl(jwtService, sep24Config, txn, lang));
     }
 
     return txnR;
+  }
+
+  private static void setSharedTransactionResponseFields(
+      TransactionResponse txnR, Sep24Transaction txn) {
+    txnR.setId(txn.getTransactionId());
+    if (txn.getFromAccount() != null) txnR.setFrom(txn.getFromAccount());
+    if (txn.getToAccount() != null) txnR.setTo(txn.getToAccount());
+    if (txn.getStartedAt() != null) txnR.setStartedAt(txn.getStartedAt());
+    if (txn.getCompletedAt() != null) txnR.setCompletedAt(txn.getCompletedAt());
   }
 
   public static TransactionResponse updateRefundInfo(
