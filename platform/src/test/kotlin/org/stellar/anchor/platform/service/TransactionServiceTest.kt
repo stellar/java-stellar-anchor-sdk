@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
+import org.skyscreamer.jsonassert.JSONAssert
 import org.stellar.anchor.api.exception.AnchorException
 import org.stellar.anchor.api.exception.BadRequestException
 import org.stellar.anchor.api.exception.NotFoundException
@@ -28,6 +29,7 @@ import org.stellar.anchor.platform.data.JdbcSep31Transaction
 import org.stellar.anchor.sep31.*
 import org.stellar.anchor.sep38.Sep38Quote
 import org.stellar.anchor.sep38.Sep38QuoteStore
+import org.stellar.anchor.util.GsonUtils
 
 @Suppress("unused")
 class TransactionServiceTest {
@@ -37,6 +39,7 @@ class TransactionServiceTest {
       "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
     private const val TEST_ACCOUNT = "GCHLHDBOKG2JWMJQBTLSL5XG6NO7ESXI2TAQKZXCXWXB5WI2X6W233PR"
     private const val TEST_MEMO = "test memo"
+    private val gson = GsonUtils.getInstance()
   }
 
   @MockK(relaxed = true) private lateinit var sep38QuoteStore: Sep38QuoteStore
@@ -426,6 +429,10 @@ class TransactionServiceTest {
     wantSep31TransactionUpdated.externalTransactionId = "external-id"
     wantSep31TransactionUpdated.transferReceivedAt = mockTransferReceivedAt
     wantSep31TransactionUpdated.refunds = Refunds.of(mockRefunds, sep31TransactionStore)
-    assertEquals(wantSep31TransactionUpdated, mockSep31Transaction)
+    JSONAssert.assertEquals(
+      gson.toJson(wantSep31TransactionUpdated),
+      gson.toJson(mockSep31Transaction),
+      true
+    )
   }
 }

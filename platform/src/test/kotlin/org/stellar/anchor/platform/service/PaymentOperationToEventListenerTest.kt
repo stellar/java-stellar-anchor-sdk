@@ -10,6 +10,7 @@ import kotlin.test.assertEquals
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.skyscreamer.jsonassert.JSONAssert
 import org.stellar.anchor.api.exception.SepException
 import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.api.shared.*
@@ -244,7 +245,7 @@ class PaymentOperationToEventListenerTest {
     wantSep31Tx.updatedAt = transferReceivedAt
     wantSep31Tx.stellarTransactions = listOf(stellarTransaction)
 
-    assertEquals(wantSep31Tx, slotTx.captured)
+    JSONAssert.assertEquals(gson.toJson(wantSep31Tx), gson.toJson(slotTx.captured), true)
   }
 
   @Test
@@ -389,6 +390,6 @@ class PaymentOperationToEventListenerTest {
     wantSep31Tx.updatedAt = transferReceivedAt
     wantSep31Tx.stellarTransactions = listOf(stellarTransaction)
 
-    assertEquals(wantSep31Tx, slotTx.captured)
+    JSONAssert.assertEquals(gson.toJson(wantSep31Tx), gson.toJson(slotTx.captured), true)
   }
 }
