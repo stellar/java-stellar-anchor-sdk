@@ -11,10 +11,7 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import org.skyscreamer.jsonassert.JSONAssert
-<<<<<<< Updated upstream
-=======
 import org.skyscreamer.jsonassert.JSONCompareMode.STRICT
->>>>>>> Stashed changes
 import org.stellar.anchor.api.exception.AnchorException
 import org.stellar.anchor.api.exception.BadRequestException
 import org.stellar.anchor.api.exception.NotFoundException
@@ -437,11 +434,7 @@ class TransactionServiceTest {
     JSONAssert.assertEquals(
       gson.toJson(wantSep31TransactionUpdated),
       gson.toJson(mockSep31Transaction),
-<<<<<<< Updated upstream
-      true
-=======
       STRICT
->>>>>>> Stashed changes
     )
   }
 }
