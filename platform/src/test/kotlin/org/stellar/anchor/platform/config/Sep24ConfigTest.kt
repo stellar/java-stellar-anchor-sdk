@@ -40,8 +40,8 @@ class Sep24ConfigTest {
 
   @ParameterizedTest
   @ValueSource(ints = [-1, Integer.MIN_VALUE, 0])
-  fun `test bad interactive jwt expiration`(expiration: Integer) {
-    config.setInteractiveJwtExpiration(expiration.toInt())
+  fun `test bad interactive jwt expiration`(expiration: Int) {
+    config.setInteractiveJwtExpiration(expiration)
     config.validate(config, errors)
     assertTrue(errors.hasErrors())
     assertErrorCode(errors, "sep24-interactive-url-invalid")

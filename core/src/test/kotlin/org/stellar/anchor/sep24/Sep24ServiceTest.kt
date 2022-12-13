@@ -6,6 +6,7 @@ import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import java.net.URI
 import java.nio.charset.Charset
+import java.time.Instant
 import org.apache.http.client.utils.URLEncodedUtils
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
@@ -36,7 +37,6 @@ import org.stellar.anchor.auth.JwtToken
 import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.config.Sep24Config
-import org.stellar.anchor.util.DateUtil
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.MemoHelper.makeMemo
 import org.stellar.sdk.MemoHash
@@ -46,19 +46,18 @@ import org.stellar.sdk.MemoText
 internal class Sep24ServiceTest {
   companion object {
     const val TEST_SEP24_INTERACTIVE_URL = "https://test-anchor.stellar.org"
+    val TEST_STARTED_AT: Instant = Instant.now()
+    val TEST_COMPLETED_AT: Instant = Instant.now().plusSeconds(100)
   }
 
   @MockK(relaxed = true) lateinit var appConfig: AppConfig
   @MockK(relaxed = true) lateinit var secretConfig: SecretConfig
-
   @MockK(relaxed = true) lateinit var sep24Config: Sep24Config
+  @MockK(relaxed = true) private lateinit var txnStore: Sep24TransactionStore
 
   private val assetService: AssetService = ResourceJsonAssetService("test_assets.json")
 
   private lateinit var jwtService: JwtService
-
-  @MockK(relaxed = true) private lateinit var txnStore: Sep24TransactionStore
-
   private lateinit var sep24Service: Sep24Service
 
   private val gson = GsonUtils.getInstance()
@@ -111,9 +110,9 @@ internal class Sep24ServiceTest {
 
     assertEquals(slotTxn.captured.status, "incomplete")
     assertEquals(slotTxn.captured.kind, "withdrawal")
-    assertEquals(slotTxn.captured.assetCode, "USDC")
+    assertEquals(slotTxn.captured.requestAssetCode, "USDC")
     assertEquals(
-      slotTxn.captured.assetIssuer,
+      slotTxn.captured.requestAssetIssuer,
       "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
     )
     assertEquals(slotTxn.captured.sep10Account, TEST_ACCOUNT)
@@ -236,8 +235,8 @@ internal class Sep24ServiceTest {
 
     assertEquals(slotTxn.captured.status, "incomplete")
     assertEquals(slotTxn.captured.kind, "deposit")
-    assertEquals(slotTxn.captured.assetCode, TEST_ASSET)
-    assertEquals(slotTxn.captured.assetIssuer, TEST_ASSET_ISSUER_ACCOUNT_ID)
+    assertEquals(slotTxn.captured.requestAssetCode, TEST_ASSET)
+    assertEquals(slotTxn.captured.requestAssetIssuer, TEST_ASSET_ISSUER_ACCOUNT_ID)
     assertEquals(slotTxn.captured.sep10Account, TEST_ACCOUNT)
     assertEquals(slotTxn.captured.toAccount, TEST_ACCOUNT)
     assertEquals(slotTxn.captured.clientDomain, TEST_CLIENT_DOMAIN)
@@ -331,14 +330,14 @@ internal class Sep24ServiceTest {
     assertEquals(response.transactions[0].id, TEST_TRANSACTION_ID_0)
     assertEquals(response.transactions[0].status, "incomplete")
     assertEquals(response.transactions[0].kind, kind)
-    assertEquals(response.transactions[0].startedAt, DateUtil.toISO8601UTC(1000))
-    assertEquals(response.transactions[0].completedAt, DateUtil.toISO8601UTC(2000))
+    assertEquals(response.transactions[0].startedAt, TEST_STARTED_AT)
+    assertEquals(response.transactions[0].completedAt, TEST_COMPLETED_AT)
 
     assertEquals(response.transactions[1].id, TEST_TRANSACTION_ID_1)
     assertEquals(response.transactions[1].status, "completed")
     assertEquals(response.transactions[1].kind, kind)
-    assertEquals(response.transactions[1].startedAt, DateUtil.toISO8601UTC(1000))
-    assertEquals(response.transactions[1].completedAt, DateUtil.toISO8601UTC(2000))
+    assertEquals(response.transactions[1].startedAt, TEST_STARTED_AT)
+    assertEquals(response.transactions[1].completedAt, TEST_COMPLETED_AT)
   }
 
   @ParameterizedTest
@@ -375,8 +374,8 @@ internal class Sep24ServiceTest {
     assertEquals(response.transaction.id, TEST_TRANSACTION_ID_0)
     assertEquals(response.transaction.status, "incomplete")
     assertEquals(response.transaction.kind, kind)
-    assertEquals(response.transaction.startedAt, DateUtil.toISO8601UTC(1000))
-    assertEquals(response.transaction.completedAt, DateUtil.toISO8601UTC(2000))
+    assertEquals(response.transaction.startedAt, TEST_STARTED_AT)
+    assertEquals(response.transaction.completedAt, TEST_COMPLETED_AT)
     verify(exactly = 1) { txnStore.findByTransactionId(TEST_TRANSACTION_ID_0) }
 
     // test with stellar transaction Id
@@ -466,11 +465,11 @@ internal class Sep24ServiceTest {
     txn.transactionId = TEST_TRANSACTION_ID_0
     txn.status = "incomplete"
     txn.kind = kind
-    txn.startedAt = 1000
-    txn.completedAt = 2000
+    txn.startedAt = TEST_STARTED_AT
+    txn.completedAt = TEST_COMPLETED_AT
 
-    txn.assetCode = TEST_ASSET
-    txn.assetIssuer = TEST_ASSET_ISSUER_ACCOUNT_ID
+    txn.requestAssetCode = TEST_ASSET
+    txn.requestAssetIssuer = TEST_ASSET_ISSUER_ACCOUNT_ID
     txn.sep10Account = TEST_ACCOUNT
     txn.toAccount = TEST_ACCOUNT
     txn.fromAccount = TEST_ACCOUNT
@@ -489,11 +488,11 @@ internal class Sep24ServiceTest {
     txn.transactionId = TEST_TRANSACTION_ID_0
     txn.status = "incomplete"
     txn.kind = kind
-    txn.startedAt = 1000
-    txn.completedAt = 2000
+    txn.startedAt = TEST_STARTED_AT
+    txn.completedAt = TEST_COMPLETED_AT
 
-    txn.assetCode = TEST_ASSET
-    txn.assetIssuer = TEST_ASSET_ISSUER_ACCOUNT_ID
+    txn.requestAssetCode = TEST_ASSET
+    txn.requestAssetIssuer = TEST_ASSET_ISSUER_ACCOUNT_ID
     txn.sep10Account = TEST_ACCOUNT
     txn.toAccount = TEST_ACCOUNT
     txn.fromAccount = TEST_ACCOUNT
@@ -507,11 +506,11 @@ internal class Sep24ServiceTest {
     txn.transactionId = TEST_TRANSACTION_ID_1
     txn.status = "completed"
     txn.kind = kind
-    txn.startedAt = 1000
-    txn.completedAt = 2000
+    txn.startedAt = TEST_STARTED_AT
+    txn.completedAt = TEST_COMPLETED_AT
 
-    txn.assetCode = TEST_ASSET
-    txn.assetIssuer = TEST_ASSET_ISSUER_ACCOUNT_ID
+    txn.requestAssetCode = TEST_ASSET
+    txn.requestAssetIssuer = TEST_ASSET_ISSUER_ACCOUNT_ID
     txn.sep10Account = TEST_ACCOUNT
     txn.toAccount = TEST_ACCOUNT
     txn.fromAccount = TEST_ACCOUNT

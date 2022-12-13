@@ -5,6 +5,7 @@ import static org.stellar.anchor.api.sep.SepTransactionStatus.*;
 import static org.stellar.anchor.util.Log.debugF;
 import static org.stellar.anchor.util.MathHelper.decimal;
 
+import com.google.gson.Gson;
 import java.math.BigDecimal;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -20,7 +21,7 @@ import org.stellar.anchor.api.sep.sep24.*;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.auth.JwtToken;
 import org.stellar.anchor.config.Sep24Config;
-import org.stellar.anchor.util.DateUtil;
+import org.stellar.anchor.util.GsonUtils;
 
 public class Sep24Helper {
   private static final List<String> needsMoreInfoUrlDeposit =
@@ -42,6 +43,8 @@ public class Sep24Helper {
           PENDING_ANCHOR.toString(),
           PENDING_USER.toString());
 
+  private static final Gson gson = GsonUtils.getInstance();
+
   public static String constructMoreInfoUrl(
       JwtService jwtService, Sep24Config sep24Config, Sep24Transaction txn, String lang)
       throws URISyntaxException, MalformedURLException {
@@ -49,9 +52,7 @@ public class Sep24Helper {
     JwtToken token =
         JwtToken.of(
             "moreInfoUrl",
-            (txn.getSep10AccountMemo() == null || txn.getSep10AccountMemo().length() == 0)
-                ? txn.getSep10Account()
-                : txn.getSep10Account() + ":" + txn.getSep10AccountMemo(),
+            txn.getSep10Account(),
             Instant.now().getEpochSecond(),
             Instant.now().getEpochSecond() + sep24Config.getInteractiveJwtExpiration(),
             txn.getTransactionId(),
@@ -83,26 +84,16 @@ public class Sep24Helper {
       boolean allowMoreInfoUrl)
       throws MalformedURLException, URISyntaxException {
 
-    DepositTransactionResponse txnR = new DepositTransactionResponse();
-    BeanUtils.copyProperties(txn, txnR);
+    DepositTransactionResponse txnR =
+        gson.fromJson(gson.toJson(txn), DepositTransactionResponse.class);
 
-    txnR.setId(txn.getTransactionId());
+    setSharedTransactionResponseFields(txnR, txn);
+
     txnR.setDepositMemo(txn.getMemo());
     txnR.setDepositMemoType(txn.getMemoType());
-    txnR.setFrom(txn.getFromAccount());
-    txnR.setTo(txn.getToAccount());
-    txnR.setDepositMemo(txn.getMemo());
-    txnR.setDepositMemoType(txn.getMemoType());
-
-    txnR.setStartedAt(
-        (txn.getStartedAt() == null) ? null : DateUtil.toISO8601UTC(txn.getStartedAt()));
-    txnR.setCompletedAt(
-        (txn.getCompletedAt() == null) ? null : DateUtil.toISO8601UTC(txn.getCompletedAt()));
 
     if (allowMoreInfoUrl && needsMoreInfoUrlDeposit.contains(txn.getStatus())) {
       txnR.setMoreInfoUrl(constructMoreInfoUrl(jwtService, sep24Config, txn, lang));
-    } else {
-      txnR.setMoreInfoUrl(null);
     }
 
     return txnR;
@@ -116,16 +107,10 @@ public class Sep24Helper {
       boolean allowMoreInfoUrl)
       throws MalformedURLException, URISyntaxException {
 
-    WithdrawTransactionResponse txnR = new WithdrawTransactionResponse();
-    BeanUtils.copyProperties(txn, txnR);
+    WithdrawTransactionResponse txnR =
+        gson.fromJson(gson.toJson(txn), WithdrawTransactionResponse.class);
 
-    txnR.setStartedAt(
-        (txn.getStartedAt() == null) ? null : DateUtil.toISO8601UTC(txn.getStartedAt()));
-    txnR.setCompletedAt(
-        (txn.getCompletedAt() == null) ? null : DateUtil.toISO8601UTC(txn.getCompletedAt()));
-    txnR.setId(txn.getTransactionId());
-    txnR.setFrom(txn.getFromAccount());
-    txnR.setTo(txn.getToAccount());
+    setSharedTransactionResponseFields(txnR, txn);
 
     txnR.setWithdrawMemo(txn.getMemo());
     txnR.setWithdrawMemoType(txn.getMemoType());
@@ -133,18 +118,27 @@ public class Sep24Helper {
 
     if (allowMoreInfoUrl && needsMoreInfoUrlWithdraw.contains(txn.getStatus())) {
       txnR.setMoreInfoUrl(constructMoreInfoUrl(jwtService, sep24Config, txn, lang));
-    } else {
-      txnR.setMoreInfoUrl(null);
     }
 
     return txnR;
+  }
+
+  private static void setSharedTransactionResponseFields(
+      TransactionResponse txnR, Sep24Transaction txn) {
+    txnR.setId(txn.getTransactionId());
+    if (txn.getFromAccount() != null) txnR.setFrom(txn.getFromAccount());
+    if (txn.getToAccount() != null) txnR.setTo(txn.getToAccount());
+    if (txn.getStartedAt() != null) txnR.setStartedAt(txn.getStartedAt());
+    if (txn.getCompletedAt() != null) txnR.setCompletedAt(txn.getCompletedAt());
   }
 
   public static TransactionResponse updateRefundInfo(
       TransactionResponse response, Sep24Transaction txn, AssetInfo assetInfo) {
     debugF("Calculating refund information");
 
-    List<? extends Sep24RefundPayment> refundPayments = txn.getRefundPayments();
+    if (txn.getRefunds() == null) return response;
+
+    List<Sep24RefundPayment> refundPayments = txn.getRefunds().getRefundPayments();
     response.setRefunded(false);
     BigDecimal totalAmount = BigDecimal.ZERO;
     BigDecimal totalFee = BigDecimal.ZERO;

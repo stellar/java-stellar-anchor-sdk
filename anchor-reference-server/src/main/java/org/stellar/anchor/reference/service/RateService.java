@@ -2,7 +2,8 @@ package org.stellar.anchor.reference.service;
 
 import static java.math.RoundingMode.HALF_DOWN;
 import static org.stellar.anchor.api.callback.GetRateRequest.Type.*;
-import static org.stellar.anchor.util.MathHelper.*;
+import static org.stellar.anchor.util.MathHelper.decimal;
+import static org.stellar.anchor.util.MathHelper.formatAmount;
 import static org.stellar.anchor.util.SepHelper.validateAmount;
 
 import java.math.BigDecimal;
@@ -153,8 +154,9 @@ public class RateService {
     if (strExpiresAfter == null) {
       expiresAfter = Instant.now();
     } else {
-      expiresAfter = Instant.ofEpochSecond(DateUtil.fromISO8601UTC(strExpiresAfter));
+      expiresAfter = DateUtil.fromISO8601UTC(strExpiresAfter);
     }
+
     ZonedDateTime expiresAt =
         ZonedDateTime.ofInstant(expiresAfter, ZoneId.of("UTC"))
             .plusDays(1)

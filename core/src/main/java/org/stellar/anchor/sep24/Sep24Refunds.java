@@ -6,7 +6,13 @@ import java.util.List;
 public interface Sep24Refunds {
   String getAmountRefunded();
 
+  void setAmountRefunded(String amountRefunded);
+
   String getAmountFee();
 
-  List<? extends Sep24RefundPayment> getPayments();
+  void setAmountFee(String amountFee);
+
+  List<Sep24RefundPayment> getRefundPayments();
+
+  void setRefundPayments(List<Sep24RefundPayment> refundPayments);
 }

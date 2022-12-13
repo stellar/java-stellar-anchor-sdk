@@ -15,9 +15,6 @@ public interface JdbcSep24TransactionRepo extends CrudRepository<JdbcSep24Transa
 
   JdbcSep24Transaction findOneByStellarTransactionId(String stellarTransactionId);
 
-  List<Sep24Transaction> findBySep10AccountAndAssetCodeOrderByStartedAtDesc(
+  List<Sep24Transaction> findBySep10AccountAndRequestAssetCodeOrderByStartedAtDesc(
       String stellarAccount, String assetCode);
-
-  List<Sep24Transaction> findBySep10AccountAndSep10AccountMemoAndAssetCodeOrderByStartedAtDesc(
-      String stellarAccount, String accountMemo, String assetCode);
 }

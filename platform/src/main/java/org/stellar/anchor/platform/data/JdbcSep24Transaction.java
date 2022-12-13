@@ -1,99 +1,148 @@
 package org.stellar.anchor.platform.data;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import com.google.gson.Gson;
+import com.google.gson.annotations.SerializedName;
+import com.vladmihalcea.hibernate.type.json.JsonType;
+import java.time.Instant;
 import javax.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
-import org.stellar.anchor.sep24.Sep24RefundPayment;
+import org.hibernate.annotations.TypeDef;
+import org.stellar.anchor.sep24.Sep24Refunds;
 import org.stellar.anchor.sep24.Sep24Transaction;
+import org.stellar.anchor.util.GsonUtils;
 
 @Getter
 @Setter
 @Entity
+@Access(AccessType.FIELD)
 @Table(name = "sep24_transaction")
+@TypeDef(name = "json", typeClass = JsonType.class)
 public class JdbcSep24Transaction implements Sep24Transaction, SepTransaction {
-  @Id
-  @GeneratedValue
-  @Column(name = "sep_transaction_id")
-  UUID jdbcId;
+  static Gson gson = GsonUtils.getInstance();
 
-  String id;
-
-  String transactionId;
-
-  String stellarTransactionId;
-
-  String externalTransactionId;
-
-  String status;
+  @Id String id;
 
   String kind;
 
-  Long startedAt;
+  String status;
 
-  Long completedAt;
+  @SerializedName("status_eta")
+  String statusEta;
 
-  String assetCode; // *
+  @SerializedName("kyc_verified")
+  String kycVerified;
 
-  String assetIssuer; // *
+  @SerializedName("more_info_url")
+  String moreInfoUrl;
 
-  String sep10Account; // *
-
-  String sep10AccountMemo; // *
-
-  String withdrawAnchorAccount;
-
-  String fromAccount; // *
-
-  String toAccount; // *
-
-  String memoType;
-
-  String memo;
-
-  String clientDomain;
-
-  Boolean claimableBalanceSupported;
-
+  @SerializedName("amount_in")
   String amountIn;
 
-  String amountOut;
-
-  String amountFee;
-
+  @SerializedName("amount_in_asset")
   String amountInAsset;
 
+  @SerializedName("amount_out")
+  String amountOut;
+
+  @SerializedName("amount_out_asset")
   String amountOutAsset;
 
+  @SerializedName("amount_fee")
+  String amountFee;
+
+  @SerializedName("amount_fee_asset")
   String amountFeeAsset;
 
-  String muxedAccount;
+  @SerializedName("started_at")
+  Instant startedAt;
 
-  @OneToMany(fetch = FetchType.LAZY, mappedBy = "transaction")
-  List<JdbcSep24RefundPayment> refundPayments;
+  @SerializedName("completed_at")
+  Instant completedAt;
 
-  @Override
-  public List<? extends Sep24RefundPayment> getRefundPayments() {
-    return refundPayments;
+  @SerializedName("transaction_id")
+  String transactionId;
+
+  @SerializedName("stellar_transaction_id")
+  String stellarTransactionId;
+
+  @SerializedName("external_transaction_id")
+  String externalTransactionId;
+
+  String message;
+
+  Boolean refunded;
+
+  // Ignored by JPA
+  @Transient Sep24Refunds refunds;
+
+  @Access(AccessType.PROPERTY)
+  @Column(name = "refunds")
+  public String getRefundsJson() {
+    return gson.toJson(this.refunds);
   }
 
-  @Override
-  public void setRefundPayments(List<? extends Sep24RefundPayment> payments) {
-    refundPayments = new ArrayList<>(payments.size());
-    payments.stream()
-        .filter(p -> p instanceof JdbcSep24RefundPayment)
-        .forEach(fp -> refundPayments.add((JdbcSep24RefundPayment) fp));
+  public void setRefundsJson(String refundsJson) {
+    if (refundsJson != null) {
+      this.refunds = gson.fromJson(refundsJson, JdbcSep24Refunds.class);
+    }
   }
 
-  @Override
-  public String getId() {
-    return jdbcId.toString();
-  }
+  /**
+   * If this is a withdrawal, this is the anchor's Stellar account that the user transferred (or
+   * will transfer) their issued asset to.
+   */
+  @SerializedName("withdraw_anchor_account")
+  String withdrawAnchorAccount;
 
-  @Override
-  public void setId(String id) {
-    jdbcId = UUID.fromString(id);
-  }
+  /** The memo for deposit or withdraw */
+  String memo;
+
+  /** The memo type of the transaction */
+  @SerializedName("memo_type")
+  String memoType;
+
+  /**
+   * Sent from address.
+   *
+   * <p>In a deposit transaction, this would be a non-stellar account such as, BTC, IBAN, or bank
+   * account.
+   *
+   * <p>In a withdrawal transaction, this would be the stellar account the assets were withdrawn
+   * from.
+   */
+  @SerializedName("from_account")
+  String fromAccount;
+
+  /**
+   * Sent to address.
+   *
+   * <p>In a deposit transaction, this would be a stellar account the assets were deposited to.
+   *
+   * <p>In a withdrawal transaction, this would be the non-stellar account such as BTC, IBAN, or
+   * bank account.
+   */
+  @SerializedName("to_account")
+  String toAccount;
+
+  @SerializedName("request_asset_code")
+  String requestAssetCode;
+
+  @SerializedName("request_asset_issuer")
+  String requestAssetIssuer;
+
+  /**
+   * The SEP10 account used for authentication.
+   *
+   * <p>The account can be in the format of 1) stellar_account (G...) 2) stellar_account:memo
+   * (G...:2810101841641761712) 3) muxed account (M...)
+   */
+  @SerializedName("sep10_account")
+  String sep10Account;
+
+  @SerializedName("client_domain")
+  String clientDomain;
+
+  @SerializedName("claimable_balance_supported")
+  Boolean claimableBalanceSupported;
 }
