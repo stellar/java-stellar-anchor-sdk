@@ -18,11 +18,6 @@ platform_api:
     type: NONE
     expiration_milliseconds: 30000
 
-payment_observer:
-  enabled: false
-  circle_url: https://api-sandbox.circle.com
-  tracked_wallet: all
-
 languages: en
 
 logging:
@@ -87,7 +82,8 @@ sep12:
   enabled: true
 
 sep24:
-  enabled: false
+  enabled: true
+  interactiveUrl: http://localhost:8081/sep24/interactive
 
 sep31:
   enabled: true
@@ -281,7 +277,7 @@ assets:
               "iso4217:USD"
             ]
           },
-          "sep24_enabled": false,
+          "sep24_enabled": true,
           "sep31_enabled": true,
           "sep38_enabled": true
         },

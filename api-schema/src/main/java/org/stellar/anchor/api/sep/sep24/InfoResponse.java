@@ -12,7 +12,7 @@ public class InfoResponse {
   Map<String, AssetInfo.AssetOperation> withdraw = new HashMap<>();
   FeeResponse fee = new FeeResponse();
 
-  @SerializedName("feature_flags")
+  @SerializedName("features")
   FeatureFlagResponse featureFlags = new FeatureFlagResponse(true, true);
 
   @SuppressWarnings("unused")
