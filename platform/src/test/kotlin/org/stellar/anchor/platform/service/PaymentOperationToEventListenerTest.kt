@@ -6,11 +6,12 @@ import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import java.time.Instant
 import java.time.format.DateTimeFormatter
-import kotlin.test.assertEquals
 import org.junit.jupiter.api.AfterEach
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
+import org.skyscreamer.jsonassert.JSONCompareMode.STRICT
 import org.stellar.anchor.api.exception.SepException
 import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.api.shared.*
@@ -390,6 +391,6 @@ class PaymentOperationToEventListenerTest {
     wantSep31Tx.updatedAt = transferReceivedAt
     wantSep31Tx.stellarTransactions = listOf(stellarTransaction)
 
-    JSONAssert.assertEquals(gson.toJson(wantSep31Tx), gson.toJson(slotTx.captured), true)
+    JSONAssert.assertEquals(gson.toJson(wantSep31Tx), gson.toJson(slotTx.captured), STRICT)
   }
 }
