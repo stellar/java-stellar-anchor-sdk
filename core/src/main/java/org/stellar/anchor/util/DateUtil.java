@@ -9,12 +9,11 @@ public class DateUtil {
   /**
    * From epoch seconds to UTC ISO8601 string.
    *
-   * @param epochSeconds the epoch seconds
+   * @param instant the Instant object
    * @return The string in ISO8601 format.
    */
-  public static String toISO8601UTC(long epochSeconds) {
-    ZonedDateTime zdt =
-        ZonedDateTime.ofInstant(Instant.ofEpochSecond(epochSeconds), ZoneOffset.UTC);
+  public static String toISO8601UTC(Instant instant) {
+    ZonedDateTime zdt = ZonedDateTime.ofInstant(instant, ZoneOffset.UTC);
     return zdt.format(DateTimeFormatter.ISO_INSTANT);
   }
 
@@ -22,10 +21,10 @@ public class DateUtil {
    * From ISO 8601 string to epoch seconds.
    *
    * @param str The string in ISO8601 format.
-   * @return the epoch seconds
+   * @return the Instant
    */
-  public static long fromISO8601UTC(String str) {
+  public static Instant fromISO8601UTC(String str) {
     ZonedDateTime dt = ZonedDateTime.parse(str);
-    return dt.toEpochSecond();
+    return dt.toInstant();
   }
 }

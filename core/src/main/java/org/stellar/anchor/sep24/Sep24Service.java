@@ -129,9 +129,8 @@ public class Sep24Service {
             .amountOut(strAmount)
             .assetCode(assetCode)
             .assetIssuer(withdrawRequest.get("asset_issuer"))
-            .startedAt(Instant.now().getEpochSecond())
+            .startedAt(Instant.now())
             .sep10Account(token.getAccount())
-            .sep10AccountMemo(token.getAccountMemo())
             .fromAccount(sourceAccount)
             .clientDomain(token.getClientDomain());
 
@@ -167,14 +166,14 @@ public class Sep24Service {
   public InteractiveTransactionResponse deposit(
       String fullRequestUrl, JwtToken token, Map<String, String> depositRequest)
       throws SepException, MalformedURLException, URISyntaxException {
-    info("Creating withdrawal transaction.");
+    info("Creating deposit transaction.");
     if (token == null) {
       info("missing SEP-10 token");
       throw new SepValidationException("missing token");
     }
 
     if (depositRequest == null) {
-      info("missing withdraw request");
+      info("missing deposit request");
       throw new SepValidationException("no request");
     }
 
@@ -249,9 +248,8 @@ public class Sep24Service {
             .amountOut(strAmount)
             .assetCode(assetCode)
             .assetIssuer(depositRequest.get("asset_issuer"))
-            .startedAt(Instant.now().getEpochSecond())
+            .startedAt(Instant.now())
             .sep10Account(token.getAccount())
-            .sep10AccountMemo(token.getAccountMemo())
             .toAccount(destinationAccount)
             .clientDomain(token.getClientDomain())
             .claimableBalanceSupported(claimableSupported);
@@ -349,7 +347,7 @@ public class Sep24Service {
 
     // If the token has a memo, make sure the transaction belongs to the account with the same memo.
     if (token.getAccountMemo() != null
-        && !token.getAccountMemo().equals(txn.getSep10AccountMemo())) {
+        && txn.getSep10Account().equals(token.getAccount() + ":" + token.getAccountMemo())) {
       infoF(
           "no transactions found with account:{} memo:{}",
           token.getAccount(),
@@ -396,7 +394,8 @@ public class Sep24Service {
     }
 
     // Calculate refund information.
-    AssetInfo assetInfo = assetService.getAsset(txn.getAssetCode(), txn.getAssetIssuer());
+    AssetInfo assetInfo =
+        assetService.getAsset(txn.getRequestAssetCode(), txn.getRequestAssetIssuer());
     return Sep24Helper.updateRefundInfo(response, txn, assetInfo);
   }
 

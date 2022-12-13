@@ -17,6 +17,8 @@ public class CallbackApiConfig implements Validator {
 
   String baseUrl;
 
+  Boolean checkCertificate;
+
   AuthInfo auth;
   PropertySecretConfig secretConfig;
 

@@ -1,8 +1,14 @@
 package org.stellar.anchor.platform;
 
 import com.google.gson.Gson;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.TimeUnit;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import okhttp3.OkHttpClient;
+import okhttp3.OkHttpClient.Builder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.stellar.anchor.api.callback.CustomerIntegration;
@@ -20,15 +26,42 @@ import org.stellar.anchor.platform.config.CallbackApiConfig;
 
 @Configuration
 public class CallbackApiBeans {
+  TrustManager[] trustAllCerts =
+      new TrustManager[] {
+        new X509TrustManager() {
+          @Override
+          public void checkClientTrusted(
+              java.security.cert.X509Certificate[] chain, String authType) {}
+
+          @Override
+          public void checkServerTrusted(
+              java.security.cert.X509Certificate[] chain, String authType) {}
+
+          @Override
+          public java.security.cert.X509Certificate[] getAcceptedIssuers() {
+            return new java.security.cert.X509Certificate[] {};
+          }
+        }
+      };
 
   @Bean
-  OkHttpClient httpClient() {
-    return new OkHttpClient.Builder()
-        .connectTimeout(10, TimeUnit.MINUTES)
-        .readTimeout(10, TimeUnit.MINUTES)
-        .writeTimeout(10, TimeUnit.MINUTES)
-        .callTimeout(10, TimeUnit.MINUTES)
-        .build();
+  OkHttpClient httpClient(CallbackApiConfig callbackApiConfig)
+      throws NoSuchAlgorithmException, KeyManagementException {
+    Builder builder =
+        new Builder()
+            .connectTimeout(10, TimeUnit.MINUTES)
+            .readTimeout(10, TimeUnit.MINUTES)
+            .writeTimeout(10, TimeUnit.MINUTES)
+            .callTimeout(10, TimeUnit.MINUTES);
+
+    if (!callbackApiConfig.getCheckCertificate()) {
+      SSLContext sslContext = SSLContext.getInstance("SSL");
+      sslContext.init(null, trustAllCerts, new java.security.SecureRandom());
+      builder
+          .sslSocketFactory(sslContext.getSocketFactory(), (X509TrustManager) trustAllCerts[0])
+          .hostnameVerifier((hostname, session) -> true);
+    }
+    return builder.build();
   }
 
   @Bean

@@ -1,6 +1,6 @@
 package org.stellar.anchor.sep24;
 
-import java.util.List;
+import java.time.Instant;
 
 @SuppressWarnings("unused")
 public interface Sep24Transaction {
@@ -66,9 +66,9 @@ public interface Sep24Transaction {
    *
    * @return The <code>started_at</code> field of the SEP-24 transaction history.
    */
-  Long getStartedAt();
+  Instant getStartedAt();
 
-  void setStartedAt(Long startedAt);
+  void setStartedAt(Instant startedAt);
 
   /**
    * The date and time of transaction reaching <code>completed</code> or <code>refunded</code>
@@ -76,18 +76,18 @@ public interface Sep24Transaction {
    *
    * @return <code>completed</code> field of the SEP-24 transaction history.
    */
-  Long getCompletedAt();
+  Instant getCompletedAt();
 
-  void setCompletedAt(Long completedAt);
+  void setCompletedAt(Instant completedAt);
 
   /**
    * The code of the asset of interest. E.g. BTC, ETH, USD, INR, etc.
    *
    * @return <code>asset_code</code> field of the SEP-24 transaction history.
    */
-  String getAssetCode();
+  String getRequestAssetCode();
 
-  void setAssetCode(String assetCode);
+  void setRequestAssetCode(String assetCode);
 
   /**
    * The issuer of the stellar asset the user wants to receive for their deposit with the anchor. If
@@ -96,9 +96,9 @@ public interface Sep24Transaction {
    *
    * @return the asset issuer of the transaction's <code>asset_code</code> .
    */
-  String getAssetIssuer();
+  String getRequestAssetIssuer();
 
-  void setAssetIssuer(String assetIssuer);
+  void setRequestAssetIssuer(String assetIssuer);
 
   /**
    * The Stellar account used to authenticate SEP-10;.
@@ -108,15 +108,6 @@ public interface Sep24Transaction {
   String getSep10Account();
 
   void setSep10Account(String sep10Account);
-
-  /**
-   * The memo used to authenticate SEP-10. This is for pooled/omnibus account authentication.
-   *
-   * @return the memo.
-   */
-  String getSep10AccountMemo();
-
-  void setSep10AccountMemo(String sep10AccountMemo);
 
   /**
    * If this is a withdrawal, this is the anchor's Stellar account that the user transferred (or
@@ -253,14 +244,13 @@ public interface Sep24Transaction {
 
   void setAmountFeeAsset(String amountFeeAsset);
 
-  /**
-   * The list of refund payments associated with the transaction.
-   *
-   * @return the refund payments
-   */
-  List<? extends Sep24RefundPayment> getRefundPayments();
+  Boolean getRefunded();
 
-  void setRefundPayments(List<? extends Sep24RefundPayment> payments);
+  void setRefunded(Boolean refunded);
+
+  Sep24Refunds getRefunds();
+
+  void setRefunds(Sep24Refunds refunds);
 
   enum Kind {
     DEPOSIT("deposit"),

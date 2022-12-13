@@ -3,6 +3,7 @@ assets.value:
 callback_api.auth.expiration_milliseconds:
 callback_api.auth.type:
 callback_api.base_url:
+callback_api.check_certificate:
 data.ddl_auto:
 data.flyway_enabled:
 data.flyway_location:

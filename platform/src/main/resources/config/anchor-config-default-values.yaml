@@ -49,6 +49,9 @@ callback_api:
   #
   base_url: http://localhost:8081
 
+  ## If the flag is set to false, all certificates from the business servers will be trusted.
+  check_certificate: false
+
   ## Authentication config for Anchor server and Anchor Platform server to safely communicate,
   ## particularly when housed in different clusters.
   ## The receiving party should verify that an incoming request token is still valid.
@@ -499,6 +502,7 @@ data:
   ## Location of the database
   #
   url: jdbc:h2:mem:anchor-platform
+
 
   ## @param: initial_connection_pool_size
   ## @type: integer

@@ -1,7 +1,6 @@
 package org.stellar.anchor.sep24;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.time.Instant;
 import lombok.Data;
 
 @Data
@@ -13,12 +12,11 @@ public class PojoSep24Transaction implements Sep24Transaction {
   String externalTransactionId;
   String status;
   String kind;
-  Long startedAt;
-  Long completedAt;
-  String assetCode;
-  String assetIssuer;
+  Instant startedAt;
+  Instant completedAt;
+  String requestAssetCode;
+  String requestAssetIssuer;
   String sep10Account;
-  String sep10AccountMemo;
   String withdrawAnchorAccount;
   String fromAccount;
   String toAccount;
@@ -33,14 +31,7 @@ public class PojoSep24Transaction implements Sep24Transaction {
   String amountInAsset;
   String amountOutAsset;
   String amountFeeAsset;
-  String muxedAccount;
-  private List<PojoSep24RefundPayment> refundPayments;
 
-  @Override
-  public void setRefundPayments(List<? extends Sep24RefundPayment> payments) {
-    refundPayments = new ArrayList<>(payments.size());
-    payments.stream()
-        .filter(p -> p instanceof PojoSep24RefundPayment)
-        .forEach(fp -> refundPayments.add((PojoSep24RefundPayment) fp));
-  }
+  Boolean refunded;
+  Sep24Refunds refunds;
 }
