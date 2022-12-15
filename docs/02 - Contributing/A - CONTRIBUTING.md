@@ -98,3 +98,9 @@ Please refer to [Database Migration](/docs/02%20-%20Contributing/D%20-%20Databas
 ## Publishing
 
 Please refer to [Publishing the SDK](/docs/02%20-%20Contributing/E%20-%20Publishing%20the%20SDK.md) for information on this topic.
+
+## IntelliJ Run Configurations
+
+Please import the run configurations from the `.run` folder
+- `1. Platform Server.run.xml` runs the platform server
+- `2. Business Server.run.xml` runs the reference business server
