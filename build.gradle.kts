@@ -7,14 +7,14 @@ plugins {
 }
 
 tasks {
-  register<Copy>("installLocalGitHook") {
+  register<Copy>("updateGitHook") {
     from("scripts/pre-commit.sh") { rename { it.removeSuffix(".sh") } }
     into(".git/hooks")
 
     doLast { project.exec { commandLine("chmod", "+x", ".git/hooks/pre-commit") } }
   }
 
-  "build" { dependsOn("installLocalGitHook") }
+  "build" { dependsOn("updateGitHook") }
 }
 
 subprojects {

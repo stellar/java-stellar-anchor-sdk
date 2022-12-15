@@ -1,15 +1,15 @@
 #!/bin/sh
 
-echo '[git hook] Code Formatting: executing gradle spotlessApply before commit'
+# find staged files
+stagedFiles=$(git diff --staged --name-only)
 
-# Stash any unstaged changes
-git stash -q --keep-index
-
-# Run the spotlessApply to format the code
+# run spotlessApply
+echo "Running spotlessApply. Formatting code..."
 ./gradlew spotlessApply
 
-# Add the format changes to the git commit
-git add .
-
-# unstash the unstashed changes
-git stash pop -q
+# add staged files
+for file in $stagedFiles; do
+  if test -f "$file"; then
+    git add $file
+  fi
+done
