@@ -4,10 +4,13 @@ import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
 import com.vladmihalcea.hibernate.type.json.JsonType;
 import java.time.Instant;
+import java.util.List;
 import javax.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
+import org.stellar.anchor.api.shared.StellarTransaction;
 import org.stellar.anchor.sep24.Sep24Refunds;
 import org.stellar.anchor.sep24.Sep24Transaction;
 import org.stellar.anchor.util.GsonUtils;
@@ -60,11 +63,18 @@ public class JdbcSep24Transaction implements Sep24Transaction, SepTransaction {
   @SerializedName("completed_at")
   Instant completedAt;
 
+  @SerializedName("updated_at")
+  Instant updatedAt;
+
   @SerializedName("transaction_id")
   String transactionId;
 
   @SerializedName("stellar_transaction_id")
   String stellarTransactionId;
+
+  @Column(columnDefinition = "json")
+  @Type(type = "json")
+  List<StellarTransaction> stellarTransactions;
 
   @SerializedName("external_transaction_id")
   String externalTransactionId;

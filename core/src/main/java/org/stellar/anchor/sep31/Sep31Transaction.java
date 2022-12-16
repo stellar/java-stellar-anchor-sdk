@@ -6,7 +6,6 @@ import java.util.Map;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.sep31.Sep31GetTransactionResponse;
 import org.stellar.anchor.api.shared.*;
-import org.stellar.anchor.event.models.TransactionEvent;
 
 @SuppressWarnings("unused")
 public interface Sep31Transaction {
@@ -171,42 +170,6 @@ public interface Sep31Transaction {
                 .requiredInfoMessage(getRequiredInfoMessage())
                 .requiredInfoUpdates(getRequiredInfoUpdates())
                 .build())
-        .build();
-  }
-
-  /**
-   * Create a PlatformApi GetTransactionResponse object out of this SEP-31 Transaction object.
-   *
-   * @return a PlatformApi GetTransactionResponse object.
-   */
-  default org.stellar.anchor.api.platform.GetTransactionResponse
-      toPlatformApiGetTransactionResponse() {
-    Refund refunds = null;
-    if (getRefunds() != null) {
-      refunds = getRefunds().toPlatformApiRefund(getAmountInAsset());
-    }
-
-    return org.stellar.anchor.api.platform.GetTransactionResponse.builder()
-        .id(getId())
-        .sep(31)
-        .kind(TransactionEvent.Kind.RECEIVE.getKind())
-        .status(getStatus())
-        .amountExpected(new Amount(getAmountExpected(), getAmountInAsset()))
-        .amountIn(new Amount(getAmountIn(), getAmountInAsset()))
-        .amountOut(new Amount(getAmountOut(), getAmountOutAsset()))
-        .amountFee(new Amount(getAmountFee(), getAmountFeeAsset()))
-        .quoteId(getQuoteId())
-        .startedAt(getStartedAt())
-        .updatedAt(getUpdatedAt())
-        .completedAt(getCompletedAt())
-        .transferReceivedAt(getTransferReceivedAt())
-        .message(getRequiredInfoMessage()) // Assuming these are meant to be the same.
-        .refunds(refunds)
-        .stellarTransactions(getStellarTransactions())
-        .externalTransactionId(getExternalTransactionId())
-        // TODO .custodialTransactionId(txn.get)
-        .customers(getCustomers())
-        .creator(getCreator())
         .build();
   }
 }

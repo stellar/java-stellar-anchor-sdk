@@ -27,6 +27,7 @@ import org.stellar.anchor.event.models.TransactionEvent
 import org.stellar.anchor.platform.data.JdbcSep31RefundPayment
 import org.stellar.anchor.platform.data.JdbcSep31Refunds
 import org.stellar.anchor.platform.data.JdbcSep31Transaction
+import org.stellar.anchor.sep24.Sep24TransactionStore
 import org.stellar.anchor.sep31.*
 import org.stellar.anchor.sep38.Sep38Quote
 import org.stellar.anchor.sep38.Sep38QuoteStore
@@ -45,13 +46,20 @@ class TransactionServiceTest {
 
   @MockK(relaxed = true) private lateinit var sep38QuoteStore: Sep38QuoteStore
   @MockK(relaxed = true) private lateinit var sep31TransactionStore: Sep31TransactionStore
+  @MockK(relaxed = true) private lateinit var sep24TransactionStore: Sep24TransactionStore
   @MockK(relaxed = true) private lateinit var assetService: AssetService
   private lateinit var transactionService: TransactionService
 
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
-    transactionService = TransactionService(sep38QuoteStore, sep31TransactionStore, assetService)
+    transactionService =
+      TransactionService(
+        sep24TransactionStore,
+        sep31TransactionStore,
+        sep38QuoteStore,
+        assetService
+      )
   }
 
   @AfterEach
@@ -74,6 +82,7 @@ class TransactionServiceTest {
 
     // non-existent transaction is rejected with 404
     every { sep31TransactionStore.findByTransactionId(any()) } returns null
+    every { sep24TransactionStore.findByTransactionId(any()) } returns null
     ex = assertThrows { transactionService.getTransaction("not-found-tx-id") }
     assertInstanceOf(NotFoundException::class.java, ex)
     assertEquals("transaction (id=not-found-tx-id) is not found", ex.message)
@@ -290,7 +299,13 @@ class TransactionServiceTest {
   @Test
   fun test_validateAsset() {
     this.assetService = ResourceJsonAssetService("test_assets.json")
-    transactionService = TransactionService(sep38QuoteStore, sep31TransactionStore, assetService)
+    transactionService =
+      TransactionService(
+        sep24TransactionStore,
+        sep31TransactionStore,
+        sep38QuoteStore,
+        assetService
+      )
     val mockAsset = Amount("10", fiatUSD)
     assertDoesNotThrow { transactionService.validateAsset("amount_in", mockAsset) }
   }
@@ -404,7 +419,13 @@ class TransactionServiceTest {
     every { sep38QuoteStore.findByQuoteId(quoteId) } returns mockSep38Quote
 
     this.assetService = ResourceJsonAssetService("test_assets.json")
-    transactionService = TransactionService(sep38QuoteStore, sep31TransactionStore, assetService)
+    transactionService =
+      TransactionService(
+        sep24TransactionStore,
+        sep31TransactionStore,
+        sep38QuoteStore,
+        assetService
+      )
 
     assertEquals(mockSep31Transaction.startedAt, mockSep31Transaction.updatedAt)
     assertNull(mockSep31Transaction.completedAt)
