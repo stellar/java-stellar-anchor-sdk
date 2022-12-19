@@ -146,8 +146,10 @@ public class JdbcSep31Transaction implements Sep31Transaction, SepTransaction {
   }
 
   public void setRefunds(Refunds refunds) {
-    this.refunds = new JdbcSep31Refunds();
-    BeanUtils.copyProperties(refunds, this.refunds);
+    if (refunds != null) {
+      this.refunds = new JdbcSep31Refunds();
+      BeanUtils.copyProperties(refunds, this.refunds);
+    }
   }
 
   Instant updatedAt;
