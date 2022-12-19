@@ -22,20 +22,19 @@ import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest
 import org.stellar.anchor.api.sep.sep38.Sep38Context.SEP31
 import org.stellar.anchor.auth.AuthHelper
 import org.stellar.anchor.auth.JwtService
-import org.stellar.anchor.config.AppConfig
-import org.stellar.anchor.config.Sep10Config
-import org.stellar.anchor.config.Sep1Config
-import org.stellar.anchor.config.Sep38Config
 import org.stellar.anchor.platform.callback.RestCustomerIntegration
 import org.stellar.anchor.platform.callback.RestFeeIntegration
 import org.stellar.anchor.platform.callback.RestRateIntegration
-import org.stellar.anchor.reference.AnchorReferenceServer
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.Sep1Helper
+import org.stellar.anchor.util.Sep1Helper.TomlContent
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
 class AnchorPlatformIntegrationTest {
   companion object {
+    lateinit var toml: TomlContent
+    lateinit var jwt: String
+
     private const val SEP_SERVER_PORT = 8080
     private const val REFERENCE_SERVER_PORT = 8081
     private const val OBSERVER_HEALTH_SERVER_PORT = 8083
@@ -53,8 +52,6 @@ class AnchorPlatformIntegrationTest {
         "http://localhost:$SEP_SERVER_PORT"
       )
 
-    private lateinit var toml: Sep1Helper.TomlContent
-    private lateinit var jwt: String
     private val httpClient: OkHttpClient =
       OkHttpClient.Builder()
         .connectTimeout(10, TimeUnit.MINUTES)
@@ -82,7 +79,7 @@ class AnchorPlatformIntegrationTest {
 
     @BeforeAll
     @JvmStatic
-    fun setup() {
+    fun startServers() {
       val envMap =
         mapOf(
           "sep_server.port" to SEP_SERVER_PORT,
@@ -98,65 +95,68 @@ class AnchorPlatformIntegrationTest {
 
       platformServerContext = ServiceRunner.startSepServer(envMap)
       ServiceRunner.startStellarObserver(envMap)
+      ServiceRunner.startAnchorReferenceServer()
+      //            AnchorReferenceServer.start(REFERENCE_SERVER_PORT, "/")
 
-      AnchorReferenceServer.start(REFERENCE_SERVER_PORT, "/")
+      toml =
+        Sep1Helper.parse(
+          resourceAsString(
+            "http://localhost:${AnchorPlatformIntegrationTest.SEP_SERVER_PORT}/.well-known/stellar.toml"
+          )
+        )
+
+      Sep10Tests.setup()
+
+      if (!::jwt.isInitialized) {
+        jwt = sep10Client.auth()
+      }
+
+      Sep12Tests.setup()
+      Sep24Tests.setup()
+      Sep31Tests.setup()
+      Sep38Tests.setup()
+      PlatformTests.setup()
     }
-  }
-
-  private fun readSep1Toml(): Sep1Helper.TomlContent {
-    val tomlString = resourceAsString("http://localhost:$SEP_SERVER_PORT/.well-known/stellar.toml")
-    return Sep1Helper.parse(tomlString)
   }
 
   @Test
   @Order(1)
-  fun runSep1Test() {
-    toml = readSep1Toml()
+  fun runSep10Test() {
+    sep10TestAll()
   }
 
   @Test
   @Order(2)
-  fun runSep10Test() {
-    jwt = sep10TestAll(toml)
+  fun runSep12Test() {
+    sep12TestAll()
   }
 
   @Test
   @Order(3)
-  fun runSep12Test() {
-    sep12TestAll(toml, jwt)
+  fun runSep24Test() {
+    sep24TestAll()
   }
 
   @Test
   @Order(4)
-  fun runSep24Test() {
-    sep24TestAll(toml, jwt)
+  fun runSep31Test() {
+    sep31TestAll()
   }
 
   @Test
   @Order(5)
-  fun runSep31Test() {
-    sep31TestAll(toml, jwt)
-  }
-
-  @Test
-  @Order(6)
   fun runSep38Test() {
-    sep38TestAll(toml, jwt)
+    sep38TestAll()
   }
 
   @Test
-  @Order(7)
-  fun runPlatformTest() {
-    platformTestAll(toml, jwt)
+  @Order(11)
+  fun runPlatformApiTest() {
+    platformTestAll()
   }
 
   @Test
-  @Order(8)
-  fun runSep31UnhappyPath() {
-    testSep31UnhappyPath()
-  }
-
-  @Test
+  @Order(21)
   fun testCustomerIntegration() {
     assertThrows<NotFoundException> {
       rci.getCustomer(Sep12GetCustomerRequest.builder().id("1").build())
@@ -164,6 +164,7 @@ class AnchorPlatformIntegrationTest {
   }
 
   @Test
+  @Order(22)
   fun testRate_indicativePrices() {
     val result =
       rriClient.getRate(
@@ -188,6 +189,7 @@ class AnchorPlatformIntegrationTest {
   }
 
   @Test
+  @Order(23)
   fun testRate_indicativePrice() {
     val result =
       rriClient.getRate(
@@ -225,6 +227,7 @@ class AnchorPlatformIntegrationTest {
   }
 
   @Test
+  @Order(24)
   fun testRate_firm() {
     val rate =
       rriClient
@@ -290,6 +293,7 @@ class AnchorPlatformIntegrationTest {
   }
 
   @Test
+  @Order(25)
   fun testGetFee() {
     // Create sender customer
     val senderCustomerRequest =
@@ -327,37 +331,7 @@ class AnchorPlatformIntegrationTest {
   }
 
   @Test
-  fun testAppConfig() {
-    val appConfig = platformServerContext.getBean(AppConfig::class.java)
-    assertEquals("Test SDF Network ; September 2015", appConfig.stellarNetworkPassphrase)
-    assertEquals("http://localhost:8080", appConfig.hostUrl)
-    assertEquals(listOf("en"), appConfig.languages)
-    assertEquals("https://horizon-testnet.stellar.org", appConfig.horizonUrl)
-  }
-
-  @Test
-  fun testSep1Config() {
-    val sep1Config = platformServerContext.getBean(Sep1Config::class.java)
-    assertEquals(true, sep1Config.isEnabled)
-  }
-
-  @Test
-  fun testSep10Config() {
-    val sep10Config = platformServerContext.getBean(Sep10Config::class.java)
-    assertEquals(true, sep10Config.enabled)
-    assertEquals("localhost:8080", sep10Config.homeDomain)
-    assertEquals(false, sep10Config.isClientAttributionRequired)
-    assertEquals(900, sep10Config.authTimeout)
-    assertEquals(86400, sep10Config.jwtTimeout)
-  }
-
-  @Test
-  fun testSep38Config() {
-    val sep38Config = platformServerContext.getBean(Sep38Config::class.java)
-    assertEquals(true, sep38Config.isEnabled)
-  }
-
-  @Test
+  @Order(31)
   fun testStellarObserverHealth() {
     val httpRequest =
       Request.Builder()

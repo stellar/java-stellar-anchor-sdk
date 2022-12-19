@@ -5,8 +5,8 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.stellar.anchor.Constants.Companion.TEST_ASSET
-import org.stellar.anchor.Constants.Companion.TEST_ASSET_ISSUER_ACCOUNT_ID
+import org.stellar.anchor.TestConstants.Companion.TEST_ASSET
+import org.stellar.anchor.TestConstants.Companion.TEST_ASSET_ISSUER_ACCOUNT_ID
 import org.stellar.anchor.api.exception.SepNotFoundException
 
 internal class ResourceJsonAssetServiceTest {

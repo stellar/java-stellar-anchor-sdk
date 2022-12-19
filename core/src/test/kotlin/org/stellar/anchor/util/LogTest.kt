@@ -10,8 +10,8 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.slf4j.Logger
-import org.stellar.anchor.Constants.Companion.TEST_HOST_URL
-import org.stellar.anchor.Constants.Companion.TEST_NETWORK_PASS_PHRASE
+import org.stellar.anchor.TestConstants.Companion.TEST_HOST_URL
+import org.stellar.anchor.TestConstants.Companion.TEST_NETWORK_PASS_PHRASE
 import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.PII
 import org.stellar.anchor.util.Log.shorter
