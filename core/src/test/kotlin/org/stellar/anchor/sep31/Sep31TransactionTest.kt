@@ -10,15 +10,12 @@ import io.mockk.unmockkAll
 import java.time.Instant
 import kotlin.test.assertEquals
 import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.stellar.anchor.api.platform.GetTransactionResponse
 import org.stellar.anchor.api.sep.AssetInfo
 import org.stellar.anchor.api.sep.sep31.Sep31GetTransactionResponse
 import org.stellar.anchor.api.sep.sep31.Sep31GetTransactionResponse.Sep31RefundPayment
 import org.stellar.anchor.api.shared.*
-import org.stellar.anchor.api.shared.RefundPayment
 import org.stellar.anchor.event.models.TransactionEvent
 
 class Sep31TransactionTest {
@@ -135,66 +132,6 @@ class Sep31TransactionTest {
   fun tearDown() {
     clearAllMocks()
     unmockkAll()
-  }
-
-  @Test
-  fun `test PlatformApiGetTransactionResponse correctness`() {
-    val wantRefunds: Refund =
-      Refund.builder()
-        .amountRefunded(Amount("90.0000", fiatUSD))
-        .amountFee(Amount("8.0000", fiatUSD))
-        .payments(
-          arrayOf(
-            RefundPayment.builder()
-              .id("1111")
-              .idType(RefundPayment.IdType.STELLAR)
-              .amount(Amount("50.0000", fiatUSD))
-              .fee(Amount("4.0000", fiatUSD))
-              .requestedAt(null)
-              .refundedAt(null)
-              .build(),
-            RefundPayment.builder()
-              .id("2222")
-              .idType(RefundPayment.IdType.STELLAR)
-              .amount(Amount("40.0000", fiatUSD))
-              .fee(Amount("4.0000", fiatUSD))
-              .requestedAt(null)
-              .refundedAt(null)
-              .build()
-          )
-        )
-        .build()
-
-    val wantGetTransactionResponse: GetTransactionResponse =
-      GetTransactionResponse.builder()
-        .id(txId)
-        .sep(31)
-        .kind("receive")
-        .status(TransactionEvent.Status.PENDING_RECEIVER.status)
-        .amountExpected(Amount("100", fiatUSD))
-        .amountIn(Amount("100.0000", fiatUSD))
-        .amountOut(Amount("98.0000000", stellarUSDC))
-        .amountFee(Amount("2.0000", fiatUSD))
-        .quoteId("quote-id")
-        .startedAt(mockStartedAt)
-        .updatedAt(mockUpdatedAt)
-        .completedAt(mockCompletedAt)
-        .transferReceivedAt(mockTransferReceivedAt)
-        .message("Please don't forget to foo bar")
-        .refunds(wantRefunds)
-        .stellarTransactions(listOf(stellarTransaction))
-        .externalTransactionId("external-tx-id")
-        .customers(
-          Customers(
-            StellarId("6c1770b0-0ea4-11ed-861d-0242ac120002", null),
-            StellarId("31212353-f265-4dba-9eb4-0bbeda3ba7f2", null)
-          )
-        )
-        .creator(StellarId("141ee445-f32c-4c38-9d25-f4475d6c5558", null))
-        .build()
-
-    val gotGetTransactionResponse = sep31Transaction.toPlatformApiGetTransactionResponse()
-    Assertions.assertEquals(wantGetTransactionResponse, gotGetTransactionResponse)
   }
 
   @Test

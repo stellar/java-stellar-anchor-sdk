@@ -344,7 +344,6 @@ public class TransactionService {
         .refunds(refunds)
         .stellarTransactions(txn.getStellarTransactions())
         .externalTransactionId(txn.getExternalTransactionId())
-        // TODO .custodialTransactionId(txn.get)
         .customers(txn.getCustomers())
         .creator(txn.getCreator())
         .build();
