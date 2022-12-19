@@ -58,13 +58,11 @@ class Sep10Tests {
   }
 }
 
-fun sep10TestAll(): String {
+fun sep10TestAll() {
   Sep10Tests.setup()
   println("Performing SEP10 tests...")
 
-  val jwt = Sep10Tests.testOk()
+  Sep10Tests.testOk()
   Sep10Tests.testUnsignedChallenge()
   Sep10Tests.testMultiSig()
-
-  return jwt
 }

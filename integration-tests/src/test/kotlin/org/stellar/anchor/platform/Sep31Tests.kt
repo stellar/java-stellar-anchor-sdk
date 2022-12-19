@@ -99,6 +99,7 @@ class Sep31Tests {
 fun sep31TestAll() {
   Sep31Tests.setup()
 
+  println("Performing Sep31 tests...")
   Sep31Tests.`test Sep31 info endpoint`()
   Sep31Tests.testSep31PostAndGetTransaction()
   Sep31Tests.testBadAsset()

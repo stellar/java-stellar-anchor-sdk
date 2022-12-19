@@ -72,7 +72,6 @@ fun sep24TestAll() {
   Sep24Tests.setup()
 
   println("Performing SEP24 tests...")
-
   Sep24Tests.`test Sep24 info endpoint`()
   Sep24Tests.`test Sep24 withdraw`()
   Sep24Tests.`test Sep24 deposit`()

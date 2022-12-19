@@ -16,7 +16,7 @@ import org.stellar.anchor.util.GsonUtils
 
 lateinit var platformApiClient: PlatformApiClient
 
-class PlatformTests {
+class PlatformApiTests {
   companion object {
     fun setup() {
       if (!::platformApiClient.isInitialized) {
@@ -212,10 +212,10 @@ class PlatformTests {
 }
 
 fun platformTestAll() {
-  println("Performing Platform API tests...")
-  PlatformTests.setup()
+  PlatformApiTests.setup()
 
-  PlatformTests.`test sep31 post, get and patch`()
-  PlatformTests.testHealth()
-  PlatformTests.testSep31UnhappyPath()
+  println("Performing Platform API tests...")
+  PlatformApiTests.`test sep31 post, get and patch`()
+  PlatformApiTests.testHealth()
+  PlatformApiTests.testSep31UnhappyPath()
 }

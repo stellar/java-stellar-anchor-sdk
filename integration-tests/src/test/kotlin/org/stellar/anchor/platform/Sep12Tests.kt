@@ -104,5 +104,6 @@ class Sep12Tests {
 fun sep12TestAll() {
   Sep12Tests.setup()
 
+  println("Performing Sep12 tests...")
   Sep12Tests.testHappyPath()
 }
