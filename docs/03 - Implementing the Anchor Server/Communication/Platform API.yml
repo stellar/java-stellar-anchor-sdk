@@ -1,7 +1,7 @@
 openapi: 3.0.0
 info:
   description: The Platform API specification for the Stellar Anchor Platform project.
-  version: "1.0"
+  version: "1.0.1"
   title: Platform API
 tags:
   - name: "Transactions"
