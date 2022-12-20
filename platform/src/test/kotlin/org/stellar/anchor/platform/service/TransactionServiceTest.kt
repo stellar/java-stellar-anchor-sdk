@@ -10,6 +10,8 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
+import org.junit.jupiter.params.provider.NullSource
+import org.junit.jupiter.params.provider.ValueSource
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode.STRICT
 import org.stellar.anchor.api.exception.AnchorException
@@ -180,27 +182,12 @@ class TransactionServiceTest {
   }
 
   @ParameterizedTest
-  @EnumSource(
-    value = SepTransactionStatus::class,
-    mode = EnumSource.Mode.EXCLUDE,
-    names =
-      [
-        "PENDING_STELLAR",
-        "PENDING_CUSTOMER_INFO_UPDATE",
-        "PENDING_RECEIVER",
-        "PENDING_EXTERNAL",
-        "COMPLETED",
-        "REFUNDED",
-        "EXPIRED",
-        "ERROR"
-      ]
-  )
-  fun test_validateIfStatusIsSupported_failure(sepTxnStatus: SepTransactionStatus) {
-    val ex: Exception = assertThrows {
-      transactionService.validateIfStatusIsSupported(sepTxnStatus.getName())
-    }
+  @NullSource
+  @ValueSource(strings = ["pending_anchors", "null", "bad_status"])
+  fun test_validateIfStatusIsSupported_failure(status: String?) {
+    val ex: Exception = assertThrows { transactionService.validateIfStatusIsSupported(status) }
     assertInstanceOf(BadRequestException::class.java, ex)
-    assertEquals("invalid status(${sepTxnStatus.getName()})", ex.message)
+    assertEquals("invalid status(${status})", ex.message)
   }
 
   @ParameterizedTest

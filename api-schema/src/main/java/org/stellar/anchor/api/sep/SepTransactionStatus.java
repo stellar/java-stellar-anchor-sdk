@@ -51,7 +51,8 @@ public enum SepTransactionStatus {
   }
 
   public static boolean isValid(String status) {
-    return Arrays.stream(SepTransactionStatus.values()).anyMatch(e -> e.name.equals(status));
+    return Arrays.stream(SepTransactionStatus.values())
+        .anyMatch(e -> e.name.equalsIgnoreCase(status));
   }
 
   public static void main(String[] args) {
