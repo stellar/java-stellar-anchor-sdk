@@ -41,9 +41,7 @@ class AnchorPlatformIntegrationTest {
 
       toml =
         Sep1Helper.parse(
-          resourceAsString(
-            "http://localhost:${AnchorPlatformIntegrationTest.SEP_SERVER_PORT}/.well-known/stellar.toml"
-          )
+          resourceAsString("http://localhost:$SEP_SERVER_PORT/.well-known/stellar.toml")
         )
 
       Sep10Tests.setup()
