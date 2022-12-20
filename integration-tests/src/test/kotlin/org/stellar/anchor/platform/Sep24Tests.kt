@@ -3,9 +3,11 @@
 package org.stellar.anchor.platform
 
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.assertThrows
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
 import org.skyscreamer.jsonassert.JSONCompareMode.LENIENT
+import org.stellar.anchor.api.exception.SepException
 import org.stellar.anchor.api.sep.sep24.GetTransactionResponse
 import org.stellar.anchor.platform.AnchorPlatformIntegrationTest.Companion.jwt
 import org.stellar.anchor.platform.AnchorPlatformIntegrationTest.Companion.toml
@@ -40,7 +42,17 @@ class Sep24Tests {
       )
     }
 
-    fun `test PlatformAPI GET transaction`() {
+    fun `test Sep24 deposit`() {
+      printRequest("POST /transactions/withdraw/interactive")
+      val depositRequest = gson.fromJson(depositRequest, HashMap::class.java)
+      val txn = sep24Client.deposit(depositRequest as HashMap<String, String>)
+      printResponse("POST /transactions/deposit/interactive response:", txn)
+      savedDepositTransaction = sep24Client.getTransaction(txn.id, "USDC")
+      printResponse(savedDepositTransaction)
+      JSONAssert.assertEquals(expectedSep24DepositResponse, json(savedDepositTransaction), LENIENT)
+    }
+
+    fun `test PlatformAPI GET transaction for deposit and withdrawal`() {
       val actualWithdrawTxn =
         platformApiClient.getTransaction(savedWithdrawTransaction.transaction.id)
       assertEquals(actualWithdrawTxn.id, savedWithdrawTransaction.transaction.id)
@@ -53,14 +65,11 @@ class Sep24Tests {
       JSONAssert.assertEquals(expectedDepositTransactionResponse, json(actualDepositTxn), LENIENT)
     }
 
-    fun `test Sep24 deposit`() {
-      printRequest("POST /transactions/withdraw/interactive")
-      val depositRequest = gson.fromJson(depositRequest, HashMap::class.java)
-      val txn = sep24Client.deposit(depositRequest as HashMap<String, String>)
-      printResponse("POST /transactions/deposit/interactive response:", txn)
-      savedDepositTransaction = sep24Client.getTransaction(txn.id, "USDC")
-      printResponse(savedDepositTransaction)
-      JSONAssert.assertEquals(expectedSep24DepositResponse, json(savedDepositTransaction), LENIENT)
+    fun `test GET transactions with bad ids`() {
+      val badTxnIds = listOf("null", "bad id", "123", null)
+      for (txnId in badTxnIds) {
+        assertThrows<SepException> { platformApiClient.getTransaction(txnId) }
+      }
     }
   }
 }
@@ -72,7 +81,8 @@ fun sep24TestAll() {
   Sep24Tests.`test Sep24 info endpoint`()
   Sep24Tests.`test Sep24 withdraw`()
   Sep24Tests.`test Sep24 deposit`()
-  Sep24Tests.`test PlatformAPI GET transaction`()
+  Sep24Tests.`test PlatformAPI GET transaction for deposit and withdrawal`()
+  Sep24Tests.`test GET transactions with bad ids`()
 }
 
 const val withdrawRequest =
