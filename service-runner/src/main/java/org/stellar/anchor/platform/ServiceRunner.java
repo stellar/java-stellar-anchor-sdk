@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform;
 
+import com.example.ReferenceServerKt;
 import java.util.Map;
 import org.apache.commons.cli.*;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -7,6 +8,7 @@ import org.stellar.anchor.reference.AnchorReferenceServer;
 
 public class ServiceRunner {
   public static final int DEFAULT_ANCHOR_REFERENCE_SERVER_PORT = 8081;
+  public static final int DEFAULT_KOTLIN_REFERENCE_SERVER_PORT = 8083;
 
   public static void main(String[] args) {
     Options options = new Options();
@@ -55,11 +57,20 @@ public class ServiceRunner {
 
   static void startAnchorReferenceServer() {
     String strPort = System.getProperty("ANCHOR_REFERENCE_SERVER_PORT");
+    String kStrPort = System.getProperty("KOTLIN_REFERENCE_SERVER_PORT");
+
     int port = DEFAULT_ANCHOR_REFERENCE_SERVER_PORT;
+    int kPort = DEFAULT_KOTLIN_REFERENCE_SERVER_PORT;
+
     if (strPort != null) {
       port = Integer.parseInt(strPort);
     }
+    if (kStrPort != null) {
+      kPort = Integer.parseInt(kStrPort);
+    }
+
     AnchorReferenceServer.start(port, "/");
+    ReferenceServerKt.start();
   }
 
   static void printUsage(Options options) {

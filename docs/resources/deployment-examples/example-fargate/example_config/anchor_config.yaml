@@ -150,7 +150,7 @@ app-config:
     interactiveJwtExpiration: 3600
 
     # The interactive URL where the platform server will redirect to start the SEP-24 interactive flow.
-    interactiveUrl: http://localhost:8081/sep24/interactive
+    interactive_url: http://localhost:8083/sep24/interactive
 
   # sep-31
   sep31:
