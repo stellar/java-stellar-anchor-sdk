@@ -19,47 +19,42 @@ public class TransactionResponse {
   String moreInfoUrl = "http://www.stellar.org";
 
   @SerializedName("amount_in")
-  String amountIn = "0";
+  String amountIn;
 
   @SerializedName("amount_in_asset")
   String amountInAsset;
 
   @SerializedName("amount_out")
-  String amountOut = "0";
+  String amountOut;
 
   @SerializedName("amount_out_asset")
   String amountOutAsset;
 
   @SerializedName("amount_fee")
-  String amountFee = "0";
+  String amountFee;
 
   @SerializedName("amount_fee_asset")
   String amountFeeAsset;
 
   @SerializedName("started_at")
-  Instant startedAt = Instant.EPOCH;
+  Instant startedAt;
 
   @SerializedName("completed_at")
-  Instant completedAt = Instant.EPOCH;
+  Instant completedAt;
 
   @SerializedName("stellar_transaction_id")
-  String stellarTransactionId = "";
+  String stellarTransactionId;
 
   @SerializedName("external_transaction_id")
   String externalTransactionId;
 
   String message;
 
+  @Deprecated // Deprecated in favor of refunds
   Boolean refunded = false;
   Refunds refunds;
 
-  String from = "";
+  String from;
 
-  String to = "";
-
-  @SerializedName("account_memo")
-  String accountMemo;
-
-  @SerializedName("muxed_account")
-  String muxedAccount;
+  String to;
 }

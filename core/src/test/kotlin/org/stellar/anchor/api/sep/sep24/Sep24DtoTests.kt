@@ -117,9 +117,5 @@ internal class Sep24DtoTests {
     tr.setExternalTransactionId("")
     tr.getMessage()
     tr.setMessage("")
-    tr.getAccountMemo()
-    tr.setAccountMemo("")
-    tr.getMuxedAccount()
-    tr.setMuxedAccount("")
   }
 }

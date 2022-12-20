@@ -1,6 +1,5 @@
 package org.stellar.anchor.sep24;
 
-import static javax.print.attribute.standard.JobState.COMPLETED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.*;
 import static org.stellar.anchor.util.Log.debugF;
 import static org.stellar.anchor.util.MathHelper.decimal;
