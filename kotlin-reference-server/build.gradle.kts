@@ -10,9 +10,6 @@ dependencies {
     implementation(libs.spring.aws.messaging)
     implementation(libs.bundles.ktor)
     implementation(libs.kotlin.logging)
-
-    implementation(project(":api-schema"))
-    implementation(project(":core"))
 }
 
 application {
