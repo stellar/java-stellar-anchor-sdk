@@ -321,7 +321,7 @@ components:
             pending_sender,
             pending_receiver,
             pending_transaction_info_update,
-            pending_customer_info_update,
+            pending_customer_info_update
           ]
         amount_expected:
           $ref: '#/components/schemas/Amount'
