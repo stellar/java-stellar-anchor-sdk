@@ -2,6 +2,7 @@
 
 package org.stellar.anchor.platform
 
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
 import org.skyscreamer.jsonassert.JSONCompareMode.LENIENT
@@ -10,22 +11,6 @@ import org.stellar.anchor.platform.AnchorPlatformIntegrationTest.Companion.jwt
 import org.stellar.anchor.platform.AnchorPlatformIntegrationTest.Companion.toml
 
 lateinit var sep24Client: Sep24Client
-
-const val withdrawJson =
-  """{
-    "asset_code": "USDC",
-    "asset_issuer": "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-    "account": "GAIUIZPHLIHQEMNJGSZKCEUWHAZVGUZDBDMO2JXNAJZZZVNSVHQCEWJ4",
-    "lang": "en"
-}"""
-
-const val depositJson =
-  """{
-    "asset_code": "USDC",
-    "asset_issuer": "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-    "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
-    "lang": "en"
-}"""
 
 lateinit var savedWithdrawTransaction: GetTransactionResponse
 lateinit var savedDepositTransaction: GetTransactionResponse
@@ -38,32 +23,44 @@ class Sep24Tests {
     fun `test Sep24 info endpoint`() {
       printRequest("Calling GET /info")
       val info = sep24Client.getInfo()
-      JSONAssert.assertEquals(gson.toJson(info), wantedSep24Info, JSONCompareMode.STRICT)
+      JSONAssert.assertEquals(gson.toJson(info), expectedSep24Info, JSONCompareMode.STRICT)
     }
 
     fun `test Sep24 withdraw`() {
       printRequest("POST /transactions/withdraw/interactive")
-      val withdrawRequest = gson.fromJson(withdrawJson, HashMap::class.java)
+      val withdrawRequest = gson.fromJson(withdrawRequest, HashMap::class.java)
       val txn = sep24Client.withdraw(withdrawRequest as HashMap<String, String>)
       printResponse("POST /transactions/withdraw/interactive response:", txn)
       savedWithdrawTransaction = sep24Client.getTransaction(txn.id, "USDC")
       printResponse(savedWithdrawTransaction)
-      JSONAssert.assertEquals(wantedSep24WithdrawResponse, json(savedWithdrawTransaction), LENIENT)
+      JSONAssert.assertEquals(
+        expectedSep24WithdrawResponse,
+        json(savedWithdrawTransaction),
+        LENIENT
+      )
     }
 
     fun `test PlatformAPI GET transaction`() {
-      val gotTxn = platformApiClient.getTransaction(savedWithdrawTransaction.transaction.id)
-      printResponse("", gotTxn)
+      val actualWithdrawTxn =
+        platformApiClient.getTransaction(savedWithdrawTransaction.transaction.id)
+      assertEquals(actualWithdrawTxn.id, savedWithdrawTransaction.transaction.id)
+      JSONAssert.assertEquals(expectedWithdrawTransactionResponse, json(actualWithdrawTxn), LENIENT)
+
+      val actualDepositTxn =
+        platformApiClient.getTransaction(savedDepositTransaction.transaction.id)
+      printResponse(actualDepositTxn)
+      assertEquals(actualDepositTxn.id, savedDepositTransaction.transaction.id)
+      JSONAssert.assertEquals(expectedDepositTransactionResponse, json(actualDepositTxn), LENIENT)
     }
 
     fun `test Sep24 deposit`() {
       printRequest("POST /transactions/withdraw/interactive")
-      val depositRequest = gson.fromJson(depositJson, HashMap::class.java)
+      val depositRequest = gson.fromJson(depositRequest, HashMap::class.java)
       val txn = sep24Client.deposit(depositRequest as HashMap<String, String>)
       printResponse("POST /transactions/deposit/interactive response:", txn)
       savedDepositTransaction = sep24Client.getTransaction(txn.id, "USDC")
       printResponse(savedDepositTransaction)
-      JSONAssert.assertEquals(wantedSep24DepositResponse, json(savedDepositTransaction), LENIENT)
+      JSONAssert.assertEquals(expectedSep24DepositResponse, json(savedDepositTransaction), LENIENT)
     }
   }
 }
@@ -78,7 +75,23 @@ fun sep24TestAll() {
   Sep24Tests.`test PlatformAPI GET transaction`()
 }
 
-val wantedSep24Info =
+const val withdrawRequest =
+  """{
+    "asset_code": "USDC",
+    "asset_issuer": "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+    "account": "GAIUIZPHLIHQEMNJGSZKCEUWHAZVGUZDBDMO2JXNAJZZZVNSVHQCEWJ4",
+    "lang": "en"
+}"""
+
+const val depositRequest =
+  """{
+    "asset_code": "USDC",
+    "asset_issuer": "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+    "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
+    "lang": "en"
+}"""
+
+val expectedSep24Info =
   """
   {
     "deposit": {
@@ -141,7 +154,7 @@ val wantedSep24Info =
 """
     .trimIndent()
 
-val wantedSep24WithdrawResponse =
+val expectedSep24WithdrawResponse =
   """
   {
     "transaction": {
@@ -160,7 +173,7 @@ val wantedSep24WithdrawResponse =
 """
     .trimIndent()
 
-val wantedSep24DepositResponse =
+val expectedSep24DepositResponse =
   """
   {
     "transaction": {
@@ -175,6 +188,26 @@ val wantedSep24DepositResponse =
       "from": "",
       "to": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
     }
+  }
+"""
+    .trimIndent()
+
+val expectedWithdrawTransactionResponse =
+  """
+  {
+    "sep": 24,
+    "kind": "withdrawal",
+    "status": "incomplete"
+  }
+"""
+    .trimIndent()
+
+val expectedDepositTransactionResponse =
+  """
+  {
+    "sep": 24,
+    "kind": "deposit",
+    "status": "incomplete"
   }
 """
     .trimIndent()

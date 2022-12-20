@@ -23,6 +23,7 @@ import org.stellar.anchor.api.platform.PatchTransactionRequest;
 import org.stellar.anchor.api.platform.PatchTransactionsRequest;
 import org.stellar.anchor.api.platform.PatchTransactionsResponse;
 import org.stellar.anchor.api.sep.AssetInfo;
+import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.shared.Amount;
 import org.stellar.anchor.api.shared.Refund;
 import org.stellar.anchor.api.shared.RefundPayment;
@@ -47,16 +48,6 @@ public class TransactionService {
   private final Sep31TransactionStore txn31Store;
   private final Sep24TransactionStore txn24Store;
   private final List<AssetInfo> assets;
-  static final List<String> validStatuses =
-      List.of(
-          PENDING_STELLAR.getName(),
-          PENDING_CUSTOMER_INFO_UPDATE.getName(),
-          PENDING_RECEIVER.getName(),
-          PENDING_EXTERNAL.getName(),
-          COMPLETED.getName(),
-          REFUNDED.getName(),
-          EXPIRED.getName(),
-          ERROR.getName());
 
   static boolean isStatusError(String status) {
     return List.of(PENDING_CUSTOMER_INFO_UPDATE.getName(), EXPIRED.getName(), ERROR.getName())
@@ -243,7 +234,7 @@ public class TransactionService {
    * @throws BadRequestException if the provided status is not supported
    */
   void validateIfStatusIsSupported(String status) throws BadRequestException {
-    if (!validStatuses.contains(status)) {
+    if (!SepTransactionStatus.isValid(status)) {
       throw new BadRequestException(String.format("invalid status(%s)", status));
     }
   }
@@ -382,8 +373,8 @@ public class TransactionService {
 
     return org.stellar.anchor.api.platform.GetTransactionResponse.builder()
         .id(txn.getId())
-        .sep(31)
-        .kind(TransactionEvent.Kind.RECEIVE.getKind())
+        .sep(24)
+        .kind(txn.getKind())
         .status(txn.getStatus())
         .amountIn(new Amount(txn.getAmountIn(), txn.getAmountInAsset()))
         .amountOut(new Amount(txn.getAmountOut(), txn.getAmountOutAsset()))
