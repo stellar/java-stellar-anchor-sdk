@@ -54,8 +54,4 @@ public enum SepTransactionStatus {
     return Arrays.stream(SepTransactionStatus.values())
         .anyMatch(e -> e.name.equalsIgnoreCase(status));
   }
-
-  public static void main(String[] args) {
-    Arrays.stream(SepTransactionStatus.values()).forEach(e -> System.out.println(e.name + ","));
-  }
 }
