@@ -171,13 +171,8 @@ val expectedSep24WithdrawResponse =
       "kind": "withdrawal",
       "status": "incomplete",
       "more_info_url": "http://www.stellar.org",
-      "amount_in": "0",
-      "amount_out": "0",
-      "amount_fee": "0",
-      "stellar_transaction_id": "",
       "refunded": false,
-      "from": "GAIUIZPHLIHQEMNJGSZKCEUWHAZVGUZDBDMO2JXNAJZZZVNSVHQCEWJ4",
-      "to": ""
+      "from": "GAIUIZPHLIHQEMNJGSZKCEUWHAZVGUZDBDMO2JXNAJZZZVNSVHQCEWJ4"
     }
   }
 """
@@ -190,12 +185,7 @@ val expectedSep24DepositResponse =
       "kind": "deposit",
       "status": "incomplete",
       "more_info_url": "http://www.stellar.org",
-      "amount_in": "0",
-      "amount_out": "0",
-      "amount_fee": "0",
-      "stellar_transaction_id": "",
       "refunded": false,
-      "from": "",
       "to": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
     }
   }
