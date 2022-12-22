@@ -1,10 +1,8 @@
 package org.stellar.anchor.platform.data;
 
-import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
 import com.google.gson.reflect.TypeToken;
 import com.vladmihalcea.hibernate.type.json.JsonType;
-import java.time.Instant;
 import java.util.List;
 import java.util.Map;
 import javax.persistence.*;
@@ -20,7 +18,6 @@ import org.stellar.anchor.api.shared.StellarTransaction;
 import org.stellar.anchor.reference.model.StellarIdConverter;
 import org.stellar.anchor.sep31.Refunds;
 import org.stellar.anchor.sep31.Sep31Transaction;
-import org.stellar.anchor.util.GsonUtils;
 
 @Getter
 @Setter
@@ -29,32 +26,16 @@ import org.stellar.anchor.util.GsonUtils;
 @Table(name = "sep31_transaction")
 @TypeDef(name = "json", typeClass = JsonType.class)
 @NoArgsConstructor
-public class JdbcSep31Transaction implements Sep31Transaction, SepTransaction {
-  static Gson gson = GsonUtils.getInstance();
+public class JdbcSep31Transaction extends JdbcSepTransaction
+    implements Sep31Transaction, SepTransaction {
+  public String getProtocol() {
+    return "31";
+  }
 
   @Id String id;
-  String status;
 
   @SerializedName("status_eta")
   Long statusEta;
-
-  @SerializedName("amount_in")
-  String amountIn;
-
-  @SerializedName("amount_in_asset")
-  String amountInAsset;
-
-  @SerializedName("amount_out")
-  String amountOut;
-
-  @SerializedName("amount_out_asset")
-  String amountOutAsset;
-
-  @SerializedName("amount_fee")
-  String amountFee;
-
-  @SerializedName("amount_fee_asset")
-  String amountFeeAsset;
 
   @SerializedName("stellar_account_id")
   String stellarAccountId;
@@ -65,24 +46,9 @@ public class JdbcSep31Transaction implements Sep31Transaction, SepTransaction {
   @SerializedName("stellar_memo_type")
   String stellarMemoType;
 
-  @SerializedName("started_at")
-  Instant startedAt;
-
-  @SerializedName("completed_at")
-  Instant completedAt;
-
-  @SerializedName("stellar_transaction_id")
-  String stellarTransactionId;
-
   @Column(columnDefinition = "json")
   @Type(type = "json")
   List<StellarTransaction> stellarTransactions;
-
-  @SerializedName("external_transaction_id")
-  String externalTransactionId;
-
-  @SerializedName("required_info_message")
-  String requiredInfoMessage;
 
   @SerializedName("quote_id")
   String quoteId;
@@ -152,7 +118,5 @@ public class JdbcSep31Transaction implements Sep31Transaction, SepTransaction {
     }
   }
 
-  Instant updatedAt;
-  Instant transferReceivedAt;
   String amountExpected;
 }

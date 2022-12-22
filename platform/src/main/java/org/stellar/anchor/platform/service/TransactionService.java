@@ -9,15 +9,9 @@ import io.micrometer.core.instrument.Metrics;
 import java.time.Instant;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
-import java.util.function.Function;
-import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
-import org.stellar.anchor.api.exception.AnchorException;
-import org.stellar.anchor.api.exception.BadRequestException;
-import org.stellar.anchor.api.exception.InternalServerErrorException;
-import org.stellar.anchor.api.exception.NotFoundException;
+import org.stellar.anchor.api.exception.*;
 import org.stellar.anchor.api.platform.GetTransactionResponse;
 import org.stellar.anchor.api.platform.PatchTransactionRequest;
 import org.stellar.anchor.api.platform.PatchTransactionsRequest;
@@ -30,6 +24,8 @@ import org.stellar.anchor.api.shared.RefundPayment;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.event.models.TransactionEvent;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
+import org.stellar.anchor.platform.data.JdbcSep31Transaction;
+import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.sep24.Sep24RefundPayment;
 import org.stellar.anchor.sep24.Sep24Refunds;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
@@ -65,157 +61,201 @@ public class TransactionService {
     this.assets = assetService.listAllAssets();
   }
 
-  public GetTransactionResponse getTransaction(String txnId) throws AnchorException {
+  /**
+   * Fetch the transaction and convert the transaction to an object of GetTransactionResponse class.
+   *
+   * @param txnId the transaction ID
+   * @return the result
+   * @throws AnchorException
+   */
+  public GetTransactionResponse getTransactionResponse(String txnId) throws AnchorException {
     if (Objects.toString(txnId, "").isEmpty()) {
       Log.info("Rejecting GET {platformApi}/transaction/:id because the id is empty.");
       throw new BadRequestException("transaction id cannot be empty");
     }
-
-    Sep31Transaction txn31 = txn31Store.findByTransactionId(txnId);
-    if (txn31 != null) {
-      return toGetTransactionResponse(txn31);
+    JdbcSepTransaction txn = findTransaction(txnId);
+    if (txn != null) {
+      return toGetTransactionResponse(txn);
+    } else {
+      throw new NotFoundException(String.format("transaction (id=%s) is not found", txnId));
     }
-
-    JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn24Store.findByTransactionId(txnId);
-    if (txn24 != null) {
-      return toGetTransactionResponse(txn24);
-    }
-
-    throw new NotFoundException(String.format("transaction (id=%s) is not found", txnId));
-  }
-
-  public PatchTransactionsResponse patchTransactions(PatchTransactionsRequest request)
-      throws AnchorException {
-    List<PatchTransactionRequest> patchRequests = request.getRecords();
-    List<String> ids =
-        patchRequests.stream().map(PatchTransactionRequest::getId).collect(Collectors.toList());
-    List<? extends Sep31Transaction> fetchedTxns = txn31Store.findByTransactionIds(ids);
-    Map<String, ? extends Sep31Transaction> sep31Transactions =
-        fetchedTxns.stream()
-            .collect(Collectors.toMap(Sep31Transaction::getId, Function.identity()));
-
-    List<Sep31Transaction> txnsToSave = new LinkedList<>();
-    List<GetTransactionResponse> responses = new LinkedList<>();
-    List<Sep31Transaction> statusUpdatedTxns = new LinkedList<>();
-
-    for (PatchTransactionRequest patch : patchRequests) {
-      Sep31Transaction txn = sep31Transactions.get(patch.getId());
-      if (txn != null) {
-        String txnOriginalStatus = txn.getStatus();
-        // validate and update the transaction.
-        updateSep31Transaction(patch, txn);
-        // Add them to the to-be-updated lists.
-        txnsToSave.add(txn);
-        if (!txnOriginalStatus.equals(txn.getStatus())) {
-          statusUpdatedTxns.add(txn);
-        }
-        responses.add(toGetTransactionResponse(txn));
-      } else {
-        throw new BadRequestException(String.format("transaction(id=%s) not found", patch.getId()));
-      }
-    }
-    for (Sep31Transaction txn : txnsToSave) {
-      // TODO: consider 2-phase commit DB transaction management.
-      txn31Store.save(txn);
-    }
-    for (Sep31Transaction txn : statusUpdatedTxns) {
-      Metrics.counter(AnchorMetrics.SEP31_TRANSACTION.toString(), "status", txn.getStatus())
-          .increment();
-    }
-    return new PatchTransactionsResponse(responses);
   }
 
   /**
-   * updateSep31Transaction will inject the new values from the PatchTransactionRequest into the
-   * database Sep31Transaction and validate them to make sure they are compliant.
+   * Fetch the transaction.
    *
-   * @param ptr is the PatchTransactionRequest containing the updated values.
-   * @param txn is the Sep31Transaction stored in the database that needs to be updated.
-   * @throws AnchorException if any of the new values is invalid or non-compliant.
+   * @param txnId the transaction ID
+   * @return an object of JdbcSepTransaction
+   * @throws AnchorException
    */
-  void updateSep31Transaction(PatchTransactionRequest ptr, Sep31Transaction txn)
+  public JdbcSepTransaction findTransaction(String txnId) throws AnchorException {
+    JdbcSep31Transaction txn31 = (JdbcSep31Transaction) txn31Store.findByTransactionId(txnId);
+    if (txn31 != null) {
+      return txn31;
+    }
+
+    return (JdbcSep24Transaction) txn24Store.findByTransactionId(txnId);
+  }
+
+  /**
+   * Patch transactions.
+   *
+   * @param request the request
+   * @return the response
+   * @throws AnchorException
+   */
+  public PatchTransactionsResponse patchTransactions(PatchTransactionsRequest request)
+      throws AnchorException {
+    List<PatchTransactionRequest> patchRequests = request.getRecords();
+
+    //    PatchTransactionsResponse patchTransactionsResponse = new PatchTransactionsResponse();
+    List<GetTransactionResponse> txnResponses = new LinkedList<>();
+    for (PatchTransactionRequest patchRequest : patchRequests) {
+      txnResponses.add(patchTransaction(patchRequest));
+    }
+    return new PatchTransactionsResponse(txnResponses);
+  }
+
+  private GetTransactionResponse patchTransaction(PatchTransactionRequest patch)
+      throws AnchorException {
+    JdbcSepTransaction txn = findTransaction(patch.getId());
+    if (txn == null)
+      throw new BadRequestException(String.format("transaction(id=%s) not found", patch.getId()));
+    switch (txn.getProtocol()) {
+      case "24":
+        patchSep24Transaction((JdbcSep24Transaction) txn, patch);
+        break;
+      case "31":
+        patchSep31Transaction((JdbcSep31Transaction) txn, patch);
+        break;
+    }
+    return toGetTransactionResponse(txn);
+  }
+
+  private void patchSep24Transaction(JdbcSep24Transaction txn, PatchTransactionRequest patch)
+      throws AnchorException {
+    String txnOriginalStatus = txn.getStatus();
+
+    updateSepTransaction(patch, txn);
+    txn24Store.save(txn);
+
+    // Add them to the to-be-updated lists.
+    if (!txnOriginalStatus.equals(txn.getStatus()))
+      Metrics.counter(AnchorMetrics.SEP24_TRANSACTION.toString(), "status", txn.getStatus())
+          .increment();
+  }
+
+  private void patchSep31Transaction(JdbcSep31Transaction txn, PatchTransactionRequest patch)
+      throws AnchorException {
+    String txnOriginalStatus = txn.getStatus();
+    // validate and update the transaction.
+    updateSepTransaction(patch, txn);
+    // Add them to the to-be-updated lists.
+    if (!txnOriginalStatus.equals(txn.getStatus()))
+      Metrics.counter(AnchorMetrics.SEP31_TRANSACTION.toString(), "status", txn.getStatus())
+          .increment();
+
+    txn31Store.save(txn);
+  }
+
+  void updateSepTransaction(PatchTransactionRequest patch, JdbcSepTransaction txn)
       throws AnchorException {
     boolean txWasUpdated = false;
     boolean txWasCompleted = false;
     boolean shouldClearMessageStatus =
-        !StringHelper.isEmpty(ptr.getStatus())
-            && !isStatusError(ptr.getStatus())
+        !StringHelper.isEmpty(patch.getStatus())
+            && !isStatusError(patch.getStatus())
             && !StringHelper.isEmpty(txn.getStatus())
             && isStatusError(txn.getStatus());
 
-    if (ptr.getStatus() != null && !Objects.equals(txn.getStatus(), ptr.getStatus())) {
-      validateIfStatusIsSupported(ptr.getStatus());
+    if (patch.getStatus() != null && !Objects.equals(txn.getStatus(), patch.getStatus())) {
+      validateIfStatusIsSupported(patch.getStatus());
       txWasCompleted =
           !Objects.equals(txn.getStatus(), COMPLETED.getName())
-              && Objects.equals(ptr.getStatus(), COMPLETED.getName());
-      txn.setStatus(ptr.getStatus());
+              && Objects.equals(patch.getStatus(), COMPLETED.getName());
+      txn.setStatus(patch.getStatus());
       txWasUpdated = true;
     }
 
-    if (ptr.getAmountIn() != null
-        && (!Objects.equals(txn.getAmountIn(), ptr.getAmountIn().getAmount())
-            || !Objects.equals(txn.getAmountInAsset(), ptr.getAmountIn().getAsset()))) {
-      validateAsset("amount_in", ptr.getAmountIn());
-      txn.setAmountIn(ptr.getAmountIn().getAmount());
-      txn.setAmountInAsset(ptr.getAmountIn().getAsset());
+    if (patch.getAmountIn() != null
+        && (!Objects.equals(txn.getAmountIn(), patch.getAmountIn().getAmount())
+            || !Objects.equals(txn.getAmountInAsset(), patch.getAmountIn().getAsset()))) {
+      validateAsset("amount_in", patch.getAmountIn());
+      txn.setAmountIn(patch.getAmountIn().getAmount());
+      txn.setAmountInAsset(patch.getAmountIn().getAsset());
       txWasUpdated = true;
     }
 
-    if (ptr.getAmountOut() != null
-        && (!Objects.equals(txn.getAmountOut(), ptr.getAmountOut().getAmount())
-            || !Objects.equals(txn.getAmountOutAsset(), ptr.getAmountOut().getAsset()))) {
-      validateAsset("amount_out", ptr.getAmountOut());
-      txn.setAmountOut(ptr.getAmountOut().getAmount());
-      txn.setAmountOutAsset(ptr.getAmountOut().getAsset());
+    if (patch.getAmountOut() != null
+        && (!Objects.equals(txn.getAmountOut(), patch.getAmountOut().getAmount())
+            || !Objects.equals(txn.getAmountOutAsset(), patch.getAmountOut().getAsset()))) {
+      validateAsset("amount_out", patch.getAmountOut());
+      txn.setAmountOut(patch.getAmountOut().getAmount());
+      txn.setAmountOutAsset(patch.getAmountOut().getAsset());
       txWasUpdated = true;
     }
 
-    if (ptr.getAmountFee() != null
-        && (!Objects.equals(txn.getAmountFee(), ptr.getAmountFee().getAmount())
-            || !Objects.equals(txn.getAmountFeeAsset(), ptr.getAmountFee().getAsset()))) {
-      validateAsset("amount_fee", ptr.getAmountFee());
-      txn.setAmountFee(ptr.getAmountFee().getAmount());
-      txn.setAmountFeeAsset(ptr.getAmountFee().getAsset());
+    if (patch.getAmountFee() != null
+        && (!Objects.equals(txn.getAmountFee(), patch.getAmountFee().getAmount())
+            || !Objects.equals(txn.getAmountFeeAsset(), patch.getAmountFee().getAsset()))) {
+      validateAsset("amount_fee", patch.getAmountFee());
+      txn.setAmountFee(patch.getAmountFee().getAmount());
+      txn.setAmountFeeAsset(patch.getAmountFee().getAsset());
       txWasUpdated = true;
     }
 
-    if (ptr.getTransferReceivedAt() != null
-        && ptr.getTransferReceivedAt().compareTo(txn.getStartedAt()) != 0) {
-      if (ptr.getTransferReceivedAt().compareTo(txn.getStartedAt()) < 0) {
+    if (patch.getTransferReceivedAt() != null
+        && patch.getTransferReceivedAt().compareTo(txn.getStartedAt()) != 0) {
+      if (patch.getTransferReceivedAt().compareTo(txn.getStartedAt()) < 0) {
         throw new BadRequestException(
             String.format(
                 "the `transfer_received_at(%s)` cannot be earlier than 'started_at(%s)'",
-                ptr.getTransferReceivedAt().toString(), txn.getStartedAt().toString()));
+                patch.getTransferReceivedAt().toString(), txn.getStartedAt().toString()));
       }
-      txn.setTransferReceivedAt(ptr.getTransferReceivedAt());
+      txn.setTransferReceivedAt(patch.getTransferReceivedAt());
       txWasUpdated = true;
     }
 
-    if (ptr.getMessage() != null) {
-      if (!Objects.equals(txn.getRequiredInfoMessage(), ptr.getMessage())) {
-        txn.setRequiredInfoMessage(ptr.getMessage());
+    if (patch.getMessage() != null) {
+      if (!Objects.equals(txn.getRequiredInfoMessage(), patch.getMessage())) {
+        txn.setRequiredInfoMessage(patch.getMessage());
         txWasUpdated = true;
       }
     } else if (shouldClearMessageStatus) {
       txn.setRequiredInfoMessage(null);
     }
 
-    if (ptr.getRefunds() != null) {
-      Refunds updatedRefunds = Refunds.of(ptr.getRefunds(), txn31Store);
-      // TODO: validate refunds
-      if (!Objects.equals(txn.getRefunds(), updatedRefunds)) {
-        txn.setRefunds(updatedRefunds);
-        txWasUpdated = true;
-      }
-    }
-
-    if (ptr.getExternalTransactionId() != null
-        && !Objects.equals(txn.getExternalTransactionId(), ptr.getExternalTransactionId())) {
-      txn.setExternalTransactionId(ptr.getExternalTransactionId());
+    if (patch.getExternalTransactionId() != null
+        && !Objects.equals(txn.getExternalTransactionId(), patch.getExternalTransactionId())) {
+      txn.setExternalTransactionId(patch.getExternalTransactionId());
       txWasUpdated = true;
     }
 
-    validateQuoteAndAmounts(txn);
+    switch (txn.getProtocol()) {
+      case "24":
+        JdbcSep24Transaction sep24Txn = (JdbcSep24Transaction) txn;
+        if (patch.getRefunds() != null) {
+          Sep24Refunds updatedRefunds = Sep24Refunds.of(patch.getRefunds(), txn24Store);
+          // TODO: validate refunds
+          if (!Objects.equals(sep24Txn.getRefunds(), updatedRefunds)) {
+            sep24Txn.setRefunds(updatedRefunds);
+            txWasUpdated = true;
+          }
+        }
+        break;
+      case "31":
+        JdbcSep31Transaction sep31Txn = (JdbcSep31Transaction) txn;
+        if (patch.getRefunds() != null) {
+          Refunds updatedRefunds = Refunds.of(patch.getRefunds(), txn31Store);
+          // TODO: validate refunds
+          if (!Objects.equals(sep31Txn.getRefunds(), updatedRefunds)) {
+            sep31Txn.setRefunds(updatedRefunds);
+            txWasUpdated = true;
+          }
+        }
+        validateQuoteAndAmounts(sep31Txn);
+        break;
+    }
 
     Instant now = Instant.now();
     if (txWasUpdated) {
@@ -311,7 +351,18 @@ public class TransactionService {
     }
   }
 
-  GetTransactionResponse toGetTransactionResponse(Sep31Transaction txn) {
+  GetTransactionResponse toGetTransactionResponse(JdbcSepTransaction txn) throws SepException {
+    switch (txn.getProtocol()) {
+      case "24":
+        return toGetTransactionResponse((JdbcSep24Transaction) txn);
+      case "31":
+        return toGetTransactionResponse((JdbcSep31Transaction) txn);
+      default:
+        throw new SepException(String.format("Unsupported protocol:%s", txn.getProtocol()));
+    }
+  }
+
+  private GetTransactionResponse toGetTransactionResponse(JdbcSep31Transaction txn) {
     Refund refunds = null;
     if (txn.getRefunds() != null) {
       refunds = txn.getRefunds().toPlatformApiRefund(txn.getAmountInAsset());
@@ -365,7 +416,7 @@ public class TransactionService {
         .build();
   }
 
-  GetTransactionResponse toGetTransactionResponse(JdbcSep24Transaction txn) {
+  private GetTransactionResponse toGetTransactionResponse(JdbcSep24Transaction txn) {
     Refund refunds = null;
     if (txn.getRefunds() != null) {
       refunds = toRefunds(txn.getRefunds(), txn.getAmountInAsset());

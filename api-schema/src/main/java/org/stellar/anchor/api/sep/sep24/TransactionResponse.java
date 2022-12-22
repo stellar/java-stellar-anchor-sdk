@@ -49,12 +49,8 @@ public class TransactionResponse {
   String externalTransactionId;
 
   String message;
-
-  @Deprecated // Deprecated in favor of refunds
   Boolean refunded = false;
   Refunds refunds;
-
   String from = "";
-
   String to = "";
 }

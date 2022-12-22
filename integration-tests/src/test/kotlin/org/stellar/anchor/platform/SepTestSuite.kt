@@ -46,14 +46,6 @@ fun main(args: Array<String>) {
       ServiceRunner.startAnchorReferenceServer()
     }
 
-    // Read TOML file
-    val tomlString =
-      if (cmd.hasOption("sep1-toml")) {
-        resourceAsString(cmd.getOptionValue("t"))
-      } else {
-        resourceAsString("classpath:/sep1/test-stellar.toml")
-      }
-
     val tests = cmd.getOptionValues("p")
 
     if ("sep10" in tests) {

@@ -28,7 +28,7 @@ public class PlatformController {
       method = {RequestMethod.GET})
   public GetTransactionResponse getTransaction(@PathVariable(name = "id") String txnId)
       throws AnchorException {
-    return transactionService.getTransaction(txnId);
+    return transactionService.getTransactionResponse(txnId);
   }
 
   @CrossOrigin(origins = "*")

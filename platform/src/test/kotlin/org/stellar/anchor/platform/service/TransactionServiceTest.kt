@@ -74,19 +74,19 @@ class TransactionServiceTest {
   @Test
   fun test_getTransaction_failure() {
     // null tx id is rejected with 400
-    var ex: AnchorException = assertThrows { transactionService.getTransaction(null) }
+    var ex: AnchorException = assertThrows { transactionService.getTransactionResponse(null) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("transaction id cannot be empty", ex.message)
 
     // empty tx id is rejected with 400
-    ex = assertThrows { transactionService.getTransaction("") }
+    ex = assertThrows { transactionService.getTransactionResponse("") }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("transaction id cannot be empty", ex.message)
 
     // non-existent transaction is rejected with 404
     every { sep31TransactionStore.findByTransactionId(any()) } returns null
     every { sep24TransactionStore.findByTransactionId(any()) } returns null
-    ex = assertThrows { transactionService.getTransaction("not-found-tx-id") }
+    ex = assertThrows { transactionService.getTransactionResponse("not-found-tx-id") }
     assertInstanceOf(NotFoundException::class.java, ex)
     assertEquals("transaction (id=not-found-tx-id) is not found", ex.message)
   }
@@ -103,7 +103,7 @@ class TransactionServiceTest {
       gson.fromJson(wantedGetTransactionResponse, GetTransactionResponse::class.java)
 
     every { sep31TransactionStore.findByTransactionId(TEST_TXN_ID) } returns mockSep31Transaction
-    val gotGetTransactionResponse = transactionService.getTransaction(TEST_TXN_ID)
+    val gotGetTransactionResponse = transactionService.getTransactionResponse(TEST_TXN_ID)
 
     assertEquals(wantGetTransactionResponse, gotGetTransactionResponse)
   }
@@ -286,7 +286,7 @@ class TransactionServiceTest {
     assertEquals(mockSep31Transaction.startedAt, mockSep31Transaction.updatedAt)
     assertNull(mockSep31Transaction.completedAt)
     assertDoesNotThrow {
-      transactionService.updateSep31Transaction(mockPatchTransactionRequest, mockSep31Transaction)
+      transactionService.updateSepTransaction(mockPatchTransactionRequest, mockSep31Transaction)
     }
     assertTrue(mockSep31Transaction.updatedAt > mockSep31Transaction.startedAt)
     assertTrue(mockSep31Transaction.updatedAt == mockSep31Transaction.completedAt)

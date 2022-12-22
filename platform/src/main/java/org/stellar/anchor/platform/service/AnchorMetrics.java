@@ -1,8 +1,10 @@
 package org.stellar.anchor.platform.service;
 
 public enum AnchorMetrics {
+  SEP24_TRANSACTION("sep24.transaction"),
   SEP31_TRANSACTION("sep31.transaction"),
   SEP31_TRANSACTION_DB("sep31.transaction.db"),
+  SEP24_TRANSACTION_DB("sep24.transaction.db"),
   PAYMENT_RECEIVED("payment.received"),
   LOGGER("logger"),
 
