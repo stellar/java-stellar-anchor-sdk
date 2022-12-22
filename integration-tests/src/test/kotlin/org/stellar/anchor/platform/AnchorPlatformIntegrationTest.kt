@@ -35,9 +35,9 @@ class AnchorPlatformIntegrationTest {
           "secret.data.password" to "password"
         )
 
-      ServiceRunner.startSepServer(envMap)
-      ServiceRunner.startStellarObserver(envMap)
-      ServiceRunner.startAnchorReferenceServer()
+      //      ServiceRunner.startSepServer(envMap)
+      //      ServiceRunner.startStellarObserver(envMap)
+      //      ServiceRunner.startAnchorReferenceServer()
 
       toml =
         Sep1Helper.parse(

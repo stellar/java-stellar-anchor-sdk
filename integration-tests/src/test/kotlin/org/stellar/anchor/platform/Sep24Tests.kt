@@ -8,6 +8,7 @@ import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
 import org.skyscreamer.jsonassert.JSONCompareMode.LENIENT
 import org.stellar.anchor.api.exception.SepException
+import org.stellar.anchor.api.platform.PatchTransactionsRequest
 import org.stellar.anchor.api.sep.sep24.GetTransactionResponse
 import org.stellar.anchor.platform.AnchorPlatformIntegrationTest.Companion.jwt
 import org.stellar.anchor.platform.AnchorPlatformIntegrationTest.Companion.toml
@@ -65,6 +66,19 @@ class Sep24Tests {
       JSONAssert.assertEquals(expectedDepositTransactionResponse, json(actualDepositTxn), LENIENT)
     }
 
+    fun `test deposit, withdraw, get and patch`() {
+      val patchRequest =
+        gson.fromJson(patchWithdrawTransactionRequest, PatchTransactionsRequest::class.java)
+      patchRequest.records[0].id = savedWithdrawTransaction.transaction.id
+      platformApiClient.patchTransaction(patchRequest)
+      val afterPatchTxn = platformApiClient.getTransaction(savedWithdrawTransaction.transaction.id)
+      JSONAssert.assertEquals(
+        expectedGetTransactionResponseAfterPatch,
+        json(afterPatchTxn),
+        LENIENT
+      )
+    }
+
     fun `test GET transactions with bad ids`() {
       val badTxnIds = listOf("null", "bad id", "123", null)
       for (txnId in badTxnIds) {
@@ -82,6 +96,7 @@ fun sep24TestAll() {
   Sep24Tests.`test Sep24 withdraw`()
   Sep24Tests.`test Sep24 deposit`()
   Sep24Tests.`test PlatformAPI GET transaction for deposit and withdrawal`()
+  Sep24Tests.`test deposit, withdraw, get and patch`()
   Sep24Tests.`test GET transactions with bad ids`()
 }
 
@@ -100,6 +115,88 @@ const val depositRequest =
     "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
     "lang": "en"
 }"""
+
+val patchWithdrawTransactionRequest =
+  """
+{
+  "records": [
+    {
+      "id": "",
+      "status": "completed",
+      "amount_in": {
+        "amount": "10",
+        "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+      },
+      "amount_out": {
+        "amount": "10",
+        "asset": "iso4217:USD"
+      },
+      "amount_fee": {
+        "amount": "1",
+        "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+      },
+      "message": "this is the message",
+      "refunds": {
+        "amount_refunded": {
+          "amount": "1",
+          "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+        },
+        "amount_fee": {
+          "amount": "0.1",
+          "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+        },
+        "payments": [
+          {
+            "id": 1,
+            "amount": {
+              "amount": "0.6",
+              "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+            },
+            "fee": {
+              "amount": "0.1",
+              "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+            }
+          },
+          {
+            "id": 2,
+            "amount": {
+              "amount": "0.4",
+              "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+            },
+            "fee": {
+              "amount": "0",
+              "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+            }
+          }
+        ]
+      }
+    }
+  ]
+}
+"""
+    .trimIndent()
+
+val expectedGetTransactionResponseAfterPatch =
+  """
+  {
+    "sep": 24,
+    "kind": "withdrawal",
+    "status": "completed",
+    "amount_in": {
+      "amount": "10",
+      "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+    },
+    "amount_out": {
+      "amount": "10",
+      "asset": "iso4217:USD"
+    },
+    "amount_fee": {
+      "amount": "1",
+      "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+    }
+  }
+"""
+    .trimIndent()
 
 val expectedSep24Info =
   """

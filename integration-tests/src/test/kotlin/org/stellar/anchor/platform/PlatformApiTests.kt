@@ -27,10 +27,6 @@ class PlatformApiTests {
       }
     }
 
-    fun `test sep24 doposit, withdraw, get and patch`() {
-      // TODO: test with deposit/withdraw then patch then get
-    }
-
     fun `test sep31 post, get and patch`() {
       // Create sender customer
       val senderCustomerRequest =

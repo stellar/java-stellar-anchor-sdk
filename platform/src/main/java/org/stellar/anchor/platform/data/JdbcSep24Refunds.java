@@ -3,11 +3,15 @@ package org.stellar.anchor.platform.data;
 import com.google.gson.annotations.SerializedName;
 import java.util.ArrayList;
 import java.util.List;
-import lombok.Data;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.stellar.anchor.sep24.Sep24RefundPayment;
 import org.stellar.anchor.sep24.Sep24Refunds;
 
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
 public class JdbcSep24Refunds implements Sep24Refunds {
   @SerializedName("amount_refunded")
   String amountRefunded;
