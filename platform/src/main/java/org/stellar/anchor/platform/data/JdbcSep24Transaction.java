@@ -55,10 +55,12 @@ public class JdbcSep24Transaction extends JdbcSepTransaction
   @Type(type = "json")
   JdbcSep24Refunds refunds;
 
+  @Override
   public Sep24Refunds getRefunds() {
     return refunds;
   }
 
+  @Override
   public void setRefunds(Sep24Refunds refunds) {
     if (refunds != null) {
       this.refunds = new JdbcSep24Refunds();

@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform.data;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.google.gson.annotations.SerializedName;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,23 +21,21 @@ public class JdbcSep24Refunds implements Sep24Refunds {
   String amountFee;
 
   @SerializedName("payments")
-  List<JdbcSep24RefundPayment> refundPayments;
+  List<JdbcSep24RefundPayment> payments;
 
-  @Override
+  @JsonIgnore
   public List<Sep24RefundPayment> getRefundPayments() {
-    if (refundPayments == null) return null;
+    if (payments == null) return null;
     // getPayments() is made for Gson serialization.
-    List<Sep24RefundPayment> payments = new ArrayList<>(refundPayments.size());
-    payments.addAll(refundPayments);
+    List<Sep24RefundPayment> payments = new ArrayList<>(this.payments.size());
+    payments.addAll(this.payments);
     return payments;
   }
 
-  @Override
   public void setRefundPayments(List<Sep24RefundPayment> refundPayments) {
-    this.refundPayments = new ArrayList<>(refundPayments.size());
+    this.payments = new ArrayList<>(refundPayments.size());
     for (Sep24RefundPayment rp : refundPayments) {
-      if (rp instanceof JdbcSep24RefundPayment)
-        this.refundPayments.add((JdbcSep24RefundPayment) rp);
+      if (rp instanceof JdbcSep24RefundPayment) this.payments.add((JdbcSep24RefundPayment) rp);
       else
         throw new ClassCastException(
             String.format("Error casting %s to JdbcSep24RefundPayment", rp.getClass()));
