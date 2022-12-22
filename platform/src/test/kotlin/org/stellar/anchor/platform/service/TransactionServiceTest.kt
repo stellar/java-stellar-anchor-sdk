@@ -21,8 +21,8 @@ import org.stellar.anchor.api.exception.NotFoundException
 import org.stellar.anchor.api.platform.PatchTransactionRequest
 import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.api.shared.Amount
-import org.stellar.anchor.api.shared.Refund
 import org.stellar.anchor.api.shared.RefundPayment
+import org.stellar.anchor.api.shared.Refunds
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.ResourceJsonAssetService
 import org.stellar.anchor.platform.data.JdbcSep31RefundPayment
@@ -221,8 +221,8 @@ class TransactionServiceTest {
     val mockStartedAt = Instant.now().minusSeconds(180)
     val mockTransferReceivedAt = mockStartedAt.plusSeconds(60)
 
-    val mockRefunds: Refund =
-      Refund.builder()
+    val mockRefunds: Refunds =
+      Refunds.builder()
         .amountRefunded(Amount("90.0000", fiatUSD))
         .amountFee(Amount("8.0000", fiatUSD))
         .payments(

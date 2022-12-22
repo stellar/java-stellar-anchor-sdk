@@ -19,8 +19,8 @@ import org.stellar.anchor.api.platform.PatchTransactionsResponse;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.shared.Amount;
-import org.stellar.anchor.api.shared.Refund;
 import org.stellar.anchor.api.shared.RefundPayment;
+import org.stellar.anchor.api.shared.Refunds;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.event.models.TransactionEvent;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
@@ -66,7 +66,6 @@ public class TransactionService {
    *
    * @param txnId the transaction ID
    * @return the result
-   * @throws AnchorException
    */
   public GetTransactionResponse getTransactionResponse(String txnId) throws AnchorException {
     if (Objects.toString(txnId, "").isEmpty()) {
@@ -86,7 +85,6 @@ public class TransactionService {
    *
    * @param txnId the transaction ID
    * @return an object of JdbcSepTransaction
-   * @throws AnchorException
    */
   public JdbcSepTransaction findTransaction(String txnId) throws AnchorException {
     JdbcSep31Transaction txn31 = (JdbcSep31Transaction) txn31Store.findByTransactionId(txnId);
@@ -102,7 +100,6 @@ public class TransactionService {
    *
    * @param request the request
    * @return the response
-   * @throws AnchorException
    */
   public PatchTransactionsResponse patchTransactions(PatchTransactionsRequest request)
       throws AnchorException {
@@ -362,13 +359,39 @@ public class TransactionService {
     }
   }
 
+  RefundPayment toRefundPayment(
+      org.stellar.anchor.sep31.RefundPayment refundPayment, String assetName) {
+    return RefundPayment.builder()
+        .id(refundPayment.getId())
+        .idType(RefundPayment.IdType.STELLAR)
+        .amount(new Amount(refundPayment.getAmount(), assetName))
+        .fee(new Amount(refundPayment.getFee(), assetName))
+        .requestedAt(null)
+        .refundedAt(null)
+        .build();
+  }
+
+  Refunds toRefunds(Sep31Refunds refunds, String assetName) {
+    // build payments
+    RefundPayment[] payments =
+        refunds.getRefundPayments().stream()
+            .map(refundPayment -> toRefundPayment(refundPayment, assetName))
+            .toArray(RefundPayment[]::new);
+
+    return Refunds.builder()
+        .amountRefunded(new Amount(refunds.getAmountRefunded(), assetName))
+        .amountFee(new Amount(refunds.getAmountFee(), assetName))
+        .payments(payments)
+        .build();
+  }
+
   private GetTransactionResponse toGetTransactionResponse(JdbcSep31Transaction txn) {
-    Refund refunds = null;
+    Refunds refunds = null;
     if (txn.getRefunds() != null) {
-      refunds = txn.getRefunds().toPlatformApiRefund(txn.getAmountInAsset());
+      refunds = toRefunds(txn.getRefunds(), txn.getAmountInAsset());
     }
 
-    return org.stellar.anchor.api.platform.GetTransactionResponse.builder()
+    return GetTransactionResponse.builder()
         .id(txn.getId())
         .sep(31)
         .kind(TransactionEvent.Kind.RECEIVE.getKind())
@@ -392,9 +415,9 @@ public class TransactionService {
   }
 
   RefundPayment toRefundPayment(Sep24RefundPayment refundPayment, String assetName) {
-    return org.stellar.anchor.api.shared.RefundPayment.builder()
+    return RefundPayment.builder()
         .id(refundPayment.getId())
-        .idType(org.stellar.anchor.api.shared.RefundPayment.IdType.STELLAR)
+        .idType(RefundPayment.IdType.STELLAR)
         .amount(new Amount(refundPayment.getAmount(), assetName))
         .fee(new Amount(refundPayment.getFee(), assetName))
         .requestedAt(null)
@@ -402,14 +425,14 @@ public class TransactionService {
         .build();
   }
 
-  org.stellar.anchor.api.shared.Refund toRefunds(Sep24Refunds refunds, String assetName) {
+  Refunds toRefunds(Sep24Refunds refunds, String assetName) {
     // build payments
-    org.stellar.anchor.api.shared.RefundPayment[] payments =
+    RefundPayment[] payments =
         refunds.getRefundPayments().stream()
             .map(refundPayment -> toRefundPayment(refundPayment, assetName))
-            .toArray(org.stellar.anchor.api.shared.RefundPayment[]::new);
+            .toArray(RefundPayment[]::new);
 
-    return org.stellar.anchor.api.shared.Refund.builder()
+    return Refunds.builder()
         .amountRefunded(new Amount(refunds.getAmountRefunded(), assetName))
         .amountFee(new Amount(refunds.getAmountFee(), assetName))
         .payments(payments)
@@ -417,12 +440,12 @@ public class TransactionService {
   }
 
   private GetTransactionResponse toGetTransactionResponse(JdbcSep24Transaction txn) {
-    Refund refunds = null;
+    Refunds refunds = null;
     if (txn.getRefunds() != null) {
       refunds = toRefunds(txn.getRefunds(), txn.getAmountInAsset());
     }
 
-    return org.stellar.anchor.api.platform.GetTransactionResponse.builder()
+    return GetTransactionResponse.builder()
         .id(txn.getId())
         .sep(24)
         .kind(txn.getKind())

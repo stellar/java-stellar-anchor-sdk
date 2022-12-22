@@ -45,7 +45,7 @@ public class GetTransactionResponse {
   Instant transferReceivedAt;
 
   String message;
-  Refund refunds;
+  Refunds refunds;
 
   @SerializedName("stellar_transactions")
   List<StellarTransaction> stellarTransactions;

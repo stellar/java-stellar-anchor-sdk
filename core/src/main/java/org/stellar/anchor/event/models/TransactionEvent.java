@@ -9,11 +9,8 @@ import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
-import org.stellar.anchor.api.shared.Amount;
-import org.stellar.anchor.api.shared.Customers;
-import org.stellar.anchor.api.shared.Refund;
-import org.stellar.anchor.api.shared.StellarId;
-import org.stellar.anchor.api.shared.StellarTransaction;
+import org.stellar.anchor.api.shared.*;
+import org.stellar.anchor.api.shared.Refunds;
 
 @Data
 @Builder
@@ -79,7 +76,7 @@ public class TransactionEvent implements AnchorEvent {
 
   String message;
 
-  Refund refunds;
+  Refunds refunds;
 
   @JsonProperty("stellar_transactions")
   @SerializedName("stellar_transactions")

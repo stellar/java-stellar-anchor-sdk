@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.stellar.anchor.api.shared.Refunds;
 
 @SuppressWarnings("unused")
 public interface Sep24Refunds {
@@ -19,8 +20,7 @@ public interface Sep24Refunds {
 
   void setRefundPayments(List<Sep24RefundPayment> refundPayments);
 
-  static Sep24Refunds of(
-      org.stellar.anchor.api.shared.Refund platformApiRefunds, Sep24TransactionStore factory) {
+  static Sep24Refunds of(Refunds platformApiRefunds, Sep24TransactionStore factory) {
     if (platformApiRefunds == null) {
       return null;
     }

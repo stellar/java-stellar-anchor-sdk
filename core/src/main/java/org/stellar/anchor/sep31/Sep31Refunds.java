@@ -5,7 +5,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
 import org.stellar.anchor.api.sep.sep31.Sep31GetTransactionResponse;
-import org.stellar.anchor.api.shared.Amount;
+import org.stellar.anchor.api.shared.Refunds;
 
 public interface Sep31Refunds {
 
@@ -41,34 +41,13 @@ public interface Sep31Refunds {
   }
 
   /**
-   * Will create a PlatformApi Refund object out of this SEP-31 Sep31Refunds object.
+   * Will create a SEP-31 Sep31Refunds object out of a PlatformApi Refunds object.
    *
-   * @param assetName is the full asset name in the {schema}:{code}:{issuer} format.
-   * @return a PlatformApi Refund object.
-   */
-  default org.stellar.anchor.api.shared.Refund toPlatformApiRefund(String assetName) {
-    // build payments
-    org.stellar.anchor.api.shared.RefundPayment[] payments =
-        getRefundPayments().stream()
-            .map(refundPayment -> refundPayment.toPlatformApiRefundPayment(assetName))
-            .toArray(org.stellar.anchor.api.shared.RefundPayment[]::new);
-
-    return org.stellar.anchor.api.shared.Refund.builder()
-        .amountRefunded(new Amount(getAmountRefunded(), assetName))
-        .amountFee(new Amount(getAmountFee(), assetName))
-        .payments(payments)
-        .build();
-  }
-
-  /**
-   * Will create a SEP-31 Sep31Refunds object out of a PlatformApi Refund object.
-   *
-   * @param platformApiRefunds is the platformApi's Refund object.
+   * @param platformApiRefunds is the platformApi's Refunds object.
    * @param factory is a Sep31TransactionStore instance used to build the object.
    * @return a SEP-31 Sep31Refunds object.
    */
-  static Sep31Refunds of(
-      org.stellar.anchor.api.shared.Refund platformApiRefunds, Sep31TransactionStore factory) {
+  static Sep31Refunds of(Refunds platformApiRefunds, Sep31TransactionStore factory) {
     if (platformApiRefunds == null) {
       return null;
     }
