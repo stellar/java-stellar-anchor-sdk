@@ -16,7 +16,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.skyscreamer.jsonassert.JSONAssert
-import org.stellar.anchor.Constants
+import org.stellar.anchor.TestConstants
 import org.stellar.anchor.TestHelper
 import org.stellar.anchor.api.callback.CustomerIntegration
 import org.stellar.anchor.api.callback.FeeIntegration
@@ -295,9 +295,9 @@ class Sep31ServiceTest {
   @BeforeEach
   fun setUp() {
     MockKAnnotations.init(this, relaxUnitFun = true)
-    every { appConfig.stellarNetworkPassphrase } returns Constants.TEST_NETWORK_PASS_PHRASE
-    every { appConfig.hostUrl } returns Constants.TEST_HOST_URL
-    every { secretConfig.sep10JwtSecretKey } returns Constants.TEST_JWT_SECRET
+    every { appConfig.stellarNetworkPassphrase } returns TestConstants.TEST_NETWORK_PASS_PHRASE
+    every { appConfig.hostUrl } returns TestConstants.TEST_HOST_URL
+    every { secretConfig.sep10JwtSecretKey } returns TestConstants.TEST_JWT_SECRET
     every { appConfig.languages } returns listOf("en")
     every { sep31Config.paymentType } returns STRICT_SEND
     every { txnStore.newTransaction() } returns PojoSep31Transaction()

@@ -1,5 +1,7 @@
 package org.stellar.anchor.api.sep;
 
+import java.util.Arrays;
+
 public enum SepTransactionStatus {
   PENDING_ANCHOR("pending_anchor", "processing"),
   PENDING_TRUST("pending_trust", "waiting for a trustline to be established"),
@@ -46,5 +48,10 @@ public enum SepTransactionStatus {
   @SuppressWarnings("unused")
   public String getDescription() {
     return description;
+  }
+
+  public static boolean isValid(String status) {
+    return Arrays.stream(SepTransactionStatus.values())
+        .anyMatch(e -> e.name.equalsIgnoreCase(status));
   }
 }

@@ -9,9 +9,11 @@ import java.util.List;
 import java.util.Map;
 import javax.persistence.*;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
+import org.springframework.beans.BeanUtils;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.shared.StellarId;
 import org.stellar.anchor.api.shared.StellarTransaction;
@@ -26,6 +28,7 @@ import org.stellar.anchor.util.GsonUtils;
 @Access(AccessType.FIELD)
 @Table(name = "sep31_transaction")
 @TypeDef(name = "json", typeClass = JsonType.class)
+@NoArgsConstructor
 public class JdbcSep31Transaction implements Sep31Transaction, SepTransaction {
   static Gson gson = GsonUtils.getInstance();
 
@@ -134,18 +137,18 @@ public class JdbcSep31Transaction implements Sep31Transaction, SepTransaction {
 
   Boolean refunded;
 
-  // Ignored by JPA
-  @Transient Refunds refunds;
+  @Column(columnDefinition = "json")
+  @Type(type = "json")
+  JdbcSep31Refunds refunds;
 
-  @Access(AccessType.PROPERTY)
-  @Column(name = "refunds")
-  public String getRefundsJson() {
-    return gson.toJson(this.refunds);
+  public Refunds getRefunds() {
+    return refunds;
   }
 
-  public void setRefundsJson(String refundsJson) {
-    if (refundsJson != null) {
-      this.refunds = gson.fromJson(refundsJson, JdbcSep31Refunds.class);
+  public void setRefunds(Refunds refunds) {
+    if (refunds != null) {
+      this.refunds = new JdbcSep31Refunds();
+      BeanUtils.copyProperties(refunds, this.refunds);
     }
   }
 

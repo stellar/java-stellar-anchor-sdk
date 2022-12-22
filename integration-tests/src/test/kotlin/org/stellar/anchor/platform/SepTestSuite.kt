@@ -2,14 +2,10 @@ package org.stellar.anchor.platform
 
 import org.apache.commons.cli.*
 import org.stellar.anchor.auth.JwtService
-import org.stellar.anchor.auth.JwtToken
-import org.stellar.anchor.util.Sep1Helper
-import org.stellar.anchor.util.Sep1Helper.TomlContent
 
 var CLIENT_WALLET_ACCOUNT = "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
 var CLIENT_WALLET_SECRET = "SBHTWEF5U7FK53FLGDMBQYGXRUJ24VBM3M6VDXCHRIGCRG3Z64PH45LW"
 
-var jwt: String? = null
 val jwtService = JwtService("secret")
 
 fun main(args: Array<String>) {
@@ -58,31 +54,30 @@ fun main(args: Array<String>) {
         resourceAsString("classpath:/sep1/test-stellar.toml")
       }
 
-    val toml = Sep1Helper.parse(tomlString)
     val tests = cmd.getOptionValues("p")
 
     if ("sep10" in tests) {
-      jwt = sep10TestAll(toml)
+      sep10TestAll()
     }
 
     if ("sep12" in tests) {
-      sep12TestAll(toml, getOrCreateJwt(toml)!!)
+      sep12TestAll()
     }
 
     if ("sep24" in tests) {
-      sep24TestAll(toml, getOrCreateJwt(toml)!!)
+      sep24TestAll()
     }
 
     if ("sep31" in tests) {
-      sep31TestAll(toml, getOrCreateJwt(toml)!!)
+      sep31TestAll()
     }
 
     if ("sep38" in tests) {
-      sep38TestAll(toml, getOrCreateJwt(toml)!!)
+      sep38TestAll()
     }
 
     if ("platform" in tests) {
-      platformTestAll(toml, getOrCreateJwt(toml)!!)
+      platformTestAll()
     }
 
     if ("ref" in tests) {
@@ -91,24 +86,6 @@ fun main(args: Array<String>) {
   } catch (ex: ParseException) {
     printUsage(options)
   }
-}
-
-fun getOrCreateJwt(tomlContent: TomlContent): String? {
-  if (jwt == null) {
-    val issuedAt: Long = System.currentTimeMillis() / 1000L
-    val token =
-      JwtToken.of(
-        tomlContent.getString("WEB_AUTH_ENDPOINT"),
-        CLIENT_WALLET_ACCOUNT,
-        issuedAt,
-        issuedAt + 60,
-        "",
-        null
-      )
-    jwt = jwtService.encode(token)
-  }
-
-  return jwt
 }
 
 fun printUsage(options: Options?) {

@@ -19,19 +19,19 @@ public class TransactionResponse {
   String moreInfoUrl = "http://www.stellar.org";
 
   @SerializedName("amount_in")
-  String amountIn;
+  String amountIn = "0";
 
   @SerializedName("amount_in_asset")
   String amountInAsset;
 
   @SerializedName("amount_out")
-  String amountOut;
+  String amountOut = "0";
 
   @SerializedName("amount_out_asset")
   String amountOutAsset;
 
   @SerializedName("amount_fee")
-  String amountFee;
+  String amountFee = "0";
 
   @SerializedName("amount_fee_asset")
   String amountFeeAsset;
@@ -40,10 +40,10 @@ public class TransactionResponse {
   Instant startedAt;
 
   @SerializedName("completed_at")
-  Instant completedAt;
+  Instant completedAt = Instant.EPOCH;
 
   @SerializedName("stellar_transaction_id")
-  String stellarTransactionId;
+  String stellarTransactionId = "";
 
   @SerializedName("external_transaction_id")
   String externalTransactionId;
@@ -54,7 +54,7 @@ public class TransactionResponse {
   Boolean refunded = false;
   Refunds refunds;
 
-  String from;
+  String from = "";
 
-  String to;
+  String to = "";
 }

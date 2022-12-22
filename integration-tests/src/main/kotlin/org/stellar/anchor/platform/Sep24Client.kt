@@ -19,6 +19,13 @@ class Sep24Client(private val endpoint: String, private val jwt: String) : SepCl
     return gson.fromJson(responseBody, InteractiveTransactionResponse::class.java)
   }
 
+  fun deposit(requestData: Map<String, String>?): InteractiveTransactionResponse {
+    val url = "$endpoint/transactions/deposit/interactive"
+    println("SEP24 $url")
+    val responseBody = httpPost(url, requestData!!, jwt)
+    return gson.fromJson(responseBody, InteractiveTransactionResponse::class.java)
+  }
+
   fun getTransaction(id: String, assetCode: String): GetTransactionResponse {
     println("SEP24 $endpoint/transactions")
     val responseBody = httpGet("$endpoint/transaction?id=$id&asset_code=$assetCode", jwt)

@@ -15,14 +15,14 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
-import org.stellar.anchor.Constants
-import org.stellar.anchor.Constants.Companion.TEST_ACCOUNT
-import org.stellar.anchor.Constants.Companion.TEST_ASSET
-import org.stellar.anchor.Constants.Companion.TEST_ASSET_ISSUER_ACCOUNT_ID
-import org.stellar.anchor.Constants.Companion.TEST_CLIENT_DOMAIN
-import org.stellar.anchor.Constants.Companion.TEST_MEMO
-import org.stellar.anchor.Constants.Companion.TEST_TRANSACTION_ID_0
-import org.stellar.anchor.Constants.Companion.TEST_TRANSACTION_ID_1
+import org.stellar.anchor.TestConstants
+import org.stellar.anchor.TestConstants.Companion.TEST_ACCOUNT
+import org.stellar.anchor.TestConstants.Companion.TEST_ASSET
+import org.stellar.anchor.TestConstants.Companion.TEST_ASSET_ISSUER_ACCOUNT_ID
+import org.stellar.anchor.TestConstants.Companion.TEST_CLIENT_DOMAIN
+import org.stellar.anchor.TestConstants.Companion.TEST_MEMO
+import org.stellar.anchor.TestConstants.Companion.TEST_TRANSACTION_ID_0
+import org.stellar.anchor.TestConstants.Companion.TEST_TRANSACTION_ID_1
 import org.stellar.anchor.TestHelper
 import org.stellar.anchor.api.exception.SepException
 import org.stellar.anchor.api.exception.SepNotAuthorizedException
@@ -65,9 +65,9 @@ internal class Sep24ServiceTest {
   @BeforeEach
   fun setUp() {
     MockKAnnotations.init(this, relaxUnitFun = true)
-    every { appConfig.stellarNetworkPassphrase } returns Constants.TEST_NETWORK_PASS_PHRASE
-    every { appConfig.hostUrl } returns Constants.TEST_HOST_URL
-    every { secretConfig.sep10JwtSecretKey } returns Constants.TEST_JWT_SECRET
+    every { appConfig.stellarNetworkPassphrase } returns TestConstants.TEST_NETWORK_PASS_PHRASE
+    every { appConfig.hostUrl } returns TestConstants.TEST_HOST_URL
+    every { secretConfig.sep10JwtSecretKey } returns TestConstants.TEST_JWT_SECRET
 
     every { sep24Config.interactiveUrl } returns TEST_SEP24_INTERACTIVE_URL
     every { sep24Config.interactiveJwtExpiration } returns 1000
@@ -83,14 +83,6 @@ internal class Sep24ServiceTest {
   fun tearDown() {
     clearAllMocks()
     unmockkAll()
-  }
-
-  private fun createJwtToken(): JwtToken {
-    return TestHelper.createJwtToken(TEST_ACCOUNT, null, appConfig.hostUrl, TEST_CLIENT_DOMAIN)
-  }
-
-  private fun createJwtWithMemo(): JwtToken {
-    return TestHelper.createJwtToken(TEST_ACCOUNT, TEST_MEMO, appConfig.hostUrl, TEST_CLIENT_DOMAIN)
   }
 
   @Test
@@ -143,19 +135,6 @@ internal class Sep24ServiceTest {
       decodedToken.sub,
     )
     assertEquals(TEST_CLIENT_DOMAIN, decodedToken.clientDomain)
-  }
-
-  private fun createTestTransactionRequest(): MutableMap<String, String> {
-    return mutableMapOf(
-      "lang" to "en",
-      "asset_code" to TEST_ASSET,
-      "asset_issuer" to TEST_ASSET_ISSUER_ACCOUNT_ID,
-      "account" to TEST_ACCOUNT,
-      "amount" to "123.4",
-      "email_address" to "jamie@stellar.org",
-      "first_name" to "Jamie",
-      "last_name" to "Li"
-    )
   }
 
   @Test
@@ -460,66 +439,11 @@ internal class Sep24ServiceTest {
     assertTrue(response.url.indexOf("lang=en-US") != -1)
   }
 
-  private fun createTestTransaction(kind: String): Sep24Transaction {
-    val txn = PojoSep24Transaction()
-    txn.transactionId = TEST_TRANSACTION_ID_0
-    txn.status = "incomplete"
-    txn.kind = kind
-    txn.startedAt = TEST_STARTED_AT
-    txn.completedAt = TEST_COMPLETED_AT
-
-    txn.requestAssetCode = TEST_ASSET
-    txn.requestAssetIssuer = TEST_ASSET_ISSUER_ACCOUNT_ID
-    txn.sep10Account = TEST_ACCOUNT
-    txn.toAccount = TEST_ACCOUNT
-    txn.fromAccount = TEST_ACCOUNT
-    txn.clientDomain = TEST_CLIENT_DOMAIN
-    txn.protocol = "sep24"
-    txn.amountIn = "321.4"
-    txn.amountOut = "321.4"
-
-    return txn
+  private fun createJwtToken(): JwtToken {
+    return TestHelper.createJwtToken(TEST_ACCOUNT, null, appConfig.hostUrl, TEST_CLIENT_DOMAIN)
   }
 
-  private fun createTestTransactions(kind: String): MutableList<Sep24Transaction> {
-    val txns = ArrayList<Sep24Transaction>()
-
-    var txn = PojoSep24Transaction()
-    txn.transactionId = TEST_TRANSACTION_ID_0
-    txn.status = "incomplete"
-    txn.kind = kind
-    txn.startedAt = TEST_STARTED_AT
-    txn.completedAt = TEST_COMPLETED_AT
-
-    txn.requestAssetCode = TEST_ASSET
-    txn.requestAssetIssuer = TEST_ASSET_ISSUER_ACCOUNT_ID
-    txn.sep10Account = TEST_ACCOUNT
-    txn.toAccount = TEST_ACCOUNT
-    txn.fromAccount = TEST_ACCOUNT
-    txn.clientDomain = TEST_CLIENT_DOMAIN
-    txn.protocol = "sep24"
-    txn.amountIn = "321.4"
-    txn.amountOut = "321.4"
-    txns.add(txn)
-
-    txn = PojoSep24Transaction()
-    txn.transactionId = TEST_TRANSACTION_ID_1
-    txn.status = "completed"
-    txn.kind = kind
-    txn.startedAt = TEST_STARTED_AT
-    txn.completedAt = TEST_COMPLETED_AT
-
-    txn.requestAssetCode = TEST_ASSET
-    txn.requestAssetIssuer = TEST_ASSET_ISSUER_ACCOUNT_ID
-    txn.sep10Account = TEST_ACCOUNT
-    txn.toAccount = TEST_ACCOUNT
-    txn.fromAccount = TEST_ACCOUNT
-    txn.clientDomain = TEST_CLIENT_DOMAIN
-    txn.protocol = "sep24"
-    txn.amountIn = "456.7"
-    txn.amountOut = "456.7"
-    txns.add(txn)
-
-    return txns
+  private fun createJwtWithMemo(): JwtToken {
+    return TestHelper.createJwtToken(TEST_ACCOUNT, TEST_MEMO, appConfig.hostUrl, TEST_CLIENT_DOMAIN)
   }
 }

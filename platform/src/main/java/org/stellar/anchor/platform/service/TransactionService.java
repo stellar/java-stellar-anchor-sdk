@@ -7,7 +7,10 @@ import static org.stellar.anchor.util.MathHelper.equalsAsDecimals;
 
 import io.micrometer.core.instrument.Metrics;
 import java.time.Instant;
-import java.util.*;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
@@ -20,8 +23,16 @@ import org.stellar.anchor.api.platform.PatchTransactionRequest;
 import org.stellar.anchor.api.platform.PatchTransactionsRequest;
 import org.stellar.anchor.api.platform.PatchTransactionsResponse;
 import org.stellar.anchor.api.sep.AssetInfo;
+import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.shared.Amount;
+import org.stellar.anchor.api.shared.Refund;
+import org.stellar.anchor.api.shared.RefundPayment;
 import org.stellar.anchor.asset.AssetService;
+import org.stellar.anchor.event.models.TransactionEvent;
+import org.stellar.anchor.platform.data.JdbcSep24Transaction;
+import org.stellar.anchor.sep24.Sep24RefundPayment;
+import org.stellar.anchor.sep24.Sep24Refunds;
+import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Refunds;
 import org.stellar.anchor.sep31.Sep31Transaction;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
@@ -34,18 +45,9 @@ import org.stellar.anchor.util.StringHelper;
 @Service
 public class TransactionService {
   private final Sep38QuoteStore quoteStore;
-  private final Sep31TransactionStore txnStore;
+  private final Sep31TransactionStore txn31Store;
+  private final Sep24TransactionStore txn24Store;
   private final List<AssetInfo> assets;
-  static final List<String> validStatuses =
-      List.of(
-          PENDING_STELLAR.getName(),
-          PENDING_CUSTOMER_INFO_UPDATE.getName(),
-          PENDING_RECEIVER.getName(),
-          PENDING_EXTERNAL.getName(),
-          COMPLETED.getName(),
-          REFUNDED.getName(),
-          EXPIRED.getName(),
-          ERROR.getName());
 
   static boolean isStatusError(String status) {
     return List.of(PENDING_CUSTOMER_INFO_UPDATE.getName(), EXPIRED.getName(), ERROR.getName())
@@ -53,9 +55,13 @@ public class TransactionService {
   }
 
   TransactionService(
-      Sep38QuoteStore quoteStore, Sep31TransactionStore txnStore, AssetService assetService) {
+      Sep24TransactionStore txn24Store,
+      Sep31TransactionStore txn31Store,
+      Sep38QuoteStore quoteStore,
+      AssetService assetService) {
+    this.txn24Store = txn24Store;
+    this.txn31Store = txn31Store;
     this.quoteStore = quoteStore;
-    this.txnStore = txnStore;
     this.assets = assetService.listAllAssets();
   }
 
@@ -65,12 +71,17 @@ public class TransactionService {
       throw new BadRequestException("transaction id cannot be empty");
     }
 
-    Sep31Transaction txn = txnStore.findByTransactionId(txnId);
-    if (txn == null) {
-      throw new NotFoundException(String.format("transaction (id=%s) is not found", txnId));
+    Sep31Transaction txn31 = txn31Store.findByTransactionId(txnId);
+    if (txn31 != null) {
+      return toGetTransactionResponse(txn31);
     }
 
-    return txn.toPlatformApiGetTransactionResponse();
+    JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn24Store.findByTransactionId(txnId);
+    if (txn24 != null) {
+      return toGetTransactionResponse(txn24);
+    }
+
+    throw new NotFoundException(String.format("transaction (id=%s) is not found", txnId));
   }
 
   public PatchTransactionsResponse patchTransactions(PatchTransactionsRequest request)
@@ -78,7 +89,7 @@ public class TransactionService {
     List<PatchTransactionRequest> patchRequests = request.getRecords();
     List<String> ids =
         patchRequests.stream().map(PatchTransactionRequest::getId).collect(Collectors.toList());
-    List<? extends Sep31Transaction> fetchedTxns = txnStore.findByTransactionIds(ids);
+    List<? extends Sep31Transaction> fetchedTxns = txn31Store.findByTransactionIds(ids);
     Map<String, ? extends Sep31Transaction> sep31Transactions =
         fetchedTxns.stream()
             .collect(Collectors.toMap(Sep31Transaction::getId, Function.identity()));
@@ -98,14 +109,14 @@ public class TransactionService {
         if (!txnOriginalStatus.equals(txn.getStatus())) {
           statusUpdatedTxns.add(txn);
         }
-        responses.add(txn.toPlatformApiGetTransactionResponse());
+        responses.add(toGetTransactionResponse(txn));
       } else {
         throw new BadRequestException(String.format("transaction(id=%s) not found", patch.getId()));
       }
     }
     for (Sep31Transaction txn : txnsToSave) {
       // TODO: consider 2-phase commit DB transaction management.
-      txnStore.save(txn);
+      txn31Store.save(txn);
     }
     for (Sep31Transaction txn : statusUpdatedTxns) {
       Metrics.counter(AnchorMetrics.SEP31_TRANSACTION.toString(), "status", txn.getStatus())
@@ -190,7 +201,7 @@ public class TransactionService {
     }
 
     if (ptr.getRefunds() != null) {
-      Refunds updatedRefunds = Refunds.of(ptr.getRefunds(), txnStore);
+      Refunds updatedRefunds = Refunds.of(ptr.getRefunds(), txn31Store);
       // TODO: validate refunds
       if (!Objects.equals(txn.getRefunds(), updatedRefunds)) {
         txn.setRefunds(updatedRefunds);
@@ -223,7 +234,7 @@ public class TransactionService {
    * @throws BadRequestException if the provided status is not supported
    */
   void validateIfStatusIsSupported(String status) throws BadRequestException {
-    if (!validStatuses.contains(status)) {
+    if (!SepTransactionStatus.isValid(status)) {
       throw new BadRequestException(String.format("invalid status(%s)", status));
     }
   }
@@ -298,5 +309,82 @@ public class TransactionService {
         throw new BadRequestException("amount_fee != sum(quote.fee.total)");
       }
     }
+  }
+
+  GetTransactionResponse toGetTransactionResponse(Sep31Transaction txn) {
+    Refund refunds = null;
+    if (txn.getRefunds() != null) {
+      refunds = txn.getRefunds().toPlatformApiRefund(txn.getAmountInAsset());
+    }
+
+    return org.stellar.anchor.api.platform.GetTransactionResponse.builder()
+        .id(txn.getId())
+        .sep(31)
+        .kind(TransactionEvent.Kind.RECEIVE.getKind())
+        .status(txn.getStatus())
+        .amountExpected(new Amount(txn.getAmountExpected(), txn.getAmountInAsset()))
+        .amountIn(new Amount(txn.getAmountIn(), txn.getAmountInAsset()))
+        .amountOut(new Amount(txn.getAmountOut(), txn.getAmountOutAsset()))
+        .amountFee(new Amount(txn.getAmountFee(), txn.getAmountFeeAsset()))
+        .quoteId(txn.getQuoteId())
+        .startedAt(txn.getStartedAt())
+        .updatedAt(txn.getUpdatedAt())
+        .completedAt(txn.getCompletedAt())
+        .transferReceivedAt(txn.getTransferReceivedAt())
+        .message(txn.getRequiredInfoMessage()) // Assuming these are meant to be the same.
+        .refunds(refunds)
+        .stellarTransactions(txn.getStellarTransactions())
+        .externalTransactionId(txn.getExternalTransactionId())
+        .customers(txn.getCustomers())
+        .creator(txn.getCreator())
+        .build();
+  }
+
+  RefundPayment toRefundPayment(Sep24RefundPayment refundPayment, String assetName) {
+    return org.stellar.anchor.api.shared.RefundPayment.builder()
+        .id(refundPayment.getId())
+        .idType(org.stellar.anchor.api.shared.RefundPayment.IdType.STELLAR)
+        .amount(new Amount(refundPayment.getAmount(), assetName))
+        .fee(new Amount(refundPayment.getFee(), assetName))
+        .requestedAt(null)
+        .refundedAt(null)
+        .build();
+  }
+
+  org.stellar.anchor.api.shared.Refund toRefunds(Sep24Refunds refunds, String assetName) {
+    // build payments
+    org.stellar.anchor.api.shared.RefundPayment[] payments =
+        refunds.getRefundPayments().stream()
+            .map(refundPayment -> toRefundPayment(refundPayment, assetName))
+            .toArray(org.stellar.anchor.api.shared.RefundPayment[]::new);
+
+    return org.stellar.anchor.api.shared.Refund.builder()
+        .amountRefunded(new Amount(refunds.getAmountRefunded(), assetName))
+        .amountFee(new Amount(refunds.getAmountFee(), assetName))
+        .payments(payments)
+        .build();
+  }
+
+  GetTransactionResponse toGetTransactionResponse(JdbcSep24Transaction txn) {
+    Refund refunds = null;
+    if (txn.getRefunds() != null) {
+      refunds = toRefunds(txn.getRefunds(), txn.getAmountInAsset());
+    }
+
+    return org.stellar.anchor.api.platform.GetTransactionResponse.builder()
+        .id(txn.getId())
+        .sep(24)
+        .kind(txn.getKind())
+        .status(txn.getStatus())
+        .amountIn(new Amount(txn.getAmountIn(), txn.getAmountInAsset()))
+        .amountOut(new Amount(txn.getAmountOut(), txn.getAmountOutAsset()))
+        .amountFee(new Amount(txn.getAmountFee(), txn.getAmountFeeAsset()))
+        .startedAt(txn.getStartedAt())
+        .updatedAt(txn.getUpdatedAt())
+        .completedAt(txn.getCompletedAt())
+        .refunds(refunds)
+        .stellarTransactions(txn.getStellarTransactions())
+        .externalTransactionId(txn.getExternalTransactionId())
+        .build();
   }
 }

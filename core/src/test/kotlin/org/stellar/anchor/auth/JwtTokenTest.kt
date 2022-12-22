@@ -3,8 +3,8 @@ package org.stellar.anchor.auth
 import java.time.Instant
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
-import org.stellar.anchor.Constants.Companion.TEST_ACCOUNT
-import org.stellar.anchor.Constants.Companion.TEST_CLIENT_DOMAIN
+import org.stellar.anchor.TestConstants.Companion.TEST_ACCOUNT
+import org.stellar.anchor.TestConstants.Companion.TEST_CLIENT_DOMAIN
 
 class JwtTokenTest {
   private val issuedAt = Instant.now().epochSecond
