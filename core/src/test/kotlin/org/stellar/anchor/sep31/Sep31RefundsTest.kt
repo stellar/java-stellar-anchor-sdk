@@ -16,7 +16,7 @@ import org.stellar.anchor.api.sep.sep31.Sep31GetTransactionResponse
 import org.stellar.anchor.api.shared.Amount
 import org.stellar.anchor.api.shared.RefundPayment
 
-class RefundsTest {
+class Sep31RefundsTest {
   companion object {
     private const val fiatUSD = "iso4217:USD"
     private const val stellarUSDC =
@@ -40,7 +40,7 @@ class RefundsTest {
 
   @Test
   fun `test conversion to sep31 transaction response refunds`() {
-    // mock the SEP-31 Refunds object
+    // mock the SEP-31 Sep31Refunds object
     val mockRefundPayment1 = PojoSep31RefundPayment()
     mockRefundPayment1.id = "A"
     mockRefundPayment1.amount = "50"
@@ -83,7 +83,7 @@ class RefundsTest {
 
   @Test
   fun `test conversion to CallbackApi Refund`() {
-    // mock the SEP-31 Refunds object
+    // mock the SEP-31 Sep31Refunds object
     val mockRefundPayment1 = PojoSep31RefundPayment()
     mockRefundPayment1.id = "A"
     mockRefundPayment1.amount = "50"
@@ -125,7 +125,7 @@ class RefundsTest {
         )
         .build()
 
-    // build the SEP-31 Refunds object
+    // build the SEP-31 Sep31Refunds object
     val gotProtocolApiRefund = mockSep31Refunds.toPlatformApiRefund(stellarUSDC)
     assertEquals(wantPlatformApiRefund, gotProtocolApiRefund)
   }
@@ -159,7 +159,7 @@ class RefundsTest {
         )
         .build()
 
-    // mock the SEP-31 Refunds object we want
+    // mock the SEP-31 Sep31Refunds object we want
     val wantRefundPayment1 = PojoSep31RefundPayment()
     wantRefundPayment1.id = "A"
     wantRefundPayment1.amount = "50"
@@ -174,8 +174,8 @@ class RefundsTest {
     wantSep31Refunds.amountFee = "8"
     wantSep31Refunds.refundPayments = wantRefundPaymentList
 
-    // build the SEP-31 Refunds object
-    val gotSep31Refunds = Refunds.of(mockPlatformApiRefund, sep31TransactionStore)
+    // build the SEP-31 Sep31Refunds object
+    val gotSep31Refunds = Sep31Refunds.of(mockPlatformApiRefund, sep31TransactionStore)
     assertEquals(wantSep31Refunds, gotSep31Refunds)
   }
 }

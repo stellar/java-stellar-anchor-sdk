@@ -7,7 +7,7 @@ import java.util.Optional;
 import lombok.NonNull;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.sep31.RefundPayment;
-import org.stellar.anchor.sep31.Refunds;
+import org.stellar.anchor.sep31.Sep31Refunds;
 import org.stellar.anchor.sep31.Sep31Transaction;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 
@@ -24,7 +24,7 @@ public class JdbcSep31TransactionStore implements Sep31TransactionStore {
   }
 
   @Override
-  public Refunds newRefunds() {
+  public Sep31Refunds newRefunds() {
     return new JdbcSep31Refunds();
   }
 

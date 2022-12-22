@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 import org.stellar.anchor.api.sep.sep31.Sep31GetTransactionResponse;
 import org.stellar.anchor.api.shared.Amount;
 
-public interface Refunds {
+public interface Sep31Refunds {
 
   String getAmountRefunded();
 
@@ -22,9 +22,10 @@ public interface Refunds {
   void setRefundPayments(List<RefundPayment> refundPayments);
 
   /**
-   * Will create a Sep31GetTransactionResponse.Refunds object out of this SEP-31 Refunds object.
+   * Will create a Sep31GetTransactionResponse.Sep31Refunds object out of this SEP-31 Sep31Refunds
+   * object.
    *
-   * @return a Sep31GetTransactionResponse.Refunds object.
+   * @return a Sep31GetTransactionResponse.Sep31Refunds object.
    */
   default Sep31GetTransactionResponse.Refunds toSep31TransactionResponseRefunds() {
     List<Sep31GetTransactionResponse.Sep31RefundPayment> payments =
@@ -40,7 +41,7 @@ public interface Refunds {
   }
 
   /**
-   * Will create a PlatformApi Refund object out of this SEP-31 Refunds object.
+   * Will create a PlatformApi Refund object out of this SEP-31 Sep31Refunds object.
    *
    * @param assetName is the full asset name in the {schema}:{code}:{issuer} format.
    * @return a PlatformApi Refund object.
@@ -60,28 +61,28 @@ public interface Refunds {
   }
 
   /**
-   * Will create a SEP-31 Refunds object out of a PlatformApi Refund object.
+   * Will create a SEP-31 Sep31Refunds object out of a PlatformApi Refund object.
    *
    * @param platformApiRefunds is the platformApi's Refund object.
    * @param factory is a Sep31TransactionStore instance used to build the object.
-   * @return a SEP-31 Refunds object.
+   * @return a SEP-31 Sep31Refunds object.
    */
-  static Refunds of(
+  static Sep31Refunds of(
       org.stellar.anchor.api.shared.Refund platformApiRefunds, Sep31TransactionStore factory) {
     if (platformApiRefunds == null) {
       return null;
     }
 
-    Refunds refunds = factory.newRefunds();
-    refunds.setAmountRefunded(platformApiRefunds.getAmountRefunded().getAmount());
-    refunds.setAmountFee(platformApiRefunds.getAmountFee().getAmount());
+    Sep31Refunds sep31Refunds = factory.newRefunds();
+    sep31Refunds.setAmountRefunded(platformApiRefunds.getAmountRefunded().getAmount());
+    sep31Refunds.setAmountFee(platformApiRefunds.getAmountFee().getAmount());
 
     ArrayList<RefundPayment> payments =
         Arrays.stream(platformApiRefunds.getPayments())
             .map(refundPayment -> RefundPayment.of(refundPayment, factory))
             .collect(Collectors.toCollection(ArrayList::new));
-    refunds.setRefundPayments(payments);
+    sep31Refunds.setRefundPayments(payments);
 
-    return refunds;
+    return sep31Refunds;
   }
 }

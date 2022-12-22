@@ -10,7 +10,7 @@ import org.stellar.anchor.api.exception.SepException;
 public interface Sep31TransactionStore {
   Sep31Transaction newTransaction();
 
-  Refunds newRefunds();
+  Sep31Refunds newRefunds();
 
   RefundPayment newRefundPayment();
 

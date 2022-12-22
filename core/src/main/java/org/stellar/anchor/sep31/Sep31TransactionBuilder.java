@@ -119,8 +119,8 @@ public class Sep31TransactionBuilder {
     return this;
   }
 
-  public Sep31TransactionBuilder refunds(Refunds refunds) {
-    txn.setRefunds(refunds);
+  public Sep31TransactionBuilder refunds(Sep31Refunds sep31Refunds) {
+    txn.setRefunds(sep31Refunds);
     return this;
   }
 

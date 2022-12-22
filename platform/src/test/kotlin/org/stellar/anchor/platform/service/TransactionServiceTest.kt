@@ -29,7 +29,7 @@ import org.stellar.anchor.platform.data.JdbcSep31RefundPayment
 import org.stellar.anchor.platform.data.JdbcSep31Refunds
 import org.stellar.anchor.platform.data.JdbcSep31Transaction
 import org.stellar.anchor.sep24.Sep24TransactionStore
-import org.stellar.anchor.sep31.Refunds
+import org.stellar.anchor.sep31.Sep31Refunds
 import org.stellar.anchor.sep31.Sep31TransactionStore
 import org.stellar.anchor.sep38.Sep38Quote
 import org.stellar.anchor.sep38.Sep38QuoteStore
@@ -309,7 +309,7 @@ class TransactionServiceTest {
     wantSep31TransactionUpdated.requiredInfoMessage = "Remittance was successfully completed."
     wantSep31TransactionUpdated.externalTransactionId = "external-id"
     wantSep31TransactionUpdated.transferReceivedAt = mockTransferReceivedAt
-    wantSep31TransactionUpdated.refunds = Refunds.of(mockRefunds, sep31TransactionStore)
+    wantSep31TransactionUpdated.refunds = Sep31Refunds.of(mockRefunds, sep31TransactionStore)
     JSONAssert.assertEquals(
       gson.toJson(wantSep31TransactionUpdated),
       gson.toJson(mockSep31Transaction),

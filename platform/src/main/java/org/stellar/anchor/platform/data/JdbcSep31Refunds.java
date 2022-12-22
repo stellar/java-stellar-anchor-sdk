@@ -5,10 +5,10 @@ import java.util.ArrayList;
 import java.util.List;
 import lombok.Data;
 import org.stellar.anchor.sep31.RefundPayment;
-import org.stellar.anchor.sep31.Refunds;
+import org.stellar.anchor.sep31.Sep31Refunds;
 
 @Data
-public class JdbcSep31Refunds implements Refunds {
+public class JdbcSep31Refunds implements Sep31Refunds {
   @SerializedName("amount_refunded")
   String amountRefunded;
 

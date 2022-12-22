@@ -16,7 +16,7 @@ import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.shared.StellarId;
 import org.stellar.anchor.api.shared.StellarTransaction;
 import org.stellar.anchor.reference.model.StellarIdConverter;
-import org.stellar.anchor.sep31.Refunds;
+import org.stellar.anchor.sep31.Sep31Refunds;
 import org.stellar.anchor.sep31.Sep31Transaction;
 
 @Getter
@@ -107,14 +107,14 @@ public class JdbcSep31Transaction extends JdbcSepTransaction
   @Type(type = "json")
   JdbcSep31Refunds refunds;
 
-  public Refunds getRefunds() {
+  public Sep31Refunds getRefunds() {
     return refunds;
   }
 
-  public void setRefunds(Refunds refunds) {
-    if (refunds != null) {
+  public void setRefunds(Sep31Refunds sep31Refunds) {
+    if (sep31Refunds != null) {
       this.refunds = new JdbcSep31Refunds();
-      BeanUtils.copyProperties(refunds, this.refunds);
+      BeanUtils.copyProperties(sep31Refunds, this.refunds);
     }
   }
 

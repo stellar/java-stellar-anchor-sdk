@@ -42,16 +42,16 @@ public class PojoSep31Transaction implements Sep31Transaction {
   StellarId creator;
 
   @Override
-  public void setRefunds(Refunds refunds) {
-    if (refunds == null) {
+  public void setRefunds(Sep31Refunds sep31Refunds) {
+    if (sep31Refunds == null) {
       this.refunds = null;
       return;
     }
 
     PojoSep31Refunds newRefunds = new PojoSep31Refunds();
-    newRefunds.setAmountRefunded(refunds.getAmountRefunded());
-    newRefunds.setAmountFee(refunds.getAmountFee());
-    newRefunds.setRefundPayments(refunds.getRefundPayments());
+    newRefunds.setAmountRefunded(sep31Refunds.getAmountRefunded());
+    newRefunds.setAmountFee(sep31Refunds.getAmountFee());
+    newRefunds.setRefundPayments(sep31Refunds.getRefundPayments());
     this.refunds = newRefunds;
   }
 }

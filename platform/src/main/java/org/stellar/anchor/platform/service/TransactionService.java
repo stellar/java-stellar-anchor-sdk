@@ -29,7 +29,7 @@ import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.sep24.Sep24RefundPayment;
 import org.stellar.anchor.sep24.Sep24Refunds;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
-import org.stellar.anchor.sep31.Refunds;
+import org.stellar.anchor.sep31.Sep31Refunds;
 import org.stellar.anchor.sep31.Sep31Transaction;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep38.Sep38Quote;
@@ -246,10 +246,10 @@ public class TransactionService {
       case "31":
         JdbcSep31Transaction sep31Txn = (JdbcSep31Transaction) txn;
         if (patch.getRefunds() != null) {
-          Refunds updatedRefunds = Refunds.of(patch.getRefunds(), txn31Store);
+          Sep31Refunds updatedSep31Refunds = Sep31Refunds.of(patch.getRefunds(), txn31Store);
           // TODO: validate refunds
-          if (!Objects.equals(sep31Txn.getRefunds(), updatedRefunds)) {
-            sep31Txn.setRefunds(updatedRefunds);
+          if (!Objects.equals(sep31Txn.getRefunds(), updatedSep31Refunds)) {
+            sep31Txn.setRefunds(updatedSep31Refunds);
             txWasUpdated = true;
           }
         }
