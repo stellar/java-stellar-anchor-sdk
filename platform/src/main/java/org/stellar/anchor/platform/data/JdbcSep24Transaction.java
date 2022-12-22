@@ -31,8 +31,6 @@ public class JdbcSep24Transaction extends JdbcSepTransaction
 
   String kind;
 
-  String status;
-
   @SerializedName("status_eta")
   String statusEta;
 

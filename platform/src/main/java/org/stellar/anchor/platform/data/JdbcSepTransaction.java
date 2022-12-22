@@ -3,6 +3,7 @@ package org.stellar.anchor.platform.data;
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
 import java.time.Instant;
+import javax.persistence.MappedSuperclass;
 import javax.persistence.Transient;
 import lombok.Getter;
 import lombok.Setter;
@@ -10,6 +11,7 @@ import org.stellar.anchor.util.GsonUtils;
 
 @Getter
 @Setter
+@MappedSuperclass
 public abstract class JdbcSepTransaction {
   @Transient static Gson gson = GsonUtils.getInstance();
 

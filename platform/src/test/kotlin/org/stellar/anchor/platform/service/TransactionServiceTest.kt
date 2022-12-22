@@ -13,11 +13,11 @@ import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.NullSource
 import org.junit.jupiter.params.provider.ValueSource
 import org.skyscreamer.jsonassert.JSONAssert
+import org.skyscreamer.jsonassert.JSONCompareMode.LENIENT
 import org.skyscreamer.jsonassert.JSONCompareMode.STRICT
 import org.stellar.anchor.api.exception.AnchorException
 import org.stellar.anchor.api.exception.BadRequestException
 import org.stellar.anchor.api.exception.NotFoundException
-import org.stellar.anchor.api.platform.GetTransactionResponse
 import org.stellar.anchor.api.platform.PatchTransactionRequest
 import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.api.shared.Amount
@@ -99,13 +99,15 @@ class TransactionServiceTest {
     every { sep31TransactionStore.newRefundPayment() } answers { JdbcSep31RefundPayment() }
 
     val mockSep31Transaction = gson.fromJson(jsonSep31Transaction, JdbcSep31Transaction::class.java)
-    val wantGetTransactionResponse =
-      gson.fromJson(wantedGetTransactionResponse, GetTransactionResponse::class.java)
 
     every { sep31TransactionStore.findByTransactionId(TEST_TXN_ID) } returns mockSep31Transaction
     val gotGetTransactionResponse = transactionService.getTransactionResponse(TEST_TXN_ID)
 
-    assertEquals(wantGetTransactionResponse, gotGetTransactionResponse)
+    JSONAssert.assertEquals(
+      wantedGetTransactionResponse,
+      gson.toJson(gotGetTransactionResponse),
+      LENIENT
+    )
   }
 
   @Test
@@ -419,10 +421,6 @@ class TransactionServiceTest {
         "asset": "iso4217:USD"
       },
       "quote_id": "quote-id",
-      "started_at": "2022-12-19T02:06:44.500182800Z",
-      "updated_at": "2022-12-19T02:07:44.500182800Z",
-      "completed_at": "2022-12-19T02:09:44.500182800Z",
-      "transfer_received_at": "2022-12-19T02:08:44.500182800Z",
       "message": "Please don\u0027t forget to foo bar",
       "refunds": {
         "amount_refunded": {
@@ -465,7 +463,6 @@ class TransactionServiceTest {
           "id": "2b862ac297c93e2db43fc58d407cc477396212bce5e6d5f61789f963d5a11300",
           "memo": "my-memo",
           "memo_type": "text",
-          "created_at": "2022-12-19T02:08:44.500182800Z",
           "envelope": "here_comes_the_envelope",
           "payments": [
             {
