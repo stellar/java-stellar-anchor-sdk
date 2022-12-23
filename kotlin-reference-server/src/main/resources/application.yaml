@@ -3,4 +3,4 @@ ktor:
         modules:
             - com.example.ReferenceServerKt.module
     deployment:
-        port: 8083
+        port: 8091

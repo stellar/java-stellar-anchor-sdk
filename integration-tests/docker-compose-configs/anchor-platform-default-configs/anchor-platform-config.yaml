@@ -63,7 +63,7 @@ sep12:
 
 sep24:
   enabled: true
-  interactive_url: http://host.docker.internal:8083/sep24/interactive
+  interactive_url: http://host.docker.internal:8091/sep24/interactive
 
 sep31:
   enabled: true

@@ -8,7 +8,7 @@ import org.stellar.anchor.reference.AnchorReferenceServer;
 
 public class ServiceRunner {
   public static final int DEFAULT_ANCHOR_REFERENCE_SERVER_PORT = 8081;
-  public static final int DEFAULT_KOTLIN_REFERENCE_SERVER_PORT = 8083;
+  public static final int DEFAULT_KOTLIN_REFERENCE_SERVER_PORT = 8091;
 
   public static void main(String[] args) {
     Options options = new Options();
