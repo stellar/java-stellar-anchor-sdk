@@ -62,7 +62,8 @@ public class TransactionService {
   }
 
   /**
-   * Fetch the transaction and convert the transaction to an object of GetTransactionResponse class.
+   * Fetch the transaction and convert the transaction to an object of Sep24GetTransactionResponse
+   * class.
    *
    * @param txnId the transaction ID
    * @return the result

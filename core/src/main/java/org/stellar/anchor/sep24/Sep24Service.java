@@ -310,7 +310,7 @@ public class Sep24Service {
     return result;
   }
 
-  public GetTransactionResponse findTransaction(JwtToken token, GetTransactionRequest txReq)
+  public Sep24GetTransactionResponse findTransaction(JwtToken token, GetTransactionRequest txReq)
       throws SepException, IOException, URISyntaxException {
     if (token == null) {
       info("missing SEP-10 token");
@@ -355,7 +355,7 @@ public class Sep24Service {
       throw new SepNotFoundException("transaction not found");
     }
 
-    return GetTransactionResponse.of(fromTxn(txn, txReq.getLang()));
+    return Sep24GetTransactionResponse.of(fromTxn(txn, txReq.getLang()));
   }
 
   public InfoResponse getInfo() {

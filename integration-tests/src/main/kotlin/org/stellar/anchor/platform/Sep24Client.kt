@@ -1,8 +1,8 @@
 package org.stellar.anchor.platform
 
-import org.stellar.anchor.api.sep.sep24.GetTransactionResponse
 import org.stellar.anchor.api.sep.sep24.InfoResponse
 import org.stellar.anchor.api.sep.sep24.InteractiveTransactionResponse
+import org.stellar.anchor.api.sep.sep24.Sep24GetTransactionResponse
 
 class Sep24Client(private val endpoint: String, private val jwt: String) : SepClient() {
 
@@ -26,9 +26,9 @@ class Sep24Client(private val endpoint: String, private val jwt: String) : SepCl
     return gson.fromJson(responseBody, InteractiveTransactionResponse::class.java)
   }
 
-  fun getTransaction(id: String, assetCode: String): GetTransactionResponse {
+  fun getTransaction(id: String, assetCode: String): Sep24GetTransactionResponse {
     println("SEP24 $endpoint/transactions")
     val responseBody = httpGet("$endpoint/transaction?id=$id&asset_code=$assetCode", jwt)
-    return gson.fromJson(responseBody, GetTransactionResponse::class.java)
+    return gson.fromJson(responseBody, Sep24GetTransactionResponse::class.java)
   }
 }

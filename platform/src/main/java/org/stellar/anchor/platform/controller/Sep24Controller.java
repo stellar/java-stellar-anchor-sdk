@@ -150,7 +150,7 @@ public class Sep24Controller {
       value = "/transaction",
       consumes = {MediaType.APPLICATION_JSON_VALUE},
       method = {RequestMethod.GET})
-  public GetTransactionResponse getTransaction(
+  public Sep24GetTransactionResponse getTransaction(
       HttpServletRequest request, @RequestBody(required = false) GetTransactionRequest tr)
       throws SepException, IOException, URISyntaxException {
     debug("/transaction", tr);
@@ -164,7 +164,7 @@ public class Sep24Controller {
       value = "/transaction",
       consumes = {MediaType.ALL_VALUE},
       method = {RequestMethod.GET})
-  public GetTransactionResponse getTransaction(
+  public Sep24GetTransactionResponse getTransaction(
       HttpServletRequest request,
       @RequestParam(required = false, value = "id") String id,
       @RequestParam(required = false, value = "external_transaction_id")
