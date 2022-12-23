@@ -25,6 +25,7 @@ import org.stellar.anchor.api.shared.RefundPayment
 import org.stellar.anchor.api.shared.Refunds
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.ResourceJsonAssetService
+import org.stellar.anchor.event.EventService
 import org.stellar.anchor.platform.data.JdbcSep31RefundPayment
 import org.stellar.anchor.platform.data.JdbcSep31Refunds
 import org.stellar.anchor.platform.data.JdbcSep31Transaction
@@ -51,6 +52,7 @@ class TransactionServiceTest {
   @MockK(relaxed = true) private lateinit var sep31TransactionStore: Sep31TransactionStore
   @MockK(relaxed = true) private lateinit var sep24TransactionStore: Sep24TransactionStore
   @MockK(relaxed = true) private lateinit var assetService: AssetService
+  @MockK(relaxed = true) private lateinit var eventService: EventService
   private lateinit var transactionService: TransactionService
 
   @BeforeEach
@@ -61,7 +63,8 @@ class TransactionServiceTest {
         sep24TransactionStore,
         sep31TransactionStore,
         sep38QuoteStore,
-        assetService
+        assetService,
+        eventService
       )
   }
 
@@ -177,7 +180,8 @@ class TransactionServiceTest {
         sep24TransactionStore,
         sep31TransactionStore,
         sep38QuoteStore,
-        assetService
+        assetService,
+        eventService
       )
     val mockAsset = Amount("10", fiatUSD)
     assertDoesNotThrow { transactionService.validateAsset("amount_in", mockAsset) }
@@ -282,7 +286,8 @@ class TransactionServiceTest {
         sep24TransactionStore,
         sep31TransactionStore,
         sep38QuoteStore,
-        assetService
+        assetService,
+        eventService
       )
 
     assertEquals(mockSep31Transaction.startedAt, mockSep31Transaction.updatedAt)

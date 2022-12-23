@@ -1,6 +1,7 @@
 package org.stellar.anchor.platform.service;
 
 import static org.stellar.anchor.api.sep.SepTransactionStatus.*;
+import static org.stellar.anchor.event.models.TransactionEvent.Type.TRANSACTION_STATUS_CHANGED;
 import static org.stellar.anchor.sep31.Sep31Helper.allAmountAvailable;
 import static org.stellar.anchor.util.MathHelper.decimal;
 import static org.stellar.anchor.util.MathHelper.equalsAsDecimals;
@@ -22,13 +23,13 @@ import org.stellar.anchor.api.shared.Amount;
 import org.stellar.anchor.api.shared.RefundPayment;
 import org.stellar.anchor.api.shared.Refunds;
 import org.stellar.anchor.asset.AssetService;
+import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.event.models.TransactionEvent;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSep31Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
-import org.stellar.anchor.sep24.Sep24RefundPayment;
-import org.stellar.anchor.sep24.Sep24Refunds;
-import org.stellar.anchor.sep24.Sep24TransactionStore;
+import org.stellar.anchor.sep24.*;
+import org.stellar.anchor.sep31.Sep31Helper;
 import org.stellar.anchor.sep31.Sep31Refunds;
 import org.stellar.anchor.sep31.Sep31Transaction;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
@@ -44,6 +45,7 @@ public class TransactionService {
   private final Sep31TransactionStore txn31Store;
   private final Sep24TransactionStore txn24Store;
   private final List<AssetInfo> assets;
+  private final EventService eventService;
 
   static boolean isStatusError(String status) {
     return List.of(PENDING_CUSTOMER_INFO_UPDATE.getName(), EXPIRED.getName(), ERROR.getName())
@@ -54,11 +56,13 @@ public class TransactionService {
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       Sep38QuoteStore quoteStore,
-      AssetService assetService) {
+      AssetService assetService,
+      EventService eventService) {
     this.txn24Store = txn24Store;
     this.txn31Store = txn31Store;
     this.quoteStore = quoteStore;
     this.assets = assetService.listAllAssets();
+    this.eventService = eventService;
   }
 
   /**
@@ -119,41 +123,34 @@ public class TransactionService {
     JdbcSepTransaction txn = findTransaction(patch.getId());
     if (txn == null)
       throw new BadRequestException(String.format("transaction(id=%s) not found", patch.getId()));
+
+    String lastStatus = txn.getStatus();
+    updateSepTransaction(patch, txn);
     switch (txn.getProtocol()) {
       case "24":
-        patchSep24Transaction((JdbcSep24Transaction) txn, patch);
+        txn24Store.save((JdbcSep24Transaction) txn);
+        Sep24Helper.publishEvent(eventService, (Sep24Transaction) txn, TRANSACTION_STATUS_CHANGED);
         break;
       case "31":
-        patchSep31Transaction((JdbcSep31Transaction) txn, patch);
+        txn31Store.save((JdbcSep31Transaction) txn);
+        Sep31Helper.publishEvent(eventService, (Sep31Transaction) txn, TRANSACTION_STATUS_CHANGED);
         break;
     }
+    if (!lastStatus.equals(txn.getStatus())) updateMetrics(txn);
     return toGetTransactionResponse(txn);
   }
 
-  private void patchSep24Transaction(JdbcSep24Transaction txn, PatchTransactionRequest patch)
-      throws AnchorException {
-    String txnOriginalStatus = txn.getStatus();
-
-    updateSepTransaction(patch, txn);
-    txn24Store.save(txn);
-
-    // Add them to the to-be-updated lists.
-    if (!txnOriginalStatus.equals(txn.getStatus()))
-      Metrics.counter(AnchorMetrics.SEP24_TRANSACTION.toString(), "status", txn.getStatus())
-          .increment();
-  }
-
-  private void patchSep31Transaction(JdbcSep31Transaction txn, PatchTransactionRequest patch)
-      throws AnchorException {
-    String txnOriginalStatus = txn.getStatus();
-    // validate and update the transaction.
-    updateSepTransaction(patch, txn);
-    // Add them to the to-be-updated lists.
-    if (!txnOriginalStatus.equals(txn.getStatus()))
-      Metrics.counter(AnchorMetrics.SEP31_TRANSACTION.toString(), "status", txn.getStatus())
-          .increment();
-
-    txn31Store.save(txn);
+  private void updateMetrics(JdbcSepTransaction txn) {
+    switch (txn.getProtocol()) {
+      case "24":
+        Metrics.counter(AnchorMetrics.SEP24_TRANSACTION.toString(), "status", txn.getStatus())
+            .increment();
+        break;
+      case "31":
+        Metrics.counter(AnchorMetrics.SEP31_TRANSACTION.toString(), "status", txn.getStatus())
+            .increment();
+        break;
+    }
   }
 
   void updateSepTransaction(PatchTransactionRequest patch, JdbcSepTransaction txn)

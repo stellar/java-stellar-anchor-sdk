@@ -105,9 +105,10 @@ public class SepServiceBeans {
       Sep24Config sep24Config,
       AssetService assetService,
       JwtService jwtService,
-      Sep24TransactionStore sep24TransactionStore) {
+      Sep24TransactionStore sep24TransactionStore,
+      EventService eventService) {
     return new Sep24Service(
-        gson, appConfig, sep24Config, assetService, jwtService, sep24TransactionStore);
+        appConfig, sep24Config, assetService, jwtService, sep24TransactionStore, eventService);
   }
 
   @Bean

@@ -30,8 +30,6 @@ import org.stellar.anchor.api.sep.sep31.*
 import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionRequest.Sep31TxnFields
 import org.stellar.anchor.api.sep.sep38.RateFee
 import org.stellar.anchor.api.shared.Amount
-import org.stellar.anchor.api.shared.Customers
-import org.stellar.anchor.api.shared.StellarId
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.ResourceJsonAssetService
 import org.stellar.anchor.auth.JwtService
@@ -825,34 +823,6 @@ class Sep31ServiceTest {
         .sep(TransactionEvent.Sep.SEP_31)
         .kind(TransactionEvent.Kind.RECEIVE)
         .status(TransactionEvent.Status.PENDING_SENDER)
-        .statusChange(TransactionEvent.StatusChange(null, TransactionEvent.Status.PENDING_SENDER))
-        .amountExpected(Amount("100", stellarUSDC))
-        .amountIn(Amount("100", stellarUSDC))
-        .amountOut(Amount("12500", stellarJPYC))
-        .amountFee(Amount("10", stellarUSDC))
-        .quoteId("my_quote_id")
-        .startedAt(txStartedAt)
-        .updatedAt(txStartedAt)
-        .completedAt(null)
-        .transferReceivedAt(null)
-        .message(null)
-        .refunds(null)
-        .stellarTransactions(null)
-        .externalTransactionId(null)
-        .custodialTransactionId(null)
-        .sourceAccount(null)
-        .destinationAccount(null)
-        .customers(
-          Customers(
-            StellarId.builder().id(senderId).build(),
-            StellarId.builder().id(receiverId).build()
-          )
-        )
-        .creator(
-          StellarId.builder()
-            .account("GBJDSMTMG4YBP27ZILV665XBISBBNRP62YB7WZA2IQX2HIPK7ABLF4C2")
-            .build(),
-        )
         .build()
     assertEquals(wantEvent, txEventSlot.captured)
 

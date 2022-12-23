@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
+import org.stellar.anchor.api.exception.EventPublishException;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.exception.SepNotFoundException;
 import org.stellar.anchor.api.exception.SepValidationException;
@@ -51,7 +52,7 @@ public class Sep24Controller {
       method = {RequestMethod.POST})
   public InteractiveTransactionResponse deposit(
       HttpServletRequest request, @RequestBody HashMap<String, String> requestData)
-      throws SepException, MalformedURLException, URISyntaxException {
+      throws SepException, MalformedURLException, URISyntaxException, EventPublishException {
     debug("/deposit", requestData);
     JwtToken token = getSep10Token(request);
     String fullUrl = getFullRequestUrl(request);
@@ -66,7 +67,7 @@ public class Sep24Controller {
       method = {RequestMethod.POST},
       consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
   public InteractiveTransactionResponse depositAllType(HttpServletRequest request)
-      throws SepException, MalformedURLException, URISyntaxException {
+      throws SepException, MalformedURLException, URISyntaxException, EventPublishException {
     HashMap<String, String> requestData = new HashMap<>();
     for (Map.Entry<String, String[]> entry : request.getParameterMap().entrySet()) {
       requestData.put(entry.getKey(), entry.getValue()[0]);
@@ -82,7 +83,7 @@ public class Sep24Controller {
       method = {RequestMethod.POST})
   public InteractiveTransactionResponse withdraw(
       HttpServletRequest request, @RequestBody HashMap<String, String> requestData)
-      throws SepException, MalformedURLException, URISyntaxException {
+      throws SepException, MalformedURLException, URISyntaxException, EventPublishException {
     debug("/withdraw", requestData);
     JwtToken token = getSep10Token(request);
     String fullUrl = getFullRequestUrl(request);
@@ -97,7 +98,7 @@ public class Sep24Controller {
       method = {RequestMethod.POST},
       consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
   public InteractiveTransactionResponse withdrawAllType(HttpServletRequest request)
-      throws SepException, MalformedURLException, URISyntaxException {
+      throws SepException, MalformedURLException, URISyntaxException, EventPublishException {
     HashMap<String, String> requestData = new HashMap<>();
     for (Map.Entry<String, String[]> entry : request.getParameterMap().entrySet()) {
       requestData.put(entry.getKey(), entry.getValue()[0]);

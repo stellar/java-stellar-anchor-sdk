@@ -2,6 +2,7 @@ package org.stellar.anchor.sep31;
 
 import static org.stellar.anchor.api.sep.sep31.Sep31InfoResponse.AssetResponse;
 import static org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_SEND;
+import static org.stellar.anchor.event.models.TransactionEvent.Type.TRANSACTION_CREATED;
 import static org.stellar.anchor.util.Log.*;
 import static org.stellar.anchor.util.MathHelper.decimal;
 import static org.stellar.anchor.util.MathHelper.formatAmount;
@@ -30,14 +31,12 @@ import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerResponse;
 import org.stellar.anchor.api.sep.sep12.Sep12Status;
 import org.stellar.anchor.api.sep.sep31.*;
 import org.stellar.anchor.api.shared.Amount;
-import org.stellar.anchor.api.shared.Customers;
 import org.stellar.anchor.api.shared.StellarId;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtToken;
 import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.Sep31Config;
 import org.stellar.anchor.event.EventService;
-import org.stellar.anchor.event.models.TransactionEvent;
 import org.stellar.anchor.sep38.Sep38Quote;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
 import org.stellar.anchor.util.Log;
@@ -183,38 +182,7 @@ public class Sep31Service {
 
     updateDepositInfo();
 
-    StellarId senderStellarId = StellarId.builder().id(txn.getSenderId()).build();
-    StellarId receiverStellarId = StellarId.builder().id(txn.getReceiverId()).build();
-    TransactionEvent event =
-        TransactionEvent.builder()
-            .eventId(UUID.randomUUID().toString())
-            .type(TransactionEvent.Type.TRANSACTION_CREATED)
-            .id(txn.getId())
-            .sep(TransactionEvent.Sep.SEP_31)
-            .kind(TransactionEvent.Kind.RECEIVE)
-            .status(TransactionEvent.Status.PENDING_SENDER)
-            .statusChange(
-                new TransactionEvent.StatusChange(null, TransactionEvent.Status.PENDING_SENDER))
-            .amountExpected(new Amount(txn.getAmountExpected(), txn.getAmountInAsset()))
-            .amountIn(new Amount(txn.getAmountIn(), txn.getAmountInAsset()))
-            .amountOut(new Amount(txn.getAmountOut(), txn.getAmountOutAsset()))
-            .amountFee(new Amount(txn.getAmountFee(), txn.getAmountFeeAsset()))
-            .quoteId(txn.getQuoteId())
-            .startedAt(txn.getStartedAt())
-            .updatedAt(txn.getStartedAt())
-            .completedAt(null)
-            .transferReceivedAt(null)
-            .message(null)
-            .refunds(null)
-            .stellarTransactions(null)
-            .externalTransactionId(null)
-            .custodialTransactionId(null)
-            .sourceAccount(null)
-            .destinationAccount(null)
-            .customers(new Customers(senderStellarId, receiverStellarId))
-            .creator(creatorStellarId)
-            .build();
-    eventService.publish(event);
+    Sep31Helper.publishEvent(eventService, txn, TRANSACTION_CREATED);
 
     return Sep31PostTransactionResponse.builder()
         .id(txn.getId())

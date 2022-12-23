@@ -9,12 +9,13 @@ import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.stellar.anchor.api.shared.*;
-import org.stellar.anchor.api.shared.Refunds;
 
 @Data
 @Builder
 @AllArgsConstructor
+@NoArgsConstructor
 public class TransactionEvent implements AnchorEvent {
   @JsonProperty("event_id")
   @SerializedName("event_id")
@@ -103,6 +104,7 @@ public class TransactionEvent implements AnchorEvent {
   StellarId creator;
 
   public enum Status {
+    INCOMPLETE("incomplete"),
     PENDING_SENDER("pending_sender"),
     PENDING_STELLAR("pending_stellar"),
     PENDING_CUSTOMER_INFO_UPDATE("pending_customer_info_update"),
@@ -175,7 +177,9 @@ public class TransactionEvent implements AnchorEvent {
   public enum Kind {
     @SuppressWarnings("unused")
     UNDEFINED("undefined"),
-    RECEIVE("receive");
+    RECEIVE("receive"),
+    DEPOSIT("deposit"),
+    WITHDRAW("withdrawal");
 
     public final String kind;
 
@@ -187,7 +191,14 @@ public class TransactionEvent implements AnchorEvent {
     public String getKind() {
       return kind;
     }
-  }
 
-  public TransactionEvent() {}
+    public static Kind from(String str) {
+      for (Kind kind : values()) {
+        if (kind.kind.equals(str)) {
+          return kind;
+        }
+      }
+      throw new IllegalArgumentException("No matching constant for [" + str + "]");
+    }
+  }
 }
