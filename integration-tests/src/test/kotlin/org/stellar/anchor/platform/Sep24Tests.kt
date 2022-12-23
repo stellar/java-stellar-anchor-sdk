@@ -66,17 +66,33 @@ class Sep24Tests {
       JSONAssert.assertEquals(expectedDepositTransactionResponse, json(actualDepositTxn), LENIENT)
     }
 
-    fun `test deposit, withdraw, get and patch`() {
+    fun `test patch, get and compare`() {
       val patchRequest =
         gson.fromJson(patchWithdrawTransactionRequest, PatchTransactionsRequest::class.java)
+      // create patch request and patch
       patchRequest.records[0].id = savedWithdrawTransaction.transaction.id
+      patchRequest.records[1].id = savedDepositTransaction.transaction.id
       platformApiClient.patchTransaction(patchRequest)
-      val afterPatchTxn = platformApiClient.getTransaction(savedWithdrawTransaction.transaction.id)
-      JSONAssert.assertEquals(
-        expectedGetTransactionResponseAfterPatch,
-        json(afterPatchTxn),
-        LENIENT
-      )
+
+      // check if the patched transactions are as expected
+      var afterPatchWithdraw =
+        platformApiClient.getTransaction(savedWithdrawTransaction.transaction.id)
+      assertEquals(afterPatchWithdraw.id, savedWithdrawTransaction.transaction.id)
+      JSONAssert.assertEquals(expectedAfterPatchWithdraw, json(afterPatchWithdraw), LENIENT)
+
+      var afterPatchDeposit =
+        platformApiClient.getTransaction(savedDepositTransaction.transaction.id)
+      assertEquals(afterPatchDeposit.id, savedDepositTransaction.transaction.id)
+      JSONAssert.assertEquals(expectedAfterPatchDeposit, json(afterPatchDeposit), LENIENT)
+
+      // Test patch idempotency
+      afterPatchWithdraw = platformApiClient.getTransaction(savedWithdrawTransaction.transaction.id)
+      assertEquals(afterPatchWithdraw.id, savedWithdrawTransaction.transaction.id)
+      JSONAssert.assertEquals(expectedAfterPatchWithdraw, json(afterPatchWithdraw), LENIENT)
+
+      afterPatchDeposit = platformApiClient.getTransaction(savedDepositTransaction.transaction.id)
+      assertEquals(afterPatchDeposit.id, savedDepositTransaction.transaction.id)
+      JSONAssert.assertEquals(expectedAfterPatchDeposit, json(afterPatchDeposit), LENIENT)
     }
 
     fun `test GET transactions with bad ids`() {
@@ -96,7 +112,7 @@ fun sep24TestAll() {
   Sep24Tests.`test Sep24 withdraw`()
   Sep24Tests.`test Sep24 deposit`()
   Sep24Tests.`test PlatformAPI GET transaction for deposit and withdrawal`()
-  Sep24Tests.`test deposit, withdraw, get and patch`()
+  Sep24Tests.`test patch, get and compare`()
   Sep24Tests.`test GET transactions with bad ids`()
 }
 
@@ -170,31 +186,106 @@ val patchWithdrawTransactionRequest =
           }
         ]
       }
+    },
+    {
+      "id": "",
+      "status": "completed",
+      "amount_in": {
+        "amount": "100",
+        "asset": "iso4217:USD"
+      },
+      "amount_out": {
+        "amount": "100",
+        "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+      },
+      "amount_fee": {
+        "amount": "1",
+        "asset": "iso4217:USD"
+      },
+      "message": "this is the message"
     }
   ]
 }
 """
     .trimIndent()
 
-val expectedGetTransactionResponseAfterPatch =
+val expectedAfterPatchWithdraw =
+  """
+{
+  "sep": 24,
+  "kind": "withdrawal",
+  "status": "completed",
+  "amount_in": {
+    "amount": "10",
+    "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+  },
+  "amount_out": {
+    "amount": "10",
+    "asset": "iso4217:USD"
+  },
+  "amount_fee": {
+    "amount": "1",
+    "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+  },
+  "refunds": {
+    "amount_refunded": {
+      "amount": "1",
+      "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+    },
+    "amount_fee": {
+      "amount": "0.1",
+      "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+    },
+    "payments": [
+      {
+        "id": "1",
+        "id_type": "stellar",
+        "amount": {
+          "amount": "0.6",
+          "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+        },
+        "fee": {
+          "amount": "0.1",
+          "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+        }
+      },
+      {
+        "id": "2",
+        "id_type": "stellar",
+        "amount": {
+          "amount": "0.4",
+          "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+        },
+        "fee": {
+          "amount": "0",
+          "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+        }
+      }
+    ]
+  }
+}"""
+    .trimIndent()
+
+val expectedAfterPatchDeposit =
   """
   {
     "sep": 24,
-    "kind": "withdrawal",
+    "kind": "deposit",
     "status": "completed",
     "amount_in": {
-      "amount": "10",
-      "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+      "amount": "100",
+      "asset": "iso4217:USD"
     },
     "amount_out": {
-      "amount": "10",
-      "asset": "iso4217:USD"
+      "amount": "100",
+      "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
     },
     "amount_fee": {
       "amount": "1",
-      "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+      "asset": "iso4217:USD"
     }
   }
+
 """
     .trimIndent()
 
