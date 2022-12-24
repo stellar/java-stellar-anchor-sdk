@@ -1,29 +1,13 @@
-package org.stellar.anchor.platform;
+package org.stellar.anchor.platform.component.share;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import org.stellar.anchor.config.*;
 import org.stellar.anchor.platform.config.*;
-import org.stellar.anchor.platform.configurator.ConfigManager;
-import org.stellar.anchor.platform.configurator.ObserverConfigManager;
-import org.stellar.anchor.platform.configurator.SepConfigManager;
 
 @Configuration
 public class ConfigManagementBeans {
-  @Bean(name = "configManager")
-  @Profile("stellar-observer")
-  ConfigManager observerConfigManager() {
-    return ObserverConfigManager.getInstance();
-  }
-
-  @Bean(name = "configManager")
-  @Profile("default")
-  ConfigManager configManager() {
-    return SepConfigManager.getInstance();
-  }
-
   @Bean
   @ConfigurationProperties(prefix = "")
   AppConfig appConfig() {

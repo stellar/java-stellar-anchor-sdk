@@ -1,16 +1,18 @@
-package org.stellar.anchor.platform;
+package org.stellar.anchor.platform.component.share;
 
 import static org.stellar.anchor.util.Log.errorF;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.stellar.anchor.api.exception.InvalidConfigException;
-import org.stellar.anchor.event.*;
+import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.platform.config.PropertyEventConfig;
 import org.stellar.anchor.platform.event.KafkaEventPublisher;
 import org.stellar.anchor.platform.event.MskEventPublisher;
 import org.stellar.anchor.platform.event.NoopEventPublisher;
 import org.stellar.anchor.platform.event.SqsEventPublisher;
+import org.stellar.anchor.platform.service.PaymentOperationToEventListener;
+import org.stellar.anchor.sep31.Sep31TransactionStore;
 
 @Configuration
 public class EventsBeans {
@@ -39,5 +41,12 @@ public class EventsBeans {
     }
 
     return eventService;
+  }
+
+  @Bean
+  public PaymentOperationToEventListener paymentOperationToEventListener(
+      Sep31TransactionStore transactionStore, EventService eventService) {
+    // TODO: Remove this bean
+    return new PaymentOperationToEventListener(transactionStore, eventService);
   }
 }

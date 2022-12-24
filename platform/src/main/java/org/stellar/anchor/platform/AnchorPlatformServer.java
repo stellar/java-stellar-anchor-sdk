@@ -9,17 +9,21 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.annotation.Profile;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.stellar.anchor.platform.configurator.ConfigEnvironment;
 import org.stellar.anchor.platform.configurator.SecretManager;
 import org.stellar.anchor.platform.configurator.SepConfigManager;
 
-@Profile("default")
 @SpringBootApplication
 @EnableJpaRepositories(basePackages = {"org.stellar.anchor.platform.data"})
 @EntityScan(basePackages = {"org.stellar.anchor.platform.data"})
+@ComponentScan(
+    basePackages = {
+      "org.stellar.anchor.platform.component.sep",
+      "org.stellar.anchor.platform.component.share"
+    })
 @EnableConfigurationProperties
 public class AnchorPlatformServer implements WebMvcConfigurer {
   public static ConfigurableApplicationContext start(Map<String, Object> environment) {

@@ -1,4 +1,4 @@
-package org.stellar.anchor.platform;
+package org.stellar.anchor.platform.component.sep;
 
 import com.google.gson.Gson;
 import java.security.KeyManagementException;

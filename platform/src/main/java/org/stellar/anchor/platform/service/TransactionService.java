@@ -11,7 +11,6 @@ import java.time.Instant;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
-import org.springframework.stereotype.Service;
 import org.stellar.anchor.api.exception.*;
 import org.stellar.anchor.api.platform.GetTransactionResponse;
 import org.stellar.anchor.api.platform.PatchTransactionRequest;
@@ -39,7 +38,6 @@ import org.stellar.anchor.util.Log;
 import org.stellar.anchor.util.SepHelper;
 import org.stellar.anchor.util.StringHelper;
 
-@Service
 public class TransactionService {
   private final Sep38QuoteStore quoteStore;
   private final Sep31TransactionStore txn31Store;
@@ -52,7 +50,7 @@ public class TransactionService {
         .contains(status);
   }
 
-  TransactionService(
+  public TransactionService(
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       Sep38QuoteStore quoteStore,

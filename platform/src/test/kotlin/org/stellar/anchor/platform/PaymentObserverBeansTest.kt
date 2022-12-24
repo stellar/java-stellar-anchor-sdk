@@ -13,6 +13,7 @@ import org.stellar.anchor.api.exception.ServerErrorException
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.ResourceJsonAssetService
 import org.stellar.anchor.config.AppConfig
+import org.stellar.anchor.platform.component.observer.PaymentObserverBeans
 import org.stellar.anchor.platform.config.PaymentObserverConfig
 import org.stellar.anchor.platform.config.PaymentObserverConfig.StellarPaymentObserverConfig
 import org.stellar.anchor.platform.observer.PaymentListener

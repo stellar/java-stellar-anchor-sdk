@@ -1,4 +1,4 @@
-package org.stellar.anchor.platform;
+package org.stellar.anchor.platform.component.sep;
 
 import com.google.gson.Gson;
 import java.io.IOException;
@@ -19,7 +19,6 @@ import org.stellar.anchor.filter.JwtTokenFilter;
 import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.platform.data.*;
 import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountsManager;
-import org.stellar.anchor.platform.service.PropertyAssetsService;
 import org.stellar.anchor.platform.service.Sep31DepositInfoGeneratorApi;
 import org.stellar.anchor.platform.service.Sep31DepositInfoGeneratorSelf;
 import org.stellar.anchor.sep1.Sep1Service;
@@ -69,11 +68,6 @@ public class SepServiceBeans {
   }
 
   @Bean
-  AssetService assetService(AssetsConfig assetsConfig) throws InvalidConfigException {
-    return new PropertyAssetsService(assetsConfig);
-  }
-
-  @Bean
   public Horizon horizon(AppConfig appConfig) {
     return new Horizon(appConfig);
   }
@@ -109,11 +103,6 @@ public class SepServiceBeans {
       EventService eventService) {
     return new Sep24Service(
         appConfig, sep24Config, assetService, jwtService, sep24TransactionStore, eventService);
-  }
-
-  @Bean
-  Sep24TransactionStore sep24TransactionStore(JdbcSep24TransactionRepo sep24TransactionRepo) {
-    return new JdbcSep24TransactionStore(sep24TransactionRepo);
   }
 
   @Bean
@@ -153,16 +142,6 @@ public class SepServiceBeans {
         feeIntegration,
         customerIntegration,
         eventService);
-  }
-
-  @Bean
-  JdbcSep31TransactionStore sep31TransactionStore(JdbcSep31TransactionRepo txnRepo) {
-    return new JdbcSep31TransactionStore(txnRepo);
-  }
-
-  @Bean
-  Sep38QuoteStore sep38QuoteStore(JdbcSep38QuoteRepo quoteRepo) {
-    return new JdbcSep38QuoteStore(quoteRepo);
   }
 
   @Bean

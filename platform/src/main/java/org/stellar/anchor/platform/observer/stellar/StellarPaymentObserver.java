@@ -250,20 +250,35 @@ public class StellarPaymentObserver implements HealthCheckable {
   }
 
   /**
-   * fetchStreamingCursor will gather a starting cursor for the streamer. If there is a cursor
-   * already stored in the database, that value will be returned. Otherwise, this method will fetch
-   * the most recent cursor from the Network and use that as a starting point.
+   * fetchStreamingCursor will gather a starting cursor for the streamer. If there is no cursor
+   * stored in the database, the method will fetch the most recent cursor from the Stellar network
+   * and return the most recent result.
+   *
+   * <p>Otherwise, returns max(most recent cursor - MAX_RESULTS, last stored cursor)
    *
    * @return the starting point to start streaming from.
    */
   String fetchStreamingCursor() {
     // Use database value, if any.
-    String lastToken = paymentStreamerCursorStore.load();
-    if (lastToken != null) {
-      return lastToken;
+    String strLastStored = paymentStreamerCursorStore.load();
+    Log.debug("Fetching latest cursor from Stellar network");
+    String strLatest = fetchLatestCursor();
+    Log.infoF("The latest cursor fetched from Stellar network is: {}", strLatest);
+    if (strLastStored == null) {
+      return strLatest;
+    } else {
+      long lastStored = Long.parseLong(strLastStored);
+      long latest = Long.parseLong(strLatest);
+      if (lastStored >= latest) {
+        // lastStoredCursor is stale because it is greater than the latest cursor
+        return String.valueOf(latest);
+      } else {
+        return String.valueOf(Math.max(lastStored, latest - MAX_RESULTS));
+      }
     }
+  }
 
-    // Otherwise, fetch the latest value from the network.
+  String fetchLatestCursor() {
     Page<OperationResponse> pageOpResponse;
     try {
       pageOpResponse =
