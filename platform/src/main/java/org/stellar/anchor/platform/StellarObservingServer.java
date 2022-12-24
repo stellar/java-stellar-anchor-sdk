@@ -12,6 +12,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.stellar.anchor.platform.configurator.ConfigEnvironment;
 import org.stellar.anchor.platform.configurator.ObserverConfigManager;
 import org.stellar.anchor.platform.configurator.SecretManager;
 
@@ -27,14 +28,13 @@ import org.stellar.anchor.platform.configurator.SecretManager;
 public class StellarObservingServer implements WebMvcConfigurer {
   public static ConfigurableApplicationContext start(Map<String, Object> environment) {
     SpringApplicationBuilder builder =
-        new SpringApplicationBuilder(StellarObservingServer.class)
-            .bannerMode(OFF)
-            .properties(
-                // this allows a developer to use a .env file for local development
-                "spring.profiles.active=stellar-observer");
+        new SpringApplicationBuilder(StellarObservingServer.class).bannerMode(OFF);
 
     if (environment != null) {
-      builder.properties(environment);
+      for (String name : environment.keySet()) {
+        System.setProperty(name, String.valueOf(environment.get(name)));
+      }
+      ConfigEnvironment.rebuild();
     }
 
     SpringApplication springApplication = builder.build();

@@ -41,7 +41,5 @@ class ObserverConfigAdapter extends SpringConfigAdapter {
     copy(config, "payment_observer.context_path", "server.servlet.context-path");
     copy(config, "payment_observer.port", "server.port");
     set("spring.mvc.converters.preferred-json-mapper", "gson");
-    //    set("spring.config.import", "optional:classpath:example.env[.properties]");
-    set("spring.profiles.active", "stellar-observer");
   }
 }

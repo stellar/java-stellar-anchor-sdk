@@ -26,7 +26,7 @@ public class EventsBeans {
     switch (publisherType) {
       case "kafka":
         eventService.setEventPublisher(
-            new KafkaEventPublisher(eventConfig.getPublisher().getKafka()));
+            KafkaEventPublisher.getInstance(eventConfig.getPublisher().getKafka()));
         break;
       case "sqs":
         eventService.setEventPublisher(new SqsEventPublisher(eventConfig.getPublisher().getSqs()));
