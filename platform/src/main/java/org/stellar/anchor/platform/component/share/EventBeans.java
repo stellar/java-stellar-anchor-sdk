@@ -2,6 +2,7 @@ package org.stellar.anchor.platform.component.share;
 
 import static org.stellar.anchor.util.Log.errorF;
 
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.stellar.anchor.api.exception.InvalidConfigException;
@@ -15,7 +16,16 @@ import org.stellar.anchor.platform.service.PaymentOperationToEventListener;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 
 @Configuration
-public class EventsBeans {
+public class EventBeans {
+  /**********************************
+   * Event configurations
+   */
+  @Bean
+  @ConfigurationProperties(prefix = "events")
+  PropertyEventConfig eventConfig() {
+    return new PropertyEventConfig();
+  }
+
   @Bean
   public EventService eventService(PropertyEventConfig eventConfig) throws InvalidConfigException {
     EventService eventService = new EventService(eventConfig);

@@ -21,7 +21,7 @@ import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountStore
 import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountsManager
 import org.stellar.anchor.platform.observer.stellar.StellarPaymentStreamerCursorStore
 
-class PaymentObserverBeansTest {
+class PaymentObservingAccountsBeansTest {
   @MockK private lateinit var paymentStreamerCursorStore: StellarPaymentStreamerCursorStore
   @MockK private lateinit var paymentObservingAccountStore: PaymentObservingAccountStore
 

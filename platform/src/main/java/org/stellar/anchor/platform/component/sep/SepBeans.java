@@ -3,6 +3,7 @@ package org.stellar.anchor.platform.component.sep;
 import com.google.gson.Gson;
 import java.io.IOException;
 import javax.servlet.Filter;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,7 +18,7 @@ import org.stellar.anchor.config.*;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.filter.JwtTokenFilter;
 import org.stellar.anchor.horizon.Horizon;
-import org.stellar.anchor.platform.data.*;
+import org.stellar.anchor.platform.config.*;
 import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountsManager;
 import org.stellar.anchor.platform.service.Sep31DepositInfoGeneratorApi;
 import org.stellar.anchor.platform.service.Sep31DepositInfoGeneratorSelf;
@@ -34,8 +35,45 @@ import org.stellar.anchor.sep38.Sep38Service;
 
 /** SEP configurations */
 @Configuration
-public class SepServiceBeans {
-  public SepServiceBeans() {}
+public class SepBeans {
+  /**********************************
+   * SEP configurations
+   */
+  @Bean
+  @ConfigurationProperties(prefix = "sep1")
+  Sep1Config sep1Config() {
+    return new PropertySep1Config();
+  }
+
+  @Bean
+  @ConfigurationProperties(prefix = "sep10")
+  Sep10Config sep10Config(SecretConfig secretConfig) {
+    return new PropertySep10Config(secretConfig);
+  }
+
+  @Bean
+  @ConfigurationProperties(prefix = "sep12")
+  Sep12Config sep12Config(CallbackApiConfig callbackApiConfig) {
+    return new PropertySep12Config(callbackApiConfig);
+  }
+
+  @Bean
+  @ConfigurationProperties(prefix = "sep24")
+  Sep24Config sep24Config() {
+    return new PropertySep24Config();
+  }
+
+  @Bean
+  @ConfigurationProperties(prefix = "sep31")
+  Sep31Config sep31Config() {
+    return new PropertySep31Config();
+  }
+
+  @Bean
+  @ConfigurationProperties(prefix = "sep38")
+  Sep38Config sep38Config() {
+    return new PropertySep38Config();
+  }
 
   /**
    * Used by SEP-10 authentication service.

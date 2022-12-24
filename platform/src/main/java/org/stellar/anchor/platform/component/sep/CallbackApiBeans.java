@@ -9,6 +9,7 @@ import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import okhttp3.OkHttpClient;
 import okhttp3.OkHttpClient.Builder;
+import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.stellar.anchor.api.callback.CustomerIntegration;
@@ -23,6 +24,7 @@ import org.stellar.anchor.platform.callback.RestFeeIntegration;
 import org.stellar.anchor.platform.callback.RestRateIntegration;
 import org.stellar.anchor.platform.callback.RestUniqueAddressIntegration;
 import org.stellar.anchor.platform.config.CallbackApiConfig;
+import org.stellar.anchor.platform.config.PropertySecretConfig;
 
 @Configuration
 public class CallbackApiBeans {
@@ -43,6 +45,12 @@ public class CallbackApiBeans {
           }
         }
       };
+
+  @Bean
+  @ConfigurationProperties(prefix = "callback-api")
+  CallbackApiConfig callbackApiConfig(PropertySecretConfig secretConfig) {
+    return new CallbackApiConfig(secretConfig);
+  }
 
   @Bean
   OkHttpClient httpClient(CallbackApiConfig callbackApiConfig)
