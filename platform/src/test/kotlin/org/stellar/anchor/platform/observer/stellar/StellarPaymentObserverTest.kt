@@ -48,16 +48,19 @@ class StellarPaymentObserverTest {
     // 1 - If there is a stored cursor, we'll use that.
     every { paymentStreamerCursorStore.load() } returns "123"
     var stellarObserver =
-      StellarPaymentObserver(
-        TEST_HORIZON_URI,
-        stellarPaymentObserverConfig,
-        null,
-        paymentObservingAccountsManager,
-        paymentStreamerCursorStore
+      spyk(
+        StellarPaymentObserver(
+          TEST_HORIZON_URI,
+          stellarPaymentObserverConfig,
+          null,
+          paymentObservingAccountsManager,
+          paymentStreamerCursorStore
+        )
       )
 
+    every { stellarObserver.fetchLatestCursor() } returns "1000"
     var gotCursor = stellarObserver.fetchStreamingCursor()
-    assertEquals("123", gotCursor)
+    assertEquals("800", gotCursor)
     verify(exactly = 1) { paymentStreamerCursorStore.load() }
 
     // 2 - If there is no stored constructor, we will fall back to fetching a result from the

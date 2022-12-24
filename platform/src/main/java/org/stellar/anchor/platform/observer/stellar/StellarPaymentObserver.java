@@ -35,6 +35,7 @@ import org.stellar.anchor.platform.observer.ObservedPayment;
 import org.stellar.anchor.platform.observer.PaymentListener;
 import org.stellar.anchor.util.ExponentialBackoffTimer;
 import org.stellar.anchor.util.Log;
+import org.stellar.anchor.util.StringHelper;
 import org.stellar.sdk.Server;
 import org.stellar.sdk.requests.EventListener;
 import org.stellar.sdk.requests.PaymentsRequestBuilder;
@@ -264,7 +265,7 @@ public class StellarPaymentObserver implements HealthCheckable {
     Log.debug("Fetching latest cursor from Stellar network");
     String strLatest = fetchLatestCursor();
     Log.infoF("The latest cursor fetched from Stellar network is: {}", strLatest);
-    if (strLastStored == null) {
+    if (StringHelper.isEmpty(strLastStored)) {
       return strLatest;
     } else {
       long lastStored = Long.parseLong(strLastStored);
