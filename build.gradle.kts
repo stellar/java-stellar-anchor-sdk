@@ -24,8 +24,9 @@ subprojects {
   repositories {
     mavenLocal()
     mavenCentral()
-    maven { url = uri("https://jitpack.io") }
     maven { url = uri("https://packages.confluent.io/maven") }
+    maven { url = uri("https://repository.mulesoft.org/nexus/content/repositories/public/") }
+    maven { url = uri("https://jitpack.io") }
   }
 
   /** Specifies JDK-11 */

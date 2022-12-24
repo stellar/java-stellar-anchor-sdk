@@ -12,7 +12,7 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 
-class RefundsBuilderTest {
+class Sep31RefundsBuilderTest {
   @MockK(relaxed = true) private lateinit var sep31TransactionStore: Sep31TransactionStore
 
   @BeforeEach
@@ -40,13 +40,13 @@ class RefundsBuilderTest {
     refundPayment2.fee = "1"
     val refundPaymentList = listOf(refundPayment1, refundPayment2)
 
-    // mock the Refunds object we want
+    // mock the Sep31Refunds object we want
     val wantRefunds = PojoSep31Refunds()
     wantRefunds.amountRefunded = "10"
     wantRefunds.amountFee = "2"
     wantRefunds.refundPayments = refundPaymentList
 
-    // build the Refunds object.
+    // build the Sep31Refunds object.
     val gotRefunds =
       RefundsBuilder(sep31TransactionStore)
         .amountRefunded("10")

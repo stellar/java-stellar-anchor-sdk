@@ -9,6 +9,10 @@ import org.stellar.anchor.api.sep.sep24.GetTransactionsRequest;
 public interface Sep24TransactionStore {
   Sep24Transaction newInstance();
 
+  Sep24Refunds newRefunds();
+
+  Sep24RefundPayment newRefundPayment();
+
   /**
    * Find the Sep24Transaction by transaction_id
    *

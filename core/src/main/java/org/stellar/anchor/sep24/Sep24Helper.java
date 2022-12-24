@@ -13,13 +13,17 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.UUID;
 import org.apache.http.client.utils.URIBuilder;
 import org.springframework.beans.BeanUtils;
+import org.stellar.anchor.api.exception.EventPublishException;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.sep24.*;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.auth.JwtToken;
 import org.stellar.anchor.config.Sep24Config;
+import org.stellar.anchor.event.EventService;
+import org.stellar.anchor.event.models.TransactionEvent;
 import org.stellar.anchor.util.GsonUtils;
 
 public class Sep24Helper {
@@ -168,5 +172,20 @@ public class Sep24Helper {
     }
 
     return response;
+  }
+
+  public static void publishEvent(
+      EventService eventService, Sep24Transaction txn, TransactionEvent.Type eventType)
+      throws EventPublishException {
+    TransactionEvent event =
+        TransactionEvent.builder()
+            .eventId(UUID.randomUUID().toString())
+            .type(eventType)
+            .id(txn.getId())
+            .sep(TransactionEvent.Sep.SEP_24)
+            .kind(TransactionEvent.Kind.from(txn.getKind()))
+            .status(TransactionEvent.Status.from(txn.getStatus()))
+            .build();
+    eventService.publish(event);
   }
 }

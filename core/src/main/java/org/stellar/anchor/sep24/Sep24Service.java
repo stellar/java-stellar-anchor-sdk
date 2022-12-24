@@ -1,6 +1,8 @@
 package org.stellar.anchor.sep24;
 
 import static org.stellar.anchor.api.sep.SepTransactionStatus.INCOMPLETE;
+import static org.stellar.anchor.event.models.TransactionEvent.Type.TRANSACTION_CREATED;
+import static org.stellar.anchor.sep24.Sep24Helper.publishEvent;
 import static org.stellar.anchor.sep24.Sep24Transaction.Kind.DEPOSIT;
 import static org.stellar.anchor.sep24.Sep24Transaction.Kind.WITHDRAWAL;
 import static org.stellar.anchor.sep9.Sep9Fields.extractSep9Fields;
@@ -12,7 +14,6 @@ import static org.stellar.anchor.util.SepHelper.generateSepTransactionId;
 import static org.stellar.anchor.util.SepHelper.memoTypeString;
 import static org.stellar.anchor.util.SepLanguageHelper.validateLanguage;
 
-import com.google.gson.Gson;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URI;
@@ -20,10 +21,7 @@ import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.*;
 import org.apache.http.client.utils.URIBuilder;
-import org.stellar.anchor.api.exception.SepException;
-import org.stellar.anchor.api.exception.SepNotAuthorizedException;
-import org.stellar.anchor.api.exception.SepNotFoundException;
-import org.stellar.anchor.api.exception.SepValidationException;
+import org.stellar.anchor.api.exception.*;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.sep24.*;
 import org.stellar.anchor.asset.AssetService;
@@ -31,6 +29,7 @@ import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.auth.JwtToken;
 import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.Sep24Config;
+import org.stellar.anchor.event.EventService;
 import org.stellar.sdk.KeyPair;
 import org.stellar.sdk.Memo;
 
@@ -40,14 +39,15 @@ public class Sep24Service {
   final AssetService assetService;
   final JwtService jwtService;
   final Sep24TransactionStore txnStore;
+  final EventService eventService;
 
   public Sep24Service(
-      Gson gson,
       AppConfig appConfig,
       Sep24Config sep24Config,
       AssetService assetService,
       JwtService jwtService,
-      Sep24TransactionStore txnStore) {
+      Sep24TransactionStore txnStore,
+      EventService eventService) {
     debug("appConfig:", appConfig);
     debug("sep24Config:", sep24Config);
     this.appConfig = appConfig;
@@ -55,12 +55,13 @@ public class Sep24Service {
     this.assetService = assetService;
     this.jwtService = jwtService;
     this.txnStore = txnStore;
+    this.eventService = eventService;
     info("Sep24Service initialized.");
   }
 
   public InteractiveTransactionResponse withdraw(
       String fullRequestUrl, JwtToken token, Map<String, String> withdrawRequest)
-      throws SepException, MalformedURLException, URISyntaxException {
+      throws SepException, MalformedURLException, URISyntaxException, EventPublishException {
     info("Creating withdrawal transaction.");
     if (token == null) {
       info("missing SEP-10 token");
@@ -141,8 +142,8 @@ public class Sep24Service {
     }
 
     Sep24Transaction txn = builder.build();
-
     txnStore.save(txn);
+    publishEvent(eventService, txn, TRANSACTION_CREATED);
 
     infoF(
         "Saved withdraw transaction. from={}, amountIn={}, amountOut={}.",
@@ -165,7 +166,7 @@ public class Sep24Service {
 
   public InteractiveTransactionResponse deposit(
       String fullRequestUrl, JwtToken token, Map<String, String> depositRequest)
-      throws SepException, MalformedURLException, URISyntaxException {
+      throws SepException, MalformedURLException, URISyntaxException, EventPublishException {
     info("Creating deposit transaction.");
     if (token == null) {
       info("missing SEP-10 token");
@@ -262,6 +263,8 @@ public class Sep24Service {
 
     Sep24Transaction txn = builder.build();
     txnStore.save(txn);
+    publishEvent(eventService, txn, TRANSACTION_CREATED);
+
     infoF(
         "Saved deposit transaction. to={}, amountIn={}, amountOut={}.",
         shorter(txn.getToAccount()),
@@ -310,7 +313,7 @@ public class Sep24Service {
     return result;
   }
 
-  public GetTransactionResponse findTransaction(JwtToken token, GetTransactionRequest txReq)
+  public Sep24GetTransactionResponse findTransaction(JwtToken token, GetTransactionRequest txReq)
       throws SepException, IOException, URISyntaxException {
     if (token == null) {
       info("missing SEP-10 token");
@@ -355,7 +358,7 @@ public class Sep24Service {
       throw new SepNotFoundException("transaction not found");
     }
 
-    return GetTransactionResponse.of(fromTxn(txn, txReq.getLang()));
+    return Sep24GetTransactionResponse.of(fromTxn(txn, txReq.getLang()));
   }
 
   public InfoResponse getInfo() {

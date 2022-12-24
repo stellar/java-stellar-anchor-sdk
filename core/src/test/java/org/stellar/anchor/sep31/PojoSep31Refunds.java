@@ -5,7 +5,7 @@ import java.util.List;
 import lombok.Data;
 
 @Data
-public class PojoSep31Refunds implements Refunds {
+public class PojoSep31Refunds implements Sep31Refunds {
   String amountRefunded;
   String amountFee;
   List<PojoSep31RefundPayment> refundPayments;

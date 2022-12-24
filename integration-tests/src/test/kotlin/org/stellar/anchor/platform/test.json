@@ -1,0 +1,74 @@
+{
+  "id": "ecf4fe8d-b61e-4edf-a20f-47c995246e5c",
+  "sep": 31,
+  "kind": "receive",
+  "status": "completed",
+  "amount_expected": {
+    "amount": "10",
+    "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+  },
+  "amount_in": {
+    "amount": "10",
+    "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+  },
+  "amount_out": {
+    "amount": "1071.4285982",
+    "asset": "stellar:JPYC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+  },
+  "amount_fee": {
+    "amount": "1.00",
+    "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+  },
+  "quote_id": "53055040-592f-48fb-8c26-7586064ccc65",
+  "started_at": "2022-12-23T07:54:49.713Z",
+  "updated_at": "2022-12-23T07:54:51.038Z",
+  "completed_at": "2022-12-23T07:54:51.038Z",
+  "message": "this is the message",
+  "refunds": {
+    "amount_refunded": {
+      "amount": "1",
+      "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+    },
+    "amount_fee": {
+      "amount": "0.1",
+      "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+    },
+    "payments": [
+      {
+        "id": "1",
+        "id_type": "stellar",
+        "amount": {
+          "amount": "0.6",
+          "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+        },
+        "fee": {
+          "amount": "0.1",
+          "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+        }
+      },
+      {
+        "id": "2",
+        "id_type": "stellar",
+        "amount": {
+          "amount": "0.4",
+          "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+        },
+        "fee": {
+          "amount": "0",
+          "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+        }
+      }
+    ]
+  },
+  "customers": {
+    "sender": {
+      "id": "fa699c8b-16d7-40b3-9159-50fd4df5d439"
+    },
+    "receiver": {
+      "id": "fa699c8b-16d7-40b3-9159-50fd4df5d439"
+    }
+  },
+  "creator": {
+    "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+  }
+}

@@ -28,4 +28,19 @@ public interface Sep24RefundPayment {
   String getFee();
 
   void setFee(String fee);
+
+  static Sep24RefundPayment of(
+      org.stellar.anchor.api.shared.RefundPayment platformApiRefundPayment,
+      Sep24TransactionStore factory) {
+    if (platformApiRefundPayment == null) {
+      return null;
+    }
+
+    Sep24RefundPayment refundPayment = factory.newRefundPayment();
+    refundPayment.setId(platformApiRefundPayment.getId());
+    refundPayment.setAmount(platformApiRefundPayment.getAmount().getAmount());
+    refundPayment.setFee(platformApiRefundPayment.getFee().getAmount());
+
+    return refundPayment;
+  }
 }

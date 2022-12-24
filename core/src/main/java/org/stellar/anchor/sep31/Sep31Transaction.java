@@ -93,9 +93,9 @@ public interface Sep31Transaction {
 
   void setRefunded(Boolean refunded);
 
-  Refunds getRefunds();
+  Sep31Refunds getRefunds();
 
-  void setRefunds(Refunds refunds);
+  void setRefunds(Sep31Refunds sep31Refunds);
 
   String getRequiredInfoMessage();
 

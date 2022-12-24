@@ -13,23 +13,24 @@ import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.NullSource
 import org.junit.jupiter.params.provider.ValueSource
 import org.skyscreamer.jsonassert.JSONAssert
+import org.skyscreamer.jsonassert.JSONCompareMode.LENIENT
 import org.skyscreamer.jsonassert.JSONCompareMode.STRICT
 import org.stellar.anchor.api.exception.AnchorException
 import org.stellar.anchor.api.exception.BadRequestException
 import org.stellar.anchor.api.exception.NotFoundException
-import org.stellar.anchor.api.platform.GetTransactionResponse
 import org.stellar.anchor.api.platform.PatchTransactionRequest
 import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.api.shared.Amount
-import org.stellar.anchor.api.shared.Refund
 import org.stellar.anchor.api.shared.RefundPayment
+import org.stellar.anchor.api.shared.Refunds
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.ResourceJsonAssetService
+import org.stellar.anchor.event.EventService
 import org.stellar.anchor.platform.data.JdbcSep31RefundPayment
 import org.stellar.anchor.platform.data.JdbcSep31Refunds
 import org.stellar.anchor.platform.data.JdbcSep31Transaction
 import org.stellar.anchor.sep24.Sep24TransactionStore
-import org.stellar.anchor.sep31.Refunds
+import org.stellar.anchor.sep31.Sep31Refunds
 import org.stellar.anchor.sep31.Sep31TransactionStore
 import org.stellar.anchor.sep38.Sep38Quote
 import org.stellar.anchor.sep38.Sep38QuoteStore
@@ -51,6 +52,7 @@ class TransactionServiceTest {
   @MockK(relaxed = true) private lateinit var sep31TransactionStore: Sep31TransactionStore
   @MockK(relaxed = true) private lateinit var sep24TransactionStore: Sep24TransactionStore
   @MockK(relaxed = true) private lateinit var assetService: AssetService
+  @MockK(relaxed = true) private lateinit var eventService: EventService
   private lateinit var transactionService: TransactionService
 
   @BeforeEach
@@ -61,7 +63,8 @@ class TransactionServiceTest {
         sep24TransactionStore,
         sep31TransactionStore,
         sep38QuoteStore,
-        assetService
+        assetService,
+        eventService
       )
   }
 
@@ -74,19 +77,19 @@ class TransactionServiceTest {
   @Test
   fun test_getTransaction_failure() {
     // null tx id is rejected with 400
-    var ex: AnchorException = assertThrows { transactionService.getTransaction(null) }
+    var ex: AnchorException = assertThrows { transactionService.getTransactionResponse(null) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("transaction id cannot be empty", ex.message)
 
     // empty tx id is rejected with 400
-    ex = assertThrows { transactionService.getTransaction("") }
+    ex = assertThrows { transactionService.getTransactionResponse("") }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("transaction id cannot be empty", ex.message)
 
     // non-existent transaction is rejected with 404
     every { sep31TransactionStore.findByTransactionId(any()) } returns null
     every { sep24TransactionStore.findByTransactionId(any()) } returns null
-    ex = assertThrows { transactionService.getTransaction("not-found-tx-id") }
+    ex = assertThrows { transactionService.getTransactionResponse("not-found-tx-id") }
     assertInstanceOf(NotFoundException::class.java, ex)
     assertEquals("transaction (id=not-found-tx-id) is not found", ex.message)
   }
@@ -99,13 +102,15 @@ class TransactionServiceTest {
     every { sep31TransactionStore.newRefundPayment() } answers { JdbcSep31RefundPayment() }
 
     val mockSep31Transaction = gson.fromJson(jsonSep31Transaction, JdbcSep31Transaction::class.java)
-    val wantGetTransactionResponse =
-      gson.fromJson(wantedGetTransactionResponse, GetTransactionResponse::class.java)
 
     every { sep31TransactionStore.findByTransactionId(TEST_TXN_ID) } returns mockSep31Transaction
-    val gotGetTransactionResponse = transactionService.getTransaction(TEST_TXN_ID)
+    val gotGetTransactionResponse = transactionService.getTransactionResponse(TEST_TXN_ID)
 
-    assertEquals(wantGetTransactionResponse, gotGetTransactionResponse)
+    JSONAssert.assertEquals(
+      wantedGetTransactionResponse,
+      gson.toJson(gotGetTransactionResponse),
+      LENIENT
+    )
   }
 
   @Test
@@ -175,7 +180,8 @@ class TransactionServiceTest {
         sep24TransactionStore,
         sep31TransactionStore,
         sep38QuoteStore,
-        assetService
+        assetService,
+        eventService
       )
     val mockAsset = Amount("10", fiatUSD)
     assertDoesNotThrow { transactionService.validateAsset("amount_in", mockAsset) }
@@ -219,8 +225,8 @@ class TransactionServiceTest {
     val mockStartedAt = Instant.now().minusSeconds(180)
     val mockTransferReceivedAt = mockStartedAt.plusSeconds(60)
 
-    val mockRefunds: Refund =
-      Refund.builder()
+    val mockRefunds: Refunds =
+      Refunds.builder()
         .amountRefunded(Amount("90.0000", fiatUSD))
         .amountFee(Amount("8.0000", fiatUSD))
         .payments(
@@ -280,13 +286,14 @@ class TransactionServiceTest {
         sep24TransactionStore,
         sep31TransactionStore,
         sep38QuoteStore,
-        assetService
+        assetService,
+        eventService
       )
 
     assertEquals(mockSep31Transaction.startedAt, mockSep31Transaction.updatedAt)
     assertNull(mockSep31Transaction.completedAt)
     assertDoesNotThrow {
-      transactionService.updateSep31Transaction(mockPatchTransactionRequest, mockSep31Transaction)
+      transactionService.updateSepTransaction(mockPatchTransactionRequest, mockSep31Transaction)
     }
     assertTrue(mockSep31Transaction.updatedAt > mockSep31Transaction.startedAt)
     assertTrue(mockSep31Transaction.updatedAt == mockSep31Transaction.completedAt)
@@ -307,7 +314,7 @@ class TransactionServiceTest {
     wantSep31TransactionUpdated.requiredInfoMessage = "Remittance was successfully completed."
     wantSep31TransactionUpdated.externalTransactionId = "external-id"
     wantSep31TransactionUpdated.transferReceivedAt = mockTransferReceivedAt
-    wantSep31TransactionUpdated.refunds = Refunds.of(mockRefunds, sep31TransactionStore)
+    wantSep31TransactionUpdated.refunds = Sep31Refunds.of(mockRefunds, sep31TransactionStore)
     JSONAssert.assertEquals(
       gson.toJson(wantSep31TransactionUpdated),
       gson.toJson(mockSep31Transaction),
@@ -419,10 +426,6 @@ class TransactionServiceTest {
         "asset": "iso4217:USD"
       },
       "quote_id": "quote-id",
-      "started_at": "2022-12-19T02:06:44.500182800Z",
-      "updated_at": "2022-12-19T02:07:44.500182800Z",
-      "completed_at": "2022-12-19T02:09:44.500182800Z",
-      "transfer_received_at": "2022-12-19T02:08:44.500182800Z",
       "message": "Please don\u0027t forget to foo bar",
       "refunds": {
         "amount_refunded": {
@@ -465,7 +468,6 @@ class TransactionServiceTest {
           "id": "2b862ac297c93e2db43fc58d407cc477396212bce5e6d5f61789f963d5a11300",
           "memo": "my-memo",
           "memo_type": "text",
-          "created_at": "2022-12-19T02:08:44.500182800Z",
           "envelope": "here_comes_the_envelope",
           "payments": [
             {

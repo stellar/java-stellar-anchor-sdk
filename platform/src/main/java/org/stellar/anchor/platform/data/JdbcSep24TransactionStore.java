@@ -7,6 +7,8 @@ import java.util.stream.Collectors;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.exception.SepValidationException;
 import org.stellar.anchor.api.sep.sep24.GetTransactionsRequest;
+import org.stellar.anchor.sep24.Sep24RefundPayment;
+import org.stellar.anchor.sep24.Sep24Refunds;
 import org.stellar.anchor.sep24.Sep24Transaction;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.util.DateUtil;
@@ -22,6 +24,16 @@ public class JdbcSep24TransactionStore implements Sep24TransactionStore {
   @Override
   public Sep24Transaction newInstance() {
     return new JdbcSep24Transaction();
+  }
+
+  @Override
+  public Sep24Refunds newRefunds() {
+    return new JdbcSep24Refunds();
+  }
+
+  @Override
+  public Sep24RefundPayment newRefundPayment() {
+    return new JdbcSep24RefundPayment();
   }
 
   @Override

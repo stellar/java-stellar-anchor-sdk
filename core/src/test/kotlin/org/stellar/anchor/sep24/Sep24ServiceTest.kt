@@ -37,6 +37,7 @@ import org.stellar.anchor.auth.JwtToken
 import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.config.Sep24Config
+import org.stellar.anchor.event.EventService
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.MemoHelper.makeMemo
 import org.stellar.sdk.MemoHash
@@ -53,6 +54,7 @@ internal class Sep24ServiceTest {
   @MockK(relaxed = true) lateinit var appConfig: AppConfig
   @MockK(relaxed = true) lateinit var secretConfig: SecretConfig
   @MockK(relaxed = true) lateinit var sep24Config: Sep24Config
+  @MockK(relaxed = true) lateinit var eventService: EventService
   @MockK(relaxed = true) private lateinit var txnStore: Sep24TransactionStore
 
   private val assetService: AssetService = ResourceJsonAssetService("test_assets.json")
@@ -76,7 +78,8 @@ internal class Sep24ServiceTest {
 
     jwtService = spyk(JwtService(secretConfig))
 
-    sep24Service = Sep24Service(gson, appConfig, sep24Config, assetService, jwtService, txnStore)
+    sep24Service =
+      Sep24Service(appConfig, sep24Config, assetService, jwtService, txnStore, eventService)
   }
 
   @AfterEach

@@ -1,7 +1,6 @@
 package org.stellar.anchor.sep31;
 
 import org.stellar.anchor.api.sep.sep31.Sep31GetTransactionResponse;
-import org.stellar.anchor.api.shared.Amount;
 
 public interface RefundPayment {
   String getId();
@@ -27,23 +26,6 @@ public interface RefundPayment {
         .id(getId())
         .amount(getAmount())
         .fee(getFee())
-        .build();
-  }
-
-  /**
-   * Will create a PlatformApi RefundPayment object out of this SEP-31 RefundPayment object.
-   *
-   * @param assetName is the full asset name in the {schema}:{code}:{issuer} format.
-   * @return a PlatformApi RefundPayment object.
-   */
-  default org.stellar.anchor.api.shared.RefundPayment toPlatformApiRefundPayment(String assetName) {
-    return org.stellar.anchor.api.shared.RefundPayment.builder()
-        .id(getId())
-        .idType(org.stellar.anchor.api.shared.RefundPayment.IdType.STELLAR)
-        .amount(new Amount(getAmount(), assetName))
-        .fee(new Amount(getFee(), assetName))
-        .requestedAt(null)
-        .refundedAt(null)
         .build();
   }
 
