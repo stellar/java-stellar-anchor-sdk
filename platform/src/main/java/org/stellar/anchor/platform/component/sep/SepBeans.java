@@ -1,6 +1,5 @@
 package org.stellar.anchor.platform.component.sep;
 
-import com.google.gson.Gson;
 import java.io.IOException;
 import javax.servlet.Filter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -132,7 +131,6 @@ public class SepBeans {
 
   @Bean
   Sep24Service sep24Service(
-      Gson gson,
       AppConfig appConfig,
       Sep24Config sep24Config,
       AssetService assetService,

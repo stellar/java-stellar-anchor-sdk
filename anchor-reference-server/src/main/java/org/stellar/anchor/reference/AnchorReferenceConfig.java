@@ -21,7 +21,7 @@ import org.stellar.anchor.util.GsonUtils;
 public class AnchorReferenceConfig {
   @Bean
   public Gson gson() {
-    return GsonUtils.builder().create();
+    return GsonUtils.getInstance();
   }
 
   @Bean(name = "eventListener")

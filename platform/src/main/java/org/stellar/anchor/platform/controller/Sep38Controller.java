@@ -25,7 +25,7 @@ import org.stellar.anchor.util.GsonUtils;
 @ConditionalOnAllSepsEnabled(seps = {"sep38"})
 public class Sep38Controller {
   private final Sep38Service sep38Service;
-  private static final Gson gson = GsonUtils.builder().create();
+  private static final Gson gson = GsonUtils.getInstance();
 
   public Sep38Controller(Sep38Service sep38Service) {
     this.sep38Service = sep38Service;

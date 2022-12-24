@@ -36,7 +36,6 @@ public class UtilityBeans {
    * Secret configurations
    */
   @Bean
-  @ConfigurationProperties
   PropertySecretConfig secretConfig() {
     return new PropertySecretConfig();
   }
