@@ -1,5 +1,8 @@
 package org.stellar.anchor.util;
 
+import com.google.gson.Gson;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import org.apache.commons.text.WordUtils;
 
@@ -49,5 +52,15 @@ public class StringHelper {
         .replaceAll("-", "_")
         .replaceAll("\\.", "_")
         .toUpperCase();
+  }
+
+  static Gson gson = GsonUtils.getInstance();
+
+  public static String json(Object obj) {
+    return gson.toJson(obj);
+  }
+
+  public static String sanitize(String value) {
+    return URLEncoder.encode(value.replace("\n", "").replace("\r", ""), StandardCharsets.UTF_8);
   }
 }

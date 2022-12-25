@@ -1,5 +1,7 @@
 package org.stellar.anchor.platform.utils;
 
+import static org.stellar.anchor.util.StringHelper.sanitize;
+
 import java.util.stream.Collectors;
 import lombok.Builder;
 
@@ -57,12 +59,16 @@ public class RequestResponseMessage {
   }
 
   static String getStrValue(Object obj) {
+    String result = null;
     if (obj == null) {
       return null;
     }
     if (obj instanceof String) {
-      return String.format("\"%s\"", obj);
+      result = String.format("\"%s\"", obj);
+    } else {
+      result = obj.toString();
     }
-    return obj.toString();
+
+    return sanitize(result);
   }
 }
