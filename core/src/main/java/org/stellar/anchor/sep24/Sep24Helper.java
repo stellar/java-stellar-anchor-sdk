@@ -62,7 +62,7 @@ public class Sep24Helper {
             txn.getClientDomain());
 
     // TODO: Fix the more_info_url
-    URI uri = new URI("more_info_url");
+    URI uri = new URI("https://www.stellar.org");
 
     URIBuilder builder =
         new URIBuilder()

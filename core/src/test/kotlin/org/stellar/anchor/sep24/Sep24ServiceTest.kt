@@ -62,6 +62,7 @@ internal class Sep24ServiceTest {
 
   private lateinit var jwtService: JwtService
   private lateinit var sep24Service: Sep24Service
+  private lateinit var createdJwt: JwtToken
 
   private val gson = GsonUtils.getInstance()
 
@@ -71,14 +72,14 @@ internal class Sep24ServiceTest {
     every { appConfig.stellarNetworkPassphrase } returns TestConstants.TEST_NETWORK_PASS_PHRASE
     every { appConfig.hostUrl } returns TestConstants.TEST_HOST_URL
     every { secretConfig.sep10JwtSecretKey } returns TestConstants.TEST_JWT_SECRET
-
-    every { interactiveUrlConstructor.construct(any(), any(), any(), any()) } returns
-      TEST_SEP24_INTERACTIVE_URL
     every { sep24Config.interactiveJwtExpiration } returns 1000
-
     every { txnStore.newInstance() } returns PojoSep24Transaction()
 
     jwtService = spyk(JwtService(secretConfig))
+    createdJwt = createJwtToken()
+    val strToken = jwtService.encode(createdJwt)
+    every { interactiveUrlConstructor.construct(any(), any(), any(), any()) } returns
+      "${TEST_SEP24_INTERACTIVE_URL}?lang=en&token=$strToken"
 
     sep24Service =
       Sep24Service(
@@ -104,8 +105,8 @@ internal class Sep24ServiceTest {
 
     every { txnStore.save(capture(slotTxn)) } returns null
 
-    var response =
-      sep24Service.withdraw("/sep24/withdraw", createJwtToken(), createTestTransactionRequest())
+    val response =
+      sep24Service.withdraw("/sep24/withdraw", createdJwt, createTestTransactionRequest())
 
     verify(exactly = 1) { txnStore.save(any()) }
 
@@ -126,23 +127,30 @@ internal class Sep24ServiceTest {
     assertEquals(slotTxn.captured.amountIn, "123.4")
     assertEquals(slotTxn.captured.amountOut, "123.4")
 
-    var params = URLEncodedUtils.parse(URI(response.url), Charset.forName("UTF-8"))
-    var tokenStrings = params.filter { pair -> pair.name.equals("token") }
+    val params = URLEncodedUtils.parse(URI(response.url), Charset.forName("UTF-8"))
+    val tokenStrings = params.filter { pair -> pair.name.equals("token") }
     assertEquals(tokenStrings.size, 1)
-    var tokenString = tokenStrings[0].value
-    var decodedToken = jwtService.decode(tokenString)
+    val tokenString = tokenStrings[0].value
+    val decodedToken = jwtService.decode(tokenString)
     assertEquals(decodedToken.sub, TEST_ACCOUNT)
     assertEquals(decodedToken.clientDomain, TEST_CLIENT_DOMAIN)
+  }
 
-    // Now test with a memo
-    response =
-      sep24Service.withdraw("/sep24/withdraw", createJwtWithMemo(), createTestTransactionRequest())
+  @Test
+  fun `test withdraw with token memo`() {
+    createdJwt = createJwtWithMemo()
+    val strToken = jwtService.encode(createdJwt)
+    every { interactiveUrlConstructor.construct(any(), any(), any(), any()) } returns
+      "${TEST_SEP24_INTERACTIVE_URL}?lang=en&token=$strToken"
 
-    params = URLEncodedUtils.parse(URI(response.url), Charset.forName("UTF-8"))
-    tokenStrings = params.filter { pair -> pair.name.equals("token") }
+    val response =
+      sep24Service.withdraw("/sep24/withdraw", createdJwt, createTestTransactionRequest())
+
+    val params = URLEncodedUtils.parse(URI(response.url), Charset.forName("UTF-8"))
+    val tokenStrings = params.filter { pair -> pair.name.equals("token") }
     assertEquals(tokenStrings.size, 1)
-    tokenString = tokenStrings[0].value
-    decodedToken = jwtService.decode(tokenString)
+    val tokenString = tokenStrings[0].value
+    val decodedToken = jwtService.decode(tokenString)
     assertEquals(
       "$TEST_ACCOUNT:$TEST_MEMO",
       decodedToken.sub,
@@ -217,7 +225,7 @@ internal class Sep24ServiceTest {
 
     val request = createTestTransactionRequest()
     request["claimable_balance_supported"] = claimable_balance_supported
-    var response = sep24Service.deposit("/sep24/deposit", createJwtToken(), request)
+    var response = sep24Service.deposit("/sep24/deposit", createdJwt, request)
 
     verify(exactly = 1) { txnStore.save(any()) }
 
@@ -236,8 +244,18 @@ internal class Sep24ServiceTest {
     assertEquals(slotTxn.captured.amountOut, "123.4")
 
     // Now test with a memo
-    response =
-      sep24Service.withdraw("/sep24/withdraw", createJwtWithMemo(), createTestTransactionRequest())
+
+  }
+
+  @Test
+  fun `test deposit with token memo`() {
+    createdJwt = createJwtWithMemo()
+    val strToken = jwtService.encode(createdJwt)
+    every { interactiveUrlConstructor.construct(any(), any(), any(), any()) } returns
+      "${TEST_SEP24_INTERACTIVE_URL}?lang=en&token=$strToken"
+
+    val response =
+      sep24Service.withdraw("/sep24/withdraw", createdJwt, createTestTransactionRequest())
 
     val params = URLEncodedUtils.parse(URI(response.url), Charset.forName("UTF-8"))
     val tokenStrings = params.filter { pair -> pair.name.equals("token") }
@@ -445,11 +463,8 @@ internal class Sep24ServiceTest {
 
     val request = createTestTransactionRequest()
     request["lang"] = "en"
-    var response = sep24Service.withdraw("/sep24/withdraw", createJwtToken(), request)
+    val response = sep24Service.withdraw("/sep24/withdraw", createJwtToken(), request)
     assertTrue(response.url.indexOf("lang=en") != -1)
-    request.remove("lang")
-    response = sep24Service.withdraw("/sep24/withdraw", createJwtToken(), request)
-    assertTrue(response.url.indexOf("lang=en-US") != -1)
   }
 
   private fun createJwtToken(): JwtToken {

@@ -1,11 +1,13 @@
 package org.stellar.anchor.platform.config;
 
 import java.util.List;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 import org.stellar.anchor.config.Sep24Config;
+import org.stellar.anchor.util.NetUtil;
 
 @Data
 public class PropertySep24Config implements Sep24Config, Validator {
@@ -14,12 +16,14 @@ public class PropertySep24Config implements Sep24Config, Validator {
   InteractiveUrlConfig interactiveUrl;
 
   @Data
+  @AllArgsConstructor
   public static class InteractiveUrlConfig {
     String type;
     SimpleInteractiveUrlConfig simple;
   }
 
   @Data
+  @AllArgsConstructor
   public static class SimpleInteractiveUrlConfig {
     String baseUrl;
     List<String> txnFields;
@@ -41,6 +45,37 @@ public class PropertySep24Config implements Sep24Config, Validator {
           String.format(
               "sep24.interactive_jwt_expiration:%s is not valid",
               config.getInteractiveJwtExpiration()));
+    }
+
+    if (config.interactiveUrl == null) {
+      errors.rejectValue(
+          "interactiveUrl",
+          "sep24-interactive-url-invalid",
+          "sep24.interactive_url is not defined.");
+    }
+
+    if ("simple".equals(config.interactiveUrl.getType())) {
+      if (config.interactiveUrl.getSimple() == null) {
+        errors.rejectValue(
+            "interactiveUrl",
+            "sep24-interactive-url-simple-not-defined",
+            "sep24.interactive_url.simple is not defined.");
+      }
+      if (!NetUtil.isUrlValid(config.interactiveUrl.simple.baseUrl)) {
+        errors.rejectValue(
+            "interactiveUrl",
+            "sep24-interactive-url-simple-base-url-not-valid",
+            String.format(
+                "sep24.interactive_url.simple.base_url:[%s] is not a valid URL.",
+                config.interactiveUrl.simple.baseUrl));
+      }
+    } else {
+      errors.rejectValue(
+          "interactiveUrl",
+          "sep24-interactive-url-invalid-type",
+          String.format(
+              "sep24.interactive_url.type:[%s] is not supported.",
+              config.interactiveUrl.getType()));
     }
 
     //    if (isEmpty(config.getInteractiveUrl())) {
