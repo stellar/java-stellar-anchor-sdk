@@ -5,9 +5,9 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.asset.AssetService;
+import org.stellar.anchor.asset.DefaultAssetService;
 import org.stellar.anchor.config.AssetsConfig;
 import org.stellar.anchor.platform.config.PropertyAssetsConfig;
-import org.stellar.anchor.platform.service.PropertyAssetsService;
 
 @Configuration
 public class AssetBeans {
@@ -19,6 +19,6 @@ public class AssetBeans {
 
   @Bean
   AssetService assetService(AssetsConfig assetsConfig) throws InvalidConfigException {
-    return new PropertyAssetsService(assetsConfig);
+    return DefaultAssetService.fromAssetConfig(assetsConfig);
   }
 }

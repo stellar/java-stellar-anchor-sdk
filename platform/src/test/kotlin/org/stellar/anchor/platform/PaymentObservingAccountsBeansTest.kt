@@ -11,7 +11,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.stellar.anchor.api.exception.ServerErrorException
 import org.stellar.anchor.asset.AssetService
-import org.stellar.anchor.asset.ResourceJsonAssetService
+import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.platform.component.observer.PaymentObserverBeans
 import org.stellar.anchor.platform.config.PaymentObserverConfig
@@ -38,7 +38,7 @@ class PaymentObservingAccountsBeansTest {
 
   @Test
   fun test_stellarPaymentObserverService_failure() {
-    val assetService: AssetService = ResourceJsonAssetService("test_assets.json")
+    val assetService: AssetService = DefaultAssetService.fromResource("test_assets.json")
     val paymentObserverBeans = PaymentObserverBeans()
     val mockPaymentListener = mockk<PaymentListener>()
     val mockPaymentListeners = listOf(mockPaymentListener)
@@ -131,7 +131,7 @@ class PaymentObservingAccountsBeansTest {
   fun test_givenGoodManager_whenConstruct_thenOk() {
     // success!
     val paymentObserverBeans = PaymentObserverBeans()
-    val assetService: AssetService = ResourceJsonAssetService("test_assets.json")
+    val assetService: AssetService = DefaultAssetService.fromResource("test_assets.json")
     val mockPaymentListener = mockk<PaymentListener>()
     val mockPaymentListeners = listOf(mockPaymentListener)
 

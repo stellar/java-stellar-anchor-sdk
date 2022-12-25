@@ -17,7 +17,7 @@ import org.stellar.anchor.api.callback.CustomerIntegration
 import org.stellar.anchor.api.callback.FeeIntegration
 import org.stellar.anchor.api.sep.sep31.Sep31DepositInfo
 import org.stellar.anchor.asset.AssetService
-import org.stellar.anchor.asset.ResourceJsonAssetService
+import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.Sep31Config
 import org.stellar.anchor.event.EventService
@@ -47,7 +47,7 @@ class Sep31DepositInfoGeneratorTest {
     """
   }
 
-  private val assetService: AssetService = ResourceJsonAssetService("test_assets.json")
+  private val assetService: AssetService = DefaultAssetService.fromResource("test_assets.json")
 
   @MockK(relaxed = true) private lateinit var txnStore: Sep31TransactionStore
   @MockK(relaxed = true) private lateinit var appConfig: AppConfig

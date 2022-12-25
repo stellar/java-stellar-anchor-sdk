@@ -24,7 +24,7 @@ import org.stellar.anchor.api.shared.Amount
 import org.stellar.anchor.api.shared.RefundPayment
 import org.stellar.anchor.api.shared.Refunds
 import org.stellar.anchor.asset.AssetService
-import org.stellar.anchor.asset.ResourceJsonAssetService
+import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.event.EventService
 import org.stellar.anchor.platform.data.JdbcSep31RefundPayment
 import org.stellar.anchor.platform.data.JdbcSep31Refunds
@@ -166,7 +166,7 @@ class TransactionServiceTest {
     assertEquals("'$fiatUSD' is not a supported asset.", ex.message)
 
     // fails if listAllAssets does not contain the desired asset
-    this.assetService = ResourceJsonAssetService("test_assets.json")
+    this.assetService = DefaultAssetService.fromResource("test_assets.json")
     ex = assertThrows { transactionService.validateAsset("amount_in", mockAsset) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("'$fiatUSD' is not a supported asset.", ex.message)
@@ -174,7 +174,7 @@ class TransactionServiceTest {
 
   @Test
   fun test_validateAsset() {
-    this.assetService = ResourceJsonAssetService("test_assets.json")
+    this.assetService = DefaultAssetService.fromResource("test_assets.json")
     transactionService =
       TransactionService(
         sep24TransactionStore,
@@ -280,7 +280,7 @@ class TransactionServiceTest {
     every { mockSep38Quote.fee.asset } returns fiatUSD
     every { sep38QuoteStore.findByQuoteId(quoteId) } returns mockSep38Quote
 
-    this.assetService = ResourceJsonAssetService("test_assets.json")
+    this.assetService = DefaultAssetService.fromResource("test_assets.json")
     transactionService =
       TransactionService(
         sep24TransactionStore,
