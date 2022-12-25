@@ -32,6 +32,10 @@ public class KafkaEventPublisher implements EventPublisher {
     props.put(RETRIES_CONFIG, kafkaConfig.getRetries());
     props.put(LINGER_MS_CONFIG, kafkaConfig.getLingerMs());
     props.put(BATCH_SIZE_CONFIG, kafkaConfig.getBatchSize());
+    // reconnect back-off is 1 second
+    props.put(RECONNECT_BACKOFF_MS_CONFIG, "1000");
+    // maximum reconnect back-off is 10 seconds
+    props.put(RECONNECT_BACKOFF_MAX_MS_CONFIG, "10000");
 
     createPublisher(props);
   }
