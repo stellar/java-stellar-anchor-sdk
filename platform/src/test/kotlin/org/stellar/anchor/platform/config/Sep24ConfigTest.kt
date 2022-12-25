@@ -8,6 +8,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.validation.BindException
 import org.springframework.validation.Errors
+import org.stellar.anchor.platform.config.PropertySep24Config.InteractiveUrlConfig
 
 class Sep24ConfigTest {
   lateinit var config: PropertySep24Config
@@ -18,32 +19,40 @@ class Sep24ConfigTest {
     config = PropertySep24Config()
     config.enabled = true
     errors = BindException(config, "config")
+    config.interactiveJwtExpiration = 1200
+    config.interactiveUrl =
+      InteractiveUrlConfig(
+        "simple",
+        PropertySep24Config.SimpleInteractiveUrlConfig("https://www.stellar.org", listOf(""))
+      )
   }
 
   @Test
   fun `test valid sep24 configuration`() {
-    config.interactiveUrl = "https://www.stellar.org"
-    config.interactiveJwtExpiration = 1200
-
     config.validate(config, errors)
     assertFalse(errors.hasErrors())
   }
 
   @ParameterizedTest
-  @ValueSource(strings = ["", "123", "http://abc .com"])
-  fun `test bad interactive url`(url: String) {
-    config.interactiveUrl = url
+  @ValueSource(ints = [-1, Integer.MIN_VALUE, 0])
+  fun `test bad interactive jwt expiration`(expiration: Int) {
+    config.interactiveJwtExpiration = expiration
+
     config.validate(config, errors)
     assertTrue(errors.hasErrors())
-    assertErrorCode(errors, "sep24-interactive-url-invalid")
+    assertErrorCode(errors, "sep24-interactive-jwt-expiration-invalid")
   }
 
   @ParameterizedTest
-  @ValueSource(ints = [-1, Integer.MIN_VALUE, 0])
-  fun `test bad interactive jwt expiration`(expiration: Int) {
-    config.setInteractiveJwtExpiration(expiration)
+  @ValueSource(strings = ["httpss://www.stellar.org"])
+  fun `test bad url`(url: String) {
+    config.interactiveUrl =
+      InteractiveUrlConfig(
+        "simple",
+        PropertySep24Config.SimpleInteractiveUrlConfig(url, listOf(""))
+      )
+
     config.validate(config, errors)
     assertTrue(errors.hasErrors())
-    assertErrorCode(errors, "sep24-interactive-url-invalid")
   }
 }

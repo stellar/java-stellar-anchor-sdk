@@ -21,9 +21,11 @@ import org.stellar.anchor.platform.config.*;
 import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountsManager;
 import org.stellar.anchor.platform.service.Sep31DepositInfoGeneratorApi;
 import org.stellar.anchor.platform.service.Sep31DepositInfoGeneratorSelf;
+import org.stellar.anchor.platform.service.SimpleInteractiveUrlConstructor;
 import org.stellar.anchor.sep1.Sep1Service;
 import org.stellar.anchor.sep10.Sep10Service;
 import org.stellar.anchor.sep12.Sep12Service;
+import org.stellar.anchor.sep24.InteractiveUrlConstructor;
 import org.stellar.anchor.sep24.Sep24Service;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31DepositInfoGenerator;
@@ -58,7 +60,7 @@ public class SepBeans {
 
   @Bean
   @ConfigurationProperties(prefix = "sep24")
-  Sep24Config sep24Config() {
+  PropertySep24Config sep24Config() {
     return new PropertySep24Config();
   }
 
@@ -136,9 +138,23 @@ public class SepBeans {
       AssetService assetService,
       JwtService jwtService,
       Sep24TransactionStore sep24TransactionStore,
-      EventService eventService) {
+      EventService eventService,
+      InteractiveUrlConstructor interactiveUrlConstructor) {
     return new Sep24Service(
-        appConfig, sep24Config, assetService, jwtService, sep24TransactionStore, eventService);
+        appConfig,
+        sep24Config,
+        assetService,
+        jwtService,
+        sep24TransactionStore,
+        eventService,
+        interactiveUrlConstructor);
+  }
+
+  @Bean
+  InteractiveUrlConstructor interactiveUrlConstructor(
+      PropertySep24Config sep24Config, JwtService jwtService) {
+    return new SimpleInteractiveUrlConstructor(
+        sep24Config.getInteractiveUrl().getSimple(), jwtService);
   }
 
   @Bean

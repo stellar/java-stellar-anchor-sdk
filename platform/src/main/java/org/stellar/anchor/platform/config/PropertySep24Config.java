@@ -1,8 +1,9 @@
 package org.stellar.anchor.platform.config;
 
-import static org.stellar.anchor.util.StringHelper.isEmpty;
-
+import java.util.List;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
@@ -13,7 +14,23 @@ import org.stellar.anchor.util.NetUtil;
 public class PropertySep24Config implements Sep24Config, Validator {
   boolean enabled;
   int interactiveJwtExpiration;
-  String interactiveUrl;
+  InteractiveUrlConfig interactiveUrl;
+
+  @Data
+  @AllArgsConstructor
+  @NoArgsConstructor
+  public static class InteractiveUrlConfig {
+    String type;
+    SimpleInteractiveUrlConfig simple;
+  }
+
+  @Data
+  @AllArgsConstructor
+  @NoArgsConstructor
+  public static class SimpleInteractiveUrlConfig {
+    String baseUrl;
+    List<String> txnFields;
+  }
 
   @Override
   public boolean supports(@NotNull Class<?> clazz) {
@@ -23,17 +40,6 @@ public class PropertySep24Config implements Sep24Config, Validator {
   @Override
   public void validate(@NotNull Object target, @NotNull Errors errors) {
     PropertySep24Config config = (PropertySep24Config) target;
-    if (isEmpty(config.getInteractiveUrl())) {
-      errors.rejectValue(
-          "interactiveUrl",
-          "sep24-interactive-url-invalid",
-          "sep24.interactive_url is not defined.");
-    } else if (!NetUtil.isUrlValid(config.getInteractiveUrl())) {
-      errors.rejectValue(
-          "interactiveUrl",
-          "sep24-interactive-url-invalid",
-          String.format("sep24.interactive_url:%s is not valid", config.getInteractiveUrl()));
-    }
 
     if (config.getInteractiveJwtExpiration() <= 0) {
       errors.rejectValue(
@@ -42,6 +48,37 @@ public class PropertySep24Config implements Sep24Config, Validator {
           String.format(
               "sep24.interactive_jwt_expiration:%s is not valid",
               config.getInteractiveJwtExpiration()));
+    }
+
+    if (config.interactiveUrl == null) {
+      errors.rejectValue(
+          "interactiveUrl",
+          "sep24-interactive-url-invalid",
+          "sep24.interactive_url is not defined.");
+    } else {
+      if ("simple".equals(config.interactiveUrl.getType())) {
+        if (config.interactiveUrl.getSimple() == null) {
+          errors.rejectValue(
+              "interactiveUrl",
+              "sep24-interactive-url-simple-not-defined",
+              "sep24.interactive_url.simple is not defined.");
+        }
+        if (!NetUtil.isUrlValid(config.interactiveUrl.simple.baseUrl)) {
+          errors.rejectValue(
+              "interactiveUrl",
+              "sep24-interactive-url-simple-base-url-not-valid",
+              String.format(
+                  "sep24.interactive_url.simple.base_url:[%s] is not a valid URL.",
+                  config.interactiveUrl.simple.baseUrl));
+        }
+      } else {
+        errors.rejectValue(
+            "interactiveUrl",
+            "sep24-interactive-url-invalid-type",
+            String.format(
+                "sep24.interactive_url.type:[%s] is not supported.",
+                config.interactiveUrl.getType()));
+      }
     }
   }
 }

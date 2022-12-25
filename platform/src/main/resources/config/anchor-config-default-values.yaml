@@ -278,7 +278,6 @@ sep12:
   enabled: false
 
 sep24:
-
   ## SEP24 in experimental.
 
   ## @param: enabled
@@ -298,10 +297,20 @@ sep24:
   interactive_jwt_expiration: 3600
 
   ## @param: interactive_url
-  ## @type: string
-  ## The interactive URL where the platform server will redirect to start the SEP-24 interactive flow.
-  #
-  interactive_url: http://localhost:8080/sep24/interactive
+  # Configures the interactive URL where the platform server will redirect to start the SEP-24 interactive flow.
+  # If the type is `simple`, sep24.interactive_url.simple will be read to construct the url.
+  #   base_uri: is the base_uri used to construct the interactive url
+  #   txn_fields: is the list of transaction fields that will be read to the interactive url as query parameters
+  #   In addition to the txn_fields, the following fields are also added to the query parameters.
+  #       `transaction_id`: the transaction ID
+  #       `token`: the JWT token
+  #       `lang`: the lang request parameter and
+  #       any defined SEP-9 fields fromt he request parameters.
+  interactive_url:
+    type: simple
+    simple:
+      base_url: http://localhost:8080/sep24/interactive
+      txn_fields: status, kind, amount_in, amount_in_asset
 
 sep31:
 
