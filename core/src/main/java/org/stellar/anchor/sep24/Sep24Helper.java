@@ -61,7 +61,8 @@ public class Sep24Helper {
             txn.getTransactionId(),
             txn.getClientDomain());
 
-    URI uri = new URI(sep24Config.getInteractiveUrl());
+    // TODO: Fix the more_info_url
+    URI uri = new URI("more_info_url");
 
     URIBuilder builder =
         new URIBuilder()

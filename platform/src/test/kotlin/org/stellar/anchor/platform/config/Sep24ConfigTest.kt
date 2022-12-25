@@ -22,20 +22,10 @@ class Sep24ConfigTest {
 
   @Test
   fun `test valid sep24 configuration`() {
-    config.interactiveUrl = "https://www.stellar.org"
     config.interactiveJwtExpiration = 1200
 
     config.validate(config, errors)
     assertFalse(errors.hasErrors())
-  }
-
-  @ParameterizedTest
-  @ValueSource(strings = ["", "123", "http://abc .com"])
-  fun `test bad interactive url`(url: String) {
-    config.interactiveUrl = url
-    config.validate(config, errors)
-    assertTrue(errors.hasErrors())
-    assertErrorCode(errors, "sep24-interactive-url-invalid")
   }
 
   @ParameterizedTest

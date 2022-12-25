@@ -55,7 +55,8 @@ internal class Sep24ServiceTest {
   @MockK(relaxed = true) lateinit var secretConfig: SecretConfig
   @MockK(relaxed = true) lateinit var sep24Config: Sep24Config
   @MockK(relaxed = true) lateinit var eventService: EventService
-  @MockK(relaxed = true) private lateinit var txnStore: Sep24TransactionStore
+  @MockK(relaxed = true) lateinit var txnStore: Sep24TransactionStore
+  @MockK(relaxed = true) lateinit var interactiveUrlConstructor: InteractiveUrlConstructor
 
   private val assetService: AssetService = ResourceJsonAssetService("test_assets.json")
 
@@ -71,7 +72,8 @@ internal class Sep24ServiceTest {
     every { appConfig.hostUrl } returns TestConstants.TEST_HOST_URL
     every { secretConfig.sep10JwtSecretKey } returns TestConstants.TEST_JWT_SECRET
 
-    every { sep24Config.interactiveUrl } returns TEST_SEP24_INTERACTIVE_URL
+    every { interactiveUrlConstructor.construct(any(), any(), any(), any()) } returns
+      TEST_SEP24_INTERACTIVE_URL
     every { sep24Config.interactiveJwtExpiration } returns 1000
 
     every { txnStore.newInstance() } returns PojoSep24Transaction()
@@ -79,7 +81,15 @@ internal class Sep24ServiceTest {
     jwtService = spyk(JwtService(secretConfig))
 
     sep24Service =
-      Sep24Service(appConfig, sep24Config, assetService, jwtService, txnStore, eventService)
+      Sep24Service(
+        appConfig,
+        sep24Config,
+        assetService,
+        jwtService,
+        txnStore,
+        eventService,
+        interactiveUrlConstructor
+      )
   }
 
   @AfterEach

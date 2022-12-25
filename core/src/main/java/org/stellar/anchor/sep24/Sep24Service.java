@@ -16,11 +16,9 @@ import static org.stellar.anchor.util.SepLanguageHelper.validateLanguage;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.*;
-import org.apache.http.client.utils.URIBuilder;
 import org.stellar.anchor.api.exception.*;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.sep24.*;
@@ -40,6 +38,7 @@ public class Sep24Service {
   final JwtService jwtService;
   final Sep24TransactionStore txnStore;
   final EventService eventService;
+  final InteractiveUrlConstructor interactiveUrlConstructor;
 
   public Sep24Service(
       AppConfig appConfig,
@@ -47,7 +46,8 @@ public class Sep24Service {
       AssetService assetService,
       JwtService jwtService,
       Sep24TransactionStore txnStore,
-      EventService eventService) {
+      EventService eventService,
+      InteractiveUrlConstructor interactiveUrlConstructor) {
     debug("appConfig:", appConfig);
     debug("sep24Config:", sep24Config);
     this.appConfig = appConfig;
@@ -56,6 +56,7 @@ public class Sep24Service {
     this.jwtService = jwtService;
     this.txnStore = txnStore;
     this.eventService = eventService;
+    this.interactiveUrlConstructor = interactiveUrlConstructor;
     info("Sep24Service initialized.");
   }
 
@@ -153,14 +154,8 @@ public class Sep24Service {
     debug("Transaction details:", txn);
     return new InteractiveTransactionResponse(
         "interactive_customer_info_needed",
-        constructInteractiveUrl(
-            "withdraw",
-            buildRedirectJwtToken(fullRequestUrl, token, txn),
-            sep9Fields,
-            lang,
-            assetCode,
-            strAmount,
-            txn.getTransactionId()),
+        interactiveUrlConstructor.construct(
+            buildRedirectJwtToken(fullRequestUrl, token, txn), txn, lang, sep9Fields),
         txn.getTransactionId());
   }
 
@@ -274,14 +269,8 @@ public class Sep24Service {
 
     return new InteractiveTransactionResponse(
         "interactive_customer_info_needed",
-        constructInteractiveUrl(
-            "deposit",
-            buildRedirectJwtToken(fullRequestUrl, token, txn),
-            sep9Fields,
-            lang,
-            assetCode,
-            strAmount,
-            txn.getTransactionId()),
+        interactiveUrlConstructor.construct(
+            buildRedirectJwtToken(fullRequestUrl, token, txn), txn, lang, sep9Fields),
         txn.getTransactionId());
   }
 
@@ -414,44 +403,5 @@ public class Sep24Service {
 
   List<AssetInfo> listAllAssets() {
     return this.assetService.listAllAssets();
-  }
-
-  String constructInteractiveUrl(
-      String op,
-      JwtToken token,
-      HashMap<String, String> sep9Fields,
-      String lang,
-      String assetCode,
-      String amount,
-      String txnId)
-      throws URISyntaxException, MalformedURLException {
-
-    String interactiveUrlHostname = sep24Config.getInteractiveUrl();
-
-    URI uri = new URI(interactiveUrlHostname);
-
-    URIBuilder builder =
-        new URIBuilder()
-            .setScheme(uri.getScheme())
-            .setHost(uri.getHost())
-            .setPort(uri.getPort())
-            .setPath(uri.getPath())
-            .addParameter("operation", op)
-            .addParameter("asset_code", assetCode)
-            .addParameter("transaction_id", txnId)
-            .addParameter("token", jwtService.encode(token));
-
-    if (amount != null) {
-      builder.addParameter("amount", amount);
-    }
-
-    if (lang != null) {
-      builder.addParameter("lang", lang);
-    }
-
-    // Add Sep9 fields to url
-    sep9Fields.forEach(builder::addParameter);
-
-    return builder.build().toURL().toString();
   }
 }

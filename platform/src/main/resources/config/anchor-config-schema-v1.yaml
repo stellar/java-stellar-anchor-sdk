@@ -70,7 +70,9 @@ sep10.require_known_omnibus_account:
 sep12.enabled:
 sep24.enabled:
 sep24.interactive_jwt_expiration:
-sep24.interactive_url:
+sep24.interactive_url.simple.base_url:
+sep24.interactive_url.simple.txn_fields:
+sep24.interactive_url.type:
 sep31.deposit_info_generator_type:
 sep31.enabled:
 sep31.payment_type:
