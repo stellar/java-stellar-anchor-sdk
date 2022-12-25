@@ -63,9 +63,9 @@ class Sep1ConfigTest {
   @ParameterizedTest
   @ValueSource(strings = ["bad", "strin g"])
   fun `test bad Sep1Config values`(type: String?) {
-    val errors = validate(PropertySep1Config(true, fromString(type), getTestTomlAsUrl()))
-    assertEquals(1, errors.errorCount)
-    assertEquals("sep1-toml-type-invalid", errors.allErrors[0].code)
+    assertThrows<InvalidConfigException> {
+      validate(PropertySep1Config(true, fromString(type), getTestTomlAsUrl()))
+    }
   }
 
   @ParameterizedTest

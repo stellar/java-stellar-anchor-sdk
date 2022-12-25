@@ -1,6 +1,7 @@
 package org.stellar.anchor.config;
 
 import org.stellar.anchor.api.exception.InvalidConfigException;
+import org.stellar.anchor.util.StringHelper;
 
 @SuppressWarnings("unused")
 public interface Sep1Config {
@@ -16,7 +17,7 @@ public interface Sep1Config {
     URL;
 
     public static TomlType fromString(String name) throws InvalidConfigException {
-      if (name == null) return null;
+      if (StringHelper.isEmpty(name)) name = "";
       switch (name.toLowerCase()) {
         case "string":
           return STRING;
