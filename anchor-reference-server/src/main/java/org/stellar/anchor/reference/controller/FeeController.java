@@ -15,7 +15,7 @@ import org.stellar.anchor.util.GsonUtils;
 @RestController
 public class FeeController {
   final FeeService feeService;
-  static final Gson gson = GsonUtils.builder().create();
+  static final Gson gson = GsonUtils.getInstance();
 
   public FeeController(FeeService feeService) {
     this.feeService = feeService;

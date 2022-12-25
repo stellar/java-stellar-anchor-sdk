@@ -12,7 +12,7 @@ import org.stellar.anchor.util.GsonUtils;
 @RestController
 public class RateController {
   private final RateService rateService;
-  private static final Gson gson = GsonUtils.builder().create();
+  private static final Gson gson = GsonUtils.getInstance();
 
   public RateController(RateService rateService) {
     this.rateService = rateService;

@@ -3,15 +3,13 @@ package org.stellar.anchor.platform.observer.stellar;
 import static org.stellar.anchor.platform.data.PaymentStreamerCursor.SINGLETON_ID;
 
 import java.util.Optional;
-import org.springframework.stereotype.Component;
 import org.stellar.anchor.platform.data.PaymentStreamerCursor;
 import org.stellar.anchor.platform.data.PaymentStreamerCursorRepo;
 
-@Component
 public class JdbcStellarPaymentStreamerCursorStore implements StellarPaymentStreamerCursorStore {
   private final PaymentStreamerCursorRepo repo;
 
-  JdbcStellarPaymentStreamerCursorStore(PaymentStreamerCursorRepo repo) {
+  public JdbcStellarPaymentStreamerCursorStore(PaymentStreamerCursorRepo repo) {
     this.repo = repo;
   }
 

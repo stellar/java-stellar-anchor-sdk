@@ -16,11 +16,13 @@ import org.stellar.anchor.event.models.AnchorEvent;
 import org.stellar.anchor.platform.config.KafkaConfig;
 import org.stellar.anchor.util.Log;
 
+/** To avoid jmx conflict, this class uses the singleton design pattern. */
 @NoArgsConstructor
 public class KafkaEventPublisher implements EventPublisher {
+  private static KafkaEventPublisher kafkaEventPublisher;
   Producer<String, AnchorEvent> producer;
 
-  public KafkaEventPublisher(KafkaConfig kafkaConfig) {
+  private KafkaEventPublisher(KafkaConfig kafkaConfig) {
     Log.debugF("kafkaConfig: {}", kafkaConfig);
     Properties props = new Properties();
     props.put(BOOTSTRAP_SERVERS_CONFIG, kafkaConfig.getBootstrapServer());
@@ -32,6 +34,14 @@ public class KafkaEventPublisher implements EventPublisher {
     props.put(BATCH_SIZE_CONFIG, kafkaConfig.getBatchSize());
 
     createPublisher(props);
+  }
+
+  public static KafkaEventPublisher getInstance(KafkaConfig kafkaConfig) {
+    if (kafkaEventPublisher == null) {
+      kafkaEventPublisher = new KafkaEventPublisher(kafkaConfig);
+    }
+
+    return kafkaEventPublisher;
   }
 
   protected void createPublisher(Properties props) {

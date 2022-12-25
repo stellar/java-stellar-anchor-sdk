@@ -1,19 +1,16 @@
-package org.stellar.anchor.platform;
+package org.stellar.anchor.platform.component.observer;
 
 import java.util.List;
 import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 import org.stellar.anchor.api.exception.ServerErrorException;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.platform.config.PaymentObserverConfig;
-import org.stellar.anchor.platform.data.PaymentObservingAccountRepo;
 import org.stellar.anchor.platform.observer.PaymentListener;
-import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountStore;
 import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountsManager;
 import org.stellar.anchor.platform.observer.stellar.StellarPaymentObserver;
 import org.stellar.anchor.platform.observer.stellar.StellarPaymentStreamerCursorStore;
@@ -21,7 +18,6 @@ import org.stellar.anchor.platform.observer.stellar.StellarPaymentStreamerCursor
 @Configuration
 public class PaymentObserverBeans {
   @Bean
-  @Profile("stellar-observer")
   @SneakyThrows
   public StellarPaymentObserver stellarPaymentObserver(
       AssetService assetService,
@@ -81,16 +77,5 @@ public class PaymentObserverBeans {
 
     stellarPaymentObserver.start();
     return stellarPaymentObserver;
-  }
-
-  @Bean
-  public PaymentObservingAccountsManager observingAccounts(
-      PaymentObservingAccountStore paymentObservingAccountStore) {
-    return new PaymentObservingAccountsManager(paymentObservingAccountStore);
-  }
-
-  @Bean
-  public PaymentObservingAccountStore observingAccountStore(PaymentObservingAccountRepo repo) {
-    return new PaymentObservingAccountStore(repo);
   }
 }

@@ -8,7 +8,6 @@ import com.google.gson.Gson;
 import java.util.Map;
 import javax.servlet.http.HttpServletRequest;
 import lombok.SneakyThrows;
-import org.springframework.context.annotation.Profile;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -24,10 +23,9 @@ import org.stellar.anchor.util.GsonUtils;
 @CrossOrigin(origins = "*")
 @RequestMapping("/sep38")
 @ConditionalOnAllSepsEnabled(seps = {"sep38"})
-@Profile("default")
 public class Sep38Controller {
   private final Sep38Service sep38Service;
-  private static final Gson gson = GsonUtils.builder().create();
+  private static final Gson gson = GsonUtils.getInstance();
 
   public Sep38Controller(Sep38Service sep38Service) {
     this.sep38Service = sep38Service;
