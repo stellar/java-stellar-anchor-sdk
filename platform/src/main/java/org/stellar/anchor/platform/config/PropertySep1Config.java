@@ -1,7 +1,5 @@
 package org.stellar.anchor.platform.config;
 
-import static org.stellar.anchor.util.StringHelper.isEmpty;
-
 import java.io.File;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -22,7 +20,7 @@ public class PropertySep1Config implements Sep1Config, Validator {
   boolean enabled;
 
   @Value("${sep1.toml.type:#{null}}")
-  String type;
+  TomlType type;
 
   @Value("${sep1.toml.value:#{null}}")
   String value;
@@ -43,11 +41,11 @@ public class PropertySep1Config implements Sep1Config, Validator {
   }
 
   void validateTomlTypeAndValue(Sep1Config config, Errors errors) {
-    if (isEmpty(config.getType())) {
+    if (config.getType() == null) {
       errors.rejectValue("type", "sep1-toml-type-empty", "sep1.toml.type must not be empty");
     } else {
-      switch (config.getType().toLowerCase()) {
-        case "string":
+      switch (config.getType()) {
+        case STRING:
           try {
             Sep1Helper.parse(config.getValue());
           } catch (IllegalStateException isex) {
@@ -58,7 +56,7 @@ public class PropertySep1Config implements Sep1Config, Validator {
                     "sep1.toml.value does not contain a valid TOML. %s", isex.getMessage()));
           }
           break;
-        case "url":
+        case URL:
           if (!NetUtil.isUrlValid(config.getValue())) {
             errors.rejectValue(
                 "value",
@@ -66,7 +64,7 @@ public class PropertySep1Config implements Sep1Config, Validator {
                 String.format("sep1.toml.value=%s is not a valid URL", config.getValue()));
           }
           break;
-        case "file":
+        case FILE:
           File file = new File(config.getValue());
           if (!file.exists()) {
             errors.rejectValue(

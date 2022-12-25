@@ -24,16 +24,16 @@ public class Sep1Service {
   public Sep1Service(Sep1Config sep1Config) throws IOException, InvalidConfigException {
     if (sep1Config.isEnabled()) {
       debug("sep1Config:", sep1Config);
-      switch (sep1Config.getType().toLowerCase()) {
-        case "string":
+      switch (sep1Config.getType()) {
+        case STRING:
           debug("reading stellar.toml from config[sep1.toml.value]");
           tomlValue = sep1Config.getValue();
           break;
-        case "file":
+        case FILE:
           debugF("reading stellar.toml from {}", sep1Config.getValue());
           tomlValue = Files.readString(Path.of(sep1Config.getValue()));
           break;
-        case "url":
+        case URL:
           debugF("reading stellar.toml from {}", sep1Config.getValue());
           tomlValue = NetUtil.fetch(sep1Config.getValue());
           break;

@@ -2,14 +2,17 @@ package org.stellar.anchor.platform.config
 
 import java.net.URL
 import java.nio.file.Paths
-import kotlin.test.assertContains
 import kotlin.test.assertEquals
-import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.NullSource
 import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.validation.BindException
 import org.springframework.validation.ValidationUtils
+import org.stellar.anchor.api.exception.InvalidConfigException
+import org.stellar.anchor.config.Sep1Config.TomlType.FILE
+import org.stellar.anchor.config.Sep1Config.TomlType.fromString
 
 class Sep1ConfigTest {
   companion object {
@@ -39,28 +42,28 @@ class Sep1ConfigTest {
   @ParameterizedTest
   @ValueSource(strings = ["file", "FILE", "File"])
   fun `test reading from sep1-stellar-test toml file`(type: String) {
-    val errors = validate(PropertySep1Config(true, type, getTestTomlAsFile()))
+    val errors = validate(PropertySep1Config(true, fromString(type), getTestTomlAsFile()))
     assertEquals(0, errors.errorCount)
   }
 
   @ParameterizedTest
   @ValueSource(strings = ["string", "STRING", "String"])
   fun `test inline toml`(type: String) {
-    val errors = validate(PropertySep1Config(true, type, "VERSION = \"0.1.0\""))
+    val errors = validate(PropertySep1Config(true, fromString(type), "VERSION = \"0.1.0\""))
     assertEquals(0, errors.errorCount)
   }
 
   @ParameterizedTest
   @ValueSource(strings = ["url", "URL", "Url", "urL"])
   fun `test toml with sep1-stellar-test specified as a URL`(type: String) {
-    val errors = validate(PropertySep1Config(true, type, getTestTomlAsUrl()))
+    val errors = validate(PropertySep1Config(true, fromString(type), getTestTomlAsUrl()))
     assertEquals(0, errors.errorCount)
   }
 
   @ParameterizedTest
   @ValueSource(strings = ["bad", "strin g"])
   fun `test bad Sep1Config values`(type: String?) {
-    val errors = validate(PropertySep1Config(true, type, getTestTomlAsUrl()))
+    val errors = validate(PropertySep1Config(true, fromString(type), getTestTomlAsUrl()))
     assertEquals(1, errors.errorCount)
     assertEquals("sep1-toml-type-invalid", errors.allErrors[0].code)
   }
@@ -68,43 +71,32 @@ class Sep1ConfigTest {
   @ParameterizedTest
   @NullSource
   @ValueSource(strings = [""])
-  fun `test empty Sep1Config values`(type: String?) {
-    val errors = validate(PropertySep1Config(true, type, getTestTomlAsUrl()))
-    assertEquals(1, errors.errorCount)
-    assertEquals("sep1-toml-type-empty", errors.allErrors[0].code)
+  fun `test empty Sep1Config types`(type: String?) {
+    assertThrows<InvalidConfigException> {
+      validate(PropertySep1Config(true, fromString(type), getTestTomlAsUrl()))
+    }
   }
 
   @ParameterizedTest
   @ValueSource(strings = ["bad file", "c:/hello"])
   fun `test file of Sep1Config does not exist`(file: String) {
-    var errors = validate(PropertySep1Config(true, "file", file))
+    var errors = validate(PropertySep1Config(true, FILE, file))
     assertEquals(1, errors.errorCount)
     assertEquals("sep1-toml-value-file-does-not-exist", errors.allErrors[0].code)
 
-    errors = validate(PropertySep1Config(false, "file", file))
+    errors = validate(PropertySep1Config(false, FILE, file))
     assertEquals(0, errors.errorCount)
   }
 
   @ParameterizedTest
   @ValueSource(strings = ["string", "file", "url"])
   fun `test Sep1Config empty values`(type: String) {
-    var errors = validate(PropertySep1Config(true, type, null))
+    var errors = validate(PropertySep1Config(true, fromString(type), null))
     assertEquals(1, errors.errorCount)
     assertEquals("sep1-toml-value-empty", errors.allErrors[0].code)
 
-    errors = validate(PropertySep1Config(true, type, ""))
+    errors = validate(PropertySep1Config(true, fromString(type), ""))
     assertEquals(1, errors.errorCount)
     assertEquals("sep1-toml-value-empty", errors.allErrors[0].code)
-  }
-
-  @Test
-  fun `test Sep1Config empty types`() {
-    var errors = validate(PropertySep1Config(true, null, "test value"))
-    assertEquals(1, errors.errorCount)
-    errors.message?.let { assertContains(it, "sep1-toml-type-empty") }
-
-    errors = validate(PropertySep1Config(true, "", "test value"))
-    assertEquals(1, errors.errorCount)
-    errors.message?.let { assertContains(it, "sep1-toml-type-empty") }
   }
 }
