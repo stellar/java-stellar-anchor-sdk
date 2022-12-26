@@ -31,7 +31,7 @@ import org.stellar.anchor.api.exception.SepValidationException
 import org.stellar.anchor.api.sep.sep24.GetTransactionRequest
 import org.stellar.anchor.api.sep.sep24.GetTransactionsRequest
 import org.stellar.anchor.asset.AssetService
-import org.stellar.anchor.asset.ResourceJsonAssetService
+import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.auth.JwtToken
 import org.stellar.anchor.config.AppConfig
@@ -58,7 +58,7 @@ internal class Sep24ServiceTest {
   @MockK(relaxed = true) lateinit var txnStore: Sep24TransactionStore
   @MockK(relaxed = true) lateinit var interactiveUrlConstructor: InteractiveUrlConstructor
 
-  private val assetService: AssetService = ResourceJsonAssetService("test_assets.json")
+  private val assetService: AssetService = DefaultAssetService.fromResource("test_assets.json")
 
   private lateinit var jwtService: JwtService
   private lateinit var sep24Service: Sep24Service

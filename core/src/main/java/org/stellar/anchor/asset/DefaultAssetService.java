@@ -1,39 +1,54 @@
-package org.stellar.anchor.platform.service;
+package org.stellar.anchor.asset;
 
 import static org.stellar.anchor.util.Log.error;
 import static org.stellar.anchor.util.Log.infoF;
 
 import com.google.gson.Gson;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import lombok.NoArgsConstructor;
 import org.stellar.anchor.api.exception.InvalidConfigException;
+import org.stellar.anchor.api.exception.SepNotFoundException;
 import org.stellar.anchor.api.sep.AssetInfo;
-import org.stellar.anchor.asset.AssetService;
-import org.stellar.anchor.asset.Assets;
 import org.stellar.anchor.config.AssetsConfig;
+import org.stellar.anchor.util.FileUtil;
 import org.stellar.anchor.util.GsonUtils;
 
-public class PropertyAssetsService implements AssetService {
+@NoArgsConstructor
+public class DefaultAssetService implements AssetService {
   static final Gson gson = GsonUtils.getInstance();
   Assets assets;
 
-  public PropertyAssetsService(AssetsConfig assetsConfig) throws InvalidConfigException {
+  public static DefaultAssetService fromAssetConfig(AssetsConfig assetsConfig)
+      throws InvalidConfigException {
     switch (assetsConfig.getType()) {
       case JSON:
-        String assetsJson = assetsConfig.getValue();
-        assets = gson.fromJson(assetsJson, Assets.class);
-        if (assets == null || assets.getAssets() == null || assets.getAssets().size() == 0) {
-          error("Invalid asset defined. assets JSON=", assetsJson);
-          throw new InvalidConfigException(
-              "Invalid assets defined in configuration. Please check the logs for details.");
-        }
-        break;
+        return fromJson(assetsConfig.getValue());
       case YAML:
       default:
         infoF("assets type {} is not supported", assetsConfig.getType());
         throw new InvalidConfigException(
             String.format("assets type %s is not supported", assetsConfig.getType()));
     }
+  }
+
+  public static DefaultAssetService fromJson(String assetsJson) throws InvalidConfigException {
+    DefaultAssetService assetService = new DefaultAssetService();
+    assetService.assets = gson.fromJson(assetsJson, Assets.class);
+    if (assetService.assets == null
+        || assetService.assets.getAssets() == null
+        || assetService.assets.getAssets().size() == 0) {
+      error("Invalid asset defined. assets JSON=", assetsJson);
+      throw new InvalidConfigException(
+          "Invalid assets defined in configuration. Please check the logs for details.");
+    }
+    return assetService;
+  }
+
+  public static DefaultAssetService fromResource(String assetPath)
+      throws IOException, SepNotFoundException, InvalidConfigException {
+    return fromJson(FileUtil.getResourceFileAsString(assetPath));
   }
 
   public List<AssetInfo> listAllAssets() {

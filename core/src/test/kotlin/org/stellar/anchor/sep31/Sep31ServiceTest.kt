@@ -31,7 +31,7 @@ import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionRequest.Sep31TxnFiel
 import org.stellar.anchor.api.sep.sep38.RateFee
 import org.stellar.anchor.api.shared.Amount
 import org.stellar.anchor.asset.AssetService
-import org.stellar.anchor.asset.ResourceJsonAssetService
+import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.SecretConfig
@@ -267,7 +267,7 @@ class Sep31ServiceTest {
   """
   }
 
-  private val assetService: AssetService = ResourceJsonAssetService("test_assets.json")
+  private val assetService: AssetService = DefaultAssetService.fromResource("test_assets.json")
 
   @MockK(relaxed = true) private lateinit var txnStore: Sep31TransactionStore
 
@@ -351,7 +351,7 @@ class Sep31ServiceTest {
   @Test
   fun `test quotes supported and required validation`() {
     val assetServiceQuotesNotSupported: AssetService =
-      ResourceJsonAssetService(
+      DefaultAssetService.fromResource(
         "test_assets.json.quotes_required_but_not_supported",
       )
     val ex: AnchorException = assertThrows {
@@ -887,7 +887,7 @@ class Sep31ServiceTest {
       }
 
     val assetServiceQuotesNotSupported: AssetService =
-      ResourceJsonAssetService(
+      DefaultAssetService.fromResource(
         "test_assets.json.quotes_not_supported",
       )
     sep31Service =
