@@ -1,20 +1,20 @@
 package org.stellar.anchor.platform.config;
 
 import java.util.List;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 import org.stellar.anchor.config.Sep24Config;
 import org.stellar.anchor.util.NetUtil;
 
-@Data
+@Getter
+@Setter
 public class PropertySep24Config implements Sep24Config, Validator {
   boolean enabled;
   int interactiveJwtExpiration;
   InteractiveUrlConfig interactiveUrl;
+  MoreInfoUrlConfig moreInfoUrl;
 
   @Data
   @AllArgsConstructor
@@ -30,6 +30,23 @@ public class PropertySep24Config implements Sep24Config, Validator {
   public static class SimpleInteractiveUrlConfig {
     String baseUrl;
     List<String> txnFields;
+  }
+
+  @Data
+  @AllArgsConstructor
+  @NoArgsConstructor
+  public static class MoreInfoUrlConfig {
+    String type;
+    SimpleMoreInfoUrlConfig simple;
+  }
+
+  @Data
+  @AllArgsConstructor
+  @NoArgsConstructor
+  public static class SimpleMoreInfoUrlConfig {
+    String baseUrl;
+    List<String> txnFields;
+    int jwtExpiration;
   }
 
   @Override

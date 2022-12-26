@@ -22,10 +22,12 @@ import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountsMana
 import org.stellar.anchor.platform.service.Sep31DepositInfoGeneratorApi;
 import org.stellar.anchor.platform.service.Sep31DepositInfoGeneratorSelf;
 import org.stellar.anchor.platform.service.SimpleInteractiveUrlConstructor;
+import org.stellar.anchor.platform.service.SimpleMoreInfoUrlConstructor;
 import org.stellar.anchor.sep1.Sep1Service;
 import org.stellar.anchor.sep10.Sep10Service;
 import org.stellar.anchor.sep12.Sep12Service;
 import org.stellar.anchor.sep24.InteractiveUrlConstructor;
+import org.stellar.anchor.sep24.MoreInfoUrlConstructor;
 import org.stellar.anchor.sep24.Sep24Service;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31DepositInfoGenerator;
@@ -139,7 +141,8 @@ public class SepBeans {
       JwtService jwtService,
       Sep24TransactionStore sep24TransactionStore,
       EventService eventService,
-      InteractiveUrlConstructor interactiveUrlConstructor) {
+      InteractiveUrlConstructor interactiveUrlConstructor,
+      MoreInfoUrlConstructor moreInfoUrlConstructor) {
     return new Sep24Service(
         appConfig,
         sep24Config,
@@ -147,7 +150,8 @@ public class SepBeans {
         jwtService,
         sep24TransactionStore,
         eventService,
-        interactiveUrlConstructor);
+        interactiveUrlConstructor,
+        moreInfoUrlConstructor);
   }
 
   @Bean
@@ -155,6 +159,12 @@ public class SepBeans {
       PropertySep24Config sep24Config, JwtService jwtService) {
     return new SimpleInteractiveUrlConstructor(
         sep24Config.getInteractiveUrl().getSimple(), jwtService);
+  }
+
+  @Bean
+  MoreInfoUrlConstructor moreInfoUrlConstructor(
+      PropertySep24Config sep24Config, JwtService jwtService) {
+    return new SimpleMoreInfoUrlConstructor(sep24Config.getMoreInfoUrl(), jwtService);
   }
 
   @Bean

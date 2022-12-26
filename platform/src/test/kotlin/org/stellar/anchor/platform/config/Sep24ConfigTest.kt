@@ -9,6 +9,7 @@ import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.validation.BindException
 import org.springframework.validation.Errors
 import org.stellar.anchor.platform.config.PropertySep24Config.InteractiveUrlConfig
+import org.stellar.anchor.platform.config.PropertySep24Config.SimpleMoreInfoUrlConfig
 
 class Sep24ConfigTest {
   lateinit var config: PropertySep24Config
@@ -50,6 +51,12 @@ class Sep24ConfigTest {
       InteractiveUrlConfig(
         "simple",
         PropertySep24Config.SimpleInteractiveUrlConfig(url, listOf(""))
+      )
+
+    config.moreInfoUrl =
+      PropertySep24Config.MoreInfoUrlConfig(
+        "simple",
+        SimpleMoreInfoUrlConfig(url, listOf(""), 1200)
       )
 
     config.validate(config, errors)

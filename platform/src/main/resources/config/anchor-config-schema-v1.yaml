@@ -75,6 +75,7 @@ sep24.interactive_url.simple.txn_fields:
 sep24.interactive_url.type:
 sep24.more_info_url.simple.base_url:
 sep24.more_info_url.simple.txn_fields:
+sep24.more_info_url.simple.jwt_expiration:
 sep24.more_info_url.type:
 sep31.deposit_info_generator_type:
 sep31.enabled:
