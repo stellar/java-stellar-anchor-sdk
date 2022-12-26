@@ -67,6 +67,11 @@ public class PropertySep24Config implements Sep24Config, Validator {
               config.getInteractiveJwtExpiration()));
     }
 
+    validateInteractiveUrlConfig(config, errors);
+    validateMoreInfoUrlConfig(config, errors);
+  }
+
+  void validateInteractiveUrlConfig(PropertySep24Config config, Errors errors) {
     if (config.interactiveUrl == null) {
       errors.rejectValue(
           "interactiveUrl",
@@ -94,6 +99,45 @@ public class PropertySep24Config implements Sep24Config, Validator {
             "sep24-interactive-url-invalid-type",
             String.format(
                 "sep24.interactive_url.type:[%s] is not supported.",
+                config.interactiveUrl.getType()));
+      }
+    }
+  }
+
+  void validateMoreInfoUrlConfig(PropertySep24Config config, Errors errors) {
+    if (config.moreInfoUrl == null) {
+      errors.rejectValue(
+          "moreInfoUrl", "sep24-moreinfo-url-invalid", "sep24.more-info-url is not defined.");
+    } else {
+      if ("simple".equals(config.moreInfoUrl.getType())) {
+        if (config.moreInfoUrl.getSimple() == null) {
+          errors.rejectValue(
+              "moreInfoUrl",
+              "sep24-more-info-url-simple-not-defined",
+              "sep24.more_info_url.simple is not defined.");
+        }
+        if (!NetUtil.isUrlValid(config.moreInfoUrl.simple.baseUrl)) {
+          errors.rejectValue(
+              "moreInfoUrl",
+              "sep24-more-info-url-simple-base-url-not-valid",
+              String.format(
+                  "sep24.more_info_url.simple.base_url:[%s] is not a valid URL.",
+                  config.moreInfoUrl.simple.baseUrl));
+        }
+        if (config.moreInfoUrl.simple.jwtExpiration <= 0) {
+          errors.rejectValue(
+              "moreInfoUrl",
+              "sep24-more-info-url-simple-jwt-expiration-not-valid",
+              String.format(
+                  "sep24.more_info_url.simple.jwt_expiration:[%s] must be greater than 0.",
+                  config.moreInfoUrl.simple.jwtExpiration));
+        }
+      } else {
+        errors.rejectValue(
+            "moreInfoUrl",
+            "sep24-more-info-url-invalid-type",
+            String.format(
+                "sep24.more_info_url.type:[%s] is not supported.",
                 config.interactiveUrl.getType()));
       }
     }
