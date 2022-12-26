@@ -164,7 +164,7 @@ public class SepBeans {
   @Bean
   MoreInfoUrlConstructor moreInfoUrlConstructor(
       PropertySep24Config sep24Config, JwtService jwtService) {
-    return new SimpleMoreInfoUrlConstructor(sep24Config.getMoreInfoUrl(), jwtService);
+    return new SimpleMoreInfoUrlConstructor(sep24Config.getMoreInfoUrl().getSimple(), jwtService);
   }
 
   @Bean
