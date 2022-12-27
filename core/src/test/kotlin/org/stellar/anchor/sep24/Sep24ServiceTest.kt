@@ -24,6 +24,7 @@ import org.stellar.anchor.TestConstants.Companion.TEST_MEMO
 import org.stellar.anchor.TestConstants.Companion.TEST_TRANSACTION_ID_0
 import org.stellar.anchor.TestConstants.Companion.TEST_TRANSACTION_ID_1
 import org.stellar.anchor.TestHelper
+import org.stellar.anchor.api.callback.FeeIntegration
 import org.stellar.anchor.api.exception.SepException
 import org.stellar.anchor.api.exception.SepNotAuthorizedException
 import org.stellar.anchor.api.exception.SepNotFoundException
@@ -56,6 +57,7 @@ internal class Sep24ServiceTest {
   @MockK(relaxed = true) lateinit var secretConfig: SecretConfig
   @MockK(relaxed = true) lateinit var sep24Config: Sep24Config
   @MockK(relaxed = true) lateinit var eventService: EventService
+  @MockK(relaxed = true) lateinit var feeIntegration: FeeIntegration
   @MockK(relaxed = true) lateinit var txnStore: Sep24TransactionStore
   @MockK(relaxed = true) lateinit var interactiveUrlConstructor: InteractiveUrlConstructor
   @MockK(relaxed = true) lateinit var moreInfoUrlConstructor: MoreInfoUrlConstructor
@@ -93,6 +95,7 @@ internal class Sep24ServiceTest {
         jwtService,
         txnStore,
         eventService,
+        feeIntegration,
         interactiveUrlConstructor,
         moreInfoUrlConstructor
       )

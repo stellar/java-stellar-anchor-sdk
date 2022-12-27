@@ -5,7 +5,6 @@ package org.stellar.anchor.platform
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.assertThrows
 import org.skyscreamer.jsonassert.JSONAssert
-import org.skyscreamer.jsonassert.JSONCompareMode
 import org.skyscreamer.jsonassert.JSONCompareMode.LENIENT
 import org.stellar.anchor.api.exception.SepException
 import org.stellar.anchor.api.platform.PatchTransactionsRequest
@@ -25,7 +24,7 @@ class Sep24Tests {
     fun `test Sep24 info endpoint`() {
       printRequest("Calling GET /info")
       val info = sep24Client.getInfo()
-      JSONAssert.assertEquals(gson.toJson(info), expectedSep24Info, JSONCompareMode.STRICT)
+      JSONAssert.assertEquals(expectedSep24Info, gson.toJson(info), LENIENT)
     }
 
     fun `test Sep24 withdraw`() {
@@ -282,48 +281,33 @@ private const val expectedSep24Info =
     "deposit": {
       "JPYC": {
         "enabled": true,
-        "fee_fixed": 0,
-        "fee_percent": 0,
-        "min_amount": 1,
-        "max_amount": 1000000,
-        "fee_minimum": 0
-      },
-      "USD": {
-        "enabled": true,
-        "fee_fixed": 0,
-        "fee_percent": 0,
-        "min_amount": 0,
-        "max_amount": 10000,
-        "fee_minimum": 0
-      },
-      "USDC": {
-        "enabled": true,
-        "fee_fixed": 0,
-        "fee_percent": 0,
-        "min_amount": 1,
-        "max_amount": 1000000,
-        "fee_minimum": 0
-      }
-    },
-    "withdraw": {
-      "JPYC": {
-        "enabled": true,
-        "fee_fixed": 0,
-        "fee_percent": 0,
         "min_amount": 1,
         "max_amount": 1000000
       },
       "USD": {
         "enabled": true,
-        "fee_fixed": 0,
-        "fee_percent": 0,
         "min_amount": 0,
         "max_amount": 10000
       },
       "USDC": {
         "enabled": true,
-        "fee_fixed": 0,
-        "fee_percent": 0,
+        "min_amount": 1,
+        "max_amount": 1000000
+      }
+    },
+    "withdraw": {
+      "JPYC": {
+        "enabled": true,
+        "min_amount": 1,
+        "max_amount": 1000000
+      },
+      "USD": {
+        "enabled": true,
+        "min_amount": 0,
+        "max_amount": 10000
+      },
+      "USDC": {
+        "enabled": true,
         "min_amount": 1,
         "max_amount": 1000000
       }
@@ -332,8 +316,8 @@ private const val expectedSep24Info =
       "enabled": true
     },
     "features": {
-      "account_creation": true,
-      "claimable_balances": true
+      "account_creation": false,
+      "claimable_balances": false
     }
   }
 """
