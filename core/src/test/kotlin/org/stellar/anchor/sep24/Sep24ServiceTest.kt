@@ -47,6 +47,7 @@ import org.stellar.sdk.MemoText
 internal class Sep24ServiceTest {
   companion object {
     const val TEST_SEP24_INTERACTIVE_URL = "https://test-anchor.stellar.org"
+    const val TEST_SEP24_MORE_INFO_URL = "https://test-anchor.stellar.org/more_info_url"
     val TEST_STARTED_AT: Instant = Instant.now()
     val TEST_COMPLETED_AT: Instant = Instant.now().plusSeconds(100)
   }
@@ -57,6 +58,7 @@ internal class Sep24ServiceTest {
   @MockK(relaxed = true) lateinit var eventService: EventService
   @MockK(relaxed = true) lateinit var txnStore: Sep24TransactionStore
   @MockK(relaxed = true) lateinit var interactiveUrlConstructor: InteractiveUrlConstructor
+  @MockK(relaxed = true) lateinit var moreInfoUrlConstructor: MoreInfoUrlConstructor
 
   private val assetService: AssetService = DefaultAssetService.fromResource("test_assets.json")
 
@@ -80,6 +82,8 @@ internal class Sep24ServiceTest {
     val strToken = jwtService.encode(createdJwt)
     every { interactiveUrlConstructor.construct(any(), any(), any(), any()) } returns
       "${TEST_SEP24_INTERACTIVE_URL}?lang=en&token=$strToken"
+    every { moreInfoUrlConstructor.construct(any()) } returns
+      "${TEST_SEP24_MORE_INFO_URL}?lang=en&token=$strToken"
 
     sep24Service =
       Sep24Service(
@@ -89,7 +93,8 @@ internal class Sep24ServiceTest {
         jwtService,
         txnStore,
         eventService,
-        interactiveUrlConstructor
+        interactiveUrlConstructor,
+        moreInfoUrlConstructor
       )
   }
 
@@ -225,7 +230,7 @@ internal class Sep24ServiceTest {
 
     val request = createTestTransactionRequest()
     request["claimable_balance_supported"] = claimable_balance_supported
-    var response = sep24Service.deposit("/sep24/deposit", createdJwt, request)
+    val response = sep24Service.deposit("/sep24/deposit", createdJwt, request)
 
     verify(exactly = 1) { txnStore.save(any()) }
 
@@ -242,9 +247,6 @@ internal class Sep24ServiceTest {
     assertEquals(slotTxn.captured.clientDomain, TEST_CLIENT_DOMAIN)
     assertEquals(slotTxn.captured.amountIn, "123.4")
     assertEquals(slotTxn.captured.amountOut, "123.4")
-
-    // Now test with a memo
-
   }
 
   @Test

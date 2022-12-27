@@ -2,7 +2,7 @@ package org.stellar.anchor.sep24;
 
 import static org.stellar.anchor.api.sep.SepTransactionStatus.INCOMPLETE;
 import static org.stellar.anchor.event.models.TransactionEvent.Type.TRANSACTION_CREATED;
-import static org.stellar.anchor.sep24.Sep24Helper.publishEvent;
+import static org.stellar.anchor.sep24.Sep24Helper.*;
 import static org.stellar.anchor.sep24.Sep24Transaction.Kind.DEPOSIT;
 import static org.stellar.anchor.sep24.Sep24Transaction.Kind.WITHDRAWAL;
 import static org.stellar.anchor.sep9.Sep9Fields.extractSep9Fields;
@@ -14,6 +14,7 @@ import static org.stellar.anchor.util.SepHelper.generateSepTransactionId;
 import static org.stellar.anchor.util.SepHelper.memoTypeString;
 import static org.stellar.anchor.util.SepLanguageHelper.validateLanguage;
 
+import com.google.gson.Gson;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
@@ -28,6 +29,7 @@ import org.stellar.anchor.auth.JwtToken;
 import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.Sep24Config;
 import org.stellar.anchor.event.EventService;
+import org.stellar.anchor.util.GsonUtils;
 import org.stellar.sdk.KeyPair;
 import org.stellar.sdk.Memo;
 
@@ -39,6 +41,9 @@ public class Sep24Service {
   final Sep24TransactionStore txnStore;
   final EventService eventService;
   final InteractiveUrlConstructor interactiveUrlConstructor;
+  final MoreInfoUrlConstructor moreInfoUrlConstructor;
+
+  static final Gson gson = GsonUtils.getInstance();
 
   public Sep24Service(
       AppConfig appConfig,
@@ -47,7 +52,9 @@ public class Sep24Service {
       JwtService jwtService,
       Sep24TransactionStore txnStore,
       EventService eventService,
-      InteractiveUrlConstructor interactiveUrlConstructor) {
+      InteractiveUrlConstructor interactiveUrlConstructor,
+      MoreInfoUrlConstructor moreInfoUrlConstructor) {
+    this.moreInfoUrlConstructor = moreInfoUrlConstructor;
     debug("appConfig:", appConfig);
     debug("sep24Config:", sep24Config);
     this.appConfig = appConfig;
@@ -155,7 +162,7 @@ public class Sep24Service {
     return new InteractiveTransactionResponse(
         "interactive_customer_info_needed",
         interactiveUrlConstructor.construct(
-            buildRedirectJwtToken(fullRequestUrl, token, txn), txn, lang, sep9Fields),
+            buildRedirectJwtToken(sep24Config, fullRequestUrl, token, txn), txn, lang, sep9Fields),
         txn.getTransactionId());
   }
 
@@ -270,7 +277,7 @@ public class Sep24Service {
     return new InteractiveTransactionResponse(
         "interactive_customer_info_needed",
         interactiveUrlConstructor.construct(
-            buildRedirectJwtToken(fullRequestUrl, token, txn), txn, lang, sep9Fields),
+            buildRedirectJwtToken(sep24Config, fullRequestUrl, token, txn), txn, lang, sep9Fields),
         txn.getTransactionId());
   }
 
@@ -352,7 +359,7 @@ public class Sep24Service {
 
   public InfoResponse getInfo() {
     info("Getting Sep24 info");
-    List<AssetInfo> assets = listAllAssets();
+    List<AssetInfo> assets = assetService.listAllAssets();
     InfoResponse info = new InfoResponse();
     info.setDeposit(new HashMap<>());
     info.setWithdraw(new HashMap<>());
@@ -378,9 +385,9 @@ public class Sep24Service {
         lang);
     TransactionResponse response;
     if (txn.getKind().equals(DEPOSIT.toString())) {
-      response = Sep24Helper.fromDepositTxn(jwtService, sep24Config, txn, lang, true);
+      response = fromDepositTxn(txn);
     } else if (txn.getKind().equals(WITHDRAWAL.toString())) {
-      response = Sep24Helper.fromWithdrawTxn(jwtService, sep24Config, txn, lang, true);
+      response = fromWithdrawTxn(txn);
     } else {
       throw new SepException(String.format("unsupported txn kind:%s", txn.getKind()));
     }
@@ -391,17 +398,40 @@ public class Sep24Service {
     return Sep24Helper.updateRefundInfo(response, txn, assetInfo);
   }
 
-  JwtToken buildRedirectJwtToken(String fullRequestUrl, JwtToken token, Sep24Transaction txn) {
-    return JwtToken.of(
-        fullRequestUrl,
-        token.getSub(),
-        Instant.now().getEpochSecond(),
-        Instant.now().getEpochSecond() + sep24Config.getInteractiveJwtExpiration(),
-        txn.getTransactionId(),
-        token.getClientDomain());
+  public TransactionResponse fromDepositTxn(Sep24Transaction txn)
+      throws MalformedURLException, URISyntaxException {
+
+    DepositTransactionResponse txnR =
+        gson.fromJson(gson.toJson(txn), DepositTransactionResponse.class);
+
+    setSharedTransactionResponseFields(txnR, txn);
+
+    txnR.setDepositMemo(txn.getMemo());
+    txnR.setDepositMemoType(txn.getMemoType());
+
+    if (needsMoreInfoUrlDeposit.contains(txn.getStatus())) {
+      txnR.setMoreInfoUrl(moreInfoUrlConstructor.construct(txn));
+    }
+
+    return txnR;
   }
 
-  List<AssetInfo> listAllAssets() {
-    return this.assetService.listAllAssets();
+  public WithdrawTransactionResponse fromWithdrawTxn(Sep24Transaction txn)
+      throws MalformedURLException, URISyntaxException {
+
+    WithdrawTransactionResponse txnR =
+        gson.fromJson(gson.toJson(txn), WithdrawTransactionResponse.class);
+
+    setSharedTransactionResponseFields(txnR, txn);
+
+    txnR.setWithdrawMemo(txn.getMemo());
+    txnR.setWithdrawMemoType(txn.getMemoType());
+    txnR.setWithdrawAnchorAccount(txn.getWithdrawAnchorAccount());
+
+    if (needsMoreInfoUrlWithdraw.contains(txn.getStatus())) {
+      txnR.setMoreInfoUrl(moreInfoUrlConstructor.construct(txn));
+    }
+
+    return txnR;
   }
 }

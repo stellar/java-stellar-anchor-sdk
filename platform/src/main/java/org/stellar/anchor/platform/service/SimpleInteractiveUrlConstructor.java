@@ -16,8 +16,8 @@ import org.stellar.anchor.sep24.Sep24Transaction;
 import org.stellar.anchor.util.StringHelper;
 
 public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
-  private SimpleInteractiveUrlConfig config;
-  private JwtService jwtService;
+  private final SimpleInteractiveUrlConfig config;
+  private final JwtService jwtService;
 
   public SimpleInteractiveUrlConstructor(SimpleInteractiveUrlConfig config, JwtService jwtService) {
     this.config = config;

@@ -300,7 +300,7 @@ sep24:
   # Configures the interactive URL where the platform server will redirect to start the SEP-24 interactive flow.
   # If the type is `simple`, sep24.interactive_url.simple will be read to construct the url.
   #   base_uri: is the base_uri used to construct the interactive url
-  #   txn_fields: is the list of transaction fields that will be read to the interactive url as query parameters
+  #   txn_fields: is the list of transaction fields that will be appended to the interactive url as query parameters
   #   In addition to the txn_fields, the following fields are also added to the query parameters.
   #       `transaction_id`: the transaction ID
   #       `token`: the JWT token
@@ -311,6 +311,24 @@ sep24:
     simple:
       base_url: http://localhost:8080/sep24/interactive
       txn_fields: status, kind, amount_in, amount_in_asset
+
+  ## @param: more_info_url
+  # Configures the more_info_url of the transaction response when calling GET /transaction and GET /transactions endpoints.
+  # For details, please refer to https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0024.md#shared-fields-for-both-deposits-and-withdrawals
+  #
+  # If the type is `simple`, sep24.more_info_url.simple will be read to construct the url.
+  #   base_uri: is the base_uri used to construct the more_info_url
+  #   txn_fields: is the list of transaction fields that will be appended to the interactive url as query parameters
+  #   jwt_expiration: the JWT expiration in seconds
+  #   In addition to the txn_fields, the following fields are also added to the query parameters.
+  #       `transaction_id`: the transaction ID
+  #       `token`: the JWT token
+  more_info_url:
+    type: simple
+    simple:
+      base_url: http://localhost:8080/sep24/transaction/more_info
+      txn_fields: kind, amount_in, amount_in_asset
+      jwt_expiration: 600
 
 sep31:
 
