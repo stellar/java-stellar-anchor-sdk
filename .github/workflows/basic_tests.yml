@@ -43,8 +43,6 @@ jobs:
         cat /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/platform/build/reports/tests/test/index.html
         echo "\n\n*** Integration tests report ***\n"
         cat /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/integration-tests/build/reports/tests/test/index.html
-        echo "\n\n*** Anchor reference server test report ***\n"
-        cat /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/anchor-reference-server/build/reports/tests/test/index.html
 
   sep_validation_suite:
     needs: [build_and_test]
