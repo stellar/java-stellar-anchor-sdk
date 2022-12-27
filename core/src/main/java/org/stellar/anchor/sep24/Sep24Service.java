@@ -3,7 +3,6 @@ package org.stellar.anchor.sep24;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.INCOMPLETE;
 import static org.stellar.anchor.event.models.TransactionEvent.Type.TRANSACTION_CREATED;
 import static org.stellar.anchor.sep24.Sep24Helper.*;
-import static org.stellar.anchor.sep24.Sep24Transaction.Kind.DEPOSIT;
 import static org.stellar.anchor.sep24.Sep24Transaction.Kind.WITHDRAWAL;
 import static org.stellar.anchor.sep9.Sep9Fields.extractSep9Fields;
 import static org.stellar.anchor.util.Log.*;
@@ -20,6 +19,9 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.*;
+import org.stellar.anchor.api.callback.FeeIntegration;
+import org.stellar.anchor.api.callback.GetFeeRequest;
+import org.stellar.anchor.api.callback.GetFeeResponse;
 import org.stellar.anchor.api.exception.*;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.sep24.*;
@@ -34,12 +36,16 @@ import org.stellar.sdk.KeyPair;
 import org.stellar.sdk.Memo;
 
 public class Sep24Service {
+  public static final String OPERATION_WITHDRAW = "withdraw";
+  public static final String OPERATION_DEPOSIT = "deposit";
+
   final AppConfig appConfig;
   final Sep24Config sep24Config;
   final AssetService assetService;
   final JwtService jwtService;
   final Sep24TransactionStore txnStore;
   final EventService eventService;
+  private FeeIntegration feeIntegration;
   final InteractiveUrlConstructor interactiveUrlConstructor;
   final MoreInfoUrlConstructor moreInfoUrlConstructor;
 
@@ -52,9 +58,9 @@ public class Sep24Service {
       JwtService jwtService,
       Sep24TransactionStore txnStore,
       EventService eventService,
+      FeeIntegration feeIntegration,
       InteractiveUrlConstructor interactiveUrlConstructor,
       MoreInfoUrlConstructor moreInfoUrlConstructor) {
-    this.moreInfoUrlConstructor = moreInfoUrlConstructor;
     debug("appConfig:", appConfig);
     debug("sep24Config:", sep24Config);
     this.appConfig = appConfig;
@@ -63,7 +69,9 @@ public class Sep24Service {
     this.jwtService = jwtService;
     this.txnStore = txnStore;
     this.eventService = eventService;
+    this.feeIntegration = feeIntegration;
     this.interactiveUrlConstructor = interactiveUrlConstructor;
+    this.moreInfoUrlConstructor = moreInfoUrlConstructor;
     info("Sep24Service initialized.");
   }
 
@@ -246,7 +254,7 @@ public class Sep24Service {
         new Sep24TransactionBuilder(txnStore)
             .transactionId(txnId)
             .status(INCOMPLETE.toString())
-            .kind(DEPOSIT.toString())
+            .kind(Sep24Transaction.Kind.DEPOSIT.toString())
             .amountIn(strAmount)
             .amountOut(strAmount)
             .assetCode(assetCode)
@@ -384,7 +392,7 @@ public class Sep24Service {
         txn.getTransactionId(),
         lang);
     TransactionResponse response;
-    if (txn.getKind().equals(DEPOSIT.toString())) {
+    if (txn.getKind().equals(Sep24Transaction.Kind.DEPOSIT.toString())) {
       response = fromDepositTxn(txn);
     } else if (txn.getKind().equals(WITHDRAWAL.toString())) {
       response = fromWithdrawTxn(txn);
@@ -433,5 +441,24 @@ public class Sep24Service {
     }
 
     return txnR;
+  }
+
+  public Sep24GetFeeResponse getFee(String operation, String type, String assetCode, String amount)
+      throws AnchorException {
+    GetFeeRequest getFeeRequest;
+    switch (operation) {
+      case OPERATION_WITHDRAW:
+        getFeeRequest =
+            GetFeeRequest.builder().receiveAsset(assetCode).receiveAmount(amount).build();
+        break;
+      case OPERATION_DEPOSIT:
+        getFeeRequest = GetFeeRequest.builder().sendAsset(assetCode).receiveAmount(amount).build();
+        break;
+      default:
+        throw new SepValidationException(String.format("Invalid operation:%s", operation));
+    }
+
+    GetFeeResponse response = feeIntegration.getFee(getFeeRequest);
+    return new Sep24GetFeeResponse(response.getFee().getAmount());
   }
 }

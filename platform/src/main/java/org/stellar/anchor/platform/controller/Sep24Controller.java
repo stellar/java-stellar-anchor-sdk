@@ -13,10 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
-import org.stellar.anchor.api.exception.EventPublishException;
-import org.stellar.anchor.api.exception.SepException;
-import org.stellar.anchor.api.exception.SepNotFoundException;
-import org.stellar.anchor.api.exception.SepValidationException;
+import org.stellar.anchor.api.exception.*;
 import org.stellar.anchor.api.sep.SepExceptionResponse;
 import org.stellar.anchor.api.sep.sep24.*;
 import org.stellar.anchor.auth.JwtToken;
@@ -179,6 +176,22 @@ public class Sep24Controller {
     GetTransactionRequest tr =
         new GetTransactionRequest(id, stellarTransactionId, externalTransactionId, lang);
     return getTransaction(request, tr);
+  }
+
+  @CrossOrigin(origins = "*")
+  @RequestMapping(
+      value = "/fee",
+      method = {RequestMethod.GET})
+  public Sep24GetFeeResponse getFee(
+      HttpServletRequest request,
+      @RequestParam(required = false, value = "operation") String operation,
+      @RequestParam(required = false, value = "type") String type,
+      @RequestParam(required = false, value = "asset_code") String assetCode,
+      @RequestParam(required = false, value = "amount") String amount)
+      throws AnchorException {
+    debugF(
+        "/fee operation={} type={} asset_code={}, amount={}", operation, type, assetCode, amount);
+    return sep24Service.getFee(operation, type, assetCode, amount);
   }
 
   String getFullRequestUrl(HttpServletRequest request) {
