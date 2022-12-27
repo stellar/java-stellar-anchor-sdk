@@ -369,10 +369,6 @@ public class Sep24Service {
     info("Getting Sep24 info");
     List<AssetInfo> assets = assetService.listAllAssets();
     InfoResponse info = new InfoResponse();
-    info.setDeposit(new HashMap<>());
-    info.setWithdraw(new HashMap<>());
-    info.setFee(new InfoResponse.FeeResponse());
-    info.setFeatureFlags(new InfoResponse.FeatureFlagResponse());
 
     debugF("{} assets found", assets.size());
     for (AssetInfo asset : assets) {

@@ -13,7 +13,7 @@ public class InfoResponse {
   FeeResponse fee = new FeeResponse();
 
   @SerializedName("features")
-  FeatureFlagResponse featureFlags = new FeatureFlagResponse(true, true);
+  FeatureFlagResponse featureFlags = new FeatureFlagResponse(false, false);
 
   @SuppressWarnings("unused")
   @Data
