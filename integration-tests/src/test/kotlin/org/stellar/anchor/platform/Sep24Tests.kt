@@ -3,6 +3,7 @@
 package org.stellar.anchor.platform
 
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.assertThrows
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode.LENIENT
@@ -91,6 +92,23 @@ class Sep24Tests {
         assertThrows<SepException> { platformApiClient.getTransaction(txnId) }
       }
     }
+
+    fun `test GET fee`() {
+      var amount = "10.0"
+      var fee = sep24Client.getFee("withdraw", "CASH", "USDC", amount)
+      assertTrue(fee.fee.toFloat() < amount.toFloat())
+
+      fee = sep24Client.getFee("deposit", "CASH", "USDC", amount)
+      assertTrue(fee.fee.toFloat() < amount.toFloat())
+
+      amount = "20"
+      fee = sep24Client.getFee("withdraw", "CASH", "USDC", amount)
+      assertTrue(fee.fee.toFloat() < amount.toFloat())
+
+      amount = "20"
+      fee = sep24Client.getFee("deposit", "CASH", "USDC", amount)
+      assertTrue(fee.fee.toFloat() < amount.toFloat())
+    }
   }
 }
 
@@ -104,6 +122,7 @@ fun sep24TestAll() {
   Sep24Tests.`test PlatformAPI GET transaction for deposit and withdrawal`()
   Sep24Tests.`test patch, get and compare`()
   Sep24Tests.`test GET transactions with bad ids`()
+  Sep24Tests.`test GET fee`()
 }
 
 private const val withdrawRequest =
