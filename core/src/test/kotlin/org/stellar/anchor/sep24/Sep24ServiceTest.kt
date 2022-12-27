@@ -14,6 +14,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.ValueSource
 import org.stellar.anchor.TestConstants
 import org.stellar.anchor.TestConstants.Companion.TEST_ACCOUNT
@@ -24,12 +25,15 @@ import org.stellar.anchor.TestConstants.Companion.TEST_MEMO
 import org.stellar.anchor.TestConstants.Companion.TEST_TRANSACTION_ID_0
 import org.stellar.anchor.TestConstants.Companion.TEST_TRANSACTION_ID_1
 import org.stellar.anchor.TestHelper
+import org.stellar.anchor.api.callback.FeeIntegration
+import org.stellar.anchor.api.callback.GetFeeResponse
 import org.stellar.anchor.api.exception.SepException
 import org.stellar.anchor.api.exception.SepNotAuthorizedException
 import org.stellar.anchor.api.exception.SepNotFoundException
 import org.stellar.anchor.api.exception.SepValidationException
 import org.stellar.anchor.api.sep.sep24.GetTransactionRequest
 import org.stellar.anchor.api.sep.sep24.GetTransactionsRequest
+import org.stellar.anchor.api.shared.Amount
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.auth.JwtService
@@ -56,6 +60,7 @@ internal class Sep24ServiceTest {
   @MockK(relaxed = true) lateinit var secretConfig: SecretConfig
   @MockK(relaxed = true) lateinit var sep24Config: Sep24Config
   @MockK(relaxed = true) lateinit var eventService: EventService
+  @MockK(relaxed = true) lateinit var feeIntegration: FeeIntegration
   @MockK(relaxed = true) lateinit var txnStore: Sep24TransactionStore
   @MockK(relaxed = true) lateinit var interactiveUrlConstructor: InteractiveUrlConstructor
   @MockK(relaxed = true) lateinit var moreInfoUrlConstructor: MoreInfoUrlConstructor
@@ -93,6 +98,7 @@ internal class Sep24ServiceTest {
         jwtService,
         txnStore,
         eventService,
+        feeIntegration,
         interactiveUrlConstructor,
         moreInfoUrlConstructor
       )
@@ -468,6 +474,32 @@ internal class Sep24ServiceTest {
     val response = sep24Service.withdraw("/sep24/withdraw", createJwtToken(), request)
     assertTrue(response.url.indexOf("lang=en") != -1)
   }
+
+  @ParameterizedTest
+  @CsvSource(
+    value =
+      [
+        "withdraw,CASH,USDC,10,0.1",
+        "withdraw,CASH,USD,10,0.1",
+        "deposit,CASH,USDC,10,0.1",
+        "deposit,CASH,USD,10,0.1"
+      ]
+  )
+  fun `test fee`(op: String, type: String, assetCode: String, amount: String, fee: String) {
+    // TODO: The tests are to be revised when the Callback API is further revised.
+    every { feeIntegration.getFee(any()) } returns GetFeeResponse(Amount(fee, assetCode))
+    var fee = sep24Service.getFee(op, type, assetCode, amount)
+    assertEquals("0.1", fee.getFee())
+  }
+
+  //  @Test
+  //  @CsvSource(value = ["withdraw,CASH"])
+  //  fun `test fee`(op: String, type: String) {
+  //    return;
+  ////    every { feeIntegration.getFee(any()) } returns GetFeeResponse(Amount(fee, assetCode))
+  ////    var fee = sep24Service.getFee(op, type, assetCode, amount)
+  ////    assertEquals("0.1", fee.getFee())
+  //  }
 
   private fun createJwtToken(): JwtToken {
     return TestHelper.createJwtToken(TEST_ACCOUNT, null, appConfig.hostUrl, TEST_CLIENT_DOMAIN)

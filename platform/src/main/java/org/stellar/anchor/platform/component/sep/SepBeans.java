@@ -141,6 +141,7 @@ public class SepBeans {
       JwtService jwtService,
       Sep24TransactionStore sep24TransactionStore,
       EventService eventService,
+      FeeIntegration feeIntegration,
       InteractiveUrlConstructor interactiveUrlConstructor,
       MoreInfoUrlConstructor moreInfoUrlConstructor) {
     return new Sep24Service(
@@ -150,6 +151,7 @@ public class SepBeans {
         jwtService,
         sep24TransactionStore,
         eventService,
+        feeIntegration,
         interactiveUrlConstructor,
         moreInfoUrlConstructor);
   }

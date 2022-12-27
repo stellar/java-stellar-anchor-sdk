@@ -14,14 +14,6 @@ internal class Sep24DtoTests {
     ar.getSep31Enabled()
     ar.setSep31Enabled(true)
 
-    val ao = AssetInfo.AssetOperation()
-    ao.getFeeFixed()
-    ao.setFeeFixed(0)
-    ao.getFeePercent()
-    ao.setFeePercent(0)
-    ao.getFeeMinimum()
-    ao.setFeeMinimum(0)
-
     val so = AssetInfo.SendOperation()
     so.getFeeFixed()
     so.setFeeFixed(0)

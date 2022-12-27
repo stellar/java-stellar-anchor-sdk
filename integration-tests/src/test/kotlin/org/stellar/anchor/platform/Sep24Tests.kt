@@ -3,9 +3,9 @@
 package org.stellar.anchor.platform
 
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.assertThrows
 import org.skyscreamer.jsonassert.JSONAssert
-import org.skyscreamer.jsonassert.JSONCompareMode
 import org.skyscreamer.jsonassert.JSONCompareMode.LENIENT
 import org.stellar.anchor.api.exception.SepException
 import org.stellar.anchor.api.platform.PatchTransactionsRequest
@@ -25,7 +25,7 @@ class Sep24Tests {
     fun `test Sep24 info endpoint`() {
       printRequest("Calling GET /info")
       val info = sep24Client.getInfo()
-      JSONAssert.assertEquals(gson.toJson(info), expectedSep24Info, JSONCompareMode.STRICT)
+      JSONAssert.assertEquals(expectedSep24Info, gson.toJson(info), LENIENT)
     }
 
     fun `test Sep24 withdraw`() {
@@ -92,6 +92,23 @@ class Sep24Tests {
         assertThrows<SepException> { platformApiClient.getTransaction(txnId) }
       }
     }
+
+    fun `test GET fee`() {
+      var amount = "10.0"
+      var fee = sep24Client.getFee("withdraw", "CASH", "USDC", amount)
+      assertTrue(fee.fee.toFloat() < amount.toFloat())
+
+      fee = sep24Client.getFee("deposit", "CASH", "USDC", amount)
+      assertTrue(fee.fee.toFloat() < amount.toFloat())
+
+      amount = "20"
+      fee = sep24Client.getFee("withdraw", "CASH", "USDC", amount)
+      assertTrue(fee.fee.toFloat() < amount.toFloat())
+
+      amount = "20"
+      fee = sep24Client.getFee("deposit", "CASH", "USDC", amount)
+      assertTrue(fee.fee.toFloat() < amount.toFloat())
+    }
   }
 }
 
@@ -105,6 +122,7 @@ fun sep24TestAll() {
   Sep24Tests.`test PlatformAPI GET transaction for deposit and withdrawal`()
   Sep24Tests.`test patch, get and compare`()
   Sep24Tests.`test GET transactions with bad ids`()
+  Sep24Tests.`test GET fee`()
 }
 
 private const val withdrawRequest =
@@ -282,48 +300,33 @@ private const val expectedSep24Info =
     "deposit": {
       "JPYC": {
         "enabled": true,
-        "fee_fixed": 0,
-        "fee_percent": 0,
-        "min_amount": 1,
-        "max_amount": 1000000,
-        "fee_minimum": 0
-      },
-      "USD": {
-        "enabled": true,
-        "fee_fixed": 0,
-        "fee_percent": 0,
-        "min_amount": 0,
-        "max_amount": 10000,
-        "fee_minimum": 0
-      },
-      "USDC": {
-        "enabled": true,
-        "fee_fixed": 0,
-        "fee_percent": 0,
-        "min_amount": 1,
-        "max_amount": 1000000,
-        "fee_minimum": 0
-      }
-    },
-    "withdraw": {
-      "JPYC": {
-        "enabled": true,
-        "fee_fixed": 0,
-        "fee_percent": 0,
         "min_amount": 1,
         "max_amount": 1000000
       },
       "USD": {
         "enabled": true,
-        "fee_fixed": 0,
-        "fee_percent": 0,
         "min_amount": 0,
         "max_amount": 10000
       },
       "USDC": {
         "enabled": true,
-        "fee_fixed": 0,
-        "fee_percent": 0,
+        "min_amount": 1,
+        "max_amount": 1000000
+      }
+    },
+    "withdraw": {
+      "JPYC": {
+        "enabled": true,
+        "min_amount": 1,
+        "max_amount": 1000000
+      },
+      "USD": {
+        "enabled": true,
+        "min_amount": 0,
+        "max_amount": 10000
+      },
+      "USDC": {
+        "enabled": true,
         "min_amount": 1,
         "max_amount": 1000000
       }
@@ -332,8 +335,8 @@ private const val expectedSep24Info =
       "enabled": true
     },
     "features": {
-      "account_creation": true,
-      "claimable_balances": true
+      "account_creation": false,
+      "claimable_balances": false
     }
   }
 """

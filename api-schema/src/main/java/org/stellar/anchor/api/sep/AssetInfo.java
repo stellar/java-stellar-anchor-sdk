@@ -65,20 +65,11 @@ public class AssetInfo {
   public static class AssetOperation {
     Boolean enabled;
 
-    @SerializedName("fee_fixed")
-    int feeFixed;
-
-    @SerializedName("fee_percent")
-    Integer feePercent;
-
     @SerializedName("min_amount")
     Long minAmount;
 
     @SerializedName("max_amount")
     Long maxAmount;
-
-    @SerializedName("fee_minimum")
-    Long feeMinimum;
   }
 
   public static class DepositOperation extends AssetOperation {}
