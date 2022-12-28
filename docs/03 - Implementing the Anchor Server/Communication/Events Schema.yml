@@ -113,8 +113,8 @@ components:
           type: string
           description: |
             The status of the transaction according with the latest Platform update. Currently, we're supporting all 
-            [SEP-31 states](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0031.md#get-transaction).
             [SEP-24 states](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0024.md#fields-for-withdraw-transactions).
+            [SEP-31 states](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0031.md#get-transaction).
           enum: [
             # Shared
             incomplete,
