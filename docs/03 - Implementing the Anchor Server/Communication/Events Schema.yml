@@ -102,7 +102,6 @@ components:
             - `transaction_created` - a transaction was created through the SEP endpoints.
             - `transaction_status_changed` - the status of a transaction has changed. The detail of the status change is described in the `status_change` field.
             - `transaction_error` - error processing the transaction.
-
         id:
           type: string
           description: "The id of the transaction."
@@ -110,84 +109,39 @@ components:
           type: integer
           description: "The SEP related to this TransactionEvent. Currently, only `31` is supported."
           enum: [31]
-        kind:
-          type: string
-          description: "The kind of transaction event. Currently, the only supported one is `receive`."
-          enum: ["receive"]
         status:
           type: string
           description: |
             The status of the transaction according with the latest Platform update. Currently, we're supporting all 
-            [SEP-31 states](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0031.md#get-transaction), exept for `pending_transaction_info_update`.
+            [SEP-31 states](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0031.md#get-transaction).
+            [SEP-24 states](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0024.md#fields-for-withdraw-transactions).
           enum: [
-            "pending_sender",
-            "pending_stellar",
-            "pending_customer_info_update",
-            "pending_receiver",
-            "pending_external",
-            "completed",
-            "expired",
-            "error"
+            # Shared
+            incomplete,
+            completed,
+            refunded,
+            expired,
+            error,
+            pending_stellar,
+            pending_external,
+            # SEP24
+            pending_user_transfer_start,
+            pending_user_transfer_complete,
+            pending_anchor,
+            pending_trust,
+            pending_user,
+            no_market,
+            too_small,
+            too_large,
+            # SEP31
+            pending_sender,
+            pending_receiver,
+            pending_transaction_info_update,
+            pending_customer_info_update
           ]
-        status_change:
-          $ref: '#/components/schemas/StatusChange'
-        amount_expected:
-          $ref: '#/components/schemas/Amount'
-        amount_in:
-          $ref: '#/components/schemas/Amount'
-        amount_out:
-          $ref: '#/components/schemas/Amount'
-        amount_fee:
-          $ref: '#/components/schemas/Amount'
-        quote_id:
-          type: string
-          description: "The id of the [SEP-38](https://stellar.org/protocol/sep-38) firm quote used for the transaction."
-        started_at:
-          type: string
-          format: date-time
-        updated_at:
-          type: string
-          format: date-time
-        completed_at:
-          type: string
-          format: date-time
-          description: "When the transaction was marked as `completed` or when it was fully refunded."
-        transfer_received_at:
-          type: string
-          format: date-time
-          description: "When the Stellar transaction related to this object was received."
         message:
           type: string
           description: "This field may contain any clarifying message related to this TransactionEvent or to the transaction itself."
-        refunds:
-          $ref: '#/components/schemas/Refunds'
-        stellar_transactions:
-          type: array
-          items:
-            $ref: '#/components/schemas/StellarTransaction'
-        external_transaction_id:
-          type: string
-          description: "The id of an external transaction to be handled by the Anchor Backend."
-        custodial_transaction_id:
-          type: string
-        source_account:
-          type: string
-          description: "The Stellar account whose balance was debited in the payment that originated this event. Should be present if this event was originated from a Stellar payment."
-        destination_account:
-          type: string
-          description: "The Stellar account who received the payment that originated this event. Should be present if this event was originated from a Stellar payment."
-        customers:
-          type: object
-          description: |
-            The Identification info of the sending and receiving customers. If they were created through [SEP-12](https://stellar.org/protocol/sep-12),
-            this object should contain the SEP-12 customer `id`. Otherwise, the `account` address of the customer.
-          properties:
-            sender:
-              $ref: '#/components/schemas/StellarId'
-            receiver:
-              $ref: '#/components/schemas/StellarId'
-        creator:
-          $ref: '#/components/schemas/StellarId'
     Amount:
       type: object
       properties:
