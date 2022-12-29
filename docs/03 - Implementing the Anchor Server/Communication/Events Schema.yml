@@ -11,6 +11,7 @@ info:
 tags:
   - name: "Event Schemas"
     description: "Event Schemas for events that are published to a queue for the Anchor to consume."
+paths:
 components:
   schemas:
     QuoteEvent:
