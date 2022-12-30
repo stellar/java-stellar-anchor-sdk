@@ -96,6 +96,31 @@ paths:
         - Fees
       parameters:
         - in: query
+          name: sep
+          description: The SEP protocol.
+          schema:
+            type:
+              string
+            enum:
+              - sep24
+              - sep31
+        # SEP24 parameters
+        - in: query
+          name: operation
+          description: The SEP-24 operation. One of withdraw or deposit.
+          schema:
+            type: string
+            enum:
+              - withdraw
+              - deposit
+        - in: query
+          name: amount
+          description: The amount of the transaction.
+        - in: query
+          name: asset
+          description: The asset code in which the amount describes.
+        # SEP31 parameters
+        - in: query
           name: send_asset
           description: |
             The asset the client application will send to the anchor in exchange for `receive_asset` in 
