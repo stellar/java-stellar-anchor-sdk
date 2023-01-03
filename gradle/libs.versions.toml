@@ -28,6 +28,8 @@ junit-suite-engine = "1.8.2"
 kafka = "3.3.1"
 kafka-json-schema = "7.0.1"
 kotlin = "1.7.20"
+kotlin-logging = "3.0.2"
+ktor = "2.2.1"
 log4j = "2.19.0"
 log4j-template-json = "2.19.0"
 lombok = "1.18.22"
@@ -45,6 +47,7 @@ spring-aws-messaging = "2.2.6.RELEASE"
 aws-java-sdk-s3 = "1.12.342"
 sqlite-jdbc = "3.34.0"
 slf4j = "1.7.35"
+slf4j2 = "2.0.5"
 toml4j = "0.7.2"
 
 # Plugin versions
@@ -85,6 +88,10 @@ kafka-connect = { module = "org.apache.kafka:connect", version.ref = "kafka" }
 kafka-json-schema = { module = "io.confluent:kafka-json-schema-serializer", version.ref = "kafka-json-schema" }
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
 kotlin-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit5", version.ref = "kotlin" }
+kotlin-logging = { module = "io.github.microutils:kotlin-logging-jvm", version.ref = "kotlin-logging" }
+ktor-core = { module = "io.ktor:ktor-server-core-jvm", version.ref = "ktor" }
+ktor-netty = { module = "io.ktor:ktor-server-netty-jvm", version.ref = "ktor" }
+ktor-yaml = { module = "io.ktor:ktor-server-config-yaml", version.ref = "ktor" }
 log4j2-slf4j = { module = "org.apache.logging.log4j:log4j-slf4j-impl", version.ref = "log4j" }
 log4j2-core = { module = "org.apache.logging.log4j:log4j-core", version.ref = "log4j" }
 log4j2-api = { module = "org.apache.logging.log4j:log4j-api", version.ref = "log4j" }
@@ -105,6 +112,7 @@ servlet-api = { module = "javax.servlet:servlet-api", version.ref = "servlet-api
 sqlite-jdbc = { module = "org.xerial:sqlite-jdbc", version.ref = "sqlite-jdbc" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 slf4j-log4j12 = { module = "org.slf4j:slf4j-log4j12", version.ref = "slf4j" }
+slf4j2-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j2" }
 toml4j = { module = "com.moandjiezana.toml:toml4j", version.ref = "toml4j" }
 spring-kafka = { module = "org.springframework.kafka:spring-kafka", version.ref = "spring-kafka" }
 spring-aws-messaging = { module = "org.springframework.cloud:spring-cloud-aws-messaging", version.ref = "spring-aws-messaging" }
@@ -114,9 +122,11 @@ aws-java-sdk-s3 = { module = "com.amazonaws:aws-java-sdk-s3", version.ref = "aws
 slf4j = ["slf4j-api", "slf4j-log4j12"]
 junit = ["junit-api", "junit-engine", "junit-params", "junit-suite-engine", "kotlin-stdlib", "kotlin-junit", "mockk"]
 kafka = ["kafka-clients", "kafka-connect", "kafka-json-schema"]
+ktor = ["ktor-core", "ktor-netty", "ktor-yaml"]
 
 [plugins]
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
 spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }
 spring-dependency-management = { id = "io.spring.dependency-management", version.ref = "spring-dependency-management" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+ktor = { id = "io.ktor.plugin", version.ref = "ktor" }

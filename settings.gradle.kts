@@ -11,6 +11,7 @@ include("platform")
 
 /** Anchor Reference Server */
 include("anchor-reference-server")
+include("kotlin-reference-server")
 
 /** Integration tests */
 include("integration-tests")

@@ -19,6 +19,7 @@ dependencies {
   // From projects
   implementation(project(":platform"))
   implementation(project(":anchor-reference-server"))
+  implementation(project(":kotlin-reference-server"))
 }
 
 tasks {

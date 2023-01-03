@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="1. Platform Server - ServiceRunner" type="Application" factoryName="Application">
+  <configuration default="false" name="1. Platform Server - ServiceRunner [Integration test config]" type="Application" factoryName="Application">
     <envs>
       <env name="data.ddl_auto" value="update" />
       <env name="data.type" value="sqlite" />
