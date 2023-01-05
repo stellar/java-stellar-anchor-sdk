@@ -103,46 +103,8 @@ components:
             - `transaction_created` - a transaction was created through the SEP endpoints.
             - `transaction_status_changed` - the status of a transaction has changed. The detail of the status change is described in the `status_change` field.
             - `transaction_error` - error processing the transaction.
-        id:
-          type: string
-          description: "The id of the transaction."
-        sep:
-          type: integer
-          description: "The SEP related to this TransactionEvent. Currently, only `31` is supported."
-          enum: [31]
-        status:
-          type: string
-          description: |
-            The status of the transaction according with the latest Platform update. Currently, we're supporting
-            [SEP-24 states](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0024.md#fields-for-withdraw-transactions).
-            [SEP-31 states](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0031.md#get-transaction).
-          enum: [
-            # Shared
-            incomplete,
-            completed,
-            refunded,
-            expired,
-            error,
-            pending_stellar,
-            pending_external,
-            # SEP24
-            pending_user_transfer_start,
-            pending_user_transfer_complete,
-            pending_anchor,
-            pending_trust,
-            pending_user,
-            no_market,
-            too_small,
-            too_large,
-            # SEP31
-            pending_sender,
-            pending_receiver,
-            pending_transaction_info_update,
-            pending_customer_info_update
-          ]
-        message:
-          type: string
-          description: "This field may contain any clarifying message related to this TransactionEvent or to the transaction itself."
+        transaction:
+          $ref: './Platform API.yml#/components/schemas/Transaction'
     Amount:
       type: object
       properties:
