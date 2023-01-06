@@ -1,6 +1,6 @@
 openapi: 3.0.0
 info:
-  version: "0.1"
+  version: "1.0.0"
   title: Event Schemas
   description: |
     This document specifies the schemas used for Events in Stellar Anchor Platform project.
@@ -11,7 +11,7 @@ info:
 tags:
   - name: "Event Schemas"
     description: "Event Schemas for events that are published to a queue for the Anchor to consume."
-paths:
+paths: {}
 components:
   schemas:
     QuoteEvent:
@@ -45,7 +45,7 @@ components:
           type: string
           description: price including fees.
         creator:
-          $ref: '#/components/schemas/StellarId'
+          $ref: './Platform API.yml#/components/schemas/StellarId'
         transaction_id:
           type: string
         created_at:
@@ -105,92 +105,8 @@ components:
             - `transaction_error` - error processing the transaction.
         transaction:
           $ref: './Platform API.yml#/components/schemas/Transaction'
-    Amount:
-      type: object
-      properties:
-        amount:
-          type: string
-        asset:
-          type: string
-    StatusChange:
-      type: object
-      properties:
-        from:
-          type: string
-        to:
-          type: string
-    Refunds:
-      type: object
-      properties:
-        amount_refunded:
-          $ref: '#/components/schemas/Amount'
-        amount_fee:
-          $ref: '#/components/schemas/Amount'
-        payments:
-          type: array
-          items:
-            type: object
-            properties:
-              id:
-                type: string
-              id_type:
-                type: string
-                enum:
-                  - stellar
-                  - external
-              amount:
-                $ref: '#/components/schemas/Amount'
-              fee:
-                $ref: '#/components/schemas/Amount'
-              requested_at:
-                type: string
-                format: date-time
-              refunded_at:
-                type: string
-                format: date-time
-    StellarId:
-      type: object
-      description: |
-        StellarId's are objects that identify end-users and SEP-31 Sending Anchors, but not SEP-31 Receiving Anchors.
 
-        For a SEP-12 customer, the `id` field should be sufficient to fully identify the customer in the Anchor Backend.
-        
-        For a SEP-31 Sending Anchor, the `account` field should be used.
-      properties:
-        id:
-          type: string
-          description: The `id` of the customer registered through SEP-12.
-        account:
-          type: string
-          description: Either the Stellar account or Muxed account address of the on-chain entity.
-    StellarTransaction:
-      type: object
-      properties:
-        id:
-          type: string
-        memo:
-          type: string
-        memo_type:
-          type: string
-          enum:
-            - text
-            - hash
-            - id
-        created_at:
-          type: string
-          format: date-time
-        envelope:
-          type: string
-        payments:
-          type: array
-          items:
-            type: object
-            properties:
-              operationId:
-                type: string
-              source_account:
-                type: string
-              destination_account:
-                type: string
-              amount:
-                $ref: '#/components/schemas/Amount'
+
+# CHANGELOG
+## v1.0.0: Simplified the Transaction Event by embedding the detail in the `transaction` field. Removed unused schemas.
+## v0.1: Initial version
