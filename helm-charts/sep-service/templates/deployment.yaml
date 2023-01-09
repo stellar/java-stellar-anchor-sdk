@@ -10,7 +10,7 @@ metadata:
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
 spec:
-  replicas: {{ (.Values.deployment).replicas | default 1 }}
+  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
       app.kubernetes.io/name: {{ .Values.fullName }}
@@ -19,11 +19,15 @@ spec:
       labels:
         app.kubernetes.io/name: {{ .Values.fullName }}
         app.kubernetes.io/instance: {{ .Release.Name }}
+        {{- if (.Values.deployment).labels }}
+        {{- range $key, $value := .Values.deployment.labels }}
+        {{- end }}
+        {{- end }}
       {{- if (.Values.deployment).annotations }}
       annotations:
         {{- range $key, $value := .Values.deployment.annotations }}
-        {{ $key }}: {{ $value | quote }}
-        {{- end }}
+          {{ $key }}: {{ $value | quote }}
+          {{- end }}
       {{- end }}
     spec:
       {{- if (.Values.deployment).serviceAccountName }}
@@ -32,12 +36,31 @@ spec:
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repo }}/{{ .Values.image.name }}:{{ .Values.image.tag }}"
+          {{- $javaOptions := .Values.deployment.javaOptions -}}
           {{- if (.Values.stellarObserver).enabled }}
-          args: ["--sep-server"]
-          {{- else }}
-          args: ["--sep-server", "--stellar-observer"]
+          command: 
+            - "java"
+          {{- range $javaOptions }}
+            - {{ . }}
           {{- end }}
-          imagePullPolicy: {{ .Values.image.pullPolicy | default "Always" }}
+            - "-jar"
+            - "/app/anchor-platform-runner.jar"
+          args:
+            - '--sep-server'
+          {{- else }}
+          command: 
+            - "java"
+          {{- range $javaOptions }}
+            - {{ . }}
+          {{- end }}
+            - "-jar"
+            - "/app/anchor-platform-runner.jar"
+          args:
+            - '--sep-server'
+            - '--stellar-observer'
+          {{- end }}
+          {{- end }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
           startupProbe:
             httpGet:
               path: {{ .Values.deployment.startupProbePath | default "/health" }}
@@ -61,17 +84,17 @@ spec:
             - name: sep-config-volume
               mountPath: /config
               readOnly: true
-          {{- if .Values.deployment.volumeMounts.configMaps }}
-            {{- range $conf := .Values.deployment.volumeMounts.configMaps }}
+          {{- if ((.Values.deployment).volumeMounts).configMaps }}
+          {{- range $conf := .Values.deployment.volumeMounts.configMaps }}
             - mountPath: {{ $conf.mountPath }}
               name: {{ $conf.name }}-volume
-            {{- end }}
           {{- end }}
-          {{- if .Values.deployment.volumeMounts.secrets }}
-            {{- range $secret := .Values.deployment.volumeMounts.secrets }}
+          {{- end }}
+          {{- if ((.Values.deployment).volumeMounts).secrets }}
+          {{- range $secret := .Values.deployment.volumeMounts.secrets }}
             - mountPath: {{ $secret.mountPath | default $secret.name }}
               name: {{ $secret.name }}-volume
-            {{- end }}
+          {{- end }}
           {{- end }}
           ports:
           - name: http
@@ -80,21 +103,30 @@ spec:
           - name: metrics
             containerPort: 8082
             protocol: TCP
-          {{- if .Values.deployment.envVars }}
-          {{- toYaml .Values.deployment.envVars | nindent 10 }}
+          {{- if (.Values.deployment).env }}
+          env:
+{{ toYaml .Values.deployment.env | indent 12 }}
+          {{- end }}
+          {{- if (.Values.deployment).envFrom }}
+          envFrom:
+{{ toYaml .Values.deployment.envFrom | indent 12 }}
+          {{- end }}
+          {{- if (.Values.deployment).resources }}
+          resources:
+{{- toYaml .Values.deployment.resources | indent 12 }}
           {{- end }}     
       volumes:
         - name: sep-config-volume
           configMap:
             name: {{ .Values.fullName }}
-      {{- if .Values.deployment.volumeMounts.configMaps }}
+      {{- if ((.Values.deployment).volumeMounts).configMaps }}
       {{- range $conf := .Values.deployment.volumeMounts.configMaps }}
         - name: {{ $conf.name }}-volume
           configMap:
             name: {{ $conf.name }}
       {{- end }}
       {{- end }}
-      {{- if .Values.deployment.volumeMounts.secrets }}
+      {{- if ((.Values.deployment).volumeMounts).secrets }}
       {{- range $secret := .Values.deployment.volumeMounts.secrets }}
         - name: {{ $secret.name }}-volume
           secret:
@@ -102,10 +134,10 @@ spec:
       {{- end }}
       {{- end }}
 
-{{- $stellarObserverDeployment := ((.Values.stellarObserver).deployment) }}
-{{- if (.Values.stellarObserver).enabled }}
 ---
 # Stellar Observer
+{{- $stellarObserverDeployment := ((.Values.stellarObserver).deployment) }}
+{{- if (.Values.stellarObserver).enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -139,7 +171,7 @@ spec:
         - name: {{ .Chart.Name }}-observer
           image: "{{ .Values.image.repo }}/{{ .Values.image.name }}:{{ .Values.image.tag }}"
           args: ["--stellar-observer"]
-          imagePullPolicy: {{ .Values.image.pullPolicy | default "Always" }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
           startupProbe:
             httpGet:
               path: {{ $stellarObserverDeployment.probePath | default "/health" }}
@@ -179,8 +211,17 @@ spec:
           - name: http
             containerPort: {{ $stellarObserverDeployment.port | default 8083 }}
             protocol: TCP
-          {{- if .Values.deployment.envVars }}
-          {{- toYaml .Values.deployment.envVars | nindent 10 }}
+          {{- if (.Values.deployment).env }}
+          env:
+{{ toYaml .Values.deployment.env | indent 12 }}
+          {{- end }}
+          {{- if (.Values.deployment).envFrom }}
+          envFrom:
+{{ toYaml .Values.deployment.envFrom | indent 12 }}
+          {{- end }}
+          {{- if (.Values.deployment).resources }}
+          resources:
+{{- toYaml .Values.deployment.resources | indent 12 }}
           {{- end }}     
       volumes:
         - name: sep-config-volume
