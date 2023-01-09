@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
-import org.stellar.anchor.config.MetricConfig;
+import org.stellar.anchor.platform.config.MetricConfig;
 import org.stellar.anchor.platform.data.JdbcSep31TransactionRepo;
 import org.stellar.anchor.util.Log;
 
