@@ -1,7 +1,6 @@
 openapi: 3.0.0
 info:
-  version:
-    $ref: './Platform API.yml#/info/version'
+  version: "2.0.0"
   title: Event Schemas
   description: |
     This document specifies the schemas used for Events in Stellar Anchor Platform project.
@@ -16,91 +15,4 @@ paths: { }
 components:
   schemas:
     Event:
-      type: object
-      properties:
-        id:
-          type: string
-        type:
-          type: string
-          enum:
-            - transaction_created
-            - transaction_status_changed
-            - transaction_error
-            - quote_created - a quote was created via the SEP38 API
-          description: |
-            The transaction event type. Can be one of the following:
-            - `transaction_created` - a transaction was created through the SEP endpoints. The payload is in the `transaction` field.
-            - `transaction_status_changed` - the status of a transaction has changed. The payload is in the `transaction` field. 
-            - `transaction_error` - error processing the transaction. The payload is in the `transaction` field.
-            - `quote_created - a quote was created via the SEP38 API. The payload is in the `quote` field.
-        transaction:
-          $ref: './Platform API.yml#/components/schemas/Transaction'
-        quote:
-          $ref: '#/components/schemas/Quote'
-
-    Quote:
-      type: object
-      properties:
-        quote_id:
-          type: string
-        sell_asset:
-          type: string
-        sell_amount:
-          type: string
-        buy_asset:
-          type: string
-        buy_amount:
-          type: string
-        expires_at:
-          type: string
-          format: date-time
-        price:
-          type: string
-          description: price without including fees.
-        total_price:
-          type: string
-          description: price including fees.
-        creator:
-          $ref: './Platform API.yml#/components/schemas/StellarId'
-        transaction_id:
-          type: string
-        created_at:
-          type: string
-          format: date-time
-        fee:
-          type: object
-          properties:
-            total:
-              type: string
-            asset:
-              type: string
-            details:
-              type: array
-              items:
-                type: object
-                properties:
-                  name:
-                    type: string
-                  description:
-                    type: string
-                  amount:
-                    type: string
-                required:
-                  - name
-                  - amount
-          required:
-            - total
-            - asset
-      required:
-        - event_id
-        - type
-        - id
-        - sell_asset
-        - sell_amount
-        - buy_asset
-        - buy_amount
-        - expires_at
-        - price
-        - total_price
-        - created_at
-
+      $ref: './schemas.yml#/components/schemas/Event'
