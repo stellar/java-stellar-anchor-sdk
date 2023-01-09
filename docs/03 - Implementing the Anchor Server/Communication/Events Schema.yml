@@ -1,6 +1,7 @@
 openapi: 3.0.0
 info:
-  version: "1.0.0"
+  version:
+    $ref: './Platform API.yml#/info/version'
   title: Event Schemas
   description: |
     This document specifies the schemas used for Events in Stellar Anchor Platform project.
@@ -103,6 +104,3 @@ components:
         - total_price
         - created_at
 
-# CHANGELOG
-## v1.0.0: Simplified the Event by merging the QuoteEvent and Transaction Event and embedding the detail in the `transaction` and `quote` field. Removed unused schemas.
-## v0.1: Initial version
