@@ -9,6 +9,11 @@ metadata:
     helm.sh/chart: {{ include "common.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- if (.Values.deployment).labels }}
+    {{- range $key, $value := .Values.deployment.labels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
@@ -32,10 +37,29 @@ spec:
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repo }}/{{ .Values.image.name }}:{{ .Values.image.tag }}"
+          {{- $javaOptions := .Values.deployment.javaOptions -}}
           {{- if (.Values.stellarObserver).enabled }}
-          args: ["--sep-server"]
+          command: 
+            - "java"
+          {{- range $javaOptions }}
+            - {{ . }}
+          {{- end }}
+            - "-jar"
+            - "/app/anchor-platform-runner.jar"
+          args:
+            - '--sep-server'
           {{- else }}
-          args: ["--sep-server", "--stellar-observer"]
+          command: 
+            - "java"
+          {{- range $javaOptions }}
+            - {{ . }}
+          {{- end }}
+            - "-jar"
+            - "/app/anchor-platform-runner.jar"
+          args:
+            - '--sep-server'
+            - '--stellar-observer'
+          {{- end }}
           {{- end }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           startupProbe:
@@ -124,6 +148,11 @@ metadata:
     helm.sh/chart: {{ include "common.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- if (.Values.deployment).labels }}
+    {{- range $key, $value := .Values.deployment.labels }}
+    {{ $key }}: {{ $value | quote }}
+    {{- end }}
+    {{- end }}
 spec:
   replicas: 1
   selector:
@@ -149,6 +178,16 @@ spec:
           image: "{{ .Values.image.repo }}/{{ .Values.image.name }}:{{ .Values.image.tag }}"
           args: ["--stellar-observer"]
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          {{- $javaOptions := .Values.deployment.javaOptions -}}
+          command: 
+            - "java"
+          {{- range $javaOptions }}
+            - {{ . }}
+          {{- end }}
+            - "-jar"
+            - "/app/anchor-platform-runner.jar"
+          args:
+            - '--stellar-observer'
           startupProbe:
             httpGet:
               path: {{ $stellarObserverDeployment.probePath | default "/health" }}
