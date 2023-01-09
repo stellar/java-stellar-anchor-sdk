@@ -11,21 +11,36 @@ info:
 tags:
   - name: "Event Schemas"
     description: "Event Schemas for events that are published to a queue for the Anchor to consume."
-paths: {}
+paths: { }
 components:
   schemas:
-    QuoteEvent:
+    Event:
       type: object
       properties:
-        event_id:
+        id:
           type: string
         type:
           type: string
           enum:
-            - quote_created
-          description:
-            quote_created - a quote was created via the SEP38 API
-        id:
+            - transaction_created
+            - transaction_status_changed
+            - transaction_error
+            - quote_created - a quote was created via the SEP38 API
+          description: |
+            The transaction event type. Can be one of the following:
+            - `transaction_created` - a transaction was created through the SEP endpoints. The payload is in the `transaction` field.
+            - `transaction_status_changed` - the status of a transaction has changed. The payload is in the `transaction` field. 
+            - `transaction_error` - error processing the transaction. The payload is in the `transaction` field.
+            - `quote_created - a quote was created via the SEP38 API. The payload is in the `quote` field.
+        transaction:
+          $ref: './Platform API.yml#/components/schemas/Transaction'
+        quote:
+          $ref: '#/components/schemas/Quote'
+
+    Quote:
+      type: object
+      properties:
+        quote_id:
           type: string
         sell_asset:
           type: string
@@ -87,26 +102,7 @@ components:
         - price
         - total_price
         - created_at
-    TransactionEvent:
-      type: object
-      properties:
-        event_id:
-          type: string
-        type:
-          type: string
-          enum:
-            - transaction_created
-            - transaction_status_changed
-            - transaction_error
-          description: |
-            The transaction event type. Can be one of the following:
-            - `transaction_created` - a transaction was created through the SEP endpoints.
-            - `transaction_status_changed` - the status of a transaction has changed. The detail of the status change is described in the `status_change` field.
-            - `transaction_error` - error processing the transaction.
-        transaction:
-          $ref: './Platform API.yml#/components/schemas/Transaction'
-
 
 # CHANGELOG
-## v1.0.0: Simplified the Transaction Event by embedding the detail in the `transaction` field. Removed unused schemas.
+## v1.0.0: Simplified the Event by merging the QuoteEvent and Transaction Event and embedding the detail in the `transaction` and `quote` field. Removed unused schemas.
 ## v0.1: Initial version
