@@ -1,11 +1,11 @@
 openapi: 3.0.0
 info:
+  version: "2.0.0"
   description: |
     The Synchronous Callbacks API specification for the Stellar Anchor Platform project.
     
     The Synchronous Callbacks API defines requests made by the Platform while it is processing a request from a client application. The 
     anchor's responses to these requests affect the Platform responses to the client application.
-  version: "1.0"
   title: Synchronous Callbacks API
 tags:
   - name: "Unique Address"
@@ -78,7 +78,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: './schemas.yml#/components/schemas/Error'
   /fee:
     get:
       description: |
@@ -158,7 +158,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/FeeResponse'
+                $ref: './schemas.yml#/components/schemas/FeeResponse'
         '422':
           description: |
             Unprocessable Entity. This status should be returned when the anchor understood the request but cannot 
@@ -169,13 +169,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: './schemas.yml#/components/schemas/Error'
         '500':
           description: Error. The Platform will respond to the client application with the same response code and body.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: './schemas.yml#/components/schemas/Error'
   /rate:
     get:
       description: |
@@ -297,7 +297,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/RateResponse'
+                $ref: './schemas.yml#/components/schemas/RateResponse'
         '422':
           description: |
             Unprocessable Entity. This status should be returned when the anchor understood the request but cannot 
@@ -307,13 +307,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: './schemas.yml#/components/schemas/Error'
         '500':
           description: Error. The Platform will respond to the client application with the same response code and body.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: './schemas.yml#/components/schemas/Error'
   /customer:
     get:
       description: |
@@ -385,13 +385,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: './schemas.yml#/components/schemas/Error'
         '404':
           description: Not Found.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: './schemas.yml#/components/schemas/Error'
     put:
       tags:
         - Customers
@@ -406,26 +406,26 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PutCustomerRequest'
+              $ref: './schemas.yml#/components/schemas/PutCustomerRequest'
       responses:
         '200':
           description: Success.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/PutCustomerResponse'
+                $ref: './schemas.yml#/components/schemas/PutCustomerResponse'
         '400':
           description: Invalid data.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: './schemas.yml#/components/schemas/Error'
         '404':
           description: Not Found.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: './schemas.yml#/components/schemas/Error'
   /customer/callback:
     put:
       tags:
@@ -448,7 +448,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/PutCustomerCallbackRequest'
+              $ref: './schemas.yml#/components/schemas/PutCustomerCallbackRequest'
       responses:
         '204':
           description: "Success"
@@ -457,13 +457,13 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: './schemas.yml#/components/schemas/Error'
         '404':
           description: Customer not found.
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
+                $ref: './schemas.yml#/components/schemas/Error'
   /customer/{id}:
     delete:
       tags:
@@ -486,203 +486,4 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Error'
-components:
-  schemas:
-    PutCustomerRequest:
-      type: object
-      properties:
-        id:
-          description: The ID of the customer as returned in the response of a previous PUT request.
-          type: string
-        account:
-          description: The Stellar or Muxed Account authenticated with the Platform via SEP-10.
-          type: string
-        memo:
-          description: The memo value identifying a customer with a shared account, where the shared account is `account`.
-          type: string
-        memo_type:
-          description: The type of memo used to identify a customer with a shared account.
-          type: string
-          enum:
-            - id
-            - hash
-            - text
-        type:
-          description: |
-            The type of action the customer is being KYCd for. See the 
-            [Type Specification](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0012.md#type-specification) 
-            documented in SEP-12.
-          type: string
-        first_name:
-          type: string
-        last_name:
-          type: string
-        additional_name:
-          type: string
-        address_country_code:
-          type: string
-        state_or_province:
-          type: string
-        city:
-          type: string
-        postal_code:
-          type: string
-        address:
-          type: string
-        mobile_number:
-          type: string
-        email_address:
-          type: string
-        birth_date:
-          type: string
-          format: date
-        birth_place:
-          type: string
-        birth_country_code:
-          type: string
-        bank_account_number:
-          type: string
-        bank_number:
-          type: string
-        bank_phone_number:
-          type: string
-        bank_branch_number:
-          type: string
-        tax_id:
-          type: string
-        tax_id_name:
-          type: string
-        occupation:
-          type: string
-        employer_name:
-          type: string
-        employer_address:
-          type: string
-        language_code:
-          type: string
-        id_type:
-          type: string
-        id_country_code:
-          type: string
-        id_issue_date:
-          type: string
-          format: date
-        id_expiration_date:
-          type: string
-          format: date
-        id_number:
-          type: string
-        ip_address:
-          type: string
-        sex:
-          type: string
-    PutCustomerResponse:
-      type: object
-      properties:
-        id:
-          type: string
-    PutCustomerCallbackRequest:
-      type: object
-      properties:
-        id:
-          description: The ID of the customer as returned in the response of a previous PUT request.
-          type: string
-        account:
-          description: The Stellar or Muxed Account authenticated with the Platform via SEP-10.
-          type: string
-        memo:
-          description: The memo value identifying a customer with a shared account, where the shared account is `account`.
-          type: string
-        memo_type:
-          description: The type of memo used to identify a customer with a shared account.
-          type: string
-          enum:
-            - id
-            - hash
-            - text
-        url:
-          description: A callback URL that the SEP-12 server will POST to when the status of the customer changes.
-          type: string
-    FeeResponse:
-      type: object
-      properties:
-        fee:
-          $ref: '#/components/schemas/Amount'
-    RateResponse:
-      type: object
-      properties:
-        rate:
-          type: object
-          properties:
-            id:
-              type: string
-              description: Id of the firm quote. NOT USED when `type=indicative*`.
-            expires_at:
-              type: string
-              format: date-time
-              description: Expirations are NOT USED when `type=indicative*`.
-            price:
-              type: string
-              description: The conversion price offered by the anchor for one unit of `buy_asset` in terms of `sell_asset`, without including fees. In traditional finance, `buy_asset` would be referred to as the base asset and `sell_asset` as the counter asset. The formula `sell_amount - fee = price * buy_amount` must hold true ([ref](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0038.md#price-formulas)).
-            total_price:
-              type: string
-              description: The total conversion price offered by the anchor for one unit of `buy_asset` in terms of `sell_asset`, including fees. In traditional finance, `buy_asset` would be referred to as the base asset and `sell_asset` as the counter asset. NOT USED when `type=indicative_prices`. The formula `sell_amount = total_price * buy_amount` must hold true ([ref](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0038.md#price-formulas)).
-            sell_amount:
-              type: string
-              description: The amount of `sell_asset` the anchor will exchange for `buy_asset`. It could be different from the `sell_amount` provided in the request, depending on how fees are applied by the Anchor.
-            buy_amount:
-              type: string
-              description: The amount of `buy_asset` the anchor will provide with `sell_asset`. It could be different from the `buy_amount` provided in the request, depending on how fees are applied by the Anchor.
-            fee:
-              $ref: '#/components/schemas/RateFeeResponse'
-          required:
-            - price
-            - sell_amount
-            - buy_amount
-    RateFeeResponse:
-      type: object
-      description: Fees are NOT USED when `type=indicative_prices`.
-      properties:
-        total:
-          type: string
-          description: The total fee to be applied.
-        asset:
-          type: string
-          description: The asset the fee will be charged in. Must be represented in [Asset Identification Format](https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0038.md#asset-identification-format).
-        details:
-          type: array
-          items:
-            $ref: '#/components/schemas/RateFeeDetailResponse'
-      required:
-        - total
-        - asset
-    RateFeeDetailResponse:
-      type: object
-      properties:
-        name:
-          type: string
-          description: The name of the fee, for example `ACH fee`, `Brazilian conciliation fee`, `Service fee`, etc.
-        description:
-          type: string
-          description: A text describing the fee.
-        amount:
-          type: string
-          description: The amount of asset applied. If `fee.details` is provided, `sum(fee.details.amount)` should be equals `fee.total`.
-      required:
-        - name
-        - amount
-    Amount:
-      type: object
-      properties:
-        amount:
-          type: string
-        asset:
-          type: string
-    Error:
-      type: object
-      properties:
-        error:
-          type: string
-      required:
-        - error
+                $ref: './schemas.yml#/components/schemas/Error'
