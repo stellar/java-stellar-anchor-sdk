@@ -11,6 +11,15 @@ data.initial_connection_pool_size:
 data.max_active_connections:
 data.type:
 data.url:
+event_processor.context_path:
+event_processor.port:
+event_processor.queue.kafka.bootstrap_server:
+event_processor.queue.kafka.event_type_to_queue.all:
+event_processor.queue.kafka.event_type_to_queue.quote_created:
+event_processor.queue.kafka.event_type_to_queue.transaction_created:
+event_processor.queue.kafka.event_type_to_queue.transaction_error:
+event_processor.queue.kafka.event_type_to_queue.transaction_status_changed:
+event_processor.queue.type:
 events.enabled:
 events.event_type_to_queue.quote_created:
 events.event_type_to_queue.transaction_created:
@@ -74,8 +83,8 @@ sep24.interactive_url.simple.base_url:
 sep24.interactive_url.simple.txn_fields:
 sep24.interactive_url.type:
 sep24.more_info_url.simple.base_url:
-sep24.more_info_url.simple.txn_fields:
 sep24.more_info_url.simple.jwt_expiration:
+sep24.more_info_url.simple.txn_fields:
 sep24.more_info_url.type:
 sep31.deposit_info_generator_type:
 sep31.enabled:
