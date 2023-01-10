@@ -40,10 +40,8 @@ public class EventProcessorConfigManager extends ConfigManager {
 class EventProcessorConfigAdapter extends SpringConfigAdapter {
   @Override
   void updateSpringEnv(ConfigMap config) throws InvalidConfigException {
-    //    copy(config, "payment_observer.context_path", "server.servlet.context-path");
-    //    copy(config, "payment_observer.port", "server.port");
-    set("server.servlet.context-path", "/");
-    set("server.port", "8084");
+    copy(config, "event_processor.context_path", "server.servlet.context-path");
+    copy(config, "event_processor.port", "server.port");
     set("spring.mvc.converters.preferred-json-mapper", "gson");
   }
 }
