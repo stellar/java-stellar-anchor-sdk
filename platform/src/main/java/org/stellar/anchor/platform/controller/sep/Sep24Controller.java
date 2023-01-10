@@ -1,6 +1,6 @@
-package org.stellar.anchor.platform.controller;
+package org.stellar.anchor.platform.controller.sep;
 
-import static org.stellar.anchor.platform.controller.Sep10Helper.getSep10Token;
+import static org.stellar.anchor.platform.controller.sep.Sep10Helper.getSep10Token;
 import static org.stellar.anchor.util.Log.*;
 
 import java.io.IOException;

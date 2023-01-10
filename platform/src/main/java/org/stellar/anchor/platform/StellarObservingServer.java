@@ -21,6 +21,7 @@ import org.stellar.anchor.platform.configurator.SecretManager;
 @EntityScan(basePackages = {"org.stellar.anchor.platform.data"})
 @ComponentScan(
     basePackages = {
+      "org.stellar.anchor.platform.controller.observer",
       "org.stellar.anchor.platform.component.observer",
       "org.stellar.anchor.platform.component.share"
     })

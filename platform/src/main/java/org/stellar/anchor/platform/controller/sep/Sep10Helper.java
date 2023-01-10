@@ -1,4 +1,4 @@
-package org.stellar.anchor.platform.controller;
+package org.stellar.anchor.platform.controller.sep;
 
 import static org.stellar.anchor.filter.JwtTokenFilter.JWT_TOKEN;
 

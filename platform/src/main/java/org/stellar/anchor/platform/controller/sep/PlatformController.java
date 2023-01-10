@@ -1,4 +1,4 @@
-package org.stellar.anchor.platform.controller;
+package org.stellar.anchor.platform.controller.sep;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;

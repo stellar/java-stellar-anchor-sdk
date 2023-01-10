@@ -21,7 +21,7 @@ import org.stellar.anchor.platform.configurator.SepConfigManager;
 @EntityScan(basePackages = {"org.stellar.anchor.platform.data"})
 @ComponentScan(
     basePackages = {
-      "org.stellar.anchor.platform.controller",
+      "org.stellar.anchor.platform.controller.sep",
       "org.stellar.anchor.platform.component.sep",
       "org.stellar.anchor.platform.component.share"
     })
