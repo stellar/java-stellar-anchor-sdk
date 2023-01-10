@@ -3,8 +3,7 @@ package org.stellar.anchor.platform.component.share;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.stellar.anchor.config.MetricConfig;
-import org.stellar.anchor.platform.config.PropertyMetricConfig;
+import org.stellar.anchor.platform.config.MetricConfig;
 import org.stellar.anchor.platform.data.JdbcSep31TransactionRepo;
 import org.stellar.anchor.platform.service.MetricEmitterService;
 
@@ -17,7 +16,7 @@ public class MetricsBeans {
   @Bean
   @ConfigurationProperties(prefix = "metrics")
   MetricConfig metricConfig() {
-    return new PropertyMetricConfig();
+    return new MetricConfig();
   }
 
   @Bean

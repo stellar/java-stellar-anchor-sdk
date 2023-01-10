@@ -5,10 +5,9 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 import org.stellar.anchor.config.AppConfig;
-import org.stellar.anchor.config.MetricConfig;
 
 @Data
-public class PropertyMetricConfig implements MetricConfig, Validator {
+public class MetricConfig implements Validator {
   private boolean enabled = false;
   private boolean extrasEnabled = false;
   private Integer runInterval = 30;
@@ -21,10 +20,5 @@ public class PropertyMetricConfig implements MetricConfig, Validator {
   @Override
   public void validate(@NotNull Object target, @NotNull Errors errors) {
     System.out.println("here");
-  }
-
-  @Override
-  public boolean isExtrasEnabled() {
-    return this.extrasEnabled;
   }
 }
