@@ -159,13 +159,13 @@ event_processor:
   queue:
     type: kafka
     kafka:
-      bootstrapServer: anchor-platform-kafka:9092
-      eventTypeToQueue:
+      bootstrap_server: localhost:9092
+      event_type_to_topic:
         all: dev_ap_event_single_queue
-        quoteCreated: dev_ap_event_quote_created
-        transactionCreated: dev_ap_event_transaction_created
-        transactionStatusChanged: dev_ap_event_transaction_status_changed
-        transactionError: dev_ap_event_transaction_error
+        quote_created: dev_ap_event_quote_created
+        transaction_created: dev_ap_event_transaction_created
+        transaction_status_updated: dev_ap_event_transaction_status_changed
+        transaction_error: dev_ap_event_transaction_error
 
 ## @param: languages
 ## @supported_values: en

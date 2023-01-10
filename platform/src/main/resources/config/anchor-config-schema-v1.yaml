@@ -14,11 +14,11 @@ data.url:
 event_processor.context_path:
 event_processor.port:
 event_processor.queue.kafka.bootstrap_server:
-event_processor.queue.kafka.event_type_to_queue.all:
-event_processor.queue.kafka.event_type_to_queue.quote_created:
-event_processor.queue.kafka.event_type_to_queue.transaction_created:
-event_processor.queue.kafka.event_type_to_queue.transaction_error:
-event_processor.queue.kafka.event_type_to_queue.transaction_status_changed:
+event_processor.queue.kafka.event_type_to_topic.all:
+event_processor.queue.kafka.event_type_to_topic.quote_created:
+event_processor.queue.kafka.event_type_to_topic.transaction_created:
+event_processor.queue.kafka.event_type_to_topic.transaction_error:
+event_processor.queue.kafka.event_type_to_topic.transaction_status_updated:
 event_processor.queue.type:
 events.enabled:
 events.event_type_to_queue.quote_created:
