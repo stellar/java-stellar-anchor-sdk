@@ -48,6 +48,7 @@ spec:
           #  "-jar",
           #  "/app/anchor-platform-runner.jar"
           #]
+          entrypoint: ["java", "-javaagent:/app/dd-java-agent.jar", "-jar", "/app/anchor-platform-runner.jar"]
           {{- if (.Values.stellarObserver).enabled }}
           args:
             - '--sep-server'
