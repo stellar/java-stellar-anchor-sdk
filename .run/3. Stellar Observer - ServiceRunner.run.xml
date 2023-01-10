@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="1. Platform Server - ServiceRunner [Integration test config]" type="Application" factoryName="Application">
+  <configuration default="false" name="3. Stellar Observer - ServiceRunner" type="Application" factoryName="Application">
     <envs>
       <env name="data.ddl_auto" value="update" />
       <env name="data.type" value="sqlite" />
@@ -12,7 +12,7 @@
     </envs>
     <option name="MAIN_CLASS_NAME" value="org.stellar.anchor.platform.ServiceRunner" />
     <module name="java-stellar-anchor-sdk.service-runner.main" />
-    <option name="PROGRAM_PARAMETERS" value="-s" />
+    <option name="PROGRAM_PARAMETERS" value="-o" />
     <shortenClasspath name="ARGS_FILE" />
     <extension name="coverage">
       <pattern>
