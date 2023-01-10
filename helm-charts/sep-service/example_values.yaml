@@ -1,3 +1,4 @@
+---
 fullName: anchor-platform
 service:
    containerPort: 8080
@@ -5,7 +6,7 @@ service:
    replicas: 1
    type: NodePort
    name: sep
-image: 
+image:
    repo: stellar
    name: anchor-platform
    tag: latest
@@ -14,79 +15,75 @@ deployment:
    startupProbePeriodSeconds: 10
    startupProbeFailureThreshold: 30
    serviceAccountName: default
+   javaOptions: 
+      - "-javaagent:/app/dd-java-agent.jar"
+   labels:
+      keya: valuea
+      keyb: valueb
    volumeMounts:
       secrets:
          - name: apsigningseed
-           mountPath: signingseed 
+           mountPath: signingseed
       configMaps:
          - name: assets
            mountPath: assets
    annotations:
-        prometheus.io/path: /actuator/prometheus
-        prometheus.io/port: "8082"
-        prometheus.io/scrape: "true"
+      prometheus.io/path: /actuator/prometheus
+      prometheus.io/port: "8082"
+      prometheus.io/scrape: "true"
    env:
-   - name: STELLAR_ANCHOR_CONFIG
-     value: file:/config/anchor-config.yaml
+      - name: STELLAR_ANCHOR_CONFIG
+        value: file:/config/anchor-config.yaml
    envFrom:
-   - secretRef:
-       name: apsigningseed
+      - secretRef:
+        name: apsigningseed
 ingress:
    labels:
-     app: appy
-     test: label_test
+      app: appy
+      test: label_test
    annotations:
-     kubernetes.io/ingress.class: "public"
-     cert-manager.io/cluster-issuer: "default"
-     ingress.kubernetes.io/ssl-redirect: "true"
-     ingress.kubernetes.io/browser-xss-filter: "true"
-     ingress.kubernetes.io/frame-deny: "true"
-     ingress.kubernetes.io/content-type-nosniff: "true"
-     ingress.kubernetes.io/hsts-max-age: "31536000"
-     ingress.kubernetes.io/hsts-include-subdomains: "true"
+      kubernetes.io/ingress.class: "public"
+      cert-manager.io/cluster-issuer: "default"
+      ingress.kubernetes.io/ssl-redirect: "true"
+      ingress.kubernetes.io/browser-xss-filter: "true"
+      ingress.kubernetes.io/frame-deny: "true"
+      ingress.kubernetes.io/content-type-nosniff: "true"
+      ingress.kubernetes.io/hsts-max-age: "31536000"
+      ingress.kubernetes.io/hsts-include-subdomains: "true"
    tls:
-     host: "your_anchor_domain.com"
-     secretName: anchor-platform-sep-server-cert 
+      host: "your_anchor_domain.com"
+      secretName: anchor-platform-sep-server-cert 
    rules:
       hosts:
-        - host: "your_anchor_domain.com"
-          path: /
-          pathType: Prefix
-          backend:
-            servicePort: "{{ .Values.service.containerPort }}"
-            serviceName: "{{ .Values.fullName }}-svc-{{ .Values.service.name }}"
-#
-# If you want to have a dedicated stellar-observer service, you need to
-# uncomment the `stellarObserver` section below.
-#
-# Attention! If you use the stellar observer as a separate service – by setting
-# `stellarObserver.enabled` flag to `true` – you must use a shared database that
-# will be accessible by both deployments (sep-server and stellar-observer).
-# In-memory databases won't work.
-# stellarObserver:
-#    # This will enable the stellar-observer service as a separate deployment:
-#    enabled: true
-#    # The stellarObserver.deployment section is optional, the templates have
-#    # default values.
-#    deployment:
-#       port: 8083
-#       probePath: "/health"
-#       probePeriodSeconds: 15
-#       initialDelaySeconds: 60
-#       startupProbeFailureThreshold: 10
-#       livenessProbeFailureThreshold: 2
-#    ingress:
-#       tls:
-#          host: "observer.your_anchor_domain.com"    # Replace this with a valid host name
-#       rules:
-#          hosts:
-#          - host: "observer.your_anchor_domain.com"  # Replace this with a valid host name
-#            path: /
-#            pathType: Prefix
-#
+         - host: "your_anchor_domain.com"
+           path: /
+           pathType: Prefix
+           backend:
+              servicePort: "{{ .Values.service.containerPort }}"
+              serviceName: "{{ .Values.fullName }}-svc-{{ .Values.service.name }}"
+stellarObserver:
+   enabled: true
+   deployment:
+      port: 8083
+      probePath: "/health"
+      probePeriodSeconds: 15
+      initialDelaySeconds: 60
+      startupProbeFailureThreshold: 10
+      livenessProbeFailureThreshold: 2
+      labels:
+         observerlabel: value
+         anotherlabel: anothervalue
+   ingress:
+      tls:
+         host: "observer.your_anchor_domain.com"    # Replace this with a valid host name
+      rules:
+         hosts:
+            - host: "observer.your_anchor_domain.com"  # Replace this with a valid host name
+              path: /
+              pathType: Prefix
 stellar:
    toml:
-      #accounts: ['"GCHLHDBOKG2JWMJQBTLSL5XG6NO7ESXI2TAQKZXCXWXB5WI2X6W233PR"'] 
+      # accounts: ['"GCHLHDBOKG2JWMJQBTLSL5XG6NO7ESXI2TAQKZXCXWXB5WI2X6W233PR"'] 
       signing_key: "GCHLHDBOKG2JWMJQBTLSL5XG6NO7ESXI2TAQKZXCXWXB5WI2X6W233PR"
       documentation:
          ORG_NAME: "Stellar Development Foundation"
@@ -136,27 +133,26 @@ stellar:
          platformToAnchorSecret: ${PLATFORM_TO_ANCHOR_SECRET}
          anchorToPlatformSecret: ${ANCHOR_TO_PLATFORM_SECRET}
       sep1:
-        enabled: true
-        stellarFile: file:/config/stellar-wks.toml
-      sep10: 
-        enabled: true
-        homeDomain: your_anchor_domain.com
-        signingSeed: ${SEP10_SIGNING_SEED}
-        requireKnownOmnibusAccount: false
-        omnibusAccountList:
-#        omnibusAccountList: |
+         enabled: true
+         stellarFile: file:/config/stellar-wks.toml
+      sep10:
+         enabled: true
+         homeDomain: your_anchor_domain.com
+         signingSeed: ${SEP10_SIGNING_SEED}
+         requireKnownOmnibusAccount: false
+#         omnibusAccountList: |
 #          GAB24L6CPBKSMQOBXJ5PRA6I66X4TGZHPAEI2CMPNLC6I2WX646OYCAV,
 #          GAB24L6CPBKSMQOBXJ5PRA6I66X4TGZHPAEI2CMPNLC6I2WX646OYCAA
       sep12:
-        enabled: true
-        customerIntegrationEndpoint: https://anchor-reference-server-dev.stellar.org
+         enabled: true
+         customerIntegrationEndpoint: https://anchor-reference-server-dev.stellar.org
       sep31:
-        enabled: true
-        feeIntegrationEndPoint: https://anchor-reference-server-dev.stellar.org
-        uniqueAddressIntegrationEndPoint: https://anchor-reference-server-dev.stellar.org
+         enabled: true
+         feeIntegrationEndPoint: https://anchor-reference-server-dev.stellar.org
+         uniqueAddressIntegrationEndPoint: https://anchor-reference-server-dev.stellar.org
       sep38:
-        enabled: true
-        quoteIntegrationEndPoint: https://anchor-reference-server-dev.stellar.org
+         enabled: true
+         quoteIntegrationEndPoint: https://anchor-reference-server-dev.stellar.org
       circle:
          circleUrl: https://api-sandbox.circle.com
          apiKey: ${CIRCLE_API_KEY}

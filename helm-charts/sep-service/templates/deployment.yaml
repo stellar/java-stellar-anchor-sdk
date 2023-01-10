@@ -9,11 +9,6 @@ metadata:
     helm.sh/chart: {{ include "common.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
-    {{- if (.Values.deployment).labels }}
-    {{- range $key, $value := .Values.deployment.labels }}
-    {{ $key }}: {{ $value | quote }}
-    {{- end }}
-    {{- end }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
@@ -24,9 +19,14 @@ spec:
       labels:
         app.kubernetes.io/name: {{ .Values.fullName }}
         app.kubernetes.io/instance: {{ .Release.Name }}
+        {{- if (.Values.deployment).labels }}
+        {{- range $key, $value := .Values.deployment.labels }}
+        {{ $key }}: {{ $value }}
+        {{- end }}
+        {{- end }}
       {{- if (.Values.deployment).annotations }}
       annotations:
-        {{- range $key, $value := .Values.deployment.annotations }}
+      {{- range $key, $value := .Values.deployment.annotations }}
           {{ $key }}: {{ $value | quote }}
           {{- end }}
       {{- end }}
@@ -37,29 +37,24 @@ spec:
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repo }}/{{ .Values.image.name }}:{{ .Values.image.tag }}"
-          {{- $javaOptions := .Values.deployment.javaOptions -}}
+          {{- $javaOptions := (.Values.deployment).javaOptions }}
+          command: [  
+            "java",
+            {{- if (.Values.deployment).javaOptions }}
+            {{- range $javaOptions }}
+            {{ . | quote }},
+            {{- end }}
+            {{- end }}
+            "-jar",
+            "/app/anchor-platform-runner.jar"
+          ]
           {{- if (.Values.stellarObserver).enabled }}
-          command: 
-            - "java"
-          {{- range $javaOptions }}
-            - {{ . }}
-          {{- end }}
-            - "-jar"
-            - "/app/anchor-platform-runner.jar"
           args:
             - '--sep-server'
           {{- else }}
-          command: 
-            - "java"
-          {{- range $javaOptions }}
-            - {{ . }}
-          {{- end }}
-            - "-jar"
-            - "/app/anchor-platform-runner.jar"
           args:
             - '--sep-server'
             - '--stellar-observer'
-          {{- end }}
           {{- end }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           startupProbe:
@@ -134,7 +129,6 @@ spec:
             secretName: {{ $secret.name }}
       {{- end }}
       {{- end }}
-
 ---
 # Stellar Observer
 {{- $stellarObserverDeployment := ((.Values.stellarObserver).deployment) }}
@@ -148,11 +142,6 @@ metadata:
     helm.sh/chart: {{ include "common.chart" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
-    {{- if (.Values.deployment).labels }}
-    {{- range $key, $value := .Values.deployment.labels }}
-    {{ $key }}: {{ $value | quote }}
-    {{- end }}
-    {{- end }}
 spec:
   replicas: 1
   selector:
@@ -163,6 +152,11 @@ spec:
       labels:
         app.kubernetes.io/name: {{ .Values.fullName }}-observer
         app.kubernetes.io/instance: {{ .Release.Name }}
+        {{- if $stellarObserverDeployment.labels }}
+        {{- range $key, $value := .Values.deployment.labels }}
+        {{ $key }}: {{ $value }}
+        {{- end }}
+        {{- end }}
       {{- if (.Values.deployment).annotations }}
       annotations:
         {{- range $key, $value := .Values.deployment.annotations }}
@@ -178,14 +172,17 @@ spec:
           image: "{{ .Values.image.repo }}/{{ .Values.image.name }}:{{ .Values.image.tag }}"
           args: ["--stellar-observer"]
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          {{- $javaOptions := .Values.deployment.javaOptions -}}
-          command: 
-            - "java"
-          {{- range $javaOptions }}
-            - {{ . }}
-          {{- end }}
-            - "-jar"
-            - "/app/anchor-platform-runner.jar"
+          {{- $javaOptions := (.Values.deployment).javaOptions }}
+          command: [  
+            "java",
+            {{- if (.Values.deployment).javaOptions }}
+            {{- range $javaOptions }}
+            {{ . | quote }},
+            {{- end }}
+            {{- end }}
+            "-jar",
+            "/app/anchor-platform-runner.jar"
+          ]
           args:
             - '--stellar-observer'
           startupProbe:
