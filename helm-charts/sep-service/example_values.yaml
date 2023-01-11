@@ -78,15 +78,7 @@ ingress:
 #       initialDelaySeconds: 60
 #       startupProbeFailureThreshold: 10
 #       livenessProbeFailureThreshold: 2
-#    ingress:
-#       tls:
-#          host: "observer.your_anchor_domain.com"    # Replace this with a valid host name
-#       rules:
-#          hosts:
-#          - host: "observer.your_anchor_domain.com"  # Replace this with a valid host name
-#            path: /
-#            pathType: Prefix
-#
+
 stellar:
    toml:
       #accounts: ['"GCHLHDBOKG2JWMJQBTLSL5XG6NO7ESXI2TAQKZXCXWXB5WI2X6W233PR"'] 
