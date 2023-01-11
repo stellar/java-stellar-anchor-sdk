@@ -37,17 +37,6 @@ spec:
       containers:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repo }}/{{ .Values.image.name }}:{{ .Values.image.tag }}"
-          #{{- $javaOptions := (.Values.deployment).javaOptions }}
-          #command: [  
-          #  "java",
-          #  {{- if (.Values.deployment).javaOptions }}
-          #  {{- range $javaOptions }}
-          #  {{ . | quote }},
-          #  {{- end }}
-          #  {{- end }}
-          #  "-jar",
-          #  "/app/anchor-platform-runner.jar"
-          #]
           {{- if (.Values.stellarObserver).enabled }}
           args:
             - '--sep-server'
@@ -172,17 +161,6 @@ spec:
           image: "{{ .Values.image.repo }}/{{ .Values.image.name }}:{{ .Values.image.tag }}"
           args: ["--stellar-observer"]
           imagePullPolicy: {{ .Values.image.pullPolicy }}
-          {{- $javaOptions := (.Values.deployment).javaOptions }}
-          command: [  
-            "java",
-            {{- if (.Values.deployment).javaOptions }}
-            {{- range $javaOptions }}
-            {{ . | quote }},
-            {{- end }}
-            {{- end }}
-            "-jar",
-            "/app/anchor-platform-runner.jar"
-          ]
           args:
             - '--stellar-observer'
           startupProbe:
