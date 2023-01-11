@@ -38,16 +38,16 @@ spec:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repo }}/{{ .Values.image.name }}:{{ .Values.image.tag }}"
           #{{- $javaOptions := (.Values.deployment).javaOptions }}
-          command: [  
-            "java",
-            {{- if (.Values.deployment).javaOptions }}
-            {{- range $javaOptions }}
-            {{ . | quote }},
-            {{- end }}
-            {{- end }}
-            "-jar",
-            "/app/anchor-platform-runner.jar"
-          ]
+          #command: [  
+          #  "java",
+          #  {{- if (.Values.deployment).javaOptions }}
+          #  {{- range $javaOptions }}
+          #  {{ . | quote }},
+          #  {{- end }}
+          #  {{- end }}
+          #  "-jar",
+          #  "/app/anchor-platform-runner.jar"
+          #]
           {{- if (.Values.stellarObserver).enabled }}
           args:
             - '--sep-server'
