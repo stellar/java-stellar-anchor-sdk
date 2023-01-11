@@ -15,8 +15,6 @@ deployment:
    startupProbePeriodSeconds: 10
    startupProbeFailureThreshold: 30
    serviceAccountName: default
-   javaOptions: 
-      - "-javaagent:/app/dd-java-agent.jar"
    labels:
       keya: valuea
       keyb: valueb

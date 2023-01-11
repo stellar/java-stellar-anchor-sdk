@@ -232,5 +232,4 @@ spec:
             secretName: {{ $secret.name }}
       {{- end }}
       {{- end }}
-
 {{- end }}
