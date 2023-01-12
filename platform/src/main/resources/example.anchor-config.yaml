@@ -99,7 +99,7 @@ metrics:
   run_interval: 30
 
 events:
-  enabled: true
+  enabled: false
   event_type_to_queue:
     quote_created: ap_event_quote_created
     transaction_created: ap_event_transaction_created

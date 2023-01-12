@@ -1,6 +1,8 @@
 package com.example
 
 import com.example.plugins.*
+import com.example.sep24.DepositService
+import com.example.sep24.WithdrawalService
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
@@ -10,6 +12,10 @@ import mu.KotlinLogging
 const val DEFAULT_KOTLIN_REFERENCE_SERVER_PORT = 8091
 
 val log = KotlinLogging.logger {}
+
+// TODO: make configurable
+val depositService = DepositService()
+val withdrawalService = WithdrawalService()
 
 fun main(args: Array<String>) {
   log.info { "Starting Kotlin reference server" }
@@ -24,5 +30,5 @@ fun main(args: Array<String>) {
 }
 
 fun Application.configureRouting() {
-  routing { sep24() }
+  routing { sep24(depositService, withdrawalService) }
 }

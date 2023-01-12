@@ -52,7 +52,7 @@ toml4j = "0.7.2"
 
 # Plugin versions
 spotless = "6.9.1"
-spring-boot = "2.6.14"
+spring-boot = "2.7.5"
 spring-dependency-management = "1.1.0"
 
 [libraries]
@@ -90,6 +90,10 @@ kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "
 kotlin-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit5", version.ref = "kotlin" }
 kotlin-logging = { module = "io.github.microutils:kotlin-logging-jvm", version.ref = "kotlin-logging" }
 ktor-core = { module = "io.ktor:ktor-server-core-jvm", version.ref = "ktor" }
+ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
+ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
+ktor-client-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
+ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 ktor-netty = { module = "io.ktor:ktor-server-netty-jvm", version.ref = "ktor" }
 ktor-yaml = { module = "io.ktor:ktor-server-config-yaml", version.ref = "ktor" }
 log4j2-slf4j = { module = "org.apache.logging.log4j:log4j-slf4j-impl", version.ref = "log4j" }
@@ -123,10 +127,12 @@ slf4j = ["slf4j-api", "slf4j-log4j12"]
 junit = ["junit-api", "junit-engine", "junit-params", "junit-suite-engine", "kotlin-stdlib", "kotlin-junit", "mockk"]
 kafka = ["kafka-clients", "kafka-connect", "kafka-json-schema"]
 ktor = ["ktor-core", "ktor-netty", "ktor-yaml"]
+ktor-client = ["ktor-client-core", "ktor-client-content-negotiation", "ktor-client-json", "ktor-client-okhttp"]
 
 [plugins]
 spotless = { id = "com.diffplug.spotless", version.ref = "spotless" }
 spring-boot = { id = "org.springframework.boot", version.ref = "spring-boot" }
 spring-dependency-management = { id = "io.spring.dependency-management", version.ref = "spring-dependency-management" }
 kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 ktor = { id = "io.ktor.plugin", version.ref = "ktor" }

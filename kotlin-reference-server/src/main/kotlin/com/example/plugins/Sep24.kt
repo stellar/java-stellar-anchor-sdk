@@ -1,33 +1,87 @@
 package com.example.plugins
 
+import com.example.ClientException
+import com.example.jwt.JwtDecoder
+import com.example.safelyGet
+import com.example.sep24.DepositService
+import com.example.sep24.Sep24Util.getTransaction
+import com.example.sep24.WithdrawalService
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import mu.KotlinLogging
 
 val log = KotlinLogging.logger {}
 
-fun Route.sep24() {
+fun Route.sep24(depositService: DepositService, withdrawalService: WithdrawalService) {
   route("/sep24/interactive") {
     get {
       log.info("Called /sep24/interactive with parameters ${call.parameters}")
 
-      val operation =
-        call.parameters["operation"]
-          ?: return@get call.respondText(
-            "Missing operation parameter",
-            status = HttpStatusCode.BadRequest
-          )
+      val token = JwtDecoder.decode(call.safelyGet("token"))
 
-      when (operation.lowercase()) {
-        "deposit" -> call.respondText("The sep24 interactive DEPOSIT starts here.")
-        "withdraw" -> call.respondText("The sep24 interactive WITHDRAW starts here.")
-        else ->
-          call.respondText(
-            "The only supported operations are \"deposit\" or \"withdraw\"",
-            status = HttpStatusCode.BadRequest
-          )
+      val transactionId = token.jti
+
+      if (token.exp > System.currentTimeMillis()) {
+        throw ClientException("Token expired")
+      }
+
+      val transaction = getTransaction(transactionId)
+      val amountIn = transaction.amountIn.amount.toBigDecimal()
+
+      try {
+        when (transaction.kind.lowercase()) {
+          "deposit" -> {
+            depositService.getClientInfo(transactionId)
+
+            val account = transaction.toAccount ?: throw ClientException("Missing toAccount field")
+            val assetCode =
+              transaction.requestAssetCode
+                ?: throw ClientException("Missing requestAssetCode field")
+            val assetIssuer =
+              transaction.requestAssetIssuer
+                ?: throw ClientException("Missing requestAssetIssuer field")
+
+            call.respondText("The sep24 interactive deposit has been successfully started.")
+
+            // Run deposit processing asynchronously
+            CoroutineScope(Job()).launch {
+              depositService.processDeposit(
+                transactionId,
+                amountIn,
+                account,
+                assetCode,
+                assetIssuer
+              )
+            }
+          }
+          "withdrawal" -> {
+            withdrawalService.getClientInfo(transactionId)
+
+            call.respondText("The sep24 interactive withdrawal has been successfully started.")
+
+            // Run deposit processing asynchronously
+            CoroutineScope(Job()).launch {
+              withdrawalService.processWithdrawal(transactionId, amountIn)
+            }
+          }
+          else ->
+            call.respondText(
+              "The only supported operations are \"deposit\" or \"withdrawal\"",
+              status = HttpStatusCode.BadRequest
+            )
+        }
+      } catch (e: ClientException) {
+        call.respondText(e.message!!, status = HttpStatusCode.BadRequest)
+      } catch (e: Exception) {
+        call.respondText(
+          "Error occurred: ${e.message}",
+          status = HttpStatusCode.InternalServerError
+        )
       }
     }
   }
