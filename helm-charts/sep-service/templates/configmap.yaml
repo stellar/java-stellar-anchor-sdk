@@ -221,6 +221,16 @@ data:
     {{- range $key, $value :=  index .Values.stellar $settings }}
       {{ $key }}: {{ $value }}
     {{- end }}
+
+    spring:
+      logging:
+        level:
+          root: INFO
+          org.springframework: INFO
+          org.springframework.web.filter: INFO
+          org.stellar: INFO
+      mvc:
+        async.request-timeout: 6000
     data-spring-jdbc-local-postgres:
       spring.jpa.database: POSTGRESQL
       spring.jpa.show-sql: false
@@ -233,15 +243,8 @@ data:
       spring.flyway.password: password
       spring.flyway.url: jdbc:postgresql://anchor-platform-postgres.anchor-platform-dev.svc.cluster.local:5432/anchorplatform-pr-preview-preview-id
       spring.flyway.locations: classpath:/db/migration
-    spring:
-      logging:
-        level:
-          root: INFO
-          org.springframework: INFO
-          org.springframework.web.filter: INFO
-          org.stellar: INFO
-      mvc:
-        async.request-timeout: 6000
+
+
   stellar-wks.toml: |
     ACCOUNTS = {{ .Values.stellar.toml.accounts | default "[\"GDZCLP2PHTWYQ3BWZMC5D4ZUJX5NU4S7YZHC5EBFAFKL6UJUQ5RKDGSY\"]" }}
     VERSION = "{{ .Values.stellar.toml.version | default "0.1.0" }}"
