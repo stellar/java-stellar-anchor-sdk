@@ -25,8 +25,12 @@ public class EventProcessorConfig implements Validator {
 
   @Data
   public static class QueueConfig {
-    String type;
+    QueueType type;
     KafkaConfig kafka;
+  }
+
+  public enum QueueType {
+    KAFKA
   }
 
   @Data

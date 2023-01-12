@@ -2,6 +2,8 @@ package org.stellar.anchor.reference.event;
 
 import static org.stellar.anchor.api.platform.HealthCheckStatus.GREEN;
 import static org.stellar.anchor.api.platform.HealthCheckStatus.RED;
+import static org.stellar.anchor.event.models.AnchorEvent.TYPE_QUOTE;
+import static org.stellar.anchor.event.models.AnchorEvent.TYPE_TRANSACTION;
 import static org.stellar.anchor.healthcheck.HealthCheckable.Tags.ALL;
 import static org.stellar.anchor.healthcheck.HealthCheckable.Tags.KAFKA;
 
@@ -87,10 +89,10 @@ public class KafkaListener extends AbstractEventListener implements HealthChecka
             record -> {
               String eventClass = record.value().getClass().getSimpleName();
               switch (eventClass) {
-                case "QuoteEvent":
+                case TYPE_QUOTE:
                   processor.handleQuoteEvent((QuoteEvent) record.value());
                   break;
-                case "TransactionEvent":
+                case TYPE_TRANSACTION:
                   processor.handleTransactionEvent((TransactionEvent) record.value());
                   break;
                 default:
