@@ -221,18 +221,18 @@ data:
     {{- range $key, $value :=  index .Values.stellar $settings }}
       {{ $key }}: {{ $value }}
     {{- end }}
-  data-spring-jdbc-local-postgres:
-    spring.jpa.database: POSTGRESQL
-    spring.jpa.show-sql: false
-    spring.datasource.driver-class-name: org.postgresql.Driver
-    spring.datasource.url: jdbc:postgresql://anchor-platform-postgres.anchor-platform-dev.svc.cluster.local:5432/anchorplatform-pr-preview-preview-id
-    spring.datasource.username: postgres
-    spring.datasource.password: password
-    spring.mvc.converters.preferred-json-mapper: gson
-    spring.flyway.user: postgres
-    spring.flyway.password: password
-    spring.flyway.url: jdbc:postgresql://anchor-platform-postgres.anchor-platform-dev.svc.cluster.local:5432/anchorplatform-pr-preview-preview-id
-  spring.flyway.locations: classpath:/db/migration
+    data-spring-jdbc-local-postgres:
+      spring.jpa.database: POSTGRESQL
+      spring.jpa.show-sql: false
+      spring.datasource.driver-class-name: org.postgresql.Driver
+      spring.datasource.url: jdbc:postgresql://anchor-platform-postgres.anchor-platform-dev.svc.cluster.local:5432/anchorplatform-pr-preview-preview-id
+      spring.datasource.username: postgres
+      spring.datasource.password: password
+      spring.mvc.converters.preferred-json-mapper: gson
+      spring.flyway.user: postgres
+      spring.flyway.password: password
+      spring.flyway.url: jdbc:postgresql://anchor-platform-postgres.anchor-platform-dev.svc.cluster.local:5432/anchorplatform-pr-preview-preview-id
+      spring.flyway.locations: classpath:/db/migration
     spring:
       logging:
         level:
