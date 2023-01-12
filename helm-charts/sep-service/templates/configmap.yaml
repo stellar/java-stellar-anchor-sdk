@@ -42,6 +42,18 @@ data:
           type: data-spring-jdbc # Activate [config-spring-jdbc] module.
           settings: data-spring-jdbc-sqlite  # The location of the configuration data in this file.
         {{- end }}
+        data-spring-jdbc-local-postgres:
+          spring.jpa.database: POSTGRESQL
+          spring.jpa.show-sql: false
+          spring.datasource.driver-class-name: org.postgresql.Driver
+          spring.datasource.url: jdbc:postgresql://anchor-platform-postgres.anchor-platform-dev.svc.cluster.local:5432/anchorplatform-pr-preview-preview-id
+          spring.datasource.username: postgres
+          spring.datasource.password: password
+          spring.mvc.converters.preferred-json-mapper: gson
+          spring.flyway.user: postgres
+          spring.flyway.password: password
+          spring.flyway.url: jdbc:postgresql://anchor-platform-postgres.anchor-platform-dev.svc.cluster.local:5432/anchorplatform-pr-preview-preview-id
+          spring.flyway.locations: classpath:/db/migration
         {{- if (.Values.stellar.anchor).logging }}
         logging:
           type: {{ .Values.stellar.anchor.logging.type | default "logging-logback" }}
