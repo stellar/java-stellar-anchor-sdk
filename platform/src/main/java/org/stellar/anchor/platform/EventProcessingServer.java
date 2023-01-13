@@ -12,7 +12,7 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import org.stellar.anchor.platform.configurator.ObserverConfigManager;
+import org.stellar.anchor.platform.configurator.EventProcessorConfigManager;
 import org.stellar.anchor.platform.configurator.SecretManager;
 
 @SpringBootApplication
@@ -20,20 +20,20 @@ import org.stellar.anchor.platform.configurator.SecretManager;
 @EntityScan(basePackages = {"org.stellar.anchor.platform.data"})
 @ComponentScan(
     basePackages = {
-      "org.stellar.anchor.platform.controller.observer",
-      "org.stellar.anchor.platform.component.observer",
+      "org.stellar.anchor.platform.controller.eventprocessor",
+      "org.stellar.anchor.platform.component.eventprocessor",
       "org.stellar.anchor.platform.component.share"
     })
 @EnableConfigurationProperties
-public class StellarObservingServer extends AbstractPlatformServer implements WebMvcConfigurer {
+public class EventProcessingServer extends AbstractPlatformServer implements WebMvcConfigurer {
   public static ConfigurableApplicationContext start(Map<String, Object> environment) {
     buildEnvironment(environment);
 
     SpringApplicationBuilder builder =
-        new SpringApplicationBuilder(StellarObservingServer.class).bannerMode(OFF);
+        new SpringApplicationBuilder(EventProcessingServer.class).bannerMode(OFF);
     SpringApplication springApplication = builder.build();
     springApplication.addInitializers(SecretManager.getInstance());
-    springApplication.addInitializers(ObserverConfigManager.getInstance());
+    springApplication.addInitializers(EventProcessorConfigManager.getInstance());
 
     return springApplication.run();
   }

@@ -1,9 +1,9 @@
-package org.stellar.anchor.platform.component.observer;
+package org.stellar.anchor.platform.component.eventprocessor;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.stellar.anchor.platform.config.PaymentObserverConfig;
+import org.stellar.anchor.platform.config.EventProcessorConfig;
 import org.stellar.anchor.platform.configurator.ConfigManager;
 import org.stellar.anchor.platform.configurator.ObserverConfigManager;
 
@@ -15,8 +15,8 @@ public class ConfigBeans {
   }
 
   @Bean
-  @ConfigurationProperties(prefix = "payment-observer")
-  public PaymentObserverConfig paymentObserverConfig() {
-    return new PaymentObserverConfig();
+  @ConfigurationProperties(prefix = "event-processor")
+  public EventProcessorConfig eventProcessorConfig() {
+    return new EventProcessorConfig();
   }
 }

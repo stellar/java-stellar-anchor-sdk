@@ -18,6 +18,7 @@ public class ServiceRunner {
     options.addOption("s", "sep-server", false, "Start SEP endpoint server.");
     options.addOption(
         "o", "stellar-observer", false, "Start Observer that streams from the Stellar blockchain.");
+    options.addOption("e", "event-processor", false, "Start the event processor.");
     options.addOption("r", "anchor-reference-server", false, "Start anchor reference server.");
 
     CommandLineParser parser = new DefaultParser();
@@ -32,6 +33,11 @@ public class ServiceRunner {
 
       if (cmd.hasOption("stellar-observer") || cmd.hasOption("all")) {
         startStellarObserver(null);
+        anyServerStarted = true;
+      }
+
+      if (cmd.hasOption("event-processor") || cmd.hasOption("all")) {
+        startEventProcessor(null);
         anyServerStarted = true;
       }
 
@@ -54,6 +60,10 @@ public class ServiceRunner {
 
   static ConfigurableApplicationContext startStellarObserver(Map<String, Object> env) {
     return StellarObservingServer.start(env);
+  }
+
+  static ConfigurableApplicationContext startEventProcessor(Map<String, Object> env) {
+    return EventProcessingServer.start(env);
   }
 
   static void startAnchorReferenceServer() {

@@ -3,18 +3,17 @@ package org.stellar.anchor.platform.controller;
 import java.util.List;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestMethod;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.stellar.anchor.api.platform.HealthCheckResponse;
 import org.stellar.anchor.api.platform.HealthCheckStatus;
 import org.stellar.anchor.platform.service.HealthCheckService;
 
-@RestController
-@CrossOrigin(origins = "*")
-@RequestMapping(value = "/health")
-public class HealthController {
+public abstract class HealthController {
   final HealthCheckService healthCheckService;
 
-  HealthController(HealthCheckService healthCheckService) {
+  protected HealthController(HealthCheckService healthCheckService) {
     this.healthCheckService = healthCheckService;
   }
 

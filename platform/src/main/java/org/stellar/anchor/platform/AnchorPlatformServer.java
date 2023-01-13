@@ -12,7 +12,6 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import org.stellar.anchor.platform.configurator.ConfigEnvironment;
 import org.stellar.anchor.platform.configurator.SecretManager;
 import org.stellar.anchor.platform.configurator.SepConfigManager;
 
@@ -21,25 +20,18 @@ import org.stellar.anchor.platform.configurator.SepConfigManager;
 @EntityScan(basePackages = {"org.stellar.anchor.platform.data"})
 @ComponentScan(
     basePackages = {
-      "org.stellar.anchor.platform.controller",
+      "org.stellar.anchor.platform.controller.sep",
       "org.stellar.anchor.platform.component.sep",
       "org.stellar.anchor.platform.component.share"
     })
 @EnableConfigurationProperties
-public class AnchorPlatformServer implements WebMvcConfigurer {
+public class AnchorPlatformServer extends AbstractPlatformServer implements WebMvcConfigurer {
   public static ConfigurableApplicationContext start(Map<String, Object> environment) {
+    buildEnvironment(environment);
+
     SpringApplicationBuilder builder =
         new SpringApplicationBuilder(AnchorPlatformServer.class).bannerMode(OFF);
-
-    if (environment != null) {
-      for (String name : environment.keySet()) {
-        System.setProperty(name, String.valueOf(environment.get(name)));
-      }
-      ConfigEnvironment.rebuild();
-    }
-
     SpringApplication springApplication = builder.build();
-
     springApplication.addInitializers(SecretManager.getInstance());
     springApplication.addInitializers(SepConfigManager.getInstance());
 

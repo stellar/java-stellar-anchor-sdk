@@ -8,13 +8,10 @@ import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
-import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.stellar.anchor.api.exception.*;
 import org.stellar.anchor.api.sep.SepExceptionResponse;
 
-/** The uncaught exception handler. */
-@RestControllerAdvice
-public class GlobalControllerExceptionHandler {
+public abstract class ControllerExceptionHandler {
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   @ExceptionHandler({SepValidationException.class, BadRequestException.class})
   public SepExceptionResponse handleBadRequest(AnchorException ex) {

@@ -16,6 +16,7 @@ import org.stellar.anchor.api.platform.HealthCheckResult
 import org.stellar.anchor.api.platform.HealthCheckStatus
 import org.stellar.anchor.api.platform.HealthCheckStatus.*
 import org.stellar.anchor.healthcheck.HealthCheckable
+import org.stellar.anchor.platform.controller.sep.SepHealthController
 import org.stellar.anchor.platform.observer.stellar.StellarPaymentObserver
 import org.stellar.anchor.platform.service.HealthCheckService
 
@@ -39,7 +40,7 @@ class HealthControllerTest {
       listOf(HealthCheckable.Tags.ALL, HealthCheckable.Tags.EVENT)
 
     val healthCheckService = HealthCheckService(listOf(stellarPaymentObserver))
-    val healthController = HealthController(healthCheckService)
+    val healthController = SepHealthController(healthCheckService)
 
     // RED should result 500
     every { stellarPaymentObserver.check() } returns PojoHealthCheckResult("observer", RED)
