@@ -142,7 +142,7 @@ public class Sep31Service {
     Sep31Transaction txn =
         new Sep31TransactionBuilder(sep31TransactionStore)
             .id(generateSepTransactionId())
-            .status(SepTransactionStatus.PENDING_SENDER.toString())
+            .status(SepTransactionStatus.PENDING_SENDER.getStatus())
             .statusEta(null)
             .amountFee(fee.getAmount())
             .amountFeeAsset(fee.getAsset())

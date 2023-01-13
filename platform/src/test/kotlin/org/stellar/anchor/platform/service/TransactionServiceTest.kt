@@ -212,7 +212,7 @@ class TransactionServiceTest {
       ]
   )
   fun test_validateIfStatusIsSupported(sepTxnStatus: SepTransactionStatus) {
-    assertDoesNotThrow { transactionService.validateIfStatusIsSupported(sepTxnStatus.getName()) }
+    assertDoesNotThrow { transactionService.validateIfStatusIsSupported(sepTxnStatus.getStatus()) }
   }
 
   @Test

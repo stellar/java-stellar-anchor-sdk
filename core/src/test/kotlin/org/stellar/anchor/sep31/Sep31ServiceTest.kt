@@ -23,6 +23,7 @@ import org.stellar.anchor.api.callback.FeeIntegration
 import org.stellar.anchor.api.callback.GetFeeResponse
 import org.stellar.anchor.api.exception.*
 import org.stellar.anchor.api.sep.AssetInfo
+import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerRequest
 import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerResponse
 import org.stellar.anchor.api.sep.sep12.Sep12Status
@@ -822,7 +823,7 @@ class Sep31ServiceTest {
         .id(txId)
         .sep(TransactionEvent.Sep.SEP_31)
         .kind(TransactionEvent.Kind.RECEIVE)
-        .status(TransactionEvent.Status.PENDING_SENDER)
+        .status(SepTransactionStatus.PENDING_SENDER)
         .build()
     assertEquals(wantEvent, txEventSlot.captured)
 

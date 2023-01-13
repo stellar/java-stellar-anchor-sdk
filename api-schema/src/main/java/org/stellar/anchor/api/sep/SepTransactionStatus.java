@@ -1,6 +1,7 @@
 package org.stellar.anchor.api.sep;
 
 import java.util.Arrays;
+import java.util.Objects;
 
 public enum SepTransactionStatus {
   PENDING_ANCHOR("pending_anchor", "processing"),
@@ -29,20 +30,30 @@ public enum SepTransactionStatus {
   PENDING_EXTERNAL("pending_external", "waiting on an external entity"),
   PENDING_STELLAR("pending_stellar", "stellar is executing the transaction");
 
-  private final String name;
+  private final String status;
   private final String description;
 
-  SepTransactionStatus(String name, String description) {
-    this.name = name;
+  SepTransactionStatus(String status, String description) {
+    this.status = status;
     this.description = description;
   }
 
-  public String toString() {
-    return name;
+  public static SepTransactionStatus from(String status) {
+
+    for (SepTransactionStatus sts : values()) {
+      if (Objects.equals(sts.status, status)) {
+        return sts;
+      }
+    }
+    throw new IllegalArgumentException("No matching constant for [" + status + "]");
   }
 
-  public String getName() {
-    return name;
+  public String toString() {
+    return status;
+  }
+
+  public String getStatus() {
+    return status;
   }
 
   @SuppressWarnings("unused")
@@ -52,6 +63,6 @@ public enum SepTransactionStatus {
 
   public static boolean isValid(String status) {
     return Arrays.stream(SepTransactionStatus.values())
-        .anyMatch(e -> e.name.equalsIgnoreCase(status));
+        .anyMatch(e -> e.status.equalsIgnoreCase(status));
   }
 }

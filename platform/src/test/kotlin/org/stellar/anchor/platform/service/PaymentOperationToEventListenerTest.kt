@@ -149,7 +149,7 @@ class PaymentOperationToEventListenerTest {
     sep31TxMock.transferReceivedAt = null // the event should have a valid `transferReceivedAt`
     sep31TxMock.stellarMemo = "OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ="
     sep31TxMock.stellarMemoType = "hash"
-    sep31TxMock.status = SepTransactionStatus.PENDING_SENDER.toString()
+    sep31TxMock.status = SepTransactionStatus.PENDING_SENDER.status
     sep31TxMock.senderId = senderId
     sep31TxMock.receiverId = receiverId
     sep31TxMock.creator =
@@ -191,13 +191,7 @@ class PaymentOperationToEventListenerTest {
       TransactionEvent.builder()
         .type(TransactionEvent.Type.TRANSACTION_STATUS_CHANGED)
         .id("ceaa7677-a5a7-434e-b02a-8e0801b3e7bd")
-        .status(TransactionEvent.Status.PENDING_RECEIVER)
-        .statusChange(
-          TransactionEvent.StatusChange(
-            TransactionEvent.Status.PENDING_SENDER,
-            TransactionEvent.Status.PENDING_RECEIVER
-          )
-        )
+        .status(SepTransactionStatus.PENDING_RECEIVER)
         .sep(TransactionEvent.Sep.SEP_31)
         .kind(TransactionEvent.Kind.RECEIVE)
         .amountExpected(Amount("10", fooAsset))
@@ -239,7 +233,7 @@ class PaymentOperationToEventListenerTest {
 
     // wantSep31Tx
     val wantSep31Tx = gson.fromJson(gson.toJson(sep31TxMock), JdbcSep31Transaction::class.java)
-    wantSep31Tx.status = TransactionEvent.Status.PENDING_RECEIVER.status
+    wantSep31Tx.status = SepTransactionStatus.PENDING_RECEIVER.status
     wantSep31Tx.stellarTransactionId =
       "1ad62e48724426be96cf2cdb65d5dacb8fac2e403e50bedb717bfc8eaf05af30"
     wantSep31Tx.transferReceivedAt = transferReceivedAt
@@ -294,7 +288,7 @@ class PaymentOperationToEventListenerTest {
     sep31TxMock.transferReceivedAt = null // the event should have a valid `transferReceivedAt`
     sep31TxMock.stellarMemo = "OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ="
     sep31TxMock.stellarMemoType = "hash"
-    sep31TxMock.status = SepTransactionStatus.PENDING_SENDER.toString()
+    sep31TxMock.status = SepTransactionStatus.PENDING_SENDER.name
     sep31TxMock.senderId = senderId
     sep31TxMock.receiverId = receiverId
     sep31TxMock.creator =
@@ -336,13 +330,7 @@ class PaymentOperationToEventListenerTest {
       TransactionEvent.builder()
         .type(TransactionEvent.Type.TRANSACTION_STATUS_CHANGED)
         .id("ceaa7677-a5a7-434e-b02a-8e0801b3e7bd")
-        .status(TransactionEvent.Status.PENDING_RECEIVER)
-        .statusChange(
-          TransactionEvent.StatusChange(
-            TransactionEvent.Status.PENDING_SENDER,
-            TransactionEvent.Status.PENDING_RECEIVER
-          )
-        )
+        .status(SepTransactionStatus.PENDING_RECEIVER)
         .sep(TransactionEvent.Sep.SEP_31)
         .kind(TransactionEvent.Kind.RECEIVE)
         .amountExpected(Amount("10", fooAsset))
@@ -384,7 +372,7 @@ class PaymentOperationToEventListenerTest {
 
     // wantSep31Tx
     val wantSep31Tx = gson.fromJson(gson.toJson(sep31TxMock), JdbcSep31Transaction::class.java)
-    wantSep31Tx.status = TransactionEvent.Status.PENDING_RECEIVER.status
+    wantSep31Tx.status = SepTransactionStatus.PENDING_RECEIVER.status
     wantSep31Tx.stellarTransactionId =
       "1ad62e48724426be96cf2cdb65d5dacb8fac2e403e50bedb717bfc8eaf05af30"
     wantSep31Tx.transferReceivedAt = null

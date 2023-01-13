@@ -46,7 +46,7 @@ public class TransactionService {
   private final EventService eventService;
 
   static boolean isStatusError(String status) {
-    return List.of(PENDING_CUSTOMER_INFO_UPDATE.getName(), EXPIRED.getName(), ERROR.getName())
+    return List.of(PENDING_CUSTOMER_INFO_UPDATE.getStatus(), EXPIRED.getStatus(), ERROR.getStatus())
         .contains(status);
   }
 
@@ -164,8 +164,8 @@ public class TransactionService {
     if (patch.getStatus() != null && !Objects.equals(txn.getStatus(), patch.getStatus())) {
       validateIfStatusIsSupported(patch.getStatus());
       txWasCompleted =
-          !Objects.equals(txn.getStatus(), COMPLETED.getName())
-              && Objects.equals(patch.getStatus(), COMPLETED.getName());
+          !Objects.equals(txn.getStatus(), COMPLETED.getStatus())
+              && Objects.equals(patch.getStatus(), COMPLETED.getStatus());
       txn.setStatus(patch.getStatus());
       txWasUpdated = true;
     }

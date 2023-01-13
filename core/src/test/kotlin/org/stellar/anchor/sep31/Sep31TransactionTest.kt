@@ -13,10 +13,13 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.stellar.anchor.api.sep.AssetInfo
+import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.api.sep.sep31.Sep31GetTransactionResponse
 import org.stellar.anchor.api.sep.sep31.Sep31GetTransactionResponse.Sep31RefundPayment
-import org.stellar.anchor.api.shared.*
-import org.stellar.anchor.event.models.TransactionEvent
+import org.stellar.anchor.api.shared.Amount
+import org.stellar.anchor.api.shared.StellarId
+import org.stellar.anchor.api.shared.StellarPayment
+import org.stellar.anchor.api.shared.StellarTransaction
 
 class Sep31TransactionTest {
   companion object {
@@ -97,7 +100,7 @@ class Sep31TransactionTest {
     sep31Transaction =
       Sep31TransactionBuilder(sep31TransactionStore)
         .id(txId)
-        .status(TransactionEvent.Status.PENDING_RECEIVER.status)
+        .status(SepTransactionStatus.PENDING_RECEIVER.status)
         .statusEta(120)
         .amountExpected("100")
         .amountIn("100.0000")
@@ -160,7 +163,7 @@ class Sep31TransactionTest {
         .transaction(
           Sep31GetTransactionResponse.TransactionResponse.builder()
             .id(txId)
-            .status(TransactionEvent.Status.PENDING_RECEIVER.status)
+            .status(SepTransactionStatus.PENDING_RECEIVER.status)
             .statusEta(120)
             .amountIn("100.0000")
             .amountInAsset(fiatUSD)

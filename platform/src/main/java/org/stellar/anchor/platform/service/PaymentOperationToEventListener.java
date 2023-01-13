@@ -15,6 +15,7 @@ import org.apache.commons.codec.DecoderException;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.EventPublishException;
 import org.stellar.anchor.api.exception.SepException;
+import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.shared.Amount;
 import org.stellar.anchor.api.shared.StellarPayment;
 import org.stellar.anchor.api.shared.StellarTransaction;
@@ -117,9 +118,8 @@ public class PaymentOperationToEventListener implements PaymentListener {
                         .build()))
             .build();
 
-    // Update statuses
-    TransactionEvent.Status oldStatus = TransactionEvent.Status.from(txn.getStatus());
-    TransactionEvent.Status newStatus = TransactionEvent.Status.PENDING_RECEIVER;
+    // TODO: this should be taken care of by the RPC actions.
+    SepTransactionStatus newStatus = SepTransactionStatus.PENDING_RECEIVER;
 
     // Check if the payment contains the expected amount (or greater)
     BigDecimal expectedAmount = decimal(txn.getAmountIn());
@@ -151,11 +151,9 @@ public class PaymentOperationToEventListener implements PaymentListener {
       Log.errorEx("Error saving Sep31Transaction upon received event", ex);
     }
 
-    // send to the event queue
-    TransactionEvent.StatusChange statusChange =
-        new TransactionEvent.StatusChange(oldStatus, newStatus);
     TransactionEvent event =
-        receivedPaymentToEvent(txn, payment, statusChange, message, stellarTransaction);
+        receivedPaymentToEvent(
+            txn, payment, SepTransactionStatus.from(txn.getStatus()), message, stellarTransaction);
     sendToQueue(event);
 
     // Update metrics
@@ -178,7 +176,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
   TransactionEvent receivedPaymentToEvent(
       Sep31Transaction txn,
       ObservedPayment payment,
-      TransactionEvent.StatusChange statusChange,
+      SepTransactionStatus status,
       String message,
       StellarTransaction newStellarTransaction) {
     return TransactionEvent.builder()
@@ -187,8 +185,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
         .id(txn.getId())
         .sep(TransactionEvent.Sep.SEP_31)
         .kind(TransactionEvent.Kind.RECEIVE)
-        .status(statusChange.getTo())
-        .statusChange(statusChange)
+        .status(status)
         .amountExpected(new Amount(txn.getAmountExpected(), txn.getAmountInAsset()))
         .amountIn(new Amount(payment.getAmount(), txn.getAmountInAsset()))
         .amountOut(new Amount(txn.getAmountOut(), txn.getAmountOutAsset()))
