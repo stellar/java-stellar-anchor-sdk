@@ -44,8 +44,6 @@ public class EventProcessor {
   public long getProcessorRestartedCount() {
     return ((ScheduledThreadPoolExecutor) EventProcessor.scheduler).getCompletedTaskCount();
   }
-
-  public static void main(String[] args) {}
 }
 
 class KafkaListeningTask implements Runnable {
