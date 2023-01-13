@@ -5,11 +5,11 @@ import com.fasterxml.jackson.annotation.JsonValue;
 import com.google.gson.annotations.SerializedName;
 import java.time.Instant;
 import java.util.List;
-import java.util.Objects;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.shared.*;
 
 @Data
@@ -33,11 +33,7 @@ public class TransactionEvent implements AnchorEvent {
 
   Kind kind;
 
-  Status status;
-
-  @JsonProperty("status_change")
-  @SerializedName("status_change")
-  StatusChange statusChange;
+  SepTransactionStatus status;
 
   @JsonProperty("amount_expected")
   @SerializedName("amount_expected")
@@ -102,47 +98,6 @@ public class TransactionEvent implements AnchorEvent {
   Customers customers;
 
   StellarId creator;
-
-  public enum Status {
-    INCOMPLETE("incomplete"),
-    PENDING_SENDER("pending_sender"),
-    PENDING_STELLAR("pending_stellar"),
-    PENDING_CUSTOMER_INFO_UPDATE("pending_customer_info_update"),
-    PENDING_RECEIVER("pending_receiver"),
-    PENDING_EXTERNAL("pending_external"),
-    COMPLETED("completed"),
-    EXPIRED("expired"),
-    ERROR("error");
-
-    @JsonValue public final String status;
-
-    Status(String status) {
-      this.status = status;
-    }
-
-    @Override
-    public String toString() {
-      return this.status;
-    }
-
-    public static Status from(String statusStr) {
-      for (Status status : values()) {
-        if (Objects.equals(status.status, statusStr)) {
-          return status;
-        }
-      }
-      throw new IllegalArgumentException("No matching constant for [" + statusStr + "]");
-    }
-  }
-
-  @Data
-  @AllArgsConstructor
-  public static class StatusChange {
-    Status from;
-    Status to;
-
-    StatusChange() {}
-  }
 
   public enum Sep {
     @SuppressWarnings("unused")

@@ -9,11 +9,11 @@ import org.skyscreamer.jsonassert.JSONCompareMode.LENIENT
 import org.stellar.anchor.api.exception.SepException
 import org.stellar.anchor.api.platform.PatchTransactionRequest
 import org.stellar.anchor.api.platform.PatchTransactionsRequest
+import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest
 import org.stellar.anchor.api.sep.sep12.Sep12Status
 import org.stellar.anchor.api.sep.sep31.Sep31GetTransactionResponse
 import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionRequest
-import org.stellar.anchor.event.models.TransactionEvent
 import org.stellar.anchor.platform.AnchorPlatformIntegrationTest.Companion.jwt
 import org.stellar.anchor.platform.AnchorPlatformIntegrationTest.Companion.toml
 import org.stellar.anchor.util.GsonUtils
@@ -69,7 +69,7 @@ class Sep31Tests {
       JSONAssert.assertEquals(expectedTxn, json(savedTxn), LENIENT)
       assertEquals(postTxResponse.id, savedTxn.transaction.id)
       assertEquals(postTxResponse.stellarMemo, savedTxn.transaction.stellarMemo)
-      assertEquals(TransactionEvent.Status.PENDING_SENDER.status, savedTxn.transaction.status)
+      assertEquals(SepTransactionStatus.PENDING_SENDER.status, savedTxn.transaction.status)
     }
 
     fun testBadAsset() {
@@ -128,7 +128,7 @@ class Sep31Tests {
       // GET platformAPI transaction
       val getTxResponse = platformApiClient.getTransaction(postTxResponse.id)
       assertEquals(postTxResponse.id, getTxResponse.id)
-      assertEquals(TransactionEvent.Status.PENDING_SENDER.status, getTxResponse.status)
+      assertEquals(SepTransactionStatus.PENDING_SENDER, getTxResponse.status)
       assertEquals(txnRequest.amount, getTxResponse.amountIn.amount)
       assertTrue(getTxResponse.amountIn.asset.contains(txnRequest.assetCode))
       assertEquals(31, getTxResponse.sep)
@@ -149,7 +149,7 @@ class Sep31Tests {
       var patchTxRequest =
         PatchTransactionRequest.builder()
           .id(getTxResponse.id)
-          .status(TransactionEvent.Status.PENDING_CUSTOMER_INFO_UPDATE.status)
+          .status(SepTransactionStatus.PENDING_CUSTOMER_INFO_UPDATE.name)
           .message("The receiving customer clabe_number is invalid!")
           .build()
       var patchTxResponse =
@@ -159,7 +159,7 @@ class Sep31Tests {
       assertEquals(1, patchTxResponse.records.size)
       var patchedTx = patchTxResponse.records[0]
       assertEquals(getTxResponse.id, patchedTx.id)
-      assertEquals(TransactionEvent.Status.PENDING_CUSTOMER_INFO_UPDATE.status, patchedTx.status)
+      assertEquals(SepTransactionStatus.PENDING_CUSTOMER_INFO_UPDATE.name, patchedTx.status)
       assertEquals(31, patchedTx.sep)
       assertEquals("The receiving customer clabe_number is invalid!", patchedTx.message)
       assertTrue(patchedTx.updatedAt > patchedTx.startedAt)
@@ -168,7 +168,7 @@ class Sep31Tests {
       var gotSep31TxResponse = sep31Client.getTransaction(postTxResponse.id)
       assertEquals(postTxResponse.id, gotSep31TxResponse.transaction.id)
       assertEquals(
-        TransactionEvent.Status.PENDING_CUSTOMER_INFO_UPDATE.status,
+        SepTransactionStatus.PENDING_CUSTOMER_INFO_UPDATE.name,
         gotSep31TxResponse.transaction.status
       )
       assertEquals(
@@ -191,7 +191,7 @@ class Sep31Tests {
       patchTxRequest =
         PatchTransactionRequest.builder()
           .id(getTxResponse.id)
-          .status(TransactionEvent.Status.COMPLETED.status)
+          .status(SepTransactionStatus.COMPLETED.name)
           .build()
       patchTxResponse =
         platformApiClient.patchTransaction(
@@ -200,7 +200,7 @@ class Sep31Tests {
       assertEquals(1, patchTxResponse.records.size)
       patchedTx = patchTxResponse.records[0]
       assertEquals(getTxResponse.id, patchedTx.id)
-      assertEquals(TransactionEvent.Status.COMPLETED.status, patchedTx.status)
+      assertEquals(SepTransactionStatus.COMPLETED.name, patchedTx.status)
       assertEquals(31, patchedTx.sep)
       assertNull(patchedTx.message)
       assertTrue(patchedTx.startedAt < patchedTx.updatedAt)
@@ -209,7 +209,7 @@ class Sep31Tests {
       // GET SEP-31 transaction should return COMPLETED with no message
       gotSep31TxResponse = sep31Client.getTransaction(postTxResponse.id)
       assertEquals(postTxResponse.id, gotSep31TxResponse.transaction.id)
-      assertEquals(TransactionEvent.Status.COMPLETED.status, gotSep31TxResponse.transaction.status)
+      assertEquals(SepTransactionStatus.COMPLETED.name, gotSep31TxResponse.transaction.status)
       assertNull(gotSep31TxResponse.transaction.requiredInfoMessage)
       assertEquals(
         patchedTx.completedAt.truncatedTo(SECONDS),

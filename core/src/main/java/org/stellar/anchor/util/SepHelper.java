@@ -2,7 +2,6 @@ package org.stellar.anchor.util;
 
 import static org.stellar.anchor.api.sep.SepTransactionStatus.*;
 import static org.stellar.anchor.util.MathHelper.decimal;
-import static org.stellar.sdk.xdr.MemoType.*;
 
 import java.math.BigDecimal;
 import java.util.List;
@@ -126,7 +125,7 @@ public class SepHelper {
    */
   public static boolean validateTransactionStatus(String status, int sep) {
     for (SepTransactionStatus transactionStatus : SepTransactionStatus.values()) {
-      if (transactionStatus.getName().equals(status)) {
+      if (transactionStatus.getStatus().equals(status)) {
         return validateTransactionStatus(transactionStatus, sep);
       }
     }

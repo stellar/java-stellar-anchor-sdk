@@ -40,7 +40,7 @@ public class MetricEmitterService {
     Metrics.counter(
         AnchorMetrics.SEP31_TRANSACTION.toString(),
         "status",
-        AnchorMetrics.TAG_SEP31_STATUS_PENDING_SENDER.toString());
+        AnchorMetrics.TAG_SEP31_STATUS_PENDING_SENDER.name());
     Metrics.counter(
         AnchorMetrics.SEP31_TRANSACTION.toString(),
         "status",
@@ -72,7 +72,7 @@ public class MetricEmitterService {
         pendingCustomerInfoUpdateTxns);
     Metrics.gauge(
         AnchorMetrics.SEP31_TRANSACTION_DB.toString(),
-        Tags.of("status", AnchorMetrics.TAG_SEP31_STATUS_PENDING_SENDER.toString()),
+        Tags.of("status", AnchorMetrics.TAG_SEP31_STATUS_PENDING_SENDER.name()),
         pendingSenderTxns);
     Metrics.gauge(
         AnchorMetrics.SEP31_TRANSACTION_DB.toString(),

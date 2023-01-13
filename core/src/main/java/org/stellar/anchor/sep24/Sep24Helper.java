@@ -13,6 +13,7 @@ import java.util.UUID;
 import org.springframework.beans.BeanUtils;
 import org.stellar.anchor.api.exception.EventPublishException;
 import org.stellar.anchor.api.sep.AssetInfo;
+import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.sep.sep24.RefundPayment;
 import org.stellar.anchor.api.sep.sep24.Refunds;
 import org.stellar.anchor.api.sep.sep24.TransactionResponse;
@@ -98,7 +99,7 @@ public class Sep24Helper {
             .id(txn.getId())
             .sep(TransactionEvent.Sep.SEP_24)
             .kind(TransactionEvent.Kind.from(txn.getKind()))
-            .status(TransactionEvent.Status.from(txn.getStatus()))
+            .status(SepTransactionStatus.from(txn.getStatus()))
             .build();
     eventService.publish(event);
   }
