@@ -2,7 +2,6 @@ package com.example.plugins
 
 import com.example.ClientException
 import com.example.jwt.JwtDecoder
-import com.example.safelyGet
 import com.example.sep24.DepositService
 import com.example.sep24.Sep24Util.getTransaction
 import com.example.sep24.WithdrawalService
@@ -22,7 +21,11 @@ fun Route.sep24(depositService: DepositService, withdrawalService: WithdrawalSer
     get {
       log.info("Called /sep24/interactive with parameters ${call.parameters}")
 
-      val token = JwtDecoder.decode(call.safelyGet("token"))
+      val token =
+        JwtDecoder.decode(
+          call.parameters["token"]
+            ?: throw ClientException("Missing token parameter in the request")
+        )
 
       val transactionId = token.jti
 
@@ -45,6 +48,8 @@ fun Route.sep24(depositService: DepositService, withdrawalService: WithdrawalSer
             val assetIssuer =
               transaction.requestAssetIssuer
                 ?: throw ClientException("Missing requestAssetIssuer field")
+            val memo = transaction.memo
+            val memoType = transaction.memoType
 
             call.respondText("The sep24 interactive deposit has been successfully started.")
 
@@ -55,7 +60,9 @@ fun Route.sep24(depositService: DepositService, withdrawalService: WithdrawalSer
                 amountIn,
                 account,
                 assetCode,
-                assetIssuer
+                assetIssuer,
+                memo,
+                memoType
               )
             }
           }

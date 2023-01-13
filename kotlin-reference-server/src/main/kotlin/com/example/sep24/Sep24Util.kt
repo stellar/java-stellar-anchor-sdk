@@ -11,10 +11,12 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import java.math.BigDecimal
+import java.util.*
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
 import kotlinx.serialization.json.Json
 import mu.KotlinLogging
+import org.apache.commons.codec.binary.Hex
 import org.stellar.sdk.*
 import org.stellar.sdk.responses.TransactionResponse
 
@@ -66,19 +68,33 @@ object Sep24Util {
     destinationAddress: String,
     assetCode: String,
     assetIssuer: String,
-    amount: BigDecimal
+    amount: BigDecimal,
+    memo: String?,
+    memoType: String?
   ): String {
     val myAccount = server.accounts().account(myKeyPair.accountId)
     val asset = Asset.create(null, assetCode, assetIssuer)
 
-    val transaction =
+    val transactionBuilder =
       TransactionBuilder(myAccount, Network.TESTNET)
         .setBaseFee(100)
         .setTimeout(60)
         .addOperation(
           PaymentOperation.Builder(destinationAddress, asset, amount.toPlainString()).build()
         )
-        .build()
+
+    if (memo != null && memoType != null) {
+      transactionBuilder.addMemo(
+        when (memoType) {
+          "text" -> Memo.text(memo)
+          "id" -> Memo.id(memo.toLong())
+          "hash" -> Memo.hash(Hex.encodeHexString(Base64.getDecoder().decode(memo)))
+          else -> throw Exception("Unsupported memo type")
+        }
+      )
+    }
+
+    val transaction = transactionBuilder.build()
 
     transaction.sign(myKeyPair)
 

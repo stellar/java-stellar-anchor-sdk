@@ -21,7 +21,9 @@ class DepositService() {
     amount: BigDecimal,
     account: String,
     assetCode: String,
-    assetIssuer: String
+    assetIssuer: String,
+    memo: String?,
+    memoType: String?
   ) {
     try {
       var transaction = getTransaction(transactionId)
@@ -40,7 +42,7 @@ class DepositService() {
       log.info { "Transaction status changed: $transaction" }
 
       // 5. Sign and send transaction
-      val txHash = sendStellarTransaction(account, assetCode, assetIssuer, amount)
+      val txHash = sendStellarTransaction(account, assetCode, assetIssuer, amount, memo, memoType)
 
       // 6. Finalize anchor transaction
       finalize(transactionId, txHash)

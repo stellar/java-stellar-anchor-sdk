@@ -12,7 +12,9 @@ data class Transaction(
   @SerialName("amount_in") val amountIn: Amount,
   @SerialName("to_account") val toAccount: String? = null,
   @SerialName("request_asset_code") val requestAssetCode: String? = null,
-  @SerialName("request_asset_issuer") val requestAssetIssuer: String? = null
+  @SerialName("request_asset_issuer") val requestAssetIssuer: String? = null,
+  @SerialName("memo") val memo: String? = null,
+  @SerialName("memo_type") val memoType: String? = null
 )
 
 @Serializable data class PatchTransactionsRequest(val records: List<PatchTransactionRecord>)
