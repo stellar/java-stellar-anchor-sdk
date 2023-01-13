@@ -221,7 +221,6 @@ data:
     {{- range $key, $value :=  index .Values.stellar $settings }}
       {{ $key }}: {{ $value }}
     {{- end }}
-
     spring:
       logging:
         level:
@@ -231,7 +230,6 @@ data:
           org.stellar: INFO
       mvc:
         async.request-timeout: 6000
-
   stellar-wks.toml: |
     ACCOUNTS = {{ .Values.stellar.toml.accounts | default "[\"GDZCLP2PHTWYQ3BWZMC5D4ZUJX5NU4S7YZHC5EBFAFKL6UJUQ5RKDGSY\"]" }}
     VERSION = "{{ .Values.stellar.toml.version | default "0.1.0" }}"
