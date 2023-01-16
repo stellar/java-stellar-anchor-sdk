@@ -1,7 +1,7 @@
 package org.stellar.anchor.sep24;
 
+import static org.stellar.anchor.api.event.AnchorEvent.Type.TRANSACTION_CREATED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.INCOMPLETE;
-import static org.stellar.anchor.event.models.TransactionEvent.Type.TRANSACTION_CREATED;
 import static org.stellar.anchor.sep24.Sep24Helper.*;
 import static org.stellar.anchor.sep24.Sep24Transaction.Kind.WITHDRAWAL;
 import static org.stellar.anchor.sep9.Sep9Fields.extractSep9Fields;

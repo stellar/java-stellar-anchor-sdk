@@ -2,8 +2,6 @@ package org.stellar.anchor.reference.event;
 
 import static org.stellar.anchor.api.platform.HealthCheckStatus.GREEN;
 import static org.stellar.anchor.api.platform.HealthCheckStatus.RED;
-import static org.stellar.anchor.event.models.AnchorEvent.TYPE_QUOTE;
-import static org.stellar.anchor.event.models.AnchorEvent.TYPE_TRANSACTION;
 import static org.stellar.anchor.healthcheck.HealthCheckable.Tags.ALL;
 import static org.stellar.anchor.healthcheck.HealthCheckable.Tags.KAFKA;
 
@@ -20,9 +18,9 @@ import org.apache.kafka.clients.consumer.*;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
+import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.platform.HealthCheckResult;
 import org.stellar.anchor.api.platform.HealthCheckStatus;
-import org.stellar.anchor.event.models.AnchorEvent;
 import org.stellar.anchor.event.models.QuoteEvent;
 import org.stellar.anchor.event.models.TransactionEvent;
 import org.stellar.anchor.healthcheck.HealthCheckable;

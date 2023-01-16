@@ -1,7 +1,5 @@
 package org.stellar.anchor.platform.event;
 
-import static org.stellar.anchor.event.models.AnchorEvent.TYPE_QUOTE;
-import static org.stellar.anchor.event.models.AnchorEvent.TYPE_TRANSACTION;
 import static org.stellar.anchor.platform.config.EventProcessorConfig.*;
 import static org.stellar.anchor.util.Log.debugF;
 
@@ -19,8 +17,8 @@ import org.apache.kafka.clients.consumer.ConsumerRecords;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
+import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.InvalidConfigException;
-import org.stellar.anchor.event.models.AnchorEvent;
 import org.stellar.anchor.event.models.QuoteEvent;
 import org.stellar.anchor.event.models.TransactionEvent;
 import org.stellar.anchor.platform.config.EventProcessorConfig;

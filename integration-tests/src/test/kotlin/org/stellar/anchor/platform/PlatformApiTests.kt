@@ -2,9 +2,9 @@ package org.stellar.anchor.platform
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.stellar.anchor.apiclient.PlatformApiClient
 import org.stellar.anchor.auth.AuthHelper
 import org.stellar.anchor.auth.JwtService
-import org.stellar.anchor.reference.client.PlatformApiClient
 
 lateinit var platformApiClient: PlatformApiClient
 

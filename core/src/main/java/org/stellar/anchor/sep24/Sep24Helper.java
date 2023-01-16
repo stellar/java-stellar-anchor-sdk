@@ -11,6 +11,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.beans.BeanUtils;
+import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.EventPublishException;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
@@ -90,7 +91,7 @@ public class Sep24Helper {
   }
 
   public static void publishEvent(
-      EventService eventService, Sep24Transaction txn, TransactionEvent.Type eventType)
+      EventService eventService, Sep24Transaction txn, AnchorEvent.Type eventType)
       throws EventPublishException {
     TransactionEvent event =
         TransactionEvent.builder()

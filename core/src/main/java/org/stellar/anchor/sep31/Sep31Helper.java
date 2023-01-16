@@ -2,12 +2,7 @@ package org.stellar.anchor.sep31;
 
 import static org.stellar.anchor.util.SepHelper.validateTransactionStatus;
 
-import java.util.UUID;
 import org.stellar.anchor.api.exception.BadRequestException;
-import org.stellar.anchor.api.exception.EventPublishException;
-import org.stellar.anchor.api.sep.SepTransactionStatus;
-import org.stellar.anchor.event.EventService;
-import org.stellar.anchor.event.models.TransactionEvent;
 
 public class Sep31Helper {
   public static boolean allAmountAvailable(Sep31Transaction txn) {
@@ -24,20 +19,5 @@ public class Sep31Helper {
       throw new BadRequestException(
           String.format("'%s' is not a valid status of SEP31.", txn.getStatus()));
     }
-  }
-
-  public static void publishEvent(
-      EventService eventService, Sep31Transaction txn, TransactionEvent.Type eventType)
-      throws EventPublishException {
-    TransactionEvent event =
-        TransactionEvent.builder()
-            .eventId(UUID.randomUUID().toString())
-            .type(eventType)
-            .id(txn.getId())
-            .sep(TransactionEvent.Sep.SEP_31)
-            .kind(TransactionEvent.Kind.RECEIVE)
-            .status(SepTransactionStatus.from(txn.getStatus()))
-            .build();
-    eventService.publish(event);
   }
 }

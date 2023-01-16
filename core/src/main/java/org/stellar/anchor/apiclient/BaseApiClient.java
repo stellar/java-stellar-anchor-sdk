@@ -1,4 +1,4 @@
-package org.stellar.anchor.reference.client;
+package org.stellar.anchor.apiclient;
 
 import com.google.gson.Gson;
 import java.io.IOException;
@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.concurrent.TimeUnit;
 import okhttp3.OkHttpClient;
 import okhttp3.Response;
-import org.springframework.http.HttpStatus;
+import org.apache.http.HttpStatus;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.exception.SepNotAuthorizedException;
@@ -26,10 +26,9 @@ public abstract class BaseApiClient {
     if (response.body() == null) throw new SepException("Empty response");
 
     String responseBody = response.body().string();
-    if (response.code() == HttpStatus.FORBIDDEN.value()) {
+    if (response.code() == HttpStatus.SC_FORBIDDEN) {
       throw new SepNotAuthorizedException("Forbidden");
-    } else if (!List.of(
-            HttpStatus.OK.value(), HttpStatus.CREATED.value(), HttpStatus.ACCEPTED.value())
+    } else if (!List.of(HttpStatus.SC_OK, HttpStatus.SC_CREATED, HttpStatus.SC_ACCEPTED)
         .contains(response.code())) {
       throw new SepException(responseBody);
     }

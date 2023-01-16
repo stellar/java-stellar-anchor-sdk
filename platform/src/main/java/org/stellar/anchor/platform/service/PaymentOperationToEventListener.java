@@ -12,6 +12,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.UUID;
 import org.apache.commons.codec.DecoderException;
+import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.EventPublishException;
 import org.stellar.anchor.api.exception.SepException;
@@ -151,11 +152,6 @@ public class PaymentOperationToEventListener implements PaymentListener {
       Log.errorEx("Error saving Sep31Transaction upon received event", ex);
     }
 
-    TransactionEvent event =
-        receivedPaymentToEvent(
-            txn, payment, SepTransactionStatus.from(txn.getStatus()), message, stellarTransaction);
-    sendToQueue(event);
-
     // Update metrics
     Metrics.counter(AnchorMetrics.SEP31_TRANSACTION.toString(), "status", newStatus.toString())
         .increment();
@@ -168,18 +164,18 @@ public class PaymentOperationToEventListener implements PaymentListener {
     Log.debug("NOOP PaymentOperationToEventListener#onSent was called.");
   }
 
-  private void sendToQueue(TransactionEvent event) throws EventPublishException {
+  private void sendToQueue(AnchorEvent event) throws EventPublishException {
     eventService.publish(event);
     Log.infoF("Sent to event queue {}", GsonUtils.getInstance().toJson(event));
   }
 
-  TransactionEvent receivedPaymentToEvent(
+  AnchorEvent receivedPaymentToEvent(
       Sep31Transaction txn,
       ObservedPayment payment,
       SepTransactionStatus status,
       String message,
       StellarTransaction newStellarTransaction) {
-    return TransactionEvent.builder()
+    return AnchorEvent.builder()
         .eventId(UUID.randomUUID().toString())
         .type(TransactionEvent.Type.TRANSACTION_STATUS_CHANGED)
         .id(txn.getId())

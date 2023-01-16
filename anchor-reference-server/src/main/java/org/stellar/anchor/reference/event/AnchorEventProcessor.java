@@ -9,10 +9,10 @@ import org.stellar.anchor.api.platform.PatchTransactionsRequest;
 import org.stellar.anchor.api.platform.PlatformTransactionData;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.shared.Amount;
+import org.stellar.anchor.apiclient.PlatformApiClient;
 import org.stellar.anchor.auth.AuthHelper;
 import org.stellar.anchor.event.models.QuoteEvent;
 import org.stellar.anchor.event.models.TransactionEvent;
-import org.stellar.anchor.reference.client.PlatformApiClient;
 import org.stellar.anchor.reference.config.AppSettings;
 import org.stellar.anchor.util.Log;
 

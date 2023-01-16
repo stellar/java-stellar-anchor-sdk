@@ -8,10 +8,7 @@ import org.springframework.context.annotation.Configuration;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.platform.config.PropertyEventConfig;
-import org.stellar.anchor.platform.event.KafkaEventPublisher;
-import org.stellar.anchor.platform.event.MskEventPublisher;
-import org.stellar.anchor.platform.event.NoopEventPublisher;
-import org.stellar.anchor.platform.event.SqsEventPublisher;
+import org.stellar.anchor.platform.event.*;
 import org.stellar.anchor.platform.service.PaymentOperationToEventListener;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 
@@ -28,7 +25,7 @@ public class EventBeans {
 
   @Bean
   public EventService eventService(PropertyEventConfig eventConfig) throws InvalidConfigException {
-    EventService eventService = new EventService(eventConfig);
+    DefaultEventService eventService = new DefaultEventService(eventConfig);
     if (!eventConfig.isEnabled()) {
       eventService.setEventPublisher(new NoopEventPublisher());
     } else {
