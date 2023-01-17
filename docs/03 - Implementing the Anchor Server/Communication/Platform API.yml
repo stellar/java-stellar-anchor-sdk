@@ -146,7 +146,7 @@ paths:
                 records:
                   type: array
                   items:
-                    $ref: './schemas.yml#/components/schemas/PatchTransaction'
+                    $ref: './schemas.yml#/components/schemas/PatchTransactionRequest'
   /transactions/{id}:
     get:
       tags:
