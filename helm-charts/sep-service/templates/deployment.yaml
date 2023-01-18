@@ -19,9 +19,14 @@ spec:
       labels:
         app.kubernetes.io/name: {{ .Values.fullName }}
         app.kubernetes.io/instance: {{ .Release.Name }}
+        {{- if (.Values.deployment).labels }}
+        {{- range $key, $value := .Values.deployment.labels }}
+        {{ $key }}: {{ $value }}
+        {{- end }}
+        {{- end }}
       {{- if (.Values.deployment).annotations }}
       annotations:
-        {{- range $key, $value := .Values.deployment.annotations }}
+      {{- range $key, $value := .Values.deployment.annotations }}
           {{ $key }}: {{ $value | quote }}
           {{- end }}
       {{- end }}
@@ -33,9 +38,12 @@ spec:
         - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repo }}/{{ .Values.image.name }}:{{ .Values.image.tag }}"
           {{- if (.Values.stellarObserver).enabled }}
-          args: ["--sep-server"]
+          args:
+            - '--sep-server'
           {{- else }}
-          args: ["--sep-server", "--stellar-observer"]
+          args:
+            - '--sep-server'
+            - '--stellar-observer'
           {{- end }}
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           startupProbe:
@@ -110,7 +118,6 @@ spec:
             secretName: {{ $secret.name }}
       {{- end }}
       {{- end }}
-
 ---
 # Stellar Observer
 {{- $stellarObserverDeployment := ((.Values.stellarObserver).deployment) }}
@@ -134,6 +141,11 @@ spec:
       labels:
         app.kubernetes.io/name: {{ .Values.fullName }}-observer
         app.kubernetes.io/instance: {{ .Release.Name }}
+        {{- if $stellarObserverDeployment.labels }}
+        {{- range $key, $value := .Values.deployment.labels }}
+        {{ $key }}: {{ $value }}
+        {{- end }}
+        {{- end }}
       {{- if (.Values.deployment).annotations }}
       annotations:
         {{- range $key, $value := .Values.deployment.annotations }}
@@ -149,6 +161,8 @@ spec:
           image: "{{ .Values.image.repo }}/{{ .Values.image.name }}:{{ .Values.image.tag }}"
           args: ["--stellar-observer"]
           imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - '--stellar-observer'
           startupProbe:
             httpGet:
               path: {{ $stellarObserverDeployment.probePath | default "/health" }}
@@ -218,5 +232,4 @@ spec:
             secretName: {{ $secret.name }}
       {{- end }}
       {{- end }}
-
 {{- end }}
