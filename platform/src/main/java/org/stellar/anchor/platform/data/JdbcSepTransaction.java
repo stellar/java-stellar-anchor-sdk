@@ -3,10 +3,14 @@ package org.stellar.anchor.platform.data;
 import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
 import java.time.Instant;
+import java.util.List;
+import javax.persistence.Column;
 import javax.persistence.MappedSuperclass;
 import javax.persistence.Transient;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.Type;
+import org.stellar.anchor.api.shared.StellarTransaction;
 import org.stellar.anchor.util.GsonUtils;
 
 @Getter
@@ -55,6 +59,10 @@ public abstract class JdbcSepTransaction {
 
   @SerializedName("required_info_message")
   String requiredInfoMessage;
+
+  @Column(columnDefinition = "json")
+  @Type(type = "json")
+  List<StellarTransaction> stellarTransactions;
 
   public abstract String getProtocol();
 }

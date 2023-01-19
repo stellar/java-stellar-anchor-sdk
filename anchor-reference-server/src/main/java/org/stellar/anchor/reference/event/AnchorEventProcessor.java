@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.platform.PatchTransactionRequest;
 import org.stellar.anchor.api.platform.PatchTransactionsRequest;
+import org.stellar.anchor.api.platform.PlatformTransactionData;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.shared.Amount;
 import org.stellar.anchor.auth.AuthHelper;
@@ -53,11 +54,15 @@ public class AnchorEventProcessor {
             .records(
                 List.of(
                     PatchTransactionRequest.builder()
-                        .id(event.getId())
-                        .status(SepTransactionStatus.COMPLETED.getStatus())
-                        .amountOut(
-                            new Amount(
-                                event.getAmountOut().getAmount(), event.getAmountOut().getAsset()))
+                        .transaction(
+                            PlatformTransactionData.builder()
+                                .id(event.getId())
+                                .status(SepTransactionStatus.COMPLETED.getStatus())
+                                .amountOut(
+                                    new Amount(
+                                        event.getAmountOut().getAmount(),
+                                        event.getAmountOut().getAsset()))
+                                .build())
                         .build()))
             .build();
 
