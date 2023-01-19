@@ -1,7 +1,10 @@
 package org.stellar.anchor.platform.service
 
-import io.mockk.*
+import io.mockk.MockKAnnotations
+import io.mockk.clearAllMocks
+import io.mockk.every
 import io.mockk.impl.annotations.MockK
+import io.mockk.unmockkAll
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
@@ -16,8 +19,10 @@ import org.skyscreamer.jsonassert.JSONCompareMode.LENIENT
 import org.stellar.anchor.api.exception.AnchorException
 import org.stellar.anchor.api.exception.BadRequestException
 import org.stellar.anchor.api.exception.NotFoundException
+import org.stellar.anchor.api.platform.PatchTransactionRequest
 import org.stellar.anchor.api.platform.PlatformTransactionData
 import org.stellar.anchor.api.sep.SepTransactionStatus
+import org.stellar.anchor.api.sep.sep38.RateFee
 import org.stellar.anchor.api.shared.Amount
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
@@ -25,6 +30,7 @@ import org.stellar.anchor.event.EventService
 import org.stellar.anchor.platform.data.JdbcSep31RefundPayment
 import org.stellar.anchor.platform.data.JdbcSep31Refunds
 import org.stellar.anchor.platform.data.JdbcSep31Transaction
+import org.stellar.anchor.platform.data.JdbcSep38Quote
 import org.stellar.anchor.sep24.Sep24TransactionStore
 import org.stellar.anchor.sep31.Sep31TransactionStore
 import org.stellar.anchor.sep38.Sep38QuoteStore
@@ -227,112 +233,159 @@ class TransactionServiceTest {
     assertEquals(txn.amountIn, patch.amountIn.amount)
   }
 
-  //  @Test
-  //  fun test_updateSep31Transaction() {
-  //    val txId = "my-tx-id"
-  //    val quoteId = "my-quote-id"
-  //    val gson = GsonUtils.getInstance()
-  //
-  //    // mock times
-  //    val mockStartedAt = Instant.now().minusSeconds(180)
-  //    val mockTransferReceivedAt = mockStartedAt.plusSeconds(60)
-  //
-  //    val mockRefunds: Refunds =
-  //      Refunds.builder()
-  //        .amountRefunded(Amount("90.0000", fiatUSD))
-  //        .amountFee(Amount("8.0000", fiatUSD))
-  //        .payments(
-  //          arrayOf(
-  //            RefundPayment.builder()
-  //              .id("1111")
-  //              .idType(RefundPayment.IdType.STELLAR)
-  //              .amount(Amount("50.0000", fiatUSD))
-  //              .fee(Amount("4.0000", fiatUSD))
-  //              .requestedAt(null)
-  //              .refundedAt(null)
-  //              .build(),
-  //            RefundPayment.builder()
-  //              .id("2222")
-  //              .idType(RefundPayment.IdType.STELLAR)
-  //              .amount(Amount("40.0000", fiatUSD))
-  //              .fee(Amount("4.0000", fiatUSD))
-  //              .requestedAt(null)
-  //              .refundedAt(null)
-  //              .build()
-  //          )
-  //        )
-  //        .build()
-  //
-  //    val mockPatchTransactionRequest =
-  //      PatchTransactionRequest.builder()
-  //        .id(txId)
-  //        .status("completed")
-  //        .amountIn(Amount("100", fiatUSD))
-  //        .amountOut(Amount("98", stellarUSDC))
-  //        .amountFee(Amount("2", fiatUSD))
-  //        .transferReceivedAt(mockTransferReceivedAt)
-  //        .message("Remittance was successfully completed.")
-  //        .refunds(mockRefunds)
-  //        .externalTransactionId("external-id")
-  //        .build()
-  //
-  //    val mockSep31Transaction = JdbcSep31Transaction()
-  //    mockSep31Transaction.id = txId
-  //    mockSep31Transaction.quoteId = quoteId
-  //    mockSep31Transaction.startedAt = mockStartedAt
-  //    mockSep31Transaction.updatedAt = mockStartedAt
-  //
-  //    val mockSep38Quote = mockk<Sep38Quote>(relaxed = true)
-  //    every { mockSep38Quote.id } returns quoteId
-  //    every { mockSep38Quote.sellAmount } returns "100"
-  //    every { mockSep38Quote.sellAsset } returns fiatUSD
-  //    every { mockSep38Quote.buyAmount } returns "98"
-  //    every { mockSep38Quote.buyAsset } returns stellarUSDC
-  //    every { mockSep38Quote.fee.total } returns "2"
-  //    every { mockSep38Quote.fee.asset } returns fiatUSD
-  //    every { sep38QuoteStore.findByQuoteId(quoteId) } returns mockSep38Quote
-  //
-  //    this.assetService = DefaultAssetService.fromResource("test_assets.json")
-  //    transactionService =
-  //      TransactionService(
-  //        sep24TransactionStore,
-  //        sep31TransactionStore,
-  //        sep38QuoteStore,
-  //        assetService,
-  //        eventService
-  //      )
-  //
-  //    assertEquals(mockSep31Transaction.startedAt, mockSep31Transaction.updatedAt)
-  //    assertNull(mockSep31Transaction.completedAt)
-  //    assertDoesNotThrow {
-  //      transactionService.updateSepTransaction(mockPatchTransactionRequest, mockSep31Transaction)
-  //    }
-  //    assertTrue(mockSep31Transaction.updatedAt > mockSep31Transaction.startedAt)
-  //    assertTrue(mockSep31Transaction.updatedAt == mockSep31Transaction.completedAt)
-  //
-  //    val wantSep31TransactionUpdated = JdbcSep31Transaction()
-  //    wantSep31TransactionUpdated.id = txId
-  //    wantSep31TransactionUpdated.status = "completed"
-  //    wantSep31TransactionUpdated.quoteId = quoteId
-  //    wantSep31TransactionUpdated.startedAt = mockStartedAt
-  //    wantSep31TransactionUpdated.updatedAt = mockSep31Transaction.updatedAt
-  //    wantSep31TransactionUpdated.completedAt = mockSep31Transaction.completedAt
-  //    wantSep31TransactionUpdated.amountIn = "100"
-  //    wantSep31TransactionUpdated.amountInAsset = fiatUSD
-  //    wantSep31TransactionUpdated.amountOut = "98"
-  //    wantSep31TransactionUpdated.amountOutAsset = stellarUSDC
-  //    wantSep31TransactionUpdated.amountFee = "2"
-  //    wantSep31TransactionUpdated.amountFeeAsset = fiatUSD
-  //    wantSep31TransactionUpdated.requiredInfoMessage = "Remittance was successfully completed."
-  //    wantSep31TransactionUpdated.externalTransactionId = "external-id"
-  //    wantSep31TransactionUpdated.transferReceivedAt = mockTransferReceivedAt
-  //    wantSep31TransactionUpdated.refunds = Sep31Refunds.of(mockRefunds, sep31TransactionStore)
-  //    JSONAssert.assertEquals(
-  //      gson.toJson(wantSep31TransactionUpdated),
-  //      gson.toJson(mockSep31Transaction),
-  //      STRICT
-  //    )
-  //  }
+  @Test
+  fun test_updateSep31Transaction() {
+    val quoteId = "my-quote-id"
+    val gson = GsonUtils.getInstance()
+
+    // mock times
+    val testPatchTransactionRequest =
+      gson.fromJson(
+        """
+          {
+            "transaction": {
+              "id": "my-tx-id",
+              "status": "completed",
+              "amount_in": {
+                "amount": "100",
+                "asset": "iso4217:USD"
+              },
+              "amount_out": {
+                "amount": "98",
+                "asset": "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+              },
+              "amount_fee": {
+                "amount": "2",
+                "asset": "iso4217:USD"
+              },
+              "updated_at": "2023-01-19T01:51:57.648850500Z",
+              "started_at": "2023-01-19T01:51:57.648850500Z",
+              "transfer_received_at": "2023-01-19T01:59:37.330684800Z",
+              "message": "Remittance was successfully completed.",
+              "refunds": {
+                "amount_refunded": {
+                  "amount": "90.0000",
+                  "asset": "iso4217:USD"
+                },
+                "amount_fee": {
+                  "amount": "8.0000",
+                  "asset": "iso4217:USD"
+                },
+                "payments": [
+                  {
+                    "id": "1111",
+                    "id_type": "stellar",
+                    "amount": {
+                      "amount": "50.0000",
+                      "asset": "iso4217:USD"
+                    },
+                    "fee": {
+                      "amount": "4.0000",
+                      "asset": "iso4217:USD"
+                    }
+                  },
+                  {
+                    "id": "2222",
+                    "id_type": "stellar",
+                    "amount": {
+                      "amount": "40.0000",
+                      "asset": "iso4217:USD"
+                    },
+                    "fee": {
+                      "amount": "4.0000",
+                      "asset": "iso4217:USD"
+                    }
+                  }
+                ]
+              },
+              "external_transaction_id": "external-id"
+            }
+          }      
+      """
+          .trimIndent(),
+        PatchTransactionRequest::class.java
+      )
+
+    val testSep31Transaction =
+      gson.fromJson(
+        """
+              {
+                "id": "my-tx-id",
+                "quote_id": "my-quote-id",
+                "updated_at": "2023-01-19T01:51:47.648850500Z",
+                "started_at": "2023-01-19T01:51:47.648850500Z",
+                "transfer_received_at": "2023-01-19T01:51:47.648850500Z"
+              }          
+            """,
+        JdbcSep31Transaction::class.java
+      )
+
+    val testSep38Quote = JdbcSep38Quote()
+    testSep38Quote.id = "my-quote-id"
+    testSep38Quote.sellAmount = "100"
+    testSep38Quote.sellAsset = fiatUSD
+    testSep38Quote.buyAmount = "98"
+    testSep38Quote.buyAsset = stellarUSDC
+    testSep38Quote.fee = RateFee("2", fiatUSD)
+
+    every { sep38QuoteStore.findByQuoteId(quoteId) } returns testSep38Quote
+
+    println(gson.toJson(testSep38Quote))
+
+    this.assetService = DefaultAssetService.fromResource("test_assets.json")
+    transactionService =
+      TransactionService(
+        sep24TransactionStore,
+        sep31TransactionStore,
+        sep38QuoteStore,
+        assetService,
+        eventService
+      )
+
+    assertDoesNotThrow {
+      transactionService.updateSepTransaction(
+        testPatchTransactionRequest.transaction,
+        testSep31Transaction
+      )
+    }
+
+    val expectSep31Transaction =
+      gson.fromJson(
+        """
+        {
+          "id": "my-tx-id",
+          "quote_id": "my-quote-id",
+          "refunds": {
+            "amount_refunded": "",
+            "amount_fee": "",
+            "payments": []
+          },
+          "status": "completed",
+          "amount_in": "100",
+          "amount_in_asset": "iso4217:USD",
+          "amount_out": "98",
+          "amount_out_asset": "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+          "amount_fee": "2",
+          "amount_fee_asset": "iso4217:USD",
+          "started_at": "2023-01-19T01:51:57.648850500Z",
+          "transfer_received_at": "2023-01-19T01:59:37.330684800Z",
+          "external_transaction_id": "external-id",
+          "required_info_message": "Remittance was successfully completed."
+        }
+        
+      """
+          .trimIndent(),
+        JdbcSep31Transaction::class.java
+      )
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectSep31Transaction),
+      gson.toJson(testSep31Transaction),
+      LENIENT
+    )
+
+    assertTrue(testSep31Transaction.updatedAt > testSep31Transaction.startedAt)
+  }
 
   val jsonSep31Transaction =
     """

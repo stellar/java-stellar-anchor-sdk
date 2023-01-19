@@ -12,6 +12,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import lombok.SneakyThrows;
+import org.apache.commons.beanutils.NestedNullException;
 import org.apache.commons.beanutils.PropertyUtils;
 import org.stellar.anchor.api.exception.*;
 import org.stellar.anchor.api.platform.*;
@@ -158,13 +159,17 @@ public class TransactionService {
   @SneakyThrows
   boolean updateField(
       Object src, String srcName, Object dest, String destName, boolean txWasUpdated) {
-    Object patchValue = PropertyUtils.getNestedProperty(src, srcName);
-    Object txnValue = PropertyUtils.getNestedProperty(dest, destName);
-    if (patchValue != null && !Objects.equals(patchValue, txnValue)) {
-      PropertyUtils.setNestedProperty(dest, destName, patchValue);
-      txWasUpdated = true;
+    try {
+      Object patchValue = PropertyUtils.getNestedProperty(src, srcName);
+      Object txnValue = PropertyUtils.getNestedProperty(dest, destName);
+      if (patchValue != null && !Objects.equals(patchValue, txnValue)) {
+        PropertyUtils.setNestedProperty(dest, destName, patchValue);
+        txWasUpdated = true;
+      }
+      return txWasUpdated;
+    } catch (NestedNullException nnex) {
+      return txWasUpdated;
     }
-    return txWasUpdated;
   }
 
   void updateSepTransaction(PlatformTransactionData patch, JdbcSepTransaction txn)
@@ -189,13 +194,13 @@ public class TransactionService {
     txnUpdated = updateField(patch, "amountFee.asset", txn, "amountFeeAsset", txnUpdated);
     // update starte_at, completed_at, updated_at, transferReceivedAt
     txnUpdated = updateField(patch, txn, "startedAt", txnUpdated);
-    txnUpdated = updateField(patch, txn, "updateAt", txnUpdated);
+    txnUpdated = updateField(patch, txn, "updatedAt", txnUpdated);
     txnUpdated = updateField(patch, txn, "completedAt", txnUpdated);
     txnUpdated = updateField(patch, txn, "transferReceivedAt", txnUpdated);
     // update external_transaction_id
     txnUpdated = updateField(patch, txn, "externalTransactionId", txnUpdated);
     // update stellar_transactions
-    txnUpdated = updateField(patch, txn, "stellar_transactions", txnUpdated);
+    txnUpdated = updateField(patch, txn, "stellarTransactions", txnUpdated);
 
     // update message
     if (shouldClearMessageStatus) {

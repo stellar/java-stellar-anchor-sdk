@@ -9,6 +9,7 @@ import org.skyscreamer.jsonassert.JSONCompareMode.LENIENT
 import org.stellar.anchor.api.exception.SepException
 import org.stellar.anchor.api.platform.PatchTransactionRequest
 import org.stellar.anchor.api.platform.PatchTransactionsRequest
+import org.stellar.anchor.api.platform.PlatformTransactionData
 import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest
 import org.stellar.anchor.api.sep.sep12.Sep12Status
@@ -87,7 +88,7 @@ class Sep31Tests {
     fun `test patch, get and compare`() {
       val patch = gson.fromJson(patchRequest, PatchTransactionsRequest::class.java)
       // create patch request and patch
-      patch.records[0].id = savedTxn.transaction.id
+      patch.records[0].transaction.id = savedTxn.transaction.id
       platformApiClient.patchTransaction(patch)
 
       // check if the patched transactions are as expected
@@ -148,9 +149,13 @@ class Sep31Tests {
       // was invalidated.
       var patchTxRequest =
         PatchTransactionRequest.builder()
-          .id(getTxResponse.id)
-          .status(SepTransactionStatus.PENDING_CUSTOMER_INFO_UPDATE.name)
-          .message("The receiving customer clabe_number is invalid!")
+          .transaction(
+            PlatformTransactionData.builder()
+              .id(getTxResponse.id)
+              .status(SepTransactionStatus.PENDING_CUSTOMER_INFO_UPDATE.name)
+              .message("The receiving customer clabe_number is invalid!")
+              .build()
+          )
           .build()
       var patchTxResponse =
         platformApiClient.patchTransaction(
@@ -190,8 +195,12 @@ class Sep31Tests {
       // correctly.
       patchTxRequest =
         PatchTransactionRequest.builder()
-          .id(getTxResponse.id)
-          .status(SepTransactionStatus.COMPLETED.name)
+          .transaction(
+            PlatformTransactionData.builder()
+              .id(getTxResponse.id)
+              .status(SepTransactionStatus.COMPLETED.name)
+              .build()
+          )
           .build()
       patchTxResponse =
         platformApiClient.patchTransaction(
@@ -383,46 +392,48 @@ private const val patchRequest =
 {
   "records": [
     {
-      "id": "",
-      "status": "completed",
-      "message": "this is the message",
-      "refunds": {
-        "amount_refunded": {
-          "amount": "1",
-          "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
-        },
-        "amount_fee": {
-          "amount": "0.1",
-          "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
-        },
-        "payments": [
-          {
-            "id": 1,
-            "amount": {
-              "amount": "0.6",
-              "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
-            },
-            "fee": {
-              "amount": "0.1",
-              "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
-            }
+      "transaction": {
+        "id": "",
+        "status": "completed",
+        "message": "this is the message",
+        "refunds": {
+          "amount_refunded": {
+            "amount": "1",
+            "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
           },
-          {
-            "id": 2,
-            "amount": {
-              "amount": "0.4",
-              "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+          "amount_fee": {
+            "amount": "0.1",
+            "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+          },
+          "payments": [
+            {
+              "id": 1,
+              "amount": {
+                "amount": "0.6",
+                "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+              },
+              "fee": {
+                "amount": "0.1",
+                "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+              }
             },
-            "fee": {
-              "amount": "0",
-              "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+            {
+              "id": 2,
+              "amount": {
+                "amount": "0.4",
+                "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+              },
+              "fee": {
+                "amount": "0",
+                "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+              }
             }
-          }
-        ]
+          ]
+        }
       }
     }
   ]
-}  
+}      
 """
 
 private const val expectedAfterPatch =
