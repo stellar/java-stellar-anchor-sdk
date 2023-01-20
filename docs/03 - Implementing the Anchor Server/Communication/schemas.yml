@@ -289,38 +289,11 @@ components:
               $ref: '#/components/schemas/StellarId'
         creator:
           $ref: '#/components/schemas/StellarId'
-    PatchTransaction:
+    PatchTransactionRequest:
       type: object
-      required:
-        - id
       properties:
-        id:
-          type: string
-        status:
-          type: string
-          enum: [
-            "pending_stellar",
-            "pending_customer_info_update",
-            "pending_receiver",
-            "pending_external",
-            "completed",
-            "error"
-          ]
-        amount_in:
-          $ref: '#/components/schemas/Amount'
-        amount_out:
-          $ref: '#/components/schemas/Amount'
-        amount_fee:
-          $ref: '#/components/schemas/Amount'
-        transfer_received_at:
-          type: string
-          format: date-time
-        message:
-          type: string
-        refund:
-          $ref: '#/components/schemas/Refunds'
-        external_transaction_id:
-          type: string
+        transaction:
+          $ref: '#/components/schemas/Transaction'
     Amount:
       type: object
       required:
@@ -448,6 +421,8 @@ components:
       properties:
         id:
           type: string
+        sep:
+          type: string
         type:
           type: string
           enum:
@@ -471,7 +446,11 @@ components:
       properties:
         id:
           type: string
+        sell_amount:
+          type: string
         sell_asset:
+          type: string
+        buy_amount:
           type: string
         buy_asset:
           type: string
