@@ -154,12 +154,12 @@ public class TransactionService {
       throws AnchorException {
     boolean txnUpdated = false;
     boolean shouldClearMessageStatus =
-        !StringHelper.isEmpty(patch.getStatus())
-            && !isStatusError(patch.getStatus())
+        !StringHelper.isEmpty(patch.getStatus().getStatus())
+            && !isStatusError(patch.getStatus().getStatus())
             && !StringHelper.isEmpty(txn.getStatus())
             && isStatusError(txn.getStatus());
     // update status
-    txnUpdated = updateField(patch, txn, "status", txnUpdated);
+    txnUpdated = updateField(patch, "status.status", txn, "status", txnUpdated);
     // update amount_in
     txnUpdated = updateField(patch, "amountIn.amount", txn, "amountIn", txnUpdated);
     txnUpdated = updateField(patch, "amountIn.asset", txn, "amountInAsset", txnUpdated);

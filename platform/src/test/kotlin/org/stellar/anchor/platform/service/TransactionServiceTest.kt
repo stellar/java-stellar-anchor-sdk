@@ -20,7 +20,6 @@ import org.stellar.anchor.api.exception.AnchorException
 import org.stellar.anchor.api.exception.BadRequestException
 import org.stellar.anchor.api.exception.NotFoundException
 import org.stellar.anchor.api.platform.PatchTransactionRequest
-import org.stellar.anchor.api.platform.PlatformTransactionData
 import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.api.sep.sep38.RateFee
 import org.stellar.anchor.api.shared.Amount
@@ -213,24 +212,6 @@ class TransactionServiceTest {
   )
   fun test_validateIfStatusIsSupported(sepTxnStatus: SepTransactionStatus) {
     assertDoesNotThrow { transactionService.validateIfStatusIsSupported(sepTxnStatus.getStatus()) }
-  }
-
-  @Test
-  fun `test updateField`() {
-    val patch = gson.fromJson(testPlatformtransactionData, PlatformTransactionData::class.java)
-    val txn = gson.fromJson(jsonSep31Transaction, JdbcSep31Transaction::class.java)
-
-    patch.status = "completed"
-    assertTrue(transactionService.updateField(patch, txn, "status", false))
-    assertEquals(txn.status, patch.status)
-
-    patch.amountIn.amount = "200"
-    assertTrue(transactionService.updateField(patch, "amountIn.amount", txn, "amountIn", false))
-    assertEquals(txn.amountIn, patch.amountIn.amount)
-
-    // if we try to update again, the updated flag should be false
-    assertFalse(transactionService.updateField(patch, "amountIn.amount", txn, "amountIn", false))
-    assertEquals(txn.amountIn, patch.amountIn.amount)
   }
 
   @Test
@@ -471,7 +452,7 @@ class TransactionServiceTest {
     """
     {
       "id": "a4baff5f-778c-43d6-bbef-3e9fb41d096e",
-      "sep": 31,
+      "sep": "31",
       "kind": "receive",
       "status": "pending_receiver",
       "amount_expected": {

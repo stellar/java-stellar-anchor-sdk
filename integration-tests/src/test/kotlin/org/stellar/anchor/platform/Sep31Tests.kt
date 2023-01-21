@@ -152,7 +152,7 @@ class Sep31Tests {
           .transaction(
             PlatformTransactionData.builder()
               .id(getTxResponse.id)
-              .status(SepTransactionStatus.PENDING_CUSTOMER_INFO_UPDATE.name)
+              .status(SepTransactionStatus.PENDING_CUSTOMER_INFO_UPDATE)
               .message("The receiving customer clabe_number is invalid!")
               .build()
           )
@@ -198,7 +198,7 @@ class Sep31Tests {
           .transaction(
             PlatformTransactionData.builder()
               .id(getTxResponse.id)
-              .status(SepTransactionStatus.COMPLETED.name)
+              .status(SepTransactionStatus.COMPLETED)
               .build()
           )
           .build()
@@ -439,7 +439,7 @@ private const val patchRequest =
 private const val expectedAfterPatch =
   """
   {
-  "sep": 31,
+  "sep": "31",
   "kind": "receive",
   "status": "completed",
   "amount_expected": {

@@ -26,6 +26,7 @@ import org.stellar.anchor.api.exception.ServerErrorException;
 import org.stellar.anchor.api.platform.GetQuoteResponse;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.sep38.*;
+import org.stellar.anchor.api.shared.StellarId;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtToken;
 import org.stellar.anchor.config.Sep38Config;
@@ -407,7 +408,14 @@ public class Sep38Service {
             .type(AnchorEvent.Type.QUOTE_CREATED)
             .id(UUID.randomUUID().toString())
             .sep("38")
-            .quote(GetQuoteResponse.builder().build())
+            .quote(
+                GetQuoteResponse.builder()
+                    .creator(
+                        StellarId.builder()
+                            // TODO where to get StellarId.id?
+                            .account(newQuote.getCreatorAccountId())
+                            .build())
+                    .build())
             .build();
 
     updateField(newQuote, "id", event, "quote.id");

@@ -66,8 +66,11 @@ public class PlatformTransactionData {
 
   public enum Sep {
     @SuppressWarnings("unused")
+    @SerializedName("24")
     SEP_24(24),
+    @SerializedName("31")
     SEP_31(31),
+    @SerializedName("38")
     SEP_38(38);
 
     private final Integer sep;
@@ -84,10 +87,14 @@ public class PlatformTransactionData {
 
   public enum Kind {
     @SuppressWarnings("unused")
+    @SerializedName("undefined")
     UNDEFINED("undefined"),
+    @SerializedName("receive")
     RECEIVE("receive"),
+    @SerializedName("deposit")
     DEPOSIT("deposit"),
-    WITHDRAW("withdrawal");
+    @SerializedName("withdrawal")
+    WITHDRAWAL("withdrawal");
 
     public final String kind;
 

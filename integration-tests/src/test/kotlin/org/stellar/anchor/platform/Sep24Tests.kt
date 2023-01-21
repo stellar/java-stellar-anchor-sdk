@@ -51,6 +51,8 @@ class Sep24Tests {
     fun `test PlatformAPI GET transaction for deposit and withdrawal`() {
       val actualWithdrawTxn = platformApiClient.getTransaction(savedWithdrawTxn.transaction.id)
       assertEquals(actualWithdrawTxn.id, savedWithdrawTxn.transaction.id)
+      println(expectedWithdrawTransactionResponse)
+      println(json(actualWithdrawTxn))
       JSONAssert.assertEquals(expectedWithdrawTransactionResponse, json(actualWithdrawTxn), LENIENT)
 
       val actualDepositTxn = platformApiClient.getTransaction(savedDepositTxn.transaction.id)
@@ -224,7 +226,7 @@ private const val patchWithdrawTransactionRequest =
 private const val expectedAfterPatchWithdraw =
   """
 {
-  "sep": 24,
+  "sep": "24",
   "kind": "withdrawal",
   "status": "completed",
   "amount_in": {
@@ -280,7 +282,7 @@ private const val expectedAfterPatchWithdraw =
 private const val expectedAfterPatchDeposit =
   """
   {
-    "sep": 24,
+    "sep": "24",
     "kind": "deposit",
     "status": "completed",
     "amount_in": {
@@ -374,7 +376,7 @@ private const val expectedSep24DepositResponse =
 private const val expectedWithdrawTransactionResponse =
   """
   {
-    "sep": 24,
+    "sep": "24",
     "kind": "withdrawal",
     "status": "incomplete"
   }
@@ -383,7 +385,7 @@ private const val expectedWithdrawTransactionResponse =
 private const val expectedDepositTransactionResponse =
   """
   {
-    "sep": 24,
+    "sep": "24",
     "kind": "deposit",
     "status": "incomplete"
   }

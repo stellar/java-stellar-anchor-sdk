@@ -11,6 +11,8 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.skyscreamer.jsonassert.JSONAssert
+import org.skyscreamer.jsonassert.JSONCompareMode.STRICT
 import org.stellar.anchor.TestHelper.Companion.createJwtToken
 import org.stellar.anchor.api.callback.GetRateRequest
 import org.stellar.anchor.api.callback.GetRateRequest.Type.*
@@ -31,6 +33,7 @@ import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.config.Sep38Config
 import org.stellar.anchor.event.EventService
+import org.stellar.anchor.util.StringHelper.json
 
 class Sep38ServiceTest {
   internal class PropertySep38Config : Sep38Config {
@@ -1073,13 +1076,14 @@ class Sep38ServiceTest {
     wantEvent.quote.buyAmount = "100"
     wantEvent.quote.expiresAt = tomorrow
     wantEvent.quote.price = "1.02"
-    //    wantEvent.quote.totalPrice = "`1.03"
+    wantEvent.quote.totalPrice = "1.03"
     wantEvent.quote.buyAmount
     wantEvent.quote.buyAmount
     wantEvent.quote.creator = StellarId.builder().account(PUBLIC_KEY).build()
     wantEvent.quote.createdAt = savedQuote.createdAt
     wantEvent.quote.fee = mockFee
-    assertEquals(wantEvent, slotEvent.captured)
+
+    JSONAssert.assertEquals(json(wantEvent), json(slotEvent.captured), STRICT)
   }
 
   @Test
@@ -1175,9 +1179,9 @@ class Sep38ServiceTest {
     val wantEvent = AnchorEvent()
     wantEvent.id = slotEvent.captured.id
     wantEvent.type = QUOTE_CREATED
-    wantEvent.id = "456"
+    wantEvent.sep = "38"
     wantEvent.quote = GetQuoteResponse()
-
+    wantEvent.quote.id = "456"
     wantEvent.quote.sellAsset = fiatUSD
     wantEvent.quote.sellAmount = "103"
     wantEvent.quote.buyAsset = stellarUSDC
@@ -1190,7 +1194,7 @@ class Sep38ServiceTest {
     wantEvent.quote.createdAt = savedQuote.createdAt
     wantEvent.quote.fee = mockFee
 
-    assertEquals(wantEvent, slotEvent.captured)
+    JSONAssert.assertEquals(json(wantEvent), json(slotEvent.captured), STRICT)
   }
 
   @Test
@@ -1295,6 +1299,7 @@ class Sep38ServiceTest {
     val wantEvent = AnchorEvent()
     wantEvent.id = slotEvent.captured.id
     wantEvent.type = QUOTE_CREATED
+    wantEvent.sep = "38"
     wantEvent.quote = GetQuoteResponse()
     wantEvent.quote.id = "123"
     wantEvent.quote.sellAsset = fiatUSD
@@ -1308,7 +1313,7 @@ class Sep38ServiceTest {
     wantEvent.quote.transactionId = null
     wantEvent.quote.createdAt = savedQuote.createdAt
     wantEvent.quote.fee = mockFee
-    assertEquals(wantEvent, slotEvent.captured)
+    JSONAssert.assertEquals(json(wantEvent), json(slotEvent.captured), STRICT)
   }
 
   @Test
@@ -1413,6 +1418,7 @@ class Sep38ServiceTest {
     val wantEvent = AnchorEvent()
     wantEvent.id = slotEvent.captured.id
     wantEvent.type = QUOTE_CREATED
+    wantEvent.sep = "38"
     wantEvent.quote = GetQuoteResponse()
     wantEvent.quote.id = "456"
     wantEvent.quote.sellAsset = fiatUSD
@@ -1427,7 +1433,7 @@ class Sep38ServiceTest {
     wantEvent.quote.createdAt = savedQuote.createdAt
     wantEvent.quote.fee = mockFee
 
-    assertEquals(wantEvent, slotEvent.captured)
+    JSONAssert.assertEquals(json(wantEvent), json(slotEvent.captured), STRICT)
   }
 
   @Test

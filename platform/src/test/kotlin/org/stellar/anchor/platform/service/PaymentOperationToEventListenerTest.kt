@@ -12,11 +12,14 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode.STRICT
+import org.stellar.anchor.api.event.AnchorEvent
+import org.stellar.anchor.api.event.AnchorEvent.Type.TRANSACTION_STATUS_CHANGED
 import org.stellar.anchor.api.exception.SepException
+import org.stellar.anchor.api.platform.GetTransactionResponse
+import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.RECEIVE
 import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.api.shared.*
 import org.stellar.anchor.event.EventService
-import org.stellar.anchor.event.models.TransactionEvent
 import org.stellar.anchor.platform.data.JdbcSep31Transaction
 import org.stellar.anchor.platform.data.JdbcSep31TransactionStore
 import org.stellar.anchor.platform.observer.ObservedPayment
@@ -187,49 +190,37 @@ class PaymentOperationToEventListenerTest {
         )
         .build()
 
-    val wantEvent =
-      TransactionEvent.builder()
-        .type(TransactionEvent.Type.TRANSACTION_STATUS_CHANGED)
-        .id("ceaa7677-a5a7-434e-b02a-8e0801b3e7bd")
-        .status(SepTransactionStatus.PENDING_RECEIVER)
-        .sep(TransactionEvent.Sep.SEP_31)
-        .kind(TransactionEvent.Kind.RECEIVE)
-        .amountExpected(Amount("10", fooAsset))
-        .amountIn(Amount("10.0000000", fooAsset))
-        .amountOut(Amount("20", barAsset))
-        .amountFee(Amount("0.5", fooAsset))
-        .quoteId("cef1fc13-3f65-4612-b1f2-502d698c816b")
-        .startedAt(startedAtMock)
-        .updatedAt(transferReceivedAt)
-        .transferReceivedAt(transferReceivedAt)
-        .message("Incoming payment for SEP-31 transaction")
-        .sourceAccount("GAJKV32ZXP5QLYHPCMLTV5QCMNJR3W6ZKFP6HMDN67EM2ULDHHDGEZYO")
-        .destinationAccount("GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364")
-        .creator(
-          StellarId.builder()
-            .account("GBE4B7KE62NUBFLYT3BIG4OP5DAXBQX2GSZZOVAYXQKJKIU7P6V2R2N4")
-            .build()
-        )
-        .customers(
-          Customers(
-            StellarId.builder().id(senderId).build(),
-            StellarId.builder().id(receiverId).build()
-          )
-        )
-        .stellarTransactions(listOf(stellarTransaction))
+    val wantEvent = AnchorEvent()
+    wantEvent.type = TRANSACTION_STATUS_CHANGED
+    wantEvent.id = "ceaa7677-a5a7-434e-b02a-8e0801b3e7bd"
+    wantEvent.sep = "31"
+    wantEvent.transaction = GetTransactionResponse()
+    wantEvent.transaction.status = SepTransactionStatus.PENDING_RECEIVER
+    wantEvent.transaction.kind = RECEIVE
+    wantEvent.transaction.amountExpected = Amount("10", fooAsset)
+    wantEvent.transaction.amountIn = Amount("10.0000000", fooAsset)
+    wantEvent.transaction.amountOut = Amount("20", barAsset)
+    wantEvent.transaction.amountFee = Amount("0.5", fooAsset)
+    wantEvent.transaction.quoteId = "cef1fc13-3f65-4612-b1f2-502d698c816b"
+    wantEvent.transaction.startedAt = startedAtMock
+    wantEvent.transaction.updatedAt = transferReceivedAt
+    wantEvent.transaction.transferReceivedAt = transferReceivedAt
+    wantEvent.transaction.message = "Incoming payment for SEP-31 transaction"
+    wantEvent.transaction.creator =
+      StellarId.builder()
+        .account("GBE4B7KE62NUBFLYT3BIG4OP5DAXBQX2GSZZOVAYXQKJKIU7P6V2R2N4")
         .build()
-
-    val slotEvent = slot<TransactionEvent>()
-    every { eventPublishService.publish(capture(slotEvent)) } just Runs
+    wantEvent.transaction.customers =
+      Customers(
+        StellarId.builder().id(senderId).build(),
+        StellarId.builder().id(receiverId).build()
+      )
+    wantEvent.transaction.stellarTransactions = listOf(stellarTransaction)
 
     paymentOperationToEventListener.onReceived(p)
     verify(exactly = 1) {
       transactionStore.findByStellarMemo("OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ=")
     }
-    verify(exactly = 1) { eventPublishService.publish(any()) }
-
-    wantEvent.eventId = slotEvent.captured.eventId
-    assertEquals(wantEvent, slotEvent.captured)
 
     // wantSep31Tx
     val wantSep31Tx = gson.fromJson(gson.toJson(sep31TxMock), JdbcSep31Transaction::class.java)
@@ -326,49 +317,42 @@ class PaymentOperationToEventListenerTest {
         )
         .build()
 
-    val wantEvent =
-      TransactionEvent.builder()
-        .type(TransactionEvent.Type.TRANSACTION_STATUS_CHANGED)
-        .id("ceaa7677-a5a7-434e-b02a-8e0801b3e7bd")
-        .status(SepTransactionStatus.PENDING_RECEIVER)
-        .sep(TransactionEvent.Sep.SEP_31)
-        .kind(TransactionEvent.Kind.RECEIVE)
-        .amountExpected(Amount("10", fooAsset))
-        .amountIn(Amount("9.0000000", fooAsset))
-        .amountOut(Amount("20", barAsset))
-        .amountFee(Amount("0.5", fooAsset))
-        .quoteId("cef1fc13-3f65-4612-b1f2-502d698c816b")
-        .startedAt(startedAtMock)
-        .updatedAt(transferReceivedAt)
-        .transferReceivedAt(null)
-        .message("The incoming payment amount was insufficient! Expected: \"10\", Received: \"9\"")
-        .sourceAccount("GAJKV32ZXP5QLYHPCMLTV5QCMNJR3W6ZKFP6HMDN67EM2ULDHHDGEZYO")
-        .destinationAccount("GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364")
-        .creator(
-          StellarId.builder()
-            .account("GBE4B7KE62NUBFLYT3BIG4OP5DAXBQX2GSZZOVAYXQKJKIU7P6V2R2N4")
-            .build()
-        )
-        .customers(
-          Customers(
-            StellarId.builder().id(senderId).build(),
-            StellarId.builder().id(receiverId).build()
-          )
-        )
-        .stellarTransactions(listOf(stellarTransaction))
+    val wantEvent = AnchorEvent()
+    wantEvent.type = TRANSACTION_STATUS_CHANGED
+    wantEvent.id = "ceaa7677-a5a7-434e-b02a-8e0801b3e7bd"
+    wantEvent.sep = "31"
+    wantEvent.transaction = GetTransactionResponse()
+    wantEvent.transaction.status = SepTransactionStatus.PENDING_RECEIVER
+    wantEvent.transaction.kind = RECEIVE
+    wantEvent.transaction.amountExpected = Amount("10", fooAsset)
+    wantEvent.transaction.amountIn = Amount("9.0000000", fooAsset)
+    wantEvent.transaction.amountOut = Amount("20", barAsset)
+    wantEvent.transaction.amountFee = Amount("0.5", fooAsset)
+    wantEvent.transaction.quoteId = "cef1fc13-3f65-4612-b1f2-502d698c816b"
+    wantEvent.transaction.startedAt = startedAtMock
+    wantEvent.transaction.updatedAt = transferReceivedAt
+    wantEvent.transaction.transferReceivedAt = null
+    wantEvent.transaction.message =
+      "The incoming payment amount was insufficient! Expected: \"10\", Received: \"9\""
+    wantEvent.transaction.creator =
+      StellarId.builder()
+        .account("GBE4B7KE62NUBFLYT3BIG4OP5DAXBQX2GSZZOVAYXQKJKIU7P6V2R2N4")
         .build()
 
-    val slotEvent = slot<TransactionEvent>()
-    every { eventPublishService.publish(capture(slotEvent)) } just Runs
+    wantEvent.transaction.customers =
+      Customers(
+        StellarId.builder().id(senderId).build(),
+        StellarId.builder().id(receiverId).build()
+      )
+
+    wantEvent.transaction.stellarTransactions = listOf(stellarTransaction)
+
+    every { eventPublishService.publish(any() as Sep31Transaction, any()) } just Runs
 
     paymentOperationToEventListener.onReceived(p)
     verify(exactly = 1) {
       transactionStore.findByStellarMemo("OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ=")
     }
-    verify(exactly = 1) { eventPublishService.publish(any()) }
-
-    wantEvent.eventId = slotEvent.captured.eventId
-    assertEquals(wantEvent, slotEvent.captured)
 
     // wantSep31Tx
     val wantSep31Tx = gson.fromJson(gson.toJson(sep31TxMock), JdbcSep31Transaction::class.java)

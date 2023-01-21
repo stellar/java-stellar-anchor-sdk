@@ -99,7 +99,9 @@ class KafkaListeningTask implements Runnable {
                 handleQuoteEvent(event);
                 break;
               default:
-                Log.debug("error: anchor_platform_event - invalid message type '%s'%n", eventClass);
+                Log.debug(
+                    "error: anchor_platform_event - invalid message type '%s'%n",
+                    event.getType().type);
             }
           });
     } catch (Exception ex) {

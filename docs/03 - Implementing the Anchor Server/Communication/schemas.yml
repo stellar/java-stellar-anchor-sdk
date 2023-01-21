@@ -206,8 +206,8 @@ components:
         id:
           type: string
         sep:
-          type: integer
-          enum: [ 24, 31 ]
+          type: string
+          enum: [ "24", "31", "38" ]
         kind:
           type: string
           enum: [
