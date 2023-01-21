@@ -10,7 +10,6 @@ import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Objects;
-import java.util.UUID;
 import org.apache.commons.codec.DecoderException;
 import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.AnchorException;
@@ -21,7 +20,6 @@ import org.stellar.anchor.api.shared.Amount;
 import org.stellar.anchor.api.shared.StellarPayment;
 import org.stellar.anchor.api.shared.StellarTransaction;
 import org.stellar.anchor.event.EventService;
-import org.stellar.anchor.event.models.TransactionEvent;
 import org.stellar.anchor.platform.observer.ObservedPayment;
 import org.stellar.anchor.platform.observer.PaymentListener;
 import org.stellar.anchor.sep31.Sep31Transaction;
@@ -169,40 +167,40 @@ public class PaymentOperationToEventListener implements PaymentListener {
     Log.infoF("Sent to event queue {}", GsonUtils.getInstance().toJson(event));
   }
 
-  AnchorEvent receivedPaymentToEvent(
-      Sep31Transaction txn,
-      ObservedPayment payment,
-      SepTransactionStatus status,
-      String message,
-      StellarTransaction newStellarTransaction) {
-    return AnchorEvent.builder()
-        .eventId(UUID.randomUUID().toString())
-        .type(TransactionEvent.Type.TRANSACTION_STATUS_CHANGED)
-        .id(txn.getId())
-        .sep(TransactionEvent.Sep.SEP_31)
-        .kind(TransactionEvent.Kind.RECEIVE)
-        .status(status)
-        .amountExpected(new Amount(txn.getAmountExpected(), txn.getAmountInAsset()))
-        .amountIn(new Amount(payment.getAmount(), txn.getAmountInAsset()))
-        .amountOut(new Amount(txn.getAmountOut(), txn.getAmountOutAsset()))
-        // TODO: fix PATCH transaction fails if getAmountOut is null?
-        .amountFee(new Amount(txn.getAmountFee(), txn.getAmountFeeAsset()))
-        .quoteId(txn.getQuoteId())
-        .startedAt(txn.getStartedAt())
-        .updatedAt(txn.getUpdatedAt())
-        .completedAt(null)
-        .transferReceivedAt(txn.getTransferReceivedAt())
-        .message(message)
-        .refunds(null)
-        .stellarTransactions(List.of(newStellarTransaction))
-        .externalTransactionId(payment.getExternalTransactionId())
-        .custodialTransactionId(null)
-        .sourceAccount(payment.getFrom())
-        .destinationAccount(payment.getTo())
-        .customers(txn.getCustomers())
-        .creator(txn.getCreator())
-        .build();
-  }
+  //  AnchorEvent receivedPaymentToEvent(
+  //      Sep31Transaction txn,
+  //      ObservedPayment payment,
+  //      SepTransactionStatus status,
+  //      String message,
+  //      StellarTransaction newStellarTransaction) {
+  //    return AnchorEvent.builder()
+  //        .eventId(UUID.randomUUID().toString())
+  //        .type(TransactionEvent.Type.TRANSACTION_STATUS_CHANGED)
+  //        .id(txn.getId())
+  //        .sep(TransactionEvent.Sep.SEP_31)
+  //        .kind(TransactionEvent.Kind.RECEIVE)
+  //        .status(status)
+  //        .amountExpected(new Amount(txn.getAmountExpected(), txn.getAmountInAsset()))
+  //        .amountIn(new Amount(payment.getAmount(), txn.getAmountInAsset()))
+  //        .amountOut(new Amount(txn.getAmountOut(), txn.getAmountOutAsset()))
+  //        // TODO: fix PATCH transaction fails if getAmountOut is null?
+  //        .amountFee(new Amount(txn.getAmountFee(), txn.getAmountFeeAsset()))
+  //        .quoteId(txn.getQuoteId())
+  //        .startedAt(txn.getStartedAt())
+  //        .updatedAt(txn.getUpdatedAt())
+  //        .completedAt(null)
+  //        .transferReceivedAt(txn.getTransferReceivedAt())
+  //        .message(message)
+  //        .refunds(null)
+  //        .stellarTransactions(List.of(newStellarTransaction))
+  //        .externalTransactionId(payment.getExternalTransactionId())
+  //        .custodialTransactionId(null)
+  //        .sourceAccount(payment.getFrom())
+  //        .destinationAccount(payment.getTo())
+  //        .customers(txn.getCustomers())
+  //        .creator(txn.getCreator())
+  //        .build();
+  //  }
 
   Instant parsePaymentTime(String paymentTimeStr) {
     try {

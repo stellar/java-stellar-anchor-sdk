@@ -14,15 +14,16 @@ import java.util.concurrent.Executors;
 import javax.annotation.PreDestroy;
 import lombok.Builder;
 import lombok.Data;
-import org.apache.kafka.clients.consumer.*;
+import org.apache.kafka.clients.consumer.Consumer;
+import org.apache.kafka.clients.consumer.ConsumerConfig;
+import org.apache.kafka.clients.consumer.ConsumerRecords;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.platform.HealthCheckResult;
 import org.stellar.anchor.api.platform.HealthCheckStatus;
-import org.stellar.anchor.event.models.QuoteEvent;
-import org.stellar.anchor.event.models.TransactionEvent;
 import org.stellar.anchor.healthcheck.HealthCheckable;
 import org.stellar.anchor.reference.config.KafkaListenerSettings;
 import org.stellar.anchor.util.Log;
@@ -85,17 +86,22 @@ public class KafkaListener extends AbstractEventListener implements HealthChecka
         Log.info(String.format("Messages received: %s", consumerRecords.count()));
         consumerRecords.forEach(
             record -> {
-              String eventClass = record.value().getClass().getSimpleName();
-              switch (eventClass) {
-                case TYPE_QUOTE:
-                  processor.handleQuoteEvent((QuoteEvent) record.value());
+              AnchorEvent event = record.value();
+              switch (event.getType()) {
+                case TRANSACTION_CREATED:
+                case TRANSACTION_ERROR:
+                  processor.handleTransactionEvent(event);
                   break;
-                case TYPE_TRANSACTION:
-                  processor.handleTransactionEvent((TransactionEvent) record.value());
+                case TRANSACTION_STATUS_CHANGED:
+                  processor.handleTransactionStatusChangedEvent(event);
+                  break;
+                case QUOTE_CREATED:
+                  processor.handleQuoteEvent(event);
                   break;
                 default:
                   Log.debug(
-                      "error: anchor_platform_event - invalid message type '%s'%n", eventClass);
+                      "error: anchor_platform_event - invalid message type '%s'%n",
+                      event.getType());
               }
             });
       } catch (Exception ex) {

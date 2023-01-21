@@ -1,21 +1,25 @@
 package org.stellar.anchor.api.platform;
 
+import com.fasterxml.jackson.annotation.JsonValue;
 import com.google.gson.annotations.SerializedName;
 import java.time.Instant;
 import java.util.List;
 import lombok.Getter;
+import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.experimental.SuperBuilder;
+import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.shared.*;
 
 @Getter
 @Setter
 @SuperBuilder
+@NoArgsConstructor
 public class PlatformTransactionData {
   String id;
-  Integer sep;
-  String kind;
-  String status;
+  Sep sep;
+  Kind kind;
+  SepTransactionStatus status;
 
   @SerializedName("amount_expected")
   Amount amountExpected;
@@ -59,4 +63,50 @@ public class PlatformTransactionData {
 
   Customers customers;
   StellarId creator;
+
+  public enum Sep {
+    @SuppressWarnings("unused")
+    SEP_24(24),
+    SEP_31(31),
+    SEP_38(38);
+
+    private final Integer sep;
+
+    Sep(Integer sep) {
+      this.sep = sep;
+    }
+
+    @JsonValue
+    public Integer getSep() {
+      return sep;
+    }
+  }
+
+  public enum Kind {
+    @SuppressWarnings("unused")
+    UNDEFINED("undefined"),
+    RECEIVE("receive"),
+    DEPOSIT("deposit"),
+    WITHDRAW("withdrawal");
+
+    public final String kind;
+
+    Kind(String kind) {
+      this.kind = kind;
+    }
+
+    @JsonValue
+    public String getKind() {
+      return kind;
+    }
+
+    public static Kind from(String str) {
+      for (Kind kind : values()) {
+        if (kind.kind.equals(str)) {
+          return kind;
+        }
+      }
+      throw new IllegalArgumentException("No matching constant for [" + str + "]");
+    }
+  }
 }

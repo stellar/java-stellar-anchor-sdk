@@ -2,7 +2,6 @@ package org.stellar.anchor.platform.event;
 
 import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.AmazonSQSAsyncClientBuilder;
-import com.amazonaws.services.sqs.model.MessageAttributeValue;
 import com.amazonaws.services.sqs.model.SendMessageRequest;
 import com.amazonaws.services.sqs.model.SendMessageResult;
 import com.google.gson.Gson;
@@ -34,13 +33,7 @@ public class SqsEventPublisher implements EventPublisher {
               .withQueueUrl(queueUrl)
               .withMessageBody(eventStr)
               .withMessageGroupId(queue)
-              .withMessageDeduplicationId(event.getEventId());
-
-      sendMessageRequest.addMessageAttributesEntry(
-          "anchor-event-class",
-          new MessageAttributeValue()
-              .withDataType("String")
-              .withStringValue(event.getClass().getSimpleName()));
+              .withMessageDeduplicationId(event.getId());
 
       SendMessageResult sendMessageResult = sqsClient.sendMessage(sendMessageRequest);
 

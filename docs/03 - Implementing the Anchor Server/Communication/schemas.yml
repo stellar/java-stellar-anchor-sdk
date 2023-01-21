@@ -459,6 +459,8 @@ components:
           format: date-time
         price:
           type: string
+        total_price:
+          type: string
         creator:
           $ref: '#/components/schemas/StellarId'
         transaction_id:

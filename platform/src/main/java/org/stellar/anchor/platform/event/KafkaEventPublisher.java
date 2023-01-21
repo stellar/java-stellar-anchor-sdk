@@ -56,7 +56,7 @@ public class KafkaEventPublisher implements EventPublisher {
   public void publish(String queue, AnchorEvent event) {
     try {
       ProducerRecord<String, AnchorEvent> record = new ProducerRecord<>(queue, event);
-      record.headers().add(new RecordHeader("type", event.getType().getBytes()));
+      record.headers().add(new RecordHeader("type", event.getType().type.getBytes()));
       // If the queue is offline, throw an exception
       try {
         producer.send(record).get();

@@ -1,9 +1,11 @@
 package org.stellar.anchor.platform.utils;
 
-import static org.stellar.anchor.api.platform.GetTransactionResponse.Kind.RECEIVE;
+import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.RECEIVE;
 
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.platform.GetTransactionResponse;
+import org.stellar.anchor.api.platform.PlatformTransactionData;
+import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.shared.Amount;
 import org.stellar.anchor.api.shared.RefundPayment;
 import org.stellar.anchor.api.shared.Refunds;
@@ -35,9 +37,9 @@ public class TransactionHelper {
 
     return GetTransactionResponse.builder()
         .id(txn.getId())
-        .sep(31)
-        .kind(RECEIVE.getKind())
-        .status(txn.getStatus())
+        .sep(PlatformTransactionData.Sep.SEP_31)
+        .kind(RECEIVE)
+        .status(SepTransactionStatus.from(txn.getStatus()))
         .amountExpected(new Amount(txn.getAmountExpected(), txn.getAmountInAsset()))
         .amountIn(new Amount(txn.getAmountIn(), txn.getAmountInAsset()))
         .amountOut(new Amount(txn.getAmountOut(), txn.getAmountOutAsset()))
@@ -64,9 +66,9 @@ public class TransactionHelper {
 
     return GetTransactionResponse.builder()
         .id(txn.getId())
-        .sep(24)
-        .kind(txn.getKind())
-        .status(txn.getStatus())
+        .sep(PlatformTransactionData.Sep.SEP_24)
+        .kind(PlatformTransactionData.Kind.from(txn.getKind()))
+        .status(SepTransactionStatus.from(txn.getStatus()))
         .amountIn(new Amount(txn.getAmountIn(), txn.getAmountInAsset()))
         .amountOut(new Amount(txn.getAmountOut(), txn.getAmountOutAsset()))
         .amountFee(new Amount(txn.getAmountFee(), txn.getAmountFeeAsset()))

@@ -21,7 +21,10 @@ import org.stellar.anchor.TestHelper
 import org.stellar.anchor.api.callback.CustomerIntegration
 import org.stellar.anchor.api.callback.FeeIntegration
 import org.stellar.anchor.api.callback.GetFeeResponse
+import org.stellar.anchor.api.event.AnchorEvent
 import org.stellar.anchor.api.exception.*
+import org.stellar.anchor.api.platform.GetTransactionResponse
+import org.stellar.anchor.api.platform.PlatformTransactionData
 import org.stellar.anchor.api.sep.AssetInfo
 import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerRequest
@@ -40,7 +43,6 @@ import org.stellar.anchor.config.Sep31Config
 import org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_RECEIVE
 import org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_SEND
 import org.stellar.anchor.event.EventService
-import org.stellar.anchor.event.models.TransactionEvent
 import org.stellar.anchor.sep31.Sep31Service.Context
 import org.stellar.anchor.sep38.PojoSep38Quote
 import org.stellar.anchor.sep38.Sep38QuoteStore
@@ -751,7 +753,7 @@ class Sep31ServiceTest {
       }
 
     // mock eventService
-    val txEventSlot = slot<TransactionEvent>()
+    val txEventSlot = slot<AnchorEvent>()
     every { eventPublishService.publish(capture(txEventSlot)) } just Runs
 
     // mock transaction save
@@ -816,15 +818,14 @@ class Sep31ServiceTest {
     JSONAssert.assertEquals(wantTx, gotTx, true)
 
     // validate event response
-    val wantEvent: TransactionEvent =
-      TransactionEvent.builder()
-        .eventId(txEventSlot.captured.eventId)
-        .type(TransactionEvent.Type.TRANSACTION_CREATED)
-        .id(txId)
-        .sep(TransactionEvent.Sep.SEP_31)
-        .kind(TransactionEvent.Kind.RECEIVE)
-        .status(SepTransactionStatus.PENDING_SENDER)
-        .build()
+    val wantEvent = AnchorEvent()
+    wantEvent.id = txEventSlot.captured.id
+    wantEvent.type = AnchorEvent.Type.TRANSACTION_CREATED
+    wantEvent.transaction = GetTransactionResponse()
+    wantEvent.transaction.id = txId
+    wantEvent.transaction.sep = PlatformTransactionData.Sep.SEP_31
+    wantEvent.transaction.kind = PlatformTransactionData.Kind.RECEIVE
+    wantEvent.transaction.status = SepTransactionStatus.PENDING_SENDER
     assertEquals(wantEvent, txEventSlot.captured)
 
     // validate the final response

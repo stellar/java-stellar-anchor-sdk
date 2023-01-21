@@ -19,8 +19,6 @@ import org.apache.kafka.common.serialization.StringDeserializer;
 import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.InvalidConfigException;
-import org.stellar.anchor.event.models.QuoteEvent;
-import org.stellar.anchor.event.models.TransactionEvent;
 import org.stellar.anchor.platform.config.EventProcessorConfig;
 import org.stellar.anchor.util.Log;
 
@@ -90,13 +88,15 @@ class KafkaListeningTask implements Runnable {
       Log.info(String.format("Messages received: %s", consumerRecords.count()));
       consumerRecords.forEach(
           record -> {
-            String eventClass = record.value().getClass().getSimpleName();
-            switch (eventClass) {
-              case TYPE_QUOTE:
-                handleQuoteEvent((QuoteEvent) record.value());
+            AnchorEvent event = record.value();
+            switch (event.getType()) {
+              case TRANSACTION_CREATED:
+              case TRANSACTION_STATUS_CHANGED:
+              case TRANSACTION_ERROR:
+                handleTransactionEvent(event);
                 break;
-              case TYPE_TRANSACTION:
-                handleTransactionEvent((TransactionEvent) record.value());
+              case QUOTE_CREATED:
+                handleQuoteEvent(event);
                 break;
               default:
                 Log.debug("error: anchor_platform_event - invalid message type '%s'%n", eventClass);
@@ -107,7 +107,7 @@ class KafkaListeningTask implements Runnable {
     }
   }
 
-  private void handleTransactionEvent(TransactionEvent event) {}
+  private void handleTransactionEvent(AnchorEvent event) {}
 
-  private void handleQuoteEvent(QuoteEvent event) {}
+  private void handleQuoteEvent(AnchorEvent event) {}
 }

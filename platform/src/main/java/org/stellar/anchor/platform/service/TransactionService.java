@@ -2,7 +2,9 @@ package org.stellar.anchor.platform.service;
 
 import static org.stellar.anchor.api.event.AnchorEvent.Type.TRANSACTION_STATUS_CHANGED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.*;
+import static org.stellar.anchor.platform.utils.TransactionHelper.toGetTransactionResponse;
 import static org.stellar.anchor.sep31.Sep31Helper.allAmountAvailable;
+import static org.stellar.anchor.util.BeanHelper.updateField;
 import static org.stellar.anchor.util.MathHelper.decimal;
 import static org.stellar.anchor.util.MathHelper.equalsAsDecimals;
 
@@ -11,10 +13,10 @@ import java.time.Instant;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
-import lombok.SneakyThrows;
-import org.apache.commons.beanutils.NestedNullException;
-import org.apache.commons.beanutils.PropertyUtils;
-import org.stellar.anchor.api.exception.*;
+import org.stellar.anchor.api.exception.AnchorException;
+import org.stellar.anchor.api.exception.BadRequestException;
+import org.stellar.anchor.api.exception.InternalServerErrorException;
+import org.stellar.anchor.api.exception.NotFoundException;
 import org.stellar.anchor.api.platform.*;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
@@ -24,8 +26,8 @@ import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSep31Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
-import org.stellar.anchor.sep24.*;
-import org.stellar.anchor.sep31.Sep31Helper;
+import org.stellar.anchor.sep24.Sep24Refunds;
+import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31Refunds;
 import org.stellar.anchor.sep31.Sep31Transaction;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
@@ -124,18 +126,18 @@ public class TransactionService {
     switch (txn.getProtocol()) {
       case "24":
         txn24Store.save((JdbcSep24Transaction) txn);
-        Sep24Helper.publishEvent(eventService, (Sep24Transaction) txn, TRANSACTION_STATUS_CHANGED);
+        eventService.publish((JdbcSep24Transaction) txn, TRANSACTION_STATUS_CHANGED);
         break;
       case "31":
         txn31Store.save((JdbcSep31Transaction) txn);
-        Sep31Helper.publishEvent(eventService, (Sep31Transaction) txn, TRANSACTION_STATUS_CHANGED);
+        eventService.publish((JdbcSep31Transaction) txn, TRANSACTION_STATUS_CHANGED);
         break;
     }
     if (!lastStatus.equals(txn.getStatus())) updateMetrics(txn);
     return toGetTransactionResponse(txn);
   }
 
-  private void updateMetrics(JdbcSepTransaction txn) {
+  void updateMetrics(JdbcSepTransaction txn) {
     switch (txn.getProtocol()) {
       case "24":
         Metrics.counter(AnchorMetrics.SEP24_TRANSACTION.toString(), "status", txn.getStatus())
@@ -148,27 +150,6 @@ public class TransactionService {
     }
   }
 
-  @SneakyThrows
-  boolean updateField(Object src, Object dest, String name, boolean txWasUpdated) {
-    return updateField(src, name, dest, name, txWasUpdated);
-  }
-
-  @SneakyThrows
-  boolean updateField(
-      Object src, String srcName, Object dest, String destName, boolean txWasUpdated) {
-    try {
-      Object patchValue = PropertyUtils.getNestedProperty(src, srcName);
-      Object txnValue = PropertyUtils.getNestedProperty(dest, destName);
-      if (patchValue != null && !Objects.equals(patchValue, txnValue)) {
-        PropertyUtils.setNestedProperty(dest, destName, patchValue);
-        txWasUpdated = true;
-      }
-      return txWasUpdated;
-    } catch (NestedNullException nnex) {
-      return txWasUpdated;
-    }
-  }
-
   void updateSepTransaction(PlatformTransactionData patch, JdbcSepTransaction txn)
       throws AnchorException {
     boolean txnUpdated = false;
@@ -177,7 +158,6 @@ public class TransactionService {
             && !isStatusError(patch.getStatus())
             && !StringHelper.isEmpty(txn.getStatus())
             && isStatusError(txn.getStatus());
-
     // update status
     txnUpdated = updateField(patch, txn, "status", txnUpdated);
     // update amount_in

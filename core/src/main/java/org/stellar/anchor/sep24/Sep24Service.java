@@ -45,7 +45,7 @@ public class Sep24Service {
   final JwtService jwtService;
   final Sep24TransactionStore txnStore;
   final EventService eventService;
-  private FeeIntegration feeIntegration;
+  final FeeIntegration feeIntegration;
   final InteractiveUrlConstructor interactiveUrlConstructor;
   final MoreInfoUrlConstructor moreInfoUrlConstructor;
 
@@ -159,7 +159,7 @@ public class Sep24Service {
 
     Sep24Transaction txn = builder.build();
     txnStore.save(txn);
-    publishEvent(eventService, txn, TRANSACTION_CREATED);
+    eventService.publish(txn, TRANSACTION_CREATED);
 
     infoF(
         "Saved withdraw transaction. from={}, amountIn={}, amountOut={}.",
@@ -273,7 +273,7 @@ public class Sep24Service {
 
     Sep24Transaction txn = builder.build();
     txnStore.save(txn);
-    publishEvent(eventService, txn, TRANSACTION_CREATED);
+    eventService.publish(txn, TRANSACTION_CREATED);
 
     infoF(
         "Saved deposit transaction. to={}, amountIn={}, amountOut={}.",
@@ -439,7 +439,7 @@ public class Sep24Service {
     return txnR;
   }
 
-  public Sep24GetFeeResponse getFee(String operation, String type, String assetCode, String amount)
+  public Sep24GetFeeResponse getFee(String operation, String assetCode, String amount)
       throws AnchorException {
     GetFeeRequest getFeeRequest;
     switch (operation) {

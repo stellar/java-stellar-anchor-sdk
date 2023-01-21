@@ -2,7 +2,7 @@ package org.stellar.anchor.platform.configurator;
 
 import static org.stellar.anchor.platform.configurator.ConfigMap.ConfigSource.*;
 import static org.stellar.anchor.util.StringHelper.camelToSnake;
-import static org.stellar.anchor.util.StringHelper.isEmpty;
+import static org.stellar.anchor.util.StringHelper.isNotEmpty;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -72,7 +72,7 @@ public class ConfigHelper {
     }
 
     for (String name : ConfigEnvironment.names()) {
-      if (!isEmpty(name)
+      if (isNotEmpty(name)
           && configSchema.has(posixFormToNormalizedName.get(name))
           && !name.equals("VERSION")) {
         // the envarg is defined in this version

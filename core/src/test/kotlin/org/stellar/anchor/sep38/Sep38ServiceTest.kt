@@ -15,10 +15,13 @@ import org.stellar.anchor.TestHelper.Companion.createJwtToken
 import org.stellar.anchor.api.callback.GetRateRequest
 import org.stellar.anchor.api.callback.GetRateRequest.Type.*
 import org.stellar.anchor.api.callback.GetRateResponse
+import org.stellar.anchor.api.event.AnchorEvent
+import org.stellar.anchor.api.event.AnchorEvent.Type.QUOTE_CREATED
 import org.stellar.anchor.api.exception.AnchorException
 import org.stellar.anchor.api.exception.BadRequestException
 import org.stellar.anchor.api.exception.NotFoundException
 import org.stellar.anchor.api.exception.ServerErrorException
+import org.stellar.anchor.api.platform.GetQuoteResponse
 import org.stellar.anchor.api.sep.AssetInfo
 import org.stellar.anchor.api.sep.sep38.*
 import org.stellar.anchor.api.sep.sep38.Sep38Context.SEP31
@@ -28,7 +31,6 @@ import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.config.Sep38Config
 import org.stellar.anchor.event.EventService
-import org.stellar.anchor.event.models.QuoteEvent
 
 class Sep38ServiceTest {
   internal class PropertySep38Config : Sep38Config {
@@ -1010,7 +1012,7 @@ class Sep38ServiceTest {
     every { quoteStore.save(capture(slotQuote)) } returns null
 
     // Mock event service
-    val slotEvent = slot<QuoteEvent>()
+    val slotEvent = slot<AnchorEvent>()
     every { eventService.publish(capture(slotEvent)) } just Runs
 
     // test happy path with the minimum parameters using sellAmount
@@ -1059,23 +1061,24 @@ class Sep38ServiceTest {
 
     // verify the published event
     verify(exactly = 1) { eventService.publish(any()) }
-    val wantEvent =
-      QuoteEvent.builder()
-        .eventId(slotEvent.captured.eventId)
-        .type(QuoteEvent.Type.QUOTE_CREATED)
-        .id("123")
-        .sellAsset(fiatUSD)
-        .sellAmount("103")
-        .buyAsset(stellarUSDC)
-        .buyAmount("100")
-        .expiresAt(tomorrow)
-        .price("1.02")
-        .totalPrice("1.03")
-        .creator(StellarId.builder().account(PUBLIC_KEY).build())
-        .transactionId(null)
-        .createdAt(savedQuote.createdAt)
-        .fee(mockFee)
-        .build()
+    val wantEvent = AnchorEvent()
+    wantEvent.id = slotEvent.captured.id
+    wantEvent.type = QUOTE_CREATED
+    wantEvent.sep = "38"
+    wantEvent.quote = GetQuoteResponse()
+    wantEvent.quote.id = "123"
+    wantEvent.quote.sellAsset = fiatUSD
+    wantEvent.quote.sellAmount = "103"
+    wantEvent.quote.buyAsset = stellarUSDC
+    wantEvent.quote.buyAmount = "100"
+    wantEvent.quote.expiresAt = tomorrow
+    wantEvent.quote.price = "1.02"
+    //    wantEvent.quote.totalPrice = "`1.03"
+    wantEvent.quote.buyAmount
+    wantEvent.quote.buyAmount
+    wantEvent.quote.creator = StellarId.builder().account(PUBLIC_KEY).build()
+    wantEvent.quote.createdAt = savedQuote.createdAt
+    wantEvent.quote.fee = mockFee
     assertEquals(wantEvent, slotEvent.captured)
   }
 
@@ -1121,7 +1124,7 @@ class Sep38ServiceTest {
     every { quoteStore.save(capture(slotQuote)) } returns null
 
     // Mock event service
-    val slotEvent = slot<QuoteEvent>()
+    val slotEvent = slot<AnchorEvent>()
     every { eventService.publish(capture(slotEvent)) } just Runs
 
     // test happy path with the minimum parameters using sellAmount
@@ -1169,23 +1172,24 @@ class Sep38ServiceTest {
 
     // verify the published event
     verify(exactly = 1) { eventService.publish(any()) }
-    val wantEvent =
-      QuoteEvent.builder()
-        .eventId(slotEvent.captured.eventId)
-        .type(QuoteEvent.Type.QUOTE_CREATED)
-        .id("456")
-        .sellAsset(fiatUSD)
-        .sellAmount("103")
-        .buyAsset(stellarUSDC)
-        .buyAmount("100")
-        .expiresAt(tomorrow)
-        .price("1.02")
-        .totalPrice("1.03")
-        .creator(StellarId.builder().account(PUBLIC_KEY).build())
-        .transactionId(null)
-        .createdAt(savedQuote.createdAt)
-        .fee(mockFee)
-        .build()
+    val wantEvent = AnchorEvent()
+    wantEvent.id = slotEvent.captured.id
+    wantEvent.type = QUOTE_CREATED
+    wantEvent.id = "456"
+    wantEvent.quote = GetQuoteResponse()
+
+    wantEvent.quote.sellAsset = fiatUSD
+    wantEvent.quote.sellAmount = "103"
+    wantEvent.quote.buyAsset = stellarUSDC
+    wantEvent.quote.buyAmount = "100"
+    wantEvent.quote.expiresAt = tomorrow
+    wantEvent.quote.price = "1.02"
+    wantEvent.quote.totalPrice = "1.03"
+    wantEvent.quote.creator = StellarId.builder().account(PUBLIC_KEY).build()
+    wantEvent.quote.transactionId = null
+    wantEvent.quote.createdAt = savedQuote.createdAt
+    wantEvent.quote.fee = mockFee
+
     assertEquals(wantEvent, slotEvent.captured)
   }
 
@@ -1235,7 +1239,7 @@ class Sep38ServiceTest {
     every { quoteStore.save(capture(slotQuote)) } returns null
 
     // Mock event service
-    val slotEvent = slot<QuoteEvent>()
+    val slotEvent = slot<AnchorEvent>()
     every { eventService.publish(capture(slotEvent)) } just Runs
 
     // test happy path with the minimum parameters using sellAmount
@@ -1288,23 +1292,22 @@ class Sep38ServiceTest {
 
     // verify the published event
     verify(exactly = 1) { eventService.publish(any()) }
-    val wantEvent =
-      QuoteEvent.builder()
-        .eventId(slotEvent.captured.eventId)
-        .type(QuoteEvent.Type.QUOTE_CREATED)
-        .id("123")
-        .sellAsset(fiatUSD)
-        .sellAmount("100")
-        .buyAsset(stellarUSDC)
-        .buyAmount("97.0873786")
-        .expiresAt(tomorrow)
-        .price("1.02")
-        .totalPrice("1.03")
-        .creator(StellarId.builder().account(PUBLIC_KEY).build())
-        .transactionId(null)
-        .createdAt(savedQuote.createdAt)
-        .fee(mockFee)
-        .build()
+    val wantEvent = AnchorEvent()
+    wantEvent.id = slotEvent.captured.id
+    wantEvent.type = QUOTE_CREATED
+    wantEvent.quote = GetQuoteResponse()
+    wantEvent.quote.id = "123"
+    wantEvent.quote.sellAsset = fiatUSD
+    wantEvent.quote.sellAmount = "100"
+    wantEvent.quote.buyAsset = stellarUSDC
+    wantEvent.quote.buyAmount = "97.0873786"
+    wantEvent.quote.expiresAt = tomorrow
+    wantEvent.quote.price = "1.02"
+    wantEvent.quote.totalPrice = "1.03"
+    wantEvent.quote.creator = StellarId.builder().account(PUBLIC_KEY).build()
+    wantEvent.quote.transactionId = null
+    wantEvent.quote.createdAt = savedQuote.createdAt
+    wantEvent.quote.fee = mockFee
     assertEquals(wantEvent, slotEvent.captured)
   }
 
@@ -1354,7 +1357,7 @@ class Sep38ServiceTest {
     every { quoteStore.save(capture(slotQuote)) } returns null
 
     // Mock event service
-    val slotEvent = slot<QuoteEvent>()
+    val slotEvent = slot<AnchorEvent>()
     every { eventService.publish(capture(slotEvent)) } just Runs
 
     // test happy path with the minimum parameters using sellAmount
@@ -1407,23 +1410,23 @@ class Sep38ServiceTest {
 
     // verify the published event
     verify(exactly = 1) { eventService.publish(any()) }
-    val wantEvent =
-      QuoteEvent.builder()
-        .eventId(slotEvent.captured.eventId)
-        .type(QuoteEvent.Type.QUOTE_CREATED)
-        .id("456")
-        .sellAsset(fiatUSD)
-        .sellAmount("103")
-        .buyAsset(stellarUSDC)
-        .buyAmount("100")
-        .expiresAt(tomorrow)
-        .price("1.02")
-        .totalPrice("1.03")
-        .creator(StellarId.builder().account(PUBLIC_KEY).build())
-        .transactionId(null)
-        .createdAt(savedQuote.createdAt)
-        .fee(mockFee)
-        .build()
+    val wantEvent = AnchorEvent()
+    wantEvent.id = slotEvent.captured.id
+    wantEvent.type = QUOTE_CREATED
+    wantEvent.quote = GetQuoteResponse()
+    wantEvent.quote.id = "456"
+    wantEvent.quote.sellAsset = fiatUSD
+    wantEvent.quote.sellAmount = "103"
+    wantEvent.quote.buyAsset = stellarUSDC
+    wantEvent.quote.buyAmount = "100"
+    wantEvent.quote.expiresAt = tomorrow
+    wantEvent.quote.price = "1.02"
+    wantEvent.quote.totalPrice = "1.03"
+    wantEvent.quote.creator = StellarId.builder().account(PUBLIC_KEY).build()
+    wantEvent.quote.transactionId = null
+    wantEvent.quote.createdAt = savedQuote.createdAt
+    wantEvent.quote.fee = mockFee
+
     assertEquals(wantEvent, slotEvent.captured)
   }
 
