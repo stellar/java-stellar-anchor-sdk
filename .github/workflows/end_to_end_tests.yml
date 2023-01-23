@@ -3,8 +3,8 @@ name: End-2-End Integration Tests
 on:
   workflow_dispatch:
   workflow_call: # Allows this workflow to be called from another workflow
-  pull_requests:
-    branches: 
+  pull_request:
+    branches:
       - main
       - develop
       - 'release/**'
