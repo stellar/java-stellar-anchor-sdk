@@ -1,5 +1,6 @@
 package com.example.sep24
 
+import com.example.data.Config
 import com.example.data.PatchTransactionRecord
 import com.example.data.PatchTransactionsRequest
 import com.example.data.Transaction
@@ -20,21 +21,16 @@ import org.apache.commons.codec.binary.Hex
 import org.stellar.sdk.*
 import org.stellar.sdk.responses.TransactionResponse
 
-object Sep24Util {
+class Sep24Helper(private val cfg: Config) {
   private val log = KotlinLogging.logger {}
-
-  // TODO: make parameters in this class configurable
-  private val myKey =
-    System.getenv("STELLAR_KEY") ?: "SDYGC4TW5HHR5JA6CB2XLTTBF2DZRH2KDPBDPV3D5TXM6GF7FBPRZF3I"
-  internal val myKeyPair = KeyPair.fromSecretSeed(myKey)
 
   val client = HttpClient {
     install(ContentNegotiation) { json(Json { ignoreUnknownKeys = true }) }
   }
 
-  val baseUrl = "http://localhost:8080"
+  val baseUrl = cfg.anchorPlatformUrl
 
-  val server = Server("https://horizon-testnet.stellar.org")
+  val server = Server(cfg.horizonUrl)
 
   internal suspend fun patchTransaction(patchRecord: PatchTransactionRecord) {
     val resp =
@@ -72,7 +68,7 @@ object Sep24Util {
     memo: String?,
     memoType: String?
   ): String {
-    val myAccount = server.accounts().account(myKeyPair.accountId)
+    val myAccount = server.accounts().account(cfg.secret.keyPair.accountId)
     val asset = Asset.create(null, assetCode, assetIssuer)
 
     val transactionBuilder =
@@ -96,7 +92,7 @@ object Sep24Util {
 
     val transaction = transactionBuilder.build()
 
-    transaction.sign(myKeyPair)
+    transaction.sign(cfg.secret.keyPair)
 
     val resp = server.submitTransaction(transaction)
 
@@ -112,7 +108,7 @@ object Sep24Util {
   internal suspend fun waitStellarTransaction(memo: String): TransactionResponse {
     for (i in 1..(30 * 60 / 5)) {
       val transactions =
-        server.transactions().forAccount(myKeyPair.accountId).limit(200).execute().records
+        server.transactions().forAccount(cfg.secret.keyPair.accountId).limit(200).execute().records
 
       val transaction =
         transactions

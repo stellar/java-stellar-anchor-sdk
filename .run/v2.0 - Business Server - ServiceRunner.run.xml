@@ -1,5 +1,9 @@
 <component name="ProjectRunConfigurationManager">
+<<<<<<<< HEAD:.run/v2.0 - Business Server - ServiceRunner.run.xml
   <configuration default="false" name="v2.0 - Business Server - ServiceRunner" type="Application" factoryName="Application">
+    <envs>
+      <env name="secret.sep24key" value="SDYGC4TW5HHR5JA6CB2XLTTBF2DZRH2KDPBDPV3D5TXM6GF7FBPRZF3I" />
+    </envs>
     <option name="MAIN_CLASS_NAME" value="org.stellar.anchor.platform.ServiceRunner" />
     <module name="java-stellar-anchor-sdk.service-runner.main" />
     <option name="PROGRAM_PARAMETERS" value="-r" />

@@ -1,16 +1,16 @@
 package com.example.sep24
 
 import com.example.data.Amount
+import com.example.data.Config
 import com.example.data.PatchTransactionRecord
-import com.example.sep24.Sep24Util.getTransaction
-import com.example.sep24.Sep24Util.patchTransaction
-import com.example.sep24.Sep24Util.sendStellarTransaction
 import java.math.BigDecimal
 import mu.KotlinLogging
 
 private val log = KotlinLogging.logger {}
 
-class DepositService() {
+class DepositService(cfg: Config) {
+  val sep24 = Sep24Helper(cfg)
+
   suspend fun getClientInfo(transactionId: String) {
     // 1. Gather all information from the client here, such as KYC.
     // In this simple implementation we do not require any additional input from the user.
@@ -26,23 +26,24 @@ class DepositService() {
     memoType: String?
   ) {
     try {
-      var transaction = getTransaction(transactionId)
+      var transaction = sep24.getTransaction(transactionId)
       log.info { "Transaction found $transaction" }
 
       // 2. Wait for user to submit a transfer (e.g. Bank transfer)
       initiateTransfer(transactionId, amount)
 
-      transaction = getTransaction(transactionId)
+      transaction = sep24.getTransaction(transactionId)
       log.info { "Transaction status changed: $transaction" }
 
       // 4. Notify user transaction is being processed
-      patchTransaction(transactionId, "pending_anchor")
+      sep24.patchTransaction(transactionId, "pending_anchor")
 
-      transaction = getTransaction(transactionId)
+      transaction = sep24.getTransaction(transactionId)
       log.info { "Transaction status changed: $transaction" }
 
       // 5. Sign and send transaction
-      val txHash = sendStellarTransaction(account, assetCode, assetIssuer, amount, memo, memoType)
+      val txHash =
+        sep24.sendStellarTransaction(account, assetCode, assetIssuer, amount, memo, memoType)
 
       // 6. Finalize anchor transaction
       finalize(transactionId, txHash)
@@ -53,7 +54,7 @@ class DepositService() {
 
       try {
         // If some error happens during the job, set anchor transaction to error status
-        patchTransaction(transactionId, "error", e.message)
+        sep24.patchTransaction(transactionId, "error", e.message)
       } catch (e: Exception) {
         log.error(e) { "CRITICAL: failed to set transaction status to error" }
       }
@@ -63,7 +64,7 @@ class DepositService() {
   private suspend fun initiateTransfer(transactionId: String, amount: BigDecimal) {
     val fee = calculateFee(amount)
 
-    patchTransaction(
+    sep24.patchTransaction(
       PatchTransactionRecord(
         transactionId,
         status = "pending_user_transfer_start",
@@ -81,7 +82,7 @@ class DepositService() {
   }
 
   private suspend fun finalize(transactionId: String, stellarTransactionId: String) {
-    patchTransaction(
+    sep24.patchTransaction(
       PatchTransactionRecord(
         transactionId,
         "completed",

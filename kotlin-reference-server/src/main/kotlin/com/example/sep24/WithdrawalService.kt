@@ -1,18 +1,17 @@
 package com.example.sep24
 
 import com.example.data.Amount
+import com.example.data.Config
 import com.example.data.PatchTransactionRecord
-import com.example.sep24.Sep24Util.getTransaction
-import com.example.sep24.Sep24Util.myKeyPair
-import com.example.sep24.Sep24Util.patchTransaction
-import com.example.sep24.Sep24Util.waitStellarTransaction
 import java.math.BigDecimal
 import mu.KotlinLogging
 import org.stellar.sdk.responses.TransactionResponse
 
 private val log = KotlinLogging.logger {}
 
-class WithdrawalService() {
+class WithdrawalService(private val cfg: Config) {
+  private val sep24 = Sep24Helper(cfg)
+
   suspend fun getClientInfo(transactionId: String) {
     // 1. Gather all information from the client here, such as KYC.
     // In this simple implementation we do not require any additional input from the user.
@@ -23,17 +22,17 @@ class WithdrawalService() {
     amount: BigDecimal,
   ) {
     try {
-      var transaction = getTransaction(transactionId)
+      var transaction = sep24.getTransaction(transactionId)
       log.info { "Transaction found $transaction" }
 
       // 2. Wait for user to submit a stellar transfer
       val memo = initiateTransfer(transactionId, amount)
 
-      transaction = getTransaction(transactionId)
+      transaction = sep24.getTransaction(transactionId)
       log.info { "Transaction status changed: $transaction" }
 
       // 3. Wait for stellar transaction
-      val stellarTransaction = waitStellarTransaction(memo)
+      val stellarTransaction = sep24.waitStellarTransaction(memo)
 
       validateTransaction(stellarTransaction)
 
@@ -49,7 +48,7 @@ class WithdrawalService() {
 
       try {
         // If some error happens during the job, set anchor transaction to error status
-        patchTransaction(transactionId, "error", e.message)
+        sep24.patchTransaction(transactionId, "error", e.message)
       } catch (e: Exception) {
         log.error(e) { "CRITICAL: failed to set transaction status to error" }
       }
@@ -60,7 +59,7 @@ class WithdrawalService() {
     val fee = calculateFee(amount)
     val memo = transactionId.substring(0, 26)
 
-    patchTransaction(
+    sep24.patchTransaction(
       PatchTransactionRecord(
         transactionId,
         status = "pending_user_transfer_start",
@@ -70,7 +69,7 @@ class WithdrawalService() {
         amountFee = Amount(fee.toPlainString()),
         memo = memo,
         memoType = "text",
-        withdrawalAnchorAccount = myKeyPair.accountId
+        withdrawalAnchorAccount = cfg.secret.keyPair.accountId
       )
     )
 
@@ -83,7 +82,7 @@ class WithdrawalService() {
   }
 
   private suspend fun sendExternal(transactionId: String, stellarTransactionId: String) {
-    patchTransaction(
+    sep24.patchTransaction(
       PatchTransactionRecord(
         transactionId,
         "pending_external",
@@ -96,7 +95,9 @@ class WithdrawalService() {
   }
 
   private suspend fun finalize(transactionId: String) {
-    patchTransaction(PatchTransactionRecord(transactionId, "completed", message = "completed"))
+    sep24.patchTransaction(
+      PatchTransactionRecord(transactionId, "completed", message = "completed")
+    )
   }
 
   private suspend fun validateTransaction(transaction: TransactionResponse) {

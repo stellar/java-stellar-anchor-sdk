@@ -3,7 +3,7 @@ package com.example.plugins
 import com.example.ClientException
 import com.example.jwt.JwtDecoder
 import com.example.sep24.DepositService
-import com.example.sep24.Sep24Util.getTransaction
+import com.example.sep24.Sep24Helper
 import com.example.sep24.WithdrawalService
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -16,7 +16,11 @@ import mu.KotlinLogging
 
 val log = KotlinLogging.logger {}
 
-fun Route.sep24(depositService: DepositService, withdrawalService: WithdrawalService) {
+fun Route.sep24(
+  sep24: Sep24Helper,
+  depositService: DepositService,
+  withdrawalService: WithdrawalService
+) {
   route("/sep24/interactive") {
     get {
       log.info("Called /sep24/interactive with parameters ${call.parameters}")
@@ -33,7 +37,7 @@ fun Route.sep24(depositService: DepositService, withdrawalService: WithdrawalSer
         throw ClientException("Token expired")
       }
 
-      val transaction = getTransaction(transactionId)
+      val transaction = sep24.getTransaction(transactionId)
       val amountIn = transaction.amountIn.amount.toBigDecimal()
 
       try {
