@@ -1,3 +1,4 @@
 port: 8091
 anchorPlatformUrl: "http://localhost:8080"
 horizonUrl: "https://horizon-testnet.stellar.org"
+secret.sep24key: "SDYGC4TW5HHR5JA6CB2XLTTBF2DZRH2KDPBDPV3D5TXM6GF7FBPRZF3I"
