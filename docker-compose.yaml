@@ -6,6 +6,7 @@ services:
     environment:
       - STELLAR_ANCHOR_CONFIG=file:/config/anchor-docker-compose-config.yaml
       - REFERENCE_SERVER_CONFIG_ENV=file:/reference-config/anchor-reference-server-docker-compose-config.yaml
+      - KT_REFERENCE_SERVER_CONFIG=/kt-ref-config/docker-config.yaml
       - LOG_APPENDER=console_appender
       - SECRET_DATA_USERNAME=postgres
       - SECRET_DATA_PASSWORD=password
@@ -20,6 +21,7 @@ services:
     volumes:
       - ./platform/src/main/resources:/config
       - ./anchor-reference-server/src/main/resources:/reference-config
+      - ./kotlin-reference-server/src/main/resources:/kt-ref-config
     ports:
       - "8080:8080"
       - "8081:8081"

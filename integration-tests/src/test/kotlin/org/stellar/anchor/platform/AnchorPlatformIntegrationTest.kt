@@ -44,7 +44,7 @@ class AnchorPlatformIntegrationTest {
           "events.enabled" to false
         )
 
-      ServiceRunner.startAnchorReferenceServer()
+      ServiceRunner.startAnchorReferenceServer(false)
       ServiceRunner.startStellarObserver(envMap)
       ServiceRunner.startSepServer(envMap)
 

@@ -1,0 +1,3 @@
+port: 8092
+anchorPlatformUrl: "http://localhost:8080"
+horizonUrl: "https://horizon-testnet.stellar.org"

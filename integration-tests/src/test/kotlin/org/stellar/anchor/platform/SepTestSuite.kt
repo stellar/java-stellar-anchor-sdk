@@ -40,7 +40,7 @@ fun main(args: Array<String>) {
 
     // Start anchor reference server if enabled.
     if (cmd.hasOption("anchor-reference-server") || cmd.hasOption("all")) {
-      ServiceRunner.startAnchorReferenceServer()
+      ServiceRunner.startAnchorReferenceServer(false)
     }
 
     val tests = cmd.getOptionValues("p")

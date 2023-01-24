@@ -4,7 +4,6 @@ import com.example.RefenreceServerStartKt;
 import java.util.Map;
 import org.apache.commons.cli.*;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.stellar.anchor.reference.AnchorReferenceServer;
 
 public class ServiceRunner {
   public static final int DEFAULT_ANCHOR_REFERENCE_SERVER_PORT = 8081;
@@ -40,7 +39,7 @@ public class ServiceRunner {
       }
 
       if (cmd.hasOption("anchor-reference-server") || cmd.hasOption("all")) {
-        startAnchorReferenceServer();
+        startAnchorReferenceServer(true);
         anyServerStarted = true;
       }
 
@@ -64,9 +63,8 @@ public class ServiceRunner {
     return EventProcessingServer.start(env);
   }
 
-  static void startAnchorReferenceServer() {
+  static void startAnchorReferenceServer(boolean waitKotlinServer) {
     String strPort = System.getProperty("ANCHOR_REFERENCE_SERVER_PORT");
-    String kStrPort = System.getProperty("KOTLIN_REFERENCE_SERVER_PORT");
 
     int port = DEFAULT_ANCHOR_REFERENCE_SERVER_PORT;
 
@@ -74,8 +72,8 @@ public class ServiceRunner {
       port = Integer.parseInt(strPort);
     }
 
-    AnchorReferenceServer.start(port, "/");
-    RefenreceServerStartKt.start();
+    //    AnchorReferenceServer.start(port, "/");
+    RefenreceServerStartKt.start(waitKotlinServer);
   }
 
   static void printUsage(Options options) {
