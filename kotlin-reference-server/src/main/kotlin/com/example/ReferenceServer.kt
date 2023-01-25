@@ -37,7 +37,7 @@ fun main(args: Array<String>) {
 
   val cfg = builder.build().loadConfigOrThrow<Config>()
 
-  embeddedServer(Netty, port = cfg.port) { configureRouting(cfg) }
+  embeddedServer(Netty, port = cfg.sep24.port) { configureRouting(cfg) }
     .start(args.getOrNull(0)?.toBooleanStrictOrNull() ?: true)
 }
 

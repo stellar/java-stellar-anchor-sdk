@@ -28,9 +28,9 @@ class Sep24Helper(private val cfg: Config) {
     install(ContentNegotiation) { json(Json { ignoreUnknownKeys = true }) }
   }
 
-  val baseUrl = cfg.anchorPlatformUrl
+  val baseUrl = cfg.sep24.anchorPlatformUrl
 
-  val server = Server(cfg.horizonUrl)
+  val server = Server(cfg.sep24.horizonUrl)
 
   internal suspend fun patchTransaction(patchRecord: PatchTransactionRecord) {
     val resp =
@@ -68,7 +68,7 @@ class Sep24Helper(private val cfg: Config) {
     memo: String?,
     memoType: String?
   ): String {
-    val myAccount = server.accounts().account(cfg.secret.keyPair.accountId)
+    val myAccount = server.accounts().account(cfg.sep24.keyPair.accountId)
     val asset = Asset.create(null, assetCode, assetIssuer)
 
     val transactionBuilder =
@@ -92,7 +92,7 @@ class Sep24Helper(private val cfg: Config) {
 
     val transaction = transactionBuilder.build()
 
-    transaction.sign(cfg.secret.keyPair)
+    transaction.sign(cfg.sep24.keyPair)
 
     val resp = server.submitTransaction(transaction)
 
@@ -108,7 +108,7 @@ class Sep24Helper(private val cfg: Config) {
   internal suspend fun waitStellarTransaction(memo: String): TransactionResponse {
     for (i in 1..(30 * 60 / 5)) {
       val transactions =
-        server.transactions().forAccount(cfg.secret.keyPair.accountId).limit(200).execute().records
+        server.transactions().forAccount(cfg.sep24.keyPair.accountId).limit(200).execute().records
 
       val transaction =
         transactions

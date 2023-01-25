@@ -5,12 +5,20 @@ import org.stellar.sdk.KeyPair
 data class LocationConfig(val ktReferenceServerConfig: String)
 
 data class Config(
-  val port: Int,
-  val anchorPlatformUrl: String,
-  val horizonUrl: String,
-  val secret: Secret
+  val sep24: Sep24,
 )
 
-data class Secret(val sep24key: String) {
-  val keyPair = KeyPair.fromSecretSeed(sep24key)
+data class Sep24(
+  val port: Int,
+  val mode: Mode,
+  val anchorPlatformUrl: String,
+  val horizonUrl: String,
+  val secret: String
+) {
+  val keyPair = KeyPair.fromSecretSeed(secret)
+}
+
+enum class Mode() {
+  PROXY, // Used together with https://github.com/stellar/sep24-reference-ui
+  TEST // Used for integration tests
 }

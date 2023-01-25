@@ -41,7 +41,12 @@ class AnchorPlatformIntegrationTest {
           "secret.callback_api.auth_secret" to "callback_jwt_secret",
           "secret.platform_api.auth_secret" to "platform_jwt_secret",
           // The events and kafka should be tested in e2e tests.
-          "events.enabled" to false
+          "events.enabled" to false,
+          "sep24.port" to "8091",
+          "sep24.anchorPlatformUrl" to "http://localhost:8080",
+          "sep24.horizonUrl" to "https://horizon-testnet.stellar.org",
+          "sep24.secret" to "SDYGC4TW5HHR5JA6CB2XLTTBF2DZRH2KDPBDPV3D5TXM6GF7FBPRZF3I",
+          "sep24.mode" to "test"
         )
 
       ServiceRunner.startAnchorReferenceServer(false)
