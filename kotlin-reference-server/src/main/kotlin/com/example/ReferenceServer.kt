@@ -2,17 +2,17 @@ package com.example
 
 import com.example.data.Config
 import com.example.data.LocationConfig
-import com.example.plugins.*
-import com.example.sep24.DepositService
-import com.example.sep24.Sep24Helper
-import com.example.sep24.WithdrawalService
+import com.example.plugins.sep24
+import com.example.sep24.*
 import com.sksamuel.hoplite.ConfigLoaderBuilder
 import com.sksamuel.hoplite.PropertySource
 import com.sksamuel.hoplite.addFileSource
 import com.sksamuel.hoplite.addResourceSource
+import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.routing.*
 import mu.KotlinLogging
 
@@ -37,10 +37,20 @@ fun main(args: Array<String>) {
 
   val cfg = builder.build().loadConfigOrThrow<Config>()
 
-  embeddedServer(Netty, port = cfg.sep24.port) { configureRouting(cfg) }
+  embeddedServer(Netty, port = cfg.sep24.port) {
+      install(ContentNegotiation) { json() }
+      configureRouting(cfg)
+    }
     .start(args.getOrNull(0)?.toBooleanStrictOrNull() ?: true)
 }
 
 fun Application.configureRouting(cfg: Config) {
-  routing { sep24(Sep24Helper(cfg), DepositService(cfg), WithdrawalService(cfg)) }
+  routing {
+    sep24(
+      Sep24Helper(cfg),
+      DepositService(cfg),
+      WithdrawalService(cfg),
+      cfg.sep24.mode.parametersProcessor
+    )
+  }
 }

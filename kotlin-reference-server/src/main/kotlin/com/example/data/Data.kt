@@ -9,7 +9,7 @@ data class Transaction(
   val id: String,
   val status: String,
   val kind: String,
-  @SerialName("amount_in") val amountIn: Amount,
+  @SerialName("amount_in") val amountIn: Amount? = null,
   @SerialName("to_account") val toAccount: String? = null,
   @SerialName("request_asset_code") val requestAssetCode: String? = null,
   @SerialName("request_asset_issuer") val requestAssetIssuer: String? = null,

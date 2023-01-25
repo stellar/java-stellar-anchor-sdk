@@ -1,9 +1,11 @@
 package com.example.plugins
 
 import com.example.ClientException
+import com.example.data.Success
 import com.example.jwt.JwtDecoder
 import com.example.sep24.DepositService
 import com.example.sep24.Sep24Helper
+import com.example.sep24.Sep24ParametersProcessor
 import com.example.sep24.WithdrawalService
 import io.ktor.http.*
 import io.ktor.server.application.*
@@ -14,12 +16,13 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import mu.KotlinLogging
 
-val log = KotlinLogging.logger {}
+private val log = KotlinLogging.logger {}
 
 fun Route.sep24(
   sep24: Sep24Helper,
   depositService: DepositService,
-  withdrawalService: WithdrawalService
+  withdrawalService: WithdrawalService,
+  parametersProcessor: Sep24ParametersProcessor
 ) {
   route("/sep24/interactive") {
     get {
@@ -38,12 +41,15 @@ fun Route.sep24(
       }
 
       val transaction = sep24.getTransaction(transactionId)
-      val amountIn = transaction.amountIn.amount.toBigDecimal()
+      val amountIn =
+        (transaction.amountIn?.amount ?: parametersProcessor.amount(call.parameters))
+          ?.toBigDecimal()
+          ?: throw ClientException("Amount was not specified")
 
       try {
         when (transaction.kind.lowercase()) {
           "deposit" -> {
-            depositService.getClientInfo(transactionId)
+            parametersProcessor.processUserInputDeposit(call.parameters)
 
             val account = transaction.toAccount ?: throw ClientException("Missing toAccount field")
             val assetCode =
@@ -55,7 +61,7 @@ fun Route.sep24(
             val memo = transaction.memo
             val memoType = transaction.memoType
 
-            call.respondText("The sep24 interactive deposit has been successfully started.")
+            call.respond(Success(transactionId))
 
             // Run deposit processing asynchronously
             CoroutineScope(Job()).launch {
@@ -71,9 +77,9 @@ fun Route.sep24(
             }
           }
           "withdrawal" -> {
-            withdrawalService.getClientInfo(transactionId)
+            parametersProcessor.processUserInputWithdrawal(call.parameters)
 
-            call.respondText("The sep24 interactive withdrawal has been successfully started.")
+            call.respond(Success(transactionId))
 
             // Run deposit processing asynchronously
             CoroutineScope(Job()).launch {
@@ -81,17 +87,15 @@ fun Route.sep24(
             }
           }
           else ->
-            call.respondText(
-              "The only supported operations are \"deposit\" or \"withdrawal\"",
-              status = HttpStatusCode.BadRequest
+            call.respond(
+              Error("The only supported operations are \"deposit\" or \"withdrawal\""),
             )
         }
       } catch (e: ClientException) {
-        call.respondText(e.message!!, status = HttpStatusCode.BadRequest)
+        call.respond(Error(e.message!!))
       } catch (e: Exception) {
-        call.respondText(
-          "Error occurred: ${e.message}",
-          status = HttpStatusCode.InternalServerError
+        call.respond(
+          Error("Error occurred: ${e.message}"),
         )
       }
     }

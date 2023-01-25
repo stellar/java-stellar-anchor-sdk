@@ -93,6 +93,7 @@ kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "
 kotlin-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit5", version.ref = "kotlin" }
 kotlin-logging = { module = "io.github.microutils:kotlin-logging-jvm", version.ref = "kotlin-logging" }
 ktor-core = { module = "io.ktor:ktor-server-core-jvm", version.ref = "ktor" }
+ktor-content-negotiation = { module = "io.ktor:ktor-server-content-negotiation", version.ref = "ktor" }
 ktor-client-core = { module = "io.ktor:ktor-client-core", version.ref = "ktor" }
 ktor-client-content-negotiation = { module = "io.ktor:ktor-client-content-negotiation", version.ref = "ktor" }
 ktor-client-json = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }
@@ -129,7 +130,7 @@ aws-java-sdk-s3 = { module = "com.amazonaws:aws-java-sdk-s3", version.ref = "aws
 slf4j = ["slf4j-api", "slf4j-log4j12"]
 junit = ["junit-api", "junit-engine", "junit-params", "junit-suite-engine", "kotlin-stdlib", "kotlin-junit", "mockk"]
 kafka = ["kafka-clients", "kafka-connect", "kafka-json-schema"]
-ktor = ["ktor-core", "ktor-netty", "ktor-yaml"]
+ktor = ["ktor-core", "ktor-content-negotiation", "ktor-netty", "ktor-yaml"]
 ktor-client = ["ktor-client-core", "ktor-client-content-negotiation", "ktor-client-json", "ktor-client-okhttp"]
 
 [plugins]
