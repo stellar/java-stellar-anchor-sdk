@@ -3,7 +3,7 @@ name: End-2-End Integration Tests
 on:
   workflow_dispatch:
   workflow_call: # Allows this workflow to be called from another workflow
-  pull_request:
+  push:
     branches:
       - main
       - develop
@@ -15,9 +15,9 @@ jobs:
   end_to_end_tests:
     runs-on: ubuntu-20.04
     env:
-        E2E_SECRET: "SBQIOKSYVFEK5MKGMMF72MB2LEGITKUVMCSOMOYFAZUFNDIHJ6AAZIG3"
-        OMNIBUS_ALLOWLIST_KEYS: "GAFOGZPLLOUQMI5C63PV7V3KCYBJF3R6I4BTLQK65YLT72SR4FKK6PB2"
-        SECRET_SEP10_SIGNING_SEED: "SAKXNWVTRVR4SJSHZUDB2CLJXEQHRT62MYQWA2HBB7YBOTCFJJJ55BZF"
+      E2E_SECRET: ${{ secrets.E2E_SECRET }}
+      OMNIBUS_ALLOWLIST_KEYS: ${{ secrets.OMNIBUS_ALLOWLIST_KEYS }}
+      SECRET_SEP10_SIGNING_SEED: ${{ secrets.SECRET_SEP10_SIGNING_SEED }}
 
     steps:
       - uses: actions/checkout@v3

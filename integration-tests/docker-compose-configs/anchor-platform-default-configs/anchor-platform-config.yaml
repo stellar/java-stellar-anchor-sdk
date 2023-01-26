@@ -61,8 +61,8 @@ sep10:
 sep12:
   enabled: true
 
-#sep24:
-#  enabled: true
+sep24:
+  enabled: true
 #  interactive_url: http://host.docker.internal:8091/sep24/interactive
 
 sep31:
@@ -331,8 +331,6 @@ data:
   ## (ex: addForeignKeyConstraint) are not supported.
   #
   flyway_enabled: true
-
-  #ddl_auto: true
 
   ## @param: flyway_enabled
   ## @type: string
