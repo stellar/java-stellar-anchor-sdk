@@ -291,66 +291,59 @@ assets:
 ################################
 ## Data Configuration
 ################################
-#data:
-#
-#  ## DB credentials are specified in @environment_variables SECRET_DATA_USERNAME, SECRET_DATA_PASSWORD
-#
-#  ## @param: type
-#  ## @supported_values:
-#  ##    `h2` (in-memory), `sqlite` (local), `postgres` (local), `aurora` (postgres on AWS)
-#  ## Type of storage.
-#  ## If this is set to `aurora`,
-#  ##    @required_secrets: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION
-#  #
-#  type: postgres
-#
-#  ## @param: url
-#  ## @type: string
-#  ## Location of the database
-#  #
-#  url: jdbc:postgresql://host.docker.internal:5440/
-#
-#  ## @param: initial_connection_pool_size
-#  ## @type: integer
-#  ## Initial number of connections
-#  ## For `sqlite`, set this to 1 to avoid database file lock exception
-#  #
-#  initial_connection_pool_size: 1
-#
-#  ## @param: max_active_connections
-#  ## @type: integer
-#  ## Maximum number of db active connections
-#  ## For `sqlite`, set this to 1 to avoid database file lock exception
-#  #
-#  max_active_connections: 10
-#
-#  ## @param: flyway_enabled
-#  ## @type: bool
-#  ## Whether to enable flyway.
-#  ## Should be disabled for `sqlite` because certain features that flyway uses
-#  ## (ex: addForeignKeyConstraint) are not supported.
-#  #
-#  flyway_enabled: false
-#
-#  #ddl_auto: true
-#
-#  ## @param: flyway_enabled
-#  ## @type: string
-#  ## Location on disk where migrations are stored if flyway is enabled.
-#  #
-#  flyway_location: /db/migration
-#
-#  ## @param: hikari_max_lifetime
-#  ## @type: integer
-#  ## Maximum connection time before expiration
-#  ## Only valid when database `type` is `aurora`.
-#  ## Recommended setting is 14 minutes because IAM tokens are valid for 15 min.
-#  #
-#  # hikari_max_lifetime: 840000
 data:
-  type: sqlite
-  url: jdbc:sqlite:anchor-platform.db
-  initial_connection_pool_size: 2
+
+  ## DB credentials are specified in @environment_variables SECRET_DATA_USERNAME, SECRET_DATA_PASSWORD
+
+  ## @param: type
+  ## @supported_values:
+  ##    `h2` (in-memory), `sqlite` (local), `postgres` (local), `aurora` (postgres on AWS)
+  ## Type of storage.
+  ## If this is set to `aurora`,
+  ##    @required_secrets: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_REGION
+  #
+  type: postgres
+
+  ## @param: url
+  ## @type: string
+  ## Location of the database
+  #
+  url: jdbc:postgresql://host.docker.internal:5440/
+
+  ## @param: initial_connection_pool_size
+  ## @type: integer
+  ## Initial number of connections
+  ## For `sqlite`, set this to 1 to avoid database file lock exception
+  #
+  initial_connection_pool_size: 1
+
+  ## @param: max_active_connections
+  ## @type: integer
+  ## Maximum number of db active connections
+  ## For `sqlite`, set this to 1 to avoid database file lock exception
+  #
   max_active_connections: 10
+
+  ## @param: flyway_enabled
+  ## @type: bool
+  ## Whether to enable flyway.
+  ## Should be disabled for `sqlite` because certain features that flyway uses
+  ## (ex: addForeignKeyConstraint) are not supported.
+  #
   flyway_enabled: true
-  ddl_auto: update
+
+  #ddl_auto: true
+
+  ## @param: flyway_enabled
+  ## @type: string
+  ## Location on disk where migrations are stored if flyway is enabled.
+  #
+  flyway_location: /db/migration
+
+  ## @param: hikari_max_lifetime
+  ## @type: integer
+  ## Maximum connection time before expiration
+  ## Only valid when database `type` is `aurora`.
+  ## Recommended setting is 14 minutes because IAM tokens are valid for 15 min.
+  #
+  # hikari_max_lifetime: 840000
