@@ -23,7 +23,6 @@ import org.stellar.anchor.api.callback.FeeIntegration
 import org.stellar.anchor.api.callback.GetFeeResponse
 import org.stellar.anchor.api.exception.*
 import org.stellar.anchor.api.sep.AssetInfo
-import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerRequest
 import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerResponse
 import org.stellar.anchor.api.sep.sep12.Sep12Status
@@ -40,7 +39,6 @@ import org.stellar.anchor.config.Sep31Config
 import org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_RECEIVE
 import org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_SEND
 import org.stellar.anchor.event.EventService
-import org.stellar.anchor.event.models.TransactionEvent
 import org.stellar.anchor.sep31.Sep31Service.Context
 import org.stellar.anchor.sep38.PojoSep38Quote
 import org.stellar.anchor.sep38.Sep38QuoteStore
@@ -331,10 +329,10 @@ class Sep31ServiceTest {
 
   @Test
   fun `test update transaction amounts when no quote was used`() {
-    Context.get().setTransaction(txn)
-    Context.get().setRequest(request)
-    Context.get().setFee(fee)
-    Context.get().setAsset(asset)
+    Context.get().transaction = txn
+    Context.get().request = request
+    Context.get().fee = fee
+    Context.get().asset = asset
     every { sep31Config.paymentType } returns STRICT_SEND
 
     request.amount = "100"
@@ -377,10 +375,10 @@ class Sep31ServiceTest {
 
   @Test
   fun `test update tx amounts based on quote`() {
-    Context.get().setTransaction(txn)
-    Context.get().setRequest(request)
-    Context.get().setFee(fee)
-    Context.get().setQuote(quote)
+    Context.get().transaction = txn
+    Context.get().request = request
+    Context.get().fee = fee
+    Context.get().quote = quote
 
     // Fee is as sell asset
     every { sep31Config.paymentType } throws Exception("paymentType must not be called")
@@ -399,7 +397,7 @@ class Sep31ServiceTest {
     assertEquals(stellarJPYC, txn.amountOutAsset)
 
     // Test null quote failure
-    Context.get().setQuote(null)
+    Context.get().quote = null
     val ex = assertThrows<ServerErrorException> { sep31Service.updateTxAmountsBasedOnQuote() }
     assertEquals("Quote not found.", ex.message)
   }
@@ -750,10 +748,6 @@ class Sep31ServiceTest {
         Sep31DepositInfo(tx.stellarAccountId, memo, "hash")
       }
 
-    // mock eventService
-    val txEventSlot = slot<TransactionEvent>()
-    every { eventPublishService.publish(capture(txEventSlot)) } just Runs
-
     // mock transaction save
     val slotTxn = slot<Sep31Transaction>()
     every { txnStore.save(capture(slotTxn)) } answers
@@ -774,7 +768,7 @@ class Sep31ServiceTest {
     verify(exactly = 1) { customerIntegration.getCustomer(request) }
     verify(exactly = 1) { quoteStore.findByQuoteId("my_quote_id") }
     verify(exactly = 1) { sep31DepositInfoGenerator.generate(any()) }
-    verify(exactly = 1) { eventPublishService.publish(any()) }
+    verify(exactly = 1) { eventPublishService.publish(any() as Sep31Transaction, any()) }
 
     // validate the values of the saved sep31Transaction
     val gotTx = gson.toJson(slotTxn.captured)
@@ -815,18 +809,6 @@ class Sep31ServiceTest {
         .trimMargin()
     JSONAssert.assertEquals(wantTx, gotTx, true)
 
-    // validate event response
-    val wantEvent: TransactionEvent =
-      TransactionEvent.builder()
-        .eventId(txEventSlot.captured.eventId)
-        .type(TransactionEvent.Type.TRANSACTION_CREATED)
-        .id(txId)
-        .sep(TransactionEvent.Sep.SEP_31)
-        .kind(TransactionEvent.Kind.RECEIVE)
-        .status(SepTransactionStatus.PENDING_SENDER)
-        .build()
-    assertEquals(wantEvent, txEventSlot.captured)
-
     // validate the final response
     val wantResponse =
       Sep31PostTransactionResponse.builder()
@@ -840,7 +822,7 @@ class Sep31ServiceTest {
 
   @Test
   fun `test POST transaction without quote and quote is required`() {
-    Context.get().setAsset(asset)
+    Context.get().asset = asset
     val senderId = "d2bd1412-e2f6-4047-ad70-a1a2f133b25c"
     val receiverId = "137938d4-43a7-4252-a452-842adcee474c"
     val postTxRequest = Sep31PostTransactionRequest()
@@ -950,13 +932,13 @@ class Sep31ServiceTest {
     assertEquals(wantResponse, gotResponse)
   }
 
-  val jpycJson =
+  private val jpycJson =
     """
     {"enabled":true,"quotes_supported":true,"quotes_required":true,"fee_fixed":0,"fee_percent":0,"min_amount":1,"max_amount":1000000,"sep12":{"sender":{"types":{"sep31-sender":{"description":"Japanese citizens"}}},"receiver":{"types":{"sep31-receiver":{"description":"Japanese citizens receiving USD"}}}},"fields":{"transaction":{"receiver_routing_number":{"description":"routing number of the destination bank account","optional":false},"receiver_account_number":{"description":"bank account number of the destination","optional":false},"type":{"description":"type of deposit to make","choices":["ACH","SWIFT","WIRE"],"optional":false}}}}
   """
       .trimIndent()
 
-  val usdcJson =
+  private val usdcJson =
     """
     {"enabled":true,"quotes_supported":true,"quotes_required":true,"fee_fixed":0,"fee_percent":0,"min_amount":1,"max_amount":1000000,"sep12":{"sender":{"types":{"sep31-sender":{"description":"U.S. citizens limited to sending payments of less than ${'$'}10,000 in value"},"sep31-large-sender":{"description":"U.S. citizens that do not have sending limits"},"sep31-foreign-sender":{"description":"non-U.S. citizens sending payments of less than ${'$'}10,000 in value"}}},"receiver":{"types":{"sep31-receiver":{"description":"U.S. citizens receiving USD"},"sep31-foreign-receiver":{"description":"non-U.S. citizens receiving USD"}}}},"fields":{"transaction":{"receiver_routing_number":{"description":"routing number of the destination bank account","optional":false},"receiver_account_number":{"description":"bank account number of the destination","optional":false},"type":{"description":"type of deposit to make","choices":["SEPA","SWIFT"],"optional":false}}}}
   """
@@ -965,8 +947,8 @@ class Sep31ServiceTest {
   @Test
   fun `test INFO response`() {
     val info = sep31Service.info
-    val gotJpyc = info.receive.get("JPYC")!!
-    val gotUsdc = info.receive.get("USDC")!!
+    val gotJpyc = info.receive["JPYC"]!!
+    val gotUsdc = info.receive["USDC"]!!
 
     val wantJpyc = gson.fromJson(jpycJson, Sep31InfoResponse.AssetResponse::class.java)
     val wantUsdc = gson.fromJson(usdcJson, Sep31InfoResponse.AssetResponse::class.java)
@@ -982,7 +964,7 @@ class Sep31ServiceTest {
     assertEquals("Missing asset information.", ex1.message)
 
     val assetInfo = assetService.getAsset("USDC")
-    Context.get().setAsset(assetInfo)
+    Context.get().asset = assetInfo
     assetInfo.code = "BAD"
     val ex2 = assertThrows<BadRequestException> { sep31Service.validateRequiredFields() }
     assertEquals("Asset [BAD] has no fields definition", ex2.message)
@@ -991,7 +973,7 @@ class Sep31ServiceTest {
     val ex3 = assertThrows<BadRequestException> { sep31Service.validateRequiredFields() }
     assertEquals("'fields' field must have one 'transaction' field", ex3.message)
 
-    Context.get().setTransactionFields(mapOf())
+    Context.get().transactionFields = mapOf()
     val ex4 = assertThrows<Sep31MissingFieldException> { sep31Service.validateRequiredFields() }
     val wantMissingFields = AssetInfo.Sep31TxnFieldSpecs()
     wantMissingFields.transaction =
@@ -1005,36 +987,36 @@ class Sep31ServiceTest {
       )
     assertEquals(wantMissingFields, ex4.missingFields)
 
-    Context.get().setTransactionFields(txn.fields)
+    Context.get().transactionFields = txn.fields
     assertDoesNotThrow { sep31Service.validateRequiredFields() }
   }
 
   @Test
   fun `Test update fee ok`() {
     val jwtToken = TestHelper.createJwtToken()
-    Context.get().setRequest(request)
-    Context.get().setJwtToken(jwtToken)
+    Context.get().request = request
+    Context.get().jwtToken = jwtToken
 
     // With quote
-    Context.get().setQuote(quote)
+    Context.get().quote = quote
     request.destinationAsset = "USDC"
     sep31Service.updateFee()
-    var fee = Context.get().getFee()
+    var fee = Context.get().fee
     assertEquals(quote.fee.total, fee.amount)
     assertEquals(quote.fee.asset, fee.asset)
 
     // No quote
     every { feeIntegration.getFee(any()) } returns GetFeeResponse(Amount("10", "USDC"))
-    Context.get().setQuote(null)
+    Context.get().quote = null
     request.destinationAsset = "USDC"
     sep31Service.updateFee()
-    fee = Context.get().getFee()
+    fee = Context.get().fee
     assertEquals("10", fee.amount)
     assertEquals("USDC", fee.asset)
 
     request.destinationAsset = null
     sep31Service.updateFee()
-    fee = Context.get().getFee()
+    fee = Context.get().fee
     assertEquals("10", fee.amount)
     assertEquals("USDC", fee.asset)
   }
@@ -1042,11 +1024,11 @@ class Sep31ServiceTest {
   @Test
   fun `test update fee failure`() {
     val jwtToken = TestHelper.createJwtToken()
-    Context.get().setRequest(request)
-    Context.get().setJwtToken(jwtToken)
+    Context.get().request = request
+    Context.get().jwtToken = jwtToken
 
     // With quote
-    Context.get().setQuote(quote)
+    Context.get().quote = quote
     quote.fee = null
     val ex = assertThrows<SepValidationException> { sep31Service.updateFee() }
     assertEquals("Quote is missing the 'fee' field", ex.message)

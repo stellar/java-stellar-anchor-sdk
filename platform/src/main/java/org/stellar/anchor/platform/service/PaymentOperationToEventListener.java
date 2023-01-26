@@ -4,23 +4,27 @@ import static org.stellar.anchor.util.MathHelper.decimal;
 import static org.stellar.anchor.util.MathHelper.formatAmount;
 
 import io.micrometer.core.instrument.Metrics;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
-import java.util.UUID;
 import org.apache.commons.codec.DecoderException;
+import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.EventPublishException;
-import org.stellar.anchor.api.exception.SepException;
+import org.stellar.anchor.api.platform.PatchTransactionRequest;
+import org.stellar.anchor.api.platform.PatchTransactionsRequest;
+import org.stellar.anchor.api.platform.PlatformTransactionData;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.shared.Amount;
 import org.stellar.anchor.api.shared.StellarPayment;
 import org.stellar.anchor.api.shared.StellarTransaction;
+import org.stellar.anchor.apiclient.PlatformApiClient;
 import org.stellar.anchor.event.EventService;
-import org.stellar.anchor.event.models.TransactionEvent;
 import org.stellar.anchor.platform.observer.ObservedPayment;
 import org.stellar.anchor.platform.observer.PaymentListener;
 import org.stellar.anchor.sep31.Sep31Transaction;
@@ -33,15 +37,19 @@ import org.stellar.sdk.xdr.MemoType;
 public class PaymentOperationToEventListener implements PaymentListener {
   final Sep31TransactionStore transactionStore;
   final EventService eventService;
+  private PlatformApiClient platformApiClient;
 
   public PaymentOperationToEventListener(
-      Sep31TransactionStore transactionStore, EventService eventService) {
+      Sep31TransactionStore transactionStore,
+      EventService eventService,
+      PlatformApiClient platformApiClient) {
     this.transactionStore = transactionStore;
     this.eventService = eventService;
+    this.platformApiClient = platformApiClient;
   }
 
   @Override
-  public void onReceived(ObservedPayment payment) throws EventPublishException {
+  public void onReceived(ObservedPayment payment) throws AnchorException, IOException {
     // Check if payment is connected to a transaction
     if (Objects.toString(payment.getTransactionHash(), "").isEmpty()
         || Objects.toString(payment.getTransactionMemo(), "").isEmpty()) {
@@ -136,25 +144,24 @@ public class PaymentOperationToEventListener implements PaymentListener {
       Log.warn(message);
     }
 
-    // Update the database transaction fields
-    txn.setUpdatedAt(paymentTime);
-    txn.setStatus(newStatus.toString());
-    txn.setStellarTransactionId(payment.getTransactionHash());
-    List<StellarTransaction> stellarTransactions =
-        StellarTransaction.addOrUpdateTransactions(
-            txn.getStellarTransactions(), stellarTransaction);
-    txn.setStellarTransactions(stellarTransactions);
-    // Save
-    try {
-      transactionStore.save(txn);
-    } catch (SepException ex) {
-      Log.errorEx("Error saving Sep31Transaction upon received event", ex);
-    }
-
-    TransactionEvent event =
-        receivedPaymentToEvent(
-            txn, payment, SepTransactionStatus.from(txn.getStatus()), message, stellarTransaction);
-    sendToQueue(event);
+    // Patch transaction
+    PatchTransactionsRequest patchTransactionsRequest =
+        PatchTransactionsRequest.builder()
+            .records(
+                Collections.singletonList(
+                    PatchTransactionRequest.builder()
+                        .transaction(
+                            PlatformTransactionData.builder()
+                                .updatedAt(paymentTime)
+                                .status(newStatus)
+                                .stellarTransactions(
+                                    StellarTransaction.addOrUpdateTransactions(
+                                        txn.getStellarTransactions(), stellarTransaction))
+                                .stellarTransactionId(payment.getTransactionHash())
+                                .build())
+                        .build()))
+            .build();
+    platformApiClient.patchTransaction(patchTransactionsRequest);
 
     // Update metrics
     Metrics.counter(AnchorMetrics.SEP31_TRANSACTION.toString(), "status", newStatus.toString())
@@ -168,44 +175,9 @@ public class PaymentOperationToEventListener implements PaymentListener {
     Log.debug("NOOP PaymentOperationToEventListener#onSent was called.");
   }
 
-  private void sendToQueue(TransactionEvent event) throws EventPublishException {
+  private void sendToQueue(AnchorEvent event) throws EventPublishException {
     eventService.publish(event);
     Log.infoF("Sent to event queue {}", GsonUtils.getInstance().toJson(event));
-  }
-
-  TransactionEvent receivedPaymentToEvent(
-      Sep31Transaction txn,
-      ObservedPayment payment,
-      SepTransactionStatus status,
-      String message,
-      StellarTransaction newStellarTransaction) {
-    return TransactionEvent.builder()
-        .eventId(UUID.randomUUID().toString())
-        .type(TransactionEvent.Type.TRANSACTION_STATUS_CHANGED)
-        .id(txn.getId())
-        .sep(TransactionEvent.Sep.SEP_31)
-        .kind(TransactionEvent.Kind.RECEIVE)
-        .status(status)
-        .amountExpected(new Amount(txn.getAmountExpected(), txn.getAmountInAsset()))
-        .amountIn(new Amount(payment.getAmount(), txn.getAmountInAsset()))
-        .amountOut(new Amount(txn.getAmountOut(), txn.getAmountOutAsset()))
-        // TODO: fix PATCH transaction fails if getAmountOut is null?
-        .amountFee(new Amount(txn.getAmountFee(), txn.getAmountFeeAsset()))
-        .quoteId(txn.getQuoteId())
-        .startedAt(txn.getStartedAt())
-        .updatedAt(txn.getUpdatedAt())
-        .completedAt(null)
-        .transferReceivedAt(txn.getTransferReceivedAt())
-        .message(message)
-        .refunds(null)
-        .stellarTransactions(List.of(newStellarTransaction))
-        .externalTransactionId(payment.getExternalTransactionId())
-        .custodialTransactionId(null)
-        .sourceAccount(payment.getFrom())
-        .destinationAccount(payment.getTo())
-        .customers(txn.getCustomers())
-        .creator(txn.getCreator())
-        .build();
   }
 
   Instant parsePaymentTime(String paymentTimeStr) {

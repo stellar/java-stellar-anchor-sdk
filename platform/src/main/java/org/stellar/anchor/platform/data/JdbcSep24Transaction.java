@@ -2,7 +2,6 @@ package org.stellar.anchor.platform.data;
 
 import com.google.gson.annotations.SerializedName;
 import com.vladmihalcea.hibernate.type.json.JsonType;
-import java.util.List;
 import javax.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -10,7 +9,6 @@ import lombok.Setter;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.springframework.beans.BeanUtils;
-import org.stellar.anchor.api.shared.StellarTransaction;
 import org.stellar.anchor.sep24.Sep24Refunds;
 import org.stellar.anchor.sep24.Sep24Transaction;
 
@@ -42,10 +40,6 @@ public class JdbcSep24Transaction extends JdbcSepTransaction
 
   @SerializedName("transaction_id")
   String transactionId;
-
-  @Column(columnDefinition = "json")
-  @Type(type = "json")
-  List<StellarTransaction> stellarTransactions;
 
   String message;
 

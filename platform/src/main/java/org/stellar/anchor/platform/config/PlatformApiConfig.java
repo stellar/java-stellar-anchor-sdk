@@ -12,6 +12,7 @@ import org.stellar.anchor.auth.AuthInfo;
 
 @Data
 public class PlatformApiConfig implements Validator {
+  String baseUrl;
   AuthInfo auth;
   PropertySecretConfig secretConfig;
 

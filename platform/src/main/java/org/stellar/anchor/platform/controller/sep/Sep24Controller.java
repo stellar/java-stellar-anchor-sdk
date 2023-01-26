@@ -191,7 +191,7 @@ public class Sep24Controller {
       throws AnchorException {
     debugF(
         "/fee operation={} type={} asset_code={}, amount={}", operation, type, assetCode, amount);
-    return sep24Service.getFee(operation, type, assetCode, amount);
+    return sep24Service.getFee(operation, assetCode, amount);
   }
 
   String getFullRequestUrl(HttpServletRequest request) {

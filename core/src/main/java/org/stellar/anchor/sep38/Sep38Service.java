@@ -2,11 +2,13 @@ package org.stellar.anchor.sep38;
 
 import static org.stellar.anchor.api.sep.sep38.Sep38Context.SEP31;
 import static org.stellar.anchor.api.sep.sep38.Sep38Context.SEP6;
+import static org.stellar.anchor.util.BeanHelper.updateField;
 import static org.stellar.anchor.util.Log.debug;
 import static org.stellar.anchor.util.MathHelper.decimal;
 import static org.stellar.anchor.util.MathHelper.formatAmount;
 import static org.stellar.anchor.util.SepHelper.validateAmount;
 import static org.stellar.anchor.util.SepHelper.validateAmountLimit;
+import static org.stellar.anchor.util.StringHelper.isNotEmpty;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -16,10 +18,12 @@ import org.apache.commons.lang3.StringUtils;
 import org.stellar.anchor.api.callback.GetRateRequest;
 import org.stellar.anchor.api.callback.GetRateResponse;
 import org.stellar.anchor.api.callback.RateIntegration;
+import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.NotFoundException;
 import org.stellar.anchor.api.exception.ServerErrorException;
+import org.stellar.anchor.api.platform.GetQuoteResponse;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.sep38.*;
 import org.stellar.anchor.api.shared.StellarId;
@@ -27,7 +31,6 @@ import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtToken;
 import org.stellar.anchor.config.Sep38Config;
 import org.stellar.anchor.event.EventService;
-import org.stellar.anchor.event.models.QuoteEvent;
 import org.stellar.anchor.util.Log;
 
 public class Sep38Service {
@@ -373,7 +376,7 @@ public class Sep38Service {
     builder = builder.sellAmount(sellAmount).buyAmount(buyAmount);
 
     // SEP31: when buy_amount is specified (sell amount found from rate integration)
-    if (context == SEP31 && buyAmount != null) {
+    if (context == SEP31 && isNotEmpty(buyAmount)) {
       validateAmountLimit("sell_", rate.getSellAmount(), sendMinLimit, sendMaxLimit);
     }
 
@@ -400,26 +403,33 @@ public class Sep38Service {
     // TODO: open the connection with DB and only commit/save after publishing the event:
     this.sep38QuoteStore.save(newQuote);
 
-    QuoteEvent event =
-        QuoteEvent.builder()
-            .eventId(UUID.randomUUID().toString())
-            .type(QuoteEvent.Type.QUOTE_CREATED)
-            .id(newQuote.getId())
-            .sellAsset(newQuote.getSellAsset())
-            .sellAmount(newQuote.getSellAmount())
-            .buyAsset(newQuote.getBuyAsset())
-            .buyAmount(newQuote.getBuyAmount())
-            .expiresAt(newQuote.getExpiresAt())
-            .price(newQuote.getPrice())
-            .totalPrice(newQuote.getTotalPrice())
-            .creator(
-                StellarId.builder()
-                    .account(newQuote.getCreatorAccountId())
-                    .build()) // TODO where to get StellarId.id?
-            .transactionId(newQuote.getTransactionId())
-            .createdAt(newQuote.getCreatedAt())
-            .fee(rate.getFee())
+    AnchorEvent event =
+        AnchorEvent.builder()
+            .type(AnchorEvent.Type.QUOTE_CREATED)
+            .id(UUID.randomUUID().toString())
+            .sep("38")
+            .quote(
+                GetQuoteResponse.builder()
+                    .creator(
+                        StellarId.builder()
+                            // TODO where to get StellarId.id?
+                            .account(newQuote.getCreatorAccountId())
+                            .build())
+                    .build())
             .build();
+
+    updateField(newQuote, "id", event, "quote.id");
+    updateField(newQuote, "sellAsset", event, "quote.sellAsset");
+    updateField(newQuote, "sellAmount", event, "quote.sellAmount");
+    updateField(newQuote, "buyAsset", event, "quote.buyAsset");
+    updateField(newQuote, "buyAmount", event, "quote.buyAmount");
+    updateField(newQuote, "expiresAt", event, "quote.expiresAt");
+    updateField(newQuote, "createdAt", event, "quote.createdAt");
+    updateField(newQuote, "price", event, "quote.price");
+    updateField(newQuote, "totalPrice", event, "quote.totalPrice");
+    updateField(newQuote, "creatorAccountId", event, "quote.creator.account");
+    updateField(newQuote, "transactionId", event, "quote.transactionId");
+    updateField(rate, "fee", event, "quote.fee");
 
     eventService.publish(event);
 

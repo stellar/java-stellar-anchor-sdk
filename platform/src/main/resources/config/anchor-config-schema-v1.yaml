@@ -58,6 +58,7 @@ payment_observer.stellar.silence_timeout_retries:
 payment_observer.type:
 platform_api.auth.expiration_milliseconds:
 platform_api.auth.type:
+platform_api.base_url:
 secret.callback_api.secret:
 secret.data.password:
 secret.data.username:

@@ -4,13 +4,16 @@ import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.sqs.AmazonSQSAsync;
 import com.amazonaws.services.sqs.AmazonSQSAsyncClientBuilder;
-import com.amazonaws.services.sqs.model.*;
+import com.amazonaws.services.sqs.model.Message;
+import com.amazonaws.services.sqs.model.ReceiveMessageRequest;
+import com.amazonaws.services.sqs.model.ReceiveMessageResult;
 import com.google.gson.Gson;
 import java.util.List;
-import java.util.concurrent.*;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import javax.annotation.PreDestroy;
-import org.stellar.anchor.event.models.QuoteEvent;
-import org.stellar.anchor.event.models.TransactionEvent;
+import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.reference.config.SqsListenerSettings;
 import org.stellar.anchor.util.Log;
 
@@ -66,23 +69,22 @@ public class SqsListener extends AbstractEventListener {
         String queueUrl = sqsClient.getQueueUrl(queue).getQueueUrl();
         List<Message> messages = getSqsMessages(queue);
         while (messages.size() > 0) {
-
           for (Message message : messages) {
-            String eventClass =
-                message.getMessageAttributes().get("anchor-event-class").getStringValue();
-            switch (eventClass) {
-              case "QuoteEvent":
-                QuoteEvent quoteEvent = gson.fromJson(message.getBody(), QuoteEvent.class);
-                Log.debug("new quote event from sqs - " + quoteEvent.getEventId());
-                processor.handleQuoteEvent(quoteEvent);
+            AnchorEvent event = gson.fromJson(message.getBody(), AnchorEvent.class);
+            switch (event.getType()) {
+              case TRANSACTION_CREATED:
+              case TRANSACTION_ERROR:
+                processor.handleTransactionEvent(event);
                 break;
-              case "TransactionEvent":
-                TransactionEvent trxEvent =
-                    gson.fromJson(message.getBody(), TransactionEvent.class);
-                processor.handleTransactionEvent(trxEvent);
+              case TRANSACTION_STATUS_CHANGED:
+                processor.handleTransactionStatusChangedEvent(event);
+                break;
+              case QUOTE_CREATED:
                 break;
               default:
-                Log.debug("error: anchor_platform_event - invalid message type '%s'%n", eventClass);
+                Log.debug(
+                    "error: anchor_platform_event - invalid message type '%s'%n",
+                    event.getType().type);
             }
             sqsClient.deleteMessage(queueUrl, message.getReceiptHandle());
           }

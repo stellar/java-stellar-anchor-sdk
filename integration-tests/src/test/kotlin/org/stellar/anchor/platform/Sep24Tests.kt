@@ -51,6 +51,8 @@ class Sep24Tests {
     fun `test PlatformAPI GET transaction for deposit and withdrawal`() {
       val actualWithdrawTxn = platformApiClient.getTransaction(savedWithdrawTxn.transaction.id)
       assertEquals(actualWithdrawTxn.id, savedWithdrawTxn.transaction.id)
+      println(expectedWithdrawTransactionResponse)
+      println(json(actualWithdrawTxn))
       JSONAssert.assertEquals(expectedWithdrawTransactionResponse, json(actualWithdrawTxn), LENIENT)
 
       val actualDepositTxn = platformApiClient.getTransaction(savedDepositTxn.transaction.id)
@@ -63,8 +65,8 @@ class Sep24Tests {
       val patch =
         gson.fromJson(patchWithdrawTransactionRequest, PatchTransactionsRequest::class.java)
       // create patch request and patch
-      patch.records[0].id = savedWithdrawTxn.transaction.id
-      patch.records[1].id = savedDepositTxn.transaction.id
+      patch.records[0].transaction.id = savedWithdrawTxn.transaction.id
+      patch.records[1].transaction.id = savedDepositTxn.transaction.id
       platformApiClient.patchTransaction(patch)
 
       // check if the patched transactions are as expected
@@ -146,81 +148,85 @@ private const val patchWithdrawTransactionRequest =
 {
   "records": [
     {
-      "id": "",
-      "status": "completed",
-      "amount_in": {
-        "amount": "10",
-        "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
-      },
-      "amount_out": {
-        "amount": "10",
-        "asset": "iso4217:USD"
-      },
-      "amount_fee": {
-        "amount": "1",
-        "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
-      },
-      "message": "this is the message",
-      "refunds": {
-        "amount_refunded": {
+      "transaction": {
+        "id": "",
+        "status": "completed",
+        "amount_in": {
+          "amount": "10",
+          "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+        },
+        "amount_out": {
+          "amount": "10",
+          "asset": "iso4217:USD"
+        },
+        "amount_fee": {
           "amount": "1",
           "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
         },
-        "amount_fee": {
-          "amount": "0.1",
-          "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
-        },
-        "payments": [
-          {
-            "id": 1,
-            "amount": {
-              "amount": "0.6",
-              "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
-            },
-            "fee": {
-              "amount": "0.1",
-              "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
-            }
+        "message": "this is the message",
+        "refunds": {
+          "amount_refunded": {
+            "amount": "1",
+            "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
           },
-          {
-            "id": 2,
-            "amount": {
-              "amount": "0.4",
-              "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+          "amount_fee": {
+            "amount": "0.1",
+            "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+          },
+          "payments": [
+            {
+              "id": 1,
+              "amount": {
+                "amount": "0.6",
+                "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+              },
+              "fee": {
+                "amount": "0.1",
+                "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+              }
             },
-            "fee": {
-              "amount": "0",
-              "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+            {
+              "id": 2,
+              "amount": {
+                "amount": "0.4",
+                "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+              },
+              "fee": {
+                "amount": "0",
+                "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+              }
             }
-          }
-        ]
+          ]
+        }
       }
     },
     {
-      "id": "",
-      "status": "completed",
-      "amount_in": {
-        "amount": "100",
-        "asset": "iso4217:USD"
-      },
-      "amount_out": {
-        "amount": "100",
-        "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
-      },
-      "amount_fee": {
-        "amount": "1",
-        "asset": "iso4217:USD"
-      },
-      "message": "this is the message"
+      "transaction": {
+        "id": "",
+        "status": "completed",
+        "amount_in": {
+          "amount": "100",
+          "asset": "iso4217:USD"
+        },
+        "amount_out": {
+          "amount": "100",
+          "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+        },
+        "amount_fee": {
+          "amount": "1",
+          "asset": "iso4217:USD"
+        },
+        "message": "this is the message"
+      }
     }
   ]
-}
+}    
 """
 
 private const val expectedAfterPatchWithdraw =
   """
 {
-  "sep": 24,
+  "sep": "24",
   "kind": "withdrawal",
   "status": "completed",
   "amount_in": {
@@ -276,7 +282,7 @@ private const val expectedAfterPatchWithdraw =
 private const val expectedAfterPatchDeposit =
   """
   {
-    "sep": 24,
+    "sep": "24",
     "kind": "deposit",
     "status": "completed",
     "amount_in": {
@@ -370,7 +376,7 @@ private const val expectedSep24DepositResponse =
 private const val expectedWithdrawTransactionResponse =
   """
   {
-    "sep": 24,
+    "sep": "24",
     "kind": "withdrawal",
     "status": "incomplete"
   }
@@ -379,7 +385,7 @@ private const val expectedWithdrawTransactionResponse =
 private const val expectedDepositTransactionResponse =
   """
   {
-    "sep": 24,
+    "sep": "24",
     "kind": "deposit",
     "status": "incomplete"
   }

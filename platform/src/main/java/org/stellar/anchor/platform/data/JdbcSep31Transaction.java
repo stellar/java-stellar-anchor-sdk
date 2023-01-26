@@ -3,7 +3,6 @@ package org.stellar.anchor.platform.data;
 import com.google.gson.annotations.SerializedName;
 import com.google.gson.reflect.TypeToken;
 import com.vladmihalcea.hibernate.type.json.JsonType;
-import java.util.List;
 import java.util.Map;
 import javax.persistence.*;
 import lombok.Getter;
@@ -14,7 +13,6 @@ import org.hibernate.annotations.TypeDef;
 import org.springframework.beans.BeanUtils;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.shared.StellarId;
-import org.stellar.anchor.api.shared.StellarTransaction;
 import org.stellar.anchor.reference.model.StellarIdConverter;
 import org.stellar.anchor.sep31.Sep31Refunds;
 import org.stellar.anchor.sep31.Sep31Transaction;
@@ -45,10 +43,6 @@ public class JdbcSep31Transaction extends JdbcSepTransaction
 
   @SerializedName("stellar_memo_type")
   String stellarMemoType;
-
-  @Column(columnDefinition = "json")
-  @Type(type = "json")
-  List<StellarTransaction> stellarTransactions;
 
   @SerializedName("quote_id")
   String quoteId;

@@ -2,6 +2,7 @@ package org.stellar.anchor.reference.service;
 
 import static org.stellar.anchor.util.MemoHelper.memoTypeAsString;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
+import static org.stellar.anchor.util.StringHelper.isNotEmpty;
 import static org.stellar.sdk.xdr.MemoType.MEMO_HASH;
 
 import java.util.Base64;
@@ -35,8 +36,8 @@ public class UniqueAddressService {
           String.format("Invalid distributionWallet: [%s]", appSettings.getDistributionWallet()));
     }
 
-    if (!isEmpty(appSettings.getDistributionWalletMemo())
-        && !isEmpty(appSettings.getDistributionWalletMemoType())) {
+    if (isNotEmpty(appSettings.getDistributionWalletMemo())
+        && isNotEmpty(appSettings.getDistributionWalletMemoType())) {
       // check if memo and memoType are valid
       MemoHelper.makeMemo(
           appSettings.getDistributionWalletMemo(), appSettings.getDistributionWalletMemoType());

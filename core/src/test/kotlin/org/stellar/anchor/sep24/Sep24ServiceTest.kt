@@ -488,7 +488,7 @@ internal class Sep24ServiceTest {
   fun `test fee`(op: String, type: String, assetCode: String, amount: String, fee: String) {
     // TODO: The tests are to be revised when the Callback API is further revised.
     every { feeIntegration.getFee(any()) } returns GetFeeResponse(Amount(fee, assetCode))
-    var fee = sep24Service.getFee(op, type, assetCode, amount)
+    var fee = sep24Service.getFee(op, assetCode, amount)
     assertEquals("0.1", fee.getFee())
   }
 

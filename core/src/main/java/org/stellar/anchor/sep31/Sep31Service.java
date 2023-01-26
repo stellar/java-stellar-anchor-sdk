@@ -1,8 +1,8 @@
 package org.stellar.anchor.sep31;
 
+import static org.stellar.anchor.api.event.AnchorEvent.Type.TRANSACTION_CREATED;
 import static org.stellar.anchor.api.sep.sep31.Sep31InfoResponse.AssetResponse;
 import static org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_SEND;
-import static org.stellar.anchor.event.models.TransactionEvent.Type.TRANSACTION_CREATED;
 import static org.stellar.anchor.util.Log.*;
 import static org.stellar.anchor.util.MathHelper.decimal;
 import static org.stellar.anchor.util.MathHelper.formatAmount;
@@ -182,7 +182,7 @@ public class Sep31Service {
 
     updateDepositInfo();
 
-    Sep31Helper.publishEvent(eventService, txn, TRANSACTION_CREATED);
+    eventService.publish(txn, TRANSACTION_CREATED);
 
     return Sep31PostTransactionResponse.builder()
         .id(txn.getId())
