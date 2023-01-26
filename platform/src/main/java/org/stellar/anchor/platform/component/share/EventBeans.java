@@ -9,8 +9,6 @@ import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.platform.config.PropertyEventConfig;
 import org.stellar.anchor.platform.event.*;
-import org.stellar.anchor.platform.service.PaymentOperationToEventListener;
-import org.stellar.anchor.sep31.Sep31TransactionStore;
 
 @Configuration
 public class EventBeans {
@@ -51,12 +49,5 @@ public class EventBeans {
     }
 
     return eventService;
-  }
-
-  @Bean
-  public PaymentOperationToEventListener paymentOperationToEventListener(
-      Sep31TransactionStore transactionStore, EventService eventService) {
-    // TODO: Remove this bean
-    return new PaymentOperationToEventListener(transactionStore, eventService);
   }
 }

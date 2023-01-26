@@ -19,6 +19,7 @@ import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.shared.Amount;
 import org.stellar.anchor.api.shared.StellarPayment;
 import org.stellar.anchor.api.shared.StellarTransaction;
+import org.stellar.anchor.apiclient.PlatformApiClient;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.platform.observer.ObservedPayment;
 import org.stellar.anchor.platform.observer.PaymentListener;
@@ -32,11 +33,15 @@ import org.stellar.sdk.xdr.MemoType;
 public class PaymentOperationToEventListener implements PaymentListener {
   final Sep31TransactionStore transactionStore;
   final EventService eventService;
+  private PlatformApiClient platformApiClient;
 
   public PaymentOperationToEventListener(
-      Sep31TransactionStore transactionStore, EventService eventService) {
+      Sep31TransactionStore transactionStore,
+      EventService eventService,
+      PlatformApiClient platformApiClient) {
     this.transactionStore = transactionStore;
     this.eventService = eventService;
+    this.platformApiClient = platformApiClient;
   }
 
   @Override

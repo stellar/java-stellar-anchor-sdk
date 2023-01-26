@@ -82,6 +82,17 @@ callback_api:
     expiration_milliseconds: 30000
 
 platform_api:
+  ## @param: baseUrl
+  ## @type: string
+  ## @supported_prefixes: http:, https:
+  ## The base URL of the Anchor Platform server that implements the platform API endpoints described in the
+  ## "Platform API.yml" spec.
+  #
+  base_url: http://localhost:8080
+  ## Authentication config for Anchor server and Anchor Platform server to safely communicate,
+  ## particularly when housed in different clusters.
+  ## The receiving party should verify that an incoming request token is still valid.
+  #
   auth:
     ## @param: type
     ## @supported_values: NONE, API_KEY, JWT_TOKEN
@@ -159,13 +170,13 @@ event_processor:
   queue:
     type: kafka
     kafka:
-      bootstrap_server: localhost:9092
+      bootstrap_server: localhost:29092
       event_type_to_topic:
         all: dev_ap_event_single_queue
-        quote_created: dev_ap_event_quote_created
-        transaction_created: dev_ap_event_transaction_created
-        transaction_status_updated: dev_ap_event_transaction_status_changed
-        transaction_error: dev_ap_event_transaction_error
+        quote_created: ap_event_quote_created
+        transaction_created: ap_event_transaction_created
+        transaction_status_updated: ap_event_transaction_status_changed
+        transaction_error: ap_event_transaction_error
 
 ## @param: languages
 ## @supported_values: en
