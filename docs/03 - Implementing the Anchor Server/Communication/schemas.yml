@@ -273,6 +273,8 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/StellarTransaction'
+        stellar_transaction_id:
+          type: string
         external_transaction_id:
           type: string
         custodial_transaction_id:
