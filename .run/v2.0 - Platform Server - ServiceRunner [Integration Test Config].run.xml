@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="2. Platform Server - ServiceRunner [Example config]" type="Application" factoryName="Application">
+  <configuration default="false" name="v2.0 - Platform Server - ServiceRunner [Integration Test Config]" type="Application" factoryName="Application">
     <envs>
       <env name="data.ddl_auto" value="update" />
       <env name="data.type" value="sqlite" />
@@ -8,7 +8,7 @@
       <env name="SECRET.DATA.USERNAME" value="admin" />
       <env name="secret.sep10.jwt_secret" value="jwt_secret" />
       <env name="secret.sep10.signing_seed" value="SAKXNWVTRVR4SJSHZUDB2CLJXEQHRT62MYQWA2HBB7YBOTCFJJJ55BZF" />
-      <env name="STELLAR_ANCHOR_CONFIG" value="file:///$PROJECT_DIR$/platform/src/main/resources/example.anchor-config.yaml" />
+      <env name="STELLAR_ANCHOR_CONFIG" value="file:///$PROJECT_DIR$/integration-tests/src/test/resources/integration-test.anchor-config.yaml" />
     </envs>
     <option name="MAIN_CLASS_NAME" value="org.stellar.anchor.platform.ServiceRunner" />
     <module name="java-stellar-anchor-sdk.service-runner.main" />
