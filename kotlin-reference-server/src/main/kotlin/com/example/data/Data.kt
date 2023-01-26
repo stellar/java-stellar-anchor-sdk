@@ -9,12 +9,17 @@ data class Transaction(
   val id: String,
   val status: String,
   val kind: String,
+  val message: String? = null,
   @SerialName("amount_in") val amountIn: Amount? = null,
+  @SerialName("amount_out") val amountOut: Amount? = null,
+  @SerialName("amount_fee") val amountFee: Amount? = null,
   @SerialName("to_account") val toAccount: String? = null,
   @SerialName("request_asset_code") val requestAssetCode: String? = null,
   @SerialName("request_asset_issuer") val requestAssetIssuer: String? = null,
   @SerialName("memo") val memo: String? = null,
-  @SerialName("memo_type") val memoType: String? = null
+  @SerialName("memo_type") val memoType: String? = null,
+  val stellarTransactionId: String? = null,
+  @SerialName("withdrawal_anchor_account") val withdrawalAnchorAccount: String? = null
 )
 
 @Serializable data class PatchTransactionsRequest(val records: List<PatchTransactionRecord>)
@@ -41,4 +46,22 @@ class JwtToken(
   var iat: Long, // Issued At
   var exp: Long, // Expiration Time
   var jti: String // JWT ID Transaction ID
+)
+
+@Serializable
+data class DepositRequest(
+  val amount: String,
+  val name: String,
+  val surname: String,
+  val email: String
+)
+
+@Serializable
+data class WithdrawalRequest(
+  val amount: String,
+  val name: String,
+  val surname: String,
+  val email: String,
+  val bank: String,
+  val account: String
 )

@@ -3,6 +3,7 @@ package com.example
 import com.example.data.Config
 import com.example.data.LocationConfig
 import com.example.plugins.sep24
+import com.example.plugins.testSep24
 import com.example.sep24.*
 import com.sksamuel.hoplite.ConfigLoaderBuilder
 import com.sksamuel.hoplite.PropertySource
@@ -46,11 +47,14 @@ fun main(args: Array<String>) {
 
 fun Application.configureRouting(cfg: Config) {
   routing {
-    sep24(
-      Sep24Helper(cfg),
-      DepositService(cfg),
-      WithdrawalService(cfg),
-      cfg.sep24.mode.parametersProcessor
-    )
+    val helper = Sep24Helper(cfg)
+    val deposit = DepositService(cfg)
+    val withdrawal = WithdrawalService(cfg)
+
+    sep24(helper, deposit, withdrawal)
+
+    if (cfg.sep24.enableTest) {
+      testSep24(helper, deposit, withdrawal)
+    }
   }
 }
