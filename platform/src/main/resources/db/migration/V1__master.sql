@@ -88,7 +88,7 @@ CREATE TABLE sep31_transaction (
    amount_expected VARCHAR(255),
    fields VARCHAR(255),
    required_info_updates VARCHAR(255),
-   sep31Refunds VARCHAR(255),
+   refunds VARCHAR(255),
    CONSTRAINT pk_sep31_transaction PRIMARY KEY (id)
 );
 
