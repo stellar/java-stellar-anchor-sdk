@@ -554,7 +554,11 @@ public class Sep31Service {
       List<Sep12GetCustomerResponse> responses = new ArrayList<>();
 
       for (Sep12GetCustomerRequest request : requests) {
-        responses.add(this.customerIntegration.getCustomer(request));
+        try {
+          responses.add(this.customerIntegration.getCustomer(request));
+        } catch (AnchorException e) {
+          infoF("Failed to get customer (receiver) info with an error ({})", e);
+        }
       }
 
       List<Sep12GetCustomerResponse> accepted =
@@ -599,7 +603,11 @@ public class Sep31Service {
       List<Sep12GetCustomerResponse> responses = new ArrayList<>();
 
       for (Sep12GetCustomerRequest request : requests) {
-        responses.add(this.customerIntegration.getCustomer(request));
+        try {
+          responses.add(this.customerIntegration.getCustomer(request));
+        } catch (AnchorException e) {
+          infoF("Failed to get customer (sender) info with an error ({})", e);
+        }
       }
 
       List<Sep12GetCustomerResponse> accepted =
