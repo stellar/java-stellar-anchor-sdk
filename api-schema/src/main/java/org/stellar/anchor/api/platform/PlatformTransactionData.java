@@ -24,6 +24,9 @@ public class PlatformTransactionData {
   @SerializedName("amount_expected")
   Amount amountExpected;
 
+  @SerializedName("amount_requested")
+  Amount amountRequested;
+
   @SerializedName("amount_in")
   Amount amountIn;
 
@@ -63,6 +66,12 @@ public class PlatformTransactionData {
   // TODO: review the use case of the custodialTransactionId
   @SerializedName("custodial_transaction_id")
   String custodialTransactionId;
+
+  @SerializedName("memo")
+  String memo;
+
+  @SerializedName("memo_type")
+  String memoType;
 
   Customers customers;
   StellarId creator;

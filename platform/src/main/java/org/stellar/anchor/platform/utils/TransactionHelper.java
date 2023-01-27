@@ -6,9 +6,7 @@ import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.platform.GetTransactionResponse;
 import org.stellar.anchor.api.platform.PlatformTransactionData;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
-import org.stellar.anchor.api.shared.Amount;
-import org.stellar.anchor.api.shared.RefundPayment;
-import org.stellar.anchor.api.shared.Refunds;
+import org.stellar.anchor.api.shared.*;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSep31Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
@@ -72,6 +70,14 @@ public class TransactionHelper {
         .amountIn(new Amount(txn.getAmountIn(), txn.getAmountInAsset()))
         .amountOut(new Amount(txn.getAmountOut(), txn.getAmountOutAsset()))
         .amountFee(new Amount(txn.getAmountFee(), txn.getAmountFeeAsset()))
+        .amountRequested(
+            new Amount(
+                txn.getRequestedAmount(),
+                "stellar:" + txn.getRequestAssetCode() + ":" + txn.getRequestAssetIssuer()))
+        .customers(
+            new Customers(
+                StellarId.builder().account(txn.getToAccount()).build(),
+                StellarId.builder().account(txn.getFromAccount()).build()))
         .startedAt(txn.getStartedAt())
         .updatedAt(txn.getUpdatedAt())
         .completedAt(txn.getCompletedAt())

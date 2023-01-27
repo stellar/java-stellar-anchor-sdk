@@ -179,16 +179,14 @@ public class TransactionService {
     // update stellar_transactions
     txnUpdated = updateField(patch, txn, "stellarTransactions", txnUpdated);
 
-    // update message
-    if (shouldClearMessageStatus) {
-      txn.setRequiredInfoMessage(null);
-    } else {
-      txnUpdated = updateField(patch, "message", txn, "requiredInfoMessage", txnUpdated);
-    }
-
     switch (txn.getProtocol()) {
       case "24":
         JdbcSep24Transaction sep24Txn = (JdbcSep24Transaction) txn;
+
+        txnUpdated = updateField(patch, sep24Txn, "message", txnUpdated);
+        txnUpdated = updateField(patch, sep24Txn, "memo", txnUpdated);
+        txnUpdated = updateField(patch, sep24Txn, "memoType", txnUpdated);
+
         // update refunds
         if (patch.getRefunds() != null) {
           Sep24Refunds updatedRefunds = Sep24Refunds.of(patch.getRefunds(), txn24Store);
@@ -199,6 +197,13 @@ public class TransactionService {
         }
         break;
       case "31":
+        // update message
+        if (shouldClearMessageStatus) {
+          txn.setRequiredInfoMessage(null);
+        } else {
+          txnUpdated = updateField(patch, "message", txn, "requiredInfoMessage", txnUpdated);
+        }
+
         JdbcSep31Transaction sep31Txn = (JdbcSep31Transaction) txn;
         // update sender and receiver
         txnUpdated = updateField(patch, "customers.sender", txn, "senderId", txnUpdated);
