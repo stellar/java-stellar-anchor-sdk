@@ -178,22 +178,6 @@ public class Sep24Controller {
     return getTransaction(request, tr);
   }
 
-  @CrossOrigin(origins = "*")
-  @RequestMapping(
-      value = "/fee",
-      method = {RequestMethod.GET})
-  public Sep24GetFeeResponse getFee(
-      HttpServletRequest request,
-      @RequestParam(required = false, value = "operation") String operation,
-      @RequestParam(required = false, value = "type") String type,
-      @RequestParam(required = false, value = "asset_code") String assetCode,
-      @RequestParam(required = false, value = "amount") String amount)
-      throws AnchorException {
-    debugF(
-        "/fee operation={} type={} asset_code={}, amount={}", operation, type, assetCode, amount);
-    return sep24Service.getFee(operation, assetCode, amount);
-  }
-
   String getFullRequestUrl(HttpServletRequest request) {
     if (request.getQueryString() != null) {
       return request.getRequestURL() + "?" + request.getQueryString();
