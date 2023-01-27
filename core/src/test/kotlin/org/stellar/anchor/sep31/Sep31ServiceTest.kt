@@ -859,6 +859,63 @@ class Sep31ServiceTest {
   }
 
   @Test
+  fun `test post transaction multiple types`() {
+    quote.sellAsset = stellarUSDC
+    every { quoteStore.findByQuoteId("my_quote_id") } returns quote
+
+    Context.get().setAsset(asset)
+    val senderId = "d2bd1412-e2f6-4047-ad70-a1a2f133b25c"
+    val receiverId = "137938d4-43a7-4252-a452-842adcee474c"
+    val postTxRequest = Sep31PostTransactionRequest()
+    postTxRequest.amount = "100"
+    postTxRequest.assetCode = "USDC"
+    postTxRequest.assetIssuer = "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+    postTxRequest.senderId = senderId
+    postTxRequest.receiverId = receiverId
+    postTxRequest.quoteId = "my_quote_id"
+    postTxRequest.fields =
+      Sep31TxnFields(
+        hashMapOf(
+          "receiver_account_number" to "1",
+          "type" to "1",
+          "receiver_routing_number" to "SWIFT",
+        ),
+      )
+
+    // Make sure we can get the sender and receiver customers
+    val mockCustomer = Sep12GetCustomerResponse()
+    mockCustomer.status = Sep12Status.ACCEPTED
+
+    val sep31Receiver =
+      Sep12GetCustomerRequest.builder().id(receiverId).type("sep31-receiver").build()
+    val sep31ForeignReceiver =
+      Sep12GetCustomerRequest.builder().id(receiverId).type("sep31-foreign-receiver").build()
+    val sep31Sender = Sep12GetCustomerRequest.builder().id(senderId).type("sep31-sender").build()
+
+    every { customerIntegration.getCustomer(sep31Receiver) } returns null
+    every { customerIntegration.getCustomer(sep31ForeignReceiver) } returns mockCustomer
+    every { customerIntegration.getCustomer(sep31Sender) } returns mockCustomer
+
+    // mock eventService
+    val txEventSlot = slot<TransactionEvent>()
+    every { eventPublishService.publish(capture(txEventSlot)) } just Runs
+
+    // mock transaction save
+    val slotTxn = slot<Sep31Transaction>()
+    every { txnStore.save(capture(slotTxn)) } answers
+      {
+        firstArg<Sep31Transaction>().id = "ABC-123"
+        firstArg()
+      }
+
+    // POST transactionzZZ
+    val jwtToken = TestHelper.createJwtToken()
+    val t = sep31Service.postTransaction(jwtToken, postTxRequest)
+
+    println(t)
+  }
+
+  @Test
   fun `test post transaction when quote is not supported`() {
     every { sep31DepositInfoGenerator.generate(any()) } returns
       Sep31DepositInfo("GA7FYRB5VREZKOBIIKHG5AVTPFGWUBPOBF7LTYG4GTMFVIOOD2DWAL7I", "123456", "id")
