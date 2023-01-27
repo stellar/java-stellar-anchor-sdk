@@ -41,6 +41,10 @@ fun main(args: Array<String>) {
   embeddedServer(Netty, port = cfg.sep24.port) {
       install(ContentNegotiation) { json() }
       configureRouting(cfg)
+      install(CORS) {
+        anyHost()
+        allowHeader(HttpHeaders.Authorization)
+      }
     }
     .start(args.getOrNull(0)?.toBooleanStrictOrNull() ?: true)
 }
