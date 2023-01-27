@@ -131,8 +131,7 @@ internal class Sep24ServiceTest {
     assertEquals(slotTxn.captured.sep10Account, TEST_ACCOUNT)
     assertEquals(slotTxn.captured.fromAccount, TEST_ACCOUNT)
     assertEquals(slotTxn.captured.clientDomain, TEST_CLIENT_DOMAIN)
-    assertEquals(slotTxn.captured.amountIn, "123.4")
-    assertEquals(slotTxn.captured.amountOut, "123.4")
+    assertEquals(slotTxn.captured.requestedAmount, "123.4")
 
     val params = URLEncodedUtils.parse(URI(response.url), Charset.forName("UTF-8"))
     val tokenStrings = params.filter { pair -> pair.name.equals("token") }
@@ -247,8 +246,7 @@ internal class Sep24ServiceTest {
     assertEquals(slotTxn.captured.sep10Account, TEST_ACCOUNT)
     assertEquals(slotTxn.captured.toAccount, TEST_ACCOUNT)
     assertEquals(slotTxn.captured.clientDomain, TEST_CLIENT_DOMAIN)
-    assertEquals(slotTxn.captured.amountIn, "123.4")
-    assertEquals(slotTxn.captured.amountOut, "123.4")
+    assertEquals(slotTxn.captured.requestedAmount, "123.4")
   }
 
   @Test

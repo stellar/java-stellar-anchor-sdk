@@ -31,7 +31,6 @@ import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.util.GsonUtils;
 import org.stellar.sdk.KeyPair;
 import org.stellar.sdk.Memo;
-import org.stellar.sdk.MemoNone;
 
 public class Sep24Service {
   public static final String OPERATION_WITHDRAW = "withdraw";
@@ -145,7 +144,7 @@ public class Sep24Service {
             .fromAccount(sourceAccount)
             .clientDomain(token.getClientDomain());
 
-    if (!(memo instanceof MemoNone)) {
+    if (memo != null) {
       debug("transaction memo detected.", memo);
       builder.memo(memo.toString());
       builder.memoType(memoTypeString(memoType(memo)));
@@ -258,7 +257,7 @@ public class Sep24Service {
             .clientDomain(token.getClientDomain())
             .claimableBalanceSupported(claimableSupported);
 
-    if (!(memo instanceof MemoNone)) {
+    if (memo != null) {
       debug("transaction memo detected.", memo);
       builder.memo(memo.toString());
       builder.memoType(memoTypeString(memoType(memo)));

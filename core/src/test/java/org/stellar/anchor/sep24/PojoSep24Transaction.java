@@ -34,4 +34,5 @@ public class PojoSep24Transaction implements Sep24Transaction {
 
   Boolean refunded;
   Sep24Refunds refunds;
+  String requestedAmount;
 }
