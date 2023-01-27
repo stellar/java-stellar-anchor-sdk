@@ -10,9 +10,9 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.header.internals.RecordHeader;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
+import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.EventPublishException;
 import org.stellar.anchor.event.EventPublisher;
-import org.stellar.anchor.event.models.AnchorEvent;
 import org.stellar.anchor.platform.config.KafkaConfig;
 import org.stellar.anchor.util.Log;
 
@@ -56,7 +56,7 @@ public class KafkaEventPublisher implements EventPublisher {
   public void publish(String queue, AnchorEvent event) {
     try {
       ProducerRecord<String, AnchorEvent> record = new ProducerRecord<>(queue, event);
-      record.headers().add(new RecordHeader("type", event.getType().getBytes()));
+      record.headers().add(new RecordHeader("type", event.getType().type.getBytes()));
       // If the queue is offline, throw an exception
       try {
         producer.send(record).get();

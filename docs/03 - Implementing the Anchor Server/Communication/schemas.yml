@@ -206,8 +206,8 @@ components:
         id:
           type: string
         sep:
-          type: integer
-          enum: [ 24, 31 ]
+          type: string
+          enum: [ "24", "31", "38" ]
         kind:
           type: string
           enum: [
@@ -273,6 +273,8 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/StellarTransaction'
+        stellar_transaction_id:
+          type: string
         external_transaction_id:
           type: string
         custodial_transaction_id:
@@ -458,6 +460,8 @@ components:
           type: string
           format: date-time
         price:
+          type: string
+        total_price:
           type: string
         creator:
           $ref: '#/components/schemas/StellarId'

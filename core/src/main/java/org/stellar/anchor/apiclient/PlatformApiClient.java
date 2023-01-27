@@ -1,4 +1,4 @@
-package org.stellar.anchor.reference.client;
+package org.stellar.anchor.apiclient;
 
 import java.io.IOException;
 import java.util.HashMap;

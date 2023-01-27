@@ -1,7 +1,6 @@
 package org.stellar.anchor.platform.component.sep;
 
 import javax.servlet.Filter;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,7 +11,6 @@ import org.stellar.anchor.filter.ApiKeyFilter;
 import org.stellar.anchor.filter.JwtTokenFilter;
 import org.stellar.anchor.filter.NoneFilter;
 import org.stellar.anchor.platform.config.PlatformApiConfig;
-import org.stellar.anchor.platform.config.PropertySecretConfig;
 import org.stellar.anchor.platform.service.TransactionService;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
@@ -20,12 +18,6 @@ import org.stellar.anchor.sep38.Sep38QuoteStore;
 
 @Configuration
 public class PlatformApiBeans {
-  @Bean
-  @ConfigurationProperties(prefix = "platform-api")
-  PlatformApiConfig platformApiConfig(PropertySecretConfig secretConfig) {
-    return new PlatformApiConfig(secretConfig);
-  }
-
   /**
    * Register anchor-to-platform token filter.
    *

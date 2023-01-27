@@ -2,6 +2,7 @@ package org.stellar.anchor.platform.config;
 
 import static java.lang.String.format;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
+import static org.stellar.anchor.util.StringHelper.isNotEmpty;
 
 import java.util.List;
 import lombok.Data;
@@ -55,7 +56,7 @@ public class PropertySep10Config implements Sep10Config, Validator {
           "Please set environment variable SECRET_SEP10_SIGNING_SEED");
     }
 
-    if (!isEmpty(secretConfig.getSep10SigningSeed())) {
+    if (isNotEmpty(secretConfig.getSep10SigningSeed())) {
       try {
         KeyPair.fromSecretSeed(secretConfig.getSep10SigningSeed());
       } catch (Throwable ex) {
@@ -73,7 +74,7 @@ public class PropertySep10Config implements Sep10Config, Validator {
           "Please set environment variable SECRET_SEP10_JWT_SECRET");
     }
 
-    if (!isEmpty(config.getHomeDomain())) {
+    if (isNotEmpty(config.getHomeDomain())) {
       if (!NetUtil.isServerPortValid(config.getHomeDomain())) {
         errors.rejectValue(
             "homeDomain",

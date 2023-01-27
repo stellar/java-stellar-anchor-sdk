@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="3. Stellar Observer - ServiceRunner" type="Application" factoryName="Application">
+  <configuration default="false" name="v2.0 - Stellar Observer - ServiceRunner" type="Application" factoryName="Application">
     <envs>
       <env name="data.ddl_auto" value="update" />
       <env name="data.type" value="sqlite" />

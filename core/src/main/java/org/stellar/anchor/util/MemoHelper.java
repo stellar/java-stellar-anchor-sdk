@@ -52,6 +52,10 @@ public class MemoHelper {
       memoType = "none";
     }
 
+    if (isEmpty(memo)) {
+      return null;
+    }
+
     switch (memoType) {
       case "text":
         return makeMemo(memo, MemoType.MEMO_TEXT);

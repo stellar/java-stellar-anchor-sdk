@@ -1,8 +1,10 @@
 package org.stellar.anchor.platform.service;
 
+import static org.stellar.anchor.api.event.AnchorEvent.Type.TRANSACTION_STATUS_CHANGED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.*;
-import static org.stellar.anchor.event.models.TransactionEvent.Type.TRANSACTION_STATUS_CHANGED;
+import static org.stellar.anchor.platform.utils.TransactionHelper.toGetTransactionResponse;
 import static org.stellar.anchor.sep31.Sep31Helper.allAmountAvailable;
+import static org.stellar.anchor.util.BeanHelper.updateField;
 import static org.stellar.anchor.util.MathHelper.decimal;
 import static org.stellar.anchor.util.MathHelper.equalsAsDecimals;
 
@@ -11,24 +13,21 @@ import java.time.Instant;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
-import org.stellar.anchor.api.exception.*;
-import org.stellar.anchor.api.platform.GetTransactionResponse;
-import org.stellar.anchor.api.platform.PatchTransactionRequest;
-import org.stellar.anchor.api.platform.PatchTransactionsRequest;
-import org.stellar.anchor.api.platform.PatchTransactionsResponse;
+import org.stellar.anchor.api.exception.AnchorException;
+import org.stellar.anchor.api.exception.BadRequestException;
+import org.stellar.anchor.api.exception.InternalServerErrorException;
+import org.stellar.anchor.api.exception.NotFoundException;
+import org.stellar.anchor.api.platform.*;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.shared.Amount;
-import org.stellar.anchor.api.shared.RefundPayment;
-import org.stellar.anchor.api.shared.Refunds;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.event.EventService;
-import org.stellar.anchor.event.models.TransactionEvent;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSep31Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
-import org.stellar.anchor.sep24.*;
-import org.stellar.anchor.sep31.Sep31Helper;
+import org.stellar.anchor.sep24.Sep24Refunds;
+import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31Refunds;
 import org.stellar.anchor.sep31.Sep31Transaction;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
@@ -108,7 +107,6 @@ public class TransactionService {
       throws AnchorException {
     List<PatchTransactionRequest> patchRequests = request.getRecords();
 
-    //    PatchTransactionsResponse patchTransactionsResponse = new PatchTransactionsResponse();
     List<GetTransactionResponse> txnResponses = new LinkedList<>();
     for (PatchTransactionRequest patchRequest : patchRequests) {
       txnResponses.add(patchTransaction(patchRequest));
@@ -118,27 +116,28 @@ public class TransactionService {
 
   private GetTransactionResponse patchTransaction(PatchTransactionRequest patch)
       throws AnchorException {
-    JdbcSepTransaction txn = findTransaction(patch.getId());
+    JdbcSepTransaction txn = findTransaction(patch.getTransaction().getId());
     if (txn == null)
-      throw new BadRequestException(String.format("transaction(id=%s) not found", patch.getId()));
+      throw new BadRequestException(
+          String.format("transaction(id=%s) not found", patch.getTransaction().getId()));
 
     String lastStatus = txn.getStatus();
-    updateSepTransaction(patch, txn);
+    updateSepTransaction(patch.getTransaction(), txn);
     switch (txn.getProtocol()) {
       case "24":
         txn24Store.save((JdbcSep24Transaction) txn);
-        Sep24Helper.publishEvent(eventService, (Sep24Transaction) txn, TRANSACTION_STATUS_CHANGED);
+        eventService.publish((JdbcSep24Transaction) txn, TRANSACTION_STATUS_CHANGED);
         break;
       case "31":
         txn31Store.save((JdbcSep31Transaction) txn);
-        Sep31Helper.publishEvent(eventService, (Sep31Transaction) txn, TRANSACTION_STATUS_CHANGED);
+        eventService.publish((JdbcSep31Transaction) txn, TRANSACTION_STATUS_CHANGED);
         break;
     }
     if (!lastStatus.equals(txn.getStatus())) updateMetrics(txn);
     return toGetTransactionResponse(txn);
   }
 
-  private void updateMetrics(JdbcSepTransaction txn) {
+  void updateMetrics(JdbcSepTransaction txn) {
     switch (txn.getProtocol()) {
       case "24":
         Metrics.counter(AnchorMetrics.SEP24_TRANSACTION.toString(), "status", txn.getStatus())
@@ -151,111 +150,77 @@ public class TransactionService {
     }
   }
 
-  void updateSepTransaction(PatchTransactionRequest patch, JdbcSepTransaction txn)
+  void updateSepTransaction(PlatformTransactionData patch, JdbcSepTransaction txn)
       throws AnchorException {
-    boolean txWasUpdated = false;
-    boolean txWasCompleted = false;
+    boolean txnUpdated = false;
     boolean shouldClearMessageStatus =
-        !StringHelper.isEmpty(patch.getStatus())
-            && !isStatusError(patch.getStatus())
+        !StringHelper.isEmpty(patch.getStatus().getStatus())
+            && !isStatusError(patch.getStatus().getStatus())
             && !StringHelper.isEmpty(txn.getStatus())
             && isStatusError(txn.getStatus());
+    // update status
+    txnUpdated = updateField(patch, "status.status", txn, "status", txnUpdated);
+    // update amount_in
+    txnUpdated = updateField(patch, "amountIn.amount", txn, "amountIn", txnUpdated);
+    txnUpdated = updateField(patch, "amountIn.asset", txn, "amountInAsset", txnUpdated);
+    // update amount_out
+    txnUpdated = updateField(patch, "amountOut.amount", txn, "amountOut", txnUpdated);
+    txnUpdated = updateField(patch, "amountOut.asset", txn, "amountOutAsset", txnUpdated);
+    // update amount_fee
+    txnUpdated = updateField(patch, "amountFee.amount", txn, "amountFee", txnUpdated);
+    txnUpdated = updateField(patch, "amountFee.asset", txn, "amountFeeAsset", txnUpdated);
+    // update starte_at, completed_at, updated_at, transferReceivedAt
+    txnUpdated = updateField(patch, txn, "startedAt", txnUpdated);
+    txnUpdated = updateField(patch, txn, "updatedAt", txnUpdated);
+    txnUpdated = updateField(patch, txn, "completedAt", txnUpdated);
+    txnUpdated = updateField(patch, txn, "transferReceivedAt", txnUpdated);
+    // update external_transaction_id
+    txnUpdated = updateField(patch, txn, "externalTransactionId", txnUpdated);
+    // update stellar_transactions
+    txnUpdated = updateField(patch, txn, "stellarTransactions", txnUpdated);
 
-    if (patch.getStatus() != null && !Objects.equals(txn.getStatus(), patch.getStatus())) {
-      validateIfStatusIsSupported(patch.getStatus());
-      txWasCompleted =
-          !Objects.equals(txn.getStatus(), COMPLETED.getStatus())
-              && Objects.equals(patch.getStatus(), COMPLETED.getStatus());
-      txn.setStatus(patch.getStatus());
-      txWasUpdated = true;
-    }
-
-    if (patch.getAmountIn() != null
-        && (!Objects.equals(txn.getAmountIn(), patch.getAmountIn().getAmount())
-            || !Objects.equals(txn.getAmountInAsset(), patch.getAmountIn().getAsset()))) {
-      validateAsset("amount_in", patch.getAmountIn());
-      txn.setAmountIn(patch.getAmountIn().getAmount());
-      txn.setAmountInAsset(patch.getAmountIn().getAsset());
-      txWasUpdated = true;
-    }
-
-    if (patch.getAmountOut() != null
-        && (!Objects.equals(txn.getAmountOut(), patch.getAmountOut().getAmount())
-            || !Objects.equals(txn.getAmountOutAsset(), patch.getAmountOut().getAsset()))) {
-      validateAsset("amount_out", patch.getAmountOut());
-      txn.setAmountOut(patch.getAmountOut().getAmount());
-      txn.setAmountOutAsset(patch.getAmountOut().getAsset());
-      txWasUpdated = true;
-    }
-
-    if (patch.getAmountFee() != null
-        && (!Objects.equals(txn.getAmountFee(), patch.getAmountFee().getAmount())
-            || !Objects.equals(txn.getAmountFeeAsset(), patch.getAmountFee().getAsset()))) {
-      validateAsset("amount_fee", patch.getAmountFee());
-      txn.setAmountFee(patch.getAmountFee().getAmount());
-      txn.setAmountFeeAsset(patch.getAmountFee().getAsset());
-      txWasUpdated = true;
-    }
-
-    if (patch.getTransferReceivedAt() != null
-        && patch.getTransferReceivedAt().compareTo(txn.getStartedAt()) != 0) {
-      if (patch.getTransferReceivedAt().compareTo(txn.getStartedAt()) < 0) {
-        throw new BadRequestException(
-            String.format(
-                "the `transfer_received_at(%s)` cannot be earlier than 'started_at(%s)'",
-                patch.getTransferReceivedAt().toString(), txn.getStartedAt().toString()));
-      }
-      txn.setTransferReceivedAt(patch.getTransferReceivedAt());
-      txWasUpdated = true;
-    }
-
-    if (patch.getMessage() != null) {
-      if (!Objects.equals(txn.getRequiredInfoMessage(), patch.getMessage())) {
-        txn.setRequiredInfoMessage(patch.getMessage());
-        txWasUpdated = true;
-      }
-    } else if (shouldClearMessageStatus) {
+    // update message
+    if (shouldClearMessageStatus) {
       txn.setRequiredInfoMessage(null);
-    }
-
-    if (patch.getExternalTransactionId() != null
-        && !Objects.equals(txn.getExternalTransactionId(), patch.getExternalTransactionId())) {
-      txn.setExternalTransactionId(patch.getExternalTransactionId());
-      txWasUpdated = true;
+    } else {
+      txnUpdated = updateField(patch, "message", txn, "requiredInfoMessage", txnUpdated);
     }
 
     switch (txn.getProtocol()) {
       case "24":
         JdbcSep24Transaction sep24Txn = (JdbcSep24Transaction) txn;
+        // update refunds
         if (patch.getRefunds() != null) {
           Sep24Refunds updatedRefunds = Sep24Refunds.of(patch.getRefunds(), txn24Store);
-          // TODO: validate refunds
           if (!Objects.equals(sep24Txn.getRefunds(), updatedRefunds)) {
             sep24Txn.setRefunds(updatedRefunds);
-            txWasUpdated = true;
+            txnUpdated = true;
           }
         }
         break;
       case "31":
         JdbcSep31Transaction sep31Txn = (JdbcSep31Transaction) txn;
+        // update sender and receiver
+        txnUpdated = updateField(patch, "customers.sender", txn, "senderId", txnUpdated);
+        txnUpdated = updateField(patch, "customers.receiver", txn, "receiverId", txnUpdated);
+        // update creator
+        txnUpdated = updateField(patch, txn, "creator", txnUpdated);
+        // update refunds
         if (patch.getRefunds() != null) {
           Sep31Refunds updatedSep31Refunds = Sep31Refunds.of(patch.getRefunds(), txn31Store);
-          // TODO: validate refunds
           if (!Objects.equals(sep31Txn.getRefunds(), updatedSep31Refunds)) {
             sep31Txn.setRefunds(updatedSep31Refunds);
-            txWasUpdated = true;
+            txnUpdated = true;
           }
         }
+
         validateQuoteAndAmounts(sep31Txn);
         break;
     }
 
     Instant now = Instant.now();
-    if (txWasUpdated) {
+    if (txnUpdated) {
       txn.setUpdatedAt(now);
-    }
-    if (txWasCompleted) {
-      txn.setCompletedAt(now);
     }
   }
 
@@ -342,119 +307,5 @@ public class TransactionService {
         throw new BadRequestException("amount_fee != sum(quote.fee.total)");
       }
     }
-  }
-
-  GetTransactionResponse toGetTransactionResponse(JdbcSepTransaction txn) throws SepException {
-    switch (txn.getProtocol()) {
-      case "24":
-        return toGetTransactionResponse((JdbcSep24Transaction) txn);
-      case "31":
-        return toGetTransactionResponse((JdbcSep31Transaction) txn);
-      default:
-        throw new SepException(String.format("Unsupported protocol:%s", txn.getProtocol()));
-    }
-  }
-
-  RefundPayment toRefundPayment(
-      org.stellar.anchor.sep31.RefundPayment refundPayment, String assetName) {
-    return RefundPayment.builder()
-        .id(refundPayment.getId())
-        .idType(RefundPayment.IdType.STELLAR)
-        .amount(new Amount(refundPayment.getAmount(), assetName))
-        .fee(new Amount(refundPayment.getFee(), assetName))
-        .requestedAt(null)
-        .refundedAt(null)
-        .build();
-  }
-
-  Refunds toRefunds(Sep31Refunds refunds, String assetName) {
-    // build payments
-    RefundPayment[] payments =
-        refunds.getRefundPayments().stream()
-            .map(refundPayment -> toRefundPayment(refundPayment, assetName))
-            .toArray(RefundPayment[]::new);
-
-    return Refunds.builder()
-        .amountRefunded(new Amount(refunds.getAmountRefunded(), assetName))
-        .amountFee(new Amount(refunds.getAmountFee(), assetName))
-        .payments(payments)
-        .build();
-  }
-
-  private GetTransactionResponse toGetTransactionResponse(JdbcSep31Transaction txn) {
-    Refunds refunds = null;
-    if (txn.getRefunds() != null) {
-      refunds = toRefunds(txn.getRefunds(), txn.getAmountInAsset());
-    }
-
-    return GetTransactionResponse.builder()
-        .id(txn.getId())
-        .sep(31)
-        .kind(TransactionEvent.Kind.RECEIVE.getKind())
-        .status(txn.getStatus())
-        .amountExpected(new Amount(txn.getAmountExpected(), txn.getAmountInAsset()))
-        .amountIn(new Amount(txn.getAmountIn(), txn.getAmountInAsset()))
-        .amountOut(new Amount(txn.getAmountOut(), txn.getAmountOutAsset()))
-        .amountFee(new Amount(txn.getAmountFee(), txn.getAmountFeeAsset()))
-        .quoteId(txn.getQuoteId())
-        .startedAt(txn.getStartedAt())
-        .updatedAt(txn.getUpdatedAt())
-        .completedAt(txn.getCompletedAt())
-        .transferReceivedAt(txn.getTransferReceivedAt())
-        .message(txn.getRequiredInfoMessage()) // Assuming these are meant to be the same.
-        .refunds(refunds)
-        .stellarTransactions(txn.getStellarTransactions())
-        .externalTransactionId(txn.getExternalTransactionId())
-        .customers(txn.getCustomers())
-        .creator(txn.getCreator())
-        .build();
-  }
-
-  RefundPayment toRefundPayment(Sep24RefundPayment refundPayment, String assetName) {
-    return RefundPayment.builder()
-        .id(refundPayment.getId())
-        .idType(RefundPayment.IdType.STELLAR)
-        .amount(new Amount(refundPayment.getAmount(), assetName))
-        .fee(new Amount(refundPayment.getFee(), assetName))
-        .requestedAt(null)
-        .refundedAt(null)
-        .build();
-  }
-
-  Refunds toRefunds(Sep24Refunds refunds, String assetName) {
-    // build payments
-    RefundPayment[] payments =
-        refunds.getRefundPayments().stream()
-            .map(refundPayment -> toRefundPayment(refundPayment, assetName))
-            .toArray(RefundPayment[]::new);
-
-    return Refunds.builder()
-        .amountRefunded(new Amount(refunds.getAmountRefunded(), assetName))
-        .amountFee(new Amount(refunds.getAmountFee(), assetName))
-        .payments(payments)
-        .build();
-  }
-
-  private GetTransactionResponse toGetTransactionResponse(JdbcSep24Transaction txn) {
-    Refunds refunds = null;
-    if (txn.getRefunds() != null) {
-      refunds = toRefunds(txn.getRefunds(), txn.getAmountInAsset());
-    }
-
-    return GetTransactionResponse.builder()
-        .id(txn.getId())
-        .sep(24)
-        .kind(txn.getKind())
-        .status(txn.getStatus())
-        .amountIn(new Amount(txn.getAmountIn(), txn.getAmountInAsset()))
-        .amountOut(new Amount(txn.getAmountOut(), txn.getAmountOutAsset()))
-        .amountFee(new Amount(txn.getAmountFee(), txn.getAmountFeeAsset()))
-        .startedAt(txn.getStartedAt())
-        .updatedAt(txn.getUpdatedAt())
-        .completedAt(txn.getCompletedAt())
-        .refunds(refunds)
-        .stellarTransactions(txn.getStellarTransactions())
-        .externalTransactionId(txn.getExternalTransactionId())
-        .build();
   }
 }
