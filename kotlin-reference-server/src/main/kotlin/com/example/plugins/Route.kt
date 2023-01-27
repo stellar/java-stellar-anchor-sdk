@@ -2,6 +2,7 @@ package com.example.plugins
 
 import com.example.ClientException
 import com.example.data.DepositRequest
+import com.example.data.ErrorResponse
 import com.example.data.Success
 import com.example.data.WithdrawalRequest
 import com.example.jwt.JwtDecoder
@@ -49,10 +50,10 @@ fun Route.sep24(
         // TODO: return new JWT here
         call.respond(Success(transactionId))
       } catch (e: ClientException) {
-        call.respond(Error(e.message!!))
+        call.respond(ErrorResponse(e.message!!))
       } catch (e: Exception) {
         call.respond(
-          Error("Error occurred: ${e.message}"),
+          ErrorResponse("Error occurred: ${e.message}"),
         )
       }
     }
@@ -117,14 +118,14 @@ fun Route.sep24(
           }
           else ->
             call.respond(
-              Error("The only supported operations are \"deposit\" or \"withdrawal\""),
+              ErrorResponse("The only supported operations are \"deposit\" or \"withdrawal\""),
             )
         }
       } catch (e: ClientException) {
-        call.respond(Error(e.message!!))
+        call.respond(ErrorResponse(e.message!!))
       } catch (e: Exception) {
         call.respond(
-          Error("Error occurred: ${e.message}"),
+          ErrorResponse("Error occurred: ${e.message}"),
         )
       }
     }
@@ -148,10 +149,10 @@ fun Route.sep24(
 
         call.respond(transaction)
       } catch (e: ClientException) {
-        call.respond(Error(e.message!!))
+        call.respond(ErrorResponse(e.message!!))
       } catch (e: Exception) {
         call.respond(
-          Error("Error occurred: ${e.message}"),
+          ErrorResponse("Error occurred: ${e.message}"),
         )
       }
     }
