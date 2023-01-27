@@ -916,10 +916,6 @@ class Sep31ServiceTest {
     every { customerIntegration.getCustomer(sep31ForeignReceiver) } returns mockCustomer
     every { customerIntegration.getCustomer(sep31Sender) } returns mockCustomer
 
-    // mock eventService
-    val txEventSlot = slot<TransactionEvent>()
-    every { eventPublishService.publish(capture(txEventSlot)) } just Runs
-
     // mock transaction save
     val slotTxn = slot<Sep31Transaction>()
     every { txnStore.save(capture(slotTxn)) } answers
