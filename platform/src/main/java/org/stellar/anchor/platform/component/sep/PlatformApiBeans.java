@@ -29,7 +29,7 @@ public class PlatformApiBeans {
     Filter anchorToPlatformFilter;
     String authSecret = platformApiConfig.getAuth().getSecret();
     switch (platformApiConfig.getAuth().getType()) {
-      case JWT_TOKEN:
+      case JWT:
         JwtService jwtService = new JwtService(authSecret);
         anchorToPlatformFilter = new JwtTokenFilter(jwtService);
         break;

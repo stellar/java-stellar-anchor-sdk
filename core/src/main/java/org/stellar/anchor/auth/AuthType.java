@@ -1,7 +1,12 @@
 package org.stellar.anchor.auth;
 
+import com.google.gson.annotations.SerializedName;
+
 public enum AuthType {
+  @SerializedName("none")
   NONE,
+  @SerializedName("api_key")
   API_KEY,
-  JWT_TOKEN
+  @SerializedName("jwt")
+  JWT
 }

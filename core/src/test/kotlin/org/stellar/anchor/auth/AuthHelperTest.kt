@@ -25,7 +25,7 @@ class AuthHelperTest {
   @EnumSource(AuthType::class)
   fun `test AuthHeader creation based on the AuthType`(authType: AuthType) {
     when (authType) {
-      JWT_TOKEN -> {
+      JWT -> {
         // Mock calendar to guarantee the jwt token format
         val calendarSingleton = Calendar.getInstance()
         val currentTimeMilliseconds = calendarSingleton.timeInMillis

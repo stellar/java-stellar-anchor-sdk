@@ -125,10 +125,10 @@ public class CallbackApiBeans {
   AuthHelper buildAuthHelper(AppConfig appConfig, CallbackApiConfig callbackApiConfig) {
     String authSecret = callbackApiConfig.getAuth().getSecret();
     switch (callbackApiConfig.getAuth().getType()) {
-      case JWT_TOKEN:
+      case JWT:
         return AuthHelper.forJwtToken(
             new JwtService(authSecret),
-            Long.parseLong(callbackApiConfig.getAuth().getExpirationMilliseconds()),
+            Long.parseLong(callbackApiConfig.getAuth().getJwt().getExpirationMilliseconds()),
             appConfig.getHostUrl());
       case API_KEY:
         return AuthHelper.forApiKey(authSecret);
