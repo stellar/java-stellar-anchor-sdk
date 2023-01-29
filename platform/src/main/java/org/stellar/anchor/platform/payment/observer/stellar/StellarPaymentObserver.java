@@ -121,6 +121,7 @@ public class StellarPaymentObserver implements HealthCheckable {
   }
 
   SSEStream<OperationResponse> startSSEStream() {
+    
     String latestCursor = fetchStreamingCursor();
     debugF("SSEStream last cursor={}", latestCursor);
 
@@ -251,9 +252,14 @@ public class StellarPaymentObserver implements HealthCheckable {
    */
   String fetchStreamingCursor() {
     // Use database value, if any.
-    String lastToken = paymentStreamerCursorStore.load();
-    if (lastToken != null) {
-      return lastToken;
+    try {
+      String lastToken = paymentStreamerCursorStore.load();
+      if (lastToken != null) {
+        return lastToken;
+      }
+    } catch (Exception e) {
+      Log.error("Failed to fetch streaming cursor",e);
+      setStatus(ObserverStatus.DATABASE_ERROR);
     }
 
     // Otherwise, fetch the latest value from the network.
@@ -411,6 +417,7 @@ public class StellarPaymentObserver implements HealthCheckable {
       case PUBLISHER_ERROR:
         status = YELLOW;
         break;
+      case DATABASE_ERROR:
       case NEEDS_SHUTDOWN:
       case SHUTDOWN:
         status = RED;
@@ -503,10 +510,11 @@ class StreamHealth {
 }
 
 enum ObserverStatus {
+  DATABASE_ERROR,
   RUNNING,
-  STREAM_ERROR,
-  SILENCE_ERROR,
-  PUBLISHER_ERROR,
   NEEDS_SHUTDOWN,
+  PUBLISHER_ERROR,
   SHUTDOWN,
+  SILENCE_ERROR,
+  STREAM_ERROR,
 }

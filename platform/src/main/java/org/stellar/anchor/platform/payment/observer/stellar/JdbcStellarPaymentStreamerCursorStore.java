@@ -6,6 +6,7 @@ import java.util.Optional;
 import org.springframework.stereotype.Component;
 import org.stellar.anchor.platform.data.PaymentStreamerCursor;
 import org.stellar.anchor.platform.data.PaymentStreamerCursorRepo;
+import org.stellar.anchor.util.Log;
 
 @Component
 public class JdbcStellarPaymentStreamerCursorStore implements StellarPaymentStreamerCursorStore {
@@ -30,7 +31,12 @@ public class JdbcStellarPaymentStreamerCursorStore implements StellarPaymentStre
 
   @Override
   public String load() {
-    Optional<PaymentStreamerCursor> pageToken = repo.findById(SINGLETON_ID);
-    return pageToken.map(PaymentStreamerCursor::getCursor).orElse(null);
+    try {
+      Optional<PaymentStreamerCursor> pageToken = repo.findById(SINGLETON_ID);
+      return pageToken.map(PaymentStreamerCursor::getCursor).orElse(null);
+    } catch (Exception e) {
+      Log.error("Failed to load StreamerCursor",e);
+      throw e;
+    }
   }
 }
