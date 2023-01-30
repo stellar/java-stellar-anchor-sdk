@@ -6,6 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.stellar.anchor.api.exception.InvalidConfigException;
+import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.platform.config.PropertyEventConfig;
 import org.stellar.anchor.platform.event.*;
@@ -22,8 +23,9 @@ public class EventBeans {
   }
 
   @Bean
-  public EventService eventService(PropertyEventConfig eventConfig) throws InvalidConfigException {
-    DefaultEventService eventService = new DefaultEventService(eventConfig);
+  public EventService eventService(PropertyEventConfig eventConfig, AssetService assetService)
+      throws InvalidConfigException {
+    DefaultEventService eventService = new DefaultEventService(eventConfig, assetService);
     if (!eventConfig.isEnabled()) {
       eventService.setEventPublisher(new NoopEventPublisher());
     } else {

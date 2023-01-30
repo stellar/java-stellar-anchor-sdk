@@ -315,8 +315,6 @@ components:
     Refunds:
       type: object
       properties:
-        amount_refunded:
-          $ref: '#/components/schemas/Amount'
         amount_fee:
           $ref: '#/components/schemas/Amount'
         payments:

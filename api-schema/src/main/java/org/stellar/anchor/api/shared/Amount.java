@@ -15,7 +15,7 @@ public class Amount {
   public Amount() {}
 
   public static @Nullable Amount create(String amount, String asset) {
-    if (amount == null && asset == null) {
+    if (amount == null) {
       return null;
     }
 

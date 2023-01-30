@@ -24,9 +24,6 @@ public class PlatformTransactionData {
   @SerializedName("amount_expected")
   Amount amountExpected;
 
-  @SerializedName("amount_requested")
-  Amount amountRequested;
-
   @SerializedName("amount_in")
   Amount amountIn;
 

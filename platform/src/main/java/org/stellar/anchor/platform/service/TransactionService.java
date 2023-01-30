@@ -43,6 +43,7 @@ public class TransactionService {
   private final Sep24TransactionStore txn24Store;
   private final List<AssetInfo> assets;
   private final EventService eventService;
+  private final AssetService assetService;
 
   static boolean isStatusError(String status) {
     return List.of(PENDING_CUSTOMER_INFO_UPDATE.getStatus(), EXPIRED.getStatus(), ERROR.getStatus())
@@ -60,6 +61,7 @@ public class TransactionService {
     this.quoteStore = quoteStore;
     this.assets = assetService.listAllAssets();
     this.eventService = eventService;
+    this.assetService = assetService;
   }
 
   /**
@@ -76,7 +78,7 @@ public class TransactionService {
     }
     JdbcSepTransaction txn = findTransaction(txnId);
     if (txn != null) {
-      return toGetTransactionResponse(txn);
+      return toGetTransactionResponse(txn, assetService);
     } else {
       throw new NotFoundException(String.format("transaction (id=%s) is not found", txnId));
     }
@@ -134,7 +136,7 @@ public class TransactionService {
         break;
     }
     if (!lastStatus.equals(txn.getStatus())) updateMetrics(txn);
-    return toGetTransactionResponse(txn);
+    return toGetTransactionResponse(txn, assetService);
   }
 
   void updateMetrics(JdbcSepTransaction txn) {

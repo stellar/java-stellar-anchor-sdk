@@ -2,11 +2,14 @@ package org.stellar.anchor.platform.utils;
 
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.RECEIVE;
 
+import javax.annotation.Nullable;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.platform.GetTransactionResponse;
 import org.stellar.anchor.api.platform.PlatformTransactionData;
+import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.shared.*;
+import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSep31Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
@@ -15,11 +18,11 @@ import org.stellar.anchor.sep24.Sep24Refunds;
 import org.stellar.anchor.sep31.Sep31Refunds;
 
 public class TransactionHelper {
-  public static GetTransactionResponse toGetTransactionResponse(JdbcSepTransaction txn)
-      throws SepException {
+  public static GetTransactionResponse toGetTransactionResponse(
+      JdbcSepTransaction txn, AssetService assetService) throws SepException {
     switch (txn.getProtocol()) {
       case "24":
-        return toGetTransactionResponse((JdbcSep24Transaction) txn);
+        return toGetTransactionResponse((JdbcSep24Transaction) txn, assetService);
       case "31":
         return toGetTransactionResponse((JdbcSep31Transaction) txn);
       default:
@@ -56,24 +59,27 @@ public class TransactionHelper {
         .build();
   }
 
-  static GetTransactionResponse toGetTransactionResponse(JdbcSep24Transaction txn) {
+  static GetTransactionResponse toGetTransactionResponse(
+      JdbcSep24Transaction txn, AssetService assetService) {
     Refunds refunds = null;
     if (txn.getRefunds() != null) {
       refunds = toRefunds(txn.getRefunds(), txn.getAmountInAsset());
     }
+
+    String amountInAsset = makeAsset(txn.getAmountInAsset(), assetService, txn);
+    String amountOutAsset = makeAsset(txn.getAmountOutAsset(), assetService, txn);
+    String amountFeeAsset = makeAsset(txn.getAmountFeeAsset(), assetService, txn);
+    String amountExpectedAsset = makeAsset(null, assetService, txn);
 
     return GetTransactionResponse.builder()
         .id(txn.getId())
         .sep(PlatformTransactionData.Sep.SEP_24)
         .kind(PlatformTransactionData.Kind.from(txn.getKind()))
         .status(SepTransactionStatus.from(txn.getStatus()))
-        .amountIn(Amount.create(txn.getAmountIn(), txn.getAmountInAsset()))
-        .amountOut(Amount.create(txn.getAmountOut(), txn.getAmountOutAsset()))
-        .amountFee(Amount.create(txn.getAmountFee(), txn.getAmountFeeAsset()))
-        .amountRequested(
-            new Amount(
-                txn.getRequestedAmount(),
-                "stellar:" + txn.getRequestAssetCode() + ":" + txn.getRequestAssetIssuer()))
+        .amountIn(Amount.create(txn.getAmountIn(), amountInAsset))
+        .amountOut(Amount.create(txn.getAmountOut(), amountOutAsset))
+        .amountFee(Amount.create(txn.getAmountFee(), amountFeeAsset))
+        .amountExpected(new Amount(txn.getRequestedAmount(), amountExpectedAsset))
         .customers(
             new Customers(
                 StellarId.builder().account(txn.getToAccount()).build(),
@@ -85,6 +91,18 @@ public class TransactionHelper {
         .stellarTransactions(txn.getStellarTransactions())
         .externalTransactionId(txn.getExternalTransactionId())
         .build();
+  }
+
+  private static String makeAsset(
+      @Nullable String dbAsset, AssetService service, JdbcSep24Transaction txn) {
+    if (dbAsset != null) {
+      return dbAsset;
+    }
+
+    AssetInfo info = service.getAsset(txn.getRequestAssetCode(), txn.getRequestAssetIssuer());
+
+    // Already validated in the interactive flow
+    return info.getAssetName();
   }
 
   static RefundPayment toRefundPayment(Sep24RefundPayment refundPayment, String assetName) {
