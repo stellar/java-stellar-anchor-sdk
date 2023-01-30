@@ -38,11 +38,11 @@ sep1:
 
 callback_api:
   auth:
-    type: JWT
+    type: none
 
 platform_api:
   auth:
-    type: JWT
+    type: none
 
 sep10:
   enabled: true
