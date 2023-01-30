@@ -46,6 +46,7 @@ fun main(args: Array<String>) {
       install(CORS) {
         anyHost()
         allowHeader(HttpHeaders.Authorization)
+        allowHeader(HttpHeaders.ContentType)
       }
     }
     .start(args.getOrNull(0)?.toBooleanStrictOrNull() ?: true)

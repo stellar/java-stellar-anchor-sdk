@@ -51,8 +51,10 @@ fun Route.sep24(
         // TODO: return new JWT here
         call.respond(Success(transactionId))
       } catch (e: ClientException) {
+        log.error(e)
         call.respond(ErrorResponse(e.message!!))
       } catch (e: Exception) {
+        log.error(e)
         call.respond(
           ErrorResponse("Error occurred: ${e.message}"),
         )
@@ -76,6 +78,10 @@ fun Route.sep24(
 
         // TODO: decode sessionID
         val transaction = sep24.getTransaction(sessionId)
+
+        if (transaction.status != "incomplete") {
+          throw ClientException("Transaction has already been started.")
+        }
 
         when (transaction.kind.lowercase()) {
           "deposit" -> {
@@ -124,8 +130,10 @@ fun Route.sep24(
             )
         }
       } catch (e: ClientException) {
+        log.error(e)
         call.respond(ErrorResponse(e.message!!))
       } catch (e: Exception) {
+        log.error(e)
         call.respond(
           ErrorResponse("Error occurred: ${e.message}"),
         )
@@ -151,6 +159,7 @@ fun Route.sep24(
 
         call.respond(transaction)
       } catch (e: ClientException) {
+        log.error(e)
         call.respond(ErrorResponse(e.message!!))
       } catch (e: Exception) {
         log.error(e)
