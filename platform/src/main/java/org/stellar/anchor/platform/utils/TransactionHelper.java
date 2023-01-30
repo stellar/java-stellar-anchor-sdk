@@ -67,9 +67,9 @@ public class TransactionHelper {
         .sep(PlatformTransactionData.Sep.SEP_24)
         .kind(PlatformTransactionData.Kind.from(txn.getKind()))
         .status(SepTransactionStatus.from(txn.getStatus()))
-        .amountIn(new Amount(txn.getAmountIn(), txn.getAmountInAsset()))
-        .amountOut(new Amount(txn.getAmountOut(), txn.getAmountOutAsset()))
-        .amountFee(new Amount(txn.getAmountFee(), txn.getAmountFeeAsset()))
+        .amountIn(Amount.create(txn.getAmountIn(), txn.getAmountInAsset()))
+        .amountOut(Amount.create(txn.getAmountOut(), txn.getAmountOutAsset()))
+        .amountFee(Amount.create(txn.getAmountFee(), txn.getAmountFeeAsset()))
         .amountRequested(
             new Amount(
                 txn.getRequestedAmount(),
