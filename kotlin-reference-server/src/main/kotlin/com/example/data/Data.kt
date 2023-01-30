@@ -38,7 +38,7 @@ data class PatchTransactionRecord(
   @SerialName("withdrawal_anchor_account") val withdrawalAnchorAccount: String? = null
 )
 
-@Serializable data class Amount(val amount: String, val asset: String? = null)
+@Serializable data class Amount(val amount: String? = null, val asset: String? = null)
 
 class JwtToken(
   val iss: String, // Issuer

@@ -14,6 +14,7 @@ import io.ktor.server.application.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.util.logging.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -37,7 +38,7 @@ fun Route.sep24(
           throw ClientException("Invalid Authorization header")
         }
 
-        val token = JwtDecoder.decode(header.replace(Regex.fromLiteral("Bearer\\s+"), ""))
+        val token = JwtDecoder.decode(header.replace(Regex("Bearer\\s+"), ""))
 
         val transactionId = token.jti
 
@@ -70,7 +71,7 @@ fun Route.sep24(
           throw ClientException("Invalid Authorization header")
         }
 
-        val sessionId = header.replace(Regex.fromLiteral("Bearer\\s+"), "")
+        val sessionId = header.replace(Regex("Bearer\\s+"), "")
 
         // TODO: decode sessionID
         val transaction = sep24.getTransaction(sessionId)
@@ -142,7 +143,7 @@ fun Route.sep24(
           throw ClientException("Invalid Authorization header")
         }
 
-        val sessionId = header.replace(Regex.fromLiteral("Bearer\\s+"), "")
+        val sessionId = header.replace(Regex("Bearer\\s+"), "")
 
         // TODO: decode sessionID
         val transaction = sep24.getTransaction(sessionId)
@@ -151,6 +152,7 @@ fun Route.sep24(
       } catch (e: ClientException) {
         call.respond(ErrorResponse(e.message!!))
       } catch (e: Exception) {
+        log.error(e)
         call.respond(
           ErrorResponse("Error occurred: ${e.message}"),
         )
