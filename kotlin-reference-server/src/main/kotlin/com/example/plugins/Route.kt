@@ -60,7 +60,8 @@ fun Route.sep24(
     }
   }
 
-  route("/kyc") {
+  // Submits user input and starts transaction processing flow
+  route("/submit") {
     post {
       try {
         val header =
