@@ -32,7 +32,9 @@ class AnchorPlatformIntegrationTest {
           "secret.sep10.jwt_secret" to "secret",
           "secret.sep10.signing_seed" to "SAKXNWVTRVR4SJSHZUDB2CLJXEQHRT62MYQWA2HBB7YBOTCFJJJ55BZF",
           "secret.data.username" to "user1",
-          "secret.data.password" to "password"
+          "secret.data.password" to "password",
+          "secret.callback_api.auth_secret" to "callback_jwt_secret",
+          "secret.platform_api.auth_secret" to "platform_jwt_secret"
         )
 
       ServiceRunner.startSepServer(envMap)

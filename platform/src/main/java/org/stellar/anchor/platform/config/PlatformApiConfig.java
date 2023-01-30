@@ -38,7 +38,7 @@ public class PlatformApiConfig implements Validator {
         errors.rejectValue(
             "secret",
             "empty-secret",
-            "Please set environment variable [platform_api.auth.secret] for auth type:"
+            "Please set environment variable [SECRET.PLATFORM_API.AUTH_SECRET] for auth type:"
                 + config.getAuth().getType());
       }
     }

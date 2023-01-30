@@ -36,6 +36,14 @@ sep1:
       ORG_TWITTER = "StellarOrg"
       ORG_GITHUB = "stellar"
 
+callback_api:
+  auth:
+    type: JWT
+
+platform_api:
+  auth:
+    type: JWT
+
 sep10:
   enabled: true
 
