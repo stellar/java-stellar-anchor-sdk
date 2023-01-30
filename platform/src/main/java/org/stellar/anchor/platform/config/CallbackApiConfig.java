@@ -7,7 +7,7 @@ import lombok.Data;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
-import org.stellar.anchor.auth.AuthInfo;
+import org.stellar.anchor.auth.AuthConfig;
 import org.stellar.anchor.auth.AuthType;
 import org.stellar.anchor.util.NetUtil;
 
@@ -19,14 +19,14 @@ public class CallbackApiConfig implements Validator {
 
   Boolean checkCertificate;
 
-  AuthInfo auth;
+  AuthConfig auth;
   PropertySecretConfig secretConfig;
 
   public CallbackApiConfig(PropertySecretConfig secretConfig) {
     this.secretConfig = secretConfig;
   }
 
-  public void setAuth(AuthInfo auth) {
+  public void setAuth(AuthConfig auth) {
     auth.setSecret(secretConfig.getCallbackApiSecret());
     this.auth = auth;
   }
@@ -59,7 +59,7 @@ public class CallbackApiConfig implements Validator {
   }
 
   void validateAuth(CallbackApiConfig config, Errors errors) {
-    if (List.of(AuthType.API_KEY, AuthType.JWT_TOKEN).contains(config.getAuth().getType())) {
+    if (List.of(AuthType.API_KEY, AuthType.JWT).contains(config.getAuth().getType())) {
       if (isEmpty(config.getAuth().getSecret())) {
         errors.rejectValue(
             "auth",
@@ -68,8 +68,9 @@ public class CallbackApiConfig implements Validator {
                 + config.getAuth().getType());
       }
 
-      if (AuthType.JWT_TOKEN == config.getAuth().getType()
-          && (Long.parseLong(config.getAuth().getExpirationMilliseconds()) < MIN_EXPIRATION)) {
+      if (AuthType.JWT == config.getAuth().getType()
+          && (Long.parseLong(config.getAuth().getJwt().getExpirationMilliseconds())
+              < MIN_EXPIRATION)) {
         errors.rejectValue(
             "auth",
             "min-expirationMilliseconds",

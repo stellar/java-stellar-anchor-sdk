@@ -17,7 +17,7 @@ public class AuthHelper {
 
   public static AuthHelper forJwtToken(
       JwtService jwtService, long jwtExpirationMilliseconds, String issuerUrl) {
-    AuthHelper authHelper = new AuthHelper(AuthType.JWT_TOKEN);
+    AuthHelper authHelper = new AuthHelper(AuthType.JWT);
     authHelper.jwtService = jwtService;
     authHelper.issuerUrl = issuerUrl;
     authHelper.jwtExpirationMilliseconds = jwtExpirationMilliseconds;
@@ -37,7 +37,7 @@ public class AuthHelper {
   @Nullable
   public AuthHeader<String, String> createAuthHeader() {
     switch (authType) {
-      case JWT_TOKEN:
+      case JWT:
         long issuedAt = Calendar.getInstance().getTimeInMillis() / 1000L;
         long expirationTime = issuedAt + (jwtExpirationMilliseconds / 1000L);
         JwtToken token = JwtToken.of(issuerUrl, issuedAt, expirationTime);

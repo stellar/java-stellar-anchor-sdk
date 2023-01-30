@@ -1,6 +1,8 @@
 assets.type:
 assets.value:
-callback_api.auth.expiration_milliseconds:
+callback_api.auth.api_key.http_header:
+callback_api.auth.jwt.expiration_milliseconds:
+callback_api.auth.jwt.http_header:
 callback_api.auth.type:
 callback_api.base_url:
 callback_api.check_certificate:
@@ -56,7 +58,9 @@ payment_observer.stellar.silence_check_interval:
 payment_observer.stellar.silence_timeout:
 payment_observer.stellar.silence_timeout_retries:
 payment_observer.type:
-platform_api.auth.expiration_milliseconds:
+platform_api.auth.api_key.http_header:
+platform_api.auth.jwt.expiration_milliseconds:
+platform_api.auth.jwt.http_header:
 platform_api.auth.type:
 platform_api.base_url:
 secret.callback_api.secret:
