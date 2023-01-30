@@ -50,7 +50,7 @@ public class DefaultEventService implements EventService {
         AnchorEvent.builder()
             .id(UUID.randomUUID().toString())
             .sep("31")
-            .type(TRANSACTION_CREATED)
+            .type(type)
             .transaction(TransactionHelper.toGetTransactionResponse(jdbcTxn))
             .build();
     publish(event);

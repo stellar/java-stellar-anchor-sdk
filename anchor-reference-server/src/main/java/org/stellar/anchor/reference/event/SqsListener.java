@@ -71,21 +71,7 @@ public class SqsListener extends AbstractEventListener {
         while (messages.size() > 0) {
           for (Message message : messages) {
             AnchorEvent event = gson.fromJson(message.getBody(), AnchorEvent.class);
-            switch (event.getType()) {
-              case TRANSACTION_CREATED:
-              case TRANSACTION_ERROR:
-                processor.handleTransactionEvent(event);
-                break;
-              case TRANSACTION_STATUS_CHANGED:
-                processor.handleTransactionStatusChangedEvent(event);
-                break;
-              case QUOTE_CREATED:
-                break;
-              default:
-                Log.debug(
-                    "error: anchor_platform_event - invalid message type '%s'%n",
-                    event.getType().type);
-            }
+            processor.handleEvent(event);
             sqsClient.deleteMessage(queueUrl, message.getReceiptHandle());
           }
           if (Thread.interrupted()) {

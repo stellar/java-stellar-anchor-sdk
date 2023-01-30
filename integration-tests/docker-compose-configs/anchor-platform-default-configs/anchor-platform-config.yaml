@@ -14,6 +14,7 @@ platform_api:
   auth:
     type: JWT_TOKEN
     expiration_milliseconds: 30000
+  base_url: http://host.docker.internal:8080
 
 events:
   enabled: true

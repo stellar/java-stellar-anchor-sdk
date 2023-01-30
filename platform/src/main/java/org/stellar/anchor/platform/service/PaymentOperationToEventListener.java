@@ -158,6 +158,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
                                     StellarTransaction.addOrUpdateTransactions(
                                         txn.getStellarTransactions(), stellarTransaction))
                                 .stellarTransactionId(payment.getTransactionHash())
+                                .id(txn.getId())
                                 .build())
                         .build()))
             .build();

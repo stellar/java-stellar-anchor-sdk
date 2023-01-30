@@ -30,15 +30,18 @@ public class AnchorEventProcessor {
     }
   }
 
-  public void handleTransactionEvent(AnchorEvent event) {
+  public void handleEvent(AnchorEvent event) {
     Log.debugF("Received transaction event: {}", event);
     switch (event.getType()) {
       case TRANSACTION_CREATED:
+        break;
       case TRANSACTION_ERROR:
         break;
       case TRANSACTION_STATUS_CHANGED:
         handleTransactionStatusChangedEvent(event);
         break;
+      case QUOTE_CREATED:
+        handleQuoteEvent(event);
       default:
         Log.debugF("error: anchor_platform_event - invalid message type '{}'", event.getType());
     }
@@ -47,6 +50,10 @@ public class AnchorEventProcessor {
   public void handleTransactionStatusChangedEvent(AnchorEvent event) {
     // NOTE: this code skips processing the received payment and just marks the
     // transaction as complete.
+    if (event.getTransaction().getStatus().equals(SepTransactionStatus.COMPLETED)){
+      // skip if the transaction is already in COMPLETED state
+      return;
+    }
     Log.debugF("Updating transaction: {} on Anchor Platform to 'complete'", event.getId());
     PatchTransactionsRequest txnRequest =
         PatchTransactionsRequest.builder()
@@ -55,7 +62,7 @@ public class AnchorEventProcessor {
                     PatchTransactionRequest.builder()
                         .transaction(
                             PlatformTransactionData.builder()
-                                .id(event.getId())
+                                .id(event.getTransaction().getId())
                                 .status(SepTransactionStatus.COMPLETED)
                                 .amountOut(
                                     new Amount(

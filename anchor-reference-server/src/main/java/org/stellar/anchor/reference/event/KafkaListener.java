@@ -87,22 +87,7 @@ public class KafkaListener extends AbstractEventListener implements HealthChecka
         consumerRecords.forEach(
             record -> {
               AnchorEvent event = record.value();
-              switch (event.getType()) {
-                case TRANSACTION_CREATED:
-                case TRANSACTION_ERROR:
-                  processor.handleTransactionEvent(event);
-                  break;
-                case TRANSACTION_STATUS_CHANGED:
-                  processor.handleTransactionStatusChangedEvent(event);
-                  break;
-                case QUOTE_CREATED:
-                  processor.handleQuoteEvent(event);
-                  break;
-                default:
-                  Log.debug(
-                      "error: anchor_platform_event - invalid message type '%s'%n",
-                      event.getType());
-              }
+              processor.handleEvent(event);
             });
       } catch (Exception ex) {
         Log.errorEx(ex);
