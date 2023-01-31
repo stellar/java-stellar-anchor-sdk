@@ -32,7 +32,7 @@ data class PatchTransactionRecord(
   @SerialName("amount_in") val amountIn: Amount? = null,
   @SerialName("amount_out") val amountOut: Amount? = null,
   @SerialName("amount_fee") val amountFee: Amount? = null,
-  val stellarTransactionId: String? = null,
+  @SerialName("stellar_transaction_id") val stellarTransactionId: String? = null,
   val memo: String? = null,
   @SerialName("memo_type") val memoType: String? = null,
   @SerialName("withdrawal_anchor_account") val withdrawalAnchorAccount: String? = null
