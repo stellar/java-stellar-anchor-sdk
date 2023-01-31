@@ -7,7 +7,8 @@ import lombok.Data;
 /**
  * Refer to SEP-12.
  *
- * <p>https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0012.md#request-1
+ * <p>
+ * https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0012.md#request-1
  */
 @Data
 @Builder
@@ -72,6 +73,9 @@ public class Sep12PutCustomerRequest implements Sep12CustomerRequestBase {
 
   @SerializedName("clabe_number")
   String clabeNumber;
+
+  @SerializedName("cbu_alias")
+  String cbu_alias;
 
   @SerializedName("tax_id")
   String taxId;
