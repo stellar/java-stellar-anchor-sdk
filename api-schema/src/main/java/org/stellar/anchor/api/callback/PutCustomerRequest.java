@@ -67,6 +67,12 @@ public class PutCustomerRequest {
   @SerializedName("clabe_number")
   String clabeNumber;
 
+  @SerializedName("cbu_number")
+  String cbuNumber;
+
+  @SerializedName("cbu_alias")
+  String cbuAlias;
+
   @SerializedName("tax_id")
   String taxId;
 
