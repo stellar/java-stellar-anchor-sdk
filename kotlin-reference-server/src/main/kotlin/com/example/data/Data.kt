@@ -16,10 +16,11 @@ data class Transaction(
   @SerialName("to_account") val toAccount: String? = null,
   @SerialName("request_asset_code") val requestAssetCode: String? = null,
   @SerialName("request_asset_issuer") val requestAssetIssuer: String? = null,
+  // TODO: this fields are not populated
   @SerialName("memo") val memo: String? = null,
   @SerialName("memo_type") val memoType: String? = null,
-  val stellarTransactionId: String? = null,
-  @SerialName("withdrawal_anchor_account") val withdrawalAnchorAccount: String? = null
+  @SerialName("stellar_transaction_id") val stellarTransactionId: String? = null,
+  @SerialName("withdraw_anchor_account") val withdrawAnchorAccount: String? = null
 )
 
 @Serializable data class PatchTransactionsRequest(val records: List<PatchTransactionRecord>)
@@ -35,7 +36,7 @@ data class PatchTransactionRecord(
   @SerialName("stellar_transaction_id") val stellarTransactionId: String? = null,
   val memo: String? = null,
   @SerialName("memo_type") val memoType: String? = null,
-  @SerialName("withdrawal_anchor_account") val withdrawalAnchorAccount: String? = null
+  @SerialName("withdraw_anchor_account") val withdrawAnchorAccount: String? = null
 )
 
 @Serializable data class Amount(val amount: String? = null, val asset: String? = null)

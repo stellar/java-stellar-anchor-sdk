@@ -69,7 +69,7 @@ class WithdrawalService(private val cfg: Config) {
         amountFee = Amount(fee.toPlainString()),
         memo = memo,
         memoType = "text",
-        withdrawalAnchorAccount = cfg.sep24.keyPair.accountId
+        withdrawAnchorAccount = cfg.sep24.keyPair.accountId
       )
     )
 
