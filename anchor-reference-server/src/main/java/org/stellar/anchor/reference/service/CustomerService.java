@@ -33,6 +33,14 @@ public class CustomerService {
       if (maybeCustomer.isEmpty()) {
         throw new NotFoundException(
             String.format("customer for 'id' '%s' not found", request.getId()));
+      } else if (request.getType() != null) {
+        if (!request.getType().equals("sep31-sender")
+            && !request.getType().equals("sep31-receiver")) {
+          throw new NotFoundException(
+              String.format(
+                  "customer for 'id' '%s' and 'type' '%s' not found",
+                  request.getId(), request.getType()));
+        }
       }
     } else {
       maybeCustomer =
