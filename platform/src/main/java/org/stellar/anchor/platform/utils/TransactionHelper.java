@@ -79,7 +79,7 @@ public class TransactionHelper {
         .amountIn(Amount.create(txn.getAmountIn(), amountInAsset))
         .amountOut(Amount.create(txn.getAmountOut(), amountOutAsset))
         .amountFee(Amount.create(txn.getAmountFee(), amountFeeAsset))
-        .amountExpected(new Amount(txn.getAmountExpected(), amountExpectedAsset))
+        .amountExpected(Amount.create(txn.getAmountExpected(), amountExpectedAsset))
         .customers(
             new Customers(
                 StellarId.builder().account(txn.getToAccount()).build(),
