@@ -316,49 +316,37 @@ sep24:
   #
   enabled: false
 
-  ## @param: interactive_jwt_expiration
-  ## @type: integer
-  ## Set the timeout in seconds of the JSON Web Token returned with the embedded interactive url of the SEP-24 process.
-  ## An expired JWT will be rejected.
-  ##
-  ## If the interactive flow needs to access the platform server, the interactive process must finish within
-  ## the specified timeout period.
-  #
-  interactive_jwt_expiration: 3600
-
   ## @param: interactive_url
   # Configures the interactive URL where the platform server will redirect to start the SEP-24 interactive flow.
-  # If the type is `simple`, sep24.interactive_url.simple will be read to construct the url.
   #   base_uri: is the base_uri used to construct the interactive url
   #   txn_fields: is the list of transaction fields that will be appended to the interactive url as query parameters
+  #   jwt_expiration: the timeout in seconds of the JWT returned with the embedded interactive url of the SEP-24 process.
+  #          The jwt secret must be set by the environment variable: secret.sep24.interactive_url.jwt_secret
+  #
   #   In addition to the txn_fields, the following fields are also added to the query parameters.
   #       `transaction_id`: the transaction ID
-  #       `token`: the JWT token
-  #       `lang`: the lang request parameter and
-  #       any defined SEP-9 fields fromt he request parameters.
+  #       `token`: the JWT token,
+  #       `lang`: the lang request parameter,
+  #        and any defined SEP-9 fields from the request parameters.
   interactive_url:
-    type: simple
-    simple:
-      base_url: http://localhost:8080/sep24/interactive
-      txn_fields: status, kind, amount_in, amount_in_asset
+    base_url: http://localhost:8080/sep24/interactive
+    txn_fields: status, kind, amount_in, amount_in_asset
+    jwt_expiration: 600
 
   ## @param: more_info_url
   # Configures the more_info_url of the transaction response when calling GET /transaction and GET /transactions endpoints.
   # For details, please refer to https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0024.md#shared-fields-for-both-deposits-and-withdrawals
-  #
-  # If the type is `simple`, sep24.more_info_url.simple will be read to construct the url.
   #   base_uri: is the base_uri used to construct the more_info_url
   #   txn_fields: is the list of transaction fields that will be appended to the interactive url as query parameters
-  #   jwt_expiration: the JWT expiration in seconds
+  #   jwt_expiration: the timeout in seconds of the JWT returned with the embedded interactive url of the SEP-24 process.
+  #          The jwt secret must be set by the environment variable: secret.sep24.more_info_url.jwt_secret
   #   In addition to the txn_fields, the following fields are also added to the query parameters.
   #       `transaction_id`: the transaction ID
   #       `token`: the JWT token
   more_info_url:
-    type: simple
-    simple:
-      base_url: http://localhost:8080/sep24/transaction/more_info
-      txn_fields: kind, amount_in, amount_in_asset
-      jwt_expiration: 600
+    base_url: http://localhost:8080/sep24/transaction/more_info
+    txn_fields: kind, amount_in, amount_in_asset
+    jwt_expiration: 600
 
 sep31:
 
