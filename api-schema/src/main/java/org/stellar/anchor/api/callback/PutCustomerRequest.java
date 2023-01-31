@@ -71,7 +71,7 @@ public class PutCustomerRequest {
   String cbuNumber;
 
   @SerializedName("cbu_alias")
-  String cbu_alias;
+  String cbuAlias;
 
   @SerializedName("tax_id")
   String taxId;

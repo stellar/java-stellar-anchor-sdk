@@ -74,8 +74,11 @@ public class Sep12PutCustomerRequest implements Sep12CustomerRequestBase {
   @SerializedName("clabe_number")
   String clabeNumber;
 
+  @SerializedName("cbu_number")
+  String cbuNumber;
+
   @SerializedName("cbu_alias")
-  String cbu_alias;
+  String cbuAlias;
 
   @SerializedName("tax_id")
   String taxId;
