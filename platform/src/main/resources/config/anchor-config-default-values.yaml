@@ -22,7 +22,6 @@ stellar_network:
   ## Whether to use testnet (TESTNET) or pubnet (PUBNET)
   #
   network: TESTNET
-
   ## @param: network_passphrase
   ## @type: string
   ## The stellar network passphrase used to access Horizon server.
@@ -30,7 +29,6 @@ stellar_network:
   ## For testnet: use 'Test SDF Network ; September 2015'
   #
   network_passphrase: Test SDF Network ; September 2015
-
   ## @param: horizon_url
   ## @type: string
   ## A horizon server endpoint.
@@ -48,10 +46,8 @@ callback_api:
   ## "Callbacks API.yml" spec, which are: `/customer`, `/fee`, `/rate, and `/unique_address`.
   #
   base_url: http://localhost:8081
-
   ## If the flag is set to false, all certificates from the business servers will be trusted.
   check_certificate: false
-
   ## Authentication config for Anchor server and Anchor Platform server to safely communicate,
   ## particularly when housed in different clusters.
   ## The receiving party should verify that an incoming request token is still valid.
@@ -73,7 +69,6 @@ callback_api:
     ## is the Platform
     #
     type: jwt
-
     jwt:
       expiration_milliseconds: 30000
       http_header: Authorization
@@ -110,21 +105,17 @@ platform_api:
     ## is the Platform
     #
     type: none
-
     jwt:
       expiration_milliseconds: 30000
       http_header: Authorization
-
     api_key:
       http_header: X-Api-Key
 
 payment_observer:
   # The context path of the Stellar observer server
   context_path: /
-
   # The listening port of the Stellar observer server
   port: 8083
-
   ## @param: type
   ## @type: string
   ## @supported_values:
@@ -135,25 +126,18 @@ payment_observer:
     #
     # The interval in seconds when the silence check will run.  
     silence_check_interval: 5
-    
     # The silence_timeout in seconds.
-    #
     # If the observer had been silent for longer than the timeout value, the observer will try to reconnect to the stellar network.
     silence_timeout: 90
-
     # The maximum number of silence timeout retries before the observer will give up.
     # Setting the silence_timeout_retires to -1 will result in indefinite retires.
     silence_timeout_retries: 5
-    
     # The initial backoff (cool-down) time (in seconds) before reconnecting to the Stellar network 
     initial_stream_backoff_time: 5
-    
     # The maximum backoff (cool-down) time (in seconds) before reconnecting to the Stellar network 
     max_stream_backoff_time: 300
-    
     # The initial backoff (cool-down) time (in seconds) before reconnecting to the event publisher 
     initial_event_backoff_time: 5
-    
     # The initial backoff (cool-down) time (in seconds) before reconnecting to the event publisher 
     max_event_backoff_time: 300
 
@@ -161,10 +145,8 @@ payment_observer:
 event_processor:
   # The context path of the event processing server
   context_path: /
-
   # The listening port of the event processing server
   port: 8084
-
   # The queue where the event processor will
   queue:
     type: kafka
@@ -182,13 +164,11 @@ event_processor:
 ## The supported languages defined by RFC4646 (https://datatracker.ietf.org/doc/html/rfc4646)
 #
 languages: en
-
 logging:
   ## @param: level
   ## @type: string
   ## The root logger logging level
   level: INFO
-
   ## @param: level
   ## @type: string
   ## The "org.stellar" logger logging level.
@@ -200,21 +180,17 @@ logging:
 sep_server:
   # The context path of the SEP server
   context_path: /
-
   # The listening port of the SEP server
   port: 8080
-
   # the management server port
   management_server_port: 8082
 
 sep1:
-
   ## @param: enabled
   ## @type: bool
   ## Whether to enable SEP-1 for this instance of AP server.
   #
   enabled: false
-
   toml:
     ## @param: type
     ## @type: string
@@ -223,7 +199,6 @@ sep1:
     ##     `file`: value contains the path to the stellar toml file
     ##     `url`: value contains the url to the content of the stellar toml file
     type: string
-
     ## @param: value
     ## @type: string
     #
@@ -231,46 +206,38 @@ sep1:
 
 
 sep10:
-
   ## @param: enabled
   ## @type: bool
   ## Whether to enable SEP-10 for this instance of AP server.
   ## If true, @required_secrets: SEP10_SIGNING_SEED
   #
   enabled: false
-
   ## If `enabled` is set to True, the following two secrets must be set via the environment
   ## variables.
   ## `secret.sep10_signing_seed`: The private key for signing challenge transactions.
   ## `secret.sep10_jwt_secret`: The JWT encryption key.
   #
-
   ## @param: home_domain
   ## @type: string
   ## The `home_domain` property of SEP-10. https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#request
   #
   home_domain: localhost:8080
-
   ## @param: client_attribution_required
   ## @type: bool
   ## Set if the client attribution is required. Client Attribution requires clients to verify their identity by passing
   ## a domain in the challenge transaction request and signing the challenge with the ``SIGNING_KEY`` on that domain's
   ## SEP-1 stellar.toml. See the SEP-10 section `Verifying Client Application Identity` for more information
   ## (https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#verifying-client-application-identity).
-
   #
   client_attribution_required: false
-
   ## @param: client_attribution_allow_list
   ## Set the white list of the client domain. The domains are comma-separated.
   #
   client_attribution_allow_list:
-
   ## @param: client_attribution_deny_list
   ## Set the black list of the client domain. The domains are comma-separated.
   #
   client_attribution_deny_list:
-
   ## @param: auth_timeout
   ## @type: integer
   ## Set the authentication challenge transaction timeout in seconds. An expired signed transaction will be rejected.
@@ -278,21 +245,18 @@ sep10:
   ## transaction).
   #
   auth_timeout: 900
-
   ## @param: jwt_timeout
   ## @type: integer
   ## Set the timeout in seconds of the authenticated JSON Web Token. An expired JWT will be rejected.
   ## This is the timeout period after the client has authenticated.
   #
   jwt_timeout: 86400
-
   ## @param: omnibus_account_list
   ## A comma-separated list of omnibus accounts (comma separated).
   ## The SEP-10 omnibus account is described at:
   ##     https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#memos
   #
   omnibus_account_list:
-
   ## @param: require_known_omnibus_account
   ## @type: bool
   ## Whether to require authenticating clients to be in the omnibusAccountList
@@ -300,7 +264,6 @@ sep10:
   require_known_omnibus_account: false
 
 sep12:
-
   ## @param: enabled
   ## @type: bool
   ## Whether to enable SEP-12 for this instance of AP server.
@@ -308,18 +271,15 @@ sep12:
   enabled: false
 
 sep24:
-  ## SEP24 in experimental.
-
   ## @param: enabled
   ## @type: bool
   ## Whether to enable SEP-24 for this instance of AP server.
   #
   enabled: false
-
   ## @param: interactive_url
   # Configures the interactive URL where the platform server will redirect to start the SEP-24 interactive flow.
   #   base_uri: is the base_uri used to construct the interactive url
-  #   txn_fields: is the list of transaction fields that will be appended to the interactive url as query parameters
+  #   txn_fields: is an optional list of transaction fields that will be appended to the interactive url as query parameters. If empty, no fields from transaction will be appended.
   #   jwt_expiration: the timeout in seconds of the JWT returned with the embedded interactive url of the SEP-24 process.
   #          The jwt secret must be set by the environment variable: secret.sep24.interactive_url.jwt_secret
   #
@@ -330,14 +290,13 @@ sep24:
   #        and any defined SEP-9 fields from the request parameters.
   interactive_url:
     base_url: http://localhost:8080/sep24/interactive
-    txn_fields: status, kind, amount_in, amount_in_asset
+    txn_fields:
     jwt_expiration: 600
-
   ## @param: more_info_url
   # Configures the more_info_url of the transaction response when calling GET /transaction and GET /transactions endpoints.
   # For details, please refer to https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0024.md#shared-fields-for-both-deposits-and-withdrawals
   #   base_uri: is the base_uri used to construct the more_info_url
-  #   txn_fields: is the list of transaction fields that will be appended to the interactive url as query parameters
+  #   txn_fields: is an optional list of transaction fields that will be appended to the interactive url as query parameters. If empty, no fields from transaction will be appended.
   #   jwt_expiration: the timeout in seconds of the JWT returned with the embedded interactive url of the SEP-24 process.
   #          The jwt secret must be set by the environment variable: secret.sep24.more_info_url.jwt_secret
   #   In addition to the txn_fields, the following fields are also added to the query parameters.
@@ -345,17 +304,15 @@ sep24:
   #       `token`: the JWT token
   more_info_url:
     base_url: http://localhost:8080/sep24/transaction/more_info
-    txn_fields: kind, amount_in, amount_in_asset
+    txn_fields:
     jwt_expiration: 600
 
 sep31:
-
   ## @param: enabled
   ## @type: bool
   ## Whether to enable SEP-31 for this instance of AP server.
   #
   enabled: false
-
   ## @param: payment_type
   ## @default: STRICT_SEND
   ## Used to determine how amount_in is calculated from amount in the POST /transaction call
@@ -393,14 +350,12 @@ metrics:
   ## If true, enable metrics endpoints for third-party services (ex: prometheus) to scrape
   #
   enabled: false
-
   ## @param: extras_enabled
   ## @type: bool
   ## If true, enable extra metrics (these metrics periodically query the database to get the current state of the
   ## system)
   #
   extras_enabled: false
-
   ## @param: run_interval
   ## @type: integer
   ## Interval in seconds to query the database to generate metrics
@@ -418,7 +373,6 @@ events:
   ## Whether to enable events.
   #
   enabled: false
-
   ## @param: event_type_to_queue
   ## @type: map
   ## Mapping of the event type to the queue name that messages are published to
@@ -427,14 +381,12 @@ events:
     transaction_created: ap_event_transaction_created
     transaction_status_changed: ap_event_transaction_status_changed
     transaction_error: ap_event_transaction_error
-
   ## @param: publisher_type
   ## @supported_values: `kafka`, `sqs`, or `msk`
   ## The type of queue to use for event publishing
   #
   publisher:
     type: kafka
-
     ## If the value of `events.publisher.type` is "kafka", the `events.publisher.kafka` field must be defined.
     kafka:
       ## @param: bootstrap_server
@@ -451,7 +403,6 @@ events:
       linger_ms: 1000
       # Determines the maximum amount of data to be collected before sending the batch.
       batch_size: 10
-
     ## If the value of `publisher.type` is "sqs", the `events.publisher.sqs` field must be defined.
     sqs:
       ## @param: use_IAM
@@ -462,13 +413,11 @@ events:
       ## at https://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/setup-credentials.html
       #
       use_IAM: false
-
       ## @param: region
       ## @type: string
       ## AWS region for the queue. Can also be defined as environment variable: AWS_REGION
       #
       aws_region: us-east-1
-
     ## If the value of `publisher.type` is "msk", the `events.publisher.msk` field must be defined.
     msk:
       ## @param: use_IAM
@@ -480,7 +429,6 @@ events:
       ## at https://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/setup-credentials.html
       #
       use_IAM: false
-
       ## @param: bootstrap_server
       ## @type: string
       ## The Kafka server used to bootstrap setup in AWS
@@ -508,7 +456,6 @@ assets:
   ## Describe the asset definition.
   #
   type: json
-
   ## @param: value
   ## @type: string
   ## Example of yaml definition:
@@ -524,12 +471,10 @@ assets:
   #
   value: ""
 
-
 ################################
 ## Data Configuration
 ################################
 data:
-
   ## DB credentials are specified in @environment_variables SECRET_DATA_USERNAME, SECRET_DATA_PASSWORD
 
   ## @param: type
@@ -541,28 +486,23 @@ data:
   #
   #
   type: h2
-
   ## @param: url
   ## @type: string
   ## Location of the database
   #
   url: jdbc:h2:mem:anchor-platform
-
-
   ## @param: initial_connection_pool_size
   ## @type: integer
   ## Initial number of connections
   ## For `sqlite`, set this to 1 to avoid database file lock exception
   #
   initial_connection_pool_size: 1
-
   ## @param: max_active_connections
   ## @type: integer
   ## Maximum number of db active connections
   ## For `sqlite`, set this to 1 to avoid database file lock exception
   #
   max_active_connections: 10
-
   ## @param: flyway_enabled
   ## @type: bool
   ## Whether to enable flyway.
@@ -570,7 +510,6 @@ data:
   ## (ex: addForeignKeyConstraint) are not supported.
   #
   flyway_enabled: false
-
   ## @param: ddl_auto
   ## @supported_values:
   ##      `none`:	      (default) No database Schema initialization
@@ -582,13 +521,11 @@ data:
   ## ATTENTION: it should not be used in production!
   #
   ddl_auto: none
-
   ## @param: flyway_enabled
   ## @type: string
   ## Location on disk where migrations are stored if flyway is enabled.
   #
   flyway_location: /db/migration
-
   ## @param: hikari_max_lifetime
   ## @type: integer
   ## Maximum connection time before expiration
