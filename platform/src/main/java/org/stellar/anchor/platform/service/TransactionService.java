@@ -43,6 +43,7 @@ public class TransactionService {
   private final Sep24TransactionStore txn24Store;
   private final List<AssetInfo> assets;
   private final EventService eventService;
+  private final AssetService assetService;
 
   static boolean isStatusError(String status) {
     return List.of(PENDING_CUSTOMER_INFO_UPDATE.getStatus(), EXPIRED.getStatus(), ERROR.getStatus())
@@ -60,6 +61,7 @@ public class TransactionService {
     this.quoteStore = quoteStore;
     this.assets = assetService.listAllAssets();
     this.eventService = eventService;
+    this.assetService = assetService;
   }
 
   /**
@@ -76,7 +78,7 @@ public class TransactionService {
     }
     JdbcSepTransaction txn = findTransaction(txnId);
     if (txn != null) {
-      return toGetTransactionResponse(txn);
+      return toGetTransactionResponse(txn, assetService);
     } else {
       throw new NotFoundException(String.format("transaction (id=%s) is not found", txnId));
     }
@@ -134,7 +136,7 @@ public class TransactionService {
         break;
     }
     if (!lastStatus.equals(txn.getStatus())) updateMetrics(txn);
-    return toGetTransactionResponse(txn);
+    return toGetTransactionResponse(txn, assetService);
   }
 
   void updateMetrics(JdbcSepTransaction txn) {
@@ -179,16 +181,14 @@ public class TransactionService {
     // update stellar_transactions
     txnUpdated = updateField(patch, txn, "stellarTransactions", txnUpdated);
 
-    // update message
-    if (shouldClearMessageStatus) {
-      txn.setRequiredInfoMessage(null);
-    } else {
-      txnUpdated = updateField(patch, "message", txn, "requiredInfoMessage", txnUpdated);
-    }
-
     switch (txn.getProtocol()) {
       case "24":
         JdbcSep24Transaction sep24Txn = (JdbcSep24Transaction) txn;
+
+        txnUpdated = updateField(patch, sep24Txn, "message", txnUpdated);
+        txnUpdated = updateField(patch, sep24Txn, "memo", txnUpdated);
+        txnUpdated = updateField(patch, sep24Txn, "memoType", txnUpdated);
+
         // update refunds
         if (patch.getRefunds() != null) {
           Sep24Refunds updatedRefunds = Sep24Refunds.of(patch.getRefunds(), txn24Store);
@@ -199,6 +199,13 @@ public class TransactionService {
         }
         break;
       case "31":
+        // update message
+        if (shouldClearMessageStatus) {
+          txn.setRequiredInfoMessage(null);
+        } else {
+          txnUpdated = updateField(patch, "message", txn, "requiredInfoMessage", txnUpdated);
+        }
+
         JdbcSep31Transaction sep31Txn = (JdbcSep31Transaction) txn;
         // update sender and receiver
         txnUpdated = updateField(patch, "customers.sender", txn, "senderId", txnUpdated);

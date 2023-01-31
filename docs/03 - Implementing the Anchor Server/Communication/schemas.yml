@@ -279,6 +279,10 @@ components:
           type: string
         custodial_transaction_id:
           type: string
+        memo:
+          type: string
+        memo_type:
+          type: string
         customers:
           type: object
           description: |

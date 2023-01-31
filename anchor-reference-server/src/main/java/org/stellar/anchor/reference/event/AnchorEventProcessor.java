@@ -50,7 +50,7 @@ public class AnchorEventProcessor {
   public void handleTransactionStatusChangedEvent(AnchorEvent event) {
     // NOTE: this code skips processing the received payment and just marks the
     // transaction as complete.
-    if (event.getTransaction().getStatus().equals(SepTransactionStatus.COMPLETED)){
+    if (event.getTransaction().getStatus().equals(SepTransactionStatus.COMPLETED)) {
       // skip if the transaction is already in COMPLETED state
       return;
     }

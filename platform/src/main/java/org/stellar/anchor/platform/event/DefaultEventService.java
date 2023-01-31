@@ -9,6 +9,7 @@ import java.util.UUID;
 import lombok.SneakyThrows;
 import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.EventPublishException;
+import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.event.EventConfig;
 import org.stellar.anchor.event.EventPublisher;
 import org.stellar.anchor.event.EventService;
@@ -20,12 +21,14 @@ import org.stellar.anchor.sep31.Sep31Transaction;
 public class DefaultEventService implements EventService {
   private final EventConfig eventConfig;
   private EventPublisher eventPublisher;
+  private AssetService assetService;
 
   private final Map<String, String> eventTypeMapping;
 
-  public DefaultEventService(EventConfig eventConfig) {
+  public DefaultEventService(EventConfig eventConfig, AssetService assetService) {
     this.eventConfig = eventConfig;
     this.eventTypeMapping = eventConfig.getEventTypeToQueue();
+    this.assetService = assetService;
   }
 
   @Override
@@ -37,7 +40,7 @@ public class DefaultEventService implements EventService {
             .id(UUID.randomUUID().toString())
             .sep("24")
             .type(TRANSACTION_CREATED)
-            .transaction(TransactionHelper.toGetTransactionResponse(jdbcTxn))
+            .transaction(TransactionHelper.toGetTransactionResponse(jdbcTxn, assetService))
             .build();
     publish(event);
   }
@@ -51,7 +54,7 @@ public class DefaultEventService implements EventService {
             .id(UUID.randomUUID().toString())
             .sep("31")
             .type(type)
-            .transaction(TransactionHelper.toGetTransactionResponse(jdbcTxn))
+            .transaction(TransactionHelper.toGetTransactionResponse(jdbcTxn, assetService))
             .build();
     publish(event);
   }

@@ -64,6 +64,12 @@ public class PlatformTransactionData {
   @SerializedName("custodial_transaction_id")
   String custodialTransactionId;
 
+  @SerializedName("memo")
+  String memo;
+
+  @SerializedName("memo_type")
+  String memoType;
+
   Customers customers;
   StellarId creator;
 
