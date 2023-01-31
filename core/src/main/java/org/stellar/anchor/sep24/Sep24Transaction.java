@@ -101,9 +101,9 @@ public interface Sep24Transaction {
   void setRequestAssetIssuer(String assetIssuer);
 
   /** Amount requested by the user as a string with up to 7 decimals. */
-  String getRequestedAmount();
+  String getAmountExpected();
 
-  void setRequestedAmount(String amount);
+  void setAmountExpected(String amount);
 
   /**
    * The Stellar account used to authenticate SEP-10;.

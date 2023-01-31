@@ -121,5 +121,5 @@ public class JdbcSep24Transaction extends JdbcSepTransaction
   Boolean claimableBalanceSupported;
 
   @SerializedName("amount_requested")
-  String requestedAmount;
+  String amountExpected;
 }

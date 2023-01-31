@@ -115,8 +115,8 @@ public class Sep24TransactionBuilder {
     return this;
   }
 
-  public Sep24TransactionBuilder requestedAmount(String requestedAmount) {
-    txn.setRequestedAmount(requestedAmount);
+  public Sep24TransactionBuilder amountExpected(String amountExpected) {
+    txn.setAmountExpected(amountExpected);
     return this;
   }
 

@@ -5,8 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 
 /**
- * Refer to SEP-12. <a
- * href=
+ * Refer to SEP-12. <a href=
  * "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0012.md#request-1">...</a>
  */
 @Data
