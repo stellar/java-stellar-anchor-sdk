@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.2.4
+* Fix customer type not being properly resolved (when multiple types are configured) [#721](https://github.com/stellar/java-stellar-anchor-sdk/pull/721)
+
 ## 1.2.2
 * Detects and handle silent and errored SSEStream. [#632](https://github.com/stellar/java-stellar-anchor-sdk/issues/632)
 * When the health status is RED, set the status code to 500.
