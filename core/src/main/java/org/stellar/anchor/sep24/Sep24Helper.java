@@ -90,7 +90,8 @@ public class Sep24Helper {
         fullRequestUrl,
         token.getSub(),
         Instant.now().getEpochSecond(),
-        Instant.now().getEpochSecond() + sep24Config.getInteractiveJwtExpiration(),
+        //            Instant.now().getEpochSecond() + sep24Config.getInteractiveJwtExpiration(),
+        Instant.now().getEpochSecond(),
         txn.getTransactionId(),
         token.getClientDomain());
   }

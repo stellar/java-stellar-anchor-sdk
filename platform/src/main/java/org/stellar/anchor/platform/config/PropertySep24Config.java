@@ -20,15 +20,8 @@ public class PropertySep24Config implements Sep24Config, Validator {
   @AllArgsConstructor
   @NoArgsConstructor
   public static class InteractiveUrlConfig {
-    String type;
-    SimpleInteractiveUrlConfig simple;
-  }
-
-  @Data
-  @AllArgsConstructor
-  @NoArgsConstructor
-  public static class SimpleInteractiveUrlConfig {
     String baseUrl;
+    int jwtExpiration;
     List<String> txnFields;
   }
 
@@ -36,17 +29,9 @@ public class PropertySep24Config implements Sep24Config, Validator {
   @AllArgsConstructor
   @NoArgsConstructor
   public static class MoreInfoUrlConfig {
-    String type;
-    SimpleMoreInfoUrlConfig simple;
-  }
-
-  @Data
-  @AllArgsConstructor
-  @NoArgsConstructor
-  public static class SimpleMoreInfoUrlConfig {
     String baseUrl;
-    List<String> txnFields;
     int jwtExpiration;
+    List<String> txnFields;
   }
 
   @Override
@@ -78,28 +63,21 @@ public class PropertySep24Config implements Sep24Config, Validator {
           "sep24-interactive-url-invalid",
           "sep24.interactive_url is not defined.");
     } else {
-      if ("simple".equals(config.interactiveUrl.getType())) {
-        if (config.interactiveUrl.getSimple() == null) {
-          errors.rejectValue(
-              "interactiveUrl",
-              "sep24-interactive-url-simple-not-defined",
-              "sep24.interactive_url.simple is not defined.");
-        }
-        if (!NetUtil.isUrlValid(config.interactiveUrl.simple.baseUrl)) {
-          errors.rejectValue(
-              "interactiveUrl",
-              "sep24-interactive-url-simple-base-url-not-valid",
-              String.format(
-                  "sep24.interactive_url.simple.base_url:[%s] is not a valid URL.",
-                  config.interactiveUrl.simple.baseUrl));
-        }
-      } else {
+      if (!NetUtil.isUrlValid(config.interactiveUrl.baseUrl)) {
         errors.rejectValue(
             "interactiveUrl",
-            "sep24-interactive-url-invalid-type",
+            "sep24-interactive-url-base-url-not-valid",
             String.format(
-                "sep24.interactive_url.type:[%s] is not supported.",
-                config.interactiveUrl.getType()));
+                "sep24.interactive_url.base_url:[%s] is not a valid URL.",
+                config.interactiveUrl.baseUrl));
+      }
+      if (config.interactiveUrl.jwtExpiration <= 0) {
+        errors.rejectValue(
+            "moreInfoUrl",
+            "sep24-interactive-url-jwt-expiration-not-valid",
+            String.format(
+                "sep24.interactive_url.jwt_expiration:[%s] must be greater than 0.",
+                config.interactiveUrl.jwtExpiration));
       }
     }
   }
@@ -109,36 +87,21 @@ public class PropertySep24Config implements Sep24Config, Validator {
       errors.rejectValue(
           "moreInfoUrl", "sep24-moreinfo-url-invalid", "sep24.more-info-url is not defined.");
     } else {
-      if ("simple".equals(config.moreInfoUrl.getType())) {
-        if (config.moreInfoUrl.getSimple() == null) {
-          errors.rejectValue(
-              "moreInfoUrl",
-              "sep24-more-info-url-simple-not-defined",
-              "sep24.more_info_url.simple is not defined.");
-        }
-        if (!NetUtil.isUrlValid(config.moreInfoUrl.simple.baseUrl)) {
-          errors.rejectValue(
-              "moreInfoUrl",
-              "sep24-more-info-url-simple-base-url-not-valid",
-              String.format(
-                  "sep24.more_info_url.simple.base_url:[%s] is not a valid URL.",
-                  config.moreInfoUrl.simple.baseUrl));
-        }
-        if (config.moreInfoUrl.simple.jwtExpiration <= 0) {
-          errors.rejectValue(
-              "moreInfoUrl",
-              "sep24-more-info-url-simple-jwt-expiration-not-valid",
-              String.format(
-                  "sep24.more_info_url.simple.jwt_expiration:[%s] must be greater than 0.",
-                  config.moreInfoUrl.simple.jwtExpiration));
-        }
-      } else {
+      if (!NetUtil.isUrlValid(config.moreInfoUrl.baseUrl)) {
         errors.rejectValue(
             "moreInfoUrl",
-            "sep24-more-info-url-invalid-type",
+            "sep24-more-info-url-base-url-not-valid",
             String.format(
-                "sep24.more_info_url.type:[%s] is not supported.",
-                config.interactiveUrl.getType()));
+                "sep24.more_info_url.base_url:[%s] is not a valid URL.",
+                config.moreInfoUrl.baseUrl));
+      }
+      if (config.moreInfoUrl.jwtExpiration <= 0) {
+        errors.rejectValue(
+            "moreInfoUrl",
+            "sep24-more-info-url-jwt-expiration-not-valid",
+            String.format(
+                "sep24.more_info_url.jwt_expiration:[%s] must be greater than 0.",
+                config.moreInfoUrl.jwtExpiration));
       }
     }
   }

@@ -1,6 +1,5 @@
 package org.stellar.anchor.platform.service;
 
-import static org.stellar.anchor.platform.config.PropertySep24Config.SimpleInteractiveUrlConfig;
 import static org.stellar.anchor.util.StringHelper.snakeToCamelCase;
 
 import java.net.MalformedURLException;
@@ -11,15 +10,16 @@ import org.apache.commons.beanutils.BeanUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.auth.JwtToken;
+import org.stellar.anchor.platform.config.PropertySep24Config.InteractiveUrlConfig;
 import org.stellar.anchor.sep24.InteractiveUrlConstructor;
 import org.stellar.anchor.sep24.Sep24Transaction;
 import org.stellar.anchor.util.StringHelper;
 
 public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
-  private final SimpleInteractiveUrlConfig config;
+  private final InteractiveUrlConfig config;
   private final JwtService jwtService;
 
-  public SimpleInteractiveUrlConstructor(SimpleInteractiveUrlConfig config, JwtService jwtService) {
+  public SimpleInteractiveUrlConstructor(InteractiveUrlConfig config, JwtService jwtService) {
     this.config = config;
     this.jwtService = jwtService;
   }

@@ -76,7 +76,6 @@ internal class Sep24ServiceTest {
     every { appConfig.stellarNetworkPassphrase } returns TestConstants.TEST_NETWORK_PASS_PHRASE
     every { appConfig.hostUrl } returns TestConstants.TEST_HOST_URL
     every { secretConfig.sep10JwtSecretKey } returns TestConstants.TEST_JWT_SECRET
-    every { sep24Config.interactiveJwtExpiration } returns 1000
     every { txnStore.newInstance() } returns PojoSep24Transaction()
 
     jwtService = spyk(JwtService(secretConfig))
