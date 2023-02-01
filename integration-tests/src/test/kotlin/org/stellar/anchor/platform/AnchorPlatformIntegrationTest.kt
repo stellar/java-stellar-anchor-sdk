@@ -31,6 +31,8 @@ class AnchorPlatformIntegrationTest {
           "stellar_anchor_config" to "classpath:integration-test.anchor-config.yaml",
           "secret.sep10.jwt_secret" to "secret",
           "secret.sep10.signing_seed" to "SAKXNWVTRVR4SJSHZUDB2CLJXEQHRT62MYQWA2HBB7YBOTCFJJJ55BZF",
+          "secret.sep24.interactive_url.jwt_secret" to "sep24 interactive url secret",
+          "secret.sep24.more_info_url.jwt_secret" to "sep24 more_info url secret",
           "secret.data.username" to "user1",
           "secret.data.password" to "password",
           "secret.callback_api.auth_secret" to "callback_jwt_secret",
@@ -101,6 +103,7 @@ class AnchorPlatformIntegrationTest {
   fun runCallbackApiTest() {
     callbackApiTestAll()
   }
+
   @Test
   @Order(8)
   fun runStellarObserverTest() {

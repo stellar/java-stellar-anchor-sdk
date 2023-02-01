@@ -34,7 +34,7 @@ class RestFeeIntegrationTest {
 
     private const val PLATFORM_TO_ANCHOR_SECRET = "myPlatformToAnchorSecret"
     private const val JWT_EXPIRATION_MILLISECONDS: Long = 1000000
-    private val platformToAnchorJwtService = JwtService(PLATFORM_TO_ANCHOR_SECRET)
+    private val platformToAnchorJwtService = JwtService(PLATFORM_TO_ANCHOR_SECRET, null, null)
     private val authHelper =
       AuthHelper.forJwtToken(
         platformToAnchorJwtService,
@@ -61,10 +61,10 @@ class RestFeeIntegrationTest {
 
     // Mock calendar to guarantee the jwt token format
     val calendarSingleton = Calendar.getInstance()
-    val currentTimeMilliseconds = calendarSingleton.getTimeInMillis()
+    val currentTimeMilliseconds = calendarSingleton.timeInMillis
     mockkObject(calendarSingleton)
-    every { calendarSingleton.getTimeInMillis() } returns currentTimeMilliseconds
-    every { calendarSingleton.setTimeInMillis(any()) } answers { callOriginal() }
+    every { calendarSingleton.timeInMillis } returns currentTimeMilliseconds
+    every { calendarSingleton.timeInMillis = any() } answers { callOriginal() }
     mockkStatic(Calendar::class)
     every { Calendar.getInstance() } returns calendarSingleton
     // mock jwt token based on the mocked calendar

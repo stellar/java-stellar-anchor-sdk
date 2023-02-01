@@ -85,7 +85,7 @@ public class Sep24Helper {
   }
 
   public static Sep10Jwt buildRedirectJwtToken(
-          Sep24Config sep24Config, String fullRequestUrl, Sep10Jwt token, Sep24Transaction txn) {
+      Sep24Config sep24Config, String fullRequestUrl, Sep10Jwt token, Sep24Transaction txn) {
     return Sep10Jwt.of(
         fullRequestUrl,
         token.getSub(),

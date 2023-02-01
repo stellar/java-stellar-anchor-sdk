@@ -42,7 +42,7 @@ class CallbackApiTests {
         .writeTimeout(10, TimeUnit.MINUTES)
         .build()
 
-    private val platformToAnchorJwtService = JwtService(PLATFORM_TO_ANCHOR_SECRET)
+    private val platformToAnchorJwtService = JwtService(PLATFORM_TO_ANCHOR_SECRET, null, null)
 
     private val authHelper =
       AuthHelper.forJwtToken(

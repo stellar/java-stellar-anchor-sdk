@@ -75,7 +75,7 @@ public class JwtTokenFilter implements Filter {
     }
 
     try {
-      Sep10Jwt token = jwtService.decode(jwtCipher);
+      Sep10Jwt token = new Sep10Jwt(jwtService.decode(jwtCipher));
       validate(token);
       infoF(
           "token created. account={} url={}", shorter(token.getAccount()), request.getRequestURL());

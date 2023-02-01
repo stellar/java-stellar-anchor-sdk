@@ -25,7 +25,7 @@ class SimpleMoreInfoUrlConstructorTest {
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
 
-    every { jwtService.encode(any()) } returns "mock_token"
+    every { jwtService.encode(ofType(Sep10Jwt::class)) } returns "mock_token"
 
     sep10Jwt = Sep10Jwt()
     txn = gson.fromJson(TXN_JSON, JdbcSep24Transaction::class.java)
@@ -33,7 +33,8 @@ class SimpleMoreInfoUrlConstructorTest {
 
   @Test
   fun `test correct config`() {
-    val config = gson.fromJson(SIMPLE_CONFIG_JSON, PropertySep24Config.MoreInfoUrlConfig::class.java)
+    val config =
+      gson.fromJson(SIMPLE_CONFIG_JSON, PropertySep24Config.MoreInfoUrlConfig::class.java)
     val constructor = SimpleMoreInfoUrlConstructor(config, jwtService)
     val url = constructor.construct(txn)
     assertEquals(EXPECTED_URL, url)
@@ -41,9 +42,10 @@ class SimpleMoreInfoUrlConstructorTest {
 }
 
 private const val SIMPLE_CONFIG_JSON =
-    """
+  """
 {
   "baseUrl": "http://localhost:8080/sep24/more_info_url",
+  "jwtExpiration": 600,
   "txnFields": [
     "kind",
     "status"
@@ -52,7 +54,7 @@ private const val SIMPLE_CONFIG_JSON =
 """
 
 private const val TXN_JSON =
-    """
+  """
 {
   "id": "123",
   "transaction_id": "txn_123",
@@ -64,4 +66,4 @@ private const val TXN_JSON =
 """
 
 private const val EXPECTED_URL =
-    """http://localhost:8080/transaction-status?transaction_id=txn_123&token=mock_token"""
+  """http://localhost:8080/transaction-status?transaction_id=txn_123&token=mock_token"""

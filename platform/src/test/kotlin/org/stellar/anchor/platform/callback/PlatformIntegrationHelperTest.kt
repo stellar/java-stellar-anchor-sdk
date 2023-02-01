@@ -47,7 +47,7 @@ class PlatformIntegrationHelperTest {
             (currentTimeMilliseconds + JWT_EXPIRATION_MILLISECONDS) / 1000L
           )
 
-        val jwtService = JwtService("secret")
+        val jwtService = JwtService("secret", null, null)
         val authHelper =
           AuthHelper.forJwtToken(jwtService, JWT_EXPIRATION_MILLISECONDS, TEST_HOME_DOMAIN)
 

@@ -1,7 +1,8 @@
 package org.stellar.anchor.platform.config
 
-import java.lang.Integer.MIN_VALUE
-import org.junit.jupiter.api.Assertions.*
+import java.lang.Long.MIN_VALUE
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -20,7 +21,6 @@ class Sep24ConfigTest {
     config = PropertySep24Config()
     config.enabled = true
     errors = BindException(config, "config")
-    config.interactiveJwtExpiration = 1200
     config.interactiveUrl = InteractiveUrlConfig("https://www.stellar.org", 600, listOf(""))
     config.moreInfoUrl = MoreInfoUrlConfig("https://www.stellar.org", 600, listOf(""))
   }
@@ -32,22 +32,21 @@ class Sep24ConfigTest {
   }
 
   @ParameterizedTest
-  @ValueSource(ints = [-1, MIN_VALUE, 0])
-  fun `test bad interactive jwt expiration`(expiration: Int) {
-    config.interactiveJwtExpiration = expiration
-
-    config.validate(config, errors)
-    assertTrue(errors.hasErrors())
-    assertErrorCode(errors, "sep24-interactive-jwt-expiration-invalid")
-  }
-
-  @ParameterizedTest
   @ValueSource(strings = ["httpss://www.stellar.org"])
   fun `test interactive url with bad url configuration`(url: String) {
     config.interactiveUrl = InteractiveUrlConfig(url, 600, listOf(""))
 
     config.validate(config, errors)
-    assertEquals("sep24-interactive-url-simple-base-url-not-valid", errors.allErrors[0].code)
+    assertEquals("sep24-interactive-url-base-url-not-valid", errors.allErrors[0].code)
+  }
+
+  @ParameterizedTest
+  @ValueSource(longs = [-1, MIN_VALUE, 0])
+  fun `test interactive url with invalid jwt_expiration`(expiration: Long) {
+    config.interactiveUrl = InteractiveUrlConfig("https://www.stellar.org", expiration, listOf(""))
+
+    config.validate(config, errors)
+    assertEquals("sep24-interactive-url-jwt-expiration-not-valid", errors.allErrors[0].code)
   }
 
   @ParameterizedTest
@@ -56,15 +55,15 @@ class Sep24ConfigTest {
     config.moreInfoUrl = MoreInfoUrlConfig(url, 100, listOf(""))
 
     config.validate(config, errors)
-    assertEquals("sep24-more-info-url-simple-base-url-not-valid", errors.allErrors[0].code)
+    assertEquals("sep24-more-info-url-base-url-not-valid", errors.allErrors[0].code)
   }
 
   @ParameterizedTest
-  @ValueSource(ints = [-1, MIN_VALUE, 0])
-  fun `test more_info_url with invalid jwt_expiration`(expiration: Int) {
+  @ValueSource(longs = [-1, MIN_VALUE, 0])
+  fun `test more_info_url with invalid jwt_expiration`(expiration: Long) {
     config.moreInfoUrl = MoreInfoUrlConfig("https://www.stellar.org", expiration, listOf(""))
 
     config.validate(config, errors)
-    assertEquals("sep24-more-info-url-simple-jwt-expiration-not-valid", errors.allErrors[0].code)
+    assertEquals("sep24-more-info-url-jwt-expiration-not-valid", errors.allErrors[0].code)
   }
 }

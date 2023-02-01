@@ -4,23 +4,40 @@ import io.jsonwebtoken.*;
 import io.jsonwebtoken.impl.DefaultJwsHeader;
 import java.nio.charset.StandardCharsets;
 import java.util.Calendar;
+import java.util.Map;
 import lombok.Getter;
 import org.apache.commons.codec.binary.Base64;
+import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.config.SecretConfig;
 
 @Getter
 public class JwtService {
-  final String jwtKey;
+  public static final String CLIENT_DOMAIN = "client_domain";
+  String sep10JwtSecret;
+  String sep24InteractiveUrlJwtSecret;
+  String sep24MoreInfoUrlJwtSecret;
 
   public JwtService(SecretConfig secretConfig) {
-    this(secretConfig.getSep10JwtSecretKey());
+    this(
+        secretConfig.getSep10JwtSecretKey(),
+        secretConfig.getSep24InteractiveUrlJwtSecret(),
+        secretConfig.getSep24MoreInfoUrlJwtSecret());
   }
 
-  public JwtService(String secretKey) {
-    this.jwtKey =
-        (secretKey == null)
+  public JwtService(
+      String sep10JwtSecret,
+      String sep24InteractiveUrlJwtSecret,
+      String sep24MoreInfoUrlJwtSecret) {
+    this.sep10JwtSecret =
+        (sep10JwtSecret == null)
             ? null
-            : Base64.encodeBase64String(secretKey.getBytes(StandardCharsets.UTF_8));
+            : Base64.encodeBase64String(sep10JwtSecret.getBytes(StandardCharsets.UTF_8));
+    this.sep24InteractiveUrlJwtSecret =
+        (sep24InteractiveUrlJwtSecret == null)
+            ? null
+            : Base64.encodeBase64String(
+                sep24InteractiveUrlJwtSecret.getBytes(StandardCharsets.UTF_8));
+    this.sep24MoreInfoUrlJwtSecret = sep24MoreInfoUrlJwtSecret;
   }
 
   public String encode(Sep10Jwt token) {
@@ -40,16 +57,31 @@ public class JwtService {
             .setSubject(token.getSub());
 
     if (token.getClientDomain() != null) {
-      builder.claim("client_domain", token.getClientDomain());
+      builder.claim(CLIENT_DOMAIN, token.getClientDomain());
     }
 
-    return builder.signWith(SignatureAlgorithm.HS256, jwtKey).compact();
+    return builder.signWith(SignatureAlgorithm.HS256, sep10JwtSecret).compact();
+  }
+
+  public String encode(Sep24InteractiveUrlJwt token) throws InvalidConfigException {
+    if (sep24InteractiveUrlJwtSecret == null) {
+      throw new InvalidConfigException(
+          "Please provide the secret before encoding JWT for Sep24 interactive url");
+    }
+    Calendar calExp = Calendar.getInstance();
+    calExp.setTimeInMillis(1000L * token.getExp());
+    JwtBuilder builder = Jwts.builder().setId(token.getJti()).setExpiration(calExp.getTime());
+    for (Map.Entry<String, String> claim : token.claims.entrySet()) {
+      builder.claim(claim.getKey(), claim.getValue());
+    }
+
+    return builder.signWith(SignatureAlgorithm.HS256, sep10JwtSecret).compact();
   }
 
   @SuppressWarnings("rawtypes")
-  public Sep10Jwt decode(String cipher) {
+  public Jwt decode(String cipher) {
     JwtParser jwtParser = Jwts.parser();
-    jwtParser.setSigningKey(jwtKey);
+    jwtParser.setSigningKey(sep10JwtSecret);
     Jwt jwt = jwtParser.parseClaimsJws(cipher);
     Header header = jwt.getHeader();
     if (!(header instanceof DefaultJwsHeader)) {
@@ -61,13 +93,7 @@ public class JwtService {
       // Not signed by the JWTService.
       throw new IllegalArgumentException("Bad token");
     }
-    Claims claims = (Claims) jwt.getBody();
-    return Sep10Jwt.of(
-        (String) claims.get("iss"),
-        (String) claims.get("sub"),
-        Long.parseLong(claims.get("iat").toString()),
-        Long.parseLong(claims.get("exp").toString()),
-        (String) claims.get("jti"),
-        (String) claims.get("client_domain"));
+
+    return jwt;
   }
 }

@@ -84,7 +84,7 @@ public class Sep31Service {
 
   @Transactional(rollbackOn = {AnchorException.class, RuntimeException.class})
   public Sep31PostTransactionResponse postTransaction(
-          Sep10Jwt sep10Jwt, Sep31PostTransactionRequest request) throws AnchorException {
+      Sep10Jwt sep10Jwt, Sep31PostTransactionRequest request) throws AnchorException {
     Context.reset();
     Context.get().setRequest(request);
     Context.get().setSep10Jwt(sep10Jwt);

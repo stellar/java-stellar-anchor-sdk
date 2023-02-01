@@ -36,6 +36,7 @@ import org.stellar.anchor.api.exception.SepValidationException
 import org.stellar.anchor.api.sep.sep10.ChallengeRequest
 import org.stellar.anchor.api.sep.sep10.ValidationRequest
 import org.stellar.anchor.auth.JwtService
+import org.stellar.anchor.auth.Sep10Jwt
 import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.config.Sep10Config
@@ -76,8 +77,11 @@ internal class Sep10ServiceTest {
   }
 
   @MockK(relaxed = true) private lateinit var appConfig: AppConfig
+
   @MockK(relaxed = true) private lateinit var secretConfig: SecretConfig
+
   @MockK(relaxed = true) private lateinit var sep10Config: Sep10Config
+
   @MockK(relaxed = true) private lateinit var horizon: Horizon
 
   private lateinit var jwtService: JwtService
@@ -429,7 +433,7 @@ internal class Sep10ServiceTest {
     every { horizon.server.accounts().account(ofType(String::class)) } returns accountResponse
 
     val response = sep10Service.validateChallenge(vr)
-    val jwt = jwtService.decode(response.token)
+    val jwt = Sep10Jwt(jwtService.decode(response.token))
     assertEquals("${clientKeyPair.accountId}:$TEST_MEMO", jwt.sub)
   }
 
@@ -451,7 +455,7 @@ internal class Sep10ServiceTest {
 
     val validationResponse = sep10Service.validateChallenge(vr)
 
-    val token = jwtService.decode(validationResponse.token)
+    val token = Sep10Jwt(jwtService.decode(validationResponse.token))
     assertEquals(token.clientDomain, TEST_CLIENT_DOMAIN)
 
     // Test when the transaction was not signed by the client domain and the client account exists

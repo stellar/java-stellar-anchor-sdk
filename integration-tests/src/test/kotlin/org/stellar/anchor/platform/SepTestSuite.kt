@@ -1,12 +1,9 @@
 package org.stellar.anchor.platform
 
 import org.apache.commons.cli.*
-import org.stellar.anchor.auth.JwtService
 
 var CLIENT_WALLET_ACCOUNT = "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
 var CLIENT_WALLET_SECRET = "SBHTWEF5U7FK53FLGDMBQYGXRUJ24VBM3M6VDXCHRIGCRG3Z64PH45LW"
-
-val jwtService = JwtService("secret")
 
 fun main(args: Array<String>) {
   // Start necessary servers

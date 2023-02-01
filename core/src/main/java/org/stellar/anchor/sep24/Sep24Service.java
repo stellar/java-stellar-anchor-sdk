@@ -70,7 +70,7 @@ public class Sep24Service {
   }
 
   public InteractiveTransactionResponse withdraw(
-          String fullRequestUrl, Sep10Jwt token, Map<String, String> withdrawRequest)
+      String fullRequestUrl, Sep10Jwt token, Map<String, String> withdrawRequest)
       throws SepException, MalformedURLException, URISyntaxException, EventPublishException {
     info("Creating withdrawal transaction.");
     if (token == null) {
@@ -162,13 +162,12 @@ public class Sep24Service {
     debug("Transaction details:", txn);
     return new InteractiveTransactionResponse(
         "interactive_customer_info_needed",
-        interactiveUrlConstructor.construct(
-            buildRedirectJwtToken(sep24Config, fullRequestUrl, token, txn), txn, lang, sep9Fields),
+        interactiveUrlConstructor.construct(txn, lang, sep9Fields),
         txn.getTransactionId());
   }
 
   public InteractiveTransactionResponse deposit(
-          String fullRequestUrl, Sep10Jwt token, Map<String, String> depositRequest)
+      String fullRequestUrl, Sep10Jwt token, Map<String, String> depositRequest)
       throws SepException, MalformedURLException, URISyntaxException, EventPublishException {
     info("Creating deposit transaction.");
     if (token == null) {
@@ -276,8 +275,7 @@ public class Sep24Service {
 
     return new InteractiveTransactionResponse(
         "interactive_customer_info_needed",
-        interactiveUrlConstructor.construct(
-            buildRedirectJwtToken(sep24Config, fullRequestUrl, token, txn), txn, lang, sep9Fields),
+        interactiveUrlConstructor.construct(txn, lang, sep9Fields),
         txn.getTransactionId());
   }
 

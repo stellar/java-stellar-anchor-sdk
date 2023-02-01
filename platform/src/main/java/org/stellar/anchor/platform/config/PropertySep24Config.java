@@ -12,7 +12,6 @@ import org.stellar.anchor.util.NetUtil;
 @Setter
 public class PropertySep24Config implements Sep24Config, Validator {
   boolean enabled;
-  int interactiveJwtExpiration;
   InteractiveUrlConfig interactiveUrl;
   MoreInfoUrlConfig moreInfoUrl;
 
@@ -21,7 +20,7 @@ public class PropertySep24Config implements Sep24Config, Validator {
   @NoArgsConstructor
   public static class InteractiveUrlConfig {
     String baseUrl;
-    int jwtExpiration;
+    long jwtExpiration;
     List<String> txnFields;
   }
 
@@ -30,7 +29,7 @@ public class PropertySep24Config implements Sep24Config, Validator {
   @NoArgsConstructor
   public static class MoreInfoUrlConfig {
     String baseUrl;
-    int jwtExpiration;
+    long jwtExpiration;
     List<String> txnFields;
   }
 
@@ -42,15 +41,6 @@ public class PropertySep24Config implements Sep24Config, Validator {
   @Override
   public void validate(@NotNull Object target, @NotNull Errors errors) {
     PropertySep24Config config = (PropertySep24Config) target;
-
-    if (config.getInteractiveJwtExpiration() <= 0) {
-      errors.rejectValue(
-          "interactiveJwtExpiration",
-          "sep24-interactive-jwt-expiration-invalid",
-          String.format(
-              "sep24.interactive_jwt_expiration:%s is not valid",
-              config.getInteractiveJwtExpiration()));
-    }
 
     validateInteractiveUrlConfig(config, errors);
     validateMoreInfoUrlConfig(config, errors);

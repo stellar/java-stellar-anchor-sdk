@@ -21,7 +21,7 @@ public class ApiClientBeans {
     switch (platformApiConfig.getAuth().getType()) {
       case JWT:
         return AuthHelper.forJwtToken(
-            new JwtService(secret),
+            new JwtService(secret, null, null),
             Long.parseLong(platformApiConfig.getAuth().getJwt().getExpirationMilliseconds()),
             appConfig.getHostUrl());
       case API_KEY:

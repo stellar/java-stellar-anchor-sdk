@@ -35,7 +35,7 @@ class RestRateIntegrationTest {
   companion object {
     private const val PLATFORM_TO_ANCHOR_SECRET = "myPlatformToAnchorSecret"
     private const val JWT_EXPIRATION_MILLISECONDS: Long = 100000000
-    private val platformToAnchorJwtService = JwtService(PLATFORM_TO_ANCHOR_SECRET)
+    private val platformToAnchorJwtService = JwtService(PLATFORM_TO_ANCHOR_SECRET, null, null)
     private val authHelper =
       AuthHelper.forJwtToken(
         platformToAnchorJwtService,

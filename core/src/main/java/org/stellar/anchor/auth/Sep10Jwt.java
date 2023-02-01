@@ -1,23 +1,20 @@
 package org.stellar.anchor.auth;
 
+import static org.stellar.anchor.auth.JwtService.CLIENT_DOMAIN;
+
 import com.google.gson.annotations.SerializedName;
-import lombok.Data;
+import io.jsonwebtoken.Jwt;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.stellar.sdk.AccountConverter;
 import org.stellar.sdk.KeyPair;
 import org.stellar.sdk.xdr.MuxedAccount;
 
-@Data
-public class Sep10Jwt {
-  public Sep10Jwt() {}
-
-  String iss; // Issuer
-  String sub; // Subject          // Stellar Account
-  long iat; // Issued At
-  long exp; // Expiration Time
-  String jti; // JWT ID           // Stellar Transaction ID
-  // String aud;   // Audience
-  // long nbf;     // Not Before
-
+@Getter
+@Setter
+@NoArgsConstructor
+public class Sep10Jwt extends AbstractJwt {
   @SerializedName(value = "client_domain")
   String clientDomain;
 
@@ -30,10 +27,6 @@ public class Sep10Jwt {
   String muxedAccount;
 
   Long muxedAccountId;
-
-  public Long getMuxedAccountId() {
-    return this.muxedAccountId;
-  }
 
   public String getTransactionId() {
     return this.jti;
@@ -51,49 +44,58 @@ public class Sep10Jwt {
     return this.exp;
   }
 
+  public Sep10Jwt(Jwt jwt) {
+    super(jwt);
+    this.clientDomain = claims.get(CLIENT_DOMAIN);
+    updateAccountAndMemo();
+  }
+
+  public Sep10Jwt(String iss, String sub, long iat, long exp, String jti, String clientDomain) {
+    this.iss = iss;
+    this.sub = sub;
+    this.iat = iat;
+    this.exp = exp;
+    this.jti = jti;
+    this.clientDomain = clientDomain;
+    updateAccountAndMemo();
+  }
+
   public static Sep10Jwt of(
       String iss, String sub, long iat, long exp, String jti, String clientDomain) {
-    Sep10Jwt token = new Sep10Jwt();
+    return new Sep10Jwt(iss, sub, iat, exp, jti, clientDomain);
+  }
+
+  public static Sep10Jwt of(String iss, long iat, long exp) {
+    Sep10Jwt token = new Sep10Jwt(iss, null, iat, 0, null, null);
     token.iss = iss;
-    token.sub = sub;
     token.iat = iat;
     token.exp = exp;
-    token.jti = jti;
-    token.clientDomain = clientDomain;
+    return token;
+  }
 
+  void updateAccountAndMemo() {
     // Parse account & memo or muxedAccount & muxedAccountId:
     if (sub != null) {
       String[] subs = sub.split(":", 2);
       if (subs.length == 2) {
-        token.account = subs[0];
-        token.accountMemo = subs[1];
+        this.account = subs[0];
+        this.accountMemo = subs[1];
       } else {
-        token.account = sub;
-        token.accountMemo = null;
+        this.account = sub;
+        this.accountMemo = null;
 
         try {
           MuxedAccount maybeMuxedAccount = AccountConverter.enableMuxed().encode(sub);
           MuxedAccount.MuxedAccountMed25519 muxedAccount = maybeMuxedAccount.getMed25519();
-          if (muxedAccount == null) {
-            return token;
+          if (muxedAccount != null) {
+            this.muxedAccount = sub;
+            byte[] pubKeyBytes = muxedAccount.getEd25519().getUint256();
+            this.account = KeyPair.fromPublicKey(pubKeyBytes).getAccountId();
+            this.muxedAccountId = muxedAccount.getId().getUint64();
           }
-
-          token.muxedAccount = sub;
-          byte[] pubKeyBytes = muxedAccount.getEd25519().getUint256();
-          token.account = KeyPair.fromPublicKey(pubKeyBytes).getAccountId();
-          token.muxedAccountId = muxedAccount.getId().getUint64();
         } catch (Exception ignored) {
         }
       }
     }
-    return token;
-  }
-
-  public static Sep10Jwt of(String iss, long iat, long exp) {
-    Sep10Jwt token = new Sep10Jwt();
-    token.iss = iss;
-    token.iat = iat;
-    token.exp = exp;
-    return token;
   }
 }
