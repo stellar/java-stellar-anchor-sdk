@@ -21,7 +21,7 @@ import org.stellar.anchor.api.exception.NotFoundException
 import org.stellar.anchor.api.exception.ServerErrorException
 import org.stellar.anchor.auth.AuthHelper
 import org.stellar.anchor.auth.JwtService
-import org.stellar.anchor.auth.JwtToken
+import org.stellar.anchor.auth.Sep10Jwt
 import org.stellar.anchor.platform.callback.RestFeeIntegration
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.OkHttpUtil
@@ -69,7 +69,7 @@ class RestFeeIntegrationTest {
     every { Calendar.getInstance() } returns calendarSingleton
     // mock jwt token based on the mocked calendar
     val jwtToken =
-      JwtToken.of(
+      Sep10Jwt.of(
         "http://localhost:8080",
         currentTimeMilliseconds / 1000L,
         (currentTimeMilliseconds + JWT_EXPIRATION_MILLISECONDS) / 1000L

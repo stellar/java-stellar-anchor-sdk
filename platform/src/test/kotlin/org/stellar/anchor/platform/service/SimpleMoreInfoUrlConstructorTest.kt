@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.stellar.anchor.auth.JwtService
-import org.stellar.anchor.auth.JwtToken
+import org.stellar.anchor.auth.Sep10Jwt
 import org.stellar.anchor.platform.config.PropertySep24Config
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
 import org.stellar.anchor.util.GsonUtils
@@ -18,8 +18,8 @@ class SimpleMoreInfoUrlConstructorTest {
   }
 
   @MockK(relaxed = true) private lateinit var jwtService: JwtService
-  lateinit var jwtToken: JwtToken
-  lateinit var txn: JdbcSep24Transaction
+  private lateinit var sep10Jwt: Sep10Jwt
+  private lateinit var txn: JdbcSep24Transaction
 
   @BeforeEach
   fun setup() {
@@ -27,22 +27,21 @@ class SimpleMoreInfoUrlConstructorTest {
 
     every { jwtService.encode(any()) } returns "mock_token"
 
-    jwtToken = JwtToken()
-    txn = gson.fromJson(txnJson, JdbcSep24Transaction::class.java)
+    sep10Jwt = Sep10Jwt()
+    txn = gson.fromJson(TXN_JSON, JdbcSep24Transaction::class.java)
   }
 
   @Test
   fun `test correct config`() {
-    val config =
-      gson.fromJson(simpleConfig, PropertySep24Config.SimpleMoreInfoUrlConfig::class.java)
+    val config = gson.fromJson(SIMPLE_CONFIG_JSON, PropertySep24Config.MoreInfoUrlConfig::class.java)
     val constructor = SimpleMoreInfoUrlConstructor(config, jwtService)
     val url = constructor.construct(txn)
-    assertEquals(expectedUrl, url)
+    assertEquals(EXPECTED_URL, url)
   }
 }
 
-private const val simpleConfig =
-  """
+private const val SIMPLE_CONFIG_JSON =
+    """
 {
   "baseUrl": "http://localhost:8080/sep24/more_info_url",
   "txnFields": [
@@ -52,8 +51,8 @@ private const val simpleConfig =
 }
 """
 
-private const val txnJson =
-  """
+private const val TXN_JSON =
+    """
 {
   "id": "123",
   "transaction_id": "txn_123",
@@ -64,5 +63,5 @@ private const val txnJson =
 }  
 """
 
-private const val expectedUrl =
-  """http://localhost:8080/transaction-status?transaction_id=txn_123&token=mock_token"""
+private const val EXPECTED_URL =
+    """http://localhost:8080/transaction-status?transaction_id=txn_123&token=mock_token"""

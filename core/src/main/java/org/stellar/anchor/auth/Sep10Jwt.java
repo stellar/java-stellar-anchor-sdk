@@ -7,8 +7,8 @@ import org.stellar.sdk.KeyPair;
 import org.stellar.sdk.xdr.MuxedAccount;
 
 @Data
-public class JwtToken {
-  public JwtToken() {}
+public class Sep10Jwt {
+  public Sep10Jwt() {}
 
   String iss; // Issuer
   String sub; // Subject          // Stellar Account
@@ -51,9 +51,9 @@ public class JwtToken {
     return this.exp;
   }
 
-  public static JwtToken of(
+  public static Sep10Jwt of(
       String iss, String sub, long iat, long exp, String jti, String clientDomain) {
-    JwtToken token = new JwtToken();
+    Sep10Jwt token = new Sep10Jwt();
     token.iss = iss;
     token.sub = sub;
     token.iat = iat;
@@ -89,8 +89,8 @@ public class JwtToken {
     return token;
   }
 
-  public static JwtToken of(String iss, long iat, long exp) {
-    JwtToken token = new JwtToken();
+  public static Sep10Jwt of(String iss, long iat, long exp) {
+    Sep10Jwt token = new Sep10Jwt();
     token.iss = iss;
     token.iat = iat;
     token.exp = exp;

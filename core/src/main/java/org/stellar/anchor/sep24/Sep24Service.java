@@ -24,7 +24,7 @@ import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.sep24.*;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtService;
-import org.stellar.anchor.auth.JwtToken;
+import org.stellar.anchor.auth.Sep10Jwt;
 import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.Sep24Config;
 import org.stellar.anchor.event.EventService;
@@ -70,7 +70,7 @@ public class Sep24Service {
   }
 
   public InteractiveTransactionResponse withdraw(
-      String fullRequestUrl, JwtToken token, Map<String, String> withdrawRequest)
+          String fullRequestUrl, Sep10Jwt token, Map<String, String> withdrawRequest)
       throws SepException, MalformedURLException, URISyntaxException, EventPublishException {
     info("Creating withdrawal transaction.");
     if (token == null) {
@@ -168,7 +168,7 @@ public class Sep24Service {
   }
 
   public InteractiveTransactionResponse deposit(
-      String fullRequestUrl, JwtToken token, Map<String, String> depositRequest)
+          String fullRequestUrl, Sep10Jwt token, Map<String, String> depositRequest)
       throws SepException, MalformedURLException, URISyntaxException, EventPublishException {
     info("Creating deposit transaction.");
     if (token == null) {
@@ -281,7 +281,7 @@ public class Sep24Service {
         txn.getTransactionId());
   }
 
-  public GetTransactionsResponse findTransactions(JwtToken token, GetTransactionsRequest txReq)
+  public GetTransactionsResponse findTransactions(Sep10Jwt token, GetTransactionsRequest txReq)
       throws SepException, MalformedURLException, URISyntaxException {
     if (token == null) {
       info("missing SEP-10 token");
@@ -309,7 +309,7 @@ public class Sep24Service {
     return result;
   }
 
-  public Sep24GetTransactionResponse findTransaction(JwtToken token, GetTransactionRequest txReq)
+  public Sep24GetTransactionResponse findTransaction(Sep10Jwt token, GetTransactionRequest txReq)
       throws SepException, IOException, URISyntaxException {
     if (token == null) {
       info("missing SEP-10 token");

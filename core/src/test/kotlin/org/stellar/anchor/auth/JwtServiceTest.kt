@@ -30,7 +30,7 @@ internal class JwtServiceTest {
 
     val jwtService = JwtService(secretConfig)
     val token =
-      JwtToken.of(
+      Sep10Jwt.of(
         TEST_ISS,
         TEST_SUB,
         TEST_IAT,

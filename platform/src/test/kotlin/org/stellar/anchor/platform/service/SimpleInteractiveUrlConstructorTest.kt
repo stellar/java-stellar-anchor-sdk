@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.stellar.anchor.auth.JwtService
-import org.stellar.anchor.auth.JwtToken
+import org.stellar.anchor.auth.Sep10Jwt
 import org.stellar.anchor.platform.config.PropertySep24Config
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
 import org.stellar.anchor.util.GsonUtils
@@ -19,9 +19,9 @@ class SimpleInteractiveUrlConstructorTest {
   }
 
   @MockK(relaxed = true) private lateinit var jwtService: JwtService
-  lateinit var jwtToken: JwtToken
-  lateinit var sep9Fields: HashMap<*, *>
-  lateinit var txn: JdbcSep24Transaction
+  private lateinit var sep10Jwt: Sep10Jwt
+  private lateinit var sep9Fields: HashMap<*, *>
+  private lateinit var txn: JdbcSep24Transaction
 
   @BeforeEach
   fun setup() {
@@ -29,23 +29,22 @@ class SimpleInteractiveUrlConstructorTest {
 
     every { jwtService.encode(any()) } returns "mock_token"
 
-    jwtToken = JwtToken()
-    sep9Fields = gson.fromJson(sep9FieldsJson, HashMap::class.java)
-    txn = gson.fromJson(txnJson, JdbcSep24Transaction::class.java)
+    sep10Jwt = Sep10Jwt()
+    sep9Fields = gson.fromJson(SEP9_FIELDS_JSON, HashMap::class.java)
+    txn = gson.fromJson(TXN_JSON, JdbcSep24Transaction::class.java)
   }
 
   @Test
   fun `test correct config`() {
-    val config =
-      gson.fromJson(simpleConfig, PropertySep24Config.SimpleInteractiveUrlConfig::class.java)
+    val config = gson.fromJson(SIMPLE_CONFIG_JSON, PropertySep24Config.InteractiveUrlConfig::class.java)
     val constructor = SimpleInteractiveUrlConstructor(config, jwtService)
-    val url = constructor.construct(jwtToken, txn, "en", sep9Fields as HashMap<String, String>?)
-    assertEquals(wantedTestUrl, url)
+    val url = constructor.construct(sep10Jwt, txn, "en", sep9Fields as HashMap<String, String>?)
+    assertEquals(WANTED_TEST_URL, url)
   }
 }
 
-private const val simpleConfig =
-  """
+private const val SIMPLE_CONFIG_JSON =
+    """
 {
   "baseUrl": "http://localhost:8080/sep24/interactive",
   "txnFields": [
@@ -57,16 +56,16 @@ private const val simpleConfig =
 }
 """
 
-private const val sep9FieldsJson =
-  """
+private const val SEP9_FIELDS_JSON =
+    """
 {
   "name": "John Doe",
   "email": "john_doe@stellar.org"
 }
 """
 
-private const val txnJson =
-  """
+private const val TXN_JSON =
+    """
 {
   "id": "123",
   "transaction_id": "txn_123",
@@ -77,5 +76,5 @@ private const val txnJson =
 }  
 """
 
-private const val wantedTestUrl =
-  """http://localhost:8080/sep24/interactive?transaction_id=txn_123&token=mock_token&lang=en&name=John+Doe&email=john_doe%40stellar.org&kind=deposit&amountIn=100&amountInAsset=stellar%3AUSDC%3AGDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"""
+private const val WANTED_TEST_URL =
+    """http://localhost:8080/sep24/interactive?transaction_id=txn_123&token=mock_token&lang=en&name=John+Doe&email=john_doe%40stellar.org&kind=deposit&amountIn=100&amountInAsset=stellar%3AUSDC%3AGDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"""

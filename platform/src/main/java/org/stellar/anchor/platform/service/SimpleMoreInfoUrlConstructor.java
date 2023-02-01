@@ -8,7 +8,7 @@ import java.net.URISyntaxException;
 import java.time.Instant;
 import org.apache.http.client.utils.URIBuilder;
 import org.stellar.anchor.auth.JwtService;
-import org.stellar.anchor.auth.JwtToken;
+import org.stellar.anchor.auth.Sep10Jwt;
 import org.stellar.anchor.sep24.MoreInfoUrlConstructor;
 import org.stellar.anchor.sep24.Sep24Transaction;
 
@@ -23,8 +23,8 @@ public class SimpleMoreInfoUrlConstructor extends MoreInfoUrlConstructor {
 
   @Override
   public String construct(Sep24Transaction txn) throws URISyntaxException, MalformedURLException {
-    JwtToken token =
-        JwtToken.of(
+    Sep10Jwt token =
+        Sep10Jwt.of(
             "moreInfoUrl",
             txn.getSep10Account(),
             Instant.now().getEpochSecond(),

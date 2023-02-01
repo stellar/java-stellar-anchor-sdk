@@ -16,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 import org.stellar.anchor.api.exception.*;
 import org.stellar.anchor.api.sep.SepExceptionResponse;
 import org.stellar.anchor.api.sep.sep24.*;
-import org.stellar.anchor.auth.JwtToken;
+import org.stellar.anchor.auth.Sep10Jwt;
 import org.stellar.anchor.platform.condition.ConditionalOnAllSepsEnabled;
 import org.stellar.anchor.sep24.Sep24Service;
 
@@ -49,7 +49,7 @@ public class Sep24Controller {
       HttpServletRequest request, @RequestBody HashMap<String, String> requestData)
       throws SepException, MalformedURLException, URISyntaxException, EventPublishException {
     debug("/deposit", requestData);
-    JwtToken token = getSep10Token(request);
+    Sep10Jwt token = getSep10Token(request);
     String fullUrl = getFullRequestUrl(request);
     InteractiveTransactionResponse itr = sep24Service.deposit(fullUrl, token, requestData);
     info("interactive redirection:", itr);
@@ -80,7 +80,7 @@ public class Sep24Controller {
       HttpServletRequest request, @RequestBody HashMap<String, String> requestData)
       throws SepException, MalformedURLException, URISyntaxException, EventPublishException {
     debug("/withdraw", requestData);
-    JwtToken token = getSep10Token(request);
+    Sep10Jwt token = getSep10Token(request);
     String fullUrl = getFullRequestUrl(request);
     InteractiveTransactionResponse itr = sep24Service.withdraw(fullUrl, token, requestData);
     info("interactive redirection:", itr);
@@ -111,7 +111,7 @@ public class Sep24Controller {
       HttpServletRequest request, @RequestBody GetTransactionsRequest tr)
       throws SepException, MalformedURLException, URISyntaxException {
     debug("/transactions", tr);
-    JwtToken token = getSep10Token(request);
+    Sep10Jwt token = getSep10Token(request);
     return sep24Service.findTransactions(token, tr);
   }
 
@@ -150,7 +150,7 @@ public class Sep24Controller {
       HttpServletRequest request, @RequestBody(required = false) GetTransactionRequest tr)
       throws SepException, IOException, URISyntaxException {
     debug("/transaction", tr);
-    JwtToken token = getSep10Token(request);
+    Sep10Jwt token = getSep10Token(request);
 
     return sep24Service.findTransaction(token, tr);
   }

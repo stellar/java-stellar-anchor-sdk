@@ -34,7 +34,7 @@ import org.stellar.anchor.api.sep.sep24.GetTransactionsRequest
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.auth.JwtService
-import org.stellar.anchor.auth.JwtToken
+import org.stellar.anchor.auth.Sep10Jwt
 import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.config.Sep24Config
@@ -66,7 +66,7 @@ internal class Sep24ServiceTest {
 
   private lateinit var jwtService: JwtService
   private lateinit var sep24Service: Sep24Service
-  private lateinit var createdJwt: JwtToken
+  private lateinit var createdJwt: Sep10Jwt
 
   private val gson = GsonUtils.getInstance()
 
@@ -468,11 +468,11 @@ internal class Sep24ServiceTest {
     assertTrue(response.url.indexOf("lang=en") != -1)
   }
 
-  private fun createJwtToken(): JwtToken {
+  private fun createJwtToken(): Sep10Jwt {
     return TestHelper.createJwtToken(TEST_ACCOUNT, null, appConfig.hostUrl, TEST_CLIENT_DOMAIN)
   }
 
-  private fun createJwtWithMemo(): JwtToken {
+  private fun createJwtWithMemo(): Sep10Jwt {
     return TestHelper.createJwtToken(TEST_ACCOUNT, TEST_MEMO, appConfig.hostUrl, TEST_CLIENT_DOMAIN)
   }
 }

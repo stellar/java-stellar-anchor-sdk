@@ -995,7 +995,7 @@ class Sep31ServiceTest {
   fun `Test update fee ok`() {
     val jwtToken = TestHelper.createJwtToken()
     Context.get().request = request
-    Context.get().jwtToken = jwtToken
+    Context.get().sep10Jwt = jwtToken
 
     // With quote
     Context.get().quote = quote
@@ -1025,7 +1025,7 @@ class Sep31ServiceTest {
   fun `test update fee failure`() {
     val jwtToken = TestHelper.createJwtToken()
     Context.get().request = request
-    Context.get().jwtToken = jwtToken
+    Context.get().sep10Jwt = jwtToken
 
     // With quote
     Context.get().quote = quote

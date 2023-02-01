@@ -40,7 +40,7 @@ public class AuthHelper {
       case JWT:
         long issuedAt = Calendar.getInstance().getTimeInMillis() / 1000L;
         long expirationTime = issuedAt + (jwtExpirationMilliseconds / 1000L);
-        JwtToken token = JwtToken.of(issuerUrl, issuedAt, expirationTime);
+        Sep10Jwt token = Sep10Jwt.of(issuerUrl, issuedAt, expirationTime);
         return new AuthHeader<>("Authorization", "Bearer " + jwtService.encode(token));
 
       case API_KEY:

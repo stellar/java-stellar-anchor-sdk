@@ -23,7 +23,7 @@ public class JwtService {
             : Base64.encodeBase64String(secretKey.getBytes(StandardCharsets.UTF_8));
   }
 
-  public String encode(JwtToken token) {
+  public String encode(Sep10Jwt token) {
     Calendar calIat = Calendar.getInstance();
     calIat.setTimeInMillis(1000L * token.getIat());
 
@@ -47,7 +47,7 @@ public class JwtService {
   }
 
   @SuppressWarnings("rawtypes")
-  public JwtToken decode(String cipher) {
+  public Sep10Jwt decode(String cipher) {
     JwtParser jwtParser = Jwts.parser();
     jwtParser.setSigningKey(jwtKey);
     Jwt jwt = jwtParser.parseClaimsJws(cipher);
@@ -62,7 +62,7 @@ public class JwtService {
       throw new IllegalArgumentException("Bad token");
     }
     Claims claims = (Claims) jwt.getBody();
-    return JwtToken.of(
+    return Sep10Jwt.of(
         (String) claims.get("iss"),
         (String) claims.get("sub"),
         Long.parseLong(claims.get("iat").toString()),

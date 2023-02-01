@@ -9,7 +9,7 @@ import java.util.HashMap;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.http.client.utils.URIBuilder;
 import org.stellar.anchor.auth.JwtService;
-import org.stellar.anchor.auth.JwtToken;
+import org.stellar.anchor.auth.Sep10Jwt;
 import org.stellar.anchor.platform.config.PropertySep24Config.InteractiveUrlConfig;
 import org.stellar.anchor.sep24.InteractiveUrlConstructor;
 import org.stellar.anchor.sep24.Sep24Transaction;
@@ -25,7 +25,7 @@ public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
   }
 
   public String construct(
-      JwtToken token, Sep24Transaction txn, String lang, HashMap<String, String> sep9Fields)
+          Sep10Jwt token, Sep24Transaction txn, String lang, HashMap<String, String> sep9Fields)
       throws URISyntaxException, MalformedURLException {
 
     String baseUrl = config.getBaseUrl();
