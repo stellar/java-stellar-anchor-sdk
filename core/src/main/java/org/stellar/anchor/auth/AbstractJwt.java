@@ -25,7 +25,7 @@ public abstract class AbstractJwt {
   long iat; // Issued At
   long exp; // Expiration Time
 
-  Map<String, String> claims = new HashMap<>();
+  Map<String, Object> claims = new HashMap<>();
 
   public AbstractJwt(Jwt jwt) {
     Claims claims = (Claims) jwt.getBody();
@@ -37,19 +37,19 @@ public abstract class AbstractJwt {
 
     for (Map.Entry<String, Object> e : claims.entrySet()) {
       if (!claimExclusion.contains(e.getKey())) {
-        this.claims.put(e.getKey(), e.getValue().toString());
+        this.claims.put(e.getKey(), e.getValue());
       }
     }
   }
 
-  public void claim(String claim, String value) throws SepException {
+  public void claim(String claim, Object value) throws SepException {
     if (claims.containsKey(claim)) {
       throw new SepException(String.format("Claim [%s] is already added.", claim));
     }
     claims.put(claim, value);
   }
 
-  public Map<String, String> claims() {
+  public Map<String, Object> claims() {
     return claims;
   }
 }

@@ -1,11 +1,5 @@
 package org.stellar.anchor.platform.service;
 
-import static org.stellar.anchor.util.StringHelper.snakeToCamelCase;
-
-import java.net.URI;
-import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
 import lombok.SneakyThrows;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.http.client.utils.URIBuilder;
@@ -15,7 +9,14 @@ import org.stellar.anchor.platform.config.PropertySep24Config.InteractiveUrlConf
 import org.stellar.anchor.sep24.InteractiveUrlConstructor;
 import org.stellar.anchor.sep24.Sep24Transaction;
 import org.stellar.anchor.util.StringHelper;
-import scala.annotation.meta.field;
+
+import java.net.URI;
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
+
+import static org.stellar.anchor.util.StringHelper.camelToSnake;
+import static org.stellar.anchor.util.StringHelper.snakeToCamelCase;
 
 public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
   private final InteractiveUrlConfig config;
@@ -37,27 +38,32 @@ public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
     String baseUrl = config.getBaseUrl();
     URI uri = new URI(baseUrl);
 
+    Map<String, String> data = new HashMap<>();
     // Add lang field
     if (lang != null) {
-      token.claim("lang", lang);
+      data.put("lang", lang);
     }
 
     for (Map.Entry<String, String> field : sep9Fields.entrySet()) {
-      token.claim(field.getKey(), field.getValue());
+      data.put(field.getKey(), field.getValue());
     }
 
     // Add fields defined in txnFields
     for (String field : config.getTxnFields()) {
       try {
-        field = snakeToCamelCase(field);
+        field = camelToSnake(field);
         String value = BeanUtils.getProperty(txn, snakeToCamelCase(field));
         if (!StringHelper.isEmpty((value))) {
-          token.claim(field, value);
+          data.put(field, value);
         }
       } catch (Exception e) {
         // give up
       }
     }
+
+    token.claim("data", data);
+
+    String tokenCipher = jwtService.encode(token);
 
     return new URIBuilder()
         .setScheme(uri.getScheme())
@@ -65,7 +71,7 @@ public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
         .setPort(uri.getPort())
         .setPath(uri.getPath())
         .addParameter("transaction_id", txn.getTransactionId())
-        .addParameter("token", jwtService.encode(token))
+        .addParameter("token", tokenCipher)
         .build()
         .toURL()
         .toString();

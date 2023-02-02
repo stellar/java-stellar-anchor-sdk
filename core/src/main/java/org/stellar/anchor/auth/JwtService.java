@@ -1,10 +1,15 @@
 package org.stellar.anchor.auth;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.google.gson.annotations.SerializedName;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.impl.DefaultJwsHeader;
 import java.nio.charset.StandardCharsets;
 import java.util.Calendar;
+import java.util.HashMap;
 import java.util.Map;
+
+import lombok.Data;
 import lombok.Getter;
 import org.apache.commons.codec.binary.Base64;
 import org.stellar.anchor.api.exception.InvalidConfigException;
@@ -71,7 +76,7 @@ public class JwtService {
     Calendar calExp = Calendar.getInstance();
     calExp.setTimeInMillis(1000L * token.getExp());
     JwtBuilder builder = Jwts.builder().setId(token.getJti()).setExpiration(calExp.getTime());
-    for (Map.Entry<String, String> claim : token.claims.entrySet()) {
+    for (Map.Entry<String, Object> claim : token.claims.entrySet()) {
       builder.claim(claim.getKey(), claim.getValue());
     }
 

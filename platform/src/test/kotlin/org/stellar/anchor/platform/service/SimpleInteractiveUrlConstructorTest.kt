@@ -54,14 +54,15 @@ class SimpleInteractiveUrlConstructorTest {
 
     assertEquals("txn_123", jwt.jti as String)
     assertTrue(Instant.ofEpochSecond(jwt.exp).isAfter(Instant.now()))
-    assertEquals("deposit", claims.get("kind") as String)
-    assertEquals("John Doe", claims.get("name") as String)
+    val data = claims.get("data") as Map<String, String>
+    assertEquals("deposit", data["kind"] as String)
+    assertEquals("John Doe", data["name"] as String)
     assertEquals(
       "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-      claims.get("amountInAsset") as String
+      data["amount_in_asset"] as String
     )
-    assertEquals("en", claims.get("lang") as String)
-    assertEquals("john_doe@stellar.org", claims.get("email") as String)
+    assertEquals("en", data["lang"] as String)
+    assertEquals("john_doe@stellar.org", data["email"] as String)
   }
 }
 

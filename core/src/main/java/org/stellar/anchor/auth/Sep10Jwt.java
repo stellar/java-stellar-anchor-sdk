@@ -46,7 +46,7 @@ public class Sep10Jwt extends AbstractJwt {
 
   public Sep10Jwt(Jwt jwt) {
     super(jwt);
-    this.clientDomain = claims.get(CLIENT_DOMAIN);
+    this.clientDomain = claims.get(CLIENT_DOMAIN).toString();
     updateAccountAndMemo();
   }
 

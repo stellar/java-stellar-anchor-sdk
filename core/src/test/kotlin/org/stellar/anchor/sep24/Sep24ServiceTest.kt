@@ -146,8 +146,7 @@ internal class Sep24ServiceTest {
     val tokenString = tokenStrings[0].value
     val decodedToken = Sep24InteractiveUrlJwt(jwtService.decode(tokenString))
     assertEquals(decodedToken.sub, TEST_ACCOUNT)
-    // TODO: add client domain
-    //        assertEquals(decodedToken.clientDomain, TEST_CLIENT_DOMAIN)
+    assertEquals(decodedToken.claims().get(JwtService.CLIENT_DOMAIN), TEST_CLIENT_DOMAIN)
   }
 
   @Test
@@ -169,8 +168,7 @@ internal class Sep24ServiceTest {
       "$TEST_ACCOUNT:$TEST_MEMO",
       decodedToken.sub,
     )
-    // TODO: add client domain
-    //        assertEquals(TEST_CLIENT_DOMAIN, decodedToken.clientDomain)
+    assertEquals(decodedToken.claims().get(JwtService.CLIENT_DOMAIN), TEST_CLIENT_DOMAIN)
   }
 
   @Test
