@@ -1,5 +1,12 @@
 package org.stellar.anchor.platform.service;
 
+import static org.stellar.anchor.util.StringHelper.camelToSnake;
+import static org.stellar.anchor.util.StringHelper.snakeToCamelCase;
+
+import java.net.URI;
+import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.SneakyThrows;
 import org.apache.commons.beanutils.BeanUtils;
 import org.apache.http.client.utils.URIBuilder;
@@ -9,14 +16,6 @@ import org.stellar.anchor.platform.config.PropertySep24Config.InteractiveUrlConf
 import org.stellar.anchor.sep24.InteractiveUrlConstructor;
 import org.stellar.anchor.sep24.Sep24Transaction;
 import org.stellar.anchor.util.StringHelper;
-
-import java.net.URI;
-import java.time.Instant;
-import java.util.HashMap;
-import java.util.Map;
-
-import static org.stellar.anchor.util.StringHelper.camelToSnake;
-import static org.stellar.anchor.util.StringHelper.snakeToCamelCase;
 
 public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
   private final InteractiveUrlConfig config;

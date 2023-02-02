@@ -1,5 +1,6 @@
 package org.stellar.anchor.auth;
 
+import static org.apache.commons.lang3.ObjectUtils.isNotEmpty;
 import static org.stellar.anchor.auth.JwtService.CLIENT_DOMAIN;
 
 import com.google.gson.annotations.SerializedName;
@@ -46,7 +47,8 @@ public class Sep10Jwt extends AbstractJwt {
 
   public Sep10Jwt(Jwt jwt) {
     super(jwt);
-    this.clientDomain = claims.get(CLIENT_DOMAIN).toString();
+    if (isNotEmpty(claims.get(CLIENT_DOMAIN)))
+      this.clientDomain = claims.get(CLIENT_DOMAIN).toString();
     updateAccountAndMemo();
   }
 

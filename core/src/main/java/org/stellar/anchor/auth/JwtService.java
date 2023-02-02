@@ -1,15 +1,10 @@
 package org.stellar.anchor.auth;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.google.gson.annotations.SerializedName;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.impl.DefaultJwsHeader;
 import java.nio.charset.StandardCharsets;
 import java.util.Calendar;
-import java.util.HashMap;
 import java.util.Map;
-
-import lombok.Data;
 import lombok.Getter;
 import org.apache.commons.codec.binary.Base64;
 import org.stellar.anchor.api.exception.InvalidConfigException;
