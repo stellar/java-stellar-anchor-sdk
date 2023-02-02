@@ -39,23 +39,28 @@ fun Route.testSep24(
 
       val transaction = sep24.getTransaction(transactionId)
       val amountIn =
-        transaction.amountIn?.amount?.toBigDecimal()
-          ?: throw ClientException("Amount was not specified")
+        transaction.amountExpected?.amount?.toBigDecimal()
+          ?: throw ClientException("Missing amountExpected.amount field")
 
       try {
         when (transaction.kind.lowercase()) {
           "deposit" -> {
-            val account = transaction.toAccount ?: throw ClientException("Missing toAccount field")
-            val assetCode =
-              transaction.requestAssetCode
-                ?: throw ClientException("Missing requestAssetCode field")
-            val assetIssuer =
-              transaction.requestAssetIssuer
-                ?: throw ClientException("Missing requestAssetIssuer field")
+            val account =
+              transaction.customers?.sender?.account
+                ?: throw ClientException("Missing customers.sender field")
+            val asset =
+              transaction.amountExpected.asset
+                ?: throw ClientException("Missing amountExpected.asset field")
             val memo = transaction.memo
             val memoType = transaction.memoType
 
+            if (!asset.startsWith("stellar:")) {
+              throw ClientException("Invalid asset format")
+            }
+
             call.respondText("The sep24 interactive deposit has been successfully started.")
+
+            val stellarAsset = asset.replace("stellar:", "")
 
             // Run deposit processing asynchronously
             CoroutineScope(Job()).launch {
@@ -63,8 +68,7 @@ fun Route.testSep24(
                 transactionId,
                 amountIn,
                 account,
-                assetCode,
-                assetIssuer,
+                stellarAsset,
                 memo,
                 memoType
               )

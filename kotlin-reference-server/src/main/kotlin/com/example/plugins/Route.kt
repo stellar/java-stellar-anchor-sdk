@@ -89,13 +89,12 @@ fun Route.sep24(
 
             log.info { "User requested a deposit: $deposit" }
 
-            val account = transaction.toAccount ?: throw ClientException("Missing toAccount field")
-            val assetCode =
-              transaction.requestAssetCode
-                ?: throw ClientException("Missing requestAssetCode field")
-            val assetIssuer =
-              transaction.requestAssetIssuer
-                ?: throw ClientException("Missing requestAssetIssuer field")
+            val account =
+              transaction.customers?.sender?.account
+                ?: throw ClientException("Missing customers.sender field")
+            val asset =
+              transaction.amountExpected?.asset
+                ?: throw ClientException("Missing amountExpected.asset field")
             val memo = transaction.memo
             val memoType = transaction.memoType
 
@@ -107,8 +106,7 @@ fun Route.sep24(
                 transaction.id,
                 deposit.amount.toBigDecimal(),
                 account,
-                assetCode,
-                assetIssuer,
+                asset,
                 memo,
                 memoType
               )

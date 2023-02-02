@@ -2,7 +2,7 @@ package com.example.sep24
 
 import com.example.data.Amount
 import com.example.data.Config
-import com.example.data.PatchTransactionRecord
+import com.example.data.PatchTransactionTransaction
 import java.math.BigDecimal
 import mu.KotlinLogging
 import org.stellar.sdk.responses.TransactionResponse
@@ -60,7 +60,7 @@ class WithdrawalService(private val cfg: Config) {
     val memo = transactionId.substring(0, 26)
 
     sep24.patchTransaction(
-      PatchTransactionRecord(
+      PatchTransactionTransaction(
         transactionId,
         status = "pending_user_transfer_start",
         message = "waiting on the user to transfer funds",
@@ -83,7 +83,7 @@ class WithdrawalService(private val cfg: Config) {
 
   private suspend fun sendExternal(transactionId: String, stellarTransactionId: String) {
     sep24.patchTransaction(
-      PatchTransactionRecord(
+      PatchTransactionTransaction(
         transactionId,
         "pending_external",
         message = "pending external transfer",
@@ -96,7 +96,7 @@ class WithdrawalService(private val cfg: Config) {
 
   private suspend fun finalize(transactionId: String) {
     sep24.patchTransaction(
-      PatchTransactionRecord(transactionId, "completed", message = "completed")
+      PatchTransactionTransaction(transactionId, "completed", message = "completed")
     )
   }
 

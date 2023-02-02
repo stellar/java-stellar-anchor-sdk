@@ -2,7 +2,7 @@ package com.example.sep24
 
 import com.example.data.Amount
 import com.example.data.Config
-import com.example.data.PatchTransactionRecord
+import com.example.data.PatchTransactionTransaction
 import java.math.BigDecimal
 import mu.KotlinLogging
 
@@ -20,8 +20,7 @@ class DepositService(cfg: Config) {
     transactionId: String,
     amount: BigDecimal,
     account: String,
-    assetCode: String,
-    assetIssuer: String,
+    asset: String,
     memo: String?,
     memoType: String?
   ) {
@@ -42,8 +41,7 @@ class DepositService(cfg: Config) {
       log.info { "Transaction status changed: $transaction" }
 
       // 5. Sign and send transaction
-      val txHash =
-        sep24.sendStellarTransaction(account, assetCode, assetIssuer, amount, memo, memoType)
+      val txHash = sep24.sendStellarTransaction(account, asset, amount, memo, memoType)
 
       // 6. Finalize anchor transaction
       finalize(transactionId, txHash)
@@ -65,7 +63,7 @@ class DepositService(cfg: Config) {
     val fee = calculateFee(amount)
 
     sep24.patchTransaction(
-      PatchTransactionRecord(
+      PatchTransactionTransaction(
         transactionId,
         status = "pending_user_transfer_start",
         message = "waiting on the user to transfer funds",
@@ -83,7 +81,7 @@ class DepositService(cfg: Config) {
 
   private suspend fun finalize(transactionId: String, stellarTransactionId: String) {
     sep24.patchTransaction(
-      PatchTransactionRecord(
+      PatchTransactionTransaction(
         transactionId,
         "completed",
         message = "completed",

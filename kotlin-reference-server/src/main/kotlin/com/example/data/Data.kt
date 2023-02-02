@@ -13,20 +13,19 @@ data class Transaction(
   @SerialName("amount_in") val amountIn: Amount? = null,
   @SerialName("amount_out") val amountOut: Amount? = null,
   @SerialName("amount_fee") val amountFee: Amount? = null,
-  @SerialName("to_account") val toAccount: String? = null,
-  @SerialName("request_asset_code") val requestAssetCode: String? = null,
-  @SerialName("request_asset_issuer") val requestAssetIssuer: String? = null,
-  // TODO: this fields are not populated
+  @SerialName("amount_expected") val amountExpected: Amount? = null,
+  val customers: Customers? = null,
   @SerialName("memo") val memo: String? = null,
   @SerialName("memo_type") val memoType: String? = null,
   @SerialName("stellar_transaction_id") val stellarTransactionId: String? = null,
-  @SerialName("withdraw_anchor_account") val withdrawAnchorAccount: String? = null
 )
 
 @Serializable data class PatchTransactionsRequest(val records: List<PatchTransactionRecord>)
 
+@Serializable data class PatchTransactionRecord(val transaction: PatchTransactionTransaction)
+
 @Serializable
-data class PatchTransactionRecord(
+data class PatchTransactionTransaction(
   val id: String,
   val status: String,
   val message: String? = null,
@@ -40,6 +39,10 @@ data class PatchTransactionRecord(
 )
 
 @Serializable data class Amount(val amount: String? = null, val asset: String? = null)
+
+@Serializable data class Customers(val sender: StellarId, val receiver: StellarId? = null)
+
+@Serializable data class StellarId(val account: String)
 
 class JwtToken(
   val iss: String, // Issuer

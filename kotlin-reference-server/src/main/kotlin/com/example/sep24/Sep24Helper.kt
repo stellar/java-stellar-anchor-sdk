@@ -1,8 +1,6 @@
 package com.example.sep24
 
-import com.example.data.Config
-import com.example.data.PatchTransactionRecord
-import com.example.data.PatchTransactionsRequest
+import com.example.data.*
 import com.example.data.Transaction
 import io.ktor.client.*
 import io.ktor.client.call.*
@@ -32,11 +30,11 @@ class Sep24Helper(private val cfg: Config) {
 
   val server = Server(cfg.sep24.horizonUrl)
 
-  internal suspend fun patchTransaction(patchRecord: PatchTransactionRecord) {
+  internal suspend fun patchTransaction(patchRecord: PatchTransactionTransaction) {
     val resp =
       client.patch("$baseUrl/transactions") {
         contentType(ContentType.Application.Json)
-        setBody(PatchTransactionsRequest(listOf(patchRecord)))
+        setBody(PatchTransactionsRequest(listOf(PatchTransactionRecord(patchRecord))))
       }
 
     if (resp.status != HttpStatusCode.OK) {
@@ -53,7 +51,7 @@ class Sep24Helper(private val cfg: Config) {
     newStatus: String,
     message: String? = null
   ) {
-    patchTransaction(PatchTransactionRecord(transactionId, newStatus, message))
+    patchTransaction(PatchTransactionTransaction(transactionId, newStatus, message))
   }
 
   internal suspend fun getTransaction(transactionId: String): Transaction {
@@ -62,14 +60,13 @@ class Sep24Helper(private val cfg: Config) {
 
   internal suspend fun sendStellarTransaction(
     destinationAddress: String,
-    assetCode: String,
-    assetIssuer: String,
+    assetString: String,
     amount: BigDecimal,
     memo: String?,
     memoType: String?
   ): String {
     val myAccount = server.accounts().account(cfg.sep24.keyPair.accountId)
-    val asset = Asset.create(null, assetCode, assetIssuer)
+    val asset = Asset.create(assetString)
 
     val transactionBuilder =
       TransactionBuilder(myAccount, Network.TESTNET)

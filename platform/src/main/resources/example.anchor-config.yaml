@@ -10,11 +10,11 @@ stellar_network:
 callback_api:
   base_url: http://localhost:8081
   auth:
-    type: NONE
+    type: none
 
 platform_api:
   auth:
-    type: NONE
+    type: none
 
 languages: en
 
@@ -83,7 +83,11 @@ sep12:
 sep24:
   enabled: true
   interactive_url:
-    base_url: http://localhost:8091/sep24/interactive
+    type: simple
+    simple:
+#      base_url: http://localhost:8091/sep24/interactive
+      base_url: http://localhost:3000
+      txn_fields:
 
 sep31:
   enabled: true
