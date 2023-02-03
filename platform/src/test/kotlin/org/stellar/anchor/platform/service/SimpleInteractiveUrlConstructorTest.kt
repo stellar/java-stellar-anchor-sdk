@@ -10,7 +10,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.springframework.web.util.UriComponentsBuilder
 import org.stellar.anchor.auth.JwtService
-import org.stellar.anchor.auth.Sep10Jwt
 import org.stellar.anchor.auth.Sep24InteractiveUrlJwt
 import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.platform.config.PropertySep24Config
@@ -25,18 +24,15 @@ class SimpleInteractiveUrlConstructorTest {
 
   @MockK(relaxed = true) private lateinit var secretConfig: SecretConfig
   private lateinit var jwtService: JwtService
-  private lateinit var sep10Jwt: Sep10Jwt
   private lateinit var sep9Fields: HashMap<*, *>
   private lateinit var txn: JdbcSep24Transaction
 
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
-
-    every { secretConfig.getSep10JwtSecretKey() } returns "sep10_jwt_secret"
+    every { secretConfig.sep24InteractiveUrlJwtSecret } returns "sep24_jwt_secret"
 
     jwtService = JwtService(secretConfig)
-    sep10Jwt = Sep10Jwt()
     sep9Fields = gson.fromJson(SEP9_FIELDS_JSON, HashMap::class.java)
     txn = gson.fromJson(TXN_JSON, JdbcSep24Transaction::class.java)
   }
@@ -49,7 +45,7 @@ class SimpleInteractiveUrlConstructorTest {
     val url = constructor.construct(txn, "en", sep9Fields as HashMap<String, String>?)
     val params = UriComponentsBuilder.fromUriString(url).build().queryParams
     val cipher = params.get("token")!![0]
-    val jwt = Sep24InteractiveUrlJwt(jwtService.decode(cipher))
+    val jwt = jwtService.decode(cipher, Sep24InteractiveUrlJwt::class.java)
     val claims = jwt.claims()
 
     assertEquals("txn_123", jwt.jti as String)

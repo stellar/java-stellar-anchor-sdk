@@ -34,18 +34,15 @@ public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
             txn.getTransactionId(),
             Instant.now().getEpochSecond() + config.getJwtExpiration(),
             txn.getClientDomain());
-    String baseUrl = config.getBaseUrl();
-    URI uri = new URI(baseUrl);
 
     Map<String, String> data = new HashMap<>();
+
     // Add lang field
     if (lang != null) {
       data.put("lang", lang);
     }
 
-    for (Map.Entry<String, String> field : sep9Fields.entrySet()) {
-      data.put(field.getKey(), field.getValue());
-    }
+    data.putAll(sep9Fields);
 
     // Add fields defined in txnFields
     for (String field : config.getTxnFields()) {
@@ -63,7 +60,8 @@ public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
     token.claim("data", data);
 
     String tokenCipher = jwtService.encode(token);
-
+    String baseUrl = config.getBaseUrl();
+    URI uri = new URI(baseUrl);
     return new URIBuilder()
         .setScheme(uri.getScheme())
         .setHost(uri.getHost())

@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.stellar.anchor.TestHelper.Companion.createJwtToken
+import org.stellar.anchor.auth.AbstractJwt
 import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.auth.Sep10Jwt
 import org.stellar.anchor.config.AppConfig
@@ -139,7 +140,7 @@ internal class JwtTokenFilterTest {
   ) {
     every { request.method } returns method
     val mockJwtService = spyk(jwtService)
-    every { mockJwtService.decode(any()) } returns null
+    every { mockJwtService.decode(any(), AbstractJwt::class.java) } returns null
     val filter = JwtTokenFilter(mockJwtService)
 
     filter.doFilter(request, response, mockFilterChain)

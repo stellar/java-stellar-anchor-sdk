@@ -433,7 +433,7 @@ internal class Sep10ServiceTest {
     every { horizon.server.accounts().account(ofType(String::class)) } returns accountResponse
 
     val response = sep10Service.validateChallenge(vr)
-    val jwt = Sep10Jwt(jwtService.decode(response.token))
+    val jwt = jwtService.decode(response.token, Sep10Jwt::class.java)
     assertEquals("${clientKeyPair.accountId}:$TEST_MEMO", jwt.sub)
   }
 
@@ -455,7 +455,7 @@ internal class Sep10ServiceTest {
 
     val validationResponse = sep10Service.validateChallenge(vr)
 
-    val token = Sep10Jwt(jwtService.decode(validationResponse.token))
+    val token = jwtService.decode(validationResponse.token, Sep10Jwt::class.java)
     assertEquals(token.clientDomain, TEST_CLIENT_DOMAIN)
 
     // Test when the transaction was not signed by the client domain and the client account exists

@@ -20,6 +20,7 @@ import org.stellar.anchor.TestConstants.Companion.TEST_ACCOUNT
 import org.stellar.anchor.TestConstants.Companion.TEST_ASSET
 import org.stellar.anchor.TestConstants.Companion.TEST_ASSET_ISSUER_ACCOUNT_ID
 import org.stellar.anchor.TestConstants.Companion.TEST_CLIENT_DOMAIN
+import org.stellar.anchor.TestConstants.Companion.TEST_JWT_SECRET
 import org.stellar.anchor.TestConstants.Companion.TEST_MEMO
 import org.stellar.anchor.TestConstants.Companion.TEST_TRANSACTION_ID_0
 import org.stellar.anchor.TestConstants.Companion.TEST_TRANSACTION_ID_1
@@ -34,6 +35,7 @@ import org.stellar.anchor.api.sep.sep24.GetTransactionsRequest
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.auth.JwtService
+import org.stellar.anchor.auth.JwtService.CLIENT_DOMAIN
 import org.stellar.anchor.auth.Sep10Jwt
 import org.stellar.anchor.auth.Sep24InteractiveUrlJwt
 import org.stellar.anchor.config.AppConfig
@@ -83,7 +85,9 @@ internal class Sep24ServiceTest {
     MockKAnnotations.init(this, relaxUnitFun = true)
     every { appConfig.stellarNetworkPassphrase } returns TestConstants.TEST_NETWORK_PASS_PHRASE
     every { appConfig.hostUrl } returns TestConstants.TEST_HOST_URL
-    every { secretConfig.sep10JwtSecretKey } returns TestConstants.TEST_JWT_SECRET
+    every { secretConfig.sep10JwtSecretKey } returns TEST_JWT_SECRET
+    every { secretConfig.sep24MoreInfoUrlJwtSecret } returns TEST_JWT_SECRET
+    every { secretConfig.sep24InteractiveUrlJwtSecret } returns TEST_JWT_SECRET
     every { txnStore.newInstance() } returns PojoSep24Transaction()
 
     jwtService = spyk(JwtService(secretConfig))
@@ -144,7 +148,7 @@ internal class Sep24ServiceTest {
     val tokenStrings = params.filter { pair -> pair.name.equals("token") }
     assertEquals(tokenStrings.size, 1)
     val tokenString = tokenStrings[0].value
-    val decodedToken = Sep24InteractiveUrlJwt(jwtService.decode(tokenString))
+    val decodedToken = jwtService.decode(tokenString, Sep24InteractiveUrlJwt::class.java)
     assertEquals(decodedToken.sub, TEST_ACCOUNT)
     assertEquals(decodedToken.claims().get(JwtService.CLIENT_DOMAIN), TEST_CLIENT_DOMAIN)
   }
@@ -163,7 +167,7 @@ internal class Sep24ServiceTest {
     val tokenStrings = params.filter { pair -> pair.name.equals("token") }
     assertEquals(tokenStrings.size, 1)
     val tokenString = tokenStrings[0].value
-    val decodedToken = Sep24InteractiveUrlJwt(jwtService.decode(tokenString))
+    val decodedToken = jwtService.decode(tokenString, Sep24InteractiveUrlJwt::class.java)
     assertEquals(
       "$TEST_ACCOUNT:$TEST_MEMO",
       decodedToken.sub,
@@ -270,14 +274,12 @@ internal class Sep24ServiceTest {
     val tokenStrings = params.filter { pair -> pair.name.equals("token") }
     assertEquals(tokenStrings.size, 1)
     val tokenString = tokenStrings[0].value
-    val decodedToken = Sep24InteractiveUrlJwt(jwtService.decode(tokenString))
+    val decodedToken = jwtService.decode(tokenString, Sep24InteractiveUrlJwt::class.java)
     assertEquals(
       "$TEST_ACCOUNT:$TEST_MEMO",
       decodedToken.sub,
     )
-    // TODO: add client domain
-
-    //        assertEquals(TEST_CLIENT_DOMAIN, decodedToken.clientDomain)
+    assertEquals(TEST_CLIENT_DOMAIN, decodedToken.claims[CLIENT_DOMAIN])
   }
 
   @Test
