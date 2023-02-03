@@ -6,9 +6,16 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.assertThrows
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode.LENIENT
+import org.springframework.web.util.UriComponentsBuilder
 import org.stellar.anchor.api.exception.SepException
 import org.stellar.anchor.api.platform.PatchTransactionsRequest
 import org.stellar.anchor.api.sep.sep24.Sep24GetTransactionResponse
+import org.stellar.anchor.auth.JwtService
+import org.stellar.anchor.auth.Sep24InteractiveUrlJwt
+import org.stellar.anchor.auth.Sep24MoreInfoUrlJwt
+import org.stellar.anchor.platform.AnchorPlatformIntegrationTest.Companion.SEP10_JWT_SECRET
+import org.stellar.anchor.platform.AnchorPlatformIntegrationTest.Companion.SEP24_INTERACTIVE_URL_JWT_SECRET
+import org.stellar.anchor.platform.AnchorPlatformIntegrationTest.Companion.SEP24_MORE_INFO_URL_JWT_SECRET
 import org.stellar.anchor.platform.AnchorPlatformIntegrationTest.Companion.jwt
 import org.stellar.anchor.platform.AnchorPlatformIntegrationTest.Companion.toml
 
@@ -18,6 +25,8 @@ lateinit var savedDepositTxn: Sep24GetTransactionResponse
 
 class Sep24Tests {
   companion object {
+    private val jwtService =
+      JwtService(SEP10_JWT_SECRET, SEP24_INTERACTIVE_URL_JWT_SECRET, SEP24_MORE_INFO_URL_JWT_SECRET)
     fun setup() {
       sep24Client = Sep24Client(toml.getString("TRANSFER_SERVER_SEP0024"), jwt)
     }
@@ -30,21 +39,49 @@ class Sep24Tests {
     fun `test Sep24 withdraw`() {
       printRequest("POST /transactions/withdraw/interactive")
       val withdrawRequest = gson.fromJson(withdrawRequest, HashMap::class.java)
-      val txn = sep24Client.withdraw(withdrawRequest as HashMap<String, String>)
-      printResponse("POST /transactions/withdraw/interactive response:", txn)
-      savedWithdrawTxn = sep24Client.getTransaction(txn.id, "USDC")
+      val response = sep24Client.withdraw(withdrawRequest as HashMap<String, String>)
+      printResponse("POST /transactions/withdraw/interactive response:", response)
+      savedWithdrawTxn = sep24Client.getTransaction(response.id, "USDC")
       printResponse(savedWithdrawTxn)
       JSONAssert.assertEquals(expectedSep24WithdrawResponse, json(savedWithdrawTxn), LENIENT)
+      // check the returning Sep24InteractiveUrlJwt
+      val params = UriComponentsBuilder.fromUriString(response.url).build().queryParams
+      val cipher = params["token"]!![0]
+      val jwt = jwtService.decode(cipher, Sep24InteractiveUrlJwt::class.java)
+      val data = jwt.claims["data"] as Map<String, String>
+      assertEquals(response.id, data["transaction_id"])
     }
 
     fun `test Sep24 deposit`() {
       printRequest("POST /transactions/withdraw/interactive")
       val depositRequest = gson.fromJson(depositRequest, HashMap::class.java)
-      val txn = sep24Client.deposit(depositRequest as HashMap<String, String>)
-      printResponse("POST /transactions/deposit/interactive response:", txn)
-      savedDepositTxn = sep24Client.getTransaction(txn.id, "USDC")
+      val response = sep24Client.deposit(depositRequest as HashMap<String, String>)
+      printResponse("POST /transactions/deposit/interactive response:", response)
+      savedDepositTxn = sep24Client.getTransaction(response.id, "USDC")
       printResponse(savedDepositTxn)
       JSONAssert.assertEquals(expectedSep24DepositResponse, json(savedDepositTxn), LENIENT)
+      // check the returning Sep24InteractiveUrlJwt
+      val params = UriComponentsBuilder.fromUriString(response.url).build().queryParams
+      val cipher = params["token"]!![0]
+      val jwt = jwtService.decode(cipher, Sep24InteractiveUrlJwt::class.java)
+      val data = jwt.claims["data"] as Map<String, String>
+      assertEquals(response.id, data["transaction_id"])
+    }
+
+    fun `test Sep24 GET transaction and check the JWT`() {
+      val txn =
+        sep24Client
+          .getTransaction(
+            savedDepositTxn.transaction.id,
+            "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+          )
+          .transaction
+
+      val params = UriComponentsBuilder.fromUriString(txn.moreInfoUrl).build().queryParams
+      val cipher = params["token"]!![0]
+      val jwt = jwtService.decode(cipher, Sep24MoreInfoUrlJwt::class.java)
+      val data = jwt.claims["data"] as Map<String, String>
+      assertEquals(txn.id, data["transaction_id"])
     }
 
     fun `test PlatformAPI GET transaction for deposit and withdrawal`() {
@@ -103,6 +140,7 @@ fun sep24TestAll() {
   Sep24Tests.`test Sep24 info endpoint`()
   Sep24Tests.`test Sep24 withdraw`()
   Sep24Tests.`test Sep24 deposit`()
+  Sep24Tests.`test Sep24 GET transaction and check the JWT`()
   Sep24Tests.`test PlatformAPI GET transaction for deposit and withdrawal`()
   Sep24Tests.`test patch, get and compare`()
   Sep24Tests.`test GET transactions with bad ids`()
@@ -334,7 +372,6 @@ private const val expectedSep24WithdrawResponse =
     "transaction": {
       "kind": "withdrawal",
       "status": "incomplete",
-      "more_info_url": "http://www.stellar.org",
       "refunded": false,
       "from": "GAIUIZPHLIHQEMNJGSZKCEUWHAZVGUZDBDMO2JXNAJZZZVNSVHQCEWJ4"
     }
@@ -347,7 +384,6 @@ private const val expectedSep24DepositResponse =
     "transaction": {
       "kind": "deposit",
       "status": "incomplete",
-      "more_info_url": "http://www.stellar.org",
       "refunded": false,
       "to": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
     }

@@ -44,7 +44,7 @@ class SimpleInteractiveUrlConstructorTest {
     val constructor = SimpleInteractiveUrlConstructor(config, jwtService)
     val url = constructor.construct(txn, "en", sep9Fields as HashMap<String, String>?)
     val params = UriComponentsBuilder.fromUriString(url).build().queryParams
-    val cipher = params.get("token")!![0]
+    val cipher = params["token"]!![0]
     val jwt = jwtService.decode(cipher, Sep24InteractiveUrlJwt::class.java)
     val claims = jwt.claims()
 

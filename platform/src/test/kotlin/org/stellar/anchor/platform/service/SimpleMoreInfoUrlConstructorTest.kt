@@ -44,7 +44,7 @@ class SimpleMoreInfoUrlConstructorTest {
     val url = constructor.construct(txn)
 
     val params = UriComponentsBuilder.fromUriString(url).build().queryParams
-    val cipher = params.get("token")!![0]
+    val cipher = params["token"]!![0]
     val jwt = jwtService.decode(cipher, Sep24MoreInfoUrlJwt::class.java)
 
     assertEquals("txn_123", jwt.jti as String)

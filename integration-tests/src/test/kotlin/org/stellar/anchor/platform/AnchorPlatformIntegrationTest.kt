@@ -13,6 +13,9 @@ class AnchorPlatformIntegrationTest {
     const val REFERENCE_SERVER_PORT = 8081
     const val SEP_SERVER_PORT = 8080
     const val OBSERVER_HEALTH_SERVER_PORT = 8083
+    const val SEP10_JWT_SECRET = "secret"
+    const val SEP24_INTERACTIVE_URL_JWT_SECRET = "sep24 interactive url secret"
+    const val SEP24_MORE_INFO_URL_JWT_SECRET = "sep24 more_info url secret"
 
     init {
       val props = System.getProperties()
@@ -29,10 +32,10 @@ class AnchorPlatformIntegrationTest {
           "sep_server.context_path" to "/",
           "payment_observer.port" to OBSERVER_HEALTH_SERVER_PORT,
           "payment_observer.context_path" to "/",
-          "secret.sep10.jwt_secret" to "secret",
+          "secret.sep10.jwt_secret" to SEP10_JWT_SECRET,
           "secret.sep10.signing_seed" to "SAKXNWVTRVR4SJSHZUDB2CLJXEQHRT62MYQWA2HBB7YBOTCFJJJ55BZF",
-          "secret.sep24.interactive_url.jwt_secret" to "sep24 interactive url secret",
-          "secret.sep24.more_info_url.jwt_secret" to "sep24 more_info url secret",
+          "secret.sep24.interactive_url.jwt_secret" to SEP24_INTERACTIVE_URL_JWT_SECRET,
+          "secret.sep24.more_info_url.jwt_secret" to SEP24_MORE_INFO_URL_JWT_SECRET,
           "secret.data.username" to "user1",
           "secret.data.password" to "password",
           "secret.callback_api.auth_secret" to "callback_jwt_secret",

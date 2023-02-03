@@ -20,6 +20,7 @@ import org.stellar.anchor.config.Sep24Config;
 public class Sep24Helper {
   static final List<String> needsMoreInfoUrlDeposit =
       Arrays.asList(
+          INCOMPLETE.toString(),
           PENDING_USR_TRANSFER_START.toString(),
           PENDING_USR_TRANSFER_COMPLETE.toString(),
           COMPLETED.toString(),
@@ -29,6 +30,7 @@ public class Sep24Helper {
           PENDING_USER.toString());
   static final List<String> needsMoreInfoUrlWithdraw =
       Arrays.asList(
+          INCOMPLETE.toString(),
           PENDING_USR_TRANSFER_START.toString(),
           PENDING_USR_TRANSFER_COMPLETE.toString(),
           COMPLETED.toString(),
