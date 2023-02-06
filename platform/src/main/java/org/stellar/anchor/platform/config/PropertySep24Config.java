@@ -1,12 +1,16 @@
 package org.stellar.anchor.platform.config;
 
-import java.util.List;
 import lombok.*;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
+import org.stellar.anchor.config.SecretConfig;
 import org.stellar.anchor.config.Sep24Config;
 import org.stellar.anchor.util.NetUtil;
+
+import java.util.List;
+
+import static org.stellar.anchor.util.StringHelper.isEmpty;
 
 @Getter
 @Setter
@@ -14,6 +18,11 @@ public class PropertySep24Config implements Sep24Config, Validator {
   boolean enabled;
   InteractiveUrlConfig interactiveUrl;
   MoreInfoUrlConfig moreInfoUrl;
+  SecretConfig secretConfig;
+
+  public PropertySep24Config(SecretConfig secretConfig) {
+    this.secretConfig = secretConfig;
+  }
 
   @Data
   @AllArgsConstructor
@@ -40,58 +49,67 @@ public class PropertySep24Config implements Sep24Config, Validator {
 
   @Override
   public void validate(@NotNull Object target, @NotNull Errors errors) {
-    PropertySep24Config config = (PropertySep24Config) target;
-
-    validateInteractiveUrlConfig(config, errors);
-    validateMoreInfoUrlConfig(config, errors);
+    if (enabled) {
+      validateInteractiveUrlConfig(errors);
+      validateMoreInfoUrlConfig(errors);
+    }
   }
 
-  void validateInteractiveUrlConfig(PropertySep24Config config, Errors errors) {
-    if (config.interactiveUrl == null) {
+  void validateInteractiveUrlConfig(Errors errors) {
+    if (interactiveUrl == null) {
       errors.rejectValue(
           "interactiveUrl",
           "sep24-interactive-url-invalid",
           "sep24.interactive_url is not defined.");
     } else {
-      if (!NetUtil.isUrlValid(config.interactiveUrl.baseUrl)) {
+      if (!NetUtil.isUrlValid(interactiveUrl.baseUrl)) {
         errors.rejectValue(
             "interactiveUrl",
             "sep24-interactive-url-base-url-not-valid",
             String.format(
-                "sep24.interactive_url.base_url:[%s] is not a valid URL.",
-                config.interactiveUrl.baseUrl));
+                "sep24.interactive_url.base_url:[%s] is not a valid URL.", interactiveUrl.baseUrl));
       }
-      if (config.interactiveUrl.jwtExpiration <= 0) {
+      if (interactiveUrl.jwtExpiration <= 0) {
         errors.rejectValue(
-            "moreInfoUrl",
+            "interactiveUrl",
             "sep24-interactive-url-jwt-expiration-not-valid",
             String.format(
                 "sep24.interactive_url.jwt_expiration:[%s] must be greater than 0.",
-                config.interactiveUrl.jwtExpiration));
+                interactiveUrl.jwtExpiration));
+      }
+
+      if (isEmpty(secretConfig.getSep24InteractiveUrlJwtSecret())) {
+        errors.reject(
+            "sep24-interactive-url-jwt-secret-not-defined",
+            "Please set the secret.sep24.interactive_url.jwt_secret or SECRET_SEP24_INTERACTIVE_URL_JWT_SECRET environment variable");
       }
     }
   }
 
-  void validateMoreInfoUrlConfig(PropertySep24Config config, Errors errors) {
-    if (config.moreInfoUrl == null) {
+  void validateMoreInfoUrlConfig(Errors errors) {
+    if (moreInfoUrl == null) {
       errors.rejectValue(
           "moreInfoUrl", "sep24-moreinfo-url-invalid", "sep24.more-info-url is not defined.");
     } else {
-      if (!NetUtil.isUrlValid(config.moreInfoUrl.baseUrl)) {
+      if (!NetUtil.isUrlValid(moreInfoUrl.baseUrl)) {
         errors.rejectValue(
             "moreInfoUrl",
             "sep24-more-info-url-base-url-not-valid",
             String.format(
-                "sep24.more_info_url.base_url:[%s] is not a valid URL.",
-                config.moreInfoUrl.baseUrl));
+                "sep24.more_info_url.base_url:[%s] is not a valid URL.", moreInfoUrl.baseUrl));
       }
-      if (config.moreInfoUrl.jwtExpiration <= 0) {
+      if (moreInfoUrl.jwtExpiration <= 0) {
         errors.rejectValue(
             "moreInfoUrl",
             "sep24-more-info-url-jwt-expiration-not-valid",
             String.format(
                 "sep24.more_info_url.jwt_expiration:[%s] must be greater than 0.",
-                config.moreInfoUrl.jwtExpiration));
+                moreInfoUrl.jwtExpiration));
+      }
+      if (isEmpty(secretConfig.getSep24InteractiveUrlJwtSecret())) {
+        errors.reject(
+            "sep24-more-info-url-jwt-secret-not-defined",
+            "Please set the secret.sep24.more_info_url.jwt_secret or SECRET_SEP24_MORE_INFO_URL_JWT_SECRET environment variable");
       }
     }
   }

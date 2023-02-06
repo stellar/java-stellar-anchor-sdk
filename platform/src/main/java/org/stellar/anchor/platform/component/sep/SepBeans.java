@@ -1,7 +1,5 @@
 package org.stellar.anchor.platform.component.sep;
 
-import java.io.IOException;
-import javax.servlet.Filter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -36,6 +34,9 @@ import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
 import org.stellar.anchor.sep38.Sep38Service;
 
+import javax.servlet.Filter;
+import java.io.IOException;
+
 /** SEP configurations */
 @Configuration
 public class SepBeans {
@@ -62,8 +63,8 @@ public class SepBeans {
 
   @Bean
   @ConfigurationProperties(prefix = "sep24")
-  PropertySep24Config sep24Config() {
-    return new PropertySep24Config();
+  PropertySep24Config sep24Config(SecretConfig secretConfig) {
+    return new PropertySep24Config(secretConfig);
   }
 
   @Bean

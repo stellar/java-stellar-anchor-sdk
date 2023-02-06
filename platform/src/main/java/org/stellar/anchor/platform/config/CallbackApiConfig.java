@@ -38,19 +38,18 @@ public class CallbackApiConfig implements Validator {
 
   @Override
   public void validate(@NotNull Object target, @NotNull Errors errors) {
-    CallbackApiConfig config = (CallbackApiConfig) target;
-    validateBaseUrl(config, errors);
-    validateAuth(config, errors);
+    validateBaseUrl(errors);
+    validateAuth(errors);
   }
 
-  void validateBaseUrl(CallbackApiConfig config, Errors errors) {
-    if (isEmpty(config.baseUrl)) {
+  void validateBaseUrl(Errors errors) {
+    if (isEmpty(baseUrl)) {
       errors.rejectValue(
           "baseUrl",
           "empty-callback-api-base-url",
           "The callback_api.base_url cannot be empty and must be defined");
     }
-    if (!NetUtil.isUrlValid(config.baseUrl)) {
+    if (!NetUtil.isUrlValid(baseUrl)) {
       errors.rejectValue(
           "baseUrl",
           "mal-formatted-callback-api-base-url",
@@ -58,23 +57,21 @@ public class CallbackApiConfig implements Validator {
     }
   }
 
-  void validateAuth(CallbackApiConfig config, Errors errors) {
-    if (List.of(AuthType.API_KEY, AuthType.JWT).contains(config.getAuth().getType())) {
-      if (isEmpty(config.getAuth().getSecret())) {
-        errors.rejectValue(
-            "auth",
+  void validateAuth(Errors errors) {
+    if (List.of(AuthType.API_KEY, AuthType.JWT).contains(auth.getType())) {
+      if (isEmpty(secretConfig.getCallbackApiSecret())) {
+        errors.reject(
             "empty-secret-callback-api-secret",
-            "Please set environment variable [SECRET.CALLBACK_API.AUTH_SECRET] for auth type:"
-                + config.getAuth().getType());
+            "Please set environment variable secret.callback_api.auth_secret or SECRET.CALLBACK_API.AUTH_SECRET");
       }
 
-      if (AuthType.JWT == config.getAuth().getType()
-          && (Long.parseLong(config.getAuth().getJwt().getExpirationMilliseconds())
-              < MIN_EXPIRATION)) {
-        errors.rejectValue(
-            "auth",
-            "min-expirationMilliseconds",
-            "expirationMilliseconds cannot be lower than " + MIN_EXPIRATION);
+      if (AuthType.JWT == auth.getType()) {
+        if (Long.parseLong(auth.getJwt().getExpirationMilliseconds()) < MIN_EXPIRATION) {
+          errors.rejectValue(
+              "auth",
+              "min-expiration-milliseconds",
+              "expirationMilliseconds cannot be lower than " + MIN_EXPIRATION);
+        }
       }
     }
   }

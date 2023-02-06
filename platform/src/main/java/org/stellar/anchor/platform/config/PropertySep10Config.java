@@ -1,10 +1,5 @@
 package org.stellar.anchor.platform.config;
 
-import static java.lang.String.format;
-import static org.stellar.anchor.util.StringHelper.isEmpty;
-import static org.stellar.anchor.util.StringHelper.isNotEmpty;
-
-import java.util.List;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.validation.Errors;
@@ -14,6 +9,12 @@ import org.stellar.anchor.config.Sep10Config;
 import org.stellar.anchor.util.ListHelper;
 import org.stellar.anchor.util.NetUtil;
 import org.stellar.sdk.KeyPair;
+
+import java.util.List;
+
+import static java.lang.String.format;
+import static org.stellar.anchor.util.StringHelper.isEmpty;
+import static org.stellar.anchor.util.StringHelper.isNotEmpty;
 
 @Data
 public class PropertySep10Config implements Sep10Config, Validator {
@@ -42,18 +43,16 @@ public class PropertySep10Config implements Sep10Config, Validator {
     PropertySep10Config config = (PropertySep10Config) target;
 
     if (config.getEnabled()) {
-      validateConfig(config, errors);
-      validateClientAttribution(config, errors);
-      validateOmnibusAccounts(config, errors);
+      validateConfig(errors);
+      validateClientAttribution(errors);
+      validateOmnibusAccounts(errors);
     }
   }
 
-  void validateConfig(Sep10Config config, Errors errors) {
+  void validateConfig(Errors errors) {
     if (isEmpty(secretConfig.getSep10SigningSeed())) {
-      errors.rejectValue(
-          null,
-          "sep10-signing-seed-empty",
-          "Please set environment variable SECRET_SEP10_SIGNING_SEED");
+      errors.reject(
+          "sep10-signing-seed-empty", "Please set environment variable SECRET_SEP10_SIGNING_SEED");
     }
 
     if (isNotEmpty(secretConfig.getSep10SigningSeed())) {
@@ -61,21 +60,19 @@ public class PropertySep10Config implements Sep10Config, Validator {
         KeyPair.fromSecretSeed(secretConfig.getSep10SigningSeed());
       } catch (Throwable ex) {
         errors.rejectValue(
-            null,
             "sep10-signing-seed-invalid",
-            "The signing seed of SECRET_SEP10_SIGNING_SEED is invalid");
+            "Please set the secret.sep10.signing_seed or SECRET_SEP10_SIGNING_SEED environment variable");
       }
     }
 
     if (isEmpty(secretConfig.getSep10JwtSecretKey())) {
       errors.rejectValue(
-          null,
           "sep10-jwt-secret-empty",
-          "Please set environment variable SECRET_SEP10_JWT_SECRET");
+          "Please set the secret.sep10.jwt_secret or SECRET_SEP10_JWT_SECRET environment variable");
     }
 
-    if (isNotEmpty(config.getHomeDomain())) {
-      if (!NetUtil.isServerPortValid(config.getHomeDomain())) {
+    if (isNotEmpty(homeDomain)) {
+      if (!NetUtil.isServerPortValid(homeDomain)) {
         errors.rejectValue(
             "homeDomain",
             "sep10-home-domain-invalid",
@@ -83,14 +80,14 @@ public class PropertySep10Config implements Sep10Config, Validator {
       }
     }
 
-    if (config.getAuthTimeout() <= 0) {
+    if (authTimeout <= 0) {
       errors.rejectValue(
           "authTimeout",
           "sep10-auth-timeout-invalid",
           "The sep10.auth_timeout must be greater than 0");
     }
 
-    if (config.getJwtTimeout() <= 0) {
+    if (jwtTimeout <= 0) {
       errors.rejectValue(
           "jwtTimeout",
           "sep10-jwt-timeout-invalid",
@@ -98,23 +95,23 @@ public class PropertySep10Config implements Sep10Config, Validator {
     }
   }
 
-  void validateClientAttribution(PropertySep10Config config, Errors errors) {
-    if (config.clientAttributionRequired) {
-      if (ListHelper.isEmpty(config.clientAttributionAllowList)
-          && ListHelper.isEmpty(config.clientAttributionDenyList)) {
+  void validateClientAttribution(Errors errors) {
+    if (clientAttributionRequired) {
+      if (ListHelper.isEmpty(clientAttributionAllowList)
+          && ListHelper.isEmpty(clientAttributionDenyList)) {
         errors.reject(
             "sep10-client-attribution-lists-empty",
             "One of sep10.client_attribution_allow_list and sep10.client_attribution_deny_list must NOT be empty while the sep10.client_attribution_required is set to true");
       }
-      if (!ListHelper.isEmpty(config.clientAttributionAllowList)
-          && !ListHelper.isEmpty(config.clientAttributionDenyList)) {
+      if (!ListHelper.isEmpty(clientAttributionAllowList)
+          && !ListHelper.isEmpty(clientAttributionDenyList)) {
         errors.reject(
             "sep10-client-attribution-lists-conflict",
             "Only one of sep10.client_attribution_allow_list and sep10.client_attribution_deny_list can be defined while the sep10.client_attribution_required is set to true");
       }
 
-      if (!ListHelper.isEmpty(config.clientAttributionAllowList)) {
-        for (String clientDomain : config.clientAttributionAllowList) {
+      if (!ListHelper.isEmpty(clientAttributionAllowList)) {
+        for (String clientDomain : clientAttributionAllowList) {
           if (!NetUtil.isServerPortValid(clientDomain)) {
             errors.rejectValue(
                 "clientAttributionAllowList",
@@ -124,8 +121,8 @@ public class PropertySep10Config implements Sep10Config, Validator {
         }
       }
 
-      if (!ListHelper.isEmpty(config.clientAttributionDenyList)) {
-        for (String clientDomain : config.clientAttributionDenyList) {
+      if (!ListHelper.isEmpty(clientAttributionDenyList)) {
+        for (String clientDomain : clientAttributionDenyList) {
           if (!NetUtil.isServerPortValid(clientDomain)) {
             errors.rejectValue(
                 "clientAttributionDenyList",
@@ -135,13 +132,13 @@ public class PropertySep10Config implements Sep10Config, Validator {
         }
       }
     } else {
-      if (!ListHelper.isEmpty(config.clientAttributionAllowList)) {
+      if (!ListHelper.isEmpty(clientAttributionAllowList)) {
         errors.rejectValue(
             "clientAttributionAllowList",
             "sep10-client-attribution-allow-list-not-empty",
             "sep10.client_attribution_allow_list is not not empty while the sep10.client_attribution_required is set to false");
       }
-      if (!ListHelper.isEmpty(config.clientAttributionDenyList)) {
+      if (!ListHelper.isEmpty(clientAttributionDenyList)) {
         errors.rejectValue(
             "clientAttributionDenyList",
             "sep10-client-attribution-deny-list-not-empty",
@@ -150,8 +147,8 @@ public class PropertySep10Config implements Sep10Config, Validator {
     }
   }
 
-  void validateOmnibusAccounts(Sep10Config config, Errors errors) {
-    for (String account : config.getOmnibusAccountList()) {
+  void validateOmnibusAccounts(Errors errors) {
+    for (String account : omnibusAccountList) {
       try {
         if (account != null) KeyPair.fromAccountId(account);
       } catch (Throwable ex) {
@@ -162,8 +159,7 @@ public class PropertySep10Config implements Sep10Config, Validator {
       }
     }
 
-    if (config.isRequireKnownOmnibusAccount()
-        && ListHelper.isEmpty(config.getOmnibusAccountList())) {
+    if (requireKnownOmnibusAccount && ListHelper.isEmpty(omnibusAccountList)) {
       errors.rejectValue(
           "omnibusAccountList",
           "sep10-omnibus-account-list-empty",
