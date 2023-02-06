@@ -48,12 +48,12 @@ public class MemoHelper {
   }
 
   public static Memo makeMemo(String memo, String memoType) throws SepException {
-    if (isEmpty(memoType)) {
-      memoType = "none";
-    }
-
     if (isEmpty(memo)) {
       return null;
+    }
+
+    if (isEmpty(memoType)) {
+      throw new SepValidationException("memo_type is required if memo is specified");
     }
 
     switch (memoType) {
