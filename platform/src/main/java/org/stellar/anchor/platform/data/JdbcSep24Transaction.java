@@ -25,7 +25,8 @@ public class JdbcSep24Transaction extends JdbcSepTransaction
     return "24";
   }
 
-  @Id String id;
+  @Id
+  String id;
 
   String kind;
 
@@ -63,7 +64,8 @@ public class JdbcSep24Transaction extends JdbcSepTransaction
   }
 
   /**
-   * If this is a withdrawal, this is the anchor's Stellar account that the user transferred (or
+   * If this is a withdrawal, this is the anchor's Stellar account that the user
+   * transferred (or
    * will transfer) their issued asset to.
    */
   @SerializedName("withdraw_anchor_account")
@@ -79,10 +81,14 @@ public class JdbcSep24Transaction extends JdbcSepTransaction
   /**
    * Sent from address.
    *
-   * <p>In a deposit transaction, this would be a non-stellar account such as, BTC, IBAN, or bank
+   * <p>
+   * In a deposit transaction, this would be a non-stellar account such as, BTC,
+   * IBAN, or bank
    * account.
    *
-   * <p>In a withdrawal transaction, this would be the stellar account the assets were withdrawn
+   * <p>
+   * In a withdrawal transaction, this would be the stellar account the assets
+   * were withdrawn
    * from.
    */
   @SerializedName("from_account")
@@ -91,9 +97,13 @@ public class JdbcSep24Transaction extends JdbcSepTransaction
   /**
    * Sent to address.
    *
-   * <p>In a deposit transaction, this would be a stellar account the assets were deposited to.
+   * <p>
+   * In a deposit transaction, this would be a stellar account the assets were
+   * deposited to.
    *
-   * <p>In a withdrawal transaction, this would be the non-stellar account such as BTC, IBAN, or
+   * <p>
+   * In a withdrawal transaction, this would be the non-stellar account such as
+   * BTC, IBAN, or
    * bank account.
    */
   @SerializedName("to_account")
@@ -108,7 +118,9 @@ public class JdbcSep24Transaction extends JdbcSepTransaction
   /**
    * The SEP10 account used for authentication.
    *
-   * <p>The account can be in the format of 1) stellar_account (G...) 2) stellar_account:memo
+   * <p>
+   * The account can be in the format of 1) stellar_account (G...) 2)
+   * stellar_account:memo
    * (G...:2810101841641761712) 3) muxed account (M...)
    */
   @SerializedName("sep10_account")
@@ -122,4 +134,10 @@ public class JdbcSep24Transaction extends JdbcSepTransaction
 
   @SerializedName("amount_expected")
   String amountExpected;
+
+  @SerializedName("refund_memo")
+  String refundMemo;
+
+  @SerializedName("refund_memo_type")
+  String refundMemoType;
 }
