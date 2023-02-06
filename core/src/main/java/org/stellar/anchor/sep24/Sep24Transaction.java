@@ -24,24 +24,20 @@ public interface Sep24Transaction {
   void setTransactionId(String transactionId);
 
   /**
-   * <code>transaction_id</code> on Stellar network of the transfer that either
-   * completed the
+   * <code>transaction_id</code> on Stellar network of the transfer that either completed the
    * deposit or started the withdrawal.
    *
-   * @return The <code>stellar_transction_id</code> field of the SEP-24
-   *         transaction history.
+   * @return The <code>stellar_transction_id</code> field of the SEP-24 transaction history.
    */
   String getStellarTransactionId();
 
   void setStellarTransactionId(String stellarTransactionId);
 
   /**
-   * ID of transaction on external network that either started the deposit or
-   * completed the
+   * ID of transaction on external network that either started the deposit or completed the
    * withdrawal.
    *
-   * @return The <code>external_transction_id</code> field of the SEP-24
-   *         transaction history.
+   * @return The <code>external_transction_id</code> field of the SEP-24 transaction history.
    */
   String getExternalTransactionId();
 
@@ -75,8 +71,7 @@ public interface Sep24Transaction {
   void setStartedAt(Instant startedAt);
 
   /**
-   * The date and time of transaction reaching <code>completed</code> or
-   * <code>refunded</code>
+   * The date and time of transaction reaching <code>completed</code> or <code>refunded</code>
    * status.
    *
    * @return <code>completed</code> field of the SEP-24 transaction history.
@@ -95,10 +90,8 @@ public interface Sep24Transaction {
   void setRequestAssetCode(String assetCode);
 
   /**
-   * The issuer of the stellar asset the user wants to receive for their deposit
-   * with the anchor. If
-   * asset_issuer is not provided, the anchor should use the asset issued by
-   * themselves as described
+   * The issuer of the stellar asset the user wants to receive for their deposit with the anchor. If
+   * asset_issuer is not provided, the anchor should use the asset issued by themselves as described
    * in their TOML file.
    *
    * @return the asset issuer of the transaction's <code>asset_code</code> .
@@ -122,12 +115,10 @@ public interface Sep24Transaction {
   void setSep10Account(String sep10Account);
 
   /**
-   * If this is a withdrawal, this is the anchor's Stellar account that the user
-   * transferred (or
+   * If this is a withdrawal, this is the anchor's Stellar account that the user transferred (or
    * will transfer) their issued asset to.
    *
-   * @return <code>withdraw_anchor_account</code> field of the SEP-24 transaction
-   *         history.
+   * @return <code>withdraw_anchor_account</code> field of the SEP-24 transaction history.
    */
   String getWithdrawAnchorAccount();
 
@@ -136,8 +127,7 @@ public interface Sep24Transaction {
   /**
    * If withdrawal, the Stellar account the assets were withdrawn from.
    *
-   * <p>
-   * If deposit, sent from address, perhaps BTC, IBAN, or bank account.
+   * <p>If deposit, sent from address, perhaps BTC, IBAN, or bank account.
    *
    * @return <code>from</code> field of the SEP-24 transaction history.
    */
@@ -146,12 +136,10 @@ public interface Sep24Transaction {
   void setFromAccount(String fromAccount);
 
   /**
-   * If withdrawal, sent to address (perhaps BTC, IBAN, or bank account in the
-   * case of a withdrawal,
+   * If withdrawal, sent to address (perhaps BTC, IBAN, or bank account in the case of a withdrawal,
    * Stellar account in the case of a deposit).
    *
-   * <p>
-   * If deposit, the Stellar account the deposited assets were sent to.
+   * <p>If deposit, the Stellar account the deposited assets were sent to.
    *
    * @return <code>to</code> field of the SEP-24 transaction history.
    */
@@ -160,19 +148,14 @@ public interface Sep24Transaction {
   void setToAccount(String toAccount);
 
   /**
-   * If withdrawal, this is the memo used when the user transferred to
-   * withdraw_anchor_account.
-   * Assigned null if the withdraw is not ready to receive payment, for example if
-   * KYC is not
+   * If withdrawal, this is the memo used when the user transferred to withdraw_anchor_account.
+   * Assigned null if the withdraw is not ready to receive payment, for example if KYC is not
    * completed.
    *
-   * <p>
-   * If deposit, this is the memo (if any) used to transfer the asset to the to
-   * Stellar address
+   * <p>If deposit, this is the memo (if any) used to transfer the asset to the to Stellar address
    *
-   * @return <code>withdraw_memo</code> or <code>deposit_memo</code> of the SEP-24
-   *         transaction
-   *         history.
+   * @return <code>withdraw_memo</code> or <code>deposit_memo</code> of the SEP-24 transaction
+   *     history.
    */
   String getMemo();
 
@@ -181,9 +164,8 @@ public interface Sep24Transaction {
   /**
    * Type for the <code>memo</code> field.
    *
-   * @return <code>withdraw_memo_type</code> or <code>deposit_memo_type</code> of
-   *         the SEP-24
-   *         transaction history.
+   * @return <code>withdraw_memo_type</code> or <code>deposit_memo_type</code> of the SEP-24
+   *     transaction history.
    */
   String getMemoType();
 
@@ -199,8 +181,7 @@ public interface Sep24Transaction {
   void setClientDomain(String domainClient);
 
   /**
-   * True if the client supports receiving deposit transactions as a claimable
-   * balance, false
+   * True if the client supports receiving deposit transactions as a claimable balance, false
    * otherwise.
    *
    * @return <code>true</code> or <code>false</code>
@@ -210,8 +191,7 @@ public interface Sep24Transaction {
   void setClaimableBalanceSupported(Boolean claimableBalanceSupported);
 
   /**
-   * Amount received by anchor at start of transaction as a string with up to 7
-   * decimals. Excludes
+   * Amount received by anchor at start of transaction as a string with up to 7 decimals. Excludes
    * any fees charged before the anchor received the funds.
    *
    * @return <code>amount_in</code> field of the SEP-24 transaction history.
@@ -221,10 +201,8 @@ public interface Sep24Transaction {
   void setAmountIn(String amountIn);
 
   /**
-   * The asset received or to be received by the Anchor. Must be present if the
-   * deposit/withdraw was
-   * made using non-equivalent assets. The value must be in SEP-38 Asset
-   * Identification Format. See
+   * The asset received or to be received by the Anchor. Must be present if the deposit/withdraw was
+   * made using non-equivalent assets. The value must be in SEP-38 Asset Identification Format. See
    * the Asset Exchanges section for more information.
    *
    * @return <code>amount_in_asset</code> field of the SEP-24 transaction history.
@@ -234,8 +212,7 @@ public interface Sep24Transaction {
   void setAmountInAsset(String amountInAsset);
 
   /**
-   * Amount sent by anchor to user at end of transaction as a string with up to 7
-   * decimals. Excludes
+   * Amount sent by anchor to user at end of transaction as a string with up to 7 decimals. Excludes
    * amount converted to XLM to fund account and any external fees.
    *
    * @return <code>amount_out</code> field of the SEP-24 transaction history.
@@ -247,8 +224,7 @@ public interface Sep24Transaction {
   /**
    * The asset of the <code>amount_out</code> field.
    *
-   * @return <code>amount_out_asset</code> field of the SEP-24 transaction
-   *         history.
+   * @return <code>amount_out_asset</code> field of the SEP-24 transaction history.
    */
   String getAmountOutAsset();
 
@@ -264,14 +240,11 @@ public interface Sep24Transaction {
   void setAmountFee(String amountFee);
 
   /**
-   * The asset in which fees are calculated in. Must be present if the
-   * deposit/withdraw was made
-   * using non-equivalent assets. The value must be in SEP-38 Asset Identification
-   * Format. See the
+   * The asset in which fees are calculated in. Must be present if the deposit/withdraw was made
+   * using non-equivalent assets. The value must be in SEP-38 Asset Identification Format. See the
    * Asset Exchanges section for more information.
    *
-   * @return <code>amount_fee_asset</code> field of the SEP-24 transaction
-   *         history.
+   * @return <code>amount_fee_asset</code> field of the SEP-24 transaction history.
    */
   String getAmountFeeAsset();
 
@@ -286,12 +259,10 @@ public interface Sep24Transaction {
   void setRefunds(Sep24Refunds refunds);
 
   /**
-   * The memo the anchor must use when sending refund payments back to the user.
-   * If not specified,
-   * the anchor should use the same memo used by the user to send the original
-   * payment.
-   * If specified, <code>refund_memo_type</code> must also be specified.
-   * 
+   * The memo the anchor must use when sending refund payments back to the user. If not specified,
+   * the anchor should use the same memo used by the user to send the original payment. If
+   * specified, <code>refund_memo_type</code> must also be specified.
+   *
    * @return <code>refund_memo</code> provided in the SEP-24 withdrawal request.
    */
   String getRefundMemo();

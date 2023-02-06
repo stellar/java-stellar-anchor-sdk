@@ -130,19 +130,21 @@ public class Sep24Service {
     }
 
     Memo memo = makeMemo(withdrawRequest.get("memo"), withdrawRequest.get("memo_type"));
-    Memo refundMemo = makeMemo(withdrawRequest.get("refund_memo"), withdrawRequest.get("refund_memo_type"));
+    Memo refundMemo =
+        makeMemo(withdrawRequest.get("refund_memo"), withdrawRequest.get("refund_memo_type"));
     String txnId = UUID.randomUUID().toString();
-    Sep24TransactionBuilder builder = new Sep24TransactionBuilder(txnStore)
-        .transactionId(txnId)
-        .status(INCOMPLETE.toString())
-        .kind(WITHDRAWAL.toString())
-        .amountExpected(strAmount)
-        .assetCode(assetCode)
-        .assetIssuer(withdrawRequest.get("asset_issuer"))
-        .startedAt(Instant.now())
-        .sep10Account(token.getAccount())
-        .fromAccount(sourceAccount)
-        .clientDomain(token.getClientDomain());
+    Sep24TransactionBuilder builder =
+        new Sep24TransactionBuilder(txnStore)
+            .transactionId(txnId)
+            .status(INCOMPLETE.toString())
+            .kind(WITHDRAWAL.toString())
+            .amountExpected(strAmount)
+            .assetCode(assetCode)
+            .assetIssuer(withdrawRequest.get("asset_issuer"))
+            .startedAt(Instant.now())
+            .sep10Account(token.getAccount())
+            .fromAccount(sourceAccount)
+            .clientDomain(token.getClientDomain());
 
     if (memo != null) {
       debug("transaction memo detected.", memo);
@@ -248,18 +250,19 @@ public class Sep24Service {
 
     Memo memo = makeMemo(depositRequest.get("memo"), depositRequest.get("memo_type"));
     String txnId = generateSepTransactionId();
-    Sep24TransactionBuilder builder = new Sep24TransactionBuilder(txnStore)
-        .transactionId(txnId)
-        .status(INCOMPLETE.toString())
-        .kind(Sep24Transaction.Kind.DEPOSIT.toString())
-        .amountExpected(strAmount)
-        .assetCode(assetCode)
-        .assetIssuer(depositRequest.get("asset_issuer"))
-        .startedAt(Instant.now())
-        .sep10Account(token.getAccount())
-        .toAccount(destinationAccount)
-        .clientDomain(token.getClientDomain())
-        .claimableBalanceSupported(claimableSupported);
+    Sep24TransactionBuilder builder =
+        new Sep24TransactionBuilder(txnStore)
+            .transactionId(txnId)
+            .status(INCOMPLETE.toString())
+            .kind(Sep24Transaction.Kind.DEPOSIT.toString())
+            .amountExpected(strAmount)
+            .assetCode(assetCode)
+            .assetIssuer(depositRequest.get("asset_issuer"))
+            .startedAt(Instant.now())
+            .sep10Account(token.getAccount())
+            .toAccount(destinationAccount)
+            .clientDomain(token.getClientDomain())
+            .claimableBalanceSupported(claimableSupported);
 
     if (memo != null) {
       debug("transaction memo detected.", memo);
@@ -298,7 +301,8 @@ public class Sep24Service {
           (txReq.getAssetCode() == null) ? "null" : txReq.getAssetCode());
       throw new SepValidationException("asset code not supported");
     }
-    List<Sep24Transaction> txns = txnStore.findTransactions(token.getAccount(), token.getAccountMemo(), txReq);
+    List<Sep24Transaction> txns =
+        txnStore.findTransactions(token.getAccount(), token.getAccountMemo(), txReq);
     GetTransactionsResponse result = new GetTransactionsResponse();
     List<TransactionResponse> list = new ArrayList<>();
     debugF("found {} transactions", txns.size());
@@ -392,14 +396,16 @@ public class Sep24Service {
     }
 
     // Calculate refund information.
-    AssetInfo assetInfo = assetService.getAsset(txn.getRequestAssetCode(), txn.getRequestAssetIssuer());
+    AssetInfo assetInfo =
+        assetService.getAsset(txn.getRequestAssetCode(), txn.getRequestAssetIssuer());
     return Sep24Helper.updateRefundInfo(response, txn, assetInfo);
   }
 
   public TransactionResponse fromDepositTxn(Sep24Transaction txn)
       throws MalformedURLException, URISyntaxException {
 
-    DepositTransactionResponse txnR = gson.fromJson(gson.toJson(txn), DepositTransactionResponse.class);
+    DepositTransactionResponse txnR =
+        gson.fromJson(gson.toJson(txn), DepositTransactionResponse.class);
 
     setSharedTransactionResponseFields(txnR, txn);
 
@@ -416,7 +422,8 @@ public class Sep24Service {
   public WithdrawTransactionResponse fromWithdrawTxn(Sep24Transaction txn)
       throws MalformedURLException, URISyntaxException {
 
-    WithdrawTransactionResponse txnR = gson.fromJson(gson.toJson(txn), WithdrawTransactionResponse.class);
+    WithdrawTransactionResponse txnR =
+        gson.fromJson(gson.toJson(txn), WithdrawTransactionResponse.class);
 
     setSharedTransactionResponseFields(txnR, txn);
 
