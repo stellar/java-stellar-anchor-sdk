@@ -13,8 +13,9 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.stellar.anchor.TestHelper.Companion.createJwtToken
+import org.stellar.anchor.auth.AbstractJwt
 import org.stellar.anchor.auth.JwtService
-import org.stellar.anchor.auth.JwtToken
+import org.stellar.anchor.auth.Sep10Jwt
 import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.filter.JwtTokenFilter.APPLICATION_JSON_VALUE
@@ -139,7 +140,7 @@ internal class JwtTokenFilterTest {
   ) {
     every { request.method } returns method
     val mockJwtService = spyk(jwtService)
-    every { mockJwtService.decode(any()) } returns null
+    every { mockJwtService.decode(any(), AbstractJwt::class.java) } returns null
     val filter = JwtTokenFilter(mockJwtService)
 
     filter.doFilter(request, response, mockFilterChain)
@@ -154,7 +155,7 @@ internal class JwtTokenFilterTest {
   @ValueSource(strings = ["GET", "PUT", "POST", "DELETE"])
   fun `make sure a valid token returns OK`(method: String) {
     every { request.method } returns method
-    val slot = slot<JwtToken>()
+    val slot = slot<Sep10Jwt>()
     every { request.setAttribute(JWT_TOKEN, capture(slot)) } answers {}
 
     val jwtToken = jwtService.encode(createJwtToken(PUBLIC_KEY, null, appConfig.hostUrl))

@@ -11,12 +11,10 @@ callback_api:
   base_url: http://localhost:8081
   auth:
     type: NONE
-    expiration_milliseconds: 30000
 
 platform_api:
   auth:
     type: NONE
-    expiration_milliseconds: 30000
 
 languages: en
 
@@ -83,7 +81,8 @@ sep12:
 
 sep24:
   enabled: true
-  interactive_url: http://localhost:8091/sep24/interactive
+  interactive_url:
+    base_url: http://localhost:8091/sep24/interactive
 
 sep31:
   enabled: true

@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestClientException;
 import org.stellar.anchor.api.sep.SepExceptionResponse;
 import org.stellar.anchor.api.sep.sep38.*;
-import org.stellar.anchor.auth.JwtToken;
+import org.stellar.anchor.auth.Sep10Jwt;
 import org.stellar.anchor.platform.condition.ConditionalOnAllSepsEnabled;
 import org.stellar.anchor.sep38.Sep38Service;
 import org.stellar.anchor.util.GsonUtils;
@@ -85,9 +85,9 @@ public class Sep38Controller {
       method = {RequestMethod.POST})
   public Sep38QuoteResponse postQuote(
       HttpServletRequest request, @RequestBody Sep38PostQuoteRequest postQuoteRequest) {
-    JwtToken jwtToken = getSep10Token(request);
+    Sep10Jwt sep10Jwt = getSep10Token(request);
     debugF("POSTS /quote request={}", postQuoteRequest);
-    return sep38Service.postQuote(jwtToken, postQuoteRequest);
+    return sep38Service.postQuote(sep10Jwt, postQuoteRequest);
   }
 
   @SneakyThrows
@@ -98,9 +98,9 @@ public class Sep38Controller {
       method = {RequestMethod.GET})
   public Sep38QuoteResponse getQuote(
       HttpServletRequest request, @PathVariable(name = "quote_id") String quoteId) {
-    JwtToken jwtToken = getSep10Token(request);
+    Sep10Jwt sep10Jwt = getSep10Token(request);
     debugF("GET /quote id={}", quoteId);
-    return sep38Service.getQuote(jwtToken, quoteId);
+    return sep38Service.getQuote(sep10Jwt, quoteId);
   }
 
   @ExceptionHandler(RestClientException.class)

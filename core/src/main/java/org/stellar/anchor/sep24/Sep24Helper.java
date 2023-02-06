@@ -14,12 +14,13 @@ import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.sep24.RefundPayment;
 import org.stellar.anchor.api.sep.sep24.Refunds;
 import org.stellar.anchor.api.sep.sep24.TransactionResponse;
-import org.stellar.anchor.auth.JwtToken;
+import org.stellar.anchor.auth.Sep10Jwt;
 import org.stellar.anchor.config.Sep24Config;
 
 public class Sep24Helper {
   static final List<String> needsMoreInfoUrlDeposit =
       Arrays.asList(
+          INCOMPLETE.toString(),
           PENDING_USR_TRANSFER_START.toString(),
           PENDING_USR_TRANSFER_COMPLETE.toString(),
           COMPLETED.toString(),
@@ -29,6 +30,7 @@ public class Sep24Helper {
           PENDING_USER.toString());
   static final List<String> needsMoreInfoUrlWithdraw =
       Arrays.asList(
+          INCOMPLETE.toString(),
           PENDING_USR_TRANSFER_START.toString(),
           PENDING_USR_TRANSFER_COMPLETE.toString(),
           COMPLETED.toString(),
@@ -84,13 +86,14 @@ public class Sep24Helper {
     return response;
   }
 
-  public static JwtToken buildRedirectJwtToken(
-      Sep24Config sep24Config, String fullRequestUrl, JwtToken token, Sep24Transaction txn) {
-    return JwtToken.of(
+  public static Sep10Jwt buildRedirectJwtToken(
+      Sep24Config sep24Config, String fullRequestUrl, Sep10Jwt token, Sep24Transaction txn) {
+    return Sep10Jwt.of(
         fullRequestUrl,
         token.getSub(),
         Instant.now().getEpochSecond(),
-        Instant.now().getEpochSecond() + sep24Config.getInteractiveJwtExpiration(),
+        //            Instant.now().getEpochSecond() + sep24Config.getInteractiveJwtExpiration(),
+        Instant.now().getEpochSecond(),
         txn.getTransactionId(),
         token.getClientDomain());
   }

@@ -12,7 +12,7 @@ class PlatformApiTests {
   companion object {
     fun setup() {
       if (!::platformApiClient.isInitialized) {
-        val platformToAnchorJwtService = JwtService("myAnchorToPlatformSecret")
+        val platformToAnchorJwtService = JwtService("myAnchorToPlatformSecret", null, null)
         val authHelper =
           AuthHelper.forJwtToken(platformToAnchorJwtService, 900000, "http://localhost:8081")
         platformApiClient = PlatformApiClient(authHelper, "http://localhost:8080")
