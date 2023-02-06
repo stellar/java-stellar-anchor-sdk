@@ -3,6 +3,7 @@ package org.stellar.anchor.platform.data;
 import java.time.Instant;
 import java.time.format.DateTimeParseException;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.exception.SepValidationException;
@@ -49,6 +50,11 @@ public class JdbcSep24TransactionStore implements Sep24TransactionStore {
   @Override
   public Sep24Transaction findByExternalTransactionId(String externalTransactionId) {
     return txnRepo.findOneByExternalTransactionId(externalTransactionId);
+  }
+
+  public JdbcSep24Transaction findByStellarAccountIdAndMemo(String accountId, String memo) {
+    Optional<JdbcSep24Transaction> optTxn = Optional.ofNullable(txnRepo.findOneBySep10AccountAndMemo(accountId, memo));
+    return optTxn.orElse(null);
   }
 
   @Override

@@ -11,7 +11,7 @@ import org.stellar.anchor.sep38.Sep38QuoteStore;
 @Configuration
 public class DataBeans {
   @Bean
-  Sep24TransactionStore sep24TransactionStore(JdbcSep24TransactionRepo sep24TransactionRepo) {
+  JdbcSep24TransactionStore sep24TransactionStore(JdbcSep24TransactionRepo sep24TransactionRepo) {
     return new JdbcSep24TransactionStore(sep24TransactionRepo);
   }
 
