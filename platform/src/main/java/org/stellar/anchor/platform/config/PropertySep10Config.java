@@ -1,5 +1,10 @@
 package org.stellar.anchor.platform.config;
 
+import static java.lang.String.format;
+import static org.stellar.anchor.util.StringHelper.isEmpty;
+import static org.stellar.anchor.util.StringHelper.isNotEmpty;
+
+import java.util.List;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.validation.Errors;
@@ -9,12 +14,6 @@ import org.stellar.anchor.config.Sep10Config;
 import org.stellar.anchor.util.ListHelper;
 import org.stellar.anchor.util.NetUtil;
 import org.stellar.sdk.KeyPair;
-
-import java.util.List;
-
-import static java.lang.String.format;
-import static org.stellar.anchor.util.StringHelper.isEmpty;
-import static org.stellar.anchor.util.StringHelper.isNotEmpty;
 
 @Data
 public class PropertySep10Config implements Sep10Config, Validator {
@@ -59,14 +58,14 @@ public class PropertySep10Config implements Sep10Config, Validator {
       try {
         KeyPair.fromSecretSeed(secretConfig.getSep10SigningSeed());
       } catch (Throwable ex) {
-        errors.rejectValue(
+        errors.reject(
             "sep10-signing-seed-invalid",
             "Please set the secret.sep10.signing_seed or SECRET_SEP10_SIGNING_SEED environment variable");
       }
     }
 
     if (isEmpty(secretConfig.getSep10JwtSecretKey())) {
-      errors.rejectValue(
+      errors.reject(
           "sep10-jwt-secret-empty",
           "Please set the secret.sep10.jwt_secret or SECRET_SEP10_JWT_SECRET environment variable");
     }

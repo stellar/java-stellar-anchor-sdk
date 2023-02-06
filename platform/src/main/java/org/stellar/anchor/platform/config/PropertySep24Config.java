@@ -1,20 +1,29 @@
 package org.stellar.anchor.platform.config;
 
+import static org.stellar.anchor.util.StringHelper.isEmpty;
+import static org.stellar.anchor.util.StringHelper.snakeToCamelCase;
+
+import java.lang.reflect.Field;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 import lombok.*;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 import org.stellar.anchor.config.SecretConfig;
 import org.stellar.anchor.config.Sep24Config;
+import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.util.NetUtil;
-
-import java.util.List;
-
-import static org.stellar.anchor.util.StringHelper.isEmpty;
 
 @Getter
 @Setter
 public class PropertySep24Config implements Sep24Config, Validator {
+  static List<String> validFields =
+      Arrays.stream(JdbcSep24Transaction.class.getDeclaredFields())
+          .sequential()
+          .map(Field::getName)
+          .collect(Collectors.toList());
   boolean enabled;
   InteractiveUrlConfig interactiveUrl;
   MoreInfoUrlConfig moreInfoUrl;
@@ -77,7 +86,18 @@ public class PropertySep24Config implements Sep24Config, Validator {
                 "sep24.interactive_url.jwt_expiration:[%s] must be greater than 0.",
                 interactiveUrl.jwtExpiration));
       }
-
+      for (String field : interactiveUrl.txnFields) {
+        if (!isEmpty(field)) {
+          if (!validFields.contains(snakeToCamelCase(field))) {
+            errors.rejectValue(
+                "interactiveUrl.txnFields",
+                "sep24-interactive-url-txn-fields-not-valid",
+                String.format(
+                    "sep24.interactive_url.txn_fields contains the field:[%s] which is not valid transaction field",
+                    field));
+          }
+        }
+      }
       if (isEmpty(secretConfig.getSep24InteractiveUrlJwtSecret())) {
         errors.reject(
             "sep24-interactive-url-jwt-secret-not-defined",
@@ -105,6 +125,18 @@ public class PropertySep24Config implements Sep24Config, Validator {
             String.format(
                 "sep24.more_info_url.jwt_expiration:[%s] must be greater than 0.",
                 moreInfoUrl.jwtExpiration));
+      }
+      for (String field : moreInfoUrl.txnFields) {
+        if (!isEmpty(field)) {
+          if (!validFields.contains(snakeToCamelCase(field))) {
+            errors.rejectValue(
+                "moreInfoUrl.txnFields",
+                "sep24-more_info-url-txn-fields-not-valid",
+                String.format(
+                    "sep24.more_info_url.txn_fields contains the field:[%s] which is not valid transaction field",
+                    field));
+          }
+        }
       }
       if (isEmpty(secretConfig.getSep24InteractiveUrlJwtSecret())) {
         errors.reject(

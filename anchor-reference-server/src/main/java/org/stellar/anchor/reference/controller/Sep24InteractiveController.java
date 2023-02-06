@@ -40,7 +40,7 @@ public class Sep24InteractiveController {
   @CrossOrigin(origins = "*")
   @RequestMapping(
       value = "/sep24/transaction/more_info",
-          produces="text/html",
+      produces = "text/html",
       method = {RequestMethod.GET})
   @ResponseBody
   public String moreInfo(HttpServletRequest request) throws SepValidationException {

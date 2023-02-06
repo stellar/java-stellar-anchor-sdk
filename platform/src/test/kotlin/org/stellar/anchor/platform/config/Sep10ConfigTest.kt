@@ -31,7 +31,7 @@ class Sep10ConfigTest {
 
   @Test
   fun `test default sep10 config`() {
-    config.validateConfig(config, errors)
+    config.validateConfig(errors)
     assertFalse(errors.hasErrors())
   }
 
@@ -39,12 +39,12 @@ class Sep10ConfigTest {
   fun `test client attribution and lists`() {
     config.isClientAttributionRequired = true
     config.clientAttributionAllowList = listOf("stellar.org", "lobstr.com")
-    config.validateClientAttribution(config, errors)
+    config.validateClientAttribution(errors)
     assertFalse(errors.hasErrors())
 
     config.clientAttributionAllowList = listOf()
     config.clientAttributionDenyList = listOf("stellar.org", "lobstr.com")
-    config.validateClientAttribution(config, errors)
+    config.validateClientAttribution(errors)
     assertFalse(errors.hasErrors())
   }
 
@@ -52,7 +52,7 @@ class Sep10ConfigTest {
   fun `test client attribution allow list is not empty while client_attrbution_required is set to false`() {
     config.isClientAttributionRequired = false
     config.clientAttributionAllowList = listOf("stellar.org", "lobstr.com")
-    config.validateClientAttribution(config, errors)
+    config.validateClientAttribution(errors)
     assertErrorCode(errors, "sep10-client-attribution-allow-list-not-empty")
   }
 
@@ -60,7 +60,7 @@ class Sep10ConfigTest {
   fun `test client attribution deny list is not empty while client_attrbution_required is set to false`() {
     config.isClientAttributionRequired = false
     config.clientAttributionDenyList = listOf("stellar.org", "lobstr.com")
-    config.validateClientAttribution(config, errors)
+    config.validateClientAttribution(errors)
     assertErrorCode(errors, "sep10-client-attribution-deny-list-not-empty")
   }
 
@@ -69,7 +69,7 @@ class Sep10ConfigTest {
     config.isClientAttributionRequired = true
     config.clientAttributionAllowList = listOf("stellar.org", "lobstr.com")
     config.clientAttributionDenyList = listOf("mgi.com")
-    config.validateClientAttribution(config, errors)
+    config.validateClientAttribution(errors)
     assertErrorCode(errors, "sep10-client-attribution-lists-conflict")
   }
 
@@ -78,7 +78,7 @@ class Sep10ConfigTest {
     config.isClientAttributionRequired = true
     config.clientAttributionAllowList = listOf()
     config.clientAttributionDenyList = listOf()
-    config.validateClientAttribution(config, errors)
+    config.validateClientAttribution(errors)
     assertErrorCode(errors, "sep10-client-attribution-lists-empty")
   }
 
@@ -86,7 +86,7 @@ class Sep10ConfigTest {
   @MethodSource("validOmnibusAccounts")
   fun `test omnibus account list`(omnibusAccounts: List<String>) {
     config.omnibusAccountList = omnibusAccounts
-    config.validateOmnibusAccounts(config, errors)
+    config.validateOmnibusAccounts(errors)
     assertFalse(errors.hasErrors())
   }
 
@@ -94,7 +94,7 @@ class Sep10ConfigTest {
   @MethodSource("invalidOmnibusAccounts")
   fun `test invalid omnibus account list`(omnibusAccounts: List<String>) {
     config.omnibusAccountList = omnibusAccounts
-    config.validateOmnibusAccounts(config, errors)
+    config.validateOmnibusAccounts(errors)
     assertErrorCode(errors, "sep10-omnibus-account-not-valid")
   }
 
@@ -102,7 +102,7 @@ class Sep10ConfigTest {
   fun `test required known omnibus account`() {
     config.isRequireKnownOmnibusAccount = true
     config.omnibusAccountList = listOf("GCS2KBEGIWILNKFYY6ORT72Y2HUFYG6IIIOESHVQC3E5NIYT3L2I5F5E")
-    config.validateOmnibusAccounts(config, errors)
+    config.validateOmnibusAccounts(errors)
     assertFalse(errors.hasErrors())
   }
 
@@ -110,7 +110,7 @@ class Sep10ConfigTest {
   fun `test known omnibus account required but not defined`() {
     config.isRequireKnownOmnibusAccount = true
     config.omnibusAccountList = listOf()
-    config.validateOmnibusAccounts(config, errors)
+    config.validateOmnibusAccounts(errors)
     assertErrorCode(errors, "sep10-omnibus-account-list-empty")
   }
 
@@ -118,7 +118,7 @@ class Sep10ConfigTest {
   @ValueSource(strings = ["stellar.org", "moneygram.com"])
   fun `test valid home domains`(value: String) {
     config.homeDomain = value
-    config.validateConfig(config, errors)
+    config.validateConfig(errors)
     assertFalse(errors.hasErrors())
   }
 
@@ -127,7 +127,7 @@ class Sep10ConfigTest {
   @ValueSource(strings = ["bad key", "GCS2KBEGIWILNKFYY6ORT72Y2HUFYG6IIIOESHVQC3E5NIYT3L2I5F5E"])
   fun `test invalid sep10 seeds`(value: String?) {
     every { secretConfig.sep10SigningSeed } returns value
-    config.validateConfig(config, errors)
+    config.validateConfig(errors)
     assertTrue(errors.hasErrors())
   }
 
@@ -135,7 +135,7 @@ class Sep10ConfigTest {
   @ValueSource(strings = ["stellar .org", "abc", "299.0.0.1"])
   fun `test invalid home domains`(value: String) {
     config.homeDomain = value
-    config.validateConfig(config, errors)
+    config.validateConfig(errors)
     assertTrue(errors.hasErrors())
     assertErrorCode(errors, "sep10-home-domain-invalid")
   }
