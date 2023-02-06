@@ -25,7 +25,7 @@ import org.stellar.anchor.api.sep.sep38.RateFeeDetail
 import org.stellar.anchor.api.sep.sep38.Sep38Context.SEP31
 import org.stellar.anchor.auth.AuthHelper
 import org.stellar.anchor.auth.JwtService
-import org.stellar.anchor.auth.JwtToken
+import org.stellar.anchor.auth.Sep10Jwt
 import org.stellar.anchor.platform.callback.RestRateIntegration
 import org.stellar.anchor.reference.model.Quote
 import org.stellar.anchor.util.GsonUtils
@@ -35,7 +35,7 @@ class RestRateIntegrationTest {
   companion object {
     private const val PLATFORM_TO_ANCHOR_SECRET = "myPlatformToAnchorSecret"
     private const val JWT_EXPIRATION_MILLISECONDS: Long = 100000000
-    private val platformToAnchorJwtService = JwtService(PLATFORM_TO_ANCHOR_SECRET)
+    private val platformToAnchorJwtService = JwtService(PLATFORM_TO_ANCHOR_SECRET, null, null)
     private val authHelper =
       AuthHelper.forJwtToken(
         platformToAnchorJwtService,
@@ -70,7 +70,7 @@ class RestRateIntegrationTest {
     every { Calendar.getInstance() } returns calendarSingleton
     // mock jwt token based on the mocked calendar
     val jwtToken =
-      JwtToken.of(
+      Sep10Jwt.of(
         "http://localhost:8080",
         currentTimeMilliseconds / 1000L,
         (currentTimeMilliseconds + JWT_EXPIRATION_MILLISECONDS) / 1000L

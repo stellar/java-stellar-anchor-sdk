@@ -8,7 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import org.stellar.anchor.api.callback.CustomerIntegration;
 import org.stellar.anchor.api.exception.*;
 import org.stellar.anchor.api.sep.sep12.*;
-import org.stellar.anchor.auth.JwtToken;
+import org.stellar.anchor.auth.Sep10Jwt;
 import org.stellar.anchor.util.Log;
 import org.stellar.anchor.util.MemoHelper;
 import org.stellar.sdk.xdr.MemoType;
@@ -21,7 +21,7 @@ public class Sep12Service {
     Log.info("Sep12Service initialized.");
   }
 
-  public Sep12GetCustomerResponse getCustomer(JwtToken token, Sep12GetCustomerRequest request)
+  public Sep12GetCustomerResponse getCustomer(Sep10Jwt token, Sep12GetCustomerRequest request)
       throws AnchorException {
     validateGetOrPutRequest(request, token);
     if (request.getId() == null && request.getAccount() == null && token.getAccount() != null) {
@@ -31,7 +31,7 @@ public class Sep12Service {
     return customerIntegration.getCustomer(request);
   }
 
-  public Sep12PutCustomerResponse putCustomer(JwtToken token, Sep12PutCustomerRequest request)
+  public Sep12PutCustomerResponse putCustomer(Sep10Jwt token, Sep12PutCustomerRequest request)
       throws AnchorException {
     validateGetOrPutRequest(request, token);
 
@@ -42,25 +42,25 @@ public class Sep12Service {
     return customerIntegration.putCustomer(request);
   }
 
-  public void deleteCustomer(JwtToken jwtToken, String account, String memo, String memoType)
+  public void deleteCustomer(Sep10Jwt sep10Jwt, String account, String memo, String memoType)
       throws AnchorException {
     boolean isAccountAuthenticated =
-        Stream.of(jwtToken.getAccount(), jwtToken.getMuxedAccount())
+        Stream.of(sep10Jwt.getAccount(), sep10Jwt.getMuxedAccount())
             .filter(Objects::nonNull)
             .anyMatch(tokenAccount -> Objects.equals(tokenAccount, account));
 
     boolean isMemoMissingAuthentication = false;
-    String muxedAccountId = Objects.toString(jwtToken.getMuxedAccountId(), null);
+    String muxedAccountId = Objects.toString(sep10Jwt.getMuxedAccountId(), null);
     if (muxedAccountId != null) {
-      if (!Objects.equals(jwtToken.getMuxedAccount(), account)) {
+      if (!Objects.equals(sep10Jwt.getMuxedAccount(), account)) {
         isMemoMissingAuthentication = !Objects.equals(muxedAccountId, memo);
       }
-    } else if (jwtToken.getAccountMemo() != null) {
-      isMemoMissingAuthentication = !Objects.equals(jwtToken.getAccountMemo(), memo);
+    } else if (sep10Jwt.getAccountMemo() != null) {
+      isMemoMissingAuthentication = !Objects.equals(sep10Jwt.getAccountMemo(), memo);
     }
 
     if (!isAccountAuthenticated || isMemoMissingAuthentication) {
-      infoF("Requester ({}) not authorized to delete account ({})", jwtToken.getAccount(), account);
+      infoF("Requester ({}) not authorized to delete account ({})", sep10Jwt.getAccount(), account);
       throw new SepNotAuthorizedException(
           String.format("Not authorized to delete account [%s] with memo [%s]", account, memo));
     }
@@ -89,7 +89,7 @@ public class Sep12Service {
     }
   }
 
-  void validateGetOrPutRequest(Sep12CustomerRequestBase requestBase, JwtToken token)
+  void validateGetOrPutRequest(Sep12CustomerRequestBase requestBase, Sep10Jwt token)
       throws SepException {
     validateRequestAndTokenAccounts(requestBase, token);
     validateRequestAndTokenMemos(requestBase, token);
@@ -97,7 +97,7 @@ public class Sep12Service {
   }
 
   void validateRequestAndTokenAccounts(
-      @NotNull Sep12CustomerRequestBase requestBase, @NotNull JwtToken token) throws SepException {
+      @NotNull Sep12CustomerRequestBase requestBase, @NotNull Sep10Jwt token) throws SepException {
     // Validate request.account - SEP-12 says: This field should match the `sub` value of the
     // decoded SEP-10 JWT.
     String tokenAccount = token.getAccount();
@@ -115,7 +115,7 @@ public class Sep12Service {
     }
   }
 
-  void validateRequestAndTokenMemos(Sep12CustomerRequestBase requestBase, @NotNull JwtToken token)
+  void validateRequestAndTokenMemos(Sep12CustomerRequestBase requestBase, @NotNull Sep10Jwt token)
       throws SepException {
     String tokenSubMemo = token.getAccountMemo();
     String tokenMuxedAccountId = Objects.toString(token.getMuxedAccountId(), null);
@@ -143,7 +143,7 @@ public class Sep12Service {
         "The memo specified does not match the memo ID authorized via SEP-10");
   }
 
-  void updateRequestMemoAndMemoType(@NotNull Sep12CustomerRequestBase requestBase, JwtToken token)
+  void updateRequestMemoAndMemoType(@NotNull Sep12CustomerRequestBase requestBase, Sep10Jwt token)
       throws SepException {
     String memo = requestBase.getMemo();
     if (memo == null) {

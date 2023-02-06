@@ -5,6 +5,10 @@ public interface SecretConfig {
 
   String getSep10SigningSeed();
 
+  String getSep24InteractiveUrlJwtSecret();
+
+  String getSep24MoreInfoUrlJwtSecret();
+
   String getCallbackApiSecret();
 
   String getPlatformApiSecret();

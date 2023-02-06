@@ -11,7 +11,7 @@ import org.stellar.anchor.auth.AuthHelper
 import org.stellar.anchor.auth.AuthType
 import org.stellar.anchor.auth.AuthType.*
 import org.stellar.anchor.auth.JwtService
-import org.stellar.anchor.auth.JwtToken
+import org.stellar.anchor.auth.Sep10Jwt
 
 class PlatformIntegrationHelperTest {
   companion object {
@@ -41,13 +41,13 @@ class PlatformIntegrationHelperTest {
 
         // mock jwt token based on the mocked calendar
         val wantJwtToken =
-          JwtToken.of(
+          Sep10Jwt.of(
             TEST_HOME_DOMAIN,
             currentTimeMilliseconds / 1000L,
             (currentTimeMilliseconds + JWT_EXPIRATION_MILLISECONDS) / 1000L
           )
 
-        val jwtService = JwtService("secret")
+        val jwtService = JwtService("secret", null, null)
         val authHelper =
           AuthHelper.forJwtToken(jwtService, JWT_EXPIRATION_MILLISECONDS, TEST_HOME_DOMAIN)
 

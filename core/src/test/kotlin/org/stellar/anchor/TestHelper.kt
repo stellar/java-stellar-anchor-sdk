@@ -1,6 +1,6 @@
 package org.stellar.anchor
 
-import org.stellar.anchor.auth.JwtToken
+import org.stellar.anchor.auth.Sep10Jwt
 
 class TestHelper {
   companion object {
@@ -12,9 +12,9 @@ class TestHelper {
       accountMemo: String? = null,
       hostUrl: String = "",
       clientDomain: String = "vibrant.stellar.org"
-    ): JwtToken {
+    ): Sep10Jwt {
       val issuedAt: Long = System.currentTimeMillis() / 1000L
-      return JwtToken.of(
+      return Sep10Jwt.of(
         "$hostUrl/auth",
         if (accountMemo == null) account else "$account:$accountMemo",
         issuedAt,

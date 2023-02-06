@@ -12,7 +12,7 @@ import org.apache.http.HttpStatus;
 import org.stellar.anchor.api.exception.SepValidationException;
 import org.stellar.anchor.api.sep.SepExceptionResponse;
 import org.stellar.anchor.auth.JwtService;
-import org.stellar.anchor.auth.JwtToken;
+import org.stellar.anchor.auth.Sep10Jwt;
 import org.stellar.anchor.util.GsonUtils;
 import org.stellar.anchor.util.Log;
 
@@ -75,7 +75,7 @@ public class JwtTokenFilter implements Filter {
     }
 
     try {
-      JwtToken token = jwtService.decode(jwtCipher);
+      Sep10Jwt token = jwtService.decode(jwtCipher, Sep10Jwt.class);
       validate(token);
       infoF(
           "token created. account={} url={}", shorter(token.getAccount()), request.getRequestURL());
@@ -89,7 +89,7 @@ public class JwtTokenFilter implements Filter {
     filterChain.doFilter(servletRequest, servletResponse);
   }
 
-  protected void validate(JwtToken token) throws SepValidationException {
+  protected void validate(Sep10Jwt token) throws SepValidationException {
     if (token == null) {
       throw new SepValidationException("JwtToken should not be null");
     }

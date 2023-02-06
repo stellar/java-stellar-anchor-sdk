@@ -62,8 +62,8 @@ public class SepBeans {
 
   @Bean
   @ConfigurationProperties(prefix = "sep24")
-  PropertySep24Config sep24Config() {
-    return new PropertySep24Config();
+  PropertySep24Config sep24Config(SecretConfig secretConfig) {
+    return new PropertySep24Config(secretConfig);
   }
 
   @Bean
@@ -157,14 +157,13 @@ public class SepBeans {
   @Bean
   InteractiveUrlConstructor interactiveUrlConstructor(
       PropertySep24Config sep24Config, JwtService jwtService) {
-    return new SimpleInteractiveUrlConstructor(
-        sep24Config.getInteractiveUrl().getSimple(), jwtService);
+    return new SimpleInteractiveUrlConstructor(sep24Config.getInteractiveUrl(), jwtService);
   }
 
   @Bean
   MoreInfoUrlConstructor moreInfoUrlConstructor(
       PropertySep24Config sep24Config, JwtService jwtService) {
-    return new SimpleMoreInfoUrlConstructor(sep24Config.getMoreInfoUrl().getSimple(), jwtService);
+    return new SimpleMoreInfoUrlConstructor(sep24Config.getMoreInfoUrl(), jwtService);
   }
 
   @Bean

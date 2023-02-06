@@ -36,4 +36,19 @@ public class Sep24InteractiveController {
         return "The only supported operations are \"deposit\" or \"withdraw\"";
     }
   }
+
+  @CrossOrigin(origins = "*")
+  @RequestMapping(
+      value = "/sep24/transaction/more_info",
+      produces = "text/html",
+      method = {RequestMethod.GET})
+  @ResponseBody
+  public String moreInfo(HttpServletRequest request) throws SepValidationException {
+    String txnId = request.getParameter("transaction_id");
+    if (StringHelper.isEmpty(txnId)) {
+      throw new SepValidationException("Missing [operation] parameter.");
+    }
+
+    return String.format("The sep24 transaction information of txn:[%s] starts here.", txnId);
+  }
 }

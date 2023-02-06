@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform.configurator;
 
+import static org.stellar.anchor.platform.config.PropertySecretConfig.*;
 import static org.stellar.anchor.util.Log.info;
 import static org.stellar.anchor.util.StringHelper.isNotEmpty;
 
@@ -15,10 +16,12 @@ public class SecretManager
     implements ApplicationContextInitializer<ConfigurableApplicationContext> {
   final List<String> secretVars =
       Arrays.asList(
-          "secret.sep10.jwt_secret",
-          "secret.sep10.signing_seed",
-          "secret.callback_api.auth_secret",
-          "secret.platform_api.auth_secret",
+          SECRET_SEP_10_JWT_SECRET,
+          SECRET_SEP_10_SIGNING_SEED,
+          SECRET_SEP_24_INTERACTIVE_URL_JWT_SECRET,
+          SECRET_SEP_24_MORE_INFO_URL_JWT_SECRET,
+          SECRET_CALLBACK_API_AUTH_SECRET,
+          SECRET_PLATFORM_API_AUTH_SECRET,
           "secret.data.username",
           "secret.data.password");
 

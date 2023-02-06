@@ -33,7 +33,7 @@ import org.stellar.anchor.api.sep.sep31.*;
 import org.stellar.anchor.api.shared.Amount;
 import org.stellar.anchor.api.shared.StellarId;
 import org.stellar.anchor.asset.AssetService;
-import org.stellar.anchor.auth.JwtToken;
+import org.stellar.anchor.auth.Sep10Jwt;
 import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.Sep31Config;
 import org.stellar.anchor.event.EventService;
@@ -84,10 +84,10 @@ public class Sep31Service {
 
   @Transactional(rollbackOn = {AnchorException.class, RuntimeException.class})
   public Sep31PostTransactionResponse postTransaction(
-      JwtToken jwtToken, Sep31PostTransactionRequest request) throws AnchorException {
+      Sep10Jwt sep10Jwt, Sep31PostTransactionRequest request) throws AnchorException {
     Context.reset();
     Context.get().setRequest(request);
-    Context.get().setJwtToken(jwtToken);
+    Context.get().setSep10Jwt(sep10Jwt);
 
     AssetInfo assetInfo = assetService.getAsset(request.getAssetCode(), request.getAssetIssuer());
     if (assetInfo == null) {
@@ -118,7 +118,7 @@ public class Sep31Service {
      */
     if (request.getFields() == null) {
       infoF(
-          "POST /transaction with id ({}) cannot have empty `fields`", jwtToken.getTransactionId());
+          "POST /transaction with id ({}) cannot have empty `fields`", sep10Jwt.getTransactionId());
       throw new BadRequestException("'fields' field cannot be empty");
     }
     Context.get().setTransactionFields(request.getFields().getTransaction());
@@ -134,7 +134,7 @@ public class Sep31Service {
     // Get the creator's stellarId
     StellarId creatorStellarId =
         StellarId.builder()
-            .account(Objects.requireNonNullElse(jwtToken.getMuxedAccount(), jwtToken.getAccount()))
+            .account(Objects.requireNonNullElse(sep10Jwt.getMuxedAccount(), sep10Jwt.getAccount()))
             .build();
 
     Amount fee = Context.get().getFee();
@@ -153,7 +153,7 @@ public class Sep31Service {
             .externalTransactionId(null)
             .requiredInfoMessage(null)
             .quoteId(request.getQuoteId())
-            .clientDomain(jwtToken.getClientDomain())
+            .clientDomain(sep10Jwt.getClientDomain())
             .requiredInfoUpdates(null)
             .fields(request.getFields().getTransaction())
             .refunded(null)
@@ -468,7 +468,7 @@ public class Sep31Service {
     }
 
     Sep31PostTransactionRequest request = Context.get().getRequest();
-    JwtToken token = Context.get().getJwtToken();
+    Sep10Jwt token = Context.get().getSep10Jwt();
     String assetName = Context.get().getAsset().getAssetName();
     infoF("Requesting fee for request ({})", request);
     Amount fee =
@@ -634,7 +634,7 @@ public class Sep31Service {
     private Sep31Transaction transaction;
     private Sep31PostTransactionRequest request;
     private Sep38Quote quote;
-    private JwtToken jwtToken;
+    private Sep10Jwt sep10Jwt;
     private Amount fee;
     private AssetInfo asset;
     private Map<String, String> transactionFields;

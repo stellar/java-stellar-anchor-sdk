@@ -11,7 +11,7 @@ import org.junit.jupiter.api.assertDoesNotThrow
 import org.stellar.anchor.api.callback.CustomerIntegration
 import org.stellar.anchor.api.exception.*
 import org.stellar.anchor.api.sep.sep12.*
-import org.stellar.anchor.auth.JwtToken
+import org.stellar.anchor.auth.Sep10Jwt
 
 class Sep12ServiceTest {
   companion object {
@@ -360,7 +360,7 @@ class Sep12ServiceTest {
     assertEquals(wantDeleteCustomerId, deleteCustomerIdSlot.captured)
   }
 
-  private fun createJwtToken(subject: String): JwtToken {
-    return JwtToken.of("$TEST_HOST_URL/auth", subject, issuedAt, expiresAt, "", CLIENT_DOMAIN)
+  private fun createJwtToken(subject: String): Sep10Jwt {
+    return Sep10Jwt.of("$TEST_HOST_URL/auth", subject, issuedAt, expiresAt, "", CLIENT_DOMAIN)
   }
 }

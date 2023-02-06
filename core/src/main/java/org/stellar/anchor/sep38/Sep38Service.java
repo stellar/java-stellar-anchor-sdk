@@ -28,7 +28,7 @@ import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.sep38.*;
 import org.stellar.anchor.api.shared.StellarId;
 import org.stellar.anchor.asset.AssetService;
-import org.stellar.anchor.auth.JwtToken;
+import org.stellar.anchor.auth.Sep10Jwt;
 import org.stellar.anchor.config.Sep38Config;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.util.Log;
@@ -235,7 +235,7 @@ public class Sep38Service {
         .build();
   }
 
-  public Sep38QuoteResponse postQuote(JwtToken token, Sep38PostQuoteRequest request)
+  public Sep38QuoteResponse postQuote(Sep10Jwt token, Sep38PostQuoteRequest request)
       throws AnchorException {
     if (this.rateIntegration == null) {
       throw new ServerErrorException("internal server error");
@@ -436,7 +436,7 @@ public class Sep38Service {
     return builder.build();
   }
 
-  public Sep38QuoteResponse getQuote(JwtToken token, String quoteId) throws AnchorException {
+  public Sep38QuoteResponse getQuote(Sep10Jwt token, String quoteId) throws AnchorException {
     if (this.sep38QuoteStore == null) {
       throw new ServerErrorException("internal server error");
     }

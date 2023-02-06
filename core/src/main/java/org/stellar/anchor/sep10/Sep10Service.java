@@ -15,7 +15,7 @@ import org.stellar.anchor.api.sep.sep10.ChallengeResponse;
 import org.stellar.anchor.api.sep.sep10.ValidationRequest;
 import org.stellar.anchor.api.sep.sep10.ValidationResponse;
 import org.stellar.anchor.auth.JwtService;
-import org.stellar.anchor.auth.JwtToken;
+import org.stellar.anchor.auth.Sep10Jwt;
 import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.SecretConfig;
 import org.stellar.anchor.config.Sep10Config;
@@ -332,8 +332,8 @@ public class Sep10Service {
     debug("challenge:", challenge);
     long issuedAt = challenge.getTransaction().getTimeBounds().getMinTime();
     Memo memo = challenge.getTransaction().getMemo();
-    JwtToken jwtToken =
-        JwtToken.of(
+    Sep10Jwt sep10Jwt =
+        Sep10Jwt.of(
             appConfig.getHostUrl() + "/auth",
             (memo == null || memo instanceof MemoNone)
                 ? challenge.getClientAccountId()
@@ -342,8 +342,8 @@ public class Sep10Service {
             issuedAt + sep10Config.getJwtTimeout(),
             challenge.getTransaction().hashHex(),
             clientDomain);
-    debug("jwtToken:", jwtToken);
-    return jwtService.encode(jwtToken);
+    debug("jwtToken:", sep10Jwt);
+    return jwtService.encode(sep10Jwt);
   }
 
   String getDomainFromURI(String strUri) throws URISyntaxException {

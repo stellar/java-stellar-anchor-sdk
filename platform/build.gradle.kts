@@ -16,16 +16,11 @@ dependencies {
   implementation("org.springframework.boot:spring-boot")
   implementation("org.springframework.boot:spring-boot-autoconfigure")
   implementation("org.springframework.boot:spring-boot-starter-data-jpa")
-  implementation(
-    libs.snakeyaml
-  ) // used to force the version of snakeyaml (used by springboot) to a safer one.
   implementation("org.springframework.boot:spring-boot-starter-web")
   implementation("org.springframework.boot:spring-boot-starter-reactor-netty")
   implementation("org.springframework.boot:spring-boot-starter-actuator")
   implementation("org.springframework.boot:spring-boot-starter-aop")
 
-  implementation(libs.spring.aws.messaging)
-  implementation(libs.spring.kafka)
   implementation(libs.abdera)
   implementation(libs.aws.rds)
   implementation(libs.aws.iam.auth)
@@ -34,16 +29,20 @@ dependencies {
   implementation(libs.commons.io)
   implementation(libs.commons.text)
   implementation(libs.flyway.core)
-  implementation(libs.hibernate.types)
   implementation(libs.google.gson)
-  implementation(libs.java.stellar.sdk)
-
-  implementation(libs.sqlite.jdbc)
-  implementation(libs.okhttp3)
+  implementation(libs.hibernate.types)
   implementation(libs.jackson.dataformat.yaml)
+  implementation(libs.java.stellar.sdk)
+  implementation(libs.jjwt)
   implementation(libs.log4j2.api)
   implementation(libs.log4j2.core)
   implementation(libs.log4j2.slf4j)
+  implementation(libs.okhttp3)
+  // used to force the version of snakeyaml (used by springboot) to a safer one.
+  implementation(libs.snakeyaml)
+  implementation(libs.spring.aws.messaging)
+  implementation(libs.spring.kafka)
+  implementation(libs.sqlite.jdbc)
 
   // From projects
   implementation(project(":api-schema"))

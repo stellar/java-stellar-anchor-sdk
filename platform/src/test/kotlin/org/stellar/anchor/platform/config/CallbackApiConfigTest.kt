@@ -15,8 +15,8 @@ import org.stellar.anchor.auth.AuthType.JWT
 
 class CallbackApiConfigTest {
   lateinit var config: CallbackApiConfig
-  lateinit var errors: Errors
-  lateinit var secretConfig: PropertySecretConfig
+  private lateinit var errors: Errors
+  private lateinit var secretConfig: PropertySecretConfig
 
   @BeforeEach
   fun setUp() {
@@ -28,11 +28,11 @@ class CallbackApiConfigTest {
   @Test
   fun `test base_url`() {
     config.baseUrl = "http://localhost:8080"
-    config.validateBaseUrl(config, errors)
+    config.validateBaseUrl(errors)
     assertEquals(0, errors.errorCount)
 
     config.baseUrl = "https://www.stellar.org"
-    config.validateBaseUrl(config, errors)
+    config.validateBaseUrl(errors)
     assertEquals(0, errors.errorCount)
   }
 
@@ -40,7 +40,7 @@ class CallbackApiConfigTest {
   fun `test mal-formatted url`() {
     // mal-formatted base_url
     config.baseUrl = "http://localhost; 8080"
-    config.validateBaseUrl(config, errors)
+    config.validateBaseUrl(errors)
     assertEquals(1, errors.errorCount)
     assertEquals("mal-formatted-callback-api-base-url", errors.allErrors[0].code)
   }
@@ -49,7 +49,7 @@ class CallbackApiConfigTest {
   fun `test empty url`() {
     // empty base_url
     config.baseUrl = ""
-    config.validateBaseUrl(config, errors)
+    config.validateBaseUrl(errors)
     assertEquals(2, errors.errorCount)
     assertEquals("empty-callback-api-base-url", errors.allErrors[0].code)
   }
@@ -65,7 +65,7 @@ class CallbackApiConfigTest {
         AuthConfig.ApiKeyConfig("X-Api-Key")
       )
     )
-    config.validateAuth(config, errors)
+    config.validateAuth(errors)
     assertEquals(0, errors.errorCount)
   }
 
@@ -82,7 +82,7 @@ class CallbackApiConfigTest {
         AuthConfig.ApiKeyConfig("X-Api-Key")
       )
     )
-    config.validateAuth(config, errors)
+    config.validateAuth(errors)
     assertEquals(1, errors.errorCount)
     assertEquals("empty-secret-callback-api-secret", errors.allErrors[0].code)
   }
