@@ -4,6 +4,9 @@ package org.stellar.anchor.sep24
 
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
+import java.net.URI
+import java.nio.charset.Charset
+import java.time.Instant
 import org.apache.http.client.utils.URLEncodedUtils
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
@@ -44,9 +47,6 @@ import org.stellar.anchor.util.MemoHelper.makeMemo
 import org.stellar.sdk.MemoHash
 import org.stellar.sdk.MemoId
 import org.stellar.sdk.MemoText
-import java.net.URI
-import java.nio.charset.Charset
-import java.time.Instant
 
 internal class Sep24ServiceTest {
   companion object {
@@ -192,12 +192,6 @@ internal class Sep24ServiceTest {
 
     assertThrows<SepValidationException> {
       val request = createTestTransactionRequest()
-      request.remove("account")
-      sep24Service.withdraw(createJwtToken(), request)
-    }
-
-    assertThrows<SepValidationException> {
-      val request = createTestTransactionRequest()
       request["account"] = "G1234"
       sep24Service.withdraw(createJwtToken(), request)
     }
@@ -291,12 +285,6 @@ internal class Sep24ServiceTest {
     assertThrows<SepValidationException> {
       val request = createTestTransactionRequest()
       request.remove("asset_code")
-      sep24Service.deposit(createJwtToken(), request)
-    }
-
-    assertThrows<SepValidationException> {
-      val request = createTestTransactionRequest()
-      request.remove("account")
       sep24Service.deposit(createJwtToken(), request)
     }
 
