@@ -116,6 +116,13 @@ public interface Sep24Transaction {
 
   void setMuxedAccount(String muxedAccount);
 
+  /**
+   * The memo the anchor must use when sending refund payments back to the user. If not specified,
+   * the anchor should use the same memo used by the user to send the original payment. If
+   * specified, <code>refund_memo_type</code> must also be specified.
+   *
+   * @return <code>refund_memo</code> provided in the SEP-24 withdrawal request.
+   */
   String getRefundMemo();
 
   void setRefundMemo(String refundMemo);
