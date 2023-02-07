@@ -9,4 +9,4 @@ target/
 */bin/*
 */generated/*
 *.tgz
-
+.vscode

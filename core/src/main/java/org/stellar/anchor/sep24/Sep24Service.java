@@ -130,6 +130,8 @@ public class Sep24Service {
     }
 
     Memo memo = makeMemo(withdrawRequest.get("memo"), withdrawRequest.get("memo_type"));
+    Memo refundMemo =
+        makeMemo(withdrawRequest.get("refund_memo"), withdrawRequest.get("refund_memo_type"));
     String txnId = UUID.randomUUID().toString();
     Sep24TransactionBuilder builder =
         new Sep24TransactionBuilder(txnStore)
@@ -148,6 +150,12 @@ public class Sep24Service {
       debug("transaction memo detected.", memo);
       builder.memo(memo.toString());
       builder.memoType(memoTypeString(memoType(memo)));
+    }
+
+    if (refundMemo != null) {
+      debug("refund memo detected.", refundMemo);
+      builder.refundMemo(refundMemo.toString());
+      builder.refundMemoType(memoTypeString(memoType(refundMemo)));
     }
 
     Sep24Transaction txn = builder.build();
@@ -342,7 +350,8 @@ public class Sep24Service {
       throw new SepNotFoundException("transaction not found");
     }
 
-    // If the token has a memo, make sure the transaction belongs to the account with the same memo.
+    // If the token has a memo, make sure the transaction belongs to the account
+    // with the same memo.
     if (token.getAccountMemo() != null
         && txn.getSep10Account().equals(token.getAccount() + ":" + token.getAccountMemo())) {
       infoF(
