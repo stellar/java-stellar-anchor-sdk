@@ -99,10 +99,6 @@ public class Sep24Service {
 
     if (isEmpty(sourceAccount)) {
       sourceAccount = token.getAccount();
-      if (isEmpty(sourceAccount)) {
-        info("missing 'account' field");
-        throw new SepValidationException("'account' is required");
-      }
     }
 
     // Verify that the asset code exists in our database, with withdraw enabled.
@@ -213,10 +209,6 @@ public class Sep24Service {
 
     if (isEmpty(destinationAccount)) {
       destinationAccount = token.getAccount();
-      if (isEmpty(destinationAccount)) {
-        info("missing 'account' field");
-        throw new SepValidationException("'account' is required");
-      }
     }
 
     if (!destinationAccount.equals(token.getAccount())) {
