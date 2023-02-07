@@ -7,13 +7,11 @@ logging:
 callback_api:
   base_url: http://host.docker.internal:8081
   auth:
-    type: JWT_TOKEN
-    expiration_milliseconds: 30000
+    type: none
 
 platform_api:
   auth:
-    type: JWT_TOKEN
-    expiration_milliseconds: 30000
+    type: none
   base_url: http://host.docker.internal:8080
 
 events:
@@ -64,7 +62,6 @@ sep12:
 
 sep24:
   enabled: true
-#  interactive_url: http://host.docker.internal:8091/sep24/interactive
 
 sep31:
   enabled: true
