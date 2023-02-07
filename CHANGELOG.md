@@ -1,7 +1,7 @@
 # Changelog
 
 ## 1.2.5
-* Update DETELE endpoint to take customer types into account [#734](https://github.com/stellar/java-stellar-anchor-sdk/pull/734)
+* Fix DETELE endpoint to take customer types into account [#734](https://github.com/stellar/java-stellar-anchor-sdk/pull/734)
 
 ## 1.2.4
 * Fix customer type not being properly resolved (when multiple types are configured) [#721](https://github.com/stellar/java-stellar-anchor-sdk/pull/721)
