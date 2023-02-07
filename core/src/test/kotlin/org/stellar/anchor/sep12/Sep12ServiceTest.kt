@@ -9,6 +9,8 @@ import org.junit.jupiter.api.assertDoesNotThrow
 import org.stellar.anchor.api.callback.CustomerIntegration
 import org.stellar.anchor.api.exception.*
 import org.stellar.anchor.api.sep.sep12.*
+import org.stellar.anchor.asset.AssetService
+import org.stellar.anchor.asset.ResourceJsonAssetService
 import org.stellar.anchor.auth.JwtToken
 
 class Sep12ServiceTest {
@@ -45,11 +47,18 @@ class Sep12ServiceTest {
 
   private lateinit var sep12Service: Sep12Service
   @MockK(relaxed = true) private lateinit var customerIntegration: CustomerIntegration
+  @MockK(relaxed = true) private lateinit var assetService: AssetService
 
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
-    sep12Service = Sep12Service(customerIntegration)
+
+    val rjas = ResourceJsonAssetService("test_assets.json")
+    val assets = rjas.listAllAssets()
+
+    every { assetService.listAllAssets() } returns assets
+
+    sep12Service = Sep12Service(customerIntegration, assetService)
   }
 
   @AfterEach
@@ -343,7 +352,8 @@ class Sep12ServiceTest {
     }
     assertInstanceOf(SepNotFoundException::class.java, ex)
     assertEquals("User not found.", ex.message)
-    verify(exactly = 2) { customerIntegration.getCustomer(any()) }
+    // Verify getting customer for every existing type
+    verify(exactly = 5) { customerIntegration.getCustomer(any()) }
     verify(exactly = 0) { customerIntegration.deleteCustomer(any()) }
 
     // customer deletion succeeds
@@ -351,9 +361,9 @@ class Sep12ServiceTest {
     mockValidCustomerFound.id = "customer-id"
     every { customerIntegration.getCustomer(any()) } returns mockValidCustomerFound
     assertDoesNotThrow { sep12Service.deleteCustomer(jwtToken, TEST_ACCOUNT, TEST_MEMO, null) }
-    verify(exactly = 4) { customerIntegration.getCustomer(any()) }
+    verify(exactly = 10) { customerIntegration.getCustomer(any()) }
     // callback API is called twice
-    verify(exactly = 2) { customerIntegration.deleteCustomer(any()) }
+    verify(exactly = 5) { customerIntegration.deleteCustomer(any()) }
     val wantDeleteCustomerId = "customer-id"
     assertEquals(wantDeleteCustomerId, deleteCustomerIdSlot.captured)
   }
