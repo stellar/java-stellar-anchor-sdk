@@ -93,4 +93,10 @@ public class JdbcSep24Transaction implements Sep24Transaction {
 
   @SerializedName("muxed_account")
   String muxedAccount;
+
+  @SerializedName("refund_memo")
+  String refundMemo;
+
+  @SerializedName("refund_memo_type")
+  String refundMemoType;
 }

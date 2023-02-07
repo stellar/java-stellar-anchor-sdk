@@ -33,4 +33,6 @@ public class PojoSep24Transaction implements Sep24Transaction {
   String amountFeeAsset;
   String accountMemo;
   String muxedAccount;
+  String refundMemo;
+  String refundMemoType;
 }
