@@ -125,6 +125,16 @@ public class Sep24TransactionBuilder {
     return this;
   }
 
+  public Sep24TransactionBuilder refundMemo(String refundMemo) {
+    txn.setRefundMemo(refundMemo);
+    return this;
+  }
+
+  public Sep24TransactionBuilder refundMemoType(String refundMemoType) {
+    txn.setRefundMemoType(refundMemoType);
+    return this;
+  }
+
   public Sep24Transaction build() {
     return txn;
   }

@@ -116,6 +116,14 @@ public interface Sep24Transaction {
 
   void setMuxedAccount(String muxedAccount);
 
+  String getRefundMemo();
+
+  void setRefundMemo(String refundMemo);
+
+  String getRefundMemoType();
+
+  void setRefundMemoType(String refundMemoType);
+
   enum Kind {
     DEPOSIT("deposit"),
     WITHDRAWAL("withdrawal"),
