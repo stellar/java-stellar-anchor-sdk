@@ -112,6 +112,8 @@ public class Sep24Service {
     }
 
     Memo memo = makeMemo(withdrawRequest.get("memo"), withdrawRequest.get("memo_type"));
+    Memo refundMemo =
+        makeMemo(withdrawRequest.get("refund_memo"), withdrawRequest.get("refund_memo_type"));
 
     String txnId = UUID.randomUUID().toString();
     Sep24TransactionBuilder builder =
@@ -133,6 +135,11 @@ public class Sep24Service {
     if (memo != null) {
       builder.memo(memo.toString());
       builder.memoType(memoTypeString(memoType(memo)));
+    }
+
+    if (refundMemo != null) {
+      builder.refundMemo(refundMemo.toString());
+      builder.refundMemoType(memoTypeString(memoType(refundMemo)));
     }
 
     Sep24Transaction txn = builder.build();
