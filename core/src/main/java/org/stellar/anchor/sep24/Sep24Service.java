@@ -12,6 +12,7 @@ import static org.stellar.anchor.util.MemoHelper.memoType;
 import static org.stellar.anchor.util.SepHelper.generateSepTransactionId;
 import static org.stellar.anchor.util.SepHelper.memoTypeString;
 import static org.stellar.anchor.util.SepLanguageHelper.validateLanguage;
+import static org.stellar.anchor.util.StringHelper.isEmpty;
 
 import com.google.gson.Gson;
 import java.io.IOException;
@@ -99,9 +100,12 @@ public class Sep24Service {
       throw new SepValidationException("missing 'asset_code'");
     }
 
-    if (sourceAccount == null) {
-      info("missing 'account' field");
-      throw new SepValidationException("'account' is required");
+    if (isEmpty(sourceAccount)) {
+      sourceAccount = token.getAccount();
+      if (isEmpty(sourceAccount)) {
+        info("missing 'account' field");
+        throw new SepValidationException("'account' is required");
+      }
     }
 
     // Verify that the asset code exists in our database, with withdraw enabled.
@@ -211,9 +215,12 @@ public class Sep24Service {
       throw new SepValidationException("missing 'asset_code'");
     }
 
-    if (destinationAccount == null) {
-      throw new SepValidationException("'account' is required");
-    }
+    if (isEmpty(destinationAccount)) {
+      destinationAccount = token.getAccount();
+      if (isEmpty(destinationAccount)) {
+        info("missing 'account' field");
+        throw new SepValidationException("'account' is required");
+      }
 
     if (!destinationAccount.equals(token.getAccount())) {
       infoF(
