@@ -1,7 +1,7 @@
 plugins {
   application
   id("org.springframework.boot") version "2.6.3"
-  id("io.spring.dependency-management") version "1.0.12.RELEASE"
+  id("io.spring.dependency-management") version "1.0.11.RELEASE"
   id("org.jetbrains.kotlin.jvm") version "1.6.10"
 }
 
