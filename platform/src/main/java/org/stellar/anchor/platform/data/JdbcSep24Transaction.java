@@ -122,4 +122,10 @@ public class JdbcSep24Transaction extends JdbcSepTransaction
 
   @SerializedName("amount_expected")
   String amountExpected;
+
+  @SerializedName("refund_memo")
+  String refundMemo;
+
+  @SerializedName("refund_memo_type")
+  String refundMemoType;
 }
