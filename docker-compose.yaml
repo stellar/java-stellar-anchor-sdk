@@ -1,9 +1,7 @@
 version: '2.4'
 services:
   anchor-platform:
-    build:
-      context: .
-      dockerfile: ./Dockerfile
+    image: stellar/anchor-platform:edge
     command: --anchor-reference-server --sep-server --stellar-observer
     environment:
       - STELLAR_ANCHOR_CONFIG=file:/config/anchor-docker-compose-config.yaml

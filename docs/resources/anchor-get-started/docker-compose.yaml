@@ -1,0 +1,95 @@
+version: '2.4'
+services:
+  platform:
+    image: stellar/anchor-platform:edge
+    command: --sep-server # --stellar-observer --event-processor
+    environment:
+      - stellar_anchor_config=file:/config/anchor-config.yaml
+      # secrets
+      - secret.data.username=postgres
+      - secret.data.password=password
+      - secret.platform_api.auth_secret=myAnchorToPlatformSecret
+      - secret.callback_api.auth_secret=myPlatformToAnchorSecret
+      - secret.sep10.jwt_secret=secret_sep10_secret
+      - secret.sep10.signing_seed=SAX3AH622R2XT6DXWWSRIDCMMUCCMATBZ5U6XKJWDO7M2EJUBFC3AW5X
+      - secret.sep24.interactive_url.jwt_secret=secret_sep24_interactive_url_jwt_secret
+      - secret.sep24.more_info_url.jwt_secret=secret_sep24_more_info_url_jwt_secret
+      # logging
+      - logging.stellar_level=DEBUG
+      # events
+      - events.enabled=true
+      - events.publisher.type=kafka
+      - events.publisher.kafka.bootstrap_server=kafka:29092
+      # data
+      - data.type=postgres
+      - data.url=jdbc:postgresql://db:5432/
+      - data.flyway_enabled=false
+      # seps
+      - sep1.enabled=true
+      - sep10.enabled=true
+      - sep10.home_domain=localhost:8080
+      - sep12.enabled=true
+      - sep24.enabled=true
+      - sep24.interactive_url.base_url=http://localhost:8080/sep24/interactive
+      - sep24.more_info_url.base_url=http://localhost:8080/sep24/transaction/more_info
+      - sep31.enabled=true
+      - sep38.enabled=true
+      # event processor
+      - event_processor.queue.kafka.bootstrap_server=kafka:29092
+    depends_on:
+      - db
+      - kafka
+      - reference_server
+    volumes:
+      - .:/config
+      - ../../../anchor-reference-server/src/main/resources:/reference-config
+    ports:
+      - "8080:8080" # sep-server
+      - "8082:8082" # Java management server
+
+  reference_server:
+    image: stellar/anchor-platform:edge
+    command: --anchor-reference-server
+    environment:
+      - REFERENCE_SERVER_CONFIG_ENV=file:/reference-config/anchor-reference-server-docker-compose-config.yaml
+    depends_on:
+      - db
+      - kafka
+    volumes:
+      - .:/config
+      - ../../../anchor-reference-server/src/main/resources:/reference-config
+    ports:
+      - "8081:8081" # reference-server
+
+  kafka:
+    platform: linux/x86_64
+    image: confluentinc/cp-kafka:6.1.9
+    depends_on:
+      - zookeeper
+    ports:
+      - 29092:29092
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  zookeeper:
+    platform: linux/x86_64
+    image: confluentinc/cp-zookeeper:6.1.9
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - 2181:2181
+
+  db:
+    image: postgres:latest
+    ports:
+      - "5431:5432"  # use 5431 so this doesn't conflict if you have a local postgres instance running
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+
