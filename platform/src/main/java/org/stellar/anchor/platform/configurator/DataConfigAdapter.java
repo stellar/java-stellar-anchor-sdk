@@ -134,7 +134,6 @@ public class DataConfigAdapter extends SpringConfigAdapter {
           set("spring.flyway.password", SecretManager.getInstance().get("secret.data.password"));
           copy(config, "data.url", "spring.flyway.url");
         }
-        set("spring.jpa.hibernate.ddl-auto", "update");  // TODO: remove
         break;
       default:
         Log.errorF("Invalid config[data.type]={}", type);

@@ -122,10 +122,6 @@ public class AnchorEventProcessor {
                             PlatformTransactionData.builder()
                                 .id(event.getTransaction().getId())
                                 .status(SepTransactionStatus.COMPLETED)
-//                                .amountOut(
-//                                    new Amount(
-//                                        event.getTransaction().getAmountOut().getAmount(),
-//                                        event.getTransaction().getAmountOut().getAsset()))
                                 .build())
                         .build()))
             .build();
