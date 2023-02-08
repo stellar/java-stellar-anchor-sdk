@@ -211,7 +211,8 @@ public class PaymentOperationToEventListener implements PaymentListener {
           throws AnchorException, IOException {
     //Compare asset code
     String paymentAssetName = "stellar:" + payment.getAssetName();
-    if (!txn.getAmountInAsset().equals(paymentAssetName)) {
+    String txnAssetName = "stellar:" + txn.getRequestAssetCode() + ":" + txn.getRequestAssetIssuer();
+    if (!txnAssetName.equals(paymentAssetName)) {
       Log.warnF(
               "Payment asset {} does not match the expected asset {}.",
               payment.getAssetCode(),
@@ -246,17 +247,17 @@ public class PaymentOperationToEventListener implements PaymentListener {
     SepTransactionStatus newStatus = SepTransactionStatus.PENDING_ANCHOR;
 
     // Check if the payment contains the expected amount (or greater)
-    BigDecimal expectedAmount = decimal(txn.getAmountIn());
+    BigDecimal expectedAmount = decimal(txn.getAmountExpected());
     BigDecimal gotAmount = decimal(payment.getAmount());
-    String message = "Incoming payment for SEP-31 transaction";
-    if (gotAmount.compareTo(expectedAmount) >= 0) {
+    String message = "Incoming payment for SEP-24 transaction";
+    if (gotAmount.compareTo(expectedAmount) == 0) {
       Log.info(message);
       txn.setTransferReceivedAt(paymentTime);
     } else {
       message =
-              String.format(
-                      "The incoming payment amount was insufficient! Expected: \"%s\", Received: \"%s\"",
-                      formatAmount(expectedAmount), formatAmount(gotAmount));
+          String.format(
+              "The incoming payment amount was insufficient! Expected: \"%s\", Received: \"%s\"",
+              formatAmount(expectedAmount), formatAmount(gotAmount));
       Log.warn(message);
     }
 

@@ -24,16 +24,21 @@ public class AnchorEventProcessor {
   }
 
   public void handleQuoteEvent(AnchorEvent event) {
-    Log.debugF("Received quote event: {}", event);
-    if (!"quote_created".equals(event.getType())) {
-      Log.debugF("error: anchor_platform_event - invalid message type '{}'", event.getType());
-    }
+    Log.debugF("Received quote event: {}", event.getType());
   }
 
   public void handleEvent(AnchorEvent event) {
-    Log.debugF("Received transaction event: {}", event);
+    Log.debugF("Received transaction event: {}", event.getType());
     switch (event.getType()) {
       case TRANSACTION_CREATED:
+        if (event.getSep().equals("24")){
+          if (event.getTransaction().getKind().toString().equals("WITHDRAWAL")) {
+            handleSep24WithdrawalTransactionCreatedEvent(event);
+          } else if (event.getTransaction().getKind().toString().equals("DEPOSIT")){
+            // TODO
+            Log.debug("Received deposit created event");
+          }
+        }
         break;
       case TRANSACTION_ERROR:
         break;
@@ -42,9 +47,62 @@ public class AnchorEventProcessor {
         break;
       case QUOTE_CREATED:
         handleQuoteEvent(event);
+        break;
       default:
         Log.debugF("error: anchor_platform_event - invalid message type '{}'", event.getType());
     }
+  }
+
+  public void handleSep24WithdrawalTransactionCreatedEvent(AnchorEvent event){
+    SepTransactionStatus eventStatus = event.getTransaction().getStatus();
+    SepTransactionStatus newStatus = null;
+    switch(eventStatus){
+      case INCOMPLETE:
+        // The business server should get KYC and other info from the customer via the interactive flow
+        // we will skip that in this implementation and just update the transaction's status  in Anchor Platform
+        // to PENDING_USR_TRANSFER_START
+        newStatus = SepTransactionStatus.PENDING_USR_TRANSFER_START;
+        break;
+      case PENDING_USR_TRANSFER_START:
+        // skip processing if the transaction is in PENDING_USR_TRANSFER_START
+        break;
+      case PENDING_ANCHOR:
+        // The business server should handle the withdrawal of user funds. we will skip that in this
+        // implementation and just update the transaction's status  in Anchor Platform
+        // to COMPLETED
+        newStatus = SepTransactionStatus.COMPLETED;
+        break;
+      case COMPLETED:
+        // skip processing if the transaction is already in COMPLETED state
+        return;
+      default:
+        Log.debugF("event processing for transaction status '{}' not implemented", eventStatus);
+        return;
+    }
+
+    Log.debugF("Updating transaction: {} on Anchor Platform to '{}'", event.getId(), newStatus);
+
+    PatchTransactionsRequest txnRequest =
+        PatchTransactionsRequest.builder()
+            .records(
+                List.of(
+                  PatchTransactionRequest.builder()
+                      .transaction(
+                          PlatformTransactionData.builder()
+                              .id(event.getTransaction().getId())
+                              .status(newStatus)
+                              .kycVerified("true")
+                        .build())
+                    .build()))
+            .build();
+
+    try {
+      platformClient.patchTransaction(txnRequest);
+    } catch (IOException | AnchorException ex) {
+      Log.errorEx(ex);
+    }
+
+
   }
 
   public void handleTransactionStatusChangedEvent(AnchorEvent event) {
@@ -64,10 +122,10 @@ public class AnchorEventProcessor {
                             PlatformTransactionData.builder()
                                 .id(event.getTransaction().getId())
                                 .status(SepTransactionStatus.COMPLETED)
-                                .amountOut(
-                                    new Amount(
-                                        event.getTransaction().getAmountOut().getAmount(),
-                                        event.getTransaction().getAmountOut().getAsset()))
+//                                .amountOut(
+//                                    new Amount(
+//                                        event.getTransaction().getAmountOut().getAmount(),
+//                                        event.getTransaction().getAmountOut().getAsset()))
                                 .build())
                         .build()))
             .build();
@@ -78,4 +136,7 @@ public class AnchorEventProcessor {
       Log.errorEx(ex);
     }
   }
+
 }
+
+
