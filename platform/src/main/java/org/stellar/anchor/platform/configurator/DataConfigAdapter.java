@@ -97,6 +97,7 @@ public class DataConfigAdapter extends SpringConfigAdapter {
         set("spring.datasource.driver-class-name", "org.sqlite.JDBC");
         set("spring.datasource.name", "anchor-platform");
         set("spring.jpa.database-platform", "org.stellar.anchor.platform.sqlite.SQLiteDialect");
+        set("spring.jpa.generate-ddl", true);
         set("spring.jpa.hibernate.ddl-auto", "update");
         copy(config, "data.url", "spring.datasource.url");
         set("spring.datasource.username", SecretManager.getInstance().get("secret.data.username"));
@@ -118,6 +119,9 @@ public class DataConfigAdapter extends SpringConfigAdapter {
           set("spring.flyway.user", SecretManager.getInstance().get("secret.data.username"));
           set("spring.flyway.password", SecretManager.getInstance().get("secret.data.password"));
           copy(config, "data.url", "spring.flyway.url");
+        } else {
+          set("spring.jpa.generate-ddl", true);
+          set("spring.jpa.hibernate.ddl-auto", "update");
         }
         break;
       case "postgres":
@@ -133,6 +137,9 @@ public class DataConfigAdapter extends SpringConfigAdapter {
           set("spring.flyway.user", SecretManager.getInstance().get("secret.data.username"));
           set("spring.flyway.password", SecretManager.getInstance().get("secret.data.password"));
           copy(config, "data.url", "spring.flyway.url");
+        } else {
+          set("spring.jpa.generate-ddl", true);
+          set("spring.jpa.hibernate.ddl-auto", "update");
         }
         break;
       default:

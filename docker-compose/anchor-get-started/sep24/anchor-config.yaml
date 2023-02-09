@@ -1,0 +1,47 @@
+version: 1
+
+sep1:
+  toml:
+    type: string
+    value: |
+      ACCOUNTS = []
+      VERSION = "0.1.0"
+      NETWORK_PASSPHRASE = "Test SDF Network ; September 2015"
+      SIGNING_KEY = "GCHLHDBOKG2JWMJQBTLSL5XG6NO7ESXI2TAQKZXCXWXB5WI2X6W233PR"     
+      WEB_AUTH_ENDPOINT = "http://localhost:8080/auth"
+      TRANSFER_SERVER_SEP0024 = "http://localhost:8080/sep24"
+      
+      [[CURRENCIES]]
+      code = "USDC"
+      issuer = "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+      status = "test"
+      is_asset_anchored = true
+      anchor_asset_type = "fiat"
+      desc = "A test USDC issued by Stellar."
+
+assets:
+  type: json
+  value: |
+    {
+      "assets": [
+        {
+          "schema": "stellar",
+          "code": "USDC",
+          "issuer": "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+          "distribution_account": "GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF",
+          "significant_decimals": 2,
+          "deposit": {
+            "enabled": true,
+            "min_amount": 1,
+            "max_amount": 1000000
+          },
+          "withdraw": {
+            "enabled": true,
+            "min_amount": 1,
+            "max_amount": 1000000
+          },
+          "sep24_enabled": true
+        }
+      ]
+    }
+

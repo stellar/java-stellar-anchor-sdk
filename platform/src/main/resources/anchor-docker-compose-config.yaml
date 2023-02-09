@@ -16,7 +16,6 @@ platform_api:
 events:
   enabled: true
   publisher:
-    type: kafka
     kafka:
       bootstrap_server: kafka:29092
 
@@ -61,7 +60,6 @@ sep12:
 
 sep24:
   enabled: true
-  interactive_url: http://localhost:8091/sep24/interactive
 
 sep31:
   enabled: true

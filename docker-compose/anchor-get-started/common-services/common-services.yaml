@@ -1,0 +1,46 @@
+version: '2.4'
+services:
+  reference_server_a:
+    image: stellar/anchor-platform:edge
+    command: --anchor-reference-server
+    environment:
+      - REFERENCE_SERVER_CONFIG_ENV=file:/config/reference-config.yaml
+    depends_on:
+      - db
+      - kafka
+    volumes:
+      - .:/config
+    ports:
+      - "8081:8081" # reference-server
+
+  kafka_a:
+    platform: linux/x86_64
+    image: confluentinc/cp-kafka:6.1.9
+    depends_on:
+      - zookeeper
+    ports:
+      - 29092:29092
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+
+  zookeeper_a:
+    platform: linux/x86_64
+    image: confluentinc/cp-zookeeper:6.1.9
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - 2181:2181
+
+  db_a:
+    image: postgres:latest
+    ports:
+      - "5431:5432"  # use 5431 so this doesn't conflict if you have a local postgres instance running
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password

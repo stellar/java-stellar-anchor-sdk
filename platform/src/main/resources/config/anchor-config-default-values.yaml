@@ -37,7 +37,6 @@ stellar_network:
   #
   horizon_url: https://horizon-testnet.stellar.org
 
-
 callback_api:
   ## @param: baseUrl
   ## @type: string
@@ -68,7 +67,7 @@ callback_api:
     ## requests (`Platform->Anchor`) so the Anchor can ensure the party making the request
     ## is the Platform
     #
-    type: jwt
+    type: none
     jwt:
       expiration_milliseconds: 30000
       http_header: Authorization
