@@ -12,7 +12,7 @@ services:
   anchor-reference-server:
     volumes:
       # add mounts for the new config directory
-      - ./anchor-platform-allowlist:/config_override
+      - ./anchor-platform-sep24-withdrawal:/config_override
     ports:
       # override ports, do not append
       - "8081:8081"
