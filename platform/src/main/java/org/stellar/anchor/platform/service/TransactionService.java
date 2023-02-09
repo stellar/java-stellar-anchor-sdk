@@ -7,12 +7,16 @@ import static org.stellar.anchor.sep31.Sep31Helper.allAmountAvailable;
 import static org.stellar.anchor.util.BeanHelper.updateField;
 import static org.stellar.anchor.util.MathHelper.decimal;
 import static org.stellar.anchor.util.MathHelper.equalsAsDecimals;
+import static org.stellar.anchor.util.MemoHelper.memoTypeAsString;
+import static org.stellar.sdk.xdr.MemoType.MEMO_HASH;
 
 import io.micrometer.core.instrument.Metrics;
 import java.time.Instant;
+import java.util.Base64;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import org.apache.commons.lang3.StringUtils;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.InternalServerErrorException;
@@ -124,11 +128,23 @@ public class TransactionService {
           String.format("transaction(id=%s) not found", patch.getTransaction().getId()));
 
     String lastStatus = txn.getStatus();
+    // TODO - jamie to validate request before using values
     updateSepTransaction(patch.getTransaction(), txn);
     switch (txn.getProtocol()) {
       case "24":
-        txn24Store.save((JdbcSep24Transaction) txn);
-        eventService.publish((JdbcSep24Transaction) txn, TRANSACTION_STATUS_CHANGED);
+        JdbcSep24Transaction sep24Transaction = (JdbcSep24Transaction) txn;
+        // add a memo for the transaction if the transaction is ready for user to send funds
+        if (sep24Transaction.getMemo() == null
+            && sep24Transaction.getStatus().equals(PENDING_USR_TRANSFER_START.toString())) {
+          // TODO - move this to separate file ex: Sep31DepositInfoGeneratorSelf.java
+          String memo = StringUtils.truncate(sep24Transaction.getId(), 32);
+          memo = StringUtils.leftPad(memo, 32, '0');
+          memo = new String(Base64.getEncoder().encode(memo.getBytes()));
+          sep24Transaction.setMemo(memo);
+          sep24Transaction.setMemoType(memoTypeAsString(MEMO_HASH));
+        }
+        txn24Store.save(sep24Transaction);
+        eventService.publish(sep24Transaction, TRANSACTION_STATUS_CHANGED);
         break;
       case "31":
         txn31Store.save((JdbcSep31Transaction) txn);
@@ -188,6 +204,7 @@ public class TransactionService {
         txnUpdated = updateField(patch, sep24Txn, "message", txnUpdated);
         txnUpdated = updateField(patch, sep24Txn, "memo", txnUpdated);
         txnUpdated = updateField(patch, sep24Txn, "memoType", txnUpdated);
+        txnUpdated = updateField(patch, sep24Txn, "kycVerified", txnUpdated);
 
         // update refunds
         if (patch.getRefunds() != null) {

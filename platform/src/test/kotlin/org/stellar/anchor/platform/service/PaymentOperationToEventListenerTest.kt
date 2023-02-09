@@ -11,13 +11,15 @@ import org.junit.jupiter.api.Test
 import org.stellar.anchor.api.exception.SepException
 import org.stellar.anchor.apiclient.PlatformApiClient
 import org.stellar.anchor.event.EventService
+import org.stellar.anchor.platform.data.JdbcSep24TransactionStore
 import org.stellar.anchor.platform.data.JdbcSep31Transaction
 import org.stellar.anchor.platform.data.JdbcSep31TransactionStore
 import org.stellar.anchor.platform.observer.ObservedPayment
 import org.stellar.anchor.util.GsonUtils
 
 class PaymentOperationToEventListenerTest {
-  @MockK(relaxed = true) private lateinit var transactionStore: JdbcSep31TransactionStore
+  @MockK(relaxed = true) private lateinit var sep31TransactionStore: JdbcSep31TransactionStore
+  @MockK(relaxed = true) private lateinit var sep24TransactionStore: JdbcSep24TransactionStore
   @MockK(relaxed = true) private lateinit var eventPublishService: EventService
   @MockK(relaxed = true) private lateinit var platformApiClient: PlatformApiClient
 
@@ -29,7 +31,12 @@ class PaymentOperationToEventListenerTest {
     MockKAnnotations.init(this, relaxUnitFun = true)
 
     paymentOperationToEventListener =
-      PaymentOperationToEventListener(transactionStore, eventPublishService, platformApiClient)
+      PaymentOperationToEventListener(
+        sep31TransactionStore,
+        sep24TransactionStore,
+        eventPublishService,
+        platformApiClient
+      )
   }
 
   @AfterEach
@@ -47,14 +54,14 @@ class PaymentOperationToEventListenerTest {
     p.transactionMemo = "my_memo_1"
     paymentOperationToEventListener.onReceived(p)
     verify { eventPublishService wasNot Called }
-    verify { transactionStore wasNot Called }
+    verify { sep31TransactionStore wasNot Called }
 
     // Payment missing txHash shouldn't trigger an event nor reach the DB
     p.transactionHash = "1ad62e48724426be96cf2cdb65d5dacb8fac2e403e50bedb717bfc8eaf05af30"
     p.transactionMemo = null
     paymentOperationToEventListener.onReceived(p)
     verify { eventPublishService wasNot Called }
-    verify { transactionStore wasNot Called }
+    verify { sep31TransactionStore wasNot Called }
 
     // Asset types different from "credit_alphanum4" and "credit_alphanum12" shouldn't trigger an
     // event nor reach the DB
@@ -63,28 +70,45 @@ class PaymentOperationToEventListenerTest {
     p.assetType = "native"
     paymentOperationToEventListener.onReceived(p)
     verify { eventPublishService wasNot Called }
-    verify { transactionStore wasNot Called }
+    verify { sep31TransactionStore wasNot Called }
 
     // Payment whose memo is not in the DB shouldn't trigger event
     p.transactionHash = "1ad62e48724426be96cf2cdb65d5dacb8fac2e403e50bedb717bfc8eaf05af30"
     p.transactionMemo = "my_memo_2"
     p.assetType = "credit_alphanum4"
+    p.sourceAccount = "GBT7YF22QEVUDUTBUIS2OWLTZMP7Z4J4ON6DCSHR3JXYTZRKCPXVV5J5"
     var slotMemo = slot<String>()
-    every { transactionStore.findByStellarMemo(capture(slotMemo)) } returns null
+    var slotAccount = slot<String>()
+    every {
+      sep31TransactionStore.findByStellarAccountIdAndMemo(capture(slotAccount), capture(slotMemo))
+    } returns null
     paymentOperationToEventListener.onReceived(p)
     verify { eventPublishService wasNot Called }
-    verify(exactly = 1) { transactionStore.findByStellarMemo("my_memo_2") }
+    verify(exactly = 1) {
+      sep31TransactionStore.findByStellarAccountIdAndMemo(
+        "GBT7YF22QEVUDUTBUIS2OWLTZMP7Z4J4ON6DCSHR3JXYTZRKCPXVV5J5",
+        "my_memo_2"
+      )
+    }
     assertEquals("my_memo_2", slotMemo.captured)
+    assertEquals("GBT7YF22QEVUDUTBUIS2OWLTZMP7Z4J4ON6DCSHR3JXYTZRKCPXVV5J5", slotAccount.captured)
 
-    // If findByStellarMemo throws an exception, we shouldn't trigger an event
+    // If findByStellarAccountIdAndMemo throws an exception, we shouldn't trigger an event
     slotMemo = slot()
     p.transactionMemo = "my_memo_3"
-    every { transactionStore.findByStellarMemo(capture(slotMemo)) } throws
-      SepException("Something went wrong")
+    every {
+      sep31TransactionStore.findByStellarAccountIdAndMemo(capture(slotAccount), capture(slotMemo))
+    } throws SepException("Something went wrong")
     paymentOperationToEventListener.onReceived(p)
     verify { eventPublishService wasNot Called }
-    verify(exactly = 1) { transactionStore.findByStellarMemo("my_memo_3") }
+    verify(exactly = 1) {
+      sep31TransactionStore.findByStellarAccountIdAndMemo(
+        "GBT7YF22QEVUDUTBUIS2OWLTZMP7Z4J4ON6DCSHR3JXYTZRKCPXVV5J5",
+        "my_memo_3"
+      )
+    }
     assertEquals("my_memo_3", slotMemo.captured)
+    assertEquals("GBT7YF22QEVUDUTBUIS2OWLTZMP7Z4J4ON6DCSHR3JXYTZRKCPXVV5J5", slotAccount.captured)
 
     // If asset code from the fetched tx is different, don't trigger event
     slotMemo = slot()
@@ -92,11 +116,19 @@ class PaymentOperationToEventListenerTest {
     p.assetCode = "FOO"
     val sep31TxMock = JdbcSep31Transaction()
     sep31TxMock.amountInAsset = "BAR"
-    every { transactionStore.findByStellarMemo(capture(slotMemo)) } returns sep31TxMock
+    every {
+      sep31TransactionStore.findByStellarAccountIdAndMemo(capture(slotAccount), capture(slotMemo))
+    } returns sep31TxMock
     paymentOperationToEventListener.onReceived(p)
     verify { eventPublishService wasNot Called }
-    verify(exactly = 1) { transactionStore.findByStellarMemo("my_memo_4") }
+    verify(exactly = 1) {
+      sep31TransactionStore.findByStellarAccountIdAndMemo(
+        "GBT7YF22QEVUDUTBUIS2OWLTZMP7Z4J4ON6DCSHR3JXYTZRKCPXVV5J5",
+        "my_memo_4"
+      )
+    }
     assertEquals("my_memo_4", slotMemo.captured)
+    assertEquals("GBT7YF22QEVUDUTBUIS2OWLTZMP7Z4J4ON6DCSHR3JXYTZRKCPXVV5J5", slotAccount.captured)
   }
 
   // TODO: replace the database update test with PATCH transaction mock
