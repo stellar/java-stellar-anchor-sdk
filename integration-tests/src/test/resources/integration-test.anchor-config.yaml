@@ -52,12 +52,6 @@ sep12:
 
 sep24:
   enabled: true
-  interactive_url:
-    base_url: http://localhost:8081/sep24/interactive
-    txn_fields: transaction_id
-  more_info_url:
-    base_url: http://localhost:8081/sep24/transaction/more_info
-    txn_fields: transaction_id
 
 sep31:
   enabled: true

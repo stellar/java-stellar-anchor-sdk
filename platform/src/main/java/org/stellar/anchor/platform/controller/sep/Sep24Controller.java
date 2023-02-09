@@ -50,8 +50,7 @@ public class Sep24Controller {
       throws SepException, MalformedURLException, URISyntaxException, EventPublishException {
     debug("/deposit", requestData);
     Sep10Jwt token = getSep10Token(request);
-    String fullUrl = getFullRequestUrl(request);
-    InteractiveTransactionResponse itr = sep24Service.deposit(fullUrl, token, requestData);
+    InteractiveTransactionResponse itr = sep24Service.deposit(token, requestData);
     info("interactive redirection:", itr);
     return itr;
   }
@@ -81,8 +80,7 @@ public class Sep24Controller {
       throws SepException, MalformedURLException, URISyntaxException, EventPublishException {
     debug("/withdraw", requestData);
     Sep10Jwt token = getSep10Token(request);
-    String fullUrl = getFullRequestUrl(request);
-    InteractiveTransactionResponse itr = sep24Service.withdraw(fullUrl, token, requestData);
+    InteractiveTransactionResponse itr = sep24Service.withdraw(token, requestData);
     info("interactive redirection:", itr);
     return itr;
   }
@@ -176,14 +174,6 @@ public class Sep24Controller {
     GetTransactionRequest tr =
         new GetTransactionRequest(id, stellarTransactionId, externalTransactionId, lang);
     return getTransaction(request, tr);
-  }
-
-  String getFullRequestUrl(HttpServletRequest request) {
-    if (request.getQueryString() != null) {
-      return request.getRequestURL() + "?" + request.getQueryString();
-    }
-
-    return request.getRequestURL().toString();
   }
 
   @ExceptionHandler({MethodArgumentNotValidException.class, SepValidationException.class})
