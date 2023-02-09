@@ -22,7 +22,7 @@ data:
       distributionWalletMemoType:    
 
     integration-auth:
-      authType: JWT_TOKEN
+      authType: none
       platformToAnchorSecret: myPlatformToAnchorSecret
       anchorToPlatformSecret: myAnchorToPlatformSecret
       expirationMilliseconds: 30000
