@@ -2,7 +2,7 @@ version: '2.4'
 services:
   platform:
     image: stellar/anchor-platform:edge
-    command: --sep-server # --stellar-observer --event-processor
+    command: --sep-server
     environment:
       - stellar_anchor_config=file:/config/anchor-config.yaml
       # secrets
@@ -28,14 +28,9 @@ services:
       - sep1.enabled=true
       - sep10.enabled=true
       - sep10.home_domain=localhost:8080
-      - sep12.enabled=true
       - sep24.enabled=true
-      - sep24.interactive_url.base_url=http://localhost:8080/sep24/interactive
+      - sep24.interactive_url.base_url=https://stellar.moneygram.com
       - sep24.more_info_url.base_url=http://localhost:8080/sep24/transaction/more_info
-      - sep31.enabled=true
-      - sep38.enabled=true
-      # event processor
-      - event_processor.queue.kafka.bootstrap_server=kafka:29092
     depends_on:
       - db
       - kafka
