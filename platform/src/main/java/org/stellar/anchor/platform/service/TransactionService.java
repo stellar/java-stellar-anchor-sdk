@@ -128,6 +128,7 @@ public class TransactionService {
           String.format("transaction(id=%s) not found", patch.getTransaction().getId()));
 
     String lastStatus = txn.getStatus();
+    // TODO - jamie to validate request before using values
     updateSepTransaction(patch.getTransaction(), txn);
     switch (txn.getProtocol()) {
       case "24":

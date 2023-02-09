@@ -66,7 +66,7 @@ public class AnchorEventProcessor {
         break;
       case PENDING_USR_TRANSFER_START:
         // skip processing if the transaction is in PENDING_USR_TRANSFER_START
-        break;
+        return;
       case PENDING_ANCHOR:
         // The business server should handle the withdrawal of user funds. we will skip that in this
         // implementation and just update the transaction's status  in Anchor Platform

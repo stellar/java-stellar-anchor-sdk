@@ -129,7 +129,7 @@ public class Sep24Service {
       throw new SepValidationException(String.format("invalid account: %s", sourceAccount), ex);
     }
 
-    // TODO - SFUNG question - should we be allowing user to specify memo? transaction are looked up
+    // TODO - jamie - should we be allowing user to specify memo? transaction are looked up
     // by PaymentObserver
     // by account+memo, could be collisions
     Memo memo = makeMemo(withdrawRequest.get("memo"), withdrawRequest.get("memo_type"));
@@ -143,12 +143,12 @@ public class Sep24Service {
             .kind(WITHDRAWAL.toString())
             .amountExpected(strAmount)
             .assetCode(assetCode)
-            .assetIssuer(withdrawRequest.get("asset_issuer"))
+            .assetIssuer(asset.getIssuer())
             .startedAt(Instant.now())
             .sep10Account(token.getAccount())
             .fromAccount(sourceAccount)
-            .withdrawAnchorAccount(
-                "GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF") // TODO - jamie to fix
+            // TODO - jamie to add unique address generator
+            .withdrawAnchorAccount(asset.getDistributionAccount())
             .clientDomain(token.getClientDomain());
 
     // TODO - jamie to look into memo vs withdrawal_memo
