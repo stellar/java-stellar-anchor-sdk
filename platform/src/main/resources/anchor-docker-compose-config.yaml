@@ -7,13 +7,11 @@ logging:
 callback_api:
   base_url: http://localhost:8081
   auth:
-    type: JWT_TOKEN
-    expiration_milliseconds: 30000
+    type: none
 
 platform_api:
   auth:
-    type: JWT_TOKEN
-    expiration_milliseconds: 30000
+    type: none
 
 events:
   enabled: true

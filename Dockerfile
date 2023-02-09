@@ -1,7 +1,8 @@
-FROM openjdk:11-jdk AS build
+#FROM openjdk:11-jdk AS build
+FROM gradle:jdk11-alpine AS build
 WORKDIR /code
-COPY . .
-RUN ./gradlew clean bootJar --stacktrace
+COPY --chown=gradle:gradle . .
+RUN gradle clean bootJar --stacktrace
 
 FROM ubuntu:20.04
 
