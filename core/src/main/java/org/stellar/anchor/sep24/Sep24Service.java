@@ -126,6 +126,9 @@ public class Sep24Service {
       throw new SepValidationException(String.format("invalid account: %s", sourceAccount), ex);
     }
 
+    // TODO - jamie - should we be allowing user to specify memo? transaction are looked up
+    // by PaymentObserver
+    // by account+memo, could be collisions
     Memo memo = makeMemo(withdrawRequest.get("memo"), withdrawRequest.get("memo_type"));
     Memo refundMemo =
         makeMemo(withdrawRequest.get("refund_memo"), withdrawRequest.get("refund_memo_type"));
@@ -137,12 +140,15 @@ public class Sep24Service {
             .kind(WITHDRAWAL.toString())
             .amountExpected(strAmount)
             .assetCode(assetCode)
-            .assetIssuer(withdrawRequest.get("asset_issuer"))
+            .assetIssuer(asset.getIssuer())
             .startedAt(Instant.now())
             .sep10Account(token.getAccount())
             .fromAccount(sourceAccount)
+            // TODO - jamie to add unique address generator
+            .withdrawAnchorAccount(asset.getDistributionAccount())
             .clientDomain(token.getClientDomain());
 
+    // TODO - jamie to look into memo vs withdrawal_memo
     if (memo != null) {
       debug("transaction memo detected.", memo);
       builder.memo(memo.toString());

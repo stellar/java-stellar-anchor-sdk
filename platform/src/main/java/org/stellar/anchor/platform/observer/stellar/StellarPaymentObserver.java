@@ -25,6 +25,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import lombok.Builder;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
+import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.EventPublishException;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.platform.HealthCheckResult;
@@ -335,7 +336,14 @@ public class StellarPaymentObserver implements HealthCheckable {
         if (paymentObservingAccountsManager.lookupAndUpdate(observedPayment.getFrom())
             && !observedPayment.getTo().equals(observedPayment.getFrom())) {
           final ObservedPayment finalObservedPayment = observedPayment;
-          paymentListeners.forEach(observer -> observer.onSent(finalObservedPayment));
+          paymentListeners.forEach(
+              observer -> {
+                try {
+                  observer.onSent(finalObservedPayment);
+                } catch (AnchorException | IOException e) {
+                  throw new RuntimeException(e);
+                }
+              });
         }
 
         publishingBackoffTimer.reset();
