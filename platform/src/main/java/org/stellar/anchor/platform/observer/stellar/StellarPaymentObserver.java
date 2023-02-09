@@ -336,13 +336,14 @@ public class StellarPaymentObserver implements HealthCheckable {
         if (paymentObservingAccountsManager.lookupAndUpdate(observedPayment.getFrom())
             && !observedPayment.getTo().equals(observedPayment.getFrom())) {
           final ObservedPayment finalObservedPayment = observedPayment;
-          paymentListeners.forEach(observer -> {
-            try {
-              observer.onSent(finalObservedPayment);
-            } catch (AnchorException | IOException e) {
-              throw new RuntimeException(e);
-            }
-          });
+          paymentListeners.forEach(
+              observer -> {
+                try {
+                  observer.onSent(finalObservedPayment);
+                } catch (AnchorException | IOException e) {
+                  throw new RuntimeException(e);
+                }
+              });
         }
 
         publishingBackoffTimer.reset();

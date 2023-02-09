@@ -16,7 +16,6 @@ import java.util.Base64;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
-
 import org.apache.commons.lang3.StringUtils;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
@@ -134,8 +133,8 @@ public class TransactionService {
       case "24":
         JdbcSep24Transaction sep24Transaction = (JdbcSep24Transaction) txn;
         // add a memo for the transaction if the transaction is ready for user to send funds
-        if (sep24Transaction.getMemo() == null &&
-                sep24Transaction.getStatus().equals(PENDING_USR_TRANSFER_START.toString())){
+        if (sep24Transaction.getMemo() == null
+            && sep24Transaction.getStatus().equals(PENDING_USR_TRANSFER_START.toString())) {
           // TODO - move this to separate file ex: Sep31DepositInfoGeneratorSelf.java
           String memo = StringUtils.truncate(sep24Transaction.getId(), 32);
           memo = StringUtils.leftPad(memo, 32, '0');

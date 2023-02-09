@@ -9,7 +9,6 @@ import org.stellar.anchor.api.platform.PatchTransactionRequest;
 import org.stellar.anchor.api.platform.PatchTransactionsRequest;
 import org.stellar.anchor.api.platform.PlatformTransactionData;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
-import org.stellar.anchor.api.shared.Amount;
 import org.stellar.anchor.apiclient.PlatformApiClient;
 import org.stellar.anchor.auth.AuthHelper;
 import org.stellar.anchor.reference.config.AppSettings;
@@ -31,10 +30,10 @@ public class AnchorEventProcessor {
     Log.debugF("Received transaction event: {}", event.getType());
     switch (event.getType()) {
       case TRANSACTION_CREATED:
-        if (event.getSep().equals("24")){
+        if (event.getSep().equals("24")) {
           if (event.getTransaction().getKind().toString().equals("WITHDRAWAL")) {
             handleSep24WithdrawalTransactionCreatedEvent(event);
-          } else if (event.getTransaction().getKind().toString().equals("DEPOSIT")){
+          } else if (event.getTransaction().getKind().toString().equals("DEPOSIT")) {
             // TODO
             Log.debug("Received deposit created event");
           }
@@ -53,13 +52,15 @@ public class AnchorEventProcessor {
     }
   }
 
-  public void handleSep24WithdrawalTransactionCreatedEvent(AnchorEvent event){
+  public void handleSep24WithdrawalTransactionCreatedEvent(AnchorEvent event) {
     SepTransactionStatus eventStatus = event.getTransaction().getStatus();
     SepTransactionStatus newStatus = null;
-    switch(eventStatus){
+    switch (eventStatus) {
       case INCOMPLETE:
-        // The business server should get KYC and other info from the customer via the interactive flow
-        // we will skip that in this implementation and just update the transaction's status  in Anchor Platform
+        // The business server should get KYC and other info from the customer via the interactive
+        // flow
+        // we will skip that in this implementation and just update the transaction's status  in
+        // Anchor Platform
         // to PENDING_USR_TRANSFER_START
         newStatus = SepTransactionStatus.PENDING_USR_TRANSFER_START;
         break;
@@ -86,14 +87,14 @@ public class AnchorEventProcessor {
         PatchTransactionsRequest.builder()
             .records(
                 List.of(
-                  PatchTransactionRequest.builder()
-                      .transaction(
-                          PlatformTransactionData.builder()
-                              .id(event.getTransaction().getId())
-                              .status(newStatus)
-                              .kycVerified("true")
-                        .build())
-                    .build()))
+                    PatchTransactionRequest.builder()
+                        .transaction(
+                            PlatformTransactionData.builder()
+                                .id(event.getTransaction().getId())
+                                .status(newStatus)
+                                .kycVerified("true")
+                                .build())
+                        .build()))
             .build();
 
     try {
@@ -101,8 +102,6 @@ public class AnchorEventProcessor {
     } catch (IOException | AnchorException ex) {
       Log.errorEx(ex);
     }
-
-
   }
 
   public void handleTransactionStatusChangedEvent(AnchorEvent event) {
@@ -132,7 +131,4 @@ public class AnchorEventProcessor {
       Log.errorEx(ex);
     }
   }
-
 }
-
-

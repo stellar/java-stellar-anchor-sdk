@@ -90,7 +90,7 @@ public class PaymentObserverBeans {
       JdbcSep24TransactionStore sep24TransactionStore,
       EventService eventService,
       PlatformApiClient platformApiClient) {
-    return new PaymentOperationToEventListener(sep31TransactionStore, sep24TransactionStore,
-            eventService, platformApiClient);
+    return new PaymentOperationToEventListener(
+        sep31TransactionStore, sep24TransactionStore, eventService, platformApiClient);
   }
 }
