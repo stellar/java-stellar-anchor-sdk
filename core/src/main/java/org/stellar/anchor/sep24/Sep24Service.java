@@ -12,6 +12,7 @@ import static org.stellar.anchor.util.MemoHelper.memoType;
 import static org.stellar.anchor.util.SepHelper.generateSepTransactionId;
 import static org.stellar.anchor.util.SepHelper.memoTypeString;
 import static org.stellar.anchor.util.SepLanguageHelper.validateLanguage;
+import static org.stellar.anchor.util.StringHelper.isEmpty;
 
 import com.google.gson.Gson;
 import java.io.IOException;
@@ -33,9 +34,6 @@ import org.stellar.sdk.KeyPair;
 import org.stellar.sdk.Memo;
 
 public class Sep24Service {
-  public static final String OPERATION_WITHDRAW = "withdraw";
-  public static final String OPERATION_DEPOSIT = "deposit";
-
   final AppConfig appConfig;
   final Sep24Config sep24Config;
   final AssetService assetService;
@@ -70,7 +68,7 @@ public class Sep24Service {
   }
 
   public InteractiveTransactionResponse withdraw(
-      String fullRequestUrl, Sep10Jwt token, Map<String, String> withdrawRequest)
+      Sep10Jwt token, Map<String, String> withdrawRequest)
       throws SepException, MalformedURLException, URISyntaxException, EventPublishException {
     info("Creating withdrawal transaction.");
     if (token == null) {
@@ -99,9 +97,8 @@ public class Sep24Service {
       throw new SepValidationException("missing 'asset_code'");
     }
 
-    if (sourceAccount == null) {
-      info("missing 'account' field");
-      throw new SepValidationException("'account' is required");
+    if (isEmpty(sourceAccount)) {
+      sourceAccount = token.getAccount();
     }
 
     // Verify that the asset code exists in our database, with withdraw enabled.
@@ -174,8 +171,7 @@ public class Sep24Service {
         txn.getTransactionId());
   }
 
-  public InteractiveTransactionResponse deposit(
-      String fullRequestUrl, Sep10Jwt token, Map<String, String> depositRequest)
+  public InteractiveTransactionResponse deposit(Sep10Jwt token, Map<String, String> depositRequest)
       throws SepException, MalformedURLException, URISyntaxException, EventPublishException {
     info("Creating deposit transaction.");
     if (token == null) {
@@ -211,8 +207,8 @@ public class Sep24Service {
       throw new SepValidationException("missing 'asset_code'");
     }
 
-    if (destinationAccount == null) {
-      throw new SepValidationException("'account' is required");
+    if (isEmpty(destinationAccount)) {
+      destinationAccount = token.getAccount();
     }
 
     if (!destinationAccount.equals(token.getAccount())) {
