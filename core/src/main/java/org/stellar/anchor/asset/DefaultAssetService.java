@@ -25,6 +25,8 @@ public class DefaultAssetService implements AssetService {
     switch (assetsConfig.getType()) {
       case JSON:
         return fromJson(assetsConfig.getValue());
+      case FILE:
+        return fromResource(assetsConfig.getValue());
       case YAML:
       default:
         infoF("assets type {} is not supported", assetsConfig.getType());
@@ -46,9 +48,12 @@ public class DefaultAssetService implements AssetService {
     return assetService;
   }
 
-  public static DefaultAssetService fromResource(String assetPath)
-      throws IOException, SepNotFoundException, InvalidConfigException {
-    return fromJson(FileUtil.getResourceFileAsString(assetPath));
+  public static DefaultAssetService fromResource(String assetPath) throws InvalidConfigException {
+    try {
+      return fromJson(FileUtil.getResourceFileAsString(assetPath));
+    } catch (IOException | SepNotFoundException e) {
+      throw new InvalidConfigException("unable to parse stellar.toml file");
+    }
   }
 
   public List<AssetInfo> listAllAssets() {

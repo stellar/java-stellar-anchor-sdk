@@ -7,6 +7,7 @@ public interface AssetsConfig {
 
   enum AssetConfigType {
     JSON,
-    YAML
+    YAML,
+    FILE
   }
 }
