@@ -67,7 +67,7 @@ callback_api:
     ## requests (`Platform->Anchor`) so the Anchor can ensure the party making the request
     ## is the Platform
     #
-    type: none
+    type: jwt
     jwt:
       expiration_milliseconds: 30000
       http_header: Authorization
@@ -103,7 +103,7 @@ platform_api:
     ## requests (`Platform->Anchor`) so the Anchor can ensure the party making the request
     ## is the Platform
     #
-    type: none
+    type: jwt
     jwt:
       expiration_milliseconds: 30000
       http_header: Authorization
@@ -189,19 +189,34 @@ sep1:
   ## @type: bool
   ## Whether to enable SEP-1 for this instance of AP server.
   #
-  enabled: false
+  enabled: true
   toml:
-    ## @param: type
-    ## @type: string
-    ## @supported_values:
-    ##     `string`: value contains the content of the stellar toml file
-    ##     `file`: value contains the path to the stellar toml file
-    ##     `url`: value contains the url to the content of the stellar toml file
-    type: string
-    ## @param: value
-    ## @type: string
-    #
-    value: |
+ACCOUNTS = []
+VERSION = "0.1.0"
+NETWORK_PASSPHRASE = "Test SDF Network ; September 2015"
+SIGNING_KEY = "GCHLHDBOKG2JWMJQBTLSL5XG6NO7ESXI2TAQKZXCXWXB5WI2X6W233PR"
+
+WEB_AUTH_ENDPOINT = "http://localhost:8080/auth"
+KYC_SERVER = "http://localhost:8080/sep12"
+TRANSFER_SERVER_SEP0024 = "http://localhost:8080/sep24"
+DIRECT_PAYMENT_SERVER = "http://localhost:8080/sep31"
+ANCHOR_QUOTE_SERVER = "http://localhost:8080/sep38"
+
+[[CURRENCIES]]
+code = "USDC"
+issuer = "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+status = "test"
+is_asset_anchored = true
+anchor_asset_type = "fiat"
+desc = "A test USDC issued by Stellar."
+
+[[CURRENCIES]]
+code = "JPYC"
+issuer = "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+status = "test"
+is_asset_anchored = true
+anchor_asset_type = "fiat"
+desc = "A test JPYC issued by Stellar."
 
 
 sep10:
@@ -210,7 +225,7 @@ sep10:
   ## Whether to enable SEP-10 for this instance of AP server.
   ## If true, @required_secrets: SEP10_SIGNING_SEED
   #
-  enabled: false
+  enabled: true
   ## If `enabled` is set to True, the following two secrets must be set via the environment
   ## variables.
   ## `secret.sep10_signing_seed`: The private key for signing challenge transactions.
@@ -267,7 +282,7 @@ sep12:
   ## @type: bool
   ## Whether to enable SEP-12 for this instance of AP server.
   #
-  enabled: false
+  enabled: true
 
 sep24:
   ## @param: enabled
@@ -311,7 +326,7 @@ sep31:
   ## @type: bool
   ## Whether to enable SEP-31 for this instance of AP server.
   #
-  enabled: false
+  enabled: true
   ## @param: payment_type
   ## @default: STRICT_SEND
   ## Used to determine how amount_in is calculated from amount in the POST /transaction call
@@ -336,7 +351,7 @@ sep38:
   ## @type: bool
   ## Whether to enable SEP-38 for this instance of AP server.
   #
-  enabled: false
+  enabled: true
 
 
 ##########################
@@ -348,13 +363,13 @@ metrics:
   ## @type: bool
   ## If true, enable metrics endpoints for third-party services (ex: prometheus) to scrape
   #
-  enabled: false
+  enabled: true
   ## @param: extras_enabled
   ## @type: bool
   ## If true, enable extra metrics (these metrics periodically query the database to get the current state of the
   ## system)
   #
-  extras_enabled: false
+  extras_enabled: true
   ## @param: run_interval
   ## @type: integer
   ## Interval in seconds to query the database to generate metrics
@@ -371,7 +386,7 @@ events:
   ## @type: bool
   ## Whether to enable events.
   #
-  enabled: false
+  enabled: true
   ## @param: event_type_to_queue
   ## @type: map
   ## Mapping of the event type to the queue name that messages are published to
@@ -449,26 +464,221 @@ events:
 #########################
 ## Assets are empty by default. Please see `integration-test.anchor-config.yaml` for reference.
 ## Accepts file reference (eg. 'file:assets.yaml') or in-line definition.
-assets:
-  ## @param: type
-  ## @supported_values: `json`
-  ## Describe the asset definition.
-  #
-  type: json
-  ## @param: value
-  ## @type: string
-  ## Example of yaml definition:
-  ##   { "assets":
-  ##     [{
-  ##       "schema": "stellar"
-  ##       "code": "USDC"
-  ##       "issuer": "G..."
-  ##       "distribution_account": "G..."
-  ##        ....
-  ##     }]
-  ##   }
-  #
-  value: ""
+
+{
+    "assets": [
+        {
+            "schema": "stellar",
+            "code": "USDC",
+            "issuer": "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+            "distribution_account": "GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF",
+            "significant_decimals": 2,
+            "deposit" : {
+                "enabled": true,
+                "fee_minimum": 0,
+                "fee_percent": 0,
+                "min_amount": 1,
+                "max_amount": 1000000
+            },
+            "withdraw": {
+                "enabled": true,
+                "fee_fixed": 0,
+                "fee_percent": 0,
+                "min_amount": 1,
+                "max_amount": 1000000
+            },
+            "send": {
+                "fee_fixed": 0,
+                "fee_percent": 0,
+                "min_amount": 1,
+                "max_amount": 1000000
+            },
+            "sep31" : {
+                "quotes_supported": true,
+                "quotes_required": false,
+                "sep12": {
+                    "sender": {
+                        "types": {
+                            "sep31-sender": {
+                                "description": "U.S. citizens limited to sending payments of less than $10,000 in value"
+                            },
+                            "sep31-large-sender": {
+                                "description": "U.S. citizens that do not have sending limits"
+                            },
+                            "sep31-foreign-sender": {
+                                "description": "non-U.S. citizens sending payments of less than $10,000 in value"
+                            }
+                        }
+                    },
+                    "receiver": {
+                        "types": {
+                            "sep31-receiver": {
+                                "description": "U.S. citizens receiving USD"
+                            },
+                            "sep31-foreign-receiver": {
+                                "description": "non-U.S. citizens receiving USD"
+                            }
+                        }
+                    }
+                },
+                "fields": {
+                    "transaction": {
+                        "receiver_routing_number": {
+                            "description": "routing number of the destination bank account"
+                        },
+                        "receiver_account_number": {
+                            "description": "bank account number of the destination"
+                        },
+                        "type": {
+                            "description": "type of deposit to make",
+                            "choices": [
+                                "SEPA",
+                                "SWIFT"
+                            ]
+                        }
+                    }
+                }
+            },
+            "sep38": {
+                "exchangeable_assets": [
+                    "iso4217:USD"
+                ]
+            },
+            "sep24_enabled": true,
+            "sep31_enabled": true,
+            "sep38_enabled": true
+        },
+        {
+            "schema": "stellar",
+            "code": "JPYC",
+            "issuer": "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+            "distribution_account": "GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF",
+            "significant_decimals": 4,
+            "deposit" : {
+                "enabled": true,
+                "fee_minimum": 0,
+                "fee_percent": 0,
+                "min_amount": 1,
+                "max_amount": 1000000
+            },
+            "withdraw": {
+                "enabled": true,
+                "fee_fixed": 0,
+                "fee_percent": 0,
+                "min_amount": 1,
+                "max_amount": 1000000
+            },
+            "send": {
+                "fee_fixed": 0,
+                "fee_percent": 0,
+                "min_amount": 1,
+                "max_amount": 1000000
+            },
+            "sep31" : {
+                "quotes_supported": true,
+                "quotes_required": false,
+                "sep12": {
+                    "sender": {
+                        "types": {
+                            "sep31-sender": {
+                                "description": "U.S. citizens limited to sending payments of less than $10,000 in value"
+                            },
+                            "sep31-large-sender": {
+                                "description": "U.S. citizens that do not have sending limits"
+                            },
+                            "sep31-foreign-sender": {
+                                "description": "non-U.S. citizens sending payments of less than $10,000 in value"
+                            }
+                        }
+                    },
+                    "receiver": {
+                        "types": {
+                            "sep31-receiver": {
+                                "description": "U.S. citizens receiving JPY"
+                            },
+                            "sep31-foreign-receiver": {
+                                "description": "non-U.S. citizens receiving JPY"
+                            }
+                        }
+                    }
+                },
+                "fields": {
+                    "transaction": {
+                        "receiver_routing_number": {
+                            "description": "routing number of the destination bank account"
+                        },
+                        "receiver_account_number": {
+                            "description": "bank account number of the destination"
+                        },
+                        "type": {
+                            "description": "type of deposit to make",
+                            "choices": [
+                                "SEPA",
+                                "SWIFT"
+                            ]
+                        }
+                    }
+                }
+            },
+            "sep38": {
+                "exchangeable_assets": [
+                    "iso4217:USD"
+                ]
+            },
+            "sep24_enabled": false,
+            "sep31_enabled": true,
+            "sep38_enabled": true
+        },
+        {
+            "schema": "iso4217",
+            "code": "USD",
+            "deposit" : {
+                "enabled": true,
+                "fee_minimum": 0,
+                "fee_percent": 0,
+                "min_amount": 0,
+                "max_amount": 10000
+            },
+            "withdraw": {
+                "enabled": true,
+                "fee_fixed": 0,
+                "fee_percent": 0,
+                "min_amount": 0,
+                "max_amount": 10000
+            },
+            "send": {
+                "fee_fixed": 0,
+                "fee_percent": 0,
+                "min_amount": 0,
+                "max_amount": 10000
+            },
+            "sep38": {
+                "exchangeable_assets": [
+                    "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+                    "stellar:JPYC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+                ],
+                "country_codes": ["USA"],
+                "decimals": 4,
+                "sell_delivery_methods": [
+                    {
+                        "name": "WIRE",
+                        "description": "Send USD directly to the Anchor's bank account."
+                    }
+                ],
+                "buy_delivery_methods": [
+                    {
+                        "name": "WIRE",
+                        "description": "Have USD sent directly to your bank account."
+                    }
+                ]
+            },
+            "sep24_enabled": false,
+            "sep31_enabled": false,
+            "sep38_enabled": true
+        }
+    ]
+}
+
 
 ################################
 ## Data Configuration
