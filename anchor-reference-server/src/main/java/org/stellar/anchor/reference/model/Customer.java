@@ -26,6 +26,8 @@ public class Customer {
 
   String bankAccountNumber;
 
+  String bankAccountType;
+
   String bankRoutingNumber;
 
   String clabeNumber;

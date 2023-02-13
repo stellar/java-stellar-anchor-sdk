@@ -88,7 +88,8 @@ RECEIVING_CLIENT_PAYLOAD = {
     "address_country_code": "US",
     "clabe_number": "1234",
     "bank_number": "abcd",
-    "bank_account_number": "1234"
+    "bank_account_number": "1234",
+    "bank_account_type": "checking"
 }
 
 
