@@ -22,7 +22,8 @@ const val testCustomer1Json =
   "address_country_code": "US",
   "clabe_number": "1234",
   "bank_number": "abcd",
-  "bank_account_number": "1234"
+  "bank_account_number": "1234",
+  "bank_account_type": "checking"
 }
 """
 
@@ -38,7 +39,8 @@ const val testCustomer2Json =
   "address_country_code": "US",
   "clabe_number": "5678",
   "bank_number": "efgh",
-  "bank_account_number": "5678"
+  "bank_account_number": "5678",
+  "bank_account_type": "checking"
 }
 """
 
