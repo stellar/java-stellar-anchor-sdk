@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.2.6
+* Add bank_account_type to SEP-9 and customer field.
+
 ## 1.2.5
 * Fix DETELE endpoint to take customer types into account [#734](https://github.com/stellar/java-stellar-anchor-sdk/pull/734)
 
