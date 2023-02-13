@@ -57,9 +57,6 @@ public abstract class JdbcSepTransaction {
   @SerializedName("external_transaction_id")
   String externalTransactionId;
 
-  @SerializedName("required_info_message")
-  String requiredInfoMessage;
-
   @Column(columnDefinition = "json")
   @Type(type = "json")
   List<StellarTransaction> stellarTransactions;

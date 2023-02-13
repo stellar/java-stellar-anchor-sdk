@@ -18,8 +18,6 @@ ALTER TABLE sep24_transaction ADD request_asset_code VARCHAR(255);
 
 ALTER TABLE sep24_transaction ADD request_asset_issuer VARCHAR(255);
 
-ALTER TABLE sep24_transaction ADD required_info_message VARCHAR(255);
-
 ALTER TABLE sep24_transaction ADD status_eta VARCHAR(255);
 
 ALTER TABLE sep24_transaction ADD stellar_transactions JSON;
