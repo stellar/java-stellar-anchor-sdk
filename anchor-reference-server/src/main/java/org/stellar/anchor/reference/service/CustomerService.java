@@ -3,10 +3,7 @@ package org.stellar.anchor.reference.service;
 import static org.stellar.anchor.reference.model.Customer.Status.ACCEPTED;
 import static org.stellar.anchor.reference.model.Customer.Status.NEEDS_INFO;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import org.springframework.stereotype.Service;
 import org.stellar.anchor.api.callback.GetCustomerRequest;
 import org.stellar.anchor.api.callback.GetCustomerResponse;
@@ -263,6 +260,7 @@ public class CustomerService {
     CustomerField field = new CustomerField();
     field.setType("string");
     field.setDescription("bank account type of the customer");
+    field.setChoices(Arrays.asList("checking", "savings"));
     field.setOptional(!type.equals(Customer.Type.SEP31_RECEIVER.toString()));
     return field;
   }
@@ -320,6 +318,7 @@ public class CustomerService {
     field.setType("string");
     field.setDescription("bank account type of the customer");
     field.setStatus(Customer.Status.ACCEPTED.toString());
+    field.setChoices(Arrays.asList("checking", "savings"));
     return field;
   }
 
