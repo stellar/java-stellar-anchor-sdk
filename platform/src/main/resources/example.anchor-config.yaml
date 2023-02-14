@@ -83,11 +83,8 @@ sep12:
 sep24:
   enabled: true
   interactive_url:
-    type: simple
-    simple:
-#      base_url: http://localhost:8091/sep24/interactive
-      base_url: http://localhost:3000
-      txn_fields:
+#    base_url: http://localhost:8091/sep24/interactive
+    base_url: http://localhost:3000
 
 sep31:
   enabled: true
