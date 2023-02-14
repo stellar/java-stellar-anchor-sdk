@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.2.6
+* Add bank_account_type to SEP-9 and customer field [#750](https://github.com/stellar/java-stellar-anchor-sdk/pull/750)
+
+## 1.2.5
+* Fix DETELE endpoint to take customer types into account [#734](https://github.com/stellar/java-stellar-anchor-sdk/pull/734)
+
+## 1.2.4
+* Fix customer type not being properly resolved (when multiple types are configured) [#721](https://github.com/stellar/java-stellar-anchor-sdk/pull/721)
+* Add cbu_alias and cbu_number fields to core and platform [#728](https://github.com/stellar/java-stellar-anchor-sdk/pull/728)
+
 ## 1.2.2
 * Detects and handle silent and errored SSEStream. [#632](https://github.com/stellar/java-stellar-anchor-sdk/issues/632)
 * When the health status is RED, set the status code to 500.

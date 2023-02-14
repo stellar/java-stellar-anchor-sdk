@@ -60,6 +60,9 @@ public class Sep12PutCustomerRequest implements Sep12CustomerRequestBase {
   @SerializedName("bank_account_number")
   String bankAccountNumber;
 
+  @SerializedName("bank_account_type")
+  String bankAccountType;
+
   @SerializedName("bank_number")
   String bankNumber;
 
