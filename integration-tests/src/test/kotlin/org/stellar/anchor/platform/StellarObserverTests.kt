@@ -63,7 +63,6 @@ class StellarObserverTests {
 
 fun stellarObserverTestAll() {
   StellarObserverTests.setup()
-
   println("Performing Stellar observer tests...")
-  StellarObserverTests.setup()
+  StellarObserverTests.testStellarObserverHealth()
 }

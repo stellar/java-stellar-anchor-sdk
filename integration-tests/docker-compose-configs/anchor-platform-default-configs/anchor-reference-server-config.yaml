@@ -21,6 +21,7 @@ event:
   listenerType: kafka
 
 kafka.listener:
+  enabled: true
   bootstrapServer: host.docker.internal:29092
   useSingleQueue: false
   eventTypeToQueue:

@@ -39,12 +39,13 @@ class AnchorPlatformIntegrationTest {
           "secret.data.username" to "user1",
           "secret.data.password" to "password",
           "secret.callback_api.auth_secret" to "callback_jwt_secret",
-          "secret.platform_api.auth_secret" to "platform_jwt_secret"
+          "secret.platform_api.auth_secret" to "platform_jwt_secret",
+          "events.enabled" to false
         )
 
-      ServiceRunner.startSepServer(envMap)
-      ServiceRunner.startStellarObserver(envMap)
       ServiceRunner.startAnchorReferenceServer()
+      ServiceRunner.startStellarObserver(envMap)
+      ServiceRunner.startSepServer(envMap)
 
       toml =
         Sep1Helper.parse(

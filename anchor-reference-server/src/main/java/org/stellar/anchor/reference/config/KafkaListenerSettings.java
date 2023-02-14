@@ -8,6 +8,7 @@ import org.springframework.context.annotation.Configuration;
 @Configuration
 @ConfigurationProperties(prefix = "kafka.listener")
 public class KafkaListenerSettings {
+  Boolean enabled = true;
   String bootStrapServer;
   Boolean useSingleQueue;
   Boolean useIAM = false;
