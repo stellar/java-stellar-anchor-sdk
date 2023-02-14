@@ -241,17 +241,17 @@ public class PaymentOperationToEventListener implements PaymentListener {
     SepTransactionStatus newStatus = SepTransactionStatus.PENDING_ANCHOR;
 
     // Check if the payment contains the expected amount (or greater)
-    BigDecimal expectedAmount = decimal(txn.getAmountIn());
+    BigDecimal amountIn = decimal(txn.getAmountIn());
     BigDecimal gotAmount = decimal(payment.getAmount());
     String message = "Incoming payment for SEP-24 transaction";
-    if (gotAmount.compareTo(expectedAmount) == 0) {
+    if (gotAmount.compareTo(amountIn) == 0) {
       Log.info(message);
       txn.setTransferReceivedAt(paymentTime);
     } else {
       message =
           String.format(
               "The incoming payment amount was insufficient! Expected: \"%s\", Received: \"%s\"",
-              formatAmount(expectedAmount), formatAmount(gotAmount));
+              formatAmount(amountIn), formatAmount(gotAmount));
       Log.warn(message);
     }
 
