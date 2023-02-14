@@ -218,7 +218,8 @@ public class TransactionService {
       case "31":
         // update message
         if (shouldClearMessageStatus) {
-          txn.setRequiredInfoMessage(null);
+          JdbcSep31Transaction sep31Txn = (JdbcSep31Transaction) txn;
+          sep31Txn.setRequiredInfoMessage(null);
         } else {
           txnUpdated = updateField(patch, "message", txn, "requiredInfoMessage", txnUpdated);
         }
