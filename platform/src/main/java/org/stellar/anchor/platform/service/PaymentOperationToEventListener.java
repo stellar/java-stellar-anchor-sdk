@@ -241,7 +241,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
     SepTransactionStatus newStatus = SepTransactionStatus.PENDING_ANCHOR;
 
     // Check if the payment contains the expected amount (or greater)
-    BigDecimal expectedAmount = decimal(txn.getAmountExpected());
+    BigDecimal expectedAmount = decimal(txn.getAmountIn());
     BigDecimal gotAmount = decimal(payment.getAmount());
     String message = "Incoming payment for SEP-24 transaction";
     if (gotAmount.compareTo(expectedAmount) == 0) {
