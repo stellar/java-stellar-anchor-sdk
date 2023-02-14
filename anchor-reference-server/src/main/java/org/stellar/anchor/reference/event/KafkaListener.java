@@ -38,7 +38,9 @@ public class KafkaListener extends AbstractEventListener implements HealthChecka
       KafkaListenerSettings kafkaListenerSettings, AnchorEventProcessor processor) {
     this.kafkaListenerSettings = kafkaListenerSettings;
     this.processor = processor;
-    this.executor.submit(this::listen);
+    if (kafkaListenerSettings.getEnabled()) {
+      this.executor.submit(this::listen);
+    }
   }
 
   Consumer<String, AnchorEvent> createKafkaConsumer() {
@@ -127,9 +129,12 @@ public class KafkaListener extends AbstractEventListener implements HealthChecka
       status = RED;
     }
 
-    boolean kafkaAvailable = validateKafka();
-    if (!kafkaAvailable) {
-      status = RED;
+    boolean kafkaAvailable = false;
+    if (kafkaListenerSettings.getEnabled()) {
+      kafkaAvailable = validateKafka();
+      if (!kafkaAvailable) {
+        status = RED;
+      }
     }
 
     return KafkaHealthCheckResult.builder()

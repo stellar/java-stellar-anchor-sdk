@@ -38,6 +38,7 @@ event:
 
 # NOTE: AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY environment variables need to be set if using AWS MSK
 kafka.listener:
+  enabled: true
   bootstrapServer: kafka:29092
   #bootstrapServer: b-1-public.democluster1.w7j4hi.c25.kafka.us-east-1.amazonaws.com:9198   # AWS MSK broker example
   useSingleQueue: false

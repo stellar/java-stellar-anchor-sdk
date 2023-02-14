@@ -35,6 +35,7 @@ data:
       listenerType: kafka
 
     kafka.listener:
+      enabled: true
       bootstrapServer: anchor-platform-kafka:9092
       eventTypeToQueue:
         all: dev_ap_event_single_queue
