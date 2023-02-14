@@ -395,7 +395,7 @@ private const val expectedWithdrawTransactionResponse =
   {
     "sep": "24",
     "kind": "withdrawal",
-    "status": "incomplete"
+    "status": "pending_user_transfer_start"
   }
 """
 
