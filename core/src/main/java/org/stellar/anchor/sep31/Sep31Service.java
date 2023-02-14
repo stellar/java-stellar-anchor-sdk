@@ -539,21 +539,53 @@ public class Sep31Service {
       throw new BadRequestException("receiver_id cannot be empty.");
     }
 
-    // TODO: Populate customer type with the first receiver type; this is a temporary fix for cases
-    // where customerType is required
     Sep12Operation sep12Operation = Context.get().getAsset().getSep31().getSep12();
-    String receiverType = null;
+    Sep12GetCustomerResponse receiver;
+
+    // Fix for https://github.com/stellar/java-stellar-anchor-sdk/issues/717 (ANCHOR-149)
+    // TODO: check if there is a better way to do it, i.e. request a type first for a customer OR
+    // stop iteration after first hit.
     if (sep12Operation != null) {
-      Optional<String> receiverTypeOptional =
-          sep12Operation.getReceiver().getTypes().keySet().stream().findFirst();
-      receiverType = receiverTypeOptional.orElse(null);
-    }
-    Sep12GetCustomerRequest request =
-        Sep12GetCustomerRequest.builder().id(receiverId).type(receiverType).build();
-    Sep12GetCustomerResponse receiver = this.customerIntegration.getCustomer(request);
-    if (receiver == null || receiver.getStatus() != Sep12Status.ACCEPTED) {
-      infoF("Customer (receiver) info needed for request ({})", Context.get().getRequest());
-      throw new Sep31CustomerInfoNeededException("sep31-receiver");
+      Set<String> types = sep12Operation.getReceiver().getTypes().keySet();
+      List<Sep12GetCustomerRequest> requests =
+          types.stream()
+              .map(type -> Sep12GetCustomerRequest.builder().id(receiverId).type(type).build())
+              .collect(Collectors.toList());
+      List<Sep12GetCustomerResponse> responses = new ArrayList<>();
+
+      for (Sep12GetCustomerRequest request : requests) {
+        try {
+          responses.add(this.customerIntegration.getCustomer(request));
+        } catch (AnchorException e) {
+          infoF("Failed to get customer (receiver) info with an error ({})", e);
+        }
+      }
+
+      List<Sep12GetCustomerResponse> accepted =
+          responses.stream()
+              .filter(Objects::nonNull)
+              .filter(x -> x.getStatus() == Sep12Status.ACCEPTED)
+              .collect(Collectors.toList());
+
+      if (accepted.isEmpty()) {
+        infoF("Customer (receiver) info needed for request ({})", Context.get().getRequest());
+        throw new Sep31CustomerInfoNeededException(types.toString());
+      }
+      if (accepted.size() != 1) {
+        infoF(
+            "Ambiguous customer info for request ({}) having multiple accepted responses ({})",
+            Context.get().getRequest(),
+            accepted);
+        throw new Sep31AmbiguousCustomerInfoException(accepted.toString());
+      }
+    } else {
+      Sep12GetCustomerRequest request = Sep12GetCustomerRequest.builder().id(receiverId).build();
+
+      receiver = this.customerIntegration.getCustomer(request);
+      if (receiver == null || receiver.getStatus() != Sep12Status.ACCEPTED) {
+        infoF("Customer (receiver) info needed for request ({})", Context.get().getRequest());
+        throw new Sep31CustomerInfoNeededException("sep31-receiver");
+      }
     }
 
     String senderId = Context.get().getRequest().getSenderId();
@@ -562,20 +594,47 @@ public class Sep31Service {
       throw new BadRequestException("sender_id cannot be empty.");
     }
 
-    // TODO: Populate customer type with the first sender type; this is a temporary fix for cases
-    // where customerType is required
-    String senderType = null;
     if (sep12Operation != null) {
-      Optional<String> senderTypeOptional =
-          Context.get().getAsset().getSep31().getSep12().getSender().getTypes().keySet().stream()
-              .findFirst();
-      senderType = senderTypeOptional.orElse(null);
-    }
-    request = Sep12GetCustomerRequest.builder().id(senderId).type(senderType).build();
-    Sep12GetCustomerResponse sender = this.customerIntegration.getCustomer(request);
-    if (sender == null || sender.getStatus() != Sep12Status.ACCEPTED) {
-      infoF("Customer (sender) info needed for request ({})", Context.get().getRequest());
-      throw new Sep31CustomerInfoNeededException("sep31-sender");
+      Set<String> types = sep12Operation.getSender().getTypes().keySet();
+      List<Sep12GetCustomerRequest> requests =
+          types.stream()
+              .map(type -> Sep12GetCustomerRequest.builder().id(senderId).type(type).build())
+              .collect(Collectors.toList());
+      List<Sep12GetCustomerResponse> responses = new ArrayList<>();
+
+      for (Sep12GetCustomerRequest request : requests) {
+        try {
+          responses.add(this.customerIntegration.getCustomer(request));
+        } catch (AnchorException e) {
+          infoF("Failed to get customer (sender) info with an error ({})", e);
+        }
+      }
+
+      List<Sep12GetCustomerResponse> accepted =
+          responses.stream()
+              .filter(Objects::nonNull)
+              .filter(x -> x.getStatus() == Sep12Status.ACCEPTED)
+              .collect(Collectors.toList());
+
+      if (accepted.isEmpty()) {
+        infoF("Customer (sender) info needed for request ({})", Context.get().getRequest());
+        throw new Sep31CustomerInfoNeededException(types.toString());
+      }
+      if (accepted.size() != 1) {
+        infoF(
+            "Ambiguous customer (sender) info for request ({}) having multiple accepted responses ({})",
+            Context.get().getRequest(),
+            accepted);
+        throw new Sep31AmbiguousCustomerInfoException(accepted.toString());
+      }
+    } else {
+      Sep12GetCustomerRequest request = Sep12GetCustomerRequest.builder().id(senderId).build();
+
+      Sep12GetCustomerResponse sender = this.customerIntegration.getCustomer(request);
+      if (sender == null || sender.getStatus() != Sep12Status.ACCEPTED) {
+        infoF("Customer (sender) info needed for request ({})", Context.get().getRequest());
+        throw new Sep31CustomerInfoNeededException("sep31-sender");
+      }
     }
   }
 

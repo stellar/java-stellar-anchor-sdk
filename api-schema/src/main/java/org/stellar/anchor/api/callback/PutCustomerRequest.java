@@ -55,6 +55,9 @@ public class PutCustomerRequest {
   @SerializedName("bank_account_number")
   String bankAccountNumber;
 
+  @SerializedName("bank_account_type")
+  String bankAccountType;
+
   @SerializedName("bank_number")
   String bankNumber;
 
@@ -66,6 +69,12 @@ public class PutCustomerRequest {
 
   @SerializedName("clabe_number")
   String clabeNumber;
+
+  @SerializedName("cbu_number")
+  String cbuNumber;
+
+  @SerializedName("cbu_alias")
+  String cbuAlias;
 
   @SerializedName("tax_id")
   String taxId;

@@ -3,11 +3,14 @@ package org.stellar.anchor.sep12;
 import static org.stellar.anchor.util.Log.infoF;
 
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.stellar.anchor.api.callback.CustomerIntegration;
 import org.stellar.anchor.api.exception.*;
 import org.stellar.anchor.api.sep.sep12.*;
+import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtToken;
 import org.stellar.anchor.util.Log;
 import org.stellar.anchor.util.MemoHelper;
@@ -15,9 +18,20 @@ import org.stellar.sdk.xdr.MemoType;
 
 public class Sep12Service {
   private final CustomerIntegration customerIntegration;
+  private final Set<String> knownTypes;
 
-  public Sep12Service(CustomerIntegration customerIntegration) {
+  public Sep12Service(CustomerIntegration customerIntegration, AssetService assetService) {
     this.customerIntegration = customerIntegration;
+    Stream<String> receiverTypes =
+        assetService.listAllAssets().stream()
+            .filter(x -> x.getSep31() != null)
+            .flatMap(x -> x.getSep31().getSep12().getReceiver().getTypes().keySet().stream());
+    Stream<String> senderTypes =
+        assetService.listAllAssets().stream()
+            .filter(x -> x.getSep31() != null)
+            .flatMap(x -> x.getSep31().getSep12().getSender().getTypes().keySet().stream());
+    knownTypes = Stream.concat(receiverTypes, senderTypes).collect(Collectors.toSet());
+
     Log.info("Sep12Service initialized.");
   }
 
@@ -65,10 +79,8 @@ public class Sep12Service {
           String.format("Not authorized to delete account [%s] with memo [%s]", account, memo));
     }
 
-    // TODO: Move this into configuration instead of hardcoding customer type values.
     boolean existingCustomerMatch = false;
-    String[] customerTypes = {"sending_user", "receiving_user"};
-    for (String customerType : customerTypes) {
+    for (String customerType : knownTypes) {
       Sep12GetCustomerResponse existingCustomer =
           customerIntegration.getCustomer(
               Sep12GetCustomerRequest.builder()

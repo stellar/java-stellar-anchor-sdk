@@ -130,8 +130,8 @@ public class SepConfig {
   }
 
   @Bean
-  Sep12Service sep12Service(CustomerIntegration customerIntegration) {
-    return new Sep12Service(customerIntegration);
+  Sep12Service sep12Service(CustomerIntegration customerIntegration, AssetService assetService) {
+    return new Sep12Service(customerIntegration, assetService);
   }
 
   @Bean

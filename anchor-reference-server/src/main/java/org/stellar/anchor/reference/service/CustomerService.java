@@ -3,10 +3,7 @@ package org.stellar.anchor.reference.service;
 import static org.stellar.anchor.reference.model.Customer.Status.ACCEPTED;
 import static org.stellar.anchor.reference.model.Customer.Status.NEEDS_INFO;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import org.springframework.stereotype.Service;
 import org.stellar.anchor.api.callback.GetCustomerRequest;
 import org.stellar.anchor.api.callback.GetCustomerResponse;
@@ -33,6 +30,14 @@ public class CustomerService {
       if (maybeCustomer.isEmpty()) {
         throw new NotFoundException(
             String.format("customer for 'id' '%s' not found", request.getId()));
+      } else if (request.getType() != null) {
+        if (!request.getType().equals("sep31-sender")
+            && !request.getType().equals("sep31-receiver")) {
+          throw new NotFoundException(
+              String.format(
+                  "customer for 'id' '%s' and 'type' '%s' not found",
+                  request.getId(), request.getType()));
+        }
       }
     } else {
       maybeCustomer =
@@ -142,6 +147,11 @@ public class CustomerService {
       } else {
         fields.put("bank_account_number", createBankAccountNumberField(type));
       }
+      if (customer.getBankAccountType() != null) {
+        providedFields.put("bank_account_type", createBankAccountTypeProvidedField());
+      } else {
+        fields.put("bank_account_type", createBankAccountTypeField(type));
+      }
       if (customer.getBankRoutingNumber() != null) {
         providedFields.put("bank_number", createBankNumberProvidedField());
       } else {
@@ -185,6 +195,9 @@ public class CustomerService {
     if (request.getBankAccountNumber() != null) {
       customer.setBankAccountNumber(request.getBankAccountNumber());
     }
+    if (request.getBankAccountType() != null) {
+      customer.setBankAccountType(request.getBankAccountType());
+    }
     if (request.getBankNumber() != null) {
       customer.setBankRoutingNumber(request.getBankNumber());
     }
@@ -205,6 +218,7 @@ public class CustomerService {
   public Map<String, CustomerField> getSep31ReceiverFields(String type) {
     Map<String, CustomerField> map = new HashMap<>();
     map.put("bank_account_number", createBankAccountNumberField(type));
+    map.put("bank_account_type", createBankAccountTypeField(type));
     map.put("bank_number", createBankNumberField(type));
     map.put("clabe_number", createClabeNumberField(type));
     return map;
@@ -238,6 +252,15 @@ public class CustomerService {
     CustomerField field = new CustomerField();
     field.setType("string");
     field.setDescription("bank account number of the customer");
+    field.setOptional(!type.equals(Customer.Type.SEP31_RECEIVER.toString()));
+    return field;
+  }
+
+  public CustomerField createBankAccountTypeField(String type) {
+    CustomerField field = new CustomerField();
+    field.setType("string");
+    field.setDescription("bank account type of the customer");
+    field.setChoices(Arrays.asList("checking", "savings"));
     field.setOptional(!type.equals(Customer.Type.SEP31_RECEIVER.toString()));
     return field;
   }
@@ -287,6 +310,15 @@ public class CustomerService {
     field.setType("string");
     field.setDescription("bank account of the customer");
     field.setStatus(Customer.Status.ACCEPTED.toString());
+    return field;
+  }
+
+  public ProvidedCustomerField createBankAccountTypeProvidedField() {
+    ProvidedCustomerField field = new ProvidedCustomerField();
+    field.setType("string");
+    field.setDescription("bank account type of the customer");
+    field.setStatus(Customer.Status.ACCEPTED.toString());
+    field.setChoices(Arrays.asList("checking", "savings"));
     return field;
   }
 

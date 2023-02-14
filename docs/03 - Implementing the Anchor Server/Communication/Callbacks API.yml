@@ -543,6 +543,8 @@ components:
           type: string
         bank_account_number:
           type: string
+        bank_account_type:
+          type: string
         bank_number:
           type: string
         bank_phone_number:
