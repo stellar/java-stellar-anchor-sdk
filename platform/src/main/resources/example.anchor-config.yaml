@@ -24,7 +24,7 @@ logging:
 
 data:
   type: sqlite
-  url: jdbc:sqlite:anchor-platform.db
+  database: anchor-platform
   initial_connection_pool_size: 2
   max_active_connections: 10
   flyway_enabled: true

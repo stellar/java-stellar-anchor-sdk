@@ -1,9 +1,9 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="v2.0 - Platform Server - ServiceRunner [Integration Test Config]" type="Application" factoryName="Application">
     <envs>
+      <env name="data.database" value="anchor-proxy" />
       <env name="data.ddl_auto" value="update" />
       <env name="data.type" value="sqlite" />
-      <env name="data.url" value="jdbc:sqlite:anchor-proxy.db" />
       <env name="SECRET.DATA.PASSWORD" value="password" />
       <env name="SECRET.DATA.USERNAME" value="admin" />
       <env name="secret.sep10.jwt_secret" value="secret" />

@@ -105,7 +105,7 @@ app_config:
   #
   # Database (PostgreSQL):
   # data.type: postgres
-  # data.url: jdbc:postgresql://<host>:<port>/<database_name>
+  # data.server: <host>:<port>
   # data.username: POSTGRES_USERNAME  # TODO: use secrets
   # data.password: POSTGRES_PASSWORD  # TODO: use secrets
   # data.initial_connection_pool_size: 3
