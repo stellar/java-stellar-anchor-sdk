@@ -66,18 +66,12 @@ public class TransactionHelper {
       refunds = toRefunds(txn.getRefunds(), txn.getAmountInAsset());
     }
 
-    String sender = DEPOSIT.kind.equals(txn.getKind()) ? txn.getToAccount() : txn.getFromAccount();
-
     String amountInAsset = makeAsset(txn.getAmountInAsset(), assetService, txn);
     String amountOutAsset = makeAsset(txn.getAmountOutAsset(), assetService, txn);
     String amountFeeAsset = makeAsset(txn.getAmountFeeAsset(), assetService, txn);
     String amountExpectedAsset = makeAsset(null, assetService, txn);
-    Customers.CustomersBuilder builder =
-        Customers.builder().sender(StellarId.builder().account(sender).build());
-
-    if (WITHDRAWAL.kind.equals(txn.getKind()) && txn.getWithdrawAnchorAccount() != null) {
-      builder.receiver(StellarId.builder().account(txn.getWithdrawAnchorAccount()).build());
-    }
+    String sourceAccount =
+        DEPOSIT.kind.equals(txn.getKind()) ? txn.getToAccount() : txn.getFromAccount();
 
     return GetTransactionResponse.builder()
         .id(txn.getId())
@@ -89,13 +83,13 @@ public class TransactionHelper {
         .amountFee(Amount.create(txn.getAmountFee(), amountFeeAsset))
         // constructor is used because AMOUNT can be null, when ASSET is always non-null
         .amountExpected(new Amount(txn.getAmountExpected(), amountExpectedAsset))
-        .customers(builder.build())
+        .sourceAccount(sourceAccount)
+        .destinationAccount(txn.getWithdrawAnchorAccount())
         .startedAt(txn.getStartedAt())
         .updatedAt(txn.getUpdatedAt())
         .completedAt(txn.getCompletedAt())
         .refunds(refunds)
         .stellarTransactions(txn.getStellarTransactions())
-        .stellarTransactionId(txn.getStellarTransactionId())
         .externalTransactionId(txn.getExternalTransactionId())
         .build();
   }

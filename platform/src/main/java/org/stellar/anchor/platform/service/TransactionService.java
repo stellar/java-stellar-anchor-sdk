@@ -196,7 +196,6 @@ public class TransactionService {
     txnUpdated = updateField(patch, txn, "externalTransactionId", txnUpdated);
     // update stellar_transactions
     txnUpdated = updateField(patch, txn, "stellarTransactions", txnUpdated);
-    txnUpdated = updateField(patch, txn, "stellarTransactionId", txnUpdated);
 
     switch (txn.getProtocol()) {
       case "24":
