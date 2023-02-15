@@ -22,8 +22,8 @@ public class SecretManager
           SECRET_SEP_24_MORE_INFO_URL_JWT_SECRET,
           SECRET_CALLBACK_API_AUTH_SECRET,
           SECRET_PLATFORM_API_AUTH_SECRET,
-          "secret.data.username",
-          "secret.data.password");
+          SECRET_DATA_USERNAME,
+          SECRET_DATA_PASSWORD);
 
   final Properties props = new Properties();
 

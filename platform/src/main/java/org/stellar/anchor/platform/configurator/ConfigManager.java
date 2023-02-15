@@ -3,8 +3,7 @@ package org.stellar.anchor.platform.configurator;
 import static org.stellar.anchor.api.platform.HealthCheckStatus.GREEN;
 import static org.stellar.anchor.platform.configurator.ConfigHelper.*;
 import static org.stellar.anchor.platform.configurator.ConfigMap.ConfigSource.FILE;
-import static org.stellar.anchor.util.Log.info;
-import static org.stellar.anchor.util.Log.infoF;
+import static org.stellar.anchor.util.Log.*;
 
 import java.io.IOException;
 import java.util.List;
@@ -72,6 +71,17 @@ public abstract class ConfigManager
     applicationContext.getEnvironment().getPropertySources().addFirst(pps);
 
     for (SpringConfigAdapter adapter : adapters) {
+      try {
+        adapter.validate(config);
+      } catch (InvalidConfigException icex) {
+        errorF(
+            "Invalid configuration. {}{} Reason={}",
+            System.lineSeparator(),
+            System.lineSeparator(),
+            icex.getMessage());
+        // We should not continue.
+        System.exit(1);
+      }
       adapter.updateSpringEnv(applicationContext, config);
     }
   }
