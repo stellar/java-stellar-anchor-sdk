@@ -70,8 +70,7 @@ public class TransactionHelper {
     String amountOutAsset = makeAsset(txn.getAmountOutAsset(), assetService, txn);
     String amountFeeAsset = makeAsset(txn.getAmountFeeAsset(), assetService, txn);
     String amountExpectedAsset = makeAsset(null, assetService, txn);
-    String sourceAccount =
-        DEPOSIT.kind.equals(txn.getKind()) ? txn.getToAccount() : txn.getFromAccount();
+    String sourceAccount = txn.getFromAccount();
 
     return GetTransactionResponse.builder()
         .id(txn.getId())
@@ -84,7 +83,7 @@ public class TransactionHelper {
         // constructor is used because AMOUNT can be null, when ASSET is always non-null
         .amountExpected(new Amount(txn.getAmountExpected(), amountExpectedAsset))
         .sourceAccount(sourceAccount)
-        .destinationAccount(txn.getWithdrawAnchorAccount())
+        .destinationAccount(txn.getToAccount())
         .startedAt(txn.getStartedAt())
         .updatedAt(txn.getUpdatedAt())
         .completedAt(txn.getCompletedAt())
