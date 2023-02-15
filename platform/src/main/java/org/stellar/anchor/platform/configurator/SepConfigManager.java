@@ -49,4 +49,9 @@ class SepServerConfigAdapter extends SpringConfigAdapter {
       set("management.endpoints.enabled-by-default", false);
     }
   }
+
+  @Override
+  void validate(ConfigMap config) throws InvalidConfigException {
+    // noop
+  }
 }

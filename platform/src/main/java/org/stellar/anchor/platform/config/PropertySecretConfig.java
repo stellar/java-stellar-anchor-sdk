@@ -13,6 +13,8 @@ public class PropertySecretConfig implements SecretConfig {
       "secret.sep24.more_info_url.jwt_secret";
   public static final String SECRET_CALLBACK_API_AUTH_SECRET = "secret.callback_api.auth_secret";
   public static final String SECRET_PLATFORM_API_AUTH_SECRET = "secret.platform_api.auth_secret";
+  public static final String SECRET_DATA_USERNAME = "secret.data.username";
+  public static final String SECRET_DATA_PASSWORD = "secret.data.password";
 
   public String getSep10JwtSecretKey() {
     return SecretManager.getInstance().get(SECRET_SEP_10_JWT_SECRET);
@@ -32,11 +34,23 @@ public class PropertySecretConfig implements SecretConfig {
     return SecretManager.getInstance().get(SECRET_SEP_24_MORE_INFO_URL_JWT_SECRET);
   }
 
+  @Override
   public String getCallbackApiSecret() {
     return SecretManager.getInstance().get(SECRET_CALLBACK_API_AUTH_SECRET);
   }
 
+  @Override
   public String getPlatformApiSecret() {
     return SecretManager.getInstance().get(SECRET_PLATFORM_API_AUTH_SECRET);
+  }
+
+  @Override
+  public String getDataSourceUsername() {
+    return SecretManager.getInstance().get(SECRET_DATA_USERNAME);
+  }
+
+  @Override
+  public String getDataSourcePassword() {
+    return SecretManager.getInstance().get(SECRET_DATA_PASSWORD);
   }
 }
