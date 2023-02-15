@@ -40,6 +40,7 @@ class AnchorPlatformIntegrationTest {
           "secret.data.password" to "password",
           "secret.callback_api.auth_secret" to "callback_jwt_secret",
           "secret.platform_api.auth_secret" to "platform_jwt_secret",
+          // The events and kafka should be tested in e2e tests.
           "events.enabled" to false
         )
 

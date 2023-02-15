@@ -6,7 +6,8 @@
         "last_name": "Doe",
         "email_address": "john@email.com",
         "bank_number": "123",
-        "bank_account_number": "456"
+        "bank_account_number": "456",
+        "bank_account_type": "checking"
       },
       "sendingClient": {
         "first_name": "Allie",
@@ -19,7 +20,8 @@
         "email_address": "lee@email.com",
         "clabe_number": "1234",
         "bank_number": "abcd",
-        "bank_account_number": "1234"
+        "bank_account_number": "1234",
+        "bank_account_type": "checking"
       },
       "toBeDeleted": {
         "first_name": "Jane",
