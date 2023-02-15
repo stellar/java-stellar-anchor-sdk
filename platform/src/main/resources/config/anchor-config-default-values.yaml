@@ -485,11 +485,19 @@ data:
   #
   #
   type: h2
+
   ## @param: url
   ## @type: string
   ## Location of the database
   #
-  url: jdbc:h2:mem:anchor-platform
+#  url: jdbc:h2:mem:anchor-platform
+
+  ## The hostname of the database server.
+  server:
+
+  ## Name of the database. Optional. Default to anchor-platform or the default name of the type of database.
+  database:
+
   ## @param: initial_connection_pool_size
   ## @type: integer
   ## Initial number of connections
