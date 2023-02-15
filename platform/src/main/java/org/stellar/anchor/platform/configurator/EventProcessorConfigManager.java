@@ -44,4 +44,7 @@ class EventProcessorConfigAdapter extends SpringConfigAdapter {
     copy(config, "event_processor.port", "server.port");
     set("spring.mvc.converters.preferred-json-mapper", "gson");
   }
+
+  @Override
+  void validate(ConfigMap config) throws InvalidConfigException {}
 }

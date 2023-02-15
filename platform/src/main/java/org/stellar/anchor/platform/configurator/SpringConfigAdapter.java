@@ -1,5 +1,8 @@
 package org.stellar.anchor.platform.configurator;
 
+import static org.stellar.anchor.util.Log.warn;
+import static org.stellar.anchor.util.StringHelper.isEmpty;
+
 import java.util.Properties;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.env.PropertiesPropertySource;
@@ -26,7 +29,9 @@ public abstract class SpringConfigAdapter {
   }
 
   protected void set(String name, String value) {
-    props.setProperty(name, value);
+    if (isEmpty(name) || isEmpty(value))
+      warn(String.format("Ignored [%s]=[%s] spring configuration.", name, value));
+    else props.setProperty(name, value);
   }
 
   protected void copy(ConfigMap config, String from, String to) throws InvalidConfigException {
@@ -54,4 +59,15 @@ public abstract class SpringConfigAdapter {
   }
 
   abstract void updateSpringEnv(ConfigMap config) throws InvalidConfigException;
+
+  /**
+   * This method is called to validate the configuration before Spring loads.
+   *
+   * <p>We should avoid the validations in this method if they can be done by the Spring
+   * validations.
+   *
+   * @param config The configuration map
+   * @throws InvalidConfigException Invalid configuration value exception
+   */
+  abstract void validate(ConfigMap config) throws InvalidConfigException;
 }

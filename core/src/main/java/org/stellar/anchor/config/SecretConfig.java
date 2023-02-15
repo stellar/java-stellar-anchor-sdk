@@ -12,4 +12,8 @@ public interface SecretConfig {
   String getCallbackApiSecret();
 
   String getPlatformApiSecret();
+
+  String getDataSourceUsername();
+
+  String getDataSourcePassword();
 }

@@ -31,6 +31,9 @@ public class LogConfigAdapter extends SpringConfigAdapter {
     }
   }
 
+  @Override
+  void validate(ConfigMap config) throws InvalidConfigException {}
+
   private Level getLog4j2Level(String level) throws InvalidConfigException {
     switch (level.toUpperCase()) {
       case "TRACE":

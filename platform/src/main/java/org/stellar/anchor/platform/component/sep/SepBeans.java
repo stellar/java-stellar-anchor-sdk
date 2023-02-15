@@ -78,6 +78,12 @@ public class SepBeans {
     return new PropertySep38Config();
   }
 
+  @Bean
+  @ConfigurationProperties(prefix = "data")
+  PropertyDataConfig dataConfig(SecretConfig secretConfig) {
+    return new PropertyDataConfig(secretConfig);
+  }
+
   /**
    * Used by SEP-10 authentication service.
    *

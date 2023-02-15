@@ -42,4 +42,7 @@ class ObserverConfigAdapter extends SpringConfigAdapter {
     copy(config, "payment_observer.port", "server.port");
     set("spring.mvc.converters.preferred-json-mapper", "gson");
   }
+
+  @Override
+  void validate(ConfigMap config) throws InvalidConfigException {}
 }
