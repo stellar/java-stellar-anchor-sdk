@@ -48,10 +48,12 @@ ALTER TABLE sep24_transaction ADD completed_at TIMESTAMP WITHOUT TIME ZONE;
 
 ALTER TABLE sep24_transaction ALTER COLUMN  id SET NOT NULL;
 
+ALTER TABLE sep24_transaction ADD started_at TIMESTAMP WITHOUT TIME ZONE;
+
+ALTER TABLE sep24_transaction ADD CONSTRAINT pk_sep24_transaction PRIMARY KEY (id);
+
 ALTER TABLE sep31_transaction DROP COLUMN refunds;
 
 ALTER TABLE sep31_transaction ADD refunds JSON;
 
-ALTER TABLE sep24_transaction ADD started_at TIMESTAMP WITHOUT TIME ZONE;
-
-ALTER TABLE sep24_transaction ADD CONSTRAINT pk_sep24_transaction PRIMARY KEY (id);
+ALTER TABLE sep31_transaction ADD bank_account_type VARCHAR(255);
