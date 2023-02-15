@@ -16,7 +16,8 @@ public class PropertyDataConfig implements Validator {
   public static final String ERROR_SECRET_DATA_USERNAME_EMPTY = "secret-data-username-empty";
   public static final String ERROR_SECRET_DATA_PASSWORD_EMPTY = "secret-data-password-empty";
   String type;
-  String url;
+  String server;
+  String database;
   int initialConnectionPoolSize;
   int max_active_connections;
   boolean flywayEnabled;
