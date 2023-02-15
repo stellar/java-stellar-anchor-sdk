@@ -64,9 +64,10 @@ FROM sep31_transaction;
 
 ALTER TABLE sep31_historic ADD CONSTRAINT FK_SEP31_REFUND FOREIGN KEY (id) REFERENCES sep31_transaction (id);
 
-
 ALTER TABLE sep31_transaction DROP COLUMN refunds;
 
 ALTER TABLE sep31_transaction ADD refunds JSON;
+
+ALTER TABLE sep31_transaction ALTER COLUMN refunds type JSONB using refunds::jsonb;
 
 ALTER TABLE sep31_transaction ADD bank_account_type VARCHAR(255);
