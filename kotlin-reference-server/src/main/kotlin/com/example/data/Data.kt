@@ -14,10 +14,10 @@ data class Transaction(
   @SerialName("amount_out") val amountOut: Amount? = null,
   @SerialName("amount_fee") val amountFee: Amount? = null,
   @SerialName("amount_expected") val amountExpected: Amount? = null,
-  val customers: Customers? = null,
   @SerialName("memo") val memo: String? = null,
   @SerialName("memo_type") val memoType: String? = null,
-  @SerialName("stellar_transaction_id") val stellarTransactionId: String? = null,
+  @SerialName("source_account") var sourceAccount: String? = null,
+  @SerialName("destination_account") var destinationAccount: String? = null,
   @SerialName("stellar_transactions") val stellarTransactions: List<StellarTransaction>? = null
 )
 
@@ -40,10 +40,6 @@ data class PatchTransactionTransaction(
 )
 
 @Serializable data class Amount(val amount: String? = null, val asset: String? = null)
-
-@Serializable data class Customers(val sender: StellarId, val receiver: StellarId? = null)
-
-@Serializable data class StellarId(val account: String)
 
 class JwtToken(
   val transactionId: String,

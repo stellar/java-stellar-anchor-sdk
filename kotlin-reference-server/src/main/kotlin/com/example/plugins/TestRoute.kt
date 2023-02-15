@@ -48,8 +48,7 @@ fun Route.testSep24(
         when (transaction.kind.lowercase()) {
           "deposit" -> {
             val account =
-              transaction.customers?.sender?.account
-                ?: throw ClientException("Missing customers.sender field")
+              transaction.sourceAccount ?: throw ClientException("Missing source_account field")
             val asset =
               transaction.amountExpected.asset
                 ?: throw ClientException("Missing amountExpected.asset field")

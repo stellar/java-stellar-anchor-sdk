@@ -65,7 +65,7 @@ class Sep24Helper(private val cfg: Config) {
     memoType: String?
   ): String {
     val myAccount = server.accounts().account(cfg.sep24.keyPair.accountId)
-    val asset = Asset.create(assetString)
+    val asset = Asset.create(assetString.replace("stellar:", ""))
 
     val transactionBuilder =
       TransactionBuilder(myAccount, Network.TESTNET)
