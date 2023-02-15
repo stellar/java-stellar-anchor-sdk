@@ -32,7 +32,8 @@ data:
 
 #data:
 #  type: postgres
-#  url: jdbc:postgresql://localhost:5432/anchorplatform
+#  server: localhost:5432
+#  database: postgres
 #  username: anchorplatform
 #  password:
 #  initial_connection_pool_size: 3
