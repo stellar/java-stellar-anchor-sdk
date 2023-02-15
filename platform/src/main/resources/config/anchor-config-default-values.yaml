@@ -492,10 +492,10 @@ data:
   #
 #  url: jdbc:h2:mem:anchor-platform
 
-  ## The hostname of the database server.
+  ## The hostname and port of the database server.
   server:
 
-  ## Name of the database. Optional. Default to anchor-platform or the default name of the type of database.
+  ## Name of the database.
   database:
 
   ## @param: initial_connection_pool_size

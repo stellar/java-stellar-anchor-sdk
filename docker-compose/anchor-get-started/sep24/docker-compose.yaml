@@ -22,7 +22,7 @@ services:
       - events.publisher.kafka.bootstrap_server=kafka:29092
       # data
       - data.type=postgres
-      - data.url=jdbc:postgresql://db:5432/
+      - data.url=jdbc:postgresql://db:5432/postgres
       - data.flyway_enabled=false
       # seps
       - sep1.enabled=true
