@@ -19,7 +19,8 @@ private val log = KotlinLogging.logger {}
 fun Route.testSep24(
   sep24: Sep24Helper,
   depositService: DepositService,
-  withdrawalService: WithdrawalService
+  withdrawalService: WithdrawalService,
+  jwtKey: String
 ) {
   route("/sep24/interactive") {
     get {
@@ -28,12 +29,13 @@ fun Route.testSep24(
       val token =
         JwtDecoder.decode(
           call.parameters["token"]
-            ?: throw ClientException("Missing token parameter in the request")
+            ?: throw ClientException("Missing token parameter in the request"),
+          jwtKey
         )
 
-      val transactionId = token.jti
+      val transactionId = token.transactionId
 
-      if (token.exp > System.currentTimeMillis()) {
+      if (token.expiration > System.currentTimeMillis()) {
         throw ClientException("Token expired")
       }
 

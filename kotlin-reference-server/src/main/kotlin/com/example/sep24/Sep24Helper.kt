@@ -17,7 +17,6 @@ import kotlinx.serialization.json.Json
 import mu.KotlinLogging
 import org.apache.commons.codec.binary.Hex
 import org.stellar.sdk.*
-import org.stellar.sdk.responses.TransactionResponse
 
 class Sep24Helper(private val cfg: Config) {
   private val log = KotlinLogging.logger {}
@@ -102,24 +101,41 @@ class Sep24Helper(private val cfg: Config) {
     return resp.hash
   }
 
-  internal suspend fun waitStellarTransaction(memo: String): TransactionResponse {
+  // Pulling status change from anchor. Alternatively, listen to AnchorEvent for transaction status
+  // change
+  internal suspend fun waitStellarTransaction(txId: String) {
     for (i in 1..(30 * 60 / 5)) {
-      val transactions =
-        server.transactions().forAccount(cfg.sep24.keyPair.accountId).limit(200).execute().records
+      log.info { "Waiting for user to transfer funds" }
 
-      val transaction =
-        transactions
-          .filter { it.memo != null }
-          .filter { it.memo is MemoText }
-          .firstOrNull { (it.memo as MemoText).text == memo }
+      val transaction = getTransaction(txId)
 
-      if (transaction != null) {
-        return transaction
+      if (transaction.status == "pending_anchor") {
+        log.info { "User transfer was successful" }
+
+        return
       } else {
         delay(5.seconds)
       }
     }
 
     throw Exception("Transaction hasn't been sent in 30 minutes, giving up")
+  }
+
+  internal fun validateTransaction(transaction: Transaction) {
+    // Sum of payments (if multiple) sent by the user, filtered by requested asset
+    val paymentSum =
+      transaction.stellarTransactions!!
+        .flatMap { it.payments }
+        .filter { "stellar:${it.amount.asset}" == transaction.amountIn!!.asset }
+        .map { it.amount.amount!!.toBigDecimal() }
+        .reduce(BigDecimal::add)
+
+    val amountIn = transaction.amountIn!!.amount!!.toBigDecimal()
+
+    if (paymentSum < amountIn) {
+      throw Exception(
+        "Amount of payments received is not equal to amount requested. Deficit: ${(paymentSum - amountIn).stripTrailingZeros().toPlainString()})"
+      )
+    }
   }
 }

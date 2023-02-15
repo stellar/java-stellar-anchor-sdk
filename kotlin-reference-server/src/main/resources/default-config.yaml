@@ -4,3 +4,4 @@ sep24:
   horizonUrl: "https://horizon-testnet.stellar.org"
   secret: "SDYGC4TW5HHR5JA6CB2XLTTBF2DZRH2KDPBDPV3D5TXM6GF7FBPRZF3I"
   enableTest: true
+  interactiveJwtKey: "sep24 interactive url secret"

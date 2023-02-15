@@ -13,7 +13,8 @@ data class Sep24(
   val enableTest: Boolean,
   val anchorPlatformUrl: String,
   val horizonUrl: String,
-  val secret: String
+  val secret: String,
+  val interactiveJwtKey: String
 ) {
   val keyPair = KeyPair.fromSecretSeed(secret)
 }

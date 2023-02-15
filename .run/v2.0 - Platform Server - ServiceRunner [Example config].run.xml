@@ -8,13 +8,13 @@
       <env name="SECRET.DATA.USERNAME" value="admin" />
       <env name="secret.sep10.jwt_secret" value="jwt_secret" />
       <env name="secret.sep10.signing_seed" value="SAKXNWVTRVR4SJSHZUDB2CLJXEQHRT62MYQWA2HBB7YBOTCFJJJ55BZF" />
-      <env name="SECRET_SEP24_INTERACTIVE_URL_JWT_SECRET" value="sep24 interactive url secret" />
       <env name="secret.sep24.more_info_url.jwt_secret" value="sep24 more_info url secret" />
+      <env name="secret.sep24.interactive_url.jwt_secret" value="sep24 interactive url secret" />
       <env name="STELLAR_ANCHOR_CONFIG" value="file:///$PROJECT_DIR$/platform/src/main/resources/example.anchor-config.yaml" />
     </envs>
     <option name="MAIN_CLASS_NAME" value="org.stellar.anchor.platform.ServiceRunner" />
     <module name="java-stellar-anchor-sdk.service-runner.main" />
-    <option name="PROGRAM_PARAMETERS" value="-s" />
+    <option name="PROGRAM_PARAMETERS" value="-so" />
     <shortenClasspath name="ARGS_FILE" />
     <extension name="coverage">
       <pattern>

@@ -18,6 +18,7 @@ data class Transaction(
   @SerialName("memo") val memo: String? = null,
   @SerialName("memo_type") val memoType: String? = null,
   @SerialName("stellar_transaction_id") val stellarTransactionId: String? = null,
+  @SerialName("stellar_transactions") val stellarTransactions: List<StellarTransaction>? = null
 )
 
 @Serializable data class PatchTransactionsRequest(val records: List<PatchTransactionRecord>)
@@ -29,13 +30,13 @@ data class PatchTransactionTransaction(
   val id: String,
   val status: String,
   val message: String? = null,
+  @SerialName("kyc_verified") val kycVerified: String? = null,
   @SerialName("amount_in") val amountIn: Amount? = null,
   @SerialName("amount_out") val amountOut: Amount? = null,
   @SerialName("amount_fee") val amountFee: Amount? = null,
   @SerialName("stellar_transaction_id") val stellarTransactionId: String? = null,
   val memo: String? = null,
   @SerialName("memo_type") val memoType: String? = null,
-  @SerialName("withdraw_anchor_account") val withdrawAnchorAccount: String? = null
 )
 
 @Serializable data class Amount(val amount: String? = null, val asset: String? = null)
@@ -45,11 +46,8 @@ data class PatchTransactionTransaction(
 @Serializable data class StellarId(val account: String)
 
 class JwtToken(
-  val iss: String, // Issuer
-  var sub: String, // Subject Stellar Account
-  var iat: Long, // Issued At
-  var exp: Long, // Expiration Time
-  var jti: String // JWT ID Transaction ID
+  val transactionId: String,
+  var expiration: Long, // Expiration Time
 )
 
 @Serializable
@@ -69,3 +67,13 @@ data class WithdrawalRequest(
   val bank: String,
   val account: String
 )
+
+@Serializable
+data class StellarTransaction(
+  val id: String,
+  val memo: String? = null,
+  @SerialName("memo_type") val memoType: String? = null,
+  val payments: List<StellarPayment>
+)
+
+@Serializable data class StellarPayment(val id: String, val amount: Amount)

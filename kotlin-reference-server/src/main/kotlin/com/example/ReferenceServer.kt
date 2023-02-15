@@ -58,10 +58,10 @@ fun Application.configureRouting(cfg: Config) {
     val deposit = DepositService(cfg)
     val withdrawal = WithdrawalService(cfg)
 
-    sep24(helper, deposit, withdrawal)
+    sep24(helper, deposit, withdrawal, cfg.sep24.interactiveJwtKey)
 
     if (cfg.sep24.enableTest) {
-      testSep24(helper, deposit, withdrawal)
+      testSep24(helper, deposit, withdrawal, cfg.sep24.interactiveJwtKey)
     }
   }
 }

@@ -5,7 +5,6 @@ import com.example.data.Config
 import com.example.data.PatchTransactionTransaction
 import java.math.BigDecimal
 import mu.KotlinLogging
-import org.stellar.sdk.responses.TransactionResponse
 
 private val log = KotlinLogging.logger {}
 
@@ -26,18 +25,21 @@ class WithdrawalService(private val cfg: Config) {
       log.info { "Transaction found $transaction" }
 
       // 2. Wait for user to submit a stellar transfer
-      val memo = initiateTransfer(transactionId, amount)
+      initiateTransfer(transactionId, amount)
 
       transaction = sep24.getTransaction(transactionId)
       log.info { "Transaction status changed: $transaction" }
 
       // 3. Wait for stellar transaction
-      val stellarTransaction = sep24.waitStellarTransaction(memo)
+      sep24.waitStellarTransaction(transactionId)
 
-      validateTransaction(stellarTransaction)
+      transaction = sep24.getTransaction(transactionId)
+      log.info { "Transaction status changed: $transaction" }
+
+      sep24.validateTransaction(transaction)
 
       // 4. Send external funds
-      sendExternal(transactionId, stellarTransaction.hash)
+      sendExternal(transactionId)
 
       // 5. Finalize anchor transaction
       finalize(transactionId)
@@ -55,25 +57,20 @@ class WithdrawalService(private val cfg: Config) {
     }
   }
 
-  private suspend fun initiateTransfer(transactionId: String, amount: BigDecimal): String {
+  private suspend fun initiateTransfer(transactionId: String, amount: BigDecimal) {
     val fee = calculateFee(amount)
-    val memo = transactionId.substring(0, 26)
 
     sep24.patchTransaction(
       PatchTransactionTransaction(
         transactionId,
+        kycVerified = "true",
         status = "pending_user_transfer_start",
         message = "waiting on the user to transfer funds",
         amountIn = Amount(amount.toPlainString()),
         amountOut = Amount(amount.subtract(fee).toPlainString()),
         amountFee = Amount(fee.toPlainString()),
-        memo = memo,
-        memoType = "text",
-        withdrawAnchorAccount = cfg.sep24.keyPair.accountId
       )
     )
-
-    return memo
   }
 
   // Set 10% fee
@@ -81,13 +78,12 @@ class WithdrawalService(private val cfg: Config) {
     return amount.multiply(BigDecimal.valueOf(0.1))
   }
 
-  private suspend fun sendExternal(transactionId: String, stellarTransactionId: String) {
+  private suspend fun sendExternal(transactionId: String) {
     sep24.patchTransaction(
       PatchTransactionTransaction(
         transactionId,
         "pending_external",
         message = "pending external transfer",
-        stellarTransactionId = stellarTransactionId
       )
     )
 
@@ -98,9 +94,5 @@ class WithdrawalService(private val cfg: Config) {
     sep24.patchTransaction(
       PatchTransactionTransaction(transactionId, "completed", message = "completed")
     )
-  }
-
-  private suspend fun validateTransaction(transaction: TransactionResponse) {
-    // Validate user sent a valid transaction here
   }
 }

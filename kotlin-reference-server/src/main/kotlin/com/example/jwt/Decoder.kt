@@ -7,11 +7,9 @@ import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.impl.DefaultJwsHeader
 
 object JwtDecoder {
-  private val jwtKey = "jwt_secret".toByteArray()
-
-  fun decode(cipher: String): JwtToken {
+  fun decode(cipher: String, jwtKey: String): JwtToken {
     val jwtParser: JwtParser = Jwts.parser()
-    jwtParser.setSigningKey(jwtKey)
+    jwtParser.setSigningKey(jwtKey.toByteArray())
     // Will throw exception if key is invalid
     val jwt = jwtParser.parseClaimsJws(cipher)
     val header = jwt.header
@@ -31,11 +29,8 @@ object JwtDecoder {
     val claims: Claims = jwt.body
 
     return JwtToken(
-      claims["iss"] as String,
-      claims["sub"] as String,
-      claims["iat"].toString().toLong(),
+      (claims["data"] as Map<*, *>)["transaction_id"] as String,
       claims["exp"].toString().toLong(),
-      claims["jti"] as String
     )
   }
 }

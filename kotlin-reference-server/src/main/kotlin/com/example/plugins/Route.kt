@@ -25,7 +25,8 @@ private val log = KotlinLogging.logger {}
 fun Route.sep24(
   sep24: Sep24Helper,
   depositService: DepositService,
-  withdrawalService: WithdrawalService
+  withdrawalService: WithdrawalService,
+  jwtKey: String
 ) {
   route("/start") {
     post {
@@ -38,13 +39,13 @@ fun Route.sep24(
           throw ClientException("Invalid Authorization header")
         }
 
-        val token = JwtDecoder.decode(header.replace(Regex("Bearer\\s+"), ""))
+        val token = JwtDecoder.decode(header.replace(Regex("Bearer\\s+"), ""), jwtKey)
 
-        val transactionId = token.jti
+        val transactionId = token.transactionId
 
         log.info("Starting /sep24/interactive with token $token")
 
-        if (token.exp > System.currentTimeMillis()) {
+        if (token.expiration > System.currentTimeMillis()) {
           throw ClientException("Token expired")
         }
 
