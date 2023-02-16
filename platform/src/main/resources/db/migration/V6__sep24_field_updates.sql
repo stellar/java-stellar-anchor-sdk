@@ -1,3 +1,5 @@
+ALTER TABLE sep24_transaction ADD sep10_account_memo VARCHAR(255);
+
 ALTER TABLE sep24_transaction ADD amount_expected VARCHAR(255);
 
 ALTER TABLE sep24_transaction ADD kyc_verified VARCHAR(255);
@@ -51,22 +53,6 @@ ALTER TABLE sep24_transaction ALTER COLUMN  id SET NOT NULL;
 ALTER TABLE sep24_transaction ADD started_at TIMESTAMP WITHOUT TIME ZONE;
 
 ALTER TABLE sep24_transaction ADD CONSTRAINT pk_sep24_transaction PRIMARY KEY (id);
-
-
-CREATE TABLE sep31_historic (
-    id VARCHAR(255) NOT NULL.
-        refunds VARCHAR(255)
-);
-
-INSERT INTO sep31_historic (id, refunds)
-SELECT id, refunds
-FROM sep31_transaction;
-
-ALTER TABLE sep31_historic ADD CONSTRAINT FK_SEP31_REFUND FOREIGN KEY (id) REFERENCES sep31_transaction (id);
-
-ALTER TABLE sep31_transaction DROP COLUMN refunds;
-
-ALTER TABLE sep31_transaction ADD refunds JSON;
 
 ALTER TABLE sep31_transaction ALTER COLUMN refunds type JSONB using refunds::jsonb;
 
