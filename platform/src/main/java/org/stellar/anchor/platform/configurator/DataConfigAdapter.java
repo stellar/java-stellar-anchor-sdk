@@ -5,8 +5,11 @@ import static org.stellar.anchor.platform.config.PropertySecretConfig.SECRET_DAT
 import static org.stellar.anchor.util.Log.error;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Properties;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.util.Log;
 
@@ -98,7 +101,7 @@ public class DataConfigAdapter extends SpringConfigAdapter {
         set("spring.datasource.driver-class-name", "org.h2.Driver");
         set("spring.datasource.embedded-database-connection", "H2");
         set("spring.datasource.name", "anchor-platform");
-        set("spring.datasource.url", "jdbc:h2:mem:test");
+        set("spring.datasource.url", constructH2Url(config));
         set("spring.jpa.database-platform", "org.hibernate.dialect.H2Dialect");
         set("spring.jpa.properties.hibernate.dialect", "org.hibernate.dialect.H2Dialect");
         break;
@@ -108,7 +111,7 @@ public class DataConfigAdapter extends SpringConfigAdapter {
         set("spring.jpa.database-platform", "org.stellar.anchor.platform.sqlite.SQLiteDialect");
         set("spring.jpa.generate-ddl", true);
         set("spring.jpa.hibernate.ddl-auto", "update");
-        copy(config, "data.url", "spring.datasource.url");
+        set("spring.datasource.url", constructSQLiteUrl(config));
         set("spring.datasource.username", SecretManager.getInstance().get(SECRET_DATA_USERNAME));
         set("spring.datasource.password", SecretManager.getInstance().get(SECRET_DATA_PASSWORD));
         break;
@@ -119,7 +122,7 @@ public class DataConfigAdapter extends SpringConfigAdapter {
         set(
             "spring.datasource.hikari.max-lifetime",
             840000); // 14 minutes because IAM tokens are valid for 15 min
-        copy(config, "data.url", "spring.datasource.url");
+        set("spring.datasource.url", constructPostgressUrl(config));
         set("spring.datasource.username", SecretManager.getInstance().get(SECRET_DATA_USERNAME));
         set("spring.datasource.password", SecretManager.getInstance().get(SECRET_DATA_PASSWORD));
         if (config.getString("data.flyway_enabled", "").equalsIgnoreCase("true")) {
@@ -127,7 +130,7 @@ public class DataConfigAdapter extends SpringConfigAdapter {
           set("spring.flyway.locations", "classpath:/db/migration");
           set("spring.flyway.user", SecretManager.getInstance().get(SECRET_DATA_USERNAME));
           set("spring.flyway.password", SecretManager.getInstance().get(SECRET_DATA_PASSWORD));
-          copy(config, "data.url", "spring.flyway.url");
+          set("spring.flyway.url", constructPostgressUrl(config));
         } else {
           set("spring.jpa.generate-ddl", true);
           set("spring.jpa.hibernate.ddl-auto", "update");
@@ -137,7 +140,7 @@ public class DataConfigAdapter extends SpringConfigAdapter {
         set("spring.datasource.driver-class-name", "org.postgresql.Driver");
         set("spring.datasource.name", "anchor-platform");
         set("spring.jpa.database-platform", "org.hibernate.dialect.PostgreSQL9Dialect");
-        copy(config, "data.url", "spring.datasource.url");
+        set("spring.datasource.url", constructPostgressUrl(config));
         set("spring.datasource.username", SecretManager.getInstance().get(SECRET_DATA_USERNAME));
         set("spring.datasource.password", SecretManager.getInstance().get(SECRET_DATA_PASSWORD));
         if (config.getString("data.flyway_enabled", "").equalsIgnoreCase("true")) {
@@ -145,7 +148,7 @@ public class DataConfigAdapter extends SpringConfigAdapter {
           set("spring.flyway.locations", "classpath:/db/migration");
           set("spring.flyway.user", SecretManager.getInstance().get(SECRET_DATA_USERNAME));
           set("spring.flyway.password", SecretManager.getInstance().get(SECRET_DATA_PASSWORD));
-          copy(config, "data.url", "spring.flyway.url");
+          set("spring.flyway.url", constructPostgressUrl(config));
         } else {
           set("spring.jpa.generate-ddl", true);
           set("spring.jpa.hibernate.ddl-auto", "update");
@@ -159,8 +162,51 @@ public class DataConfigAdapter extends SpringConfigAdapter {
     checkIfAllFieldsAreSet();
   }
 
+  private String constructPostgressUrl(ConfigMap config) {
+    return String.format(
+        "jdbc:postgresql://%s/%s",
+        config.getString("data.server"), config.getString("data.database"));
+  }
+
+  private String constructSQLiteUrl(ConfigMap config) {
+    return String.format("jdbc:sqlite:%s.db", config.getString("data.database"));
+  }
+
+  private String constructH2Url(ConfigMap config) {
+    return "jdbc:h2:mem:anchor-platform";
+  }
+
   @Override
   void validate(ConfigMap config) throws InvalidConfigException {
+    validateCredential(config);
+    validateConnection(config);
+  }
+
+  void validateConnection(ConfigMap config) throws InvalidConfigException {
+    String type = config.getString("data.type").toLowerCase();
+    switch (type) {
+      case DATABASE_H2:
+      case DATABASE_SQLITE:
+        // no need for connection validation.
+        break;
+      case DATABASE_AURORA:
+      case DATABASE_POSTGRES:
+        String url = constructPostgressUrl(config);
+        try {
+          Properties props = new Properties();
+          props.setProperty("user", SecretManager.getInstance().get(SECRET_DATA_USERNAME));
+          props.setProperty("password", SecretManager.getInstance().get(SECRET_DATA_PASSWORD));
+          DriverManager.getConnection(url, props);
+        } catch (SQLException e) {
+          error(e.getMessage());
+          throw new InvalidConfigException(
+              String.format("Unable to connect to database. url=%s", url));
+        }
+        break;
+    }
+  }
+
+  void validateCredential(ConfigMap config) throws InvalidConfigException {
     String type = config.getString("data.type").toLowerCase();
     switch (type) {
       case DATABASE_H2:

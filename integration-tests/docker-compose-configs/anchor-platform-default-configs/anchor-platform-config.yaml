@@ -302,11 +302,10 @@ data:
   #
   type: postgres
 
-  ## @param: url
-  ## @type: string
-  ## Location of the database
-  #
-  url: jdbc:postgresql://host.docker.internal:5440/
+  server: host.docker.internal:5440
+
+  database: postgres
+
 
   ## @param: initial_connection_pool_size
   ## @type: integer

@@ -91,7 +91,6 @@ spring.mvc.converters.preferred-json-mapper: gson
 #spring.jpa.database: POSTGRESQL
 #spring.jpa.show-sql: false
 #spring.datasource.driver-class-name: org.postgresql.Driver
-#spring.datasource.url: jdbc:postgresql://localhost:5432/anchorplatform
 #spring.datasource.username: anchorplatform
 #spring.datasource.password: <PASSWORD>
 #spring.mvc.converters.preferred-json-mapper: gson

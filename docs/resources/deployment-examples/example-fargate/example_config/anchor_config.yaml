@@ -284,7 +284,6 @@ data-spring-jdbc-aws-aurora-postgres:
   spring.jpa.show-sql: false
   spring.datasource.driver-class-name: org.postgresql.Driver
   spring.datasource.type: org.stellar.anchor.platform.databaseintegration.IAMAuthDataSource
-  spring.datasource.url: jdbc:postgresql://database-aurora-iam-instance-1.chizvyczscs2.us-east-1.rds.amazonaws.com:5432/anchorplatform
   spring.datasource.username: anchorplatform1
   spring.datasource.hikari.max-lifetime: 840000    # 14 minutes because IAM tokens are valid for 15min
   spring.mvc.converters.preferred-json-mapper: gson
@@ -295,7 +294,6 @@ data-spring-jdbc-local-postgres:
   spring.jpa.database: POSTGRESQL
   spring.jpa.show-sql: false
   spring.datasource.driver-class-name: org.postgresql.Driver
-  spring.datasource.url: jdbc:postgresql://localhost:5432/anchorplatform
   spring.datasource.username: ${POSTGRES_USERNAME}
   spring.datasource.password: ${POSTGRES_PASSWORD}
   spring.mvc.converters.preferred-json-mapper: gson

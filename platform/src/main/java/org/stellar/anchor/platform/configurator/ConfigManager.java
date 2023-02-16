@@ -75,10 +75,11 @@ public abstract class ConfigManager
         adapter.validate(config);
       } catch (InvalidConfigException icex) {
         errorF(
-            "Invalid configuration. {}{} Reason={}",
+            "Invalid configuration. {}{} Reason={}{}",
             System.lineSeparator(),
             System.lineSeparator(),
-            icex.getMessage());
+            icex.getMessage(),
+            System.lineSeparator());
         // We should not continue.
         System.exit(1);
       }

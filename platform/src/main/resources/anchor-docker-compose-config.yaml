@@ -300,11 +300,9 @@ data:
   #
   type: postgres
 
-  ## @param: url
-  ## @type: string
-  ## Location of the database
-  #
-  url: jdbc:postgresql://db:5432/
+  server: db:5432
+
+  database: postgres
 
   ## @param: initial_connection_pool_size
   ## @type: integer
