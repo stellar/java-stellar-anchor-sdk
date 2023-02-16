@@ -127,29 +127,29 @@ internal class Sep24ServiceTest {
 
     verify(exactly = 1) { txnStore.save(any()) }
 
-    assertEquals("interactive_customer_info_needed", response.type)
+    assertEquals(response.type, "interactive_customer_info_needed")
     assert(response.url.startsWith(TEST_SEP24_INTERACTIVE_URL))
     assertNotNull(response.id)
 
-    assertEquals(slotTxn.captured.status, "incomplete")
-    assertEquals(slotTxn.captured.kind, "withdrawal")
-    assertEquals(slotTxn.captured.requestAssetCode, "USDC")
+    assertEquals("incomplete", slotTxn.captured.status)
+    assertEquals("withdrawal", slotTxn.captured.kind)
+    assertEquals("USDC", slotTxn.captured.requestAssetCode)
     assertEquals(
       slotTxn.captured.requestAssetIssuer,
       "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
     )
-    assertEquals(slotTxn.captured.sep10Account, TEST_ACCOUNT)
-    assertEquals(slotTxn.captured.fromAccount, TEST_ACCOUNT)
-    assertEquals(slotTxn.captured.clientDomain, TEST_CLIENT_DOMAIN)
-    assertEquals(slotTxn.captured.amountExpected, "123.4")
+    assertEquals(TEST_ACCOUNT, slotTxn.captured.toAccount)
+    assertEquals(TEST_ACCOUNT, slotTxn.captured.fromAccount)
+    assertEquals(TEST_CLIENT_DOMAIN, slotTxn.captured.clientDomain)
+    assertEquals("123.4", slotTxn.captured.amountExpected)
 
     val params = URLEncodedUtils.parse(URI(response.url), Charset.forName("UTF-8"))
     val tokenStrings = params.filter { pair -> pair.name.equals("token") }
-    assertEquals(tokenStrings.size, 1)
+    assertEquals(1, tokenStrings.size)
     val tokenString = tokenStrings[0].value
     val decodedToken = jwtService.decode(tokenString, Sep24InteractiveUrlJwt::class.java)
-    assertEquals(decodedToken.sub, TEST_ACCOUNT)
-    assertEquals(decodedToken.claims()[CLIENT_DOMAIN], TEST_CLIENT_DOMAIN)
+    assertEquals(TEST_ACCOUNT, decodedToken.sub)
+    assertEquals(TEST_CLIENT_DOMAIN, decodedToken.claims()[CLIENT_DOMAIN])
   }
 
   @Test
@@ -158,6 +158,9 @@ internal class Sep24ServiceTest {
     val strToken = jwtService.encode(createdJwt)
     every { interactiveUrlConstructor.construct(any(), any(), any()) } returns
       "${TEST_SEP24_INTERACTIVE_URL}?lang=en&token=$strToken"
+
+    val slotTxn = slot<Sep24Transaction>()
+    every { txnStore.save(capture(slotTxn)) } returns null
 
     val response = sep24Service.withdraw(createdJwt, createTestTransactionRequest())
 
@@ -170,7 +173,19 @@ internal class Sep24ServiceTest {
       "$TEST_ACCOUNT:$TEST_MEMO",
       decodedToken.sub,
     )
-    assertEquals(decodedToken.claims()[CLIENT_DOMAIN], TEST_CLIENT_DOMAIN)
+    assertEquals(TEST_CLIENT_DOMAIN, decodedToken.claims()[CLIENT_DOMAIN])
+
+    assertEquals("incomplete", slotTxn.captured.status)
+    assertEquals("withdrawal", slotTxn.captured.kind)
+    assertEquals("USDC", slotTxn.captured.requestAssetCode)
+    assertEquals(
+      slotTxn.captured.requestAssetIssuer,
+      "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+    )
+    assertEquals("$TEST_ACCOUNT:$TEST_MEMO", slotTxn.captured.sep10Account)
+    assertEquals(TEST_ACCOUNT, slotTxn.captured.fromAccount)
+    assertEquals(TEST_CLIENT_DOMAIN, slotTxn.captured.clientDomain)
+    assertEquals("123.4", slotTxn.captured.amountExpected)
   }
 
   @Test
@@ -236,18 +251,18 @@ internal class Sep24ServiceTest {
 
     verify(exactly = 1) { txnStore.save(any()) }
 
-    assertEquals("interactive_customer_info_needed", response.type)
+    assertEquals(response.type, "interactive_customer_info_needed")
     assertTrue(response.url.startsWith(TEST_SEP24_INTERACTIVE_URL))
     assertEquals(response.id, slotTxn.captured.transactionId)
 
-    assertEquals(slotTxn.captured.status, "incomplete")
-    assertEquals(slotTxn.captured.kind, "deposit")
-    assertEquals(slotTxn.captured.requestAssetCode, TEST_ASSET)
-    assertEquals(slotTxn.captured.requestAssetIssuer, TEST_ASSET_ISSUER_ACCOUNT_ID)
-    assertEquals(slotTxn.captured.sep10Account, TEST_ACCOUNT)
-    assertEquals(slotTxn.captured.toAccount, TEST_ACCOUNT)
-    assertEquals(slotTxn.captured.clientDomain, TEST_CLIENT_DOMAIN)
-    assertEquals(slotTxn.captured.amountExpected, "123.4")
+    assertEquals("incomplete", slotTxn.captured.status)
+    assertEquals("deposit", slotTxn.captured.kind)
+    assertEquals(TEST_ASSET, slotTxn.captured.requestAssetCode)
+    assertEquals(TEST_ASSET_ISSUER_ACCOUNT_ID, slotTxn.captured.requestAssetIssuer)
+    assertEquals(TEST_ACCOUNT, slotTxn.captured.toAccount)
+    assertEquals(TEST_ACCOUNT, slotTxn.captured.toAccount)
+    assertEquals(TEST_CLIENT_DOMAIN, slotTxn.captured.clientDomain)
+    assertEquals("123.4", slotTxn.captured.amountExpected)
   }
 
   @Test
@@ -375,11 +390,11 @@ internal class Sep24ServiceTest {
     var gtr = GetTransactionRequest(TEST_TRANSACTION_ID_0, null, null, "en-US")
     val response = sep24Service.findTransaction(createJwtToken(), gtr)
 
-    assertEquals(response.transaction.id, TEST_TRANSACTION_ID_0)
-    assertEquals(response.transaction.status, "incomplete")
-    assertEquals(response.transaction.kind, kind)
-    assertEquals(response.transaction.startedAt, TEST_STARTED_AT)
-    assertEquals(response.transaction.completedAt, TEST_COMPLETED_AT)
+    assertEquals(TEST_TRANSACTION_ID_0, response.transaction.id)
+    assertEquals("incomplete", response.transaction.status)
+    assertEquals(kind, response.transaction.kind)
+    assertEquals(TEST_STARTED_AT, response.transaction.startedAt)
+    assertEquals(TEST_COMPLETED_AT, response.transaction.completedAt)
     verify(exactly = 1) { txnStore.findByTransactionId(TEST_TRANSACTION_ID_0) }
 
     // test with stellar transaction_id

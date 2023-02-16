@@ -142,7 +142,10 @@ public class Sep24Service {
             .assetCode(assetCode)
             .assetIssuer(asset.getIssuer())
             .startedAt(Instant.now())
-            .sep10Account(token.getAccount())
+            .sep10Account(
+                (isEmpty(token.getAccountMemo())
+                    ? token.getAccount()
+                    : token.getAccount() + ":" + token.getAccountMemo()))
             .fromAccount(sourceAccount)
             // TODO - jamie to add unique address generator
             .withdrawAnchorAccount(asset.getDistributionAccount())
@@ -261,7 +264,10 @@ public class Sep24Service {
             .assetCode(assetCode)
             .assetIssuer(depositRequest.get("asset_issuer"))
             .startedAt(Instant.now())
-            .sep10Account(token.getAccount())
+            .sep10Account(
+                (isEmpty(token.getAccountMemo())
+                    ? token.getAccount()
+                    : token.getAccount() + ":" + token.getAccountMemo()))
             .toAccount(destinationAccount)
             .clientDomain(token.getClientDomain())
             .claimableBalanceSupported(claimableSupported);
