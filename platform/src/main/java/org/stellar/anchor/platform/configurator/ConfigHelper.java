@@ -96,13 +96,6 @@ public class ConfigHelper {
       config.put(name, "", VERSION_SCHEMA);
     }
 
-    config.put("secret.sep10_signing_seed", "", VERSION_SCHEMA);
-    config.put("secret.jwt_secret", "", VERSION_SCHEMA);
-    config.put("secret.platform_api.secret", "", VERSION_SCHEMA);
-    config.put("secret.callback_api.secret", "", VERSION_SCHEMA);
-    config.put("secret.data.username", "", VERSION_SCHEMA);
-    config.put("secret.data.password", "", VERSION_SCHEMA);
-
     return config.printToString();
   }
 

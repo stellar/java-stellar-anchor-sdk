@@ -5,8 +5,11 @@ import static org.stellar.anchor.platform.config.PropertySecretConfig.SECRET_DAT
 import static org.stellar.anchor.util.Log.error;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 
+import java.sql.DriverManager;
+import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Properties;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.util.Log;
 
@@ -175,6 +178,35 @@ public class DataConfigAdapter extends SpringConfigAdapter {
 
   @Override
   void validate(ConfigMap config) throws InvalidConfigException {
+    validateCredential(config);
+    validateConnection(config);
+  }
+
+  void validateConnection(ConfigMap config) throws InvalidConfigException {
+    String type = config.getString("data.type").toLowerCase();
+    switch (type) {
+      case DATABASE_H2:
+      case DATABASE_SQLITE:
+        // no need for connection validation.
+        break;
+      case DATABASE_AURORA:
+      case DATABASE_POSTGRES:
+        String url = constructPostgressUrl(config);
+        try {
+          Properties props = new Properties();
+          props.setProperty("user", SecretManager.getInstance().get(SECRET_DATA_USERNAME));
+          props.setProperty("password", SecretManager.getInstance().get(SECRET_DATA_PASSWORD));
+          DriverManager.getConnection(url, props);
+        } catch (SQLException e) {
+          error(e.getMessage());
+          throw new InvalidConfigException(
+              String.format("Unable to connect to database. url=%s", url));
+        }
+        break;
+    }
+  }
+
+  void validateCredential(ConfigMap config) throws InvalidConfigException {
     String type = config.getString("data.type").toLowerCase();
     switch (type) {
       case DATABASE_H2:
