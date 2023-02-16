@@ -17,6 +17,7 @@ import org.stellar.anchor.config.*;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.filter.JwtTokenFilter;
 import org.stellar.anchor.horizon.Horizon;
+import org.stellar.anchor.platform.condition.ConditionalOnAllSepsEnabled;
 import org.stellar.anchor.platform.config.*;
 import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountsManager;
 import org.stellar.anchor.platform.service.Sep31DepositInfoGeneratorApi;
@@ -120,11 +121,13 @@ public class SepBeans {
   }
 
   @Bean
+  @ConditionalOnAllSepsEnabled(seps = {"sep1"})
   Sep1Service sep1Service(Sep1Config sep1Config) throws IOException, InvalidConfigException {
     return new Sep1Service(sep1Config);
   }
 
   @Bean
+  @ConditionalOnAllSepsEnabled(seps = {"sep10"})
   Sep10Service sep10Service(
       AppConfig appConfig,
       SecretConfig secretConfig,
@@ -135,11 +138,13 @@ public class SepBeans {
   }
 
   @Bean
+  @ConditionalOnAllSepsEnabled(seps = {"sep12"})
   Sep12Service sep12Service(CustomerIntegration customerIntegration, AssetService assetService) {
     return new Sep12Service(customerIntegration, assetService);
   }
 
   @Bean
+  @ConditionalOnAllSepsEnabled(seps = {"sep24"})
   Sep24Service sep24Service(
       AppConfig appConfig,
       Sep24Config sep24Config,
@@ -189,6 +194,7 @@ public class SepBeans {
   }
 
   @Bean
+  @ConditionalOnAllSepsEnabled(seps = {"sep31"})
   Sep31Service sep31Service(
       AppConfig appConfig,
       Sep31Config sep31Config,
@@ -212,6 +218,7 @@ public class SepBeans {
   }
 
   @Bean
+  @ConditionalOnAllSepsEnabled(seps = {"sep38"})
   Sep38Service sep38Service(
       Sep38Config sep38Config,
       AssetService assetService,
