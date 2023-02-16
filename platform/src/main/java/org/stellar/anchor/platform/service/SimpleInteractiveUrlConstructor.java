@@ -1,5 +1,7 @@
 package org.stellar.anchor.platform.service;
 
+import static org.stellar.anchor.util.StringHelper.isEmpty;
+
 import java.net.URI;
 import java.time.Instant;
 import java.util.HashMap;
@@ -24,25 +26,7 @@ public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
   @Override
   @SneakyThrows
   public String construct(Sep24Transaction txn, String lang, HashMap<String, String> sep9Fields) {
-    Sep24InteractiveUrlJwt token =
-        new Sep24InteractiveUrlJwt(
-            txn.getTransactionId(),
-            Instant.now().getEpochSecond() + config.getJwtExpiration(),
-            txn.getClientDomain());
-
-    Map<String, String> data = new HashMap<>();
-
-    // Add lang field
-    if (lang != null) {
-      data.put("lang", lang);
-    }
-
-    data.putAll(sep9Fields);
-
-    // Add fields defined in txnFields
-    UrlConstructorHelper.addTxnFields(data, txn, config.getTxnFields());
-    token.claim("data", data);
-
+    String token = constructToken(txn, lang, sep9Fields);
     String baseUrl = config.getBaseUrl();
     URI uri = new URI(baseUrl);
     return new URIBuilder()
@@ -51,9 +35,36 @@ public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
         .setPort(uri.getPort())
         .setPath(uri.getPath())
         .addParameter("transaction_id", txn.getTransactionId())
-        .addParameter("token", jwtService.encode(token))
+        // Add the JWT token
+        .addParameter("token", token)
         .build()
         .toURL()
         .toString();
+  }
+
+  @SneakyThrows
+  String constructToken(Sep24Transaction txn, String lang, HashMap<String, String> sep9Fields) {
+    String account =
+        (isEmpty(txn.getSep10AccountMemo()))
+            ? txn.getSep10Account()
+            : txn.getSep10Account() + ":" + txn.getSep10AccountMemo();
+    Sep24InteractiveUrlJwt token =
+        new Sep24InteractiveUrlJwt(
+            account,
+            txn.getTransactionId(),
+            Instant.now().getEpochSecond() + config.getJwtExpiration(),
+            txn.getClientDomain());
+
+    Map<String, String> data = new HashMap<>();
+    // Add lang field
+    if (lang != null) {
+      data.put("lang", lang);
+    }
+    data.putAll(sep9Fields);
+
+    // Add fields defined in txnFields
+    UrlConstructorHelper.addTxnFields(data, txn, config.getTxnFields());
+    token.claim("data", data);
+    return jwtService.encode(token);
   }
 }

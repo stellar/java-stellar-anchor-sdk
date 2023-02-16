@@ -75,7 +75,11 @@ public class JwtService {
     }
     Calendar calExp = Calendar.getInstance();
     calExp.setTimeInMillis(1000L * token.getExp());
-    JwtBuilder builder = Jwts.builder().setId(token.getJti()).setExpiration(calExp.getTime());
+    JwtBuilder builder =
+        Jwts.builder()
+            .setId(token.getJti())
+            .setExpiration(calExp.getTime())
+            .setSubject(token.getSub());
     for (Map.Entry<String, Object> claim : token.claims.entrySet()) {
       builder.claim(claim.getKey(), claim.getValue());
     }
