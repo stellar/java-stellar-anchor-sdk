@@ -56,6 +56,9 @@ public class JdbcSep31Transaction extends JdbcSepTransaction
   @SerializedName("receiver_id")
   String receiverId;
 
+  @SerializedName("required_info_message")
+  String requiredInfoMessage;
+
   @Convert(converter = StellarIdConverter.class)
   @Column(length = 2047)
   StellarId creator;

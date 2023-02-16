@@ -30,6 +30,7 @@ run-e2e-test-all:
 	make run-e2e-test-default-config
 	make run-e2e-test-allowlist
 	make run-e2e-test-unique-address
+	make run-e2e-test-sep24-withdrawal
 
 define run_tests
 	$(SUDO) docker-compose --env-file integration-tests/docker-compose-configs/.env \
@@ -50,3 +51,6 @@ run-e2e-test-allowlist:
 
 run-e2e-test-unique-address:
 	$(call run_tests,anchor-platform-unique-address)
+
+run-e2e-test-sep24-withdrawal:
+	$(call run_tests,anchor-platform-sep24-withdrawal)

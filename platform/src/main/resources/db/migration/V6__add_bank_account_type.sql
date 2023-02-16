@@ -1,1 +1,0 @@
-ALTER TABLE sep31_transaction ADD bank_account_type VARCHAR(255);
