@@ -1,5 +1,4 @@
-#FROM openjdk:11-jdk AS build
-FROM gradle:jdk11-alpine AS build
+FROM gradle:7.6.0-jdk11-alpine AS build
 WORKDIR /code
 COPY --chown=gradle:gradle . .
 RUN gradle clean bootJar --stacktrace
