@@ -91,7 +91,8 @@ fun Route.sep24(
             log.info { "User requested a deposit: $deposit" }
 
             val account =
-              transaction.sourceAccount ?: throw ClientException("Missing source_account field")
+              transaction.destinationAccount
+                ?: throw ClientException("Missing destination_account field")
             val asset =
               transaction.amountExpected?.asset
                 ?: throw ClientException("Missing amountExpected.asset field")

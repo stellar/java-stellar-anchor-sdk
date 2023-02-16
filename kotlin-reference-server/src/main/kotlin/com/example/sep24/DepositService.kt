@@ -35,7 +35,11 @@ class DepositService(cfg: Config) {
       log.info { "Transaction status changed: $transaction" }
 
       // 4. Notify user transaction is being processed
-      sep24.patchTransaction(transactionId, "pending_anchor")
+      sep24.patchTransaction(
+        transactionId,
+        "pending_anchor",
+        "funds received, transaction is being processed"
+      )
 
       transaction = sep24.getTransaction(transactionId)
       log.info { "Transaction status changed: $transaction" }
