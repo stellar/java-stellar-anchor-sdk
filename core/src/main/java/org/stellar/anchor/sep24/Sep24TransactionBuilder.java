@@ -45,8 +45,13 @@ public class Sep24TransactionBuilder {
     return this;
   }
 
-  public Sep24TransactionBuilder sep10Account(String stellarAccount) {
-    txn.setSep10Account(stellarAccount);
+  public Sep24TransactionBuilder sep10Account(String sep10Account) {
+    txn.setSep10Account(sep10Account);
+    return this;
+  }
+
+  public Sep24TransactionBuilder sep10AccountMemo(String sep10AccountMemo) {
+    txn.setSep10AccountMemo(sep10AccountMemo);
     return this;
   }
 

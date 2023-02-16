@@ -138,7 +138,6 @@ internal class Sep24ServiceTest {
       slotTxn.captured.requestAssetIssuer,
       "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
     )
-    assertEquals(TEST_ACCOUNT, slotTxn.captured.toAccount)
     assertEquals(TEST_ACCOUNT, slotTxn.captured.fromAccount)
     assertEquals(TEST_CLIENT_DOMAIN, slotTxn.captured.clientDomain)
     assertEquals("123.4", slotTxn.captured.amountExpected)
@@ -158,12 +157,10 @@ internal class Sep24ServiceTest {
     val strToken = jwtService.encode(createdJwt)
     every { interactiveUrlConstructor.construct(any(), any(), any()) } returns
       "${TEST_SEP24_INTERACTIVE_URL}?lang=en&token=$strToken"
-
     val slotTxn = slot<Sep24Transaction>()
     every { txnStore.save(capture(slotTxn)) } returns null
 
     val response = sep24Service.withdraw(createdJwt, createTestTransactionRequest())
-
     val params = URLEncodedUtils.parse(URI(response.url), Charset.forName("UTF-8"))
     val tokenStrings = params.filter { pair -> pair.name.equals("token") }
     assertEquals(tokenStrings.size, 1)
@@ -182,7 +179,8 @@ internal class Sep24ServiceTest {
       slotTxn.captured.requestAssetIssuer,
       "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
     )
-    assertEquals("$TEST_ACCOUNT:$TEST_MEMO", slotTxn.captured.sep10Account)
+    assertEquals(TEST_ACCOUNT, slotTxn.captured.sep10Account)
+    assertEquals(TEST_MEMO, slotTxn.captured.sep10AccountMemo)
     assertEquals(TEST_ACCOUNT, slotTxn.captured.fromAccount)
     assertEquals(TEST_CLIENT_DOMAIN, slotTxn.captured.clientDomain)
     assertEquals("123.4", slotTxn.captured.amountExpected)
@@ -260,7 +258,6 @@ internal class Sep24ServiceTest {
     assertEquals(TEST_ASSET, slotTxn.captured.requestAssetCode)
     assertEquals(TEST_ASSET_ISSUER_ACCOUNT_ID, slotTxn.captured.requestAssetIssuer)
     assertEquals(TEST_ACCOUNT, slotTxn.captured.toAccount)
-    assertEquals(TEST_ACCOUNT, slotTxn.captured.toAccount)
     assertEquals(TEST_CLIENT_DOMAIN, slotTxn.captured.clientDomain)
     assertEquals("123.4", slotTxn.captured.amountExpected)
   }
@@ -271,9 +268,10 @@ internal class Sep24ServiceTest {
     val strToken = jwtService.encode(createdJwt)
     every { interactiveUrlConstructor.construct(any(), any(), any()) } returns
       "${TEST_SEP24_INTERACTIVE_URL}?lang=en&token=$strToken"
+    val slotTxn = slot<Sep24Transaction>()
+    every { txnStore.save(capture(slotTxn)) } returns null
 
     val response = sep24Service.withdraw(createdJwt, createTestTransactionRequest())
-
     val params = URLEncodedUtils.parse(URI(response.url), Charset.forName("UTF-8"))
     val tokenStrings = params.filter { pair -> pair.name.equals("token") }
     assertEquals(tokenStrings.size, 1)
@@ -284,6 +282,19 @@ internal class Sep24ServiceTest {
       decodedToken.sub,
     )
     assertEquals(TEST_CLIENT_DOMAIN, decodedToken.claims[CLIENT_DOMAIN])
+
+    assertEquals("incomplete", slotTxn.captured.status)
+    assertEquals("withdrawal", slotTxn.captured.kind)
+    assertEquals("USDC", slotTxn.captured.requestAssetCode)
+    assertEquals(
+      slotTxn.captured.requestAssetIssuer,
+      "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+    )
+    assertEquals(TEST_ACCOUNT, slotTxn.captured.sep10Account)
+    assertEquals(TEST_MEMO, slotTxn.captured.sep10AccountMemo)
+    assertEquals(TEST_ACCOUNT, slotTxn.captured.fromAccount)
+    assertEquals(TEST_CLIENT_DOMAIN, slotTxn.captured.clientDomain)
+    assertEquals("123.4", slotTxn.captured.amountExpected)
   }
 
   @Test

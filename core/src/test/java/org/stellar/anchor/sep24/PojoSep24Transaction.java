@@ -17,6 +17,7 @@ public class PojoSep24Transaction implements Sep24Transaction {
   String requestAssetCode;
   String requestAssetIssuer;
   String sep10Account;
+  String sep10AccountMemo;
   String withdrawAnchorAccount;
   String fromAccount;
   String toAccount;
