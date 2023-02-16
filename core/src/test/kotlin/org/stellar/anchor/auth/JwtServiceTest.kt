@@ -23,6 +23,7 @@ internal class JwtServiceTest {
     val TEST_EXP = System.currentTimeMillis() / 1000 + 900
     const val TEST_JTI = "test_jti"
     const val TEST_CLIENT_DOMAIN = "test_client_domain"
+    const val TEST_ACCOUNT = "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO"
   }
 
   lateinit var secretConfig: SecretConfig
@@ -76,7 +77,7 @@ internal class JwtServiceTest {
   @Test
   fun `test apply Sep24InteractiveUrlJwt encoding and decoding and make sure the original values are not changed`() {
     val jwtService = JwtService(secretConfig)
-    val token = Sep24InteractiveUrlJwt(TEST_ISS, TEST_EXP, TEST_CLIENT_DOMAIN)
+    val token = Sep24InteractiveUrlJwt(TEST_ACCOUNT, TEST_ISS, TEST_EXP, TEST_CLIENT_DOMAIN)
     val cipher = jwtService.encode(token)
     val sep24InteractiveUrlJwt = jwtService.decode(cipher, Sep24InteractiveUrlJwt::class.java)
 

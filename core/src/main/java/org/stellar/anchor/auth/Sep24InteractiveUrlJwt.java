@@ -6,7 +6,9 @@ import io.jsonwebtoken.Jwt;
 import org.stellar.anchor.api.exception.SepException;
 
 public class Sep24InteractiveUrlJwt extends AbstractJwt {
-  public Sep24InteractiveUrlJwt(String jti, long exp, String clientDomain) throws SepException {
+  public Sep24InteractiveUrlJwt(String sub, String jti, long exp, String clientDomain)
+      throws SepException {
+    super.sub = sub;
     super.jti = jti;
     super.exp = exp;
     super.claim(CLIENT_DOMAIN, clientDomain);
