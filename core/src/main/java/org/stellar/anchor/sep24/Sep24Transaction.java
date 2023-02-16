@@ -115,6 +115,15 @@ public interface Sep24Transaction {
   void setSep10Account(String sep10Account);
 
   /**
+   * The Stellar account memo used to authenticate SEP-10;.
+   *
+   * @return the stellar account memo
+   */
+  String getSep10AccountMemo();
+
+  void setSep10AccountMemo(String sep10Account);
+
+  /**
    * If this is a withdrawal, this is the anchor's Stellar account that the user transferred (or
    * will transfer) their issued asset to.
    *

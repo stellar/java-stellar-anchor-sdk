@@ -105,14 +105,13 @@ public class JdbcSep24Transaction extends JdbcSepTransaction
   @SerializedName("request_asset_issuer")
   String requestAssetIssuer;
 
-  /**
-   * The SEP10 account used for authentication.
-   *
-   * <p>The account can be in the format of 1) stellar_account (G...) 2) stellar_account:memo
-   * (G...:2810101841641761712) 3) muxed account (M...)
-   */
+  /** The SEP10 account used for authentication. */
   @SerializedName("sep10_account")
   String sep10Account;
+
+  /** The SEP10 account memo used for authentication. */
+  @SerializedName("sep10_account_memo")
+  String sep10AccountMemo;
 
   @SerializedName("client_domain")
   String clientDomain;
