@@ -1,6 +1,6 @@
 package org.stellar.anchor.platform.utils;
 
-import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.RECEIVE;
+import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.*;
 
 import javax.annotation.Nullable;
 import org.stellar.anchor.api.exception.SepException;
@@ -70,6 +70,7 @@ public class TransactionHelper {
     String amountOutAsset = makeAsset(txn.getAmountOutAsset(), assetService, txn);
     String amountFeeAsset = makeAsset(txn.getAmountFeeAsset(), assetService, txn);
     String amountExpectedAsset = makeAsset(null, assetService, txn);
+    String sourceAccount = txn.getFromAccount();
 
     return GetTransactionResponse.builder()
         .id(txn.getId())
@@ -79,11 +80,10 @@ public class TransactionHelper {
         .amountIn(Amount.create(txn.getAmountIn(), amountInAsset))
         .amountOut(Amount.create(txn.getAmountOut(), amountOutAsset))
         .amountFee(Amount.create(txn.getAmountFee(), amountFeeAsset))
-        .amountExpected(Amount.create(txn.getAmountExpected(), amountExpectedAsset))
-        .customers(
-            new Customers(
-                StellarId.builder().account(txn.getToAccount()).build(),
-                StellarId.builder().account(txn.getFromAccount()).build()))
+        // constructor is used because AMOUNT can be null, when ASSET is always non-null
+        .amountExpected(new Amount(txn.getAmountExpected(), amountExpectedAsset))
+        .sourceAccount(sourceAccount)
+        .destinationAccount(txn.getToAccount())
         .startedAt(txn.getStartedAt())
         .updatedAt(txn.getUpdatedAt())
         .completedAt(txn.getCompletedAt())

@@ -57,8 +57,11 @@ public class PlatformTransactionData {
   @SerializedName("stellar_transactions")
   List<StellarTransaction> stellarTransactions;
 
-  @SerializedName("stellar_transaction_id")
-  String stellarTransactionId;
+  @SerializedName("source_account")
+  String sourceAccount;
+
+  @SerializedName("destination_account")
+  String destinationAccount;
 
   @SerializedName("external_transaction_id")
   String externalTransactionId;
