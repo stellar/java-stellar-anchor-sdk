@@ -80,6 +80,7 @@ public class TransactionHelper {
         .amountIn(Amount.create(txn.getAmountIn(), amountInAsset))
         .amountOut(Amount.create(txn.getAmountOut(), amountOutAsset))
         .amountFee(Amount.create(txn.getAmountFee(), amountFeeAsset))
+        .kycVerified(txn.getKycVerified())
         // constructor is used because AMOUNT can be null, when ASSET is always non-null
         .amountExpected(new Amount(txn.getAmountExpected(), amountExpectedAsset))
         .sourceAccount(sourceAccount)

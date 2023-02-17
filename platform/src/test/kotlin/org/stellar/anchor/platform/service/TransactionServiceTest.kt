@@ -26,10 +26,7 @@ import org.stellar.anchor.api.shared.Amount
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.event.EventService
-import org.stellar.anchor.platform.data.JdbcSep31RefundPayment
-import org.stellar.anchor.platform.data.JdbcSep31Refunds
-import org.stellar.anchor.platform.data.JdbcSep31Transaction
-import org.stellar.anchor.platform.data.JdbcSep38Quote
+import org.stellar.anchor.platform.data.*
 import org.stellar.anchor.sep24.Sep24TransactionStore
 import org.stellar.anchor.sep31.Sep31TransactionStore
 import org.stellar.anchor.sep38.Sep38QuoteStore
@@ -94,8 +91,9 @@ class TransactionServiceTest {
   }
 
   @Test
-  fun test_getTransaction() {
+  fun `test get SEP31 transaction`() {
     // Mock the store
+    every { sep24TransactionStore.findByTransactionId(any()) } returns null
     every { sep31TransactionStore.newTransaction() } returns JdbcSep31Transaction()
     every { sep31TransactionStore.newRefunds() } returns JdbcSep31Refunds()
     every { sep31TransactionStore.newRefundPayment() } answers { JdbcSep31RefundPayment() }
@@ -106,7 +104,27 @@ class TransactionServiceTest {
     val gotGetTransactionResponse = transactionService.getTransactionResponse(TEST_TXN_ID)
 
     JSONAssert.assertEquals(
-      wantedGetTransactionResponse,
+      wantedGetSep31TransactionResponse,
+      gson.toJson(gotGetTransactionResponse),
+      LENIENT
+    )
+  }
+
+  @Test
+  fun `test get SEP24 transaction`() {
+    // Mock the store
+    every { sep31TransactionStore.findByTransactionId(any()) } returns null
+    every { sep24TransactionStore.newInstance() } returns JdbcSep24Transaction()
+    every { sep24TransactionStore.newRefunds() } returns JdbcSep24Refunds()
+    every { sep24TransactionStore.newRefundPayment() } answers { JdbcSep24RefundPayment() }
+
+    val mockSep24Transaction = gson.fromJson(jsonSep24Transaction, JdbcSep24Transaction::class.java)
+
+    every { sep24TransactionStore.findByTransactionId(TEST_TXN_ID) } returns mockSep24Transaction
+    val gotGetTransactionResponse = transactionService.getTransactionResponse(TEST_TXN_ID)
+
+    JSONAssert.assertEquals(
+      wantedGetSep24TransactionResponse,
       gson.toJson(gotGetTransactionResponse),
       LENIENT
     )
@@ -211,7 +229,7 @@ class TransactionServiceTest {
       ]
   )
   fun test_validateIfStatusIsSupported(sepTxnStatus: SepTransactionStatus) {
-    assertDoesNotThrow { transactionService.validateIfStatusIsSupported(sepTxnStatus.getStatus()) }
+    assertDoesNotThrow { transactionService.validateIfStatusIsSupported(sepTxnStatus.status) }
   }
 
   @Test
@@ -368,7 +386,67 @@ class TransactionServiceTest {
     assertTrue(testSep31Transaction.updatedAt > testSep31Transaction.startedAt)
   }
 
-  val jsonSep31Transaction =
+  private val jsonSep24Transaction =
+    """
+{
+  "id": "a4baff5f-778c-43d6-bbef-3e9fb41d096e",
+  "status_eta": "120",
+  "kind": "withdrawal",
+  "refunded": true,
+  "refunds": {
+    "amount_refunded": "90.0000",
+    "amount_fee": "8.0000",
+    "payments": [
+      {
+        "id": "1111",
+        "amount": "50.0000",
+        "fee": "4.0000"
+      },
+      {
+        "id": "2222",
+        "amount": "40.0000",
+        "fee": "4.0000"
+      }
+    ]
+  },
+  "client_domain": "test.com",
+  "status": "pending_receiver",
+  "amount_in": "100.0000",
+  "amount_in_asset": "iso4217:USD",
+  "amount_out": "98.0000000",
+  "amount_out_asset": "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
+  "amount_fee": "2.0000",
+  "amount_fee_asset": "iso4217:USD",
+  "kyc_verified": true,
+  "started_at": "2022-12-19T02:06:44.500182800Z",
+  "completed_at": "2022-12-19T02:09:44.500182800Z",
+  "stellar_transaction_id": "2b862ac297c93e2db43fc58d407cc477396212bce5e6d5f61789f963d5a11300",
+  "external_transaction_id": "external-tx-id",
+  "stellarTransactions": [
+    {
+      "id": "2b862ac297c93e2db43fc58d407cc477396212bce5e6d5f61789f963d5a11300",
+      "memo": "my-memo",
+      "memo_type": "text",
+      "created_at": "2022-12-19T02:08:44.500182800Z",
+      "envelope": "here_comes_the_envelope",
+      "payments": [
+        {
+          "id": "4609238642995201",
+          "amount": {
+            "amount": "100.0000",
+            "asset": "iso4217:USD"
+          },
+          "payment_type": "payment",
+          "source_account": "GAS4OW4HKJCC2D6VWUHVFR3MJRRVQBXBFQ3LCZJXBR7TWOOBJWE4SRWZ",
+          "destination_account": "GBQC7NCZMQIPWN6ASUJYIDKDPRK34IOIZNQE5WOHPQH536VMOMQVJTN7"
+        }
+      ]
+    }
+  ]
+}  """
+      .trimIndent()
+
+  private val jsonSep31Transaction =
     """
     {
       "id": "a4baff5f-778c-43d6-bbef-3e9fb41d096e",
@@ -448,103 +526,187 @@ class TransactionServiceTest {
   """
       .trimIndent()
 
-  val testPlatformtransactionData =
+  private val wantedGetSep31TransactionResponse =
     """
-    {
-      "id": "a4baff5f-778c-43d6-bbef-3e9fb41d096e",
-      "sep": "31",
-      "kind": "receive",
-      "status": "pending_receiver",
-      "amount_expected": {
-        "amount": "100",
-        "asset": "iso4217:USD"
-      },
-      "amount_in": {
-        "amount": "100.0000",
-        "asset": "iso4217:USD"
-      },
-      "amount_out": {
-        "amount": "98.0000000",
-        "asset": "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
-      },
-      "amount_fee": {
-        "amount": "2.0000",
-        "asset": "iso4217:USD"
-      },
-      "quote_id": "quote-id",
-      "message": "Please don\u0027t forget to foo bar",
-      "refunds": {
-        "amount_refunded": {
-          "amount": "90.0000",
+      {
+        "id": "a4baff5f-778c-43d6-bbef-3e9fb41d096e",
+        "sep": "31",
+        "kind": "receive",
+        "status": "pending_receiver",
+        "amount_expected": {
+          "amount": "100",
           "asset": "iso4217:USD"
+        },
+        "amount_in": {
+          "amount": "100.0000",
+          "asset": "iso4217:USD"
+        },
+        "amount_out": {
+          "amount": "98.0000000",
+          "asset": "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
         },
         "amount_fee": {
-          "amount": "8.0000",
+          "amount": "2.0000",
           "asset": "iso4217:USD"
         },
-        "payments": [
-          {
-            "id": "1111",
-            "id_type": "stellar",
-            "amount": {
-              "amount": "50.0000",
-              "asset": "iso4217:USD"
-            },
-            "fee": {
-              "amount": "4.0000",
-              "asset": "iso4217:USD"
-            }
+        "quote_id": "quote-id",
+        "message": "Please don\u0027t forget to foo bar",
+        "refunds": {
+          "amount_refunded": {
+            "amount": "90.0000",
+            "asset": "iso4217:USD"
           },
-          {
-            "id": "2222",
-            "id_type": "stellar",
-            "amount": {
-              "amount": "40.0000",
-              "asset": "iso4217:USD"
-            },
-            "fee": {
-              "amount": "4.0000",
-              "asset": "iso4217:USD"
-            }
-          }
-        ]
-      },
-      "stellar_transactions": [
-        {
-          "id": "2b862ac297c93e2db43fc58d407cc477396212bce5e6d5f61789f963d5a11300",
-          "memo": "my-memo",
-          "memo_type": "text",
-          "envelope": "here_comes_the_envelope",
+          "amount_fee": {
+            "amount": "8.0000",
+            "asset": "iso4217:USD"
+          },
           "payments": [
             {
-              "id": "4609238642995201",
+              "id": "1111",
+              "id_type": "stellar",
               "amount": {
-                "amount": "100.0000",
+                "amount": "50.0000",
                 "asset": "iso4217:USD"
               },
-              "payment_type": "payment",
-              "source_account": "GAS4OW4HKJCC2D6VWUHVFR3MJRRVQBXBFQ3LCZJXBR7TWOOBJWE4SRWZ",
-              "destination_account": "GBQC7NCZMQIPWN6ASUJYIDKDPRK34IOIZNQE5WOHPQH536VMOMQVJTN7"
+              "fee": {
+                "amount": "4.0000",
+                "asset": "iso4217:USD"
+              }
+            },
+            {
+              "id": "2222",
+              "id_type": "stellar",
+              "amount": {
+                "amount": "40.0000",
+                "asset": "iso4217:USD"
+              },
+              "fee": {
+                "amount": "4.0000",
+                "asset": "iso4217:USD"
+              }
             }
           ]
-        }
-      ],
-      "external_transaction_id": "external-tx-id",
-      "customers": {
-        "sender": {
-          "id": "6c1770b0-0ea4-11ed-861d-0242ac120002"
         },
-        "receiver": {
-          "id": "31212353-f265-4dba-9eb4-0bbeda3ba7f2"
+        "stellar_transactions": [
+          {
+            "id": "2b862ac297c93e2db43fc58d407cc477396212bce5e6d5f61789f963d5a11300",
+            "memo": "my-memo",
+            "memo_type": "text",
+            "envelope": "here_comes_the_envelope",
+            "payments": [
+              {
+                "id": "4609238642995201",
+                "amount": {
+                  "amount": "100.0000",
+                  "asset": "iso4217:USD"
+                },
+                "payment_type": "payment",
+                "source_account": "GAS4OW4HKJCC2D6VWUHVFR3MJRRVQBXBFQ3LCZJXBR7TWOOBJWE4SRWZ",
+                "destination_account": "GBQC7NCZMQIPWN6ASUJYIDKDPRK34IOIZNQE5WOHPQH536VMOMQVJTN7"
+              }
+            ]
+          }
+        ],
+        "external_transaction_id": "external-tx-id",
+        "customers": {
+          "sender": {
+            "id": "6c1770b0-0ea4-11ed-861d-0242ac120002"
+          },
+          "receiver": {
+            "id": "31212353-f265-4dba-9eb4-0bbeda3ba7f2"
+          }
+        },
+        "creator": {
+          "id": "141ee445-f32c-4c38-9d25-f4475d6c5558"
         }
-      },
-      "creator": {
-        "id": "141ee445-f32c-4c38-9d25-f4475d6c5558"
       }
-    }
-
   """
       .trimIndent()
 
-  val wantedGetTransactionResponse = testPlatformtransactionData
+  private val wantedGetSep24TransactionResponse =
+    """
+      {
+        "id": "a4baff5f-778c-43d6-bbef-3e9fb41d096e",
+        "sep": "24",
+        "kind": "withdrawal",
+        "status": "pending_receiver",
+        "amount_expected": {
+          "asset": ""
+        },
+        "amount_in": {
+          "amount": "100.0000",
+          "asset": "iso4217:USD"
+        },
+        "amount_out": {
+          "amount": "98.0000000",
+          "asset": "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+        },
+        "amount_fee": {
+          "amount": "2.0000",
+          "asset": "iso4217:USD"
+        },
+        "kyc_verified": true,
+        "started_at": "2022-12-19T02:06:44.500182800Z",
+        "completed_at": "2022-12-19T02:09:44.500182800Z",
+        "refunds": {
+          "amount_refunded": {
+            "amount": "90.0000",
+            "asset": "iso4217:USD"
+          },
+          "amount_fee": {
+            "amount": "8.0000",
+            "asset": "iso4217:USD"
+          },
+          "payments": [
+            {
+              "id": "1111",
+              "id_type": "stellar",
+              "amount": {
+                "amount": "50.0000",
+                "asset": "iso4217:USD"
+              },
+              "fee": {
+                "amount": "4.0000",
+                "asset": "iso4217:USD"
+              }
+            },
+            {
+              "id": "2222",
+              "id_type": "stellar",
+              "amount": {
+                "amount": "40.0000",
+                "asset": "iso4217:USD"
+              },
+              "fee": {
+                "amount": "4.0000",
+                "asset": "iso4217:USD"
+              }
+            }
+          ]
+        },
+        "stellar_transactions": [
+          {
+            "id": "2b862ac297c93e2db43fc58d407cc477396212bce5e6d5f61789f963d5a11300",
+            "memo": "my-memo",
+            "memo_type": "text",
+            "created_at": "2022-12-19T02:08:44.500182800Z",
+            "envelope": "here_comes_the_envelope",
+            "payments": [
+              {
+                "id": "4609238642995201",
+                "amount": {
+                  "amount": "100.0000",
+                  "asset": "iso4217:USD"
+                },
+                "payment_type": "payment",
+                "source_account": "GAS4OW4HKJCC2D6VWUHVFR3MJRRVQBXBFQ3LCZJXBR7TWOOBJWE4SRWZ",
+                "destination_account": "GBQC7NCZMQIPWN6ASUJYIDKDPRK34IOIZNQE5WOHPQH536VMOMQVJTN7"
+              }
+            ]
+          }
+        ],
+        "external_transaction_id": "external-tx-id"
+      }   
+  """
+      .trimIndent()
 }

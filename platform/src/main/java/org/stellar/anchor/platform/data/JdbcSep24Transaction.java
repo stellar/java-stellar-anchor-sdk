@@ -33,7 +33,7 @@ public class JdbcSep24Transaction extends JdbcSepTransaction
   String statusEta;
 
   @SerializedName("kyc_verified")
-  String kycVerified;
+  Boolean kycVerified;
 
   @SerializedName("more_info_url")
   String moreInfoUrl;
