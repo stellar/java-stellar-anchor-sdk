@@ -26,13 +26,13 @@ docker-push-e2e-test:
 build-docker-compose-tests:
 	docker-compose -f integration-tests/docker-compose-configs/docker-compose.base.yaml build --no-cache
 
-run-e2e-test-all:
-	make run-e2e-test-default-config
-	make run-e2e-test-allowlist
-	make run-e2e-test-unique-address
-	make run-e2e-test-sep24-withdrawal
+run-integration-test-all:
+	make run-integration-test-default-config
+	make run-integration-test-allowlist
+	make run-integration-test-unique-address
+	make run-integration-test-sep24-withdrawal
 
-define run_tests
+define run_integration_tests
 	$(SUDO) docker-compose --env-file integration-tests/docker-compose-configs/.env \
 	-f integration-tests/docker-compose-configs/docker-compose.base.yaml \
 	-f integration-tests/docker-compose-configs/$(1)/docker-compose-config.override.yaml rm -f
@@ -40,17 +40,25 @@ define run_tests
 	$(SUDO) docker-compose --env-file integration-tests/docker-compose-configs/.env \
 	-f integration-tests/docker-compose-configs/docker-compose.base.yaml \
 	-f integration-tests/docker-compose-configs/$(1)/docker-compose-config.override.yaml \
-	up --exit-code-from end-to-end-tests || (echo "E2E Test Failed: $(1)" && exit 1)
+	up --exit-code-from integration-tests || (echo "Integration Test Failed: $(1)" && exit 1)
 endef
 
-run-e2e-test-default-config:
-	$(call run_tests,anchor-platform-default-configs)
+run-integration-test-default-config:
+	$(call run_integration_tests,anchor-platform-default-configs)
 
-run-e2e-test-allowlist:
-	$(call run_tests,anchor-platform-allowlist)
+run-integration-test-allowlist:
+	$(call run_integration_tests,anchor-platform-allowlist)
 
-run-e2e-test-unique-address:
-	$(call run_tests,anchor-platform-unique-address)
+run-integration-test-unique-address:
+	$(call run_integration_tests,anchor-platform-unique-address)
 
-run-e2e-test-sep24-withdrawal:
+run-integration-test-sep24-withdrawal:
 	$(call run_tests,anchor-platform-sep24-withdrawal)
+
+run-e2e-tests:
+	$(SUDO) docker-compose --env-file end-to-end-tests/.env \
+	-f end-to-end-tests/docker-compose.yaml rm -f
+
+	$(SUDO) docker-compose --env-file end-to-end-tests/.env \
+	-f end-to-end-tests/docker-compose.yaml \
+	up --exit-code-from end-to-end-tests || (echo "E2E Test Failed: $(1)" && exit 1)

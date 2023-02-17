@@ -2,7 +2,6 @@ package org.stellar.anchor.platform.config
 
 import io.mockk.every
 import io.mockk.mockk
-import java.lang.Long.MIN_VALUE
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.BeforeEach
@@ -14,6 +13,7 @@ import org.springframework.validation.Errors
 import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.platform.config.PropertySep24Config.InteractiveUrlConfig
 import org.stellar.anchor.platform.config.PropertySep24Config.MoreInfoUrlConfig
+import java.lang.Long.MIN_VALUE
 
 class Sep24ConfigTest {
   lateinit var config: PropertySep24Config
@@ -23,8 +23,8 @@ class Sep24ConfigTest {
   @BeforeEach
   fun setUp() {
     secretConfig = mockk()
-    every { secretConfig.sep24MoreInfoUrlJwtSecret } returns "interactive url jwt secret"
-    every { secretConfig.sep24InteractiveUrlJwtSecret } returns "more_info url jwt secret"
+    every { secretConfig.sep24MoreInfoUrlJwtSecret } returns "more_info url jwt secret"
+    every { secretConfig.sep24InteractiveUrlJwtSecret } returns "interactive url jwt secret"
 
     config = PropertySep24Config(secretConfig)
     config.enabled = true

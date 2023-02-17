@@ -4,7 +4,7 @@ services:
     image: anchor-platform
     build:
       context: ../../
-      dockerfile: integration-tests/docker-compose-configs/Dockerfile
+      dockerfile: integration-tests/Dockerfile
     command: "--sep-server"
     environment:
       - STELLAR_ANCHOR_CONFIG=file:/config/anchor-platform-config.yaml
@@ -21,8 +21,8 @@ services:
     tmpfs:
       - /config
     depends_on:
-      - kafka
       - db
+      - kafka
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
@@ -53,50 +53,28 @@ services:
       - "host.docker.internal:host-gateway"
 
   anchor-reference-server:
-    image: anchor-platform
-    command: --anchor-reference-server
-    environment:
-      - REFERENCE_SERVER_CONFIG_ENV=file:/config/anchor-reference-server-config.yaml
-    volumes:
-      # add mounts for the new config directory
-      - ./anchor-platform-default-configs:/config_defaults
-    tmpfs:
-      - /config
-    depends_on:
-      - anchor-platform-server
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-
-  db:
-    image: postgres:latest
-    environment:
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=password
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-
-  zookeeper:
-    platform: linux/x86_64
-    image: confluentinc/cp-zookeeper:latest
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+    extends:
+      file: ../docker-compose/anchor-get-started/common-services/common-services.yaml
+      service: reference_server_a
 
   kafka:
-    platform: linux/x86_64
-    image: confluentinc/cp-kafka:latest
-    depends_on:
-      - zookeeper
-    environment:
-      KAFKA_BROKER_ID: 1
-      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
-      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
+    extends:
+      file: ../docker-compose/anchor-get-started/common-services/common-services.yaml
+      service: kafka_a
 
-  integration-tests:
+  zookeeper:
+    extends:
+      file: ../docker-compose/anchor-get-started/common-services/common-services.yaml
+      service: zookeeper_a
+
+  db:
+    extends:
+      file: ../docker-compose/anchor-get-started/common-services/common-services.yaml
+      service: db_a
+
+  end-to-end-tests:
     build:
-      context: ../../
+      context: ../
       dockerfile: Dockerfile
     depends_on:
       - anchor-platform-server

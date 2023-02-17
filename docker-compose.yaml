@@ -11,6 +11,8 @@ services:
       - SECRET_DATA_PASSWORD=password
       - SECRET_PLATFORM_API_AUTH_SECRET=myAnchorToPlatformSecret
       - SECRET_CALLBACK_API_AUTH_SECRET=myPlatformToAnchorSecret
+      - SECRET_SEP24_INTERACTIVE_URL_JWT_SECRET=secret_sep24_interactive_url_jwt_secret
+      - SECRET_SEP24_MORE_INFO_URL_JWT_SECRET=secret_sep24_more_info_url_jwt_secret
       - SECRET_SEP10_JWT_SECRET=secret
       - SECRET_SEP10_SIGNING_SEED=SAX3AH622R2XT6DXWWSRIDCMMUCCMATBZ5U6XKJWDO7M2EJUBFC3AW5X
     depends_on:
