@@ -28,12 +28,10 @@ services:
 
   stellar-observer:
     image: anchor-platform
-    build:
-      context: ../../
-      dockerfile: integration-tests/docker-compose-configs/Dockerfile
-    command: "--stellar-observer"
+    extends:
+      file: ../docker-compose/anchor-get-started/common-services/common-services.yaml
+      service: observer_a
     environment:
-      - STELLAR_ANCHOR_CONFIG=file:/config/anchor-platform-config.yaml
       - SECRET_SEP10_SIGNING_SEED=${SECRET_SEP10_SIGNING_SEED?err}
       - SECRET_SEP10_JWT_SECRET=secret
       - SECRET_PLATFORM_API_AUTH_SECRET=myAnchorToPlatformSecret
@@ -41,16 +39,6 @@ services:
       - SECRET_DATA_USERNAME=postgres
       - SECRET_DATA_PASSWORD=password
       - LOG_APPENDER=console_appender
-    volumes:
-      # add mounts for the new config directory
-      - ./anchor-platform-default-configs:/config_defaults
-    tmpfs:
-      - /config
-    depends_on:
-      - db
-      - kafka
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
 
   anchor-reference-server:
     extends:

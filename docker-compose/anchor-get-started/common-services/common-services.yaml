@@ -13,6 +13,22 @@ services:
     ports:
       - "8081:8081" # reference-server
 
+  observer_a:
+    image: stellar/anchor-platform:edge
+    command: "--stellar-observer"
+    environment:
+      - STELLAR_ANCHOR_CONFIG=file:/config/anchor-platform-config.yaml
+    volumes:
+      # add mounts for the new config directory
+      - ./anchor-platform-default-configs:/config_defaults
+    tmpfs:
+      - /config
+    depends_on:
+      - db
+      - kafka
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
   kafka_a:
     platform: linux/x86_64
     image: confluentinc/cp-kafka:6.1.9

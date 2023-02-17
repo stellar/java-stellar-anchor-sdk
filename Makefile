@@ -26,6 +26,10 @@ docker-push-e2e-test:
 build-docker-compose-tests:
 	docker-compose -f integration-tests/docker-compose-configs/docker-compose.base.yaml build --no-cache
 
+run-all-tests:
+	make run-integration-test-all
+	make run-e2e-tests
+
 run-integration-test-all:
 	make run-integration-test-default-config
 	make run-integration-test-allowlist
