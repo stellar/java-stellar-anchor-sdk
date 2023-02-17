@@ -16,5 +16,8 @@ include("kotlin-reference-server")
 /** Integration tests */
 include("integration-tests")
 
+/** E2E tests */
+include("end-to-end-tests")
+
 /** Service runners */
 include("service-runner")
