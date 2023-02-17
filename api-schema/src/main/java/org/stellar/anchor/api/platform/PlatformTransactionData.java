@@ -34,7 +34,7 @@ public class PlatformTransactionData {
   Amount amountFee;
 
   @SerializedName("kyc_verified")
-  String kycVerified;
+  Boolean kycVerified;
 
   @SerializedName("quote_id")
   String quoteId;

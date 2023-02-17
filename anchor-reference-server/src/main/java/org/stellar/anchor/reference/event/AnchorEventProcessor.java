@@ -92,7 +92,7 @@ public class AnchorEventProcessor {
                             PlatformTransactionData.builder()
                                 .id(event.getTransaction().getId())
                                 .status(newStatus)
-                                .kycVerified("true")
+                                .kycVerified(true)
                                 .build())
                         .build()))
             .build();
