@@ -23,8 +23,8 @@ class Sep24ConfigTest {
   @BeforeEach
   fun setUp() {
     secretConfig = mockk()
-    every { secretConfig.sep24MoreInfoUrlJwtSecret } returns "interactive url jwt secret"
-    every { secretConfig.sep24InteractiveUrlJwtSecret } returns "more_info url jwt secret"
+    every { secretConfig.sep24MoreInfoUrlJwtSecret } returns "more_info url jwt secret"
+    every { secretConfig.sep24InteractiveUrlJwtSecret } returns "interactive url jwt secret"
 
     config = PropertySep24Config(secretConfig)
     config.enabled = true
