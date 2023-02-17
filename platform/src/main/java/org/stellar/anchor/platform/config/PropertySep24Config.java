@@ -138,7 +138,7 @@ public class PropertySep24Config implements Sep24Config, Validator {
           }
         }
       }
-      if (isEmpty(secretConfig.getSep24InteractiveUrlJwtSecret())) {
+      if (isEmpty(secretConfig.getSep24MoreInfoUrlJwtSecret())) {
         errors.reject(
             "sep24-more-info-url-jwt-secret-not-defined",
             "Please set the secret.sep24.more_info_url.jwt_secret or SECRET_SEP24_MORE_INFO_URL_JWT_SECRET environment variable");

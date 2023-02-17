@@ -39,6 +39,20 @@ class Sep24ConfigTest {
     assertFalse(errors.hasErrors())
   }
 
+  @Test
+  fun `test validation rejecting missing more_info url jwt secret`() {
+    every { secretConfig.sep24MoreInfoUrlJwtSecret } returns null
+    config.validate(config, errors)
+    assertEquals("sep24-more-info-url-jwt-secret-not-defined", errors.allErrors[0].code)
+  }
+
+  @Test
+  fun `test validation rejecting missing interactive url jwt secret`() {
+    every { secretConfig.sep24InteractiveUrlJwtSecret } returns null
+    config.validate(config, errors)
+    assertEquals("sep24-interactive-url-jwt-secret-not-defined", errors.allErrors[0].code)
+  }
+
   @ParameterizedTest
   @ValueSource(strings = ["httpss://www.stellar.org"])
   fun `test interactive url with bad url configuration`(url: String) {
