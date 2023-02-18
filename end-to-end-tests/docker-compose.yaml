@@ -4,17 +4,16 @@ services:
     image: anchor-platform
     command: "--sep-server"
     environment:
-      - STELLAR_ANCHOR_CONFIG=file:/config/anchor-platform-config.yaml
-      - SECRET_SEP10_SIGNING_SEED=${SECRET_SEP10_SIGNING_SEED?err}
-      - SECRET_SEP10_JWT_SECRET=secret
-      - SECRET_PLATFORM_API_AUTH_SECRET=myAnchorToPlatformSecret
-      - SECRET_CALLBACK_API_AUTH_SECRET=myPlatformToAnchorSecret
-      - SECRET_DATA_USERNAME=postgres
-      - SECRET_DATA_PASSWORD=password
-      - LOG_APPENDER=console_appender
+      - stellar.anchor.config=file:/config/anchor-platform-config.yaml
+      - secret.sep10.signing_seed=SAX3AH622R2XT6DXWWSRIDCMMUCCMATBZ5U6XKJWDO7M2EJUBFC3AW5X
+      - secret.sep10.jwt.secret=secret
+      - secret.sep10.api.auth.secret=myAnchorToPlatformSecret
+      - secret.callback.api.auth.secret=myPlatformToAnchorSecret
+      - secret.data.username=postgres
+      - secret.data.password=password
     volumes:
       # add mounts for the new config directory
-      - ./anchor-platform-default-configs:/config_defaults
+      - ./anchor-platform-default-configs:/config_default
     tmpfs:
       - /config
     depends_on:
@@ -29,13 +28,13 @@ services:
       file: ../docker-compose/common-services/common-services.yaml
       service: observer_a
     environment:
-      - SECRET_SEP10_SIGNING_SEED=${SECRET_SEP10_SIGNING_SEED?err}
-      - SECRET_SEP10_JWT_SECRET=secret
-      - SECRET_PLATFORM_API_AUTH_SECRET=myAnchorToPlatformSecret
-      - SECRET_CALLBACK_API_AUTH_SECRET=myPlatformToAnchorSecret
-      - SECRET_DATA_USERNAME=postgres
-      - SECRET_DATA_PASSWORD=password
-      - LOG_APPENDER=console_appender
+      - stellar.anchor.config=file:/config/anchor-platform-config.yaml
+      - secret.sep10.signing_seed=SAX3AH622R2XT6DXWWSRIDCMMUCCMATBZ5U6XKJWDO7M2EJUBFC3AW5X
+      - secret.sep10.jwt.secret=secret
+      - secret.platform.api.auth.secret=myAnchorToPlatformSecret
+      - secret.callback.api.auth.secret=myPlatformToAnchorSecret
+      - secret.data.username=postgres
+      - secret.data.password=password
 
   anchor-reference-server:
     extends:
@@ -59,7 +58,7 @@ services:
 
   end-to-end-tests:
     build:
-      context: ../
+      context: ..
       dockerfile: Dockerfile
     depends_on:
       - anchor-platform-server

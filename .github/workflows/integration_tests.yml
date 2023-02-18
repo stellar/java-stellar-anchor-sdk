@@ -12,7 +12,7 @@ on:
 #      - 'hotfix/**'
 
 jobs:
-  end_to_end_tests:
+  integration_tests:
     runs-on: ubuntu-20.04
     env:
       E2E_SECRET: ${{ secrets.E2E_SECRET }}
@@ -22,8 +22,17 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Build images for end-to-end tests
+      - name: Build images for integration tests
         run: make build-docker-compose-tests
 
-      - name: Run end-to-end tests
-        run: make run-e2e-tests
+      - name: Run integration tests (Default Config)
+        run: make run-integration-test-default-config
+
+      - name: Run integration tests (Unique Address)
+        run: make run-integration-test-unique-address
+
+      - name: Run integration tests (Allowlist)
+        run: make run-integration-test-allowlist
+
+      - name: Run integration tests (SEP 24 Withdraw)
+        run: make run-integration-test-sep24-withdraw

@@ -34,7 +34,7 @@ run-integration-test-all:
 	make run-integration-test-default-config
 	make run-integration-test-allowlist
 	make run-integration-test-unique-address
-	make run-integration-test-sep24-withdrawal
+	make run-integration-test-sep24-withdraw
 
 define run_integration_tests
 	$(SUDO) docker-compose --env-file integration-tests/docker-compose-configs/.env \
@@ -56,13 +56,13 @@ run-integration-test-allowlist:
 run-integration-test-unique-address:
 	$(call run_integration_tests,anchor-platform-unique-address)
 
-run-integration-test-sep24-withdrawal:
-	$(call run_tests,anchor-platform-sep24-withdrawal)
+run-integration-test-sep24-withdraw:
+	$(call run_tests,anchor-platform-sep24-withdraw)
 
 run-e2e-tests:
 	$(SUDO) docker-compose --env-file end-to-end-tests/.env \
 	-f end-to-end-tests/docker-compose.yaml rm -f
 
 	$(SUDO) docker-compose --env-file end-to-end-tests/.env \
-	-f docker-compose/e2e-tests/docker-compose.yaml \
+	-f end-to-end-tests/docker-compose.yaml \
 	up --exit-code-from end-to-end-tests || (echo "E2E Test Failed: $(1)" && exit 1)

@@ -2,6 +2,9 @@ version: '2.4'
 services:
   reference_server_a:
     image: stellar/anchor-platform:edge
+    build:
+      context: ../../
+      dockerfile: integration-tests/docker-compose-configs/Dockerfile
     command: --anchor-reference-server
     environment:
       - REFERENCE_SERVER_CONFIG_ENV=file:/config/reference-config.yaml
@@ -12,9 +15,14 @@ services:
       - .:/config
     ports:
       - "8081:8081" # reference-server
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   observer_a:
     image: stellar/anchor-platform:edge
+    build:
+      context: ../../
+      dockerfile: integration-tests/docker-compose-configs/Dockerfile
     command: "--stellar-observer"
     environment:
       - STELLAR_ANCHOR_CONFIG=file:/config/anchor-platform-config.yaml
@@ -43,6 +51,8 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   zookeeper_a:
     platform: linux/x86_64
@@ -52,6 +62,8 @@ services:
       ZOOKEEPER_TICK_TIME: 2000
     ports:
       - "2181:2181"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   db_a:
     image: postgres:latest
@@ -60,3 +72,5 @@ services:
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=password
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

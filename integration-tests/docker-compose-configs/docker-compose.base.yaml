@@ -33,7 +33,6 @@ services:
       dockerfile: integration-tests/docker-compose-configs/Dockerfile
     command: "--stellar-observer"
     environment:
-      - STELLAR_ANCHOR_CONFIG=file:/config/anchor-platform-config.yaml
       - SECRET_SEP10_SIGNING_SEED=${SECRET_SEP10_SIGNING_SEED?err}
       - SECRET_SEP10_JWT_SECRET=secret
       - SECRET_PLATFORM_API_AUTH_SECRET=myAnchorToPlatformSecret
