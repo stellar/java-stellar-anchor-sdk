@@ -64,5 +64,5 @@ run-e2e-tests:
 	-f end-to-end-tests/docker-compose.yaml rm -f
 
 	$(SUDO) docker-compose --env-file end-to-end-tests/.env \
-	-f end-to-end-tests/docker-compose.yaml \
+	-f docker-compose/e2e-tests/docker-compose.yaml \
 	up --exit-code-from end-to-end-tests || (echo "E2E Test Failed: $(1)" && exit 1)

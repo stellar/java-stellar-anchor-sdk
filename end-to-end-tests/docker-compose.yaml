@@ -2,9 +2,6 @@ version: '2.4'
 services:
   anchor-platform-server:
     image: anchor-platform
-    build:
-      context: ../../
-      dockerfile: integration-tests/Dockerfile
     command: "--sep-server"
     environment:
       - STELLAR_ANCHOR_CONFIG=file:/config/anchor-platform-config.yaml
@@ -29,7 +26,7 @@ services:
   stellar-observer:
     image: anchor-platform
     extends:
-      file: ../docker-compose/anchor-get-started/common-services/common-services.yaml
+      file: ../docker-compose/common-services/common-services.yaml
       service: observer_a
     environment:
       - SECRET_SEP10_SIGNING_SEED=${SECRET_SEP10_SIGNING_SEED?err}
@@ -42,22 +39,22 @@ services:
 
   anchor-reference-server:
     extends:
-      file: ../docker-compose/anchor-get-started/common-services/common-services.yaml
+      file: ../docker-compose/common-services/common-services.yaml
       service: reference_server_a
 
   kafka:
     extends:
-      file: ../docker-compose/anchor-get-started/common-services/common-services.yaml
+      file: ../docker-compose/common-services/common-services.yaml
       service: kafka_a
 
   zookeeper:
     extends:
-      file: ../docker-compose/anchor-get-started/common-services/common-services.yaml
+      file: ../docker-compose/common-services/common-services.yaml
       service: zookeeper_a
 
   db:
     extends:
-      file: ../docker-compose/anchor-get-started/common-services/common-services.yaml
+      file: ../docker-compose/common-services/common-services.yaml
       service: db_a
 
   end-to-end-tests:
