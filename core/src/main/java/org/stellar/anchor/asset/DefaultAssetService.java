@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import lombok.NoArgsConstructor;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.api.exception.SepNotFoundException;
@@ -52,18 +53,10 @@ public class DefaultAssetService implements AssetService {
   }
 
   public static DefaultAssetService fromYaml(String assetsYaml) throws InvalidConfigException {
-    DefaultAssetService assetService = new DefaultAssetService();
-    Yaml yaml = new Yaml();
-    assetService.assets = yaml.loadAs(assetsYaml, Assets.class);
-
-    if (assetService.assets == null
-        || assetService.assets.getAssets() == null
-        || assetService.assets.getAssets().size() == 0) {
-      error("Invalid asset defined. assets JSON=", assetsYaml);
-      throw new InvalidConfigException(
-          "Invalid assets defined in configuration. Please check the logs for details.");
-    }
-    return assetService;
+    // snakeyaml does not support mapping snake-cased fields to camelCased fields.
+    // So we are converting to JSON and use the gson library for conversion
+    Map<String, Object> map = new Yaml().load(assetsYaml);
+    return fromJson(gson.toJson(map));
   }
 
   public static DefaultAssetService fromJson(String assetsJson) throws InvalidConfigException {
@@ -72,7 +65,7 @@ public class DefaultAssetService implements AssetService {
     if (assetService.assets == null
         || assetService.assets.getAssets() == null
         || assetService.assets.getAssets().size() == 0) {
-      error("Invalid asset defined. assets JSON=", assetsJson);
+      error("Invalid asset defined. content=", assetsJson);
       throw new InvalidConfigException(
           "Invalid assets defined in configuration. Please check the logs for details.");
     }
