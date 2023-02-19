@@ -55,7 +55,7 @@ class Sep12ServiceTest {
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
 
-    val rjas = DefaultAssetService.fromResource("test_assets.json")
+    val rjas = DefaultAssetService.fromJsonResource("test_assets.json")
     val assets = rjas.listAllAssets()
 
     every { assetService.listAllAssets() } returns assets

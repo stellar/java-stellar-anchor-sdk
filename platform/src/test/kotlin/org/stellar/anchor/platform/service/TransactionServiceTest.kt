@@ -183,7 +183,7 @@ class TransactionServiceTest {
     assertEquals("'$fiatUSD' is not a supported asset.", ex.message)
 
     // fails if listAllAssets does not contain the desired asset
-    this.assetService = DefaultAssetService.fromResource("test_assets.json")
+    this.assetService = DefaultAssetService.fromJsonResource("test_assets.json")
     ex = assertThrows { transactionService.validateAsset("amount_in", mockAsset) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("'$fiatUSD' is not a supported asset.", ex.message)
@@ -191,7 +191,7 @@ class TransactionServiceTest {
 
   @Test
   fun test_validateAsset() {
-    this.assetService = DefaultAssetService.fromResource("test_assets.json")
+    this.assetService = DefaultAssetService.fromJsonResource("test_assets.json")
     transactionService =
       TransactionService(
         sep24TransactionStore,
@@ -331,7 +331,7 @@ class TransactionServiceTest {
 
     println(gson.toJson(testSep38Quote))
 
-    this.assetService = DefaultAssetService.fromResource("test_assets.json")
+    this.assetService = DefaultAssetService.fromJsonResource("test_assets.json")
     transactionService =
       TransactionService(
         sep24TransactionStore,

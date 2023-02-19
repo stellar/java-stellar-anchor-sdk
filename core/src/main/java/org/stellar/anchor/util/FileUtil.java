@@ -6,6 +6,8 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.stream.Collectors;
 import org.stellar.anchor.api.exception.SepNotFoundException;
 
@@ -23,5 +25,9 @@ public class FileUtil {
         return reader.lines().collect(Collectors.joining(System.lineSeparator()));
       }
     }
+  }
+
+  public static String read(Path path) throws IOException {
+    return Files.readString(path);
   }
 }

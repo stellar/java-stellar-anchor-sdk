@@ -37,7 +37,7 @@ public class PaymentObserverBeans {
     }
     List<AssetInfo> stellarAssets =
         assetService.listAllAssets().stream()
-            .filter(asset -> asset.getSchema().equals(AssetInfo.Schema.STELLAR))
+            .filter(asset -> asset.getSchema().equals(AssetInfo.Schema.stellar))
             .collect(Collectors.toList());
     if (stellarAssets.size() == 0) {
       throw new ServerErrorException("Asset service should contain at least one Stellar asset.");

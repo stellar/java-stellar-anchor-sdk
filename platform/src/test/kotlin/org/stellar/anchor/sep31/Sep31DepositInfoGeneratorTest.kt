@@ -47,7 +47,7 @@ class Sep31DepositInfoGeneratorTest {
     """
   }
 
-  private val assetService: AssetService = DefaultAssetService.fromResource("test_assets.json")
+  private val assetService: AssetService = DefaultAssetService.fromJsonResource("test_assets.json")
 
   @MockK(relaxed = true) private lateinit var txnStore: Sep31TransactionStore
   @MockK(relaxed = true) private lateinit var appConfig: AppConfig
