@@ -33,15 +33,21 @@ public class DefaultAssetService implements AssetService {
         return fromYaml(assetsConfig.getValue());
       case FILE:
         String filename = assetsConfig.getValue();
-        String content = FileUtil.read(Path.of(filename));
-        switch (FilenameUtils.getBaseName(filename).toLowerCase()) {
-          case "json":
-            return fromJson(content);
-          case "yaml":
-            return fromYaml(content);
-          default:
-            throw new InvalidConfigException(
-                String.format("%s is not a supported file format", filename));
+        try {
+          String content = FileUtil.read(Path.of(filename));
+          switch (FilenameUtils.getExtension(filename).toLowerCase()) {
+            case "json":
+              return fromJson(content);
+            case "yaml":
+            case "yml":
+              return fromYaml(content);
+            default:
+              throw new InvalidConfigException(
+                  String.format("%s is not a supported file format", filename));
+          }
+        } catch (Exception ex) {
+          throw new InvalidConfigException(
+              String.format("Cannot read from asset file: %s", filename));
         }
       case URL:
         // TODO: to be implemented.

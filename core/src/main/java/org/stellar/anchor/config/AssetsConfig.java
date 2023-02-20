@@ -2,6 +2,7 @@ package org.stellar.anchor.config;
 
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 
+import com.google.gson.annotations.SerializedName;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 
 public interface AssetsConfig {
@@ -10,9 +11,13 @@ public interface AssetsConfig {
   String getValue();
 
   enum AssetConfigType {
+    @SerializedName("json")
     JSON,
+    @SerializedName("yaml")
     YAML,
+    @SerializedName("file")
     FILE,
+    @SerializedName("url")
     URL;
 
     public static AssetConfigType from(String name) throws InvalidConfigException {
