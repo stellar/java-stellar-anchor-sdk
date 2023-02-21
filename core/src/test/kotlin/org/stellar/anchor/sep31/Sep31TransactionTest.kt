@@ -116,7 +116,6 @@ class Sep31TransactionTest {
         .updatedAt(mockUpdatedAt)
         .transferReceivedAt(mockTransferReceivedAt)
         .completedAt(mockCompletedAt)
-        .stellarTransactionId("2b862ac297c93e2db43fc58d407cc477396212bce5e6d5f61789f963d5a11300")
         .stellarTransactions(listOf(stellarTransaction))
         .externalTransactionId("external-tx-id")
         .refunded(true)

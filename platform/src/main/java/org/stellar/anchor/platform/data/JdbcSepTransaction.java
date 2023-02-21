@@ -51,15 +51,19 @@ public abstract class JdbcSepTransaction {
   @SerializedName("transfer_received_at")
   Instant transferReceivedAt;
 
-  @SerializedName("stellar_transaction_id")
-  String stellarTransactionId;
-
   @SerializedName("external_transaction_id")
   String externalTransactionId;
 
   @Column(columnDefinition = "json")
   @Type(type = "json")
   List<StellarTransaction> stellarTransactions;
+
+  public String getStellarTransactionId() {
+    if (stellarTransactions != null && stellarTransactions.size() > 0) {
+      return stellarTransactions.get(0).getId();
+    }
+    return null;
+  }
 
   public abstract String getProtocol();
 }

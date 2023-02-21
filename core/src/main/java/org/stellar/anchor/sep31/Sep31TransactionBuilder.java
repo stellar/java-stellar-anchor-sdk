@@ -99,11 +99,6 @@ public class Sep31TransactionBuilder {
     return this;
   }
 
-  public Sep31TransactionBuilder stellarTransactionId(String stellarTransactionId) {
-    txn.setStellarTransactionId(stellarTransactionId);
-    return this;
-  }
-
   public Sep31TransactionBuilder stellarTransactions(List<StellarTransaction> stellarTransactions) {
     txn.setStellarTransactions(stellarTransactions);
     return this;

@@ -143,21 +143,13 @@ public class Sep31Service {
         new Sep31TransactionBuilder(sep31TransactionStore)
             .id(generateSepTransactionId())
             .status(SepTransactionStatus.PENDING_SENDER.getStatus())
-            .statusEta(null)
             .amountFee(fee.getAmount())
             .amountFeeAsset(fee.getAsset())
             .startedAt(now)
             .updatedAt(now) // this will be overwritten by the sep31TransactionStore#save method.
-            .completedAt(null)
-            .stellarTransactionId(null)
-            .externalTransactionId(null)
-            .requiredInfoMessage(null)
             .quoteId(request.getQuoteId())
             .clientDomain(sep10Jwt.getClientDomain())
-            .requiredInfoUpdates(null)
             .fields(request.getFields().getTransaction())
-            .refunded(null)
-            .refunds(null)
             .senderId(Context.get().getRequest().getSenderId())
             .receiverId(Context.get().getRequest().getReceiverId())
             .creator(creatorStellarId)
@@ -165,12 +157,8 @@ public class Sep31Service {
             .amountExpected(request.getAmount())
             .amountIn(request.getAmount())
             .amountInAsset(assetInfo.getAssetName())
-            .amountOut(null)
-            .amountOutAsset(null)
             // updateDepositInfo will update these ⬇️
             .stellarAccountId(assetInfo.getDistributionAccount())
-            .stellarMemo(null)
-            .stellarMemoType(null)
             .build();
 
     Context.get().setTransaction(txn);
@@ -481,7 +469,6 @@ public class Sep31Service {
                         (request.getDestinationAsset() == null)
                             ? assetName
                             : request.getDestinationAsset())
-                    .receiveAmount(null)
                     .senderId(request.getSenderId())
                     .receiverId(request.getReceiverId())
                     .clientId(token.getAccount())

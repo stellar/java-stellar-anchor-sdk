@@ -79,8 +79,6 @@ public interface Sep31Transaction {
 
   String getStellarTransactionId();
 
-  void setStellarTransactionId(String stellarTransactionId);
-
   List<StellarTransaction> getStellarTransactions();
 
   void setStellarTransactions(List<StellarTransaction> stellarTransactions);

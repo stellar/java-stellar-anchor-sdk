@@ -31,8 +31,6 @@ public interface Sep24Transaction {
    */
   String getStellarTransactionId();
 
-  void setStellarTransactionId(String stellarTransactionId);
-
   /**
    * ID of transaction on external network that either started the deposit or completed the
    * withdrawal.
