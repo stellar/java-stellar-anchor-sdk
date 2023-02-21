@@ -3,12 +3,14 @@ package org.stellar.anchor.sep31;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.shared.StellarId;
 import org.stellar.anchor.api.shared.StellarTransaction;
 
-@Data
+@Getter
+@Setter
 public class PojoSep31Transaction implements Sep31Transaction {
   String id;
   String status;
@@ -40,6 +42,14 @@ public class PojoSep31Transaction implements Sep31Transaction {
   String receiverId;
   String senderId;
   StellarId creator;
+
+  @Override
+  public String getStellarTransactionId() {
+    if (stellarTransactions != null && stellarTransactions.size() > 0) {
+      return stellarTransactions.get(0).getId();
+    }
+    return null;
+  }
 
   @Override
   public void setRefunds(Sep31Refunds sep31Refunds) {

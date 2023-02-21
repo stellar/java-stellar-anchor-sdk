@@ -46,6 +46,8 @@ ALTER TABLE sep24_transaction DROP COLUMN completed_at;
 
 ALTER TABLE sep24_transaction DROP COLUMN started_at;
 
+ALTER TABLE sep24_transaction DROP COLUMN stellar_transaction_id;
+
 ALTER TABLE sep24_transaction ADD completed_at TIMESTAMP WITHOUT TIME ZONE;
 
 ALTER TABLE sep24_transaction ALTER COLUMN  id SET NOT NULL;
@@ -57,3 +59,5 @@ ALTER TABLE sep24_transaction ADD CONSTRAINT pk_sep24_transaction PRIMARY KEY (i
 ALTER TABLE sep31_transaction ALTER COLUMN refunds type JSONB using refunds::jsonb;
 
 ALTER TABLE sep31_transaction ADD bank_account_type VARCHAR(255);
+
+ALTER TABLE sep31_transaction DROP COLUMN stellar_transaction_id;

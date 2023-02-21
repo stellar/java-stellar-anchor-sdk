@@ -187,7 +187,6 @@ class Sep31ServiceTest {
       "transferReceivedAt": "2022-04-18T14:30:00.000Z",
       "updatedAt": "2022-04-18T15:00:00.000Z",
       "completedAt": "2022-04-18T15:00:00.000Z",
-      "stellarTransactionId": "18db1b8dffa78a0567faadeab7b08b7be8b3f65c40018d609cc530b757e67bc2",
       "externalTransactionId": "external-id",
       "requiredInfoMessage": "Don't forget to foo bar",
       "quoteId": "quote_id",
@@ -462,7 +461,6 @@ class Sep31ServiceTest {
           .stellarMemoType("text")
           .startedAt(wantStartedAt)
           .completedAt(wantCompletedAt)
-          .stellarTransactionId("18db1b8dffa78a0567faadeab7b08b7be8b3f65c40018d609cc530b757e67bc2")
           .externalTransactionId("external-id")
           .refunded(true)
           .refunds(wantRefunds)
