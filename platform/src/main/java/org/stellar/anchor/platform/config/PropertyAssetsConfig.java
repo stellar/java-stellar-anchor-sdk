@@ -22,21 +22,19 @@ public class PropertyAssetsConfig implements AssetsConfig, Validator {
 
   @Override
   public void validate(@NotNull Object target, @NotNull Errors errors) {
-    PropertyAssetsConfig config = (PropertyAssetsConfig) target;
-    checkType(config, errors);
-    checkValue(config, errors);
-  }
+    if (this.getType() == null) {
+      errors.reject("invalid-no-type-defined", "assets.type is empty. Please define.");
+    }
 
-  void checkValue(PropertyAssetsConfig config, Errors errors) {
-    if (StringHelper.isEmpty(config.getValue())) {
+    if (StringHelper.isEmpty(this.getValue())) {
       errors.reject("invalid-no-value-defined", "assets.value is empty. Please define.");
     } else {
-      switch (config.getType()) {
+      switch (this.getType()) {
         case JSON:
           try {
-            DefaultAssetService.fromJson(config.getValue());
-          } catch (Exception jsex) {
-            error("Error loading asset JSON", jsex);
+            DefaultAssetService.fromJson(this.getValue());
+          } catch (Exception ex) {
+            error("Error loading asset JSON", ex);
             errors.reject(
                 "invalid-asset-json-format",
                 "assets.value does not contain a valid JSON string for assets");
@@ -44,9 +42,9 @@ public class PropertyAssetsConfig implements AssetsConfig, Validator {
           break;
         case YAML:
           try {
-            DefaultAssetService.fromYaml(config.getValue());
-          } catch (Exception jsex) {
-            error("Error loading asset YAML", jsex);
+            DefaultAssetService.fromYaml(this.getValue());
+          } catch (Exception ex) {
+            error("Error loading asset YAML", ex);
             errors.reject(
                 "invalid-asset-yaml-format",
                 "assets.value does not contain a valid YAML string for assets");
@@ -54,32 +52,20 @@ public class PropertyAssetsConfig implements AssetsConfig, Validator {
           break;
         case FILE:
           try {
-            DefaultAssetService.fromAssetConfig(config);
+            DefaultAssetService.fromAssetConfig(this);
           } catch (Exception ex) {
+            error("Error loading asset file", ex);
             errors.reject(
-                "assets-value-file-not-valid", "Cannot read from asset file: " + config.getValue());
+                "assets-file-not-valid", "Cannot read from asset file: " + this.getValue());
           }
+          break;
         case URL:
         default:
+          errors.reject(
+              "invalid-type-defined",
+              String.format("assets.type:%s is not supported.", this.getType()));
           break;
       }
-    }
-  }
-
-  void checkType(PropertyAssetsConfig config, Errors errors) {
-    if (config.getType() == null) {
-      errors.reject("invalid-no-type-defined", "assets.type is empty. Please define.");
-    }
-    switch (config.getType()) {
-      case JSON:
-      case YAML:
-      case FILE:
-        break;
-      case URL:
-      default:
-        errors.reject(
-            "invalid-type-defined",
-            String.format("assets.type:%s is not supported.", config.getType()));
     }
   }
 }

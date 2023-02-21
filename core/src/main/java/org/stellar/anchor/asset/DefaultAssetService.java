@@ -47,7 +47,7 @@ public class DefaultAssetService implements AssetService {
           }
         } catch (Exception ex) {
           throw new InvalidConfigException(
-              String.format("Cannot read from asset file: %s", filename));
+              List.of(String.format("Cannot read from asset file: %s", filename)), ex);
         }
       case URL:
         // TODO: to be implemented.
