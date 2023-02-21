@@ -11,8 +11,8 @@ import org.springframework.validation.BindException
 import org.springframework.validation.Errors
 
 class AppConfigTest {
-  lateinit var config: PropertyAppConfig
-  lateinit var errors: Errors
+  private lateinit var config: PropertyAppConfig
+  private lateinit var errors: Errors
 
   @BeforeEach
   fun setUp() {

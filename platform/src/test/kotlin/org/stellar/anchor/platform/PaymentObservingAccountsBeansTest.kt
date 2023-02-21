@@ -38,7 +38,7 @@ class PaymentObservingAccountsBeansTest {
 
   @Test
   fun test_stellarPaymentObserverService_failure() {
-    val assetService: AssetService = DefaultAssetService.fromResource("test_assets.json")
+    val assetService: AssetService = DefaultAssetService.fromJsonResource("test_assets.json")
     val paymentObserverBeans = PaymentObserverBeans()
     val mockPaymentListener = mockk<PaymentListener>()
     val mockPaymentListeners = listOf(mockPaymentListener)
@@ -131,7 +131,7 @@ class PaymentObservingAccountsBeansTest {
   fun test_givenGoodManager_whenConstruct_thenOk() {
     // success!
     val paymentObserverBeans = PaymentObserverBeans()
-    val assetService: AssetService = DefaultAssetService.fromResource("test_assets.json")
+    val assetService: AssetService = DefaultAssetService.fromJsonResource("test_assets.json")
     val mockPaymentListener = mockk<PaymentListener>()
     val mockPaymentListeners = listOf(mockPaymentListener)
 
