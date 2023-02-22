@@ -21,7 +21,7 @@ services:
       - data.type=postgres
       - data.server=db:5432
       - data.database=postgres
-      - data.flyway_enabled=false
+      - data.flyway_enabled=true
       # assets
       - assets.type=file
       - assets.value=/config/assets.json
