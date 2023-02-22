@@ -4,7 +4,6 @@ import com.google.gson.annotations.SerializedName;
 import lombok.Getter;
 import lombok.Setter;
 
-@SuppressWarnings("unused")
 public interface Sep24Config {
   boolean isEnabled();
 
