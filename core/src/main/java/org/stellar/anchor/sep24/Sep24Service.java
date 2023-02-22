@@ -2,6 +2,7 @@ package org.stellar.anchor.sep24;
 
 import static org.stellar.anchor.api.event.AnchorEvent.Type.TRANSACTION_CREATED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.INCOMPLETE;
+import static org.stellar.anchor.api.sep.sep24.InfoResponse.*;
 import static org.stellar.anchor.sep24.Sep24Helper.*;
 import static org.stellar.anchor.sep24.Sep24Transaction.Kind.WITHDRAWAL;
 import static org.stellar.anchor.sep9.Sep9Fields.extractSep9Fields;
@@ -371,16 +372,24 @@ public class Sep24Service {
   public InfoResponse getInfo() {
     info("Getting Sep24 info");
     List<AssetInfo> assets = assetService.listAllAssets();
-    InfoResponse info = new InfoResponse();
-
     debugF("{} assets found", assets.size());
+
+    Map<String, AssetInfo.AssetOperation> depositMap = new HashMap<>();
+    Map<String, AssetInfo.AssetOperation> withdrawMap = new HashMap<>();
     for (AssetInfo asset : assets) {
-      if (asset.getDeposit().getEnabled())
-        info.getDeposit().put(asset.getCode(), asset.getDeposit());
-      if (asset.getWithdraw().getEnabled())
-        info.getWithdraw().put(asset.getCode(), asset.getWithdraw());
+      if (asset.getDeposit().getEnabled()) depositMap.put(asset.getCode(), asset.getDeposit());
+      if (asset.getWithdraw().getEnabled()) withdrawMap.put(asset.getCode(), asset.getWithdraw());
     }
-    return info;
+
+    return InfoResponse.builder()
+        .deposit(depositMap)
+        .withdraw(withdrawMap)
+        .fee(new FeeResponse(false))
+        .features(
+            new FeatureFlagResponse(
+                sep24Config.getFeatures().getAccountCreation(),
+                sep24Config.getFeatures().getClaimableBalances()))
+        .build();
   }
 
   TransactionResponse fromTxn(Sep24Transaction txn, String lang)

@@ -306,6 +306,12 @@ sep24:
     txn_fields: transaction_id
     jwt_expiration: 600
 
+  # Configures the features flag returned by the SEP-24 /info endpoint
+  # For details, please refer to https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0024.md#response-2
+  features:
+    account_creation: false
+    claimable_balances: false
+
 sep31:
   ## @param: enabled
   ## @type: bool
