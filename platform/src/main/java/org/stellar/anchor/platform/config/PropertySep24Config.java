@@ -28,12 +28,14 @@ public class PropertySep24Config implements Sep24Config, Validator {
   InteractiveUrlConfig interactiveUrl;
   MoreInfoUrlConfig moreInfoUrl;
   SecretConfig secretConfig;
+  Features features;
 
   public PropertySep24Config(SecretConfig secretConfig) {
     this.secretConfig = secretConfig;
   }
 
-  @Data
+  @Getter
+  @Setter
   @AllArgsConstructor
   @NoArgsConstructor
   public static class InteractiveUrlConfig {
@@ -42,7 +44,8 @@ public class PropertySep24Config implements Sep24Config, Validator {
     List<String> txnFields;
   }
 
-  @Data
+  @Getter
+  @Setter
   @AllArgsConstructor
   @NoArgsConstructor
   public static class MoreInfoUrlConfig {
