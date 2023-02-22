@@ -462,7 +462,9 @@ internal class Sep24ServiceTest {
     assertEquals(1, response.withdraw.size)
     assertNotNull(response.deposit["USDC"])
     assertNotNull(response.withdraw["USDC"])
-    assertTrue(response.fee.enabled)
+    assertFalse(response.fee.enabled)
+    assertFalse(response.features.accountCreation)
+    assertFalse(response.features.claimableBalances)
   }
 
   @Test
