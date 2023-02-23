@@ -1,5 +1,3 @@
-ALTER TABLE sep24_transaction ADD sep10_account_memo VARCHAR(255);
-
 ALTER TABLE sep24_transaction ADD amount_expected VARCHAR(255);
 
 ALTER TABLE sep24_transaction ADD kyc_verified BOOLEAN;
@@ -39,8 +37,6 @@ ALTER TABLE sep24_transaction DROP COLUMN asset_code;
 ALTER TABLE sep24_transaction DROP COLUMN asset_issuer;
 
 ALTER TABLE sep24_transaction DROP COLUMN muxed_account;
-
-ALTER TABLE sep24_transaction DROP COLUMN sep10account_memo;
 
 ALTER TABLE sep24_transaction DROP COLUMN completed_at;
 

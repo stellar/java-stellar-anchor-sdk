@@ -105,8 +105,8 @@ private const val TXN_JSON =
   "transaction_id": "txn_123",
   "status": "incomplete",
   "kind" : "deposit",
-  "sep10_account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
-  "sep10_account_memo": "1234",
+  "sep10account": "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO",
+  "sep10account_memo": "1234",
   "amount_in": "100",
   "amount_in_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
 }  

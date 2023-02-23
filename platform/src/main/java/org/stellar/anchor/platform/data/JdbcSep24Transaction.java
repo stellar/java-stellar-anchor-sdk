@@ -30,15 +30,19 @@ public class JdbcSep24Transaction extends JdbcSepTransaction
   String kind;
 
   @SerializedName("status_eta")
+  @Column(name = "status_eta")
   String statusEta;
 
   @SerializedName("kyc_verified")
+  @Column(name = "kyc_verified")
   Boolean kycVerified;
 
   @SerializedName("more_info_url")
+  @Column(name = "more_info_url")
   String moreInfoUrl;
 
   @SerializedName("transaction_id")
+  @Column(name = "transaction_id")
   String transactionId;
 
   String message;
@@ -67,6 +71,7 @@ public class JdbcSep24Transaction extends JdbcSepTransaction
    * will transfer) their issued asset to.
    */
   @SerializedName("withdraw_anchor_account")
+  @Column(name = "withdraw_anchor_account")
   String withdrawAnchorAccount;
 
   /** The memo for deposit or withdraw */
@@ -74,6 +79,7 @@ public class JdbcSep24Transaction extends JdbcSepTransaction
 
   /** The memo type of the transaction */
   @SerializedName("memo_type")
+  @Column(name = "memo_type")
   String memoType;
 
   /**
@@ -86,6 +92,7 @@ public class JdbcSep24Transaction extends JdbcSepTransaction
    * from.
    */
   @SerializedName("from_account")
+  @Column(name = "from_account")
   String fromAccount;
 
   /**
@@ -97,34 +104,44 @@ public class JdbcSep24Transaction extends JdbcSepTransaction
    * bank account.
    */
   @SerializedName("to_account")
+  @Column(name = "to_account")
   String toAccount;
 
   @SerializedName("request_asset_code")
+  @Column(name = "request_asset_code")
   String requestAssetCode;
 
   @SerializedName("request_asset_issuer")
+  @Column(name = "request_asset_issuer")
   String requestAssetIssuer;
 
   /** The SEP10 account used for authentication. */
-  @SerializedName("sep10_account")
+  @SerializedName("sep10account")
+  @Column(name = "sep10account")
   String sep10Account;
 
   /** The SEP10 account memo used for authentication. */
-  @SerializedName("sep10_account_memo")
+  @SerializedName("sep10account_memo")
+  @Column(name = "sep10account_memo")
   String sep10AccountMemo;
 
   @SerializedName("client_domain")
+  @Column(name = "client_domain")
   String clientDomain;
 
   @SerializedName("claimable_balance_supported")
+  @Column(name = "claimable_balance_supported")
   Boolean claimableBalanceSupported;
 
   @SerializedName("amount_expected")
+  @Column(name = "amount_expected")
   String amountExpected;
 
   @SerializedName("refund_memo")
+  @Column(name = "refund_memo")
   String refundMemo;
 
   @SerializedName("refund_memo_type")
+  @Column(name = "refund_memo_type")
   String refundMemoType;
 }
