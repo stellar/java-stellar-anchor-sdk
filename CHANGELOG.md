@@ -1,4 +1,6 @@
 # Changelog
+## 1.2.7
+* Add database reconnection with backoff timer. [#774](https://github.com/stellar/java-stellar-anchor-sdk/pull/774)
 
 ## 1.2.6
 * Add bank_account_type to SEP-9 and customer field [#750](https://github.com/stellar/java-stellar-anchor-sdk/pull/750)
