@@ -78,6 +78,8 @@ sep10.omnibus_account_list:
 sep10.require_known_omnibus_account:
 sep12.enabled:
 sep24.enabled:
+sep24.features.account_creation:
+sep24.features.claimable_balances:
 sep24.interactive_url.base_url:
 sep24.interactive_url.jwt_expiration:
 sep24.interactive_url.txn_fields:

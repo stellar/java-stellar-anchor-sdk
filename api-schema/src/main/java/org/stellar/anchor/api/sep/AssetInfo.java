@@ -44,10 +44,10 @@ public class AssetInfo {
 
   public enum Schema {
     @SerializedName("stellar")
-    STELLAR("stellar"),
+    stellar("stellar"),
 
     @SerializedName("iso4217")
-    ISO4217("iso4217");
+    iso4217("iso4217");
 
     private final String name;
 

@@ -196,7 +196,7 @@ sep1:
     ## @supported_values:
     ##     `string`: value contains the content of the stellar toml file
     ##     `file`: value contains the path to the stellar toml file
-    ##     `url`: value contains the url to the content of the stellar toml file
+    ##     `url`: value contains the url to the stellar toml file
     type: string
     ## @param: value
     ## @type: string
@@ -305,6 +305,12 @@ sep24:
     base_url: http://localhost:8080/sep24/transaction/more_info
     txn_fields: transaction_id
     jwt_expiration: 600
+
+  # Configures the features flag returned by the SEP-24 /info endpoint
+  # For details, please refer to https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0024.md#response-2
+  features:
+    account_creation: false
+    claimable_balances: false
 
 sep31:
   ## @param: enabled
@@ -451,7 +457,11 @@ events:
 ## Accepts file reference (eg. 'file:assets.yaml') or in-line definition.
 assets:
   ## @param: type
-  ## @supported_values: `json`
+  ## @supported_values:
+  ##     `json`: value field contains the content of the assets in JSON format
+  ##     `yaml`: value field contains the content of the assets in YAML format
+  ##     `file`: value field contains the path to the assets file. The file name can be *.json or *.yaml.
+  ##     `url`: value contains the url to the assets file. The file name can be *.json or *.yaml.
   ## Describe the asset definition.
   #
   type: json
@@ -468,7 +478,7 @@ assets:
   ##     }]
   ##   }
   #
-  value: ""
+  value: |
 
 ################################
 ## Data Configuration

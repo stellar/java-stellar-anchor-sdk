@@ -266,7 +266,7 @@ class Sep31ServiceTest {
   """
   }
 
-  private val assetService: AssetService = DefaultAssetService.fromResource("test_assets.json")
+  private val assetService: AssetService = DefaultAssetService.fromJsonResource("test_assets.json")
 
   @MockK(relaxed = true) private lateinit var txnStore: Sep31TransactionStore
 
@@ -350,7 +350,7 @@ class Sep31ServiceTest {
   @Test
   fun `test quotes supported and required validation`() {
     val assetServiceQuotesNotSupported: AssetService =
-      DefaultAssetService.fromResource(
+      DefaultAssetService.fromJsonResource(
         "test_assets.json.quotes_required_but_not_supported",
       )
     val ex: AnchorException = assertThrows {
@@ -870,7 +870,7 @@ class Sep31ServiceTest {
       }
 
     val assetServiceQuotesNotSupported: AssetService =
-      DefaultAssetService.fromResource(
+      DefaultAssetService.fromJsonResource(
         "test_assets.json.quotes_not_supported",
       )
     sep31Service =

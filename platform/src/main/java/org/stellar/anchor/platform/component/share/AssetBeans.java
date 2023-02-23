@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform.component.share;
 
+import java.io.IOException;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -18,7 +19,7 @@ public class AssetBeans {
   }
 
   @Bean
-  AssetService assetService(AssetsConfig assetsConfig) throws InvalidConfigException {
+  AssetService assetService(AssetsConfig assetsConfig) throws InvalidConfigException, IOException {
     return DefaultAssetService.fromAssetConfig(assetsConfig);
   }
 }

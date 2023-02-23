@@ -15,7 +15,7 @@ class InfoResponseTest {
 
   @BeforeEach
   fun setUp() {
-    val rjas = DefaultAssetService.fromResource("test_assets.json")
+    val rjas = DefaultAssetService.fromJsonResource("test_assets.json")
     assets = rjas.listAllAssets()
     assertEquals(3, assets.size)
   }

@@ -4,10 +4,10 @@ import static org.stellar.anchor.util.Log.debug;
 import static org.stellar.anchor.util.Log.debugF;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.config.Sep1Config;
+import org.stellar.anchor.util.FileUtil;
 import org.stellar.anchor.util.Log;
 import org.stellar.anchor.util.NetUtil;
 
@@ -31,7 +31,7 @@ public class Sep1Service {
           break;
         case FILE:
           debugF("reading stellar.toml from {}", sep1Config.getValue());
-          tomlValue = Files.readString(Path.of(sep1Config.getValue()));
+          tomlValue = FileUtil.read(Path.of(sep1Config.getValue()));
           break;
         case URL:
           debugF("reading stellar.toml from {}", sep1Config.getValue());

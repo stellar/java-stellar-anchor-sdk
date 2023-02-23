@@ -357,7 +357,7 @@ private const val expectedSep24Info =
       }
     },
     "fee": {
-      "enabled": true
+      "enabled": false
     },
     "features": {
       "account_creation": false,

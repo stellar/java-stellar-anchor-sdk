@@ -72,7 +72,7 @@ internal class Sep24ServiceTest {
 
   @MockK(relaxed = true) lateinit var moreInfoUrlConstructor: MoreInfoUrlConstructor
 
-  private val assetService: AssetService = DefaultAssetService.fromResource("test_assets.json")
+  private val assetService: AssetService = DefaultAssetService.fromJsonResource("test_assets.json")
 
   private lateinit var jwtService: JwtService
   private lateinit var sep24Service: Sep24Service
@@ -462,7 +462,9 @@ internal class Sep24ServiceTest {
     assertEquals(1, response.withdraw.size)
     assertNotNull(response.deposit["USDC"])
     assertNotNull(response.withdraw["USDC"])
-    assertTrue(response.fee.enabled)
+    assertFalse(response.fee.enabled)
+    assertFalse(response.features.accountCreation)
+    assertFalse(response.features.claimableBalances)
   }
 
   @Test

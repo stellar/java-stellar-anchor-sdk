@@ -66,7 +66,7 @@ class Sep38ServiceTest {
   fun setUp() {
     MockKAnnotations.init(this, relaxUnitFun = true)
 
-    val assetService = DefaultAssetService.fromResource("test_assets.json")
+    val assetService = DefaultAssetService.fromJsonResource("test_assets.json")
     val assets = assetService.listAllAssets()
     val sep8Config = PropertySep38Config()
     this.sep38Service = Sep38Service(sep8Config, assetService, null, null, eventService)

@@ -4,7 +4,6 @@ services:
     image: stellar/anchor-platform:edge
     command: --sep-server
     environment:
-      - stellar_anchor_config=file:/config/anchor-config.yaml
       # secrets
       - secret.data.username=postgres
       - secret.data.password=password
@@ -24,9 +23,14 @@ services:
       - data.type=postgres
       - data.server=db:5432
       - data.database=postgres
-      - data.flyway_enabled=false
+      - data.flyway_enabled=true
+      # assets
+      - assets.type=file
+      - assets.value=/config/assets.yaml
       # seps
       - sep1.enabled=true
+      - sep1.toml.type=file
+      - sep1.toml.value=/config/stellar.toml
       - sep10.enabled=true
       - sep10.home_domain=localhost:8080
       - sep24.enabled=true
