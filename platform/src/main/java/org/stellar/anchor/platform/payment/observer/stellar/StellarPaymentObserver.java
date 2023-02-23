@@ -476,6 +476,7 @@ public class StellarPaymentObserver implements HealthCheckable {
       case STREAM_ERROR:
       case SILENCE_ERROR:
       case PUBLISHER_ERROR:
+      case DATABASE_ERROR:
         status = YELLOW;
         break;
       case NEEDS_SHUTDOWN:
