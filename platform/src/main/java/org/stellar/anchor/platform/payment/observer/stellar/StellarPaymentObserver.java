@@ -2,8 +2,7 @@ package org.stellar.anchor.platform.payment.observer.stellar;
 
 import static org.stellar.anchor.api.platform.HealthCheckStatus.*;
 import static org.stellar.anchor.platform.payment.observer.stellar.ObserverStatus.*;
-import static org.stellar.anchor.util.Log.debugF;
-import static org.stellar.anchor.util.Log.infoF;
+import static org.stellar.anchor.util.Log.*;
 import static org.stellar.anchor.util.ReflectionUtil.getField;
 
 import com.google.gson.annotations.SerializedName;
@@ -20,6 +19,7 @@ import java.util.concurrent.atomic.AtomicReference;
 import lombok.Builder;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.transaction.TransactionException;
 import org.stellar.anchor.api.exception.EventPublishException;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.exception.ValueValidationException;
@@ -46,31 +46,33 @@ public class StellarPaymentObserver implements HealthCheckable {
   private static final int MAX_RESULTS = 200;
   /** The minimum number of results the Stellar Blockchain can return. */
   private static final int MIN_RESULTS = 1;
-
-  // If the observer had been silent for longer than SILENC_TIMEOUT, a SilenceTimeoutException will
-  // be thrown to trigger reconnections.
+  /**
+   * If the observer had been silent for longer than SILENC_TIMEOUT, a SilenceTimeoutException will
+   * be thrown to trigger reconnections.
+   */
   private static final long SILENCE_TIMEOUT = 90;
-  // If the observer has more than 2 SILENCE_TIMEOUT_RETRIES, it will be marked unhealthy
+  /** If the observer has more than 2 SILENCE_TIMEOUT_RETRIES, it will be marked unhealthy */
   private static final long SILENCE_TIMEOUT_RETRIES = 2;
-
-  // The time interval between silence checks
+  /** The time interval between silence checks */
   private static final long SILENCE_CHECK_INTERVAL = 5;
 
+  // Horizon server
   final Server server;
   final Set<PaymentListener> paymentListeners;
   final StellarPaymentStreamerCursorStore paymentStreamerCursorStore;
   final Map<SSEStream<OperationResponse>, String> mapStreamToAccount = new HashMap<>();
   final PaymentObservingAccountsManager paymentObservingAccountsManager;
   SSEStream<OperationResponse> stream;
-
-  final ExponentialBackoffTimer publishingBackoffTimer = new ExponentialBackoffTimer();
-  final ExponentialBackoffTimer streamBackoffTimer = new ExponentialBackoffTimer();
   int silenceTimeoutCount = 0;
-
   ObserverStatus status = RUNNING;
-
   Instant lastActivityTime;
 
+  // timers
+  final ExponentialBackoffTimer publishingBackoffTimer = new ExponentialBackoffTimer();
+  final ExponentialBackoffTimer streamBackoffTimer = new ExponentialBackoffTimer();
+  final ExponentialBackoffTimer databaseBackoffTimer = new ExponentialBackoffTimer(1, 20);
+
+  // schedulers
   ScheduledExecutorService silenceWatcher = Executors.newSingleThreadScheduledExecutor();
   ScheduledExecutorService statusWatcher = Executors.newSingleThreadScheduledExecutor();
 
@@ -135,12 +137,22 @@ public class StellarPaymentObserver implements HealthCheckable {
         new EventListener<>() {
           @Override
           public void onEvent(OperationResponse operationResponse) {
-            debugF("received event {}", operationResponse.getId());
-            // clear stream timeout/reconnect status
-            lastActivityTime = Instant.now();
-            silenceTimeoutCount = 0;
-            streamBackoffTimer.reset();
-            handleEvent(operationResponse);
+            if (isHealthy()) {
+              debugF("Received event {}", operationResponse.getId());
+              // clear stream timeout/reconnect status
+              lastActivityTime = Instant.now();
+              silenceTimeoutCount = 0;
+              streamBackoffTimer.reset();
+              try {
+                debugF("Dispatching event {}", operationResponse.getId());
+                handleEvent(operationResponse);
+              } catch (TransactionException ex) {
+                errorEx("Error handling events", ex);
+                setStatus(DATABASE_ERROR);
+              }
+            } else {
+              warnF("Observer is not healthy. Ignore event {}", operationResponse.getId());
+            }
           }
 
           @Override
@@ -158,7 +170,7 @@ public class StellarPaymentObserver implements HealthCheckable {
   }
 
   void checkSilence() {
-    if (status != NEEDS_SHUTDOWN && status != SHUTDOWN) {
+    if (isHealthy()) {
       Instant now = Instant.now();
       if (lastActivityTime != null) {
         Duration silenceDuration = Duration.between(lastActivityTime, now);
@@ -174,9 +186,14 @@ public class StellarPaymentObserver implements HealthCheckable {
 
   void restartStream() {
     infoF("Restarting the stream");
-    stopStream();
-    startStream();
-    setStatus(RUNNING);
+    try {
+      stopStream();
+      startStream();
+      setStatus(RUNNING);
+    } catch (TransactionException tex) {
+      errorEx("Error restarting stream.", tex);
+      setStatus(DATABASE_ERROR);
+    }
   }
 
   void checkStatus() {
@@ -223,15 +240,42 @@ public class StellarPaymentObserver implements HealthCheckable {
         break;
       case PUBLISHER_ERROR:
         try {
-          infoF(
-              "Start the publishing backoff timer: {} seconds",
-              publishingBackoffTimer.currentTimer());
-          publishingBackoffTimer.sleep();
-          publishingBackoffTimer.increase();
-          restartStream();
+          if (publishingBackoffTimer.isTimerMaxed()) {
+            infoF("The streamer publisher timer is maxed. Shutdown the observer");
+            setStatus(NEEDS_SHUTDOWN);
+          } else {
+            infoF(
+                "Start the publishing backoff timer: {} seconds",
+                publishingBackoffTimer.currentTimer());
+            publishingBackoffTimer.sleep();
+            publishingBackoffTimer.increase();
+            restartStream();
+          }
         } catch (InterruptedException e) {
           // if this thread is interrupted, we are shutting down the status watcher.
           setStatus(NEEDS_SHUTDOWN);
+        }
+        break;
+      case DATABASE_ERROR:
+        try {
+          if (databaseBackoffTimer.isTimerMaxed()) {
+            infoF("The database timer is maxed. Shutdown the observer");
+            setStatus(NEEDS_SHUTDOWN);
+          } else {
+            infoF(
+                "Start the database backoff timer: {} seconds",
+                databaseBackoffTimer.currentTimer());
+            databaseBackoffTimer.sleep();
+            databaseBackoffTimer.increase();
+            // now try to connect to database
+            restartStream();
+          }
+        } catch (InterruptedException e) {
+          // if this thread is interrupted, we are shutting down the status watcher.
+          setStatus(NEEDS_SHUTDOWN);
+        } catch (TransactionException tex) {
+          // database is still not available.
+          infoF("Still cannot connect to database");
         }
         break;
       case RUNNING:
@@ -251,7 +295,8 @@ public class StellarPaymentObserver implements HealthCheckable {
    */
   String fetchStreamingCursor() {
     // Use database value, if any.
-    String lastToken = paymentStreamerCursorStore.load();
+    String lastToken = loadPagingToken();
+    // now that the database connection is good, we are resetting the backoff timer
     if (lastToken != null) {
       return lastToken;
     }
@@ -262,7 +307,7 @@ public class StellarPaymentObserver implements HealthCheckable {
       pageOpResponse =
           server.payments().order(RequestBuilder.Order.DESC).limit(MIN_RESULTS).execute();
     } catch (IOException e) {
-      Log.errorEx("Error fetching the latest /payments result.", e);
+      errorEx("Error fetching the latest /payments result.", e);
       return null;
     }
 
@@ -276,7 +321,7 @@ public class StellarPaymentObserver implements HealthCheckable {
 
   void handleEvent(OperationResponse operationResponse) {
     if (!operationResponse.isTransactionSuccessful()) {
-      paymentStreamerCursorStore.save(operationResponse.getPagingToken());
+      savePagingToken(operationResponse.getPagingToken());
       return;
     }
 
@@ -300,7 +345,7 @@ public class StellarPaymentObserver implements HealthCheckable {
     }
 
     if (observedPayment == null) {
-      paymentStreamerCursorStore.save(operationResponse.getPagingToken());
+      savePagingToken(operationResponse.getPagingToken());
     } else {
       try {
         if (paymentObservingAccountsManager.lookupAndUpdate(observedPayment.getTo())) {
@@ -320,10 +365,13 @@ public class StellarPaymentObserver implements HealthCheckable {
       } catch (EventPublishException ex) {
         // restart the observer from where it stopped, in case the queue fails to
         // publish the message.
-        Log.errorEx("Failed to send event to payment listeners.", ex);
+        errorEx("Failed to send event to payment listeners.", ex);
         setStatus(PUBLISHER_ERROR);
+      } catch (TransactionException tex) {
+        errorEx("Cannot save the cursor to database", tex);
+        setStatus(DATABASE_ERROR);
       } catch (Throwable t) {
-        Log.errorEx("Something went wrong in the observer while sending the event", t);
+        errorEx("Something went wrong in the observer while sending the event", t);
         setStatus(PUBLISHER_ERROR);
       }
     }
@@ -333,15 +381,34 @@ public class StellarPaymentObserver implements HealthCheckable {
     // The SSEStreamer has internal errors. We will give up and let the container
     // manager to
     // restart.
-    Log.errorEx("stellar payment observer stream error: ", exception.get());
+    errorEx("stellar payment observer stream error: ", exception.get());
 
     // Mark the observer unhealthy
     setStatus(STREAM_ERROR);
   }
 
+  private String loadPagingToken() {
+    String token = paymentStreamerCursorStore.load();
+    databaseBackoffTimer.reset();
+    return token;
+  }
+
+  void savePagingToken(String token) {
+    paymentStreamerCursorStore.save(token);
+    databaseBackoffTimer.reset();
+  }
+
   void setStatus(ObserverStatus status) {
-    debugF("Setting status to {}", status);
-    this.status = status;
+    if (this.status.isSettable(status)) {
+      debugF("Setting status to {}", status);
+      this.status = status;
+    } else {
+      warnF("Cannot set status to {} while the current status is {}", status, this.status);
+    }
+  }
+
+  boolean isHealthy() {
+    return (status == RUNNING);
   }
 
   public static Builder builder() {
@@ -503,10 +570,43 @@ class StreamHealth {
 }
 
 enum ObserverStatus {
+  // healthy
   RUNNING,
-  STREAM_ERROR,
-  SILENCE_ERROR,
+  // errors
+  DATABASE_ERROR,
   PUBLISHER_ERROR,
+  SILENCE_ERROR,
+  STREAM_ERROR,
+  // shutdown
   NEEDS_SHUTDOWN,
-  SHUTDOWN,
+  SHUTDOWN;
+
+  static final Map<ObserverStatus, Set<ObserverStatus>> stateTransition = new HashMap<>();
+
+  // Build the state transition
+  static {
+    addStateTransition(
+        RUNNING,
+        DATABASE_ERROR,
+        PUBLISHER_ERROR,
+        SILENCE_ERROR,
+        STREAM_ERROR,
+        NEEDS_SHUTDOWN,
+        SHUTDOWN);
+    addStateTransition(DATABASE_ERROR, RUNNING, NEEDS_SHUTDOWN, SHUTDOWN);
+    addStateTransition(PUBLISHER_ERROR, RUNNING, NEEDS_SHUTDOWN, SHUTDOWN);
+    addStateTransition(SILENCE_ERROR, RUNNING, NEEDS_SHUTDOWN, SHUTDOWN);
+    addStateTransition(STREAM_ERROR, RUNNING, NEEDS_SHUTDOWN, SHUTDOWN);
+    addStateTransition(NEEDS_SHUTDOWN, SHUTDOWN);
+    addStateTransition(SHUTDOWN, SHUTDOWN);
+  }
+
+  static void addStateTransition(ObserverStatus source, ObserverStatus... dests) {
+    stateTransition.put(source, Set.of(dests));
+  }
+
+  public boolean isSettable(ObserverStatus dest) {
+    Set<ObserverStatus> dests = stateTransition.get(this);
+    return dests != null && dests.contains(dest);
+  }
 }
