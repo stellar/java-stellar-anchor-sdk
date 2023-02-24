@@ -369,7 +369,7 @@ public class Sep24Service {
   JwtToken buildRedirectJwtToken(String fullRequestUrl, JwtToken token, Sep24Transaction txn) {
     return JwtToken.of(
         fullRequestUrl,
-        token.getAccount(),
+        token.getSub(),
         Instant.now().getEpochSecond(),
         Instant.now().getEpochSecond() + sep24Config.getInteractiveJwtExpiration(),
         txn.getTransactionId(),
