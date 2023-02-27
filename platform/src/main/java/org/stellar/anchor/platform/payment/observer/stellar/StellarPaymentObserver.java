@@ -399,11 +399,13 @@ public class StellarPaymentObserver implements HealthCheckable {
   }
 
   void setStatus(ObserverStatus status) {
-    if (this.status.isSettable(status)) {
-      debugF("Setting status to {}", status);
-      this.status = status;
-    } else {
-      warnF("Cannot set status to {} while the current status is {}", status, this.status);
+    if (this.status != status) {
+      if (this.status.isSettable(status)) {
+        debugF("Setting status to {}", status);
+        this.status = status;
+      } else {
+        warnF("Cannot set status to {} while the current status is {}", status, this.status);
+      }
     }
   }
 
