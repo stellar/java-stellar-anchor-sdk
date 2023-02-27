@@ -21,12 +21,8 @@ sep1:
       ANCHOR_QUOTE_SERVER = "http://localhost:8080/sep38"
       
       [[CURRENCIES]]
-      code = "SRT"
-      issuer = "GCDNJUBQSX7AJWLJACMJ7I4BC3Z47BQUTMHEICZLE6MU4KQBRYG5JY6B"
-      status = "test"
-      is_asset_anchored = false
-      anchor_asset_type = "other"
-      desc = "A fake anchored asset to use with this example anchor server."
+      code = "USDC"
+      issuer = "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
       
       [DOCUMENTATION]
       ORG_NAME = "Stellar Development Foundation"

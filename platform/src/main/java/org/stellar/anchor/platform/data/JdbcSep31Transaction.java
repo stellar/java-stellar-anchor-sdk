@@ -33,30 +33,39 @@ public class JdbcSep31Transaction extends JdbcSepTransaction
   @Id String id;
 
   @SerializedName("status_eta")
+  @Column(name = "status_eta")
   Long statusEta;
 
   @SerializedName("stellar_account_id")
+  @Column(name = "stellar_account_id")
   String stellarAccountId;
 
   @SerializedName("stellar_memo")
+  @Column(name = "stellar_memo")
   String stellarMemo;
 
   @SerializedName("stellar_memo_type")
+  @Column(name = "stellar_memo_type")
   String stellarMemoType;
 
   @SerializedName("quote_id")
+  @Column(name = "quote_id")
   String quoteId;
 
   @SerializedName("client_domain")
+  @Column(name = "client_domain")
   String clientDomain;
 
   @SerializedName("sender_id")
+  @Column(name = "sender_id")
   String senderId;
 
   @SerializedName("receiver_id")
+  @Column(name = "receiver_id")
   String receiverId;
 
   @SerializedName("required_info_message")
+  @Column(name = "required_info_message")
   String requiredInfoMessage;
 
   @Convert(converter = StellarIdConverter.class)

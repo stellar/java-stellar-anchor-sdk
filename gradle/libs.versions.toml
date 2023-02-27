@@ -52,7 +52,7 @@ toml4j = "0.7.2"
 
 # Plugin versions
 spotless = "6.9.1"
-spring-boot = "2.6.8"
+spring-boot = "2.6.14"
 spring-dependency-management = "1.1.0"
 
 [libraries]

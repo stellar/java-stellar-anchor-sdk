@@ -22,39 +22,51 @@ public abstract class JdbcSepTransaction {
   String status;
 
   @SerializedName("updated_at")
+  @Column(name = "updated_at")
   Instant updatedAt;
 
   @SerializedName("amount_in")
+  @Column(name = "amount_in")
   String amountIn;
 
   @SerializedName("amount_in_asset")
+  @Column(name = "amount_in_asset")
   String amountInAsset;
 
   @SerializedName("amount_out")
+  @Column(name = "amount_out")
   String amountOut;
 
   @SerializedName("amount_out_asset")
+  @Column(name = "amount_out_asset")
   String amountOutAsset;
 
   @SerializedName("amount_fee")
+  @Column(name = "amount_fee")
   String amountFee;
 
   @SerializedName("amount_fee_asset")
+  @Column(name = "amount_fee_asset")
   String amountFeeAsset;
 
   @SerializedName("started_at")
+  @Column(name = "started_at")
   Instant startedAt;
 
   @SerializedName("completed_at")
+  @Column(name = "completed_at")
   Instant completedAt;
 
   @SerializedName("transfer_received_at")
+  @Column(name = "transfer_received_at")
   Instant transferReceivedAt;
 
   @SerializedName("stellar_transaction_id")
+  @Column(name = "stellar_transaction_id")
   String stellarTransactionId;
 
   @SerializedName("external_transaction_id")
+  @Column(name = "external_transaction_id")
   String externalTransactionId;
 
   @Column(columnDefinition = "json")

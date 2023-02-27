@@ -25,5 +25,6 @@ public class PaymentObservingAccount {
   @Id
   String account;
 
+  @Column(name = "last_observed")
   Instant lastObserved;
 }
