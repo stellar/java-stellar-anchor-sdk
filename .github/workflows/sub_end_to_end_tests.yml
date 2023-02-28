@@ -1,15 +1,9 @@
-name: End-2-End Integration Tests
+name: end-2-end Integration Tests
 
 on:
+  # allows this workflow to be called from another workflow
   workflow_dispatch:
-  workflow_call: # Allows this workflow to be called from another workflow
-  push:
-    branches:
-      - main
-#      - develop
-      - 'release/**'
-      - 'releases/**'
-#      - 'hotfix/**'
+  workflow_call:
 
 jobs:
   end_to_end_tests:
