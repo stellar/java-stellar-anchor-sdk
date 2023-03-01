@@ -45,7 +45,7 @@ class AnchorPlatformIntegrationTest {
           "sep24.port" to "8091",
           "sep24.anchorPlatformUrl" to "http://localhost:8080",
           "sep24.horizonUrl" to "https://horizon-testnet.stellar.org",
-          "sep24.secret" to "SDYGC4TW5HHR5JA6CB2XLTTBF2DZRH2KDPBDPV3D5TXM6GF7FBPRZF3I",
+          "sep24.secret" to "SCQ2YRUGKBO4Q6RWSXV3SYVGHJB525XVKUP2HDGVW3LV42UBLGTZ24XX",
           "sep24.mode" to "test"
         )
 

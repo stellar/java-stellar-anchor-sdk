@@ -124,7 +124,7 @@ assets:
           "schema": "stellar",
           "code": "USDC",
           "issuer": "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-          "distribution_account": "GCNVZJLJ5XZZALLZBR7BGUMGMF2KVZTBIGTU2A5KOPS2PPCZS6PV4LAD",
+          "distribution_account": "GCHU3RZAECOKGM2YAJLQIIYB2ZPLMFTTGN5D3XZNX4RDOEERVLXO7HU4",
           "significant_decimals": 2,
           "deposit": {
             "enabled": true,
