@@ -1,6 +1,6 @@
 version: '2.4'
 services:
-  reference_server_a:
+  reference_server:
     image: stellar/anchor-platform:edge
     command: --anchor-reference-server
     environment:
@@ -12,8 +12,37 @@ services:
       - .:/config
     ports:
       - "8081:8081" # reference-server
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
-  kafka_a:
+  observer:
+    image: stellar/anchor-platform:edge
+    build:
+      context: ../../
+      dockerfile: integration-tests/docker-compose-configs/Dockerfile
+    command: "--stellar-observer"
+    environment:
+      - SECRET_SEP10_SIGNING_SEED=SAKXNWVTRVR4SJSHZUDB2CLJXEQHRT62MYQWA2HBB7YBOTCFJJJ55BZF
+      - SECRET_SEP10_JWT_SECRET=secret
+      - SECRET_PLATFORM_API_AUTH_SECRET=myAnchorToPlatformSecret
+      - SECRET_CALLBACK_API_AUTH_SECRET=myPlatformToAnchorSecret
+      - SECRET_DATA_USERNAME=postgres
+      - SECRET_DATA_PASSWORD=password
+      - LOG_APPENDER=console_appender
+      # assets
+      - ASSETS_TYPE=file
+      - ASSETS_VALUE=/config/assets.yaml
+    volumes:
+      # add mounts for the new config directory
+      - .:/config
+    depends_on:
+      - db
+      - kafka
+      - reference_server
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  kafka:
     platform: linux/x86_64
     image: confluentinc/cp-kafka:6.1.9
     depends_on:
@@ -27,8 +56,10 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
-  zookeeper_a:
+  zookeeper:
     platform: linux/x86_64
     image: confluentinc/cp-zookeeper:6.1.9
     environment:
@@ -36,11 +67,16 @@ services:
       ZOOKEEPER_TICK_TIME: 2000
     ports:
       - "2181:2181"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
-  db_a:
+  db:
     image: postgres:latest
     ports:
-      - "5432:5432"
+      - "5440:5440"
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=password
+      - PGPORT=5440
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

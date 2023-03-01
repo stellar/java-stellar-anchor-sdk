@@ -21,7 +21,7 @@ services:
       - events.publisher.kafka.bootstrap_server=kafka:29092
       # data
       - data.type=postgres
-      - data.server=db:5432
+      - data.server=db:5440
       - data.database=postgres
       - data.flyway_enabled=true
       # assets
@@ -45,25 +45,32 @@ services:
     ports:
       - "8080:8080" # sep-server
       - "8082:8082" # Java management server
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  observer:
+    extends:
+      file: ../common-services/common-services.yaml
+      service: observer
 
   reference_server:
     extends:
       file: ../common-services/common-services.yaml
-      service: reference_server_a
+      service: reference_server
 
   kafka:
     extends:
       file: ../common-services/common-services.yaml
-      service: kafka_a
+      service: kafka
 
   zookeeper:
     extends:
       file: ../common-services/common-services.yaml
-      service: zookeeper_a
+      service: zookeeper
 
   db:
     extends:
       file: ../common-services/common-services.yaml
-      service: db_a
+      service: db
 
 

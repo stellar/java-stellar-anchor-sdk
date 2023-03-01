@@ -1,0 +1,15 @@
+assets:
+  - schema: stellar
+    code: USDC
+    issuer: GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP
+    distribution_account: GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF
+    significant_decimals: 2
+    deposit:
+      enabled: true
+      min_amount: 1
+      max_amount: 1000000
+    withdraw:
+      enabled: true
+      min_amount: 1
+      max_amount: 1000000
+    sep24_enabled: true
