@@ -34,7 +34,7 @@ services:
       - ASSETS_VALUE=/config/assets.yaml
     volumes:
       # add mounts for the new config directory
-      - .:/config
+      - ../sep24/:/config
     depends_on:
       - db
       - kafka
