@@ -34,7 +34,7 @@ data class PatchTransactionTransaction(
   @SerialName("amount_in") val amountIn: Amount? = null,
   @SerialName("amount_out") val amountOut: Amount? = null,
   @SerialName("amount_fee") val amountFee: Amount? = null,
-  @SerialName("stellar_transaction_id") val stellarTransactionId: String? = null,
+  @SerialName("stellar_transactions") val stellarTransactions: List<StellarTransaction>? = null,
   val memo: String? = null,
   @SerialName("memo_type") val memoType: String? = null,
 )

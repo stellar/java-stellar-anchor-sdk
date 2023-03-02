@@ -1,8 +1,6 @@
 package com.example.sep24
 
-import com.example.data.Amount
-import com.example.data.Config
-import com.example.data.PatchTransactionTransaction
+import com.example.data.*
 import java.math.BigDecimal
 import mu.KotlinLogging
 
@@ -48,7 +46,7 @@ class DepositService(cfg: Config) {
       val txHash = sep24.sendStellarTransaction(account, asset, amount, memo, memoType)
 
       // 6. Finalize anchor transaction
-      finalize(transactionId, txHash)
+      finalize(transactionId, txHash, asset, amount)
 
       log.info { "Transaction completed: $transactionId" }
     } catch (e: Exception) {
@@ -84,13 +82,27 @@ class DepositService(cfg: Config) {
     return amount.multiply(BigDecimal.valueOf(0.1))
   }
 
-  private suspend fun finalize(transactionId: String, stellarTransactionId: String) {
+  private suspend fun finalize(
+    transactionId: String,
+    stellarTransactionId: String,
+    asset: String,
+    amount: BigDecimal
+  ) {
     sep24.patchTransaction(
       PatchTransactionTransaction(
         transactionId,
         "completed",
         message = "completed",
-        stellarTransactionId = stellarTransactionId
+        stellarTransactions =
+          listOf(
+            StellarTransaction(
+              stellarTransactionId,
+              payments =
+                listOf(
+                  StellarPayment(id = stellarTransactionId, Amount(amount.toPlainString(), asset))
+                )
+            )
+          )
       )
     )
   }
