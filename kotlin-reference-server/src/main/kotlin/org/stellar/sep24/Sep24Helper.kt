@@ -1,7 +1,5 @@
-package com.example.sep24
+package org.stellar.sep24
 
-import com.example.data.*
-import com.example.data.Transaction
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.contentnegotiation.*
@@ -16,6 +14,8 @@ import kotlinx.coroutines.delay
 import kotlinx.serialization.json.Json
 import mu.KotlinLogging
 import org.apache.commons.codec.binary.Hex
+import org.stellar.data.*
+import org.stellar.data.Transaction
 import org.stellar.sdk.*
 
 class Sep24Helper(private val cfg: Config) {
@@ -29,11 +29,15 @@ class Sep24Helper(private val cfg: Config) {
 
   val server = Server(cfg.sep24.horizonUrl)
 
-  internal suspend fun patchTransaction(patchRecord: PatchTransactionTransaction) {
+  internal suspend fun patchTransaction(patchRecord: org.stellar.data.PatchTransactionTransaction) {
     val resp =
       client.patch("$baseUrl/transactions") {
         contentType(ContentType.Application.Json)
-        setBody(PatchTransactionsRequest(listOf(PatchTransactionRecord(patchRecord))))
+        setBody(
+          org.stellar.data.PatchTransactionsRequest(
+            listOf(org.stellar.data.PatchTransactionRecord(patchRecord))
+          )
+        )
       }
 
     if (resp.status != HttpStatusCode.OK) {
@@ -50,7 +54,9 @@ class Sep24Helper(private val cfg: Config) {
     newStatus: String,
     message: String? = null
   ) {
-    patchTransaction(PatchTransactionTransaction(transactionId, newStatus, message))
+    patchTransaction(
+      org.stellar.data.PatchTransactionTransaction(transactionId, newStatus, message)
+    )
   }
 
   internal suspend fun getTransaction(transactionId: String): Transaction {

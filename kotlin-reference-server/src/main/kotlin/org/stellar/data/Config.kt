@@ -1,4 +1,4 @@
-package com.example.data
+package org.stellar.data
 
 import org.stellar.sdk.KeyPair
 

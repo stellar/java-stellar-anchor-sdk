@@ -1,9 +1,9 @@
 package org.stellar.anchor.platform;
 
-import com.example.RefenreceServerStartKt;
 import java.util.Map;
 import org.apache.commons.cli.*;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.stellar.RefenreceServerStartKt;
 import org.stellar.anchor.reference.AnchorReferenceServer;
 
 public class ServiceRunner {
@@ -18,6 +18,7 @@ public class ServiceRunner {
         "o", "stellar-observer", false, "Start Observer that streams from the Stellar blockchain.");
     options.addOption("e", "event-processor", false, "Start the event processor.");
     options.addOption("r", "anchor-reference-server", false, "Start anchor reference server.");
+    options.addOption("k", "kotlin-reference-server", false, "Start Kotlin reference server.");
 
     CommandLineParser parser = new DefaultParser();
 
@@ -40,7 +41,12 @@ public class ServiceRunner {
       }
 
       if (cmd.hasOption("anchor-reference-server") || cmd.hasOption("all")) {
-        startAnchorReferenceServer(true);
+        startAnchorReferenceServer();
+        anyServerStarted = true;
+      }
+
+      if (cmd.hasOption("kotlin-reference-server") || cmd.hasOption("all")) {
+        startKotlinReferenceServer(true);
         anyServerStarted = true;
       }
 
@@ -64,7 +70,7 @@ public class ServiceRunner {
     return EventProcessingServer.start(env);
   }
 
-  static void startAnchorReferenceServer(boolean waitKotlinServer) {
+  static void startAnchorReferenceServer() {
     String strPort = System.getProperty("ANCHOR_REFERENCE_SERVER_PORT");
 
     int port = DEFAULT_ANCHOR_REFERENCE_SERVER_PORT;
@@ -74,7 +80,10 @@ public class ServiceRunner {
     }
 
     AnchorReferenceServer.start(port, "/");
-    RefenreceServerStartKt.start(waitKotlinServer);
+  }
+
+  static void startKotlinReferenceServer(boolean wait) {
+    RefenreceServerStartKt.start(wait);
   }
 
   static void printUsage(Options options) {

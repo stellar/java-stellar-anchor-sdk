@@ -1,4 +1,4 @@
-package com.example.data
+package org.stellar.data
 
 import kotlinx.serialization.Serializable
 

@@ -40,7 +40,12 @@ fun main(args: Array<String>) {
 
     // Start anchor reference server if enabled.
     if (cmd.hasOption("anchor-reference-server") || cmd.hasOption("all")) {
-      ServiceRunner.startAnchorReferenceServer(false)
+      ServiceRunner.startAnchorReferenceServer()
+    }
+
+    // Start anchor reference server if enabled.
+    if (cmd.hasOption("kotlin-reference-server") || cmd.hasOption("all")) {
+      ServiceRunner.startKotlinReferenceServer(false)
     }
 
     val tests = cmd.getOptionValues("p")

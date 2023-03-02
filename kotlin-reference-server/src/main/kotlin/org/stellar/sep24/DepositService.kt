@@ -1,8 +1,8 @@
-package com.example.sep24
+package org.stellar.sep24
 
-import com.example.data.*
 import java.math.BigDecimal
 import mu.KotlinLogging
+import org.stellar.data.*
 
 private val log = KotlinLogging.logger {}
 

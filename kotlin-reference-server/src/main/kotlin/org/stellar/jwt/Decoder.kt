@@ -1,10 +1,10 @@
-package com.example.jwt
+package org.stellar.jwt
 
-import com.example.data.JwtToken
 import io.jsonwebtoken.Claims
 import io.jsonwebtoken.JwtParser
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.impl.DefaultJwsHeader
+import org.stellar.data.JwtToken
 
 object JwtDecoder {
   fun decode(cipher: String, jwtKey: String): JwtToken {

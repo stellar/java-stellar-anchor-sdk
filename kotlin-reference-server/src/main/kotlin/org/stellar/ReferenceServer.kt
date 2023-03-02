@@ -1,10 +1,5 @@
-package com.example
+package org.stellar
 
-import com.example.data.Config
-import com.example.data.LocationConfig
-import com.example.plugins.sep24
-import com.example.plugins.testSep24
-import com.example.sep24.*
 import com.sksamuel.hoplite.ConfigLoaderBuilder
 import com.sksamuel.hoplite.PropertySource
 import com.sksamuel.hoplite.addFileSource
@@ -18,6 +13,14 @@ import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.server.plugins.cors.routing.*
 import io.ktor.server.routing.*
 import mu.KotlinLogging
+import org.stellar.data.Config
+import org.stellar.data.LocationConfig
+import org.stellar.plugins.sep24
+import org.stellar.plugins.testSep24
+import org.stellar.sep24.*
+import org.stellar.sep24.DepositService
+import org.stellar.sep24.Sep24Helper
+import org.stellar.sep24.WithdrawalService
 
 val log = KotlinLogging.logger {}
 

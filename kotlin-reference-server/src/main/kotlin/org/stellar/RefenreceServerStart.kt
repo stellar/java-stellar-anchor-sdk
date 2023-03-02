@@ -1,4 +1,4 @@
-package com.example
+package org.stellar
 
 // Used in ServiceRunner
 @JvmOverloads // Annotation required to call from Java with optional argument

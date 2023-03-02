@@ -1,14 +1,5 @@
-package com.example.plugins
+package org.stellar.plugins
 
-import com.example.ClientException
-import com.example.data.DepositRequest
-import com.example.data.ErrorResponse
-import com.example.data.Success
-import com.example.data.WithdrawalRequest
-import com.example.jwt.JwtDecoder
-import com.example.sep24.DepositService
-import com.example.sep24.Sep24Helper
-import com.example.sep24.WithdrawalService
 import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.request.*
@@ -19,6 +10,15 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import mu.KotlinLogging
+import org.stellar.ClientException
+import org.stellar.data.DepositRequest
+import org.stellar.data.ErrorResponse
+import org.stellar.data.Success
+import org.stellar.data.WithdrawalRequest
+import org.stellar.jwt.JwtDecoder
+import org.stellar.sep24.DepositService
+import org.stellar.sep24.Sep24Helper
+import org.stellar.sep24.WithdrawalService
 
 private val log = KotlinLogging.logger {}
 
