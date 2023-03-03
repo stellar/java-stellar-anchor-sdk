@@ -1,5 +1,9 @@
 # Changelog
 
+## 2.0.0
+* Redesign configuration management.
+* Implement SEP-24.
+
 ## 1.2.6
 * Add bank_account_type to SEP-9 and customer field [#750](https://github.com/stellar/java-stellar-anchor-sdk/pull/750)
 
