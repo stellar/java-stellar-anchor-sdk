@@ -22,16 +22,15 @@ services:
       dockerfile: integration-tests/docker-compose-configs/Dockerfile
     command: "--stellar-observer"
     environment:
-      - SECRET_SEP10_SIGNING_SEED=SAKXNWVTRVR4SJSHZUDB2CLJXEQHRT62MYQWA2HBB7YBOTCFJJJ55BZF
-      - SECRET_SEP10_JWT_SECRET=secret
-      - SECRET_PLATFORM_API_AUTH_SECRET=myAnchorToPlatformSecret
-      - SECRET_CALLBACK_API_AUTH_SECRET=myPlatformToAnchorSecret
-      - SECRET_DATA_USERNAME=postgres
-      - SECRET_DATA_PASSWORD=password
-      - LOG_APPENDER=console_appender
+      - secret.sep10.signing_seed=SAKXNWVTRVR4SJSHZUDB2CLJXEQHRT62MYQWA2HBB7YBOTCFJJJ55BZF
+      - secret.sep10.jwt_secret=secret
+      - secret.platform.api_auth_secret=myAnchorToPlatformSecret
+      - secret.callback.api_auth_secret=myPlatformToAnchorSecret
+      - secret.data.username=postgres
+      - secret.data.password=password
       # assets
-      - ASSETS_TYPE=file
-      - ASSETS_VALUE=/config/assets.yaml
+      - assets.type=file
+      - assets.value=/config/assets.yaml
     volumes:
       # add mounts for the new config directory
       - ../sep24/:/config
@@ -75,8 +74,8 @@ services:
     ports:
       - "5440:5440"
     environment:
-      - POSTGRES_USER=postgres
+      - POSTGRES_USERa=postgres
       - POSTGRES_PASSWORD=password
-      - PGPORT=5440
+      - PGPORT=5432
     extra_hosts:
       - "host.docker.internal:host-gateway"

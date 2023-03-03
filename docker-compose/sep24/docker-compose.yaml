@@ -21,7 +21,7 @@ services:
       - events.publisher.kafka.bootstrap_server=kafka:29092
       # data
       - data.type=postgres
-      - data.server=db:5440
+      - data.server=db:5432
       - data.database=postgres
       - data.flyway_enabled=true
       # assets
