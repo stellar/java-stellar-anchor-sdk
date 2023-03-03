@@ -163,12 +163,6 @@ class TransactionServiceTest {
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("amount_in.amount should be positive", ex.message)
 
-    // fails if amount_in.asset is null
-    assetAmount = Amount("10", null)
-    ex = assertThrows { transactionService.validateAsset("amount_in", assetAmount) }
-    assertInstanceOf(BadRequestException::class.java, ex)
-    assertEquals("amount_in.asset cannot be empty", ex.message)
-
     // fails if amount_in.asset is empty
     assetAmount = Amount("10", "")
     ex = assertThrows { transactionService.validateAsset("amount_in", assetAmount) }

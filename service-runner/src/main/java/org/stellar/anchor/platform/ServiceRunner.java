@@ -1,12 +1,10 @@
 package org.stellar.anchor.platform;
 
-import static com.example.ReferenceServerKt.DEFAULT_KOTLIN_REFERENCE_SERVER_PORT;
-
-import com.example.RefenreceServerStartKt;
 import java.util.Map;
 import org.apache.commons.cli.*;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.stellar.anchor.reference.AnchorReferenceServer;
+import org.stellar.reference.RefenreceServerStartKt;
 
 public class ServiceRunner {
   public static final int DEFAULT_ANCHOR_REFERENCE_SERVER_PORT = 8081;
@@ -20,6 +18,7 @@ public class ServiceRunner {
         "o", "stellar-observer", false, "Start Observer that streams from the Stellar blockchain.");
     options.addOption("e", "event-processor", false, "Start the event processor.");
     options.addOption("r", "anchor-reference-server", false, "Start anchor reference server.");
+    options.addOption("k", "kotlin-reference-server", false, "Start Kotlin reference server.");
 
     CommandLineParser parser = new DefaultParser();
 
@@ -46,6 +45,11 @@ public class ServiceRunner {
         anyServerStarted = true;
       }
 
+      if (cmd.hasOption("kotlin-reference-server") || cmd.hasOption("all")) {
+        startKotlinReferenceServer(true);
+        anyServerStarted = true;
+      }
+
       if (!anyServerStarted) {
         printUsage(options);
       }
@@ -68,20 +72,18 @@ public class ServiceRunner {
 
   static void startAnchorReferenceServer() {
     String strPort = System.getProperty("ANCHOR_REFERENCE_SERVER_PORT");
-    String kStrPort = System.getProperty("KOTLIN_REFERENCE_SERVER_PORT");
 
     int port = DEFAULT_ANCHOR_REFERENCE_SERVER_PORT;
-    int kPort = DEFAULT_KOTLIN_REFERENCE_SERVER_PORT;
 
     if (strPort != null) {
       port = Integer.parseInt(strPort);
     }
-    if (kStrPort != null) {
-      kPort = Integer.parseInt(kStrPort);
-    }
 
     AnchorReferenceServer.start(port, "/");
-    RefenreceServerStartKt.start(kPort);
+  }
+
+  static void startKotlinReferenceServer(boolean wait) {
+    RefenreceServerStartKt.start(wait);
   }
 
   static void printUsage(Options options) {
