@@ -16,7 +16,6 @@ jobs:
   
   build_and_push_docker_image:
     name: Push to DockerHub (tag=stellar/anchor-platform:${{ github.event.release.tag_name }})
-    needs: [ end_to_end_tests ]
     runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v3
