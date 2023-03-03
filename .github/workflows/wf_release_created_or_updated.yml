@@ -27,7 +27,7 @@ jobs:
         run: echo "Release version=${{ github.event.release.tag_name }}, Project version=${{ steps.get_version.outputs.VERSION }}"
 
       - name: Fail if the release version and the project version do not match
-        if: ${{ '${{ github.event.release.tag_name }}' != '${{ steps.get_version.outputs.VERSION }}' }}
+        if: ${{ '${{ github.event.release.tag_name }}' != 'release-${{ steps.get_version.outputs.VERSION }}' }}
         run: exit 1
 
       - name: Get current date
