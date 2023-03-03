@@ -89,6 +89,7 @@ public class TransactionHelper {
         .updatedAt(txn.getUpdatedAt())
         .completedAt(txn.getCompletedAt())
         .refunds(refunds)
+        .message(txn.getMessage())
         .stellarTransactions(txn.getStellarTransactions())
         .externalTransactionId(txn.getExternalTransactionId())
         .build();

@@ -45,6 +45,7 @@ class AnchorPlatformIntegrationTest {
         )
 
       ServiceRunner.startAnchorReferenceServer()
+      ServiceRunner.startKotlinReferenceServer(false)
       ServiceRunner.startStellarObserver(envMap)
       ServiceRunner.startSepServer(envMap)
 
