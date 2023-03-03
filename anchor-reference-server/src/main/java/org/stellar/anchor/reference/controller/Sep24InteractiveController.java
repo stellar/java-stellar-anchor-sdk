@@ -49,6 +49,6 @@ public class Sep24InteractiveController {
       throw new SepValidationException("Missing [operation] parameter.");
     }
 
-    return String.format("The sep24 transaction information of txn:[%s] starts here.", txnId);
+    return "The sep24 transaction starts here.";
   }
 }
