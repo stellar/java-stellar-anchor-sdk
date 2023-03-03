@@ -1,14 +1,12 @@
 # This workflow will build a Java project with Gradle.
 # This workflow is triggered:
-#   1. Called from other workflows.
-#   2. On all pull request events
+#   On all pull request events
 # For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-maven
 
 name: Pull Request Workflow
 
 on:
   pull_request:
-    branches: [ develop ]
 
 jobs:
   gradle_test_and_build:

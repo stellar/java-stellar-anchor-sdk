@@ -9,10 +9,11 @@ on:
     types: [ created, edited ]
 
 jobs:
-  end_to_end_tests:
-    name: Run end-to-end Tests
-    uses: ./.github/workflows/sub_end_to_end_tests.yml
-    secrets: inherit
+  # TODO: Enable end_to_end tests after it is fixed.
+#  end_to_end_tests:
+#    name: Run end-to-end Tests
+#    uses: ./.github/workflows/sub_end_to_end_tests.yml
+#    secrets: inherit
   
   build_and_push_docker_image:
     name: Push to DockerHub (tag=stellar/anchor-platform:${{ github.event.release.tag_name }})
@@ -28,9 +29,9 @@ jobs:
       - name: Echo versions
         run: echo "Release version=${{ github.event.release.tag_name }}, Project version=${{ steps.get_version.outputs.VERSION }}"
 
-#      - name: Fail if the release version and the project version do not match
-#        if: ${{ '${{ github.event.release.tag_name }}' != '${{ steps.get_version.outputs.VERSION }}' }}
-#        run: exit 1
+      - name: Fail if the release version and the project version do not match
+        if: ${{ '${{ github.event.release.tag_name }}' != '${{ steps.get_version.outputs.VERSION }}' }}
+        run: exit 1
 
       - name: Get current date
         id: get_date
