@@ -2,9 +2,6 @@ name: Release Published
 
 on:
   workflow_dispatch:
-  push:
-    # when commits are pushed or merged onto `develop` branch
-    branches: [ release/2.0.0-preview-1 ]
   release:
     types: [ created, edited ]
 
