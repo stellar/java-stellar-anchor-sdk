@@ -1,4 +1,4 @@
-package org.stellar.data
+package org.stellar.reference.data
 
 import io.ktor.server.application.*
 import kotlinx.serialization.SerialName

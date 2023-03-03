@@ -1,10 +1,10 @@
-package org.stellar.sep24
+package org.stellar.reference.sep24
 
 import java.math.BigDecimal
 import mu.KotlinLogging
-import org.stellar.data.Amount
-import org.stellar.data.Config
-import org.stellar.data.PatchTransactionTransaction
+import org.stellar.reference.data.Amount
+import org.stellar.reference.data.Config
+import org.stellar.reference.data.PatchTransactionTransaction
 
 private val log = KotlinLogging.logger {}
 

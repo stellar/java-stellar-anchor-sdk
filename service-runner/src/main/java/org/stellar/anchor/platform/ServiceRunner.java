@@ -3,8 +3,8 @@ package org.stellar.anchor.platform;
 import java.util.Map;
 import org.apache.commons.cli.*;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.stellar.RefenreceServerStartKt;
 import org.stellar.anchor.reference.AnchorReferenceServer;
+import org.stellar.reference.RefenreceServerStartKt;
 
 public class ServiceRunner {
   public static final int DEFAULT_ANCHOR_REFERENCE_SERVER_PORT = 8081;
