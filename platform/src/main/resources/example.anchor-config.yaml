@@ -10,11 +10,11 @@ stellar_network:
 callback_api:
   base_url: http://localhost:8081
   auth:
-    type: NONE
+    type: none
 
 platform_api:
   auth:
-    type: NONE
+    type: none
 
 languages: en
 
@@ -83,7 +83,8 @@ sep12:
 sep24:
   enabled: true
   interactive_url:
-    base_url: http://localhost:8091/sep24/interactive
+#    base_url: http://localhost:8091/sep24/interactive
+    base_url: http://localhost:3000
 
 sep31:
   enabled: true
@@ -99,7 +100,7 @@ metrics:
   run_interval: 30
 
 events:
-  enabled: true
+  enabled: false
   event_type_to_queue:
     quote_created: ap_event_quote_created
     transaction_created: ap_event_transaction_created
@@ -123,7 +124,7 @@ assets:
           "schema": "stellar",
           "code": "USDC",
           "issuer": "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-          "distribution_account": "GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF",
+          "distribution_account": "GCHU3RZAECOKGM2YAJLQIIYB2ZPLMFTTGN5D3XZNX4RDOEERVLXO7HU4",
           "significant_decimals": 2,
           "deposit": {
             "enabled": true,

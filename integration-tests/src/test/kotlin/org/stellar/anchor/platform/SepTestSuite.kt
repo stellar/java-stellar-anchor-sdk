@@ -43,6 +43,11 @@ fun main(args: Array<String>) {
       ServiceRunner.startAnchorReferenceServer()
     }
 
+    // Start anchor reference server if enabled.
+    if (cmd.hasOption("kotlin-reference-server") || cmd.hasOption("all")) {
+      ServiceRunner.startKotlinReferenceServer(false)
+    }
+
     val tests = cmd.getOptionValues("p")
 
     if ("sep10" in tests) {

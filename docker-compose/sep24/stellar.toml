@@ -2,8 +2,11 @@ ACCOUNTS = []
 VERSION = "0.1.0"
 NETWORK_PASSPHRASE = "Test SDF Network ; September 2015"
 SIGNING_KEY = "GCHLHDBOKG2JWMJQBTLSL5XG6NO7ESXI2TAQKZXCXWXB5WI2X6W233PR"
-WEB_AUTH_ENDPOINT = "http://localhost:8080/auth"
-TRANSFER_SERVER_SEP0024 = "http://localhost:8080/sep24"
+WEB_AUTH_ENDPOINT = "http://host.docker.internal:8080/auth"
+TRANSFER_SERVER_SEP0024 = "http://host.docker.internal:8080/sep24"
+KYC_SERVER = "https://host.docker.internal/sep12"
+DIRECT_PAYMENT_SERVER = "https://host.docker.internal/sep31"
+ANCHOR_QUOTE_SERVER = "https://host.docker.internal/sep38"
 
 [[CURRENCIES]]
 code = "USDC"
