@@ -1,0 +1,28 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="v1.2 - Observer" type="Application" factoryName="Application" activateToolWindowBeforeRun="false">
+    <envs>
+      <env name="secret.sep10.jwt_secret" value="jwt_secret" />
+      <env name="secret.sep10.signing_seed" value="SAKXNWVTRVR4SJSHZUDB2CLJXEQHRT62MYQWA2HBB7YBOTCFJJJ55BZF" />
+      <env name="POSTGRES_USERNAME" value="postgres" />
+      <env name="POSTGRES_PASSWORD" value="password" />
+    </envs>
+    <option name="MAIN_CLASS_NAME" value="org.stellar.anchor.platform.ServiceRunner" />
+    <module name="java-stellar-anchor-sdk.service-runner.main" />
+    <option name="PROGRAM_PARAMETERS" value="--stellar-observer" />
+    <shortenClasspath name="ARGS_FILE" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="org.stellar.anchor.platform.PaymentBeans" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <extension name="software.aws.toolkits.jetbrains.core.execution.JavaAwsConnectionExtension">
+      <option name="credential" />
+      <option name="region" />
+      <option name="useCurrentConnection" value="false" />
+    </extension>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

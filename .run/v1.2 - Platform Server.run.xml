@@ -1,0 +1,26 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="v1.2 - Platform Server" type="Application" factoryName="Application">
+    <envs>
+      <env name="secret.sep10.jwt_secret" value="jwt_secret" />
+      <env name="secret.sep10.signing_seed" value="SAKXNWVTRVR4SJSHZUDB2CLJXEQHRT62MYQWA2HBB7YBOTCFJJJ55BZF" />
+    </envs>
+    <option name="MAIN_CLASS_NAME" value="org.stellar.anchor.platform.ServiceRunner" />
+    <module name="java-stellar-anchor-sdk.service-runner.main" />
+    <option name="PROGRAM_PARAMETERS" value=" --sep-server" />
+    <shortenClasspath name="ARGS_FILE" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="org.stellar.anchor.platform.PaymentBeans" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <extension name="software.aws.toolkits.jetbrains.core.execution.JavaAwsConnectionExtension">
+      <option name="credential" />
+      <option name="region" />
+      <option name="useCurrentConnection" value="false" />
+    </extension>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
