@@ -177,10 +177,12 @@ public class Sep31Service {
     Context.get().setTransaction(txn);
     updateAmounts();
 
-    Context.get().setTransaction(sep31TransactionStore.save(txn));
-    txn = Context.get().getTransaction();
+    txn = sep31TransactionStore.save(txn);
+    Context.get().setTransaction(txn);
 
     updateDepositInfo();
+
+    txn = sep31TransactionStore.save(txn);
 
     StellarId senderStellarId = StellarId.builder().id(txn.getSenderId()).build();
     StellarId receiverStellarId = StellarId.builder().id(txn.getReceiverId()).build();
