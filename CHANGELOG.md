@@ -1,6 +1,6 @@
 # Changelog
 ## 1.2.8
-* Fix the SEP-31 transaction not saved to database when deposit info is updated. [#790](https://github.com/stellar/java-stellar-anchor-sdk/pull/790)
+* Fix the SEP-31 transaction not saved to database when deposit info is updated. [#791](https://github.com/stellar/java-stellar-anchor-sdk/pull/791)
 
 ## 1.2.7
 * Add database reconnection with backoff timer. [#774](https://github.com/stellar/java-stellar-anchor-sdk/pull/774)
