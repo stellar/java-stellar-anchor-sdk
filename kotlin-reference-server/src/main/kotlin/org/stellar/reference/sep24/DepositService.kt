@@ -89,7 +89,7 @@ class DepositService(cfg: Config) {
     asset: String,
     amount: BigDecimal
   ) {
-    val operationId =
+    val operationId: Long =
       sep24.server
         .operations()
         .forTransaction(stellarTransactionId)
@@ -97,6 +97,7 @@ class DepositService(cfg: Config) {
         .records
         .filterIsInstance<PaymentOperationResponse>()
         .first()
+        .id
 
     sep24.patchTransaction(
       PatchTransactionTransaction(

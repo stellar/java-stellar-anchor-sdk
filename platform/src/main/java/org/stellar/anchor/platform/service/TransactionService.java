@@ -7,6 +7,7 @@ import static org.stellar.anchor.sep31.Sep31Helper.allAmountAvailable;
 import static org.stellar.anchor.util.BeanHelper.updateField;
 import static org.stellar.anchor.util.MathHelper.decimal;
 import static org.stellar.anchor.util.MathHelper.equalsAsDecimals;
+import static org.stellar.anchor.util.MemoHelper.makeMemo;
 import static org.stellar.anchor.util.MemoHelper.memoTypeAsString;
 import static org.stellar.sdk.xdr.MemoType.MEMO_HASH;
 
@@ -38,7 +39,6 @@ import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep38.Sep38Quote;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
 import org.stellar.anchor.util.Log;
-import org.stellar.anchor.util.MemoHelper;
 import org.stellar.anchor.util.SepHelper;
 import org.stellar.anchor.util.StringHelper;
 import org.stellar.sdk.Memo;
@@ -203,7 +203,7 @@ public class TransactionService {
       case "24":
         JdbcSep24Transaction sep24Txn = (JdbcSep24Transaction) txn;
 
-        Memo memo = MemoHelper.makeMemo(patch.getMemo(), patch.getMemoType());
+        Memo memo = makeMemo(patch.getMemo(), patch.getMemoType());
 
         if (memo != null) {
           txnUpdated = updateField(patch, sep24Txn, "memo", txnUpdated);
