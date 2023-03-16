@@ -21,6 +21,7 @@ dependencies {
   implementation(libs.log4j2.api)
   implementation(libs.log4j2.core)
   implementation(libs.log4j2.slf4j)
+  implementation(libs.docker.compose.rule)
 
   // project dependencies
   implementation(project(":api-schema"))
@@ -33,6 +34,8 @@ dependencies {
 
   testImplementation(libs.okhttp3.mockserver)
   testImplementation("org.springframework.boot:spring-boot-starter-test")
+  testImplementation(libs.docker.compose.rule)
+
 }
 
 tasks { bootJar { enabled = false } }

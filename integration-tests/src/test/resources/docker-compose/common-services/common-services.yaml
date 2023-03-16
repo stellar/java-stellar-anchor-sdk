@@ -18,8 +18,8 @@ services:
   observer:
     image: stellar/anchor-platform:edge
     build:
-      context: ../../
-      dockerfile: integration-tests/docker-compose-configs/Dockerfile
+      context: ../../../../../..
+      dockerfile: ../../docker-compose-configs/Dockerfile
     command: "--stellar-observer"
     environment:
       - secret.sep10.signing_seed=SAKXNWVTRVR4SJSHZUDB2CLJXEQHRT62MYQWA2HBB7YBOTCFJJJ55BZF
