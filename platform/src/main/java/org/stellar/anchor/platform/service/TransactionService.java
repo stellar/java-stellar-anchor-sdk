@@ -38,8 +38,10 @@ import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep38.Sep38Quote;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
 import org.stellar.anchor.util.Log;
+import org.stellar.anchor.util.MemoHelper;
 import org.stellar.anchor.util.SepHelper;
 import org.stellar.anchor.util.StringHelper;
+import org.stellar.sdk.Memo;
 
 public class TransactionService {
   private final Sep38QuoteStore quoteStore;
@@ -201,9 +203,14 @@ public class TransactionService {
       case "24":
         JdbcSep24Transaction sep24Txn = (JdbcSep24Transaction) txn;
 
+        Memo memo = MemoHelper.makeMemo(patch.getMemo(), patch.getMemoType());
+
+        if (memo != null) {
+          txnUpdated = updateField(patch, sep24Txn, "memo", txnUpdated);
+          txnUpdated = updateField(patch, sep24Txn, "memoType", txnUpdated);
+        }
+
         txnUpdated = updateField(patch, sep24Txn, "message", txnUpdated);
-        txnUpdated = updateField(patch, sep24Txn, "memo", txnUpdated);
-        txnUpdated = updateField(patch, sep24Txn, "memoType", txnUpdated);
         txnUpdated = updateField(patch, sep24Txn, "kycVerified", txnUpdated);
 
         // update refunds
