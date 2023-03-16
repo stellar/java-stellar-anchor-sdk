@@ -3,8 +3,8 @@ services:
   platform:
     image: stellar/anchor-platform:edge
     build:
-      context: ../../
-      dockerfile: integration-tests/docker-compose-configs/Dockerfile
+      context: ../../../../../..
+      dockerfile: ../../docker-compose-configs/Dockerfile
     command: --sep-server
     environment:
       # secrets
@@ -86,8 +86,8 @@ services:
 
   app:
     build:
-      context: ../../
-      dockerfile: end-to-end-tests/Dockerfile
+      context: ../../../../../..
+      dockerfile: ../../../end-to-end-tests/Dockerfile
     env_file:
       - ../../end-to-end-tests/.env
     depends_on:
