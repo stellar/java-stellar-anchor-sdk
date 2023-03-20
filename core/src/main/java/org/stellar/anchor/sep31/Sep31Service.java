@@ -40,6 +40,7 @@ import org.stellar.anchor.event.EventPublishService;
 import org.stellar.anchor.event.models.TransactionEvent;
 import org.stellar.anchor.sep38.Sep38Quote;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
+import org.stellar.anchor.util.GsonUtils;
 import org.stellar.anchor.util.Log;
 
 public class Sep31Service {
@@ -83,8 +84,87 @@ public class Sep31Service {
     return infoResponse;
   }
 
-  @Transactional(rollbackOn = {AnchorException.class, RuntimeException.class})
   public Sep31PostTransactionResponse postTransaction(
+      JwtToken jwtToken, Sep31PostTransactionRequest request) throws AnchorException {
+    // create and commit the posting transaction
+    Sep31Transaction txn = createAndCommitPostTransaction(jwtToken, request);
+    // call unique_address
+    try {
+      updateDepositInfo();
+      // save and commit again
+      saveAndCommit(txn);
+      // publish transaction event
+      publishTransactionEvent(txn);
+
+      return Sep31PostTransactionResponse.builder()
+          .id(txn.getId())
+          .stellarAccountId(txn.getStellarAccountId())
+          .stellarMemo(isEmpty(txn.getStellarMemo()) ? "" : txn.getStellarMemo())
+          .stellarMemoType(
+              isEmpty(txn.getStellarMemoType()) ? MEMO_NONE.name() : txn.getStellarMemoType())
+          .build();
+    } catch (Exception ex) {
+      txn.setStatus(SepTransactionStatus.ERROR.toString());
+      saveAndCommit(txn);
+      throw ex;
+    }
+  }
+
+  @Transactional(rollbackOn = {AnchorException.class, RuntimeException.class})
+  public void saveAndCommit(Sep31Transaction txn) throws AnchorException {
+
+    debugF(
+        "Getting transaction id={} from database {}",
+        txn.getId(),
+        GsonUtils.getInstance().toJson(sep31TransactionStore.findByTransactionId(txn.getId())));
+
+    debugF("Saving transaction to the database {}", GsonUtils.getInstance().toJson(txn));
+
+    txn = sep31TransactionStore.save(txn);
+
+    debugF(
+        "Getting transaction id={} from database {}",
+        txn.getId(),
+        GsonUtils.getInstance().toJson(sep31TransactionStore.findByTransactionId(txn.getId())));
+  }
+
+  public void publishTransactionEvent(Sep31Transaction txn) throws EventPublishException {
+    StellarId senderStellarId = StellarId.builder().id(txn.getSenderId()).build();
+    StellarId receiverStellarId = StellarId.builder().id(txn.getReceiverId()).build();
+    TransactionEvent event =
+        TransactionEvent.builder()
+            .eventId(UUID.randomUUID().toString())
+            .type(TransactionEvent.Type.TRANSACTION_CREATED)
+            .id(txn.getId())
+            .sep(TransactionEvent.Sep.SEP_31)
+            .kind(TransactionEvent.Kind.RECEIVE)
+            .status(TransactionEvent.Status.PENDING_SENDER)
+            .statusChange(
+                new TransactionEvent.StatusChange(null, TransactionEvent.Status.PENDING_SENDER))
+            .amountExpected(new Amount(txn.getAmountExpected(), txn.getAmountInAsset()))
+            .amountIn(new Amount(txn.getAmountIn(), txn.getAmountInAsset()))
+            .amountOut(new Amount(txn.getAmountOut(), txn.getAmountOutAsset()))
+            .amountFee(new Amount(txn.getAmountFee(), txn.getAmountFeeAsset()))
+            .quoteId(txn.getQuoteId())
+            .startedAt(txn.getStartedAt())
+            .updatedAt(txn.getStartedAt())
+            .completedAt(null)
+            .transferReceivedAt(null)
+            .message(null)
+            .refunds(null)
+            .stellarTransactions(null)
+            .externalTransactionId(null)
+            .custodialTransactionId(null)
+            .sourceAccount(null)
+            .destinationAccount(null)
+            .customers(new Customers(senderStellarId, receiverStellarId))
+            .creator(txn.getCreator())
+            .build();
+    eventService.publish(event);
+  }
+
+  @Transactional(rollbackOn = {AnchorException.class, RuntimeException.class})
+  public Sep31Transaction createAndCommitPostTransaction(
       JwtToken jwtToken, Sep31PostTransactionRequest request) throws AnchorException {
     Context.reset();
     Context.get().setRequest(request);
@@ -180,50 +260,12 @@ public class Sep31Service {
     txn = sep31TransactionStore.save(txn);
     Context.get().setTransaction(txn);
 
-    updateDepositInfo();
+    debugF(
+        "Getting transaction id={} from database {}",
+        txn.getId(),
+        GsonUtils.getInstance().toJson(sep31TransactionStore.findByTransactionId(txn.getId())));
 
-    txn = sep31TransactionStore.save(txn);
-
-    StellarId senderStellarId = StellarId.builder().id(txn.getSenderId()).build();
-    StellarId receiverStellarId = StellarId.builder().id(txn.getReceiverId()).build();
-    TransactionEvent event =
-        TransactionEvent.builder()
-            .eventId(UUID.randomUUID().toString())
-            .type(TransactionEvent.Type.TRANSACTION_CREATED)
-            .id(txn.getId())
-            .sep(TransactionEvent.Sep.SEP_31)
-            .kind(TransactionEvent.Kind.RECEIVE)
-            .status(TransactionEvent.Status.PENDING_SENDER)
-            .statusChange(
-                new TransactionEvent.StatusChange(null, TransactionEvent.Status.PENDING_SENDER))
-            .amountExpected(new Amount(txn.getAmountExpected(), txn.getAmountInAsset()))
-            .amountIn(new Amount(txn.getAmountIn(), txn.getAmountInAsset()))
-            .amountOut(new Amount(txn.getAmountOut(), txn.getAmountOutAsset()))
-            .amountFee(new Amount(txn.getAmountFee(), txn.getAmountFeeAsset()))
-            .quoteId(txn.getQuoteId())
-            .startedAt(txn.getStartedAt())
-            .updatedAt(txn.getStartedAt())
-            .completedAt(null)
-            .transferReceivedAt(null)
-            .message(null)
-            .refunds(null)
-            .stellarTransactions(null)
-            .externalTransactionId(null)
-            .custodialTransactionId(null)
-            .sourceAccount(null)
-            .destinationAccount(null)
-            .customers(new Customers(senderStellarId, receiverStellarId))
-            .creator(creatorStellarId)
-            .build();
-    eventService.publish(event);
-
-    return Sep31PostTransactionResponse.builder()
-        .id(txn.getId())
-        .stellarAccountId(txn.getStellarAccountId())
-        .stellarMemo(isEmpty(txn.getStellarMemo()) ? "" : txn.getStellarMemo())
-        .stellarMemoType(
-            isEmpty(txn.getStellarMemoType()) ? MEMO_NONE.name() : txn.getStellarMemoType())
-        .build();
+    return txn;
   }
 
   /**
