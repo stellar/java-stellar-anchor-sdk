@@ -1,4 +1,7 @@
 # Changelog
+## 1.2.9
+* Commit the dirty SEP-31 transaction before calling the `/unique_address` endpoint. [#797](https://github.com/stellar/java-stellar-anchor-sdk/pull/797)
+
 ## 1.2.8
 * Fix the SEP-31 transaction not saved to database when deposit info is updated. [#791](https://github.com/stellar/java-stellar-anchor-sdk/pull/791)
 
