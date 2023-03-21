@@ -1,0 +1,22 @@
+version: '2.4'
+services:
+  kafka:
+    extends:
+      file: ../common-services/common-services.yaml
+      service: kafka
+    depends_on:
+      - zookeeper
+    hostname: kafka
+
+  zookeeper:
+    extends:
+      file: ../common-services/common-services.yaml
+      service: zookeeper
+    hostname: zookeeper
+
+  db:
+    extends:
+      file: ../common-services/common-services.yaml
+      service: db
+    hostname: db
+

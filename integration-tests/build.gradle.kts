@@ -15,6 +15,8 @@ dependencies {
   implementation("org.springframework.boot:spring-boot-starter-web")
 
   implementation(libs.commons.cli)
+//  implementation(libs.dotenv)
+  implementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
   implementation(libs.java.stellar.sdk)
   implementation(libs.google.gson)
   implementation(libs.okhttp3)
@@ -35,6 +37,8 @@ dependencies {
   testImplementation(libs.okhttp3.mockserver)
   testImplementation("org.springframework.boot:spring-boot-starter-test")
   testImplementation(libs.docker.compose.rule)
+//  testImplementation(libs.dotenv)
+  testImplementation("io.github.cdimascio:dotenv-kotlin:6.4.1")
 
 }
 
