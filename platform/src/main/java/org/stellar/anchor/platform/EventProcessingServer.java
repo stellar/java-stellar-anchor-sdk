@@ -20,13 +20,13 @@ import org.stellar.anchor.platform.configurator.SecretManager;
 @EntityScan(basePackages = {"org.stellar.anchor.platform.data"})
 @ComponentScan(
     basePackages = {
-      "org.stellar.anchor.platform.controller.eventprocessor",
       "org.stellar.anchor.platform.component.eventprocessor",
       "org.stellar.anchor.platform.component.share"
     })
 @EnableConfigurationProperties
 public class EventProcessingServer extends AbstractPlatformServer implements WebMvcConfigurer {
-  public static ConfigurableApplicationContext start(Map<String, Object> environment) {
+  private static ConfigurableApplicationContext ctx;
+  public static ConfigurableApplicationContext start(Map<String, String> environment) {
     buildEnvironment(environment);
 
     SpringApplicationBuilder builder =
@@ -35,6 +35,12 @@ public class EventProcessingServer extends AbstractPlatformServer implements Web
     springApplication.addInitializers(SecretManager.getInstance());
     springApplication.addInitializers(EventProcessorConfigManager.getInstance());
 
-    return springApplication.run();
+    return ctx = springApplication.run();
   }
+
+    public static void stop() {
+        if (ctx != null) {
+        SpringApplication.exit(ctx);
+        }
+    }
 }

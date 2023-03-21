@@ -58,19 +58,31 @@ public class ServiceRunner {
     }
   }
 
-  static ConfigurableApplicationContext startSepServer(Map<String, Object> env) {
+  public static ConfigurableApplicationContext startSepServer(Map<String, String> env) {
     return AnchorPlatformServer.start(env);
   }
 
-  static ConfigurableApplicationContext startStellarObserver(Map<String, Object> env) {
+  public static void stopSepServer() {
+    AnchorPlatformServer.stop();
+  }
+
+  public static ConfigurableApplicationContext startStellarObserver(Map<String, String> env) {
     return StellarObservingServer.start(env);
   }
 
-  static ConfigurableApplicationContext startEventProcessor(Map<String, Object> env) {
+  public static void stopStellarObserver() {
+    StellarObservingServer.stop();
+  }
+
+  public static ConfigurableApplicationContext startEventProcessor(Map<String, String> env) {
     return EventProcessingServer.start(env);
   }
 
-  static void startAnchorReferenceServer() {
+  public static void stopEventProcessor() {
+    EventProcessingServer.stop();
+  }
+
+  public static ConfigurableApplicationContext startAnchorReferenceServer() {
     String strPort = System.getProperty("ANCHOR_REFERENCE_SERVER_PORT");
 
     int port = DEFAULT_ANCHOR_REFERENCE_SERVER_PORT;
@@ -79,11 +91,19 @@ public class ServiceRunner {
       port = Integer.parseInt(strPort);
     }
 
-    AnchorReferenceServer.start(port, "/");
+    return AnchorReferenceServer.start(port, "/");
   }
 
-  static void startKotlinReferenceServer(boolean wait) {
+  public static void stopAnchorReferenceServer() {
+    AnchorReferenceServer.stop();
+  }
+
+  public static void startKotlinReferenceServer(boolean wait) {
     RefenreceServerStartKt.start(wait);
+  }
+
+  public static void stopKotlinReferenceServer() {
+    RefenreceServerStartKt.stop();
   }
 
   static void printUsage(Options options) {

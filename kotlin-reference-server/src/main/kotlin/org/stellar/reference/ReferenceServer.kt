@@ -22,16 +22,21 @@ import org.stellar.reference.sep24.Sep24Helper
 import org.stellar.reference.sep24.WithdrawalService
 
 val log = KotlinLogging.logger {}
+lateinit var referenceKotlinSever: NettyApplicationEngine
 
 fun main(args: Array<String>) {
+  startServer(args.getOrNull(0)?.toBooleanStrictOrNull() ?: true)
+}
+
+fun startServer(wait: Boolean) {
   log.info { "Starting Kotlin reference server" }
 
   // Support for configurable config location file.
   val locationCfg =
-    ConfigLoaderBuilder.default()
-      .addPropertySource(PropertySource.environment())
-      .build()
-      .loadConfig<LocationConfig>()
+      ConfigLoaderBuilder.default()
+          .addPropertySource(PropertySource.environment())
+          .build()
+          .loadConfig<LocationConfig>()
 
   val builder = ConfigLoaderBuilder.default()
 
@@ -42,16 +47,21 @@ fun main(args: Array<String>) {
 
   val cfg = builder.build().loadConfigOrThrow<Config>()
 
-  embeddedServer(Netty, port = cfg.sep24.port) {
-      install(ContentNegotiation) { json() }
-      configureRouting(cfg)
-      install(CORS) {
-        anyHost()
-        allowHeader(HttpHeaders.Authorization)
-        allowHeader(HttpHeaders.ContentType)
-      }
-    }
-    .start(args.getOrNull(0)?.toBooleanStrictOrNull() ?: true)
+  referenceKotlinSever =
+      embeddedServer(Netty, port = cfg.sep24.port) {
+            install(ContentNegotiation) { json() }
+            configureRouting(cfg)
+            install(CORS) {
+              anyHost()
+              allowHeader(HttpHeaders.Authorization)
+              allowHeader(HttpHeaders.ContentType)
+            }
+          }
+          .start(wait)
+}
+
+fun stopServer() {
+  (referenceKotlinSever)?.stop(1000, 1000)
 }
 
 fun Application.configureRouting(cfg: Config) {
