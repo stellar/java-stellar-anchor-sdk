@@ -52,11 +52,11 @@ class ApiKeyAuthIntegrationTest {
     mockBusinessServer = MockWebServer()
     mockBusinessServer.start()
 
-    val envMap = readResourceAsMap("envs/basic-tests.env")
+    val envMap = readResourceAsMap("test-default/env")
     envMap["data.type"] = "h2"
     envMap["events.enabled"] = "false"
-    envMap["assets.value"] = getResourceFilePath("envs/assets.yaml")
-    envMap["sep1.toml.value"] = getResourceFilePath("envs/stellar.toml")
+    envMap["assets.value"] = getResourceFilePath("test-default/assets.yaml")
+    envMap["sep1.toml.value"] = getResourceFilePath("test-default/stellar.toml")
 
     envMap["callback_api.base_url"] = mockBusinessServer.url("").toString()
     envMap["platform_api.auth.type"] = "api_key"
