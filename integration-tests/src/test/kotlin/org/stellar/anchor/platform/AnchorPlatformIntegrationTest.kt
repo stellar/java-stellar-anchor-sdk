@@ -34,7 +34,7 @@ class AnchorPlatformIntegrationTest {
     val docker: DockerComposeExtension =
         DockerComposeExtension.builder()
             .saveLogsTo("build/docker-logs/anchor-platform-integration-test")
-            .file("src/test/resources/docker-compose/kafka/kafka.yaml")
+            .file("src/test/resources/test-default//docker-compose.yaml")
             .waitingForService("kafka", HealthChecks.toHaveAllPortsOpen())
             .waitingForService("db", HealthChecks.toHaveAllPortsOpen())
             .pullOnStartup(true)
@@ -54,12 +54,12 @@ class AnchorPlatformIntegrationTest {
     }
 
     private fun startServers() {
-      val envMap = readResourceAsMap("envs/basic-tests.env")
+      val envMap = readResourceAsMap("test-default/env")
 
       envMap["data.type"] = "h2"
       envMap["events.enabled"] = "false"
-      envMap["assets.value"] = getResourceFilePath("envs/assets.yaml")
-      envMap["sep1.toml.value"] = getResourceFilePath("envs/stellar.toml")
+      envMap["assets.value"] = getResourceFilePath("test-default/assets.yaml")
+      envMap["sep1.toml.value"] = getResourceFilePath("test-default/stellar.toml")
 
       ServiceRunner.startKotlinReferenceServer(false)
       runningServers.add(ServiceRunner.startAnchorReferenceServer())
