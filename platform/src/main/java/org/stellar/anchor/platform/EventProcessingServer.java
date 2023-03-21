@@ -25,8 +25,8 @@ import org.stellar.anchor.platform.configurator.SecretManager;
     })
 @EnableConfigurationProperties
 public class EventProcessingServer extends AbstractPlatformServer implements WebMvcConfigurer {
-  private static ConfigurableApplicationContext ctx;
-  public static ConfigurableApplicationContext start(Map<String, String> environment) {
+  private ConfigurableApplicationContext ctx;
+  public ConfigurableApplicationContext start(Map<String, String> environment) {
     buildEnvironment(environment);
 
     SpringApplicationBuilder builder =
@@ -38,7 +38,7 @@ public class EventProcessingServer extends AbstractPlatformServer implements Web
     return ctx = springApplication.run();
   }
 
-    public static void stop() {
+    public void stop() {
         if (ctx != null) {
         SpringApplication.exit(ctx);
         }

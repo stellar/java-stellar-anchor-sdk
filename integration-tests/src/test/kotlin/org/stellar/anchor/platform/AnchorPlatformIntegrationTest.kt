@@ -3,6 +3,8 @@ package org.stellar.anchor.platform
 import com.palantir.docker.compose.DockerComposeExtension
 import com.palantir.docker.compose.connection.waiting.HealthChecks
 import org.junit.jupiter.api.*
+import org.springframework.boot.SpringApplication
+import org.springframework.context.ConfigurableApplicationContext
 import org.stellar.anchor.util.Sep1Helper
 import org.stellar.anchor.util.Sep1Helper.TomlContent
 
@@ -38,6 +40,8 @@ class AnchorPlatformIntegrationTest {
             .pullOnStartup(true)
             .build()
 
+    val runningServers = mutableListOf<ConfigurableApplicationContext>()
+
     @BeforeAll
     @JvmStatic
     fun beforeAllTests() {
@@ -53,18 +57,14 @@ class AnchorPlatformIntegrationTest {
       val envMap = readResourceAsMap("envs/basic-tests.env")
 
       envMap["data.type"] = "h2"
-      envMap["data.server"] = ""
-      envMap["data.database"] = ""
-      envMap["data.flyway_enabled"] = "false"
-
       envMap["events.enabled"] = "false"
       envMap["assets.value"] = getResourceFilePath("envs/assets.yaml")
       envMap["sep1.toml.value"] = getResourceFilePath("envs/stellar.toml")
 
-      ServiceRunner.startAnchorReferenceServer()
       ServiceRunner.startKotlinReferenceServer(false)
-      ServiceRunner.startStellarObserver(envMap)
-      ServiceRunner.startSepServer(envMap)
+      runningServers.add(ServiceRunner.startAnchorReferenceServer())
+      runningServers.add(ServiceRunner.startStellarObserver(envMap))
+      runningServers.add(ServiceRunner.startSepServer(envMap))
 
       toml =
           Sep1Helper.parse(
@@ -91,10 +91,8 @@ class AnchorPlatformIntegrationTest {
     }
 
     fun stopServers() {
-      ServiceRunner.stopAnchorReferenceServer()
-      ServiceRunner.stopSepServer()
-      ServiceRunner.stopKotlinReferenceServer()
-      ServiceRunner.stopStellarObserver()
+      runningServers.forEach { SpringApplication.exit(it) }
+      org.stellar.reference.stop()
     }
 
     fun stopDocker() {
