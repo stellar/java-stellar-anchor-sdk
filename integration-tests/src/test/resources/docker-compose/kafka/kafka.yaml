@@ -6,17 +6,14 @@ services:
       service: kafka
     depends_on:
       - zookeeper
-    hostname: kafka
 
   zookeeper:
     extends:
       file: ../common-services/common-services.yaml
       service: zookeeper
-    hostname: zookeeper
 
   db:
     extends:
       file: ../common-services/common-services.yaml
       service: db
-    hostname: db
 
