@@ -3,6 +3,7 @@ package org.stellar.reference.sep24
 import java.math.BigDecimal
 import mu.KotlinLogging
 import org.stellar.reference.data.*
+import org.stellar.sdk.responses.operations.PaymentOperationResponse
 
 private val log = KotlinLogging.logger {}
 
@@ -88,6 +89,16 @@ class DepositService(cfg: Config) {
     asset: String,
     amount: BigDecimal
   ) {
+    val operationId: Long =
+      sep24.server
+        .operations()
+        .forTransaction(stellarTransactionId)
+        .execute()
+        .records
+        .filterIsInstance<PaymentOperationResponse>()
+        .first()
+        .id
+
     sep24.patchTransaction(
       PatchTransactionTransaction(
         transactionId,
@@ -99,7 +110,7 @@ class DepositService(cfg: Config) {
               stellarTransactionId,
               payments =
                 listOf(
-                  StellarPayment(id = stellarTransactionId, Amount(amount.toPlainString(), asset))
+                  StellarPayment(id = operationId.toString(), Amount(amount.toPlainString(), asset))
                 )
             )
           )
