@@ -22,7 +22,9 @@ public class AnchorReferenceServer implements WebMvcConfigurer {
   static final String REFERENCE_SERVER_PORT = "REFERENCE_SERVER_PORT";
   static final String REFERENCE_SERVER_CONTEXT_PATH = "REFERENCE_SERVER_CONTEXT_PATH";
 
-  public static void start(int port, String contextPath) {
+  static ConfigurableApplicationContext ctx;
+
+  public static ConfigurableApplicationContext start(int port, String contextPath) {
     SpringApplicationBuilder builder =
         new SpringApplicationBuilder(AnchorReferenceServer.class)
             .bannerMode(OFF)
@@ -32,7 +34,13 @@ public class AnchorReferenceServer implements WebMvcConfigurer {
 
     SpringApplication app = builder.build();
     app.addInitializers(new PropertySourceInitializer());
-    app.run();
+    return ctx = app.run();
+  }
+
+  public static void stop() {
+    if (ctx != null) {
+      SpringApplication.exit(ctx);
+    }
   }
 
   public static class PropertySourceInitializer

@@ -8,10 +8,10 @@ server:
 #
 anchor.settings:
   version: 0.0.1
-  platformApiEndpoint: http://host.docker.internal:8080
+  platformApiEndpoint: http://localhost:8080
 
   # The URL where the anchor reference server can be accessed by the platform.
-  hostUrl: http://host.docker.internal:8081
+  hostUrl: http://localhost:8081
 
   # The Stellar wallet to which the customer will send the Stellar assets.
   distributionWallet: GBN4NNCDGJO4XW4KQU3CBIESUJWFVBUZPOKUZHT7W7WRB7CWOA7BXVQF
@@ -51,7 +51,7 @@ kafka.listener:
     transactionError: ap_event_transaction_error
 
 amqp.listener:
-  endpoint: host.docker.internal:5672
+  endpoint: localhost:5672
 #
 # Spring Data JDBC settings for H2
 #

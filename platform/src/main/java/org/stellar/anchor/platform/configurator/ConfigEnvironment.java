@@ -14,8 +14,14 @@ public class ConfigEnvironment {
     rebuild();
   }
 
-  public static void rebuild() {
+  public static void rebuild(Map<String, String> extra) {
     env = new HashMap<>();
+
+    if (extra != null) {
+      for (Map.Entry<String, String> entry : extra.entrySet()) {
+        env.put(toPosixForm(entry.getKey()), entry.getValue());
+      }
+    }
 
     // Read all env variables and convert everything to POSIX form
     for (Map.Entry<String, String> entry : System.getenv().entrySet()) {
@@ -26,6 +32,11 @@ public class ConfigEnvironment {
     for (Map.Entry<Object, Object> entry : sysProps.entrySet()) {
       env.put(toPosixForm(String.valueOf(entry.getKey())), String.valueOf(entry.getValue()));
     }
+  }
+
+
+  public static void rebuild() {
+    rebuild(null);
   }
 
   /**

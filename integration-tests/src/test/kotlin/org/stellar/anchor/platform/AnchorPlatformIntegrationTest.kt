@@ -1,6 +1,10 @@
 package org.stellar.anchor.platform
 
+import com.palantir.docker.compose.DockerComposeExtension
+import com.palantir.docker.compose.connection.waiting.HealthChecks
 import org.junit.jupiter.api.*
+import org.springframework.boot.SpringApplication
+import org.springframework.context.ConfigurableApplicationContext
 import org.stellar.anchor.util.Sep1Helper
 import org.stellar.anchor.util.Sep1Helper.TomlContent
 
@@ -14,45 +18,57 @@ class AnchorPlatformIntegrationTest {
     const val SEP_SERVER_PORT = 8080
     const val OBSERVER_HEALTH_SERVER_PORT = 8083
     const val SEP10_JWT_SECRET = "secret"
-    const val SEP24_INTERACTIVE_URL_JWT_SECRET = "sep24 interactive url secret"
-    const val SEP24_MORE_INFO_URL_JWT_SECRET = "sep24 more_info url secret"
+    const val SEP24_INTERACTIVE_URL_JWT_SECRET = "secret_sep24_interactive_url_jwt_secret"
+    const val SEP24_MORE_INFO_URL_JWT_SECRET = "secret_sep24_more_info_url_jwt_secret"
+
+    private val shouldStartDockerCompose =
+        System.getenv().getOrDefault("START_DOCKER_COMPOSE", "false").toBoolean()
+    private val shouldStartServers =
+        System.getenv().getOrDefault("START_ALL_SERVERS", "true").toBoolean()
 
     init {
       val props = System.getProperties()
       props.setProperty("REFERENCE_SERVER_CONFIG", "classpath:/anchor-reference-server.yaml")
     }
 
+    val docker: DockerComposeExtension =
+        DockerComposeExtension.builder()
+            .saveLogsTo("build/docker-logs/anchor-platform-integration-test")
+            .file("src/test/resources/test-default//docker-compose.yaml")
+            .waitingForService("kafka", HealthChecks.toHaveAllPortsOpen())
+            .waitingForService("db", HealthChecks.toHaveAllPortsOpen())
+            .pullOnStartup(true)
+            .build()
+
+    val runningServers = mutableListOf<ConfigurableApplicationContext>()
+
     @BeforeAll
     @JvmStatic
-    fun startServers() {
-      val envMap =
-        mapOf(
-          "stellar_anchor_config" to "classpath:integration-test.anchor-config.yaml",
-          "sep_server.port" to SEP_SERVER_PORT,
-          "sep_server.context_path" to "/",
-          "payment_observer.port" to OBSERVER_HEALTH_SERVER_PORT,
-          "payment_observer.context_path" to "/",
-          "secret.sep10.signing_seed" to "SAKXNWVTRVR4SJSHZUDB2CLJXEQHRT62MYQWA2HBB7YBOTCFJJJ55BZF",
-          "secret.sep10.jwt_secret" to SEP10_JWT_SECRET,
-          "secret.sep24.interactive_url.jwt_secret" to SEP24_INTERACTIVE_URL_JWT_SECRET,
-          "secret.sep24.more_info_url.jwt_secret" to SEP24_MORE_INFO_URL_JWT_SECRET,
-          "secret.data.username" to "user1",
-          "secret.data.password" to "password",
-          "secret.callback_api.auth_secret" to "callback_jwt_secret",
-          "secret.platform_api.auth_secret" to "platform_jwt_secret",
-          // The events and kafka should be tested in e2e tests.
-          "events.enabled" to false
-        )
+    fun beforeAllTests() {
+      if (shouldStartDockerCompose) startDocker()
+      if (shouldStartServers) startServers()
+    }
 
-      ServiceRunner.startAnchorReferenceServer()
+    private fun startDocker() {
+      docker.beforeAll(null)
+    }
+
+    private fun startServers() {
+      val envMap = readResourceAsMap("test-default/env")
+
+      envMap["data.type"] = "h2"
+      envMap["events.enabled"] = "false"
+      envMap["assets.value"] = getResourceFilePath("test-default/assets.yaml")
+      envMap["sep1.toml.value"] = getResourceFilePath("test-default/stellar.toml")
+
       ServiceRunner.startKotlinReferenceServer(false)
-      ServiceRunner.startStellarObserver(envMap)
-      ServiceRunner.startSepServer(envMap)
+      runningServers.add(ServiceRunner.startAnchorReferenceServer())
+      runningServers.add(ServiceRunner.startStellarObserver(envMap))
+      runningServers.add(ServiceRunner.startSepServer(envMap))
 
       toml =
-        Sep1Helper.parse(
-          resourceAsString("http://localhost:$SEP_SERVER_PORT/.well-known/stellar.toml")
-        )
+          Sep1Helper.parse(
+              resourceAsString("http://localhost:$SEP_SERVER_PORT/.well-known/stellar.toml"))
 
       Sep10Tests.setup()
 
@@ -65,6 +81,22 @@ class AnchorPlatformIntegrationTest {
       Sep31Tests.setup()
       Sep38Tests.setup()
       PlatformApiTests.setup()
+    }
+
+    @AfterAll
+    @JvmStatic
+    fun afterAllTests() {
+      if (shouldStartServers) stopServers()
+      if (shouldStartDockerCompose) stopDocker()
+    }
+
+    fun stopServers() {
+      runningServers.forEach { SpringApplication.exit(it) }
+      org.stellar.reference.stop()
+    }
+
+    fun stopDocker() {
+      docker.afterAll(null)
     }
   }
 

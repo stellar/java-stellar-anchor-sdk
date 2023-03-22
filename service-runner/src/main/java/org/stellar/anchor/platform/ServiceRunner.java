@@ -58,19 +58,20 @@ public class ServiceRunner {
     }
   }
 
-  static ConfigurableApplicationContext startSepServer(Map<String, Object> env) {
-    return AnchorPlatformServer.start(env);
+  public static ConfigurableApplicationContext startSepServer(Map<String, String> env) {
+    return new AnchorPlatformServer().start(env);
   }
 
-  static ConfigurableApplicationContext startStellarObserver(Map<String, Object> env) {
-    return StellarObservingServer.start(env);
+  public static ConfigurableApplicationContext startStellarObserver(Map<String, String> env) {
+    return new StellarObservingServer().start(env);
   }
 
-  static ConfigurableApplicationContext startEventProcessor(Map<String, Object> env) {
-    return EventProcessingServer.start(env);
+
+  public static ConfigurableApplicationContext startEventProcessor(Map<String, String> env) {
+    return new EventProcessingServer().start(env);
   }
 
-  static void startAnchorReferenceServer() {
+  public static ConfigurableApplicationContext startAnchorReferenceServer() {
     String strPort = System.getProperty("ANCHOR_REFERENCE_SERVER_PORT");
 
     int port = DEFAULT_ANCHOR_REFERENCE_SERVER_PORT;
@@ -79,12 +80,14 @@ public class ServiceRunner {
       port = Integer.parseInt(strPort);
     }
 
-    AnchorReferenceServer.start(port, "/");
+    return AnchorReferenceServer.start(port, "/");
   }
 
-  static void startKotlinReferenceServer(boolean wait) {
+
+  public static void startKotlinReferenceServer(boolean wait) {
     RefenreceServerStartKt.start(wait);
   }
+
 
   static void printUsage(Options options) {
     HelpFormatter helper = new HelpFormatter();
