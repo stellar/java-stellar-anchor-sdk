@@ -31,22 +31,10 @@ fun main(args: Array<String>) {
 fun startServer(wait: Boolean) {
   log.info { "Starting Kotlin reference server" }
 
-  // Support for configurable config location file.
-  val locationCfg =
-      ConfigLoaderBuilder.default()
-          .addPropertySource(PropertySource.environment())
-          .build()
-          .loadConfig<LocationConfig>()
+  // read config
+  val cfg = readCfg()
 
-  val builder = ConfigLoaderBuilder.default()
-
-  // If value is set, read config from the file.
-  locationCfg.fold({}, { builder.addFileSource(it.ktReferenceServerConfig) })
-
-  builder.addResourceSource("/default-config.yaml").addPropertySource(PropertySource.environment())
-
-  val cfg = builder.build().loadConfigOrThrow<Config>()
-
+  // start server
   referenceKotlinSever =
       embeddedServer(Netty, port = cfg.sep24.port) {
             install(ContentNegotiation) { json() }
@@ -60,8 +48,27 @@ fun startServer(wait: Boolean) {
           .start(wait)
 }
 
+fun readCfg(): Config {
+  // Load location config
+  val locationCfg =
+      ConfigLoaderBuilder.default()
+          .addPropertySource(PropertySource.environment())
+          .build()
+          .loadConfig<LocationConfig>()
+
+  val cfgBuilder = ConfigLoaderBuilder.default()
+  // Add environment variables as a property source.
+  cfgBuilder.addPropertySource(PropertySource.environment())
+  // Add config file as a property source if valid
+  locationCfg.fold({}, { cfgBuilder.addFileSource(it.ktReferenceServerConfig) })
+  // Add default config file as a property source.
+  cfgBuilder.addResourceSource("/default-config.yaml")
+
+  return cfgBuilder.build().loadConfigOrThrow<Config>()
+}
+
 fun stopServer() {
-  (referenceKotlinSever)?.stop(1000, 1000)
+  if (::referenceKotlinSever.isInitialized) (referenceKotlinSever).stop(1000, 1000)
 }
 
 fun Application.configureRouting(cfg: Config) {

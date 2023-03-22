@@ -5,11 +5,3 @@ package org.stellar.reference
 fun start(waitServer: Boolean = false) = startServer(waitServer)
 fun stop() = stopServer()
 
-class KotlinTest {
-    companion object {
-        @JvmStatic
-        fun main(args: Array<String>) {
-            println("Hello, world!")
-        }
-    }
-}
