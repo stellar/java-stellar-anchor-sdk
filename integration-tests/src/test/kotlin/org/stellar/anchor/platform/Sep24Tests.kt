@@ -17,32 +17,28 @@ import org.stellar.anchor.auth.Sep24InteractiveUrlJwt
 import org.stellar.anchor.auth.Sep24MoreInfoUrlJwt
 import org.stellar.anchor.util.Sep1Helper.*
 
-lateinit var sep24Client: Sep24Client
 lateinit var savedWithdrawTxn: Sep24GetTransactionResponse
 lateinit var savedDepositTxn: Sep24GetTransactionResponse
 
-class Sep24Tests(val config: TestConfig, val toml: TomlContent, val jwt: String) {
-  private val jwtService: JwtService
+class Sep24Tests(val config: TestConfig, val toml: TomlContent, jwt: String) {
+  private val jwtService: JwtService =
+    JwtService(
+      config.sep10JwtSecret,
+      config.sep24InteractiveUrlJwtSecret,
+      config.sep24MoreInfoUrlJwtSecret
+    )
 
-  init {
-    jwtService =
-      JwtService(
-        config.sep10JwtSecret,
-        config.sep24InteractiveUrlJwtSecret,
-        config.sep24MoreInfoUrlJwtSecret
-      )
-    sep24Client = Sep24Client(toml.getString("TRANSFER_SERVER_SEP0024"), jwt)
-    platformApiClient =
-      PlatformApiClient(AuthHelper.forNone(), "http://localhost:${config.sepServerPort}")
-  }
+  private val platformApiClient =
+    PlatformApiClient(AuthHelper.forNone(), "http://localhost:${config.sepServerPort}")
+  private val sep24Client = Sep24Client(toml.getString("TRANSFER_SERVER_SEP0024"), jwt)
 
-  fun `test Sep24 info endpoint`() {
+  private fun `test Sep24 info endpoint`() {
     printRequest("Calling GET /info")
     val info = sep24Client.getInfo()
     JSONAssert.assertEquals(expectedSep24Info, gson.toJson(info), LENIENT)
   }
 
-  fun `test Sep24 withdraw`() {
+  private fun `test Sep24 withdraw`() {
     printRequest("POST /transactions/withdraw/interactive")
     val withdrawRequest = gson.fromJson(withdrawRequest, HashMap::class.java)
     val response = sep24Client.withdraw(withdrawRequest as HashMap<String, String>)
@@ -58,7 +54,7 @@ class Sep24Tests(val config: TestConfig, val toml: TomlContent, val jwt: String)
     assertEquals(response.id, data["transaction_id"])
   }
 
-  fun `test Sep24 deposit`() {
+  private fun `test Sep24 deposit`() {
     printRequest("POST /transactions/withdraw/interactive")
     val depositRequest = gson.fromJson(depositRequest, HashMap::class.java)
     val response = sep24Client.deposit(depositRequest as HashMap<String, String>)
@@ -74,7 +70,7 @@ class Sep24Tests(val config: TestConfig, val toml: TomlContent, val jwt: String)
     assertEquals(response.id, data["transaction_id"])
   }
 
-  fun `test Sep24 GET transaction and check the JWT`() {
+  private fun `test Sep24 GET transaction and check the JWT`() {
     val txn =
       sep24Client
         .getTransaction(
@@ -90,7 +86,7 @@ class Sep24Tests(val config: TestConfig, val toml: TomlContent, val jwt: String)
     assertEquals(txn.id, data["transaction_id"])
   }
 
-  fun `test PlatformAPI GET transaction for deposit and withdrawal`() {
+  private fun `test PlatformAPI GET transaction for deposit and withdrawal`() {
     val actualWithdrawTxn = platformApiClient.getTransaction(savedWithdrawTxn.transaction.id)
     assertEquals(actualWithdrawTxn.id, savedWithdrawTxn.transaction.id)
     println(expectedWithdrawTransactionResponse)
@@ -103,7 +99,7 @@ class Sep24Tests(val config: TestConfig, val toml: TomlContent, val jwt: String)
     JSONAssert.assertEquals(expectedDepositTransactionResponse, json(actualDepositTxn), LENIENT)
   }
 
-  fun `test patch, get and compare`() {
+  private fun `test patch, get and compare`() {
     val patch = gson.fromJson(patchWithdrawTransactionRequest, PatchTransactionsRequest::class.java)
     // create patch request and patch
     patch.records[0].transaction.id = savedWithdrawTxn.transaction.id
@@ -129,7 +125,7 @@ class Sep24Tests(val config: TestConfig, val toml: TomlContent, val jwt: String)
     JSONAssert.assertEquals(expectedAfterPatchDeposit, json(afterPatchDeposit), LENIENT)
   }
 
-  fun `test GET transactions with bad ids`() {
+  private fun `test GET transactions with bad ids`() {
     val badTxnIds = listOf("null", "bad id", "123", null)
     for (txnId in badTxnIds) {
       assertThrows<SepException> { platformApiClient.getTransaction(txnId) }
