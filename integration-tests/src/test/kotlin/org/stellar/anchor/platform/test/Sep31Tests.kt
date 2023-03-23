@@ -1,5 +1,6 @@
-package org.stellar.anchor.platform
+package org.stellar.anchor.platform.test
 
+import java.time.Instant
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.assertThrows
 import org.skyscreamer.jsonassert.JSONAssert
@@ -17,9 +18,9 @@ import org.stellar.anchor.api.sep.sep31.Sep31GetTransactionResponse
 import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionRequest
 import org.stellar.anchor.apiclient.PlatformApiClient
 import org.stellar.anchor.auth.AuthHelper
+import org.stellar.anchor.platform.*
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.Sep1Helper.TomlContent
-import java.time.Instant
 
 lateinit var savedTxn: Sep31GetTransactionResponse
 
@@ -34,8 +35,8 @@ class Sep31Tests(config: TestConfig, toml: TomlContent, jwt: String) {
     sep12Client = Sep12Client(toml.getString("KYC_SERVER"), jwt)
     sep31Client = Sep31Client(toml.getString("DIRECT_PAYMENT_SERVER"), jwt)
     sep38Client = Sep38Client(toml.getString("ANCHOR_QUOTE_SERVER"), jwt)
-    platformApiClient =
-      PlatformApiClient(AuthHelper.forNone(), "http://localhost:${config.sepServerPort}")
+
+    platformApiClient = PlatformApiClient(AuthHelper.forNone(), config.env["platform.server.url"]!!)
   }
   private fun `test info endpoint`() {
     printRequest("Calling GET /info")
@@ -203,7 +204,13 @@ class Sep31Tests(config: TestConfig, toml: TomlContent, jwt: String) {
     // correctly.
     patchTxRequest =
       PatchTransactionRequest.builder()
-        .transaction(builder().id(getTxResponse.id).completedAt(Instant.now()).status(SepTransactionStatus.COMPLETED).build())
+        .transaction(
+          builder()
+            .id(getTxResponse.id)
+            .completedAt(Instant.now())
+            .status(SepTransactionStatus.COMPLETED)
+            .build()
+        )
         .build()
     patchTxResponse =
       platformApiClient.patchTransaction(

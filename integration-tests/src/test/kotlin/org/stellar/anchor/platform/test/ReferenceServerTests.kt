@@ -1,6 +1,7 @@
-package org.stellar.anchor.platform
+package org.stellar.anchor.platform.test
 
 import org.junit.jupiter.api.Assertions
+import org.stellar.anchor.platform.ReferenceServerClient
 
 lateinit var referenceServerClient: ReferenceServerClient
 

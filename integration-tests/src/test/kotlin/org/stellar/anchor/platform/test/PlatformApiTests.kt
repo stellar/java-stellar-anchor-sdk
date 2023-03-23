@@ -1,14 +1,15 @@
-package org.stellar.anchor.platform
+package org.stellar.anchor.platform.test
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.stellar.anchor.apiclient.PlatformApiClient
 import org.stellar.anchor.auth.AuthHelper
+import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.util.Sep1Helper.TomlContent
 
 class PlatformApiTests(config: TestConfig, toml: TomlContent, jwt: String) {
   private val platformApiClient =
-    PlatformApiClient(AuthHelper.forNone(), "http://localhost:${config.sepServerPort}")
+    PlatformApiClient(AuthHelper.forNone(), config.env["platform.server.url"]!!)
 
   private fun testHealth() {
     val response = platformApiClient.health(listOf("all"))

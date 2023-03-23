@@ -52,7 +52,7 @@ class ApiKeyAuthIntegrationTest {
     mockBusinessServer = MockWebServer()
     mockBusinessServer.start()
 
-    val envMap = readResourceAsMap("default/test.env")
+    val envMap = readResourceAsMap("profiles/default/servers.env")
     envMap["data.type"] = "h2"
     envMap["events.enabled"] = "false"
     envMap["assets.value"] = getResourceFilePath("config/assets.yaml")

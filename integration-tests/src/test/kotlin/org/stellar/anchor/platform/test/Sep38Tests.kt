@@ -1,4 +1,4 @@
-package org.stellar.anchor.platform
+package org.stellar.anchor.platform.test
 
 import java.time.Instant
 import java.time.format.DateTimeFormatter
@@ -6,6 +6,10 @@ import kotlin.test.assertEquals
 import org.junit.jupiter.api.assertThrows
 import org.stellar.anchor.api.exception.SepException
 import org.stellar.anchor.api.sep.sep38.Sep38Context.SEP31
+import org.stellar.anchor.platform.Sep38Client
+import org.stellar.anchor.platform.TestConfig
+import org.stellar.anchor.platform.printRequest
+import org.stellar.anchor.platform.printResponse
 import org.stellar.anchor.util.Sep1Helper.TomlContent
 
 class Sep38Tests(config: TestConfig, toml: TomlContent, jwt: String) {

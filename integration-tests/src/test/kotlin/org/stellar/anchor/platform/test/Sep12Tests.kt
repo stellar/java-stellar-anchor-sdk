@@ -1,10 +1,11 @@
-package org.stellar.anchor.platform
+package org.stellar.anchor.platform.test
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.assertThrows
 import org.stellar.anchor.api.exception.SepNotFoundException
 import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest
 import org.stellar.anchor.api.sep.sep12.Sep12Status
+import org.stellar.anchor.platform.*
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.Sep1Helper
 

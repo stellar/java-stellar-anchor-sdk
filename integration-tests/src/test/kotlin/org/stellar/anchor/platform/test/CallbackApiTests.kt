@@ -1,6 +1,12 @@
-package org.stellar.anchor.platform
+package org.stellar.anchor.platform.test
 
 import com.google.gson.Gson
+import java.time.Instant
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+import java.util.*
+import java.util.concurrent.TimeUnit
 import okhttp3.OkHttpClient
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -14,17 +20,13 @@ import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest
 import org.stellar.anchor.api.sep.sep38.Sep38Context
 import org.stellar.anchor.auth.AuthHelper
 import org.stellar.anchor.auth.JwtService
+import org.stellar.anchor.platform.Sep12Client
+import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.platform.callback.RestCustomerIntegration
 import org.stellar.anchor.platform.callback.RestFeeIntegration
 import org.stellar.anchor.platform.callback.RestRateIntegration
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.Sep1Helper
-import java.time.Instant
-import java.time.ZoneId
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
-import java.util.*
-import java.util.concurrent.TimeUnit
 
 class CallbackApiTests(val config: TestConfig, val toml: Sep1Helper.TomlContent, val jwt: String) {
 
@@ -46,42 +48,26 @@ class CallbackApiTests(val config: TestConfig, val toml: Sep1Helper.TomlContent,
 
   private val platformToAnchorJwtService =
     JwtService(
-      config.platformToAnchorSecret,
-      config.sep24InteractiveUrlJwtSecret,
-      config.sep24MoreInfoUrlJwtSecret
+      config.env["secret.callback_api.auth_secret"]!!,
+      config.env["secret.sep24.interactive_url.jwt_secret"]!!,
+      config.env["secret.sep24.more_info_url.jwt_secret"]!!,
     )
 
   private val authHelper =
     AuthHelper.forJwtToken(
       platformToAnchorJwtService,
       JWT_EXPIRATION_MILLISECONDS,
-      "http://localhost:${config.sepServerPort}"
+      config.env["platform.server.url"]!!,
     )
 
   private val gson: Gson = GsonUtils.getInstance()
 
   private val rci =
-    RestCustomerIntegration(
-      "http://localhost:${config.referenceServerPort}",
-      httpClient,
-      authHelper,
-      gson
-    )
-
+    RestCustomerIntegration(config.env["reference.server.url"]!!, httpClient, authHelper, gson)
   private val rriClient =
-    RestRateIntegration(
-      "http://localhost:${config.referenceServerPort}",
-      httpClient,
-      authHelper,
-      gson
-    )
+    RestRateIntegration(config.env["reference.server.url"]!!, httpClient, authHelper, gson)
   private val rfiClient =
-    RestFeeIntegration(
-      "http://localhost:${config.referenceServerPort}",
-      httpClient,
-      authHelper,
-      gson
-    )
+    RestFeeIntegration(config.env["reference.server.url"]!!, httpClient, authHelper, gson)
 
   private fun testCustomerIntegration() {
     assertThrows<NotFoundException> {

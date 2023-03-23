@@ -1,6 +1,6 @@
 @file:Suppress("UNCHECKED_CAST")
 
-package org.stellar.anchor.platform
+package org.stellar.anchor.platform.test
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.assertThrows
@@ -15,6 +15,7 @@ import org.stellar.anchor.auth.AuthHelper
 import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.auth.Sep24InteractiveUrlJwt
 import org.stellar.anchor.auth.Sep24MoreInfoUrlJwt
+import org.stellar.anchor.platform.*
 import org.stellar.anchor.util.Sep1Helper.*
 
 lateinit var savedWithdrawTxn: Sep24GetTransactionResponse
@@ -23,13 +24,13 @@ lateinit var savedDepositTxn: Sep24GetTransactionResponse
 class Sep24Tests(val config: TestConfig, val toml: TomlContent, jwt: String) {
   private val jwtService: JwtService =
     JwtService(
-      config.sep10JwtSecret,
-      config.sep24InteractiveUrlJwtSecret,
-      config.sep24MoreInfoUrlJwtSecret
+      config.env["secret.sep10.jwt_secret"]!!,
+      config.env["secret.sep24.interactive_url.jwt_secret"]!!,
+      config.env["secret.sep24.more_info_url.jwt_secret"]!!
     )
 
   private val platformApiClient =
-    PlatformApiClient(AuthHelper.forNone(), "http://localhost:${config.sepServerPort}")
+    PlatformApiClient(AuthHelper.forNone(), config.env["platform.server.url"]!!)
   private val sep24Client = Sep24Client(toml.getString("TRANSFER_SERVER_SEP0024"), jwt)
 
   private fun `test Sep24 info endpoint`() {

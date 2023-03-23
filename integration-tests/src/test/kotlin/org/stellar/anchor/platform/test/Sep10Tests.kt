@@ -1,7 +1,10 @@
-package org.stellar.anchor.platform
+package org.stellar.anchor.platform.test
 
 import org.stellar.anchor.api.exception.SepNotAuthorizedException
 import org.stellar.anchor.api.sep.sep10.ValidationRequest
+import org.stellar.anchor.platform.CLIENT_WALLET_ACCOUNT
+import org.stellar.anchor.platform.CLIENT_WALLET_SECRET
+import org.stellar.anchor.platform.Sep10Client
 import org.stellar.anchor.util.Sep1Helper.TomlContent
 import kotlin.test.assertFailsWith
 
@@ -19,7 +22,8 @@ class Sep10Tests(val toml: TomlContent) {
                   toml.getString("WEB_AUTH_ENDPOINT"),
                   toml.getString("SIGNING_KEY"),
                   CLIENT_WALLET_ACCOUNT,
-                  CLIENT_WALLET_SECRET)
+                  CLIENT_WALLET_SECRET
+              )
         }
         if (!::sep10ClientMultiSig.isInitialized) {
           sep10ClientMultiSig =
@@ -30,7 +34,8 @@ class Sep10Tests(val toml: TomlContent) {
                   arrayOf(
                       CLIENT_WALLET_SECRET,
                       CLIENT_WALLET_EXTRA_SIGNER_1_SECRET,
-                      CLIENT_WALLET_EXTRA_SIGNER_2_SECRET))
+                      CLIENT_WALLET_EXTRA_SIGNER_2_SECRET
+                  ))
         }
     }
 

@@ -7,8 +7,10 @@ import java.net.URL
 
 fun readResourceAsMap(resourcePath: String): MutableMap<String, String> {
   val resourceFilePath = getResourceFilePath(resourcePath)
-  val resourceFile = File(resourceFilePath)
+  return readResourceAsMap(File(resourceFilePath))
+}
 
+fun readResourceAsMap(resourceFile: File): MutableMap<String, String> {
   return DotenvParser(
       DotenvReader(resourceFile.parentFile.absolutePath, resourceFile.name),
       false,

@@ -24,6 +24,7 @@ dependencies {
   implementation(libs.log4j2.core)
   implementation(libs.log4j2.slf4j)
   implementation(libs.docker.compose.rule)
+  implementation(libs.stellar.wallet.sdk)
 
   // project dependencies
   implementation(project(":api-schema"))

@@ -1,8 +1,9 @@
-package org.stellar.anchor.platform
+package org.stellar.anchor.platform.test
 
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.junit.jupiter.api.Assertions
+import org.stellar.anchor.platform.gson
 import java.util.concurrent.TimeUnit
 
 class StellarObserverTests {
@@ -19,7 +20,7 @@ class StellarObserverTests {
   fun testStellarObserverHealth() {
     val httpRequest =
       Request.Builder()
-        .url("http://localhost:${OBSERVER_HEALTH_SERVER_PORT}/health")
+        .url("http://localhost:$OBSERVER_HEALTH_SERVER_PORT/health")
         .header("Content-Type", "application/json")
         .get()
         .build()
