@@ -45,8 +45,8 @@ class TestEnvRunner(val config: TestConfig) {
       println("Running tests...")
       val envMap = config.env
 
-      envMap["data.type"] = "h2"
-      envMap["events.enabled"] = "false"
+//      envMap["data.type"] = "h2"
+//      envMap["events.enabled"] = "false"
       envMap["assets.value"] = getResourceFilePath(envMap["assets.value"]!!)
       envMap["sep1.toml.value"] = getResourceFilePath(envMap["sep1.toml.value"]!!)
 
