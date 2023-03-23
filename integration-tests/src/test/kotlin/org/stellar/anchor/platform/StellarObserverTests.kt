@@ -8,24 +8,24 @@ import org.junit.jupiter.api.Assertions
 
 class StellarObserverTests {
   companion object {
+    const val OBSERVER_HEALTH_SERVER_PORT = 8083
+
     private val httpClient: OkHttpClient =
-      OkHttpClient.Builder()
-        .connectTimeout(10, TimeUnit.MINUTES)
-        .readTimeout(10, TimeUnit.MINUTES)
-        .writeTimeout(10, TimeUnit.MINUTES)
-        .build()
+        OkHttpClient.Builder()
+            .connectTimeout(10, TimeUnit.MINUTES)
+            .readTimeout(10, TimeUnit.MINUTES)
+            .writeTimeout(10, TimeUnit.MINUTES)
+            .build()
 
     fun setup() {}
 
     fun testStellarObserverHealth() {
       val httpRequest =
-        Request.Builder()
-          .url(
-            "http://localhost:${AnchorPlatformIntegrationTest.OBSERVER_HEALTH_SERVER_PORT}/health"
-          )
-          .header("Content-Type", "application/json")
-          .get()
-          .build()
+          Request.Builder()
+              .url("http://localhost:${OBSERVER_HEALTH_SERVER_PORT}/health")
+              .header("Content-Type", "application/json")
+              .get()
+              .build()
       val response = httpClient.newCall(httpRequest).execute()
       Assertions.assertEquals(200, response.code)
 

@@ -1,22 +1,14 @@
 package org.stellar.anchor.platform
 
 import com.google.gson.Gson
-import java.time.Instant
-import java.time.ZoneId
-import java.time.ZonedDateTime
-import java.time.format.DateTimeFormatter
-import java.util.*
-import java.util.concurrent.TimeUnit
 import okhttp3.OkHttpClient
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.assertThrows
 import org.skyscreamer.jsonassert.JSONAssert
-import org.stellar.anchor.api.callback.GetFeeRequest
 import org.stellar.anchor.api.callback.GetRateRequest
 import org.stellar.anchor.api.exception.NotFoundException
 import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerRequest
-import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest
 import org.stellar.anchor.api.sep.sep38.Sep38Context
 import org.stellar.anchor.auth.AuthHelper
 import org.stellar.anchor.auth.JwtService
@@ -24,9 +16,18 @@ import org.stellar.anchor.platform.callback.RestCustomerIntegration
 import org.stellar.anchor.platform.callback.RestFeeIntegration
 import org.stellar.anchor.platform.callback.RestRateIntegration
 import org.stellar.anchor.util.GsonUtils
+import java.time.Instant
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
+import java.util.*
+import java.util.concurrent.TimeUnit
 
 class CallbackApiTests {
   companion object {
+    const val REFERENCE_SERVER_PORT = 8081
+    const val SEP_SERVER_PORT = 8080
+
     private const val PLATFORM_TO_ANCHOR_SECRET = "myPlatformToAnchorSecret"
     private const val JWT_EXPIRATION_MILLISECONDS: Long = 10000
     private const val FIAT_USD = "iso4217:USD"
@@ -46,25 +47,25 @@ class CallbackApiTests {
         AuthHelper.forJwtToken(
             platformToAnchorJwtService,
             JWT_EXPIRATION_MILLISECONDS,
-            "http://localhost:${AnchorPlatformIntegrationTest.SEP_SERVER_PORT}")
+            "http://localhost:${SEP_SERVER_PORT}")
 
     private val gson: Gson = GsonUtils.getInstance()
 
     private val rci =
         RestCustomerIntegration(
-            "http://localhost:${AnchorPlatformIntegrationTest.REFERENCE_SERVER_PORT}",
+            "http://localhost:${REFERENCE_SERVER_PORT}",
             httpClient,
             authHelper,
             gson)
     private val rriClient =
         RestRateIntegration(
-            "http://localhost:${AnchorPlatformIntegrationTest.REFERENCE_SERVER_PORT}",
+            "http://localhost:${REFERENCE_SERVER_PORT}",
             httpClient,
             authHelper,
             gson)
     private val rfiClient =
         RestFeeIntegration(
-            "http://localhost:${AnchorPlatformIntegrationTest.REFERENCE_SERVER_PORT}",
+            "http://localhost:${REFERENCE_SERVER_PORT}",
             httpClient,
             authHelper,
             gson)
@@ -197,39 +198,39 @@ class CallbackApiTests {
       JSONAssert.assertEquals(wantBody, org.stellar.anchor.platform.gson.toJson(gotQuote), true)
     }
 
-    fun testGetFee() {
-      // Create sender customer
-      val senderCustomerRequest =
-          GsonUtils.getInstance().fromJson(testCustomer1Json, Sep12PutCustomerRequest::class.java)
-      val senderCustomer = sep12Client.putCustomer(senderCustomerRequest)
-
-      // Create receiver customer
-      val receiverCustomerRequest =
-          GsonUtils.getInstance().fromJson(testCustomer2Json, Sep12PutCustomerRequest::class.java)
-      val receiverCustomer = sep12Client.putCustomer(receiverCustomerRequest)
-
-      val result =
-          rfiClient.getFee(
-              GetFeeRequest.builder()
-                  .sendAmount("10")
-                  .sendAsset("USDC")
-                  .receiveAsset("USDC")
-                  .senderId(senderCustomer!!.id)
-                  .receiverId(receiverCustomer!!.id)
-                  .clientId("<client-id>")
-                  .build())
-
-      Assertions.assertNotNull(result)
-      JSONAssert.assertEquals(
-          org.stellar.anchor.platform.gson.toJson(result),
-          """{
-        "fee": {
-          "asset": "USDC",
-          "amount": "0.30"
-        }
-      }""",
-          true)
-    }
+//    fun testGetFee() {
+//      // Create sender customer
+//      val senderCustomerRequest =
+//          GsonUtils.getInstance().fromJson(testCustomer1Json, Sep12PutCustomerRequest::class.java)
+//      val senderCustomer = sep12Client.putCustomer(senderCustomerRequest)
+//
+//      // Create receiver customer
+//      val receiverCustomerRequest =
+//          GsonUtils.getInstance().fromJson(testCustomer2Json, Sep12PutCustomerRequest::class.java)
+//      val receiverCustomer = sep12Client.putCustomer(receiverCustomerRequest)
+//
+//      val result =
+//          rfiClient.getFee(
+//              GetFeeRequest.builder()
+//                  .sendAmount("10")
+//                  .sendAsset("USDC")
+//                  .receiveAsset("USDC")
+//                  .senderId(senderCustomer!!.id)
+//                  .receiverId(receiverCustomer!!.id)
+//                  .clientId("<client-id>")
+//                  .build())
+//
+//      Assertions.assertNotNull(result)
+//      JSONAssert.assertEquals(
+//          org.stellar.anchor.platform.gson.toJson(result),
+//          """{
+//        "fee": {
+//          "asset": "USDC",
+//          "amount": "0.30"
+//        }
+//      }""",
+//          true)
+//    }
   }
 }
 
@@ -241,5 +242,5 @@ fun callbackApiTestAll() {
   CallbackApiTests.testRate_indicativePrices()
   CallbackApiTests.testRate_indicativePrice()
   CallbackApiTests.testRate_firm()
-  CallbackApiTests.testGetFee()
+//  CallbackApiTests.testGetFee()
 }

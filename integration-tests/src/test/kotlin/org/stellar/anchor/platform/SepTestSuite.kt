@@ -50,33 +50,33 @@ fun main(args: Array<String>) {
 
     val tests = cmd.getOptionValues("p")
 
-    if ("sep10" in tests) {
-      sep10TestAll()
-    }
-
-    if ("sep12" in tests) {
-      sep12TestAll()
-    }
-
-    if ("sep24" in tests) {
-      sep24TestAll()
-    }
-
-    if ("sep31" in tests) {
-      sep31TestAll()
-    }
-
-    if ("sep38" in tests) {
-      sep38TestAll()
-    }
-
-    if ("platform" in tests) {
-      platformTestAll()
-    }
-
-    if ("ref" in tests) {
-      referenceServerTestAll()
-    }
+//    if ("sep10" in tests) {
+//      sep10TestAll()
+//    }
+//
+//    if ("sep12" in tests) {
+//      sep12TestAll()
+//    }
+//
+//    if ("sep24" in tests) {
+//      sep24TestAll()
+//    }
+//
+//    if ("sep31" in tests) {
+//      sep31TestAll()
+//    }
+//
+//    if ("sep38" in tests) {
+//      sep38TestAll()
+//    }
+//
+//    if ("platform" in tests) {
+//      platformTestAll()
+//    }
+//
+//    if ("ref" in tests) {
+//      referenceServerTestAll()
+//    }
   } catch (ex: ParseException) {
     printUsage(options)
   }

@@ -5,11 +5,8 @@ import org.junit.jupiter.api.assertThrows
 import org.stellar.anchor.api.exception.SepNotFoundException
 import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest
 import org.stellar.anchor.api.sep.sep12.Sep12Status
-import org.stellar.anchor.platform.AnchorPlatformIntegrationTest.Companion.jwt
-import org.stellar.anchor.platform.AnchorPlatformIntegrationTest.Companion.toml
 import org.stellar.anchor.util.GsonUtils
-
-lateinit var sep12Client: Sep12Client
+import org.stellar.anchor.util.Sep1Helper
 
 const val testCustomer1Json =
   """
@@ -45,67 +42,64 @@ const val testCustomer2Json =
 }
 """
 
-class Sep12Tests {
-  companion object {
-    fun setup() {
-      println("Performing SEP12 tests...")
-      if (!::sep12Client.isInitialized) {
-        sep12Client = Sep12Client(toml.getString("KYC_SERVER"), jwt)
-      }
-    }
+class Sep12Tests(config: TestConfig, toml: Sep1Helper.TomlContent, jwt: String) {
+  private lateinit var sep12Client: Sep12Client
 
-    fun testHappyPath() {
-      val customer =
-        GsonUtils.getInstance().fromJson(testCustomer1Json, Sep12PutCustomerRequest::class.java)
-      customer.emailAddress = null
-
-      // Upload a customer
-      printRequest("Calling PUT /customer", customer)
-      var pr = sep12Client.putCustomer(customer)
-      printResponse(pr)
-
-      // make sure the customer was uploaded correctly.
-      printRequest("Calling GET /customer", customer)
-      var gr = sep12Client.getCustomer(pr!!.id)
-      printResponse(gr)
-
-      assertEquals(Sep12Status.NEEDS_INFO, gr?.status)
-      assertEquals(pr.id, gr?.id)
-
-      customer.emailAddress = "john.doe@stellar.org"
-      customer.type = "sep31-receiver"
-
-      // Modify the customer
-      printRequest("Calling PUT /customer", customer)
-      pr = sep12Client.putCustomer(customer)
-      printResponse(pr)
-
-      // Make sure the customer is modified correctly.
-      printRequest("Calling GET /customer", customer)
-      gr = sep12Client.getCustomer(pr!!.id)
-      printResponse(gr)
-
-      assertEquals(pr.id, gr?.id)
-      assertEquals(Sep12Status.ACCEPTED, gr?.status)
-
-      // Delete the customer
-      printRequest("Calling DELETE /customer/$CLIENT_WALLET_ACCOUNT")
-      val code = sep12Client.deleteCustomer(CLIENT_WALLET_ACCOUNT)
-      printResponse(code)
-      // currently, not implemented
-      assertEquals(200, code)
-
-      val id = pr.id
-      val ex: SepNotFoundException = assertThrows { sep12Client.getCustomer(id) }
-      assertEquals("customer for 'id' '$id' not found", ex.message)
-      println(ex)
+  init {
+    println("Performing SEP12 tests...")
+    if (!::sep12Client.isInitialized) {
+      sep12Client = Sep12Client(toml.getString("KYC_SERVER"), jwt)
     }
   }
-}
 
-fun sep12TestAll() {
-  Sep12Tests.setup()
+  fun `test put, get customers`() {
+    val customer =
+      GsonUtils.getInstance().fromJson(testCustomer1Json, Sep12PutCustomerRequest::class.java)
+    customer.emailAddress = null
 
-  println("Performing Sep12 tests...")
-  Sep12Tests.testHappyPath()
+    // Upload a customer
+    printRequest("Calling PUT /customer", customer)
+    var pr = sep12Client.putCustomer(customer)
+    printResponse(pr)
+
+    // make sure the customer was uploaded correctly.
+    printRequest("Calling GET /customer", customer)
+    var gr = sep12Client.getCustomer(pr!!.id)
+    printResponse(gr)
+
+    assertEquals(Sep12Status.NEEDS_INFO, gr?.status)
+    assertEquals(pr.id, gr?.id)
+
+    customer.emailAddress = "john.doe@stellar.org"
+    customer.type = "sep31-receiver"
+
+    // Modify the customer
+    printRequest("Calling PUT /customer", customer)
+    pr = sep12Client.putCustomer(customer)
+    printResponse(pr)
+
+    // Make sure the customer is modified correctly.
+    printRequest("Calling GET /customer", customer)
+    gr = sep12Client.getCustomer(pr!!.id)
+    printResponse(gr)
+
+    assertEquals(pr.id, gr?.id)
+    assertEquals(Sep12Status.ACCEPTED, gr?.status)
+
+    // Delete the customer
+    printRequest("Calling DELETE /customer/$CLIENT_WALLET_ACCOUNT")
+    val code = sep12Client.deleteCustomer(CLIENT_WALLET_ACCOUNT)
+    printResponse(code)
+    // currently, not implemented
+    assertEquals(200, code)
+
+    val id = pr.id
+    val ex: SepNotFoundException = assertThrows { sep12Client.getCustomer(id) }
+    assertEquals("customer for 'id' '$id' not found", ex.message)
+    println(ex)
+  }
+  fun testAll() {
+    println("Performing Sep12 tests...")
+    `test put, get customers`()
+  }
 }
