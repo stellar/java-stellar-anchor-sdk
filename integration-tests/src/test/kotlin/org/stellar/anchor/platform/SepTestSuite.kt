@@ -2,9 +2,6 @@ package org.stellar.anchor.platform
 
 import org.apache.commons.cli.*
 
-var CLIENT_WALLET_ACCOUNT = "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
-var CLIENT_WALLET_SECRET = "SBHTWEF5U7FK53FLGDMBQYGXRUJ24VBM3M6VDXCHRIGCRG3Z64PH45LW"
-
 fun main(args: Array<String>) {
   // Start necessary servers
   val options = Options()
@@ -45,38 +42,38 @@ fun main(args: Array<String>) {
 
     // Start anchor reference server if enabled.
     if (cmd.hasOption("kotlin-reference-server") || cmd.hasOption("all")) {
-      ServiceRunner.startKotlinReferenceServer(false)
+      ServiceRunner.startKotlinReferenceServer(null, false)
     }
 
     val tests = cmd.getOptionValues("p")
 
-//    if ("sep10" in tests) {
-//      sep10TestAll()
-//    }
-//
-//    if ("sep12" in tests) {
-//      sep12TestAll()
-//    }
-//
-//    if ("sep24" in tests) {
-//      sep24TestAll()
-//    }
-//
-//    if ("sep31" in tests) {
-//      sep31TestAll()
-//    }
-//
-//    if ("sep38" in tests) {
-//      sep38TestAll()
-//    }
-//
-//    if ("platform" in tests) {
-//      platformTestAll()
-//    }
-//
-//    if ("ref" in tests) {
-//      referenceServerTestAll()
-//    }
+    //    if ("sep10" in tests) {
+    //      sep10TestAll()
+    //    }
+    //
+    //    if ("sep12" in tests) {
+    //      sep12TestAll()
+    //    }
+    //
+    //    if ("sep24" in tests) {
+    //      sep24TestAll()
+    //    }
+    //
+    //    if ("sep31" in tests) {
+    //      sep31TestAll()
+    //    }
+    //
+    //    if ("sep38" in tests) {
+    //      sep38TestAll()
+    //    }
+    //
+    //    if ("platform" in tests) {
+    //      platformTestAll()
+    //    }
+    //
+    //    if ("ref" in tests) {
+    //      referenceServerTestAll()
+    //    }
   } catch (ex: ParseException) {
     printUsage(options)
   }

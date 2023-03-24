@@ -46,7 +46,7 @@ public class ServiceRunner {
       }
 
       if (cmd.hasOption("kotlin-reference-server") || cmd.hasOption("all")) {
-        startKotlinReferenceServer(true);
+        startKotlinReferenceServer(null, true);
         anyServerStarted = true;
       }
 
@@ -83,9 +83,8 @@ public class ServiceRunner {
     return AnchorReferenceServer.start(port, "/");
   }
 
-
-  public static void startKotlinReferenceServer(boolean wait) {
-    RefenreceServerStartKt.start(wait);
+  public static void startKotlinReferenceServer(Map<String, String> envMap, boolean wait) {
+    RefenreceServerStartKt.start(envMap, wait);
   }
 
 

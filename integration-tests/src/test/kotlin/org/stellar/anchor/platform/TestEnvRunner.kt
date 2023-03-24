@@ -53,7 +53,7 @@ class TestEnvRunner(val config: TestConfig) {
       // Start servers
       val jobs = mutableListOf<Job>()
       val scope = CoroutineScope(Dispatchers.Default)
-      jobs += scope.launch { ServiceRunner.startKotlinReferenceServer(false) }
+      jobs += scope.launch { ServiceRunner.startKotlinReferenceServer(envMap, false) }
       jobs += scope.launch { runningServers.add(ServiceRunner.startAnchorReferenceServer()) }
       jobs += scope.launch { runningServers.add(ServiceRunner.startStellarObserver(envMap)) }
       jobs += scope.launch { runningServers.add(ServiceRunner.startSepServer(envMap)) }

@@ -4,13 +4,19 @@ import java.io.File
 import org.stellar.anchor.platform.test.*
 import org.stellar.anchor.util.Sep1Helper
 
-data class TestConfig(val profileName: String) {
+data class TestConfig(var profileName: String) {
   val env = mutableMapOf<String, String>()
-  val testEnvFile = getResourceFilePath("profiles/${profileName}/test.env")
-  val serversEnvFile = getResourceFilePath("profiles/${profileName}/servers.env")
+  val testEnvFile: String
+  val serversEnvFile: String
   init {
     // override test profile name with TEST_PROFILE_NAME env variable
-    val testProfileName = System.getenv("TEST_PROFILE_NAME") ?: profileName
+    profileName = System.getenv("TEST_PROFILE_NAME") ?: profileName
+    testEnvFile = getResourceFilePath("profiles/${profileName}/test.env")
+    serversEnvFile = getResourceFilePath("profiles/${profileName}/servers.env")
+
+    val testEnvFile = getResourceFilePath("profiles/${profileName}/test.env")
+    val serversEnvFile = getResourceFilePath("profiles/${profileName}/servers.env")
+
     // read test.env file
     val testEnv = readResourceAsMap(File(testEnvFile))
     // read servers.env file

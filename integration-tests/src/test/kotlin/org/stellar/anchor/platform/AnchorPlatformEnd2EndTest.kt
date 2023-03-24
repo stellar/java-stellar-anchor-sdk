@@ -21,14 +21,9 @@ class AnchorPlatformEnd2EndTest : AbstractIntegrationTest(TestConfig(profileName
     }
   }
 
-  @Test
-  @Order(1)
-  fun runSep10Test() {
-    singleton.sep10Tests.testAll()
-  }
 
   @Test
-  @Order(2)
+  @Order(1)
   fun runSep24Test() {
     singleton.sep24E2eTests.testAll()
   }

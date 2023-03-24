@@ -1,9 +1,6 @@
 package org.stellar.reference
 
-import com.sksamuel.hoplite.ConfigLoaderBuilder
-import com.sksamuel.hoplite.PropertySource
-import com.sksamuel.hoplite.addFileSource
-import com.sksamuel.hoplite.addResourceSource
+import com.sksamuel.hoplite.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
 import io.ktor.server.application.*
@@ -25,40 +22,41 @@ val log = KotlinLogging.logger {}
 lateinit var referenceKotlinSever: NettyApplicationEngine
 
 fun main(args: Array<String>) {
-  startServer(args.getOrNull(0)?.toBooleanStrictOrNull() ?: true)
+  startServer(null, args.getOrNull(0)?.toBooleanStrictOrNull() ?: true)
 }
 
-fun startServer(wait: Boolean) {
+fun startServer(envMap: Map<String, String>?, wait: Boolean) {
   log.info { "Starting Kotlin reference server" }
 
   // read config
-  val cfg = readCfg()
+  val cfg = readCfg(envMap)
 
   // start server
   referenceKotlinSever =
-      embeddedServer(Netty, port = cfg.sep24.port) {
-            install(ContentNegotiation) { json() }
-            configureRouting(cfg)
-            install(CORS) {
-              anyHost()
-              allowHeader(HttpHeaders.Authorization)
-              allowHeader(HttpHeaders.ContentType)
-            }
-          }
-          .start(wait)
+    embeddedServer(Netty, port = cfg.sep24.port) {
+        install(ContentNegotiation) { json() }
+        configureRouting(cfg)
+        install(CORS) {
+          anyHost()
+          allowHeader(HttpHeaders.Authorization)
+          allowHeader(HttpHeaders.ContentType)
+        }
+      }
+      .start(wait)
 }
 
-fun readCfg(): Config {
+fun readCfg(envMap: Map<String, String>?): Config {
   // Load location config
   val locationCfg =
-      ConfigLoaderBuilder.default()
-          .addPropertySource(PropertySource.environment())
-          .build()
-          .loadConfig<LocationConfig>()
+    ConfigLoaderBuilder.default()
+      .addPropertySource(PropertySource.environment())
+      .build()
+      .loadConfig<LocationConfig>()
 
   val cfgBuilder = ConfigLoaderBuilder.default()
   // Add environment variables as a property source.
   cfgBuilder.addPropertySource(PropertySource.environment())
+  if (envMap != null) cfgBuilder.addMapSource(envMap)
   // Add config file as a property source if valid
   locationCfg.fold({}, { cfgBuilder.addFileSource(it.ktReferenceServerConfig) })
   // Add default config file as a property source.
