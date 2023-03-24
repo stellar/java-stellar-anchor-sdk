@@ -15,10 +15,11 @@ class TestProfileRunner(val config: TestConfig) {
 
   init {
     val dockerComposeFolder = File(config.testEnvFile).parent
+    val userHomeFolder = File(System.getProperty("user.home"))
     docker =
       DockerComposeExtension.builder()
-        .saveLogsTo("build/docker-logs/anchor-platform-integration-test")
-        .file("${dockerComposeFolder}/docker-compose.yaml")
+        .saveLogsTo("${userHomeFolder}/docker-logs/anchor-platform-integration-test")
+        .file("${dockerComposeFolder}/docker-compose-test.yaml")
         .waitingForService("kafka", HealthChecks.toHaveAllPortsOpen())
         .waitingForService("db", HealthChecks.toHaveAllPortsOpen())
         .pullOnStartup(true)

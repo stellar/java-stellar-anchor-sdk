@@ -4,11 +4,26 @@ services:
     image: stellar/anchor-platform:edge
     command: --anchor-reference-server
     environment:
-      - REFERENCE_SERVER_CONFIG_ENV=file:/config/reference-config.yaml
+      - REFERENCE_SERVER_CONFIG_ENV=file:/config/java-reference-server-config.yaml
     volumes:
       - .:/config
     ports:
       - "8081:8081"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  observer:
+    image: stellar/anchor-platform:edge
+    build:
+      context: ../../
+      dockerfile: integration-tests/docker-compose-configs/Dockerfile
+    command: "--stellar-observer"
+    volumes:
+      # add mounts for the new config directory
+      - ../sep24/:/config
+    depends_on:
+      - db
+      - kafka
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
