@@ -14,12 +14,12 @@ class TestProfileRunner(val config: TestConfig) {
   private var shouldStartServers: Boolean = false
 
   init {
-    val dockerComposeFolder = File(config.testEnvFile).parent
+    val dockerComposeFile = getResourceFilePath("docker-compose-test.yaml")
     val userHomeFolder = File(System.getProperty("user.home"))
     docker =
       DockerComposeExtension.builder()
         .saveLogsTo("${userHomeFolder}/docker-logs/anchor-platform-integration-test")
-        .file("${dockerComposeFolder}/docker-compose-test.yaml")
+        .file("${dockerComposeFile}")
         .waitingForService("kafka", HealthChecks.toHaveAllPortsOpen())
         .waitingForService("db", HealthChecks.toHaveAllPortsOpen())
         .pullOnStartup(true)
@@ -46,8 +46,8 @@ class TestProfileRunner(val config: TestConfig) {
       println("Running tests...")
       val envMap = config.env
 
-//      envMap["data.type"] = "h2"
-//      envMap["events.enabled"] = "false"
+      //      envMap["data.type"] = "h2"
+      //      envMap["events.enabled"] = "false"
       envMap["assets.value"] = getResourceFilePath(envMap["assets.value"]!!)
       envMap["sep1.toml.value"] = getResourceFilePath(envMap["sep1.toml.value"]!!)
 

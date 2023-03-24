@@ -21,7 +21,6 @@ class AnchorPlatformEnd2EndTest : AbstractIntegrationTest(TestConfig(profileName
     }
   }
 
-
   @Test
   @Order(1)
   fun runSep24Test() {

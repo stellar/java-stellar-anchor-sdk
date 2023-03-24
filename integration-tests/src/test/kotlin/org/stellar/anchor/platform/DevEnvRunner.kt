@@ -4,7 +4,6 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
-
 lateinit var testRunner: TestProfileRunner
 
 fun main() = runBlocking {

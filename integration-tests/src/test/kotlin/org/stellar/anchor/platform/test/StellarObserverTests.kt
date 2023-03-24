@@ -1,10 +1,10 @@
 package org.stellar.anchor.platform.test
 
+import java.util.concurrent.TimeUnit
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.junit.jupiter.api.Assertions
 import org.stellar.anchor.platform.gson
-import java.util.concurrent.TimeUnit
 
 class StellarObserverTests {
   companion object {

@@ -34,7 +34,6 @@ public class ConfigEnvironment {
     }
   }
 
-
   public static void rebuild() {
     rebuild(null);
   }

@@ -3,7 +3,6 @@ package org.stellar.anchor.platform.test
 import io.ktor.client.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
-import io.ktor.http.HttpHeaders.Timeout
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.fail
 import kotlin.time.Duration.Companion.seconds
@@ -32,13 +31,14 @@ class Sep24End2EndTest(
   private val USDC =
     IssuedAssetId("USDC", "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP")
   private val asset = USDC
-  private val client = HttpClient() {
-    install(HttpTimeout) {
-      requestTimeoutMillis = 300000
-      connectTimeoutMillis = 300000
-      socketTimeoutMillis = 300000
+  private val client =
+    HttpClient() {
+      install(HttpTimeout) {
+        requestTimeoutMillis = 300000
+        connectTimeoutMillis = 300000
+        socketTimeoutMillis = 300000
+      }
     }
-  }
   private val anchor = wallet.anchor(config.env["anchor.domain"]!!.substring("http://".length))
 
   private val maxTries = 40
