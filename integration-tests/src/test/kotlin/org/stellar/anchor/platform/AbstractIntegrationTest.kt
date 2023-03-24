@@ -30,7 +30,7 @@ open class AbstractIntegrationTest(private val config: TestConfig) {
       .setProperty("REFERENCE_SERVER_CONFIG", "classpath:/anchor-reference-server.yaml")
   }
 
-  private val testEnvRunner = TestEnvRunner(config)
+  private val testProfileRunner = TestProfileRunner(config)
   lateinit var sep10Tests: Sep10Tests
   lateinit var sep12Tests: Sep12Tests
   lateinit var sep24Tests: Sep24Tests
@@ -42,12 +42,12 @@ open class AbstractIntegrationTest(private val config: TestConfig) {
   lateinit var sep24E2eTests: Sep24End2EndTest
 
   fun setUp() {
-    testEnvRunner.start()
+    testProfileRunner.start()
     setupTests()
   }
 
   fun tearDown() {
-    testEnvRunner.shutdown()
+    testProfileRunner.shutdown()
   }
 
   private fun setupTests() {

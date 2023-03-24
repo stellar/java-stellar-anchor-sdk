@@ -7,7 +7,7 @@ import kotlinx.coroutines.*
 import org.springframework.boot.SpringApplication
 import org.springframework.context.ConfigurableApplicationContext
 
-class TestEnvRunner(val config: TestConfig) {
+class TestProfileRunner(val config: TestConfig) {
   private val docker: DockerComposeExtension
   private var runningServers: MutableList<ConfigurableApplicationContext> = mutableListOf()
   private var shouldStartDockerCompose: Boolean = false
