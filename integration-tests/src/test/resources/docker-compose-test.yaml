@@ -1,6 +1,7 @@
 version: '2.4'
 services:
   kafka:
+    hostname: kafka
     extends:
       file: common/docker-compose.yaml
       service: kafka
@@ -8,11 +9,13 @@ services:
       - zookeeper
 
   zookeeper:
+    hostname: zookeeper
     extends:
       file: common/docker-compose.yaml
       service: zookeeper
 
   db:
+    hostname: db
     extends:
       file: common/docker-compose.yaml
       service: db

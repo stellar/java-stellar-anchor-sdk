@@ -38,10 +38,12 @@ subprojects {
       logger.warn("!!! WARNING !!!")
       logger.warn("=================")
       logger.warn(
-          "    You are running Java version:[{}]. Spotless may not work well with JDK 17.",
-          javaVersion)
+        "    You are running Java version:[{}]. Spotless may not work well with JDK 17.",
+        javaVersion
+      )
       logger.warn(
-          "    In IntelliJ, go to [File -> Build -> Execution, Build, Deployment -> Gradle] and check Gradle JVM")
+        "    In IntelliJ, go to [File -> Build -> Execution, Build, Deployment -> Gradle] and check Gradle JVM"
+      )
     }
 
     if (javaVersion < "11") {
@@ -63,14 +65,17 @@ subprojects {
     implementation(rootProject.libs.findbugs.jsr305)
     implementation(rootProject.libs.aws.sqs)
     implementation(rootProject.libs.postgresql)
-    implementation(rootProject.libs.scala.library) // used to force the version of scala-library (used by kafka-json-schema-serializer) to a safer one.
+    implementation(
+      rootProject.libs.scala.library
+    ) // used to force the version of scala-library (used by kafka-json-schema-serializer) to a
+      // safer one.
     implementation(rootProject.libs.bundles.kafka)
     implementation(rootProject.libs.spring.kafka)
     implementation(rootProject.libs.log4j.template.json)
     implementation(rootProject.libs.stellar.wallet.sdk)
 
-
-    // Although the following libraries are transitive dependencies, we are including them here to override the version
+    // Although the following libraries are transitive dependencies, we are including them here to
+    // override the version
     // for security vulnerabilities.
     implementation(rootProject.libs.spring.aws.messaging)
     implementation(rootProject.libs.aws.java.sdk.s3)
@@ -109,6 +114,7 @@ subprojects {
       testLogging {
         events("SKIPPED", "FAILED")
         showExceptions = true
+        showStandardStreams = true
         exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
       }
     }
@@ -130,10 +136,7 @@ allprojects {
   tasks.jar {
     manifest {
       attributes(
-        mapOf(
-          "Implementation-Title" to project.name,
-          "Implementation-Version" to project.version
-        )
+        mapOf("Implementation-Title" to project.name, "Implementation-Version" to project.version)
       )
     }
   }
@@ -142,4 +145,3 @@ allprojects {
 tasks.register("printVersionName") {
   println(rootProject.version.toString())
 }
-

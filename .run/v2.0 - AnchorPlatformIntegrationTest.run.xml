@@ -21,6 +21,9 @@
     <option name="MAIN_CLASS_NAME" value="org.stellar.anchor.platform.AnchorPlatformIntegrationTest" />
     <option name="METHOD_NAME" value="" />
     <option name="TEST_OBJECT" value="class" />
+    <envs>
+      <env name="run_docker" value="true" />
+    </envs>
     <method v="2">
       <option name="Make" enabled="true" />
     </method>
