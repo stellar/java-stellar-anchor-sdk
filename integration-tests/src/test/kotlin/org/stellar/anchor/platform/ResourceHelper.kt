@@ -10,10 +10,13 @@ fun readResourceAsMap(resourcePath: String): MutableMap<String, String> {
   val resourceFile = File(resourceUrl!!.toURI())
 
   return DotenvParser(
-          DotenvReader(resourceFile.parentFile.absolutePath, resourceFile.name), false, false)
-      .parse()
-      .associate { it.key to it.value }
-      .toMutableMap()
+      DotenvReader(resourceFile.parentFile.absolutePath, resourceFile.name),
+      false,
+      false
+    )
+    .parse()
+    .associate { it.key to it.value }
+    .toMutableMap()
 }
 
 fun getResourceFilePath(resourcePath: String): String {

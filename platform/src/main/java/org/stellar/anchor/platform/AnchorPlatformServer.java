@@ -27,6 +27,7 @@ import org.stellar.anchor.platform.configurator.SepConfigManager;
 @EnableConfigurationProperties
 public class AnchorPlatformServer extends AbstractPlatformServer implements WebMvcConfigurer {
   private ConfigurableApplicationContext ctx;
+
   public ConfigurableApplicationContext start(Map<String, String> environment) {
     buildEnvironment(environment);
 

@@ -22,9 +22,9 @@ class AnchorPlatformIntegrationTest {
     const val SEP24_MORE_INFO_URL_JWT_SECRET = "secret_sep24_more_info_url_jwt_secret"
 
     private val shouldStartDockerCompose =
-        System.getenv().getOrDefault("START_DOCKER_COMPOSE", "false").toBoolean()
+      System.getenv().getOrDefault("START_DOCKER_COMPOSE", "false").toBoolean()
     private val shouldStartServers =
-        System.getenv().getOrDefault("START_ALL_SERVERS", "true").toBoolean()
+      System.getenv().getOrDefault("START_ALL_SERVERS", "true").toBoolean()
 
     init {
       val props = System.getProperties()
@@ -32,13 +32,13 @@ class AnchorPlatformIntegrationTest {
     }
 
     val docker: DockerComposeExtension =
-        DockerComposeExtension.builder()
-            .saveLogsTo("build/docker-logs/anchor-platform-integration-test")
-            .file("src/test/resources/test-default//docker-compose.yaml")
-            .waitingForService("kafka", HealthChecks.toHaveAllPortsOpen())
-            .waitingForService("db", HealthChecks.toHaveAllPortsOpen())
-            .pullOnStartup(true)
-            .build()
+      DockerComposeExtension.builder()
+        .saveLogsTo("build/docker-logs/anchor-platform-integration-test")
+        .file("src/test/resources/test-default//docker-compose.yaml")
+        .waitingForService("kafka", HealthChecks.toHaveAllPortsOpen())
+        .waitingForService("db", HealthChecks.toHaveAllPortsOpen())
+        .pullOnStartup(true)
+        .build()
 
     val runningServers = mutableListOf<ConfigurableApplicationContext>()
 
@@ -67,8 +67,9 @@ class AnchorPlatformIntegrationTest {
       runningServers.add(ServiceRunner.startSepServer(envMap))
 
       toml =
-          Sep1Helper.parse(
-              resourceAsString("http://localhost:$SEP_SERVER_PORT/.well-known/stellar.toml"))
+        Sep1Helper.parse(
+          resourceAsString("http://localhost:$SEP_SERVER_PORT/.well-known/stellar.toml")
+        )
 
       Sep10Tests.setup()
 

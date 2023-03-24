@@ -36,25 +36,25 @@ fun startServer(wait: Boolean) {
 
   // start server
   referenceKotlinSever =
-      embeddedServer(Netty, port = cfg.sep24.port) {
-            install(ContentNegotiation) { json() }
-            configureRouting(cfg)
-            install(CORS) {
-              anyHost()
-              allowHeader(HttpHeaders.Authorization)
-              allowHeader(HttpHeaders.ContentType)
-            }
-          }
-          .start(wait)
+    embeddedServer(Netty, port = cfg.sep24.port) {
+        install(ContentNegotiation) { json() }
+        configureRouting(cfg)
+        install(CORS) {
+          anyHost()
+          allowHeader(HttpHeaders.Authorization)
+          allowHeader(HttpHeaders.ContentType)
+        }
+      }
+      .start(wait)
 }
 
 fun readCfg(): Config {
   // Load location config
   val locationCfg =
-      ConfigLoaderBuilder.default()
-          .addPropertySource(PropertySource.environment())
-          .build()
-          .loadConfig<LocationConfig>()
+    ConfigLoaderBuilder.default()
+      .addPropertySource(PropertySource.environment())
+      .build()
+      .loadConfig<LocationConfig>()
 
   val cfgBuilder = ConfigLoaderBuilder.default()
   // Add environment variables as a property source.

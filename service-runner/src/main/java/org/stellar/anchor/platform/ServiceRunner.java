@@ -66,7 +66,6 @@ public class ServiceRunner {
     return new StellarObservingServer().start(env);
   }
 
-
   public static ConfigurableApplicationContext startEventProcessor(Map<String, String> env) {
     return new EventProcessingServer().start(env);
   }
@@ -83,11 +82,9 @@ public class ServiceRunner {
     return AnchorReferenceServer.start(port, "/");
   }
 
-
   public static void startKotlinReferenceServer(boolean wait) {
     RefenreceServerStartKt.start(wait);
   }
-
 
   static void printUsage(Options options) {
     HelpFormatter helper = new HelpFormatter();
