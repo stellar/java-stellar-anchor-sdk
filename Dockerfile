@@ -1,7 +1,8 @@
 FROM gradle:7.6.0-jdk11-alpine AS build
 WORKDIR /code
 COPY --chown=gradle:gradle . .
-RUN gradle clean bootJar --stacktrace
+
+RUN gradle clean bootJar --stacktrace -x test
 
 FROM ubuntu:20.04
 

@@ -38,11 +38,11 @@ class ApiKeyAuthIntegrationTest {
   }
   private val gson = GsonUtils.getInstance()
   private val httpClient: OkHttpClient =
-      OkHttpClient.Builder()
-          .connectTimeout(10, TimeUnit.MINUTES)
-          .readTimeout(10, TimeUnit.MINUTES)
-          .writeTimeout(10, TimeUnit.MINUTES)
-          .build()
+    OkHttpClient.Builder()
+      .connectTimeout(10, TimeUnit.MINUTES)
+      .readTimeout(10, TimeUnit.MINUTES)
+      .writeTimeout(10, TimeUnit.MINUTES)
+      .build()
   private lateinit var platformServerContext: ConfigurableApplicationContext
   private lateinit var mockBusinessServer: MockWebServer
 
@@ -52,11 +52,11 @@ class ApiKeyAuthIntegrationTest {
     mockBusinessServer = MockWebServer()
     mockBusinessServer.start()
 
-    val envMap = readResourceAsMap("test-default/env")
+    val envMap = readResourceAsMap("profiles/default/config.env")
     envMap["data.type"] = "h2"
     envMap["events.enabled"] = "false"
-    envMap["assets.value"] = getResourceFilePath("test-default/assets.yaml")
-    envMap["sep1.toml.value"] = getResourceFilePath("test-default/stellar.toml")
+    envMap["assets.value"] = getResourceFilePath("config/assets.yaml")
+    envMap["sep1.toml.value"] = getResourceFilePath("config/stellar.toml")
 
     envMap["callback_api.base_url"] = mockBusinessServer.url("").toString()
     envMap["platform_api.auth.type"] = "api_key"
@@ -78,41 +78,45 @@ class ApiKeyAuthIntegrationTest {
 
   @ParameterizedTest
   @CsvSource(
-      value =
-          [
-              "GET,/transactions",
-              "PATCH,/transactions",
-              "GET,/transactions/my_id",
-              "GET,/exchange/quotes",
-              "GET,/exchange/quotes/id"])
+    value =
+      [
+        "GET,/transactions",
+        "PATCH,/transactions",
+        "GET,/transactions/my_id",
+        "GET,/exchange/quotes",
+        "GET,/exchange/quotes/id"
+      ]
+  )
   fun test_incomingPlatformAuth_emptyApiKey_authFails(method: String, endpoint: String) {
     val httpRequest =
-        Request.Builder()
-            .url("http://localhost:$PLATFORM_SERVER_PORT$endpoint")
-            .header("Content-Type", "application/json")
-            .method(method, getDummyRequestBody(method))
-            .build()
+      Request.Builder()
+        .url("http://localhost:$PLATFORM_SERVER_PORT$endpoint")
+        .header("Content-Type", "application/json")
+        .method(method, getDummyRequestBody(method))
+        .build()
     val response = httpClient.newCall(httpRequest).execute()
     assertEquals(403, response.code)
   }
 
   @ParameterizedTest
   @CsvSource(
-      value =
-          [
-              "GET,/transactions",
-              "PATCH,/transactions",
-              "GET,/transactions/my_id",
-              "GET,/exchange/quotes",
-              "GET,/exchange/quotes/id"])
+    value =
+      [
+        "GET,/transactions",
+        "PATCH,/transactions",
+        "GET,/transactions/my_id",
+        "GET,/exchange/quotes",
+        "GET,/exchange/quotes/id"
+      ]
+  )
   fun test_incomingPlatformAuth_apiKey_authPasses(method: String, endpoint: String) {
     val httpRequest =
-        Request.Builder()
-            .url("http://localhost:$PLATFORM_SERVER_PORT$endpoint")
-            .header("Content-Type", "application/json")
-            .header("X-Api-Key", ANCHOR_TO_PLATFORM_SECRET)
-            .method(method, getDummyRequestBody(method))
-            .build()
+      Request.Builder()
+        .url("http://localhost:$PLATFORM_SERVER_PORT$endpoint")
+        .header("Content-Type", "application/json")
+        .header("X-Api-Key", ANCHOR_TO_PLATFORM_SECRET)
+        .method(method, getDummyRequestBody(method))
+        .build()
     val response = httpClient.newCall(httpRequest).execute()
     assertNotEquals(403, response.code)
   }
@@ -121,10 +125,10 @@ class ApiKeyAuthIntegrationTest {
   fun test_ApiAuthIsBeingAddedInPlatformToAnchorRequests() {
     // check if at least one outgoing call is carrying the auth header.
     mockBusinessServer.enqueue(
-        MockResponse()
-            .addHeader("Content-Type", "application/json")
-            .setBody(
-                """{
+      MockResponse()
+        .addHeader("Content-Type", "application/json")
+        .setBody(
+          """{
       "rate": {
         "price": "1.00",
         "total_price": "1.00",
@@ -136,26 +140,28 @@ class ApiKeyAuthIntegrationTest {
         }
       }
     }"""
-                    .trimMargin()))
+            .trimMargin()
+        )
+    )
     val sep38Service = platformServerContext.getBean(Sep38Service::class.java)
 
     val getPriceRequest =
-        Sep38GetPriceRequest.builder()
-            .sellAssetName("iso4217:USD")
-            .sellAmount("100")
-            .buyAssetName("stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP")
-            .context(Sep38Context.SEP31)
-            .build()
+      Sep38GetPriceRequest.builder()
+        .sellAssetName("iso4217:USD")
+        .sellAmount("100")
+        .buyAssetName("stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP")
+        .context(Sep38Context.SEP31)
+        .build()
     val gotResponse = sep38Service.getPrice(getPriceRequest)
 
     val wantResponse =
-        GetPriceResponse.builder()
-            .price("1.00")
-            .totalPrice("1.00")
-            .sellAmount("100")
-            .buyAmount("100")
-            .fee(RateFee("0.00", "iso4217:USD"))
-            .build()
+      GetPriceResponse.builder()
+        .price("1.00")
+        .totalPrice("1.00")
+        .sellAmount("100")
+        .buyAmount("100")
+        .fee(RateFee("0.00", "iso4217:USD"))
+        .build()
     assertEquals(wantResponse, gotResponse)
 
     val request = mockBusinessServer.takeRequest()
@@ -164,14 +170,14 @@ class ApiKeyAuthIntegrationTest {
     assertEquals(PLATFORM_TO_ANCHOR_SECRET, request.headers["X-Api-Key"])
     assertNull(request.headers["Authorization"])
     val wantEndpoint =
-        """/rate
+      """/rate
         ?type=indicative_price
         &context=sep31
         &sell_asset=iso4217%3AUSD
         &sell_amount=100
         &buy_asset=stellar%3AUSDC%3AGDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP
         """
-            .replace("\n        ", "")
+        .replace("\n        ", "")
     MatcherAssert.assertThat(request.path, CoreMatchers.endsWith(wantEndpoint))
     assertEquals("", request.body.readUtf8())
   }

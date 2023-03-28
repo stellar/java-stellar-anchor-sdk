@@ -27,6 +27,7 @@ import org.stellar.anchor.platform.configurator.SecretManager;
 @EnableConfigurationProperties
 public class StellarObservingServer extends AbstractPlatformServer implements WebMvcConfigurer {
   private ConfigurableApplicationContext ctx;
+
   public ConfigurableApplicationContext start(Map<String, String> environment) {
     buildEnvironment(environment);
 
@@ -38,6 +39,7 @@ public class StellarObservingServer extends AbstractPlatformServer implements We
 
     return ctx = springApplication.run();
   }
+
   public void stop() {
     if (ctx != null) {
       SpringApplication.exit(ctx);

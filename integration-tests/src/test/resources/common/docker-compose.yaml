@@ -1,14 +1,37 @@
 version: '2.4'
 services:
+  platform:
+    image: stellar/anchor-platform:edge
+    command: --sep-server
+    volumes:
+      - ../config:/config
+    ports:
+      - "8080:8080" # sep-server
+      - "8082:8082" # Java management server
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
   reference_server:
     image: stellar/anchor-platform:edge
-    command: --anchor-reference-server
+    command: "--anchor-reference-server"
     environment:
-      - REFERENCE_SERVER_CONFIG_ENV=file:/config/reference-config.yaml
+      - REFERENCE_SERVER_CONFIG_ENV=file:/config/java-reference-server-config.yaml
     volumes:
-      - .:/config
+      - ../config:/config
     ports:
       - "8081:8081"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  observer:
+    image: stellar/anchor-platform:edge
+    build:
+      context: ../../
+      dockerfile: integration-tests/docker-compose-configs/Dockerfile
+    command: "--stellar-observer"
+    volumes:
+      # add mounts for the new config directory
+      - ../config:/config
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
@@ -20,7 +43,7 @@ services:
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
-      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://localhost:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:29092
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
@@ -39,7 +62,7 @@ services:
       - "host.docker.internal:host-gateway"
 
   db:
-    image: postgres:latest
+    image: postgres:15.2-alpine
     ports:
       - "5432:5432"
     environment:
