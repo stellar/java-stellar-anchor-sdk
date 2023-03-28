@@ -56,7 +56,7 @@ fun readCfg(envMap: Map<String, String>?): Config {
   val cfgBuilder = ConfigLoaderBuilder.default()
   // Add environment variables as a property source.
   cfgBuilder.addPropertySource(PropertySource.environment())
-  if (envMap != null) cfgBuilder.addMapSource(envMap)
+  envMap?.run { cfgBuilder.addMapSource(this) }
   // Add config file as a property source if valid
   locationCfg.fold({}, { cfgBuilder.addFileSource(it.ktReferenceServerConfig) })
   // Add default config file as a property source.
