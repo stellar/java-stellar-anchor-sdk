@@ -1,4 +1,4 @@
-@file:JvmName("TestProfileExecutor")
+@file:JvmName("TestProfileRunner")
 
 package org.stellar.anchor.platform
 
@@ -9,7 +9,7 @@ import kotlinx.coroutines.*
 import org.springframework.boot.SpringApplication
 import org.springframework.context.ConfigurableApplicationContext
 
-lateinit var testRunner: TestProfileExecutor
+lateinit var testProfileExecutor: TestProfileExecutor
 
 fun main() = runBlocking {
   GlobalScope.launch {
@@ -17,14 +17,14 @@ fun main() = runBlocking {
       .addShutdownHook(
         object : Thread() {
           override fun run() {
-            testRunner.shutdown()
+            testProfileExecutor.shutdown()
           }
         }
       )
   }
 
-  testRunner = TestProfileExecutor(TestConfig(profileName = "default"))
-  testRunner.start(true)
+  testProfileExecutor = TestProfileExecutor(TestConfig(profileName = "default"))
+  testProfileExecutor.start(true)
 }
 
 class TestProfileExecutor(val config: TestConfig) {
