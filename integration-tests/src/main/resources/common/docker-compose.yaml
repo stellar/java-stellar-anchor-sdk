@@ -26,7 +26,7 @@ services:
   observer:
     image: stellar/anchor-platform:edge
     build:
-      context: ../../
+      context: ../../../test
       dockerfile: integration-tests/docker-compose-configs/Dockerfile
     command: "--stellar-observer"
     volumes:
