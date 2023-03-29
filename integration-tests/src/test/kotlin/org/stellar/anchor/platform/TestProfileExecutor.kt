@@ -1,3 +1,5 @@
+@file:JvmName("TestProfileExecutor")
+
 package org.stellar.anchor.platform
 
 import com.palantir.docker.compose.DockerComposeExtension
@@ -7,7 +9,25 @@ import kotlinx.coroutines.*
 import org.springframework.boot.SpringApplication
 import org.springframework.context.ConfigurableApplicationContext
 
-class TestProfileRunner(val config: TestConfig) {
+lateinit var testRunner: TestProfileExecutor
+
+fun main() = runBlocking {
+  GlobalScope.launch {
+    Runtime.getRuntime()
+      .addShutdownHook(
+        object : Thread() {
+          override fun run() {
+            testRunner.shutdown()
+          }
+        }
+      )
+  }
+
+  testRunner = TestProfileExecutor(TestConfig(profileName = "default"))
+  testRunner.start(true)
+}
+
+class TestProfileExecutor(val config: TestConfig) {
   private val docker: DockerComposeExtension
   private var runningServers: MutableList<ConfigurableApplicationContext> = mutableListOf()
   private var shouldStartDockerCompose: Boolean = false
