@@ -1,5 +1,7 @@
 package org.stellar.anchor.platform;
 
+import static org.stellar.anchor.util.Log.info;
+
 import java.util.Map;
 import org.apache.commons.cli.*;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -93,6 +95,7 @@ public class ServiceRunner {
   }
 
   public static void startTestProfileRunner() {
+    info("Running test profile runner");
     TestProfileRunner.main();
   }
 

@@ -28,6 +28,10 @@ dependencies {
   implementation(project(":kotlin-reference-server"))
 }
 
-tasks { bootJar { archiveBaseName.set("anchor-platform-runner") } }
+tasks {
+  bootJar {
+    archiveBaseName.set("anchor-platform-runner")
+  }
+}
 
 application { mainClass.set("org.stellar.anchor.platform.ServiceRunner") }

@@ -52,6 +52,7 @@ class Sep24End2EndTest(
     assertEquals(TransactionStatus.INCOMPLETE, transaction.status)
 
     val resp = client.get(deposit.url)
+    print("accessing ${deposit.url}...")
     assertEquals(200, resp.status.value)
     waitStatus(deposit.id, TransactionStatus.COMPLETED, token)
   }

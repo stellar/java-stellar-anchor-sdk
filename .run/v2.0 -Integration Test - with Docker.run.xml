@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="v2.0 - AnchorPlatformIntegrationTest" type="JUnit" factoryName="JUnit">
+  <configuration default="false" name="v2.0 -Integration Test - with Docker" type="JUnit" factoryName="JUnit">
     <module name="java-stellar-anchor-sdk.integration-tests.test" />
     <extension name="coverage">
       <pattern>
@@ -22,8 +22,9 @@
     <option name="METHOD_NAME" value="" />
     <option name="TEST_OBJECT" value="class" />
     <envs>
-      <env name="RUN_DOCKER" value="true" />
-      <env name="RUN_SERVERS" value="true" />
+      <env name="TEST_PROFILE_NAME" value="default" />
+      <env name="run_docker" value="true" />
+      <env name="run_servers" value="true" />
     </envs>
     <method v="2">
       <option name="Make" enabled="true" />

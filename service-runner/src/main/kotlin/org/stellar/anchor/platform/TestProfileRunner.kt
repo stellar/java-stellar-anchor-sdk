@@ -8,10 +8,14 @@ import java.io.File
 import kotlinx.coroutines.*
 import org.springframework.boot.SpringApplication
 import org.springframework.context.ConfigurableApplicationContext
+import org.stellar.anchor.util.Log.info
 
 lateinit var testProfileExecutor: TestProfileExecutor
 
 fun main() = runBlocking {
+  info("Starting TestPfofileExecutor...")
+  testProfileExecutor = TestProfileExecutor(TestConfig(profileName = "default"))
+
   GlobalScope.launch {
     Runtime.getRuntime()
       .addShutdownHook(
@@ -23,7 +27,6 @@ fun main() = runBlocking {
       )
   }
 
-  testProfileExecutor = TestProfileExecutor(TestConfig(profileName = "default"))
   testProfileExecutor.start(true)
 }
 
@@ -34,6 +37,7 @@ class TestProfileExecutor(val config: TestConfig) {
   private var shouldStartServers: Boolean = false
 
   init {
+    info("Initializing TestProfileRunner...")
     val dockerComposeFile = getResourceFile("docker-compose-test.yaml")
     val userHomeFolder = File(System.getProperty("user.home"))
     docker =
@@ -52,6 +56,7 @@ class TestProfileExecutor(val config: TestConfig) {
     shouldStartDockerCompose = config.env["run_docker"].toBoolean()
     shouldStartServers = config.env["run_servers"].toBoolean()
 
+    info("Starting servers and docker")
     if (shouldStartDockerCompose) startDocker()
     if (shouldStartServers) startServers(wait)
   }
@@ -63,11 +68,8 @@ class TestProfileExecutor(val config: TestConfig) {
 
   private fun startServers(wait: Boolean): MutableList<ConfigurableApplicationContext> {
     runBlocking {
-      println("Running tests...")
       val envMap = config.env
 
-      //      envMap["data.type"] = "h2"
-      //      envMap["events.enabled"] = "false"
       envMap["assets.value"] = getResourceFile(envMap["assets.value"]!!).absolutePath
       envMap["sep1.toml.value"] = getResourceFile(envMap["sep1.toml.value"]!!).absolutePath
 
