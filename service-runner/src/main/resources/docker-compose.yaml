@@ -5,28 +5,28 @@ services:
       file: common/docker-compose.yaml
       service: platform
     env_file:
-      - profiles/${TEST_PROFILE_NAME}/config.env
-      - profiles/${TEST_PROFILE_NAME}/test.env
+      - profiles/${TEST_PROFILE_NAME:-default}/config.env
+      - profiles/${TEST_PROFILE_NAME:-default}/test.env
     depends_on:
       - db
       - kafka
-      - reference_server
+      - reference-server
 
   observer:
     extends:
       file: common/docker-compose.yaml
       service: observer
     env_file:
-      - profiles/${TEST_PROFILE_NAME}/config.env
-      - profiles/${TEST_PROFILE_NAME}/test.env
+      - profiles/${TEST_PROFILE_NAME:-default}/config.env
+      - profiles/${TEST_PROFILE_NAME:-default}/test.env
     depends_on:
       - db
       - kafka
 
-  reference_server:
+  reference-server:
     extends:
       file: common/docker-compose.yaml
-      service: reference_server
+      service: reference-server
     depends_on:
       - db
       - kafka

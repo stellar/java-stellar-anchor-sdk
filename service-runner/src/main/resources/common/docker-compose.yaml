@@ -11,7 +11,7 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
 
-  reference_server:
+  reference-server:
     image: stellar/anchor-platform:edge
     command: "--anchor-reference-server"
     environment:
