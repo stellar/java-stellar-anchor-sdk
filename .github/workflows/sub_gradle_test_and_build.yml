@@ -15,7 +15,7 @@ jobs:
       - name: Build the stack
         env:
           TEST_PROFILE_NAME: default
-        run: docker-compose -f integration-tests/src/main/resources/docker-compose-test.yaml up -d --build
+        run: docker-compose -f service-runner/src/main/resources/docker-compose-test.yaml up -d --build
 
       # Set up JDK 11
       - name: Set up JDK 11

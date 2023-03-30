@@ -22,7 +22,8 @@
     <option name="METHOD_NAME" value="" />
     <option name="TEST_OBJECT" value="class" />
     <envs>
-      <env name="run_docker" value="true" />
+      <env name="RUN_DOCKER" value="true" />
+      <env name="RUN_SERVERS" value="true" />
     </envs>
     <method v="2">
       <option name="Make" enabled="true" />

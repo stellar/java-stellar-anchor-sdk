@@ -6,6 +6,7 @@ import org.stellar.anchor.api.sep.sep10.ChallengeResponse
 import org.stellar.anchor.api.sep.sep10.ValidationRequest
 import org.stellar.anchor.api.sep.sep10.ValidationResponse
 import org.stellar.anchor.util.OkHttpUtil
+import org.stellar.anchor.util.StringHelper.json
 import org.stellar.sdk.KeyPair
 import org.stellar.sdk.Network
 import org.stellar.sdk.Sep10Challenge

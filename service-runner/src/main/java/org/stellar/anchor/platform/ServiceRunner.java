@@ -19,6 +19,7 @@ public class ServiceRunner {
     options.addOption("e", "event-processor", false, "Start the event processor.");
     options.addOption("r", "anchor-reference-server", false, "Start anchor reference server.");
     options.addOption("k", "kotlin-reference-server", false, "Start Kotlin reference server.");
+    options.addOption("t", "test-profile-runner", false, "Run the stack with test profile.");
 
     CommandLineParser parser = new DefaultParser();
 
@@ -47,6 +48,11 @@ public class ServiceRunner {
 
       if (cmd.hasOption("kotlin-reference-server") || cmd.hasOption("all")) {
         startKotlinReferenceServer(null, true);
+        anyServerStarted = true;
+      }
+
+      if (cmd.hasOption("test-profile-runner")) {
+        startTestProfileRunner();
         anyServerStarted = true;
       }
 
@@ -84,6 +90,10 @@ public class ServiceRunner {
 
   public static void startKotlinReferenceServer(Map<String, String> envMap, boolean wait) {
     RefenreceServerStartKt.start(envMap, wait);
+  }
+
+  public static void startTestProfileRunner() {
+    TestProfileRunner.main();
   }
 
   static void printUsage(Options options) {

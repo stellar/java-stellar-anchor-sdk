@@ -55,8 +55,8 @@ class ApiKeyAuthIntegrationTest {
     val envMap = readResourceAsMap("profiles/default/config.env")
     envMap["data.type"] = "h2"
     envMap["events.enabled"] = "false"
-    envMap["assets.value"] = getResourceFilePath("config/assets.yaml")
-    envMap["sep1.toml.value"] = getResourceFilePath("config/stellar.toml")
+    envMap["assets.value"] = getResourceFile("config/assets.yaml").absolutePath
+    envMap["sep1.toml.value"] = getResourceFile("config/stellar.toml").absolutePath
 
     envMap["callback_api.base_url"] = mockBusinessServer.url("").toString()
     envMap["platform_api.auth.type"] = "api_key"

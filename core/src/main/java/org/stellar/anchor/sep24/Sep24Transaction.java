@@ -100,7 +100,7 @@ public interface Sep24Transaction {
 
   void setRequestAssetIssuer(String assetIssuer);
 
-  /** Amount requested by the user as a string with up to 7 decimals. */
+  // Amount requested by the user as a string with up to 7 decimals.
   String getAmountExpected();
 
   void setAmountExpected(String amount);
