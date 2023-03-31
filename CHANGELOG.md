@@ -4,6 +4,9 @@
 * Redesign configuration management.
 * Implement SEP-24.
 
+## 1.2.10
+* Fix asset being set incorrectly when quote is null. [#805](https://github.com/stellar/java-stellar-anchor-sdk/pull/805)
+
 ## 1.2.6
 * Add bank_account_type to SEP-9 and customer field [#750](https://github.com/stellar/java-stellar-anchor-sdk/pull/750)
 
