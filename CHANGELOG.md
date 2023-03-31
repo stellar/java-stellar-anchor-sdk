@@ -1,4 +1,7 @@
 # Changelog
+## 1.2.10
+* Fix asset being set incorrectly when quote is null. [#805](https://github.com/stellar/java-stellar-anchor-sdk/pull/805)
+
 ## 1.2.9
 * Commit the dirty SEP-31 transaction before calling the `/unique_address` endpoint. [#797](https://github.com/stellar/java-stellar-anchor-sdk/pull/797)
 
