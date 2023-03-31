@@ -341,7 +341,7 @@ public class Sep31Service {
     txn.setAmountExpected(formatAmount(amountIn, scale));
     txn.setAmountInAsset(reqAsset.getAssetName());
     txn.setAmountOut(formatAmount(amountOut, scale));
-    txn.setAmountOutAsset(reqAsset.getAssetName());
+    txn.setAmountOutAsset(request.getDestinationAsset());
 
     // Update fee
     String feeStr = formatAmount(fee, scale);
