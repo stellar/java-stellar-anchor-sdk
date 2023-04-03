@@ -3,7 +3,7 @@
     <envs>
       <env name="TEST_PROFILE_NAME" value="sep24" />
     </envs>
-    <option name="MAIN_CLASS_NAME" value="org.stellar.anchor.platform.DevEnvRunnerKt" />
+    <option name="MAIN_CLASS_NAME" value="org.stellar.anchor.platform.TestProfileRunner" />
     <module name="java-stellar-anchor-sdk.integration-tests.test" />
     <shortenClasspath name="NONE" />
     <extension name="net.ashald.envfile">

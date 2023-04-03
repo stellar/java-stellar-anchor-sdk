@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="v2.0 - AnchorPlatformEnd2EndTest" type="JUnit" factoryName="JUnit">
+  <configuration default="false" name="v2.0 -Integration Test - with Docker" type="JUnit" factoryName="JUnit">
     <module name="java-stellar-anchor-sdk.integration-tests.test" />
     <extension name="coverage">
       <pattern>
@@ -18,11 +18,13 @@
       </ENTRIES>
     </extension>
     <option name="PACKAGE_NAME" value="org.stellar.anchor.platform" />
-    <option name="MAIN_CLASS_NAME" value="org.stellar.anchor.platform.AnchorPlatformEnd2EndTest" />
+    <option name="MAIN_CLASS_NAME" value="org.stellar.anchor.platform.AnchorPlatformIntegrationTest" />
     <option name="METHOD_NAME" value="" />
     <option name="TEST_OBJECT" value="class" />
     <envs>
-      <env name="TEST_PROFILE_NAME" value="sep24" />
+      <env name="TEST_PROFILE_NAME" value="default" />
+      <env name="run_docker" value="true" />
+      <env name="run_servers" value="true" />
     </envs>
     <method v="2">
       <option name="Make" enabled="true" />

@@ -12,13 +12,9 @@ jobs:
   gradle_test_and_build:
     uses: ./.github/workflows/sub_gradle_test_and_build.yml
 
-  sep_validation_suite:
-    needs: [ gradle_test_and_build ]
-    uses: ./.github/workflows/sub_stellar_anchor_tests.yml
-
   complete:
     if: always()
-    needs: [gradle_test_and_build, sep_validation_suite]
+    needs: [gradle_test_and_build]
     runs-on: ubuntu-22.04
     steps:
     - if: contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled')

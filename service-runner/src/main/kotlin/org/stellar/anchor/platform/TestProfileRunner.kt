@@ -1,3 +1,5 @@
+@file:JvmName("TestProfileRunner")
+
 package org.stellar.anchor.platform
 
 import com.palantir.docker.compose.DockerComposeExtension
@@ -6,20 +8,42 @@ import java.io.File
 import kotlinx.coroutines.*
 import org.springframework.boot.SpringApplication
 import org.springframework.context.ConfigurableApplicationContext
+import org.stellar.anchor.util.Log.info
 
-class TestProfileRunner(val config: TestConfig) {
+lateinit var testProfileExecutor: TestProfileExecutor
+
+fun main() = runBlocking {
+  info("Starting TestPfofileExecutor...")
+  testProfileExecutor = TestProfileExecutor(TestConfig(profileName = "default"))
+
+  GlobalScope.launch {
+    Runtime.getRuntime()
+      .addShutdownHook(
+        object : Thread() {
+          override fun run() {
+            testProfileExecutor.shutdown()
+          }
+        }
+      )
+  }
+
+  testProfileExecutor.start(true)
+}
+
+class TestProfileExecutor(val config: TestConfig) {
   private val docker: DockerComposeExtension
   private var runningServers: MutableList<ConfigurableApplicationContext> = mutableListOf()
   private var shouldStartDockerCompose: Boolean = false
   private var shouldStartServers: Boolean = false
 
   init {
-    val dockerComposeFile = getResourceFilePath("docker-compose-test.yaml")
+    info("Initializing TestProfileRunner...")
+    val dockerComposeFile = getResourceFile("docker-compose-test.yaml")
     val userHomeFolder = File(System.getProperty("user.home"))
     docker =
       DockerComposeExtension.builder()
         .saveLogsTo("${userHomeFolder}/docker-logs/anchor-platform-integration-test")
-        .file("${dockerComposeFile}")
+        .file("${dockerComposeFile.absolutePath}")
         .waitingForService("kafka", HealthChecks.toHaveAllPortsOpen())
         .waitingForService("db", HealthChecks.toHaveAllPortsOpen())
         .pullOnStartup(true)
@@ -32,6 +56,7 @@ class TestProfileRunner(val config: TestConfig) {
     shouldStartDockerCompose = config.env["run_docker"].toBoolean()
     shouldStartServers = config.env["run_servers"].toBoolean()
 
+    info("Starting servers and docker")
     if (shouldStartDockerCompose) startDocker()
     if (shouldStartServers) startServers(wait)
   }
@@ -43,13 +68,10 @@ class TestProfileRunner(val config: TestConfig) {
 
   private fun startServers(wait: Boolean): MutableList<ConfigurableApplicationContext> {
     runBlocking {
-      println("Running tests...")
       val envMap = config.env
 
-      //      envMap["data.type"] = "h2"
-      //      envMap["events.enabled"] = "false"
-      envMap["assets.value"] = getResourceFilePath(envMap["assets.value"]!!)
-      envMap["sep1.toml.value"] = getResourceFilePath(envMap["sep1.toml.value"]!!)
+      envMap["assets.value"] = getResourceFile(envMap["assets.value"]!!).absolutePath
+      envMap["sep1.toml.value"] = getResourceFile(envMap["sep1.toml.value"]!!).absolutePath
 
       // Start servers
       val jobs = mutableListOf<Job>()

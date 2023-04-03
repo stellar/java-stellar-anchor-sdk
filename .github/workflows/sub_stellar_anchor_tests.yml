@@ -20,9 +20,7 @@ jobs:
       - name: Find Home Domain (preview or develop or main)
         id: endpoint-finder
         run: |         
-          if [[ ! -z "$PR_NUMBER" ]]; then
-              export HOME_DOMAIN=https://anchor-sep-pr$PR_NUMBER.previews.kube001.services.stellar-ops.com
-          elif [[ $BRANCH_NAME = refs/heads/develop ]]; then
+          if [[ $BRANCH_NAME = refs/heads/develop ]]; then
               export HOME_DOMAIN=https://anchor-sep-server-dev.stellar.org
           elif [[ $BRANCH_NAME = refs/heads/main ]]; then
               export HOME_DOMAIN=https://anchor-sep-server-prd.stellar.org

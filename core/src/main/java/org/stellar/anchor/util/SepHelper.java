@@ -50,9 +50,10 @@ public class SepHelper {
   /**
    * Retrieves the memo of the account.
    *
-   * @param strAccount
+   * @param strAccount The account in the format of G... or G...:memo
    * @return If the account is in the format of 1) G..., returns null 2) G...:memo, returns the memo
    *     3) M..., returns null
+   * @throws InvalidStellarAccountException If the account is invalid
    */
   public static String getAccountMemo(String strAccount) throws InvalidStellarAccountException {
     String[] tokens = strAccount.split(":");

@@ -1,28 +1,7 @@
 package org.stellar.anchor.platform
 
-import java.io.File
 import org.stellar.anchor.platform.test.*
 import org.stellar.anchor.util.Sep1Helper
-
-data class TestConfig(var profileName: String) {
-  val env = mutableMapOf<String, String>()
-  val testEnvFile: String
-  val configEnvFile: String
-  init {
-    // override test profile name with TEST_PROFILE_NAME env variable
-    profileName = System.getenv("TEST_PROFILE_NAME") ?: profileName
-    testEnvFile = getResourceFilePath("profiles/${profileName}/test.env")
-    configEnvFile = getResourceFilePath("profiles/${profileName}/config.env")
-    // read test.env file
-    val testEnv = readResourceAsMap(File(testEnvFile))
-    // read config.env file
-    val configEnv = readResourceAsMap(File(configEnvFile))
-    // merge test.env, config.env and system env variables
-    env.putAll(testEnv)
-    env.putAll(configEnv)
-    env.putAll(System.getenv())
-  }
-}
 
 open class AbstractIntegrationTest(private val config: TestConfig) {
   init {
@@ -30,7 +9,7 @@ open class AbstractIntegrationTest(private val config: TestConfig) {
       .setProperty("REFERENCE_SERVER_CONFIG", "classpath:/anchor-reference-server.yaml")
   }
 
-  private val testProfileRunner = TestProfileRunner(config)
+  private val testProfileRunner = TestProfileExecutor(config)
   lateinit var sep10Tests: Sep10Tests
   lateinit var sep12Tests: Sep12Tests
   lateinit var sep24Tests: Sep24Tests

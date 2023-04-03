@@ -8,10 +8,8 @@ services:
     ports:
       - "8080:8080" # sep-server
       - "8082:8082" # Java management server
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
 
-  reference_server:
+  reference-server:
     image: stellar/anchor-platform:edge
     command: "--anchor-reference-server"
     environment:
@@ -20,13 +18,11 @@ services:
       - ../config:/config
     ports:
       - "8081:8081"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
 
   observer:
     image: stellar/anchor-platform:edge
     build:
-      context: ../../
+      context: ../../../../../integration-tests/src/test
       dockerfile: integration-tests/docker-compose-configs/Dockerfile
     command: "--stellar-observer"
     volumes:
@@ -47,8 +43,6 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
 
   zookeeper:
     platform: linux/x86_64
@@ -58,8 +52,6 @@ services:
       ZOOKEEPER_TICK_TIME: 2000
     ports:
       - "2181:2181"
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
 
   db:
     image: postgres:15.2-alpine
@@ -68,5 +60,3 @@ services:
     environment:
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=password
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
