@@ -1,4 +1,7 @@
 # Changelog
+## 1.2.11
+* Fix validation failing indicative quote. [#810](https://github.com/stellar/java-stellar-anchor-sdk/pull/810)
+
 ## 1.2.10
 * Fix asset being set incorrectly when quote is null. [#805](https://github.com/stellar/java-stellar-anchor-sdk/pull/805)
 
