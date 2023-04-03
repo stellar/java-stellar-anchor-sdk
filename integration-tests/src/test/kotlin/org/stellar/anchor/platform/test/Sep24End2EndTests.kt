@@ -63,13 +63,17 @@ class Sep24End2EndTest(
     waitStatus(deposit.id, COMPLETED, token)
   }
 
-  private fun `typical withdraw end-to-end flow`() = runBlocking {
+  private fun `typical withdraw end-to-end flow`() {
+    `typical withdraw end-to-end flow`(mapOf())
+    `typical withdraw end-to-end flow`(mapOf("amount" to "10"))
+  }
+
+  private fun `typical withdraw end-to-end flow`(extraFields: Map<String, String>) = runBlocking {
     val token = anchor.auth().authenticate(keypair)
     // TODO: Add the test where the amount is not specified
     //    val withdrawal = anchor.interactive().withdraw(keypair.address, asset, token)
     // Start interactive withdrawal
-    val withdrawal =
-      anchor.interactive().withdraw(keypair.address, asset, token, mapOf("amount" to "10"))
+    val withdrawal = anchor.interactive().withdraw(keypair.address, asset, token, extraFields)
 
     // Get transaction status and make sure it is INCOMPLETE
     val transaction = anchor.getTransaction(withdrawal.id, token)
