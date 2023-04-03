@@ -259,8 +259,9 @@ public class TransactionService {
   void validateQuoteAndAmounts(Sep31Transaction txn) throws AnchorException {
     // amount_in = amount_out + amount_fee
     if (StringHelper.isEmpty(txn.getQuoteId())) {
-      // without exchange
-      if (allAmountAvailable(txn))
+      // without exchange and not indicative
+      if (allAmountAvailable(txn)
+          && Objects.equals(txn.getAmountInAsset(), txn.getAmountOutAsset()))
         if (decimal(txn.getAmountIn())
                 .compareTo(decimal(txn.getAmountOut()).add(decimal(txn.getAmountFee())))
             != 0) throw new BadRequestException("amount_in != amount_out + amount_fee");
