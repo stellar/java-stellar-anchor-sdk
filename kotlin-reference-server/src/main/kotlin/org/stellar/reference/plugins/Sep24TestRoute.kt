@@ -40,10 +40,13 @@ fun Route.testSep24(
       }
 
       val transaction = sep24.getTransaction(transactionId)
-      val amountIn =
-        transaction.amountExpected?.amount?.toBigDecimal()
-          ?: throw ClientException("Missing amountExpected.amount field")
-
+      var amountExpected = transaction.amountExpected?.amount?.toBigDecimal()
+      if (amountExpected == null) {
+        log.info(
+          "Missing amountExpected.amount field. Using default value: 10 to simulate the amount was entered by the user in the interactive flow."
+        )
+        amountExpected = "10".toBigDecimal()
+      }
       try {
         when (transaction.kind.lowercase()) {
           "deposit" -> {
@@ -51,7 +54,7 @@ fun Route.testSep24(
               transaction.destinationAccount
                 ?: throw ClientException("Missing destination_account field")
             val asset =
-              transaction.amountExpected.asset
+              transaction.amountExpected!!.asset
                 ?: throw ClientException("Missing amountExpected.asset field")
             val memo = transaction.memo
             val memoType = transaction.memoType
@@ -68,7 +71,7 @@ fun Route.testSep24(
             CoroutineScope(Job()).launch {
               depositService.processDeposit(
                 transactionId,
-                amountIn,
+                amountExpected,
                 account,
                 stellarAsset,
                 memo,
@@ -81,7 +84,7 @@ fun Route.testSep24(
 
             // Run deposit processing asynchronously
             CoroutineScope(Job()).launch {
-              withdrawalService.processWithdrawal(transactionId, amountIn)
+              withdrawalService.processWithdrawal(transactionId, amountExpected)
             }
           }
           else ->
