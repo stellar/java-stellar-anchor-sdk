@@ -1,0 +1,95 @@
+version: '2.4'
+services:
+  platform:
+#    image: stellar/anchor-platform:edge
+    build:
+      context: ../../
+      dockerfile: docker-compose/common-services/Dockerfile
+    command: --sep-server
+    environment:
+      # override configs
+      - stellar.anchor.config=file:/config/anchor-config-defaults.yaml
+      # secrets
+      - secret.data.username=postgres
+      - secret.data.password=password
+      - secret.platform_api.auth_secret=myAnchorToPlatformSecret
+      - secret.callback_api.auth_secret=myPlatformToAnchorSecret
+      - secret.sep10.jwt_secret=secret_sep10_secret
+      - secret.sep10.signing_seed=SAX3AH622R2XT6DXWWSRIDCMMUCCMATBZ5U6XKJWDO7M2EJUBFC3AW5X
+      - secret.sep24.interactive_url.jwt_secret=secret_sep24_interactive_url_jwt_secret
+      - secret.sep24.more_info_url.jwt_secret=secret_sep24_more_info_url_jwt_secret
+      # logging
+      - logging.stellar_level=DEBUG
+      # events
+      - events.enabled=true
+      - events.publisher.type=kafka
+      - events.publisher.kafka.bootstrap_server=host.docker.internal:29092
+      # assets
+      - assets.type=file
+      - assets.value=/config/assets.yaml
+      # seps
+      - sep1.enabled=true
+      - sep1.toml.type=file
+      - sep1.toml.value=/config/stellar.toml
+      - sep10.enabled=true
+      - sep10.home_domain=host.docker.internal:8080
+    depends_on:
+      - db
+      - kafka
+      - reference_server
+    volumes:
+      - ./:/config
+    ports:
+      - "8080:8080" # sep-server
+      - "8082:8082" # Java management server
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  reference_server:
+    extends:
+      file: ../common-services/common-services.yaml
+      service: reference_server
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  observer:
+    extends:
+      file: ../common-services/common-services.yaml
+      service: observer
+    volumes:
+      # add mounts for the new config directory
+      - ./:/config
+
+  kafka:
+    extends:
+      file: ../common-services/common-services.yaml
+      service: kafka
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  zookeeper:
+    extends:
+      file: ../common-services/common-services.yaml
+      service: zookeeper
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  db:
+    extends:
+      file: ../common-services/common-services.yaml
+      service: db
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  app:
+    build:
+      context: ../../
+      dockerfile: end-to-end-tests/Dockerfile
+    env_file:
+      - ../../end-to-end-tests/.env
+    depends_on:
+      - platform
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ../../end-to-end-tests/:/app
