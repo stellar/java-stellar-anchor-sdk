@@ -1,4 +1,7 @@
 # Changelog
+## 1.2.12
+* Add docker-compose files to run e2e tests with containers and update Github Actions and Makefile to run automated e2e tests when merging new features to branch main.
+
 ## 1.2.11
 * Fix validation failing indicative quote. [#810](https://github.com/stellar/java-stellar-anchor-sdk/pull/810)
 
