@@ -3,6 +3,7 @@ name: Bug report
 about: Tell us about a bug you found
 title: ''
 labels: bug
+assignees: ''
 
 ---
 
@@ -18,4 +19,3 @@ labels: bug
 
 
 ### What did you expect to see instead?
-
