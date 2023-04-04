@@ -1,0 +1,350 @@
+# This file configures the anchor platform server.
+
+stellar:
+  anchor:
+    # Set the source of the configuration. The configuration source determines how the anchor platofrm
+    # server fetch the configuration values.
+    #
+    # If `config` is `in-memory`, this yaml file contains all settings for the server.
+    #
+    # `in-memory` is the only `config` value supported in MVP.
+    #
+    config: in-memory
+    #
+    # Sets how the application configuration values are read.
+    #
+    #  If `type` is `config-spring-property`, the platform server will use the Spring's `@ConfigurationProperties` to
+    #      read populate the configuration values.
+    #
+    #  `config-spring-property` is the only `type` value supported in MVP.
+    app-config:
+      type: config-spring-property
+      settings: app-config                        # The absolute location of the configuration data in this yaml file
+
+    #
+    # Sets how the application access the datastore.
+    #
+    # If the `type` is `data-spring-jdbc`, Spring Data JDBC will be used to read the application data.
+    #
+    # `data-spring-jdbc` is the only `type` value supported for now.
+    #
+    data-access:
+      type: data-spring-jdbc
+      #settings: data-spring-jdbc-sqlite                # The absolute location of the configuration data in this yaml file
+      #settings: data-spring-jdbc-h2                   # use in-memory database. It cannot be shared between server and observer though.
+      settings: data-spring-jdbc-local-postgres       # use local postgres instance
+      #settings: data-spring-jdbc-aws-aurora-postgres  # use AWS Aurora Postgres with IAM authentication
+    #
+    # Sets how the generates the logging information
+    #
+    # If the `type` is `logging-logback`, Logback will be used to generate the logs.
+    #
+    # `logging-logback` is the only `type` value supported for now.
+    #
+    logging:
+      type: logging-logback
+      settings: logging-logback-settings          # The absolute location of the configuration data in this yaml file
+
+#
+# Platform application configuration
+#
+app-config:
+  # shared / general application configurations
+  app:
+    # The stellar network passphrase used to access Horizon server.
+    # For Pubnet: use 'Public Global Stellar Network ; September 2015'
+    # For Testnet: use 'Test SDF Network ; September 2015'
+    stellarNetworkPassphrase: Test SDF Network ; September 2015
+
+    # The endpoint of the horizon server.
+    horizonUrl: https://horizon-testnet.stellar.org
+
+    # The URL where the platform server can be accessed by the client.
+    hostUrl: http://host.docker.internal:8080
+
+    # The supported languages defined by RFC4646 (https://datatracker.ietf.org/doc/html/rfc4646)
+    # Currently, only "en" is supported.
+    languages: en
+
+    # Location of the assets file.
+    #
+    # The format of the resource is specified as Table 6.1 of the Spring document located at:
+    # https://docs.spring.io/spring-framework/docs/3.2.x/spring-framework-reference/html/resources.html
+    #
+    # Valid resource schemes are: ["classpath:", "file:", "http:", "https"]
+    assets: classpath:/assets-test.json
+
+    # The secret key of JWT encryption
+    jwtSecretKey: ${JWT_SECRET}
+
+  anchor-callback:
+    endpoint: http://host.docker.internal:8081
+
+  # These are secrets shared between Anchor and Platform that are used to safely communicate from `Platform->Anchor`
+  # and `Anchor->Platform`, specially when they are in different clusters.
+  #
+  # When the receiving part decodes the incoming request token, it needs to verify if the token is still valid (and not expired).
+  integration-auth:
+    #
+    # authType: used to determine how the authentication will happen between Anchor and Platform. Can be one of the following:
+    #     NONE: no authentication is used
+    #     API_KEY: the authentication is done using an API key added to the `X-Api-Key` header.
+    #     JWT_TOKEN: the authentication is done using a JWT token added to the `Authorization` header. this token is generated from the secret key.
+    authType: NONE
+    # CallbackAPI requests (`Platform->Anchor`) will contain an authentication header whose token was built using this
+    # secret. The Anchor Backend will also store this same secret and use it to decode the incoming token to verify it
+    # came from the Platform.
+    platformToAnchorSecret:
+    # PlatformAPI requests (`Anchor->Platform`) will contain an authentication header whose token was built using this
+    # secret. The Platform Server will use this secret to decode the incoming token to verify it came from the Anchor.
+    anchorToPlatformSecret:
+    # Expiration time, in milliseconds, that will be used to build and validate the JWT tokens
+    expirationMilliseconds:
+
+  # sep-1
+  sep1:
+    enabled: true
+    #
+    # The stellarFile is the location where to retrieve the content as the return value
+    # of the `/.well-known/stellar.toml`.
+    #
+    # The format of the resource is specified as Table 6.1 of the Spring document located at:
+    # https://docs.spring.io/spring-framework/docs/3.2.x/spring-framework-reference/html/resources.html
+    #
+    stellarFile: file:/config/stellar.toml
+
+  # sep-10
+  sep10:
+    enabled: true
+
+    # The `home_domain` property of SEP-10. https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#request
+    homeDomain: host.docker.internal:8080
+
+    # Set if the client attribution is required
+    clientAttributionRequired: false
+
+    # Set the white list of the client domain. The domains are comma-separated
+    # Although it is allowed to set both the allow-list and the deny-list, it is not helpful if both are set.
+    clientAttributionAllowList: lobstr.co,preview.lobstr.co
+
+    # Set the black list of the client domain.
+    # clientAttributionDenyList:
+
+    # Set the authentication challenge transaction timeout. An expired signed transaction will be rejected.
+    # This is the timeout period the client must finish the authentication process. (ie: sign and respond the challenge
+    # transaction).
+    #
+    # The value is in seconds.
+    authTimeout: 900
+
+    # Set the timeout of the authenticated JSON Web Token. An expired JWT will be rejected.
+    # This is the timeout period after the client has authenticated.
+    #
+    # The value is in seconds.
+    jwtTimeout: 86400
+
+    # The private key of the SEP-10 challenge.
+    # We highly recommend that this private key should not be used to sign any transactions to submit to the Stellar
+    # network.
+    signingSeed: ${SEP10_SIGNING_SEED}
+
+    # The list of omnibus accounts (comma separated).
+    # The detail of the SEP-10 omnibus account is described at: https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#memos
+    # omnibusAccountList: |
+    #   GAB24L6CPBKSMQOBXJ5PRA6I66X4TGZHPAEI2CMPNLC6I2WX646OYCAV,
+    #   GAB24L6CPBKSMQOBXJ5PRA6I66X4TGZHPAEI2CMPNLC6I2WX646OYCAA
+    omnibusAccountList: GAB24L6CPBKSMQOBXJ5PRA6I66X4TGZHPAEI2CMPNLC6I2WX646OYCAV
+
+    # Require authenticating clients to be in the omnibusAccountList
+    requireKnownOmnibusAccount: true
+
+  # sep-12
+  sep12:
+    enabled: true
+    # The callback API endpoint.
+    customerIntegrationEndpoint: http://host.docker.internal:8081
+
+  # sep-24
+  sep24:
+    enabled: true
+    # Set the timeout of the JSON Web Token returned with the embedded interactive url of the SEP-24 process.
+    # An expired JWT will be rejected.
+    #
+    # If the interactive flow needs to access the platform server, the interactive process must finish within
+    # the specified timeout period.
+    interactiveJwtExpiration: 3600
+
+    # The interactive URL where the platform server will redirect to start the SEP-24 interactive flow.
+    interactiveUrl: http://host.docker.internal:8081/sep24/interactive
+
+  # sep-31
+  sep31:
+    enabled: true
+
+    # The /fee callback API endpoint.
+    feeIntegrationEndPoint: http://host.docker.internal:8081
+
+    # The /unique_address callback API endpoint.
+    uniqueAddressIntegrationEndPoint: http://host.docker.internal:8081
+
+    #
+    # paymentType: used to determine how amount_in is calculated from amount in the POST /transaction call
+    # Possible values: STRICT_SEND or STRICT_RECEIVE. default=STRICT_SEND
+    #     STRICT_SEND: amount_in = amount
+    #     STRICT_RECEIVE: amount_in = amount + fee
+    paymentType: STRICT_SEND
+
+    #
+    # depositInfoGeneratorType: used to choose how the SEP-31 deposit information will be generated, which includes the
+    # deposit address, memo and memo type.
+    # Possible values:
+    #     self: the memo and memo type are generated in the local code, and the distribution account is used for the deposit address.
+    #     circle: the memo and memo type are generated through Circle API, as well as the deposit address.
+    #     api: the memo and memo type are generated through calling the anchor's GET /unique_address endpoint.
+    depositInfoGeneratorType: self # self or circle or api
+
+  # sep-38
+  sep38:
+    enabled: true
+
+    # The callback API endpoint.
+    quoteIntegrationEndPoint: http://host.docker.internal:8081
+
+  circle:
+    circleUrl: https://api-sandbox.circle.com
+    apiKey: ${CIRCLE_API_KEY} # circle API key
+
+  payment-gateway:
+    #
+    # Payment Circle configurations
+    #
+    circle:
+      name: "circle"
+      enabled: true
+
+    #
+    # Payment Stellar configurations
+    #
+    stellar:
+      enabled: false
+      name: "stellar"
+      horizonUrl: https://horizon-testnet.stellar.org
+      secretKey: ${PAYMENT_GATEWAY_STELLAR_SECRET_KEY} # stellar account secret key
+
+  circle-payment-observer:
+    enabled: true
+    horizonUrl: https://horizon-testnet.stellar.org
+    stellarNetwork: TESTNET # TESTNET or PUBLIC
+    trackedWallet: all
+
+  event:
+    # If enabled, publish Events to a queue (publisherType)
+    # publisherType - the type of queue to use for event publishing
+    # currently supported publisherType values: kafka, sqs
+    enabled: true
+    publisherType: kafka
+
+  metrics-service:
+    optionalMetricsEnabled: false    # optional metrics that periodically query the database
+    runInterval: 30                 # interval to query the database to generate the optional metrics
+
+  kafka.publisher:
+    # kafkaBootstrapServer - the Kafka server used to bootstrap setup
+    # If useSingleQueue, all events are published to a single queue
+    #   (specified in eventTypeToQueue.all)
+    # eventTypeToQueue - a map of the event type to the queue name messages are published to
+    # useIAM - IAM authentication for AWS MSK
+    # NOTE: MSK - use port 9098 for access from within AWS and port 9198 for public access.
+    #             https://docs.aws.amazon.com/msk/latest/developerguide/port-info.html
+    # NOTE: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY and AWS_REGION environment variables need to be set
+    bootstrapServer: host.docker.internal:29092
+    #bootstrapServer: b-1-public.democluster1.w7j4hi.c25.kafka.us-east-1.amazonaws.com:9198  # AWS MSK example
+    useIAM: false
+    useSingleQueue: false
+    eventTypeToQueue:
+      all: ap_event_single_queue
+      quote_created: ap_event_quote_created
+      transaction_created: ap_event_transaction_created
+      transaction_status_changed: ap_event_transaction_status_changed
+      transaction_error: ap_event_transaction_error
+
+  sqs.publisher:
+    # region - AWS region for the SQS queue
+    # accessKey - AWS access key used to publish events to SQS
+    # secretKey - AWS secret key to be used with the accessKey
+    # eventTypeToQueue - a map of the event type to the queue name messages are published to
+    # NOTE: The SQS FIFO queues should be pre-created in AWS (Anchor Platform will not create them)
+    region: us-east-1
+    useSingleQueue: false
+    eventTypeToQueue:
+      all: sdf_dev_ap_event_single_queue.fifo
+      quote_created: sdf_dev_ap_event_quote_created.fifo
+      transaction_created: sdf_dev_ap_event_transaction_created.fifo
+      transaction_status_changed: sdf_dev_ap_event_transaction_status_changed.fifo
+      transaction_error: sdf_dev_ap_event_transaction_error.fifo
+    accessKey: ${SQS_PUBLISHER_ACCESS_KEY}
+    secretKey: ${SQS_PUBLISHER_SECRET_KEY}
+
+#
+# Spring Data JDBC settings
+#
+data-spring-jdbc-sqlite:
+  spring.jpa.database-platform: org.stellar.anchor.platform.sqlite.SQLiteDialect
+  spring.jpa.hibernate.ddl-auto: update
+  spring.jpa.generate-ddl: true
+  spring.jpa.hibernate.show_sql: false
+  spring.datasource.url: jdbc:sqlite:anchor-proxy.db
+  spring.datasource.driver-class-name: org.sqlite.JDBC
+  spring.datasource.max-active: 2 # For SQLite, set this to 2 to avoid database file lock exception, while letting both sep-server and stellar-observer use it.
+  spring.datasource.initial-size: 2 # For SQLite, set this to 2 to avoid database file lock exception, while letting both sep-server and stellar-observer use it.
+  spring.datasource.username: ${SQLITE_USERNAME}
+  spring.datasource.password: ${SQLITE_PASSWORD}
+  spring.mvc.converters.preferred-json-mapper: gson
+  spring.flyway.enabled: false    # certain features that flyway uses (ex: addForeignKeyConstraint) are not supported by sqlite
+
+# settings for aurora postgres connection using IAM for authentication
+# NOTE: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY and AWS_REGION environment variables need to be set
+data-spring-jdbc-aws-aurora-postgres:
+  spring.jpa.database: POSTGRESQL
+  spring.jpa.show-sql: false
+  spring.datasource.driver-class-name: org.postgresql.Driver
+  spring.datasource.type: org.stellar.anchor.platform.databaseintegration.IAMAuthDataSource
+  spring.datasource.url: jdbc:postgresql://database-aurora-iam-instance-1.chizvyczscs2.us-east-1.rds.amazonaws.com:5432/anchorplatform
+  spring.datasource.username: anchorplatform1
+  spring.datasource.hikari.max-lifetime: 840000    # 14 minutes because IAM tokens are valid for 15min
+  spring.mvc.converters.preferred-json-mapper: gson
+  spring.flyway.user: postgres
+  spring.flyway.password: password   # can use a token value if authenticating via IAM
+  spring.flyway.url: jdbc:postgresql://database-aurora-iam-instance-1.chizvyczscs2.us-east-1.rds.amazonaws.com:5432/anchorplatform
+  spring.flyway.locations: classpath:/db/migration
+
+data-spring-jdbc-local-postgres:
+  spring.jpa.database: POSTGRESQL
+  spring.jpa.show-sql: false
+  spring.datasource.driver-class-name: org.postgresql.Driver
+  spring.datasource.url: jdbc:postgresql://host.docker.internal:5432/postgres
+  spring.datasource.username: ${POSTGRES_USERNAME}
+  spring.datasource.password: ${POSTGRES_PASSWORD}
+  spring.mvc.converters.preferred-json-mapper: gson
+  spring.flyway.user: ${POSTGRES_USERNAME}
+  spring.flyway.password: ${POSTGRES_PASSWORD}
+  spring.flyway.url: jdbc:postgresql://host.docker.internal:5432/postgres
+  spring.flyway.locations: classpath:/db/migration
+
+data-spring-jdbc-h2:
+  spring.datasource.url: jdbc:h2:mem:test
+  spring.jpa.properties.hibernate.dialect: org.hibernate.dialect.H2Dialect
+  spring.flyway.enabled: false
+
+#
+# Spring framework configurations
+#
+spring:
+  logging:
+    level:
+      root: INFO
+      org.springframework: INFO
+      org.springframework.web.filter: INFO
+      org.stellar: INFO
+  mvc:
+    async.request-timeout: 6000
