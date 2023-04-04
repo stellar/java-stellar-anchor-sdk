@@ -4,6 +4,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.view.RedirectView;
 import org.stellar.anchor.api.exception.SepNotFoundException;
 import org.stellar.anchor.api.sep.SepExceptionResponse;
 import org.stellar.anchor.config.Sep1Config;
@@ -20,6 +21,19 @@ public class Sep1Controller {
   public Sep1Controller(Sep1Config sep1Config, Sep1Service sep1Service) {
     this.sep1Config = sep1Config;
     this.sep1Service = sep1Service;
+  }
+
+  @CrossOrigin(origins = "*")
+  @RequestMapping(
+      value = "/",
+      method = {RequestMethod.GET, RequestMethod.OPTIONS})
+  public RedirectView landingPage() throws SepNotFoundException {
+    if (!sep1Config.isEnabled()) {
+      throw new SepNotFoundException("Not Found");
+    }
+    RedirectView redirectView = new RedirectView();
+    redirectView.setUrl("/.well-known/stellar.toml");
+    return redirectView;
   }
 
   @CrossOrigin(origins = "*")

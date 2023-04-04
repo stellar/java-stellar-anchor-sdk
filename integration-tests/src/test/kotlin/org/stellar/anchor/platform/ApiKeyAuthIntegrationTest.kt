@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
+import org.springframework.boot.SpringApplication
 import org.springframework.context.ConfigurableApplicationContext
 import org.stellar.anchor.api.sep.sep38.GetPriceResponse
 import org.stellar.anchor.api.sep.sep38.RateFee
@@ -33,7 +34,7 @@ class ApiKeyAuthIntegrationTest {
   companion object {
     private const val ANCHOR_TO_PLATFORM_SECRET = "myAnchorToPlatformSecret"
     private const val PLATFORM_TO_ANCHOR_SECRET = "myPlatformToAnchorSecret"
-    private const val PLATFORM_SERVER_PORT = 8888
+    private const val PLATFORM_SERVER_PORT = 8080
   }
   private val gson = GsonUtils.getInstance()
   private val httpClient: OkHttpClient =
@@ -43,35 +44,34 @@ class ApiKeyAuthIntegrationTest {
       .writeTimeout(10, TimeUnit.MINUTES)
       .build()
   private lateinit var platformServerContext: ConfigurableApplicationContext
-  private lateinit var mockAnchor: MockWebServer
+  private lateinit var mockBusinessServer: MockWebServer
 
   @BeforeAll
   fun setup() {
     // mock Anchor backend
-    mockAnchor = MockWebServer()
-    mockAnchor.start()
-    val mockAnchorUrl = mockAnchor.url("").toString()
+    mockBusinessServer = MockWebServer()
+    mockBusinessServer.start()
+
+    val envMap = readResourceAsMap("profiles/default/config.env")
+    envMap["data.type"] = "h2"
+    envMap["events.enabled"] = "false"
+    envMap["assets.value"] = getResourceFile("config/assets.yaml").absolutePath
+    envMap["sep1.toml.value"] = getResourceFile("config/stellar.toml").absolutePath
+
+    envMap["callback_api.base_url"] = mockBusinessServer.url("").toString()
+    envMap["platform_api.auth.type"] = "api_key"
+    envMap["secret.platform_api.auth_secret"] = ANCHOR_TO_PLATFORM_SECRET
+    envMap["callback_api.auth.type"] = "api_key"
+    envMap["secret.callback_api.auth_secret"] = PLATFORM_TO_ANCHOR_SECRET
 
     // Start platform
-    platformServerContext =
-      AnchorPlatformServer.start(
-        mapOf(
-          "sep_server.port" to PLATFORM_SERVER_PORT,
-          "sep_server.context_path" to "/",
-          "stellar_anchor_config" to "classpath:integration-test.anchor-config.yaml",
-          "secret.sep10.jwt_secret" to "secret",
-          "secret.sep10.signing_seed" to "SAKXNWVTRVR4SJSHZUDB2CLJXEQHRT62MYQWA2HBB7YBOTCFJJJ55BZF",
-          "platform_api.auth.type" to "API_KEY",
-          "secret.platform_api.auth_secret" to ANCHOR_TO_PLATFORM_SECRET,
-          "callback_api.base_url" to mockAnchorUrl,
-          "callback_api.auth.type" to "API_KEY",
-          "secret.callback_api.auth_secret" to PLATFORM_TO_ANCHOR_SECRET
-        )
-      )
+    platformServerContext = AnchorPlatformServer().start(envMap)
   }
 
   @AfterAll
   fun teardown() {
+    SpringApplication.exit(platformServerContext)
+    mockBusinessServer.shutdown()
     clearAllMocks()
     unmockkAll()
   }
@@ -124,7 +124,7 @@ class ApiKeyAuthIntegrationTest {
   @Test
   fun test_ApiAuthIsBeingAddedInPlatformToAnchorRequests() {
     // check if at least one outgoing call is carrying the auth header.
-    mockAnchor.enqueue(
+    mockBusinessServer.enqueue(
       MockResponse()
         .addHeader("Content-Type", "application/json")
         .setBody(
@@ -164,7 +164,7 @@ class ApiKeyAuthIntegrationTest {
         .build()
     assertEquals(wantResponse, gotResponse)
 
-    val request = mockAnchor.takeRequest()
+    val request = mockBusinessServer.takeRequest()
     assertEquals("GET", request.method)
     assertEquals("application/json", request.headers["Content-Type"])
     assertEquals(PLATFORM_TO_ANCHOR_SECRET, request.headers["X-Api-Key"])

@@ -77,21 +77,23 @@ public class TransactionHelper {
         .sep(PlatformTransactionData.Sep.SEP_24)
         .kind(PlatformTransactionData.Kind.from(txn.getKind()))
         .status(SepTransactionStatus.from(txn.getStatus()))
+        .amountExpected(new Amount(txn.getAmountExpected(), amountExpectedAsset))
         .amountIn(Amount.create(txn.getAmountIn(), amountInAsset))
         .amountOut(Amount.create(txn.getAmountOut(), amountOutAsset))
         .amountFee(Amount.create(txn.getAmountFee(), amountFeeAsset))
         .kycVerified(txn.getKycVerified())
-        // constructor is used because AMOUNT can be null, when ASSET is always non-null
-        .amountExpected(new Amount(txn.getAmountExpected(), amountExpectedAsset))
-        .sourceAccount(sourceAccount)
-        .destinationAccount(txn.getToAccount())
         .startedAt(txn.getStartedAt())
         .updatedAt(txn.getUpdatedAt())
         .completedAt(txn.getCompletedAt())
-        .refunds(refunds)
         .message(txn.getMessage())
+        .refunds(refunds)
         .stellarTransactions(txn.getStellarTransactions())
+        // constructor is used because AMOUNT can be null, when ASSET is always non-null
+        .sourceAccount(sourceAccount)
+        .destinationAccount(txn.getToAccount())
         .externalTransactionId(txn.getExternalTransactionId())
+        .memo(txn.getMemo())
+        .memoType(txn.getMemoType())
         .build();
   }
 

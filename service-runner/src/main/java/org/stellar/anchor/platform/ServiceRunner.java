@@ -1,5 +1,7 @@
 package org.stellar.anchor.platform;
 
+import static org.stellar.anchor.util.Log.info;
+
 import java.util.Map;
 import org.apache.commons.cli.*;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -19,6 +21,7 @@ public class ServiceRunner {
     options.addOption("e", "event-processor", false, "Start the event processor.");
     options.addOption("r", "anchor-reference-server", false, "Start anchor reference server.");
     options.addOption("k", "kotlin-reference-server", false, "Start Kotlin reference server.");
+    options.addOption("t", "test-profile-runner", false, "Run the stack with test profile.");
 
     CommandLineParser parser = new DefaultParser();
 
@@ -46,7 +49,12 @@ public class ServiceRunner {
       }
 
       if (cmd.hasOption("kotlin-reference-server") || cmd.hasOption("all")) {
-        startKotlinReferenceServer(true);
+        startKotlinReferenceServer(null, true);
+        anyServerStarted = true;
+      }
+
+      if (cmd.hasOption("test-profile-runner")) {
+        startTestProfileRunner();
         anyServerStarted = true;
       }
 
@@ -58,19 +66,19 @@ public class ServiceRunner {
     }
   }
 
-  static ConfigurableApplicationContext startSepServer(Map<String, Object> env) {
-    return AnchorPlatformServer.start(env);
+  public static ConfigurableApplicationContext startSepServer(Map<String, String> env) {
+    return new AnchorPlatformServer().start(env);
   }
 
-  static ConfigurableApplicationContext startStellarObserver(Map<String, Object> env) {
-    return StellarObservingServer.start(env);
+  public static ConfigurableApplicationContext startStellarObserver(Map<String, String> env) {
+    return new StellarObservingServer().start(env);
   }
 
-  static ConfigurableApplicationContext startEventProcessor(Map<String, Object> env) {
-    return EventProcessingServer.start(env);
+  public static ConfigurableApplicationContext startEventProcessor(Map<String, String> env) {
+    return new EventProcessingServer().start(env);
   }
 
-  static void startAnchorReferenceServer() {
+  public static ConfigurableApplicationContext startAnchorReferenceServer() {
     String strPort = System.getProperty("ANCHOR_REFERENCE_SERVER_PORT");
 
     int port = DEFAULT_ANCHOR_REFERENCE_SERVER_PORT;
@@ -79,11 +87,16 @@ public class ServiceRunner {
       port = Integer.parseInt(strPort);
     }
 
-    AnchorReferenceServer.start(port, "/");
+    return AnchorReferenceServer.start(port, "/");
   }
 
-  static void startKotlinReferenceServer(boolean wait) {
-    RefenreceServerStartKt.start(wait);
+  public static void startKotlinReferenceServer(Map<String, String> envMap, boolean wait) {
+    RefenreceServerStartKt.start(envMap, wait);
+  }
+
+  public static void startTestProfileRunner() {
+    info("Running test profile runner");
+    TestProfileRunner.main();
   }
 
   static void printUsage(Options options) {

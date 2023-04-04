@@ -1,0 +1,51 @@
+version: '2.4'
+services:
+  platform:
+    extends:
+      file: common/docker-compose.yaml
+      service: platform
+    env_file:
+      - profiles/${TEST_PROFILE_NAME:-default}/config.env
+      - profiles/${TEST_PROFILE_NAME:-default}/test.env
+    depends_on:
+      - db
+      - kafka
+      - reference-server
+
+  observer:
+    extends:
+      file: common/docker-compose.yaml
+      service: observer
+    env_file:
+      - profiles/${TEST_PROFILE_NAME:-default}/config.env
+      - profiles/${TEST_PROFILE_NAME:-default}/test.env
+    depends_on:
+      - db
+      - kafka
+
+  reference-server:
+    extends:
+      file: common/docker-compose.yaml
+      service: reference-server
+    depends_on:
+      - db
+      - kafka
+
+  kafka:
+    extends:
+      file: common/docker-compose.yaml
+      service: kafka
+    depends_on:
+      - zookeeper
+
+  zookeeper:
+    extends:
+      file: common/docker-compose.yaml
+      service: zookeeper
+
+  db:
+    extends:
+      file: common/docker-compose.yaml
+      service: db
+
+

@@ -10,30 +10,60 @@ jobs:
     name: Gradle Test and Build
     runs-on: ubuntu-22.04
     steps:
+      # Start the docker containers
       - uses: actions/checkout@v3
+
+      # This is to add to DNS entries to access the services started by docker-compose.
+      # This should be deprecated. Refer to: https://stackoverflow.com/questions/47762339/how-to-correctly-set-up-docker-network-to-use-localhost-connection/47763442#47763442
+      - name: Set up hostnames (/etc/hosts)
+        run: |
+          sudo echo "127.0.0.1 db" | sudo tee -a /etc/hosts
+          sudo echo "127.0.0.1 zookeeper" | sudo tee -a /etc/hosts
+          sudo echo "127.0.0.1 kafka" | sudo tee -a /etc/hosts
+          sudo echo "127.0.0.1 reference-server" | sudo tee -a /etc/hosts
+          sudo echo "127.0.0.1 platform" | sudo tee -a /etc/hosts        
+
+      - name: Build and run the stack with docker compose
+        env:
+          TEST_PROFILE_NAME: default
+        run: docker-compose -f service-runner/src/main/resources/docker-compose-test.yaml up -d --build
+
+      # Check the docker containers
+      - name: Check running containers
+        run: docker ps
+
+      # Set up JDK 11
       - name: Set up JDK 11
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v3
         with:
           java-version: '11'
           distribution: 'adopt'
 
-      - name: Spotless Check
-        run: ./gradlew spotlessCheck || echo "❌ Your code is not properly formatted. You can run './gradlew spotlessApply' to format it. 👀"
 
-      - name: Test and Build
-        run: ./gradlew build
+      # Gradle test is now printing the test messages to GitHub Actions log.
+      # It is not necessary to print the reports.
+      - name: Gradle test and build. (unit tests, integration tests, end-2-end tests and build)
+        env:
+          run_docker: false
+        run: ./gradlew clean build --no-daemon --stacktrace
 
-      - name: Print Test Results
-        if: failure()
+      - name: Run sep server, observer, java reference server and kotlin reference server
+        env:
+          run_docker: false
         run: |
-          echo "\n\n*** API Schema test report ***\n"
-          cat /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/api-schema/build/reports/tests/test/index.html
-          echo "\n\n*** SEP test report ***\n"
-          cat /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/core/build/reports/tests/test/index.html
-          echo "\n\n*** Platform test report ***\n"
-          cat /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/platform/build/reports/tests/test/index.html
-          echo "\n\n*** Integration tests report ***\n"
-          cat /home/runner/work/java-stellar-anchor-sdk/java-stellar-anchor-sdk/integration-tests/build/reports/tests/test/index.html
+          cp service-runner/build/libs/anchor-platform-runner-*.jar service-runner/build/libs/anchor-platform-runner.jar
+          ls -l service-runner/build/libs
+          java -jar service-runner/build/libs/anchor-platform-runner.jar -t &
+
+      - name: Install NodeJs
+        uses: actions/setup-node@v2
+        with:
+          node-version: 14
+
+      - name: Run Stellar validation tool
+        run: |
+          npm install -g @stellar/anchor-tests
+          stellar-anchor-tests --home-domain http://localhost:8080 --seps 1 10 12 24 31 38 --sep-config platform/src/test/resources/stellar-anchor-tests-sep-config.json
 
   analyze:
     name: CodeQL Analysis

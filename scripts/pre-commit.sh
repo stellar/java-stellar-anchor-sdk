@@ -1,15 +1,7 @@
 #!/bin/sh
 
-# find staged files
-stagedFiles=$(git diff --staged --name-only)
+R='\033[0;31m'
+CLEAN='\033[0;0m'
 
-# run spotlessApply
-echo "Running spotlessApply. Formatting code..."
-./gradlew spotlessApply
-
-# add staged files
-for file in $stagedFiles; do
-  if test -f "$file"; then
-    git add $file
-  fi
-done
+echo "Running spotlessCheck."
+./gradlew spotlessCheck || (./gradlew spotlessApply && (echo -e "${R}Code was not formatted. Please add staged files and try again${CLEAN}" && exit 1))

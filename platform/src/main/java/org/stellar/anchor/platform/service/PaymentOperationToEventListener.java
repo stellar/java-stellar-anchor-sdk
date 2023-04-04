@@ -197,7 +197,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
   }
 
   @Override
-  public void onSent(ObservedPayment payment) throws AnchorException, IOException {}
+  public void onSent(ObservedPayment payment) {}
 
   public void handleSep24Transaction(ObservedPayment payment, JdbcSep24Transaction txn)
       throws AnchorException, IOException {

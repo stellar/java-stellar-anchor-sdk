@@ -26,7 +26,9 @@ import org.stellar.anchor.platform.configurator.SepConfigManager;
     })
 @EnableConfigurationProperties
 public class AnchorPlatformServer extends AbstractPlatformServer implements WebMvcConfigurer {
-  public static ConfigurableApplicationContext start(Map<String, Object> environment) {
+  private ConfigurableApplicationContext ctx;
+
+  public ConfigurableApplicationContext start(Map<String, String> environment) {
     buildEnvironment(environment);
 
     SpringApplicationBuilder builder =
@@ -35,6 +37,13 @@ public class AnchorPlatformServer extends AbstractPlatformServer implements WebM
     springApplication.addInitializers(SecretManager.getInstance());
     springApplication.addInitializers(SepConfigManager.getInstance());
 
-    return springApplication.run();
+    return ctx = springApplication.run();
+  }
+
+  public void stop() {
+    if (ctx != null) {
+      SpringApplication.exit(ctx);
+      ctx = null;
+    }
   }
 }
