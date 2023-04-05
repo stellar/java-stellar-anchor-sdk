@@ -5,10 +5,6 @@ on:
   push:
     branches: 
       - main
-      - develop
-      - 'release/**'
-      - 'releases/**'
-      - 'hotfix/**'
 
 jobs:
   end_to_end_tests:
@@ -20,14 +16,5 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name: Build images for end-to-end tests
-        run: make build-docker-compose-tests
-
       - name: Run end-to-end tests (Default Config)
-        run: make run-e2e-test-default-config
-
-      - name: Run end-to-end tests (Unique Address)
-        run: make run-e2e-test-unique-address
-
-      - name: Run end-to-end tests (Allowlist)
-        run: make run-e2e-test-allowlist
+        run: make run-e2e-tests
