@@ -131,7 +131,7 @@ subprojects {
 
 allprojects {
   group = "org.stellar.anchor-sdk"
-  version = "2.0.0-rc1"
+  version = "2.0.0-rc.1"
 
   tasks.jar {
     manifest {
