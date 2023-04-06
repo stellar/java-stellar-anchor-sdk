@@ -261,12 +261,19 @@ public class Sep31Service {
     }
     debugF("Updating transaction ({}) with fee ({}) - reqAsset ({})", txn.getId(), fee, reqAsset);
 
+    String amountInAsset = reqAsset.getAssetName();
+    String amountOutAsset = request.getDestinationAsset();
+
+    boolean isSimpleQuote = Objects.equals(amountInAsset, amountOutAsset);
+
     // Update transaction
     txn.setAmountIn(formatAmount(amountIn, scale));
     txn.setAmountExpected(formatAmount(amountIn, scale));
-    txn.setAmountInAsset(reqAsset.getAssetName());
-    txn.setAmountOut(formatAmount(amountOut, scale));
-    txn.setAmountOutAsset(reqAsset.getAssetName());
+    txn.setAmountInAsset(amountInAsset);
+    if (isSimpleQuote) {
+      txn.setAmountOut(formatAmount(amountOut, scale));
+    }
+    txn.setAmountOutAsset(amountOutAsset);
 
     // Update fee
     String feeStr = formatAmount(fee, scale);
