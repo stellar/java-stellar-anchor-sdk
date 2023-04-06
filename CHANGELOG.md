@@ -4,6 +4,10 @@
 * Redesign configuration management.
 * Implement SEP-24.
 
+## 1.2.12
+* Don't set amount_out for indicative quote. [#823](https://github.com/stellar/java-stellar-anchor-sdk/pull/823)
+* Add docker-compose files to run e2e tests with containers
+
 ## 1.2.11
 * Fix validation failing indicative quote. [#810](https://github.com/stellar/java-stellar-anchor-sdk/pull/810)
 
