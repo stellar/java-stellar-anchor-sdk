@@ -46,7 +46,11 @@ public class ConfigEnvironment {
    * @return the value of the environment variable.
    */
   public static String getenv(String name) {
-    return env.get(toPosixForm(name));
+    String envValue = env.get(toPosixForm(name));
+    if (envValue != null) {
+      envValue = envValue.replace("\\n", "\n").replace("\\\"", "\"");
+    }
+    return envValue;
   }
 
   public static Collection<String> names() {
