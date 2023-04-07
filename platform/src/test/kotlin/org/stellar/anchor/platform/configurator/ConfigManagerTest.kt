@@ -1,6 +1,7 @@
 package org.stellar.anchor.platform.configurator
 
 import io.mockk.*
+import kotlin.test.assertNull
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -94,5 +95,21 @@ class ConfigManagerTest {
     val gotConfig = configManager.processConfigurations(null)
 
     assertTrue(gotConfig.equals(wantedConfig))
+  }
+
+  @Test
+  fun `test ConfigEnvironment getenv with line breaks and quotes`() {
+    val multilineEnvName = "MULTILINE_ENV"
+    val multilineEnvValue = """FOO=\"FOO\"\nBAR=\"BAR\""""
+    val wantValue = "FOO=\"FOO\"\nBAR=\"BAR\""
+
+    System.setProperty(multilineEnvName, multilineEnvValue)
+    ConfigEnvironment.rebuild()
+
+    assertEquals(wantValue, ConfigEnvironment.getenv(multilineEnvName))
+
+    System.clearProperty(multilineEnvName)
+    ConfigEnvironment.rebuild()
+    assertNull(ConfigEnvironment.getenv(multilineEnvName))
   }
 }
