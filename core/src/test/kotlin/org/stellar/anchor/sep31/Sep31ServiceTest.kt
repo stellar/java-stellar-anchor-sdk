@@ -329,6 +329,8 @@ class Sep31ServiceTest {
 
   @Test
   fun `test update transaction amounts when no quote was used`() {
+    request.destinationAsset =
+      "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
     Context.get().transaction = txn
     Context.get().request = request
     Context.get().fee = fee
