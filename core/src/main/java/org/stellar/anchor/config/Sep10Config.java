@@ -3,7 +3,7 @@ package org.stellar.anchor.config;
 import java.util.List;
 
 public interface Sep10Config {
-  String getHomeDomain();
+  String getWebAuthDomain();
 
   boolean isClientAttributionRequired();
 

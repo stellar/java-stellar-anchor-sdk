@@ -216,11 +216,11 @@ sep10:
   ## `secret.sep10_signing_seed`: The private key for signing challenge transactions.
   ## `secret.sep10_jwt_secret`: The JWT encryption key.
   #
-  ## @param: home_domain
+  ## @param: web_auth_domain
   ## @type: string
-  ## The `home_domain` property of SEP-10. https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#request
+  ## The `web_auth_domain` property of SEP-10. https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#response
   #
-  home_domain: localhost:8080
+  web_auth_domain: localhost:8080
   ## @param: client_attribution_required
   ## @type: bool
   ## Set if the client attribution is required. Client Attribution requires clients to verify their identity by passing

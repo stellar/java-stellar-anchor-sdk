@@ -3,8 +3,8 @@ package org.stellar.anchor.sep10;
 import static org.stellar.anchor.util.Log.*;
 
 import java.io.IOException;
-import java.net.URI;
-import java.net.URISyntaxException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.stellar.anchor.api.exception.SepException;
@@ -54,15 +54,19 @@ public class Sep10Service {
     Log.info("Sep10Service initialized.");
   }
 
-  public ChallengeResponse createChallenge(ChallengeRequest challengeRequest) throws SepException {
+  public ChallengeResponse createChallenge(ChallengeRequest challengeRequest)
+      throws SepException, MalformedURLException {
     info("Creating challenge");
     //
     // Validations
     //
     if (challengeRequest.getHomeDomain() == null) {
-      debugF("home_domain is not specified. Will use the default: {}", sep10Config.getHomeDomain());
-      challengeRequest.setHomeDomain(sep10Config.getHomeDomain());
-    } else if (!sep10Config.getHomeDomain().equalsIgnoreCase(challengeRequest.getHomeDomain())) {
+      debugF(
+          "home_domain is not specified. Will use the default: {}", sep10Config.getWebAuthDomain());
+      challengeRequest.setHomeDomain(sep10Config.getWebAuthDomain());
+    } else if (!challengeRequest
+        .getHomeDomain()
+        .equalsIgnoreCase(getDomainFromURL(appConfig.getHostUrl()))) {
       infoF("Bad home_domain: {}", challengeRequest.getHomeDomain());
       throw new SepValidationException(
           String.format("home_domain [%s] is not supported.", challengeRequest.getHomeDomain()));
@@ -159,7 +163,7 @@ public class Sep10Service {
               new Network(appConfig.getStellarNetworkPassphrase()),
               challengeRequest.getAccount(),
               challengeRequest.getHomeDomain(),
-              getDomainFromURI(appConfig.getHostUrl()),
+              sep10Config.getWebAuthDomain(),
               new TimeBounds(now, now + sep10Config.getAuthTimeout()),
               (challengeRequest.getClientDomain() == null)
                   ? ""
@@ -172,10 +176,6 @@ public class Sep10Service {
           ChallengeResponse.of(txn.toEnvelopeXdrBase64(), appConfig.getStellarNetworkPassphrase());
       trace("challengeResponse:", challengeResponse);
       return challengeResponse;
-    } catch (URISyntaxException e) {
-      warnF("Invalid HOST_URL: {}", appConfig.getHostUrl());
-      throw new SepException(
-          String.format("Invalid HOST_URL [%s} is used.", appConfig.getHostUrl()));
     } catch (InvalidSep10ChallengeException ex) {
       warnEx(ex);
       throw new SepException("Failed to create the sep-10 challenge.", ex);
@@ -183,8 +183,7 @@ public class Sep10Service {
   }
 
   public ValidationResponse validateChallenge(ValidationRequest validationRequest)
-      throws IOException, InvalidSep10ChallengeException, URISyntaxException,
-          SepValidationException {
+      throws IOException, InvalidSep10ChallengeException, SepValidationException {
     if (validationRequest == null || validationRequest.getTransaction() == null) {
       throw new SepValidationException("{transaction} is required.");
     }
@@ -195,15 +194,15 @@ public class Sep10Service {
   }
 
   public String validateChallenge(String challengeXdr)
-      throws IOException, InvalidSep10ChallengeException, URISyntaxException {
+      throws IOException, InvalidSep10ChallengeException {
     debug("Parse challenge string.");
     Sep10Challenge.ChallengeTransaction challenge =
         Sep10Challenge.readChallengeTransaction(
             challengeXdr,
             serverAccountId,
             new Network(appConfig.getStellarNetworkPassphrase()),
-            sep10Config.getHomeDomain(),
-            getDomainFromURI(appConfig.getHostUrl()));
+            getDomainFromURL(appConfig.getHostUrl()),
+            sep10Config.getWebAuthDomain());
 
     debugF(
         "Challenge parsed. account={}, home_domain={}",
@@ -259,8 +258,8 @@ public class Sep10Service {
           challengeXdr,
           serverAccountId,
           new Network(appConfig.getStellarNetworkPassphrase()),
-          sep10Config.getHomeDomain(),
-          getDomainFromURI(appConfig.getHostUrl()),
+          getDomainFromURL(appConfig.getHostUrl()),
+          sep10Config.getWebAuthDomain(),
           signers);
 
       return clientDomain;
@@ -285,8 +284,8 @@ public class Sep10Service {
         challengeXdr,
         serverAccountId,
         new Network(appConfig.getStellarNetworkPassphrase()),
-        sep10Config.getHomeDomain(),
-        getDomainFromURI(appConfig.getHostUrl()),
+        getDomainFromURL(appConfig.getHostUrl()),
+        sep10Config.getWebAuthDomain(),
         threshold,
         signers);
 
@@ -320,15 +319,15 @@ public class Sep10Service {
   }
 
   String generateSep10Jwt(String challengeXdr, String clientDomain)
-      throws InvalidSep10ChallengeException, IOException, URISyntaxException {
+      throws InvalidSep10ChallengeException, IOException {
     infoF("Creating SEP-10 challenge.");
     Sep10Challenge.ChallengeTransaction challenge =
         Sep10Challenge.readChallengeTransaction(
             challengeXdr,
             serverAccountId,
             new Network(appConfig.getStellarNetworkPassphrase()),
-            sep10Config.getHomeDomain(),
-            getDomainFromURI(appConfig.getHostUrl()));
+            getDomainFromURL(appConfig.getHostUrl()),
+            sep10Config.getWebAuthDomain());
     debug("challenge:", challenge);
     long issuedAt = challenge.getTransaction().getTimeBounds().getMinTime();
     Memo memo = challenge.getTransaction().getMemo();
@@ -346,8 +345,8 @@ public class Sep10Service {
     return jwtService.encode(sep10Jwt);
   }
 
-  String getDomainFromURI(String strUri) throws URISyntaxException {
-    URI uri = new URI(strUri);
+  String getDomainFromURL(String strUri) throws MalformedURLException {
+    URL uri = new URL(strUri);
     if (uri.getPort() < 0) {
       return uri.getHost();
     }

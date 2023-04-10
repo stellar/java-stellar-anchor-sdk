@@ -1,8 +1,5 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Run - All Servers - with Docker" type="JetRunConfigurationType">
-    <envs>
-      <env name="WIN_DOCKER_LOCATION" value="$PROJECT_DIR$/../../Program Files/Docker/Docker/resources/bin" />
-    </envs>
     <option name="MAIN_CLASS_NAME" value="org.stellar.anchor.platform.run_profiles.RunAllServers" />
     <module name="java-stellar-anchor-sdk.service-runner.main" />
     <shortenClasspath name="ARGS_FILE" />
