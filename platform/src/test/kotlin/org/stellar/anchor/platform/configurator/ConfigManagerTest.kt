@@ -112,4 +112,20 @@ class ConfigManagerTest {
     ConfigEnvironment.rebuild()
     assertNull(ConfigEnvironment.getenv(multilineEnvName))
   }
+
+  @Test
+  fun `test ConfigEnvironment getenv without line breaks or quotes`() {
+    val simpleEnvName = "SIMPLE_ENV"
+    val simpleEnvValue = "FOOBAR"
+    val wantValue = "FOOBAR"
+
+    System.setProperty(simpleEnvName, simpleEnvValue)
+    ConfigEnvironment.rebuild()
+
+    assertEquals(wantValue, ConfigEnvironment.getenv(simpleEnvName))
+
+    System.clearProperty(simpleEnvName)
+    ConfigEnvironment.rebuild()
+    assertNull(ConfigEnvironment.getenv(simpleEnvName))
+  }
 }
