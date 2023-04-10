@@ -12,7 +12,7 @@ fun main() = runBlocking {
   testProfileExecutor = TestProfileExecutor(TestConfig(profileName = "default"))
   launch { registerShutdownHook(testProfileExecutor) }
   testProfileExecutor.start(true) {
-    it.env["run_docker"] = "true"
+    it.env["run_docker"] = "false"
     it.env["run_all_servers"] = "true"
   }
 }
