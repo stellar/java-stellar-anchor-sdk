@@ -126,7 +126,7 @@ app_config:
   sep1.enabled: true
   # `sep1.toml.value` is being set by the helm chart from `toml_config`.
   sep10.enabled: true
-  sep10.web_auth_domain: <your_anchor_domain.com>
+  sep10.web_auth_domain: <the_domain_hosting_your_server>
   sep12.enabled: true
   sep24.enabled: false
   sep31.enabled: true

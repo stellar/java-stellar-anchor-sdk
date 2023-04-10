@@ -54,7 +54,8 @@ public class Sep10Service {
     Log.info("Sep10Service initialized.");
   }
 
-  public ChallengeResponse createChallenge(ChallengeRequest challengeRequest) throws SepException {
+  public ChallengeResponse createChallenge(ChallengeRequest challengeRequest)
+      throws SepException, MalformedURLException {
     info("Creating challenge");
     //
     // Validations
@@ -63,7 +64,9 @@ public class Sep10Service {
       debugF(
           "home_domain is not specified. Will use the default: {}", sep10Config.getWebAuthDomain());
       challengeRequest.setHomeDomain(sep10Config.getWebAuthDomain());
-    } else if (!sep10Config.getWebAuthDomain().equalsIgnoreCase(challengeRequest.getHomeDomain())) {
+    } else if (!challengeRequest
+        .getHomeDomain()
+        .equalsIgnoreCase(getDomainFromURL(appConfig.getHostUrl()))) {
       infoF("Bad home_domain: {}", challengeRequest.getHomeDomain());
       throw new SepValidationException(
           String.format("home_domain [%s] is not supported.", challengeRequest.getHomeDomain()));
