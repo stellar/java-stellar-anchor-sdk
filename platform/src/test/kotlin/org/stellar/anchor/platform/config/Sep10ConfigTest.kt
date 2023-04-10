@@ -117,7 +117,7 @@ class Sep10ConfigTest {
   @ParameterizedTest
   @ValueSource(strings = ["stellar.org", "moneygram.com"])
   fun `test valid home domains`(value: String) {
-    config.homeDomain = value
+    config.webAuthDomain = value
     config.validateConfig(errors)
     assertFalse(errors.hasErrors())
   }
@@ -134,7 +134,7 @@ class Sep10ConfigTest {
   @ParameterizedTest
   @ValueSource(strings = ["stellar .org", "abc", "299.0.0.1"])
   fun `test invalid home domains`(value: String) {
-    config.homeDomain = value
+    config.webAuthDomain = value
     config.validateConfig(errors)
     assertTrue(errors.hasErrors())
     assertErrorCode(errors, "sep10-home-domain-invalid")
