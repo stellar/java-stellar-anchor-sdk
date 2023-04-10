@@ -74,8 +74,8 @@ public class PropertySep10Config implements Sep10Config, Validator {
       if (!NetUtil.isServerPortValid(webAuthDomain)) {
         errors.rejectValue(
             "homeDomain",
-            "sep10-home-domain-invalid",
-            "The sep10.home_domain does not have valid format.");
+            "sep10-web-auth-domain-invalid",
+            "The sep10.web_auth_domain does not have valid format.");
       }
     }
 
