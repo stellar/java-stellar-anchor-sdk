@@ -5,9 +5,12 @@ package org.stellar.anchor.platform
 import com.palantir.docker.compose.DockerComposeExtension
 import com.palantir.docker.compose.connection.waiting.HealthChecks
 import java.io.File
+import java.lang.reflect.Field
+import java.util.*
 import kotlinx.coroutines.*
 import org.springframework.boot.SpringApplication
 import org.springframework.context.ConfigurableApplicationContext
+import org.stellar.anchor.util.Log
 import org.stellar.anchor.util.Log.info
 
 lateinit var testProfileExecutor: TestProfileExecutor
@@ -16,7 +19,7 @@ fun main() = runBlocking {
   info("Starting TestPfofileExecutor...")
   testProfileExecutor = TestProfileExecutor(TestConfig(profileName = "default"))
 
-  GlobalScope.launch {
+  launch {
     Runtime.getRuntime()
       .addShutdownHook(
         object : Thread() {
@@ -31,38 +34,33 @@ fun main() = runBlocking {
 }
 
 class TestProfileExecutor(val config: TestConfig) {
-  private val docker: DockerComposeExtension
+  private lateinit var docker: DockerComposeExtension
   private var runningServers: MutableList<ConfigurableApplicationContext> = mutableListOf()
   private var shouldStartDockerCompose: Boolean = false
-  private var shouldStartServers: Boolean = false
-
-  init {
-    info("Initializing TestProfileRunner...")
-    val dockerComposeFile = getResourceFile("docker-compose-test.yaml")
-    val userHomeFolder = File(System.getProperty("user.home"))
-    docker =
-      DockerComposeExtension.builder()
-        .saveLogsTo("${userHomeFolder}/docker-logs/anchor-platform-integration-test")
-        .file("${dockerComposeFile.absolutePath}")
-        .waitingForService("kafka", HealthChecks.toHaveAllPortsOpen())
-        .waitingForService("db", HealthChecks.toHaveAllPortsOpen())
-        .pullOnStartup(true)
-        .build()
-  }
+  private var shouldStartAllServers: Boolean = false
+  private var shouldStartSepServer: Boolean = false
+  private var shouldStartReferenceServer: Boolean = false
+  private var shouldStartObserver: Boolean = false
+  private var shouldStartKotlinReferenceServer: Boolean = false
 
   fun start(wait: Boolean = false, preStart: (config: TestConfig) -> Unit = {}) {
+    Log.info("Starting TestProfileExecutor...")
+
     preStart(this.config)
 
     shouldStartDockerCompose = config.env["run_docker"].toBoolean()
-    shouldStartServers = config.env["run_servers"].toBoolean()
+    shouldStartAllServers = config.env["run_all_servers"].toBoolean()
+    shouldStartSepServer = config.env["run_sep_server"].toBoolean()
+    shouldStartReferenceServer = config.env["run_reference_server"].toBoolean()
+    shouldStartObserver = config.env["run_observer"].toBoolean()
+    shouldStartKotlinReferenceServer = config.env["run_kotlin_reference_server"].toBoolean()
 
-    info("Starting servers and docker")
-    if (shouldStartDockerCompose) startDocker()
-    if (shouldStartServers) startServers(wait)
+    startDocker()
+    startServers(wait)
   }
 
   fun shutdown() {
-    if (shouldStartServers) shutdownServers()
+    if (shouldStartAllServers) shutdownServers()
     if (shouldStartDockerCompose) shutdownDocker()
   }
 
@@ -76,24 +74,60 @@ class TestProfileExecutor(val config: TestConfig) {
       // Start servers
       val jobs = mutableListOf<Job>()
       val scope = CoroutineScope(Dispatchers.Default)
-      jobs += scope.launch { ServiceRunner.startKotlinReferenceServer(envMap, false) }
-      jobs += scope.launch { runningServers.add(ServiceRunner.startAnchorReferenceServer()) }
-      jobs += scope.launch { runningServers.add(ServiceRunner.startStellarObserver(envMap)) }
-      jobs += scope.launch { runningServers.add(ServiceRunner.startSepServer(envMap)) }
-      jobs.forEach { it.join() }
 
-      if (wait) {
-        while (true) {
-          delay(60000)
+      if (shouldStartAllServers || shouldStartKotlinReferenceServer) {
+        info("Starting Kotlin reference server...")
+        jobs += scope.launch { ServiceRunner.startKotlinReferenceServer(envMap, false) }
+      }
+      if (shouldStartAllServers || shouldStartReferenceServer) {
+        info("Starting Java reference server...")
+        jobs += scope.launch { runningServers.add(ServiceRunner.startAnchorReferenceServer()) }
+      }
+      if (shouldStartAllServers || shouldStartObserver) {
+        info("Starting observer...")
+        jobs += scope.launch { runningServers.add(ServiceRunner.startStellarObserver(envMap)) }
+      }
+      if (shouldStartAllServers || shouldStartSepServer) {
+        info("Starting SEP server...")
+        jobs += scope.launch { runningServers.add(ServiceRunner.startSepServer(envMap)) }
+      }
+
+      if (jobs.size > 0) {
+        jobs.forEach { it.join() }
+        if (wait) {
+          while (true) {
+            delay(60000)
+          }
         }
       }
     }
+
     return runningServers
   }
 
   private fun startDocker() {
-    docker.beforeAll(null)
+    info("Starting docker compose...")
+    if (shouldStartDockerCompose) {
+      if (isWindows()) {
+        setupWindowsEnv()
+      }
+
+      info("Initializing TestProfileRunner...")
+      val dockerComposeFile = getResourceFile("docker-compose-test.yaml")
+      val userHomeFolder = File(System.getProperty("user.home"))
+      docker =
+        DockerComposeExtension.builder()
+          .saveLogsTo("${userHomeFolder}/docker-logs/anchor-platform-integration-test")
+          .file("${dockerComposeFile.absolutePath}")
+          .waitingForService("kafka", HealthChecks.toHaveAllPortsOpen())
+          .waitingForService("db", HealthChecks.toHaveAllPortsOpen())
+          .pullOnStartup(true)
+          .build()
+
+      docker.beforeAll(null)
+    }
   }
+
   private fun shutdownServers() {
     runningServers.forEach { SpringApplication.exit(it) }
     org.stellar.reference.stop()
@@ -101,5 +135,51 @@ class TestProfileExecutor(val config: TestConfig) {
 
   private fun shutdownDocker() {
     docker.afterAll(null)
+  }
+
+  private fun isWindows(): Boolean {
+    return System.getProperty("os.name").toLowerCase().contains("win")
+  }
+
+  private fun setupWindowsEnv() {
+    val windowsDockerLocation =
+      System.getenv("WIN_DOCKER_LOCATION")
+        ?: throw RuntimeException("WINDOWS_DOCKER_LOCATION env variable is not set")
+
+    setEnv(mapOf("DOCKER_LOCATION" to File(windowsDockerLocation, "docker.exe").absolutePath))
+    setEnv(
+      mapOf(
+        "DOCKER_COMPOSE_LOCATION" to File(windowsDockerLocation, "docker-compose.exe").absolutePath
+      )
+    )
+  }
+
+  @SuppressWarnings("unchecked")
+  private fun setEnv(envs: Map<String, String>?) {
+    try {
+      val processEnvironmentClass = Class.forName("java.lang.ProcessEnvironment")
+      val theEnvironmentField: Field = processEnvironmentClass.getDeclaredField("theEnvironment")
+      theEnvironmentField.isAccessible = true
+      val env = theEnvironmentField.get(null) as MutableMap<String, String>
+      env.putAll(envs!!)
+      val theCaseInsensitiveEnvironmentField: Field =
+        processEnvironmentClass.getDeclaredField("theCaseInsensitiveEnvironment")
+      theCaseInsensitiveEnvironmentField.isAccessible = true
+      val cienv = theCaseInsensitiveEnvironmentField.get(null) as MutableMap<String, String>
+      cienv.putAll(envs)
+    } catch (e: NoSuchFieldException) {
+      val classes = Collections::class.java.declaredClasses
+      val env = System.getenv()
+      for (cl in classes) {
+        if ("java.util.Collections\$UnmodifiableMap" == cl.name) {
+          val field: Field = cl.getDeclaredField("m")
+          field.isAccessible = true
+          val obj: Any = field.get(env)
+          val map = obj as MutableMap<String, String>
+          map.clear()
+          map.putAll(envs!!)
+        }
+      }
+    }
   }
 }

@@ -1,6 +1,7 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="v2.0 -Integration Test - no Docker" type="JUnit" factoryName="JUnit">
+  <configuration default="false" name="Test - End2End Test - with Docker" type="JUnit" factoryName="JUnit">
     <module name="java-stellar-anchor-sdk.integration-tests.test" />
+    <shortenClasspath name="ARGS_FILE" />
     <extension name="coverage">
       <pattern>
         <option name="PATTERN" value="org.stellar.anchor.platform.*" />
@@ -18,13 +19,15 @@
       </ENTRIES>
     </extension>
     <option name="PACKAGE_NAME" value="org.stellar.anchor.platform" />
-    <option name="MAIN_CLASS_NAME" value="org.stellar.anchor.platform.AnchorPlatformIntegrationTest" />
+    <option name="MAIN_CLASS_NAME" value="org.stellar.anchor.platform.AnchorPlatformEnd2EndTest" />
     <option name="METHOD_NAME" value="" />
     <option name="TEST_OBJECT" value="class" />
     <envs>
-      <env name="TEST_PROFILE_NAME" value="default" />
-      <env name="run_servers" value="false" />
-      <env name="run_docker" value="false" />
+      <env name="DOCKER_COMPOSE_LOCATION" value="$PROJECT_DIR$/../../Program Files/Docker/Docker/resources/bin/docker-compose.exe" />
+      <env name="DOCKER_LOCATION" value="$PROJECT_DIR$/../../Program Files/Docker/Docker/resources/bin/docker.exe" />
+      <env name="run_docker" value="true" />
+      <env name="run_servers" value="true" />
+      <env name="TEST_PROFILE_NAME" value="sep24" />
     </envs>
     <method v="2">
       <option name="Make" enabled="true" />
