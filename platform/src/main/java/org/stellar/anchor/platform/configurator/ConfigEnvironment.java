@@ -6,7 +6,6 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-import org.apache.commons.text.StringEscapeUtils;
 
 public class ConfigEnvironment {
   static Map<String, String> env;
@@ -47,7 +46,11 @@ public class ConfigEnvironment {
    * @return the value of the environment variable. If the variable is not set, null is returned.
    */
   public static String getenv(String name) {
-    return StringEscapeUtils.unescapeJava(env.get(toPosixForm(name)));
+    String envValue = env.get(toPosixForm(name));
+    if (envValue != null) {
+      envValue = envValue.replace("\\n", "\n").replace("\\\"", "\"");
+    }
+    return envValue;
   }
 
   public static Collection<String> names() {

@@ -144,7 +144,7 @@ class TestProfileExecutor(val config: TestConfig) {
   private fun setupWindowsEnv() {
     val windowsDockerLocation =
       System.getenv("WIN_DOCKER_LOCATION")
-        ?: throw RuntimeException("WINDOWS_DOCKER_LOCATION env variable is not set")
+        ?: throw RuntimeException("WIN_DOCKER_LOCATION env variable is not set")
 
     setEnv(mapOf("DOCKER_LOCATION" to File(windowsDockerLocation, "docker.exe").absolutePath))
     setEnv(
