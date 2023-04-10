@@ -198,8 +198,8 @@ public class Sep10Service {
             challengeXdr,
             serverAccountId,
             new Network(appConfig.getStellarNetworkPassphrase()),
-            sep10Config.getWebAuthDomain(),
-            getDomainFromURL(appConfig.getHostUrl()));
+            getDomainFromURL(appConfig.getHostUrl()),
+            sep10Config.getWebAuthDomain());
 
     debugF(
         "Challenge parsed. account={}, home_domain={}",
@@ -255,8 +255,8 @@ public class Sep10Service {
           challengeXdr,
           serverAccountId,
           new Network(appConfig.getStellarNetworkPassphrase()),
-          sep10Config.getWebAuthDomain(),
           getDomainFromURL(appConfig.getHostUrl()),
+          sep10Config.getWebAuthDomain(),
           signers);
 
       return clientDomain;
@@ -281,8 +281,8 @@ public class Sep10Service {
         challengeXdr,
         serverAccountId,
         new Network(appConfig.getStellarNetworkPassphrase()),
-        sep10Config.getWebAuthDomain(),
         getDomainFromURL(appConfig.getHostUrl()),
+        sep10Config.getWebAuthDomain(),
         threshold,
         signers);
 
@@ -323,8 +323,8 @@ public class Sep10Service {
             challengeXdr,
             serverAccountId,
             new Network(appConfig.getStellarNetworkPassphrase()),
-            sep10Config.getWebAuthDomain(),
-            getDomainFromURL(appConfig.getHostUrl()));
+            getDomainFromURL(appConfig.getHostUrl()),
+            sep10Config.getWebAuthDomain());
     debug("challenge:", challenge);
     long issuedAt = challenge.getTransaction().getTimeBounds().getMinTime();
     Memo memo = challenge.getTransaction().getMemo();
