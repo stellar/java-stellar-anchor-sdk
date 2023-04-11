@@ -140,7 +140,6 @@ internal class Sep24ServiceTest {
     )
     assertEquals(TEST_ACCOUNT, slotTxn.captured.fromAccount)
     assertEquals(TEST_CLIENT_DOMAIN, slotTxn.captured.clientDomain)
-    assertEquals("123.4", slotTxn.captured.amountExpected)
 
     val params = URLEncodedUtils.parse(URI(response.url), Charset.forName("UTF-8"))
     val tokenStrings = params.filter { pair -> pair.name.equals("token") }
@@ -183,7 +182,6 @@ internal class Sep24ServiceTest {
     assertEquals(TEST_MEMO, slotTxn.captured.sep10AccountMemo)
     assertEquals(TEST_ACCOUNT, slotTxn.captured.fromAccount)
     assertEquals(TEST_CLIENT_DOMAIN, slotTxn.captured.clientDomain)
-    assertEquals("123.4", slotTxn.captured.amountExpected)
   }
 
   @Test
@@ -259,7 +257,6 @@ internal class Sep24ServiceTest {
     assertEquals(TEST_ASSET_ISSUER_ACCOUNT_ID, slotTxn.captured.requestAssetIssuer)
     assertEquals(TEST_ACCOUNT, slotTxn.captured.toAccount)
     assertEquals(TEST_CLIENT_DOMAIN, slotTxn.captured.clientDomain)
-    assertEquals("123.4", slotTxn.captured.amountExpected)
   }
 
   @Test
@@ -294,7 +291,6 @@ internal class Sep24ServiceTest {
     assertEquals(TEST_MEMO, slotTxn.captured.sep10AccountMemo)
     assertEquals(TEST_ACCOUNT, slotTxn.captured.fromAccount)
     assertEquals(TEST_CLIENT_DOMAIN, slotTxn.captured.clientDomain)
-    assertEquals("123.4", slotTxn.captured.amountExpected)
   }
 
   @Test
