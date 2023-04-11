@@ -44,8 +44,8 @@ events.publisher.sqs.use_iam:
 events.publisher.type:
 host_url:
 languages:
-logging.level:
-logging.stellar_level:
+app_logging.level:
+app_logging.stellar_level:
 metrics.enabled:
 metrics.extras_enabled:
 metrics.run_interval:
