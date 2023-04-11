@@ -1,14 +1,18 @@
 package org.stellar.anchor.platform.config;
 
 import static java.lang.String.format;
+import static org.stellar.anchor.util.NetUtil.getDomainFromURL;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 import static org.stellar.anchor.util.StringHelper.isNotEmpty;
 
+import java.net.MalformedURLException;
 import java.util.List;
+import javax.annotation.PostConstruct;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
+import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.SecretConfig;
 import org.stellar.anchor.config.Sep10Config;
 import org.stellar.anchor.util.ListHelper;
@@ -26,10 +30,19 @@ public class PropertySep10Config implements Sep10Config, Validator {
   private List<String> clientAttributionAllowList;
   private List<String> omnibusAccountList;
   private boolean requireKnownOmnibusAccount;
+  private AppConfig appConfig;
   private SecretConfig secretConfig;
 
-  public PropertySep10Config(SecretConfig secretConfig) {
+  public PropertySep10Config(AppConfig appConfig, SecretConfig secretConfig) {
+    this.appConfig = appConfig;
     this.secretConfig = secretConfig;
+  }
+
+  @PostConstruct
+  public void postConstruct() throws MalformedURLException {
+    if (isEmpty(webAuthDomain)) {
+      webAuthDomain = getDomainFromURL(appConfig.getHostUrl());
+    }
   }
 
   @Override
