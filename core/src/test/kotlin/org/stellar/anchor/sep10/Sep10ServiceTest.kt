@@ -6,7 +6,6 @@ import com.google.common.io.BaseEncoding
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import java.io.IOException
-import java.net.MalformedURLException
 import java.security.SecureRandom
 import java.util.concurrent.TimeUnit
 import java.util.stream.Stream
@@ -660,26 +659,5 @@ internal class Sep10ServiceTest {
     verify(exactly = 2) { sep10Config.omnibusAccountList }
     assertInstanceOf(SepNotAuthorizedException::class.java, ex)
     assertEquals("unable to process", ex.message)
-  }
-
-  @ParameterizedTest
-  @CsvSource(
-    value =
-      [
-        "https://test.stellar.org,test.stellar.org",
-        "http://test.stellar.org,test.stellar.org",
-        "https://test.stellar.org:9800,test.stellar.org:9800",
-        "http://test.stellar.org:9800,test.stellar.org:9800",
-      ]
-  )
-  fun `test goodURLs for getDomainFromURL`(testUri: String, compareDomain: String) {
-    val domain = sep10Service.getDomainFromURL(testUri)
-    assertEquals(domain, compareDomain)
-  }
-
-  @ParameterizedTest
-  @ValueSource(strings = ["bad url", "http :///test.stellar.org:9800/"])
-  fun `test bad URLs for getDomainFromURL`(testUrl: String) {
-    assertThrows<MalformedURLException> { sep10Service.getDomainFromURL(testUrl) }
   }
 }

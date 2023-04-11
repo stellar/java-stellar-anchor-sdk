@@ -4,6 +4,7 @@ package org.stellar.anchor.util
 
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
+import java.net.MalformedURLException
 import okhttp3.Response
 import okhttp3.ResponseBody
 import org.junit.jupiter.api.AfterEach
@@ -11,10 +12,10 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.NullSource
 import org.junit.jupiter.params.provider.ValueSource
-import org.stellar.anchor.util.NetUtil.isServerPortValid
-import org.stellar.anchor.util.NetUtil.isUrlValid
+import org.stellar.anchor.util.NetUtil.*
 
 internal class NetUtilTest {
   @MockK private lateinit var mockCall: okhttp3.Call
@@ -147,5 +148,26 @@ internal class NetUtilTest {
   )
   fun `test bad server port with isServerPortValid`(testValue: String?) {
     assertFalse(isServerPortValid(testValue))
+  }
+
+  @ParameterizedTest
+  @CsvSource(
+    value =
+      [
+        "https://test.stellar.org,test.stellar.org",
+        "http://test.stellar.org,test.stellar.org",
+        "https://test.stellar.org:9800,test.stellar.org:9800",
+        "http://test.stellar.org:9800,test.stellar.org:9800",
+      ]
+  )
+  fun `test good URLs for getDomainFromURL`(testUri: String, compareDomain: String) {
+    val domain = getDomainFromURL(testUri)
+    assertEquals(domain, compareDomain)
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = ["bad url", "http :///test.stellar.org:9800/"])
+  fun `test bad URLs for getDomainFromURL`(testUrl: String) {
+    org.junit.jupiter.api.assertThrows<MalformedURLException> { getDomainFromURL(testUrl) }
   }
 }

@@ -1,10 +1,10 @@
 package org.stellar.anchor.sep10;
 
 import static org.stellar.anchor.util.Log.*;
+import static org.stellar.anchor.util.NetUtil.getDomainFromURL;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.net.URL;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.stellar.anchor.api.exception.SepException;
@@ -343,13 +343,5 @@ public class Sep10Service {
             clientDomain);
     debug("jwtToken:", sep10Jwt);
     return jwtService.encode(sep10Jwt);
-  }
-
-  String getDomainFromURL(String strUri) throws MalformedURLException {
-    URL uri = new URL(strUri);
-    if (uri.getPort() < 0) {
-      return uri.getHost();
-    }
-    return uri.getHost() + ":" + uri.getPort();
   }
 }

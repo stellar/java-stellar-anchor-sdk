@@ -5,6 +5,7 @@ import static org.stellar.anchor.util.StringHelper.isEmpty;
 import io.jsonwebtoken.lang.Strings;
 import java.io.IOException;
 import java.net.InetAddress;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Objects;
 import okhttp3.Call;
@@ -57,6 +58,14 @@ public class NetUtil {
       default:
         return false;
     }
+  }
+
+  public static String getDomainFromURL(String strUri) throws MalformedURLException {
+    URL uri = new URL(strUri);
+    if (uri.getPort() < 0) {
+      return uri.getHost();
+    }
+    return uri.getHost() + ":" + uri.getPort();
   }
 
   static boolean isHostnameValid(String hostname) {
