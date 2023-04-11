@@ -163,7 +163,8 @@ event_processor:
 ## The supported languages defined by RFC4646 (https://datatracker.ietf.org/doc/html/rfc4646)
 #
 languages: en
-logging:
+
+app_logging:
   ## @param: level
   ## @type: string
   ## The root logger logging level

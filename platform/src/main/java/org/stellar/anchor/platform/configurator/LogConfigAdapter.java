@@ -12,20 +12,20 @@ public class LogConfigAdapter extends SpringConfigAdapter {
 
   @Override
   void updateSpringEnv(ConfigMap config) throws InvalidConfigException {
-    copy(config, "logging.level", "logging.level.root");
-    copy(config, "logging.stellar_level", "logging.level.org.stellar");
+    copy(config, "app_logging.level", "logging.level.root");
+    copy(config, "app_logging.stellar_level", "logging.level.org.stellar");
 
     // Check the logger type
     Logger logger = LoggerFactory.getLogger(Logger.ROOT_LOGGER_NAME);
     if (logger instanceof Log4jLogger) {
       // we are using log4j
-      if (config.get("logging.level") != null) {
-        Level rootLevel = getLog4j2Level(config.getString("logging.level", "INFO"));
+      if (config.get("app_logging.level") != null) {
+        Level rootLevel = getLog4j2Level(config.getString("app_logging.level", "INFO"));
         Configurator.setAllLevels(LogManager.getRootLogger().getName(), rootLevel);
       }
 
       if (config.get("logging.stellar_level") != null) {
-        Level stellarLevel = getLog4j2Level(config.getString("logging.stellar_level"));
+        Level stellarLevel = getLog4j2Level(config.getString("app_logging.stellar_level"));
         Configurator.setAllLevels("org.stellar", stellarLevel);
       }
     }
