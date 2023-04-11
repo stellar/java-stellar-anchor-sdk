@@ -131,6 +131,9 @@ public class DataConfigAdapter extends SpringConfigAdapter {
           set("spring.flyway.user", SecretManager.getInstance().get(SECRET_DATA_USERNAME));
           set("spring.flyway.password", SecretManager.getInstance().get(SECRET_DATA_PASSWORD));
           set("spring.flyway.url", constructPostgressUrl(config));
+          set(
+              "spring.flyway.baseline-on-migrate",
+              config.getString("data.flyway_baseline_on_migrate").equalsIgnoreCase("true"));
         } else {
           set("spring.jpa.generate-ddl", true);
           set("spring.jpa.hibernate.ddl-auto", "update");
@@ -149,6 +152,9 @@ public class DataConfigAdapter extends SpringConfigAdapter {
           set("spring.flyway.user", SecretManager.getInstance().get(SECRET_DATA_USERNAME));
           set("spring.flyway.password", SecretManager.getInstance().get(SECRET_DATA_PASSWORD));
           set("spring.flyway.url", constructPostgressUrl(config));
+          set(
+              "spring.flyway.baseline-on-migrate",
+              config.getString("data.flyway_baseline_on_migrate").equalsIgnoreCase("true"));
         } else {
           set("spring.jpa.generate-ddl", true);
           set("spring.jpa.hibernate.ddl-auto", "update");

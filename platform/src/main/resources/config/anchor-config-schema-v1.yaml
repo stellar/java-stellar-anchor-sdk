@@ -10,6 +10,7 @@ data.database:
 data.ddl_auto:
 data.flyway_enabled:
 data.flyway_location:
+data.flyway_baseline_on_migrate:
 data.initial_connection_pool_size:
 data.max_active_connections:
 data.server:
