@@ -51,8 +51,7 @@ class Sep24Tests(val config: TestConfig, val toml: TomlContent, jwt: String) {
     val params = UriComponentsBuilder.fromUriString(response.url).build().queryParams
     val cipher = params["token"]!![0]
     val jwt = jwtService.decode(cipher, Sep24InteractiveUrlJwt::class.java)
-    val data = jwt.claims["data"] as Map<String, String>
-    assertEquals(response.id, data["transaction_id"])
+    assertEquals(response.id, jwt.jti)
   }
 
   private fun `test Sep24 deposit`() {
@@ -67,8 +66,7 @@ class Sep24Tests(val config: TestConfig, val toml: TomlContent, jwt: String) {
     val params = UriComponentsBuilder.fromUriString(response.url).build().queryParams
     val cipher = params["token"]!![0]
     val jwt = jwtService.decode(cipher, Sep24InteractiveUrlJwt::class.java)
-    val data = jwt.claims["data"] as Map<String, String>
-    assertEquals(response.id, data["transaction_id"])
+    assertEquals(response.id, jwt.jti)
   }
 
   private fun `test Sep24 GET transaction and check the JWT`() {
@@ -83,8 +81,7 @@ class Sep24Tests(val config: TestConfig, val toml: TomlContent, jwt: String) {
     val params = UriComponentsBuilder.fromUriString(txn.moreInfoUrl).build().queryParams
     val cipher = params["token"]!![0]
     val jwt = jwtService.decode(cipher, Sep24MoreInfoUrlJwt::class.java)
-    val data = jwt.claims["data"] as Map<String, String>
-    assertEquals(txn.id, data["transaction_id"])
+    assertEquals(txn.id, jwt.jti)
   }
 
   private fun `test PlatformAPI GET transaction for deposit and withdrawal`() {

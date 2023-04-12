@@ -291,7 +291,7 @@ sep24:
   #        and any defined SEP-9 fields from the request parameters.
   interactive_url:
     base_url: http://localhost:8080/sep24/interactive
-    txn_fields: transaction_id
+    txn_fields:
     jwt_expiration: 600
   ## @param: more_info_url
   # Configures the more_info_url of the transaction response when calling GET /transaction and GET /transactions endpoints.
@@ -305,7 +305,7 @@ sep24:
   #       `token`: the JWT token
   more_info_url:
     base_url: http://localhost:8080/sep24/transaction/more_info
-    txn_fields: transaction_id
+    txn_fields:
     jwt_expiration: 600
 
   # Configures the features flag returned by the SEP-24 /info endpoint
