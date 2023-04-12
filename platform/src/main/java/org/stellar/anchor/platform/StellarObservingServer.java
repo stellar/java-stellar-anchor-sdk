@@ -1,6 +1,7 @@
 package org.stellar.anchor.platform;
 
 import static org.springframework.boot.Banner.Mode.OFF;
+import static org.stellar.anchor.util.Log.info;
 
 import java.util.Map;
 import org.springframework.boot.SpringApplication;
@@ -26,23 +27,17 @@ import org.stellar.anchor.platform.configurator.SecretManager;
     })
 @EnableConfigurationProperties
 public class StellarObservingServer extends AbstractPlatformServer implements WebMvcConfigurer {
-  private ConfigurableApplicationContext ctx;
-
   public ConfigurableApplicationContext start(Map<String, String> environment) {
     buildEnvironment(environment);
 
     SpringApplicationBuilder builder =
         new SpringApplicationBuilder(StellarObservingServer.class).bannerMode(OFF);
     SpringApplication springApplication = builder.build();
+    info("Adding secret manager as initializers...");
     springApplication.addInitializers(SecretManager.getInstance());
+    info("Adding observer config manager as initializers...");
     springApplication.addInitializers(ObserverConfigManager.getInstance());
 
     return ctx = springApplication.run();
-  }
-
-  public void stop() {
-    if (ctx != null) {
-      SpringApplication.exit(ctx);
-    }
   }
 }
