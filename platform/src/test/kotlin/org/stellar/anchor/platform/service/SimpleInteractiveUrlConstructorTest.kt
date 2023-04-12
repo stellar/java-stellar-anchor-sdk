@@ -4,10 +4,12 @@ import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import java.time.Instant
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
+import java.util.stream.Stream
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.Arguments
+import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.web.util.UriComponentsBuilder
 import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.auth.Sep24InteractiveUrlJwt
@@ -20,12 +22,13 @@ import org.stellar.anchor.util.GsonUtils
 class SimpleInteractiveUrlConstructorTest {
   companion object {
     private val gson = GsonUtils.getInstance()
+    @JvmStatic
+    private fun constructorTestValues() =
+      Stream.of(Arguments.of(CONFIG_JSON_1, REQUEST_JSON_1, TXN_JSON_1))
   }
 
   @MockK(relaxed = true) private lateinit var secretConfig: SecretConfig
   private lateinit var jwtService: JwtService
-  private lateinit var sep9Fields: HashMap<*, *>
-  private lateinit var txn: JdbcSep24Transaction
 
   @BeforeEach
   fun setup() {
@@ -33,25 +36,31 @@ class SimpleInteractiveUrlConstructorTest {
     every { secretConfig.sep24InteractiveUrlJwtSecret } returns "sep24_jwt_secret"
 
     jwtService = JwtService(secretConfig)
-    sep9Fields = gson.fromJson(SEP9_FIELDS_JSON, HashMap::class.java)
-    txn = gson.fromJson(TXN_JSON, JdbcSep24Transaction::class.java)
   }
 
-  @Test
-  fun `test correct config`() {
-    val config =
-      gson.fromJson(SIMPLE_CONFIG_JSON, PropertySep24Config.InteractiveUrlConfig::class.java)
+  @ParameterizedTest
+  @MethodSource("constructorTestValues")
+  fun `test correct constructor`(configJson: String, requestJson: String, txnJson: String) {
+    val config = gson.fromJson(configJson, PropertySep24Config.InteractiveUrlConfig::class.java)
+    val request = gson.fromJson(requestJson, HashMap::class.java)
+    val txn = gson.fromJson(txnJson, JdbcSep24Transaction::class.java)
+
     val constructor = SimpleInteractiveUrlConstructor(config, jwtService)
 
-    var jwt =
-      parseJwtFromUrl(constructor.construct(txn, "en", sep9Fields as HashMap<String, String>?))
+    var jwt = parseJwtFromUrl(constructor.construct(txn, request as HashMap<String, String>?))
     testJwt(jwt)
     assertEquals("GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO:1234", jwt.sub)
 
     txn.sep10AccountMemo = null
-    jwt = parseJwtFromUrl(constructor.construct(txn, "en", sep9Fields as HashMap<String, String>?))
+    jwt = parseJwtFromUrl(constructor.construct(txn, request))
     testJwt(jwt)
     assertEquals("GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO", jwt.sub)
+  }
+
+  private fun parseJwtFromUrl(url: String?): Sep24InteractiveUrlJwt {
+    val params = UriComponentsBuilder.fromUriString(url!!).build().queryParams
+    val cipher = params["token"]!![0]
+    return jwtService.decode(cipher, Sep24InteractiveUrlJwt::class.java)
   }
 
   private fun testJwt(jwt: Sep24InteractiveUrlJwt) {
@@ -60,23 +69,21 @@ class SimpleInteractiveUrlConstructorTest {
     assertTrue(Instant.ofEpochSecond(jwt.exp).isAfter(Instant.now()))
     val data = claims["data"] as Map<String, String>
     assertEquals("deposit", data["kind"] as String)
-    assertEquals("John Doe", data["name"] as String)
+    assertEquals("100", data["amount"] as String)
+    assertEquals("en", data["lang"] as String)
     assertEquals(
       "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
       data["amount_in_asset"] as String
     )
     assertEquals("en", data["lang"] as String)
-    assertEquals("john_doe@stellar.org", data["email"] as String)
-  }
+    assertEquals("john_doe@stellar.org", data["email_address"] as String)
 
-  private fun parseJwtFromUrl(url: String?): Sep24InteractiveUrlJwt {
-    val params = UriComponentsBuilder.fromUriString(url!!).build().queryParams
-    val cipher = params["token"]!![0]
-    return jwtService.decode(cipher, Sep24InteractiveUrlJwt::class.java)
+    // Name is in request but not in transaction. It must not be included.
+    assertNull(data["name"])
   }
 }
 
-private const val SIMPLE_CONFIG_JSON =
+private const val CONFIG_JSON_1 =
   """
 {
   "baseUrl": "http://localhost:8080/sep24/interactive",
@@ -90,15 +97,19 @@ private const val SIMPLE_CONFIG_JSON =
 }
 """
 
-private const val SEP9_FIELDS_JSON =
+private const val REQUEST_JSON_1 =
   """
 {
   "name": "John Doe",
-  "email": "john_doe@stellar.org"
+  "first_name": "John",
+  "last_name": "Doe",
+  "email_address": "john_doe@stellar.org",
+  "lang": "en",
+  "amount": "100"
 }
 """
 
-private const val TXN_JSON =
+private const val TXN_JSON_1 =
   """
 {
   "id": "123",
