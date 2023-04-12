@@ -5,7 +5,6 @@ import static org.stellar.anchor.api.sep.SepTransactionStatus.INCOMPLETE;
 import static org.stellar.anchor.api.sep.sep24.InfoResponse.*;
 import static org.stellar.anchor.sep24.Sep24Helper.*;
 import static org.stellar.anchor.sep24.Sep24Transaction.Kind.WITHDRAWAL;
-import static org.stellar.anchor.sep9.Sep9Fields.extractSep9Fields;
 import static org.stellar.anchor.util.Log.*;
 import static org.stellar.anchor.util.MathHelper.decimal;
 import static org.stellar.anchor.util.MemoHelper.makeMemo;
@@ -45,6 +44,9 @@ public class Sep24Service {
   final MoreInfoUrlConstructor moreInfoUrlConstructor;
 
   static final Gson gson = GsonUtils.getInstance();
+
+  public static final List<String> INTERACTIVE_URL_JWT_REQUIRED_FIELDS =
+      List.of("amount", "client_domain", "lang");
 
   public Sep24Service(
       AppConfig appConfig,
@@ -88,7 +90,6 @@ public class Sep24Service {
     String assetIssuer = withdrawRequest.get("asset_issuer");
     String sourceAccount = withdrawRequest.get("account");
     String strAmount = withdrawRequest.get("amount");
-    HashMap<String, String> sep9Fields = extractSep9Fields(withdrawRequest);
 
     String lang = validateLanguage(appConfig, withdrawRequest.get("lang"));
     debug("language: {}", lang);
@@ -126,6 +127,9 @@ public class Sep24Service {
       infoF("invalid account format: {}", sourceAccount);
       throw new SepValidationException(String.format("invalid account: %s", sourceAccount), ex);
     }
+
+    if (token.getClientDomain() != null)
+      withdrawRequest.put("client_domain", token.getClientDomain());
 
     // TODO - jamie - should we be allowing user to specify memo? transaction are looked up
     // by PaymentObserver
@@ -175,7 +179,7 @@ public class Sep24Service {
     debug("Transaction details:", txn);
     return new InteractiveTransactionResponse(
         "interactive_customer_info_needed",
-        interactiveUrlConstructor.construct(txn, lang, sep9Fields),
+        interactiveUrlConstructor.construct(txn, withdrawRequest),
         txn.getTransactionId());
   }
 
@@ -198,7 +202,6 @@ public class Sep24Service {
     String assetIssuer = depositRequest.get("asset_issuer");
     String destinationAccount = depositRequest.get("account");
     String strAmount = depositRequest.get("amount");
-    HashMap<String, String> sep9Fields = extractSep9Fields(depositRequest);
 
     String strClaimableSupported = depositRequest.get("claimable_balance_supported");
     boolean claimableSupported = false;
@@ -252,6 +255,9 @@ public class Sep24Service {
           String.format("invalid account: %s", destinationAccount), ex);
     }
 
+    if (token.getClientDomain() != null)
+      depositRequest.put("client_domain", token.getClientDomain());
+
     Memo memo = makeMemo(depositRequest.get("memo"), depositRequest.get("memo_type"));
     String txnId = generateSepTransactionId();
     Sep24TransactionBuilder builder =
@@ -287,7 +293,7 @@ public class Sep24Service {
 
     return new InteractiveTransactionResponse(
         "interactive_customer_info_needed",
-        interactiveUrlConstructor.construct(txn, lang, sep9Fields),
+        interactiveUrlConstructor.construct(txn, depositRequest),
         txn.getTransactionId());
   }
 
