@@ -1,6 +1,7 @@
 package org.stellar.anchor.platform;
 
 import static org.springframework.boot.Banner.Mode.OFF;
+import static org.stellar.anchor.util.Log.info;
 
 import java.util.Map;
 import org.springframework.boot.SpringApplication;
@@ -33,15 +34,11 @@ public class EventProcessingServer extends AbstractPlatformServer implements Web
     SpringApplicationBuilder builder =
         new SpringApplicationBuilder(EventProcessingServer.class).bannerMode(OFF);
     SpringApplication springApplication = builder.build();
+    info("Adding secret manager as initializers...");
     springApplication.addInitializers(SecretManager.getInstance());
+    info("Adding event processor config manager as initializers...");
     springApplication.addInitializers(EventProcessorConfigManager.getInstance());
 
     return ctx = springApplication.run();
-  }
-
-  public void stop() {
-    if (ctx != null) {
-      SpringApplication.exit(ctx);
-    }
   }
 }

@@ -1,6 +1,7 @@
 package org.stellar.anchor.platform;
 
 import static org.springframework.boot.Banner.Mode.OFF;
+import static org.stellar.anchor.util.Log.info;
 
 import java.util.Map;
 import org.springframework.boot.SpringApplication;
@@ -34,16 +35,11 @@ public class AnchorPlatformServer extends AbstractPlatformServer implements WebM
     SpringApplicationBuilder builder =
         new SpringApplicationBuilder(AnchorPlatformServer.class).bannerMode(OFF);
     SpringApplication springApplication = builder.build();
+    info("Adding secret manager as initializers...");
     springApplication.addInitializers(SecretManager.getInstance());
+    info("Adding sep config manager as initializers...");
     springApplication.addInitializers(SepConfigManager.getInstance());
 
     return ctx = springApplication.run();
-  }
-
-  public void stop() {
-    if (ctx != null) {
-      SpringApplication.exit(ctx);
-      ctx = null;
-    }
   }
 }

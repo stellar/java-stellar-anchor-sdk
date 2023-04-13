@@ -5,6 +5,7 @@ import com.google.gson.annotations.SerializedName;
 import java.time.Instant;
 import java.util.List;
 import javax.persistence.Column;
+import javax.persistence.Id;
 import javax.persistence.MappedSuperclass;
 import javax.persistence.Transient;
 import lombok.Getter;
@@ -18,6 +19,8 @@ import org.stellar.anchor.util.GsonUtils;
 @MappedSuperclass
 public abstract class JdbcSepTransaction {
   @Transient static Gson gson = GsonUtils.getInstance();
+
+  @Id String id;
 
   String status;
 

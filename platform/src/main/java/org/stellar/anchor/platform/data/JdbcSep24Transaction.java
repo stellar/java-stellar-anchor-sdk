@@ -25,8 +25,6 @@ public class JdbcSep24Transaction extends JdbcSepTransaction
     return "24";
   }
 
-  @Id String id;
-
   String kind;
 
   @SerializedName("status_eta")
