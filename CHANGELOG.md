@@ -1,6 +1,10 @@
 # Changelog
-## 1.2.12
+## 1.2.13
 * Added Docker Compose files to facilitate the running of end-to-end tests with containers. Updated GitHub Actions and Makefile to automatically execute e2e tests upon merging new features into the main branch.
+
+## 1.2.12
+* Don't set amount_out for indicative quote. [#823](https://github.com/stellar/java-stellar-anchor-sdk/pull/823)
+
 ## 1.2.11
 * Fix validation failing indicative quote. [#810](https://github.com/stellar/java-stellar-anchor-sdk/pull/810)
 
