@@ -13,10 +13,7 @@ import static org.stellar.sdk.xdr.MemoType.MEMO_HASH;
 
 import io.micrometer.core.instrument.Metrics;
 import java.time.Instant;
-import java.util.Base64;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import org.apache.commons.lang3.StringUtils;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
@@ -198,6 +195,12 @@ public class TransactionService {
     txnUpdated = updateField(patch, txn, "externalTransactionId", txnUpdated);
     // update stellar_transactions
     txnUpdated = updateField(patch, txn, "stellarTransactions", txnUpdated);
+
+    if (patch.getStellarTransactions() != null) {
+      patch.getStellarTransactions().stream()
+          .max(Comparator.comparingLong(x -> x.getCreatedAt().toEpochMilli()))
+          .ifPresent(stellarTransaction -> txn.setStellarTransactionId(stellarTransaction.getId()));
+    }
 
     switch (txn.getProtocol()) {
       case "24":

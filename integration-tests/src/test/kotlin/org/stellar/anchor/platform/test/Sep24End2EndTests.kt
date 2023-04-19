@@ -16,6 +16,7 @@ import org.stellar.anchor.util.Sep1Helper
 import org.stellar.walletsdk.ApplicationConfiguration
 import org.stellar.walletsdk.StellarConfiguration
 import org.stellar.walletsdk.Wallet
+import org.stellar.walletsdk.anchor.DepositTransaction
 import org.stellar.walletsdk.anchor.TransactionStatus
 import org.stellar.walletsdk.anchor.TransactionStatus.*
 import org.stellar.walletsdk.anchor.WithdrawalTransaction
@@ -23,7 +24,7 @@ import org.stellar.walletsdk.asset.IssuedAssetId
 import org.stellar.walletsdk.auth.AuthToken
 import org.stellar.walletsdk.horizon.SigningKeyPair
 import org.stellar.walletsdk.horizon.sign
-import org.stellar.walletsdk.horizon.transaction.toTransferTransaction
+import org.stellar.walletsdk.horizon.transaction.toStellarTransfer
 
 class Sep24End2EndTest(
   private val config: TestConfig,
@@ -58,10 +59,10 @@ class Sep24End2EndTest(
     waitStatus(txId, COMPLETED, token)
   }
 
-  private suspend fun makeDeposit(token: AuthToken): String {
+  private suspend fun makeDeposit(token: AuthToken, keyPair: SigningKeyPair = keypair): String {
     // Start interactive deposit
     val deposit =
-      anchor.interactive().deposit(keypair.address, asset, token, mapOf("amount" to "10"))
+      anchor.interactive().deposit(keyPair.address, asset, token, mapOf("amount" to "10"))
     // Get transaction status and make sure it is INCOMPLETE
     val transaction = anchor.getTransaction(deposit.id, token)
     assertEquals(INCOMPLETE, transaction.status)
@@ -98,7 +99,7 @@ class Sep24End2EndTest(
     waitStatus(withdrawal.id, PENDING_USER_TRANSFER_START, token)
     // Submit transfer transaction
     val transfer =
-      (anchor.getTransaction(withdrawal.id, token) as WithdrawalTransaction).toTransferTransaction(
+      (anchor.getTransaction(withdrawal.id, token) as WithdrawalTransaction).toStellarTransfer(
         wallet.stellar(),
         asset
       )
@@ -131,11 +132,43 @@ class Sep24End2EndTest(
   }
 
   private fun listAllTransactionWorks() = runBlocking {
-    val token = anchor.auth().authenticate(keypair)
-    val deposits = (0..5).map { makeDeposit(token).also { delay(7.seconds) } }
+    val newAcc = wallet.stellar().account().createKeyPair()
+
+    val tx =
+      wallet
+        .stellar()
+        .transaction(keypair)
+        .sponsoring(keypair, newAcc) {
+          createAccount(newAcc)
+          addAssetSupport(USDC)
+        }
+        .build()
+        .sign(keypair)
+        .sign(newAcc)
+
+    wallet.stellar().submitTransaction(tx)
+
+    val token = anchor.auth().authenticate(newAcc)
+    val deposits = (0..5).map { makeDeposit(token, newAcc).also { delay(7.seconds) } }
     deposits.forEach { waitStatus(it, COMPLETED, token) }
     val history = anchor.getHistory(USDC, token)
+
     Assertions.assertThat(history).allMatch { deposits.contains(it.id) }
+  }
+
+  private fun `list by stellar transaction id works`() = runBlocking {
+    val token = anchor.auth().authenticate(keypair)
+
+    val txId = makeDeposit(token)
+
+    waitStatus(txId, COMPLETED, token)
+
+    val transaction = anchor.getTransaction(txId, token) as DepositTransaction
+
+    val transactionByStellarId =
+      anchor.getTransactionBy(token, stellarTransactionId = transaction.stellarTransactionId)
+
+    assertEquals(transaction.id, transactionByStellarId.id)
   }
 
   fun testAll() {
@@ -143,5 +176,6 @@ class Sep24End2EndTest(
     `typical deposit end-to-end flow`()
     `typical withdraw end-to-end flow`()
     listAllTransactionWorks()
+    `list by stellar transaction id works`()
   }
 }

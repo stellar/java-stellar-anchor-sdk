@@ -7,6 +7,12 @@ plugins {
   alias(libs.plugins.kotlin.jvm)
 }
 
+repositories {
+  maven {
+    url = uri("https://oss.sonatype.org/content/repositories/snapshots")
+  }
+}
+
 dependencies {
   implementation("org.springframework.boot:spring-boot")
   implementation("org.springframework.boot:spring-boot-autoconfigure")
