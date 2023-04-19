@@ -142,13 +142,6 @@ public class TransactionService {
           sep24Transaction.setMemo(memo);
           sep24Transaction.setMemoType(memoTypeAsString(MEMO_HASH));
         }
-        if (patch.getTransaction().getStellarTransactions() != null) {
-          patch.getTransaction().getStellarTransactions().stream()
-              .max(Comparator.comparingLong(x -> x.getCreatedAt().toEpochMilli()))
-              .ifPresent(
-                  stellarTransaction ->
-                      sep24Transaction.setStellarTransactionId(stellarTransaction.getId()));
-        }
         txn24Store.save(sep24Transaction);
         eventService.publish(sep24Transaction, TRANSACTION_STATUS_CHANGED);
         break;
@@ -202,6 +195,12 @@ public class TransactionService {
     txnUpdated = updateField(patch, txn, "externalTransactionId", txnUpdated);
     // update stellar_transactions
     txnUpdated = updateField(patch, txn, "stellarTransactions", txnUpdated);
+
+    if (patch.getStellarTransactions() != null) {
+      patch.getStellarTransactions().stream()
+          .max(Comparator.comparingLong(x -> x.getCreatedAt().toEpochMilli()))
+          .ifPresent(stellarTransaction -> txn.setStellarTransactionId(stellarTransaction.getId()));
+    }
 
     switch (txn.getProtocol()) {
       case "24":

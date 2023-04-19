@@ -5,6 +5,7 @@ package org.stellar.anchor.platform
 import com.palantir.docker.compose.DockerComposeExtension
 import com.palantir.docker.compose.connection.waiting.HealthChecks
 import java.io.File
+import java.lang.Thread.sleep
 import java.lang.reflect.Field
 import java.util.*
 import kotlinx.coroutines.*
@@ -56,6 +57,7 @@ class TestProfileExecutor(val config: TestConfig) {
     shouldStartKotlinReferenceServer = config.env["run_kotlin_reference_server"].toBoolean()
 
     startDocker()
+    sleep(5000)
     startServers(wait)
   }
 
