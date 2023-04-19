@@ -13,10 +13,7 @@ import static org.stellar.sdk.xdr.MemoType.MEMO_HASH;
 
 import io.micrometer.core.instrument.Metrics;
 import java.time.Instant;
-import java.util.Base64;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import org.apache.commons.lang3.StringUtils;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
@@ -144,6 +141,13 @@ public class TransactionService {
           memo = new String(Base64.getEncoder().encode(memo.getBytes()));
           sep24Transaction.setMemo(memo);
           sep24Transaction.setMemoType(memoTypeAsString(MEMO_HASH));
+        }
+        if (patch.getTransaction().getStellarTransactions() != null) {
+          patch.getTransaction().getStellarTransactions().stream()
+              .max(Comparator.comparingLong(x -> x.getCreatedAt().toEpochMilli()))
+              .ifPresent(
+                  stellarTransaction ->
+                      sep24Transaction.setStellarTransactionId(stellarTransaction.getId()));
         }
         txn24Store.save(sep24Transaction);
         eventService.publish(sep24Transaction, TRANSACTION_STATUS_CHANGED);

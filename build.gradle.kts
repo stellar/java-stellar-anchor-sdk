@@ -72,7 +72,6 @@ subprojects {
     implementation(rootProject.libs.bundles.kafka)
     implementation(rootProject.libs.spring.kafka)
     implementation(rootProject.libs.log4j.template.json)
-    implementation(rootProject.libs.stellar.wallet.sdk)
 
     // Although the following libraries are transitive dependencies, we are including them here to
     // override the version
