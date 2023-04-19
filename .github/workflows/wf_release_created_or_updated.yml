@@ -21,15 +21,15 @@ jobs:
       - name: Get EXPECTED_RELEASE_TAG
         shell: bash
         run: |
-          echo "EXPECTED_RELEASE_TAG=release-$(${{github.workspace}}/gradlew -q printVersionName)"
-          echo "EXPECTED_RELEASE_TAG=release-$(${{github.workspace}}/gradlew -q printVersionName)" >> $GITHUB_ENV
+          echo "EXPECTED_RELEASE_TAG=$(${{github.workspace}}/gradlew -q printVersionName)"
+          echo "EXPECTED_RELEASE_TAG=$(${{github.workspace}}/gradlew -q printVersionName)" >> $GITHUB_ENV
 
       - name: Fail if the release version and the project version do not match
         if: ${{ github.event.release.tag_name != env.EXPECTED_RELEASE_TAG }}
         run: |
           echo "The release tag is invalid: [${{ github.event.release.tag_name }}]"
           echo "The expected release tag is: [${{ env.EXPECTED_RELEASE_TAG }}]"         
-          echo "The release tag must match project version with [release-] prefix."
+          echo "The release tag must match project version."
           exit 1
 
       - name: Docker Login

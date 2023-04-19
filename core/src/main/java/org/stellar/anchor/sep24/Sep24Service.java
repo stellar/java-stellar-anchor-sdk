@@ -304,8 +304,19 @@ public class Sep24Service {
       throw new SepNotAuthorizedException("missing token");
     }
 
+    String assetCode = txReq.getAssetCode();
+    String assetIssuer = null;
+
+    if (assetCode.contains("stellar:")) {
+      String[] parsed = txReq.getAssetCode().split(":");
+      if (parsed.length == 3) {
+        assetCode = parsed[1];
+        assetIssuer = parsed[2];
+      }
+    }
+
     infoF("findTransactions. account={}", shorter(token.getAccount()));
-    if (assetService.getAsset(txReq.getAssetCode()) == null) {
+    if (assetService.getAsset(assetCode, assetIssuer) == null) {
       infoF(
           "asset code:{} not supported",
           (txReq.getAssetCode() == null) ? "null" : txReq.getAssetCode());

@@ -30,9 +30,10 @@ junit = "5.8.2"
 junit-suite-engine = "1.8.2"
 kafka = "3.3.1"
 kafka-json-schema = "7.0.1"
-kotlin = "1.7.20"
+kotlin = "1.8.20"
 kotlin-logging = "3.0.2"
-ktor = "2.2.1"
+kotlinx-json = "1.5.0"
+ktor = "2.3.0"
 log4j = "2.19.0"
 log4j-template-json = "2.19.0"
 lombok = "1.18.22"
@@ -51,7 +52,7 @@ aws-java-sdk-s3 = "1.12.342"
 sqlite-jdbc = "3.34.0"
 slf4j = "1.7.35"
 slf4j2 = "2.0.5"
-stellar-wallet-sdk = "0.5.0"
+stellar-wallet-sdk = "0.6.0"
 toml4j = "0.7.2"
 
 # Plugin versions
@@ -95,6 +96,7 @@ kafka-clients = { module = "org.apache.kafka:kafka-clients", version.ref = "kafk
 kafka-connect = { module = "org.apache.kafka:connect", version.ref = "kafka" }
 kafka-json-schema = { module = "io.confluent:kafka-json-schema-serializer", version.ref = "kafka-json-schema" }
 kotlin-stdlib = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
+kotlin-serialization-json = { module = "org.jetbrains.kotlinx:kotlinx-serialization-json", version.ref = "kotlinx-json" }
 kotlin-junit = { module = "org.jetbrains.kotlin:kotlin-test-junit5", version.ref = "kotlin" }
 kotlin-logging = { module = "io.github.microutils:kotlin-logging-jvm", version.ref = "kotlin-logging" }
 ktor-core = { module = "io.ktor:ktor-server-core-jvm", version.ref = "ktor" }
