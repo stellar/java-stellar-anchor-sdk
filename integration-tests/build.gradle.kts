@@ -25,6 +25,7 @@ dependencies {
   implementation(libs.log4j2.slf4j)
   implementation(libs.docker.compose.rule)
   implementation(libs.stellar.wallet.sdk)
+  implementation(libs.kotlin.serialization.json)
   implementation(libs.ktor.client.core)
   implementation(libs.ktor.client.okhttp)
 

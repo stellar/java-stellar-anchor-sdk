@@ -3,11 +3,13 @@ package org.stellar.anchor.platform.test
 import io.ktor.client.*
 import io.ktor.client.plugins.*
 import io.ktor.client.request.*
+import io.ktor.http.*
 import junit.framework.TestCase.assertEquals
 import junit.framework.TestCase.fail
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
+import org.assertj.core.api.Assertions
 import org.stellar.anchor.platform.CLIENT_WALLET_SECRET
 import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.util.Sep1Helper
@@ -31,7 +33,10 @@ class Sep24End2EndTest(
   private val walletSecretKey = System.getenv("WALLET_SECRET_KEY") ?: CLIENT_WALLET_SECRET
   private val keypair = SigningKeyPair.fromSecret(walletSecretKey)
   private val wallet =
-    Wallet(StellarConfiguration.Testnet, ApplicationConfiguration(useHttp = true))
+    Wallet(
+      StellarConfiguration.Testnet,
+      ApplicationConfiguration { defaultRequest { url { protocol = URLProtocol.HTTP } } }
+    )
   private val USDC =
     IssuedAssetId("USDC", "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP")
   private val asset = USDC
@@ -43,11 +48,17 @@ class Sep24End2EndTest(
         socketTimeoutMillis = 300000
       }
     }
-  private val anchor = wallet.anchor(config.env["anchor.domain"]!!.substring("http://".length))
+  private val anchor = wallet.anchor(config.env["anchor.domain"]!!)
   private val maxTries = 40
 
   private fun `typical deposit end-to-end flow`() = runBlocking {
     val token = anchor.auth().authenticate(keypair)
+    val txId = makeDeposit(token)
+    // Wait for the status to change to COMPLETED
+    waitStatus(txId, COMPLETED, token)
+  }
+
+  private suspend fun makeDeposit(token: AuthToken): String {
     // Start interactive deposit
     val deposit =
       anchor.interactive().deposit(keypair.address, asset, token, mapOf("amount" to "10"))
@@ -59,8 +70,8 @@ class Sep24End2EndTest(
     val resp = client.get(deposit.url)
     print("accessing ${deposit.url}...")
     assertEquals(200, resp.status.value)
-    // Wait for the status to change to COMPLETED
-    waitStatus(deposit.id, COMPLETED, token)
+
+    return transaction.id
   }
 
   private fun `typical withdraw end-to-end flow`() {
@@ -119,9 +130,18 @@ class Sep24End2EndTest(
     fail("Transaction wasn't $expectedStatus in $maxTries tries, last status: $status")
   }
 
+  private fun listAllTransactionWorks() = runBlocking {
+    val token = anchor.auth().authenticate(keypair)
+    val deposits = (0..5).map { makeDeposit(token).also { delay(7.seconds) } }
+    deposits.forEach { waitStatus(it, COMPLETED, token) }
+    val history = anchor.getHistory(USDC, token)
+    Assertions.assertThat(history).allMatch { deposits.contains(it.id) }
+  }
+
   fun testAll() {
     println("Running SEP-24 end-to-end tests...")
     `typical deposit end-to-end flow`()
     `typical withdraw end-to-end flow`()
+    listAllTransactionWorks()
   }
 }
