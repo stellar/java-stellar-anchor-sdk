@@ -121,13 +121,17 @@ public class TransactionService {
 
   private GetTransactionResponse patchTransaction(PatchTransactionRequest patch)
       throws AnchorException {
+    validateIfStatusIsSupported(patch.getTransaction().getStatus().toString());
+    validateAsset("amount_in", patch.getTransaction().getAmountIn());
+    validateAsset("amount_out", patch.getTransaction().getAmountOut());
+    validateAsset("amount_fee", patch.getTransaction().getAmountFee());
+
     JdbcSepTransaction txn = findTransaction(patch.getTransaction().getId());
     if (txn == null)
       throw new BadRequestException(
           String.format("transaction(id=%s) not found", patch.getTransaction().getId()));
 
     String lastStatus = txn.getStatus();
-    // TODO - jamie to validate request before using values
     updateSepTransaction(patch.getTransaction(), txn);
     switch (txn.getProtocol()) {
       case "24":
@@ -345,3 +349,4 @@ public class TransactionService {
     }
   }
 }
+

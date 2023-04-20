@@ -62,7 +62,7 @@ class Sep24End2EndTest(
   private suspend fun makeDeposit(token: AuthToken, keyPair: SigningKeyPair = keypair): String {
     // Start interactive deposit
     val deposit =
-      anchor.interactive().deposit(keyPair.address, asset, token, mapOf("amount" to "10"))
+      anchor.interactive().deposit(keyPair.address, asset, token, mapOf("amount" to "5"))
     // Get transaction status and make sure it is INCOMPLETE
     val transaction = anchor.getTransaction(deposit.id, token)
     assertEquals(INCOMPLETE, transaction.status)
@@ -77,7 +77,7 @@ class Sep24End2EndTest(
 
   private fun `typical withdraw end-to-end flow`() {
     `typical withdraw end-to-end flow`(mapOf())
-    `typical withdraw end-to-end flow`(mapOf("amount" to "10"))
+    `typical withdraw end-to-end flow`(mapOf("amount" to "5"))
   }
 
   private fun `typical withdraw end-to-end flow`(extraFields: Map<String, String>) = runBlocking {

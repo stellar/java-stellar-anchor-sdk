@@ -40,7 +40,7 @@ fun Route.testSep24(
       }
 
       val transaction = sep24.getTransaction(transactionId)
-      var amountExpected = transaction.amountExpected?.amount?.toBigDecimal()
+      var amountExpected = token.data["amount"]?.toBigDecimal()
       if (amountExpected == null) {
         log.info(
           "Missing amountExpected.amount field. Using default value: 10 to simulate the amount was entered by the user in the interactive flow."
@@ -82,9 +82,14 @@ fun Route.testSep24(
           "withdrawal" -> {
             call.respondText("The sep24 interactive withdrawal has been successfully started.")
 
+            val asset =
+                    transaction.amountExpected!!.asset
+                            ?: throw ClientException("Missing amountExpected.asset field")
+            val stellarAsset = asset.replace("stellar:", "")
+
             // Run deposit processing asynchronously
             CoroutineScope(Job()).launch {
-              withdrawalService.processWithdrawal(transactionId, amountExpected)
+              withdrawalService.processWithdrawal(transactionId, amountExpected, stellarAsset)
             }
           }
           else ->

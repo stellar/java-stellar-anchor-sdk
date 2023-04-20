@@ -44,6 +44,7 @@ data class PatchTransactionTransaction(
 class JwtToken(
   val transactionId: String,
   var expiration: Long, // Expiration Time
+  var data: Map<String, String>,
 )
 
 @Serializable
