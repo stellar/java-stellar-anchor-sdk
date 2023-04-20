@@ -31,6 +31,7 @@ object JwtDecoder {
     return JwtToken(
       claims["jti"] as String,
       claims["exp"].toString().toLong(),
+      claims["data"] as Map<String, String>,
     )
   }
 }
