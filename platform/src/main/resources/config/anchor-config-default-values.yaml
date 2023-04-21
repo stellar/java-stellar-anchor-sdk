@@ -346,6 +346,27 @@ sep38:
   #
   enabled: false
 
+######################
+## Custody Server configuration
+######################
+custody:
+  fireblocks:
+    ## @param: enabled
+    ## @type: bool
+    ## Whether to enable Fireblocks integration
+    ## If true, @required_secrets: SECRET_CUSTODY_FIREBLOCKS_API_KEY, SECRET_CUSTODY_FIREBLOCKS_SECRET_KEY
+    #
+    enabled: false
+    ## @param: baseUrl
+    ## @type: string
+    ## The base URL of the Fireblocks API
+    #
+    base_url:
+    ## @param: vaultAccountId
+    ## @type: string
+    ## Default vault account ID
+    #
+    vault_account_id:
 
 ##########################
 ## Metrics Configuration
