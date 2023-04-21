@@ -15,6 +15,8 @@ public class PropertySecretConfig implements SecretConfig {
   public static final String SECRET_PLATFORM_API_AUTH_SECRET = "secret.platform_api.auth_secret";
   public static final String SECRET_DATA_USERNAME = "secret.data.username";
   public static final String SECRET_DATA_PASSWORD = "secret.data.password";
+  public static final String SECRET_FIREBLOCKS_API_KEY = "secret.custody.fireblocks.api_key";
+  public static final String SECRET_FIREBLOCKS_SECRET_KEY = "secret.custody.fireblocks.secret_key";
 
   public String getSep10JwtSecretKey() {
     return SecretManager.getInstance().get(SECRET_SEP_10_JWT_SECRET);
@@ -52,5 +54,15 @@ public class PropertySecretConfig implements SecretConfig {
   @Override
   public String getDataSourcePassword() {
     return SecretManager.getInstance().get(SECRET_DATA_PASSWORD);
+  }
+
+  @Override
+  public String getFireblocksApiKey() {
+    return SecretManager.getInstance().get(SECRET_FIREBLOCKS_API_KEY);
+  }
+
+  @Override
+  public String getFireblocksSecretKey() {
+    return SecretManager.getInstance().get(SECRET_FIREBLOCKS_SECRET_KEY);
   }
 }
