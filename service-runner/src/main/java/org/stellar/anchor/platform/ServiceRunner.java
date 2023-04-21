@@ -16,6 +16,7 @@ public class ServiceRunner {
     options.addOption("h", "help", false, "Print this message.");
     options.addOption("a", "all", false, "Start all servers.");
     options.addOption("s", "sep-server", false, "Start SEP endpoint server.");
+    options.addOption("c", "custody-server", false, "Start Custody server.");
     options.addOption(
         "o", "stellar-observer", false, "Start Observer that streams from the Stellar blockchain.");
     options.addOption("e", "event-processor", false, "Start the event processor.");
@@ -30,6 +31,11 @@ public class ServiceRunner {
       boolean anyServerStarted = false;
       if (cmd.hasOption("sep-server") || cmd.hasOption("all")) {
         startSepServer(null);
+        anyServerStarted = true;
+      }
+
+      if (cmd.hasOption("custody-server") || cmd.hasOption("all")) {
+        startCustodyServer(null);
         anyServerStarted = true;
       }
 
@@ -68,6 +74,10 @@ public class ServiceRunner {
 
   public static ConfigurableApplicationContext startSepServer(Map<String, String> env) {
     return new AnchorPlatformServer().start(env);
+  }
+
+  public static ConfigurableApplicationContext startCustodyServer(Map<String, String> env) {
+    return new CustodyServer().start(env);
   }
 
   public static ConfigurableApplicationContext startStellarObserver(Map<String, String> env) {
