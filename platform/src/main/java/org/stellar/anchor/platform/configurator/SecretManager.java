@@ -23,7 +23,9 @@ public class SecretManager
           SECRET_CALLBACK_API_AUTH_SECRET,
           SECRET_PLATFORM_API_AUTH_SECRET,
           SECRET_DATA_USERNAME,
-          SECRET_DATA_PASSWORD);
+          SECRET_DATA_PASSWORD,
+          SECRET_FIREBLOCKS_SECRET_KEY,
+          SECRET_FIREBLOCKS_API_KEY);
 
   final Properties props = new Properties();
 

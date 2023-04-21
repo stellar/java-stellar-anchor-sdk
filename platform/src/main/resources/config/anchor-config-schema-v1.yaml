@@ -96,6 +96,8 @@ sep_server.port:
 stellar_network.horizon_url:
 stellar_network.network:
 stellar_network.network_passphrase:
+custody_server.context_path:
+custody_server.port:
 custody.fireblocks.enabled:
 custody.fireblocks.base_url:
 custody.fireblocks.vault_account_id:
