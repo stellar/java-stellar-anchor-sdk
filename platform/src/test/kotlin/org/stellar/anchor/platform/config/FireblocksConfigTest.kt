@@ -26,6 +26,7 @@ class FireblocksConfigTest {
     config.enabled = true
     config.baseUrl = "https://test.com"
     config.vaultAccountId = "testAccountId"
+    config.transactionsReconciliationCron = "* * * * * *"
     errors = BindException(config, "config")
   }
 
@@ -92,5 +93,29 @@ class FireblocksConfigTest {
   fun `test valid secret_key`() {
     config.validate(config, errors)
     assertFalse(errors.hasErrors())
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = ["* * * * * *", "0 0/15 * * * *"])
+  fun `test valid transactions_reconciliation_cron`(cron: String) {
+    config.transactionsReconciliationCron = cron
+    config.validate(config, errors)
+    assertFalse(errors.hasErrors())
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = [""])
+  fun `test empty transactions_reconciliation_cron`(cron: String) {
+    config.transactionsReconciliationCron = cron
+    config.validate(config, errors)
+    assertErrorCode(errors, "custody-fireblocks-transactions-reconciliation-cron-empty")
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = ["* * * * *", "* * * * * * *", "0/a * * * * *"])
+  fun `test invalid transactions_reconciliation_cron`(cron: String) {
+    config.transactionsReconciliationCron = cron
+    config.validate(config, errors)
+    assertErrorCode(errors, "custody-fireblocks-transactions-reconciliation-cron-invalid")
   }
 }

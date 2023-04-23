@@ -373,6 +373,11 @@ custody:
     ## Default vault account ID
     #
     vault_account_id:
+    ## @param: transactions_reconciliation_cron
+    ## @type: string
+    ## Cron expression which defines how often transaction reconciliation job runs. By default, job runs every 15 minutes
+    #
+    transactions_reconciliation_cron: "0 0/15 * * * *"
 
 ##########################
 ## Metrics Configuration
