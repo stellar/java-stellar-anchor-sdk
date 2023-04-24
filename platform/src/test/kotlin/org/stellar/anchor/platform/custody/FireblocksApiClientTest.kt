@@ -1,4 +1,3 @@
-import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
 import io.mockk.MockKAnnotations
 import io.mockk.every
@@ -214,8 +213,8 @@ oyJZtHGu0DdZPfjmYebz+pbefoIEovSQ8g7zwIfVqQNtOjNNrhK4eBcCAwEAAQ==
     val claims =
       Jwts.parser()
         .setSigningKey(getPublicKey())
-        .parse(StringUtils.substringAfter(token, "Bearer "))
-        .body as Claims
+        .parseClaimsJws(StringUtils.substringAfter(token, "Bearer "))
+        .body
 
     Assertions.assertEquals(API_KEY, claims.subject)
     Assertions.assertTrue(claims.issuedAt.toInstant().isBefore(Instant.now()))
