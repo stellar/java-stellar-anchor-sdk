@@ -11,6 +11,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.stellar.anchor.platform.configurator.CustodyConfigManager;
 import org.stellar.anchor.platform.configurator.SecretManager;
@@ -24,6 +25,7 @@ import org.stellar.anchor.platform.configurator.SecretManager;
       "org.stellar.anchor.platform.component.custody",
       "org.stellar.anchor.platform.component.share"
     })
+@EnableScheduling
 @EnableConfigurationProperties
 public class CustodyServer extends AbstractPlatformServer implements WebMvcConfigurer {
 

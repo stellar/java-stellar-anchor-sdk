@@ -4,6 +4,7 @@ import static org.stellar.anchor.util.StringHelper.isEmpty;
 
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.scheduling.support.CronExpression;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 import org.stellar.anchor.config.SecretConfig;
@@ -16,6 +17,7 @@ public class FireblocksConfig implements Validator {
   private String baseUrl;
   private String vaultAccountId;
   private SecretConfig secretConfig;
+  private String transactionsReconciliationCron;
 
   public FireblocksConfig(SecretConfig secretConfig) {
     this.secretConfig = secretConfig;
@@ -32,6 +34,7 @@ public class FireblocksConfig implements Validator {
       validateBaseUrl(errors);
       validateApiKey(errors);
       validateSecretKey(errors);
+      validateTransactionsReconciliationCron(errors);
     }
   }
 
@@ -63,6 +66,19 @@ public class FireblocksConfig implements Validator {
       errors.reject(
           "secret-custody-fireblocks-secret-key-empty",
           "Please set environment variable secret.custody.fireblocks.secret_key or SECRET_CUSTODY_FIREBLOCKS_SECRET_KEY");
+    }
+  }
+
+  private void validateTransactionsReconciliationCron(Errors errors) {
+    if (isEmpty(transactionsReconciliationCron)) {
+      errors.reject(
+          "custody-fireblocks-transactions-reconciliation-cron-empty",
+          "The custody.fireblocks.transactions_reconciliation_cron is empty");
+    }
+    if (!CronExpression.isValidExpression(transactionsReconciliationCron)) {
+      errors.reject(
+          "custody-fireblocks-transactions-reconciliation-cron-invalid",
+          "The custody.fireblocks.transactions_reconciliation_cron is invalid");
     }
   }
 }

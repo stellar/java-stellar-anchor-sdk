@@ -101,3 +101,4 @@ custody_server.port:
 custody.fireblocks.enabled:
 custody.fireblocks.base_url:
 custody.fireblocks.vault_account_id:
+custody.fireblocks.transactions_reconciliation_cron:
