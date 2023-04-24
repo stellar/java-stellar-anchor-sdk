@@ -4,7 +4,7 @@ import static org.stellar.anchor.util.Log.info;
 
 import org.springframework.scheduling.annotation.Scheduled;
 
-public class ReconcileFireblocksTransactionsJob {
+public class FireblocksTransactionsReconciliationJob {
 
   @Scheduled(cron = "${custody.fireblocks.transactions_reconciliation_cron}")
   public void reconcileTransaction() {
