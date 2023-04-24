@@ -8,6 +8,7 @@ import org.springframework.scheduling.support.CronExpression;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 import org.stellar.anchor.config.SecretConfig;
+import org.stellar.anchor.platform.utils.SecurityUtil;
 import org.stellar.anchor.util.NetUtil;
 
 @Data
@@ -18,6 +19,7 @@ public class FireblocksConfig implements Validator {
   private String vaultAccountId;
   private SecretConfig secretConfig;
   private String transactionsReconciliationCron;
+  private String publicKey;
 
   public FireblocksConfig(SecretConfig secretConfig) {
     this.secretConfig = secretConfig;
@@ -35,6 +37,7 @@ public class FireblocksConfig implements Validator {
       validateApiKey(errors);
       validateSecretKey(errors);
       validateTransactionsReconciliationCron(errors);
+      validatePublicKey(errors);
     }
   }
 
@@ -79,6 +82,17 @@ public class FireblocksConfig implements Validator {
       errors.reject(
           "custody-fireblocks-transactions-reconciliation-cron-invalid",
           "The custody.fireblocks.transactions_reconciliation_cron is invalid");
+    }
+  }
+
+  public void validatePublicKey(Errors errors) {
+    if (isEmpty(publicKey)) {
+      errors.reject(
+          "custody-fireblocks-public_key-empty", "The custody.fireblocks.public_key is empty");
+    }
+    if (!SecurityUtil.isValidPublicKey(publicKey, SecurityUtil.RSA_ALGORITHM)) {
+      errors.reject(
+          "custody-fireblocks-public_key-invalid", "The custody-fireblocks-public_key is invalid");
     }
   }
 }
