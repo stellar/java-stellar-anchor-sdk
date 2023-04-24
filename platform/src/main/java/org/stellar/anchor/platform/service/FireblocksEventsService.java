@@ -23,7 +23,11 @@ import org.stellar.anchor.util.GsonUtils;
 public class FireblocksEventsService {
   public static final String FIREBLOCKS_SIGNATURE_HEADER = "fireblocks-signature";
 
-  private String fireblocksPublicKey;
+  private final PublicKey publicKey;
+
+  public FireblocksEventsService(String fireblocksPublicKey) {
+    publicKey = getFireblocksPublicKey(fireblocksPublicKey);
+  }
 
   /**
    * Process request sent by Fireblocks to webhook endpoint
@@ -48,15 +52,13 @@ public class FireblocksEventsService {
     debugF("/webhook endpoint called with data '{}'", eventObject);
 
     try {
-      if (isValidSignature(
-          signature, eventObject, getFireblocksPublicKey(), SHA512_WITH_RSA_ALGORITHM)) {
+      if (isValidSignature(signature, eventObject, publicKey, SHA512_WITH_RSA_ALGORITHM)) {
         handleTransactionStatusChange(eventObject);
       } else {
         throw new BadRequestException("Signature validation failed");
       }
     } catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
-      debugF("Signature validation failed. Exception: {}", e);
-      throw new BadRequestException("Signature validation failed");
+      throw new BadRequestException("Signature validation failed", e);
     }
   }
 
@@ -65,9 +67,9 @@ public class FireblocksEventsService {
    *
    * @return public key
    */
-  public PublicKey getFireblocksPublicKey() {
+  private PublicKey getFireblocksPublicKey(String publicKey) {
     try {
-      return generatePublicKey(fireblocksPublicKey, RSA_ALGORITHM);
+      return generatePublicKey(publicKey, RSA_ALGORITHM);
     } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
       debugF("Failed to generate Fireblocks public key. Exception: {}", e);
       return null;

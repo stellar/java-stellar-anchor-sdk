@@ -30,7 +30,7 @@ public class TransactionDetails {
   private String[] signedBy;
   private String createdBy;
   private String rejectedBy;
-  private String addressType;
+  private AddressType addressType;
   private String note;
   private String exchangeTxId;
   private String feeCurrency;

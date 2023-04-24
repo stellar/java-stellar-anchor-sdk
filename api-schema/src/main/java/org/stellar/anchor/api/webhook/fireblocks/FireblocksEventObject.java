@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class FireblocksEventObject {
-  private String type;
+  private EventType type;
   private String tenantId;
   private Long timestamp;
   private TransactionDetails data;

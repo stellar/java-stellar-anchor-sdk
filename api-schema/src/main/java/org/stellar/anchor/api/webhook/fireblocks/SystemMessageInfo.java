@@ -4,6 +4,6 @@ import lombok.Data;
 
 @Data
 public class SystemMessageInfo {
-  private String type;
+  private SystemMessageInfoType type;
   private String message;
 }

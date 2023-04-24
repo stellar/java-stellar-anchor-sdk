@@ -27,7 +27,6 @@ public class FireblocksWebhookController {
       consumes = {MediaType.APPLICATION_JSON_VALUE})
   public ResponseEntity<Void> handleFireblocksEvent(
       @RequestBody String eventObject, @RequestHeader Map<String, String> headers) {
-
     fireblocksEventsService.handleFireblocksEvent(eventObject, headers);
     return ResponseEntity.ok().build();
   }

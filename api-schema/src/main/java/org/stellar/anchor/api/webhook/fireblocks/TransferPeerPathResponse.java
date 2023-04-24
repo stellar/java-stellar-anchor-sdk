@@ -4,8 +4,8 @@ import lombok.Data;
 
 @Data
 public class TransferPeerPathResponse {
-  private String type;
+  private TransferPeerPathResponseType type;
   private String id;
   private String name;
-  private String subType;
+  private TransferPeerPathResponseSubType subType;
 }
