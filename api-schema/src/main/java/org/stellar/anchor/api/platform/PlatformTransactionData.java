@@ -33,9 +33,6 @@ public class PlatformTransactionData {
   @SerializedName("amount_fee")
   Amount amountFee;
 
-  @SerializedName("kyc_verified")
-  Boolean kycVerified;
-
   @SerializedName("quote_id")
   String quoteId;
 
@@ -65,10 +62,6 @@ public class PlatformTransactionData {
 
   @SerializedName("external_transaction_id")
   String externalTransactionId;
-
-  // TODO: review the use case of the custodialTransactionId
-  @SerializedName("custodial_transaction_id")
-  String custodialTransactionId;
 
   @SerializedName("memo")
   String memo;
