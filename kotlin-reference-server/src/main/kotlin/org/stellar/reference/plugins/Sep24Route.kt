@@ -118,12 +118,16 @@ fun Route.sep24(
             call.respond(Success(sessionId))
 
             val asset =
-                    transaction.amountExpected?.asset
-                            ?: throw ClientException("Missing amountExpected.asset field")
+              transaction.amountExpected?.asset
+                ?: throw ClientException("Missing amountExpected.asset field")
 
             // Run deposit processing asynchronously
             CoroutineScope(Job()).launch {
-              withdrawalService.processWithdrawal(transaction.id, withdrawal.amount.toBigDecimal(), asset)
+              withdrawalService.processWithdrawal(
+                transaction.id,
+                withdrawal.amount.toBigDecimal(),
+                asset
+              )
             }
           }
           else ->

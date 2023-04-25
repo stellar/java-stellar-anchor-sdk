@@ -218,7 +218,6 @@ public class TransactionService {
         }
 
         txnUpdated = updateField(patch, sep24Txn, "message", txnUpdated);
-        txnUpdated = updateField(patch, sep24Txn, "kycVerified", txnUpdated);
 
         // update refunds
         if (patch.getRefunds() != null) {
@@ -349,4 +348,3 @@ public class TransactionService {
     }
   }
 }
-

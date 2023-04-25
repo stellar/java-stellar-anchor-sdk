@@ -83,8 +83,8 @@ fun Route.testSep24(
             call.respondText("The sep24 interactive withdrawal has been successfully started.")
 
             val asset =
-                    transaction.amountExpected!!.asset
-                            ?: throw ClientException("Missing amountExpected.asset field")
+              transaction.amountExpected!!.asset
+                ?: throw ClientException("Missing amountExpected.asset field")
             val stellarAsset = asset.replace("stellar:", "")
 
             // Run deposit processing asynchronously

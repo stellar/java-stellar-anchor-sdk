@@ -411,7 +411,6 @@ class TransactionServiceTest {
   "amount_out_asset": "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN",
   "amount_fee": "2.0000",
   "amount_fee_asset": "iso4217:USD",
-  "kyc_verified": true,
   "started_at": "2022-12-19T02:06:44.500182800Z",
   "completed_at": "2022-12-19T02:09:44.500182800Z",
   "stellar_transaction_id": "2b862ac297c93e2db43fc58d407cc477396212bce5e6d5f61789f963d5a11300",
@@ -639,7 +638,6 @@ class TransactionServiceTest {
           "amount": "2.0000",
           "asset": "iso4217:USD"
         },
-        "kyc_verified": true,
         "started_at": "2022-12-19T02:06:44.500182800Z",
         "completed_at": "2022-12-19T02:09:44.500182800Z",
         "refunds": {
