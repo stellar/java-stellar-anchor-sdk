@@ -102,3 +102,4 @@ custody.fireblocks.enabled:
 custody.fireblocks.base_url:
 custody.fireblocks.vault_account_id:
 custody.fireblocks.transactions_reconciliation_cron:
+custody.fireblocks.public_key:

@@ -10,6 +10,7 @@ import org.junit.jupiter.params.provider.NullSource
 import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.validation.BindException
 import org.springframework.validation.Errors
+import org.stellar.anchor.util.FileUtil
 
 class FireblocksConfigTest {
 
@@ -27,6 +28,7 @@ class FireblocksConfigTest {
     config.baseUrl = "https://test.com"
     config.vaultAccountId = "testAccountId"
     config.transactionsReconciliationCron = "* * * * * *"
+    config.publicKey = FileUtil.getResourceFileAsString("custody/public_key.txt")
     errors = BindException(config, "config")
   }
 
@@ -117,5 +119,30 @@ class FireblocksConfigTest {
     config.transactionsReconciliationCron = cron
     config.validate(config, errors)
     assertErrorCode(errors, "custody-fireblocks-transactions-reconciliation-cron-invalid")
+  }
+
+  @Test
+  fun `test valid public_key`() {
+    config.validate(config, errors)
+    assertFalse(errors.hasErrors())
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = [""])
+  fun `test empty public_key`(publicKey: String) {
+    config.publicKey = publicKey
+    config.validate(config, errors)
+    assertErrorCode(errors, "custody-fireblocks-public_key-empty")
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+    strings =
+      ["test_certificate", "-----BEGIN PUBLIC KEY----- test_certificate -----END PUBLIC KEY-----"]
+  )
+  fun `test invalid public_key`(publicKey: String) {
+    config.publicKey = publicKey
+    config.validate(config, errors)
+    assertErrorCode(errors, "custody-fireblocks-public_key-invalid")
   }
 }
