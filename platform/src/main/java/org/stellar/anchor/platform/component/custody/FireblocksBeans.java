@@ -9,8 +9,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.stellar.anchor.platform.config.FireblocksConfig;
 import org.stellar.anchor.platform.custody.fireblocks.FireblocksApiClient;
+import org.stellar.anchor.platform.custody.fireblocks.FireblocksEventService;
 import org.stellar.anchor.platform.job.FireblocksTransactionsReconciliationJob;
-import org.stellar.anchor.platform.service.FireblocksEventsService;
 
 @Configuration
 @ConditionalOnProperty(value = "custody.fireblocks.enabled", havingValue = "true")
@@ -39,7 +39,7 @@ public class FireblocksBeans {
   }
 
   @Bean
-  FireblocksEventsService fireblocksEventsService(FireblocksConfig fireblocksConfig) {
-    return new FireblocksEventsService(fireblocksConfig.getPublicKey());
+  FireblocksEventService fireblocksEventsService(FireblocksConfig fireblocksConfig) {
+    return new FireblocksEventService(fireblocksConfig.getPublicKey());
   }
 }
