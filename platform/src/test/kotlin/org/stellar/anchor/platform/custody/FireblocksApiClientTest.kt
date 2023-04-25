@@ -26,45 +26,13 @@ import org.stellar.anchor.platform.config.FireblocksConfig
 import org.stellar.anchor.platform.config.PropertySecretConfig
 import org.stellar.anchor.platform.custody.fireblocks.FireblocksApiClient
 import org.stellar.anchor.platform.exception.FireblocksException
+import org.stellar.anchor.util.FileUtil.getResourceFileAsString
 
 class FireblocksApiClientTest {
 
   companion object {
     private const val API_KEY = "testApiKey"
-    private const val SECRET_KEY =
-      """-----BEGIN PRIVATE KEY-----
-MIIBVAIBADANBgkqhkiG9w0BAQEFAASCAT4wggE6AgEAAkEAhdi6VMkULbC/4HVl
-ied/JLjj6H+saFyjIlm0ca7QN1k9+OZh5vP6lt5+ggSi9JDyDvPAh9WpA206M02u
-Erh4FwIDAQABAkB2he6qec0mkKe46fxaW+bY6+jVz4kqeS30kx8YtEapW0w56JNe
-txrwVmx+eT8Ve8sIwGg3G6GLNyfXsc6AZQvxAiEA5KYpwFp9rpU0VUC9f3oTFrD6
-EzP0+T0UHZE1cj9E+10CIQCV23aMiWzSuiuwLBZsVKzFsCHQlYsoxT4BNZkg2J0+
-AwIgEA5C/EjebnX3uMzVAbCWyo8e4F5To3TQhsr9j8o1k9kCIDlZGyz9CmA6Tq3E
-sXATl2qv1MD1+aNImEnuMQOY4dPxAiEAsAyXwuYF8hObeRWhi+9xDjTpnyAdOwWI
-HSi2wrZnRHc=
------END PRIVATE KEY-----"""
-    private const val PUBLIC_KEY =
-      """
------BEGIN PUBLIC KEY-----
-MFwwDQYJKoZIhvcNAQEBBQADSwAwSAJBAIXYulTJFC2wv+B1ZYnnfyS44+h/rGhc
-oyJZtHGu0DdZPfjmYebz+pbefoIEovSQ8g7zwIfVqQNtOjNNrhK4eBcCAwEAAQ==
------END PUBLIC KEY-----
-"""
     private const val BASE_URL = "http://testBaseUrl.com"
-    private const val SUCCESS_RESPONSE_BODY =
-      """{
-            "key1": "value1",
-            "key2": "value2"
-        }"""
-    private const val ERROR_RESPONSE_BODY =
-      """{
-            "error_code": "12345",
-            "message": "Fireblocks error"
-        }"""
-    private const val REQUEST_BODY =
-      """{
-            "key3": "value3",
-            "key4": "value4"
-        }"""
   }
 
   @MockK(relaxed = true) private lateinit var client: OkHttpClient
@@ -78,7 +46,8 @@ oyJZtHGu0DdZPfjmYebz+pbefoIEovSQ8g7zwIfVqQNtOjNNrhK4eBcCAwEAAQ==
     MockKAnnotations.init(this, relaxUnitFun = true)
 
     every { secretConfig.fireblocksApiKey } returns API_KEY
-    every { secretConfig.fireblocksSecretKey } returns SECRET_KEY
+    every { secretConfig.fireblocksSecretKey } returns
+      getResourceFileAsString("custody/fireblocks/client/secret_key.txt")
 
     val fireblocksConfig = FireblocksConfig(secretConfig)
     fireblocksConfig.baseUrl = BASE_URL
@@ -113,7 +82,11 @@ oyJZtHGu0DdZPfjmYebz+pbefoIEovSQ8g7zwIfVqQNtOjNNrhK4eBcCAwEAAQ==
     )
     Assertions.assertEquals("testApiKey", requestCapture.captured.header("X-API-Key"))
     Assertions.assertTrue(requestCapture.captured.header("Authorization")!!.startsWith("Bearer "))
-    JSONAssert.assertEquals(SUCCESS_RESPONSE_BODY, result, JSONCompareMode.STRICT)
+    JSONAssert.assertEquals(
+      getResourceFileAsString("custody/fireblocks/client/success_response_body.json"),
+      result,
+      JSONCompareMode.STRICT
+    )
 
     validateToken(requestCapture.captured.header("Authorization")!!, "/getPath")
   }
@@ -145,10 +118,13 @@ oyJZtHGu0DdZPfjmYebz+pbefoIEovSQ8g7zwIfVqQNtOjNNrhK4eBcCAwEAAQ==
     val exception = assertThrows<FireblocksException> { fireblocksApiClient.get("/getPath") }
 
     Assertions.assertEquals(
-      """Fireblocks API returned an error. HTTP status[400], response[{
-            "error_code": "12345",
-            "message": "Fireblocks error"
-        }]""",
+      """
+        Fireblocks API returned an error. HTTP status[400], response[{
+          "error_code": "12345",
+          "message": "Fireblocks error"
+        }]
+      """
+        .trimIndent(),
       exception.message
     )
   }
@@ -162,7 +138,11 @@ oyJZtHGu0DdZPfjmYebz+pbefoIEovSQ8g7zwIfVqQNtOjNNrhK4eBcCAwEAAQ==
     every { client.newCall(capture(requestCapture)) } returns call
     every { call.execute() } returns response
 
-    val result = fireblocksApiClient.post("/postPath", REQUEST_BODY)
+    val result =
+      fireblocksApiClient.post(
+        "/postPath",
+        getResourceFileAsString("custody/fireblocks/client/request_body.json")
+      )
 
     Assertions.assertEquals(
       "http://testbaseurl.com/postPath",
@@ -174,8 +154,16 @@ oyJZtHGu0DdZPfjmYebz+pbefoIEovSQ8g7zwIfVqQNtOjNNrhK4eBcCAwEAAQ==
       "application/json; charset=utf-8",
       requestCapture.captured.body!!.contentType().toString()
     )
-    JSONAssert.assertEquals(REQUEST_BODY, requestBodyToString(requestCapture.captured.body), true)
-    JSONAssert.assertEquals(SUCCESS_RESPONSE_BODY, result, JSONCompareMode.STRICT)
+    JSONAssert.assertEquals(
+      getResourceFileAsString("custody/fireblocks/client/request_body.json"),
+      requestBodyToString(requestCapture.captured.body),
+      true
+    )
+    JSONAssert.assertEquals(
+      getResourceFileAsString("custody/fireblocks/client/success_response_body.json"),
+      result,
+      JSONCompareMode.STRICT
+    )
 
     validateToken(requestCapture.captured.header("Authorization")!!, "/postPath")
   }
@@ -192,7 +180,10 @@ oyJZtHGu0DdZPfjmYebz+pbefoIEovSQ8g7zwIfVqQNtOjNNrhK4eBcCAwEAAQ==
       .protocol(Protocol.HTTP_1_1)
       .code(200)
       .message("OK")
-      .body(SUCCESS_RESPONSE_BODY.toResponseBody("application/json".toMediaTypeOrNull()))
+      .body(
+        getResourceFileAsString("custody/fireblocks/client/success_response_body.json")
+          .toResponseBody("application/json".toMediaTypeOrNull())
+      )
       .build()
   }
 
@@ -202,7 +193,10 @@ oyJZtHGu0DdZPfjmYebz+pbefoIEovSQ8g7zwIfVqQNtOjNNrhK4eBcCAwEAAQ==
       .protocol(Protocol.HTTP_1_1)
       .code(400)
       .message("ERROR")
-      .body(ERROR_RESPONSE_BODY.toResponseBody("application/json".toMediaTypeOrNull()))
+      .body(
+        getResourceFileAsString("custody/fireblocks/client/error_response_body.json")
+          .toResponseBody("application/json".toMediaTypeOrNull())
+      )
       .build()
   }
 
@@ -229,7 +223,8 @@ oyJZtHGu0DdZPfjmYebz+pbefoIEovSQ8g7zwIfVqQNtOjNNrhK4eBcCAwEAAQ==
       val publicKeyBytes =
         Base64.getDecoder()
           .decode(
-            PUBLIC_KEY.replace("-----BEGIN PUBLIC KEY-----", StringUtils.EMPTY)
+            getResourceFileAsString("custody/fireblocks/client/public_key.txt")
+              .replace("-----BEGIN PUBLIC KEY-----", StringUtils.EMPTY)
               .replace("-----END PUBLIC KEY-----", StringUtils.EMPTY)
               .replace(StringUtils.LF, StringUtils.EMPTY)
           )

@@ -1,4 +1,4 @@
-package org.stellar.anchor.platform.service;
+package org.stellar.anchor.platform.custody.fireblocks;
 
 import static org.stellar.anchor.platform.utils.SecurityUtil.RSA_ALGORITHM;
 import static org.stellar.anchor.platform.utils.SecurityUtil.SHA512_WITH_RSA_ALGORITHM;
@@ -20,12 +20,12 @@ import org.stellar.anchor.api.webhook.fireblocks.FireblocksEventObject;
 import org.stellar.anchor.util.GsonUtils;
 
 @AllArgsConstructor
-public class FireblocksEventsService {
+public class FireblocksEventService {
   public static final String FIREBLOCKS_SIGNATURE_HEADER = "fireblocks-signature";
 
   private final PublicKey publicKey;
 
-  public FireblocksEventsService(String fireblocksPublicKey) {
+  public FireblocksEventService(String fireblocksPublicKey) {
     publicKey = getFireblocksPublicKey(fireblocksPublicKey);
   }
 

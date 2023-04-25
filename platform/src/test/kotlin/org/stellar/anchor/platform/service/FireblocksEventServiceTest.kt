@@ -10,26 +10,27 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.stellar.anchor.api.exception.BadRequestException
 import org.stellar.anchor.api.exception.SepNotFoundException
-import org.stellar.anchor.platform.service.FireblocksEventsService.FIREBLOCKS_SIGNATURE_HEADER
+import org.stellar.anchor.platform.custody.fireblocks.FireblocksEventService
+import org.stellar.anchor.platform.custody.fireblocks.FireblocksEventService.FIREBLOCKS_SIGNATURE_HEADER
 import org.stellar.anchor.util.FileUtil.getResourceFileAsString
 
-class FireblocksEventsServiceTest {
+class FireblocksEventServiceTest {
 
   @Test
   fun `test handleFireblocksEvent() for valid event object and signature`() {
-    val publicKeyString = getResourceFileAsString("custody/public_key.txt")
-    val eventsService = spyk(FireblocksEventsService(publicKeyString))
+    val publicKeyString = getResourceFileAsString("custody/fireblocks/event/public_key.txt")
+    val eventsService = spyk(FireblocksEventService(publicKeyString))
 
-    val signature: String = getResourceFileAsString("custody/signature.txt")
+    val signature: String = getResourceFileAsString("custody/fireblocks/event/signature.txt")
     val httpHeaders: Map<String, String> = mutableMapOf(FIREBLOCKS_SIGNATURE_HEADER to signature)
-    val eventObject: String = getCompactJsonString("custody/webhook_request.json")
+    val eventObject: String = getCompactJsonString("custody/fireblocks/event/webhook_request.json")
 
     eventsService.handleFireblocksEvent(eventObject, httpHeaders)
   }
 
   @Test
   fun `test handleFireblocksEvent() for missed fireblocks-signature header`() {
-    val eventsService = spyk(FireblocksEventsService(StringUtils.EMPTY))
+    val eventsService = spyk(FireblocksEventService(StringUtils.EMPTY))
 
     val eventObject = StringUtils.EMPTY
     val emptyHeaders: Map<String, String> = emptyMap()
@@ -43,7 +44,7 @@ class FireblocksEventsServiceTest {
 
   @Test
   fun `test handleFireblocksEvent() for empty signature`() {
-    val eventsService = spyk(FireblocksEventsService(StringUtils.EMPTY))
+    val eventsService = spyk(FireblocksEventService(StringUtils.EMPTY))
 
     val eventObject = StringUtils.EMPTY
     val httpHeaders = mutableMapOf(FIREBLOCKS_SIGNATURE_HEADER to StringUtils.EMPTY)
@@ -57,13 +58,13 @@ class FireblocksEventsServiceTest {
 
   @Test
   fun `test handleFireblocksEvent() for invalid signature`() {
-    val publicKeyString = getResourceFileAsString("custody/public_key.txt")
-    val eventsService = spyk(FireblocksEventsService(publicKeyString))
+    val publicKeyString = getResourceFileAsString("custody/fireblocks/event/public_key.txt")
+    val eventsService = spyk(FireblocksEventService(publicKeyString))
 
     val invalidSignature =
       "Yww6co109EfZ6BBam0zr1ewhv2gB3sFrfzcmbEFTttGp6GYVNEOslcMIMbjrFsFtkiEIO5ogvPI7Boz7y" +
         "QUiXqh92Spj1aG5NoGDdjiW2ozTJxKq7ECK9IsS5vTjIxnBXUIXokCAN2BuiyA8d7LciJ6HwzS+DIvFNyvv7uKU6O0="
-    val eventObject: String = getCompactJsonString("custody/webhook_request.json")
+    val eventObject: String = getCompactJsonString("custody/fireblocks/event/webhook_request.json")
     val httpHeaders = mutableMapOf(FIREBLOCKS_SIGNATURE_HEADER to invalidSignature)
 
     val ex =

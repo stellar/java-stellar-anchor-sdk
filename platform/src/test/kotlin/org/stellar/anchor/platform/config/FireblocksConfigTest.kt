@@ -28,7 +28,7 @@ class FireblocksConfigTest {
     config.baseUrl = "https://test.com"
     config.vaultAccountId = "testAccountId"
     config.transactionsReconciliationCron = "* * * * * *"
-    config.publicKey = FileUtil.getResourceFileAsString("custody/public_key.txt")
+    config.publicKey = FileUtil.getResourceFileAsString("custody/fireblocks/event/public_key.txt")
     errors = BindException(config, "config")
   }
 
