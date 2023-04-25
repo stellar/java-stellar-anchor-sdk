@@ -194,6 +194,7 @@ public class TransactionService {
     txnUpdated = updateField(patch, txn, "startedAt", txnUpdated);
     txnUpdated = updateField(patch, txn, "updatedAt", txnUpdated);
     txnUpdated = updateField(patch, txn, "completedAt", txnUpdated);
+    txnUpdated = updateField(patch, txn, "transferReceivedAt", txnUpdated);
     // update external_transaction_id
     txnUpdated = updateField(patch, txn, "externalTransactionId", txnUpdated);
     // update stellar_transactions
@@ -228,8 +229,6 @@ public class TransactionService {
         }
         break;
       case "31":
-        txnUpdated = updateField(patch, txn, "transferReceivedAt", txnUpdated);
-
         // update message
         if (shouldClearMessageStatus) {
           JdbcSep31Transaction sep31Txn = (JdbcSep31Transaction) txn;

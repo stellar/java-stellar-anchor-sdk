@@ -84,6 +84,7 @@ public class TransactionHelper {
         .startedAt(txn.getStartedAt())
         .updatedAt(txn.getUpdatedAt())
         .completedAt(txn.getCompletedAt())
+        .transferReceivedAt(txn.getTransferReceivedAt())
         .message(txn.getMessage())
         .refunds(refunds)
         .stellarTransactions(txn.getStellarTransactions())
