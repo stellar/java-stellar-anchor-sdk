@@ -311,12 +311,14 @@ public class TransactionService {
     if (allAssets.size() == 1) {
       AssetInfo targetAsset = allAssets.get(0);
 
-      // Check that significant decimal is correct
-      if (decimal(amount.getAmount(), targetAsset).compareTo(decimal(amount.getAmount())) != 0) {
-        throw new BadRequestException(
-            String.format(
-                "'%s' has invalid significant decimals. Expected: '%s'",
-                amount.getAmount(), targetAsset.getSignificantDecimals()));
+      if (targetAsset.getSignificantDecimals() != null) {
+        // Check that significant decimal is correct
+        if (decimal(amount.getAmount(), targetAsset).compareTo(decimal(amount.getAmount())) != 0) {
+          throw new BadRequestException(
+              String.format(
+                  "'%s' has invalid significant decimals. Expected: '%s'",
+                  amount.getAmount(), targetAsset.getSignificantDecimals()));
+        }
       }
     }
   }
