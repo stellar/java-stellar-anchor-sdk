@@ -92,6 +92,7 @@
         "min_amount": 1,
         "max_amount": 1000000
       },
+      "significant_decimals": 2,
       "withdraw": {
         "enabled": false,
         "fee_fixed": 0,
