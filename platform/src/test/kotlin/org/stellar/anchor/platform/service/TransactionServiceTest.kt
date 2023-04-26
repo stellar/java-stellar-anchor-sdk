@@ -196,6 +196,13 @@ class TransactionServiceTest {
       )
     val mockAsset = Amount("10", fiatUSD)
     assertDoesNotThrow { transactionService.validateAsset("amount_in", mockAsset) }
+
+    val mockAssetWrongAmount = Amount("10.001", fiatUSD)
+    val ex =
+      assertThrows<AnchorException> {
+        transactionService.validateAsset("amount_in", mockAssetWrongAmount)
+      }
+    assertInstanceOf(BadRequestException::class.java, ex)
   }
 
   @ParameterizedTest

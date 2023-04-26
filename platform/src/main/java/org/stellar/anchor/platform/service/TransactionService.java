@@ -14,6 +14,7 @@ import static org.stellar.sdk.xdr.MemoType.MEMO_HASH;
 import io.micrometer.core.instrument.Metrics;
 import java.time.Instant;
 import java.util.*;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
@@ -300,6 +301,23 @@ public class TransactionService {
         .noneMatch(assetInfo -> assetInfo.getAssetName().equals(amount.getAsset()))) {
       throw new BadRequestException(
           String.format("'%s' is not a supported asset.", amount.getAsset()));
+    }
+
+    List<AssetInfo> allAssets =
+        assets.stream()
+            .filter(assetInfo -> assetInfo.getAssetName().equals(amount.getAsset()))
+            .collect(Collectors.toList());
+
+    if (allAssets.size() == 1) {
+      AssetInfo targetAsset = allAssets.get(0);
+
+      // Check that significant decimal is correct
+      if (decimal(amount.getAmount(), targetAsset).compareTo(decimal(amount.getAmount())) != 0) {
+        throw new BadRequestException(
+            String.format(
+                "'%s' has invalid significant decimals. Expected: '%s'",
+                amount.getAmount(), targetAsset.getSignificantDecimals()));
+      }
     }
   }
 
