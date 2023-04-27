@@ -65,7 +65,6 @@ class WithdrawalService(private val cfg: Config) {
     sep24.patchTransaction(
       PatchTransactionTransaction(
         transactionId,
-        kycVerified = "true",
         status = "pending_user_transfer_start",
         message = "waiting on the user to transfer funds",
         amountIn = Amount(amount.toPlainString(), stellarAsset),
