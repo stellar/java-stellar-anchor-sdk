@@ -1,4 +1,4 @@
-package org.stellar.anchor.platform.service;
+package org.stellar.anchor.platform.custody.service;
 
 import static org.stellar.anchor.platform.utils.SecurityUtil.RSA_ALGORITHM;
 import static org.stellar.anchor.platform.utils.SecurityUtil.SHA512_WITH_RSA_ALGORITHM;
@@ -15,8 +15,8 @@ import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Map;
 import lombok.AllArgsConstructor;
+import org.stellar.anchor.api.custody.fireblocks.FireblocksEventObject;
 import org.stellar.anchor.api.exception.BadRequestException;
-import org.stellar.anchor.api.webhook.fireblocks.FireblocksEventObject;
 import org.stellar.anchor.util.GsonUtils;
 
 @AllArgsConstructor

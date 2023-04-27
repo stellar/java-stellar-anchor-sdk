@@ -8,12 +8,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.stellar.anchor.platform.service.FireblocksEventsService;
+import org.stellar.anchor.platform.custody.service.FireblocksEventsService;
 
 @RestController
 @AllArgsConstructor
 @CrossOrigin(origins = "*")
-@ConditionalOnProperty(value = "custody.fireblocks.enabled", havingValue = "true")
+@ConditionalOnProperty(value = "custody.type", havingValue = "fireblocks")
 public class FireblocksWebhookController {
 
   private final FireblocksEventsService fireblocksEventsService;

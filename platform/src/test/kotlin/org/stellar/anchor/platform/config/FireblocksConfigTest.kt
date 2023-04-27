@@ -24,22 +24,11 @@ class FireblocksConfigTest {
     every { secretConfig.fireblocksApiKey } returns "testApiKey"
     every { secretConfig.fireblocksSecretKey } returns "testSecretKey"
     config = FireblocksConfig(secretConfig)
-    config.enabled = true
     config.baseUrl = "https://test.com"
     config.vaultAccountId = "testAccountId"
     config.transactionsReconciliationCron = "* * * * * *"
     config.publicKey = FileUtil.getResourceFileAsString("custody/public_key.txt")
     errors = BindException(config, "config")
-  }
-
-  @ParameterizedTest
-  @NullSource
-  @ValueSource(strings = [""])
-  fun `test disabled config`(url: String?) {
-    config.baseUrl = url
-    config.enabled = false
-    config.validate(config, errors)
-    assertFalse(errors.hasErrors())
   }
 
   @ParameterizedTest

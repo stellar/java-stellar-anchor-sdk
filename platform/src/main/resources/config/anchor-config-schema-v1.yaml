@@ -98,7 +98,8 @@ stellar_network.network:
 stellar_network.network_passphrase:
 custody_server.context_path:
 custody_server.port:
-custody.fireblocks.enabled:
+custody_server.base_url:
+custody.type:
 custody.fireblocks.base_url:
 custody.fireblocks.vault_account_id:
 custody.fireblocks.transactions_reconciliation_cron:
