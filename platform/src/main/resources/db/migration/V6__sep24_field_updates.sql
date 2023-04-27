@@ -1,7 +1,5 @@
 ALTER TABLE sep24_transaction ADD amount_expected VARCHAR(255);
 
-ALTER TABLE sep24_transaction ADD kyc_verified BOOLEAN;
-
 ALTER TABLE sep24_transaction ADD message VARCHAR(255);
 
 ALTER TABLE sep24_transaction ADD more_info_url VARCHAR(255);

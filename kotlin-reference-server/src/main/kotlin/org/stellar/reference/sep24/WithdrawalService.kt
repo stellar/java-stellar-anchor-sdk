@@ -19,13 +19,14 @@ class WithdrawalService(private val cfg: Config) {
   suspend fun processWithdrawal(
     transactionId: String,
     amount: BigDecimal,
+    asset: String,
   ) {
     try {
       var transaction = sep24.getTransaction(transactionId)
       log.info { "Transaction found $transaction" }
 
       // 2. Wait for user to submit a stellar transfer
-      initiateTransfer(transactionId, amount)
+      initiateTransfer(transactionId, amount, asset)
 
       transaction = sep24.getTransaction(transactionId)
       log.info { "Transaction status changed: $transaction" }
@@ -57,18 +58,18 @@ class WithdrawalService(private val cfg: Config) {
     }
   }
 
-  private suspend fun initiateTransfer(transactionId: String, amount: BigDecimal) {
+  private suspend fun initiateTransfer(transactionId: String, amount: BigDecimal, asset: String) {
     val fee = calculateFee(amount)
+    val stellarAsset = "stellar:$asset"
 
     sep24.patchTransaction(
       PatchTransactionTransaction(
         transactionId,
-        kycVerified = "true",
         status = "pending_user_transfer_start",
         message = "waiting on the user to transfer funds",
-        amountIn = Amount(amount.toPlainString()),
-        amountOut = Amount(amount.subtract(fee).toPlainString()),
-        amountFee = Amount(fee.toPlainString()),
+        amountIn = Amount(amount.toPlainString(), stellarAsset),
+        amountOut = Amount(amount.subtract(fee).toPlainString(), stellarAsset),
+        amountFee = Amount(fee.toPlainString(), stellarAsset),
       )
     )
   }

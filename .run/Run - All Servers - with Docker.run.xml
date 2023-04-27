@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Run - All Servers - with Docker" type="JetRunConfigurationType">
-    <option name="MAIN_CLASS_NAME" value="org.stellar.anchor.platform.run_profiles.RunAllServers" />
+    <option name="MAIN_CLASS_NAME" value="org.stellar.anchor.platform.run_profiles.RunAllServersWithDocker" />
     <module name="java-stellar-anchor-sdk.service-runner.main" />
     <shortenClasspath name="ARGS_FILE" />
     <method v="2">
