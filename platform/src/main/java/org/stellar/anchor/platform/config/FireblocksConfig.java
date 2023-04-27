@@ -21,8 +21,9 @@ public class FireblocksConfig implements Validator {
   private String transactionsReconciliationCron;
   private String publicKey;
 
-  public FireblocksConfig(SecretConfig secretConfig) {
+  public FireblocksConfig(SecretConfig secretConfig, boolean enabled) {
     this.secretConfig = secretConfig;
+    this.enabled = enabled;
   }
 
   @Override

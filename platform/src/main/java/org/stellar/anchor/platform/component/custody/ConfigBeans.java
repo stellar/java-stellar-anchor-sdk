@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform.component.custody;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,7 +18,9 @@ public class ConfigBeans {
 
   @Bean
   @ConfigurationProperties(prefix = "custody.fireblocks")
-  FireblocksConfig fireblocksConfig(SecretConfig secretConfig) {
-    return new FireblocksConfig(secretConfig);
+  FireblocksConfig fireblocksConfig(
+      SecretConfig secretConfig, @Value("custody.type") String custodyType) {
+    boolean fireblocksIntegrationEnabled = "fireblocks".equals(custodyType);
+    return new FireblocksConfig(secretConfig, fireblocksIntegrationEnabled);
   }
 }

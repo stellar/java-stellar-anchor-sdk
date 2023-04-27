@@ -4,11 +4,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.stellar.anchor.platform.custody.service.FireblocksEventsService;
 import org.stellar.anchor.platform.job.FireblocksTransactionsReconciliationJob;
-import org.stellar.anchor.platform.service.FireblocksEventsService;
 
 @Configuration
-@ConditionalOnProperty(value = "custody.fireblocks.enabled", havingValue = "true")
+@ConditionalOnProperty(value = "custody.type", havingValue = "fireblocks")
 public class FireblocksBeans {
   @Bean
   FireblocksTransactionsReconciliationJob reconciliationJob() {

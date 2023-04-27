@@ -1,4 +1,4 @@
-package org.stellar.anchor.platform.service
+package org.stellar.anchor.platform.custody.service
 
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonParser
@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.stellar.anchor.api.exception.BadRequestException
 import org.stellar.anchor.api.exception.SepNotFoundException
-import org.stellar.anchor.platform.service.FireblocksEventsService.FIREBLOCKS_SIGNATURE_HEADER
+import org.stellar.anchor.platform.custody.service.FireblocksEventsService.FIREBLOCKS_SIGNATURE_HEADER
 import org.stellar.anchor.util.FileUtil.getResourceFileAsString
 
 class FireblocksEventsServiceTest {

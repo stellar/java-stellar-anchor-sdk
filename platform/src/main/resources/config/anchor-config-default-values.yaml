@@ -354,15 +354,23 @@ custody_server:
   context_path: /
   # The listening port of the Custody server
   port: 8085
+  ## @param: base_url
+  ## @type: string
+  ## @supported_prefixes: http:, https:
+  ## The base URL of the Custody server that implements the integration with custody services
+  #
+  base_url: http://localhost:8085
 
 custody:
+  ## @param: type
+  ## @supported_values: none, fireblocks
+  ##    none: no integration with custody service
+  ##    fireblocks: enables integration with Fireclobks custody service
+  ##
+  ## If the type is `fireblocks`, @required_secrets: SECRET_CUSTODY_FIREBLOCKS_API_KEY, SECRET_CUSTODY_FIREBLOCKS_SECRET_KEY
+  #
+  type: none
   fireblocks:
-    ## @param: enabled
-    ## @type: bool
-    ## Whether to enable Fireblocks integration
-    ## If true, @required_secrets: SECRET_CUSTODY_FIREBLOCKS_API_KEY, SECRET_CUSTODY_FIREBLOCKS_SECRET_KEY
-    #
-    enabled: false
     ## @param: baseUrl
     ## @type: string
     ## The base URL of the Fireblocks API

@@ -23,8 +23,7 @@ class FireblocksConfigTest {
     secretConfig = mockk()
     every { secretConfig.fireblocksApiKey } returns "testApiKey"
     every { secretConfig.fireblocksSecretKey } returns "testSecretKey"
-    config = FireblocksConfig(secretConfig)
-    config.enabled = true
+    config = FireblocksConfig(secretConfig, true)
     config.baseUrl = "https://test.com"
     config.vaultAccountId = "testAccountId"
     config.transactionsReconciliationCron = "* * * * * *"
@@ -36,8 +35,8 @@ class FireblocksConfigTest {
   @NullSource
   @ValueSource(strings = [""])
   fun `test disabled config`(url: String?) {
+    config = FireblocksConfig(secretConfig, false)
     config.baseUrl = url
-    config.enabled = false
     config.validate(config, errors)
     assertFalse(errors.hasErrors())
   }

@@ -1,4 +1,4 @@
-package org.stellar.anchor.api.webhook.fireblocks;
+package org.stellar.anchor.api.custody.fireblocks;
 
 import com.google.gson.annotations.SerializedName;
 
