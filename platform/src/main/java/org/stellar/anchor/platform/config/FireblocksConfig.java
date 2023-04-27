@@ -13,17 +13,14 @@ import org.stellar.anchor.util.NetUtil;
 
 @Data
 public class FireblocksConfig implements Validator {
-
-  private Boolean enabled;
   private String baseUrl;
   private String vaultAccountId;
   private SecretConfig secretConfig;
   private String transactionsReconciliationCron;
   private String publicKey;
 
-  public FireblocksConfig(SecretConfig secretConfig, boolean enabled) {
+  public FireblocksConfig(SecretConfig secretConfig) {
     this.secretConfig = secretConfig;
-    this.enabled = enabled;
   }
 
   @Override
@@ -33,13 +30,11 @@ public class FireblocksConfig implements Validator {
 
   @Override
   public void validate(@NotNull Object target, @NotNull Errors errors) {
-    if (enabled) {
-      validateBaseUrl(errors);
-      validateApiKey(errors);
-      validateSecretKey(errors);
-      validateTransactionsReconciliationCron(errors);
-      validatePublicKey(errors);
-    }
+    validateBaseUrl(errors);
+    validateApiKey(errors);
+    validateSecretKey(errors);
+    validateTransactionsReconciliationCron(errors);
+    validatePublicKey(errors);
   }
 
   private void validateBaseUrl(Errors errors) {
