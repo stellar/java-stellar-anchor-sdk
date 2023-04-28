@@ -1,9 +1,9 @@
 package org.stellar.anchor.platform.custody.service;
 
-import static org.stellar.anchor.platform.utils.SecurityUtil.RSA_ALGORITHM;
-import static org.stellar.anchor.platform.utils.SecurityUtil.SHA512_WITH_RSA_ALGORITHM;
-import static org.stellar.anchor.platform.utils.SecurityUtil.generatePublicKey;
-import static org.stellar.anchor.platform.utils.SecurityUtil.isValidSignature;
+import static org.stellar.anchor.platform.utils.RSAUtil.RSA_ALGORITHM;
+import static org.stellar.anchor.platform.utils.RSAUtil.SHA512_WITH_RSA_ALGORITHM;
+import static org.stellar.anchor.platform.utils.RSAUtil.generatePublicKey;
+import static org.stellar.anchor.platform.utils.RSAUtil.isValidSignature;
 import static org.stellar.anchor.util.Log.debugF;
 import static org.stellar.anchor.util.Log.info;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
@@ -13,20 +13,24 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
+import java.util.List;
 import java.util.Map;
 import lombok.AllArgsConstructor;
 import org.stellar.anchor.api.custody.fireblocks.FireblocksEventObject;
 import org.stellar.anchor.api.exception.BadRequestException;
+import org.stellar.anchor.api.exception.InvalidConfigException;
+import org.stellar.anchor.platform.config.FireblocksConfig;
 import org.stellar.anchor.util.GsonUtils;
 
 @AllArgsConstructor
 public class FireblocksEventsService {
+
   public static final String FIREBLOCKS_SIGNATURE_HEADER = "fireblocks-signature";
 
   private final PublicKey publicKey;
 
-  public FireblocksEventsService(String fireblocksPublicKey) {
-    publicKey = getFireblocksPublicKey(fireblocksPublicKey);
+  public FireblocksEventsService(FireblocksConfig fireblocksConfig) throws InvalidConfigException {
+    publicKey = getFireblocksPublicKey(fireblocksConfig.getPublicKey());
   }
 
   /**
@@ -67,12 +71,11 @@ public class FireblocksEventsService {
    *
    * @return public key
    */
-  private PublicKey getFireblocksPublicKey(String publicKey) {
+  private PublicKey getFireblocksPublicKey(String publicKey) throws InvalidConfigException {
     try {
       return generatePublicKey(publicKey, RSA_ALGORITHM);
     } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
-      debugF("Failed to generate Fireblocks public key. Exception: {}", e);
-      return null;
+      throw new InvalidConfigException(List.of("Failed to generate Fireblocks public key"), e);
     }
   }
 
