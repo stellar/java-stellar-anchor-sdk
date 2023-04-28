@@ -1,3 +1,5 @@
+package org.stellar.anchor.platform.custody.fireblocks
+
 import io.jsonwebtoken.Jwts
 import io.mockk.MockKAnnotations
 import io.mockk.every
@@ -24,7 +26,6 @@ import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
 import org.stellar.anchor.platform.config.FireblocksConfig
 import org.stellar.anchor.platform.config.PropertySecretConfig
-import org.stellar.anchor.platform.custody.fireblocks.FireblocksApiClient
 import org.stellar.anchor.platform.exception.FireblocksException
 import org.stellar.anchor.util.FileUtil.getResourceFileAsString
 

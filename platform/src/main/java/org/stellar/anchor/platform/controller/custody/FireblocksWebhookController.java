@@ -13,7 +13,7 @@ import org.stellar.anchor.platform.custody.fireblocks.FireblocksEventService;
 @RestController
 @AllArgsConstructor
 @CrossOrigin(origins = "*")
-@ConditionalOnProperty(value = "custody.fireblocks.enabled", havingValue = "true")
+@ConditionalOnProperty(value = "custody.type", havingValue = "fireblocks")
 public class FireblocksWebhookController {
 
   private final FireblocksEventService fireblocksEventService;

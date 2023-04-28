@@ -15,12 +15,13 @@ import java.security.SignatureException;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Map;
 import lombok.AllArgsConstructor;
+import org.stellar.anchor.api.custody.fireblocks.FireblocksEventObject;
 import org.stellar.anchor.api.exception.BadRequestException;
-import org.stellar.anchor.api.webhook.fireblocks.FireblocksEventObject;
 import org.stellar.anchor.util.GsonUtils;
 
 @AllArgsConstructor
 public class FireblocksEventService {
+
   public static final String FIREBLOCKS_SIGNATURE_HEADER = "fireblocks-signature";
 
   private final PublicKey publicKey;
