@@ -1,5 +1,7 @@
 package org.stellar.anchor.platform.custody.fireblocks;
 
+import static org.stellar.anchor.util.MemoHelper.memoTypeAsString;
+
 import com.google.gson.Gson;
 import org.stellar.anchor.api.custody.GenerateDepositAddressResponse;
 import org.stellar.anchor.api.exception.FireblocksException;
@@ -27,7 +29,7 @@ public class FireblocksPaymentService implements PaymentService {
   }
 
   @Override
-  public GenerateDepositAddressResponse createNewDepositAddress(String assetId)
+  public GenerateDepositAddressResponse generateDepositAddress(String assetId)
       throws FireblocksException {
     CreateNewDepositAddressRequestDto request = CreateNewDepositAddressRequestDto.builder().build();
     CreateNewDepositAddressResponseDto depositAddress =
@@ -42,7 +44,7 @@ public class FireblocksPaymentService implements PaymentService {
     return GenerateDepositAddressResponse.builder()
         .address(depositAddress.getAddress())
         .memo(depositAddress.getTag())
-        .memoType(MemoType.MEMO_ID.toString())
+        .memoType(memoTypeAsString(MemoType.MEMO_ID))
         .build();
   }
 }

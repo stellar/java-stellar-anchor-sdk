@@ -27,6 +27,6 @@ public class PaymentController {
       method = {RequestMethod.POST})
   public GenerateDepositAddressResponse generateDepositAddress(@PathVariable String assetId)
       throws FireblocksException {
-    return paymentService.createNewDepositAddress(assetId);
+    return paymentService.generateDepositAddress(assetId);
   }
 }

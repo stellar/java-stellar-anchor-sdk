@@ -5,5 +5,5 @@ import org.stellar.anchor.api.exception.FireblocksException;
 
 public interface PaymentService {
 
-  GenerateDepositAddressResponse createNewDepositAddress(String assetId) throws FireblocksException;
+  GenerateDepositAddressResponse generateDepositAddress(String assetId) throws FireblocksException;
 }
