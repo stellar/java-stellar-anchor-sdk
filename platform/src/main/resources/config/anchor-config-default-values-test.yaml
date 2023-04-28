@@ -163,7 +163,6 @@ event_processor:
 ## The supported languages defined by RFC4646 (https://datatracker.ietf.org/doc/html/rfc4646)
 #
 languages: en
-
 app_logging:
   ## @param: level
   ## @type: string
@@ -190,7 +189,7 @@ sep1:
   ## @type: bool
   ## Whether to enable SEP-1 for this instance of AP server.
   #
-  enabled: false
+  enabled: true
   toml:
     ## @param: type
     ## @type: string
@@ -203,6 +202,40 @@ sep1:
     ## @type: string
     #
     value: |
+      ACCOUNTS = []
+      VERSION = "0.1.0"
+      NETWORK_PASSPHRASE = "Test SDF Network ; September 2015"
+      SIGNING_KEY = "GD3ZMOHJXZCFGZZSTFD7ZXFVSYEJUBFV4RQXJOQSLNSSQ46WNSESU2PS"
+      
+      WEB_AUTH_ENDPOINT = "http://localhost:8080/auth"
+      KYC_SERVER = "http://localhost:8080/sep12"
+      TRANSFER_SERVER_SEP0024 = "http://localhost:8080/sep24"
+      DIRECT_PAYMENT_SERVER = "http://localhost:8080/sep31"
+      ANCHOR_QUOTE_SERVER = "http://localhost:8080/sep38"
+      
+      [[CURRENCIES]]
+      code = "USDC"
+      issuer = "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+      status = "test"
+      is_asset_anchored = true
+      anchor_asset_type = "fiat"
+      desc = "A test USDC issued by Stellar."
+      
+      [[CURRENCIES]]
+      code = "SRT"
+      issuer = "GCDNJUBQSX7AJWLJACMJ7I4BC3Z47BQUTMHEICZLE6MU4KQBRYG5JY6B"
+      status = "test"
+      is_asset_anchored = false
+      anchor_asset_type = "other"
+      desc = "A fake anchored asset to use with this example anchor server."
+      
+      [[CURRENCIES]]
+      code = "JPYC"
+      issuer = "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+      status = "test"
+      is_asset_anchored = true
+      anchor_asset_type = "fiat"
+      desc = "A test JPYC issued by Stellar."
 
 
 sep10:
@@ -211,18 +244,17 @@ sep10:
   ## Whether to enable SEP-10 for this instance of AP server.
   ## If true, @required_secrets: SEP10_SIGNING_SEED
   #
-  enabled: false
+  enabled: true
   ## If `enabled` is set to True, the following two secrets must be set via the environment
   ## variables.
   ## `secret.sep10_signing_seed`: The private key for signing challenge transactions.
   ## `secret.sep10_jwt_secret`: The JWT encryption key.
   #
-  ## @param: web_auth_domain
+  ## @param: home_domain
   ## @type: string
-  ## The `web_auth_domain` property of SEP-10. https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#response
-  ## If the `web_auth_domain` is not specified, the `web_auth_domain` will be set to the domain of the value of the `host_url`.
+  ## The `home_domain` property of SEP-10. https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#request
   #
-  web_auth_domain:
+  web_auth_domain: localhost:8080
   ## @param: client_attribution_required
   ## @type: bool
   ## Set if the client attribution is required. Client Attribution requires clients to verify their identity by passing
@@ -269,18 +301,18 @@ sep12:
   ## @type: bool
   ## Whether to enable SEP-12 for this instance of AP server.
   #
-  enabled: false
+  enabled: true
 
 sep24:
   ## @param: enabled
   ## @type: bool
   ## Whether to enable SEP-24 for this instance of AP server.
   #
-  enabled: false
+  enabled: true
   ## @param: interactive_url
   # Configures the interactive URL where the platform server will redirect to start the SEP-24 interactive flow.
   #   base_uri: is the base_uri used to construct the interactive url
-  #   txn_fields: is an optional list of transaction fields that will be appended to the jwt of the interactive url. If empty, no fields from transaction will be appended.
+  #   txn_fields: is an optional list of transaction fields that will be appended to the interactive url as query parameters. If empty, no fields from transaction will be appended.
   #   jwt_expiration: the timeout in seconds of the JWT returned with the embedded interactive url of the SEP-24 process.
   #          The jwt secret must be set by the environment variable: secret.sep24.interactive_url.jwt_secret
   #
@@ -290,22 +322,22 @@ sep24:
   #       `lang`: the lang request parameter,
   #        and any defined SEP-9 fields from the request parameters.
   interactive_url:
-    base_url: http://localhost:8080/sep24/interactive
-    txn_fields:
+    base_url: http://localhost:8001
+    txn_fields: transaction_id
     jwt_expiration: 600
   ## @param: more_info_url
   # Configures the more_info_url of the transaction response when calling GET /transaction and GET /transactions endpoints.
   # For details, please refer to https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0024.md#shared-fields-for-both-deposits-and-withdrawals
   #   base_uri: is the base_uri used to construct the more_info_url
-  #   txn_fields: is an optional list of transaction fields that will be appended to the jwt of the more_info url. If empty, no fields from transaction will be appended.
+  #   txn_fields: is an optional list of transaction fields that will be appended to the interactive url as query parameters. If empty, no fields from transaction will be appended.
   #   jwt_expiration: the timeout in seconds of the JWT returned with the embedded interactive url of the SEP-24 process.
   #          The jwt secret must be set by the environment variable: secret.sep24.more_info_url.jwt_secret
   #   In addition to the txn_fields, the following fields are also added to the query parameters.
   #       `transaction_id`: the transaction ID
   #       `token`: the JWT token
   more_info_url:
-    base_url: http://localhost:8080/sep24/transaction/more_info
-    txn_fields:
+    base_url: http://localhost:8001
+    txn_fields: transaction_id
     jwt_expiration: 600
 
   # Configures the features flag returned by the SEP-24 /info endpoint
@@ -313,15 +345,6 @@ sep24:
   features:
     account_creation: false
     claimable_balances: false
-
-  ## @param: deposit_info_generator_type
-  ## @default: self
-  ## Used to choose how the SEP-24 deposit information will be generated, which includes the
-  ##     deposit address, memo and memo type.
-  ## @supported_values:
-  ##     self: the memo and memo type are generated in the local code, and the distribution account is used for the deposit address.
-  ##     custody: the memo and memo type are generated through Custody API, for example Fireblocks, as well as the deposit address.
-  #
   deposit_info_generator_type: self
 
 sep31:
@@ -329,7 +352,7 @@ sep31:
   ## @type: bool
   ## Whether to enable SEP-31 for this instance of AP server.
   #
-  enabled: false
+  enabled: true
   ## @param: payment_type
   ## @default: STRICT_SEND
   ## Used to determine how amount_in is calculated from amount in the POST /transaction call
@@ -344,8 +367,8 @@ sep31:
   ##     deposit address, memo and memo type.
   ## @supported_values:
   ##     self: the memo and memo type are generated in the local code, and the distribution account is used for the deposit address.
+  ##     circle: the memo and memo type are generated through Circle API, as well as the deposit address.
   ##     api: the memo and memo type are generated through calling the anchor's GET /unique_address endpoint.
-  ##     custody: the memo and memo type are generated through Custody API, for example Fireblocks, as well as the deposit address.
   #
   deposit_info_generator_type: self
 
@@ -367,11 +390,10 @@ custody_server:
   ## @param: baseUrl
   ## @type: string
   ## @supported_prefixes: http:, https:
-  ## The base URL of the Anchor Platform server that implements the platform API endpoints described in the
-  ## "Platform API.yml" spec.
+  ## The base URL of the Custody server
   #
   base_url: http://localhost:8085
-  ## Authentication config for Anchor server and Anchor Platform server to safely communicate,
+  ## Authentication config for Custody server and Anchor Platform server to safely communicate,
   ## particularly when housed in different clusters.
   ## The receiving party should verify that an incoming request token is still valid.
   #
@@ -383,13 +405,12 @@ custody_server:
     ##     jwt: The authentication is done using a JWT token added to the `Authorization` header. This token is
     ##          generated from the secret key.
     ##
-    ## If the type is `api_key` or `jwt`, the secret must be set by the environment variable `secret.platform_api.auth_secret`.
+    ## If the type is `api_key` or `jwt`, the secret must be set by the environment variable `secret.custody_server.auth_secret`.
     ## If the type is api_key, the secret will be used as the api_key.
     ## If the type is jwt, the secret will be used as the jwt shared secret.
     ##
-    ## Secrets are shared on both sides (Platform and Anchor) and are used in CallbackAPI
-    ## requests (`Platform->Anchor`) so the Anchor can ensure the party making the request
-    ## is the Platform
+    ## Secrets are shared on both sides (Platform and Custody) and used in requests (`Platform->Custody`)
+    ## so the Custody can ensure the party making the request is the Platform
     #
     type: none
     jwt:
@@ -399,18 +420,23 @@ custody_server:
       http_header: X-Api-Key
 
 custody:
-  type: fireblocks
+  ## @param: type
+  ## @type: string
+  ## @supported_values: self, fireblocks
+  ## Custody type
+  #
+  type: self
   fireblocks:
     ## @param: baseUrl
     ## @type: string
     ## The base URL of the Fireblocks API
     #
-    base_url:
+    base_url: https://test.com
     ## @param: vaultAccountId
     ## @type: string
     ## Default vault account ID
     #
-    vault_account_id:
+    vault_account_id: 2
     ## @param: transactions_reconciliation_cron
     ## @type: string
     ## Cron expression which defines how often transaction reconciliation job runs. By default, job runs every 15 minutes
@@ -570,6 +596,303 @@ assets:
   ##   }
   #
   value: |
+    {
+      "assets": [
+        {
+          "schema": "stellar",
+          "code": "USDC",
+          "issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+          "distribution_account": "GD3ZMOHJXZCFGZZSTFD7ZXFVSYEJUBFV4RQXJOQSLNSSQ46WNSESU2PS",
+          "significant_decimals": 2,
+          "deposit": {
+            "enabled": true,
+            "fee_minimum": 0,
+            "fee_percent": 0,
+            "min_amount": 0,
+            "max_amount": 1000000
+          },
+          "withdraw": {
+            "enabled": true,
+            "fee_fixed": 0,
+            "fee_percent": 0,
+            "min_amount": 0,
+            "max_amount": 1000000
+          },
+          "send": {
+            "fee_fixed": 0,
+            "fee_percent": 0,
+            "min_amount": 0,
+            "max_amount": 1000000
+          },
+          "sep31": {
+            "quotes_supported": true,
+            "quotes_required": false,
+            "sep12": {
+              "sender": {
+                "types": {
+                  "sep31-sender": {
+                    "description": "U.S. citizens limited to sending payments of less than $10,000 in value"
+                  },
+                  "sep31-large-sender": {
+                    "description": "U.S. citizens that do not have sending limits"
+                  },
+                  "sep31-foreign-sender": {
+                    "description": "non-U.S. citizens sending payments of less than $10,000 in value"
+                  }
+                }
+              },
+              "receiver": {
+                "types": {
+                  "sep31-receiver": {
+                    "description": "U.S. citizens receiving USD"
+                  },
+                  "sep31-foreign-receiver": {
+                    "description": "non-U.S. citizens receiving USD"
+                  }
+                }
+              }
+            },
+            "fields": {
+              "transaction": {
+                "receiver_routing_number": {
+                  "description": "routing number of the destination bank account"
+                },
+                "receiver_account_number": {
+                  "description": "bank account number of the destination"
+                },
+                "type": {
+                  "description": "type of deposit to make",
+                  "choices": [
+                    "SEPA",
+                    "SWIFT"
+                  ]
+                }
+              }
+            }
+          },
+          "sep38": {
+            "exchangeable_assets": [
+              "iso4217:USD"
+            ]
+          },
+          "sep24_enabled": true,
+          "sep31_enabled": true,
+          "sep38_enabled": true
+        },
+        {
+          "schema": "stellar",
+          "code": "SRT",
+          "issuer": "GCDNJUBQSX7AJWLJACMJ7I4BC3Z47BQUTMHEICZLE6MU4KQBRYG5JY6B",
+          "distribution_account": "GD3ZMOHJXZCFGZZSTFD7ZXFVSYEJUBFV4RQXJOQSLNSSQ46WNSESU2PS",
+          "significant_decimals": 2,
+          "deposit": {
+            "enabled": true,
+            "fee_minimum": 0,
+            "fee_percent": 0,
+            "min_amount": 1,
+            "max_amount": 1000000
+          },
+          "withdraw": {
+            "enabled": true,
+            "fee_fixed": 0,
+            "fee_percent": 0,
+            "min_amount": 1,
+            "max_amount": 1000000
+          },
+          "send": {
+            "fee_fixed": 0,
+            "fee_percent": 0,
+            "min_amount": 1,
+            "max_amount": 1000000
+          },
+          "sep31": {
+            "quotes_supported": true,
+            "quotes_required": false,
+            "sep12": {
+              "sender": {
+                "types": {
+                  "sep31-sender": {
+                    "description": "U.S. citizens limited to sending payments of less than $10,000 in value"
+                  },
+                  "sep31-large-sender": {
+                    "description": "U.S. citizens that do not have sending limits"
+                  },
+                  "sep31-foreign-sender": {
+                    "description": "non-U.S. citizens sending payments of less than $10,000 in value"
+                  }
+                }
+              },
+              "receiver": {
+                "types": {
+                  "sep31-receiver": {
+                    "description": "U.S. citizens receiving USD"
+                  },
+                  "sep31-foreign-receiver": {
+                    "description": "non-U.S. citizens receiving USD"
+                  }
+                }
+              }
+            },
+            "fields": {
+              "transaction": {
+                "receiver_routing_number": {
+                  "description": "routing number of the destination bank account"
+                },
+                "receiver_account_number": {
+                  "description": "bank account number of the destination"
+                },
+                "type": {
+                  "description": "type of deposit to make",
+                  "choices": [
+                    "SEPA",
+                    "SWIFT"
+                  ]
+                }
+              }
+            }
+          },
+          "sep38": {
+            "exchangeable_assets": [
+              "iso4217:USD"
+            ]
+          },
+          "sep24_enabled": true,
+          "sep31_enabled": true,
+          "sep38_enabled": true
+        },
+        {
+          "schema": "stellar",
+          "code": "JPYC",
+          "issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+          "distribution_account": "GD3ZMOHJXZCFGZZSTFD7ZXFVSYEJUBFV4RQXJOQSLNSSQ46WNSESU2PS",
+          "significant_decimals": 4,
+          "deposit": {
+            "enabled": true,
+            "fee_minimum": 0,
+            "fee_percent": 0,
+            "min_amount": 1,
+            "max_amount": 1000000
+          },
+          "withdraw": {
+            "enabled": true,
+            "fee_fixed": 0,
+            "fee_percent": 0,
+            "min_amount": 1,
+            "max_amount": 1000000
+          },
+          "send": {
+            "fee_fixed": 0,
+            "fee_percent": 0,
+            "min_amount": 1,
+            "max_amount": 1000000
+          },
+          "sep31": {
+            "quotes_supported": true,
+            "quotes_required": false,
+            "sep12": {
+              "sender": {
+                "types": {
+                  "sep31-sender": {
+                    "description": "U.S. citizens limited to sending payments of less than $10,000 in value"
+                  },
+                  "sep31-large-sender": {
+                    "description": "U.S. citizens that do not have sending limits"
+                  },
+                  "sep31-foreign-sender": {
+                    "description": "non-U.S. citizens sending payments of less than $10,000 in value"
+                  }
+                }
+              },
+              "receiver": {
+                "types": {
+                  "sep31-receiver": {
+                    "description": "U.S. citizens receiving JPY"
+                  },
+                  "sep31-foreign-receiver": {
+                    "description": "non-U.S. citizens receiving JPY"
+                  }
+                }
+              }
+            },
+            "fields": {
+              "transaction": {
+                "receiver_routing_number": {
+                  "description": "routing number of the destination bank account"
+                },
+                "receiver_account_number": {
+                  "description": "bank account number of the destination"
+                },
+                "type": {
+                  "description": "type of deposit to make",
+                  "choices": [
+                    "SEPA",
+                    "SWIFT"
+                  ]
+                }
+              }
+            }
+          },
+          "sep38": {
+            "exchangeable_assets": [
+              "iso4217:USD"
+            ]
+          },
+          "sep24_enabled": true,
+          "sep31_enabled": true,
+          "sep38_enabled": true
+        },
+        {
+          "schema": "iso4217",
+          "code": "USD",
+          "deposit": {
+            "enabled": true,
+            "fee_minimum": 0,
+            "fee_percent": 0,
+            "min_amount": 0,
+            "max_amount": 10000
+          },
+          "withdraw": {
+            "enabled": true,
+            "fee_fixed": 0,
+            "fee_percent": 0,
+            "min_amount": 0,
+            "max_amount": 10000
+          },
+          "send": {
+            "fee_fixed": 0,
+            "fee_percent": 0,
+            "min_amount": 0,
+            "max_amount": 10000
+          },
+          "sep38": {
+            "exchangeable_assets": [
+              "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+              "stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+            ],
+            "country_codes": [
+              "USA"
+            ],
+            "decimals": 4,
+            "sell_delivery_methods": [
+              {
+                "name": "WIRE",
+                "description": "Send USD directly to the Anchor's bank account."
+              }
+            ],
+            "buy_delivery_methods": [
+              {
+                "name": "WIRE",
+                "description": "Have USD sent directly to your bank account."
+              }
+            ]
+          },
+          "sep24_enabled": false,
+          "sep31_enabled": false,
+          "sep38_enabled": true
+        }
+      ]
+    }
+
 
 ################################
 ## Data Configuration
@@ -585,10 +908,10 @@ data:
   ## at https://docs.aws.amazon.com/sdk-for-java/v1/developer-guide/setup-credentials.html
   #
   #
-  type: h2
+  type: postgres
 
   ## The hostname and port of the database server.
-  server:
+  server: localhost:5432
 
   ## Name of the database.
   database:
@@ -622,7 +945,7 @@ data:
   ## This value will be used to configure `spring.jpa.hibernate.ddl-auto` in non-memory databases like SQLite, Postgres, etc.
   ## ATTENTION: it should not be used in production!
   #
-  ddl_auto: none
+  ddl_auto: create
   ## @param: flyway_enabled
   ## @type: string
   ## Location on disk where migrations are stored if flyway is enabled.

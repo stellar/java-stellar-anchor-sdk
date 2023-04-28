@@ -31,6 +31,7 @@ import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerResponse;
 import org.stellar.anchor.api.sep.sep12.Sep12Status;
 import org.stellar.anchor.api.sep.sep31.*;
 import org.stellar.anchor.api.shared.Amount;
+import org.stellar.anchor.api.shared.SepDepositInfo;
 import org.stellar.anchor.api.shared.StellarId;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.Sep10Jwt;
@@ -288,7 +289,7 @@ public class Sep31Service {
    */
   void updateDepositInfo() throws AnchorException {
     Sep31Transaction txn = Context.get().getTransaction();
-    Sep31DepositInfo depositInfo = sep31DepositInfoGenerator.generate(txn);
+    SepDepositInfo depositInfo = sep31DepositInfoGenerator.generate(txn);
     infoF("Updating transaction ({}) with depositInfo ({})", txn.getId(), depositInfo);
     txn.setStellarAccountId(depositInfo.getStellarAddress());
     txn.setStellarMemo(depositInfo.getMemo());

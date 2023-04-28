@@ -3,6 +3,7 @@ package org.stellar.anchor.platform.utils;
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.*;
 
 import javax.annotation.Nullable;
+import org.stellar.anchor.api.custody.CreateCustodyTransactionRequest;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.platform.GetTransactionResponse;
 import org.stellar.anchor.api.platform.PlatformTransactionData;
@@ -28,6 +29,42 @@ public class TransactionHelper {
       default:
         throw new SepException(String.format("Unsupported protocol:%s", txn.getProtocol()));
     }
+  }
+
+  public static CreateCustodyTransactionRequest toCustodyTransaction(JdbcSep24Transaction txn) {
+    return CreateCustodyTransactionRequest.builder()
+        .id(txn.getId())
+        .memo(txn.getMemo())
+        .memoType(txn.getMemoType())
+        .protocol(txn.getProtocol())
+        .fromAccount(txn.getSep10Account())
+        .toAccount(txn.getToAccount())
+        .amountIn(txn.getAmountIn())
+        .amountInAsset(txn.getAmountInAsset())
+        .amountOut(txn.getAmountOut())
+        .amountOutAsset(txn.getAmountOutAsset())
+        .kind(txn.getKind())
+        .requestAssetCode(txn.getRequestAssetCode())
+        .requestAssetIssuer(txn.getRequestAssetIssuer())
+        .build();
+  }
+
+  public static CreateCustodyTransactionRequest toCustodyTransaction(JdbcSep31Transaction txn) {
+    return CreateCustodyTransactionRequest.builder()
+        .id(txn.getId())
+        .memo(txn.getStellarMemo())
+        .memoType(txn.getStellarMemoType())
+        .protocol(txn.getProtocol())
+        .fromAccount(null)
+        .toAccount(txn.getStellarAccountId())
+        .amountIn(txn.getAmountIn())
+        .amountInAsset(txn.getAmountInAsset())
+        .amountOut(txn.getAmountOut())
+        .amountOutAsset(txn.getAmountOutAsset())
+        .kind(RECEIVE.getKind())
+        .requestAssetCode(null)
+        .requestAssetIssuer(null)
+        .build();
   }
 
   static GetTransactionResponse toGetTransactionResponse(JdbcSep31Transaction txn) {

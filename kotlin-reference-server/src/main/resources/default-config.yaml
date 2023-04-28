@@ -6,8 +6,8 @@ sep24:
   #  URL for horizon server
   horizonUrl: "https://horizon-testnet.stellar.org"
   #  Secret key used to send funds to user accounts
-  secret: "SCQ2YRUGKBO4Q6RWSXV3SYVGHJB525XVKUP2HDGVW3LV42UBLGTZ24XX"
+  secret: "SA4254A5HI42PDSOTDEWE24VFGKO7JACKHUNM4DCB3YTJVUZ4TL57LH3"
   # When true, enables test endpoints
   enableTest: true
   # Encryption key for interactive JWT
-  interactiveJwtKey: "sep24 interactive url secret"
+  interactiveJwtKey: "SA4254A5HI42PDSOTDEWE24VFGKO7JACKHUNM4DCB3YTJVUZ4TL57LH3"

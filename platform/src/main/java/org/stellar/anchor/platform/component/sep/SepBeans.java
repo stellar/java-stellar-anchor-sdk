@@ -1,6 +1,7 @@
 package org.stellar.anchor.platform.component.sep;
 
 import java.io.IOException;
+import java.util.Optional;
 import javax.servlet.Filter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
@@ -19,8 +20,12 @@ import org.stellar.anchor.filter.JwtTokenFilter;
 import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.platform.condition.ConditionalOnAllSepsEnabled;
 import org.stellar.anchor.platform.config.*;
+import org.stellar.anchor.platform.custody.CustodyApiClient;
 import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountsManager;
+import org.stellar.anchor.platform.service.Sep24DepositInfoGeneratorCustody;
+import org.stellar.anchor.platform.service.Sep24DepositInfoGeneratorSelf;
 import org.stellar.anchor.platform.service.Sep31DepositInfoGeneratorApi;
+import org.stellar.anchor.platform.service.Sep31DepositInfoGeneratorCustody;
 import org.stellar.anchor.platform.service.Sep31DepositInfoGeneratorSelf;
 import org.stellar.anchor.platform.service.SimpleInteractiveUrlConstructor;
 import org.stellar.anchor.platform.service.SimpleMoreInfoUrlConstructor;
@@ -29,6 +34,7 @@ import org.stellar.anchor.sep10.Sep10Service;
 import org.stellar.anchor.sep12.Sep12Service;
 import org.stellar.anchor.sep24.InteractiveUrlConstructor;
 import org.stellar.anchor.sep24.MoreInfoUrlConstructor;
+import org.stellar.anchor.sep24.Sep24DepositInfoGenerator;
 import org.stellar.anchor.sep24.Sep24Service;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31DepositInfoGenerator;
@@ -166,6 +172,19 @@ public class SepBeans {
   }
 
   @Bean
+  Sep24DepositInfoGenerator sep24DepositInfoGenerator(
+      Sep24Config sep24Config, Optional<CustodyApiClient> custodyApiClient) {
+    switch (sep24Config.getDepositInfoGeneratorType()) {
+      case SELF:
+        return new Sep24DepositInfoGeneratorSelf();
+      case CUSTODY:
+        return new Sep24DepositInfoGeneratorCustody(custodyApiClient.orElseThrow());
+      default:
+        throw new RuntimeException("Not supported");
+    }
+  }
+
+  @Bean
   InteractiveUrlConstructor interactiveUrlConstructor(
       PropertySep24Config sep24Config, JwtService jwtService) {
     return new SimpleInteractiveUrlConstructor(sep24Config.getInteractiveUrl(), jwtService);
@@ -181,13 +200,16 @@ public class SepBeans {
   Sep31DepositInfoGenerator sep31DepositInfoGenerator(
       Sep31Config sep31Config,
       PaymentObservingAccountsManager paymentObservingAccountsManager,
-      UniqueAddressIntegration uniqueAddressIntegration) {
+      UniqueAddressIntegration uniqueAddressIntegration,
+      Optional<CustodyApiClient> custodyApiClient) {
     switch (sep31Config.getDepositInfoGeneratorType()) {
       case SELF:
         return new Sep31DepositInfoGeneratorSelf();
       case API:
         return new Sep31DepositInfoGeneratorApi(
             uniqueAddressIntegration, paymentObservingAccountsManager);
+      case CUSTODY:
+        return new Sep31DepositInfoGeneratorCustody(custodyApiClient.orElseThrow());
       default:
         throw new RuntimeException("Not supported");
     }
