@@ -84,8 +84,8 @@ public class FireblocksApiClient {
             .build());
   }
 
-  private String doRequest(Request req) throws FireblocksException {
-    try (Response response = client.newCall(req).execute()) {
+  private String doRequest(Request request) throws FireblocksException {
+    try (Response response = client.newCall(request).execute()) {
       ResponseBody responseBody = response.body();
       String responseBodyJson = null;
 
