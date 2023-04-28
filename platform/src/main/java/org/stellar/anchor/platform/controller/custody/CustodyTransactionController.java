@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.stellar.anchor.api.custody.CreateCustodyTransactionRequest;
-import org.stellar.anchor.platform.service.CustodyTransactionService;
+import org.stellar.anchor.platform.custody.CustodyTransactionService;
 
 @RestController
 public class CustodyTransactionController {

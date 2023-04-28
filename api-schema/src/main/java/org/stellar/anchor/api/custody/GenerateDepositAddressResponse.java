@@ -1,10 +1,10 @@
 package org.stellar.anchor.api.custody;
 
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
-@Builder
+@AllArgsConstructor
 public class GenerateDepositAddressResponse {
 
   private String address;

@@ -1,0 +1,16 @@
+{
+  "id": "testId",
+  "status": "created",
+  "amount_in": "testAmountIn",
+  "amount_in_asset": "testAmountInAsset",
+  "amount_out": "testAmountOut",
+  "amount_out_asset": "testAmountOutAsset",
+  "memo": "testMemo",
+  "memo_type": "testMemoType",
+  "protocol": "testProtocol",
+  "from_account": "testFromAccount",
+  "to_account": "testToAccount",
+  "kind": "testKind",
+  "request_asset_code": "testRequestAssetCode",
+  "request_asset_issuer": "testRequestAssetIssuer"
+}

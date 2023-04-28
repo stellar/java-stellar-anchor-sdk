@@ -1,4 +1,4 @@
-package org.stellar.anchor.platform.service;
+package org.stellar.anchor.platform.custody;
 
 import java.time.Instant;
 import org.stellar.anchor.api.custody.CreateCustodyTransactionRequest;

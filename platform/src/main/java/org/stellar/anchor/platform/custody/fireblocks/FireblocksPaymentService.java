@@ -31,7 +31,7 @@ public class FireblocksPaymentService implements PaymentService {
   @Override
   public GenerateDepositAddressResponse generateDepositAddress(String assetId)
       throws FireblocksException {
-    CreateNewDepositAddressRequestDto request = CreateNewDepositAddressRequestDto.builder().build();
+    CreateNewDepositAddressRequestDto request = new CreateNewDepositAddressRequestDto();
     CreateNewDepositAddressResponseDto depositAddress =
         gson.fromJson(
             fireblocksClient.post(
@@ -41,10 +41,7 @@ public class FireblocksPaymentService implements PaymentService {
                     assetId),
                 gson.toJson(request)),
             CreateNewDepositAddressResponseDto.class);
-    return GenerateDepositAddressResponse.builder()
-        .address(depositAddress.getAddress())
-        .memo(depositAddress.getTag())
-        .memoType(memoTypeAsString(MemoType.MEMO_ID))
-        .build();
+    return new GenerateDepositAddressResponse(
+        depositAddress.getAddress(), depositAddress.getTag(), memoTypeAsString(MemoType.MEMO_ID));
   }
 }
