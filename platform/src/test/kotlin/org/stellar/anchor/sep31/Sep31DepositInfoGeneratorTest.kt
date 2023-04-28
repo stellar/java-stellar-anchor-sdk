@@ -15,7 +15,7 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.stellar.anchor.api.callback.CustomerIntegration
 import org.stellar.anchor.api.callback.FeeIntegration
-import org.stellar.anchor.api.sep.sep31.Sep31DepositInfo
+import org.stellar.anchor.api.shared.SepDepositInfo
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.config.AppConfig
@@ -133,7 +133,7 @@ class Sep31DepositInfoGeneratorTest {
     val nonEmptyMemo = Objects.toString(memo, "")
     val nonEmptyMemoType = Objects.toString(memoType, "")
     every { sep31DepositInfoGenerator.generate(any()) } returns
-      Sep31DepositInfo(
+      SepDepositInfo(
         "GAYR3FVW2PCXTNHHWHEAFOCKZQV4PEY2ZKGIKB47EKPJ3GSBYA52XJBY",
         nonEmptyMemo,
         nonEmptyMemoType

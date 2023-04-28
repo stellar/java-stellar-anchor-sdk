@@ -13,13 +13,12 @@ import org.springframework.http.HttpStatus;
 import org.stellar.anchor.api.custody.CreateCustodyTransactionRequest;
 import org.stellar.anchor.api.custody.GenerateDepositAddressResponse;
 import org.stellar.anchor.api.exception.CustodyException;
-import org.stellar.anchor.apiclient.BaseApiClient;
 import org.stellar.anchor.auth.AuthHelper;
 import org.stellar.anchor.platform.config.CustodyApiConfig;
 import org.stellar.anchor.util.AuthHeader;
 import org.stellar.anchor.util.GsonUtils;
 
-public class CustodyApiClient extends BaseApiClient {
+public class CustodyApiClient {
 
   private static final Gson gson = GsonUtils.getInstance();
 
@@ -87,7 +86,7 @@ public class CustodyApiClient extends BaseApiClient {
                 response.code(), responseBodyJson));
       }
     } catch (IOException e) {
-      throw new CustodyException("Exception occurred during request to Fireblocks API", e);
+      throw new CustodyException("Exception occurred during request to Custody API", e);
     }
   }
 }

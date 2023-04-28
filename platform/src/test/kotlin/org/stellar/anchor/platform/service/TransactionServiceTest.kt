@@ -60,7 +60,9 @@ class TransactionServiceTest {
         sep31TransactionStore,
         sep38QuoteStore,
         assetService,
-        eventService
+        eventService,
+        null,
+        null
       )
   }
 
@@ -192,7 +194,9 @@ class TransactionServiceTest {
         sep31TransactionStore,
         sep38QuoteStore,
         assetService,
-        eventService
+        eventService,
+        null,
+        null
       )
     val mockAsset = Amount("10", fiatUSD)
     assertDoesNotThrow { transactionService.validateAsset("amount_in", mockAsset) }
@@ -332,7 +336,9 @@ class TransactionServiceTest {
         sep31TransactionStore,
         sep38QuoteStore,
         assetService,
-        eventService
+        eventService,
+        null,
+        null
       )
 
     assertDoesNotThrow {
