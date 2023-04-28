@@ -2,6 +2,8 @@ package org.stellar.anchor.platform.custody.service
 
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonParser
+import io.mockk.every
+import io.mockk.mockk
 import io.mockk.spyk
 import java.io.IOException
 import kotlin.test.assertEquals
@@ -9,7 +11,9 @@ import org.apache.commons.lang3.StringUtils
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.stellar.anchor.api.exception.BadRequestException
+import org.stellar.anchor.api.exception.InvalidConfigException
 import org.stellar.anchor.api.exception.SepNotFoundException
+import org.stellar.anchor.platform.config.FireblocksConfig
 import org.stellar.anchor.platform.custody.service.FireblocksEventsService.FIREBLOCKS_SIGNATURE_HEADER
 import org.stellar.anchor.util.FileUtil.getResourceFileAsString
 
@@ -17,8 +21,8 @@ class FireblocksEventsServiceTest {
 
   @Test
   fun `test handleFireblocksEvent() for valid event object and signature`() {
-    val publicKeyString = getResourceFileAsString("custody/public_key.txt")
-    val eventsService = spyk(FireblocksEventsService(publicKeyString))
+    val config = getFireblocksConfig(getResourceFileAsString("custody/public_key.txt"))
+    val eventsService = spyk(FireblocksEventsService(config))
 
     val signature: String = getResourceFileAsString("custody/signature.txt")
     val httpHeaders: Map<String, String> = mutableMapOf(FIREBLOCKS_SIGNATURE_HEADER to signature)
@@ -28,8 +32,16 @@ class FireblocksEventsServiceTest {
   }
 
   @Test
+  fun `test handleFireblocksEvent() for invalid public key`() {
+    val config = getFireblocksConfig(StringUtils.EMPTY)
+    val ex = assertThrows<InvalidConfigException> { FireblocksEventsService(config) }
+    assertEquals("Failed to generate Fireblocks public key", ex.message)
+  }
+
+  @Test
   fun `test handleFireblocksEvent() for missed fireblocks-signature header`() {
-    val eventsService = spyk(FireblocksEventsService(StringUtils.EMPTY))
+    val config = getFireblocksConfig(getResourceFileAsString("custody/public_key.txt"))
+    val eventsService = spyk(FireblocksEventsService(config))
 
     val eventObject = StringUtils.EMPTY
     val emptyHeaders: Map<String, String> = emptyMap()
@@ -43,7 +55,8 @@ class FireblocksEventsServiceTest {
 
   @Test
   fun `test handleFireblocksEvent() for empty signature`() {
-    val eventsService = spyk(FireblocksEventsService(StringUtils.EMPTY))
+    val config = getFireblocksConfig(getResourceFileAsString("custody/public_key.txt"))
+    val eventsService = spyk(FireblocksEventsService(config))
 
     val eventObject = StringUtils.EMPTY
     val httpHeaders = mutableMapOf(FIREBLOCKS_SIGNATURE_HEADER to StringUtils.EMPTY)
@@ -57,8 +70,8 @@ class FireblocksEventsServiceTest {
 
   @Test
   fun `test handleFireblocksEvent() for invalid signature`() {
-    val publicKeyString = getResourceFileAsString("custody/public_key.txt")
-    val eventsService = spyk(FireblocksEventsService(publicKeyString))
+    val config = getFireblocksConfig(getResourceFileAsString("custody/public_key.txt"))
+    val eventsService = spyk(FireblocksEventsService(config))
 
     val invalidSignature =
       "Yww6co109EfZ6BBam0zr1ewhv2gB3sFrfzcmbEFTttGp6GYVNEOslcMIMbjrFsFtkiEIO5ogvPI7Boz7y" +
@@ -71,6 +84,12 @@ class FireblocksEventsServiceTest {
         eventsService.handleFireblocksEvent(eventObject, httpHeaders)
       }
     assertEquals("Signature validation failed", ex.message)
+  }
+
+  fun getFireblocksConfig(publicKey: String): FireblocksConfig {
+    val config: FireblocksConfig = mockk()
+    every { config.publicKey } returns publicKey
+    return config
   }
 
   @Throws(IOException::class, SepNotFoundException::class)

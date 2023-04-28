@@ -1,11 +1,11 @@
 package org.stellar.anchor.platform.component.custody;
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.stellar.anchor.config.SecretConfig;
+import org.stellar.anchor.api.exception.InvalidConfigException;
+import org.stellar.anchor.platform.config.CustodySecretConfig;
 import org.stellar.anchor.platform.config.FireblocksConfig;
 import org.stellar.anchor.platform.custody.service.FireblocksEventsService;
 import org.stellar.anchor.platform.job.FireblocksTransactionsReconciliationJob;
@@ -13,10 +13,11 @@ import org.stellar.anchor.platform.job.FireblocksTransactionsReconciliationJob;
 @Configuration
 @ConditionalOnProperty(value = "custody.type", havingValue = "fireblocks")
 public class FireblocksBeans {
+
   @Bean
   @ConfigurationProperties(prefix = "custody.fireblocks")
-  FireblocksConfig fireblocksConfig(SecretConfig secretConfig) {
-    return new FireblocksConfig(secretConfig);
+  FireblocksConfig fireblocksConfig(CustodySecretConfig custodySecretConfig) {
+    return new FireblocksConfig(custodySecretConfig);
   }
 
   @Bean
@@ -25,8 +26,8 @@ public class FireblocksBeans {
   }
 
   @Bean
-  FireblocksEventsService fireblocksEventsService(
-      @Value("${custody.fireblocks.public_key}") String publicKey) {
-    return new FireblocksEventsService(publicKey);
+  FireblocksEventsService fireblocksEventsService(FireblocksConfig fireblocksConfig)
+      throws InvalidConfigException {
+    return new FireblocksEventsService(fireblocksConfig);
   }
 }

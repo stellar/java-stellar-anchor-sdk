@@ -13,7 +13,7 @@ import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
 import org.apache.commons.lang3.StringUtils;
 
-public class SecurityUtil {
+public class RSAUtil {
   public static final String BEGIN_PUBLIC_KEY = "-----BEGIN PUBLIC KEY-----";
   public static final String END_PUBLIC_KEY = "-----END PUBLIC KEY-----";
 
@@ -71,7 +71,7 @@ public class SecurityUtil {
       String signature, String dataString, PublicKey publicKey, String signatureAlgorithm)
       throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
     if (publicKey == null) {
-      throw new IllegalArgumentException("Fireblocks public key is null");
+      throw new IllegalArgumentException("Public key is null");
     }
 
     Signature sign = Signature.getInstance(signatureAlgorithm);
