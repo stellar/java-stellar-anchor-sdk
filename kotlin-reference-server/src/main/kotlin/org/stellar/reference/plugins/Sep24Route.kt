@@ -100,15 +100,13 @@ fun Route.sep24(
 
             call.respond(Success(sessionId))
 
-            val stellarAsset = asset.replace("stellar:", "")
-
             // Run deposit processing asynchronously
             CoroutineScope(Job()).launch {
               depositService.processDeposit(
                 transaction.id,
                 deposit.amount.toBigDecimal(),
                 account,
-                stellarAsset,
+                asset,
                 memo,
                 memoType
               )
@@ -123,14 +121,12 @@ fun Route.sep24(
               transaction.amountExpected?.asset
                 ?: throw ClientException("Missing amountExpected.asset field")
 
-            val stellarAsset = asset.replace("stellar:", "")
-
             // Run deposit processing asynchronously
             CoroutineScope(Job()).launch {
               withdrawalService.processWithdrawal(
                 transaction.id,
                 withdrawal.amount.toBigDecimal(),
-                stellarAsset
+                asset
               )
             }
           }
