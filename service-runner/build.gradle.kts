@@ -20,6 +20,7 @@ dependencies {
   implementation(libs.dotenv)
   implementation(libs.google.gson)
   implementation(libs.okhttp3)
+  implementation(libs.coroutines.core)
 
   // From projects
   implementation(project(":core"))

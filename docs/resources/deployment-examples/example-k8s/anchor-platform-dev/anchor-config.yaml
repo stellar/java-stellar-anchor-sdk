@@ -43,7 +43,7 @@ anchor-config.yaml: |
    # sep-10
    sep10:
      enabled: true
-     homeDomain: anchor-sep-server-dev.stellar.org
+     webAuthDomain: anchor-sep-server-dev.stellar.org
      clientAttributionRequired: false
      clientAttributionAllowList: lobstr.co,preview.lobstr.co # use this if we want to white list
      # clientAttributionDenyList: # use this if we want to black list.

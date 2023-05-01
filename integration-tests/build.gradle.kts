@@ -7,6 +7,12 @@ plugins {
   alias(libs.plugins.kotlin.jvm)
 }
 
+repositories {
+  maven {
+    url = uri("https://oss.sonatype.org/content/repositories/snapshots")
+  }
+}
+
 dependencies {
   implementation("org.springframework.boot:spring-boot")
   implementation("org.springframework.boot:spring-boot-autoconfigure")
@@ -25,6 +31,7 @@ dependencies {
   implementation(libs.log4j2.slf4j)
   implementation(libs.docker.compose.rule)
   implementation(libs.stellar.wallet.sdk)
+  implementation(libs.kotlin.serialization.json)
   implementation(libs.ktor.client.core)
   implementation(libs.ktor.client.okhttp)
 

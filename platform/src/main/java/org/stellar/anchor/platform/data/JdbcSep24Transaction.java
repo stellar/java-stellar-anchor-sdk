@@ -25,17 +25,11 @@ public class JdbcSep24Transaction extends JdbcSepTransaction
     return "24";
   }
 
-  @Id String id;
-
   String kind;
 
   @SerializedName("status_eta")
   @Column(name = "status_eta")
   String statusEta;
-
-  @SerializedName("kyc_verified")
-  @Column(name = "kyc_verified")
-  Boolean kycVerified;
 
   @SerializedName("more_info_url")
   @Column(name = "more_info_url")

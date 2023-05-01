@@ -128,7 +128,7 @@ public class StellarPaymentObserver implements HealthCheckable {
 
   SSEStream<OperationResponse> startSSEStream() {
     String latestCursor = fetchStreamingCursor();
-    debugF("SSEStream last cursor={}", latestCursor);
+    infoF("SSEStream cursor={}", latestCursor);
 
     PaymentsRequestBuilder paymentsRequest =
         server
@@ -168,6 +168,7 @@ public class StellarPaymentObserver implements HealthCheckable {
 
   void stopStream() {
     if (this.stream != null) {
+      info("Stopping the stream");
       this.stream.close();
       this.stream = null;
     }
@@ -179,7 +180,9 @@ public class StellarPaymentObserver implements HealthCheckable {
       if (lastActivityTime != null) {
         Duration silenceDuration = Duration.between(lastActivityTime, now);
         if (silenceDuration.getSeconds() > config.getSilenceTimeout()) {
-          infoF("The observer had been silent for {} seconds.", silenceDuration.getSeconds());
+          debugF(
+              "The observer had been silent for {} seconds. This is too long. Setting status to SILENCE_ERROR",
+              silenceDuration.getSeconds());
           setStatus(SILENCE_ERROR);
         } else {
           debugF("The observer had been silent for {} seconds.", silenceDuration.getSeconds());
@@ -189,8 +192,8 @@ public class StellarPaymentObserver implements HealthCheckable {
   }
 
   void restartStream() {
-    infoF("Restarting the stream");
     try {
+      infoF("Restarting the stream");
       stopStream();
       startStream();
       setStatus(RUNNING);
@@ -296,16 +299,18 @@ public class StellarPaymentObserver implements HealthCheckable {
   String fetchStreamingCursor() {
     // Use database value, if any.
     String strLastStored = loadPagingToken();
-    Log.debug("Fetching latest cursor from Stellar network");
-    String strLatest = fetchLatestCursor();
-    Log.infoF("The latest cursor fetched from Stellar network is: {}", strLatest);
+    String strLatestFromNetwork = fetchLatestCursorFromNetwork();
+    Log.infoF("The latest cursor fetched from Stellar network is: {}", strLatestFromNetwork);
     if (isEmpty(strLastStored)) {
-      return strLatest;
+      info("No last stored cursor, so use the latest cursor");
+      return strLatestFromNetwork;
     } else {
       long lastStored = Long.parseLong(strLastStored);
-      long latest = Long.parseLong(strLatest);
+      long latest = Long.parseLong(strLatestFromNetwork);
       if (lastStored >= latest) {
-        // lastStoredCursor is stale because it is greater than the latest cursor
+        infoF(
+            "The last stored cursor is stale. This is probably because of a test network reset. Use the latest cursor: {}",
+            strLatestFromNetwork);
         return String.valueOf(latest);
       } else {
         return String.valueOf(Math.max(lastStored, latest - MAX_RESULTS));
@@ -313,9 +318,11 @@ public class StellarPaymentObserver implements HealthCheckable {
     }
   }
 
-  String fetchLatestCursor() {
+  String fetchLatestCursorFromNetwork() {
+    // Fetch the latest cursor from the stellar network
     Page<OperationResponse> pageOpResponse;
     try {
+      infoF("Fetching the latest payments records. (limit={})", MIN_RESULTS);
       pageOpResponse =
           server.payments().order(RequestBuilder.Order.DESC).limit(MIN_RESULTS).execute();
     } catch (IOException e) {
@@ -326,9 +333,12 @@ public class StellarPaymentObserver implements HealthCheckable {
     if (pageOpResponse == null
         || pageOpResponse.getRecords() == null
         || pageOpResponse.getRecords().size() == 0) {
+      info("No payments found.");
       return null;
     }
-    return pageOpResponse.getRecords().get(0).getPagingToken();
+    String token = pageOpResponse.getRecords().get(0).getPagingToken();
+    infoF("The latest cursor fetched from Stellar network is: {}", token);
+    return token;
   }
 
   void handleEvent(OperationResponse operationResponse) {
@@ -348,12 +358,12 @@ public class StellarPaymentObserver implements HealthCheckable {
         observedPayment = ObservedPayment.fromPathPaymentOperationResponse(pathPayment);
       }
     } catch (SepException ex) {
-      Log.warn(
+      warn(
           String.format(
               "Payment of id %s contains unsupported memo %s.",
               operationResponse.getId(),
               operationResponse.getTransaction().get().getMemo().toString()));
-      Log.warnEx(ex);
+      warnEx(ex);
     }
 
     if (observedPayment == null) {
@@ -401,20 +411,26 @@ public class StellarPaymentObserver implements HealthCheckable {
   }
 
   String loadPagingToken() {
+    info("Loading the last stored cursor from database...");
     String token = paymentStreamerCursorStore.load();
+    infoF("The last stored cursor is: {}", token);
+    debug("Resetting the database backoff timer...");
     databaseBackoffTimer.reset();
+
     return token;
   }
 
   void savePagingToken(String token) {
+    traceF("Saving the last stored cursor to database: {}", token);
     paymentStreamerCursorStore.save(token);
+    traceF("Resetting the database backoff timer...");
     databaseBackoffTimer.reset();
   }
 
   void setStatus(ObserverStatus status) {
     if (this.status != status) {
       if (this.status.isSettable(status)) {
-        debugF("Setting status to {}", status);
+        infoF("Setting status to {}", status);
         this.status = status;
       } else {
         warnF("Cannot set status to {} while the current status is {}", status, this.status);

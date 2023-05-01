@@ -43,10 +43,14 @@ public class ConfigEnvironment {
    * environment variables.
    *
    * @param name the name of the environment variable
-   * @return the value of the environment variable.
+   * @return the value of the environment variable. If the variable is not set, null is returned.
    */
   public static String getenv(String name) {
-    return env.get(toPosixForm(name));
+    String envValue = env.get(toPosixForm(name));
+    if (envValue != null) {
+      envValue = envValue.replace("\\n", "\n").replace("\\\"", "\"");
+    }
+    return envValue;
   }
 
   public static Collection<String> names() {

@@ -13,10 +13,8 @@ import static org.stellar.sdk.xdr.MemoType.MEMO_HASH;
 
 import io.micrometer.core.instrument.Metrics;
 import java.time.Instant;
-import java.util.Base64;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
@@ -124,13 +122,17 @@ public class TransactionService {
 
   private GetTransactionResponse patchTransaction(PatchTransactionRequest patch)
       throws AnchorException {
+    validateIfStatusIsSupported(patch.getTransaction().getStatus().toString());
+    validateAsset("amount_in", patch.getTransaction().getAmountIn());
+    validateAsset("amount_out", patch.getTransaction().getAmountOut());
+    validateAsset("amount_fee", patch.getTransaction().getAmountFee());
+
     JdbcSepTransaction txn = findTransaction(patch.getTransaction().getId());
     if (txn == null)
       throw new BadRequestException(
           String.format("transaction(id=%s) not found", patch.getTransaction().getId()));
 
     String lastStatus = txn.getStatus();
-    // TODO - jamie to validate request before using values
     updateSepTransaction(patch.getTransaction(), txn);
     switch (txn.getProtocol()) {
       case "24":
@@ -199,6 +201,12 @@ public class TransactionService {
     // update stellar_transactions
     txnUpdated = updateField(patch, txn, "stellarTransactions", txnUpdated);
 
+    if (patch.getStellarTransactions() != null) {
+      patch.getStellarTransactions().stream()
+          .max(Comparator.comparingLong(x -> x.getCreatedAt().toEpochMilli()))
+          .ifPresent(stellarTransaction -> txn.setStellarTransactionId(stellarTransaction.getId()));
+    }
+
     switch (txn.getProtocol()) {
       case "24":
         JdbcSep24Transaction sep24Txn = (JdbcSep24Transaction) txn;
@@ -211,7 +219,6 @@ public class TransactionService {
         }
 
         txnUpdated = updateField(patch, sep24Txn, "message", txnUpdated);
-        txnUpdated = updateField(patch, sep24Txn, "kycVerified", txnUpdated);
 
         // update refunds
         if (patch.getRefunds() != null) {
@@ -295,13 +302,33 @@ public class TransactionService {
       throw new BadRequestException(
           String.format("'%s' is not a supported asset.", amount.getAsset()));
     }
+
+    List<AssetInfo> allAssets =
+        assets.stream()
+            .filter(assetInfo -> assetInfo.getAssetName().equals(amount.getAsset()))
+            .collect(Collectors.toList());
+
+    if (allAssets.size() == 1) {
+      AssetInfo targetAsset = allAssets.get(0);
+
+      if (targetAsset.getSignificantDecimals() != null) {
+        // Check that significant decimal is correct
+        if (decimal(amount.getAmount(), targetAsset).compareTo(decimal(amount.getAmount())) != 0) {
+          throw new BadRequestException(
+              String.format(
+                  "'%s' has invalid significant decimals. Expected: '%s'",
+                  amount.getAmount(), targetAsset.getSignificantDecimals()));
+        }
+      }
+    }
   }
 
   void validateQuoteAndAmounts(Sep31Transaction txn) throws AnchorException {
     // amount_in = amount_out + amount_fee
     if (StringHelper.isEmpty(txn.getQuoteId())) {
-      // without exchange
-      if (allAmountAvailable(txn))
+      // without exchange and not indicative
+      if (allAmountAvailable(txn)
+          && Objects.equals(txn.getAmountInAsset(), txn.getAmountOutAsset()))
         if (decimal(txn.getAmountIn())
                 .compareTo(decimal(txn.getAmountOut()).add(decimal(txn.getAmountFee())))
             != 0) throw new BadRequestException("amount_in != amount_out + amount_fee");

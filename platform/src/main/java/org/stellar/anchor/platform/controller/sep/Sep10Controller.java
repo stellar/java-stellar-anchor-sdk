@@ -3,6 +3,7 @@ package org.stellar.anchor.platform.controller.sep;
 import static org.stellar.anchor.util.Log.*;
 
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -41,7 +42,7 @@ public class Sep10Controller {
       @RequestParam(required = false) String memo,
       @RequestParam(required = false, name = "home_domain") String homeDomain,
       @RequestParam(required = false, name = "client_domain") String clientDomain)
-      throws SepException {
+      throws SepException, MalformedURLException {
     debugF(
         "GET /auth account={} memo={} home_domain={}, client_domain={}",
         account,
@@ -77,8 +78,7 @@ public class Sep10Controller {
       method = {RequestMethod.POST})
   public ValidationResponse validateChallenge(
       @RequestBody(required = false) ValidationRequest validationRequest)
-      throws InvalidSep10ChallengeException, IOException, URISyntaxException,
-          SepValidationException {
+      throws InvalidSep10ChallengeException, IOException, SepValidationException {
     debug("POST /auth details:", validationRequest);
     return sep10Service.validateChallenge(validationRequest);
   }

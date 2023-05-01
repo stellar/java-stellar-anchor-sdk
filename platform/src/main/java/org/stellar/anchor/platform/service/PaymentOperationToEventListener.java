@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform.service;
 
+import static org.stellar.anchor.util.Log.*;
 import static org.stellar.anchor.util.MathHelper.decimal;
 import static org.stellar.anchor.util.MathHelper.formatAmount;
 
@@ -23,10 +24,7 @@ import org.stellar.anchor.api.shared.StellarPayment;
 import org.stellar.anchor.api.shared.StellarTransaction;
 import org.stellar.anchor.apiclient.PlatformApiClient;
 import org.stellar.anchor.event.EventService;
-import org.stellar.anchor.platform.data.JdbcSep24Transaction;
-import org.stellar.anchor.platform.data.JdbcSep24TransactionStore;
-import org.stellar.anchor.platform.data.JdbcSep31Transaction;
-import org.stellar.anchor.platform.data.JdbcSep31TransactionStore;
+import org.stellar.anchor.platform.data.*;
 import org.stellar.anchor.platform.observer.ObservedPayment;
 import org.stellar.anchor.platform.observer.PaymentListener;
 import org.stellar.anchor.util.Log;
@@ -51,12 +49,83 @@ public class PaymentOperationToEventListener implements PaymentListener {
     this.platformApiClient = platformApiClient;
   }
 
-  public void handleSep31Transaction(ObservedPayment payment, JdbcSep31Transaction txn)
+  @Override
+  public void onReceived(ObservedPayment payment) throws IOException {
+    // Check if payment is connected to a transaction
+    if (Objects.toString(payment.getTransactionHash(), "").isEmpty()
+        || Objects.toString(payment.getTransactionMemo(), "").isEmpty()) {
+      traceF("Ignore the payment {} is not connected to a transaction.", payment.getId());
+      return;
+    }
+
+    // Check if the payment contains the expected asset type
+    if (!List.of("credit_alphanum4", "credit_alphanum12").contains(payment.getAssetType())) {
+      // Asset type does not match
+      debugF("{} is not an issued asset.", payment.getAssetType());
+      return;
+    }
+
+    // Parse memo
+    String memo = payment.getTransactionMemo();
+    String memoType = payment.getTransactionMemoType();
+    if (memoType.equals(MemoHelper.memoTypeAsString(MemoType.MEMO_HASH))) {
+      try {
+        memo = MemoHelper.convertHexToBase64(payment.getTransactionMemo());
+      } catch (DecoderException ex) {
+        infoF(
+            "The memo type is \"hash\" but the memo string {} could not be parsed as such.", memo);
+      }
+    }
+
+    // Find a transaction matching the memo, assumes transactions are unique to account+memo
+    JdbcSep31Transaction sep31Txn = null;
+    try {
+      sep31Txn =
+          sep31TransactionStore.findByStellarAccountIdAndMemo(payment.getSourceAccount(), memo);
+    } catch (Exception ex) {
+      errorEx(ex);
+    }
+    if (sep31Txn != null) {
+      try {
+        handleSep31Transaction(payment, sep31Txn);
+        return;
+      } catch (AnchorException aex) {
+        warnF("Error handling the SEP31 transaction id={}.", sep31Txn.getId());
+        errorEx(aex);
+        return;
+      }
+    }
+
+    // Find a transaction matching the memo, assumes transactions are unique to account+memo
+    JdbcSep24Transaction sep24Txn;
+    try {
+      sep24Txn =
+          sep24TransactionStore.findByStellarAccountIdAndMemo(payment.getSourceAccount(), memo);
+    } catch (Exception ex) {
+      errorEx(ex);
+      return;
+    }
+    if (sep24Txn != null) {
+      try {
+        handleSep24Transaction(payment, sep24Txn);
+      } catch (AnchorException aex) {
+        warnF("Error handling the SEP24 transaction id={}.", sep24Txn.getId());
+        errorEx(aex);
+      }
+    }
+  }
+
+  @Override
+  public void onSent(ObservedPayment payment) {
+    // not implemented. NOOP.
+  }
+
+  void handleSep31Transaction(ObservedPayment payment, JdbcSep31Transaction txn)
       throws AnchorException, IOException {
     // Compare asset code
     String paymentAssetName = "stellar:" + payment.getAssetName();
     if (!txn.getAmountInAsset().equals(paymentAssetName)) {
-      Log.warnF(
+      warnF(
           "Payment asset {} does not match the expected asset {}.",
           payment.getAssetCode(),
           txn.getAmountInAsset());
@@ -66,6 +135,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
     // parse payment creation time
     Instant paymentTime = parsePaymentTime(payment.getCreatedAt());
     // Build Stellar Transaction object
+    debugF("Building StellarTransaction object for payment {}.", payment.getId());
     StellarTransaction stellarTransaction =
         StellarTransaction.builder()
             .id(payment.getTransactionHash())
@@ -106,23 +176,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
     }
 
     // Patch transaction
-    PatchTransactionsRequest patchTransactionsRequest =
-        PatchTransactionsRequest.builder()
-            .records(
-                Collections.singletonList(
-                    PatchTransactionRequest.builder()
-                        .transaction(
-                            PlatformTransactionData.builder()
-                                .updatedAt(paymentTime)
-                                .status(newStatus)
-                                .stellarTransactions(
-                                    StellarTransaction.addOrUpdateTransactions(
-                                        txn.getStellarTransactions(), stellarTransaction))
-                                .id(txn.getId())
-                                .build())
-                        .build()))
-            .build();
-    platformApiClient.patchTransaction(patchTransactionsRequest);
+    patchTransaction(txn, stellarTransaction, paymentTime, newStatus);
 
     // Update metrics
     Metrics.counter(AnchorMetrics.SEP31_TRANSACTION.toString(), "status", newStatus.toString())
@@ -131,82 +185,42 @@ public class PaymentOperationToEventListener implements PaymentListener {
         .increment(Double.parseDouble(payment.getAmount()));
   }
 
-  @Override
-  public void onReceived(ObservedPayment payment) throws AnchorException, IOException {
-    // Check if payment is connected to a transaction
-    if (Objects.toString(payment.getTransactionHash(), "").isEmpty()
-        || Objects.toString(payment.getTransactionMemo(), "").isEmpty()) {
-      return;
-    }
-
-    // Check if the payment contains the expected asset type
-    if (!List.of("credit_alphanum4", "credit_alphanum12").contains(payment.getAssetType())) {
-      // Asset type does not match
-      Log.infoF("{} is not an issued asset.", payment.getAssetType());
-      return;
-    }
-
-    // Parse memo
-    String memo = payment.getTransactionMemo();
-    String memoType = payment.getTransactionMemoType();
-    if (memoType.equals(MemoHelper.memoTypeAsString(MemoType.MEMO_HASH))) {
-      try {
-        memo = MemoHelper.convertHexToBase64(payment.getTransactionMemo());
-      } catch (DecoderException ex) {
-        Log.warnF(
-            "The memo type is \"hash\" but the memo string {} could not be parsed as such.", memo);
-        Log.warnEx(ex);
-      }
-    }
-
-    // Find a transaction matching the memo, assumes transactions are unique to account+memo
-    JdbcSep31Transaction sep31Txn;
-    try {
-      sep31Txn =
-          sep31TransactionStore.findByStellarAccountIdAndMemo(payment.getSourceAccount(), memo);
-      if (sep31Txn != null) {
-        handleSep31Transaction(payment, sep31Txn);
-        return;
-      }
-      Log.infoF(
-          "Not expecting any sep31 transaction with the memo {}.", payment.getTransactionMemo());
-    } catch (AnchorException e) {
-      Log.errorF(
-          "Error finding transaction that matches the memo {}.", payment.getTransactionMemo());
-      e.printStackTrace();
-      return;
-    }
-
-    // Find a transaction matching the memo, assumes transactions are unique to account+memo
-    JdbcSep24Transaction sep24Txn;
-    try {
-      sep24Txn =
-          sep24TransactionStore.findByStellarAccountIdAndMemo(payment.getSourceAccount(), memo);
-      if (sep24Txn != null) {
-        handleSep24Transaction(payment, sep24Txn);
-        return;
-      }
-      Log.infoF(
-          "Not expecting any sep24 transaction with the memo {}.", payment.getTransactionMemo());
-    } catch (AnchorException e) {
-      Log.errorF(
-          "Error finding transaction that matches the memo {}.", payment.getTransactionMemo());
-      e.printStackTrace();
-      return;
-    }
+  private void patchTransaction(
+      JdbcSepTransaction txn,
+      StellarTransaction stellarTransaction,
+      Instant paymentTime,
+      SepTransactionStatus newStatus)
+      throws IOException, AnchorException {
+    PatchTransactionsRequest patchTransactionsRequest =
+        PatchTransactionsRequest.builder()
+            .records(
+                Collections.singletonList(
+                    PatchTransactionRequest.builder()
+                        .transaction(
+                            PlatformTransactionData.builder()
+                                .updatedAt(paymentTime)
+                                .transferReceivedAt(paymentTime)
+                                .status(newStatus)
+                                .stellarTransactions(
+                                    StellarTransaction.addOrUpdateTransactions(
+                                        txn.getStellarTransactions(), stellarTransaction))
+                                .id(txn.getId())
+                                .build())
+                        .build()))
+            .build();
+    debugF("Patching transaction {}.", txn.getId());
+    traceF("Patching transaction {} with request {}.", txn.getId(), patchTransactionsRequest);
+    platformApiClient.patchTransaction(patchTransactionsRequest);
   }
 
-  @Override
-  public void onSent(ObservedPayment payment) {}
-
-  public void handleSep24Transaction(ObservedPayment payment, JdbcSep24Transaction txn)
+  void handleSep24Transaction(ObservedPayment payment, JdbcSep24Transaction txn)
       throws AnchorException, IOException {
     // Compare asset code
     String paymentAssetName = "stellar:" + payment.getAssetName();
     String txnAssetName =
         "stellar:" + txn.getRequestAssetCode() + ":" + txn.getRequestAssetIssuer();
     if (!txnAssetName.equals(paymentAssetName)) {
-      Log.warnF(
+      warnF(
           "Payment asset {} does not match the expected asset {}.",
           payment.getAssetCode(),
           txn.getAmountInAsset());
@@ -216,6 +230,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
     // parse payment creation time
     Instant paymentTime = parsePaymentTime(payment.getCreatedAt());
     // Build Stellar Transaction object
+    debugF("Building StellarTransaction for payment {}.", payment.getId());
     StellarTransaction stellarTransaction =
         StellarTransaction.builder()
             .id(payment.getTransactionHash())
@@ -255,23 +270,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
     }
 
     // Patch transaction
-    PatchTransactionsRequest patchTransactionsRequest =
-        PatchTransactionsRequest.builder()
-            .records(
-                Collections.singletonList(
-                    PatchTransactionRequest.builder()
-                        .transaction(
-                            PlatformTransactionData.builder()
-                                .updatedAt(paymentTime)
-                                .status(newStatus)
-                                .stellarTransactions(
-                                    StellarTransaction.addOrUpdateTransactions(
-                                        txn.getStellarTransactions(), stellarTransaction))
-                                .id(txn.getId())
-                                .build())
-                        .build()))
-            .build();
-    platformApiClient.patchTransaction(patchTransactionsRequest);
+    patchTransaction(txn, stellarTransaction, paymentTime, newStatus);
 
     // Update metrics
     Metrics.counter(AnchorMetrics.SEP24_TRANSACTION.toString(), "status", newStatus.toString())

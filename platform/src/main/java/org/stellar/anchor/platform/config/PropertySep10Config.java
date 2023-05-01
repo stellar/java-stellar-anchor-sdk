@@ -1,14 +1,18 @@
 package org.stellar.anchor.platform.config;
 
 import static java.lang.String.format;
+import static org.stellar.anchor.util.NetUtil.getDomainFromURL;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 import static org.stellar.anchor.util.StringHelper.isNotEmpty;
 
+import java.net.MalformedURLException;
 import java.util.List;
+import javax.annotation.PostConstruct;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
+import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.SecretConfig;
 import org.stellar.anchor.config.Sep10Config;
 import org.stellar.anchor.util.ListHelper;
@@ -18,7 +22,7 @@ import org.stellar.sdk.KeyPair;
 @Data
 public class PropertySep10Config implements Sep10Config, Validator {
   private Boolean enabled;
-  private String homeDomain;
+  private String webAuthDomain;
   private boolean clientAttributionRequired = false;
   private Integer authTimeout = 900;
   private Integer jwtTimeout = 86400;
@@ -26,10 +30,19 @@ public class PropertySep10Config implements Sep10Config, Validator {
   private List<String> clientAttributionAllowList;
   private List<String> omnibusAccountList;
   private boolean requireKnownOmnibusAccount;
+  private AppConfig appConfig;
   private SecretConfig secretConfig;
 
-  public PropertySep10Config(SecretConfig secretConfig) {
+  public PropertySep10Config(AppConfig appConfig, SecretConfig secretConfig) {
+    this.appConfig = appConfig;
     this.secretConfig = secretConfig;
+  }
+
+  @PostConstruct
+  public void postConstruct() throws MalformedURLException {
+    if (isEmpty(webAuthDomain)) {
+      webAuthDomain = getDomainFromURL(appConfig.getHostUrl());
+    }
   }
 
   @Override
@@ -70,12 +83,12 @@ public class PropertySep10Config implements Sep10Config, Validator {
           "Please set the secret.sep10.jwt_secret or SECRET_SEP10_JWT_SECRET environment variable");
     }
 
-    if (isNotEmpty(homeDomain)) {
-      if (!NetUtil.isServerPortValid(homeDomain)) {
+    if (isNotEmpty(webAuthDomain)) {
+      if (!NetUtil.isServerPortValid(webAuthDomain)) {
         errors.rejectValue(
-            "homeDomain",
-            "sep10-home-domain-invalid",
-            "The sep10.home_domain does not have valid format.");
+            "webAuthDomain",
+            "sep10-web-auth-domain-invalid",
+            "The sep10.web_auth_domain does not have valid format.");
       }
     }
 

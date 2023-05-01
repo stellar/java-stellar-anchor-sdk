@@ -1,5 +1,7 @@
 package org.stellar.anchor.platform.service;
 
+import static org.stellar.anchor.sep24.Sep24Service.INTERACTIVE_URL_JWT_REQUIRED_FIELDS;
+import static org.stellar.anchor.sep9.Sep9Fields.extractSep9Fields;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 
 import java.net.URI;
@@ -25,8 +27,8 @@ public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
 
   @Override
   @SneakyThrows
-  public String construct(Sep24Transaction txn, String lang, HashMap<String, String> sep9Fields) {
-    String token = constructToken(txn, lang, sep9Fields);
+  public String construct(Sep24Transaction txn, Map<String, String> request) {
+    String token = constructToken(txn, request);
     String baseUrl = config.getBaseUrl();
     URI uri = new URI(baseUrl);
     return new URIBuilder()
@@ -43,7 +45,7 @@ public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
   }
 
   @SneakyThrows
-  String constructToken(Sep24Transaction txn, String lang, HashMap<String, String> sep9Fields) {
+  String constructToken(Sep24Transaction txn, Map<String, String> request) {
     String account =
         (isEmpty(txn.getSep10AccountMemo()))
             ? txn.getSep10Account()
@@ -56,15 +58,22 @@ public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
             txn.getClientDomain());
 
     Map<String, String> data = new HashMap<>();
-    // Add lang field
-    if (lang != null) {
-      data.put("lang", lang);
-    }
-    data.putAll(sep9Fields);
+    data.putAll(extractSep9Fields(request));
+    data.putAll(extractInteractiveUrlJWTFields(request));
 
     // Add fields defined in txnFields
     UrlConstructorHelper.addTxnFields(data, txn, config.getTxnFields());
     token.claim("data", data);
     return jwtService.encode(token);
+  }
+
+  public static Map<String, String> extractInteractiveUrlJWTFields(Map<String, String> request) {
+    Map<String, String> fields = new HashMap<>();
+    for (Map.Entry<String, String> entry : request.entrySet()) {
+      if (INTERACTIVE_URL_JWT_REQUIRED_FIELDS.contains(entry.getKey())) {
+        fields.put(entry.getKey(), entry.getValue());
+      }
+    }
+    return fields;
   }
 }

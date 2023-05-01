@@ -72,7 +72,6 @@ subprojects {
     implementation(rootProject.libs.bundles.kafka)
     implementation(rootProject.libs.spring.kafka)
     implementation(rootProject.libs.log4j.template.json)
-    implementation(rootProject.libs.stellar.wallet.sdk)
 
     // Although the following libraries are transitive dependencies, we are including them here to
     // override the version
@@ -131,7 +130,7 @@ subprojects {
 
 allprojects {
   group = "org.stellar.anchor-sdk"
-  version = "2.0.0-rc.1"
+  version = "2.0.0-rc.2"
 
   tasks.jar {
     manifest {

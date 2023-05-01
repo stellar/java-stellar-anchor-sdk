@@ -12,16 +12,20 @@ import org.junit.jupiter.params.provider.NullSource
 import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.validation.BindException
 import org.springframework.validation.Errors
+import org.stellar.anchor.config.AppConfig
 
 class Sep10ConfigTest {
   lateinit var config: PropertySep10Config
   lateinit var errors: Errors
   lateinit var secretConfig: PropertySecretConfig
+  lateinit var appConfig: AppConfig
 
   @BeforeEach
   fun setUp() {
     secretConfig = mockk()
-    config = PropertySep10Config(secretConfig)
+    appConfig = mockk()
+
+    config = PropertySep10Config(appConfig, secretConfig)
     config.enabled = true
     errors = BindException(config, "config")
     every { secretConfig.sep10SigningSeed } returns
@@ -117,7 +121,7 @@ class Sep10ConfigTest {
   @ParameterizedTest
   @ValueSource(strings = ["stellar.org", "moneygram.com"])
   fun `test valid home domains`(value: String) {
-    config.homeDomain = value
+    config.webAuthDomain = value
     config.validateConfig(errors)
     assertFalse(errors.hasErrors())
   }
@@ -133,11 +137,27 @@ class Sep10ConfigTest {
 
   @ParameterizedTest
   @ValueSource(strings = ["stellar .org", "abc", "299.0.0.1"])
-  fun `test invalid home domains`(value: String) {
-    config.homeDomain = value
+  fun `test invalid web auth domains`(value: String) {
+    config.webAuthDomain = value
     config.validateConfig(errors)
     assertTrue(errors.hasErrors())
-    assertErrorCode(errors, "sep10-home-domain-invalid")
+    assertErrorCode(errors, "sep10-web-auth-domain-invalid")
+  }
+
+  @Test
+  fun `test if web_auth_domain is not set, default to the domain of the host_url`() {
+    config.webAuthDomain = null
+    every { appConfig.hostUrl } returns "https://www.stellar.org"
+    config.postConstruct()
+    assertEquals("www.stellar.org", config.webAuthDomain)
+  }
+
+  @Test
+  fun `test if web_auth_domain is  set, it is not default to the domain of the host_url`() {
+    config.webAuthDomain = "localhost:8080"
+    every { appConfig.hostUrl } returns "https://www.stellar.org"
+    config.postConstruct()
+    assertEquals("localhost:8080", config.webAuthDomain)
   }
 
   companion object {

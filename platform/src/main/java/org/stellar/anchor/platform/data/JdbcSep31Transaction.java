@@ -30,8 +30,6 @@ public class JdbcSep31Transaction extends JdbcSepTransaction
     return "31";
   }
 
-  @Id String id;
-
   @SerializedName("status_eta")
   @Column(name = "status_eta")
   Long statusEta;
