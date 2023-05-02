@@ -11,16 +11,15 @@ import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 import org.stellar.anchor.auth.AuthConfig;
 import org.stellar.anchor.auth.AuthType;
-import org.stellar.anchor.config.SecretConfig;
 import org.stellar.anchor.util.NetUtil;
 
 @Data
 public class CustodyApiConfig implements Validator {
   private String baseUrl;
   private AuthConfig auth;
-  private SecretConfig secretConfig;
+  private CustodySecretConfig secretConfig;
 
-  public CustodyApiConfig(SecretConfig secretConfig) {
+  public CustodyApiConfig(CustodySecretConfig secretConfig) {
     this.secretConfig = secretConfig;
   }
 

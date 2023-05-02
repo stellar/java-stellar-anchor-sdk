@@ -30,7 +30,6 @@ data class PatchTransactionTransaction(
   val id: String,
   val status: String,
   val message: String? = null,
-  @SerialName("kyc_verified") val kycVerified: String? = null,
   @SerialName("amount_in") val amountIn: Amount? = null,
   @SerialName("amount_out") val amountOut: Amount? = null,
   @SerialName("amount_fee") val amountFee: Amount? = null,

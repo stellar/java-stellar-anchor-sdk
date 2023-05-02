@@ -22,6 +22,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.InternalServerErrorException;
@@ -272,7 +273,6 @@ public class TransactionService {
         }
 
         txnUpdated = updateField(patch, sep24Txn, "message", txnUpdated);
-        txnUpdated = updateField(patch, sep24Txn, "kycVerified", txnUpdated);
 
         // update refunds
         if (patch.getRefunds() != null) {
@@ -355,6 +355,25 @@ public class TransactionService {
         .noneMatch(assetInfo -> assetInfo.getAssetName().equals(amount.getAsset()))) {
       throw new BadRequestException(
           String.format("'%s' is not a supported asset.", amount.getAsset()));
+    }
+
+    List<AssetInfo> allAssets =
+        assets.stream()
+            .filter(assetInfo -> assetInfo.getAssetName().equals(amount.getAsset()))
+            .collect(Collectors.toList());
+
+    if (allAssets.size() == 1) {
+      AssetInfo targetAsset = allAssets.get(0);
+
+      if (targetAsset.getSignificantDecimals() != null) {
+        // Check that significant decimal is correct
+        if (decimal(amount.getAmount(), targetAsset).compareTo(decimal(amount.getAmount())) != 0) {
+          throw new BadRequestException(
+              String.format(
+                  "'%s' has invalid significant decimals. Expected: '%s'",
+                  amount.getAmount(), targetAsset.getSignificantDecimals()));
+        }
+      }
     }
   }
 

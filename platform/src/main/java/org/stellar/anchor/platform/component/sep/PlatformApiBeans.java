@@ -8,12 +8,12 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtService;
-import org.stellar.anchor.config.SecretConfig;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.filter.ApiKeyFilter;
 import org.stellar.anchor.filter.JwtTokenFilter;
 import org.stellar.anchor.filter.NoneFilter;
 import org.stellar.anchor.platform.config.CustodyApiConfig;
+import org.stellar.anchor.platform.config.CustodySecretConfig;
 import org.stellar.anchor.platform.config.PlatformApiConfig;
 import org.stellar.anchor.platform.custody.CustodyApiClient;
 import org.stellar.anchor.platform.service.TransactionService;
@@ -79,7 +79,7 @@ public class PlatformApiBeans {
 
   @Bean
   @ConfigurationProperties(prefix = "custody-server")
-  public CustodyApiConfig custodyApiConfig(SecretConfig secretConfig) {
-    return new CustodyApiConfig(secretConfig);
+  public CustodyApiConfig custodyApiConfig(CustodySecretConfig custodySecretConfig) {
+    return new CustodyApiConfig(custodySecretConfig);
   }
 }

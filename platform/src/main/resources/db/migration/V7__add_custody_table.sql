@@ -12,7 +12,7 @@ CREATE TABLE custody_transaction (
    protocol VARCHAR(255),
    from_account VARCHAR(255),
    to_account VARCHAR(255),
-   kind VARCHAR(255)
+   kind VARCHAR(255),
    CONSTRAINT pk_custody_transaction PRIMARY KEY (id)
 );
 

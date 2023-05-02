@@ -30,6 +30,7 @@ import org.stellar.anchor.api.sep.sep31.*
 import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionRequest.Sep31TxnFields
 import org.stellar.anchor.api.sep.sep38.RateFee
 import org.stellar.anchor.api.shared.Amount
+import org.stellar.anchor.api.shared.SepDepositInfo
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.auth.JwtService
@@ -747,7 +748,7 @@ class Sep31ServiceTest {
         var memo = StringUtils.truncate(tx.id, 32)
         memo = StringUtils.leftPad(memo, 32, '0')
         memo = String(Base64.getEncoder().encode(memo.toByteArray()))
-        Sep31DepositInfo(tx.stellarAccountId, memo, "hash")
+        SepDepositInfo(tx.stellarAccountId, memo, "hash")
       }
 
     // mock transaction save
@@ -863,7 +864,7 @@ class Sep31ServiceTest {
   @Test
   fun `test post transaction when quote is not supported`() {
     every { sep31DepositInfoGenerator.generate(any()) } returns
-      Sep31DepositInfo("GA7FYRB5VREZKOBIIKHG5AVTPFGWUBPOBF7LTYG4GTMFVIOOD2DWAL7I", "123456", "id")
+      SepDepositInfo("GA7FYRB5VREZKOBIIKHG5AVTPFGWUBPOBF7LTYG4GTMFVIOOD2DWAL7I", "123456", "id")
 
     every { txnStore.save(any()) } answers
       {

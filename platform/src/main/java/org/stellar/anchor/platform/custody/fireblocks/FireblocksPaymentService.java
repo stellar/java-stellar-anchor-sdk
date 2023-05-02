@@ -19,12 +19,12 @@ public class FireblocksPaymentService implements PaymentService {
   private static final String CREATE_NEW_DEPOSIT_ADDRESS_URL_FORMAT =
       "/vault/accounts/%s/%s/addresses";
 
-  private final FireblocksClient fireblocksClient;
+  private final FireblocksApiClient fireblocksApiClient;
   private final FireblocksConfig fireblocksConfig;
 
   public FireblocksPaymentService(
-      FireblocksClient fireblocksClient, FireblocksConfig fireblocksConfig) {
-    this.fireblocksClient = fireblocksClient;
+      FireblocksApiClient fireblocksApiClient, FireblocksConfig fireblocksConfig) {
+    this.fireblocksApiClient = fireblocksApiClient;
     this.fireblocksConfig = fireblocksConfig;
   }
 
@@ -34,7 +34,7 @@ public class FireblocksPaymentService implements PaymentService {
     CreateNewDepositAddressRequestDto request = new CreateNewDepositAddressRequestDto();
     CreateNewDepositAddressResponseDto depositAddress =
         gson.fromJson(
-            fireblocksClient.post(
+            fireblocksApiClient.post(
                 String.format(
                     CREATE_NEW_DEPOSIT_ADDRESS_URL_FORMAT,
                     fireblocksConfig.getVaultAccountId(),

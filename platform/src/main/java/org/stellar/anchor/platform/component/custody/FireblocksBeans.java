@@ -4,35 +4,48 @@ import java.util.concurrent.TimeUnit;
 import okhttp3.OkHttpClient;
 import okhttp3.OkHttpClient.Builder;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.stellar.anchor.config.SecretConfig;
+import org.stellar.anchor.api.exception.InvalidConfigException;
+import org.stellar.anchor.platform.config.CustodySecretConfig;
 import org.stellar.anchor.platform.config.FireblocksConfig;
 import org.stellar.anchor.platform.custody.PaymentService;
-import org.stellar.anchor.platform.custody.fireblocks.FireblocksClient;
+import org.stellar.anchor.platform.custody.fireblocks.FireblocksApiClient;
+import org.stellar.anchor.platform.custody.fireblocks.FireblocksEventService;
 import org.stellar.anchor.platform.custody.fireblocks.FireblocksPaymentService;
 import org.stellar.anchor.platform.job.FireblocksTransactionsReconciliationJob;
-import org.stellar.anchor.platform.service.FireblocksEventsService;
 
 @Configuration
 @ConditionalOnProperty(value = "custody.type", havingValue = "fireblocks")
 public class FireblocksBeans {
+
+  @Bean
+  @ConfigurationProperties(prefix = "custody.fireblocks")
+  FireblocksConfig fireblocksConfig(CustodySecretConfig custodySecretConfig) {
+    return new FireblocksConfig(custodySecretConfig);
+  }
+
   @Bean
   FireblocksTransactionsReconciliationJob reconciliationJob() {
     return new FireblocksTransactionsReconciliationJob();
   }
 
   @Bean
-  FireblocksEventsService fireblocksEventsService(
-      @Value("${custody.fireblocks.public_key}") String publicKey) {
-    return new FireblocksEventsService(publicKey);
+  FireblocksApiClient fireblocksApiClient(
+      @Qualifier("fireblocksHttpClient") OkHttpClient httpClient, FireblocksConfig fireblocksConfig)
+      throws InvalidConfigException {
+    return new FireblocksApiClient(httpClient, fireblocksConfig);
   }
 
   @Bean
-  @Qualifier("fireblocksHttpClient")
+  FireblocksEventService fireblocksEventsService(FireblocksConfig fireblocksConfig)
+      throws InvalidConfigException {
+    return new FireblocksEventService(fireblocksConfig);
+  }
+
+  @Bean(name = "fireblocksHttpClient")
   OkHttpClient fireblocksHttpClient() {
     return new Builder()
         .connectTimeout(10, TimeUnit.SECONDS)
@@ -43,21 +56,8 @@ public class FireblocksBeans {
   }
 
   @Bean
-  FireblocksClient fireblocksClient(
-      @Qualifier("fireblocksHttpClient") OkHttpClient httpClient,
-      FireblocksConfig fireblocksConfig) {
-    return new FireblocksClient(httpClient, fireblocksConfig);
-  }
-
-  @Bean
   PaymentService paymentService(
-      FireblocksClient fireblocksClient, FireblocksConfig fireblocksConfig) {
-    return new FireblocksPaymentService(fireblocksClient, fireblocksConfig);
-  }
-
-  @Bean
-  @ConfigurationProperties(prefix = "custody.fireblocks")
-  FireblocksConfig fireblocksConfig(SecretConfig secretConfig) {
-    return new FireblocksConfig(secretConfig);
+      FireblocksApiClient fireblocksApiClient, FireblocksConfig fireblocksConfig) {
+    return new FireblocksPaymentService(fireblocksApiClient, fireblocksConfig);
   }
 }

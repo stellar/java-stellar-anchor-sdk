@@ -22,7 +22,7 @@ class CustodyApiClientTest {
 
   private val gson = GsonUtils.getInstance()
 
-  @MockK(relaxed = true) private lateinit var fireblocksClient: FireblocksClient
+  @MockK(relaxed = true) private lateinit var fireblocksClient: FireblocksApiClient
   @MockK(relaxed = true) private lateinit var fireblocksConfig: FireblocksConfig
 
   private lateinit var fireblocksPaymentService: FireblocksPaymentService

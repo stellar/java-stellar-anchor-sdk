@@ -15,20 +15,20 @@ import org.stellar.anchor.util.FileUtil
 class FireblocksConfigTest {
 
   private lateinit var config: FireblocksConfig
-  private lateinit var secretConfig: PropertySecretConfig
+  private lateinit var secretConfig: PropertyCustodySecretConfig
   private lateinit var errors: Errors
 
   @BeforeEach
   fun setUp() {
     secretConfig = mockk()
     every { secretConfig.fireblocksApiKey } returns "testApiKey"
-    every { secretConfig.fireblocksSecretKey } returns "testSecretKey"
+    every { secretConfig.fireblocksSecretKey } returns
+      FileUtil.getResourceFileAsString("custody/fireblocks/client/secret_key.txt")
     config = FireblocksConfig(secretConfig)
     config.baseUrl = "https://test.com"
     config.vaultAccountId = "testAccountId"
     config.transactionsReconciliationCron = "* * * * * *"
-    config.publicKey =
-      FileUtil.getResourceFileAsString("custody/api/webhook/fireblocks/public_key.txt")
+    config.publicKey = FileUtil.getResourceFileAsString("custody/fireblocks/client/public_key.txt")
     errors = BindException(config, "config")
   }
 
@@ -88,6 +88,17 @@ class FireblocksConfigTest {
     every { secretConfig.fireblocksSecretKey } returns secretKey
     config.validate(config, errors)
     assertErrorCode(errors, "secret-custody-fireblocks-secret-key-empty")
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+    strings =
+      ["test_certificate", "-----BEGIN PRIVATE KEY----- test_certificate -----END PRIVATE KEY-----"]
+  )
+  fun `test invalid secret_key`(secretKey: String) {
+    every { secretConfig.fireblocksSecretKey } returns secretKey
+    config.validate(config, errors)
+    assertErrorCode(errors, "secret-custody-fireblocks-secret_key-invalid")
   }
 
   @Test

@@ -31,10 +31,6 @@ public class JdbcSep24Transaction extends JdbcSepTransaction
   @Column(name = "status_eta")
   String statusEta;
 
-  @SerializedName("kyc_verified")
-  @Column(name = "kyc_verified")
-  Boolean kycVerified;
-
   @SerializedName("more_info_url")
   @Column(name = "more_info_url")
   String moreInfoUrl;

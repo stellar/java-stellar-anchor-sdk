@@ -58,12 +58,12 @@ class CustodyApiClientTest {
     val response =
       getMockResponse(
         200,
-        getResourceFileAsString("custody/apiClient/create_custody_transaction_response.json")
+        getResourceFileAsString("custody/api/client/create_custody_transaction_response.json")
       )
     val requestCapture = slot<Request>()
     val call = mockk<Call>()
     val requestJson =
-      getResourceFileAsString("custody/apiClient/create_custody_transaction_request.json")
+      getResourceFileAsString("custody/api/client/create_custody_transaction_request.json")
     val request = gson.fromJson(requestJson, CreateCustodyTransactionRequest::class.java)
 
     every { httpClient.newCall(capture(requestCapture)) } returns call
@@ -87,7 +87,7 @@ class CustodyApiClientTest {
   fun test_createCustodyTransaction_fail_IOException() {
     val call = mockk<Call>()
     val requestJson =
-      getResourceFileAsString("custody/apiClient/create_custody_transaction_request.json")
+      getResourceFileAsString("custody/api/client/create_custody_transaction_request.json")
     val request = gson.fromJson(requestJson, CreateCustodyTransactionRequest::class.java)
 
     every { httpClient.newCall(any()) } returns call
@@ -102,11 +102,11 @@ class CustodyApiClientTest {
   @Test
   fun test_createCustodyTransaction_fail_errorStatusCode() {
     val response =
-      getMockResponse(400, getResourceFileAsString("custody/apiClient/error_response_body.json"))
+      getMockResponse(400, getResourceFileAsString("custody/api/client/error_response_body.json"))
     val requestCapture = slot<Request>()
     val call = mockk<Call>()
     val requestJson =
-      getResourceFileAsString("custody/apiClient/create_custody_transaction_request.json")
+      getResourceFileAsString("custody/api/client/create_custody_transaction_request.json")
     val request = gson.fromJson(requestJson, CreateCustodyTransactionRequest::class.java)
 
     every { httpClient.newCall(capture(requestCapture)) } returns call
@@ -130,7 +130,7 @@ class CustodyApiClientTest {
   @Test
   fun test_generateDepositAddress_success() {
     val responseJson =
-      getResourceFileAsString("custody/apiClient/generate_deposit_address_response.json")
+      getResourceFileAsString("custody/api/client/generate_deposit_address_response.json")
     val response = getMockResponse(200, responseJson)
     val requestCapture = slot<Request>()
     val call = mockk<Call>()

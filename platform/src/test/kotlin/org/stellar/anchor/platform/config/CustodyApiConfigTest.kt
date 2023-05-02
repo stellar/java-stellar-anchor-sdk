@@ -13,12 +13,11 @@ import org.springframework.validation.Errors
 import org.stellar.anchor.auth.AuthConfig
 import org.stellar.anchor.auth.AuthType.JWT
 import org.stellar.anchor.auth.AuthType.NONE
-import org.stellar.anchor.config.SecretConfig
 
 class CustodyApiConfigTest {
 
   private lateinit var config: CustodyApiConfig
-  private lateinit var secretConfig: SecretConfig
+  private lateinit var secretConfig: CustodySecretConfig
   private lateinit var errors: Errors
 
   @BeforeEach

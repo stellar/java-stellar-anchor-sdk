@@ -13,13 +13,7 @@ public interface SecretConfig {
 
   String getPlatformApiSecret();
 
-  String getCustodyApiSecret();
-
   String getDataSourceUsername();
 
   String getDataSourcePassword();
-
-  String getFireblocksApiKey();
-
-  String getFireblocksSecretKey();
 }
