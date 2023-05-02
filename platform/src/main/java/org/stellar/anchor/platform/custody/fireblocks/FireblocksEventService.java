@@ -1,8 +1,6 @@
 package org.stellar.anchor.platform.custody.fireblocks;
 
-import static org.stellar.anchor.platform.utils.RSAUtil.RSA_ALGORITHM;
 import static org.stellar.anchor.platform.utils.RSAUtil.SHA512_WITH_RSA_ALGORITHM;
-import static org.stellar.anchor.platform.utils.RSAUtil.generatePublicKey;
 import static org.stellar.anchor.platform.utils.RSAUtil.isValidSignature;
 import static org.stellar.anchor.util.Log.debugF;
 import static org.stellar.anchor.util.Log.info;
@@ -12,8 +10,6 @@ import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.SignatureException;
-import java.security.spec.InvalidKeySpecException;
-import java.util.List;
 import java.util.Map;
 import org.stellar.anchor.api.custody.fireblocks.FireblocksEventObject;
 import org.stellar.anchor.api.exception.BadRequestException;
@@ -28,7 +24,7 @@ public class FireblocksEventService {
   private final PublicKey publicKey;
 
   public FireblocksEventService(FireblocksConfig fireblocksConfig) throws InvalidConfigException {
-    publicKey = getFireblocksPublicKey(fireblocksConfig.getPublicKey());
+    publicKey = fireblocksConfig.getFireblocksPublicKey();
   }
 
   /**
@@ -61,19 +57,6 @@ public class FireblocksEventService {
       }
     } catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
       throw new BadRequestException("Signature validation failed", e);
-    }
-  }
-
-  /**
-   * Get Fireblocks public key
-   *
-   * @return public key
-   */
-  private PublicKey getFireblocksPublicKey(String publicKey) throws InvalidConfigException {
-    try {
-      return generatePublicKey(publicKey, RSA_ALGORITHM);
-    } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
-      throw new InvalidConfigException(List.of("Failed to generate Fireblocks public key"), e);
     }
   }
 
