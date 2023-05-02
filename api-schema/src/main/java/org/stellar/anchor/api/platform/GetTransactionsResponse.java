@@ -6,5 +6,4 @@ import lombok.Data;
 @Data
 public class GetTransactionsResponse {
   List<GetTransactionResponse> records;
-  String cursor;
 }

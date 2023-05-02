@@ -88,6 +88,17 @@ public class TransactionService {
     }
   }
 
+  public GetTransactionsResponse getTransactionsResponse(
+      TransactionsSeps sep,
+      Instant to,
+      Instant from,
+      TransactionsOrderBy order_by,
+      Integer limit,
+      Integer offset)
+      throws AnchorException {
+    throw new NotFoundException("Not implemented");
+  }
+
   /**
    * Fetch the transaction.
    *

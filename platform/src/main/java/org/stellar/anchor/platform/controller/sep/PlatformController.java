@@ -1,13 +1,14 @@
 package org.stellar.anchor.platform.controller.sep;
 
+import static org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME;
+
+import java.time.Instant;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.stellar.anchor.api.exception.AnchorException;
-import org.stellar.anchor.api.exception.NotFoundException;
-import org.stellar.anchor.api.platform.GetTransactionResponse;
-import org.stellar.anchor.api.platform.PatchTransactionsRequest;
-import org.stellar.anchor.api.platform.PatchTransactionsResponse;
+import org.stellar.anchor.api.platform.*;
 import org.stellar.anchor.platform.service.TransactionService;
 
 @RestController
@@ -45,7 +46,15 @@ public class PlatformController {
   @RequestMapping(
       value = "/transactions",
       method = {RequestMethod.GET})
-  public GetTransactionResponse getTransactions() throws AnchorException {
-    throw new NotFoundException("Not implemented");
+  public GetTransactionsResponse getTransactions(
+      @RequestParam(value = "sep") TransactionsSeps sep,
+      @RequestParam(required = false, value = "to") @DateTimeFormat(iso = DATE_TIME) Instant to,
+      @RequestParam(required = false, value = "from") @DateTimeFormat(iso = DATE_TIME) Instant from,
+      @RequestParam(required = false, value = "order_by", defaultValue = "created_at")
+          TransactionsOrderBy order_by,
+      @RequestParam(required = false, value = "limit", defaultValue = "200") Integer limit,
+      @RequestParam(required = false, value = "offset", defaultValue = "0") Integer offset)
+      throws AnchorException {
+    return transactionService.getTransactionsResponse(sep, to, from, order_by, limit, offset);
   }
 }
