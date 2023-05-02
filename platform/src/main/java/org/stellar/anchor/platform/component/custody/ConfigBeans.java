@@ -15,7 +15,7 @@ public class ConfigBeans {
   }
 
   @Bean
-  CustodySecretConfig secretConfig() {
+  CustodySecretConfig custodySecretConfig() {
     return new PropertyCustodySecretConfig();
   }
 }
