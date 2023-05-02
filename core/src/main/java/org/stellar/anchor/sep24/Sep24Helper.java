@@ -7,7 +7,6 @@ import static org.stellar.anchor.util.MathHelper.decimal;
 import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import org.springframework.beans.BeanUtils;
 import org.stellar.anchor.api.sep.AssetInfo;
@@ -18,27 +17,6 @@ import org.stellar.anchor.auth.Sep10Jwt;
 import org.stellar.anchor.config.Sep24Config;
 
 public class Sep24Helper {
-  static final List<String> needsMoreInfoUrlDeposit =
-      Arrays.asList(
-          INCOMPLETE.toString(),
-          PENDING_USR_TRANSFER_START.toString(),
-          PENDING_USR_TRANSFER_COMPLETE.toString(),
-          COMPLETED.toString(),
-          REFUNDED.toString(),
-          PENDING_EXTERNAL.toString(),
-          PENDING_ANCHOR.toString(),
-          PENDING_USER.toString());
-  static final List<String> needsMoreInfoUrlWithdraw =
-      Arrays.asList(
-          INCOMPLETE.toString(),
-          PENDING_USR_TRANSFER_START.toString(),
-          PENDING_USR_TRANSFER_COMPLETE.toString(),
-          COMPLETED.toString(),
-          REFUNDED.toString(),
-          PENDING_EXTERNAL.toString(),
-          PENDING_ANCHOR.toString(),
-          PENDING_USER.toString());
-
   static void setSharedTransactionResponseFields(TransactionResponse txnR, Sep24Transaction txn) {
     txnR.setId(txn.getTransactionId());
     if (txn.getFromAccount() != null) txnR.setFrom(txn.getFromAccount());
