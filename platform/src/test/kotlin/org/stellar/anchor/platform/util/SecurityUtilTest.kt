@@ -28,11 +28,13 @@ import org.stellar.anchor.util.FileUtil.getResourceFileAsString
 
 class SecurityUtilTest {
 
-  private val signature: String = getResourceFileAsString("custody/signature.txt")
-  private val eventObject: String = getCompactJsonString("custody/webhook_request.json")
+  private val signature: String =
+    getResourceFileAsString("custody/api/webhook/fireblocks/signature.txt")
+  private val eventObject: String =
+    getCompactJsonString("custody/api/webhook/fireblocks/webhook_request.json")
 
   @ParameterizedTest
-  @ValueSource(strings = ["custody/public_key.txt"])
+  @ValueSource(strings = ["custody/api/webhook/fireblocks/public_key.txt"])
   fun `test valid public key`(fileName: String) {
     var publicKey: String = getResourceFileAsString(fileName)
     assertNotNull(generatePublicKey(publicKey, RSA_ALGORITHM))
@@ -78,7 +80,7 @@ class SecurityUtilTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = ["custody/public_key.txt"])
+  @ValueSource(strings = ["custody/api/webhook/fireblocks/public_key.txt"])
   fun `test isSignatureValid() returns true for valid signature, eventObject, public key and algorithm`(
     fileName: String
   ) {
@@ -90,7 +92,7 @@ class SecurityUtilTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = ["custody/public_key.txt"])
+  @ValueSource(strings = ["custody/api/webhook/fireblocks/public_key.txt"])
   fun `test isSignatureValid() for invalid signature`(fileName: String) {
     val publicKeyString: String = getResourceFileAsString(fileName)
     val publicKey: PublicKey = generatePublicKey(publicKeyString, RSA_ALGORITHM)
@@ -103,7 +105,7 @@ class SecurityUtilTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = ["custody/public_key.txt"])
+  @ValueSource(strings = ["custody/api/webhook/fireblocks/public_key.txt"])
   fun `test isSignatureValid() for invalid data`(fileName: String) {
     val publicKeyString: String = getResourceFileAsString(fileName)
     val publicKey: PublicKey = generatePublicKey(publicKeyString, RSA_ALGORITHM)
@@ -126,7 +128,7 @@ class SecurityUtilTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = ["custody/public_key.txt"])
+  @ValueSource(strings = ["custody/api/webhook/fireblocks/public_key.txt"])
   fun `test isSignatureValid() for invalid algorithm`(fileName: String) {
     val publicKeyString: String = getResourceFileAsString(fileName)
     val publicKey: PublicKey = generatePublicKey(publicKeyString, RSA_ALGORITHM)

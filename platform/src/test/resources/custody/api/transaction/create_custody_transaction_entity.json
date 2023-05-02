@@ -10,7 +10,5 @@
   "protocol": "testProtocol",
   "from_account": "testFromAccount",
   "to_account": "testToAccount",
-  "kind": "testKind",
-  "request_asset_code": "testRequestAssetCode",
-  "request_asset_issuer": "testRequestAssetIssuer"
+  "kind": "testKind"
 }

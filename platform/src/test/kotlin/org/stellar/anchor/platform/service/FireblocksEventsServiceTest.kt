@@ -17,12 +17,13 @@ class FireblocksEventsServiceTest {
 
   @Test
   fun `test handleFireblocksEvent() for valid event object and signature`() {
-    val publicKeyString = getResourceFileAsString("custody/public_key.txt")
+    val publicKeyString = getResourceFileAsString("custody/api/webhook/fireblocks/public_key.txt")
     val eventsService = spyk(FireblocksEventsService(publicKeyString))
 
-    val signature: String = getResourceFileAsString("custody/signature.txt")
+    val signature: String = getResourceFileAsString("custody/api/webhook/fireblocks/signature.txt")
     val httpHeaders: Map<String, String> = mutableMapOf(FIREBLOCKS_SIGNATURE_HEADER to signature)
-    val eventObject: String = getCompactJsonString("custody/webhook_request.json")
+    val eventObject: String =
+      getCompactJsonString("custody/api/webhook/fireblocks/webhook_request.json")
 
     eventsService.handleFireblocksEvent(eventObject, httpHeaders)
   }
@@ -57,13 +58,14 @@ class FireblocksEventsServiceTest {
 
   @Test
   fun `test handleFireblocksEvent() for invalid signature`() {
-    val publicKeyString = getResourceFileAsString("custody/public_key.txt")
+    val publicKeyString = getResourceFileAsString("custody/api/webhook/fireblocks/public_key.txt")
     val eventsService = spyk(FireblocksEventsService(publicKeyString))
 
     val invalidSignature =
       "Yww6co109EfZ6BBam0zr1ewhv2gB3sFrfzcmbEFTttGp6GYVNEOslcMIMbjrFsFtkiEIO5ogvPI7Boz7y" +
         "QUiXqh92Spj1aG5NoGDdjiW2ozTJxKq7ECK9IsS5vTjIxnBXUIXokCAN2BuiyA8d7LciJ6HwzS+DIvFNyvv7uKU6O0="
-    val eventObject: String = getCompactJsonString("custody/webhook_request.json")
+    val eventObject: String =
+      getCompactJsonString("custody/api/webhook/fireblocks/webhook_request.json")
     val httpHeaders = mutableMapOf(FIREBLOCKS_SIGNATURE_HEADER to invalidSignature)
 
     val ex =

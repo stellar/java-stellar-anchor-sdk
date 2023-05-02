@@ -78,12 +78,4 @@ public class JdbcCustodyTransaction {
   @SerializedName("kind")
   @Column(name = "kind")
   String kind;
-
-  @SerializedName("request_asset_code")
-  @Column(name = "request_asset_code")
-  String requestAssetCode;
-
-  @SerializedName("request_asset_issuer")
-  @Column(name = "request_asset_issuer")
-  String requestAssetIssuer;
 }

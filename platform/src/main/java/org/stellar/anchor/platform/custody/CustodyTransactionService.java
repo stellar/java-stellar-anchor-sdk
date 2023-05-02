@@ -30,8 +30,6 @@ public class CustodyTransactionService {
             .amountOut(request.getAmountOut())
             .amountOutAsset(request.getAmountOutAsset())
             .kind(request.getKind())
-            .requestAssetCode(request.getRequestAssetCode())
-            .requestAssetIssuer(request.getRequestAssetIssuer())
             .build());
   }
 }

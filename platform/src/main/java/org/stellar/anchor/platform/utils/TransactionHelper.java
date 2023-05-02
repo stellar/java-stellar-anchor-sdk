@@ -44,8 +44,6 @@ public class TransactionHelper {
         .amountOut(txn.getAmountOut())
         .amountOutAsset(txn.getAmountOutAsset())
         .kind(txn.getKind())
-        .requestAssetCode(txn.getRequestAssetCode())
-        .requestAssetIssuer(txn.getRequestAssetIssuer())
         .build();
   }
 
@@ -62,8 +60,6 @@ public class TransactionHelper {
         .amountOut(txn.getAmountOut())
         .amountOutAsset(txn.getAmountOutAsset())
         .kind(RECEIVE.getKind())
-        .requestAssetCode(null)
-        .requestAssetIssuer(null)
         .build();
   }
 

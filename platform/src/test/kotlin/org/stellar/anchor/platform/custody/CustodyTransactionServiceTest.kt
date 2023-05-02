@@ -34,11 +34,11 @@ class CustodyTransactionServiceTest {
   fun test_create_success() {
     val request =
       gson.fromJson(
-        getResourceFileAsString("custody/transaction/create_custody_transaction_request.json"),
+        getResourceFileAsString("custody/api/transaction/create_custody_transaction_request.json"),
         CreateCustodyTransactionRequest::class.java
       )
     val entityJson =
-      getResourceFileAsString("custody/transaction/create_custody_transaction_entity.json")
+      getResourceFileAsString("custody/api/transaction/create_custody_transaction_entity.json")
     val entityCapture = slot<JdbcCustodyTransaction>()
 
     every { custodyTransactionRepo.save(capture(entityCapture)) } returns null

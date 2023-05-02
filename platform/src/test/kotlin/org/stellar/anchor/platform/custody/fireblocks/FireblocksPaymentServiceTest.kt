@@ -39,13 +39,19 @@ class CustodyApiClientTest {
   @Test
   fun test_generateDepositAddress_success() {
     val responseJson =
-      getResourceFileAsString("custody/fireblocks/create_new_deposit_address_response.json")
+      getResourceFileAsString(
+        "custody/api/address/fireblocks/create_new_deposit_address_response.json"
+      )
     val expectedResponseJson =
-      getResourceFileAsString("custody/fireblocks/generated_deposit_address_response.json")
+      getResourceFileAsString(
+        "custody/api/address/fireblocks/generated_deposit_address_response.json"
+      )
     val requestCapture = slot<String>()
     val urlCapture = slot<String>()
     val requestJson =
-      getResourceFileAsString("custody/fireblocks/create_new_deposit_address_request.json")
+      getResourceFileAsString(
+        "custody/api/address/fireblocks/create_new_deposit_address_request.json"
+      )
 
     every { fireblocksClient.post(capture(urlCapture), capture(requestCapture)) } returns
       responseJson

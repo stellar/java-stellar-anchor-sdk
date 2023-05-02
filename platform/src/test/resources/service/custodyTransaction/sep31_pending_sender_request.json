@@ -1,0 +1,12 @@
+{
+  "id": "testId",
+  "memo": "testStellarMemo",
+  "memoType": "testStellarMemoType",
+  "protocol": "31",
+  "toAccount": "testStellarAccountId",
+  "amountIn": "testAmountIn",
+  "amountInAsset": "testAmountInAsset",
+  "amountOut": "testAmountOut",
+  "amountOutAsset": "testAmountOutAsset",
+  "kind": "receive"
+}

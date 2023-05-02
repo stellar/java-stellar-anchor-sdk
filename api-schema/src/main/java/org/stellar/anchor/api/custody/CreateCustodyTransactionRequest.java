@@ -18,6 +18,4 @@ public class CreateCustodyTransactionRequest {
   private String amountOut;
   private String amountOutAsset;
   private String kind;
-  private String requestAssetCode;
-  private String requestAssetIssuer;
 }
