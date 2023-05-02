@@ -280,21 +280,21 @@ public class Sep10Service {
         shorter(serverAccountId),
         threshold,
         signers.size());
-    //    Sep10Challenge.verifyChallengeTransactionThreshold(
-    //        challengeXdr,
-    //        serverAccountId,
-    //        new Network(appConfig.getStellarNetworkPassphrase()),
-    //        getDomainFromURL(appConfig.getHostUrl()),
-    //        sep10Config.getWebAuthDomain(),
-    //        threshold,
-    //        signers);
+        Sep10Challenge.verifyChallengeTransactionThreshold(
+            challengeXdr,
+            serverAccountId,
+            new Network(appConfig.getStellarNetworkPassphrase()),
+            getDomainFromURL(appConfig.getHostUrl()),
+            sep10Config.getWebAuthDomain(),
+            threshold,
+            signers);
 
     return clientDomain;
   }
 
   String getClientAccountId(String clientDomain) throws SepException {
     String clientSigningKey = "";
-    String url = clientDomain + "/.well-known/stellar.toml";
+    String url = "https://" + clientDomain + "/.well-known/stellar.toml";
     try {
       debugF("Fetching {}", url);
       TomlContent toml = Sep1Helper.readToml(url);
