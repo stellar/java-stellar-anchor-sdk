@@ -17,16 +17,16 @@ import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.stellar.anchor.api.exception.SepNotFoundException
-import org.stellar.anchor.platform.utils.SecurityUtil.BEGIN_PUBLIC_KEY
-import org.stellar.anchor.platform.utils.SecurityUtil.END_PUBLIC_KEY
-import org.stellar.anchor.platform.utils.SecurityUtil.RSA_ALGORITHM
-import org.stellar.anchor.platform.utils.SecurityUtil.SHA512_WITH_RSA_ALGORITHM
-import org.stellar.anchor.platform.utils.SecurityUtil.generatePublicKey
-import org.stellar.anchor.platform.utils.SecurityUtil.isValidPublicKey
-import org.stellar.anchor.platform.utils.SecurityUtil.isValidSignature
+import org.stellar.anchor.platform.utils.RSAUtil.BEGIN_PUBLIC_KEY
+import org.stellar.anchor.platform.utils.RSAUtil.END_PUBLIC_KEY
+import org.stellar.anchor.platform.utils.RSAUtil.RSA_ALGORITHM
+import org.stellar.anchor.platform.utils.RSAUtil.SHA512_WITH_RSA_ALGORITHM
+import org.stellar.anchor.platform.utils.RSAUtil.generatePublicKey
+import org.stellar.anchor.platform.utils.RSAUtil.isValidPublicKey
+import org.stellar.anchor.platform.utils.RSAUtil.isValidSignature
 import org.stellar.anchor.util.FileUtil.getResourceFileAsString
 
-class SecurityUtilTest {
+class RSAUtilTest {
 
   private val signature: String = getResourceFileAsString("custody/fireblocks/event/signature.txt")
   private val eventObject: String =

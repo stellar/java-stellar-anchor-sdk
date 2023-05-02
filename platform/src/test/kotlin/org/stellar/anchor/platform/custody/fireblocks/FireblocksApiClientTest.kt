@@ -24,8 +24,8 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
+import org.stellar.anchor.platform.config.CustodySecretConfig
 import org.stellar.anchor.platform.config.FireblocksConfig
-import org.stellar.anchor.platform.config.PropertySecretConfig
 import org.stellar.anchor.platform.exception.FireblocksException
 import org.stellar.anchor.util.FileUtil.getResourceFileAsString
 
@@ -38,7 +38,7 @@ class FireblocksApiClientTest {
 
   @MockK(relaxed = true) private lateinit var client: OkHttpClient
 
-  @MockK(relaxed = true) private lateinit var secretConfig: PropertySecretConfig
+  @MockK(relaxed = true) private lateinit var secretConfig: CustodySecretConfig
 
   private lateinit var fireblocksApiClient: FireblocksApiClient
 

@@ -8,7 +8,8 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.stellar.anchor.config.SecretConfig;
+import org.stellar.anchor.api.exception.InvalidConfigException;
+import org.stellar.anchor.platform.config.CustodySecretConfig;
 import org.stellar.anchor.platform.config.FireblocksConfig;
 import org.stellar.anchor.platform.custody.fireblocks.FireblocksApiClient;
 import org.stellar.anchor.platform.custody.fireblocks.FireblocksEventService;
@@ -17,10 +18,11 @@ import org.stellar.anchor.platform.job.FireblocksTransactionsReconciliationJob;
 @Configuration
 @ConditionalOnProperty(value = "custody.type", havingValue = "fireblocks")
 public class FireblocksBeans {
+
   @Bean
   @ConfigurationProperties(prefix = "custody.fireblocks")
-  FireblocksConfig fireblocksConfig(SecretConfig secretConfig) {
-    return new FireblocksConfig(secretConfig);
+  FireblocksConfig fireblocksConfig(CustodySecretConfig custodySecretConfig) {
+    return new FireblocksConfig(custodySecretConfig);
   }
 
   @Bean
@@ -28,8 +30,7 @@ public class FireblocksBeans {
     return new FireblocksTransactionsReconciliationJob();
   }
 
-  @Bean
-  @Qualifier("fireblocksHttpClient")
+  @Bean("fireblocksHttpClient")
   OkHttpClient fireblocksHttpClient() {
     return new Builder()
         .connectTimeout(10, TimeUnit.MINUTES)
@@ -47,7 +48,8 @@ public class FireblocksBeans {
   }
 
   @Bean
-  FireblocksEventService fireblocksEventsService(FireblocksConfig fireblocksConfig) {
-    return new FireblocksEventService(fireblocksConfig.getPublicKey());
+  FireblocksEventService fireblocksEventsService(FireblocksConfig fireblocksConfig)
+      throws InvalidConfigException {
+    return new FireblocksEventService(fireblocksConfig);
   }
 }

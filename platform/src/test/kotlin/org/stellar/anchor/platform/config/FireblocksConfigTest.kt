@@ -15,7 +15,7 @@ import org.stellar.anchor.util.FileUtil
 class FireblocksConfigTest {
 
   private lateinit var config: FireblocksConfig
-  private lateinit var secretConfig: PropertySecretConfig
+  private lateinit var secretConfig: PropertyCustodySecretConfig
   private lateinit var errors: Errors
 
   @BeforeEach

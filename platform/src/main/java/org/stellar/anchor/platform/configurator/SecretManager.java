@@ -1,5 +1,7 @@
 package org.stellar.anchor.platform.configurator;
 
+import static org.stellar.anchor.platform.config.PropertyCustodySecretConfig.SECRET_FIREBLOCKS_API_KEY;
+import static org.stellar.anchor.platform.config.PropertyCustodySecretConfig.SECRET_FIREBLOCKS_SECRET_KEY;
 import static org.stellar.anchor.platform.config.PropertySecretConfig.*;
 import static org.stellar.anchor.util.Log.info;
 import static org.stellar.anchor.util.StringHelper.isNotEmpty;

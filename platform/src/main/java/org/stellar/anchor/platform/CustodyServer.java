@@ -1,6 +1,7 @@
 package org.stellar.anchor.platform;
 
 import static org.springframework.boot.Banner.Mode.OFF;
+import static org.stellar.anchor.util.Log.info;
 
 import java.util.Map;
 import org.springframework.boot.SpringApplication;
@@ -37,16 +38,11 @@ public class CustodyServer extends AbstractPlatformServer implements WebMvcConfi
     SpringApplicationBuilder builder =
         new SpringApplicationBuilder(CustodyServer.class).bannerMode(OFF);
     SpringApplication springApplication = builder.build();
+    info("Adding secret manager as initializers...");
     springApplication.addInitializers(SecretManager.getInstance());
+    info("Adding custody config manager as initializers...");
     springApplication.addInitializers(CustodyConfigManager.getInstance());
 
     return ctx = springApplication.run();
-  }
-
-  public void stop() {
-    if (ctx != null) {
-      SpringApplication.exit(ctx);
-      ctx = null;
-    }
   }
 }
