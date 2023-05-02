@@ -1,12 +1,19 @@
 package org.stellar.anchor.platform.config;
 
+import static org.stellar.anchor.platform.utils.RSAUtil.RSA_ALGORITHM;
+import static org.stellar.anchor.platform.utils.RSAUtil.generatePublicKey;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 
+import java.security.NoSuchAlgorithmException;
+import java.security.PublicKey;
+import java.security.spec.InvalidKeySpecException;
+import java.util.List;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.scheduling.support.CronExpression;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
+import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.platform.utils.RSAUtil;
 import org.stellar.anchor.util.NetUtil;
 
@@ -88,6 +95,19 @@ public class FireblocksConfig implements Validator {
     if (!RSAUtil.isValidPublicKey(publicKey, RSAUtil.RSA_ALGORITHM)) {
       errors.reject(
           "custody-fireblocks-public_key-invalid", "The custody-fireblocks-public_key is invalid");
+    }
+  }
+
+  /**
+   * Get Fireblocks public key
+   *
+   * @return public key
+   */
+  public PublicKey getFireblocksPublicKey() throws InvalidConfigException {
+    try {
+      return generatePublicKey(publicKey, RSA_ALGORITHM);
+    } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+      throw new InvalidConfigException(List.of("Failed to generate Fireblocks public key"), e);
     }
   }
 }
