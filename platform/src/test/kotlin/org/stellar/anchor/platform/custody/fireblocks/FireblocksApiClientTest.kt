@@ -24,6 +24,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
+import org.stellar.anchor.api.exception.InvalidConfigException
 import org.stellar.anchor.platform.config.CustodySecretConfig
 import org.stellar.anchor.platform.config.FireblocksConfig
 import org.stellar.anchor.platform.exception.FireblocksException
@@ -61,9 +62,10 @@ class FireblocksApiClientTest {
     every { secretConfig.fireblocksSecretKey } returns "dGVzdA=="
     val fireblocksConfig = FireblocksConfig(secretConfig)
 
-    val exception = assertThrows<RuntimeException> { FireblocksApiClient(client, fireblocksConfig) }
+    val exception =
+      assertThrows<InvalidConfigException> { FireblocksApiClient(client, fireblocksConfig) }
 
-    Assertions.assertEquals("Invalid Fireblocks secret key", exception.message)
+    Assertions.assertEquals("Failed to generate Fireblocks private key", exception.message)
   }
 
   @Test

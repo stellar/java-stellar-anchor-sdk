@@ -42,8 +42,8 @@ public class FireblocksBeans {
 
   @Bean
   FireblocksApiClient fireblocksApiClient(
-      @Qualifier("fireblocksHttpClient") OkHttpClient httpClient,
-      FireblocksConfig fireblocksConfig) {
+      @Qualifier("fireblocksHttpClient") OkHttpClient httpClient, FireblocksConfig fireblocksConfig)
+      throws InvalidConfigException {
     return new FireblocksApiClient(httpClient, fireblocksConfig);
   }
 

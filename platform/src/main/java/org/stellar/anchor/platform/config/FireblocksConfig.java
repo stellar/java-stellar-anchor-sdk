@@ -1,10 +1,12 @@
 package org.stellar.anchor.platform.config;
 
 import static org.stellar.anchor.platform.utils.RSAUtil.RSA_ALGORITHM;
+import static org.stellar.anchor.platform.utils.RSAUtil.generatePrivateKey;
 import static org.stellar.anchor.platform.utils.RSAUtil.generatePublicKey;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.List;
@@ -72,6 +74,11 @@ public class FireblocksConfig implements Validator {
           "secret-custody-fireblocks-secret-key-empty",
           "Please set environment variable secret.custody.fireblocks.secret_key or SECRET_CUSTODY_FIREBLOCKS_SECRET_KEY");
     }
+    if (!RSAUtil.isValidPrivateKey(secretConfig.getFireblocksSecretKey(), RSAUtil.RSA_ALGORITHM)) {
+      errors.reject(
+          "secret-custody-fireblocks-secret_key-invalid",
+          "The secret-custody-fireblocks-secret_key is invalid");
+    }
   }
 
   private void validateTransactionsReconciliationCron(Errors errors) {
@@ -108,6 +115,19 @@ public class FireblocksConfig implements Validator {
       return generatePublicKey(publicKey, RSA_ALGORITHM);
     } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
       throw new InvalidConfigException(List.of("Failed to generate Fireblocks public key"), e);
+    }
+  }
+
+  /**
+   * Get Fireblocks private key
+   *
+   * @return private key
+   */
+  public PrivateKey getFireblocksPrivateKey() throws InvalidConfigException {
+    try {
+      return generatePrivateKey(secretConfig.getFireblocksSecretKey(), RSA_ALGORITHM);
+    } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+      throw new InvalidConfigException(List.of("Failed to generate Fireblocks private key"), e);
     }
   }
 }

@@ -1,20 +1,17 @@
 package org.stellar.anchor.platform.custody.fireblocks;
 
+import static org.stellar.anchor.util.OkHttpUtil.TYPE_JSON;
+
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import java.io.IOException;
 import java.math.BigInteger;
-import java.security.KeyFactory;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
-import java.security.spec.InvalidKeySpecException;
-import java.security.spec.PKCS8EncodedKeySpec;
 import java.time.Instant;
-import java.util.Base64;
 import java.util.Date;
 import java.util.UUID;
-import okhttp3.MediaType;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -22,6 +19,7 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
+import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.platform.config.FireblocksConfig;
 import org.stellar.anchor.platform.exception.FireblocksException;
 
@@ -30,10 +28,8 @@ public class FireblocksApiClient {
   private static final String API_KEY_HEADER_NAME = "X-API-Key";
   private static final String AUTHORIZATION_HEADER_NAME = "Authorization";
   private static final String TOKEN_PREFIX = "Bearer ";
-  private static final String JSON_UTF8_MEDIA_TYPE = "application/json; charset=utf-8";
-  private static final String SHA_256_ALGORITHM = "SHA-256";
-  private static final String RSA_ALGORITHM = "RSA";
   private static final int TOKEN_EXPIRATION_SECONDS = 55;
+  private static final String SHA512_ALGORITHM = "SHA-512";
 
   private final OkHttpClient client;
   private final String baseUrl;
@@ -41,28 +37,12 @@ public class FireblocksApiClient {
 
   private final PrivateKey privateKey;
 
-  public FireblocksApiClient(OkHttpClient httpClient, FireblocksConfig fireblocksConfig) {
+  public FireblocksApiClient(OkHttpClient httpClient, FireblocksConfig fireblocksConfig)
+      throws InvalidConfigException {
     this.client = httpClient;
     this.baseUrl = fireblocksConfig.getBaseUrl();
     this.apiKey = fireblocksConfig.getSecretConfig().getFireblocksApiKey();
-
-    try {
-      byte[] keyBytes =
-          Base64.getDecoder()
-              .decode(
-                  fireblocksConfig
-                      .getSecretConfig()
-                      .getFireblocksSecretKey()
-                      .replace("-----BEGIN PRIVATE KEY-----", StringUtils.EMPTY)
-                      .replace("-----END PRIVATE KEY-----", StringUtils.EMPTY)
-                      .replace(StringUtils.LF, StringUtils.EMPTY));
-
-      PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(keyBytes);
-      KeyFactory factory = KeyFactory.getInstance(RSA_ALGORITHM);
-      this.privateKey = factory.generatePrivate(keySpec);
-    } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
-      throw new RuntimeException("Invalid Fireblocks secret key", e);
-    }
+    this.privateKey = fireblocksConfig.getFireblocksPrivateKey();
   }
 
   public String get(String path) throws FireblocksException {
@@ -80,7 +60,7 @@ public class FireblocksApiClient {
             .url(baseUrl + path)
             .addHeader(API_KEY_HEADER_NAME, apiKey)
             .addHeader(AUTHORIZATION_HEADER_NAME, TOKEN_PREFIX + signJwt(path, data))
-            .post(RequestBody.create(data.getBytes(), MediaType.parse(JSON_UTF8_MEDIA_TYPE)))
+            .post(RequestBody.create(data.getBytes(), TYPE_JSON))
             .build());
   }
 
@@ -110,7 +90,7 @@ public class FireblocksApiClient {
     String bodyHash;
 
     try {
-      MessageDigest digest = MessageDigest.getInstance(SHA_256_ALGORITHM);
+      MessageDigest digest = MessageDigest.getInstance(SHA512_ALGORITHM);
       digest.update(dataJSONString.getBytes());
       BigInteger number = new BigInteger(1, digest.digest());
       StringBuilder hexString = new StringBuilder(number.toString(16));
