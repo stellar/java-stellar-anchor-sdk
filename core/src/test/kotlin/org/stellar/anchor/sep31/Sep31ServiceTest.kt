@@ -183,7 +183,7 @@ class Sep31ServiceTest {
       "stellarAccountId": "GAYR3FVW2PCXTNHHWHEAFOCKZQV4PEY2ZKGIKB47EKPJ3GSBYA52XJBY",
       "stellarMemo": "123456",
       "stellarMemoType": "text",
-      "started_at": "2022-04-18T14:00:00.000Z",
+      "startedAt": "2022-04-18T14:00:00.000Z",
       "transferReceivedAt": "2022-04-18T14:30:00.000Z",
       "updatedAt": "2022-04-18T15:00:00.000Z",
       "completedAt": "2022-04-18T15:00:00.000Z",

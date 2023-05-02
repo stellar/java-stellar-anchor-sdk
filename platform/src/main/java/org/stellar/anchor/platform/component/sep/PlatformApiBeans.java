@@ -59,7 +59,7 @@ public class PlatformApiBeans {
   }
 
   @Bean
-  public TransactionService transactionService(
+  TransactionService transactionService(
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       Sep38QuoteStore quoteStore,
