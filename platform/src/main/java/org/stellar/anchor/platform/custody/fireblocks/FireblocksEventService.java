@@ -1,4 +1,4 @@
-package org.stellar.anchor.platform.custody.service;
+package org.stellar.anchor.platform.custody.fireblocks;
 
 import static org.stellar.anchor.platform.utils.RSAUtil.SHA512_WITH_RSA_ALGORITHM;
 import static org.stellar.anchor.platform.utils.RSAUtil.isValidSignature;
@@ -11,21 +11,19 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.SignatureException;
 import java.util.Map;
-import lombok.AllArgsConstructor;
 import org.stellar.anchor.api.custody.fireblocks.FireblocksEventObject;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.platform.config.FireblocksConfig;
 import org.stellar.anchor.util.GsonUtils;
 
-@AllArgsConstructor
-public class FireblocksEventsService {
+public class FireblocksEventService {
 
   public static final String FIREBLOCKS_SIGNATURE_HEADER = "fireblocks-signature";
 
   private final PublicKey publicKey;
 
-  public FireblocksEventsService(FireblocksConfig fireblocksConfig) throws InvalidConfigException {
+  public FireblocksEventService(FireblocksConfig fireblocksConfig) throws InvalidConfigException {
     publicKey = fireblocksConfig.getFireblocksPublicKey();
   }
 
