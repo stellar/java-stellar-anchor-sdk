@@ -3,7 +3,6 @@
   "memo": "testMemo",
   "memoType": "testMemoType",
   "protocol": "24",
-  "fromAccount": "testSep10Account",
   "toAccount": "testToAccount",
   "amountIn": "testAmountIn",
   "amountInAsset": "testAmountInAsset",
