@@ -1,7 +1,6 @@
 package org.stellar.anchor.platform.component.sep;
 
 import javax.servlet.Filter;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,8 +11,6 @@ import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.filter.ApiKeyFilter;
 import org.stellar.anchor.filter.JwtTokenFilter;
 import org.stellar.anchor.filter.NoneFilter;
-import org.stellar.anchor.platform.config.CustodyApiConfig;
-import org.stellar.anchor.platform.config.CustodySecretConfig;
 import org.stellar.anchor.platform.config.PlatformApiConfig;
 import org.stellar.anchor.platform.service.TransactionService;
 import org.stellar.anchor.sep24.Sep24DepositInfoGenerator;
@@ -23,6 +20,7 @@ import org.stellar.anchor.sep38.Sep38QuoteStore;
 
 @Configuration
 public class PlatformApiBeans {
+
   /**
    * Register anchor-to-platform token filter.
    *
@@ -74,11 +72,5 @@ public class PlatformApiBeans {
         eventService,
         sep24DepositInfoGenerator,
         custodyTransactionService);
-  }
-
-  @Bean
-  @ConfigurationProperties(prefix = "custody-server")
-  public CustodyApiConfig custodyApiConfig(CustodySecretConfig custodySecretConfig) {
-    return new CustodyApiConfig(custodySecretConfig);
   }
 }
