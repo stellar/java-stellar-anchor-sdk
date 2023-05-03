@@ -57,6 +57,8 @@ public class JdbcCustodyTransaction {
   @Column(name = "updated_at")
   Instant updatedAt;
 
+  @SerializedName("memo")
+  @Column(name = "memo")
   String memo;
 
   @SerializedName("memo_type")

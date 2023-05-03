@@ -32,6 +32,16 @@ public class FireblocksBeans {
     return new FireblocksTransactionsReconciliationJob();
   }
 
+  @Bean(name = "fireblocksHttpClient")
+  OkHttpClient fireblocksHttpClient() {
+    return new Builder()
+        .connectTimeout(10, TimeUnit.SECONDS)
+        .readTimeout(10, TimeUnit.SECONDS)
+        .writeTimeout(10, TimeUnit.SECONDS)
+        .callTimeout(10, TimeUnit.SECONDS)
+        .build();
+  }
+
   @Bean
   FireblocksApiClient fireblocksApiClient(
       @Qualifier("fireblocksHttpClient") OkHttpClient httpClient, FireblocksConfig fireblocksConfig)
@@ -43,16 +53,6 @@ public class FireblocksBeans {
   FireblocksEventService fireblocksEventsService(FireblocksConfig fireblocksConfig)
       throws InvalidConfigException {
     return new FireblocksEventService(fireblocksConfig);
-  }
-
-  @Bean(name = "fireblocksHttpClient")
-  OkHttpClient fireblocksHttpClient() {
-    return new Builder()
-        .connectTimeout(10, TimeUnit.SECONDS)
-        .readTimeout(10, TimeUnit.SECONDS)
-        .writeTimeout(10, TimeUnit.SECONDS)
-        .callTimeout(10, TimeUnit.SECONDS)
-        .build();
   }
 
   @Bean

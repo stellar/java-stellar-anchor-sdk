@@ -15,4 +15,3 @@ CREATE TABLE custody_transaction (
    kind VARCHAR(255),
    CONSTRAINT pk_custody_transaction PRIMARY KEY (id)
 );
-

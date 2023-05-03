@@ -367,8 +367,7 @@ custody_server:
   ## @param: baseUrl
   ## @type: string
   ## @supported_prefixes: http:, https:
-  ## The base URL of the Anchor Platform server that implements the platform API endpoints described in the
-  ## "Platform API.yml" spec.
+  ## The base URL of the Custody server that implements the custody API endpoints
   #
   base_url: http://localhost:8085
   ## Authentication config for Anchor server and Anchor Platform server to safely communicate,

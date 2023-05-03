@@ -54,7 +54,6 @@ public class TransactionHelper {
         .memo(txn.getStellarMemo())
         .memoType(txn.getStellarMemoType())
         .protocol("31")
-        .fromAccount(null)
         .toAccount(txn.getStellarAccountId())
         .amountIn(txn.getAmountIn())
         .amountInAsset(txn.getAmountInAsset())
