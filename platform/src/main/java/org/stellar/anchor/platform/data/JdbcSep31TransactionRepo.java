@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform.data;
 
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
@@ -25,4 +26,24 @@ public interface JdbcSep31TransactionRepo extends CrudRepository<JdbcSep31Transa
   Optional<JdbcSep31Transaction> findByStellarAccountIdAndStellarMemo(
       @Param("stellar_account_id") String stellarAccountId,
       @Param("stellar_memo") String stellarMemo);
+
+  @Query(
+      value =
+          "SELECT t.* from sep31_transaction t where t.started_at >= :from and t.started_at <= :to order by started_at asc limit :lim offset :offset",
+      nativeQuery = true)
+  List<JdbcSep31Transaction> findStarted(
+      @Param("to") Instant to,
+      @Param("from") Instant from,
+      @Param("lim") Integer limit,
+      @Param("offset") Integer offset);
+
+  @Query(
+      value =
+          "SELECT t.* from sep31_transaction t where t.transfer_received_at >= :from and t.transfer_received_at <= :to order by transfer_received_at asc limit :lim offset :offset",
+      nativeQuery = true)
+  List<JdbcSep31Transaction> findTransferred(
+      @Param("to") Instant to,
+      @Param("from") Instant from,
+      @Param("lim") Integer limit,
+      @Param("offset") Integer offset);
 }

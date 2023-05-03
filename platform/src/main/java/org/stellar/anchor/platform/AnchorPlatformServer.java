@@ -14,11 +14,9 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.format.FormatterRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import org.stellar.anchor.api.platform.TransactionsOrderBy;
-import org.stellar.anchor.api.platform.TransactionsSeps;
 import org.stellar.anchor.platform.configurator.SecretManager;
 import org.stellar.anchor.platform.configurator.SepConfigManager;
-import org.stellar.anchor.platform.utils.StringEnumConverterFactory;
+import org.stellar.anchor.platform.utils.StringEnumConverter;
 
 @SpringBootApplication
 @EnableJpaRepositories(basePackages = {"org.stellar.anchor.platform.data"})
@@ -49,9 +47,7 @@ public class AnchorPlatformServer extends AbstractPlatformServer implements WebM
 
   @Override
   public void addFormatters(FormatterRegistry registry) {
-    StringEnumConverterFactory factory = new StringEnumConverterFactory();
-
-    registry.addConverter(factory.converterFor(TransactionsOrderBy::valueOf));
-    registry.addConverter(factory.converterFor(TransactionsSeps::valueOf));
+    registry.addConverter(new StringEnumConverter.TransactionsOrderByConverter());
+    registry.addConverter(new StringEnumConverter.TransactionsSepsConverter());
   }
 }

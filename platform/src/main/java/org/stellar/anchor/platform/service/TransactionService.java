@@ -96,7 +96,20 @@ public class TransactionService {
       Integer limit,
       Integer offset)
       throws AnchorException {
-    throw new NotFoundException("Not implemented");
+    List<?> txn;
+
+    if (sep == TransactionsSeps.SEP_31) {
+      txn = txn31Store.findBulk(to, from, order_by, limit, offset);
+    } else if (sep == TransactionsSeps.SEP_24) {
+      txn = txn24Store.findBulk(to, from, order_by, limit, offset);
+    } else {
+      throw new BadRequestException("SEP not supported");
+    }
+
+    return new GetTransactionsResponse(
+        txn.stream()
+            .map(t -> toGetTransactionResponse((JdbcSepTransaction) t, assetService))
+            .collect(Collectors.toList()));
   }
 
   /**

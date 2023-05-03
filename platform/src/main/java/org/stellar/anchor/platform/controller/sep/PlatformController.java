@@ -48,13 +48,18 @@ public class PlatformController {
       method = {RequestMethod.GET})
   public GetTransactionsResponse getTransactions(
       @RequestParam(value = "sep") TransactionsSeps sep,
-      @RequestParam(required = false, value = "to") @DateTimeFormat(iso = DATE_TIME) Instant to,
-      @RequestParam(required = false, value = "from") @DateTimeFormat(iso = DATE_TIME) Instant from,
+      @RequestParam(required = false, value = "requestTo") @DateTimeFormat(iso = DATE_TIME)
+          Instant requestTo,
+      @RequestParam(required = false, value = "requestFrom") @DateTimeFormat(iso = DATE_TIME)
+          Instant requestFrom,
       @RequestParam(required = false, value = "order_by", defaultValue = "created_at")
           TransactionsOrderBy order_by,
       @RequestParam(required = false, value = "limit", defaultValue = "200") Integer limit,
       @RequestParam(required = false, value = "offset", defaultValue = "0") Integer offset)
       throws AnchorException {
+    Instant to = requestTo == null ? Instant.now() : requestTo;
+    Instant from = requestFrom == null ? Instant.EPOCH : requestFrom;
+
     return transactionService.getTransactionsResponse(sep, to, from, order_by, limit, offset);
   }
 }

@@ -1,10 +1,12 @@
 package org.stellar.anchor.sep31;
 
+import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import lombok.NonNull;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.SepException;
+import org.stellar.anchor.api.platform.TransactionsOrderBy;
 
 @SuppressWarnings("RedundantThrows")
 public interface Sep31TransactionStore {
@@ -51,4 +53,21 @@ public interface Sep31TransactionStore {
    */
   @SuppressWarnings("UnusedReturnValue")
   Sep31Transaction save(Sep31Transaction sep31Transaction) throws SepException;
+
+  /**
+   * Finds multiple transactions that matches following criteria
+   *
+   * @param to upper date to search to
+   * @param from lower date to search from
+   * @param orderBy date type that used for the search
+   * @param limit limit
+   * @param offset offset
+   * @return list of transactions
+   */
+  List<? extends Sep31Transaction> findBulk(
+      @NonNull Instant to,
+      @NonNull Instant from,
+      @NonNull TransactionsOrderBy orderBy,
+      @NonNull Integer limit,
+      @NonNull Integer offset);
 }

@@ -1,7 +1,10 @@
 package org.stellar.anchor.sep24;
 
+import java.time.Instant;
 import java.util.List;
+import lombok.NonNull;
 import org.stellar.anchor.api.exception.SepException;
+import org.stellar.anchor.api.platform.TransactionsOrderBy;
 import org.stellar.anchor.api.sep.sep24.GetTransactionsRequest;
 
 /** This interface is for the SEP adapter service to query/save the transaction document. */
@@ -60,4 +63,21 @@ public interface Sep24TransactionStore {
    */
   @SuppressWarnings("UnusedReturnValue")
   Sep24Transaction save(Sep24Transaction sep24Transaction) throws SepException;
+
+  /**
+   * Finds multiple transactions that matches following criteria
+   *
+   * @param to upper date to search to
+   * @param from lower date to search from
+   * @param orderBy date type that used for the search
+   * @param limit limit
+   * @param offset offset
+   * @return list of transactions
+   */
+  List<? extends Sep24Transaction> findBulk(
+      @NonNull Instant to,
+      @NonNull Instant from,
+      @NonNull TransactionsOrderBy orderBy,
+      @NonNull Integer limit,
+      @NonNull Integer offset);
 }

@@ -5,8 +5,10 @@ import java.time.format.DateTimeParseException;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import lombok.NonNull;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.exception.SepValidationException;
+import org.stellar.anchor.api.platform.TransactionsOrderBy;
 import org.stellar.anchor.api.sep.sep24.GetTransactionsRequest;
 import org.stellar.anchor.sep24.Sep24RefundPayment;
 import org.stellar.anchor.sep24.Sep24Refunds;
@@ -117,5 +119,20 @@ public class JdbcSep24TransactionStore implements Sep24TransactionStore {
     JdbcSep24Transaction txn = (JdbcSep24Transaction) sep24Transaction;
     txn.setId(txn.getTransactionId());
     return txnRepo.save(txn);
+  }
+
+  @Override
+  public List<? extends Sep24Transaction> findBulk(
+      @NonNull Instant to,
+      @NonNull Instant from,
+      @NonNull TransactionsOrderBy orderBy,
+      @NonNull Integer limit,
+      @NonNull Integer offset) {
+    if (orderBy == TransactionsOrderBy.STARTED_AT) {
+      return txnRepo.findStarted(to, from, limit, offset);
+    } else if (orderBy == TransactionsOrderBy.TRANSFER_RECEIVED_AT) {
+      return txnRepo.findTransferred(to, from, limit, offset);
+    }
+    throw new AssertionError("Unreachable");
   }
 }
