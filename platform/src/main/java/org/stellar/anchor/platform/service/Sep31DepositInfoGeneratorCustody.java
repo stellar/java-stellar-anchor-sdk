@@ -3,7 +3,7 @@ package org.stellar.anchor.platform.service;
 import org.stellar.anchor.api.custody.GenerateDepositAddressResponse;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.shared.SepDepositInfo;
-import org.stellar.anchor.platform.custody.CustodyApiClient;
+import org.stellar.anchor.platform.apiclient.CustodyApiClient;
 import org.stellar.anchor.sep31.Sep31DepositInfoGenerator;
 import org.stellar.anchor.sep31.Sep31Transaction;
 

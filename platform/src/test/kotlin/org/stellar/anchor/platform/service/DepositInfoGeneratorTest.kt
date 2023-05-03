@@ -9,7 +9,7 @@ import org.junit.jupiter.api.assertThrows
 import org.stellar.anchor.api.custody.GenerateDepositAddressResponse
 import org.stellar.anchor.api.exception.CustodyException
 import org.stellar.anchor.api.shared.SepDepositInfo
-import org.stellar.anchor.platform.custody.CustodyApiClient
+import org.stellar.anchor.platform.apiclient.CustodyApiClient
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
 import org.stellar.anchor.platform.data.JdbcSep31Transaction
 

@@ -16,7 +16,9 @@ import org.stellar.anchor.platform.data.JdbcSep31Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.sep24.Sep24RefundPayment;
 import org.stellar.anchor.sep24.Sep24Refunds;
+import org.stellar.anchor.sep24.Sep24Transaction;
 import org.stellar.anchor.sep31.Sep31Refunds;
+import org.stellar.anchor.sep31.Sep31Transaction;
 
 public class TransactionHelper {
   public static GetTransactionResponse toGetTransactionResponse(
@@ -31,12 +33,12 @@ public class TransactionHelper {
     }
   }
 
-  public static CreateCustodyTransactionRequest toCustodyTransaction(JdbcSep24Transaction txn) {
+  public static CreateCustodyTransactionRequest toCustodyTransaction(Sep24Transaction txn) {
     return CreateCustodyTransactionRequest.builder()
         .id(txn.getId())
         .memo(txn.getMemo())
         .memoType(txn.getMemoType())
-        .protocol(txn.getProtocol())
+        .protocol("24")
         .toAccount(txn.getToAccount())
         .amountIn(txn.getAmountIn())
         .amountInAsset(txn.getAmountInAsset())
@@ -46,12 +48,12 @@ public class TransactionHelper {
         .build();
   }
 
-  public static CreateCustodyTransactionRequest toCustodyTransaction(JdbcSep31Transaction txn) {
+  public static CreateCustodyTransactionRequest toCustodyTransaction(Sep31Transaction txn) {
     return CreateCustodyTransactionRequest.builder()
         .id(txn.getId())
         .memo(txn.getStellarMemo())
         .memoType(txn.getStellarMemoType())
-        .protocol(txn.getProtocol())
+        .protocol("31")
         .fromAccount(null)
         .toAccount(txn.getStellarAccountId())
         .amountIn(txn.getAmountIn())

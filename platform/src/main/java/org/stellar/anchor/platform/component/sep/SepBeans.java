@@ -15,13 +15,15 @@ import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.config.*;
+import org.stellar.anchor.custody.CustodyTransactionService;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.filter.JwtTokenFilter;
 import org.stellar.anchor.horizon.Horizon;
+import org.stellar.anchor.platform.apiclient.CustodyApiClient;
 import org.stellar.anchor.platform.condition.ConditionalOnAllSepsEnabled;
 import org.stellar.anchor.platform.config.*;
-import org.stellar.anchor.platform.custody.CustodyApiClient;
 import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountsManager;
+import org.stellar.anchor.platform.service.CustodyTransactionServiceImpl;
 import org.stellar.anchor.platform.service.Sep24DepositInfoGeneratorCustody;
 import org.stellar.anchor.platform.service.Sep24DepositInfoGeneratorSelf;
 import org.stellar.anchor.platform.service.Sep31DepositInfoGeneratorApi;
@@ -172,6 +174,11 @@ public class SepBeans {
   }
 
   @Bean
+  CustodyTransactionService custodyTransactionService(Optional<CustodyApiClient> custodyApiClient) {
+    return new CustodyTransactionServiceImpl(custodyApiClient);
+  }
+
+  @Bean
   Sep24DepositInfoGenerator sep24DepositInfoGenerator(
       Sep24Config sep24Config, Optional<CustodyApiClient> custodyApiClient) {
     switch (sep24Config.getDepositInfoGeneratorType()) {
@@ -226,7 +233,8 @@ public class SepBeans {
       AssetService assetService,
       FeeIntegration feeIntegration,
       CustomerIntegration customerIntegration,
-      EventService eventService) {
+      EventService eventService,
+      CustodyTransactionService custodyTransactionService) {
     return new Sep31Service(
         appConfig,
         sep31Config,
@@ -236,7 +244,8 @@ public class SepBeans {
         assetService,
         feeIntegration,
         customerIntegration,
-        eventService);
+        eventService,
+        custodyTransactionService);
   }
 
   @Bean

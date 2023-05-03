@@ -10,8 +10,8 @@ import org.springframework.context.annotation.Configuration;
 import org.stellar.anchor.auth.AuthHelper;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.config.AppConfig;
+import org.stellar.anchor.platform.apiclient.CustodyApiClient;
 import org.stellar.anchor.platform.config.CustodyApiConfig;
-import org.stellar.anchor.platform.custody.CustodyApiClient;
 
 @Configuration
 @ConditionalOnExpression(value = "'${custody.type}' != 'none'")

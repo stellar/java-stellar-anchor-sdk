@@ -1,4 +1,4 @@
-package org.stellar.anchor.platform.custody;
+package org.stellar.anchor.platform.apiclient;
 
 import static org.stellar.anchor.util.OkHttpUtil.TYPE_JSON;
 
@@ -37,7 +37,7 @@ public class CustodyApiClient {
     this.custodyApiConfig = custodyApiConfig;
   }
 
-  public void createCustodyTransaction(CreateCustodyTransactionRequest transactionRequest)
+  public void createTransaction(CreateCustodyTransactionRequest transactionRequest)
       throws CustodyException {
     Request request =
         getRequestBuilder()

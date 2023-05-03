@@ -20,6 +20,7 @@ import org.skyscreamer.jsonassert.JSONCompareMode
 import org.stellar.anchor.api.custody.CreateCustodyTransactionRequest
 import org.stellar.anchor.api.exception.CustodyException
 import org.stellar.anchor.auth.AuthHelper
+import org.stellar.anchor.platform.apiclient.CustodyApiClient
 import org.stellar.anchor.platform.config.CustodyApiConfig
 import org.stellar.anchor.util.AuthHeader
 import org.stellar.anchor.util.FileUtil.getResourceFileAsString
@@ -69,7 +70,7 @@ class CustodyApiClientTest {
     every { httpClient.newCall(capture(requestCapture)) } returns call
     every { call.execute() } returns response
 
-    custodyApiClient.createCustodyTransaction(request)
+    custodyApiClient.createTransaction(request)
 
     Assertions.assertEquals(
       "http://testbaseurl.com/transactions/custody",
@@ -93,8 +94,7 @@ class CustodyApiClientTest {
     every { httpClient.newCall(any()) } returns call
     every { call.execute() } throws IOException("Custody IO exception")
 
-    val exception =
-      assertThrows<CustodyException> { custodyApiClient.createCustodyTransaction(request) }
+    val exception = assertThrows<CustodyException> { custodyApiClient.createTransaction(request) }
 
     Assertions.assertEquals("Exception occurred during request to Custody API", exception.message)
   }
@@ -112,8 +112,7 @@ class CustodyApiClientTest {
     every { httpClient.newCall(capture(requestCapture)) } returns call
     every { call.execute() } returns response
 
-    val exception =
-      assertThrows<CustodyException> { custodyApiClient.createCustodyTransaction(request) }
+    val exception = assertThrows<CustodyException> { custodyApiClient.createTransaction(request) }
 
     Assertions.assertEquals(
       """

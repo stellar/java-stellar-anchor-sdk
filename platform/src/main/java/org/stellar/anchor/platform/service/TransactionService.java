@@ -3,11 +3,8 @@ package org.stellar.anchor.platform.service;
 import static org.stellar.anchor.api.event.AnchorEvent.Type.TRANSACTION_STATUS_CHANGED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.ERROR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.EXPIRED;
-import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_CUSTOMER_INFO_UPDATE;
-import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_SENDER;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_USR_TRANSFER_START;
-import static org.stellar.anchor.platform.utils.TransactionHelper.toCustodyTransaction;
 import static org.stellar.anchor.platform.utils.TransactionHelper.toGetTransactionResponse;
 import static org.stellar.anchor.sep31.Sep31Helper.allAmountAvailable;
 import static org.stellar.anchor.util.BeanHelper.updateField;
@@ -21,7 +18,6 @@ import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.stream.Collectors;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
@@ -38,8 +34,8 @@ import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.shared.Amount;
 import org.stellar.anchor.api.shared.SepDepositInfo;
 import org.stellar.anchor.asset.AssetService;
+import org.stellar.anchor.custody.CustodyTransactionService;
 import org.stellar.anchor.event.EventService;
-import org.stellar.anchor.platform.custody.CustodyApiClient;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSep31Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
@@ -65,7 +61,7 @@ public class TransactionService {
   private final EventService eventService;
   private final AssetService assetService;
   private final Sep24DepositInfoGenerator sep24DepositInfoGenerator;
-  private final Optional<CustodyApiClient> custodyApiClient;
+  private final CustodyTransactionService custodyTransactionService;
 
   static boolean isStatusError(String status) {
     return List.of(PENDING_CUSTOMER_INFO_UPDATE.getStatus(), EXPIRED.getStatus(), ERROR.getStatus())
@@ -79,7 +75,7 @@ public class TransactionService {
       AssetService assetService,
       EventService eventService,
       Sep24DepositInfoGenerator sep24DepositInfoGenerator,
-      Optional<CustodyApiClient> custodyApiClient) {
+      CustodyTransactionService custodyTransactionService) {
     this.txn24Store = txn24Store;
     this.txn31Store = txn31Store;
     this.quoteStore = quoteStore;
@@ -87,7 +83,7 @@ public class TransactionService {
     this.eventService = eventService;
     this.assetService = assetService;
     this.sep24DepositInfoGenerator = sep24DepositInfoGenerator;
-    this.custodyApiClient = custodyApiClient;
+    this.custodyTransactionService = custodyTransactionService;
   }
 
   /**
@@ -170,16 +166,13 @@ public class TransactionService {
           sep24Transaction.setMemoType(sep24DepositInfo.getMemoType());
         }
         if (!lastStatus.equals(txn.getStatus())) {
-          createCustodyTransaction(txn);
+          custodyTransactionService.create(sep24Transaction);
         }
         txn24Store.save(sep24Transaction);
         eventService.publish(sep24Transaction, TRANSACTION_STATUS_CHANGED);
         break;
       case "31":
         JdbcSep31Transaction sep31Transaction = (JdbcSep31Transaction) txn;
-        if (!lastStatus.equals(txn.getStatus())) {
-          createCustodyTransaction(txn);
-        }
         txn31Store.save(sep31Transaction);
         eventService.publish(sep31Transaction, TRANSACTION_STATUS_CHANGED);
         break;
@@ -189,28 +182,6 @@ public class TransactionService {
       updateMetrics(txn);
     }
     return toGetTransactionResponse(txn, assetService);
-  }
-
-  void createCustodyTransaction(JdbcSepTransaction txn) throws AnchorException {
-    if (custodyApiClient.isEmpty()) {
-      return;
-    }
-    switch (txn.getProtocol()) {
-      case "24":
-        JdbcSep24Transaction sep24Transaction = (JdbcSep24Transaction) txn;
-        if ((Kind.DEPOSIT.getKind().equals(sep24Transaction.getKind())
-                && PENDING_ANCHOR.toString().equals(sep24Transaction.getStatus()))
-            || (Kind.WITHDRAWAL.getKind().equals(sep24Transaction.getKind())
-                && PENDING_USR_TRANSFER_START.toString().equals(sep24Transaction.getStatus()))) {
-          custodyApiClient.get().createCustodyTransaction(toCustodyTransaction(sep24Transaction));
-        }
-        break;
-      case "31":
-        JdbcSep31Transaction sep31Transaction = (JdbcSep31Transaction) txn;
-        if (PENDING_SENDER.toString().equals(sep31Transaction.getStatus())) {
-          custodyApiClient.get().createCustodyTransaction(toCustodyTransaction(sep31Transaction));
-        }
-    }
   }
 
   void updateMetrics(JdbcSepTransaction txn) {

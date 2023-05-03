@@ -1,6 +1,5 @@
 package org.stellar.anchor.platform.component.sep;
 
-import java.util.Optional;
 import javax.servlet.Filter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
@@ -8,6 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtService;
+import org.stellar.anchor.custody.CustodyTransactionService;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.filter.ApiKeyFilter;
 import org.stellar.anchor.filter.JwtTokenFilter;
@@ -15,7 +15,6 @@ import org.stellar.anchor.filter.NoneFilter;
 import org.stellar.anchor.platform.config.CustodyApiConfig;
 import org.stellar.anchor.platform.config.CustodySecretConfig;
 import org.stellar.anchor.platform.config.PlatformApiConfig;
-import org.stellar.anchor.platform.custody.CustodyApiClient;
 import org.stellar.anchor.platform.service.TransactionService;
 import org.stellar.anchor.sep24.Sep24DepositInfoGenerator;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
@@ -66,7 +65,7 @@ public class PlatformApiBeans {
       AssetService assetService,
       EventService eventService,
       Sep24DepositInfoGenerator sep24DepositInfoGenerator,
-      Optional<CustodyApiClient> custodyApiClient) {
+      CustodyTransactionService custodyTransactionService) {
     return new TransactionService(
         txn24Store,
         txn31Store,
@@ -74,7 +73,7 @@ public class PlatformApiBeans {
         assetService,
         eventService,
         sep24DepositInfoGenerator,
-        custodyApiClient);
+        custodyTransactionService);
   }
 
   @Bean

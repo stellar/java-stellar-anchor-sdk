@@ -13,9 +13,7 @@ import org.junit.jupiter.params.provider.EnumSource
 import org.junit.jupiter.params.provider.NullSource
 import org.junit.jupiter.params.provider.ValueSource
 import org.skyscreamer.jsonassert.JSONAssert
-import org.skyscreamer.jsonassert.JSONCompareMode
 import org.skyscreamer.jsonassert.JSONCompareMode.LENIENT
-import org.stellar.anchor.api.custody.CreateCustodyTransactionRequest
 import org.stellar.anchor.api.exception.AnchorException
 import org.stellar.anchor.api.exception.BadRequestException
 import org.stellar.anchor.api.exception.NotFoundException
@@ -25,14 +23,13 @@ import org.stellar.anchor.api.sep.sep38.RateFee
 import org.stellar.anchor.api.shared.Amount
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
+import org.stellar.anchor.custody.CustodyTransactionService
 import org.stellar.anchor.event.EventService
-import org.stellar.anchor.platform.custody.CustodyApiClient
 import org.stellar.anchor.platform.data.*
 import org.stellar.anchor.sep24.Sep24DepositInfoGenerator
 import org.stellar.anchor.sep24.Sep24TransactionStore
 import org.stellar.anchor.sep31.Sep31TransactionStore
 import org.stellar.anchor.sep38.Sep38QuoteStore
-import org.stellar.anchor.util.FileUtil
 import org.stellar.anchor.util.GsonUtils
 
 @Suppress("unused")
@@ -53,7 +50,7 @@ class TransactionServiceTest {
   @MockK(relaxed = true) private lateinit var assetService: AssetService
   @MockK(relaxed = true) private lateinit var eventService: EventService
   @MockK(relaxed = true) private lateinit var sep24DepositInfoGenerator: Sep24DepositInfoGenerator
-  @MockK(relaxed = true) private lateinit var custodyApiClient: CustodyApiClient
+  @MockK(relaxed = true) private lateinit var custodyTransactionService: CustodyTransactionService
   private lateinit var transactionService: TransactionService
 
   @BeforeEach
@@ -67,7 +64,7 @@ class TransactionServiceTest {
         assetService,
         eventService,
         sep24DepositInfoGenerator,
-        Optional.of(custodyApiClient)
+        custodyTransactionService
       )
   }
 
@@ -396,123 +393,6 @@ class TransactionServiceTest {
     )
 
     assertTrue(testSep31Transaction.updatedAt > testSep31Transaction.startedAt)
-  }
-
-  @Test
-  fun test_createCustodyTransaction_sep24_deposit_pending_user_transfer_start_entity() {
-    val txn =
-      gson.fromJson(
-        FileUtil.getResourceFileAsString(
-          "service/custodyTransaction/sep24_deposit_pending_user_transfer_start_entity.json"
-        ),
-        JdbcSep24Transaction::class.java
-      )
-
-    transactionService.createCustodyTransaction(txn)
-
-    verify(exactly = 0) { custodyApiClient.createCustodyTransaction(any()) }
-  }
-
-  @Test
-  fun test_createCustodyTransaction_sep24_withdrawal_pending_anchor_entity() {
-    val txn =
-      gson.fromJson(
-        FileUtil.getResourceFileAsString(
-          "service/custodyTransaction/sep24_withdrawal_pending_anchor_entity.json"
-        ),
-        JdbcSep24Transaction::class.java
-      )
-
-    transactionService.createCustodyTransaction(txn)
-
-    verify(exactly = 0) { custodyApiClient.createCustodyTransaction(any()) }
-  }
-
-  @Test
-  fun test_createCustodyTransaction_sep24_deposit_pending_anchor() {
-    val txn =
-      gson.fromJson(
-        FileUtil.getResourceFileAsString(
-          "service/custodyTransaction/sep24_deposit_pending_anchor_entity.json"
-        ),
-        JdbcSep24Transaction::class.java
-      )
-    val requestCapture = slot<CreateCustodyTransactionRequest>()
-
-    every { custodyApiClient.createCustodyTransaction(capture(requestCapture)) } just Runs
-
-    transactionService.createCustodyTransaction(txn)
-
-    JSONAssert.assertEquals(
-      FileUtil.getResourceFileAsString(
-        "service/custodyTransaction/sep24_deposit_pending_anchor_request.json"
-      ),
-      gson.toJson(requestCapture.captured),
-      JSONCompareMode.STRICT
-    )
-  }
-
-  @Test
-  fun test_createCustodyTransaction_sep24_withdrawal_pending_user_transfer_start() {
-    val txn =
-      gson.fromJson(
-        FileUtil.getResourceFileAsString(
-          "service/custodyTransaction/sep24_withdrawal_pending_user_transfer_start_entity.json"
-        ),
-        JdbcSep24Transaction::class.java
-      )
-    val requestCapture = slot<CreateCustodyTransactionRequest>()
-
-    every { custodyApiClient.createCustodyTransaction(capture(requestCapture)) } just Runs
-
-    transactionService.createCustodyTransaction(txn)
-
-    JSONAssert.assertEquals(
-      FileUtil.getResourceFileAsString(
-        "service/custodyTransaction/sep24_withdrawal_pending_user_transfer_start_request.json"
-      ),
-      gson.toJson(requestCapture.captured),
-      JSONCompareMode.STRICT
-    )
-  }
-
-  @Test
-  fun test_createCustodyTransaction_sep31_pending_receiver() {
-    val txn =
-      gson.fromJson(
-        FileUtil.getResourceFileAsString(
-          "service/custodyTransaction/sep31_pending_receiver_entity.json"
-        ),
-        JdbcSep31Transaction::class.java
-      )
-
-    transactionService.createCustodyTransaction(txn)
-
-    verify(exactly = 0) { custodyApiClient.createCustodyTransaction(any()) }
-  }
-
-  @Test
-  fun test_createCustodyTransaction_sep31_pending_sender() {
-    val txn =
-      gson.fromJson(
-        FileUtil.getResourceFileAsString(
-          "service/custodyTransaction/sep31_pending_sender_entity.json"
-        ),
-        JdbcSep31Transaction::class.java
-      )
-    val requestCapture = slot<CreateCustodyTransactionRequest>()
-
-    every { custodyApiClient.createCustodyTransaction(capture(requestCapture)) } just Runs
-
-    transactionService.createCustodyTransaction(txn)
-
-    JSONAssert.assertEquals(
-      FileUtil.getResourceFileAsString(
-        "service/custodyTransaction/sep31_pending_sender_request.json"
-      ),
-      gson.toJson(requestCapture.captured),
-      JSONCompareMode.STRICT
-    )
   }
 
   private val jsonSep24Transaction =
