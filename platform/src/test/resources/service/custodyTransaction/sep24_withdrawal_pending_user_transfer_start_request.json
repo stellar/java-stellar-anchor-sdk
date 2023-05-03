@@ -3,7 +3,7 @@
   "memo": "testMemo",
   "memoType": "testMemoType",
   "protocol": "24",
-  "toAccount": "testToAccount",
+  "fromAccount": "testFromAccount",
   "amountIn": "testAmountIn",
   "amountInAsset": "testAmountInAsset",
   "amountOut": "testAmountOut",
