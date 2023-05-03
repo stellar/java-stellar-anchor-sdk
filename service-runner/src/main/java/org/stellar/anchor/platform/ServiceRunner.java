@@ -2,7 +2,6 @@ package org.stellar.anchor.platform;
 
 import static org.stellar.anchor.util.Log.info;
 
-import java.util.HashMap;
 import java.util.Map;
 import org.apache.commons.cli.*;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -56,7 +55,7 @@ public class ServiceRunner {
       }
 
       if (cmd.hasOption("kotlin-reference-server") || cmd.hasOption("all")) {
-        startKotlinReferenceServer(new HashMap<>(), true);
+        startKotlinReferenceServer(null, true);
         anyServerStarted = true;
       }
 
