@@ -4,11 +4,11 @@ import static org.stellar.anchor.util.MemoHelper.memoTypeAsString;
 
 import com.google.gson.Gson;
 import org.stellar.anchor.api.custody.GenerateDepositAddressResponse;
+import org.stellar.anchor.api.custody.fireblocks.CreateAddressRequest;
+import org.stellar.anchor.api.custody.fireblocks.CreateAddressResponse;
 import org.stellar.anchor.api.exception.FireblocksException;
 import org.stellar.anchor.platform.config.FireblocksConfig;
 import org.stellar.anchor.platform.custody.PaymentService;
-import org.stellar.anchor.platform.dto.fireblocks.CreateNewDepositAddressRequestDto;
-import org.stellar.anchor.platform.dto.fireblocks.CreateNewDepositAddressResponseDto;
 import org.stellar.anchor.util.GsonUtils;
 import org.stellar.sdk.xdr.MemoType;
 
@@ -31,8 +31,8 @@ public class FireblocksPaymentService implements PaymentService {
   @Override
   public GenerateDepositAddressResponse generateDepositAddress(String assetId)
       throws FireblocksException {
-    CreateNewDepositAddressRequestDto request = new CreateNewDepositAddressRequestDto();
-    CreateNewDepositAddressResponseDto depositAddress =
+    CreateAddressRequest request = new CreateAddressRequest();
+    CreateAddressResponse depositAddress =
         gson.fromJson(
             fireblocksApiClient.post(
                 String.format(
@@ -40,7 +40,7 @@ public class FireblocksPaymentService implements PaymentService {
                     fireblocksConfig.getVaultAccountId(),
                     assetId),
                 gson.toJson(request)),
-            CreateNewDepositAddressResponseDto.class);
+            CreateAddressResponse.class);
     return new GenerateDepositAddressResponse(
         depositAddress.getAddress(), depositAddress.getTag(), memoTypeAsString(MemoType.MEMO_ID));
   }

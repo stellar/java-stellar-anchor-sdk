@@ -1,11 +1,11 @@
-package org.stellar.anchor.platform.dto.fireblocks;
+package org.stellar.anchor.api.custody.fireblocks;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class CreateNewDepositAddressResponseDto {
+public class CreateAddressResponse {
 
   private String address;
   private String legacyAddress;
