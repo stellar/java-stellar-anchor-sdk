@@ -24,11 +24,11 @@ import org.stellar.anchor.platform.condition.ConditionalOnAllSepsEnabled;
 import org.stellar.anchor.platform.config.*;
 import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountsManager;
 import org.stellar.anchor.platform.service.CustodyTransactionServiceImpl;
-import org.stellar.anchor.platform.service.Sep24DepositInfoGeneratorCustody;
-import org.stellar.anchor.platform.service.Sep24DepositInfoGeneratorSelf;
-import org.stellar.anchor.platform.service.Sep31DepositInfoGeneratorApi;
-import org.stellar.anchor.platform.service.Sep31DepositInfoGeneratorCustody;
-import org.stellar.anchor.platform.service.Sep31DepositInfoGeneratorSelf;
+import org.stellar.anchor.platform.service.Sep24DepositInfoCustodyGenerator;
+import org.stellar.anchor.platform.service.Sep24DepositInfoSelfGenerator;
+import org.stellar.anchor.platform.service.Sep31DepositInfoApiGenerator;
+import org.stellar.anchor.platform.service.Sep31DepositInfoCustodyGenerator;
+import org.stellar.anchor.platform.service.Sep31DepositInfoSelfGenerator;
 import org.stellar.anchor.platform.service.SimpleInteractiveUrlConstructor;
 import org.stellar.anchor.platform.service.SimpleMoreInfoUrlConstructor;
 import org.stellar.anchor.sep1.Sep1Service;
@@ -183,9 +183,9 @@ public class SepBeans {
       Sep24Config sep24Config, Optional<CustodyApiClient> custodyApiClient) {
     switch (sep24Config.getDepositInfoGeneratorType()) {
       case SELF:
-        return new Sep24DepositInfoGeneratorSelf();
+        return new Sep24DepositInfoSelfGenerator();
       case CUSTODY:
-        return new Sep24DepositInfoGeneratorCustody(custodyApiClient.orElseThrow());
+        return new Sep24DepositInfoCustodyGenerator(custodyApiClient.orElseThrow());
       default:
         throw new RuntimeException("Not supported");
     }
@@ -211,12 +211,12 @@ public class SepBeans {
       Optional<CustodyApiClient> custodyApiClient) {
     switch (sep31Config.getDepositInfoGeneratorType()) {
       case SELF:
-        return new Sep31DepositInfoGeneratorSelf();
+        return new Sep31DepositInfoSelfGenerator();
       case API:
-        return new Sep31DepositInfoGeneratorApi(
+        return new Sep31DepositInfoApiGenerator(
             uniqueAddressIntegration, paymentObservingAccountsManager);
       case CUSTODY:
-        return new Sep31DepositInfoGeneratorCustody(custodyApiClient.orElseThrow());
+        return new Sep31DepositInfoCustodyGenerator(custodyApiClient.orElseThrow());
       default:
         throw new RuntimeException("Not supported");
     }

@@ -28,7 +28,7 @@ class DepositInfoGeneratorTest {
     val txn = JdbcSep24Transaction()
     txn.id = TX_ID
     txn.toAccount = ADDRESS
-    val generator = Sep24DepositInfoGeneratorSelf()
+    val generator = Sep24DepositInfoSelfGenerator()
 
     val actualInfo = generator.generate(txn)
 
@@ -42,7 +42,7 @@ class DepositInfoGeneratorTest {
     val txn = JdbcSep24Transaction()
     txn.amountInAsset = ASSET_ID
     val custodyApiClient: CustodyApiClient = mockk()
-    val generator = Sep24DepositInfoGeneratorCustody(custodyApiClient)
+    val generator = Sep24DepositInfoCustodyGenerator(custodyApiClient)
 
     val depositAddress = GenerateDepositAddressResponse(ADDRESS, MEMO, MEMO_TYPE)
 
@@ -60,7 +60,7 @@ class DepositInfoGeneratorTest {
     val txn = JdbcSep24Transaction()
     txn.amountInAsset = ASSET_ID
     val custodyApiClient: CustodyApiClient = mockk()
-    val generator = Sep24DepositInfoGeneratorCustody(custodyApiClient)
+    val generator = Sep24DepositInfoCustodyGenerator(custodyApiClient)
 
     every { custodyApiClient.generateDepositAddress(ASSET_ID) } throws
       CustodyException("Custody exception")
@@ -75,7 +75,7 @@ class DepositInfoGeneratorTest {
     val txn = JdbcSep31Transaction()
     txn.id = TX_ID
     txn.stellarAccountId = ADDRESS
-    val generator = Sep31DepositInfoGeneratorSelf()
+    val generator = Sep31DepositInfoSelfGenerator()
 
     val actualInfo = generator.generate(txn)
 
@@ -89,7 +89,7 @@ class DepositInfoGeneratorTest {
     val txn = JdbcSep31Transaction()
     txn.amountInAsset = ASSET_ID
     val custodyApiClient: CustodyApiClient = mockk()
-    val generator = Sep31DepositInfoGeneratorCustody(custodyApiClient)
+    val generator = Sep31DepositInfoCustodyGenerator(custodyApiClient)
     val depositAddress = GenerateDepositAddressResponse(ADDRESS, MEMO, MEMO_TYPE)
 
     every { custodyApiClient.generateDepositAddress(ASSET_ID) } returns depositAddress
@@ -106,7 +106,7 @@ class DepositInfoGeneratorTest {
     val txn = JdbcSep31Transaction()
     txn.amountInAsset = ASSET_ID
     val custodyApiClient: CustodyApiClient = mockk()
-    val generator = Sep31DepositInfoGeneratorCustody(custodyApiClient)
+    val generator = Sep31DepositInfoCustodyGenerator(custodyApiClient)
 
     every { custodyApiClient.generateDepositAddress(ASSET_ID) } throws
       CustodyException("Custody exception")

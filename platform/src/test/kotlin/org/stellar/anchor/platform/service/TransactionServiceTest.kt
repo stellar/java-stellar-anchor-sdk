@@ -14,10 +14,13 @@ import org.junit.jupiter.params.provider.NullSource
 import org.junit.jupiter.params.provider.ValueSource
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode.LENIENT
+import org.stellar.anchor.api.event.AnchorEvent.Type.TRANSACTION_STATUS_CHANGED
 import org.stellar.anchor.api.exception.AnchorException
 import org.stellar.anchor.api.exception.BadRequestException
 import org.stellar.anchor.api.exception.NotFoundException
 import org.stellar.anchor.api.platform.PatchTransactionRequest
+import org.stellar.anchor.api.platform.PatchTransactionsRequest
+import org.stellar.anchor.api.platform.PlatformTransactionData
 import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.api.sep.sep38.RateFee
 import org.stellar.anchor.api.shared.Amount
@@ -27,6 +30,7 @@ import org.stellar.anchor.custody.CustodyTransactionService
 import org.stellar.anchor.event.EventService
 import org.stellar.anchor.platform.data.*
 import org.stellar.anchor.sep24.Sep24DepositInfoGenerator
+import org.stellar.anchor.sep24.Sep24Transaction
 import org.stellar.anchor.sep24.Sep24TransactionStore
 import org.stellar.anchor.sep31.Sep31TransactionStore
 import org.stellar.anchor.sep38.Sep38QuoteStore
@@ -45,11 +49,17 @@ class TransactionServiceTest {
   }
 
   @MockK(relaxed = true) private lateinit var sep38QuoteStore: Sep38QuoteStore
+
   @MockK(relaxed = true) private lateinit var sep31TransactionStore: Sep31TransactionStore
+
   @MockK(relaxed = true) private lateinit var sep24TransactionStore: Sep24TransactionStore
+
   @MockK(relaxed = true) private lateinit var assetService: AssetService
+
   @MockK(relaxed = true) private lateinit var eventService: EventService
+
   @MockK(relaxed = true) private lateinit var sep24DepositInfoGenerator: Sep24DepositInfoGenerator
+
   @MockK(relaxed = true) private lateinit var custodyTransactionService: CustodyTransactionService
   private lateinit var transactionService: TransactionService
 
@@ -237,6 +247,136 @@ class TransactionServiceTest {
   )
   fun test_validateIfStatusIsSupported(sepTxnStatus: SepTransactionStatus) {
     assertDoesNotThrow { transactionService.validateIfStatusIsSupported(sepTxnStatus.status) }
+  }
+
+  @Test
+  fun test_patchTransaction_sep24DepositPendingUserTransferStart() {
+    val txId = "testTxId"
+    val tx = JdbcSep24Transaction()
+    tx.status = SepTransactionStatus.INCOMPLETE.toString()
+    tx.kind = "deposit"
+    val data = PlatformTransactionData()
+    data.id = txId
+    data.memo = "12345"
+    data.memoType = "id"
+    data.status = SepTransactionStatus.PENDING_USR_TRANSFER_START
+    val request =
+      PatchTransactionsRequest.builder().records(listOf(PatchTransactionRequest(data))).build()
+
+    every { sep31TransactionStore.findByTransactionId(any()) } returns null
+    every { sep24TransactionStore.findByTransactionId(any()) } returns tx
+
+    transactionService.patchTransactions(request)
+
+    verify(exactly = 0) { custodyTransactionService.create(ofType(Sep24Transaction::class)) }
+    verify(exactly = 1) { sep24TransactionStore.save(any()) }
+    verify(exactly = 1) {
+      eventService.publish(ofType(Sep24Transaction::class), TRANSACTION_STATUS_CHANGED)
+    }
+  }
+
+  @Test
+  fun test_patchTransaction_sep24WithdrawalPendingAnchor() {
+    val txId = "testTxId"
+    val tx = JdbcSep24Transaction()
+    tx.status = SepTransactionStatus.INCOMPLETE.toString()
+    tx.kind = "withdrawal"
+    val data = PlatformTransactionData()
+    data.id = txId
+    data.memo = "12345"
+    data.memoType = "id"
+    data.status = SepTransactionStatus.PENDING_ANCHOR
+    val request =
+      PatchTransactionsRequest.builder().records(listOf(PatchTransactionRequest(data))).build()
+
+    every { sep31TransactionStore.findByTransactionId(any()) } returns null
+    every { sep24TransactionStore.findByTransactionId(any()) } returns tx
+
+    transactionService.patchTransactions(request)
+
+    verify(exactly = 0) { custodyTransactionService.create(ofType(Sep24Transaction::class)) }
+    verify(exactly = 1) { sep24TransactionStore.save(any()) }
+    verify(exactly = 1) {
+      eventService.publish(ofType(Sep24Transaction::class), TRANSACTION_STATUS_CHANGED)
+    }
+  }
+
+  @Test
+  fun test_patchTransaction_sep24DepositPendingAnchor() {
+    val txId = "testTxId"
+    val tx = JdbcSep24Transaction()
+    tx.status = SepTransactionStatus.INCOMPLETE.toString()
+    tx.kind = "deposit"
+    val data = PlatformTransactionData()
+    data.id = txId
+    data.memo = "12345"
+    data.memoType = "id"
+    data.status = SepTransactionStatus.PENDING_ANCHOR
+    val request =
+      PatchTransactionsRequest.builder().records(listOf(PatchTransactionRequest(data))).build()
+
+    every { sep31TransactionStore.findByTransactionId(any()) } returns null
+    every { sep24TransactionStore.findByTransactionId(any()) } returns tx
+
+    transactionService.patchTransactions(request)
+
+    verify(exactly = 1) { custodyTransactionService.create(ofType(Sep24Transaction::class)) }
+    verify(exactly = 1) { sep24TransactionStore.save(any()) }
+    verify(exactly = 1) {
+      eventService.publish(ofType(Sep24Transaction::class), TRANSACTION_STATUS_CHANGED)
+    }
+  }
+
+  @Test
+  fun test_patchTransaction_sep24WithdrawalPendingUserTransferStart() {
+    val txId = "testTxId"
+    val tx = JdbcSep24Transaction()
+    tx.status = SepTransactionStatus.INCOMPLETE.toString()
+    tx.kind = "withdrawal"
+    val data = PlatformTransactionData()
+    data.id = txId
+    data.memo = "12345"
+    data.memoType = "id"
+    data.status = SepTransactionStatus.PENDING_USR_TRANSFER_START
+    val request =
+      PatchTransactionsRequest.builder().records(listOf(PatchTransactionRequest(data))).build()
+
+    every { sep31TransactionStore.findByTransactionId(any()) } returns null
+    every { sep24TransactionStore.findByTransactionId(any()) } returns tx
+
+    transactionService.patchTransactions(request)
+
+    verify(exactly = 1) { custodyTransactionService.create(ofType(Sep24Transaction::class)) }
+    verify(exactly = 1) { sep24TransactionStore.save(any()) }
+    verify(exactly = 1) {
+      eventService.publish(ofType(Sep24Transaction::class), TRANSACTION_STATUS_CHANGED)
+    }
+  }
+
+  @Test
+  fun test_patchTransaction_sep24WithdrawalPendingUserTransferStart_statusNotChanged() {
+    val txId = "testTxId"
+    val tx = JdbcSep24Transaction()
+    tx.status = SepTransactionStatus.PENDING_USR_TRANSFER_START.toString()
+    tx.kind = "withdrawal"
+    val data = PlatformTransactionData()
+    data.id = txId
+    data.memo = "12345"
+    data.memoType = "id"
+    data.status = SepTransactionStatus.PENDING_USR_TRANSFER_START
+    val request =
+      PatchTransactionsRequest.builder().records(listOf(PatchTransactionRequest(data))).build()
+
+    every { sep31TransactionStore.findByTransactionId(any()) } returns null
+    every { sep24TransactionStore.findByTransactionId(any()) } returns tx
+
+    transactionService.patchTransactions(request)
+
+    verify(exactly = 0) { custodyTransactionService.create(ofType(Sep24Transaction::class)) }
+    verify(exactly = 1) { sep24TransactionStore.save(any()) }
+    verify(exactly = 1) {
+      eventService.publish(ofType(Sep24Transaction::class), TRANSACTION_STATUS_CHANGED)
+    }
   }
 
   @Test

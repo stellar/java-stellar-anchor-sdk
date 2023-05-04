@@ -23,7 +23,7 @@ import org.stellar.anchor.config.Sep31Config
 import org.stellar.anchor.custody.CustodyTransactionService
 import org.stellar.anchor.event.EventService
 import org.stellar.anchor.platform.data.JdbcSep31Transaction
-import org.stellar.anchor.platform.service.Sep31DepositInfoGeneratorSelf
+import org.stellar.anchor.platform.service.Sep31DepositInfoSelfGenerator
 import org.stellar.anchor.sep38.Sep38QuoteStore
 import org.stellar.anchor.util.GsonUtils
 
@@ -96,7 +96,7 @@ class Sep31DepositInfoGeneratorTest {
         appConfig,
         sep31Config,
         txnStore,
-        Sep31DepositInfoGeneratorSelf(), // set deposit info generator
+        Sep31DepositInfoSelfGenerator(), // set deposit info generator
         quoteStore,
         assetService,
         feeIntegration,

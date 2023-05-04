@@ -3,6 +3,7 @@ package org.stellar.anchor.platform.service;
 import static org.stellar.anchor.api.event.AnchorEvent.Type.TRANSACTION_STATUS_CHANGED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.ERROR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.EXPIRED;
+import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_CUSTOMER_INFO_UPDATE;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_USR_TRANSFER_START;
 import static org.stellar.anchor.platform.utils.TransactionHelper.toGetTransactionResponse;
@@ -154,27 +155,34 @@ public class TransactionService {
     updateSepTransaction(patch.getTransaction(), txn);
     switch (txn.getProtocol()) {
       case "24":
-        JdbcSep24Transaction sep24Transaction = (JdbcSep24Transaction) txn;
+        JdbcSep24Transaction sep24Txn = (JdbcSep24Transaction) txn;
+
         // add a memo for the transaction if the transaction is ready for user to send funds
-        if (sep24Transaction.getMemo() == null
-            && Kind.WITHDRAWAL.getKind().equals(sep24Transaction.getKind())
-            && sep24Transaction.getStatus().equals(PENDING_USR_TRANSFER_START.toString())) {
-          SepDepositInfo sep24DepositInfo = sep24DepositInfoGenerator.generate(sep24Transaction);
-          sep24Transaction.setToAccount(sep24DepositInfo.getStellarAddress());
-          sep24Transaction.setWithdrawAnchorAccount(sep24DepositInfo.getStellarAddress());
-          sep24Transaction.setMemo(sep24DepositInfo.getMemo());
-          sep24Transaction.setMemoType(sep24DepositInfo.getMemoType());
+        if (sep24Txn.getMemo() == null
+            && Kind.WITHDRAWAL.getKind().equals(sep24Txn.getKind())
+            && sep24Txn.getStatus().equals(PENDING_USR_TRANSFER_START.toString())) {
+          SepDepositInfo sep24DepositInfo = sep24DepositInfoGenerator.generate(sep24Txn);
+          sep24Txn.setToAccount(sep24DepositInfo.getStellarAddress());
+          sep24Txn.setWithdrawAnchorAccount(sep24DepositInfo.getStellarAddress());
+          sep24Txn.setMemo(sep24DepositInfo.getMemo());
+          sep24Txn.setMemoType(sep24DepositInfo.getMemoType());
         }
-        if (!lastStatus.equals(txn.getStatus())) {
-          custodyTransactionService.create(sep24Transaction);
+
+        if (!lastStatus.equals(sep24Txn.getStatus())
+            && ((Kind.DEPOSIT.getKind().equals(sep24Txn.getKind())
+                    && PENDING_ANCHOR.toString().equals(sep24Txn.getStatus()))
+                || (Kind.WITHDRAWAL.getKind().equals(sep24Txn.getKind())
+                    && PENDING_USR_TRANSFER_START.toString().equals(sep24Txn.getStatus())))) {
+          custodyTransactionService.create(sep24Txn);
         }
-        txn24Store.save(sep24Transaction);
-        eventService.publish(sep24Transaction, TRANSACTION_STATUS_CHANGED);
+
+        txn24Store.save(sep24Txn);
+        eventService.publish(sep24Txn, TRANSACTION_STATUS_CHANGED);
         break;
       case "31":
-        JdbcSep31Transaction sep31Transaction = (JdbcSep31Transaction) txn;
-        txn31Store.save(sep31Transaction);
-        eventService.publish(sep31Transaction, TRANSACTION_STATUS_CHANGED);
+        JdbcSep31Transaction sep31Txn = (JdbcSep31Transaction) txn;
+        txn31Store.save(sep31Txn);
+        eventService.publish(sep31Txn, TRANSACTION_STATUS_CHANGED);
         break;
     }
 

@@ -29,42 +29,10 @@ class CustodyTransactionServiceTest {
   }
 
   @Test
-  fun test_create_sep24_deposit_pending_user_transfer_start_entity() {
+  fun test_create_sep24Deposit() {
     val txn =
       gson.fromJson(
-        FileUtil.getResourceFileAsString(
-          "service/custodyTransaction/sep24_deposit_pending_user_transfer_start_entity.json"
-        ),
-        JdbcSep24Transaction::class.java
-      )
-
-    custodyTransactionService.create(txn)
-
-    verify(exactly = 0) { custodyApiClient.createTransaction(any()) }
-  }
-
-  @Test
-  fun test_create_sep24_withdrawal_pending_anchor_entity() {
-    val txn =
-      gson.fromJson(
-        FileUtil.getResourceFileAsString(
-          "service/custodyTransaction/sep24_withdrawal_pending_anchor_entity.json"
-        ),
-        JdbcSep24Transaction::class.java
-      )
-
-    custodyTransactionService.create(txn)
-
-    verify(exactly = 0) { custodyApiClient.createTransaction(any()) }
-  }
-
-  @Test
-  fun test_create_sep24_deposit_pending_anchor() {
-    val txn =
-      gson.fromJson(
-        FileUtil.getResourceFileAsString(
-          "service/custodyTransaction/sep24_deposit_pending_anchor_entity.json"
-        ),
+        FileUtil.getResourceFileAsString("service/custodyTransaction/sep24_deposit_entity.json"),
         JdbcSep24Transaction::class.java
       )
     val requestCapture = slot<CreateCustodyTransactionRequest>()
@@ -74,21 +42,17 @@ class CustodyTransactionServiceTest {
     custodyTransactionService.create(txn)
 
     JSONAssert.assertEquals(
-      FileUtil.getResourceFileAsString(
-        "service/custodyTransaction/sep24_deposit_pending_anchor_request.json"
-      ),
+      FileUtil.getResourceFileAsString("service/custodyTransaction/sep24_deposit_request.json"),
       gson.toJson(requestCapture.captured),
       JSONCompareMode.STRICT
     )
   }
 
   @Test
-  fun test_create_sep24_withdrawal_pending_user_transfer_start() {
+  fun test_create_sep24Withdrawal() {
     val txn =
       gson.fromJson(
-        FileUtil.getResourceFileAsString(
-          "service/custodyTransaction/sep24_withdrawal_pending_user_transfer_start_entity.json"
-        ),
+        FileUtil.getResourceFileAsString("service/custodyTransaction/sep24_withdrawal_entity.json"),
         JdbcSep24Transaction::class.java
       )
     val requestCapture = slot<CreateCustodyTransactionRequest>()
@@ -98,36 +62,17 @@ class CustodyTransactionServiceTest {
     custodyTransactionService.create(txn)
 
     JSONAssert.assertEquals(
-      FileUtil.getResourceFileAsString(
-        "service/custodyTransaction/sep24_withdrawal_pending_user_transfer_start_request.json"
-      ),
+      FileUtil.getResourceFileAsString("service/custodyTransaction/sep24_withdrawal_request.json"),
       gson.toJson(requestCapture.captured),
       JSONCompareMode.STRICT
     )
   }
 
   @Test
-  fun test_create_sep31_pending_receiver() {
+  fun test_create_sep31() {
     val txn =
       gson.fromJson(
-        FileUtil.getResourceFileAsString(
-          "service/custodyTransaction/sep31_pending_receiver_entity.json"
-        ),
-        JdbcSep31Transaction::class.java
-      )
-
-    custodyTransactionService.create(txn)
-
-    verify(exactly = 0) { custodyApiClient.createTransaction(any()) }
-  }
-
-  @Test
-  fun test_create_sep31_pending_sender() {
-    val txn =
-      gson.fromJson(
-        FileUtil.getResourceFileAsString(
-          "service/custodyTransaction/sep31_pending_sender_entity.json"
-        ),
+        FileUtil.getResourceFileAsString("service/custodyTransaction/sep31_entity.json"),
         JdbcSep31Transaction::class.java
       )
     val requestCapture = slot<CreateCustodyTransactionRequest>()
@@ -137,9 +82,7 @@ class CustodyTransactionServiceTest {
     custodyTransactionService.create(txn)
 
     JSONAssert.assertEquals(
-      FileUtil.getResourceFileAsString(
-        "service/custodyTransaction/sep31_pending_sender_request.json"
-      ),
+      FileUtil.getResourceFileAsString("service/custodyTransaction/sep31_request.json"),
       gson.toJson(requestCapture.captured),
       JSONCompareMode.STRICT
     )

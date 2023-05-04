@@ -7,9 +7,9 @@ import org.junit.jupiter.api.Test
 import org.stellar.anchor.api.custody.GenerateDepositAddressResponse
 import org.stellar.anchor.api.shared.SepDepositInfo
 import org.stellar.anchor.platform.apiclient.CustodyApiClient
-import org.stellar.anchor.platform.data.JdbcSep24Transaction
+import org.stellar.anchor.platform.data.JdbcSep31Transaction
 
-class Sep24DepositInfoGeneratorCustodyTest {
+class Sep31DepositInfoCustodyGeneratorTest {
 
   companion object {
     private const val ADDRESS = "testAccount"
@@ -19,12 +19,11 @@ class Sep24DepositInfoGeneratorCustodyTest {
   }
 
   @Test
-  fun test_sep24_custodyGenerator_success() {
-    val txn = JdbcSep24Transaction()
+  fun test_sep31_custodyGenerator_success() {
+    val txn = JdbcSep31Transaction()
     txn.amountInAsset = ASSET_ID
     val custodyApiClient: CustodyApiClient = mockk()
-    val generator = Sep24DepositInfoGeneratorCustody(custodyApiClient)
-
+    val generator = Sep31DepositInfoCustodyGenerator(custodyApiClient)
     val depositAddress = GenerateDepositAddressResponse(ADDRESS, MEMO, MEMO_TYPE)
 
     every { custodyApiClient.generateDepositAddress(ASSET_ID) } returns depositAddress
