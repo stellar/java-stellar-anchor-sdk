@@ -13,7 +13,7 @@ import org.stellar.anchor.platform.config.FireblocksConfig
 import org.stellar.anchor.util.FileUtil.getResourceFileAsString
 import org.stellar.anchor.util.GsonUtils
 
-class CustodyApiClientTest {
+class FireblocksPaymentServiceTest {
 
   companion object {
     private const val VAULT_ACCOUNT_ID = "testVaultAccountId"
