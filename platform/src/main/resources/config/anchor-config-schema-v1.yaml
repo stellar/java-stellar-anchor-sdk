@@ -86,6 +86,7 @@ sep24.interactive_url.txn_fields:
 sep24.more_info_url.base_url:
 sep24.more_info_url.jwt_expiration:
 sep24.more_info_url.txn_fields:
+sep24.deposit_info_generator_type:
 sep31.deposit_info_generator_type:
 sep31.enabled:
 sep31.payment_type:
@@ -98,6 +99,10 @@ stellar_network.network:
 stellar_network.network_passphrase:
 custody_server.context_path:
 custody_server.port:
+custody_server.auth.api_key.http_header:
+custody_server.auth.jwt.expiration_milliseconds:
+custody_server.auth.jwt.http_header:
+custody_server.auth.type:
 custody_server.base_url:
 custody.type:
 custody.fireblocks.base_url:

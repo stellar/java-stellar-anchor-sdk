@@ -1,4 +1,4 @@
-package org.stellar.anchor.platform.exception;
+package org.stellar.anchor.api.exception;
 
 import lombok.EqualsAndHashCode;
 

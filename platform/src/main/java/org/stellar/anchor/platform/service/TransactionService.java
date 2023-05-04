@@ -1,34 +1,45 @@
 package org.stellar.anchor.platform.service;
 
 import static org.stellar.anchor.api.event.AnchorEvent.Type.TRANSACTION_STATUS_CHANGED;
-import static org.stellar.anchor.api.sep.SepTransactionStatus.*;
+import static org.stellar.anchor.api.sep.SepTransactionStatus.ERROR;
+import static org.stellar.anchor.api.sep.SepTransactionStatus.EXPIRED;
+import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_CUSTOMER_INFO_UPDATE;
+import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_USR_TRANSFER_START;
 import static org.stellar.anchor.platform.utils.TransactionHelper.toGetTransactionResponse;
 import static org.stellar.anchor.sep31.Sep31Helper.allAmountAvailable;
 import static org.stellar.anchor.util.BeanHelper.updateField;
 import static org.stellar.anchor.util.MathHelper.decimal;
 import static org.stellar.anchor.util.MathHelper.equalsAsDecimals;
 import static org.stellar.anchor.util.MemoHelper.makeMemo;
-import static org.stellar.anchor.util.MemoHelper.memoTypeAsString;
-import static org.stellar.sdk.xdr.MemoType.MEMO_HASH;
 
 import io.micrometer.core.instrument.Metrics;
 import java.time.Instant;
-import java.util.*;
+import java.util.Comparator;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
-import org.apache.commons.lang3.StringUtils;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.InternalServerErrorException;
 import org.stellar.anchor.api.exception.NotFoundException;
-import org.stellar.anchor.api.platform.*;
+import org.stellar.anchor.api.platform.GetTransactionResponse;
+import org.stellar.anchor.api.platform.PatchTransactionRequest;
+import org.stellar.anchor.api.platform.PatchTransactionsRequest;
+import org.stellar.anchor.api.platform.PatchTransactionsResponse;
+import org.stellar.anchor.api.platform.PlatformTransactionData;
+import org.stellar.anchor.api.platform.PlatformTransactionData.Kind;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.shared.Amount;
+import org.stellar.anchor.api.shared.SepDepositInfo;
 import org.stellar.anchor.asset.AssetService;
+import org.stellar.anchor.custody.CustodyTransactionService;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSep31Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
+import org.stellar.anchor.sep24.Sep24DepositInfoGenerator;
 import org.stellar.anchor.sep24.Sep24Refunds;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31Refunds;
@@ -42,12 +53,15 @@ import org.stellar.anchor.util.StringHelper;
 import org.stellar.sdk.Memo;
 
 public class TransactionService {
+
   private final Sep38QuoteStore quoteStore;
   private final Sep31TransactionStore txn31Store;
   private final Sep24TransactionStore txn24Store;
   private final List<AssetInfo> assets;
   private final EventService eventService;
   private final AssetService assetService;
+  private final Sep24DepositInfoGenerator sep24DepositInfoGenerator;
+  private final CustodyTransactionService custodyTransactionService;
 
   static boolean isStatusError(String status) {
     return List.of(PENDING_CUSTOMER_INFO_UPDATE.getStatus(), EXPIRED.getStatus(), ERROR.getStatus())
@@ -59,13 +73,17 @@ public class TransactionService {
       Sep31TransactionStore txn31Store,
       Sep38QuoteStore quoteStore,
       AssetService assetService,
-      EventService eventService) {
+      EventService eventService,
+      Sep24DepositInfoGenerator sep24DepositInfoGenerator,
+      CustodyTransactionService custodyTransactionService) {
     this.txn24Store = txn24Store;
     this.txn31Store = txn31Store;
     this.quoteStore = quoteStore;
     this.assets = assetService.listAllAssets();
     this.eventService = eventService;
     this.assetService = assetService;
+    this.sep24DepositInfoGenerator = sep24DepositInfoGenerator;
+    this.custodyTransactionService = custodyTransactionService;
   }
 
   /**
@@ -139,23 +157,30 @@ public class TransactionService {
         JdbcSep24Transaction sep24Transaction = (JdbcSep24Transaction) txn;
         // add a memo for the transaction if the transaction is ready for user to send funds
         if (sep24Transaction.getMemo() == null
+            && Kind.WITHDRAWAL.getKind().equals(sep24Transaction.getKind())
             && sep24Transaction.getStatus().equals(PENDING_USR_TRANSFER_START.toString())) {
-          // TODO - move this to separate file ex: Sep31DepositInfoGeneratorSelf.java
-          String memo = StringUtils.truncate(sep24Transaction.getId(), 32);
-          memo = StringUtils.leftPad(memo, 32, '0');
-          memo = new String(Base64.getEncoder().encode(memo.getBytes()));
-          sep24Transaction.setMemo(memo);
-          sep24Transaction.setMemoType(memoTypeAsString(MEMO_HASH));
+          SepDepositInfo sep24DepositInfo = sep24DepositInfoGenerator.generate(sep24Transaction);
+          sep24Transaction.setToAccount(sep24DepositInfo.getStellarAddress());
+          sep24Transaction.setWithdrawAnchorAccount(sep24DepositInfo.getStellarAddress());
+          sep24Transaction.setMemo(sep24DepositInfo.getMemo());
+          sep24Transaction.setMemoType(sep24DepositInfo.getMemoType());
+        }
+        if (!lastStatus.equals(txn.getStatus())) {
+          custodyTransactionService.create(sep24Transaction);
         }
         txn24Store.save(sep24Transaction);
         eventService.publish(sep24Transaction, TRANSACTION_STATUS_CHANGED);
         break;
       case "31":
-        txn31Store.save((JdbcSep31Transaction) txn);
-        eventService.publish((JdbcSep31Transaction) txn, TRANSACTION_STATUS_CHANGED);
+        JdbcSep31Transaction sep31Transaction = (JdbcSep31Transaction) txn;
+        txn31Store.save(sep31Transaction);
+        eventService.publish(sep31Transaction, TRANSACTION_STATUS_CHANGED);
         break;
     }
-    if (!lastStatus.equals(txn.getStatus())) updateMetrics(txn);
+
+    if (!lastStatus.equals(txn.getStatus())) {
+      updateMetrics(txn);
+    }
     return toGetTransactionResponse(txn, assetService);
   }
 

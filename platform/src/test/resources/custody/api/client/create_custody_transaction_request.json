@@ -1,0 +1,13 @@
+{
+  "id" : "testId",
+  "memo":  "testMemo",
+  "memoType": "testMemoType",
+  "protocol": "testProtocol",
+  "fromAccount": "testFromAccount",
+  "toAccount": "testToAccount",
+  "amountIn": "testAmountIn",
+  "amountInAsset": "testAmountInAsset",
+  "amountOut": "testAmountOut",
+  "amountOutAsset": "testAmountOutAsset",
+  "kind": "testKind"
+}

@@ -3,6 +3,7 @@ package org.stellar.anchor.platform.utils;
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.*;
 
 import javax.annotation.Nullable;
+import org.stellar.anchor.api.custody.CreateCustodyTransactionRequest;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.platform.GetTransactionResponse;
 import org.stellar.anchor.api.platform.PlatformTransactionData;
@@ -15,7 +16,9 @@ import org.stellar.anchor.platform.data.JdbcSep31Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.sep24.Sep24RefundPayment;
 import org.stellar.anchor.sep24.Sep24Refunds;
+import org.stellar.anchor.sep24.Sep24Transaction;
 import org.stellar.anchor.sep31.Sep31Refunds;
+import org.stellar.anchor.sep31.Sep31Transaction;
 
 public class TransactionHelper {
   public static GetTransactionResponse toGetTransactionResponse(
@@ -28,6 +31,37 @@ public class TransactionHelper {
       default:
         throw new SepException(String.format("Unsupported protocol:%s", txn.getProtocol()));
     }
+  }
+
+  public static CreateCustodyTransactionRequest toCustodyTransaction(Sep24Transaction txn) {
+    return CreateCustodyTransactionRequest.builder()
+        .id(txn.getId())
+        .memo(txn.getMemo())
+        .memoType(txn.getMemoType())
+        .protocol("24")
+        .fromAccount(WITHDRAWAL.getKind().equals(txn.getKind()) ? txn.getFromAccount() : null)
+        .toAccount(DEPOSIT.getKind().equals(txn.getKind()) ? txn.getToAccount() : null)
+        .amountIn(txn.getAmountIn())
+        .amountInAsset(txn.getAmountInAsset())
+        .amountOut(txn.getAmountOut())
+        .amountOutAsset(txn.getAmountOutAsset())
+        .kind(txn.getKind())
+        .build();
+  }
+
+  public static CreateCustodyTransactionRequest toCustodyTransaction(Sep31Transaction txn) {
+    return CreateCustodyTransactionRequest.builder()
+        .id(txn.getId())
+        .memo(txn.getStellarMemo())
+        .memoType(txn.getStellarMemoType())
+        .protocol("31")
+        .toAccount(txn.getStellarAccountId())
+        .amountIn(txn.getAmountIn())
+        .amountInAsset(txn.getAmountInAsset())
+        .amountOut(txn.getAmountOut())
+        .amountOutAsset(txn.getAmountOutAsset())
+        .kind(RECEIVE.getKind())
+        .build();
   }
 
   static GetTransactionResponse toGetTransactionResponse(JdbcSep31Transaction txn) {

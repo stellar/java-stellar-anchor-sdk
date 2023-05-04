@@ -7,13 +7,14 @@ import org.stellar.anchor.api.callback.GetUniqueAddressResponse;
 import org.stellar.anchor.api.callback.UniqueAddressIntegration;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.InternalServerErrorException;
-import org.stellar.anchor.api.sep.sep31.Sep31DepositInfo;
+import org.stellar.anchor.api.shared.SepDepositInfo;
 import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountsManager;
 import org.stellar.anchor.sep31.Sep31DepositInfoGenerator;
 import org.stellar.anchor.sep31.Sep31Transaction;
 import org.stellar.anchor.util.MemoHelper;
 
 public class Sep31DepositInfoGeneratorApi implements Sep31DepositInfoGenerator {
+
   private final UniqueAddressIntegration uniqueAddressIntegration;
   private final PaymentObservingAccountsManager paymentObservingAccountsManager;
 
@@ -25,7 +26,7 @@ public class Sep31DepositInfoGeneratorApi implements Sep31DepositInfoGenerator {
   }
 
   @Override
-  public Sep31DepositInfo generate(Sep31Transaction txn) throws AnchorException {
+  public SepDepositInfo generate(Sep31Transaction txn) throws AnchorException {
     GetUniqueAddressResponse response = uniqueAddressIntegration.getUniqueAddress(txn.getId());
     GetUniqueAddressResponse.UniqueAddress uniqueAddress = response.getUniqueAddress();
 
@@ -43,7 +44,7 @@ public class Sep31DepositInfoGeneratorApi implements Sep31DepositInfoGenerator {
     // Add to payment observer manager so that we get events of the stellar address.
     paymentObservingAccountsManager.upsert(uniqueAddress.getStellarAddress(), TRANSIENT);
 
-    return new Sep31DepositInfo(
+    return new SepDepositInfo(
         uniqueAddress.getStellarAddress(), uniqueAddress.getMemo(), uniqueAddress.getMemoType());
   }
 }

@@ -3,17 +3,27 @@ package org.stellar.anchor.sep31;
 import static org.stellar.anchor.api.event.AnchorEvent.Type.TRANSACTION_CREATED;
 import static org.stellar.anchor.api.sep.sep31.Sep31InfoResponse.AssetResponse;
 import static org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_SEND;
-import static org.stellar.anchor.util.Log.*;
+import static org.stellar.anchor.util.Log.debug;
+import static org.stellar.anchor.util.Log.debugF;
+import static org.stellar.anchor.util.Log.info;
+import static org.stellar.anchor.util.Log.infoF;
 import static org.stellar.anchor.util.MathHelper.decimal;
 import static org.stellar.anchor.util.MathHelper.formatAmount;
-import static org.stellar.anchor.util.SepHelper.*;
+import static org.stellar.anchor.util.SepHelper.amountEquals;
+import static org.stellar.anchor.util.SepHelper.generateSepTransactionId;
+import static org.stellar.anchor.util.SepHelper.validateAmount;
+import static org.stellar.anchor.util.SepHelper.validateAmountLimit;
 import static org.stellar.anchor.util.SepLanguageHelper.validateLanguage;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 import static org.stellar.sdk.xdr.MemoType.MEMO_NONE;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import javax.transaction.Transactional;
 import lombok.Data;
@@ -21,7 +31,13 @@ import lombok.SneakyThrows;
 import org.stellar.anchor.api.callback.CustomerIntegration;
 import org.stellar.anchor.api.callback.FeeIntegration;
 import org.stellar.anchor.api.callback.GetFeeRequest;
-import org.stellar.anchor.api.exception.*;
+import org.stellar.anchor.api.exception.AnchorException;
+import org.stellar.anchor.api.exception.BadRequestException;
+import org.stellar.anchor.api.exception.NotFoundException;
+import org.stellar.anchor.api.exception.Sep31CustomerInfoNeededException;
+import org.stellar.anchor.api.exception.Sep31MissingFieldException;
+import org.stellar.anchor.api.exception.SepValidationException;
+import org.stellar.anchor.api.exception.ServerErrorException;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.AssetInfo.Sep12Operation;
 import org.stellar.anchor.api.sep.AssetInfo.Sep31TxnFieldSpecs;
@@ -29,19 +45,26 @@ import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerRequest;
 import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerResponse;
 import org.stellar.anchor.api.sep.sep12.Sep12Status;
-import org.stellar.anchor.api.sep.sep31.*;
+import org.stellar.anchor.api.sep.sep31.Sep31GetTransactionResponse;
+import org.stellar.anchor.api.sep.sep31.Sep31InfoResponse;
+import org.stellar.anchor.api.sep.sep31.Sep31PatchTransactionRequest;
+import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionRequest;
+import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionResponse;
 import org.stellar.anchor.api.shared.Amount;
+import org.stellar.anchor.api.shared.SepDepositInfo;
 import org.stellar.anchor.api.shared.StellarId;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.Sep10Jwt;
 import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.Sep31Config;
+import org.stellar.anchor.custody.CustodyTransactionService;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.sep38.Sep38Quote;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
 import org.stellar.anchor.util.Log;
 
 public class Sep31Service {
+
   private final AppConfig appConfig;
   private final Sep31Config sep31Config;
   private final Sep31TransactionStore sep31TransactionStore;
@@ -52,6 +75,7 @@ public class Sep31Service {
   private final CustomerIntegration customerIntegration;
   private final Sep31InfoResponse infoResponse;
   private final EventService eventService;
+  private final CustodyTransactionService custodyTransactionService;
 
   public Sep31Service(
       AppConfig appConfig,
@@ -62,7 +86,8 @@ public class Sep31Service {
       AssetService assetService,
       FeeIntegration feeIntegration,
       CustomerIntegration customerIntegration,
-      EventService eventService) {
+      EventService eventService,
+      CustodyTransactionService custodyTransactionService) {
     debug("appConfig:", appConfig);
     debug("sep31Config:", sep31Config);
     this.appConfig = appConfig;
@@ -75,6 +100,7 @@ public class Sep31Service {
     this.customerIntegration = customerIntegration;
     this.eventService = eventService;
     this.infoResponse = sep31InfoResponseFromAssetInfoList(assetService.listAllAssets());
+    this.custodyTransactionService = custodyTransactionService;
     Log.info("Sep31Service initialized.");
   }
 
@@ -182,6 +208,8 @@ public class Sep31Service {
 
     updateDepositInfo();
 
+    custodyTransactionService.create(txn);
+
     eventService.publish(txn, TRANSACTION_CREATED);
 
     return Sep31PostTransactionResponse.builder()
@@ -288,7 +316,7 @@ public class Sep31Service {
    */
   void updateDepositInfo() throws AnchorException {
     Sep31Transaction txn = Context.get().getTransaction();
-    Sep31DepositInfo depositInfo = sep31DepositInfoGenerator.generate(txn);
+    SepDepositInfo depositInfo = sep31DepositInfoGenerator.generate(txn);
     infoF("Updating transaction ({}) with depositInfo ({})", txn.getId(), depositInfo);
     txn.setStellarAccountId(depositInfo.getStellarAddress());
     txn.setStellarMemo(depositInfo.getMemo());
@@ -638,6 +666,7 @@ public class Sep31Service {
 
   @Data
   public static class Context {
+
     private Sep31Transaction transaction;
     private Sep31PostTransactionRequest request;
     private Sep38Quote quote;

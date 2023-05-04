@@ -20,6 +20,7 @@ import org.stellar.anchor.util.FileUtil.getResourceFileAsString
 class FireblocksEventServiceTest {
 
   private lateinit var secretConfig: PropertyCustodySecretConfig
+
   @BeforeEach
   fun setUp() {
     secretConfig = mockk()
@@ -28,12 +29,12 @@ class FireblocksEventServiceTest {
   @Test
   fun `test handleFireblocksEvent() for valid event object and signature`() {
     val config =
-      getFireblocksConfig(getResourceFileAsString("custody/fireblocks/event/public_key.txt"))
+      getFireblocksConfig(getResourceFileAsString("custody/fireblocks/webhook/public_key.txt"))
     val eventsService = FireblocksEventService(config)
 
-    val signature: String = getResourceFileAsString("custody/fireblocks/event/signature.txt")
+    val signature: String = getResourceFileAsString("custody/fireblocks/webhook/signature.txt")
     val httpHeaders: Map<String, String> = mutableMapOf(FIREBLOCKS_SIGNATURE_HEADER to signature)
-    val eventObject: String = getCompactJsonString("custody/fireblocks/event/webhook_request.json")
+    val eventObject: String = getCompactJsonString("custody/fireblocks/webhook/request.json")
 
     eventsService.handleFireblocksEvent(eventObject, httpHeaders)
   }
@@ -80,13 +81,13 @@ class FireblocksEventServiceTest {
   @Test
   fun `test handleFireblocksEvent() for invalid signature`() {
     val config =
-      getFireblocksConfig(getResourceFileAsString("custody/fireblocks/event/public_key.txt"))
+      getFireblocksConfig(getResourceFileAsString("custody/fireblocks/webhook/public_key.txt"))
     val eventsService = FireblocksEventService(config)
 
     val invalidSignature =
       "Yww6co109EfZ6BBam0zr1ewhv2gB3sFrfzcmbEFTttGp6GYVNEOslcMIMbjrFsFtkiEIO5ogvPI7Boz7y" +
         "QUiXqh92Spj1aG5NoGDdjiW2ozTJxKq7ECK9IsS5vTjIxnBXUIXokCAN2BuiyA8d7LciJ6HwzS+DIvFNyvv7uKU6O0="
-    val eventObject: String = getCompactJsonString("custody/fireblocks/event/webhook_request.json")
+    val eventObject: String = getCompactJsonString("custody/fireblocks/webhook/request.json")
     val httpHeaders = mutableMapOf(FIREBLOCKS_SIGNATURE_HEADER to invalidSignature)
 
     val ex =

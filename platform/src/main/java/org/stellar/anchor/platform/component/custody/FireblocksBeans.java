@@ -11,8 +11,10 @@ import org.springframework.context.annotation.Configuration;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.platform.config.CustodySecretConfig;
 import org.stellar.anchor.platform.config.FireblocksConfig;
+import org.stellar.anchor.platform.custody.PaymentService;
 import org.stellar.anchor.platform.custody.fireblocks.FireblocksApiClient;
 import org.stellar.anchor.platform.custody.fireblocks.FireblocksEventService;
+import org.stellar.anchor.platform.custody.fireblocks.FireblocksPaymentService;
 import org.stellar.anchor.platform.job.FireblocksTransactionsReconciliationJob;
 
 @Configuration
@@ -30,7 +32,7 @@ public class FireblocksBeans {
     return new FireblocksTransactionsReconciliationJob();
   }
 
-  @Bean("fireblocksHttpClient")
+  @Bean(name = "fireblocksHttpClient")
   OkHttpClient fireblocksHttpClient() {
     return new Builder()
         .connectTimeout(10, TimeUnit.MINUTES)
@@ -51,5 +53,11 @@ public class FireblocksBeans {
   FireblocksEventService fireblocksEventsService(FireblocksConfig fireblocksConfig)
       throws InvalidConfigException {
     return new FireblocksEventService(fireblocksConfig);
+  }
+
+  @Bean
+  PaymentService paymentService(
+      FireblocksApiClient fireblocksApiClient, FireblocksConfig fireblocksConfig) {
+    return new FireblocksPaymentService(fireblocksApiClient, fireblocksConfig);
   }
 }

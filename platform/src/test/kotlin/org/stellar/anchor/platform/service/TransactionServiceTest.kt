@@ -1,10 +1,8 @@
 package org.stellar.anchor.platform.service
 
-import io.mockk.MockKAnnotations
-import io.mockk.clearAllMocks
-import io.mockk.every
+import io.mockk.*
 import io.mockk.impl.annotations.MockK
-import io.mockk.unmockkAll
+import java.util.*
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
@@ -25,8 +23,10 @@ import org.stellar.anchor.api.sep.sep38.RateFee
 import org.stellar.anchor.api.shared.Amount
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
+import org.stellar.anchor.custody.CustodyTransactionService
 import org.stellar.anchor.event.EventService
 import org.stellar.anchor.platform.data.*
+import org.stellar.anchor.sep24.Sep24DepositInfoGenerator
 import org.stellar.anchor.sep24.Sep24TransactionStore
 import org.stellar.anchor.sep31.Sep31TransactionStore
 import org.stellar.anchor.sep38.Sep38QuoteStore
@@ -49,6 +49,8 @@ class TransactionServiceTest {
   @MockK(relaxed = true) private lateinit var sep24TransactionStore: Sep24TransactionStore
   @MockK(relaxed = true) private lateinit var assetService: AssetService
   @MockK(relaxed = true) private lateinit var eventService: EventService
+  @MockK(relaxed = true) private lateinit var sep24DepositInfoGenerator: Sep24DepositInfoGenerator
+  @MockK(relaxed = true) private lateinit var custodyTransactionService: CustodyTransactionService
   private lateinit var transactionService: TransactionService
 
   @BeforeEach
@@ -60,7 +62,9 @@ class TransactionServiceTest {
         sep31TransactionStore,
         sep38QuoteStore,
         assetService,
-        eventService
+        eventService,
+        sep24DepositInfoGenerator,
+        custodyTransactionService
       )
   }
 
@@ -192,7 +196,9 @@ class TransactionServiceTest {
         sep31TransactionStore,
         sep38QuoteStore,
         assetService,
-        eventService
+        eventService,
+        null,
+        null
       )
     val mockAsset = Amount("10", fiatUSD)
     assertDoesNotThrow { transactionService.validateAsset("amount_in", mockAsset) }
@@ -339,7 +345,9 @@ class TransactionServiceTest {
         sep31TransactionStore,
         sep38QuoteStore,
         assetService,
-        eventService
+        eventService,
+        null,
+        null
       )
 
     assertDoesNotThrow {

@@ -22,9 +22,9 @@ import org.stellar.anchor.util.FileUtil.getResourceFileAsString
 
 class RSAUtilTest {
 
-  private val signature: String = getResourceFileAsString("custody/fireblocks/event/signature.txt")
-  private val eventObject: String =
-    getCompactJsonString("custody/fireblocks/event/webhook_request.json")
+  private val signature: String =
+    getResourceFileAsString("custody/fireblocks/webhook/signature.txt")
+  private val eventObject: String = getCompactJsonString("custody/fireblocks/webhook/request.json")
 
   @ParameterizedTest
   @ValueSource(strings = ["custody/fireblocks/event/public_key.txt"])
@@ -73,7 +73,7 @@ class RSAUtilTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = ["custody/fireblocks/event/public_key.txt"])
+  @ValueSource(strings = ["custody/fireblocks/webhook/public_key.txt"])
   fun `test isSignatureValid() returns true for valid signature, eventObject, public key and algorithm`(
     fileName: String
   ) {
@@ -85,7 +85,7 @@ class RSAUtilTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = ["custody/fireblocks/event/public_key.txt"])
+  @ValueSource(strings = ["custody/fireblocks/webhook/public_key.txt"])
   fun `test isSignatureValid() for invalid signature`(fileName: String) {
     val publicKeyString: String = getResourceFileAsString(fileName)
     val publicKey: PublicKey = generatePublicKey(publicKeyString, RSA_ALGORITHM)
@@ -98,7 +98,7 @@ class RSAUtilTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = ["custody/fireblocks/event/public_key.txt"])
+  @ValueSource(strings = ["custody/fireblocks/webhook/public_key.txt"])
   fun `test isSignatureValid() for invalid data`(fileName: String) {
     val publicKeyString: String = getResourceFileAsString(fileName)
     val publicKey: PublicKey = generatePublicKey(publicKeyString, RSA_ALGORITHM)
@@ -121,7 +121,7 @@ class RSAUtilTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = ["custody/fireblocks/event/public_key.txt"])
+  @ValueSource(strings = ["custody/fireblocks/webhook/public_key.txt"])
   fun `test isSignatureValid() for invalid algorithm`(fileName: String) {
     val publicKeyString: String = getResourceFileAsString(fileName)
     val publicKey: PublicKey = generatePublicKey(publicKeyString, RSA_ALGORITHM)

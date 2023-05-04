@@ -24,10 +24,10 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
+import org.stellar.anchor.api.exception.FireblocksException
 import org.stellar.anchor.api.exception.InvalidConfigException
 import org.stellar.anchor.platform.config.CustodySecretConfig
 import org.stellar.anchor.platform.config.FireblocksConfig
-import org.stellar.anchor.platform.exception.FireblocksException
 import org.stellar.anchor.util.FileUtil.getResourceFileAsString
 
 class FireblocksApiClientTest {
@@ -91,7 +91,11 @@ class FireblocksApiClientTest {
       JSONCompareMode.STRICT
     )
 
-    validateToken(requestCapture.captured.header("Authorization")!!, "/getPath")
+    validateToken(
+      requestCapture.captured.header("Authorization")!!,
+      "/getPath",
+      "cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e"
+    )
   }
 
   @Test
@@ -168,7 +172,11 @@ class FireblocksApiClientTest {
       JSONCompareMode.STRICT
     )
 
-    validateToken(requestCapture.captured.header("Authorization")!!, "/postPath")
+    validateToken(
+      requestCapture.captured.header("Authorization")!!,
+      "/postPath",
+      "a2b3902dd7424e90b5dcf6d49438736f41e166e8cfdc0fc185eaaf8d22c83e6b4075273988d377158e5e9066d50b4ecbce2e872515d9b94a9469c09ec6cd119e"
+    )
   }
 
   private fun requestBodyToString(requestBody: RequestBody?): String {
@@ -203,7 +211,7 @@ class FireblocksApiClientTest {
       .build()
   }
 
-  private fun validateToken(token: String, path: String) {
+  private fun validateToken(token: String, path: String, bodyHash: String) {
     Assertions.assertNotNull(token)
     Assertions.assertTrue(token.startsWith("Bearer "))
 
@@ -218,7 +226,7 @@ class FireblocksApiClientTest {
     Assertions.assertTrue(claims.expiration.toInstant().isAfter(Instant.now()))
     Assertions.assertTrue(isUuid(claims.get("nonce").toString()))
     Assertions.assertEquals(path, claims.get("uri"))
-    Assertions.assertNotNull(claims.get("bodyHash"))
+    Assertions.assertEquals(bodyHash, claims.get("bodyHash"))
   }
 
   private fun getPublicKey(): PublicKey? {

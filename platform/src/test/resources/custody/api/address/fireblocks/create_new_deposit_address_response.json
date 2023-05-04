@@ -1,0 +1,7 @@
+{
+  "address": "testAddress",
+  "legacyAddress": "testLegacyAddress",
+  "enterpriseAddress": "testEnterpriseAddress",
+  "tag": "testTag",
+  "bip44AddressIndex": "12345"
+}

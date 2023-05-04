@@ -60,6 +60,15 @@ class FireblocksConfigTest {
   @ParameterizedTest
   @NullSource
   @ValueSource(strings = [""])
+  fun `test empty vault_account_id`(url: String?) {
+    config.vaultAccountId = url
+    config.validate(config, errors)
+    assertErrorCode(errors, "custody-fireblocks-vault-account-id-empty")
+  }
+
+  @ParameterizedTest
+  @NullSource
+  @ValueSource(strings = [""])
   fun `test empty api_key`(apiKey: String?) {
     every { secretConfig.fireblocksApiKey } returns apiKey
     config.validate(config, errors)

@@ -21,6 +21,7 @@ import org.stellar.anchor.util.NetUtil;
 
 @Data
 public class FireblocksConfig implements Validator {
+
   private String baseUrl;
   private String vaultAccountId;
   private CustodySecretConfig secretConfig;
@@ -39,6 +40,7 @@ public class FireblocksConfig implements Validator {
   @Override
   public void validate(@NotNull Object target, @NotNull Errors errors) {
     validateBaseUrl(errors);
+    validateVaultAccountId(errors);
     validateApiKey(errors);
     validateSecretKey(errors);
     validateTransactionsReconciliationCron(errors);
@@ -57,6 +59,15 @@ public class FireblocksConfig implements Validator {
           "baseUrl",
           "custody-fireblocks-base-url-invalid",
           "The custody.fireblocks.base_url is not a valid URL");
+    }
+  }
+
+  private void validateVaultAccountId(Errors errors) {
+    if (isEmpty(vaultAccountId)) {
+      errors.rejectValue(
+          "vaultAccountId",
+          "custody-fireblocks-vault-account-id-empty",
+          "The custody.fireblocks.vault_account_id cannot be empty and must be defined");
     }
   }
 

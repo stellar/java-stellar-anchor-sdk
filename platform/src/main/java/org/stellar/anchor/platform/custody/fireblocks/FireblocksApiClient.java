@@ -19,9 +19,9 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
+import org.stellar.anchor.api.exception.FireblocksException;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.platform.config.FireblocksConfig;
-import org.stellar.anchor.platform.exception.FireblocksException;
 
 public class FireblocksApiClient {
 
