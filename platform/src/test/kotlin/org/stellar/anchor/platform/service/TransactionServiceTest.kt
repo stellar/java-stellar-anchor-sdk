@@ -49,17 +49,11 @@ class TransactionServiceTest {
   }
 
   @MockK(relaxed = true) private lateinit var sep38QuoteStore: Sep38QuoteStore
-
   @MockK(relaxed = true) private lateinit var sep31TransactionStore: Sep31TransactionStore
-
   @MockK(relaxed = true) private lateinit var sep24TransactionStore: Sep24TransactionStore
-
   @MockK(relaxed = true) private lateinit var assetService: AssetService
-
   @MockK(relaxed = true) private lateinit var eventService: EventService
-
   @MockK(relaxed = true) private lateinit var sep24DepositInfoGenerator: Sep24DepositInfoGenerator
-
   @MockK(relaxed = true) private lateinit var custodyTransactionService: CustodyTransactionService
   private lateinit var transactionService: TransactionService
 
