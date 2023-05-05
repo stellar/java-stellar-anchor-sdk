@@ -16,6 +16,7 @@ import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.data.domain.Sort;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.InternalServerErrorException;
@@ -90,18 +91,18 @@ public class TransactionService {
 
   public GetTransactionsResponse getTransactionsResponse(
       TransactionsSeps sep,
-      Instant to,
-      Instant from,
-      TransactionsOrderBy order_by,
-      Integer limit,
-      Integer offset)
+      TransactionsOrderBy orderBy,
+      Sort.Direction order,
+      List<SepTransactionStatus> statuses,
+      Integer pageNumber,
+      Integer pageSize)
       throws AnchorException {
     List<?> txn;
 
     if (sep == TransactionsSeps.SEP_31) {
-      txn = txn31Store.findBulk(to, from, order_by, limit, offset);
+      txn = txn31Store.findBulk(orderBy, order, statuses, pageNumber, pageSize);
     } else if (sep == TransactionsSeps.SEP_24) {
-      txn = txn24Store.findBulk(to, from, order_by, limit, offset);
+      txn = txn24Store.findBulk(orderBy, order, statuses, pageNumber, pageSize);
     } else {
       throw new BadRequestException("SEP not supported");
     }

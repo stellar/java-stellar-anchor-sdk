@@ -1,44 +1,59 @@
 package org.stellar.anchor.platform.utils;
 
+import com.google.gson.annotations.SerializedName;
 import java.util.Arrays;
-import java.util.stream.Collectors;
+import java.util.Optional;
 import lombok.SneakyThrows;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.core.convert.converter.Converter;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.platform.TransactionsOrderBy;
 import org.stellar.anchor.api.platform.TransactionsSeps;
+import org.stellar.anchor.api.sep.SepTransactionStatus;
 
 // Abstract class because https://github.com/spring-projects/spring-boot/pull/22885
-public abstract class StringEnumConverter<T> implements Converter<String, T> {
-  abstract T valueOf(String source);
+public abstract class StringEnumConverter<T extends Enum<T>> implements Converter<String, T> {
+  private final Class<T> enumClass;
+
+  protected StringEnumConverter(Class<T> enumClass) {
+    this.enumClass = enumClass;
+  }
 
   @SneakyThrows
   @Override
   public T convert(@NotNull String source) {
-    try {
-      return valueOf(source.toUpperCase());
-    } catch (IllegalArgumentException e) {
-      throw new BadRequestException(
-          "Invalid order_by parameter. Possible values are: "
-              + Arrays.stream(TransactionsOrderBy.values())
-                  .map(x -> x.name().toLowerCase())
-                  .collect(Collectors.toList()));
-    }
+    Optional<String> serializedName =
+        Arrays.stream(enumClass.getDeclaredFields())
+            .filter(x -> x.getAnnotation(SerializedName.class) != null)
+            .filter(x -> x.getAnnotation(SerializedName.class).value().equals(source))
+            .findAny()
+            .map(x -> x.getName());
+
+    Optional<T> value =
+        Arrays.stream(enumClass.getEnumConstants())
+            .filter(x -> x.name().equalsIgnoreCase(serializedName.orElse(source)))
+            .findAny();
+
+    return value.orElseThrow(() -> new BadRequestException("Invalid enum parameter"));
   }
 
   public static class TransactionsOrderByConverter
       extends StringEnumConverter<TransactionsOrderBy> {
-    @Override
-    TransactionsOrderBy valueOf(String source) {
-      return TransactionsOrderBy.valueOf(source);
+    public TransactionsOrderByConverter() {
+      super(TransactionsOrderBy.class);
     }
   }
 
   public static class TransactionsSepsConverter extends StringEnumConverter<TransactionsSeps> {
-    @Override
-    TransactionsSeps valueOf(String source) {
-      return TransactionsSeps.valueOf(source);
+    public TransactionsSepsConverter() {
+      super(TransactionsSeps.class);
+    }
+  }
+
+  public static class SepTransactionStatusConverter
+      extends StringEnumConverter<SepTransactionStatus> {
+    public SepTransactionStatusConverter() {
+      super(SepTransactionStatus.class);
     }
   }
 }

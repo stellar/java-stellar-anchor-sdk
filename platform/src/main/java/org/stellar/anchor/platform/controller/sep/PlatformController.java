@@ -1,14 +1,13 @@
 package org.stellar.anchor.platform.controller.sep;
 
-import static org.springframework.format.annotation.DateTimeFormat.ISO.DATE_TIME;
-
-import java.time.Instant;
-import org.springframework.format.annotation.DateTimeFormat;
+import java.util.List;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.platform.*;
+import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.platform.service.TransactionService;
 
 @RestController
@@ -48,18 +47,14 @@ public class PlatformController {
       method = {RequestMethod.GET})
   public GetTransactionsResponse getTransactions(
       @RequestParam(value = "sep") TransactionsSeps sep,
-      @RequestParam(required = false, value = "requestTo") @DateTimeFormat(iso = DATE_TIME)
-          Instant requestTo,
-      @RequestParam(required = false, value = "requestFrom") @DateTimeFormat(iso = DATE_TIME)
-          Instant requestFrom,
       @RequestParam(required = false, value = "order_by", defaultValue = "created_at")
           TransactionsOrderBy order_by,
+      @RequestParam(required = false, value = "order", defaultValue = "asc") Sort.Direction order,
+      @RequestParam(required = false, value = "statuses") List<SepTransactionStatus> statuses,
       @RequestParam(required = false, value = "limit", defaultValue = "200") Integer limit,
-      @RequestParam(required = false, value = "offset", defaultValue = "0") Integer offset)
+      @RequestParam(required = false, value = "cursor", defaultValue = "0") Integer cursor)
       throws AnchorException {
-    Instant to = requestTo == null ? Instant.now() : requestTo;
-    Instant from = requestFrom == null ? Instant.EPOCH : requestFrom;
-
-    return transactionService.getTransactionsResponse(sep, to, from, order_by, limit, offset);
+    return transactionService.getTransactionsResponse(
+        sep, order_by, order, statuses, limit, cursor);
   }
 }

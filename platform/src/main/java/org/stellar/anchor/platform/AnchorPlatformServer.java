@@ -49,5 +49,6 @@ public class AnchorPlatformServer extends AbstractPlatformServer implements WebM
   public void addFormatters(FormatterRegistry registry) {
     registry.addConverter(new StringEnumConverter.TransactionsOrderByConverter());
     registry.addConverter(new StringEnumConverter.TransactionsSepsConverter());
+    registry.addConverter(new StringEnumConverter.SepTransactionStatusConverter());
   }
 }

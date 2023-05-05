@@ -4,9 +4,14 @@ import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import javax.annotation.Nullable;
 import lombok.NonNull;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.platform.TransactionsOrderBy;
+import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.sep31.RefundPayment;
 import org.stellar.anchor.sep31.Sep31Refunds;
 import org.stellar.anchor.sep31.Sep31Transaction;
@@ -83,16 +88,21 @@ public class JdbcSep31TransactionStore implements Sep31TransactionStore {
 
   @Override
   public List<? extends Sep31Transaction> findBulk(
-      @NonNull Instant to,
-      @NonNull Instant from,
-      @NonNull TransactionsOrderBy orderBy,
-      @NonNull Integer limit,
-      @NonNull Integer offset) {
-    if (orderBy == TransactionsOrderBy.STARTED_AT) {
-      return transactionRepo.findStarted(to, from, limit, offset);
-    } else if (orderBy == TransactionsOrderBy.TRANSFER_RECEIVED_AT) {
-      return transactionRepo.findTransferred(to, from, limit, offset);
+      TransactionsOrderBy orderBy,
+      Sort.Direction order,
+      @Nullable List<SepTransactionStatus> statuses,
+      int pageNumber,
+      int pageSize) {
+    PageRequest page = PageRequest.of(pageNumber, pageSize, order, orderBy.getTableName(), "id");
+
+    if (statuses == null) {
+      return transactionRepo.findAll(page).getContent();
+    } else {
+      return transactionRepo
+          .findByStatusIn(
+              statuses.stream().map(SepTransactionStatus::getStatus).collect(Collectors.toList()),
+              page)
+          .getContent();
     }
-    throw new AssertionError("Unreachable");
   }
 }

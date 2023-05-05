@@ -1,12 +1,14 @@
 package org.stellar.anchor.sep31;
 
-import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
+import javax.annotation.Nullable;
 import lombok.NonNull;
+import org.springframework.data.domain.Sort;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.platform.TransactionsOrderBy;
+import org.stellar.anchor.api.sep.SepTransactionStatus;
 
 @SuppressWarnings("RedundantThrows")
 public interface Sep31TransactionStore {
@@ -57,17 +59,17 @@ public interface Sep31TransactionStore {
   /**
    * Finds multiple transactions that matches following criteria
    *
-   * @param to upper date to search to
-   * @param from lower date to search from
    * @param orderBy date type that used for the search
-   * @param limit limit
-   * @param offset offset
+   * @param order lower date to search from
+   * @param statuses optional statuses used for the search
+   * @param pageNumber number of page
+   * @param pageSize size of page
    * @return list of transactions
    */
   List<? extends Sep31Transaction> findBulk(
-      @NonNull Instant to,
-      @NonNull Instant from,
-      @NonNull TransactionsOrderBy orderBy,
-      @NonNull Integer limit,
-      @NonNull Integer offset);
+      TransactionsOrderBy orderBy,
+      Sort.Direction order,
+      @Nullable List<SepTransactionStatus> statuses,
+      int pageNumber,
+      int pageSize);
 }
