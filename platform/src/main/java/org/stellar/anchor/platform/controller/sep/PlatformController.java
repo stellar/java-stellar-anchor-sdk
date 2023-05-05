@@ -51,10 +51,10 @@ public class PlatformController {
           TransactionsOrderBy order_by,
       @RequestParam(required = false, value = "order", defaultValue = "asc") Sort.Direction order,
       @RequestParam(required = false, value = "statuses") List<SepTransactionStatus> statuses,
-      @RequestParam(required = false, value = "limit", defaultValue = "200") Integer limit,
-      @RequestParam(required = false, value = "cursor", defaultValue = "0") Integer cursor)
+      @RequestParam(required = false, value = "page_size", defaultValue = "20") Integer pageSize,
+      @RequestParam(required = false, value = "pageNumber", defaultValue = "0") Integer pageNumber)
       throws AnchorException {
     return transactionService.getTransactionsResponse(
-        sep, order_by, order, statuses, limit, cursor);
+        sep, order_by, order, statuses, pageSize, pageNumber);
   }
 }
