@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test
 import org.stellar.anchor.api.shared.SepDepositInfo
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
 
-class Sep24DepositInfoGeneratorSelfTest {
+class Sep24DepositInfoSelfGeneratorTest {
 
   companion object {
     private const val TX_ID = "123e4567-e89b-12d3-a456-426614174000"
@@ -19,7 +19,7 @@ class Sep24DepositInfoGeneratorSelfTest {
     val txn = JdbcSep24Transaction()
     txn.id = TX_ID
     txn.toAccount = ADDRESS
-    val generator = Sep24DepositInfoGeneratorSelf()
+    val generator = Sep24DepositInfoSelfGenerator()
 
     val actualInfo = generator.generate(txn)
 

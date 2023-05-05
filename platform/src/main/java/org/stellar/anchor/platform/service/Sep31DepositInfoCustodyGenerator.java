@@ -7,11 +7,11 @@ import org.stellar.anchor.platform.apiclient.CustodyApiClient;
 import org.stellar.anchor.sep31.Sep31DepositInfoGenerator;
 import org.stellar.anchor.sep31.Sep31Transaction;
 
-public class Sep31DepositInfoGeneratorCustody implements Sep31DepositInfoGenerator {
+public class Sep31DepositInfoCustodyGenerator implements Sep31DepositInfoGenerator {
 
   private final CustodyApiClient custodyApiClient;
 
-  public Sep31DepositInfoGeneratorCustody(CustodyApiClient custodyApiClient) {
+  public Sep31DepositInfoCustodyGenerator(CustodyApiClient custodyApiClient) {
     this.custodyApiClient = custodyApiClient;
   }
 

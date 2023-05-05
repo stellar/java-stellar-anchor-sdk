@@ -19,7 +19,7 @@ class Sep31DepositInfoGeneratoCustodyTest {
     val txn = JdbcSep31Transaction()
     txn.id = TX_ID
     txn.stellarAccountId = ADDRESS
-    val generator = Sep31DepositInfoGeneratorSelf()
+    val generator = Sep31DepositInfoSelfGenerator()
 
     val actualInfo = generator.generate(txn)
 

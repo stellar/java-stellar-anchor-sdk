@@ -21,7 +21,7 @@ import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountStore
 import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountsManager
 import org.stellar.anchor.sep31.Sep31Transaction
 
-class Sep31DepositInfoGeneratorApiTest {
+class Sep31DepositInfoApiGeneratorTest {
   @MockK(relaxed = true) private lateinit var uniqueAddressIntegration: UniqueAddressIntegration
 
   @MockK(relaxed = true) private lateinit var txn: Sep31Transaction
@@ -67,7 +67,7 @@ class Sep31DepositInfoGeneratorApiTest {
     every { uniqueAddressIntegration.getUniqueAddress(any()) } returns uniqueAddressResponse
 
     val generator =
-      Sep31DepositInfoGeneratorApi(uniqueAddressIntegration, paymentObservingAccountsManager)
+      Sep31DepositInfoApiGenerator(uniqueAddressIntegration, paymentObservingAccountsManager)
     val depositInfo = generator.generate(txn)
     assertEquals(stellarAddress, depositInfo.stellarAddress)
     assertEquals(memo, depositInfo.memo)
@@ -93,7 +93,7 @@ class Sep31DepositInfoGeneratorApiTest {
     every { uniqueAddressIntegration.getUniqueAddress(any()) } returns uniqueAddressResponse
 
     val generator =
-      Sep31DepositInfoGeneratorApi(uniqueAddressIntegration, paymentObservingAccountsManager)
+      Sep31DepositInfoApiGenerator(uniqueAddressIntegration, paymentObservingAccountsManager)
     assertThrows<Exception> { generator.generate(txn) }
 
     // Make sure the address does not go into manager when exception happens
@@ -107,7 +107,7 @@ class Sep31DepositInfoGeneratorApiTest {
     every { uniqueAddressIntegration.getUniqueAddress(any()) } throws HttpException(statusCode)
 
     val generator =
-      Sep31DepositInfoGeneratorApi(uniqueAddressIntegration, paymentObservingAccountsManager)
+      Sep31DepositInfoApiGenerator(uniqueAddressIntegration, paymentObservingAccountsManager)
     val ex = assertThrows<HttpException> { generator.generate(txn) }
     assertEquals(statusCode, ex.statusCode)
   }

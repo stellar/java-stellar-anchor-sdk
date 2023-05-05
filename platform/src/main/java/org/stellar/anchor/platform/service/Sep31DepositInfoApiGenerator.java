@@ -13,12 +13,12 @@ import org.stellar.anchor.sep31.Sep31DepositInfoGenerator;
 import org.stellar.anchor.sep31.Sep31Transaction;
 import org.stellar.anchor.util.MemoHelper;
 
-public class Sep31DepositInfoGeneratorApi implements Sep31DepositInfoGenerator {
+public class Sep31DepositInfoApiGenerator implements Sep31DepositInfoGenerator {
 
   private final UniqueAddressIntegration uniqueAddressIntegration;
   private final PaymentObservingAccountsManager paymentObservingAccountsManager;
 
-  public Sep31DepositInfoGeneratorApi(
+  public Sep31DepositInfoApiGenerator(
       UniqueAddressIntegration uniqueAddressIntegration,
       PaymentObservingAccountsManager paymentObservingAccountsManager) {
     this.uniqueAddressIntegration = uniqueAddressIntegration;
