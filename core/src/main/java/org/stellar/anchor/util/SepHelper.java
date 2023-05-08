@@ -72,10 +72,15 @@ public class SepHelper {
     } catch (NumberFormatException e) {
       throw new BadRequestException(messagePrefix + "amount is invalid", e);
     }
-    if (allowZero && sAmount.signum() < 0) {
-      throw new BadRequestException(messagePrefix + "amount should be non-negative");
-    } else if (sAmount.signum() < 1) {
-      throw new BadRequestException(messagePrefix + "amount should be positive");
+
+    if (allowZero) {
+      if (sAmount.signum() < 0) {
+        throw new BadRequestException(messagePrefix + "amount should be non-negative");
+      }
+    } else {
+      if (sAmount.signum() < 1) {
+        throw new BadRequestException(messagePrefix + "amount should be positive");
+      }
     }
     return sAmount;
   }
