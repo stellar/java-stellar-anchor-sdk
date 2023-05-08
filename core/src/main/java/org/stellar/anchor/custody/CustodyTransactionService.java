@@ -1,5 +1,6 @@
 package org.stellar.anchor.custody;
 
+import org.stellar.anchor.api.custody.CreateTransactionPaymentResponse;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.sep24.Sep24Transaction;
 import org.stellar.anchor.sep31.Sep31Transaction;
@@ -23,4 +24,15 @@ public interface CustodyTransactionService {
    * @throws AnchorException if error happens
    */
   void create(Sep31Transaction txn) throws AnchorException;
+
+  /**
+   * Create custody transaction payment
+   *
+   * @param txnId transaction ID
+   * @param requestBody request body
+   * @return {@link CreateTransactionPaymentResponse} object
+   * @throws AnchorException if error happens
+   */
+  CreateTransactionPaymentResponse createCustodyTransactionPayment(String txnId, String requestBody)
+      throws AnchorException;
 }

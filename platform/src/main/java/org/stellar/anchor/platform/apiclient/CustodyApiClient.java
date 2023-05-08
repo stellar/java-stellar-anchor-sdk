@@ -11,6 +11,8 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.springframework.http.HttpStatus;
 import org.stellar.anchor.api.custody.CreateCustodyTransactionRequest;
+import org.stellar.anchor.api.custody.CreateTransactionPaymentResponse;
+import org.stellar.anchor.api.custody.CustodyExceptionResponse;
 import org.stellar.anchor.api.custody.GenerateDepositAddressResponse;
 import org.stellar.anchor.api.exception.CustodyException;
 import org.stellar.anchor.auth.AuthHelper;
@@ -25,6 +27,7 @@ public class CustodyApiClient {
   private static final String CREATE_CUSTODY_TRANSACTION_URL_FORMAT = "/transactions/custody";
   private static final String GENERATE_DEPOSIT_ADDRESS_URL_FORMAT =
       "/transactions/payments/assets/%s/address";
+  private static final String CREATE_TRANSACTION_PAYMENT_URL_FORMAT = "/transactions/%s/payments";
 
   private final OkHttpClient httpClient;
   private final AuthHelper authHelper;
@@ -60,6 +63,20 @@ public class CustodyApiClient {
     return gson.fromJson(responseBody, GenerateDepositAddressResponse.class);
   }
 
+  public CreateTransactionPaymentResponse createTransactionPayment(String txnId, String requestBody)
+      throws CustodyException {
+    final String url =
+        custodyApiConfig.getBaseUrl() + String.format(CREATE_TRANSACTION_PAYMENT_URL_FORMAT, txnId);
+
+    Request request =
+        getRequestBuilder()
+            .url(url)
+            .post(RequestBody.create(gson.toJson(requestBody).getBytes(), TYPE_JSON))
+            .build();
+
+    return gson.fromJson(doRequest(request), CreateTransactionPaymentResponse.class);
+  }
+
   private Request.Builder getRequestBuilder() {
     Request.Builder requestBuilder = new Request.Builder();
     AuthHeader<String, String> authHeader = authHelper.createAuthHeader();
@@ -80,13 +97,16 @@ public class CustodyApiClient {
       if (HttpStatus.valueOf(response.code()).is2xxSuccessful()) {
         return responseBodyJson;
       } else {
-        throw new CustodyException(
-            String.format(
-                "Custody API returned an error. HTTP status[%d], response[%s]",
-                response.code(), responseBodyJson));
+        String rawMessage =
+            gson.fromJson(responseBodyJson, CustodyExceptionResponse.class).getRawErrorMessage();
+        if (rawMessage != null) {
+          throw new CustodyException(rawMessage, response.code());
+        } else {
+          throw new CustodyException(responseBodyJson, response.code());
+        }
       }
     } catch (IOException e) {
-      throw new CustodyException("Exception occurred during request to Custody API", e);
+      throw new CustodyException(e);
     }
   }
 }

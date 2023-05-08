@@ -428,6 +428,17 @@ custody:
     #
     public_key: |
 
+    ## @param: maxAttempts
+    ## @type: integer
+    ## Determines how many times the Fireblocks client will attempt to send request before marking a call as failed.
+    #
+    max_attempts: 3
+    ## @param: delay
+    ## @type: integer
+    ## Interval between Fireblocks client call attempts (in ms)
+    #
+    delay: 1000
+
 ##########################
 ## Metrics Configuration
 ##########################

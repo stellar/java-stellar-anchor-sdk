@@ -27,6 +27,8 @@ public class FireblocksConfig implements Validator {
   private CustodySecretConfig secretConfig;
   private String transactionsReconciliationCron;
   private String publicKey;
+  private int maxAttempts;
+  private int delay;
 
   public FireblocksConfig(CustodySecretConfig secretConfig) {
     this.secretConfig = secretConfig;
@@ -45,6 +47,8 @@ public class FireblocksConfig implements Validator {
     validateSecretKey(errors);
     validateTransactionsReconciliationCron(errors);
     validatePublicKey(errors);
+    validateMaxAttempts(errors);
+    validateDelay(errors);
   }
 
   private void validateBaseUrl(Errors errors) {
@@ -113,6 +117,21 @@ public class FireblocksConfig implements Validator {
     if (!RSAUtil.isValidPublicKey(publicKey, RSAUtil.RSA_ALGORITHM)) {
       errors.reject(
           "custody-fireblocks-public_key-invalid", "The custody-fireblocks-public_key is invalid");
+    }
+  }
+
+  public void validateMaxAttempts(Errors errors) {
+    if (maxAttempts < 0) {
+      errors.reject(
+          "custody-fireblocks-max_attempts-invalid",
+          "custody-fireblocks-max_attempts must be greater than 0");
+    }
+  }
+
+  public void validateDelay(Errors errors) {
+    if (maxAttempts < 0) {
+      errors.reject(
+          "custody-fireblocks-delay-invalid", "custody-fireblocks-delay must be greater than 0");
     }
   }
 

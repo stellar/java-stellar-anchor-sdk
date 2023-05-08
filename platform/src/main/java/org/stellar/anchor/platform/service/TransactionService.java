@@ -20,6 +20,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+import org.stellar.anchor.api.custody.CreateTransactionPaymentResponse;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.InternalServerErrorException;
@@ -190,6 +191,11 @@ public class TransactionService {
       updateMetrics(txn);
     }
     return toGetTransactionResponse(txn, assetService);
+  }
+
+  public CreateTransactionPaymentResponse createCustodyTransactionPayment(
+      String txnId, String requestBody) throws AnchorException {
+    return custodyTransactionService.createCustodyTransactionPayment(txnId, requestBody);
   }
 
   void updateMetrics(JdbcSepTransaction txn) {

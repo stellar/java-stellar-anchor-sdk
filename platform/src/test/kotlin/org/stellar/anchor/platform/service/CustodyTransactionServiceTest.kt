@@ -1,13 +1,27 @@
 package org.stellar.anchor.platform.service
 
-import io.mockk.*
+import io.mockk.MockKAnnotations
+import io.mockk.Runs
+import io.mockk.every
 import io.mockk.impl.annotations.MockK
+import io.mockk.just
+import io.mockk.slot
+import io.mockk.verify
 import java.util.*
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
 import org.stellar.anchor.api.custody.CreateCustodyTransactionRequest
+import org.stellar.anchor.api.custody.CreateTransactionPaymentResponse
+import org.stellar.anchor.api.exception.CustodyException
+import org.stellar.anchor.api.exception.InvalidConfigException
+import org.stellar.anchor.api.exception.custody.CustodyBadRequestException
+import org.stellar.anchor.api.exception.custody.CustodyNotFoundException
+import org.stellar.anchor.api.exception.custody.CustodyServiceUnavailableException
+import org.stellar.anchor.api.exception.custody.CustodyTooManyRequestsException
 import org.stellar.anchor.custody.CustodyTransactionService
 import org.stellar.anchor.platform.apiclient.CustodyApiClient
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
@@ -17,7 +31,11 @@ import org.stellar.anchor.util.GsonUtils
 
 class CustodyTransactionServiceTest {
 
-  private val gson = GsonUtils.getInstance()
+  companion object {
+    private val gson = GsonUtils.getInstance()
+    private val TXN_ID = "1"
+    private val REQUEST_BODY = "{}"
+  }
 
   @MockK(relaxed = true) private lateinit var custodyApiClient: CustodyApiClient
   private lateinit var custodyTransactionService: CustodyTransactionService
@@ -86,5 +104,87 @@ class CustodyTransactionServiceTest {
       gson.toJson(requestCapture.captured),
       JSONCompareMode.STRICT
     )
+  }
+
+  @Test
+  fun test_createCustodyTransactionPayment_custody_integration_not_enabled() {
+    custodyTransactionService = CustodyTransactionServiceImpl(Optional.empty())
+
+    val ex =
+      assertThrows<InvalidConfigException> {
+        custodyTransactionService.createCustodyTransactionPayment(TXN_ID, REQUEST_BODY)
+      }
+    Assertions.assertEquals("Integration with custody services is not enabled", ex.message)
+    verify(exactly = 0) { custodyApiClient.createTransactionPayment(TXN_ID, REQUEST_BODY) }
+  }
+
+  @Test
+  fun test_createCustodyTransactionPayment_custody_integration_enabled() {
+    every { custodyApiClient.createTransactionPayment(TXN_ID, REQUEST_BODY) } returns
+      CreateTransactionPaymentResponse(TXN_ID)
+
+    custodyTransactionService.createCustodyTransactionPayment(TXN_ID, REQUEST_BODY)
+
+    verify(exactly = 1) { custodyApiClient.createTransactionPayment(TXN_ID, REQUEST_BODY) }
+  }
+
+  @Test
+  fun test_createCustodyTransactionPayment_custody_server_unavailable() {
+    every { custodyApiClient.createTransactionPayment(TXN_ID, REQUEST_BODY) } throws
+      CustodyException("Custody service is unavailable", 503)
+
+    val exception =
+      assertThrows<CustodyServiceUnavailableException> {
+        custodyTransactionService.createCustodyTransactionPayment(TXN_ID, REQUEST_BODY)
+      }
+    Assertions.assertEquals("Custody service is unavailable", exception.message)
+  }
+
+  @Test
+  fun test_createCustodyTransactionPayment_bad_request() {
+    every { custodyApiClient.createTransactionPayment(TXN_ID, REQUEST_BODY) } throws
+      CustodyException("Bad request", 400)
+
+    val exception =
+      assertThrows<CustodyBadRequestException> {
+        custodyTransactionService.createCustodyTransactionPayment(TXN_ID, REQUEST_BODY)
+      }
+    Assertions.assertEquals("Bad request", exception.message)
+  }
+
+  @Test
+  fun test_createCustodyTransactionPayment_too_many_requests() {
+    every { custodyApiClient.createTransactionPayment(TXN_ID, REQUEST_BODY) } throws
+      CustodyException("Too many requests", 429)
+
+    val exception =
+      assertThrows<CustodyTooManyRequestsException> {
+        custodyTransactionService.createCustodyTransactionPayment(TXN_ID, REQUEST_BODY)
+      }
+    Assertions.assertEquals("Too many requests", exception.message)
+  }
+
+  @Test
+  fun test_createCustodyTransactionPayment_transaction_not_found() {
+    every { custodyApiClient.createTransactionPayment(TXN_ID, REQUEST_BODY) } throws
+      CustodyException("Transaction (id=1) is not found", 404)
+
+    val exception =
+      assertThrows<CustodyNotFoundException> {
+        custodyTransactionService.createCustodyTransactionPayment(TXN_ID, REQUEST_BODY)
+      }
+    Assertions.assertEquals("Transaction (id=1) is not found", exception.message)
+  }
+
+  @Test
+  fun test_createCustodyTransactionPayment_unexpected_status_code() {
+    every { custodyApiClient.createTransactionPayment(TXN_ID, REQUEST_BODY) } throws
+      CustodyException("Forbidden", 403)
+
+    val exception =
+      assertThrows<CustodyException> {
+        custodyTransactionService.createCustodyTransactionPayment(TXN_ID, REQUEST_BODY)
+      }
+    Assertions.assertEquals("Forbidden", exception.rawMessage)
   }
 }

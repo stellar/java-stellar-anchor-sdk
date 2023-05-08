@@ -3,6 +3,7 @@ package org.stellar.anchor.platform.controller.sep;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
+import org.stellar.anchor.api.custody.CreateTransactionPaymentResponse;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.NotFoundException;
 import org.stellar.anchor.api.platform.GetTransactionResponse;
@@ -27,6 +28,17 @@ public class PlatformController {
   public GetTransactionResponse getTransaction(@PathVariable(name = "id") String txnId)
       throws AnchorException {
     return transactionService.getTransactionResponse(txnId);
+  }
+
+  @CrossOrigin(origins = "*")
+  @RequestMapping(
+      value = "/transactions/{id}/payments",
+      method = {RequestMethod.POST},
+      consumes = {MediaType.APPLICATION_JSON_VALUE})
+  public CreateTransactionPaymentResponse createCustodyTransactionPayment(
+      @PathVariable(name = "id") String txnId, @RequestBody String requestBody)
+      throws AnchorException {
+    return transactionService.createCustodyTransactionPayment(txnId, requestBody);
   }
 
   @CrossOrigin(origins = "*")

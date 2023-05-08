@@ -132,7 +132,7 @@ class FireblocksApiClientTest {
         }]
       """
         .trimIndent(),
-      exception.message
+      exception.message?.trimIndent()
     )
   }
 
@@ -238,6 +238,7 @@ class FireblocksApiClientTest {
               .replace("-----BEGIN PUBLIC KEY-----", StringUtils.EMPTY)
               .replace("-----END PUBLIC KEY-----", StringUtils.EMPTY)
               .replace(StringUtils.LF, StringUtils.EMPTY)
+              .replace(StringUtils.CR, StringUtils.EMPTY)
           )
       val publicKeySpec = X509EncodedKeySpec(publicKeyBytes)
       val keyFactory = KeyFactory.getInstance("RSA")

@@ -122,7 +122,7 @@ class CustodyApiClientTest {
                   }]
                 """
         .trimIndent(),
-      exception.message
+      exception.message?.trimIndent()
     )
   }
 
