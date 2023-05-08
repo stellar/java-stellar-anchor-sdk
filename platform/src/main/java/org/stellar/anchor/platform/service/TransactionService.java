@@ -162,7 +162,7 @@ public class TransactionService {
     if (ptr.getAmountFee() != null
         && (!Objects.equals(txn.getAmountFee(), ptr.getAmountFee().getAmount())
             || !Objects.equals(txn.getAmountFeeAsset(), ptr.getAmountFee().getAsset()))) {
-      validateAsset("amount_fee", ptr.getAmountFee());
+      validateAsset("amount_fee", ptr.getAmountFee(), true);
       txn.setAmountFee(ptr.getAmountFee().getAmount());
       txn.setAmountFeeAsset(ptr.getAmountFee().getAsset());
       txWasUpdated = true;
@@ -236,12 +236,17 @@ public class TransactionService {
    * @throws BadRequestException if the provided asset is not supported
    */
   void validateAsset(String fieldName, Amount amount) throws BadRequestException {
+    validateAsset(fieldName, amount, false);
+  }
+
+  void validateAsset(String fieldName, Amount amount, boolean allowZero)
+      throws BadRequestException {
     if (amount == null) {
       return;
     }
 
     // asset amount needs to be non-empty and valid
-    SepHelper.validateAmount(fieldName + ".", amount.getAmount());
+    SepHelper.validateAmount(fieldName + ".", amount.getAmount(), allowZero);
 
     // asset name cannot be empty
     if (StringHelper.isEmpty(amount.getAsset())) {
