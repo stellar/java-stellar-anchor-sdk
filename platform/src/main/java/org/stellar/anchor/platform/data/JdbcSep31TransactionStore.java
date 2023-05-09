@@ -4,18 +4,13 @@ import java.time.Instant;
 import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
-import javax.annotation.Nullable;
 import lombok.NonNull;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.stellar.anchor.api.exception.SepException;
-import org.stellar.anchor.api.platform.TransactionsOrderBy;
-import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.sep31.RefundPayment;
 import org.stellar.anchor.sep31.Sep31Refunds;
 import org.stellar.anchor.sep31.Sep31Transaction;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
+import org.stellar.anchor.util.TransactionsParams;
 
 public class JdbcSep31TransactionStore implements Sep31TransactionStore {
   private final JdbcSep31TransactionRepo transactionRepo;
@@ -87,30 +82,7 @@ public class JdbcSep31TransactionStore implements Sep31TransactionStore {
   }
 
   @Override
-  public List<? extends Sep31Transaction> findBulk(
-      TransactionsOrderBy orderBy,
-      Sort.Direction order,
-      @Nullable List<SepTransactionStatus> statuses,
-      int pageNumber,
-      int pageSize) {
-
-    Sort.Order primary =
-        order == Sort.Direction.ASC
-            ? Sort.Order.asc(orderBy.getTableName()).nullsLast()
-            : Sort.Order.desc(orderBy.getTableName()).nullsLast();
-    Sort sort = Sort.by(List.of(primary, Sort.Order.asc("id")));
-
-    PageRequest page = PageRequest.of(pageNumber, pageSize, sort);
-
-    if (statuses == null) {
-      List<JdbcSep31Transaction> transactions = transactionRepo.findAll(page).getContent();
-      return transactions;
-    } else {
-      return transactionRepo
-          .findByStatusIn(
-              statuses.stream().map(SepTransactionStatus::getStatus).collect(Collectors.toList()),
-              page)
-          .getContent();
-    }
+  public List<? extends Sep31Transaction> findTransactions(TransactionsParams params) {
+    return transactionRepo.findAllTransactions(params, JdbcSep31Transaction.class);
   }
 }

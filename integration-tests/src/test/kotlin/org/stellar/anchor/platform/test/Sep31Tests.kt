@@ -132,7 +132,7 @@ class Sep31Tests(config: TestConfig, toml: TomlContent, jwt: String) {
         orderBy = TransactionsOrderBy.TRANSFER_RECEIVED_AT,
         order = Sort.Direction.DESC
       )
-    assertOrderCorrect(listOf(tx1, tx3, tx2), orderByDesc.records)
+    assertOrderCorrect(listOf(tx3, tx2, tx1), orderByDesc.records)
 
     // Statuses test
     val statusesTxs =
@@ -360,11 +360,11 @@ class Sep31Tests(config: TestConfig, toml: TomlContent, jwt: String) {
   fun testAll() {
     println("Performing Sep31 tests...")
     `test info endpoint`()
+    `test transactions`()
     `test post and get transactions`()
     `test patch, get and compare`()
     `test bad requests`()
     testBadAsset()
-    `test transactions`()
   }
 }
 

@@ -9,7 +9,8 @@ import org.springframework.lang.NonNull;
 import org.stellar.anchor.sep24.Sep24Transaction;
 
 public interface JdbcSep24TransactionRepo
-    extends PagingAndSortingRepository<JdbcSep24Transaction, String> {
+    extends PagingAndSortingRepository<JdbcSep24Transaction, String>,
+        AllTransactionsRepository<JdbcSep24Transaction> {
   Optional<JdbcSep24Transaction> findById(@NonNull String id);
 
   JdbcSep24Transaction findOneByTransactionId(String transactionId);

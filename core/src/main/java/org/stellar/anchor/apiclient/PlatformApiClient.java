@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 import javax.annotation.Nullable;
 import okhttp3.HttpUrl;
 import okhttp3.Request;
@@ -48,11 +47,7 @@ public class PlatformApiClient extends BaseApiClient {
 
     addToBuilder(builder, order_by, "order_by", x -> x.name().toLowerCase());
     addToBuilder(builder, order, "order", x -> x.name().toLowerCase());
-    addToBuilder(
-        builder,
-        statuses,
-        "statuses",
-        l -> l.stream().map(SepTransactionStatus::toString).collect(Collectors.joining(",")));
+    addToBuilder(builder, statuses, "statuses", SepTransactionStatus::mergeStatusesList);
     addToBuilder(builder, pageSize, "page_size", Object::toString);
     addToBuilder(builder, pageNumber, "page_number", Object::toString);
 

@@ -9,6 +9,7 @@ import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.platform.*;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.platform.service.TransactionService;
+import org.stellar.anchor.util.TransactionsParams;
 
 @RestController
 public class PlatformController {
@@ -54,7 +55,8 @@ public class PlatformController {
       @RequestParam(required = false, value = "page_number", defaultValue = "0") Integer pageNumber,
       @RequestParam(required = false, value = "page_size", defaultValue = "20") Integer pageSize)
       throws AnchorException {
-    return transactionService.getTransactionsResponse(
-        sep, order_by, order, statuses, pageNumber, pageSize);
+    TransactionsParams params =
+        new TransactionsParams(order_by, order, statuses, pageNumber, pageSize);
+    return transactionService.getTransactionsResponse(sep, params);
   }
 }

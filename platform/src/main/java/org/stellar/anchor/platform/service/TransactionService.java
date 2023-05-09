@@ -16,7 +16,6 @@ import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.data.domain.Sort;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.InternalServerErrorException;
@@ -40,6 +39,7 @@ import org.stellar.anchor.sep38.Sep38QuoteStore;
 import org.stellar.anchor.util.Log;
 import org.stellar.anchor.util.SepHelper;
 import org.stellar.anchor.util.StringHelper;
+import org.stellar.anchor.util.TransactionsParams;
 import org.stellar.sdk.Memo;
 
 public class TransactionService {
@@ -90,19 +90,13 @@ public class TransactionService {
   }
 
   public GetTransactionsResponse getTransactionsResponse(
-      TransactionsSeps sep,
-      TransactionsOrderBy orderBy,
-      Sort.Direction order,
-      List<SepTransactionStatus> statuses,
-      Integer pageNumber,
-      Integer pageSize)
-      throws AnchorException {
+      TransactionsSeps sep, TransactionsParams params) throws AnchorException {
     List<?> txn;
 
     if (sep == TransactionsSeps.SEP_31) {
-      txn = txn31Store.findBulk(orderBy, order, statuses, pageNumber, pageSize);
+      txn = txn31Store.findTransactions(params);
     } else if (sep == TransactionsSeps.SEP_24) {
-      txn = txn24Store.findBulk(orderBy, order, statuses, pageNumber, pageSize);
+      txn = txn24Store.findTransactions(params);
     } else {
       throw new BadRequestException("SEP not supported");
     }

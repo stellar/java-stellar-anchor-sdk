@@ -1,8 +1,8 @@
 package org.stellar.anchor.api.platform;
 
 public enum TransactionsOrderBy {
-  CREATED_AT("startedAt"),
-  TRANSFER_RECEIVED_AT("transferReceivedAt");
+  CREATED_AT("started_at"),
+  TRANSFER_RECEIVED_AT("transfer_received_at");
 
   private final String tableName;
 
