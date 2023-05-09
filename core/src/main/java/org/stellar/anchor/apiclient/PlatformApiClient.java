@@ -43,7 +43,7 @@ public class PlatformApiClient extends BaseApiClient {
       throws IOException, AnchorException {
     HttpUrl.Builder builder = HttpUrl.parse(endpoint + "/transactions").newBuilder();
 
-    builder.addQueryParameter("sep", sep.name().toLowerCase());
+    builder.addQueryParameter("sep", sep.name().toLowerCase().replaceAll("sep_", ""));
 
     addToBuilder(builder, order_by, "order_by", x -> x.name().toLowerCase());
     addToBuilder(builder, order, "order", x -> x.name().toLowerCase());
