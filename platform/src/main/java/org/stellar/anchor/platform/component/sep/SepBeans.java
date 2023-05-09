@@ -204,8 +204,7 @@ public class SepBeans {
         return new Sep24DepositInfoCustodyGenerator(
             custodyApiClient.orElseThrow(
                 () ->
-                    new InvalidConfigException(
-                        "Integration with Custody server is not enabled")));
+                    new InvalidConfigException("Integration with Custody server is not enabled")));
       default:
         throw new RuntimeException("Not supported");
     }
@@ -240,8 +239,7 @@ public class SepBeans {
         return new Sep31DepositInfoCustodyGenerator(
             custodyApiClient.orElseThrow(
                 () ->
-                    new InvalidConfigException(
-                        "Integration with Custody server is not enabled")));
+                    new InvalidConfigException("Integration with Custody server is not enabled")));
       default:
         throw new RuntimeException("Not supported");
     }
