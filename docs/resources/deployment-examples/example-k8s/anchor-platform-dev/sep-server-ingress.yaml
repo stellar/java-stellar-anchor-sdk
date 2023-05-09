@@ -1,4 +1,4 @@
-apiVersion: networking.k8s.io/v1
+apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
   name: anchor-platform-sep-server
@@ -22,10 +22,7 @@ spec:
   - host: anchor-sep-server-dev.stellar.org
     http:
       paths:
-        - backend:
-            service:
-              name: anchor-platform-sep-server
-              port:
-                number: 8080
-          path: /
-          pathType: Exact
+      - path: /
+        backend:
+          serviceName: anchor-platform-sep-server
+          servicePort: 8080

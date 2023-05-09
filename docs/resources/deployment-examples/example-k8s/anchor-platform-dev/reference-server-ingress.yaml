@@ -1,4 +1,4 @@
-apiVersion: networking.k8s.io/v1
+apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
   name: anchor-platform-reference-server
@@ -22,10 +22,7 @@ spec:
   - host: anchor-reference-server-dev.stellar.org
     http:
       paths:
-        - backend:
-            service:
-              name: anchor-platform-reference-server
-              port:
-                number: 8081
-          path: /
-          pathType: Exact
+      - path: /
+        backend:
+          serviceName: anchor-platform-reference-server
+          servicePort: 8081
