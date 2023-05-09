@@ -144,7 +144,7 @@ public class TransactionService {
     validateIfStatusIsSupported(patch.getTransaction().getStatus().toString());
     validateAsset("amount_in", patch.getTransaction().getAmountIn());
     validateAsset("amount_out", patch.getTransaction().getAmountOut());
-    validateAsset("amount_fee", patch.getTransaction().getAmountFee());
+    validateAsset("amount_fee", patch.getTransaction().getAmountFee(), true);
 
     JdbcSepTransaction txn = findTransaction(patch.getTransaction().getId());
     if (txn == null)
@@ -303,12 +303,17 @@ public class TransactionService {
    * @throws BadRequestException if the provided asset is not supported
    */
   void validateAsset(String fieldName, Amount amount) throws BadRequestException {
+    validateAsset(fieldName, amount, false);
+  }
+
+  void validateAsset(String fieldName, Amount amount, boolean allowZero)
+      throws BadRequestException {
     if (amount == null) {
       return;
     }
 
     // asset amount needs to be non-empty and valid
-    SepHelper.validateAmount(fieldName + ".", amount.getAmount());
+    SepHelper.validateAmount(fieldName + ".", amount.getAmount(), allowZero);
 
     // asset name cannot be empty
     if (StringHelper.isEmpty(amount.getAsset())) {

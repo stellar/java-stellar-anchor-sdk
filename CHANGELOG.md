@@ -1,9 +1,13 @@
 # Changelog
+<<<<<<< HEAD
 
 ## 2.0.0
 * Redesign configuration management.
 * Implement SEP-24.
 * Implement end-to-end tests for SEP-24 done in GitHub Actions.
+
+## 1.2.13
+* Allow zero fees in `PATCH /transactions` request [#871](https://github.com/stellar/java-stellar-anchor-sdk/pull/871)
 
 ## 1.2.12
 * Don't set amount_out for indicative quote. [#823](https://github.com/stellar/java-stellar-anchor-sdk/pull/823)
