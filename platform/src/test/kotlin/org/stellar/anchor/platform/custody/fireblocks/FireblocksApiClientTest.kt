@@ -148,7 +148,7 @@ class FireblocksApiClientTest {
     val result =
       fireblocksApiClient.post(
         "/postPath",
-        getResourceFileAsString("custody/fireblocks/client/request_body.json")
+        getResourceFileAsString("custody/fireblocks/client/request_body.json")?.trimIndent()
       )
 
     Assertions.assertEquals(

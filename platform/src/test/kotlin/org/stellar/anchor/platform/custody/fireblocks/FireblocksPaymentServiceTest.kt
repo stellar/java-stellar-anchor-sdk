@@ -66,7 +66,7 @@ class FireblocksPaymentServiceTest {
     val response = fireblocksPaymentService.generateDepositAddress(ASSET_ID)
 
     Assertions.assertEquals(
-      "/vault/accounts/testVaultAccountId/TEST_ASSET_ID/addresses",
+      "/v1/vault/accounts/testVaultAccountId/TEST_ASSET_ID/addresses",
       urlCapture.captured
     )
     JSONAssert.assertEquals(requestJson, requestCapture.captured, JSONCompareMode.STRICT)
@@ -99,7 +99,7 @@ class FireblocksPaymentServiceTest {
         .build()
     val response = fireblocksPaymentService.createTransactionPayment(transaction, StringUtils.EMPTY)
 
-    Assertions.assertEquals("/transactions", urlCapture.captured)
+    Assertions.assertEquals("/v1/transactions", urlCapture.captured)
 
     JSONAssert.assertEquals(requestJson, requestCapture.captured, JSONCompareMode.STRICT)
     JSONAssert.assertEquals(expectedResponse, gson.toJson(response), JSONCompareMode.STRICT)

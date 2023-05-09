@@ -20,7 +20,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
-import org.stellar.anchor.api.custody.CreateTransactionPaymentResponse;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.InternalServerErrorException;
@@ -36,7 +35,7 @@ import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.shared.Amount;
 import org.stellar.anchor.api.shared.SepDepositInfo;
 import org.stellar.anchor.asset.AssetService;
-import org.stellar.anchor.custody.CustodyTransactionService;
+import org.stellar.anchor.custody.CustodyService;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSep31Transaction;
@@ -63,7 +62,7 @@ public class TransactionService {
   private final EventService eventService;
   private final AssetService assetService;
   private final Sep24DepositInfoGenerator sep24DepositInfoGenerator;
-  private final CustodyTransactionService custodyTransactionService;
+  private final CustodyService custodyService;
 
   static boolean isStatusError(String status) {
     return List.of(PENDING_CUSTOMER_INFO_UPDATE.getStatus(), EXPIRED.getStatus(), ERROR.getStatus())
@@ -77,7 +76,7 @@ public class TransactionService {
       AssetService assetService,
       EventService eventService,
       Sep24DepositInfoGenerator sep24DepositInfoGenerator,
-      CustodyTransactionService custodyTransactionService) {
+      CustodyService custodyService) {
     this.txn24Store = txn24Store;
     this.txn31Store = txn31Store;
     this.quoteStore = quoteStore;
@@ -85,7 +84,7 @@ public class TransactionService {
     this.eventService = eventService;
     this.assetService = assetService;
     this.sep24DepositInfoGenerator = sep24DepositInfoGenerator;
-    this.custodyTransactionService = custodyTransactionService;
+    this.custodyService = custodyService;
   }
 
   /**
@@ -174,7 +173,7 @@ public class TransactionService {
                     && PENDING_ANCHOR.toString().equals(sep24Txn.getStatus()))
                 || (Kind.WITHDRAWAL.getKind().equals(sep24Txn.getKind())
                     && PENDING_USR_TRANSFER_START.toString().equals(sep24Txn.getStatus())))) {
-          custodyTransactionService.create(sep24Txn);
+          custodyService.createTransaction(sep24Txn);
         }
 
         txn24Store.save(sep24Txn);
@@ -191,11 +190,6 @@ public class TransactionService {
       updateMetrics(txn);
     }
     return toGetTransactionResponse(txn, assetService);
-  }
-
-  public CreateTransactionPaymentResponse createCustodyTransactionPayment(
-      String txnId, String requestBody) throws AnchorException {
-    return custodyTransactionService.createCustodyTransactionPayment(txnId, requestBody);
   }
 
   void updateMetrics(JdbcSepTransaction txn) {
@@ -230,7 +224,7 @@ public class TransactionService {
     // update amount_fee
     txnUpdated = updateField(patch, "amountFee.amount", txn, "amountFee", txnUpdated);
     txnUpdated = updateField(patch, "amountFee.asset", txn, "amountFeeAsset", txnUpdated);
-    // update starte_at, completed_at, updated_at, transferReceivedAt
+    // update started_at, completed_at, updated_at, transferReceivedAt
     txnUpdated = updateField(patch, txn, "startedAt", txnUpdated);
     txnUpdated = updateField(patch, txn, "updatedAt", txnUpdated);
     txnUpdated = updateField(patch, txn, "completedAt", txnUpdated);

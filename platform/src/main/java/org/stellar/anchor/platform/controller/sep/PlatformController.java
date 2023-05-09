@@ -9,15 +9,18 @@ import org.stellar.anchor.api.exception.NotFoundException;
 import org.stellar.anchor.api.platform.GetTransactionResponse;
 import org.stellar.anchor.api.platform.PatchTransactionsRequest;
 import org.stellar.anchor.api.platform.PatchTransactionsResponse;
+import org.stellar.anchor.custody.CustodyService;
 import org.stellar.anchor.platform.service.TransactionService;
 
 @RestController
 public class PlatformController {
 
   private final TransactionService transactionService;
+  private final CustodyService custodyService;
 
-  PlatformController(TransactionService transactionService) {
+  PlatformController(TransactionService transactionService, CustodyService custodyService) {
     this.transactionService = transactionService;
+    this.custodyService = custodyService;
   }
 
   @CrossOrigin(origins = "*")
@@ -38,7 +41,7 @@ public class PlatformController {
   public CreateTransactionPaymentResponse createCustodyTransactionPayment(
       @PathVariable(name = "id") String txnId, @RequestBody String requestBody)
       throws AnchorException {
-    return transactionService.createCustodyTransactionPayment(txnId, requestBody);
+    return custodyService.createTransactionPayment(txnId, requestBody);
   }
 
   @CrossOrigin(origins = "*")

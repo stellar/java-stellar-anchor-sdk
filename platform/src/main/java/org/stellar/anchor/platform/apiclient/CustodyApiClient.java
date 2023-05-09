@@ -24,7 +24,7 @@ public class CustodyApiClient {
 
   private static final Gson gson = GsonUtils.getInstance();
 
-  private static final String CREATE_CUSTODY_TRANSACTION_URL_FORMAT = "/transactions/custody";
+  private static final String CREATE_TRANSACTION_URL_FORMAT = "/transactions";
   private static final String GENERATE_DEPOSIT_ADDRESS_URL_FORMAT =
       "/transactions/payments/assets/%s/address";
   private static final String CREATE_TRANSACTION_PAYMENT_URL_FORMAT = "/transactions/%s/payments";
@@ -44,7 +44,7 @@ public class CustodyApiClient {
       throws CustodyException {
     Request request =
         getRequestBuilder()
-            .url(custodyApiConfig.getBaseUrl() + CREATE_CUSTODY_TRANSACTION_URL_FORMAT)
+            .url(custodyApiConfig.getBaseUrl() + CREATE_TRANSACTION_URL_FORMAT)
             .post(RequestBody.create(gson.toJson(transactionRequest).getBytes(), TYPE_JSON))
             .build();
     doRequest(request);

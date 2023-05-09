@@ -39,7 +39,7 @@ import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.config.Sep31Config
 import org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_RECEIVE
 import org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_SEND
-import org.stellar.anchor.custody.CustodyTransactionService
+import org.stellar.anchor.custody.CustodyService
 import org.stellar.anchor.event.EventService
 import org.stellar.anchor.sep31.Sep31Service.Context
 import org.stellar.anchor.sep38.PojoSep38Quote
@@ -280,7 +280,7 @@ class Sep31ServiceTest {
   @MockK(relaxed = true) lateinit var feeIntegration: FeeIntegration
   @MockK(relaxed = true) lateinit var customerIntegration: CustomerIntegration
   @MockK(relaxed = true) lateinit var eventPublishService: EventService
-  @MockK(relaxed = true) lateinit var custodyTransactionService: CustodyTransactionService
+  @MockK(relaxed = true) lateinit var custodyService: CustodyService
 
   private lateinit var jwtService: JwtService
   private lateinit var sep31Service: Sep31Service
@@ -314,7 +314,7 @@ class Sep31ServiceTest {
         feeIntegration,
         customerIntegration,
         eventPublishService,
-        custodyTransactionService
+        custodyService
       )
 
     request = gson.fromJson(requestJson, Sep31PostTransactionRequest::class.java)
@@ -370,7 +370,7 @@ class Sep31ServiceTest {
         feeIntegration,
         customerIntegration,
         eventPublishService,
-        custodyTransactionService
+        custodyService
       )
     }
     assertInstanceOf(SepValidationException::class.java, ex)
@@ -775,7 +775,7 @@ class Sep31ServiceTest {
     verify(exactly = 1) { customerIntegration.getCustomer(request) }
     verify(exactly = 1) { quoteStore.findByQuoteId("my_quote_id") }
     verify(exactly = 1) { sep31DepositInfoGenerator.generate(any()) }
-    verify(exactly = 1) { custodyTransactionService.create(any() as Sep31Transaction) }
+    verify(exactly = 1) { custodyService.createTransaction(any() as Sep31Transaction) }
     verify(exactly = 1) { eventPublishService.publish(any() as Sep31Transaction, any()) }
 
     // validate the values of the saved sep31Transaction
@@ -892,7 +892,7 @@ class Sep31ServiceTest {
         feeIntegration,
         customerIntegration,
         eventPublishService,
-        custodyTransactionService
+        custodyService
       )
 
     val senderId = "d2bd1412-e2f6-4047-ad70-a1a2f133b25c"

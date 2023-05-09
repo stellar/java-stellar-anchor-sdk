@@ -20,7 +20,7 @@ import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.Sep31Config
-import org.stellar.anchor.custody.CustodyTransactionService
+import org.stellar.anchor.custody.CustodyService
 import org.stellar.anchor.event.EventService
 import org.stellar.anchor.platform.data.JdbcSep31Transaction
 import org.stellar.anchor.platform.service.Sep31DepositInfoSelfGenerator
@@ -58,7 +58,7 @@ class Sep31DepositInfoGeneratorTest {
   @MockK(relaxed = true) private lateinit var feeIntegration: FeeIntegration
   @MockK(relaxed = true) private lateinit var customerIntegration: CustomerIntegration
   @MockK(relaxed = true) private lateinit var eventPublishService: EventService
-  @MockK(relaxed = true) private lateinit var custodyTransactionService: CustodyTransactionService
+  @MockK(relaxed = true) private lateinit var custodyService: CustodyService
   @MockK(relaxed = true) private lateinit var txn: Sep31Transaction
 
   private lateinit var sep31Service: Sep31Service
@@ -77,7 +77,7 @@ class Sep31DepositInfoGeneratorTest {
         feeIntegration,
         customerIntegration,
         eventPublishService,
-        custodyTransactionService
+        custodyService
       )
 
     txn = gson.fromJson(txnJson, JdbcSep31Transaction::class.java)
@@ -102,7 +102,7 @@ class Sep31DepositInfoGeneratorTest {
         feeIntegration,
         customerIntegration,
         eventPublishService,
-        custodyTransactionService
+        custodyService
       )
 
     Assertions.assertEquals("a2392add-87c9-42f0-a5c1-5f1728030b68", txn.id)

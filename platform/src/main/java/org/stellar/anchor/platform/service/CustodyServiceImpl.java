@@ -14,26 +14,26 @@ import org.stellar.anchor.api.exception.custody.CustodyBadRequestException;
 import org.stellar.anchor.api.exception.custody.CustodyNotFoundException;
 import org.stellar.anchor.api.exception.custody.CustodyServiceUnavailableException;
 import org.stellar.anchor.api.exception.custody.CustodyTooManyRequestsException;
-import org.stellar.anchor.custody.CustodyTransactionService;
+import org.stellar.anchor.custody.CustodyService;
 import org.stellar.anchor.platform.apiclient.CustodyApiClient;
 import org.stellar.anchor.sep24.Sep24Transaction;
 import org.stellar.anchor.sep31.Sep31Transaction;
 
-public class CustodyTransactionServiceImpl implements CustodyTransactionService {
+public class CustodyServiceImpl implements CustodyService {
 
   private final Optional<CustodyApiClient> custodyApiClient;
 
-  public CustodyTransactionServiceImpl(Optional<CustodyApiClient> custodyApiClient) {
+  public CustodyServiceImpl(Optional<CustodyApiClient> custodyApiClient) {
     this.custodyApiClient = custodyApiClient;
   }
 
   @Override
-  public void create(Sep24Transaction txn) throws AnchorException {
+  public void createTransaction(Sep24Transaction txn) throws AnchorException {
     create(toCustodyTransaction(txn));
   }
 
   @Override
-  public void create(Sep31Transaction txn) throws AnchorException {
+  public void createTransaction(Sep31Transaction txn) throws AnchorException {
     create(toCustodyTransaction(txn));
   }
 
@@ -43,8 +43,9 @@ public class CustodyTransactionServiceImpl implements CustodyTransactionService 
     }
   }
 
-  public CreateTransactionPaymentResponse createCustodyTransactionPayment(
-      String txnId, String requestBody) throws AnchorException {
+  @Override
+  public CreateTransactionPaymentResponse createTransactionPayment(String txnId, String requestBody)
+      throws AnchorException {
     if (custodyApiClient.isEmpty()) {
       // custody.type is set to 'none'
       throw new InvalidConfigException("Integration with custody services is not enabled");

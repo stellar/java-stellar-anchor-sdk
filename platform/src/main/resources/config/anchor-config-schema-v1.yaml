@@ -109,5 +109,5 @@ custody.fireblocks.base_url:
 custody.fireblocks.vault_account_id:
 custody.fireblocks.transactions_reconciliation_cron:
 custody.fireblocks.public_key:
-custody.fireblocks.max_attempts:
-custody.fireblocks.delay:
+custody.fireblocks.retry_config.max_attempts:
+custody.fireblocks.retry_config.delay:

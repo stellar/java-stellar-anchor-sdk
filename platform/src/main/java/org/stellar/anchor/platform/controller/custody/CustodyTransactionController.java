@@ -26,7 +26,7 @@ public class CustodyTransactionController {
   @CrossOrigin(origins = "*")
   @ResponseStatus(code = HttpStatus.OK)
   @RequestMapping(
-      value = "/transactions/custody",
+      value = "/transactions",
       method = {RequestMethod.POST})
   public void createCustodyTransaction(@RequestBody CreateCustodyTransactionRequest request) {
     custodyTransactionService.create(request);
@@ -39,7 +39,7 @@ public class CustodyTransactionController {
       value = "/transactions/{id}/payments",
       method = {RequestMethod.POST},
       consumes = {MediaType.APPLICATION_JSON_VALUE})
-  public CreateTransactionPaymentResponse createCustodyTransactionPayment(
+  public CreateTransactionPaymentResponse createTransactionPayment(
       @PathVariable(name = "id") String txnId, @RequestBody String requestBody) {
     return custodyTransactionService.createPayment(txnId, requestBody);
   }
