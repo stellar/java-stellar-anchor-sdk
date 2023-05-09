@@ -359,11 +359,11 @@ class Sep31Tests(config: TestConfig, toml: TomlContent, jwt: String) {
 
   fun testAll() {
     println("Performing Sep31 tests...")
-    //    `test info endpoint`()
-    //    `test post and get transactions`()
-    //    `test patch, get and compare`()
-    //    `test bad requests`()
-    //    testBadAsset()
+    `test info endpoint`()
+    `test post and get transactions`()
+    `test patch, get and compare`()
+    `test bad requests`()
+    testBadAsset()
     `test transactions`()
   }
 }
