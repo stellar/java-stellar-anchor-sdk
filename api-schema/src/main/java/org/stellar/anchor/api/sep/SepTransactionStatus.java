@@ -2,7 +2,9 @@ package org.stellar.anchor.api.sep;
 
 import com.google.gson.annotations.SerializedName;
 import java.util.Arrays;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public enum SepTransactionStatus {
   @SerializedName("pending_anchor")
@@ -88,5 +90,15 @@ public enum SepTransactionStatus {
   public static boolean isValid(String status) {
     return Arrays.stream(SepTransactionStatus.values())
         .anyMatch(e -> e.status.equalsIgnoreCase(status));
+  }
+
+  public static String mergeStatusesList(List<SepTransactionStatus> list) {
+    return mergeStatusesList(list, "");
+  }
+
+  public static String mergeStatusesList(List<SepTransactionStatus> list, String escapeStr) {
+    return list.stream()
+        .map(x -> escapeStr + x.toString() + escapeStr)
+        .collect(Collectors.joining(","));
   }
 }

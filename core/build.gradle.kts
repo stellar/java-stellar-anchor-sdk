@@ -17,6 +17,7 @@ dependencies {
   annotationProcessor(libs.lombok)
 
   implementation(libs.spring.kafka)
+  implementation(libs.spring.data.commons)
 
   implementation(rootProject.libs.scala.library) // used to force the version of scala-library (used by kafka-json-schema-serializer) to a safer one.
   implementation(libs.bundles.kafka)

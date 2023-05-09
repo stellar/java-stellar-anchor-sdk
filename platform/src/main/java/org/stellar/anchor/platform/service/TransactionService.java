@@ -39,6 +39,7 @@ import org.stellar.anchor.sep38.Sep38QuoteStore;
 import org.stellar.anchor.util.Log;
 import org.stellar.anchor.util.SepHelper;
 import org.stellar.anchor.util.StringHelper;
+import org.stellar.anchor.util.TransactionsParams;
 import org.stellar.sdk.Memo;
 
 public class TransactionService {
@@ -86,6 +87,24 @@ public class TransactionService {
     } else {
       throw new NotFoundException(String.format("transaction (id=%s) is not found", txnId));
     }
+  }
+
+  public GetTransactionsResponse getTransactionsResponse(
+      TransactionsSeps sep, TransactionsParams params) throws AnchorException {
+    List<?> txn;
+
+    if (sep == TransactionsSeps.SEP_31) {
+      txn = txn31Store.findTransactions(params);
+    } else if (sep == TransactionsSeps.SEP_24) {
+      txn = txn24Store.findTransactions(params);
+    } else {
+      throw new BadRequestException("SEP not supported");
+    }
+
+    return new GetTransactionsResponse(
+        txn.stream()
+            .map(t -> toGetTransactionResponse((JdbcSepTransaction) t, assetService))
+            .collect(Collectors.toList()));
   }
 
   /**
