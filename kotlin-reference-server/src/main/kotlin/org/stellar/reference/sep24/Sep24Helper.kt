@@ -110,7 +110,7 @@ class Sep24Helper(private val cfg: Config) {
   }
 
   internal suspend fun sendCustodyStellarTransaction(transactionId: String) {
-    client.post("$baseUrl/transactions/$transactionId/payments");
+    client.post("$baseUrl/transactions/$transactionId/payments")
   }
 
   // Pulling status change from anchor. Alternatively, listen to AnchorEvent for transaction status

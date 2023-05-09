@@ -46,7 +46,7 @@ class DepositService(private val cfg: Config) {
       if (cfg.sep24.custodyEnabled) {
         // 5. Send Stellar transaction using Custody Service
         sep24.sendCustodyStellarTransaction(transactionId)
-      } else{
+      } else {
         // 5. Sign and send transaction
         val txHash = sep24.sendStellarTransaction(account, asset, amount, memo, memoType)
 
@@ -122,5 +122,4 @@ class DepositService(private val cfg: Config) {
       )
     )
   }
-
 }
