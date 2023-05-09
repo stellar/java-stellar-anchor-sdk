@@ -13,9 +13,9 @@ class EnumConverterTest {
   @Test
   fun testConvert() {
     val converter = TransactionsOrderByConverter()
-    assertEquals(TransactionsOrderBy.CREATED_AT, converter.convert("STARTED_AT"))
-    assertEquals(TransactionsOrderBy.CREATED_AT, converter.convert("started_at"))
-    assertEquals(TransactionsOrderBy.CREATED_AT, converter.convert("stArTed_at"))
+    assertEquals(TransactionsOrderBy.CREATED_AT, converter.convert("CREATED_AT"))
+    assertEquals(TransactionsOrderBy.CREATED_AT, converter.convert("created_at"))
+    assertEquals(TransactionsOrderBy.CREATED_AT, converter.convert("cReAtEd_at"))
     assertThrows<BadRequestException> { converter.convert("not_enum") }
   }
 
