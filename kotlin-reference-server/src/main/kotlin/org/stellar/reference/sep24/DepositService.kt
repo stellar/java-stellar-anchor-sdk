@@ -7,7 +7,7 @@ import org.stellar.sdk.responses.operations.PaymentOperationResponse
 
 private val log = KotlinLogging.logger {}
 
-class DepositService(cfg: Config) {
+class DepositService(private val cfg: Config) {
   val sep24 = Sep24Helper(cfg)
 
   suspend fun getClientInfo(transactionId: String) {
@@ -43,11 +43,16 @@ class DepositService(cfg: Config) {
       transaction = sep24.getTransaction(transactionId)
       log.info { "Transaction status changed: $transaction" }
 
-      // 5. Sign and send transaction
-      val txHash = sep24.sendStellarTransaction(account, asset, amount, memo, memoType)
+      if (cfg.sep24.custodyEnabled) {
+        // 5. Send Stellar transaction using Custody Service
+        sep24.sendCustodyStellarTransaction(transactionId)
+      } else{
+        // 5. Sign and send transaction
+        val txHash = sep24.sendStellarTransaction(account, asset, amount, memo, memoType)
 
-      // 6. Finalize anchor transaction
-      finalize(transactionId, txHash, asset, amount)
+        // 6. Finalize anchor transaction
+        finalize(transactionId, txHash, asset, amount)
+      }
 
       log.info { "Transaction completed: $transactionId" }
     } catch (e: Exception) {
@@ -116,5 +121,14 @@ class DepositService(cfg: Config) {
           )
       )
     )
+  }
+
+  private suspend fun finalizeCustodyTransaction(
+    transactionId: String,
+    stellarTransactionId: String,
+    asset: String,
+    amount: BigDecimal
+  ) {
+
   }
 }
