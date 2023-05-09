@@ -94,7 +94,7 @@ class FireblocksApiClientTest {
     validateToken(
       requestCapture.captured.header("Authorization")!!,
       "/getPath",
-      "cf83e1357eefb8bdf1542850d66d8007d620e4050b5715dc83f4a921d36ce9ce47d0d13c5d85f2b0ff8318d2877eec2f63b931bd47417a81a538327af927da3e"
+      "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
     )
   }
 
@@ -175,7 +175,7 @@ class FireblocksApiClientTest {
     validateToken(
       requestCapture.captured.header("Authorization")!!,
       "/postPath",
-      "a2b3902dd7424e90b5dcf6d49438736f41e166e8cfdc0fc185eaaf8d22c83e6b4075273988d377158e5e9066d50b4ecbce2e872515d9b94a9469c09ec6cd119e"
+      "479309383f8f54af2e09fac9ec40e1b736dd46b6e5a33d49211faaecddabdea4"
     )
   }
 
