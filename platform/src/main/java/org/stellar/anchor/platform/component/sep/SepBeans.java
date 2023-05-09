@@ -205,7 +205,7 @@ public class SepBeans {
             custodyApiClient.orElseThrow(
                 () ->
                     new InvalidConfigException(
-                        "Integration with custody services is not enabled")));
+                        "Integration with Custody server is not enabled")));
       default:
         throw new RuntimeException("Not supported");
     }
@@ -241,7 +241,7 @@ public class SepBeans {
             custodyApiClient.orElseThrow(
                 () ->
                     new InvalidConfigException(
-                        "Integration with custody services is not enabled")));
+                        "Integration with Custody server is not enabled")));
       default:
         throw new RuntimeException("Not supported");
     }

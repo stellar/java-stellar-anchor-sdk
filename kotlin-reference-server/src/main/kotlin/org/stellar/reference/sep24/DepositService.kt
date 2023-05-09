@@ -44,7 +44,7 @@ class DepositService(private val cfg: Config) {
       log.info { "Transaction status changed: $transaction" }
 
       if (cfg.sep24.custodyEnabled) {
-        // 5. Send Stellar transaction using Custody Service
+        // 5. Send Stellar transaction using Custody Server
         sep24.sendCustodyStellarTransaction(transactionId)
       } else {
         // 5. Sign and send transaction
