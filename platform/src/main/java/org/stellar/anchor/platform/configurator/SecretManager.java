@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform.configurator;
 
+import static org.stellar.anchor.platform.config.PropertyCustodySecretConfig.SECRET_CUSTODY_API_AUTH_SECRET;
 import static org.stellar.anchor.platform.config.PropertyCustodySecretConfig.SECRET_FIREBLOCKS_API_KEY;
 import static org.stellar.anchor.platform.config.PropertyCustodySecretConfig.SECRET_FIREBLOCKS_SECRET_KEY;
 import static org.stellar.anchor.platform.config.PropertySecretConfig.*;
@@ -24,6 +25,7 @@ public class SecretManager
           SECRET_SEP_24_MORE_INFO_URL_JWT_SECRET,
           SECRET_CALLBACK_API_AUTH_SECRET,
           SECRET_PLATFORM_API_AUTH_SECRET,
+          SECRET_CUSTODY_API_AUTH_SECRET,
           SECRET_DATA_USERNAME,
           SECRET_DATA_PASSWORD,
           SECRET_FIREBLOCKS_SECRET_KEY,

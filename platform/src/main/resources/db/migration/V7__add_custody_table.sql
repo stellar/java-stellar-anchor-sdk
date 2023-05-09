@@ -1,5 +1,6 @@
 CREATE TABLE custody_transaction (
    id VARCHAR(255),
+   external_id VARCHAR(255),
    status VARCHAR(255),
    amount_in VARCHAR(255),
    amount_in_asset VARCHAR(255),

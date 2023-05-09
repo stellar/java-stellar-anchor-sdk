@@ -132,7 +132,7 @@ class FireblocksApiClientTest {
         }]
       """
         .trimIndent(),
-      exception.message
+      exception.message?.trimIndent()
     )
   }
 
@@ -148,7 +148,7 @@ class FireblocksApiClientTest {
     val result =
       fireblocksApiClient.post(
         "/postPath",
-        getResourceFileAsString("custody/fireblocks/client/request_body.json")
+        getResourceFileAsString("custody/fireblocks/client/request_body.json")?.trimIndent()
       )
 
     Assertions.assertEquals(
@@ -238,6 +238,7 @@ class FireblocksApiClientTest {
               .replace("-----BEGIN PUBLIC KEY-----", StringUtils.EMPTY)
               .replace("-----END PUBLIC KEY-----", StringUtils.EMPTY)
               .replace(StringUtils.LF, StringUtils.EMPTY)
+              .replace(StringUtils.CR, StringUtils.EMPTY)
           )
       val publicKeySpec = X509EncodedKeySpec(publicKeyBytes)
       val keyFactory = KeyFactory.getInstance("RSA")

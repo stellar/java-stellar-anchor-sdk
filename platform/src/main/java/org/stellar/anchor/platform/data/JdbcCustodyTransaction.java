@@ -29,6 +29,10 @@ public class JdbcCustodyTransaction {
 
   @Id String id;
 
+  @SerializedName("external_id")
+  @Column(name = "external_id")
+  String externalTxId;
+
   @SerializedName("status")
   @Column(name = "status")
   String status;

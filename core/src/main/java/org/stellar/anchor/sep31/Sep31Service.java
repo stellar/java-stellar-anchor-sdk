@@ -57,7 +57,7 @@ import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.Sep10Jwt;
 import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.Sep31Config;
-import org.stellar.anchor.custody.CustodyTransactionService;
+import org.stellar.anchor.custody.CustodyService;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.sep38.Sep38Quote;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
@@ -75,7 +75,7 @@ public class Sep31Service {
   private final CustomerIntegration customerIntegration;
   private final Sep31InfoResponse infoResponse;
   private final EventService eventService;
-  private final CustodyTransactionService custodyTransactionService;
+  private final CustodyService custodyService;
 
   public Sep31Service(
       AppConfig appConfig,
@@ -87,7 +87,7 @@ public class Sep31Service {
       FeeIntegration feeIntegration,
       CustomerIntegration customerIntegration,
       EventService eventService,
-      CustodyTransactionService custodyTransactionService) {
+      CustodyService custodyService) {
     debug("appConfig:", appConfig);
     debug("sep31Config:", sep31Config);
     this.appConfig = appConfig;
@@ -100,7 +100,7 @@ public class Sep31Service {
     this.customerIntegration = customerIntegration;
     this.eventService = eventService;
     this.infoResponse = sep31InfoResponseFromAssetInfoList(assetService.listAllAssets());
-    this.custodyTransactionService = custodyTransactionService;
+    this.custodyService = custodyService;
     Log.info("Sep31Service initialized.");
   }
 
@@ -208,7 +208,7 @@ public class Sep31Service {
 
     updateDepositInfo();
 
-    custodyTransactionService.create(txn);
+    custodyService.createTransaction(txn);
 
     eventService.publish(txn, TRANSACTION_CREATED);
 

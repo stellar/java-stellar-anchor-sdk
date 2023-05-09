@@ -73,7 +73,7 @@ class CustodyApiClientTest {
     custodyApiClient.createTransaction(request)
 
     Assertions.assertEquals(
-      "http://testbaseurl.com/transactions/custody",
+      "http://testbaseurl.com/transactions",
       requestCapture.captured.url.toString()
     )
     Assertions.assertEquals("testApiKeyValue", requestCapture.captured.header("testApiKeyName"))
@@ -122,7 +122,7 @@ class CustodyApiClientTest {
                   }]
                 """
         .trimIndent(),
-      exception.message
+      exception.message?.trimIndent()
     )
   }
 

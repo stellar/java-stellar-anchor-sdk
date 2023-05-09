@@ -76,13 +76,10 @@ public class FireblocksApiClient {
       if (HttpStatus.valueOf(response.code()).is2xxSuccessful()) {
         return responseBodyJson;
       } else {
-        throw new FireblocksException(
-            String.format(
-                "Fireblocks API returned an error. HTTP status[%d], response[%s]",
-                response.code(), responseBodyJson));
+        throw new FireblocksException(responseBodyJson, response.code());
       }
     } catch (IOException e) {
-      throw new FireblocksException("Exception occurred during request to Fireblocks API", e);
+      throw new FireblocksException(e);
     }
   }
 

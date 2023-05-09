@@ -26,7 +26,7 @@ import org.stellar.anchor.api.sep.sep38.RateFee
 import org.stellar.anchor.api.shared.Amount
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
-import org.stellar.anchor.custody.CustodyTransactionService
+import org.stellar.anchor.custody.CustodyService
 import org.stellar.anchor.event.EventService
 import org.stellar.anchor.platform.data.*
 import org.stellar.anchor.sep24.Sep24DepositInfoGenerator
@@ -54,7 +54,7 @@ class TransactionServiceTest {
   @MockK(relaxed = true) private lateinit var assetService: AssetService
   @MockK(relaxed = true) private lateinit var eventService: EventService
   @MockK(relaxed = true) private lateinit var sep24DepositInfoGenerator: Sep24DepositInfoGenerator
-  @MockK(relaxed = true) private lateinit var custodyTransactionService: CustodyTransactionService
+  @MockK(relaxed = true) private lateinit var custodyService: CustodyService
   private lateinit var transactionService: TransactionService
 
   @BeforeEach
@@ -68,7 +68,7 @@ class TransactionServiceTest {
         assetService,
         eventService,
         sep24DepositInfoGenerator,
-        custodyTransactionService
+        custodyService
       )
   }
 
@@ -262,7 +262,7 @@ class TransactionServiceTest {
 
     transactionService.patchTransactions(request)
 
-    verify(exactly = 0) { custodyTransactionService.create(ofType(Sep24Transaction::class)) }
+    verify(exactly = 0) { custodyService.createTransaction(ofType(Sep24Transaction::class)) }
     verify(exactly = 1) { sep24TransactionStore.save(any()) }
     verify(exactly = 1) {
       eventService.publish(ofType(Sep24Transaction::class), TRANSACTION_STATUS_CHANGED)
@@ -288,7 +288,7 @@ class TransactionServiceTest {
 
     transactionService.patchTransactions(request)
 
-    verify(exactly = 0) { custodyTransactionService.create(ofType(Sep24Transaction::class)) }
+    verify(exactly = 0) { custodyService.createTransaction(ofType(Sep24Transaction::class)) }
     verify(exactly = 1) { sep24TransactionStore.save(any()) }
     verify(exactly = 1) {
       eventService.publish(ofType(Sep24Transaction::class), TRANSACTION_STATUS_CHANGED)
@@ -314,7 +314,7 @@ class TransactionServiceTest {
 
     transactionService.patchTransactions(request)
 
-    verify(exactly = 1) { custodyTransactionService.create(ofType(Sep24Transaction::class)) }
+    verify(exactly = 1) { custodyService.createTransaction(ofType(Sep24Transaction::class)) }
     verify(exactly = 1) { sep24TransactionStore.save(any()) }
     verify(exactly = 1) {
       eventService.publish(ofType(Sep24Transaction::class), TRANSACTION_STATUS_CHANGED)
@@ -340,7 +340,7 @@ class TransactionServiceTest {
 
     transactionService.patchTransactions(request)
 
-    verify(exactly = 1) { custodyTransactionService.create(ofType(Sep24Transaction::class)) }
+    verify(exactly = 1) { custodyService.createTransaction(ofType(Sep24Transaction::class)) }
     verify(exactly = 1) { sep24TransactionStore.save(any()) }
     verify(exactly = 1) {
       eventService.publish(ofType(Sep24Transaction::class), TRANSACTION_STATUS_CHANGED)
@@ -366,7 +366,7 @@ class TransactionServiceTest {
 
     transactionService.patchTransactions(request)
 
-    verify(exactly = 0) { custodyTransactionService.create(ofType(Sep24Transaction::class)) }
+    verify(exactly = 0) { custodyService.createTransaction(ofType(Sep24Transaction::class)) }
     verify(exactly = 1) { sep24TransactionStore.save(any()) }
     verify(exactly = 1) {
       eventService.publish(ofType(Sep24Transaction::class), TRANSACTION_STATUS_CHANGED)
