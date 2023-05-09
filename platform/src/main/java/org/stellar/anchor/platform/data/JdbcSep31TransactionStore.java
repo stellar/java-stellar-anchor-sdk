@@ -93,10 +93,18 @@ public class JdbcSep31TransactionStore implements Sep31TransactionStore {
       @Nullable List<SepTransactionStatus> statuses,
       int pageNumber,
       int pageSize) {
-    PageRequest page = PageRequest.of(pageNumber, pageSize, order, orderBy.getTableName(), "id");
+
+    Sort.Order primary =
+        order == Sort.Direction.ASC
+            ? Sort.Order.asc(orderBy.getTableName()).nullsLast()
+            : Sort.Order.desc(orderBy.getTableName()).nullsLast();
+    Sort sort = Sort.by(List.of(primary, Sort.Order.asc("id")));
+
+    PageRequest page = PageRequest.of(pageNumber, pageSize, sort);
 
     if (statuses == null) {
-      return transactionRepo.findAll(page).getContent();
+      List<JdbcSep31Transaction> transactions = transactionRepo.findAll(page).getContent();
+      return transactions;
     } else {
       return transactionRepo
           .findByStatusIn(
