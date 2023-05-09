@@ -10,7 +10,9 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.List;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.scheduling.support.CronExpression;
 import org.springframework.validation.Errors;
@@ -27,9 +29,14 @@ public class FireblocksConfig implements Validator {
   private CustodySecretConfig secretConfig;
   private String transactionsReconciliationCron;
   private String publicKey;
+  private RetryConfig retryConfig;
 
   public FireblocksConfig(CustodySecretConfig secretConfig) {
     this.secretConfig = secretConfig;
+  }
+
+  public void setRetryConfig(RetryConfig retryConfig) {
+    this.retryConfig = retryConfig;
   }
 
   @Override
@@ -45,6 +52,8 @@ public class FireblocksConfig implements Validator {
     validateSecretKey(errors);
     validateTransactionsReconciliationCron(errors);
     validatePublicKey(errors);
+    validateRetryMaxAttempts(errors);
+    validateRetryDelay(errors);
   }
 
   private void validateBaseUrl(Errors errors) {
@@ -116,6 +125,22 @@ public class FireblocksConfig implements Validator {
     }
   }
 
+  public void validateRetryMaxAttempts(Errors errors) {
+    if (retryConfig.getMaxAttempts() < 0) {
+      errors.reject(
+          "custody-fireblocks-retry_config-max_attempts-invalid",
+          "custody-fireblocks-retry_config-max_attempts must be greater than 0");
+    }
+  }
+
+  public void validateRetryDelay(Errors errors) {
+    if (retryConfig.getDelay() < 0) {
+      errors.reject(
+          "custody-fireblocks-retry_config-delay-invalid",
+          "custody-fireblocks-retry_config-delay must be greater than 0");
+    }
+  }
+
   /**
    * Get Fireblocks public key
    *
@@ -140,5 +165,13 @@ public class FireblocksConfig implements Validator {
     } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
       throw new InvalidConfigException(List.of("Failed to generate Fireblocks private key"), e);
     }
+  }
+
+  @Data
+  @AllArgsConstructor
+  @NoArgsConstructor
+  public static class RetryConfig {
+    private int maxAttempts;
+    private int delay;
   }
 }

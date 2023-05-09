@@ -5,11 +5,16 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = false)
 public class FireblocksException extends CustodyException {
 
-  public FireblocksException(String message, Exception cause) {
-    super(message, cause);
+  public FireblocksException(String rawMessage, int statusCode) {
+    super(
+        String.format(
+            "Fireblocks API returned an error. HTTP status[%d], response[%s]",
+            statusCode, rawMessage),
+        rawMessage,
+        statusCode);
   }
 
-  public FireblocksException(String message) {
-    super(message);
+  public FireblocksException(Exception cause) {
+    super("Exception occurred during request to Fireblocks API", cause.getMessage(), cause);
   }
 }

@@ -22,7 +22,7 @@ import org.stellar.anchor.config.Sep1Config;
 import org.stellar.anchor.config.Sep24Config;
 import org.stellar.anchor.config.Sep31Config;
 import org.stellar.anchor.config.Sep38Config;
-import org.stellar.anchor.custody.CustodyTransactionService;
+import org.stellar.anchor.custody.CustodyService;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.filter.JwtTokenFilter;
 import org.stellar.anchor.horizon.Horizon;
@@ -37,7 +37,7 @@ import org.stellar.anchor.platform.config.PropertySep24Config;
 import org.stellar.anchor.platform.config.PropertySep31Config;
 import org.stellar.anchor.platform.config.PropertySep38Config;
 import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountsManager;
-import org.stellar.anchor.platform.service.CustodyTransactionServiceImpl;
+import org.stellar.anchor.platform.service.CustodyServiceImpl;
 import org.stellar.anchor.platform.service.Sep24DepositInfoCustodyGenerator;
 import org.stellar.anchor.platform.service.Sep24DepositInfoSelfGenerator;
 import org.stellar.anchor.platform.service.Sep31DepositInfoApiGenerator;
@@ -189,8 +189,8 @@ public class SepBeans {
   }
 
   @Bean
-  CustodyTransactionService custodyTransactionService(Optional<CustodyApiClient> custodyApiClient) {
-    return new CustodyTransactionServiceImpl(custodyApiClient);
+  CustodyService custodyService(Optional<CustodyApiClient> custodyApiClient) {
+    return new CustodyServiceImpl(custodyApiClient);
   }
 
   @Bean
@@ -257,7 +257,7 @@ public class SepBeans {
       FeeIntegration feeIntegration,
       CustomerIntegration customerIntegration,
       EventService eventService,
-      CustodyTransactionService custodyTransactionService) {
+      CustodyService custodyService) {
     return new Sep31Service(
         appConfig,
         sep31Config,
@@ -268,7 +268,7 @@ public class SepBeans {
         feeIntegration,
         customerIntegration,
         eventService,
-        custodyTransactionService);
+        custodyService);
   }
 
   @Bean

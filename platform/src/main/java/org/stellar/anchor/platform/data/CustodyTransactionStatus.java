@@ -7,8 +7,10 @@ public enum CustodyTransactionStatus {
   CREATED("created"),
   @SerializedName("sent")
   SUBMITTED("submitted"),
-  @SerializedName("received")
-  RECEIVED("received");
+  @SerializedName("completed")
+  COMPLETED("completed"),
+  @SerializedName("failed")
+  FAILED("failed");
 
   private final String status;
 

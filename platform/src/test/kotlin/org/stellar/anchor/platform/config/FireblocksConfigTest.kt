@@ -10,6 +10,7 @@ import org.junit.jupiter.params.provider.NullSource
 import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.validation.BindException
 import org.springframework.validation.Errors
+import org.stellar.anchor.platform.config.FireblocksConfig.RetryConfig
 import org.stellar.anchor.util.FileUtil
 
 class FireblocksConfigTest {
@@ -25,6 +26,7 @@ class FireblocksConfigTest {
     every { secretConfig.fireblocksSecretKey } returns
       FileUtil.getResourceFileAsString("custody/fireblocks/client/secret_key.txt")
     config = FireblocksConfig(secretConfig)
+    config.retryConfig = RetryConfig(3, 1000)
     config.baseUrl = "https://test.com"
     config.vaultAccountId = "testAccountId"
     config.transactionsReconciliationCron = "* * * * * *"

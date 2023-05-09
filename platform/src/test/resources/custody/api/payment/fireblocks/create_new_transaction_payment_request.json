@@ -1,0 +1,12 @@
+{
+  "assetId": "TEST_ASSET_ID",
+  "source": {
+    "type": "VAULT_ACCOUNT",
+    "id": "testVaultAccountId"
+  },
+  "destination": {
+    "type": "EXTERNAL_WALLET",
+    "id": "toVaultAccountId"
+  },
+  "amount": "10"
+}
