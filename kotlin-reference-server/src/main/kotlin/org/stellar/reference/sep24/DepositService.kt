@@ -123,12 +123,4 @@ class DepositService(private val cfg: Config) {
     )
   }
 
-  private suspend fun finalizeCustodyTransaction(
-    transactionId: String,
-    stellarTransactionId: String,
-    asset: String,
-    amount: BigDecimal
-  ) {
-
-  }
 }

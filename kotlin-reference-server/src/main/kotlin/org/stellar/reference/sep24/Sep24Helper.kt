@@ -110,7 +110,7 @@ class Sep24Helper(private val cfg: Config) {
   }
 
   internal suspend fun sendCustodyStellarTransaction(transactionId: String) {
-    client.post("$baseUrl/transactions/$transactionId/payment");
+    client.post("$baseUrl/transactions/$transactionId/payments");
   }
 
   // Pulling status change from anchor. Alternatively, listen to AnchorEvent for transaction status
@@ -122,24 +122,6 @@ class Sep24Helper(private val cfg: Config) {
       val transaction = getTransaction(txId)
 
       if (transaction.status == "pending_anchor") {
-        log.info { "User transfer was successful" }
-
-        return
-      } else {
-        delay(5.seconds)
-      }
-    }
-
-    throw Exception("Transaction hasn't been sent in 30 minutes, giving up")
-  }
-
-  internal suspend fun waitCustodyStellarTransaction(txId: String) {
-    for (i in 1..(30 * 60 / 5)) {
-      log.info { "Waiting for user to transfer funds" }
-
-      val transaction = getTransaction(txId)
-
-      if (transaction.status == "completed") {
         log.info { "User transfer was successful" }
 
         return
