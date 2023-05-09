@@ -29,7 +29,7 @@ public class FireblocksApiClient {
   private static final String AUTHORIZATION_HEADER_NAME = "Authorization";
   private static final String TOKEN_PREFIX = "Bearer ";
   private static final int TOKEN_EXPIRATION_SECONDS = 55;
-  private static final String SHA512_ALGORITHM = "SHA-512";
+  private static final String SHA256_ALGORITHM = "SHA-256";
 
   private final OkHttpClient client;
   private final String baseUrl;
@@ -87,7 +87,7 @@ public class FireblocksApiClient {
     String bodyHash;
 
     try {
-      MessageDigest digest = MessageDigest.getInstance(SHA512_ALGORITHM);
+      MessageDigest digest = MessageDigest.getInstance(SHA256_ALGORITHM);
       digest.update(dataJSONString.getBytes());
       BigInteger number = new BigInteger(1, digest.digest());
       StringBuilder hexString = new StringBuilder(number.toString(16));

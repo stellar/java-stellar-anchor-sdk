@@ -14,7 +14,8 @@ data class Sep24(
   val anchorPlatformUrl: String,
   val horizonUrl: String,
   val secret: String,
-  val interactiveJwtKey: String
+  val interactiveJwtKey: String,
+  val custodyEnabled: Boolean
 ) {
-  val keyPair = KeyPair.fromSecretSeed(secret)
+  val keyPair: KeyPair? = if (custodyEnabled) null else KeyPair.fromSecretSeed(secret)
 }
