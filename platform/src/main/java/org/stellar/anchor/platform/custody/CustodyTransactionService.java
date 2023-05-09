@@ -57,10 +57,9 @@ public class CustodyTransactionService {
     CreateTransactionPaymentResponse response;
     try {
       response = paymentService.createTransactionPayment(txn, requestBody);
-      storeCustodyTransactionId(
-          txn, response.getId(), CustodyTransactionStatus.SUBMITTED.toString());
+      updateCustodyTransaction(txn, response.getId(), CustodyTransactionStatus.SUBMITTED);
     } catch (FireblocksException e) {
-      storeCustodyTransactionId(txn, StringUtils.EMPTY, CustodyTransactionStatus.FAILED.toString());
+      updateCustodyTransaction(txn, StringUtils.EMPTY, CustodyTransactionStatus.FAILED);
       switch (HttpStatus.valueOf(e.getStatusCode())) {
         case TOO_MANY_REQUESTS:
           throw new CustodyTooManyRequestsException(e.getRawMessage());
@@ -77,10 +76,10 @@ public class CustodyTransactionService {
     return response;
   }
 
-  private void storeCustodyTransactionId(
-      JdbcCustodyTransaction txn, String custodyTransactionId, String status) {
-    txn.setExternalTxId(custodyTransactionId);
-    txn.setStatus(status);
+  private void updateCustodyTransaction(
+      JdbcCustodyTransaction txn, String externalTransactionId, CustodyTransactionStatus status) {
+    txn.setExternalTxId(externalTransactionId);
+    txn.setStatus(status.toString());
     txn.setUpdatedAt(Instant.now());
     custodyTransactionRepo.save(txn);
   }

@@ -127,8 +127,7 @@ public class FireblocksConfig implements Validator {
 
   public void validateRetryMaxAttempts(Errors errors) {
     if (retryConfig.getMaxAttempts() < 0) {
-      errors.rejectValue(
-          "maxAttempts",
+      errors.reject(
           "custody-fireblocks-retry_config-max_attempts-invalid",
           "custody-fireblocks-retry_config-max_attempts must be greater than 0");
     }
@@ -136,8 +135,7 @@ public class FireblocksConfig implements Validator {
 
   public void validateRetryDelay(Errors errors) {
     if (retryConfig.getDelay() < 0) {
-      errors.rejectValue(
-          "delay",
+      errors.reject(
           "custody-fireblocks-retry_config-delay-invalid",
           "custody-fireblocks-retry_config-delay must be greater than 0");
     }
