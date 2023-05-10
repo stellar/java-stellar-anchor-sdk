@@ -1,5 +1,4 @@
 # Changelog
-<<<<<<< HEAD
 
 ## 2.0.0
 * Redesign configuration management.
