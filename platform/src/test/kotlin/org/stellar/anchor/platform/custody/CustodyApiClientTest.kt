@@ -11,6 +11,7 @@ import okhttp3.*
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.ResponseBody.Companion.toResponseBody
 import okio.Buffer
+import org.apache.http.HttpStatus
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -33,6 +34,8 @@ class CustodyApiClientTest {
     private const val AUTH_HEADER_VALUE = "testApiKeyValue"
     private const val BASE_URL = "http://testBaseUrl.com"
     private const val ASSET_ID = "TEST_ASSET_ID"
+    private const val TXN_ID = "1"
+    private const val REQUEST_BODY = "{}"
   }
 
   private val gson = GsonUtils.getInstance()
@@ -55,16 +58,15 @@ class CustodyApiClientTest {
   }
 
   @Test
-  fun test_createCustodyTransaction_success() {
+  fun test_createTransaction_success() {
     val response =
       getMockResponse(
         200,
-        getResourceFileAsString("custody/api/client/create_custody_transaction_response.json")
+        getResourceFileAsString("custody/api/client/create_transaction_response.json")
       )
     val requestCapture = slot<Request>()
     val call = mockk<Call>()
-    val requestJson =
-      getResourceFileAsString("custody/api/client/create_custody_transaction_request.json")
+    val requestJson = getResourceFileAsString("custody/api/client/create_transaction_request.json")
     val request = gson.fromJson(requestJson, CreateCustodyTransactionRequest::class.java)
 
     every { httpClient.newCall(capture(requestCapture)) } returns call
@@ -85,10 +87,9 @@ class CustodyApiClientTest {
   }
 
   @Test
-  fun test_createCustodyTransaction_fail_IOException() {
+  fun test_createTransaction_fail_IOException() {
     val call = mockk<Call>()
-    val requestJson =
-      getResourceFileAsString("custody/api/client/create_custody_transaction_request.json")
+    val requestJson = getResourceFileAsString("custody/api/client/create_transaction_request.json")
     val request = gson.fromJson(requestJson, CreateCustodyTransactionRequest::class.java)
 
     every { httpClient.newCall(any()) } returns call
@@ -100,13 +101,12 @@ class CustodyApiClientTest {
   }
 
   @Test
-  fun test_createCustodyTransaction_fail_errorStatusCode() {
+  fun test_createTransaction_fail_errorStatusCode() {
     val response =
       getMockResponse(400, getResourceFileAsString("custody/api/client/error_response_body.json"))
     val requestCapture = slot<Request>()
     val call = mockk<Call>()
-    val requestJson =
-      getResourceFileAsString("custody/api/client/create_custody_transaction_request.json")
+    val requestJson = getResourceFileAsString("custody/api/client/create_transaction_request.json")
     val request = gson.fromJson(requestJson, CreateCustodyTransactionRequest::class.java)
 
     every { httpClient.newCall(capture(requestCapture)) } returns call
@@ -146,6 +146,57 @@ class CustodyApiClientTest {
     Assertions.assertEquals("testApiKeyValue", requestCapture.captured.header("testApiKeyName"))
 
     JSONAssert.assertEquals(responseJson, gson.toJson(responseAddress), JSONCompareMode.STRICT)
+  }
+
+  @Test
+  fun test_createTransactionPayment_success() {
+    val response = getMockResponse(200, "{\"id\":\"1\"}")
+    val requestCapture = slot<Request>()
+    val call = mockk<Call>()
+
+    every { httpClient.newCall(capture(requestCapture)) } returns call
+    every { call.execute() } returns response
+
+    custodyApiClient.createTransactionPayment(TXN_ID, REQUEST_BODY)
+
+    Assertions.assertEquals(
+      String.format("http://testbaseurl.com/transactions/%s/payments", TXN_ID),
+      requestCapture.captured.url.toString()
+    )
+    Assertions.assertEquals("testApiKeyValue", requestCapture.captured.header("testApiKeyName"))
+  }
+
+  @Test
+  fun test_createTransactionPayment_fail_IOException() {
+    val call = mockk<Call>()
+    every { httpClient.newCall(any()) } returns call
+    every { call.execute() } throws IOException("Custody IO exception")
+
+    val exception =
+      assertThrows<CustodyException> {
+        custodyApiClient.createTransactionPayment(TXN_ID, REQUEST_BODY)
+      }
+
+    Assertions.assertEquals(HttpStatus.SC_SERVICE_UNAVAILABLE, exception.statusCode)
+    Assertions.assertEquals("Exception occurred during request to Custody API", exception.message)
+  }
+
+  @Test
+  fun test_createCustodyTransaction_fail_errorStatusCode() {
+    val response = getMockResponse(429, "{\"rawMessage\":\"Too many requests\"}")
+    val requestCapture = slot<Request>()
+    val call = mockk<Call>()
+
+    every { httpClient.newCall(capture(requestCapture)) } returns call
+    every { call.execute() } returns response
+
+    val exception =
+      assertThrows<CustodyException> {
+        custodyApiClient.createTransactionPayment(TXN_ID, REQUEST_BODY)
+      }
+
+    Assertions.assertEquals(HttpStatus.SC_TOO_MANY_REQUESTS, exception.statusCode)
+    Assertions.assertEquals("{\"rawMessage\":\"Too many requests\"}", exception.rawMessage)
   }
 
   private fun requestBodyToString(requestBody: RequestBody?): String {

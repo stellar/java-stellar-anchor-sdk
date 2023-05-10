@@ -157,4 +157,36 @@ class FireblocksConfigTest {
     config.validate(config, errors)
     assertErrorCode(errors, "custody-fireblocks-public_key-invalid")
   }
+
+  @ParameterizedTest
+  @ValueSource(ints = [0, 1, Int.MAX_VALUE])
+  fun `test valid retry_config_max_attempts`(maxAttempts: Int) {
+    config.retryConfig.maxAttempts = maxAttempts
+    config.validate(config, errors)
+    assertFalse(errors.hasErrors())
+  }
+
+  @ParameterizedTest
+  @ValueSource(ints = [-1, Int.MIN_VALUE])
+  fun `test invalid retry_config_max_attempts`(maxAttempts: Int) {
+    config.retryConfig.maxAttempts = maxAttempts
+    config.validate(config, errors)
+    assertErrorCode(errors, "custody-fireblocks-retry_config-max_attempts-invalid")
+  }
+
+  @ParameterizedTest
+  @ValueSource(ints = [0, 1, Int.MAX_VALUE])
+  fun `test valid retry_config_delay`(delay: Int) {
+    config.retryConfig.delay = delay
+    config.validate(config, errors)
+    assertFalse(errors.hasErrors())
+  }
+
+  @ParameterizedTest
+  @ValueSource(ints = [-1, Int.MIN_VALUE])
+  fun `test invalid retry_config_delay`(delay: Int) {
+    config.retryConfig.delay = delay
+    config.validate(config, errors)
+    assertErrorCode(errors, "custody-fireblocks-retry_config-delay-invalid")
+  }
 }
