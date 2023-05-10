@@ -4,8 +4,11 @@ import com.google.gson.GsonBuilder
 import com.google.gson.JsonParser
 import io.mockk.mockk
 import java.io.IOException
+import java.security.SignatureException
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 import org.apache.commons.lang3.StringUtils
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
@@ -95,9 +98,28 @@ class FireblocksEventServiceTest {
         eventsService.handleFireblocksEvent(eventObject, httpHeaders)
       }
     assertEquals("Signature validation failed", ex.message)
+    assertNull(ex.cause)
   }
 
-  fun getFireblocksConfig(publicKey: String): FireblocksConfig {
+  @Test
+  fun `test handleFireblocksEvent() for invalid signature encoding`() {
+    val config =
+      getFireblocksConfig(getResourceFileAsString("custody/fireblocks/webhook/public_key.txt"))
+    val eventsService = FireblocksEventService(config)
+
+    val invalidSignature = "test"
+    val eventObject: String = getCompactJsonString("custody/fireblocks/webhook/request.json")
+    val httpHeaders = mutableMapOf(FIREBLOCKS_SIGNATURE_HEADER to invalidSignature)
+
+    val ex =
+      assertThrows<BadRequestException> {
+        eventsService.handleFireblocksEvent(eventObject, httpHeaders)
+      }
+    assertEquals("Signature validation failed", ex.message)
+    assertTrue(ex.cause is SignatureException)
+  }
+
+  private fun getFireblocksConfig(publicKey: String): FireblocksConfig {
     val config = FireblocksConfig(secretConfig)
     config.publicKey = publicKey
     return config
