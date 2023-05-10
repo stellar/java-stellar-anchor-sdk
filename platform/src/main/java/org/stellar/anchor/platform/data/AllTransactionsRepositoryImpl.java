@@ -40,7 +40,7 @@ public class AllTransactionsRepositoryImpl<T> implements AllTransactionsReposito
             params.getOrder_by().getTableName(),
             params.getOrder().name(),
             params.getPageSize(),
-            params.getPageNumber());
+            params.getPageNumber() * params.getPageSize());
 
     javax.persistence.Query query = em.createNativeQuery(nativeQuery, entityClass);
 
