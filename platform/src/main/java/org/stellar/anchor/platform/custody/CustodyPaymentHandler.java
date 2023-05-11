@@ -73,7 +73,7 @@ public abstract class CustodyPaymentHandler {
       warnF(
           "Incoming payment asset[{}] does not match the expected asset[{}]. Payment: id[{}], "
               + "externalTxId[{}] ",
-          payment.getAssetCode(),
+          payment.getAssetName(),
           txn.getAmountInAsset(),
           payment.getId(),
           payment.getExternalTxId());

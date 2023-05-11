@@ -1,0 +1,15 @@
+{
+  "id": "testId",
+  "status": "completed",
+  "amount_in": "1",
+  "amount_in_asset": "stellar:testAmountInAsset",
+  "amount_out": "testAmountOut",
+  "amount_out_asset": "testAmountOutAsset",
+  "updated_at": "2023-05-10T10:18:25.778Z",
+  "memo": "testMemo",
+  "memo_type": "testMemoType",
+  "protocol": "24",
+  "from_account": "testFromAccount",
+  "to_account": "testToAccount",
+  "kind": "deposit"
+}

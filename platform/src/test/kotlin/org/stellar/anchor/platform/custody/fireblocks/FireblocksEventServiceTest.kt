@@ -1,10 +1,7 @@
 package org.stellar.anchor.platform.custody.fireblocks
 
-import com.google.gson.GsonBuilder
-import com.google.gson.JsonParser
 import com.google.gson.reflect.TypeToken
 import io.mockk.*
-import java.io.IOException
 import kotlin.test.assertEquals
 import org.apache.commons.lang3.StringUtils
 import org.junit.jupiter.api.BeforeEach
@@ -14,7 +11,6 @@ import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
 import org.stellar.anchor.api.exception.BadRequestException
 import org.stellar.anchor.api.exception.InvalidConfigException
-import org.stellar.anchor.api.exception.SepNotFoundException
 import org.stellar.anchor.horizon.Horizon
 import org.stellar.anchor.platform.config.FireblocksConfig
 import org.stellar.anchor.platform.config.PropertyCustodySecretConfig
@@ -76,7 +72,7 @@ class FireblocksEventServiceTest {
       getResourceFileAsString("custody/fireblocks/webhook/submitted_event_valid_signature.txt")
     val httpHeaders: Map<String, String> = mutableMapOf(FIREBLOCKS_SIGNATURE_HEADER to signature)
     val eventObject: String =
-      getCompactJsonString("custody/fireblocks/webhook/submitted_event_request.json")
+      getResourceFileAsString("custody/fireblocks/webhook/submitted_event_request.json")
 
     eventsService.handleEvent(eventObject, httpHeaders)
   }
@@ -103,7 +99,7 @@ class FireblocksEventServiceTest {
       getResourceFileAsString("custody/fireblocks/webhook/completed_event_signature.txt")
     val httpHeaders: Map<String, String> = mutableMapOf(FIREBLOCKS_SIGNATURE_HEADER to signature)
     val eventObject: String =
-      getCompactJsonString("custody/fireblocks/webhook/completed_event_request.json")
+      getResourceFileAsString("custody/fireblocks/webhook/completed_event_request.json")
 
     val paymentCapture = slot<CustodyPayment>()
 
@@ -114,7 +110,7 @@ class FireblocksEventServiceTest {
     eventsService.handleEvent(eventObject, httpHeaders)
 
     JSONAssert.assertEquals(
-      getCompactJsonString(
+      getResourceFileAsString(
         "custody/fireblocks/webhook/completed_event_no_stellar_txn_payment.json"
       ),
       gson.toJson(paymentCapture.captured),
@@ -144,7 +140,7 @@ class FireblocksEventServiceTest {
       getResourceFileAsString("custody/fireblocks/webhook/failed_event_signature.txt")
     val httpHeaders: Map<String, String> = mutableMapOf(FIREBLOCKS_SIGNATURE_HEADER to signature)
     val eventObject: String =
-      getCompactJsonString("custody/fireblocks/webhook/failed_event_request.json")
+      getResourceFileAsString("custody/fireblocks/webhook/failed_event_request.json")
 
     val paymentCapture = slot<CustodyPayment>()
 
@@ -155,7 +151,9 @@ class FireblocksEventServiceTest {
     eventsService.handleEvent(eventObject, httpHeaders)
 
     JSONAssert.assertEquals(
-      getCompactJsonString("custody/fireblocks/webhook/failed_event_no_stellar_txn_payment.json"),
+      getResourceFileAsString(
+        "custody/fireblocks/webhook/failed_event_no_stellar_txn_payment.json"
+      ),
       gson.toJson(paymentCapture.captured),
       JSONCompareMode.STRICT
     )
@@ -189,7 +187,7 @@ class FireblocksEventServiceTest {
       getResourceFileAsString("custody/fireblocks/webhook/completed_event_signature.txt")
     val httpHeaders: Map<String, String> = mutableMapOf(FIREBLOCKS_SIGNATURE_HEADER to signature)
     val eventObject: String =
-      getCompactJsonString("custody/fireblocks/webhook/completed_event_request.json")
+      getResourceFileAsString("custody/fireblocks/webhook/completed_event_request.json")
 
     val paymentCapture = slot<CustodyPayment>()
 
@@ -236,7 +234,7 @@ class FireblocksEventServiceTest {
       getResourceFileAsString("custody/fireblocks/webhook/completed_event_signature.txt")
     val httpHeaders: Map<String, String> = mutableMapOf(FIREBLOCKS_SIGNATURE_HEADER to signature)
     val eventObject: String =
-      getCompactJsonString("custody/fireblocks/webhook/completed_event_request.json")
+      getResourceFileAsString("custody/fireblocks/webhook/completed_event_request.json")
 
     val paymentCapture = slot<CustodyPayment>()
 
@@ -252,7 +250,7 @@ class FireblocksEventServiceTest {
     eventsService.handleEvent(eventObject, httpHeaders)
 
     JSONAssert.assertEquals(
-      getCompactJsonString("custody/fireblocks/webhook/stellar_txn_payment.json"),
+      getResourceFileAsString("custody/fireblocks/webhook/stellar_txn_payment.json"),
       gson.toJson(paymentCapture.captured),
       JSONCompareMode.STRICT
     )
@@ -286,7 +284,7 @@ class FireblocksEventServiceTest {
       getResourceFileAsString("custody/fireblocks/webhook/completed_event_signature.txt")
     val httpHeaders: Map<String, String> = mutableMapOf(FIREBLOCKS_SIGNATURE_HEADER to signature)
     val eventObject: String =
-      getCompactJsonString("custody/fireblocks/webhook/completed_event_request.json")
+      getResourceFileAsString("custody/fireblocks/webhook/completed_event_request.json")
 
     val paymentCapture = slot<CustodyPayment>()
 
@@ -302,7 +300,7 @@ class FireblocksEventServiceTest {
     eventsService.handleEvent(eventObject, httpHeaders)
 
     JSONAssert.assertEquals(
-      getCompactJsonString("custody/fireblocks/webhook/stellar_txn_path_payment.json"),
+      getResourceFileAsString("custody/fireblocks/webhook/stellar_txn_path_payment.json"),
       gson.toJson(paymentCapture.captured),
       JSONCompareMode.STRICT
     )
@@ -382,7 +380,7 @@ class FireblocksEventServiceTest {
     val invalidSignature: String =
       getResourceFileAsString("custody/fireblocks/webhook/submitted_event_invalid_signature.txt")
     val eventObject: String =
-      getCompactJsonString("custody/fireblocks/webhook/submitted_event_request.json")
+      getResourceFileAsString("custody/fireblocks/webhook/submitted_event_request.json")
     val httpHeaders = mutableMapOf(FIREBLOCKS_SIGNATURE_HEADER to invalidSignature)
 
     eventsService.handleEvent(eventObject, httpHeaders)
@@ -403,7 +401,7 @@ class FireblocksEventServiceTest {
 
     val invalidSignature = "test"
     val eventObject: String =
-      getCompactJsonString("custody/fireblocks/webhook/submitted_event_request.json")
+      getResourceFileAsString("custody/fireblocks/webhook/submitted_event_request.json")
     val httpHeaders = mutableMapOf(FIREBLOCKS_SIGNATURE_HEADER to invalidSignature)
 
     eventsService.handleEvent(eventObject, httpHeaders)
@@ -413,12 +411,5 @@ class FireblocksEventServiceTest {
     val config = FireblocksConfig(secretConfig)
     config.publicKey = publicKey
     return config
-  }
-
-  @Throws(IOException::class, SepNotFoundException::class)
-  fun getCompactJsonString(fileName: String): String {
-    val gson = GsonBuilder().serializeNulls().create()
-    val el = JsonParser.parseString(getResourceFileAsString(fileName))
-    return gson.toJson(el)
   }
 }
