@@ -111,9 +111,7 @@ class RSAUtilTest {
   @Test
   fun `test isSignatureValid() for invalid public key`() {
     val publicKeyString =
-      "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCx8LacAqPnX63Bj4ayc" +
-        "DQWZij329nXh2oL/XFXbvZpFcEXrIB1O42rHQ93Ubnul7YmgGpArBfm6Kkotl48kRD/5iv6xuHcgaK" +
-        "G+IQDRiR63XKcYKovWbdzi51F/DMaj2PESj10WoWzsFhPyUNrXG2QEi/1H+4muP3dbo2DT80FIQIDAQAB"
+      getResourceFileAsString("custody/fireblocks/webhook/invalid_public_key.txt")
     val invalidPublicKey: PublicKey = generatePublicKey(publicKeyString, RSA_ALGORITHM)
     assertFalse(
       isValidSignature(signature, eventObject, invalidPublicKey, SHA512_WITH_RSA_ALGORITHM)
