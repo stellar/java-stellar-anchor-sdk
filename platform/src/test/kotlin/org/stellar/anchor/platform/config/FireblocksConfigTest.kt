@@ -2,7 +2,10 @@ package org.stellar.anchor.platform.config
 
 import io.mockk.every
 import io.mockk.mockk
+import kotlin.test.assertNull
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
@@ -188,5 +191,21 @@ class FireblocksConfigTest {
     config.retryConfig.delay = delay
     config.validate(config, errors)
     assertErrorCode(errors, "custody-fireblocks-retry_config-delay-invalid")
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = [""])
+  fun `test empty asset mappings`(mappings: String) {
+    config.setAssetMappings(mappings)
+    assertTrue(config.assetMappings.isEmpty())
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = ["FIREBLOCKS_ASSET_CODE STELLAR_ASSET_CODE"])
+  fun `test getFireblocksAssetCode`(mappings: String) {
+    config.setAssetMappings(mappings)
+    val stellarAssetCode = config.getFireblocksAssetCode("STELLAR_ASSET_CODE")
+    assertEquals("FIREBLOCKS_ASSET_CODE", stellarAssetCode)
+    assertNull(config.getFireblocksAssetCode("INVALID_ASSET_CODE"))
   }
 }

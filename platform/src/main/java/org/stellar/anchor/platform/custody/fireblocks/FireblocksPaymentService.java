@@ -1,6 +1,6 @@
 package org.stellar.anchor.platform.custody.fireblocks;
 
-import static org.stellar.anchor.api.custody.fireblocks.CreateTransactionRequest.DestinationTransferPeerPathType.EXTERNAL_WALLET;
+import static org.stellar.anchor.api.custody.fireblocks.CreateTransactionRequest.DestinationTransferPeerPathType.ONE_TIME_ADDRESS;
 import static org.stellar.anchor.api.custody.fireblocks.CreateTransactionRequest.TransferPeerPathType.VAULT_ACCOUNT;
 import static org.stellar.anchor.util.MemoHelper.memoTypeAsString;
 
@@ -47,7 +47,7 @@ public class FireblocksPaymentService implements PaymentService {
                 String.format(
                     CREATE_NEW_DEPOSIT_ADDRESS_URL_FORMAT,
                     fireblocksConfig.getVaultAccountId(),
-                    assetId),
+                    fireblocksConfig.getFireblocksAssetCode(assetId)),
                 gson.toJson(request)),
             CreateAddressResponse.class);
     return new GenerateDepositAddressResponse(
@@ -75,14 +75,14 @@ public class FireblocksPaymentService implements PaymentService {
 
   public CreateTransactionRequest getCreateTransactionRequest(JdbcCustodyTransaction txn) {
     return CreateTransactionRequest.builder()
-        .assetId(txn.getAmountOutAsset())
+        .assetId(fireblocksConfig.getFireblocksAssetCode(txn.getAmountOutAsset()))
         .amount(txn.getAmountOut())
         .source(
             new CreateTransactionRequest.TransferPeerPath(
                 VAULT_ACCOUNT, fireblocksConfig.getVaultAccountId()))
         .destination(
             new CreateTransactionRequest.DestinationTransferPeerPath(
-                EXTERNAL_WALLET, txn.getToAccount(), null))
+                ONE_TIME_ADDRESS, new CreateTransactionRequest.OneTimeAddress(txn.getToAccount())))
         .build();
   }
 }

@@ -40,16 +40,25 @@ public class CreateTransactionRequest {
   }
 
   @Data
-  @AllArgsConstructor
   public static class DestinationTransferPeerPath {
+
+    public DestinationTransferPeerPath(
+        DestinationTransferPeerPathType type, OneTimeAddress oneTimeAddress) {
+      this.type = type;
+      this.oneTimeAddress = oneTimeAddress;
+    }
+
     private DestinationTransferPeerPathType type;
     private String id;
     private OneTimeAddress oneTimeAddress;
   }
 
   @Data
-  @AllArgsConstructor
   public static class OneTimeAddress {
+    public OneTimeAddress(String address) {
+      this.address = address;
+    }
+
     private String address;
     private String tag;
   }

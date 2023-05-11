@@ -440,6 +440,17 @@ custody:
       #
       delay: 1000
 
+    ## @param: assetMappings
+    ## @type:  string
+    ## Defines mappings of fireblocks asset codes to stellar asset codes
+    ## Each mapping should be in a new line
+    ## Mappings should be in a format FIREBLOCKS_ASSET_CODE STELLAR_ASSET_CODE separated with space character
+    ## Example:
+    ##  XLM_USDC_1 stellar:USDC:6HW07AE2MZU3JWWARR9CUSDV5S68K4SLY6FGDJ6KIU6ZJETC3HJP00I2V
+    ##  XLM_USDC_2 stellar:USDC:CKG0R9OEL0RJKFONEP3KHZA1Y1PC1R5TMVIM3T88CG1R239TSWJ5OKKST
+    #
+    asset_mappings: |
+
 ##########################
 ## Metrics Configuration
 ##########################
