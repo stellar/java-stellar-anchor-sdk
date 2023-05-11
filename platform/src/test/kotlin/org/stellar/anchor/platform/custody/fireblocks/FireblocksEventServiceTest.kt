@@ -2,82 +2,367 @@ package org.stellar.anchor.platform.custody.fireblocks
 
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonParser
-import io.mockk.mockk
+import com.google.gson.reflect.TypeToken
+import io.mockk.*
 import java.io.IOException
-import java.security.SignatureException
 import kotlin.test.assertEquals
-import kotlin.test.assertTrue
 import org.apache.commons.lang3.StringUtils
-import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.skyscreamer.jsonassert.JSONAssert
+import org.skyscreamer.jsonassert.JSONCompareMode
 import org.stellar.anchor.api.exception.BadRequestException
 import org.stellar.anchor.api.exception.InvalidConfigException
 import org.stellar.anchor.api.exception.SepNotFoundException
+import org.stellar.anchor.horizon.Horizon
 import org.stellar.anchor.platform.config.FireblocksConfig
 import org.stellar.anchor.platform.config.PropertyCustodySecretConfig
+import org.stellar.anchor.platform.custody.CustodyPayment
+import org.stellar.anchor.platform.custody.Sep24CustodyPaymentHandler
+import org.stellar.anchor.platform.custody.Sep31CustodyPaymentHandler
 import org.stellar.anchor.platform.custody.fireblocks.FireblocksEventService.FIREBLOCKS_SIGNATURE_HEADER
+import org.stellar.anchor.platform.data.JdbcCustodyTransaction
+import org.stellar.anchor.platform.data.JdbcCustodyTransactionRepo
 import org.stellar.anchor.util.FileUtil.getResourceFileAsString
+import org.stellar.anchor.util.GsonUtils
+import org.stellar.sdk.Server
+import org.stellar.sdk.requests.PaymentsRequestBuilder
+import org.stellar.sdk.responses.Page
+import org.stellar.sdk.responses.operations.OperationResponse
+import org.stellar.sdk.responses.operations.PathPaymentStrictReceiveOperationResponse
+import org.stellar.sdk.responses.operations.PaymentOperationResponse
+import org.stellar.sdk.responses.operations.SetTrustLineFlagsOperationResponse
 
 class FireblocksEventServiceTest {
 
+  private val gson = GsonUtils.getInstance()
+
   private lateinit var secretConfig: PropertyCustodySecretConfig
+  private lateinit var custodyTransactionRepo: JdbcCustodyTransactionRepo
+  private lateinit var sep24CustodyPaymentHandler: Sep24CustodyPaymentHandler
+  private lateinit var sep31CustodyPaymentHandler: Sep31CustodyPaymentHandler
+  private lateinit var horizon: Horizon
+  private lateinit var server: Server
+  private lateinit var paymentsRequestBuilder: PaymentsRequestBuilder
+  private lateinit var page: Page<OperationResponse>
 
   @BeforeEach
   fun setUp() {
     secretConfig = mockk()
+    custodyTransactionRepo = mockk()
+    sep24CustodyPaymentHandler = mockk()
+    sep31CustodyPaymentHandler = mockk()
+    horizon = mockk()
+    server = mockk()
+    paymentsRequestBuilder = mockk()
+    page = mockk()
   }
 
   @Test
-  fun `test handleFireblocksEvent() for valid event object and signature`() {
+  fun `test handleFireblocksEvent() for valid SUBMITTED event object and signature test`() {
     val config =
       getFireblocksConfig(getResourceFileAsString("custody/fireblocks/webhook/public_key.txt"))
-    val eventsService = FireblocksEventService(config)
+    val eventsService =
+      FireblocksEventService(
+        custodyTransactionRepo,
+        sep24CustodyPaymentHandler,
+        sep31CustodyPaymentHandler,
+        horizon,
+        config
+      )
 
-    val signature: String = getResourceFileAsString("custody/fireblocks/webhook/signature.txt")
+    val signature: String =
+      getResourceFileAsString("custody/fireblocks/webhook/submitted_event_valid_signature.txt")
     val httpHeaders: Map<String, String> = mutableMapOf(FIREBLOCKS_SIGNATURE_HEADER to signature)
-    val eventObject: String = getCompactJsonString("custody/fireblocks/webhook/request.json")
+    val eventObject: String =
+      getCompactJsonString("custody/fireblocks/webhook/submitted_event_request.json")
 
-    eventsService.handleFireblocksEvent(eventObject, httpHeaders)
+    eventsService.handleEvent(eventObject, httpHeaders)
+  }
+
+  @Test
+  fun `test handleFireblocksEvent() for valid COMPLETED event object with no Stellar transaction test`() {
+    val config =
+      getFireblocksConfig(getResourceFileAsString("custody/fireblocks/webhook/public_key.txt"))
+    val eventsService =
+      FireblocksEventService(
+        custodyTransactionRepo,
+        sep24CustodyPaymentHandler,
+        sep31CustodyPaymentHandler,
+        horizon,
+        config
+      )
+    val custodyTxn =
+      gson.fromJson(
+        getResourceFileAsString("custody/fireblocks/webhook/custody_transaction.json"),
+        JdbcCustodyTransaction::class.java
+      )
+
+    val signature: String =
+      getResourceFileAsString("custody/fireblocks/webhook/completed_event_signature.txt")
+    val httpHeaders: Map<String, String> = mutableMapOf(FIREBLOCKS_SIGNATURE_HEADER to signature)
+    val eventObject: String =
+      getCompactJsonString("custody/fireblocks/webhook/completed_event_request.json")
+
+    val paymentCapture = slot<CustodyPayment>()
+
+    every { horizon.server } throws java.lang.RuntimeException("Horizon error")
+    every { custodyTransactionRepo.findByExternalTxId(any()) } returns custodyTxn
+    every { sep24CustodyPaymentHandler.onSent(eq(custodyTxn), capture(paymentCapture)) } just runs
+
+    eventsService.handleEvent(eventObject, httpHeaders)
+
+    JSONAssert.assertEquals(
+      getCompactJsonString(
+        "custody/fireblocks/webhook/completed_event_no_stellar_txn_payment.json"
+      ),
+      gson.toJson(paymentCapture.captured),
+      JSONCompareMode.STRICT
+    )
+  }
+
+  @Test
+  fun `test handleFireblocksEvent() for valid FAILED event object and signature with no Stellar transaction test`() {
+    val config =
+      getFireblocksConfig(getResourceFileAsString("custody/fireblocks/webhook/public_key.txt"))
+    val eventsService =
+      FireblocksEventService(
+        custodyTransactionRepo,
+        sep24CustodyPaymentHandler,
+        sep31CustodyPaymentHandler,
+        horizon,
+        config
+      )
+    val custodyTxn =
+      gson.fromJson(
+        getResourceFileAsString("custody/fireblocks/webhook/custody_transaction.json"),
+        JdbcCustodyTransaction::class.java
+      )
+
+    val signature: String =
+      getResourceFileAsString("custody/fireblocks/webhook/failed_event_signature.txt")
+    val httpHeaders: Map<String, String> = mutableMapOf(FIREBLOCKS_SIGNATURE_HEADER to signature)
+    val eventObject: String =
+      getCompactJsonString("custody/fireblocks/webhook/failed_event_request.json")
+
+    val paymentCapture = slot<CustodyPayment>()
+
+    every { horizon.server } throws java.lang.RuntimeException("Horizon error")
+    every { custodyTransactionRepo.findByExternalTxId(any()) } returns custodyTxn
+    every { sep24CustodyPaymentHandler.onSent(eq(custodyTxn), capture(paymentCapture)) } just runs
+
+    eventsService.handleEvent(eventObject, httpHeaders)
+
+    JSONAssert.assertEquals(
+      getCompactJsonString("custody/fireblocks/webhook/failed_event_no_stellar_txn_payment.json"),
+      gson.toJson(paymentCapture.captured),
+      JSONCompareMode.STRICT
+    )
+  }
+
+  @Test
+  fun `test handleFireblocksEvent() for valid COMPLETED event object and signature test with Stellar transaction unknown payment test`() {
+    val config =
+      getFireblocksConfig(getResourceFileAsString("custody/fireblocks/webhook/public_key.txt"))
+    val eventsService =
+      FireblocksEventService(
+        custodyTransactionRepo,
+        sep24CustodyPaymentHandler,
+        sep31CustodyPaymentHandler,
+        horizon,
+        config
+      )
+    val custodyTxn =
+      gson.fromJson(
+        getResourceFileAsString("custody/fireblocks/webhook/custody_transaction.json"),
+        JdbcCustodyTransaction::class.java
+      )
+    val operationRecordsJson =
+      getResourceFileAsString("custody/fireblocks/webhook/payment_operation_record.json")
+    val operationRecordsTypeToken =
+      object : TypeToken<java.util.ArrayList<SetTrustLineFlagsOperationResponse>>() {}.type
+    val operationRecords: java.util.ArrayList<OperationResponse> =
+      gson.fromJson(operationRecordsJson, operationRecordsTypeToken)
+
+    val signature: String =
+      getResourceFileAsString("custody/fireblocks/webhook/completed_event_signature.txt")
+    val httpHeaders: Map<String, String> = mutableMapOf(FIREBLOCKS_SIGNATURE_HEADER to signature)
+    val eventObject: String =
+      getCompactJsonString("custody/fireblocks/webhook/completed_event_request.json")
+
+    val paymentCapture = slot<CustodyPayment>()
+
+    every { horizon.getServer() } returns server
+    every { server.payments() } returns paymentsRequestBuilder
+    every { paymentsRequestBuilder.includeTransactions(true) } returns paymentsRequestBuilder
+    every { paymentsRequestBuilder.forTransaction("testTxHash") } returns paymentsRequestBuilder
+    every { paymentsRequestBuilder.execute() } returns page
+    every { page.records } returns operationRecords
+    every { custodyTransactionRepo.findByExternalTxId(any()) } returns custodyTxn
+    every { sep24CustodyPaymentHandler.onSent(eq(custodyTxn), capture(paymentCapture)) } just runs
+
+    eventsService.handleEvent(eventObject, httpHeaders)
+
+    verify(exactly = 0) { custodyTransactionRepo.findByExternalTxId(any()) }
+    verify(exactly = 0) { custodyTransactionRepo.findByToAccountAndMemo(any(), any()) }
+  }
+
+  @Test
+  fun `test handleFireblocksEvent() for valid COMPLETED event object and signature with Stellar transaction payment test`() {
+    val config =
+      getFireblocksConfig(getResourceFileAsString("custody/fireblocks/webhook/public_key.txt"))
+    val eventsService =
+      FireblocksEventService(
+        custodyTransactionRepo,
+        sep24CustodyPaymentHandler,
+        sep31CustodyPaymentHandler,
+        horizon,
+        config
+      )
+    val custodyTxn =
+      gson.fromJson(
+        getResourceFileAsString("custody/fireblocks/webhook/custody_transaction.json"),
+        JdbcCustodyTransaction::class.java
+      )
+    val operationRecordsJson =
+      getResourceFileAsString("custody/fireblocks/webhook/payment_operation_record.json")
+    val operationRecordsTypeToken =
+      object : TypeToken<java.util.ArrayList<PaymentOperationResponse>>() {}.type
+    val operationRecords: java.util.ArrayList<OperationResponse> =
+      gson.fromJson(operationRecordsJson, operationRecordsTypeToken)
+
+    val signature: String =
+      getResourceFileAsString("custody/fireblocks/webhook/completed_event_signature.txt")
+    val httpHeaders: Map<String, String> = mutableMapOf(FIREBLOCKS_SIGNATURE_HEADER to signature)
+    val eventObject: String =
+      getCompactJsonString("custody/fireblocks/webhook/completed_event_request.json")
+
+    val paymentCapture = slot<CustodyPayment>()
+
+    every { horizon.getServer() } returns server
+    every { server.payments() } returns paymentsRequestBuilder
+    every { paymentsRequestBuilder.includeTransactions(true) } returns paymentsRequestBuilder
+    every { paymentsRequestBuilder.forTransaction("testTxHash") } returns paymentsRequestBuilder
+    every { paymentsRequestBuilder.execute() } returns page
+    every { page.records } returns operationRecords
+    every { custodyTransactionRepo.findByExternalTxId(any()) } returns custodyTxn
+    every { sep24CustodyPaymentHandler.onSent(eq(custodyTxn), capture(paymentCapture)) } just runs
+
+    eventsService.handleEvent(eventObject, httpHeaders)
+
+    JSONAssert.assertEquals(
+      getCompactJsonString("custody/fireblocks/webhook/stellar_txn_payment.json"),
+      gson.toJson(paymentCapture.captured),
+      JSONCompareMode.STRICT
+    )
+  }
+
+  @Test
+  fun `test handleFireblocksEvent() for valid COMPLETED event object and signature with Stellar transaction path payment test`() {
+    val config =
+      getFireblocksConfig(getResourceFileAsString("custody/fireblocks/webhook/public_key.txt"))
+    val eventsService =
+      FireblocksEventService(
+        custodyTransactionRepo,
+        sep24CustodyPaymentHandler,
+        sep31CustodyPaymentHandler,
+        horizon,
+        config
+      )
+    val custodyTxn =
+      gson.fromJson(
+        getResourceFileAsString("custody/fireblocks/webhook/custody_transaction.json"),
+        JdbcCustodyTransaction::class.java
+      )
+    val operationRecordsJson =
+      getResourceFileAsString("custody/fireblocks/webhook/path_payment_operation_record.json")
+    val operationRecordsTypeToken =
+      object : TypeToken<java.util.ArrayList<PathPaymentStrictReceiveOperationResponse>>() {}.type
+    val operationRecords: java.util.ArrayList<OperationResponse> =
+      gson.fromJson(operationRecordsJson, operationRecordsTypeToken)
+
+    val signature: String =
+      getResourceFileAsString("custody/fireblocks/webhook/completed_event_signature.txt")
+    val httpHeaders: Map<String, String> = mutableMapOf(FIREBLOCKS_SIGNATURE_HEADER to signature)
+    val eventObject: String =
+      getCompactJsonString("custody/fireblocks/webhook/completed_event_request.json")
+
+    val paymentCapture = slot<CustodyPayment>()
+
+    every { horizon.getServer() } returns server
+    every { server.payments() } returns paymentsRequestBuilder
+    every { paymentsRequestBuilder.includeTransactions(true) } returns paymentsRequestBuilder
+    every { paymentsRequestBuilder.forTransaction("testTxHash") } returns paymentsRequestBuilder
+    every { paymentsRequestBuilder.execute() } returns page
+    every { page.records } returns operationRecords
+    every { custodyTransactionRepo.findByExternalTxId(any()) } returns custodyTxn
+    every { sep24CustodyPaymentHandler.onSent(eq(custodyTxn), capture(paymentCapture)) } just runs
+
+    eventsService.handleEvent(eventObject, httpHeaders)
+
+    JSONAssert.assertEquals(
+      getCompactJsonString("custody/fireblocks/webhook/stellar_txn_path_payment.json"),
+      gson.toJson(paymentCapture.captured),
+      JSONCompareMode.STRICT
+    )
   }
 
   @Test
   fun `test handleFireblocksEvent() for invalid public key`() {
     val config = getFireblocksConfig(StringUtils.EMPTY)
-    val ex = assertThrows<InvalidConfigException> { FireblocksEventService(config) }
+    val ex =
+      assertThrows<InvalidConfigException> {
+        FireblocksEventService(
+          custodyTransactionRepo,
+          sep24CustodyPaymentHandler,
+          sep31CustodyPaymentHandler,
+          horizon,
+          config
+        )
+      }
     assertEquals("Failed to generate Fireblocks public key", ex.message)
   }
 
   @Test
   fun `test handleFireblocksEvent() for missed fireblocks-signature header`() {
     val config =
-      getFireblocksConfig(getResourceFileAsString("custody/fireblocks/event/public_key.txt"))
-    val eventsService = FireblocksEventService(config)
+      getFireblocksConfig(getResourceFileAsString("custody/fireblocks/webhook/public_key.txt"))
+    val eventsService =
+      FireblocksEventService(
+        custodyTransactionRepo,
+        sep24CustodyPaymentHandler,
+        sep31CustodyPaymentHandler,
+        horizon,
+        config
+      )
 
     val eventObject = StringUtils.EMPTY
     val emptyHeaders: Map<String, String> = emptyMap()
 
     val ex =
-      assertThrows<BadRequestException> {
-        eventsService.handleFireblocksEvent(eventObject, emptyHeaders)
-      }
+      assertThrows<BadRequestException> { eventsService.handleEvent(eventObject, emptyHeaders) }
     assertEquals("'fireblocks-signature' header missed", ex.message)
   }
 
   @Test
   fun `test handleFireblocksEvent() for empty signature`() {
     val config =
-      getFireblocksConfig(getResourceFileAsString("custody/fireblocks/event/public_key.txt"))
-    val eventsService = FireblocksEventService(config)
+      getFireblocksConfig(getResourceFileAsString("custody/fireblocks/webhook/public_key.txt"))
+    val eventsService =
+      FireblocksEventService(
+        custodyTransactionRepo,
+        sep24CustodyPaymentHandler,
+        sep31CustodyPaymentHandler,
+        horizon,
+        config
+      )
 
     val eventObject = StringUtils.EMPTY
     val httpHeaders = mutableMapOf(FIREBLOCKS_SIGNATURE_HEADER to StringUtils.EMPTY)
 
     val ex =
-      assertThrows<BadRequestException> {
-        eventsService.handleFireblocksEvent(eventObject, httpHeaders)
-      }
+      assertThrows<BadRequestException> { eventsService.handleEvent(eventObject, httpHeaders) }
     assertEquals("'fireblocks-signature' is empty", ex.message)
   }
 
@@ -85,38 +370,43 @@ class FireblocksEventServiceTest {
   fun `test handleFireblocksEvent() for invalid signature`() {
     val config =
       getFireblocksConfig(getResourceFileAsString("custody/fireblocks/webhook/public_key.txt"))
-    val eventsService = FireblocksEventService(config)
+    val eventsService =
+      FireblocksEventService(
+        custodyTransactionRepo,
+        sep24CustodyPaymentHandler,
+        sep31CustodyPaymentHandler,
+        horizon,
+        config
+      )
 
-    val invalidSignature =
-      "Yww6co109EfZ6BBam0zr1ewhv2gB3sFrfzcmbEFTttGp6GYVNEOslcMIMbjrFsFtkiEIO5ogvPI7Boz7y" +
-        "QUiXqh92Spj1aG5NoGDdjiW2ozTJxKq7ECK9IsS5vTjIxnBXUIXokCAN2BuiyA8d7LciJ6HwzS+DIvFNyvv7uKU6O0="
-    val eventObject: String = getCompactJsonString("custody/fireblocks/webhook/request.json")
+    val invalidSignature: String =
+      getResourceFileAsString("custody/fireblocks/webhook/submitted_event_invalid_signature.txt")
+    val eventObject: String =
+      getCompactJsonString("custody/fireblocks/webhook/submitted_event_request.json")
     val httpHeaders = mutableMapOf(FIREBLOCKS_SIGNATURE_HEADER to invalidSignature)
 
-    val ex =
-      assertThrows<BadRequestException> {
-        eventsService.handleFireblocksEvent(eventObject, httpHeaders)
-      }
-    assertEquals("Signature validation failed", ex.message)
-    assertNull(ex.cause)
+    eventsService.handleEvent(eventObject, httpHeaders)
   }
 
   @Test
   fun `test handleFireblocksEvent() for invalid signature encoding`() {
     val config =
       getFireblocksConfig(getResourceFileAsString("custody/fireblocks/webhook/public_key.txt"))
-    val eventsService = FireblocksEventService(config)
+    val eventsService =
+      FireblocksEventService(
+        custodyTransactionRepo,
+        sep24CustodyPaymentHandler,
+        sep31CustodyPaymentHandler,
+        horizon,
+        config
+      )
 
     val invalidSignature = "test"
-    val eventObject: String = getCompactJsonString("custody/fireblocks/webhook/request.json")
+    val eventObject: String =
+      getCompactJsonString("custody/fireblocks/webhook/submitted_event_request.json")
     val httpHeaders = mutableMapOf(FIREBLOCKS_SIGNATURE_HEADER to invalidSignature)
 
-    val ex =
-      assertThrows<BadRequestException> {
-        eventsService.handleFireblocksEvent(eventObject, httpHeaders)
-      }
-    assertEquals("Signature validation failed", ex.message)
-    assertTrue(ex.cause is SignatureException)
+    eventsService.handleEvent(eventObject, httpHeaders)
   }
 
   private fun getFireblocksConfig(publicKey: String): FireblocksConfig {

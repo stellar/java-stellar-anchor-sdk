@@ -1,4 +1,4 @@
-package org.stellar.anchor.platform.component.observer;
+package org.stellar.anchor.platform.component.share;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -11,12 +11,12 @@ import org.stellar.anchor.platform.config.PlatformApiConfig;
 @Configuration
 public class ApiClientBeans {
   @Bean
-  PlatformApiClient platformApiClient(PlatformApiConfig platformApiConfig, AuthHelper authHelper) {
-    return new PlatformApiClient(authHelper, platformApiConfig.getBaseUrl());
+  PlatformApiClient platformApiClient(AppConfig appConfig, PlatformApiConfig platformApiConfig) {
+    return new PlatformApiClient(
+        buildAuthHelper(appConfig, platformApiConfig), platformApiConfig.getBaseUrl());
   }
 
-  @Bean
-  AuthHelper authHelper(AppConfig appConfig, PlatformApiConfig platformApiConfig) {
+  AuthHelper buildAuthHelper(AppConfig appConfig, PlatformApiConfig platformApiConfig) {
     String secret = platformApiConfig.getAuth().getSecret();
     switch (platformApiConfig.getAuth().getType()) {
       case JWT:

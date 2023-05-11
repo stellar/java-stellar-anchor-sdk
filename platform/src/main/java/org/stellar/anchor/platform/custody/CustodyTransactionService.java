@@ -19,13 +19,14 @@ import org.stellar.anchor.platform.data.JdbcCustodyTransactionRepo;
 
 public class CustodyTransactionService {
 
-  private final PaymentService paymentService;
+  private final CustodyPaymentService custodyPaymentService;
   private final JdbcCustodyTransactionRepo custodyTransactionRepo;
 
   public CustodyTransactionService(
-      JdbcCustodyTransactionRepo custodyTransactionRepo, PaymentService paymentService) {
+      JdbcCustodyTransactionRepo custodyTransactionRepo,
+      CustodyPaymentService custodyPaymentService) {
     this.custodyTransactionRepo = custodyTransactionRepo;
-    this.paymentService = paymentService;
+    this.custodyPaymentService = custodyPaymentService;
   }
 
   public void create(CreateCustodyTransactionRequest request) {
@@ -56,7 +57,7 @@ public class CustodyTransactionService {
 
     CreateTransactionPaymentResponse response;
     try {
-      response = paymentService.createTransactionPayment(txn, requestBody);
+      response = custodyPaymentService.createTransactionPayment(txn, requestBody);
       updateCustodyTransaction(txn, response.getId(), CustodyTransactionStatus.SUBMITTED);
     } catch (FireblocksException e) {
       updateCustodyTransaction(txn, StringUtils.EMPTY, CustodyTransactionStatus.FAILED);

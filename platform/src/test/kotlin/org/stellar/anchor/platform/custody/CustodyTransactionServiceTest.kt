@@ -35,14 +35,15 @@ class CustodyTransactionServiceTest {
   private val gson = GsonUtils.getInstance()
 
   @MockK(relaxed = true) private lateinit var custodyTransactionRepo: JdbcCustodyTransactionRepo
-  @MockK(relaxed = true) private lateinit var paymentService: PaymentService
+  @MockK(relaxed = true) private lateinit var custodyPaymentService: CustodyPaymentService
 
   private lateinit var custodyTransactionService: CustodyTransactionService
 
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
-    custodyTransactionService = CustodyTransactionService(custodyTransactionRepo, paymentService)
+    custodyTransactionService =
+      CustodyTransactionService(custodyTransactionRepo, custodyPaymentService)
   }
 
   @Test
@@ -75,7 +76,7 @@ class CustodyTransactionServiceTest {
         custodyTransactionService.createPayment(TRANSACTION_ID, REQUEST_BODY)
       }
     Assertions.assertEquals("Transaction (id=TRANSACTION_ID) is not found", exception.message)
-    verify(exactly = 0) { paymentService.createTransactionPayment(any(), any()) }
+    verify(exactly = 0) { custodyPaymentService.createTransactionPayment(any(), any()) }
   }
 
   @Test
@@ -85,7 +86,10 @@ class CustodyTransactionServiceTest {
     every { custodyTransactionRepo.save(any()) } returns null
 
     custodyTransactionService.createPayment(TRANSACTION_ID, REQUEST_BODY)
-    verify(exactly = 1) { paymentService.createTransactionPayment(transaction, REQUEST_BODY) }
+
+    verify(exactly = 1) {
+      custodyPaymentService.createTransactionPayment(transaction, REQUEST_BODY)
+    }
   }
 
   @Test
@@ -93,7 +97,7 @@ class CustodyTransactionServiceTest {
     val transaction = JdbcCustodyTransaction()
     every { custodyTransactionRepo.findById(TRANSACTION_ID) } returns Optional.of(transaction)
     every { custodyTransactionRepo.save(any()) } returns null
-    every { paymentService.createTransactionPayment(transaction, REQUEST_BODY) } throws
+    every { custodyPaymentService.createTransactionPayment(transaction, REQUEST_BODY) } throws
       FireblocksException("Bad request", 400)
 
     val ex =
@@ -108,7 +112,7 @@ class CustodyTransactionServiceTest {
     val transaction = JdbcCustodyTransaction()
     every { custodyTransactionRepo.findById(TRANSACTION_ID) } returns Optional.of(transaction)
     every { custodyTransactionRepo.save(any()) } returns null
-    every { paymentService.createTransactionPayment(transaction, REQUEST_BODY) } throws
+    every { custodyPaymentService.createTransactionPayment(transaction, REQUEST_BODY) } throws
       FireblocksException("Too many requests", 429)
 
     val ex =
@@ -123,7 +127,7 @@ class CustodyTransactionServiceTest {
     val transaction = JdbcCustodyTransaction()
     every { custodyTransactionRepo.findById(TRANSACTION_ID) } returns Optional.of(transaction)
     every { custodyTransactionRepo.save(any()) } returns null
-    every { paymentService.createTransactionPayment(transaction, REQUEST_BODY) } throws
+    every { custodyPaymentService.createTransactionPayment(transaction, REQUEST_BODY) } throws
       FireblocksException("Service unavailable", 503)
 
     val ex =
@@ -138,7 +142,7 @@ class CustodyTransactionServiceTest {
     val transaction = JdbcCustodyTransaction()
     every { custodyTransactionRepo.findById(TRANSACTION_ID) } returns Optional.of(transaction)
     every { custodyTransactionRepo.save(any()) } returns null
-    every { paymentService.createTransactionPayment(transaction, REQUEST_BODY) } throws
+    every { custodyPaymentService.createTransactionPayment(transaction, REQUEST_BODY) } throws
       FireblocksException("Forbidden", 403)
 
     val ex =

@@ -1,0 +1,63 @@
+{
+  "type": "TRANSACTION_STATUS_UPDATED",
+  "tenantId": "testTenantId",
+  "timestamp": 1683713916523,
+  "data": {
+    "id": "testEventId",
+    "createdAt": 1683713905778,
+    "lastUpdated": 1683713906130,
+    "assetId": "XLM_TEST",
+    "source": {
+      "id": "",
+      "type": "UNKNOWN",
+      "name": "External",
+      "subType": ""
+    },
+    "destination": {
+      "id": "1",
+      "type": "VAULT_ACCOUNT",
+      "name": "TestAnchor",
+      "subType": ""
+    },
+    "amount": 15,
+    "networkFee": 0.00001,
+    "netAmount": 15,
+    "sourceAddress": "testSourceAddress",
+    "destinationAddress": "testDestinationAddress",
+    "destinationAddressDescription": "",
+    "destinationTag": "",
+    "status": "FAILED",
+    "txHash": "testTxHash",
+    "subStatus": "THIRD_PARTY_FAILED",
+    "signedBy": [],
+    "createdBy": "",
+    "rejectedBy": "",
+    "amountUSD": 1.33,
+    "addressType": "",
+    "note": "",
+    "exchangeTxId": "",
+    "requestedAmount": 15,
+    "feeCurrency": "XLM_TEST",
+    "operation": "TRANSFER",
+    "customerRefId": null,
+    "numOfConfirmations": 1,
+    "amountInfo": {
+      "amount": "15",
+      "requestedAmount": "15",
+      "netAmount": "15",
+      "amountUSD": "1.33"
+    },
+    "feeInfo": {
+      "networkFee": "0.00001"
+    },
+    "destinations": [],
+    "externalTxId": null,
+    "blockInfo": {
+      "blockHeight": "921353",
+      "blockHash": "testBlockHash"
+    },
+    "signedMessages": [],
+    "index": 0,
+    "assetType": "BASE_ASSET"
+  }
+}
