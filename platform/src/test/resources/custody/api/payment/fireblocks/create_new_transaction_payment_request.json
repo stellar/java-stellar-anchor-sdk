@@ -5,8 +5,10 @@
     "id": "testVaultAccountId"
   },
   "destination": {
-    "type": "EXTERNAL_WALLET",
-    "id": "toVaultAccountId"
+    "type": "ONE_TIME_ADDRESS",
+    "oneTimeAddress": {
+      "address": "toVaultAccountId"
+    }
   },
   "amount": "10"
 }
