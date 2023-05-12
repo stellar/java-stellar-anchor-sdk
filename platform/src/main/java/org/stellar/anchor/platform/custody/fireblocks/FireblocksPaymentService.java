@@ -1,6 +1,6 @@
 package org.stellar.anchor.platform.custody.fireblocks;
 
-import static org.stellar.anchor.api.custody.fireblocks.CreateTransactionRequest.DestinationTransferPeerPathType.EXTERNAL_WALLET;
+import static org.stellar.anchor.api.custody.fireblocks.CreateTransactionRequest.DestinationTransferPeerPathType.ONE_TIME_ADDRESS;
 import static org.stellar.anchor.api.custody.fireblocks.CreateTransactionRequest.TransferPeerPathType.VAULT_ACCOUNT;
 import static org.stellar.anchor.util.MemoHelper.memoTypeAsString;
 
@@ -14,6 +14,7 @@ import org.stellar.anchor.api.custody.fireblocks.CreateAddressResponse;
 import org.stellar.anchor.api.custody.fireblocks.CreateTransactionRequest;
 import org.stellar.anchor.api.custody.fireblocks.CreateTransactionResponse;
 import org.stellar.anchor.api.exception.FireblocksException;
+import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.platform.config.FireblocksConfig;
 import org.stellar.anchor.platform.custody.PaymentService;
 import org.stellar.anchor.platform.data.JdbcCustodyTransaction;
@@ -39,7 +40,7 @@ public class FireblocksPaymentService implements PaymentService {
 
   @Override
   public GenerateDepositAddressResponse generateDepositAddress(String assetId)
-      throws FireblocksException {
+      throws FireblocksException, InvalidConfigException {
     CreateAddressRequest request = new CreateAddressRequest();
     CreateAddressResponse depositAddress =
         gson.fromJson(
@@ -47,7 +48,7 @@ public class FireblocksPaymentService implements PaymentService {
                 String.format(
                     CREATE_NEW_DEPOSIT_ADDRESS_URL_FORMAT,
                     fireblocksConfig.getVaultAccountId(),
-                    assetId),
+                    fireblocksConfig.getFireblocksAssetCode(assetId)),
                 gson.toJson(request)),
             CreateAddressResponse.class);
     return new GenerateDepositAddressResponse(
@@ -62,7 +63,8 @@ public class FireblocksPaymentService implements PaymentService {
           "#root instanceof T(org.stellar.anchor.api.exception.FireblocksException) AND"
               + "(#root.statusCode == 429 OR #root.statusCode == 503)")
   public CreateTransactionPaymentResponse createTransactionPayment(
-      JdbcCustodyTransaction txn, String requestBody) throws FireblocksException {
+      JdbcCustodyTransaction txn, String requestBody)
+      throws FireblocksException, InvalidConfigException {
     CreateTransactionRequest request = getCreateTransactionRequest(txn);
 
     CreateTransactionResponse response =
@@ -73,16 +75,17 @@ public class FireblocksPaymentService implements PaymentService {
     return new CreateTransactionPaymentResponse(response.getId());
   }
 
-  public CreateTransactionRequest getCreateTransactionRequest(JdbcCustodyTransaction txn) {
+  public CreateTransactionRequest getCreateTransactionRequest(JdbcCustodyTransaction txn)
+      throws InvalidConfigException {
     return CreateTransactionRequest.builder()
-        .assetId(txn.getAmountOutAsset())
+        .assetId(fireblocksConfig.getFireblocksAssetCode(txn.getAmountOutAsset()))
         .amount(txn.getAmountOut())
         .source(
             new CreateTransactionRequest.TransferPeerPath(
                 VAULT_ACCOUNT, fireblocksConfig.getVaultAccountId()))
         .destination(
             new CreateTransactionRequest.DestinationTransferPeerPath(
-                EXTERNAL_WALLET, txn.getToAccount(), null))
+                ONE_TIME_ADDRESS, new CreateTransactionRequest.OneTimeAddress(txn.getToAccount())))
         .build();
   }
 }

@@ -9,16 +9,22 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.scheduling.support.CronExpression;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.platform.utils.RSAUtil;
+import org.stellar.anchor.util.Log;
 import org.stellar.anchor.util.NetUtil;
 
 @Data
@@ -30,6 +36,7 @@ public class FireblocksConfig implements Validator {
   private String transactionsReconciliationCron;
   private String publicKey;
   private RetryConfig retryConfig;
+  private Map<String, String> assetMappings;
 
   public FireblocksConfig(CustodySecretConfig secretConfig) {
     this.secretConfig = secretConfig;
@@ -37,6 +44,37 @@ public class FireblocksConfig implements Validator {
 
   public void setRetryConfig(RetryConfig retryConfig) {
     this.retryConfig = retryConfig;
+  }
+
+  public void setAssetMappings(String assetMappings) {
+    if (StringUtils.isEmpty(assetMappings)) {
+      this.assetMappings = Collections.emptyMap();
+    } else {
+      this.assetMappings =
+          Arrays.stream(assetMappings.split(StringUtils.LF))
+              .collect(
+                  Collectors.toMap(
+                      mapping -> mapping.substring(mapping.indexOf(StringUtils.SPACE) + 1),
+                      mapping -> mapping.substring(0, mapping.indexOf(StringUtils.SPACE))));
+    }
+  }
+
+  /**
+   * Get Fireblocks asset code by Stellar asset code
+   *
+   * @return Fireblocks asset code or null if no mapping found
+   */
+  public String getFireblocksAssetCode(String stellarAssetCode) throws InvalidConfigException {
+    if (assetMappings.containsKey(stellarAssetCode)) {
+      return assetMappings.get(stellarAssetCode);
+    }
+
+    String message =
+        String.format(
+            "Unable to find Fireblocks asset code by Stellar asset code [%s]", stellarAssetCode);
+    Log.warnF(
+        message + " Please add corresponding asset mapping in custody.fireblocks.asset_mapping");
+    throw new InvalidConfigException(message);
   }
 
   @Override

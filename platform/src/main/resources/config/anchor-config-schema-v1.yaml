@@ -111,3 +111,4 @@ custody.fireblocks.transactions_reconciliation_cron:
 custody.fireblocks.public_key:
 custody.fireblocks.retry_config.max_attempts:
 custody.fireblocks.retry_config.delay:
+custody.fireblocks.asset_mappings:

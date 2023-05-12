@@ -2,14 +2,18 @@ package org.stellar.anchor.platform.config
 
 import io.mockk.every
 import io.mockk.mockk
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.NullSource
 import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.validation.BindException
 import org.springframework.validation.Errors
+import org.stellar.anchor.api.exception.InvalidConfigException
 import org.stellar.anchor.platform.config.FireblocksConfig.RetryConfig
 import org.stellar.anchor.util.FileUtil
 
@@ -188,5 +192,22 @@ class FireblocksConfigTest {
     config.retryConfig.delay = delay
     config.validate(config, errors)
     assertErrorCode(errors, "custody-fireblocks-retry_config-delay-invalid")
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = [""])
+  fun `test empty asset mappings`(mappings: String) {
+    config.setAssetMappings(mappings)
+    assertTrue(config.assetMappings.isEmpty())
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = ["FIREBLOCKS_ASSET_CODE STELLAR_ASSET_CODE"])
+  fun `test getFireblocksAssetCode`(mappings: String) {
+    config.setAssetMappings(mappings)
+    val stellarAssetCode = config.getFireblocksAssetCode("STELLAR_ASSET_CODE")
+    assertEquals("FIREBLOCKS_ASSET_CODE", stellarAssetCode)
+
+    assertThrows<InvalidConfigException> { config.getFireblocksAssetCode("INVALID_ASSET_CODE") }
   }
 }

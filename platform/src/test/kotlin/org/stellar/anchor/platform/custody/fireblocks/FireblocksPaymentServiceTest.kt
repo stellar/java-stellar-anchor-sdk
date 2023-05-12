@@ -62,6 +62,7 @@ class FireblocksPaymentServiceTest {
 
     every { fireblocksClient.post(capture(urlCapture), capture(requestCapture)) } returns
       responseJson
+    every { fireblocksConfig.getFireblocksAssetCode(ASSET_ID) } returns ASSET_ID
 
     val response = fireblocksPaymentService.generateDepositAddress(ASSET_ID)
 
@@ -89,6 +90,7 @@ class FireblocksPaymentServiceTest {
 
     every { fireblocksClient.post(capture(urlCapture), capture(requestCapture)) } returns
       responseJson
+    every { fireblocksConfig.getFireblocksAssetCode(ASSET_ID) } returns ASSET_ID
 
     val transaction =
       JdbcCustodyTransaction.builder()
