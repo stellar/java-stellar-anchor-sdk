@@ -86,6 +86,11 @@ public class SepHelper {
   }
 
   public static BigDecimal validateAmount(String messagePrefix, String amount)
+      throws AnchorException {
+    return validateAmount(messagePrefix, amount, false);
+  }
+
+  public static BigDecimal validateAmount(String messagePrefix, String amount, boolean allowZero)
       throws BadRequestException {
     // assetName
     if (StringHelper.isEmpty(amount)) {
@@ -98,8 +103,15 @@ public class SepHelper {
     } catch (NumberFormatException e) {
       throw new BadRequestException(messagePrefix + "amount is invalid", e);
     }
-    if (sAmount.signum() < 1) {
-      throw new BadRequestException(messagePrefix + "amount should be positive");
+
+    if (allowZero) {
+      if (sAmount.signum() < 0) {
+        throw new BadRequestException(messagePrefix + "amount should be non-negative");
+      }
+    } else {
+      if (sAmount.signum() < 1) {
+        throw new BadRequestException(messagePrefix + "amount should be positive");
+      }
     }
     return sAmount;
   }
