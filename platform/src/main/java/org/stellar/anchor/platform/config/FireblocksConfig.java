@@ -54,8 +54,8 @@ public class FireblocksConfig implements Validator {
           Arrays.stream(assetMappings.split(StringUtils.LF))
               .collect(
                   Collectors.toMap(
-                      mapping -> mapping.substring(mapping.indexOf(' ') + 1),
-                      mapping -> mapping.substring(0, mapping.indexOf(' '))));
+                      mapping -> mapping.substring(mapping.indexOf(StringUtils.SPACE) + 1),
+                      mapping -> mapping.substring(0, mapping.indexOf(StringUtils.SPACE))));
     }
   }
 
@@ -64,16 +64,17 @@ public class FireblocksConfig implements Validator {
    *
    * @return Fireblocks asset code or null if no mapping found
    */
-  public String getFireblocksAssetCode(String stellarAssetCode) {
+  public String getFireblocksAssetCode(String stellarAssetCode) throws InvalidConfigException {
     if (assetMappings.containsKey(stellarAssetCode)) {
       return assetMappings.get(stellarAssetCode);
     }
 
+    String message =
+        String.format(
+            "Unable to find Fireblocks asset code by Stellar asset code [%s]", stellarAssetCode);
     Log.warnF(
-        "Unable to find Fireblocks asset code by Stellar asset code [%s]."
-            + " Please add corresponding asset mapping in custody.fireblocks.asset_mapping",
-        stellarAssetCode);
-    return null;
+        message + " Please add corresponding asset mapping in custody.fireblocks.asset_mapping");
+    throw new InvalidConfigException(message);
   }
 
   @Override

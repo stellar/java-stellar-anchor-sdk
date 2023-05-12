@@ -2,17 +2,18 @@ package org.stellar.anchor.platform.config
 
 import io.mockk.every
 import io.mockk.mockk
-import kotlin.test.assertNull
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.NullSource
 import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.validation.BindException
 import org.springframework.validation.Errors
+import org.stellar.anchor.api.exception.InvalidConfigException
 import org.stellar.anchor.platform.config.FireblocksConfig.RetryConfig
 import org.stellar.anchor.util.FileUtil
 
@@ -206,6 +207,7 @@ class FireblocksConfigTest {
     config.setAssetMappings(mappings)
     val stellarAssetCode = config.getFireblocksAssetCode("STELLAR_ASSET_CODE")
     assertEquals("FIREBLOCKS_ASSET_CODE", stellarAssetCode)
-    assertNull(config.getFireblocksAssetCode("INVALID_ASSET_CODE"))
+
+    assertThrows<InvalidConfigException> { config.getFireblocksAssetCode("INVALID_ASSET_CODE") }
   }
 }
