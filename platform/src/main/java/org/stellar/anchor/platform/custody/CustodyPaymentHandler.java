@@ -144,6 +144,7 @@ public abstract class CustodyPaymentHandler {
                                 .transferReceivedAt(payment.getCreatedAt())
                                 .status(newSepTransactionStatus)
                                 .stellarTransactions(stellarTransactions)
+                                .message(payment.getMessage())
                                 .build())
                         .build()))
             .build();

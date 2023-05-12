@@ -11,4 +11,5 @@ sep24:
   enableTest: true
   # Encryption key for interactive JWT
   interactiveJwtKey: "sep24 interactive url secret"
+  # When true, sends stellar transaction using Custody service
   custodyEnabled: false

@@ -48,7 +48,11 @@ public class FireblocksEventService extends CustodyEventService {
   private static final Set<TransactionStatus> SUCCESS_WEBHOOK_EVENT_STATUSES =
       Set.of(TransactionStatus.COMPLETED);
   private static final Set<TransactionStatus> ERROR_WEBHOOK_EVENT_STATUSES =
-      Set.of(TransactionStatus.FAILED, TransactionStatus.CANCELLED, TransactionStatus.REJECTED);
+      Set.of(
+          TransactionStatus.FAILED,
+          TransactionStatus.CANCELLED,
+          TransactionStatus.REJECTED,
+          TransactionStatus.BLOCKED);
   private static final Set<TransactionStatus> OBSERVED_WEBHOOK_EVENT_STATUSES =
       Stream.concat(SUCCESS_WEBHOOK_EVENT_STATUSES.stream(), ERROR_WEBHOOK_EVENT_STATUSES.stream())
           .collect(toSet());
@@ -97,8 +101,7 @@ public class FireblocksEventService extends CustodyEventService {
 
         if (!OBSERVED_WEBHOOK_EVENT_STATUSES.contains(
             fireblocksEventObject.getData().getStatus())) {
-          debugF(
-              "Skipping Fireblocks webhook event[{}]", fireblocksEventObject.getData().getStatus());
+          debugF("Skipping Fireblocks webhook event[{}] due to the status", event);
           return;
         }
 
@@ -145,7 +148,7 @@ public class FireblocksEventService extends CustodyEventService {
               .findFirst();
     } catch (Exception e) {
       warnF(
-          "Unable to find Stellar transaction for Fireblocks event with id[{}]. Error[{}]",
+          "Unable to find Stellar transaction for Fireblocks event. Id[{}], error[{}]",
           td.getId(),
           e.getMessage());
     }
@@ -184,10 +187,10 @@ public class FireblocksEventService extends CustodyEventService {
                 message,
                 td.getTxHash());
       } else {
-        warnF("Unknown operation type[{}]", operation.get().getType());
+        warnF("Unknown Stellar transaction operation type[{}]", operation.get().getType());
       }
     } catch (SepException ex) {
-      warnF("Fireblock event with id[%s] contains unsupported memo[{}]", td.getId());
+      warnF("Fireblock event with id[{}] contains unsupported memo", td.getId());
       warnEx(ex);
     }
 
