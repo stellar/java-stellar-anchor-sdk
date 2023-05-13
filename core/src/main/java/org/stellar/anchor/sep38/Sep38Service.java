@@ -96,7 +96,7 @@ public class Sep38Service {
     // Make requests to `GET {quoteIntegration}/rates`
     GetRateRequest.GetRateRequestBuilder builder =
         GetRateRequest.builder()
-            .type(GetRateRequest.Type.INDICATIVE_PRICES)
+            .type(GetRateRequest.Type.INDICATIVE)
             .sellAsset(sellAssetName)
             .sellAmount(sellAmount)
             .countryCode(countryCode)
@@ -208,8 +208,7 @@ public class Sep38Service {
 
     GetRateRequest request =
         GetRateRequest.builder()
-            .type(GetRateRequest.Type.INDICATIVE_PRICE)
-            .context(context)
+            .type(GetRateRequest.Type.INDICATIVE)
             .sellAsset(sellAssetName)
             .sellAmount(sellAmount)
             .sellDeliveryMethod(sellDeliveryMethod)
@@ -228,7 +227,7 @@ public class Sep38Service {
 
     return GetPriceResponse.builder()
         .price(rate.getPrice())
-        .totalPrice(rate.getTotalPrice())
+        .totalPrice(getTotalPrice(asset, rate))
         .fee(rate.getFee())
         .sellAmount(rate.getSellAmount())
         .buyAmount(rate.getBuyAmount())
@@ -338,7 +337,6 @@ public class Sep38Service {
     GetRateRequest getRateRequest =
         GetRateRequest.builder()
             .type(GetRateRequest.Type.FIRM)
-            .context(request.getContext())
             .sellAsset(request.getSellAssetName())
             .sellAmount(request.getSellAmount())
             .sellDeliveryMethod(request.getSellDeliveryMethod())
@@ -351,18 +349,20 @@ public class Sep38Service {
             .build();
     GetRateResponse.Rate rate = this.rateIntegration.getRate(getRateRequest).getRate();
 
+    String totalPrice = getTotalPrice(asset, rate);
+
     Sep38QuoteResponse.Sep38QuoteResponseBuilder builder =
         Sep38QuoteResponse.builder()
             .id(rate.getId())
             .expiresAt(rate.getExpiresAt())
             .price(rate.getPrice())
-            .totalPrice(rate.getTotalPrice())
+            .totalPrice(totalPrice)
             .sellAsset(request.getSellAssetName())
             .buyAsset(request.getBuyAssetName())
             .fee(rate.getFee());
 
     // Calculate amounts: sellAmount = buyAmount * totalPrice
-    BigDecimal bTotalPrice = decimal(rate.getTotalPrice());
+    BigDecimal bTotalPrice = decimal(totalPrice);
     BigDecimal bSellAmount, bBuyAmount;
     if (request.getSellAmount() != null) {
       bSellAmount = decimal(request.getSellAmount());
@@ -386,7 +386,7 @@ public class Sep38Service {
             .id(rate.getId())
             .expiresAt(rate.getExpiresAt())
             .price(rate.getPrice())
-            .totalPrice(rate.getTotalPrice())
+            .totalPrice(totalPrice)
             .sellAsset(request.getSellAssetName())
             .sellAmount(sellAmount)
             .sellDeliveryMethod(request.getSellDeliveryMethod())
@@ -483,5 +483,20 @@ public class Sep38Service {
         .buyAmount(quote.getBuyAmount())
         .fee(quote.getFee())
         .build();
+  }
+
+  private String getTotalPrice(AssetInfo asset, GetRateResponse.Rate rate) {
+    int scale = asset.getSignificantDecimals();
+
+    BigDecimal bSellAmount = decimal(rate.getSellAmount(), scale);
+    BigDecimal bBuyAmount = decimal(rate.getBuyAmount(), scale);
+
+    // TODO: rounding
+    int priceScale = scale * 2;
+
+    // total_price = sell_amount / buy_amount
+    BigDecimal bTotalPrice = bSellAmount.divide(bBuyAmount, priceScale, RoundingMode.HALF_DOWN);
+
+    return formatAmount(bTotalPrice, priceScale);
   }
 }

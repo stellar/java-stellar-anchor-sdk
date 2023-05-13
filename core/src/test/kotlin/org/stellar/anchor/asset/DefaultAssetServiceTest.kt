@@ -145,7 +145,7 @@ internal class DefaultAssetServiceTest {
             "code": "JPYC",
             "issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
             "schema": "stellar",
-            "significant_decimals": 0,
+            "significant_decimals": 2,
             "deposit": {
               "enabled": true,
               "min_amount": 1,
@@ -216,6 +216,7 @@ internal class DefaultAssetServiceTest {
           {
             "code": "USD",
             "schema": "iso4217",
+            "significant_decimals": 2,
             "deposit": {
               "enabled": true,
               "min_amount": 1,
