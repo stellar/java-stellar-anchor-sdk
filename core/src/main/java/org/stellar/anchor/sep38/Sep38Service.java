@@ -494,7 +494,7 @@ public class Sep38Service {
     int priceScale = 10;
 
     // total_price = sell_amount / buy_amount
-    BigDecimal bTotalPrice = bSellAmount.divide(bBuyAmount, priceScale, RoundingMode.FLOOR);
+    BigDecimal bTotalPrice = bSellAmount.divide(bBuyAmount, priceScale, RoundingMode.HALF_DOWN);
 
     return formatAmount(bTotalPrice, priceScale);
   }
