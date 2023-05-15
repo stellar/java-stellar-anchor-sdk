@@ -48,7 +48,7 @@ class CustodyPaymentHandlerTest {
   }
 
   @Test
-  fun test_validatePayment_unsupportedType() {
+  fun test_validatePayment_unsupportedType_successStatus() {
     val txn =
       gson.fromJson(
         getResourceFileAsString(
@@ -59,7 +59,7 @@ class CustodyPaymentHandlerTest {
     val payment =
       gson.fromJson(
         getResourceFileAsString(
-          "custody/fireblocks/webhook/handler/custody_payment_unsupported_asset.json"
+          "custody/fireblocks/webhook/handler/custody_payment_unsupported_asset_success_status.json"
         ),
         CustodyPayment::class.java
       )
@@ -67,6 +67,28 @@ class CustodyPaymentHandlerTest {
     custodyPaymentHandler.validatePayment(txn, payment)
 
     assertEquals("Unsupported asset type", payment.getMessage())
+  }
+
+  @Test
+  fun test_validatePayment_unsupportedType_errorStatus() {
+    val txn =
+      gson.fromJson(
+        getResourceFileAsString(
+          "custody/fireblocks/webhook/handler/custody_transaction_input.json"
+        ),
+        JdbcCustodyTransaction::class.java
+      )
+    val payment =
+      gson.fromJson(
+        getResourceFileAsString(
+          "custody/fireblocks/webhook/handler/custody_payment_unsupported_asset_error_status.json"
+        ),
+        CustodyPayment::class.java
+      )
+
+    custodyPaymentHandler.validatePayment(txn, payment)
+
+    assertNull(payment.getMessage())
   }
 
   @Test

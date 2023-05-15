@@ -28,9 +28,7 @@ public class Sep31CustodyPaymentHandler extends CustodyPaymentHandler {
         payment.getId(),
         payment.getExternalTxId());
 
-    if (CustodyPaymentStatus.SUCCESS == payment.getStatus()) {
-      validatePayment(txn, payment);
-    }
+    validatePayment(txn, payment);
 
     SepTransactionStatus newSepTxnStatus = getSepWithdrawalTransactionStatus(payment.getStatus());
     updateTransaction(txn, payment, newSepTxnStatus);

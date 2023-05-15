@@ -59,6 +59,10 @@ public abstract class CustodyPaymentHandler {
   }
 
   protected void validatePayment(JdbcCustodyTransaction txn, CustodyPayment payment) {
+    if (CustodyPaymentStatus.SUCCESS != payment.getStatus()) {
+      return;
+    }
+
     if (!SUPPORTED_ASSET_TYPES.contains(payment.getAssetType())) {
       debugF(
           "Unsupported asset type[{}]. Payment: id[{}], externalTxId[{}]",

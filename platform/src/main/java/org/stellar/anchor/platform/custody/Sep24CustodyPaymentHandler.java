@@ -27,16 +27,13 @@ public class Sep24CustodyPaymentHandler extends CustodyPaymentHandler {
         payment.getId(),
         payment.getExternalTxId());
 
-    if (CustodyPaymentStatus.SUCCESS == payment.getStatus()) {
-      validatePayment(txn, payment);
-    }
+    validatePayment(txn, payment);
 
     SepTransactionStatus newSepTxnStatus = getSepWithdrawalTransactionStatus(payment.getStatus());
     updateTransaction(txn, payment, newSepTxnStatus);
 
     Metrics.counter(
-            AnchorMetrics.SEP24_TRANSACTION.toString(), "status", newSepTxnStatus.toString())
-        .increment();
+        AnchorMetrics.SEP24_TRANSACTION.toString(), "status", newSepTxnStatus.toString());
     Metrics.counter(AnchorMetrics.PAYMENT_RECEIVED.toString(), "asset", payment.getAssetName())
         .increment(Double.parseDouble(payment.getAmount()));
   }
@@ -49,9 +46,7 @@ public class Sep24CustodyPaymentHandler extends CustodyPaymentHandler {
         payment.getId(),
         payment.getExternalTxId());
 
-    if (CustodyPaymentStatus.SUCCESS == payment.getStatus()) {
-      validatePayment(txn, payment);
-    }
+    validatePayment(txn, payment);
 
     SepTransactionStatus newSepTxnStatus = getSepDepositTransactionStatus(payment.getStatus());
     updateTransaction(txn, payment, newSepTxnStatus);

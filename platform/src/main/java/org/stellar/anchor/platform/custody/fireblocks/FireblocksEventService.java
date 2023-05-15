@@ -48,11 +48,7 @@ public class FireblocksEventService extends CustodyEventService {
   private static final Set<TransactionStatus> SUCCESS_WEBHOOK_EVENT_STATUSES =
       Set.of(TransactionStatus.COMPLETED);
   private static final Set<TransactionStatus> ERROR_WEBHOOK_EVENT_STATUSES =
-      Set.of(
-          TransactionStatus.FAILED,
-          TransactionStatus.CANCELLED,
-          TransactionStatus.REJECTED,
-          TransactionStatus.BLOCKED);
+      Set.of(TransactionStatus.FAILED, TransactionStatus.CANCELLED, TransactionStatus.BLOCKED);
   private static final Set<TransactionStatus> OBSERVED_WEBHOOK_EVENT_STATUSES =
       Stream.concat(SUCCESS_WEBHOOK_EVENT_STATUSES.stream(), ERROR_WEBHOOK_EVENT_STATUSES.stream())
           .collect(toSet());
