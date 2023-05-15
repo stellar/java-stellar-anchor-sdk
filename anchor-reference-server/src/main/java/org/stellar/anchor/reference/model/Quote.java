@@ -65,7 +65,6 @@ public class Quote {
     GetRateResponse.Rate rate =
         GetRateResponse.Rate.builder()
             .id(getId())
-            .totalPrice(getTotalPrice())
             .price(getPrice())
             .sellAmount(getSellAmount())
             .buyAmount(getBuyAmount())

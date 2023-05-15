@@ -78,9 +78,9 @@ public class RestRateIntegration implements RateIntegration {
       throw new ServerErrorException("internal server error");
     }
 
-    if (request.getType() != GetRateRequest.Type.INDICATIVE_PRICES) {
-      if (rate.getFee() == null || rate.getTotalPrice() == null) {
-        Log.error("'fee' and/or 'total_price' are missing in the GET /rate response");
+    if (request.getType() != GetRateRequest.Type.INDICATIVE) {
+      if (rate.getFee() == null) {
+        Log.error("'fee' is missing in the GET /rate response");
         throw new ServerErrorException("internal server error");
       }
     }

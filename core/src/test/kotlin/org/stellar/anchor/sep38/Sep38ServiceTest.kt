@@ -201,23 +201,23 @@ class Sep38ServiceTest {
     val mockRateIntegration = mockk<MockRateIntegration>()
     val getRateReq1 =
       GetRateRequest.builder()
-        .type(INDICATIVE_PRICES)
+        .type(INDICATIVE)
         .sellAsset(fiatUSD)
         .buyAsset("stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5")
         .sellAmount("100")
         .build()
     every { mockRateIntegration.getRate(getRateReq1) } returns
-      GetRateResponse.indicativePrices("1", "100", "100")
+      GetRateResponse.indicativePrice("1", "100", "100", mockSellAssetFee(fiatUSD))
 
     val getRateReq2 =
       GetRateRequest.builder()
-        .type(INDICATIVE_PRICES)
+        .type(INDICATIVE)
         .sellAsset(fiatUSD)
         .buyAsset(stellarUSDC)
         .sellAmount("100")
         .build()
     every { mockRateIntegration.getRate(getRateReq2) } returns
-      GetRateResponse.indicativePrices("2", "100", "200")
+      GetRateResponse.indicativePrice("2", "100", "200", mockSellAssetFee(fiatUSD))
     sep38Service =
       Sep38Service(
         sep38Service.sep38Config,
@@ -242,7 +242,7 @@ class Sep38ServiceTest {
     val mockRateIntegration = mockk<MockRateIntegration>()
     val getRateReq1 =
       GetRateRequest.builder()
-        .type(INDICATIVE_PRICES)
+        .type(INDICATIVE)
         .sellAsset(fiatUSD)
         .buyAsset("stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5")
         .sellAmount("100")
@@ -250,11 +250,11 @@ class Sep38ServiceTest {
         .sellDeliveryMethod("WIRE")
         .build()
     every { mockRateIntegration.getRate(getRateReq1) } returns
-      GetRateResponse.indicativePrices("1.1", "100", "110")
+      GetRateResponse.indicativePrice("1.1", "100", "110", mockSellAssetFee(fiatUSD))
 
     val getRateReq2 =
       GetRateRequest.builder()
-        .type(INDICATIVE_PRICES)
+        .type(INDICATIVE)
         .sellAsset(fiatUSD)
         .buyAsset(stellarUSDC)
         .sellAmount("100")
@@ -262,7 +262,7 @@ class Sep38ServiceTest {
         .sellDeliveryMethod("WIRE")
         .build()
     every { mockRateIntegration.getRate(getRateReq2) } returns
-      GetRateResponse.indicativePrices("2.1", "100", "210")
+      GetRateResponse.indicativePrice("2.1", "100", "210", mockSellAssetFee(fiatUSD))
     sep38Service =
       Sep38Service(
         sep38Service.sep38Config,
@@ -287,14 +287,14 @@ class Sep38ServiceTest {
     val mockRateIntegration = mockk<MockRateIntegration>()
     val getRateReq1 =
       GetRateRequest.builder()
-        .type(INDICATIVE_PRICES)
+        .type(INDICATIVE)
         .sellAsset(stellarUSDC)
         .buyAsset(fiatUSD)
         .sellAmount("100")
         .buyDeliveryMethod("WIRE")
         .build()
     every { mockRateIntegration.getRate(getRateReq1) } returns
-      GetRateResponse.indicativePrices("1", "100", "100")
+      GetRateResponse.indicativePrice("1", "100", "100", mockSellAssetFee(fiatUSD))
     sep38Service =
       Sep38Service(
         sep38Service.sep38Config,
@@ -448,13 +448,7 @@ class Sep38ServiceTest {
     getPriceRequestBuilder = getPriceRequestBuilder.sellAmount(null)
     getPriceRequestBuilder = getPriceRequestBuilder.buyAssetName(stellarUSDC).buyAmount("100000000")
     every { mockRateIntegration.getRate(any()) } returns
-      GetRateResponse.indicativePrice(
-        "1.02",
-        "1.03",
-        "102000000",
-        "100000000",
-        mockSellAssetFee(fiatUSD)
-      )
+      GetRateResponse.indicativePrice("1.02", "102000000", "100000000", mockSellAssetFee(fiatUSD))
     ex = assertThrows { sep38Service.getPrice(getPriceRequestBuilder.build()) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("sell_amount exceeds max limit", ex.message)
@@ -476,14 +470,13 @@ class Sep38ServiceTest {
     val mockRateIntegration = mockk<MockRateIntegration>()
     val getRateReq =
       GetRateRequest.builder()
-        .type(INDICATIVE_PRICE)
-        .context(SEP31)
+        .type(INDICATIVE)
         .sellAsset(fiatUSD)
         .sellAmount("100")
         .buyAsset(stellarUSDC)
         .build()
     every { mockRateIntegration.getRate(getRateReq) } returns
-      GetRateResponse.indicativePrice("1.02", "1.03", "100", "97.0874", mockFee)
+      GetRateResponse.indicativePrice("1.02", "100", "97.0874", mockFee)
     sep38Service =
       Sep38Service(
         sep38Service.sep38Config,
@@ -506,7 +499,7 @@ class Sep38ServiceTest {
     val wantResponse =
       GetPriceResponse.builder()
         .price("1.02")
-        .totalPrice("1.03")
+        .totalPrice("1.0299997734")
         .sellAmount("100")
         .buyAmount("97.0874")
         .fee(mockFee)
@@ -522,14 +515,13 @@ class Sep38ServiceTest {
     val mockRateIntegration = mockk<MockRateIntegration>()
     val getRateReq =
       GetRateRequest.builder()
-        .type(INDICATIVE_PRICE)
-        .context(SEP31)
+        .type(INDICATIVE)
         .sellAsset(fiatUSD)
         .buyAmount("100")
         .buyAsset(stellarUSDC)
         .build()
     every { mockRateIntegration.getRate(getRateReq) } returns
-      GetRateResponse.indicativePrice("1.02", "1.03", "103", "100", mockFee)
+      GetRateResponse.indicativePrice("1.02", "103", "100", mockFee)
     sep38Service =
       Sep38Service(
         sep38Service.sep38Config,
@@ -568,8 +560,7 @@ class Sep38ServiceTest {
     val mockRateIntegration = mockk<MockRateIntegration>()
     val getRateReq =
       GetRateRequest.builder()
-        .type(INDICATIVE_PRICE)
-        .context(SEP6)
+        .type(INDICATIVE)
         .sellAsset(fiatUSD)
         .buyAsset(stellarUSDC)
         .sellAmount("100")
@@ -577,7 +568,7 @@ class Sep38ServiceTest {
         .sellDeliveryMethod("WIRE")
         .build()
     every { mockRateIntegration.getRate(getRateReq) } returns
-      GetRateResponse.indicativePrice("1.02", "1.03", "100", "97.0873786", mockFee)
+      GetRateResponse.indicativePrice("1.02", "100", "97.0873786", mockFee)
     sep38Service =
       Sep38Service(
         sep38Service.sep38Config,
@@ -602,7 +593,7 @@ class Sep38ServiceTest {
     val wantResponse =
       GetPriceResponse.builder()
         .price("1.02")
-        .totalPrice("1.03")
+        .totalPrice("1.0300000004")
         .sellAmount("100")
         .buyAmount("97.0873786")
         .fee(mockFee)
@@ -618,8 +609,7 @@ class Sep38ServiceTest {
     val mockRateIntegration = mockk<MockRateIntegration>()
     val getRateReq =
       GetRateRequest.builder()
-        .type(INDICATIVE_PRICE)
-        .context(SEP31)
+        .type(INDICATIVE)
         .sellAsset(fiatUSD)
         .buyAsset(stellarUSDC)
         .buyAmount("100")
@@ -628,7 +618,7 @@ class Sep38ServiceTest {
         .build()
 
     every { mockRateIntegration.getRate(getRateReq) } returns
-      GetRateResponse.indicativePrice("1.02345678901", "1.03345679", "103.3456789", "100", mockFee)
+      GetRateResponse.indicativePrice("1.02345678901", "103.3456789", "100", mockFee)
     sep38Service =
       Sep38Service(
         sep38Service.sep38Config,
@@ -653,7 +643,7 @@ class Sep38ServiceTest {
     val wantResponse =
       GetPriceResponse.builder()
         .price("1.02345678901")
-        .totalPrice("1.03345679")
+        .totalPrice("1.033456789")
         .sellAmount("103.3456789")
         .buyAmount("100")
         .fee(mockFee)
@@ -949,13 +939,7 @@ class Sep38ServiceTest {
 
     // buy_amount specified, but resulting sell_amount should be within limit
     every { mockRateIntegration.getRate(any()) } returns
-      GetRateResponse.indicativePrice(
-        "1.02",
-        "1.03",
-        "102000000",
-        "100000000",
-        mockSellAssetFee(fiatUSD)
-      )
+      GetRateResponse.indicativePrice("1.02", "102000000", "100000000", mockSellAssetFee(fiatUSD))
     ex = assertThrows {
       sep38Service.postQuote(
         token,
@@ -982,7 +966,6 @@ class Sep38ServiceTest {
     val getRateReq =
       GetRateRequest.builder()
         .type(FIRM)
-        .context(SEP31)
         .sellAsset(fiatUSD)
         .sellAmount("103")
         .buyAsset(stellarUSDC)
@@ -993,7 +976,6 @@ class Sep38ServiceTest {
     val rate =
       GetRateResponse.Rate.builder()
         .id("123")
-        .totalPrice("1.03")
         .price("1.02")
         .sellAmount("103")
         .buyAmount("100")
@@ -1095,7 +1077,6 @@ class Sep38ServiceTest {
     val getRateReq =
       GetRateRequest.builder()
         .type(FIRM)
-        .context(SEP6)
         .sellAsset(fiatUSD)
         .buyAsset(stellarUSDC)
         .buyAmount("100")
@@ -1106,7 +1087,6 @@ class Sep38ServiceTest {
     val rate =
       GetRateResponse.Rate.builder()
         .id("456")
-        .totalPrice("1.03")
         .price("1.02")
         .sellAmount("103")
         .buyAmount("100")
@@ -1208,7 +1188,6 @@ class Sep38ServiceTest {
     val getRateReq =
       GetRateRequest.builder()
         .type(FIRM)
-        .context(SEP31)
         .sellAsset(fiatUSD)
         .sellAmount("100")
         .sellDeliveryMethod("WIRE")
@@ -1221,7 +1200,6 @@ class Sep38ServiceTest {
     val rate =
       GetRateResponse.Rate.builder()
         .id("123")
-        .totalPrice("1.03")
         .price("1.02")
         .sellAmount("100")
         .buyAmount("97.0873786")
@@ -1269,7 +1247,7 @@ class Sep38ServiceTest {
         .id("123")
         .expiresAt(tomorrow)
         .price("1.02")
-        .totalPrice("1.03")
+        .totalPrice("1.0300000004")
         .sellAsset(fiatUSD)
         .sellAmount("100")
         .buyAsset(stellarUSDC)
@@ -1284,7 +1262,7 @@ class Sep38ServiceTest {
     assertEquals("123", savedQuote.id)
     assertEquals(tomorrow, savedQuote.expiresAt)
     assertEquals("1.02", savedQuote.price)
-    assertEquals("1.03", savedQuote.totalPrice)
+    assertEquals("1.0300000004", savedQuote.totalPrice)
     assertEquals(fiatUSD, savedQuote.sellAsset)
     assertEquals("100", savedQuote.sellAmount)
     assertEquals("WIRE", savedQuote.sellDeliveryMethod)
@@ -1308,7 +1286,7 @@ class Sep38ServiceTest {
     wantEvent.quote.buyAmount = "97.0873786"
     wantEvent.quote.expiresAt = tomorrow
     wantEvent.quote.price = "1.02"
-    wantEvent.quote.totalPrice = "1.03"
+    wantEvent.quote.totalPrice = "1.0300000004"
     wantEvent.quote.creator = StellarId.builder().account(PUBLIC_KEY).build()
     wantEvent.quote.transactionId = null
     wantEvent.quote.createdAt = savedQuote.createdAt
@@ -1327,7 +1305,6 @@ class Sep38ServiceTest {
     val getRateReq =
       GetRateRequest.builder()
         .type(FIRM)
-        .context(SEP31)
         .sellAsset(fiatUSD)
         .sellDeliveryMethod("WIRE")
         .buyAsset(stellarUSDC)
@@ -1340,7 +1317,6 @@ class Sep38ServiceTest {
     val rate =
       GetRateResponse.Rate.builder()
         .id("456")
-        .totalPrice("1.03")
         .price("1.02")
         .sellAmount("103")
         .buyAmount("100")
