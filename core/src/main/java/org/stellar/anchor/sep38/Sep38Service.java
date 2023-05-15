@@ -491,7 +491,7 @@ public class Sep38Service {
     BigDecimal bSellAmount = decimal(rate.getSellAmount(), scale);
     BigDecimal bBuyAmount = decimal(rate.getBuyAmount(), scale);
 
-    int priceScale = 4;
+    int priceScale = 10;
 
     // total_price = sell_amount / buy_amount
     BigDecimal bTotalPrice = bSellAmount.divide(bBuyAmount, priceScale, RoundingMode.FLOOR);
