@@ -1,15 +1,20 @@
 package org.stellar.anchor.platform.utils;
 
-import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.*;
+import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT;
+import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.RECEIVE;
+import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL;
 
 import javax.annotation.Nullable;
+import lombok.SneakyThrows;
 import org.stellar.anchor.api.custody.CreateCustodyTransactionRequest;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.platform.GetTransactionResponse;
 import org.stellar.anchor.api.platform.PlatformTransactionData;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
-import org.stellar.anchor.api.shared.*;
+import org.stellar.anchor.api.shared.Amount;
+import org.stellar.anchor.api.shared.RefundPayment;
+import org.stellar.anchor.api.shared.Refunds;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSep31Transaction;
@@ -21,8 +26,10 @@ import org.stellar.anchor.sep31.Sep31Refunds;
 import org.stellar.anchor.sep31.Sep31Transaction;
 
 public class TransactionHelper {
+
+  @SneakyThrows
   public static GetTransactionResponse toGetTransactionResponse(
-      JdbcSepTransaction txn, AssetService assetService) throws SepException {
+      JdbcSepTransaction txn, AssetService assetService) {
     switch (txn.getProtocol()) {
       case "24":
         return toGetTransactionResponse((JdbcSep24Transaction) txn, assetService);
@@ -40,7 +47,10 @@ public class TransactionHelper {
         .memoType(txn.getMemoType())
         .protocol("24")
         .fromAccount(WITHDRAWAL.getKind().equals(txn.getKind()) ? txn.getFromAccount() : null)
-        .toAccount(DEPOSIT.getKind().equals(txn.getKind()) ? txn.getToAccount() : null)
+        .toAccount(
+            DEPOSIT.getKind().equals(txn.getKind())
+                ? txn.getToAccount()
+                : txn.getWithdrawAnchorAccount())
         .amountIn(txn.getAmountIn())
         .amountInAsset(txn.getAmountInAsset())
         .amountOut(txn.getAmountOut())

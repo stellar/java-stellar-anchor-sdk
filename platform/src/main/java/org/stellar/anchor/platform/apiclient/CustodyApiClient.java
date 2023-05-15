@@ -9,6 +9,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.ResponseBody;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.stellar.anchor.api.custody.CreateCustodyTransactionRequest;
 import org.stellar.anchor.api.custody.CreateTransactionPaymentResponse;
@@ -57,7 +58,7 @@ public class CustodyApiClient {
             .url(
                 custodyApiConfig.getBaseUrl()
                     + String.format(GENERATE_DEPOSIT_ADDRESS_URL_FORMAT, assetId))
-            .get()
+            .post(RequestBody.create(StringUtils.EMPTY, null))
             .build();
     String responseBody = doRequest(request);
     return gson.fromJson(responseBody, GenerateDepositAddressResponse.class);

@@ -3,6 +3,7 @@ package org.stellar.anchor.sep24;
 import java.util.List;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.sep.sep24.GetTransactionsRequest;
+import org.stellar.anchor.util.TransactionsParams;
 
 /** This interface is for the SEP adapter service to query/save the transaction document. */
 @SuppressWarnings("RedundantThrows")
@@ -60,4 +61,12 @@ public interface Sep24TransactionStore {
    */
   @SuppressWarnings("UnusedReturnValue")
   Sep24Transaction save(Sep24Transaction sep24Transaction) throws SepException;
+
+  /**
+   * Finds multiple transactions that matches following criteria
+   *
+   * @param params parameters for transaction search
+   * @return list of transactions
+   */
+  List<? extends Sep24Transaction> findTransactions(TransactionsParams params);
 }

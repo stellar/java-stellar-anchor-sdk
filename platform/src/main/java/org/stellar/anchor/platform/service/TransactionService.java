@@ -25,11 +25,13 @@ import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.InternalServerErrorException;
 import org.stellar.anchor.api.exception.NotFoundException;
 import org.stellar.anchor.api.platform.GetTransactionResponse;
+import org.stellar.anchor.api.platform.GetTransactionsResponse;
 import org.stellar.anchor.api.platform.PatchTransactionRequest;
 import org.stellar.anchor.api.platform.PatchTransactionsRequest;
 import org.stellar.anchor.api.platform.PatchTransactionsResponse;
 import org.stellar.anchor.api.platform.PlatformTransactionData;
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind;
+import org.stellar.anchor.api.platform.TransactionsSeps;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.shared.Amount;
@@ -51,6 +53,7 @@ import org.stellar.anchor.sep38.Sep38QuoteStore;
 import org.stellar.anchor.util.Log;
 import org.stellar.anchor.util.SepHelper;
 import org.stellar.anchor.util.StringHelper;
+import org.stellar.anchor.util.TransactionsParams;
 import org.stellar.sdk.Memo;
 
 public class TransactionService {
@@ -107,6 +110,24 @@ public class TransactionService {
     }
   }
 
+  public GetTransactionsResponse getTransactionsResponse(
+      TransactionsSeps sep, TransactionsParams params) throws AnchorException {
+    List<?> txn;
+
+    if (sep == TransactionsSeps.SEP_31) {
+      txn = txn31Store.findTransactions(params);
+    } else if (sep == TransactionsSeps.SEP_24) {
+      txn = txn24Store.findTransactions(params);
+    } else {
+      throw new BadRequestException("SEP not supported");
+    }
+
+    return new GetTransactionsResponse(
+        txn.stream()
+            .map(t -> toGetTransactionResponse((JdbcSepTransaction) t, assetService))
+            .collect(Collectors.toList()));
+  }
+
   /**
    * Fetch the transaction.
    *
@@ -144,7 +165,7 @@ public class TransactionService {
     validateIfStatusIsSupported(patch.getTransaction().getStatus().toString());
     validateAsset("amount_in", patch.getTransaction().getAmountIn());
     validateAsset("amount_out", patch.getTransaction().getAmountOut());
-    validateAsset("amount_fee", patch.getTransaction().getAmountFee());
+    validateAsset("amount_fee", patch.getTransaction().getAmountFee(), true);
 
     JdbcSepTransaction txn = findTransaction(patch.getTransaction().getId());
     if (txn == null)
@@ -317,12 +338,17 @@ public class TransactionService {
    * @throws BadRequestException if the provided asset is not supported
    */
   void validateAsset(String fieldName, Amount amount) throws BadRequestException {
+    validateAsset(fieldName, amount, false);
+  }
+
+  void validateAsset(String fieldName, Amount amount, boolean allowZero)
+      throws BadRequestException {
     if (amount == null) {
       return;
     }
 
     // asset amount needs to be non-empty and valid
-    SepHelper.validateAmount(fieldName + ".", amount.getAmount());
+    SepHelper.validateAmount(fieldName + ".", amount.getAmount(), allowZero);
 
     // asset name cannot be empty
     if (StringHelper.isEmpty(amount.getAsset())) {
