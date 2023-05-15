@@ -33,7 +33,8 @@ public class Sep24CustodyPaymentHandler extends CustodyPaymentHandler {
     updateTransaction(txn, payment, newSepTxnStatus);
 
     Metrics.counter(
-        AnchorMetrics.SEP24_TRANSACTION.toString(), "status", newSepTxnStatus.toString());
+            AnchorMetrics.SEP24_TRANSACTION.toString(), "status", newSepTxnStatus.toString())
+        .increment();
     Metrics.counter(AnchorMetrics.PAYMENT_RECEIVED.toString(), "asset", payment.getAssetName())
         .increment(Double.parseDouble(payment.getAmount()));
   }
