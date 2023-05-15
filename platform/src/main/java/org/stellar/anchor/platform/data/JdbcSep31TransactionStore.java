@@ -10,6 +10,7 @@ import org.stellar.anchor.sep31.RefundPayment;
 import org.stellar.anchor.sep31.Sep31Refunds;
 import org.stellar.anchor.sep31.Sep31Transaction;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
+import org.stellar.anchor.util.TransactionsParams;
 
 public class JdbcSep31TransactionStore implements Sep31TransactionStore {
   private final JdbcSep31TransactionRepo transactionRepo;
@@ -78,5 +79,10 @@ public class JdbcSep31TransactionStore implements Sep31TransactionStore {
 
   public Integer findByStatusCount(String status) {
     return transactionRepo.findByStatusCount(status);
+  }
+
+  @Override
+  public List<? extends Sep31Transaction> findTransactions(TransactionsParams params) {
+    return transactionRepo.findAllTransactions(params, JdbcSep31Transaction.class);
   }
 }

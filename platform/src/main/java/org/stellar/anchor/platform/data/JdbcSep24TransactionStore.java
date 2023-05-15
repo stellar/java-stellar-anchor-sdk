@@ -13,6 +13,7 @@ import org.stellar.anchor.sep24.Sep24Refunds;
 import org.stellar.anchor.sep24.Sep24Transaction;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.util.DateUtil;
+import org.stellar.anchor.util.TransactionsParams;
 
 public class JdbcSep24TransactionStore implements Sep24TransactionStore {
   static final String CB_KEY_NAMESPACE = "SAS:RESOURCE:";
@@ -117,5 +118,10 @@ public class JdbcSep24TransactionStore implements Sep24TransactionStore {
     JdbcSep24Transaction txn = (JdbcSep24Transaction) sep24Transaction;
     txn.setId(txn.getTransactionId());
     return txnRepo.save(txn);
+  }
+
+  @Override
+  public List<? extends Sep24Transaction> findTransactions(TransactionsParams params) {
+    return txnRepo.findAllTransactions(params, JdbcSep24Transaction.class);
   }
 }

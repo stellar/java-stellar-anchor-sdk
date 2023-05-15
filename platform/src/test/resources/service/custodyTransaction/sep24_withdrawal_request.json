@@ -4,6 +4,7 @@
   "memoType": "testMemoType",
   "protocol": "24",
   "fromAccount": "testFromAccount",
+  "toAccount": "testWithdrawAnchorAccount",
   "amountIn": "testAmountIn",
   "amountInAsset": "testAmountInAsset",
   "amountOut": "testAmountOut",
