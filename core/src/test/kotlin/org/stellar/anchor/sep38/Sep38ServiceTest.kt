@@ -499,7 +499,7 @@ class Sep38ServiceTest {
     val wantResponse =
       GetPriceResponse.builder()
         .price("1.02")
-        .totalPrice("1.0299721908")
+        .totalPrice("1.0299997734")
         .sellAmount("100")
         .buyAmount("97.0874")
         .fee(mockFee)
@@ -593,7 +593,7 @@ class Sep38ServiceTest {
     val wantResponse =
       GetPriceResponse.builder()
         .price("1.02")
-        .totalPrice("1.0299721908")
+        .totalPrice("1.0300000004")
         .sellAmount("100")
         .buyAmount("97.0873786")
         .fee(mockFee)
@@ -643,7 +643,7 @@ class Sep38ServiceTest {
     val wantResponse =
       GetPriceResponse.builder()
         .price("1.02345678901")
-        .totalPrice("1.0335")
+        .totalPrice("1.033456789")
         .sellAmount("103.3456789")
         .buyAmount("100")
         .fee(mockFee)
@@ -1247,11 +1247,11 @@ class Sep38ServiceTest {
         .id("123")
         .expiresAt(tomorrow)
         .price("1.02")
-        .totalPrice("1.0299721908")
+        .totalPrice("1.0300000004")
         .sellAsset(fiatUSD)
         .sellAmount("100")
         .buyAsset(stellarUSDC)
-        .buyAmount("97.09")
+        .buyAmount("97.0873786")
         .fee(mockFee)
         .build()
     assertEquals(wantResponse, gotResponse)
@@ -1262,12 +1262,12 @@ class Sep38ServiceTest {
     assertEquals("123", savedQuote.id)
     assertEquals(tomorrow, savedQuote.expiresAt)
     assertEquals("1.02", savedQuote.price)
-    assertEquals("1.0299721908", savedQuote.totalPrice)
+    assertEquals("1.0300000004", savedQuote.totalPrice)
     assertEquals(fiatUSD, savedQuote.sellAsset)
     assertEquals("100", savedQuote.sellAmount)
     assertEquals("WIRE", savedQuote.sellDeliveryMethod)
     assertEquals(stellarUSDC, savedQuote.buyAsset)
-    assertEquals("97.09", savedQuote.buyAmount)
+    assertEquals("97.0873786", savedQuote.buyAmount)
     assertEquals(PUBLIC_KEY, savedQuote.creatorAccountId)
     assertNotNull(savedQuote.createdAt)
     assertEquals(mockFee, savedQuote.fee)
@@ -1283,10 +1283,10 @@ class Sep38ServiceTest {
     wantEvent.quote.sellAsset = fiatUSD
     wantEvent.quote.sellAmount = "100"
     wantEvent.quote.buyAsset = stellarUSDC
-    wantEvent.quote.buyAmount = "97.09"
+    wantEvent.quote.buyAmount = "97.0873786"
     wantEvent.quote.expiresAt = tomorrow
     wantEvent.quote.price = "1.02"
-    wantEvent.quote.totalPrice = "1.0299721908"
+    wantEvent.quote.totalPrice = "1.0300000004"
     wantEvent.quote.creator = StellarId.builder().account(PUBLIC_KEY).build()
     wantEvent.quote.transactionId = null
     wantEvent.quote.createdAt = savedQuote.createdAt
