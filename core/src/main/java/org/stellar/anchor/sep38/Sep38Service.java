@@ -227,7 +227,7 @@ public class Sep38Service {
 
     return GetPriceResponse.builder()
         .price(rate.getPrice())
-        .totalPrice(getTotalPrice(asset, rate))
+        .totalPrice(getTotalPrice(rate))
         .fee(rate.getFee())
         .sellAmount(rate.getSellAmount())
         .buyAmount(rate.getBuyAmount())
@@ -349,7 +349,7 @@ public class Sep38Service {
             .build();
     GetRateResponse.Rate rate = this.rateIntegration.getRate(getRateRequest).getRate();
 
-    String totalPrice = getTotalPrice(asset, rate);
+    String totalPrice = getTotalPrice(rate);
 
     Sep38QuoteResponse.Sep38QuoteResponseBuilder builder =
         Sep38QuoteResponse.builder()
@@ -485,16 +485,14 @@ public class Sep38Service {
         .build();
   }
 
-  private String getTotalPrice(AssetInfo asset, GetRateResponse.Rate rate) {
-    int scale = asset.getSignificantDecimals();
-
-    BigDecimal bSellAmount = decimal(rate.getSellAmount(), scale);
-    BigDecimal bBuyAmount = decimal(rate.getBuyAmount(), scale);
-
+  private String getTotalPrice(GetRateResponse.Rate rate) {
     int priceScale = 10;
 
+    BigDecimal bSellAmount = decimal(rate.getSellAmount(), priceScale);
+    BigDecimal bBuyAmount = decimal(rate.getBuyAmount(), priceScale);
+
     // total_price = sell_amount / buy_amount
-    BigDecimal bTotalPrice = bSellAmount.divide(bBuyAmount, priceScale, RoundingMode.HALF_DOWN);
+    BigDecimal bTotalPrice = bSellAmount.divide(bBuyAmount, priceScale, RoundingMode.FLOOR);
 
     return formatAmount(bTotalPrice, priceScale);
   }
