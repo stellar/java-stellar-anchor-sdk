@@ -157,7 +157,7 @@ class ApiKeyAuthIntegrationTest {
     val wantResponse =
       GetPriceResponse.builder()
         .price("1.00")
-        .totalPrice("1.00")
+        .totalPrice("1")
         .sellAmount("100")
         .buyAmount("100")
         .fee(RateFee("0.00", "iso4217:USD"))
@@ -171,8 +171,7 @@ class ApiKeyAuthIntegrationTest {
     assertNull(request.headers["Authorization"])
     val wantEndpoint =
       """/rate
-        ?type=indicative_price
-        &context=sep31
+        ?type=indicative
         &sell_asset=iso4217%3AUSD
         &sell_amount=100
         &buy_asset=stellar%3AUSDC%3AGDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP

@@ -39,8 +39,8 @@ public class GetRateRequest {
   String id;
 
   public enum Type {
-    @SerializedName("indicative_prices")
-    INDICATIVE("indicative_prices"),
+    @SerializedName("indicative")
+    INDICATIVE("indicative"),
 
     @SerializedName("firm")
     FIRM("firm");
