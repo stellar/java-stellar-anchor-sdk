@@ -15,7 +15,6 @@ import kotlinx.serialization.json.Json
 import mu.KotlinLogging
 import org.apache.commons.codec.binary.Hex
 import org.stellar.reference.data.*
-import org.stellar.reference.data.Transaction
 import org.stellar.sdk.*
 
 class Sep24Helper(private val cfg: Config) {
@@ -149,7 +148,9 @@ class Sep24Helper(private val cfg: Config) {
 
     if (paymentSum < amountIn) {
       throw Exception(
-        "Amount of payments received is not equal to amount requested. Deficit: ${(paymentSum - amountIn).stripTrailingZeros().toPlainString()})"
+        "Amount of payments received is not equal to amount requested. Deficit: ${
+                    (paymentSum - amountIn).stripTrailingZeros().toPlainString()
+                })"
       )
     }
   }

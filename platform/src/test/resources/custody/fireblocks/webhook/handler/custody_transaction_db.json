@@ -1,5 +1,6 @@
 {
   "id": "testId",
+  "external_id": "testEventId",
   "status": "completed",
   "amount_in": "1",
   "amount_in_asset": "stellar:testAmountInAsset",
@@ -9,7 +10,7 @@
   "memo": "testMemo",
   "memo_type": "testMemoType",
   "protocol": "24",
-  "from_account": "testFromAccount",
+  "from_account": "testFrom",
   "to_account": "testToAccount",
   "kind": "deposit"
 }

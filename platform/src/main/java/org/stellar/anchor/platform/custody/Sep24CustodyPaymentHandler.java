@@ -67,7 +67,7 @@ public class Sep24CustodyPaymentHandler extends CustodyPaymentHandler {
       CustodyPaymentStatus custodyPaymentStatus) {
     switch (custodyPaymentStatus) {
       case SUCCESS:
-        return SepTransactionStatus.PENDING_ANCHOR;
+        return SepTransactionStatus.COMPLETED;
       case ERROR:
         return SepTransactionStatus.ERROR;
       default:
@@ -80,7 +80,7 @@ public class Sep24CustodyPaymentHandler extends CustodyPaymentHandler {
       CustodyPaymentStatus custodyPaymentStatus) {
     switch (custodyPaymentStatus) {
       case SUCCESS:
-        return SepTransactionStatus.COMPLETED;
+        return SepTransactionStatus.PENDING_ANCHOR;
       case ERROR:
         return SepTransactionStatus.ERROR;
       default:

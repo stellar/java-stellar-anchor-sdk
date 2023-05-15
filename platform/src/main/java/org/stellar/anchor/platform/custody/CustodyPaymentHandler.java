@@ -50,6 +50,8 @@ public abstract class CustodyPaymentHandler {
       JdbcCustodyTransaction txn, CustodyPayment payment, SepTransactionStatus newSepTxnStatus)
       throws AnchorException, IOException {
     txn.setUpdatedAt(payment.getCreatedAt());
+    txn.setFromAccount(payment.getFrom());
+    txn.setExternalTxId(payment.getExternalTxId());
     txn.setStatus(getCustodyTransactionStatus(payment.getStatus()).toString());
     custodyTransactionRepo.save(txn);
 
