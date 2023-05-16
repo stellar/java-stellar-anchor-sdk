@@ -292,7 +292,8 @@ public class Sep10Service {
             issuedAt,
             issuedAt + sep10Config.getJwtTimeout(),
             challenge.getTransaction().hashHex(),
-            clientDomain);
+            clientDomain,
+            null);
     return jwtService.encode(jwtToken);
   }
 

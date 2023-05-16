@@ -2,10 +2,13 @@ package org.stellar.anchor.sep10;
 
 import com.google.gson.annotations.SerializedName;
 import lombok.Data;
+import shadow.javax.annotation.Nullable;
 
 @Data
 @SuppressWarnings("unused")
 public class JwtToken {
+  public static final String REQUESTED_ACCOUNT = "requested_account";
+
   public JwtToken() {}
 
   String iss;
@@ -24,6 +27,10 @@ public class JwtToken {
   @SerializedName(value = "muxed_account")
   String muxedAccount;
 
+  @SerializedName(value = REQUESTED_ACCOUNT)
+  @Nullable
+  String requestedAccount;
+
   public String getTransactionId() {
     return this.jti;
   }
@@ -41,7 +48,13 @@ public class JwtToken {
   }
 
   public static JwtToken of(
-      String iss, String sub, long iat, long exp, String jti, String clientDomain) {
+      String iss,
+      String sub,
+      long iat,
+      long exp,
+      String jti,
+      String clientDomain,
+      String requestedAccount) {
     JwtToken token = new JwtToken();
     token.iss = iss;
     token.sub = sub;

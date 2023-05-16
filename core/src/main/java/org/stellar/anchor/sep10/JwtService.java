@@ -1,5 +1,7 @@
 package org.stellar.anchor.sep10;
 
+import static org.stellar.anchor.sep10.JwtToken.REQUESTED_ACCOUNT;
+
 import io.jsonwebtoken.*;
 import java.nio.charset.StandardCharsets;
 import java.util.Calendar;
@@ -38,6 +40,10 @@ public class JwtService {
       builder.addClaims(Map.of("client_domain", token.clientDomain));
     }
 
+    if (token.requestedAccount != null) {
+      builder.addClaims(Map.of(REQUESTED_ACCOUNT, token.requestedAccount));
+    }
+
     return builder.signWith(SignatureAlgorithm.HS256, jwtKey).compact();
   }
 
@@ -47,12 +53,14 @@ public class JwtService {
     jwtParser.setSigningKey(jwtKey);
     Jwt jwt = jwtParser.parse(cipher);
     Claims claims = (Claims) jwt.getBody();
+    Object requestedAccount = claims.get(REQUESTED_ACCOUNT);
     return JwtToken.of(
         (String) claims.get("iss"),
         (String) claims.get("sub"),
         Long.valueOf((Integer) claims.get("iat")),
         Long.valueOf((Integer) claims.get("exp")),
         (String) claims.get("jti"),
-        (String) claims.get("client_domain"));
+        (String) claims.get("client_domain"),
+        requestedAccount == null ? null : (String) requestedAccount);
   }
 }
