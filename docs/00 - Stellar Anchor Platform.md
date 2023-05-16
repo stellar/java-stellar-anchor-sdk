@@ -1,9 +1,8 @@
 [![License](https://badgen.net/badge/license/Apache%202/blue?icon=github&label=License)](https://github.com/stellar/java-stellar-anchor-sdk/blob/develop/LICENSE)
 [![GitHub Version](https://badgen.net/github/release/stellar/java-stellar-anchor-sdk?icon=github&label=Latest%20release)](https://github.com/stellar/java-stellar-anchor-sdk/releases)
 [![Docker](https://badgen.net/badge/Latest%20Release/v1.1.0/blue?icon=docker)](https://hub.docker.com/layers/stellar/anchor-platform/1.1.0/images/sha256-c9df239014d31a29af4e379aaf035e489cabb4c51623d135500022a10d136fbd?context=explore)
-![Basic Tests](https://github.com/stellar/java-stellar-anchor-sdk/actions/workflows/basic_tests.yml/badge.svg?branch=main)
-![End to end Tests](https://github.com/stellar/java-stellar-anchor-sdk/actions/workflows/end_to_end_tests.yml/badge.svg?branch=main)
-
+![Develop Branch](https://github.com/stellar/java-stellar-anchor-sdk/actions/workflows/wk_push_to_develop.yml/badge.svg?branch=develop)
+![Main Branch](https://github.com/stellar/java-stellar-anchor-sdk/actions/workflows/wf_release_created_or_updated.yml/badge.svg?branch=main)
 
 <div>
 <img alt="Stellar" src="https://github.com/stellar/.github/raw/master/stellar-logo.png" width="558" />
@@ -13,11 +12,9 @@
 
 # Stellar Anchor Platform
 
-The Anchor Platform is the easiest and fastest way to deploy a [SEP-compatible](https://github.com/stellar/stellar-protocol/tree/master/ecosystem) anchor service.
- 
-It implements the majority of standardized API (`SEP`) endpoints that wallets, exchanges, and other applications use, and provides a set of backend HTTPS APIs & callbacks for the anchor to integrate with for specifying fees, exchange rates, and off-chain transaction status updates.
+The Anchor Platform is the easiest and fastest way to deploy anchor services compatible with [Stellar Ecosystem Proposals (SEPs)](https://github.com/stellar/stellar-protocol/tree/master/ecosystem).
 
-The goal of the Anchor Platform is to abstract all Stellar-specific functionality and requirements for running an anchor, allowing businesses to focus on the core business logic necessary to provide these services.
+For user's manual, please refer to [Stellar Documentation](https://developers.stellar.org/docs/anchoring-assets/anchor-platform).
 
 ## Table of Content
 
