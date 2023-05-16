@@ -3,6 +3,7 @@
 package org.stellar.anchor.platform
 
 import com.palantir.docker.compose.DockerComposeExtension
+import com.palantir.docker.compose.configuration.ProjectName
 import com.palantir.docker.compose.connection.waiting.HealthChecks
 import java.io.File
 import java.lang.Thread.sleep
@@ -108,8 +109,8 @@ class TestProfileExecutor(val config: TestConfig) {
   }
 
   private fun startDocker() {
-    info("Starting docker compose...")
     if (shouldStartDockerCompose) {
+      info("Starting docker compose...")
       if (isWindows()) {
         setupWindowsEnv()
       }
@@ -124,6 +125,7 @@ class TestProfileExecutor(val config: TestConfig) {
           .waitingForService("kafka", HealthChecks.toHaveAllPortsOpen())
           .waitingForService("db", HealthChecks.toHaveAllPortsOpen())
           .pullOnStartup(true)
+          .projectName(ProjectName.fromString("anchorplatform${UUID.randomUUID().toString().takeLast(6)}"))
           .build()
 
       docker.beforeAll(null)
