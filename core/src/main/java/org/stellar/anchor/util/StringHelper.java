@@ -61,6 +61,6 @@ public class StringHelper {
   }
 
   public static String sanitize(String value) {
-    return URLEncoder.encode(value.replace("\n", "").replace("\r", ""), StandardCharsets.UTF_8);
+    return value.replace("\n", "").replace("\r", "");
   }
 }
