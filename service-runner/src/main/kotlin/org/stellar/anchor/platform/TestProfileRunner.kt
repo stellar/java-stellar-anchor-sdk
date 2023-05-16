@@ -108,8 +108,8 @@ class TestProfileExecutor(val config: TestConfig) {
   }
 
   private fun startDocker() {
-    info("Starting docker compose...")
     if (shouldStartDockerCompose) {
+      info("Starting docker compose...")
       if (isWindows()) {
         setupWindowsEnv()
       }
