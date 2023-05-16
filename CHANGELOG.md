@@ -2,6 +2,9 @@
 
 ## Unreleased
 
+## 1.0.13
+* Add new field to the JWT token [#885](https://github.com/stellar/java-stellar-anchor-sdk/pull/885)
+
 ## 1.0.12
 
 ### Updates

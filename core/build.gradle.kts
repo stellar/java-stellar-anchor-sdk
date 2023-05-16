@@ -5,7 +5,7 @@ plugins {
   id("org.jetbrains.kotlin.jvm") version "1.6.10"
 }
 
-version = "1.0.12"
+version = "1.0.13"
 
 dependencies {
   compileOnly(libs.servlet.api)
@@ -95,5 +95,8 @@ publishing {
   }
 
   apply<SigningPlugin>()
-  configure<SigningExtension> { sign(publishing.publications) }
+  configure<SigningExtension> {
+    useGpgCmd()
+    sign(publishing.publications)
+  }
 }

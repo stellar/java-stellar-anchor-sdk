@@ -373,7 +373,8 @@ public class Sep24Service {
         Instant.now().getEpochSecond(),
         Instant.now().getEpochSecond() + sep24Config.getInteractiveJwtExpiration(),
         txn.getTransactionId(),
-        token.getClientDomain());
+        token.getClientDomain(),
+        null);
   }
 
   List<AssetResponse> listAllAssets() {
