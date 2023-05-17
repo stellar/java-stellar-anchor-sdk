@@ -46,12 +46,18 @@ class DepositService(private val cfg: Config) {
       if (cfg.sep24.custodyEnabled) {
         // 5. Send Stellar transaction using Custody Server
         sep24.sendCustodyStellarTransaction(transactionId)
+
+        // 6. Wait for Stellar transaction
+        sep24.waitStellarTransaction(transactionId, "completed")
+
+        // 7. Finalize custody Stellar anchor transaction
+        finalizeCustodyStellarTransaction(transactionId)
       } else {
         // 5. Sign and send transaction
         val txHash = sep24.sendStellarTransaction(account, asset, amount, memo, memoType)
 
-        // 6. Finalize anchor transaction
-        finalize(transactionId, txHash, asset, amount)
+        // 6. Finalize Stellar anchor transaction
+        finalizeStellarTransaction(transactionId, txHash, asset, amount)
       }
 
       log.info { "Transaction completed: $transactionId" }
@@ -88,7 +94,13 @@ class DepositService(private val cfg: Config) {
     return amount.multiply(BigDecimal.valueOf(0.1))
   }
 
-  private suspend fun finalize(
+  private suspend fun finalizeCustodyStellarTransaction(transactionId: String) {
+    sep24.patchTransaction(
+      PatchTransactionTransaction(transactionId, "completed", message = "completed")
+    )
+  }
+
+  private suspend fun finalizeStellarTransaction(
     transactionId: String,
     stellarTransactionId: String,
     asset: String,

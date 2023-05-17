@@ -32,7 +32,7 @@ class WithdrawalService(private val cfg: Config) {
       log.info { "Transaction status changed: $transaction" }
 
       // 3. Wait for stellar transaction
-      sep24.waitStellarTransaction(transactionId)
+      sep24.waitStellarTransaction(transactionId, "pending_anchor")
 
       transaction = sep24.getTransaction(transactionId)
       log.info { "Transaction status changed: $transaction" }
