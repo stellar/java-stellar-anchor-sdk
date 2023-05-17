@@ -54,8 +54,7 @@ fun Route.testSep24(
               transaction.destinationAccount
                 ?: throw ClientException("Missing destination_account field")
             val asset =
-              transaction.amountExpected!!.asset
-                ?: throw ClientException("Missing amountExpected.asset field")
+              token.data["asset"] ?: throw ClientException("Missing amountExpected.asset field")
             val memo = transaction.memo
             val memoType = transaction.memoType
 
@@ -83,8 +82,8 @@ fun Route.testSep24(
             call.respondText("The sep24 interactive withdrawal has been successfully started.")
 
             val asset =
-              transaction.amountExpected!!.asset
-                ?: throw ClientException("Missing amountExpected.asset field")
+              token.data["asset"] ?: throw ClientException("Missing amountExpected.asset field")
+
             val stellarAsset = asset.replace("stellar:", "")
 
             // Run deposit processing asynchronously
