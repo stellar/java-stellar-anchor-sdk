@@ -4,6 +4,7 @@ import io.ktor.http.*
 import io.ktor.server.application.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.util.logging.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
@@ -98,8 +99,10 @@ fun Route.testSep24(
             )
         }
       } catch (e: ClientException) {
+        log.error(e)
         call.respondText(e.message!!, status = HttpStatusCode.BadRequest)
       } catch (e: Exception) {
+        log.error(e)
         call.respondText(
           "Error occurred: ${e.message}",
           status = HttpStatusCode.InternalServerError

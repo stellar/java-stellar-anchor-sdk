@@ -79,7 +79,7 @@ public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
       }
     }
 
-    String asset = getAssetId(fields.get("asset_code"), fields.get("asset_issuer"));
+    String asset = getAssetId(request.get("asset_code"), request.get("asset_issuer"));
     if (!isEmpty(asset)) {
       fields.put("asset", asset);
     }
