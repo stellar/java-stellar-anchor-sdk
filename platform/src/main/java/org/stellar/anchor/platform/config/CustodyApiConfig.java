@@ -76,27 +76,4 @@ public class CustodyApiConfig implements Validator {
       }
     }
   }
-
-  private void validateHttpClient(Errors errors) {
-    if (httpClient.getConnectTimeout() < 0) {
-      errors.reject(
-          "custody-http_client-connect_timeout-invalid",
-          "custody-http_client-connect_timeout must be greater than or equal to 0");
-    }
-    if (httpClient.getReadTimeout() < 0) {
-      errors.reject(
-          "custody-http_client-read_timeout-invalid",
-          "custody-http_client-read_timeout must be greater than or equal to 0");
-    }
-    if (httpClient.getWriteTimeout() < 0) {
-      errors.reject(
-          "custody-http_client-write_timeout-invalid",
-          "custody-http_client-write_timeout must be greater than or equal to 0");
-    }
-    if (httpClient.getCallTimeout() < 0) {
-      errors.reject(
-          "custody-http_client-call_timeout-invalid",
-          "custody-http_client-call_timeout must be greater than or equal to 0");
-    }
-  }
 }
