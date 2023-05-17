@@ -110,9 +110,20 @@ class Sep24Helper(private val cfg: Config) {
   }
 
   internal suspend fun sendCustodyStellarTransaction(transactionId: String) {
-    client.post("$baseUrl/transactions/$transactionId/payments") {
-      contentType(ContentType.Application.Json)
-      setBody("{}")
+    val resp =
+      client.post("$baseUrl/transactions/$transactionId/payments") {
+        contentType(ContentType.Application.Json)
+        setBody("{}")
+      }
+
+    if (resp.status != HttpStatusCode.OK) {
+      val respBody = resp.bodyAsText()
+
+      log.error {
+        "Unexpected status code when sending custody Stellar transaction. Response body: $respBody"
+      }
+
+      throw Exception(respBody)
     }
   }
 
