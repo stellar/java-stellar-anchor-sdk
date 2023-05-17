@@ -1,8 +1,6 @@
 package org.stellar.anchor.util;
 
 import com.google.gson.Gson;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import org.apache.commons.text.WordUtils;
 

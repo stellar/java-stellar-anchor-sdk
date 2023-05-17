@@ -125,7 +125,9 @@ class TestProfileExecutor(val config: TestConfig) {
           .waitingForService("kafka", HealthChecks.toHaveAllPortsOpen())
           .waitingForService("db", HealthChecks.toHaveAllPortsOpen())
           .pullOnStartup(true)
-          .projectName(ProjectName.fromString("anchorplatform${UUID.randomUUID().toString().takeLast(6)}"))
+          .projectName(
+            ProjectName.fromString("anchorplatform${UUID.randomUUID().toString().takeLast(6)}")
+          )
           .build()
 
       docker.beforeAll(null)

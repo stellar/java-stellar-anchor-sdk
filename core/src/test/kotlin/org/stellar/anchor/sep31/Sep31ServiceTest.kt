@@ -519,7 +519,7 @@ class Sep31ServiceTest {
 
   @Test
   fun `test POST transaction failures`() {
-    val jwtToken = TestHelper.createJwtToken()
+    val jwtToken = TestHelper.createSep10Jwt()
 
     // missing asset code
     val postTxRequest = Sep31PostTransactionRequest()
@@ -759,7 +759,7 @@ class Sep31ServiceTest {
       }
 
     // POST transaction
-    val jwtToken = TestHelper.createJwtToken(accountMemo = TestHelper.TEST_MEMO)
+    val jwtToken = TestHelper.createSep10Jwt(accountMemo = TestHelper.TEST_MEMO)
     var gotResponse: Sep31PostTransactionResponse? = null
     assertDoesNotThrow { gotResponse = sep31Service.postTransaction(jwtToken, postTxRequest) }
 
@@ -848,7 +848,7 @@ class Sep31ServiceTest {
     every { customerIntegration.getCustomer(any()) } returns mockCustomer
 
     // POST transaction
-    val jwtToken = TestHelper.createJwtToken()
+    val jwtToken = TestHelper.createSep10Jwt()
     val ex: AnchorException = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("quotes_required is set to true; quote id cannot be empty", ex.message)
@@ -920,7 +920,7 @@ class Sep31ServiceTest {
     every { customerIntegration.getCustomer(any()) } returns mockCustomer
 
     // POST transaction
-    val jwtToken = TestHelper.createJwtToken()
+    val jwtToken = TestHelper.createSep10Jwt()
     var gotResponse: Sep31PostTransactionResponse? = null
     assertDoesNotThrow { gotResponse = sep31Service.postTransaction(jwtToken, postTxRequest) }
 
@@ -995,7 +995,7 @@ class Sep31ServiceTest {
 
   @Test
   fun `Test update fee ok`() {
-    val jwtToken = TestHelper.createJwtToken()
+    val jwtToken = TestHelper.createSep10Jwt()
     Context.get().request = request
     Context.get().sep10Jwt = jwtToken
 
@@ -1025,7 +1025,7 @@ class Sep31ServiceTest {
 
   @Test
   fun `test update fee failure`() {
-    val jwtToken = TestHelper.createJwtToken()
+    val jwtToken = TestHelper.createSep10Jwt()
     Context.get().request = request
     Context.get().sep10Jwt = jwtToken
 
