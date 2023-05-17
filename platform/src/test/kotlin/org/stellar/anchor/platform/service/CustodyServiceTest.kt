@@ -114,7 +114,7 @@ class CustodyServiceTest {
       assertThrows<InvalidConfigException> {
         custodyService.createTransactionPayment(TXN_ID, REQUEST_BODY)
       }
-    Assertions.assertEquals("Integration with custody services is not enabled", ex.message)
+    Assertions.assertEquals("Integration with custody service is not enabled", ex.message)
     verify(exactly = 0) { custodyApiClient.createTransactionPayment(TXN_ID, REQUEST_BODY) }
   }
 
@@ -126,6 +126,19 @@ class CustodyServiceTest {
     custodyService.createTransactionPayment(TXN_ID, REQUEST_BODY)
 
     verify(exactly = 1) { custodyApiClient.createTransactionPayment(TXN_ID, REQUEST_BODY) }
+  }
+
+  @Test
+  fun test_createTransactionPayment_custody_integration_disabled() {
+    custodyService = CustodyServiceImpl(Optional.empty())
+
+    val exception =
+      assertThrows<InvalidConfigException> {
+        custodyService.createTransactionPayment(TXN_ID, REQUEST_BODY)
+      }
+    Assertions.assertEquals("Integration with custody service is not enabled", exception.message)
+
+    verify(exactly = 0) { custodyApiClient.createTransactionPayment(any(), any()) }
   }
 
   @Test

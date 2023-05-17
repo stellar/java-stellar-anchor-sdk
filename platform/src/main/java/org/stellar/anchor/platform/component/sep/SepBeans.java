@@ -15,6 +15,7 @@ import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.config.AppConfig;
+import org.stellar.anchor.config.CustodyConfig;
 import org.stellar.anchor.config.SecretConfig;
 import org.stellar.anchor.config.Sep10Config;
 import org.stellar.anchor.config.Sep12Config;
@@ -204,7 +205,7 @@ public class SepBeans {
         return new Sep24DepositInfoCustodyGenerator(
             custodyApiClient.orElseThrow(
                 () ->
-                    new InvalidConfigException("Integration with Custody server is not enabled")));
+                    new InvalidConfigException("Integration with custody service is not enabled")));
       default:
         throw new RuntimeException("Not supported");
     }
@@ -239,7 +240,7 @@ public class SepBeans {
         return new Sep31DepositInfoCustodyGenerator(
             custodyApiClient.orElseThrow(
                 () ->
-                    new InvalidConfigException("Integration with Custody server is not enabled")));
+                    new InvalidConfigException("Integration with custody service is not enabled")));
       default:
         throw new RuntimeException("Not supported");
     }
@@ -257,7 +258,8 @@ public class SepBeans {
       FeeIntegration feeIntegration,
       CustomerIntegration customerIntegration,
       EventService eventService,
-      CustodyService custodyService) {
+      CustodyService custodyService,
+      CustodyConfig custodyConfig) {
     return new Sep31Service(
         appConfig,
         sep31Config,
@@ -268,7 +270,8 @@ public class SepBeans {
         feeIntegration,
         customerIntegration,
         eventService,
-        custodyService);
+        custodyService,
+        custodyConfig);
   }
 
   @Bean
