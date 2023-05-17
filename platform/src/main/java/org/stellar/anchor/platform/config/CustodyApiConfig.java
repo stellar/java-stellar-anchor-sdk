@@ -15,7 +15,9 @@ import org.stellar.anchor.util.NetUtil;
 
 @Data
 public class CustodyApiConfig implements Validator {
+
   private String baseUrl;
+  private HttpClientConfig httpClient;
   private AuthConfig auth;
   private CustodySecretConfig secretConfig;
 
@@ -37,6 +39,7 @@ public class CustodyApiConfig implements Validator {
   public void validate(@NotNull Object target, @NotNull Errors errors) {
     validateBaseUrl(errors);
     validateApiSecret(errors);
+    httpClient.validate("custody-server", errors);
   }
 
   private void validateBaseUrl(Errors errors) {
@@ -71,6 +74,29 @@ public class CustodyApiConfig implements Validator {
                   + auth.getType());
         }
       }
+    }
+  }
+
+  private void validateHttpClient(Errors errors) {
+    if (httpClient.getConnectTimeout() < 0) {
+      errors.reject(
+          "custody-http_client-connect_timeout-invalid",
+          "custody-http_client-connect_timeout must be greater than or equal to 0");
+    }
+    if (httpClient.getReadTimeout() < 0) {
+      errors.reject(
+          "custody-http_client-read_timeout-invalid",
+          "custody-http_client-read_timeout must be greater than or equal to 0");
+    }
+    if (httpClient.getWriteTimeout() < 0) {
+      errors.reject(
+          "custody-http_client-write_timeout-invalid",
+          "custody-http_client-write_timeout must be greater than or equal to 0");
+    }
+    if (httpClient.getCallTimeout() < 0) {
+      errors.reject(
+          "custody-http_client-call_timeout-invalid",
+          "custody-http_client-call_timeout must be greater than or equal to 0");
     }
   }
 }

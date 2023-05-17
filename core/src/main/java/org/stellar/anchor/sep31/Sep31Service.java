@@ -2,6 +2,7 @@ package org.stellar.anchor.sep31;
 
 import static org.stellar.anchor.api.event.AnchorEvent.Type.TRANSACTION_CREATED;
 import static org.stellar.anchor.api.sep.sep31.Sep31InfoResponse.AssetResponse;
+import static org.stellar.anchor.config.CustodyConfig.NONE_CUSTODY_TYPE;
 import static org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_SEND;
 import static org.stellar.anchor.util.Log.debug;
 import static org.stellar.anchor.util.Log.debugF;
@@ -56,6 +57,7 @@ import org.stellar.anchor.api.shared.StellarId;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.Sep10Jwt;
 import org.stellar.anchor.config.AppConfig;
+import org.stellar.anchor.config.CustodyConfig;
 import org.stellar.anchor.config.Sep31Config;
 import org.stellar.anchor.custody.CustodyService;
 import org.stellar.anchor.event.EventService;
@@ -76,6 +78,7 @@ public class Sep31Service {
   private final Sep31InfoResponse infoResponse;
   private final EventService eventService;
   private final CustodyService custodyService;
+  private final CustodyConfig custodyConfig;
 
   public Sep31Service(
       AppConfig appConfig,
@@ -87,7 +90,8 @@ public class Sep31Service {
       FeeIntegration feeIntegration,
       CustomerIntegration customerIntegration,
       EventService eventService,
-      CustodyService custodyService) {
+      CustodyService custodyService,
+      CustodyConfig custodyConfig) {
     debug("appConfig:", appConfig);
     debug("sep31Config:", sep31Config);
     this.appConfig = appConfig;
@@ -101,6 +105,7 @@ public class Sep31Service {
     this.eventService = eventService;
     this.infoResponse = sep31InfoResponseFromAssetInfoList(assetService.listAllAssets());
     this.custodyService = custodyService;
+    this.custodyConfig = custodyConfig;
     Log.info("Sep31Service initialized.");
   }
 
@@ -208,7 +213,9 @@ public class Sep31Service {
 
     updateDepositInfo();
 
-    custodyService.createTransaction(txn);
+    if (!NONE_CUSTODY_TYPE.equals(custodyConfig.getType())) {
+      custodyService.createTransaction(txn);
+    }
 
     eventService.publish(txn, TRANSACTION_CREATED);
 
