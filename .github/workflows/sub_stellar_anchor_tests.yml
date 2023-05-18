@@ -27,7 +27,7 @@ jobs:
           fi
 
           echo HOME_DOMAIN=$HOME_DOMAIN
-          echo "::set-output name=HOME_DOMAIN::$HOME_DOMAIN"
+          echo "HOME_DOMAIN=$HOME_DOMAIN" >> $GITHUB_OUTPUT
 
       - name: Install NodeJs
         uses: actions/setup-node@v2
