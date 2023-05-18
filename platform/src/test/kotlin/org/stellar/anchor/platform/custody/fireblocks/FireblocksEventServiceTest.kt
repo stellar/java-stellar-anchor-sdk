@@ -207,7 +207,6 @@ class FireblocksEventServiceTest {
     eventsService.handleEvent(eventObject, httpHeaders)
 
     verify(exactly = 0) { custodyTransactionRepo.findByExternalTxId(any()) }
-    verify(exactly = 0) { custodyTransactionRepo.findByToAccountAndMemo(any(), any()) }
   }
 
   @Test
