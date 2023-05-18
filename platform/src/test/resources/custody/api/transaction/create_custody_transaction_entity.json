@@ -11,5 +11,5 @@
   "from_account": "testFromAccount",
   "to_account": "testToAccount",
   "kind": "testKind",
-  "attempt_count": 0
+  "reconciliation_attempt_count": 0
 }

@@ -13,5 +13,5 @@
   "from_account": "testFrom",
   "to_account": "testToAccount",
   "kind": "deposit",
-  "attempt_count": 0
+  "reconciliation_attempt_count": 0
 }

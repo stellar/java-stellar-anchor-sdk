@@ -85,7 +85,7 @@ public class JdbcCustodyTransaction {
   @Column(name = "kind")
   String kind;
 
-  @SerializedName("attempt_count")
-  @Column(name = "attempt_count")
-  int attemptCount;
+  @SerializedName("reconciliation_attempt_count")
+  @Column(name = "reconciliation_attempt_count")
+  int reconciliationAttemptCount;
 }

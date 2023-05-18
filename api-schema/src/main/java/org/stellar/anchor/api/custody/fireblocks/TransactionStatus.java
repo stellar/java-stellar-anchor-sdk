@@ -19,11 +19,11 @@ public enum TransactionStatus {
   BLOCKED,
   FAILED;
 
-  public boolean isSuccessStatus() {
+  public boolean isCompleted() {
     return this.equals(COMPLETED);
   }
 
-  public boolean isObservableStatus() {
+  public boolean isObservable() {
     return Set.of(FAILED, CANCELLED, BLOCKED, COMPLETED).contains(this);
   }
 }

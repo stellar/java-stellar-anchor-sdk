@@ -51,9 +51,9 @@ public class FireblocksTransactionsReconciliationJob {
       TransactionDetails fireblocksTransaction =
           custodyPaymentService.getTransactionById(transaction.getExternalTxId());
 
-      int attempt = transaction.getAttemptCount() + 1;
+      int attempt = transaction.getReconciliationAttemptCount() + 1;
 
-      if (fireblocksTransaction.getStatus().isObservableStatus()) {
+      if (fireblocksTransaction.getStatus().isObservable()) {
         debugF(
             "Reconciliation attempt #[{}]: Fireblocks transaction status changed to [{}]",
             attempt,
@@ -66,9 +66,9 @@ public class FireblocksTransactionsReconciliationJob {
         debugF(
             "Reconciliation attempt #[{}]: Fireblocks transaction status wasn't changed", attempt);
 
-        transaction.setAttemptCount(attempt);
-        if (transaction.getAttemptCount()
-            == fireblocksConfig.getReconciliation().getMaxAttempts()) {
+        transaction.setReconciliationAttemptCount(attempt);
+        if (transaction.getReconciliationAttemptCount()
+            >= fireblocksConfig.getReconciliation().getMaxAttempts()) {
           debugF("Change transaction [{}] status to FAILED", transaction.getId());
           transaction.setStatus(CustodyTransactionStatus.FAILED.toString());
         }

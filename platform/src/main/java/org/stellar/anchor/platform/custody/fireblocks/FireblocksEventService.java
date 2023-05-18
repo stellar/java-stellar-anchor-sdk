@@ -85,13 +85,19 @@ public class FireblocksEventService extends CustodyEventService {
         FireblocksEventObject fireblocksEventObject =
             GsonUtils.getInstance().fromJson(event, FireblocksEventObject.class);
 
-        if (!fireblocksEventObject.getData().getStatus().isObservableStatus()) {
+        TransactionDetails transactionDetails = fireblocksEventObject.getData();
+        setExternalTxId(
+            transactionDetails.getDestinationAddress(),
+            transactionDetails.getDestinationTag(),
+            transactionDetails.getId());
+
+        if (!fireblocksEventObject.getData().getStatus().isObservable()) {
           debugF("Skipping Fireblocks webhook event[{}] due to the status", event);
           return;
         }
 
         try {
-          Optional<CustodyPayment> payment = convert(fireblocksEventObject.getData());
+          Optional<CustodyPayment> payment = convert(transactionDetails);
           if (payment.isPresent()) {
             handlePayment(payment.get());
           }
@@ -109,9 +115,7 @@ public class FireblocksEventService extends CustodyEventService {
   public Optional<CustodyPayment> convert(TransactionDetails td) throws IOException {
     Optional<OperationResponse> operation = Optional.empty();
     CustodyPaymentStatus status =
-        td.getStatus().isSuccessStatus()
-            ? CustodyPaymentStatus.SUCCESS
-            : CustodyPaymentStatus.ERROR;
+        td.getStatus().isCompleted() ? CustodyPaymentStatus.SUCCESS : CustodyPaymentStatus.ERROR;
     String message = null;
 
     if (CustodyPaymentStatus.ERROR == status && td.getSubStatus() != null) {

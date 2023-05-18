@@ -5,7 +5,6 @@ import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.slot
 import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
 import org.apache.commons.lang3.StringUtils
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
@@ -154,6 +153,6 @@ class FireblocksPaymentServiceTest {
       urlCapture.captured
     )
 
-    assertNotNull(response)
+    JSONAssert.assertEquals(responseJson, gson.toJson(response), JSONCompareMode.STRICT)
   }
 }

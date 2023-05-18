@@ -123,7 +123,7 @@ class FireblocksTransactionsReconciliationJobTest {
       JdbcCustodyTransaction.builder()
         .externalTxId(EXTERNAL_TXN_ID)
         .status(CustodyTransactionStatus.SUBMITTED.toString())
-        .attemptCount(attemptCount)
+        .reconciliationAttemptCount(attemptCount)
         .build()
     val fireblocksTransaction = TransactionDetails.builder().status(status).build()
 
@@ -134,6 +134,7 @@ class FireblocksTransactionsReconciliationJobTest {
     every { custodyPaymentService.getTransactionById(EXTERNAL_TXN_ID) } returns
       fireblocksTransaction
     every { custodyTransactionRepo.save(any()) } returns null
+    every { fireblocksConfig.reconciliation.maxAttempts } returns 10
 
     reconciliationJob.reconcileTransactions()
 
@@ -141,7 +142,7 @@ class FireblocksTransactionsReconciliationJobTest {
     verify(exactly = 1) { custodyTransactionService.updateCustodyTransaction(any()) }
 
     assertEquals(CustodyTransactionStatus.SUBMITTED.toString(), custodyTransaction.status)
-    assertEquals(1, custodyTransaction.attemptCount)
+    assertEquals(1, custodyTransaction.reconciliationAttemptCount)
   }
 
   @Test
@@ -151,7 +152,7 @@ class FireblocksTransactionsReconciliationJobTest {
       JdbcCustodyTransaction.builder()
         .externalTxId(EXTERNAL_TXN_ID)
         .status(CustodyTransactionStatus.SUBMITTED.toString())
-        .attemptCount(attemptCount)
+        .reconciliationAttemptCount(attemptCount)
         .build()
     val fireblocksTransaction =
       TransactionDetails.builder().status(TransactionStatus.CONFIRMING).build()
@@ -171,7 +172,7 @@ class FireblocksTransactionsReconciliationJobTest {
     verify(exactly = 1) { custodyTransactionService.updateCustodyTransaction(any()) }
 
     assertEquals(CustodyTransactionStatus.FAILED.toString(), custodyTransaction.status)
-    assertEquals(10, custodyTransaction.attemptCount)
+    assertEquals(10, custodyTransaction.reconciliationAttemptCount)
   }
 
   @Test
@@ -181,7 +182,7 @@ class FireblocksTransactionsReconciliationJobTest {
       JdbcCustodyTransaction.builder()
         .externalTxId(EXTERNAL_TXN_ID)
         .status(CustodyTransactionStatus.SUBMITTED.toString())
-        .attemptCount(attemptCount)
+        .reconciliationAttemptCount(attemptCount)
         .build()
 
     every { custodyTransactionService.transactionsEligibleForReconciliation } returns

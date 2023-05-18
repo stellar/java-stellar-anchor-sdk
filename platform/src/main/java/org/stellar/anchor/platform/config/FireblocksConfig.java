@@ -42,14 +42,6 @@ public class FireblocksConfig implements Validator {
     this.secretConfig = secretConfig;
   }
 
-  public void setRetryConfig(RetryConfig retryConfig) {
-    this.retryConfig = retryConfig;
-  }
-
-  public void setReconciliation(Reconciliation reconciliation) {
-    this.reconciliation = reconciliation;
-  }
-
   public void setAssetMappings(String assetMappings) {
     if (StringUtils.isEmpty(assetMappings)) {
       this.assetMappings = Collections.emptyMap();
