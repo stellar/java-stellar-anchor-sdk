@@ -6,6 +6,7 @@ import static org.stellar.anchor.platform.configurator.ConfigMap.ConfigSource.FI
 import static org.stellar.anchor.util.Log.*;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Properties;
 import lombok.Builder;
@@ -141,7 +142,18 @@ public abstract class ConfigManager
     String yamlConfigFile = ConfigEnvironment.getenv(STELLAR_ANCHOR_CONFIG);
 
     if (yamlConfigFile != null) {
-      Resource resource = applicationContext.getResource(yamlConfigFile);
+      List<String> yamlConfigFiles =
+          Arrays.asList(
+              yamlConfigFile,
+              String.format("file://%s", yamlConfigFile), // For Linux file systems
+              String.format("file:%s", yamlConfigFile)); // For Windows file systems
+      Resource resource = null;
+      for (String file : yamlConfigFiles) {
+        resource = applicationContext.getResource(file);
+        if (resource.exists()) {
+          return resource;
+        }
+      }
       if (!resource.exists()) {
         throw new IOException(
             String.format("Failed to read configuration from %s", yamlConfigFile));
