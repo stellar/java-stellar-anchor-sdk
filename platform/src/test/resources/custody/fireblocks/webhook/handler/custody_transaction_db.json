@@ -12,5 +12,6 @@
   "protocol": "24",
   "from_account": "testFrom",
   "to_account": "testToAccount",
-  "kind": "deposit"
+  "kind": "deposit",
+  "attempt_count": 0
 }

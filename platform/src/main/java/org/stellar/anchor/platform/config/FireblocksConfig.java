@@ -33,9 +33,9 @@ public class FireblocksConfig implements Validator {
   private String baseUrl;
   private String vaultAccountId;
   private CustodySecretConfig secretConfig;
-  private String transactionsReconciliationCron;
   private String publicKey;
   private RetryConfig retryConfig;
+  private Reconciliation reconciliation;
   private Map<String, String> assetMappings;
 
   public FireblocksConfig(CustodySecretConfig secretConfig) {
@@ -44,6 +44,10 @@ public class FireblocksConfig implements Validator {
 
   public void setRetryConfig(RetryConfig retryConfig) {
     this.retryConfig = retryConfig;
+  }
+
+  public void setReconciliation(Reconciliation reconciliation) {
+    this.reconciliation = reconciliation;
   }
 
   public void setAssetMappings(String assetMappings) {
@@ -88,7 +92,8 @@ public class FireblocksConfig implements Validator {
     validateVaultAccountId(errors);
     validateApiKey(errors);
     validateSecretKey(errors);
-    validateTransactionsReconciliationCron(errors);
+    validateReconciliationCronExpression(errors);
+    validateReconciliationMaxAttempts(errors);
     validatePublicKey(errors);
     validateRetryMaxAttempts(errors);
     validateRetryDelay(errors);
@@ -139,16 +144,24 @@ public class FireblocksConfig implements Validator {
     }
   }
 
-  private void validateTransactionsReconciliationCron(Errors errors) {
-    if (isEmpty(transactionsReconciliationCron)) {
+  private void validateReconciliationCronExpression(Errors errors) {
+    if (isEmpty(reconciliation.cronExpression)) {
       errors.reject(
-          "custody-fireblocks-transactions-reconciliation-cron-empty",
-          "The custody.fireblocks.transactions_reconciliation_cron is empty");
+          "custody-fireblocks-reconciliation-cron_expression-empty",
+          "The custody.fireblocks.reconciliation.cron_expression is empty");
     }
-    if (!CronExpression.isValidExpression(transactionsReconciliationCron)) {
+    if (!CronExpression.isValidExpression(reconciliation.cronExpression)) {
       errors.reject(
-          "custody-fireblocks-transactions-reconciliation-cron-invalid",
-          "The custody.fireblocks.transactions_reconciliation_cron is invalid");
+          "custody-fireblocks-reconciliation-cron_expression-invalid",
+          "The custody.fireblocks.reconciliation.cron_expression is invalid");
+    }
+  }
+
+  private void validateReconciliationMaxAttempts(Errors errors) {
+    if (reconciliation.maxAttempts < 0) {
+      errors.reject(
+          "custody-fireblocks-reconciliation-max_attempts-invalid",
+          "custody.fireblocks.reconciliation.max_attempts must be greater than or equal to 0");
     }
   }
 
@@ -164,18 +177,18 @@ public class FireblocksConfig implements Validator {
   }
 
   public void validateRetryMaxAttempts(Errors errors) {
-    if (retryConfig.getMaxAttempts() < 0) {
+    if (retryConfig.maxAttempts < 0) {
       errors.reject(
           "custody-fireblocks-retry_config-max_attempts-invalid",
-          "custody-fireblocks-retry_config-max_attempts must be greater than 0");
+          "custody.fireblocks.retry_config.max_attempts must be greater than or equal to 0");
     }
   }
 
   public void validateRetryDelay(Errors errors) {
-    if (retryConfig.getDelay() < 0) {
+    if (retryConfig.delay < 0) {
       errors.reject(
           "custody-fireblocks-retry_config-delay-invalid",
-          "custody-fireblocks-retry_config-delay must be greater than 0");
+          "custody.fireblocks.retry_config.delay must be greater than or equal to 0");
     }
   }
 
@@ -211,5 +224,13 @@ public class FireblocksConfig implements Validator {
   public static class RetryConfig {
     private int maxAttempts;
     private int delay;
+  }
+
+  @Data
+  @AllArgsConstructor
+  @NoArgsConstructor
+  public static class Reconciliation {
+    private int maxAttempts;
+    private String cronExpression;
   }
 }

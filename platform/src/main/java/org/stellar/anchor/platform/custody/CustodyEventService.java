@@ -29,7 +29,7 @@ public abstract class CustodyEventService {
   public abstract void handleEvent(String event, Map<String, String> headers)
       throws BadRequestException;
 
-  protected void handlePayment(CustodyPayment payment) throws AnchorException, IOException {
+  public void handlePayment(CustodyPayment payment) throws AnchorException, IOException {
     JdbcCustodyTransaction custodyTransaction = getCustodyTransaction(payment);
 
     if (custodyTransaction == null) {

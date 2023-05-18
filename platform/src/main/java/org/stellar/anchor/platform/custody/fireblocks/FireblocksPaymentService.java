@@ -13,6 +13,7 @@ import org.stellar.anchor.api.custody.fireblocks.CreateAddressRequest;
 import org.stellar.anchor.api.custody.fireblocks.CreateAddressResponse;
 import org.stellar.anchor.api.custody.fireblocks.CreateTransactionRequest;
 import org.stellar.anchor.api.custody.fireblocks.CreateTransactionResponse;
+import org.stellar.anchor.api.custody.fireblocks.TransactionDetails;
 import org.stellar.anchor.api.exception.FireblocksException;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.platform.config.FireblocksConfig;
@@ -28,6 +29,7 @@ public class FireblocksPaymentService implements CustodyPaymentService {
   private static final String CREATE_NEW_DEPOSIT_ADDRESS_URL_FORMAT =
       "/v1/vault/accounts/%s/%s/addresses";
   private static final String CREATE_NEW_TRANSACTION_PAYMENT_URL = "/v1/transactions";
+  private static final String GET_TRANSACTION_BY_ID_URL_FORMAT = "/v1/transactions/%s";
 
   private final FireblocksApiClient fireblocksApiClient;
   private final FireblocksConfig fireblocksConfig;
@@ -87,5 +89,12 @@ public class FireblocksPaymentService implements CustodyPaymentService {
             new CreateTransactionRequest.DestinationTransferPeerPath(
                 ONE_TIME_ADDRESS, new CreateTransactionRequest.OneTimeAddress(txn.getToAccount())))
         .build();
+  }
+
+  @Override
+  public TransactionDetails getTransactionById(String txnId) throws FireblocksException {
+    return gson.fromJson(
+        fireblocksApiClient.get(String.format(GET_TRANSACTION_BY_ID_URL_FORMAT, txnId)),
+        TransactionDetails.class);
   }
 }

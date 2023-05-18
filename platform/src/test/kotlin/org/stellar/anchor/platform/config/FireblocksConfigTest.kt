@@ -14,6 +14,7 @@ import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.validation.BindException
 import org.springframework.validation.Errors
 import org.stellar.anchor.api.exception.InvalidConfigException
+import org.stellar.anchor.platform.config.FireblocksConfig.Reconciliation
 import org.stellar.anchor.platform.config.FireblocksConfig.RetryConfig
 import org.stellar.anchor.util.FileUtil
 
@@ -33,7 +34,7 @@ class FireblocksConfigTest {
     config.retryConfig = RetryConfig(3, 1000)
     config.baseUrl = "https://test.com"
     config.vaultAccountId = "testAccountId"
-    config.transactionsReconciliationCron = "* * * * * *"
+    config.reconciliation = Reconciliation(10, "* * * * * *")
     config.publicKey = FileUtil.getResourceFileAsString("custody/fireblocks/client/public_key.txt")
     errors = BindException(config, "config")
   }
@@ -116,7 +117,7 @@ class FireblocksConfigTest {
   @ParameterizedTest
   @ValueSource(strings = ["* * * * * *", "0 0/15 * * * *"])
   fun `test valid transactions_reconciliation_cron`(cron: String) {
-    config.transactionsReconciliationCron = cron
+    config.reconciliation.cronExpression = cron
     config.validate(config, errors)
     assertFalse(errors.hasErrors())
   }
@@ -124,17 +125,33 @@ class FireblocksConfigTest {
   @ParameterizedTest
   @ValueSource(strings = [""])
   fun `test empty transactions_reconciliation_cron`(cron: String) {
-    config.transactionsReconciliationCron = cron
+    config.reconciliation.cronExpression = cron
     config.validate(config, errors)
-    assertErrorCode(errors, "custody-fireblocks-transactions-reconciliation-cron-empty")
+    assertErrorCode(errors, "custody-fireblocks-reconciliation-cron_expression-empty")
   }
 
   @ParameterizedTest
   @ValueSource(strings = ["* * * * *", "* * * * * * *", "0/a * * * * *"])
   fun `test invalid transactions_reconciliation_cron`(cron: String) {
-    config.transactionsReconciliationCron = cron
+    config.reconciliation.cronExpression = cron
     config.validate(config, errors)
-    assertErrorCode(errors, "custody-fireblocks-transactions-reconciliation-cron-invalid")
+    assertErrorCode(errors, "custody-fireblocks-reconciliation-cron_expression-invalid")
+  }
+
+  @ParameterizedTest
+  @ValueSource(ints = [0, 1, Int.MAX_VALUE])
+  fun `test valid reconciliation_max_attempts`(maxAttempts: Int) {
+    config.reconciliation.maxAttempts = maxAttempts
+    config.validate(config, errors)
+    assertFalse(errors.hasErrors())
+  }
+
+  @ParameterizedTest
+  @ValueSource(ints = [-1, Int.MIN_VALUE])
+  fun `test invalid reconciliation_max_attempts`(maxAttempts: Int) {
+    config.reconciliation.maxAttempts = maxAttempts
+    config.validate(config, errors)
+    assertErrorCode(errors, "custody-fireblocks-reconciliation-max_attempts-invalid")
   }
 
   @Test

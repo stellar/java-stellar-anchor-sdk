@@ -1,8 +1,10 @@
 package org.stellar.anchor.platform.custody;
 
+import static org.stellar.anchor.platform.data.CustodyTransactionStatus.SUBMITTED;
 import static org.stellar.anchor.util.Log.debugF;
 
 import java.time.Instant;
+import java.util.List;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.stellar.anchor.api.custody.CreateCustodyTransactionRequest;
@@ -58,7 +60,7 @@ public class CustodyTransactionService {
     CreateTransactionPaymentResponse response;
     try {
       response = custodyPaymentService.createTransactionPayment(txn, requestBody);
-      updateCustodyTransaction(txn, response.getId(), CustodyTransactionStatus.SUBMITTED);
+      updateCustodyTransaction(txn, response.getId(), SUBMITTED);
     } catch (FireblocksException e) {
       updateCustodyTransaction(txn, StringUtils.EMPTY, CustodyTransactionStatus.FAILED);
       switch (HttpStatus.valueOf(e.getStatusCode())) {
@@ -81,7 +83,15 @@ public class CustodyTransactionService {
       JdbcCustodyTransaction txn, String externalTransactionId, CustodyTransactionStatus status) {
     txn.setExternalTxId(externalTransactionId);
     txn.setStatus(status.toString());
+    updateCustodyTransaction(txn);
+  }
+
+  public void updateCustodyTransaction(JdbcCustodyTransaction txn) {
     txn.setUpdatedAt(Instant.now());
     custodyTransactionRepo.save(txn);
+  }
+
+  public List<JdbcCustodyTransaction> getTransactionsEligibleForReconciliation() {
+    return custodyTransactionRepo.findAllByStatusAndExternalTxIdNotNull(SUBMITTED.toString());
   }
 }

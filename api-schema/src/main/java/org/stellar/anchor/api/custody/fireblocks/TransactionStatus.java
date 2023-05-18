@@ -1,5 +1,7 @@
 package org.stellar.anchor.api.custody.fireblocks;
 
+import java.util.Set;
+
 public enum TransactionStatus {
   SUBMITTED,
   QUEUED,
@@ -15,5 +17,13 @@ public enum TransactionStatus {
   CANCELLED,
   REJECTED,
   BLOCKED,
-  FAILED
+  FAILED;
+
+  public boolean isSuccessStatus() {
+    return this.equals(COMPLETED);
+  }
+
+  public boolean isObservableStatus() {
+    return Set.of(FAILED, CANCELLED, BLOCKED, COMPLETED).contains(this);
+  }
 }

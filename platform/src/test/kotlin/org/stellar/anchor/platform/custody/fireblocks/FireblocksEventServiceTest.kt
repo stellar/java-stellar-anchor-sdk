@@ -100,6 +100,7 @@ class FireblocksEventServiceTest {
     val httpHeaders: Map<String, String> = mutableMapOf(FIREBLOCKS_SIGNATURE_HEADER to signature)
     val eventObject: String =
       getResourceFileAsString("custody/fireblocks/webhook/completed_event_request.json")
+        .trimIndent()
 
     val paymentCapture = slot<CustodyPayment>()
 
@@ -140,7 +141,7 @@ class FireblocksEventServiceTest {
       getResourceFileAsString("custody/fireblocks/webhook/failed_event_signature.txt")
     val httpHeaders: Map<String, String> = mutableMapOf(FIREBLOCKS_SIGNATURE_HEADER to signature)
     val eventObject: String =
-      getResourceFileAsString("custody/fireblocks/webhook/failed_event_request.json")
+      getResourceFileAsString("custody/fireblocks/webhook/failed_event_request.json").trimIndent()
 
     val paymentCapture = slot<CustodyPayment>()
 
@@ -235,6 +236,7 @@ class FireblocksEventServiceTest {
     val httpHeaders: Map<String, String> = mutableMapOf(FIREBLOCKS_SIGNATURE_HEADER to signature)
     val eventObject: String =
       getResourceFileAsString("custody/fireblocks/webhook/completed_event_request.json")
+        .trimIndent()
 
     val paymentCapture = slot<CustodyPayment>()
 
@@ -285,6 +287,7 @@ class FireblocksEventServiceTest {
     val httpHeaders: Map<String, String> = mutableMapOf(FIREBLOCKS_SIGNATURE_HEADER to signature)
     val eventObject: String =
       getResourceFileAsString("custody/fireblocks/webhook/completed_event_request.json")
+        .trimIndent()
 
     val paymentCapture = slot<CustodyPayment>()
 

@@ -1,0 +1,56 @@
+{
+  "id": "2db60d66-163f-4caf-9cf4-538ce895f32f",
+  "createdAt": 1683906114688,
+  "lastUpdated": 1683906114958,
+  "assetId": "XLM_USDC_T_CEKS",
+  "source": {
+    "id": "",
+    "type": "UNKNOWN",
+    "name": "External",
+    "subType": ""
+  },
+  "destination": {
+    "id": "1",
+    "type": "VAULT_ACCOUNT",
+    "name": "TestAnchor",
+    "subType": ""
+  },
+  "amount": 0.2,
+  "fee": 0.00001,
+  "networkFee": 0.00001,
+  "netAmount": 0.2,
+  "sourceAddress": "GD3ZMOHJXZCFGZZSTFD7ZXFVSYEJUBFV4RQXJOQSLNSSQ46WNSESU2PS",
+  "destinationAddress": "GB4LDT5G6GC26QUDS3YQ3XCIRSIYTIIWA3PLKFP4B7PRZC5DRZKSZHSK",
+  "destinationAddressDescription": "",
+  "destinationTag": "1222977634",
+  "status": "COMPLETED",
+  "txHash": "fc0023db2ddcedf1d9ee0c7b8da68eef043b8e6928d1ec74347c05038a2e584c",
+  "subStatus": "CONFIRMED",
+  "signedBy": [],
+  "createdBy": "",
+  "rejectedBy": "",
+  "amountUSD": 0.2,
+  "addressType": "",
+  "note": "",
+  "exchangeTxId": "",
+  "requestedAmount": 0.2,
+  "feeCurrency": "XLM_TEST",
+  "operation": "TRANSFER",
+  "numOfConfirmations": 1,
+  "amountInfo": {
+    "amount": "0.2",
+    "requestedAmount": "0.2",
+    "netAmount": "0.2",
+    "amountUSD": "0.20"
+  },
+  "feeInfo": {
+    "networkFee": "0.00001"
+  },
+  "destinations": [],
+  "blockInfo": {
+    "blockHeight": "957916",
+    "blockHash": "09337b0c320b753bab7e884e660892990f73d5eed3e4ec07dbf85880d34eccb7"
+  },
+  "signedMessages": [],
+  "index": 0
+}

@@ -1,8 +1,10 @@
 package org.stellar.anchor.api.custody.fireblocks;
 
+import lombok.Builder;
 import lombok.Data;
 
 @Data
+@Builder
 public class TransactionDetails {
   private String id;
   private String assetId;

@@ -5,6 +5,7 @@ import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.slot
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import org.apache.commons.lang3.StringUtils
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
@@ -25,6 +26,7 @@ class FireblocksPaymentServiceTest {
     private const val ASSET_ID = "TEST_ASSET_ID"
     private const val TO_ACCOUNT_ID = "toVaultAccountId"
     private const val AMOUNT = "10"
+    private const val EXTERNAL_TXN_ID = "TRANSACTION_ID"
   }
 
   private val gson = GsonUtils.getInstance()
@@ -135,5 +137,23 @@ class FireblocksPaymentServiceTest {
       }
 
     assertEquals(expectedMessage, exception.message)
+  }
+
+  @Test
+  fun test_getTransactionById_success() {
+    val responseJson =
+      getResourceFileAsString("custody/api/payment/fireblocks/get_transaction_response.json")
+    val urlCapture = slot<String>()
+
+    every { fireblocksClient.get(capture(urlCapture)) } returns responseJson
+
+    val response = fireblocksPaymentService.getTransactionById(EXTERNAL_TXN_ID)
+
+    Assertions.assertEquals(
+      String.format("/v1/transactions/%s", EXTERNAL_TXN_ID),
+      urlCapture.captured
+    )
+
+    assertNotNull(response)
   }
 }
