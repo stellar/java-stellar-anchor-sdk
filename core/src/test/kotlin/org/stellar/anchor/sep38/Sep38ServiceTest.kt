@@ -13,7 +13,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode.STRICT
-import org.stellar.anchor.TestHelper.Companion.createJwtToken
+import org.stellar.anchor.TestHelper.Companion.createSep10Jwt
 import org.stellar.anchor.api.callback.GetRateRequest
 import org.stellar.anchor.api.callback.GetRateRequest.Type.*
 import org.stellar.anchor.api.callback.GetRateResponse
@@ -692,13 +692,13 @@ class Sep38ServiceTest {
     assertEquals("missing sep10 jwt token", ex.message)
 
     // malformed token
-    var token = createJwtToken("")
+    var token = createSep10Jwt("")
     ex = assertThrows { sep38Service.postQuote(token, Sep38PostQuoteRequest.builder().build()) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("sep10 token is malformed", ex.message)
 
     // empty sell_asset
-    token = createJwtToken()
+    token = createSep10Jwt()
     ex = assertThrows { sep38Service.postQuote(token, Sep38PostQuoteRequest.builder().build()) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("sell_asset cannot be empty", ex.message)
@@ -1001,7 +1001,7 @@ class Sep38ServiceTest {
     every { eventService.publish(capture(slotEvent)) } just Runs
 
     // test happy path with the minimum parameters using sellAmount
-    val token = createJwtToken()
+    val token = createSep10Jwt()
     var gotResponse: Sep38QuoteResponse? = null
     assertDoesNotThrow {
       gotResponse =
@@ -1112,7 +1112,7 @@ class Sep38ServiceTest {
     every { eventService.publish(capture(slotEvent)) } just Runs
 
     // test happy path with the minimum parameters using sellAmount
-    val token = createJwtToken()
+    val token = createSep10Jwt()
     var gotResponse: Sep38QuoteResponse? = null
     assertDoesNotThrow {
       gotResponse =
@@ -1225,7 +1225,7 @@ class Sep38ServiceTest {
     every { eventService.publish(capture(slotEvent)) } just Runs
 
     // test happy path with the minimum parameters using sellAmount
-    val token = createJwtToken()
+    val token = createSep10Jwt()
     var gotResponse: Sep38QuoteResponse? = null
     assertDoesNotThrow {
       gotResponse =
@@ -1342,7 +1342,7 @@ class Sep38ServiceTest {
     every { eventService.publish(capture(slotEvent)) } just Runs
 
     // test happy path with the minimum parameters using sellAmount
-    val token = createJwtToken()
+    val token = createSep10Jwt()
     var gotResponse: Sep38QuoteResponse? = null
     assertDoesNotThrow {
       gotResponse =
@@ -1429,13 +1429,13 @@ class Sep38ServiceTest {
     assertEquals("missing sep10 jwt token", ex.message)
 
     // malformed token
-    var token = createJwtToken("")
+    var token = createSep10Jwt("")
     ex = assertThrows { sep38Service.getQuote(token, null) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("sep10 token is malformed", ex.message)
 
     // empty quote id
-    token = createJwtToken()
+    token = createSep10Jwt()
     ex = assertThrows { sep38Service.getQuote(token, null) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("quote id cannot be empty", ex.message)
@@ -1527,7 +1527,7 @@ class Sep38ServiceTest {
     every { quoteStore.findByQuoteId(capture(slotQuoteId)) } returns mockQuote
 
     // execute request
-    val token = createJwtToken()
+    val token = createSep10Jwt()
     var gotQuoteResponse: Sep38QuoteResponse? = null
     assertDoesNotThrow { gotQuoteResponse = sep38Service.getQuote(token, "123") }
 
