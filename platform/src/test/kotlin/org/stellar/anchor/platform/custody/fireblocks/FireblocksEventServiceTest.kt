@@ -202,6 +202,7 @@ class FireblocksEventServiceTest {
     every { page.records } returns operationRecords
     every { custodyTransactionRepo.findByExternalTxId(any()) } returns custodyTxn
     every { sep24CustodyPaymentHandler.onSent(eq(custodyTxn), capture(paymentCapture)) } just runs
+    every { custodyTransactionRepo.findByToAccountAndMemo(any(), any()) } returns null
 
     eventsService.handleEvent(eventObject, httpHeaders)
 
