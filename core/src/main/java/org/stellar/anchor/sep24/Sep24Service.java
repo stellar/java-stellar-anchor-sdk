@@ -45,7 +45,7 @@ public class Sep24Service {
 
   static final Gson gson = GsonUtils.getInstance();
 
-  public static final List<String> INTERACTIVE_URL_JWT_REQUIRED_FIELDS =
+  public static final List<String> INTERACTIVE_URL_JWT_REQUIRED_FIELDS_FROM_REQUEST =
       List.of("amount", "client_domain", "lang");
 
   public Sep24Service(

@@ -10,4 +10,4 @@ sep24:
   # When true, enables test endpoints
   enableTest: true
   # Encryption key for interactive JWT
-  interactiveJwtKey: "sep24 interactive url secret"
+  interactiveJwtKey: "secret_sep24_interactive_url_jwt_secret"
