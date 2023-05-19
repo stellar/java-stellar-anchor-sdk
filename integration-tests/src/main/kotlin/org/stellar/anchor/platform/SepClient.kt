@@ -37,7 +37,7 @@ open class SepClient {
   }
 
   fun httpPost(url: String, requestBody: Map<String, Any>, jwt: String? = null): String? {
-    val headers = if (jwt != null) mapOf("Authorization" to "Bearer $jwt") else emptyMap()
+    val headers = if (jwt != null) mapOf("Authorization" to "Bearer $jwt") else mapOf()
     return httpPost(url, requestBody, headers)
   }
 

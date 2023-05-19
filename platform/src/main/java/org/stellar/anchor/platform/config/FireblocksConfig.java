@@ -10,7 +10,6 @@ import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -48,7 +47,7 @@ public class FireblocksConfig implements Validator {
 
   public void setAssetMappings(String assetMappings) {
     if (StringUtils.isEmpty(assetMappings)) {
-      this.assetMappings = Collections.emptyMap();
+      this.assetMappings = Map.of();
     } else {
       this.assetMappings =
           Arrays.stream(assetMappings.split(StringUtils.LF))
@@ -209,6 +208,7 @@ public class FireblocksConfig implements Validator {
   @AllArgsConstructor
   @NoArgsConstructor
   public static class RetryConfig {
+
     private int maxAttempts;
     private int delay;
   }
