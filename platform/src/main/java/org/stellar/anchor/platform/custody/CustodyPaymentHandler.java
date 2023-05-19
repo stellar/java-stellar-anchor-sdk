@@ -75,12 +75,12 @@ public abstract class CustodyPaymentHandler {
     }
 
     String paymentAssetName = "stellar:" + payment.getAssetName();
-    if (!txn.getAmountInAsset().equals(paymentAssetName)) {
+    if (!txn.getAmountAsset().equals(paymentAssetName)) {
       warnF(
           "Incoming payment asset[{}] does not match the expected asset[{}]. Payment: id[{}], "
               + "externalTxId[{}] ",
           payment.getAssetName(),
-          txn.getAmountInAsset(),
+          txn.getAmountAsset(),
           payment.getId(),
           payment.getExternalTxId());
       payment.setStatus(CustodyPaymentStatus.ERROR);
@@ -89,7 +89,7 @@ public abstract class CustodyPaymentHandler {
     }
 
     // Check if the payment contains the expected amount (or greater)
-    BigDecimal expectedAmount = decimal(txn.getAmountIn());
+    BigDecimal expectedAmount = decimal(txn.getAmount());
     BigDecimal gotAmount = decimal(payment.getAmount());
 
     if (gotAmount.compareTo(expectedAmount) < 0) {

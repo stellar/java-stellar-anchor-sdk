@@ -4,9 +4,7 @@
   "memoType": "testStellarMemoType",
   "protocol": "31",
   "toAccount": "testStellarAccountId",
-  "amountIn": "testAmountIn",
-  "amountInAsset": "testAmountInAsset",
-  "amountOut": "testAmountOut",
-  "amountOutAsset": "testAmountOutAsset",
+  "amount": "testAmountIn",
+  "amountAsset": "testAmountInAsset",
   "kind": "receive"
 }
