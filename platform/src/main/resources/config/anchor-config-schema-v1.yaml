@@ -104,7 +104,15 @@ custody_server.auth.jwt.expiration_milliseconds:
 custody_server.auth.jwt.http_header:
 custody_server.auth.type:
 custody_server.base_url:
+custody_server.http_client.connect_timeout:
+custody_server.http_client.read_timeout:
+custody_server.http_client.write_timeout:
+custody_server.http_client.call_timeout:
 custody.type:
+custody.http_client.connect_timeout:
+custody.http_client.read_timeout:
+custody.http_client.write_timeout:
+custody.http_client.call_timeout:
 custody.fireblocks.base_url:
 custody.fireblocks.vault_account_id:
 custody.fireblocks.transactions_reconciliation_cron:
