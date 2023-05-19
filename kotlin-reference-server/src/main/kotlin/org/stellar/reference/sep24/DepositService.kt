@@ -1,6 +1,7 @@
 package org.stellar.reference.sep24
 
 import java.math.BigDecimal
+import java.math.RoundingMode
 import mu.KotlinLogging
 import org.stellar.reference.data.*
 import org.stellar.sdk.responses.operations.PaymentOperationResponse
@@ -91,7 +92,9 @@ class DepositService(private val cfg: Config) {
 
   // Set 10% fee
   private fun calculateFee(amount: BigDecimal): BigDecimal {
-    return amount.multiply(BigDecimal.valueOf(0.1))
+    val fee = amount.multiply(BigDecimal.valueOf(0.1))
+    val scale = if (amount.scale() == 0) 1 else amount.scale()
+    return fee.setScale(scale, RoundingMode.DOWN)
   }
 
   private suspend fun finalizeCustodyStellarTransaction(transactionId: String) {
