@@ -34,7 +34,9 @@ class ApiKeyAuthIntegrationTest {
   companion object {
     private const val ANCHOR_TO_PLATFORM_SECRET = "myAnchorToPlatformSecret"
     private const val PLATFORM_TO_ANCHOR_SECRET = "myPlatformToAnchorSecret"
+    private const val CUSTODY_SERVER_SECRET = "custodyServerSecret"
     private const val PLATFORM_SERVER_PORT = 8080
+    private const val CUSTODY_SERVER_SERVER_PORT = 8085
   }
   private val gson = GsonUtils.getInstance()
   private val httpClient: OkHttpClient =
@@ -44,6 +46,7 @@ class ApiKeyAuthIntegrationTest {
       .writeTimeout(10, TimeUnit.MINUTES)
       .build()
   private lateinit var platformServerContext: ConfigurableApplicationContext
+  private lateinit var custodyServerContext: ConfigurableApplicationContext
   private lateinit var mockBusinessServer: MockWebServer
 
   @BeforeAll
@@ -63,14 +66,23 @@ class ApiKeyAuthIntegrationTest {
     envMap["secret.platform_api.auth_secret"] = ANCHOR_TO_PLATFORM_SECRET
     envMap["callback_api.auth.type"] = "api_key"
     envMap["secret.callback_api.auth_secret"] = PLATFORM_TO_ANCHOR_SECRET
+    envMap["custody_server.auth.type"] = "api_key"
+    envMap["secret.custody_server.auth_secret"] = CUSTODY_SERVER_SECRET
+    envMap["secret.custody.fireblocks.api_key"] = "testApiKey"
+    envMap["secret.custody.fireblocks.secret_key"] =
+      getResourceFile("config/secret_key.txt").readText()
 
     // Start platform
     platformServerContext = AnchorPlatformServer().start(envMap)
+
+    // Start custody server
+    custodyServerContext = CustodyServer().start(envMap)
   }
 
   @AfterAll
   fun teardown() {
     SpringApplication.exit(platformServerContext)
+    SpringApplication.exit(custodyServerContext)
     mockBusinessServer.shutdown()
     clearAllMocks()
     unmockkAll()
@@ -119,6 +131,33 @@ class ApiKeyAuthIntegrationTest {
         .build()
     val response = httpClient.newCall(httpRequest).execute()
     assertNotEquals(403, response.code)
+  }
+
+  @ParameterizedTest
+  @CsvSource(value = ["GET,/transactions"])
+  fun test_incomingCustodyAuth_emptyApiKey_authFails(method: String, endpoint: String) {
+    val httpRequest =
+      Request.Builder()
+        .url("http://localhost:$CUSTODY_SERVER_SERVER_PORT$endpoint")
+        .header("Content-Type", "application/json")
+        .method(method, getDummyRequestBody(method))
+        .build()
+    val response = httpClient.newCall(httpRequest).execute()
+    assertEquals(403, response.code)
+  }
+
+  @ParameterizedTest
+  @CsvSource(value = ["GET,/transactions"])
+  fun test_incomingCustodyAuth_emptyApiKey_authPasses(method: String, endpoint: String) {
+    val httpRequest =
+      Request.Builder()
+        .url("http://localhost:$CUSTODY_SERVER_SERVER_PORT$endpoint")
+        .header("Content-Type", "application/json")
+        .header("X-Api-Key", ANCHOR_TO_PLATFORM_SECRET)
+        .method(method, getDummyRequestBody(method))
+        .build()
+    val response = httpClient.newCall(httpRequest).execute()
+    assertEquals(403, response.code)
   }
 
   @Test
@@ -183,7 +222,7 @@ class ApiKeyAuthIntegrationTest {
   }
 
   private fun getDummyRequestBody(method: String): RequestBody? {
-    return if (method != "PATCH") null
+    return if (method != "PATCH" && method != "POST") null
     else OkHttpUtil.buildJsonRequestBody(gson.toJson(mapOf("proposedAssetsJson" to "bar")))
   }
 }

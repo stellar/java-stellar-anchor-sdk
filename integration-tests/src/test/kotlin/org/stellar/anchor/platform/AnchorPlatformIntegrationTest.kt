@@ -1,6 +1,7 @@
 package org.stellar.anchor.platform
 
 import kotlinx.coroutines.*
+import okhttp3.mockwebserver.MockWebServer
 import org.junit.jupiter.api.*
 import org.stellar.anchor.platform.test.*
 
@@ -8,16 +9,19 @@ import org.stellar.anchor.platform.test.*
 class AnchorPlatformIntegrationTest : AbstractIntegrationTest(TestConfig(profileName = "default")) {
   companion object {
     private val singleton = AnchorPlatformIntegrationTest()
+    private val custodyMockServer = MockWebServer()
 
     @BeforeAll
     @JvmStatic
     fun construct() {
-      singleton.setUp()
+      custodyMockServer.start()
+      singleton.setUp(mapOf("custody.fireblocks.base_url" to custodyMockServer.url("").toString()))
     }
 
     @AfterAll
     @JvmStatic
     fun destroy() {
+      custodyMockServer.shutdown()
       singleton.tearDown()
     }
   }
@@ -68,5 +72,11 @@ class AnchorPlatformIntegrationTest : AbstractIntegrationTest(TestConfig(profile
   @Order(8)
   fun runStellarObserverTest() {
     singleton.stellarObserverTests.testAll()
+  }
+
+  @Test
+  @Order(9)
+  fun runCustodyApiTest() {
+    singleton.custodyApiTests.testAll(custodyMockServer)
   }
 }
