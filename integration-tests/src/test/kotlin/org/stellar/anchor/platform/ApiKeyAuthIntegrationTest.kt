@@ -134,7 +134,7 @@ class ApiKeyAuthIntegrationTest {
   }
 
   @ParameterizedTest
-  @CsvSource(value = ["GET,/transactions"])
+  @CsvSource(value = ["POST,/transactions"])
   fun test_incomingCustodyAuth_emptyApiKey_authFails(method: String, endpoint: String) {
     val httpRequest =
       Request.Builder()
@@ -147,7 +147,7 @@ class ApiKeyAuthIntegrationTest {
   }
 
   @ParameterizedTest
-  @CsvSource(value = ["GET,/transactions"])
+  @CsvSource(value = ["POST,/transactions"])
   fun test_incomingCustodyAuth_emptyApiKey_authPasses(method: String, endpoint: String) {
     val httpRequest =
       Request.Builder()

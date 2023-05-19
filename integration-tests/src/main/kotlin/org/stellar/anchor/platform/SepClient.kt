@@ -40,7 +40,11 @@ open class SepClient {
     val requestBodyStr = gson.toJson(requestBody).toRequestBody(TYPE_JSON)
 
     var builder =
-      Request.Builder().url(url).header("Content-Type", "application/json").post(requestBodyStr)
+      Request.Builder()
+        .url(url)
+        .header("Content-Type", "application/json")
+        .header("fireblocks-signature", "test")
+        .post(requestBodyStr)
     if (jwt != null) {
       builder = builder.header("Authorization", "Bearer $jwt")
     }

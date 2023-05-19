@@ -23,4 +23,11 @@ class CustodyApiClient(private val endpoint: String, private val jwt: String) : 
     val url = "$endpoint/transactions/$transactionId/payments"
     httpPost(url, mapOf<String, String>(), jwt)
   }
+
+  fun sendWebhook(webhook: String) {
+    val url = "$endpoint/webhook"
+    val type = object : TypeToken<Map<String?, *>?>() {}.type
+    val requestBody: Map<String, Any> = gson.fromJson(webhook, type)
+    httpPost(url, requestBody, jwt)
+  }
 }
