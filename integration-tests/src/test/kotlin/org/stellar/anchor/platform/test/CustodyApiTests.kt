@@ -14,6 +14,7 @@ import org.stellar.anchor.auth.AuthHelper
 import org.stellar.anchor.platform.CustodyApiClient
 import org.stellar.anchor.platform.Sep24Client
 import org.stellar.anchor.platform.TestConfig
+import org.stellar.anchor.platform.custody.fireblocks.FireblocksEventService.FIREBLOCKS_SIGNATURE_HEADER
 import org.stellar.anchor.platform.gson
 import org.stellar.anchor.util.Sep1Helper
 
@@ -99,7 +100,10 @@ class CustodyApiTests(val config: TestConfig, val toml: Sep1Helper.TomlContent, 
     Assertions.assertEquals("${custodyMockServer.url("")}/v1/transactions", requestUrl.toString())
     JSONAssert.assertEquals(custodyTransactionPaymentRequest, requestBody, JSONCompareMode.STRICT)
 
-    custodyApiClient.sendWebhook(webhookRequest)
+    custodyApiClient.sendWebhook(
+      webhookRequest,
+      mapOf(FIREBLOCKS_SIGNATURE_HEADER to webhookSignature)
+    )
 
     val txResponse = platformApiClient.getTransaction(txId)
     txResponse.startedAt = null
@@ -254,6 +258,9 @@ private const val webhookRequest =
   }
 }
 """
+
+private const val webhookSignature =
+  "EVnLQYNWUWZ4t52LSgkgESaOBkl1xwWhAZBEZP2CsFxbDy2NGaHZ1PHqbcIHKxQydGJMWer8U7GZsZBfvKTZQuOk8amLci2b2yOYsxb5xLaEI1uRE5lUbE2pZfk4LbeDp/PctwH0wHtcivYHyi5CSdaCTII3AgZNqoGwuL0M0dE="
 
 private const val expectedTransactionResponse =
   """

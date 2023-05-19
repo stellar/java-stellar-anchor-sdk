@@ -24,10 +24,10 @@ class CustodyApiClient(private val endpoint: String, private val jwt: String) : 
     httpPost(url, mapOf<String, String>(), jwt)
   }
 
-  fun sendWebhook(webhook: String) {
+  fun sendWebhook(webhook: String, headers: Map<String, String>) {
     val url = "$endpoint/webhook"
     val type = object : TypeToken<Map<String?, *>?>() {}.type
     val requestBody: Map<String, Any> = gson.fromJson(webhook, type)
-    httpPost(url, requestBody, jwt)
+    httpPost(url, requestBody, headers)
   }
 }

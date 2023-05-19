@@ -37,18 +37,20 @@ open class SepClient {
   }
 
   fun httpPost(url: String, requestBody: Map<String, Any>, jwt: String? = null): String? {
+    val headers = if (jwt != null) mapOf("Authorization" to "Bearer $jwt") else emptyMap()
+    return httpPost(url, requestBody, headers)
+  }
+
+  fun httpPost(url: String, requestBody: Map<String, Any>, headers: Map<String, String>): String? {
     val requestBodyStr = gson.toJson(requestBody).toRequestBody(TYPE_JSON)
 
-    var builder =
+    val request =
       Request.Builder()
         .url(url)
         .header("Content-Type", "application/json")
-        .header("fireblocks-signature", "test")
+        .apply { headers.forEach { (key, value) -> header(key, value) } }
         .post(requestBodyStr)
-    if (jwt != null) {
-      builder = builder.header("Authorization", "Bearer $jwt")
-    }
-    val request = builder.build()
+        .build()
 
     val response = client.newCall(request).execute()
     return handleResponse(response)

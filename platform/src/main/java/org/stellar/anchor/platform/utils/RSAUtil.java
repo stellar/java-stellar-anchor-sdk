@@ -110,9 +110,6 @@ public class RSAUtil {
   public static boolean isValidSignature(
       String signature, String dataString, PublicKey publicKey, String signatureAlgorithm)
       throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
-    if (1 == 1) {
-      return true;
-    }
     if (publicKey == null) {
       throw new IllegalArgumentException("Public key is null");
     }
