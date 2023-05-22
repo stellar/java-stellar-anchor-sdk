@@ -178,7 +178,7 @@ public class FireblocksEventService extends CustodyEventService {
         warnF("Unknown Stellar transaction operation type[{}]", operation.get().getType());
       }
     } catch (SepException ex) {
-      warnF("Fireblock event with id[{}] contains unsupported memo", td.getId());
+      warnF("Fireblocks event with id[{}] contains unsupported memo", td.getId());
       warnEx(ex);
     }
 

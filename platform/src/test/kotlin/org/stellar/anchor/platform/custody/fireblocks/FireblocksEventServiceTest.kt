@@ -194,7 +194,7 @@ class FireblocksEventServiceTest {
 
     val paymentCapture = slot<CustodyPayment>()
 
-    every { horizon.getServer() } returns server
+    every { horizon.server } returns server
     every { server.payments() } returns paymentsRequestBuilder
     every { paymentsRequestBuilder.includeTransactions(true) } returns paymentsRequestBuilder
     every { paymentsRequestBuilder.forTransaction("testTxHash") } returns paymentsRequestBuilder
@@ -242,7 +242,7 @@ class FireblocksEventServiceTest {
 
     val paymentCapture = slot<CustodyPayment>()
 
-    every { horizon.getServer() } returns server
+    every { horizon.server } returns server
     every { server.payments() } returns paymentsRequestBuilder
     every { paymentsRequestBuilder.includeTransactions(true) } returns paymentsRequestBuilder
     every { paymentsRequestBuilder.forTransaction("testTxHash") } returns paymentsRequestBuilder
@@ -294,7 +294,7 @@ class FireblocksEventServiceTest {
 
     val paymentCapture = slot<CustodyPayment>()
 
-    every { horizon.getServer() } returns server
+    every { horizon.server } returns server
     every { server.payments() } returns paymentsRequestBuilder
     every { paymentsRequestBuilder.includeTransactions(true) } returns paymentsRequestBuilder
     every { paymentsRequestBuilder.forTransaction("testTxHash") } returns paymentsRequestBuilder
