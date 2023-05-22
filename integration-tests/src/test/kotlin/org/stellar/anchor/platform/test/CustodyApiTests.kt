@@ -24,7 +24,7 @@ class CustodyApiTests(val config: TestConfig, val toml: Sep1Helper.TomlContent, 
     const val TX_ID_KEY = "TX_ID"
   }
 
-  private val custodyApiClient = CustodyApiClient("http://localhost:8085", jwt)
+  private val custodyApiClient = CustodyApiClient(config.env["custody.server.url"]!!, jwt)
   private val sep24Client = Sep24Client(toml.getString("TRANSFER_SERVER_SEP0024"), jwt)
   private val platformApiClient =
     PlatformApiClient(AuthHelper.forNone(), config.env["platform.server.url"]!!)
