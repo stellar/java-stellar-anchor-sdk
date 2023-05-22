@@ -6,6 +6,7 @@ import static org.stellar.anchor.api.sep.SepTransactionStatus.EXPIRED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_CUSTOMER_INFO_UPDATE;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_USR_TRANSFER_START;
+import static org.stellar.anchor.config.CustodyConfig.NONE_CUSTODY_TYPE;
 import static org.stellar.anchor.platform.utils.TransactionHelper.toGetTransactionResponse;
 import static org.stellar.anchor.sep31.Sep31Helper.allAmountAvailable;
 import static org.stellar.anchor.util.BeanHelper.updateField;
@@ -37,6 +38,7 @@ import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.shared.Amount;
 import org.stellar.anchor.api.shared.SepDepositInfo;
 import org.stellar.anchor.asset.AssetService;
+import org.stellar.anchor.config.CustodyConfig;
 import org.stellar.anchor.custody.CustodyService;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
@@ -66,6 +68,7 @@ public class TransactionService {
   private final AssetService assetService;
   private final Sep24DepositInfoGenerator sep24DepositInfoGenerator;
   private final CustodyService custodyService;
+  private final CustodyConfig custodyConfig;
 
   static boolean isStatusError(String status) {
     return List.of(PENDING_CUSTOMER_INFO_UPDATE.getStatus(), EXPIRED.getStatus(), ERROR.getStatus())
@@ -79,7 +82,8 @@ public class TransactionService {
       AssetService assetService,
       EventService eventService,
       Sep24DepositInfoGenerator sep24DepositInfoGenerator,
-      CustodyService custodyService) {
+      CustodyService custodyService,
+      CustodyConfig custodyConfig) {
     this.txn24Store = txn24Store;
     this.txn31Store = txn31Store;
     this.quoteStore = quoteStore;
@@ -88,6 +92,7 @@ public class TransactionService {
     this.assetService = assetService;
     this.sep24DepositInfoGenerator = sep24DepositInfoGenerator;
     this.custodyService = custodyService;
+    this.custodyConfig = custodyConfig;
   }
 
   /**
@@ -189,7 +194,8 @@ public class TransactionService {
           sep24Txn.setMemoType(sep24DepositInfo.getMemoType());
         }
 
-        if (!lastStatus.equals(sep24Txn.getStatus())
+        if (!NONE_CUSTODY_TYPE.equals(custodyConfig.getType())
+            && !lastStatus.equals(sep24Txn.getStatus())
             && ((Kind.DEPOSIT.getKind().equals(sep24Txn.getKind())
                     && PENDING_ANCHOR.toString().equals(sep24Txn.getStatus()))
                 || (Kind.WITHDRAWAL.getKind().equals(sep24Txn.getKind())

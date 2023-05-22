@@ -15,7 +15,9 @@ import org.stellar.anchor.util.NetUtil;
 
 @Data
 public class CustodyApiConfig implements Validator {
+
   private String baseUrl;
+  private HttpClientConfig httpClient;
   private AuthConfig auth;
   private CustodySecretConfig secretConfig;
 
@@ -37,6 +39,7 @@ public class CustodyApiConfig implements Validator {
   public void validate(@NotNull Object target, @NotNull Errors errors) {
     validateBaseUrl(errors);
     validateApiSecret(errors);
+    httpClient.validate("custody-server", errors);
   }
 
   private void validateBaseUrl(Errors errors) {
@@ -67,7 +70,7 @@ public class CustodyApiConfig implements Validator {
           errors.rejectValue(
               "secret",
               "empty-secret",
-              "Please set environment variable [SECRET.CUSTODY_API.AUTH_SECRET] for auth type:"
+              "Please set environment variable [SECRET.CUSTODY_SERVER.AUTH_SECRET] for auth type:"
                   + auth.getType());
         }
       }

@@ -158,10 +158,8 @@ private const val custodyTransactionRequest =
     "protocol": "24",
     "fromAccount": "testFromAccount",
     "toAccount": "testToAccount",
-    "amountIn": "0.5",
-    "amountInAsset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
-    "amountOut": "0.5",
-    "amountOutAsset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+    "amount": "0.5",
+    "amountAsset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
     "kind": "deposit",
     "requestAssetCode": "testRequestAssetCode",
     "requestAssetIssuer": "testRequestAssetIssuer"

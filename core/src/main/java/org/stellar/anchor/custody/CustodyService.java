@@ -8,8 +8,7 @@ import org.stellar.anchor.sep31.Sep31Transaction;
 public interface CustodyService {
 
   /**
-   * Create custody transaction for SEP24 transaction. Transaction will be created only if custody
-   * type is not `none`
+   * Create custody transaction for SEP24 transaction
    *
    * @param txn SEP24 transaction
    * @throws AnchorException if error happens
@@ -17,8 +16,7 @@ public interface CustodyService {
   void createTransaction(Sep24Transaction txn) throws AnchorException;
 
   /**
-   * Create custody transaction for SEP31 transaction. Transaction will be created only if custody
-   * type is not `none`
+   * Create custody transaction for SEP31 transaction
    *
    * @param txn SEP31 transaction
    * @throws AnchorException if error happens

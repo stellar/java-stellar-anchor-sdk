@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtService;
+import org.stellar.anchor.config.CustodyConfig;
 import org.stellar.anchor.custody.CustodyService;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.filter.ApiKeyFilter;
@@ -63,7 +64,8 @@ public class PlatformApiBeans {
       AssetService assetService,
       EventService eventService,
       Sep24DepositInfoGenerator sep24DepositInfoGenerator,
-      CustodyService custodyService) {
+      CustodyService custodyService,
+      CustodyConfig custodyConfig) {
     return new TransactionService(
         txn24Store,
         txn31Store,
@@ -71,6 +73,7 @@ public class PlatformApiBeans {
         assetService,
         eventService,
         sep24DepositInfoGenerator,
-        custodyService);
+        custodyService,
+        custodyConfig);
   }
 }

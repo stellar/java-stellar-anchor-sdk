@@ -1,6 +1,9 @@
 package org.stellar.anchor.platform.component.custody;
 
+import java.util.concurrent.TimeUnit;
 import javax.servlet.Filter;
+import okhttp3.OkHttpClient;
+import okhttp3.OkHttpClient.Builder;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -10,6 +13,7 @@ import org.stellar.anchor.filter.ApiKeyFilter;
 import org.stellar.anchor.filter.JwtTokenFilter;
 import org.stellar.anchor.filter.NoneFilter;
 import org.stellar.anchor.platform.config.CustodyApiConfig;
+import org.stellar.anchor.platform.config.PropertyCustodyConfig;
 import org.stellar.anchor.platform.custody.CustodyPaymentService;
 import org.stellar.anchor.platform.custody.CustodyTransactionService;
 import org.stellar.anchor.platform.custody.Sep24CustodyPaymentHandler;
@@ -68,5 +72,15 @@ public class CustodyBeans {
   Sep31CustodyPaymentHandler sep31CustodyPaymentHandler(
       JdbcCustodyTransactionRepo custodyTransactionRepo, PlatformApiClient platformApiClient) {
     return new Sep31CustodyPaymentHandler(custodyTransactionRepo, platformApiClient);
+  }
+
+  @Bean(name = "custodyHttpClient")
+  OkHttpClient custodyHttpClient(PropertyCustodyConfig custodyConfig) {
+    return new Builder()
+        .connectTimeout(custodyConfig.getHttpClient().getConnectTimeout(), TimeUnit.SECONDS)
+        .readTimeout(custodyConfig.getHttpClient().getReadTimeout(), TimeUnit.SECONDS)
+        .writeTimeout(custodyConfig.getHttpClient().getWriteTimeout(), TimeUnit.SECONDS)
+        .callTimeout(custodyConfig.getHttpClient().getCallTimeout(), TimeUnit.SECONDS)
+        .build();
   }
 }

@@ -17,19 +17,19 @@ import org.stellar.anchor.platform.config.CustodyApiConfig;
 @ConditionalOnExpression(value = "'${custody.type}' != 'none'")
 public class CustodyApiBeans {
 
-  @Bean(name = "custodyHttpClient")
-  OkHttpClient custodyHttpClient() {
+  @Bean(name = "custodyApiHttpClient")
+  OkHttpClient custodyApiHttpClient(CustodyApiConfig custodyApiConfig) {
     return new Builder()
-        .connectTimeout(10, TimeUnit.MINUTES)
-        .readTimeout(10, TimeUnit.MINUTES)
-        .writeTimeout(10, TimeUnit.MINUTES)
-        .callTimeout(10, TimeUnit.MINUTES)
+        .connectTimeout(custodyApiConfig.getHttpClient().getConnectTimeout(), TimeUnit.SECONDS)
+        .readTimeout(custodyApiConfig.getHttpClient().getReadTimeout(), TimeUnit.SECONDS)
+        .writeTimeout(custodyApiConfig.getHttpClient().getWriteTimeout(), TimeUnit.SECONDS)
+        .callTimeout(custodyApiConfig.getHttpClient().getCallTimeout(), TimeUnit.SECONDS)
         .build();
   }
 
   @Bean
   CustodyApiClient custodyApiClient(
-      @Qualifier("custodyHttpClient") OkHttpClient httpClient,
+      @Qualifier("custodyApiHttpClient") OkHttpClient httpClient,
       AppConfig appConfig,
       CustodyApiConfig custodyApiConfig) {
     return new CustodyApiClient(

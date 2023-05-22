@@ -1,8 +1,6 @@
 package org.stellar.anchor.platform.component.custody;
 
-import java.util.concurrent.TimeUnit;
 import okhttp3.OkHttpClient;
-import okhttp3.OkHttpClient.Builder;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -36,19 +34,9 @@ public class FireblocksBeans {
     return new FireblocksTransactionsReconciliationJob();
   }
 
-  @Bean(name = "fireblocksHttpClient")
-  OkHttpClient fireblocksHttpClient() {
-    return new Builder()
-        .connectTimeout(10, TimeUnit.MINUTES)
-        .readTimeout(10, TimeUnit.MINUTES)
-        .writeTimeout(10, TimeUnit.MINUTES)
-        .callTimeout(10, TimeUnit.MINUTES)
-        .build();
-  }
-
   @Bean
   FireblocksApiClient fireblocksApiClient(
-      @Qualifier("fireblocksHttpClient") OkHttpClient httpClient, FireblocksConfig fireblocksConfig)
+      @Qualifier("custodyHttpClient") OkHttpClient httpClient, FireblocksConfig fireblocksConfig)
       throws InvalidConfigException {
     return new FireblocksApiClient(httpClient, fireblocksConfig);
   }

@@ -110,22 +110,33 @@ class Sep24Helper(private val cfg: Config) {
   }
 
   internal suspend fun sendCustodyStellarTransaction(transactionId: String) {
-    client.post("$baseUrl/transactions/$transactionId/payments") {
-      contentType(ContentType.Application.Json)
-      setBody("{}")
+    val resp =
+      client.post("$baseUrl/transactions/$transactionId/payments") {
+        contentType(ContentType.Application.Json)
+        setBody("{}")
+      }
+
+    if (resp.status != HttpStatusCode.OK) {
+      val respBody = resp.bodyAsText()
+
+      log.error {
+        "Unexpected status code when sending custody Stellar transaction. Response body: $respBody"
+      }
+
+      throw Exception(respBody)
     }
   }
 
   // Pulling status change from anchor. Alternatively, listen to AnchorEvent for transaction status
   // change
-  internal suspend fun waitStellarTransaction(txId: String) {
+  internal suspend fun waitStellarTransaction(txId: String, status: String) {
     for (i in 1..(30 * 60 / 5)) {
-      log.info { "Waiting for user to transfer funds" }
+      log.info { "Waiting for funds transfer" }
 
       val transaction = getTransaction(txId)
 
-      if (transaction.status == "pending_anchor") {
-        log.info { "User transfer was successful" }
+      if (transaction.status == status) {
+        log.info { "Funds transfer was successful" }
 
         return
       } else {

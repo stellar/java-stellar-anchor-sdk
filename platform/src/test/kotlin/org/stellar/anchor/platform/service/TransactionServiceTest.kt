@@ -26,6 +26,7 @@ import org.stellar.anchor.api.sep.sep38.RateFee
 import org.stellar.anchor.api.shared.Amount
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
+import org.stellar.anchor.config.CustodyConfig
 import org.stellar.anchor.custody.CustodyService
 import org.stellar.anchor.event.EventService
 import org.stellar.anchor.platform.data.*
@@ -55,6 +56,8 @@ class TransactionServiceTest {
   @MockK(relaxed = true) private lateinit var eventService: EventService
   @MockK(relaxed = true) private lateinit var sep24DepositInfoGenerator: Sep24DepositInfoGenerator
   @MockK(relaxed = true) private lateinit var custodyService: CustodyService
+  @MockK(relaxed = true) private lateinit var custodyConfig: CustodyConfig
+
   private lateinit var transactionService: TransactionService
 
   @BeforeEach
@@ -68,7 +71,8 @@ class TransactionServiceTest {
         assetService,
         eventService,
         sep24DepositInfoGenerator,
-        custodyService
+        custodyService,
+        custodyConfig
       )
   }
 
@@ -201,8 +205,9 @@ class TransactionServiceTest {
         sep38QuoteStore,
         assetService,
         eventService,
-        null,
-        null
+        sep24DepositInfoGenerator,
+        custodyService,
+        custodyConfig
       )
     val mockAsset = Amount("10", fiatUSD)
     assertDoesNotThrow { transactionService.validateAsset("amount_in", mockAsset) }
@@ -480,8 +485,9 @@ class TransactionServiceTest {
         sep38QuoteStore,
         assetService,
         eventService,
-        null,
-        null
+        sep24DepositInfoGenerator,
+        custodyService,
+        custodyConfig
       )
 
     assertDoesNotThrow {

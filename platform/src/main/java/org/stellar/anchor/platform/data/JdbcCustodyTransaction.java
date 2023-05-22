@@ -37,21 +37,13 @@ public class JdbcCustodyTransaction {
   @Column(name = "status")
   String status;
 
-  @SerializedName("amount_in")
-  @Column(name = "amount_in")
-  String amountIn;
+  @SerializedName("amount")
+  @Column(name = "amount")
+  String amount;
 
-  @SerializedName("amount_in_asset")
-  @Column(name = "amount_in_asset")
-  String amountInAsset;
-
-  @SerializedName("amount_out")
-  @Column(name = "amount_out")
-  String amountOut;
-
-  @SerializedName("amount_out_asset")
-  @Column(name = "amount_out_asset")
-  String amountOutAsset;
+  @SerializedName("amount_asset")
+  @Column(name = "amount_asset")
+  String amountAsset;
 
   @SerializedName("created_at")
   @Column(name = "created_at")
