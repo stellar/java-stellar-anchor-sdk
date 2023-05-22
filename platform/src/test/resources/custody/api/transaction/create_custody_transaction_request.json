@@ -5,10 +5,8 @@
   "protocol": "testProtocol",
   "fromAccount": "testFromAccount",
   "toAccount": "testToAccount",
-  "amountIn": "testAmountIn",
-  "amountInAsset": "testAmountInAsset",
-  "amountOut": "testAmountOut",
-  "amountOutAsset": "testAmountOutAsset",
+  "amount": "testAmount",
+  "amountAsset": "testAmountAsset",
   "kind": "testKind",
   "requestAssetCode": "testRequestAssetCode",
   "requestAssetIssuer": "testRequestAssetIssuer"

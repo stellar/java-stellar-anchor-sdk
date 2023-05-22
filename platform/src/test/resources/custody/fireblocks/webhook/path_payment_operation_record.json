@@ -1,0 +1,100 @@
+[
+  {
+    "amount": "15.0000000",
+    "assetType": "native",
+    "from": "testFrom",
+    "to": "testTo",
+    "id": 12345,
+    "sourceAccount": "testSourceAccount",
+    "pagingToken": "testPagingToken",
+    "createdAt": "2023-05-10T10:18:20Z",
+    "transactionHash": "testTxHash",
+    "transactionSuccessful": true,
+    "type": "path_payment",
+    "links": {
+      "effects": {
+        "href": "https://horizon-testnet.stellar.org/operations/12345/effects",
+        "templated": false
+      },
+      "precedes": {
+        "href": "https://horizon-testnet.stellar.org/effects?order\u003dasc\u0026cursor\u003d12345",
+        "templated": false
+      },
+      "self": {
+        "href": "https://horizon-testnet.stellar.org/operations/12345",
+        "templated": false
+      },
+      "succeeds": {
+        "href": "https://horizon-testnet.stellar.org/effects?order\u003ddesc\u0026cursor\u003d12345",
+        "templated": false
+      },
+      "transaction": {
+        "href": "https://horizon-testnet.stellar.org/transactions/testTxHash",
+        "templated": false
+      }
+    },
+    "transaction": {
+      "hash": "testTxHash",
+      "ledger": 1234,
+      "createdAt": "2023-05-10T10:18:20Z",
+      "sourceAccount": "testSourceAccount",
+      "feeAccount": "testFeeAccount",
+      "successful": true,
+      "pagingToken": "1234",
+      "sourceAccountSequence": 12345,
+      "maxFee": 100,
+      "feeCharged": 100,
+      "operationCount": 1,
+      "envelopeXdr": "testEnvelopeXdr",
+      "resultXdr": "testResultXdr",
+      "resultMetaXdr": "resultMetaXdr",
+      "signatures": [
+        "testSignature1"
+      ],
+      "preconditions": {
+        "timeBounds": {
+          "minTime": 0,
+          "maxTime": 1683713997
+        },
+        "minAccountSequenceAge": 0,
+        "minAccountSequenceLedgerGap": 0
+      },
+      "links": {
+        "account": {
+          "href": "https://horizon-testnet.stellar.org/accounts/testAccount",
+          "templated": false
+        },
+        "effects": {
+          "href": "https://horizon-testnet.stellar.org/transactions/testTxHash/effects{?cursor,limit,order}",
+          "templated": true
+        },
+        "ledger": {
+          "href": "https://horizon-testnet.stellar.org/ledgers/1234",
+          "templated": false
+        },
+        "operations": {
+          "href": "https://horizon-testnet.stellar.org/transactions/testTxHash/operations{?cursor,limit,order}",
+          "templated": true
+        },
+        "precedes": {
+          "href": "https://horizon-testnet.stellar.org/transactions?order\u003dasc\u0026cursor\u003d12345",
+          "templated": false
+        },
+        "self": {
+          "href": "https://horizon-testnet.stellar.org/transactions/testTxHash",
+          "templated": false
+        },
+        "succeeds": {
+          "href": "https://horizon-testnet.stellar.org/transactions?order\u003ddesc\u0026cursor\u003d12345",
+          "templated": false
+        }
+      },
+      "rateLimitLimit": 0,
+      "rateLimitRemaining": 0,
+      "rateLimitReset": 0
+    },
+    "rateLimitLimit": 0,
+    "rateLimitRemaining": 0,
+    "rateLimitReset": 0
+  }
+]

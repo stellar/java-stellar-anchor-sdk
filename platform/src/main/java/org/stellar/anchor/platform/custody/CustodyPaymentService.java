@@ -6,7 +6,7 @@ import org.stellar.anchor.api.exception.FireblocksException;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.platform.data.JdbcCustodyTransaction;
 
-public interface PaymentService {
+public interface CustodyPaymentService {
 
   GenerateDepositAddressResponse generateDepositAddress(String assetId)
       throws FireblocksException, InvalidConfigException;

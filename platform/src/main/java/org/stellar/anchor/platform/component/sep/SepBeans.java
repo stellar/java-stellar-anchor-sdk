@@ -140,11 +140,6 @@ public class SepBeans {
   }
 
   @Bean
-  public Horizon horizon(AppConfig appConfig) {
-    return new Horizon(appConfig);
-  }
-
-  @Bean
   @ConditionalOnAllSepsEnabled(seps = {"sep1"})
   Sep1Service sep1Service(Sep1Config sep1Config) throws IOException, InvalidConfigException {
     return new Sep1Service(sep1Config);

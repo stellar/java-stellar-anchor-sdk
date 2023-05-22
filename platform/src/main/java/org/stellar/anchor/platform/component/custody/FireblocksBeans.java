@@ -7,12 +7,16 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.stellar.anchor.api.exception.InvalidConfigException;
+import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.platform.config.CustodySecretConfig;
 import org.stellar.anchor.platform.config.FireblocksConfig;
-import org.stellar.anchor.platform.custody.PaymentService;
+import org.stellar.anchor.platform.custody.CustodyPaymentService;
+import org.stellar.anchor.platform.custody.Sep24CustodyPaymentHandler;
+import org.stellar.anchor.platform.custody.Sep31CustodyPaymentHandler;
 import org.stellar.anchor.platform.custody.fireblocks.FireblocksApiClient;
 import org.stellar.anchor.platform.custody.fireblocks.FireblocksEventService;
 import org.stellar.anchor.platform.custody.fireblocks.FireblocksPaymentService;
+import org.stellar.anchor.platform.data.JdbcCustodyTransactionRepo;
 import org.stellar.anchor.platform.job.FireblocksTransactionsReconciliationJob;
 
 @Configuration
@@ -38,13 +42,23 @@ public class FireblocksBeans {
   }
 
   @Bean
-  FireblocksEventService fireblocksEventsService(FireblocksConfig fireblocksConfig)
+  FireblocksEventService fireblocksEventService(
+      JdbcCustodyTransactionRepo custodyTransactionRepo,
+      Sep24CustodyPaymentHandler sep24CustodyPaymentHandler,
+      Sep31CustodyPaymentHandler sep31CustodyPaymentHandler,
+      Horizon horizon,
+      FireblocksConfig fireblocksConfig)
       throws InvalidConfigException {
-    return new FireblocksEventService(fireblocksConfig);
+    return new FireblocksEventService(
+        custodyTransactionRepo,
+        sep24CustodyPaymentHandler,
+        sep31CustodyPaymentHandler,
+        horizon,
+        fireblocksConfig);
   }
 
   @Bean
-  PaymentService paymentService(
+  CustodyPaymentService custodyPaymentService(
       FireblocksApiClient fireblocksApiClient, FireblocksConfig fireblocksConfig) {
     return new FireblocksPaymentService(fireblocksApiClient, fireblocksConfig);
   }

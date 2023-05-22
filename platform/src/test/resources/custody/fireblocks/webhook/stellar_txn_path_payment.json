@@ -1,0 +1,15 @@
+{
+  "id": "12345",
+  "externalTxId": "testEventId",
+  "type": "path_payment",
+  "from": "testFrom",
+  "to": "testTo",
+  "amount": "15.0000000",
+  "assetType": "native",
+  "assetName": "native",
+  "createdAt": "2023-05-10T10:18:25.778Z",
+  "status": "SUCCESS",
+  "transactionHash": "testTxHash",
+  "transactionMemoType": "none",
+  "transactionEnvelope": "testEnvelopeXdr"
+}

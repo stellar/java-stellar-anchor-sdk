@@ -1,6 +1,5 @@
 package org.stellar.anchor.platform.utils;
 
-import com.google.common.io.BaseEncoding;
 import io.jsonwebtoken.SignatureAlgorithm;
 import java.security.InvalidKeyException;
 import java.security.KeyFactory;
@@ -16,6 +15,7 @@ import java.util.Base64;
 import org.apache.commons.lang3.StringUtils;
 
 public class RSAUtil {
+
   public static final String BEGIN_PUBLIC_KEY = "-----BEGIN PUBLIC KEY-----";
   public static final String END_PUBLIC_KEY = "-----END PUBLIC KEY-----";
   public static final String BEGIN_PRIVATE_KEY = "-----BEGIN PRIVATE KEY-----";
@@ -118,6 +118,6 @@ public class RSAUtil {
     sign.initVerify(publicKey);
     sign.update(dataString.getBytes());
 
-    return sign.verify(BaseEncoding.base64().decode(signature));
+    return sign.verify(Base64.getDecoder().decode(signature));
   }
 }

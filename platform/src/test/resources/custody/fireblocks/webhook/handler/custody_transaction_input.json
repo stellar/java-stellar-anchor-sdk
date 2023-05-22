@@ -1,0 +1,12 @@
+{
+  "id": "testId",
+  "status": "saved",
+  "amount": "1",
+  "amount_asset": "stellar:testAmountInAsset",
+  "memo": "testMemo",
+  "memo_type": "testMemoType",
+  "protocol": "24",
+  "from_account": "testFromAccount",
+  "to_account": "testToAccount",
+  "kind": "deposit"
+}

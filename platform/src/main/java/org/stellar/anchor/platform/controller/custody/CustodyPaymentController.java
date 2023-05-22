@@ -10,15 +10,15 @@ import org.springframework.web.bind.annotation.RestController;
 import org.stellar.anchor.api.custody.GenerateDepositAddressResponse;
 import org.stellar.anchor.api.exception.FireblocksException;
 import org.stellar.anchor.api.exception.InvalidConfigException;
-import org.stellar.anchor.platform.custody.PaymentService;
+import org.stellar.anchor.platform.custody.CustodyPaymentService;
 
 @RestController
-public class PaymentController {
+public class CustodyPaymentController {
 
-  private final PaymentService paymentService;
+  private final CustodyPaymentService custodyPaymentService;
 
-  public PaymentController(PaymentService paymentService) {
-    this.paymentService = paymentService;
+  public CustodyPaymentController(CustodyPaymentService custodyPaymentService) {
+    this.custodyPaymentService = custodyPaymentService;
   }
 
   @CrossOrigin(origins = "*")
@@ -28,6 +28,6 @@ public class PaymentController {
       method = {RequestMethod.POST})
   public GenerateDepositAddressResponse generateDepositAddress(@PathVariable String assetId)
       throws FireblocksException, InvalidConfigException {
-    return paymentService.generateDepositAddress(assetId);
+    return custodyPaymentService.generateDepositAddress(assetId);
   }
 }

@@ -51,10 +51,11 @@ public class TransactionHelper {
             DEPOSIT.getKind().equals(txn.getKind())
                 ? txn.getToAccount()
                 : txn.getWithdrawAnchorAccount())
-        .amountIn(txn.getAmountIn())
-        .amountInAsset(txn.getAmountInAsset())
-        .amountOut(txn.getAmountOut())
-        .amountOutAsset(txn.getAmountOutAsset())
+        .amount(DEPOSIT.getKind().equals(txn.getKind()) ? txn.getAmountOut() : txn.getAmountIn())
+        .amountAsset(
+            DEPOSIT.getKind().equals(txn.getKind())
+                ? txn.getAmountOutAsset()
+                : txn.getAmountInAsset())
         .kind(txn.getKind())
         .build();
   }
@@ -66,10 +67,8 @@ public class TransactionHelper {
         .memoType(txn.getStellarMemoType())
         .protocol("31")
         .toAccount(txn.getStellarAccountId())
-        .amountIn(txn.getAmountIn())
-        .amountInAsset(txn.getAmountInAsset())
-        .amountOut(txn.getAmountOut())
-        .amountOutAsset(txn.getAmountOutAsset())
+        .amount(txn.getAmountIn())
+        .amountAsset(txn.getAmountInAsset())
         .kind(RECEIVE.getKind())
         .build();
   }

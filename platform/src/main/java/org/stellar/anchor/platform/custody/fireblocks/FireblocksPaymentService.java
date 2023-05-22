@@ -16,12 +16,12 @@ import org.stellar.anchor.api.custody.fireblocks.CreateTransactionResponse;
 import org.stellar.anchor.api.exception.FireblocksException;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.platform.config.FireblocksConfig;
-import org.stellar.anchor.platform.custody.PaymentService;
+import org.stellar.anchor.platform.custody.CustodyPaymentService;
 import org.stellar.anchor.platform.data.JdbcCustodyTransaction;
 import org.stellar.anchor.util.GsonUtils;
 import org.stellar.sdk.xdr.MemoType;
 
-public class FireblocksPaymentService implements PaymentService {
+public class FireblocksPaymentService implements CustodyPaymentService {
 
   private static final Gson gson = GsonUtils.getInstance();
 
@@ -78,8 +78,8 @@ public class FireblocksPaymentService implements PaymentService {
   public CreateTransactionRequest getCreateTransactionRequest(JdbcCustodyTransaction txn)
       throws InvalidConfigException {
     return CreateTransactionRequest.builder()
-        .assetId(fireblocksConfig.getFireblocksAssetCode(txn.getAmountOutAsset()))
-        .amount(txn.getAmountOut())
+        .assetId(fireblocksConfig.getFireblocksAssetCode(txn.getAmountAsset()))
+        .amount(txn.getAmount())
         .source(
             new CreateTransactionRequest.TransferPeerPath(
                 VAULT_ACCOUNT, fireblocksConfig.getVaultAccountId()))

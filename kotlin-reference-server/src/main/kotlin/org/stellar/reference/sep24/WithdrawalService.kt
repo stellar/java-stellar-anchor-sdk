@@ -1,6 +1,7 @@
 package org.stellar.reference.sep24
 
 import java.math.BigDecimal
+import java.math.RoundingMode
 import mu.KotlinLogging
 import org.stellar.reference.data.Amount
 import org.stellar.reference.data.Config
@@ -32,7 +33,7 @@ class WithdrawalService(private val cfg: Config) {
       log.info { "Transaction status changed: $transaction" }
 
       // 3. Wait for stellar transaction
-      sep24.waitStellarTransaction(transactionId)
+      sep24.waitStellarTransaction(transactionId, "pending_anchor")
 
       transaction = sep24.getTransaction(transactionId)
       log.info { "Transaction status changed: $transaction" }
@@ -76,7 +77,9 @@ class WithdrawalService(private val cfg: Config) {
 
   // Set 10% fee
   private fun calculateFee(amount: BigDecimal): BigDecimal {
-    return amount.multiply(BigDecimal.valueOf(0.1))
+    val fee = amount.multiply(BigDecimal.valueOf(0.1))
+    val scale = if (amount.scale() == 0) 1 else amount.scale()
+    return fee.setScale(scale, RoundingMode.DOWN)
   }
 
   private suspend fun sendExternal(transactionId: String) {

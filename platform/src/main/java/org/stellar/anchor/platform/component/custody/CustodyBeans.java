@@ -7,14 +7,17 @@ import okhttp3.OkHttpClient.Builder;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.stellar.anchor.apiclient.PlatformApiClient;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.filter.ApiKeyFilter;
 import org.stellar.anchor.filter.JwtTokenFilter;
 import org.stellar.anchor.filter.NoneFilter;
 import org.stellar.anchor.platform.config.CustodyApiConfig;
 import org.stellar.anchor.platform.config.PropertyCustodyConfig;
+import org.stellar.anchor.platform.custody.CustodyPaymentService;
 import org.stellar.anchor.platform.custody.CustodyTransactionService;
-import org.stellar.anchor.platform.custody.PaymentService;
+import org.stellar.anchor.platform.custody.Sep24CustodyPaymentHandler;
+import org.stellar.anchor.platform.custody.Sep31CustodyPaymentHandler;
 import org.stellar.anchor.platform.data.JdbcCustodyTransactionRepo;
 
 @Configuration
@@ -22,8 +25,9 @@ public class CustodyBeans {
 
   @Bean
   CustodyTransactionService getCustodyTransactionService(
-      JdbcCustodyTransactionRepo custodyTransactionRepo, PaymentService paymentService) {
-    return new CustodyTransactionService(custodyTransactionRepo, paymentService);
+      JdbcCustodyTransactionRepo custodyTransactionRepo,
+      CustodyPaymentService custodyPaymentService) {
+    return new CustodyTransactionService(custodyTransactionRepo, custodyPaymentService);
   }
 
   /**
@@ -56,6 +60,18 @@ public class CustodyBeans {
     registrationBean.setFilter(platformToCustody);
     registrationBean.addUrlPatterns("/transactions/*");
     return registrationBean;
+  }
+
+  @Bean
+  Sep24CustodyPaymentHandler sep24CustodyPaymentHandler(
+      JdbcCustodyTransactionRepo custodyTransactionRepo, PlatformApiClient platformApiClient) {
+    return new Sep24CustodyPaymentHandler(custodyTransactionRepo, platformApiClient);
+  }
+
+  @Bean
+  Sep31CustodyPaymentHandler sep31CustodyPaymentHandler(
+      JdbcCustodyTransactionRepo custodyTransactionRepo, PlatformApiClient platformApiClient) {
+    return new Sep31CustodyPaymentHandler(custodyTransactionRepo, platformApiClient);
   }
 
   @Bean(name = "custodyHttpClient")
