@@ -1,6 +1,7 @@
 package org.stellar.anchor.platform.component.sep;
 
 import java.io.IOException;
+import java.util.Optional;
 import javax.servlet.Filter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
@@ -13,15 +14,36 @@ import org.stellar.anchor.api.callback.UniqueAddressIntegration;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtService;
-import org.stellar.anchor.config.*;
+import org.stellar.anchor.config.AppConfig;
+import org.stellar.anchor.config.CustodyConfig;
+import org.stellar.anchor.config.SecretConfig;
+import org.stellar.anchor.config.Sep10Config;
+import org.stellar.anchor.config.Sep12Config;
+import org.stellar.anchor.config.Sep1Config;
+import org.stellar.anchor.config.Sep24Config;
+import org.stellar.anchor.config.Sep31Config;
+import org.stellar.anchor.config.Sep38Config;
+import org.stellar.anchor.custody.CustodyService;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.filter.JwtTokenFilter;
 import org.stellar.anchor.horizon.Horizon;
+import org.stellar.anchor.platform.apiclient.CustodyApiClient;
 import org.stellar.anchor.platform.condition.ConditionalOnAllSepsEnabled;
-import org.stellar.anchor.platform.config.*;
+import org.stellar.anchor.platform.config.CallbackApiConfig;
+import org.stellar.anchor.platform.config.PropertyDataConfig;
+import org.stellar.anchor.platform.config.PropertySep10Config;
+import org.stellar.anchor.platform.config.PropertySep12Config;
+import org.stellar.anchor.platform.config.PropertySep1Config;
+import org.stellar.anchor.platform.config.PropertySep24Config;
+import org.stellar.anchor.platform.config.PropertySep31Config;
+import org.stellar.anchor.platform.config.PropertySep38Config;
 import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountsManager;
-import org.stellar.anchor.platform.service.Sep31DepositInfoGeneratorApi;
-import org.stellar.anchor.platform.service.Sep31DepositInfoGeneratorSelf;
+import org.stellar.anchor.platform.service.CustodyServiceImpl;
+import org.stellar.anchor.platform.service.Sep24DepositInfoCustodyGenerator;
+import org.stellar.anchor.platform.service.Sep24DepositInfoSelfGenerator;
+import org.stellar.anchor.platform.service.Sep31DepositInfoApiGenerator;
+import org.stellar.anchor.platform.service.Sep31DepositInfoCustodyGenerator;
+import org.stellar.anchor.platform.service.Sep31DepositInfoSelfGenerator;
 import org.stellar.anchor.platform.service.SimpleInteractiveUrlConstructor;
 import org.stellar.anchor.platform.service.SimpleMoreInfoUrlConstructor;
 import org.stellar.anchor.sep1.Sep1Service;
@@ -29,6 +51,7 @@ import org.stellar.anchor.sep10.Sep10Service;
 import org.stellar.anchor.sep12.Sep12Service;
 import org.stellar.anchor.sep24.InteractiveUrlConstructor;
 import org.stellar.anchor.sep24.MoreInfoUrlConstructor;
+import org.stellar.anchor.sep24.Sep24DepositInfoGenerator;
 import org.stellar.anchor.sep24.Sep24Service;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31DepositInfoGenerator;
@@ -40,6 +63,7 @@ import org.stellar.anchor.sep38.Sep38Service;
 /** SEP configurations */
 @Configuration
 public class SepBeans {
+
   /**********************************
    * SEP configurations
    */
@@ -166,6 +190,28 @@ public class SepBeans {
   }
 
   @Bean
+  CustodyService custodyService(Optional<CustodyApiClient> custodyApiClient) {
+    return new CustodyServiceImpl(custodyApiClient);
+  }
+
+  @Bean
+  Sep24DepositInfoGenerator sep24DepositInfoGenerator(
+      Sep24Config sep24Config, Optional<CustodyApiClient> custodyApiClient)
+      throws InvalidConfigException {
+    switch (sep24Config.getDepositInfoGeneratorType()) {
+      case SELF:
+        return new Sep24DepositInfoSelfGenerator();
+      case CUSTODY:
+        return new Sep24DepositInfoCustodyGenerator(
+            custodyApiClient.orElseThrow(
+                () ->
+                    new InvalidConfigException("Integration with custody service is not enabled")));
+      default:
+        throw new RuntimeException("Not supported");
+    }
+  }
+
+  @Bean
   InteractiveUrlConstructor interactiveUrlConstructor(
       PropertySep24Config sep24Config, JwtService jwtService) {
     return new SimpleInteractiveUrlConstructor(sep24Config.getInteractiveUrl(), jwtService);
@@ -181,13 +227,20 @@ public class SepBeans {
   Sep31DepositInfoGenerator sep31DepositInfoGenerator(
       Sep31Config sep31Config,
       PaymentObservingAccountsManager paymentObservingAccountsManager,
-      UniqueAddressIntegration uniqueAddressIntegration) {
+      UniqueAddressIntegration uniqueAddressIntegration,
+      Optional<CustodyApiClient> custodyApiClient)
+      throws InvalidConfigException {
     switch (sep31Config.getDepositInfoGeneratorType()) {
       case SELF:
-        return new Sep31DepositInfoGeneratorSelf();
+        return new Sep31DepositInfoSelfGenerator();
       case API:
-        return new Sep31DepositInfoGeneratorApi(
+        return new Sep31DepositInfoApiGenerator(
             uniqueAddressIntegration, paymentObservingAccountsManager);
+      case CUSTODY:
+        return new Sep31DepositInfoCustodyGenerator(
+            custodyApiClient.orElseThrow(
+                () ->
+                    new InvalidConfigException("Integration with custody service is not enabled")));
       default:
         throw new RuntimeException("Not supported");
     }
@@ -204,7 +257,9 @@ public class SepBeans {
       AssetService assetService,
       FeeIntegration feeIntegration,
       CustomerIntegration customerIntegration,
-      EventService eventService) {
+      EventService eventService,
+      CustodyService custodyService,
+      CustodyConfig custodyConfig) {
     return new Sep31Service(
         appConfig,
         sep31Config,
@@ -214,7 +269,9 @@ public class SepBeans {
         assetService,
         feeIntegration,
         customerIntegration,
-        eventService);
+        eventService,
+        custodyService,
+        custodyConfig);
   }
 
   @Bean

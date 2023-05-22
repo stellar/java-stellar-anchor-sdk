@@ -2,14 +2,19 @@ package org.stellar.anchor.platform.config
 
 import io.mockk.every
 import io.mockk.mockk
+import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.NullSource
 import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.validation.BindException
 import org.springframework.validation.Errors
+import org.stellar.anchor.api.exception.InvalidConfigException
+import org.stellar.anchor.platform.config.FireblocksConfig.RetryConfig
 import org.stellar.anchor.util.FileUtil
 
 class FireblocksConfigTest {
@@ -22,12 +27,14 @@ class FireblocksConfigTest {
   fun setUp() {
     secretConfig = mockk()
     every { secretConfig.fireblocksApiKey } returns "testApiKey"
-    every { secretConfig.fireblocksSecretKey } returns "testSecretKey"
+    every { secretConfig.fireblocksSecretKey } returns
+      FileUtil.getResourceFileAsString("custody/fireblocks/client/secret_key.txt")
     config = FireblocksConfig(secretConfig)
+    config.retryConfig = RetryConfig(3, 1000)
     config.baseUrl = "https://test.com"
     config.vaultAccountId = "testAccountId"
     config.transactionsReconciliationCron = "* * * * * *"
-    config.publicKey = FileUtil.getResourceFileAsString("custody/public_key.txt")
+    config.publicKey = FileUtil.getResourceFileAsString("custody/fireblocks/client/public_key.txt")
     errors = BindException(config, "config")
   }
 
@@ -59,6 +66,15 @@ class FireblocksConfigTest {
   @ParameterizedTest
   @NullSource
   @ValueSource(strings = [""])
+  fun `test empty vault_account_id`(url: String?) {
+    config.vaultAccountId = url
+    config.validate(config, errors)
+    assertErrorCode(errors, "custody-fireblocks-vault-account-id-empty")
+  }
+
+  @ParameterizedTest
+  @NullSource
+  @ValueSource(strings = [""])
   fun `test empty api_key`(apiKey: String?) {
     every { secretConfig.fireblocksApiKey } returns apiKey
     config.validate(config, errors)
@@ -78,6 +94,17 @@ class FireblocksConfigTest {
     every { secretConfig.fireblocksSecretKey } returns secretKey
     config.validate(config, errors)
     assertErrorCode(errors, "secret-custody-fireblocks-secret-key-empty")
+  }
+
+  @ParameterizedTest
+  @ValueSource(
+    strings =
+      ["test_certificate", "-----BEGIN PRIVATE KEY----- test_certificate -----END PRIVATE KEY-----"]
+  )
+  fun `test invalid secret_key`(secretKey: String) {
+    every { secretConfig.fireblocksSecretKey } returns secretKey
+    config.validate(config, errors)
+    assertErrorCode(errors, "secret-custody-fireblocks-secret_key-invalid")
   }
 
   @Test
@@ -133,5 +160,54 @@ class FireblocksConfigTest {
     config.publicKey = publicKey
     config.validate(config, errors)
     assertErrorCode(errors, "custody-fireblocks-public_key-invalid")
+  }
+
+  @ParameterizedTest
+  @ValueSource(ints = [0, 1, Int.MAX_VALUE])
+  fun `test valid retry_config_max_attempts`(maxAttempts: Int) {
+    config.retryConfig.maxAttempts = maxAttempts
+    config.validate(config, errors)
+    assertFalse(errors.hasErrors())
+  }
+
+  @ParameterizedTest
+  @ValueSource(ints = [-1, Int.MIN_VALUE])
+  fun `test invalid retry_config_max_attempts`(maxAttempts: Int) {
+    config.retryConfig.maxAttempts = maxAttempts
+    config.validate(config, errors)
+    assertErrorCode(errors, "custody-fireblocks-retry_config-max_attempts-invalid")
+  }
+
+  @ParameterizedTest
+  @ValueSource(ints = [0, 1, Int.MAX_VALUE])
+  fun `test valid retry_config_delay`(delay: Int) {
+    config.retryConfig.delay = delay
+    config.validate(config, errors)
+    assertFalse(errors.hasErrors())
+  }
+
+  @ParameterizedTest
+  @ValueSource(ints = [-1, Int.MIN_VALUE])
+  fun `test invalid retry_config_delay`(delay: Int) {
+    config.retryConfig.delay = delay
+    config.validate(config, errors)
+    assertErrorCode(errors, "custody-fireblocks-retry_config-delay-invalid")
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = [""])
+  fun `test empty asset mappings`(mappings: String) {
+    config.setAssetMappings(mappings)
+    assertTrue(config.assetMappings.isEmpty())
+  }
+
+  @ParameterizedTest
+  @ValueSource(strings = ["FIREBLOCKS_ASSET_CODE STELLAR_ASSET_CODE"])
+  fun `test getFireblocksAssetCode`(mappings: String) {
+    config.setAssetMappings(mappings)
+    val stellarAssetCode = config.getFireblocksAssetCode("STELLAR_ASSET_CODE")
+    assertEquals("FIREBLOCKS_ASSET_CODE", stellarAssetCode)
+
+    assertThrows<InvalidConfigException> { config.getFireblocksAssetCode("INVALID_ASSET_CODE") }
   }
 }

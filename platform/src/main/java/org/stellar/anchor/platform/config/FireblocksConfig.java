@@ -1,32 +1,80 @@
 package org.stellar.anchor.platform.config;
 
 import static org.stellar.anchor.platform.utils.RSAUtil.RSA_ALGORITHM;
+import static org.stellar.anchor.platform.utils.RSAUtil.generatePrivateKey;
 import static org.stellar.anchor.platform.utils.RSAUtil.generatePublicKey;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 
 import java.security.NoSuchAlgorithmException;
+import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.scheduling.support.CronExpression;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.platform.utils.RSAUtil;
+import org.stellar.anchor.util.Log;
 import org.stellar.anchor.util.NetUtil;
 
 @Data
 public class FireblocksConfig implements Validator {
+
   private String baseUrl;
   private String vaultAccountId;
   private CustodySecretConfig secretConfig;
   private String transactionsReconciliationCron;
   private String publicKey;
+  private RetryConfig retryConfig;
+  private Map<String, String> assetMappings;
 
   public FireblocksConfig(CustodySecretConfig secretConfig) {
     this.secretConfig = secretConfig;
+  }
+
+  public void setRetryConfig(RetryConfig retryConfig) {
+    this.retryConfig = retryConfig;
+  }
+
+  public void setAssetMappings(String assetMappings) {
+    if (StringUtils.isEmpty(assetMappings)) {
+      this.assetMappings = Collections.emptyMap();
+    } else {
+      this.assetMappings =
+          Arrays.stream(assetMappings.split(StringUtils.LF))
+              .collect(
+                  Collectors.toMap(
+                      mapping -> mapping.substring(mapping.indexOf(StringUtils.SPACE) + 1),
+                      mapping -> mapping.substring(0, mapping.indexOf(StringUtils.SPACE))));
+    }
+  }
+
+  /**
+   * Get Fireblocks asset code by Stellar asset code
+   *
+   * @return Fireblocks asset code or null if no mapping found
+   */
+  public String getFireblocksAssetCode(String stellarAssetCode) throws InvalidConfigException {
+    if (assetMappings.containsKey(stellarAssetCode)) {
+      return assetMappings.get(stellarAssetCode);
+    }
+
+    String message =
+        String.format(
+            "Unable to find Fireblocks asset code by Stellar asset code [%s]", stellarAssetCode);
+    Log.warnF(
+        message + " Please add corresponding asset mapping in custody.fireblocks.asset_mapping");
+    throw new InvalidConfigException(message);
   }
 
   @Override
@@ -37,10 +85,13 @@ public class FireblocksConfig implements Validator {
   @Override
   public void validate(@NotNull Object target, @NotNull Errors errors) {
     validateBaseUrl(errors);
+    validateVaultAccountId(errors);
     validateApiKey(errors);
     validateSecretKey(errors);
     validateTransactionsReconciliationCron(errors);
     validatePublicKey(errors);
+    validateRetryMaxAttempts(errors);
+    validateRetryDelay(errors);
   }
 
   private void validateBaseUrl(Errors errors) {
@@ -58,6 +109,15 @@ public class FireblocksConfig implements Validator {
     }
   }
 
+  private void validateVaultAccountId(Errors errors) {
+    if (isEmpty(vaultAccountId)) {
+      errors.rejectValue(
+          "vaultAccountId",
+          "custody-fireblocks-vault-account-id-empty",
+          "The custody.fireblocks.vault_account_id cannot be empty and must be defined");
+    }
+  }
+
   private void validateApiKey(Errors errors) {
     if (isEmpty(secretConfig.getFireblocksApiKey())) {
       errors.reject(
@@ -71,6 +131,11 @@ public class FireblocksConfig implements Validator {
       errors.reject(
           "secret-custody-fireblocks-secret-key-empty",
           "Please set environment variable secret.custody.fireblocks.secret_key or SECRET_CUSTODY_FIREBLOCKS_SECRET_KEY");
+    }
+    if (!RSAUtil.isValidPrivateKey(secretConfig.getFireblocksSecretKey(), RSAUtil.RSA_ALGORITHM)) {
+      errors.reject(
+          "secret-custody-fireblocks-secret_key-invalid",
+          "The secret-custody-fireblocks-secret_key is invalid");
     }
   }
 
@@ -98,6 +163,22 @@ public class FireblocksConfig implements Validator {
     }
   }
 
+  public void validateRetryMaxAttempts(Errors errors) {
+    if (retryConfig.getMaxAttempts() < 0) {
+      errors.reject(
+          "custody-fireblocks-retry_config-max_attempts-invalid",
+          "custody-fireblocks-retry_config-max_attempts must be greater than 0");
+    }
+  }
+
+  public void validateRetryDelay(Errors errors) {
+    if (retryConfig.getDelay() < 0) {
+      errors.reject(
+          "custody-fireblocks-retry_config-delay-invalid",
+          "custody-fireblocks-retry_config-delay must be greater than 0");
+    }
+  }
+
   /**
    * Get Fireblocks public key
    *
@@ -109,5 +190,26 @@ public class FireblocksConfig implements Validator {
     } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
       throw new InvalidConfigException(List.of("Failed to generate Fireblocks public key"), e);
     }
+  }
+
+  /**
+   * Get Fireblocks private key
+   *
+   * @return private key
+   */
+  public PrivateKey getFireblocksPrivateKey() throws InvalidConfigException {
+    try {
+      return generatePrivateKey(secretConfig.getFireblocksSecretKey(), RSA_ALGORITHM);
+    } catch (NoSuchAlgorithmException | InvalidKeySpecException e) {
+      throw new InvalidConfigException(List.of("Failed to generate Fireblocks private key"), e);
+    }
+  }
+
+  @Data
+  @AllArgsConstructor
+  @NoArgsConstructor
+  public static class RetryConfig {
+    private int maxAttempts;
+    private int delay;
   }
 }

@@ -314,6 +314,16 @@ sep24:
     account_creation: false
     claimable_balances: false
 
+  ## @param: deposit_info_generator_type
+  ## @default: self
+  ## Used to choose how the SEP-24 deposit information will be generated, which includes the
+  ##     deposit address, memo and memo type.
+  ## @supported_values:
+  ##     self: the memo and memo type are generated in the local code, and the distribution account is used for the deposit address.
+  ##     custody: the memo and memo type are generated through Custody API, for example Fireblocks, as well as the deposit address.
+  #
+  deposit_info_generator_type: self
+
 sep31:
   ## @param: enabled
   ## @type: bool
@@ -334,8 +344,8 @@ sep31:
   ##     deposit address, memo and memo type.
   ## @supported_values:
   ##     self: the memo and memo type are generated in the local code, and the distribution account is used for the deposit address.
-  ##     circle: the memo and memo type are generated through Circle API, as well as the deposit address.
   ##     api: the memo and memo type are generated through calling the anchor's GET /unique_address endpoint.
+  ##     custody: the memo and memo type are generated through Custody API, for example Fireblocks, as well as the deposit address.
   #
   deposit_info_generator_type: self
 
@@ -354,12 +364,44 @@ custody_server:
   context_path: /
   # The listening port of the Custody server
   port: 8085
-  ## @param: base_url
+  ## @param: baseUrl
   ## @type: string
   ## @supported_prefixes: http:, https:
-  ## The base URL of the Custody server that implements the integration with custody services
+  ## The base URL of the Custody server that implements the custody API endpoints
   #
   base_url: http://localhost:8085
+  ## Http Client timeouts for communication with custody server in SECONDS
+  http_client:
+    connect_timeout: 10
+    read_timeout: 30
+    write_timeout: 30
+    call_timeout: 60
+  ## Authentication config for Anchor server and Anchor Platform server to safely communicate,
+  ## particularly when housed in different clusters.
+  ## The receiving party should verify that an incoming request token is still valid.
+  #
+  auth:
+    ## @param: type
+    ## @supported_values: none, api_key, jwt
+    ##     none: no authentication is used
+    ##     api_key: The authentication is done using an API key added to the HTTP request header.
+    ##     jwt: The authentication is done using a JWT token added to the `Authorization` header. This token is
+    ##          generated from the secret key.
+    ##
+    ## If the type is `api_key` or `jwt`, the secret must be set by the environment variable `secret.platform_api.auth_secret`.
+    ## If the type is api_key, the secret will be used as the api_key.
+    ## If the type is jwt, the secret will be used as the jwt shared secret.
+    ##
+    ## Secrets are shared on both sides (Platform and Anchor) and are used in CallbackAPI
+    ## requests (`Platform->Anchor`) so the Anchor can ensure the party making the request
+    ## is the Platform
+    #
+    type: none
+    jwt:
+      expiration_milliseconds: 30000
+      http_header: Authorization
+    api_key:
+      http_header: X-Api-Key
 
 custody:
   ## @param: type
@@ -370,6 +412,12 @@ custody:
   ## If the type is `fireblocks`, @required_secrets: SECRET_CUSTODY_FIREBLOCKS_API_KEY, SECRET_CUSTODY_FIREBLOCKS_SECRET_KEY
   #
   type: none
+  ## Http Client timeouts for communication with custody service(fireblocks/circle/...) in SECONDS
+  http_client:
+    connect_timeout: 10
+    read_timeout: 30
+    write_timeout: 30
+    call_timeout: 60
   fireblocks:
     ## @param: baseUrl
     ## @type: string
@@ -391,6 +439,29 @@ custody:
     ## Fireblocks public key. Is used to verify a webhook signature
     #
     public_key: |
+
+    retry_config:
+      ## @param: maxAttempts
+      ## @type: integer
+      ## Determines how many times the Fireblocks client will attempt to send request before marking a call as failed.
+      #
+      max_attempts: 3
+      ## @param: delay
+      ## @type: integer
+      ## Interval between Fireblocks client call attempts (in ms)
+      #
+      delay: 1000
+
+    ## @param: assetMappings
+    ## @type:  string
+    ## Defines mappings of fireblocks asset codes to stellar asset codes
+    ## Each mapping should be in a new line
+    ## Mappings should be in a format FIREBLOCKS_ASSET_CODE STELLAR_ASSET_CODE separated with space character
+    ## Example:
+    ##  XLM_USDC_1 stellar:USDC:6HW07AE2MZU3JWWARR9CUSDV5S68K4SLY6FGDJ6KIU6ZJETC3HJP00I2V
+    ##  XLM_USDC_2 stellar:USDC:CKG0R9OEL0RJKFONEP3KHZA1Y1PC1R5TMVIM3T88CG1R239TSWJ5OKKST
+    #
+    asset_mappings: |
 
 ##########################
 ## Metrics Configuration

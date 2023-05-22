@@ -29,6 +29,7 @@ public class PropertySep24Config implements Sep24Config, Validator {
   MoreInfoUrlConfig moreInfoUrl;
   SecretConfig secretConfig;
   Features features;
+  DepositInfoGeneratorType depositInfoGeneratorType;
 
   public PropertySep24Config(SecretConfig secretConfig) {
     this.secretConfig = secretConfig;

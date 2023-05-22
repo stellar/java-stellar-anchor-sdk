@@ -72,7 +72,7 @@ class Sep24Helper(private val cfg: Config) {
     memo: String?,
     memoType: String?
   ): String {
-    val myAccount = server.accounts().account(cfg.sep24.keyPair.accountId)
+    val myAccount = server.accounts().account(cfg.sep24.keyPair!!.accountId)
     val asset = Asset.create(assetString.replace("stellar:", ""))
 
     val transactionBuilder =
@@ -107,6 +107,13 @@ class Sep24Helper(private val cfg: Config) {
     }
 
     return resp.hash
+  }
+
+  internal suspend fun sendCustodyStellarTransaction(transactionId: String) {
+    client.post("$baseUrl/transactions/$transactionId/payments") {
+      contentType(ContentType.Application.Json)
+      setBody("{}")
+    }
   }
 
   // Pulling status change from anchor. Alternatively, listen to AnchorEvent for transaction status

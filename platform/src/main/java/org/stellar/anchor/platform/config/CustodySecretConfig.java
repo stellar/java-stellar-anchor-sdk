@@ -4,4 +4,6 @@ public interface CustodySecretConfig {
   String getFireblocksApiKey();
 
   String getFireblocksSecretKey();
+
+  String getCustodyApiSecret();
 }

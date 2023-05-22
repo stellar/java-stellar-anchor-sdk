@@ -1,0 +1,14 @@
+{
+  "assetId": "TEST_ASSET_ID",
+  "source": {
+    "type": "VAULT_ACCOUNT",
+    "id": "testVaultAccountId"
+  },
+  "destination": {
+    "type": "ONE_TIME_ADDRESS",
+    "oneTimeAddress": {
+      "address": "toVaultAccountId"
+    }
+  },
+  "amount": "10"
+}
