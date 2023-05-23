@@ -1,10 +1,14 @@
 package org.stellar.anchor.platform.custody;
 
+import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.RECEIVE;
+import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL;
+import static org.stellar.anchor.platform.data.CustodyTransactionStatus.CREATED;
 import static org.stellar.anchor.platform.data.CustodyTransactionStatus.SUBMITTED;
 import static org.stellar.anchor.util.Log.debugF;
 
 import java.time.Instant;
 import java.util.List;
+import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.stellar.anchor.api.custody.CreateCustodyTransactionRequest;
@@ -45,6 +49,7 @@ public class CustodyTransactionService {
             .amount(request.getAmount())
             .amountAsset(request.getAmountAsset())
             .kind(request.getKind())
+            .reconciliationAttemptCount(0)
             .build());
   }
 
@@ -89,7 +94,12 @@ public class CustodyTransactionService {
     custodyTransactionRepo.save(txn);
   }
 
-  public List<JdbcCustodyTransaction> getTransactionsEligibleForReconciliation() {
+  public List<JdbcCustodyTransaction> getOutboundTransactionsEligibleForReconciliation() {
     return custodyTransactionRepo.findAllByStatusAndExternalTxIdNotNull(SUBMITTED.toString());
+  }
+
+  public List<JdbcCustodyTransaction> getInboundTransactionsEligibleForReconciliation() {
+    return custodyTransactionRepo.findAllByStatusAndKindIn(
+        CREATED.toString(), Set.of(RECEIVE.getKind(), WITHDRAWAL.getKind()));
   }
 }

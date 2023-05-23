@@ -1,14 +1,21 @@
 package org.stellar.anchor.platform.job;
 
+import static org.stellar.anchor.util.Log.debug;
 import static org.stellar.anchor.util.Log.debugF;
 import static org.stellar.anchor.util.Log.errorEx;
 import static org.stellar.anchor.util.Log.info;
 
 import java.io.IOException;
+import java.time.Instant;
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.stellar.anchor.api.custody.fireblocks.TransactionDetails;
 import org.stellar.anchor.api.exception.AnchorException;
+import org.stellar.anchor.api.exception.FireblocksException;
 import org.stellar.anchor.platform.config.FireblocksConfig;
 import org.stellar.anchor.platform.custody.CustodyPayment;
 import org.stellar.anchor.platform.custody.CustodyPaymentService;
@@ -40,44 +47,106 @@ public class FireblocksTransactionsReconciliationJob {
     info("Fireblocks Transaction Reconciliation job started");
 
     custodyTransactionService
-        .getTransactionsEligibleForReconciliation()
-        .forEach(this::reconcileTransaction);
+        .getOutboundTransactionsEligibleForReconciliation()
+        .forEach(this::reconcileOutboundTransactions);
+
+    List<JdbcCustodyTransaction> inboundTransactions =
+        custodyTransactionService.getInboundTransactionsEligibleForReconciliation();
+    reconcileInboundTransactions(inboundTransactions);
 
     info("Fireblocks Transaction Reconciliation job finished");
   }
 
-  private void reconcileTransaction(JdbcCustodyTransaction transaction) {
+  private void reconcileOutboundTransactions(JdbcCustodyTransaction txn) {
     try {
-      TransactionDetails fireblocksTransaction =
-          custodyPaymentService.getTransactionById(transaction.getExternalTxId());
+      TransactionDetails fireblocksTxn =
+          custodyPaymentService.getTransactionById(txn.getExternalTxId());
 
-      int attempt = transaction.getReconciliationAttemptCount() + 1;
-
-      if (fireblocksTransaction.getStatus().isObservable()) {
-        debugF(
-            "Reconciliation attempt #[{}]: Fireblocks transaction status changed to [{}]",
-            attempt,
-            fireblocksTransaction.getStatus().name());
-        Optional<CustodyPayment> payment = fireblocksEventService.convert(fireblocksTransaction);
-        if (payment.isPresent()) {
-          fireblocksEventService.handlePayment(payment.get());
-        }
+      int attempt = txn.getReconciliationAttemptCount() + 1;
+      if (fireblocksTxn.getStatus().isObservable()) {
+        handleStatusChanged(fireblocksTxn, attempt);
       } else {
-        debugF(
-            "Reconciliation attempt #[{}]: Fireblocks transaction status wasn't changed", attempt);
-
-        transaction.setReconciliationAttemptCount(attempt);
-        if (transaction.getReconciliationAttemptCount()
-            >= fireblocksConfig.getReconciliation().getMaxAttempts()) {
-          debugF("Change transaction [{}] status to FAILED", transaction.getId());
-          transaction.setStatus(CustodyTransactionStatus.FAILED.toString());
-        }
-        custodyTransactionService.updateCustodyTransaction(transaction);
+        handleStatusNotChanged(txn, attempt);
       }
     } catch (AnchorException | IOException e) {
-      errorEx(
-          String.format("Failed to reconcile status for transaction (id=%s)", transaction.getId()),
-          e);
+      errorEx(String.format("Failed to reconcile status for transaction (id=%s)", txn.getId()), e);
     }
+  }
+
+  private void reconcileInboundTransactions(List<JdbcCustodyTransaction> transactions) {
+    if (transactions.isEmpty()) {
+      debug("No inbound transactions to reconcile");
+      return;
+    }
+
+    Instant startTime =
+        transactions.stream()
+            .map(JdbcCustodyTransaction::getCreatedAt)
+            .min(Instant::compareTo)
+            .orElse(null);
+
+    try {
+      List<TransactionDetails> fireblocksTransactions =
+          custodyPaymentService.getTransactionsByTimeRange(startTime, Instant.now());
+
+      if (fireblocksTransactions.isEmpty()) {
+        debug("No Fireblocks transactions within specified time range");
+        return;
+      }
+
+      Map<String, TransactionDetails> mappings =
+          fireblocksTransactions.stream()
+              .collect(
+                  Collectors.toMap(
+                      txn ->
+                          txn.getDestinationAddress() + StringUtils.SPACE + txn.getDestinationTag(),
+                      txn -> txn,
+                      (txn1, txn2) -> txn1));
+
+      transactions.forEach(
+          txn -> {
+            int attempt = txn.getReconciliationAttemptCount() + 1;
+
+            try {
+              String key = txn.getToAccount() + StringUtils.SPACE + txn.getMemo();
+              TransactionDetails fireblocksTxn = mappings.get(key);
+              if (fireblocksTxn != null && fireblocksTxn.getStatus().isObservable()) {
+                handleStatusChanged(fireblocksTxn, attempt);
+              } else {
+                handleStatusNotChanged(txn, attempt);
+              }
+            } catch (AnchorException | IOException e) {
+              errorEx(
+                  String.format("Failed to reconcile status for transaction (id=%s)", txn.getId()),
+                  e);
+            }
+          });
+    } catch (FireblocksException e) {
+      errorEx("Failed to retrieve fireblocks transactions", e);
+    }
+  }
+
+  private void handleStatusChanged(TransactionDetails fireblocksTxn, int attempt)
+      throws IOException, AnchorException {
+    debugF(
+        "Reconciliation attempt #[{}]: Fireblocks transaction status changed to [{}]",
+        attempt,
+        fireblocksTxn.getStatus().name());
+    Optional<CustodyPayment> payment = fireblocksEventService.convert(fireblocksTxn);
+    if (payment.isPresent()) {
+      fireblocksEventService.handlePayment(payment.get());
+    }
+  }
+
+  private void handleStatusNotChanged(JdbcCustodyTransaction txn, int attempt) {
+    debugF("Reconciliation attempt #[{}]: Fireblocks transaction status wasn't changed", attempt);
+
+    txn.setReconciliationAttemptCount(attempt);
+    if (txn.getReconciliationAttemptCount()
+        >= fireblocksConfig.getReconciliation().getMaxAttempts()) {
+      debugF("Change transaction [{}] status to FAILED", txn.getId());
+      txn.setStatus(CustodyTransactionStatus.FAILED.toString());
+    }
+    custodyTransactionService.updateCustodyTransaction(txn);
   }
 }

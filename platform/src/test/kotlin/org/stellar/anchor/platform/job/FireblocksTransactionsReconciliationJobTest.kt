@@ -7,6 +7,7 @@ import io.mockk.impl.annotations.MockK
 import io.mockk.just
 import io.mockk.slot
 import io.mockk.verify
+import java.time.Instant
 import java.util.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
@@ -17,6 +18,7 @@ import org.junit.jupiter.params.provider.EnumSource
 import org.stellar.anchor.api.custody.fireblocks.TransactionDetails
 import org.stellar.anchor.api.custody.fireblocks.TransactionStatus
 import org.stellar.anchor.api.exception.FireblocksException
+import org.stellar.anchor.api.platform.PlatformTransactionData
 import org.stellar.anchor.platform.config.FireblocksConfig
 import org.stellar.anchor.platform.custody.CustodyPayment
 import org.stellar.anchor.platform.custody.CustodyPaymentService
@@ -30,6 +32,10 @@ class FireblocksTransactionsReconciliationJobTest {
 
   companion object {
     private const val EXTERNAL_TXN_ID = "TRANSACTION_ID"
+    private const val MEMO = "1234567890"
+    private const val DESTINATION_ADDRESS =
+      "GBX3C62RHF6C7EVG4QXJ4PORIRSQLPBBOIDSKYRLK4H2JBTPTJZM4V6E"
+    private val START_TIME = Instant.now().minusSeconds(5)
   }
 
   @MockK(relaxed = true) private lateinit var fireblocksConfig: FireblocksConfig
@@ -61,24 +67,22 @@ class FireblocksTransactionsReconciliationJobTest {
     mode = EnumSource.Mode.INCLUDE,
     names = ["COMPLETED", "CANCELLED", "BLOCKED", "FAILED"]
   )
-  fun test_reconcileTransactions_successful_reconciliation(status: TransactionStatus) {
-    val custodyTransaction =
+  fun `reconcile outbound transactions - successful reconciliation`(status: TransactionStatus) {
+    val custodyTxn =
       JdbcCustodyTransaction.builder()
         .externalTxId(EXTERNAL_TXN_ID)
         .status(CustodyTransactionStatus.SUBMITTED.toString())
         .build()
-    val fireblocksTransaction = TransactionDetails.builder().status(status).build()
+    val fireblocksTxn = TransactionDetails.builder().status(status).build()
     val custodyPayment = CustodyPayment.builder().build()
 
     every {
       custodyTransactionRepo.findAllByStatusAndExternalTxIdNotNull(
         CustodyTransactionStatus.SUBMITTED.toString()
       )
-    } returns listOf(custodyTransaction)
-    every { custodyPaymentService.getTransactionById(EXTERNAL_TXN_ID) } returns
-      fireblocksTransaction
-    every { fireblocksEventService.convert(fireblocksTransaction) } returns
-      Optional.of(custodyPayment)
+    } returns listOf(custodyTxn)
+    every { custodyPaymentService.getTransactionById(EXTERNAL_TXN_ID) } returns fireblocksTxn
+    every { fireblocksEventService.convert(fireblocksTxn) } returns Optional.of(custodyPayment)
 
     reconciliationJob.reconcileTransactions()
 
@@ -87,7 +91,7 @@ class FireblocksTransactionsReconciliationJobTest {
   }
 
   @Test
-  fun test_reconcileTransactions_no_transactions_to_reconcile() {
+  fun `reconcile outbound transactions - no transactions to reconcile`() {
     every {
       custodyTransactionRepo.findAllByStatusAndExternalTxIdNotNull(
         CustodyTransactionStatus.SUBMITTED.toString()
@@ -117,22 +121,21 @@ class FireblocksTransactionsReconciliationJobTest {
         "REJECTED"
       ]
   )
-  fun test_reconcileTransactions_attempt_increase(status: TransactionStatus) {
+  fun `reconcile outbound transactions - attempt increase`(status: TransactionStatus) {
     val attemptCount = 0
-    val custodyTransaction =
+    val custodyTxn =
       JdbcCustodyTransaction.builder()
         .externalTxId(EXTERNAL_TXN_ID)
         .status(CustodyTransactionStatus.SUBMITTED.toString())
         .reconciliationAttemptCount(attemptCount)
         .build()
-    val fireblocksTransaction = TransactionDetails.builder().status(status).build()
+    val fireblocksTxn = TransactionDetails.builder().status(status).build()
 
     val requestCapture = slot<JdbcCustodyTransaction>()
     every { custodyTransactionService.updateCustodyTransaction(capture(requestCapture)) } just Runs
-    every { custodyTransactionService.transactionsEligibleForReconciliation } returns
-      listOf(custodyTransaction)
-    every { custodyPaymentService.getTransactionById(EXTERNAL_TXN_ID) } returns
-      fireblocksTransaction
+    every { custodyTransactionService.outboundTransactionsEligibleForReconciliation } returns
+      listOf(custodyTxn)
+    every { custodyPaymentService.getTransactionById(EXTERNAL_TXN_ID) } returns fireblocksTxn
     every { custodyTransactionRepo.save(any()) } returns null
     every { fireblocksConfig.reconciliation.maxAttempts } returns 10
 
@@ -141,28 +144,26 @@ class FireblocksTransactionsReconciliationJobTest {
     verify(exactly = 1) { custodyPaymentService.getTransactionById(EXTERNAL_TXN_ID) }
     verify(exactly = 1) { custodyTransactionService.updateCustodyTransaction(any()) }
 
-    assertEquals(CustodyTransactionStatus.SUBMITTED.toString(), custodyTransaction.status)
-    assertEquals(1, custodyTransaction.reconciliationAttemptCount)
+    assertEquals(CustodyTransactionStatus.SUBMITTED.toString(), custodyTxn.status)
+    assertEquals(1, custodyTxn.reconciliationAttemptCount)
   }
 
   @Test
-  fun test_reconcileTransactions_change_status_to_failed() {
+  fun `reconcile outbound transactions - change_status_to_failed`() {
     val attemptCount = 9
-    val custodyTransaction =
+    val custodyTxn =
       JdbcCustodyTransaction.builder()
         .externalTxId(EXTERNAL_TXN_ID)
         .status(CustodyTransactionStatus.SUBMITTED.toString())
         .reconciliationAttemptCount(attemptCount)
         .build()
-    val fireblocksTransaction =
-      TransactionDetails.builder().status(TransactionStatus.CONFIRMING).build()
+    val fireblocksTxn = TransactionDetails.builder().status(TransactionStatus.CONFIRMING).build()
 
     val requestCapture = slot<JdbcCustodyTransaction>()
     every { custodyTransactionService.updateCustodyTransaction(capture(requestCapture)) } just Runs
-    every { custodyTransactionService.transactionsEligibleForReconciliation } returns
-      listOf(custodyTransaction)
-    every { custodyPaymentService.getTransactionById(EXTERNAL_TXN_ID) } returns
-      fireblocksTransaction
+    every { custodyTransactionService.outboundTransactionsEligibleForReconciliation } returns
+      listOf(custodyTxn)
+    every { custodyPaymentService.getTransactionById(EXTERNAL_TXN_ID) } returns fireblocksTxn
     every { fireblocksConfig.reconciliation.maxAttempts } returns 10
     every { custodyTransactionRepo.save(any()) } returns null
 
@@ -171,23 +172,236 @@ class FireblocksTransactionsReconciliationJobTest {
     verify(exactly = 1) { custodyPaymentService.getTransactionById(EXTERNAL_TXN_ID) }
     verify(exactly = 1) { custodyTransactionService.updateCustodyTransaction(any()) }
 
-    assertEquals(CustodyTransactionStatus.FAILED.toString(), custodyTransaction.status)
-    assertEquals(10, custodyTransaction.reconciliationAttemptCount)
+    assertEquals(CustodyTransactionStatus.FAILED.toString(), custodyTxn.status)
+    assertEquals(10, custodyTxn.reconciliationAttemptCount)
   }
 
   @Test
-  fun test_reconcileTransactions_handle_exception() {
+  fun `reconcile outbound transactions - handle exception`() {
     val attemptCount = 9
-    val custodyTransaction =
+    val custodyTxn =
       JdbcCustodyTransaction.builder()
         .externalTxId(EXTERNAL_TXN_ID)
         .status(CustodyTransactionStatus.SUBMITTED.toString())
         .reconciliationAttemptCount(attemptCount)
         .build()
 
-    every { custodyTransactionService.transactionsEligibleForReconciliation } returns
-      listOf(custodyTransaction)
+    every { custodyTransactionService.outboundTransactionsEligibleForReconciliation } returns
+      listOf(custodyTxn)
     every { custodyPaymentService.getTransactionById(EXTERNAL_TXN_ID) } throws
+      FireblocksException("Too many requests", 429)
+
+    assertDoesNotThrow { reconciliationJob.reconcileTransactions() }
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+    value = TransactionStatus::class,
+    mode = EnumSource.Mode.INCLUDE,
+    names = ["COMPLETED", "CANCELLED", "BLOCKED", "FAILED"]
+  )
+  fun `reconcile inbound transactions - successful reconciliation`(status: TransactionStatus) {
+    val custodyTxn =
+      JdbcCustodyTransaction.builder()
+        .status(CustodyTransactionStatus.CREATED.toString())
+        .memo(MEMO)
+        .toAccount(DESTINATION_ADDRESS)
+        .createdAt(START_TIME)
+        .build()
+    val fireblocksTxn1 =
+      TransactionDetails.builder()
+        .id("1")
+        .status(status)
+        .destinationAddress(DESTINATION_ADDRESS)
+        .destinationTag(MEMO)
+        .build()
+    val fireblocksTxn2 =
+      TransactionDetails.builder()
+        .id("2")
+        .status(status)
+        .destinationAddress(DESTINATION_ADDRESS)
+        .destinationTag(MEMO)
+        .build()
+    val custodyPayment = CustodyPayment.builder().build()
+
+    every {
+      custodyTransactionRepo.findAllByStatusAndKindIn(
+        CustodyTransactionStatus.CREATED.toString(),
+        mutableSetOf(
+          PlatformTransactionData.Kind.RECEIVE.getKind(),
+          PlatformTransactionData.Kind.WITHDRAWAL.getKind()
+        )
+      )
+    } returns listOf(custodyTxn)
+    every { custodyPaymentService.getTransactionsByTimeRange(START_TIME, any()) } returns
+      listOf(fireblocksTxn1, fireblocksTxn2)
+    every { fireblocksEventService.convert(fireblocksTxn1) } returns Optional.of(custodyPayment)
+
+    reconciliationJob.reconcileTransactions()
+
+    verify(exactly = 1) { custodyPaymentService.getTransactionsByTimeRange(any(), any()) }
+    verify(exactly = 1) { fireblocksEventService.handlePayment(custodyPayment) }
+  }
+
+  @Test
+  fun `reconcile inbound transactions - no transactions to reconcile`() {
+    every {
+      custodyTransactionRepo.findAllByStatusAndKindIn(
+        CustodyTransactionStatus.CREATED.toString(),
+        mutableSetOf(
+          PlatformTransactionData.Kind.RECEIVE.getKind(),
+          PlatformTransactionData.Kind.WITHDRAWAL.getKind()
+        )
+      )
+    } returns emptyList()
+
+    reconciliationJob.reconcileTransactions()
+
+    verify(exactly = 0) { custodyPaymentService.getTransactionsByTimeRange(any(), any()) }
+  }
+
+  @Test
+  fun `reconcile inbound transactions - no Fireblocks transactions within range`() {
+    val custodyTxn =
+      JdbcCustodyTransaction.builder()
+        .status(CustodyTransactionStatus.CREATED.toString())
+        .memo(MEMO)
+        .toAccount(DESTINATION_ADDRESS)
+        .createdAt(START_TIME)
+        .build()
+
+    every {
+      custodyTransactionRepo.findAllByStatusAndKindIn(
+        CustodyTransactionStatus.CREATED.toString(),
+        mutableSetOf(
+          PlatformTransactionData.Kind.RECEIVE.getKind(),
+          PlatformTransactionData.Kind.WITHDRAWAL.getKind()
+        )
+      )
+    } returns listOf(custodyTxn)
+
+    every { custodyPaymentService.getTransactionsByTimeRange(any(), any()) } returns listOf()
+
+    reconciliationJob.reconcileTransactions()
+
+    verify(exactly = 0) { fireblocksEventService.handlePayment(any()) }
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+    value = TransactionStatus::class,
+    mode = EnumSource.Mode.INCLUDE,
+    names =
+      [
+        "QUEUED",
+        "PENDING_AUTHORIZATION",
+        "PENDING_SIGNATURE",
+        "BROADCASTING",
+        "PENDING_3RD_PARTY_MANUAL_APPROVAL",
+        "PENDING_3RD_PARTY",
+        "CONFIRMING",
+        "PARTIALLY_COMPLETED",
+        "PENDING_AML_SCREENING",
+        "REJECTED"
+      ]
+  )
+  fun `reconcile inbound transactions - attempt increase`(status: TransactionStatus) {
+    val attemptCount = 0
+    val custodyTxn =
+      JdbcCustodyTransaction.builder()
+        .status(CustodyTransactionStatus.CREATED.toString())
+        .memo(MEMO)
+        .toAccount(DESTINATION_ADDRESS)
+        .createdAt(START_TIME)
+        .reconciliationAttemptCount(attemptCount)
+        .build()
+    val fireblocksTxn =
+      TransactionDetails.builder()
+        .status(status)
+        .destinationAddress(DESTINATION_ADDRESS)
+        .destinationTag(MEMO)
+        .build()
+    val custodyPayment = CustodyPayment.builder().build()
+
+    every {
+      custodyTransactionRepo.findAllByStatusAndKindIn(
+        CustodyTransactionStatus.CREATED.toString(),
+        mutableSetOf(
+          PlatformTransactionData.Kind.RECEIVE.getKind(),
+          PlatformTransactionData.Kind.WITHDRAWAL.getKind()
+        )
+      )
+    } returns listOf(custodyTxn)
+    every { custodyPaymentService.getTransactionsByTimeRange(START_TIME, any()) } returns
+      listOf(fireblocksTxn)
+    every { fireblocksEventService.convert(fireblocksTxn) } returns Optional.of(custodyPayment)
+    every { custodyTransactionRepo.save(any()) } returns null
+    every { fireblocksConfig.reconciliation.maxAttempts } returns 10
+
+    reconciliationJob.reconcileTransactions()
+
+    verify(exactly = 1) { custodyPaymentService.getTransactionsByTimeRange(START_TIME, any()) }
+    verify(exactly = 1) { custodyTransactionService.updateCustodyTransaction(any()) }
+
+    assertEquals(CustodyTransactionStatus.CREATED.toString(), custodyTxn.status)
+    assertEquals(1, custodyTxn.reconciliationAttemptCount)
+  }
+
+  @Test
+  fun `reconcile inbound transactions - change_status_to_failed`() {
+    val attemptCount = 9
+    val custodyTxn =
+      JdbcCustodyTransaction.builder()
+        .status(CustodyTransactionStatus.CREATED.toString())
+        .memo(MEMO)
+        .toAccount(DESTINATION_ADDRESS)
+        .createdAt(START_TIME)
+        .reconciliationAttemptCount(attemptCount)
+        .build()
+    val fireblocksTxn =
+      TransactionDetails.builder()
+        .status(TransactionStatus.PENDING_SIGNATURE)
+        .destinationAddress(DESTINATION_ADDRESS)
+        .destinationTag(MEMO)
+        .build()
+    val custodyPayment = CustodyPayment.builder().build()
+
+    every {
+      custodyTransactionRepo.findAllByStatusAndKindIn(
+        CustodyTransactionStatus.CREATED.toString(),
+        mutableSetOf(
+          PlatformTransactionData.Kind.RECEIVE.getKind(),
+          PlatformTransactionData.Kind.WITHDRAWAL.getKind()
+        )
+      )
+    } returns listOf(custodyTxn)
+    every { custodyPaymentService.getTransactionsByTimeRange(START_TIME, any()) } returns
+      listOf(fireblocksTxn)
+    every { fireblocksEventService.convert(fireblocksTxn) } returns Optional.of(custodyPayment)
+    every { fireblocksConfig.reconciliation.maxAttempts } returns 10
+    every { custodyTransactionRepo.save(any()) } returns null
+
+    reconciliationJob.reconcileTransactions()
+
+    verify(exactly = 1) { custodyPaymentService.getTransactionsByTimeRange(START_TIME, any()) }
+    verify(exactly = 1) { custodyTransactionService.updateCustodyTransaction(any()) }
+
+    assertEquals(CustodyTransactionStatus.FAILED.toString(), custodyTxn.status)
+    assertEquals(10, custodyTxn.reconciliationAttemptCount)
+  }
+
+  @Test
+  fun `reconcile inbound transactions - handle exception`() {
+    val custodyTxn =
+      JdbcCustodyTransaction.builder()
+        .externalTxId(EXTERNAL_TXN_ID)
+        .status(CustodyTransactionStatus.SUBMITTED.toString())
+        .createdAt(START_TIME)
+        .build()
+
+    every { custodyTransactionService.inboundTransactionsEligibleForReconciliation } returns
+      listOf(custodyTxn)
+    every { custodyPaymentService.getTransactionsByTimeRange(START_TIME, any()) } throws
       FireblocksException("Too many requests", 429)
 
     assertDoesNotThrow { reconciliationJob.reconcileTransactions() }
