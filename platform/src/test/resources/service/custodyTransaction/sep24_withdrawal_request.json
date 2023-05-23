@@ -5,9 +5,7 @@
   "protocol": "24",
   "fromAccount": "testFromAccount",
   "toAccount": "testWithdrawAnchorAccount",
-  "amountIn": "testAmountIn",
-  "amountInAsset": "testAmountInAsset",
-  "amountOut": "testAmountOut",
-  "amountOutAsset": "testAmountOutAsset",
+  "amount": "testAmountIn",
+  "amountAsset": "testAmountInAsset",
   "kind": "withdrawal"
 }

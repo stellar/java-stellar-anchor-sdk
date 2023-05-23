@@ -42,10 +42,8 @@ public class CustodyTransactionService {
             .protocol(request.getProtocol())
             .fromAccount(request.getFromAccount())
             .toAccount(request.getToAccount())
-            .amountIn(request.getAmountIn())
-            .amountInAsset(request.getAmountInAsset())
-            .amountOut(request.getAmountOut())
-            .amountOutAsset(request.getAmountOutAsset())
+            .amount(request.getAmount())
+            .amountAsset(request.getAmountAsset())
             .kind(request.getKind())
             .build());
   }

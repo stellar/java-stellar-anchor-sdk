@@ -35,6 +35,7 @@ import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.config.AppConfig
+import org.stellar.anchor.config.CustodyConfig
 import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.config.Sep31Config
 import org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_RECEIVE
@@ -281,6 +282,7 @@ class Sep31ServiceTest {
   @MockK(relaxed = true) lateinit var customerIntegration: CustomerIntegration
   @MockK(relaxed = true) lateinit var eventPublishService: EventService
   @MockK(relaxed = true) lateinit var custodyService: CustodyService
+  @MockK(relaxed = true) lateinit var custodyConfig: CustodyConfig
 
   private lateinit var jwtService: JwtService
   private lateinit var sep31Service: Sep31Service
@@ -301,6 +303,7 @@ class Sep31ServiceTest {
     every { appConfig.languages } returns listOf("en")
     every { sep31Config.paymentType } returns STRICT_SEND
     every { txnStore.newTransaction() } returns PojoSep31Transaction()
+    every { custodyConfig.type } returns "fireblocks"
     jwtService = spyk(JwtService(secretConfig))
 
     sep31Service =
@@ -314,7 +317,8 @@ class Sep31ServiceTest {
         feeIntegration,
         customerIntegration,
         eventPublishService,
-        custodyService
+        custodyService,
+        custodyConfig
       )
 
     request = gson.fromJson(requestJson, Sep31PostTransactionRequest::class.java)
@@ -370,7 +374,8 @@ class Sep31ServiceTest {
         feeIntegration,
         customerIntegration,
         eventPublishService,
-        custodyService
+        custodyService,
+        custodyConfig
       )
     }
     assertInstanceOf(SepValidationException::class.java, ex)
@@ -892,7 +897,8 @@ class Sep31ServiceTest {
         feeIntegration,
         customerIntegration,
         eventPublishService,
-        custodyService
+        custodyService,
+        custodyConfig
       )
 
     val senderId = "d2bd1412-e2f6-4047-ad70-a1a2f133b25c"

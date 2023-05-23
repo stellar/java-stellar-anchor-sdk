@@ -4,9 +4,7 @@
   "memoType": "testMemoType",
   "protocol": "24",
   "toAccount": "testToAccount",
-  "amountIn": "testAmountIn",
-  "amountInAsset": "testAmountInAsset",
-  "amountOut": "testAmountOut",
-  "amountOutAsset": "testAmountOutAsset",
+  "amount": "testAmountOut",
+  "amountAsset": "testAmountOutAsset",
   "kind": "deposit"
 }

@@ -80,8 +80,8 @@ public class FireblocksPaymentService implements CustodyPaymentService {
   public CreateTransactionRequest getCreateTransactionRequest(JdbcCustodyTransaction txn)
       throws InvalidConfigException {
     return CreateTransactionRequest.builder()
-        .assetId(fireblocksConfig.getFireblocksAssetCode(txn.getAmountOutAsset()))
-        .amount(txn.getAmountOut())
+        .assetId(fireblocksConfig.getFireblocksAssetCode(txn.getAmountAsset()))
+        .amount(txn.getAmount())
         .source(
             new CreateTransactionRequest.TransferPeerPath(
                 VAULT_ACCOUNT, fireblocksConfig.getVaultAccountId()))
