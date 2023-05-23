@@ -131,16 +131,25 @@ public class TransactionService {
   public PatchTransactionsResponse patchTransactions(PatchTransactionsRequest request)
       throws AnchorException {
     List<PatchTransactionRequest> patchRequests = request.getRecords();
+    if (patchRequests == null) {
+      throw new BadRequestException("Records are missing.");
+    }
 
     List<GetTransactionResponse> txnResponses = new LinkedList<>();
+
     for (PatchTransactionRequest patchRequest : patchRequests) {
       txnResponses.add(patchTransaction(patchRequest));
     }
+
     return new PatchTransactionsResponse(txnResponses);
   }
 
   private GetTransactionResponse patchTransaction(PatchTransactionRequest patch)
       throws AnchorException {
+    if (patch.getTransaction() == null) {
+      throw new BadRequestException("Transaction is missing.");
+    }
+
     validateIfStatusIsSupported(patch.getTransaction().getStatus().toString());
     validateAsset("amount_in", patch.getTransaction().getAmountIn());
     validateAsset("amount_out", patch.getTransaction().getAmountOut());
