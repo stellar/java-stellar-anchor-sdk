@@ -13,6 +13,7 @@ import org.stellar.anchor.platform.data.JdbcCustodyTransaction;
 import org.stellar.anchor.platform.data.JdbcCustodyTransactionRepo;
 import org.stellar.anchor.platform.service.AnchorMetrics;
 
+/** Custody payment handler for SEP31 transactions */
 public class Sep31CustodyPaymentHandler extends CustodyPaymentHandler {
 
   public Sep31CustodyPaymentHandler(

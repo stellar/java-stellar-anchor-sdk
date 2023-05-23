@@ -21,6 +21,7 @@ import org.stellar.anchor.platform.config.CustodyApiConfig;
 import org.stellar.anchor.util.AuthHeader;
 import org.stellar.anchor.util.GsonUtils;
 
+/** API client, that is responsible for communication with Custody Server */
 public class CustodyApiClient {
 
   private static final Gson gson = GsonUtils.getInstance();

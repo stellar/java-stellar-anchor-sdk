@@ -11,6 +11,11 @@ import org.stellar.anchor.api.platform.PlatformTransactionData.Kind;
 import org.stellar.anchor.platform.data.JdbcCustodyTransaction;
 import org.stellar.anchor.platform.data.JdbcCustodyTransactionRepo;
 
+/**
+ * Basic class, that contains common logic to handle custody event. It links event to custody
+ * transaction and pass event to appropriate handler. Event can be retrieved as webhook or as a
+ * result of reconciliation job
+ */
 public abstract class CustodyEventService {
 
   private final JdbcCustodyTransactionRepo custodyTransactionRepo;

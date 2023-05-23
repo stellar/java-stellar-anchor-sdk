@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.stellar.anchor.api.custody.GenerateDepositAddressResponse;
-import org.stellar.anchor.api.exception.FireblocksException;
+import org.stellar.anchor.api.exception.CustodyException;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.platform.custody.CustodyPaymentService;
 
@@ -27,7 +27,7 @@ public class CustodyPaymentController {
       value = "/transactions/payments/assets/{assetId}/address",
       method = {RequestMethod.POST})
   public GenerateDepositAddressResponse generateDepositAddress(@PathVariable String assetId)
-      throws FireblocksException, InvalidConfigException {
+      throws CustodyException, InvalidConfigException {
     return custodyPaymentService.generateDepositAddress(assetId);
   }
 }

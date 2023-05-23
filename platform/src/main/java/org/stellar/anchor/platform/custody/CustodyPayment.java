@@ -12,6 +12,10 @@ import org.stellar.sdk.Memo;
 import org.stellar.sdk.responses.operations.PathPaymentBaseOperationResponse;
 import org.stellar.sdk.responses.operations.PaymentOperationResponse;
 
+/**
+ * A class, that contains payment (inbound/outbound) information for custody transaction. It is an
+ * abstract representation of payment and is not custody-specific
+ */
 @Data
 @Builder
 public class CustodyPayment {
