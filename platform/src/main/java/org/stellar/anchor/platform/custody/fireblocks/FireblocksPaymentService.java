@@ -5,6 +5,13 @@ import static org.stellar.anchor.api.custody.fireblocks.CreateTransactionRequest
 import static org.stellar.anchor.util.MemoHelper.memoTypeAsString;
 
 import com.google.gson.Gson;
+import com.google.gson.reflect.TypeToken;
+import java.lang.reflect.Type;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.retry.annotation.Retryable;
 import org.stellar.anchor.api.custody.CreateTransactionPaymentResponse;
@@ -28,16 +35,23 @@ public class FireblocksPaymentService implements CustodyPaymentService {
 
   private static final String CREATE_NEW_DEPOSIT_ADDRESS_URL_FORMAT =
       "/v1/vault/accounts/%s/%s/addresses";
-  private static final String CREATE_NEW_TRANSACTION_PAYMENT_URL = "/v1/transactions";
+  private static final String TRANSACTIONS_URL = "/v1/transactions";
   private static final String GET_TRANSACTION_BY_ID_URL_FORMAT = "/v1/transactions/%s";
+
+  private static final String QUERY_PARAM_AFTER = "after";
+  private static final String QUERY_PARAM_BEFORE = "before";
+  private static final String QUERY_PARAM_LIMIT = "limit";
+  private static final int LIMIT = 500;
 
   private final FireblocksApiClient fireblocksApiClient;
   private final FireblocksConfig fireblocksConfig;
+  private final Type transactionDetailsListType;
 
   public FireblocksPaymentService(
       FireblocksApiClient fireblocksApiClient, FireblocksConfig fireblocksConfig) {
     this.fireblocksApiClient = fireblocksApiClient;
     this.fireblocksConfig = fireblocksConfig;
+    transactionDetailsListType = new TypeToken<ArrayList<TransactionDetails>>() {}.getType();
   }
 
   @Override
@@ -71,7 +85,7 @@ public class FireblocksPaymentService implements CustodyPaymentService {
 
     CreateTransactionResponse response =
         gson.fromJson(
-            fireblocksApiClient.post(CREATE_NEW_TRANSACTION_PAYMENT_URL, gson.toJson(request)),
+            fireblocksApiClient.post(TRANSACTIONS_URL, gson.toJson(request)),
             CreateTransactionResponse.class);
 
     return new CreateTransactionPaymentResponse(response.getId());
@@ -96,5 +110,41 @@ public class FireblocksPaymentService implements CustodyPaymentService {
     return gson.fromJson(
         fireblocksApiClient.get(String.format(GET_TRANSACTION_BY_ID_URL_FORMAT, txnId)),
         TransactionDetails.class);
+  }
+
+  @Override
+  public List<TransactionDetails> getTransactionsByTimeRange(Instant startTime, Instant endTime)
+      throws FireblocksException {
+
+    if (startTime.isAfter(endTime)) {
+      throw new IllegalArgumentException("End time can't be before start time");
+    }
+
+    Map<String, String> queryParams =
+        new HashMap<>(
+            Map.of(
+                QUERY_PARAM_AFTER, String.valueOf(startTime.toEpochMilli()),
+                QUERY_PARAM_BEFORE, String.valueOf(endTime.toEpochMilli()),
+                QUERY_PARAM_LIMIT, String.valueOf(LIMIT)));
+
+    List<TransactionDetails> transactions = new ArrayList<>(getTransactions(queryParams));
+
+    while (transactions.size() % LIMIT == 0) {
+      Long maxCreatedAt =
+          transactions.stream()
+              .map(TransactionDetails::getCreatedAt)
+              .reduce(Long.MIN_VALUE, Long::max);
+
+      queryParams.put(QUERY_PARAM_AFTER, String.valueOf(maxCreatedAt));
+      transactions.addAll(getTransactions(queryParams));
+    }
+
+    return transactions;
+  }
+
+  private List<TransactionDetails> getTransactions(Map<String, String> queryParams)
+      throws FireblocksException {
+    return gson.fromJson(
+        fireblocksApiClient.get(TRANSACTIONS_URL, queryParams), transactionDetailsListType);
   }
 }

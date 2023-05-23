@@ -4,6 +4,7 @@ import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.slot
+import java.time.Instant
 import kotlin.test.assertEquals
 import org.apache.commons.lang3.StringUtils
 import org.junit.jupiter.api.Assertions
@@ -153,6 +154,27 @@ class FireblocksPaymentServiceTest {
       urlCapture.captured
     )
 
+    JSONAssert.assertEquals(responseJson, gson.toJson(response), JSONCompareMode.STRICT)
+  }
+
+  @Test
+  fun test_getTransactionsByTimeRange_success() {
+    val responseJson =
+      getResourceFileAsString("custody/api/payment/fireblocks/get_transactions_response.json")
+    val urlCapture = slot<String>()
+    val queryParamsCapture = slot<Map<String, String>>()
+
+    every { fireblocksClient.get(capture(urlCapture), capture(queryParamsCapture)) } returns
+      responseJson
+
+    val startTime = Instant.now().minusSeconds(5)
+    val endTime = Instant.now()
+    val response = fireblocksPaymentService.getTransactionsByTimeRange(startTime, endTime)
+
+    Assertions.assertEquals("/v1/transactions", urlCapture.captured)
+    Assertions.assertEquals(3, queryParamsCapture.captured.size)
+
+    Assertions.assertEquals(2, response.size)
     JSONAssert.assertEquals(responseJson, gson.toJson(response), JSONCompareMode.STRICT)
   }
 }
