@@ -17,7 +17,6 @@ import org.stellar.anchor.api.callback.GetRateRequest
 import org.stellar.anchor.api.exception.NotFoundException
 import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerRequest
 import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest
-import org.stellar.anchor.api.sep.sep38.Sep38Context
 import org.stellar.anchor.auth.AuthHelper
 import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.platform.Sep12Client
@@ -75,35 +74,11 @@ class CallbackApiTests(val config: TestConfig, val toml: Sep1Helper.TomlContent,
     }
   }
 
-  private fun testRate_indicativePrices() {
-    val result =
-      rriClient.getRate(
-        GetRateRequest.builder()
-          .type(GetRateRequest.Type.INDICATIVE_PRICES)
-          .sellAsset(FIAT_USD)
-          .sellAmount("100")
-          .buyAsset(STELLAR_USD)
-          .build()
-      )
-    Assertions.assertNotNull(result)
-    val wantBody =
-      """{
-      "rate":{
-        "price":"1.02",
-        "sell_amount": "100",
-        "buy_amount": "98.0392"
-      }
-    }"""
-        .trimMargin()
-    JSONAssert.assertEquals(wantBody, org.stellar.anchor.platform.gson.toJson(result), true)
-  }
-
   fun testRate_indicativePrice() {
     val result =
       rriClient.getRate(
         GetRateRequest.builder()
-          .type(GetRateRequest.Type.INDICATIVE_PRICE)
-          .context(Sep38Context.SEP31)
+          .type(GetRateRequest.Type.INDICATIVE)
           .sellAsset(FIAT_USD)
           .sellAmount("100")
           .buyAsset(STELLAR_USD)
@@ -113,7 +88,6 @@ class CallbackApiTests(val config: TestConfig, val toml: Sep1Helper.TomlContent,
     val wantBody =
       """{
       "rate":{
-        "total_price":"1.0303032801",
         "price":"1.0200002473",
         "sell_amount": "100",
         "buy_amount": "97.0588",
@@ -140,7 +114,6 @@ class CallbackApiTests(val config: TestConfig, val toml: Sep1Helper.TomlContent,
         .getRate(
           GetRateRequest.builder()
             .type(GetRateRequest.Type.FIRM)
-            .context(Sep38Context.SEP31)
             .sellAsset(FIAT_USD)
             .buyAsset(STELLAR_USD)
             .buyAmount("100")
@@ -176,7 +149,6 @@ class CallbackApiTests(val config: TestConfig, val toml: Sep1Helper.TomlContent,
       """{
       "rate":{
         "id": "$id",
-        "total_price":"1.03",
         "price":"1.02",
         "sell_amount": "103",
         "buy_amount": "100",
@@ -238,7 +210,6 @@ class CallbackApiTests(val config: TestConfig, val toml: Sep1Helper.TomlContent,
     println("Performing Callback API tests...")
 
     testCustomerIntegration()
-    testRate_indicativePrices()
     testRate_indicativePrice()
     testRate_firm()
     testGetFee()

@@ -5,6 +5,7 @@ import java.util.List;
 import lombok.NonNull;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.SepException;
+import org.stellar.anchor.util.TransactionsParams;
 
 @SuppressWarnings("RedundantThrows")
 public interface Sep31TransactionStore {
@@ -51,4 +52,12 @@ public interface Sep31TransactionStore {
    */
   @SuppressWarnings("UnusedReturnValue")
   Sep31Transaction save(Sep31Transaction sep31Transaction) throws SepException;
+
+  /**
+   * Finds multiple transactions that matches following criteria
+   *
+   * @param params parameters for transaction search
+   * @return list of transactions
+   */
+  List<? extends Sep31Transaction> findTransactions(TransactionsParams params);
 }

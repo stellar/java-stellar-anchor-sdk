@@ -1,14 +1,15 @@
 package org.stellar.anchor.platform.controller.sep;
 
+import java.util.List;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.stellar.anchor.api.exception.AnchorException;
-import org.stellar.anchor.api.exception.NotFoundException;
-import org.stellar.anchor.api.platform.GetTransactionResponse;
-import org.stellar.anchor.api.platform.PatchTransactionsRequest;
-import org.stellar.anchor.api.platform.PatchTransactionsResponse;
+import org.stellar.anchor.api.platform.*;
+import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.platform.service.TransactionService;
+import org.stellar.anchor.util.TransactionsParams;
 
 @RestController
 public class PlatformController {
@@ -45,7 +46,17 @@ public class PlatformController {
   @RequestMapping(
       value = "/transactions",
       method = {RequestMethod.GET})
-  public GetTransactionResponse getTransactions() throws AnchorException {
-    throw new NotFoundException("Not implemented");
+  public GetTransactionsResponse getTransactions(
+      @RequestParam(value = "sep") TransactionsSeps sep,
+      @RequestParam(required = false, value = "order_by", defaultValue = "created_at")
+          TransactionsOrderBy order_by,
+      @RequestParam(required = false, value = "order", defaultValue = "asc") Sort.Direction order,
+      @RequestParam(required = false, value = "statuses") List<SepTransactionStatus> statuses,
+      @RequestParam(required = false, value = "page_number", defaultValue = "0") Integer pageNumber,
+      @RequestParam(required = false, value = "page_size", defaultValue = "20") Integer pageSize)
+      throws AnchorException {
+    TransactionsParams params =
+        new TransactionsParams(order_by, order, statuses, pageNumber, pageSize);
+    return transactionService.getTransactionsResponse(sep, params);
   }
 }

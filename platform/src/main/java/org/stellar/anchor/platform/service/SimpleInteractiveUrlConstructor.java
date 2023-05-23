@@ -1,7 +1,8 @@
 package org.stellar.anchor.platform.service;
 
-import static org.stellar.anchor.sep24.Sep24Service.INTERACTIVE_URL_JWT_REQUIRED_FIELDS;
+import static org.stellar.anchor.sep24.Sep24Service.INTERACTIVE_URL_JWT_REQUIRED_FIELDS_FROM_REQUEST;
 import static org.stellar.anchor.sep9.Sep9Fields.extractSep9Fields;
+import static org.stellar.anchor.util.AssetHelper.*;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 
 import java.net.URI;
@@ -58,22 +59,31 @@ public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
             txn.getClientDomain());
 
     Map<String, String> data = new HashMap<>();
+    // Add sep-9 fields from request
     data.putAll(extractSep9Fields(request));
-    data.putAll(extractInteractiveUrlJWTFields(request));
-
+    // Add required JWT fields from request
+    data.putAll(extractRequiredJwtFieldsFromRequest(request));
     // Add fields defined in txnFields
     UrlConstructorHelper.addTxnFields(data, txn, config.getTxnFields());
+
     token.claim("data", data);
     return jwtService.encode(token);
   }
 
-  public static Map<String, String> extractInteractiveUrlJWTFields(Map<String, String> request) {
+  public static Map<String, String> extractRequiredJwtFieldsFromRequest(
+      Map<String, String> request) {
     Map<String, String> fields = new HashMap<>();
     for (Map.Entry<String, String> entry : request.entrySet()) {
-      if (INTERACTIVE_URL_JWT_REQUIRED_FIELDS.contains(entry.getKey())) {
+      if (INTERACTIVE_URL_JWT_REQUIRED_FIELDS_FROM_REQUEST.contains(entry.getKey())) {
         fields.put(entry.getKey(), entry.getValue());
       }
     }
+
+    String asset = getAssetId(request.get("asset_code"), request.get("asset_issuer"));
+    if (!isEmpty(asset)) {
+      fields.put("asset", asset);
+    }
+
     return fields;
   }
 }

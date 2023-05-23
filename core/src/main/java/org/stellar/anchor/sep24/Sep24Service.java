@@ -45,7 +45,7 @@ public class Sep24Service {
 
   static final Gson gson = GsonUtils.getInstance();
 
-  public static final List<String> INTERACTIVE_URL_JWT_REQUIRED_FIELDS =
+  public static final List<String> INTERACTIVE_URL_JWT_REQUIRED_FIELDS_FROM_REQUEST =
       List.of("amount", "client_domain", "lang");
 
   public Sep24Service(
@@ -441,9 +441,7 @@ public class Sep24Service {
     txnR.setDepositMemo(txn.getMemo());
     txnR.setDepositMemoType(txn.getMemoType());
 
-    if (needsMoreInfoUrlDeposit.contains(txn.getStatus())) {
-      txnR.setMoreInfoUrl(moreInfoUrlConstructor.construct(txn));
-    }
+    txnR.setMoreInfoUrl(moreInfoUrlConstructor.construct(txn));
 
     return txnR;
   }
@@ -460,9 +458,7 @@ public class Sep24Service {
     txnR.setWithdrawMemoType(txn.getMemoType());
     txnR.setWithdrawAnchorAccount(txn.getWithdrawAnchorAccount());
 
-    if (needsMoreInfoUrlWithdraw.contains(txn.getStatus())) {
-      txnR.setMoreInfoUrl(moreInfoUrlConstructor.construct(txn));
-    }
+    txnR.setMoreInfoUrl(moreInfoUrlConstructor.construct(txn));
 
     return txnR;
   }

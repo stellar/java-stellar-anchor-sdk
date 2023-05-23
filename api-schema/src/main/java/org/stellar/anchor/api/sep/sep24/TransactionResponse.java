@@ -16,7 +16,7 @@ public class TransactionResponse {
   Integer status_eta;
 
   @SerializedName("more_info_url")
-  String moreInfoUrl = "http://www.stellar.org";
+  String moreInfoUrl;
 
   @SerializedName("amount_in")
   String amountIn;
