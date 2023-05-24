@@ -1,5 +1,7 @@
 package org.stellar.anchor.platform.custody;
 
+import java.time.Instant;
+import java.util.List;
 import org.stellar.anchor.api.custody.CreateTransactionPaymentResponse;
 import org.stellar.anchor.api.custody.GenerateDepositAddressResponse;
 import org.stellar.anchor.api.custody.fireblocks.TransactionDetails;
@@ -17,4 +19,7 @@ public interface CustodyPaymentService {
       throws FireblocksException, InvalidConfigException;
 
   TransactionDetails getTransactionById(String txnId) throws FireblocksException;
+
+  List<TransactionDetails> getTransactionsByTimeRange(Instant startTime, Instant endTime)
+      throws FireblocksException;
 }
