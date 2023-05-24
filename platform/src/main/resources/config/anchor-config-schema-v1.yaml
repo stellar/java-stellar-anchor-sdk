@@ -1,3 +1,5 @@
+app_logging.level:
+app_logging.stellar_level:
 assets.type:
 assets.value:
 callback_api.auth.api_key.http_header:
@@ -44,8 +46,6 @@ events.publisher.sqs.use_iam:
 events.publisher.type:
 host_url:
 languages:
-app_logging.level:
-app_logging.stellar_level:
 metrics.enabled:
 metrics.extras_enabled:
 metrics.run_interval:
@@ -64,6 +64,8 @@ platform_api.auth.jwt.expiration_milliseconds:
 platform_api.auth.jwt.http_header:
 platform_api.auth.type:
 platform_api.base_url:
+platform_server.context_path:
+platform_server.port:
 sep1.enabled:
 sep1.toml.type:
 sep1.toml.value:
@@ -72,10 +74,10 @@ sep10.client_attribution_allow_list:
 sep10.client_attribution_deny_list:
 sep10.client_attribution_required:
 sep10.enabled:
-sep10.web_auth_domain:
 sep10.jwt_timeout:
 sep10.omnibus_account_list:
 sep10.require_known_omnibus_account:
+sep10.web_auth_domain:
 sep12.enabled:
 sep24.enabled:
 sep24.features.account_creation:

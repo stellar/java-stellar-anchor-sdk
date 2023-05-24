@@ -1,4 +1,4 @@
-package org.stellar.anchor.platform.controller.sep;
+package org.stellar.anchor.platform.controller.platform;
 
 import java.util.List;
 import org.springframework.data.domain.Sort;

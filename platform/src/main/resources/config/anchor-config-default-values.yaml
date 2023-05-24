@@ -82,7 +82,7 @@ platform_api:
   ## The base URL of the Anchor Platform server that implements the platform API endpoints described in the
   ## "Platform API.yml" spec.
   #
-  base_url: http://localhost:8080
+  base_url: http://localhost:8085
   ## Authentication config for Anchor server and Anchor Platform server to safely communicate,
   ## particularly when housed in different clusters.
   ## The receiving party should verify that an incoming request token is still valid.
@@ -173,6 +173,15 @@ app_logging:
   ## @type: string
   ## The "org.stellar" logger logging level.
   stellar_level: INFO
+
+######################
+## Platform Server Configuration
+######################
+platform_server:
+  # The context path of the SEP server
+  context_path: /
+  # The listening port of the SEP server
+  port: 8085
 
 ######################
 ## SEP configuration

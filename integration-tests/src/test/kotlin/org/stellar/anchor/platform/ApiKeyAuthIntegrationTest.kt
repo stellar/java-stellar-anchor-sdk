@@ -34,7 +34,7 @@ class ApiKeyAuthIntegrationTest {
   companion object {
     private const val ANCHOR_TO_PLATFORM_SECRET = "myAnchorToPlatformSecret"
     private const val PLATFORM_TO_ANCHOR_SECRET = "myPlatformToAnchorSecret"
-    private const val PLATFORM_SERVER_PORT = 8080
+    private const val PLATFORM_SERVER_PORT = 8085
   }
   private val gson = GsonUtils.getInstance()
   private val httpClient: OkHttpClient =
@@ -65,7 +65,7 @@ class ApiKeyAuthIntegrationTest {
     envMap["secret.callback_api.auth_secret"] = PLATFORM_TO_ANCHOR_SECRET
 
     // Start platform
-    platformServerContext = AnchorPlatformServer().start(envMap)
+    platformServerContext = SepServer().start(envMap)
   }
 
   @AfterAll
