@@ -66,7 +66,7 @@ public class FireblocksTransactionsReconciliationJob {
       if (fireblocksTxn.getStatus().isObservable()) {
         handleStatusChanged(fireblocksTxn, attempt);
       } else {
-        handleStatusNotChanged(txn, attempt);
+        handleStatusNotChanged(txn, attempt, fireblocksTxn.getExternalTxId());
       }
     } catch (AnchorException | IOException e) {
       errorEx(String.format("Failed to reconcile status for transaction (id=%s)", txn.getId()), e);
@@ -96,6 +96,10 @@ public class FireblocksTransactionsReconciliationJob {
 
       Map<String, TransactionDetails> mappings =
           fireblocksTransactions.stream()
+              .filter(
+                  txn ->
+                      !StringUtils.isEmpty(txn.getDestinationAddress())
+                          && !StringUtils.isEmpty(txn.getDestinationTag()))
               .collect(
                   Collectors.toMap(
                       txn ->
@@ -113,7 +117,9 @@ public class FireblocksTransactionsReconciliationJob {
               if (fireblocksTxn != null && fireblocksTxn.getStatus().isObservable()) {
                 handleStatusChanged(fireblocksTxn, attempt);
               } else {
-                handleStatusNotChanged(txn, attempt);
+                final String externalTxId =
+                    fireblocksTxn != null ? fireblocksTxn.getExternalTxId() : null;
+                handleStatusNotChanged(txn, attempt, externalTxId);
               }
             } catch (AnchorException | IOException e) {
               errorEx(
@@ -138,7 +144,8 @@ public class FireblocksTransactionsReconciliationJob {
     }
   }
 
-  private void handleStatusNotChanged(JdbcCustodyTransaction txn, int attempt) {
+  private void handleStatusNotChanged(
+      JdbcCustodyTransaction txn, int attempt, String externalTxnId) {
     debugF("Reconciliation attempt #[{}]: Fireblocks transaction status wasn't changed", attempt);
 
     txn.setReconciliationAttemptCount(attempt);
@@ -146,6 +153,10 @@ public class FireblocksTransactionsReconciliationJob {
         >= fireblocksConfig.getReconciliation().getMaxAttempts()) {
       debugF("Change transaction [{}] status to FAILED", txn.getId());
       txn.setStatus(CustodyTransactionStatus.FAILED.toString());
+    }
+
+    if (!StringUtils.isEmpty(externalTxnId)) {
+      txn.setExternalTxId(externalTxnId);
     }
     custodyTransactionService.updateCustodyTransaction(txn);
   }

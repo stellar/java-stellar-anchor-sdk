@@ -41,7 +41,11 @@ public class FireblocksPaymentService implements CustodyPaymentService {
   private static final String QUERY_PARAM_AFTER = "after";
   private static final String QUERY_PARAM_BEFORE = "before";
   private static final String QUERY_PARAM_LIMIT = "limit";
-  private static final int LIMIT = 500;
+  private static final String QUERY_PARAM_ORDER_BY = "orderBy";
+  private static final String QUERY_PARAM_SORT = "sort";
+  private static final String TRANSACTIONS_ORDER_BY = "createdAt";
+  private static final String TRANSACTIONS_SORT = "ASC";
+  public static int TRANSACTIONS_LIMIT = 500;
 
   private final FireblocksApiClient fireblocksApiClient;
   private final FireblocksConfig fireblocksConfig;
@@ -115,7 +119,6 @@ public class FireblocksPaymentService implements CustodyPaymentService {
   @Override
   public List<TransactionDetails> getTransactionsByTimeRange(Instant startTime, Instant endTime)
       throws FireblocksException {
-
     if (startTime.isAfter(endTime)) {
       throw new IllegalArgumentException("End time can't be before start time");
     }
@@ -125,18 +128,25 @@ public class FireblocksPaymentService implements CustodyPaymentService {
             Map.of(
                 QUERY_PARAM_AFTER, String.valueOf(startTime.toEpochMilli()),
                 QUERY_PARAM_BEFORE, String.valueOf(endTime.toEpochMilli()),
-                QUERY_PARAM_LIMIT, String.valueOf(LIMIT)));
+                QUERY_PARAM_LIMIT, String.valueOf(TRANSACTIONS_LIMIT),
+                QUERY_PARAM_ORDER_BY, TRANSACTIONS_ORDER_BY,
+                QUERY_PARAM_SORT, TRANSACTIONS_SORT));
 
     List<TransactionDetails> transactions = new ArrayList<>(getTransactions(queryParams));
 
-    while (transactions.size() % LIMIT == 0) {
+    while (transactions.size() % TRANSACTIONS_LIMIT == 0) {
       Long maxCreatedAt =
           transactions.stream()
               .map(TransactionDetails::getCreatedAt)
               .reduce(Long.MIN_VALUE, Long::max);
 
       queryParams.put(QUERY_PARAM_AFTER, String.valueOf(maxCreatedAt));
-      transactions.addAll(getTransactions(queryParams));
+      List<TransactionDetails> retrievedTransactions = getTransactions(queryParams);
+      if (retrievedTransactions == null) {
+        return transactions;
+      } else {
+        transactions.addAll(getTransactions(queryParams));
+      }
     }
 
     return transactions;

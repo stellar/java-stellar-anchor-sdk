@@ -10,7 +10,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.time.Instant;
-import java.util.Collections;
 import java.util.Date;
 import java.util.Map;
 import java.util.UUID;
@@ -51,7 +50,7 @@ public class FireblocksApiClient {
   }
 
   public String get(String path) throws FireblocksException {
-    return get(path, Collections.emptyMap());
+    return get(path, Map.of());
   }
 
   public String get(String path, Map<String, String> queryParams) throws FireblocksException {
