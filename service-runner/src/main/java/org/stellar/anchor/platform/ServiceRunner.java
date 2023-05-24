@@ -34,7 +34,7 @@ public class ServiceRunner {
         anyServerStarted = true;
       }
 
-      if (cmd.hasOption("sep-server") || cmd.hasOption("all")) {
+      if (cmd.hasOption("platform-server") || cmd.hasOption("all")) {
         startPlatformServer(null);
         anyServerStarted = true;
       }
