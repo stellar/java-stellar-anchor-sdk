@@ -100,12 +100,14 @@ class FireblocksEventServiceTest {
     val httpHeaders: Map<String, String> = mutableMapOf(FIREBLOCKS_SIGNATURE_HEADER to signature)
     val eventObject: String =
       getResourceFileAsString("custody/fireblocks/webhook/completed_event_request.json")
+        .trimIndent()
 
     val paymentCapture = slot<CustodyPayment>()
 
     every { horizon.server } throws java.lang.RuntimeException("Horizon error")
     every { custodyTransactionRepo.findByExternalTxId(any()) } returns custodyTxn
     every { sep24CustodyPaymentHandler.onSent(eq(custodyTxn), capture(paymentCapture)) } just runs
+    every { custodyTransactionRepo.findByToAccountAndMemo(any(), any()) } returns null
 
     eventsService.handleEvent(eventObject, httpHeaders)
 
@@ -140,13 +142,14 @@ class FireblocksEventServiceTest {
       getResourceFileAsString("custody/fireblocks/webhook/failed_event_signature.txt")
     val httpHeaders: Map<String, String> = mutableMapOf(FIREBLOCKS_SIGNATURE_HEADER to signature)
     val eventObject: String =
-      getResourceFileAsString("custody/fireblocks/webhook/failed_event_request.json")
+      getResourceFileAsString("custody/fireblocks/webhook/failed_event_request.json").trimIndent()
 
     val paymentCapture = slot<CustodyPayment>()
 
     every { horizon.server } throws java.lang.RuntimeException("Horizon error")
     every { custodyTransactionRepo.findByExternalTxId(any()) } returns custodyTxn
     every { sep24CustodyPaymentHandler.onSent(eq(custodyTxn), capture(paymentCapture)) } just runs
+    every { custodyTransactionRepo.findByToAccountAndMemo(any(), any()) } returns null
 
     eventsService.handleEvent(eventObject, httpHeaders)
 
@@ -191,7 +194,7 @@ class FireblocksEventServiceTest {
 
     val paymentCapture = slot<CustodyPayment>()
 
-    every { horizon.getServer() } returns server
+    every { horizon.server } returns server
     every { server.payments() } returns paymentsRequestBuilder
     every { paymentsRequestBuilder.includeTransactions(true) } returns paymentsRequestBuilder
     every { paymentsRequestBuilder.forTransaction("testTxHash") } returns paymentsRequestBuilder
@@ -199,11 +202,11 @@ class FireblocksEventServiceTest {
     every { page.records } returns operationRecords
     every { custodyTransactionRepo.findByExternalTxId(any()) } returns custodyTxn
     every { sep24CustodyPaymentHandler.onSent(eq(custodyTxn), capture(paymentCapture)) } just runs
+    every { custodyTransactionRepo.findByToAccountAndMemo(any(), any()) } returns null
 
     eventsService.handleEvent(eventObject, httpHeaders)
 
     verify(exactly = 0) { custodyTransactionRepo.findByExternalTxId(any()) }
-    verify(exactly = 0) { custodyTransactionRepo.findByToAccountAndMemo(any(), any()) }
   }
 
   @Test
@@ -235,10 +238,11 @@ class FireblocksEventServiceTest {
     val httpHeaders: Map<String, String> = mutableMapOf(FIREBLOCKS_SIGNATURE_HEADER to signature)
     val eventObject: String =
       getResourceFileAsString("custody/fireblocks/webhook/completed_event_request.json")
+        .trimIndent()
 
     val paymentCapture = slot<CustodyPayment>()
 
-    every { horizon.getServer() } returns server
+    every { horizon.server } returns server
     every { server.payments() } returns paymentsRequestBuilder
     every { paymentsRequestBuilder.includeTransactions(true) } returns paymentsRequestBuilder
     every { paymentsRequestBuilder.forTransaction("testTxHash") } returns paymentsRequestBuilder
@@ -246,6 +250,7 @@ class FireblocksEventServiceTest {
     every { page.records } returns operationRecords
     every { custodyTransactionRepo.findByExternalTxId(any()) } returns custodyTxn
     every { sep24CustodyPaymentHandler.onSent(eq(custodyTxn), capture(paymentCapture)) } just runs
+    every { custodyTransactionRepo.findByToAccountAndMemo(any(), any()) } returns null
 
     eventsService.handleEvent(eventObject, httpHeaders)
 
@@ -285,10 +290,11 @@ class FireblocksEventServiceTest {
     val httpHeaders: Map<String, String> = mutableMapOf(FIREBLOCKS_SIGNATURE_HEADER to signature)
     val eventObject: String =
       getResourceFileAsString("custody/fireblocks/webhook/completed_event_request.json")
+        .trimIndent()
 
     val paymentCapture = slot<CustodyPayment>()
 
-    every { horizon.getServer() } returns server
+    every { horizon.server } returns server
     every { server.payments() } returns paymentsRequestBuilder
     every { paymentsRequestBuilder.includeTransactions(true) } returns paymentsRequestBuilder
     every { paymentsRequestBuilder.forTransaction("testTxHash") } returns paymentsRequestBuilder
@@ -296,6 +302,7 @@ class FireblocksEventServiceTest {
     every { page.records } returns operationRecords
     every { custodyTransactionRepo.findByExternalTxId(any()) } returns custodyTxn
     every { sep24CustodyPaymentHandler.onSent(eq(custodyTxn), capture(paymentCapture)) } just runs
+    every { custodyTransactionRepo.findByToAccountAndMemo(any(), any()) } returns null
 
     eventsService.handleEvent(eventObject, httpHeaders)
 
@@ -405,6 +412,44 @@ class FireblocksEventServiceTest {
     val httpHeaders = mutableMapOf(FIREBLOCKS_SIGNATURE_HEADER to invalidSignature)
 
     eventsService.handleEvent(eventObject, httpHeaders)
+  }
+
+  @Test
+  fun `test handleFireblocksEvent() set missing external transaction id`() {
+    val config =
+      getFireblocksConfig(getResourceFileAsString("custody/fireblocks/webhook/public_key.txt"))
+    val eventsService =
+      FireblocksEventService(
+        custodyTransactionRepo,
+        sep24CustodyPaymentHandler,
+        sep31CustodyPaymentHandler,
+        horizon,
+        config
+      )
+    val custodyTxn =
+      gson.fromJson(
+        getResourceFileAsString("custody/fireblocks/webhook/custody_transaction.json"),
+        JdbcCustodyTransaction::class.java
+      )
+
+    val signature: String =
+      getResourceFileAsString("custody/fireblocks/webhook/completed_event_signature.txt")
+    val httpHeaders: Map<String, String> = mutableMapOf(FIREBLOCKS_SIGNATURE_HEADER to signature)
+    val eventObject: String =
+      getResourceFileAsString("custody/fireblocks/webhook/completed_event_request.json")
+        .trimIndent()
+
+    val transactionToUpdate = slot<JdbcCustodyTransaction>()
+    val externalTransactionId = "testEventId"
+
+    every { horizon.server } throws java.lang.RuntimeException("Horizon error")
+    every { custodyTransactionRepo.findByExternalTxId(any()) } returns custodyTxn
+    every { sep24CustodyPaymentHandler.onSent(eq(custodyTxn), any()) } just runs
+    every { custodyTransactionRepo.findByToAccountAndMemo(any(), any()) } returns custodyTxn
+    every { custodyTransactionRepo.save(capture(transactionToUpdate)) } returns custodyTxn
+
+    eventsService.handleEvent(eventObject, httpHeaders)
+    assertEquals(externalTransactionId, transactionToUpdate.captured.externalTxId)
   }
 
   private fun getFireblocksConfig(publicKey: String): FireblocksConfig {

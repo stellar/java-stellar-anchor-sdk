@@ -1,6 +1,5 @@
 package org.stellar.anchor.platform.custody.fireblocks;
 
-import static java.util.stream.Collectors.toSet;
 import static org.stellar.anchor.platform.utils.RSAUtil.SHA512_WITH_RSA_ALGORITHM;
 import static org.stellar.anchor.platform.utils.RSAUtil.isValidSignature;
 import static org.stellar.anchor.util.Log.debugF;
@@ -19,10 +18,8 @@ import java.time.Instant;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Stream;
 import org.stellar.anchor.api.custody.fireblocks.FireblocksEventObject;
 import org.stellar.anchor.api.custody.fireblocks.TransactionDetails;
-import org.stellar.anchor.api.custody.fireblocks.TransactionStatus;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.InvalidConfigException;
@@ -46,13 +43,6 @@ public class FireblocksEventService extends CustodyEventService {
   public static final String FIREBLOCKS_SIGNATURE_HEADER = "fireblocks-signature";
   private static final Set<String> PAYMENT_TRANSACTION_OPERATION_TYPES =
       Set.of("payment", "path_payment");
-  private static final Set<TransactionStatus> SUCCESS_WEBHOOK_EVENT_STATUSES =
-      Set.of(TransactionStatus.COMPLETED);
-  private static final Set<TransactionStatus> ERROR_WEBHOOK_EVENT_STATUSES =
-      Set.of(TransactionStatus.FAILED, TransactionStatus.CANCELLED, TransactionStatus.BLOCKED);
-  private static final Set<TransactionStatus> OBSERVED_WEBHOOK_EVENT_STATUSES =
-      Stream.concat(SUCCESS_WEBHOOK_EVENT_STATUSES.stream(), ERROR_WEBHOOK_EVENT_STATUSES.stream())
-          .collect(toSet());
 
   private final Horizon horizon;
   private final PublicKey publicKey;
@@ -96,14 +86,19 @@ public class FireblocksEventService extends CustodyEventService {
         FireblocksEventObject fireblocksEventObject =
             GsonUtils.getInstance().fromJson(event, FireblocksEventObject.class);
 
-        if (!OBSERVED_WEBHOOK_EVENT_STATUSES.contains(
-            fireblocksEventObject.getData().getStatus())) {
+        TransactionDetails transactionDetails = fireblocksEventObject.getData();
+        setExternalTxId(
+            transactionDetails.getDestinationAddress(),
+            transactionDetails.getDestinationTag(),
+            transactionDetails.getId());
+
+        if (!fireblocksEventObject.getData().getStatus().isObservable()) {
           debugF("Skipping Fireblocks webhook event[{}] due to the status", event);
           return;
         }
 
         try {
-          Optional<CustodyPayment> payment = convert(fireblocksEventObject);
+          Optional<CustodyPayment> payment = convert(transactionDetails);
           if (payment.isPresent()) {
             handlePayment(payment.get());
           }
@@ -118,13 +113,10 @@ public class FireblocksEventService extends CustodyEventService {
     }
   }
 
-  private Optional<CustodyPayment> convert(FireblocksEventObject event) throws IOException {
-    TransactionDetails td = event.getData();
+  public Optional<CustodyPayment> convert(TransactionDetails td) throws IOException {
     Optional<OperationResponse> operation = Optional.empty();
     CustodyPaymentStatus status =
-        SUCCESS_WEBHOOK_EVENT_STATUSES.contains(td.getStatus())
-            ? CustodyPaymentStatus.SUCCESS
-            : CustodyPaymentStatus.ERROR;
+        td.getStatus().isCompleted() ? CustodyPaymentStatus.SUCCESS : CustodyPaymentStatus.ERROR;
     String message = null;
 
     if (CustodyPaymentStatus.ERROR == status && td.getSubStatus() != null) {
@@ -187,7 +179,7 @@ public class FireblocksEventService extends CustodyEventService {
         warnF("Unknown Stellar transaction operation type[{}]", operation.get().getType());
       }
     } catch (SepException ex) {
-      warnF("Fireblock event with id[{}] contains unsupported memo", td.getId());
+      warnF("Fireblocks event with id[{}] contains unsupported memo", td.getId());
       warnEx(ex);
     }
 

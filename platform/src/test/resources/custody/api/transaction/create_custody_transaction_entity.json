@@ -8,5 +8,6 @@
   "protocol": "testProtocol",
   "from_account": "testFromAccount",
   "to_account": "testToAccount",
-  "kind": "testKind"
+  "kind": "testKind",
+  "reconciliation_attempt_count": 0
 }

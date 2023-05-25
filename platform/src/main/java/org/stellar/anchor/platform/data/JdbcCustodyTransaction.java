@@ -76,4 +76,8 @@ public class JdbcCustodyTransaction {
   @SerializedName("kind")
   @Column(name = "kind")
   String kind;
+
+  @SerializedName("reconciliation_attempt_count")
+  @Column(name = "reconciliation_attempt_count")
+  int reconciliationAttemptCount;
 }

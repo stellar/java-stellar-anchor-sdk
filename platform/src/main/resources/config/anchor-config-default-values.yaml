@@ -429,16 +429,23 @@ custody:
     ## Default vault account ID
     #
     vault_account_id:
-    ## @param: transactions_reconciliation_cron
-    ## @type: string
-    ## Cron expression which defines how often transaction reconciliation job runs. By default, job runs every 15 minutes
-    #
-    transactions_reconciliation_cron: "0 0/15 * * * *"
     ## @param: public_key
     ## @type: string
     ## Fireblocks public key. Is used to verify a webhook signature
     #
     public_key: |
+
+    reconciliation:
+      ## @param: cronExpression
+      ## @type: string
+      ## Cron expression which defines how often transaction reconciliation job runs. By default, job runs every 15 minutes
+      #
+      cron_expression: "0 0/15 * * * *"
+      ## @param: maxAttempts
+      ## @type: integer
+      ## Determines how many times the transaction reconciliation job will attempt to update status of the transaction before marking it as failed
+      #
+      max_attempts: 10
 
     retry_config:
       ## @param: maxAttempts

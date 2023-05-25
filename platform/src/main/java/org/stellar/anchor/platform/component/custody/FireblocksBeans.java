@@ -11,6 +11,7 @@ import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.platform.config.CustodySecretConfig;
 import org.stellar.anchor.platform.config.FireblocksConfig;
 import org.stellar.anchor.platform.custody.CustodyPaymentService;
+import org.stellar.anchor.platform.custody.CustodyTransactionService;
 import org.stellar.anchor.platform.custody.Sep24CustodyPaymentHandler;
 import org.stellar.anchor.platform.custody.Sep31CustodyPaymentHandler;
 import org.stellar.anchor.platform.custody.fireblocks.FireblocksApiClient;
@@ -30,8 +31,13 @@ public class FireblocksBeans {
   }
 
   @Bean
-  FireblocksTransactionsReconciliationJob reconciliationJob() {
-    return new FireblocksTransactionsReconciliationJob();
+  FireblocksTransactionsReconciliationJob reconciliationJob(
+      FireblocksConfig fireblocksConfig,
+      CustodyPaymentService custodyPaymentService,
+      FireblocksEventService fireblocksEventService,
+      CustodyTransactionService custodyTransactionService) {
+    return new FireblocksTransactionsReconciliationJob(
+        fireblocksConfig, custodyPaymentService, fireblocksEventService, custodyTransactionService);
   }
 
   @Bean

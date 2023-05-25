@@ -12,5 +12,6 @@ CREATE TABLE custody_transaction (
    from_account VARCHAR(255),
    to_account VARCHAR(255),
    kind VARCHAR(255),
+   reconciliation_attempt_count integer,
    CONSTRAINT pk_custody_transaction PRIMARY KEY (id)
 );

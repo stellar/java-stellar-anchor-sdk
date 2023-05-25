@@ -10,5 +10,6 @@
   "protocol": "24",
   "from_account": "testFrom",
   "to_account": "testToAccount",
-  "kind": "deposit"
+  "kind": "deposit",
+  "reconciliation_attempt_count": 0
 }

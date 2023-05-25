@@ -4,7 +4,9 @@ import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHD
 import static org.stellar.anchor.util.Log.warnF;
 
 import java.io.IOException;
+import java.time.Instant;
 import java.util.Map;
+import org.apache.commons.lang3.StringUtils;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind;
@@ -34,7 +36,7 @@ public abstract class CustodyEventService {
   public abstract void handleEvent(String event, Map<String, String> headers)
       throws BadRequestException;
 
-  protected void handlePayment(CustodyPayment payment) throws AnchorException, IOException {
+  public void handlePayment(CustodyPayment payment) throws AnchorException, IOException {
     JdbcCustodyTransaction custodyTransaction = getCustodyTransaction(payment);
 
     if (custodyTransaction == null) {
@@ -82,5 +84,16 @@ public abstract class CustodyEventService {
     }
 
     return custodyTransaction;
+  }
+
+  public void setExternalTxId(String to, String memo, String externalTxId) {
+    JdbcCustodyTransaction custodyTransaction =
+        custodyTransactionRepo.findByToAccountAndMemo(to, memo);
+
+    if (custodyTransaction != null && StringUtils.isEmpty(custodyTransaction.getExternalTxId())) {
+      custodyTransaction.setExternalTxId(externalTxId);
+      custodyTransaction.setUpdatedAt(Instant.now());
+      custodyTransactionRepo.save(custodyTransaction);
+    }
   }
 }

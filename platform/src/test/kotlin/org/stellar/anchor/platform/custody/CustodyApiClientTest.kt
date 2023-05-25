@@ -115,14 +115,8 @@ class CustodyApiClientTest {
     val exception = assertThrows<CustodyException> { custodyApiClient.createTransaction(request) }
 
     Assertions.assertEquals(
-      """
-                  Custody API returned an error. HTTP status[400], response[{
-                    "error_code": "12345",
-                    "message": "Custody error"
-                  }]
-                """
-        .trimIndent(),
-      exception.message?.trimIndent()
+      "Custody API returned an error. HTTP status[400], response[Custody error]",
+      exception.message
     )
   }
 
