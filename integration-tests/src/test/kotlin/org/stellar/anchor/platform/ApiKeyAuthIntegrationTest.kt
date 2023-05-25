@@ -19,7 +19,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
-import org.springframework.boot.SpringApplication
 import org.springframework.context.ConfigurableApplicationContext
 import org.stellar.anchor.api.sep.sep38.GetPriceResponse
 import org.stellar.anchor.api.sep.sep38.RateFee
@@ -34,8 +33,9 @@ class ApiKeyAuthIntegrationTest {
   companion object {
     private const val ANCHOR_TO_PLATFORM_SECRET = "myAnchorToPlatformSecret"
     private const val PLATFORM_TO_ANCHOR_SECRET = "myPlatformToAnchorSecret"
-    private const val PLATFORM_SERVER_PORT = 8080
+    private const val PLATFORM_SERVER_PORT = 8085
   }
+
   private val gson = GsonUtils.getInstance()
   private val httpClient: OkHttpClient =
     OkHttpClient.Builder()
@@ -43,6 +43,7 @@ class ApiKeyAuthIntegrationTest {
       .readTimeout(10, TimeUnit.MINUTES)
       .writeTimeout(10, TimeUnit.MINUTES)
       .build()
+  private lateinit var sepServerContext: ConfigurableApplicationContext
   private lateinit var platformServerContext: ConfigurableApplicationContext
   private lateinit var mockBusinessServer: MockWebServer
 
@@ -65,12 +66,14 @@ class ApiKeyAuthIntegrationTest {
     envMap["secret.callback_api.auth_secret"] = PLATFORM_TO_ANCHOR_SECRET
 
     // Start platform
-    platformServerContext = AnchorPlatformServer().start(envMap)
+    sepServerContext = SepServer().start(envMap)
+    platformServerContext = PlatformServer().start(envMap)
   }
 
   @AfterAll
   fun teardown() {
-    SpringApplication.exit(platformServerContext)
+    sepServerContext.stop()
+    platformServerContext.stop()
     mockBusinessServer.shutdown()
     clearAllMocks()
     unmockkAll()
@@ -143,7 +146,7 @@ class ApiKeyAuthIntegrationTest {
             .trimMargin()
         )
     )
-    val sep38Service = platformServerContext.getBean(Sep38Service::class.java)
+    val sep38Service = sepServerContext.getBean(Sep38Service::class.java)
 
     val getPriceRequest =
       Sep38GetPriceRequest.builder()

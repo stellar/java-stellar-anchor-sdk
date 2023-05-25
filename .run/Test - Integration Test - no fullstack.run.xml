@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Test - Integration Test - no Docker" type="JUnit" factoryName="JUnit">
+  <configuration default="false" name="Test - Integration Test - no fullstack" type="JUnit" factoryName="JUnit">
     <module name="java-stellar-anchor-sdk.integration-tests.test" />
     <shortenClasspath name="ARGS_FILE" />
     <extension name="coverage">
@@ -24,7 +24,7 @@
     <option name="TEST_OBJECT" value="class" />
     <envs>
       <env name="TEST_PROFILE_NAME" value="default" />
-      <env name="run_servers" value="false" />
+      <env name="run_all_servers" value="false" />
       <env name="run_docker" value="false" />
     </envs>
     <method v="2">

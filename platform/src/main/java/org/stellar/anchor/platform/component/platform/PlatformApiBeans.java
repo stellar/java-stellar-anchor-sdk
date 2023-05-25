@@ -1,4 +1,4 @@
-package org.stellar.anchor.platform.component.sep;
+package org.stellar.anchor.platform.component.platform;
 
 import javax.servlet.Filter;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;

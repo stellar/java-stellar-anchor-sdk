@@ -79,22 +79,6 @@ public class SepBeans {
     return new PropertySep38Config();
   }
 
-  @Bean
-  @ConfigurationProperties(prefix = "data")
-  PropertyDataConfig dataConfig(SecretConfig secretConfig) {
-    return new PropertyDataConfig(secretConfig);
-  }
-
-  /**
-   * Used by SEP-10 authentication service.
-   *
-   * @return the jwt service used by SEP-10.
-   */
-  @Bean
-  public JwtService jwtService(SecretConfig secretConfig) {
-    return new JwtService(secretConfig);
-  }
-
   /**
    * Register sep-10 token filter.
    *
@@ -113,11 +97,6 @@ public class SepBeans {
     registrationBean.addUrlPatterns("/sep38/quote");
     registrationBean.addUrlPatterns("/sep38/quote/*");
     return registrationBean;
-  }
-
-  @Bean
-  public Horizon horizon(AppConfig appConfig) {
-    return new Horizon(appConfig);
   }
 
   @Bean
