@@ -15,7 +15,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.stellar.anchor.api.custody.fireblocks.TransactionDetails;
 import org.stellar.anchor.api.exception.AnchorException;
-import org.stellar.anchor.api.exception.FireblocksException;
+import org.stellar.anchor.api.exception.CustodyException;
 import org.stellar.anchor.platform.config.FireblocksConfig;
 import org.stellar.anchor.platform.custody.CustodyPayment;
 import org.stellar.anchor.platform.custody.CustodyPaymentService;
@@ -127,7 +127,7 @@ public class FireblocksTransactionsReconciliationJob {
                   e);
             }
           });
-    } catch (FireblocksException e) {
+    } catch (CustodyException e) {
       errorEx("Failed to retrieve fireblocks transactions", e);
     }
   }
