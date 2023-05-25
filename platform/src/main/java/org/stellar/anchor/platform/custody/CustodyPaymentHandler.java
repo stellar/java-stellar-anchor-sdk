@@ -26,6 +26,10 @@ import org.stellar.anchor.platform.data.CustodyTransactionStatus;
 import org.stellar.anchor.platform.data.JdbcCustodyTransaction;
 import org.stellar.anchor.platform.data.JdbcCustodyTransactionRepo;
 
+/**
+ * Abstract custody payment handler. Contains common logic for payment validation, custody and SEP
+ * transaction update
+ */
 public abstract class CustodyPaymentHandler {
 
   private static final Set<String> SUPPORTED_ASSET_TYPES =
@@ -40,9 +44,25 @@ public abstract class CustodyPaymentHandler {
     this.platformApiClient = platformApiClient;
   }
 
+  /**
+   * Handle inbound(withdrawal) payment
+   *
+   * @param txn custody transaction
+   * @param payment inbound custody payment
+   * @throws AnchorException if error happens during SEP transaction update
+   * @throws IOException if error happens during SEP transaction update
+   */
   public abstract void onReceived(JdbcCustodyTransaction txn, CustodyPayment payment)
       throws AnchorException, IOException;
 
+  /**
+   * Handle outbound(deposit) payment
+   *
+   * @param txn custody transaction
+   * @param payment outbound custody payment
+   * @throws AnchorException if error happens during SEP transaction update
+   * @throws IOException if error happens during SEP transaction update
+   */
   public abstract void onSent(JdbcCustodyTransaction txn, CustodyPayment payment)
       throws AnchorException, IOException;
 

@@ -336,7 +336,7 @@ class FireblocksEventServiceTest {
       )
 
     val eventObject = StringUtils.EMPTY
-    val emptyHeaders: Map<String, String> = emptyMap()
+    val emptyHeaders: Map<String, String> = mapOf()
 
     val ex =
       assertThrows<BadRequestException> { eventsService.handleEvent(eventObject, emptyHeaders) }

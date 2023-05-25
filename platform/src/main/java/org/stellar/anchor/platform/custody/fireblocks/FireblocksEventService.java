@@ -40,6 +40,7 @@ import org.stellar.sdk.responses.operations.OperationResponse;
 import org.stellar.sdk.responses.operations.PathPaymentBaseOperationResponse;
 import org.stellar.sdk.responses.operations.PaymentOperationResponse;
 
+/** Service, that is responsible for handling Fireblocks events */
 public class FireblocksEventService extends CustodyEventService {
 
   public static final String FIREBLOCKS_SIGNATURE_HEADER = "fireblocks-signature";

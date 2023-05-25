@@ -45,8 +45,8 @@ public class JdbcCustodyTransaction {
   @Column(name = "amount_asset")
   String amountAsset;
 
-  @SerializedName("started_at")
-  @Column(name = "started_at")
+  @SerializedName("created_at")
+  @Column(name = "created_at")
   Instant createdAt;
 
   @SerializedName("updated_at")

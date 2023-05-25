@@ -23,6 +23,10 @@ import org.stellar.anchor.api.exception.FireblocksException;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.platform.config.FireblocksConfig;
 
+/**
+ * API client, that is responsible for communication with Fireblocks. It generates and adds JWT
+ * token to the request and validates the response status code
+ */
 public class FireblocksApiClient {
 
   private static final String API_KEY_HEADER_NAME = "X-API-Key";
