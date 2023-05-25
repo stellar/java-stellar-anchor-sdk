@@ -35,6 +35,11 @@ public class CustodyTransactionService {
     this.custodyPaymentService = custodyPaymentService;
   }
 
+  /**
+   * Create custody transaction
+   *
+   * @param request custody transaction info
+   */
   public void create(CreateCustodyTransactionRequest request) {
     custodyTransactionRepo.save(
         JdbcCustodyTransaction.builder()
@@ -53,6 +58,15 @@ public class CustodyTransactionService {
             .build());
   }
 
+  /**
+   * Create custody transaction payment. This method acts like a proxy. It forwards request to
+   * custody payment service, update custody transaction and handles errors
+   *
+   * @param txnId custody/SEP transaction ID
+   * @param requestBody additional data, that will be sent in a request to custody service. Can be
+   *     used, if, for example, custody service supports some fields in a request specific to it
+   * @return external transaction payment ID
+   */
   public CreateTransactionPaymentResponse createPayment(String txnId, String requestBody)
       throws AnchorException {
     JdbcCustodyTransaction txn = custodyTransactionRepo.findById(txnId).orElse(null);

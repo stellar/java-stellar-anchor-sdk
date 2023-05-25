@@ -423,7 +423,7 @@ custody:
     ## @type: string
     ## The base URL of the Fireblocks API
     #
-    base_url: https://sandbox-api.fireblocks.io
+    base_url: https://api.fireblocks.io
     ## @param: vaultAccountId
     ## @type: string
     ## Default vault account ID

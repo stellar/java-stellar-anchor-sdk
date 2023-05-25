@@ -29,6 +29,7 @@ import org.stellar.anchor.platform.data.JdbcCustodyTransaction;
 import org.stellar.anchor.util.GsonUtils;
 import org.stellar.sdk.xdr.MemoType;
 
+/** Fireblocks implementation of payment service */
 public class FireblocksPaymentService implements CustodyPaymentService {
 
   private static final Gson gson = GsonUtils.getInstance();
@@ -58,6 +59,9 @@ public class FireblocksPaymentService implements CustodyPaymentService {
     transactionDetailsListType = new TypeToken<ArrayList<TransactionDetails>>() {}.getType();
   }
 
+  /**
+   * @see CustodyPaymentService#generateDepositAddress(String)
+   */
   @Override
   public GenerateDepositAddressResponse generateDepositAddress(String assetId)
       throws FireblocksException, InvalidConfigException {
@@ -75,6 +79,9 @@ public class FireblocksPaymentService implements CustodyPaymentService {
         depositAddress.getAddress(), depositAddress.getTag(), memoTypeAsString(MemoType.MEMO_ID));
   }
 
+  /**
+   * @see CustodyPaymentService#createTransactionPayment(JdbcCustodyTransaction, String)
+   */
   @Retryable(
       value = FireblocksException.class,
       maxAttemptsExpression = "${custody.fireblocks.retry_config.max_attempts}",
@@ -95,7 +102,7 @@ public class FireblocksPaymentService implements CustodyPaymentService {
     return new CreateTransactionPaymentResponse(response.getId());
   }
 
-  public CreateTransactionRequest getCreateTransactionRequest(JdbcCustodyTransaction txn)
+  private CreateTransactionRequest getCreateTransactionRequest(JdbcCustodyTransaction txn)
       throws InvalidConfigException {
     return CreateTransactionRequest.builder()
         .assetId(fireblocksConfig.getFireblocksAssetCode(txn.getAmountAsset()))

@@ -12,6 +12,7 @@ import org.stellar.anchor.platform.data.JdbcCustodyTransaction;
 import org.stellar.anchor.platform.data.JdbcCustodyTransactionRepo;
 import org.stellar.anchor.platform.service.AnchorMetrics;
 
+/** Custody payment handler for SEP24 transactions */
 public class Sep24CustodyPaymentHandler extends CustodyPaymentHandler {
 
   public Sep24CustodyPaymentHandler(
@@ -19,6 +20,9 @@ public class Sep24CustodyPaymentHandler extends CustodyPaymentHandler {
     super(custodyTransactionRepo, platformApiClient);
   }
 
+  /**
+   * @see CustodyPaymentHandler#onReceived(JdbcCustodyTransaction, CustodyPayment)
+   */
   @Override
   public void onReceived(JdbcCustodyTransaction txn, CustodyPayment payment)
       throws AnchorException, IOException {
@@ -39,6 +43,9 @@ public class Sep24CustodyPaymentHandler extends CustodyPaymentHandler {
         .increment(Double.parseDouble(payment.getAmount()));
   }
 
+  /**
+   * @see CustodyPaymentHandler#onSent(JdbcCustodyTransaction, CustodyPayment)
+   */
   @Override
   public void onSent(JdbcCustodyTransaction txn, CustodyPayment payment)
       throws AnchorException, IOException {
