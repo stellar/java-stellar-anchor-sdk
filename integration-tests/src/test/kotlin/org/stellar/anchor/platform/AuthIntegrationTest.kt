@@ -44,8 +44,6 @@ internal class JwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
           TestConfig(profileName = "default").also {
             // enable platform server jwt auth
             it.env["platform_server.auth.type"] = "jwt"
-            it.env["run_all_servers"] = "false"
-            it.env["run_platform_server"] = "true"
           }
         )
       testProfileRunner.start()
@@ -125,8 +123,6 @@ internal class ApiKeyAuthIntegrationTest : AbstractAuthIntegrationTest() {
           TestConfig(profileName = "default").also {
             // enable platform server api_key auth
             it.env["platform_server.auth.type"] = "api_key"
-            it.env["run_all_servers"] = "false"
-            it.env["run_platform_server"] = "true"
           }
         )
       testProfileRunner.start()
