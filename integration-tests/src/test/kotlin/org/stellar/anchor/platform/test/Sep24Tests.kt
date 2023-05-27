@@ -26,7 +26,9 @@ class Sep24Tests(val config: TestConfig, val toml: TomlContent, jwt: String) {
     JwtService(
       config.env["secret.sep10.jwt_secret"]!!,
       config.env["secret.sep24.interactive_url.jwt_secret"]!!,
-      config.env["secret.sep24.more_info_url.jwt_secret"]!!
+      config.env["secret.sep24.more_info_url.jwt_secret"]!!,
+      config.env["secret.callback_api.auth_secret"]!!,
+      config.env["secret.platform_api.auth_secret"]!!
     )
 
   private val platformApiClient =

@@ -37,15 +37,13 @@ class AuthHelperTest {
 
         // mock jwt token based on the mocked calendar
         val wantJwtToken =
-          Sep10Jwt.of(
-            "http://localhost:8080",
+          ApiAuthJwt(
             currentTimeMilliseconds / 1000L,
             (currentTimeMilliseconds + JWT_EXPIRATION_MILLISECONDS) / 1000L
           )
 
-        val jwtService = JwtService("secret", null, null)
-        val authHelper =
-          AuthHelper.forJwtToken(jwtService, JWT_EXPIRATION_MILLISECONDS, "http://localhost:8080")
+        val jwtService = JwtService(null, null, null, "secret", "secret")
+        val authHelper = AuthHelper.forJwtToken(jwtService, JWT_EXPIRATION_MILLISECONDS)
         val gotAuthHeader = authHelper.createAuthHeader()
         val wantAuthHeader =
           AuthHeader("Authorization", "Bearer ${jwtService.encode(wantJwtToken)}")

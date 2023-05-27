@@ -10,6 +10,7 @@ import org.apache.http.HttpStatus;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.exception.SepNotAuthorizedException;
+import org.stellar.anchor.api.exception.SepNotFoundException;
 import org.stellar.anchor.util.GsonUtils;
 
 public abstract class BaseApiClient {
@@ -28,6 +29,8 @@ public abstract class BaseApiClient {
     String responseBody = response.body().string();
     if (response.code() == HttpStatus.SC_FORBIDDEN) {
       throw new SepNotAuthorizedException("Forbidden");
+    } else if (response.code() == HttpStatus.SC_NOT_FOUND) {
+      throw new SepNotFoundException("Not found");
     } else if (!List.of(HttpStatus.SC_OK, HttpStatus.SC_CREATED, HttpStatus.SC_ACCEPTED)
         .contains(response.code())) {
       throw new SepException(responseBody);

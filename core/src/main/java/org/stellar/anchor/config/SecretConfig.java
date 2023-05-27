@@ -9,9 +9,9 @@ public interface SecretConfig {
 
   String getSep24MoreInfoUrlJwtSecret();
 
-  String getCallbackApiSecret();
+  String getCallbackAuthSecret();
 
-  String getPlatformApiSecret();
+  String getPlatformAuthSecret();
 
   String getDataSourceUsername();
 
