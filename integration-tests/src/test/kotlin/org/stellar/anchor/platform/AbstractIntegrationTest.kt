@@ -4,6 +4,10 @@ import org.stellar.anchor.platform.test.*
 import org.stellar.anchor.util.Sep1Helper
 
 open class AbstractIntegrationTest(private val config: TestConfig) {
+  companion object {
+    const val PLATFORM_TO_ANCHOR_SECRET = "myPlatformToAnchorSecret"
+    const val REFERENCE_SERVER_PORT = 8081
+  }
   init {
     System.getProperties()
       .setProperty("REFERENCE_SERVER_CONFIG", "classpath:/anchor-reference-server.yaml")

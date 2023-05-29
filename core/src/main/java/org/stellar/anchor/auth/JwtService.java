@@ -12,24 +12,31 @@ import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.api.exception.NotSupportedException;
 import org.stellar.anchor.config.SecretConfig;
 
+// TODO: this class needs refactoring
 @Getter
 public class JwtService {
   public static final String CLIENT_DOMAIN = "client_domain";
   String sep10JwtSecret;
   String sep24InteractiveUrlJwtSecret;
   String sep24MoreInfoUrlJwtSecret;
+  String callbackAuthSecret;
+  String platformAuthSecret;
 
   public JwtService(SecretConfig secretConfig) {
     this(
         secretConfig.getSep10JwtSecretKey(),
         secretConfig.getSep24InteractiveUrlJwtSecret(),
-        secretConfig.getSep24MoreInfoUrlJwtSecret());
+        secretConfig.getSep24MoreInfoUrlJwtSecret(),
+        secretConfig.getCallbackAuthSecret(),
+        secretConfig.getPlatformAuthSecret());
   }
 
   public JwtService(
       String sep10JwtSecret,
       String sep24InteractiveUrlJwtSecret,
-      String sep24MoreInfoUrlJwtSecret) {
+      String sep24MoreInfoUrlJwtSecret,
+      String callbackAuthSecret,
+      String platformAuthSecret) {
     this.sep10JwtSecret =
         (sep10JwtSecret == null)
             ? null
@@ -43,6 +50,15 @@ public class JwtService {
         (sep24MoreInfoUrlJwtSecret == null)
             ? null
             : Base64.encodeBase64String(sep24MoreInfoUrlJwtSecret.getBytes(StandardCharsets.UTF_8));
+    // xx: this needs to be removed when Jamie's PR is merged
+    this.callbackAuthSecret =
+        (callbackAuthSecret == null)
+            ? null
+            : Base64.encodeBase64String(callbackAuthSecret.getBytes(StandardCharsets.UTF_8));
+    this.platformAuthSecret =
+        (platformAuthSecret == null)
+            ? null
+            : Base64.encodeBase64String(platformAuthSecret.getBytes(StandardCharsets.UTF_8));
   }
 
   public String encode(Sep10Jwt token) {
@@ -66,6 +82,33 @@ public class JwtService {
     }
 
     return builder.signWith(SignatureAlgorithm.HS256, sep10JwtSecret).compact();
+  }
+
+  public String encode(ApiAuthJwt token) throws InvalidConfigException {
+    if (platformAuthSecret == null) {
+      throw new InvalidConfigException(
+          "Please provide the secret before encoding JWT for platform API authentication");
+    } else if (callbackAuthSecret == null) {
+      throw new InvalidConfigException(
+          "Please provide the secret before encoding JWT for callback API authentication");
+    }
+
+    Calendar calNow = Calendar.getInstance();
+    Calendar calExp = Calendar.getInstance();
+    calExp.setTimeInMillis(calNow.getTimeInMillis() + 1000L * token.getExp());
+    JwtBuilder builder =
+        Jwts.builder().setIssuedAt(calNow.getTime()).setExpiration(calExp.getTime());
+
+    // TODO: this is so bad
+    String secret;
+    if (platformAuthSecret != null) {
+      secret = platformAuthSecret;
+    } else if (callbackAuthSecret != null) {
+      secret = callbackAuthSecret;
+    } else {
+      throw new InvalidConfigException("Unknown type of ApiAuthJwt");
+    }
+    return builder.signWith(SignatureAlgorithm.HS256, secret).compact();
   }
 
   public String encode(Sep24InteractiveUrlJwt token) throws InvalidConfigException {
@@ -104,8 +147,11 @@ public class JwtService {
 
   @SuppressWarnings({"unchecked", "rawtypes"})
   public <T extends AbstractJwt> T decode(String cipher, Class<T> cls)
-      throws NotSupportedException, NoSuchMethodException, InvocationTargetException,
-          InstantiationException, IllegalAccessException {
+      throws NotSupportedException,
+          NoSuchMethodException,
+          InvocationTargetException,
+          InstantiationException,
+          IllegalAccessException {
     String secret;
     if (cls.equals(Sep10Jwt.class)) {
       secret = sep10JwtSecret;
@@ -113,6 +159,10 @@ public class JwtService {
       secret = sep24InteractiveUrlJwtSecret;
     } else if (cls.equals(Sep24MoreInfoUrlJwt.class)) {
       secret = sep24MoreInfoUrlJwtSecret;
+    } else if (cls.equals(ApiAuthJwt.CallbackAuthJwt.class)) {
+      secret = callbackAuthSecret;
+    } else if (cls.equals(ApiAuthJwt.PlatformAuthJwt.class)) {
+      secret = platformAuthSecret;
     } else {
       throw new NotSupportedException(
           String.format("The Jwt class:[%s] is not supported", cls.getName()));
@@ -136,6 +186,10 @@ public class JwtService {
       return (T) Sep10Jwt.class.getConstructor(Jwt.class).newInstance(jwt);
     } else if (cls.equals(Sep24InteractiveUrlJwt.class)) {
       return (T) Sep24InteractiveUrlJwt.class.getConstructor(Jwt.class).newInstance(jwt);
+    } else if (cls.equals(ApiAuthJwt.CallbackAuthJwt.class)) {
+      return (T) ApiAuthJwt.CallbackAuthJwt.class.getConstructor(Jwt.class).newInstance(jwt);
+    } else if (cls.equals(ApiAuthJwt.PlatformAuthJwt.class)) {
+      return (T) ApiAuthJwt.PlatformAuthJwt.class.getConstructor(Jwt.class).newInstance(jwt);
     } else {
       return (T) Sep24MoreInfoUrlJwt.class.getConstructor(Jwt.class).newInstance(jwt);
     }

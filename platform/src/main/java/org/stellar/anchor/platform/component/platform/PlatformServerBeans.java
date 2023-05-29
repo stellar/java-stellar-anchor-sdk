@@ -17,7 +17,7 @@ import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
 
 @Configuration
-public class PlatformApiBeans {
+public class PlatformServerBeans {
   /**
    * Register anchor-to-platform token filter.
    *
@@ -25,12 +25,12 @@ public class PlatformApiBeans {
    */
   @Bean
   public FilterRegistrationBean<Filter> anchorToPlatformTokenFilter(
-      PlatformApiConfig platformApiConfig) {
+      PlatformApiConfig config) {
     Filter anchorToPlatformFilter;
-    String authSecret = platformApiConfig.getAuth().getSecret();
-    switch (platformApiConfig.getAuth().getType()) {
+    String authSecret = config.getAuth().getSecret();
+    switch (config.getAuth().getType()) {
       case JWT:
-        JwtService jwtService = new JwtService(authSecret, null, null);
+        JwtService jwtService = new JwtService(null, null, null, null, authSecret);
         anchorToPlatformFilter = new JwtTokenFilter(jwtService);
         break;
 

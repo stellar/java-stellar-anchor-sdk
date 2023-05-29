@@ -47,16 +47,17 @@ class CallbackApiTests(val config: TestConfig, val toml: Sep1Helper.TomlContent,
 
   private val platformToAnchorJwtService =
     JwtService(
-      config.env["secret.callback_api.auth_secret"]!!,
+      config.env["secret.sep10.jwt_secret"]!!,
       config.env["secret.sep24.interactive_url.jwt_secret"]!!,
       config.env["secret.sep24.more_info_url.jwt_secret"]!!,
+      config.env["secret.callback_api.auth_secret"]!!,
+      config.env["secret.platform_api.auth_secret"]!!
     )
 
   private val authHelper =
     AuthHelper.forJwtToken(
       platformToAnchorJwtService,
-      JWT_EXPIRATION_MILLISECONDS,
-      config.env["platform.server.url"]!!,
+      JWT_EXPIRATION_MILLISECONDS
     )
 
   private val gson: Gson = GsonUtils.getInstance()
