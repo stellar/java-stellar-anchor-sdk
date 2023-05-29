@@ -114,7 +114,7 @@ public class PlatformApiClient extends BaseApiClient {
     Request.Builder requestBuilder =
         new Request.Builder().header("Content-Type", "application/json");
 
-    AuthHeader<String, String> authHeader = authHelper.createAuthHeader();
+    AuthHeader<String, String> authHeader = authHelper.createPlatformAuthHeader();
     return authHeader == null
         ? requestBuilder
         : requestBuilder.header(authHeader.getName(), authHeader.getValue());

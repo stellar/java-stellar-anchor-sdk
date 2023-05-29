@@ -48,14 +48,36 @@ public class AuthHelper {
   }
 
   @Nullable
-  public AuthHeader<String, String> createAuthHeader() {
+  public AuthHeader<String, String> createPlatformAuthHeader() {
     Log.info("AuthHelper.createAuthHeader: authType=" + authType);
     switch (authType) {
       case JWT:
         long issuedAt = Calendar.getInstance().getTimeInMillis() / 1000L;
         long expirationTime = issuedAt + (jwtExpirationMilliseconds / 1000L);
-        // TODO: why aren't we handling SEP-10 tokens explicitly?
-        ApiAuthJwt token = new ApiAuthJwt(issuedAt, expirationTime);
+        ApiAuthJwt token = new ApiAuthJwt.PlatformAuthJwt(issuedAt, expirationTime);
+        try {
+          return new AuthHeader<>("Authorization", "Bearer " + jwtService.encode(token));
+        } catch (InvalidConfigException e) {
+          Log.error("Error creating auth header", e);
+          return null;
+        }
+
+      case API_KEY:
+        return new AuthHeader<>("X-Api-Key", apiKey);
+
+      default:
+        return null;
+    }
+  }
+
+  @Nullable
+  public AuthHeader<String, String> createCallbackAuthHeader() {
+    Log.info("AuthHelper.createAuthHeader: authType=" + authType);
+    switch (authType) {
+      case JWT:
+        long issuedAt = Calendar.getInstance().getTimeInMillis() / 1000L;
+        long expirationTime = issuedAt + (jwtExpirationMilliseconds / 1000L);
+        ApiAuthJwt token = new ApiAuthJwt.CallbackAuthJwt(issuedAt, expirationTime);
         try {
           return new AuthHeader<>("Authorization", "Bearer " + jwtService.encode(token));
         } catch (InvalidConfigException e) {

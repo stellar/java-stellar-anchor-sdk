@@ -13,6 +13,8 @@ import org.stellar.anchor.api.exception.ServerErrorException
 import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerRequest
 import org.stellar.anchor.auth.AuthHelper
 import org.stellar.anchor.auth.AuthType
+import org.stellar.anchor.auth.JwtService
+import org.stellar.anchor.platform.AbstractIntegrationTest.Companion.ANCHOR_TO_PLATFORM_SECRET
 import org.stellar.anchor.platform.AbstractIntegrationTest.Companion.PLATFORM_TO_ANCHOR_SECRET
 import org.stellar.anchor.platform.callback.RestCustomerIntegration
 import org.stellar.anchor.platform.callback.RestFeeIntegration
@@ -22,7 +24,8 @@ import java.util.concurrent.TimeUnit
 
 open class AbstractAuthIntegrationTest {
     companion object {
-        val jwtAuthHelper: AuthHelper = AuthHelper.from(AuthType.JWT, PLATFORM_TO_ANCHOR_SECRET, 30000)
+        val jwtService = JwtService(null, null, null, PLATFORM_TO_ANCHOR_SECRET, ANCHOR_TO_PLATFORM_SECRET)
+        val jwtAuthHelper: AuthHelper = AuthHelper.forJwtToken(jwtService, 30000)
         internal val nonAuthHelper = AuthHelper.forNone()
         internal lateinit var testProfileRunner: TestProfileExecutor
     }

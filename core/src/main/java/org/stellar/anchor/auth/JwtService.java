@@ -85,10 +85,10 @@ public class JwtService {
   }
 
   public String encode(ApiAuthJwt token) throws InvalidConfigException {
-    if (platformAuthSecret == null) {
+    if (token instanceof ApiAuthJwt.PlatformAuthJwt && platformAuthSecret == null) {
       throw new InvalidConfigException(
           "Please provide the secret before encoding JWT for platform API authentication");
-    } else if (callbackAuthSecret == null) {
+    } else if (token instanceof ApiAuthJwt.CallbackAuthJwt && callbackAuthSecret == null) {
       throw new InvalidConfigException(
           "Please provide the secret before encoding JWT for callback API authentication");
     }
@@ -99,11 +99,10 @@ public class JwtService {
     JwtBuilder builder =
         Jwts.builder().setIssuedAt(calNow.getTime()).setExpiration(calExp.getTime());
 
-    // TODO: this is so bad
     String secret;
-    if (platformAuthSecret != null) {
+    if (token instanceof ApiAuthJwt.PlatformAuthJwt) {
       secret = platformAuthSecret;
-    } else if (callbackAuthSecret != null) {
+    } else if (token instanceof ApiAuthJwt.CallbackAuthJwt) {
       secret = callbackAuthSecret;
     } else {
       throw new InvalidConfigException("Unknown type of ApiAuthJwt");
