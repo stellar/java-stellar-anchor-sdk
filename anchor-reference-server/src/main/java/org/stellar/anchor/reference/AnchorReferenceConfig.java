@@ -8,7 +8,8 @@ import org.springframework.context.annotation.Configuration;
 import org.stellar.anchor.auth.AuthHelper;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.filter.ApiKeyFilter;
-import org.stellar.anchor.filter.JwtTokenFilter;
+import org.stellar.anchor.filter.AbstractJwtFilter;
+import org.stellar.anchor.filter.CallbackAuthJwtFilter;
 import org.stellar.anchor.filter.NoneFilter;
 import org.stellar.anchor.reference.config.*;
 import org.stellar.anchor.reference.event.AbstractEventListener;
@@ -53,11 +54,11 @@ public class AnchorReferenceConfig {
       IntegrationAuthSettings integrationAuthSettings) {
     Filter platformToAnchorFilter;
     String authSecret = integrationAuthSettings.getPlatformToAnchorSecret();
-    Log.infoF("Reference server token filter authType: {}", integrationAuthSettings.getAuthType());
+    Log.infoF("Reference server token filter authType: {}, authSecret: {}", integrationAuthSettings.getAuthType(), authSecret);
     switch (integrationAuthSettings.getAuthType()) {
       case JWT:
         JwtService jwtService = new JwtService(null, null, null, authSecret, null);
-        platformToAnchorFilter = new JwtTokenFilter(jwtService);
+        platformToAnchorFilter = new CallbackAuthJwtFilter(jwtService);
         break;
 
       case API_KEY:

@@ -18,11 +18,11 @@ import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.auth.Sep10Jwt
 import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.SecretConfig
-import org.stellar.anchor.filter.JwtTokenFilter.APPLICATION_JSON_VALUE
-import org.stellar.anchor.filter.JwtTokenFilter.JWT_TOKEN
+import org.stellar.anchor.filter.AbstractJwtFilter.APPLICATION_JSON_VALUE
+import org.stellar.anchor.filter.AbstractJwtFilter.JWT_TOKEN
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
-internal class JwtTokenFilterTest {
+internal class Sep10JwtFilterTest {
   companion object {
     private const val PUBLIC_KEY = "GBJDSMTMG4YBP27ZILV665XBISBBNRP62YB7WZA2IQX2HIPK7ABLF4C2"
   }
@@ -30,7 +30,7 @@ internal class JwtTokenFilterTest {
   private lateinit var appConfig: AppConfig
   private lateinit var secretConfig: SecretConfig
   private lateinit var jwtService: JwtService
-  private lateinit var sep10TokenFilter: JwtTokenFilter
+  private lateinit var sep10TokenFilter: AbstractJwtFilter
   private lateinit var request: HttpServletRequest
   private lateinit var response: HttpServletResponse
   private lateinit var mockFilterChain: FilterChain
@@ -41,7 +41,7 @@ internal class JwtTokenFilterTest {
     this.secretConfig = mockk(relaxed = true)
     every { secretConfig.sep10JwtSecretKey } returns "secret"
     this.jwtService = JwtService(secretConfig)
-    this.sep10TokenFilter = JwtTokenFilter(jwtService)
+    this.sep10TokenFilter = Sep10JwtFilter(jwtService)
     this.request = mockk(relaxed = true)
     this.response = mockk(relaxed = true)
     this.mockFilterChain = mockk(relaxed = true)
@@ -123,7 +123,7 @@ internal class JwtTokenFilterTest {
   fun `make sure validate() exception returns FORBIDDEN and does not cause 500`(method: String) {
     every { request.method } returns method
     val mockFilter = spyk(sep10TokenFilter)
-    every { mockFilter.validate(any()) } answers { throw Exception("Not validate") }
+    every { mockFilter.check(any(), any(), any()) } answers { throw Exception("Not validate") }
 
     mockFilter.doFilter(request, response, mockFilterChain)
 
@@ -141,7 +141,7 @@ internal class JwtTokenFilterTest {
     every { request.method } returns method
     val mockJwtService = spyk(jwtService)
     every { mockJwtService.decode(any(), AbstractJwt::class.java) } returns null
-    val filter = JwtTokenFilter(mockJwtService)
+    val filter = Sep10JwtFilter(mockJwtService)
 
     filter.doFilter(request, response, mockFilterChain)
 

@@ -8,8 +8,9 @@ import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.filter.ApiKeyFilter;
-import org.stellar.anchor.filter.JwtTokenFilter;
+import org.stellar.anchor.filter.AbstractJwtFilter;
 import org.stellar.anchor.filter.NoneFilter;
+import org.stellar.anchor.filter.PlatformAuthJwtFilter;
 import org.stellar.anchor.platform.config.PlatformApiConfig;
 import org.stellar.anchor.platform.service.TransactionService;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
@@ -31,7 +32,7 @@ public class PlatformServerBeans {
     switch (config.getAuth().getType()) {
       case JWT:
         JwtService jwtService = new JwtService(null, null, null, null, authSecret);
-        anchorToPlatformFilter = new JwtTokenFilter(jwtService);
+        anchorToPlatformFilter = new PlatformAuthJwtFilter(jwtService);
         break;
 
       case API_KEY:

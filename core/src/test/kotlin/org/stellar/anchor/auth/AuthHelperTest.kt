@@ -43,9 +43,9 @@ class AuthHelperTest {
             (currentTimeMilliseconds + JWT_EXPIRATION_MILLISECONDS) / 1000L
           )
 
-        val jwtService = JwtService("secret", null, null)
+        val jwtService = JwtService(null, null, null, "secret", "secret")
         val authHelper =
-          AuthHelper.forJwtToken(jwtService, JWT_EXPIRATION_MILLISECONDS, "http://localhost:8080")
+          AuthHelper.forJwtToken(jwtService, JWT_EXPIRATION_MILLISECONDS)
         val gotAuthHeader = authHelper.createAuthHeader()
         val wantAuthHeader =
           AuthHeader("Authorization", "Bearer ${jwtService.encode(wantJwtToken)}")

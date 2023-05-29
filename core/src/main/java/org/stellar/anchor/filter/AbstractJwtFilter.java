@@ -9,21 +9,19 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import lombok.SneakyThrows;
 import org.apache.http.HttpStatus;
-import org.stellar.anchor.api.exception.SepValidationException;
 import org.stellar.anchor.api.sep.SepExceptionResponse;
 import org.stellar.anchor.auth.JwtService;
-import org.stellar.anchor.auth.Sep10Jwt;
 import org.stellar.anchor.util.GsonUtils;
 import org.stellar.anchor.util.Log;
 
-public class JwtTokenFilter implements Filter {
+public abstract class AbstractJwtFilter implements Filter {
   public static final String JWT_TOKEN = "token";
   private static final String OPTIONS = "OPTIONS";
   public static final String APPLICATION_JSON_VALUE = "application/json";
   private static final Gson gson = GsonUtils.builder().setPrettyPrinting().create();
-  private final JwtService jwtService;
+  final JwtService jwtService;
 
-  public JwtTokenFilter(JwtService jwtService) {
+  public AbstractJwtFilter(JwtService jwtService) {
     this.jwtService = jwtService;
   }
 
@@ -57,11 +55,13 @@ public class JwtTokenFilter implements Filter {
 
     String authorization = request.getHeader("Authorization");
     if (authorization == null) {
+      Log.infoF("Authorization header is missing. url={}", request.getRequestURL());
       sendForbiddenError(response);
       return;
     }
 
     if (!authorization.contains("Bearer")) {
+      Log.infoF("Authorization header is invalid. header={}", authorization);
       sendForbiddenError(response);
       return;
     }
@@ -70,17 +70,13 @@ public class JwtTokenFilter implements Filter {
     try {
       jwtCipher = authorization.split(" ")[1];
     } catch (Exception ex) {
+      Log.infoF("Authorization header is invalid. header={}", authorization);
       sendForbiddenError(response);
       return;
     }
 
     try {
-      Sep10Jwt token = jwtService.decode(jwtCipher, Sep10Jwt.class);
-      validate(token);
-      infoF(
-          "token created. account={} url={}", shorter(token.getAccount()), request.getRequestURL());
-      debug(String.format("storing token to request %s:", request.getRequestURL()), token);
-      request.setAttribute(JWT_TOKEN, token);
+      check(jwtCipher, request, response);
     } catch (Exception ex) {
       sendForbiddenError(response);
       return;
@@ -89,12 +85,7 @@ public class JwtTokenFilter implements Filter {
     filterChain.doFilter(servletRequest, servletResponse);
   }
 
-  protected void validate(Sep10Jwt token) throws SepValidationException {
-    if (token == null) {
-      throw new SepValidationException("JwtToken should not be null");
-    }
-    // TODO: Add more validation.
-  }
+  abstract void check(String jwtCipher, HttpServletRequest request, ServletResponse servletResponse) throws Exception;
 
   private static void sendForbiddenError(HttpServletResponse response) throws IOException {
     error("Forbidden: JwtTokenFilter failed to authenticate the request.");
