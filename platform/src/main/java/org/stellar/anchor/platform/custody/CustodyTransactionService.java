@@ -25,12 +25,12 @@ import org.stellar.anchor.platform.data.JdbcCustodyTransactionRepo;
 
 public class CustodyTransactionService {
 
-  private final CustodyPaymentService custodyPaymentService;
+  private final CustodyPaymentService<?> custodyPaymentService;
   private final JdbcCustodyTransactionRepo custodyTransactionRepo;
 
   public CustodyTransactionService(
       JdbcCustodyTransactionRepo custodyTransactionRepo,
-      CustodyPaymentService custodyPaymentService) {
+      CustodyPaymentService<?> custodyPaymentService) {
     this.custodyTransactionRepo = custodyTransactionRepo;
     this.custodyPaymentService = custodyPaymentService;
   }

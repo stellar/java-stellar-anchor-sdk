@@ -4,7 +4,6 @@ import java.time.Instant;
 import java.util.List;
 import org.stellar.anchor.api.custody.CreateTransactionPaymentResponse;
 import org.stellar.anchor.api.custody.GenerateDepositAddressResponse;
-import org.stellar.anchor.api.custody.fireblocks.TransactionDetails;
 import org.stellar.anchor.api.exception.CustodyException;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.platform.data.JdbcCustodyTransaction;
@@ -13,7 +12,7 @@ import org.stellar.anchor.platform.data.JdbcCustodyTransaction;
  * Abstract payment service. The specific implementation will be used based on selected custody
  * service
  */
-public interface CustodyPaymentService {
+public interface CustodyPaymentService<T> {
 
   /**
    * Generates deposit address and memo for outbound payment
@@ -43,22 +42,21 @@ public interface CustodyPaymentService {
       throws CustodyException, InvalidConfigException;
 
   /**
-   * Get external transaction by id
+   * Get custody transaction by id
    *
-   * @param txnId external transaction payment ID
-   * @return external transaction details
+   * @param txnId custody transaction ID
+   * @return custody transaction
    * @throws CustodyException if an error happens on custody service
    */
-  TransactionDetails getTransactionById(String txnId) throws CustodyException;
+  T getTransactionById(String txnId) throws CustodyException;
 
   /**
-   * Get external transactions within time range
+   * Get custody transactions within time range
    *
    * @param startTime start from time
    * @param endTime to time
-   * @return list of external transaction details
+   * @return list of custody transactions
    * @throws CustodyException if an error happens on custody service
    */
-  List<TransactionDetails> getTransactionsByTimeRange(Instant startTime, Instant endTime)
-      throws CustodyException;
+  List<T> getTransactionsByTimeRange(Instant startTime, Instant endTime) throws CustodyException;
 }

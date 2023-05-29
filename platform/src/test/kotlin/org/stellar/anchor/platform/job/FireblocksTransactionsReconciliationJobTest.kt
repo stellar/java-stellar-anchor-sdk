@@ -39,7 +39,8 @@ class FireblocksTransactionsReconciliationJobTest {
   }
 
   @MockK(relaxed = true) private lateinit var fireblocksConfig: FireblocksConfig
-  @MockK(relaxed = true) private lateinit var custodyPaymentService: CustodyPaymentService
+  @MockK(relaxed = true)
+  private lateinit var custodyPaymentService: CustodyPaymentService<TransactionDetails>
   @MockK(relaxed = true) private lateinit var fireblocksEventService: FireblocksEventService
   @MockK(relaxed = true) private lateinit var custodyTransactionRepo: JdbcCustodyTransactionRepo
   private lateinit var custodyTransactionService: CustodyTransactionService

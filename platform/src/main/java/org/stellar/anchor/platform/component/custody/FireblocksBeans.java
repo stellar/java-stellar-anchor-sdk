@@ -6,6 +6,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.stellar.anchor.api.custody.fireblocks.TransactionDetails;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.platform.config.CustodySecretConfig;
@@ -33,7 +34,7 @@ public class FireblocksBeans {
   @Bean
   FireblocksTransactionsReconciliationJob reconciliationJob(
       FireblocksConfig fireblocksConfig,
-      CustodyPaymentService custodyPaymentService,
+      CustodyPaymentService<TransactionDetails> custodyPaymentService,
       FireblocksEventService fireblocksEventService,
       CustodyTransactionService custodyTransactionService) {
     return new FireblocksTransactionsReconciliationJob(
@@ -64,7 +65,7 @@ public class FireblocksBeans {
   }
 
   @Bean
-  CustodyPaymentService custodyPaymentService(
+  CustodyPaymentService<TransactionDetails> custodyPaymentService(
       FireblocksApiClient fireblocksApiClient, FireblocksConfig fireblocksConfig) {
     return new FireblocksPaymentService(fireblocksApiClient, fireblocksConfig);
   }
