@@ -27,13 +27,13 @@ import org.stellar.anchor.platform.data.JdbcCustodyTransaction;
 public class FireblocksTransactionsReconciliationJob {
 
   private final FireblocksConfig fireblocksConfig;
-  private final CustodyPaymentService custodyPaymentService;
+  private final CustodyPaymentService<TransactionDetails> custodyPaymentService;
   private final FireblocksEventService fireblocksEventService;
   private final CustodyTransactionService custodyTransactionService;
 
   public FireblocksTransactionsReconciliationJob(
       FireblocksConfig fireblocksConfig,
-      CustodyPaymentService custodyPaymentService,
+      CustodyPaymentService<TransactionDetails> custodyPaymentService,
       FireblocksEventService fireblocksEventService,
       CustodyTransactionService custodyTransactionService) {
     this.fireblocksConfig = fireblocksConfig;

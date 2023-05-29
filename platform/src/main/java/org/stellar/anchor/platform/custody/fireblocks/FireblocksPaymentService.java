@@ -30,7 +30,7 @@ import org.stellar.anchor.util.GsonUtils;
 import org.stellar.sdk.xdr.MemoType;
 
 /** Fireblocks implementation of payment service */
-public class FireblocksPaymentService implements CustodyPaymentService {
+public class FireblocksPaymentService implements CustodyPaymentService<TransactionDetails> {
 
   private static final Gson gson = GsonUtils.getInstance();
 

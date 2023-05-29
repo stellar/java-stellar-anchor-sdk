@@ -35,7 +35,7 @@ class CustodyTransactionServiceTest {
   private val gson = GsonUtils.getInstance()
 
   @MockK(relaxed = true) private lateinit var custodyTransactionRepo: JdbcCustodyTransactionRepo
-  @MockK(relaxed = true) private lateinit var custodyPaymentService: CustodyPaymentService
+  @MockK(relaxed = true) private lateinit var custodyPaymentService: CustodyPaymentService<Any>
 
   private lateinit var custodyTransactionService: CustodyTransactionService
 
