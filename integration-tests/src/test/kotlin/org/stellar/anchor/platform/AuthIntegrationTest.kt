@@ -20,6 +20,12 @@ import org.stellar.anchor.platform.AbstractIntegrationTest.Companion.PLATFORM_TO
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.OkHttpUtil
 
+const val GET_TRANSACTIONS_ENDPOINT = "/transactions"
+const val GET_TRANSACTIONS_MY_ID_ENDPOINT = "/transactions/my_id"
+const val PATCH_TRANSACTIONS_ENDPOINT = "/transactions"
+const val GET_EXCHANGE_QUOTES_ENDPOINT = "/exchange/quotes"
+const val GET_EXCHANGE_QUOTES_ID_ENDPOINT = "/exchange/quotes/id"
+
 open class AbstractAuthIntegrationTest {
   companion object {
     private val jwtService =
@@ -27,7 +33,6 @@ open class AbstractAuthIntegrationTest {
     internal val jwtAuthHelper = AuthHelper.forJwtToken(jwtService, 10000)
     internal val apiAuthHelper = AuthHelper.forApiKey(ANCHOR_TO_PLATFORM_SECRET)
     internal val nonAuthHelper = AuthHelper.forNone()
-    internal val nonAuthPlatformClient = PlatformApiClient(nonAuthHelper, "http://localhost:8085")
     internal lateinit var testProfileRunner: TestProfileExecutor
   }
 
@@ -71,11 +76,11 @@ internal class JwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
   @CsvSource(
     value =
       [
-        "GET,/transactions",
-        "PATCH,/transactions",
-        "GET,/transactions/my_id",
-        "GET,/exchange/quotes",
-        "GET,/exchange/quotes/id"
+        GET_TRANSACTIONS_ENDPOINT,
+        PATCH_TRANSACTIONS_ENDPOINT,
+        GET_TRANSACTIONS_MY_ID_ENDPOINT,
+        GET_EXCHANGE_QUOTES_ENDPOINT,
+        GET_EXCHANGE_QUOTES_ID_ENDPOINT
       ]
   )
   fun `test the platform endpoints with JWT auth`(method: String, endpoint: String) {
@@ -89,11 +94,11 @@ internal class JwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
   @CsvSource(
     value =
       [
-        "GET,/transactions",
-        "PATCH,/transactions",
-        "GET,/transactions/my_id",
-        "GET,/exchange/quotes",
-        "GET,/exchange/quotes/id"
+        GET_TRANSACTIONS_ENDPOINT,
+        PATCH_TRANSACTIONS_ENDPOINT,
+        GET_TRANSACTIONS_MY_ID_ENDPOINT,
+        GET_EXCHANGE_QUOTES_ENDPOINT,
+        GET_EXCHANGE_QUOTES_ID_ENDPOINT
       ]
   )
   fun `test JWT protection of the platform server`(method: String, endpoint: String) {
@@ -147,11 +152,11 @@ internal class ApiKeyAuthIntegrationTest : AbstractAuthIntegrationTest() {
   @CsvSource(
     value =
       [
-        "GET,/transactions",
-        "PATCH,/transactions",
-        "GET,/transactions/my_id",
-        "GET,/exchange/quotes",
-        "GET,/exchange/quotes/id"
+        GET_TRANSACTIONS_ENDPOINT,
+        PATCH_TRANSACTIONS_ENDPOINT,
+        GET_TRANSACTIONS_MY_ID_ENDPOINT,
+        GET_EXCHANGE_QUOTES_ENDPOINT,
+        GET_EXCHANGE_QUOTES_ID_ENDPOINT
       ]
   )
   fun `test API_KEY auth protection of the platform server`(method: String, endpoint: String) {
@@ -169,11 +174,11 @@ internal class ApiKeyAuthIntegrationTest : AbstractAuthIntegrationTest() {
   @CsvSource(
     value =
       [
-        "GET,/transactions",
-        "PATCH,/transactions",
-        "GET,/transactions/my_id",
-        "GET,/exchange/quotes",
-        "GET,/exchange/quotes/id"
+        GET_TRANSACTIONS_ENDPOINT,
+        PATCH_TRANSACTIONS_ENDPOINT,
+        GET_TRANSACTIONS_MY_ID_ENDPOINT,
+        GET_EXCHANGE_QUOTES_ENDPOINT,
+        GET_EXCHANGE_QUOTES_ID_ENDPOINT
       ]
   )
   fun `test the platform endpoints with API_KEY auth`(method: String, endpoint: String) {
