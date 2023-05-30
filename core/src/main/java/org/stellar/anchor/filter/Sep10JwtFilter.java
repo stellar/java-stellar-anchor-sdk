@@ -18,7 +18,7 @@ public class Sep10JwtFilter extends AbstractJwtFilter {
       throws Exception {
     @NonNull Sep10Jwt token = jwtService.decode(jwtCipher, Sep10Jwt.class);
     infoF("token created. account={} url={}", shorter(token.getAccount()), request.getRequestURL());
-    debug(String.format("storing token to request %s:", request.getRequestURL()), token);
+    debugF("storing token to request {}:", request.getRequestURL(), token);
     request.setAttribute(JWT_TOKEN, token);
   }
 }
