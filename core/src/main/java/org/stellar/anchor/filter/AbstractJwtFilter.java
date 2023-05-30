@@ -85,7 +85,8 @@ public abstract class AbstractJwtFilter implements Filter {
     filterChain.doFilter(servletRequest, servletResponse);
   }
 
-  abstract void check(String jwtCipher, HttpServletRequest request, ServletResponse servletResponse) throws Exception;
+  abstract void check(String jwtCipher, HttpServletRequest request, ServletResponse servletResponse)
+      throws Exception;
 
   private static void sendForbiddenError(HttpServletResponse response) throws IOException {
     error("Forbidden: JwtTokenFilter failed to authenticate the request.");

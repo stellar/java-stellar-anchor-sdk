@@ -55,10 +55,7 @@ class CallbackApiTests(val config: TestConfig, val toml: Sep1Helper.TomlContent,
     )
 
   private val authHelper =
-    AuthHelper.forJwtToken(
-      platformToAnchorJwtService,
-      JWT_EXPIRATION_MILLISECONDS
-    )
+    AuthHelper.forJwtToken(platformToAnchorJwtService, JWT_EXPIRATION_MILLISECONDS)
 
   private val gson: Gson = GsonUtils.getInstance()
 

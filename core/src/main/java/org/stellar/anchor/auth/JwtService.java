@@ -146,11 +146,8 @@ public class JwtService {
 
   @SuppressWarnings({"unchecked", "rawtypes"})
   public <T extends AbstractJwt> T decode(String cipher, Class<T> cls)
-      throws NotSupportedException,
-          NoSuchMethodException,
-          InvocationTargetException,
-          InstantiationException,
-          IllegalAccessException {
+      throws NotSupportedException, NoSuchMethodException, InvocationTargetException,
+          InstantiationException, IllegalAccessException {
     String secret;
     if (cls.equals(Sep10Jwt.class)) {
       secret = sep10JwtSecret;

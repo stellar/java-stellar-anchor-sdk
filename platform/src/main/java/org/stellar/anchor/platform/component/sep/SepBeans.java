@@ -15,7 +15,6 @@ import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.config.*;
 import org.stellar.anchor.event.EventService;
-import org.stellar.anchor.filter.AbstractJwtFilter;
 import org.stellar.anchor.filter.Sep10JwtFilter;
 import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.platform.condition.ConditionalOnAllSepsEnabled;

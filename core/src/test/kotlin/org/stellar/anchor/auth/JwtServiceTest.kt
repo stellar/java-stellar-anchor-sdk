@@ -33,6 +33,8 @@ internal class JwtServiceTest {
     every { secretConfig.sep10JwtSecretKey } returns "jwt_secret"
     every { secretConfig.sep24InteractiveUrlJwtSecret } returns "jwt_secret"
     every { secretConfig.sep24MoreInfoUrlJwtSecret } returns "jwt_secret"
+    every { secretConfig.callbackAuthSecret } returns "jwt_secret"
+    every { secretConfig.platformAuthSecret } returns "jwt_secret"
   }
 
   @Test

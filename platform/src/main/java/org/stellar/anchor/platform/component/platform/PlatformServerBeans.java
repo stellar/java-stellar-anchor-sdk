@@ -8,7 +8,6 @@ import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.filter.ApiKeyFilter;
-import org.stellar.anchor.filter.AbstractJwtFilter;
 import org.stellar.anchor.filter.NoneFilter;
 import org.stellar.anchor.filter.PlatformAuthJwtFilter;
 import org.stellar.anchor.platform.config.PlatformApiConfig;
@@ -25,8 +24,7 @@ public class PlatformServerBeans {
    * @return Spring Filter Registration Bean
    */
   @Bean
-  public FilterRegistrationBean<Filter> anchorToPlatformTokenFilter(
-      PlatformApiConfig config) {
+  public FilterRegistrationBean<Filter> anchorToPlatformTokenFilter(PlatformApiConfig config) {
     Filter anchorToPlatformFilter;
     String authSecret = config.getAuth().getSecret();
     switch (config.getAuth().getType()) {
