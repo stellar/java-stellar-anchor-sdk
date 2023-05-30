@@ -60,6 +60,7 @@ class TestProfileExecutor(val config: TestConfig) {
     shouldStartKotlinReferenceServer = config.env["run_kotlin_reference_server"].toBoolean()
 
     startDocker()
+    // TODO: Check server readiness instead of wait for 5 seconds
     sleep(5000)
     startServers(wait)
   }

@@ -8,30 +8,29 @@ import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.filter.ApiKeyFilter;
-import org.stellar.anchor.filter.JwtTokenFilter;
 import org.stellar.anchor.filter.NoneFilter;
-import org.stellar.anchor.platform.config.PlatformApiConfig;
+import org.stellar.anchor.filter.PlatformAuthJwtFilter;
+import org.stellar.anchor.platform.config.PlatformServerConfig;
 import org.stellar.anchor.platform.service.TransactionService;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
 
 @Configuration
-public class PlatformApiBeans {
+public class PlatformServerBeans {
   /**
    * Register anchor-to-platform token filter.
    *
    * @return Spring Filter Registration Bean
    */
   @Bean
-  public FilterRegistrationBean<Filter> anchorToPlatformTokenFilter(
-      PlatformApiConfig platformApiConfig) {
+  public FilterRegistrationBean<Filter> platformTokenFilter(PlatformServerConfig config) {
     Filter anchorToPlatformFilter;
-    String authSecret = platformApiConfig.getAuth().getSecret();
-    switch (platformApiConfig.getAuth().getType()) {
+    String authSecret = config.getSecretConfig().getPlatformAuthSecret();
+    switch (config.getAuth().getType()) {
       case JWT:
-        JwtService jwtService = new JwtService(authSecret, null, null);
-        anchorToPlatformFilter = new JwtTokenFilter(jwtService);
+        JwtService jwtService = new JwtService(null, null, null, null, authSecret);
+        anchorToPlatformFilter = new PlatformAuthJwtFilter(jwtService);
         break;
 
       case API_KEY:
@@ -45,10 +44,6 @@ public class PlatformApiBeans {
 
     FilterRegistrationBean<Filter> registrationBean = new FilterRegistrationBean<>();
     registrationBean.setFilter(anchorToPlatformFilter);
-    registrationBean.addUrlPatterns("/transactions/*");
-    registrationBean.addUrlPatterns("/transactions");
-    registrationBean.addUrlPatterns("/exchange/quotes/*");
-    registrationBean.addUrlPatterns("/exchange/quotes");
     return registrationBean;
   }
 

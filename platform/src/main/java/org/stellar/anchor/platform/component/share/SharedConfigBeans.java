@@ -5,6 +5,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.stellar.anchor.config.SecretConfig;
 import org.stellar.anchor.platform.config.PlatformApiConfig;
+import org.stellar.anchor.platform.config.PlatformServerConfig;
 import org.stellar.anchor.platform.config.PropertyDataConfig;
 import org.stellar.anchor.platform.config.PropertySecretConfig;
 
@@ -20,5 +21,11 @@ public class SharedConfigBeans {
   @ConfigurationProperties(prefix = "platform-api")
   PlatformApiConfig platformApiConfig(PropertySecretConfig secretConfig) {
     return new PlatformApiConfig(secretConfig);
+  }
+
+  @Bean
+  @ConfigurationProperties(prefix = "platform-server")
+  PlatformServerConfig platformServerConfig(PropertySecretConfig secretConfig) {
+    return new PlatformServerConfig(secretConfig);
   }
 }

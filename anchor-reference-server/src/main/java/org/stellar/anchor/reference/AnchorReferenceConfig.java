@@ -8,8 +8,8 @@ import org.springframework.context.annotation.Configuration;
 import org.stellar.anchor.auth.AuthHelper;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.filter.ApiKeyFilter;
-import org.stellar.anchor.filter.JwtTokenFilter;
 import org.stellar.anchor.filter.NoneFilter;
+import org.stellar.anchor.filter.Sep10JwtFilter;
 import org.stellar.anchor.reference.config.*;
 import org.stellar.anchor.reference.event.AbstractEventListener;
 import org.stellar.anchor.reference.event.AnchorEventProcessor;
@@ -54,8 +54,8 @@ public class AnchorReferenceConfig {
     String authSecret = integrationAuthSettings.getPlatformToAnchorSecret();
     switch (integrationAuthSettings.getAuthType()) {
       case JWT:
-        JwtService jwtService = new JwtService(authSecret, null, null);
-        platformToAnchorFilter = new JwtTokenFilter(jwtService);
+        JwtService jwtService = new JwtService(null, null, null, authSecret, null);
+        platformToAnchorFilter = new Sep10JwtFilter(jwtService);
         break;
 
       case API_KEY:
@@ -77,15 +77,13 @@ public class AnchorReferenceConfig {
   }
 
   @Bean
-  AuthHelper authHelper(AppSettings appSettings, IntegrationAuthSettings integrationAuthSettings) {
+  AuthHelper authHelper(IntegrationAuthSettings integrationAuthSettings) {
     String authSecret = integrationAuthSettings.getAnchorToPlatformSecret();
     switch (integrationAuthSettings.getAuthType()) {
       case JWT:
         return AuthHelper.forJwtToken(
-            new JwtService(authSecret, null, null),
-            integrationAuthSettings.getExpirationMilliseconds(),
-            appSettings.getHostUrl());
-
+            new JwtService(null, null, null, null, authSecret),
+            integrationAuthSettings.getExpirationMilliseconds());
       case API_KEY:
         return AuthHelper.forApiKey(authSecret);
 
