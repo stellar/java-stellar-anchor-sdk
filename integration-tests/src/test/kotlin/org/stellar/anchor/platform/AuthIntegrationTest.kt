@@ -15,6 +15,7 @@ import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerRequest
 import org.stellar.anchor.auth.AuthHelper
 import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.platform.AbstractIntegrationTest.Companion.ANCHOR_TO_PLATFORM_SECRET
+import org.stellar.anchor.platform.AbstractIntegrationTest.Companion.JWT_EXPIRATION_MILLISECONDS
 import org.stellar.anchor.platform.AbstractIntegrationTest.Companion.PLATFORM_TO_ANCHOR_SECRET
 import org.stellar.anchor.platform.callback.RestCustomerIntegration
 import org.stellar.anchor.platform.callback.RestFeeIntegration
@@ -25,7 +26,7 @@ open class AbstractAuthIntegrationTest {
   companion object {
     val jwtService =
       JwtService(null, null, null, PLATFORM_TO_ANCHOR_SECRET, ANCHOR_TO_PLATFORM_SECRET)
-    val jwtAuthHelper: AuthHelper = AuthHelper.forJwtToken(jwtService, 30000)
+    val jwtAuthHelper: AuthHelper = AuthHelper.forJwtToken(jwtService, JWT_EXPIRATION_MILLISECONDS)
     internal val nonAuthHelper = AuthHelper.forNone()
     internal lateinit var testProfileRunner: TestProfileExecutor
   }
@@ -45,7 +46,8 @@ internal class JwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
             it.env["integration-auth.authType"] = "jwt"
             it.env["integration-auth.platformToAnchorSecret"] = PLATFORM_TO_ANCHOR_SECRET
             it.env["integration-auth.anchorToPlatformSecret"] = ANCHOR_TO_PLATFORM_SECRET
-            it.env["integration-auth.expirationMilliseconds"] = "10000"
+            it.env["integration-auth.expirationMilliseconds"] =
+              JWT_EXPIRATION_MILLISECONDS.toString()
           }
         )
       testProfileRunner.start()
@@ -68,7 +70,7 @@ internal class JwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
   private val gson = GsonUtils.getInstance()
 
   @Test
-  fun `test the callback customer endpoint wiht JWT auth`() {
+  fun `test the callback customer endpoint with JWT auth`() {
     val rci =
       RestCustomerIntegration(
         "http://localhost:${AbstractIntegrationTest.REFERENCE_SERVER_PORT}",
@@ -94,7 +96,7 @@ internal class JwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
   }
 
   @Test
-  fun `test the callback fee endpoint wiht JWT auth`() {
+  fun `test the callback fee endpoint with JWT auth`() {
     val rfi =
       RestFeeIntegration(
         "http://localhost:${AbstractIntegrationTest.REFERENCE_SERVER_PORT}",

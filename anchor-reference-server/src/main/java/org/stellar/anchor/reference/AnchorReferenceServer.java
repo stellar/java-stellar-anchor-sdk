@@ -14,6 +14,7 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.boot.env.YamlPropertySourceLoader;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.core.io.Resource;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
@@ -27,18 +28,15 @@ public class AnchorReferenceServer implements WebMvcConfigurer {
   static ConfigurableApplicationContext ctx;
 
   public static ConfigurableApplicationContext start(
-      Map<String, String> env, int port, String contextPath) {
-    Properties props = new Properties();
-    props.put("server.port", port);
-    props.put("server.contextPath", contextPath);
-    if (env != null) {
-      props.putAll(env);
-    }
+      Map<String, String> envMap, int port, String contextPath) {
+    envMap.put("server.port", String.valueOf(port));
+    envMap.put("server.contextPath", String.valueOf(contextPath));
 
     SpringApplicationBuilder builder =
-        new SpringApplicationBuilder(AnchorReferenceServer.class).bannerMode(OFF).properties(props);
+        new SpringApplicationBuilder(AnchorReferenceServer.class).bannerMode(OFF);
 
     SpringApplication app = builder.build();
+    app.addInitializers(new EnvironmentSourceInitializer(envMap));
     app.addInitializers(new PropertySourceInitializer());
     return ctx = app.run();
   }
@@ -46,6 +44,25 @@ public class AnchorReferenceServer implements WebMvcConfigurer {
   public static void stop() {
     if (ctx != null) {
       SpringApplication.exit(ctx);
+    }
+  }
+
+  public static class EnvironmentSourceInitializer
+      implements ApplicationContextInitializer<ConfigurableApplicationContext> {
+    private final Properties environmentProperties;
+
+    public EnvironmentSourceInitializer(Map<String, String> envMap) {
+      super();
+      environmentProperties = new Properties();
+      environmentProperties.putAll(envMap);
+    }
+
+    @Override
+    public void initialize(ConfigurableApplicationContext applicationContext) {
+      applicationContext
+          .getEnvironment()
+          .getPropertySources()
+          .addFirst(new PropertiesPropertySource("envProps", environmentProperties));
     }
   }
 
