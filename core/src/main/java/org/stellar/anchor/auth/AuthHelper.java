@@ -49,7 +49,6 @@ public class AuthHelper {
 
   @Nullable
   public AuthHeader<String, String> createPlatformAuthHeader() {
-    Log.info("AuthHelper.createAuthHeader: authType=" + authType);
     switch (authType) {
       case JWT:
         long issuedAt = Calendar.getInstance().getTimeInMillis() / 1000L;
@@ -72,7 +71,6 @@ public class AuthHelper {
 
   @Nullable
   public AuthHeader<String, String> createCallbackAuthHeader() {
-    Log.info("AuthHelper.createAuthHeader: authType=" + authType);
     switch (authType) {
       case JWT:
         long issuedAt = Calendar.getInstance().getTimeInMillis() / 1000L;
