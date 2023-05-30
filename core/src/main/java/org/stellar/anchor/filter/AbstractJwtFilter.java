@@ -17,7 +17,6 @@ import org.stellar.anchor.util.Log;
 
 public abstract class AbstractJwtFilter implements Filter {
   public static final String JWT_TOKEN = "token";
-  static final String OPTIONS = "OPTIONS";
   static final String APPLICATION_JSON_VALUE = "application/json";
   static final Gson gson = GsonUtils.builder().setPrettyPrinting().create();
   final JwtService jwtService;
@@ -49,7 +48,7 @@ public abstract class AbstractJwtFilter implements Filter {
         request.getRequestURL().toString(),
         request.getQueryString());
 
-    if (request.getMethod().equals(OPTIONS)) {
+    if (request.getMethod().equals("OPTIONS")) {
       filterChain.doFilter(servletRequest, servletResponse);
       return;
     }
