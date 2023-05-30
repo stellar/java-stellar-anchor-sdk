@@ -42,7 +42,10 @@ internal class JwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
         TestProfileExecutor(
           TestConfig(profileName = "default").also {
             it.env["platform_server.auth.type"] = "jwt"
-            // todo: start reference server, set auth type to jwt
+            it.env["integration-auth.authType"] = "jwt"
+            it.env["integration-auth.platformToAnchorSecret"] = PLATFORM_TO_ANCHOR_SECRET
+            it.env["integration-auth.anchorToPlatformSecret"] = ANCHOR_TO_PLATFORM_SECRET
+            it.env["integration-auth.expirationMilliseconds"] = "10000"
           }
         )
       testProfileRunner.start()

@@ -4,6 +4,8 @@ import static org.springframework.boot.Banner.Mode.OFF;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Map;
+import java.util.Properties;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -24,13 +26,17 @@ public class AnchorReferenceServer implements WebMvcConfigurer {
 
   static ConfigurableApplicationContext ctx;
 
-  public static ConfigurableApplicationContext start(int port, String contextPath) {
+  public static ConfigurableApplicationContext start(
+      Map<String, String> env, int port, String contextPath) {
+    Properties props = new Properties();
+    props.put("server.port", port);
+    props.put("server.contextPath", contextPath);
+    if (env != null) {
+      props.putAll(env);
+    }
+
     SpringApplicationBuilder builder =
-        new SpringApplicationBuilder(AnchorReferenceServer.class)
-            .bannerMode(OFF)
-            .properties(
-                String.format("server.port=%d", port),
-                String.format("server.contextPath=%s", contextPath));
+        new SpringApplicationBuilder(AnchorReferenceServer.class).bannerMode(OFF).properties(props);
 
     SpringApplication app = builder.build();
     app.addInitializers(new PropertySourceInitializer());
@@ -57,7 +63,7 @@ public class AnchorReferenceServer implements WebMvcConfigurer {
         List<org.springframework.core.env.PropertySource<?>> sources =
             new YamlPropertySourceLoader().load("yaml", resource);
         for (org.springframework.core.env.PropertySource<?> source : sources) {
-          applicationContext.getEnvironment().getPropertySources().addFirst(source);
+          applicationContext.getEnvironment().getPropertySources().addLast(source);
         }
       } catch (IOException e) {
         throw new RuntimeException(
@@ -79,6 +85,7 @@ public class AnchorReferenceServer implements WebMvcConfigurer {
 
   public static void main(String[] args) {
     start(
+        null,
         Integer.parseInt(getProperty(REFERENCE_SERVER_PORT, "8081")),
         getProperty(REFERENCE_SERVER_CONTEXT_PATH, "/"));
   }
