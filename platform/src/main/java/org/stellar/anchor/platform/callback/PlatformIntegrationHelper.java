@@ -14,7 +14,8 @@ import org.stellar.anchor.util.AuthHeader;
 import org.stellar.anchor.util.Log;
 
 public class PlatformIntegrationHelper {
-  public static Request.Builder getRequestBuilder(AuthHelper authHelper) {
+  public static Request.Builder getRequestBuilder(AuthHelper authHelper)
+      throws InvalidConfigException {
     Request.Builder requestBuilder =
         new Request.Builder().header("Content-Type", "application/json");
 

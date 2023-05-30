@@ -45,17 +45,13 @@ public class AuthHelper {
   }
 
   @Nullable
-  public AuthHeader<String, String> createAuthHeader() {
+  public AuthHeader<String, String> createAuthHeader() throws InvalidConfigException {
     switch (authType) {
       case JWT:
         long issuedAt = Calendar.getInstance().getTimeInMillis() / 1000L;
         long expirationTime = issuedAt + (jwtExpirationMilliseconds / 1000L);
         ApiAuthJwt token = new ApiAuthJwt(issuedAt, expirationTime);
-        try {
-          return new AuthHeader<>("Authorization", "Bearer " + jwtService.encode(token));
-        } catch (InvalidConfigException e) {
-          return null;
-        }
+        return new AuthHeader<>("Authorization", "Bearer " + jwtService.encode(token));
       case API_KEY:
         return new AuthHeader<>("X-Api-Key", apiKey);
       default:
