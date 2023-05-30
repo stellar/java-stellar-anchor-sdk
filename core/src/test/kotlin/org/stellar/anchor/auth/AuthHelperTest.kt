@@ -7,6 +7,7 @@ import kotlin.test.assertNull
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
+import org.stellar.anchor.auth.ApiAuthJwt.PlatformAuthJwt
 import org.stellar.anchor.auth.AuthType.*
 import org.stellar.anchor.util.AuthHeader
 
@@ -37,7 +38,7 @@ class AuthHelperTest {
 
         // mock jwt token based on the mocked calendar
         val wantJwtToken =
-          ApiAuthJwt(
+          PlatformAuthJwt(
             currentTimeMilliseconds / 1000L,
             (currentTimeMilliseconds + JWT_EXPIRATION_MILLISECONDS) / 1000L
           )
