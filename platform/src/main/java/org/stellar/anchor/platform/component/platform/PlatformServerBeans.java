@@ -44,10 +44,6 @@ public class PlatformServerBeans {
 
     FilterRegistrationBean<Filter> registrationBean = new FilterRegistrationBean<>();
     registrationBean.setFilter(anchorToPlatformFilter);
-    registrationBean.addUrlPatterns("/transactions/*");
-    registrationBean.addUrlPatterns("/transactions");
-    registrationBean.addUrlPatterns("/exchange/quotes/*");
-    registrationBean.addUrlPatterns("/exchange/quotes");
     return registrationBean;
   }
 
