@@ -111,6 +111,7 @@ internal class JwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
       ]
   )
   fun `test JWT protection of the platform server`(method: String, endpoint: String) {
+    // Check if the request without JWT will cause a 403.
     val httpRequest =
       Request.Builder()
         .url("http://localhost:8085/transactions")
@@ -120,6 +121,7 @@ internal class JwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
     val response = httpClient.newCall(httpRequest).execute()
     assertEquals(403, response.code)
 
+    // Check if thw wrong JWT key will cause a 403.
     assertThrows<SepNotAuthorizedException> { jwtWrongKeyPlatformClient.getTransaction("my_id") }
   }
 
