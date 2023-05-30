@@ -16,7 +16,6 @@ import org.stellar.anchor.reference.event.AnchorEventProcessor;
 import org.stellar.anchor.reference.event.KafkaListener;
 import org.stellar.anchor.reference.event.SqsListener;
 import org.stellar.anchor.util.GsonUtils;
-import org.stellar.anchor.util.Log;
 
 @Configuration
 public class AnchorReferenceConfig {
@@ -53,10 +52,6 @@ public class AnchorReferenceConfig {
       IntegrationAuthSettings integrationAuthSettings) {
     Filter platformToAnchorFilter;
     String authSecret = integrationAuthSettings.getPlatformToAnchorSecret();
-    Log.infoF(
-        "Reference server token filter authType: {}, authSecret: {}",
-        integrationAuthSettings.getAuthType(),
-        authSecret);
     switch (integrationAuthSettings.getAuthType()) {
       case JWT:
         JwtService jwtService = new JwtService(null, null, null, authSecret, null);
@@ -84,7 +79,6 @@ public class AnchorReferenceConfig {
   @Bean
   AuthHelper authHelper(AppSettings appSettings, IntegrationAuthSettings integrationAuthSettings) {
     String authSecret = integrationAuthSettings.getAnchorToPlatformSecret();
-    Log.info("authType: {}", integrationAuthSettings.getAuthType());
     switch (integrationAuthSettings.getAuthType()) {
       case JWT:
         return AuthHelper.forJwtToken(

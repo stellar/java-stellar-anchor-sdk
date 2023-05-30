@@ -14,7 +14,6 @@ import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.core.io.Resource;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import org.stellar.anchor.util.Log;
 
 @SpringBootApplication
 @EnableConfigurationProperties
@@ -52,8 +51,6 @@ public class AnchorReferenceServer implements WebMvcConfigurer {
       String referenceServerConfig =
           AnchorReferenceServer.getProperty(
               REFERENCE_SERVER_CONFIG_ENV, "classpath:/anchor-reference-server.yaml");
-
-      Log.info("Loading configuration from %s", referenceServerConfig);
 
       Resource resource = applicationContext.getResource(referenceServerConfig);
       try {

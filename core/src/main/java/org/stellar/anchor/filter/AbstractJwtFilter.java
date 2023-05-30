@@ -55,13 +55,11 @@ public abstract class AbstractJwtFilter implements Filter {
 
     String authorization = request.getHeader("Authorization");
     if (authorization == null) {
-      Log.infoF("Authorization header is missing. url={}", request.getRequestURL());
       sendForbiddenError(response);
       return;
     }
 
     if (!authorization.contains("Bearer")) {
-      Log.infoF("Authorization header is invalid. header={}", authorization);
       sendForbiddenError(response);
       return;
     }
@@ -70,7 +68,6 @@ public abstract class AbstractJwtFilter implements Filter {
     try {
       jwtCipher = authorization.split(" ")[1];
     } catch (Exception ex) {
-      Log.infoF("Authorization header is invalid. header={}", authorization);
       sendForbiddenError(response);
       return;
     }
