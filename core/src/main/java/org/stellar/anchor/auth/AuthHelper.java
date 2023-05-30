@@ -3,6 +3,7 @@ package org.stellar.anchor.auth;
 import java.util.Calendar;
 import javax.annotation.Nullable;
 import org.stellar.anchor.api.exception.InvalidConfigException;
+import org.stellar.anchor.auth.ApiAuthJwt.PlatformAuthJwt;
 import org.stellar.anchor.util.AuthHeader;
 
 public class AuthHelper {
@@ -45,12 +46,12 @@ public class AuthHelper {
   }
 
   @Nullable
-  public AuthHeader<String, String> createAuthHeader() throws InvalidConfigException {
+  public AuthHeader<String, String> createPlatformServerAuthHeader() throws InvalidConfigException {
     switch (authType) {
       case JWT:
         long issuedAt = Calendar.getInstance().getTimeInMillis() / 1000L;
         long expirationTime = issuedAt + (jwtExpirationMilliseconds / 1000L);
-        ApiAuthJwt token = new ApiAuthJwt(issuedAt, expirationTime);
+        PlatformAuthJwt token = new PlatformAuthJwt(issuedAt, expirationTime);
         return new AuthHeader<>("Authorization", "Bearer " + jwtService.encode(token));
       case API_KEY:
         return new AuthHeader<>("X-Api-Key", apiKey);

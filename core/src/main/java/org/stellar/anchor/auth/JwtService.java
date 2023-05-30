@@ -102,7 +102,15 @@ public class JwtService {
     return builder.signWith(SignatureAlgorithm.HS256, sep24MoreInfoUrlJwtSecret).compact();
   }
 
-  public String encode(ApiAuthJwt token) throws InvalidConfigException {
+  public String encode(CallbackAuthJwt token) throws InvalidConfigException {
+    return encode(token, callbackAuthSecret);
+  }
+
+  public String encode(PlatformAuthJwt token) throws InvalidConfigException {
+    return encode(token, platformAuthSecret);
+  }
+
+  private String encode(ApiAuthJwt token, String secret) throws InvalidConfigException {
     if (platformAuthSecret == null) {
       throw new InvalidConfigException(
           "Please provide the secret before encoding JWT for API Authentication");
@@ -114,7 +122,7 @@ public class JwtService {
     JwtBuilder builder =
         Jwts.builder().setIssuedAt(calNow.getTime()).setExpiration(calExp.getTime());
 
-    return builder.signWith(SignatureAlgorithm.HS256, platformAuthSecret).compact();
+    return builder.signWith(SignatureAlgorithm.HS256, secret).compact();
   }
 
   @SuppressWarnings({"unchecked", "rawtypes"})
