@@ -66,6 +66,7 @@ class AuthHelperTest {
         val gotPlatformAuthHeader = authHelper.createPlatformServerAuthHeader()
         val wantPlatformAuthHeader = AuthHeader("X-Api-Key", "secret")
         assertEquals(wantPlatformAuthHeader, gotPlatformAuthHeader)
+
         val gotCallbackAuthHeader = authHelper.createCallbackAuthHeader()
         val wantCallbackAuthHeader = AuthHeader("X-Api-Key", "secret")
         assertEquals(wantCallbackAuthHeader, gotCallbackAuthHeader)

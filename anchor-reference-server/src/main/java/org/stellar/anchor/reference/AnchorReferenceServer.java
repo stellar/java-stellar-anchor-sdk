@@ -3,6 +3,7 @@ package org.stellar.anchor.reference;
 import static org.springframework.boot.Banner.Mode.OFF;
 
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
@@ -29,6 +30,9 @@ public class AnchorReferenceServer implements WebMvcConfigurer {
 
   public static ConfigurableApplicationContext start(
       Map<String, String> envMap, int port, String contextPath) {
+    if (envMap == null) {
+      envMap = new HashMap<>();
+    }
     envMap.put("server.port", String.valueOf(port));
     envMap.put("server.contextPath", String.valueOf(contextPath));
 
@@ -102,7 +106,7 @@ public class AnchorReferenceServer implements WebMvcConfigurer {
 
   public static void main(String[] args) {
     start(
-        null,
+        new HashMap<>(),
         Integer.parseInt(getProperty(REFERENCE_SERVER_PORT, "8081")),
         getProperty(REFERENCE_SERVER_CONTEXT_PATH, "/"));
   }

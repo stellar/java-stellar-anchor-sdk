@@ -151,6 +151,7 @@ internal class JwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
         jwtAuthHelper,
         gson
       )
+    // Assert the request does not throw a 403.
     assertThrows<NotFoundException> {
       rci.getCustomer(Sep12GetCustomerRequest.builder().id("1").build())
     }
@@ -165,6 +166,7 @@ internal class JwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
         jwtAuthHelper,
         gson
       )
+    // Assert the request does not throw a 403.
     assertThrows<BadRequestException> { rri.getRate(GetRateRequest.builder().build()) }
   }
 
@@ -177,6 +179,7 @@ internal class JwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
         jwtAuthHelper,
         gson
       )
+    // Assert the request does not throw a 403.
     assertThrows<BadRequestException> { rfi.getFee(GetFeeRequest.builder().build()) }
   }
 

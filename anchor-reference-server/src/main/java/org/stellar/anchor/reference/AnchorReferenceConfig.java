@@ -69,10 +69,6 @@ public class AnchorReferenceConfig {
 
     FilterRegistrationBean<Filter> registrationBean = new FilterRegistrationBean<>();
     registrationBean.setFilter(platformToAnchorFilter);
-    registrationBean.addUrlPatterns("/fee");
-    registrationBean.addUrlPatterns("/rate");
-    registrationBean.addUrlPatterns("/customer");
-    registrationBean.addUrlPatterns("/customer/*");
     return registrationBean;
   }
 

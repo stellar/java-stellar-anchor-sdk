@@ -120,7 +120,7 @@ internal class Sep10JwtFilterTest {
 
   @ParameterizedTest
   @ValueSource(strings = ["GET", "PUT", "POST", "DELETE"])
-  fun `make sure validate() exception returns FORBIDDEN and does not cause 500`(method: String) {
+  fun `make sure check() exception returns FORBIDDEN and does not cause 500`(method: String) {
     every { request.method } returns method
     val mockFilter = spyk(sep10TokenFilter)
     every { mockFilter.check(any(), any(), any()) } answers { throw Exception("Not validate") }
