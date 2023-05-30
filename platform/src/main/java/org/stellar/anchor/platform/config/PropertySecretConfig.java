@@ -35,12 +35,12 @@ public class PropertySecretConfig implements SecretConfig {
   }
 
   @Override
-  public String getCallbackApiSecret() {
+  public String getCallbackAuthSecret() {
     return SecretManager.getInstance().get(SECRET_CALLBACK_API_AUTH_SECRET);
   }
 
   @Override
-  public String getPlatformApiSecret() {
+  public String getPlatformAuthSecret() {
     return SecretManager.getInstance().get(SECRET_PLATFORM_API_AUTH_SECRET);
   }
 

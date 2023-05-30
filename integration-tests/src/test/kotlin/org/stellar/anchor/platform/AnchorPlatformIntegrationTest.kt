@@ -54,18 +54,24 @@ class AnchorPlatformIntegrationTest : AbstractIntegrationTest(TestConfig(profile
 
   @Test
   @Order(6)
+  fun runSepHealthTest() {
+    singleton.sepHealthTests.testAll()
+  }
+
+  @Test
+  @Order(7)
   fun runPlatformApiTest() {
     singleton.platformApiTests.testAll()
   }
 
   @Test
-  @Order(7)
+  @Order(8)
   fun runCallbackApiTest() {
     singleton.callbackApiTests.testAll()
   }
 
   @Test
-  @Order(8)
+  @Order(9)
   fun runStellarObserverTest() {
     singleton.stellarObserverTests.testAll()
   }

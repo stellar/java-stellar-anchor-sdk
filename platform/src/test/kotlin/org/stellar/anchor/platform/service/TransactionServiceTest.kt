@@ -20,6 +20,7 @@ import org.stellar.anchor.api.exception.AnchorException
 import org.stellar.anchor.api.exception.BadRequestException
 import org.stellar.anchor.api.exception.NotFoundException
 import org.stellar.anchor.api.platform.PatchTransactionRequest
+import org.stellar.anchor.api.platform.PatchTransactionsRequest
 import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.api.sep.sep38.RateFee
 import org.stellar.anchor.api.shared.Amount
@@ -708,4 +709,27 @@ class TransactionServiceTest {
       }   
   """
       .trimIndent()
+
+  @Test
+  fun `patch transaction with bad body`() {
+    var patchTransactionsRequest = PatchTransactionsRequest.builder().records(null).build()
+
+    var ex =
+      assertThrows<BadRequestException> {
+        transactionService.patchTransactions(patchTransactionsRequest)
+      }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("Records are missing.", ex.message)
+
+    val patchTransactionRequest = PatchTransactionRequest.builder().transaction(null).build()
+    val records: List<PatchTransactionRequest> = listOf(patchTransactionRequest)
+    patchTransactionsRequest = PatchTransactionsRequest.builder().records(records).build()
+
+    ex =
+      assertThrows<BadRequestException> {
+        transactionService.patchTransactions(patchTransactionsRequest)
+      }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("Transaction is missing.", ex.message)
+  }
 }

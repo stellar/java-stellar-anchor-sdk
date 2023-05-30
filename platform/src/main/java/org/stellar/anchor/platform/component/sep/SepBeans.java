@@ -15,7 +15,7 @@ import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.config.*;
 import org.stellar.anchor.event.EventService;
-import org.stellar.anchor.filter.JwtTokenFilter;
+import org.stellar.anchor.filter.Sep10JwtFilter;
 import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.platform.condition.ConditionalOnAllSepsEnabled;
 import org.stellar.anchor.platform.config.*;
@@ -79,22 +79,6 @@ public class SepBeans {
     return new PropertySep38Config();
   }
 
-  @Bean
-  @ConfigurationProperties(prefix = "data")
-  PropertyDataConfig dataConfig(SecretConfig secretConfig) {
-    return new PropertyDataConfig(secretConfig);
-  }
-
-  /**
-   * Used by SEP-10 authentication service.
-   *
-   * @return the jwt service used by SEP-10.
-   */
-  @Bean
-  public JwtService jwtService(SecretConfig secretConfig) {
-    return new JwtService(secretConfig);
-  }
-
   /**
    * Register sep-10 token filter.
    *
@@ -103,7 +87,7 @@ public class SepBeans {
   @Bean
   public FilterRegistrationBean<Filter> sep10TokenFilter(JwtService jwtService) {
     FilterRegistrationBean<Filter> registrationBean = new FilterRegistrationBean<>();
-    registrationBean.setFilter(new JwtTokenFilter(jwtService));
+    registrationBean.setFilter(new Sep10JwtFilter(jwtService));
     registrationBean.addUrlPatterns("/sep12/*");
     registrationBean.addUrlPatterns("/sep24/transaction");
     registrationBean.addUrlPatterns("/sep24/transactions*");
@@ -113,11 +97,6 @@ public class SepBeans {
     registrationBean.addUrlPatterns("/sep38/quote");
     registrationBean.addUrlPatterns("/sep38/quote/*");
     return registrationBean;
-  }
-
-  @Bean
-  public Horizon horizon(AppConfig appConfig) {
-    return new Horizon(appConfig);
   }
 
   @Bean

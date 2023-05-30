@@ -2,12 +2,13 @@ sep24:
   #  Port this server is being ran on
   port: 8091
   #  URL for anchor platform server
-  anchorPlatformUrl: "http://localhost:8080"
+  anchorPlatformUrl: "http://localhost:8085"
   #  URL for horizon server
   horizonUrl: "https://horizon-testnet.stellar.org"
-  #  Secret key used to send funds to user accounts
-  secret: "SCQ2YRUGKBO4Q6RWSXV3SYVGHJB525XVKUP2HDGVW3LV42UBLGTZ24XX"
+  # Secret key used to send funds to user accounts.
+  # Public key: GABCKCYPAGDDQMSCTMSBO7C2L34NU3XXCW7LR4VVSWCCXMAJY3B4YCZP
+  secret: "SAJW2O2NH5QMMVWYAN352OEXS2RUY675A2HPK5HEG2FRR2NXPYA4OLYN"
   # When true, enables test endpoints
   enableTest: true
   # Encryption key for interactive JWT
-  interactiveJwtKey: "sep24 interactive url secret"
+  interactiveJwtKey: "secret_sep24_interactive_url_jwt_secret"

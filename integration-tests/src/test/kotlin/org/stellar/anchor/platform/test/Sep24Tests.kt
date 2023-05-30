@@ -26,7 +26,9 @@ class Sep24Tests(val config: TestConfig, val toml: TomlContent, jwt: String) {
     JwtService(
       config.env["secret.sep10.jwt_secret"]!!,
       config.env["secret.sep24.interactive_url.jwt_secret"]!!,
-      config.env["secret.sep24.more_info_url.jwt_secret"]!!
+      config.env["secret.sep24.more_info_url.jwt_secret"]!!,
+      config.env["secret.callback_api.auth_secret"]!!,
+      config.env["secret.platform_api.auth_secret"]!!
     )
 
   private val platformApiClient =
@@ -144,6 +146,7 @@ class Sep24Tests(val config: TestConfig, val toml: TomlContent, jwt: String) {
 
 private const val withdrawRequest =
   """{
+    "amount": "10",
     "asset_code": "USDC",
     "asset_issuer": "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
     "account": "GAIUIZPHLIHQEMNJGSZKCEUWHAZVGUZDBDMO2JXNAJZZZVNSVHQCEWJ4",
@@ -152,6 +155,7 @@ private const val withdrawRequest =
 
 private const val depositRequest =
   """{
+    "amount": "10",
     "asset_code": "USDC",
     "asset_issuer": "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
     "account": "GCHU3RZAECOKGM2YAJLQIIYB2ZPLMFTTGN5D3XZNX4RDOEERVLXO7HU4",
@@ -320,36 +324,24 @@ private const val expectedSep24Info =
   {
     "deposit": {
       "JPYC": {
-        "enabled": true,
-        "min_amount": 1,
-        "max_amount": 1000000
+        "enabled": true
       },
       "USD": {
-        "enabled": true,
-        "min_amount": 0,
-        "max_amount": 10000
+        "enabled": true
       },
       "USDC": {
-        "enabled": true,
-        "min_amount": 1,
-        "max_amount": 1000000
+        "enabled": true
       }
     },
     "withdraw": {
       "JPYC": {
-        "enabled": true,
-        "min_amount": 1,
-        "max_amount": 1000000
+        "enabled": true
       },
       "USD": {
-        "enabled": true,
-        "min_amount": 0,
-        "max_amount": 10000
+        "enabled": true
       },
       "USDC": {
-        "enabled": true,
-        "min_amount": 1,
-        "max_amount": 1000000
+        "enabled": true
       }
     },
     "fee": {

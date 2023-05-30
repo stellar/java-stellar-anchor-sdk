@@ -4,6 +4,12 @@ import org.stellar.anchor.platform.test.*
 import org.stellar.anchor.util.Sep1Helper
 
 open class AbstractIntegrationTest(private val config: TestConfig) {
+  companion object {
+    const val ANCHOR_TO_PLATFORM_SECRET = "myAnchorToPlatformSecret"
+    const val PLATFORM_TO_ANCHOR_SECRET = "myPlatformToAnchorSecret"
+    const val PLATFORM_SERVER_PORT = 8085
+  }
+
   init {
     System.getProperties()
       .setProperty("REFERENCE_SERVER_CONFIG", "classpath:/anchor-reference-server.yaml")
@@ -15,6 +21,7 @@ open class AbstractIntegrationTest(private val config: TestConfig) {
   lateinit var sep24Tests: Sep24Tests
   lateinit var sep31Tests: Sep31Tests
   lateinit var sep38Tests: Sep38Tests
+  lateinit var sepHealthTests: SepHealthTests
   lateinit var platformApiTests: PlatformApiTests
   lateinit var callbackApiTests: CallbackApiTests
   lateinit var stellarObserverTests: StellarObserverTests
@@ -44,6 +51,7 @@ open class AbstractIntegrationTest(private val config: TestConfig) {
     sep24Tests = Sep24Tests(config, toml, jwt)
     sep31Tests = Sep31Tests(config, toml, jwt)
     sep38Tests = Sep38Tests(config, toml, jwt)
+    sepHealthTests = SepHealthTests(config, toml, jwt)
     platformApiTests = PlatformApiTests(config, toml, jwt)
     callbackApiTests = CallbackApiTests(config, toml, jwt)
     stellarObserverTests = StellarObserverTests()

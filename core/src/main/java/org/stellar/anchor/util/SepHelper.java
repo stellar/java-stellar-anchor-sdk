@@ -86,6 +86,11 @@ public class SepHelper {
   }
 
   public static BigDecimal validateAmount(String messagePrefix, String amount)
+      throws AnchorException {
+    return validateAmount(messagePrefix, amount, false);
+  }
+
+  public static BigDecimal validateAmount(String messagePrefix, String amount, boolean allowZero)
       throws BadRequestException {
     // assetName
     if (StringHelper.isEmpty(amount)) {
@@ -98,8 +103,15 @@ public class SepHelper {
     } catch (NumberFormatException e) {
       throw new BadRequestException(messagePrefix + "amount is invalid", e);
     }
-    if (sAmount.signum() < 1) {
-      throw new BadRequestException(messagePrefix + "amount should be positive");
+
+    if (allowZero) {
+      if (sAmount.signum() < 0) {
+        throw new BadRequestException(messagePrefix + "amount should be non-negative");
+      }
+    } else {
+      if (sAmount.signum() < 1) {
+        throw new BadRequestException(messagePrefix + "amount should be positive");
+      }
     }
     return sAmount;
   }
@@ -107,13 +119,21 @@ public class SepHelper {
   public static void validateAmountLimit(String messagePrefix, String amount, Long min, Long max)
       throws AnchorException {
     BigDecimal sAmount = validateAmount("", amount);
-    BigDecimal bdMin = new BigDecimal(min);
-    BigDecimal bdMax = new BigDecimal(max);
-    if (sAmount.compareTo(bdMin) < 0) {
-      throw new BadRequestException(String.format("%samount less than min limit", messagePrefix));
+
+    // Validate min amount
+    if (min != null) {
+      BigDecimal bdMin = new BigDecimal(min);
+      if (sAmount.compareTo(bdMin) < 0) {
+        throw new BadRequestException(String.format("%samount less than min limit", messagePrefix));
+      }
     }
-    if (sAmount.compareTo(bdMax) > 0) {
-      throw new BadRequestException(String.format("%samount exceeds max limit", messagePrefix));
+
+    // Validate max amount
+    if (max != null) {
+      BigDecimal bdMax = new BigDecimal(max);
+      if (sAmount.compareTo(bdMax) > 0) {
+        throw new BadRequestException(String.format("%samount exceeds max limit", messagePrefix));
+      }
     }
   }
 

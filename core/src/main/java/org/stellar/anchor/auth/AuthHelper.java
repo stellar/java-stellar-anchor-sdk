@@ -2,24 +2,35 @@ package org.stellar.anchor.auth;
 
 import java.util.Calendar;
 import javax.annotation.Nullable;
+import org.stellar.anchor.api.exception.InvalidConfigException;
+import org.stellar.anchor.auth.ApiAuthJwt.PlatformAuthJwt;
 import org.stellar.anchor.util.AuthHeader;
 
 public class AuthHelper {
   public final AuthType authType;
   private JwtService jwtService;
   private long jwtExpirationMilliseconds;
-  private String issuerUrl;
   private String apiKey;
 
   private AuthHelper(AuthType authType) {
     this.authType = authType;
   }
 
-  public static AuthHelper forJwtToken(
-      JwtService jwtService, long jwtExpirationMilliseconds, String issuerUrl) {
+  public static AuthHelper from(AuthType type, String secret, long jwtExpirationMilliseconds) {
+    switch (type) {
+      case JWT:
+        return AuthHelper.forJwtToken(
+            new JwtService(null, null, null, secret, secret), jwtExpirationMilliseconds);
+      case API_KEY:
+        return AuthHelper.forApiKey(secret);
+      default:
+        return AuthHelper.forNone();
+    }
+  }
+
+  public static AuthHelper forJwtToken(JwtService jwtService, long jwtExpirationMilliseconds) {
     AuthHelper authHelper = new AuthHelper(AuthType.JWT);
     authHelper.jwtService = jwtService;
-    authHelper.issuerUrl = issuerUrl;
     authHelper.jwtExpirationMilliseconds = jwtExpirationMilliseconds;
     return authHelper;
   }
@@ -35,17 +46,15 @@ public class AuthHelper {
   }
 
   @Nullable
-  public AuthHeader<String, String> createAuthHeader() {
+  public AuthHeader<String, String> createPlatformServerAuthHeader() throws InvalidConfigException {
     switch (authType) {
       case JWT:
         long issuedAt = Calendar.getInstance().getTimeInMillis() / 1000L;
         long expirationTime = issuedAt + (jwtExpirationMilliseconds / 1000L);
-        Sep10Jwt token = Sep10Jwt.of(issuerUrl, issuedAt, expirationTime);
+        PlatformAuthJwt token = new PlatformAuthJwt(issuedAt, expirationTime);
         return new AuthHeader<>("Authorization", "Bearer " + jwtService.encode(token));
-
       case API_KEY:
         return new AuthHeader<>("X-Api-Key", apiKey);
-
       default:
         return null;
     }
