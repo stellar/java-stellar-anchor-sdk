@@ -11,6 +11,7 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
+import org.stellar.anchor.api.exception.SepNotAuthorizedException
 import org.stellar.anchor.api.exception.SepNotFoundException
 import org.stellar.anchor.apiclient.PlatformApiClient
 import org.stellar.anchor.auth.AuthHelper
@@ -20,23 +21,29 @@ import org.stellar.anchor.platform.AbstractIntegrationTest.Companion.PLATFORM_TO
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.OkHttpUtil
 
-const val GET_TRANSACTIONS_ENDPOINT = "/transactions"
-const val GET_TRANSACTIONS_MY_ID_ENDPOINT = "/transactions/my_id"
-const val PATCH_TRANSACTIONS_ENDPOINT = "/transactions"
-const val GET_EXCHANGE_QUOTES_ENDPOINT = "/exchange/quotes"
-const val GET_EXCHANGE_QUOTES_ID_ENDPOINT = "/exchange/quotes/id"
+const val GET_TRANSACTIONS_ENDPOINT = "GET,/transactions"
+const val PATCH_TRANSACTIONS_ENDPOINT = "PATCH,/transactions"
+const val GET_TRANSACTIONS_MY_ID_ENDPOINT = "GET,/transactions/my_id"
+const val GET_EXCHANGE_QUOTES_ENDPOINT = "GET,/exchange/quotes"
+const val GET_EXCHANGE_QUOTES_ID_ENDPOINT = "GET,/exchange/quotes/id"
 
 open class AbstractAuthIntegrationTest {
   companion object {
     private val jwtService =
       JwtService(null, null, null, PLATFORM_TO_ANCHOR_SECRET, ANCHOR_TO_PLATFORM_SECRET)
+    private val jwtWrongKeyService =
+      JwtService(
+        null,
+        null,
+        null,
+        PLATFORM_TO_ANCHOR_SECRET + "bad",
+        ANCHOR_TO_PLATFORM_SECRET + "bad"
+      )
+
     internal val jwtAuthHelper = AuthHelper.forJwtToken(jwtService, 10000)
-    internal val apiAuthHelper = AuthHelper.forApiKey(ANCHOR_TO_PLATFORM_SECRET)
-    internal val nonAuthHelper = AuthHelper.forNone()
+    internal val jwtWrongKeyAuthHelper = AuthHelper.forJwtToken(jwtWrongKeyService, 10000)
     internal lateinit var testProfileRunner: TestProfileExecutor
   }
-
-  init {}
 }
 
 internal class JwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
@@ -63,6 +70,8 @@ internal class JwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
 
   private val jwtPlatformClient: PlatformApiClient =
     PlatformApiClient(jwtAuthHelper, "http://localhost:8085")
+  private val jwtWrongKeyPlatformClient: PlatformApiClient =
+    PlatformApiClient(jwtWrongKeyAuthHelper, "http://localhost:8085")
 
   // TODO - to be deprecated by platformAPI client
   private val httpClient: OkHttpClient =
@@ -110,6 +119,8 @@ internal class JwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
         .build()
     val response = httpClient.newCall(httpRequest).execute()
     assertEquals(403, response.code)
+
+    assertThrows<SepNotAuthorizedException> { jwtWrongKeyPlatformClient.getTransaction("my_id") }
   }
 
   private fun getDummyRequestBody(method: String): RequestBody? {
