@@ -77,14 +77,13 @@ public class AnchorReferenceConfig {
   }
 
   @Bean
-  AuthHelper authHelper(AppSettings appSettings, IntegrationAuthSettings integrationAuthSettings) {
+  AuthHelper authHelper(IntegrationAuthSettings integrationAuthSettings) {
     String authSecret = integrationAuthSettings.getAnchorToPlatformSecret();
     switch (integrationAuthSettings.getAuthType()) {
       case JWT:
         return AuthHelper.forJwtToken(
-            new JwtService(null, null, null, authSecret, null),
+            new JwtService(null, null, null, null, authSecret),
             integrationAuthSettings.getExpirationMilliseconds());
-
       case API_KEY:
         return AuthHelper.forApiKey(authSecret);
 

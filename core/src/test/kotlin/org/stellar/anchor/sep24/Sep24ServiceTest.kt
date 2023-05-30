@@ -152,7 +152,13 @@ internal class Sep24ServiceTest {
     val decodedToken = jwtService.decode(tokenString, Sep24InteractiveUrlJwt::class.java)
     assertEquals(TEST_ACCOUNT, decodedToken.sub)
     assertEquals(TEST_CLIENT_DOMAIN, decodedToken.claims()[CLIENT_DOMAIN])
-    val data = decodedToken.claims.get("data")
+    decodedToken.claims["data"]
+    assertEquals("GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO", decodedToken.sub)
+    assertEquals("test.client.stellar.org", decodedToken.claims["client_domain"])
+    assertEquals(
+      "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+      decodedToken.claims["asset"]
+    )
   }
 
   @Test

@@ -10,7 +10,7 @@ import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.filter.ApiKeyFilter;
 import org.stellar.anchor.filter.NoneFilter;
 import org.stellar.anchor.filter.PlatformAuthJwtFilter;
-import org.stellar.anchor.platform.config.PlatformApiConfig;
+import org.stellar.anchor.platform.config.PlatformServerConfig;
 import org.stellar.anchor.platform.service.TransactionService;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
@@ -24,9 +24,9 @@ public class PlatformServerBeans {
    * @return Spring Filter Registration Bean
    */
   @Bean
-  public FilterRegistrationBean<Filter> anchorToPlatformTokenFilter(PlatformApiConfig config) {
+  public FilterRegistrationBean<Filter> platformTokenFilter(PlatformServerConfig config) {
     Filter anchorToPlatformFilter;
-    String authSecret = config.getAuth().getSecret();
+    String authSecret = config.getSecretConfig().getPlatformAuthSecret();
     switch (config.getAuth().getType()) {
       case JWT:
         JwtService jwtService = new JwtService(null, null, null, null, authSecret);
@@ -44,10 +44,6 @@ public class PlatformServerBeans {
 
     FilterRegistrationBean<Filter> registrationBean = new FilterRegistrationBean<>();
     registrationBean.setFilter(anchorToPlatformFilter);
-    registrationBean.addUrlPatterns("/transactions/*");
-    registrationBean.addUrlPatterns("/transactions");
-    registrationBean.addUrlPatterns("/exchange/quotes/*");
-    registrationBean.addUrlPatterns("/exchange/quotes");
     return registrationBean;
   }
 

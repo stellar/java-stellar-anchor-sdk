@@ -6,6 +6,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
+import org.stellar.anchor.api.exception.NotSupportedException;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.SecretConfig;
@@ -44,7 +45,7 @@ public class UtilityBeans {
   }
 
   @Bean
-  public JwtService jwtService(SecretConfig secretConfig) {
+  public JwtService jwtService(SecretConfig secretConfig) throws NotSupportedException {
     return new JwtService(secretConfig);
   }
 

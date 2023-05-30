@@ -8,7 +8,9 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
 import org.stellar.anchor.auth.*
+import org.stellar.anchor.auth.ApiAuthJwt.PlatformAuthJwt
 import org.stellar.anchor.auth.AuthType.*
+import org.stellar.anchor.auth.JwtService
 
 class PlatformIntegrationHelperTest {
   companion object {
@@ -38,12 +40,12 @@ class PlatformIntegrationHelperTest {
 
         // mock jwt token based on the mocked calendar
         val wantJwtToken =
-          ApiAuthJwt.PlatformAuthJwt(
+          PlatformAuthJwt(
             currentTimeMilliseconds / 1000L,
             (currentTimeMilliseconds + JWT_EXPIRATION_MILLISECONDS) / 1000L
           )
 
-        val jwtService = JwtService(null, null, null, "secret", "secret")
+        val jwtService = JwtService(null, null, null, null, "secret")
         val authHelper = AuthHelper.forJwtToken(jwtService, JWT_EXPIRATION_MILLISECONDS)
 
         val gotRequestBuilder = PlatformIntegrationHelper.getRequestBuilder(authHelper)

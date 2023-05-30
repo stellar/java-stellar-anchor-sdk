@@ -18,8 +18,8 @@ import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.auth.Sep10Jwt
 import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.SecretConfig
-import org.stellar.anchor.filter.AbstractJwtFilter.APPLICATION_JSON_VALUE
-import org.stellar.anchor.filter.AbstractJwtFilter.JWT_TOKEN
+import org.stellar.anchor.filter.Sep10JwtFilter.APPLICATION_JSON_VALUE
+import org.stellar.anchor.filter.Sep10JwtFilter.JWT_TOKEN
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class Sep10JwtFilterTest {
@@ -30,7 +30,7 @@ internal class Sep10JwtFilterTest {
   private lateinit var appConfig: AppConfig
   private lateinit var secretConfig: SecretConfig
   private lateinit var jwtService: JwtService
-  private lateinit var sep10TokenFilter: AbstractJwtFilter
+  private lateinit var sep10TokenFilter: Sep10JwtFilter
   private lateinit var request: HttpServletRequest
   private lateinit var response: HttpServletResponse
   private lateinit var mockFilterChain: FilterChain

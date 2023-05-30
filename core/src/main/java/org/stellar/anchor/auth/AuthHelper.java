@@ -3,8 +3,9 @@ package org.stellar.anchor.auth;
 import java.util.Calendar;
 import javax.annotation.Nullable;
 import org.stellar.anchor.api.exception.InvalidConfigException;
+import org.stellar.anchor.auth.ApiAuthJwt.CallbackAuthJwt;
+import org.stellar.anchor.auth.ApiAuthJwt.PlatformAuthJwt;
 import org.stellar.anchor.util.AuthHeader;
-import org.stellar.anchor.util.Log;
 
 public class AuthHelper {
   public final AuthType authType;
@@ -17,10 +18,8 @@ public class AuthHelper {
   }
 
   public static AuthHelper from(AuthType type, String secret, long jwtExpirationMilliseconds) {
-    Log.info("AuthHelper.from: type=" + type + ", secret=" + secret);
     switch (type) {
       case JWT:
-        // TODO: should this really be passing in the secret for both callback and platform?
         return AuthHelper.forJwtToken(
             new JwtService(null, null, null, secret, secret), jwtExpirationMilliseconds);
       case API_KEY:
@@ -48,41 +47,28 @@ public class AuthHelper {
   }
 
   @Nullable
-  public AuthHeader<String, String> createPlatformAuthHeader() {
+  public AuthHeader<String, String> createPlatformServerAuthHeader() throws InvalidConfigException {
     switch (authType) {
       case JWT:
         long issuedAt = Calendar.getInstance().getTimeInMillis() / 1000L;
         long expirationTime = issuedAt + (jwtExpirationMilliseconds / 1000L);
-        ApiAuthJwt token = new ApiAuthJwt.PlatformAuthJwt(issuedAt, expirationTime);
-        try {
-          return new AuthHeader<>("Authorization", "Bearer " + jwtService.encode(token));
-        } catch (InvalidConfigException e) {
-          Log.error("Error creating auth header", e);
-          return null;
-        }
-
+        PlatformAuthJwt token = new PlatformAuthJwt(issuedAt, expirationTime);
+        return new AuthHeader<>("Authorization", "Bearer " + jwtService.encode(token));
       case API_KEY:
         return new AuthHeader<>("X-Api-Key", apiKey);
-
       default:
         return null;
     }
   }
 
   @Nullable
-  public AuthHeader<String, String> createCallbackAuthHeader() {
+  public AuthHeader<String, String> createCallbackAuthHeader() throws InvalidConfigException {
     switch (authType) {
       case JWT:
         long issuedAt = Calendar.getInstance().getTimeInMillis() / 1000L;
         long expirationTime = issuedAt + (jwtExpirationMilliseconds / 1000L);
-        ApiAuthJwt token = new ApiAuthJwt.CallbackAuthJwt(issuedAt, expirationTime);
-        try {
-          return new AuthHeader<>("Authorization", "Bearer " + jwtService.encode(token));
-        } catch (InvalidConfigException e) {
-          Log.error("Error creating auth header", e);
-          return null;
-        }
-
+        CallbackAuthJwt token = new CallbackAuthJwt(issuedAt, expirationTime);
+        return new AuthHeader<>("Authorization", "Bearer " + jwtService.encode(token));
       case API_KEY:
         return new AuthHeader<>("X-Api-Key", apiKey);
 

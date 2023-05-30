@@ -51,7 +51,7 @@ class AuthHelperTest {
 
         val jwtService = JwtService(null, null, null, "secret", "secret")
         val authHelper = AuthHelper.forJwtToken(jwtService, JWT_EXPIRATION_MILLISECONDS)
-        val gotPlatformAuthHeader = authHelper.createPlatformAuthHeader()
+        val gotPlatformAuthHeader = authHelper.createPlatformServerAuthHeader()
         val wantPlatformAuthHeader =
           AuthHeader("Authorization", "Bearer ${jwtService.encode(wantPlatformJwt)}")
         assertEquals(wantPlatformAuthHeader, gotPlatformAuthHeader)
@@ -63,7 +63,7 @@ class AuthHelperTest {
       }
       API_KEY -> {
         val authHelper = AuthHelper.forApiKey("secret")
-        val gotPlatformAuthHeader = authHelper.createPlatformAuthHeader()
+        val gotPlatformAuthHeader = authHelper.createPlatformServerAuthHeader()
         val wantPlatformAuthHeader = AuthHeader("X-Api-Key", "secret")
         assertEquals(wantPlatformAuthHeader, gotPlatformAuthHeader)
         val gotCallbackAuthHeader = authHelper.createCallbackAuthHeader()
@@ -72,7 +72,7 @@ class AuthHelperTest {
       }
       NONE -> {
         val authHelper = AuthHelper.forNone()
-        val platformAuthHeader = authHelper.createPlatformAuthHeader()
+        val platformAuthHeader = authHelper.createPlatformServerAuthHeader()
         assertNull(platformAuthHeader)
         val callbackAuthHeader = authHelper.createCallbackAuthHeader()
         assertNull(callbackAuthHeader)

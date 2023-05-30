@@ -4,7 +4,7 @@ import static org.stellar.anchor.util.Log.*;
 
 import javax.servlet.*;
 import javax.servlet.http.HttpServletRequest;
-import org.stellar.anchor.api.exception.SepValidationException;
+import lombok.NonNull;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.auth.Sep10Jwt;
 
@@ -16,12 +16,9 @@ public class Sep10JwtFilter extends AbstractJwtFilter {
   @Override
   void check(String jwtCipher, HttpServletRequest request, ServletResponse servletResponse)
       throws Exception {
-    Sep10Jwt token = jwtService.decode(jwtCipher, Sep10Jwt.class);
-    if (token == null) {
-      throw new SepValidationException("JwtToken should not be null");
-    }
+    @NonNull Sep10Jwt token = jwtService.decode(jwtCipher, Sep10Jwt.class);
     infoF("token created. account={} url={}", shorter(token.getAccount()), request.getRequestURL());
-    debug(String.format("storing token to request %s:", request.getRequestURL()), token);
+    debugF("storing token to request {}:", request.getRequestURL(), token);
     request.setAttribute(JWT_TOKEN, token);
   }
 }

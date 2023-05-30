@@ -36,7 +36,7 @@ public class AnchorReferenceServer implements WebMvcConfigurer {
         new SpringApplicationBuilder(AnchorReferenceServer.class).bannerMode(OFF);
 
     SpringApplication app = builder.build();
-    app.addInitializers(new EnvironmentSourceInitializer(envMap));
+    app.addInitializers(new EnvironmentPropertySourceOverrider(envMap));
     app.addInitializers(new PropertySourceInitializer());
     return ctx = app.run();
   }
@@ -47,11 +47,11 @@ public class AnchorReferenceServer implements WebMvcConfigurer {
     }
   }
 
-  public static class EnvironmentSourceInitializer
+  public static class EnvironmentPropertySourceOverrider
       implements ApplicationContextInitializer<ConfigurableApplicationContext> {
     private final Properties environmentProperties;
 
-    public EnvironmentSourceInitializer(Map<String, String> envMap) {
+    public EnvironmentPropertySourceOverrider(Map<String, String> envMap) {
       super();
       environmentProperties = new Properties();
       environmentProperties.putAll(envMap);
