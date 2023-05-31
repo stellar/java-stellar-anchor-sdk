@@ -360,21 +360,42 @@ public class Sep38Service {
 
     // Calculate amounts: sellAmount = buyAmount * totalPrice
     BigDecimal bTotalPrice = decimal(rate.getTotalPrice());
-    BigDecimal bSellAmount, bBuyAmount;
-    if (request.getSellAmount() != null) {
+    BigDecimal bSellAmount = null;
+    BigDecimal bBuyAmount = null;
+
+    if (rate.getSellAmount() != null) {
+      bSellAmount = decimal(rate.getSellAmount());
+    } else if (request.getSellAmount() != null) {
       bSellAmount = decimal(request.getSellAmount());
-      bBuyAmount = bSellAmount.divide(bTotalPrice, buyAsset.getDecimals(), RoundingMode.HALF_UP);
-    } else {
-      bBuyAmount = decimal(request.getBuyAmount());
-      bSellAmount = bBuyAmount.multiply(bTotalPrice);
     }
+
+    if (rate.getBuyAmount() != null) {
+      bBuyAmount = decimal(rate.getBuyAmount());
+    } else if (request.getBuyAmount() != null) {
+      bBuyAmount = decimal(request.getBuyAmount());
+    }
+
+    // TODO: This shouldn't be needed
+    if (bBuyAmount == null && bSellAmount == null) {
+      throw new ServerErrorException(
+          String.format(
+              "Unable to calculate buy or sell amounts. Got buy_amount = %f, sell_amount = %f",
+              bBuyAmount, bSellAmount));
+    }
+
+    if (bSellAmount == null) {
+      bSellAmount = bBuyAmount.multiply(bTotalPrice);
+    } else if (bBuyAmount == null) {
+      bBuyAmount = bSellAmount.divide(bTotalPrice, buyAsset.getDecimals(), RoundingMode.HALF_UP);
+    }
+
     String sellAmount = formatAmount(bSellAmount, sellAsset.getDecimals());
     String buyAmount = formatAmount(bBuyAmount, buyAsset.getDecimals());
     builder = builder.sellAmount(sellAmount).buyAmount(buyAmount);
 
     // SEP31: when buy_amount is specified (sell amount found from rate integration)
     if (context == SEP31 && buyAmount != null) {
-      validateAmountLimit("sell_", rate.getSellAmount(), sendMinLimit, sendMaxLimit);
+      validateAmountLimit("sell_", sellAmount, sendMinLimit, sendMaxLimit);
     }
 
     // save firm quote in the local database

@@ -1450,6 +1450,131 @@ class Sep38ServiceTest {
   }
 
   @Test
+  fun `test POST quote with buy or sell amounts returned by rate`() {
+    val mockFee = mockSellAssetFee(fiatUSD)
+    val now = Instant.now()
+    val tomorrow = now.plus(1, ChronoUnit.DAYS)
+
+    // sellAmount and buyAmount are returned by /rate and should not be recalculated
+    // by the platform
+    val requestBuyAmount = "100"
+    val anchorCalculatedBuyAmount = "999"
+    val anchorCalculatedSellAmount = "9999"
+
+    // mock rate integration
+    val mockRateIntegration = mockk<MockRateIntegration>()
+    val getRateReq =
+      GetRateRequest.builder()
+        .type(FIRM)
+        .context(SEP31)
+        .sellAsset(fiatUSD)
+        .sellDeliveryMethod("WIRE")
+        .buyAsset(stellarUSDC)
+        .buyAmount(requestBuyAmount)
+        .countryCode("USA")
+        .clientId(PUBLIC_KEY)
+        .expireAfter(now.toString())
+        .build()
+
+    val rate =
+      GetRateResponse.Rate.builder()
+        .id("456")
+        .totalPrice("1.03")
+        .price("1.02")
+        .sellAmount(anchorCalculatedSellAmount)
+        .buyAmount(anchorCalculatedBuyAmount)
+        .expiresAt(tomorrow)
+        .fee(mockFee)
+        .build()
+    val wantRateResponse = GetRateResponse(rate)
+    every { mockRateIntegration.getRate(getRateReq) } returns wantRateResponse
+    sep38Service =
+      Sep38Service(
+        sep38Service.sep38Config,
+        sep38Service.assetService,
+        mockRateIntegration,
+        quoteStore,
+        eventService
+      )
+
+    val slotQuote = slot<Sep38Quote>()
+    every { quoteStore.save(capture(slotQuote)) } returns null
+
+    // Mock event service
+    val slotEvent = slot<QuoteEvent>()
+    every { eventService.publish(capture(slotEvent)) } just Runs
+
+    // test happy path with the minimum parameters using sellAmount
+    val token = createJwtToken()
+    var gotResponse: Sep38QuoteResponse? = null
+    assertDoesNotThrow {
+      gotResponse =
+        sep38Service.postQuote(
+          token,
+          Sep38PostQuoteRequest.builder()
+            .context(SEP31)
+            .sellAssetName(fiatUSD)
+            .sellDeliveryMethod("WIRE")
+            .buyAssetName(stellarUSDC)
+            .buyAmount(requestBuyAmount)
+            .countryCode("USA")
+            .expireAfter(now.toString())
+            .build()
+        )
+    }
+    val wantResponse =
+      Sep38QuoteResponse.builder()
+        .id("456")
+        .expiresAt(tomorrow)
+        .price("1.02")
+        .totalPrice("1.03")
+        .sellAsset(fiatUSD)
+        .sellAmount(anchorCalculatedSellAmount)
+        .buyAsset(stellarUSDC)
+        .buyAmount(anchorCalculatedBuyAmount)
+        .fee(mockFee)
+        .build()
+    assertEquals(wantResponse, gotResponse)
+
+    // verify the saved quote
+    verify(exactly = 1) { quoteStore.save(any()) }
+    val savedQuote = slotQuote.captured
+    assertEquals("456", savedQuote.id)
+    assertEquals(tomorrow, savedQuote.expiresAt)
+    assertEquals("1.02", savedQuote.price)
+    assertEquals("1.03", savedQuote.totalPrice)
+    assertEquals(fiatUSD, savedQuote.sellAsset)
+    assertEquals(anchorCalculatedSellAmount, savedQuote.sellAmount)
+    assertEquals("WIRE", savedQuote.sellDeliveryMethod)
+    assertEquals(stellarUSDC, savedQuote.buyAsset)
+    assertEquals(anchorCalculatedBuyAmount, savedQuote.buyAmount)
+    assertEquals(PUBLIC_KEY, savedQuote.creatorAccountId)
+    assertEquals(mockFee, savedQuote.fee)
+    assertNotNull(savedQuote.createdAt)
+
+    // verify the published event
+    verify(exactly = 1) { eventService.publish(any()) }
+    val wantEvent =
+      QuoteEvent.builder()
+        .eventId(slotEvent.captured.eventId)
+        .type(QuoteEvent.Type.QUOTE_CREATED)
+        .id("456")
+        .sellAsset(fiatUSD)
+        .sellAmount(anchorCalculatedSellAmount)
+        .buyAsset(stellarUSDC)
+        .buyAmount(anchorCalculatedBuyAmount)
+        .expiresAt(tomorrow)
+        .price("1.02")
+        .totalPrice("1.03")
+        .creator(StellarId.builder().account(PUBLIC_KEY).build())
+        .transactionId(null)
+        .createdAt(savedQuote.createdAt)
+        .fee(mockFee)
+        .build()
+    assertEquals(wantEvent, slotEvent.captured)
+  }
+
+  @Test
   fun `test GET quote failure`() {
     // empty sep38QuoteStore should throw an error
     var ex: AnchorException = assertThrows { sep38Service.getQuote(null, null) }
