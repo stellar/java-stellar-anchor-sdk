@@ -374,10 +374,7 @@ public class Sep38Service {
 
     // This should not happen because we previously checked at least one was not null
     if (bBuyAmount == null && bSellAmount == null) {
-      throw new ServerErrorException(
-          String.format(
-              "Unable to calculate buy or sell amounts. Got buy_amount = %f, sell_amount = %f",
-              bBuyAmount, bSellAmount));
+      throw new ServerErrorException("Unable to calculate buy and sell amounts, both were null");
     }
 
     if (bSellAmount == null) {
