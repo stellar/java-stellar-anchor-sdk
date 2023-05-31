@@ -62,6 +62,7 @@ public class JwtToken {
     token.exp = exp;
     token.jti = jti;
     token.clientDomain = clientDomain;
+    token.requestedAccount = requestedAccount;
 
     String[] subs = sub.split(":");
     if (subs.length == 2) {

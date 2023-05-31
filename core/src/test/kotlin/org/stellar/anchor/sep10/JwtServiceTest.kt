@@ -74,6 +74,7 @@ internal class JwtServiceTest {
     assertEquals(dt.issuedAt, token.iat)
     assertEquals(dt.expiresAt, token.exp)
     assertEquals(dt.requestedAccount, token.requestedAccount)
+    assertEquals(dt.requestedAccount, TEST_REQUEST_ACCOUNT)
   }
 
   @Test
