@@ -1,4 +1,7 @@
 # Changelog
+## 1.2.14
+* Use buy and sell amounts calculated by rate integration in SEP-38 [#911](https://github.com/stellar/java-stellar-anchor-sdk/pull/911)
+
 ## 1.2.13
 * Allow zero fees in `PATCH /transactions` request [#871](https://github.com/stellar/java-stellar-anchor-sdk/pull/871)
 

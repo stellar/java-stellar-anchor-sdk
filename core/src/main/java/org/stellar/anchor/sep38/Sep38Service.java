@@ -360,21 +360,36 @@ public class Sep38Service {
 
     // Calculate amounts: sellAmount = buyAmount * totalPrice
     BigDecimal bTotalPrice = decimal(rate.getTotalPrice());
-    BigDecimal bSellAmount, bBuyAmount;
-    if (request.getSellAmount() != null) {
-      bSellAmount = decimal(request.getSellAmount());
-      bBuyAmount = bSellAmount.divide(bTotalPrice, buyAsset.getDecimals(), RoundingMode.HALF_UP);
-    } else {
-      bBuyAmount = decimal(request.getBuyAmount());
-      bSellAmount = bBuyAmount.multiply(bTotalPrice);
+    BigDecimal bSellAmount =
+        request.getSellAmount() != null ? decimal(request.getSellAmount()) : null;
+    BigDecimal bBuyAmount = request.getBuyAmount() != null ? decimal(request.getBuyAmount()) : null;
+
+    // Use the rate's buy and sell amounts if they were returned
+    if (rate.getSellAmount() != null) {
+      bSellAmount = decimal(rate.getSellAmount());
     }
+    if (rate.getBuyAmount() != null) {
+      bBuyAmount = decimal(rate.getBuyAmount());
+    }
+
+    // This should not happen because we previously checked at least one was not null
+    if (bBuyAmount == null && bSellAmount == null) {
+      throw new ServerErrorException("Unable to calculate buy and sell amounts, both were null");
+    }
+
+    if (bSellAmount == null) {
+      bSellAmount = bBuyAmount.multiply(bTotalPrice);
+    } else if (bBuyAmount == null) {
+      bBuyAmount = bSellAmount.divide(bTotalPrice, buyAsset.getDecimals(), RoundingMode.HALF_UP);
+    }
+
     String sellAmount = formatAmount(bSellAmount, sellAsset.getDecimals());
     String buyAmount = formatAmount(bBuyAmount, buyAsset.getDecimals());
     builder = builder.sellAmount(sellAmount).buyAmount(buyAmount);
 
     // SEP31: when buy_amount is specified (sell amount found from rate integration)
     if (context == SEP31 && buyAmount != null) {
-      validateAmountLimit("sell_", rate.getSellAmount(), sendMinLimit, sendMaxLimit);
+      validateAmountLimit("sell_", sellAmount, sendMinLimit, sendMaxLimit);
     }
 
     // save firm quote in the local database
