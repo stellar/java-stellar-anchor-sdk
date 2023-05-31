@@ -360,22 +360,19 @@ public class Sep38Service {
 
     // Calculate amounts: sellAmount = buyAmount * totalPrice
     BigDecimal bTotalPrice = decimal(rate.getTotalPrice());
-    BigDecimal bSellAmount = null;
-    BigDecimal bBuyAmount = null;
+    BigDecimal bSellAmount =
+        request.getSellAmount() != null ? decimal(request.getSellAmount()) : null;
+    BigDecimal bBuyAmount = request.getBuyAmount() != null ? decimal(request.getBuyAmount()) : null;
 
+    // Use the rate's buy and sell amounts if they were returned
     if (rate.getSellAmount() != null) {
       bSellAmount = decimal(rate.getSellAmount());
-    } else if (request.getSellAmount() != null) {
-      bSellAmount = decimal(request.getSellAmount());
     }
-
     if (rate.getBuyAmount() != null) {
       bBuyAmount = decimal(rate.getBuyAmount());
-    } else if (request.getBuyAmount() != null) {
-      bBuyAmount = decimal(request.getBuyAmount());
     }
 
-    // TODO: This shouldn't be needed
+    // This should not happen because we previously checked at least one was not null
     if (bBuyAmount == null && bSellAmount == null) {
       throw new ServerErrorException(
           String.format(
