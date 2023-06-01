@@ -72,9 +72,7 @@ public class AuthHelper {
 
   private <T extends ApiAuthJwt> String createJwt(Class<T> jwtClass) throws InvalidConfigException {
     long issuedAt = Calendar.getInstance().getTimeInMillis() / 1000L;
-    Log.info("jwtExpirationMilliseconds: " + jwtExpirationMilliseconds);
     long expirationTime = issuedAt + (jwtExpirationMilliseconds / 1000L);
-    Log.info("expirationTime: " + expirationTime);
 
     if (jwtClass == CallbackAuthJwt.class) {
       CallbackAuthJwt token = new CallbackAuthJwt(issuedAt, expirationTime);
