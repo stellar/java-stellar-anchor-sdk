@@ -19,33 +19,7 @@ class AppConfigTest {
     config = PropertyAppConfig()
     config.stellarNetworkPassphrase = "Test SDF Network ; September 2015"
     config.horizonUrl = "https://horizon-testnet.stellar.org"
-    config.hostUrl = "http://localhost:8080"
     errors = BindException(config, "config")
-  }
-
-  @ParameterizedTest
-  @NullSource
-  @ValueSource(strings = [""])
-  fun `test empty host_url`(url: String?) {
-    config.hostUrl = url
-    config.validateConfig(config, errors)
-    assertErrorCode(errors, "host-url-empty")
-  }
-
-  @ParameterizedTest
-  @ValueSource(strings = ["https://stellar.org", "https://stellar.org:8080"])
-  fun `test valid host_url`(url: String) {
-    config.hostUrl = url
-    config.validateConfig(config, errors)
-    assertFalse(errors.hasErrors())
-  }
-
-  @ParameterizedTest
-  @ValueSource(strings = ["https ://stellar.org", "stellar.org", "abc"])
-  fun `test invalid host_url`(url: String) {
-    config.hostUrl = url
-    config.validateConfig(config, errors)
-    assertErrorCode(errors, "host-url-invalid")
   }
 
   @ParameterizedTest
@@ -61,7 +35,7 @@ class AppConfigTest {
     strings = ["https://horizon-testnet.stellar.org", "https://horizon-testnet.stellar.org:8080"]
   )
   fun `test valid horizon_url`(url: String) {
-    config.hostUrl = url
+    config.horizonUrl = url
     config.validateConfig(config, errors)
     assertFalse(errors.hasErrors())
   }
@@ -69,9 +43,9 @@ class AppConfigTest {
   @ParameterizedTest
   @ValueSource(strings = ["https://horizon-testnet.stellar. org", "stellar.org", "abc"])
   fun `test invalid horizon_url`(url: String) {
-    config.hostUrl = url
+    config.horizonUrl = url
     config.validateConfig(config, errors)
-    assertErrorCode(errors, "host-url-invalid")
+    assertErrorCode(errors, "horizon-url-invalid")
   }
 
   @ParameterizedTest

@@ -10,12 +10,10 @@ version: 1
 ## Application Configuration
 ##############################
 
-## @param: host_url
-## @type: string
-## @supported_prefixes: http:, https:
-## The anchor platform host url.
+
+
 #
-host_url: http://localhost:8080
+host_url:
 
 stellar_network:
   ## @param: network
@@ -251,9 +249,13 @@ sep10:
   ## @param: web_auth_domain
   ## @type: string
   ## The `web_auth_domain` property of SEP-10. https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#response
-  ## If the `web_auth_domain` is not specified, the `web_auth_domain` will be set to the domain of the value of the `host_url`.
+  ## If the `web_auth_domain` is not specified, the `web_auth_domain` will be set to the domain of the value of the `home_domain`.
   #
   web_auth_domain:
+  ## @param: home_domain
+  ## @type: string
+  ## The `home_domain` property of SEP-10. https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#request
+  home_domain: localhost:8080
   ## @param: client_attribution_required
   ## @type: bool
   ## Set if the client attribution is required. Client Attribution requires clients to verify their identity by passing

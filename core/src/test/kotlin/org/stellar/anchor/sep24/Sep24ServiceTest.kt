@@ -20,6 +20,7 @@ import org.stellar.anchor.TestConstants.Companion.TEST_ACCOUNT
 import org.stellar.anchor.TestConstants.Companion.TEST_ASSET
 import org.stellar.anchor.TestConstants.Companion.TEST_ASSET_ISSUER_ACCOUNT_ID
 import org.stellar.anchor.TestConstants.Companion.TEST_CLIENT_DOMAIN
+import org.stellar.anchor.TestConstants.Companion.TEST_HOME_DOMAIN
 import org.stellar.anchor.TestConstants.Companion.TEST_JWT_SECRET
 import org.stellar.anchor.TestConstants.Companion.TEST_MEMO
 import org.stellar.anchor.TestConstants.Companion.TEST_TRANSACTION_ID_0
@@ -84,7 +85,6 @@ internal class Sep24ServiceTest {
   fun setUp() {
     MockKAnnotations.init(this, relaxUnitFun = true)
     every { appConfig.stellarNetworkPassphrase } returns TestConstants.TEST_NETWORK_PASS_PHRASE
-    every { appConfig.hostUrl } returns TestConstants.TEST_HOST_URL
     every { secretConfig.sep10JwtSecretKey } returns TEST_JWT_SECRET
     every { secretConfig.sep24MoreInfoUrlJwtSecret } returns TEST_JWT_SECRET
     every { secretConfig.sep24InteractiveUrlJwtSecret } returns TEST_JWT_SECRET
@@ -503,11 +503,11 @@ internal class Sep24ServiceTest {
   }
 
   private fun createTestSep10JwtToken(): Sep10Jwt {
-    return TestHelper.createSep10Jwt(TEST_ACCOUNT, null, appConfig.hostUrl, TEST_CLIENT_DOMAIN)
+    return TestHelper.createSep10Jwt(TEST_ACCOUNT, null, TEST_HOME_DOMAIN, TEST_CLIENT_DOMAIN)
   }
 
   private fun createTestSep10JwtWithMemo(): Sep10Jwt {
-    return TestHelper.createSep10Jwt(TEST_ACCOUNT, TEST_MEMO, appConfig.hostUrl, TEST_CLIENT_DOMAIN)
+    return TestHelper.createSep10Jwt(TEST_ACCOUNT, TEST_MEMO, TEST_HOME_DOMAIN, TEST_CLIENT_DOMAIN)
   }
 
   private fun createTestInteractiveJwt(

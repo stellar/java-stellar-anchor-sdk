@@ -5,10 +5,10 @@ class TestConstants {
     const val TEST_SIGNING_SEED = "SBVEOFAHGJCKGR4AAM7RTDRCP6RMYYV5YUV32ZK7ZD3VPDGGHYLXTZRZ"
     const val TEST_ACCOUNT = "GBLGJA4TUN5XOGTV6WO2BWYUI2OZR5GYQ5PDPCRMQ5XEPJOYWB2X4CJO"
     const val TEST_MEMO = "123"
-    const val TEST_WEB_AUTH_DOMAIN = "test.stellar.org"
+    const val TEST_WEB_AUTH_DOMAIN = "test.stellar.org/auth"
     const val TEST_CLIENT_DOMAIN = "test.client.stellar.org"
     const val TEST_NETWORK_PASS_PHRASE = "Test SDF Network ; September 2015"
-    const val TEST_HOST_URL = "https://test.stellar.org"
+    const val TEST_HOME_DOMAIN = "test.stellar.org"
     const val TEST_JWT_SECRET = "jwt_secret"
     const val TEST_ASSET = "USDC"
     const val TEST_ASSET_ISSUER_ACCOUNT_ID =
