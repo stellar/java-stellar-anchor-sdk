@@ -22,7 +22,7 @@ public class PropertyCustodyConfig implements CustodyConfig, Validator {
   @Override
   public void validate(@NotNull Object target, @NotNull Errors errors) {
     validateType(errors);
-    if (!NONE_CUSTODY_TYPE.equals(type)) {
+    if (this.isCustodyIntegrationEnabled()) {
       httpClient.validate("custody", errors);
     }
   }

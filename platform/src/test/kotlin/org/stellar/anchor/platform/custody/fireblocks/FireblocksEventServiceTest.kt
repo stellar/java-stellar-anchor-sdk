@@ -1,14 +1,26 @@
 package org.stellar.anchor.platform.custody.fireblocks
 
 import com.google.gson.reflect.TypeToken
-import io.mockk.*
+import io.mockk.every
+import io.mockk.just
+import io.mockk.mockk
+import io.mockk.runs
+import io.mockk.slot
+import io.mockk.verify
+import java.security.Signature
+import java.util.*
 import kotlin.test.assertEquals
 import org.apache.commons.lang3.StringUtils
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.EnumSource
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
+import org.stellar.anchor.api.custody.fireblocks.FireblocksEventObject
+import org.stellar.anchor.api.custody.fireblocks.TransactionDetails
+import org.stellar.anchor.api.custody.fireblocks.TransactionStatus
 import org.stellar.anchor.api.exception.BadRequestException
 import org.stellar.anchor.api.exception.InvalidConfigException
 import org.stellar.anchor.horizon.Horizon
@@ -20,6 +32,9 @@ import org.stellar.anchor.platform.custody.Sep31CustodyPaymentHandler
 import org.stellar.anchor.platform.custody.fireblocks.FireblocksEventService.FIREBLOCKS_SIGNATURE_HEADER
 import org.stellar.anchor.platform.data.JdbcCustodyTransaction
 import org.stellar.anchor.platform.data.JdbcCustodyTransactionRepo
+import org.stellar.anchor.platform.utils.RSAUtil
+import org.stellar.anchor.platform.utils.RSAUtil.RSA_ALGORITHM
+import org.stellar.anchor.platform.utils.RSAUtil.SHA512_WITH_RSA_ALGORITHM
 import org.stellar.anchor.util.FileUtil.getResourceFileAsString
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.sdk.Server
@@ -182,8 +197,8 @@ class FireblocksEventServiceTest {
     val operationRecordsJson =
       getResourceFileAsString("custody/fireblocks/webhook/payment_operation_record.json")
     val operationRecordsTypeToken =
-      object : TypeToken<java.util.ArrayList<SetTrustLineFlagsOperationResponse>>() {}.type
-    val operationRecords: java.util.ArrayList<OperationResponse> =
+      object : TypeToken<ArrayList<SetTrustLineFlagsOperationResponse>>() {}.type
+    val operationRecords: ArrayList<OperationResponse> =
       gson.fromJson(operationRecordsJson, operationRecordsTypeToken)
 
     val signature: String =
@@ -229,8 +244,8 @@ class FireblocksEventServiceTest {
     val operationRecordsJson =
       getResourceFileAsString("custody/fireblocks/webhook/payment_operation_record.json")
     val operationRecordsTypeToken =
-      object : TypeToken<java.util.ArrayList<PaymentOperationResponse>>() {}.type
-    val operationRecords: java.util.ArrayList<OperationResponse> =
+      object : TypeToken<ArrayList<PaymentOperationResponse>>() {}.type
+    val operationRecords: ArrayList<OperationResponse> =
       gson.fromJson(operationRecordsJson, operationRecordsTypeToken)
 
     val signature: String =
@@ -281,8 +296,8 @@ class FireblocksEventServiceTest {
     val operationRecordsJson =
       getResourceFileAsString("custody/fireblocks/webhook/path_payment_operation_record.json")
     val operationRecordsTypeToken =
-      object : TypeToken<java.util.ArrayList<PathPaymentStrictReceiveOperationResponse>>() {}.type
-    val operationRecords: java.util.ArrayList<OperationResponse> =
+      object : TypeToken<ArrayList<PathPaymentStrictReceiveOperationResponse>>() {}.type
+    val operationRecords: ArrayList<OperationResponse> =
       gson.fromJson(operationRecordsJson, operationRecordsTypeToken)
 
     val signature: String =
@@ -311,6 +326,51 @@ class FireblocksEventServiceTest {
       gson.toJson(paymentCapture.captured),
       JSONCompareMode.STRICT
     )
+  }
+
+  @ParameterizedTest
+  @EnumSource(
+    value = TransactionStatus::class,
+    mode = EnumSource.Mode.INCLUDE,
+    names =
+      [
+        "QUEUED",
+        "PENDING_AUTHORIZATION",
+        "PENDING_SIGNATURE",
+        "BROADCASTING",
+        "PENDING_3RD_PARTY_MANUAL_APPROVAL",
+        "PENDING_3RD_PARTY",
+        "CONFIRMING",
+        "PARTIALLY_COMPLETED",
+        "PENDING_AML_SCREENING",
+        "REJECTED"
+      ]
+  )
+  fun `test handleEvent() for ignored event object statuses`(status: TransactionStatus) {
+    val config =
+      getFireblocksConfig(getResourceFileAsString("custody/fireblocks/webhook/public_key.txt"))
+    val eventsService =
+      FireblocksEventService(
+        custodyTransactionRepo,
+        sep24CustodyPaymentHandler,
+        sep31CustodyPaymentHandler,
+        horizon,
+        config
+      )
+
+    val eventObject = FireblocksEventObject()
+    eventObject.data = TransactionDetails.builder().status(status).build()
+
+    val eventObjectTxt = gson.toJson(eventObject, FireblocksEventObject::class.java)
+
+    val signature: String = generateSignature(eventObjectTxt)
+    val httpHeaders: Map<String, String> = mutableMapOf(FIREBLOCKS_SIGNATURE_HEADER to signature)
+
+    every { custodyTransactionRepo.findByToAccountAndMemo(any(), any()) } returns null
+
+    eventsService.handleEvent(eventObjectTxt, httpHeaders)
+
+    verify(exactly = 0) { custodyTransactionRepo.findByExternalTxId(any()) }
   }
 
   @Test
@@ -456,5 +516,22 @@ class FireblocksEventServiceTest {
     val config = FireblocksConfig(secretConfig)
     config.publicKey = publicKey
     return config
+  }
+
+  private fun generateSignature(requestBody: String): String {
+    val privateKey =
+      RSAUtil.generatePrivateKey(
+        getResourceFileAsString("custody/fireblocks/webhook/private_key.txt"),
+        RSA_ALGORITHM
+      )
+
+    val data = requestBody.toByteArray()
+
+    val sig: Signature = Signature.getInstance(SHA512_WITH_RSA_ALGORITHM)
+    sig.initSign(privateKey)
+    sig.update(data)
+    val signatureBytes: ByteArray = sig.sign()
+
+    return String(Base64.getEncoder().encode(signatureBytes))
   }
 }

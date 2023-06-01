@@ -11,7 +11,9 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.validation.BindException
 import org.springframework.validation.Errors
+import org.stellar.anchor.config.CustodyConfig
 import org.stellar.anchor.config.SecretConfig
+import org.stellar.anchor.config.Sep24Config
 import org.stellar.anchor.platform.config.PropertySep24Config.InteractiveUrlConfig
 import org.stellar.anchor.platform.config.PropertySep24Config.MoreInfoUrlConfig
 
@@ -19,14 +21,17 @@ class Sep24ConfigTest {
   lateinit var config: PropertySep24Config
   lateinit var errors: Errors
   lateinit var secretConfig: SecretConfig
+  lateinit var custodyConfig: CustodyConfig
 
   @BeforeEach
   fun setUp() {
     secretConfig = mockk()
+    custodyConfig = mockk()
     every { secretConfig.sep24MoreInfoUrlJwtSecret } returns "more_info url jwt secret"
     every { secretConfig.sep24InteractiveUrlJwtSecret } returns "interactive url jwt secret"
+    every { custodyConfig.isCustodyIntegrationEnabled } returns false
 
-    config = PropertySep24Config(secretConfig)
+    config = PropertySep24Config(secretConfig, custodyConfig)
     config.enabled = true
     errors = BindException(config, "config")
     config.interactiveUrl = InteractiveUrlConfig("https://www.stellar.org", 600, listOf(""))
@@ -87,5 +92,36 @@ class Sep24ConfigTest {
 
     config.validate(config, errors)
     assertEquals("sep24-more-info-url-jwt-expiration-not-valid", errors.allErrors[0].code)
+  }
+
+  @Test
+  fun `test validate accountCreation = true and claimableBalances = true with custody integration`() {
+    config.features = Sep24Config.Features()
+    config.features.accountCreation = true
+    config.features.claimableBalances = true
+    every { custodyConfig.isCustodyIntegrationEnabled } returns true
+    config.validate(config, errors)
+    assertEquals("sep24-features-account_creation-not-supported", errors.allErrors[0].code)
+    assertEquals("sep24-features-claimable_balances-not-supported", errors.allErrors[1].code)
+  }
+
+  @Test
+  fun `test validate accountCreation = false and claimableBalances = false with custody integration`() {
+    config.features = Sep24Config.Features()
+    config.features.accountCreation = false
+    config.features.claimableBalances = false
+    every { custodyConfig.type } returns "fireblocks"
+    config.validate(config, errors)
+    assertFalse(errors.hasErrors())
+  }
+
+  @Test
+  fun `test validate accountCreation = true and claimableBalances = true with disabled custody integration`() {
+    config.features = Sep24Config.Features()
+    config.features.accountCreation = true
+    config.features.claimableBalances = true
+    every { custodyConfig.type } returns CustodyConfig.NONE_CUSTODY_TYPE
+    config.validate(config, errors)
+    assertFalse(errors.hasErrors())
   }
 }
