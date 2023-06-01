@@ -1,6 +1,5 @@
 package org.stellar.anchor.reference.filter;
 
-import java.util.Calendar;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import lombok.NonNull;
@@ -19,11 +18,6 @@ public class CallbackAuthJwtFilter extends AbstractJwtFilter {
     @NonNull
     ApiAuthJwt.CallbackAuthJwt token =
         jwtService.decode(jwtCipher, ApiAuthJwt.CallbackAuthJwt.class);
-
-    long currentTime = Calendar.getInstance().getTimeInMillis() / 1000;
-    if (token.getExp() <= currentTime) {
-      throw new IllegalArgumentException("Token expired");
-    }
 
     request.setAttribute(JWT_TOKEN, token);
   }
