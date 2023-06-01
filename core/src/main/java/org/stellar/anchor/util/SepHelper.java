@@ -119,13 +119,21 @@ public class SepHelper {
   public static void validateAmountLimit(String messagePrefix, String amount, Long min, Long max)
       throws AnchorException {
     BigDecimal sAmount = validateAmount("", amount);
-    BigDecimal bdMin = new BigDecimal(min);
-    BigDecimal bdMax = new BigDecimal(max);
-    if (sAmount.compareTo(bdMin) < 0) {
-      throw new BadRequestException(String.format("%samount less than min limit", messagePrefix));
+
+    // Validate min amount
+    if (min != null) {
+      BigDecimal bdMin = new BigDecimal(min);
+      if (sAmount.compareTo(bdMin) < 0) {
+        throw new BadRequestException(String.format("%samount less than min limit", messagePrefix));
+      }
     }
-    if (sAmount.compareTo(bdMax) > 0) {
-      throw new BadRequestException(String.format("%samount exceeds max limit", messagePrefix));
+
+    // Validate max amount
+    if (max != null) {
+      BigDecimal bdMax = new BigDecimal(max);
+      if (sAmount.compareTo(bdMax) > 0) {
+        throw new BadRequestException(String.format("%samount exceeds max limit", messagePrefix));
+      }
     }
   }
 
