@@ -29,7 +29,7 @@ class Sep24ConfigTest {
     custodyConfig = mockk()
     every { secretConfig.sep24MoreInfoUrlJwtSecret } returns "more_info url jwt secret"
     every { secretConfig.sep24InteractiveUrlJwtSecret } returns "interactive url jwt secret"
-    every { custodyConfig.type } returns CustodyConfig.NONE_CUSTODY_TYPE
+    every { custodyConfig.isCustodyIntegrationEnabled } returns false
 
     config = PropertySep24Config(secretConfig, custodyConfig)
     config.enabled = true
@@ -95,31 +95,11 @@ class Sep24ConfigTest {
   }
 
   @Test
-  fun `test validate accountCreation = true with custody integration`() {
-    config.features = Sep24Config.Features()
-    config.features.accountCreation = true
-    config.features.claimableBalances = false
-    every { custodyConfig.type } returns "fireblocks"
-    config.validate(config, errors)
-    assertEquals("sep24-features-account_creation-not-supported", errors.allErrors[0].code)
-  }
-
-  @Test
-  fun `test validate claimableBalances = true with custody integration`() {
-    config.features = Sep24Config.Features()
-    config.features.accountCreation = false
-    config.features.claimableBalances = true
-    every { custodyConfig.type } returns "fireblocks"
-    config.validate(config, errors)
-    assertEquals("sep24-features-claimable_balances-not-supported", errors.allErrors[0].code)
-  }
-
-  @Test
   fun `test validate accountCreation = true and claimableBalances = true with custody integration`() {
     config.features = Sep24Config.Features()
     config.features.accountCreation = true
     config.features.claimableBalances = true
-    every { custodyConfig.type } returns "fireblocks"
+    every { custodyConfig.isCustodyIntegrationEnabled } returns true
     config.validate(config, errors)
     assertEquals("sep24-features-account_creation-not-supported", errors.allErrors[0].code)
     assertEquals("sep24-features-claimable_balances-not-supported", errors.allErrors[1].code)

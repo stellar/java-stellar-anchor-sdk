@@ -1,6 +1,5 @@
 package org.stellar.anchor.platform.config;
 
-import static org.stellar.anchor.config.CustodyConfig.NONE_CUSTODY_TYPE;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 import static org.stellar.anchor.util.StringHelper.snakeToCamelCase;
 
@@ -156,7 +155,7 @@ public class PropertySep24Config implements Sep24Config, Validator {
   }
 
   void validateFeaturesConfig(Errors errors) {
-    if (!NONE_CUSTODY_TYPE.equals(custodyConfig.getType())) {
+    if (custodyConfig.isCustodyIntegrationEnabled()) {
       if (features.getAccountCreation()) {
         errors.rejectValue(
             "features.accountCreation",

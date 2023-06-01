@@ -6,7 +6,6 @@ import static org.stellar.anchor.api.sep.SepTransactionStatus.EXPIRED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_CUSTOMER_INFO_UPDATE;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_USR_TRANSFER_START;
-import static org.stellar.anchor.config.CustodyConfig.NONE_CUSTODY_TYPE;
 import static org.stellar.anchor.platform.utils.TransactionHelper.toGetTransactionResponse;
 import static org.stellar.anchor.sep31.Sep31Helper.allAmountAvailable;
 import static org.stellar.anchor.util.BeanHelper.updateField;
@@ -194,7 +193,7 @@ public class TransactionService {
           sep24Txn.setMemoType(sep24DepositInfo.getMemoType());
         }
 
-        if (!NONE_CUSTODY_TYPE.equals(custodyConfig.getType())
+        if (custodyConfig.isCustodyIntegrationEnabled()
             && !lastStatus.equals(sep24Txn.getStatus())
             && ((Kind.DEPOSIT.getKind().equals(sep24Txn.getKind())
                     && PENDING_ANCHOR.toString().equals(sep24Txn.getStatus()))

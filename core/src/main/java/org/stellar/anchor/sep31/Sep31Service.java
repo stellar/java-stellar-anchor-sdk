@@ -2,7 +2,6 @@ package org.stellar.anchor.sep31;
 
 import static org.stellar.anchor.api.event.AnchorEvent.Type.TRANSACTION_CREATED;
 import static org.stellar.anchor.api.sep.sep31.Sep31InfoResponse.AssetResponse;
-import static org.stellar.anchor.config.CustodyConfig.NONE_CUSTODY_TYPE;
 import static org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_SEND;
 import static org.stellar.anchor.util.Log.debug;
 import static org.stellar.anchor.util.Log.debugF;
@@ -213,7 +212,7 @@ public class Sep31Service {
 
     updateDepositInfo();
 
-    if (!NONE_CUSTODY_TYPE.equals(custodyConfig.getType())) {
+    if (custodyConfig.isCustodyIntegrationEnabled()) {
       custodyService.createTransaction(txn);
     }
 
