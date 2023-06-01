@@ -19,7 +19,7 @@ public abstract class AbstractJwtFilter implements Filter {
   public static final String JWT_TOKEN = "token";
   static final String APPLICATION_JSON_VALUE = "application/json";
   static final Gson gson = GsonUtils.builder().setPrettyPrinting().create();
-  final JwtService jwtService;
+  protected final JwtService jwtService;
 
   public AbstractJwtFilter(JwtService jwtService) {
     this.jwtService = jwtService;
@@ -83,7 +83,8 @@ public abstract class AbstractJwtFilter implements Filter {
     filterChain.doFilter(servletRequest, servletResponse);
   }
 
-  abstract void check(String jwtCipher, HttpServletRequest request, ServletResponse servletResponse)
+  public abstract void check(
+      String jwtCipher, HttpServletRequest request, ServletResponse servletResponse)
       throws Exception;
 
   private static void sendForbiddenError(HttpServletResponse response) throws IOException {

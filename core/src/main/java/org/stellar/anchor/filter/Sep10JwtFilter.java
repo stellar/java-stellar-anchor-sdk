@@ -14,7 +14,7 @@ public class Sep10JwtFilter extends AbstractJwtFilter {
   }
 
   @Override
-  void check(String jwtCipher, HttpServletRequest request, ServletResponse servletResponse)
+  public void check(String jwtCipher, HttpServletRequest request, ServletResponse servletResponse)
       throws Exception {
     @NonNull Sep10Jwt token = jwtService.decode(jwtCipher, Sep10Jwt.class);
     infoF("token created. account={} url={}", shorter(token.getAccount()), request.getRequestURL());

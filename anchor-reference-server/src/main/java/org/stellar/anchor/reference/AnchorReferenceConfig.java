@@ -9,12 +9,12 @@ import org.stellar.anchor.auth.AuthHelper;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.filter.ApiKeyFilter;
 import org.stellar.anchor.filter.NoneFilter;
-import org.stellar.anchor.filter.Sep10JwtFilter;
 import org.stellar.anchor.reference.config.*;
 import org.stellar.anchor.reference.event.AbstractEventListener;
 import org.stellar.anchor.reference.event.AnchorEventProcessor;
 import org.stellar.anchor.reference.event.KafkaListener;
 import org.stellar.anchor.reference.event.SqsListener;
+import org.stellar.anchor.reference.filter.CallbackAuthJwtFilter;
 import org.stellar.anchor.util.GsonUtils;
 
 @Configuration
@@ -55,7 +55,7 @@ public class AnchorReferenceConfig {
     switch (integrationAuthSettings.getAuthType()) {
       case JWT:
         JwtService jwtService = new JwtService(null, null, null, authSecret, null);
-        platformToAnchorFilter = new Sep10JwtFilter(jwtService);
+        platformToAnchorFilter = new CallbackAuthJwtFilter(jwtService);
         break;
 
       case API_KEY:
@@ -69,10 +69,6 @@ public class AnchorReferenceConfig {
 
     FilterRegistrationBean<Filter> registrationBean = new FilterRegistrationBean<>();
     registrationBean.setFilter(platformToAnchorFilter);
-    registrationBean.addUrlPatterns("/fee");
-    registrationBean.addUrlPatterns("/rate");
-    registrationBean.addUrlPatterns("/customer");
-    registrationBean.addUrlPatterns("/customer/*");
     return registrationBean;
   }
 

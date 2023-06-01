@@ -3,8 +3,10 @@ package org.stellar.anchor.auth;
 import java.util.Calendar;
 import javax.annotation.Nullable;
 import org.stellar.anchor.api.exception.InvalidConfigException;
+import org.stellar.anchor.auth.ApiAuthJwt.CallbackAuthJwt;
 import org.stellar.anchor.auth.ApiAuthJwt.PlatformAuthJwt;
 import org.stellar.anchor.util.AuthHeader;
+import org.stellar.anchor.util.Log;
 
 public class AuthHelper {
   public final AuthType authType;
@@ -47,16 +49,39 @@ public class AuthHelper {
 
   @Nullable
   public AuthHeader<String, String> createPlatformServerAuthHeader() throws InvalidConfigException {
+    return createAuthHeader(PlatformAuthJwt.class);
+  }
+
+  @Nullable
+  public AuthHeader<String, String> createCallbackAuthHeader() throws InvalidConfigException {
+    return createAuthHeader(CallbackAuthJwt.class);
+  }
+
+  @Nullable
+  private <T extends ApiAuthJwt> AuthHeader<String, String> createAuthHeader(Class<T> jwtClass)
+      throws InvalidConfigException {
     switch (authType) {
       case JWT:
-        long issuedAt = Calendar.getInstance().getTimeInMillis() / 1000L;
-        long expirationTime = issuedAt + (jwtExpirationMilliseconds / 1000L);
-        PlatformAuthJwt token = new PlatformAuthJwt(issuedAt, expirationTime);
-        return new AuthHeader<>("Authorization", "Bearer " + jwtService.encode(token));
+        return new AuthHeader<>("Authorization", "Bearer " + createJwt(jwtClass));
       case API_KEY:
         return new AuthHeader<>("X-Api-Key", apiKey);
       default:
         return null;
+    }
+  }
+
+  private <T extends ApiAuthJwt> String createJwt(Class<T> jwtClass) throws InvalidConfigException {
+    long issuedAt = Calendar.getInstance().getTimeInMillis() / 1000L;
+    long expirationTime = issuedAt + (jwtExpirationMilliseconds / 1000L);
+
+    if (jwtClass == CallbackAuthJwt.class) {
+      CallbackAuthJwt token = new CallbackAuthJwt(issuedAt, expirationTime);
+      return jwtService.encode(token);
+    } else if (jwtClass == PlatformAuthJwt.class) {
+      PlatformAuthJwt token = new PlatformAuthJwt(issuedAt, expirationTime);
+      return jwtService.encode(token);
+    } else {
+      throw new InvalidConfigException("Invalid JWT class: " + jwtClass);
     }
   }
 }
