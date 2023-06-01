@@ -60,8 +60,9 @@ public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
             txn.getClientDomain());
 
     Map<String, String> data = new HashMap<>();
-    // Add sep-9 fields from request
+    // Get sep-9 fields from request
     Map<String, String> sep9 = extractSep9Fields(request);
+    // Putting SEP-9 into JWT exposes PII
     if (!sep9.isEmpty()) {
       warnF(
           "This version of the platform doesn't support passing SEP-9 KYC data sent by the wallet. Ignored fields: {}",
