@@ -7,6 +7,8 @@ import kotlin.test.assertNull
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
+import org.stellar.anchor.auth.ApiAuthJwt.CallbackAuthJwt
+import org.stellar.anchor.auth.ApiAuthJwt.PlatformAuthJwt
 import org.stellar.anchor.auth.AuthType.*
 import org.stellar.anchor.util.AuthHeader
 
@@ -36,31 +38,43 @@ class AuthHelperTest {
         every { Calendar.getInstance() } returns calendarSingleton
 
         // mock jwt token based on the mocked calendar
-        val wantJwtToken =
-          Sep10Jwt.of(
-            "http://localhost:8080",
+        val wantPlatformJwt =
+          PlatformAuthJwt(
+            currentTimeMilliseconds / 1000L,
+            (currentTimeMilliseconds + JWT_EXPIRATION_MILLISECONDS) / 1000L
+          )
+        val wantCallbackJwt =
+          CallbackAuthJwt(
             currentTimeMilliseconds / 1000L,
             (currentTimeMilliseconds + JWT_EXPIRATION_MILLISECONDS) / 1000L
           )
 
-        val jwtService = JwtService("secret", null, null)
-        val authHelper =
-          AuthHelper.forJwtToken(jwtService, JWT_EXPIRATION_MILLISECONDS, "http://localhost:8080")
-        val gotAuthHeader = authHelper.createAuthHeader()
-        val wantAuthHeader =
-          AuthHeader("Authorization", "Bearer ${jwtService.encode(wantJwtToken)}")
-        assertEquals(wantAuthHeader, gotAuthHeader)
+        val jwtService = JwtService(null, null, null, "secret", "secret")
+        val authHelper = AuthHelper.forJwtToken(jwtService, JWT_EXPIRATION_MILLISECONDS)
+        val gotPlatformAuthHeader = authHelper.createPlatformServerAuthHeader()
+        val wantPlatformAuthHeader =
+          AuthHeader("Authorization", "Bearer ${jwtService.encode(wantPlatformJwt)}")
+        assertEquals(wantPlatformAuthHeader, gotPlatformAuthHeader)
+        val gotCallbackAuthHeader = authHelper.createCallbackAuthHeader()
+        val wantCallbackAuthHeader =
+          AuthHeader("Authorization", "Bearer ${jwtService.encode(wantCallbackJwt)}")
+        assertEquals(wantCallbackAuthHeader, gotCallbackAuthHeader)
       }
       API_KEY -> {
         val authHelper = AuthHelper.forApiKey("secret")
-        val gotAuthHeader = authHelper.createAuthHeader()
-        val wantAuthHeader = AuthHeader("X-Api-Key", "secret")
-        assertEquals(wantAuthHeader, gotAuthHeader)
+        val gotPlatformAuthHeader = authHelper.createPlatformServerAuthHeader()
+        val wantPlatformAuthHeader = AuthHeader("X-Api-Key", "secret")
+        assertEquals(wantPlatformAuthHeader, gotPlatformAuthHeader)
+        val gotCallbackAuthHeader = authHelper.createCallbackAuthHeader()
+        val wantCallbackAuthHeader = AuthHeader("X-Api-Key", "secret")
+        assertEquals(wantCallbackAuthHeader, gotCallbackAuthHeader)
       }
       NONE -> {
         val authHelper = AuthHelper.forNone()
-        val authHeader = authHelper.createAuthHeader()
-        assertNull(authHeader)
+        val platformAuthHeader = authHelper.createPlatformServerAuthHeader()
+        assertNull(platformAuthHeader)
+        val callbackAuthHeader = authHelper.createCallbackAuthHeader()
+        assertNull(callbackAuthHeader)
       }
       else -> {
         throw Exception("Unsupported new AuthType!!!")

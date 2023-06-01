@@ -1,4 +1,4 @@
-package org.stellar.anchor.api.platform;
+package org.stellar.anchor.apiclient;
 
 import com.google.gson.annotations.SerializedName;
 

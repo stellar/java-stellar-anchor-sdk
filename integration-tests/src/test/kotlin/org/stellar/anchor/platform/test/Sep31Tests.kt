@@ -20,6 +20,8 @@ import org.stellar.anchor.api.sep.sep31.Sep31GetTransactionResponse
 import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionRequest
 import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionResponse
 import org.stellar.anchor.apiclient.PlatformApiClient
+import org.stellar.anchor.apiclient.TransactionsOrderBy
+import org.stellar.anchor.apiclient.TransactionsSeps
 import org.stellar.anchor.auth.AuthHelper
 import org.stellar.anchor.platform.*
 import org.stellar.anchor.util.GsonUtils
@@ -411,8 +413,6 @@ private const val expectedSep31Info =
         "quotes_required": false,
         "fee_fixed": 0,
         "fee_percent": 0,
-        "min_amount": 1,
-        "max_amount": 1000000,
         "sep12": {
           "sender": {
             "types": {
@@ -465,7 +465,6 @@ private const val expectedSep31Info =
         "quotes_required": false,
         "fee_fixed": 0,
         "fee_percent": 0,
-        "min_amount": 1,
         "max_amount": 1000000,
         "sep12": {
           "sender": {
