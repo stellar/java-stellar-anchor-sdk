@@ -3,6 +3,7 @@ package org.stellar.anchor.platform.service;
 import static org.stellar.anchor.sep24.Sep24Service.INTERACTIVE_URL_JWT_REQUIRED_FIELDS_FROM_REQUEST;
 import static org.stellar.anchor.sep9.Sep9Fields.extractSep9Fields;
 import static org.stellar.anchor.util.AssetHelper.*;
+import static org.stellar.anchor.util.Log.warnF;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 
 import java.net.URI;
@@ -59,8 +60,14 @@ public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
             txn.getClientDomain());
 
     Map<String, String> data = new HashMap<>();
-    // Add sep-9 fields from request
-    data.putAll(extractSep9Fields(request));
+    // Get sep-9 fields from request
+    Map<String, String> sep9 = extractSep9Fields(request);
+    // Putting SEP-9 into JWT exposes PII
+    if (!sep9.isEmpty()) {
+      warnF(
+          "This version of the platform doesn't support passing SEP-9 KYC data sent by the wallet. Ignored fields: {}",
+          sep9.keySet());
+    }
     // Add required JWT fields from request
     data.putAll(extractRequiredJwtFieldsFromRequest(request));
     // Add fields defined in txnFields

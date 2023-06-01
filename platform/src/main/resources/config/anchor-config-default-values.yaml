@@ -318,8 +318,10 @@ sep24:
   #   In addition to the txn_fields, the following fields are also added to the query parameters.
   #       `transaction_id`: the transaction ID
   #       `token`: the JWT token,
-  #       `lang`: the lang request parameter,
-  #        and any defined SEP-9 fields from the request parameters.
+  #       `data.asset`: asset requested byu the user
+  #       `data.amount`: the amount requested (optional),
+  #       `data.client_domain`: the client domain of the request (optional),
+  #       `data.lang`: the lang request parameter (optional),
   interactive_url:
     base_url: http://localhost:8080/sep24/interactive
     txn_fields:
