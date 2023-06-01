@@ -9,9 +9,9 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.core.convert.converter.Converter;
 import org.springframework.data.domain.Sort;
 import org.stellar.anchor.api.exception.BadRequestException;
-import org.stellar.anchor.api.platform.TransactionsOrderBy;
-import org.stellar.anchor.api.platform.TransactionsSeps;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
+import org.stellar.anchor.apiclient.TransactionsOrderBy;
+import org.stellar.anchor.apiclient.TransactionsSeps;
 
 // Abstract class because https://github.com/spring-projects/spring-boot/pull/22885
 public abstract class StringEnumConverter<T extends Enum<T>> implements Converter<String, T> {

@@ -9,6 +9,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
 
+/** The response to the GET /info endpoint of SEP-24. */
 @Getter
 @Setter
 @Builder

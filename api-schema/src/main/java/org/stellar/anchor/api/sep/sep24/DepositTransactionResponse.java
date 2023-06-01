@@ -4,6 +4,13 @@ import com.google.gson.annotations.SerializedName;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+/**
+ * The response body of the POST /transactions/deposit/interactive endpoint of SEP-24.
+ *
+ * @see <a
+ *     href="https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0024.md#fields">Refer
+ *     to SEP-24</a>
+ */
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class DepositTransactionResponse extends TransactionResponse {
