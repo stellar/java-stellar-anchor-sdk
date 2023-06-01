@@ -13,12 +13,13 @@ public class PlatformAuthJwtFilter extends AbstractJwtFilter {
   }
 
   @Override
-  void check(String jwtCipher, HttpServletRequest request, ServletResponse servletResponse)
+  public void check(String jwtCipher, HttpServletRequest request, ServletResponse servletResponse)
       throws Exception {
     @NonNull PlatformAuthJwt token = jwtService.decode(jwtCipher, PlatformAuthJwt.class);
     if (token == null) {
       throw new SepValidationException("JwtToken should not be null");
     }
+
     request.setAttribute(JWT_TOKEN, token);
   }
 }

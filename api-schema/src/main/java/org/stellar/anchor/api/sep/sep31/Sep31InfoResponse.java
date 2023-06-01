@@ -5,6 +5,13 @@ import java.util.Map;
 import lombok.Data;
 import org.stellar.anchor.api.sep.AssetInfo;
 
+/**
+ * The response body of the /info endpoint of the SEP-31.
+ *
+ * @see <a
+ *     href="https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0031.md#fields">Refer
+ *     to SEP-31</a>
+ */
 @Data
 public class Sep31InfoResponse {
   Map<String, AssetResponse> receive;

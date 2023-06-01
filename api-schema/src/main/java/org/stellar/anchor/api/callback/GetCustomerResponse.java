@@ -6,6 +6,13 @@ import lombok.Data;
 import org.stellar.anchor.api.shared.CustomerField;
 import org.stellar.anchor.api.shared.ProvidedCustomerField;
 
+/**
+ * The response body of the GET /customer endpoint.
+ *
+ * @see <a
+ *     href="https://github.com/stellar/stellar-docs/blob/main/openapi/ap/Callbacks%20API.yml">Callback
+ *     API</a>
+ */
 @Data
 public class GetCustomerResponse {
   String id;

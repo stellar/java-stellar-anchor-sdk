@@ -50,7 +50,7 @@ public class ServiceRunner {
       }
 
       if (cmd.hasOption("anchor-reference-server") || cmd.hasOption("all")) {
-        startAnchorReferenceServer();
+        startAnchorReferenceServer(null);
         anyServerStarted = true;
       }
 
@@ -88,7 +88,7 @@ public class ServiceRunner {
     return new EventProcessingServer().start(env);
   }
 
-  public static ConfigurableApplicationContext startAnchorReferenceServer() {
+  public static ConfigurableApplicationContext startAnchorReferenceServer(Map<String, String> env) {
     String strPort = System.getProperty("ANCHOR_REFERENCE_SERVER_PORT");
 
     int port = DEFAULT_ANCHOR_REFERENCE_SERVER_PORT;
@@ -97,7 +97,7 @@ public class ServiceRunner {
       port = Integer.parseInt(strPort);
     }
 
-    return AnchorReferenceServer.start(port, "/");
+    return AnchorReferenceServer.start(env, port, "/");
   }
 
   public static void startKotlinReferenceServer(Map<String, String> envMap, boolean wait) {

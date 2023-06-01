@@ -3,6 +3,13 @@ package org.stellar.anchor.api.platform;
 import java.util.List;
 import lombok.Data;
 
+/**
+ * The response body of the PATCH /transactions endpoint of the Platform API.
+ *
+ * @see <a
+ *     href="https://github.com/stellar/stellar-docs/blob/main/openapi/ap/Platform%20API.yml">Platform
+ *     API</a>
+ */
 @Data
 public class PatchTransactionsResponse {
   List<GetTransactionResponse> records;

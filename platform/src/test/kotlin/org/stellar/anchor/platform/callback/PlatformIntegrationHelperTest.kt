@@ -10,6 +10,7 @@ import org.junit.jupiter.params.provider.EnumSource
 import org.stellar.anchor.auth.*
 import org.stellar.anchor.auth.ApiAuthJwt.PlatformAuthJwt
 import org.stellar.anchor.auth.AuthType.*
+import org.stellar.anchor.auth.JwtService
 
 class PlatformIntegrationHelperTest {
   companion object {
@@ -44,7 +45,7 @@ class PlatformIntegrationHelperTest {
             (currentTimeMilliseconds + JWT_EXPIRATION_MILLISECONDS) / 1000L
           )
 
-        val jwtService = JwtService(null, null, null, null, "secret")
+        val jwtService = JwtService(null, null, null, "secret", "secret")
         val authHelper = AuthHelper.forJwtToken(jwtService, JWT_EXPIRATION_MILLISECONDS)
 
         val gotRequestBuilder = PlatformIntegrationHelper.getRequestBuilder(authHelper)

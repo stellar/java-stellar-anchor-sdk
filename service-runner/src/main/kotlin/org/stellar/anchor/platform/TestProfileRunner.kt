@@ -87,7 +87,8 @@ class TestProfileExecutor(val config: TestConfig) {
       }
       if (shouldStartAllServers || shouldStartReferenceServer) {
         info("Starting Java reference server...")
-        jobs += scope.launch { runningServers.add(ServiceRunner.startAnchorReferenceServer()) }
+        jobs +=
+          scope.launch { runningServers.add(ServiceRunner.startAnchorReferenceServer(envMap)) }
       }
       if (shouldStartAllServers || shouldStartObserver) {
         info("Starting observer...")
