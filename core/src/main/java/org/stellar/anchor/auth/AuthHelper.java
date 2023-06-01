@@ -48,12 +48,20 @@ public class AuthHelper {
 
   @Nullable
   public AuthHeader<String, String> createPlatformServerAuthHeader() throws InvalidConfigException {
+    return createAuthHeader(PlatformAuthJwt.class);
+  }
+
+  @Nullable
+  public AuthHeader<String, String> createCallbackAuthHeader() throws InvalidConfigException {
+    return createAuthHeader(CallbackAuthJwt.class);
+  }
+
+  @Nullable
+  private <T extends ApiAuthJwt> AuthHeader<String, String> createAuthHeader(Class<T> jwtClass)
+      throws InvalidConfigException {
     switch (authType) {
       case JWT:
-        long issuedAt = Calendar.getInstance().getTimeInMillis() / 1000L;
-        long expirationTime = issuedAt + (jwtExpirationMilliseconds / 1000L);
-        PlatformAuthJwt token = new PlatformAuthJwt(issuedAt, expirationTime);
-        return new AuthHeader<>("Authorization", "Bearer " + jwtService.encode(token));
+        return new AuthHeader<>("Authorization", "Bearer " + createJwt(jwtClass));
       case API_KEY:
         return new AuthHeader<>("X-Api-Key", apiKey);
       default:
@@ -61,19 +69,18 @@ public class AuthHelper {
     }
   }
 
-  @Nullable
-  public AuthHeader<String, String> createCallbackAuthHeader() throws InvalidConfigException {
-    switch (authType) {
-      case JWT:
-        long issuedAt = Calendar.getInstance().getTimeInMillis() / 1000L;
-        long expirationTime = issuedAt + (jwtExpirationMilliseconds / 1000L);
-        CallbackAuthJwt token = new CallbackAuthJwt(issuedAt, expirationTime);
-        return new AuthHeader<>("Authorization", "Bearer " + jwtService.encode(token));
-      case API_KEY:
-        return new AuthHeader<>("X-Api-Key", apiKey);
+  private <T extends ApiAuthJwt> String createJwt(Class<T> jwtClass) throws InvalidConfigException {
+    long issuedAt = Calendar.getInstance().getTimeInMillis() / 1000L;
+    long expirationTime = issuedAt + (jwtExpirationMilliseconds / 1000L);
 
-      default:
-        return null;
+    if (jwtClass == CallbackAuthJwt.class) {
+      CallbackAuthJwt token = new CallbackAuthJwt(issuedAt, expirationTime);
+      return jwtService.encode(token);
+    } else if (jwtClass == PlatformAuthJwt.class) {
+      PlatformAuthJwt token = new PlatformAuthJwt(issuedAt, expirationTime);
+      return jwtService.encode(token);
+    } else {
+      throw new InvalidConfigException("Invalid JWT class: " + jwtClass);
     }
   }
 }

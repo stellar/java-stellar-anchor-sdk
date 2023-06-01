@@ -8,13 +8,13 @@ import org.springframework.context.annotation.Configuration;
 import org.stellar.anchor.auth.AuthHelper;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.filter.ApiKeyFilter;
-import org.stellar.anchor.filter.CallbackAuthJwtFilter;
 import org.stellar.anchor.filter.NoneFilter;
 import org.stellar.anchor.reference.config.*;
 import org.stellar.anchor.reference.event.AbstractEventListener;
 import org.stellar.anchor.reference.event.AnchorEventProcessor;
 import org.stellar.anchor.reference.event.KafkaListener;
 import org.stellar.anchor.reference.event.SqsListener;
+import org.stellar.anchor.reference.filter.CallbackAuthJwtFilter;
 import org.stellar.anchor.util.GsonUtils;
 
 @Configuration

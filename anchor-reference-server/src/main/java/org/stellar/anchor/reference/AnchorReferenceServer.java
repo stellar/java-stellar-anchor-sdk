@@ -106,7 +106,7 @@ public class AnchorReferenceServer implements WebMvcConfigurer {
 
   public static void main(String[] args) {
     start(
-        new HashMap<>(),
+        null,
         Integer.parseInt(getProperty(REFERENCE_SERVER_PORT, "8081")),
         getProperty(REFERENCE_SERVER_CONTEXT_PATH, "/"));
   }
