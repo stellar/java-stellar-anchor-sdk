@@ -146,8 +146,9 @@ public class SepBeans {
 
   @Bean
   InteractiveUrlConstructor interactiveUrlConstructor(
-      PropertySep24Config sep24Config, JwtService jwtService) {
-    return new SimpleInteractiveUrlConstructor(sep24Config.getInteractiveUrl(), jwtService);
+      PropertySep24Config sep24Config, JwtService jwtService, SecretConfig secretConfig) {
+    return new SimpleInteractiveUrlConstructor(
+        sep24Config.getInteractiveUrl(), jwtService, secretConfig.getSep24MoreInfoUrlJwtSecret());
   }
 
   @Bean

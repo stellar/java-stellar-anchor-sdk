@@ -1,7 +1,9 @@
 package org.stellar.anchor.util;
 
 import com.google.gson.Gson;
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
+import org.apache.commons.codec.binary.Base64;
 import org.apache.commons.text.WordUtils;
 
 public class StringHelper {
@@ -60,5 +62,9 @@ public class StringHelper {
 
   public static String sanitize(String value) {
     return value.replace("\n", "").replace("\r", "");
+  }
+
+  public static String toBase64OrNull(String value) {
+    return value == null ? null : Base64.encodeBase64String(value.getBytes(StandardCharsets.UTF_8));
   }
 }

@@ -1,13 +1,13 @@
 package org.stellar.anchor.auth;
 
+import static org.stellar.anchor.util.StringHelper.toBase64OrNull;
+
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.impl.DefaultJwsHeader;
 import java.lang.reflect.InvocationTargetException;
-import java.nio.charset.StandardCharsets;
 import java.util.Calendar;
 import java.util.Map;
 import lombok.Getter;
-import org.apache.commons.codec.binary.Base64;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.api.exception.NotSupportedException;
 import org.stellar.anchor.auth.ApiAuthJwt.CallbackAuthJwt;
@@ -170,9 +170,5 @@ public class JwtService {
     } else {
       return (T) CallbackAuthJwt.class.getConstructor(Jwt.class).newInstance(jwt);
     }
-  }
-
-  private String toBase64OrNull(String value) {
-    return value == null ? null : Base64.encodeBase64String(value.getBytes(StandardCharsets.UTF_8));
   }
 }

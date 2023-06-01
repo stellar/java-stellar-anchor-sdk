@@ -5,6 +5,9 @@ import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import java.time.Instant
 import java.util.stream.Stream
+import javax.crypto.spec.IvParameterSpec
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.params.ParameterizedTest
@@ -16,10 +19,14 @@ import org.stellar.anchor.auth.Sep24InteractiveUrlJwt
 import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.platform.config.PropertySep24Config
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
+import org.stellar.anchor.util.AESUtil
 import org.stellar.anchor.util.GsonUtils
 
 @Suppress("UNCHECKED_CAST")
 class SimpleInteractiveUrlConstructorTest {
+  private val secret = "sep24_jwt_secret"
+  private val util = AESUtil(secret)
+
   companion object {
     private val gson = GsonUtils.getInstance()
     @JvmStatic
@@ -33,7 +40,7 @@ class SimpleInteractiveUrlConstructorTest {
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
-    every { secretConfig.sep24InteractiveUrlJwtSecret } returns "sep24_jwt_secret"
+    every { secretConfig.sep24InteractiveUrlJwtSecret } returns secret
 
     jwtService = JwtService(secretConfig)
   }
@@ -45,7 +52,9 @@ class SimpleInteractiveUrlConstructorTest {
     val request = gson.fromJson(requestJson, HashMap::class.java)
     val txn = gson.fromJson(txnJson, JdbcSep24Transaction::class.java)
 
-    val constructor = SimpleInteractiveUrlConstructor(config, jwtService)
+    val secret = secretConfig.sep24InteractiveUrlJwtSecret
+
+    val constructor = SimpleInteractiveUrlConstructor(config, jwtService, secret)
 
     var jwt = parseJwtFromUrl(constructor.construct(txn, request as HashMap<String, String>?))
     testJwt(jwt)
@@ -63,6 +72,7 @@ class SimpleInteractiveUrlConstructorTest {
     return jwtService.decode(cipher, Sep24InteractiveUrlJwt::class.java)
   }
 
+  @OptIn(ExperimentalEncodingApi::class)
   private fun testJwt(jwt: Sep24InteractiveUrlJwt) {
     val claims = jwt.claims()
     assertEquals("txn_123", jwt.jti as String)
@@ -76,7 +86,9 @@ class SimpleInteractiveUrlConstructorTest {
       data["amount_in_asset"] as String
     )
     assertEquals("en", data["lang"] as String)
-    assertEquals("john_doe@stellar.org", data["email_address"] as String)
+    assertNotNull(data["iv"])
+    val iv = IvParameterSpec(Base64.decode(data["iv"]!!))
+    assertEquals("john_doe@stellar.org", util.decrypt(data["email_address"]!!, iv))
 
     // Name is in request but not in transaction. It must not be included.
     assertNull(data["name"])

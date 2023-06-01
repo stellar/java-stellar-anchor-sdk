@@ -7,23 +7,33 @@ import static org.stellar.anchor.util.StringHelper.isEmpty;
 
 import java.net.URI;
 import java.time.Instant;
+import java.util.Base64;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import javax.annotation.Nullable;
+import javax.crypto.spec.IvParameterSpec;
 import lombok.SneakyThrows;
 import org.apache.http.client.utils.URIBuilder;
+import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.auth.Sep24InteractiveUrlJwt;
 import org.stellar.anchor.platform.config.PropertySep24Config.InteractiveUrlConfig;
 import org.stellar.anchor.sep24.InteractiveUrlConstructor;
 import org.stellar.anchor.sep24.Sep24Transaction;
+import org.stellar.anchor.util.AESUtil;
 
 public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
   private final InteractiveUrlConfig config;
   private final JwtService jwtService;
+  @Nullable private AESUtil aesUtil;
+  private final String secret;
 
-  public SimpleInteractiveUrlConstructor(InteractiveUrlConfig config, JwtService jwtService) {
+  public SimpleInteractiveUrlConstructor(
+      InteractiveUrlConfig config, JwtService jwtService, String secret) {
     this.config = config;
     this.jwtService = jwtService;
+    this.secret = secret;
   }
 
   @Override
@@ -60,7 +70,8 @@ public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
 
     Map<String, String> data = new HashMap<>();
     // Add sep-9 fields from request
-    data.putAll(extractSep9Fields(request));
+    Map<String, String> sep9 = extractSep9Fields(request);
+    data.putAll(encodeSep9(sep9));
     // Add required JWT fields from request
     data.putAll(extractRequiredJwtFieldsFromRequest(request));
     // Add fields defined in txnFields
@@ -68,6 +79,35 @@ public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
 
     token.claim("data", data);
     return jwtService.encode(token);
+  }
+
+  private Map<String, String> encodeSep9(Map<String, String> sep9) throws Exception {
+    if (sep9.isEmpty()) {
+      return Collections.emptyMap();
+    }
+
+    Map<String, String> encrypted = new HashMap<>();
+
+    if (aesUtil == null) {
+      if (secret == null) {
+        throw new InvalidConfigException(
+            "Please provide the secret before encoding JWT for Sep24 interactive url");
+      }
+
+      aesUtil = new AESUtil(secret);
+    }
+
+    IvParameterSpec iv = aesUtil.getIv();
+
+    for (Map.Entry<String, String> entry : sep9.entrySet()) {
+      String k = entry.getKey();
+      String v = entry.getValue();
+      encrypted.put(k, aesUtil.encrypt(v, iv));
+    }
+
+    encrypted.put("iv", Base64.getEncoder().encodeToString(iv.getIV()));
+
+    return encrypted;
   }
 
   public static Map<String, String> extractRequiredJwtFieldsFromRequest(
