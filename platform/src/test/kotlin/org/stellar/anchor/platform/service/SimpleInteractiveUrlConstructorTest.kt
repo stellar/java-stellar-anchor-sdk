@@ -25,7 +25,8 @@ import org.stellar.anchor.util.GsonUtils
 @Suppress("UNCHECKED_CAST")
 class SimpleInteractiveUrlConstructorTest {
   private val secret = "sep24_jwt_secret"
-  private val util = AESUtil(secret)
+  private val salt = "salt"
+  private val util = AESUtil(secret, salt)
 
   companion object {
     private val gson = GsonUtils.getInstance()
@@ -54,7 +55,7 @@ class SimpleInteractiveUrlConstructorTest {
 
     val secret = secretConfig.sep24InteractiveUrlJwtSecret
 
-    val constructor = SimpleInteractiveUrlConstructor(config, jwtService, secret)
+    val constructor = SimpleInteractiveUrlConstructor(config, jwtService, secret, salt)
 
     var jwt = parseJwtFromUrl(constructor.construct(txn, request as HashMap<String, String>?))
     testJwt(jwt)

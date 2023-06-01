@@ -7,6 +7,8 @@ public interface SecretConfig {
 
   String getSep24InteractiveUrlJwtSecret();
 
+  String getSep24InteractiveUrlJwtSep9Salt();
+
   String getSep24MoreInfoUrlJwtSecret();
 
   String getCallbackAuthSecret();

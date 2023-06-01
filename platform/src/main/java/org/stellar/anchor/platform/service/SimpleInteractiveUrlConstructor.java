@@ -28,12 +28,14 @@ public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
   private final JwtService jwtService;
   @Nullable private AESUtil aesUtil;
   private final String secret;
+  private final String salt;
 
   public SimpleInteractiveUrlConstructor(
-      InteractiveUrlConfig config, JwtService jwtService, String secret) {
+      InteractiveUrlConfig config, JwtService jwtService, String secret, String salt) {
     this.config = config;
     this.jwtService = jwtService;
     this.secret = secret;
+    this.salt = salt;
   }
 
   @Override
@@ -91,10 +93,14 @@ public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
     if (aesUtil == null) {
       if (secret == null) {
         throw new InvalidConfigException(
-            "Please provide the secret before encoding JWT for Sep24 interactive url");
+            "Please provide the secret before encoding SEP-9 data into the JWT for Sep24 interactive url");
+      }
+      if (salt == null) {
+        throw new InvalidConfigException(
+            "Please set the secret.sep9.interactive_url.jwt_sep9_salt or SECRET_SEP24_MORE_INFO_URL_JWT_SECRET environment variable");
       }
 
-      aesUtil = new AESUtil(secret);
+      aesUtil = new AESUtil(secret, salt);
     }
 
     IvParameterSpec iv = aesUtil.getIv();

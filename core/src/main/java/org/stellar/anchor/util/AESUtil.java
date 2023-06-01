@@ -14,12 +14,11 @@ public class AESUtil {
   private final SecureRandom random = new SecureRandom();
   private final String algorithm = "AES/CBC/PKCS5Padding";
 
-  public AESUtil(String password) throws Exception {
-
-    byte[] salt = "salt".getBytes(StandardCharsets.UTF_8);
+  public AESUtil(String password, String salt) throws Exception {
+    byte[] saltBytes = salt.getBytes(StandardCharsets.UTF_8);
 
     SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
-    KeySpec spec = new PBEKeySpec(password.toCharArray(), salt, 65536, 256);
+    KeySpec spec = new PBEKeySpec(password.toCharArray(), saltBytes, 65536, 256);
     secret = new SecretKeySpec(factory.generateSecret(spec).getEncoded(), "AES");
   }
 

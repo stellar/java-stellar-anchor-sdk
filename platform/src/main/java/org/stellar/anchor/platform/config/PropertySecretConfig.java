@@ -7,6 +7,8 @@ public class PropertySecretConfig implements SecretConfig {
 
   public static final String SECRET_SEP_10_JWT_SECRET = "secret.sep10.jwt_secret";
   public static final String SECRET_SEP_10_SIGNING_SEED = "secret.sep10.signing_seed";
+  public static final String SECRET_SEP_24_INTERACTIVE_URL_JWT_SEP9_SALT =
+      "secret.sep9.interactive_url.jwt_sep9_salt";
   public static final String SECRET_SEP_24_INTERACTIVE_URL_JWT_SECRET =
       "secret.sep24.interactive_url.jwt_secret";
   public static final String SECRET_SEP_24_MORE_INFO_URL_JWT_SECRET =
@@ -52,5 +54,10 @@ public class PropertySecretConfig implements SecretConfig {
   @Override
   public String getDataSourcePassword() {
     return SecretManager.getInstance().get(SECRET_DATA_PASSWORD);
+  }
+
+  @Override
+  public String getSep24InteractiveUrlJwtSep9Salt() {
+    return SecretManager.getInstance().get(SECRET_SEP_24_INTERACTIVE_URL_JWT_SEP9_SALT);
   }
 }
