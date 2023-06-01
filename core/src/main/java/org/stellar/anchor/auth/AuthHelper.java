@@ -6,7 +6,6 @@ import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.auth.ApiAuthJwt.CallbackAuthJwt;
 import org.stellar.anchor.auth.ApiAuthJwt.PlatformAuthJwt;
 import org.stellar.anchor.util.AuthHeader;
-import org.stellar.anchor.util.Log;
 
 public class AuthHelper {
   public final AuthType authType;
