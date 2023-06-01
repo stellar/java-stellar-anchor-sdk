@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform.configurator;
 
+import static org.stellar.anchor.config.CustodyConfig.NONE_CUSTODY_TYPE;
 import static org.stellar.anchor.util.Log.info;
 
 import java.util.List;
@@ -52,6 +53,15 @@ class SepServerConfigAdapter extends SpringConfigAdapter {
 
   @Override
   void validate(ConfigMap config) throws InvalidConfigException {
-    // noop
+    String custodyType = config.getString("custody.type");
+    if (!NONE_CUSTODY_TYPE.equals(custodyType)) {
+      if (config.getBoolean("sep24.features.account_creation")) {
+        throw new InvalidConfigException(
+            "Custody service doesn't support creating accounts for users requesting deposits");
+      } else if (config.getBoolean("sep24.features.claimable_balances")) {
+        throw new InvalidConfigException(
+            "Custody service doesn't support sending deposit funds as claimable balances");
+      }
+    }
   }
 }

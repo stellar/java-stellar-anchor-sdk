@@ -28,7 +28,7 @@
     "destinationTag": "",
     "status": "FAILED",
     "txHash": "testTxHash",
-    "subStatus": "THIRD_PARTY_FAILED",
+    "subStatus": "3RD_PARTY_FAILED",
     "signedBy": [],
     "createdBy": "",
     "rejectedBy": "",
