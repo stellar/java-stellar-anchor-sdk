@@ -2,6 +2,7 @@ package org.stellar.anchor.api.platform;
 
 import java.util.List;
 
+/** The response body of the GET /health endpoint of the Platform server. */
 public interface HealthCheckResult {
   String name();
 

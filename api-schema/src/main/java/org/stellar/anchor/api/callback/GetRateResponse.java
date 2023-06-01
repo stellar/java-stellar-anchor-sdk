@@ -8,6 +8,13 @@ import lombok.NoArgsConstructor;
 import org.stellar.anchor.api.sep.sep38.RateFee;
 import reactor.util.annotation.Nullable;
 
+/**
+ * The response body of the GET /rate endpoint.
+ *
+ * @see <a
+ *     href="https://github.com/stellar/stellar-docs/blob/main/openapi/ap/Callbacks%20API.yml">Callback
+ *     API</a>
+ */
 @Data
 @NoArgsConstructor
 public class GetRateResponse {

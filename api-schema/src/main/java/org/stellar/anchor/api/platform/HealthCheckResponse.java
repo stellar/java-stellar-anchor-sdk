@@ -9,6 +9,7 @@ import java.util.Map;
 import lombok.Data;
 import org.stellar.anchor.api.shared.Metadata;
 
+/** The response body of the GET /health endpoint of the Platform server. */
 @Data
 public class HealthCheckResponse {
   @SerializedName("started_at")
