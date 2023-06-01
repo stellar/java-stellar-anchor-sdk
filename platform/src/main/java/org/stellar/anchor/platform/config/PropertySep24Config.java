@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform.config;
 
+import static org.stellar.anchor.config.CustodyConfig.NONE_CUSTODY_TYPE;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 import static org.stellar.anchor.util.StringHelper.snakeToCamelCase;
 
@@ -11,6 +12,7 @@ import lombok.*;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
+import org.stellar.anchor.config.CustodyConfig;
 import org.stellar.anchor.config.SecretConfig;
 import org.stellar.anchor.config.Sep24Config;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
@@ -30,9 +32,11 @@ public class PropertySep24Config implements Sep24Config, Validator {
   SecretConfig secretConfig;
   Features features;
   DepositInfoGeneratorType depositInfoGeneratorType;
+  private CustodyConfig custodyConfig;
 
-  public PropertySep24Config(SecretConfig secretConfig) {
+  public PropertySep24Config(SecretConfig secretConfig, CustodyConfig custodyConfig) {
     this.secretConfig = secretConfig;
+    this.custodyConfig = custodyConfig;
   }
 
   @Getter
@@ -65,6 +69,7 @@ public class PropertySep24Config implements Sep24Config, Validator {
     if (enabled) {
       validateInteractiveUrlConfig(errors);
       validateMoreInfoUrlConfig(errors);
+      validateFeaturesConfig(errors);
     }
   }
 
@@ -146,6 +151,23 @@ public class PropertySep24Config implements Sep24Config, Validator {
         errors.reject(
             "sep24-more-info-url-jwt-secret-not-defined",
             "Please set the secret.sep24.more_info_url.jwt_secret or SECRET_SEP24_MORE_INFO_URL_JWT_SECRET environment variable");
+      }
+    }
+  }
+
+  void validateFeaturesConfig(Errors errors) {
+    if (!NONE_CUSTODY_TYPE.equals(custodyConfig.getType())) {
+      if (features.getAccountCreation()) {
+        errors.rejectValue(
+            "features.accountCreation",
+            "sep24-features-account_creation-not-supported",
+            "Custody service doesn't support creating accounts for users requesting deposits");
+      }
+      if (features.getClaimableBalances()) {
+        errors.rejectValue(
+            "features.claimableBalances",
+            "sep24-features-claimable_balances-not-supported",
+            "Custody service doesn't support sending deposit funds as claimable balances");
       }
     }
   }

@@ -87,8 +87,8 @@ public class SepBeans {
 
   @Bean
   @ConfigurationProperties(prefix = "sep24")
-  PropertySep24Config sep24Config(SecretConfig secretConfig) {
-    return new PropertySep24Config(secretConfig);
+  PropertySep24Config sep24Config(SecretConfig secretConfig, CustodyConfig custodyConfig) {
+    return new PropertySep24Config(secretConfig, custodyConfig);
   }
 
   @Bean
