@@ -5,11 +5,7 @@ import kotlin.test.assertEquals
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody
-import org.junit.Test
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.Assertions
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.assertThrows
+import org.junit.jupiter.api.*
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 import org.stellar.anchor.api.callback.GetFeeRequest
@@ -49,6 +45,7 @@ open class AbstractAuthIntegrationTest {
 
     internal val jwtAuthHelper = AuthHelper.forJwtToken(jwtService, 10000)
     internal val jwtWrongKeyAuthHelper = AuthHelper.forJwtToken(jwtWrongKeyService, 10000)
+    internal val jwtExpiredAuthHelper = AuthHelper.forJwtToken(jwtService, 0)
     internal lateinit var testProfileRunner: TestProfileExecutor
   }
 }
@@ -85,6 +82,8 @@ internal class JwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
     PlatformApiClient(jwtAuthHelper, "http://localhost:8085")
   private val jwtWrongKeyPlatformClient: PlatformApiClient =
     PlatformApiClient(jwtWrongKeyAuthHelper, "http://localhost:8085")
+  private val jwtExpiredTokenClient: PlatformApiClient =
+    PlatformApiClient(jwtExpiredAuthHelper, "http://localhost:8085")
 
   // TODO - to be deprecated by platformAPI client
   private val httpClient: OkHttpClient =
@@ -136,6 +135,7 @@ internal class JwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
 
     // Check if thw wrong JWT key will cause a 403.
     assertThrows<SepNotAuthorizedException> { jwtWrongKeyPlatformClient.getTransaction("my_id") }
+    assertThrows<SepNotAuthorizedException> { jwtExpiredTokenClient.getTransaction("my_id") }
   }
 
   private fun getDummyRequestBody(method: String): RequestBody? {
@@ -186,7 +186,7 @@ internal class JwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
 
   @Test
   fun `test JWT protection of callback customer endpoint`() {
-    val rci =
+    val badTokenClient =
       RestCustomerIntegration(
         "http://localhost:${AbstractIntegrationTest.REFERENCE_SERVER_PORT}",
         httpClient,
@@ -194,32 +194,65 @@ internal class JwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
         gson
       )
     assertThrows<ServerErrorException> {
-      rci.getCustomer(Sep12GetCustomerRequest.builder().id("1").build())
+      badTokenClient.getCustomer(Sep12GetCustomerRequest.builder().id("1").build())
+    }
+
+    val expiredTokenClient =
+      RestCustomerIntegration(
+        "http://localhost:${AbstractIntegrationTest.REFERENCE_SERVER_PORT}",
+        httpClient,
+        jwtWrongKeyAuthHelper,
+        gson
+      )
+    assertThrows<ServerErrorException> {
+      expiredTokenClient.getCustomer(Sep12GetCustomerRequest.builder().id("1").build())
     }
   }
 
   @Test
   fun `test JWT protection of callback rate endpoint`() {
-    val rri =
+    val badTokenClient =
       RestRateIntegration(
         "http://localhost:${AbstractIntegrationTest.REFERENCE_SERVER_PORT}",
         httpClient,
         jwtWrongKeyAuthHelper,
         gson
       )
-    assertThrows<ServerErrorException> { rri.getRate(GetRateRequest.builder().build()) }
+    assertThrows<ServerErrorException> { badTokenClient.getRate(GetRateRequest.builder().build()) }
+
+    val expiredTokenClient =
+      RestRateIntegration(
+        "http://localhost:${AbstractIntegrationTest.REFERENCE_SERVER_PORT}",
+        httpClient,
+        jwtExpiredAuthHelper,
+        gson
+      )
+    assertThrows<ServerErrorException> {
+      expiredTokenClient.getRate(GetRateRequest.builder().build())
+    }
   }
 
   @Test
-  fun `test JWT protection of callback fee endpoint`() {
-    val rfi =
+  fun `test JWT protection of callback fee endpoint with bad token`() {
+    val badTokenClient =
       RestFeeIntegration(
         "http://localhost:${AbstractIntegrationTest.REFERENCE_SERVER_PORT}",
         httpClient,
         jwtWrongKeyAuthHelper,
         gson
       )
-    assertThrows<ServerErrorException> { rfi.getFee(GetFeeRequest.builder().build()) }
+    assertThrows<ServerErrorException> { badTokenClient.getFee(GetFeeRequest.builder().build()) }
+
+    val expiredTokenClient =
+      RestFeeIntegration(
+        "http://localhost:${AbstractIntegrationTest.REFERENCE_SERVER_PORT}",
+        httpClient,
+        jwtExpiredAuthHelper,
+        gson
+      )
+    assertThrows<ServerErrorException> {
+      expiredTokenClient.getFee(GetFeeRequest.builder().build())
+    }
   }
 }
 

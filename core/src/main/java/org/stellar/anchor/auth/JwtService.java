@@ -118,7 +118,7 @@ public class JwtService {
 
     Calendar calNow = Calendar.getInstance();
     Calendar calExp = Calendar.getInstance();
-    calExp.setTimeInMillis(calNow.getTimeInMillis() + 1000L * token.getExp());
+    calExp.setTimeInMillis(1000L * token.getExp());
     JwtBuilder builder =
         Jwts.builder().setIssuedAt(calNow.getTime()).setExpiration(calExp.getTime());
 

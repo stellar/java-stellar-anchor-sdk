@@ -1,5 +1,6 @@
 package org.stellar.anchor.filter;
 
+import java.util.Calendar;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
 import lombok.NonNull;
@@ -19,6 +20,12 @@ public class PlatformAuthJwtFilter extends AbstractJwtFilter {
     if (token == null) {
       throw new SepValidationException("JwtToken should not be null");
     }
+
+    long currentTime = Calendar.getInstance().getTimeInMillis() / 1000;
+    if (token.getExp() <= currentTime) {
+      throw new IllegalArgumentException("Token expired");
+    }
+
     request.setAttribute(JWT_TOKEN, token);
   }
 }
