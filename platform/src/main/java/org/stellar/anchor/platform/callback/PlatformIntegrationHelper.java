@@ -26,11 +26,11 @@ public class PlatformIntegrationHelper {
   }
 
   public static Response call(OkHttpClient httpClient, Request request)
-      throws ServiceUnavailableException {
+      throws ServerErrorException {
     try {
       return httpClient.newCall(request).execute();
     } catch (IOException e) {
-      throw new ServiceUnavailableException("service not available", e);
+      throw new ServerErrorException("service not available", e);
     }
   }
 
