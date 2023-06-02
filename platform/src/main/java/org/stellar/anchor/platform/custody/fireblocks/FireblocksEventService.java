@@ -92,7 +92,7 @@ public class FireblocksEventService extends CustodyEventService {
             transactionDetails.getDestinationTag(),
             transactionDetails.getId());
 
-        if (!fireblocksEventObject.getData().getStatus().isObservable()) {
+        if (!transactionDetails.getStatus().isObservableByWebhook()) {
           debugF("Skipping Fireblocks webhook event[{}] due to the status", event);
           return;
         }

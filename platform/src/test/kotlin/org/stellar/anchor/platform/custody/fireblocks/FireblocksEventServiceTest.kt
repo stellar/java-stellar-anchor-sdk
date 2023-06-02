@@ -93,7 +93,7 @@ class FireblocksEventServiceTest {
   }
 
   @Test
-  fun `test handleFireblocksEvent() for valid COMPLETED event object with no Stellar transaction test`() {
+  fun `test handleFireblocksEvent() for valid CONFIRMING event object with no Stellar transaction test`() {
     val config =
       getFireblocksConfig(getResourceFileAsString("custody/fireblocks/webhook/public_key.txt"))
     val eventsService =
@@ -110,12 +110,11 @@ class FireblocksEventServiceTest {
         JdbcCustodyTransaction::class.java
       )
 
-    val signature: String =
-      getResourceFileAsString("custody/fireblocks/webhook/completed_event_signature.txt")
-    val httpHeaders: Map<String, String> = mutableMapOf(FIREBLOCKS_SIGNATURE_HEADER to signature)
     val eventObject: String =
-      getResourceFileAsString("custody/fireblocks/webhook/completed_event_request.json")
+      getResourceFileAsString("custody/fireblocks/webhook/confirming_event_request.json")
         .trimIndent()
+    val signature: String = generateSignature(eventObject)
+    val httpHeaders: Map<String, String> = mutableMapOf(FIREBLOCKS_SIGNATURE_HEADER to signature)
 
     val paymentCapture = slot<CustodyPayment>()
 
@@ -201,11 +200,10 @@ class FireblocksEventServiceTest {
     val operationRecords: ArrayList<OperationResponse> =
       gson.fromJson(operationRecordsJson, operationRecordsTypeToken)
 
-    val signature: String =
-      getResourceFileAsString("custody/fireblocks/webhook/completed_event_signature.txt")
-    val httpHeaders: Map<String, String> = mutableMapOf(FIREBLOCKS_SIGNATURE_HEADER to signature)
     val eventObject: String =
-      getResourceFileAsString("custody/fireblocks/webhook/completed_event_request.json")
+      getResourceFileAsString("custody/fireblocks/webhook/confirming_event_request.json")
+    val signature: String = generateSignature(eventObject)
+    val httpHeaders: Map<String, String> = mutableMapOf(FIREBLOCKS_SIGNATURE_HEADER to signature)
 
     val paymentCapture = slot<CustodyPayment>()
 
@@ -225,7 +223,7 @@ class FireblocksEventServiceTest {
   }
 
   @Test
-  fun `test handleFireblocksEvent() for valid COMPLETED event object and signature with Stellar transaction payment test`() {
+  fun `test handleFireblocksEvent() for valid CONFIRMING event object and signature with Stellar transaction payment test`() {
     val config =
       getFireblocksConfig(getResourceFileAsString("custody/fireblocks/webhook/public_key.txt"))
     val eventsService =
@@ -248,12 +246,11 @@ class FireblocksEventServiceTest {
     val operationRecords: ArrayList<OperationResponse> =
       gson.fromJson(operationRecordsJson, operationRecordsTypeToken)
 
-    val signature: String =
-      getResourceFileAsString("custody/fireblocks/webhook/completed_event_signature.txt")
-    val httpHeaders: Map<String, String> = mutableMapOf(FIREBLOCKS_SIGNATURE_HEADER to signature)
     val eventObject: String =
-      getResourceFileAsString("custody/fireblocks/webhook/completed_event_request.json")
+      getResourceFileAsString("custody/fireblocks/webhook/confirming_event_request.json")
         .trimIndent()
+    val signature: String = generateSignature(eventObject)
+    val httpHeaders: Map<String, String> = mutableMapOf(FIREBLOCKS_SIGNATURE_HEADER to signature)
 
     val paymentCapture = slot<CustodyPayment>()
 
@@ -277,7 +274,7 @@ class FireblocksEventServiceTest {
   }
 
   @Test
-  fun `test handleFireblocksEvent() for valid COMPLETED event object and signature with Stellar transaction path payment test`() {
+  fun `test handleFireblocksEvent() for valid CONFIRMING event object and signature with Stellar transaction path payment test`() {
     val config =
       getFireblocksConfig(getResourceFileAsString("custody/fireblocks/webhook/public_key.txt"))
     val eventsService =
@@ -300,12 +297,11 @@ class FireblocksEventServiceTest {
     val operationRecords: ArrayList<OperationResponse> =
       gson.fromJson(operationRecordsJson, operationRecordsTypeToken)
 
-    val signature: String =
-      getResourceFileAsString("custody/fireblocks/webhook/completed_event_signature.txt")
-    val httpHeaders: Map<String, String> = mutableMapOf(FIREBLOCKS_SIGNATURE_HEADER to signature)
     val eventObject: String =
-      getResourceFileAsString("custody/fireblocks/webhook/completed_event_request.json")
+      getResourceFileAsString("custody/fireblocks/webhook/confirming_event_request.json")
         .trimIndent()
+    val signature: String = generateSignature(eventObject)
+    val httpHeaders: Map<String, String> = mutableMapOf(FIREBLOCKS_SIGNATURE_HEADER to signature)
 
     val paymentCapture = slot<CustodyPayment>()
 
@@ -340,7 +336,7 @@ class FireblocksEventServiceTest {
         "BROADCASTING",
         "PENDING_3RD_PARTY_MANUAL_APPROVAL",
         "PENDING_3RD_PARTY",
-        "CONFIRMING",
+        "COMPLETED",
         "PARTIALLY_COMPLETED",
         "PENDING_AML_SCREENING",
         "REJECTED"
@@ -492,12 +488,11 @@ class FireblocksEventServiceTest {
         JdbcCustodyTransaction::class.java
       )
 
-    val signature: String =
-      getResourceFileAsString("custody/fireblocks/webhook/completed_event_signature.txt")
-    val httpHeaders: Map<String, String> = mutableMapOf(FIREBLOCKS_SIGNATURE_HEADER to signature)
     val eventObject: String =
-      getResourceFileAsString("custody/fireblocks/webhook/completed_event_request.json")
+      getResourceFileAsString("custody/fireblocks/webhook/confirming_event_request.json")
         .trimIndent()
+    val signature: String = generateSignature(eventObject)
+    val httpHeaders: Map<String, String> = mutableMapOf(FIREBLOCKS_SIGNATURE_HEADER to signature)
 
     val transactionToUpdate = slot<JdbcCustodyTransaction>()
     val externalTransactionId = "testEventId"
