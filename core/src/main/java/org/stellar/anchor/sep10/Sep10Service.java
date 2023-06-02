@@ -329,7 +329,7 @@ public class Sep10Service {
     Memo memo = challenge.getTransaction().getMemo();
     Sep10Jwt sep10Jwt =
         Sep10Jwt.of(
-            sep10Config.getHomeDomain(),
+            sep10Config.getWebAuthDomain(),
             (memo == null || memo instanceof MemoNone)
                 ? challenge.getClientAccountId()
                 : challenge.getClientAccountId() + ":" + memo,

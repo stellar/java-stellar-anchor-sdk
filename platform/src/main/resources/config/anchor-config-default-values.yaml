@@ -10,11 +10,6 @@ version: 1
 ## Application Configuration
 ##############################
 
-
-
-#
-host_url:
-
 stellar_network:
   ## @param: network
   ## Whether to use testnet (TESTNET) or pubnet (PUBNET)
@@ -250,11 +245,12 @@ sep10:
   ## @type: string
   ## The `web_auth_domain` property of SEP-10. https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#response
   ## If the `web_auth_domain` is not specified, the `web_auth_domain` will be set to the domain of the value of the `home_domain`.
-  #
+  ## `web_auth_domain` value must be equal to the host of the SEP server.
   web_auth_domain:
   ## @param: home_domain
   ## @type: string
   ## The `home_domain` property of SEP-10. https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#request
+  ## `home_domain` value must be equal to the host of the toml file. If sep1 is enabled, toml file will be hosted on the SEP server.
   home_domain: localhost:8080
   ## @param: client_attribution_required
   ## @type: bool
