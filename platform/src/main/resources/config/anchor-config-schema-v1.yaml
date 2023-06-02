@@ -45,7 +45,6 @@ events.publisher.msk.use_iam:
 events.publisher.sqs.aws_region:
 events.publisher.sqs.use_iam:
 events.publisher.type:
-host_url:
 languages:
 metrics.enabled:
 metrics.extras_enabled:
@@ -82,6 +81,7 @@ sep10.jwt_timeout:
 sep10.omnibus_account_list:
 sep10.require_known_omnibus_account:
 sep10.web_auth_domain:
+sep10.home_domain:
 sep12.enabled:
 sep24.enabled:
 sep24.features.account_creation:

@@ -18,9 +18,6 @@ public class PropertyAppConfig implements AppConfig, Validator {
   @Value("${stellar_network.network_passphrase}")
   private String stellarNetworkPassphrase;
 
-  @Value("${host_url}")
-  private String hostUrl;
-
   @Value("${stellar_network.horizon_url}")
   private String horizonUrl;
 
@@ -46,17 +43,6 @@ public class PropertyAppConfig implements AppConfig, Validator {
         "stellar-network-passphrase-empty",
         "stellar_network.network_passphrase is not defined.");
 
-    if (isEmpty(config.getHostUrl())) {
-      errors.rejectValue("hostUrl", "host-url-empty", "The host_url is not defined.");
-    } else {
-      if (!NetUtil.isUrlValid(config.getHostUrl())) {
-        errors.rejectValue(
-            "hostUrl",
-            "host-url-invalid",
-            String.format("The host_url:%s is not in valid format.", config.getHostUrl()));
-      }
-    }
-
     if (isEmpty(config.getHorizonUrl())) {
       errors.rejectValue(
           "horizonUrl", "horizon-url-empty", "The stellar_network.horizon_url is not defined.");
@@ -64,7 +50,7 @@ public class PropertyAppConfig implements AppConfig, Validator {
       if (!NetUtil.isUrlValid(config.getHorizonUrl())) {
         errors.rejectValue(
             "horizonUrl",
-            "horizon-url-invaliad",
+            "horizon-url-invalid",
             String.format(
                 "The stellar_network.horizon_url:%s is not in valid format.",
                 config.getHorizonUrl()));
