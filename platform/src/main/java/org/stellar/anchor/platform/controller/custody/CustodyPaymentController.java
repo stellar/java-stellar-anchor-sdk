@@ -15,16 +15,16 @@ import org.stellar.anchor.platform.custody.CustodyPaymentService;
 @RestController
 public class CustodyPaymentController {
 
-  private final CustodyPaymentService custodyPaymentService;
+  private final CustodyPaymentService<?> custodyPaymentService;
 
-  public CustodyPaymentController(CustodyPaymentService custodyPaymentService) {
+  public CustodyPaymentController(CustodyPaymentService<?> custodyPaymentService) {
     this.custodyPaymentService = custodyPaymentService;
   }
 
   @CrossOrigin(origins = "*")
   @ResponseStatus(code = HttpStatus.OK)
   @RequestMapping(
-      value = "/transactions/payments/assets/{assetId}/address",
+      value = "/assets/{assetId}/addresses",
       method = {RequestMethod.POST})
   public GenerateDepositAddressResponse generateDepositAddress(@PathVariable String assetId)
       throws CustodyException, InvalidConfigException {

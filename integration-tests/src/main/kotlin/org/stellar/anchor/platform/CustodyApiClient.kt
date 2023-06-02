@@ -7,7 +7,7 @@ import org.stellar.anchor.api.custody.GenerateDepositAddressResponse
 class CustodyApiClient(private val endpoint: String, private val jwt: String) : SepClient() {
 
   fun generateDepositAddress(asset: String): GenerateDepositAddressResponse {
-    val url = "$endpoint/transactions/payments/assets/$asset/address"
+    val url = "$endpoint/assets/$asset/addresses"
     val responseBody = httpPost(url, mapOf<String, String>(), jwt)
     return gson.fromJson(responseBody, GenerateDepositAddressResponse::class.java)
   }

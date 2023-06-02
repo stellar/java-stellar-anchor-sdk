@@ -134,7 +134,7 @@ class CustodyApiClientTest {
     val responseAddress = custodyApiClient.generateDepositAddress(ASSET_ID)
 
     Assertions.assertEquals(
-      "http://testbaseurl.com/transactions/payments/assets/TEST_ASSET_ID/address",
+      "http://testbaseurl.com/assets/TEST_ASSET_ID/addresses",
       requestCapture.captured.url.toString()
     )
     Assertions.assertEquals("testApiKeyValue", requestCapture.captured.header("testApiKeyName"))

@@ -54,11 +54,8 @@ public class CreateTransactionRequest {
   }
 
   @Data
+  @AllArgsConstructor
   public static class OneTimeAddress {
-    public OneTimeAddress(String address) {
-      this.address = address;
-    }
-
     private String address;
     private String tag;
   }
