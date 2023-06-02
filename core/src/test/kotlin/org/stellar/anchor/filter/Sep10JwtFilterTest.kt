@@ -158,7 +158,7 @@ internal class Sep10JwtFilterTest {
     val slot = slot<Sep10Jwt>()
     every { request.setAttribute(JWT_TOKEN, capture(slot)) } answers {}
 
-    val jwtToken = jwtService.encode(createSep10Jwt(PUBLIC_KEY, null, appConfig.hostUrl))
+    val jwtToken = jwtService.encode(createSep10Jwt(PUBLIC_KEY, null, "stellar.org"))
     every { request.getHeader("Authorization") } returns "Bearer $jwtToken"
     sep10TokenFilter.doFilter(request, response, mockFilterChain)
 

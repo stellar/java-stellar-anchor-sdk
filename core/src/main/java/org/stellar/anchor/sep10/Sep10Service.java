@@ -1,7 +1,6 @@
 package org.stellar.anchor.sep10;
 
 import static org.stellar.anchor.util.Log.*;
-import static org.stellar.anchor.util.NetUtil.getDomainFromURL;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -61,12 +60,9 @@ public class Sep10Service {
     // Validations
     //
     if (challengeRequest.getHomeDomain() == null) {
-      debugF(
-          "home_domain is not specified. Will use the default: {}", sep10Config.getWebAuthDomain());
-      challengeRequest.setHomeDomain(sep10Config.getWebAuthDomain());
-    } else if (!challengeRequest
-        .getHomeDomain()
-        .equalsIgnoreCase(getDomainFromURL(appConfig.getHostUrl()))) {
+      debugF("home_domain is not specified. Will use the default: {}", sep10Config.getHomeDomain());
+      challengeRequest.setHomeDomain(sep10Config.getHomeDomain());
+    } else if (!challengeRequest.getHomeDomain().equalsIgnoreCase(sep10Config.getHomeDomain())) {
       infoF("Bad home_domain: {}", challengeRequest.getHomeDomain());
       throw new SepValidationException(
           String.format("home_domain [%s] is not supported.", challengeRequest.getHomeDomain()));
@@ -201,7 +197,7 @@ public class Sep10Service {
             challengeXdr,
             serverAccountId,
             new Network(appConfig.getStellarNetworkPassphrase()),
-            getDomainFromURL(appConfig.getHostUrl()),
+            sep10Config.getHomeDomain(),
             sep10Config.getWebAuthDomain());
 
     debugF(
@@ -258,7 +254,7 @@ public class Sep10Service {
           challengeXdr,
           serverAccountId,
           new Network(appConfig.getStellarNetworkPassphrase()),
-          getDomainFromURL(appConfig.getHostUrl()),
+          sep10Config.getHomeDomain(),
           sep10Config.getWebAuthDomain(),
           signers);
 
@@ -284,7 +280,7 @@ public class Sep10Service {
         challengeXdr,
         serverAccountId,
         new Network(appConfig.getStellarNetworkPassphrase()),
-        getDomainFromURL(appConfig.getHostUrl()),
+        sep10Config.getHomeDomain(),
         sep10Config.getWebAuthDomain(),
         threshold,
         signers);
@@ -326,14 +322,14 @@ public class Sep10Service {
             challengeXdr,
             serverAccountId,
             new Network(appConfig.getStellarNetworkPassphrase()),
-            getDomainFromURL(appConfig.getHostUrl()),
+            sep10Config.getHomeDomain(),
             sep10Config.getWebAuthDomain());
     debug("challenge:", challenge);
     long issuedAt = challenge.getTransaction().getTimeBounds().getMinTime();
     Memo memo = challenge.getTransaction().getMemo();
     Sep10Jwt sep10Jwt =
         Sep10Jwt.of(
-            appConfig.getHostUrl() + "/auth",
+            sep10Config.getWebAuthDomain(),
             (memo == null || memo instanceof MemoNone)
                 ? challenge.getClientAccountId()
                 : challenge.getClientAccountId() + ":" + memo,
