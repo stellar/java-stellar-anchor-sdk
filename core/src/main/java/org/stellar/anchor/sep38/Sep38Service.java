@@ -41,6 +41,7 @@ public class Sep38Service {
   final EventService eventService;
   final InfoResponse infoResponse;
   final Map<String, InfoResponse.Asset> assetMap;
+  final int pricePrecision = 10;
 
   public Sep38Service(
       Sep38Config sep38Config,
@@ -225,9 +226,14 @@ public class Sep38Service {
       validateAmountLimit("sell_", rate.getSellAmount(), sendMinLimit, sendMaxLimit);
     }
 
+    String totalPrice =
+        getTotalPrice(
+            decimal(rate.getSellAmount(), pricePrecision),
+            decimal(rate.getBuyAmount(), pricePrecision));
+
     return GetPriceResponse.builder()
         .price(rate.getPrice())
-        .totalPrice(getTotalPrice(rate))
+        .totalPrice(totalPrice)
         .fee(rate.getFee())
         .sellAmount(rate.getSellAmount())
         .buyAmount(rate.getBuyAmount())
@@ -349,35 +355,55 @@ public class Sep38Service {
             .build();
     GetRateResponse.Rate rate = this.rateIntegration.getRate(getRateRequest).getRate();
 
-    String totalPrice = getTotalPrice(rate);
+    String totalPrice =
+        getTotalPrice(
+            decimal(rate.getSellAmount(), pricePrecision),
+            decimal(rate.getBuyAmount(), pricePrecision));
 
     Sep38QuoteResponse.Sep38QuoteResponseBuilder builder =
         Sep38QuoteResponse.builder()
             .id(rate.getId())
             .expiresAt(rate.getExpiresAt())
             .price(rate.getPrice())
-            .totalPrice(totalPrice)
             .sellAsset(request.getSellAssetName())
             .buyAsset(request.getBuyAssetName())
             .fee(rate.getFee());
 
     // Calculate amounts: sellAmount = buyAmount * totalPrice
     BigDecimal bTotalPrice = decimal(totalPrice);
-    BigDecimal bSellAmount, bBuyAmount;
-    if (request.getSellAmount() != null) {
-      bSellAmount = decimal(request.getSellAmount());
-      bBuyAmount = bSellAmount.divide(bTotalPrice, buyAsset.getDecimals(), RoundingMode.HALF_UP);
-    } else {
-      bBuyAmount = decimal(request.getBuyAmount());
-      bSellAmount = bBuyAmount.multiply(bTotalPrice);
+    BigDecimal bSellAmount =
+        request.getSellAmount() != null ? decimal(request.getSellAmount()) : null;
+    BigDecimal bBuyAmount = request.getBuyAmount() != null ? decimal(request.getBuyAmount()) : null;
+
+    // Use the rate's buy and sell amounts if they were returned
+    if (rate.getSellAmount() != null) {
+      bSellAmount = decimal(rate.getSellAmount());
     }
+    if (rate.getBuyAmount() != null) {
+      bBuyAmount = decimal(rate.getBuyAmount());
+    }
+
+    // This should not happen because we previously checked at least one was not null
+    if (bBuyAmount == null && bSellAmount == null) {
+      throw new ServerErrorException("Unable to calculate buy and sell amounts, both were null");
+    }
+
+    if (bSellAmount == null) {
+      bSellAmount = bBuyAmount.multiply(bTotalPrice);
+    } else if (bBuyAmount == null) {
+      bBuyAmount = bSellAmount.divide(bTotalPrice, buyAsset.getDecimals(), RoundingMode.HALF_UP);
+    }
+
+    // Re-calculate total price if either buy_amount or sell_amount was missing from the Rate
+    // response
+    totalPrice = getTotalPrice(bSellAmount, bBuyAmount);
     String sellAmount = formatAmount(bSellAmount, sellAsset.getDecimals());
     String buyAmount = formatAmount(bBuyAmount, buyAsset.getDecimals());
-    builder = builder.sellAmount(sellAmount).buyAmount(buyAmount);
+    builder = builder.totalPrice(totalPrice).sellAmount(sellAmount).buyAmount(buyAmount);
 
     // SEP31: when buy_amount is specified (sell amount found from rate integration)
     if (context == SEP31 && isNotEmpty(buyAmount)) {
-      validateAmountLimit("sell_", rate.getSellAmount(), sendMinLimit, sendMaxLimit);
+      validateAmountLimit("sell_", sellAmount, sendMinLimit, sendMaxLimit);
     }
 
     // save firm quote in the local database
@@ -485,15 +511,10 @@ public class Sep38Service {
         .build();
   }
 
-  private String getTotalPrice(GetRateResponse.Rate rate) {
-    int priceScale = 10;
-
-    BigDecimal bSellAmount = decimal(rate.getSellAmount(), priceScale);
-    BigDecimal bBuyAmount = decimal(rate.getBuyAmount(), priceScale);
-
+  private String getTotalPrice(BigDecimal bSellAmount, BigDecimal bBuyAmount) {
     // total_price = sell_amount / buy_amount
-    BigDecimal bTotalPrice = bSellAmount.divide(bBuyAmount, priceScale, RoundingMode.FLOOR);
+    BigDecimal bTotalPrice = bSellAmount.divide(bBuyAmount, pricePrecision, RoundingMode.FLOOR);
 
-    return formatAmount(bTotalPrice, priceScale);
+    return formatAmount(bTotalPrice, pricePrecision);
   }
 }
