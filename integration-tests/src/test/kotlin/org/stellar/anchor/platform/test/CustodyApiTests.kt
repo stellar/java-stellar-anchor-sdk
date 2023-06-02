@@ -181,7 +181,7 @@ private const val custodyTransactionPaymentRequest =
           "tag": "testMemo"
         }
       },
-      "amount": "0.5"
+      "amount": "0.45"
     }
 """
 
