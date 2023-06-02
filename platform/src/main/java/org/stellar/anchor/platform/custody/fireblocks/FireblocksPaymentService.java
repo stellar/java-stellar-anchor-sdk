@@ -112,7 +112,8 @@ public class FireblocksPaymentService implements CustodyPaymentService<Transacti
                 VAULT_ACCOUNT, fireblocksConfig.getVaultAccountId()))
         .destination(
             new CreateTransactionRequest.DestinationTransferPeerPath(
-                ONE_TIME_ADDRESS, new CreateTransactionRequest.OneTimeAddress(txn.getToAccount())))
+                ONE_TIME_ADDRESS,
+                new CreateTransactionRequest.OneTimeAddress(txn.getToAccount(), txn.getMemo())))
         .build();
   }
 

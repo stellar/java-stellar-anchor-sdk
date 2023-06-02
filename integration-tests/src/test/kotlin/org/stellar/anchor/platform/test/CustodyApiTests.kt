@@ -158,7 +158,7 @@ private const val custodyTransactionRequest =
     "protocol": "24",
     "fromAccount": "testFromAccount",
     "toAccount": "testToAccount",
-    "amount": "0.5",
+    "amount": "0.45",
     "amountAsset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
     "kind": "deposit",
     "requestAssetCode": "testRequestAssetCode",
@@ -177,10 +177,11 @@ private const val custodyTransactionPaymentRequest =
       "destination": {
         "type": "ONE_TIME_ADDRESS",
         "oneTimeAddress": {
-          "address": "testToAccount"
+          "address": "testToAccount",
+          "tag": "testMemo"
         }
       },
-      "amount": "0.5"
+      "amount": "0.45"
     }
 """
 

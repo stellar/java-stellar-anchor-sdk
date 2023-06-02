@@ -27,8 +27,7 @@ public class CustodyApiClient {
   private static final Gson gson = GsonUtils.getInstance();
 
   private static final String CREATE_TRANSACTION_URL_FORMAT = "/transactions";
-  private static final String GENERATE_DEPOSIT_ADDRESS_URL_FORMAT =
-      "/transactions/payments/assets/%s/address";
+  private static final String GENERATE_DEPOSIT_ADDRESS_URL_FORMAT = "/assets/%s/addresses";
   private static final String CREATE_TRANSACTION_PAYMENT_URL_FORMAT = "/transactions/%s/payments";
 
   private final OkHttpClient httpClient;
