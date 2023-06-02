@@ -370,33 +370,15 @@ public class Sep38Service {
             .fee(rate.getFee());
 
     // Calculate amounts: sellAmount = buyAmount * totalPrice
-    BigDecimal bTotalPrice = decimal(totalPrice);
-    BigDecimal bSellAmount =
-        request.getSellAmount() != null ? decimal(request.getSellAmount()) : null;
-    BigDecimal bBuyAmount = request.getBuyAmount() != null ? decimal(request.getBuyAmount()) : null;
-
-    // Use the rate's buy and sell amounts if they were returned
-    if (rate.getSellAmount() != null) {
-      bSellAmount = decimal(rate.getSellAmount());
-    }
-    if (rate.getBuyAmount() != null) {
-      bBuyAmount = decimal(rate.getBuyAmount());
-    }
+    BigDecimal bSellAmount = decimal(rate.getSellAmount());
+    BigDecimal bBuyAmount = decimal(rate.getBuyAmount());
 
     // This should not happen because we previously checked at least one was not null
-    if (bBuyAmount == null && bSellAmount == null) {
+    // TODO: move this validation higher up
+    if (bBuyAmount == null || bSellAmount == null) {
       throw new ServerErrorException("Unable to calculate buy and sell amounts, both were null");
     }
 
-    if (bSellAmount == null) {
-      bSellAmount = bBuyAmount.multiply(bTotalPrice);
-    } else if (bBuyAmount == null) {
-      bBuyAmount = bSellAmount.divide(bTotalPrice, buyAsset.getDecimals(), RoundingMode.HALF_UP);
-    }
-
-    // Re-calculate total price if either buy_amount or sell_amount was missing from the Rate
-    // response
-    totalPrice = getTotalPrice(bSellAmount, bBuyAmount);
     String sellAmount = formatAmount(bSellAmount, sellAsset.getDecimals());
     String buyAmount = formatAmount(bBuyAmount, buyAsset.getDecimals());
     builder = builder.totalPrice(totalPrice).sellAmount(sellAmount).buyAmount(buyAmount);
