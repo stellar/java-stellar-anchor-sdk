@@ -66,7 +66,7 @@ class FireblocksTransactionsReconciliationJobTest {
   @EnumSource(
     value = TransactionStatus::class,
     mode = EnumSource.Mode.INCLUDE,
-    names = ["COMPLETED", "CANCELLED", "BLOCKED", "FAILED"]
+    names = ["CONFIRMING", "COMPLETED", "CANCELLED", "BLOCKED", "FAILED"]
   )
   fun `reconcile outbound transactions - successful reconciliation`(status: TransactionStatus) {
     val custodyTxn =
@@ -116,7 +116,6 @@ class FireblocksTransactionsReconciliationJobTest {
         "BROADCASTING",
         "PENDING_3RD_PARTY_MANUAL_APPROVAL",
         "PENDING_3RD_PARTY",
-        "CONFIRMING",
         "PARTIALLY_COMPLETED",
         "PENDING_AML_SCREENING",
         "REJECTED"
@@ -158,7 +157,7 @@ class FireblocksTransactionsReconciliationJobTest {
         .status(CustodyTransactionStatus.SUBMITTED.toString())
         .reconciliationAttemptCount(attemptCount)
         .build()
-    val fireblocksTxn = TransactionDetails.builder().status(TransactionStatus.CONFIRMING).build()
+    val fireblocksTxn = TransactionDetails.builder().status(TransactionStatus.BROADCASTING).build()
 
     val requestCapture = slot<JdbcCustodyTransaction>()
     every { custodyTransactionService.updateCustodyTransaction(capture(requestCapture)) } just Runs
@@ -199,7 +198,7 @@ class FireblocksTransactionsReconciliationJobTest {
   @EnumSource(
     value = TransactionStatus::class,
     mode = EnumSource.Mode.INCLUDE,
-    names = ["COMPLETED", "CANCELLED", "BLOCKED", "FAILED"]
+    names = ["CONFIRMING", "COMPLETED", "CANCELLED", "BLOCKED", "FAILED"]
   )
   fun `reconcile inbound transactions - successful reconciliation`(status: TransactionStatus) {
     val custodyTxn =
@@ -300,7 +299,6 @@ class FireblocksTransactionsReconciliationJobTest {
         "BROADCASTING",
         "PENDING_3RD_PARTY_MANUAL_APPROVAL",
         "PENDING_3RD_PARTY",
-        "CONFIRMING",
         "PARTIALLY_COMPLETED",
         "PENDING_AML_SCREENING",
         "REJECTED"

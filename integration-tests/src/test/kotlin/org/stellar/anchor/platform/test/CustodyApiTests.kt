@@ -223,7 +223,7 @@ private const val webhookRequest =
     "destinationAddress": "GAA4N7CEZ4XWF5ADWRU2YWF4ZGQMT5PL4GLCZVW2UAX4IPE3ALQRO7GX",
     "destinationAddressDescription": "",
     "destinationTag": "",
-    "status": "COMPLETED",
+    "status": "CONFIRMING",
     "txHash": "dff8279e0994ff7a2c78a0d7b7cc1175b39f2ab1f45de1e02b639a85e9801f96",
     "subStatus": "CONFIRMED",
     "signedBy": [],
@@ -259,7 +259,7 @@ private const val webhookRequest =
 """
 
 private const val webhookSignature =
-  "EVnLQYNWUWZ4t52LSgkgESaOBkl1xwWhAZBEZP2CsFxbDy2NGaHZ1PHqbcIHKxQydGJMWer8U7GZsZBfvKTZQuOk8amLci2b2yOYsxb5xLaEI1uRE5lUbE2pZfk4LbeDp/PctwH0wHtcivYHyi5CSdaCTII3AgZNqoGwuL0M0dE="
+  "RMrie/JapxYVMgqs+FGFAtIKVD7vSHEH+TWzxGaP2M/1TzFCaH1qU4erede7q0qSTtONykA8l68/LwFqd7RadTcjEKr75rbv4ixthS+ECkL08TjT02aZ9bD1frJVjNpDncjUfNiFAuaOILWfSxfYmIlcTX1hytzq4VHfWSY3+CA="
 
 private const val expectedTransactionResponse =
   """

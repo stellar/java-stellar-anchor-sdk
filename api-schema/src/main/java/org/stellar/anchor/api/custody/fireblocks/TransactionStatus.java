@@ -20,10 +20,16 @@ public enum TransactionStatus {
   FAILED;
 
   public boolean isCompleted() {
-    return this.equals(COMPLETED);
+    return Set.of(COMPLETED, CONFIRMING).contains(this);
   }
 
   public boolean isObservable() {
-    return Set.of(FAILED, CANCELLED, BLOCKED, COMPLETED).contains(this);
+    return Set.of(FAILED, CANCELLED, BLOCKED, CONFIRMING, COMPLETED).contains(this);
+  }
+
+  // CONFIRMING webhook status means the transaction is complete on Stellar.
+  // That's why events with COMPLETED status are ignored
+  public boolean isObservableByWebhook() {
+    return Set.of(FAILED, CANCELLED, BLOCKED, CONFIRMING).contains(this);
   }
 }
