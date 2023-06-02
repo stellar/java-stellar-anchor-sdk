@@ -177,7 +177,8 @@ private const val custodyTransactionPaymentRequest =
       "destination": {
         "type": "ONE_TIME_ADDRESS",
         "oneTimeAddress": {
-          "address": "testToAccount"
+          "address": "testToAccount",
+          "tag": "testMemo"
         }
       },
       "amount": "0.5"
