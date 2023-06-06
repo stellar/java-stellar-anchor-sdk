@@ -11,6 +11,12 @@
     - [Authorization Between Platform and Anchor](#authorization-between-platformanchor)
     - [Supported Assets](#supported-assets)
     - [Event Messaging](#event-messaging)
+    - [Custody Services](#custody-services)
+      - [Custody Server Configuration](#custody-server-configuration)
+      - [Anchor Platform Configuration](#anchor-platform-configuration)
+      - [Kotlin Reference Server Configuration](#kotlin-reference-server-configuration)
+      - [Custody Integrations](#custody-integrations)
+        - [Fireblocks Configuration](#fireblocks-configuration)
     - [JVM-Argument based run-configuration](#jvm-argument-based-run-configuration)
   - [Docker](#docker)
   - [Running the Application from Docker](#running-the-application-from-docker)
@@ -171,6 +177,127 @@ The easiest way for that is by using the docker-compose.yaml file located at `do
 ```shell
 cd docs/resources/docker-examples/kafka
 docker compose up
+```
+
+### Custody Services
+
+#### Custody Server Configuration
+
+If you want to use an external custody service to store and manage your wallets, then you need to deploy one more service - Custody Server.
+
+This service also needs the `STELLAR_ANCHOR_CONFIG` previously mentioned. By default, `anchor-config-default-values.yaml` 
+config file will be used.
+
+Also, now you don't need to deploy Stellar Observer, since this Custody Server will be responsible for its functionality.
+
+Update the configuration file of the Anchor Platform with the base URL and port.
+```yaml
+custody_server:
+  # The listening port of the Custody Server. 
+  # Default value: 8085
+  port: <port>
+  # The base URL of the Custody Server. 
+  # Default value: http://localhost:8085
+  base_url: <base_url>
+```
+
+Configure authentication type.
+```yaml
+custody_server:
+  auth:
+    # Type of authentication, that is used, when the Anchor Platform communicates with the Custody Server.
+    # Possible options: [none, api_key, jwt]. 
+    # Default value: none
+    type: jwt
+```
+
+If you set `api_key` or `jwt` authentication type, then you need to an add environment variable:
+```text
+SECRET_CUSTODY_SERVER_AUTH_SECRET="Custody Server auth secret"
+```
+
+Start the Custody Server using Gradle or Docker:
+```bash
+./gradlew service-runner:bootRun --args=--custody-server
+docker run stellar-anchor-platform:latest --custody-server
+```
+
+#### Anchor Platform Configuration
+
+Update the configuration file of the Anchor Platform to use `custody` deposit info generator type for SEP-24 and SEP-31.
+
+```yaml
+sep24:
+  # Used to choose how the SEP-24 deposit information (deposit address, memo and memo type) will be generated
+  # Default value: self
+  deposit_info_generator_type: custody
+sep31:
+  # Used to choose how the SEP-31 deposit information (deposit address, memo and memo type) will be generated
+  # Default value: self
+  deposit_info_generator_type: custody
+```
+
+#### Kotlin Reference Server Configuration
+
+Update the configuration file of the Kotlin Reference Server to enable custody integration.
+```yaml
+sep24:
+  # Flat, that indicates, that custody integration is enabled and payment will be submitted using Custody Server.
+  # Default value: false
+  custodyEnabled: true
+```
+
+#### Custody Integrations
+
+##### Fireblocks Configuration
+
+Configure Fireblocks workspace:
+1. [Configure API Co-Signer](https://support.fireblocks.io/hc/en-us/articles/4581830426268)
+2. [Add API User](https://support.fireblocks.io/hc/en-us/articles/4407823826194-Adding-new-API-users)
+3. [Configure Webhook URL](https://support.fireblocks.io/hc/en-us/articles/4408110107794-Configuring-Webhook-URLs)
+4. [Enable One-Time Address feature](https://support.fireblocks.io/hc/en-us/articles/4409104568338)
+5. [Configure Transaction Policy](https://support.fireblocks.io/hc/en-us/articles/5227408755356-About-the-Policy-Editor)
+
+Update configuration file of Custody Server.
+
+```yaml
+custody:
+  # Default value: none
+  type: fireblocks
+  fireblocks:
+    # ID of Fireblocks vault account, that will be used for payments
+    vault_account_id: <vault_account_id>
+    # Fireblocks public key, that is used to verify a webhook signature
+    public_key: <public_key>
+    # Mappings of fireblocks asset codes to stellar asset codes. For example:
+    # XLM_USDC_T_CEKS stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5
+    # XLM_USDC_T_CEKS_2 stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5
+    # Codes should be divided with space and each pair of codes should be in new line
+    asset_mappings: <asset_mappings>
+    reconciliation:
+      # Cron expression which defines how often transaction reconciliation job runs. 
+      # By default, job runs every 15 minutes. 
+      # Default value: 0 0/15 * * * *
+      cron_expression: <cron_expression>
+      # Determines how many times the transaction reconciliation job will attempt to update status of the 
+      # transaction before marking it as failed. 
+      # Default value: 10
+      max_attempts: <max_attempts>
+    retry_config:
+      # Determines how many times the Fireblocks client will attempt to send request before marking a call as failed.
+      # Default value: 3
+      max_attempts: <max_attempts>
+      # Interval between Fireblocks client call attempts (in ms)
+      # Default value: 1000
+      delay: <delay>
+```
+
+Add environment variables.
+```text
+# API key, that will be added to JWT token claims. JWT token will be sent in requests to Fireblocks API
+SECRET_CUSTODY_FIREBLOCKS_API_KEY="Fireblocks API key"
+# Secret key, that is used to sign JWT token
+SECRET_CUSTODY_FIREBLOCKS_SECRET_KEY="Fireblocks secret key"
 ```
 
 ### JVM-Argument based run-configuration
