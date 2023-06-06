@@ -89,7 +89,8 @@ public class Sep38Service {
 
     // countryCode
     if (!Objects.toString(countryCode, "").isEmpty()) {
-      if (!sellAsset.getCountryCodes().contains(countryCode)) {
+      if (sellAsset.getCountryCodes() == null
+          || !sellAsset.getCountryCodes().contains(countryCode)) {
         throw new BadRequestException("Unsupported country code");
       }
     }
