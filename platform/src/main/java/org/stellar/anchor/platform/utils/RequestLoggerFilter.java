@@ -10,6 +10,7 @@ import javax.servlet.http.HttpServletResponse;
 import org.springframework.web.filter.OncePerRequestFilter;
 import org.springframework.web.util.ContentCachingRequestWrapper;
 import org.springframework.web.util.ContentCachingResponseWrapper;
+import org.stellar.anchor.platform.config.AppLoggingConfig;
 import org.stellar.anchor.util.Log;
 
 /**
@@ -19,10 +20,21 @@ import org.stellar.anchor.util.Log;
  * @see <a href="https://stackoverflow.com/a/42023374/875657">StackOverflow Answer</a>
  */
 public class RequestLoggerFilter extends OncePerRequestFilter {
+  private final AppLoggingConfig appLoggingConfig;
+
+  public RequestLoggerFilter(AppLoggingConfig appLoggingConfig) {
+    this.appLoggingConfig = appLoggingConfig;
+  }
+
   @Override
   protected void doFilterInternal(
       HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
       throws ServletException, IOException {
+
+    if (!appLoggingConfig.isRequestLoggerEnabled()) {
+      filterChain.doFilter(request, response);
+      return;
+    }
 
     long startTime = System.currentTimeMillis();
 
@@ -58,7 +70,8 @@ public class RequestLoggerFilter extends OncePerRequestFilter {
             .durationMilliseconds(duration)
             .build();
 
-    Log.info(requestResponseMessage.toString());
+    Log.debugF("{} {} takes {} ms", request.getMethod(), request.getRequestURI(), duration);
+    Log.trace(requestResponseMessage.toString());
 
     // IMPORTANT: copy content of response back into original response:
     wrappedResponse.copyBodyToResponse();

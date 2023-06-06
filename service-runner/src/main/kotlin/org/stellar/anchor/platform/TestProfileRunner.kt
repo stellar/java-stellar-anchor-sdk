@@ -105,11 +105,11 @@ class TestProfileExecutor(val config: TestConfig) {
 
       if (jobs.size > 0) {
         jobs.forEach { it.join() }
-        if (wait) {
-          while (true) {
-            delay(60000)
-          }
-        }
+        if (wait)
+          do {
+            delay(5000)
+            val anyActive = runningServers.any { it.isActive }
+          } while (anyActive)
       }
     }
 
