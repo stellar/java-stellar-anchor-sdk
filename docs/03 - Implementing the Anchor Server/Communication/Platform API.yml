@@ -58,7 +58,7 @@ paths:
     get:
       tags:
         - "Transactions"
-      summary: Retreive a Transaction
+      summary: Retrieve a Transaction
       operationId: getTransaction
       description:
         Provides the information necessary for the business to determine the state of the transaction identified by
@@ -90,6 +90,51 @@ paths:
             application/json:
               schema:
                 $ref: './schemas.yml#/components/schemas/Error'
+  /transactions/{id}/payments:
+    post:
+      tags:
+        - "Transactions"
+      summary: Create a Transaction payment
+      operationId: createCustodyTransactionPayment
+      description:
+        Makes a call to custody server to create a payment on a custody provider for the transaction identified by `id`.
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: "Transaction on a custody provider created successfully."
+          content:
+            application/json:
+              schema:
+                $ref: './schemas.yml#/components/schemas/CreateTransactionPaymentResponse'
+        '400':
+          description: "Bad Request"
+          content:
+            application/json:
+              schema:
+                $ref: './schemas.yml#/components/schemas/CustodyError'
+        '404':
+          description: "Transaction not found."
+          content:
+            application/json:
+              schema:
+                $ref: './schemas.yml#/components/schemas/CustodyError'
+        '429':
+          description: "Rate limit reached."
+          content:
+            application/json:
+              schema:
+                $ref: './schemas.yml#/components/schemas/CustodyError'
+        '503':
+          description: "Custody provider unavailable."
+          content:
+            application/json:
+              schema:
+                $ref: './schemas.yml#/components/schemas/CustodyError'
   /exchange/quotes:
     get:
       tags:

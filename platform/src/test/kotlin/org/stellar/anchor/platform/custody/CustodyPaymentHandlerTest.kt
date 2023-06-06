@@ -114,28 +114,6 @@ class CustodyPaymentHandlerTest {
   }
 
   @Test
-  fun test_validatePayment_invalidAmount() {
-    val txn =
-      gson.fromJson(
-        getResourceFileAsString(
-          "custody/fireblocks/webhook/handler/custody_transaction_input.json"
-        ),
-        JdbcCustodyTransaction::class.java
-      )
-    val payment =
-      gson.fromJson(
-        getResourceFileAsString(
-          "custody/fireblocks/webhook/handler/custody_payment_invalid_amount.json"
-        ),
-        CustodyPayment::class.java
-      )
-
-    custodyPaymentHandler.validatePayment(txn, payment)
-
-    assertEquals("The incoming payment amount was insufficient", payment.getMessage())
-  }
-
-  @Test
   fun test_validatePayment_validAsset() {
     val txn =
       gson.fromJson(

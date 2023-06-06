@@ -604,6 +604,405 @@ components:
       required:
         - error
 
+    CreateTransactionPaymentResponse:
+      type: object
+      properties:
+        id:
+          type: string
+
+    CustodyError:
+      type: object
+      properties:
+        rawErrorMessage:
+          type: string
+      required:
+        - rawErrorMessage
+
+    CreateCustodyTransactionRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          description: Id of SEP24/SEP31 transaction
+        memo:
+          type: string
+          description: Memo
+        memoType:
+          type: string
+          description: Type of the memo
+        protocol:
+          type: string
+          description: "Protocol of the transaction. Possible values: 24, 31"
+        fromAccount:
+          type: string
+          description: Sent from address
+        toAccount:
+          type: string
+          description: Sent to address
+        amount:
+          type: string
+          description: Amount sent/received
+        amountAsset:
+          type: string
+          description: "Asset code in format: stellar:{asset_CODE}:{ASSET_ISSUER}"
+        kind:
+          type: string
+          description: The kind of the transaction
+          enum:
+            - deposit
+            - withdrawal
+            - receive
+
+    GenerateDepositAddressResponse:
+      type: object
+      properties:
+        address:
+          type: string
+          description: Generated deposit address
+        memo:
+          type: string
+          description: Memo
+        memoType:
+          type: string
+          description: Type of the memo
+
+    FireblocksEventObject:
+      type: object
+      properties:
+        type:
+          type: string
+          description: Event type
+          enum:
+            - TRANSACTION_CREATED
+            - TRANSACTION_STATUS_UPDATED
+            - TRANSACTION_APPROVAL_STATUS_UPDATED
+            - VAULT_ACCOUNT_ADDED
+            - VAULT_ACCOUNT_ASSET_ADDED
+            - INTERNAL_WALLET_ASSET_ADDED
+            - EXTERNAL_WALLET_ASSET_ADDED
+            - EXCHANGE_ACCOUNT_ADDED
+            - FIAT_ACCOUNT_ADDED
+            - NETWORK_CONNECTION_ADDED
+        tenantId:
+          type: string
+          description: Unique id of your Fireblocks' workspace.
+        timestamp:
+          type: integer
+          description: Timestamp in milliseconds.
+        data:
+          type: object
+          properties:
+            id:
+              type: string
+              description: ID of the transaction.
+            assetId:
+              type: string
+              description: Transaction asset.
+            source:
+              $ref: '#/components/schemas/TransferPeerPathResponse'
+            destination:
+              $ref: '#/components/schemas/TransferPeerPathResponse'
+            requestedAmount:
+              type: number
+              description: The amount requested by the user.
+            amountInfo:
+              type: object
+              properties:
+                amount:
+                  type: string
+                  description: If the transfer is a withdrawal from an exchange, the actual amount that was requested to be transferred. Otherwise, it is the requested amount.
+                requestedAmount:
+                  type: string
+                  description: The amount requested by the user.
+                netAmount:
+                  type: string
+                  description: The net amount of the transaction, after fee deduction.
+                amountUSD:
+                  type: string
+                  description: The USD value of the requested amount.
+            feeInfo:
+              type: object
+              properties:
+                networkFee:
+                  type: string
+                  description: The fee paid to the network.
+                serviceFee:
+                  type: string
+                  description: The total fee deducted by the exchange from the actual requested amount.
+            amount:
+              type: number
+              description: If the transfer is a withdrawal from an exchange, the actual amount that was requested to be transferred. Otherwise, the requested amount.
+            netAmount:
+              type: number
+              description: The net amount of the transaction, after fee deduction.
+            amountUSD:
+              type: number
+              description: The USD value of the requested amount.
+            serviceFee:
+              type: number
+              description: The total fee deducted by the exchange from the actual requested amount
+            treatAsGrossAmount:
+              type: boolean
+              description: For outgoing transactions, if true, the network fee is deducted from the requested amount.
+            networkFee:
+              type: number
+              description: The fee paid to the network.
+            createdAt:
+              type: number
+              description: Unix timestamp.
+            lastUpdated:
+              type: number
+              description: Unix timestamp.
+            status:
+              type: string
+              enum:
+                - SUBMITTED
+                - QUEUED
+                - PENDING_AUTHORIZATION
+                - PENDING_SIGNATURE
+                - BROADCASTING
+                - PENDING_3RD_PARTY_MANUAL_APPROVAL
+                - PENDING_3RD_PARTY
+                - CONFIRMING
+                - PARTIALLY_COMPLETED
+                - PENDING_AML_SCREENING
+                - COMPLETED
+                - CANCELLED
+                - REJECTED
+                - BLOCKED
+                - FAILED
+            txHash:
+              type: string
+              description: Blockchain hash of the transaction.
+            index:
+              type: number
+              description: For UTXO based assets this is the vOut, for Ethereum based, this is the index of the event of the contract call.
+            subStatus:
+              type: string
+            sourceAddress:
+              type: string
+              description: For account based assets only, the source address of the transaction.
+            destinationAddress:
+              type: string
+              description: Address where the asset were transferred.
+            destinationAddressDescription:
+              type: string
+              description: Description of the address.
+            destinationTag:
+              type: string
+              description: Destination tag for XRP
+            signedBy:
+              type: array
+              items:
+                type: string
+              description: Signers of the transaction.
+            createdBy:
+              type: string
+              description: Initiator of the transaction.
+            rejectedBy:
+              type: string
+              description: User ID of the user that rejected the transaction
+            addressType:
+              type: string
+              description: ONE_TIME, WHITELISTED.
+            note:
+              type: string
+              description: Custom note of the transaction.
+            exchangeTxId:
+              type: string
+              description: If the transaction originated from an exchange, this is the exchange tx ID.
+            feeCurrency:
+              type: string
+              description: The asset which was taken to pay the fee
+            operation:
+              type: string
+              description: Default operation is "TRANSFER".
+            amlScreeningResult:
+              $ref: '#/components/schemas/AmlScreeningResult'
+            customerRefId:
+              type: string
+              description: The ID for AML providers to associate the owner of funds with transactions.
+            numOfConfirmations:
+              type: number
+              description: The number of confirmations of the transaction.
+            networkRecords:
+              type: object
+              properties:
+                source:
+                  $ref: '#/components/schemas/TransferPeerPathResponse'
+                destination:
+                  $ref: '#/components/schemas/TransferPeerPathResponse'
+                txHash:
+                  type: string
+                  description: Blockchain hash of the transaction.
+                networkFee:
+                  type: number
+                  description: The fee paid to the network.
+                assetId:
+                  type: string
+                  description: Transaction asset.
+                netAmount:
+                  type: number
+                  description: The net amount of the transaction, after fee deduction.
+                status:
+                  type: string
+                  enum:
+                    - DROPPED
+                    - BROADCASTING
+                    - CONFIRMING
+                    - FAILED
+                    - CONFIRMED
+                type:
+                  type: string
+                  description: Type of the blockchain network operation.
+                destinationAddress:
+                  type: string
+                  description: Destination address.
+                sourceAddress:
+                  type: string
+                  description: For account based assets only, the source address of the transaction.
+            replacedTxHash:
+              type: string
+              description: In case of an RBF transaction, the hash of the dropped transaction.
+            externalTxId:
+              type: string
+              description: Unique transaction ID provided by the user.
+            destinations:
+              type: array
+              items:
+                $ref: '#/components/schemas/DestinationsResponse'
+            blockInfo:
+              type: object
+              properties:
+                blockHeight:
+                  type: string
+                  description: The height (number) of the block the transaction was mined in.
+                blockHash:
+                  type: string
+                  description: The hash of the block the transaction was mined in.
+            rewardsInfo:
+              type: object
+              properties:
+                srcRewards:
+                  type: string
+                  description: The ALGO rewards acknowledged by the source account of the transaction.
+                destRewards:
+                  type: string
+                  description: The ALGO rewards acknowledged by the destination account of the transaction.
+            authorizationInfo:
+              type: object
+              properties:
+                allowOperatorAsAuthorizer:
+                  type: boolean
+                  description: Set to "true" if the intiator of the transaction can be one of the approvers.
+                logic:
+                  type: string
+                  description: This is the logic that is applied between the different authorization groups listed below.
+                groups:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      th:
+                        type: number
+                        description: The threshold of required approvers in this authorization group.
+                      users:
+                        type: array
+                        description: The list of users that the threshold number is applied to for transaction approval.
+            signedMessages:
+              type: array
+              items:
+                type: object
+                properties:
+                  content:
+                    type: string
+                    description: The message for signing (hex-formatted).
+                  algorithm:
+                    type: string
+                    description: The algorithm that was used for signing
+                  derivationPath:
+                    type: array
+                    items:
+                      type: number
+                  signature:
+                    type: string
+                    description: The message signature.
+                  publicKey:
+                    type: string
+                    description: Signature's public key that can be used for verification.
+            extraParameters:
+              type: string
+              description: Protocol / operation specific parameters.
+            systemMessages:
+              type: array
+              items:
+                type: object
+                properties:
+                  type:
+                    type: string
+                    description: The type of system message being returned.
+                  message:
+                    type: string
+                    description: In plain text, the specific message being returned from the system about its status.
+
+    DestinationsResponse:
+      type: object
+      properties:
+        amount:
+          type: string
+          description: The amount to be sent to this destination.
+        destination:
+          $ref: '#/components/schemas/TransferPeerPathResponse'
+        amountUSD:
+          type: number
+          description: The USD value of the requested amount.
+        destinationAddress:
+          type: string
+          description: Address where the asset were transferred.
+        destinationAddressDescription:
+          type: string
+          description: Description of the address.
+        amlScreeningResult:
+          $ref: '#/components/schemas/AmlScreeningResult'
+        customerRefId:
+          type: string
+          description: The ID for AML providers to associate the owner of funds with transactions.
+
+    AmlScreeningResult:
+      type: object
+      properties:
+        provider:
+          type: string
+          description: The AML service provider.
+        payload:
+          type: string
+          description: The response of the AML service provider.
+
+    TransferPeerPathResponse:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+            - VAULT_ACCOUNT
+            - EXCHANGE_ACCOUNT
+            - INTERNAL_WALLET
+            - EXTERNAL_WALLET
+            - ONE_TIME_ADDRESS
+            - NETWORK_CONNECTION
+            - FIAT_ACCOUNT
+            - COMPOUND
+            - UNKNOWN
+        id:
+          type: string
+          description: The ID of the exchange account to return
+        name:
+          type: string
+          description: The name of the exchange account
+        subType:
+          type: string
+          description: The specific exchange, fiat account or unmanaged wallet (either INTERNAL / EXTERNAL)
+
     Event:
       type: object
       properties:
