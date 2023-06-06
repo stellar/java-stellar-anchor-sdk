@@ -166,6 +166,11 @@ app_logging:
   ## @type: string
   ## The "org.stellar" logger logging level.
   stellar_level: INFO
+  ## Enable/disable the request logger that logs all request body
+  ##   Setting the stellar_level to DEBUG will log the request URL
+  ##   Setting the stellar_level to TRACE will log the request body
+  ## Note: By enabling the logger, PII may be logged
+  request_logger_enabled: false
 
 ######################
 ## Platform Server Configuration
