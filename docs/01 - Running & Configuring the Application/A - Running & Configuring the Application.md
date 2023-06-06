@@ -197,6 +197,19 @@ custody_server:
   base_url: <base_url> # The base URL of the Custody Server. Default value: http://localhost:8085
 ```
 
+Configure authentication type.
+```yaml
+custody_server:
+  auth:
+    type: jwt # Type of authentication, that is used, when Platform communicates with Custody Server.
+              # Possible options: [api_key, jwt]. Default value: none
+```
+
+If you set `api_key` or `jwt` authentication type, then you need to an add environment variable:
+```bash
+SECRET_CUSTODY_SERVER_AUTH_SECRET
+```
+
 Start Custody Server using Gradle or Docker:
 
 ```bash
@@ -226,27 +239,14 @@ sep24:
 
 ##### Fireblocks Configuration
 
-Configure webhook URL:
-```
-https://support.fireblocks.io/hc/en-us/articles/4408110107794-Configuring-Webhook-URLs
-```
+Configure Fireblocks workspace:
+1. [Configure API Co-Signer](https://support.fireblocks.io/hc/en-us/articles/4581830426268)
+2. [Add API User](https://support.fireblocks.io/hc/en-us/articles/4407823826194-Adding-new-API-users)
+3. [Configure Webhook URL](https://support.fireblocks.io/hc/en-us/articles/4408110107794-Configuring-Webhook-URLs)
+4. [Enable One-Time Address feature](https://support.fireblocks.io/hc/en-us/articles/4409104568338)
+5. [Configure Transaction Policy](https://support.fireblocks.io/hc/en-us/articles/5227408755356-About-the-Policy-Editor)
 
-Enable One-Time Address feature:
-```
-https://support.fireblocks.io/hc/en-us/articles/4409104568338
-```
-
-Configure API Co-Signer:
-```
-https://support.fireblocks.io/hc/en-us/articles/4581830426268-
-```
-
-Add API User:
-```
-https://support.fireblocks.io/hc/en-us/articles/4407823826194-Adding-new-API-users
-```
-
-Update configuration file of Custody Server
+Update configuration file of Custody Server.
 
 ```yaml
 custody:
@@ -255,9 +255,16 @@ custody:
     vault_account_id: <vault_account_id> # ID of Fireblocks vault account, that will be used for payments
     public_key: <public_key> # Fireblocks public key. Is used to verify a webhook signature
     asset_mappings: <asset_mappings> # Mappings of fireblocks asset codes to stellar asset codes. For example:
-                                     # XLM_USDC_1 stellar:USDC:6HW07AE2MZU3JWWARR9CUSDV5S68K4SLY6FGDJ6KIU6ZJETC3HJP00I2V
-                                     # XLM_SRT_2 stellar:USDC:12345AE2MZU3JWWARR9CUSDV5S68K4SLY6FGDJ6KIU6ZJETC3HJP12345
+                                     # XLM_USDC_T_CEKS stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5
+                                     # XLM_USDC_T_CEKS_2 stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5
                                      # Codes should be divided with space and each pair of codes should be in new line
+```
+
+Add environment variables.
+
+```bash
+SECRET_CUSTODY_FIREBLOCKS_API_KEY # API key, that will be added to JWT token claims. JWT token will be sent in requests to Fireblocks API
+SECRET_CUSTODY_FIREBLOCKS_SECRET_KEY # secret key, that is used to sign JWT token
 ```
 
 ### JVM-Argument based run-configuration
