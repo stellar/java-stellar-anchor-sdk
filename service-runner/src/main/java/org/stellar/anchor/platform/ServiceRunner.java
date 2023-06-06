@@ -16,6 +16,7 @@ public class ServiceRunner {
     options.addOption("h", "help", false, "Print this message.");
     options.addOption("a", "all", false, "Start all servers.");
     options.addOption("s", "sep-server", false, "Start SEP endpoint server.");
+    options.addOption("p", "platform-server", false, "Start Platform API endpoint server.");
     options.addOption(
         "o", "stellar-observer", false, "Start Observer that streams from the Stellar blockchain.");
     options.addOption("e", "event-processor", false, "Start the event processor.");
@@ -33,6 +34,11 @@ public class ServiceRunner {
         anyServerStarted = true;
       }
 
+      if (cmd.hasOption("platform-server") || cmd.hasOption("all")) {
+        startPlatformServer(null);
+        anyServerStarted = true;
+      }
+
       if (cmd.hasOption("stellar-observer") || cmd.hasOption("all")) {
         startStellarObserver(null);
         anyServerStarted = true;
@@ -44,7 +50,7 @@ public class ServiceRunner {
       }
 
       if (cmd.hasOption("anchor-reference-server") || cmd.hasOption("all")) {
-        startAnchorReferenceServer();
+        startAnchorReferenceServer(null);
         anyServerStarted = true;
       }
 
@@ -67,7 +73,11 @@ public class ServiceRunner {
   }
 
   public static ConfigurableApplicationContext startSepServer(Map<String, String> env) {
-    return new AnchorPlatformServer().start(env);
+    return new SepServer().start(env);
+  }
+
+  public static ConfigurableApplicationContext startPlatformServer(Map<String, String> env) {
+    return new PlatformServer().start(env);
   }
 
   public static ConfigurableApplicationContext startStellarObserver(Map<String, String> env) {
@@ -78,7 +88,7 @@ public class ServiceRunner {
     return new EventProcessingServer().start(env);
   }
 
-  public static ConfigurableApplicationContext startAnchorReferenceServer() {
+  public static ConfigurableApplicationContext startAnchorReferenceServer(Map<String, String> env) {
     String strPort = System.getProperty("ANCHOR_REFERENCE_SERVER_PORT");
 
     int port = DEFAULT_ANCHOR_REFERENCE_SERVER_PORT;
@@ -87,7 +97,7 @@ public class ServiceRunner {
       port = Integer.parseInt(strPort);
     }
 
-    return AnchorReferenceServer.start(port, "/");
+    return AnchorReferenceServer.start(env, port, "/");
   }
 
   public static void startKotlinReferenceServer(Map<String, String> envMap, boolean wait) {

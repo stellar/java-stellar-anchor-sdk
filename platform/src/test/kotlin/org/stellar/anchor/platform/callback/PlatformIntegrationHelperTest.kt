@@ -7,11 +7,10 @@ import okhttp3.Request
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
-import org.stellar.anchor.auth.AuthHelper
-import org.stellar.anchor.auth.AuthType
+import org.stellar.anchor.auth.*
+import org.stellar.anchor.auth.ApiAuthJwt.PlatformAuthJwt
 import org.stellar.anchor.auth.AuthType.*
 import org.stellar.anchor.auth.JwtService
-import org.stellar.anchor.auth.Sep10Jwt
 
 class PlatformIntegrationHelperTest {
   companion object {
@@ -41,15 +40,13 @@ class PlatformIntegrationHelperTest {
 
         // mock jwt token based on the mocked calendar
         val wantJwtToken =
-          Sep10Jwt.of(
-            TEST_HOME_DOMAIN,
+          PlatformAuthJwt(
             currentTimeMilliseconds / 1000L,
             (currentTimeMilliseconds + JWT_EXPIRATION_MILLISECONDS) / 1000L
           )
 
-        val jwtService = JwtService("secret", null, null)
-        val authHelper =
-          AuthHelper.forJwtToken(jwtService, JWT_EXPIRATION_MILLISECONDS, TEST_HOME_DOMAIN)
+        val jwtService = JwtService(null, null, null, "secret", "secret")
+        val authHelper = AuthHelper.forJwtToken(jwtService, JWT_EXPIRATION_MILLISECONDS)
 
         val gotRequestBuilder = PlatformIntegrationHelper.getRequestBuilder(authHelper)
         val gotRequest = gotRequestBuilder.url(TEST_HOME_DOMAIN).get().build()

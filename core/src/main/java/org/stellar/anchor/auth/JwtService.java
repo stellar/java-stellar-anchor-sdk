@@ -10,6 +10,8 @@ import lombok.Getter;
 import org.apache.commons.codec.binary.Base64;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.api.exception.NotSupportedException;
+import org.stellar.anchor.auth.ApiAuthJwt.CallbackAuthJwt;
+import org.stellar.anchor.auth.ApiAuthJwt.PlatformAuthJwt;
 import org.stellar.anchor.config.SecretConfig;
 
 @Getter
@@ -18,31 +20,29 @@ public class JwtService {
   String sep10JwtSecret;
   String sep24InteractiveUrlJwtSecret;
   String sep24MoreInfoUrlJwtSecret;
+  String callbackAuthSecret;
+  String platformAuthSecret;
 
-  public JwtService(SecretConfig secretConfig) {
+  public JwtService(SecretConfig secretConfig) throws NotSupportedException {
     this(
         secretConfig.getSep10JwtSecretKey(),
         secretConfig.getSep24InteractiveUrlJwtSecret(),
-        secretConfig.getSep24MoreInfoUrlJwtSecret());
+        secretConfig.getSep24MoreInfoUrlJwtSecret(),
+        secretConfig.getCallbackAuthSecret(),
+        secretConfig.getPlatformAuthSecret());
   }
 
   public JwtService(
       String sep10JwtSecret,
       String sep24InteractiveUrlJwtSecret,
-      String sep24MoreInfoUrlJwtSecret) {
-    this.sep10JwtSecret =
-        (sep10JwtSecret == null)
-            ? null
-            : Base64.encodeBase64String(sep10JwtSecret.getBytes(StandardCharsets.UTF_8));
-    this.sep24InteractiveUrlJwtSecret =
-        (sep24InteractiveUrlJwtSecret == null)
-            ? null
-            : Base64.encodeBase64String(
-                sep24InteractiveUrlJwtSecret.getBytes(StandardCharsets.UTF_8));
-    this.sep24MoreInfoUrlJwtSecret =
-        (sep24MoreInfoUrlJwtSecret == null)
-            ? null
-            : Base64.encodeBase64String(sep24MoreInfoUrlJwtSecret.getBytes(StandardCharsets.UTF_8));
+      String sep24MoreInfoUrlJwtSecret,
+      String callbackAuthSecret,
+      String platformAuthSecret) {
+    this.sep10JwtSecret = toBase64OrNull(sep10JwtSecret);
+    this.sep24InteractiveUrlJwtSecret = toBase64OrNull(sep24InteractiveUrlJwtSecret);
+    this.sep24MoreInfoUrlJwtSecret = toBase64OrNull(sep24MoreInfoUrlJwtSecret);
+    this.callbackAuthSecret = toBase64OrNull(callbackAuthSecret);
+    this.platformAuthSecret = toBase64OrNull(platformAuthSecret);
   }
 
   public String encode(Sep10Jwt token) {
@@ -102,6 +102,29 @@ public class JwtService {
     return builder.signWith(SignatureAlgorithm.HS256, sep24MoreInfoUrlJwtSecret).compact();
   }
 
+  public String encode(CallbackAuthJwt token) throws InvalidConfigException {
+    return encode(token, callbackAuthSecret);
+  }
+
+  public String encode(PlatformAuthJwt token) throws InvalidConfigException {
+    return encode(token, platformAuthSecret);
+  }
+
+  private String encode(ApiAuthJwt token, String secret) throws InvalidConfigException {
+    if (platformAuthSecret == null) {
+      throw new InvalidConfigException(
+          "Please provide the secret before encoding JWT for API Authentication");
+    }
+
+    Calendar calNow = Calendar.getInstance();
+    Calendar calExp = Calendar.getInstance();
+    calExp.setTimeInMillis(1000L * token.getExp());
+    JwtBuilder builder =
+        Jwts.builder().setIssuedAt(calNow.getTime()).setExpiration(calExp.getTime());
+
+    return builder.signWith(SignatureAlgorithm.HS256, secret).compact();
+  }
+
   @SuppressWarnings({"unchecked", "rawtypes"})
   public <T extends AbstractJwt> T decode(String cipher, Class<T> cls)
       throws NotSupportedException, NoSuchMethodException, InvocationTargetException,
@@ -113,6 +136,10 @@ public class JwtService {
       secret = sep24InteractiveUrlJwtSecret;
     } else if (cls.equals(Sep24MoreInfoUrlJwt.class)) {
       secret = sep24MoreInfoUrlJwtSecret;
+    } else if (cls.equals(CallbackAuthJwt.class)) {
+      secret = callbackAuthSecret;
+    } else if (cls.equals(PlatformAuthJwt.class)) {
+      secret = platformAuthSecret;
     } else {
       throw new NotSupportedException(
           String.format("The Jwt class:[%s] is not supported", cls.getName()));
@@ -136,8 +163,16 @@ public class JwtService {
       return (T) Sep10Jwt.class.getConstructor(Jwt.class).newInstance(jwt);
     } else if (cls.equals(Sep24InteractiveUrlJwt.class)) {
       return (T) Sep24InteractiveUrlJwt.class.getConstructor(Jwt.class).newInstance(jwt);
-    } else {
+    } else if (cls.equals(Sep24MoreInfoUrlJwt.class)) {
       return (T) Sep24MoreInfoUrlJwt.class.getConstructor(Jwt.class).newInstance(jwt);
+    } else if (cls.equals(PlatformAuthJwt.class)) {
+      return (T) PlatformAuthJwt.class.getConstructor(Jwt.class).newInstance(jwt);
+    } else {
+      return (T) CallbackAuthJwt.class.getConstructor(Jwt.class).newInstance(jwt);
     }
+  }
+
+  private String toBase64OrNull(String value) {
+    return value == null ? null : Base64.encodeBase64String(value.getBytes(StandardCharsets.UTF_8));
   }
 }

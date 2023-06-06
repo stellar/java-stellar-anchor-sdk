@@ -14,22 +14,23 @@ import org.stellar.anchor.util.AuthHeader;
 import org.stellar.anchor.util.Log;
 
 public class PlatformIntegrationHelper {
-  public static Request.Builder getRequestBuilder(AuthHelper authHelper) {
+  public static Request.Builder getRequestBuilder(AuthHelper authHelper)
+      throws InvalidConfigException {
     Request.Builder requestBuilder =
         new Request.Builder().header("Content-Type", "application/json");
 
-    AuthHeader<String, String> authHeader = authHelper.createAuthHeader();
+    AuthHeader<String, String> authHeader = authHelper.createCallbackAuthHeader();
     return authHeader == null
         ? requestBuilder
         : requestBuilder.header(authHeader.getName(), authHeader.getValue());
   }
 
   public static Response call(OkHttpClient httpClient, Request request)
-      throws ServiceUnavailableException {
+      throws ServerErrorException {
     try {
       return httpClient.newCall(request).execute();
     } catch (IOException e) {
-      throw new ServiceUnavailableException("service not available", e);
+      throw new ServerErrorException("service not available", e);
     }
   }
 

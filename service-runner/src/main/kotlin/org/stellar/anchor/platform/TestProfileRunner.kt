@@ -41,6 +41,7 @@ class TestProfileExecutor(val config: TestConfig) {
   private var shouldStartDockerCompose: Boolean = false
   private var shouldStartAllServers: Boolean = false
   private var shouldStartSepServer: Boolean = false
+  private var shouldStartPlatformServer: Boolean = false
   private var shouldStartReferenceServer: Boolean = false
   private var shouldStartObserver: Boolean = false
   private var shouldStartKotlinReferenceServer: Boolean = false
@@ -53,11 +54,13 @@ class TestProfileExecutor(val config: TestConfig) {
     shouldStartDockerCompose = config.env["run_docker"].toBoolean()
     shouldStartAllServers = config.env["run_all_servers"].toBoolean()
     shouldStartSepServer = config.env["run_sep_server"].toBoolean()
+    shouldStartPlatformServer = config.env["run_platform_server"].toBoolean()
     shouldStartReferenceServer = config.env["run_reference_server"].toBoolean()
     shouldStartObserver = config.env["run_observer"].toBoolean()
     shouldStartKotlinReferenceServer = config.env["run_kotlin_reference_server"].toBoolean()
 
     startDocker()
+    // TODO: Check server readiness instead of wait for 5 seconds
     sleep(5000)
     startServers(wait)
   }
@@ -84,7 +87,8 @@ class TestProfileExecutor(val config: TestConfig) {
       }
       if (shouldStartAllServers || shouldStartReferenceServer) {
         info("Starting Java reference server...")
-        jobs += scope.launch { runningServers.add(ServiceRunner.startAnchorReferenceServer()) }
+        jobs +=
+          scope.launch { runningServers.add(ServiceRunner.startAnchorReferenceServer(envMap)) }
       }
       if (shouldStartAllServers || shouldStartObserver) {
         info("Starting observer...")
@@ -93,6 +97,10 @@ class TestProfileExecutor(val config: TestConfig) {
       if (shouldStartAllServers || shouldStartSepServer) {
         info("Starting SEP server...")
         jobs += scope.launch { runningServers.add(ServiceRunner.startSepServer(envMap)) }
+      }
+      if (shouldStartAllServers || shouldStartPlatformServer) {
+        info("Starting platform server...")
+        jobs += scope.launch { runningServers.add(ServiceRunner.startPlatformServer(envMap)) }
       }
 
       if (jobs.size > 0) {

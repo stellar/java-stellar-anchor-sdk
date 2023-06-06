@@ -293,7 +293,6 @@ class Sep31ServiceTest {
   fun setUp() {
     MockKAnnotations.init(this, relaxUnitFun = true)
     every { appConfig.stellarNetworkPassphrase } returns TestConstants.TEST_NETWORK_PASS_PHRASE
-    every { appConfig.hostUrl } returns TestConstants.TEST_HOST_URL
     every { secretConfig.sep10JwtSecretKey } returns TestConstants.TEST_JWT_SECRET
     every { appConfig.languages } returns listOf("en")
     every { sep31Config.paymentType } returns STRICT_SEND

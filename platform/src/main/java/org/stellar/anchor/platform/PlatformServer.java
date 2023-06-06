@@ -12,44 +12,34 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.format.FormatterRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.stellar.anchor.platform.configurator.PlatformConfigManager;
 import org.stellar.anchor.platform.configurator.SecretManager;
-import org.stellar.anchor.platform.configurator.SepConfigManager;
-import org.stellar.anchor.platform.utils.StringEnumConverter;
 
 @SpringBootApplication
 @EnableJpaRepositories(basePackages = {"org.stellar.anchor.platform.data"})
 @EntityScan(basePackages = {"org.stellar.anchor.platform.data"})
 @ComponentScan(
     basePackages = {
-      "org.stellar.anchor.platform.controller.sep",
-      "org.stellar.anchor.platform.component.sep",
+      "org.stellar.anchor.platform.controller.platform",
+      "org.stellar.anchor.platform.component.platform",
       "org.stellar.anchor.platform.component.share"
     })
 @EnableConfigurationProperties
-public class AnchorPlatformServer extends AbstractPlatformServer implements WebMvcConfigurer {
+public class PlatformServer extends AbstractPlatformServer implements WebMvcConfigurer {
   private ConfigurableApplicationContext ctx;
 
   public ConfigurableApplicationContext start(Map<String, String> environment) {
     buildEnvironment(environment);
 
     SpringApplicationBuilder builder =
-        new SpringApplicationBuilder(AnchorPlatformServer.class).bannerMode(OFF);
+        new SpringApplicationBuilder(PlatformServer.class).bannerMode(OFF);
     SpringApplication springApplication = builder.build();
     info("Adding secret manager as initializers...");
     springApplication.addInitializers(SecretManager.getInstance());
-    info("Adding sep config manager as initializers...");
-    springApplication.addInitializers(SepConfigManager.getInstance());
+    info("Adding platform config manager as initializers...");
+    springApplication.addInitializers(PlatformConfigManager.getInstance());
 
     return ctx = springApplication.run();
-  }
-
-  @Override
-  public void addFormatters(FormatterRegistry registry) {
-    registry.addConverter(new StringEnumConverter.TransactionsOrderByConverter());
-    registry.addConverter(new StringEnumConverter.TransactionsSepsConverter());
-    registry.addConverter(new StringEnumConverter.SepTransactionStatusConverter());
-    registry.addConverter(new StringEnumConverter.DirectionConverter());
   }
 }
