@@ -17,8 +17,6 @@ import org.stellar.anchor.api.callback.FeeIntegration;
 import org.stellar.anchor.api.callback.RateIntegration;
 import org.stellar.anchor.api.callback.UniqueAddressIntegration;
 import org.stellar.anchor.auth.AuthHelper;
-import org.stellar.anchor.auth.JwtService;
-import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.platform.callback.RestCustomerIntegration;
 import org.stellar.anchor.platform.callback.RestFeeIntegration;
 import org.stellar.anchor.platform.callback.RestRateIntegration;
@@ -27,7 +25,7 @@ import org.stellar.anchor.platform.config.CallbackApiConfig;
 import org.stellar.anchor.platform.config.PropertySecretConfig;
 
 @Configuration
-public class CallbackApiBeans {
+public class ApiClientBeans {
   TrustManager[] trustAllCerts =
       new TrustManager[] {
         new X509TrustManager() {
@@ -74,66 +72,35 @@ public class CallbackApiBeans {
 
   @Bean
   UniqueAddressIntegration uniqueAddressIntegration(
-      AppConfig appConfig,
-      CallbackApiConfig callbackApiConfig,
-      OkHttpClient httpClient,
-      Gson gson) {
-    AuthHelper authHelper = buildAuthHelper(appConfig, callbackApiConfig);
+      CallbackApiConfig callbackApiConfig, OkHttpClient httpClient, Gson gson) {
+    AuthHelper authHelper = buildAuthHelper(callbackApiConfig);
     return new RestUniqueAddressIntegration(
         callbackApiConfig.getBaseUrl(), httpClient, authHelper, gson);
   }
 
   @Bean
   CustomerIntegration customerIntegration(
-      AppConfig appConfig,
-      CallbackApiConfig callbackApiConfig,
-      OkHttpClient httpClient,
-      Gson gson) {
+      CallbackApiConfig callbackApiConfig, OkHttpClient httpClient, Gson gson) {
     return new RestCustomerIntegration(
-        callbackApiConfig.getBaseUrl(),
-        httpClient,
-        buildAuthHelper(appConfig, callbackApiConfig),
-        gson);
+        callbackApiConfig.getBaseUrl(), httpClient, buildAuthHelper(callbackApiConfig), gson);
   }
 
   @Bean
   RateIntegration rateIntegration(
-      AppConfig appConfig,
-      CallbackApiConfig callbackApiConfig,
-      OkHttpClient httpClient,
-      Gson gson) {
+      CallbackApiConfig callbackApiConfig, OkHttpClient httpClient, Gson gson) {
     return new RestRateIntegration(
-        callbackApiConfig.getBaseUrl(),
-        httpClient,
-        buildAuthHelper(appConfig, callbackApiConfig),
-        gson);
+        callbackApiConfig.getBaseUrl(), httpClient, buildAuthHelper(callbackApiConfig), gson);
   }
 
   @Bean
   FeeIntegration feeIntegration(
-      AppConfig appConfig,
-      CallbackApiConfig callbackApiConfig,
-      OkHttpClient httpClient,
-      Gson gson) {
+      CallbackApiConfig callbackApiConfig, OkHttpClient httpClient, Gson gson) {
     return new RestFeeIntegration(
-        callbackApiConfig.getBaseUrl(),
-        httpClient,
-        buildAuthHelper(appConfig, callbackApiConfig),
-        gson);
+        callbackApiConfig.getBaseUrl(), httpClient, buildAuthHelper(callbackApiConfig), gson);
   }
 
-  AuthHelper buildAuthHelper(AppConfig appConfig, CallbackApiConfig callbackApiConfig) {
-    String authSecret = callbackApiConfig.getAuth().getSecret();
-    switch (callbackApiConfig.getAuth().getType()) {
-      case JWT:
-        return AuthHelper.forJwtToken(
-            new JwtService(authSecret, null, null),
-            Long.parseLong(callbackApiConfig.getAuth().getJwt().getExpirationMilliseconds()),
-            appConfig.getHostUrl());
-      case API_KEY:
-        return AuthHelper.forApiKey(authSecret);
-      default:
-        return AuthHelper.forNone();
-    }
+  AuthHelper buildAuthHelper(CallbackApiConfig callbackApiConfig) {
+    return AuthHelper.from(
+        callbackApiConfig.getAuth().getType(), callbackApiConfig.getAuth().getSecret(), 60000);
   }
 }

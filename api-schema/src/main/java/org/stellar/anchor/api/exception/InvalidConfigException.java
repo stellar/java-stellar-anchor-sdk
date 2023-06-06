@@ -5,6 +5,7 @@ import java.util.List;
 import lombok.Getter;
 import org.apache.commons.lang3.StringUtils;
 
+/** Thrown when the server configuration is invalid. */
 @Getter
 public class InvalidConfigException extends AnchorException {
   final List<String> messages;

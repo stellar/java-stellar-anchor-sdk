@@ -125,16 +125,7 @@ public class DataConfigAdapter extends SpringConfigAdapter {
         set("spring.datasource.url", constructPostgressUrl(config));
         set("spring.datasource.username", SecretManager.getInstance().get(SECRET_DATA_USERNAME));
         set("spring.datasource.password", SecretManager.getInstance().get(SECRET_DATA_PASSWORD));
-        if (config.getString("data.flyway_enabled", "").equalsIgnoreCase("true")) {
-          set("spring.flyway.enabled", true);
-          set("spring.flyway.locations", "classpath:/db/migration");
-          set("spring.flyway.user", SecretManager.getInstance().get(SECRET_DATA_USERNAME));
-          set("spring.flyway.password", SecretManager.getInstance().get(SECRET_DATA_PASSWORD));
-          set("spring.flyway.url", constructPostgressUrl(config));
-        } else {
-          set("spring.jpa.generate-ddl", true);
-          set("spring.jpa.hibernate.ddl-auto", "update");
-        }
+        configureFlyway(config);
         break;
       case DATABASE_POSTGRES:
         set("spring.datasource.driver-class-name", "org.postgresql.Driver");
@@ -143,16 +134,7 @@ public class DataConfigAdapter extends SpringConfigAdapter {
         set("spring.datasource.url", constructPostgressUrl(config));
         set("spring.datasource.username", SecretManager.getInstance().get(SECRET_DATA_USERNAME));
         set("spring.datasource.password", SecretManager.getInstance().get(SECRET_DATA_PASSWORD));
-        if (config.getString("data.flyway_enabled", "").equalsIgnoreCase("true")) {
-          set("spring.flyway.enabled", true);
-          set("spring.flyway.locations", "classpath:/db/migration");
-          set("spring.flyway.user", SecretManager.getInstance().get(SECRET_DATA_USERNAME));
-          set("spring.flyway.password", SecretManager.getInstance().get(SECRET_DATA_PASSWORD));
-          set("spring.flyway.url", constructPostgressUrl(config));
-        } else {
-          set("spring.jpa.generate-ddl", true);
-          set("spring.jpa.hibernate.ddl-auto", "update");
-        }
+        configureFlyway(config);
         break;
       default:
         Log.errorF("Invalid config[data.type]={}", type);
@@ -160,6 +142,25 @@ public class DataConfigAdapter extends SpringConfigAdapter {
     }
 
     checkIfAllFieldsAreSet();
+  }
+
+  private void configureFlyway(ConfigMap config) {
+    if (config.getString("data.flyway_enabled", "").equalsIgnoreCase("true")) {
+      set("spring.flyway.enabled", true);
+      set("spring.flyway.locations", "classpath:/db/migration");
+      set("spring.flyway.user", SecretManager.getInstance().get(SECRET_DATA_USERNAME));
+      set("spring.flyway.password", SecretManager.getInstance().get(SECRET_DATA_PASSWORD));
+      set("spring.flyway.url", constructPostgressUrl(config));
+      boolean baselineOnMigrate =
+          config.getString("data.flyway_baseline_on_migrate").equalsIgnoreCase("true");
+      if (baselineOnMigrate) {
+        set("spring.flyway.baseline-on-migrate", true);
+        set("spring.flyway.baseline-version", "0");
+      }
+    } else {
+      set("spring.jpa.generate-ddl", true);
+      set("spring.jpa.hibernate.ddl-auto", "update");
+    }
   }
 
   private String constructPostgressUrl(ConfigMap config) {
@@ -242,11 +243,11 @@ public class DataConfigAdapter extends SpringConfigAdapter {
   void setSpringDataDefaults() {
     set("spring.datasource.generate-unique-name", "false");
 
-    set("spring.datasource.hikari.connection-timeout ", 20000); // in ms
-    set("spring.datasource.hikari.minimum-idle", 10);
+    set("spring.datasource.hikari.connection-timeout ", 10000); // in ms
+    set("spring.datasource.hikari.minimum-idle", 5);
     set("spring.datasource.hikari.maximum-pool-size", 10);
     set("spring.datasource.hikari.idle-timeout", 10000);
-    set("spring.datasource.hikari.max-lifetime", 1000);
+    set("spring.datasource.hikari.max-lifetime", 840000);
     set("spring.datasource.hikari.auto-commit ", true);
 
     set("spring.jpa.defer-datasource-initialization", false);

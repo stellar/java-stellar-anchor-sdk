@@ -2,7 +2,7 @@ sep24:
   #  Port this server is being ran on
   port: 8091
   #  URL for anchor platform server
-  anchorPlatformUrl: "http://localhost:8080"
+  anchorPlatformUrl: "http://localhost:8085"
   #  URL for horizon server
   horizonUrl: "https://horizon-testnet.stellar.org"
   # Secret key used to send funds to user accounts.

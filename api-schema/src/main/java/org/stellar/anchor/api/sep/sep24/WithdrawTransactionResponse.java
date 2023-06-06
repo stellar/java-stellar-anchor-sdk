@@ -4,6 +4,7 @@ import com.google.gson.annotations.SerializedName;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
+/** The response body of the POST /transactions/withdraw/interactive endpoint of SEP-24. */
 @EqualsAndHashCode(callSuper = true)
 @Data
 public class WithdrawTransactionResponse extends TransactionResponse {

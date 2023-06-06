@@ -28,14 +28,14 @@ import org.stellar.anchor.platform.utils.StringEnumConverter;
       "org.stellar.anchor.platform.component.share"
     })
 @EnableConfigurationProperties
-public class AnchorPlatformServer extends AbstractPlatformServer implements WebMvcConfigurer {
+public class SepServer extends AbstractPlatformServer implements WebMvcConfigurer {
   private ConfigurableApplicationContext ctx;
 
   public ConfigurableApplicationContext start(Map<String, String> environment) {
     buildEnvironment(environment);
 
     SpringApplicationBuilder builder =
-        new SpringApplicationBuilder(AnchorPlatformServer.class).bannerMode(OFF);
+        new SpringApplicationBuilder(SepServer.class).bannerMode(OFF);
     SpringApplication springApplication = builder.build();
     info("Adding secret manager as initializers...");
     springApplication.addInitializers(SecretManager.getInstance());

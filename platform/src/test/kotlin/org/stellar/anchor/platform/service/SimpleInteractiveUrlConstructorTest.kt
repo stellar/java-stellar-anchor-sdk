@@ -76,7 +76,7 @@ class SimpleInteractiveUrlConstructorTest {
       data["amount_in_asset"] as String
     )
     assertEquals("en", data["lang"] as String)
-    assertEquals("john_doe@stellar.org", data["email_address"] as String)
+    assertNull(data["email_address"])
 
     // Name is in request but not in transaction. It must not be included.
     assertNull(data["name"])
