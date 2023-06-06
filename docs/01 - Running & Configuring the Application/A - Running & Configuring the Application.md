@@ -193,9 +193,11 @@ Also, now you don't need to deploy Stellar Observer, since this Custody Server w
 Update configuration file of Custody Server with base URL and port.
 ```yaml
 custody_server:
-  # The listening port of the Custody Server. Default value: 8085
+  # The listening port of the Custody Server. 
+  # Default value: 8085
   port: <port>
-  # The base URL of the Custody Server. Default value: http://localhost:8085
+  # The base URL of the Custody Server. 
+  # Default value: http://localhost:8085
   base_url: <base_url>
 ```
 
@@ -204,7 +206,8 @@ Configure authentication type.
 custody_server:
   auth:
     # Type of authentication, that is used, when Platform communicates with Custody Server.
-    # Possible options: [api_key, jwt]. Default value: none
+    # Possible options: [none, api_key, jwt]. 
+    # Default value: none
     type: jwt
 ```
 
