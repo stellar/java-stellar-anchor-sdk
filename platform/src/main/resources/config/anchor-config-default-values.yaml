@@ -431,7 +431,7 @@ custody:
     vault_account_id:
     ## @param: public_key
     ## @type: string
-    ## Fireblocks public key. Is used to verify a webhook signature
+    ## Fireblocks public key, that is used to verify a webhook signature
     #
     public_key: |
 

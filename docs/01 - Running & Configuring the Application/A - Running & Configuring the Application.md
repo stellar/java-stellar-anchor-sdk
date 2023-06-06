@@ -193,16 +193,19 @@ Also, now you don't need to deploy Stellar Observer, since this Custody Server w
 Update configuration file of Custody Server with base URL and port.
 ```yaml
 custody_server:
-  port: <port> # The listening port of the Custody Server. Default value: 8085
-  base_url: <base_url> # The base URL of the Custody Server. Default value: http://localhost:8085
+  # The listening port of the Custody Server. Default value: 8085
+  port: <port>
+  # The base URL of the Custody Server. Default value: http://localhost:8085
+  base_url: <base_url>
 ```
 
 Configure authentication type.
 ```yaml
 custody_server:
   auth:
-    type: jwt # Type of authentication, that is used, when Platform communicates with Custody Server.
-              # Possible options: [api_key, jwt]. Default value: none
+    # Type of authentication, that is used, when Platform communicates with Custody Server.
+    # Possible options: [api_key, jwt]. Default value: none
+    type: jwt
 ```
 
 If you set `api_key` or `jwt` authentication type, then you need to an add environment variable:
@@ -219,12 +222,16 @@ docker run stellar-anchor-platform:latest --custody-server
 
 #### Anchor Platform Configuration
 
-Update configuration file of Kotlin Reference Server to use `custody` deposit info generator type for SEP24 and SEP31.
+Update configuration file of Kotlin Reference Server to use `custody` deposit info generator type for SEP-24 and SEP-31.
 ```yaml
 sep24:
-  deposit_info_generator_type: custody # Default value: self
+  # Used to choose how the SEP-24 deposit information (deposit address, memo and memo type) will be generated
+  # Default value: self
+  deposit_info_generator_type: custody
 sep31:
-  deposit_info_generator_type: custody # Default value: self
+  # Used to choose how the SEP-31 deposit information (deposit address, memo and memo type) will be generated
+  # Default value: self
+  deposit_info_generator_type: custody
 ```
 
 #### Kotlin Reference Server Configuration
@@ -232,7 +239,9 @@ sep31:
 Update configuration file of Kotlin Reference Server to enable custody integration.
 ```yaml
 sep24:
-  custodyEnabled: true # Indicates, that custody integration is enabled and payment will be submitted using Custody Service
+  # Flat, that indicates, that custody integration is enabled and payment will be submitted using Custody Server.
+  # Default value: false
+  custodyEnabled: true
 ```
 
 #### Custody Integrations
@@ -250,14 +259,34 @@ Update configuration file of Custody Server.
 
 ```yaml
 custody:
-  type: fireblocks # Default value: none
+  # Default value: none
+  type: fireblocks
   fireblocks:
-    vault_account_id: <vault_account_id> # ID of Fireblocks vault account, that will be used for payments
-    public_key: <public_key> # Fireblocks public key. Is used to verify a webhook signature
-    asset_mappings: <asset_mappings> # Mappings of fireblocks asset codes to stellar asset codes. For example:
-                                     # XLM_USDC_T_CEKS stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5
-                                     # XLM_USDC_T_CEKS_2 stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5
-                                     # Codes should be divided with space and each pair of codes should be in new line
+    # ID of Fireblocks vault account, that will be used for payments
+    vault_account_id: <vault_account_id>
+    # Fireblocks public key, that is used to verify a webhook signature
+    public_key: <public_key>
+    # Mappings of fireblocks asset codes to stellar asset codes. For example:
+    # XLM_USDC_T_CEKS stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5
+    # XLM_USDC_T_CEKS_2 stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5
+    # Codes should be divided with space and each pair of codes should be in new line
+    asset_mappings: <asset_mappings>
+    reconciliation:
+      # Cron expression which defines how often transaction reconciliation job runs. 
+      # By default, job runs every 15 minutes. 
+      # Default value: 0 0/15 * * * *
+      cron_expression: <cron_expression>
+      # Determines how many times the transaction reconciliation job will attempt to update status of the 
+      # transaction before marking it as failed. 
+      # Default value: 10
+      max_attempts: <max_attempts>
+    retry_config:
+      # Determines how many times the Fireblocks client will attempt to send request before marking a call as failed.
+      # Default value: 3
+      max_attempts: <max_attempts>
+      # Interval between Fireblocks client call attempts (in ms)
+      # Default value: 1000
+      delay: <delay>
 ```
 
 Add environment variables.
