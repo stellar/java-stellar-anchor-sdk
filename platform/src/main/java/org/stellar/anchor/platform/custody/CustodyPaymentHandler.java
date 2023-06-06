@@ -119,8 +119,6 @@ public abstract class CustodyPaymentHandler {
           formatAmount(gotAmount),
           payment.getId(),
           payment.getExternalTxId());
-      payment.setStatus(CustodyPaymentStatus.ERROR);
-      payment.setMessage("The incoming payment amount was insufficient");
     }
   }
 
