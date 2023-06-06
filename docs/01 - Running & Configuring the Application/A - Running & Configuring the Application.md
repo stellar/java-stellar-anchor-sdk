@@ -213,7 +213,7 @@ custody_server:
 
 If you set `api_key` or `jwt` authentication type, then you need to an add environment variable:
 ```bash
-SECRET_CUSTODY_SERVER_AUTH_SECRET
+SECRET_CUSTODY_SERVER_AUTH_SECRET="Custody Server auth secret"
 ```
 
 Start Custody Server using Gradle or Docker:
@@ -296,9 +296,9 @@ Add environment variables.
 
 ```bash
 # API key, that will be added to JWT token claims. JWT token will be sent in requests to Fireblocks API
-SECRET_CUSTODY_FIREBLOCKS_API_KEY
+SECRET_CUSTODY_FIREBLOCKS_API_KEY="Fireblocks API key"
 # Secret key, that is used to sign JWT token
-SECRET_CUSTODY_FIREBLOCKS_SECRET_KEY
+SECRET_CUSTODY_FIREBLOCKS_SECRET_KEY="Fireblocks secret key"
 ```
 
 ### JVM-Argument based run-configuration
