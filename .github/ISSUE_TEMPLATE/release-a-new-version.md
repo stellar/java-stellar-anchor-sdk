@@ -22,11 +22,10 @@ assignees: ''
 - [ ] Write the proper release notes.
 - [ ] After reviewing the release draft, publish!!!
 ### Post Release Publication
-  - [ ] Check the docker image of the release automatically published to [Docker Hub](https://hub.docker.com/r/stellar/anchor-platform).
-  - [ ] If necessary, update the badges versions in [docs/00 - Stellar Anchor Platform.md].
-- [ ] Create two pull requests:
-  - [ ] `release/2.0.x -> main`: this should require two approvals.
-  - [ ] `release/2.0.x -> develop`: ideally, this should be merged after the `main` branch is merged.
+- [ ] Check the docker image of the release automatically published to [Docker Hub](https://hub.docker.com/r/stellar/anchor-platform).
+- [ ] If necessary, update the badges versions in [docs/00 - Stellar Anchor Platform.md].
+- [ ] Create the pull request `release/2.0.x -> main`: this should require two approvals.
+- [ ] Create another pull request `main -> develop`: AFTER the release branch is merged with the `main` branch.
 - [ ] (Optional) You'll need to manually publish a new version of the SDK to [Maven Central](https://search.maven.org/search?q=g:org.stellar.anchor-sdk).
 - [ ] (Optional) You'll need to manually upload the jar file from [Maven Central](https://search.maven.org/search?q=g:org.stellar.anchor-sdk) to the GH release.
 - [ ] (Optional) If necessary, open a PR for stellar/helm-charts and [update with the latest helm chart](https://docs.google.com/document/d/10ujUQZvBCMUyciObQPouxjtlnOdI5OpAz2Pk1LFdDDE) to publish
