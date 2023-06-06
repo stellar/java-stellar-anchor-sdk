@@ -12,11 +12,9 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
-import org.springframework.format.FormatterRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import org.stellar.anchor.platform.configurator.SecretManager;
 import org.stellar.anchor.platform.configurator.SepConfigManager;
-import org.stellar.anchor.platform.utils.StringEnumConverter;
 
 @SpringBootApplication
 @EnableJpaRepositories(basePackages = {"org.stellar.anchor.platform.data"})
@@ -43,13 +41,5 @@ public class SepServer extends AbstractPlatformServer implements WebMvcConfigure
     springApplication.addInitializers(SepConfigManager.getInstance());
 
     return ctx = springApplication.run();
-  }
-
-  @Override
-  public void addFormatters(FormatterRegistry registry) {
-    registry.addConverter(new StringEnumConverter.TransactionsOrderByConverter());
-    registry.addConverter(new StringEnumConverter.TransactionsSepsConverter());
-    registry.addConverter(new StringEnumConverter.SepTransactionStatusConverter());
-    registry.addConverter(new StringEnumConverter.DirectionConverter());
   }
 }
