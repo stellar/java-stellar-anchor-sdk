@@ -295,8 +295,10 @@ custody:
 Add environment variables.
 
 ```bash
-SECRET_CUSTODY_FIREBLOCKS_API_KEY # API key, that will be added to JWT token claims. JWT token will be sent in requests to Fireblocks API
-SECRET_CUSTODY_FIREBLOCKS_SECRET_KEY # secret key, that is used to sign JWT token
+# API key, that will be added to JWT token claims. JWT token will be sent in requests to Fireblocks API
+SECRET_CUSTODY_FIREBLOCKS_API_KEY
+# secret key, that is used to sign JWT token
+SECRET_CUSTODY_FIREBLOCKS_SECRET_KEY
 ```
 
 ### JVM-Argument based run-configuration
