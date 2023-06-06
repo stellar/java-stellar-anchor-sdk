@@ -36,6 +36,9 @@ fun main() = runBlocking {
 }
 
 class TestProfileExecutor(val config: TestConfig) {
+  companion object {
+    const val MAX_SHUTDOWN_WAIT = 10
+  }
   private lateinit var docker: DockerComposeExtension
   private var runningServers: MutableList<ConfigurableApplicationContext> = mutableListOf()
   private var shouldStartDockerCompose: Boolean = false
