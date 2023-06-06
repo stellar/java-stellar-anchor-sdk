@@ -11,6 +11,12 @@
     - [Authorization Between Platform and Anchor](#authorization-between-platformanchor)
     - [Supported Assets](#supported-assets)
     - [Event Messaging](#event-messaging)
+    - [Custody Services](#custody-services)
+      - [Custody Server Configuration](#custody-server-configuration)
+      - [Anchor Platform Configuration](#anchor-platform-configuration)
+      - [Kotlin Reference Server Configuration](#kotlin-reference-server-configuration)
+      - [Custody Integrations](#custody-integrations)
+        - [Fireblocks Configuration](#fireblocks-configuration)
     - [JVM-Argument based run-configuration](#jvm-argument-based-run-configuration)
   - [Docker](#docker)
   - [Running the Application from Docker](#running-the-application-from-docker)
@@ -171,6 +177,87 @@ The easiest way for that is by using the docker-compose.yaml file located at `do
 ```shell
 cd docs/resources/docker-examples/kafka
 docker compose up
+```
+
+### Custody Services
+
+#### Custody Server Configuration
+
+If you want to use an external custody service to store and manage your wallets, then you need to deploy one more service - Custody Server.
+
+This service also needs the `STELLAR_ANCHOR_CONFIG` previously mentioned. By default, `anchor-config-default-values.yaml` 
+config file will be used.
+
+Also, now you don't need to deploy Stellar Observer, since this Custody Server will be responsible for its functionality.
+
+Update configuration file of Custody Server with base URL and port.
+```yaml
+custody_server:
+  port: <port> # The listening port of the Custody Server. Default value: 8085
+  base_url: <base_url> # The base URL of the Custody Server. Default value: http://localhost:8085
+```
+
+Start Custody Server using Gradle or Docker:
+
+```bash
+./gradlew service-runner:bootRun --args=--custody-server
+docker run stellar-anchor-platform:latest --custody-server
+```
+
+#### Anchor Platform Configuration
+
+Update configuration file of Kotlin Reference Server to use `custody` deposit info generator type for SEP24 and SEP31.
+```yaml
+sep24:
+  deposit_info_generator_type: custody # Default value: self
+sep31:
+  deposit_info_generator_type: custody # Default value: self
+```
+
+#### Kotlin Reference Server Configuration
+
+Update configuration file of Kotlin Reference Server to enable custody integration.
+```yaml
+sep24:
+  custodyEnabled: true # Indicates, that custody integration is enabled and payment will be submitted using Custody Service
+```
+
+#### Custody Integrations
+
+##### Fireblocks Configuration
+
+Configure webhook URL:
+```
+https://support.fireblocks.io/hc/en-us/articles/4408110107794-Configuring-Webhook-URLs
+```
+
+Enable One-Time Address feature:
+```
+https://support.fireblocks.io/hc/en-us/articles/4409104568338
+```
+
+Configure API Co-Signer:
+```
+https://support.fireblocks.io/hc/en-us/articles/4581830426268-
+```
+
+Add API User:
+```
+https://support.fireblocks.io/hc/en-us/articles/4407823826194-Adding-new-API-users
+```
+
+Update configuration file of Custody Server
+
+```yaml
+custody:
+  type: fireblocks # Default value: none
+  fireblocks:
+    vault_account_id: <vault_account_id> # ID of Fireblocks vault account, that will be used for payments
+    public_key: <public_key> # Fireblocks public key. Is used to verify a webhook signature
+    asset_mappings: <asset_mappings> # Mappings of fireblocks asset codes to stellar asset codes. For example:
+                                     # XLM_USDC_1 stellar:USDC:6HW07AE2MZU3JWWARR9CUSDV5S68K4SLY6FGDJ6KIU6ZJETC3HJP00I2V
+                                     # XLM_SRT_2 stellar:USDC:12345AE2MZU3JWWARR9CUSDV5S68K4SLY6FGDJ6KIU6ZJETC3HJP12345
+                                     # Codes should be divided with space and each pair of codes should be in new line
 ```
 
 ### JVM-Argument based run-configuration
