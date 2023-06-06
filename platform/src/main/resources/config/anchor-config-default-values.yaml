@@ -370,13 +370,13 @@ custody_server:
   ## The base URL of the Custody server that implements the custody API endpoints
   #
   base_url: http://localhost:8085
-  ## Http Client timeouts for communication with custody server in SECONDS
+  ## Http Client timeouts for communication with the Custody Server in SECONDS
   http_client:
     connect_timeout: 10
     read_timeout: 30
     write_timeout: 30
     call_timeout: 60
-  ## Authentication config for Anchor server and Anchor Platform server to safely communicate,
+  ## Authentication config for Anchor Platform and Custody Server to safely communicate,
   ## particularly when housed in different clusters.
   ## The receiving party should verify that an incoming request token is still valid.
   #

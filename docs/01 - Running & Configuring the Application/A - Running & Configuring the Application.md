@@ -190,7 +190,7 @@ config file will be used.
 
 Also, now you don't need to deploy Stellar Observer, since this Custody Server will be responsible for its functionality.
 
-Update configuration file of Custody Server with base URL and port.
+Update the configuration file of the Anchor Platform with the base URL and port.
 ```yaml
 custody_server:
   # The listening port of the Custody Server. 
@@ -205,19 +205,18 @@ Configure authentication type.
 ```yaml
 custody_server:
   auth:
-    # Type of authentication, that is used, when Platform communicates with Custody Server.
+    # Type of authentication, that is used, when the Anchor Platform communicates with the Custody Server.
     # Possible options: [none, api_key, jwt]. 
     # Default value: none
     type: jwt
 ```
 
 If you set `api_key` or `jwt` authentication type, then you need to an add environment variable:
-```bash
+```text
 SECRET_CUSTODY_SERVER_AUTH_SECRET="Custody Server auth secret"
 ```
 
-Start Custody Server using Gradle or Docker:
-
+Start the Custody Server using Gradle or Docker:
 ```bash
 ./gradlew service-runner:bootRun --args=--custody-server
 docker run stellar-anchor-platform:latest --custody-server
@@ -225,7 +224,8 @@ docker run stellar-anchor-platform:latest --custody-server
 
 #### Anchor Platform Configuration
 
-Update configuration file of Kotlin Reference Server to use `custody` deposit info generator type for SEP-24 and SEP-31.
+Update the configuration file of the Anchor Platform to use `custody` deposit info generator type for SEP-24 and SEP-31.
+
 ```yaml
 sep24:
   # Used to choose how the SEP-24 deposit information (deposit address, memo and memo type) will be generated
@@ -239,7 +239,7 @@ sep31:
 
 #### Kotlin Reference Server Configuration
 
-Update configuration file of Kotlin Reference Server to enable custody integration.
+Update the configuration file of the Kotlin Reference Server to enable custody integration.
 ```yaml
 sep24:
   # Flat, that indicates, that custody integration is enabled and payment will be submitted using Custody Server.
@@ -293,8 +293,7 @@ custody:
 ```
 
 Add environment variables.
-
-```bash
+```text
 # API key, that will be added to JWT token claims. JWT token will be sent in requests to Fireblocks API
 SECRET_CUSTODY_FIREBLOCKS_API_KEY="Fireblocks API key"
 # Secret key, that is used to sign JWT token
