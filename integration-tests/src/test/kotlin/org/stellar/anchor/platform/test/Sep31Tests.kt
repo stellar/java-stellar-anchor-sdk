@@ -393,7 +393,7 @@ private const val expectedTxn =
     "status": "pending_sender",
     "amount_in": "10",
     "amount_in_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-    "amount_out": "1071.4286097",
+    "amount_out": "1071.4286",
     "amount_out_asset": "stellar:JPYC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
     "amount_fee": "1.00",
     "amount_fee_asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
@@ -580,7 +580,7 @@ private const val expectedAfterPatch =
     "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
   },
   "amount_out": {
-    "amount": "1071.4286097",
+    "amount": "1071.4286",
     "asset": "stellar:JPYC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
   },
   "amount_fee": {
