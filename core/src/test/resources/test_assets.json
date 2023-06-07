@@ -6,17 +6,13 @@
       "issuer": "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
       "distribution_account": "GA7FYRB5VREZKOBIIKHG5AVTPFGWUBPOBF7LTYG4GTMFVIOOD2DWAL7I",
       "significant_decimals": 2,
-      "deposit" : {
+      "deposit": {
         "enabled": true,
-        "fee_minimum": 0,
-        "fee_percent": 0,
         "min_amount": 1,
         "max_amount": 10000
       },
       "withdraw": {
         "enabled": true,
-        "fee_fixed": 0,
-        "fee_percent": 0,
         "min_amount": 1,
         "max_amount": 10000
       },
@@ -26,7 +22,7 @@
         "min_amount": 1,
         "max_amount": 1000000
       },
-      "sep31" : {
+      "sep31": {
         "quotes_supported": true,
         "quotes_required": true,
         "sep12": {
@@ -87,17 +83,13 @@
       "code": "JPYC",
       "issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
       "significant_decimals": 2,
-      "deposit" : {
+      "deposit": {
         "enabled": true,
-        "fee_minimum": 0,
-        "fee_percent": 0,
         "min_amount": 1,
         "max_amount": 1000000
       },
       "withdraw": {
         "enabled": false,
-        "fee_fixed": 0,
-        "fee_percent": 0,
         "min_amount": 1,
         "max_amount": 1000000
       },
@@ -107,7 +99,7 @@
         "min_amount": 1,
         "max_amount": 1000000
       },
-      "sep31" : {
+      "sep31": {
         "quotes_supported": true,
         "quotes_required": true,
         "sep12": {
@@ -159,17 +151,13 @@
       "schema": "iso4217",
       "code": "USD",
       "significant_decimals": 2,
-      "deposit" : {
+      "deposit": {
         "enabled": true,
-        "fee_minimum": 0,
-        "fee_percent": 0,
         "min_amount": 1,
         "max_amount": 1000000
       },
       "withdraw": {
         "enabled": false,
-        "fee_fixed": 0,
-        "fee_percent": 0,
         "min_amount": 1,
         "max_amount": 1000000
       },
@@ -184,7 +172,9 @@
           "stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
           "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
         ],
-        "country_codes": ["USA"],
+        "country_codes": [
+          "USA"
+        ],
         "decimals": 4,
         "sell_delivery_methods": [
           {
@@ -201,6 +191,38 @@
       },
       "sep31_enabled": false,
       "sep38_enabled": true
+    },
+    {
+      "schema": "stellar",
+      "code": "XLM",
+      "significant_decimals": 7,
+      "deposit": {
+        "enabled": true,
+        "min_amount": 1,
+        "max_amount": 1000000
+      },
+      "withdraw": {
+        "enabled": true,
+        "min_amount": 1,
+        "max_amount": 1000000
+      },
+      "send": {
+        "fee_fixed": 0,
+        "fee_percent": 0,
+        "min_amount": 1,
+        "max_amount": 1000000
+      },
+      "sep38": {
+        "exchangeable_assets": [
+          "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+        ],
+        "country_codes": [
+          "USA"
+        ],
+        "decimals": 7
+      },
+      "sep31_enabled": true,
+      "sep38_enabled": true
     }
-  ]
+ ]
 }

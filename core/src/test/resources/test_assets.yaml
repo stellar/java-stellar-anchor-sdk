@@ -6,14 +6,10 @@ assets:
     significant_decimals: 2
     deposit:
       enabled: true
-      fee_minimum: 0
-      fee_percent: 0
       min_amount: 1
       max_amount: 10000
     withdraw:
       enabled: true
-      fee_fixed: 0
-      fee_percent: 0
       min_amount: 1
       max_amount: 10000
     send:
@@ -65,14 +61,10 @@ assets:
     significant_decimals: 2
     deposit:
       enabled: true
-      fee_minimum: 0
-      fee_percent: 0
       min_amount: 1
       max_amount: 1000000
     withdraw:
       enabled: false
-      fee_fixed: 0
-      fee_percent: 0
       min_amount: 1
       max_amount: 1000000
     send:
@@ -116,14 +108,10 @@ assets:
     significant_decimals: 2
     deposit:
       enabled: true
-      fee_minimum: 0
-      fee_percent: 0
       min_amount: 1
       max_amount: 1000000
     withdraw:
       enabled: false
-      fee_fixed: 0
-      fee_percent: 0
       min_amount: 1
       max_amount: 1000000
     send:
@@ -146,3 +134,28 @@ assets:
           description: Have USD sent directly to your bank account.
     sep31_enabled: false
     sep38_enabled: true
+  - schema: stellar
+    code: XLM
+    significant_decimals: 7
+    deposit:
+      enabled: true
+      min_amount: 1
+      max_amount: 1000000
+    withdraw:
+      enabled: true
+      min_amount: 1
+      max_amount: 1000000
+    send:
+      fee_fixed: 0
+      fee_percent: 0
+      min_amount: 1
+      max_amount: 1000000
+    sep38:
+      exchangeable_assets:
+        - stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP
+      country_codes:
+        - USA
+      decimals: 7
+    sep31_enabled: true
+    sep38_enabled: true
+    # todo: sep31 config and sep24

@@ -25,8 +25,8 @@ internal class DefaultAssetServiceTest {
 
     lateinit var das: DefaultAssetService
     when (FilenameUtils.getExtension(filename)) {
-      "json" -> das = DefaultAssetService.fromJsonResource("test_assets.json")
-      "yaml" -> das = DefaultAssetService.fromYamlResource("test_assets.yaml")
+      "json" -> das = DefaultAssetService.fromJsonResource(filename)
+      "yaml" -> das = DefaultAssetService.fromYamlResource(filename)
     }
 
     JSONAssert.assertEquals(expectedAssetsJson, gson.toJson(das.assets), LENIENT)
@@ -34,7 +34,7 @@ internal class DefaultAssetServiceTest {
     // check listing function.
     val assets = das.listAllAssets()
 
-    assertEquals(3, assets.size)
+    assertEquals(4, assets.size)
   }
 
   @Test
@@ -257,6 +257,42 @@ internal class DefaultAssetServiceTest {
             },
             "sep24_enabled": false,
             "sep31_enabled": false,
+            "sep38_enabled": true
+          },
+          {
+            "schema": "stellar",
+            "code": "XLM",
+            "significant_decimals": 7,
+            "deposit": {
+              "enabled": true,
+              "fee_fixed": 0,
+              "fee_percent": 0,
+              "min_amount": 1,
+              "max_amount": 1000000
+            },
+            "withdraw": {
+              "enabled": true,
+              "fee_fixed": 0.00001,
+              "fee_percent": 0,
+              "min_amount": 1,
+              "max_amount": 1000000
+            },
+            "send": {
+              "fee_fixed": 0,
+              "fee_percent": 0,
+              "min_amount": 1,
+              "max_amount": 1000000
+            },
+            "sep38": {
+              "exchangeable_assets": [
+                "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+              ],
+              "country_codes": [
+                "USA"
+              ],
+              "decimals": 7
+            },
+            "sep31_enabled": true,
             "sep38_enabled": true
           }
         ]
