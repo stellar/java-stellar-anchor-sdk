@@ -16,6 +16,7 @@ import org.stellar.anchor.api.custody.CreateTransactionPaymentResponse;
 import org.stellar.anchor.api.custody.CustodyExceptionResponse;
 import org.stellar.anchor.api.custody.GenerateDepositAddressResponse;
 import org.stellar.anchor.api.exception.CustodyException;
+import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.auth.AuthHelper;
 import org.stellar.anchor.platform.config.CustodyApiConfig;
 import org.stellar.anchor.util.AuthHeader;
@@ -42,7 +43,7 @@ public class CustodyApiClient {
   }
 
   public void createTransaction(CreateCustodyTransactionRequest transactionRequest)
-      throws CustodyException {
+      throws CustodyException, InvalidConfigException {
     Request request =
         getRequestBuilder()
             .url(custodyApiConfig.getBaseUrl() + CREATE_TRANSACTION_URL_FORMAT)
@@ -52,7 +53,7 @@ public class CustodyApiClient {
   }
 
   public GenerateDepositAddressResponse generateDepositAddress(String assetId)
-      throws CustodyException {
+      throws CustodyException, InvalidConfigException {
     Request request =
         getRequestBuilder()
             .url(
@@ -65,7 +66,7 @@ public class CustodyApiClient {
   }
 
   public CreateTransactionPaymentResponse createTransactionPayment(String txnId, String requestBody)
-      throws CustodyException {
+      throws CustodyException, InvalidConfigException {
     final String url =
         custodyApiConfig.getBaseUrl() + String.format(CREATE_TRANSACTION_PAYMENT_URL_FORMAT, txnId);
 
@@ -78,9 +79,9 @@ public class CustodyApiClient {
     return gson.fromJson(doRequest(request), CreateTransactionPaymentResponse.class);
   }
 
-  private Request.Builder getRequestBuilder() {
+  private Request.Builder getRequestBuilder() throws InvalidConfigException {
     Request.Builder requestBuilder = new Request.Builder();
-    AuthHeader<String, String> authHeader = authHelper.createAuthHeader();
+    AuthHeader<String, String> authHeader = authHelper.createCustodyAuthHeader();
     return authHeader == null
         ? requestBuilder
         : requestBuilder.header(authHeader.getName(), authHeader.getValue());

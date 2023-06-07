@@ -1,4 +1,4 @@
-package org.stellar.anchor.platform.controller.sep;
+package org.stellar.anchor.platform.controller.platform;
 
 import java.util.List;
 import org.springframework.data.domain.Sort;
@@ -18,9 +18,9 @@ import org.stellar.anchor.api.platform.GetTransactionResponse;
 import org.stellar.anchor.api.platform.GetTransactionsResponse;
 import org.stellar.anchor.api.platform.PatchTransactionsRequest;
 import org.stellar.anchor.api.platform.PatchTransactionsResponse;
-import org.stellar.anchor.api.platform.TransactionsOrderBy;
-import org.stellar.anchor.api.platform.TransactionsSeps;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
+import org.stellar.anchor.apiclient.TransactionsOrderBy;
+import org.stellar.anchor.apiclient.TransactionsSeps;
 import org.stellar.anchor.custody.CustodyService;
 import org.stellar.anchor.platform.service.TransactionService;
 import org.stellar.anchor.util.TransactionsParams;

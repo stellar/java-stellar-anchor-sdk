@@ -4,6 +4,13 @@ import com.google.gson.annotations.SerializedName;
 import java.time.Instant;
 import lombok.Data;
 
+/**
+ * The request body of PUT /customer endpoint.
+ *
+ * @see <a
+ *     href="https://github.com/stellar/stellar-docs/blob/main/openapi/ap/Callbacks%20API.yml">Callback
+ *     API</a>
+ */
 @Data
 public class PutCustomerRequest {
   String id;

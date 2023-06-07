@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Run - Kotlin Reference Server - no Docker" type="JetRunConfigurationType">
+    <option name="MAIN_CLASS_NAME" value="org.stellar.anchor.platform.run_profiles.RunKotlinReferenceServer" />
+    <module name="java-stellar-anchor-sdk.service-runner.main" />
+    <shortenClasspath name="ARGS_FILE" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

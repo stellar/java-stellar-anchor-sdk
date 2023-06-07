@@ -27,6 +27,7 @@ class Sep10ConfigTest {
 
     config = PropertySep10Config(appConfig, secretConfig)
     config.enabled = true
+    config.homeDomain = "stellar.org"
     errors = BindException(config, "config")
     every { secretConfig.sep10SigningSeed } returns
       "SDNMFWJGLVR4O2XV3SNEJVF53MMLQWYFYFC7HT7JZ5235AXPETHB4K3D"
@@ -119,9 +120,10 @@ class Sep10ConfigTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = ["stellar.org", "moneygram.com"])
+  @ValueSource(strings = ["stellar.org", "moneygram.com", "localhost", "127.0.0.1:80"])
   fun `test valid home domains`(value: String) {
     config.webAuthDomain = value
+    config.homeDomain = value
     config.validateConfig(errors)
     assertFalse(errors.hasErrors())
   }
@@ -143,11 +145,28 @@ class Sep10ConfigTest {
     assertTrue(errors.hasErrors())
     assertErrorCode(errors, "sep10-web-auth-domain-invalid")
   }
-
+  @ParameterizedTest
+  @ValueSource(
+    strings =
+      [
+        "stellar .org",
+        "abc",
+        "299.0.0.1",
+        "http://stellar.org",
+        "https://stellar.org",
+        "://stellar.org"
+      ]
+  )
+  fun `test invalid home domains`(value: String) {
+    config.homeDomain = value
+    config.validateConfig(errors)
+    assertTrue(errors.hasErrors())
+    assertErrorCode(errors, "sep10-home-domain-invalid")
+  }
   @Test
   fun `test if web_auth_domain is not set, default to the domain of the host_url`() {
     config.webAuthDomain = null
-    every { appConfig.hostUrl } returns "https://www.stellar.org"
+    config.homeDomain = "www.stellar.org"
     config.postConstruct()
     assertEquals("www.stellar.org", config.webAuthDomain)
   }
@@ -155,7 +174,7 @@ class Sep10ConfigTest {
   @Test
   fun `test if web_auth_domain is  set, it is not default to the domain of the host_url`() {
     config.webAuthDomain = "localhost:8080"
-    every { appConfig.hostUrl } returns "https://www.stellar.org"
+    config.homeDomain = "www.stellar.org"
     config.postConstruct()
     assertEquals("localhost:8080", config.webAuthDomain)
   }

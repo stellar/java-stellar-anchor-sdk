@@ -9,7 +9,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.stellar.anchor.auth.AuthHelper;
 import org.stellar.anchor.auth.JwtService;
-import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.platform.apiclient.CustodyApiClient;
 import org.stellar.anchor.platform.config.CustodyApiConfig;
 
@@ -30,22 +29,19 @@ public class CustodyApiBeans {
   @Bean
   CustodyApiClient custodyApiClient(
       @Qualifier("custodyApiHttpClient") OkHttpClient httpClient,
-      AppConfig appConfig,
       CustodyApiConfig custodyApiConfig) {
-    return new CustodyApiClient(
-        httpClient, buildAuthHelper(appConfig, custodyApiConfig), custodyApiConfig);
+    return new CustodyApiClient(httpClient, buildAuthHelper(custodyApiConfig), custodyApiConfig);
   }
 
-  AuthHelper buildAuthHelper(AppConfig appConfig, CustodyApiConfig custodyApiConfig) {
-    String secret = custodyApiConfig.getAuth().getSecret();
+  AuthHelper buildAuthHelper(CustodyApiConfig custodyApiConfig) {
+    String authSecret = custodyApiConfig.getAuth().getSecret();
     switch (custodyApiConfig.getAuth().getType()) {
       case JWT:
         return AuthHelper.forJwtToken(
-            new JwtService(secret, null, null),
-            Long.parseLong(custodyApiConfig.getAuth().getJwt().getExpirationMilliseconds()),
-            appConfig.getHostUrl());
+            new JwtService(null, null, null, null, null, authSecret),
+            Long.parseLong(custodyApiConfig.getAuth().getJwt().getExpirationMilliseconds()));
       case API_KEY:
-        return AuthHelper.forApiKey(secret);
+        return AuthHelper.forApiKey(authSecret);
       default:
         return AuthHelper.forNone();
     }

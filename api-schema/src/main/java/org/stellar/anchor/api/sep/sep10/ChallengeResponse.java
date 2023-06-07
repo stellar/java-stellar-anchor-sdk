@@ -5,6 +5,12 @@ import com.google.gson.annotations.SerializedName;
 import lombok.Data;
 
 @SuppressWarnings("unused")
+/**
+ * The response body of the challenge of the SEP-10 authentication flow.
+ *
+ * @see <a
+ *     href="https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md">SEP-10</a>
+ */
 @Data
 public class ChallengeResponse {
   private String transaction;

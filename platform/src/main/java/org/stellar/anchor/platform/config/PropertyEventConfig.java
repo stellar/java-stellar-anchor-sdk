@@ -12,7 +12,7 @@ import org.springframework.validation.Validator;
 import org.stellar.anchor.config.event.EventConfig;
 import org.stellar.anchor.config.event.PublisherConfig;
 import org.stellar.anchor.platform.configurator.ConfigMap;
-import org.stellar.anchor.platform.configurator.SepConfigManager;
+import org.stellar.anchor.platform.configurator.PlatformConfigManager;
 
 @Data
 public class PropertyEventConfig implements EventConfig, Validator {
@@ -21,7 +21,7 @@ public class PropertyEventConfig implements EventConfig, Validator {
   private Map<String, String> eventTypeToQueue = new HashMap<>();
 
   public PropertyEventConfig() {
-    ConfigMap configMap = SepConfigManager.getInstance().getConfigMap();
+    ConfigMap configMap = PlatformConfigManager.getInstance().getConfigMap();
     if (configMap != null) {
       eventTypeToQueue.put(
           "quote_created", configMap.getString("events.event_type_to_queue.quote_created"));

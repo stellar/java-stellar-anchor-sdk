@@ -36,6 +36,7 @@ import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.CustodyConfig
+import org.stellar.anchor.config.CustodySecretConfig
 import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.config.Sep31Config
 import org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_RECEIVE
@@ -275,6 +276,7 @@ class Sep31ServiceTest {
 
   @MockK(relaxed = true) lateinit var appConfig: AppConfig
   @MockK(relaxed = true) lateinit var secretConfig: SecretConfig
+  @MockK(relaxed = true) lateinit var custodySecretConfig: CustodySecretConfig
   @MockK(relaxed = true) lateinit var sep31Config: Sep31Config
   @MockK(relaxed = true) lateinit var sep31DepositInfoGenerator: Sep31DepositInfoGenerator
   @MockK(relaxed = true) lateinit var quoteStore: Sep38QuoteStore
@@ -298,13 +300,12 @@ class Sep31ServiceTest {
   fun setUp() {
     MockKAnnotations.init(this, relaxUnitFun = true)
     every { appConfig.stellarNetworkPassphrase } returns TestConstants.TEST_NETWORK_PASS_PHRASE
-    every { appConfig.hostUrl } returns TestConstants.TEST_HOST_URL
     every { secretConfig.sep10JwtSecretKey } returns TestConstants.TEST_JWT_SECRET
     every { appConfig.languages } returns listOf("en")
     every { sep31Config.paymentType } returns STRICT_SEND
     every { txnStore.newTransaction() } returns PojoSep31Transaction()
     every { custodyConfig.type } returns "fireblocks"
-    jwtService = spyk(JwtService(secretConfig))
+    jwtService = spyk(JwtService(secretConfig, custodySecretConfig))
 
     sep31Service =
       Sep31Service(
@@ -529,7 +530,7 @@ class Sep31ServiceTest {
 
   @Test
   fun `test POST transaction failures`() {
-    val jwtToken = TestHelper.createJwtToken()
+    val jwtToken = TestHelper.createSep10Jwt()
 
     // missing asset code
     val postTxRequest = Sep31PostTransactionRequest()
@@ -769,7 +770,7 @@ class Sep31ServiceTest {
       }
 
     // POST transaction
-    val jwtToken = TestHelper.createJwtToken(accountMemo = TestHelper.TEST_MEMO)
+    val jwtToken = TestHelper.createSep10Jwt(accountMemo = TestHelper.TEST_MEMO)
     var gotResponse: Sep31PostTransactionResponse? = null
     assertDoesNotThrow { gotResponse = sep31Service.postTransaction(jwtToken, postTxRequest) }
 
@@ -859,7 +860,7 @@ class Sep31ServiceTest {
     every { customerIntegration.getCustomer(any()) } returns mockCustomer
 
     // POST transaction
-    val jwtToken = TestHelper.createJwtToken()
+    val jwtToken = TestHelper.createSep10Jwt()
     val ex: AnchorException = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
     assertInstanceOf(BadRequestException::class.java, ex)
     assertEquals("quotes_required is set to true; quote id cannot be empty", ex.message)
@@ -933,7 +934,7 @@ class Sep31ServiceTest {
     every { customerIntegration.getCustomer(any()) } returns mockCustomer
 
     // POST transaction
-    val jwtToken = TestHelper.createJwtToken()
+    val jwtToken = TestHelper.createSep10Jwt()
     var gotResponse: Sep31PostTransactionResponse? = null
     assertDoesNotThrow { gotResponse = sep31Service.postTransaction(jwtToken, postTxRequest) }
 
@@ -1008,7 +1009,7 @@ class Sep31ServiceTest {
 
   @Test
   fun `Test update fee ok`() {
-    val jwtToken = TestHelper.createJwtToken()
+    val jwtToken = TestHelper.createSep10Jwt()
     Context.get().request = request
     Context.get().sep10Jwt = jwtToken
 
@@ -1038,7 +1039,7 @@ class Sep31ServiceTest {
 
   @Test
   fun `test update fee failure`() {
-    val jwtToken = TestHelper.createJwtToken()
+    val jwtToken = TestHelper.createSep10Jwt()
     Context.get().request = request
     Context.get().sep10Jwt = jwtToken
 

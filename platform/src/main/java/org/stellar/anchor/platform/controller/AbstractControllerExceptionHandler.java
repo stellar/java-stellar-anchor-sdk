@@ -16,7 +16,7 @@ import org.stellar.anchor.api.exception.custody.CustodyServiceUnavailableExcepti
 import org.stellar.anchor.api.exception.custody.CustodyTooManyRequestsException;
 import org.stellar.anchor.api.sep.SepExceptionResponse;
 
-public abstract class ControllerExceptionHandler {
+public abstract class AbstractControllerExceptionHandler {
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   @ExceptionHandler({SepValidationException.class, BadRequestException.class})
   public SepExceptionResponse handleBadRequest(AnchorException ex) {

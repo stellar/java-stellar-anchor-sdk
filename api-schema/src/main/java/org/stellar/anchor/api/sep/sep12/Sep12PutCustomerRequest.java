@@ -5,8 +5,11 @@ import lombok.Builder;
 import lombok.Data;
 
 /**
- * Refer to SEP-12. <a href=
- * "https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0012.md#request-1">...</a>
+ * The request body of the PUT /customer endpoint of SEP-12.
+ *
+ * @see <a
+ *     href="https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0012.md#fields">Refer
+ *     to SEP-12</a>
  */
 @Data
 @Builder

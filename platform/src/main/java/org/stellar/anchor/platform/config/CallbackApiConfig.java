@@ -27,7 +27,7 @@ public class CallbackApiConfig implements Validator {
   }
 
   public void setAuth(AuthConfig auth) {
-    auth.setSecret(secretConfig.getCallbackApiSecret());
+    auth.setSecret(secretConfig.getCallbackAuthSecret());
     this.auth = auth;
   }
 
@@ -59,7 +59,7 @@ public class CallbackApiConfig implements Validator {
 
   void validateAuth(Errors errors) {
     if (List.of(AuthType.API_KEY, AuthType.JWT).contains(auth.getType())) {
-      if (isEmpty(secretConfig.getCallbackApiSecret())) {
+      if (isEmpty(secretConfig.getCallbackAuthSecret())) {
         errors.reject(
             "empty-secret-callback-api-secret",
             "Please set environment variable secret.callback_api.auth_secret or SECRET.CALLBACK_API.AUTH_SECRET");
