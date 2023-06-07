@@ -70,7 +70,7 @@ class Sep38ServiceTest {
     val assets = assetService.listAllAssets()
     val sep8Config = PropertySep38Config()
     this.sep38Service = Sep38Service(sep8Config, assetService, null, null, eventService)
-    assertEquals(3, assets.size)
+    assertEquals(4, assets.size)
 
     // sep10 related:
     every { secretConfig.sep10JwtSecretKey } returns "secret"
@@ -88,11 +88,11 @@ class Sep38ServiceTest {
   @Test
   fun `test GET info`() {
     val infoResponse = sep38Service.getInfo()
-    assertEquals(3, infoResponse.assets.size)
+    assertEquals(4, infoResponse.assets.size)
 
     val assetMap = HashMap<String, InfoResponse.Asset>()
     infoResponse.assets.forEach { assetMap[it.asset] = it }
-    assertEquals(3, assetMap.size)
+    assertEquals(4, assetMap.size)
 
     val usdcAsset = assetMap[stellarUSDC]
     assertNotNull(usdcAsset)
@@ -134,6 +134,16 @@ class Sep38ServiceTest {
       listOf("stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5", stellarUSDC)
     assertTrue(fiatUSD.exchangeableAssetNames.containsAll(wantAssets))
     assertTrue(wantAssets.containsAll(fiatUSD.exchangeableAssetNames))
+
+    // TODO: why is this test duplicated?
+    val stellarXLM = assetMap["stellar:XLM"]
+    assertNotNull(stellarXLM)
+    assertEquals(listOf("USA"), stellarXLM!!.countryCodes)
+    assertNull(stellarXLM.sellDeliveryMethods)
+    assertNull(stellarXLM.buyDeliveryMethods)
+    wantAssets = listOf("stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP")
+    assertTrue(stellarXLM.exchangeableAssetNames.containsAll(wantAssets))
+    assertTrue(wantAssets.containsAll(stellarXLM.exchangeableAssetNames))
   }
 
   @Test
