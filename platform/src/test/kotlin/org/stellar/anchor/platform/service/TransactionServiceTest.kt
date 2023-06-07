@@ -381,6 +381,37 @@ class TransactionServiceTest {
   }
 
   @Test
+  fun `test patch sep24 deposit transaction with hash memo type and integration with Fireblocks`() {
+    val tx = JdbcSep24Transaction()
+    tx.kind = "deposit"
+    tx.status = SepTransactionStatus.INCOMPLETE.toString()
+    val data = PlatformTransactionData()
+    data.memo = "YzRhMDgzNWItYjFmYy00NDZlLTkzYTUtMTFlYzhiZTk="
+    data.memoType = "hash"
+    data.status = SepTransactionStatus.PENDING_ANCHOR
+    val request =
+      PatchTransactionsRequest.builder().records(listOf(PatchTransactionRequest(data))).build()
+
+    every { sep31TransactionStore.findByTransactionId(any()) } returns null
+    every { sep24TransactionStore.findByTransactionId(any()) } returns tx
+    every { custodyConfig.type } returns CustodyConfig.FIREBLOCKS_CUSTODY_TYPE
+    every { custodyConfig.isCustodyIntegrationEnabled } returns true
+
+    val exception =
+      assertThrows<BadRequestException> { transactionService.patchTransactions(request) }
+    assertEquals(
+      "Memo type [hash] is not supported by Fireblocks custody service",
+      exception.message
+    )
+
+    verify(exactly = 0) { custodyService.createTransaction(ofType(Sep24Transaction::class)) }
+    verify(exactly = 0) { sep24TransactionStore.save(any()) }
+    verify(exactly = 0) {
+      eventService.publish(ofType(Sep24Transaction::class), TRANSACTION_STATUS_CHANGED)
+    }
+  }
+
+  @Test
   fun test_updateSep31Transaction() {
     val quoteId = "my-quote-id"
     val gson = GsonUtils.getInstance()
