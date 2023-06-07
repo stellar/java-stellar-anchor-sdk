@@ -471,8 +471,8 @@ internal class Sep24ServiceTest {
   fun `test GET info`() {
     val response = sep24Service.info
 
-    assertEquals(3, response.deposit.size)
-    assertEquals(1, response.withdraw.size)
+    assertEquals(4, response.deposit.size)
+    assertEquals(2, response.withdraw.size)
     assertNotNull(response.deposit["USDC"])
     assertNotNull(response.withdraw["USDC"])
     assertFalse(response.fee.enabled)

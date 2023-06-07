@@ -265,15 +265,11 @@ internal class DefaultAssetServiceTest {
             "significant_decimals": 7,
             "deposit": {
               "enabled": true,
-              "fee_fixed": 0,
-              "fee_percent": 0,
               "min_amount": 1,
               "max_amount": 1000000
             },
             "withdraw": {
               "enabled": true,
-              "fee_fixed": 0.00001,
-              "fee_percent": 0,
               "min_amount": 1,
               "max_amount": 1000000
             },
