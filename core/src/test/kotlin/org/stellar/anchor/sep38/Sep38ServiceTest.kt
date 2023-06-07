@@ -136,14 +136,14 @@ class Sep38ServiceTest {
     assertTrue(wantAssets.containsAll(fiatUSD.exchangeableAssetNames))
 
     // TODO: why is this test duplicated?
-    val stellarXLM = assetMap["stellar:XLM"]
-    assertNotNull(stellarXLM)
-    assertEquals(listOf("USA"), stellarXLM!!.countryCodes)
-    assertNull(stellarXLM.sellDeliveryMethods)
-    assertNull(stellarXLM.buyDeliveryMethods)
+    val stellarNative = assetMap["stellar:native"]
+    assertNotNull(stellarNative)
+    assertEquals(listOf("USA"), stellarNative!!.countryCodes)
+    assertNull(stellarNative.sellDeliveryMethods)
+    assertNull(stellarNative.buyDeliveryMethods)
     wantAssets = listOf("stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP")
-    assertTrue(stellarXLM.exchangeableAssetNames.containsAll(wantAssets))
-    assertTrue(wantAssets.containsAll(stellarXLM.exchangeableAssetNames))
+    assertTrue(stellarNative.exchangeableAssetNames.containsAll(wantAssets))
+    assertTrue(wantAssets.containsAll(stellarNative.exchangeableAssetNames))
   }
 
   @Test

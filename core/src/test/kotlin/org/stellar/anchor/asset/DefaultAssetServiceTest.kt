@@ -261,7 +261,7 @@ internal class DefaultAssetServiceTest {
           },
           {
             "schema": "stellar",
-            "code": "XLM",
+            "code": "native",
             "significant_decimals": 7,
             "deposit": {
               "enabled": true,

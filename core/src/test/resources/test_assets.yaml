@@ -135,7 +135,7 @@ assets:
     sep31_enabled: false
     sep38_enabled: true
   - schema: stellar
-    code: XLM
+    code: native
     significant_decimals: 7
     deposit:
       enabled: true
