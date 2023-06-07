@@ -1,10 +1,6 @@
 package org.stellar.anchor.api.callback;
 
 import org.stellar.anchor.api.exception.AnchorException;
-import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerRequest;
-import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerResponse;
-import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest;
-import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerResponse;
 
 /**
  * The interface for the customer endpoint of the callback API.
@@ -21,7 +17,7 @@ public interface CustomerIntegration {
    * @return The GET customer response.
    * @throws AnchorException if error happens
    */
-  Sep12GetCustomerResponse getCustomer(Sep12GetCustomerRequest request) throws AnchorException;
+  GetCustomerResponse getCustomer(GetCustomerRequest request) throws AnchorException;
 
   /**
    * Puts a customer
@@ -30,7 +26,7 @@ public interface CustomerIntegration {
    * @return The PUT customer response.
    * @throws AnchorException if error happens
    */
-  Sep12PutCustomerResponse putCustomer(Sep12PutCustomerRequest request) throws AnchorException;
+  PutCustomerResponse putCustomer(PutCustomerRequest request) throws AnchorException;
 
   /**
    * Deletes a customer.

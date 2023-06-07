@@ -27,4 +27,13 @@ public enum Sep12Status {
   public String getName() {
     return this.name;
   }
+
+  public static Sep12Status fromName(String name) {
+    for (Sep12Status status : Sep12Status.values()) {
+      if (status.getName().equals(name)) {
+        return status;
+      }
+    }
+    throw new IllegalArgumentException("Invalid status name: " + name);
+  }
 }

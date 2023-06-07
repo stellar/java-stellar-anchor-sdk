@@ -7,7 +7,7 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
-import org.stellar.anchor.api.callback.CustomerIntegration;
+import org.stellar.anchor.api.callback.*;
 import org.stellar.anchor.api.exception.*;
 import org.stellar.anchor.api.sep.sep12.*;
 import org.stellar.anchor.asset.AssetService;
@@ -42,7 +42,8 @@ public class Sep12Service {
       request.setAccount(token.getAccount());
     }
 
-    return customerIntegration.getCustomer(request);
+    return GetCustomerResponse.to(
+        customerIntegration.getCustomer(GetCustomerRequest.from(request)));
   }
 
   public Sep12PutCustomerResponse putCustomer(Sep10Jwt token, Sep12PutCustomerRequest request)
@@ -53,7 +54,8 @@ public class Sep12Service {
       request.setAccount(token.getAccount());
     }
 
-    return customerIntegration.putCustomer(request);
+    return PutCustomerResponse.to(
+        customerIntegration.putCustomer(PutCustomerRequest.from(request)));
   }
 
   public void deleteCustomer(Sep10Jwt sep10Jwt, String account, String memo, String memoType)
@@ -81,9 +83,9 @@ public class Sep12Service {
 
     boolean existingCustomerMatch = false;
     for (String customerType : knownTypes) {
-      Sep12GetCustomerResponse existingCustomer =
+      GetCustomerResponse existingCustomer =
           customerIntegration.getCustomer(
-              Sep12GetCustomerRequest.builder()
+              GetCustomerRequest.builder()
                   .account(account)
                   .memo(memo)
                   .memoType(memoType)
