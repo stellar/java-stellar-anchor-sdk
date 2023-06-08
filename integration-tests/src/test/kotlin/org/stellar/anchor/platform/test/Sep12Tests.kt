@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform.test
 
+import java.lang.Thread.sleep
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.assertThrows
 import org.stellar.anchor.api.exception.SepNotFoundException
@@ -62,6 +63,8 @@ class Sep12Tests(config: TestConfig, toml: Sep1Helper.TomlContent, jwt: String) 
     printRequest("Calling PUT /customer", customer)
     var pr = sep12Client.putCustomer(customer)
     printResponse(pr)
+
+    sleep(1000)
 
     // make sure the customer was uploaded correctly.
     printRequest("Calling GET /customer", customer)

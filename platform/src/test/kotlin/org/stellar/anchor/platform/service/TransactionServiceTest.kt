@@ -858,4 +858,27 @@ class TransactionServiceTest {
       }   
   """
       .trimIndent()
+
+  @Test
+  fun `patch transaction with bad body`() {
+    var patchTransactionsRequest = PatchTransactionsRequest.builder().records(null).build()
+
+    var ex =
+      assertThrows<BadRequestException> {
+        transactionService.patchTransactions(patchTransactionsRequest)
+      }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("Records are missing.", ex.message)
+
+    val patchTransactionRequest = PatchTransactionRequest.builder().transaction(null).build()
+    val records: List<PatchTransactionRequest> = listOf(patchTransactionRequest)
+    patchTransactionsRequest = PatchTransactionsRequest.builder().records(records).build()
+
+    ex =
+      assertThrows<BadRequestException> {
+        transactionService.patchTransactions(patchTransactionsRequest)
+      }
+    assertInstanceOf(BadRequestException::class.java, ex)
+    assertEquals("Transaction is missing.", ex.message)
+  }
 }

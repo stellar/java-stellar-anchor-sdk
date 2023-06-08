@@ -56,7 +56,7 @@ class CallbackApiConfigTest {
 
   @Test
   fun `test JWT_TOKEN callback api secret`() {
-    every { secretConfig.callbackApiSecret } returns "secret"
+    every { secretConfig.callbackAuthSecret } returns "secret"
     config.setAuth(
       AuthConfig(
         JWT,
@@ -73,7 +73,7 @@ class CallbackApiConfigTest {
   @ValueSource(strings = [""])
   @NullSource
   fun `test empty secret`(secretValue: String?) {
-    every { secretConfig.callbackApiSecret } returns secretValue
+    every { secretConfig.callbackAuthSecret } returns secretValue
     config.setAuth(
       AuthConfig(
         JWT,

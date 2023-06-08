@@ -23,7 +23,7 @@ public class PlatformApiConfig implements Validator {
   }
 
   public void setAuth(AuthConfig auth) {
-    auth.setSecret(secretConfig.getPlatformApiSecret());
+    auth.setSecret(secretConfig.getPlatformAuthSecret());
     this.auth = auth;
   }
 
@@ -35,10 +35,10 @@ public class PlatformApiConfig implements Validator {
   @Override
   public void validate(@NotNull Object target, @NotNull Errors errors) {
     if (List.of(AuthType.API_KEY, AuthType.JWT).contains(auth.getType())) {
-      if (isEmpty(secretConfig.getCallbackApiSecret())) {
+      if (isEmpty(secretConfig.getPlatformAuthSecret())) {
         errors.reject(
-            "empty-secret-callback-api-secret",
-            "Please set environment variable secret.callback_api.auth_secret or SECRET.CALLBACK_API.AUTH_SECRET");
+            "empty-secret-platform-api-secret",
+            "Please set environment variable secret.platform_api.auth_secret or SECRET.PLATFORM_API.AUTH_SECRET");
       }
 
       PlatformApiConfig config = (PlatformApiConfig) target;

@@ -22,6 +22,7 @@ import org.springframework.scheduling.support.CronExpression;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 import org.stellar.anchor.api.exception.InvalidConfigException;
+import org.stellar.anchor.config.CustodySecretConfig;
 import org.stellar.anchor.platform.utils.RSAUtil;
 import org.stellar.anchor.util.Log;
 import org.stellar.anchor.util.NetUtil;

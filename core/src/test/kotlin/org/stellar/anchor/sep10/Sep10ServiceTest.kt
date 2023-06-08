@@ -24,7 +24,7 @@ import org.junit.jupiter.params.provider.ValueSource
 import org.stellar.anchor.TestConstants.Companion.TEST_ACCOUNT
 import org.stellar.anchor.TestConstants.Companion.TEST_CLIENT_DOMAIN
 import org.stellar.anchor.TestConstants.Companion.TEST_CLIENT_TOML
-import org.stellar.anchor.TestConstants.Companion.TEST_HOST_URL
+import org.stellar.anchor.TestConstants.Companion.TEST_HOME_DOMAIN
 import org.stellar.anchor.TestConstants.Companion.TEST_JWT_SECRET
 import org.stellar.anchor.TestConstants.Companion.TEST_MEMO
 import org.stellar.anchor.TestConstants.Companion.TEST_NETWORK_PASS_PHRASE
@@ -38,6 +38,7 @@ import org.stellar.anchor.api.sep.sep10.ValidationRequest
 import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.auth.Sep10Jwt
 import org.stellar.anchor.config.AppConfig
+import org.stellar.anchor.config.CustodySecretConfig
 import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.config.Sep10Config
 import org.stellar.anchor.horizon.Horizon
@@ -69,7 +70,7 @@ internal class Sep10ServiceTest {
   companion object {
     @JvmStatic
     fun homeDomains(): Stream<String> {
-      return Stream.of(null, TEST_WEB_AUTH_DOMAIN)
+      return Stream.of(null, TEST_HOME_DOMAIN)
     }
 
     val testAccountWithNoncompliantSigner: String =
@@ -79,6 +80,7 @@ internal class Sep10ServiceTest {
   @MockK(relaxed = true) private lateinit var appConfig: AppConfig
 
   @MockK(relaxed = true) private lateinit var secretConfig: SecretConfig
+  @MockK(relaxed = true) private lateinit var custodySecretConfig: CustodySecretConfig
 
   @MockK(relaxed = true) private lateinit var sep10Config: Sep10Config
 
@@ -99,9 +101,9 @@ internal class Sep10ServiceTest {
     every { sep10Config.clientAttributionAllowList } returns listOf(TEST_CLIENT_DOMAIN)
     every { sep10Config.authTimeout } returns 900
     every { sep10Config.jwtTimeout } returns 900
+    every { sep10Config.homeDomain } returns TEST_HOME_DOMAIN
 
     every { appConfig.stellarNetworkPassphrase } returns TEST_NETWORK_PASS_PHRASE
-    every { appConfig.hostUrl } returns TEST_HOST_URL
 
     every { secretConfig.sep10SigningSeed } returns TEST_SIGNING_SEED
     every { secretConfig.sep10JwtSecretKey } returns TEST_JWT_SECRET
@@ -111,7 +113,7 @@ internal class Sep10ServiceTest {
 
     every { NetUtil.fetch(any()) } returns TEST_CLIENT_TOML
 
-    this.jwtService = spyk(JwtService(secretConfig))
+    this.jwtService = spyk(JwtService(secretConfig, custodySecretConfig))
     this.sep10Service = Sep10Service(appConfig, secretConfig, sep10Config, horizon, jwtService)
     this.httpClient = `create httpClient`()
   }
@@ -137,6 +139,7 @@ internal class Sep10ServiceTest {
 
     // serverKP does not exist in the network.
     val serverWebAuthDomain = TEST_WEB_AUTH_DOMAIN
+    val serverHomeDomain = TEST_HOME_DOMAIN
     val serverKP = KeyPair.random()
 
     // clientDomainKP doesn't exist in the network. Refers to the walletAcc (like Lobstr's)
@@ -156,7 +159,7 @@ internal class Sep10ServiceTest {
 
     val sourceAccount = Account(serverKP.accountId, -1L)
     val op1DomainNameMandatory =
-      ManageDataOperation.Builder("$serverWebAuthDomain auth", encodedNonce)
+      ManageDataOperation.Builder("$serverHomeDomain auth", encodedNonce)
         .setSourceAccount(clientAddress)
         .build()
     val op2WebAuthDomainMandatory =
@@ -232,6 +235,7 @@ internal class Sep10ServiceTest {
 
     // serverKP does not exist in the network.
     val serverWebAuthDomain = TEST_WEB_AUTH_DOMAIN
+    val serverHomeDomain = TEST_HOME_DOMAIN
     val serverKP = KeyPair.random()
 
     // clientDomainKP does not exist in the network. It refers to the wallet (like Lobstr's)
@@ -249,7 +253,7 @@ internal class Sep10ServiceTest {
 
     val sourceAccount = Account(serverKP.accountId, -1L)
     val op1DomainNameMandatory =
-      ManageDataOperation.Builder("$serverWebAuthDomain auth", encodedNonce)
+      ManageDataOperation.Builder("$serverHomeDomain auth", encodedNonce)
         .setSourceAccount(clientKP.accountId)
         .build()
     val op2WebAuthDomainMandatory =
@@ -309,6 +313,7 @@ internal class Sep10ServiceTest {
 
     // serverKP does not exist in the network.
     val serverWebAuthDomain = TEST_WEB_AUTH_DOMAIN
+    val serverHomeDomain = TEST_HOME_DOMAIN
     // GDFWZYGUNUFW4H3PP3DSNGTDFBUHO6NUFPQ6FAPMCKEJ6EHDKX2CV2IM
     val serverKP = KeyPair.random()
 
@@ -324,7 +329,7 @@ internal class Sep10ServiceTest {
 
     val sourceAccount = Account(serverKP.accountId, -1L)
     val op1DomainNameMandatory =
-      ManageDataOperation.Builder("$serverWebAuthDomain auth", encodedNonce)
+      ManageDataOperation.Builder("$serverHomeDomain auth", encodedNonce)
         .setSourceAccount(clientKP.accountId)
         .build()
     val op2WebAuthDomainMandatory =
@@ -373,7 +378,7 @@ internal class Sep10ServiceTest {
       ChallengeRequest.builder()
         .account(TEST_ACCOUNT)
         .memo(TEST_MEMO)
-        .homeDomain(TEST_WEB_AUTH_DOMAIN)
+        .homeDomain(TEST_HOME_DOMAIN)
         .clientDomain(TEST_CLIENT_DOMAIN)
         .build()
     cr.clientDomain = if (clientDomain == "null") null else clientDomain
@@ -386,8 +391,8 @@ internal class Sep10ServiceTest {
         any(),
         Network(TEST_NETWORK_PASS_PHRASE),
         TEST_ACCOUNT,
+        TEST_HOME_DOMAIN,
         TEST_WEB_AUTH_DOMAIN,
-        "test.stellar.org",
         any(),
         any(),
         any(),
@@ -405,7 +410,7 @@ internal class Sep10ServiceTest {
         signer,
         Network(TEST_NETWORK_PASS_PHRASE),
         clientKeyPair.accountId,
-        TEST_WEB_AUTH_DOMAIN,
+        TEST_HOME_DOMAIN,
         TEST_WEB_AUTH_DOMAIN,
         TimeBounds(now, now + 900),
         clientDomain,
@@ -504,7 +509,7 @@ internal class Sep10ServiceTest {
       ChallengeRequest.builder()
         .account(TEST_ACCOUNT)
         .memo(TEST_MEMO)
-        .homeDomain(TEST_WEB_AUTH_DOMAIN)
+        .homeDomain(TEST_HOME_DOMAIN)
         .clientDomain(TEST_CLIENT_DOMAIN)
         .build()
     cr.homeDomain = "bad.homedomain.com"
@@ -520,7 +525,7 @@ internal class Sep10ServiceTest {
       ChallengeRequest.builder()
         .account(TEST_ACCOUNT)
         .memo(TEST_MEMO)
-        .homeDomain(TEST_WEB_AUTH_DOMAIN)
+        .homeDomain(TEST_HOME_DOMAIN)
         .clientDomain(TEST_CLIENT_DOMAIN)
         .build()
     cr.homeDomain = homeDomain
@@ -546,7 +551,7 @@ internal class Sep10ServiceTest {
       ChallengeRequest.builder()
         .account(TEST_ACCOUNT)
         .memo(TEST_MEMO)
-        .homeDomain(TEST_WEB_AUTH_DOMAIN)
+        .homeDomain(TEST_HOME_DOMAIN)
         .clientDomain(TEST_CLIENT_DOMAIN)
         .build()
     cr.account = "GXXX"
@@ -562,7 +567,7 @@ internal class Sep10ServiceTest {
       ChallengeRequest.builder()
         .account(TEST_ACCOUNT)
         .memo(TEST_MEMO)
-        .homeDomain(TEST_WEB_AUTH_DOMAIN)
+        .homeDomain(TEST_HOME_DOMAIN)
         .clientDomain(TEST_CLIENT_DOMAIN)
         .build()
     cr.account = TEST_ACCOUNT
@@ -595,7 +600,7 @@ internal class Sep10ServiceTest {
       ChallengeRequest.builder()
         .account(TEST_ACCOUNT)
         .memo(TEST_MEMO)
-        .homeDomain(TEST_WEB_AUTH_DOMAIN)
+        .homeDomain(TEST_HOME_DOMAIN)
         .clientDomain(TEST_CLIENT_DOMAIN)
         .build()
 
@@ -614,7 +619,7 @@ internal class Sep10ServiceTest {
       ChallengeRequest.builder()
         .account(TEST_ACCOUNT)
         .memo(TEST_MEMO)
-        .homeDomain(TEST_WEB_AUTH_DOMAIN)
+        .homeDomain(TEST_HOME_DOMAIN)
         .clientDomain(null)
         .build()
 
@@ -632,7 +637,7 @@ internal class Sep10ServiceTest {
       ChallengeRequest.builder()
         .account(TEST_ACCOUNT)
         .memo(TEST_MEMO)
-        .homeDomain(TEST_WEB_AUTH_DOMAIN)
+        .homeDomain(TEST_HOME_DOMAIN)
         .clientDomain(null)
         .build()
 
@@ -650,7 +655,7 @@ internal class Sep10ServiceTest {
       ChallengeRequest.builder()
         .account(TEST_ACCOUNT)
         .memo(TEST_MEMO)
-        .homeDomain(TEST_WEB_AUTH_DOMAIN)
+        .homeDomain(TEST_HOME_DOMAIN)
         .clientDomain(null)
         .build()
 

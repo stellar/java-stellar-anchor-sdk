@@ -110,11 +110,11 @@ public class PlatformApiClient extends BaseApiClient {
     return gson.fromJson(responseBody, HashMap.class);
   }
 
-  Request.Builder getRequestBuilder() {
+  Request.Builder getRequestBuilder() throws InvalidConfigException {
     Request.Builder requestBuilder =
         new Request.Builder().header("Content-Type", "application/json");
 
-    AuthHeader<String, String> authHeader = authHelper.createAuthHeader();
+    AuthHeader<String, String> authHeader = authHelper.createPlatformServerAuthHeader();
     return authHeader == null
         ? requestBuilder
         : requestBuilder.header(authHeader.getName(), authHeader.getValue());

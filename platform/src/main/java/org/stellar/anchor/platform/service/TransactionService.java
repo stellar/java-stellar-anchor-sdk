@@ -31,11 +31,11 @@ import org.stellar.anchor.api.platform.PatchTransactionsRequest;
 import org.stellar.anchor.api.platform.PatchTransactionsResponse;
 import org.stellar.anchor.api.platform.PlatformTransactionData;
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind;
-import org.stellar.anchor.api.platform.TransactionsSeps;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.shared.Amount;
 import org.stellar.anchor.api.shared.SepDepositInfo;
+import org.stellar.anchor.apiclient.TransactionsSeps;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.CustodyConfig;
 import org.stellar.anchor.custody.CustodyService;
@@ -156,16 +156,25 @@ public class TransactionService {
   public PatchTransactionsResponse patchTransactions(PatchTransactionsRequest request)
       throws AnchorException {
     List<PatchTransactionRequest> patchRequests = request.getRecords();
+    if (patchRequests == null) {
+      throw new BadRequestException("Records are missing.");
+    }
 
     List<GetTransactionResponse> txnResponses = new LinkedList<>();
+
     for (PatchTransactionRequest patchRequest : patchRequests) {
       txnResponses.add(patchTransaction(patchRequest));
     }
+
     return new PatchTransactionsResponse(txnResponses);
   }
 
   private GetTransactionResponse patchTransaction(PatchTransactionRequest patch)
       throws AnchorException {
+    if (patch.getTransaction() == null) {
+      throw new BadRequestException("Transaction is missing.");
+    }
+
     validateIfStatusIsSupported(patch.getTransaction().getStatus().toString());
     validateAsset("amount_in", patch.getTransaction().getAmountIn());
     validateAsset("amount_out", patch.getTransaction().getAmountOut());

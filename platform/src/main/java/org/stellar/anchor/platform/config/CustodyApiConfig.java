@@ -11,6 +11,7 @@ import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 import org.stellar.anchor.auth.AuthConfig;
 import org.stellar.anchor.auth.AuthType;
+import org.stellar.anchor.config.CustodySecretConfig;
 import org.stellar.anchor.util.NetUtil;
 
 @Data
@@ -26,7 +27,7 @@ public class CustodyApiConfig implements Validator {
   }
 
   public void setAuth(AuthConfig auth) {
-    auth.setSecret(secretConfig.getCustodyApiSecret());
+    auth.setSecret(secretConfig.getCustodyAuthSecret());
     this.auth = auth;
   }
 
@@ -59,7 +60,7 @@ public class CustodyApiConfig implements Validator {
 
   private void validateApiSecret(Errors errors) {
     if (List.of(AuthType.API_KEY, AuthType.JWT).contains(auth.getType())) {
-      if (isEmpty(secretConfig.getCustodyApiSecret())) {
+      if (isEmpty(secretConfig.getCustodyAuthSecret())) {
         errors.reject(
             "empty-secret-custody-server-secret",
             "Please set environment variable secret.custody_server.auth_secret or SECRET.CUSTODY_SERVER.AUTH_SECRET");

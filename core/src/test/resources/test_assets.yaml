@@ -62,7 +62,7 @@ assets:
   - schema: stellar
     code: JPYC
     issuer: GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5
-    significant_decimals: 0
+    significant_decimals: 2
     deposit:
       enabled: true
       fee_minimum: 0
@@ -113,6 +113,7 @@ assets:
     sep38_enabled: true
   - schema: iso4217
     code: USD
+    significant_decimals: 2
     deposit:
       enabled: true
       fee_minimum: 0

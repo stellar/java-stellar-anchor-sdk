@@ -12,6 +12,7 @@ import org.springframework.web.util.UriComponentsBuilder
 import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.auth.Sep10Jwt
 import org.stellar.anchor.auth.Sep24MoreInfoUrlJwt
+import org.stellar.anchor.config.CustodySecretConfig
 import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.platform.config.PropertySep24Config
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
@@ -23,6 +24,7 @@ class SimpleMoreInfoUrlConstructorTest {
   }
 
   @MockK(relaxed = true) private lateinit var secretConfig: SecretConfig
+  @MockK(relaxed = true) private lateinit var custodySecretConfig: CustodySecretConfig
   private lateinit var jwtService: JwtService
   private lateinit var sep10Jwt: Sep10Jwt
   private lateinit var txn: JdbcSep24Transaction
@@ -32,7 +34,7 @@ class SimpleMoreInfoUrlConstructorTest {
     MockKAnnotations.init(this, relaxUnitFun = true)
     every { secretConfig.sep24MoreInfoUrlJwtSecret } returns "sep24_jwt_secret"
 
-    jwtService = JwtService(secretConfig)
+    jwtService = JwtService(secretConfig, custodySecretConfig)
     txn = gson.fromJson(TXN_JSON, JdbcSep24Transaction::class.java)
   }
 

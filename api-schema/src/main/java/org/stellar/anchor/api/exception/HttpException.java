@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import reactor.util.annotation.Nullable;
 
+/** Thrown when an HTTP error occurs to wrap the original status code and errors. */
 @Data
 @EqualsAndHashCode(callSuper = false)
 public class HttpException extends RuntimeException {

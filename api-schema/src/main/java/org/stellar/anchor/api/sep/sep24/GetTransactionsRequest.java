@@ -3,6 +3,7 @@ package org.stellar.anchor.api.sep.sep24;
 import com.google.gson.annotations.SerializedName;
 import lombok.Data;
 
+/** The request body of the GET /transactions endpoint of SEP-24. */
 @Data
 public class GetTransactionsRequest {
   @SerializedName("asset_code")

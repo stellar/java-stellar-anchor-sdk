@@ -6,6 +6,13 @@ import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerResponse;
 import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest;
 import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerResponse;
 
+/**
+ * The interface for the customer endpoint of the callback API.
+ *
+ * @see <a
+ *     href="https://github.com/stellar/stellar-docs/blob/main/openapi/ap/Callbacks%20API.yml">Callback
+ *     API</a>
+ */
 public interface CustomerIntegration {
   /**
    * Gets a customer.

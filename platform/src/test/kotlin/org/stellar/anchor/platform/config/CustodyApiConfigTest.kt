@@ -13,6 +13,7 @@ import org.springframework.validation.Errors
 import org.stellar.anchor.auth.AuthConfig
 import org.stellar.anchor.auth.AuthType.JWT
 import org.stellar.anchor.auth.AuthType.NONE
+import org.stellar.anchor.config.CustodySecretConfig
 
 class CustodyApiConfigTest {
 
@@ -23,7 +24,7 @@ class CustodyApiConfigTest {
   @BeforeEach
   fun setUp() {
     secretConfig = mockk()
-    every { secretConfig.custodyApiSecret } returns "testCustodyApiSecret"
+    every { secretConfig.custodyAuthSecret } returns "testCustodyApiSecret"
     config = CustodyApiConfig(secretConfig)
     config.baseUrl = "https://test.com"
     config.auth = AuthConfig()
@@ -61,7 +62,7 @@ class CustodyApiConfigTest {
   @NullSource
   @ValueSource(strings = [""])
   fun `test empty api_key`(apiKey: String?) {
-    every { secretConfig.custodyApiSecret } returns apiKey
+    every { secretConfig.custodyAuthSecret } returns apiKey
     config.validate(config, errors)
     assertErrorCode(errors, "empty-secret-custody-server-secret")
   }
@@ -70,7 +71,7 @@ class CustodyApiConfigTest {
   @NullSource
   @ValueSource(strings = [""])
   fun `test empty api_key with NONE auth type`(apiKey: String?) {
-    every { secretConfig.custodyApiSecret } returns apiKey
+    every { secretConfig.custodyAuthSecret } returns apiKey
     config.auth.type = NONE
     config.validate(config, errors)
     assertFalse(errors.hasErrors())

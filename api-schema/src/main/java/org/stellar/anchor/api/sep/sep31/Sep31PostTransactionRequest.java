@@ -5,6 +5,13 @@ import java.util.HashMap;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+/**
+ * The request sent to the POST /transactions endpoint of SEP-31.
+ *
+ * @see <a
+ *     href="https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0031.md#fields">Refer
+ *     to SEP-31</a>
+ */
 @Data
 public class Sep31PostTransactionRequest {
   String amount;

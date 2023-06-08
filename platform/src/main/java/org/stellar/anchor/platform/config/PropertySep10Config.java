@@ -1,7 +1,6 @@
 package org.stellar.anchor.platform.config;
 
 import static java.lang.String.format;
-import static org.stellar.anchor.util.NetUtil.getDomainFromURL;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 import static org.stellar.anchor.util.StringHelper.isNotEmpty;
 
@@ -23,6 +22,7 @@ import org.stellar.sdk.KeyPair;
 public class PropertySep10Config implements Sep10Config, Validator {
   private Boolean enabled;
   private String webAuthDomain;
+  private String homeDomain;
   private boolean clientAttributionRequired = false;
   private Integer authTimeout = 900;
   private Integer jwtTimeout = 86400;
@@ -41,7 +41,7 @@ public class PropertySep10Config implements Sep10Config, Validator {
   @PostConstruct
   public void postConstruct() throws MalformedURLException {
     if (isEmpty(webAuthDomain)) {
-      webAuthDomain = getDomainFromURL(appConfig.getHostUrl());
+      webAuthDomain = homeDomain;
     }
   }
 
@@ -81,6 +81,18 @@ public class PropertySep10Config implements Sep10Config, Validator {
       errors.reject(
           "sep10-jwt-secret-empty",
           "Please set the secret.sep10.jwt_secret or SECRET_SEP10_JWT_SECRET environment variable");
+    }
+
+    if (isEmpty(homeDomain)) {
+      errors.rejectValue(
+          "homeDomain", "home-domain-empty", "The sep10.home_domain is not defined.");
+    } else {
+      if (!NetUtil.isServerPortValid(homeDomain)) {
+        errors.rejectValue(
+            "homeDomain",
+            "sep10-home-domain-invalid",
+            "The sep10.home_domain does not have valid format.");
+      }
     }
 
     if (isNotEmpty(webAuthDomain)) {

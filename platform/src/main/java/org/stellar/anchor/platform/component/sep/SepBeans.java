@@ -25,12 +25,11 @@ import org.stellar.anchor.config.Sep31Config;
 import org.stellar.anchor.config.Sep38Config;
 import org.stellar.anchor.custody.CustodyService;
 import org.stellar.anchor.event.EventService;
-import org.stellar.anchor.filter.JwtTokenFilter;
+import org.stellar.anchor.filter.Sep10JwtFilter;
 import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.platform.apiclient.CustodyApiClient;
 import org.stellar.anchor.platform.condition.ConditionalOnAllSepsEnabled;
 import org.stellar.anchor.platform.config.CallbackApiConfig;
-import org.stellar.anchor.platform.config.PropertyDataConfig;
 import org.stellar.anchor.platform.config.PropertySep10Config;
 import org.stellar.anchor.platform.config.PropertySep12Config;
 import org.stellar.anchor.platform.config.PropertySep1Config;
@@ -38,9 +37,6 @@ import org.stellar.anchor.platform.config.PropertySep24Config;
 import org.stellar.anchor.platform.config.PropertySep31Config;
 import org.stellar.anchor.platform.config.PropertySep38Config;
 import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountsManager;
-import org.stellar.anchor.platform.service.CustodyServiceImpl;
-import org.stellar.anchor.platform.service.Sep24DepositInfoCustodyGenerator;
-import org.stellar.anchor.platform.service.Sep24DepositInfoSelfGenerator;
 import org.stellar.anchor.platform.service.Sep31DepositInfoApiGenerator;
 import org.stellar.anchor.platform.service.Sep31DepositInfoCustodyGenerator;
 import org.stellar.anchor.platform.service.Sep31DepositInfoSelfGenerator;
@@ -51,7 +47,6 @@ import org.stellar.anchor.sep10.Sep10Service;
 import org.stellar.anchor.sep12.Sep12Service;
 import org.stellar.anchor.sep24.InteractiveUrlConstructor;
 import org.stellar.anchor.sep24.MoreInfoUrlConstructor;
-import org.stellar.anchor.sep24.Sep24DepositInfoGenerator;
 import org.stellar.anchor.sep24.Sep24Service;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31DepositInfoGenerator;
@@ -86,13 +81,6 @@ public class SepBeans {
   }
 
   @Bean
-  @ConfigurationProperties(prefix = "sep24")
-  PropertySep24Config sep24Config(SecretConfig secretConfig, CustodyConfig custodyConfig) {
-    return new PropertySep24Config(secretConfig, custodyConfig);
-  }
-
-  @Bean
-  @ConfigurationProperties(prefix = "sep31")
   Sep31Config sep31Config() {
     return new PropertySep31Config();
   }
@@ -103,22 +91,6 @@ public class SepBeans {
     return new PropertySep38Config();
   }
 
-  @Bean
-  @ConfigurationProperties(prefix = "data")
-  PropertyDataConfig dataConfig(SecretConfig secretConfig) {
-    return new PropertyDataConfig(secretConfig);
-  }
-
-  /**
-   * Used by SEP-10 authentication service.
-   *
-   * @return the jwt service used by SEP-10.
-   */
-  @Bean
-  public JwtService jwtService(SecretConfig secretConfig) {
-    return new JwtService(secretConfig);
-  }
-
   /**
    * Register sep-10 token filter.
    *
@@ -127,7 +99,7 @@ public class SepBeans {
   @Bean
   public FilterRegistrationBean<Filter> sep10TokenFilter(JwtService jwtService) {
     FilterRegistrationBean<Filter> registrationBean = new FilterRegistrationBean<>();
-    registrationBean.setFilter(new JwtTokenFilter(jwtService));
+    registrationBean.setFilter(new Sep10JwtFilter(jwtService));
     registrationBean.addUrlPatterns("/sep12/*");
     registrationBean.addUrlPatterns("/sep24/transaction");
     registrationBean.addUrlPatterns("/sep24/transactions*");
@@ -182,28 +154,6 @@ public class SepBeans {
         eventService,
         interactiveUrlConstructor,
         moreInfoUrlConstructor);
-  }
-
-  @Bean
-  CustodyService custodyService(Optional<CustodyApiClient> custodyApiClient) {
-    return new CustodyServiceImpl(custodyApiClient);
-  }
-
-  @Bean
-  Sep24DepositInfoGenerator sep24DepositInfoGenerator(
-      Sep24Config sep24Config, Optional<CustodyApiClient> custodyApiClient)
-      throws InvalidConfigException {
-    switch (sep24Config.getDepositInfoGeneratorType()) {
-      case SELF:
-        return new Sep24DepositInfoSelfGenerator();
-      case CUSTODY:
-        return new Sep24DepositInfoCustodyGenerator(
-            custodyApiClient.orElseThrow(
-                () ->
-                    new InvalidConfigException("Integration with custody service is not enabled")));
-      default:
-        throw new RuntimeException("Not supported");
-    }
   }
 
   @Bean

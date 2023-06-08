@@ -4,6 +4,7 @@ import com.google.gson.annotations.SerializedName;
 import java.time.Instant;
 import lombok.Data;
 
+/** Base class of transaction responses for withdraw and deposit. */
 @Data
 public class TransactionResponse {
   String id;

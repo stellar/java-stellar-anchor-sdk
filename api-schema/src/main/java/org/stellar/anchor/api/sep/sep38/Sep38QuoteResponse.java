@@ -5,6 +5,13 @@ import java.time.Instant;
 import lombok.Builder;
 import lombok.Data;
 
+/**
+ * The response body of the POST /quote endpoint of SEP-38.
+ *
+ * @see <a
+ *     href="https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0038.md#fields">Refer
+ *     to SEP-38</a>
+ */
 @Data
 @Builder
 public class Sep38QuoteResponse {

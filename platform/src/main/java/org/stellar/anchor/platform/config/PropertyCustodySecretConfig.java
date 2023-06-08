@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform.config;
 
+import org.stellar.anchor.config.CustodySecretConfig;
 import org.stellar.anchor.platform.configurator.SecretManager;
 
 public class PropertyCustodySecretConfig implements CustodySecretConfig {
@@ -20,7 +21,7 @@ public class PropertyCustodySecretConfig implements CustodySecretConfig {
   }
 
   @Override
-  public String getCustodyApiSecret() {
+  public String getCustodyAuthSecret() {
     return SecretManager.getInstance().get(SECRET_CUSTODY_SERVER_AUTH_SECRET);
   }
 }
