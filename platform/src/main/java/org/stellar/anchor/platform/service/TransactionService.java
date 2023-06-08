@@ -6,6 +6,7 @@ import static org.stellar.anchor.api.sep.SepTransactionStatus.EXPIRED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_CUSTOMER_INFO_UPDATE;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_USR_TRANSFER_START;
+import static org.stellar.anchor.config.CustodyConfig.FIREBLOCKS_CUSTODY_TYPE;
 import static org.stellar.anchor.platform.utils.TransactionHelper.toGetTransactionResponse;
 import static org.stellar.anchor.sep31.Sep31Helper.allAmountAvailable;
 import static org.stellar.anchor.util.BeanHelper.updateField;
@@ -52,10 +53,12 @@ import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep38.Sep38Quote;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
 import org.stellar.anchor.util.Log;
+import org.stellar.anchor.util.MemoHelper;
 import org.stellar.anchor.util.SepHelper;
 import org.stellar.anchor.util.StringHelper;
 import org.stellar.anchor.util.TransactionsParams;
 import org.stellar.sdk.Memo;
+import org.stellar.sdk.xdr.MemoType;
 
 public class TransactionService {
 
@@ -208,6 +211,17 @@ public class TransactionService {
                     && PENDING_ANCHOR.toString().equals(sep24Txn.getStatus()))
                 || (Kind.WITHDRAWAL.getKind().equals(sep24Txn.getKind())
                     && PENDING_USR_TRANSFER_START.toString().equals(sep24Txn.getStatus())))) {
+
+          // Fireblocks doesn't support hash memo type
+          final String hashMemoType = MemoHelper.memoTypeAsString(MemoType.MEMO_HASH);
+          if (FIREBLOCKS_CUSTODY_TYPE.equals(custodyConfig.getType())
+              && Kind.DEPOSIT.getKind().equals(sep24Txn.getKind())
+              && hashMemoType.equals(sep24Txn.getMemoType())) {
+            throw new BadRequestException(
+                String.format(
+                    "Memo type [%s] is not supported by Fireblocks custody service", hashMemoType));
+          }
+
           custodyService.createTransaction(sep24Txn);
         }
 
