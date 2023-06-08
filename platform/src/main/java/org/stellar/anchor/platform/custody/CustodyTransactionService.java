@@ -23,7 +23,7 @@ import org.stellar.anchor.platform.data.CustodyTransactionStatus;
 import org.stellar.anchor.platform.data.JdbcCustodyTransaction;
 import org.stellar.anchor.platform.data.JdbcCustodyTransactionRepo;
 
-public class CustodyTransactionService {
+public abstract class CustodyTransactionService {
 
   private final CustodyPaymentService<?> custodyPaymentService;
   private final JdbcCustodyTransactionRepo custodyTransactionRepo;
@@ -35,12 +35,17 @@ public class CustodyTransactionService {
     this.custodyPaymentService = custodyPaymentService;
   }
 
+  protected abstract void validateRequest(CreateCustodyTransactionRequest request)
+      throws CustodyBadRequestException;
+
   /**
    * Create custody transaction
    *
    * @param request custody transaction info
    */
-  public void create(CreateCustodyTransactionRequest request) {
+  public void create(CreateCustodyTransactionRequest request) throws CustodyBadRequestException {
+    validateRequest(request);
+
     custodyTransactionRepo.save(
         JdbcCustodyTransaction.builder()
             .id(request.getId())

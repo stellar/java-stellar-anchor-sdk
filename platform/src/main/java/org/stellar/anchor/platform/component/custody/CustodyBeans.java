@@ -14,21 +14,12 @@ import org.stellar.anchor.filter.CustodyAuthJwtFilter;
 import org.stellar.anchor.filter.NoneFilter;
 import org.stellar.anchor.platform.config.CustodyApiConfig;
 import org.stellar.anchor.platform.config.PropertyCustodyConfig;
-import org.stellar.anchor.platform.custody.CustodyPaymentService;
-import org.stellar.anchor.platform.custody.CustodyTransactionService;
 import org.stellar.anchor.platform.custody.Sep24CustodyPaymentHandler;
 import org.stellar.anchor.platform.custody.Sep31CustodyPaymentHandler;
 import org.stellar.anchor.platform.data.JdbcCustodyTransactionRepo;
 
 @Configuration
 public class CustodyBeans {
-
-  @Bean
-  CustodyTransactionService getCustodyTransactionService(
-      JdbcCustodyTransactionRepo custodyTransactionRepo,
-      CustodyPaymentService custodyPaymentService) {
-    return new CustodyTransactionService(custodyTransactionRepo, custodyPaymentService);
-  }
 
   /**
    * Register platform-to-custody token filter.
