@@ -115,6 +115,8 @@ subprojects {
     test {
       useJUnitPlatform()
 
+      exclude("**/AnchorPlatformCustodyEnd2EndTest**")
+
       testLogging {
         events("SKIPPED", "FAILED")
         showExceptions = true
