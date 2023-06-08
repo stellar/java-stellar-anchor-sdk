@@ -70,7 +70,7 @@ class TestProfileExecutor(val config: TestConfig) {
   }
 
   fun shutdown() {
-    shutdownServers()
+    if (shouldStartAllServers) shutdownServers()
     if (shouldStartDockerCompose) shutdownDocker()
   }
 
