@@ -31,10 +31,10 @@ open class AbstractIntegrationTest(private val config: TestConfig) {
   lateinit var stellarObserverTests: StellarObserverTests
   lateinit var custodyApiTests: CustodyApiTests
   lateinit var sep24E2eTests: Sep24End2EndTest
+  lateinit var sep24CustodyE2eTests: Sep24CustodyEnd2EndTests
 
   fun setUp(envMap: Map<String, String>) {
     envMap.forEach { (key, value) -> config.env[key] = value }
-
     testProfileRunner.start()
     setupTests()
   }
@@ -64,5 +64,6 @@ open class AbstractIntegrationTest(private val config: TestConfig) {
     stellarObserverTests = StellarObserverTests()
     custodyApiTests = CustodyApiTests(config, toml, jwt)
     sep24E2eTests = Sep24End2EndTest(config, toml, jwt)
+    sep24CustodyE2eTests = Sep24CustodyEnd2EndTests(config)
   }
 }
