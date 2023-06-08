@@ -68,7 +68,7 @@ class TestProfileExecutor(val config: TestConfig) {
   }
 
   fun shutdown() {
-    if (shouldStartAllServers) shutdownServers()
+    shutdownServers()
     if (shouldStartDockerCompose) shutdownDocker()
   }
 
@@ -151,7 +151,7 @@ class TestProfileExecutor(val config: TestConfig) {
 
   private fun shutdownServers() {
     runningServers.forEach { SpringApplication.exit(it) }
-    org.stellar.reference.stop()
+    if (shouldStartKotlinReferenceServer) org.stellar.reference.stop()
   }
 
   private fun shutdownDocker() {
