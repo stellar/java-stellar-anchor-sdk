@@ -72,9 +72,9 @@ public class FireblocksBeans {
   }
 
   @Bean
-  CustodyTransactionService getCustodyTransactionService(
+  CustodyTransactionService fireblocksCustodyTransactionService(
       JdbcCustodyTransactionRepo custodyTransactionRepo,
-      CustodyPaymentService custodyPaymentService) {
+      CustodyPaymentService<TransactionDetails> custodyPaymentService) {
     return new FireblocksCustodyTransactionService(custodyTransactionRepo, custodyPaymentService);
   }
 }
