@@ -64,7 +64,7 @@ open class AbstractAuthIntegrationTest {
   }
 }
 
-internal class JwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
+internal class PlatformJwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
   companion object {
     @BeforeAll
     @JvmStatic
@@ -76,11 +76,8 @@ internal class JwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
             it.env["platform_server.auth.type"] = "jwt"
             // enable business server callback auth
             it.env["integration-auth.authType"] = "jwt"
-            // enable custody server jwt auth
-            it.env["custody_server.auth.type"] = "jwt"
             it.env["integration-auth.platformToAnchorSecret"] = PLATFORM_TO_ANCHOR_SECRET
             it.env["integration-auth.anchorToPlatformSecret"] = ANCHOR_TO_PLATFORM_SECRET
-            //            it.env["secret.custody_server.auth_secret"] = PLATFORM_TO_CUSTODY_SECRET
             it.env["integration-auth.expirationMilliseconds"] =
               JWT_EXPIRATION_MILLISECONDS.toString()
           }
@@ -110,28 +107,6 @@ internal class JwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
   private val jwtExpiredTokenPlatformClient: PlatformApiClient =
     PlatformApiClient(jwtExpiredAuthHelper, "http://localhost:8085")
 
-  private val custodyApiConfig: CustodyApiConfig =
-    CustodyApiConfig(PropertyCustodySecretConfig()).apply { baseUrl = "http://localhost:8086" }
-
-  private val jwtCustodyClient: org.stellar.anchor.platform.apiclient.CustodyApiClient =
-    org.stellar.anchor.platform.apiclient.CustodyApiClient(
-      httpClient,
-      jwtAuthHelper,
-      custodyApiConfig
-    )
-  private val jwtWrongKeyCustodyClient: org.stellar.anchor.platform.apiclient.CustodyApiClient =
-    org.stellar.anchor.platform.apiclient.CustodyApiClient(
-      httpClient,
-      jwtWrongKeyAuthHelper,
-      custodyApiConfig
-    )
-  private val jwtExpiredTokenCustodyClient: org.stellar.anchor.platform.apiclient.CustodyApiClient =
-    org.stellar.anchor.platform.apiclient.CustodyApiClient(
-      httpClient,
-      jwtExpiredAuthHelper,
-      custodyApiConfig
-    )
-
   @ParameterizedTest
   @CsvSource(
     value =
@@ -148,14 +123,6 @@ internal class JwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
     // As for the correctness of the request/response, it should be tested in the platform server
     // integration tests.
     assertThrows<SepNotFoundException> { jwtPlatformClient.getTransaction("my_id") }
-  }
-
-  @Test
-  fun `test the custody endpoints with JWT auth`() {
-    // Assert the request does not throw a 403.
-    // As for the correctness of the request/response, it should be tested in the custody server
-    // integration tests.
-    jwtCustodyClient.createTransaction(getCustodyDummyRequest())
   }
 
   @ParameterizedTest
@@ -187,39 +154,9 @@ internal class JwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
     }
   }
 
-  @ParameterizedTest
-  @CsvSource(value = [POST_CUSTODY_TRANSACTION_ENDPOINT])
-  fun `test JWT protection of the custody server`(method: String, endpoint: String) {
-    // Check if the request without JWT will cause a 403.
-    val httpRequest =
-      Request.Builder()
-        .url("http://localhost:${CUSTODY_SERVER_SERVER_PORT}${endpoint}")
-        .header("Content-Type", "application/json")
-        .method(method, getCustodyDummyRequestBody())
-        .build()
-    val response = httpClient.newCall(httpRequest).execute()
-    assertEquals(403, response.code)
-
-    // Check if the wrong JWT key will cause a 403.
-    assertThrows<CustodyException> {
-      jwtWrongKeyCustodyClient.createTransaction(getCustodyDummyRequest())
-    }
-    assertThrows<CustodyException> {
-      jwtExpiredTokenCustodyClient.createTransaction(getCustodyDummyRequest())
-    }
-  }
-
   private fun getPlatformDummyRequestBody(method: String): RequestBody? {
     return if (method != "PATCH") null
     else OkHttpUtil.buildJsonRequestBody(gson.toJson(mapOf("proposedAssetsJson" to "bar")))
-  }
-
-  private fun getCustodyDummyRequest(): CreateCustodyTransactionRequest {
-    return CreateCustodyTransactionRequest.builder().id("testId").build()
-  }
-
-  private fun getCustodyDummyRequestBody(): RequestBody? {
-    return OkHttpUtil.buildJsonRequestBody(gson.toJson(mapOf("id" to "testId")))
   }
 
   @Test
@@ -335,7 +272,97 @@ internal class JwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
   }
 }
 
-internal class ApiKeyAuthIntegrationTest : AbstractAuthIntegrationTest() {
+internal class CustodyJwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
+  companion object {
+    @BeforeAll
+    @JvmStatic
+    fun setup() {
+      testProfileRunner =
+        TestProfileExecutor(
+          TestConfig(profileName = "default-custody").also {
+            // enable custody server jwt auth
+            it.env["custody_server.auth.type"] = "jwt"
+          }
+        )
+      testProfileRunner.start()
+    }
+
+    @AfterAll
+    @JvmStatic
+    fun breakdown() {
+      testProfileRunner.shutdown()
+    }
+  }
+
+  private val httpClient: OkHttpClient =
+    OkHttpClient.Builder()
+      .connectTimeout(10, TimeUnit.MINUTES)
+      .readTimeout(10, TimeUnit.MINUTES)
+      .writeTimeout(10, TimeUnit.MINUTES)
+      .build()
+
+  private val custodyApiConfig: CustodyApiConfig =
+    CustodyApiConfig(PropertyCustodySecretConfig()).apply { baseUrl = "http://localhost:8086" }
+
+  private val jwtCustodyClient: org.stellar.anchor.platform.apiclient.CustodyApiClient =
+    org.stellar.anchor.platform.apiclient.CustodyApiClient(
+      httpClient,
+      jwtAuthHelper,
+      custodyApiConfig
+    )
+  private val jwtWrongKeyCustodyClient: org.stellar.anchor.platform.apiclient.CustodyApiClient =
+    org.stellar.anchor.platform.apiclient.CustodyApiClient(
+      httpClient,
+      jwtWrongKeyAuthHelper,
+      custodyApiConfig
+    )
+  private val jwtExpiredTokenCustodyClient: org.stellar.anchor.platform.apiclient.CustodyApiClient =
+    org.stellar.anchor.platform.apiclient.CustodyApiClient(
+      httpClient,
+      jwtExpiredAuthHelper,
+      custodyApiConfig
+    )
+
+  @Test
+  fun `test the custody endpoints with JWT auth`() {
+    // Assert the request does not throw a 403.
+    // As for the correctness of the request/response, it should be tested in the custody server
+    // integration tests.
+    jwtCustodyClient.createTransaction(getCustodyDummyRequest())
+  }
+
+  @ParameterizedTest
+  @CsvSource(value = [POST_CUSTODY_TRANSACTION_ENDPOINT])
+  fun `test JWT protection of the custody server`(method: String, endpoint: String) {
+    // Check if the request without JWT will cause a 403.
+    val httpRequest =
+      Request.Builder()
+        .url("http://localhost:${CUSTODY_SERVER_SERVER_PORT}${endpoint}")
+        .header("Content-Type", "application/json")
+        .method(method, getCustodyDummyRequestBody())
+        .build()
+    val response = httpClient.newCall(httpRequest).execute()
+    assertEquals(403, response.code)
+
+    // Check if the wrong JWT key will cause a 403.
+    assertThrows<CustodyException> {
+      jwtWrongKeyCustodyClient.createTransaction(getCustodyDummyRequest())
+    }
+    assertThrows<CustodyException> {
+      jwtExpiredTokenCustodyClient.createTransaction(getCustodyDummyRequest())
+    }
+  }
+
+  private fun getCustodyDummyRequest(): CreateCustodyTransactionRequest {
+    return CreateCustodyTransactionRequest.builder().id("testId").build()
+  }
+
+  private fun getCustodyDummyRequestBody(): RequestBody? {
+    return OkHttpUtil.buildJsonRequestBody(gson.toJson(mapOf("id" to "testId")))
+  }
+}
+
+internal class PlatformApiKeyAuthIntegrationTest : AbstractAuthIntegrationTest() {
   companion object {
     @BeforeAll
     @JvmStatic
@@ -345,8 +372,6 @@ internal class ApiKeyAuthIntegrationTest : AbstractAuthIntegrationTest() {
           TestConfig(profileName = "default").also {
             // enable platform server api_key auth
             it.env["platform_server.auth.type"] = "api_key"
-            // enable custody server api_key auth
-            it.env["custody_server.auth.type"] = "api_key"
           }
         )
       testProfileRunner.start()
@@ -411,6 +436,42 @@ internal class ApiKeyAuthIntegrationTest : AbstractAuthIntegrationTest() {
     val response = httpClient.newCall(httpRequest).execute()
     Assertions.assertNotEquals(403, response.code)
   }
+
+  private fun getPlatformDummyRequestBody(method: String): RequestBody? {
+    return if (method != "PATCH") null
+    else OkHttpUtil.buildJsonRequestBody(gson.toJson(mapOf("proposedAssetsJson" to "bar")))
+  }
+}
+
+internal class CustodyApiKeyAuthIntegrationTest : AbstractAuthIntegrationTest() {
+  companion object {
+    @BeforeAll
+    @JvmStatic
+    fun setup() {
+      testProfileRunner =
+        TestProfileExecutor(
+          TestConfig(profileName = "default-custody").also {
+            // enable custody server api_key auth
+            it.env["custody_server.auth.type"] = "api_key"
+          }
+        )
+      testProfileRunner.start()
+    }
+
+    @AfterAll
+    @JvmStatic
+    fun breakdown() {
+      testProfileRunner.shutdown()
+    }
+  }
+
+  private val gson = GsonUtils.getInstance()
+  private val httpClient: OkHttpClient =
+    OkHttpClient.Builder()
+      .connectTimeout(10, TimeUnit.MINUTES)
+      .readTimeout(10, TimeUnit.MINUTES)
+      .writeTimeout(10, TimeUnit.MINUTES)
+      .build()
 
   @ParameterizedTest
   @CsvSource(value = [POST_CUSTODY_TRANSACTION_ENDPOINT])
