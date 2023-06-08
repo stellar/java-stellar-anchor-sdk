@@ -93,7 +93,6 @@ public class FireblocksPaymentService implements CustodyPaymentService<Transacti
       JdbcCustodyTransaction txn, String requestBody)
       throws FireblocksException, InvalidConfigException {
     CreateTransactionRequest request = getCreateTransactionRequest(txn);
-    System.out.println(request);
 
     CreateTransactionResponse response =
         gson.fromJson(
