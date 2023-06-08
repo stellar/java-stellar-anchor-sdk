@@ -41,6 +41,7 @@ public class Sep38Service {
   final EventService eventService;
   final InfoResponse infoResponse;
   final Map<String, InfoResponse.Asset> assetMap;
+  final int pricePrecision = 10;
 
   public Sep38Service(
       Sep38Config sep38Config,
@@ -88,7 +89,8 @@ public class Sep38Service {
 
     // countryCode
     if (!Objects.toString(countryCode, "").isEmpty()) {
-      if (!sellAsset.getCountryCodes().contains(countryCode)) {
+      if (sellAsset.getCountryCodes() == null
+          || !sellAsset.getCountryCodes().contains(countryCode)) {
         throw new BadRequestException("Unsupported country code");
       }
     }
@@ -96,7 +98,7 @@ public class Sep38Service {
     // Make requests to `GET {quoteIntegration}/rates`
     GetRateRequest.GetRateRequestBuilder builder =
         GetRateRequest.builder()
-            .type(GetRateRequest.Type.INDICATIVE_PRICES)
+            .type(GetRateRequest.Type.INDICATIVE)
             .sellAsset(sellAssetName)
             .sellAmount(sellAmount)
             .countryCode(countryCode)
@@ -208,8 +210,7 @@ public class Sep38Service {
 
     GetRateRequest request =
         GetRateRequest.builder()
-            .type(GetRateRequest.Type.INDICATIVE_PRICE)
-            .context(context)
+            .type(GetRateRequest.Type.INDICATIVE)
             .sellAsset(sellAssetName)
             .sellAmount(sellAmount)
             .sellDeliveryMethod(sellDeliveryMethod)
@@ -226,9 +227,14 @@ public class Sep38Service {
       validateAmountLimit("sell_", rate.getSellAmount(), sendMinLimit, sendMaxLimit);
     }
 
+    String totalPrice =
+        getTotalPrice(
+            decimal(rate.getSellAmount(), pricePrecision),
+            decimal(rate.getBuyAmount(), pricePrecision));
+
     return GetPriceResponse.builder()
         .price(rate.getPrice())
-        .totalPrice(rate.getTotalPrice())
+        .totalPrice(totalPrice)
         .fee(rate.getFee())
         .sellAmount(rate.getSellAmount())
         .buyAmount(rate.getBuyAmount())
@@ -338,7 +344,6 @@ public class Sep38Service {
     GetRateRequest getRateRequest =
         GetRateRequest.builder()
             .type(GetRateRequest.Type.FIRM)
-            .context(request.getContext())
             .sellAsset(request.getSellAssetName())
             .sellAmount(request.getSellAmount())
             .sellDeliveryMethod(request.getSellDeliveryMethod())
@@ -351,33 +356,34 @@ public class Sep38Service {
             .build();
     GetRateResponse.Rate rate = this.rateIntegration.getRate(getRateRequest).getRate();
 
+    if (rate.getBuyAmount() == null || rate.getSellAmount() == null) {
+      throw new ServerErrorException(
+          String.format(
+              "Unable to calculate total_price with buy_amount: %s and sell_amount: %s",
+              rate.getBuyAmount(), rate.getSellAmount()));
+    }
+
+    String totalPrice =
+        getTotalPrice(
+            decimal(rate.getSellAmount(), pricePrecision),
+            decimal(rate.getBuyAmount(), pricePrecision));
+
     Sep38QuoteResponse.Sep38QuoteResponseBuilder builder =
         Sep38QuoteResponse.builder()
             .id(rate.getId())
             .expiresAt(rate.getExpiresAt())
             .price(rate.getPrice())
-            .totalPrice(rate.getTotalPrice())
             .sellAsset(request.getSellAssetName())
             .buyAsset(request.getBuyAssetName())
             .fee(rate.getFee());
 
-    // Calculate amounts: sellAmount = buyAmount * totalPrice
-    BigDecimal bTotalPrice = decimal(rate.getTotalPrice());
-    BigDecimal bSellAmount, bBuyAmount;
-    if (request.getSellAmount() != null) {
-      bSellAmount = decimal(request.getSellAmount());
-      bBuyAmount = bSellAmount.divide(bTotalPrice, buyAsset.getDecimals(), RoundingMode.HALF_UP);
-    } else {
-      bBuyAmount = decimal(request.getBuyAmount());
-      bSellAmount = bBuyAmount.multiply(bTotalPrice);
-    }
-    String sellAmount = formatAmount(bSellAmount, sellAsset.getDecimals());
-    String buyAmount = formatAmount(bBuyAmount, buyAsset.getDecimals());
-    builder = builder.sellAmount(sellAmount).buyAmount(buyAmount);
+    String sellAmount = formatAmount(decimal(rate.getSellAmount()), sellAsset.getDecimals());
+    String buyAmount = formatAmount(decimal(rate.getBuyAmount()), buyAsset.getDecimals());
+    builder = builder.totalPrice(totalPrice).sellAmount(sellAmount).buyAmount(buyAmount);
 
     // SEP31: when buy_amount is specified (sell amount found from rate integration)
     if (context == SEP31 && isNotEmpty(buyAmount)) {
-      validateAmountLimit("sell_", rate.getSellAmount(), sendMinLimit, sendMaxLimit);
+      validateAmountLimit("sell_", sellAmount, sendMinLimit, sendMaxLimit);
     }
 
     // save firm quote in the local database
@@ -386,7 +392,7 @@ public class Sep38Service {
             .id(rate.getId())
             .expiresAt(rate.getExpiresAt())
             .price(rate.getPrice())
-            .totalPrice(rate.getTotalPrice())
+            .totalPrice(totalPrice)
             .sellAsset(request.getSellAssetName())
             .sellAmount(sellAmount)
             .sellDeliveryMethod(request.getSellDeliveryMethod())
@@ -483,5 +489,12 @@ public class Sep38Service {
         .buyAmount(quote.getBuyAmount())
         .fee(quote.getFee())
         .build();
+  }
+
+  private String getTotalPrice(BigDecimal bSellAmount, BigDecimal bBuyAmount) {
+    // total_price = sell_amount / buy_amount
+    BigDecimal bTotalPrice = bSellAmount.divide(bBuyAmount, pricePrecision, RoundingMode.FLOOR);
+
+    return formatAmount(bTotalPrice, pricePrecision);
   }
 }

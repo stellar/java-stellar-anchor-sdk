@@ -24,7 +24,7 @@ public class LogConfigAdapter extends SpringConfigAdapter {
         Configurator.setAllLevels(LogManager.getRootLogger().getName(), rootLevel);
       }
 
-      if (config.get("logging.stellar_level") != null) {
+      if (config.get("app_logging.stellar_level") != null) {
         Level stellarLevel = getLog4j2Level(config.getString("app_logging.stellar_level"));
         Configurator.setAllLevels("org.stellar", stellarLevel);
       }

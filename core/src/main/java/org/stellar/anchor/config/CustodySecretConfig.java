@@ -1,9 +1,9 @@
-package org.stellar.anchor.platform.config;
+package org.stellar.anchor.config;
 
 public interface CustodySecretConfig {
   String getFireblocksApiKey();
 
   String getFireblocksSecretKey();
 
-  String getCustodyApiSecret();
+  String getCustodyAuthSecret();
 }

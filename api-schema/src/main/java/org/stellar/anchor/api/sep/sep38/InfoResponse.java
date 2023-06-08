@@ -7,6 +7,13 @@ import java.util.Objects;
 import lombok.Data;
 import org.stellar.anchor.api.sep.AssetInfo;
 
+/**
+ * The response body of the GET /info endpoint of SEP-38.
+ *
+ * @see <a
+ *     href="https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0038.md#fields">Refer
+ *     to SEP-38</a>
+ */
 @Data
 public class InfoResponse {
   private List<Asset> assets = new ArrayList<>();

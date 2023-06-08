@@ -7,6 +7,13 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NonNull;
 
+/**
+ * The response body of the GET /prices endpoint of SEP-38.
+ *
+ * @see <a
+ *     href="https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0038.md#fields">Refer
+ *     to SEP-38</a>
+ */
 @Data
 public class GetPricesResponse {
   @SerializedName("buy_assets")

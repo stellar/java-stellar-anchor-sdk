@@ -51,7 +51,7 @@ class CustodyApiClientTest {
     MockKAnnotations.init(this, relaxUnitFun = true)
 
     val authHeader = AuthHeader(AUTH_HEADER_NAME, AUTH_HEADER_VALUE)
-    every { authHelper.createAuthHeader() } returns authHeader
+    every { authHelper.createCustodyAuthHeader() } returns authHeader
     every { custodyApiConfig.baseUrl } returns BASE_URL
 
     custodyApiClient = CustodyApiClient(httpClient, authHelper, custodyApiConfig)

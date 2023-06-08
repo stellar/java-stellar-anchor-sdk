@@ -10,13 +10,6 @@ version: 1
 ## Application Configuration
 ##############################
 
-## @param: host_url
-## @type: string
-## @supported_prefixes: http:, https:
-## The anchor platform host url.
-#
-host_url: http://localhost:8080
-
 stellar_network:
   ## @param: network
   ## Whether to use testnet (TESTNET) or pubnet (PUBNET)
@@ -82,12 +75,12 @@ platform_api:
   ## The base URL of the Anchor Platform server that implements the platform API endpoints described in the
   ## "Platform API.yml" spec.
   #
-  base_url: http://localhost:8080
-  ## Authentication config for Anchor server and Anchor Platform server to safely communicate,
-  ## particularly when housed in different clusters.
-  ## The receiving party should verify that an incoming request token is still valid.
-  #
+  base_url: http://localhost:8085
+
   auth:
+    ## The authentication config for the Anchor server to safely communicate with the Platform server, particularly
+    ## when hosted in different clusters.
+    ##
     ## @param: type
     ## @supported_values: none, api_key, jwt
     ##     none: no authentication is used
@@ -173,6 +166,42 @@ app_logging:
   ## @type: string
   ## The "org.stellar" logger logging level.
   stellar_level: INFO
+  ## Enable/disable the request logger that logs all request body
+  ##   Setting the stellar_level to DEBUG will log the request URL
+  ##   Setting the stellar_level to TRACE will log the request body
+  ## Note: By enabling the logger, PII may be logged
+  request_logger_enabled: false
+
+######################
+## Platform Server Configuration
+######################
+platform_server:
+  ## The context path of the Platform server
+  context_path: /
+  ## The listening port of the Platform server
+  port: 8085
+
+  ## Defines the authentication requirements of the platform_api requests. This is used to ensure that the requests
+  ## must satisfy the authentication requirements before they can be processed.
+  ##
+  ## supported_values: none, api_key, jwt
+  ##     none: no authentication is used
+  ##     api_key: The authentication is done using an API key added to the HTTP request header.
+  ##     jwt: The authentication is done using a JWT token added to the `Authorization` header. This token is
+  ##          generated from the secret key.
+  ##
+  ## If the type is `api_key` or `jwt`, the secret must be set by the environment variable `secret.platform_api.auth_secret`.
+  ## If the type is api_key, the secret will be used as the api_key.
+  ## If the type is jwt, the secret will be used as the jwt shared secret.
+  ##
+  ## Secrets are shared on both sides (Platform and Anchor) and are used in Platform API requests (`Anchor->Platform`)
+  ## so the Platform server can ensure the party making the request is the Anchor
+  auth:
+    type: none
+    jwt:
+      http_header: Authorization
+    api_key:
+      http_header: X-Api-Key
 
 ######################
 ## SEP configuration
@@ -220,9 +249,14 @@ sep10:
   ## @param: web_auth_domain
   ## @type: string
   ## The `web_auth_domain` property of SEP-10. https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#response
-  ## If the `web_auth_domain` is not specified, the `web_auth_domain` will be set to the domain of the value of the `host_url`.
-  #
+  ## If the `web_auth_domain` is not specified, the `web_auth_domain` will be set to the domain of the value of the `home_domain`.
+  ## `web_auth_domain` value must be equal to the host of the SEP server.
   web_auth_domain:
+  ## @param: home_domain
+  ## @type: string
+  ## The `home_domain` property of SEP-10. https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#request
+  ## `home_domain` value must be equal to the host of the toml file. If sep1 is enabled, toml file will be hosted on the SEP server.
+  home_domain: localhost:8080
   ## @param: client_attribution_required
   ## @type: bool
   ## Set if the client attribution is required. Client Attribution requires clients to verify their identity by passing
@@ -287,8 +321,10 @@ sep24:
   #   In addition to the txn_fields, the following fields are also added to the query parameters.
   #       `transaction_id`: the transaction ID
   #       `token`: the JWT token,
-  #       `lang`: the lang request parameter,
-  #        and any defined SEP-9 fields from the request parameters.
+  #       `data.asset`: asset requested byu the user
+  #       `data.amount`: the amount requested (optional),
+  #       `data.client_domain`: the client domain of the request (optional),
+  #       `data.lang`: the lang request parameter (optional),
   interactive_url:
     base_url: http://localhost:8080/sep24/interactive
     txn_fields:
@@ -363,13 +399,13 @@ custody_server:
   # The context path of the Custody server
   context_path: /
   # The listening port of the Custody server
-  port: 8085
+  port: 8086
   ## @param: baseUrl
   ## @type: string
   ## @supported_prefixes: http:, https:
   ## The base URL of the Custody server that implements the custody API endpoints
   #
-  base_url: http://localhost:8085
+  base_url: http://localhost:8086
   ## Http Client timeouts for communication with custody server in SECONDS
   http_client:
     connect_timeout: 10
@@ -650,16 +686,14 @@ data:
   ## ATTENTION: it should not be used in production!
   #
   ddl_auto: none
-  ## @param: flyway_enabled
+  ## @param: flyway_location
   ## @type: string
   ## Location on disk where migrations are stored if flyway is enabled.
   #
   flyway_location: /db/migration
-  ## @param: hikari_max_lifetime
-  ## @type: integer
-  ## Maximum connection time before expiration
-  ## Only valid when database `type` is `aurora`.
-  ## Recommended setting is 14 minutes because IAM tokens are valid for 15 min.
+  ## @param: flyway_baseline_on_migrate
+  ## @type: bool
+  ## Whether to enable flyway baseline on migrate. This is useful when you want to run flyway on an existing database.
   #
-  # hikari_max_lifetime: 840000
+  flyway_baseline_on_migrate: false
 

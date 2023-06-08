@@ -9,7 +9,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.stellar.anchor.auth.JwtService;
 import org.stellar.anchor.filter.ApiKeyFilter;
-import org.stellar.anchor.filter.JwtTokenFilter;
+import org.stellar.anchor.filter.CustodyAuthJwtFilter;
 import org.stellar.anchor.filter.NoneFilter;
 import org.stellar.anchor.platform.config.CustodyApiConfig;
 import org.stellar.anchor.platform.config.PropertyCustodyConfig;
@@ -39,8 +39,8 @@ public class CustodyBeans {
     Filter platformToCustody;
     switch (custodyApiConfig.getAuth().getType()) {
       case JWT:
-        JwtService jwtService = new JwtService(authSecret, null, null);
-        platformToCustody = new JwtTokenFilter(jwtService);
+        JwtService jwtService = new JwtService(null, null, null, null, null, authSecret);
+        platformToCustody = new CustodyAuthJwtFilter(jwtService);
         break;
 
       case API_KEY:

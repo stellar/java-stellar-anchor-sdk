@@ -9,6 +9,13 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.stellar.anchor.api.sep.AssetInfo;
 
+/**
+ * The response to the GET /transaction endpoint of SEP-31.
+ *
+ * @see <a
+ *     href="https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0031.md#fields">Refer
+ *     to SEP-31</a>
+ */
 @Data
 @Builder
 @AllArgsConstructor

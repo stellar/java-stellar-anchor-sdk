@@ -10,7 +10,6 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.slf4j.Logger
-import org.stellar.anchor.TestConstants.Companion.TEST_HOST_URL
 import org.stellar.anchor.TestConstants.Companion.TEST_NETWORK_PASS_PHRASE
 import org.stellar.anchor.config.AppConfig
 import org.stellar.anchor.config.PII
@@ -90,10 +89,6 @@ internal class LogTest {
   class TestAppConfig : AppConfig {
     override fun getStellarNetworkPassphrase(): String {
       return TEST_NETWORK_PASS_PHRASE
-    }
-
-    override fun getHostUrl(): String {
-      return TEST_HOST_URL
     }
 
     override fun getHorizonUrl(): String {

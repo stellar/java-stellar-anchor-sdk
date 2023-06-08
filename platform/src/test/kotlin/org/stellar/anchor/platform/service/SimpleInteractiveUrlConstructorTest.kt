@@ -13,6 +13,7 @@ import org.junit.jupiter.params.provider.MethodSource
 import org.springframework.web.util.UriComponentsBuilder
 import org.stellar.anchor.auth.JwtService
 import org.stellar.anchor.auth.Sep24InteractiveUrlJwt
+import org.stellar.anchor.config.CustodySecretConfig
 import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.platform.config.PropertySep24Config
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
@@ -28,6 +29,7 @@ class SimpleInteractiveUrlConstructorTest {
   }
 
   @MockK(relaxed = true) private lateinit var secretConfig: SecretConfig
+  @MockK(relaxed = true) private lateinit var custodySecretConfig: CustodySecretConfig
   private lateinit var jwtService: JwtService
 
   @BeforeEach
@@ -35,7 +37,7 @@ class SimpleInteractiveUrlConstructorTest {
     MockKAnnotations.init(this, relaxUnitFun = true)
     every { secretConfig.sep24InteractiveUrlJwtSecret } returns "sep24_jwt_secret"
 
-    jwtService = JwtService(secretConfig)
+    jwtService = JwtService(secretConfig, custodySecretConfig)
   }
 
   @ParameterizedTest
@@ -76,7 +78,7 @@ class SimpleInteractiveUrlConstructorTest {
       data["amount_in_asset"] as String
     )
     assertEquals("en", data["lang"] as String)
-    assertEquals("john_doe@stellar.org", data["email_address"] as String)
+    assertNull(data["email_address"])
 
     // Name is in request but not in transaction. It must not be included.
     assertNull(data["name"])

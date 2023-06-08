@@ -48,7 +48,7 @@ public class RateService {
       throw new BadRequestException("type cannot be empty");
     }
 
-    if (!List.of(INDICATIVE_PRICES, INDICATIVE_PRICE, FIRM).contains(request.getType())) {
+    if (!List.of(INDICATIVE, FIRM).contains(request.getType())) {
       throw new BadRequestException("the provided type is not supported");
     }
 
@@ -70,10 +70,6 @@ public class RateService {
       validateAmount("buy_", buyAmount);
     }
 
-    if (request.getType() != INDICATIVE_PRICES && request.getContext() == null) {
-      throw new BadRequestException("context cannot be empty for type " + request.getType());
-    }
-
     // Calculate everything
     String price = ConversionPrice.getPrice(request.getSellAsset(), request.getBuyAsset());
     if (price == null) {
@@ -87,19 +83,6 @@ public class RateService {
       bSellAmount = decimal(sellAmount, scale);
     } else {
       bBuyAmount = decimal(buyAmount, scale);
-    }
-
-    // sell_amount - fee = price * buy_amount // where fee == 0
-    // sell_amount = price * buy_amount
-    if (request.getType() == INDICATIVE_PRICES) {
-      if (bSellAmount != null) {
-        bBuyAmount = bSellAmount.divide(bPrice, HALF_DOWN);
-        buyAmount = formatAmount(bBuyAmount);
-      } else {
-        bSellAmount = bBuyAmount.multiply(bPrice);
-        sellAmount = formatAmount(bSellAmount);
-      }
-      return GetRateResponse.indicativePrices(price, sellAmount, buyAmount);
     }
 
     RateFee fee = ConversionPrice.getFee(request.getSellAsset(), request.getBuyAsset());
@@ -126,8 +109,8 @@ public class RateService {
     BigDecimal bTotalPrice = bSellAmount.divide(bBuyAmount, 10, HALF_DOWN);
     String totalPrice = formatAmount(bTotalPrice, 10);
 
-    if (request.getType() == INDICATIVE_PRICE) {
-      return GetRateResponse.indicativePrice(price, totalPrice, sellAmount, buyAmount, fee);
+    if (request.getType() == INDICATIVE) {
+      return GetRateResponse.indicativePrice(price, sellAmount, buyAmount, fee);
     }
 
     Quote quote = createQuote(request, price, totalPrice, sellAmount, buyAmount, fee);
