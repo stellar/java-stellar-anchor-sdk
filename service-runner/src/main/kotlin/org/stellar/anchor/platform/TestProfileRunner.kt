@@ -5,15 +5,15 @@ package org.stellar.anchor.platform
 import com.palantir.docker.compose.DockerComposeExtension
 import com.palantir.docker.compose.configuration.ProjectName
 import com.palantir.docker.compose.connection.waiting.HealthChecks
-import java.io.File
-import java.lang.Thread.sleep
-import java.lang.reflect.Field
-import java.util.*
 import kotlinx.coroutines.*
 import org.springframework.boot.SpringApplication
 import org.springframework.context.ConfigurableApplicationContext
 import org.stellar.anchor.util.Log
 import org.stellar.anchor.util.Log.info
+import java.io.File
+import java.lang.Thread.sleep
+import java.lang.reflect.Field
+import java.util.*
 
 lateinit var testProfileExecutor: TestProfileExecutor
 
@@ -23,13 +23,12 @@ fun main() = runBlocking {
 
   launch {
     Runtime.getRuntime()
-      .addShutdownHook(
-        object : Thread() {
-          override fun run() {
-            testProfileExecutor.shutdown()
-          }
-        }
-      )
+        .addShutdownHook(
+            object : Thread() {
+              override fun run() {
+                testProfileExecutor.shutdown()
+              }
+            })
   }
 
   testProfileExecutor.start(true)
@@ -88,7 +87,7 @@ class TestProfileExecutor(val config: TestConfig) {
       if (shouldStartAllServers || shouldStartReferenceServer) {
         info("Starting Java reference server...")
         jobs +=
-          scope.launch { runningServers.add(ServiceRunner.startAnchorReferenceServer(envMap)) }
+            scope.launch { runningServers.add(ServiceRunner.startAnchorReferenceServer(envMap)) }
       }
       if (shouldStartAllServers || shouldStartObserver) {
         info("Starting observer...")
@@ -106,10 +105,10 @@ class TestProfileExecutor(val config: TestConfig) {
       if (jobs.size > 0) {
         jobs.forEach { it.join() }
         if (wait)
-          do {
-            delay(5000)
-            val anyActive = runningServers.any { it.isActive }
-          } while (anyActive)
+            do {
+              delay(5000)
+              val anyActive = runningServers.any { it.isActive }
+            } while (anyActive)
       }
     }
 
@@ -127,16 +126,16 @@ class TestProfileExecutor(val config: TestConfig) {
       val dockerComposeFile = getResourceFile("docker-compose-test.yaml")
       val userHomeFolder = File(System.getProperty("user.home"))
       docker =
-        DockerComposeExtension.builder()
-          .saveLogsTo("${userHomeFolder}/docker-logs/anchor-platform-integration-test")
-          .file("${dockerComposeFile.absolutePath}")
-          .waitingForService("kafka", HealthChecks.toHaveAllPortsOpen())
-          .waitingForService("db", HealthChecks.toHaveAllPortsOpen())
-          .pullOnStartup(true)
-          .projectName(
-            ProjectName.fromString("anchorplatform${UUID.randomUUID().toString().takeLast(6)}")
-          )
-          .build()
+          DockerComposeExtension.builder()
+              .saveLogsTo("${userHomeFolder}/docker-logs/anchor-platform-integration-test")
+              .file("${dockerComposeFile.absolutePath}")
+              .waitingForService("kafka", HealthChecks.toHaveAllPortsOpen())
+              .waitingForService("db", HealthChecks.toHaveAllPortsOpen())
+              .pullOnStartup(true)
+              .projectName(
+                  ProjectName.fromString(
+                      "anchorplatform${UUID.randomUUID().toString().takeLast(6)}"))
+              .build()
 
       docker.beforeAll(null)
     }
@@ -157,15 +156,14 @@ class TestProfileExecutor(val config: TestConfig) {
 
   private fun setupWindowsEnv() {
     val windowsDockerLocation =
-      System.getenv("WIN_DOCKER_LOCATION")
-        ?: throw RuntimeException("WIN_DOCKER_LOCATION env variable is not set")
+        System.getenv("WIN_DOCKER_LOCATION")
+            ?: throw RuntimeException("WIN_DOCKER_LOCATION env variable is not set")
 
     setEnv(mapOf("DOCKER_LOCATION" to File(windowsDockerLocation, "docker.exe").absolutePath))
     setEnv(
-      mapOf(
-        "DOCKER_COMPOSE_LOCATION" to File(windowsDockerLocation, "docker-compose.exe").absolutePath
-      )
-    )
+        mapOf(
+            "DOCKER_COMPOSE_LOCATION" to
+                File(windowsDockerLocation, "docker-compose.exe").absolutePath))
   }
 
   @SuppressWarnings("unchecked")
@@ -177,7 +175,7 @@ class TestProfileExecutor(val config: TestConfig) {
       val env = theEnvironmentField.get(null) as MutableMap<String, String>
       env.putAll(envs!!)
       val theCaseInsensitiveEnvironmentField: Field =
-        processEnvironmentClass.getDeclaredField("theCaseInsensitiveEnvironment")
+          processEnvironmentClass.getDeclaredField("theCaseInsensitiveEnvironment")
       theCaseInsensitiveEnvironmentField.isAccessible = true
       val cienv = theCaseInsensitiveEnvironmentField.get(null) as MutableMap<String, String>
       cienv.putAll(envs)
