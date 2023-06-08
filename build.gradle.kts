@@ -152,19 +152,6 @@ tasks.register("printVersionName") {
   println(rootProject.version.toString())
 }
 
-tasks.test {
-  useJUnitPlatform()
-
-  include("**/AnchorPlatformCustodyEnd2EndTest**")
-
-  testLogging {
-    events("SKIPPED", "FAILED")
-    showExceptions = true
-    showStandardStreams = true
-    exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
-  }
-}
-
 //tasks.register("tester", Test) {
 //  useJUnitPlatform()
 //
