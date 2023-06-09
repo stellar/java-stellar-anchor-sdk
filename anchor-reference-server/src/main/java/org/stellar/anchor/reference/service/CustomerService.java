@@ -218,7 +218,7 @@ public class CustomerService {
 
   public CustomerField createFirstNameField() {
     return CustomerField.builder()
-        .type("STRING")
+        .type("string")
         .description("first name of the customer")
         .optional(false)
         .build();
@@ -226,7 +226,7 @@ public class CustomerService {
 
   public CustomerField createLastNameField() {
     return CustomerField.builder()
-        .type("STRING")
+        .type("string")
         .description("last name of the customer")
         .optional(false)
         .build();
@@ -234,7 +234,7 @@ public class CustomerService {
 
   public CustomerField createEmailField() {
     return CustomerField.builder()
-        .type("STRING")
+        .type("string")
         .description("email of the customer")
         .optional(false)
         .build();
@@ -242,7 +242,7 @@ public class CustomerService {
 
   public CustomerField createBankAccountNumberField(String type) {
     return CustomerField.builder()
-        .type("STRING")
+        .type("string")
         .description("bank account number of the customer")
         .optional(!type.equals(Customer.Type.SEP31_RECEIVER.toString()))
         .build();
@@ -250,7 +250,7 @@ public class CustomerService {
 
   public CustomerField createBankAccountTypeField(String type) {
     return CustomerField.builder()
-        .type("STRING")
+        .type("string")
         .description("bank account type of the customer")
         .choices(Arrays.asList("checking", "savings"))
         .optional(!type.equals(Customer.Type.SEP31_RECEIVER.toString()))
@@ -259,7 +259,7 @@ public class CustomerService {
 
   public CustomerField createBankNumberField(String type) {
     return CustomerField.builder()
-        .type("STRING")
+        .type("string")
         .description("bank routing number of the customer")
         .optional(!type.equals(Customer.Type.SEP31_RECEIVER.toString()))
         .build();
@@ -267,7 +267,7 @@ public class CustomerService {
 
   public CustomerField createClabeNumberField(String customerType) {
     return CustomerField.builder()
-        .type("STRING")
+        .type("string")
         .description("clabe number of the customer")
         .optional(!customerType.equals(Customer.Type.SEP31_RECEIVER.toString()))
         .build();
@@ -275,7 +275,7 @@ public class CustomerService {
 
   public ProvidedCustomerField createFirstNameProvidedField() {
     return ProvidedCustomerField.builder()
-        .type("STRING")
+        .type("string")
         .description("first name of the customer")
         .status(Customer.Status.ACCEPTED.toString())
         .build();
@@ -283,7 +283,7 @@ public class CustomerService {
 
   public ProvidedCustomerField createLastNameProvidedField() {
     return ProvidedCustomerField.builder()
-        .type("STRING")
+        .type("string")
         .description("last name of the customer")
         .status(Customer.Status.ACCEPTED.toString())
         .build();
@@ -291,7 +291,7 @@ public class CustomerService {
 
   public ProvidedCustomerField createEmailProvidedField() {
     return ProvidedCustomerField.builder()
-        .type("STRING")
+        .type("string")
         .description("email of the customer")
         .status(Customer.Status.ACCEPTED.toString())
         .build();
@@ -299,7 +299,7 @@ public class CustomerService {
 
   public ProvidedCustomerField createBankAccountNumberProvidedField() {
     return ProvidedCustomerField.builder()
-        .type("STRING")
+        .type("string")
         .description("bank account number of the customer")
         .status(Customer.Status.ACCEPTED.toString())
         .build();
@@ -307,7 +307,7 @@ public class CustomerService {
 
   public ProvidedCustomerField createBankAccountTypeProvidedField() {
     return ProvidedCustomerField.builder()
-        .type("STRING")
+        .type("string")
         .description("bank account type of the customer")
         .choices(Arrays.asList("checking", "savings"))
         .status(Customer.Status.ACCEPTED.toString())
@@ -316,7 +316,7 @@ public class CustomerService {
 
   public ProvidedCustomerField createBankNumberProvidedField() {
     return ProvidedCustomerField.builder()
-        .type("STRING")
+        .type("string")
         .description("bank routing number of the customer")
         .status(Customer.Status.ACCEPTED.toString())
         .build();
@@ -324,7 +324,7 @@ public class CustomerService {
 
   public ProvidedCustomerField createClabeNumberProvidedField() {
     return ProvidedCustomerField.builder()
-        .type("STRING")
+        .type("string")
         .description("bank account number for Mexico")
         .status(Customer.Status.ACCEPTED.toString())
         .build();

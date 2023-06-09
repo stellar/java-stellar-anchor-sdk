@@ -42,8 +42,10 @@ public class Sep12Service {
       request.setAccount(token.getAccount());
     }
 
-    return GetCustomerResponse.to(
-        customerIntegration.getCustomer(GetCustomerRequest.from(request)));
+    GetCustomerResponse response =
+        customerIntegration.getCustomer(GetCustomerRequest.from(request));
+    Sep12GetCustomerResponse res = GetCustomerResponse.to(response);
+    return res;
   }
 
   public Sep12PutCustomerResponse putCustomer(Sep10Jwt token, Sep12PutCustomerRequest request)
