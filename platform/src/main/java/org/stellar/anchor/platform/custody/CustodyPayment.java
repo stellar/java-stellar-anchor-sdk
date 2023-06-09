@@ -8,6 +8,7 @@ import lombok.Data;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.util.MemoHelper;
 import org.stellar.sdk.AssetTypeCreditAlphaNum;
+import org.stellar.sdk.AssetTypeNative;
 import org.stellar.sdk.Memo;
 import org.stellar.sdk.responses.operations.PathPaymentBaseOperationResponse;
 import org.stellar.sdk.responses.operations.PaymentOperationResponse;
@@ -74,6 +75,9 @@ public class CustodyPayment {
             (AssetTypeCreditAlphaNum) paymentOperation.get().getAsset();
         assetCode = issuedAsset.getCode();
         assetIssuer = issuedAsset.getIssuer();
+      } else if (paymentOperation.get().getAsset() instanceof AssetTypeNative) {
+        AssetTypeNative issuedAsset = (AssetTypeNative) paymentOperation.get().getAsset();
+        assetCode = issuedAsset.getType();
       }
 
       String sourceAccount =
@@ -144,6 +148,9 @@ public class CustodyPayment {
             (AssetTypeCreditAlphaNum) pathPaymentOperation.get().getAsset();
         assetCode = issuedAsset.getCode();
         assetIssuer = issuedAsset.getIssuer();
+      } else if (pathPaymentOperation.get().getAsset() instanceof AssetTypeNative) {
+        AssetTypeNative issuedAsset = (AssetTypeNative) pathPaymentOperation.get().getAsset();
+        assetCode = issuedAsset.getType();
       }
 
       String sourceAccount =

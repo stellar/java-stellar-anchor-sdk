@@ -33,7 +33,7 @@ import org.stellar.anchor.platform.data.JdbcCustodyTransactionRepo;
 public abstract class CustodyPaymentHandler {
 
   private static final Set<String> SUPPORTED_ASSET_TYPES =
-      Set.of("credit_alphanum4", "credit_alphanum12");
+      Set.of("credit_alphanum4", "credit_alphanum12", "native");
 
   private final JdbcCustodyTransactionRepo custodyTransactionRepo;
   private final PlatformApiClient platformApiClient;
