@@ -268,7 +268,7 @@ public class CustomerService {
   public CustomerField createClabeNumberField(String customerType) {
     return CustomerField.builder()
         .type("string")
-        .description("clabe number of the customer")
+        .description("Bank account number for Mexico")
         .optional(!customerType.equals(Customer.Type.SEP31_RECEIVER.toString()))
         .build();
   }

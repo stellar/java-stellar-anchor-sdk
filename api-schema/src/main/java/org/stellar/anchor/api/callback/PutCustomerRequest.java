@@ -17,6 +17,8 @@ import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest;
 @Data
 @Builder
 public class PutCustomerRequest {
+  private static Gson gson = new Gson();
+
   String id;
   String account;
   String memo;
@@ -125,7 +127,6 @@ public class PutCustomerRequest {
   String sex;
 
   public static PutCustomerRequest from(Sep12PutCustomerRequest request) {
-    Gson gson = new Gson();
-    return new Gson().fromJson(gson.toJson(request), PutCustomerRequest.class);
+    return gson.fromJson(gson.toJson(request), PutCustomerRequest.class);
   }
 }

@@ -1,0 +1,20 @@
+{
+  "id": "customer-id",
+  "status": "ACCEPTED",
+  "fields": {
+    "email_address": {
+      "type": "string",
+      "description": "email address of the customer",
+      "optional": false
+    }
+  },
+  "provided_fields": {
+    "last_name": {
+      "type": "string",
+      "description": "The customer\u0027s last name",
+      "optional": false,
+      "status": "ACCEPTED"
+    }
+  },
+  "message": "foo bar"
+}
