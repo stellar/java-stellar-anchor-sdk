@@ -39,7 +39,13 @@ public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
   @Override
   @SneakyThrows
   public String construct(Sep24Transaction txn, Map<String, String> request) {
+    // If there are KYC fields in the request, they will be forwarded to PUT /customer before returning the token.
+    forwardKycFields(request);
+
+    // construct the token
     String token = constructToken(txn, request);
+
+    // construct the URL
     String baseUrl = sep24Config.getInteractiveUrl().getBaseUrl();
     URI uri = new URI(baseUrl);
     return new URIBuilder()
@@ -57,7 +63,6 @@ public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
 
   @SneakyThrows
   String constructToken(Sep24Transaction txn, Map<String, String> request) {
-    forwardKycFields(request);
 
     String account =
         (isEmpty(txn.getSep10AccountMemo()))
