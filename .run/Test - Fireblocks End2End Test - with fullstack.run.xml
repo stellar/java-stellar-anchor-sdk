@@ -18,7 +18,6 @@
         <ENTRY IS_ENABLED="true" PARSER="runconfig" IS_EXECUTABLE="false" />
       </ENTRIES>
     </extension>
-
     <option name="PACKAGE_NAME" value="org.stellar.anchor.platform" />
     <option name="MAIN_CLASS_NAME" value="org.stellar.anchor.platform.AnchorPlatformCustodyEnd2EndTest" />
     <option name="METHOD_NAME" value="" />
