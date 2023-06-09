@@ -502,7 +502,6 @@ custody:
     ## Mappings should be in a format FIREBLOCKS_ASSET_CODE STELLAR_ASSET_CODE separated with space character
     ## Example:
     ##  XLM_USDC_T_CEKS stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5
-    ##  XLM_USDC_T_CEKS_2 stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5
     ##  XLM_TEST stellar:native
     #
     asset_mappings: |
