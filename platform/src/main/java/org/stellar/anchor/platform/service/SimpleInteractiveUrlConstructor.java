@@ -39,7 +39,8 @@ public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
   @Override
   @SneakyThrows
   public String construct(Sep24Transaction txn, Map<String, String> request) {
-    // If there are KYC fields in the request, they will be forwarded to PUT /customer before returning the token.
+    // If there are KYC fields in the request, they will be forwarded to PUT /customer before
+    // returning the token.
     forwardKycFields(request);
 
     // construct the token
