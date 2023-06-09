@@ -81,6 +81,7 @@ public class SepBeans {
   }
 
   @Bean
+  @ConfigurationProperties(prefix = "sep31")
   Sep31Config sep31Config() {
     return new PropertySep31Config();
   }

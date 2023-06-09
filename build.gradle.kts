@@ -124,6 +124,19 @@ subprojects {
         exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
       }
     }
+
+    register<Test>("testFireblocksE2E") {
+      useJUnitPlatform()
+
+      include("**/AnchorPlatformCustodyEnd2EndTest**")
+
+      testLogging {
+        events("SKIPPED", "FAILED")
+        showExceptions = true
+        showStandardStreams = true
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+      }
+    }
   }
 
   configurations {
