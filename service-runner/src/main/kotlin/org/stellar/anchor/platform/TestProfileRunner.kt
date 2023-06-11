@@ -10,7 +10,6 @@ import java.lang.Thread.sleep
 import java.lang.reflect.Field
 import java.util.*
 import kotlinx.coroutines.*
-import org.springframework.boot.SpringApplication
 import org.springframework.context.ConfigurableApplicationContext
 import org.stellar.anchor.util.Log.info
 
