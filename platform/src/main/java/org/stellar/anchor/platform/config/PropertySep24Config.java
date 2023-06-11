@@ -29,6 +29,7 @@ public class PropertySep24Config implements Sep24Config, Validator {
   MoreInfoUrlConfig moreInfoUrl;
   SecretConfig secretConfig;
   Features features;
+  KycFieldsForwarding kycFieldsForwarding;
 
   public PropertySep24Config(SecretConfig secretConfig) {
     this.secretConfig = secretConfig;
@@ -52,6 +53,14 @@ public class PropertySep24Config implements Sep24Config, Validator {
     String baseUrl;
     long jwtExpiration;
     List<String> txnFields;
+  }
+
+  @Getter
+  @Setter
+  @AllArgsConstructor
+  @NoArgsConstructor
+  public static class KycFieldsForwarding {
+    boolean enabled;
   }
 
   @Override

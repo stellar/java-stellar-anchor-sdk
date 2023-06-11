@@ -1,6 +1,8 @@
 package org.stellar.anchor.api.callback;
 
+import com.google.gson.Gson;
 import lombok.Data;
+import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerResponse;
 
 /**
  * The response body of the PUT /customer endpoint.
@@ -12,4 +14,9 @@ import lombok.Data;
 @Data
 public class PutCustomerResponse {
   String id;
+
+  public static Sep12PutCustomerResponse to(PutCustomerResponse response) {
+    Gson gson = new Gson();
+    return new Gson().fromJson(gson.toJson(response), Sep12PutCustomerResponse.class);
+  }
 }
