@@ -8,10 +8,10 @@ import okhttp3.RequestBody
 import org.junit.jupiter.api.*
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
+import org.stellar.anchor.api.callback.GetCustomerRequest
 import org.stellar.anchor.api.callback.GetFeeRequest
 import org.stellar.anchor.api.callback.GetRateRequest
 import org.stellar.anchor.api.exception.*
-import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerRequest
 import org.stellar.anchor.apiclient.PlatformApiClient
 import org.stellar.anchor.auth.AuthHelper
 import org.stellar.anchor.auth.JwtService
@@ -154,7 +154,7 @@ internal class JwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
       )
     // Assert the request does not throw a 403.
     assertThrows<NotFoundException> {
-      rci.getCustomer(Sep12GetCustomerRequest.builder().id("1").build())
+      rci.getCustomer(GetCustomerRequest.builder().id("1").build())
     }
   }
 
@@ -194,7 +194,7 @@ internal class JwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
         gson
       )
     assertThrows<ServerErrorException> {
-      badTokenClient.getCustomer(Sep12GetCustomerRequest.builder().id("1").build())
+      badTokenClient.getCustomer(GetCustomerRequest.builder().id("1").build())
     }
 
     val expiredTokenClient =
@@ -205,7 +205,7 @@ internal class JwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
         gson
       )
     assertThrows<ServerErrorException> {
-      expiredTokenClient.getCustomer(Sep12GetCustomerRequest.builder().id("1").build())
+      expiredTokenClient.getCustomer(GetCustomerRequest.builder().id("1").build())
     }
   }
 
