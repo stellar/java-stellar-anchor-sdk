@@ -109,6 +109,14 @@ public class JdbcSep24Transaction extends JdbcSepTransaction
   @Column(name = "request_asset_issuer")
   String requestAssetIssuer;
 
+  public String getRequestAssetName() {
+    if ("native".equals(requestAssetCode)) {
+      return "native";
+    } else {
+      return requestAssetCode + ":" + requestAssetIssuer;
+    }
+  }
+
   /** The SEP10 account used for authentication. */
   @SerializedName("sep10_account")
   @Column(name = "sep10account")

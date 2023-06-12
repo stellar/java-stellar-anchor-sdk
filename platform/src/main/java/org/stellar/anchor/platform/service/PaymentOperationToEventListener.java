@@ -217,8 +217,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
       throws AnchorException, IOException {
     // Compare asset code
     String paymentAssetName = "stellar:" + payment.getAssetName();
-    String txnAssetName =
-        "stellar:" + txn.getRequestAssetCode() + ":" + txn.getRequestAssetIssuer();
+    String txnAssetName = "stellar:" + txn.getRequestAssetName();
     if (!txnAssetName.equals(paymentAssetName)) {
       warnF(
           "Payment asset {} does not match the expected asset {}.",

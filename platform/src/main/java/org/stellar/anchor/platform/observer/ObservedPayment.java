@@ -46,6 +46,8 @@ public class ObservedPayment {
       AssetTypeCreditAlphaNum issuedAsset = (AssetTypeCreditAlphaNum) paymentOp.getAsset();
       assetCode = issuedAsset.getCode();
       assetIssuer = issuedAsset.getIssuer();
+    } else if (paymentOp.getAsset() instanceof AssetTypeNative) {
+      assetCode = "native";
     }
 
     String sourceAccount =
@@ -80,6 +82,8 @@ public class ObservedPayment {
       AssetTypeCreditAlphaNum issuedAsset = (AssetTypeCreditAlphaNum) pathPaymentOp.getAsset();
       assetCode = issuedAsset.getCode();
       assetIssuer = issuedAsset.getIssuer();
+    } else if (pathPaymentOp.getAsset() instanceof AssetTypeNative) {
+      assetCode = "native";
     }
 
     String sourceAssetCode = null, sourceAssetIssuer = null;
@@ -88,6 +92,8 @@ public class ObservedPayment {
           (AssetTypeCreditAlphaNum) pathPaymentOp.getSourceAsset();
       sourceAssetCode = sourceIssuedAsset.getCode();
       sourceAssetIssuer = sourceIssuedAsset.getIssuer();
+    } else if (pathPaymentOp.getSourceAsset() instanceof AssetTypeNative) {
+      sourceAssetCode = "native";
     }
 
     String sourceAccount =
