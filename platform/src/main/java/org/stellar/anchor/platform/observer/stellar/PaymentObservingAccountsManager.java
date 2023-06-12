@@ -9,13 +9,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import lombok.AllArgsConstructor;
 import org.stellar.anchor.platform.data.PaymentObservingAccount;
+import org.stellar.anchor.platform.utils.DaemonExecutors;
 import org.stellar.anchor.util.Log;
 
 public class PaymentObservingAccountsManager {
@@ -38,7 +38,7 @@ public class PaymentObservingAccountsManager {
     }
 
     // Start the eviction task
-    ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
+    ScheduledExecutorService scheduler = DaemonExecutors.newScheduledThreadPool(1);
     scheduler.scheduleAtFixedRate(
         this::evictAndPersist, 60, getEvictPeriod().getSeconds(), TimeUnit.SECONDS);
   }
