@@ -199,7 +199,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
                         .transaction(
                             PlatformTransactionData.builder()
                                 .updatedAt(paymentTime)
-                                .transferReceivedAt(paymentTime)
+                                .transferReceivedAt(txn.getTransferReceivedAt())
                                 .status(newStatus)
                                 .stellarTransactions(
                                     StellarTransaction.addOrUpdateTransactions(
