@@ -49,7 +49,14 @@ class Sep24End2EndTest(
         socketTimeoutMillis = 300000
       }
     }
-  private val anchor = wallet.anchor(config.env["anchor.domain"]!!)
+  private val anchor =
+    wallet.anchor(config.env["anchor.domain"]!!) {
+      install(HttpTimeout) {
+        requestTimeoutMillis = 300000
+        connectTimeoutMillis = 300000
+        socketTimeoutMillis = 300000
+      }
+    }
   private val maxTries = 40
 
   private fun `typical deposit end-to-end flow`() = runBlocking {
