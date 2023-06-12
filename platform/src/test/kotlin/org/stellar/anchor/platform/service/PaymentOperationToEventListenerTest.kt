@@ -56,18 +56,19 @@ class PaymentOperationToEventListenerTest {
     verify { eventPublishService wasNot Called }
     verify { sep31TransactionStore wasNot Called }
 
-    // Payment missing txHash shouldn't trigger an event nor reach the DB
+    // Payment missing txMemo shouldn't trigger an event nor reach the DB
     p.transactionHash = "1ad62e48724426be96cf2cdb65d5dacb8fac2e403e50bedb717bfc8eaf05af30"
     p.transactionMemo = null
     paymentOperationToEventListener.onReceived(p)
     verify { eventPublishService wasNot Called }
     verify { sep31TransactionStore wasNot Called }
 
-    // Asset types different from "credit_alphanum4" and "credit_alphanum12" shouldn't trigger an
+    // Asset types different from "native", "credit_alphanum4" and "credit_alphanum12" shouldn't
+    // trigger an
     // event nor reach the DB
     p.transactionHash = "1ad62e48724426be96cf2cdb65d5dacb8fac2e403e50bedb717bfc8eaf05af30"
     p.transactionMemo = "my_memo_1"
-    p.assetType = "native"
+    p.assetType = "liquidity_pool_shares"
     paymentOperationToEventListener.onReceived(p)
     verify { eventPublishService wasNot Called }
     verify { sep31TransactionStore wasNot Called }
