@@ -350,6 +350,12 @@ sep24:
     account_creation: false
     claimable_balances: false
 
+  # When the `POST /transactions/deposit/interactive` and `POST /transactions/withdraw/interactive` are called,
+  # the request may contain KYC fields. If `kyc_fields_forwarding` is enabled, the SEP server will call the
+  # `PUT /customer` endpoint of the business server to create or update the KYC fields.
+  kyc_fields_forwarding:
+    enabled: true
+
 sep31:
   ## @param: enabled
   ## @type: bool
