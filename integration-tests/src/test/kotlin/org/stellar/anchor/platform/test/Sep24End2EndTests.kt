@@ -185,6 +185,6 @@ class Sep24End2EndTest(
     `typical deposit end-to-end flow`()
     `typical withdraw end-to-end flow`()
     listAllTransactionWorks()
-    //    `list by stellar transaction id works`()
+    `list by stellar transaction id works`()
   }
 }
