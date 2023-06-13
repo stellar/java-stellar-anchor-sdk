@@ -14,7 +14,6 @@ import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -31,6 +30,7 @@ import org.stellar.anchor.healthcheck.HealthCheckable;
 import org.stellar.anchor.platform.config.PaymentObserverConfig.StellarPaymentObserverConfig;
 import org.stellar.anchor.platform.observer.ObservedPayment;
 import org.stellar.anchor.platform.observer.PaymentListener;
+import org.stellar.anchor.platform.utils.DaemonExecutors;
 import org.stellar.anchor.util.ExponentialBackoffTimer;
 import org.stellar.anchor.util.Log;
 import org.stellar.sdk.Server;
@@ -68,8 +68,8 @@ public class StellarPaymentObserver implements HealthCheckable {
 
   Instant lastActivityTime;
 
-  final ScheduledExecutorService silenceWatcher = Executors.newSingleThreadScheduledExecutor();
-  final ScheduledExecutorService statusWatcher = Executors.newSingleThreadScheduledExecutor();
+  final ScheduledExecutorService silenceWatcher = DaemonExecutors.newScheduledThreadPool(1);
+  final ScheduledExecutorService statusWatcher = DaemonExecutors.newScheduledThreadPool(1);
 
   public StellarPaymentObserver(
       String horizonServer,
