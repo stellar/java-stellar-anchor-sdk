@@ -40,6 +40,8 @@ fun Route.testSep24(
         throw ClientException("Token expired")
       }
 
+      log.info("Token: " + token.data)
+
       val transaction = sep24.getTransaction(transactionId)
       var amountExpected = token.data["amount"]?.toBigDecimal()
       if (amountExpected == null) {

@@ -25,7 +25,7 @@ class AssetHelperTest {
       ]
   )
   fun `check valid stellar assets`(assetCode: String?, assetIssuer: String?) {
-    assertTrue(AssetHelper.isStellar(assetCode, assetIssuer))
+    assertTrue(AssetHelper.isIssuedAsset(assetCode, assetIssuer))
   }
   @ParameterizedTest
   @CsvSource(
@@ -40,7 +40,7 @@ class AssetHelperTest {
       ]
   )
   fun `test invalid stellar assets`(assetCode: String?, assetIssuer: String?) {
-    assertFalse(AssetHelper.isStellar(assetCode, assetIssuer))
+    assertFalse(AssetHelper.isIssuedAsset(assetCode, assetIssuer))
   }
   @ParameterizedTest
   @CsvSource(

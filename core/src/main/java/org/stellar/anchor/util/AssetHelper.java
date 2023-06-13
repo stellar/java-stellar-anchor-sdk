@@ -20,7 +20,7 @@ public class AssetHelper {
     }
   }
 
-  public static boolean isStellar(String assetCode, String assetIssuer) {
+  public static boolean isIssuedAsset(String assetCode, String assetIssuer) {
     if (isEmpty(assetCode)) return false;
     if (isEmpty(assetIssuer)) return false;
     // check if assetIssuer is a valid wallet address
@@ -32,11 +32,17 @@ public class AssetHelper {
     }
   }
 
+  public static boolean isNativeAsset(String assetCode, String assetIssuer) {
+    return "native".equals(assetCode) && isEmpty(assetIssuer);
+  }
+
   public static String getAssetId(String assetCode, String assetIssuer) {
     if (isISO4217(assetCode, assetIssuer)) {
       // fiat assets
       return "iso4217:" + assetCode;
-    } else if (isStellar(assetCode, assetIssuer)) {
+    } else if (isNativeAsset(assetCode, assetIssuer)) {
+      return "stellar:native";
+    } else if (isIssuedAsset(assetCode, assetIssuer)) {
       return "stellar:" + assetCode + ":" + assetIssuer;
     } else {
       // not supported

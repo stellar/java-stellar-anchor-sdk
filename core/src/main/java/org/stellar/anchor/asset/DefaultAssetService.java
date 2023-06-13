@@ -16,6 +16,7 @@ import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.config.AssetsConfig;
 import org.stellar.anchor.util.FileUtil;
 import org.stellar.anchor.util.GsonUtils;
+import org.stellar.anchor.util.Log;
 import org.yaml.snakeyaml.Yaml;
 import shadow.org.apache.commons.io.FilenameUtils;
 
@@ -33,6 +34,7 @@ public class DefaultAssetService implements AssetService {
         return fromYaml(assetsConfig.getValue());
       case FILE:
         String filename = assetsConfig.getValue();
+        Log.info("Reading assets from file: {}", filename);
         try {
           String content = FileUtil.read(Path.of(filename));
           switch (FilenameUtils.getExtension(filename).toLowerCase()) {

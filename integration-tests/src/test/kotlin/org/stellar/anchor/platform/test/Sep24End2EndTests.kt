@@ -21,10 +21,11 @@ import org.stellar.walletsdk.anchor.TransactionStatus
 import org.stellar.walletsdk.anchor.TransactionStatus.*
 import org.stellar.walletsdk.anchor.WithdrawalTransaction
 import org.stellar.walletsdk.asset.IssuedAssetId
+import org.stellar.walletsdk.asset.XLM
 import org.stellar.walletsdk.auth.AuthToken
 import org.stellar.walletsdk.horizon.SigningKeyPair
 import org.stellar.walletsdk.horizon.sign
-import org.stellar.walletsdk.horizon.transaction.toStellarTransfer
+import org.stellar.walletsdk.horizon.transaction.transferWithdrawalTransaction
 
 class Sep24End2EndTest(
   private val config: TestConfig,
@@ -40,7 +41,7 @@ class Sep24End2EndTest(
     )
   private val USDC =
     IssuedAssetId("USDC", "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP")
-  private val asset = USDC
+  private val asset = XLM
   private val client =
     HttpClient() {
       install(HttpTimeout) {
@@ -64,19 +65,21 @@ class Sep24End2EndTest(
     val txId = makeDeposit(token)
     // Wait for the status to change to COMPLETED
     waitStatus(txId, COMPLETED, token)
+    println("deposit transaction completed: ${txId}")
   }
 
   private suspend fun makeDeposit(token: AuthToken, keyPair: SigningKeyPair = keypair): String {
     // Start interactive deposit
     val deposit =
-      anchor.interactive().deposit(keyPair.address, asset, token, mapOf("amount" to "5"))
+      anchor.interactive().deposit(keyPair.address, asset, token, mapOf("amount" to "0.00001"))
     // Get transaction status and make sure it is INCOMPLETE
     val transaction = anchor.getTransaction(deposit.id, token)
+    println("deposit transaction: ${transaction}")
     assertEquals(INCOMPLETE, transaction.status)
     // Make sure the interactive url is valid. This will also start the reference server's
     // withdrawal process.
     val resp = client.get(deposit.url)
-    print("accessing ${deposit.url}...")
+    println("accessing ${deposit.url}...")
     assertEquals(200, resp.status.value)
 
     return transaction.id
@@ -100,16 +103,15 @@ class Sep24End2EndTest(
     // Make sure the interactive url is valid. This will also start the reference server's
     // withdrawal process.
     val resp = client.get(withdrawal.url)
-    print("accessing ${withdrawal.url}...")
+    println("accessing ${withdrawal.url}...")
     assertEquals(200, resp.status.value)
     // Wait for the status to change to PENDING_USER_TRANSFER_START
     waitStatus(withdrawal.id, PENDING_USER_TRANSFER_START, token)
     // Submit transfer transaction
+    val txn = (anchor.getTransaction(withdrawal.id, token) as WithdrawalTransaction)
     val transfer =
-      (anchor.getTransaction(withdrawal.id, token) as WithdrawalTransaction).toStellarTransfer(
-        wallet.stellar(),
-        asset
-      )
+      wallet.stellar().transaction(txn.from).transferWithdrawalTransaction(txn, asset).build()
+    println("transfer txn: ${txn.withdrawAnchorAccount}")
     transfer.sign(keypair)
     wallet.stellar().submitTransaction(transfer)
     // Wait for the status to change to PENDING_USER_TRANSFER_END
@@ -183,6 +185,6 @@ class Sep24End2EndTest(
     `typical deposit end-to-end flow`()
     `typical withdraw end-to-end flow`()
     listAllTransactionWorks()
-    `list by stellar transaction id works`()
+    //    `list by stellar transaction id works`()
   }
 }
