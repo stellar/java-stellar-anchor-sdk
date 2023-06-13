@@ -138,13 +138,22 @@ class Sep10ConfigTest {
   }
 
   @ParameterizedTest
-  @ValueSource(strings = ["stellar .org", "abc", "299.0.0.1"])
+  @ValueSource(
+    strings =
+      [
+        "stellar .org",
+        "abc",
+        "299.0.0.1",
+        "this-is-longer-than-64-bytes-which-is-the-maximum-length-for-a-web-auth-domain.stellar.org"
+      ]
+  )
   fun `test invalid web auth domains`(value: String) {
     config.webAuthDomain = value
     config.validateConfig(errors)
     assertTrue(errors.hasErrors())
     assertErrorCode(errors, "sep10-web-auth-domain-invalid")
   }
+
   @ParameterizedTest
   @ValueSource(
     strings =
@@ -154,7 +163,8 @@ class Sep10ConfigTest {
         "299.0.0.1",
         "http://stellar.org",
         "https://stellar.org",
-        "://stellar.org"
+        "://stellar.org",
+        "this-is-longer-than-64-bytes-which-is-the-maximum-length-for-a-home-domain.stellar.org"
       ]
   )
   fun `test invalid home domains`(value: String) {
@@ -163,6 +173,7 @@ class Sep10ConfigTest {
     assertTrue(errors.hasErrors())
     assertErrorCode(errors, "sep10-home-domain-invalid")
   }
+
   @Test
   fun `test if web_auth_domain is not set, default to the domain of the host_url`() {
     config.webAuthDomain = null
@@ -172,7 +183,7 @@ class Sep10ConfigTest {
   }
 
   @Test
-  fun `test if web_auth_domain is  set, it is not default to the domain of the host_url`() {
+  fun `test if web_auth_domain is set, it is not default to the domain of the host_url`() {
     config.webAuthDomain = "localhost:8080"
     config.homeDomain = "www.stellar.org"
     config.postConstruct()

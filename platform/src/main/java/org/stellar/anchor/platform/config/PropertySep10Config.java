@@ -16,7 +16,7 @@ import org.stellar.anchor.config.SecretConfig;
 import org.stellar.anchor.config.Sep10Config;
 import org.stellar.anchor.util.ListHelper;
 import org.stellar.anchor.util.NetUtil;
-import org.stellar.sdk.KeyPair;
+import org.stellar.sdk.*;
 
 @Data
 public class PropertySep10Config implements Sep10Config, Validator {
@@ -116,6 +116,30 @@ public class PropertySep10Config implements Sep10Config, Validator {
           "jwtTimeout",
           "sep10-jwt-timeout-invalid",
           "The sep10.jwt_timeout must be greater than 0");
+    }
+
+    byte[] nonce = new byte[64];
+
+    try {
+      new ManageDataOperation.Builder(String.format("%s %s", homeDomain, "auth"), nonce).build();
+    } catch (IllegalArgumentException iaex) {
+      errors.rejectValue(
+          "homeDomain",
+          "sep10-home-domain-invalid",
+          format(
+              "The sep10.home_domain (%s) does not have valid format. Please make sure it is a valid domain name. Error=%s",
+              homeDomain, iaex));
+    }
+
+    try {
+      if (webAuthDomain != null) new ManageDataOperation.Builder(webAuthDomain, nonce).build();
+    } catch (IllegalArgumentException iaex) {
+      errors.rejectValue(
+          "webAuthDomain",
+          "sep10-web-auth-domain-invalid",
+          format(
+              "The sep10.web_auth_domain (%s) does not have valid format. Please make sure it is a valid domain name. Error=%s",
+              webAuthDomain, iaex));
     }
   }
 
