@@ -135,7 +135,6 @@ class Sep38ServiceTest {
     assertTrue(fiatUSD.exchangeableAssetNames.containsAll(wantAssets))
     assertTrue(wantAssets.containsAll(fiatUSD.exchangeableAssetNames))
 
-    // TODO: why is this test duplicated?
     val stellarNative = assetMap["stellar:native"]
     assertNotNull(stellarNative)
     assertEquals(listOf("USA"), stellarNative!!.countryCodes)

@@ -74,14 +74,14 @@ class Sep24Helper(private val cfg: Config) {
   ): String {
     val myAccount = server.accounts().account(cfg.sep24.keyPair.accountId)
     val asset = Asset.create(assetString.replace("stellar:", ""))
-    log.info("created asset $asset")
-    val op = PaymentOperation.Builder(destinationAddress, asset, amount.toPlainString()).build()
-    log.info(
-      "created payment operation ${op.amount} ${op.asset} from ${myAccount.accountId} to ${op.destination}"
-    )
 
     val transactionBuilder =
-      TransactionBuilder(myAccount, Network.TESTNET).setBaseFee(100).setTimeout(60).addOperation(op)
+      TransactionBuilder(myAccount, Network.TESTNET)
+        .setBaseFee(100)
+        .setTimeout(60)
+        .addOperation(
+          PaymentOperation.Builder(destinationAddress, asset, amount.toPlainString()).build()
+        )
 
     if (memo != null && memoType != null) {
       transactionBuilder.addMemo(
@@ -103,7 +103,7 @@ class Sep24Helper(private val cfg: Config) {
 
     if (!resp.isSuccess) {
       throw Exception(
-        "Failed to submit transaction with code: ${resp?.extras?.resultCodes?.operationsResultCodes}"
+        "Failed to submit transaction with code: ${resp?.extras?.resultCodes?.transactionResultCode}"
       )
     }
 
