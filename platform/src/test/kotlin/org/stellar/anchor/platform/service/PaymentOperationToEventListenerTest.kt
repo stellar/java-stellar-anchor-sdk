@@ -24,6 +24,7 @@ import org.stellar.anchor.platform.data.JdbcSep31Transaction
 import org.stellar.anchor.platform.data.JdbcSep31TransactionStore
 import org.stellar.anchor.platform.observer.ObservedPayment
 import org.stellar.anchor.util.GsonUtils
+import org.stellar.sdk.Asset
 import org.stellar.sdk.Asset.create
 import org.stellar.sdk.AssetTypeNative
 
@@ -134,23 +135,37 @@ class PaymentOperationToEventListenerTest {
     assertEquals("GBT7YF22QEVUDUTBUIS2OWLTZMP7Z4J4ON6DCSHR3JXYTZRKCPXVV5J5", slotAccount.captured)
   }
 
-  @Test
-  fun `test SEP-31 onReceived gets the expected amount and sends the event with PENDING_RECEIVER status`() {
+  @ParameterizedTest
+  @CsvSource(
+    value =
+      [
+        "native,native,,credit_alphanum4,USD,GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
+        "credit_alphanum4,USD,GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364,native,native,",
+      ]
+  )
+  fun `test SEP-31 onReceived with sufficient payment patches the transaction`(
+    inAssetType: String,
+    inAssetCode: String,
+    inAssetIssuer: String?,
+    outAssetType: String,
+    outAssetCode: String,
+    outAssetIssuer: String?
+  ) {
     val startedAtMock = Instant.now().minusSeconds(120)
     val transferReceivedAt = Instant.now()
     val transferReceivedAtStr = DateTimeFormatter.ISO_INSTANT.format(transferReceivedAt)
-    val fooAsset = "stellar:FOO:GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364"
-    val barAsset = "stellar:BAR:GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364"
+    val inAsset = createAsset(inAssetType, inAssetCode, inAssetIssuer)
+    val outAsset = createAsset(outAssetType, outAssetCode, outAssetIssuer)
 
     val p =
       ObservedPayment.builder()
         .transactionHash("1ad62e48724426be96cf2cdb65d5dacb8fac2e403e50bedb717bfc8eaf05af30")
         .transactionMemo("39623738663066612d393366392d343139382d386439332d6537366664303834")
         .transactionMemoType("hash")
-        .assetType("credit_alphanum4")
-        .assetCode("FOO")
-        .assetIssuer("GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364")
-        .assetName("FOO:GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364")
+        .assetType(inAssetType)
+        .assetCode(inAssetCode)
+        .assetIssuer(inAssetIssuer)
+        .assetName(inAsset.toString())
         .amount("10.0000000")
         .sourceAccount("GCJKWN7ELKOXLDHJTOU4TZOEJQL7TYVVTQFR676MPHHUIUDAHUA7QGJ4")
         .from("GAJKV32ZXP5QLYHPCMLTV5QCMNJR3W6ZKFP6HMDN67EM2ULDHHDGEZYO")
@@ -172,11 +187,11 @@ class PaymentOperationToEventListenerTest {
     sep31TxMock.id = "ceaa7677-a5a7-434e-b02a-8e0801b3e7bd"
     sep31TxMock.amountExpected = "10"
     sep31TxMock.amountIn = "10"
-    sep31TxMock.amountInAsset = fooAsset
+    sep31TxMock.amountInAsset = "stellar:$inAsset"
     sep31TxMock.amountOut = "20"
-    sep31TxMock.amountOutAsset = barAsset
+    sep31TxMock.amountOutAsset = "stellar:$outAsset"
     sep31TxMock.amountFee = "0.5"
-    sep31TxMock.amountFeeAsset = fooAsset
+    sep31TxMock.amountFeeAsset = "stellar:$inAsset"
     sep31TxMock.quoteId = "cef1fc13-3f65-4612-b1f2-502d698c816b"
     sep31TxMock.startedAt = startedAtMock
     sep31TxMock.updatedAt = startedAtMock
@@ -218,9 +233,7 @@ class PaymentOperationToEventListenerTest {
               .paymentType(StellarPayment.Type.PATH_PAYMENT)
               .sourceAccount("GAJKV32ZXP5QLYHPCMLTV5QCMNJR3W6ZKFP6HMDN67EM2ULDHHDGEZYO")
               .destinationAccount("GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364")
-              .amount(
-                Amount("10.0000000", "FOO:GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364")
-              )
+              .amount(Amount("10.0000000", inAsset.toString()))
               .build()
           )
         )
@@ -234,24 +247,15 @@ class PaymentOperationToEventListenerTest {
       )
     }
 
-    // wantSep31Tx
-    val wantSep31Tx = gson.fromJson(gson.toJson(sep31TxMock), JdbcSep31Transaction::class.java)
-    wantSep31Tx.status = SepTransactionStatus.PENDING_RECEIVER.status
-    wantSep31Tx.stellarTransactionId =
-      "1ad62e48724426be96cf2cdb65d5dacb8fac2e403e50bedb717bfc8eaf05af30"
-    wantSep31Tx.transferReceivedAt = transferReceivedAt
-    wantSep31Tx.updatedAt = transferReceivedAt
-    wantSep31Tx.stellarTransactions = listOf(stellarTransaction)
-
     val capturedRequest = patchTxnRequestSlot.captured.records[0]
-    assertEquals(wantSep31Tx.status, capturedRequest.transaction.status.toString())
     assertEquals(
-      wantSep31Tx.stellarTransactionId,
-      capturedRequest.transaction.stellarTransactions[0].id
+      SepTransactionStatus.PENDING_RECEIVER.status,
+      capturedRequest.transaction.status.toString()
     )
-    assertEquals(wantSep31Tx.transferReceivedAt, capturedRequest.transaction.transferReceivedAt)
-    assertEquals(wantSep31Tx.updatedAt, capturedRequest.transaction.updatedAt)
-    assertEquals(wantSep31Tx.stellarTransactions, capturedRequest.transaction.stellarTransactions)
+    assertEquals(stellarTransaction.id, capturedRequest.transaction.stellarTransactions[0].id)
+    assertEquals(transferReceivedAt, capturedRequest.transaction.transferReceivedAt)
+    assertEquals(transferReceivedAt, capturedRequest.transaction.updatedAt)
+    assertEquals(listOf(stellarTransaction), capturedRequest.transaction.stellarTransactions)
   }
 
   @Test
@@ -391,12 +395,7 @@ class PaymentOperationToEventListenerTest {
   ) {
     val transferReceivedAt = Instant.now()
     val transferReceivedAtStr = DateTimeFormatter.ISO_INSTANT.format(transferReceivedAt)
-    val asset =
-      if (assetType == "native") {
-        AssetTypeNative()
-      } else {
-        create(assetType, assetCode, assetIssuer)
-      }
+    val asset = createAsset(assetType, assetCode, assetIssuer)
 
     val p =
       ObservedPayment.builder()
@@ -485,5 +484,13 @@ class PaymentOperationToEventListenerTest {
     assertEquals(transferReceivedAt, capturedRequest.transaction.updatedAt)
     assertEquals(listOf(stellarTransaction), capturedRequest.transaction.stellarTransactions)
     assertEquals(sep24TxMock.id, capturedRequest.transaction.id)
+  }
+
+  fun createAsset(assetType: String, assetCode: String, assetIssuer: String?): Asset {
+    return if (assetType == "native") {
+      AssetTypeNative()
+    } else {
+      create(assetType, assetCode, assetIssuer)
+    }
   }
 }
