@@ -259,7 +259,7 @@ class PaymentOperationToEventListenerTest {
   }
 
   @Test
-  fun `test onReceived gets less than the expected amount it sends the PENDING_RECEIVER status with a message`() {
+  fun `test SEP-31 onReceived gets less than the expected amount it sends the PENDING_RECEIVER status with a message`() {
     val startedAtMock = Instant.now().minusSeconds(120)
     val transferReceivedAt = Instant.now()
     val transferReceivedAtStr = DateTimeFormatter.ISO_INSTANT.format(transferReceivedAt)
@@ -360,24 +360,15 @@ class PaymentOperationToEventListenerTest {
       )
     }
 
-    // wantSep31Tx
-    val wantSep31Tx = gson.fromJson(gson.toJson(sep31TxMock), JdbcSep31Transaction::class.java)
-    wantSep31Tx.status = SepTransactionStatus.PENDING_RECEIVER.status
-    wantSep31Tx.stellarTransactionId =
-      "1ad62e48724426be96cf2cdb65d5dacb8fac2e403e50bedb717bfc8eaf05af30"
-    wantSep31Tx.transferReceivedAt = null
-    wantSep31Tx.updatedAt = transferReceivedAt
-    wantSep31Tx.stellarTransactions = listOf(stellarTransaction)
-
     val capturedRequest = patchTxnRequestSlot.captured.records[0]
-    assertEquals(wantSep31Tx.status, capturedRequest.transaction.status.toString())
     assertEquals(
-      wantSep31Tx.stellarTransactionId,
-      capturedRequest.transaction.stellarTransactions[0].id
+      SepTransactionStatus.PENDING_RECEIVER.status,
+      capturedRequest.transaction.status.toString()
     )
-    assertEquals(wantSep31Tx.transferReceivedAt, capturedRequest.transaction.transferReceivedAt)
-    assertEquals(wantSep31Tx.updatedAt, capturedRequest.transaction.updatedAt)
-    assertEquals(wantSep31Tx.stellarTransactions, capturedRequest.transaction.stellarTransactions)
+    assertEquals(stellarTransaction.id, capturedRequest.transaction.stellarTransactions[0].id)
+    assertEquals(null, capturedRequest.transaction.transferReceivedAt)
+    assertEquals(transferReceivedAt, capturedRequest.transaction.updatedAt)
+    assertEquals(listOf(stellarTransaction), capturedRequest.transaction.stellarTransactions)
   }
 
   @ParameterizedTest
@@ -486,7 +477,7 @@ class PaymentOperationToEventListenerTest {
     assertEquals(sep24TxMock.id, capturedRequest.transaction.id)
   }
 
-  fun createAsset(assetType: String, assetCode: String, assetIssuer: String?): Asset {
+  private fun createAsset(assetType: String, assetCode: String, assetIssuer: String?): Asset {
     return if (assetType == "native") {
       AssetTypeNative()
     } else {
