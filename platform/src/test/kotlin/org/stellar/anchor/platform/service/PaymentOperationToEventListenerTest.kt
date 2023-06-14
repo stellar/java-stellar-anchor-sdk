@@ -10,6 +10,8 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 import org.stellar.anchor.api.exception.SepException
 import org.stellar.anchor.api.platform.PatchTransactionsRequest
 import org.stellar.anchor.api.platform.PatchTransactionsResponse
@@ -22,6 +24,8 @@ import org.stellar.anchor.platform.data.JdbcSep31Transaction
 import org.stellar.anchor.platform.data.JdbcSep31TransactionStore
 import org.stellar.anchor.platform.observer.ObservedPayment
 import org.stellar.anchor.util.GsonUtils
+import org.stellar.sdk.Asset.create
+import org.stellar.sdk.AssetTypeNative
 
 class PaymentOperationToEventListenerTest {
   @MockK(relaxed = true) private lateinit var sep31TransactionStore: JdbcSep31TransactionStore
@@ -372,22 +376,37 @@ class PaymentOperationToEventListenerTest {
     assertEquals(wantSep31Tx.stellarTransactions, capturedRequest.transaction.stellarTransactions)
   }
 
-  @Test
-  fun `test SEP-24 onReceived with native asset payment patches the transaction`() {
+  @ParameterizedTest
+  @CsvSource(
+    value =
+      [
+        "native,native,",
+        "credit_alphanum4,USD,GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364",
+      ]
+  )
+  fun `test SEP-24 onReceived with sufficient payment patches the transaction`(
+    assetType: String,
+    assetCode: String,
+    assetIssuer: String?
+  ) {
     val transferReceivedAt = Instant.now()
     val transferReceivedAtStr = DateTimeFormatter.ISO_INSTANT.format(transferReceivedAt)
+    val asset =
+      if (assetType == "native") {
+        AssetTypeNative()
+      } else {
+        create(assetType, assetCode, assetIssuer)
+      }
 
     val p =
       ObservedPayment.builder()
         .transactionHash("1ad62e48724426be96cf2cdb65d5dacb8fac2e403e50bedb717bfc8eaf05af30")
         .transactionMemo("39623738663066612d393366392d343139382d386439332d6537366664303834")
         .transactionMemoType("hash")
-        .assetType("native")
-        .assetCode("native")
-        .assetName("native")
-        // XLM does not have an issuer
-        .assetIssuer(null)
-        .assetName("native")
+        .assetType(assetType)
+        .assetCode(assetCode)
+        .assetName(asset.toString())
+        .assetIssuer(assetIssuer)
         .amount("10.0000000")
         .sourceAccount("GCJKWN7ELKOXLDHJTOU4TZOEJQL7TYVVTQFR676MPHHUIUDAHUA7QGJ4")
         .from("GAJKV32ZXP5QLYHPCMLTV5QCMNJR3W6ZKFP6HMDN67EM2ULDHHDGEZYO")
@@ -403,7 +422,8 @@ class PaymentOperationToEventListenerTest {
     val slotMemo = slot<String>()
     val sep24TxMock = JdbcSep24Transaction()
     sep24TxMock.id = "ceaa7677-a5a7-434e-b02a-8e0801b3e7bd"
-    sep24TxMock.requestAssetCode = "native"
+    sep24TxMock.requestAssetCode = assetCode
+    sep24TxMock.requestAssetIssuer = assetIssuer
     sep24TxMock.amountIn = "10.0000000"
     sep24TxMock.memo = "OWI3OGYwZmEtOTNmOS00MTk4LThkOTMtZTc2ZmQwODQ"
     sep24TxMock.memoType = "hash"
@@ -441,7 +461,7 @@ class PaymentOperationToEventListenerTest {
               .paymentType(StellarPayment.Type.PAYMENT)
               .sourceAccount("GAJKV32ZXP5QLYHPCMLTV5QCMNJR3W6ZKFP6HMDN67EM2ULDHHDGEZYO")
               .destinationAccount("GBZ4HPSEHKEEJ6MOZBSVV2B3LE27EZLV6LJY55G47V7BGBODWUXQM364")
-              .amount(Amount("10.0000000", "native"))
+              .amount(Amount("10.0000000", asset.toString()))
               .build()
           )
         )
