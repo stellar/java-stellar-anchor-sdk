@@ -93,7 +93,7 @@ public class PropertySep10Config implements Sep10Config, Validator {
       } catch (IllegalArgumentException iaex) {
         errors.rejectValue(
             "homeDomain",
-            "sep10-home-domain-invalid",
+            "sep10-home-domain-too-long",
             format(
                 "The sep10.home_domain (%s) is longer than the maximum length (64) of a domain. Error=%s",
                 homeDomain, iaex));
@@ -113,7 +113,7 @@ public class PropertySep10Config implements Sep10Config, Validator {
       } catch (IllegalArgumentException iaex) {
         errors.rejectValue(
             "webAuthDomain",
-            "sep10-web-auth-domain-invalid",
+            "sep10-web-auth-domain-too-long",
             format(
                 "The sep10.web_auth_home_domain (%s) is longer than the maximum length (64) of a domain. Error=%s",
                 webAuthDomain, iaex));

@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.CsvSource
 import org.junit.jupiter.params.provider.MethodSource
 import org.junit.jupiter.params.provider.NullSource
 import org.junit.jupiter.params.provider.ValueSource
@@ -138,41 +139,40 @@ class Sep10ConfigTest {
   }
 
   @ParameterizedTest
-  @ValueSource(
-    strings =
+  @CsvSource(
+    value =
       [
-        "this-is-longer-than-64-bytes-which-is-the-maximum-length-for-a-web-auth-domain.stellar.org",
-        "stellar .org",
-        "abc",
-        "299.0.0.1",
-        "0123456789012345678901234567890123456789012345678912.stellar.org",
+        "this-is-longer-than-64-bytes-which-is-the-maximum-length-for-a-web-auth-domain.stellar.org,sep10-web-auth-domain-too-long",
+        "stellar .org,sep10-web-auth-domain-invalid",
+        "abc,sep10-web-auth-domain-invalid",
+        "299.0.0.1,sep10-web-auth-domain-invalid",
       ]
   )
-  fun `test invalid web auth domains`(value: String) {
+  fun `test invalid web auth domains`(value: String, expectedErrorCode: String) {
     config.webAuthDomain = value
     config.validateConfig(errors)
     assertTrue(errors.hasErrors())
-    assertErrorCode(errors, "sep10-web-auth-domain-invalid")
+    assertErrorCode(errors, expectedErrorCode)
   }
 
   @ParameterizedTest
-  @ValueSource(
-    strings =
+  @CsvSource(
+    value =
       [
-        "this-is-longer-than-64-bytes-which-is-the-maximum-length-for-a-home-domain.stellar.org",
-        "stellar .org",
-        "abc",
-        "299.0.0.1",
-        "http://stellar.org",
-        "https://stellar.org",
-        "://stellar.org",
+        "this-is-longer-than-64-bytes-which-is-the-maximum-length-for-a-home-domain.stellar.org,sep10-home-domain-too-long",
+        "stellar .org,sep10-home-domain-invalid",
+        "abc,sep10-home-domain-invalid",
+        "299.0.0.1,sep10-home-domain-invalid",
+        "http://stellar.org,sep10-home-domain-invalid",
+        "https://stellar.org,sep10-home-domain-invalid",
+        "://stellar.org,sep10-home-domain-invalid",
       ]
   )
-  fun `test invalid home domains`(value: String) {
+  fun `test invalid home domains`(value: String, expectedErrorCode: String) {
     config.homeDomain = value
     config.validateConfig(errors)
     assertTrue(errors.hasErrors())
-    assertErrorCode(errors, "sep10-home-domain-invalid")
+    assertErrorCode(errors, expectedErrorCode)
   }
 
   @Test
