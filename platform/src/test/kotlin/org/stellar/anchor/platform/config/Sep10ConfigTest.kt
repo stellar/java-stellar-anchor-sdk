@@ -144,6 +144,7 @@ class Sep10ConfigTest {
         "stellar .org",
         "abc",
         "299.0.0.1",
+        "0123456789012345678901234567890123456789012345678912.stellar.org",
         "this-is-longer-than-64-bytes-which-is-the-maximum-length-for-a-web-auth-domain.stellar.org"
       ]
   )
