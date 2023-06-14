@@ -87,6 +87,18 @@ public class PropertySep10Config implements Sep10Config, Validator {
       errors.rejectValue(
           "homeDomain", "home-domain-empty", "The sep10.home_domain is not defined.");
     } else {
+      try {
+        new ManageDataOperation.Builder(String.format("%s %s", homeDomain, "auth"), new byte[64])
+            .build();
+      } catch (IllegalArgumentException iaex) {
+        errors.rejectValue(
+            "homeDomain",
+            "sep10-home-domain-invalid",
+            format(
+                "The sep10.home_domain (%s) is longer than the maximum length (64) of a domain. Error=%s",
+                homeDomain, iaex));
+      }
+
       if (!NetUtil.isServerPortValid(homeDomain)) {
         errors.rejectValue(
             "homeDomain",
@@ -96,6 +108,17 @@ public class PropertySep10Config implements Sep10Config, Validator {
     }
 
     if (isNotEmpty(webAuthDomain)) {
+      try {
+        new ManageDataOperation.Builder(webAuthDomain, new byte[64]).build();
+      } catch (IllegalArgumentException iaex) {
+        errors.rejectValue(
+            "webAuthDomain",
+            "sep10-web-auth-domain-invalid",
+            format(
+                "The sep10.web_auth_home_domain (%s) is longer than the maximum length (64) of a domain. Error=%s",
+                webAuthDomain, iaex));
+      }
+
       if (!NetUtil.isServerPortValid(webAuthDomain)) {
         errors.rejectValue(
             "webAuthDomain",
@@ -116,30 +139,6 @@ public class PropertySep10Config implements Sep10Config, Validator {
           "jwtTimeout",
           "sep10-jwt-timeout-invalid",
           "The sep10.jwt_timeout must be greater than 0");
-    }
-
-    byte[] nonce = new byte[64];
-
-    try {
-      new ManageDataOperation.Builder(String.format("%s %s", homeDomain, "auth"), nonce).build();
-    } catch (IllegalArgumentException iaex) {
-      errors.rejectValue(
-          "homeDomain",
-          "sep10-home-domain-invalid",
-          format(
-              "The sep10.home_domain (%s) is longer than the maximum length (64) of a domain. Error=%s",
-              homeDomain, iaex));
-    }
-
-    try {
-      if (webAuthDomain != null) new ManageDataOperation.Builder(webAuthDomain, nonce).build();
-    } catch (IllegalArgumentException iaex) {
-      errors.rejectValue(
-          "webAuthDomain",
-          "sep10-web-auth-domain-invalid",
-          format(
-              "The sep10.web_auth_home_domain (%s) is longer than the maximum length (64) of a domain. Error=%s",
-              webAuthDomain, iaex));
     }
   }
 

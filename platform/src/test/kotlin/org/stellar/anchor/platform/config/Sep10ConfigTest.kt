@@ -141,11 +141,11 @@ class Sep10ConfigTest {
   @ValueSource(
     strings =
       [
+        "this-is-longer-than-64-bytes-which-is-the-maximum-length-for-a-web-auth-domain.stellar.org",
         "stellar .org",
         "abc",
         "299.0.0.1",
         "0123456789012345678901234567890123456789012345678912.stellar.org",
-        "this-is-longer-than-64-bytes-which-is-the-maximum-length-for-a-web-auth-domain.stellar.org"
       ]
   )
   fun `test invalid web auth domains`(value: String) {
@@ -159,13 +159,13 @@ class Sep10ConfigTest {
   @ValueSource(
     strings =
       [
+        "this-is-longer-than-64-bytes-which-is-the-maximum-length-for-a-home-domain.stellar.org",
         "stellar .org",
         "abc",
         "299.0.0.1",
         "http://stellar.org",
         "https://stellar.org",
         "://stellar.org",
-        "this-is-longer-than-64-bytes-which-is-the-maximum-length-for-a-home-domain.stellar.org"
       ]
   )
   fun `test invalid home domains`(value: String) {
