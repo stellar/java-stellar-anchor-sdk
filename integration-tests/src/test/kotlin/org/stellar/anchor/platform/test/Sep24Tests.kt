@@ -158,7 +158,7 @@ private const val depositRequest =
     "amount": "10",
     "asset_code": "USDC",
     "asset_issuer": "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
-    "account": "GCHU3RZAECOKGM2YAJLQIIYB2ZPLMFTTGN5D3XZNX4RDOEERVLXO7HU4",
+    "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG",
     "lang": "en"
 }"""
 
@@ -373,7 +373,7 @@ private const val expectedSep24DepositResponse =
       "kind": "deposit",
       "status": "incomplete",
       "refunded": false,
-      "to": "GCHU3RZAECOKGM2YAJLQIIYB2ZPLMFTTGN5D3XZNX4RDOEERVLXO7HU4"
+      "to": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
     }
   }
 """
