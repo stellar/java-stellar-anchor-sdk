@@ -316,6 +316,7 @@ class TransactionServiceTest {
 
     every { sep31TransactionStore.findByTransactionId(any()) } returns null
     every { sep24TransactionStore.findByTransactionId(any()) } returns tx
+    every { custodyConfig.isCustodyIntegrationEnabled } returns true
 
     transactionService.patchTransactions(request)
 
@@ -342,6 +343,7 @@ class TransactionServiceTest {
 
     every { sep31TransactionStore.findByTransactionId(any()) } returns null
     every { sep24TransactionStore.findByTransactionId(any()) } returns tx
+    every { custodyConfig.isCustodyIntegrationEnabled } returns true
 
     transactionService.patchTransactions(request)
 

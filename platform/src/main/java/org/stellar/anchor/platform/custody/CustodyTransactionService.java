@@ -1,8 +1,14 @@
 package org.stellar.anchor.platform.custody;
 
+import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.RECEIVE;
+import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL;
+import static org.stellar.anchor.platform.data.CustodyTransactionStatus.CREATED;
+import static org.stellar.anchor.platform.data.CustodyTransactionStatus.SUBMITTED;
 import static org.stellar.anchor.util.Log.debugF;
 
 import java.time.Instant;
+import java.util.List;
+import java.util.Set;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.stellar.anchor.api.custody.CreateCustodyTransactionRequest;
@@ -17,18 +23,29 @@ import org.stellar.anchor.platform.data.CustodyTransactionStatus;
 import org.stellar.anchor.platform.data.JdbcCustodyTransaction;
 import org.stellar.anchor.platform.data.JdbcCustodyTransactionRepo;
 
-public class CustodyTransactionService {
+public abstract class CustodyTransactionService {
 
-  private final PaymentService paymentService;
+  private final CustodyPaymentService<?> custodyPaymentService;
   private final JdbcCustodyTransactionRepo custodyTransactionRepo;
 
   public CustodyTransactionService(
-      JdbcCustodyTransactionRepo custodyTransactionRepo, PaymentService paymentService) {
+      JdbcCustodyTransactionRepo custodyTransactionRepo,
+      CustodyPaymentService<?> custodyPaymentService) {
     this.custodyTransactionRepo = custodyTransactionRepo;
-    this.paymentService = paymentService;
+    this.custodyPaymentService = custodyPaymentService;
   }
 
-  public void create(CreateCustodyTransactionRequest request) {
+  protected abstract void validateRequest(CreateCustodyTransactionRequest request)
+      throws CustodyBadRequestException;
+
+  /**
+   * Create custody transaction
+   *
+   * @param request custody transaction info
+   */
+  public void create(CreateCustodyTransactionRequest request) throws CustodyBadRequestException {
+    validateRequest(request);
+
     custodyTransactionRepo.save(
         JdbcCustodyTransaction.builder()
             .id(request.getId())
@@ -39,14 +56,22 @@ public class CustodyTransactionService {
             .protocol(request.getProtocol())
             .fromAccount(request.getFromAccount())
             .toAccount(request.getToAccount())
-            .amountIn(request.getAmountIn())
-            .amountInAsset(request.getAmountInAsset())
-            .amountOut(request.getAmountOut())
-            .amountOutAsset(request.getAmountOutAsset())
+            .amount(request.getAmount())
+            .amountAsset(request.getAmountAsset())
             .kind(request.getKind())
+            .reconciliationAttemptCount(0)
             .build());
   }
 
+  /**
+   * Create custody transaction payment. This method acts like a proxy. It forwards request to
+   * custody payment service, update custody transaction and handles errors
+   *
+   * @param txnId custody/SEP transaction ID
+   * @param requestBody additional data, that will be sent in a request to custody service. Can be
+   *     used, if, for example, custody service supports some fields in a request specific to it
+   * @return external transaction payment ID
+   */
   public CreateTransactionPaymentResponse createPayment(String txnId, String requestBody)
       throws AnchorException {
     JdbcCustodyTransaction txn = custodyTransactionRepo.findById(txnId).orElse(null);
@@ -56,8 +81,8 @@ public class CustodyTransactionService {
 
     CreateTransactionPaymentResponse response;
     try {
-      response = paymentService.createTransactionPayment(txn, requestBody);
-      updateCustodyTransaction(txn, response.getId(), CustodyTransactionStatus.SUBMITTED);
+      response = custodyPaymentService.createTransactionPayment(txn, requestBody);
+      updateCustodyTransaction(txn, response.getId(), SUBMITTED);
     } catch (FireblocksException e) {
       updateCustodyTransaction(txn, StringUtils.EMPTY, CustodyTransactionStatus.FAILED);
       switch (HttpStatus.valueOf(e.getStatusCode())) {
@@ -80,7 +105,20 @@ public class CustodyTransactionService {
       JdbcCustodyTransaction txn, String externalTransactionId, CustodyTransactionStatus status) {
     txn.setExternalTxId(externalTransactionId);
     txn.setStatus(status.toString());
+    updateCustodyTransaction(txn);
+  }
+
+  public void updateCustodyTransaction(JdbcCustodyTransaction txn) {
     txn.setUpdatedAt(Instant.now());
     custodyTransactionRepo.save(txn);
+  }
+
+  public List<JdbcCustodyTransaction> getOutboundTransactionsEligibleForReconciliation() {
+    return custodyTransactionRepo.findAllByStatusAndExternalTxIdNotNull(SUBMITTED.toString());
+  }
+
+  public List<JdbcCustodyTransaction> getInboundTransactionsEligibleForReconciliation() {
+    return custodyTransactionRepo.findAllByStatusAndKindIn(
+        CREATED.toString(), Set.of(RECEIVE.getKind(), WITHDRAWAL.getKind()));
   }
 }

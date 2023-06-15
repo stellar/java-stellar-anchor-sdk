@@ -4,8 +4,11 @@ import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.slot
+import java.time.Instant
 import kotlin.test.assertEquals
 import org.apache.commons.lang3.StringUtils
+import org.hamcrest.MatcherAssert.assertThat
+import org.hamcrest.Matchers.hasEntry
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -25,6 +28,7 @@ class FireblocksPaymentServiceTest {
     private const val ASSET_ID = "TEST_ASSET_ID"
     private const val TO_ACCOUNT_ID = "toVaultAccountId"
     private const val AMOUNT = "10"
+    private const val EXTERNAL_TXN_ID = "TRANSACTION_ID"
   }
 
   private val gson = GsonUtils.getInstance()
@@ -95,9 +99,9 @@ class FireblocksPaymentServiceTest {
     val transaction =
       JdbcCustodyTransaction.builder()
         .fromAccount(VAULT_ACCOUNT_ID)
-        .amountOutAsset(ASSET_ID)
         .toAccount(TO_ACCOUNT_ID)
-        .amountOut(AMOUNT)
+        .amountAsset(ASSET_ID)
+        .amount(AMOUNT)
         .build()
     val response = fireblocksPaymentService.createTransactionPayment(transaction, StringUtils.EMPTY)
 
@@ -135,5 +139,135 @@ class FireblocksPaymentServiceTest {
       }
 
     assertEquals(expectedMessage, exception.message)
+  }
+
+  @Test
+  fun test_getTransactionById_success() {
+    val responseJson =
+      getResourceFileAsString("custody/api/payment/fireblocks/get_transaction_response.json")
+    val urlCapture = slot<String>()
+
+    every { fireblocksClient.get(capture(urlCapture)) } returns responseJson
+
+    val response = fireblocksPaymentService.getTransactionById(EXTERNAL_TXN_ID)
+
+    Assertions.assertEquals(
+      String.format("/v1/transactions/%s", EXTERNAL_TXN_ID),
+      urlCapture.captured
+    )
+
+    JSONAssert.assertEquals(responseJson, gson.toJson(response), JSONCompareMode.STRICT)
+  }
+
+  @Test
+  fun test_getTransactionsByTimeRange_success() {
+    val responseJson =
+      getResourceFileAsString("custody/api/payment/fireblocks/two_transactions_response.json")
+    val urlCapture = slot<String>()
+    val queryParamsCapture = slot<Map<String, String>>()
+
+    every { fireblocksClient.get(capture(urlCapture), capture(queryParamsCapture)) } returns
+      responseJson
+
+    val startTime = Instant.now().minusSeconds(5)
+    val endTime = Instant.now()
+    val response = fireblocksPaymentService.getTransactionsByTimeRange(startTime, endTime)
+
+    Assertions.assertEquals("/v1/transactions", urlCapture.captured)
+    Assertions.assertEquals(5, queryParamsCapture.captured.size)
+
+    assertThat(queryParamsCapture.captured, hasEntry("after", startTime.toEpochMilli().toString()))
+    assertThat(queryParamsCapture.captured, hasEntry("before", endTime.toEpochMilli().toString()))
+    assertThat(queryParamsCapture.captured, hasEntry("limit", "500"))
+    assertThat(queryParamsCapture.captured, hasEntry("orderBy", "createdAt"))
+    assertThat(queryParamsCapture.captured, hasEntry("sort", "ASC"))
+
+    JSONAssert.assertEquals(responseJson, gson.toJson(response), JSONCompareMode.STRICT)
+  }
+
+  @Test
+  fun `getTransactionsByTimeRange select number of items equal to limit`() {
+    val responseJson =
+      getResourceFileAsString("custody/api/payment/fireblocks/two_transactions_response.json")
+
+    FireblocksPaymentService.TRANSACTIONS_LIMIT = 2
+    val startTime = Instant.now().minusSeconds(5)
+    val endTime = Instant.now()
+
+    val queryParams =
+      mapOf(
+        "after" to startTime.toEpochMilli().toString(),
+        "before" to endTime.toEpochMilli().toString(),
+        "limit" to FireblocksPaymentService.TRANSACTIONS_LIMIT.toString(),
+        "orderBy" to "createdAt",
+        "sort" to "ASC"
+      )
+    every { fireblocksClient.get(any(), queryParams) } returns responseJson
+
+    val maxCreatedTime = 1684856015569L
+    val secondQueryParams =
+      mapOf(
+        "after" to maxCreatedTime.toString(),
+        "before" to endTime.toEpochMilli().toString(),
+        "limit" to FireblocksPaymentService.TRANSACTIONS_LIMIT.toString(),
+        "orderBy" to "createdAt",
+        "sort" to "ASC"
+      )
+    every { fireblocksClient.get(any(), secondQueryParams) } returns StringUtils.EMPTY
+
+    val response = fireblocksPaymentService.getTransactionsByTimeRange(startTime, endTime)
+
+    JSONAssert.assertEquals(responseJson, gson.toJson(response), JSONCompareMode.STRICT)
+    FireblocksPaymentService.TRANSACTIONS_LIMIT = 500
+  }
+
+  @Test
+  fun `getTransactionsByTimeRange select more than limit`() {
+    val twoTransactionsResponseJson =
+      getResourceFileAsString("custody/api/payment/fireblocks/two_transactions_response.json")
+    val oneTransactionResponseJson =
+      getResourceFileAsString("custody/api/payment/fireblocks/one_transaction_response.json")
+
+    FireblocksPaymentService.TRANSACTIONS_LIMIT = 2
+    val startTime = Instant.now().minusSeconds(5)
+    val endTime = Instant.now()
+
+    val queryParams =
+      mapOf(
+        "after" to startTime.toEpochMilli().toString(),
+        "before" to endTime.toEpochMilli().toString(),
+        "limit" to FireblocksPaymentService.TRANSACTIONS_LIMIT.toString(),
+        "orderBy" to "createdAt",
+        "sort" to "ASC"
+      )
+    every { fireblocksClient.get(any(), queryParams) } returns twoTransactionsResponseJson
+
+    val maxCreatedTime = 1684856015569L
+    val secondQueryParams =
+      mapOf(
+        "after" to maxCreatedTime.toString(),
+        "before" to endTime.toEpochMilli().toString(),
+        "limit" to FireblocksPaymentService.TRANSACTIONS_LIMIT.toString(),
+        "orderBy" to "createdAt",
+        "sort" to "ASC"
+      )
+    every { fireblocksClient.get(any(), secondQueryParams) } returns oneTransactionResponseJson
+
+    val response = fireblocksPaymentService.getTransactionsByTimeRange(startTime, endTime)
+    assertEquals(3, response.size)
+
+    FireblocksPaymentService.TRANSACTIONS_LIMIT = 500
+  }
+
+  @Test
+  fun `getTransactionsByTimeRange time range validation`() {
+    val startTime = Instant.now().minusSeconds(5)
+    val endTime = Instant.now()
+
+    val ex =
+      assertThrows<IllegalArgumentException> {
+        fireblocksPaymentService.getTransactionsByTimeRange(endTime, startTime)
+      }
+    assertEquals("End time can't be before start time", ex.message)
   }
 }

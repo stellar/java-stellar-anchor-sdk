@@ -11,7 +11,9 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.time.Instant;
 import java.util.Date;
+import java.util.Map;
 import java.util.UUID;
+import javax.validation.constraints.NotNull;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -19,10 +21,16 @@ import okhttp3.Response;
 import okhttp3.ResponseBody;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
+import org.springframework.web.util.UriBuilder;
+import org.springframework.web.util.UriComponentsBuilder;
 import org.stellar.anchor.api.exception.FireblocksException;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.platform.config.FireblocksConfig;
 
+/**
+ * API client, that is responsible for communication with Fireblocks. It generates and adds JWT
+ * token to the request and validates the response status code
+ */
 public class FireblocksApiClient {
 
   private static final String API_KEY_HEADER_NAME = "X-API-Key";
@@ -46,6 +54,11 @@ public class FireblocksApiClient {
   }
 
   public String get(String path) throws FireblocksException {
+    return get(path, Map.of());
+  }
+
+  public String get(String path, Map<String, String> queryParams) throws FireblocksException {
+    path = buildPath(path, queryParams);
     return doRequest(
         new Request.Builder()
             .url(baseUrl + path)
@@ -113,5 +126,20 @@ public class FireblocksApiClient {
         .claim("bodyHash", bodyHash)
         .signWith(SignatureAlgorithm.RS256, privateKey)
         .compact();
+  }
+
+  private String buildPath(@NotNull String path, Map<String, String> params) {
+    if (params.isEmpty()) {
+      return path;
+    }
+
+    UriBuilder builder = UriComponentsBuilder.newInstance();
+    builder.path(path);
+
+    for (Map.Entry<String, String> param : params.entrySet()) {
+      builder.queryParam(param.getKey(), param.getValue());
+    }
+
+    return builder.build().toString();
   }
 }

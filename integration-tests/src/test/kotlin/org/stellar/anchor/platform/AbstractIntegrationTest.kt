@@ -9,6 +9,7 @@ open class AbstractIntegrationTest(private val config: TestConfig) {
     const val PLATFORM_TO_ANCHOR_SECRET = "myPlatformToAnchorSecret"
     const val PLATFORM_TO_CUSTODY_SECRET = "myPlatformToCustodySecret"
     const val PLATFORM_SERVER_PORT = 8085
+    const val CUSTODY_SERVER_SERVER_PORT = 8086
     const val REFERENCE_SERVER_PORT = 8081
     const val JWT_EXPIRATION_MILLISECONDS = 10000L
   }
@@ -28,9 +29,12 @@ open class AbstractIntegrationTest(private val config: TestConfig) {
   lateinit var platformApiTests: PlatformApiTests
   lateinit var callbackApiTests: CallbackApiTests
   lateinit var stellarObserverTests: StellarObserverTests
+  lateinit var custodyApiTests: CustodyApiTests
   lateinit var sep24E2eTests: Sep24End2EndTest
+  lateinit var sep24CustodyE2eTests: Sep24CustodyEnd2EndTests
 
-  fun setUp() {
+  fun setUp(envMap: Map<String, String>) {
+    envMap.forEach { (key, value) -> config.env[key] = value }
     testProfileRunner.start()
     setupTests()
   }
@@ -58,6 +62,8 @@ open class AbstractIntegrationTest(private val config: TestConfig) {
     platformApiTests = PlatformApiTests(config, toml, jwt)
     callbackApiTests = CallbackApiTests(config, toml, jwt)
     stellarObserverTests = StellarObserverTests()
+    custodyApiTests = CustodyApiTests(config, toml, jwt)
     sep24E2eTests = Sep24End2EndTest(config, toml, jwt)
+    sep24CustodyE2eTests = Sep24CustodyEnd2EndTests(config)
   }
 }

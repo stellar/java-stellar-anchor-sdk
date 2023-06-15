@@ -20,6 +20,7 @@ import org.stellar.anchor.api.exception.custody.CustodyBadRequestException
 import org.stellar.anchor.api.exception.custody.CustodyNotFoundException
 import org.stellar.anchor.api.exception.custody.CustodyServiceUnavailableException
 import org.stellar.anchor.api.exception.custody.CustodyTooManyRequestsException
+import org.stellar.anchor.platform.custody.fireblocks.FireblocksCustodyTransactionService
 import org.stellar.anchor.platform.data.JdbcCustodyTransaction
 import org.stellar.anchor.platform.data.JdbcCustodyTransactionRepo
 import org.stellar.anchor.util.FileUtil.getResourceFileAsString
@@ -35,14 +36,15 @@ class CustodyTransactionServiceTest {
   private val gson = GsonUtils.getInstance()
 
   @MockK(relaxed = true) private lateinit var custodyTransactionRepo: JdbcCustodyTransactionRepo
-  @MockK(relaxed = true) private lateinit var paymentService: PaymentService
+  @MockK(relaxed = true) private lateinit var custodyPaymentService: CustodyPaymentService<Any>
 
   private lateinit var custodyTransactionService: CustodyTransactionService
 
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
-    custodyTransactionService = CustodyTransactionService(custodyTransactionRepo, paymentService)
+    custodyTransactionService =
+      FireblocksCustodyTransactionService(custodyTransactionRepo, custodyPaymentService)
   }
 
   @Test
@@ -67,6 +69,25 @@ class CustodyTransactionServiceTest {
   }
 
   @Test
+  fun `test create sep24 deposit transaction with hash memo type and integration with Fireblocks`() {
+    val request =
+      gson.fromJson(
+        getResourceFileAsString("custody/api/transaction/create_custody_transaction_request.json"),
+        CreateCustodyTransactionRequest::class.java
+      )
+    request.kind = "deposit"
+    request.memoType = "hash"
+    request.memo = "YzRhMDgzNWItYjFmYy00NDZlLTkzYTUtMTFlYzhiZTk="
+
+    val exception =
+      assertThrows<CustodyBadRequestException> { custodyTransactionService.create(request) }
+    Assertions.assertEquals(
+      "Memo type [hash] is not supported by Fireblocks custody service",
+      exception.message
+    )
+  }
+
+  @Test
   fun test_createPayment_transaction_does_not_exist() {
     every { custodyTransactionRepo.findById(TRANSACTION_ID) } returns Optional.empty()
 
@@ -75,7 +96,7 @@ class CustodyTransactionServiceTest {
         custodyTransactionService.createPayment(TRANSACTION_ID, REQUEST_BODY)
       }
     Assertions.assertEquals("Transaction (id=TRANSACTION_ID) is not found", exception.message)
-    verify(exactly = 0) { paymentService.createTransactionPayment(any(), any()) }
+    verify(exactly = 0) { custodyPaymentService.createTransactionPayment(any(), any()) }
   }
 
   @Test
@@ -85,7 +106,10 @@ class CustodyTransactionServiceTest {
     every { custodyTransactionRepo.save(any()) } returns null
 
     custodyTransactionService.createPayment(TRANSACTION_ID, REQUEST_BODY)
-    verify(exactly = 1) { paymentService.createTransactionPayment(transaction, REQUEST_BODY) }
+
+    verify(exactly = 1) {
+      custodyPaymentService.createTransactionPayment(transaction, REQUEST_BODY)
+    }
   }
 
   @Test
@@ -93,7 +117,7 @@ class CustodyTransactionServiceTest {
     val transaction = JdbcCustodyTransaction()
     every { custodyTransactionRepo.findById(TRANSACTION_ID) } returns Optional.of(transaction)
     every { custodyTransactionRepo.save(any()) } returns null
-    every { paymentService.createTransactionPayment(transaction, REQUEST_BODY) } throws
+    every { custodyPaymentService.createTransactionPayment(transaction, REQUEST_BODY) } throws
       FireblocksException("Bad request", 400)
 
     val ex =
@@ -108,7 +132,7 @@ class CustodyTransactionServiceTest {
     val transaction = JdbcCustodyTransaction()
     every { custodyTransactionRepo.findById(TRANSACTION_ID) } returns Optional.of(transaction)
     every { custodyTransactionRepo.save(any()) } returns null
-    every { paymentService.createTransactionPayment(transaction, REQUEST_BODY) } throws
+    every { custodyPaymentService.createTransactionPayment(transaction, REQUEST_BODY) } throws
       FireblocksException("Too many requests", 429)
 
     val ex =
@@ -123,7 +147,7 @@ class CustodyTransactionServiceTest {
     val transaction = JdbcCustodyTransaction()
     every { custodyTransactionRepo.findById(TRANSACTION_ID) } returns Optional.of(transaction)
     every { custodyTransactionRepo.save(any()) } returns null
-    every { paymentService.createTransactionPayment(transaction, REQUEST_BODY) } throws
+    every { custodyPaymentService.createTransactionPayment(transaction, REQUEST_BODY) } throws
       FireblocksException("Service unavailable", 503)
 
     val ex =
@@ -138,7 +162,7 @@ class CustodyTransactionServiceTest {
     val transaction = JdbcCustodyTransaction()
     every { custodyTransactionRepo.findById(TRANSACTION_ID) } returns Optional.of(transaction)
     every { custodyTransactionRepo.save(any()) } returns null
-    every { paymentService.createTransactionPayment(transaction, REQUEST_BODY) } throws
+    every { custodyPaymentService.createTransactionPayment(transaction, REQUEST_BODY) } throws
       FireblocksException("Forbidden", 403)
 
     val ex =

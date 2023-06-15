@@ -406,13 +406,13 @@ custody_server:
   ## The base URL of the Custody server that implements the custody API endpoints
   #
   base_url: http://localhost:8086
-  ## Http Client timeouts for communication with custody server in SECONDS
+  ## Http Client timeouts for communication with the Custody Server in SECONDS
   http_client:
     connect_timeout: 10
     read_timeout: 30
     write_timeout: 30
     call_timeout: 60
-  ## Authentication config for Anchor server and Anchor Platform server to safely communicate,
+  ## Authentication config for Anchor Platform and Custody Server to safely communicate,
   ## particularly when housed in different clusters.
   ## The receiving party should verify that an incoming request token is still valid.
   #
@@ -459,22 +459,29 @@ custody:
     ## @type: string
     ## The base URL of the Fireblocks API
     #
-    base_url: https://sandbox-api.fireblocks.io
+    base_url: https://api.fireblocks.io
     ## @param: vaultAccountId
     ## @type: string
     ## Default vault account ID
     #
     vault_account_id:
-    ## @param: transactions_reconciliation_cron
-    ## @type: string
-    ## Cron expression which defines how often transaction reconciliation job runs. By default, job runs every 15 minutes
-    #
-    transactions_reconciliation_cron: "0 0/15 * * * *"
     ## @param: public_key
     ## @type: string
-    ## Fireblocks public key. Is used to verify a webhook signature
+    ## Fireblocks public key, that is used to verify a webhook signature
     #
     public_key: |
+
+    reconciliation:
+      ## @param: cronExpression
+      ## @type: string
+      ## Cron expression which defines how often transaction reconciliation job runs. By default, job runs every 15 minutes
+      #
+      cron_expression: "0 0/15 * * * *"
+      ## @param: maxAttempts
+      ## @type: integer
+      ## Determines how many times the transaction reconciliation job will attempt to update status of the transaction before marking it as failed
+      #
+      max_attempts: 10
 
     retry_config:
       ## @param: maxAttempts
@@ -494,8 +501,8 @@ custody:
     ## Each mapping should be in a new line
     ## Mappings should be in a format FIREBLOCKS_ASSET_CODE STELLAR_ASSET_CODE separated with space character
     ## Example:
-    ##  XLM_USDC_1 stellar:USDC:6HW07AE2MZU3JWWARR9CUSDV5S68K4SLY6FGDJ6KIU6ZJETC3HJP00I2V
-    ##  XLM_USDC_2 stellar:USDC:CKG0R9OEL0RJKFONEP3KHZA1Y1PC1R5TMVIM3T88CG1R239TSWJ5OKKST
+    ##  XLM_USDC_T_CEKS stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5
+    ##  XLM_TEST stellar:native
     #
     asset_mappings: |
 

@@ -1,8 +1,10 @@
 package org.stellar.anchor.api.custody.fireblocks;
 
+import lombok.Builder;
 import lombok.Data;
 
 @Data
+@Builder
 public class TransactionDetails {
   private String id;
   private String assetId;
@@ -10,6 +12,7 @@ public class TransactionDetails {
   private TransferPeerPathResponse destination;
   private Float requestedAmount;
   private AmountInfo amountInfo;
+  private Float fee;
   private FeeInfo feeInfo;
   private Float amount;
   private Float netAmount;
@@ -30,7 +33,7 @@ public class TransactionDetails {
   private String[] signedBy;
   private String createdBy;
   private String rejectedBy;
-  private AddressType addressType;
+  private String addressType;
   private String note;
   private String exchangeTxId;
   private String feeCurrency;

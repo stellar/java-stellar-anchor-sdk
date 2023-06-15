@@ -749,6 +749,7 @@ class Sep31ServiceTest {
     val mockCustomer = Sep12GetCustomerResponse()
     mockCustomer.status = Sep12Status.ACCEPTED
     every { customerIntegration.getCustomer(any()) } returns mockCustomer
+    every { custodyConfig.isCustodyIntegrationEnabled } returns true
 
     // mock sep31 deposit info generation
     val txForDepositInfoGenerator = slot<Sep31Transaction>()

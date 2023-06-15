@@ -7,5 +7,5 @@ public class TransferPeerPathResponse {
   private TransferPeerPathResponseType type;
   private String id;
   private String name;
-  private TransferPeerPathResponseSubType subType;
+  private String subType;
 }

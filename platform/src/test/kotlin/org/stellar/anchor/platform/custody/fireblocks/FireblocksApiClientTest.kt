@@ -34,7 +34,7 @@ class FireblocksApiClientTest {
 
   companion object {
     private const val API_KEY = "testApiKey"
-    private const val BASE_URL = "http://testBaseUrl.com"
+    private const val BASE_URL = "https://testBaseUrl.com"
   }
 
   @MockK(relaxed = true) private lateinit var client: OkHttpClient
@@ -80,7 +80,7 @@ class FireblocksApiClientTest {
     val result = fireblocksApiClient.get("/getPath")
 
     Assertions.assertEquals(
-      "http://testbaseurl.com/getPath",
+      "https://testbaseurl.com/getPath",
       requestCapture.captured.url.toString()
     )
     Assertions.assertEquals("testApiKey", requestCapture.captured.header("X-API-Key"))
@@ -152,7 +152,7 @@ class FireblocksApiClientTest {
       )
 
     Assertions.assertEquals(
-      "http://testbaseurl.com/postPath",
+      "https://testbaseurl.com/postPath",
       requestCapture.captured.url.toString()
     )
     Assertions.assertEquals("testApiKey", requestCapture.captured.header("X-API-Key"))
@@ -179,6 +179,43 @@ class FireblocksApiClientTest {
     )
   }
 
+  @Test
+  fun `test getRequest with empty query parameters`() {
+    val response = getSuccessMockResponse()
+    val requestCapture = slot<Request>()
+    val call = mockk<Call>()
+
+    every { client.newCall(capture(requestCapture)) } returns call
+    every { call.execute() } returns response
+
+    fireblocksApiClient.get("/getPath", mapOf())
+
+    Assertions.assertEquals(
+      "https://testbaseurl.com/getPath",
+      requestCapture.captured.url.toString()
+    )
+  }
+
+  @Test
+  fun `test getRequest with query parameters`() {
+    val response = getSuccessMockResponse()
+    val requestCapture = slot<Request>()
+    val call = mockk<Call>()
+
+    every { client.newCall(capture(requestCapture)) } returns call
+    every { call.execute() } returns response
+
+    fireblocksApiClient.get(
+      "/getPath",
+      mapOf("testKey1" to "testValue1", "testKey2" to "testValue2")
+    )
+
+    Assertions.assertEquals(
+      "https://testbaseurl.com/getPath?testKey1=testValue1&testKey2=testValue2",
+      requestCapture.captured.url.toString()
+    )
+  }
+
   private fun requestBodyToString(requestBody: RequestBody?): String {
     val buffer = Buffer()
     requestBody?.writeTo(buffer)
@@ -187,7 +224,7 @@ class FireblocksApiClientTest {
 
   private fun getSuccessMockResponse(): Response {
     return Response.Builder()
-      .request(Request.Builder().url("http://test.com").build())
+      .request(Request.Builder().url("https://test.com").build())
       .protocol(Protocol.HTTP_1_1)
       .code(200)
       .message("OK")
@@ -200,7 +237,7 @@ class FireblocksApiClientTest {
 
   private fun getErrorMockResponse(): Response {
     return Response.Builder()
-      .request(Request.Builder().url("http://test.com").build())
+      .request(Request.Builder().url("https://test.com").build())
       .protocol(Protocol.HTTP_1_1)
       .code(400)
       .message("ERROR")
@@ -224,9 +261,9 @@ class FireblocksApiClientTest {
     Assertions.assertEquals(API_KEY, claims.subject)
     Assertions.assertTrue(claims.issuedAt.toInstant().isBefore(Instant.now()))
     Assertions.assertTrue(claims.expiration.toInstant().isAfter(Instant.now()))
-    Assertions.assertTrue(isUuid(claims.get("nonce").toString()))
-    Assertions.assertEquals(path, claims.get("uri"))
-    Assertions.assertEquals(bodyHash, claims.get("bodyHash"))
+    Assertions.assertTrue(isUuid(claims["nonce"].toString()))
+    Assertions.assertEquals(path, claims["uri"])
+    Assertions.assertEquals(bodyHash, claims["bodyHash"])
   }
 
   private fun getPublicKey(): PublicKey? {

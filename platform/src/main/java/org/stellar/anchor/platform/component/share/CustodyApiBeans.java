@@ -1,4 +1,4 @@
-package org.stellar.anchor.platform.component.sep;
+package org.stellar.anchor.platform.component.share;
 
 import java.util.concurrent.TimeUnit;
 import okhttp3.OkHttpClient;

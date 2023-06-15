@@ -1,4 +1,4 @@
-package org.stellar.anchor.platform.component.observer;
+package org.stellar.anchor.platform.component.share;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -7,7 +7,7 @@ import org.stellar.anchor.auth.AuthHelper;
 import org.stellar.anchor.platform.config.PlatformApiConfig;
 
 @Configuration
-public class ApiClientBeans {
+public class PlatformApiClientBeans {
   @Bean
   PlatformApiClient platformApiClient(PlatformApiConfig platformApiConfig, AuthHelper authHelper) {
     return new PlatformApiClient(authHelper, platformApiConfig.getBaseUrl());

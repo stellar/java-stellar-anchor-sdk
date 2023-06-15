@@ -22,13 +22,13 @@ import org.stellar.anchor.platform.config.CustodyApiConfig;
 import org.stellar.anchor.util.AuthHeader;
 import org.stellar.anchor.util.GsonUtils;
 
+/** API client, that is responsible for communication with Custody Server */
 public class CustodyApiClient {
 
   private static final Gson gson = GsonUtils.getInstance();
 
   private static final String CREATE_TRANSACTION_URL_FORMAT = "/transactions";
-  private static final String GENERATE_DEPOSIT_ADDRESS_URL_FORMAT =
-      "/transactions/payments/assets/%s/address";
+  private static final String GENERATE_DEPOSIT_ADDRESS_URL_FORMAT = "/assets/%s/addresses";
   private static final String CREATE_TRANSACTION_PAYMENT_URL_FORMAT = "/transactions/%s/payments";
 
   private final OkHttpClient httpClient;

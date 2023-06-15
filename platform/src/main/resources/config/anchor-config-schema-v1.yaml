@@ -122,8 +122,9 @@ custody.http_client.write_timeout:
 custody.http_client.call_timeout:
 custody.fireblocks.base_url:
 custody.fireblocks.vault_account_id:
-custody.fireblocks.transactions_reconciliation_cron:
 custody.fireblocks.public_key:
 custody.fireblocks.retry_config.max_attempts:
 custody.fireblocks.retry_config.delay:
 custody.fireblocks.asset_mappings:
+custody.fireblocks.reconciliation.cron_expression:
+custody.fireblocks.reconciliation.max_attempts:

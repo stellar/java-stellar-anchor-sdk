@@ -1,14 +1,13 @@
 {
   "id": "testId",
   "status": "created",
-  "amount_in": "testAmountIn",
-  "amount_in_asset": "testAmountInAsset",
-  "amount_out": "testAmountOut",
-  "amount_out_asset": "testAmountOutAsset",
+  "amount": "testAmount",
+  "amount_asset": "testAmountAsset",
   "memo": "testMemo",
   "memo_type": "testMemoType",
   "protocol": "testProtocol",
   "from_account": "testFromAccount",
   "to_account": "testToAccount",
-  "kind": "testKind"
+  "kind": "testKind",
+  "reconciliation_attempt_count": 0
 }

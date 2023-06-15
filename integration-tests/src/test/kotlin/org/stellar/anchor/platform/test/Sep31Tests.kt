@@ -466,6 +466,7 @@ private const val expectedSep31Info =
         "fee_fixed": 0,
         "fee_percent": 0,
         "max_amount": 1000000,
+        "min_amount": 1,
         "sep12": {
           "sender": {
             "types": {

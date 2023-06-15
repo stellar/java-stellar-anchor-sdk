@@ -23,11 +23,12 @@ import org.stellar.anchor.util.FileUtil.getResourceFileAsString
 class RSAUtilTest {
 
   private val signature: String =
-    getResourceFileAsString("custody/fireblocks/webhook/signature.txt")
-  private val eventObject: String = getCompactJsonString("custody/fireblocks/webhook/request.json")
+    getResourceFileAsString("custody/fireblocks/webhook/submitted_event_valid_signature.txt")
+  private val eventObject: String =
+    getCompactJsonString("custody/fireblocks/webhook/submitted_event_request.json")
 
   @ParameterizedTest
-  @ValueSource(strings = ["custody/fireblocks/event/public_key.txt"])
+  @ValueSource(strings = ["custody/fireblocks/webhook/public_key.txt"])
   fun `test valid public key`(fileName: String) {
     var publicKey: String = getResourceFileAsString(fileName)
     assertNotNull(generatePublicKey(publicKey, RSA_ALGORITHM))
@@ -90,8 +91,7 @@ class RSAUtilTest {
     val publicKeyString: String = getResourceFileAsString(fileName)
     val publicKey: PublicKey = generatePublicKey(publicKeyString, RSA_ALGORITHM)
     val invalidSignature =
-      "Yww6co109EfZ6BBam0zr1ewhv2gB3sFrfzcmbEFTttGp6GYVNEOslcMIMbjrFsFtkiEIO5ogvPI7Boz7y" +
-        "QUiXqh92Spj1aG5NoGDdjiW2ozTJxKq7ECK9IsS5vTjIxnBXUIXokCAN2BuiyA8d7LciJ6HwzS+DIvFNyvv7uKU6O0="
+      getResourceFileAsString("custody/fireblocks/webhook/submitted_event_invalid_signature.txt")
     assertFalse(
       isValidSignature(invalidSignature, eventObject, publicKey, SHA512_WITH_RSA_ALGORITHM)
     )
@@ -111,9 +111,7 @@ class RSAUtilTest {
   @Test
   fun `test isSignatureValid() for invalid public key`() {
     val publicKeyString =
-      "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCx8LacAqPnX63Bj4ayc" +
-        "DQWZij329nXh2oL/XFXbvZpFcEXrIB1O42rHQ93Ubnul7YmgGpArBfm6Kkotl48kRD/5iv6xuHcgaK" +
-        "G+IQDRiR63XKcYKovWbdzi51F/DMaj2PESj10WoWzsFhPyUNrXG2QEi/1H+4muP3dbo2DT80FIQIDAQAB"
+      getResourceFileAsString("custody/fireblocks/webhook/invalid_public_key.txt")
     val invalidPublicKey: PublicKey = generatePublicKey(publicKeyString, RSA_ALGORITHM)
     assertFalse(
       isValidSignature(signature, eventObject, invalidPublicKey, SHA512_WITH_RSA_ALGORITHM)

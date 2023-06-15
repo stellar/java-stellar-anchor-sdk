@@ -23,6 +23,7 @@ public class CustodyTransactionController {
     this.custodyTransactionService = custodyTransactionService;
   }
 
+  @SneakyThrows
   @CrossOrigin(origins = "*")
   @ResponseStatus(code = HttpStatus.OK)
   @RequestMapping(

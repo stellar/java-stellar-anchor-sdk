@@ -8,7 +8,7 @@ import org.stellar.anchor.platform.apiclient.CustodyApiClient;
 import org.stellar.anchor.platform.service.CustodyServiceImpl;
 
 @Configuration
-public class CustodyBeans {
+public class SharedCustodyBeans {
 
   @Bean
   CustodyService custodyService(Optional<CustodyApiClient> custodyApiClient) {

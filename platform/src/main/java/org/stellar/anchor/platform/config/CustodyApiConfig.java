@@ -63,7 +63,7 @@ public class CustodyApiConfig implements Validator {
       if (isEmpty(secretConfig.getCustodyAuthSecret())) {
         errors.reject(
             "empty-secret-custody-server-secret",
-            "Please set environment variable secret.custody_api.auth_secret or SECRET.CUSTODY_API.AUTH_SECRET");
+            "Please set environment variable secret.custody_server.auth_secret or SECRET.CUSTODY_SERVER.AUTH_SECRET");
       }
 
       if (List.of(API_KEY, JWT).contains(auth.getType())) {
@@ -71,7 +71,7 @@ public class CustodyApiConfig implements Validator {
           errors.rejectValue(
               "secret",
               "empty-secret",
-              "Please set environment variable [SECRET.CUSTODY_API.AUTH_SECRET] for auth type:"
+              "Please set environment variable [SECRET.CUSTODY_SERVER.AUTH_SECRET] for auth type:"
                   + auth.getType());
         }
       }

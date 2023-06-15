@@ -3,6 +3,7 @@ package org.stellar.anchor.platform.component.share;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.stellar.anchor.config.CustodyConfig;
 import org.stellar.anchor.config.CustodySecretConfig;
 import org.stellar.anchor.config.SecretConfig;
 import org.stellar.anchor.platform.config.AppLoggingConfig;
@@ -61,7 +62,7 @@ public class SharedConfigBeans {
 
   @Bean
   @ConfigurationProperties(prefix = "sep24")
-  PropertySep24Config sep24Config(SecretConfig secretConfig) {
-    return new PropertySep24Config(secretConfig);
+  PropertySep24Config sep24Config(SecretConfig secretConfig, CustodyConfig custodyConfig) {
+    return new PropertySep24Config(secretConfig, custodyConfig);
   }
 }

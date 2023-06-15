@@ -115,14 +115,8 @@ class CustodyApiClientTest {
     val exception = assertThrows<CustodyException> { custodyApiClient.createTransaction(request) }
 
     Assertions.assertEquals(
-      """
-                  Custody API returned an error. HTTP status[400], response[{
-                    "error_code": "12345",
-                    "message": "Custody error"
-                  }]
-                """
-        .trimIndent(),
-      exception.message?.trimIndent()
+      "Custody API returned an error. HTTP status[400], response[Custody error]",
+      exception.message
     )
   }
 
@@ -140,7 +134,7 @@ class CustodyApiClientTest {
     val responseAddress = custodyApiClient.generateDepositAddress(ASSET_ID)
 
     Assertions.assertEquals(
-      "http://testbaseurl.com/transactions/payments/assets/TEST_ASSET_ID/address",
+      "http://testbaseurl.com/assets/TEST_ASSET_ID/addresses",
       requestCapture.captured.url.toString()
     )
     Assertions.assertEquals("testApiKeyValue", requestCapture.captured.header("testApiKeyName"))

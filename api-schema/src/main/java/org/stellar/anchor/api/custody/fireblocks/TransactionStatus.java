@@ -1,5 +1,7 @@
 package org.stellar.anchor.api.custody.fireblocks;
 
+import java.util.Set;
+
 public enum TransactionStatus {
   SUBMITTED,
   QUEUED,
@@ -15,5 +17,19 @@ public enum TransactionStatus {
   CANCELLED,
   REJECTED,
   BLOCKED,
-  FAILED
+  FAILED;
+
+  public boolean isCompleted() {
+    return Set.of(COMPLETED, CONFIRMING).contains(this);
+  }
+
+  public boolean isObservable() {
+    return Set.of(FAILED, CANCELLED, BLOCKED, CONFIRMING, COMPLETED).contains(this);
+  }
+
+  // CONFIRMING webhook status means the transaction is complete on Stellar.
+  // That's why events with COMPLETED status are ignored
+  public boolean isObservableByWebhook() {
+    return Set.of(FAILED, CANCELLED, BLOCKED, CONFIRMING).contains(this);
+  }
 }

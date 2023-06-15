@@ -7,7 +7,8 @@ public class PropertyCustodySecretConfig implements CustodySecretConfig {
 
   public static final String SECRET_FIREBLOCKS_API_KEY = "secret.custody.fireblocks.api_key";
   public static final String SECRET_FIREBLOCKS_SECRET_KEY = "secret.custody.fireblocks.secret_key";
-  public static final String SECRET_CUSTODY_API_AUTH_SECRET = "secret.custody_api.auth_secret";
+  public static final String SECRET_CUSTODY_SERVER_AUTH_SECRET =
+      "secret.custody_server.auth_secret";
 
   @Override
   public String getFireblocksApiKey() {
@@ -21,6 +22,6 @@ public class PropertyCustodySecretConfig implements CustodySecretConfig {
 
   @Override
   public String getCustodyAuthSecret() {
-    return SecretManager.getInstance().get(SECRET_CUSTODY_API_AUTH_SECRET);
+    return SecretManager.getInstance().get(SECRET_CUSTODY_SERVER_AUTH_SECRET);
   }
 }

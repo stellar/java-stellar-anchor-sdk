@@ -40,7 +40,7 @@ class PostgresMigrationTest : AbstractIntegrationTest(PostgresConfig) {
     @BeforeAll
     @JvmStatic
     fun construct() {
-      singleton.setUp()
+      singleton.setUp(mapOf())
     }
 
     @AfterAll
@@ -63,7 +63,7 @@ class H2MigrationTest : AbstractIntegrationTest(H2Config) {
     @BeforeAll
     @JvmStatic
     fun construct() {
-      singleton.setUp()
+      singleton.setUp(mapOf())
     }
 
     @AfterAll
@@ -86,7 +86,7 @@ class SQLiteMigrationTest : AbstractIntegrationTest(SQLiteConfig) {
     @BeforeAll
     @JvmStatic
     fun construct() {
-      singleton.setUp()
+      singleton.setUp(mapOf())
     }
 
     @AfterAll

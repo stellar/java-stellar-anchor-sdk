@@ -1,0 +1,33 @@
+{
+  "records": [
+    {
+      "transaction": {
+        "id": "testId",
+        "status": "pending_receiver",
+        "updated_at": "2023-05-10T10:18:25.778Z",
+        "transfer_received_at": "2023-05-10T10:18:25.778Z",
+        "stellar_transactions": [
+          {
+            "id": "testTxHash",
+            "memo": "testMemo",
+            "memo_type": "testMemoType",
+            "created_at": "2023-05-10T10:18:25.778Z",
+            "envelope": "testEnvelopeXdr",
+            "payments": [
+              {
+                "id": "12345",
+                "amount": {
+                  "amount": "1.0000000",
+                  "asset": "testAmountInAsset"
+                },
+                "payment_type": "payment",
+                "source_account": "testFrom",
+                "destination_account": "testTo"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

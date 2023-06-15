@@ -44,7 +44,9 @@ class TestProfileExecutor(val config: TestConfig) {
   private var shouldStartPlatformServer: Boolean = false
   private var shouldStartReferenceServer: Boolean = false
   private var shouldStartObserver: Boolean = false
+  private var shouldStartCustodyServer: Boolean = false
   private var shouldStartKotlinReferenceServer: Boolean = false
+  private var custodyEnabled: Boolean = false
 
   fun start(wait: Boolean = false, preStart: (config: TestConfig) -> Unit = {}) {
     Log.info("Starting TestProfileExecutor...")
@@ -57,7 +59,9 @@ class TestProfileExecutor(val config: TestConfig) {
     shouldStartPlatformServer = config.env["run_platform_server"].toBoolean()
     shouldStartReferenceServer = config.env["run_reference_server"].toBoolean()
     shouldStartObserver = config.env["run_observer"].toBoolean()
+    shouldStartCustodyServer = config.env["run_custody_server"].toBoolean()
     shouldStartKotlinReferenceServer = config.env["run_kotlin_reference_server"].toBoolean()
+    custodyEnabled = "none" != config.env["custody.type"]
 
     startDocker()
     // TODO: Check server readiness instead of wait for 5 seconds
@@ -90,9 +94,14 @@ class TestProfileExecutor(val config: TestConfig) {
         jobs +=
           scope.launch { runningServers.add(ServiceRunner.startAnchorReferenceServer(envMap)) }
       }
-      if (shouldStartAllServers || shouldStartObserver) {
+      if ((shouldStartAllServers || shouldStartObserver) && !custodyEnabled) {
         info("Starting observer...")
         jobs += scope.launch { runningServers.add(ServiceRunner.startStellarObserver(envMap)) }
+      }
+      if ((shouldStartAllServers || shouldStartCustodyServer) && custodyEnabled) {
+        info("Starting Custody server...")
+
+        jobs += scope.launch { runningServers.add(ServiceRunner.startCustodyServer(envMap)) }
       }
       if (shouldStartAllServers || shouldStartSepServer) {
         info("Starting SEP server...")

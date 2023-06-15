@@ -12,7 +12,7 @@ class AnchorPlatformIntegrationTest : AbstractIntegrationTest(TestConfig(profile
     @BeforeAll
     @JvmStatic
     fun construct() {
-      singleton.setUp()
+      singleton.setUp(mapOf())
     }
 
     @AfterAll
