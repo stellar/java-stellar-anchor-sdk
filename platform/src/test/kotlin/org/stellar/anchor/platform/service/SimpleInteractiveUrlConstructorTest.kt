@@ -23,6 +23,7 @@ import org.stellar.anchor.auth.Sep24InteractiveUrlJwt
 import org.stellar.anchor.config.SecretConfig
 import org.stellar.anchor.platform.config.PropertySep24Config
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
+import org.stellar.anchor.platform.service.SimpleInteractiveUrlConstructor.FORWARD_KYC_CUSTOMER_TYPE
 import org.stellar.anchor.util.GsonUtils
 
 @Suppress("UNCHECKED_CAST")
@@ -80,7 +81,7 @@ class SimpleInteractiveUrlConstructorTest {
     val constructor = SimpleInteractiveUrlConstructor(sep24Config, customerIntegration, jwtService)
     sep24Config.kycFieldsForwarding.isEnabled = true
     constructor.construct(txn, request as HashMap<String, String>?)
-    assertEquals(capturedPutCustomerRequest.captured.type, "sep24-customer")
+    assertEquals(capturedPutCustomerRequest.captured.type, FORWARD_KYC_CUSTOMER_TYPE)
     assertEquals(capturedPutCustomerRequest.captured.firstName, request.get("first_name"))
     assertEquals(capturedPutCustomerRequest.captured.lastName, request.get("last_name"))
     assertEquals(capturedPutCustomerRequest.captured.emailAddress, request.get("email_address"))
