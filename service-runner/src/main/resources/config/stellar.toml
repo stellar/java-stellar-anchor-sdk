@@ -17,6 +17,13 @@ is_asset_anchored = false
 desc = "Circle USDC Token"
 anchor_asset_type = "crypto"
 
+[[CURRENCIES]]
+code = "native"
+status = "test"
+is_asset_anchored = false
+anchor_asset_type = "crypto"
+desc = "XLM, the native token of the Stellar network."
+
 [DOCUMENTATION]
 ORG_NAME = "Stellar Development Foundation"
 ORG_URL = "https://stellar.org"

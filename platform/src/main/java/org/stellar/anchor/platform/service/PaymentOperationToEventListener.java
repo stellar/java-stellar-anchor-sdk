@@ -55,7 +55,8 @@ public class PaymentOperationToEventListener implements PaymentListener {
     }
 
     // Check if the payment contains the expected asset type
-    if (!List.of("credit_alphanum4", "credit_alphanum12").contains(payment.getAssetType())) {
+    if (!List.of("credit_alphanum4", "credit_alphanum12", "native")
+        .contains(payment.getAssetType())) {
       // Asset type does not match
       debugF("{} is not an issued asset.", payment.getAssetType());
       return;
@@ -213,8 +214,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
       throws AnchorException, IOException {
     // Compare asset code
     String paymentAssetName = "stellar:" + payment.getAssetName();
-    String txnAssetName =
-        "stellar:" + txn.getRequestAssetCode() + ":" + txn.getRequestAssetIssuer();
+    String txnAssetName = "stellar:" + txn.getRequestAssetName();
     if (!txnAssetName.equals(paymentAssetName)) {
       warnF(
           "Payment asset {} does not match the expected asset {}.",

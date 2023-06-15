@@ -25,8 +25,8 @@ internal class DefaultAssetServiceTest {
 
     lateinit var das: DefaultAssetService
     when (FilenameUtils.getExtension(filename)) {
-      "json" -> das = DefaultAssetService.fromJsonResource("test_assets.json")
-      "yaml" -> das = DefaultAssetService.fromYamlResource("test_assets.yaml")
+      "json" -> das = DefaultAssetService.fromJsonResource(filename)
+      "yaml" -> das = DefaultAssetService.fromYamlResource(filename)
     }
 
     JSONAssert.assertEquals(expectedAssetsJson, gson.toJson(das.assets), LENIENT)
@@ -34,7 +34,7 @@ internal class DefaultAssetServiceTest {
     // check listing function.
     val assets = das.listAllAssets()
 
-    assertEquals(3, assets.size)
+    assertEquals(4, assets.size)
   }
 
   @Test
@@ -257,6 +257,81 @@ internal class DefaultAssetServiceTest {
             },
             "sep24_enabled": false,
             "sep31_enabled": false,
+            "sep38_enabled": true
+          },
+          {
+            "schema": "stellar",
+            "code": "native",
+            "significant_decimals": 7,
+            "deposit": {
+              "enabled": true,
+              "min_amount": 1,
+              "max_amount": 1000000
+            },
+            "withdraw": {
+              "enabled": true,
+              "min_amount": 1,
+              "max_amount": 1000000
+            },
+            "send": {
+              "fee_fixed": 0,
+              "fee_percent": 0,
+              "min_amount": 1,
+              "max_amount": 1000000
+            },
+           "sep31": {
+              "quotes_supported": true,
+              "quotes_required": true,
+              "sep12": {
+                "sender": {
+                  "types": {
+                    "sep31-sender": {
+                      "description": "U.S. citizens limited to sending payments of less than ${'$'}10,000 in value"
+                    },
+                    "sep31-large-sender": {
+                      "description": "U.S. citizens that do not have sending limits"
+                    },
+                    "sep31-foreign-sender": {
+                      "description": "non-U.S. citizens sending payments of less than ${'$'}10,000 in value"
+                    }
+                  }
+                },
+                "receiver": {
+                  "types": {
+                    "sep31-receiver": {
+                      "description": "U.S. citizens receiving USD"
+                    },
+                    "sep31-foreign-receiver": {
+                      "description": "non-U.S. citizens receiving USD"
+                    }
+                  }
+                }
+              },
+              "fields": {
+                "transaction": {
+                  "receiver_routing_number": {
+                    "description": "routing number of the destination bank account"
+                  },
+                  "receiver_account_number": {
+                    "description": "bank account number of the destination"
+                  },
+                  "type": {
+                    "description": "type of deposit to make",
+                    "choices": [
+                      "SEPA",
+                      "SWIFT"
+                    ]
+                  }
+                }
+              }
+            },
+            "sep38": {
+              "exchangeable_assets": [
+                "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+              ],
+              "decimals": 7
+            },
+            "sep31_enabled": true,
             "sep38_enabled": true
           }
         ]

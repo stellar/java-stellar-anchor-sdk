@@ -334,6 +334,8 @@ public class Sep24Service {
       if (parsed.length == 3) {
         assetCode = parsed[1];
         assetIssuer = parsed[2];
+      } else if (parsed.length == 2) {
+        assetCode = parsed[1];
       }
     }
 

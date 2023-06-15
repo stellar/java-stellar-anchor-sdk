@@ -382,6 +382,21 @@ internal class Sep24ServiceTest {
   }
 
   @ParameterizedTest
+  @ValueSource(
+    strings =
+      ["stellar:native", "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"]
+  )
+  fun `test find transactions with different asset code types`(assetCode: String) {
+    every { txnStore.findTransactions(TEST_ACCOUNT, any(), any()) } returns
+      createTestTransactions("deposit")
+    val gtr =
+      GetTransactionsRequest.of(assetCode, "deposit", 10, "2021-12-20T19:30:58+00:00", "1", "en-US")
+    val response = sep24Service.findTransactions(createTestSep10JwtToken(), gtr)
+
+    assertEquals(response.transactions.size, 2)
+  }
+
+  @ParameterizedTest
   @ValueSource(strings = ["deposit", "withdrawal"])
   fun `test find transactions with validation error`(kind: String) {
     assertThrows<SepNotAuthorizedException> {
@@ -471,8 +486,8 @@ internal class Sep24ServiceTest {
   fun `test GET info`() {
     val response = sep24Service.info
 
-    assertEquals(3, response.deposit.size)
-    assertEquals(1, response.withdraw.size)
+    assertEquals(4, response.deposit.size)
+    assertEquals(2, response.withdraw.size)
     assertNotNull(response.deposit["USDC"])
     assertNotNull(response.withdraw["USDC"])
     assertFalse(response.fee.enabled)
