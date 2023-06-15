@@ -282,13 +282,12 @@ sep10:
   #
   client_attribution_required: false
   ## @param: client_attribution_allow_list
-  ## Set the white list of the client domain. The domains are comma-separate and must be defined in the
+  ## Set the white list of the client domain. The domains are comma-separated and must be defined in the
   #  `client_attribution` section of the configuration.
   client_attribution_allow_list:
   ## @param: client_attribution_deny_list
-  ## Set the black list of the client domain. The domains are comma-separated. The domains are comma-separate and must be defined in the
+  ## Set the black list of the client domain. The domains are comma-separated and must be defined in the
   #  `client_attribution` section of the configuration.
-  #
   client_attribution_deny_list:
   ## @param: auth_timeout
   ## @type: integer
