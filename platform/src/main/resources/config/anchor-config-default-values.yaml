@@ -139,17 +139,33 @@ event_processor:
   context_path: /
   # The listening port of the event processing server
   port: 8084
+  # The flag to enable the status callback to the client domain
+  client_domain_status_callback_enabled: true
+  # The flag to enable the event delivery to the anchor business server
+  callback_api_event_delivery_enabled: true
   # The queue where the event processor will
   queue:
     type: kafka
     kafka:
       bootstrap_server: localhost:29092
-      event_type_to_topic:
-        all: dev_ap_event_single_queue
-        quote_created: ap_event_quote_created
-        transaction_created: ap_event_transaction_created
-        transaction_status_updated: ap_event_transaction_status_changed
-        transaction_error: ap_event_transaction_error
+
+# The list of clients for the Anchor server to safely communicate with the outside client domains.
+# Each item in the list may contain the following fields:
+#   - domain: the domain of the client
+#   - type: the type of the client. The supported values are `custodial` and `non-custodial`
+#   - public_key: the public key of the client. This must match the public key of the TOML file of the client domain
+#   - url: the URL of the client's callback API endpoint
+#
+# Examples:
+#     - domain: lobstr.com
+#       type: non-custodial
+#       public_key: GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEGN2
+#       url: https://callback.lobstr.com/api/v1/anchor/callback
+#     - domain: mgi.com
+#       type: custodial
+#       public_key: GA22WORKYRXB6AW7XR5GIOAOQUY4KKCENEAI34FN3KJNWHKDZTZSVLTU
+#       url: https://callback.mgi.com/api/v2/anchor/callback
+client_attribution:
 
 ## @param: languages
 ## @supported_values: en
@@ -266,11 +282,12 @@ sep10:
   #
   client_attribution_required: false
   ## @param: client_attribution_allow_list
-  ## Set the white list of the client domain. The domains are comma-separated.
-  #
+  ## Set the white list of the client domain. The domains are comma-separate and must be defined in the
+  #  `client_attribution` section of the configuration.
   client_attribution_allow_list:
   ## @param: client_attribution_deny_list
-  ## Set the black list of the client domain. The domains are comma-separated.
+  ## Set the black list of the client domain. The domains are comma-separated. The domains are comma-separate and must be defined in the
+  #  `client_attribution` section of the configuration.
   #
   client_attribution_deny_list:
   ## @param: auth_timeout
