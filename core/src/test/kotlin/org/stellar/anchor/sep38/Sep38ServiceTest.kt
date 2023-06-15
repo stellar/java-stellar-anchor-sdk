@@ -137,7 +137,7 @@ class Sep38ServiceTest {
 
     val stellarNative = assetMap["stellar:native"]
     assertNotNull(stellarNative)
-    assertEquals(listOf("USA"), stellarNative!!.countryCodes)
+    assertNull(stellarNative!!.countryCodes)
     assertNull(stellarNative.sellDeliveryMethods)
     assertNull(stellarNative.buyDeliveryMethods)
     wantAssets = listOf("stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP")
