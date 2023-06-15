@@ -200,7 +200,7 @@ class Sep24End2EndTest(
     info("Running SEP-24 XLM end-to-end tests...")
     `typical deposit end-to-end flow`(XLM, "0.00001")
     `typical withdraw end-to-end flow`(XLM, "0.00001")
-    //    listAllTransactionWorks(XLM, "0.00001")
+    listAllTransactionWorks(XLM, "0.00001")
     `list by stellar transaction id works`(XLM, "0.00001")
   }
 }
