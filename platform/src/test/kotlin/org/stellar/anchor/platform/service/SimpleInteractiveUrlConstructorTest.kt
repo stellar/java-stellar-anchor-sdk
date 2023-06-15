@@ -5,6 +5,7 @@ import io.mockk.every
 import io.mockk.impl.annotations.MockK
 import io.mockk.mockk
 import io.mockk.slot
+import io.mockk.verify
 import java.time.Instant
 import java.util.stream.Stream
 import org.junit.jupiter.api.Assertions.*
@@ -77,7 +78,21 @@ class SimpleInteractiveUrlConstructorTest {
     every { customerIntegration.putCustomer(capture(capturedPutCustomerRequest)) } returns
       PutCustomerResponse()
     val constructor = SimpleInteractiveUrlConstructor(sep24Config, customerIntegration, jwtService)
+    sep24Config.kycFieldsForwarding.isEnabled = true
     constructor.construct(txn, request as HashMap<String, String>?)
+    assertEquals(capturedPutCustomerRequest.captured.type, "sep24-customer")
+    assertEquals(capturedPutCustomerRequest.captured.firstName, request.get("first_name"))
+    assertEquals(capturedPutCustomerRequest.captured.lastName, request.get("last_name"))
+    assertEquals(capturedPutCustomerRequest.captured.emailAddress, request.get("email_address"))
+  }
+
+  @Test
+  fun `when kycFieldsForwarding is disabled, the customerIntegration should not receive the kyc fields`() {
+    val customerIntegration: CustomerIntegration = mockk()
+    val constructor = SimpleInteractiveUrlConstructor(sep24Config, customerIntegration, jwtService)
+    sep24Config.kycFieldsForwarding.isEnabled = false
+    constructor.construct(txn, request as HashMap<String, String>?)
+    verify(exactly = 0) { customerIntegration.putCustomer(any()) }
   }
 
   private fun parseJwtFromUrl(url: String?): Sep24InteractiveUrlJwt {
