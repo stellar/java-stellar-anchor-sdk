@@ -13,6 +13,7 @@ import org.assertj.core.api.Assertions
 import org.stellar.anchor.platform.CLIENT_WALLET_SECRET
 import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.util.Log
+import org.stellar.anchor.util.Log.info
 import org.stellar.anchor.util.Sep1Helper
 import org.stellar.walletsdk.ApplicationConfiguration
 import org.stellar.walletsdk.StellarConfiguration
@@ -111,7 +112,7 @@ class Sep24End2EndTest(
     // Make sure the interactive url is valid. This will also start the reference server's
     // withdrawal process.
     val resp = client.get(withdrawal.url)
-    Log.info("accessing ${withdrawal.url}...")
+    info("accessing ${withdrawal.url}...")
     assertEquals(200, resp.status.value)
     // Wait for the status to change to PENDING_USER_TRANSFER_START
     waitStatus(withdrawal.id, PENDING_USER_TRANSFER_START, token)
@@ -134,7 +135,7 @@ class Sep24End2EndTest(
 
       if (status != transaction.status) {
         status = transaction.status
-        Log.info("Deposit transaction status changed to $status. Message: ${transaction.message}")
+        info("Deposit transaction status changed to $status. Message: ${transaction.message}")
       }
 
       delay(1.seconds)
@@ -190,13 +191,13 @@ class Sep24End2EndTest(
     }
 
   fun testAll() {
-    println("Running SEP-24 USDC end-to-end tests...")
+    info("Running SEP-24 USDC end-to-end tests...")
     `typical deposit end-to-end flow`(USDC, "5")
     `typical withdraw end-to-end flow`(USDC, "5")
     listAllTransactionWorks(USDC, "5")
     `list by stellar transaction id works`(USDC, "5")
 
-    println("Running SEP-24 USDC end-to-end tests...")
+    info("Running SEP-24 XLM end-to-end tests...")
     `typical deposit end-to-end flow`(XLM, "0.00001")
     `typical withdraw end-to-end flow`(XLM, "0.00001")
     //    listAllTransactionWorks(XLM, "0.00001")

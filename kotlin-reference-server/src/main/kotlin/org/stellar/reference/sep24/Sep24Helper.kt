@@ -99,7 +99,6 @@ class Sep24Helper(private val cfg: Config) {
     transaction.sign(cfg.sep24.keyPair)
 
     val resp = server.submitTransaction(transaction)
-    log.info("transaction submitted: ${resp.decodedTransactionResult}")
 
     if (!resp.isSuccess) {
       throw Exception(

@@ -9,6 +9,8 @@ import lombok.Data;
 @SuppressWarnings("unused")
 @Data
 public class AssetInfo {
+  public static String NATIVE_ASSET_CODE = "native";
+
   String code;
   String issuer;
 

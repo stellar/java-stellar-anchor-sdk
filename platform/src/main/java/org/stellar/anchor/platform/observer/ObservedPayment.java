@@ -4,6 +4,7 @@ import com.google.gson.annotations.SerializedName;
 import lombok.Builder;
 import lombok.Data;
 import org.stellar.anchor.api.exception.SepException;
+import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.util.MemoHelper;
 import org.stellar.sdk.*;
 import org.stellar.sdk.responses.operations.PathPaymentBaseOperationResponse;
@@ -47,7 +48,7 @@ public class ObservedPayment {
       assetCode = issuedAsset.getCode();
       assetIssuer = issuedAsset.getIssuer();
     } else if (paymentOp.getAsset() instanceof AssetTypeNative) {
-      assetCode = "native";
+      assetCode = AssetInfo.NATIVE_ASSET_CODE;
     }
 
     String sourceAccount =
@@ -83,7 +84,7 @@ public class ObservedPayment {
       assetCode = issuedAsset.getCode();
       assetIssuer = issuedAsset.getIssuer();
     } else if (pathPaymentOp.getAsset() instanceof AssetTypeNative) {
-      assetCode = "native";
+      assetCode = AssetInfo.NATIVE_ASSET_CODE;
     }
 
     String sourceAssetCode = null, sourceAssetIssuer = null;
@@ -93,7 +94,7 @@ public class ObservedPayment {
       sourceAssetCode = sourceIssuedAsset.getCode();
       sourceAssetIssuer = sourceIssuedAsset.getIssuer();
     } else if (pathPaymentOp.getSourceAsset() instanceof AssetTypeNative) {
-      sourceAssetCode = "native";
+      sourceAssetCode = AssetInfo.NATIVE_ASSET_CODE;
     }
 
     String sourceAccount =
