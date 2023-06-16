@@ -264,8 +264,8 @@
         ],
        "decimals": 7
       },
-      "sep31_enabled": true,
-      "sep38_enabled": true
+      "sep31_enabled": false,
+      "sep38_enabled": false
     }
   ]
 }
