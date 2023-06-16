@@ -10,9 +10,9 @@ import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode.LENIENT
+import org.stellar.anchor.api.exception.InvalidConfigException
 import org.stellar.anchor.api.exception.SepNotFoundException
 import org.stellar.anchor.util.GsonUtils
-import org.yaml.snakeyaml.scanner.ScannerException
 import shadow.org.apache.commons.io.FilenameUtils
 
 internal class DefaultAssetServiceTest {
@@ -51,8 +51,16 @@ internal class DefaultAssetServiceTest {
     assertThrows<JsonSyntaxException> {
       DefaultAssetService.fromJsonResource("test_assets.json.bad")
     }
+  }
 
-    assertThrows<ScannerException> { DefaultAssetService.fromYamlResource("test_assets.yaml.bad") }
+  @Test
+  fun `test native asset with SEP-31 or SEP-38 enabled`() {
+    assertThrows<InvalidConfigException> {
+      DefaultAssetService.fromJsonResource("test_native_asset_sep31.json.bad")
+    }
+    assertThrows<InvalidConfigException> {
+      DefaultAssetService.fromJsonResource("test_native_asset_sep38.json.bad")
+    }
   }
 
   // This is supposed to match the result from loading test_assets.json file.
@@ -331,8 +339,8 @@ internal class DefaultAssetServiceTest {
               ],
               "decimals": 7
             },
-            "sep31_enabled": true,
-            "sep38_enabled": true
+            "sep31_enabled": false,
+            "sep38_enabled": false 
           }
         ]
       }    

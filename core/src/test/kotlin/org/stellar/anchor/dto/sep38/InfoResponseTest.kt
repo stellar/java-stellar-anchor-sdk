@@ -29,11 +29,11 @@ class InfoResponseTest {
   @Test
   fun `test the InfoResponse construction`() {
     val infoResponse = InfoResponse(assets)
-    assertEquals(4, infoResponse.assets.size)
+    assertEquals(3, infoResponse.assets.size)
 
     val assetMap = HashMap<String, InfoResponse.Asset>()
     infoResponse.assets.forEach { assetMap[it.asset] = it }
-    assertEquals(4, assetMap.size)
+    assertEquals(3, assetMap.size)
 
     val stellarUSDC =
       assetMap["stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"]
@@ -79,14 +79,5 @@ class InfoResponseTest {
       )
     assertTrue(fiatUSD.exchangeableAssetNames.containsAll(wantAssets))
     assertTrue(wantAssets.containsAll(fiatUSD.exchangeableAssetNames))
-
-    val stellarNative = assetMap["stellar:native"]
-    assertNotNull(stellarNative)
-    assertNull(stellarNative!!.countryCodes)
-    assertNull(stellarNative.sellDeliveryMethods)
-    assertNull(stellarNative.buyDeliveryMethods)
-    wantAssets = listOf("stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP")
-    assertTrue(stellarNative.exchangeableAssetNames.containsAll(wantAssets))
-    assertTrue(wantAssets.containsAll(stellarNative.exchangeableAssetNames))
   }
 }
