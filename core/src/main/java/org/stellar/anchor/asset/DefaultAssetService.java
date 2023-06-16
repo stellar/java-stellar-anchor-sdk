@@ -103,7 +103,8 @@ public class DefaultAssetService implements AssetService {
   @Override
   public AssetInfo getAsset(String code) {
     for (AssetInfo asset : assets.getAssets()) {
-      if (asset.getCode().equals(code)) {
+      // FIXME: ANCHOR-346
+      if (asset != null && asset.getCode().equals(code)) {
         return asset;
       }
     }

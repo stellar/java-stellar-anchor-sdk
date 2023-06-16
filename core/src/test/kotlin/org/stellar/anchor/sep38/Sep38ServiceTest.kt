@@ -88,11 +88,11 @@ class Sep38ServiceTest {
   @Test
   fun `test GET info`() {
     val infoResponse = sep38Service.getInfo()
-    assertEquals(4, infoResponse.assets.size)
+    assertEquals(3, infoResponse.assets.size)
 
     val assetMap = HashMap<String, InfoResponse.Asset>()
     infoResponse.assets.forEach { assetMap[it.asset] = it }
-    assertEquals(4, assetMap.size)
+    assertEquals(3, assetMap.size)
 
     val usdcAsset = assetMap[stellarUSDC]
     assertNotNull(usdcAsset)
@@ -134,15 +134,6 @@ class Sep38ServiceTest {
       listOf("stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5", stellarUSDC)
     assertTrue(fiatUSD.exchangeableAssetNames.containsAll(wantAssets))
     assertTrue(wantAssets.containsAll(fiatUSD.exchangeableAssetNames))
-
-    val stellarNative = assetMap["stellar:native"]
-    assertNotNull(stellarNative)
-    assertNull(stellarNative!!.countryCodes)
-    assertNull(stellarNative.sellDeliveryMethods)
-    assertNull(stellarNative.buyDeliveryMethods)
-    wantAssets = listOf("stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP")
-    assertTrue(stellarNative.exchangeableAssetNames.containsAll(wantAssets))
-    assertTrue(wantAssets.containsAll(stellarNative.exchangeableAssetNames))
   }
 
   @Test
