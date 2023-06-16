@@ -77,8 +77,7 @@ class Sep24End2EndTest(
     keyPair: SigningKeyPair = keypair
   ): String {
     // Start interactive deposit
-    val deposit =
-      anchor.interactive().deposit(keyPair.address, asset, token, mapOf("amount" to amount))
+    val deposit = anchor.interactive().deposit(asset, token, mapOf("amount" to amount))
     // Get transaction status and make sure it is INCOMPLETE
     val transaction = anchor.getTransaction(deposit.id, token)
     assertEquals(INCOMPLETE, transaction.status)
@@ -104,7 +103,7 @@ class Sep24End2EndTest(
     // TODO: Add the test where the amount is not specified
     //    val withdrawal = anchor.interactive().withdraw(keypair.address, asset, token)
     // Start interactive withdrawal
-    val withdrawal = anchor.interactive().withdraw(keypair.address, asset, token, extraFields)
+    val withdrawal = anchor.interactive().withdraw(asset, token, extraFields)
 
     // Get transaction status and make sure it is INCOMPLETE
     val transaction = anchor.getTransaction(withdrawal.id, token)
