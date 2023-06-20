@@ -23,6 +23,7 @@ import org.stellar.anchor.sep24.Sep24Transaction;
 import org.stellar.anchor.util.GsonUtils;
 
 public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
+  public static final String FORWARD_KYC_CUSTOMER_TYPE = "sep24-customer";
   private final PropertySep24Config sep24Config;
   private final CustomerIntegration customerIntegration;
   private final JwtService jwtService;
@@ -95,6 +96,7 @@ public class SimpleInteractiveUrlConstructor extends InteractiveUrlConstructor {
         String gsonRequest = gson.toJson(sep9);
         PutCustomerRequest putCustomerRequest =
             gson.fromJson(gsonRequest, PutCustomerRequest.class);
+        putCustomerRequest.setType(FORWARD_KYC_CUSTOMER_TYPE);
         // forward kyc fields to PUT /customer
         customerIntegration.putCustomer(putCustomerRequest);
       }
