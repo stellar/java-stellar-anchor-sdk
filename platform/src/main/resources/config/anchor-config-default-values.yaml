@@ -158,13 +158,11 @@ event_processor:
 #
 # Examples:
 #     - domain: lobstr.com
-#       type: non-custodial
 #       public_key: GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEGN2
-#       url: https://callback.lobstr.com/api/v1/anchor/callback
+#       callback_url: https://callback.lobstr.com/api/v1/anchor/callback
 #     - domain: mgi.com
-#       type: custodial
 #       public_key: GA22WORKYRXB6AW7XR5GIOAOQUY4KKCENEAI34FN3KJNWHKDZTZSVLTU
-#       url: https://callback.mgi.com/api/v2/anchor/callback
+#       callback_url: https://callback.mgi.com/api/v2/anchor/callback
 client_attribution:
 
 ## @param: languages
