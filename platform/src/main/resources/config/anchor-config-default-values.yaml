@@ -133,21 +133,17 @@ payment_observer:
     # The initial backoff (cool-down) time (in seconds) before reconnecting to the event publisher 
     max_event_backoff_time: 300
 
-
 event_processor:
   # The context path of the event processing server
   context_path: /
   # The listening port of the event processing server
   port: 8084
-  # The flag to enable the status callback to the client domain
-  client_domain_status_callback_enabled: true
-  # The flag to enable the event delivery to the anchor business server
-  callback_api_event_delivery_enabled: true
-  # The queue where the event processor will
-  queue:
-    type: kafka
-    kafka:
-      bootstrap_server: localhost:29092
+  # The configuration of the status callback to the client domain
+  client_domain_status_callback:
+    enabled: true
+  # The configuration of the event delivery to the anchor business server
+  callback_api_event_delivery:
+    enabled: true
 
 # The list of clients for the Anchor server to safely communicate with the outside client domains.
 # Each item in the list may contain the following fields:
