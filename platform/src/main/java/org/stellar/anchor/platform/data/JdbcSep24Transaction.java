@@ -9,6 +9,7 @@ import lombok.Setter;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.springframework.beans.BeanUtils;
+import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.sep24.Sep24Refunds;
 import org.stellar.anchor.sep24.Sep24Transaction;
 
@@ -108,6 +109,14 @@ public class JdbcSep24Transaction extends JdbcSepTransaction
   @SerializedName("request_asset_issuer")
   @Column(name = "request_asset_issuer")
   String requestAssetIssuer;
+
+  public String getRequestAssetName() {
+    if (AssetInfo.NATIVE_ASSET_CODE.equals(requestAssetCode)) {
+      return AssetInfo.NATIVE_ASSET_CODE;
+    } else {
+      return requestAssetCode + ":" + requestAssetIssuer;
+    }
+  }
 
   /** The SEP10 account used for authentication. */
   @SerializedName("sep10_account")

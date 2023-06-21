@@ -61,7 +61,7 @@ subprojects {
       googleJavaFormat()
     }
 
-    kotlin { ktfmt("0.41").googleStyle() }
+    kotlin { ktfmt("0.42").googleStyle() }
   }
 
   dependencies {
@@ -135,7 +135,7 @@ subprojects {
 
 allprojects {
   group = "org.stellar.anchor-sdk"
-  version = "2.0.2"
+  version = "2.1.0"
 
   tasks.jar {
     manifest {

@@ -23,7 +23,6 @@ import org.stellar.anchor.api.shared.Amount;
 import org.stellar.anchor.api.shared.StellarPayment;
 import org.stellar.anchor.api.shared.StellarTransaction;
 import org.stellar.anchor.apiclient.PlatformApiClient;
-import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.platform.data.*;
 import org.stellar.anchor.platform.observer.ObservedPayment;
 import org.stellar.anchor.platform.observer.PaymentListener;
@@ -35,17 +34,14 @@ public class PaymentOperationToEventListener implements PaymentListener {
   final JdbcSep31TransactionStore sep31TransactionStore;
 
   final JdbcSep24TransactionStore sep24TransactionStore;
-  final EventService eventService;
   private final PlatformApiClient platformApiClient;
 
   public PaymentOperationToEventListener(
       JdbcSep31TransactionStore sep31TransactionStore,
       JdbcSep24TransactionStore sep24TransactionStore,
-      EventService eventService,
       PlatformApiClient platformApiClient) {
     this.sep31TransactionStore = sep31TransactionStore;
     this.sep24TransactionStore = sep24TransactionStore;
-    this.eventService = eventService;
     this.platformApiClient = platformApiClient;
   }
 
@@ -59,7 +55,8 @@ public class PaymentOperationToEventListener implements PaymentListener {
     }
 
     // Check if the payment contains the expected asset type
-    if (!List.of("credit_alphanum4", "credit_alphanum12").contains(payment.getAssetType())) {
+    if (!List.of("credit_alphanum4", "credit_alphanum12", "native")
+        .contains(payment.getAssetType())) {
       // Asset type does not match
       debugF("{} is not an issued asset.", payment.getAssetType());
       return;
@@ -199,7 +196,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
                         .transaction(
                             PlatformTransactionData.builder()
                                 .updatedAt(paymentTime)
-                                .transferReceivedAt(paymentTime)
+                                .transferReceivedAt(txn.getTransferReceivedAt())
                                 .status(newStatus)
                                 .stellarTransactions(
                                     StellarTransaction.addOrUpdateTransactions(
@@ -217,8 +214,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
       throws AnchorException, IOException {
     // Compare asset code
     String paymentAssetName = "stellar:" + payment.getAssetName();
-    String txnAssetName =
-        "stellar:" + txn.getRequestAssetCode() + ":" + txn.getRequestAssetIssuer();
+    String txnAssetName = "stellar:" + txn.getRequestAssetName();
     if (!txnAssetName.equals(paymentAssetName)) {
       warnF(
           "Payment asset {} does not match the expected asset {}.",

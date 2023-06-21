@@ -10,9 +10,7 @@ import java.lang.Thread.sleep
 import java.lang.reflect.Field
 import java.util.*
 import kotlinx.coroutines.*
-import org.springframework.boot.SpringApplication
 import org.springframework.context.ConfigurableApplicationContext
-import org.stellar.anchor.util.Log
 import org.stellar.anchor.util.Log.info
 
 lateinit var testProfileExecutor: TestProfileExecutor
@@ -47,7 +45,7 @@ class TestProfileExecutor(val config: TestConfig) {
   private var shouldStartKotlinReferenceServer: Boolean = false
 
   fun start(wait: Boolean = false, preStart: (config: TestConfig) -> Unit = {}) {
-    Log.info("Starting TestProfileExecutor...")
+    info("Starting TestProfileExecutor...")
 
     preStart(this.config)
 
@@ -66,7 +64,7 @@ class TestProfileExecutor(val config: TestConfig) {
   }
 
   fun shutdown() {
-    if (shouldStartAllServers) shutdownServers()
+    shutdownServers()
     if (shouldStartDockerCompose) shutdownDocker()
   }
 
@@ -105,11 +103,12 @@ class TestProfileExecutor(val config: TestConfig) {
 
       if (jobs.size > 0) {
         jobs.forEach { it.join() }
-        if (wait) {
-          while (true) {
-            delay(60000)
-          }
-        }
+
+        if (wait)
+          do {
+            val anyActive = runningServers.any { it.isActive || it.isRunning }
+            delay(5000)
+          } while (anyActive)
       }
     }
 
@@ -129,7 +128,7 @@ class TestProfileExecutor(val config: TestConfig) {
       docker =
         DockerComposeExtension.builder()
           .saveLogsTo("${userHomeFolder}/docker-logs/anchor-platform-integration-test")
-          .file("${dockerComposeFile.absolutePath}")
+          .file(dockerComposeFile.absolutePath)
           .waitingForService("kafka", HealthChecks.toHaveAllPortsOpen())
           .waitingForService("db", HealthChecks.toHaveAllPortsOpen())
           .pullOnStartup(true)
@@ -143,7 +142,10 @@ class TestProfileExecutor(val config: TestConfig) {
   }
 
   private fun shutdownServers() {
-    runningServers.forEach { SpringApplication.exit(it) }
+    runningServers.forEach {
+      it.close()
+      it.stop()
+    }
     org.stellar.reference.stop()
   }
 
@@ -152,7 +154,7 @@ class TestProfileExecutor(val config: TestConfig) {
   }
 
   private fun isWindows(): Boolean {
-    return System.getProperty("os.name").toLowerCase().contains("win")
+    return System.getProperty("os.name").lowercase(Locale.getDefault()).contains("win")
   }
 
   private fun setupWindowsEnv() {
@@ -168,7 +170,7 @@ class TestProfileExecutor(val config: TestConfig) {
     )
   }
 
-  @SuppressWarnings("unchecked")
+  @Suppress("UNCHECKED_CAST")
   private fun setEnv(envs: Map<String, String>?) {
     try {
       val processEnvironmentClass = Class.forName("java.lang.ProcessEnvironment")

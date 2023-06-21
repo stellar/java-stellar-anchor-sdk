@@ -1,5 +1,6 @@
 package org.stellar.anchor.api.sep.sep12;
 
+import lombok.Builder;
 import lombok.Data;
 
 /**
@@ -10,6 +11,7 @@ import lombok.Data;
  *     to SEP-12</a>
  */
 @Data
+@Builder
 public class Sep12PutCustomerResponse {
   String id;
 }

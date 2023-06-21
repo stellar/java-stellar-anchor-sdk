@@ -4,10 +4,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.stellar.anchor.config.SecretConfig;
-import org.stellar.anchor.platform.config.PlatformApiConfig;
-import org.stellar.anchor.platform.config.PlatformServerConfig;
-import org.stellar.anchor.platform.config.PropertyDataConfig;
-import org.stellar.anchor.platform.config.PropertySecretConfig;
+import org.stellar.anchor.platform.config.*;
 
 @Configuration
 public class SharedConfigBeans {
@@ -27,5 +24,11 @@ public class SharedConfigBeans {
   @ConfigurationProperties(prefix = "platform-server")
   PlatformServerConfig platformServerConfig(PropertySecretConfig secretConfig) {
     return new PlatformServerConfig(secretConfig);
+  }
+
+  @Bean
+  @ConfigurationProperties(prefix = "app-logging")
+  AppLoggingConfig appLoggingConfig() {
+    return new AppLoggingConfig();
   }
 }

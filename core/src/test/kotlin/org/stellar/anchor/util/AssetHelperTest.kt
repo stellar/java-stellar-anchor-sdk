@@ -1,6 +1,7 @@
 package org.stellar.anchor.util
 
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
 
@@ -16,16 +17,22 @@ class AssetHelperTest {
   fun `check invalid iso4217 assets`(assetCode: String?, assetIssuer: String?) {
     assertFalse(AssetHelper.isISO4217(assetCode, assetIssuer))
   }
+
+  @Test
+  fun `check valid native assets`() {
+    assertTrue(AssetHelper.isNativeAsset("native", ""))
+  }
+
   @ParameterizedTest
   @CsvSource(
     value =
       [
         "USDC,GDJJES5JOST5VTBLDVVQRAW26LZ5IIJJFVN5IJOMICM73HLGGB3G74SS",
-        "BRLC,GDECIOEWJLWMVILZCJILY7FIWUY6VOXVRTAD5AJ57YKRHP2SWPEWYGDG"
+        "BRLC,GDECIOEWJLWMVILZCJILY7FIWUY6VOXVRTAD5AJ57YKRHP2SWPEWYGDG",
       ]
   )
-  fun `check valid stellar assets`(assetCode: String?, assetIssuer: String?) {
-    assertTrue(AssetHelper.isStellar(assetCode, assetIssuer))
+  fun `check valid issued assets`(assetCode: String?, assetIssuer: String?) {
+    assertTrue(AssetHelper.isNonNativeAsset(assetCode, assetIssuer))
   }
   @ParameterizedTest
   @CsvSource(
@@ -36,11 +43,13 @@ class AssetHelperTest {
         "USDC,BAD_WALLET",
         "BADASSET,BAD_WALLET",
         "BADASSET,",
-        ",BAD_WALLET"
+        ",BAD_WALLET",
+        "native,MDJJES5JOST5VTBLDVVQRAW26LZ5IIJJFVN5IJOMICM73HLGGB3G6AAAAAAAAAAAPOBAM",
+        "native,"
       ]
   )
   fun `test invalid stellar assets`(assetCode: String?, assetIssuer: String?) {
-    assertFalse(AssetHelper.isStellar(assetCode, assetIssuer))
+    assertFalse(AssetHelper.isNonNativeAsset(assetCode, assetIssuer))
   }
   @ParameterizedTest
   @CsvSource(
@@ -50,7 +59,8 @@ class AssetHelperTest {
         "USDC,BAD_WALLET,",
         "USD,,iso4217:USD",
         "USD,BAD_WALLET,",
-        ",GDJJES5JOST5VTBLDVVQRAW26LZ5IIJJFVN5IJOMICM73HLGGB3G74SS,"
+        ",GDJJES5JOST5VTBLDVVQRAW26LZ5IIJJFVN5IJOMICM73HLGGB3G74SS,",
+        "native,,stellar:native"
       ]
   )
   fun `test getAssetId`(assetCode: String?, assetIssuer: String?, assetId: String?) {

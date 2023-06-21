@@ -1,8 +1,10 @@
 package org.stellar.anchor.api.callback;
 
+import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
 import java.util.Map;
 import lombok.Data;
+import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerResponse;
 import org.stellar.anchor.api.shared.CustomerField;
 import org.stellar.anchor.api.shared.ProvidedCustomerField;
 
@@ -23,4 +25,9 @@ public class GetCustomerResponse {
   Map<String, ProvidedCustomerField> providedFields;
 
   String message;
+
+  public static Sep12GetCustomerResponse to(GetCustomerResponse response) {
+    Gson gson = new Gson();
+    return new Gson().fromJson(gson.toJson(response), Sep12GetCustomerResponse.class);
+  }
 }
