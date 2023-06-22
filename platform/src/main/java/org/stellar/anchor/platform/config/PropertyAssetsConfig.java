@@ -2,14 +2,10 @@ package org.stellar.anchor.platform.config;
 
 import static org.stellar.anchor.util.Log.error;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
-import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.asset.DefaultAssetService;
 import org.stellar.anchor.config.AssetsConfig;
 import org.stellar.anchor.util.StringHelper;
@@ -70,18 +66,6 @@ public class PropertyAssetsConfig implements AssetsConfig, Validator {
               "invalid-type-defined",
               String.format("assets.type:%s is not supported.", this.getType()));
           break;
-      }
-
-      assert assetService != null;
-      List<AssetInfo> assets = assetService.listAllAssets();
-      Set<String> existingAssetNames = new HashSet<>();
-      for (AssetInfo asset : assets) {
-        if (!existingAssetNames.add(asset.getAssetName())) {
-          error("Error asset already exist", asset.getAssetName());
-          errors.reject(
-              "invalid-asset-duplicate-exists",
-              String.format("assets %s already exists.", asset.getAssetName()));
-        }
       }
     }
   }
