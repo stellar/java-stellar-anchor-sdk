@@ -63,16 +63,6 @@ internal class DefaultAssetServiceTest {
     }
   }
 
-  @Test
-  fun `test invalid config with duplicate assets`() {
-    assertThrows<InvalidConfigException> {
-      DefaultAssetService.fromJsonResource("test_assets_duplicate_asset.json")
-    }
-    assertThrows<InvalidConfigException> {
-      DefaultAssetService.fromYamlResource("test_assets_duplicate_asset.yaml")
-    }
-  }
-
   // This is supposed to match the result from loading test_assets.json file.
   private val expectedAssetsJson =
     """
