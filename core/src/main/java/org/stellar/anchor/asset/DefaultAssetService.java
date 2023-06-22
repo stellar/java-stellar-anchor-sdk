@@ -6,9 +6,7 @@ import static org.stellar.anchor.util.Log.infoF;
 import com.google.gson.Gson;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import lombok.NoArgsConstructor;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.api.exception.SepNotFoundException;
@@ -81,6 +79,14 @@ public class DefaultAssetService implements AssetService {
       error("Native asset does not support SEP-31 or SEP-38. content=", assetsJson);
       throw new InvalidConfigException(
           "Invalid assets defined in configuration. Please check the logs for details.");
+    }
+    Set<String> existingAssetNames = new HashSet<>();
+    for (AssetInfo asset : assetService.assets.getAssets()) {
+      if (asset != null && !existingAssetNames.add(asset.getAssetName())) {
+        error("Assets already exist. Asset= ", asset.getAssetName());
+        throw new InvalidConfigException(
+            "Duplicate assets defined in configuration. Please check the logs for details.");
+      }
     }
     return assetService;
   }
