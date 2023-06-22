@@ -10,19 +10,23 @@ import okhttp3.mockwebserver.MockResponse
 import okhttp3.mockwebserver.MockWebServer
 import org.hamcrest.CoreMatchers
 import org.hamcrest.MatcherAssert
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
 import org.skyscreamer.jsonassert.JSONAssert
+import org.stellar.anchor.api.callback.GetCustomerRequest
+import org.stellar.anchor.api.callback.GetCustomerResponse
+import org.stellar.anchor.api.callback.PutCustomerRequest
+import org.stellar.anchor.api.callback.PutCustomerResponse
 import org.stellar.anchor.api.exception.AnchorException
 import org.stellar.anchor.api.exception.BadRequestException
 import org.stellar.anchor.api.exception.ServerErrorException
 import org.stellar.anchor.api.sep.sep12.Field
-import org.stellar.anchor.api.sep.sep12.ProvidedField
-import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerRequest
-import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerResponse
-import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest
-import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerResponse
 import org.stellar.anchor.api.sep.sep12.Sep12Status
+import org.stellar.anchor.api.shared.CustomerField
+import org.stellar.anchor.api.shared.ProvidedCustomerField
 import org.stellar.anchor.auth.AuthHelper
 import org.stellar.anchor.util.GsonUtils
 
@@ -63,7 +67,7 @@ class RestCustomerIntegrationTest {
   @Test
   fun test_getCustomer() {
     val getCustomerRequest =
-      Sep12GetCustomerRequest.builder()
+      GetCustomerRequest.builder()
         .id("customer-id")
         .account("account")
         .memo("memo")
@@ -83,14 +87,14 @@ class RestCustomerIntegrationTest {
             "fields": {
               "email_address": {
                 "description": "email address of the customer",
-                "type": "string",
+                "type": "STRING",
                 "optional": false
               }
             },
             "provided_fields": {
               "last_name": {
                 "description": "The customer's last name",
-                "type": "string",
+                "type": "STRING",
                 "status": "ACCEPTED"
               }
             }
@@ -99,22 +103,25 @@ class RestCustomerIntegrationTest {
         )
     )
 
-    val wantResponse = Sep12GetCustomerResponse()
+    val wantResponse = GetCustomerResponse()
     wantResponse.id = "customer-id"
-    wantResponse.status = Sep12Status.NEEDS_INFO
+    wantResponse.status = Sep12Status.NEEDS_INFO.name
     wantResponse.message = "foo bar"
-    val emailField = Field()
+    val emailField = CustomerField()
     emailField.description = "email address of the customer"
-    emailField.type = Field.Type.STRING
+    emailField.type = Field.Type.STRING.name
     emailField.optional = false
     wantResponse.fields = mapOf("email_address" to emailField)
-    val lastNameProvidedField = ProvidedField()
+    val lastNameProvidedField = ProvidedCustomerField()
     lastNameProvidedField.description = "The customer's last name"
-    lastNameProvidedField.type = Field.Type.STRING
-    lastNameProvidedField.status = Sep12Status.ACCEPTED
+    lastNameProvidedField.type = Field.Type.STRING.name
+    lastNameProvidedField.status = Sep12Status.ACCEPTED.name
     wantResponse.providedFields = mapOf("last_name" to lastNameProvidedField)
 
     val gotResponse = customerIntegration.getCustomer(getCustomerRequest)
+    println(gson.toJson(wantResponse))
+    println(gson.toJson(gotResponse))
+
     assertEquals(wantResponse, gotResponse)
 
     val request = mockAnchor.takeRequest()
@@ -137,7 +144,7 @@ class RestCustomerIntegrationTest {
 
   @Test
   fun test_getCustomer_failure() {
-    val getCustomerRequest = Sep12GetCustomerRequest.builder().id("customer-id").build()
+    val getCustomerRequest = GetCustomerRequest.builder().id("customer-id").build()
 
     mockAnchor.enqueue(MockResponse().setResponseCode(200).setBody("{}".trimMargin()))
 
@@ -167,7 +174,7 @@ class RestCustomerIntegrationTest {
   @Test
   fun test_putCustomer() {
     val putCustomerRequest =
-      Sep12PutCustomerRequest.builder()
+      PutCustomerRequest.builder()
         .id("customer-id")
         .account(TEST_ACCOUNT)
         .memo("memo")
@@ -177,7 +184,7 @@ class RestCustomerIntegrationTest {
 
     mockAnchor.enqueue(MockResponse().setResponseCode(200).setBody("""{"id": "customer-id"}"""))
 
-    val wantResponse = Sep12PutCustomerResponse()
+    val wantResponse = PutCustomerResponse()
     wantResponse.id = "customer-id"
 
     val gotResponse = customerIntegration.putCustomer(putCustomerRequest)
@@ -204,7 +211,7 @@ class RestCustomerIntegrationTest {
   @Test
   fun test_putCustomer_failure() {
     val putCustomerRequest =
-      Sep12PutCustomerRequest.builder().id("customer-id").account(TEST_ACCOUNT).build()
+      PutCustomerRequest.builder().id("customer-id").account(TEST_ACCOUNT).build()
 
     // invalid response status code
     mockAnchor.enqueue(

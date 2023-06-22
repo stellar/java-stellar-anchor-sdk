@@ -217,116 +217,116 @@ public class CustomerService {
   }
 
   public CustomerField createFirstNameField() {
-    CustomerField field = new CustomerField();
-    field.setType("string");
-    field.setDescription("first name of the customer");
-    field.setOptional(false);
-    return field;
+    return CustomerField.builder()
+        .type("string")
+        .description("first name of the customer")
+        .optional(false)
+        .build();
   }
 
   public CustomerField createLastNameField() {
-    CustomerField field = new CustomerField();
-    field.setType("string");
-    field.setDescription("last name of the customer");
-    field.setOptional(false);
-    return field;
+    return CustomerField.builder()
+        .type("string")
+        .description("last name of the customer")
+        .optional(false)
+        .build();
   }
 
   public CustomerField createEmailField() {
-    CustomerField field = new CustomerField();
-    field.setType("string");
-    field.setDescription("email of the customer");
-    field.setOptional(false);
-    return field;
+    return CustomerField.builder()
+        .type("string")
+        .description("email of the customer")
+        .optional(false)
+        .build();
   }
 
   public CustomerField createBankAccountNumberField(String type) {
-    CustomerField field = new CustomerField();
-    field.setType("string");
-    field.setDescription("bank account number of the customer");
-    field.setOptional(!type.equals(Customer.Type.SEP31_RECEIVER.toString()));
-    return field;
+    return CustomerField.builder()
+        .type("string")
+        .description("bank account number of the customer")
+        .optional(!type.equals(Customer.Type.SEP31_RECEIVER.toString()))
+        .build();
   }
 
   public CustomerField createBankAccountTypeField(String type) {
-    CustomerField field = new CustomerField();
-    field.setType("string");
-    field.setDescription("bank account type of the customer");
-    field.setChoices(Arrays.asList("checking", "savings"));
-    field.setOptional(!type.equals(Customer.Type.SEP31_RECEIVER.toString()));
-    return field;
+    return CustomerField.builder()
+        .type("string")
+        .description("bank account type of the customer")
+        .choices(Arrays.asList("checking", "savings"))
+        .optional(!type.equals(Customer.Type.SEP31_RECEIVER.toString()))
+        .build();
   }
 
   public CustomerField createBankNumberField(String type) {
-    CustomerField field = new CustomerField();
-    field.setType("string");
-    field.setDescription("bank routing number of the customer");
-    field.setOptional(!type.equals(Customer.Type.SEP31_RECEIVER.toString()));
-    return field;
+    return CustomerField.builder()
+        .type("string")
+        .description("bank routing number of the customer")
+        .optional(!type.equals(Customer.Type.SEP31_RECEIVER.toString()))
+        .build();
   }
 
   public CustomerField createClabeNumberField(String customerType) {
-    CustomerField field = new CustomerField();
-    field.setType("string");
-    field.setDescription("Bank account number for Mexico");
-    field.setOptional(!customerType.equals(Customer.Type.SEP31_RECEIVER.toString()));
-    return field;
+    return CustomerField.builder()
+        .type("string")
+        .description("Bank account number for Mexico")
+        .optional(!customerType.equals(Customer.Type.SEP31_RECEIVER.toString()))
+        .build();
   }
 
   public ProvidedCustomerField createFirstNameProvidedField() {
-    ProvidedCustomerField field = new ProvidedCustomerField();
-    field.setType("string");
-    field.setDescription("first name of the customer");
-    field.setStatus(Customer.Status.ACCEPTED.toString());
-    return field;
+    return ProvidedCustomerField.builder()
+        .type("string")
+        .description("first name of the customer")
+        .status(Customer.Status.ACCEPTED.toString())
+        .build();
   }
 
   public ProvidedCustomerField createLastNameProvidedField() {
-    ProvidedCustomerField field = new ProvidedCustomerField();
-    field.setType("string");
-    field.setDescription("last name of the customer");
-    field.setStatus(Customer.Status.ACCEPTED.toString());
-    return field;
+    return ProvidedCustomerField.builder()
+        .type("string")
+        .description("last name of the customer")
+        .status(Customer.Status.ACCEPTED.toString())
+        .build();
   }
 
   public ProvidedCustomerField createEmailProvidedField() {
-    ProvidedCustomerField field = new ProvidedCustomerField();
-    field.setType("string");
-    field.setDescription("email of the customer");
-    field.setStatus(Customer.Status.ACCEPTED.toString());
-    return field;
+    return ProvidedCustomerField.builder()
+        .type("string")
+        .description("email of the customer")
+        .status(Customer.Status.ACCEPTED.toString())
+        .build();
   }
 
   public ProvidedCustomerField createBankAccountNumberProvidedField() {
-    ProvidedCustomerField field = new ProvidedCustomerField();
-    field.setType("string");
-    field.setDescription("bank account of the customer");
-    field.setStatus(Customer.Status.ACCEPTED.toString());
-    return field;
+    return ProvidedCustomerField.builder()
+        .type("string")
+        .description("bank account number of the customer")
+        .status(Customer.Status.ACCEPTED.toString())
+        .build();
   }
 
   public ProvidedCustomerField createBankAccountTypeProvidedField() {
-    ProvidedCustomerField field = new ProvidedCustomerField();
-    field.setType("string");
-    field.setDescription("bank account type of the customer");
-    field.setStatus(Customer.Status.ACCEPTED.toString());
-    field.setChoices(Arrays.asList("checking", "savings"));
-    return field;
+    return ProvidedCustomerField.builder()
+        .type("string")
+        .description("bank account type of the customer")
+        .choices(Arrays.asList("checking", "savings"))
+        .status(Customer.Status.ACCEPTED.toString())
+        .build();
   }
 
   public ProvidedCustomerField createBankNumberProvidedField() {
-    ProvidedCustomerField field = new ProvidedCustomerField();
-    field.setType("string");
-    field.setDescription("bank routing number of the customer");
-    field.setStatus(Customer.Status.ACCEPTED.toString());
-    return field;
+    return ProvidedCustomerField.builder()
+        .type("string")
+        .description("bank routing number of the customer")
+        .status(Customer.Status.ACCEPTED.toString())
+        .build();
   }
 
   public ProvidedCustomerField createClabeNumberProvidedField() {
-    ProvidedCustomerField field = new ProvidedCustomerField();
-    field.setType("string");
-    field.setDescription("bank account number for Mexico");
-    field.setStatus(Customer.Status.ACCEPTED.toString());
-    return field;
+    return ProvidedCustomerField.builder()
+        .type("string")
+        .description("bank account number for Mexico")
+        .status(Customer.Status.ACCEPTED.toString())
+        .build();
   }
 }

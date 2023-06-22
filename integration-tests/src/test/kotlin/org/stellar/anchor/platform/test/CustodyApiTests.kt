@@ -37,16 +37,16 @@ class CustodyApiTests(val config: TestConfig, val toml: Sep1Helper.TomlContent, 
   }
 
   private fun `test generate deposit address`(custodyMockServer: MockWebServer) {
-    val mockedCustodyDepositAddressResponse =
-      MockResponse().setResponseCode(200).setBody(custodyDepositAddressResponse)
-
-    custodyMockServer.enqueue(mockedCustodyDepositAddressResponse)
-
     val ex: SepException = assertThrows { custodyApiClient.generateDepositAddress("invalidAsset") }
     Assertions.assertEquals(
       "{\"error\":\"Unable to find Fireblocks asset code by Stellar asset code [invalidAsset]\"}",
       ex.message
     )
+
+    val mockedCustodyDepositAddressResponse =
+      MockResponse().setResponseCode(200).setBody(custodyDepositAddressResponse)
+
+    custodyMockServer.enqueue(mockedCustodyDepositAddressResponse)
 
     val depositAddressResponse =
       custodyApiClient.generateDepositAddress(
@@ -198,16 +198,16 @@ private const val webhookRequest =
   {
   "type": "TRANSACTION_STATUS_UPDATED",
   "tenantId": "6ae8e895-7bdb-5021-b865-c65885c61068",
-  "timestamp": 1684499146663,
+  "timestamp": 1687423621679,
   "data": {
     "id": "df0442b4-6d53-44cd-82d7-3c48edc0b1ac",
-    "createdAt": 1684499124219,
-    "lastUpdated": 1684499136416,
+    "createdAt": 1687423599336,
+    "lastUpdated": 1687423620808,
     "assetId": "XLM_USDC_T_CEKS",
     "source": {
-      "id": "1",
+      "id": "4",
       "type": "VAULT_ACCOUNT",
-      "name": "TestAnchor",
+      "name": "NewVault",
       "subType": ""
     },
     "destination": {
@@ -216,50 +216,51 @@ private const val webhookRequest =
       "name": "N/A",
       "subType": ""
     },
-    "amount": 0.45,
-    "networkFee": 0.001,
-    "netAmount": 0.45,
-    "sourceAddress": "GB4LDT5G6GC26QUDS3YQ3XCIRSIYTIIWA3PLKFP4B7PRZC5DRZKSZHSK",
-    "destinationAddress": "GAA4N7CEZ4XWF5ADWRU2YWF4ZGQMT5PL4GLCZVW2UAX4IPE3ALQRO7GX",
+    "amount": 4.5,
+    "networkFee": 0.00001,
+    "netAmount": 4.5,
+    "sourceAddress": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
+    "destinationAddress": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W",
     "destinationAddressDescription": "",
     "destinationTag": "",
     "status": "CONFIRMING",
-    "txHash": "dff8279e0994ff7a2c78a0d7b7cc1175b39f2ab1f45de1e02b639a85e9801f96",
+    "txHash": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
     "subStatus": "CONFIRMED",
     "signedBy": [],
     "createdBy": "1444ed36-5bc0-4e3b-9b17-5df29fc0590f",
     "rejectedBy": "",
-    "amountUSD": 0.44912565,
+    "amountUSD": 4.509,
     "addressType": "",
     "note": "",
     "exchangeTxId": "",
-    "requestedAmount": 0.45,
+    "requestedAmount": 4.5,
     "feeCurrency": "XLM_TEST",
     "operation": "TRANSFER",
     "customerRefId": null,
     "numOfConfirmations": 1,
     "amountInfo": {
-      "amount": "0.45",
-      "requestedAmount": "0.45",
-      "netAmount": "0.45",
-      "amountUSD": "0.44912565"
+      "amount": "4.5",
+      "requestedAmount": "4.5",
+      "netAmount": "4.5",
+      "amountUSD": "4.509"
     },
     "feeInfo": {
-      "networkFee": "0.001"
+      "networkFee": "0.00001"
     },
     "destinations": [],
     "externalTxId": null,
     "blockInfo": {
-      "blockHeight": "1070795",
-      "blockHash": "bebee26b002678521ea47c42a23aaa35b089d0412ed20232aaf8072242c2e018"
+      "blockHeight": "131155",
+      "blockHash": "46185b809c09e29da09bdc667c947b23fb2716ed8735227c0e77c19fdb620fd4"
     },
-    "signedMessages": []
+    "signedMessages": [],
+    "assetType": "XLM_ASSET"
   }
 }
 """
 
 private const val webhookSignature =
-  "RMrie/JapxYVMgqs+FGFAtIKVD7vSHEH+TWzxGaP2M/1TzFCaH1qU4erede7q0qSTtONykA8l68/LwFqd7RadTcjEKr75rbv4ixthS+ECkL08TjT02aZ9bD1frJVjNpDncjUfNiFAuaOILWfSxfYmIlcTX1hytzq4VHfWSY3+CA="
+  "CycRUfeq5n5AXWZ4sip2LsJWeFI8GDa8KCDvB8efztgK5ZoLdkLw8+hb/kd0HZnQEFf5qHBpTNlKzJCXoRQoMM22t1IzPKajCiHiPb4aMm6Rx04e2VDOsBPrRN7pw3zmkma7ebVvq2q9ZtDvdRIxTm0ZbKhak0uOAIM5XJ46JgI="
 
 private const val expectedTransactionResponse =
   """
@@ -271,28 +272,28 @@ private const val expectedTransactionResponse =
   "amount_expected": {
     "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
   },
-  "transfer_received_at": "2023-05-19T12:25:24.219Z",
+  "transfer_received_at": "2023-06-22T08:46:39.336Z",
   "stellar_transactions": [
     {
-      "id": "dff8279e0994ff7a2c78a0d7b7cc1175b39f2ab1f45de1e02b639a85e9801f96",
+      "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",
       "memo": "testMemo",
       "memo_type": "testMemoType",
-      "created_at": "2023-05-19T12:25:24.219Z",
-      "envelope": "AAAAAgAAAAB4sc+m8YWvQoOW8Q3cSIyRiaEWBt61FfwP3xyLo45VLAAPQkAADE5GAAAHDQAAAAEAAAAANTSFeAAAAABkZ5TjAAAAAAAAAAEAAAAAAAAAAQAAAAABxvxEzy9i9AO0aaxYvMmgyfXr4ZYs1tqgL8Q8mwLhFwAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAABEqiAAAAAAAAAAAaOOVSwAAABA1XvNJlEErMYTCK7fmi643pRZEAHqkQATR7JM+HOUA8XkzAVAwETRqhQAC/9EgzCe5XfKoiiH1o5YyJ/+4NwlDg==",
+      "created_at": "2023-06-22T08:46:39.336Z",
+      "envelope": "AAAAAgAAAABBsSNsYI9mqhg2INua8oEzk88ixjqc/Yiq0/4MNDIcAwAPQkAAAcGcAAAACAAAAAEAAAAAIHqjOgAAAABklDSfAAAAAAAAAAEAAAAAAAAAAQAAAAC9yF4ErTewnyaxhbV7fzgFiY7A8k7xt62CIhYMXt/ovgAAAAFVU0RDAAAAAEI+fQXy7K+/7BkrIVo/G+lq7bjY5wJUq+NBPgIH3layAAAAAAKupUAAAAAAAAAAATQyHAMAAABAUjCaXkOy4VHDpkVwG42lF7ZKK471bMsKSjP2EZtYnBo4e/kYtcVNp+z15EX/qHZBvGWtbFiCBBLXQs7hmu15Cg==",
       "payments": [
         {
-          "id": "4599029505736705",
+          "id": "563306435719169",
           "amount": {
-            "amount": "0.4500000",
+            "amount": "4.5000000",
             "asset": "USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
           },
           "payment_type": "payment",
-          "source_account": "GB4LDT5G6GC26QUDS3YQ3XCIRSIYTIIWA3PLKFP4B7PRZC5DRZKSZHSK",
-          "destination_account": "GAA4N7CEZ4XWF5ADWRU2YWF4ZGQMT5PL4GLCZVW2UAX4IPE3ALQRO7GX"
+          "source_account": "GBA3CI3MMCHWNKQYGYQNXGXSQEZZHTZCYY5JZ7MIVLJ74DBUGIOAGNV6",
+          "destination_account": "GC64QXQEVU33BHZGWGC3K637HACYTDWA6JHPDN5NQIRBMDC637UL4F2W"
         }
       ]
     }
   ],
-  "destination_account": "GCHU3RZAECOKGM2YAJLQIIYB2ZPLMFTTGN5D3XZNX4RDOEERVLXO7HU4"
-}  
+  "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+} 
 """

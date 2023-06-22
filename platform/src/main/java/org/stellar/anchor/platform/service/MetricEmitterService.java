@@ -2,7 +2,6 @@ package org.stellar.anchor.platform.service;
 
 import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.Tags;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -10,10 +9,11 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import org.stellar.anchor.platform.config.MetricConfig;
 import org.stellar.anchor.platform.data.JdbcSep31TransactionRepo;
+import org.stellar.anchor.platform.utils.DaemonExecutors;
 import org.stellar.anchor.util.Log;
 
 public class MetricEmitterService {
-  private final ScheduledExecutorService executor = Executors.newScheduledThreadPool(1);
+  private final ScheduledExecutorService executor = DaemonExecutors.newScheduledThreadPool(1);
   private final MetricConfig metricConfig;
   private final JdbcSep31TransactionRepo sep31TransactionStore;
   final AtomicInteger pendingStellarTxns = new AtomicInteger(0);

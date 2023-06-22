@@ -30,6 +30,8 @@ import lombok.Data;
 import lombok.SneakyThrows;
 import org.stellar.anchor.api.callback.CustomerIntegration;
 import org.stellar.anchor.api.callback.FeeIntegration;
+import org.stellar.anchor.api.callback.GetCustomerRequest;
+import org.stellar.anchor.api.callback.GetCustomerResponse;
 import org.stellar.anchor.api.callback.GetFeeRequest;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
@@ -42,8 +44,6 @@ import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.AssetInfo.Sep12Operation;
 import org.stellar.anchor.api.sep.AssetInfo.Sep31TxnFieldSpecs;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
-import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerRequest;
-import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerResponse;
 import org.stellar.anchor.api.sep.sep12.Sep12Status;
 import org.stellar.anchor.api.sep.sep31.Sep31GetTransactionResponse;
 import org.stellar.anchor.api.sep.sep31.Sep31InfoResponse;
@@ -558,10 +558,10 @@ public class Sep31Service {
           sep12Operation.getReceiver().getTypes().keySet().stream().findFirst();
       receiverType = receiverTypeOptional.orElse(null);
     }
-    Sep12GetCustomerRequest request =
-        Sep12GetCustomerRequest.builder().id(receiverId).type(receiverType).build();
-    Sep12GetCustomerResponse receiver = this.customerIntegration.getCustomer(request);
-    if (receiver == null || receiver.getStatus() != Sep12Status.ACCEPTED) {
+    GetCustomerRequest request =
+        GetCustomerRequest.builder().id(receiverId).type(receiverType).build();
+    GetCustomerResponse receiver = this.customerIntegration.getCustomer(request);
+    if (receiver == null || !Objects.equals(receiver.getStatus(), Sep12Status.ACCEPTED.name())) {
       infoF("Customer (receiver) info needed for request ({})", Context.get().getRequest());
       throw new Sep31CustomerInfoNeededException("sep31-receiver");
     }
@@ -581,9 +581,9 @@ public class Sep31Service {
               .findFirst();
       senderType = senderTypeOptional.orElse(null);
     }
-    request = Sep12GetCustomerRequest.builder().id(senderId).type(senderType).build();
-    Sep12GetCustomerResponse sender = this.customerIntegration.getCustomer(request);
-    if (sender == null || sender.getStatus() != Sep12Status.ACCEPTED) {
+    request = GetCustomerRequest.builder().id(senderId).type(senderType).build();
+    GetCustomerResponse sender = this.customerIntegration.getCustomer(request);
+    if (sender == null || !Objects.equals(sender.getStatus(), Sep12Status.ACCEPTED.name())) {
       infoF("Customer (sender) info needed for request ({})", Context.get().getRequest());
       throw new Sep31CustomerInfoNeededException("sep31-sender");
     }

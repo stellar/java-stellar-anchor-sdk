@@ -48,6 +48,16 @@ jobs:
           run_docker: false
         run: ./gradlew clean build --no-daemon --stacktrace
 
+      - name: Stop docker containers
+        env:
+          TEST_PROFILE_NAME: default
+        run: docker-compose -f service-runner/src/main/resources/docker-compose-test.yaml down
+
+      - name: Start docker containers
+        env:
+          TEST_PROFILE_NAME: default
+        run: docker-compose -f service-runner/src/main/resources/docker-compose-test.yaml up -d
+
       - name: Run sep server, observer, java reference server and kotlin reference server
         env:
           run_docker: false
