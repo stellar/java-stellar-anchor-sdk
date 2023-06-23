@@ -20,11 +20,9 @@ services:
       - "8081:8081"
 
   sep24-reference-ui:
-    # TODO: move this dockerfile somewhere else
-    build: .
-    command: ["yarn", "start"]
+    image: stellar/sep24-reference-ui
     ports:
-      - "3000:3000"
+      - "3000:80"
 
   observer:
     image: stellar/anchor-platform:edge
