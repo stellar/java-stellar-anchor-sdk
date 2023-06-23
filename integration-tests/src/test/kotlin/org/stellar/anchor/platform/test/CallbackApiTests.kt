@@ -12,10 +12,10 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.assertThrows
 import org.skyscreamer.jsonassert.JSONAssert
+import org.stellar.anchor.api.callback.GetCustomerRequest
 import org.stellar.anchor.api.callback.GetFeeRequest
 import org.stellar.anchor.api.callback.GetRateRequest
 import org.stellar.anchor.api.exception.NotFoundException
-import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerRequest
 import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest
 import org.stellar.anchor.auth.AuthHelper
 import org.stellar.anchor.auth.JwtService
@@ -69,11 +69,11 @@ class CallbackApiTests(val config: TestConfig, val toml: Sep1Helper.TomlContent,
 
   private fun testCustomerIntegration() {
     assertThrows<NotFoundException> {
-      rci.getCustomer(Sep12GetCustomerRequest.builder().id("1").build())
+      rci.getCustomer(GetCustomerRequest.builder().id("1").build())
     }
   }
 
-  fun testRate_indicativePrice() {
+  private fun testRate_indicativePrice() {
     val result =
       rriClient.getRate(
         GetRateRequest.builder()
@@ -107,7 +107,7 @@ class CallbackApiTests(val config: TestConfig, val toml: Sep1Helper.TomlContent,
     JSONAssert.assertEquals(wantBody, org.stellar.anchor.platform.gson.toJson(result), true)
   }
 
-  fun testRate_firm() {
+  private fun testRate_firm() {
     val rate =
       rriClient
         .getRate(
@@ -125,9 +125,9 @@ class CallbackApiTests(val config: TestConfig, val toml: Sep1Helper.TomlContent,
     val id = rate.id
     Assertions.assertDoesNotThrow { UUID.fromString(id) }
     var gotExpiresAt: Instant? = null
-    val expiresAtStr = rate.expiresAt.toString()
+    val expiresAtStr = rate.expiresAt!!.toString()
     Assertions.assertDoesNotThrow {
-      gotExpiresAt = DateTimeFormatter.ISO_INSTANT.parse(rate.expiresAt.toString(), Instant::from)
+      gotExpiresAt = DateTimeFormatter.ISO_INSTANT.parse(rate.expiresAt!!.toString(), Instant::from)
     }
 
     val wantExpiresAt =
@@ -169,7 +169,7 @@ class CallbackApiTests(val config: TestConfig, val toml: Sep1Helper.TomlContent,
     JSONAssert.assertEquals(wantBody, org.stellar.anchor.platform.gson.toJson(gotQuote), true)
   }
 
-  fun testGetFee() {
+  private fun testGetFee() {
     // Create sender customer
     val senderCustomerRequest =
       GsonUtils.getInstance().fromJson(testCustomer1Json, Sep12PutCustomerRequest::class.java)

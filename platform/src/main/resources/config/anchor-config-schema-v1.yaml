@@ -90,6 +90,7 @@ sep24.features.claimable_balances:
 sep24.interactive_url.base_url:
 sep24.interactive_url.jwt_expiration:
 sep24.interactive_url.txn_fields:
+sep24.kyc_fields_forwarding.enabled:
 sep24.more_info_url.base_url:
 sep24.more_info_url.jwt_expiration:
 sep24.more_info_url.txn_fields:

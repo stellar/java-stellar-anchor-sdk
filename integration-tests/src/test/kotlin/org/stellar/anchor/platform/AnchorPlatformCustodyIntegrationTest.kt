@@ -16,7 +16,8 @@ class AnchorPlatformCustodyIntegrationTest :
     @JvmStatic
     fun construct() {
       custodyMockServer.start()
-      singleton.setUp(mapOf("custody.fireblocks.base_url" to custodyMockServer.url("").toString()))
+      val mockServerUrl = custodyMockServer.url("").toString()
+      singleton.setUp(mapOf("custody.fireblocks.base_url" to mockServerUrl))
     }
 
     @AfterAll

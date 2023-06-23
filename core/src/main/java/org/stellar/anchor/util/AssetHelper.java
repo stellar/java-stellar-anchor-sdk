@@ -20,7 +20,14 @@ public class AssetHelper {
     }
   }
 
-  public static boolean isStellar(String assetCode, String assetIssuer) {
+  /**
+   * Checks if the asset is a non-native issued asset.
+   *
+   * @param assetCode The asset code
+   * @param assetIssuer The asset issuer
+   * @return true if the asset is a non-native issued asset.
+   */
+  public static boolean isNonNativeAsset(String assetCode, String assetIssuer) {
     if (isEmpty(assetCode)) return false;
     if (isEmpty(assetIssuer)) return false;
     // check if assetIssuer is a valid wallet address
@@ -32,11 +39,32 @@ public class AssetHelper {
     }
   }
 
+  /**
+   * Checks if the asset is native (XLM). Native assets have an empty assetIssuer.
+   *
+   * @param assetCode The asset code
+   * @param assetIssuer The asset issuer
+   * @return true if the asset is native (XLM)
+   */
+  public static boolean isNativeAsset(String assetCode, String assetIssuer) {
+    return "native".equals(assetCode) && isEmpty(assetIssuer);
+  }
+
+  /**
+   * Returns the asset id in the SEP-38 asset identification format, or null if the asset is not
+   * supported.
+   *
+   * @param assetCode The asset code
+   * @param assetIssuer The asset issuer
+   * @return The asset id in the SEP-38 asset identification format.
+   */
   public static String getAssetId(String assetCode, String assetIssuer) {
     if (isISO4217(assetCode, assetIssuer)) {
       // fiat assets
       return "iso4217:" + assetCode;
-    } else if (isStellar(assetCode, assetIssuer)) {
+    } else if (isNativeAsset(assetCode, assetIssuer)) {
+      return "stellar:native";
+    } else if (isNonNativeAsset(assetCode, assetIssuer)) {
       return "stellar:" + assetCode + ":" + assetIssuer;
     } else {
       // not supported

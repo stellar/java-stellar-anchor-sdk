@@ -7,7 +7,10 @@ import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Collectors;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
@@ -20,6 +23,7 @@ import org.stellar.anchor.util.NetUtil;
 @Getter
 @Setter
 public class PropertySep24Config implements Sep24Config, Validator {
+
   static List<String> validFields =
       Arrays.stream(JdbcSep24Transaction.class.getDeclaredFields())
           .sequential()
@@ -31,7 +35,8 @@ public class PropertySep24Config implements Sep24Config, Validator {
   SecretConfig secretConfig;
   Features features;
   DepositInfoGeneratorType depositInfoGeneratorType;
-  private CustodyConfig custodyConfig;
+  CustodyConfig custodyConfig;
+  KycFieldsForwarding kycFieldsForwarding;
 
   public PropertySep24Config(SecretConfig secretConfig, CustodyConfig custodyConfig) {
     this.secretConfig = secretConfig;
@@ -43,6 +48,7 @@ public class PropertySep24Config implements Sep24Config, Validator {
   @AllArgsConstructor
   @NoArgsConstructor
   public static class InteractiveUrlConfig {
+
     String baseUrl;
     long jwtExpiration;
     List<String> txnFields;
@@ -53,9 +59,19 @@ public class PropertySep24Config implements Sep24Config, Validator {
   @AllArgsConstructor
   @NoArgsConstructor
   public static class MoreInfoUrlConfig {
+
     String baseUrl;
     long jwtExpiration;
     List<String> txnFields;
+  }
+
+  @Getter
+  @Setter
+  @AllArgsConstructor
+  @NoArgsConstructor
+  public static class KycFieldsForwarding {
+
+    boolean enabled;
   }
 
   @Override

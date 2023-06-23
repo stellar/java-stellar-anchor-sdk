@@ -75,6 +75,13 @@ public class DefaultAssetService implements AssetService {
       throw new InvalidConfigException(
           "Invalid assets defined in configuration. Please check the logs for details.");
     }
+    // TODO: remove this check once we support SEP-31 and SEP-38 for native asset
+    AssetInfo nativeAsset = assetService.getAsset("native");
+    if (nativeAsset != null && (nativeAsset.getSep31Enabled() || nativeAsset.getSep38Enabled())) {
+      error("Native asset does not support SEP-31 or SEP-38. content=", assetsJson);
+      throw new InvalidConfigException(
+          "Invalid assets defined in configuration. Please check the logs for details.");
+    }
     return assetService;
   }
 
@@ -96,7 +103,8 @@ public class DefaultAssetService implements AssetService {
   @Override
   public AssetInfo getAsset(String code) {
     for (AssetInfo asset : assets.getAssets()) {
-      if (asset.getCode().equals(code)) {
+      // FIXME: ANCHOR-346
+      if (asset != null && asset.getCode().equals(code)) {
         return asset;
       }
     }

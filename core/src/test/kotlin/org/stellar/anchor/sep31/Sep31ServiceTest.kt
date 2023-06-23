@@ -18,13 +18,9 @@ import org.junit.jupiter.api.assertThrows
 import org.skyscreamer.jsonassert.JSONAssert
 import org.stellar.anchor.TestConstants
 import org.stellar.anchor.TestHelper
-import org.stellar.anchor.api.callback.CustomerIntegration
-import org.stellar.anchor.api.callback.FeeIntegration
-import org.stellar.anchor.api.callback.GetFeeResponse
+import org.stellar.anchor.api.callback.*
 import org.stellar.anchor.api.exception.*
 import org.stellar.anchor.api.sep.AssetInfo
-import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerRequest
-import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerResponse
 import org.stellar.anchor.api.sep.sep12.Sep12Status
 import org.stellar.anchor.api.sep.sep31.*
 import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionRequest.Sep31TxnFields
@@ -626,8 +622,8 @@ class Sep31ServiceTest {
     // receiver status is not ACCEPTED
     val receiverId = "137938d4-43a7-4252-a452-842adcee474c"
     postTxRequest.receiverId = receiverId
-    var request = Sep12GetCustomerRequest.builder().id(receiverId).type("sep31-receiver").build()
-    val mockReceiver = Sep12GetCustomerResponse()
+    var request = GetCustomerRequest.builder().id(receiverId).type("sep31-receiver").build()
+    val mockReceiver = GetCustomerResponse()
     mockReceiver.id = receiverId
     every { customerIntegration.getCustomer(request) } returns mockReceiver
     ex = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
@@ -635,7 +631,7 @@ class Sep31ServiceTest {
     assertEquals("sep31-receiver", (ex as Sep31CustomerInfoNeededException).type)
 
     // missing sender_id
-    mockReceiver.status = Sep12Status.ACCEPTED
+    mockReceiver.status = Sep12Status.ACCEPTED.name
     every { customerIntegration.getCustomer(request) } returns mockReceiver
     ex = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
     assertInstanceOf(BadRequestException::class.java, ex)
@@ -650,8 +646,8 @@ class Sep31ServiceTest {
     // sender status is not ACCEPTED
     val senderId = "d2bd1412-e2f6-4047-ad70-a1a2f133b25c"
     postTxRequest.senderId = senderId
-    request = Sep12GetCustomerRequest.builder().id(senderId).type("sep31-sender").build()
-    val mockSender = Sep12GetCustomerResponse()
+    request = GetCustomerRequest.builder().id(senderId).type("sep31-sender").build()
+    val mockSender = GetCustomerResponse()
     mockSender.id = receiverId
     every { customerIntegration.getCustomer(request) } returns mockSender
     ex = assertThrows { sep31Service.postTransaction(jwtToken, postTxRequest) }
@@ -660,7 +656,7 @@ class Sep31ServiceTest {
 
     // ----- QUOTE_ID IS USED ⬇️ -----
     // not found quote_id
-    mockSender.status = Sep12Status.ACCEPTED
+    mockSender.status = Sep12Status.ACCEPTED.name
     every { customerIntegration.getCustomer(request) } returns mockSender
 
     postTxRequest.quoteId = "not-found-quote-id"
@@ -746,8 +742,8 @@ class Sep31ServiceTest {
       )
 
     // Make sure we can get the sender and receiver customers
-    val mockCustomer = Sep12GetCustomerResponse()
-    mockCustomer.status = Sep12Status.ACCEPTED
+    val mockCustomer = GetCustomerResponse()
+    mockCustomer.status = Sep12Status.ACCEPTED.name
     every { customerIntegration.getCustomer(any()) } returns mockCustomer
     every { custodyConfig.isCustodyIntegrationEnabled } returns true
 
@@ -776,9 +772,9 @@ class Sep31ServiceTest {
     assertDoesNotThrow { gotResponse = sep31Service.postTransaction(jwtToken, postTxRequest) }
 
     // verify if the mocks were called
-    var request = Sep12GetCustomerRequest.builder().id(senderId).type("sep31-sender").build()
+    var request = GetCustomerRequest.builder().id(senderId).type("sep31-sender").build()
     verify(exactly = 1) { customerIntegration.getCustomer(request) }
-    request = Sep12GetCustomerRequest.builder().id(receiverId).type("sep31-receiver").build()
+    request = GetCustomerRequest.builder().id(receiverId).type("sep31-receiver").build()
     verify(exactly = 1) { customerIntegration.getCustomer(request) }
     verify(exactly = 1) { quoteStore.findByQuoteId("my_quote_id") }
     verify(exactly = 1) { sep31DepositInfoGenerator.generate(any()) }
@@ -856,8 +852,8 @@ class Sep31ServiceTest {
       )
 
     // Make sure we can get the sender and receiver customers
-    val mockCustomer = Sep12GetCustomerResponse()
-    mockCustomer.status = Sep12Status.ACCEPTED
+    val mockCustomer = GetCustomerResponse()
+    mockCustomer.status = Sep12Status.ACCEPTED.name
     every { customerIntegration.getCustomer(any()) } returns mockCustomer
 
     // POST transaction
@@ -867,9 +863,9 @@ class Sep31ServiceTest {
     assertEquals("quotes_required is set to true; quote id cannot be empty", ex.message)
 
     // verify if the mocks were called
-    var request = Sep12GetCustomerRequest.builder().id(senderId).type("sep31-sender").build()
+    var request = GetCustomerRequest.builder().id(senderId).type("sep31-sender").build()
     verify(exactly = 1) { customerIntegration.getCustomer(request) }
-    request = Sep12GetCustomerRequest.builder().id(receiverId).type("sep31-receiver").build()
+    request = GetCustomerRequest.builder().id(receiverId).type("sep31-receiver").build()
     verify(exactly = 1) { customerIntegration.getCustomer(request) }
   }
 
@@ -930,8 +926,8 @@ class Sep31ServiceTest {
       )
 
     // Make sure we can get the sender and receiver customers
-    val mockCustomer = Sep12GetCustomerResponse()
-    mockCustomer.status = Sep12Status.ACCEPTED
+    val mockCustomer = GetCustomerResponse()
+    mockCustomer.status = Sep12Status.ACCEPTED.name
     every { customerIntegration.getCustomer(any()) } returns mockCustomer
 
     // POST transaction

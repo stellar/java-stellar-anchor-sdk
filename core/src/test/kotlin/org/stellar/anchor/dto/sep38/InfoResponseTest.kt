@@ -17,7 +17,7 @@ class InfoResponseTest {
   fun setUp() {
     val rjas = DefaultAssetService.fromJsonResource("test_assets.json")
     assets = rjas.listAllAssets()
-    assertEquals(3, assets.size)
+    assertEquals(4, assets.size)
   }
 
   @AfterEach

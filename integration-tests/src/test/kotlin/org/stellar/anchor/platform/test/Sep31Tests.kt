@@ -632,7 +632,7 @@ private const val expectedAfterPatch =
     }
   },
   "creator": {
-    "account": "GCHU3RZAECOKGM2YAJLQIIYB2ZPLMFTTGN5D3XZNX4RDOEERVLXO7HU4"
+    "account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
   }
 }
 """
