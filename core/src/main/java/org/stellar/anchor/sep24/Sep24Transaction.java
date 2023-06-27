@@ -1,6 +1,8 @@
 package org.stellar.anchor.sep24;
 
 import java.time.Instant;
+import java.util.List;
+import org.stellar.anchor.api.shared.StellarTransaction;
 
 @SuppressWarnings("unused")
 public interface Sep24Transaction {
@@ -77,6 +79,13 @@ public interface Sep24Transaction {
    * @return <code>completed</code> field of the SEP-24 transaction history.
    */
   Instant getCompletedAt();
+
+  /**
+   * The date and time of transaction last updated.
+   *
+   * @return <code>updated_at</code> field of the SEP-24 transaction history.
+   */
+  Instant getUpdatedAt();
 
   void setCompletedAt(Instant completedAt);
 
@@ -281,6 +290,10 @@ public interface Sep24Transaction {
   String getRefundMemoType();
 
   void setRefundMemoType(String refundMemoType);
+
+  List<StellarTransaction> getStellarTransactions();
+
+  String getMessage();
 
   enum Kind {
     DEPOSIT("deposit"),

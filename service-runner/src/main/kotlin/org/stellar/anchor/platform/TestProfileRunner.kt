@@ -146,6 +146,13 @@ class TestProfileExecutor(val config: TestConfig) {
       it.close()
       it.stop()
     }
+
+    runningServers.forEach {
+      while (it.isRunning || it.isActive) {
+        sleep(1000)
+      }
+    }
+
     org.stellar.reference.stop()
   }
 

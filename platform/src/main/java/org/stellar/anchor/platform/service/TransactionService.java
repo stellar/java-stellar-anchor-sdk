@@ -2,7 +2,7 @@ package org.stellar.anchor.platform.service;
 
 import static org.stellar.anchor.api.event.AnchorEvent.Type.TRANSACTION_STATUS_CHANGED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.*;
-import static org.stellar.anchor.platform.utils.TransactionHelper.toGetTransactionResponse;
+import static org.stellar.anchor.platform.utils.PlatformTransactionHelper.toGetTransactionResponse;
 import static org.stellar.anchor.sep31.Sep31Helper.allAmountAvailable;
 import static org.stellar.anchor.util.BeanHelper.updateField;
 import static org.stellar.anchor.util.MathHelper.decimal;
