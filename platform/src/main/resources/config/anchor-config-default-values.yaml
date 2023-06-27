@@ -159,7 +159,13 @@ event_processor:
 #     - domain: mgi.com
 #       public_key: GA22WORKYRXB6AW7XR5GIOAOQUY4KKCENEAI34FN3KJNWHKDZTZSVLTU
 #       callback_url: https://callback.mgi.com/api/v2/anchor/callback
-client_attribution:
+clients:
+#     - domain: domain1.com
+#       public_key:
+#       callback_url:
+#     - domain: domain2.com
+#       public_key:
+#       callback_url:
 
 ## @param: languages
 ## @supported_values: en
