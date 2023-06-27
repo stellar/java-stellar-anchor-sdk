@@ -139,10 +139,10 @@ event_processor:
   # The listening port of the event processing server
   port: 8084
   # The configuration of the status callback to the client domain
-  client_domain_status_callback:
+  client_status_callback:
     enabled: true
   # The configuration of the event delivery to the anchor business server
-  callback_api_event_delivery:
+  callback_api_request:
     enabled: true
 
 # The list of clients for the Anchor server to safely communicate with the outside client domains.
