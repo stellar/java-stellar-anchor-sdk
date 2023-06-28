@@ -152,12 +152,12 @@ event_processor:
 #   If the type is `custodial`,
 #   - account: (required) the custodial account of the client. If the `account` of the transaction is the same as this
 #              account, the callback will be activated.
-#   - url: (required) the URL of the client's callback API endpoint
+#   - callback_url: (required) the URL of the client's callback API endpoint
 #
 #   If the type is `noncustodial`,
 #   - domain: (required) the domain of the client. If the `client_domain` field of the transaction is the same as this
 #             domain, the callback will be activated.
-#   - url: (required) the URL of the client's callback API endpoint
+#   - callback_url: (required) the URL of the client's callback API endpoint
 #   - public_key: (optional) the public key of the client. If the public key is specified, the client domain's TOML
 #                 file will be fetched and the `SIGNING_KEY` of the TOML file will be compared with the public key.
 #                 If they don't match, a validation error will be thrown.
@@ -165,7 +165,7 @@ event_processor:
 # Examples:
 #     - type: custodial
 #       account: GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEGN2
-#       url: https://callback.circle.com/api/v1/anchor/callback
+#       callback_url: https://callback.circle.com/api/v1/anchor/callback
 #     - type: noncustodial
 #       domain: lobstr.co
 #       callback_url: https://callback.lobstr.co/api/v2/anchor/callback
@@ -176,10 +176,10 @@ event_processor:
 clients:
 #     - type: custodial
 #       account:
-#       url:
+#       callback_url:
 #     - type: noncustodial
 #       domain:
-#       url:
+#       callback_url:
 #       public_key:
 
 ## @param: languages
