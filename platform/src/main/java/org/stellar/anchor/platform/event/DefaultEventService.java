@@ -8,7 +8,6 @@ import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.EventPublishException;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.event.EventConfig;
-import org.stellar.anchor.event.EventPublisher;
 import org.stellar.anchor.event.EventService;
 
 public class DefaultEventService implements EventService {
