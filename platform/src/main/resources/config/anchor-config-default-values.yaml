@@ -151,7 +151,8 @@ event_processor:
 #
 #   If the type is `custodial`,
 #   - account: (required) the custodial account of the client. If the `account` of the transaction is the same as this
-#              account, the callback will be activated.
+#              account, the callback will be activated. The `account` field of the transaction is the account that is
+#              used for the SEP-10 authentication.
 #   - callback_url: (required) the URL of the client's callback API endpoint
 #
 #   If the type is `noncustodial`,
