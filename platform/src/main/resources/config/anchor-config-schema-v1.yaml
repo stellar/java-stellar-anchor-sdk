@@ -9,6 +9,7 @@ callback_api.auth.jwt.http_header:
 callback_api.auth.type:
 callback_api.base_url:
 callback_api.check_certificate:
+clients:
 data.database:
 data.ddl_auto:
 data.flyway_baseline_on_migrate:
@@ -18,15 +19,10 @@ data.initial_connection_pool_size:
 data.max_active_connections:
 data.server:
 data.type:
+event_processor.callback_api_request.enabled:
+event_processor.client_status_callback.enabled:
 event_processor.context_path:
 event_processor.port:
-event_processor.queue.kafka.bootstrap_server:
-event_processor.queue.kafka.event_type_to_topic.all:
-event_processor.queue.kafka.event_type_to_topic.quote_created:
-event_processor.queue.kafka.event_type_to_topic.transaction_created:
-event_processor.queue.kafka.event_type_to_topic.transaction_error:
-event_processor.queue.kafka.event_type_to_topic.transaction_status_updated:
-event_processor.queue.type:
 events.enabled:
 events.event_type_to_queue.quote_created:
 events.event_type_to_queue.transaction_created:
