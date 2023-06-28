@@ -19,6 +19,7 @@ import javax.transaction.Transactional;
 import lombok.Data;
 import lombok.SneakyThrows;
 import org.stellar.anchor.api.callback.*;
+import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.*;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.AssetInfo.Sep12Operation;
@@ -36,6 +37,7 @@ import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.sep38.Sep38Quote;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
 import org.stellar.anchor.util.Log;
+import org.stellar.anchor.util.TransactionHelper;
 
 public class Sep31Service {
   private final AppConfig appConfig;
@@ -178,7 +180,13 @@ public class Sep31Service {
 
     updateDepositInfo();
 
-    eventService.publish(txn, TRANSACTION_CREATED);
+    eventService.publish(
+        AnchorEvent.builder()
+            .id(UUID.randomUUID().toString())
+            .sep("31")
+            .type(TRANSACTION_CREATED)
+            .transaction(TransactionHelper.toGetTransactionResponse(txn))
+            .build());
 
     return Sep31PostTransactionResponse.builder()
         .id(txn.getId())

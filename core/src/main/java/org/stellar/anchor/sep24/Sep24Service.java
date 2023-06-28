@@ -20,6 +20,7 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.*;
+import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.*;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.sep24.*;
@@ -30,6 +31,7 @@ import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.Sep24Config;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.util.GsonUtils;
+import org.stellar.anchor.util.TransactionHelper;
 import org.stellar.sdk.KeyPair;
 import org.stellar.sdk.Memo;
 
@@ -180,7 +182,14 @@ public class Sep24Service {
 
     Sep24Transaction txn = builder.build();
     txnStore.save(txn);
-    eventService.publish(txn, TRANSACTION_CREATED);
+
+    eventService.publish(
+        AnchorEvent.builder()
+            .id(UUID.randomUUID().toString())
+            .sep("24")
+            .type(TRANSACTION_CREATED)
+            .transaction(TransactionHelper.toGetTransactionResponse(txn, assetService))
+            .build());
 
     infoF(
         "Saved withdraw transaction. from={}, amountIn={}, amountOut={}.",

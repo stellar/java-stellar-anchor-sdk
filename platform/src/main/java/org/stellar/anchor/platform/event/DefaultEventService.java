@@ -1,21 +1,15 @@
 package org.stellar.anchor.platform.event;
 
-import static org.stellar.anchor.api.event.AnchorEvent.Type.TRANSACTION_CREATED;
 import static org.stellar.anchor.util.Log.errorF;
 
 import io.micrometer.core.instrument.Metrics;
 import java.util.Map;
-import java.util.UUID;
-import lombok.SneakyThrows;
 import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.EventPublishException;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.event.EventConfig;
 import org.stellar.anchor.event.EventPublisher;
 import org.stellar.anchor.event.EventService;
-import org.stellar.anchor.sep24.Sep24Transaction;
-import org.stellar.anchor.sep31.Sep31Transaction;
-import org.stellar.anchor.util.TransactionHelper;
 
 public class DefaultEventService implements EventService {
   private final EventConfig eventConfig;
@@ -28,32 +22,6 @@ public class DefaultEventService implements EventService {
     this.eventConfig = eventConfig;
     this.eventTypeMapping = eventConfig.getEventTypeToQueue();
     this.assetService = assetService;
-  }
-
-  @Override
-  @SneakyThrows
-  public void publish(Sep24Transaction txn, AnchorEvent.Type type) {
-    AnchorEvent event =
-        AnchorEvent.builder()
-            .id(UUID.randomUUID().toString())
-            .sep("24")
-            .type(TRANSACTION_CREATED)
-            .transaction(TransactionHelper.toGetTransactionResponse(txn, assetService))
-            .build();
-    publish(event);
-  }
-
-  @Override
-  @SneakyThrows
-  public void publish(Sep31Transaction txn, AnchorEvent.Type type) {
-    AnchorEvent event =
-        AnchorEvent.builder()
-            .id(UUID.randomUUID().toString())
-            .sep("31")
-            .type(type)
-            .transaction(TransactionHelper.toGetTransactionResponse(txn))
-            .build();
-    publish(event);
   }
 
   @Override
