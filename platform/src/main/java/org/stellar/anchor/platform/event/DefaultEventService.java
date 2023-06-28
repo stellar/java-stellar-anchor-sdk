@@ -18,10 +18,12 @@ public class DefaultEventService implements EventService {
 
   private final Map<String, String> eventTypeMapping;
 
-  public DefaultEventService(EventConfig eventConfig, AssetService assetService) {
+  public DefaultEventService(
+      EventConfig eventConfig, AssetService assetService, EventPublisher eventPublisher) {
     this.eventConfig = eventConfig;
     this.eventTypeMapping = eventConfig.getEventTypeToQueue();
     this.assetService = assetService;
+    this.eventPublisher = eventPublisher;
   }
 
   @Override
@@ -38,10 +40,6 @@ public class DefaultEventService implements EventService {
               event.getType().type)
           .increment();
     }
-  }
-
-  public void setEventPublisher(EventPublisher eventPublisher) {
-    this.eventPublisher = eventPublisher;
   }
 
   String getQueue(String eventType) {

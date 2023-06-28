@@ -16,6 +16,7 @@ import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
+import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.InternalServerErrorException;
@@ -37,10 +38,7 @@ import org.stellar.anchor.sep31.Sep31Transaction;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep38.Sep38Quote;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
-import org.stellar.anchor.util.Log;
-import org.stellar.anchor.util.SepHelper;
-import org.stellar.anchor.util.StringHelper;
-import org.stellar.anchor.util.TransactionsParams;
+import org.stellar.anchor.util.*;
 import org.stellar.sdk.Memo;
 
 public class TransactionService {
@@ -177,11 +175,25 @@ public class TransactionService {
           sep24Transaction.setMemoType(memoTypeAsString(MEMO_HASH));
         }
         txn24Store.save(sep24Transaction);
-        eventService.publish(sep24Transaction, TRANSACTION_STATUS_CHANGED);
+        eventService.publish(
+            AnchorEvent.builder()
+                .id(UUID.randomUUID().toString())
+                .sep("24")
+                .type(TRANSACTION_STATUS_CHANGED)
+                .transaction(
+                    TransactionHelper.toGetTransactionResponse(sep24Transaction, assetService))
+                .build());
         break;
       case "31":
-        txn31Store.save((JdbcSep31Transaction) txn);
-        eventService.publish((JdbcSep31Transaction) txn, TRANSACTION_STATUS_CHANGED);
+        JdbcSep31Transaction sep31Transaction = (JdbcSep31Transaction) txn;
+        txn31Store.save(sep31Transaction);
+        eventService.publish(
+            AnchorEvent.builder()
+                .id(UUID.randomUUID().toString())
+                .sep("24")
+                .type(TRANSACTION_STATUS_CHANGED)
+                .transaction(TransactionHelper.toGetTransactionResponse(sep31Transaction))
+                .build());
         break;
     }
     if (!lastStatus.equals(txn.getStatus())) updateMetrics(txn);

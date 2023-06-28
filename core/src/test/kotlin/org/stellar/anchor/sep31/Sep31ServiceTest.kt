@@ -765,7 +765,7 @@ class Sep31ServiceTest {
     verify(exactly = 1) { customerIntegration.getCustomer(request) }
     verify(exactly = 1) { quoteStore.findByQuoteId("my_quote_id") }
     verify(exactly = 1) { sep31DepositInfoGenerator.generate(any()) }
-    verify(exactly = 1) { eventPublishService.publish(any() as Sep31Transaction, any()) }
+    verify(exactly = 1) { eventPublishService.publish(any()) }
 
     // validate the values of the saved sep31Transaction
     val gotTx = gson.toJson(slotTxn.captured)

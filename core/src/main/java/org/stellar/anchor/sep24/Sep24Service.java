@@ -313,7 +313,14 @@ public class Sep24Service {
 
     Sep24Transaction txn = builder.build();
     txnStore.save(txn);
-    eventService.publish(txn, TRANSACTION_CREATED);
+
+    eventService.publish(
+        AnchorEvent.builder()
+            .id(UUID.randomUUID().toString())
+            .sep("24")
+            .type(TRANSACTION_CREATED)
+            .transaction(TransactionHelper.toGetTransactionResponse(txn, assetService))
+            .build());
 
     infoF(
         "Saved deposit transaction. to={}, amountIn={}, amountOut={}.",

@@ -7,6 +7,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.asset.AssetService;
+import org.stellar.anchor.event.EventPublisher;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.platform.config.PropertyEventConfig;
 import org.stellar.anchor.platform.event.*;
@@ -25,23 +26,20 @@ public class EventBeans {
   @Bean
   public EventService eventService(PropertyEventConfig eventConfig, AssetService assetService)
       throws InvalidConfigException {
-    DefaultEventService eventService = new DefaultEventService(eventConfig, assetService);
+    EventPublisher eventPublisher = null;
     if (!eventConfig.isEnabled()) {
-      eventService.setEventPublisher(new NoopEventPublisher());
+      eventPublisher = new NoopEventPublisher();
     } else {
       String publisherType = eventConfig.getPublisher().getType();
       switch (publisherType) {
         case "kafka":
-          eventService.setEventPublisher(
-              KafkaEventPublisher.getInstance(eventConfig.getPublisher().getKafka()));
+          eventPublisher = KafkaEventPublisher.getInstance(eventConfig.getPublisher().getKafka());
           break;
         case "sqs":
-          eventService.setEventPublisher(
-              new SqsEventPublisher(eventConfig.getPublisher().getSqs()));
+          eventPublisher = new SqsEventPublisher(eventConfig.getPublisher().getSqs());
           break;
         case "msk":
-          eventService.setEventPublisher(
-              new MskEventPublisher(eventConfig.getPublisher().getMsk()));
+          eventPublisher = new MskEventPublisher(eventConfig.getPublisher().getMsk());
           break;
         default:
           errorF("Invalid event publisher: {}", publisherType);
@@ -49,7 +47,6 @@ public class EventBeans {
               String.format("Invalid event publisher: %s", publisherType));
       }
     }
-
-    return eventService;
+    return new DefaultEventService(eventConfig, assetService, eventPublisher);
   }
 }
