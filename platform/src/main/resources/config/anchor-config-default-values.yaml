@@ -145,27 +145,42 @@ event_processor:
   callback_api_request:
     enabled: true
 
-# The list of clients for the Anchor server to safely communicate with the outside client domains.
+# The list of clients for the Anchor server to safely communicate with the outside wallet servers or clients.
 # Each item in the list may contain the following fields:
-#   - domain: the domain of the client
-#   - type: the type of the client. The supported values are `custodial` and `non-custodial`
-#   - public_key: the public key of the client. This must match the public key of the TOML file of the client domain
-#   - url: the URL of the client's callback API endpoint
+#   - type: `custodial` or `noncustodial`
+#
+#   If the type is `custodial`,
+#   - signing_key: (required) the custodial SEP-10 signing key of the client. If the signing key of the client
+#                  is the same as the `signing_key`, the callback will be activated.
+#   - callback_url: (required) the URL of the client's callback API endpoint
+#
+#   If the type is `noncustodial`,
+#   - domain: (required) the domain of the client. If the `client_domain` field of the transaction is the same as this
+#             domain, the callback will be activated.
+#   - callback_url: (required) the URL of the client's callback API endpoint
+#   - signing_key: (optional) the signing key of the client. If the public key is specified, the client domain's TOML
+#                 file will be fetched and the `SIGNING_KEY` of the TOML file will be compared with the public key.
+#                 If they don't match, a validation error will be thrown.
 #
 # Examples:
-#     - domain: lobstr.com
-#       public_key: GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEGN2
-#       callback_url: https://callback.lobstr.com/api/v1/anchor/callback
-#     - domain: mgi.com
-#       public_key: GA22WORKYRXB6AW7XR5GIOAOQUY4KKCENEAI34FN3KJNWHKDZTZSVLTU
-#       callback_url: https://callback.mgi.com/api/v2/anchor/callback
+#     - type: custodial
+#       signing_key: GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEGN2
+#       callback_url: https://callback.circle.com/api/v1/anchor/callback
+#     - type: noncustodial
+#       domain: lobstr.co
+#       signing_key: https://callback.lobstr.co/api/v2/anchor/callback
+#     - type: noncustodial
+#       domain: vibrant.co
+#       callback_url: https://callback.vibrant.com/api/v2/anchor/callback
+#       signing_key: GA22WORKYRXB6AW7XR5GIOAOQUY4KKCENEAI34FN3KJNWHKDZTZSVLTU
 clients:
-#     - domain: domain1.com
-#       public_key:
+#     - type: custodial
+#       signing_key:
 #       callback_url:
-#     - domain: domain2.com
-#       public_key:
+#     - type: noncustodial
+#       domain:
 #       callback_url:
+#       signing_key:
 
 ## @param: languages
 ## @supported_values: en
