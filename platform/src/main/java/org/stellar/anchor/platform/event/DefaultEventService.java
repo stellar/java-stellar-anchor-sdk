@@ -41,6 +41,12 @@ public class DefaultEventService implements EventService {
     }
   }
 
+  @Override
+  public Session createSession(EventQueue eventQueue) {
+    // TODO: Implement this
+    return null;
+  }
+
   String getQueue(String eventType) {
     String queue = eventTypeMapping.get(eventType);
     if (queue == null) {
