@@ -54,7 +54,7 @@ public class PlatformController {
   public CreateTransactionPaymentResponse createCustodyTransactionPayment(
       @PathVariable(name = "id") String txnId, @RequestBody String requestBody)
       throws AnchorException {
-    return custodyService.createTransactionPayment(txnId, requestBody);
+    return custodyService.submitTransactionPayment(txnId, requestBody);
   }
 
   @CrossOrigin(origins = "*")

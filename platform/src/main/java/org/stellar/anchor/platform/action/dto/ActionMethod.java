@@ -4,8 +4,8 @@ import com.google.gson.annotations.SerializedName;
 import java.util.Objects;
 
 public enum ActionMethod {
-  @SerializedName("interactive_flow_completed")
-  INTERACTIVE_FLOW_COMPLETED("interactive_flow_completed"),
+  @SerializedName("notify_interactive_flow_completed")
+  NOTIFY_INTERACTIVE_FLOW_COMPLETED("notify_interactive_flow_completed"),
 
   @SerializedName("request_offchain_funds")
   REQUEST_OFFCHAIN_FUNDS("request_offchain_funds"),
@@ -38,7 +38,19 @@ public enum ActionMethod {
   NOTIFY_ONCHAIN_FUNDS_RECEIVED("notify_onchain_funds_received"),
 
   @SerializedName("request_offchain_funds_collected")
-  REQUEST_OFFCHAIN_FUNDS_COLLECTED("request_offchain_funds_collected");
+  REQUEST_OFFCHAIN_FUNDS_COLLECTED("request_offchain_funds_collected"),
+
+  @SerializedName("notify_transaction_error")
+  NOTIFY_TRANSACTION_ERROR("notify_transaction_error"),
+
+  @SerializedName("notify_transaction_expired")
+  NOTIFY_TRANSACTION_EXPIRED("notify_transaction_expired"),
+
+  @SerializedName("do_stellar_refund")
+  DO_STELLAR_REFUND("do_stellar_refund"),
+
+  @SerializedName("request_onchain_funds")
+  REQUEST_ONCHAIN_FUNDS("request_onchain_funds");
 
   private final String method;
 

@@ -2,7 +2,7 @@ package org.stellar.anchor.platform.action.handlers;
 
 import static org.stellar.anchor.api.sep.SepTransactionStatus.INCOMPLETE;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
-import static org.stellar.anchor.platform.action.dto.ActionMethod.INTERACTIVE_FLOW_COMPLETED;
+import static org.stellar.anchor.platform.action.dto.ActionMethod.NOTIFY_INTERACTIVE_FLOW_COMPLETED;
 
 import java.util.Set;
 import javax.validation.Validator;
@@ -11,17 +11,17 @@ import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.platform.action.dto.ActionMethod;
-import org.stellar.anchor.platform.action.dto.InteractiveFlowCompletedRequest;
+import org.stellar.anchor.platform.action.dto.NotifyInteractiveFlowCompletedRequest;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 
 @Service
-public class InteractiveFlowCompletedHandler
-    extends ActionHandler<InteractiveFlowCompletedRequest> {
+public class NotifyInteractiveFlowCompletedHandler
+    extends ActionHandler<NotifyInteractiveFlowCompletedRequest> {
 
-  public InteractiveFlowCompletedHandler(
+  public NotifyInteractiveFlowCompletedHandler(
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       Validator validator,
@@ -31,12 +31,12 @@ public class InteractiveFlowCompletedHandler
 
   @Override
   public ActionMethod getActionType() {
-    return INTERACTIVE_FLOW_COMPLETED;
+    return NOTIFY_INTERACTIVE_FLOW_COMPLETED;
   }
 
   @Override
   protected SepTransactionStatus getNextStatus(
-      JdbcSepTransaction txn, InteractiveFlowCompletedRequest request) {
+      JdbcSepTransaction txn, NotifyInteractiveFlowCompletedRequest request) {
     return PENDING_ANCHOR;
   }
 
@@ -57,7 +57,8 @@ public class InteractiveFlowCompletedHandler
 
   @Override
   protected void updateActionTransactionInfo(
-      JdbcSepTransaction txn, InteractiveFlowCompletedRequest request) throws BadRequestException {
+      JdbcSepTransaction txn, NotifyInteractiveFlowCompletedRequest request)
+      throws BadRequestException {
     validateAsset("amount_in", request.getAmountIn());
     validateAsset("amount_out", request.getAmountOut());
     validateAsset("amount_fee", request.getAmountFee(), true);

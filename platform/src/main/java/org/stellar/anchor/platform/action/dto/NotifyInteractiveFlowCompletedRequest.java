@@ -6,7 +6,7 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class InteractiveFlowCompletedRequest extends RpcParamsRequest {
+public class NotifyInteractiveFlowCompletedRequest extends RpcParamsRequest {
 
   @NotNull private AmountRequest amountIn;
 

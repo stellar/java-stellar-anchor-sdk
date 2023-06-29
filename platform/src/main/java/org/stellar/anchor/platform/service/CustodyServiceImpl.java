@@ -47,7 +47,7 @@ public class CustodyServiceImpl implements CustodyService {
   }
 
   @Override
-  public CreateTransactionPaymentResponse createTransactionPayment(String txnId, String requestBody)
+  public CreateTransactionPaymentResponse submitTransactionPayment(String txnId, String requestBody)
       throws AnchorException {
     if (custodyApiClient.isEmpty()) {
       // custody.type is set to 'none'
@@ -74,5 +74,11 @@ public class CustodyServiceImpl implements CustodyService {
     }
 
     return response;
+  }
+
+  @Override
+  public CreateTransactionPaymentResponse submitTransactionRefund(String txnId, Object requestBody)
+      throws AnchorException {
+    return null;
   }
 }

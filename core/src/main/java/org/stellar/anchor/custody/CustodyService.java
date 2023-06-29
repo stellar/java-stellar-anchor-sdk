@@ -31,6 +31,17 @@ public interface CustodyService {
    * @return {@link CreateTransactionPaymentResponse} object
    * @throws AnchorException if error happens
    */
-  CreateTransactionPaymentResponse createTransactionPayment(String txnId, String requestBody)
+  CreateTransactionPaymentResponse submitTransactionPayment(String txnId, String requestBody)
+      throws AnchorException;
+
+  /**
+   * Create custody transaction refund
+   *
+   * @param txnId transaction ID
+   * @param requestBody request body
+   * @return {@link CreateTransactionPaymentResponse} object
+   * @throws AnchorException if error happens
+   */
+  CreateTransactionPaymentResponse submitTransactionRefund(String txnId, Object requestBody)
       throws AnchorException;
 }

@@ -2,7 +2,7 @@ package org.stellar.anchor.platform.action.handlers;
 
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_STELLAR;
-import static org.stellar.anchor.platform.action.dto.ActionMethod.DO_STELLAR_PAYMENT;
+import static org.stellar.anchor.platform.action.dto.ActionMethod.DO_STELLAR_REFUND;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -16,7 +16,7 @@ import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.CustodyConfig;
 import org.stellar.anchor.custody.CustodyService;
 import org.stellar.anchor.platform.action.dto.ActionMethod;
-import org.stellar.anchor.platform.action.dto.DoStellarPaymentRequest;
+import org.stellar.anchor.platform.action.dto.DoStellarRefundRequest;
 import org.stellar.anchor.platform.action.dto.RpcParamsRequest;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
@@ -24,12 +24,12 @@ import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 
 @Service
-public class DoStellarPaymentHandler extends ActionHandler<DoStellarPaymentRequest> {
+public class DoStellarRefundHandler extends ActionHandler<DoStellarRefundRequest> {
 
   private final CustodyService custodyService;
   private final CustodyConfig custodyConfig;
 
-  public DoStellarPaymentHandler(
+  public DoStellarRefundHandler(
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       Validator validator,
@@ -53,12 +53,12 @@ public class DoStellarPaymentHandler extends ActionHandler<DoStellarPaymentReque
 
   @Override
   public ActionMethod getActionType() {
-    return DO_STELLAR_PAYMENT;
+    return DO_STELLAR_REFUND;
   }
 
   @Override
   protected SepTransactionStatus getNextStatus(
-      JdbcSepTransaction txn, DoStellarPaymentRequest request) {
+      JdbcSepTransaction txn, DoStellarRefundRequest request) {
     return PENDING_STELLAR;
   }
 
@@ -70,7 +70,7 @@ public class DoStellarPaymentHandler extends ActionHandler<DoStellarPaymentReque
       case "24":
         JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
         switch (Kind.from(txn24.getKind())) {
-          case DEPOSIT:
+          case WITHDRAWAL:
             if (txn24.getTransferReceivedAt() != null) {
               supportedStatuses.add(PENDING_ANCHOR);
             }
@@ -93,8 +93,9 @@ public class DoStellarPaymentHandler extends ActionHandler<DoStellarPaymentReque
   }
 
   @Override
-  protected void updateActionTransactionInfo(
-      JdbcSepTransaction txn, DoStellarPaymentRequest request) throws AnchorException {
-    custodyService.submitTransactionPayment(txn.getId(), null);
+  protected void updateActionTransactionInfo(JdbcSepTransaction txn, DoStellarRefundRequest request)
+      throws AnchorException {
+    // TODO: Add refund endpoint
+    custodyService.submitTransactionRefund(txn.getId(), null);
   }
 }

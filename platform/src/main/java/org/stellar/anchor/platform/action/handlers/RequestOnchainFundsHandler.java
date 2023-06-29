@@ -1,47 +1,63 @@
 package org.stellar.anchor.platform.action.handlers;
 
+import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.INCOMPLETE;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_RECEIVER;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_SENDER;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_USR_TRANSFER_START;
-import static org.stellar.anchor.platform.action.dto.ActionMethod.REQUEST_OFFCHAIN_FUNDS;
+import static org.stellar.anchor.platform.action.dto.ActionMethod.REQUEST_ONCHAIN_FUNDS;
 
 import java.util.HashSet;
 import java.util.Set;
 import javax.validation.Validator;
 import org.springframework.stereotype.Service;
+import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
+import org.stellar.anchor.api.shared.SepDepositInfo;
 import org.stellar.anchor.asset.AssetService;
+import org.stellar.anchor.config.CustodyConfig;
+import org.stellar.anchor.custody.CustodyService;
 import org.stellar.anchor.platform.action.dto.ActionMethod;
-import org.stellar.anchor.platform.action.dto.RequestOffchainFundsRequest;
+import org.stellar.anchor.platform.action.dto.RequestOnchainFundsRequest;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSep31Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
+import org.stellar.anchor.sep24.Sep24DepositInfoGenerator;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 
 @Service
-public class RequestOffchainFundsHandler extends ActionHandler<RequestOffchainFundsRequest> {
+public class RequestOnchainFundsHandler extends ActionHandler<RequestOnchainFundsRequest> {
 
-  public RequestOffchainFundsHandler(
+  private final CustodyConfig custodyConfig;
+  private final CustodyService custodyService;
+  private final Sep24DepositInfoGenerator sep24DepositInfoGenerator;
+
+  public RequestOnchainFundsHandler(
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       Validator validator,
-      AssetService assetService) {
+      AssetService assetService,
+      CustodyConfig custodyConfig,
+      CustodyService custodyService,
+      Sep24DepositInfoGenerator sep24DepositInfoGenerator) {
     super(txn24Store, txn31Store, validator, assetService);
+    this.custodyConfig = custodyConfig;
+    this.custodyService = custodyService;
+    this.sep24DepositInfoGenerator = sep24DepositInfoGenerator;
   }
 
   @Override
   public ActionMethod getActionType() {
-    return REQUEST_OFFCHAIN_FUNDS;
+    return REQUEST_ONCHAIN_FUNDS;
   }
 
   @Override
   protected SepTransactionStatus getNextStatus(
-      JdbcSepTransaction txn, RequestOffchainFundsRequest request) {
+      JdbcSepTransaction txn, RequestOnchainFundsRequest request) {
     switch (txn.getProtocol()) {
       case "24":
         return PENDING_USR_TRANSFER_START;
@@ -64,7 +80,7 @@ public class RequestOffchainFundsHandler extends ActionHandler<RequestOffchainFu
         case "24":
           JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
           switch (Kind.from(txn24.getKind())) {
-            case DEPOSIT:
+            case WITHDRAWAL:
               if (txn24.getTransferReceivedAt() == null) {
                 supportedStatuses.add(PENDING_ANCHOR);
               }
@@ -93,7 +109,7 @@ public class RequestOffchainFundsHandler extends ActionHandler<RequestOffchainFu
 
   @Override
   protected void updateActionTransactionInfo(
-      JdbcSepTransaction txn, RequestOffchainFundsRequest request) throws BadRequestException {
+      JdbcSepTransaction txn, RequestOnchainFundsRequest request) throws AnchorException {
     validateAsset("amount_in", request.getAmountIn());
     validateAsset("amount_out", request.getAmountOut());
     validateAsset("amount_fee", request.getAmountFee(), true);
@@ -132,9 +148,29 @@ public class RequestOffchainFundsHandler extends ActionHandler<RequestOffchainFu
       if (txn24.getAmountExpected() == null) {
         if (request.getAmountExpected() != null) {
           txn24.setAmountExpected(request.getAmountExpected().getAmount());
-        } else if (txn.getAmountFee() == null) {
+        } else if (txn24.getAmountFee() == null) {
           txn24.setAmountExpected(txn.getAmountIn());
         }
+      }
+
+      if (request.getDestinationAccount() != null) {
+        txn24.setWithdrawAnchorAccount(request.getDestinationAccount());
+        txn24.setToAccount(request.getDestinationAccount());
+      }
+
+      if (request.getMemo() != null && request.getMemoType() != null) {
+        txn24.setMemo(request.getMemo());
+        txn24.setMemoType(request.getMemoType());
+      } else {
+        SepDepositInfo sep24DepositInfo = sep24DepositInfoGenerator.generate(txn24);
+        txn24.setToAccount(sep24DepositInfo.getStellarAddress());
+        txn24.setWithdrawAnchorAccount(sep24DepositInfo.getStellarAddress());
+        txn24.setMemo(sep24DepositInfo.getMemo());
+        txn24.setMemoType(sep24DepositInfo.getMemoType());
+      }
+
+      if (custodyConfig.isCustodyIntegrationEnabled() && WITHDRAWAL == Kind.from(txn24.getKind())) {
+        custodyService.createTransaction(txn24);
       }
     } else if ("31".equals(txn.getProtocol())) {
       JdbcSep31Transaction txn31 = (JdbcSep31Transaction) txn;
@@ -142,7 +178,7 @@ public class RequestOffchainFundsHandler extends ActionHandler<RequestOffchainFu
       if (txn31.getAmountExpected() == null) {
         if (request.getAmountExpected() != null) {
           txn31.setAmountExpected(request.getAmountExpected().getAmount());
-        } else if (txn.getAmountFee() == null) {
+        } else if (txn31.getAmountFee() == null) {
           txn31.setAmountExpected(txn.getAmountIn());
         }
       }

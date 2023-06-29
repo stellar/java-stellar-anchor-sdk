@@ -1,6 +1,5 @@
 package org.stellar.anchor.platform.action.handlers;
 
-import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_EXTERNAL;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_RECEIVER;
@@ -17,8 +16,6 @@ import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
-import org.stellar.anchor.config.CustodyConfig;
-import org.stellar.anchor.custody.CustodyService;
 import org.stellar.anchor.platform.action.dto.ActionMethod;
 import org.stellar.anchor.platform.action.dto.NotifyOnchainFundsReceivedRequest;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
@@ -30,19 +27,12 @@ import org.stellar.anchor.sep31.Sep31TransactionStore;
 public class NotifyOnchainFundsReceivedHandler
     extends ActionHandler<NotifyOnchainFundsReceivedRequest> {
 
-  private final CustodyService custodyService;
-  private final CustodyConfig custodyConfig;
-
   public NotifyOnchainFundsReceivedHandler(
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       Validator validator,
-      AssetService assetService,
-      CustodyService custodyService,
-      CustodyConfig custodyConfig) {
+      AssetService assetService) {
     super(txn24Store, txn31Store, validator, assetService);
-    this.custodyService = custodyService;
-    this.custodyConfig = custodyConfig;
   }
 
   @Override
@@ -136,13 +126,6 @@ public class NotifyOnchainFundsReceivedHandler
     if (request.getAmountFee() != null) {
       txn.setAmountIn(request.getAmountFee().getAmount());
       txn.setAmountInAsset(request.getAmountFee().getAsset());
-    }
-
-    JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
-    if (custodyConfig.isCustodyIntegrationEnabled()
-        && "24".equals(txn24.getProtocol())
-        && DEPOSIT == Kind.from(txn24.getKind())) {
-      custodyService.createTransaction(txn24);
     }
   }
 }
