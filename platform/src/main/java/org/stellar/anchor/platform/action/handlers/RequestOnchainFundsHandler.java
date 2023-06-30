@@ -1,6 +1,5 @@
 package org.stellar.anchor.platform.action.handlers;
 
-import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.INCOMPLETE;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_RECEIVER;
@@ -119,88 +118,83 @@ public class RequestOnchainFundsHandler extends ActionHandler<RequestOnchainFund
     validateAsset("amount_fee", request.getAmountFee(), true);
     validateAsset("amount_expected", request.getAmountOut());
 
-    if (txn.getAmountIn() == null) {
-      if (request.getAmountIn() != null) {
-        txn.setAmountIn(request.getAmountIn().getAmount());
-        txn.setAmountInAsset(request.getAmountIn().getAsset());
-      } else if (txn.getAmountIn() == null) {
-        throw new BadRequestException("amount_in is required");
-      }
+    if (request.getAmountIn() != null) {
+      txn.setAmountIn(request.getAmountIn().getAmount());
+      txn.setAmountInAsset(request.getAmountIn().getAsset());
+    } else if (txn.getAmountIn() == null) {
+      throw new BadRequestException("amount_in is required");
     }
 
-    if (txn.getAmountOut() == null) {
-      if (request.getAmountOut() != null) {
-        txn.setAmountIn(request.getAmountOut().getAmount());
-        txn.setAmountInAsset(request.getAmountOut().getAsset());
-      } else if (txn.getAmountOut() == null) {
-        throw new BadRequestException("amount_out is required");
-      }
+    if (request.getAmountOut() != null) {
+      txn.setAmountIn(request.getAmountOut().getAmount());
+      txn.setAmountInAsset(request.getAmountOut().getAsset());
+    } else if (txn.getAmountOut() == null) {
+      throw new BadRequestException("amount_out is required");
     }
 
-    if (txn.getAmountFee() == null) {
-      if (request.getAmountFee() != null) {
-        txn.setAmountIn(request.getAmountFee().getAmount());
-        txn.setAmountInAsset(request.getAmountFee().getAsset());
-      } else if (txn.getAmountFee() == null) {
-        throw new BadRequestException("amount_fee is required");
-      }
+    if (request.getAmountFee() != null) {
+      txn.setAmountIn(request.getAmountFee().getAmount());
+      txn.setAmountInAsset(request.getAmountFee().getAsset());
+    } else if (txn.getAmountFee() == null) {
+      throw new BadRequestException("amount_fee is required");
     }
 
-    if ("24".equals(txn.getProtocol())) {
-      JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
+    switch (txn.getProtocol()) {
+      case "24":
+        JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
 
-      if (txn24.getAmountExpected() == null) {
         if (request.getAmountExpected() != null) {
           txn24.setAmountExpected(request.getAmountExpected().getAmount());
-        } else if (txn24.getAmountFee() == null) {
+        } else {
           txn24.setAmountExpected(txn.getAmountIn());
-        }
-      }
-
-      if (request.getDestinationAccount() != null) {
-        txn24.setWithdrawAnchorAccount(request.getDestinationAccount());
-        txn24.setToAccount(request.getDestinationAccount());
-      }
-
-      if (sep24DepositInfoGenerator instanceof Sep24DepositInfoNoneGenerator) {
-        if (request.getMemo() != null) {
-          txn24.setMemo(request.getMemo());
-        } else {
-          throw new BadRequestException("memo is required");
-        }
-
-        if (request.getMemoType() != null) {
-          txn24.setMemo(request.getMemoType());
-        } else {
-          throw new BadRequestException("memo_type is required");
         }
 
         if (request.getDestinationAccount() != null) {
           txn24.setWithdrawAnchorAccount(request.getDestinationAccount());
-        } else {
-          throw new BadRequestException("destination_account is required");
+          txn24.setToAccount(request.getDestinationAccount());
         }
-      } else {
-        SepDepositInfo sep24DepositInfo = sep24DepositInfoGenerator.generate(txn24);
-        txn24.setToAccount(sep24DepositInfo.getStellarAddress());
-        txn24.setWithdrawAnchorAccount(sep24DepositInfo.getStellarAddress());
-        txn24.setMemo(sep24DepositInfo.getMemo());
-        txn24.setMemoType(sep24DepositInfo.getMemoType());
-      }
 
-      if (custodyConfig.isCustodyIntegrationEnabled()) {
-        custodyService.createTransaction(txn24);
-      }
-    } else if ("31".equals(txn.getProtocol())) {
-      JdbcSep31Transaction txn31 = (JdbcSep31Transaction) txn;
+        if (sep24DepositInfoGenerator instanceof Sep24DepositInfoNoneGenerator) {
+          if (request.getMemo() != null) {
+            txn24.setMemo(request.getMemo());
+          } else {
+            throw new BadRequestException("memo is required");
+          }
 
-      if (txn31.getAmountExpected() == null) {
+          if (request.getMemoType() != null) {
+            txn24.setMemo(request.getMemoType());
+          } else {
+            throw new BadRequestException("memo_type is required");
+          }
+
+          if (request.getDestinationAccount() != null) {
+            txn24.setWithdrawAnchorAccount(request.getDestinationAccount());
+          } else {
+            throw new BadRequestException("destination_account is required");
+          }
+        } else {
+          SepDepositInfo sep24DepositInfo = sep24DepositInfoGenerator.generate(txn24);
+          txn24.setToAccount(sep24DepositInfo.getStellarAddress());
+          txn24.setWithdrawAnchorAccount(sep24DepositInfo.getStellarAddress());
+          txn24.setMemo(sep24DepositInfo.getMemo());
+          txn24.setMemoType(sep24DepositInfo.getMemoType());
+        }
+
+        if (custodyConfig.isCustodyIntegrationEnabled()) {
+          custodyService.createTransaction(txn24);
+        }
+
+        break;
+      case "31":
+        JdbcSep31Transaction txn31 = (JdbcSep31Transaction) txn;
+
         if (request.getAmountExpected() != null) {
           txn31.setAmountExpected(request.getAmountExpected().getAmount());
-        } else if (txn31.getAmountFee() == null) {
+        } else {
           txn31.setAmountExpected(txn.getAmountIn());
         }
-      }
+
+        break;
     }
   }
 }

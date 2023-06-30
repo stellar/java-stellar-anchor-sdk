@@ -13,6 +13,7 @@ import java.util.Set;
 import javax.validation.Validator;
 import org.springframework.stereotype.Service;
 import org.stellar.anchor.api.exception.AnchorException;
+import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
@@ -98,19 +99,16 @@ public class NotifyOnchainFundsReceivedHandler
   }
 
   @Override
-  protected boolean isFinalAction() {
-    return false;
-  }
-
-  @Override
   protected void updateTransactionWithAction(
       JdbcSepTransaction txn, NotifyOnchainFundsReceivedRequest request) throws AnchorException {
     // TODO: add Stellar Transactions
-    if (txn.getStellarTransactionId() == null) {
+    if (request.getStellarTransactionId() != null) {
       txn.setStellarTransactionId(request.getStellarTransactionId());
-    } else if (txn.getTransferReceivedAt() == null) {
+
       // TODO: populate transferReceivedAt from Stellar Network
       txn.setTransferReceivedAt(Instant.now());
+    } else if (txn.getStellarTransactionId() == null) {
+      throw new BadRequestException("stellar_transaction_id is required");
     }
 
     validateAsset("amount_in", request.getAmountIn());

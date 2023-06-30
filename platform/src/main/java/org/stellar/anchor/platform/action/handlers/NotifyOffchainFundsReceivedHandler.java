@@ -110,13 +110,12 @@ public class NotifyOffchainFundsReceivedHandler
   @Override
   protected void updateTransactionWithAction(
       JdbcSepTransaction txn, NotifyOffchainFundsReceivedRequest request) throws AnchorException {
-    if (txn.getExternalTransactionId() == null) {
+    if (request.getExternalTransactionId() != null) {
       txn.setExternalTransactionId(request.getExternalTransactionId());
-    } else if (txn.getTransferReceivedAt() == null) {
-      if (request.getFundsReceivedAt() == null) {
-        txn.setTransferReceivedAt(Instant.now());
-      } else {
+      if (request.getFundsReceivedAt() != null) {
         txn.setTransferReceivedAt(request.getFundsReceivedAt());
+      } else {
+        txn.setTransferReceivedAt(Instant.now());
       }
     }
 
@@ -137,11 +136,11 @@ public class NotifyOffchainFundsReceivedHandler
       txn.setAmountInAsset(request.getAmountFee().getAsset());
     }
 
-    JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
-    if (custodyConfig.isCustodyIntegrationEnabled()
-        && "24".equals(txn24.getProtocol())
-        && DEPOSIT == Kind.from(txn24.getKind())) {
-      custodyService.createTransaction(txn24);
+    if (custodyConfig.isCustodyIntegrationEnabled() && "24".equals(txn.getProtocol())) {
+      JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
+      if (DEPOSIT == Kind.from(txn24.getKind())) {
+        custodyService.createTransaction(txn24);
+      }
     }
   }
 }

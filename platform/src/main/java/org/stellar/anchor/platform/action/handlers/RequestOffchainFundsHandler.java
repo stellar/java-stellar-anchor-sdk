@@ -100,53 +100,48 @@ public class RequestOffchainFundsHandler extends ActionHandler<RequestOffchainFu
     validateAsset("amount_fee", request.getAmountFee(), true);
     validateAsset("amount_expected", request.getAmountOut());
 
-    if (txn.getAmountIn() == null) {
-      if (request.getAmountIn() != null) {
-        txn.setAmountIn(request.getAmountIn().getAmount());
-        txn.setAmountInAsset(request.getAmountIn().getAsset());
-      } else if (txn.getAmountIn() == null) {
-        throw new BadRequestException("amount_in is required");
-      }
+    if (request.getAmountIn() != null) {
+      txn.setAmountIn(request.getAmountIn().getAmount());
+      txn.setAmountInAsset(request.getAmountIn().getAsset());
+    } else if (txn.getAmountIn() == null) {
+      throw new BadRequestException("amount_in is required");
     }
 
-    if (txn.getAmountOut() == null) {
-      if (request.getAmountOut() != null) {
-        txn.setAmountIn(request.getAmountOut().getAmount());
-        txn.setAmountInAsset(request.getAmountOut().getAsset());
-      } else if (txn.getAmountOut() == null) {
-        throw new BadRequestException("amount_out is required");
-      }
+    if (request.getAmountOut() != null) {
+      txn.setAmountIn(request.getAmountOut().getAmount());
+      txn.setAmountInAsset(request.getAmountOut().getAsset());
+    } else if (txn.getAmountOut() == null) {
+      throw new BadRequestException("amount_out is required");
     }
 
-    if (txn.getAmountFee() == null) {
-      if (request.getAmountFee() != null) {
-        txn.setAmountIn(request.getAmountFee().getAmount());
-        txn.setAmountInAsset(request.getAmountFee().getAsset());
-      } else if (txn.getAmountFee() == null) {
-        throw new BadRequestException("amount_fee is required");
-      }
+    if (request.getAmountFee() != null) {
+      txn.setAmountIn(request.getAmountFee().getAmount());
+      txn.setAmountInAsset(request.getAmountFee().getAsset());
+    } else if (txn.getAmountFee() == null) {
+      throw new BadRequestException("amount_fee is required");
     }
 
-    if ("24".equals(txn.getProtocol())) {
-      JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
+    switch (txn.getProtocol()) {
+      case "24":
+        JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
 
-      if (txn24.getAmountExpected() == null) {
         if (request.getAmountExpected() != null) {
           txn24.setAmountExpected(request.getAmountExpected().getAmount());
-        } else if (txn.getAmountFee() == null) {
+        } else {
           txn24.setAmountExpected(txn.getAmountIn());
         }
-      }
-    } else if ("31".equals(txn.getProtocol())) {
-      JdbcSep31Transaction txn31 = (JdbcSep31Transaction) txn;
 
-      if (txn31.getAmountExpected() == null) {
+        break;
+      case "31":
+        JdbcSep31Transaction txn31 = (JdbcSep31Transaction) txn;
+
         if (request.getAmountExpected() != null) {
           txn31.setAmountExpected(request.getAmountExpected().getAmount());
-        } else if (txn.getAmountFee() == null) {
+        } else {
           txn31.setAmountExpected(txn.getAmountIn());
         }
-      }
+
+        break;
     }
   }
 }
