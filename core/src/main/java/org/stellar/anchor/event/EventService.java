@@ -85,10 +85,10 @@ public interface EventService {
 
   /** List of events queues that are supported by the EventService. */
   enum EventQueue {
-    /** The event queue for events that are to be processed by the anchor. */
+    /** The event queue for the transaction events that are to be processed by the anchor. */
     TRANSACTION,
 
-    /** The event queue for events that are used for control purposes. */
+    /** The event queue for events that are used for control-plane purposes. */
     CONTROL
   }
 }
