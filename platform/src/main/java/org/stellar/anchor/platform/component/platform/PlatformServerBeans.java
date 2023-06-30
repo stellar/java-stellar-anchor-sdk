@@ -17,6 +17,7 @@ import org.stellar.anchor.filter.NoneFilter;
 import org.stellar.anchor.filter.PlatformAuthJwtFilter;
 import org.stellar.anchor.platform.apiclient.CustodyApiClient;
 import org.stellar.anchor.platform.config.PlatformServerConfig;
+import org.stellar.anchor.platform.service.ActionService;
 import org.stellar.anchor.platform.service.Sep24DepositInfoCustodyGenerator;
 import org.stellar.anchor.platform.service.Sep24DepositInfoSelfGenerator;
 import org.stellar.anchor.platform.service.TransactionService;
@@ -93,5 +94,10 @@ public class PlatformServerBeans {
         sep24DepositInfoGenerator,
         custodyService,
         custodyConfig);
+  }
+
+  @Bean
+  ActionService actionService() {
+    return new ActionService();
   }
 }
