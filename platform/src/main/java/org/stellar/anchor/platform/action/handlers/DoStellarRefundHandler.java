@@ -88,11 +88,6 @@ public class DoStellarRefundHandler extends ActionHandler<DoStellarRefundRequest
   }
 
   @Override
-  protected boolean isMessageRequired() {
-    return false;
-  }
-
-  @Override
   protected void updateTransactionWithAction(JdbcSepTransaction txn, DoStellarRefundRequest request)
       throws AnchorException {
     // TODO: Implement refund endpoint

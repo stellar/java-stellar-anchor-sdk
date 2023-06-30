@@ -83,8 +83,6 @@ public abstract class ActionHandler<T extends RpcParamsRequest> {
 
   protected abstract Set<String> getSupportedProtocols();
 
-  protected abstract boolean isMessageRequired();
-
   protected abstract void updateTransactionWithAction(JdbcSepTransaction txn, T request)
       throws AnchorException;
 
@@ -168,7 +166,7 @@ public abstract class ActionHandler<T extends RpcParamsRequest> {
             && !StringHelper.isEmpty(txn.getStatus())
             && isStatusError(SepTransactionStatus.from(txn.getStatus()));
 
-    if (isMessageRequired() && request.getMessage() == null) {
+    if ((Set.of(ERROR, EXPIRED).contains(nextStatus)) && request.getMessage() == null) {
       throw new BadRequestException("message is required");
     }
 

@@ -88,11 +88,6 @@ public class RequestOffchainFundsHandler extends ActionHandler<RequestOffchainFu
   }
 
   @Override
-  protected boolean isMessageRequired() {
-    return false;
-  }
-
-  @Override
   protected void updateTransactionWithAction(
       JdbcSepTransaction txn, RequestOffchainFundsRequest request) throws BadRequestException {
     validateAsset("amount_in", request.getAmountIn());

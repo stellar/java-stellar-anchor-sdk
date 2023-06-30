@@ -84,11 +84,6 @@ public class RequestOffchainFundsCollectedHandler
   }
 
   @Override
-  protected boolean isMessageRequired() {
-    return false;
-  }
-
-  @Override
   protected void updateTransactionWithAction(
       JdbcSepTransaction txn, RequestOffchainFundsCollectedRequest request) {
     txn.setExternalTransactionId(request.getExternalTransactionId());

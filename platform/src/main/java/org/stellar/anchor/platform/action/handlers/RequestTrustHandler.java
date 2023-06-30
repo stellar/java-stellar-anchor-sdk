@@ -66,10 +66,5 @@ public class RequestTrustHandler extends ActionHandler<RequestTrustRequest> {
   }
 
   @Override
-  protected boolean isMessageRequired() {
-    return false;
-  }
-
-  @Override
   protected void updateTransactionWithAction(JdbcSepTransaction txn, RequestTrustRequest request) {}
 }

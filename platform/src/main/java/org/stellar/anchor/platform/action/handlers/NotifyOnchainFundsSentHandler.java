@@ -93,11 +93,6 @@ public class NotifyOnchainFundsSentHandler extends ActionHandler<NotifyOnchainFu
   }
 
   @Override
-  protected boolean isMessageRequired() {
-    return false;
-  }
-
-  @Override
   protected void updateTransactionWithAction(
       JdbcSepTransaction txn, NotifyOnchainFundsSentRequest request) {
     // TODO: add Stellar Transactions and transferReceivedAt

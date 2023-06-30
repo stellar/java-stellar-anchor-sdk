@@ -53,11 +53,6 @@ public class NotifyTransactionExpiredHandler
   }
 
   @Override
-  protected boolean isMessageRequired() {
-    return true;
-  }
-
-  @Override
   protected void updateTransactionWithAction(
       JdbcSepTransaction txn, NotifyTransactionExpiredRequest request) {}
 }

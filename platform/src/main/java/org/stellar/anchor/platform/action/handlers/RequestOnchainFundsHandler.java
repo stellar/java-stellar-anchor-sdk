@@ -106,11 +106,6 @@ public class RequestOnchainFundsHandler extends ActionHandler<RequestOnchainFund
   }
 
   @Override
-  protected boolean isMessageRequired() {
-    return false;
-  }
-
-  @Override
   protected void updateTransactionWithAction(
       JdbcSepTransaction txn, RequestOnchainFundsRequest request) throws AnchorException {
     validateAsset("amount_in", request.getAmountIn());

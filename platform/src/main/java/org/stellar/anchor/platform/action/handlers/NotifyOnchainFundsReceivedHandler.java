@@ -94,11 +94,6 @@ public class NotifyOnchainFundsReceivedHandler
   }
 
   @Override
-  protected boolean isMessageRequired() {
-    return false;
-  }
-
-  @Override
   protected void updateTransactionWithAction(
       JdbcSepTransaction txn, NotifyOnchainFundsReceivedRequest request) throws AnchorException {
     // TODO: add Stellar Transactions

@@ -97,11 +97,6 @@ public class NotifyOffchainFundsSentHandler extends ActionHandler<NotifyOffchain
   }
 
   @Override
-  protected boolean isMessageRequired() {
-    return false;
-  }
-
-  @Override
   protected void updateTransactionWithAction(
       JdbcSepTransaction txn, NotifyOffchainFundsSentRequest request) {
     txn.setExternalTransactionId(request.getExternalTransactionId());

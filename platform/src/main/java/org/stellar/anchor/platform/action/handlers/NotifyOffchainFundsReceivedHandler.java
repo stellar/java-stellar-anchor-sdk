@@ -103,11 +103,6 @@ public class NotifyOffchainFundsReceivedHandler
   }
 
   @Override
-  protected boolean isMessageRequired() {
-    return false;
-  }
-
-  @Override
   protected void updateTransactionWithAction(
       JdbcSepTransaction txn, NotifyOffchainFundsReceivedRequest request) throws AnchorException {
     if (request.getExternalTransactionId() != null) {

@@ -52,11 +52,6 @@ public class NotifyTransactionErrorHandler extends ActionHandler<NotifyTransacti
   }
 
   @Override
-  protected boolean isMessageRequired() {
-    return true;
-  }
-
-  @Override
   protected void updateTransactionWithAction(
       JdbcSepTransaction txn, NotifyTransactionErrorRequest request) {}
 }

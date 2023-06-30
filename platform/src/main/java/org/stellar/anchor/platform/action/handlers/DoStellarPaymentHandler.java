@@ -97,11 +97,6 @@ public class DoStellarPaymentHandler extends ActionHandler<DoStellarPaymentReque
   }
 
   @Override
-  protected boolean isMessageRequired() {
-    return false;
-  }
-
-  @Override
   protected void updateTransactionWithAction(
       JdbcSepTransaction txn, DoStellarPaymentRequest request) throws AnchorException {
     // TODO: Do we need to send request body?

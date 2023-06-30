@@ -64,11 +64,6 @@ public class NotifyTrustSetHandler extends ActionHandler<NotifyTrustSetRequest> 
   }
 
   @Override
-  protected boolean isMessageRequired() {
-    return false;
-  }
-
-  @Override
   protected void updateTransactionWithAction(
       JdbcSepTransaction txn, NotifyTrustSetRequest request) {}
 }

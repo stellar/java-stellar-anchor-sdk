@@ -64,11 +64,6 @@ public class NotifyRefundInitiatedHandler extends ActionHandler<NotifyRefundInit
   }
 
   @Override
-  protected boolean isMessageRequired() {
-    return false;
-  }
-
-  @Override
   protected void updateTransactionWithAction(
       JdbcSepTransaction txn, NotifyRefundInitiatedRequest request) {
     // TODO: add refunds
