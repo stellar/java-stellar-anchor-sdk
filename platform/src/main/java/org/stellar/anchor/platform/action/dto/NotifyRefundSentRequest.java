@@ -10,5 +10,4 @@ public class NotifyRefundSentRequest extends RpcParamsRequest {
   private String id;
   private AmountRequest amount;
   private AmountRequest amountFee;
-  private boolean completed;
 }

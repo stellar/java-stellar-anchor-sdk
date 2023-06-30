@@ -79,6 +79,15 @@ public class DoStellarPaymentHandler extends ActionHandler<DoStellarPaymentReque
         break;
     }
 
+    if ("24".equals(txn.getProtocol())) {
+      JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
+      if (Kind.DEPOSIT == Kind.from(txn24.getKind())) {
+        if (txn24.getTransferReceivedAt() != null) {
+          supportedStatuses.add(PENDING_ANCHOR);
+        }
+      }
+    }
+
     return supportedStatuses;
   }
 
@@ -93,8 +102,9 @@ public class DoStellarPaymentHandler extends ActionHandler<DoStellarPaymentReque
   }
 
   @Override
-  protected void updateActionTransactionInfo(
+  protected void updateTransactionWithAction(
       JdbcSepTransaction txn, DoStellarPaymentRequest request) throws AnchorException {
+    // TODO: Do we need to send request body?
     custodyService.submitTransactionPayment(txn.getId(), null);
   }
 }

@@ -108,7 +108,7 @@ public class NotifyOffchainFundsReceivedHandler
   }
 
   @Override
-  protected void updateActionTransactionInfo(
+  protected void updateTransactionWithAction(
       JdbcSepTransaction txn, NotifyOffchainFundsReceivedRequest request) throws AnchorException {
     if (txn.getExternalTransactionId() == null) {
       txn.setExternalTransactionId(request.getExternalTransactionId());

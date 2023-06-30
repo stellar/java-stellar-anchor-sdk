@@ -98,17 +98,19 @@ public class NotifyOnchainFundsReceivedHandler
   }
 
   @Override
-  protected void updateActionTransactionInfo(
+  protected boolean isFinalAction() {
+    return false;
+  }
+
+  @Override
+  protected void updateTransactionWithAction(
       JdbcSepTransaction txn, NotifyOnchainFundsReceivedRequest request) throws AnchorException {
     // TODO: add Stellar Transactions
     if (txn.getStellarTransactionId() == null) {
       txn.setStellarTransactionId(request.getStellarTransactionId());
     } else if (txn.getTransferReceivedAt() == null) {
-      if (request.getFundsReceivedAt() == null) {
-        txn.setTransferReceivedAt(Instant.now());
-      } else {
-        txn.setTransferReceivedAt(request.getFundsReceivedAt());
-      }
+      // TODO: populate transferReceivedAt from Stellar Network
+      txn.setTransferReceivedAt(Instant.now());
     }
 
     validateAsset("amount_in", request.getAmountIn());

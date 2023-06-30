@@ -102,7 +102,7 @@ public class NotifyOffchainFundsSentHandler extends ActionHandler<NotifyOffchain
   }
 
   @Override
-  protected void updateActionTransactionInfo(
+  protected void updateTransactionWithAction(
       JdbcSepTransaction txn, NotifyOffchainFundsSentRequest request) {
     txn.setExternalTransactionId(request.getExternalTransactionId());
     if (request.getFundsReceivedAt() == null) {

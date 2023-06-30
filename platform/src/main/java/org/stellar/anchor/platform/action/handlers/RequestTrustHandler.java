@@ -71,5 +71,5 @@ public class RequestTrustHandler extends ActionHandler<RequestTrustRequest> {
   }
 
   @Override
-  protected void updateActionTransactionInfo(JdbcSepTransaction txn, RequestTrustRequest request) {}
+  protected void updateTransactionWithAction(JdbcSepTransaction txn, RequestTrustRequest request) {}
 }

@@ -57,6 +57,6 @@ public class NotifyTransactionErrorHandler extends ActionHandler<NotifyTransacti
   }
 
   @Override
-  protected void updateActionTransactionInfo(
+  protected void updateTransactionWithAction(
       JdbcSepTransaction txn, NotifyTransactionErrorRequest request) {}
 }

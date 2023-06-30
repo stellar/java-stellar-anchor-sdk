@@ -1,9 +1,11 @@
 package org.stellar.anchor.platform.action.handlers;
 
 import static java.util.stream.Collectors.joining;
+import static org.stellar.anchor.api.sep.SepTransactionStatus.COMPLETED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.ERROR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.EXPIRED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_CUSTOMER_INFO_UPDATE;
+import static org.stellar.anchor.api.sep.SepTransactionStatus.REFUNDED;
 import static org.stellar.anchor.util.MathHelper.decimal;
 
 import java.time.Instant;
@@ -60,9 +62,14 @@ public abstract class ActionHandler<T extends RpcParamsRequest> {
     }
 
     if (!getSupportedStatuses(txn).contains(SepTransactionStatus.from(txn.getStatus()))) {
+      String kind = null;
+      if ("24".equals(txn.getProtocol())) {
+        kind = ((JdbcSep24Transaction) txn).getKind();
+      }
       throw new BadRequestException(
           String.format(
-              "Action[%s] is not supported for status[%s]", getActionType(), txn.getStatus()));
+              "Action[%s] is not supported for status[%s], protocol[%s] and kind[%s]",
+              getActionType(), txn.getStatus(), txn.getProtocol(), kind));
     }
 
     updateTransaction(txn, request);
@@ -78,7 +85,7 @@ public abstract class ActionHandler<T extends RpcParamsRequest> {
 
   protected abstract boolean isMessageRequired();
 
-  protected abstract void updateActionTransactionInfo(JdbcSepTransaction txn, T request)
+  protected abstract void updateTransactionWithAction(JdbcSepTransaction txn, T request)
       throws AnchorException;
 
   protected JdbcSepTransaction getTransaction(String transactionId) throws AnchorException {
@@ -166,10 +173,14 @@ public abstract class ActionHandler<T extends RpcParamsRequest> {
     }
 
     validate(actionRequest);
-    updateActionTransactionInfo(txn, actionRequest);
+    updateTransactionWithAction(txn, actionRequest);
 
     txn.setUpdatedAt(Instant.now());
     txn.setStatus(nextStatus.toString());
+
+    if (Set.of(REFUNDED, COMPLETED, ERROR, EXPIRED).contains(nextStatus)) {
+      txn.setCompletedAt(Instant.now());
+    }
 
     switch (txn.getProtocol()) {
       case "24":

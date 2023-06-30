@@ -56,7 +56,7 @@ public class NotifyInteractiveFlowCompletedHandler
   }
 
   @Override
-  protected void updateActionTransactionInfo(
+  protected void updateTransactionWithAction(
       JdbcSepTransaction txn, NotifyInteractiveFlowCompletedRequest request)
       throws BadRequestException {
     validateAsset("amount_in", request.getAmountIn());

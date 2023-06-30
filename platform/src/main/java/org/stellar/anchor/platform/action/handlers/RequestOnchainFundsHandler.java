@@ -73,7 +73,6 @@ public class RequestOnchainFundsHandler extends ActionHandler<RequestOnchainFund
   @Override
   protected Set<SepTransactionStatus> getSupportedStatuses(JdbcSepTransaction txn) {
     Set<SepTransactionStatus> supportedStatuses = new HashSet<>();
-    supportedStatuses.add(INCOMPLETE);
 
     if (txn.getTransferReceivedAt() == null) {
       switch (txn.getProtocol()) {
@@ -81,12 +80,14 @@ public class RequestOnchainFundsHandler extends ActionHandler<RequestOnchainFund
           JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
           switch (Kind.from(txn24.getKind())) {
             case WITHDRAWAL:
+              supportedStatuses.add(INCOMPLETE);
               if (txn24.getTransferReceivedAt() == null) {
                 supportedStatuses.add(PENDING_ANCHOR);
               }
           }
           break;
         case "31":
+          supportedStatuses.add(INCOMPLETE);
           if (txn.getTransferReceivedAt() == null) {
             supportedStatuses.add(PENDING_RECEIVER);
           }
@@ -108,7 +109,7 @@ public class RequestOnchainFundsHandler extends ActionHandler<RequestOnchainFund
   }
 
   @Override
-  protected void updateActionTransactionInfo(
+  protected void updateTransactionWithAction(
       JdbcSepTransaction txn, RequestOnchainFundsRequest request) throws AnchorException {
     validateAsset("amount_in", request.getAmountIn());
     validateAsset("amount_out", request.getAmountOut());

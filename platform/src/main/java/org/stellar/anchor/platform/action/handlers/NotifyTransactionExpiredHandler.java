@@ -37,7 +37,7 @@ public class NotifyTransactionExpiredHandler
   @Override
   protected SepTransactionStatus getNextStatus(
       JdbcSepTransaction txn, NotifyTransactionExpiredRequest request) {
-    return ERROR;
+    return EXPIRED;
   }
 
   @Override
@@ -58,6 +58,6 @@ public class NotifyTransactionExpiredHandler
   }
 
   @Override
-  protected void updateActionTransactionInfo(
+  protected void updateTransactionWithAction(
       JdbcSepTransaction txn, NotifyTransactionExpiredRequest request) {}
 }

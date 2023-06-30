@@ -1,6 +1,6 @@
 package org.stellar.anchor.platform.action.dto;
 
-import java.time.Instant;
+import javax.validation.constraints.NotBlank;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -8,8 +8,7 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = false)
 public class NotifyOnchainFundsReceivedRequest extends RpcParamsRequest {
 
-  private Instant fundsReceivedAt;
-  private String stellarTransactionId;
+  @NotBlank private String stellarTransactionId;
   private AmountRequest amountIn;
   private AmountRequest amountOut;
   private AmountRequest amountFee;

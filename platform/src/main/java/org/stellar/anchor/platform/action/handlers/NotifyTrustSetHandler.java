@@ -69,6 +69,6 @@ public class NotifyTrustSetHandler extends ActionHandler<NotifyTrustSetRequest> 
   }
 
   @Override
-  protected void updateActionTransactionInfo(
+  protected void updateTransactionWithAction(
       JdbcSepTransaction txn, NotifyTrustSetRequest request) {}
 }

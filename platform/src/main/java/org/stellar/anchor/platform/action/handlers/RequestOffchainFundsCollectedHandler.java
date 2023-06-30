@@ -89,7 +89,7 @@ public class RequestOffchainFundsCollectedHandler
   }
 
   @Override
-  protected void updateActionTransactionInfo(
+  protected void updateTransactionWithAction(
       JdbcSepTransaction txn, RequestOffchainFundsCollectedRequest request) {
     txn.setExternalTransactionId(request.getExternalTransactionId());
     if (request.getFundsReceivedAt() == null) {

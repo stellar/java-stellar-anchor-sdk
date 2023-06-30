@@ -69,7 +69,7 @@ public class NotifyRefundInitiatedHandler extends ActionHandler<NotifyRefundInit
   }
 
   @Override
-  protected void updateActionTransactionInfo(
+  protected void updateTransactionWithAction(
       JdbcSepTransaction txn, NotifyRefundInitiatedRequest request) {
     // TODO: add refunds
   }

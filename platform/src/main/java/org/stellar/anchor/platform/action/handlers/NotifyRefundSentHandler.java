@@ -39,7 +39,8 @@ public class NotifyRefundSentHandler extends ActionHandler<NotifyRefundSentReque
   @Override
   protected SepTransactionStatus getNextStatus(
       JdbcSepTransaction txn, NotifyRefundSentRequest request) {
-    if (request.isCompleted()) {
+    // TODO: Check whether refund is completed
+    if (true) {
       return REFUNDED;
     } else {
       return PENDING_ANCHOR;
@@ -84,7 +85,7 @@ public class NotifyRefundSentHandler extends ActionHandler<NotifyRefundSentReque
   }
 
   @Override
-  protected void updateActionTransactionInfo(
+  protected void updateTransactionWithAction(
       JdbcSepTransaction txn, NotifyRefundSentRequest request) {
     // TODO: add refunds
   }
