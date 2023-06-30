@@ -94,7 +94,7 @@ public class PlatformApiClient extends BaseApiClient {
             .scheme(url.scheme())
             .host(url.host())
             .port(url.port())
-            .addPathSegment("action")
+            .addPathSegment("actions")
             .build();
 
     RequestBody requestBody = OkHttpUtil.buildJsonRequestBody(gson.toJson(rpcRequests));

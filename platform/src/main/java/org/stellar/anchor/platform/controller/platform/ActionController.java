@@ -30,7 +30,7 @@ public class ActionController {
 
   @CrossOrigin(origins = "*")
   @RequestMapping(
-      value = "/action",
+      value = "/actions",
       method = {RequestMethod.POST})
   public ResponseEntity<List<RpcResponse>> handleAction(@RequestBody List<RpcRequest> rpcCalls) {
     List<RpcResponse> rpcResponses = actionService.handleRpcCalls(rpcCalls);

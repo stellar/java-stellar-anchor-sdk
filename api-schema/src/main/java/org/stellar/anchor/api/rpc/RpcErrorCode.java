@@ -1,8 +1,10 @@
 package org.stellar.anchor.api.rpc;
 
+import static java.util.function.UnaryOperator.identity;
+import static java.util.stream.Collectors.toMap;
+
 import java.util.Arrays;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public enum RpcErrorCode {
   INVALID_REQUEST(-32600),
@@ -12,12 +14,11 @@ public enum RpcErrorCode {
   PARSE_ERROR(-32700);
 
   private final int errorCode;
-  private static final Map<Integer, RpcErrorCode> map;
+  private static final Map<Integer, RpcErrorCode> errorCodeMap;
 
   static {
-    map =
-        Arrays.stream(RpcErrorCode.values())
-            .collect(Collectors.toMap(RpcErrorCode::getErrorCode, errorCode -> errorCode));
+    errorCodeMap =
+        Arrays.stream(RpcErrorCode.values()).collect(toMap(RpcErrorCode::getErrorCode, identity()));
   }
 
   RpcErrorCode(int errorCode) {
@@ -29,6 +30,6 @@ public enum RpcErrorCode {
   }
 
   public static RpcErrorCode findByErrorCode(int errorCode) {
-    return map.get(errorCode);
+    return errorCodeMap.get(errorCode);
   }
 }

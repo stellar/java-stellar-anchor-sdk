@@ -2,11 +2,11 @@ package org.stellar.anchor.platform.utils;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.apache.commons.lang3.StringUtils;
 import org.stellar.anchor.api.exception.RpcException;
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException;
 import org.stellar.anchor.api.rpc.RpcRequest;
 import org.stellar.anchor.api.rpc.RpcResponse;
+import org.stellar.anchor.util.StringHelper;
 
 public class RpcUtil {
   public static final String JSON_RPC_VERSION = "2.0";
@@ -36,7 +36,7 @@ public class RpcUtil {
     }
 
     String method = rpcRequest.getMethod();
-    if (StringUtils.isBlank(method)) {
+    if (StringHelper.isEmpty(method)) {
       messages.add("Method name can't be NULL or empty");
     }
 

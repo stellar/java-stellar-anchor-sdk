@@ -5,7 +5,7 @@ import static org.stellar.anchor.api.rpc.RpcErrorCode.INTERNAL_ERROR;
 import lombok.EqualsAndHashCode;
 import org.stellar.anchor.api.exception.RpcException;
 
-/** Invalid method parameter(s). */
+/** Internal error occurred during rpc call processing. */
 @EqualsAndHashCode(callSuper = false)
 public class InternalErrorException extends RpcException {
   public InternalErrorException(String message) {
