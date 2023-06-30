@@ -159,18 +159,19 @@ public abstract class ActionHandler<T extends RpcParamsRequest> {
   private void updateTransaction(JdbcSepTransaction txn, RpcParamsRequest request)
       throws AnchorException {
     T actionRequest = (T) request;
+    validate(actionRequest);
 
     SepTransactionStatus nextStatus = getNextStatus(txn, actionRequest);
-    boolean shouldClearMessageStatus =
-        !isStatusError(nextStatus)
-            && !StringHelper.isEmpty(txn.getStatus())
-            && isStatusError(SepTransactionStatus.from(txn.getStatus()));
 
     if ((Set.of(ERROR, EXPIRED).contains(nextStatus)) && request.getMessage() == null) {
       throw new BadRequestException("message is required");
     }
 
-    validate(actionRequest);
+    boolean shouldClearMessageStatus =
+        !isStatusError(nextStatus)
+            && !StringHelper.isEmpty(txn.getStatus())
+            && isStatusError(SepTransactionStatus.from(txn.getStatus()));
+
     updateTransactionWithAction(txn, actionRequest);
 
     txn.setUpdatedAt(Instant.now());
