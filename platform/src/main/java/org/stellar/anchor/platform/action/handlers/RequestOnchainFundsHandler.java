@@ -22,9 +22,11 @@ import org.stellar.anchor.config.CustodyConfig;
 import org.stellar.anchor.custody.CustodyService;
 import org.stellar.anchor.platform.action.dto.ActionMethod;
 import org.stellar.anchor.platform.action.dto.RequestOnchainFundsRequest;
+import org.stellar.anchor.platform.config.PropertySep24Config;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSep31Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
+import org.stellar.anchor.platform.service.Sep24DepositInfoNoneGenerator;
 import org.stellar.anchor.sep24.Sep24DepositInfoGenerator;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
@@ -43,7 +45,8 @@ public class RequestOnchainFundsHandler extends ActionHandler<RequestOnchainFund
       AssetService assetService,
       CustodyConfig custodyConfig,
       CustodyService custodyService,
-      Sep24DepositInfoGenerator sep24DepositInfoGenerator) {
+      Sep24DepositInfoGenerator sep24DepositInfoGenerator,
+      PropertySep24Config propertySep24Config) {
     super(txn24Store, txn31Store, validator, assetService);
     this.custodyConfig = custodyConfig;
     this.custodyService = custodyService;
@@ -159,9 +162,24 @@ public class RequestOnchainFundsHandler extends ActionHandler<RequestOnchainFund
         txn24.setToAccount(request.getDestinationAccount());
       }
 
-      if (request.getMemo() != null && request.getMemoType() != null) {
-        txn24.setMemo(request.getMemo());
-        txn24.setMemoType(request.getMemoType());
+      if (sep24DepositInfoGenerator instanceof Sep24DepositInfoNoneGenerator) {
+        if (request.getMemo() != null) {
+          txn24.setMemo(request.getMemo());
+        } else {
+          throw new BadRequestException("memo is required");
+        }
+
+        if (request.getMemoType() != null) {
+          txn24.setMemo(request.getMemoType());
+        } else {
+          throw new BadRequestException("memo_type is required");
+        }
+
+        if (request.getDestinationAccount() != null) {
+          txn24.setWithdrawAnchorAccount(request.getDestinationAccount());
+        } else {
+          throw new BadRequestException("destination_account is required");
+        }
       } else {
         SepDepositInfo sep24DepositInfo = sep24DepositInfoGenerator.generate(txn24);
         txn24.setToAccount(sep24DepositInfo.getStellarAddress());
@@ -170,7 +188,7 @@ public class RequestOnchainFundsHandler extends ActionHandler<RequestOnchainFund
         txn24.setMemoType(sep24DepositInfo.getMemoType());
       }
 
-      if (custodyConfig.isCustodyIntegrationEnabled() && WITHDRAWAL == Kind.from(txn24.getKind())) {
+      if (custodyConfig.isCustodyIntegrationEnabled()) {
         custodyService.createTransaction(txn24);
       }
     } else if ("31".equals(txn.getProtocol())) {

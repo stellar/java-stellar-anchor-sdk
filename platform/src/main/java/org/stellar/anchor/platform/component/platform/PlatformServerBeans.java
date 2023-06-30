@@ -18,6 +18,7 @@ import org.stellar.anchor.filter.PlatformAuthJwtFilter;
 import org.stellar.anchor.platform.apiclient.CustodyApiClient;
 import org.stellar.anchor.platform.config.PlatformServerConfig;
 import org.stellar.anchor.platform.service.Sep24DepositInfoCustodyGenerator;
+import org.stellar.anchor.platform.service.Sep24DepositInfoNoneGenerator;
 import org.stellar.anchor.platform.service.Sep24DepositInfoSelfGenerator;
 import org.stellar.anchor.platform.service.TransactionService;
 import org.stellar.anchor.sep24.Sep24DepositInfoGenerator;
@@ -69,6 +70,8 @@ public class PlatformServerBeans {
             custodyApiClient.orElseThrow(
                 () ->
                     new InvalidConfigException("Integration with custody service is not enabled")));
+      case NONE:
+        return new Sep24DepositInfoNoneGenerator();
       default:
         throw new RuntimeException("Not supported");
     }
