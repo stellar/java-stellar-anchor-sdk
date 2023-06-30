@@ -1,8 +1,8 @@
 package org.stellar.anchor.platform.action.handlers;
 
+import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.COMPLETED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
-import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_RECEIVER;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_STELLAR;
 import static org.stellar.anchor.platform.action.dto.ActionMethod.NOTIFY_ONCHAIN_FUNDS_SENT;
 
@@ -39,57 +39,32 @@ public class NotifyOnchainFundsSentHandler extends ActionHandler<NotifyOnchainFu
   @Override
   protected SepTransactionStatus getNextStatus(
       JdbcSepTransaction txn, NotifyOnchainFundsSentRequest request) {
-    switch (txn.getProtocol()) {
-      case "24":
-        JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
-        switch (Kind.from(txn24.getKind())) {
-          case DEPOSIT:
-            return COMPLETED;
-          default:
-            throw new IllegalArgumentException(
-                String.format(
-                    "Invalid kind[%s] for protocol[%s] and action[%s]",
-                    txn24.getKind(), txn24.getProtocol(), getActionType()));
-        }
-      case "31":
-        return COMPLETED;
-      default:
-        throw new IllegalArgumentException(
-            String.format(
-                "Invalid protocol[%s] for action[%s]", txn.getProtocol(), getActionType()));
+    JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
+    if (DEPOSIT == Kind.from(txn24.getKind())) {
+      return COMPLETED;
     }
+    throw new IllegalArgumentException(
+        String.format(
+            "Invalid kind[%s] for protocol[%s] and action[%s]",
+            txn24.getKind(), txn24.getProtocol(), getActionType()));
   }
 
   @Override
   protected Set<SepTransactionStatus> getSupportedStatuses(JdbcSepTransaction txn) {
     Set<SepTransactionStatus> supportedStatuses = new HashSet<>();
-
-    switch (txn.getProtocol()) {
-      case "24":
-        JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
-        switch (Kind.from(txn24.getKind())) {
-          case DEPOSIT:
-            supportedStatuses.add(PENDING_STELLAR);
-            if (txn24.getTransferReceivedAt() != null) {
-              supportedStatuses.add(PENDING_ANCHOR);
-            }
-            break;
-        }
-        break;
-      case "31":
-        supportedStatuses.add(PENDING_STELLAR);
-        if (txn.getTransferReceivedAt() != null) {
-          supportedStatuses.add(PENDING_RECEIVER);
-        }
-        break;
+    JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
+    if (DEPOSIT == Kind.from(txn24.getKind())) {
+      supportedStatuses.add(PENDING_STELLAR);
+      if (txn24.getTransferReceivedAt() != null) {
+        supportedStatuses.add(PENDING_ANCHOR);
+      }
     }
-
     return supportedStatuses;
   }
 
   @Override
   protected Set<String> getSupportedProtocols() {
-    return Set.of("24", "31");
+    return Set.of("24");
   }
 
   @Override

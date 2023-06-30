@@ -3,7 +3,6 @@ package org.stellar.anchor.platform.action.handlers;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.COMPLETED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_EXTERNAL;
-import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_RECEIVER;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_USR_TRANSFER_START;
 import static org.stellar.anchor.platform.action.dto.ActionMethod.NOTIFY_OFFCHAIN_FUNDS_SENT;
 
@@ -41,59 +40,38 @@ public class NotifyOffchainFundsSentHandler extends ActionHandler<NotifyOffchain
   @Override
   protected SepTransactionStatus getNextStatus(
       JdbcSepTransaction txn, NotifyOffchainFundsSentRequest request) {
-    switch (txn.getProtocol()) {
-      case "24":
-        JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
-        switch (Kind.from(txn24.getKind())) {
-          case DEPOSIT:
-            return PENDING_EXTERNAL;
-          case WITHDRAWAL:
-            return COMPLETED;
-          default:
-            throw new IllegalArgumentException(
-                String.format(
-                    "Invalid kind[%s] for protocol[%s] and action[%s]",
-                    txn24.getKind(), txn24.getProtocol(), getActionType()));
-        }
-      case "31":
+    JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
+    switch (Kind.from(txn24.getKind())) {
+      case DEPOSIT:
+        return PENDING_EXTERNAL;
+      case WITHDRAWAL:
         return COMPLETED;
       default:
         throw new IllegalArgumentException(
             String.format(
-                "Invalid protocol[%s] for action[%s]", txn.getProtocol(), getActionType()));
+                "Invalid kind[%s] for protocol[%s] and action[%s]",
+                txn24.getKind(), txn24.getProtocol(), getActionType()));
     }
   }
 
   @Override
   protected Set<SepTransactionStatus> getSupportedStatuses(JdbcSepTransaction txn) {
     Set<SepTransactionStatus> supportedStatuses = new HashSet<>();
-
-    switch (txn.getProtocol()) {
-      case "24":
-        JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
-        switch (Kind.from(txn24.getKind())) {
-          case DEPOSIT:
-            supportedStatuses.add(PENDING_USR_TRANSFER_START);
-            break;
-          case WITHDRAWAL:
-            supportedStatuses.add(PENDING_ANCHOR);
-            break;
-        }
+    JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
+    switch (Kind.from(txn24.getKind())) {
+      case DEPOSIT:
+        supportedStatuses.add(PENDING_USR_TRANSFER_START);
         break;
-      case "31":
-        if (txn.getTransferReceivedAt() != null) {
-          supportedStatuses.add(PENDING_RECEIVER);
-        }
-        supportedStatuses.add(PENDING_EXTERNAL);
+      case WITHDRAWAL:
+        supportedStatuses.add(PENDING_ANCHOR);
         break;
     }
-
     return supportedStatuses;
   }
 
   @Override
   protected Set<String> getSupportedProtocols() {
-    return Set.of("24", "31");
+    return Set.of("24");
   }
 
   @Override

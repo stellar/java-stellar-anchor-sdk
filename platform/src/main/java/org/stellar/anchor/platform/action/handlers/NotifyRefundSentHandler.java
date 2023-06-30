@@ -51,22 +51,18 @@ public class NotifyRefundSentHandler extends ActionHandler<NotifyRefundSentReque
   protected Set<SepTransactionStatus> getSupportedStatuses(JdbcSepTransaction txn) {
     Set<SepTransactionStatus> supportedStatuses = new HashSet<>();
 
-    switch (txn.getProtocol()) {
-      case "24":
-        JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
-        switch (Kind.from(txn24.getKind())) {
-          case DEPOSIT:
-            if (txn24.getTransferReceivedAt() != null) {
-              supportedStatuses.add(PENDING_EXTERNAL);
-              supportedStatuses.add(PENDING_ANCHOR);
-            }
-            break;
-          case WITHDRAWAL:
-            supportedStatuses.add(PENDING_STELLAR);
-            if (txn24.getTransferReceivedAt() != null) {
-              supportedStatuses.add(PENDING_ANCHOR);
-            }
-            break;
+    JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
+    switch (Kind.from(txn24.getKind())) {
+      case DEPOSIT:
+        if (txn24.getTransferReceivedAt() != null) {
+          supportedStatuses.add(PENDING_EXTERNAL);
+          supportedStatuses.add(PENDING_ANCHOR);
+        }
+        break;
+      case WITHDRAWAL:
+        supportedStatuses.add(PENDING_STELLAR);
+        if (txn24.getTransferReceivedAt() != null) {
+          supportedStatuses.add(PENDING_ANCHOR);
         }
         break;
     }

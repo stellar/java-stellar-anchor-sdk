@@ -5,7 +5,6 @@ import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
 import static org.stellar.anchor.platform.action.dto.ActionMethod.REQUEST_OFFCHAIN_FUNDS_COLLECTED;
 
 import java.time.Instant;
-import java.util.HashSet;
 import java.util.Set;
 import javax.validation.Validator;
 import org.springframework.stereotype.Service;
@@ -60,22 +59,13 @@ public class RequestOffchainFundsCollectedHandler
 
   @Override
   protected Set<SepTransactionStatus> getSupportedStatuses(JdbcSepTransaction txn) {
-    Set<SepTransactionStatus> supportedStatuses = new HashSet<>();
-
-    switch (txn.getProtocol()) {
-      case "24":
-        JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
-        switch (Kind.from(txn24.getKind())) {
-          case WITHDRAWAL:
-            if (txn24.getTransferReceivedAt() != null) {
-              supportedStatuses.add(PENDING_ANCHOR);
-            }
-            break;
-        }
-        break;
+    JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
+    if (Kind.from(txn24.getKind()) == Kind.WITHDRAWAL) {
+      if (txn24.getTransferReceivedAt() != null) {
+        return Set.of(PENDING_ANCHOR);
+      }
     }
-
-    return supportedStatuses;
+    return Set.of();
   }
 
   @Override

@@ -1,10 +1,10 @@
 package org.stellar.anchor.platform.action.handlers;
 
+import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_STELLAR;
 import static org.stellar.anchor.platform.action.dto.ActionMethod.DO_STELLAR_REFUND;
 
-import java.util.HashSet;
 import java.util.Set;
 import javax.validation.Validator;
 import org.springframework.stereotype.Service;
@@ -64,22 +64,13 @@ public class DoStellarRefundHandler extends ActionHandler<DoStellarRefundRequest
 
   @Override
   protected Set<SepTransactionStatus> getSupportedStatuses(JdbcSepTransaction txn) {
-    Set<SepTransactionStatus> supportedStatuses = new HashSet<>();
-
-    switch (txn.getProtocol()) {
-      case "24":
-        JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
-        switch (Kind.from(txn24.getKind())) {
-          case WITHDRAWAL:
-            if (txn24.getTransferReceivedAt() != null) {
-              supportedStatuses.add(PENDING_ANCHOR);
-            }
-            break;
-        }
-        break;
+    JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
+    if (WITHDRAWAL == Kind.from(txn24.getKind())) {
+      if (txn24.getTransferReceivedAt() != null) {
+        return Set.of(PENDING_ANCHOR);
+      }
     }
-
-    return supportedStatuses;
+    return Set.of();
   }
 
   @Override

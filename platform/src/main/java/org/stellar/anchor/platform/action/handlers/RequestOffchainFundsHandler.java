@@ -1,9 +1,8 @@
 package org.stellar.anchor.platform.action.handlers;
 
+import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.INCOMPLETE;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
-import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_RECEIVER;
-import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_SENDER;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_USR_TRANSFER_START;
 import static org.stellar.anchor.platform.action.dto.ActionMethod.REQUEST_OFFCHAIN_FUNDS;
 
@@ -18,7 +17,6 @@ import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.platform.action.dto.ActionMethod;
 import org.stellar.anchor.platform.action.dto.RequestOffchainFundsRequest;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
-import org.stellar.anchor.platform.data.JdbcSep31Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
@@ -42,49 +40,25 @@ public class RequestOffchainFundsHandler extends ActionHandler<RequestOffchainFu
   @Override
   protected SepTransactionStatus getNextStatus(
       JdbcSepTransaction txn, RequestOffchainFundsRequest request) {
-    switch (txn.getProtocol()) {
-      case "24":
-        return PENDING_USR_TRANSFER_START;
-      case "31":
-        return PENDING_SENDER;
-      default:
-        throw new IllegalArgumentException(
-            String.format(
-                "Invalid protocol[%s] for action[%s]", txn.getProtocol(), getActionType()));
-    }
+    return PENDING_USR_TRANSFER_START;
   }
 
   @Override
   protected Set<SepTransactionStatus> getSupportedStatuses(JdbcSepTransaction txn) {
     Set<SepTransactionStatus> supportedStatuses = new HashSet<>();
-
-    if (txn.getTransferReceivedAt() == null) {
-      switch (txn.getProtocol()) {
-        case "24":
-          JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
-          switch (Kind.from(txn24.getKind())) {
-            case DEPOSIT:
-              supportedStatuses.add(INCOMPLETE);
-              if (txn24.getTransferReceivedAt() == null) {
-                supportedStatuses.add(PENDING_ANCHOR);
-              }
-          }
-          break;
-        case "31":
-          supportedStatuses.add(INCOMPLETE);
-          if (txn.getTransferReceivedAt() == null) {
-            supportedStatuses.add(PENDING_RECEIVER);
-          }
-          break;
+    JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
+    if (DEPOSIT == Kind.from(txn24.getKind())) {
+      supportedStatuses.add(INCOMPLETE);
+      if (txn24.getTransferReceivedAt() == null) {
+        supportedStatuses.add(PENDING_ANCHOR);
       }
     }
-
     return supportedStatuses;
   }
 
   @Override
   protected Set<String> getSupportedProtocols() {
-    return Set.of("24", "31");
+    return Set.of("24");
   }
 
   @Override
@@ -116,27 +90,11 @@ public class RequestOffchainFundsHandler extends ActionHandler<RequestOffchainFu
       throw new BadRequestException("amount_fee is required");
     }
 
-    switch (txn.getProtocol()) {
-      case "24":
-        JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
-
-        if (request.getAmountExpected() != null) {
-          txn24.setAmountExpected(request.getAmountExpected().getAmount());
-        } else {
-          txn24.setAmountExpected(txn.getAmountIn());
-        }
-
-        break;
-      case "31":
-        JdbcSep31Transaction txn31 = (JdbcSep31Transaction) txn;
-
-        if (request.getAmountExpected() != null) {
-          txn31.setAmountExpected(request.getAmountExpected().getAmount());
-        } else {
-          txn31.setAmountExpected(txn.getAmountIn());
-        }
-
-        break;
+    JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
+    if (request.getAmountExpected() != null) {
+      txn24.setAmountExpected(request.getAmountExpected().getAmount());
+    } else {
+      txn24.setAmountExpected(txn.getAmountIn());
     }
   }
 }

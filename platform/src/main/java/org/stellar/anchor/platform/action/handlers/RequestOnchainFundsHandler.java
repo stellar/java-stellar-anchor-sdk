@@ -1,9 +1,8 @@
 package org.stellar.anchor.platform.action.handlers;
 
+import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.INCOMPLETE;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
-import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_RECEIVER;
-import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_SENDER;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_USR_TRANSFER_START;
 import static org.stellar.anchor.platform.action.dto.ActionMethod.REQUEST_ONCHAIN_FUNDS;
 
@@ -23,7 +22,6 @@ import org.stellar.anchor.platform.action.dto.ActionMethod;
 import org.stellar.anchor.platform.action.dto.RequestOnchainFundsRequest;
 import org.stellar.anchor.platform.config.PropertySep24Config;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
-import org.stellar.anchor.platform.data.JdbcSep31Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.platform.service.Sep24DepositInfoNoneGenerator;
 import org.stellar.anchor.sep24.Sep24DepositInfoGenerator;
@@ -60,49 +58,25 @@ public class RequestOnchainFundsHandler extends ActionHandler<RequestOnchainFund
   @Override
   protected SepTransactionStatus getNextStatus(
       JdbcSepTransaction txn, RequestOnchainFundsRequest request) {
-    switch (txn.getProtocol()) {
-      case "24":
-        return PENDING_USR_TRANSFER_START;
-      case "31":
-        return PENDING_SENDER;
-      default:
-        throw new IllegalArgumentException(
-            String.format(
-                "Invalid protocol[%s] for action[%s]", txn.getProtocol(), getActionType()));
-    }
+    return PENDING_USR_TRANSFER_START;
   }
 
   @Override
   protected Set<SepTransactionStatus> getSupportedStatuses(JdbcSepTransaction txn) {
     Set<SepTransactionStatus> supportedStatuses = new HashSet<>();
-
-    if (txn.getTransferReceivedAt() == null) {
-      switch (txn.getProtocol()) {
-        case "24":
-          JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
-          switch (Kind.from(txn24.getKind())) {
-            case WITHDRAWAL:
-              supportedStatuses.add(INCOMPLETE);
-              if (txn24.getTransferReceivedAt() == null) {
-                supportedStatuses.add(PENDING_ANCHOR);
-              }
-          }
-          break;
-        case "31":
-          supportedStatuses.add(INCOMPLETE);
-          if (txn.getTransferReceivedAt() == null) {
-            supportedStatuses.add(PENDING_RECEIVER);
-          }
-          break;
+    JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
+    if (WITHDRAWAL == Kind.from(txn24.getKind())) {
+      supportedStatuses.add(INCOMPLETE);
+      if (txn24.getTransferReceivedAt() == null) {
+        supportedStatuses.add(PENDING_ANCHOR);
       }
     }
-
     return supportedStatuses;
   }
 
   @Override
   protected Set<String> getSupportedProtocols() {
-    return Set.of("24", "31");
+    return Set.of("24");
   }
 
   @Override
@@ -134,62 +108,47 @@ public class RequestOnchainFundsHandler extends ActionHandler<RequestOnchainFund
       throw new BadRequestException("amount_fee is required");
     }
 
-    switch (txn.getProtocol()) {
-      case "24":
-        JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
+    JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
 
-        if (request.getAmountExpected() != null) {
-          txn24.setAmountExpected(request.getAmountExpected().getAmount());
-        } else {
-          txn24.setAmountExpected(txn.getAmountIn());
-        }
+    if (request.getAmountExpected() != null) {
+      txn24.setAmountExpected(request.getAmountExpected().getAmount());
+    } else {
+      txn24.setAmountExpected(txn.getAmountIn());
+    }
 
-        if (request.getDestinationAccount() != null) {
-          txn24.setWithdrawAnchorAccount(request.getDestinationAccount());
-          txn24.setToAccount(request.getDestinationAccount());
-        }
+    if (request.getDestinationAccount() != null) {
+      txn24.setWithdrawAnchorAccount(request.getDestinationAccount());
+      txn24.setToAccount(request.getDestinationAccount());
+    }
 
-        if (sep24DepositInfoGenerator instanceof Sep24DepositInfoNoneGenerator) {
-          if (request.getMemo() != null) {
-            txn24.setMemo(request.getMemo());
-          } else {
-            throw new BadRequestException("memo is required");
-          }
+    if (sep24DepositInfoGenerator instanceof Sep24DepositInfoNoneGenerator) {
+      if (request.getMemo() != null) {
+        txn24.setMemo(request.getMemo());
+      } else {
+        throw new BadRequestException("memo is required");
+      }
 
-          if (request.getMemoType() != null) {
-            txn24.setMemo(request.getMemoType());
-          } else {
-            throw new BadRequestException("memo_type is required");
-          }
+      if (request.getMemoType() != null) {
+        txn24.setMemo(request.getMemoType());
+      } else {
+        throw new BadRequestException("memo_type is required");
+      }
 
-          if (request.getDestinationAccount() != null) {
-            txn24.setWithdrawAnchorAccount(request.getDestinationAccount());
-          } else {
-            throw new BadRequestException("destination_account is required");
-          }
-        } else {
-          SepDepositInfo sep24DepositInfo = sep24DepositInfoGenerator.generate(txn24);
-          txn24.setToAccount(sep24DepositInfo.getStellarAddress());
-          txn24.setWithdrawAnchorAccount(sep24DepositInfo.getStellarAddress());
-          txn24.setMemo(sep24DepositInfo.getMemo());
-          txn24.setMemoType(sep24DepositInfo.getMemoType());
-        }
+      if (request.getDestinationAccount() != null) {
+        txn24.setWithdrawAnchorAccount(request.getDestinationAccount());
+      } else {
+        throw new BadRequestException("destination_account is required");
+      }
+    } else {
+      SepDepositInfo sep24DepositInfo = sep24DepositInfoGenerator.generate(txn24);
+      txn24.setToAccount(sep24DepositInfo.getStellarAddress());
+      txn24.setWithdrawAnchorAccount(sep24DepositInfo.getStellarAddress());
+      txn24.setMemo(sep24DepositInfo.getMemo());
+      txn24.setMemoType(sep24DepositInfo.getMemoType());
+    }
 
-        if (custodyConfig.isCustodyIntegrationEnabled()) {
-          custodyService.createTransaction(txn24);
-        }
-
-        break;
-      case "31":
-        JdbcSep31Transaction txn31 = (JdbcSep31Transaction) txn;
-
-        if (request.getAmountExpected() != null) {
-          txn31.setAmountExpected(request.getAmountExpected().getAmount());
-        } else {
-          txn31.setAmountExpected(txn.getAmountIn());
-        }
-
-        break;
+    if (custodyConfig.isCustodyIntegrationEnabled()) {
+      custodyService.createTransaction(txn24);
     }
   }
 }

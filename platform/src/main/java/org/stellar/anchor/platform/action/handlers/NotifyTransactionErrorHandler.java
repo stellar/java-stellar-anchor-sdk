@@ -48,7 +48,7 @@ public class NotifyTransactionErrorHandler extends ActionHandler<NotifyTransacti
 
   @Override
   protected Set<String> getSupportedProtocols() {
-    return Set.of("24", "31");
+    return Set.of("24");
   }
 
   @Override
