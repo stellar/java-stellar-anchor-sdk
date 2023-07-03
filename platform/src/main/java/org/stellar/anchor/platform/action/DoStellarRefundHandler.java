@@ -84,7 +84,7 @@ public class DoStellarRefundHandler extends ActionHandler<DoStellarRefundRequest
   @Override
   protected void updateTransactionWithAction(JdbcSepTransaction txn, DoStellarRefundRequest request)
       throws AnchorException {
-    // TODO: Implement refund endpoint
-    custodyService.submitTransactionRefund(txn.getId(), null);
+    // TODO: Do we need to send request body?
+    custodyService.createTransactionRefund(txn.getId(), null);
   }
 }

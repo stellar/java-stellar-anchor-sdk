@@ -93,7 +93,7 @@ public class DoStellarPaymentHandler extends ActionHandler<DoStellarPaymentReque
     JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
     if (isTrustLineConfigured(txn24.getToAccount(), txn24.getAmountOutAsset())) {
       // TODO: Do we need to send request body?
-      custodyService.submitTransactionPayment(txn.getId(), null);
+      custodyService.createTransactionPayment(txn.getId(), null);
     } else {
       // TODO: Add account and asset to DB table, so that the cron job can check trust
     }

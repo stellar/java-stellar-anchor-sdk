@@ -112,7 +112,7 @@ class CustodyServiceTest {
 
     val ex =
       assertThrows<InvalidConfigException> {
-        custodyService.submitTransactionPayment(TXN_ID, REQUEST_BODY)
+        custodyService.createTransactionPayment(TXN_ID, REQUEST_BODY)
       }
     Assertions.assertEquals("Integration with custody service is not enabled", ex.message)
     verify(exactly = 0) { custodyApiClient.createTransactionPayment(TXN_ID, REQUEST_BODY) }
@@ -123,7 +123,7 @@ class CustodyServiceTest {
     every { custodyApiClient.createTransactionPayment(TXN_ID, REQUEST_BODY) } returns
       CreateTransactionPaymentResponse(TXN_ID)
 
-    custodyService.submitTransactionPayment(TXN_ID, REQUEST_BODY)
+    custodyService.createTransactionPayment(TXN_ID, REQUEST_BODY)
 
     verify(exactly = 1) { custodyApiClient.createTransactionPayment(TXN_ID, REQUEST_BODY) }
   }
@@ -134,7 +134,7 @@ class CustodyServiceTest {
 
     val exception =
       assertThrows<InvalidConfigException> {
-        custodyService.submitTransactionPayment(TXN_ID, REQUEST_BODY)
+        custodyService.createTransactionPayment(TXN_ID, REQUEST_BODY)
       }
     Assertions.assertEquals("Integration with custody service is not enabled", exception.message)
 
@@ -148,7 +148,7 @@ class CustodyServiceTest {
 
     val exception =
       assertThrows<CustodyServiceUnavailableException> {
-        custodyService.submitTransactionPayment(TXN_ID, REQUEST_BODY)
+        custodyService.createTransactionPayment(TXN_ID, REQUEST_BODY)
       }
     Assertions.assertEquals("Custody service is unavailable", exception.message)
   }
@@ -160,7 +160,7 @@ class CustodyServiceTest {
 
     val exception =
       assertThrows<CustodyBadRequestException> {
-        custodyService.submitTransactionPayment(TXN_ID, REQUEST_BODY)
+        custodyService.createTransactionPayment(TXN_ID, REQUEST_BODY)
       }
     Assertions.assertEquals("Bad request", exception.message)
   }
@@ -172,7 +172,7 @@ class CustodyServiceTest {
 
     val exception =
       assertThrows<CustodyTooManyRequestsException> {
-        custodyService.submitTransactionPayment(TXN_ID, REQUEST_BODY)
+        custodyService.createTransactionPayment(TXN_ID, REQUEST_BODY)
       }
     Assertions.assertEquals("Too many requests", exception.message)
   }
@@ -184,7 +184,7 @@ class CustodyServiceTest {
 
     val exception =
       assertThrows<CustodyNotFoundException> {
-        custodyService.submitTransactionPayment(TXN_ID, REQUEST_BODY)
+        custodyService.createTransactionPayment(TXN_ID, REQUEST_BODY)
       }
     Assertions.assertEquals("Transaction (id=1) is not found", exception.message)
   }
@@ -196,7 +196,7 @@ class CustodyServiceTest {
 
     val exception =
       assertThrows<CustodyException> {
-        custodyService.submitTransactionPayment(TXN_ID, REQUEST_BODY)
+        custodyService.createTransactionPayment(TXN_ID, REQUEST_BODY)
       }
     Assertions.assertEquals("Forbidden", exception.rawMessage)
   }

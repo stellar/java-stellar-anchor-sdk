@@ -31,7 +31,7 @@ public interface CustodyService {
    * @return {@link CreateTransactionPaymentResponse} object
    * @throws AnchorException if error happens
    */
-  CreateTransactionPaymentResponse submitTransactionPayment(String txnId, String requestBody)
+  CreateTransactionPaymentResponse createTransactionPayment(String txnId, String requestBody)
       throws AnchorException;
 
   /**
@@ -42,6 +42,6 @@ public interface CustodyService {
    * @return {@link CreateTransactionPaymentResponse} object
    * @throws AnchorException if error happens
    */
-  CreateTransactionPaymentResponse submitTransactionRefund(String txnId, Object requestBody)
+  CreateTransactionPaymentResponse createTransactionRefund(String txnId, Object requestBody)
       throws AnchorException;
 }
