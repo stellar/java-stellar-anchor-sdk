@@ -33,7 +33,7 @@ public class RpcUtil {
     List<String> messages = new ArrayList<>();
     if (!JSON_RPC_VERSION.equals(rpcRequest.getJsonrpc())) {
       messages.add(
-          String.format("Unsupported JSON-RPC protocol version [%s]", rpcRequest.getJsonrpc()));
+          String.format("Unsupported JSON-RPC protocol version[%s]", rpcRequest.getJsonrpc()));
     }
 
     String method = rpcRequest.getMethod();

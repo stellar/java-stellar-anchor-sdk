@@ -52,8 +52,6 @@ public class ActionService {
       throw new InvalidRequestException(
           String.format("Action[%s] handler is not found", rpcCall.getMethod()));
     }
-    // TODO: Add response
-    actionHandler.handle(rpcCall.getParams());
-    return null;
+    return actionHandler.handle(rpcCall.getParams());
   }
 }

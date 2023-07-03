@@ -7,6 +7,7 @@ import static org.stellar.anchor.api.sep.SepTransactionStatus.ERROR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.EXPIRED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_CUSTOMER_INFO_UPDATE;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.REFUNDED;
+import static org.stellar.anchor.platform.utils.TransactionHelper.toGetTransactionResponse;
 import static org.stellar.anchor.util.Log.errorEx;
 import static org.stellar.anchor.util.MathHelper.decimal;
 
@@ -23,6 +24,7 @@ import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException;
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException;
+import org.stellar.anchor.api.platform.GetTransactionResponse;
 import org.stellar.anchor.api.rpc.action.ActionMethod;
 import org.stellar.anchor.api.rpc.action.AmountRequest;
 import org.stellar.anchor.api.rpc.action.RpcActionParamsRequest;
@@ -47,6 +49,7 @@ public abstract class ActionHandler<T extends RpcActionParamsRequest> {
   protected final Sep31TransactionStore txn31Store;
   private final Validator validator;
   private final Horizon horizon;
+  private final AssetService assetService;
   private final List<AssetInfo> assets;
 
   public ActionHandler(
@@ -59,11 +62,12 @@ public abstract class ActionHandler<T extends RpcActionParamsRequest> {
     this.txn31Store = txn31Store;
     this.validator = validator;
     this.horizon = horizon;
+    this.assetService = assetService;
     this.assets = assetService.listAllAssets();
   }
 
   @Transactional
-  public void handle(Object requestParams) throws AnchorException {
+  public GetTransactionResponse handle(Object requestParams) throws AnchorException {
     RpcActionParamsRequest request = (RpcActionParamsRequest) requestParams;
     JdbcSepTransaction txn = getTransaction(request.getTransactionId());
 
@@ -80,6 +84,8 @@ public abstract class ActionHandler<T extends RpcActionParamsRequest> {
     }
 
     updateTransaction(txn, request);
+
+    return toGetTransactionResponse(txn, assetService);
   }
 
   public abstract ActionMethod getActionType();
