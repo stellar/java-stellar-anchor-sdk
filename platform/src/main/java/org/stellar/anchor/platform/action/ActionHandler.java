@@ -1,6 +1,7 @@
 package org.stellar.anchor.platform.action;
 
 import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toList;
 import static org.stellar.anchor.api.sep.AssetInfo.NATIVE_ASSET_CODE;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.COMPLETED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.ERROR;
@@ -15,7 +16,6 @@ import java.time.Instant;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import org.apache.commons.collections.CollectionUtils;
@@ -142,22 +142,16 @@ public abstract class ActionHandler<T extends RpcActionParamsRequest> {
       throw new InvalidParamsException(e.getMessage(), e);
     }
 
-    // asset name cannot be empty
-    if (StringHelper.isEmpty(amount.getAsset())) {
-      throw new InvalidParamsException(fieldName + ".asset cannot be empty");
-    }
-
-    // asset name needs to be supported
-    if (assets.stream()
-        .noneMatch(assetInfo -> assetInfo.getAssetName().equals(amount.getAsset()))) {
-      throw new InvalidParamsException(
-          String.format("'%s' is not a supported asset.", amount.getAsset()));
-    }
-
     List<AssetInfo> allAssets =
         assets.stream()
             .filter(assetInfo -> assetInfo.getAssetName().equals(amount.getAsset()))
-            .collect(Collectors.toList());
+            .collect(toList());
+
+    // asset name needs to be supported
+    if (CollectionUtils.isEmpty(allAssets)) {
+      throw new InvalidParamsException(
+          String.format("'%s' is not a supported asset.", amount.getAsset()));
+    }
 
     if (allAssets.size() == 1) {
       AssetInfo targetAsset = allAssets.get(0);
