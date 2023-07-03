@@ -84,6 +84,16 @@ public class NotifyOnchainFundsReceivedHandler
       throw new BadRequestException("stellar_transaction_id is required");
     }
 
+    if (!(request.getAmountIn() == null
+            && request.getAmountOut() == null
+            && request.getAmountFee() == null)
+        || !(request.getAmountIn() != null
+            && request.getAmountOut() != null
+            && request.getAmountFee() != null)) {
+      throw new BadRequestException(
+          "At least one of amount_in, amount_out and amount_fee is not set");
+    }
+
     validateAsset("amount_in", request.getAmountIn());
     validateAsset("amount_out", request.getAmountOut());
     validateAsset("amount_fee", request.getAmountFee(), true);
@@ -93,12 +103,12 @@ public class NotifyOnchainFundsReceivedHandler
       txn.setAmountInAsset(request.getAmountIn().getAsset());
     }
     if (request.getAmountOut() != null) {
-      txn.setAmountIn(request.getAmountOut().getAmount());
-      txn.setAmountInAsset(request.getAmountOut().getAsset());
+      txn.setAmountOut(request.getAmountOut().getAmount());
+      txn.setAmountOutAsset(request.getAmountOut().getAsset());
     }
     if (request.getAmountFee() != null) {
-      txn.setAmountIn(request.getAmountFee().getAmount());
-      txn.setAmountInAsset(request.getAmountFee().getAsset());
+      txn.setAmountFee(request.getAmountFee().getAmount());
+      txn.setAmountFeeAsset(request.getAmountFee().getAsset());
     }
   }
 }

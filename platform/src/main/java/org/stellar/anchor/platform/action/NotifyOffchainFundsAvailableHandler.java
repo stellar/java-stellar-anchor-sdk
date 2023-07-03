@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform.action;
 
+import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL;
 import static org.stellar.anchor.api.rpc.action.ActionMethod.NOTIFY_OFFCHAIN_FUNDS_AVAILABLE;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.COMPLETED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
@@ -38,24 +39,20 @@ public class NotifyOffchainFundsAvailableHandler
   @Override
   protected SepTransactionStatus getNextStatus(
       JdbcSepTransaction txn, NotifyOffchainFundsAvailableRequest request) {
-    if ("24".equals(txn.getProtocol())) {
-      JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
-      if (Kind.from(txn24.getKind()) == Kind.WITHDRAWAL) {
-        return COMPLETED;
-      }
-      throw new IllegalArgumentException(
-          String.format(
-              "Invalid kind[%s] for protocol[%s] and action[%s]",
-              txn24.getKind(), txn24.getProtocol(), getActionType()));
+    JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
+    if (WITHDRAWAL == Kind.from(txn24.getKind())) {
+      return COMPLETED;
     }
     throw new IllegalArgumentException(
-        String.format("Invalid protocol[%s] for action[%s]", txn.getProtocol(), getActionType()));
+        String.format(
+            "Invalid kind[%s] for protocol[%s] and action[%s]",
+            txn24.getKind(), txn24.getProtocol(), getActionType()));
   }
 
   @Override
   protected Set<SepTransactionStatus> getSupportedStatuses(JdbcSepTransaction txn) {
     JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
-    if (Kind.from(txn24.getKind()) == Kind.WITHDRAWAL) {
+    if (Kind.from(txn24.getKind()) == WITHDRAWAL) {
       if (txn24.getTransferReceivedAt() != null) {
         return Set.of(PENDING_ANCHOR);
       }
@@ -71,11 +68,13 @@ public class NotifyOffchainFundsAvailableHandler
   @Override
   protected void updateTransactionWithAction(
       JdbcSepTransaction txn, NotifyOffchainFundsAvailableRequest request) {
-    txn.setExternalTransactionId(request.getExternalTransactionId());
-    if (request.getFundsReceivedAt() == null) {
-      txn.setTransferReceivedAt(Instant.now());
-    } else {
-      txn.setTransferReceivedAt(request.getFundsReceivedAt());
+    if (request.getExternalTransactionId() != null) {
+      txn.setExternalTransactionId(request.getExternalTransactionId());
+      if (request.getFundsReceivedAt() != null) {
+        txn.setTransferReceivedAt(request.getFundsReceivedAt());
+      } else {
+        txn.setTransferReceivedAt(Instant.now());
+      }
     }
   }
 }

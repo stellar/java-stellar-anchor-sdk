@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform.action;
 
+import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT;
 import static org.stellar.anchor.api.rpc.action.ActionMethod.REQUEST_TRUST;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_TRUST;
@@ -59,7 +60,7 @@ public class RequestTrustHandler extends ActionHandler<RequestTrustRequest> {
   @Override
   protected Set<SepTransactionStatus> getSupportedStatuses(JdbcSepTransaction txn) {
     JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
-    if (Kind.from(txn24.getKind()) == Kind.DEPOSIT) {
+    if (DEPOSIT == Kind.from(txn24.getKind())) {
       if (txn24.getTransferReceivedAt() != null) {
         return Set.of(PENDING_ANCHOR);
       }

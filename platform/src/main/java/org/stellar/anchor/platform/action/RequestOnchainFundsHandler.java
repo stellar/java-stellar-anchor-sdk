@@ -5,6 +5,7 @@ import static org.stellar.anchor.api.rpc.action.ActionMethod.REQUEST_ONCHAIN_FUN
 import static org.stellar.anchor.api.sep.SepTransactionStatus.INCOMPLETE;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_USR_TRANSFER_START;
+import static org.stellar.anchor.util.MemoHelper.makeMemo;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -27,6 +28,7 @@ import org.stellar.anchor.platform.service.Sep24DepositInfoNoneGenerator;
 import org.stellar.anchor.sep24.Sep24DepositInfoGenerator;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
+import org.stellar.sdk.Memo;
 
 @Service
 public class RequestOnchainFundsHandler extends ActionHandler<RequestOnchainFundsRequest> {
@@ -82,6 +84,16 @@ public class RequestOnchainFundsHandler extends ActionHandler<RequestOnchainFund
   @Override
   protected void updateTransactionWithAction(
       JdbcSepTransaction txn, RequestOnchainFundsRequest request) throws AnchorException {
+    if (!(request.getAmountIn() == null
+            && request.getAmountOut() == null
+            && request.getAmountFee() == null)
+        || !(request.getAmountIn() != null
+            && request.getAmountOut() != null
+            && request.getAmountFee() != null)) {
+      throw new BadRequestException(
+          "At least one of amount_in, amount_out and amount_fee is not set");
+    }
+
     validateAsset("amount_in", request.getAmountIn());
     validateAsset("amount_out", request.getAmountOut());
     validateAsset("amount_fee", request.getAmountFee(), true);
@@ -95,15 +107,15 @@ public class RequestOnchainFundsHandler extends ActionHandler<RequestOnchainFund
     }
 
     if (request.getAmountOut() != null) {
-      txn.setAmountIn(request.getAmountOut().getAmount());
-      txn.setAmountInAsset(request.getAmountOut().getAsset());
+      txn.setAmountOut(request.getAmountOut().getAmount());
+      txn.setAmountOutAsset(request.getAmountOut().getAsset());
     } else if (txn.getAmountOut() == null) {
       throw new BadRequestException("amount_out is required");
     }
 
     if (request.getAmountFee() != null) {
-      txn.setAmountIn(request.getAmountFee().getAmount());
-      txn.setAmountInAsset(request.getAmountFee().getAsset());
+      txn.setAmountFee(request.getAmountFee().getAmount());
+      txn.setAmountFeeAsset(request.getAmountFee().getAsset());
     } else if (txn.getAmountFee() == null) {
       throw new BadRequestException("amount_fee is required");
     }
@@ -112,30 +124,32 @@ public class RequestOnchainFundsHandler extends ActionHandler<RequestOnchainFund
 
     if (request.getAmountExpected() != null) {
       txn24.setAmountExpected(request.getAmountExpected().getAmount());
-    } else {
-      txn24.setAmountExpected(txn.getAmountIn());
-    }
-
-    if (request.getDestinationAccount() != null) {
-      txn24.setWithdrawAnchorAccount(request.getDestinationAccount());
-      txn24.setToAccount(request.getDestinationAccount());
+    } else if (txn24.getAmountExpected() == null) {
+      txn24.setAmountExpected(txn24.getAmountIn());
     }
 
     if (sep24DepositInfoGenerator instanceof Sep24DepositInfoNoneGenerator) {
-      if (request.getMemo() != null) {
-        txn24.setMemo(request.getMemo());
-      } else {
-        throw new BadRequestException("memo is required");
-      }
+      Memo memo = makeMemo(request.getMemo(), request.getMemoType());
 
-      if (request.getMemoType() != null) {
-        txn24.setMemo(request.getMemoType());
+      if (memo != null) {
+        if (request.getMemo() != null) {
+          txn24.setMemo(request.getMemo());
+        } else {
+          throw new BadRequestException("memo is required");
+        }
+
+        if (request.getMemoType() != null) {
+          txn24.setMemo(request.getMemoType());
+        } else {
+          throw new BadRequestException("memo_type is required");
+        }
       } else {
-        throw new BadRequestException("memo_type is required");
+        throw new BadRequestException("memo and memo_type are required");
       }
 
       if (request.getDestinationAccount() != null) {
         txn24.setWithdrawAnchorAccount(request.getDestinationAccount());
+        txn24.setToAccount(request.getDestinationAccount());
       } else {
         throw new BadRequestException("destination_account is required");
       }

@@ -63,14 +63,9 @@ public abstract class ActionHandler<T extends RpcActionParamsRequest> {
     }
 
     if (!getSupportedStatuses(txn).contains(SepTransactionStatus.from(txn.getStatus()))) {
-      String kind = null;
-      if ("24".equals(txn.getProtocol())) {
-        kind = ((JdbcSep24Transaction) txn).getKind();
-      }
       throw new BadRequestException(
           String.format(
-              "Action[%s] is not supported for status[%s], protocol[%s] and kind[%s]",
-              getActionType(), txn.getStatus(), txn.getProtocol(), kind));
+              "Action[%s] is not supported for status[%s]", getActionType(), txn.getStatus()));
     }
 
     updateTransaction(txn, request);
@@ -155,6 +150,11 @@ public abstract class ActionHandler<T extends RpcActionParamsRequest> {
         }
       }
     }
+  }
+
+  protected boolean isTrustConfigured(String account, String asset) {
+    // TODO: check trustline
+    return true;
   }
 
   private void updateTransaction(JdbcSepTransaction txn, RpcActionParamsRequest request)

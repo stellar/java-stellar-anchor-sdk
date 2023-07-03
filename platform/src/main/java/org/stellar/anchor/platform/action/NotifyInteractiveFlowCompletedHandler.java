@@ -64,14 +64,14 @@ public class NotifyInteractiveFlowCompletedHandler
     txn24.setAmountIn(request.getAmountIn().getAmount());
     txn24.setAmountInAsset(request.getAmountIn().getAsset());
 
-    txn24.setAmountIn(request.getAmountOut().getAmount());
-    txn24.setAmountInAsset(request.getAmountOut().getAsset());
+    txn24.setAmountOut(request.getAmountOut().getAmount());
+    txn24.setAmountOutAsset(request.getAmountOut().getAsset());
 
-    txn24.setAmountIn(request.getAmountFee().getAmount());
-    txn24.setAmountInAsset(request.getAmountFee().getAsset());
+    txn24.setAmountFee(request.getAmountFee().getAmount());
+    txn24.setAmountFeeAsset(request.getAmountFee().getAsset());
 
     if (request.getAmountExpected() != null) {
-      txn24.setAmountExpected(request.getAmountFee().getAmount());
+      txn24.setAmountExpected(request.getAmountExpected().getAmount());
     } else {
       txn24.setAmountExpected(txn.getAmountIn());
     }

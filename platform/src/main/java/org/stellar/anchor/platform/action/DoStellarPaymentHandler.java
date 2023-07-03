@@ -4,6 +4,7 @@ import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOS
 import static org.stellar.anchor.api.rpc.action.ActionMethod.DO_STELLAR_PAYMENT;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_STELLAR;
+import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_TRUST;
 
 import java.util.Set;
 import javax.validation.Validator;
@@ -58,7 +59,12 @@ public class DoStellarPaymentHandler extends ActionHandler<DoStellarPaymentReque
   @Override
   protected SepTransactionStatus getNextStatus(
       JdbcSepTransaction txn, DoStellarPaymentRequest request) {
-    return PENDING_STELLAR;
+    JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
+    if (isTrustConfigured(txn24.getToAccount(), txn24.getAmountOutAsset())) {
+      return PENDING_STELLAR;
+    } else {
+      return PENDING_TRUST;
+    }
   }
 
   @Override
@@ -80,7 +86,12 @@ public class DoStellarPaymentHandler extends ActionHandler<DoStellarPaymentReque
   @Override
   protected void updateTransactionWithAction(
       JdbcSepTransaction txn, DoStellarPaymentRequest request) throws AnchorException {
-    // TODO: Do we need to send request body?
-    custodyService.submitTransactionPayment(txn.getId(), null);
+    JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
+    if (isTrustConfigured(txn24.getToAccount(), txn24.getAmountOutAsset())) {
+      // TODO: Do we need to send request body?
+      custodyService.submitTransactionPayment(txn.getId(), null);
+    } else {
+      // TODO: Add account and asset to DB table, so that the cron job can check trust
+    }
   }
 }

@@ -64,6 +64,16 @@ public class RequestOffchainFundsHandler extends ActionHandler<RequestOffchainFu
   @Override
   protected void updateTransactionWithAction(
       JdbcSepTransaction txn, RequestOffchainFundsRequest request) throws BadRequestException {
+    if (!(request.getAmountIn() == null
+            && request.getAmountOut() == null
+            && request.getAmountFee() == null)
+        || !(request.getAmountIn() != null
+            && request.getAmountOut() != null
+            && request.getAmountFee() != null)) {
+      throw new BadRequestException(
+          "At least one of amount_in, amount_out and amount_fee is not set");
+    }
+
     validateAsset("amount_in", request.getAmountIn());
     validateAsset("amount_out", request.getAmountOut());
     validateAsset("amount_fee", request.getAmountFee(), true);
@@ -77,15 +87,15 @@ public class RequestOffchainFundsHandler extends ActionHandler<RequestOffchainFu
     }
 
     if (request.getAmountOut() != null) {
-      txn.setAmountIn(request.getAmountOut().getAmount());
-      txn.setAmountInAsset(request.getAmountOut().getAsset());
+      txn.setAmountOut(request.getAmountOut().getAmount());
+      txn.setAmountOutAsset(request.getAmountOut().getAsset());
     } else if (txn.getAmountOut() == null) {
       throw new BadRequestException("amount_out is required");
     }
 
     if (request.getAmountFee() != null) {
-      txn.setAmountIn(request.getAmountFee().getAmount());
-      txn.setAmountInAsset(request.getAmountFee().getAsset());
+      txn.setAmountFee(request.getAmountFee().getAmount());
+      txn.setAmountFeeAsset(request.getAmountFee().getAsset());
     } else if (txn.getAmountFee() == null) {
       throw new BadRequestException("amount_fee is required");
     }
@@ -93,8 +103,8 @@ public class RequestOffchainFundsHandler extends ActionHandler<RequestOffchainFu
     JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
     if (request.getAmountExpected() != null) {
       txn24.setAmountExpected(request.getAmountExpected().getAmount());
-    } else {
-      txn24.setAmountExpected(txn.getAmountIn());
+    } else if (txn24.getAmountExpected() == null) {
+      txn24.setAmountExpected(txn24.getAmountIn());
     }
   }
 }
