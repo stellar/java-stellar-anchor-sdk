@@ -10,6 +10,7 @@ import java.util.HashSet;
 import java.util.Set;
 import javax.validation.Validator;
 import org.springframework.stereotype.Service;
+import org.stellar.anchor.api.exception.rpc.InvalidRequestException;
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind;
 import org.stellar.anchor.api.rpc.action.ActionMethod;
 import org.stellar.anchor.api.rpc.action.NotifyOnchainFundsSentRequest;
@@ -40,12 +41,13 @@ public class NotifyOnchainFundsSentHandler extends ActionHandler<NotifyOnchainFu
 
   @Override
   protected SepTransactionStatus getNextStatus(
-      JdbcSepTransaction txn, NotifyOnchainFundsSentRequest request) {
+      JdbcSepTransaction txn, NotifyOnchainFundsSentRequest request)
+      throws InvalidRequestException {
     JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
     if (DEPOSIT == Kind.from(txn24.getKind())) {
       return COMPLETED;
     }
-    throw new IllegalArgumentException(
+    throw new InvalidRequestException(
         String.format(
             "Invalid kind[%s] for protocol[%s] and action[%s]",
             txn24.getKind(), txn24.getProtocol(), getActionType()));

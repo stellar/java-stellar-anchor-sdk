@@ -9,7 +9,8 @@ import java.util.Set;
 import javax.validation.Validator;
 import org.springframework.stereotype.Service;
 import org.stellar.anchor.api.exception.AnchorException;
-import org.stellar.anchor.api.exception.BadRequestException;
+import org.stellar.anchor.api.exception.rpc.InvalidParamsException;
+import org.stellar.anchor.api.exception.rpc.InvalidRequestException;
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind;
 import org.stellar.anchor.api.rpc.action.ActionMethod;
 import org.stellar.anchor.api.rpc.action.DoStellarRefundRequest;
@@ -43,9 +44,10 @@ public class DoStellarRefundHandler extends ActionHandler<DoStellarRefundRequest
   }
 
   @Override
-  protected void validate(DoStellarRefundRequest request) throws BadRequestException {
+  protected void validate(DoStellarRefundRequest request)
+      throws InvalidParamsException, InvalidRequestException {
     if (!custodyConfig.isCustodyIntegrationEnabled()) {
-      throw new BadRequestException(
+      throw new InvalidParamsException(
           String.format("Action[%s] requires enabled custody integration", getActionType()));
     }
 

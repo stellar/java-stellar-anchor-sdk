@@ -12,7 +12,7 @@ import java.util.Set;
 import javax.validation.Validator;
 import org.springframework.stereotype.Service;
 import org.stellar.anchor.api.exception.AnchorException;
-import org.stellar.anchor.api.exception.BadRequestException;
+import org.stellar.anchor.api.exception.rpc.InvalidParamsException;
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind;
 import org.stellar.anchor.api.rpc.action.ActionMethod;
 import org.stellar.anchor.api.rpc.action.RequestOnchainFundsRequest;
@@ -90,7 +90,7 @@ public class RequestOnchainFundsHandler extends ActionHandler<RequestOnchainFund
         || (request.getAmountIn() != null
             && request.getAmountOut() != null
             && request.getAmountFee() != null))) {
-      throw new BadRequestException(
+      throw new InvalidParamsException(
           "All or none of the amount_in, amount_out, and amount_fee should be set");
     }
 
@@ -103,21 +103,21 @@ public class RequestOnchainFundsHandler extends ActionHandler<RequestOnchainFund
       txn.setAmountIn(request.getAmountIn().getAmount());
       txn.setAmountInAsset(request.getAmountIn().getAsset());
     } else if (txn.getAmountIn() == null) {
-      throw new BadRequestException("amount_in is required");
+      throw new InvalidParamsException("amount_in is required");
     }
 
     if (request.getAmountOut() != null) {
       txn.setAmountOut(request.getAmountOut().getAmount());
       txn.setAmountOutAsset(request.getAmountOut().getAsset());
     } else if (txn.getAmountOut() == null) {
-      throw new BadRequestException("amount_out is required");
+      throw new InvalidParamsException("amount_out is required");
     }
 
     if (request.getAmountFee() != null) {
       txn.setAmountFee(request.getAmountFee().getAmount());
       txn.setAmountFeeAsset(request.getAmountFee().getAsset());
     } else if (txn.getAmountFee() == null) {
-      throw new BadRequestException("amount_fee is required");
+      throw new InvalidParamsException("amount_fee is required");
     }
 
     JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
@@ -135,23 +135,23 @@ public class RequestOnchainFundsHandler extends ActionHandler<RequestOnchainFund
         if (request.getMemo() != null) {
           txn24.setMemo(request.getMemo());
         } else {
-          throw new BadRequestException("memo is required");
+          throw new InvalidParamsException("memo is required");
         }
 
         if (request.getMemoType() != null) {
           txn24.setMemo(request.getMemoType());
         } else {
-          throw new BadRequestException("memo_type is required");
+          throw new InvalidParamsException("memo_type is required");
         }
       } else {
-        throw new BadRequestException("memo and memo_type are required");
+        throw new InvalidParamsException("memo and memo_type are required");
       }
 
       if (request.getDestinationAccount() != null) {
         txn24.setWithdrawAnchorAccount(request.getDestinationAccount());
         txn24.setToAccount(request.getDestinationAccount());
       } else {
-        throw new BadRequestException("destination_account is required");
+        throw new InvalidParamsException("destination_account is required");
       }
     } else {
       SepDepositInfo sep24DepositInfo = sep24DepositInfoGenerator.generate(txn24);

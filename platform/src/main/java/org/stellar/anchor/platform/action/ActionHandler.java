@@ -21,6 +21,8 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.transaction.annotation.Transactional;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
+import org.stellar.anchor.api.exception.rpc.InvalidParamsException;
+import org.stellar.anchor.api.exception.rpc.InvalidRequestException;
 import org.stellar.anchor.api.rpc.action.ActionMethod;
 import org.stellar.anchor.api.rpc.action.AmountRequest;
 import org.stellar.anchor.api.rpc.action.RpcActionParamsRequest;
@@ -66,13 +68,13 @@ public abstract class ActionHandler<T extends RpcActionParamsRequest> {
     JdbcSepTransaction txn = getTransaction(request.getTransactionId());
 
     if (!getSupportedProtocols().contains(txn.getProtocol())) {
-      throw new BadRequestException(
+      throw new InvalidRequestException(
           String.format(
               "Protocol[%s] is not supported by action[%s]", txn.getProtocol(), getActionType()));
     }
 
     if (!getSupportedStatuses(txn).contains(SepTransactionStatus.from(txn.getStatus()))) {
-      throw new BadRequestException(
+      throw new InvalidRequestException(
           String.format(
               "Action[%s] is not supported for status[%s]", getActionType(), txn.getStatus()));
     }
@@ -82,7 +84,8 @@ public abstract class ActionHandler<T extends RpcActionParamsRequest> {
 
   public abstract ActionMethod getActionType();
 
-  protected abstract SepTransactionStatus getNextStatus(JdbcSepTransaction txn, T request);
+  protected abstract SepTransactionStatus getNextStatus(JdbcSepTransaction txn, T request)
+      throws InvalidRequestException;
 
   protected abstract Set<SepTransactionStatus> getSupportedStatuses(JdbcSepTransaction txn);
 
@@ -99,10 +102,10 @@ public abstract class ActionHandler<T extends RpcActionParamsRequest> {
     return (JdbcSep24Transaction) txn24Store.findByTransactionId(transactionId);
   }
 
-  protected void validate(T request) throws BadRequestException {
+  protected void validate(T request) throws InvalidParamsException, InvalidRequestException {
     Set<ConstraintViolation<T>> violations = validator.validate(request);
     if (CollectionUtils.isNotEmpty(violations)) {
-      throw new BadRequestException(
+      throw new InvalidParamsException(
           violations.stream()
               .map(ConstraintViolation::getMessage)
               .collect(joining(System.lineSeparator())));
@@ -114,30 +117,34 @@ public abstract class ActionHandler<T extends RpcActionParamsRequest> {
    * supported.
    *
    * @param amount is the object containing the asset full name and the amount.
-   * @throws BadRequestException if the provided asset is not supported
    */
-  protected void validateAsset(String fieldName, AmountRequest amount) throws BadRequestException {
+  protected void validateAsset(String fieldName, AmountRequest amount)
+      throws InvalidParamsException {
     validateAsset(fieldName, amount, false);
   }
 
   protected void validateAsset(String fieldName, AmountRequest amount, boolean allowZero)
-      throws BadRequestException {
+      throws InvalidParamsException {
     if (amount == null) {
       return;
     }
 
     // asset amount needs to be non-empty and valid
-    SepHelper.validateAmount(fieldName + ".", amount.getAmount(), allowZero);
+    try {
+      SepHelper.validateAmount(fieldName + ".", amount.getAmount(), allowZero);
+    } catch (BadRequestException e) {
+      throw new InvalidParamsException(e.getMessage(), e);
+    }
 
     // asset name cannot be empty
     if (StringHelper.isEmpty(amount.getAsset())) {
-      throw new BadRequestException(fieldName + ".asset cannot be empty");
+      throw new InvalidParamsException(fieldName + ".asset cannot be empty");
     }
 
     // asset name needs to be supported
     if (assets.stream()
         .noneMatch(assetInfo -> assetInfo.getAssetName().equals(amount.getAsset()))) {
-      throw new BadRequestException(
+      throw new InvalidParamsException(
           String.format("'%s' is not a supported asset.", amount.getAsset()));
     }
 
@@ -152,7 +159,7 @@ public abstract class ActionHandler<T extends RpcActionParamsRequest> {
       if (targetAsset.getSignificantDecimals() != null) {
         // Check that significant decimal is correct
         if (decimal(amount.getAmount(), targetAsset).compareTo(decimal(amount.getAmount())) != 0) {
-          throw new BadRequestException(
+          throw new InvalidParamsException(
               String.format(
                   "'%s' has invalid significant decimals. Expected: '%s'",
                   amount.getAmount(), targetAsset.getSignificantDecimals()));
@@ -197,7 +204,7 @@ public abstract class ActionHandler<T extends RpcActionParamsRequest> {
     SepTransactionStatus nextStatus = getNextStatus(txn, actionRequest);
 
     if ((Set.of(ERROR, EXPIRED).contains(nextStatus)) && request.getMessage() == null) {
-      throw new BadRequestException("message is required");
+      throw new InvalidParamsException("message is required");
     }
 
     boolean shouldClearMessageStatus =

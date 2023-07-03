@@ -11,6 +11,7 @@ import java.util.Set;
 import javax.validation.Validator;
 import org.springframework.stereotype.Service;
 import org.stellar.anchor.api.exception.BadRequestException;
+import org.stellar.anchor.api.exception.rpc.InvalidParamsException;
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind;
 import org.stellar.anchor.api.rpc.action.ActionMethod;
 import org.stellar.anchor.api.rpc.action.RequestOffchainFundsRequest;
@@ -65,14 +66,15 @@ public class RequestOffchainFundsHandler extends ActionHandler<RequestOffchainFu
 
   @Override
   protected void updateTransactionWithAction(
-      JdbcSepTransaction txn, RequestOffchainFundsRequest request) throws BadRequestException {
+      JdbcSepTransaction txn, RequestOffchainFundsRequest request)
+      throws BadRequestException, InvalidParamsException {
     if (!((request.getAmountIn() == null
             && request.getAmountOut() == null
             && request.getAmountFee() == null)
         || (request.getAmountIn() != null
             && request.getAmountOut() != null
             && request.getAmountFee() != null))) {
-      throw new BadRequestException(
+      throw new InvalidParamsException(
           "All or none of the amount_in, amount_out, and amount_fee should be set");
     }
 
@@ -85,21 +87,21 @@ public class RequestOffchainFundsHandler extends ActionHandler<RequestOffchainFu
       txn.setAmountIn(request.getAmountIn().getAmount());
       txn.setAmountInAsset(request.getAmountIn().getAsset());
     } else if (txn.getAmountIn() == null) {
-      throw new BadRequestException("amount_in is required");
+      throw new InvalidParamsException("amount_in is required");
     }
 
     if (request.getAmountOut() != null) {
       txn.setAmountOut(request.getAmountOut().getAmount());
       txn.setAmountOutAsset(request.getAmountOut().getAsset());
     } else if (txn.getAmountOut() == null) {
-      throw new BadRequestException("amount_out is required");
+      throw new InvalidParamsException("amount_out is required");
     }
 
     if (request.getAmountFee() != null) {
       txn.setAmountFee(request.getAmountFee().getAmount());
       txn.setAmountFeeAsset(request.getAmountFee().getAsset());
     } else if (txn.getAmountFee() == null) {
-      throw new BadRequestException("amount_fee is required");
+      throw new InvalidParamsException("amount_fee is required");
     }
 
     JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;

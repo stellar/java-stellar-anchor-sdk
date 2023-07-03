@@ -15,6 +15,11 @@ public class RpcException extends AnchorException {
     this.errorCode = errorCode;
   }
 
+  public RpcException(int errorCode, String message, Exception e) {
+    super(message, e);
+    this.errorCode = errorCode;
+  }
+
   public RpcException(int errorCode, String message, Object additionalData) {
     super(message);
     this.errorCode = errorCode;

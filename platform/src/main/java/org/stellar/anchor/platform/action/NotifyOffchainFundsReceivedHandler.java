@@ -12,7 +12,8 @@ import java.util.Set;
 import javax.validation.Validator;
 import org.springframework.stereotype.Service;
 import org.stellar.anchor.api.exception.AnchorException;
-import org.stellar.anchor.api.exception.BadRequestException;
+import org.stellar.anchor.api.exception.rpc.InvalidParamsException;
+import org.stellar.anchor.api.exception.rpc.InvalidRequestException;
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind;
 import org.stellar.anchor.api.rpc.action.ActionMethod;
 import org.stellar.anchor.api.rpc.action.NotifyOffchainFundsReceivedRequest;
@@ -53,12 +54,13 @@ public class NotifyOffchainFundsReceivedHandler
 
   @Override
   protected SepTransactionStatus getNextStatus(
-      JdbcSepTransaction txn, NotifyOffchainFundsReceivedRequest request) {
+      JdbcSepTransaction txn, NotifyOffchainFundsReceivedRequest request)
+      throws InvalidRequestException {
     JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
     if (DEPOSIT == Kind.from(txn24.getKind())) {
       return PENDING_ANCHOR;
     }
-    throw new IllegalArgumentException(
+    throw new InvalidRequestException(
         String.format(
             "Invalid kind[%s] for protocol[%s] and action[%s]",
             txn24.getKind(), txn24.getProtocol(), getActionType()));
@@ -100,7 +102,7 @@ public class NotifyOffchainFundsReceivedHandler
         || (request.getAmountIn() != null
             && request.getAmountOut() != null
             && request.getAmountFee() != null))) {
-      throw new BadRequestException(
+      throw new InvalidParamsException(
           "All or none of the amount_in, amount_out, and amount_fee should be set");
     }
 

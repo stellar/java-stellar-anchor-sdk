@@ -8,7 +8,8 @@ import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_TRUST;
 import java.util.Set;
 import javax.validation.Validator;
 import org.springframework.stereotype.Service;
-import org.stellar.anchor.api.exception.BadRequestException;
+import org.stellar.anchor.api.exception.rpc.InvalidParamsException;
+import org.stellar.anchor.api.exception.rpc.InvalidRequestException;
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind;
 import org.stellar.anchor.api.rpc.action.ActionMethod;
 import org.stellar.anchor.api.rpc.action.RequestTrustRequest;
@@ -38,9 +39,10 @@ public class RequestTrustHandler extends ActionHandler<RequestTrustRequest> {
   }
 
   @Override
-  protected void validate(RequestTrustRequest request) throws BadRequestException {
+  protected void validate(RequestTrustRequest request)
+      throws InvalidRequestException, InvalidParamsException {
     if (!custodyConfig.isCustodyIntegrationEnabled()) {
-      throw new BadRequestException(
+      throw new InvalidRequestException(
           String.format("Action[%s] requires enabled custody integration", getActionType()));
     }
 

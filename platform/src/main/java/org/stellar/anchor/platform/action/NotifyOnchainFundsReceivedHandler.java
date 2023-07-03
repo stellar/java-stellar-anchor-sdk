@@ -12,7 +12,8 @@ import java.util.Set;
 import javax.validation.Validator;
 import org.springframework.stereotype.Service;
 import org.stellar.anchor.api.exception.AnchorException;
-import org.stellar.anchor.api.exception.BadRequestException;
+import org.stellar.anchor.api.exception.rpc.InvalidParamsException;
+import org.stellar.anchor.api.exception.rpc.InvalidRequestException;
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind;
 import org.stellar.anchor.api.rpc.action.ActionMethod;
 import org.stellar.anchor.api.rpc.action.NotifyOnchainFundsReceivedRequest;
@@ -44,12 +45,13 @@ public class NotifyOnchainFundsReceivedHandler
 
   @Override
   protected SepTransactionStatus getNextStatus(
-      JdbcSepTransaction txn, NotifyOnchainFundsReceivedRequest request) {
+      JdbcSepTransaction txn, NotifyOnchainFundsReceivedRequest request)
+      throws InvalidRequestException {
     JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
     if (DEPOSIT == Kind.from(txn24.getKind())) {
       return PENDING_ANCHOR;
     }
-    throw new IllegalArgumentException(
+    throw new InvalidRequestException(
         String.format(
             "Invalid kind[%s] for protocol[%s] and action[%s]",
             txn24.getKind(), txn24.getProtocol(), getActionType()));
@@ -83,7 +85,7 @@ public class NotifyOnchainFundsReceivedHandler
       // TODO: populate transferReceivedAt from Stellar Network
       txn.setTransferReceivedAt(Instant.now());
     } else if (txn.getStellarTransactionId() == null) {
-      throw new BadRequestException("stellar_transaction_id is required");
+      throw new InvalidParamsException("stellar_transaction_id is required");
     }
 
     if (!((request.getAmountIn() == null
@@ -92,7 +94,7 @@ public class NotifyOnchainFundsReceivedHandler
         || (request.getAmountIn() != null
             && request.getAmountOut() != null
             && request.getAmountFee() != null))) {
-      throw new BadRequestException(
+      throw new InvalidParamsException(
           "All or none of the amount_in, amount_out, and amount_fee should be set");
     }
 

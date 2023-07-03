@@ -11,6 +11,7 @@ import java.util.HashSet;
 import java.util.Set;
 import javax.validation.Validator;
 import org.springframework.stereotype.Service;
+import org.stellar.anchor.api.exception.rpc.InvalidRequestException;
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind;
 import org.stellar.anchor.api.rpc.action.ActionMethod;
 import org.stellar.anchor.api.rpc.action.NotifyOffchainFundsSentRequest;
@@ -41,7 +42,8 @@ public class NotifyOffchainFundsSentHandler extends ActionHandler<NotifyOffchain
 
   @Override
   protected SepTransactionStatus getNextStatus(
-      JdbcSepTransaction txn, NotifyOffchainFundsSentRequest request) {
+      JdbcSepTransaction txn, NotifyOffchainFundsSentRequest request)
+      throws InvalidRequestException {
     JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
     switch (Kind.from(txn24.getKind())) {
       case DEPOSIT:
@@ -49,7 +51,7 @@ public class NotifyOffchainFundsSentHandler extends ActionHandler<NotifyOffchain
       case WITHDRAWAL:
         return COMPLETED;
       default:
-        throw new IllegalArgumentException(
+        throw new InvalidRequestException(
             String.format(
                 "Invalid kind[%s] for protocol[%s] and action[%s]",
                 txn24.getKind(), txn24.getProtocol(), getActionType()));

@@ -7,7 +7,7 @@ import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
 import java.util.Set;
 import javax.validation.Validator;
 import org.springframework.stereotype.Service;
-import org.stellar.anchor.api.exception.BadRequestException;
+import org.stellar.anchor.api.exception.rpc.InvalidParamsException;
 import org.stellar.anchor.api.rpc.action.ActionMethod;
 import org.stellar.anchor.api.rpc.action.NotifyInteractiveFlowCompletedRequest;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
@@ -55,7 +55,7 @@ public class NotifyInteractiveFlowCompletedHandler
   @Override
   protected void updateTransactionWithAction(
       JdbcSepTransaction txn, NotifyInteractiveFlowCompletedRequest request)
-      throws BadRequestException {
+      throws InvalidParamsException {
     validateAsset("amount_in", request.getAmountIn());
     validateAsset("amount_out", request.getAmountOut());
     validateAsset("amount_fee", request.getAmountFee(), true);
