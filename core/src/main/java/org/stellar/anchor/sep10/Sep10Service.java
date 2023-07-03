@@ -20,8 +20,6 @@ import org.stellar.anchor.config.SecretConfig;
 import org.stellar.anchor.config.Sep10Config;
 import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.util.Log;
-import org.stellar.anchor.util.Sep1Helper;
-import org.stellar.anchor.util.Sep1Helper.TomlContent;
 import org.stellar.sdk.*;
 import org.stellar.sdk.requests.ErrorResponse;
 import org.stellar.sdk.responses.AccountResponse;
@@ -147,7 +145,8 @@ public class Sep10Service {
       String clientSigningKey = null;
       if (!Objects.toString(challengeRequest.getClientDomain(), "").isEmpty()) {
         debugF("Fetching SIGNING_KEY from client_domain: {}", challengeRequest.getClientDomain());
-        clientSigningKey = getClientAccountId(challengeRequest.getClientDomain());
+        clientSigningKey =
+            Sep10Helper.fetchSigningKeyFromClientDomain(challengeRequest.getClientDomain());
         debugF("SIGNING_KEY from client_domain fetched: {}", clientSigningKey);
       }
 
@@ -286,32 +285,6 @@ public class Sep10Service {
         signers);
 
     return clientDomain;
-  }
-
-  String getClientAccountId(String clientDomain) throws SepException {
-    String clientSigningKey = "";
-    String url = "https://" + clientDomain + "/.well-known/stellar.toml";
-    try {
-      debugF("Fetching {}", url);
-      TomlContent toml = Sep1Helper.readToml(url);
-      clientSigningKey = toml.getString("SIGNING_KEY");
-      if (clientSigningKey == null) {
-        infoF("SIGNING_KEY not present in 'client_domain' TOML.");
-        throw new SepException("SIGNING_KEY not present in 'client_domain' TOML");
-      }
-
-      // client key validation
-      debugF("Validating client_domain signing key: {}", clientSigningKey);
-      KeyPair.fromAccountId(clientSigningKey);
-      return clientSigningKey;
-    } catch (IllegalArgumentException | FormatException ex) {
-      infoF("SIGNING_KEY {} is not a valid Stellar account Id.", clientSigningKey);
-      throw new SepException(
-          String.format("SIGNING_KEY %s is not a valid Stellar account Id.", clientSigningKey));
-    } catch (IOException ioex) {
-      infoF("Unable to read from {}", url);
-      throw new SepException(String.format("Unable to read from %s", url), ioex);
-    }
   }
 
   String generateSep10Jwt(String challengeXdr, String clientDomain)

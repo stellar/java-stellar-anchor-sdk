@@ -581,14 +581,14 @@ internal class Sep10ServiceTest {
       "       NETWORK_PASSPHRASE=\"Public Global Stellar Network ; September 2015\"\n"
     mockkStatic(KeyPair::class)
 
-    assertThrows<SepException> { sep10Service.getClientAccountId(TEST_CLIENT_DOMAIN) }
+    assertThrows<SepException> { Sep10Helper.fetchSigningKeyFromClientDomain(TEST_CLIENT_DOMAIN) }
 
     every { NetUtil.fetch(any()) } answers { throw IOException("Cannot connect") }
-    assertThrows<SepException> { sep10Service.getClientAccountId(TEST_CLIENT_DOMAIN) }
+    assertThrows<SepException> { Sep10Helper.fetchSigningKeyFromClientDomain(TEST_CLIENT_DOMAIN) }
 
     every { NetUtil.fetch(any()) } returns TEST_CLIENT_TOML
     every { KeyPair.fromAccountId(any()) } answers { throw FormatException("Bad Format") }
-    assertThrows<SepException> { sep10Service.getClientAccountId(TEST_CLIENT_DOMAIN) }
+    assertThrows<SepException> { Sep10Helper.fetchSigningKeyFromClientDomain(TEST_CLIENT_DOMAIN) }
   }
 
   @Test
