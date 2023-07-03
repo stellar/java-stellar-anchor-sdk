@@ -94,14 +94,14 @@ public class NotifyOffchainFundsReceivedHandler
       }
     }
 
-    if (!(request.getAmountIn() == null
+    if (!((request.getAmountIn() == null
             && request.getAmountOut() == null
             && request.getAmountFee() == null)
-        || !(request.getAmountIn() != null
+        || (request.getAmountIn() != null
             && request.getAmountOut() != null
-            && request.getAmountFee() != null)) {
+            && request.getAmountFee() != null))) {
       throw new BadRequestException(
-          "All or none of the amount_in, amount_out and amount_fee should be set");
+          "All or none of the amount_in, amount_out, and amount_fee should be set");
     }
 
     validateAsset("amount_in", request.getAmountIn());
