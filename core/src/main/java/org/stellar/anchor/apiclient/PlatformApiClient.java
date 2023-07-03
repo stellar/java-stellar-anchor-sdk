@@ -13,6 +13,7 @@ import org.springframework.data.domain.Sort;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.api.platform.*;
+import org.stellar.anchor.api.rpc.RpcRequest;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.auth.AuthHelper;
 import org.stellar.anchor.util.AuthHeader;
@@ -81,6 +82,24 @@ public class PlatformApiClient extends BaseApiClient {
     Request request = getRequestBuilder().url(url).patch(requestBody).build();
     Response response = client.newCall(request).execute();
     return gson.fromJson(handleResponse(response), PatchTransactionsResponse.class);
+  }
+
+  public Response rpcAction(List<RpcRequest> rpcRequests) throws IOException, AnchorException {
+    HttpUrl url = HttpUrl.parse(endpoint);
+    if (url == null)
+      throw new InvalidConfigException(
+          String.format("Invalid endpoint: %s of the client.", endpoint));
+    url =
+        new HttpUrl.Builder()
+            .scheme(url.scheme())
+            .host(url.host())
+            .port(url.port())
+            .addPathSegment("actions")
+            .build();
+
+    RequestBody requestBody = OkHttpUtil.buildJsonRequestBody(gson.toJson(rpcRequests));
+    Request request = getRequestBuilder().url(url).post(requestBody).build();
+    return client.newCall(request).execute();
   }
 
   public HashMap<?, ?> health(List<String> checks) throws IOException, AnchorException {
