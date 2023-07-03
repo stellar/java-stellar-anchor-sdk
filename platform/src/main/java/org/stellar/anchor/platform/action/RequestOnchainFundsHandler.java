@@ -21,7 +21,7 @@ import org.stellar.anchor.api.shared.SepDepositInfo;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.CustodyConfig;
 import org.stellar.anchor.custody.CustodyService;
-import org.stellar.anchor.platform.config.PropertySep24Config;
+import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.platform.service.Sep24DepositInfoNoneGenerator;
@@ -41,12 +41,12 @@ public class RequestOnchainFundsHandler extends ActionHandler<RequestOnchainFund
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       Validator validator,
+      Horizon horizon,
       AssetService assetService,
       CustodyConfig custodyConfig,
       CustodyService custodyService,
-      Sep24DepositInfoGenerator sep24DepositInfoGenerator,
-      PropertySep24Config propertySep24Config) {
-    super(txn24Store, txn31Store, validator, assetService);
+      Sep24DepositInfoGenerator sep24DepositInfoGenerator) {
+    super(txn24Store, txn31Store, validator, horizon, assetService);
     this.custodyConfig = custodyConfig;
     this.custodyService = custodyService;
     this.sep24DepositInfoGenerator = sep24DepositInfoGenerator;
@@ -91,7 +91,7 @@ public class RequestOnchainFundsHandler extends ActionHandler<RequestOnchainFund
             && request.getAmountOut() != null
             && request.getAmountFee() != null)) {
       throw new BadRequestException(
-          "At least one of amount_in, amount_out and amount_fee is not set");
+          "All or none of the amount_in, amount_out and amount_fee should be set");
     }
 
     validateAsset("amount_in", request.getAmountIn());

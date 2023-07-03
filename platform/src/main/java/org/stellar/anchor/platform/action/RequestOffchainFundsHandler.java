@@ -16,6 +16,7 @@ import org.stellar.anchor.api.rpc.action.ActionMethod;
 import org.stellar.anchor.api.rpc.action.RequestOffchainFundsRequest;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
+import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
@@ -28,8 +29,9 @@ public class RequestOffchainFundsHandler extends ActionHandler<RequestOffchainFu
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       Validator validator,
+      Horizon horizon,
       AssetService assetService) {
-    super(txn24Store, txn31Store, validator, assetService);
+    super(txn24Store, txn31Store, validator, horizon, assetService);
   }
 
   @Override
@@ -71,7 +73,7 @@ public class RequestOffchainFundsHandler extends ActionHandler<RequestOffchainFu
             && request.getAmountOut() != null
             && request.getAmountFee() != null)) {
       throw new BadRequestException(
-          "At least one of amount_in, amount_out and amount_fee is not set");
+          "All or none of the amount_in, amount_out and amount_fee should be set");
     }
 
     validateAsset("amount_in", request.getAmountIn());

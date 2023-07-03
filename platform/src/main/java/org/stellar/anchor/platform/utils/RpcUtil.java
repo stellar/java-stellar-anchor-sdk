@@ -2,8 +2,8 @@ package org.stellar.anchor.platform.utils;
 
 import java.util.ArrayList;
 import java.util.List;
-import org.stellar.anchor.api.exception.RpcException;
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException;
+import org.stellar.anchor.api.exception.rpc.RpcException;
 import org.stellar.anchor.api.rpc.RpcRequest;
 import org.stellar.anchor.api.rpc.RpcResponse;
 import org.stellar.anchor.util.StringHelper;

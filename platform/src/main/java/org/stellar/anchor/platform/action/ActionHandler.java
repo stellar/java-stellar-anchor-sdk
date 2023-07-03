@@ -1,14 +1,17 @@
 package org.stellar.anchor.platform.action;
 
 import static java.util.stream.Collectors.joining;
+import static org.stellar.anchor.api.sep.AssetInfo.NATIVE_ASSET_CODE;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.COMPLETED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.ERROR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.EXPIRED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_CUSTOMER_INFO_UPDATE;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.REFUNDED;
+import static org.stellar.anchor.util.Log.errorEx;
 import static org.stellar.anchor.util.MathHelper.decimal;
 
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -24,6 +27,7 @@ import org.stellar.anchor.api.rpc.action.RpcActionParamsRequest;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
+import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSep31Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
@@ -32,22 +36,27 @@ import org.stellar.anchor.sep31.Sep31Transaction;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.util.SepHelper;
 import org.stellar.anchor.util.StringHelper;
+import org.stellar.sdk.AssetTypeCreditAlphaNum;
+import org.stellar.sdk.responses.AccountResponse;
 
 public abstract class ActionHandler<T extends RpcActionParamsRequest> {
 
   protected final Sep24TransactionStore txn24Store;
   protected final Sep31TransactionStore txn31Store;
   private final Validator validator;
+  private final Horizon horizon;
   private final List<AssetInfo> assets;
 
   public ActionHandler(
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       Validator validator,
+      Horizon horizon,
       AssetService assetService) {
     this.txn24Store = txn24Store;
     this.txn31Store = txn31Store;
     this.validator = validator;
+    this.horizon = horizon;
     this.assets = assetService.listAllAssets();
   }
 
@@ -152,9 +161,32 @@ public abstract class ActionHandler<T extends RpcActionParamsRequest> {
     }
   }
 
-  protected boolean isTrustConfigured(String account, String asset) {
-    // TODO: check trustline
-    return true;
+  protected boolean isTrustLineConfigured(String account, String asset) {
+    try {
+      String assetCode = asset.split(":")[1];
+      if (NATIVE_ASSET_CODE.equals(assetCode)) {
+        return true;
+      }
+      String assetIssuer = asset.split(":")[2];
+
+      AccountResponse accountResponse = horizon.getServer().accounts().account(account);
+      return Arrays.stream(accountResponse.getBalances())
+          .anyMatch(
+              balance -> {
+                if (balance.getAssetType().equals("credit_alphanum4")
+                    || balance.getAssetType().equals("credit_alphanum12")) {
+                  AssetTypeCreditAlphaNum creditAsset =
+                      (AssetTypeCreditAlphaNum) balance.getAsset().get();
+                  return creditAsset.getCode().equals(assetCode)
+                      && creditAsset.getIssuer().equals(assetIssuer);
+                }
+                return false;
+              });
+    } catch (Exception e) {
+      errorEx(
+          String.format("Unable to check trust for account[%s] and asset[%s]", account, asset), e);
+      return false;
+    }
   }
 
   private void updateTransaction(JdbcSepTransaction txn, RpcActionParamsRequest request)

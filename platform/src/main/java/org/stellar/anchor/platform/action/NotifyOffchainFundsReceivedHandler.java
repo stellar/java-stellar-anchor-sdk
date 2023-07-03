@@ -20,6 +20,7 @@ import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.CustodyConfig;
 import org.stellar.anchor.custody.CustodyService;
+import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
@@ -36,10 +37,11 @@ public class NotifyOffchainFundsReceivedHandler
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       Validator validator,
+      Horizon horizon,
       AssetService assetService,
       CustodyService custodyService,
       CustodyConfig custodyConfig) {
-    super(txn24Store, txn31Store, validator, assetService);
+    super(txn24Store, txn31Store, validator, horizon, assetService);
     this.custodyService = custodyService;
     this.custodyConfig = custodyConfig;
   }
@@ -99,7 +101,7 @@ public class NotifyOffchainFundsReceivedHandler
             && request.getAmountOut() != null
             && request.getAmountFee() != null)) {
       throw new BadRequestException(
-          "At least one of amount_in, amount_out and amount_fee is not set");
+          "All or none of the amount_in, amount_out and amount_fee should be set");
     }
 
     validateAsset("amount_in", request.getAmountIn());
