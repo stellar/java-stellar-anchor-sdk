@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform.component.platform;
 
+import java.util.List;
 import java.util.Optional;
 import javax.servlet.Filter;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
@@ -15,6 +16,7 @@ import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.filter.ApiKeyFilter;
 import org.stellar.anchor.filter.NoneFilter;
 import org.stellar.anchor.filter.PlatformAuthJwtFilter;
+import org.stellar.anchor.platform.action.ActionHandler;
 import org.stellar.anchor.platform.apiclient.CustodyApiClient;
 import org.stellar.anchor.platform.config.PlatformServerConfig;
 import org.stellar.anchor.platform.service.ActionService;
@@ -100,7 +102,7 @@ public class PlatformServerBeans {
   }
 
   @Bean
-  ActionService actionService() {
-    return new ActionService();
+  ActionService actionService(List<ActionHandler<?>> actionHandlers) {
+    return new ActionService(actionHandlers);
   }
 }

@@ -9,6 +9,7 @@ import org.stellar.anchor.api.rpc.RpcResponse;
 import org.stellar.anchor.util.StringHelper;
 
 public class RpcUtil {
+
   public static final String JSON_RPC_VERSION = "2.0";
 
   public static RpcResponse getRpcSuccessResponse(Object id, Object result) {
