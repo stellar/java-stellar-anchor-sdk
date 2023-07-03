@@ -1,11 +1,11 @@
-package org.stellar.anchor.api.rpc;
+package org.stellar.anchor.api.rpc.action;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class NotifyTransactionExpiredRequest extends RpcParamsRequest {
+public class NotifyTransactionErrorRequest extends RpcActionParamsRequest {
 
   private String id;
   private AmountRequest amount;

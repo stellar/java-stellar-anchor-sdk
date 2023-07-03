@@ -1,6 +1,6 @@
 package org.stellar.anchor.platform.action;
 
-import static org.stellar.anchor.api.rpc.ActionMethod.NOTIFY_REFUND_INITIATED;
+import static org.stellar.anchor.api.rpc.action.ActionMethod.NOTIFY_REFUND_INITIATED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_EXTERNAL;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_STELLAR;
@@ -11,8 +11,8 @@ import java.util.Set;
 import javax.validation.Validator;
 import org.springframework.stereotype.Service;
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind;
-import org.stellar.anchor.api.rpc.ActionMethod;
-import org.stellar.anchor.api.rpc.NotifyRefundSentRequest;
+import org.stellar.anchor.api.rpc.action.ActionMethod;
+import org.stellar.anchor.api.rpc.action.NotifyRefundSentRequest;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;

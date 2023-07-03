@@ -13,9 +13,9 @@ import java.util.Map;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.RpcException;
 import org.stellar.anchor.api.exception.rpc.InternalErrorException;
-import org.stellar.anchor.api.rpc.ActionMethod;
 import org.stellar.anchor.api.rpc.RpcRequest;
 import org.stellar.anchor.api.rpc.RpcResponse;
+import org.stellar.anchor.api.rpc.action.ActionMethod;
 import org.stellar.anchor.platform.action.ActionHandler;
 
 public class ActionService {

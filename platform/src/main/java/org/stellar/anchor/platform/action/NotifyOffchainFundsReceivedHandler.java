@@ -1,7 +1,7 @@
 package org.stellar.anchor.platform.action;
 
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT;
-import static org.stellar.anchor.api.rpc.ActionMethod.NOTIFY_OFFCHAIN_FUNDS_RECEIVED;
+import static org.stellar.anchor.api.rpc.action.ActionMethod.NOTIFY_OFFCHAIN_FUNDS_RECEIVED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_EXTERNAL;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_USR_TRANSFER_START;
@@ -13,8 +13,8 @@ import javax.validation.Validator;
 import org.springframework.stereotype.Service;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind;
-import org.stellar.anchor.api.rpc.ActionMethod;
-import org.stellar.anchor.api.rpc.NotifyOffchainFundsReceivedRequest;
+import org.stellar.anchor.api.rpc.action.ActionMethod;
+import org.stellar.anchor.api.rpc.action.NotifyOffchainFundsReceivedRequest;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.CustodyConfig;

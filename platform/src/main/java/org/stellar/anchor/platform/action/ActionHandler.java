@@ -18,9 +18,9 @@ import org.apache.commons.collections.CollectionUtils;
 import org.springframework.transaction.annotation.Transactional;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
-import org.stellar.anchor.api.rpc.ActionMethod;
-import org.stellar.anchor.api.rpc.AmountRequest;
-import org.stellar.anchor.api.rpc.RpcParamsRequest;
+import org.stellar.anchor.api.rpc.action.ActionMethod;
+import org.stellar.anchor.api.rpc.action.AmountRequest;
+import org.stellar.anchor.api.rpc.action.RpcActionParamsRequest;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
@@ -33,7 +33,7 @@ import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.util.SepHelper;
 import org.stellar.anchor.util.StringHelper;
 
-public abstract class ActionHandler<T extends RpcParamsRequest> {
+public abstract class ActionHandler<T extends RpcActionParamsRequest> {
 
   protected final Sep24TransactionStore txn24Store;
   protected final Sep31TransactionStore txn31Store;
@@ -53,7 +53,7 @@ public abstract class ActionHandler<T extends RpcParamsRequest> {
 
   @Transactional
   public void handle(Object requestParams) throws AnchorException {
-    RpcParamsRequest request = (RpcParamsRequest) requestParams;
+    RpcActionParamsRequest request = (RpcActionParamsRequest) requestParams;
     JdbcSepTransaction txn = getTransaction(request.getTransactionId());
 
     if (!getSupportedProtocols().contains(txn.getProtocol())) {
@@ -157,7 +157,7 @@ public abstract class ActionHandler<T extends RpcParamsRequest> {
     }
   }
 
-  private void updateTransaction(JdbcSepTransaction txn, RpcParamsRequest request)
+  private void updateTransaction(JdbcSepTransaction txn, RpcActionParamsRequest request)
       throws AnchorException {
     T actionRequest = (T) request;
     validate(actionRequest);

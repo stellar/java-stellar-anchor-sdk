@@ -1,4 +1,4 @@
-package org.stellar.anchor.api.rpc;
+package org.stellar.anchor.api.rpc.action;
 
 import javax.validation.constraints.NotBlank;
 import lombok.Data;

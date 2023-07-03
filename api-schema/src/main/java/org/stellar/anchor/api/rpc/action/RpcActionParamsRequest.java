@@ -1,9 +1,9 @@
-package org.stellar.anchor.api.rpc;
+package org.stellar.anchor.api.rpc.action;
 
 import lombok.Data;
 
 @Data
-public class RpcParamsRequest {
+public class RpcActionParamsRequest {
 
   private String transactionId;
   private String message;

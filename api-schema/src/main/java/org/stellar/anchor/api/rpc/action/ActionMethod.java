@@ -1,4 +1,4 @@
-package org.stellar.anchor.api.rpc;
+package org.stellar.anchor.api.rpc.action;
 
 import com.google.gson.annotations.SerializedName;
 import java.util.Objects;

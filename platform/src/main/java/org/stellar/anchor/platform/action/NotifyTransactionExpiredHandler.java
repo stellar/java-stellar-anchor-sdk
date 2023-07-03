@@ -1,7 +1,7 @@
 package org.stellar.anchor.platform.action;
 
 import static java.util.stream.Collectors.toSet;
-import static org.stellar.anchor.api.rpc.ActionMethod.NOTIFY_TRANSACTION_EXPIRED;
+import static org.stellar.anchor.api.rpc.action.ActionMethod.NOTIFY_TRANSACTION_EXPIRED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.ERROR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.EXPIRED;
 
@@ -9,8 +9,8 @@ import java.util.Arrays;
 import java.util.Set;
 import javax.validation.Validator;
 import org.springframework.stereotype.Service;
-import org.stellar.anchor.api.rpc.ActionMethod;
-import org.stellar.anchor.api.rpc.NotifyTransactionExpiredRequest;
+import org.stellar.anchor.api.rpc.action.ActionMethod;
+import org.stellar.anchor.api.rpc.action.NotifyTransactionExpiredRequest;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;

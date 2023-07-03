@@ -1,4 +1,4 @@
-package org.stellar.anchor.api.rpc;
+package org.stellar.anchor.api.rpc.action;
 
 import javax.validation.constraints.NotNull;
 import lombok.Data;
@@ -6,7 +6,7 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class NotifyInteractiveFlowCompletedRequest extends RpcParamsRequest {
+public class NotifyInteractiveFlowCompletedRequest extends RpcActionParamsRequest {
 
   @NotNull private AmountRequest amountIn;
 

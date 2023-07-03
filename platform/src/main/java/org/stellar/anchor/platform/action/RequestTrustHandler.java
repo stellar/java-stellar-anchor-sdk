@@ -1,6 +1,6 @@
 package org.stellar.anchor.platform.action;
 
-import static org.stellar.anchor.api.rpc.ActionMethod.REQUEST_TRUST;
+import static org.stellar.anchor.api.rpc.action.ActionMethod.REQUEST_TRUST;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_TRUST;
 
@@ -10,8 +10,8 @@ import org.springframework.stereotype.Service;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind;
-import org.stellar.anchor.api.rpc.ActionMethod;
-import org.stellar.anchor.api.rpc.RequestTrustRequest;
+import org.stellar.anchor.api.rpc.action.ActionMethod;
+import org.stellar.anchor.api.rpc.action.RequestTrustRequest;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.CustodyConfig;

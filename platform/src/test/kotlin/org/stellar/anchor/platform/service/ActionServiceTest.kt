@@ -10,10 +10,10 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
-import org.stellar.anchor.api.rpc.ActionMethod.NOTIFY_INTERACTIVE_FLOW_COMPLETED
-import org.stellar.anchor.api.rpc.NotifyInteractiveFlowCompletedRequest
 import org.stellar.anchor.api.rpc.RpcErrorCode
 import org.stellar.anchor.api.rpc.RpcRequest
+import org.stellar.anchor.api.rpc.action.ActionMethod.NOTIFY_INTERACTIVE_FLOW_COMPLETED
+import org.stellar.anchor.api.rpc.action.NotifyInteractiveFlowCompletedRequest
 import org.stellar.anchor.platform.action.ActionHandler
 import org.stellar.anchor.platform.utils.RpcUtil
 import org.stellar.anchor.platform.utils.RpcUtil.JSON_RPC_VERSION
