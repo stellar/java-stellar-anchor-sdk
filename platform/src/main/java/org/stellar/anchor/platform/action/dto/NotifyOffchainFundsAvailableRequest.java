@@ -6,7 +6,7 @@ import lombok.EqualsAndHashCode;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
-public class RequestOffchainFundsCollectedRequest extends RpcParamsRequest {
+public class NotifyOffchainFundsAvailableRequest extends RpcParamsRequest {
 
   private Instant fundsReceivedAt;
   private String externalTransactionId;

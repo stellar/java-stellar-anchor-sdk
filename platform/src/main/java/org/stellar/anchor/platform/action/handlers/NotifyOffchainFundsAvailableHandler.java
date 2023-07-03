@@ -2,7 +2,7 @@ package org.stellar.anchor.platform.action.handlers;
 
 import static org.stellar.anchor.api.sep.SepTransactionStatus.COMPLETED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
-import static org.stellar.anchor.platform.action.dto.ActionMethod.REQUEST_OFFCHAIN_FUNDS_COLLECTED;
+import static org.stellar.anchor.platform.action.dto.ActionMethod.NOTIFY_OFFCHAIN_FUNDS_AVAILABLE;
 
 import java.time.Instant;
 import java.util.Set;
@@ -12,17 +12,17 @@ import org.stellar.anchor.api.platform.PlatformTransactionData.Kind;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.platform.action.dto.ActionMethod;
-import org.stellar.anchor.platform.action.dto.RequestOffchainFundsCollectedRequest;
+import org.stellar.anchor.platform.action.dto.NotifyOffchainFundsAvailableRequest;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 
 @Service
-public class RequestOffchainFundsCollectedHandler
-    extends ActionHandler<RequestOffchainFundsCollectedRequest> {
+public class NotifyOffchainFundsAvailableHandler
+    extends ActionHandler<NotifyOffchainFundsAvailableRequest> {
 
-  public RequestOffchainFundsCollectedHandler(
+  public NotifyOffchainFundsAvailableHandler(
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       Validator validator,
@@ -32,29 +32,24 @@ public class RequestOffchainFundsCollectedHandler
 
   @Override
   public ActionMethod getActionType() {
-    return REQUEST_OFFCHAIN_FUNDS_COLLECTED;
+    return NOTIFY_OFFCHAIN_FUNDS_AVAILABLE;
   }
 
   @Override
   protected SepTransactionStatus getNextStatus(
-      JdbcSepTransaction txn, RequestOffchainFundsCollectedRequest request) {
-    switch (txn.getProtocol()) {
-      case "24":
-        JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
-        switch (Kind.from(txn24.getKind())) {
-          case WITHDRAWAL:
-            return COMPLETED;
-          default:
-            throw new IllegalArgumentException(
-                String.format(
-                    "Invalid kind[%s] for protocol[%s] and action[%s]",
-                    txn24.getKind(), txn24.getProtocol(), getActionType()));
-        }
-      default:
-        throw new IllegalArgumentException(
-            String.format(
-                "Invalid protocol[%s] for action[%s]", txn.getProtocol(), getActionType()));
+      JdbcSepTransaction txn, NotifyOffchainFundsAvailableRequest request) {
+    if ("24".equals(txn.getProtocol())) {
+      JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
+      if (Kind.from(txn24.getKind()) == Kind.WITHDRAWAL) {
+        return COMPLETED;
+      }
+      throw new IllegalArgumentException(
+          String.format(
+              "Invalid kind[%s] for protocol[%s] and action[%s]",
+              txn24.getKind(), txn24.getProtocol(), getActionType()));
     }
+    throw new IllegalArgumentException(
+        String.format("Invalid protocol[%s] for action[%s]", txn.getProtocol(), getActionType()));
   }
 
   @Override
@@ -75,7 +70,7 @@ public class RequestOffchainFundsCollectedHandler
 
   @Override
   protected void updateTransactionWithAction(
-      JdbcSepTransaction txn, RequestOffchainFundsCollectedRequest request) {
+      JdbcSepTransaction txn, NotifyOffchainFundsAvailableRequest request) {
     txn.setExternalTransactionId(request.getExternalTransactionId());
     if (request.getFundsReceivedAt() == null) {
       txn.setTransferReceivedAt(Instant.now());
