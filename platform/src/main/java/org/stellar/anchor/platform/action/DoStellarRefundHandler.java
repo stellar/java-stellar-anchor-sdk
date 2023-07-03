@@ -43,13 +43,13 @@ public class DoStellarRefundHandler extends ActionHandler<DoStellarRefundRequest
   }
 
   @Override
-  public void handle(Object requestParams) throws AnchorException {
+  protected void validate(DoStellarRefundRequest request) throws BadRequestException {
     if (!custodyConfig.isCustodyIntegrationEnabled()) {
       throw new BadRequestException(
           String.format("Action[%s] requires enabled custody integration", getActionType()));
     }
 
-    super.handle(requestParams);
+    super.validate(request);
   }
 
   @Override

@@ -44,13 +44,13 @@ public class DoStellarPaymentHandler extends ActionHandler<DoStellarPaymentReque
   }
 
   @Override
-  public void handle(Object requestParams) throws AnchorException {
+  protected void validate(DoStellarPaymentRequest request) throws BadRequestException {
     if (!custodyConfig.isCustodyIntegrationEnabled()) {
       throw new BadRequestException(
-          String.format("Action[%s] requires enabled custody integration", getActionType()));
+          String.format("Action[%s] requires disabled custody integration", getActionType()));
     }
 
-    super.handle(requestParams);
+    super.validate(request);
   }
 
   @Override

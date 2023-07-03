@@ -8,7 +8,6 @@ import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_TRUST;
 import java.util.Set;
 import javax.validation.Validator;
 import org.springframework.stereotype.Service;
-import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind;
 import org.stellar.anchor.api.rpc.action.ActionMethod;
@@ -39,13 +38,13 @@ public class RequestTrustHandler extends ActionHandler<RequestTrustRequest> {
   }
 
   @Override
-  public void handle(Object requestParams) throws AnchorException {
+  protected void validate(RequestTrustRequest request) throws BadRequestException {
     if (!custodyConfig.isCustodyIntegrationEnabled()) {
       throw new BadRequestException(
-          String.format("Action[%s] requires disabled custody integration", getActionType()));
+          String.format("Action[%s] requires enabled custody integration", getActionType()));
     }
 
-    super.handle(requestParams);
+    super.validate(request);
   }
 
   @Override

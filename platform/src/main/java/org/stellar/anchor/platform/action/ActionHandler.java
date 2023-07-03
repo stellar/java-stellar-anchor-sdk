@@ -99,8 +99,8 @@ public abstract class ActionHandler<T extends RpcActionParamsRequest> {
     return (JdbcSep24Transaction) txn24Store.findByTransactionId(transactionId);
   }
 
-  protected void validate(T action) throws BadRequestException {
-    Set<ConstraintViolation<T>> violations = validator.validate(action);
+  protected void validate(T request) throws BadRequestException {
+    Set<ConstraintViolation<T>> violations = validator.validate(request);
     if (CollectionUtils.isNotEmpty(violations)) {
       throw new BadRequestException(
           violations.stream()
