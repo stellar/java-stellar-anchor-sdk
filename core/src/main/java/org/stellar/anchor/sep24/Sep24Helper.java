@@ -1,6 +1,5 @@
 package org.stellar.anchor.sep24;
 
-import static org.stellar.anchor.api.sep.SepTransactionStatus.*;
 import static org.stellar.anchor.util.Log.debugF;
 import static org.stellar.anchor.util.MathHelper.decimal;
 
@@ -9,7 +8,7 @@ import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import org.springframework.beans.BeanUtils;
-import org.stellar.anchor.api.sep.AssetInfo;
+import org.stellar.anchor.api.asset.Asset;
 import org.stellar.anchor.api.sep.sep24.RefundPayment;
 import org.stellar.anchor.api.sep.sep24.Refunds;
 import org.stellar.anchor.api.sep.sep24.TransactionResponse;
@@ -26,7 +25,7 @@ public class Sep24Helper {
   }
 
   static TransactionResponse updateRefundInfo(
-      TransactionResponse response, Sep24Transaction txn, AssetInfo assetInfo) {
+      TransactionResponse response, Sep24Transaction txn, Asset assetInfo) {
     debugF("Calculating refund information");
 
     if (txn.getRefunds() == null) return response;

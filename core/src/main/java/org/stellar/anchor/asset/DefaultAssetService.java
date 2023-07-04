@@ -8,9 +8,9 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.util.*;
 import lombok.NoArgsConstructor;
+import org.stellar.anchor.api.asset.Asset;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.api.exception.SepNotFoundException;
-import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.config.AssetsConfig;
 import org.stellar.anchor.util.FileUtil;
 import org.stellar.anchor.util.GsonUtils;
@@ -74,14 +74,17 @@ public class DefaultAssetService implements AssetService {
           "Invalid assets defined in configuration. Please check the logs for details.");
     }
     // TODO: remove this check once we support SEP-31 and SEP-38 for native asset
-    AssetInfo nativeAsset = assetService.getAsset("native");
-    if (nativeAsset != null && (nativeAsset.getSep31Enabled() || nativeAsset.getSep38Enabled())) {
+    Asset nativeAsset = assetService.getAsset("native");
+    if (Optional.ofNullable(nativeAsset)
+        .map(Asset::getOperations)
+        .map(ops -> ops.getSep31().isEnabled() || ops.getSep38().isEnabled())
+        .orElse(false)) {
       error("Native asset does not support SEP-31 or SEP-38. content=", assetsJson);
       throw new InvalidConfigException(
           "Invalid assets defined in configuration. Please check the logs for details.");
     }
     Set<String> existingAssetNames = new HashSet<>();
-    for (AssetInfo asset : assetService.assets.getAssets()) {
+    for (Asset asset : assetService.assets.getAssets()) {
       if (asset != null && !existingAssetNames.add(asset.getAssetName())) {
         error("Assets already exist. Asset= ", asset.getAssetName());
         throw new InvalidConfigException(
@@ -102,13 +105,13 @@ public class DefaultAssetService implements AssetService {
   }
 
   @Override
-  public List<AssetInfo> listAllAssets() {
+  public List<Asset> listAllAssets() {
     return new ArrayList<>(assets.getAssets());
   }
 
   @Override
-  public AssetInfo getAsset(String code) {
-    for (AssetInfo asset : assets.getAssets()) {
+  public Asset getAsset(String code) {
+    for (Asset asset : assets.getAssets()) {
       // FIXME: ANCHOR-346
       if (asset != null && asset.getCode().equals(code)) {
         return asset;
@@ -118,11 +121,11 @@ public class DefaultAssetService implements AssetService {
   }
 
   @Override
-  public AssetInfo getAsset(String code, String issuer) {
+  public Asset getAsset(String code, String issuer) {
     if (issuer == null) {
       return getAsset(code);
     }
-    for (AssetInfo asset : assets.getAssets()) {
+    for (Asset asset : assets.getAssets()) {
       if (asset.getCode().equals(code) && issuer.equals(asset.getIssuer())) {
         return asset;
       }

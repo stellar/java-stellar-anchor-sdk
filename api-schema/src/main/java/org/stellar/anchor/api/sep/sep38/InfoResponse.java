@@ -4,7 +4,11 @@ import com.google.gson.annotations.SerializedName;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import lombok.Data;
+import org.stellar.anchor.api.asset.Asset;
+import org.stellar.anchor.api.asset.operation.AssetOperations;
+import org.stellar.anchor.api.asset.operation.Sep38Operations;
 import org.stellar.anchor.api.sep.AssetInfo;
 
 /**
@@ -16,27 +20,28 @@ import org.stellar.anchor.api.sep.AssetInfo;
  */
 @Data
 public class InfoResponse {
-  private List<Asset> assets = new ArrayList<>();
+  private List<AssetResponse> assets = new ArrayList<>();
 
-  public InfoResponse(List<AssetInfo> assetInfoList) {
-    for (AssetInfo assetInfo : assetInfoList) {
-      if (!assetInfo.getSep38Enabled()) continue;
-      Asset newAsset = new Asset();
+  public InfoResponse(List<Asset> assetInfoList) {
+    for (Asset assetInfo : assetInfoList) {
+      Optional<Sep38Operations> operation =
+          Optional.ofNullable(assetInfo.getOperations()).map(Asset.Operations::getSep38);
+      if (!operation.map(AssetOperations::isEnabled).orElse(false)) continue;
+      AssetResponse newAsset = new AssetResponse();
       String assetName = assetInfo.getSchema().toString() + ":" + assetInfo.getCode();
       if (!Objects.toString(assetInfo.getIssuer(), "").isEmpty()) {
         assetName += ":" + assetInfo.getIssuer();
       }
       newAsset.setAsset(assetName);
 
-      AssetInfo.Sep38Operation sep38Info = assetInfo.getSep38();
-      newAsset.setCountryCodes(sep38Info.getCountryCodes());
-      newAsset.setSellDeliveryMethods(sep38Info.getSellDeliveryMethods());
-      newAsset.setBuyDeliveryMethods(sep38Info.getBuyDeliveryMethods());
-      newAsset.setExchangeableAssetNames(sep38Info.getExchangeableAssets());
+      newAsset.setCountryCodes(operation.get().getCountryCodes());
+      newAsset.setSellDeliveryMethods(operation.get().getSellDeliveryMethods());
+      newAsset.setBuyDeliveryMethods(operation.get().getBuyDeliveryMethods());
+      newAsset.setExchangeableAssetNames(operation.get().getExchangeableAssets());
 
       int decimals = 7;
-      if (!assetName.startsWith("stellar") && sep38Info.getDecimals() != null) {
-        decimals = sep38Info.getDecimals();
+      if (!assetName.startsWith("stellar") && operation.get().getDecimals() != null) {
+        decimals = operation.get().getDecimals();
       }
       newAsset.setDecimals(decimals);
 
@@ -45,17 +50,17 @@ public class InfoResponse {
   }
 
   @Data
-  public static class Asset {
+  public static class AssetResponse {
     private String asset;
 
     @SerializedName("country_codes")
     private List<String> countryCodes;
 
     @SerializedName("sell_delivery_methods")
-    private List<AssetInfo.Sep38Operation.DeliveryMethod> sellDeliveryMethods;
+    private List<Sep38Operations.DeliveryMethod> sellDeliveryMethods;
 
     @SerializedName("buy_delivery_methods")
-    private List<AssetInfo.Sep38Operation.DeliveryMethod> buyDeliveryMethods;
+    private List<Sep38Operations.DeliveryMethod> buyDeliveryMethods;
 
     private transient List<String> exchangeableAssetNames;
 

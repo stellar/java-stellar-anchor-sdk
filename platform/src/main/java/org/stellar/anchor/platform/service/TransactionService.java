@@ -16,12 +16,12 @@ import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
+import org.stellar.anchor.api.asset.Asset;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.InternalServerErrorException;
 import org.stellar.anchor.api.exception.NotFoundException;
 import org.stellar.anchor.api.platform.*;
-import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.shared.Amount;
 import org.stellar.anchor.apiclient.TransactionsSeps;
@@ -47,7 +47,7 @@ public class TransactionService {
   private final Sep38QuoteStore quoteStore;
   private final Sep31TransactionStore txn31Store;
   private final Sep24TransactionStore txn24Store;
-  private final List<AssetInfo> assets;
+  private final List<Asset> assets;
   private final EventService eventService;
   private final AssetService assetService;
 
@@ -337,13 +337,13 @@ public class TransactionService {
           String.format("'%s' is not a supported asset.", amount.getAsset()));
     }
 
-    List<AssetInfo> allAssets =
+    List<Asset> allAssets =
         assets.stream()
             .filter(assetInfo -> assetInfo.getAssetName().equals(amount.getAsset()))
             .collect(Collectors.toList());
 
     if (allAssets.size() == 1) {
-      AssetInfo targetAsset = allAssets.get(0);
+      Asset targetAsset = allAssets.get(0);
 
       if (targetAsset.getSignificantDecimals() != null) {
         // Check that significant decimal is correct

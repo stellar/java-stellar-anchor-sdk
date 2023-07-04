@@ -3,7 +3,7 @@ package org.stellar.anchor.util;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
-import org.stellar.anchor.api.sep.AssetInfo;
+import org.stellar.anchor.api.asset.Asset;
 
 public class MathHelper {
   public static BigDecimal decimal(String value) {
@@ -16,7 +16,7 @@ public class MathHelper {
     return new BigDecimal(value).setScale(scale, RoundingMode.HALF_DOWN);
   }
 
-  public static BigDecimal decimal(String value, AssetInfo asset) {
+  public static BigDecimal decimal(String value, Asset asset) {
     if (value == null) return null;
     return decimal(value, asset.getSignificantDecimals());
   }

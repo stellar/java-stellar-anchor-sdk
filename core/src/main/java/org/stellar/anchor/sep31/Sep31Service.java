@@ -18,11 +18,12 @@ import java.util.stream.Collectors;
 import javax.transaction.Transactional;
 import lombok.Data;
 import lombok.SneakyThrows;
+import org.stellar.anchor.api.asset.Asset;
+import org.stellar.anchor.api.asset.operation.Sep12Operation;
+import org.stellar.anchor.api.asset.operation.Sep31Operations;
 import org.stellar.anchor.api.callback.*;
 import org.stellar.anchor.api.exception.*;
 import org.stellar.anchor.api.sep.AssetInfo;
-import org.stellar.anchor.api.sep.AssetInfo.Sep12Operation;
-import org.stellar.anchor.api.sep.AssetInfo.Sep31TxnFieldSpecs;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.sep.sep12.Sep12Status;
 import org.stellar.anchor.api.sep.sep31.*;
@@ -85,7 +86,7 @@ public class Sep31Service {
     Context.get().setRequest(request);
     Context.get().setSep10Jwt(sep10Jwt);
 
-    AssetInfo assetInfo = assetService.getAsset(request.getAssetCode(), request.getAssetIssuer());
+    Asset assetInfo = assetService.getAsset(request.getAssetCode(), request.getAssetIssuer());
     if (assetInfo == null) {
       // the asset is not supported.
       infoF("Asset: [{}:{}]", request.getAssetCode(), request.getAssetIssuer());
@@ -94,14 +95,19 @@ public class Sep31Service {
               "asset %s:%s is not supported.", request.getAssetCode(), request.getAssetIssuer()));
     }
     Context.get().setAsset(assetInfo);
+    Optional<Sep31Operations.SendOperation> send =
+        Optional.of(assetInfo)
+            .map(Asset::getOperations)
+            .map(Asset.Operations::getSep31)
+            .map(Sep31Operations::getSend);
 
     // Pre-validation
     validateAmount(request.getAmount());
     validateAmountLimit(
         "sell_",
         request.getAmount(),
-        assetInfo.getSend().getMinAmount(),
-        assetInfo.getSend().getMaxAmount());
+        send.map(Sep31Operations.SendOperation::getMinAmount).orElse(null),
+        send.map(Sep31Operations.SendOperation::getMaxAmount).orElse(null));
     validateLanguage(appConfig, request.getLang());
 
     /*
@@ -236,7 +242,7 @@ public class Sep31Service {
     Sep31Transaction txn = Context.get().getTransaction();
     Amount feeResponse = Context.get().getFee();
 
-    AssetInfo reqAsset = Context.get().getAsset();
+    Asset reqAsset = Context.get().getAsset();
     int scale = reqAsset.getSignificantDecimals();
     BigDecimal reqAmount = decimal(request.getAmount(), scale);
     BigDecimal fee = decimal(feeResponse.getAmount(), scale);
@@ -343,7 +349,7 @@ public class Sep31Service {
         .getTransaction()
         .forEach((fieldName, fieldValue) -> txn.getFields().put(fieldName, fieldValue));
 
-    AssetInfo assetInfo = assetService.getAsset(txn.getAmountInAsset());
+    Asset assetInfo = assetService.getAsset(txn.getAmountInAsset());
     Context.get().setAsset(assetInfo);
     Context.get().setTransactionFields(txn.getFields());
     validateRequiredFields();
@@ -400,9 +406,11 @@ public class Sep31Service {
    */
   void preValidateQuote() throws BadRequestException {
     Sep31PostTransactionRequest request = Context.get().getRequest();
-    AssetInfo assetInfo = Context.get().getAsset();
-    boolean isQuotesRequired = assetInfo.getSep31().isQuotesRequired();
-    boolean isQuotesSupported = assetInfo.getSep31().isQuotesSupported();
+    Asset assetInfo = Context.get().getAsset();
+    Optional<Sep31Operations> operation =
+        Optional.ofNullable(assetInfo.getOperations()).map(Asset.Operations::getSep31);
+    boolean isQuotesRequired = operation.map(Sep31Operations::isQuotesRequired).orElse(false);
+    boolean isQuotesSupported = operation.map(Sep31Operations::isQuotesSupported).orElse(false);
 
     if (isQuotesRequired && request.getQuoteId() == null) {
       throw new BadRequestException("quotes_required is set to true; quote id cannot be empty");
@@ -513,11 +521,17 @@ public class Sep31Service {
 
     // TODO: Populate customer type with the first receiver type; this is a temporary fix for cases
     // where customerType is required
-    Sep12Operation sep12Operation = Context.get().getAsset().getSep31().getSep12();
+    //    Sep12Operation sep12Operation = Context.get().getAsset().getSep31().getSep12();
+    Asset asset = Context.get().getAsset();
+    Optional<Sep12Operation> operation =
+        Optional.ofNullable(asset.getOperations())
+            .map(Asset.Operations::getSep31)
+            .map(Sep31Operations::getSep12);
+
     String receiverType = null;
-    if (sep12Operation != null) {
+    if (operation.isPresent()) {
       Optional<String> receiverTypeOptional =
-          sep12Operation.getReceiver().getTypes().keySet().stream().findFirst();
+          operation.get().getReceiver().getTypes().keySet().stream().findFirst();
       receiverType = receiverTypeOptional.orElse(null);
     }
     GetCustomerRequest request =
@@ -537,10 +551,9 @@ public class Sep31Service {
     // TODO: Populate customer type with the first sender type; this is a temporary fix for cases
     // where customerType is required
     String senderType = null;
-    if (sep12Operation != null) {
+    if (operation.isPresent()) {
       Optional<String> senderTypeOptional =
-          Context.get().getAsset().getSep31().getSep12().getSender().getTypes().keySet().stream()
-              .findFirst();
+          operation.get().getSender().getTypes().keySet().stream().findFirst();
       senderType = senderTypeOptional.orElse(null);
     }
     request = GetCustomerRequest.builder().id(senderId).type(senderType).build();
@@ -561,7 +574,7 @@ public class Sep31Service {
    * @throws Sep31MissingFieldException if not all fields were provided.
    */
   void validateRequiredFields() throws BadRequestException, Sep31MissingFieldException {
-    AssetInfo assetInfo = Context.get().getAsset();
+    Asset assetInfo = Context.get().getAsset();
     if (assetInfo == null) {
       infoF("Missing asset information for request ({})", Context.get().getRequest());
       throw new BadRequestException("Missing asset information.");
@@ -582,18 +595,18 @@ public class Sep31Service {
       throw new BadRequestException("'fields' field must have one 'transaction' field");
     }
 
-    Map<String, AssetInfo.Sep31TxnFieldSpec> missingFields =
+    Map<String, Sep31Operations.Field> missingFields =
         fieldSpecs.getFields().getTransaction().entrySet().stream()
             .filter(
                 entry -> {
-                  AssetInfo.Sep31TxnFieldSpec field = entry.getValue();
+                  Sep31Operations.Field field = entry.getValue();
                   if (field.isOptional()) return false;
                   return requestFields.get(entry.getKey()) == null;
                 })
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-    Sep31TxnFieldSpecs sep31MissingTxnFields = new Sep31TxnFieldSpecs();
-    sep31MissingTxnFields.setTransaction(missingFields);
+    Sep31Operations.Fields sep31MissingTxnFields =
+        Sep31Operations.Fields.builder().transaction(missingFields).build();
 
     if (missingFields.size() > 0) {
       infoF(
@@ -605,13 +618,17 @@ public class Sep31Service {
   }
 
   @SneakyThrows
-  private static Sep31InfoResponse sep31InfoResponseFromAssetInfoList(List<AssetInfo> assetInfos) {
+  private static Sep31InfoResponse sep31InfoResponseFromAssetInfoList(List<Asset> assetInfos) {
     Sep31InfoResponse response = new Sep31InfoResponse();
     response.setReceive(new HashMap<>());
-    for (AssetInfo assetInfo : assetInfos) {
-      if (assetInfo.getSep31Enabled()) {
-        boolean isQuotesSupported = assetInfo.getSep31().isQuotesSupported();
-        boolean isQuotesRequired = assetInfo.getSep31().isQuotesRequired();
+    for (Asset assetInfo : assetInfos) {
+      Optional<Sep31Operations> operation =
+          Optional.ofNullable(assetInfo).map(Asset::getOperations).map(Asset.Operations::getSep31);
+      Optional<Sep31Operations.SendOperation> send = operation.map(Sep31Operations::getSend);
+
+      if (operation.map(Sep31Operations::isEnabled).orElse(false)) {
+        boolean isQuotesSupported = operation.map(Sep31Operations::isQuotesSupported).orElse(false);
+        boolean isQuotesRequired = operation.map(Sep31Operations::isQuotesRequired).orElse(false);
         if (isQuotesRequired && !isQuotesSupported) {
           throw new SepValidationException(
               "if quotes_required is true, quotes_supported must also be true");
@@ -619,12 +636,16 @@ public class Sep31Service {
         AssetResponse assetResponse = new AssetResponse();
         assetResponse.setQuotesSupported(isQuotesSupported);
         assetResponse.setQuotesRequired(isQuotesRequired);
-        assetResponse.setFeeFixed(assetInfo.getSend().getFeeFixed());
-        assetResponse.setFeePercent(assetInfo.getSend().getFeePercent());
-        assetResponse.setMinAmount(assetInfo.getSend().getMinAmount());
-        assetResponse.setMaxAmount(assetInfo.getSend().getMaxAmount());
-        assetResponse.setFields(assetInfo.getSep31().getFields());
-        assetResponse.setSep12(assetInfo.getSep31().getSep12());
+        assetResponse.setFeeFixed(
+            send.map(Sep31Operations.SendOperation::getFeeFixed).orElse(null));
+        assetResponse.setFeePercent(
+            send.map(Sep31Operations.SendOperation::getFeePercent).orElse(null));
+        assetResponse.setMinAmount(
+            send.map(Sep31Operations.SendOperation::getMinAmount).orElse(null));
+        assetResponse.setMaxAmount(
+            send.map(Sep31Operations.SendOperation::getMaxAmount).orElse(null));
+        assetResponse.setFields(send.map(Sep31Operations.SendOperation::getFields).orElse(null));
+        assetResponse.setSep12(operation.map(Sep31Operations::getSep12).orElse(null));
         response.getReceive().put(assetInfo.getCode(), assetResponse);
       }
     }
@@ -639,7 +660,7 @@ public class Sep31Service {
     private Sep38Quote quote;
     private Sep10Jwt sep10Jwt;
     private Amount fee;
-    private AssetInfo asset;
+    private Asset asset;
     private Map<String, String> transactionFields;
     private static ThreadLocal<Context> context = new ThreadLocal<>();
 

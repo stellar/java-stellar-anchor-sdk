@@ -20,8 +20,9 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.*;
+import org.stellar.anchor.api.asset.Asset;
+import org.stellar.anchor.api.asset.operation.Sep24Operations;
 import org.stellar.anchor.api.exception.*;
-import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.sep24.*;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.JwtService;
@@ -104,15 +105,22 @@ public class Sep24Service {
     }
 
     // Verify that the asset code exists in our database, with withdraw enabled.
-    AssetInfo asset = assetService.getAsset(assetCode, assetIssuer);
-    if (asset == null || !asset.getWithdraw().getEnabled() || !asset.getSep24Enabled()) {
+    Asset asset = assetService.getAsset(assetCode, assetIssuer);
+    Optional<Sep24Operations.WithdrawOperation> withdraw =
+        Optional.ofNullable(asset)
+            .map(Asset::getOperations)
+            .map(Asset.Operations::getSep24)
+            .map(Sep24Operations::getWithdraw);
+
+    if (!withdraw.map(Sep24Operations.WithdrawOperation::isEnabled).orElse(false)) {
       infoF("invalid operation for asset {}", assetCode);
       throw new SepValidationException(String.format("invalid operation for asset %s", assetCode));
     }
 
     // Validate min amount
-    Long minAmount = asset.getWithdraw().getMinAmount();
-    if (strAmount != null && minAmount != null) {
+    if (strAmount != null
+        && withdraw.map(Sep24Operations.WithdrawOperation::getMinAmount).isPresent()) {
+      Long minAmount = withdraw.map(Sep24Operations.WithdrawOperation::getMinAmount).get();
       if (decimal(strAmount).compareTo(decimal(minAmount)) < 0) {
         infoF("invalid amount {}", strAmount);
         throw new SepValidationException(
@@ -121,8 +129,9 @@ public class Sep24Service {
     }
 
     // Validate max amount
-    Long maxAmount = asset.getWithdraw().getMaxAmount();
-    if (strAmount != null && maxAmount != null) {
+    if (strAmount != null
+        && withdraw.map(Sep24Operations.WithdrawOperation::getMaxAmount).isPresent()) {
+      Long maxAmount = withdraw.map(Sep24Operations.WithdrawOperation::getMaxAmount).get();
       if (decimal(strAmount).compareTo(decimal(maxAmount)) > 0) {
         infoF("invalid amount {}", strAmount);
         throw new SepValidationException(
@@ -242,15 +251,22 @@ public class Sep24Service {
     }
 
     // Verify that the asset code exists in our database, with withdraw enabled.
-    AssetInfo asset = assetService.getAsset(assetCode, assetIssuer);
-    if (asset == null || !asset.getDeposit().getEnabled() || !asset.getSep24Enabled()) {
+    Asset asset = assetService.getAsset(assetCode, assetIssuer);
+    Optional<Sep24Operations.DepositOperation> deposit =
+        Optional.ofNullable(asset)
+            .map(Asset::getOperations)
+            .map(Asset.Operations::getSep24)
+            .map(Sep24Operations::getDeposit);
+
+    if (!deposit.map(Sep24Operations.DepositOperation::isEnabled).orElse(false)) {
       infoF("invalid operation for asset {}", assetCode);
       throw new SepValidationException(String.format("invalid operation for asset %s", assetCode));
     }
 
     // Validate min amount
-    Long minAmount = asset.getWithdraw().getMinAmount();
-    if (strAmount != null && minAmount != null) {
+    if (strAmount != null
+        && deposit.map(Sep24Operations.DepositOperation::getMinAmount).isPresent()) {
+      Long minAmount = deposit.map(Sep24Operations.DepositOperation::getMinAmount).orElse(null);
       if (decimal(strAmount).compareTo(decimal(minAmount)) < 0) {
         infoF("invalid amount {}", strAmount);
         throw new SepValidationException(
@@ -259,8 +275,9 @@ public class Sep24Service {
     }
 
     // Validate max amount
-    Long maxAmount = asset.getWithdraw().getMaxAmount();
-    if (strAmount != null && maxAmount != null) {
+    if (strAmount != null
+        && deposit.map(Sep24Operations.DepositOperation::getMaxAmount).isPresent()) {
+      Long maxAmount = deposit.map(Sep24Operations.DepositOperation::getMaxAmount).orElse(null);
       if (decimal(strAmount).compareTo(decimal(maxAmount)) > 0) {
         infoF("invalid amount {}", strAmount);
         throw new SepValidationException(
@@ -411,19 +428,39 @@ public class Sep24Service {
 
   public InfoResponse getInfo() {
     info("Getting Sep24 info");
-    List<AssetInfo> assets = assetService.listAllAssets();
+    List<Asset> assets = assetService.listAllAssets();
     debugF("{} assets found", assets.size());
 
-    Map<String, AssetInfo.AssetOperation> depositMap = new HashMap<>();
-    Map<String, AssetInfo.AssetOperation> withdrawMap = new HashMap<>();
-    for (AssetInfo asset : assets) {
-      if (asset.getDeposit().getEnabled()) depositMap.put(asset.getCode(), asset.getDeposit());
-      if (asset.getWithdraw().getEnabled()) withdrawMap.put(asset.getCode(), asset.getWithdraw());
+    Map<String, DepositInfo> depositInfos = new HashMap<>();
+    Map<String, WithdrawInfo> withdrawInfos = new HashMap<>();
+    for (Asset asset : assets) {
+      Optional<Sep24Operations> ops =
+          Optional.ofNullable(asset).map(Asset::getOperations).map(Asset.Operations::getSep24);
+      Optional<Sep24Operations.DepositOperation> deposit = ops.map(Sep24Operations::getDeposit);
+      Optional<Sep24Operations.WithdrawOperation> withdraw = ops.map(Sep24Operations::getWithdraw);
+      if (deposit.map(Sep24Operations.DepositOperation::isEnabled).orElse(false)) {
+        depositInfos.put(
+            asset.getCode(),
+            DepositInfo.builder()
+                .minAmount(deposit.map(Sep24Operations.DepositOperation::getMinAmount).orElse(null))
+                .maxAmount(deposit.map(Sep24Operations.DepositOperation::getMaxAmount).orElse(null))
+                .build());
+      }
+      if (withdraw.map(Sep24Operations.WithdrawOperation::isEnabled).orElse(false)) {
+        withdrawInfos.put(
+            asset.getCode(),
+            WithdrawInfo.builder()
+                .minAmount(
+                    withdraw.map(Sep24Operations.WithdrawOperation::getMinAmount).orElse(null))
+                .maxAmount(
+                    withdraw.map(Sep24Operations.WithdrawOperation::getMaxAmount).orElse(null))
+                .build());
+      }
     }
 
     return InfoResponse.builder()
-        .deposit(depositMap)
-        .withdraw(withdrawMap)
+        .deposit(depositInfos)
+        .withdraw(withdrawInfos)
         .fee(new FeeResponse(false))
         .features(
             new FeatureFlagResponse(
@@ -449,8 +486,7 @@ public class Sep24Service {
     }
 
     // Calculate refund information.
-    AssetInfo assetInfo =
-        assetService.getAsset(txn.getRequestAssetCode(), txn.getRequestAssetIssuer());
+    Asset assetInfo = assetService.getAsset(txn.getRequestAssetCode(), txn.getRequestAssetIssuer());
     return Sep24Helper.updateRefundInfo(response, txn, assetInfo);
   }
 

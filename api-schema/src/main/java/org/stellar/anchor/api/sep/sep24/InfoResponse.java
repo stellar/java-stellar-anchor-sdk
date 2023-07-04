@@ -1,21 +1,16 @@
 package org.stellar.anchor.api.sep.sep24;
 
-import static org.stellar.anchor.api.sep.AssetInfo.AssetOperation;
-
 import com.google.gson.annotations.SerializedName;
 import java.util.Map;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 /** The response to the GET /info endpoint of SEP-24. */
 @Getter
 @Setter
 @Builder
 public class InfoResponse {
-  Map<String, AssetOperation> deposit;
-  Map<String, AssetOperation> withdraw;
+  Map<String, DepositInfo> deposit;
+  Map<String, WithdrawInfo> withdraw;
   FeeResponse fee;
   FeatureFlagResponse features;
 
@@ -36,5 +31,19 @@ public class InfoResponse {
 
     @SerializedName("claimable_balances")
     Boolean claimableBalances;
+  }
+
+  @Data
+  @Builder
+  public static class DepositInfo {
+    Long minAmount;
+    Long maxAmount;
+  }
+
+  @Data
+  @Builder
+  public static class WithdrawInfo {
+    Long minAmount;
+    Long maxAmount;
   }
 }
