@@ -12,8 +12,6 @@ import lombok.EqualsAndHashCode;
 @Data
 public class Sep31Operations extends AssetOperations {
 
-  private boolean enabled;
-
   @SerializedName("quotes_supported")
   private boolean quotesSupported;
 
