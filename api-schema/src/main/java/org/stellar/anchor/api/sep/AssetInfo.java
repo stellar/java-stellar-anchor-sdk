@@ -35,6 +35,9 @@ public class AssetInfo {
   Sep31Operation sep31;
   Sep38Operation sep38;
 
+  @SerializedName("sep6_enabled")
+  Boolean sep6Enabled = false;
+
   @SerializedName("sep24_enabled")
   Boolean sep24Enabled = false;
 
