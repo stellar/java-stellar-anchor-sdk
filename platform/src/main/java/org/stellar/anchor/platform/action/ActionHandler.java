@@ -38,6 +38,7 @@ import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31Transaction;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.util.SepHelper;
+import org.stellar.anchor.util.StringHelper;
 import org.stellar.sdk.AssetTypeCreditAlphaNum;
 import org.stellar.sdk.responses.AccountResponse;
 
@@ -68,6 +69,11 @@ public abstract class ActionHandler<T extends RpcActionParamsRequest> {
   public GetTransactionResponse handle(Object requestParams) throws AnchorException {
     RpcActionParamsRequest request = (RpcActionParamsRequest) requestParams;
     JdbcSepTransaction txn = getTransaction(request.getTransactionId());
+
+    if (txn == null) {
+      throw new InvalidRequestException(
+          String.format("Transaction with id[%s] is not found", request.getTransactionId()));
+    }
 
     if (!getSupportedProtocols().contains(txn.getProtocol())) {
       throw new InvalidRequestException(
@@ -138,6 +144,11 @@ public abstract class ActionHandler<T extends RpcActionParamsRequest> {
       SepHelper.validateAmount(fieldName + ".", amount.getAmount(), allowZero);
     } catch (BadRequestException e) {
       throw new InvalidParamsException(e.getMessage(), e);
+    }
+
+    // asset name cannot be empty
+    if (StringHelper.isEmpty(amount.getAsset())) {
+      throw new InvalidParamsException(fieldName + ".asset cannot be empty");
     }
 
     List<AssetInfo> allAssets =
