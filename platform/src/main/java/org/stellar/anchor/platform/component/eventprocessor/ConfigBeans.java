@@ -3,6 +3,7 @@ package org.stellar.anchor.platform.component.eventprocessor;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.stellar.anchor.platform.config.ClientsConfig;
 import org.stellar.anchor.platform.config.EventProcessorConfig;
 import org.stellar.anchor.platform.configurator.ConfigManager;
 import org.stellar.anchor.platform.configurator.ObserverConfigManager;
@@ -12,6 +13,11 @@ public class ConfigBeans {
   @Bean(name = "configManager")
   ConfigManager observerConfigManager() {
     return ObserverConfigManager.getInstance();
+  }
+
+  @Bean(name = "clientsConfig")
+  ClientsConfig clientsConfig() {
+    return new ClientsConfig();
   }
 
   @Bean
