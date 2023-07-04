@@ -9,7 +9,6 @@ import lombok.Data;
 import org.stellar.anchor.api.asset.Asset;
 import org.stellar.anchor.api.asset.operation.AssetOperations;
 import org.stellar.anchor.api.asset.operation.Sep38Operations;
-import org.stellar.anchor.api.sep.AssetInfo;
 
 /**
  * The response body of the GET /info endpoint of SEP-38.
@@ -77,7 +76,7 @@ public class InfoResponse {
     }
 
     private boolean supportsDeliveryMethod(
-        List<AssetInfo.Sep38Operation.DeliveryMethod> deliveryMethods, String method) {
+        List<Sep38Operations.DeliveryMethod> deliveryMethods, String method) {
       boolean noneIsAvailable = deliveryMethods == null || deliveryMethods.size() == 0;
       boolean noneIsProvided = method == null || method.equals("");
       if (noneIsAvailable && noneIsProvided) {
@@ -92,7 +91,7 @@ public class InfoResponse {
         return true;
       }
 
-      AssetInfo.Sep38Operation.DeliveryMethod foundMethod =
+      Sep38Operations.DeliveryMethod foundMethod =
           deliveryMethods.stream()
               .filter(dMethod -> dMethod.getName().equals(method))
               .findFirst()

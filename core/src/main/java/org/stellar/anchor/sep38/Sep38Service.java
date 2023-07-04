@@ -15,6 +15,8 @@ import java.math.RoundingMode;
 import java.time.Instant;
 import java.util.*;
 import org.apache.commons.lang3.StringUtils;
+import org.stellar.anchor.api.asset.Asset;
+import org.stellar.anchor.api.asset.operation.Sep31Operations;
 import org.stellar.anchor.api.callback.GetRateRequest;
 import org.stellar.anchor.api.callback.GetRateResponse;
 import org.stellar.anchor.api.callback.RateIntegration;
@@ -24,7 +26,6 @@ import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.NotFoundException;
 import org.stellar.anchor.api.exception.ServerErrorException;
 import org.stellar.anchor.api.platform.GetQuoteResponse;
-import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.sep38.*;
 import org.stellar.anchor.api.shared.StellarId;
 import org.stellar.anchor.asset.AssetService;
@@ -40,7 +41,7 @@ public class Sep38Service {
   final Sep38QuoteStore sep38QuoteStore;
   final EventService eventService;
   final InfoResponse infoResponse;
-  final Map<String, InfoResponse.Asset> assetMap;
+  final Map<String, InfoResponse.AssetResponse> assetMap;
   final int pricePrecision = 10;
 
   public Sep38Service(
@@ -78,7 +79,7 @@ public class Sep38Service {
     validateAsset("sell_", sellAssetName);
     validateAmount("sell_", sellAmount);
 
-    InfoResponse.Asset sellAsset = assetMap.get(sellAssetName);
+    InfoResponse.AssetResponse sellAsset = assetMap.get(sellAssetName);
 
     // sellDeliveryMethod
     if (!Objects.toString(sellDeliveryMethod, "").isEmpty()) {
@@ -106,7 +107,7 @@ public class Sep38Service {
             .buyDeliveryMethod(buyDeliveryMethod);
     GetPricesResponse response = new GetPricesResponse();
     for (String buyAssetName : sellAsset.getExchangeableAssetNames()) {
-      InfoResponse.Asset buyAsset = this.assetMap.get(buyAssetName);
+      InfoResponse.AssetResponse buyAsset = this.assetMap.get(buyAssetName);
       if (buyAsset == null || !buyAsset.supportsBuyDeliveryMethod(buyDeliveryMethod)) {
         continue;
       }
@@ -126,7 +127,7 @@ public class Sep38Service {
       throw new BadRequestException(prefix + "asset cannot be empty");
     }
 
-    InfoResponse.Asset asset = assetMap.get(assetName);
+    InfoResponse.AssetResponse asset = assetMap.get(assetName);
     if (asset == null) {
       throw new NotFoundException(prefix + "asset not found");
     }
@@ -157,8 +158,8 @@ public class Sep38Service {
       validateAmount("buy_", buyAmount);
     }
 
-    InfoResponse.Asset sellAsset = assetMap.get(sellAssetName);
-    InfoResponse.Asset buyAsset = assetMap.get(buyAssetName);
+    InfoResponse.AssetResponse sellAsset = assetMap.get(sellAssetName);
+    InfoResponse.AssetResponse buyAsset = assetMap.get(buyAssetName);
 
     // sellDeliveryMethod
     if (!Objects.toString(sellDeliveryMethod, "").isEmpty()) {
@@ -199,9 +200,15 @@ public class Sep38Service {
       throw new BadRequestException("Unsupported sell asset.");
     }
     String[] assetCode = sellAsset.getAsset().split(":");
-    AssetInfo asset = assetService.getAsset(assetCode[1]);
-    Long sendMinLimit = asset.getSend().getMinAmount();
-    Long sendMaxLimit = asset.getSend().getMaxAmount();
+    Asset asset = assetService.getAsset(assetCode[1]);
+    Optional<Sep31Operations.SendOperation> send =
+        Optional.ofNullable(asset)
+            .map(Asset::getOperations)
+            .map(Asset.Operations::getSep31)
+            .map(Sep31Operations::getSend);
+
+    Long sendMinLimit = send.map(Sep31Operations.SendOperation::getMinAmount).orElse(null);
+    Long sendMaxLimit = send.map(Sep31Operations.SendOperation::getMaxAmount).orElse(null);
 
     // SEP31: when sell_amount is specified
     if (context == SEP31 && sellAmount != null) {
@@ -280,8 +287,8 @@ public class Sep38Service {
       validateAmount("buy_", request.getBuyAmount());
     }
 
-    InfoResponse.Asset sellAsset = assetMap.get(request.getSellAssetName());
-    InfoResponse.Asset buyAsset = assetMap.get(request.getBuyAssetName());
+    InfoResponse.AssetResponse sellAsset = assetMap.get(request.getSellAssetName());
+    InfoResponse.AssetResponse buyAsset = assetMap.get(request.getBuyAssetName());
 
     // sellDeliveryMethod
     if (!Objects.toString(request.getSellDeliveryMethod(), "").isEmpty()) {
@@ -332,9 +339,15 @@ public class Sep38Service {
       throw new BadRequestException("Unsupported sell asset.");
     }
     String[] assetCode = sellAsset.getAsset().split(":");
-    AssetInfo asset = assetService.getAsset(assetCode[1]);
-    Long sendMinLimit = asset.getSend().getMinAmount();
-    Long sendMaxLimit = asset.getSend().getMaxAmount();
+    Asset asset = assetService.getAsset(assetCode[1]);
+    Optional<Sep31Operations.SendOperation> send =
+        Optional.ofNullable(asset)
+            .map(Asset::getOperations)
+            .map(Asset.Operations::getSep31)
+            .map(Sep31Operations::getSend);
+
+    Long sendMinLimit = send.map(Sep31Operations.SendOperation::getMinAmount).orElse(null);
+    Long sendMaxLimit = send.map(Sep31Operations.SendOperation::getMaxAmount).orElse(null);
 
     // SEP31: when sell_amount is specified
     if (context == SEP31 && request.getSellAmount() != null) {

@@ -4,10 +4,10 @@ import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.*;
 
 import javax.annotation.Nullable;
 import lombok.SneakyThrows;
+import org.stellar.anchor.api.asset.Asset;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.platform.GetTransactionResponse;
 import org.stellar.anchor.api.platform.PlatformTransactionData;
-import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.shared.*;
 import org.stellar.anchor.asset.AssetService;
@@ -105,7 +105,7 @@ public class TransactionHelper {
       return dbAsset;
     }
 
-    AssetInfo info = service.getAsset(txn.getRequestAssetCode(), txn.getRequestAssetIssuer());
+    Asset info = service.getAsset(txn.getRequestAssetCode(), txn.getRequestAssetIssuer());
 
     // Already validated in the interactive flow
     return info.getAssetName();

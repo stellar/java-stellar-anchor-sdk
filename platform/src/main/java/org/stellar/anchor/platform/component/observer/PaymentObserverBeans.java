@@ -5,8 +5,8 @@ import java.util.stream.Collectors;
 import lombok.SneakyThrows;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.stellar.anchor.api.asset.Asset;
 import org.stellar.anchor.api.exception.ServerErrorException;
-import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.apiclient.PlatformApiClient;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.AppConfig;
@@ -34,9 +34,9 @@ public class PaymentObserverBeans {
     if (assetService == null || assetService.listAllAssets() == null) {
       throw new ServerErrorException("Asset service cannot be empty.");
     }
-    List<AssetInfo> stellarAssets =
+    List<Asset> stellarAssets =
         assetService.listAllAssets().stream()
-            .filter(asset -> asset.getSchema().equals(AssetInfo.Schema.stellar))
+            .filter(asset -> asset.getSchema().equals(Asset.Schema.STELLAR))
             .collect(Collectors.toList());
     if (stellarAssets.size() == 0) {
       throw new ServerErrorException("Asset service should contain at least one Stellar asset.");
@@ -71,7 +71,7 @@ public class PaymentObserverBeans {
             stellarPaymentStreamerCursorStore);
 
     // Add distribution wallet to the observing list as type RESIDENTIAL
-    for (AssetInfo assetInfo : stellarAssets) {
+    for (Asset assetInfo : stellarAssets) {
       if (!paymentObservingAccountsManager.lookupAndUpdate(assetInfo.getDistributionAccount())) {
         paymentObservingAccountsManager.upsert(
             assetInfo.getDistributionAccount(),
