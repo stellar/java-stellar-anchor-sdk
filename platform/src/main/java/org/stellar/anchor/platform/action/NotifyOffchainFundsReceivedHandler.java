@@ -16,6 +16,7 @@ import org.stellar.anchor.api.exception.rpc.InvalidParamsException;
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException;
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind;
 import org.stellar.anchor.api.rpc.action.ActionMethod;
+import org.stellar.anchor.api.rpc.action.AmountRequest;
 import org.stellar.anchor.api.rpc.action.NotifyOffchainFundsReceivedRequest;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
@@ -106,21 +107,34 @@ public class NotifyOffchainFundsReceivedHandler
           "All or none of the amount_in, amount_out, and amount_fee should be set");
     }
 
-    validateAsset("amount_in", request.getAmountIn());
-    validateAsset("amount_out", request.getAmountOut());
-    validateAsset("amount_fee", request.getAmountFee(), true);
+    validateAsset(
+        "amount_in",
+        AmountRequest.builder()
+            .amount(request.getAmountIn())
+            .asset(txn.getAmountInAsset())
+            .build());
+    validateAsset(
+        "amount_out",
+        AmountRequest.builder()
+            .amount(request.getAmountOut())
+            .asset(txn.getAmountOutAsset())
+            .build());
+    validateAsset(
+        "amount_fee",
+        AmountRequest.builder()
+            .amount(request.getAmountFee())
+            .asset(txn.getAmountFeeAsset())
+            .build(),
+        true);
 
     if (request.getAmountIn() != null) {
-      txn.setAmountIn(request.getAmountIn().getAmount());
-      txn.setAmountInAsset(request.getAmountIn().getAsset());
+      txn.setAmountIn(request.getAmountIn());
     }
     if (request.getAmountOut() != null) {
-      txn.setAmountOut(request.getAmountOut().getAmount());
-      txn.setAmountOutAsset(request.getAmountOut().getAsset());
+      txn.setAmountOut(request.getAmountOut());
     }
     if (request.getAmountFee() != null) {
-      txn.setAmountFee(request.getAmountFee().getAmount());
-      txn.setAmountFeeAsset(request.getAmountFee().getAsset());
+      txn.setAmountFee(request.getAmountFee());
     }
 
     if (custodyConfig.isCustodyIntegrationEnabled() && "24".equals(txn.getProtocol())) {

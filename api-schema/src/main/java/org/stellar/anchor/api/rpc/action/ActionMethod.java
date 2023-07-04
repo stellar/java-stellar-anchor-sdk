@@ -51,7 +51,13 @@ public enum ActionMethod {
   DO_STELLAR_REFUND("do_stellar_refund"),
 
   @SerializedName("request_onchain_funds")
-  REQUEST_ONCHAIN_FUNDS("request_onchain_funds");
+  REQUEST_ONCHAIN_FUNDS("request_onchain_funds"),
+
+  @SerializedName("notify_amounts_updated")
+  NOTIFY_AMOUNTS_UPDATED("notify_amounts_updated"),
+
+  @SerializedName("notify_transaction_recovery")
+  NOTIFY_TRANSACTION_RECOVERY("notify_transaction_recovery");
 
   private final String method;
 

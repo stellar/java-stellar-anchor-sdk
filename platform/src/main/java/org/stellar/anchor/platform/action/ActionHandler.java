@@ -6,7 +6,6 @@ import static org.stellar.anchor.api.sep.AssetInfo.NATIVE_ASSET_CODE;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.COMPLETED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.ERROR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.EXPIRED;
-import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_CUSTOMER_INFO_UPDATE;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.REFUNDED;
 import static org.stellar.anchor.platform.utils.TransactionHelper.toGetTransactionResponse;
 import static org.stellar.anchor.util.Log.errorEx;
@@ -39,7 +38,6 @@ import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31Transaction;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.util.SepHelper;
-import org.stellar.anchor.util.StringHelper;
 import org.stellar.sdk.AssetTypeCreditAlphaNum;
 import org.stellar.sdk.responses.AccountResponse;
 
@@ -203,21 +201,19 @@ public abstract class ActionHandler<T extends RpcActionParamsRequest> {
 
     SepTransactionStatus nextStatus = getNextStatus(txn, actionRequest);
 
-    if ((Set.of(ERROR, EXPIRED).contains(nextStatus)) && request.getMessage() == null) {
+    if (isErrorStatus(nextStatus) && request.getMessage() == null) {
       throw new InvalidParamsException("message is required");
     }
 
     boolean shouldClearMessageStatus =
-        !isStatusError(nextStatus)
-            && !StringHelper.isEmpty(txn.getStatus())
-            && isStatusError(SepTransactionStatus.from(txn.getStatus()));
+        !isErrorStatus(nextStatus) && isErrorStatus(SepTransactionStatus.from(txn.getStatus()));
 
     updateTransactionWithAction(txn, actionRequest);
 
     txn.setUpdatedAt(Instant.now());
     txn.setStatus(nextStatus.toString());
 
-    if (Set.of(REFUNDED, COMPLETED, ERROR, EXPIRED).contains(nextStatus)) {
+    if (isFinalStatus(nextStatus)) {
       txn.setCompletedAt(Instant.now());
     }
 
@@ -226,22 +222,28 @@ public abstract class ActionHandler<T extends RpcActionParamsRequest> {
         JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
         if (request.getMessage() != null) {
           txn24.setMessage(request.getMessage());
+        } else if (shouldClearMessageStatus) {
+          txn24.setMessage(null);
         }
         txn24Store.save(txn24);
         break;
       case "31":
         JdbcSep31Transaction txn31 = (JdbcSep31Transaction) txn;
-        if (shouldClearMessageStatus) {
-          txn31.setRequiredInfoMessage(null);
-        } else {
+        if (request.getMessage() != null) {
           txn31.setRequiredInfoMessage(request.getMessage());
+        } else if (shouldClearMessageStatus) {
+          txn31.setRequiredInfoMessage(null);
         }
         txn31Store.save(txn31);
         break;
     }
   }
 
-  private boolean isStatusError(SepTransactionStatus status) {
-    return List.of(PENDING_CUSTOMER_INFO_UPDATE, EXPIRED, ERROR).contains(status);
+  private boolean isErrorStatus(SepTransactionStatus status) {
+    return Set.of(EXPIRED, ERROR).contains(status);
+  }
+
+  private boolean isFinalStatus(SepTransactionStatus status) {
+    return Set.of(COMPLETED, REFUNDED).contains(status);
   }
 }
