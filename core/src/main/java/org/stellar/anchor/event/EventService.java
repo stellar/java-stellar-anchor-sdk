@@ -3,7 +3,6 @@ package org.stellar.anchor.event;
 import java.util.List;
 import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.AnchorException;
-import org.stellar.anchor.api.exception.EventPublishException;
 
 /**
  * The EventService is used to publish events to the event queue and to read events from the event
@@ -37,14 +36,6 @@ import org.stellar.anchor.api.exception.EventPublishException;
  * </pre>
  */
 public interface EventService {
-  /**
-   * To be deprecated. Use createSession() instead.
-   *
-   * @param event the event to be published
-   * @throws EventPublishException
-   */
-  void publish(AnchorEvent event) throws EventPublishException;
-
   /**
    * Creates a session for publishing and reading events.
    *

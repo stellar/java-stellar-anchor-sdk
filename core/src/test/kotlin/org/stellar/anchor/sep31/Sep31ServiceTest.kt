@@ -35,6 +35,8 @@ import org.stellar.anchor.config.Sep31Config
 import org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_RECEIVE
 import org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_SEND
 import org.stellar.anchor.event.EventService
+import org.stellar.anchor.event.EventService.EventQueue.TRANSACTION
+import org.stellar.anchor.event.EventService.Session
 import org.stellar.anchor.sep31.Sep31Service.Context
 import org.stellar.anchor.sep38.PojoSep38Quote
 import org.stellar.anchor.sep38.Sep38QuoteStore
@@ -273,7 +275,8 @@ class Sep31ServiceTest {
   @MockK(relaxed = true) lateinit var quoteStore: Sep38QuoteStore
   @MockK(relaxed = true) lateinit var feeIntegration: FeeIntegration
   @MockK(relaxed = true) lateinit var customerIntegration: CustomerIntegration
-  @MockK(relaxed = true) lateinit var eventPublishService: EventService
+  @MockK(relaxed = true) lateinit var eventService: EventService
+  @MockK(relaxed = true) lateinit var eventSession: Session
 
   private lateinit var jwtService: JwtService
   private lateinit var sep31Service: Sep31Service
@@ -293,6 +296,7 @@ class Sep31ServiceTest {
     every { appConfig.languages } returns listOf("en")
     every { sep31Config.paymentType } returns STRICT_SEND
     every { txnStore.newTransaction() } returns PojoSep31Transaction()
+    every { eventService.createSession(TRANSACTION) } returns eventSession
     jwtService = spyk(JwtService(secretConfig))
 
     sep31Service =
@@ -305,7 +309,7 @@ class Sep31ServiceTest {
         assetService,
         feeIntegration,
         customerIntegration,
-        eventPublishService,
+        eventService,
       )
 
     request = gson.fromJson(requestJson, Sep31PostTransactionRequest::class.java)
@@ -360,7 +364,7 @@ class Sep31ServiceTest {
         assetServiceQuotesNotSupported,
         feeIntegration,
         customerIntegration,
-        eventPublishService,
+        eventService,
       )
     }
     assertInstanceOf(SepValidationException::class.java, ex)
@@ -765,7 +769,7 @@ class Sep31ServiceTest {
     verify(exactly = 1) { customerIntegration.getCustomer(request) }
     verify(exactly = 1) { quoteStore.findByQuoteId("my_quote_id") }
     verify(exactly = 1) { sep31DepositInfoGenerator.generate(any()) }
-    verify(exactly = 1) { eventPublishService.publish(any()) }
+    verify(exactly = 1) { eventSession.publish(any()) }
 
     // validate the values of the saved sep31Transaction
     val gotTx = gson.toJson(slotTxn.captured)
@@ -880,7 +884,7 @@ class Sep31ServiceTest {
         assetServiceQuotesNotSupported,
         feeIntegration,
         customerIntegration,
-        eventPublishService,
+        eventService,
       )
 
     val senderId = "d2bd1412-e2f6-4047-ad70-a1a2f133b25c"

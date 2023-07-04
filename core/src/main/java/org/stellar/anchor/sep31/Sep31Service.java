@@ -3,6 +3,7 @@ package org.stellar.anchor.sep31;
 import static org.stellar.anchor.api.event.AnchorEvent.Type.TRANSACTION_CREATED;
 import static org.stellar.anchor.api.sep.sep31.Sep31InfoResponse.AssetResponse;
 import static org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_SEND;
+import static org.stellar.anchor.event.EventService.EventQueue.TRANSACTION;
 import static org.stellar.anchor.util.Log.*;
 import static org.stellar.anchor.util.MathHelper.decimal;
 import static org.stellar.anchor.util.MathHelper.formatAmount;
@@ -49,7 +50,7 @@ public class Sep31Service {
   private final FeeIntegration feeIntegration;
   private final CustomerIntegration customerIntegration;
   private final Sep31InfoResponse infoResponse;
-  private final EventService eventService;
+  private final EventService.Session eventSession;
 
   public Sep31Service(
       AppConfig appConfig,
@@ -71,7 +72,7 @@ public class Sep31Service {
     this.assetService = assetService;
     this.feeIntegration = feeIntegration;
     this.customerIntegration = customerIntegration;
-    this.eventService = eventService;
+    this.eventSession = eventService.createSession(TRANSACTION);
     this.infoResponse = sep31InfoResponseFromAssetInfoList(assetService.listAllAssets());
     Log.info("Sep31Service initialized.");
   }
@@ -180,7 +181,7 @@ public class Sep31Service {
 
     updateDepositInfo();
 
-    eventService.publish(
+    eventSession.publish(
         AnchorEvent.builder()
             .id(UUID.randomUUID().toString())
             .sep("31")

@@ -2,7 +2,9 @@ package org.stellar.anchor.platform.config;
 
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 
+import java.util.List;
 import lombok.Data;
+import lombok.Getter;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.validation.Errors;
 import org.springframework.validation.ValidationUtils;
@@ -12,10 +14,15 @@ import org.stellar.anchor.sep10.Sep10Helper;
 
 @Data
 public class ClientsConfig implements Validator {
-  ClientType type;
-  String signingKey;
-  String domain;
-  String callbackUrl;
+  List<ClientConfig> clients;
+
+  @Getter
+  public static class ClientConfig {
+    ClientType type;
+    String signingKey;
+    String domain;
+    String callbackUrl;
+  }
 
   public enum ClientType {
     CUSTODIAL,
@@ -29,12 +36,15 @@ public class ClientsConfig implements Validator {
 
   @Override
   public void validate(@NotNull Object target, @NotNull Errors errors) {
-    ClientsConfig config = (ClientsConfig) target;
+    ClientsConfig configs = (ClientsConfig) target;
+    configs.clients.forEach(clientConfig -> validateClient(clientConfig, errors));
+  }
 
-    if (config.type.equals(ClientType.CUSTODIAL)) {
+  private void validateClient(ClientConfig clientConfig, Errors errors) {
+    if (clientConfig.type.equals(ClientType.CUSTODIAL)) {
       validateCustodialClient(errors);
     } else {
-      validateNonCustodialClient(errors);
+      validateNonCustodialClient(clientConfig, errors);
     }
   }
 
@@ -46,17 +56,17 @@ public class ClientsConfig implements Validator {
         "The client.signingKey cannot be empty and must be defined");
   }
 
-  void validateNonCustodialClient(Errors errors) {
+  void validateNonCustodialClient(ClientConfig clientConfig, Errors errors) {
     ValidationUtils.rejectIfEmptyOrWhitespace(
         errors,
         "domain",
         "empty-client-domain",
         "The client.domain cannot be empty and must be defined");
 
-    if (!isEmpty(signingKey)) {
+    if (!isEmpty(clientConfig.signingKey)) {
       try {
-        String clientSigningKey = Sep10Helper.fetchSigningKeyFromClientDomain(domain);
-        if (!signingKey.equals(clientSigningKey)) {
+        String clientSigningKey = Sep10Helper.fetchSigningKeyFromClientDomain(clientConfig.domain);
+        if (!clientConfig.signingKey.equals(clientSigningKey)) {
           errors.rejectValue(
               "signingKey",
               "client-signing-key-does-not-match",

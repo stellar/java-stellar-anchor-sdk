@@ -456,19 +456,12 @@ events:
   ## Whether to enable events.
   #
   enabled: false
-  ## @param: event_type_to_queue
-  ## @type: map
-  ## Mapping of the event type to the queue name that messages are published to
-  event_type_to_queue:
-    quote_created: ap_event_quote_created
-    transaction_created: ap_event_transaction_created
-    transaction_status_changed: ap_event_transaction_status_changed
-    transaction_error: ap_event_transaction_error
-  ## @param: publisher_type
+
+  ## @param: queue
   ## @supported_values: `kafka`, `sqs`, or `msk`
-  ## The type of queue to use for event publishing
+  ## The type of queue to use for event processing.
   #
-  publisher:
+  queue:
     type: kafka
     ## If the value of `events.publisher.type` is "kafka", the `events.publisher.kafka` field must be defined.
     kafka:

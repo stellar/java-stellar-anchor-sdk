@@ -1,59 +1,33 @@
 package org.stellar.anchor.platform.event;
 
-import static org.stellar.anchor.util.Log.errorF;
-
-import io.micrometer.core.instrument.Metrics;
-import java.util.Map;
-import org.stellar.anchor.api.event.AnchorEvent;
-import org.stellar.anchor.api.exception.EventPublishException;
-import org.stellar.anchor.asset.AssetService;
+import org.apache.commons.lang3.NotImplementedException;
 import org.stellar.anchor.config.event.EventConfig;
 import org.stellar.anchor.event.EventService;
+import org.stellar.anchor.platform.config.PropertyEventConfig;
 
 public class DefaultEventService implements EventService {
-  private final EventConfig eventConfig;
-  private EventPublisher eventPublisher;
-  private AssetService assetService;
+  private final PropertyEventConfig eventConfig;
 
-  private final Map<String, String> eventTypeMapping;
-
-  public DefaultEventService(
-      EventConfig eventConfig, AssetService assetService, EventPublisher eventPublisher) {
-    this.eventConfig = eventConfig;
-    this.eventTypeMapping = eventConfig.getEventTypeToQueue();
-    this.assetService = assetService;
-    this.eventPublisher = eventPublisher;
-  }
-
-  @Override
-  public void publish(AnchorEvent event) throws EventPublishException {
-    if (eventConfig.isEnabled()) {
-      // publish the event
-      eventPublisher.publish(getQueue(event.getType().type), event);
-      // update metrics
-      Metrics.counter(
-              "event.published",
-              "class",
-              event.getClass().getSimpleName(),
-              "type",
-              event.getType().type)
-          .increment();
-    }
+  public DefaultEventService(EventConfig eventConfig) {
+    this.eventConfig = (PropertyEventConfig) eventConfig;
   }
 
   @Override
   public Session createSession(EventQueue eventQueue) {
-    // TODO: Implement this
-    return null;
-  }
-
-  String getQueue(String eventType) {
-    String queue = eventTypeMapping.get(eventType);
-    if (queue == null) {
-      errorF("There is no queue defined for event type:{}", eventType);
-      throw new RuntimeException(
-          String.format("There is no queue defined for event type:%s", eventType));
+    if (eventConfig.isEnabled()) {
+      switch (eventConfig.getQueue().getType()) {
+        case KAFKA:
+          return new KafkaSession(eventConfig.getQueue().getKafka(), eventQueue.name());
+        case SQS:
+          // TODO: Implement this
+          throw new NotImplementedException("SQS is not implemented yet");
+        case MSK:
+          // TODO: Implement this
+          throw new NotImplementedException("MSK is not implemented yet");
+      }
+      throw new RuntimeException("Unknown queue type");
+    } else {
+      return new NoOpSession();
     }
-    return queue;
   }
 }

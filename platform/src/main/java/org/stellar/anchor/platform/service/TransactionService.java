@@ -2,6 +2,7 @@ package org.stellar.anchor.platform.service;
 
 import static org.stellar.anchor.api.event.AnchorEvent.Type.TRANSACTION_STATUS_CHANGED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.*;
+import static org.stellar.anchor.event.EventService.EventQueue.TRANSACTION;
 import static org.stellar.anchor.platform.utils.PlatformTransactionHelper.toGetTransactionResponse;
 import static org.stellar.anchor.sep31.Sep31Helper.allAmountAvailable;
 import static org.stellar.anchor.util.BeanHelper.updateField;
@@ -28,6 +29,7 @@ import org.stellar.anchor.api.shared.Amount;
 import org.stellar.anchor.apiclient.TransactionsSeps;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.event.EventService;
+import org.stellar.anchor.event.EventService.Session;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSep31Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
@@ -46,7 +48,7 @@ public class TransactionService {
   private final Sep31TransactionStore txn31Store;
   private final Sep24TransactionStore txn24Store;
   private final List<AssetInfo> assets;
-  private final EventService eventService;
+  private final Session eventSession;
   private final AssetService assetService;
 
   static boolean isStatusError(String status) {
@@ -64,7 +66,7 @@ public class TransactionService {
     this.txn31Store = txn31Store;
     this.quoteStore = quoteStore;
     this.assets = assetService.listAllAssets();
-    this.eventService = eventService;
+    this.eventSession = eventService.createSession(TRANSACTION);
     this.assetService = assetService;
   }
 
@@ -175,7 +177,7 @@ public class TransactionService {
           sep24Transaction.setMemoType(memoTypeAsString(MEMO_HASH));
         }
         txn24Store.save(sep24Transaction);
-        eventService.publish(
+        eventSession.publish(
             AnchorEvent.builder()
                 .id(UUID.randomUUID().toString())
                 .sep("24")
@@ -187,7 +189,7 @@ public class TransactionService {
       case "31":
         JdbcSep31Transaction sep31Transaction = (JdbcSep31Transaction) txn;
         txn31Store.save(sep31Transaction);
-        eventService.publish(
+        eventSession.publish(
             AnchorEvent.builder()
                 .id(UUID.randomUUID().toString())
                 .sep("24")
