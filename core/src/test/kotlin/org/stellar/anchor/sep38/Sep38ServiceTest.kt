@@ -90,7 +90,7 @@ class Sep38ServiceTest {
     val infoResponse = sep38Service.getInfo()
     assertEquals(3, infoResponse.assets.size)
 
-    val assetMap = HashMap<String, InfoResponse.Asset>()
+    val assetMap = HashMap<String, InfoResponse.AssetResponse>()
     infoResponse.assets.forEach { assetMap[it.asset] = it }
     assertEquals(3, assetMap.size)
 

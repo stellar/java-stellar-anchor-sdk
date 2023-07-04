@@ -6,12 +6,13 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.stellar.anchor.api.asset.Asset
 import org.stellar.anchor.api.sep.AssetInfo
 import org.stellar.anchor.api.sep.sep38.InfoResponse
 import org.stellar.anchor.asset.DefaultAssetService
 
 class InfoResponseTest {
-  private lateinit var assets: List<AssetInfo>
+  private lateinit var assets: List<Asset>
 
   @BeforeEach
   fun setUp() {
@@ -31,7 +32,7 @@ class InfoResponseTest {
     val infoResponse = InfoResponse(assets)
     assertEquals(3, infoResponse.assets.size)
 
-    val assetMap = HashMap<String, InfoResponse.Asset>()
+    val assetMap = HashMap<String, InfoResponse.AssetResponse>()
     infoResponse.assets.forEach { assetMap[it.asset] = it }
     assertEquals(3, assetMap.size)
 

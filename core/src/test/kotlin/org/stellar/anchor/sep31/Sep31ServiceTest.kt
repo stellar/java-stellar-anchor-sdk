@@ -18,6 +18,7 @@ import org.junit.jupiter.api.assertThrows
 import org.skyscreamer.jsonassert.JSONAssert
 import org.stellar.anchor.TestConstants
 import org.stellar.anchor.TestHelper
+import org.stellar.anchor.api.asset.Asset
 import org.stellar.anchor.api.callback.*
 import org.stellar.anchor.api.exception.*
 import org.stellar.anchor.api.sep.AssetInfo
@@ -281,7 +282,7 @@ class Sep31ServiceTest {
   private lateinit var request: Sep31PostTransactionRequest
   private lateinit var txn: Sep31Transaction
   private lateinit var fee: Amount
-  private lateinit var asset: AssetInfo
+  private lateinit var asset: Asset
   private lateinit var quote: PojoSep38Quote
   private lateinit var patchRequest: Sep31PatchTransactionRequest
 
@@ -311,7 +312,7 @@ class Sep31ServiceTest {
     request = gson.fromJson(requestJson, Sep31PostTransactionRequest::class.java)
     txn = gson.fromJson(txnJson, PojoSep31Transaction::class.java)
     fee = gson.fromJson(feeJson, Amount::class.java)
-    asset = gson.fromJson(assetJson, AssetInfo::class.java)
+    asset = gson.fromJson(assetJson, Asset::class.java)
     quote = gson.fromJson(quoteJson, PojoSep38Quote::class.java)
     patchRequest = gson.fromJson(patchTxnRequestJson, Sep31PatchTransactionRequest::class.java)
   }
