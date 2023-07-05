@@ -30,4 +30,9 @@ public class NoOpSession implements EventService.Session {
   public void close() throws AnchorException {
     debug("Closing NoOpSession class");
   }
+
+  @Override
+  public String getSessionName() {
+    return "NoOpSession";
+  }
 }

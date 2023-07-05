@@ -296,7 +296,7 @@ class Sep31ServiceTest {
     every { appConfig.languages } returns listOf("en")
     every { sep31Config.paymentType } returns STRICT_SEND
     every { txnStore.newTransaction() } returns PojoSep31Transaction()
-    every { eventService.createSession(TRANSACTION) } returns eventSession
+    every { eventService.createSession(any(), TRANSACTION) } returns eventSession
     jwtService = spyk(JwtService(secretConfig))
 
     sep31Service =

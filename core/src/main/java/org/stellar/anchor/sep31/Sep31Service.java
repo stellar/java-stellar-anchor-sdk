@@ -72,7 +72,7 @@ public class Sep31Service {
     this.assetService = assetService;
     this.feeIntegration = feeIntegration;
     this.customerIntegration = customerIntegration;
-    this.eventSession = eventService.createSession(TRANSACTION);
+    this.eventSession = eventService.createSession(this.getClass().getName(), TRANSACTION);
     this.infoResponse = sep31InfoResponseFromAssetInfoList(assetService.listAllAssets());
     Log.info("Sep31Service initialized.");
   }

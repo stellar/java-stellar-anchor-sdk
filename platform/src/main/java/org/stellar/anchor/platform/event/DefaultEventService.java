@@ -13,11 +13,11 @@ public class DefaultEventService implements EventService {
   }
 
   @Override
-  public Session createSession(EventQueue eventQueue) {
+  public Session createSession(String sessionName, EventQueue eventQueue) {
     if (eventConfig.isEnabled()) {
       switch (eventConfig.getQueue().getType()) {
         case KAFKA:
-          return new KafkaSession(eventConfig.getQueue().getKafka(), eventQueue.name());
+          return new KafkaSession(eventConfig.getQueue().getKafka(), sessionName, eventQueue);
         case SQS:
           // TODO: Implement this
           throw new NotImplementedException("SQS is not implemented yet");

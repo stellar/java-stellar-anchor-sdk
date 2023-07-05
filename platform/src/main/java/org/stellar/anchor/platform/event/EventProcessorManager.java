@@ -1,11 +1,12 @@
 package org.stellar.anchor.platform.event;
 
+import static org.stellar.anchor.event.EventService.*;
 import static org.stellar.anchor.util.Log.*;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 import javax.annotation.PostConstruct;
@@ -14,12 +15,17 @@ import lombok.SneakyThrows;
 import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.event.EventService;
+import org.stellar.anchor.event.EventService.EventQueue;
 import org.stellar.anchor.platform.config.CallbackApiConfig;
 import org.stellar.anchor.platform.config.ClientsConfig;
 import org.stellar.anchor.platform.config.EventProcessorConfig;
+import org.stellar.anchor.platform.utils.DaemonExecutors;
 import org.stellar.anchor.util.Log;
 
 public class EventProcessorManager {
+  public static final String CLIENT_STATUS_CALLBACK_EVENT_PROCESSOR_NAME_PREFIX =
+      "client-status-callback-";
+  public static final String CALLBACK_API_EVENT_PROCESSOR_NAME = "callback-api";
   private final EventProcessorConfig eventProcessorConfig;
   private final CallbackApiConfig callbackApiConfig;
   private final ClientsConfig clientsConfig;
@@ -41,22 +47,41 @@ public class EventProcessorManager {
   @PostConstruct
   public void start() {
     if (eventProcessorConfig.getCallbackApiRequest().isEnabled()) {
-      // Add callback API event processor
+      // Create a processor for the callback API handler
       processors.add(
           new EventProcessor(
-              EventService.EventQueue.TRANSACTION, new CallbackApiHandler(callbackApiConfig)));
-    }
-
-    if (eventProcessorConfig.getClientStatusCallback().isEnabled()) {
-      // Create client status callback event processors
-      clientsConfig
-          .getClients()
-          .forEach(
-              client ->
+              CALLBACK_API_EVENT_PROCESSOR_NAME,
+              EventQueue.TRANSACTION,
+              new CallbackApiHandler(callbackApiConfig)));
+      // Create a processor of the client status callback handler for each client defined in the
+      // clientsConfig
+      if (eventProcessorConfig.getClientStatusCallback().isEnabled()) {
+        clientsConfig
+            .getClients()
+            .forEach(
+                (clientConfig) -> {
+                  String processorName = null;
+                  switch (clientConfig.getType()) {
+                    case CUSTODIAL:
+                      processorName =
+                          CLIENT_STATUS_CALLBACK_EVENT_PROCESSOR_NAME_PREFIX
+                              + clientConfig.getSigningKey();
+                      break;
+                    case NONCUSTODIAL:
+                      processorName =
+                          CLIENT_STATUS_CALLBACK_EVENT_PROCESSOR_NAME_PREFIX
+                              + clientConfig.getDomain();
+                      break;
+                    default:
+                      errorF("Unknown client type: {}", clientConfig.getType());
+                  }
                   processors.add(
                       new EventProcessor(
-                          EventService.EventQueue.TRANSACTION,
-                          new ClientStatusCallbackHandler(client))));
+                          processorName,
+                          EventQueue.TRANSACTION,
+                          new ClientStatusCallbackHandler(clientConfig)));
+                });
+      }
     }
 
     // Start all the processors
@@ -76,42 +101,58 @@ public class EventProcessorManager {
   }
 
   class EventProcessor implements Runnable {
-    private final EventService.Session queueSession;
+    private final String name;
+    private final EventQueue eventQueue;
     private final EventHandler eventHandler;
-    private final ScheduledExecutorService consumerScheduler = Executors.newScheduledThreadPool(1);
 
-    public EventProcessor(EventService.EventQueue eventQueue, EventHandler eventHandler) {
+    private final ScheduledExecutorService consumerScheduler =
+        DaemonExecutors.newScheduledThreadPool(1);
+    private ScheduledFuture<?> processingTask = null;
+    private boolean stopped = false;
+
+    public EventProcessor(String name, EventQueue eventQueue, EventHandler eventHandler) {
+      this.name = name;
+      this.eventQueue = eventQueue;
       this.eventHandler = eventHandler;
-      this.queueSession = eventService.createSession(eventQueue);
     }
 
     public void start() {
-      consumerScheduler.scheduleWithFixedDelay(this, 1, 2, TimeUnit.SECONDS);
+      processingTask = consumerScheduler.scheduleWithFixedDelay(this, 1, 2, TimeUnit.SECONDS);
     }
 
     public void stop() throws AnchorException {
+      stopped = true;
+
+      if (processingTask != null) {
+        processingTask.cancel(true);
+      }
+
       consumerScheduler.shutdown();
-      queueSession.close();
     }
 
     @SneakyThrows
     @Override
     public void run() {
+      infoF(
+          "The EventProcessor Kafka listening task is starting for the {} time.",
+          getConsumerRestartCount() + 1);
+      Session queueSession = eventService.createSession(name, eventQueue);
       try {
-        infoF(
-            "The EventProcessor Kafka listening task is starting for the {} time.",
-            getConsumerRestartCount() + 1);
-
-        while (!Thread.currentThread().isInterrupted()) {
-          EventService.ReadResponse readResponse = queueSession.read();
+        while (!Thread.currentThread().isInterrupted() && !stopped) {
+          ReadResponse readResponse = queueSession.read();
           List<AnchorEvent> events = readResponse.getEvents();
-          debugF("Received %s events from queue%n", events.size());
+          debugF("Received {} events from queue", events.size());
           events.forEach(eventHandler::handleEvent);
           queueSession.ack(readResponse);
         }
+
+        queueSession.close();
       } catch (Exception ex) {
         // This is unexpected, so we need to restart the consumer.
         Log.errorEx(ex);
+      } finally {
+        queueSession.close();
+        infoF("Closing queue session [{}]", queueSession.getSessionName());
       }
     }
 

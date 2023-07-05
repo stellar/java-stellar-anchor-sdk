@@ -41,7 +41,7 @@ public interface EventService {
    *
    * @return a session object.
    */
-  Session createSession(EventQueue eventQueue);
+  Session createSession(String name, EventQueue eventQueue);
 
   interface Session {
     /**
@@ -68,6 +68,13 @@ public interface EventService {
 
     /** Closes the session. */
     void close() throws AnchorException;
+
+    /**
+     * Returns the name of the session.
+     *
+     * @return the name of the session.
+     */
+    String getSessionName();
   }
 
   interface ReadResponse {

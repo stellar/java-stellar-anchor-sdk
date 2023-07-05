@@ -24,7 +24,7 @@ class ClientsConfigTest {
     config.callbackUrl = "https://callback.circle.com/api/v1/anchor/callback"
     configs.clients.add(config)
 
-    configs.validate(config, errors)
+    configs.validate(configs, errors)
     Assertions.assertFalse(errors.hasErrors())
   }
 
@@ -34,7 +34,7 @@ class ClientsConfigTest {
     config.signingKey = ""
     configs.clients.add(config)
 
-    configs.validateCustodialClient(errors)
+    configs.validateCustodialClient(config, errors)
     Assertions.assertEquals(1, errors.errorCount)
     assertErrorCode(errors, "empty-client-signing-key")
   }
@@ -48,7 +48,7 @@ class ClientsConfigTest {
     config.signingKey = "GC4HAYCFQYQLJV5SE6FB3LGC37D6XGIXGMAXCXWNBLH7NWW2JH4OZLHQ"
     configs.clients.add(config)
 
-    configs.validate(config, errors)
+    configs.validate(configs, errors)
     Assertions.assertFalse(errors.hasErrors())
   }
 

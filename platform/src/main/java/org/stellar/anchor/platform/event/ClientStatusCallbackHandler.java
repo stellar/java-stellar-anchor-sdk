@@ -15,7 +15,7 @@ public class ClientStatusCallbackHandler extends EventHandler {
   @Override
   void handleEvent(AnchorEvent event) {
     // TOOD: Implement calling the business server
-    System.out.println("Sending event to callback api: " + clientConfig.getCallbackUrl());
+    System.out.println("Sending event to client status callback: " + clientConfig.getCallbackUrl());
     System.out.println(GsonUtils.getInstance().toJson(event));
   }
 }

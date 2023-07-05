@@ -42,6 +42,7 @@ class TestProfileExecutor(val config: TestConfig) {
   private var shouldStartPlatformServer: Boolean = false
   private var shouldStartReferenceServer: Boolean = false
   private var shouldStartObserver: Boolean = false
+  private var shouldStartEventProcessingServer: Boolean = false
   private var shouldStartKotlinReferenceServer: Boolean = false
 
   fun start(wait: Boolean = false, preStart: (config: TestConfig) -> Unit = {}) {
@@ -55,6 +56,7 @@ class TestProfileExecutor(val config: TestConfig) {
     shouldStartPlatformServer = config.env["run_platform_server"].toBoolean()
     shouldStartReferenceServer = config.env["run_reference_server"].toBoolean()
     shouldStartObserver = config.env["run_observer"].toBoolean()
+    shouldStartEventProcessingServer = config.env["run_event_processing_server"].toBoolean()
     shouldStartKotlinReferenceServer = config.env["run_kotlin_reference_server"].toBoolean()
 
     startDocker()
@@ -92,6 +94,13 @@ class TestProfileExecutor(val config: TestConfig) {
         info("Starting observer...")
         jobs += scope.launch { runningServers.add(ServiceRunner.startStellarObserver(envMap)) }
       }
+
+      if (shouldStartAllServers || shouldStartEventProcessingServer) {
+        info("Starting event processing server...")
+        jobs +=
+          scope.launch { runningServers.add(ServiceRunner.startEventProcessingServer(envMap)) }
+      }
+
       if (shouldStartAllServers || shouldStartSepServer) {
         info("Starting SEP server...")
         jobs += scope.launch { runningServers.add(ServiceRunner.startSepServer(envMap)) }

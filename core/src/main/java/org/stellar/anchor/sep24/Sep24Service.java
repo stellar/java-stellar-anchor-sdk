@@ -67,7 +67,7 @@ public class Sep24Service {
     this.assetService = assetService;
     this.jwtService = jwtService;
     this.txnStore = txnStore;
-    this.eventSession = eventService.createSession(TRANSACTION);
+    this.eventSession = eventService.createSession(this.getClass().getName(), TRANSACTION);
     this.interactiveUrlConstructor = interactiveUrlConstructor;
     this.moreInfoUrlConstructor = moreInfoUrlConstructor;
     info("Sep24Service initialized.");

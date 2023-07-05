@@ -1,6 +1,7 @@
 package org.stellar.anchor.platform.event;
 
 import static org.apache.kafka.clients.producer.ProducerConfig.*;
+import static org.stellar.anchor.util.StringHelper.isEmpty;
 
 import io.micrometer.core.instrument.Metrics;
 import java.time.Duration;
@@ -21,19 +22,22 @@ import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.EventPublishException;
 import org.stellar.anchor.event.EventService;
+import org.stellar.anchor.event.EventService.EventQueue;
 import org.stellar.anchor.platform.config.KafkaConfig;
 import org.stellar.anchor.util.Log;
 
 public class KafkaSession implements EventService.Session {
 
-  private final KafkaConfig kafkaConfig;
-  private final String topic;
-  private Producer<String, AnchorEvent> producer = null;
-  private Consumer<String, AnchorEvent> consumer = null;
+  final KafkaConfig kafkaConfig;
+  final String sessionName;
+  final String topic;
+  Producer<String, AnchorEvent> producer = null;
+  Consumer<String, AnchorEvent> consumer = null;
 
-  KafkaSession(KafkaConfig kafkaConfig, String topic) {
+  KafkaSession(KafkaConfig kafkaConfig, String sessionName, EventQueue queue) {
     this.kafkaConfig = kafkaConfig;
-    this.topic = topic;
+    this.sessionName = sessionName;
+    this.topic = queue.name();
   }
 
   @Override
@@ -72,11 +76,16 @@ public class KafkaSession implements EventService.Session {
       consumer.subscribe(java.util.Collections.singletonList(topic));
     }
 
-    ConsumerRecords<String, AnchorEvent> consumerRecords = consumer.poll(Duration.ofSeconds(10));
-    Log.info(String.format("Messages received: %s", consumerRecords.count()));
+    ConsumerRecords<String, AnchorEvent> consumerRecords =
+        consumer.poll(Duration.ofSeconds(kafkaConfig.getPollTimeoutSeconds()));
     ArrayList<AnchorEvent> events = new ArrayList<>(consumerRecords.count());
-    for (ConsumerRecord<String, AnchorEvent> record : consumerRecords) {
-      events.add(record.value());
+    if (consumerRecords.isEmpty()) {
+      Log.debugF("Received {} Kafka records", consumerRecords.count());
+    } else {
+      Log.infoF("Received {} Kafka records", consumerRecords.count());
+      for (ConsumerRecord<String, AnchorEvent> record : consumerRecords) {
+        events.add(record.value());
+      }
     }
     return new KafkaReadResponse(events);
   }
@@ -108,6 +117,11 @@ public class KafkaSession implements EventService.Session {
     }
   }
 
+  @Override
+  public String getSessionName() {
+    return sessionName;
+  }
+
   private Producer<String, AnchorEvent> createProducer() {
     Log.debugF("kafkaConfig: {}", kafkaConfig);
 
@@ -115,7 +129,9 @@ public class KafkaSession implements EventService.Session {
     props.put(BOOTSTRAP_SERVERS_CONFIG, kafkaConfig.getBootstrapServer());
     props.put(KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
     props.put(VALUE_SERIALIZER_CLASS_CONFIG, JsonSerializer.class);
-    props.put(CLIENT_ID_CONFIG, kafkaConfig.getClientId());
+    if (!isEmpty(kafkaConfig.getClientId())) {
+      props.put(CLIENT_ID_CONFIG, kafkaConfig.getClientId());
+    }
     props.put(RETRIES_CONFIG, kafkaConfig.getRetries());
     props.put(LINGER_MS_CONFIG, kafkaConfig.getLingerMs());
     props.put(BATCH_SIZE_CONFIG, kafkaConfig.getBatchSize());
@@ -131,7 +147,10 @@ public class KafkaSession implements EventService.Session {
     Properties props = new Properties();
 
     props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaConfig.getBootstrapServer());
-    props.put(ConsumerConfig.GROUP_ID_CONFIG, "EventProcessor");
+    if (!isEmpty(kafkaConfig.getClientId())) {
+      props.put(ConsumerConfig.CLIENT_ID_CONFIG, kafkaConfig.getClientId());
+    }
+    props.put(ConsumerConfig.GROUP_ID_CONFIG, "group-" + sessionName);
     props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
     props.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
     props.put(JsonDeserializer.TRUSTED_PACKAGES, "*");

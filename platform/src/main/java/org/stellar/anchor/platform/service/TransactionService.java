@@ -66,7 +66,7 @@ public class TransactionService {
     this.txn31Store = txn31Store;
     this.quoteStore = quoteStore;
     this.assets = assetService.listAllAssets();
-    this.eventSession = eventService.createSession(TRANSACTION);
+    this.eventSession = eventService.createSession(this.getClass().getName(), TRANSACTION);
     this.assetService = assetService;
   }
 

@@ -34,6 +34,7 @@ class EventConfigTest {
   @MethodSource("generatedKafkaConfig")
   fun `test Kafka configurations`(errorCount: Int, errorCode: String, kafkaConfig: KafkaConfig) {
     config.isEnabled = true
+    config.queue = PropertyQueueConfig()
     config.queue.type = KAFKA
     config.queue.kafka = kafkaConfig
     config.validateKafka(config, errors)
@@ -47,6 +48,7 @@ class EventConfigTest {
   @MethodSource("generatedSqsConfig")
   fun `test Sqs configurations`(errorCount: Int, errorCode: String, sqsConfig: SqsConfig) {
     config.isEnabled = true
+    config.queue = PropertyQueueConfig()
     config.queue.type = SQS
     config.queue.sqs = sqsConfig
     config.validateSqs(config, errors)
@@ -60,6 +62,7 @@ class EventConfigTest {
   @MethodSource("generatedMskConfig")
   fun `test Msk configurations`(errorCount: Int, errorCode: String, mskConfig: MskConfig) {
     config.isEnabled = true
+    config.queue = PropertyQueueConfig()
     config.queue.type = MSK
     config.queue.msk = mskConfig
     config.validateMsk(config, errors)

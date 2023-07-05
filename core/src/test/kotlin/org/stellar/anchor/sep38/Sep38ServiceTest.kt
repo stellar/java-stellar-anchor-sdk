@@ -80,7 +80,8 @@ class Sep38ServiceTest {
     // store/db related:
     every { quoteStore.newInstance() } returns PojoSep38Quote()
     // events related:
-    every { eventService.createSession(EventService.EventQueue.TRANSACTION) } returns eventSession
+    every { eventService.createSession(any(), EventService.EventQueue.TRANSACTION) } returns
+      eventSession
   }
 
   @AfterEach

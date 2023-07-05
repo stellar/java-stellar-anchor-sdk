@@ -42,6 +42,11 @@ public abstract class ConfigManager
     return configMap;
   }
 
+  /**
+   * Check if any of the security sensitive configuration values are present in the configuration.
+   *
+   * @param configMap the configuration map
+   */
   void sanitize(ConfigMap configMap) {
     SecretManager.getInstance()
         .secretVars

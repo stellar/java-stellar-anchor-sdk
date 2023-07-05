@@ -41,7 +41,7 @@ public class PropertyEventConfig implements EventConfig, Validator {
         break;
       default:
         errors.rejectValue(
-            "publisher.type",
+            "queue.type",
             "invalidType-publisher-type",
             "events.publisher.type must be one of 'KAFKA', 'SQS', or MSK");
     }
@@ -50,7 +50,7 @@ public class PropertyEventConfig implements EventConfig, Validator {
   void validateConfig(EventConfig config, Errors errors) {
     if (config.getQueue() == null)
       errors.rejectValue(
-          "publisher.type",
+          "queue.type",
           "publisher-type-empty",
           "events.publisher.type is not defined. Please specify the type: KAFKA, SQS, or MSK");
   }
@@ -58,7 +58,7 @@ public class PropertyEventConfig implements EventConfig, Validator {
   void validateSqs(PropertyEventConfig config, Errors errors) {
     if (isEmpty(config.getQueue().getSqs().awsRegion)) {
       errors.rejectValue(
-          "publisher.sqs.awsRegion",
+          "queue.sqs.awsRegion",
           "sqs-aws-region-empty",
           "events.publisher.sqs.aws_region must be defined");
     }
@@ -66,50 +66,50 @@ public class PropertyEventConfig implements EventConfig, Validator {
 
   void validateKafka(PropertyEventConfig config, Errors errors) {
     ValidationUtils.rejectIfEmptyOrWhitespace(
-        errors, "publisher.kafka.bootstrapServer", "kafka-bootstrap-server-empty");
+        errors, "queue.kafka.bootstrapServer", "kafka-bootstrap-server-empty");
     if (config.queue.kafka.retries < 0) {
       errors.rejectValue(
-          "publisher.kafka.retries",
+          "queue.kafka.retries",
           "kafka-retries-invalid",
-          "events.publisher.kafka.retries must be greater than 0");
+          "events.queue.kafka.retries must be greater than 0");
     }
 
     if (config.queue.kafka.lingerMs < 0) {
       errors.rejectValue(
-          "publisher.kafka.lingerMs",
+          "queue.kafka.lingerMs",
           "kafka-linger-ms-invalid",
-          "events.publisher.kafka.linger_ms must be greater than 0");
+          "events.queue.kafka.linger_ms must be greater than 0");
     }
 
     if (config.queue.kafka.batchSize < 0) {
       errors.rejectValue(
-          "publisher.kafka.batchSize",
+          "queue.kafka.batchSize",
           "kafka-batch-size-invalid",
-          "events.publisher.kafka.batch_size must be greater than 0");
+          "events.queue.kafka.batch_size must be greater than 0");
     }
   }
 
   void validateMsk(PropertyEventConfig config, Errors errors) {
     ValidationUtils.rejectIfEmptyOrWhitespace(
-        errors, "publisher.msk.bootstrapServer", "msk-bootstrap-server-empty");
+        errors, "queue.msk.bootstrapServer", "msk-bootstrap-server-empty");
 
     if (config.queue.msk.retries < 0) {
       errors.rejectValue(
-          "publisher.msk.retries",
+          "queue.msk.retries",
           "msk-retries-invalid",
           "events.publisher.msk.retries must be greater than 0");
     }
 
     if (config.queue.msk.lingerMs < 0) {
       errors.rejectValue(
-          "publisher.msk.lingerMs",
+          "queue.msk.lingerMs",
           "msk-linger-ms-invalid",
           "events.publisher.msk.linger_ms must be greater than 0");
     }
 
     if (config.queue.msk.batchSize < 0) {
       errors.rejectValue(
-          "publisher.msk.batchSize",
+          "queue.msk.batchSize",
           "msk-batch-size-invalid",
           "events.publisher.msk.batch_size must be greater than 0");
     }

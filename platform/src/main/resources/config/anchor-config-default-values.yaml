@@ -137,7 +137,7 @@ event_processor:
   # The context path of the event processing server
   context_path: /
   # The listening port of the event processing server
-  port: 8084
+  port: 8088
   # The configuration of the status callback to the client domain
   client_status_callback:
     enabled: true
@@ -479,6 +479,8 @@ events:
       linger_ms: 1000
       # Determines the maximum amount of data to be collected before sending the batch.
       batch_size: 10
+      # Determines the maximum amount of time to wait for the batch to be filled before returning from poll().
+      poll_timeout_seconds: 60
     ## If the value of `publisher.type` is "sqs", the `events.publisher.sqs` field must be defined.
     sqs:
       ## @param: use_IAM

@@ -1,5 +1,7 @@
 package org.stellar.anchor.platform.component.sep;
 
+import static org.stellar.anchor.util.StringHelper.json;
+
 import java.io.IOException;
 import javax.servlet.Filter;
 import org.springframework.boot.context.properties.ConfigurationProperties;
@@ -51,7 +53,9 @@ public class SepBeans {
 
   @Bean
   @ConfigurationProperties(prefix = "sep10")
-  Sep10Config sep10Config(AppConfig appConfig, SecretConfig secretConfig) {
+  Sep10Config sep10Config(
+      AppConfig appConfig, SecretConfig secretConfig, ClientsConfig clientsConfig) {
+    System.out.println(json(clientsConfig));
     return new PropertySep10Config(appConfig, secretConfig);
   }
 
