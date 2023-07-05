@@ -255,7 +255,9 @@ public abstract class ActionHandler<T extends RpcActionParamsRequest> {
         } else {
           txn.getStellarTransactions().add(stellarTransaction);
         }
+
         txn.setTransferReceivedAt(parsePaymentTime(lastPayment.getCreatedAt()));
+        txn.setStellarTransactionId(stellarTransactionId);
       }
     } catch (Exception ex) {
       errorEx("Failed to retrieve stellar transactions", ex);

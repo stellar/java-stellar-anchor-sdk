@@ -115,7 +115,5 @@ public class NotifyOnchainFundsReceivedHandler
           true);
       txn.setAmountFee(request.getAmountFee());
     }
-
-    txn.setStellarTransactionId(request.getStellarTransactionId());
   }
 }
