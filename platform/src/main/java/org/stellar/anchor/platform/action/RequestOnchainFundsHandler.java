@@ -6,6 +6,8 @@ import static org.stellar.anchor.api.sep.SepTransactionStatus.INCOMPLETE;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_USR_TRANSFER_START;
 import static org.stellar.anchor.util.MemoHelper.makeMemo;
+import static org.stellar.anchor.util.MemoHelper.memoType;
+import static org.stellar.anchor.util.SepHelper.memoTypeString;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -139,8 +141,8 @@ public class RequestOnchainFundsHandler extends ActionHandler<RequestOnchainFund
       }
 
       if (memo != null) {
-        txn24.setMemo(request.getMemo());
-        txn24.setMemoType(request.getMemoType());
+        txn24.setMemo(memo.toString());
+        txn24.setMemoType(memoTypeString(memoType(memo)));
       } else {
         throw new InvalidParamsException("memo and memo_type are required");
       }

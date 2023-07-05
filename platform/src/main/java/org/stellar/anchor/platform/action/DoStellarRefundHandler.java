@@ -5,6 +5,8 @@ import static org.stellar.anchor.api.rpc.action.ActionMethod.DO_STELLAR_REFUND;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_STELLAR;
 import static org.stellar.anchor.util.MemoHelper.makeMemo;
+import static org.stellar.anchor.util.MemoHelper.memoType;
+import static org.stellar.anchor.util.SepHelper.memoTypeString;
 
 import java.util.Set;
 import javax.validation.Validator;
@@ -98,8 +100,8 @@ public class DoStellarRefundHandler extends ActionHandler<DoStellarRefundRequest
     }
 
     if (memo != null) {
-      txn24.setMemo(request.getMemo());
-      txn24.setMemoType(request.getMemoType());
+      txn24.setMemo(memo.toString());
+      txn24.setMemoType(memoTypeString(memoType(memo)));
     }
 
     // TODO: Do we need to send request body?
