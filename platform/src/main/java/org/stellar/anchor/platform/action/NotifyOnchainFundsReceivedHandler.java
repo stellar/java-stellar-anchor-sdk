@@ -72,11 +72,6 @@ public class NotifyOnchainFundsReceivedHandler
   @Override
   protected void updateTransactionWithAction(
       JdbcSepTransaction txn, NotifyOnchainFundsReceivedRequest request) throws AnchorException {
-
-    if (request.getStellarTransactionId() == null) {
-      throw new InvalidParamsException("stellar_transaction_id is required");
-    }
-
     if (!((request.getAmountIn() == null
             && request.getAmountOut() == null
             && request.getAmountFee() == null)

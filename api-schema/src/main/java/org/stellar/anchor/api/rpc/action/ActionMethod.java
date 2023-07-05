@@ -73,4 +73,8 @@ public enum ActionMethod {
     }
     throw new MethodNotFoundException(String.format("No matching action method[%s]", method));
   }
+
+  public String toString() {
+    return method;
+  }
 }

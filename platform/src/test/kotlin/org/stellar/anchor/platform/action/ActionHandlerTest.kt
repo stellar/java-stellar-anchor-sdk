@@ -154,7 +154,7 @@ class ActionHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Protocol[100] is not supported by action[NOTIFY_INTERACTIVE_FLOW_COMPLETED]",
+      "Protocol[100] is not supported by action[notify_interactive_flow_completed]",
       ex.message
     )
   }
@@ -170,7 +170,7 @@ class ActionHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[NOTIFY_INTERACTIVE_FLOW_COMPLETED] is not supported for status[pending_anchor]",
+      "Action[notify_interactive_flow_completed] is not supported for status[pending_anchor]",
       ex.message
     )
   }

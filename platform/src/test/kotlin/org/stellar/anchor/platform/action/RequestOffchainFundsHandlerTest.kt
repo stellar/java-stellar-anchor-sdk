@@ -67,7 +67,7 @@ class RequestOffchainFundsHandlerTest {
     every { spyTxn24.protocol } returns "100"
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
-    assertEquals("Protocol[100] is not supported by action[REQUEST_OFFCHAIN_FUNDS]", ex.message)
+    assertEquals("Protocol[100] is not supported by action[request_offchain_funds]", ex.message)
   }
 
   @Test
@@ -82,7 +82,7 @@ class RequestOffchainFundsHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[REQUEST_OFFCHAIN_FUNDS] is not supported for status[pending_external]",
+      "Action[request_offchain_funds] is not supported for status[pending_external]",
       ex.message
     )
   }
@@ -100,7 +100,7 @@ class RequestOffchainFundsHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[REQUEST_OFFCHAIN_FUNDS] is not supported for status[pending_anchor]",
+      "Action[request_offchain_funds] is not supported for status[pending_anchor]",
       ex.message
     )
   }
@@ -117,7 +117,7 @@ class RequestOffchainFundsHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[REQUEST_OFFCHAIN_FUNDS] is not supported for status[incomplete]",
+      "Action[request_offchain_funds] is not supported for status[incomplete]",
       ex.message
     )
   }
