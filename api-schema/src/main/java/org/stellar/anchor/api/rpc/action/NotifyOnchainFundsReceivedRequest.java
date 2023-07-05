@@ -8,7 +8,7 @@ import lombok.EqualsAndHashCode;
 public class NotifyOnchainFundsReceivedRequest extends RpcActionParamsRequest {
 
   private String stellarTransactionId;
-  private AmountRequest amountIn;
-  private AmountRequest amountOut;
-  private AmountRequest amountFee;
+  private String amountIn;
+  private String amountOut;
+  private String amountFee;
 }
