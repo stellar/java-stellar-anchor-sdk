@@ -275,7 +275,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
         .increment(Double.parseDouble(payment.getAmount()));
   }
 
-  Instant parsePaymentTime(String paymentTimeStr) {
+  public static Instant parsePaymentTime(String paymentTimeStr) {
     try {
       return DateTimeFormatter.ISO_INSTANT.parse(paymentTimeStr, Instant::from);
     } catch (DateTimeParseException | NullPointerException ex) {

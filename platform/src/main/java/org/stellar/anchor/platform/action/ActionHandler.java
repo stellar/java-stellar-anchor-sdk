@@ -47,8 +47,8 @@ public abstract class ActionHandler<T extends RpcActionParamsRequest> {
   protected final Sep24TransactionStore txn24Store;
   protected final Sep31TransactionStore txn31Store;
   private final Validator validator;
-  private final Horizon horizon;
-  private final AssetService assetService;
+  protected final Horizon horizon;
+  protected final AssetService assetService;
   private final List<AssetInfo> assets;
 
   public ActionHandler(
@@ -95,7 +95,7 @@ public abstract class ActionHandler<T extends RpcActionParamsRequest> {
   public abstract ActionMethod getActionType();
 
   protected abstract SepTransactionStatus getNextStatus(JdbcSepTransaction txn, T request)
-      throws InvalidRequestException;
+      throws InvalidRequestException, InvalidParamsException;
 
   protected abstract Set<SepTransactionStatus> getSupportedStatuses(JdbcSepTransaction txn);
 
