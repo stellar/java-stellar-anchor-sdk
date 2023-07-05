@@ -71,7 +71,8 @@ public class RequestOffchainFundsHandler extends ActionHandler<RequestOffchainFu
       throws BadRequestException, InvalidParamsException {
     if (!((request.getAmountIn() == null
             && request.getAmountOut() == null
-            && request.getAmountFee() == null)
+            && request.getAmountFee() == null
+            && request.getAmountExpected() == null)
         || (request.getAmountIn() != null
             && request.getAmountOut() != null
             && request.getAmountFee() != null))) {
