@@ -36,6 +36,7 @@ public class InfoResponse {
   @Data
   @Builder
   public static class DepositInfo {
+    Boolean enabled;
     Long minAmount;
     Long maxAmount;
   }
@@ -43,6 +44,7 @@ public class InfoResponse {
   @Data
   @Builder
   public static class WithdrawInfo {
+    Boolean enabled;
     Long minAmount;
     Long maxAmount;
   }

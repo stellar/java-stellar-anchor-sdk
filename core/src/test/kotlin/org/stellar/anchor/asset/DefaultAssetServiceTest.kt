@@ -20,7 +20,7 @@ internal class DefaultAssetServiceTest {
 
   @BeforeEach fun setup() {}
   @ParameterizedTest
-  @ValueSource(strings = ["test_assets_new.yaml", "test_assets_new.json"])
+  @ValueSource(strings = ["test_assets.yaml", "test_assets.json"])
   fun `test assets loading and listing`(filename: String) {
 
     lateinit var das: DefaultAssetService
@@ -102,6 +102,30 @@ internal class DefaultAssetServiceTest {
                   "enabled": true,
                   "quotes_supported": true,
                   "quotes_required": true,
+                  "send": {
+                    "enabled": true,
+                    "fee_fixed": 0,
+                    "fee_percent": 0,
+                    "min_amount": 1,
+                    "max_amount": 1000000,
+                    "fields": {
+                      "transaction": {
+                        "receiver_routing_number": {
+                          "description": "routing number of the destination bank account"
+                        },
+                        "receiver_account_number": {
+                          "description": "bank account number of the destination"
+                        },
+                        "type": {
+                          "description": "type of deposit to make",
+                          "choices": [
+                            "SEPA",
+                            "SWIFT"
+                          ]
+                        }
+                      }
+                    }
+                  },
                   "sep12": {
                     "sender": {
                       "types": {
@@ -123,30 +147,6 @@ internal class DefaultAssetServiceTest {
                         },
                         "sep31-foreign-receiver": {
                           "description": "non-U.S. citizens receiving USD"
-                        }
-                      }
-                    }
-                  },
-                  "send": {
-                    "enabled": true,
-                    "fee_fixed": 0,
-                    "fee_percent": 0,
-                    "min_amount": 1,
-                    "max_amount": 1000000,
-                    "fields": {
-                      "transaction": {
-                        "receiver_routing_number": {
-                          "description": "routing number of the destination bank account"
-                        },
-                        "receiver_account_number": {
-                          "description": "bank account number of the destination"
-                        },
-                        "type": {
-                          "description": "type of deposit to make",
-                          "choices": [
-                            "SEPA",
-                            "SWIFT"
-                          ]
                         }
                       }
                     }
@@ -184,22 +184,6 @@ internal class DefaultAssetServiceTest {
                   "enabled": true,
                   "quotes_supported": true,
                   "quotes_required": true,
-                  "sep12": {
-                    "sender": {
-                      "types": {
-                        "sep31-sender": {
-                          "description": "Japanese citizens"
-                        }
-                      }
-                    },
-                    "receiver": {
-                      "types": {
-                        "sep31-receiver": {
-                          "description": "Japanese citizens receiving USD"
-                        }
-                      }
-                    }
-                  },
                   "send": {
                     "enabled": true,
                     "fee_fixed": 0,
@@ -221,6 +205,22 @@ internal class DefaultAssetServiceTest {
                             "SWIFT",
                             "WIRE"
                           ]
+                        }
+                      }
+                    }
+                  },
+                  "sep12": {
+                    "sender": {
+                      "types": {
+                        "sep31-sender": {
+                          "description": "Japanese citizens"
+                        }
+                      }
+                    },
+                    "receiver": {
+                      "types": {
+                        "sep31-receiver": {
+                          "description": "Japanese citizens receiving USD"
                         }
                       }
                     }

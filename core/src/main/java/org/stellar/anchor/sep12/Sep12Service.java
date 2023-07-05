@@ -8,6 +8,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.stellar.anchor.api.asset.Asset;
+import org.stellar.anchor.api.asset.operation.Sep31Operations;
 import org.stellar.anchor.api.callback.*;
 import org.stellar.anchor.api.exception.*;
 import org.stellar.anchor.api.sep.sep12.*;
@@ -27,12 +28,18 @@ public class Sep12Service {
         assetService.listAllAssets().stream()
             .map(Asset::getOperations)
             .map(Asset.Operations::getSep31)
-            .flatMap(x -> x.getSep12().getReceiver().getTypes().keySet().stream());
+            .filter(Objects::nonNull)
+            .map(Sep31Operations::getSep12)
+            .filter(Objects::nonNull)
+            .flatMap(x -> x.getReceiver().getTypes().keySet().stream());
     Stream<String> senderTypes =
         assetService.listAllAssets().stream()
             .map(Asset::getOperations)
             .map(Asset.Operations::getSep31)
-            .flatMap(x -> x.getSep12().getSender().getTypes().keySet().stream());
+            .filter(Objects::nonNull)
+            .map(Sep31Operations::getSep12)
+            .filter(Objects::nonNull)
+            .flatMap(x -> x.getSender().getTypes().keySet().stream());
     knownTypes = Stream.concat(receiverTypes, senderTypes).collect(Collectors.toSet());
 
     Log.info("Sep12Service initialized.");

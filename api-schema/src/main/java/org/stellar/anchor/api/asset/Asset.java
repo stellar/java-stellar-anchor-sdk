@@ -24,10 +24,21 @@ public class Asset {
 
   public enum Schema {
     @SerializedName("stellar")
-    STELLAR,
+    STELLAR("stellar"),
 
     @SerializedName("iso4217")
-    ISO_4217
+    ISO_4217("iso4217");
+
+    private final String name;
+
+    Schema(String name) {
+      this.name = name;
+    }
+
+    @Override
+    public String toString() {
+      return name;
+    }
   }
 
   public String getAssetName() {

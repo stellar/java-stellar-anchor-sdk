@@ -442,6 +442,7 @@ public class Sep24Service {
         depositInfos.put(
             asset.getCode(),
             DepositInfo.builder()
+                .enabled(true)
                 .minAmount(deposit.map(Sep24Operations.DepositOperation::getMinAmount).orElse(null))
                 .maxAmount(deposit.map(Sep24Operations.DepositOperation::getMaxAmount).orElse(null))
                 .build());
@@ -450,6 +451,7 @@ public class Sep24Service {
         withdrawInfos.put(
             asset.getCode(),
             WithdrawInfo.builder()
+                .enabled(true)
                 .minAmount(
                     withdraw.map(Sep24Operations.WithdrawOperation::getMinAmount).orElse(null))
                 .maxAmount(
