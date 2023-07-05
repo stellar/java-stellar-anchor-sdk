@@ -60,12 +60,14 @@ public class NotifyInteractiveFlowCompletedHandler
     validateAsset("amount_in", request.getAmountIn());
     validateAsset("amount_out", request.getAmountOut());
     validateAsset("amount_fee", request.getAmountFee(), true);
-    validateAsset(
-        "amount_expected",
-        AmountRequest.builder()
-            .amount(request.getAmountExpected())
-            .asset(txn.getAmountInAsset())
-            .build());
+    if (request.getAmountExpected() != null) {
+      validateAsset(
+          "amount_expected",
+          AmountRequest.builder()
+              .amount(request.getAmountExpected())
+              .asset(request.getAmountIn().getAsset())
+              .build());
+    }
 
     JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
 

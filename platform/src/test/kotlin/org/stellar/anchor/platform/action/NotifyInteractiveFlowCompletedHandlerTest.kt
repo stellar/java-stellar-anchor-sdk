@@ -1,0 +1,254 @@
+package org.stellar.anchor.platform.action
+
+import io.mockk.*
+import io.mockk.impl.annotations.MockK
+import java.time.Instant
+import javax.validation.Validator
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.junit.jupiter.api.assertThrows
+import org.skyscreamer.jsonassert.JSONAssert
+import org.skyscreamer.jsonassert.JSONCompareMode
+import org.stellar.anchor.api.exception.rpc.InvalidRequestException
+import org.stellar.anchor.api.platform.GetTransactionResponse
+import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT
+import org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24
+import org.stellar.anchor.api.rpc.action.AmountRequest
+import org.stellar.anchor.api.rpc.action.NotifyInteractiveFlowCompletedRequest
+import org.stellar.anchor.api.sep.SepTransactionStatus.*
+import org.stellar.anchor.api.shared.Amount
+import org.stellar.anchor.asset.AssetService
+import org.stellar.anchor.asset.DefaultAssetService
+import org.stellar.anchor.horizon.Horizon
+import org.stellar.anchor.platform.data.JdbcSep24Transaction
+import org.stellar.anchor.platform.data.JdbcSep31Transaction
+import org.stellar.anchor.sep24.Sep24TransactionStore
+import org.stellar.anchor.sep31.Sep31TransactionStore
+import org.stellar.anchor.util.GsonUtils
+
+class NotifyInteractiveFlowCompletedHandlerTest {
+
+  companion object {
+    private val gson = GsonUtils.getInstance()
+    private const val TX_ID = "testId"
+  }
+
+  @MockK(relaxed = true) private lateinit var txn24Store: Sep24TransactionStore
+
+  @MockK(relaxed = true) private lateinit var txn31Store: Sep31TransactionStore
+
+  @MockK(relaxed = true) private lateinit var horizon: Horizon
+
+  @MockK(relaxed = true) private lateinit var validator: Validator
+
+  @MockK(relaxed = true) private lateinit var assetService: AssetService
+
+  private lateinit var handler: ActionHandler<NotifyInteractiveFlowCompletedRequest>
+
+  @BeforeEach
+  fun setup() {
+    MockKAnnotations.init(this, relaxUnitFun = true)
+    this.assetService = DefaultAssetService.fromJsonResource("test_assets.json")
+    handler =
+      NotifyInteractiveFlowCompletedHandler(
+        txn24Store,
+        txn31Store,
+        validator,
+        horizon,
+        assetService
+      )
+  }
+
+  @Test
+  fun test_handle_unsupportedProtocol() {
+    val request = NotifyInteractiveFlowCompletedRequest.builder().transactionId(TX_ID).build()
+    val txn24 = JdbcSep31Transaction()
+    txn24.status = INCOMPLETE.toString()
+    val spyTxn = spyk(txn24)
+
+    every { txn24Store.findByTransactionId(any()) } returns null
+    every { txn31Store.findByTransactionId(TX_ID) } returns spyTxn
+    every { spyTxn.protocol } returns "100"
+
+    val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
+    assertEquals(
+      "Protocol[100] is not supported by action[NOTIFY_INTERACTIVE_FLOW_COMPLETED]",
+      ex.message
+    )
+  }
+
+  @Test
+  fun test_handle_unsupportedStatus() {
+    val request = NotifyInteractiveFlowCompletedRequest.builder().transactionId(TX_ID).build()
+    val txn24 = JdbcSep24Transaction()
+    txn24.status = PENDING_ANCHOR.toString()
+
+    every { txn24Store.findByTransactionId(TX_ID) } returns txn24
+    every { txn31Store.findByTransactionId(any()) } returns null
+
+    val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
+    assertEquals(
+      "Action[NOTIFY_INTERACTIVE_FLOW_COMPLETED] is not supported for status[pending_anchor]",
+      ex.message
+    )
+  }
+
+  @Test
+  fun test_handle_ok_withAmountExpected() {
+    val request =
+      NotifyInteractiveFlowCompletedRequest.builder()
+        .transactionId(TX_ID)
+        .amountIn(AmountRequest("1", "iso4217:USD"))
+        .amountOut(
+          AmountRequest(
+            "0.9",
+            "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+          )
+        )
+        .amountFee(
+          AmountRequest(
+            "0.1",
+            "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+          )
+        )
+        .amountExpected("1")
+        .build()
+    val txn24 = JdbcSep24Transaction()
+    txn24.status = INCOMPLETE.toString()
+    txn24.kind = DEPOSIT.kind
+    txn24.requestAssetCode = "USD"
+    val sep24TxnCapture = slot<JdbcSep24Transaction>()
+
+    every { txn24Store.findByTransactionId(TX_ID) } returns txn24
+    every { txn31Store.findByTransactionId(any()) } returns null
+    every { txn24Store.save(capture(sep24TxnCapture)) } returns null
+
+    val startDate = Instant.now()
+    val response = handler.handle(request)
+    val endDate = Instant.now()
+
+    verify(exactly = 0) { txn31Store.save(any()) }
+
+    val expectedSep24Txn = JdbcSep24Transaction()
+    expectedSep24Txn.kind = DEPOSIT.kind
+    expectedSep24Txn.status = PENDING_ANCHOR.toString()
+    expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
+    expectedSep24Txn.requestAssetCode = "USD"
+    expectedSep24Txn.amountIn = "1"
+    expectedSep24Txn.amountInAsset = "iso4217:USD"
+    expectedSep24Txn.amountOut = "0.9"
+    expectedSep24Txn.amountOutAsset =
+      "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+    expectedSep24Txn.amountFee = "0.1"
+    expectedSep24Txn.amountFeeAsset =
+      "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+    expectedSep24Txn.amountExpected = "1"
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedSep24Txn),
+      gson.toJson(sep24TxnCapture.captured),
+      JSONCompareMode.STRICT
+    )
+
+    val expectedResponse = GetTransactionResponse()
+    expectedResponse.sep = SEP_24
+    expectedResponse.kind = DEPOSIT
+    expectedResponse.status = PENDING_ANCHOR
+    expectedResponse.amountIn = Amount("1", "iso4217:USD")
+    expectedResponse.amountOut =
+      Amount("0.9", "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN")
+    expectedResponse.amountFee =
+      Amount("0.1", "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN")
+    expectedResponse.amountExpected = Amount("1", "iso4217:USD")
+    expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedResponse),
+      gson.toJson(response),
+      JSONCompareMode.STRICT
+    )
+
+    assertTrue(expectedSep24Txn.updatedAt.isAfter(startDate))
+    assertTrue(expectedSep24Txn.updatedAt.isBefore(endDate))
+  }
+
+  @Test
+  fun test_handle_ok_withoutAmountExpected() {
+    val request =
+      NotifyInteractiveFlowCompletedRequest.builder()
+        .transactionId(TX_ID)
+        .amountIn(AmountRequest("1", "iso4217:USD"))
+        .amountOut(
+          AmountRequest(
+            "0.9",
+            "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+          )
+        )
+        .amountFee(
+          AmountRequest(
+            "0.1",
+            "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+          )
+        )
+        .build()
+    val txn24 = JdbcSep24Transaction()
+    txn24.status = INCOMPLETE.toString()
+    txn24.kind = DEPOSIT.kind
+    txn24.requestAssetCode = "USD"
+    val sep24TxnCapture = slot<JdbcSep24Transaction>()
+
+    every { txn24Store.findByTransactionId(TX_ID) } returns txn24
+    every { txn31Store.findByTransactionId(any()) } returns null
+    every { txn24Store.save(capture(sep24TxnCapture)) } returns null
+
+    val startDate = Instant.now()
+    val response = handler.handle(request)
+    val endDate = Instant.now()
+
+    verify(exactly = 0) { txn31Store.save(any()) }
+
+    val expectedSep24Txn = JdbcSep24Transaction()
+    expectedSep24Txn.kind = DEPOSIT.kind
+    expectedSep24Txn.status = PENDING_ANCHOR.toString()
+    expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
+    expectedSep24Txn.requestAssetCode = "USD"
+    expectedSep24Txn.amountIn = "1"
+    expectedSep24Txn.amountInAsset = "iso4217:USD"
+    expectedSep24Txn.amountOut = "0.9"
+    expectedSep24Txn.amountOutAsset =
+      "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+    expectedSep24Txn.amountFee = "0.1"
+    expectedSep24Txn.amountFeeAsset =
+      "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+    expectedSep24Txn.amountExpected = "1"
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedSep24Txn),
+      gson.toJson(sep24TxnCapture.captured),
+      JSONCompareMode.STRICT
+    )
+
+    val expectedResponse = GetTransactionResponse()
+    expectedResponse.sep = SEP_24
+    expectedResponse.kind = DEPOSIT
+    expectedResponse.status = PENDING_ANCHOR
+    expectedResponse.amountIn = Amount("1", "iso4217:USD")
+    expectedResponse.amountOut =
+      Amount("0.9", "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN")
+    expectedResponse.amountFee =
+      Amount("0.1", "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN")
+    expectedResponse.amountExpected = Amount("1", "iso4217:USD")
+    expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedResponse),
+      gson.toJson(response),
+      JSONCompareMode.STRICT
+    )
+
+    assertTrue(expectedSep24Txn.updatedAt.isAfter(startDate))
+    assertTrue(expectedSep24Txn.updatedAt.isBefore(endDate))
+  }
+}
