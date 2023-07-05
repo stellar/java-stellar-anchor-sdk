@@ -71,4 +71,14 @@ public class AssetHelper {
       return null;
     }
   }
+
+  /**
+   * Returns the asset code from non-native issued assets
+   *
+   * @param asset Non-native issued asset
+   * @return The asset code
+   */
+  public static String getAssetCode(String asset) {
+    return asset.split(":")[1];
+  }
 }
