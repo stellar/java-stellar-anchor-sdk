@@ -11,13 +11,15 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
+import org.stellar.anchor.api.exception.rpc.InvalidParamsException
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException
 import org.stellar.anchor.api.platform.GetTransactionResponse
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT
 import org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24
 import org.stellar.anchor.api.rpc.action.AmountRequest
 import org.stellar.anchor.api.rpc.action.NotifyInteractiveFlowCompletedRequest
-import org.stellar.anchor.api.sep.SepTransactionStatus.*
+import org.stellar.anchor.api.sep.SepTransactionStatus.INCOMPLETE
+import org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR
 import org.stellar.anchor.api.shared.Amount
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
@@ -66,11 +68,11 @@ class NotifyInteractiveFlowCompletedHandlerTest {
     val request = NotifyInteractiveFlowCompletedRequest.builder().transactionId(TX_ID).build()
     val txn24 = JdbcSep31Transaction()
     txn24.status = INCOMPLETE.toString()
-    val spyTxn = spyk(txn24)
+    val spyTxn24 = spyk(txn24)
 
     every { txn24Store.findByTransactionId(any()) } returns null
-    every { txn31Store.findByTransactionId(TX_ID) } returns spyTxn
-    every { spyTxn.protocol } returns "100"
+    every { txn31Store.findByTransactionId(TX_ID) } returns spyTxn24
+    every { spyTxn24.protocol } returns "100"
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
@@ -250,5 +252,45 @@ class NotifyInteractiveFlowCompletedHandlerTest {
 
     assertTrue(expectedSep24Txn.updatedAt.isAfter(startDate))
     assertTrue(expectedSep24Txn.updatedAt.isBefore(endDate))
+  }
+
+  @Test
+  fun test_handle_invalidAmounts() {
+    val request =
+      NotifyInteractiveFlowCompletedRequest.builder()
+        .transactionId(TX_ID)
+        .amountIn(AmountRequest("1", "iso4217:USD"))
+        .amountOut(AmountRequest("1", "iso4217:USD"))
+        .amountFee(AmountRequest("1", "iso4217:USD"))
+        .amountExpected("1")
+        .build()
+    val txn24 = JdbcSep24Transaction()
+    txn24.status = INCOMPLETE.toString()
+    txn24.kind = DEPOSIT.kind
+    txn24.requestAssetCode = "USD"
+    val sep24TxnCapture = slot<JdbcSep24Transaction>()
+
+    every { txn24Store.findByTransactionId(TX_ID) } returns txn24
+    every { txn31Store.findByTransactionId(any()) } returns null
+    every { txn24Store.save(capture(sep24TxnCapture)) } returns null
+
+    request.amountIn.amount = "-1"
+    var ex = assertThrows<InvalidParamsException> { handler.handle(request) }
+    assertEquals("amount_in.amount should be positive", ex.message)
+    request.amountIn.amount = "1"
+
+    request.amountOut.amount = "-1"
+    ex = assertThrows { handler.handle(request) }
+    assertEquals("amount_out.amount should be positive", ex.message)
+    request.amountOut.amount = "1"
+
+    request.amountFee.amount = "-1"
+    ex = assertThrows { handler.handle(request) }
+    assertEquals("amount_fee.amount should be non-negative", ex.message)
+    request.amountFee.amount = "1"
+
+    request.amountExpected = "-1"
+    ex = assertThrows { handler.handle(request) }
+    assertEquals("amount_expected.amount should be positive", ex.message)
   }
 }

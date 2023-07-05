@@ -283,7 +283,7 @@ public abstract class ActionHandler<T extends RpcActionParamsRequest> {
                       (PathPaymentBaseOperationResponse) operation);
                 }
               } catch (SepException e) {
-                error("Failed to parse operation response");
+                error("Failed to parse operation response", e);
               }
               return null;
             })

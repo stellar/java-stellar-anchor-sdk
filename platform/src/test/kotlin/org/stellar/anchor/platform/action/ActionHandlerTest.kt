@@ -145,11 +145,11 @@ class ActionHandlerTest {
     val request = NotifyInteractiveFlowCompletedRequest.builder().transactionId(TX_ID).build()
     val txn24 = JdbcSep31Transaction()
     txn24.status = INCOMPLETE.toString()
-    val spyTxn = spyk(txn24)
+    val spyTxn24 = spyk(txn24)
 
     every { txn24Store.findByTransactionId(any()) } returns null
-    every { txn31Store.findByTransactionId(TX_ID) } returns spyTxn
-    every { spyTxn.protocol } returns "100"
+    every { txn31Store.findByTransactionId(TX_ID) } returns spyTxn24
+    every { spyTxn24.protocol } returns "100"
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
