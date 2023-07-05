@@ -16,5 +16,5 @@ public class NotifyInteractiveFlowCompletedRequest extends RpcActionParamsReques
 
   @NotNull private AmountRequest amountFee;
 
-  private AmountRequest amountExpected;
+  private String amountExpected;
 }

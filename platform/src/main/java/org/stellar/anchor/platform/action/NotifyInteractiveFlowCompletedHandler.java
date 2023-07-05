@@ -9,6 +9,7 @@ import javax.validation.Validator;
 import org.springframework.stereotype.Service;
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException;
 import org.stellar.anchor.api.rpc.action.ActionMethod;
+import org.stellar.anchor.api.rpc.action.AmountRequest;
 import org.stellar.anchor.api.rpc.action.NotifyInteractiveFlowCompletedRequest;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
@@ -59,7 +60,12 @@ public class NotifyInteractiveFlowCompletedHandler
     validateAsset("amount_in", request.getAmountIn());
     validateAsset("amount_out", request.getAmountOut());
     validateAsset("amount_fee", request.getAmountFee(), true);
-    validateAsset("amount_expected", request.getAmountExpected());
+    validateAsset(
+        "amount_expected",
+        AmountRequest.builder()
+            .amount(request.getAmountExpected())
+            .asset(txn.getAmountInAsset())
+            .build());
 
     JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
 
@@ -73,7 +79,7 @@ public class NotifyInteractiveFlowCompletedHandler
     txn24.setAmountFeeAsset(request.getAmountFee().getAsset());
 
     if (request.getAmountExpected() != null) {
-      txn24.setAmountExpected(request.getAmountExpected().getAmount());
+      txn24.setAmountExpected(request.getAmountExpected());
     } else {
       txn24.setAmountExpected(txn.getAmountIn());
     }

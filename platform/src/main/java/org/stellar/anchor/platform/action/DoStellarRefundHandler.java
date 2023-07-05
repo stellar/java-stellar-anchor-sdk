@@ -4,11 +4,13 @@ import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHD
 import static org.stellar.anchor.api.rpc.action.ActionMethod.DO_STELLAR_REFUND;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_STELLAR;
+import static org.stellar.anchor.util.MemoHelper.makeMemo;
 
 import java.util.Set;
 import javax.validation.Validator;
 import org.springframework.stereotype.Service;
 import org.stellar.anchor.api.exception.AnchorException;
+import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException;
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException;
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind;
@@ -23,6 +25,7 @@ import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
+import org.stellar.sdk.Memo;
 
 @Service
 public class DoStellarRefundHandler extends ActionHandler<DoStellarRefundRequest> {
@@ -84,6 +87,21 @@ public class DoStellarRefundHandler extends ActionHandler<DoStellarRefundRequest
   @Override
   protected void updateTransactionWithAction(JdbcSepTransaction txn, DoStellarRefundRequest request)
       throws AnchorException {
+    JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
+
+    Memo memo;
+    try {
+      memo = makeMemo(request.getMemo(), request.getMemoType());
+    } catch (SepException e) {
+      throw new InvalidParamsException(
+          String.format("Invalid memo or memo_type: %s", e.getMessage()), e);
+    }
+
+    if (memo != null) {
+      txn24.setMemo(request.getMemo());
+      txn24.setMemoType(request.getMemoType());
+    }
+
     // TODO: Do we need to send request body?
     custodyService.createTransactionRefund(txn.getId(), null);
   }

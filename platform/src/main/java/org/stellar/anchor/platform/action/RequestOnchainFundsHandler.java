@@ -12,6 +12,7 @@ import java.util.Set;
 import javax.validation.Validator;
 import org.springframework.stereotype.Service;
 import org.stellar.anchor.api.exception.AnchorException;
+import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException;
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind;
 import org.stellar.anchor.api.rpc.action.ActionMethod;
@@ -123,26 +124,23 @@ public class RequestOnchainFundsHandler extends ActionHandler<RequestOnchainFund
     JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
 
     if (request.getAmountExpected() != null) {
-      txn24.setAmountExpected(request.getAmountExpected().getAmount());
+      txn24.setAmountExpected(request.getAmountExpected());
     } else if (txn24.getAmountExpected() == null) {
       txn24.setAmountExpected(txn24.getAmountIn());
     }
 
     if (sep24DepositInfoGenerator instanceof Sep24DepositInfoNoneGenerator) {
-      Memo memo = makeMemo(request.getMemo(), request.getMemoType());
+      Memo memo;
+      try {
+        memo = makeMemo(request.getMemo(), request.getMemoType());
+      } catch (SepException e) {
+        throw new InvalidParamsException(
+            String.format("Invalid memo or memo_type: %s", e.getMessage()), e);
+      }
 
       if (memo != null) {
-        if (request.getMemo() != null) {
-          txn24.setMemo(request.getMemo());
-        } else {
-          throw new InvalidParamsException("memo is required");
-        }
-
-        if (request.getMemoType() != null) {
-          txn24.setMemo(request.getMemoType());
-        } else {
-          throw new InvalidParamsException("memo_type is required");
-        }
+        txn24.setMemo(request.getMemo());
+        txn24.setMemoType(request.getMemoType());
       } else {
         throw new InvalidParamsException("memo and memo_type are required");
       }

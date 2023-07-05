@@ -10,5 +10,5 @@ public class RequestOffchainFundsRequest extends RpcActionParamsRequest {
   private AmountRequest amountIn;
   private AmountRequest amountOut;
   private AmountRequest amountFee;
-  private AmountRequest amountExpected;
+  private String amountExpected;
 }

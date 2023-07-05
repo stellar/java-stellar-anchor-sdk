@@ -10,7 +10,7 @@ public class RequestOnchainFundsRequest extends RpcActionParamsRequest {
   private AmountRequest amountIn;
   private AmountRequest amountOut;
   private AmountRequest amountFee;
-  private AmountRequest amountExpected;
+  private String amountExpected;
   private String destinationAccount;
   private String memo;
   private String memoType;

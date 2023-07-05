@@ -9,6 +9,8 @@ import lombok.EqualsAndHashCode;
 public class DoStellarRefundRequest extends RpcActionParamsRequest {
 
   @NotNull private Refund refund;
+  private String memo;
+  private String memoType;
 
   @Data
   public static class Refund {

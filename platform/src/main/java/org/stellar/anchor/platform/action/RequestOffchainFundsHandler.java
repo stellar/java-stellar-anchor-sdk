@@ -106,7 +106,7 @@ public class RequestOffchainFundsHandler extends ActionHandler<RequestOffchainFu
 
     JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
     if (request.getAmountExpected() != null) {
-      txn24.setAmountExpected(request.getAmountExpected().getAmount());
+      txn24.setAmountExpected(request.getAmountExpected());
     } else if (txn24.getAmountExpected() == null) {
       txn24.setAmountExpected(txn24.getAmountIn());
     }
