@@ -14,6 +14,7 @@ import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException;
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind;
 import org.stellar.anchor.api.rpc.action.ActionMethod;
+import org.stellar.anchor.api.rpc.action.AmountRequest;
 import org.stellar.anchor.api.rpc.action.RequestOffchainFundsRequest;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
@@ -81,7 +82,14 @@ public class RequestOffchainFundsHandler extends ActionHandler<RequestOffchainFu
     validateAsset("amount_in", request.getAmountIn());
     validateAsset("amount_out", request.getAmountOut());
     validateAsset("amount_fee", request.getAmountFee(), true);
-    validateAsset("amount_expected", request.getAmountOut());
+    if (request.getAmountExpected() != null) {
+      validateAsset(
+          "amount_expected",
+          AmountRequest.builder()
+              .amount(request.getAmountExpected())
+              .asset(request.getAmountIn().getAsset())
+              .build());
+    }
 
     if (request.getAmountIn() != null) {
       txn.setAmountIn(request.getAmountIn().getAmount());
@@ -107,8 +115,8 @@ public class RequestOffchainFundsHandler extends ActionHandler<RequestOffchainFu
     JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
     if (request.getAmountExpected() != null) {
       txn24.setAmountExpected(request.getAmountExpected());
-    } else if (txn24.getAmountExpected() == null) {
-      txn24.setAmountExpected(txn24.getAmountIn());
+    } else if (request.getAmountIn() != null) {
+      txn24.setAmountExpected(request.getAmountIn().getAmount());
     }
   }
 }

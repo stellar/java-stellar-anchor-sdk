@@ -3,6 +3,7 @@ package org.stellar.anchor.platform.action
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import java.time.Instant
+import java.util.*
 import javax.validation.ConstraintViolation
 import javax.validation.Validator
 import kotlin.test.assertEquals
@@ -143,12 +144,12 @@ class ActionHandlerTest {
   @Test
   fun test_handle_unsupportedProtocol() {
     val request = NotifyInteractiveFlowCompletedRequest.builder().transactionId(TX_ID).build()
-    val txn24 = JdbcSep31Transaction()
+    val txn24 = JdbcSep24Transaction()
     txn24.status = INCOMPLETE.toString()
     val spyTxn24 = spyk(txn24)
 
-    every { txn24Store.findByTransactionId(any()) } returns null
-    every { txn31Store.findByTransactionId(TX_ID) } returns spyTxn24
+    every { txn24Store.findByTransactionId(TX_ID) } returns spyTxn24
+    every { txn31Store.findByTransactionId(any()) } returns null
     every { spyTxn24.protocol } returns "100"
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
@@ -630,5 +631,23 @@ class ActionHandlerTest {
     every { accountResponse.getBalances() } returns arrayOf(balance1, balance2, balance3)
 
     assertFalse(handler.isTrustLineConfigured(account, asset))
+  }
+
+  @Test
+  fun test_isErrorStatus() {
+    setOf(ERROR, EXPIRED).forEach { s -> assertTrue(handler.isErrorStatus(s)) }
+
+    Arrays.stream(SepTransactionStatus.values())
+      .filter { s -> !setOf(ERROR, EXPIRED).contains(s) }
+      .forEach { s -> assertFalse(handler.isErrorStatus(s)) }
+  }
+
+  @Test
+  fun test_isFinalStatus() {
+    setOf(REFUNDED, COMPLETED).forEach { s -> assertTrue(handler.isFinalStatus(s)) }
+
+    Arrays.stream(SepTransactionStatus.values())
+      .filter { s -> !setOf(REFUNDED, COMPLETED).contains(s) }
+      .forEach { s -> assertFalse(handler.isFinalStatus(s)) }
   }
 }

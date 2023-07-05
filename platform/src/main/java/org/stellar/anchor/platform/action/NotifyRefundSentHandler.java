@@ -51,7 +51,7 @@ public class NotifyRefundSentHandler extends ActionHandler<NotifyRefundSentReque
   protected SepTransactionStatus getNextStatus(
       JdbcSepTransaction txn, NotifyRefundSentRequest request) throws InvalidParamsException {
     if (request.getRefund() == null
-        && PENDING_ANCHOR.equals(SepTransactionStatus.from(txn.getStatus()))) {
+        && PENDING_ANCHOR == SepTransactionStatus.from(txn.getStatus())) {
       throw new InvalidParamsException("Refund object is required");
     }
 

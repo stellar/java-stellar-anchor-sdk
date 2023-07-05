@@ -337,11 +337,11 @@ public abstract class ActionHandler<T extends RpcActionParamsRequest> {
     }
   }
 
-  private boolean isErrorStatus(SepTransactionStatus status) {
+  protected boolean isErrorStatus(SepTransactionStatus status) {
     return Set.of(EXPIRED, ERROR).contains(status);
   }
 
-  private boolean isFinalStatus(SepTransactionStatus status) {
+  protected boolean isFinalStatus(SepTransactionStatus status) {
     return Set.of(COMPLETED, REFUNDED).contains(status);
   }
 }
