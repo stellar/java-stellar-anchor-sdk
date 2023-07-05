@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.assertThrows
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode.LENIENT
+import org.skyscreamer.jsonassert.JSONCompareMode.NON_EXTENSIBLE
 import org.springframework.web.util.UriComponentsBuilder
 import org.stellar.anchor.api.exception.SepException
 import org.stellar.anchor.api.platform.PatchTransactionsRequest
@@ -38,7 +39,7 @@ class Sep24Tests(val config: TestConfig, val toml: TomlContent, jwt: String) {
   private fun `test Sep24 info endpoint`() {
     printRequest("Calling GET /info")
     val info = sep24Client.getInfo()
-    JSONAssert.assertEquals(expectedSep24Info, gson.toJson(info), LENIENT)
+    JSONAssert.assertEquals(expectedSep24Info, gson.toJson(info), NON_EXTENSIBLE)
   }
 
   private fun `test Sep24 withdraw`() {
@@ -327,10 +328,17 @@ private const val expectedSep24Info =
         "enabled": true
       },
       "USD": {
-        "enabled": true
+        "enabled": true,
+        "min_amount": 0,
+        "max_amount": 10000
       },
       "USDC": {
-        "enabled": true
+        "enabled": true,
+        "min_amount": 1
+      },
+      "native": {
+        "enabled": true,
+        "max_amount": 1000000
       }
     },
     "withdraw": {
@@ -338,10 +346,17 @@ private const val expectedSep24Info =
         "enabled": true
       },
       "USD": {
-        "enabled": true
+        "enabled": true,
+        "min_amount": 0,
+        "max_amount": 10000
       },
       "USDC": {
-        "enabled": true
+        "enabled": true,
+        "max_amount": 1000000
+      },
+      "native": {
+        "enabled": true,
+        "max_amount": 1000000
       }
     },
     "fee": {
