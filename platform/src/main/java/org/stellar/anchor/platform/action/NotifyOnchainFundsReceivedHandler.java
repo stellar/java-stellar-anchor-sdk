@@ -37,6 +37,51 @@ public class NotifyOnchainFundsReceivedHandler
   }
 
   @Override
+  protected void validate(JdbcSepTransaction txn, NotifyOnchainFundsReceivedRequest request)
+      throws InvalidParamsException, InvalidRequestException {
+    super.validate(txn, request);
+
+    if (!((request.getAmountIn() == null
+            && request.getAmountOut() == null
+            && request.getAmountFee() == null)
+        || (request.getAmountIn() != null
+            && request.getAmountOut() != null
+            && request.getAmountFee() != null)
+        || (request.getAmountIn() != null
+            && request.getAmountOut() == null
+            && request.getAmountFee() == null))) {
+      throw new InvalidParamsException(
+          "Invalid amounts combination provided: all, none or only amount_in should be set");
+    }
+
+    if (request.getAmountIn() != null) {
+      validateAsset(
+          "amount_in",
+          AmountRequest.builder()
+              .amount(request.getAmountIn())
+              .asset(txn.getAmountInAsset())
+              .build());
+    }
+    if (request.getAmountOut() != null) {
+      validateAsset(
+          "amount_out",
+          AmountRequest.builder()
+              .amount(request.getAmountOut())
+              .asset(txn.getAmountOutAsset())
+              .build());
+    }
+    if (request.getAmountFee() != null) {
+      validateAsset(
+          "amount_fee",
+          AmountRequest.builder()
+              .amount(request.getAmountFee())
+              .asset(txn.getAmountFeeAsset())
+              .build(),
+          true);
+    }
+  }
+
+  @Override
   public ActionMethod getActionType() {
     return NOTIFY_ONCHAIN_FUNDS_RECEIVED;
   }
@@ -72,47 +117,15 @@ public class NotifyOnchainFundsReceivedHandler
   @Override
   protected void updateTransactionWithAction(
       JdbcSepTransaction txn, NotifyOnchainFundsReceivedRequest request) throws AnchorException {
-    if (!((request.getAmountIn() == null
-            && request.getAmountOut() == null
-            && request.getAmountFee() == null)
-        || (request.getAmountIn() != null
-            && request.getAmountOut() != null
-            && request.getAmountFee() != null)
-        || (request.getAmountIn() != null
-            && request.getAmountOut() == null
-            && request.getAmountFee() == null))) {
-      throw new InvalidParamsException(
-          "Invalid amounts combination provided: all, none or only amount_in should be set");
-    }
-
     addStellarTransaction(txn, request.getStellarTransactionId());
 
     if (request.getAmountIn() != null) {
-      validateAsset(
-          "amount_in",
-          AmountRequest.builder()
-              .amount(request.getAmountIn())
-              .asset(txn.getAmountInAsset())
-              .build());
       txn.setAmountIn(request.getAmountIn());
     }
     if (request.getAmountOut() != null) {
-      validateAsset(
-          "amount_out",
-          AmountRequest.builder()
-              .amount(request.getAmountOut())
-              .asset(txn.getAmountOutAsset())
-              .build());
       txn.setAmountOut(request.getAmountOut());
     }
     if (request.getAmountFee() != null) {
-      validateAsset(
-          "amount_fee",
-          AmountRequest.builder()
-              .amount(request.getAmountFee())
-              .asset(txn.getAmountFeeAsset())
-              .build(),
-          true);
       txn.setAmountFee(request.getAmountFee());
     }
   }

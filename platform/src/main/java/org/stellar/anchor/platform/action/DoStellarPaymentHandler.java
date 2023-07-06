@@ -45,14 +45,14 @@ public class DoStellarPaymentHandler extends ActionHandler<DoStellarPaymentReque
   }
 
   @Override
-  protected void validate(DoStellarPaymentRequest request)
+  protected void validate(JdbcSepTransaction txn, DoStellarPaymentRequest request)
       throws InvalidRequestException, InvalidParamsException {
+    super.validate(txn, request);
+
     if (!custodyConfig.isCustodyIntegrationEnabled()) {
       throw new InvalidRequestException(
           String.format("Action[%s] requires disabled custody integration", getActionType()));
     }
-
-    super.validate(request);
   }
 
   @Override

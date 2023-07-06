@@ -3,6 +3,7 @@ package org.stellar.anchor.platform.action
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import java.time.Instant
+import javax.validation.ConstraintViolation
 import javax.validation.Validator
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -111,6 +112,26 @@ class NotifyTransactionExpiredHandlerTest {
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
     assertEquals("message is required", ex.message)
+  }
+
+  @Test
+  fun test_handle_invalidRequest() {
+    val request = NotifyTransactionExpiredRequest.builder().transactionId(TX_ID).build()
+    val txn24 = JdbcSep24Transaction()
+    txn24.status = PENDING_ANCHOR.toString()
+    txn24.kind = DEPOSIT.kind
+
+    val violation1: ConstraintViolation<NotifyTransactionExpiredRequest> = mockk()
+    val violation2: ConstraintViolation<NotifyTransactionExpiredRequest> = mockk()
+
+    every { txn24Store.findByTransactionId(TX_ID) } returns txn24
+    every { txn31Store.findByTransactionId(any()) } returns null
+    every { violation1.message } returns "violation error message 1"
+    every { violation2.message } returns "violation error message 2"
+    every { validator.validate(request) } returns setOf(violation1, violation2)
+
+    val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
+    assertEquals("violation error message 1\n" + "violation error message 2", ex.message)
   }
 
   @Test

@@ -39,14 +39,14 @@ public class NotifyTrustSetHandler extends ActionHandler<NotifyTrustSetRequest> 
   }
 
   @Override
-  protected void validate(NotifyTrustSetRequest request)
+  protected void validate(JdbcSepTransaction txn, NotifyTrustSetRequest request)
       throws InvalidRequestException, InvalidParamsException {
+    super.validate(txn, request);
+
     if (custodyConfig.isCustodyIntegrationEnabled()) {
       throw new InvalidRequestException(
           String.format("Action[%s] requires disabled custody integration", getActionType()));
     }
-
-    super.validate(request);
   }
 
   @Override

@@ -49,6 +49,42 @@ public class NotifyOffchainFundsReceivedHandler
   }
 
   @Override
+  protected void validate(JdbcSepTransaction txn, NotifyOffchainFundsReceivedRequest request)
+      throws InvalidParamsException, InvalidRequestException {
+    super.validate(txn, request);
+
+    if (!((request.getAmountIn() == null
+            && request.getAmountOut() == null
+            && request.getAmountFee() == null)
+        || (request.getAmountIn() != null
+            && request.getAmountOut() != null
+            && request.getAmountFee() != null))) {
+      throw new InvalidParamsException(
+          "All or none of the amount_in, amount_out, and amount_fee should be set");
+    }
+
+    validateAsset(
+        "amount_in",
+        AmountRequest.builder()
+            .amount(request.getAmountIn())
+            .asset(txn.getAmountInAsset())
+            .build());
+    validateAsset(
+        "amount_out",
+        AmountRequest.builder()
+            .amount(request.getAmountOut())
+            .asset(txn.getAmountOutAsset())
+            .build());
+    validateAsset(
+        "amount_fee",
+        AmountRequest.builder()
+            .amount(request.getAmountFee())
+            .asset(txn.getAmountFeeAsset())
+            .build(),
+        true);
+  }
+
+  @Override
   public ActionMethod getActionType() {
     return NOTIFY_OFFCHAIN_FUNDS_RECEIVED;
   }
@@ -96,36 +132,6 @@ public class NotifyOffchainFundsReceivedHandler
         txn.setTransferReceivedAt(Instant.now());
       }
     }
-
-    if (!((request.getAmountIn() == null
-            && request.getAmountOut() == null
-            && request.getAmountFee() == null)
-        || (request.getAmountIn() != null
-            && request.getAmountOut() != null
-            && request.getAmountFee() != null))) {
-      throw new InvalidParamsException(
-          "All or none of the amount_in, amount_out, and amount_fee should be set");
-    }
-
-    validateAsset(
-        "amount_in",
-        AmountRequest.builder()
-            .amount(request.getAmountIn())
-            .asset(txn.getAmountInAsset())
-            .build());
-    validateAsset(
-        "amount_out",
-        AmountRequest.builder()
-            .amount(request.getAmountOut())
-            .asset(txn.getAmountOutAsset())
-            .build());
-    validateAsset(
-        "amount_fee",
-        AmountRequest.builder()
-            .amount(request.getAmountFee())
-            .asset(txn.getAmountFeeAsset())
-            .build(),
-        true);
 
     if (request.getAmountIn() != null) {
       txn.setAmountIn(request.getAmountIn());

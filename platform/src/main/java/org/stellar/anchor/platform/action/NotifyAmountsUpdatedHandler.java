@@ -7,6 +7,7 @@ import java.util.Set;
 import javax.validation.Validator;
 import org.springframework.stereotype.Service;
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException;
+import org.stellar.anchor.api.exception.rpc.InvalidRequestException;
 import org.stellar.anchor.api.rpc.action.ActionMethod;
 import org.stellar.anchor.api.rpc.action.AmountRequest;
 import org.stellar.anchor.api.rpc.action.NotifyAmountsUpdatedRequest;
@@ -28,6 +29,26 @@ public class NotifyAmountsUpdatedHandler extends ActionHandler<NotifyAmountsUpda
       Horizon horizon,
       AssetService assetService) {
     super(txn24Store, txn31Store, validator, horizon, assetService);
+  }
+
+  @Override
+  protected void validate(JdbcSepTransaction txn, NotifyAmountsUpdatedRequest request)
+      throws InvalidParamsException, InvalidRequestException {
+    super.validate(txn, request);
+
+    validateAsset(
+        "amount_out",
+        AmountRequest.builder()
+            .amount(request.getAmountOut())
+            .asset(txn.getAmountOutAsset())
+            .build());
+    validateAsset(
+        "amount_fee",
+        AmountRequest.builder()
+            .amount(request.getAmountFee())
+            .asset(txn.getAmountFeeAsset())
+            .build(),
+        true);
   }
 
   @Override
@@ -58,20 +79,6 @@ public class NotifyAmountsUpdatedHandler extends ActionHandler<NotifyAmountsUpda
   @Override
   protected void updateTransactionWithAction(
       JdbcSepTransaction txn, NotifyAmountsUpdatedRequest request) throws InvalidParamsException {
-    validateAsset(
-        "amount_out",
-        AmountRequest.builder()
-            .amount(request.getAmountOut())
-            .asset(txn.getAmountOutAsset())
-            .build());
-    validateAsset(
-        "amount_fee",
-        AmountRequest.builder()
-            .amount(request.getAmountFee())
-            .asset(txn.getAmountFeeAsset())
-            .build(),
-        true);
-
     txn.setAmountOut(request.getAmountOut());
     txn.setAmountFee(request.getAmountFee());
   }

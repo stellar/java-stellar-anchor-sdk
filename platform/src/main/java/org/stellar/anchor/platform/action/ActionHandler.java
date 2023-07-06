@@ -125,7 +125,8 @@ public abstract class ActionHandler<T extends RpcActionParamsRequest> {
     return (JdbcSep24Transaction) txn24Store.findByTransactionId(transactionId);
   }
 
-  protected void validate(T request) throws InvalidParamsException, InvalidRequestException {
+  protected void validate(JdbcSepTransaction txn, T request)
+      throws InvalidParamsException, InvalidRequestException {
     Set<ConstraintViolation<T>> violations = validator.validate(request);
     if (CollectionUtils.isNotEmpty(violations)) {
       throw new InvalidParamsException(
@@ -298,7 +299,7 @@ public abstract class ActionHandler<T extends RpcActionParamsRequest> {
   private void updateTransaction(JdbcSepTransaction txn, RpcActionParamsRequest request)
       throws AnchorException {
     T actionRequest = (T) request;
-    validate(actionRequest);
+    validate(txn, actionRequest);
 
     SepTransactionStatus nextStatus = getNextStatus(txn, actionRequest);
 

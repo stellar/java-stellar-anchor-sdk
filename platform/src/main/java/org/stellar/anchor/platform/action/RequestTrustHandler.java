@@ -39,14 +39,14 @@ public class RequestTrustHandler extends ActionHandler<RequestTrustRequest> {
   }
 
   @Override
-  protected void validate(RequestTrustRequest request)
+  protected void validate(JdbcSepTransaction txn, RequestTrustRequest request)
       throws InvalidRequestException, InvalidParamsException {
+    super.validate(txn, request);
+
     if (custodyConfig.isCustodyIntegrationEnabled()) {
       throw new InvalidRequestException(
           String.format("Action[%s] requires disabled custody integration", getActionType()));
     }
-
-    super.validate(request);
   }
 
   @Override

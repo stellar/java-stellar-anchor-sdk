@@ -8,6 +8,7 @@ import java.util.Set;
 import javax.validation.Validator;
 import org.springframework.stereotype.Service;
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException;
+import org.stellar.anchor.api.exception.rpc.InvalidRequestException;
 import org.stellar.anchor.api.rpc.action.ActionMethod;
 import org.stellar.anchor.api.rpc.action.AmountRequest;
 import org.stellar.anchor.api.rpc.action.NotifyInteractiveFlowCompletedRequest;
@@ -30,6 +31,24 @@ public class NotifyInteractiveFlowCompletedHandler
       Horizon horizon,
       AssetService assetService) {
     super(txn24Store, txn31Store, validator, horizon, assetService);
+  }
+
+  @Override
+  protected void validate(JdbcSepTransaction txn, NotifyInteractiveFlowCompletedRequest request)
+      throws InvalidParamsException, InvalidRequestException {
+    super.validate(txn, request);
+
+    validateAsset("amount_in", request.getAmountIn());
+    validateAsset("amount_out", request.getAmountOut());
+    validateAsset("amount_fee", request.getAmountFee(), true);
+    if (request.getAmountExpected() != null) {
+      validateAsset(
+          "amount_expected",
+          AmountRequest.builder()
+              .amount(request.getAmountExpected())
+              .asset(request.getAmountIn().getAsset())
+              .build());
+    }
   }
 
   @Override
@@ -57,18 +76,6 @@ public class NotifyInteractiveFlowCompletedHandler
   protected void updateTransactionWithAction(
       JdbcSepTransaction txn, NotifyInteractiveFlowCompletedRequest request)
       throws InvalidParamsException {
-    validateAsset("amount_in", request.getAmountIn());
-    validateAsset("amount_out", request.getAmountOut());
-    validateAsset("amount_fee", request.getAmountFee(), true);
-    if (request.getAmountExpected() != null) {
-      validateAsset(
-          "amount_expected",
-          AmountRequest.builder()
-              .amount(request.getAmountExpected())
-              .asset(request.getAmountIn().getAsset())
-              .build());
-    }
-
     JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
 
     txn24.setAmountIn(request.getAmountIn().getAmount());

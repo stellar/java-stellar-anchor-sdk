@@ -49,14 +49,21 @@ public class DoStellarRefundHandler extends ActionHandler<DoStellarRefundRequest
   }
 
   @Override
-  protected void validate(DoStellarRefundRequest request)
+  protected void validate(JdbcSepTransaction txn, DoStellarRefundRequest request)
       throws InvalidParamsException, InvalidRequestException {
+    super.validate(txn, request);
+
     if (!custodyConfig.isCustodyIntegrationEnabled()) {
       throw new InvalidParamsException(
           String.format("Action[%s] requires enabled custody integration", getActionType()));
     }
 
-    super.validate(request);
+    try {
+      makeMemo(request.getMemo(), request.getMemoType());
+    } catch (SepException e) {
+      throw new InvalidParamsException(
+          String.format("Invalid memo or memo_type: %s", e.getMessage()), e);
+    }
   }
 
   @Override
@@ -91,14 +98,7 @@ public class DoStellarRefundHandler extends ActionHandler<DoStellarRefundRequest
       throws AnchorException {
     JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
 
-    Memo memo;
-    try {
-      memo = makeMemo(request.getMemo(), request.getMemoType());
-    } catch (SepException e) {
-      throw new InvalidParamsException(
-          String.format("Invalid memo or memo_type: %s", e.getMessage()), e);
-    }
-
+    Memo memo = makeMemo(request.getMemo(), request.getMemoType());
     if (memo != null) {
       txn24.setMemo(memo.toString());
       txn24.setMemoType(memoTypeString(memoType(memo)));

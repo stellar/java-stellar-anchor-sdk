@@ -3,6 +3,7 @@ package org.stellar.anchor.platform.action
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import java.time.Instant
+import javax.validation.ConstraintViolation
 import javax.validation.Validator
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -11,6 +12,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
+import org.stellar.anchor.api.exception.rpc.InvalidParamsException
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException
 import org.stellar.anchor.api.platform.GetTransactionResponse
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT
@@ -102,6 +104,27 @@ class NotifyTransactionRecoveryHandlerTest {
       "Action[notify_transaction_recovery] is not supported for status[error]",
       ex.message
     )
+  }
+
+  @Test
+  fun test_handle_invalidRequest() {
+    val request = NotifyTransactionRecoveryRequest.builder().transactionId(TX_ID).build()
+    val txn24 = JdbcSep24Transaction()
+    txn24.status = ERROR.toString()
+    txn24.kind = DEPOSIT.kind
+    txn24.transferReceivedAt = Instant.now()
+
+    val violation1: ConstraintViolation<NotifyTransactionRecoveryRequest> = mockk()
+    val violation2: ConstraintViolation<NotifyTransactionRecoveryRequest> = mockk()
+
+    every { txn24Store.findByTransactionId(TX_ID) } returns txn24
+    every { txn31Store.findByTransactionId(any()) } returns null
+    every { violation1.message } returns "violation error message 1"
+    every { violation2.message } returns "violation error message 2"
+    every { validator.validate(request) } returns setOf(violation1, violation2)
+
+    val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
+    assertEquals("violation error message 1\n" + "violation error message 2", ex.message)
   }
 
   @Test
