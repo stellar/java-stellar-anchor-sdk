@@ -18,7 +18,7 @@ public class Sep6Operation {
     boolean exchangeEnabled;
 
     @SerializedName("fields")
-    Map<String, FieldSpec> fields;
+    Map<String, Field> fields;
   }
 
   @Data
@@ -32,6 +32,6 @@ public class Sep6Operation {
 
   @Data
   public static class WithdrawFields {
-    Map<String, FieldSpec> fields;
+    Map<String, Field> fields;
   }
 }

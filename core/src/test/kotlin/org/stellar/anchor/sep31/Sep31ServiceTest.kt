@@ -21,7 +21,7 @@ import org.stellar.anchor.TestHelper
 import org.stellar.anchor.api.callback.*
 import org.stellar.anchor.api.exception.*
 import org.stellar.anchor.api.sep.AssetInfo
-import org.stellar.anchor.api.sep.operation.FieldSpec
+import org.stellar.anchor.api.sep.operation.Field
 import org.stellar.anchor.api.sep.operation.Sep31Operation
 import org.stellar.anchor.api.sep.sep12.Sep12Status
 import org.stellar.anchor.api.sep.sep31.*
@@ -439,7 +439,7 @@ class Sep31ServiceTest {
 
     val wantRequiredInfoUpdates = Sep31Operation.Fields()
     wantRequiredInfoUpdates.transaction =
-      mapOf("type" to FieldSpec("type of deposit to make", listOf("SEPA", "SWIFT"), false))
+      mapOf("type" to Field("type of deposit to make", listOf("SEPA", "SWIFT"), false))
 
     val wantTxResponse =
       Sep31GetTransactionResponse(
@@ -974,11 +974,10 @@ class Sep31ServiceTest {
     val wantMissingFields = Sep31Operation.Fields()
     wantMissingFields.transaction =
       mapOf(
-        "receiver_account_number" to
-          FieldSpec("bank account number of the destination", null, false),
-        "type" to FieldSpec("type of deposit to make", listOf("SEPA", "SWIFT"), false),
+        "receiver_account_number" to Field("bank account number of the destination", null, false),
+        "type" to Field("type of deposit to make", listOf("SEPA", "SWIFT"), false),
         "receiver_routing_number" to
-          FieldSpec("routing number of the destination bank account", null, false)
+          Field("routing number of the destination bank account", null, false)
       )
     assertEquals(wantMissingFields, ex4.missingFields)
 

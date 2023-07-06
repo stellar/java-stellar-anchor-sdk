@@ -17,6 +17,6 @@ public class Sep31Operation {
 
   @Data
   public static class Fields {
-    Map<String, FieldSpec> transaction;
+    Map<String, Field> transaction;
   }
 }

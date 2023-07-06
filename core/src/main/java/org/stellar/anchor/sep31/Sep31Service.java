@@ -22,7 +22,7 @@ import org.stellar.anchor.api.callback.*;
 import org.stellar.anchor.api.exception.*;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
-import org.stellar.anchor.api.sep.operation.FieldSpec;
+import org.stellar.anchor.api.sep.operation.Field;
 import org.stellar.anchor.api.sep.operation.Sep12Operation;
 import org.stellar.anchor.api.sep.operation.Sep31Operation.Fields;
 import org.stellar.anchor.api.sep.sep12.Sep12Status;
@@ -372,7 +372,7 @@ public class Sep31Service {
           String.format("Transaction (%s) is not expecting any updates", txn.getId()));
     }
 
-    Map<String, FieldSpec> expectedFields = txn.getRequiredInfoUpdates().getTransaction();
+    Map<String, Field> expectedFields = txn.getRequiredInfoUpdates().getTransaction();
     Map<String, String> requestFields = request.getFields().getTransaction();
 
     // validate if any of the fields from the request is not expected in the transaction.
@@ -582,11 +582,11 @@ public class Sep31Service {
       throw new BadRequestException("'fields' field must have one 'transaction' field");
     }
 
-    Map<String, FieldSpec> missingFields =
+    Map<String, Field> missingFields =
         fieldSpecs.getFields().getTransaction().entrySet().stream()
             .filter(
                 entry -> {
-                  FieldSpec field = entry.getValue();
+                  Field field = entry.getValue();
                   if (field.isOptional()) return false;
                   return requestFields.get(entry.getKey()) == null;
                 })

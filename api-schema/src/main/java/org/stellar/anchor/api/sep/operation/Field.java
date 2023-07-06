@@ -6,7 +6,7 @@ import lombok.Data;
 
 @Data
 @AllArgsConstructor
-public class FieldSpec {
+public class Field {
   String description;
   List<String> choices;
   boolean optional;
