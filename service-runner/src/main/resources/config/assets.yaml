@@ -24,7 +24,7 @@ assets:
       withdraw:
         exchange_enabled: true
         types:
-          - type: bank_account
+          bank_account:
             fields:
               dest:
                 description: your bank account number
@@ -39,7 +39,7 @@ assets:
                 choices:
                   - USA
                   - PRI
-          - type: cash
+          cash:
             fields:
               dest:
                 description: your email address. Your cashout PIN will be sent here.

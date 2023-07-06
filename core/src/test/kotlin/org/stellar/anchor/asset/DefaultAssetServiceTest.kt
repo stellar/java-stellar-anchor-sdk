@@ -79,10 +79,10 @@ internal class DefaultAssetServiceTest {
       {
         "assets": [
           {
+            "schema": "stellar",
             "code": "USDC",
             "issuer": "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
             "distribution_account": "GA7FYRB5VREZKOBIIKHG5AVTPFGWUBPOBF7LTYG4GTMFVIOOD2DWAL7I",
-            "schema": "stellar",
             "significant_decimals": 2,
             "deposit": {
               "enabled": true,
@@ -99,6 +99,53 @@ internal class DefaultAssetServiceTest {
               "fee_percent": 0,
               "min_amount": 1,
               "max_amount": 1000000
+            },
+            "sep6": {
+              "deposit": {
+                "exchange_enabled": true,
+                "fields": {
+                  "email_address": {
+                    "description": "email address for transaction status updates",
+                    "optional": true
+                  }
+                }
+              },
+              "withdraw": {
+                "exchange_enabled": true,
+                "types": {
+                  "bank_account": {
+                    "fields": {
+                      "dest": {
+                        "description": "your bank account number"
+                      },
+                      "dest_extra": {
+                        "description": "your routing number"
+                      },
+                      "bank_branch": {
+                        "description": "address of your bank branch"
+                      },
+                      "phone_number": {
+                        "description": "your phone number in case there's an issue"
+                      },
+                      "country_code": {
+                        "description": "ISO-3166-1 alpha-3 code of the user's current address",
+                        "choices": [
+                          "USA",
+                          "PRI"
+                        ]
+                      }
+                    }
+                  },
+                  "cash": {
+                    "fields": {
+                      "dest": {
+                        "description": "your email address. Your cashout PIN will be sent here.",
+                        "optional": true
+                      }
+                    }
+                  }
+                }
+              }
             },
             "sep31": {
               "quotes_supported": true,
@@ -131,20 +178,17 @@ internal class DefaultAssetServiceTest {
               "fields": {
                 "transaction": {
                   "receiver_routing_number": {
-                    "description": "routing number of the destination bank account",
-                    "optional": false
+                    "description": "routing number of the destination bank account"
                   },
                   "receiver_account_number": {
-                    "description": "bank account number of the destination",
-                    "optional": false
+                    "description": "bank account number of the destination"
                   },
                   "type": {
                     "description": "type of deposit to make",
                     "choices": [
                       "SEPA",
                       "SWIFT"
-                    ],
-                    "optional": false
+                    ]
                   }
                 }
               }
@@ -155,14 +199,15 @@ internal class DefaultAssetServiceTest {
                 "iso4217:USD"
               ]
             },
+            "sep6_enabled": true,
             "sep24_enabled": true,
             "sep31_enabled": true,
             "sep38_enabled": true
           },
           {
+            "schema": "stellar",
             "code": "JPYC",
             "issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
-            "schema": "stellar",
             "significant_decimals": 2,
             "deposit": {
               "enabled": true,
@@ -202,12 +247,10 @@ internal class DefaultAssetServiceTest {
               "fields": {
                 "transaction": {
                   "receiver_routing_number": {
-                    "description": "routing number of the destination bank account",
-                    "optional": false
+                    "description": "routing number of the destination bank account"
                   },
                   "receiver_account_number": {
-                    "description": "bank account number of the destination",
-                    "optional": false
+                    "description": "bank account number of the destination"
                   },
                   "type": {
                     "description": "type of deposit to make",
@@ -215,8 +258,7 @@ internal class DefaultAssetServiceTest {
                       "ACH",
                       "SWIFT",
                       "WIRE"
-                    ],
-                    "optional": false
+                    ]
                   }
                 }
               }
@@ -227,13 +269,14 @@ internal class DefaultAssetServiceTest {
                 "iso4217:USD"
               ]
             },
+            "sep6_enabled": false,
             "sep24_enabled": true,
             "sep31_enabled": true,
             "sep38_enabled": true
           },
           {
-            "code": "USD",
             "schema": "iso4217",
+            "code": "USD",
             "significant_decimals": 2,
             "deposit": {
               "enabled": true,
@@ -259,10 +302,11 @@ internal class DefaultAssetServiceTest {
               "country_codes": [
                 "USA"
               ],
+              "decimals": 4,
               "sell_delivery_methods": [
                 {
                   "name": "WIRE",
-                  "description": "Send USD directly to the Anchor\u0027s bank account."
+                  "description": "Send USD directly to the Anchor's bank account."
                 }
               ],
               "buy_delivery_methods": [
@@ -270,10 +314,10 @@ internal class DefaultAssetServiceTest {
                   "name": "WIRE",
                   "description": "Have USD sent directly to your bank account."
                 }
-              ],
-              "decimals": 4
+              ]
             },
-            "sep24_enabled": false,
+            "sep6_enabled": false,
+            "sep24_enabled": true,
             "sep31_enabled": false,
             "sep38_enabled": true
           },
@@ -297,7 +341,7 @@ internal class DefaultAssetServiceTest {
               "min_amount": 1,
               "max_amount": 1000000
             },
-           "sep31": {
+            "sep31": {
               "quotes_supported": true,
               "quotes_required": true,
               "sep12": {
@@ -349,11 +393,13 @@ internal class DefaultAssetServiceTest {
               ],
               "decimals": 7
             },
+            "sep6_enabled": false,
+            "sep24_enabled": true,
             "sep31_enabled": false,
-            "sep38_enabled": false 
+            "sep38_enabled": false
           }
         ]
-      }    
-  """
+      }
+    """
       .trimIndent()
 }
