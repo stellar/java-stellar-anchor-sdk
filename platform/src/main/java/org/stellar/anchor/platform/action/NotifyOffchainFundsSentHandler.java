@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform.action;
 
+import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT;
 import static org.stellar.anchor.api.rpc.action.ActionMethod.NOTIFY_OFFCHAIN_FUNDS_SENT;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.COMPLETED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
@@ -81,12 +82,15 @@ public class NotifyOffchainFundsSentHandler extends ActionHandler<NotifyOffchain
   @Override
   protected void updateTransactionWithAction(
       JdbcSepTransaction txn, NotifyOffchainFundsSentRequest request) {
+    JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
     if (request.getExternalTransactionId() != null) {
-      txn.setExternalTransactionId(request.getExternalTransactionId());
-      if (request.getFundsReceivedAt() != null) {
-        txn.setTransferReceivedAt(request.getFundsReceivedAt());
-      } else {
-        txn.setTransferReceivedAt(Instant.now());
+      txn24.setExternalTransactionId(request.getExternalTransactionId());
+      if (DEPOSIT == Kind.from(txn24.getKind())) {
+        if (request.getFundsReceivedAt() != null) {
+          txn24.setTransferReceivedAt(request.getFundsReceivedAt());
+        } else {
+          txn24.setTransferReceivedAt(Instant.now());
+        }
       }
     }
   }

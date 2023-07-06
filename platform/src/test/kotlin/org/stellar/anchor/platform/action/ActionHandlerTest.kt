@@ -46,7 +46,6 @@ import org.stellar.sdk.Server
 import org.stellar.sdk.requests.AccountsRequestBuilder
 import org.stellar.sdk.responses.AccountResponse
 import org.stellar.sdk.responses.AccountResponse.Balance
-import shadow.com.google.common.base.Optional
 
 class ActionHandlerTest {
 

@@ -2,10 +2,9 @@ package org.stellar.anchor.platform.action;
 
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL;
 import static org.stellar.anchor.api.rpc.action.ActionMethod.NOTIFY_OFFCHAIN_FUNDS_AVAILABLE;
-import static org.stellar.anchor.api.sep.SepTransactionStatus.COMPLETED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
+import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_USR_TRANSFER_COMPLETE;
 
-import java.time.Instant;
 import java.util.Set;
 import javax.validation.Validator;
 import org.springframework.stereotype.Service;
@@ -43,20 +42,13 @@ public class NotifyOffchainFundsAvailableHandler
   protected SepTransactionStatus getNextStatus(
       JdbcSepTransaction txn, NotifyOffchainFundsAvailableRequest request)
       throws InvalidRequestException {
-    JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
-    if (WITHDRAWAL == Kind.from(txn24.getKind())) {
-      return COMPLETED;
-    }
-    throw new InvalidRequestException(
-        String.format(
-            "Invalid kind[%s] for protocol[%s] and action[%s]",
-            txn24.getKind(), txn24.getProtocol(), getActionType()));
+    return PENDING_USR_TRANSFER_COMPLETE;
   }
 
   @Override
   protected Set<SepTransactionStatus> getSupportedStatuses(JdbcSepTransaction txn) {
     JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
-    if (Kind.from(txn24.getKind()) == WITHDRAWAL) {
+    if (WITHDRAWAL == Kind.from(txn24.getKind())) {
       if (txn24.getTransferReceivedAt() != null) {
         return Set.of(PENDING_ANCHOR);
       }
@@ -74,11 +66,6 @@ public class NotifyOffchainFundsAvailableHandler
       JdbcSepTransaction txn, NotifyOffchainFundsAvailableRequest request) {
     if (request.getExternalTransactionId() != null) {
       txn.setExternalTransactionId(request.getExternalTransactionId());
-      if (request.getFundsReceivedAt() != null) {
-        txn.setTransferReceivedAt(request.getFundsReceivedAt());
-      } else {
-        txn.setTransferReceivedAt(Instant.now());
-      }
     }
   }
 }

@@ -17,7 +17,8 @@ import org.stellar.anchor.api.platform.GetTransactionResponse
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT
 import org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24
 import org.stellar.anchor.api.rpc.action.NotifyAmountsUpdatedRequest
-import org.stellar.anchor.api.sep.SepTransactionStatus.*
+import org.stellar.anchor.api.sep.SepTransactionStatus.INCOMPLETE
+import org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR
 import org.stellar.anchor.api.shared.Amount
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService

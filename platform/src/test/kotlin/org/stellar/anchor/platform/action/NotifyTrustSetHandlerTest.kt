@@ -20,7 +20,6 @@ import org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR
 import org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_TRUST
 import org.stellar.anchor.api.shared.Amount
 import org.stellar.anchor.asset.AssetService
-import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.config.CustodyConfig
 import org.stellar.anchor.horizon.Horizon
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
@@ -52,7 +51,6 @@ class NotifyTrustSetHandlerTest {
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
-    this.assetService = DefaultAssetService.fromJsonResource("test_assets.json")
     handler =
       NotifyTrustSetHandler(txn24Store, txn31Store, validator, horizon, assetService, custodyConfig)
   }
@@ -108,7 +106,6 @@ class NotifyTrustSetHandlerTest {
     val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_TRUST.toString()
     txn24.kind = DEPOSIT.kind
-    txn24.requestAssetCode = "USD"
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
@@ -126,7 +123,6 @@ class NotifyTrustSetHandlerTest {
     expectedSep24Txn.kind = DEPOSIT.kind
     expectedSep24Txn.status = PENDING_ANCHOR.toString()
     expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
-    expectedSep24Txn.requestAssetCode = "USD"
 
     JSONAssert.assertEquals(
       gson.toJson(expectedSep24Txn),
@@ -138,7 +134,7 @@ class NotifyTrustSetHandlerTest {
     expectedResponse.sep = SEP_24
     expectedResponse.kind = DEPOSIT
     expectedResponse.status = PENDING_ANCHOR
-    expectedResponse.amountExpected = Amount(null, "iso4217:USD")
+    expectedResponse.amountExpected = Amount(null, "")
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
 
     JSONAssert.assertEquals(

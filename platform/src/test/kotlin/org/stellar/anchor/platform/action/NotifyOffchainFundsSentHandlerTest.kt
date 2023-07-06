@@ -14,8 +14,8 @@ import org.skyscreamer.jsonassert.JSONCompareMode
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException
 import org.stellar.anchor.api.platform.GetTransactionResponse
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT
+import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL
 import org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24
-import org.stellar.anchor.api.rpc.action.NotifyInteractiveFlowCompletedRequest
 import org.stellar.anchor.api.rpc.action.NotifyOffchainFundsSentRequest
 import org.stellar.anchor.api.sep.SepTransactionStatus.*
 import org.stellar.anchor.api.shared.Amount
@@ -54,7 +54,7 @@ class NotifyOffchainFundsSentHandlerTest {
 
   @Test
   fun test_handle_unsupportedProtocol() {
-    val request = NotifyInteractiveFlowCompletedRequest.builder().transactionId(TX_ID).build()
+    val request = NotifyOffchainFundsSentRequest.builder().transactionId(TX_ID).build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = INCOMPLETE.toString()
     val spyTxn24 = spyk(txn24)
@@ -69,7 +69,7 @@ class NotifyOffchainFundsSentHandlerTest {
 
   @Test
   fun test_handle_unsupportedStatus() {
-    val request = NotifyInteractiveFlowCompletedRequest.builder().transactionId(TX_ID).build()
+    val request = NotifyOffchainFundsSentRequest.builder().transactionId(TX_ID).build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_EXTERNAL.toString()
     txn24.kind = DEPOSIT.kind
@@ -240,5 +240,113 @@ class NotifyOffchainFundsSentHandlerTest {
 
     assertTrue(expectedSep24Txn.updatedAt.isAfter(startDate))
     assertTrue(expectedSep24Txn.updatedAt.isBefore(endDate))
+  }
+
+  @Test
+  fun test_handle_ok_withdrawal_withExternalTxIdAndDate() {
+    val transferReceivedAt = Instant.now()
+    val request =
+      NotifyOffchainFundsSentRequest.builder()
+        .transactionId(TX_ID)
+        .externalTransactionId("externalTxId")
+        .fundsReceivedAt(transferReceivedAt)
+        .build()
+    val txn24 = JdbcSep24Transaction()
+    txn24.status = PENDING_ANCHOR.toString()
+    txn24.kind = WITHDRAWAL.kind
+    val sep24TxnCapture = slot<JdbcSep24Transaction>()
+
+    every { txn24Store.findByTransactionId(TX_ID) } returns txn24
+    every { txn31Store.findByTransactionId(any()) } returns null
+    every { txn24Store.save(capture(sep24TxnCapture)) } returns null
+
+    val startDate = Instant.now()
+    val response = handler.handle(request)
+    val endDate = Instant.now()
+
+    verify(exactly = 0) { txn31Store.save(any()) }
+
+    val expectedSep24Txn = JdbcSep24Transaction()
+    expectedSep24Txn.kind = WITHDRAWAL.kind
+    expectedSep24Txn.status = COMPLETED.toString()
+    expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
+    expectedSep24Txn.completedAt = sep24TxnCapture.captured.completedAt
+    expectedSep24Txn.externalTransactionId = "externalTxId"
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedSep24Txn),
+      gson.toJson(sep24TxnCapture.captured),
+      JSONCompareMode.STRICT
+    )
+
+    val expectedResponse = GetTransactionResponse()
+    expectedResponse.sep = SEP_24
+    expectedResponse.kind = WITHDRAWAL
+    expectedResponse.status = COMPLETED
+    expectedResponse.externalTransactionId = "externalTxId"
+    expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
+    expectedResponse.completedAt = sep24TxnCapture.captured.completedAt
+    expectedResponse.amountExpected = Amount(null, "")
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedResponse),
+      gson.toJson(response),
+      JSONCompareMode.STRICT
+    )
+
+    assertTrue(expectedSep24Txn.updatedAt.isAfter(startDate))
+    assertTrue(expectedSep24Txn.updatedAt.isBefore(endDate))
+    assertTrue(expectedSep24Txn.completedAt.isAfter(startDate))
+    assertTrue(expectedSep24Txn.completedAt.isBefore(endDate))
+  }
+
+  @Test
+  fun test_handle_ok_withdrawal_withoutExternalTxIdAndDate() {
+    val request = NotifyOffchainFundsSentRequest.builder().transactionId(TX_ID).build()
+    val txn24 = JdbcSep24Transaction()
+    txn24.status = PENDING_ANCHOR.toString()
+    txn24.kind = WITHDRAWAL.kind
+    val sep24TxnCapture = slot<JdbcSep24Transaction>()
+
+    every { txn24Store.findByTransactionId(TX_ID) } returns txn24
+    every { txn31Store.findByTransactionId(any()) } returns null
+    every { txn24Store.save(capture(sep24TxnCapture)) } returns null
+
+    val startDate = Instant.now()
+    val response = handler.handle(request)
+    val endDate = Instant.now()
+
+    verify(exactly = 0) { txn31Store.save(any()) }
+
+    val expectedSep24Txn = JdbcSep24Transaction()
+    expectedSep24Txn.kind = WITHDRAWAL.kind
+    expectedSep24Txn.status = COMPLETED.toString()
+    expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
+    expectedSep24Txn.completedAt = sep24TxnCapture.captured.completedAt
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedSep24Txn),
+      gson.toJson(sep24TxnCapture.captured),
+      JSONCompareMode.STRICT
+    )
+
+    val expectedResponse = GetTransactionResponse()
+    expectedResponse.sep = SEP_24
+    expectedResponse.kind = WITHDRAWAL
+    expectedResponse.status = COMPLETED
+    expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
+    expectedResponse.completedAt = sep24TxnCapture.captured.completedAt
+    expectedResponse.amountExpected = Amount(null, "")
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedResponse),
+      gson.toJson(response),
+      JSONCompareMode.STRICT
+    )
+
+    assertTrue(expectedSep24Txn.updatedAt.isAfter(startDate))
+    assertTrue(expectedSep24Txn.updatedAt.isBefore(endDate))
+    assertTrue(expectedSep24Txn.completedAt.isAfter(startDate))
+    assertTrue(expectedSep24Txn.completedAt.isBefore(endDate))
   }
 }

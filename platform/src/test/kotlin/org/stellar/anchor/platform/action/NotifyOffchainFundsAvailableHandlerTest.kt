@@ -14,20 +14,19 @@ import org.skyscreamer.jsonassert.JSONCompareMode
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException
 import org.stellar.anchor.api.platform.GetTransactionResponse
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT
+import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL
 import org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24
-import org.stellar.anchor.api.rpc.action.RequestTrustRequest
-import org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR
-import org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_TRUST
+import org.stellar.anchor.api.rpc.action.NotifyOffchainFundsAvailableRequest
+import org.stellar.anchor.api.sep.SepTransactionStatus.*
 import org.stellar.anchor.api.shared.Amount
 import org.stellar.anchor.asset.AssetService
-import org.stellar.anchor.config.CustodyConfig
 import org.stellar.anchor.horizon.Horizon
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
 import org.stellar.anchor.sep24.Sep24TransactionStore
 import org.stellar.anchor.sep31.Sep31TransactionStore
 import org.stellar.anchor.util.GsonUtils
 
-class RequestTrustHandlerTest {
+class NotifyOffchainFundsAvailableHandlerTest {
 
   companion object {
     private val gson = GsonUtils.getInstance()
@@ -44,23 +43,21 @@ class RequestTrustHandlerTest {
 
   @MockK(relaxed = true) private lateinit var assetService: AssetService
 
-  @MockK(relaxed = true) private lateinit var custodyConfig: CustodyConfig
-
-  private lateinit var handler: RequestTrustHandler
+  private lateinit var handler: NotifyOffchainFundsAvailableHandler
 
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
     handler =
-      RequestTrustHandler(txn24Store, txn31Store, validator, horizon, assetService, custodyConfig)
+      NotifyOffchainFundsAvailableHandler(txn24Store, txn31Store, validator, horizon, assetService)
   }
 
   @Test
   fun test_handle_unsupportedProtocol() {
-    val request = RequestTrustRequest.builder().transactionId(TX_ID).build()
+    val request = NotifyOffchainFundsAvailableRequest.builder().transactionId(TX_ID).build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_ANCHOR.toString()
-    txn24.kind = DEPOSIT.kind
+    txn24.kind = WITHDRAWAL.kind
     txn24.transferReceivedAt = Instant.now()
     val spyTxn24 = spyk(txn24)
 
@@ -69,69 +66,82 @@ class RequestTrustHandlerTest {
     every { spyTxn24.protocol } returns "100"
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
-    assertEquals("Protocol[100] is not supported by action[request_trust]", ex.message)
+    assertEquals(
+      "Protocol[100] is not supported by action[notify_offchain_funds_available]",
+      ex.message
+    )
   }
 
   @Test
   fun test_handle_unsupportedStatus() {
-    val request = RequestTrustRequest.builder().transactionId(TX_ID).build()
+    val request = NotifyOffchainFundsAvailableRequest.builder().transactionId(TX_ID).build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_TRUST.toString()
-    txn24.kind = DEPOSIT.kind
+    txn24.kind = WITHDRAWAL.kind
     txn24.transferReceivedAt = Instant.now()
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
-    assertEquals("Action[request_trust] is not supported for status[pending_trust]", ex.message)
+    assertEquals(
+      "Action[notify_offchain_funds_available] is not supported for status[pending_trust]",
+      ex.message
+    )
   }
 
   @Test
-  fun test_handle_handle_custodyIntegrationEnabled() {
-    val request = RequestTrustRequest.builder().transactionId(TX_ID).build()
+  fun test_handle_unsupportedKind() {
+    val request = NotifyOffchainFundsAvailableRequest.builder().transactionId(TX_ID).build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_ANCHOR.toString()
     txn24.kind = DEPOSIT.kind
     txn24.transferReceivedAt = Instant.now()
-    every { custodyConfig.isCustodyIntegrationEnabled } returns true
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
-    assertEquals("Action[request_trust] requires disabled custody integration", ex.message)
+    assertEquals(
+      "Action[notify_offchain_funds_available] is not supported for status[pending_anchor]",
+      ex.message
+    )
   }
 
   @Test
   fun test_handle_handle_transferNotReceived() {
-    val request = RequestTrustRequest.builder().transactionId(TX_ID).build()
+    val request = NotifyOffchainFundsAvailableRequest.builder().transactionId(TX_ID).build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_ANCHOR.toString()
-    txn24.kind = DEPOSIT.kind
-    every { custodyConfig.isCustodyIntegrationEnabled } returns false
+    txn24.kind = WITHDRAWAL.kind
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
-    assertEquals("Action[request_trust] is not supported for status[pending_anchor]", ex.message)
+    assertEquals(
+      "Action[notify_offchain_funds_available] is not supported for status[pending_anchor]",
+      ex.message
+    )
   }
 
   @Test
-  fun test_handle_ok() {
+  fun test_handle_ok_deposit_withExternalTxId() {
     val transferReceivedAt = Instant.now()
-    val request = RequestTrustRequest.builder().transactionId(TX_ID).build()
+    val request =
+      NotifyOffchainFundsAvailableRequest.builder()
+        .transactionId(TX_ID)
+        .externalTransactionId("externalTxId")
+        .build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_ANCHOR.toString()
-    txn24.kind = DEPOSIT.kind
+    txn24.kind = WITHDRAWAL.kind
     txn24.transferReceivedAt = transferReceivedAt
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
-    every { custodyConfig.isCustodyIntegrationEnabled } returns false
 
     val startDate = Instant.now()
     val response = handler.handle(request)
@@ -140,8 +150,60 @@ class RequestTrustHandlerTest {
     verify(exactly = 0) { txn31Store.save(any()) }
 
     val expectedSep24Txn = JdbcSep24Transaction()
-    expectedSep24Txn.kind = DEPOSIT.kind
-    expectedSep24Txn.status = PENDING_TRUST.toString()
+    expectedSep24Txn.kind = WITHDRAWAL.kind
+    expectedSep24Txn.status = PENDING_USR_TRANSFER_COMPLETE.toString()
+    expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
+    expectedSep24Txn.transferReceivedAt = transferReceivedAt
+    expectedSep24Txn.externalTransactionId = "externalTxId"
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedSep24Txn),
+      gson.toJson(sep24TxnCapture.captured),
+      JSONCompareMode.STRICT
+    )
+
+    val expectedResponse = GetTransactionResponse()
+    expectedResponse.sep = SEP_24
+    expectedResponse.kind = WITHDRAWAL
+    expectedResponse.status = PENDING_USR_TRANSFER_COMPLETE
+    expectedResponse.externalTransactionId = "externalTxId"
+    expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
+    expectedResponse.transferReceivedAt = transferReceivedAt
+    expectedResponse.amountExpected = Amount(null, "")
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedResponse),
+      gson.toJson(response),
+      JSONCompareMode.STRICT
+    )
+
+    assertTrue(expectedSep24Txn.updatedAt.isAfter(startDate))
+    assertTrue(expectedSep24Txn.updatedAt.isBefore(endDate))
+  }
+
+  @Test
+  fun test_handle_ok_deposit_withoutExternalTxId() {
+    val transferReceivedAt = Instant.now()
+    val request = NotifyOffchainFundsAvailableRequest.builder().transactionId(TX_ID).build()
+    val txn24 = JdbcSep24Transaction()
+    txn24.status = PENDING_ANCHOR.toString()
+    txn24.kind = WITHDRAWAL.kind
+    txn24.transferReceivedAt = transferReceivedAt
+    val sep24TxnCapture = slot<JdbcSep24Transaction>()
+
+    every { txn24Store.findByTransactionId(TX_ID) } returns txn24
+    every { txn31Store.findByTransactionId(any()) } returns null
+    every { txn24Store.save(capture(sep24TxnCapture)) } returns null
+
+    val startDate = Instant.now()
+    val response = handler.handle(request)
+    val endDate = Instant.now()
+
+    verify(exactly = 0) { txn31Store.save(any()) }
+
+    val expectedSep24Txn = JdbcSep24Transaction()
+    expectedSep24Txn.kind = WITHDRAWAL.kind
+    expectedSep24Txn.status = PENDING_USR_TRANSFER_COMPLETE.toString()
     expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedSep24Txn.transferReceivedAt = transferReceivedAt
 
@@ -153,11 +215,11 @@ class RequestTrustHandlerTest {
 
     val expectedResponse = GetTransactionResponse()
     expectedResponse.sep = SEP_24
-    expectedResponse.kind = DEPOSIT
-    expectedResponse.status = PENDING_TRUST
-    expectedResponse.amountExpected = Amount(null, "")
+    expectedResponse.kind = WITHDRAWAL
+    expectedResponse.status = PENDING_USR_TRANSFER_COMPLETE
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.transferReceivedAt = transferReceivedAt
+    expectedResponse.amountExpected = Amount(null, "")
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),

@@ -20,7 +20,6 @@ import org.stellar.anchor.api.rpc.action.NotifyTransactionExpiredRequest
 import org.stellar.anchor.api.sep.SepTransactionStatus.*
 import org.stellar.anchor.api.shared.Amount
 import org.stellar.anchor.asset.AssetService
-import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.horizon.Horizon
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
 import org.stellar.anchor.sep24.Sep24TransactionStore
@@ -50,7 +49,6 @@ class NotifyTransactionExpiredHandlerTest {
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
-    this.assetService = DefaultAssetService.fromJsonResource("test_assets.json")
     handler =
       NotifyTransactionExpiredHandler(txn24Store, txn31Store, validator, horizon, assetService)
   }
@@ -122,7 +120,6 @@ class NotifyTransactionExpiredHandlerTest {
     val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_ANCHOR.toString()
     txn24.kind = DEPOSIT.kind
-    txn24.requestAssetCode = "USD"
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
@@ -139,7 +136,6 @@ class NotifyTransactionExpiredHandlerTest {
     expectedSep24Txn.kind = DEPOSIT.kind
     expectedSep24Txn.status = EXPIRED.toString()
     expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
-    expectedSep24Txn.requestAssetCode = "USD"
     expectedSep24Txn.message = TX_MESSAGE
 
     JSONAssert.assertEquals(
@@ -152,7 +148,7 @@ class NotifyTransactionExpiredHandlerTest {
     expectedResponse.sep = SEP_24
     expectedResponse.kind = DEPOSIT
     expectedResponse.status = EXPIRED
-    expectedResponse.amountExpected = Amount(null, "iso4217:USD")
+    expectedResponse.amountExpected = Amount(null, "")
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.message = TX_MESSAGE
 
