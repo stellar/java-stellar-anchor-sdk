@@ -1,37 +1,39 @@
 package org.stellar.anchor.config;
 
 import com.google.gson.annotations.SerializedName;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
 
 public interface Sep6Config {
   boolean isEnabled();
 
   Transactions getTransactions();
 
+  @AllArgsConstructor
+  @Getter
   class Transactions {
     @SerializedName("enabled")
-    Boolean enabled;
-
-    @SerializedName("authentication_required")
-    Boolean authenticationRequired;
+    boolean enabled;
   }
 
   Transaction getTransaction();
 
+  @AllArgsConstructor
+  @Getter
   class Transaction {
     @SerializedName("enabled")
-    Boolean enabled;
-
-    @SerializedName("authentication_required")
-    Boolean authenticationRequired;
+    boolean enabled;
   }
 
   Features getFeatures();
 
+  @AllArgsConstructor
+  @Getter
   class Features {
     @SerializedName("account_creation")
-    Boolean accountCreation;
+    boolean accountCreation;
 
     @SerializedName("claimable_balances")
-    Boolean claimableBalances;
+    boolean claimableBalances;
   }
 }
