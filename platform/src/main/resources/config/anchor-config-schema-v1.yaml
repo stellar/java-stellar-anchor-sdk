@@ -94,6 +94,11 @@ sep31.deposit_info_generator_type:
 sep31.enabled:
 sep31.payment_type:
 sep38.enabled:
+sep6.enabled:
+sep6.features.account_creation:
+sep6.features.claimable_balances:
+sep6.transaction.enabled:
+sep6.transactions.enabled:
 sep_server.context_path:
 sep_server.management_server_port:
 sep_server.port:
