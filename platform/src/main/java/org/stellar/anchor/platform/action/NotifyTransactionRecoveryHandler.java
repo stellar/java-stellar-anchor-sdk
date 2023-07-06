@@ -1,6 +1,6 @@
 package org.stellar.anchor.platform.action;
 
-import static org.stellar.anchor.api.rpc.action.ActionMethod.NOTIFY_AMOUNTS_UPDATED;
+import static org.stellar.anchor.api.rpc.action.ActionMethod.NOTIFY_TRANSACTION_RECOVERY;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.ERROR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.EXPIRED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
@@ -34,7 +34,7 @@ public class NotifyTransactionRecoveryHandler
 
   @Override
   public ActionMethod getActionType() {
-    return NOTIFY_AMOUNTS_UPDATED;
+    return NOTIFY_TRANSACTION_RECOVERY;
   }
 
   @Override

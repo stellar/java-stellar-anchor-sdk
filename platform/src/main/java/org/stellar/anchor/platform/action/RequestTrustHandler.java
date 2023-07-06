@@ -41,9 +41,9 @@ public class RequestTrustHandler extends ActionHandler<RequestTrustRequest> {
   @Override
   protected void validate(RequestTrustRequest request)
       throws InvalidRequestException, InvalidParamsException {
-    if (!custodyConfig.isCustodyIntegrationEnabled()) {
+    if (custodyConfig.isCustodyIntegrationEnabled()) {
       throw new InvalidRequestException(
-          String.format("Action[%s] requires enabled custody integration", getActionType()));
+          String.format("Action[%s] requires disabled custody integration", getActionType()));
     }
 
     super.validate(request);

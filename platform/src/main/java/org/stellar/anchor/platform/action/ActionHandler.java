@@ -47,6 +47,7 @@ import org.stellar.anchor.platform.observer.ObservedPayment;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31Transaction;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
+import org.stellar.anchor.util.AssetHelper;
 import org.stellar.anchor.util.SepHelper;
 import org.stellar.anchor.util.StringHelper;
 import org.stellar.sdk.AssetTypeCreditAlphaNum;
@@ -191,11 +192,11 @@ public abstract class ActionHandler<T extends RpcActionParamsRequest> {
 
   protected boolean isTrustLineConfigured(String account, String asset) {
     try {
-      String assetCode = asset.split(":")[1];
+      String assetCode = AssetHelper.getAssetCode(asset);
       if (NATIVE_ASSET_CODE.equals(assetCode)) {
         return true;
       }
-      String assetIssuer = asset.split(":")[2];
+      String assetIssuer = AssetHelper.getAssetIssuer(asset);
 
       AccountResponse accountResponse = horizon.getServer().accounts().account(account);
       return Arrays.stream(accountResponse.getBalances())

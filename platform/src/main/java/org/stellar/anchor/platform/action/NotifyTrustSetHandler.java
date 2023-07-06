@@ -41,7 +41,7 @@ public class NotifyTrustSetHandler extends ActionHandler<NotifyTrustSetRequest> 
   @Override
   protected void validate(NotifyTrustSetRequest request)
       throws InvalidRequestException, InvalidParamsException {
-    if (!custodyConfig.isCustodyIntegrationEnabled()) {
+    if (custodyConfig.isCustodyIntegrationEnabled()) {
       throw new InvalidRequestException(
           String.format("Action[%s] requires disabled custody integration", getActionType()));
     }
