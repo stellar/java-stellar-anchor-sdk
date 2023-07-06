@@ -63,25 +63,31 @@ public class NotifyOffchainFundsReceivedHandler
           "All or none of the amount_in, amount_out, and amount_fee should be set");
     }
 
-    validateAsset(
-        "amount_in",
-        AmountRequest.builder()
-            .amount(request.getAmountIn())
-            .asset(txn.getAmountInAsset())
-            .build());
-    validateAsset(
-        "amount_out",
-        AmountRequest.builder()
-            .amount(request.getAmountOut())
-            .asset(txn.getAmountOutAsset())
-            .build());
-    validateAsset(
-        "amount_fee",
-        AmountRequest.builder()
-            .amount(request.getAmountFee())
-            .asset(txn.getAmountFeeAsset())
-            .build(),
-        true);
+    if (request.getAmountIn() != null) {
+      validateAsset(
+          "amount_in",
+          AmountRequest.builder()
+              .amount(request.getAmountIn())
+              .asset(txn.getAmountInAsset())
+              .build());
+    }
+    if (request.getAmountOut() != null) {
+      validateAsset(
+          "amount_out",
+          AmountRequest.builder()
+              .amount(request.getAmountOut())
+              .asset(txn.getAmountOutAsset())
+              .build());
+    }
+    if (request.getAmountFee() != null) {
+      validateAsset(
+          "amount_fee",
+          AmountRequest.builder()
+              .amount(request.getAmountFee())
+              .asset(txn.getAmountFeeAsset())
+              .build(),
+          true);
+    }
   }
 
   @Override
@@ -109,7 +115,7 @@ public class NotifyOffchainFundsReceivedHandler
     JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
     if (DEPOSIT == Kind.from(txn24.getKind())) {
       supportedStatuses.add(PENDING_USR_TRANSFER_START);
-      if (txn.getTransferReceivedAt() == null) {
+      if (txn.getTransferReceivedAt() != null) {
         supportedStatuses.add(PENDING_EXTERNAL);
       }
     }
@@ -143,11 +149,9 @@ public class NotifyOffchainFundsReceivedHandler
       txn.setAmountFee(request.getAmountFee());
     }
 
-    if (custodyConfig.isCustodyIntegrationEnabled() && "24".equals(txn.getProtocol())) {
-      JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
-      if (DEPOSIT == Kind.from(txn24.getKind())) {
-        custodyService.createTransaction(txn24);
-      }
+    JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
+    if (custodyConfig.isCustodyIntegrationEnabled()) {
+      custodyService.createTransaction(txn24);
     }
   }
 }

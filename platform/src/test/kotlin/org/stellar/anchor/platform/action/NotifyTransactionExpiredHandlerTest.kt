@@ -50,7 +50,7 @@ class NotifyTransactionExpiredHandlerTest {
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
-    handler =
+    this.handler =
       NotifyTransactionExpiredHandler(txn24Store, txn31Store, validator, horizon, assetService)
   }
 

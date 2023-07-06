@@ -52,7 +52,8 @@ class NotifyAmountsUpdatedTest {
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
     this.assetService = DefaultAssetService.fromJsonResource("test_assets.json")
-    handler = NotifyAmountsUpdatedHandler(txn24Store, txn31Store, validator, horizon, assetService)
+    this.handler =
+      NotifyAmountsUpdatedHandler(txn24Store, txn31Store, validator, horizon, assetService)
   }
 
   @Test

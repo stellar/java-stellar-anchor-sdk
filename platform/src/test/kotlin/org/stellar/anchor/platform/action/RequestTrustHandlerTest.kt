@@ -53,7 +53,7 @@ class RequestTrustHandlerTest {
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
-    handler =
+    this.handler =
       RequestTrustHandler(txn24Store, txn31Store, validator, horizon, assetService, custodyConfig)
   }
 
@@ -106,7 +106,7 @@ class RequestTrustHandlerTest {
   }
 
   @Test
-  fun test_handle_handle_transferNotReceived() {
+  fun test_handle_transferNotReceived() {
     val request = RequestTrustRequest.builder().transactionId(TX_ID).build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_ANCHOR.toString()

@@ -53,7 +53,7 @@ class NotifyInteractiveFlowCompletedHandlerTest {
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
     this.assetService = DefaultAssetService.fromJsonResource("test_assets.json")
-    handler =
+    this.handler =
       NotifyInteractiveFlowCompletedHandler(
         txn24Store,
         txn31Store,

@@ -18,19 +18,21 @@ import org.stellar.anchor.api.platform.GetTransactionResponse
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL
 import org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24
-import org.stellar.anchor.api.rpc.action.AmountRequest
-import org.stellar.anchor.api.rpc.action.RequestOffchainFundsRequest
+import org.stellar.anchor.api.rpc.action.NotifyOffchainFundsReceivedRequest
 import org.stellar.anchor.api.sep.SepTransactionStatus.*
 import org.stellar.anchor.api.shared.Amount
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
+import org.stellar.anchor.config.CustodyConfig
+import org.stellar.anchor.custody.CustodyService
 import org.stellar.anchor.horizon.Horizon
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
+import org.stellar.anchor.sep24.Sep24Transaction
 import org.stellar.anchor.sep24.Sep24TransactionStore
 import org.stellar.anchor.sep31.Sep31TransactionStore
 import org.stellar.anchor.util.GsonUtils
 
-class RequestOffchainFundsHandlerTest {
+class NotifyOffchainFundsReceivedHandlerTest {
 
   companion object {
     private val gson = GsonUtils.getInstance()
@@ -47,21 +49,33 @@ class RequestOffchainFundsHandlerTest {
 
   @MockK(relaxed = true) private lateinit var assetService: AssetService
 
-  private lateinit var handler: RequestOffchainFundsHandler
+  @MockK(relaxed = true) private lateinit var custodyService: CustodyService
+
+  @MockK(relaxed = true) private lateinit var custodyConfig: CustodyConfig
+
+  private lateinit var handler: NotifyOffchainFundsReceivedHandler
 
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
     this.assetService = DefaultAssetService.fromJsonResource("test_assets.json")
     this.handler =
-      RequestOffchainFundsHandler(txn24Store, txn31Store, validator, horizon, assetService)
+      NotifyOffchainFundsReceivedHandler(
+        txn24Store,
+        txn31Store,
+        validator,
+        horizon,
+        assetService,
+        custodyService,
+        custodyConfig
+      )
   }
 
   @Test
   fun test_handle_unsupportedProtocol() {
-    val request = RequestOffchainFundsRequest.builder().transactionId(TX_ID).build()
+    val request = NotifyOffchainFundsReceivedRequest.builder().transactionId(TX_ID).build()
     val txn24 = JdbcSep24Transaction()
-    txn24.status = INCOMPLETE.toString()
+    txn24.status = PENDING_USR_TRANSFER_START.toString()
     val spyTxn24 = spyk(txn24)
 
     every { txn24Store.findByTransactionId(TX_ID) } returns spyTxn24
@@ -69,49 +83,34 @@ class RequestOffchainFundsHandlerTest {
     every { spyTxn24.protocol } returns "100"
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
-    assertEquals("Protocol[100] is not supported by action[request_offchain_funds]", ex.message)
-  }
-
-  @Test
-  fun test_handle_unsupportedStatus() {
-    val request = RequestOffchainFundsRequest.builder().transactionId(TX_ID).build()
-    val txn24 = JdbcSep24Transaction()
-    txn24.status = PENDING_EXTERNAL.toString()
-    txn24.kind = DEPOSIT.kind
-
-    every { txn24Store.findByTransactionId(TX_ID) } returns txn24
-    every { txn31Store.findByTransactionId(any()) } returns null
-
-    val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[request_offchain_funds] is not supported for status[pending_external]",
+      "Protocol[100] is not supported by action[notify_offchain_funds_received]",
       ex.message
     )
   }
 
   @Test
-  fun test_handle_transferReceived() {
-    val request = RequestOffchainFundsRequest.builder().transactionId(TX_ID).build()
+  fun test_handle_unsupportedStatus() {
+    val request = NotifyOffchainFundsReceivedRequest.builder().transactionId(TX_ID).build()
     val txn24 = JdbcSep24Transaction()
-    txn24.status = PENDING_ANCHOR.toString()
+    txn24.status = INCOMPLETE.toString()
     txn24.kind = DEPOSIT.kind
-    txn24.transferReceivedAt = Instant.now()
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[request_offchain_funds] is not supported for status[pending_anchor]",
+      "Action[notify_offchain_funds_received] is not supported for status[incomplete]",
       ex.message
     )
   }
 
   @Test
   fun test_handle_unsupportedKind() {
-    val request = RequestOffchainFundsRequest.builder().transactionId(TX_ID).build()
+    val request = NotifyOffchainFundsReceivedRequest.builder().transactionId(TX_ID).build()
     val txn24 = JdbcSep24Transaction()
-    txn24.status = INCOMPLETE.toString()
+    txn24.status = PENDING_USR_TRANSFER_START.toString()
     txn24.kind = WITHDRAWAL.kind
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
@@ -119,20 +118,21 @@ class RequestOffchainFundsHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[request_offchain_funds] is not supported for status[incomplete]",
+      "Action[notify_offchain_funds_received] is not supported for status[pending_user_transfer_start]",
       ex.message
     )
   }
 
   @Test
   fun test_handle_invalidRequest() {
-    val request = RequestOffchainFundsRequest.builder().transactionId(TX_ID).build()
+    val request = NotifyOffchainFundsReceivedRequest.builder().transactionId(TX_ID).build()
     val txn24 = JdbcSep24Transaction()
-    txn24.status = INCOMPLETE.toString()
+    txn24.status = PENDING_USR_TRANSFER_START.toString()
     txn24.kind = DEPOSIT.kind
+    txn24.transferReceivedAt = Instant.now()
 
-    val violation1: ConstraintViolation<RequestOffchainFundsRequest> = mockk()
-    val violation2: ConstraintViolation<RequestOffchainFundsRequest> = mockk()
+    val violation1: ConstraintViolation<NotifyOffchainFundsReceivedRequest> = mockk()
+    val violation2: ConstraintViolation<NotifyOffchainFundsReceivedRequest> = mockk()
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
@@ -145,176 +145,159 @@ class RequestOffchainFundsHandlerTest {
   }
 
   @Test
-  fun test_handle_ok_withExpectedAmount() {
+  fun test_handle_ok_withAmountsAndExternalTxIdAndFundsReceivedAt() {
+    val transferReceivedAt = Instant.now()
     val request =
-      RequestOffchainFundsRequest.builder()
+      NotifyOffchainFundsReceivedRequest.builder()
         .transactionId(TX_ID)
-        .amountIn(AmountRequest("1", "iso4217:USD"))
-        .amountOut(
-          AmountRequest(
-            "0.9",
-            "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
-          )
-        )
-        .amountFee(
-          AmountRequest(
-            "0.1",
-            "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
-          )
-        )
-        .amountExpected("1")
+        .amountIn("1")
+        .amountOut("0.9")
+        .amountFee("0.1")
+        .externalTransactionId("externalTxId")
+        .fundsReceivedAt(transferReceivedAt)
         .build()
     val txn24 = JdbcSep24Transaction()
-    txn24.status = INCOMPLETE.toString()
+    txn24.status = PENDING_USR_TRANSFER_START.toString()
     txn24.kind = DEPOSIT.kind
     txn24.requestAssetCode = "USD"
-    val sep24TxnCapture = slot<JdbcSep24Transaction>()
-
-    every { txn24Store.findByTransactionId(TX_ID) } returns txn24
-    every { txn31Store.findByTransactionId(any()) } returns null
-    every { txn24Store.save(capture(sep24TxnCapture)) } returns null
-
-    val startDate = Instant.now()
-    val response = handler.handle(request)
-    val endDate = Instant.now()
-
-    verify(exactly = 0) { txn31Store.save(any()) }
-
-    val expectedSep24Txn = JdbcSep24Transaction()
-    expectedSep24Txn.kind = DEPOSIT.kind
-    expectedSep24Txn.status = PENDING_USR_TRANSFER_START.toString()
-    expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
-    expectedSep24Txn.requestAssetCode = "USD"
-    expectedSep24Txn.amountIn = "1"
-    expectedSep24Txn.amountInAsset = "iso4217:USD"
-    expectedSep24Txn.amountOut = "0.9"
-    expectedSep24Txn.amountOutAsset =
-      "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
-    expectedSep24Txn.amountFee = "0.1"
-    expectedSep24Txn.amountFeeAsset =
-      "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
-    expectedSep24Txn.amountExpected = "1"
-
-    JSONAssert.assertEquals(
-      gson.toJson(expectedSep24Txn),
-      gson.toJson(sep24TxnCapture.captured),
-      JSONCompareMode.STRICT
-    )
-
-    val expectedResponse = GetTransactionResponse()
-    expectedResponse.sep = SEP_24
-    expectedResponse.kind = DEPOSIT
-    expectedResponse.status = PENDING_USR_TRANSFER_START
-    expectedResponse.amountIn = Amount("1", "iso4217:USD")
-    expectedResponse.amountOut =
-      Amount("0.9", "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN")
-    expectedResponse.amountFee =
-      Amount("0.1", "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN")
-    expectedResponse.amountExpected = Amount("1", "iso4217:USD")
-    expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
-
-    JSONAssert.assertEquals(
-      gson.toJson(expectedResponse),
-      gson.toJson(response),
-      JSONCompareMode.STRICT
-    )
-
-    assertTrue(expectedSep24Txn.updatedAt.isAfter(startDate))
-    assertTrue(expectedSep24Txn.updatedAt.isBefore(endDate))
-  }
-
-  @Test
-  fun test_handle_ok_withoutAmountExpected() {
-    val request =
-      RequestOffchainFundsRequest.builder()
-        .transactionId(TX_ID)
-        .amountIn(AmountRequest("1", "iso4217:USD"))
-        .amountOut(
-          AmountRequest(
-            "0.9",
-            "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
-          )
-        )
-        .amountFee(
-          AmountRequest(
-            "0.1",
-            "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
-          )
-        )
-        .build()
-    val txn24 = JdbcSep24Transaction()
-    txn24.status = INCOMPLETE.toString()
-    txn24.kind = DEPOSIT.kind
-    txn24.requestAssetCode = "USD"
-    val sep24TxnCapture = slot<JdbcSep24Transaction>()
-
-    every { txn24Store.findByTransactionId(TX_ID) } returns txn24
-    every { txn31Store.findByTransactionId(any()) } returns null
-    every { txn24Store.save(capture(sep24TxnCapture)) } returns null
-
-    val startDate = Instant.now()
-    val response = handler.handle(request)
-    val endDate = Instant.now()
-
-    verify(exactly = 0) { txn31Store.save(any()) }
-
-    val expectedSep24Txn = JdbcSep24Transaction()
-    expectedSep24Txn.kind = DEPOSIT.kind
-    expectedSep24Txn.status = PENDING_USR_TRANSFER_START.toString()
-    expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
-    expectedSep24Txn.requestAssetCode = "USD"
-    expectedSep24Txn.amountIn = "1"
-    expectedSep24Txn.amountInAsset = "iso4217:USD"
-    expectedSep24Txn.amountOut = "0.9"
-    expectedSep24Txn.amountOutAsset =
-      "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
-    expectedSep24Txn.amountFee = "0.1"
-    expectedSep24Txn.amountFeeAsset =
-      "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
-    expectedSep24Txn.amountExpected = "1"
-
-    JSONAssert.assertEquals(
-      gson.toJson(expectedSep24Txn),
-      gson.toJson(sep24TxnCapture.captured),
-      JSONCompareMode.STRICT
-    )
-
-    val expectedResponse = GetTransactionResponse()
-    expectedResponse.sep = SEP_24
-    expectedResponse.kind = DEPOSIT
-    expectedResponse.status = PENDING_USR_TRANSFER_START
-    expectedResponse.amountIn = Amount("1", "iso4217:USD")
-    expectedResponse.amountOut =
-      Amount("0.9", "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN")
-    expectedResponse.amountFee =
-      Amount("0.1", "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN")
-    expectedResponse.amountExpected = Amount("1", "iso4217:USD")
-    expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
-
-    JSONAssert.assertEquals(
-      gson.toJson(expectedResponse),
-      gson.toJson(response),
-      JSONCompareMode.STRICT
-    )
-
-    assertTrue(expectedSep24Txn.updatedAt.isAfter(startDate))
-    assertTrue(expectedSep24Txn.updatedAt.isBefore(endDate))
-  }
-
-  @Test
-  fun test_handle_ok_withoutAmounts_amountsPresent() {
-    val request = RequestOffchainFundsRequest.builder().transactionId(TX_ID).build()
-    val txn24 = JdbcSep24Transaction()
-    txn24.status = INCOMPLETE.toString()
-    txn24.kind = DEPOSIT.kind
-    txn24.requestAssetCode = "USD"
-    txn24.amountIn = "1"
     txn24.amountInAsset = "iso4217:USD"
-    txn24.amountOut = "0.9"
     txn24.amountOutAsset = "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
-    txn24.amountFee = "0.1"
     txn24.amountFeeAsset = "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
-    txn24.amountExpected = "1"
+    val sep24TxnCapture = slot<JdbcSep24Transaction>()
+
+    every { txn24Store.findByTransactionId(TX_ID) } returns txn24
+    every { txn31Store.findByTransactionId(any()) } returns null
+    every { txn24Store.save(capture(sep24TxnCapture)) } returns null
+    every { custodyConfig.isCustodyIntegrationEnabled } returns false
+
+    val startDate = Instant.now()
+    val response = handler.handle(request)
+    val endDate = Instant.now()
+
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { custodyService.createTransaction(ofType(Sep24Transaction::class)) }
+
+    val expectedSep24Txn = JdbcSep24Transaction()
+    expectedSep24Txn.kind = DEPOSIT.kind
+    expectedSep24Txn.status = PENDING_ANCHOR.toString()
+    expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
+    expectedSep24Txn.externalTransactionId = "externalTxId"
+    expectedSep24Txn.transferReceivedAt = transferReceivedAt
+    expectedSep24Txn.requestAssetCode = "USD"
+    expectedSep24Txn.amountIn = "1"
+    expectedSep24Txn.amountInAsset = "iso4217:USD"
+    expectedSep24Txn.amountOut = "0.9"
+    expectedSep24Txn.amountOutAsset =
+      "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+    expectedSep24Txn.amountFee = "0.1"
+    expectedSep24Txn.amountFeeAsset =
+      "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedSep24Txn),
+      gson.toJson(sep24TxnCapture.captured),
+      JSONCompareMode.STRICT
+    )
+
+    val expectedResponse = GetTransactionResponse()
+    expectedResponse.sep = SEP_24
+    expectedResponse.kind = DEPOSIT
+    expectedResponse.status = PENDING_ANCHOR
+    expectedResponse.externalTransactionId = "externalTxId"
+    expectedResponse.transferReceivedAt = transferReceivedAt
+    expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
+    expectedResponse.amountIn = Amount("1", "iso4217:USD")
+    expectedResponse.amountOut =
+      Amount("0.9", "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN")
+    expectedResponse.amountFee =
+      Amount("0.1", "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN")
+    expectedResponse.amountExpected = Amount(null, "iso4217:USD")
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedResponse),
+      gson.toJson(response),
+      JSONCompareMode.STRICT
+    )
+
+    assertTrue(expectedSep24Txn.updatedAt.isAfter(startDate))
+    assertTrue(expectedSep24Txn.updatedAt.isBefore(endDate))
+  }
+
+  @Test
+  fun test_handle_ok_withExternalTxIdAndWithout_custodyIntegrationEnabled() {
+    val request =
+      NotifyOffchainFundsReceivedRequest.builder()
+        .transactionId(TX_ID)
+        .externalTransactionId("externalTxId")
+        .build()
+    val txn24 = JdbcSep24Transaction()
+    txn24.status = PENDING_USR_TRANSFER_START.toString()
+    txn24.kind = DEPOSIT.kind
+    txn24.requestAssetCode = "USD"
+    val sep24TxnCapture = slot<JdbcSep24Transaction>()
+    val sep24CustodyTxnCapture = slot<JdbcSep24Transaction>()
+
+    every { txn24Store.findByTransactionId(TX_ID) } returns txn24
+    every { txn31Store.findByTransactionId(any()) } returns null
+    every { txn24Store.save(capture(sep24TxnCapture)) } returns null
+    every { custodyConfig.isCustodyIntegrationEnabled } returns true
+    every { custodyService.createTransaction(capture(sep24CustodyTxnCapture)) } just Runs
+
+    val startDate = Instant.now()
+    val response = handler.handle(request)
+    val endDate = Instant.now()
+
+    verify(exactly = 0) { txn31Store.save(any()) }
+
+    val expectedSep24Txn = JdbcSep24Transaction()
+    expectedSep24Txn.kind = DEPOSIT.kind
+    expectedSep24Txn.status = PENDING_ANCHOR.toString()
+    expectedSep24Txn.status = PENDING_ANCHOR.toString()
+    expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
+    expectedSep24Txn.externalTransactionId = "externalTxId"
+    expectedSep24Txn.transferReceivedAt = sep24TxnCapture.captured.transferReceivedAt
+    expectedSep24Txn.requestAssetCode = "USD"
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedSep24Txn),
+      gson.toJson(sep24TxnCapture.captured),
+      JSONCompareMode.STRICT
+    )
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedSep24Txn),
+      gson.toJson(sep24CustodyTxnCapture.captured),
+      JSONCompareMode.STRICT
+    )
+
+    val expectedResponse = GetTransactionResponse()
+    expectedResponse.sep = SEP_24
+    expectedResponse.kind = DEPOSIT
+    expectedResponse.status = PENDING_ANCHOR
+    expectedResponse.externalTransactionId = "externalTxId"
+    expectedResponse.transferReceivedAt = sep24TxnCapture.captured.transferReceivedAt
+    expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
+    expectedResponse.amountExpected = Amount(null, "iso4217:USD")
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedResponse),
+      gson.toJson(response),
+      JSONCompareMode.STRICT
+    )
+
+    assertTrue(expectedSep24Txn.updatedAt.isAfter(startDate))
+    assertTrue(expectedSep24Txn.updatedAt.isBefore(endDate))
+    assertTrue(expectedSep24Txn.transferReceivedAt.isAfter(startDate))
+    assertTrue(expectedSep24Txn.transferReceivedAt.isBefore(endDate))
+  }
+
+  @Test
+  fun test_handle_ok_withoutAmountAndExternalTxIdAndFundsReceivedAt() {
+    val request = NotifyOffchainFundsReceivedRequest.builder().transactionId(TX_ID).build()
+    val txn24 = JdbcSep24Transaction()
+    txn24.status = PENDING_USR_TRANSFER_START.toString()
+    txn24.kind = DEPOSIT.kind
+    txn24.requestAssetCode = "USD"
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
@@ -329,18 +312,9 @@ class RequestOffchainFundsHandlerTest {
 
     val expectedSep24Txn = JdbcSep24Transaction()
     expectedSep24Txn.kind = DEPOSIT.kind
-    expectedSep24Txn.status = PENDING_USR_TRANSFER_START.toString()
+    expectedSep24Txn.status = PENDING_ANCHOR.toString()
     expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedSep24Txn.requestAssetCode = "USD"
-    expectedSep24Txn.amountIn = "1"
-    expectedSep24Txn.amountInAsset = "iso4217:USD"
-    expectedSep24Txn.amountOut = "0.9"
-    expectedSep24Txn.amountOutAsset =
-      "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
-    expectedSep24Txn.amountFee = "0.1"
-    expectedSep24Txn.amountFeeAsset =
-      "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
-    expectedSep24Txn.amountExpected = "1"
 
     JSONAssert.assertEquals(
       gson.toJson(expectedSep24Txn),
@@ -351,14 +325,9 @@ class RequestOffchainFundsHandlerTest {
     val expectedResponse = GetTransactionResponse()
     expectedResponse.sep = SEP_24
     expectedResponse.kind = DEPOSIT
-    expectedResponse.status = PENDING_USR_TRANSFER_START
-    expectedResponse.amountIn = Amount("1", "iso4217:USD")
-    expectedResponse.amountOut =
-      Amount("0.9", "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN")
-    expectedResponse.amountFee =
-      Amount("0.1", "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN")
-    expectedResponse.amountExpected = Amount("1", "iso4217:USD")
+    expectedResponse.status = PENDING_ANCHOR
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
+    expectedResponse.amountExpected = Amount(null, "iso4217:USD")
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -368,34 +337,18 @@ class RequestOffchainFundsHandlerTest {
 
     assertTrue(expectedSep24Txn.updatedAt.isAfter(startDate))
     assertTrue(expectedSep24Txn.updatedAt.isBefore(endDate))
-  }
-
-  @Test
-  fun test_handle_ok_withoutAmounts_amountsAbsent() {
-    val request = RequestOffchainFundsRequest.builder().transactionId(TX_ID).build()
-    val txn24 = JdbcSep24Transaction()
-    txn24.status = INCOMPLETE.toString()
-    txn24.kind = DEPOSIT.kind
-    val sep24TxnCapture = slot<JdbcSep24Transaction>()
-
-    every { txn24Store.findByTransactionId(TX_ID) } returns txn24
-    every { txn31Store.findByTransactionId(any()) } returns null
-    every { txn24Store.save(capture(sep24TxnCapture)) } returns null
-
-    val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
-    assertEquals("amount_in is required", ex.message)
   }
 
   @Test
   fun test_handle_ok_notAllAmounts() {
     val request =
-      RequestOffchainFundsRequest.builder()
-        .amountIn(AmountRequest("1", "iso4217:USD"))
-        .amountOut(AmountRequest("1", "iso4217:USD"))
+      NotifyOffchainFundsReceivedRequest.builder()
+        .amountIn("1")
+        .amountOut("1")
         .transactionId(TX_ID)
         .build()
     val txn24 = JdbcSep24Transaction()
-    txn24.status = INCOMPLETE.toString()
+    txn24.status = PENDING_USR_TRANSFER_START.toString()
     txn24.kind = DEPOSIT.kind
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
 
@@ -413,50 +366,38 @@ class RequestOffchainFundsHandlerTest {
   @Test
   fun test_handle_invalidAmounts() {
     val request =
-      RequestOffchainFundsRequest.builder()
+      NotifyOffchainFundsReceivedRequest.builder()
+        .amountIn("1")
+        .amountOut("1")
+        .amountFee("1")
         .transactionId(TX_ID)
-        .amountIn(AmountRequest("1", "iso4217:USD"))
-        .amountOut(
-          AmountRequest(
-            "1",
-            "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
-          )
-        )
-        .amountFee(
-          AmountRequest(
-            "1",
-            "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
-          )
-        )
-        .amountExpected("1")
         .build()
     val txn24 = JdbcSep24Transaction()
-    txn24.status = INCOMPLETE.toString()
+    txn24.status = PENDING_USR_TRANSFER_START.toString()
     txn24.kind = DEPOSIT.kind
     txn24.requestAssetCode = "USD"
+    txn24.amountInAsset = "iso4217:USD"
+    txn24.amountOutAsset = "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+    txn24.amountFeeAsset = "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
 
-    request.amountIn.amount = "-1"
+    request.amountIn = "-1"
     var ex = assertThrows<InvalidParamsException> { handler.handle(request) }
     assertEquals("amount_in.amount should be positive", ex.message)
-    request.amountIn.amount = "1"
+    request.amountIn = "1"
 
-    request.amountOut.amount = "-1"
+    request.amountOut = "-1"
     ex = assertThrows { handler.handle(request) }
     assertEquals("amount_out.amount should be positive", ex.message)
-    request.amountOut.amount = "1"
+    request.amountOut = "1"
 
-    request.amountFee.amount = "-1"
+    request.amountFee = "-1"
     ex = assertThrows { handler.handle(request) }
     assertEquals("amount_fee.amount should be non-negative", ex.message)
-    request.amountFee.amount = "1"
-
-    request.amountExpected = "-1"
-    ex = assertThrows { handler.handle(request) }
-    assertEquals("amount_expected.amount should be positive", ex.message)
+    request.amountFee = "1"
   }
 }

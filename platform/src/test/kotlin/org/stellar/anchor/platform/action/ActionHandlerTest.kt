@@ -96,7 +96,7 @@ class ActionHandlerTest {
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
-    handler = ActionHandlerTestImpl(txn24Store, txn31Store, validator, horizon, assetService)
+    this.handler = ActionHandlerTestImpl(txn24Store, txn31Store, validator, horizon, assetService)
   }
 
   @Test

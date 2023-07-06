@@ -49,7 +49,7 @@ class NotifyOffchainFundsSentHandlerTest {
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
-    handler =
+    this.handler =
       NotifyOffchainFundsSentHandler(txn24Store, txn31Store, validator, horizon, assetService)
   }
 

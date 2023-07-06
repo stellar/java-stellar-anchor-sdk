@@ -50,7 +50,7 @@ class NotifyOffchainFundsAvailableHandlerTest {
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
-    handler =
+    this.handler =
       NotifyOffchainFundsAvailableHandler(txn24Store, txn31Store, validator, horizon, assetService)
   }
 
@@ -111,7 +111,7 @@ class NotifyOffchainFundsAvailableHandlerTest {
   }
 
   @Test
-  fun test_handle_handle_transferNotReceived() {
+  fun test_handle_ransferNotReceived() {
     val request = NotifyOffchainFundsAvailableRequest.builder().transactionId(TX_ID).build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_ANCHOR.toString()

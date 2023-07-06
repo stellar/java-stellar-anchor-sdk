@@ -53,7 +53,7 @@ class NotifyTrustSetHandlerTest {
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
-    handler =
+    this.handler =
       NotifyTrustSetHandler(txn24Store, txn31Store, validator, horizon, assetService, custodyConfig)
   }
 

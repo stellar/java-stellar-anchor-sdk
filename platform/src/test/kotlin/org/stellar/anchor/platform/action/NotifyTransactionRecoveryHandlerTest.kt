@@ -50,7 +50,7 @@ class NotifyTransactionRecoveryHandlerTest {
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
-    handler =
+    this.handler =
       NotifyTransactionRecoveryHandler(txn24Store, txn31Store, validator, horizon, assetService)
   }
 
