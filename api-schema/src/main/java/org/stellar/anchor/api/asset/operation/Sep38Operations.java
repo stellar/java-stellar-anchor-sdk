@@ -2,6 +2,7 @@ package org.stellar.anchor.api.asset.operation;
 
 import com.google.gson.annotations.SerializedName;
 import java.util.List;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -23,6 +24,7 @@ public class Sep38Operations extends AssetOperations {
   private Integer decimals;
 
   @Data
+  @AllArgsConstructor
   public static class DeliveryMethod {
     private String name;
 

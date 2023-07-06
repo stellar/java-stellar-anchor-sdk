@@ -23,7 +23,6 @@ import org.stellar.anchor.api.asset.operation.Sep12Operation;
 import org.stellar.anchor.api.asset.operation.Sep31Operations;
 import org.stellar.anchor.api.callback.*;
 import org.stellar.anchor.api.exception.*;
-import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.sep.sep12.Sep12Status;
 import org.stellar.anchor.api.sep.sep31.*;
@@ -377,7 +376,7 @@ public class Sep31Service {
           String.format("Transaction (%s) is not expecting any updates", txn.getId()));
     }
 
-    Map<String, AssetInfo.Sep31TxnFieldSpec> expectedFields =
+    Map<String, Sep31Operations.Field> expectedFields =
         txn.getRequiredInfoUpdates().getTransaction();
     Map<String, String> requestFields = request.getFields().getTransaction();
 

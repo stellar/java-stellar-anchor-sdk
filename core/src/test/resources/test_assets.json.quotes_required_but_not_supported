@@ -4,14 +4,13 @@
       "schema": "stellar",
       "code": "USDC",
       "issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
-      "sep31" : {
-        "quotes_supported": false,
-        "quotes_required": true
-      },
-      "sep6_enabled": false,
-      "sep24_enabled": false,
-      "sep31_enabled": true,
-      "sep38_enabled": false
+      "operations": {
+        "sep31": {
+          "enabled": true,
+          "quotes_supported": false,
+          "quotes_required": true
+        }
+      }
     }
   ]
 }

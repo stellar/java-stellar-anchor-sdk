@@ -3,7 +3,7 @@ package org.stellar.anchor.sep31;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
-import org.stellar.anchor.api.sep.AssetInfo;
+import org.stellar.anchor.api.asset.operation.Sep31Operations;
 import org.stellar.anchor.api.sep.sep31.Sep31GetTransactionResponse;
 import org.stellar.anchor.api.shared.*;
 
@@ -105,9 +105,9 @@ public interface Sep31Transaction {
 
   void setFields(Map<String, String> fields);
 
-  AssetInfo.Sep31TxnFieldSpecs getRequiredInfoUpdates();
+  Sep31Operations.Fields getRequiredInfoUpdates();
 
-  void setRequiredInfoUpdates(AssetInfo.Sep31TxnFieldSpecs requiredInfoUpdates);
+  void setRequiredInfoUpdates(Sep31Operations.Fields requiredInfoUpdates);
 
   String getQuoteId();
 

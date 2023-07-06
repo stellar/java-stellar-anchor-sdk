@@ -19,9 +19,9 @@ import org.skyscreamer.jsonassert.JSONAssert
 import org.stellar.anchor.TestConstants
 import org.stellar.anchor.TestHelper
 import org.stellar.anchor.api.asset.Asset
+import org.stellar.anchor.api.asset.operation.Sep31Operations
 import org.stellar.anchor.api.callback.*
 import org.stellar.anchor.api.exception.*
-import org.stellar.anchor.api.sep.AssetInfo
 import org.stellar.anchor.api.sep.sep12.Sep12Status
 import org.stellar.anchor.api.sep.sep31.*
 import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionRequest.Sep31TxnFields
@@ -78,61 +78,23 @@ class Sep31ServiceTest {
 
     private const val assetJson =
       """
-            {
-              "code": "USDC",
-              "issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
-              "distribution_account": "GA7FYRB5VREZKOBIIKHG5AVTPFGWUBPOBF7LTYG4GTMFVIOOD2DWAL7I",
-              "schema": "stellar",
-              "significant_decimals": 2,
-              "deposit": {
+        {
+          "schema": "stellar",
+          "code": "USDC",
+          "issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+          "distribution_account": "GA7FYRB5VREZKOBIIKHG5AVTPFGWUBPOBF7LTYG4GTMFVIOOD2DWAL7I",
+          "significant_decimals": 2,
+          "operations": {
+            "sep31": {
+              "enabled": true,
+              "quotes_supported": true,
+              "quotes_required": true,
+              "send": {
                 "enabled": true,
                 "fee_fixed": 0,
                 "fee_percent": 0,
                 "min_amount": 1,
                 "max_amount": 1000000,
-                "fee_minimum": 0
-              },
-              "withdraw": {
-                "enabled": false,
-                "fee_fixed": 0,
-                "fee_percent": 0,
-                "min_amount": 1,
-                "max_amount": 1000000
-              },
-              "send": {
-                "fee_fixed": 0,
-                "fee_percent": 0,
-                "min_amount": 1,
-                "max_amount": 1000000
-              },
-              "sep31": {
-                "quotes_supported": true,
-                "quotes_required": true,
-                "sep12": {
-                  "sender": {
-                    "types": {
-                      "sep31-sender": {
-                        "description": "U.S. citizens limited to sending payments of less than ${'$'}10,000 in value"
-                      },
-                      "sep31-large-sender": {
-                        "description": "U.S. citizens that do not have sending limits"
-                      },
-                      "sep31-foreign-sender": {
-                        "description": "non-U.S. citizens sending payments of less than ${'$'}10,000 in value"
-                      }
-                    }
-                  },
-                  "receiver": {
-                    "types": {
-                      "sep31-receiver": {
-                        "description": "U.S. citizens receiving USD"
-                      },
-                      "sep31-foreign-receiver": {
-                        "description": "non-U.S. citizens receiving USD"
-                      }
-                    }
-                  }
-                },
                 "fields": {
                   "transaction": {
                     "receiver_routing_number": {
@@ -145,25 +107,50 @@ class Sep31ServiceTest {
                     },
                     "type": {
                       "description": "type of deposit to make",
+                      "optional": false,
                       "choices": [
                         "SEPA",
                         "SWIFT"
-                      ],
-                      "optional": false
+                      ]
                     }
                   }
                 }
               },
-              "sep38": {
-                "exchangeable_assets": [
-                  "iso4217:USD"
-                ]
-              },
-              "sep31_enabled": true,
-              "sep38_enabled": true
+              "sep12": {
+                "sender": {
+                  "types": {
+                    "sep31-sender": {
+                      "description": "U.S. citizens limited to sending payments of less than ${'$'}10,000 in value"
+                    },
+                    "sep31-large-sender": {
+                      "description": "U.S. citizens that do not have sending limits"
+                    },
+                    "sep31-foreign-sender": {
+                      "description": "non-U.S. citizens sending payments of less than ${'$'}10,000 in value"
+                    }
+                  }
+                },
+                "receiver": {
+                  "types": {
+                    "sep31-receiver": {
+                      "description": "U.S. citizens receiving USD"
+                    },
+                    "sep-31-foreign-receiver": {
+                      "description": "non-U.S. citizens receiving USD"
+                    }
+                  }
+                }
+              }
+            },
+            "sep38": {
+              "enabled": true,
+              "exchangeable_assets": [
+                "iso4217:USD"
+              ]
             }
-
-        """
+          }
+        }
+      """
 
     private const val txnJson =
       """
@@ -436,12 +423,15 @@ class Sep31ServiceTest {
         )
         .build()
 
-    val wantRequiredInfoUpdates = AssetInfo.Sep31TxnFieldSpecs()
-    wantRequiredInfoUpdates.transaction =
-      mapOf(
-        "type" to
-          AssetInfo.Sep31TxnFieldSpec("type of deposit to make", listOf("SEPA", "SWIFT"), false)
-      )
+    val wantRequiredInfoUpdates =
+      Sep31Operations.Fields.builder()
+        .transaction(
+          mapOf(
+            "type" to
+              Sep31Operations.Field("type of deposit to make", listOf("SEPA", "SWIFT"), false)
+          )
+        )
+        .build()
 
     val wantTxResponse =
       Sep31GetTransactionResponse(
@@ -973,16 +963,19 @@ class Sep31ServiceTest {
 
     Context.get().transactionFields = mapOf()
     val ex4 = assertThrows<Sep31MissingFieldException> { sep31Service.validateRequiredFields() }
-    val wantMissingFields = AssetInfo.Sep31TxnFieldSpecs()
-    wantMissingFields.transaction =
-      mapOf(
-        "receiver_account_number" to
-          AssetInfo.Sep31TxnFieldSpec("bank account number of the destination", null, false),
-        "type" to
-          AssetInfo.Sep31TxnFieldSpec("type of deposit to make", listOf("SEPA", "SWIFT"), false),
-        "receiver_routing_number" to
-          AssetInfo.Sep31TxnFieldSpec("routing number of the destination bank account", null, false)
-      )
+    val wantMissingFields =
+      Sep31Operations.Fields.builder()
+        .transaction(
+          mapOf(
+            "receiver_account_number" to
+              Sep31Operations.Field("bank account number of the destination", null, false),
+            "type" to
+              Sep31Operations.Field("type of deposit to make", listOf("SEPA", "SWIFT"), false),
+            "receiver_routing_number" to
+              Sep31Operations.Field("routing number of the destination bank account", null, false)
+          )
+        )
+        .build()
     assertEquals(wantMissingFields, ex4.missingFields)
 
     Context.get().transactionFields = txn.fields

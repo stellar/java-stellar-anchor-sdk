@@ -155,7 +155,7 @@ internal class DefaultAssetServiceTest {
                 "sep38": {
                   "enabled": true,
                   "exchangeable_assets": [
-                    "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
+                    "stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
                     "iso4217:USD"
                   ]
                 }
@@ -248,7 +248,7 @@ internal class DefaultAssetServiceTest {
                     "max_amount": 1000000
                   },
                   "withdraw": {
-                    "enabled": true,
+                    "enabled": false,
                     "min_amount": 1,
                     "max_amount": 1000000
                   }
@@ -275,7 +275,7 @@ internal class DefaultAssetServiceTest {
                   "buy_delivery_methods": [
                     {
                       "name": "WIRE",
-                      "description": "Send USD directly to your bank account."
+                      "description": "Have USD sent directly to your bank account."
                     }
                   ]
                 }
