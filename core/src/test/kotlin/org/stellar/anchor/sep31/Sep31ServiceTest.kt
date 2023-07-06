@@ -21,6 +21,8 @@ import org.stellar.anchor.TestHelper
 import org.stellar.anchor.api.callback.*
 import org.stellar.anchor.api.exception.*
 import org.stellar.anchor.api.sep.AssetInfo
+import org.stellar.anchor.api.sep.operation.FieldSpec
+import org.stellar.anchor.api.sep.operation.Sep31Operation
 import org.stellar.anchor.api.sep.sep12.Sep12Status
 import org.stellar.anchor.api.sep.sep31.*
 import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionRequest.Sep31TxnFields
@@ -435,12 +437,9 @@ class Sep31ServiceTest {
         )
         .build()
 
-    val wantRequiredInfoUpdates = AssetInfo.Sep31TxnFieldSpecs()
+    val wantRequiredInfoUpdates = Sep31Operation.Fields()
     wantRequiredInfoUpdates.transaction =
-      mapOf(
-        "type" to
-          AssetInfo.Sep31TxnFieldSpec("type of deposit to make", listOf("SEPA", "SWIFT"), false)
-      )
+      mapOf("type" to FieldSpec("type of deposit to make", listOf("SEPA", "SWIFT"), false))
 
     val wantTxResponse =
       Sep31GetTransactionResponse(
@@ -972,15 +971,14 @@ class Sep31ServiceTest {
 
     Context.get().transactionFields = mapOf()
     val ex4 = assertThrows<Sep31MissingFieldException> { sep31Service.validateRequiredFields() }
-    val wantMissingFields = AssetInfo.Sep31TxnFieldSpecs()
+    val wantMissingFields = Sep31Operation.Fields()
     wantMissingFields.transaction =
       mapOf(
         "receiver_account_number" to
-          AssetInfo.Sep31TxnFieldSpec("bank account number of the destination", null, false),
-        "type" to
-          AssetInfo.Sep31TxnFieldSpec("type of deposit to make", listOf("SEPA", "SWIFT"), false),
+          FieldSpec("bank account number of the destination", null, false),
+        "type" to FieldSpec("type of deposit to make", listOf("SEPA", "SWIFT"), false),
         "receiver_routing_number" to
-          AssetInfo.Sep31TxnFieldSpec("routing number of the destination bank account", null, false)
+          FieldSpec("routing number of the destination bank account", null, false)
       )
     assertEquals(wantMissingFields, ex4.missingFields)
 

@@ -1,10 +1,10 @@
 package org.stellar.anchor.api.sep;
 
 import com.google.gson.annotations.SerializedName;
-import java.util.List;
-import java.util.Map;
-import lombok.AllArgsConstructor;
 import lombok.Data;
+import org.stellar.anchor.api.sep.operation.Sep31Operation;
+import org.stellar.anchor.api.sep.operation.Sep38Operation;
+import org.stellar.anchor.api.sep.operation.Sep6Operation;
 
 @SuppressWarnings("unused")
 @Data
@@ -32,6 +32,7 @@ public class AssetInfo {
   DepositOperation deposit;
   WithdrawOperation withdraw;
   SendOperation send;
+  Sep6Operation sep6;
   Sep31Operation sep31;
   Sep38Operation sep38;
 
@@ -94,77 +95,5 @@ public class AssetInfo {
 
     @SerializedName("max_amount")
     Long maxAmount;
-  }
-
-  @Data
-  public static class Sep31Operation {
-    @SerializedName("quotes_supported")
-    boolean quotesSupported;
-
-    @SerializedName("quotes_required")
-    boolean quotesRequired;
-
-    Sep12Operation sep12;
-    Sep31TxnFieldSpecs fields;
-  }
-
-  @Data
-  public static class Sep12Operation {
-    Sep12Types sender;
-    Sep12Types receiver;
-  }
-
-  @Data
-  public static class Sep12Types {
-    Map<String, Sep12Type> types;
-  }
-
-  @Data
-  public static class Sep12Type {
-    String description;
-  }
-
-  @Data
-  public static class Sep31TxnFieldSpecs {
-    Map<String, Sep31TxnFieldSpec> transaction;
-  }
-
-  @Data
-  @AllArgsConstructor
-  public static class Sep31TxnFieldSpec {
-    String description;
-    List<String> choices;
-    boolean optional;
-
-    public Sep31TxnFieldSpec() {}
-  }
-
-  @Data
-  public static class Sep38Operation {
-    @SerializedName("exchangeable_assets")
-    List<String> exchangeableAssets;
-
-    @SerializedName("country_codes")
-    List<String> countryCodes;
-
-    @SerializedName("sell_delivery_methods")
-    List<DeliveryMethod> sellDeliveryMethods;
-
-    @SerializedName("buy_delivery_methods")
-    List<DeliveryMethod> buyDeliveryMethods;
-
-    Integer decimals;
-
-    @Data
-    public static class DeliveryMethod {
-      String name;
-
-      String description;
-
-      public DeliveryMethod(String name, String description) {
-        this.name = name;
-        this.description = description;
-      }
-    }
   }
 }
