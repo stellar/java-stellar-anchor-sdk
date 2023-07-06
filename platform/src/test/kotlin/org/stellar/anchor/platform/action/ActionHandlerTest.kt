@@ -4,6 +4,7 @@ import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import java.util.*
 import javax.validation.Validator
+import kotlin.collections.Set
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
@@ -55,12 +56,12 @@ class ActionHandlerTest {
       return NOTIFY_INTERACTIVE_FLOW_COMPLETED
     }
 
-    override fun getSupportedStatuses(txn: JdbcSepTransaction?): MutableSet<SepTransactionStatus> {
-      return mutableSetOf(INCOMPLETE, ERROR)
+    override fun getSupportedStatuses(txn: JdbcSepTransaction?): Set<SepTransactionStatus> {
+      return setOf(INCOMPLETE, ERROR)
     }
 
-    override fun getSupportedProtocols(): MutableSet<String> {
-      return mutableSetOf("24", "31")
+    override fun getSupportedProtocols(): Set<String> {
+      return setOf("24", "31")
     }
 
     override fun updateTransactionWithAction(

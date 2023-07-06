@@ -32,8 +32,12 @@ import org.stellar.anchor.util.GsonUtils
 class NotifyAmountsUpdatedTest {
 
   companion object {
-    private val gson = GsonUtils.getInstance()
+    private val GSON = GsonUtils.getInstance()
     private const val TX_ID = "testId"
+    private const val FIAT_USD = "iso4217:USD"
+    private const val STELLAR_USDC =
+      "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+    private const val FIAT_USD_CODE = "USD"
   }
 
   @MockK(relaxed = true) private lateinit var txn24Store: Sep24TransactionStore
@@ -135,9 +139,9 @@ class NotifyAmountsUpdatedTest {
         .build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_ANCHOR.toString()
-    txn24.requestAssetCode = "USD"
-    txn24.amountOutAsset = "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
-    txn24.amountFeeAsset = "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+    txn24.requestAssetCode = FIAT_USD_CODE
+    txn24.amountOutAsset = STELLAR_USDC
+    txn24.amountFeeAsset = STELLAR_USDC
     txn24.transferReceivedAt = Instant.now()
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
 
@@ -168,10 +172,10 @@ class NotifyAmountsUpdatedTest {
     val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_ANCHOR.toString()
     txn24.kind = DEPOSIT.kind
-    txn24.requestAssetCode = "USD"
-    txn24.amountOutAsset = "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+    txn24.requestAssetCode = FIAT_USD_CODE
+    txn24.amountOutAsset = STELLAR_USDC
     txn24.amountOut = "1.8"
-    txn24.amountFeeAsset = "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+    txn24.amountFeeAsset = STELLAR_USDC
     txn24.amountFee = "0.2"
     txn24.transferReceivedAt = transferReceivedAt
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
@@ -190,18 +194,16 @@ class NotifyAmountsUpdatedTest {
     expectedSep24Txn.kind = DEPOSIT.kind
     expectedSep24Txn.status = PENDING_ANCHOR.toString()
     expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
-    expectedSep24Txn.requestAssetCode = "USD"
-    expectedSep24Txn.amountOutAsset =
-      "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+    expectedSep24Txn.requestAssetCode = FIAT_USD_CODE
+    expectedSep24Txn.amountOutAsset = STELLAR_USDC
     expectedSep24Txn.amountOut = "0.9"
-    expectedSep24Txn.amountFeeAsset =
-      "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+    expectedSep24Txn.amountFeeAsset = STELLAR_USDC
     expectedSep24Txn.amountFee = "0.1"
     expectedSep24Txn.transferReceivedAt = transferReceivedAt
 
     JSONAssert.assertEquals(
-      gson.toJson(expectedSep24Txn),
-      gson.toJson(sep24TxnCapture.captured),
+      GSON.toJson(expectedSep24Txn),
+      GSON.toJson(sep24TxnCapture.captured),
       JSONCompareMode.STRICT
     )
 
@@ -209,17 +211,15 @@ class NotifyAmountsUpdatedTest {
     expectedResponse.sep = SEP_24
     expectedResponse.kind = DEPOSIT
     expectedResponse.status = PENDING_ANCHOR
-    expectedResponse.amountExpected = Amount(null, "iso4217:USD")
-    expectedResponse.amountOut =
-      Amount("0.9", "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN")
-    expectedResponse.amountFee =
-      Amount("0.1", "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN")
+    expectedResponse.amountExpected = Amount(null, FIAT_USD)
+    expectedResponse.amountOut = Amount("0.9", STELLAR_USDC)
+    expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.transferReceivedAt = transferReceivedAt
 
     JSONAssert.assertEquals(
-      gson.toJson(expectedResponse),
-      gson.toJson(response),
+      GSON.toJson(expectedResponse),
+      GSON.toJson(response),
       JSONCompareMode.STRICT
     )
 

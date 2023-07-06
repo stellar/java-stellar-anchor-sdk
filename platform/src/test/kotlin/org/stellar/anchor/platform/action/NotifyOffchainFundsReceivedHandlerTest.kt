@@ -37,6 +37,10 @@ class NotifyOffchainFundsReceivedHandlerTest {
   companion object {
     private val gson = GsonUtils.getInstance()
     private const val TX_ID = "testId"
+    private const val FIAT_USD = "iso4217:USD"
+    private const val STELLAR_USDC =
+      "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+    private const val FIAT_USD_CODE = "USD"
   }
 
   @MockK(relaxed = true) private lateinit var txn24Store: Sep24TransactionStore
@@ -159,10 +163,10 @@ class NotifyOffchainFundsReceivedHandlerTest {
     val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_USR_TRANSFER_START.toString()
     txn24.kind = DEPOSIT.kind
-    txn24.requestAssetCode = "USD"
-    txn24.amountInAsset = "iso4217:USD"
-    txn24.amountOutAsset = "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
-    txn24.amountFeeAsset = "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+    txn24.requestAssetCode = FIAT_USD_CODE
+    txn24.amountInAsset = FIAT_USD
+    txn24.amountOutAsset = STELLAR_USDC
+    txn24.amountFeeAsset = STELLAR_USDC
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
@@ -183,15 +187,13 @@ class NotifyOffchainFundsReceivedHandlerTest {
     expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedSep24Txn.externalTransactionId = "externalTxId"
     expectedSep24Txn.transferReceivedAt = transferReceivedAt
-    expectedSep24Txn.requestAssetCode = "USD"
+    expectedSep24Txn.requestAssetCode = FIAT_USD_CODE
     expectedSep24Txn.amountIn = "1"
-    expectedSep24Txn.amountInAsset = "iso4217:USD"
+    expectedSep24Txn.amountInAsset = FIAT_USD
     expectedSep24Txn.amountOut = "0.9"
-    expectedSep24Txn.amountOutAsset =
-      "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+    expectedSep24Txn.amountOutAsset = STELLAR_USDC
     expectedSep24Txn.amountFee = "0.1"
-    expectedSep24Txn.amountFeeAsset =
-      "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+    expectedSep24Txn.amountFeeAsset = STELLAR_USDC
 
     JSONAssert.assertEquals(
       gson.toJson(expectedSep24Txn),
@@ -206,12 +208,10 @@ class NotifyOffchainFundsReceivedHandlerTest {
     expectedResponse.externalTransactionId = "externalTxId"
     expectedResponse.transferReceivedAt = transferReceivedAt
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
-    expectedResponse.amountIn = Amount("1", "iso4217:USD")
-    expectedResponse.amountOut =
-      Amount("0.9", "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN")
-    expectedResponse.amountFee =
-      Amount("0.1", "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN")
-    expectedResponse.amountExpected = Amount(null, "iso4217:USD")
+    expectedResponse.amountIn = Amount("1", FIAT_USD)
+    expectedResponse.amountOut = Amount("0.9", STELLAR_USDC)
+    expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
+    expectedResponse.amountExpected = Amount(null, FIAT_USD)
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -233,7 +233,7 @@ class NotifyOffchainFundsReceivedHandlerTest {
     val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_USR_TRANSFER_START.toString()
     txn24.kind = DEPOSIT.kind
-    txn24.requestAssetCode = "USD"
+    txn24.requestAssetCode = FIAT_USD_CODE
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
     val sep24CustodyTxnCapture = slot<JdbcSep24Transaction>()
 
@@ -256,7 +256,7 @@ class NotifyOffchainFundsReceivedHandlerTest {
     expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedSep24Txn.externalTransactionId = "externalTxId"
     expectedSep24Txn.transferReceivedAt = sep24TxnCapture.captured.transferReceivedAt
-    expectedSep24Txn.requestAssetCode = "USD"
+    expectedSep24Txn.requestAssetCode = FIAT_USD_CODE
 
     JSONAssert.assertEquals(
       gson.toJson(expectedSep24Txn),
@@ -277,7 +277,7 @@ class NotifyOffchainFundsReceivedHandlerTest {
     expectedResponse.externalTransactionId = "externalTxId"
     expectedResponse.transferReceivedAt = sep24TxnCapture.captured.transferReceivedAt
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
-    expectedResponse.amountExpected = Amount(null, "iso4217:USD")
+    expectedResponse.amountExpected = Amount(null, FIAT_USD)
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -297,7 +297,7 @@ class NotifyOffchainFundsReceivedHandlerTest {
     val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_USR_TRANSFER_START.toString()
     txn24.kind = DEPOSIT.kind
-    txn24.requestAssetCode = "USD"
+    txn24.requestAssetCode = FIAT_USD_CODE
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
@@ -314,7 +314,7 @@ class NotifyOffchainFundsReceivedHandlerTest {
     expectedSep24Txn.kind = DEPOSIT.kind
     expectedSep24Txn.status = PENDING_ANCHOR.toString()
     expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
-    expectedSep24Txn.requestAssetCode = "USD"
+    expectedSep24Txn.requestAssetCode = FIAT_USD_CODE
 
     JSONAssert.assertEquals(
       gson.toJson(expectedSep24Txn),
@@ -327,7 +327,7 @@ class NotifyOffchainFundsReceivedHandlerTest {
     expectedResponse.kind = DEPOSIT
     expectedResponse.status = PENDING_ANCHOR
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
-    expectedResponse.amountExpected = Amount(null, "iso4217:USD")
+    expectedResponse.amountExpected = Amount(null, FIAT_USD)
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -375,10 +375,10 @@ class NotifyOffchainFundsReceivedHandlerTest {
     val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_USR_TRANSFER_START.toString()
     txn24.kind = DEPOSIT.kind
-    txn24.requestAssetCode = "USD"
-    txn24.amountInAsset = "iso4217:USD"
-    txn24.amountOutAsset = "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
-    txn24.amountFeeAsset = "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
+    txn24.requestAssetCode = FIAT_USD_CODE
+    txn24.amountInAsset = FIAT_USD
+    txn24.amountOutAsset = STELLAR_USDC
+    txn24.amountFeeAsset = STELLAR_USDC
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
