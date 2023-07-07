@@ -2,6 +2,7 @@ package org.stellar.anchor.platform.payment.observer.stellar;
 
 import static org.stellar.anchor.api.platform.HealthCheckStatus.*;
 import static org.stellar.anchor.platform.payment.observer.stellar.ObserverStatus.*;
+import static org.stellar.anchor.platform.service.AnchorMetrics.STElLAR_PAYMENT_OBSERVER;
 import static org.stellar.anchor.util.Log.*;
 import static org.stellar.anchor.util.ReflectionUtil.getField;
 
@@ -173,11 +174,11 @@ public class StellarPaymentObserver implements HealthCheckable {
     if (metricLatestBlock == null) {
       metricLatestBlock = new AtomicLong(operationResponse.getTransaction().get().getLedger());
       Metrics.gauge(
-          AnchorMetrics.STElLAR_PAYMENT_OBSERVER.toString(),
+          STElLAR_PAYMENT_OBSERVER.toString(),
           Tags.of("status", AnchorMetrics.TAG_OBSERVER_LATEST_BLOCK.toString()),
           metricLatestBlock);
     }
-    System.out.println(operationResponse.getTransaction().get().getLedger());
+    Log.debugF("Update metrics {}: {}", STElLAR_PAYMENT_OBSERVER, operationResponse.getTransaction().get().getLedger());
     metricLatestBlock.set(operationResponse.getTransaction().get().getLedger());
   }
 
