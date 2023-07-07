@@ -10,7 +10,6 @@ import static org.stellar.anchor.util.SepHelper.memoTypeString;
 
 import java.util.Set;
 import javax.validation.Validator;
-import org.springframework.stereotype.Service;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException;
@@ -29,7 +28,6 @@ import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.sdk.Memo;
 
-@Service
 public class DoStellarRefundHandler extends ActionHandler<DoStellarRefundRequest> {
 
   private final CustodyService custodyService;
@@ -43,7 +41,7 @@ public class DoStellarRefundHandler extends ActionHandler<DoStellarRefundRequest
       Horizon horizon,
       AssetService assetService,
       CustodyService custodyService) {
-    super(txn24Store, txn31Store, validator, horizon, assetService);
+    super(txn24Store, txn31Store, validator, horizon, assetService, DoStellarRefundRequest.class);
     this.custodyService = custodyService;
     this.custodyConfig = custodyConfig;
   }

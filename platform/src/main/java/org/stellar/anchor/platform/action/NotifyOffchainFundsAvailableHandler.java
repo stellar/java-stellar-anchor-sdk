@@ -7,7 +7,6 @@ import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_USR_TRANSF
 
 import java.util.Set;
 import javax.validation.Validator;
-import org.springframework.stereotype.Service;
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException;
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind;
 import org.stellar.anchor.api.rpc.action.ActionMethod;
@@ -20,7 +19,6 @@ import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 
-@Service
 public class NotifyOffchainFundsAvailableHandler
     extends ActionHandler<NotifyOffchainFundsAvailableRequest> {
 
@@ -30,7 +28,13 @@ public class NotifyOffchainFundsAvailableHandler
       Validator validator,
       Horizon horizon,
       AssetService assetService) {
-    super(txn24Store, txn31Store, validator, horizon, assetService);
+    super(
+        txn24Store,
+        txn31Store,
+        validator,
+        horizon,
+        assetService,
+        NotifyOffchainFundsAvailableRequest.class);
   }
 
   @Override

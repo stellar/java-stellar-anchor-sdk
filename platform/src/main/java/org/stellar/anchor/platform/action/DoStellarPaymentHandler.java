@@ -8,7 +8,6 @@ import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_TRUST;
 
 import java.util.Set;
 import javax.validation.Validator;
-import org.springframework.stereotype.Service;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException;
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException;
@@ -25,7 +24,6 @@ import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 
-@Service
 public class DoStellarPaymentHandler extends ActionHandler<DoStellarPaymentRequest> {
 
   private final CustodyService custodyService;
@@ -39,7 +37,7 @@ public class DoStellarPaymentHandler extends ActionHandler<DoStellarPaymentReque
       Horizon horizon,
       AssetService assetService,
       CustodyService custodyService) {
-    super(txn24Store, txn31Store, validator, horizon, assetService);
+    super(txn24Store, txn31Store, validator, horizon, assetService, DoStellarPaymentRequest.class);
     this.custodyService = custodyService;
     this.custodyConfig = custodyConfig;
   }

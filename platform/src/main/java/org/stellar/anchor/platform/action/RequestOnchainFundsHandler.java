@@ -12,7 +12,6 @@ import static org.stellar.anchor.util.SepHelper.memoTypeString;
 import java.util.HashSet;
 import java.util.Set;
 import javax.validation.Validator;
-import org.springframework.stereotype.Service;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException;
@@ -35,11 +34,10 @@ import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.sdk.Memo;
 
-@Service
 public class RequestOnchainFundsHandler extends ActionHandler<RequestOnchainFundsRequest> {
 
-  private final CustodyConfig custodyConfig;
   private final CustodyService custodyService;
+  private final CustodyConfig custodyConfig;
   private final Sep24DepositInfoGenerator sep24DepositInfoGenerator;
 
   public RequestOnchainFundsHandler(
@@ -48,12 +46,13 @@ public class RequestOnchainFundsHandler extends ActionHandler<RequestOnchainFund
       Validator validator,
       Horizon horizon,
       AssetService assetService,
-      CustodyConfig custodyConfig,
       CustodyService custodyService,
+      CustodyConfig custodyConfig,
       Sep24DepositInfoGenerator sep24DepositInfoGenerator) {
-    super(txn24Store, txn31Store, validator, horizon, assetService);
-    this.custodyConfig = custodyConfig;
+    super(
+        txn24Store, txn31Store, validator, horizon, assetService, RequestOnchainFundsRequest.class);
     this.custodyService = custodyService;
+    this.custodyConfig = custodyConfig;
     this.sep24DepositInfoGenerator = sep24DepositInfoGenerator;
   }
 

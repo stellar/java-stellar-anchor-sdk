@@ -10,7 +10,6 @@ import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 import javax.validation.Validator;
-import org.springframework.stereotype.Service;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException;
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException;
@@ -28,7 +27,6 @@ import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 
-@Service
 public class NotifyOffchainFundsReceivedHandler
     extends ActionHandler<NotifyOffchainFundsReceivedRequest> {
 
@@ -43,7 +41,13 @@ public class NotifyOffchainFundsReceivedHandler
       AssetService assetService,
       CustodyService custodyService,
       CustodyConfig custodyConfig) {
-    super(txn24Store, txn31Store, validator, horizon, assetService);
+    super(
+        txn24Store,
+        txn31Store,
+        validator,
+        horizon,
+        assetService,
+        NotifyOffchainFundsReceivedRequest.class);
     this.custodyService = custodyService;
     this.custodyConfig = custodyConfig;
   }

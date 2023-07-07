@@ -50,7 +50,8 @@ class ActionHandlerTest {
       txn31Store,
       validator,
       horizon,
-      assetService
+      assetService,
+      NotifyInteractiveFlowCompletedRequest::class.java
     ) {
     override fun getActionType(): ActionMethod {
       return NOTIFY_INTERACTIVE_FLOW_COMPLETED

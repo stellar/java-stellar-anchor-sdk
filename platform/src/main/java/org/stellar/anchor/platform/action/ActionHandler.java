@@ -14,6 +14,7 @@ import static org.stellar.anchor.util.Log.error;
 import static org.stellar.anchor.util.Log.errorEx;
 import static org.stellar.anchor.util.MathHelper.decimal;
 
+import com.google.gson.Gson;
 import java.io.IOException;
 import java.time.Instant;
 import java.util.Arrays;
@@ -44,10 +45,12 @@ import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSep31Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.platform.observer.ObservedPayment;
+import org.stellar.anchor.sep24.Sep24Transaction;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31Transaction;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.util.AssetHelper;
+import org.stellar.anchor.util.GsonUtils;
 import org.stellar.anchor.util.SepHelper;
 import org.stellar.anchor.util.StringHelper;
 import org.stellar.sdk.AssetTypeCreditAlphaNum;
@@ -57,30 +60,35 @@ import org.stellar.sdk.responses.operations.PaymentOperationResponse;
 
 public abstract class ActionHandler<T extends RpcActionParamsRequest> {
 
+  private static final Gson gson = GsonUtils.getInstance();
+
   protected final Sep24TransactionStore txn24Store;
   protected final Sep31TransactionStore txn31Store;
   private final Validator validator;
   private final Horizon horizon;
   protected final AssetService assetService;
   private final List<AssetInfo> assets;
+  private final Class<T> requestType;
 
   public ActionHandler(
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       Validator validator,
       Horizon horizon,
-      AssetService assetService) {
+      AssetService assetService,
+      Class<T> requestType) {
     this.txn24Store = txn24Store;
     this.txn31Store = txn31Store;
     this.validator = validator;
     this.horizon = horizon;
     this.assetService = assetService;
     this.assets = assetService.listAllAssets();
+    this.requestType = requestType;
   }
 
   @Transactional
   public GetTransactionResponse handle(Object requestParams) throws AnchorException {
-    RpcActionParamsRequest request = (RpcActionParamsRequest) requestParams;
+    T request = gson.fromJson(gson.toJson(requestParams), requestType);
     JdbcSepTransaction txn = getTransaction(request.getTransactionId());
 
     if (txn == null) {
@@ -122,7 +130,11 @@ public abstract class ActionHandler<T extends RpcActionParamsRequest> {
     if (txn31 != null) {
       return (JdbcSep31Transaction) txn31;
     }
-    return (JdbcSep24Transaction) txn24Store.findByTransactionId(transactionId);
+    Sep24Transaction txn24 = txn24Store.findByTransactionId(transactionId);
+    if (txn24 != null) {
+      return (JdbcSep24Transaction) txn24;
+    }
+    return null;
   }
 
   protected void validate(JdbcSepTransaction txn, T request)
