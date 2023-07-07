@@ -9,6 +9,6 @@ import org.stellar.anchor.api.exception.RpcException;
 @EqualsAndHashCode(callSuper = false)
 public class MethodNotFoundException extends RpcException {
   public MethodNotFoundException(String message) {
-    super(METHOD_NOT_FOUND.getErrorCode(), message);
+    super(METHOD_NOT_FOUND, message);
   }
 }

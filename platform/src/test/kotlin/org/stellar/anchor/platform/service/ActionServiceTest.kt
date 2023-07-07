@@ -15,7 +15,7 @@ import org.stellar.anchor.platform.utils.RpcUtil.JSON_RPC_VERSION
 
 class ActionServiceTest {
   companion object {
-    private const val RPC_ID = 1
+    private const val RPC_ID = "1"
     private const val ERROR_MSG = "Error message"
     private const val RPC_METHOD = "test_rpc_method"
   }

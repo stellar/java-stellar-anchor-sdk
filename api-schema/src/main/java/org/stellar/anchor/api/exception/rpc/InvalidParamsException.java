@@ -9,6 +9,6 @@ import org.stellar.anchor.api.exception.RpcException;
 @EqualsAndHashCode(callSuper = false)
 public class InvalidParamsException extends RpcException {
   public InvalidParamsException(String message) {
-    super(INVALID_PARAMS.getErrorCode(), message);
+    super(INVALID_PARAMS, message);
   }
 }

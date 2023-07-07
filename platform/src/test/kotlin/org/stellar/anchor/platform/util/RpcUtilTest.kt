@@ -21,7 +21,7 @@ import org.stellar.anchor.platform.utils.RpcUtil.JSON_RPC_VERSION
 class RpcUtilTest {
 
   companion object {
-    private const val RPC_ID = 1
+    private const val RPC_ID = "1"
     private const val RPC_RESULT = 2L
     private const val ERROR_MSG = "Error message"
     private const val RPC_METHOD = "test_rpc_method"
@@ -93,14 +93,6 @@ class RpcUtilTest {
       RpcRequest.builder().jsonrpc(JSON_RPC_VERSION).method(StringUtils.EMPTY).build()
     val exception = assertThrows<InvalidRequestException> { RpcUtil.validateRpcRequest(rpcRequest) }
     assertEquals("Method name can't be NULL or empty", exception.message)
-  }
-
-  @Test
-  fun `test validate invalid id type`() {
-    val rpcRequest =
-      RpcRequest.builder().jsonrpc(JSON_RPC_VERSION).method(RPC_METHOD).id(true).build()
-    val exception = assertThrows<InvalidRequestException> { RpcUtil.validateRpcRequest(rpcRequest) }
-    assertEquals("An identifier MUST contain a String, Number, or NULL value", exception.message)
   }
 
   private fun verifyErrorResponse(response: RpcResponse) {

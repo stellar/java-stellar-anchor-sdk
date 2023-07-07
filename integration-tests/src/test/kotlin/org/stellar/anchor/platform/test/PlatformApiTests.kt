@@ -19,8 +19,8 @@ import shadow.com.google.common.reflect.TypeToken
 
 class PlatformApiTests(config: TestConfig, toml: TomlContent, jwt: String) {
   companion object {
-    private const val RPC_ID_1 = 1
-    private const val RPC_ID_2 = 2
+    private const val RPC_ID_1 = "1"
+    private const val RPC_ID_2 = "2"
     private const val RPC_METHOD = "test_rpc_method"
   }
 
@@ -70,12 +70,10 @@ class PlatformApiTests(config: TestConfig, toml: TomlContent, jwt: String) {
     val request1 = RpcRequest.builder().id(RPC_ID_1).method(RPC_METHOD).build()
     val request2 =
       RpcRequest.builder().id(RPC_ID_2).jsonrpc(JSON_RPC_VERSION).method(StringUtils.EMPTY).build()
-    val request3 =
-      RpcRequest.builder().id(true).jsonrpc(JSON_RPC_VERSION).method(RPC_METHOD).build()
-    val response = platformApiClient.rpcAction(listOf(request1, request2, request3))
+    val response = platformApiClient.rpcAction(listOf(request1, request2))
     assertEquals(HttpStatus.SC_BAD_REQUEST, response.code)
     val responses = gson.fromJson<List<RpcResponse>>(response.body?.string(), type)
-    assertEquals(3, responses.size)
+    assertEquals(2, responses.size)
     responses.forEach {
       assertNull(it.result)
       assertNotNull(it.error)

@@ -9,7 +9,7 @@ public class RpcResponse {
   private String jsonrpc;
   private Object result;
   private RpcError error;
-  private Object id;
+  private String id;
 
   @Data
   @Builder
