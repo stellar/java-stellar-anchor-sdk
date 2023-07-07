@@ -167,7 +167,10 @@ class RequestOnchainFundsHandlerTest {
     every { validator.validate(request) } returns setOf(violation1, violation2)
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
-    assertEquals("violation error message 1\n" + "violation error message 2", ex.message)
+    assertEquals(
+      "violation error message 1\n" + "violation error message 2",
+      ex.message?.trimIndent()
+    )
   }
 
   @Test
@@ -243,8 +246,8 @@ class RequestOnchainFundsHandlerTest {
       JSONCompareMode.STRICT
     )
 
-    assertTrue(expectedSep24Txn.updatedAt.isAfter(startDate))
-    assertTrue(expectedSep24Txn.updatedAt.isBefore(endDate))
+    assertTrue(expectedSep24Txn.updatedAt >= startDate)
+    assertTrue(expectedSep24Txn.updatedAt <= endDate)
   }
 
   @Test
@@ -336,8 +339,8 @@ class RequestOnchainFundsHandlerTest {
       JSONCompareMode.STRICT
     )
 
-    assertTrue(expectedSep24Txn.updatedAt.isAfter(startDate))
-    assertTrue(expectedSep24Txn.updatedAt.isBefore(endDate))
+    assertTrue(expectedSep24Txn.updatedAt >= startDate)
+    assertTrue(expectedSep24Txn.updatedAt <= endDate)
   }
 
   @Test
@@ -420,8 +423,8 @@ class RequestOnchainFundsHandlerTest {
       JSONCompareMode.STRICT
     )
 
-    assertTrue(expectedSep24Txn.updatedAt.isAfter(startDate))
-    assertTrue(expectedSep24Txn.updatedAt.isBefore(endDate))
+    assertTrue(expectedSep24Txn.updatedAt >= startDate)
+    assertTrue(expectedSep24Txn.updatedAt <= endDate)
   }
 
   @Test
@@ -496,8 +499,8 @@ class RequestOnchainFundsHandlerTest {
       JSONCompareMode.STRICT
     )
 
-    assertTrue(expectedSep24Txn.updatedAt.isAfter(startDate))
-    assertTrue(expectedSep24Txn.updatedAt.isBefore(endDate))
+    assertTrue(expectedSep24Txn.updatedAt >= startDate)
+    assertTrue(expectedSep24Txn.updatedAt <= endDate)
   }
 
   @Test
@@ -576,8 +579,8 @@ class RequestOnchainFundsHandlerTest {
       JSONCompareMode.STRICT
     )
 
-    assertTrue(expectedSep24Txn.updatedAt.isAfter(startDate))
-    assertTrue(expectedSep24Txn.updatedAt.isBefore(endDate))
+    assertTrue(expectedSep24Txn.updatedAt >= startDate)
+    assertTrue(expectedSep24Txn.updatedAt <= endDate)
   }
 
   @Test
