@@ -125,6 +125,7 @@ public class JdbcSep24Transaction extends JdbcSepTransaction
 
   /** The SEP10 account memo used for authentication. */
   @SerializedName("sep10_account_memo")
+  // TODO: why
   @Column(name = "sep10account_memo")
   String sep10AccountMemo;
 
