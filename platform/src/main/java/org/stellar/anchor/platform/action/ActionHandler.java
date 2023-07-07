@@ -45,7 +45,6 @@ import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSep31Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.platform.observer.ObservedPayment;
-import org.stellar.anchor.sep24.Sep24Transaction;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31Transaction;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
@@ -130,11 +129,7 @@ public abstract class ActionHandler<T extends RpcActionParamsRequest> {
     if (txn31 != null) {
       return (JdbcSep31Transaction) txn31;
     }
-    Sep24Transaction txn24 = txn24Store.findByTransactionId(transactionId);
-    if (txn24 != null) {
-      return (JdbcSep24Transaction) txn24;
-    }
-    return null;
+    return (JdbcSep24Transaction) txn24Store.findByTransactionId(transactionId);
   }
 
   protected void validate(JdbcSepTransaction txn, T request)

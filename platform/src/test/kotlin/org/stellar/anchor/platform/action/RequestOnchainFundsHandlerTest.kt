@@ -39,7 +39,7 @@ import org.stellar.anchor.util.GsonUtils
 class RequestOnchainFundsHandlerTest {
 
   companion object {
-    private val GSON = GsonUtils.getInstance()
+    private val gson = GsonUtils.getInstance()
     private const val TX_ID = "testId"
     private const val FIAT_USD = "iso4217:USD"
     private const val STELLAR_USDC =
@@ -222,8 +222,8 @@ class RequestOnchainFundsHandlerTest {
     expectedSep24Txn.withdrawAnchorAccount = "testDestinationAccount"
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedSep24Txn),
-      GSON.toJson(sep24TxnCapture.captured),
+      gson.toJson(expectedSep24Txn),
+      gson.toJson(sep24TxnCapture.captured),
       JSONCompareMode.STRICT
     )
 
@@ -241,8 +241,8 @@ class RequestOnchainFundsHandlerTest {
     expectedResponse.destinationAccount = "testDestinationAccount"
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedResponse),
-      GSON.toJson(response),
+      gson.toJson(expectedResponse),
+      gson.toJson(response),
       JSONCompareMode.STRICT
     )
 
@@ -260,8 +260,8 @@ class RequestOnchainFundsHandlerTest {
         validator,
         horizon,
         assetService,
-        custodyConfig,
         custodyService,
+        custodyConfig,
         sep24DepositInfoGenerator
       )
 
@@ -315,8 +315,8 @@ class RequestOnchainFundsHandlerTest {
     expectedSep24Txn.withdrawAnchorAccount = "testDestinationAccount2"
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedSep24Txn),
-      GSON.toJson(sep24TxnCapture.captured),
+      gson.toJson(expectedSep24Txn),
+      gson.toJson(sep24TxnCapture.captured),
       JSONCompareMode.STRICT
     )
 
@@ -334,8 +334,8 @@ class RequestOnchainFundsHandlerTest {
     expectedResponse.destinationAccount = "testDestinationAccount2"
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedResponse),
-      GSON.toJson(response),
+      gson.toJson(expectedResponse),
+      gson.toJson(response),
       JSONCompareMode.STRICT
     )
 
@@ -393,14 +393,14 @@ class RequestOnchainFundsHandlerTest {
     expectedSep24Txn.withdrawAnchorAccount = "testDestinationAccount"
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedSep24Txn),
-      GSON.toJson(sep24TxnCapture.captured),
+      gson.toJson(expectedSep24Txn),
+      gson.toJson(sep24TxnCapture.captured),
       JSONCompareMode.STRICT
     )
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedSep24Txn),
-      GSON.toJson(sep24CustodyTxnCapture.captured),
+      gson.toJson(expectedSep24Txn),
+      gson.toJson(sep24CustodyTxnCapture.captured),
       JSONCompareMode.STRICT
     )
 
@@ -418,8 +418,8 @@ class RequestOnchainFundsHandlerTest {
     expectedResponse.destinationAccount = "testDestinationAccount"
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedResponse),
-      GSON.toJson(response),
+      gson.toJson(expectedResponse),
+      gson.toJson(response),
       JSONCompareMode.STRICT
     )
 
@@ -475,8 +475,8 @@ class RequestOnchainFundsHandlerTest {
     expectedSep24Txn.withdrawAnchorAccount = "testDestinationAccount"
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedSep24Txn),
-      GSON.toJson(sep24TxnCapture.captured),
+      gson.toJson(expectedSep24Txn),
+      gson.toJson(sep24TxnCapture.captured),
       JSONCompareMode.STRICT
     )
 
@@ -494,8 +494,8 @@ class RequestOnchainFundsHandlerTest {
     expectedResponse.destinationAccount = "testDestinationAccount"
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedResponse),
-      GSON.toJson(response),
+      gson.toJson(expectedResponse),
+      gson.toJson(response),
       JSONCompareMode.STRICT
     )
 
@@ -555,8 +555,8 @@ class RequestOnchainFundsHandlerTest {
     expectedSep24Txn.withdrawAnchorAccount = "testDestinationAccount"
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedSep24Txn),
-      GSON.toJson(sep24TxnCapture.captured),
+      gson.toJson(expectedSep24Txn),
+      gson.toJson(sep24TxnCapture.captured),
       JSONCompareMode.STRICT
     )
 
@@ -574,8 +574,8 @@ class RequestOnchainFundsHandlerTest {
     expectedResponse.destinationAccount = "testDestinationAccount"
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedResponse),
-      GSON.toJson(response),
+      gson.toJson(expectedResponse),
+      gson.toJson(response),
       JSONCompareMode.STRICT
     )
 

@@ -1,9 +1,12 @@
 package org.stellar.anchor.platform.action
 
+import com.google.gson.reflect.TypeToken
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
+import java.time.Instant
 import java.util.*
 import javax.validation.Validator
+import kotlin.collections.ArrayList
 import kotlin.collections.Set
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -12,6 +15,8 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.skyscreamer.jsonassert.JSONAssert
+import org.skyscreamer.jsonassert.JSONCompareMode
 import org.stellar.anchor.api.exception.AnchorException
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException
@@ -21,6 +26,7 @@ import org.stellar.anchor.api.rpc.action.AmountRequest
 import org.stellar.anchor.api.rpc.action.NotifyInteractiveFlowCompletedRequest
 import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.api.sep.SepTransactionStatus.*
+import org.stellar.anchor.api.shared.StellarTransaction
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.horizon.Horizon
@@ -28,11 +34,18 @@ import org.stellar.anchor.platform.data.JdbcSep24Transaction
 import org.stellar.anchor.platform.data.JdbcSepTransaction
 import org.stellar.anchor.sep24.Sep24TransactionStore
 import org.stellar.anchor.sep31.Sep31TransactionStore
+import org.stellar.anchor.util.FileUtil
+import org.stellar.anchor.util.GsonUtils
 import org.stellar.sdk.AssetTypeCreditAlphaNum
 import org.stellar.sdk.Server
 import org.stellar.sdk.requests.AccountsRequestBuilder
+import org.stellar.sdk.requests.PaymentsRequestBuilder
 import org.stellar.sdk.responses.AccountResponse
 import org.stellar.sdk.responses.AccountResponse.Balance
+import org.stellar.sdk.responses.Page
+import org.stellar.sdk.responses.operations.OperationResponse
+import org.stellar.sdk.responses.operations.PaymentOperationResponse
+import org.stellar.sdk.responses.operations.SetTrustLineFlagsOperationResponse
 import shadow.com.google.common.base.Optional
 
 class ActionHandlerTest {
@@ -79,6 +92,7 @@ class ActionHandlerTest {
   }
 
   companion object {
+    private val gson = GsonUtils.getInstance()
     private const val TX_ID = "testId"
     private const val fiatUSD = "iso4217:USD"
   }
@@ -87,11 +101,17 @@ class ActionHandlerTest {
 
   @MockK(relaxed = true) private lateinit var txn31Store: Sep31TransactionStore
 
-  @MockK(relaxed = true) private lateinit var horizon: Horizon
-
   @MockK(relaxed = true) private lateinit var validator: Validator
 
   @MockK(relaxed = true) private lateinit var assetService: AssetService
+
+  @MockK(relaxed = true) private lateinit var horizon: Horizon
+
+  @MockK(relaxed = true) private lateinit var server: Server
+
+  @MockK(relaxed = true) private lateinit var paymentsRequestBuilder: PaymentsRequestBuilder
+
+  @MockK(relaxed = true) private lateinit var page: Page<OperationResponse>
 
   private lateinit var handler: ActionHandler<NotifyInteractiveFlowCompletedRequest>
 
@@ -278,5 +298,131 @@ class ActionHandlerTest {
     Arrays.stream(SepTransactionStatus.values())
       .filter { s -> !setOf(REFUNDED, COMPLETED).contains(s) }
       .forEach { s -> assertFalse(handler.isFinalStatus(s)) }
+  }
+
+  @Test
+  fun test_addStellarTransaction_paymentType() {
+    val txn24 = JdbcSep24Transaction()
+
+    val operationRecordsJson =
+      FileUtil.getResourceFileAsString("action/payment_operation_record.json")
+    val operationRecordsTypeToken =
+      object : TypeToken<ArrayList<PaymentOperationResponse>>() {}.type
+    val operationRecords: ArrayList<OperationResponse> =
+      gson.fromJson(operationRecordsJson, operationRecordsTypeToken)
+
+    val stellarTransactionsJson =
+      FileUtil.getResourceFileAsString("action/payment_stellar_transaction.json")
+    val stellarTransactionsToken = object : TypeToken<List<StellarTransaction>>() {}.type
+    val stellarTransactions: List<StellarTransaction> =
+      gson.fromJson(stellarTransactionsJson, stellarTransactionsToken)
+
+    every { horizon.server } returns server
+    every { server.payments() } returns paymentsRequestBuilder
+    every { paymentsRequestBuilder.includeTransactions(true) } returns paymentsRequestBuilder
+    every { paymentsRequestBuilder.forTransaction("stellarTxId") } returns paymentsRequestBuilder
+    every { paymentsRequestBuilder.execute() } returns page
+    every { page.records } returns operationRecords
+
+    handler.addStellarTransaction(txn24, "stellarTxId")
+
+    val expectedSep24Txn = JdbcSep24Transaction()
+    expectedSep24Txn.transferReceivedAt = Instant.parse("2023-05-10T10:18:20Z")
+    expectedSep24Txn.stellarTransactionId = "stellarTxId"
+    expectedSep24Txn.stellarTransactions = stellarTransactions
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedSep24Txn),
+      gson.toJson(txn24),
+      JSONCompareMode.STRICT
+    )
+  }
+
+  @Test
+  fun test_addStellarTransaction_pathPaymentType() {
+    val txn24 = JdbcSep24Transaction()
+
+    val operationRecordsJson =
+      FileUtil.getResourceFileAsString("action/path_payment_operation_record.json")
+    val operationRecordsTypeToken =
+      object : TypeToken<ArrayList<PaymentOperationResponse>>() {}.type
+    val operationRecords: ArrayList<OperationResponse> =
+      gson.fromJson(operationRecordsJson, operationRecordsTypeToken)
+
+    val stellarTransactionsJson =
+      FileUtil.getResourceFileAsString("action/path_payment_stellar_transaction.json")
+    val stellarTransactionsToken = object : TypeToken<List<StellarTransaction>>() {}.type
+    val stellarTransactions: List<StellarTransaction> =
+      gson.fromJson(stellarTransactionsJson, stellarTransactionsToken)
+
+    every { horizon.server } returns server
+    every { server.payments() } returns paymentsRequestBuilder
+    every { paymentsRequestBuilder.includeTransactions(true) } returns paymentsRequestBuilder
+    every { paymentsRequestBuilder.forTransaction("stellarTxId") } returns paymentsRequestBuilder
+    every { paymentsRequestBuilder.execute() } returns page
+    every { page.records } returns operationRecords
+
+    handler.addStellarTransaction(txn24, "stellarTxId")
+
+    val expectedSep24Txn = JdbcSep24Transaction()
+    expectedSep24Txn.transferReceivedAt = Instant.parse("2023-05-10T10:18:22Z")
+    expectedSep24Txn.stellarTransactionId = "stellarTxId"
+    expectedSep24Txn.stellarTransactions = stellarTransactions
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedSep24Txn),
+      gson.toJson(txn24),
+      JSONCompareMode.STRICT
+    )
+  }
+
+  @Test
+  fun test_addStellarTransaction_setTrustType() {
+    val txn24 = JdbcSep24Transaction()
+
+    val operationRecordsJson =
+      FileUtil.getResourceFileAsString("action/path_payment_operation_record.json")
+    val operationRecordsTypeToken =
+      object : TypeToken<ArrayList<SetTrustLineFlagsOperationResponse>>() {}.type
+    val operationRecords: ArrayList<OperationResponse> =
+      gson.fromJson(operationRecordsJson, operationRecordsTypeToken)
+
+    every { horizon.server } returns server
+    every { server.payments() } returns paymentsRequestBuilder
+    every { paymentsRequestBuilder.includeTransactions(true) } returns paymentsRequestBuilder
+    every { paymentsRequestBuilder.forTransaction("stellarTxId") } returns paymentsRequestBuilder
+    every { paymentsRequestBuilder.execute() } returns page
+    every { page.records } returns operationRecords
+
+    handler.addStellarTransaction(txn24, "stellarTxId")
+
+    val expectedSep24Txn = JdbcSep24Transaction()
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedSep24Txn),
+      gson.toJson(txn24),
+      JSONCompareMode.STRICT
+    )
+  }
+
+  @Test
+  fun test_addStellarTransaction_networkError() {
+    val txn24 = JdbcSep24Transaction()
+
+    every { horizon.server } returns server
+    every { server.payments() } returns paymentsRequestBuilder
+    every { paymentsRequestBuilder.includeTransactions(true) } returns paymentsRequestBuilder
+    every { paymentsRequestBuilder.forTransaction("stellarTxId") } throws
+      RuntimeException("Invalid stellar transaction")
+
+    handler.addStellarTransaction(txn24, "stellarTxId")
+
+    val expectedSep24Txn = JdbcSep24Transaction()
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedSep24Txn),
+      gson.toJson(txn24),
+      JSONCompareMode.STRICT
+    )
   }
 }
