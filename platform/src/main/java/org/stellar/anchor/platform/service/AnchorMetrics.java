@@ -5,6 +5,7 @@ public enum AnchorMetrics {
   SEP31_TRANSACTION_DB("sep31.transaction.db"),
   PAYMENT_RECEIVED("payment.received"),
   LOGGER("logger"),
+  STElLAR_PAYMENT_OBSERVER("stellar_payment_observer"),
 
   // Metric Tags
   TAG_SEP31_STATUS_PENDING_STELLAR("pending_stellar"),
@@ -13,7 +14,8 @@ public enum AnchorMetrics {
   TAG_SEP31_STATUS_PENDING_RECEIVER("pending_receiver"),
   TAG_SEP31_STATUS_PENDING_EXTERNAL("pending_external"),
   TAG_SEP31_STATUS_COMPLETED("completed"),
-  TAG_SEP31_STATUS_ERROR("error");
+  TAG_SEP31_STATUS_ERROR("error"),
+  TAG_OBSERVER_LATEST_BLOCK("latest_block");
 
   private final String name;
 

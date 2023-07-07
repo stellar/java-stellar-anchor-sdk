@@ -36,6 +36,8 @@ public class StellarObservingService implements WebMvcConfigurer {
                 // this allows a developer to use a .env file for local development
                 "spring.config.import=optional:classpath:example.env[.properties]",
                 "spring.profiles.active=stellar-observer",
+                "management.endpoints.web.exposure.include=health,info,prometheus",
+                String.format("management.server.port=%d", port + 10000),
                 String.format("server.port=%d", port),
                 String.format("server.contextPath=%s", contextPath));
 

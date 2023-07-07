@@ -15,7 +15,12 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
+
+import io.micrometer.core.instrument.Gauge;
+import io.micrometer.core.instrument.Metrics;
+import io.micrometer.core.instrument.Tags;
 import lombok.Builder;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
@@ -28,6 +33,7 @@ import org.stellar.anchor.api.platform.HealthCheckStatus;
 import org.stellar.anchor.healthcheck.HealthCheckable;
 import org.stellar.anchor.platform.payment.observer.PaymentListener;
 import org.stellar.anchor.platform.payment.observer.circle.ObservedPayment;
+import org.stellar.anchor.platform.service.AnchorMetrics;
 import org.stellar.anchor.util.ExponentialBackoffTimer;
 import org.stellar.anchor.util.Log;
 import org.stellar.sdk.Server;
@@ -66,7 +72,7 @@ public class StellarPaymentObserver implements HealthCheckable {
   int silenceTimeoutCount = 0;
   ObserverStatus status = RUNNING;
   Instant lastActivityTime;
-
+  AtomicLong metricLatestBlock = null;
   // timers
   final ExponentialBackoffTimer publishingBackoffTimer = new ExponentialBackoffTimer();
   final ExponentialBackoffTimer streamBackoffTimer = new ExponentialBackoffTimer();
@@ -137,6 +143,7 @@ public class StellarPaymentObserver implements HealthCheckable {
         new EventListener<>() {
           @Override
           public void onEvent(OperationResponse operationResponse) {
+            updateMetrics(operationResponse);
             if (isHealthy()) {
               debugF("Received event {}", operationResponse.getId());
               // clear stream timeout/reconnect status
@@ -160,6 +167,18 @@ public class StellarPaymentObserver implements HealthCheckable {
             handleFailure(exception);
           }
         });
+  }
+
+  private void updateMetrics(OperationResponse operationResponse) {
+    if (metricLatestBlock == null) {
+      metricLatestBlock = new AtomicLong(operationResponse.getTransaction().get().getLedger());
+      Metrics.gauge(
+          AnchorMetrics.STElLAR_PAYMENT_OBSERVER.toString(),
+          Tags.of("status", AnchorMetrics.TAG_OBSERVER_LATEST_BLOCK.toString()),
+          metricLatestBlock);
+    }
+    System.out.println(operationResponse.getTransaction().get().getLedger());
+    metricLatestBlock.set(operationResponse.getTransaction().get().getLedger());
   }
 
   void stopStream() {
