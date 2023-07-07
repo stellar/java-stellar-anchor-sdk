@@ -2,7 +2,7 @@ package org.stellar.anchor.platform.payment.observer.stellar;
 
 import static org.stellar.anchor.api.platform.HealthCheckStatus.*;
 import static org.stellar.anchor.platform.payment.observer.stellar.ObserverStatus.*;
-import static org.stellar.anchor.platform.service.AnchorMetrics.STElLAR_PAYMENT_OBSERVER;
+import static org.stellar.anchor.platform.service.AnchorMetrics.STELLAR_PAYMENT_OBSERVER;
 import static org.stellar.anchor.util.Log.*;
 import static org.stellar.anchor.util.ReflectionUtil.getField;
 
@@ -19,7 +19,6 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
-import io.micrometer.core.instrument.Gauge;
 import io.micrometer.core.instrument.Metrics;
 import io.micrometer.core.instrument.Tags;
 import lombok.Builder;
@@ -174,11 +173,11 @@ public class StellarPaymentObserver implements HealthCheckable {
     if (metricLatestBlock == null) {
       metricLatestBlock = new AtomicLong(operationResponse.getTransaction().get().getLedger());
       Metrics.gauge(
-          STElLAR_PAYMENT_OBSERVER.toString(),
+          STELLAR_PAYMENT_OBSERVER.toString(),
           Tags.of("status", AnchorMetrics.TAG_OBSERVER_LATEST_BLOCK.toString()),
           metricLatestBlock);
     }
-    Log.debugF("Update metrics {}: {}", STElLAR_PAYMENT_OBSERVER, operationResponse.getTransaction().get().getLedger());
+    Log.debugF("Update metrics {}: {}", STELLAR_PAYMENT_OBSERVER, operationResponse.getTransaction().get().getLedger());
     metricLatestBlock.set(operationResponse.getTransaction().get().getLedger());
   }
 
