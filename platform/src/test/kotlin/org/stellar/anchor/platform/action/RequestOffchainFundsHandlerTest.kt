@@ -359,7 +359,7 @@ class RequestOffchainFundsHandlerTest {
   }
 
   @Test
-  fun test_handle_ok_notAllAmounts() {
+  fun test_handle_notAllAmounts() {
     val request =
       RequestOffchainFundsRequest.builder()
         .amountIn(AmountRequest("1", FIAT_USD))

@@ -597,7 +597,7 @@ class RequestOnchainFundsHandlerTest {
   }
 
   @Test
-  fun test_handle_ok_notAllAmounts() {
+  fun test_handle_notAllAmounts() {
     val request =
       RequestOnchainFundsRequest.builder()
         .amountIn(AmountRequest("1", FIAT_USD))
