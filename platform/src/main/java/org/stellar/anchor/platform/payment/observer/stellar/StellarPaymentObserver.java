@@ -2,11 +2,13 @@ package org.stellar.anchor.platform.payment.observer.stellar;
 
 import static org.stellar.anchor.api.platform.HealthCheckStatus.*;
 import static org.stellar.anchor.platform.payment.observer.stellar.ObserverStatus.*;
-import static org.stellar.anchor.platform.service.AnchorMetrics.STELLAR_PAYMENT_OBSERVER;
+import static org.stellar.anchor.platform.service.AnchorMetrics.*;
 import static org.stellar.anchor.util.Log.*;
 import static org.stellar.anchor.util.ReflectionUtil.getField;
 
 import com.google.gson.annotations.SerializedName;
+import io.micrometer.core.instrument.Metrics;
+import io.micrometer.core.instrument.Tags;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
@@ -18,9 +20,6 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
-
-import io.micrometer.core.instrument.Metrics;
-import io.micrometer.core.instrument.Tags;
 import lombok.Builder;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
@@ -33,7 +32,6 @@ import org.stellar.anchor.api.platform.HealthCheckStatus;
 import org.stellar.anchor.healthcheck.HealthCheckable;
 import org.stellar.anchor.platform.payment.observer.PaymentListener;
 import org.stellar.anchor.platform.payment.observer.circle.ObservedPayment;
-import org.stellar.anchor.platform.service.AnchorMetrics;
 import org.stellar.anchor.util.ExponentialBackoffTimer;
 import org.stellar.anchor.util.Log;
 import org.stellar.sdk.Server;
@@ -72,7 +70,8 @@ public class StellarPaymentObserver implements HealthCheckable {
   int silenceTimeoutCount = 0;
   ObserverStatus status = RUNNING;
   Instant lastActivityTime;
-  AtomicLong metricLatestBlock = null;
+  AtomicLong metricLatestBlockReceived = null;
+  AtomicLong metricLatestBlockProcessed = null;
   // timers
   final ExponentialBackoffTimer publishingBackoffTimer = new ExponentialBackoffTimer();
   final ExponentialBackoffTimer streamBackoffTimer = new ExponentialBackoffTimer();
@@ -143,9 +142,10 @@ public class StellarPaymentObserver implements HealthCheckable {
         new EventListener<>() {
           @Override
           public void onEvent(OperationResponse operationResponse) {
-            updateMetrics(operationResponse);
+            updateReceivedMetrics(operationResponse);
             if (isHealthy()) {
               debugF("Received event {}", operationResponse.getId());
+              updateProcessedMetrics(operationResponse);
               // clear stream timeout/reconnect status
               lastActivityTime = Instant.now();
               silenceTimeoutCount = 0;
@@ -169,16 +169,38 @@ public class StellarPaymentObserver implements HealthCheckable {
         });
   }
 
-  private void updateMetrics(OperationResponse operationResponse) {
-    if (metricLatestBlock == null) {
-      metricLatestBlock = new AtomicLong(operationResponse.getTransaction().get().getLedger());
+  private void updateReceivedMetrics(OperationResponse operationResponse) {
+    if (metricLatestBlockReceived == null) {
+      metricLatestBlockReceived =
+          new AtomicLong(operationResponse.getTransaction().get().getLedger());
       Metrics.gauge(
           STELLAR_PAYMENT_OBSERVER.toString(),
-          Tags.of("status", AnchorMetrics.TAG_OBSERVER_LATEST_BLOCK.toString()),
-          metricLatestBlock);
+          Tags.of("status", TAG_OBSERVER_LATEST_BLOCK_RECEIVED.toString()),
+          metricLatestBlockReceived);
     }
-    Log.debugF("Update metrics {}: {}", STELLAR_PAYMENT_OBSERVER, operationResponse.getTransaction().get().getLedger());
-    metricLatestBlock.set(operationResponse.getTransaction().get().getLedger());
+    Log.debugF(
+        "Update metrics {}{status=\"{}\"}: {}",
+        STELLAR_PAYMENT_OBSERVER,
+        TAG_OBSERVER_LATEST_BLOCK_RECEIVED,
+        operationResponse.getTransaction().get().getLedger());
+    metricLatestBlockReceived.set(operationResponse.getTransaction().get().getLedger());
+  }
+
+  private void updateProcessedMetrics(OperationResponse operationResponse) {
+    if (metricLatestBlockProcessed == null) {
+      metricLatestBlockProcessed =
+          new AtomicLong(operationResponse.getTransaction().get().getLedger());
+      Metrics.gauge(
+          STELLAR_PAYMENT_OBSERVER.toString(),
+          Tags.of("status", TAG_OBSERVER_LATEST_BLOCK_PROCESSED.toString()),
+          metricLatestBlockProcessed);
+    }
+    Log.debugF(
+        "Update metrics {}{status=\"{}\"}: {}",
+        STELLAR_PAYMENT_OBSERVER,
+        TAG_OBSERVER_LATEST_BLOCK_PROCESSED,
+        operationResponse.getTransaction().get().getLedger());
+    metricLatestBlockProcessed.set(operationResponse.getTransaction().get().getLedger());
   }
 
   void stopStream() {

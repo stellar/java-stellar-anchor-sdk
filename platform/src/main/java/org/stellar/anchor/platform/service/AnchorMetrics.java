@@ -15,7 +15,8 @@ public enum AnchorMetrics {
   TAG_SEP31_STATUS_PENDING_EXTERNAL("pending_external"),
   TAG_SEP31_STATUS_COMPLETED("completed"),
   TAG_SEP31_STATUS_ERROR("error"),
-  TAG_OBSERVER_LATEST_BLOCK("latest_block");
+  TAG_OBSERVER_LATEST_BLOCK_RECEIVED("latest_block_read"),
+  TAG_OBSERVER_LATEST_BLOCK_PROCESSED("latest_block_processed");
 
   private final String name;
 
