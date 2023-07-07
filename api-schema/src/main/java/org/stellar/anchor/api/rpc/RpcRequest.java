@@ -6,7 +6,7 @@ import lombok.Data;
 @Data
 @Builder
 public class RpcRequest {
-  private String id;
+  private Object id;
   private String jsonrpc;
   private String method;
   private Object params;

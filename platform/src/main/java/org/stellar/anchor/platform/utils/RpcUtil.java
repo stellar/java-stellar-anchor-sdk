@@ -11,11 +11,11 @@ import org.stellar.anchor.util.StringHelper;
 public class RpcUtil {
   public static final String JSON_RPC_VERSION = "2.0";
 
-  public static RpcResponse getRpcSuccessResponse(String id, Object result) {
+  public static RpcResponse getRpcSuccessResponse(Object id, Object result) {
     return RpcResponse.builder().jsonrpc(JSON_RPC_VERSION).id(id).result(result).build();
   }
 
-  public static RpcResponse getRpcErrorResponse(String id, RpcException ex) {
+  public static RpcResponse getRpcErrorResponse(Object id, RpcException ex) {
     return RpcResponse.builder()
         .jsonrpc(JSON_RPC_VERSION)
         .id(id)
@@ -38,6 +38,13 @@ public class RpcUtil {
     String method = rpcRequest.getMethod();
     if (StringHelper.isEmpty(method)) {
       messages.add("Method name can't be NULL or empty");
+    }
+
+    Object id = rpcRequest.getId();
+    if (id != null) {
+      if (!(id instanceof Number) && !(id instanceof String)) {
+        messages.add("An identifier MUST contain a String, Number, or NULL value");
+      }
     }
 
     if (!messages.isEmpty()) {

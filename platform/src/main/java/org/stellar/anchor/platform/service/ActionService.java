@@ -18,7 +18,7 @@ public class ActionService {
     return rpcCalls.stream()
         .map(
             rpcCall -> {
-              final String rpcId = rpcCall.getId();
+              final Object rpcId = rpcCall.getId();
               try {
                 validateRpcRequest(rpcCall);
                 return getRpcSuccessResponse(rpcId, processRpcCall(rpcCall));
