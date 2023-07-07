@@ -128,6 +128,24 @@ class NotifyOffchainFundsReceivedHandlerTest {
   }
 
   @Test
+  fun test_handle_transferReceived() {
+    val request = NotifyOffchainFundsReceivedRequest.builder().transactionId(TX_ID).build()
+    val txn24 = JdbcSep24Transaction()
+    txn24.status = PENDING_EXTERNAL.toString()
+    txn24.kind = WITHDRAWAL.kind
+    txn24.transferReceivedAt = Instant.now()
+
+    every { txn24Store.findByTransactionId(TX_ID) } returns txn24
+    every { txn31Store.findByTransactionId(any()) } returns null
+
+    val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
+    assertEquals(
+      "Action[notify_offchain_funds_received] is not supported for status[pending_external]",
+      ex.message
+    )
+  }
+
+  @Test
   fun test_handle_invalidRequest() {
     val request = NotifyOffchainFundsReceivedRequest.builder().transactionId(TX_ID).build()
     val txn24 = JdbcSep24Transaction()

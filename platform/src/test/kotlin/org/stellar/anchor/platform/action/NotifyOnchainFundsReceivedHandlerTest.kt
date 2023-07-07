@@ -166,7 +166,8 @@ class NotifyOnchainFundsReceivedHandlerTest {
     txn24.amountFeeAsset = STELLAR_USDC
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
 
-    val operationRecordsJson = FileUtil.getResourceFileAsString("action/payment_records.json")
+    val operationRecordsJson =
+      FileUtil.getResourceFileAsString("action/payment_operation_record.json")
     val operationRecordsTypeToken =
       object : TypeToken<ArrayList<PaymentOperationResponse>>() {}.type
     val operationRecords: ArrayList<OperationResponse> =
@@ -252,7 +253,8 @@ class NotifyOnchainFundsReceivedHandlerTest {
     txn24.amountInAsset = FIAT_USD
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
 
-    val operationRecordsJson = FileUtil.getResourceFileAsString("action/payment_records.json")
+    val operationRecordsJson =
+      FileUtil.getResourceFileAsString("action/payment_operation_record.json")
     val operationRecordsTypeToken =
       object : TypeToken<ArrayList<PaymentOperationResponse>>() {}.type
     val operationRecords: ArrayList<OperationResponse> =
@@ -330,7 +332,8 @@ class NotifyOnchainFundsReceivedHandlerTest {
     txn24.requestAssetCode = FIAT_USD_CODE
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
 
-    val operationRecordsJson = FileUtil.getResourceFileAsString("action/payment_records.json")
+    val operationRecordsJson =
+      FileUtil.getResourceFileAsString("action/payment_operation_record.json")
     val operationRecordsTypeToken =
       object : TypeToken<ArrayList<PaymentOperationResponse>>() {}.type
     val operationRecords: ArrayList<OperationResponse> =

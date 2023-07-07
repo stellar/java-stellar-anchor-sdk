@@ -6,6 +6,7 @@ import static org.stellar.anchor.api.sep.SepTransactionStatus.COMPLETED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_STELLAR;
 
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 import javax.validation.Validator;
@@ -47,14 +48,7 @@ public class NotifyOnchainFundsSentHandler extends ActionHandler<NotifyOnchainFu
   protected SepTransactionStatus getNextStatus(
       JdbcSepTransaction txn, NotifyOnchainFundsSentRequest request)
       throws InvalidRequestException {
-    JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
-    if (DEPOSIT == Kind.from(txn24.getKind())) {
-      return COMPLETED;
-    }
-    throw new InvalidRequestException(
-        String.format(
-            "Invalid kind[%s] for protocol[%s] and action[%s]",
-            txn24.getKind(), txn24.getProtocol(), getActionType()));
+    return COMPLETED;
   }
 
   @Override
@@ -78,6 +72,8 @@ public class NotifyOnchainFundsSentHandler extends ActionHandler<NotifyOnchainFu
   @Override
   protected void updateTransactionWithAction(
       JdbcSepTransaction txn, NotifyOnchainFundsSentRequest request) {
+    Instant transferReceivedAt = txn.getTransferReceivedAt();
     addStellarTransaction(txn, request.getStellarTransactionId());
+    txn.setTransferReceivedAt(transferReceivedAt);
   }
 }

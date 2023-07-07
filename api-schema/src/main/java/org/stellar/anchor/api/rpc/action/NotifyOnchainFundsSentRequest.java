@@ -1,5 +1,6 @@
 package org.stellar.anchor.api.rpc.action;
 
+import javax.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -11,5 +12,5 @@ import lombok.experimental.SuperBuilder;
 @EqualsAndHashCode(callSuper = false)
 public class NotifyOnchainFundsSentRequest extends RpcActionParamsRequest {
 
-  private String stellarTransactionId;
+  @NotBlank private String stellarTransactionId;
 }

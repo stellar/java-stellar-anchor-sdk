@@ -103,14 +103,7 @@ public class NotifyOffchainFundsReceivedHandler
   protected SepTransactionStatus getNextStatus(
       JdbcSepTransaction txn, NotifyOffchainFundsReceivedRequest request)
       throws InvalidRequestException {
-    JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
-    if (DEPOSIT == Kind.from(txn24.getKind())) {
-      return PENDING_ANCHOR;
-    }
-    throw new InvalidRequestException(
-        String.format(
-            "Invalid kind[%s] for protocol[%s] and action[%s]",
-            txn24.getKind(), txn24.getProtocol(), getActionType()));
+    return PENDING_ANCHOR;
   }
 
   @Override
@@ -119,7 +112,7 @@ public class NotifyOffchainFundsReceivedHandler
     JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
     if (DEPOSIT == Kind.from(txn24.getKind())) {
       supportedStatuses.add(PENDING_USR_TRANSFER_START);
-      if (txn.getTransferReceivedAt() != null) {
+      if (txn.getTransferReceivedAt() == null) {
         supportedStatuses.add(PENDING_EXTERNAL);
       }
     }

@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform.action
 
+import com.google.gson.reflect.TypeToken
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import java.time.Instant
@@ -15,20 +16,26 @@ import org.skyscreamer.jsonassert.JSONCompareMode
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException
 import org.stellar.anchor.api.platform.GetTransactionResponse
-import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT
-import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL
+import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.*
 import org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24
-import org.stellar.anchor.api.rpc.action.NotifyOffchainFundsAvailableRequest
+import org.stellar.anchor.api.rpc.action.NotifyOnchainFundsSentRequest
 import org.stellar.anchor.api.sep.SepTransactionStatus.*
 import org.stellar.anchor.api.shared.Amount
+import org.stellar.anchor.api.shared.StellarTransaction
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.horizon.Horizon
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
 import org.stellar.anchor.sep24.Sep24TransactionStore
 import org.stellar.anchor.sep31.Sep31TransactionStore
+import org.stellar.anchor.util.FileUtil
 import org.stellar.anchor.util.GsonUtils
+import org.stellar.sdk.Server
+import org.stellar.sdk.requests.PaymentsRequestBuilder
+import org.stellar.sdk.responses.Page
+import org.stellar.sdk.responses.operations.OperationResponse
+import org.stellar.sdk.responses.operations.PaymentOperationResponse
 
-class NotifyOffchainFundsAvailableHandlerTest {
+class NotifyOnchainFundsSentHandlerTest {
 
   companion object {
     private val gson = GsonUtils.getInstance()
@@ -39,28 +46,32 @@ class NotifyOffchainFundsAvailableHandlerTest {
 
   @MockK(relaxed = true) private lateinit var txn31Store: Sep31TransactionStore
 
-  @MockK(relaxed = true) private lateinit var horizon: Horizon
-
   @MockK(relaxed = true) private lateinit var validator: Validator
 
   @MockK(relaxed = true) private lateinit var assetService: AssetService
 
-  private lateinit var handler: NotifyOffchainFundsAvailableHandler
+  @MockK(relaxed = true) private lateinit var horizon: Horizon
+
+  @MockK(relaxed = true) private lateinit var server: Server
+
+  @MockK(relaxed = true) private lateinit var paymentsRequestBuilder: PaymentsRequestBuilder
+
+  @MockK(relaxed = true) private lateinit var page: Page<OperationResponse>
+
+  private lateinit var handler: NotifyOnchainFundsSentHandler
 
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
     this.handler =
-      NotifyOffchainFundsAvailableHandler(txn24Store, txn31Store, validator, horizon, assetService)
+      NotifyOnchainFundsSentHandler(txn24Store, txn31Store, validator, horizon, assetService)
   }
 
   @Test
   fun test_handle_unsupportedProtocol() {
-    val request = NotifyOffchainFundsAvailableRequest.builder().transactionId(TX_ID).build()
+    val request = NotifyOnchainFundsSentRequest.builder().transactionId(TX_ID).build()
     val txn24 = JdbcSep24Transaction()
-    txn24.status = PENDING_ANCHOR.toString()
-    txn24.kind = WITHDRAWAL.kind
-    txn24.transferReceivedAt = Instant.now()
+    txn24.status = PENDING_STELLAR.toString()
     val spyTxn24 = spyk(txn24)
 
     every { txn24Store.findByTransactionId(TX_ID) } returns spyTxn24
@@ -68,51 +79,46 @@ class NotifyOffchainFundsAvailableHandlerTest {
     every { spyTxn24.protocol } returns "100"
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
-    assertEquals(
-      "Protocol[100] is not supported by action[notify_offchain_funds_available]",
-      ex.message
-    )
+    assertEquals("Protocol[100] is not supported by action[notify_onchain_funds_sent]", ex.message)
   }
 
   @Test
   fun test_handle_unsupportedStatus() {
-    val request = NotifyOffchainFundsAvailableRequest.builder().transactionId(TX_ID).build()
+    val request = NotifyOnchainFundsSentRequest.builder().transactionId(TX_ID).build()
     val txn24 = JdbcSep24Transaction()
-    txn24.status = PENDING_TRUST.toString()
-    txn24.kind = WITHDRAWAL.kind
-    txn24.transferReceivedAt = Instant.now()
+    txn24.status = INCOMPLETE.toString()
+    txn24.kind = DEPOSIT.kind
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[notify_offchain_funds_available] is not supported for status[pending_trust]",
+      "Action[notify_onchain_funds_sent] is not supported for status[incomplete]",
       ex.message
     )
   }
 
   @Test
   fun test_handle_unsupportedKind() {
-    val request = NotifyOffchainFundsAvailableRequest.builder().transactionId(TX_ID).build()
+    val request = NotifyOnchainFundsSentRequest.builder().transactionId(TX_ID).build()
     val txn24 = JdbcSep24Transaction()
-    txn24.status = PENDING_ANCHOR.toString()
-    txn24.kind = DEPOSIT.kind
-    txn24.transferReceivedAt = Instant.now()
+    txn24.status = PENDING_STELLAR.toString()
+    txn24.kind = WITHDRAWAL.kind
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[notify_offchain_funds_available] is not supported for status[pending_anchor]",
+      "Action[notify_onchain_funds_sent] is not supported for status[pending_stellar]",
       ex.message
     )
   }
 
   @Test
   fun test_handle_transferNotReceived() {
-    val request = NotifyOffchainFundsAvailableRequest.builder().transactionId(TX_ID).build()
+    val request = NotifyOnchainFundsSentRequest.builder().transactionId(TX_ID).build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_ANCHOR.toString()
     txn24.kind = WITHDRAWAL.kind
@@ -122,21 +128,22 @@ class NotifyOffchainFundsAvailableHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[notify_offchain_funds_available] is not supported for status[pending_anchor]",
+      "Action[notify_onchain_funds_sent] is not supported for status[pending_anchor]",
       ex.message
     )
   }
 
   @Test
   fun test_handle_invalidRequest() {
-    val request = NotifyOffchainFundsAvailableRequest.builder().transactionId(TX_ID).build()
+    val transferReceivedAt = Instant.now()
+    val request = NotifyOnchainFundsSentRequest.builder().transactionId(TX_ID).build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_ANCHOR.toString()
-    txn24.kind = WITHDRAWAL.kind
-    txn24.transferReceivedAt = Instant.now()
+    txn24.kind = DEPOSIT.kind
+    txn24.transferReceivedAt = transferReceivedAt
 
-    val violation1: ConstraintViolation<NotifyOffchainFundsAvailableRequest> = mockk()
-    val violation2: ConstraintViolation<NotifyOffchainFundsAvailableRequest> = mockk()
+    val violation1: ConstraintViolation<NotifyOnchainFundsSentRequest> = mockk()
+    val violation2: ConstraintViolation<NotifyOnchainFundsSentRequest> = mockk()
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
@@ -152,22 +159,41 @@ class NotifyOffchainFundsAvailableHandlerTest {
   }
 
   @Test
-  fun test_handle_ok_deposit_withExternalTxId() {
+  fun test_handle_ok() {
     val transferReceivedAt = Instant.now()
     val request =
-      NotifyOffchainFundsAvailableRequest.builder()
+      NotifyOnchainFundsSentRequest.builder()
         .transactionId(TX_ID)
-        .externalTransactionId("externalTxId")
+        .stellarTransactionId("stellarTxId")
         .build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_ANCHOR.toString()
-    txn24.kind = WITHDRAWAL.kind
+    txn24.kind = DEPOSIT.kind
     txn24.transferReceivedAt = transferReceivedAt
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
+
+    val operationRecordsJson =
+      FileUtil.getResourceFileAsString("action/payment_operation_record.json")
+    val operationRecordsTypeToken =
+      object : TypeToken<ArrayList<PaymentOperationResponse>>() {}.type
+    val operationRecords: ArrayList<OperationResponse> =
+      gson.fromJson(operationRecordsJson, operationRecordsTypeToken)
+
+    val stellarTransactionsJson =
+      FileUtil.getResourceFileAsString("action/payment_stellar_transaction.json")
+    val stellarTransactionsToken = object : TypeToken<List<StellarTransaction>>() {}.type
+    val stellarTransactions: List<StellarTransaction> =
+      gson.fromJson(stellarTransactionsJson, stellarTransactionsToken)
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
+    every { horizon.server } returns server
+    every { server.payments() } returns paymentsRequestBuilder
+    every { paymentsRequestBuilder.includeTransactions(true) } returns paymentsRequestBuilder
+    every { paymentsRequestBuilder.forTransaction("stellarTxId") } returns paymentsRequestBuilder
+    every { paymentsRequestBuilder.execute() } returns page
+    every { page.records } returns operationRecords
 
     val startDate = Instant.now()
     val response = handler.handle(request)
@@ -176,11 +202,13 @@ class NotifyOffchainFundsAvailableHandlerTest {
     verify(exactly = 0) { txn31Store.save(any()) }
 
     val expectedSep24Txn = JdbcSep24Transaction()
-    expectedSep24Txn.kind = WITHDRAWAL.kind
-    expectedSep24Txn.status = PENDING_USR_TRANSFER_COMPLETE.toString()
+    expectedSep24Txn.kind = DEPOSIT.kind
+    expectedSep24Txn.status = COMPLETED.toString()
     expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
+    expectedSep24Txn.completedAt = sep24TxnCapture.captured.completedAt
     expectedSep24Txn.transferReceivedAt = transferReceivedAt
-    expectedSep24Txn.externalTransactionId = "externalTxId"
+    expectedSep24Txn.stellarTransactionId = "stellarTxId"
+    expectedSep24Txn.stellarTransactions = stellarTransactions
 
     JSONAssert.assertEquals(
       gson.toJson(expectedSep24Txn),
@@ -190,12 +218,13 @@ class NotifyOffchainFundsAvailableHandlerTest {
 
     val expectedResponse = GetTransactionResponse()
     expectedResponse.sep = SEP_24
-    expectedResponse.kind = WITHDRAWAL
-    expectedResponse.status = PENDING_USR_TRANSFER_COMPLETE
-    expectedResponse.externalTransactionId = "externalTxId"
-    expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
+    expectedResponse.kind = DEPOSIT
+    expectedResponse.status = COMPLETED
     expectedResponse.transferReceivedAt = transferReceivedAt
+    expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
+    expectedResponse.completedAt = sep24TxnCapture.captured.completedAt
     expectedResponse.amountExpected = Amount(null, "")
+    expectedResponse.stellarTransactions = stellarTransactions
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -205,21 +234,32 @@ class NotifyOffchainFundsAvailableHandlerTest {
 
     assertTrue(expectedSep24Txn.updatedAt >= startDate)
     assertTrue(expectedSep24Txn.updatedAt <= endDate)
+    assertTrue(expectedSep24Txn.completedAt >= startDate)
+    assertTrue(expectedSep24Txn.completedAt <= endDate)
   }
 
   @Test
-  fun test_handle_ok_deposit_withoutExternalTxId() {
+  fun test_handle_invalidStellarTransaction() {
     val transferReceivedAt = Instant.now()
-    val request = NotifyOffchainFundsAvailableRequest.builder().transactionId(TX_ID).build()
+    val request =
+      NotifyOnchainFundsSentRequest.builder()
+        .transactionId(TX_ID)
+        .stellarTransactionId("stellarTxId")
+        .build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_ANCHOR.toString()
-    txn24.kind = WITHDRAWAL.kind
+    txn24.kind = DEPOSIT.kind
     txn24.transferReceivedAt = transferReceivedAt
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
+    every { horizon.server } returns server
+    every { server.payments() } returns paymentsRequestBuilder
+    every { paymentsRequestBuilder.includeTransactions(true) } returns paymentsRequestBuilder
+    every { paymentsRequestBuilder.forTransaction("stellarTxId") } throws
+      RuntimeException("Invalid stellar transaction")
 
     val startDate = Instant.now()
     val response = handler.handle(request)
@@ -228,10 +268,11 @@ class NotifyOffchainFundsAvailableHandlerTest {
     verify(exactly = 0) { txn31Store.save(any()) }
 
     val expectedSep24Txn = JdbcSep24Transaction()
-    expectedSep24Txn.kind = WITHDRAWAL.kind
-    expectedSep24Txn.status = PENDING_USR_TRANSFER_COMPLETE.toString()
-    expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
+    expectedSep24Txn.kind = DEPOSIT.kind
+    expectedSep24Txn.status = COMPLETED.toString()
     expectedSep24Txn.transferReceivedAt = transferReceivedAt
+    expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
+    expectedSep24Txn.completedAt = sep24TxnCapture.captured.completedAt
 
     JSONAssert.assertEquals(
       gson.toJson(expectedSep24Txn),
@@ -241,10 +282,11 @@ class NotifyOffchainFundsAvailableHandlerTest {
 
     val expectedResponse = GetTransactionResponse()
     expectedResponse.sep = SEP_24
-    expectedResponse.kind = WITHDRAWAL
-    expectedResponse.status = PENDING_USR_TRANSFER_COMPLETE
-    expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
+    expectedResponse.kind = DEPOSIT
+    expectedResponse.status = COMPLETED
     expectedResponse.transferReceivedAt = transferReceivedAt
+    expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
+    expectedResponse.completedAt = sep24TxnCapture.captured.completedAt
     expectedResponse.amountExpected = Amount(null, "")
 
     JSONAssert.assertEquals(
@@ -255,5 +297,7 @@ class NotifyOffchainFundsAvailableHandlerTest {
 
     assertTrue(expectedSep24Txn.updatedAt >= startDate)
     assertTrue(expectedSep24Txn.updatedAt <= endDate)
+    assertTrue(expectedSep24Txn.completedAt >= startDate)
+    assertTrue(expectedSep24Txn.completedAt <= endDate)
   }
 }

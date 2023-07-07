@@ -94,14 +94,7 @@ public class NotifyOnchainFundsReceivedHandler
   protected SepTransactionStatus getNextStatus(
       JdbcSepTransaction txn, NotifyOnchainFundsReceivedRequest request)
       throws InvalidRequestException {
-    JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
-    if (WITHDRAWAL == Kind.from(txn24.getKind())) {
-      return PENDING_ANCHOR;
-    }
-    throw new InvalidRequestException(
-        String.format(
-            "Invalid kind[%s] for protocol[%s] and action[%s]",
-            txn24.getKind(), txn24.getProtocol(), getActionType()));
+    return PENDING_ANCHOR;
   }
 
   @Override
