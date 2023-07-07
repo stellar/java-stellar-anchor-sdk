@@ -260,8 +260,8 @@ class RequestOnchainFundsHandlerTest {
         validator,
         horizon,
         assetService,
-        custodyConfig,
         custodyService,
+        custodyConfig,
         sep24DepositInfoGenerator
       )
 
