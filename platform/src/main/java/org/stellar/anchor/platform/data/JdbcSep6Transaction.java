@@ -1,9 +1,7 @@
 package org.stellar.anchor.platform.data;
 
 import com.google.gson.annotations.SerializedName;
-import com.google.gson.reflect.TypeToken;
 import com.vladmihalcea.hibernate.type.json.JsonType;
-import java.util.Map;
 import javax.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -72,33 +70,9 @@ public class JdbcSep6Transaction extends JdbcSepTransaction
   @Column(name = "memo_type")
   String memoType;
 
-  @SerializedName("claimable_balance_supported")
-  @Column(name = "claimable_balance_supported")
-  Boolean claimableBalanceSupported;
-
-  @SerializedName("fields")
-  @Transient
-  Map<String, String> fields;
-
-  @Access(AccessType.PROPERTY)
-  @Column(name = "fields")
-  public String getFieldsJson() {
-    return gson.toJson(this.fields);
-  }
-
-  public void setFieldsJson(String fieldsJson) {
-    if (fieldsJson != null) {
-      this.fields = gson.fromJson(fieldsJson, new TypeToken<Map<String, String>>() {}.getType());
-    }
-  }
-
   @SerializedName("quote_id")
   @Column(name = "quote_id")
   String quoteId;
-
-  @SerializedName("refunded")
-  @Column(name = "refunded")
-  Boolean refunded;
 
   @Column(columnDefinition = "json")
   @Type(type = "json")

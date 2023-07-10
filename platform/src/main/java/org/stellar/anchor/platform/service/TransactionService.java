@@ -51,6 +51,7 @@ public class TransactionService {
 
   @SuppressWarnings("unused")
   private final Sep6TransactionStore txn6Store;
+
   private final List<AssetInfo> assets;
   private final EventService eventService;
   private final AssetService assetService;

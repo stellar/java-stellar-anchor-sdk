@@ -284,28 +284,11 @@ public interface Sep24Transaction {
 
   enum Kind {
     DEPOSIT("deposit"),
-    WITHDRAWAL("withdrawal"),
-    SEND("send");
+    WITHDRAWAL("withdrawal");
 
     private final String name;
 
     Kind(String name) {
-      this.name = name;
-    }
-
-    public String toString() {
-      return name;
-    }
-  }
-
-  enum Protocol {
-    SEP6("sep6"),
-    SEP24("sep24"),
-    SEP31("sep31");
-
-    private final String name;
-
-    Protocol(String name) {
       this.name = name;
     }
 

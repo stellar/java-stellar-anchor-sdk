@@ -45,19 +45,14 @@ public class JdbcSep6TransactionStore implements Sep6TransactionStore {
   @Override
   public List<Sep6Transaction> findTransactions(
       String accountId, String accountMemo, GetTransactionsRequest request) {
-    // TODO: implement with GET /transactions endpoint
+    // TODO: ANCHOR-360 implement with GET /transactions
     return null;
   }
 
   @Override
   public Sep6Transaction save(Sep6Transaction sep6Transaction) throws SepException {
-    if (!(sep6Transaction instanceof JdbcSep6Transaction)) {
-      throw new SepException(
-          sep6Transaction.getClass() + " is not a sub-type of " + JdbcSep6Transaction.class);
-    }
-    JdbcSep6Transaction txn = (JdbcSep6Transaction) sep6Transaction;
-    txn.setId(txn.getTransactionId());
-    return transactionRepo.save(txn);
+    // TODO: ANCHOR-355 implement with GET /deposit
+    return null;
   }
 
   @Override

@@ -10,6 +10,7 @@ import org.stellar.anchor.sep6.Sep6RefundPayment;
 @NoArgsConstructor
 public class JdbcSep6RefundPayment implements Sep6RefundPayment {
   String id;
+  String idType;
   String amount;
   String fee;
 }
