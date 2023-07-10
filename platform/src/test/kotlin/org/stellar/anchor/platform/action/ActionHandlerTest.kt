@@ -8,21 +8,16 @@ import kotlin.collections.Set
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
-import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.stellar.anchor.api.exception.AnchorException
-import org.stellar.anchor.api.exception.rpc.InvalidParamsException
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException
 import org.stellar.anchor.api.rpc.action.ActionMethod
 import org.stellar.anchor.api.rpc.action.ActionMethod.NOTIFY_INTERACTIVE_FLOW_COMPLETED
-import org.stellar.anchor.api.rpc.action.AmountRequest
 import org.stellar.anchor.api.rpc.action.NotifyInteractiveFlowCompletedRequest
 import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.api.sep.SepTransactionStatus.*
 import org.stellar.anchor.asset.AssetService
-import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.horizon.Horizon
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
 import org.stellar.anchor.platform.data.JdbcSepTransaction
@@ -58,11 +53,11 @@ class ActionHandlerTest {
     }
 
     override fun getSupportedStatuses(txn: JdbcSepTransaction?): Set<SepTransactionStatus> {
-      return setOf(INCOMPLETE, ERROR)
-    }
-
-    override fun getSupportedProtocols(): Set<String> {
-      return setOf("24", "31")
+      return if ("24" == txn?.protocol || "31" == txn?.protocol) {
+        setOf(INCOMPLETE, ERROR)
+      } else {
+        setOf()
+      }
     }
 
     override fun updateTransactionWithAction(
@@ -80,7 +75,6 @@ class ActionHandlerTest {
 
   companion object {
     private const val TX_ID = "testId"
-    private const val fiatUSD = "iso4217:USD"
   }
 
   @MockK(relaxed = true) private lateinit var txn24Store: Sep24TransactionStore
@@ -112,70 +106,6 @@ class ActionHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals("Transaction with id[testId] is not found", ex.message)
-  }
-
-  @Test
-  fun test_validateAsset_failure() {
-    // fails if amount_in.amount is null
-    var assetAmount = AmountRequest(null, null)
-    var ex = assertThrows<AnchorException> { handler.validateAsset("amount_in", assetAmount) }
-    Assertions.assertInstanceOf(InvalidParamsException::class.java, ex)
-    Assertions.assertEquals("amount_in.amount cannot be empty", ex.message)
-
-    // fails if amount_in.amount is empty
-    assetAmount = AmountRequest("", null)
-    ex = assertThrows { handler.validateAsset("amount_in", assetAmount) }
-    Assertions.assertInstanceOf(InvalidParamsException::class.java, ex)
-    Assertions.assertEquals("amount_in.amount cannot be empty", ex.message)
-
-    // fails if amount_in.amount is invalid
-    assetAmount = AmountRequest("abc", null)
-    ex = assertThrows { handler.validateAsset("amount_in", assetAmount) }
-    Assertions.assertInstanceOf(InvalidParamsException::class.java, ex)
-    Assertions.assertEquals("amount_in.amount is invalid", ex.message)
-
-    // fails if amount_in.amount is negative
-    assetAmount = AmountRequest("-1", null)
-    ex = assertThrows { handler.validateAsset("amount_in", assetAmount) }
-    Assertions.assertInstanceOf(InvalidParamsException::class.java, ex)
-    Assertions.assertEquals("amount_in.amount should be positive", ex.message)
-
-    // fails if amount_in.amount is zero
-    assetAmount = AmountRequest("0", null)
-    ex = assertThrows { handler.validateAsset("amount_in", assetAmount) }
-    Assertions.assertInstanceOf(InvalidParamsException::class.java, ex)
-    Assertions.assertEquals("amount_in.amount should be positive", ex.message)
-
-    // fails if amount_in.asset is empty
-    assetAmount = AmountRequest("10", "")
-    ex = assertThrows { handler.validateAsset("amount_in", assetAmount) }
-    Assertions.assertInstanceOf(InvalidParamsException::class.java, ex)
-    Assertions.assertEquals("amount_in.asset cannot be empty", ex.message)
-
-    // fails if listAllAssets is empty
-    every { assetService.listAllAssets() } returns listOf()
-    val mockAsset = AmountRequest("10", fiatUSD)
-    ex = assertThrows { handler.validateAsset("amount_in", mockAsset) }
-    Assertions.assertInstanceOf(InvalidParamsException::class.java, ex)
-    Assertions.assertEquals("'${fiatUSD}' is not a supported asset.", ex.message)
-
-    // fails if listAllAssets does not contain the desired asset
-    ex = assertThrows { handler.validateAsset("amount_in", mockAsset) }
-    Assertions.assertInstanceOf(InvalidParamsException::class.java, ex)
-    Assertions.assertEquals("'${fiatUSD}' is not a supported asset.", ex.message)
-  }
-
-  @Test
-  fun test_validateAsset() {
-    this.assetService = DefaultAssetService.fromJsonResource("test_assets.json")
-    this.handler = ActionHandlerTestImpl(txn24Store, txn31Store, validator, horizon, assetService)
-    val mockAsset = AmountRequest("10", fiatUSD)
-    Assertions.assertDoesNotThrow { handler.validateAsset("amount_in", mockAsset) }
-    val mockAssetWrongAmount = AmountRequest("10.001", fiatUSD)
-
-    val ex =
-      assertThrows<AnchorException> { handler.validateAsset("amount_in", mockAssetWrongAmount) }
-    Assertions.assertInstanceOf(InvalidParamsException::class.java, ex)
   }
 
   @Test

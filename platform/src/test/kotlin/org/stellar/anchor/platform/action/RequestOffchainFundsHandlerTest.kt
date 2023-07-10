@@ -12,12 +12,14 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
+import org.stellar.anchor.api.exception.BadRequestException
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException
 import org.stellar.anchor.api.platform.GetTransactionResponse
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL
 import org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24
+import org.stellar.anchor.api.rpc.action.AmountAssetRequest
 import org.stellar.anchor.api.rpc.action.AmountRequest
 import org.stellar.anchor.api.rpc.action.RequestOffchainFundsRequest
 import org.stellar.anchor.api.sep.SepTransactionStatus.*
@@ -66,14 +68,18 @@ class RequestOffchainFundsHandlerTest {
     val request = RequestOffchainFundsRequest.builder().transactionId(TX_ID).build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = INCOMPLETE.toString()
+    txn24.kind = DEPOSIT.kind
     val spyTxn24 = spyk(txn24)
 
     every { txn24Store.findByTransactionId(TX_ID) } returns spyTxn24
     every { txn31Store.findByTransactionId(any()) } returns null
-    every { spyTxn24.protocol } returns "100"
+    every { spyTxn24.protocol } returns "38"
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
-    assertEquals("Protocol[100] is not supported by action[request_offchain_funds]", ex.message)
+    assertEquals(
+      "Action[request_offchain_funds] is not supported for status[incomplete], kind[null] and protocol[38]",
+      ex.message
+    )
   }
 
   @Test
@@ -88,7 +94,7 @@ class RequestOffchainFundsHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[request_offchain_funds] is not supported for status[pending_external]",
+      "Action[request_offchain_funds] is not supported for status[pending_external], kind[deposit] and protocol[24]",
       ex.message
     )
   }
@@ -106,7 +112,7 @@ class RequestOffchainFundsHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[request_offchain_funds] is not supported for status[pending_anchor]",
+      "Action[request_offchain_funds] is not supported for status[pending_anchor], kind[deposit] and protocol[24]",
       ex.message
     )
   }
@@ -123,7 +129,7 @@ class RequestOffchainFundsHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[request_offchain_funds] is not supported for status[incomplete]",
+      "Action[request_offchain_funds] is not supported for status[incomplete], kind[withdrawal] and protocol[24]",
       ex.message
     )
   }
@@ -156,10 +162,10 @@ class RequestOffchainFundsHandlerTest {
     val request =
       RequestOffchainFundsRequest.builder()
         .transactionId(TX_ID)
-        .amountIn(AmountRequest("1", FIAT_USD))
-        .amountOut(AmountRequest("0.9", STELLAR_USDC))
-        .amountFee(AmountRequest("0.1", STELLAR_USDC))
-        .amountExpected("1")
+        .amountIn(AmountAssetRequest("1", FIAT_USD))
+        .amountOut(AmountAssetRequest("0.9", STELLAR_USDC))
+        .amountFee(AmountAssetRequest("0.1", STELLAR_USDC))
+        .amountExpected(AmountRequest("1"))
         .build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = INCOMPLETE.toString()
@@ -221,9 +227,9 @@ class RequestOffchainFundsHandlerTest {
     val request =
       RequestOffchainFundsRequest.builder()
         .transactionId(TX_ID)
-        .amountIn(AmountRequest("1", FIAT_USD))
-        .amountOut(AmountRequest("0.9", STELLAR_USDC))
-        .amountFee(AmountRequest("0.1", STELLAR_USDC))
+        .amountIn(AmountAssetRequest("1", FIAT_USD))
+        .amountOut(AmountAssetRequest("0.9", STELLAR_USDC))
+        .amountFee(AmountAssetRequest("0.1", STELLAR_USDC))
         .build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = INCOMPLETE.toString()
@@ -346,7 +352,7 @@ class RequestOffchainFundsHandlerTest {
   }
 
   @Test
-  fun test_handle_ok_withoutAmounts_amountsAbsent() {
+  fun test_handle_withoutAmounts_amountsAbsent() {
     val request = RequestOffchainFundsRequest.builder().transactionId(TX_ID).build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = INCOMPLETE.toString()
@@ -365,8 +371,8 @@ class RequestOffchainFundsHandlerTest {
   fun test_handle_notAllAmounts() {
     val request =
       RequestOffchainFundsRequest.builder()
-        .amountIn(AmountRequest("1", FIAT_USD))
-        .amountOut(AmountRequest("1", FIAT_USD))
+        .amountIn(AmountAssetRequest("1", FIAT_USD))
+        .amountOut(AmountAssetRequest("1", FIAT_USD))
         .transactionId(TX_ID)
         .build()
     val txn24 = JdbcSep24Transaction()
@@ -390,10 +396,10 @@ class RequestOffchainFundsHandlerTest {
     val request =
       RequestOffchainFundsRequest.builder()
         .transactionId(TX_ID)
-        .amountIn(AmountRequest("1", FIAT_USD))
-        .amountOut(AmountRequest("1", STELLAR_USDC))
-        .amountFee(AmountRequest("1", STELLAR_USDC))
-        .amountExpected("1")
+        .amountIn(AmountAssetRequest("1", FIAT_USD))
+        .amountOut(AmountAssetRequest("1", STELLAR_USDC))
+        .amountFee(AmountAssetRequest("1", STELLAR_USDC))
+        .amountExpected(AmountRequest("1"))
         .build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = INCOMPLETE.toString()
@@ -406,7 +412,7 @@ class RequestOffchainFundsHandlerTest {
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
 
     request.amountIn.amount = "-1"
-    var ex = assertThrows<InvalidParamsException> { handler.handle(request) }
+    var ex = assertThrows<BadRequestException> { handler.handle(request) }
     assertEquals("amount_in.amount should be positive", ex.message)
     request.amountIn.amount = "1"
 
@@ -420,7 +426,7 @@ class RequestOffchainFundsHandlerTest {
     assertEquals("amount_fee.amount should be non-negative", ex.message)
     request.amountFee.amount = "1"
 
-    request.amountExpected = "-1"
+    request.amountExpected.amount = "-1"
     ex = assertThrows { handler.handle(request) }
     assertEquals("amount_expected.amount should be positive", ex.message)
   }

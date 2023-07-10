@@ -1,6 +1,7 @@
 package org.stellar.anchor.platform.action;
 
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL;
+import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24;
 import static org.stellar.anchor.api.rpc.action.ActionMethod.REQUEST_ONCHAIN_FUNDS;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.INCOMPLETE;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
@@ -13,12 +14,14 @@ import java.util.HashSet;
 import java.util.Set;
 import javax.validation.Validator;
 import org.stellar.anchor.api.exception.AnchorException;
+import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException;
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException;
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind;
+import org.stellar.anchor.api.platform.PlatformTransactionData.Sep;
 import org.stellar.anchor.api.rpc.action.ActionMethod;
-import org.stellar.anchor.api.rpc.action.AmountRequest;
+import org.stellar.anchor.api.rpc.action.AmountAssetRequest;
 import org.stellar.anchor.api.rpc.action.RequestOnchainFundsRequest;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.shared.SepDepositInfo;
@@ -29,6 +32,7 @@ import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.platform.service.Sep24DepositInfoNoneGenerator;
+import org.stellar.anchor.platform.utils.AssetValidationUtils;
 import org.stellar.anchor.sep24.Sep24DepositInfoGenerator;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
@@ -58,7 +62,7 @@ public class RequestOnchainFundsHandler extends ActionHandler<RequestOnchainFund
 
   @Override
   protected void validate(JdbcSepTransaction txn, RequestOnchainFundsRequest request)
-      throws InvalidParamsException, InvalidRequestException {
+      throws InvalidParamsException, InvalidRequestException, BadRequestException {
     super.validate(txn, request);
 
     if (!((request.getAmountIn() == null
@@ -72,16 +76,17 @@ public class RequestOnchainFundsHandler extends ActionHandler<RequestOnchainFund
           "All or none of the amount_in, amount_out, and amount_fee should be set");
     }
 
-    validateAsset("amount_in", request.getAmountIn());
-    validateAsset("amount_out", request.getAmountOut());
-    validateAsset("amount_fee", request.getAmountFee(), true);
+    AssetValidationUtils.validateAsset("amount_in", request.getAmountIn(), assetService);
+    AssetValidationUtils.validateAsset("amount_out", request.getAmountOut(), assetService);
+    AssetValidationUtils.validateAsset("amount_fee", request.getAmountFee(), true, assetService);
     if (request.getAmountExpected() != null) {
-      validateAsset(
+      AssetValidationUtils.validateAsset(
           "amount_expected",
-          AmountRequest.builder()
-              .amount(request.getAmountExpected())
+          AmountAssetRequest.builder()
+              .amount(request.getAmountExpected().getAmount())
               .asset(request.getAmountIn().getAsset())
-              .build());
+              .build(),
+          assetService);
     }
 
     if (request.getAmountIn() == null && txn.getAmountIn() == null) {
@@ -109,6 +114,8 @@ public class RequestOnchainFundsHandler extends ActionHandler<RequestOnchainFund
       if (request.getDestinationAccount() == null) {
         throw new InvalidParamsException("destination_account is required");
       }
+    } else if (request.getMemo() != null || request.getMemoType() != null) {
+      throw new InvalidParamsException("Anchor is not configured to use memo and memo_type");
     }
   }
 
@@ -126,19 +133,16 @@ public class RequestOnchainFundsHandler extends ActionHandler<RequestOnchainFund
   @Override
   protected Set<SepTransactionStatus> getSupportedStatuses(JdbcSepTransaction txn) {
     Set<SepTransactionStatus> supportedStatuses = new HashSet<>();
-    JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
-    if (WITHDRAWAL == Kind.from(txn24.getKind())) {
-      supportedStatuses.add(INCOMPLETE);
-      if (txn24.getTransferReceivedAt() == null) {
-        supportedStatuses.add(PENDING_ANCHOR);
+    if (SEP_24 == Sep.from(txn.getProtocol())) {
+      JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
+      if (WITHDRAWAL == Kind.from(txn24.getKind())) {
+        supportedStatuses.add(INCOMPLETE);
+        if (txn24.getTransferReceivedAt() == null) {
+          supportedStatuses.add(PENDING_ANCHOR);
+        }
       }
     }
     return supportedStatuses;
-  }
-
-  @Override
-  protected Set<String> getSupportedProtocols() {
-    return Set.of("24");
   }
 
   @Override
@@ -160,7 +164,7 @@ public class RequestOnchainFundsHandler extends ActionHandler<RequestOnchainFund
     JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
 
     if (request.getAmountExpected() != null) {
-      txn24.setAmountExpected(request.getAmountExpected());
+      txn24.setAmountExpected(request.getAmountExpected().getAmount());
     } else if (request.getAmountIn() != null) {
       txn24.setAmountExpected(request.getAmountIn().getAmount());
     }

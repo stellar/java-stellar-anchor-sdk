@@ -12,11 +12,11 @@ import lombok.experimental.SuperBuilder;
 @EqualsAndHashCode(callSuper = false)
 public class NotifyInteractiveFlowCompletedRequest extends RpcActionParamsRequest {
 
-  @NotNull private AmountRequest amountIn;
+  @NotNull private AmountAssetRequest amountIn;
 
-  @NotNull private AmountRequest amountOut;
+  @NotNull private AmountAssetRequest amountOut;
 
-  @NotNull private AmountRequest amountFee;
+  @NotNull private AmountAssetRequest amountFee;
 
-  private String amountExpected;
+  private AmountRequest amountExpected;
 }

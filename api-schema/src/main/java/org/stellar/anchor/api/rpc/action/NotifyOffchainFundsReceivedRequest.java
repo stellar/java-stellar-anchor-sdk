@@ -14,7 +14,7 @@ public class NotifyOffchainFundsReceivedRequest extends RpcActionParamsRequest {
 
   private Instant fundsReceivedAt;
   private String externalTransactionId;
-  private String amountIn;
-  private String amountOut;
-  private String amountFee;
+  private AmountRequest amountIn;
+  private AmountRequest amountOut;
+  private AmountRequest amountFee;
 }

@@ -3,6 +3,7 @@ package org.stellar.anchor.platform.action;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
+import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.RECEIVE;
 import static org.stellar.anchor.api.sep.AssetInfo.NATIVE_ASSET_CODE;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.COMPLETED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.ERROR;
@@ -12,7 +13,6 @@ import static org.stellar.anchor.platform.service.PaymentOperationToEventListene
 import static org.stellar.anchor.platform.utils.TransactionHelper.toGetTransactionResponse;
 import static org.stellar.anchor.util.Log.error;
 import static org.stellar.anchor.util.Log.errorEx;
-import static org.stellar.anchor.util.MathHelper.decimal;
 
 import com.google.gson.Gson;
 import java.io.IOException;
@@ -31,10 +31,9 @@ import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException;
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException;
 import org.stellar.anchor.api.platform.GetTransactionResponse;
+import org.stellar.anchor.api.platform.PlatformTransactionData.Sep;
 import org.stellar.anchor.api.rpc.action.ActionMethod;
-import org.stellar.anchor.api.rpc.action.AmountRequest;
 import org.stellar.anchor.api.rpc.action.RpcActionParamsRequest;
-import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.api.shared.Amount;
 import org.stellar.anchor.api.shared.StellarPayment;
@@ -51,8 +50,6 @@ import org.stellar.anchor.sep31.Sep31Transaction;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.util.AssetHelper;
 import org.stellar.anchor.util.GsonUtils;
-import org.stellar.anchor.util.SepHelper;
-import org.stellar.anchor.util.StringHelper;
 import org.stellar.sdk.AssetTypeCreditAlphaNum;
 import org.stellar.sdk.responses.AccountResponse;
 import org.stellar.sdk.responses.operations.PathPaymentBaseOperationResponse;
@@ -67,7 +64,6 @@ public abstract class ActionHandler<T extends RpcActionParamsRequest> {
   private final Validator validator;
   private final Horizon horizon;
   protected final AssetService assetService;
-  private final List<AssetInfo> assets;
   private final Class<T> requestType;
 
   public ActionHandler(
@@ -82,7 +78,6 @@ public abstract class ActionHandler<T extends RpcActionParamsRequest> {
     this.validator = validator;
     this.horizon = horizon;
     this.assetService = assetService;
-    this.assets = assetService.listAllAssets();
     this.requestType = requestType;
   }
 
@@ -96,16 +91,23 @@ public abstract class ActionHandler<T extends RpcActionParamsRequest> {
           String.format("Transaction with id[%s] is not found", request.getTransactionId()));
     }
 
-    if (!getSupportedProtocols().contains(txn.getProtocol())) {
-      throw new InvalidRequestException(
-          String.format(
-              "Protocol[%s] is not supported by action[%s]", txn.getProtocol(), getActionType()));
-    }
-
     if (!getSupportedStatuses(txn).contains(SepTransactionStatus.from(txn.getStatus()))) {
+      String kind;
+      switch (Sep.from(txn.getProtocol())) {
+        case SEP_24:
+          JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
+          kind = txn24.getKind();
+          break;
+        case SEP_31:
+          kind = RECEIVE.getKind();
+          break;
+        default:
+          kind = null;
+      }
       throw new InvalidRequestException(
           String.format(
-              "Action[%s] is not supported for status[%s]", getActionType(), txn.getStatus()));
+              "Action[%s] is not supported for status[%s], kind[%s] and protocol[%s]",
+              getActionType(), txn.getStatus(), kind, txn.getProtocol()));
     }
 
     updateTransaction(txn, request);
@@ -119,8 +121,6 @@ public abstract class ActionHandler<T extends RpcActionParamsRequest> {
       throws InvalidRequestException, InvalidParamsException;
 
   protected abstract Set<SepTransactionStatus> getSupportedStatuses(JdbcSepTransaction txn);
-
-  protected abstract Set<String> getSupportedProtocols();
 
   protected abstract void updateTransactionWithAction(JdbcSepTransaction txn, T request)
       throws AnchorException;
@@ -138,68 +138,13 @@ public abstract class ActionHandler<T extends RpcActionParamsRequest> {
   }
 
   protected void validate(JdbcSepTransaction txn, T request)
-      throws InvalidParamsException, InvalidRequestException {
+      throws InvalidParamsException, InvalidRequestException, BadRequestException {
     Set<ConstraintViolation<T>> violations = validator.validate(request);
     if (CollectionUtils.isNotEmpty(violations)) {
       throw new InvalidParamsException(
           violations.stream()
               .map(ConstraintViolation::getMessage)
               .collect(joining(System.lineSeparator())));
-    }
-  }
-
-  /**
-   * validateAsset will validate if the provided amount has valid values and if its asset is
-   * supported.
-   *
-   * @param amount is the object containing the asset full name and the amount.
-   */
-  protected void validateAsset(String fieldName, AmountRequest amount)
-      throws InvalidParamsException {
-    validateAsset(fieldName, amount, false);
-  }
-
-  protected void validateAsset(String fieldName, AmountRequest amount, boolean allowZero)
-      throws InvalidParamsException {
-    if (amount == null) {
-      return;
-    }
-
-    // asset amount needs to be non-empty and valid
-    try {
-      SepHelper.validateAmount(fieldName + ".", amount.getAmount(), allowZero);
-    } catch (BadRequestException e) {
-      throw new InvalidParamsException(e.getMessage(), e);
-    }
-
-    // asset name cannot be empty
-    if (StringHelper.isEmpty(amount.getAsset())) {
-      throw new InvalidParamsException(fieldName + ".asset cannot be empty");
-    }
-
-    List<AssetInfo> allAssets =
-        assets.stream()
-            .filter(assetInfo -> assetInfo.getAssetName().equals(amount.getAsset()))
-            .collect(toList());
-
-    // asset name needs to be supported
-    if (CollectionUtils.isEmpty(allAssets)) {
-      throw new InvalidParamsException(
-          String.format("'%s' is not a supported asset.", amount.getAsset()));
-    }
-
-    if (allAssets.size() == 1) {
-      AssetInfo targetAsset = allAssets.get(0);
-
-      if (targetAsset.getSignificantDecimals() != null) {
-        // Check that significant decimal is correct
-        if (decimal(amount.getAmount(), targetAsset).compareTo(decimal(amount.getAmount())) != 0) {
-          throw new InvalidParamsException(
-              String.format(
-                  "'%s' has invalid significant decimals. Expected: '%s'",
-                  amount.getAmount(), targetAsset.getSignificantDecimals()));
-        }
-      }
     }
   }
 
@@ -308,12 +253,10 @@ public abstract class ActionHandler<T extends RpcActionParamsRequest> {
         .collect(toList());
   }
 
-  private void updateTransaction(JdbcSepTransaction txn, RpcActionParamsRequest request)
-      throws AnchorException {
-    T actionRequest = (T) request;
-    validate(txn, actionRequest);
+  private void updateTransaction(JdbcSepTransaction txn, T request) throws AnchorException {
+    validate(txn, request);
 
-    SepTransactionStatus nextStatus = getNextStatus(txn, actionRequest);
+    SepTransactionStatus nextStatus = getNextStatus(txn, request);
 
     if (isErrorStatus(nextStatus) && request.getMessage() == null) {
       throw new InvalidParamsException("message is required");
@@ -322,7 +265,7 @@ public abstract class ActionHandler<T extends RpcActionParamsRequest> {
     boolean shouldClearMessageStatus =
         !isErrorStatus(nextStatus) && isErrorStatus(SepTransactionStatus.from(txn.getStatus()));
 
-    updateTransactionWithAction(txn, actionRequest);
+    updateTransactionWithAction(txn, request);
 
     txn.setUpdatedAt(Instant.now());
     txn.setStatus(nextStatus.toString());
@@ -331,8 +274,8 @@ public abstract class ActionHandler<T extends RpcActionParamsRequest> {
       txn.setCompletedAt(Instant.now());
     }
 
-    switch (txn.getProtocol()) {
-      case "24":
+    switch (Sep.from(txn.getProtocol())) {
+      case SEP_24:
         JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
         if (request.getMessage() != null) {
           txn24.setMessage(request.getMessage());
@@ -341,7 +284,7 @@ public abstract class ActionHandler<T extends RpcActionParamsRequest> {
         }
         txn24Store.save(txn24);
         break;
-      case "31":
+      case SEP_31:
         JdbcSep31Transaction txn31 = (JdbcSep31Transaction) txn;
         if (request.getMessage() != null) {
           txn31.setRequiredInfoMessage(request.getMessage());

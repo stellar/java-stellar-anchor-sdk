@@ -67,13 +67,6 @@ public class CustodyServiceImpl implements CustodyService {
     return response;
   }
 
-  @Override
-  public CreateTransactionPaymentResponse createTransactionRefund(String txnId, Object requestBody)
-      throws AnchorException {
-    // TODO: Implement refund endpoint
-    return null;
-  }
-
   private void create(CreateCustodyTransactionRequest request)
       throws CustodyException, InvalidConfigException {
     if (custodyApiClient.isEmpty()) {

@@ -12,6 +12,6 @@ import lombok.experimental.SuperBuilder;
 @EqualsAndHashCode(callSuper = false)
 public class NotifyOffchainFundsSentRequest extends RpcActionParamsRequest {
 
-  private Instant fundsReceivedAt;
+  private Instant fundsSentAt;
   private String externalTransactionId;
 }

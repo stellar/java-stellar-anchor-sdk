@@ -58,14 +58,18 @@ class NotifyOffchainFundsSentHandlerTest {
     val request = NotifyOffchainFundsSentRequest.builder().transactionId(TX_ID).build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = INCOMPLETE.toString()
+    txn24.kind = DEPOSIT.kind
     val spyTxn24 = spyk(txn24)
 
     every { txn24Store.findByTransactionId(TX_ID) } returns spyTxn24
     every { txn31Store.findByTransactionId(any()) } returns null
-    every { spyTxn24.protocol } returns "100"
+    every { spyTxn24.protocol } returns "38"
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
-    assertEquals("Protocol[100] is not supported by action[notify_offchain_funds_sent]", ex.message)
+    assertEquals(
+      "Action[notify_offchain_funds_sent] is not supported for status[incomplete], kind[null] and protocol[38]",
+      ex.message
+    )
   }
 
   @Test
@@ -80,7 +84,7 @@ class NotifyOffchainFundsSentHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[notify_offchain_funds_sent] is not supported for status[pending_external]",
+      "Action[notify_offchain_funds_sent] is not supported for status[pending_external], kind[deposit] and protocol[24]",
       ex.message
     )
   }
@@ -116,7 +120,7 @@ class NotifyOffchainFundsSentHandlerTest {
       NotifyOffchainFundsSentRequest.builder()
         .transactionId(TX_ID)
         .externalTransactionId("externalTxId")
-        .fundsReceivedAt(transferReceivedAt)
+        .fundsSentAt(transferReceivedAt)
         .build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_USR_TRANSFER_START.toString()
@@ -274,7 +278,7 @@ class NotifyOffchainFundsSentHandlerTest {
       NotifyOffchainFundsSentRequest.builder()
         .transactionId(TX_ID)
         .externalTransactionId("externalTxId")
-        .fundsReceivedAt(transferReceivedAt)
+        .fundsSentAt(transferReceivedAt)
         .build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_ANCHOR.toString()

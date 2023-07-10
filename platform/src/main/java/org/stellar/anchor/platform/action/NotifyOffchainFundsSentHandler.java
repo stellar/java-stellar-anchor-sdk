@@ -1,6 +1,7 @@
 package org.stellar.anchor.platform.action;
 
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT;
+import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24;
 import static org.stellar.anchor.api.rpc.action.ActionMethod.NOTIFY_OFFCHAIN_FUNDS_SENT;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.COMPLETED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
@@ -13,6 +14,7 @@ import java.util.Set;
 import javax.validation.Validator;
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException;
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind;
+import org.stellar.anchor.api.platform.PlatformTransactionData.Sep;
 import org.stellar.anchor.api.rpc.action.ActionMethod;
 import org.stellar.anchor.api.rpc.action.NotifyOffchainFundsSentRequest;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
@@ -66,21 +68,18 @@ public class NotifyOffchainFundsSentHandler extends ActionHandler<NotifyOffchain
   @Override
   protected Set<SepTransactionStatus> getSupportedStatuses(JdbcSepTransaction txn) {
     Set<SepTransactionStatus> supportedStatuses = new HashSet<>();
-    JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
-    switch (Kind.from(txn24.getKind())) {
-      case DEPOSIT:
-        supportedStatuses.add(PENDING_USR_TRANSFER_START);
-        break;
-      case WITHDRAWAL:
-        supportedStatuses.add(PENDING_ANCHOR);
-        break;
+    if (SEP_24 == Sep.from(txn.getProtocol())) {
+      JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
+      switch (Kind.from(txn24.getKind())) {
+        case DEPOSIT:
+          supportedStatuses.add(PENDING_USR_TRANSFER_START);
+          break;
+        case WITHDRAWAL:
+          supportedStatuses.add(PENDING_ANCHOR);
+          break;
+      }
     }
     return supportedStatuses;
-  }
-
-  @Override
-  protected Set<String> getSupportedProtocols() {
-    return Set.of("24");
   }
 
   @Override
@@ -90,8 +89,8 @@ public class NotifyOffchainFundsSentHandler extends ActionHandler<NotifyOffchain
     if (request.getExternalTransactionId() != null) {
       txn24.setExternalTransactionId(request.getExternalTransactionId());
       if (DEPOSIT == Kind.from(txn24.getKind())) {
-        if (request.getFundsReceivedAt() != null) {
-          txn24.setTransferReceivedAt(request.getFundsReceivedAt());
+        if (request.getFundsSentAt() != null) {
+          txn24.setTransferReceivedAt(request.getFundsSentAt());
         } else {
           txn24.setTransferReceivedAt(Instant.now());
         }

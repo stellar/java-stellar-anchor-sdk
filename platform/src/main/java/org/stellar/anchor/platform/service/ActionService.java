@@ -11,8 +11,9 @@ import static org.stellar.anchor.util.Log.debugF;
 import java.util.List;
 import java.util.Map;
 import org.stellar.anchor.api.exception.AnchorException;
+import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.rpc.InternalErrorException;
-import org.stellar.anchor.api.exception.rpc.InvalidRequestException;
+import org.stellar.anchor.api.exception.rpc.MethodNotFoundException;
 import org.stellar.anchor.api.exception.rpc.RpcException;
 import org.stellar.anchor.api.rpc.RpcRequest;
 import org.stellar.anchor.api.rpc.RpcResponse;
@@ -38,6 +39,8 @@ public class ActionService {
                 return getRpcSuccessResponse(rpcId, processRpcCall(rpcCall));
               } catch (RpcException ex) {
                 return getRpcErrorResponse(rpcId, ex);
+              } catch (BadRequestException ex) {
+                return getRpcErrorResponse(rpcId, ex);
               } catch (Exception ex) {
                 return getRpcErrorResponse(rpcId, new InternalErrorException(ex.getMessage()));
               }
@@ -49,7 +52,7 @@ public class ActionService {
     debugF("Started processing of RPC call with method [{}]", rpcCall.getMethod());
     ActionHandler<?> actionHandler = actionHandlerMap.get(ActionMethod.from(rpcCall.getMethod()));
     if (actionHandler == null) {
-      throw new InvalidRequestException(
+      throw new MethodNotFoundException(
           String.format("Action[%s] handler is not found", rpcCall.getMethod()));
     }
     return actionHandler.handle(rpcCall.getParams());

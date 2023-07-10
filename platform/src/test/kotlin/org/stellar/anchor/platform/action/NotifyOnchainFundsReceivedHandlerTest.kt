@@ -13,12 +13,14 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
+import org.stellar.anchor.api.exception.BadRequestException
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException
 import org.stellar.anchor.api.platform.GetTransactionResponse
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL
 import org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24
+import org.stellar.anchor.api.rpc.action.AmountRequest
 import org.stellar.anchor.api.rpc.action.NotifyOnchainFundsReceivedRequest
 import org.stellar.anchor.api.sep.SepTransactionStatus.*
 import org.stellar.anchor.api.shared.Amount
@@ -79,15 +81,17 @@ class NotifyOnchainFundsReceivedHandlerTest {
     val request = NotifyOnchainFundsReceivedRequest.builder().transactionId(TX_ID).build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_USR_TRANSFER_START.toString()
+    txn24.kind = WITHDRAWAL.kind
     val spyTxn24 = spyk(txn24)
 
     every { txn24Store.findByTransactionId(TX_ID) } returns spyTxn24
     every { txn31Store.findByTransactionId(any()) } returns null
-    every { spyTxn24.protocol } returns "100"
+    every { spyTxn24.protocol } returns "38"
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Protocol[100] is not supported by action[notify_onchain_funds_received]",
+      "Action[notify_onchain_funds_received] is not supported for status[pending_user_transfer_start], kind[null] and" +
+        " protocol[38]",
       ex.message
     )
   }
@@ -104,7 +108,7 @@ class NotifyOnchainFundsReceivedHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[notify_onchain_funds_received] is not supported for status[incomplete]",
+      "Action[notify_onchain_funds_received] is not supported for status[incomplete], kind[withdrawal] and protocol[24]",
       ex.message
     )
   }
@@ -121,7 +125,7 @@ class NotifyOnchainFundsReceivedHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[notify_onchain_funds_received] is not supported for status[pending_user_transfer_start]",
+      "Action[notify_onchain_funds_received] is not supported for status[pending_user_transfer_start], kind[deposit] and protocol[24]",
       ex.message
     )
   }
@@ -152,9 +156,9 @@ class NotifyOnchainFundsReceivedHandlerTest {
     val request =
       NotifyOnchainFundsReceivedRequest.builder()
         .transactionId(TX_ID)
-        .amountIn("1")
-        .amountOut("0.9")
-        .amountFee("0.1")
+        .amountIn(AmountRequest("1"))
+        .amountOut(AmountRequest("0.9"))
+        .amountFee(AmountRequest("0.1"))
         .stellarTransactionId("stellarTxId")
         .build()
     val txn24 = JdbcSep24Transaction()
@@ -243,7 +247,7 @@ class NotifyOnchainFundsReceivedHandlerTest {
     val request =
       NotifyOnchainFundsReceivedRequest.builder()
         .transactionId(TX_ID)
-        .amountIn("1")
+        .amountIn(AmountRequest("1"))
         .stellarTransactionId("stellarTxId")
         .build()
     val txn24 = JdbcSep24Transaction()
@@ -458,8 +462,8 @@ class NotifyOnchainFundsReceivedHandlerTest {
   fun test_handle_notAllAmounts() {
     val request =
       NotifyOnchainFundsReceivedRequest.builder()
-        .amountIn("1")
-        .amountOut("1")
+        .amountIn(AmountRequest("1"))
+        .amountOut(AmountRequest("1"))
         .transactionId(TX_ID)
         .build()
     val txn24 = JdbcSep24Transaction()
@@ -482,9 +486,9 @@ class NotifyOnchainFundsReceivedHandlerTest {
   fun test_handle_invalidAmounts() {
     val request =
       NotifyOnchainFundsReceivedRequest.builder()
-        .amountIn("1")
-        .amountOut("1")
-        .amountFee("1")
+        .amountIn(AmountRequest("1"))
+        .amountOut(AmountRequest("1"))
+        .amountFee(AmountRequest("1"))
         .transactionId(TX_ID)
         .build()
     val txn24 = JdbcSep24Transaction()
@@ -500,19 +504,19 @@ class NotifyOnchainFundsReceivedHandlerTest {
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
 
-    request.amountIn = "-1"
-    var ex = assertThrows<InvalidParamsException> { handler.handle(request) }
+    request.amountIn.amount = "-1"
+    var ex = assertThrows<BadRequestException> { handler.handle(request) }
     assertEquals("amount_in.amount should be positive", ex.message)
-    request.amountIn = "1"
+    request.amountIn.amount = "1"
 
-    request.amountOut = "-1"
+    request.amountOut.amount = "-1"
     ex = assertThrows { handler.handle(request) }
     assertEquals("amount_out.amount should be positive", ex.message)
-    request.amountOut = "1"
+    request.amountOut.amount = "1"
 
-    request.amountFee = "-1"
+    request.amountFee.amount = "-1"
     ex = assertThrows { handler.handle(request) }
     assertEquals("amount_fee.amount should be non-negative", ex.message)
-    request.amountFee = "1"
+    request.amountFee.amount = "1"
   }
 }

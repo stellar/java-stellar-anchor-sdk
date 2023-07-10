@@ -1,7 +1,10 @@
 package org.stellar.anchor.platform.utils;
 
+import static org.stellar.anchor.api.rpc.RpcErrorCode.INVALID_PARAMS;
+
 import java.util.ArrayList;
 import java.util.List;
+import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException;
 import org.stellar.anchor.api.exception.rpc.RpcException;
 import org.stellar.anchor.api.rpc.RpcRequest;
@@ -14,6 +17,18 @@ public class RpcUtil {
 
   public static RpcResponse getRpcSuccessResponse(Object id, Object result) {
     return RpcResponse.builder().jsonrpc(JSON_RPC_VERSION).id(id).result(result).build();
+  }
+
+  public static RpcResponse getRpcErrorResponse(Object id, BadRequestException ex) {
+    return RpcResponse.builder()
+        .jsonrpc(JSON_RPC_VERSION)
+        .id(id)
+        .error(
+            RpcResponse.RpcError.builder()
+                .code(INVALID_PARAMS.getErrorCode())
+                .message(ex.getMessage())
+                .build())
+        .build();
   }
 
   public static RpcResponse getRpcErrorResponse(Object id, RpcException ex) {

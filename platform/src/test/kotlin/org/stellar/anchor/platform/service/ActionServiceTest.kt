@@ -11,6 +11,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
+import org.stellar.anchor.api.exception.BadRequestException
 import org.stellar.anchor.api.platform.GetTransactionResponse
 import org.stellar.anchor.api.rpc.RpcRequest
 import org.stellar.anchor.api.rpc.action.ActionMethod.NOTIFY_INTERACTIVE_FLOW_COMPLETED
@@ -175,7 +176,7 @@ class ActionServiceTest {
       {
         "jsonrpc": "2.0",
         "error": {
-          "code": -32600,
+          "code": -32601,
           "message": "Action[request_offchain_funds] handler is not found"
         },
         "id": 1
@@ -254,6 +255,34 @@ class ActionServiceTest {
         "jsonrpc": "2.0",
         "error": {
           "code": -32603,
+          "message": "Error message"
+        }
+      }
+    ]
+    """
+        .trimIndent()
+
+    JSONAssert.assertEquals(expectedResponse, gson.toJson(response), JSONCompareMode.STRICT)
+
+    verify(exactly = 0) { actionHandler.handle(any()) }
+  }
+
+  @Test
+  fun `test handle bad request exception`() {
+    val rpcRequest = RpcRequest.builder().build()
+
+    mockkStatic(RpcUtil::class)
+    every { RpcUtil.validateRpcRequest(rpcRequest) } throws BadRequestException(ERROR_MSG)
+
+    val response = actionService.handleRpcCalls(listOf(rpcRequest))
+
+    val expectedResponse =
+      """
+    [
+      {
+        "jsonrpc": "2.0",
+        "error": {
+          "code": -32602,
           "message": "Error message"
         }
       }

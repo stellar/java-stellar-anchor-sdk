@@ -1,6 +1,7 @@
 package org.stellar.anchor.platform.action;
 
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT;
+import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24;
 import static org.stellar.anchor.api.rpc.action.ActionMethod.REQUEST_OFFCHAIN_FUNDS;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.INCOMPLETE;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
@@ -13,14 +14,16 @@ import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException;
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException;
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind;
+import org.stellar.anchor.api.platform.PlatformTransactionData.Sep;
 import org.stellar.anchor.api.rpc.action.ActionMethod;
-import org.stellar.anchor.api.rpc.action.AmountRequest;
+import org.stellar.anchor.api.rpc.action.AmountAssetRequest;
 import org.stellar.anchor.api.rpc.action.RequestOffchainFundsRequest;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
+import org.stellar.anchor.platform.utils.AssetValidationUtils;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 
@@ -43,7 +46,7 @@ public class RequestOffchainFundsHandler extends ActionHandler<RequestOffchainFu
 
   @Override
   protected void validate(JdbcSepTransaction txn, RequestOffchainFundsRequest request)
-      throws InvalidParamsException, InvalidRequestException {
+      throws InvalidParamsException, InvalidRequestException, BadRequestException {
     super.validate(txn, request);
 
     if (!((request.getAmountIn() == null
@@ -57,16 +60,17 @@ public class RequestOffchainFundsHandler extends ActionHandler<RequestOffchainFu
           "All or none of the amount_in, amount_out, and amount_fee should be set");
     }
 
-    validateAsset("amount_in", request.getAmountIn());
-    validateAsset("amount_out", request.getAmountOut());
-    validateAsset("amount_fee", request.getAmountFee(), true);
+    AssetValidationUtils.validateAsset("amount_in", request.getAmountIn(), assetService);
+    AssetValidationUtils.validateAsset("amount_out", request.getAmountOut(), assetService);
+    AssetValidationUtils.validateAsset("amount_fee", request.getAmountFee(), true, assetService);
     if (request.getAmountExpected() != null) {
-      validateAsset(
+      AssetValidationUtils.validateAsset(
           "amount_expected",
-          AmountRequest.builder()
-              .amount(request.getAmountExpected())
+          AmountAssetRequest.builder()
+              .amount(request.getAmountExpected().getAmount())
               .asset(request.getAmountIn().getAsset())
-              .build());
+              .build(),
+          assetService);
     }
 
     if (request.getAmountIn() == null && txn.getAmountIn() == null) {
@@ -94,25 +98,21 @@ public class RequestOffchainFundsHandler extends ActionHandler<RequestOffchainFu
   @Override
   protected Set<SepTransactionStatus> getSupportedStatuses(JdbcSepTransaction txn) {
     Set<SepTransactionStatus> supportedStatuses = new HashSet<>();
-    JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
-    if (DEPOSIT == Kind.from(txn24.getKind())) {
-      supportedStatuses.add(INCOMPLETE);
-      if (txn24.getTransferReceivedAt() == null) {
-        supportedStatuses.add(PENDING_ANCHOR);
+    if (SEP_24 == Sep.from(txn.getProtocol())) {
+      JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
+      if (DEPOSIT == Kind.from(txn24.getKind())) {
+        supportedStatuses.add(INCOMPLETE);
+        if (txn24.getTransferReceivedAt() == null) {
+          supportedStatuses.add(PENDING_ANCHOR);
+        }
       }
     }
     return supportedStatuses;
   }
 
   @Override
-  protected Set<String> getSupportedProtocols() {
-    return Set.of("24");
-  }
-
-  @Override
   protected void updateTransactionWithAction(
-      JdbcSepTransaction txn, RequestOffchainFundsRequest request)
-      throws BadRequestException, InvalidParamsException {
+      JdbcSepTransaction txn, RequestOffchainFundsRequest request) {
     if (request.getAmountIn() != null) {
       txn.setAmountIn(request.getAmountIn().getAmount());
       txn.setAmountInAsset(request.getAmountIn().getAsset());
@@ -128,7 +128,7 @@ public class RequestOffchainFundsHandler extends ActionHandler<RequestOffchainFu
 
     JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
     if (request.getAmountExpected() != null) {
-      txn24.setAmountExpected(request.getAmountExpected());
+      txn24.setAmountExpected(request.getAmountExpected().getAmount());
     } else if (request.getAmountIn() != null) {
       txn24.setAmountExpected(request.getAmountIn().getAmount());
     }

@@ -13,7 +13,7 @@ import lombok.experimental.SuperBuilder;
 public class NotifyOnchainFundsReceivedRequest extends RpcActionParamsRequest {
 
   @NotBlank private String stellarTransactionId;
-  private String amountIn;
-  private String amountOut;
-  private String amountFee;
+  private AmountRequest amountIn;
+  private AmountRequest amountOut;
+  private AmountRequest amountFee;
 }
