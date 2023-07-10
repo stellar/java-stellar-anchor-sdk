@@ -1,5 +1,6 @@
 package org.stellar.anchor.api.rpc.action;
 
+import com.google.gson.annotations.SerializedName;
 import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,11 +13,18 @@ import lombok.experimental.SuperBuilder;
 @EqualsAndHashCode(callSuper = false)
 public class NotifyInteractiveFlowCompletedRequest extends RpcActionParamsRequest {
 
-  @NotNull private AmountRequest amountIn;
+  @SerializedName("amount_in")
+  @NotNull
+  private AmountRequest amountIn;
 
-  @NotNull private AmountRequest amountOut;
+  @SerializedName("amount_out")
+  @NotNull
+  private AmountRequest amountOut;
 
-  @NotNull private AmountRequest amountFee;
+  @SerializedName("amount_fee")
+  @NotNull
+  private AmountRequest amountFee;
 
+  @SerializedName("amount_expected")
   private String amountExpected;
 }

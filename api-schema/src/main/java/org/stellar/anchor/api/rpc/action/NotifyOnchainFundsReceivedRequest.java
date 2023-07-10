@@ -1,5 +1,6 @@
 package org.stellar.anchor.api.rpc.action;
 
+import com.google.gson.annotations.SerializedName;
 import javax.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -12,8 +13,16 @@ import lombok.experimental.SuperBuilder;
 @EqualsAndHashCode(callSuper = false)
 public class NotifyOnchainFundsReceivedRequest extends RpcActionParamsRequest {
 
-  @NotBlank private String stellarTransactionId;
+  @SerializedName("stellar_transaction_id")
+  @NotBlank
+  private String stellarTransactionId;
+
+  @SerializedName("amount_in")
   private String amountIn;
+
+  @SerializedName("amount_out")
   private String amountOut;
+
+  @SerializedName("amount_fee")
   private String amountFee;
 }

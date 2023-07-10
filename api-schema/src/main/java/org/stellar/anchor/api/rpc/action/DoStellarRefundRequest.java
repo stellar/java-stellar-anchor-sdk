@@ -1,5 +1,6 @@
 package org.stellar.anchor.api.rpc.action;
 
+import com.google.gson.annotations.SerializedName;
 import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -13,7 +14,10 @@ import lombok.experimental.SuperBuilder;
 public class DoStellarRefundRequest extends RpcActionParamsRequest {
 
   @NotNull private Refund refund;
+
   private String memo;
+
+  @SerializedName("memo_type")
   private String memoType;
 
   @Data
@@ -21,6 +25,8 @@ public class DoStellarRefundRequest extends RpcActionParamsRequest {
 
     @NotNull private AmountRequest amount;
 
-    @NotNull private AmountRequest amountFee;
+    @SerializedName("amount_fee")
+    @NotNull
+    private AmountRequest amountFee;
   }
 }
