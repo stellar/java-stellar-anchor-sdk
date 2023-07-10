@@ -37,6 +37,7 @@ import org.stellar.anchor.sep31.Sep31Transaction;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep38.Sep38Quote;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
+import org.stellar.anchor.sep6.Sep6TransactionStore;
 import org.stellar.anchor.util.Log;
 import org.stellar.anchor.util.SepHelper;
 import org.stellar.anchor.util.StringHelper;
@@ -47,6 +48,9 @@ public class TransactionService {
   private final Sep38QuoteStore quoteStore;
   private final Sep31TransactionStore txn31Store;
   private final Sep24TransactionStore txn24Store;
+
+  @SuppressWarnings("unused")
+  private final Sep6TransactionStore txn6Store;
   private final List<AssetInfo> assets;
   private final EventService eventService;
   private final AssetService assetService;
@@ -57,11 +61,13 @@ public class TransactionService {
   }
 
   public TransactionService(
+      Sep6TransactionStore txn6Store,
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       Sep38QuoteStore quoteStore,
       AssetService assetService,
       EventService eventService) {
+    this.txn6Store = txn6Store;
     this.txn24Store = txn24Store;
     this.txn31Store = txn31Store;
     this.quoteStore = quoteStore;
