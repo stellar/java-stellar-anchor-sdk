@@ -5,8 +5,12 @@ import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24
 import static org.stellar.anchor.api.rpc.action.ActionMethod.NOTIFY_ONCHAIN_FUNDS_RECEIVED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_USR_TRANSFER_START;
+import static org.stellar.anchor.platform.utils.PaymentsUtil.addStellarTransaction;
+import static org.stellar.anchor.util.Log.errorEx;
 
+import java.io.IOException;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 import javax.validation.Validator;
 import org.stellar.anchor.api.exception.BadRequestException;
@@ -25,6 +29,7 @@ import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.platform.utils.AssetValidationUtils;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
+import org.stellar.sdk.responses.operations.OperationResponse;
 
 public class NotifyOnchainFundsReceivedHandler
     extends ActionHandler<NotifyOnchainFundsReceivedRequest> {
@@ -126,7 +131,13 @@ public class NotifyOnchainFundsReceivedHandler
   @Override
   protected void updateTransactionWithAction(
       JdbcSepTransaction txn, NotifyOnchainFundsReceivedRequest request) {
-    addStellarTransaction(txn, request.getStellarTransactionId());
+    final String stellarTxnId = request.getStellarTransactionId();
+    try {
+      List<OperationResponse> txnOperations = horizon.getStellarTxnOperations(stellarTxnId);
+      addStellarTransaction(txn, stellarTxnId, txnOperations);
+    } catch (IOException ex) {
+      errorEx("Failed to retrieve stellar transactions", ex);
+    }
 
     if (request.getAmountIn() != null) {
       txn.setAmountIn(request.getAmountIn().getAmount());
