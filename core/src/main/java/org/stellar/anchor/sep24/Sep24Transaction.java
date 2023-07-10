@@ -282,7 +282,6 @@ public interface Sep24Transaction {
 
   void setRefundMemoType(String refundMemoType);
 
-  // TODO: do something about these types
   enum Kind {
     DEPOSIT("deposit"),
     WITHDRAWAL("withdrawal"),

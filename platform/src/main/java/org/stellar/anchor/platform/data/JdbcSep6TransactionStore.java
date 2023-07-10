@@ -28,26 +28,24 @@ public class JdbcSep6TransactionStore implements Sep6TransactionStore {
   }
 
   @Override
-  public Sep6Transaction findByTransactionId(String transactionId) throws SepException {
+  public Sep6Transaction findByTransactionId(String transactionId) {
     return transactionRepo.findOneByTransactionId(transactionId);
   }
 
   @Override
-  public Sep6Transaction findByStellarTransactionId(String stellarTransactionId)
-      throws SepException {
+  public Sep6Transaction findByStellarTransactionId(String stellarTransactionId) {
     return transactionRepo.findOneByStellarTransactionId(stellarTransactionId);
   }
 
   @Override
-  public Sep6Transaction findByExternalTransactionId(String externalTransactionId)
-      throws SepException {
+  public Sep6Transaction findByExternalTransactionId(String externalTransactionId) {
     return transactionRepo.findOneByExternalTransactionId(externalTransactionId);
   }
 
   @Override
   public List<Sep6Transaction> findTransactions(
-      String accountId, String accountMemo, GetTransactionsRequest request) throws SepException {
-    // TODO: implement
+      String accountId, String accountMemo, GetTransactionsRequest request) {
+    // TODO: implement with GET /transactions endpoint
     return null;
   }
 

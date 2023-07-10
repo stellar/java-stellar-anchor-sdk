@@ -1,6 +1,7 @@
 package org.stellar.anchor.sep6;
 
 import java.time.Instant;
+import java.util.Map;
 
 public interface Sep6Transaction {
 
@@ -60,7 +61,6 @@ public interface Sep6Transaction {
 
   void setWithdrawAnchorAccount(String withdrawAnchorAccount);
 
-  // TODO: are these even needed?
   String getFromAccount();
 
   void setFromAccount(String fromAccount);
@@ -105,6 +105,14 @@ public interface Sep6Transaction {
 
   void setAmountFeeAsset(String amountFeeAsset);
 
+  Map<String, String> getFields();
+
+  void setFields(Map<String, String> fields);
+
+  String getQuoteId();
+
+  void setQuoteId(String quoteId);
+
   Boolean getRefunded();
 
   void setRefunded(Boolean refunded);
@@ -125,7 +133,6 @@ public interface Sep6Transaction {
     DEPOSIT("deposit"),
     WITHDRAWAL("withdrawal"),
 
-    // TODO: This is how it is represented in Polaris
     DEPOSIT_EXCHANGE("deposit-exchange"),
     WITHDRAWAL_EXCHANGE("withdrawal-exchange");
 
