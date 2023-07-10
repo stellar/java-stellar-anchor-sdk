@@ -73,7 +73,9 @@ public class NotifyOffchainFundsSentHandler extends ActionHandler<NotifyOffchain
         supportedStatuses.add(PENDING_USR_TRANSFER_START);
         break;
       case WITHDRAWAL:
-        supportedStatuses.add(PENDING_ANCHOR);
+        if (txn24.getTransferReceivedAt() != null) {
+          supportedStatuses.add(PENDING_ANCHOR);
+        }
         supportedStatuses.add(PENDING_USR_TRANSFER_COMPLETE);
         break;
     }
