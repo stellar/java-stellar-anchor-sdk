@@ -98,8 +98,8 @@ public class DoStellarRefundHandler extends ActionHandler<DoStellarRefundRequest
 
     Memo memo = makeMemo(request.getMemo(), request.getMemoType());
     if (memo != null) {
-      txn24.setMemo(memo.toString());
-      txn24.setMemoType(memoTypeString(memoType(memo)));
+      txn24.setRefundMemo(memo.toString());
+      txn24.setRefundMemoType(memoTypeString(memoType(memo)));
     }
 
     // TODO: Do we need to send request body?
