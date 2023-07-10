@@ -3,7 +3,6 @@ package org.stellar.anchor.platform.action;
 import static java.util.Comparator.comparing;
 import static java.util.stream.Collectors.joining;
 import static java.util.stream.Collectors.toList;
-import static org.stellar.anchor.api.sep.AssetInfo.NATIVE_ASSET_CODE;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.COMPLETED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.ERROR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.EXPIRED;
@@ -11,13 +10,11 @@ import static org.stellar.anchor.api.sep.SepTransactionStatus.REFUNDED;
 import static org.stellar.anchor.platform.service.PaymentOperationToEventListener.parsePaymentTime;
 import static org.stellar.anchor.platform.utils.TransactionHelper.toGetTransactionResponse;
 import static org.stellar.anchor.util.Log.error;
-import static org.stellar.anchor.util.Log.errorEx;
 import static org.stellar.anchor.util.MathHelper.decimal;
 
 import com.google.gson.Gson;
 import java.io.IOException;
 import java.time.Instant;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
@@ -49,12 +46,9 @@ import org.stellar.anchor.platform.observer.ObservedPayment;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31Transaction;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
-import org.stellar.anchor.util.AssetHelper;
 import org.stellar.anchor.util.GsonUtils;
 import org.stellar.anchor.util.SepHelper;
 import org.stellar.anchor.util.StringHelper;
-import org.stellar.sdk.AssetTypeCreditAlphaNum;
-import org.stellar.sdk.responses.AccountResponse;
 import org.stellar.sdk.responses.operations.PathPaymentBaseOperationResponse;
 import org.stellar.sdk.responses.operations.PaymentOperationResponse;
 
@@ -65,7 +59,7 @@ public abstract class ActionHandler<T extends RpcActionParamsRequest> {
   protected final Sep24TransactionStore txn24Store;
   protected final Sep31TransactionStore txn31Store;
   private final Validator validator;
-  private final Horizon horizon;
+  protected final Horizon horizon;
   protected final AssetService assetService;
   private final List<AssetInfo> assets;
   private final Class<T> requestType;
@@ -196,34 +190,6 @@ public abstract class ActionHandler<T extends RpcActionParamsRequest> {
                   amount.getAmount(), targetAsset.getSignificantDecimals()));
         }
       }
-    }
-  }
-
-  protected boolean isTrustLineConfigured(String account, String asset) {
-    try {
-      String assetCode = AssetHelper.getAssetCode(asset);
-      if (NATIVE_ASSET_CODE.equals(assetCode)) {
-        return true;
-      }
-      String assetIssuer = AssetHelper.getAssetIssuer(asset);
-
-      AccountResponse accountResponse = horizon.getServer().accounts().account(account);
-      return Arrays.stream(accountResponse.getBalances())
-          .anyMatch(
-              balance -> {
-                if (balance.getAssetType().equals("credit_alphanum4")
-                    || balance.getAssetType().equals("credit_alphanum12")) {
-                  AssetTypeCreditAlphaNum creditAsset =
-                      (AssetTypeCreditAlphaNum) balance.getAsset().get();
-                  return creditAsset.getCode().equals(assetCode)
-                      && creditAsset.getIssuer().equals(assetIssuer);
-                }
-                return false;
-              });
-    } catch (Exception e) {
-      errorEx(
-          String.format("Unable to check trust for account[%s] and asset[%s]", account, asset), e);
-      return false;
     }
   }
 

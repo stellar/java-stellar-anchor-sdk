@@ -37,17 +37,12 @@ import org.stellar.anchor.sep24.Sep24TransactionStore
 import org.stellar.anchor.sep31.Sep31TransactionStore
 import org.stellar.anchor.util.FileUtil
 import org.stellar.anchor.util.GsonUtils
-import org.stellar.sdk.AssetTypeCreditAlphaNum
 import org.stellar.sdk.Server
-import org.stellar.sdk.requests.AccountsRequestBuilder
 import org.stellar.sdk.requests.PaymentsRequestBuilder
-import org.stellar.sdk.responses.AccountResponse
-import org.stellar.sdk.responses.AccountResponse.Balance
 import org.stellar.sdk.responses.Page
 import org.stellar.sdk.responses.operations.OperationResponse
 import org.stellar.sdk.responses.operations.PaymentOperationResponse
 import org.stellar.sdk.responses.operations.SetTrustLineFlagsOperationResponse
-import shadow.com.google.common.base.Optional
 
 class ActionHandlerTest {
 
@@ -197,90 +192,6 @@ class ActionHandlerTest {
     val ex =
       assertThrows<AnchorException> { handler.validateAsset("amount_in", mockAssetWrongAmount) }
     Assertions.assertInstanceOf(InvalidParamsException::class.java, ex)
-  }
-
-  @Test
-  fun test_isTrustLineConfigured_native() {
-    val account = "testAccount"
-    val asset = "stellar:native"
-
-    assertTrue(handler.isTrustLineConfigured(account, asset))
-  }
-
-  @Test
-  fun test_isTrustLineConfigured_horizonError() {
-    val account = "testAccount"
-    val asset = "stellar:USDC:issuerAccount"
-
-    every { horizon.server } throws RuntimeException("Horizon error")
-
-    assertFalse(handler.isTrustLineConfigured(account, asset))
-  }
-
-  @Test
-  fun test_isTrustLineConfigured_present() {
-    val account = "testAccount"
-    val asset = "stellar:USDC:issuerAccount1"
-    val server: Server = mockk()
-    val accountsRequestBuilder: AccountsRequestBuilder = mockk()
-    val accountResponse: AccountResponse = mockk()
-
-    val balance1: Balance = mockk()
-    val balance2: Balance = mockk()
-
-    val asset1: AssetTypeCreditAlphaNum = mockk()
-    val asset2: AssetTypeCreditAlphaNum = mockk()
-
-    every { horizon.server } returns server
-    every { server.accounts() } returns accountsRequestBuilder
-    every { accountsRequestBuilder.account(account) } returns accountResponse
-    every { balance1.getAssetType() } returns "credit_alphanum4"
-    every { balance1.getAsset() } returns Optional.of(asset1)
-    every { balance2.getAssetType() } returns "credit_alphanum12"
-    every { balance2.getAsset() } returns Optional.of(asset2)
-    every { asset1.getCode() } returns "USDC"
-    every { asset1.getIssuer() } returns "issuerAccount1"
-    every { asset2.getCode() } returns "USDC"
-    every { asset2.getIssuer() } returns "issuerAccount2"
-    every { accountResponse.getBalances() } returns arrayOf(balance1, balance2)
-
-    assertTrue(handler.isTrustLineConfigured(account, asset))
-  }
-
-  @Test
-  fun test_isTrustLineConfigured_absent() {
-    val account = "testAccount"
-    val asset = "stellar:USDC:issuerAccount1"
-    val server: Server = mockk()
-    val accountsRequestBuilder: AccountsRequestBuilder = mockk()
-    val accountResponse: AccountResponse = mockk()
-
-    val balance1: Balance = mockk()
-    val balance2: Balance = mockk()
-    val balance3: Balance = mockk()
-
-    val asset1: AssetTypeCreditAlphaNum = mockk()
-    val asset2: AssetTypeCreditAlphaNum = mockk()
-    val asset3: AssetTypeCreditAlphaNum = mockk()
-
-    every { horizon.server } returns server
-    every { server.accounts() } returns accountsRequestBuilder
-    every { accountsRequestBuilder.account(account) } returns accountResponse
-    every { balance1.getAssetType() } returns "credit_alphanum8"
-    every { balance1.getAsset() } returns Optional.of(asset1)
-    every { balance2.getAssetType() } returns "credit_alphanum4"
-    every { balance2.getAsset() } returns Optional.of(asset2)
-    every { balance3.getAssetType() } returns "credit_alphanum4"
-    every { balance3.getAsset() } returns Optional.of(asset3)
-    every { asset1.getCode() } returns "USDC"
-    every { asset1.getIssuer() } returns "issuerAccount1"
-    every { asset2.getCode() } returns "SRT"
-    every { asset2.getIssuer() } returns "issuerAccount1"
-    every { asset3.getCode() } returns "USDC"
-    every { asset3.getIssuer() } returns "issuerAccount2"
-    every { accountResponse.getBalances() } returns arrayOf(balance1, balance2, balance3)
-
-    assertFalse(handler.isTrustLineConfigured(account, asset))
   }
 
   @Test
