@@ -37,7 +37,7 @@ public class RpcUtil {
         .id(id)
         .error(
             RpcResponse.RpcError.builder()
-                .code(ex.getErrorCode())
+                .code(ex.getErrorCode().getErrorCode())
                 .message(ex.getMessage())
                 .data(ex.getAdditionalData())
                 .build())

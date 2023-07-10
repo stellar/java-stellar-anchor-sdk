@@ -8,6 +8,6 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = false)
 public class InternalErrorException extends RpcException {
   public InternalErrorException(String message) {
-    super(INTERNAL_ERROR.getErrorCode(), message);
+    super(INTERNAL_ERROR, message);
   }
 }

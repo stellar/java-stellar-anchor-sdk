@@ -2,9 +2,11 @@ package org.stellar.anchor.platform.test
 
 import com.google.gson.reflect.TypeToken
 import java.lang.reflect.Type
+import kotlin.test.assertNull
 import org.apache.commons.lang3.StringUtils
 import org.apache.http.HttpStatus
-import org.junit.jupiter.api.Assertions.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.stellar.anchor.api.rpc.RpcErrorCode.INVALID_REQUEST
 import org.stellar.anchor.api.rpc.RpcRequest
 import org.stellar.anchor.api.rpc.RpcResponse
@@ -23,6 +25,7 @@ class PlatformApiTests(config: TestConfig, toml: TomlContent, jwt: String) {
     private const val TX_ID = "testTxId"
     private const val RPC_ID_1 = 1
     private const val RPC_ID_2 = 2
+    private const val RPC_METHOD = "test_rpc_method"
   }
 
   private val type: Type = object : TypeToken<ArrayList<RpcResponse>>() {}.type

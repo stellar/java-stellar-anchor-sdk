@@ -7,7 +7,8 @@ import lombok.EqualsAndHashCode;
 /** The JSON sent is not a valid Request object. */
 @EqualsAndHashCode(callSuper = false)
 public class InvalidRequestException extends RpcException {
+
   public InvalidRequestException(String message) {
-    super(INVALID_REQUEST.getErrorCode(), message);
+    super(INVALID_REQUEST, message);
   }
 }

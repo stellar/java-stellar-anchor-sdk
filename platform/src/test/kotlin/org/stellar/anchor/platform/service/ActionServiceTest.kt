@@ -6,6 +6,7 @@ import io.mockk.impl.annotations.MockK
 import io.mockk.mockkStatic
 import io.mockk.verify
 import kotlin.test.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -39,7 +40,7 @@ class ActionServiceTest {
 
   private lateinit var actionService: ActionService
 
-  private val RPC_RESPONSE =
+  private val rpcResponse =
     GetTransactionResponse.builder().id("testId").message("testMessage").build()
 
   @BeforeEach
@@ -59,7 +60,7 @@ class ActionServiceTest {
         .params(RPC_PARAMS)
         .build()
 
-    every { actionHandler.handle(any()) } returns RPC_RESPONSE
+    every { actionHandler.handle(any()) } returns rpcResponse
 
     val response = actionService.handleRpcCalls(listOf(rpcRequest, rpcRequest))
 
@@ -191,6 +192,14 @@ class ActionServiceTest {
   }
 
   @Test
+  fun `test handle invalid rpc call`() {
+    val invalidRpcRequest = RpcRequest.builder().method(INVALID_RPC_METHOD).id(RPC_ID).build()
+    val response = actionService.handleRpcCalls(listOf(invalidRpcRequest))
+    assertEquals(1, response.size)
+    assertNotNull(response[0].error)
+  }
+
+  @Test
   fun `test handle list of valid and invalid rpc calls`() {
     val rpcRequest =
       RpcRequest.builder()
@@ -206,7 +215,7 @@ class ActionServiceTest {
         .id(RPC_ID)
         .build()
 
-    every { actionHandler.handle(any()) } returns RPC_RESPONSE
+    every { actionHandler.handle(any()) } returns rpcResponse
 
     val response = actionService.handleRpcCalls(listOf(rpcRequest, invalidRpcRequest))
 
