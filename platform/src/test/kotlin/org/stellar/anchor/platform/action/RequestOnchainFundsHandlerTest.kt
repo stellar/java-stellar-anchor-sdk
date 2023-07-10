@@ -278,7 +278,6 @@ class RequestOnchainFundsHandlerTest {
         .amountOut(AmountAssetRequest("0.9", STELLAR_USDC))
         .amountFee(AmountAssetRequest("0.1", STELLAR_USDC))
         .amountExpected(AmountRequest("1"))
-        .destinationAccount("testDestinationAccount")
         .build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = INCOMPLETE.toString()
@@ -604,7 +603,7 @@ class RequestOnchainFundsHandlerTest {
   }
 
   @Test
-  fun test_handle_memoIsDisabled() {
+  fun test_handle_notNoneGenerator() {
     val sep24DepositInfoGenerator: Sep24DepositInfoSelfGenerator = mockk()
     this.handler =
       RequestOnchainFundsHandler(
@@ -623,6 +622,9 @@ class RequestOnchainFundsHandlerTest {
         .transactionId(TX_ID)
         .memo("testMemo")
         .memoType("text")
+        .amountIn(AmountAssetRequest("1", FIAT_USD))
+        .amountOut(AmountAssetRequest("1", FIAT_USD))
+        .amountFee(AmountAssetRequest("1", FIAT_USD))
         .build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = INCOMPLETE.toString()
@@ -634,7 +636,10 @@ class RequestOnchainFundsHandlerTest {
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
-    assertEquals("amount_in is required", ex.message)
+    assertEquals(
+      "Anchor is not configured to accept memo, memo_type and destination_account",
+      ex.message
+    )
   }
 
   @Test

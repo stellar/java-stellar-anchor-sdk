@@ -114,8 +114,11 @@ public class RequestOnchainFundsHandler extends ActionHandler<RequestOnchainFund
       if (request.getDestinationAccount() == null) {
         throw new InvalidParamsException("destination_account is required");
       }
-    } else if (request.getMemo() != null || request.getMemoType() != null) {
-      throw new InvalidParamsException("Anchor is not configured to use memo and memo_type");
+    } else if (request.getMemo() != null
+        || request.getMemoType() != null
+        || request.getDestinationAccount() != null) {
+      throw new InvalidParamsException(
+          "Anchor is not configured to accept memo, memo_type and destination_account");
     }
   }
 
