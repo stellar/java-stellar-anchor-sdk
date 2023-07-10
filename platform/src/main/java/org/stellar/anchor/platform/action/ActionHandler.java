@@ -28,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.SepException;
+import org.stellar.anchor.api.exception.rpc.InternalErrorException;
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException;
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException;
 import org.stellar.anchor.api.platform.GetTransactionResponse;
@@ -226,7 +227,8 @@ public abstract class ActionHandler<T extends RpcActionParamsRequest> {
     }
   }
 
-  protected void addStellarTransaction(JdbcSepTransaction txn, String stellarTransactionId) {
+  protected void addStellarTransaction(JdbcSepTransaction txn, String stellarTransactionId)
+      throws InternalErrorException {
     try {
       List<ObservedPayment> payments = getObservedPayments(stellarTransactionId);
 
@@ -265,11 +267,14 @@ public abstract class ActionHandler<T extends RpcActionParamsRequest> {
           txn.getStellarTransactions().add(stellarTransaction);
         }
 
-        txn.setTransferReceivedAt(parsePaymentTime(lastPayment.getCreatedAt()));
+        Instant transferReceivedAt = parsePaymentTime(lastPayment.getCreatedAt());
+        txn.setTransferReceivedAt(transferReceivedAt != null ? transferReceivedAt : Instant.now());
         txn.setStellarTransactionId(stellarTransactionId);
       }
     } catch (Exception ex) {
-      errorEx("Failed to retrieve stellar transactions", ex);
+      throw new InternalErrorException(
+          String.format("Failed to retrieve Stellar transaction by ID[%s]", stellarTransactionId),
+          ex);
     }
   }
 

@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
+import org.stellar.anchor.api.exception.rpc.InternalErrorException
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException
 import org.stellar.anchor.api.platform.GetTransactionResponse
@@ -261,43 +262,10 @@ class NotifyOnchainFundsSentHandlerTest {
     every { paymentsRequestBuilder.forTransaction("stellarTxId") } throws
       RuntimeException("Invalid stellar transaction")
 
-    val startDate = Instant.now()
-    val response = handler.handle(request)
-    val endDate = Instant.now()
+    val ex = assertThrows<InternalErrorException> { handler.handle(request) }
+    assertEquals("Failed to retrieve Stellar transaction by ID[stellarTxId]", ex.message)
 
+    verify(exactly = 0) { txn24Store.save(any()) }
     verify(exactly = 0) { txn31Store.save(any()) }
-
-    val expectedSep24Txn = JdbcSep24Transaction()
-    expectedSep24Txn.kind = DEPOSIT.kind
-    expectedSep24Txn.status = COMPLETED.toString()
-    expectedSep24Txn.transferReceivedAt = transferReceivedAt
-    expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
-    expectedSep24Txn.completedAt = sep24TxnCapture.captured.completedAt
-
-    JSONAssert.assertEquals(
-      gson.toJson(expectedSep24Txn),
-      gson.toJson(sep24TxnCapture.captured),
-      JSONCompareMode.STRICT
-    )
-
-    val expectedResponse = GetTransactionResponse()
-    expectedResponse.sep = SEP_24
-    expectedResponse.kind = DEPOSIT
-    expectedResponse.status = COMPLETED
-    expectedResponse.transferReceivedAt = transferReceivedAt
-    expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
-    expectedResponse.completedAt = sep24TxnCapture.captured.completedAt
-    expectedResponse.amountExpected = Amount(null, "")
-
-    JSONAssert.assertEquals(
-      gson.toJson(expectedResponse),
-      gson.toJson(response),
-      JSONCompareMode.STRICT
-    )
-
-    assertTrue(expectedSep24Txn.updatedAt >= startDate)
-    assertTrue(expectedSep24Txn.updatedAt <= endDate)
-    assertTrue(expectedSep24Txn.completedAt >= startDate)
-    assertTrue(expectedSep24Txn.completedAt <= endDate)
   }
 }

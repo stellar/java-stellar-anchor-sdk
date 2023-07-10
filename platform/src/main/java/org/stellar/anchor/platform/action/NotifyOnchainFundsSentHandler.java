@@ -10,6 +10,7 @@ import java.time.Instant;
 import java.util.HashSet;
 import java.util.Set;
 import javax.validation.Validator;
+import org.stellar.anchor.api.exception.rpc.InternalErrorException;
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException;
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind;
 import org.stellar.anchor.api.rpc.action.ActionMethod;
@@ -71,7 +72,7 @@ public class NotifyOnchainFundsSentHandler extends ActionHandler<NotifyOnchainFu
 
   @Override
   protected void updateTransactionWithAction(
-      JdbcSepTransaction txn, NotifyOnchainFundsSentRequest request) {
+      JdbcSepTransaction txn, NotifyOnchainFundsSentRequest request) throws InternalErrorException {
     Instant transferReceivedAt = txn.getTransferReceivedAt();
     addStellarTransaction(txn, request.getStellarTransactionId());
     txn.setTransferReceivedAt(transferReceivedAt);

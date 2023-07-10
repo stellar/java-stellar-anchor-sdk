@@ -18,6 +18,7 @@ import org.junit.jupiter.api.assertThrows
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
 import org.stellar.anchor.api.exception.AnchorException
+import org.stellar.anchor.api.exception.rpc.InternalErrorException
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException
 import org.stellar.anchor.api.rpc.action.ActionMethod
@@ -415,14 +416,8 @@ class ActionHandlerTest {
     every { paymentsRequestBuilder.forTransaction("stellarTxId") } throws
       RuntimeException("Invalid stellar transaction")
 
-    handler.addStellarTransaction(txn24, "stellarTxId")
-
-    val expectedSep24Txn = JdbcSep24Transaction()
-
-    JSONAssert.assertEquals(
-      gson.toJson(expectedSep24Txn),
-      gson.toJson(txn24),
-      JSONCompareMode.STRICT
-    )
+    val ex =
+      assertThrows<InternalErrorException> { handler.addStellarTransaction(txn24, "stellarTxId") }
+    assertEquals("Failed to retrieve Stellar transaction by ID[stellarTxId]", ex.message)
   }
 }
