@@ -1,5 +1,8 @@
 package org.stellar.anchor.platform.event;
 
+import static org.stellar.anchor.util.Log.debug;
+import static org.stellar.anchor.util.Log.debugF;
+
 import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.platform.config.CallbackApiConfig;
 import org.stellar.anchor.util.GsonUtils;
@@ -15,7 +18,7 @@ public class CallbackApiHandler extends EventHandler {
   @Override
   void handleEvent(AnchorEvent event) {
     // TOOD: Implement calling the business server
-    System.out.println("Sending event to callback api: " + callbackApiConfig.getBaseUrl());
-    System.out.println(GsonUtils.getInstance().toJson(event));
+    debugF("Sending event to callback api: {}", callbackApiConfig.getBaseUrl());
+    debug(GsonUtils.getInstance().toJson(event));
   }
 }
