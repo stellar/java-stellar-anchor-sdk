@@ -15,7 +15,7 @@ import org.stellar.anchor.api.exception.AnchorException;
  *     eventService.publish(new TransactionEvent(...));
  *     eventService.publish(new ControlEvent(...));
  *     ...
- *     EventService.Session session = eventService.createSession(EventService.EventQueue.TRANSACTION);
+ *     EventService.Session session = eventService.createSession("callback-api-handler", EventService.EventQueue.TRANSACTION);
  *     EventService.ReadResponse readResponse = session.read();
  *     List&lt;AnchorEvent&gt; events = readResponse.getEvents();
  *     ...

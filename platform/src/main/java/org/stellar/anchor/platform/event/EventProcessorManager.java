@@ -14,6 +14,7 @@ import javax.annotation.PreDestroy;
 import lombok.SneakyThrows;
 import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.AnchorException;
+import org.stellar.anchor.api.exception.InternalServerErrorException;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.event.EventService.EventQueue;
 import org.stellar.anchor.platform.config.CallbackApiConfig;
@@ -25,7 +26,7 @@ import org.stellar.anchor.util.Log;
 public class EventProcessorManager {
   public static final String CLIENT_STATUS_CALLBACK_EVENT_PROCESSOR_NAME_PREFIX =
       "client-status-callback-";
-  public static final String CALLBACK_API_EVENT_PROCESSOR_NAME = "callback-api";
+  public static final String CALLBACK_API_EVENT_PROCESSOR_NAME = "callback-api-";
   private final EventProcessorConfig eventProcessorConfig;
   private final CallbackApiConfig callbackApiConfig;
   private final ClientsConfig clientsConfig;
@@ -45,6 +46,7 @@ public class EventProcessorManager {
   }
 
   @PostConstruct
+  @SneakyThrows
   public void start() {
     if (eventProcessorConfig.getCallbackApiRequest().isEnabled()) {
       // Create a processor for the callback API handler
@@ -56,31 +58,28 @@ public class EventProcessorManager {
       // Create a processor of the client status callback handler for each client defined in the
       // clientsConfig
       if (eventProcessorConfig.getClientStatusCallback().isEnabled()) {
-        clientsConfig
-            .getClients()
-            .forEach(
-                (clientConfig) -> {
-                  String processorName = null;
-                  switch (clientConfig.getType()) {
-                    case CUSTODIAL:
-                      processorName =
-                          CLIENT_STATUS_CALLBACK_EVENT_PROCESSOR_NAME_PREFIX
-                              + clientConfig.getSigningKey();
-                      break;
-                    case NONCUSTODIAL:
-                      processorName =
-                          CLIENT_STATUS_CALLBACK_EVENT_PROCESSOR_NAME_PREFIX
-                              + clientConfig.getDomain();
-                      break;
-                    default:
-                      errorF("Unknown client type: {}", clientConfig.getType());
-                  }
-                  processors.add(
-                      new EventProcessor(
-                          processorName,
-                          EventQueue.TRANSACTION,
-                          new ClientStatusCallbackHandler(clientConfig)));
-                });
+        for (ClientsConfig.ClientConfig clientConfig : clientsConfig.getClients()) {
+          String processorName;
+          switch (clientConfig.getType()) {
+            case CUSTODIAL:
+              processorName =
+                  CLIENT_STATUS_CALLBACK_EVENT_PROCESSOR_NAME_PREFIX + clientConfig.getSigningKey();
+              break;
+            case NONCUSTODIAL:
+              processorName =
+                  CLIENT_STATUS_CALLBACK_EVENT_PROCESSOR_NAME_PREFIX + clientConfig.getDomain();
+              break;
+            default:
+              errorF("Unknown client type: {}", clientConfig.getType());
+              throw new InternalServerErrorException(
+                  "Unknown client type: " + clientConfig.getType());
+          }
+          processors.add(
+              new EventProcessor(
+                  processorName,
+                  EventQueue.TRANSACTION,
+                  new ClientStatusCallbackHandler(clientConfig)));
+        }
       }
     }
 
@@ -134,7 +133,7 @@ public class EventProcessorManager {
     @Override
     public void run() {
       infoF(
-          "The EventProcessor Kafka listening task is starting for the {} time.",
+          "The EventProcessor listening task is starting for the {} time.",
           getConsumerRestartCount() + 1);
       Session queueSession = eventService.createSession(name, eventQueue);
       try {

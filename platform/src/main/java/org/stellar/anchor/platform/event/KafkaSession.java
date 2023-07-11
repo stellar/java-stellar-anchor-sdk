@@ -86,6 +86,7 @@ public class KafkaSession implements EventService.Session {
       for (ConsumerRecord<String, AnchorEvent> record : consumerRecords) {
         events.add(record.value());
       }
+      // TOOD: emit metrics here.
     }
     return new KafkaReadResponse(events);
   }

@@ -2,7 +2,6 @@ package org.stellar.anchor.sep38;
 
 import static org.stellar.anchor.api.sep.sep38.Sep38Context.SEP31;
 import static org.stellar.anchor.api.sep.sep38.Sep38Context.SEP6;
-import static org.stellar.anchor.event.EventService.*;
 import static org.stellar.anchor.event.EventService.EventQueue.TRANSACTION;
 import static org.stellar.anchor.util.BeanHelper.updateField;
 import static org.stellar.anchor.util.Log.debug;
@@ -40,7 +39,7 @@ public class Sep38Service {
   final AssetService assetService;
   final RateIntegration rateIntegration;
   final Sep38QuoteStore sep38QuoteStore;
-  final Session eventSession;
+  final EventService.Session eventSession;
   final InfoResponse infoResponse;
   final Map<String, InfoResponse.Asset> assetMap;
   final int pricePrecision = 10;

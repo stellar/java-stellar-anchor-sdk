@@ -54,6 +54,8 @@ public class ConfigReader {
     }
   }
 
+  private Pattern arrayPattern = Pattern.compile("\\[\\d+\\]");
+
   /**
    * If the name is an array field, return the name without the array index and truncate the rest of
    * the name.
@@ -64,9 +66,7 @@ public class ConfigReader {
    * @return name of the array
    */
   String trimToArrayName(String fieldName) {
-    String regex = "\\[\\d+\\]";
-    Pattern pattern = Pattern.compile(regex);
-    Matcher matcher = pattern.matcher(fieldName);
+    Matcher matcher = arrayPattern.matcher(fieldName);
 
     if (matcher.find()) {
       int start = matcher.start();
