@@ -16,6 +16,7 @@ import org.stellar.anchor.api.exception.rpc.InvalidParamsException;
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException;
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind;
 import org.stellar.anchor.api.rpc.action.ActionMethod;
+import org.stellar.anchor.api.rpc.action.AmountRequest;
 import org.stellar.anchor.api.rpc.action.DoStellarRefundRequest;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
@@ -58,10 +59,23 @@ public class DoStellarRefundHandler extends ActionHandler<DoStellarRefundRequest
 
     try {
       makeMemo(request.getMemo(), request.getMemoType());
-    } catch (SepException e) {
+    } catch (SepException | IllegalArgumentException e) {
       throw new InvalidParamsException(
           String.format("Invalid memo or memo_type: %s", e.getMessage()), e);
     }
+
+    validateAsset(
+        "refund.amount",
+        AmountRequest.builder()
+            .amount(request.getRefund().getAmount())
+            .asset(txn.getAmountInAsset())
+            .build());
+    validateAsset(
+        "refund.amountFee",
+        AmountRequest.builder()
+            .amount(request.getRefund().getAmountFee())
+            .asset(txn.getAmountInAsset())
+            .build());
   }
 
   @Override
@@ -102,7 +116,6 @@ public class DoStellarRefundHandler extends ActionHandler<DoStellarRefundRequest
       txn24.setRefundMemoType(memoTypeString(memoType(memo)));
     }
 
-    // TODO: Do we need to send request body?
-    custodyService.createTransactionRefund(txn.getId(), null);
+    custodyService.createTransactionRefund(txn.getId(), request);
   }
 }

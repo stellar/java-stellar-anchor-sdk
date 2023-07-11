@@ -13,7 +13,11 @@ public class RpcUtil {
   public static final String JSON_RPC_VERSION = "2.0";
 
   public static RpcResponse getRpcSuccessResponse(Object id, Object result) {
-    return RpcResponse.builder().jsonrpc(JSON_RPC_VERSION).id(id).result(result).build();
+    return RpcResponse.builder()
+        .jsonrpc(JSON_RPC_VERSION)
+        .id(id)
+        .result(id != null ? result : null)
+        .build();
   }
 
   public static RpcResponse getRpcErrorResponse(Object id, RpcException ex) {

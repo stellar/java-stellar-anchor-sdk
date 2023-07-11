@@ -13,6 +13,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.stellar.anchor.api.custody.CreateCustodyTransactionRequest;
 import org.stellar.anchor.api.custody.CreateTransactionPaymentResponse;
+import org.stellar.anchor.api.custody.CreateTransactionRefundRequest;
 import org.stellar.anchor.api.custody.CustodyExceptionResponse;
 import org.stellar.anchor.api.custody.GenerateDepositAddressResponse;
 import org.stellar.anchor.api.exception.CustodyException;
@@ -30,6 +31,7 @@ public class CustodyApiClient {
   private static final String CREATE_TRANSACTION_URL_FORMAT = "/transactions";
   private static final String GENERATE_DEPOSIT_ADDRESS_URL_FORMAT = "/assets/%s/addresses";
   private static final String CREATE_TRANSACTION_PAYMENT_URL_FORMAT = "/transactions/%s/payments";
+  private static final String CREATE_TRANSACTION_REFUND_URL_FORMAT = "/transactions/%s/refunds";
 
   private final OkHttpClient httpClient;
   private final AuthHelper authHelper;
@@ -74,6 +76,21 @@ public class CustodyApiClient {
         getRequestBuilder()
             .url(url)
             .post(RequestBody.create(gson.toJson(requestBody).getBytes(), TYPE_JSON))
+            .build();
+
+    return gson.fromJson(doRequest(request), CreateTransactionPaymentResponse.class);
+  }
+
+  public CreateTransactionPaymentResponse createTransactionRefund(
+      String txnId, CreateTransactionRefundRequest refundRequest)
+      throws CustodyException, InvalidConfigException {
+    final String url =
+        custodyApiConfig.getBaseUrl() + String.format(CREATE_TRANSACTION_REFUND_URL_FORMAT, txnId);
+
+    Request request =
+        getRequestBuilder()
+            .url(url)
+            .post(RequestBody.create(gson.toJson(refundRequest).getBytes(), TYPE_JSON))
             .build();
 
     return gson.fromJson(doRequest(request), CreateTransactionPaymentResponse.class);
