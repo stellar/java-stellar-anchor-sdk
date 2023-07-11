@@ -110,7 +110,7 @@ class NotifyRefundSentHandlerTest {
     every { txn31Store.findByTransactionId(any()) } returns null
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
-    assertEquals("Refund is required", ex.message)
+    assertEquals("refund is required", ex.message)
   }
 
   @Test

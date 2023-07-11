@@ -22,7 +22,6 @@ import org.stellar.anchor.api.exception.custody.CustodyBadRequestException;
 import org.stellar.anchor.api.exception.custody.CustodyNotFoundException;
 import org.stellar.anchor.api.exception.custody.CustodyServiceUnavailableException;
 import org.stellar.anchor.api.exception.custody.CustodyTooManyRequestsException;
-import org.stellar.anchor.api.platform.PlatformTransactionData;
 import org.stellar.anchor.platform.data.CustodyTransactionStatus;
 import org.stellar.anchor.platform.data.JdbcCustodyTransaction;
 import org.stellar.anchor.platform.data.JdbcCustodyTransactionRepo;
@@ -136,14 +135,10 @@ public abstract class CustodyTransactionService {
             .memo(refundRequest.getMemo())
             .memoType(refundRequest.getMemoType())
             .protocol(txn.getProtocol())
-            .fromAccount(txn.getToAccount())
             .toAccount(txn.getFromAccount())
             .amount(refundRequest.getAmount())
-            .amountAsset(refundRequest.getAmountAsset())
-            .kind(
-                PlatformTransactionData.Kind.from(txn.getKind()).equals(DEPOSIT)
-                    ? WITHDRAWAL.getKind()
-                    : DEPOSIT.getKind()) // TODO: Not sure about this
+            .amountAsset(txn.getAmountAsset())
+            .kind(DEPOSIT.getKind())
             .build());
   }
 

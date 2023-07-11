@@ -25,10 +25,10 @@ public class DoStellarRefundRequest extends RpcActionParamsRequest {
   @Builder
   public static class Refund {
 
-    @NotNull private AmountRequest amount;
+    @NotNull private String amount;
 
     @SerializedName("amount_fee")
     @NotNull
-    private AmountRequest amountFee;
+    private String amountFee;
   }
 }

@@ -9,7 +9,5 @@ public class CreateTransactionRefundRequest {
   private String memo;
   private String memoType;
   private String amount;
-  private String amountAsset;
   private String amountFee;
-  private String amountFeeAsset;
 }

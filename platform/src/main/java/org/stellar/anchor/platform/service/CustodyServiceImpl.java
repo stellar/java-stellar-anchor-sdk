@@ -15,7 +15,6 @@ import org.stellar.anchor.api.exception.custody.CustodyBadRequestException;
 import org.stellar.anchor.api.exception.custody.CustodyNotFoundException;
 import org.stellar.anchor.api.exception.custody.CustodyServiceUnavailableException;
 import org.stellar.anchor.api.exception.custody.CustodyTooManyRequestsException;
-import org.stellar.anchor.api.rpc.action.AmountRequest;
 import org.stellar.anchor.api.rpc.action.DoStellarRefundRequest;
 import org.stellar.anchor.custody.CustodyService;
 import org.stellar.anchor.platform.apiclient.CustodyApiClient;
@@ -63,14 +62,10 @@ public class CustodyServiceImpl implements CustodyService {
       throw new InvalidConfigException("Integration with custody service is not enabled");
     }
 
-    AmountRequest amount = rpcRequest.getRefund().getAmount();
-    AmountRequest amountFee = rpcRequest.getRefund().getAmountFee();
     CreateTransactionRefundRequest request =
         CreateTransactionRefundRequest.builder()
-            .amount(amount.getAmount())
-            .amountAsset(amount.getAsset())
-            .amountFee(amountFee.getAmount())
-            .amountFeeAsset(amountFee.getAsset())
+            .amount(rpcRequest.getRefund().getAmount())
+            .amountFee(rpcRequest.getRefund().getAmountFee())
             .memo(rpcRequest.getMemo())
             .memoType(rpcRequest.getMemoType())
             .build();

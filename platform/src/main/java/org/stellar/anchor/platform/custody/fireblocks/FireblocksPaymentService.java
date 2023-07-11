@@ -146,7 +146,7 @@ public class FireblocksPaymentService implements CustodyPaymentService<Transacti
         .assetId(fireblocksConfig.getFireblocksAssetCode(txn.getAmountAsset()))
         .amount(txn.getAmount())
         // TODO: set source and destination
-        // TODO: what to do with amountFee/amountFeeAsset?
+        // TODO: what to do with amountFee?
         .build();
   }
 

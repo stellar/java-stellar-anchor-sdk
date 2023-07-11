@@ -16,6 +16,7 @@ import org.stellar.anchor.api.exception.rpc.InvalidParamsException;
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException;
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind;
 import org.stellar.anchor.api.rpc.action.ActionMethod;
+import org.stellar.anchor.api.rpc.action.AmountRequest;
 import org.stellar.anchor.api.rpc.action.DoStellarRefundRequest;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
@@ -63,8 +64,18 @@ public class DoStellarRefundHandler extends ActionHandler<DoStellarRefundRequest
           String.format("Invalid memo or memo_type: %s", e.getMessage()), e);
     }
 
-    validateAsset("refund.amount", request.getRefund().getAmount());
-    validateAsset("refund.amountFee", request.getRefund().getAmountFee());
+    validateAsset(
+        "refund.amount",
+        AmountRequest.builder()
+            .amount(request.getRefund().getAmount())
+            .asset(txn.getAmountInAsset())
+            .build());
+    validateAsset(
+        "refund.amountFee",
+        AmountRequest.builder()
+            .amount(request.getRefund().getAmountFee())
+            .asset(txn.getAmountInAsset())
+            .build());
   }
 
   @Override

@@ -21,7 +21,6 @@ import org.stellar.anchor.api.exception.rpc.InvalidParamsException
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException
 import org.stellar.anchor.api.platform.GetTransactionResponse
 import org.stellar.anchor.api.platform.PlatformTransactionData
-import org.stellar.anchor.api.rpc.action.AmountRequest
 import org.stellar.anchor.api.rpc.action.DoStellarRefundRequest
 import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.api.shared.Amount
@@ -166,16 +165,12 @@ class DoStellarRefundHandlerTest {
         .transactionId(TX_ID)
         .memo("testMemo")
         .memoType("text")
-        .refund(
-          DoStellarRefundRequest.Refund.builder()
-            .amount(AmountRequest.builder().amount("-1").asset(FIAT_USD).build())
-            .amountFee(AmountRequest.builder().amount("-0.1").asset(FIAT_USD).build())
-            .build()
-        )
+        .refund(DoStellarRefundRequest.Refund.builder().amount("-1").amountFee("-0.1").build())
         .build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = SepTransactionStatus.PENDING_ANCHOR.toString()
     txn24.requestAssetCode = FIAT_USD_CODE
+    txn24.amountInAsset = STELLAR_USDC
     txn24.amountOutAsset = STELLAR_USDC
     txn24.amountFeeAsset = STELLAR_USDC
     txn24.transferReceivedAt = Instant.now()
@@ -189,11 +184,11 @@ class DoStellarRefundHandlerTest {
 
     var ex = assertThrows<InvalidParamsException> { handler.handle(request) }
     assertEquals("refund.amount.amount should be positive", ex.message)
-    request.refund.amount.amount = "1"
+    request.refund.amount = "1"
 
     ex = assertThrows { handler.handle(request) }
     assertEquals("refund.amountFee.amount should be positive", ex.message)
-    request.refund.amountFee.amount = "1"
+    request.refund.amountFee = "1"
   }
 
   @Test
@@ -203,12 +198,7 @@ class DoStellarRefundHandlerTest {
         .transactionId(TX_ID)
         .memo("testMemo")
         .memoType("hash")
-        .refund(
-          DoStellarRefundRequest.Refund.builder()
-            .amount(AmountRequest.builder().amount("1").asset(FIAT_USD).build())
-            .amountFee(AmountRequest.builder().amount("0.1").asset(FIAT_USD).build())
-            .build()
-        )
+        .refund(DoStellarRefundRequest.Refund.builder().amount("1").amountFee("0.1").build())
         .build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = SepTransactionStatus.PENDING_ANCHOR.toString()
@@ -236,18 +226,14 @@ class DoStellarRefundHandlerTest {
         .transactionId(TX_ID)
         .memo("testMemo")
         .memoType("text")
-        .refund(
-          DoStellarRefundRequest.Refund.builder()
-            .amount(AmountRequest.builder().amount("1").asset(FIAT_USD).build())
-            .amountFee(AmountRequest.builder().amount("0.1").asset(FIAT_USD).build())
-            .build()
-        )
+        .refund(DoStellarRefundRequest.Refund.builder().amount("1").amountFee("0.1").build())
         .build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = SepTransactionStatus.PENDING_ANCHOR.toString()
     txn24.kind = PlatformTransactionData.Kind.WITHDRAWAL.kind
     txn24.transferReceivedAt = transferReceivedAt
     txn24.requestAssetCode = FIAT_USD_CODE
+    txn24.amountInAsset = STELLAR_USDC
     txn24.amountIn = "1"
     txn24.amountOutAsset = STELLAR_USDC
     txn24.amountOut = "1"
@@ -271,6 +257,7 @@ class DoStellarRefundHandlerTest {
     expectedSep24Txn.status = SepTransactionStatus.PENDING_STELLAR.toString()
     expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedSep24Txn.requestAssetCode = FIAT_USD_CODE
+    expectedSep24Txn.amountInAsset = STELLAR_USDC
     expectedSep24Txn.amountIn = "1"
     expectedSep24Txn.amountOutAsset = STELLAR_USDC
     expectedSep24Txn.amountOut = "1"
@@ -291,7 +278,7 @@ class DoStellarRefundHandlerTest {
     expectedResponse.kind = PlatformTransactionData.Kind.WITHDRAWAL
     expectedResponse.status = SepTransactionStatus.PENDING_STELLAR
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
-    expectedResponse.amountIn = Amount("1", FIAT_USD)
+    expectedResponse.amountIn = Amount("1", STELLAR_USDC)
     expectedResponse.amountOut = Amount("1", STELLAR_USDC)
     expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt

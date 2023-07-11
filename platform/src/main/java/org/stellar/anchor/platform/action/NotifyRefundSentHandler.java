@@ -50,7 +50,7 @@ public class NotifyRefundSentHandler extends ActionHandler<NotifyRefundSentReque
 
     if (request.getRefund() == null
         && PENDING_ANCHOR == SepTransactionStatus.from(txn.getStatus())) {
-      throw new InvalidParamsException("Refund is required");
+      throw new InvalidParamsException("refund is required");
     }
 
     validateAsset(
