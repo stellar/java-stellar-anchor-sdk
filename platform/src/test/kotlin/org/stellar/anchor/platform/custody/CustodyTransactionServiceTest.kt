@@ -12,8 +12,10 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.skyscreamer.jsonassert.Customization
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
+import org.skyscreamer.jsonassert.comparator.CustomComparator
 import org.stellar.anchor.api.custody.CreateCustodyTransactionRequest
 import org.stellar.anchor.api.exception.FireblocksException
 import org.stellar.anchor.api.exception.custody.CustodyBadRequestException
@@ -65,7 +67,11 @@ class CustodyTransactionServiceTest {
     val actualCustodyTransaction = entityCapture.captured
     assertTrue(!Instant.now().isBefore(actualCustodyTransaction.createdAt))
     actualCustodyTransaction.createdAt = null
-    JSONAssert.assertEquals(entityJson, gson.toJson(entityCapture.captured), JSONCompareMode.STRICT)
+    JSONAssert.assertEquals(
+      entityJson,
+      gson.toJson(entityCapture.captured),
+      CustomComparator(JSONCompareMode.STRICT, Customization("id") { _, _ -> true })
+    )
   }
 
   @Test
@@ -89,7 +95,7 @@ class CustodyTransactionServiceTest {
 
   @Test
   fun test_createPayment_transaction_does_not_exist() {
-    every { custodyTransactionRepo.findById(TRANSACTION_ID) } returns Optional.empty()
+    every { custodyTransactionRepo.findBySepTxId(TRANSACTION_ID) } returns Optional.empty()
 
     val exception =
       assertThrows<CustodyNotFoundException> {
@@ -102,7 +108,7 @@ class CustodyTransactionServiceTest {
   @Test
   fun test_createPayment_transaction_exists() {
     val transaction = JdbcCustodyTransaction()
-    every { custodyTransactionRepo.findById(TRANSACTION_ID) } returns Optional.of(transaction)
+    every { custodyTransactionRepo.findBySepTxId(TRANSACTION_ID) } returns Optional.of(transaction)
     every { custodyTransactionRepo.save(any()) } returns null
 
     custodyTransactionService.createPayment(TRANSACTION_ID, REQUEST_BODY)
@@ -115,7 +121,7 @@ class CustodyTransactionServiceTest {
   @Test
   fun test_createPayment_bad_request() {
     val transaction = JdbcCustodyTransaction()
-    every { custodyTransactionRepo.findById(TRANSACTION_ID) } returns Optional.of(transaction)
+    every { custodyTransactionRepo.findBySepTxId(TRANSACTION_ID) } returns Optional.of(transaction)
     every { custodyTransactionRepo.save(any()) } returns null
     every { custodyPaymentService.createTransactionPayment(transaction, REQUEST_BODY) } throws
       FireblocksException("Bad request", 400)
@@ -130,7 +136,7 @@ class CustodyTransactionServiceTest {
   @Test
   fun test_createPayment_too_many_requests() {
     val transaction = JdbcCustodyTransaction()
-    every { custodyTransactionRepo.findById(TRANSACTION_ID) } returns Optional.of(transaction)
+    every { custodyTransactionRepo.findBySepTxId(TRANSACTION_ID) } returns Optional.of(transaction)
     every { custodyTransactionRepo.save(any()) } returns null
     every { custodyPaymentService.createTransactionPayment(transaction, REQUEST_BODY) } throws
       FireblocksException("Too many requests", 429)
@@ -145,7 +151,7 @@ class CustodyTransactionServiceTest {
   @Test
   fun test_createPayment_service_unavailable() {
     val transaction = JdbcCustodyTransaction()
-    every { custodyTransactionRepo.findById(TRANSACTION_ID) } returns Optional.of(transaction)
+    every { custodyTransactionRepo.findBySepTxId(TRANSACTION_ID) } returns Optional.of(transaction)
     every { custodyTransactionRepo.save(any()) } returns null
     every { custodyPaymentService.createTransactionPayment(transaction, REQUEST_BODY) } throws
       FireblocksException("Service unavailable", 503)
@@ -160,7 +166,7 @@ class CustodyTransactionServiceTest {
   @Test
   fun test_createPayment_unexpected_status_code() {
     val transaction = JdbcCustodyTransaction()
-    every { custodyTransactionRepo.findById(TRANSACTION_ID) } returns Optional.of(transaction)
+    every { custodyTransactionRepo.findBySepTxId(TRANSACTION_ID) } returns Optional.of(transaction)
     every { custodyTransactionRepo.save(any()) } returns null
     every { custodyPaymentService.createTransactionPayment(transaction, REQUEST_BODY) } throws
       FireblocksException("Forbidden", 403)

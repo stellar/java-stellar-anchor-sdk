@@ -58,10 +58,13 @@ public class DoStellarRefundHandler extends ActionHandler<DoStellarRefundRequest
 
     try {
       makeMemo(request.getMemo(), request.getMemoType());
-    } catch (SepException e) {
+    } catch (SepException | IllegalArgumentException e) {
       throw new InvalidParamsException(
           String.format("Invalid memo or memo_type: %s", e.getMessage()), e);
     }
+
+    validateAsset("refund.amount", request.getRefund().getAmount());
+    validateAsset("refund.amountFee", request.getRefund().getAmountFee());
   }
 
   @Override
@@ -102,7 +105,6 @@ public class DoStellarRefundHandler extends ActionHandler<DoStellarRefundRequest
       txn24.setRefundMemoType(memoTypeString(memoType(memo)));
     }
 
-    // TODO: Do we need to send request body?
-    custodyService.createTransactionRefund(txn.getId(), null);
+    custodyService.createTransactionRefund(txn.getId(), request);
   }
 }
