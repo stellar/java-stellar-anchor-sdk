@@ -128,9 +128,7 @@ subprojects {
     all {
       exclude(group = "ch.qos.logback", module = "logback-classic")
       exclude(group = "org.apache.logging.log4j", module = "log4j-to-slf4j")
-//      exclude(group = "org.apache.logging.log4j", module = "log4j-slf4j-impl")
       exclude(group = "org.slf4j", module = "slf4j-log4j12")
-//      exclude(group = "org.slf4j", module = "slf4j-simple")
     }
   }
 }
