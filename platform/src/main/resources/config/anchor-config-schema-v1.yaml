@@ -121,6 +121,9 @@ custody.http_client.connect_timeout:
 custody.http_client.read_timeout:
 custody.http_client.write_timeout:
 custody.http_client.call_timeout:
+custody.trust_line.check_cron_expression
+custody.trust_line.check_duration
+custody.trust_line.check_timeout_message
 custody.fireblocks.base_url:
 custody.fireblocks.vault_account_id:
 custody.fireblocks.public_key:
