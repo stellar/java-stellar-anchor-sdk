@@ -101,6 +101,63 @@ public interface Sep6Transaction {
   void setRequestAssetIssuer(String assetIssuer);
 
   /**
+   * Amount received by the anchor at the start of the tranaction as a string with up to 7 decimals.
+   * It excludes any fees charged before the anchor received the funds.
+   *
+   * @return the amount received by the anchor.
+   */
+  String getAmountIn();
+
+  void setAmountIn(String amountIn);
+
+  /**
+   * The asset code of the asset received by the anchor at the start of the tranaction.
+   *
+   * @return the asset code of the asset received by the anchor.
+   */
+  String getAmountInAsset();
+
+  void setAmountInAsset(String amountInAsset);
+
+  /**
+   * Amount sent by the anchor at the end of the transaction as a string with up to 7 decimals. It
+   * excludes the amount converted to XLM to fund the account and any external fees.
+   *
+   * @return the amount sent by the anchor.
+   */
+  String getAmountOut();
+
+  void setAmountOut(String amountOut);
+
+  /**
+   * The asset code of the asset sent by the anchor at the end of the transaction.
+   *
+   * @return the asset code of the asset sent by the anchor.
+   */
+  String getAmountOutAsset();
+
+  void setAmountOutAsset(String amountOutAsset);
+
+  /**
+   * The amount of fee charged by the anchor.
+   *
+   * @return the amount of fee charged by the anchor.
+   */
+  String getAmountFee();
+
+  void setAmountFee(String amountFee);
+
+  /**
+   * The asset in which fees are calculated in. Must be present if the deposit/withdrawal was made
+   * using non-equivalent assets. The value must bein SEP-38 Asset Identification format.
+   *
+   * @return the asset in which fees are calculated in.
+   */
+  String getAmountFeeAsset();
+
+  void setAmountFeeAsset(String amountFeeAsset);
+
+  /**
    * The amount requested by the user to deposit or withdraw.
    *
    * @return the amount expected by the user.
@@ -179,63 +236,6 @@ public interface Sep6Transaction {
   void setMemoType(String memoType);
 
   /**
-   * Amount received by the anchor at the start of the tranaction as a string with up to 7 decimals.
-   * It excludes any fees charged before the anchor received the funds.
-   *
-   * @return the amount received by the anchor.
-   */
-  String getAmountIn();
-
-  void setAmountIn(String amountIn);
-
-  /**
-   * The asset code of the asset received by the anchor at the start of the tranaction.
-   *
-   * @return the asset code of the asset received by the anchor.
-   */
-  String getAmountInAsset();
-
-  void setAmountInAsset(String amountInAsset);
-
-  /**
-   * Amount sent by the anchor at the end of the transaction as a string with up to 7 decimals. It
-   * excludes the amount converted to XLM to fund the account and any external fees.
-   *
-   * @return the amount sent by the anchor.
-   */
-  String getAmountOut();
-
-  void setAmountOut(String amountOut);
-
-  /**
-   * The asset code of the asset sent by the anchor at the end of the transaction.
-   *
-   * @return the asset code of the asset sent by the anchor.
-   */
-  String getAmountOutAsset();
-
-  void setAmountOutAsset(String amountOutAsset);
-
-  /**
-   * The amount of fee charged by the anchor.
-   *
-   * @return the amount of fee charged by the anchor.
-   */
-  String getAmountFee();
-
-  void setAmountFee(String amountFee);
-
-  /**
-   * The asset in which fees are calculated in. Must be present if the deposit/withdrawal was made
-   * using non-equivalent assets. The value must bein SEP-38 Asset Identification format.
-   *
-   * @return the asset in which fees are calculated in.
-   */
-  String getAmountFeeAsset();
-
-  void setAmountFeeAsset(String amountFeeAsset);
-
-  /**
    * The ID returned from a SEP-38 quote response. IF this is set, the user must deliver the deposit
    * funds to the anchor before the quote expires, otherwise the anchor may not honor the quote.
    *
@@ -248,7 +248,7 @@ public interface Sep6Transaction {
   /**
    * Describes any on or off-chain refund associated with this transaction.
    *
-   * @return
+   * @return the refunds.
    */
   Sep6Refunds getRefunds();
 

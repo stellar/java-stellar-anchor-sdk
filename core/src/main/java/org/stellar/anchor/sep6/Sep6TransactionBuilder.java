@@ -14,6 +14,16 @@ public class Sep6TransactionBuilder {
     return this;
   }
 
+  public Sep6TransactionBuilder stellarTransactionId(String txnId) {
+    txn.setStellarTransactionId(txnId);
+    return this;
+  }
+
+  public Sep6TransactionBuilder externalTransactionId(String txnId) {
+    txn.setExternalTransactionId(txnId);
+    return this;
+  }
+
   public Sep6TransactionBuilder status(String status) {
     txn.setStatus(status);
     return this;
@@ -21,6 +31,16 @@ public class Sep6TransactionBuilder {
 
   public Sep6TransactionBuilder kind(String kind) {
     txn.setKind(kind);
+    return this;
+  }
+
+  public Sep6TransactionBuilder startedAt(Instant time) {
+    txn.setStartedAt(time);
+    return this;
+  }
+
+  public Sep6TransactionBuilder completedAt(Instant time) {
+    txn.setCompletedAt(time);
     return this;
   }
 
@@ -34,13 +54,38 @@ public class Sep6TransactionBuilder {
     return this;
   }
 
-  public Sep6TransactionBuilder startedAt(Instant time) {
-    txn.setStartedAt(time);
+  public Sep6TransactionBuilder amountIn(String amountIn) {
+    txn.setAmountIn(amountIn);
     return this;
   }
 
-  public Sep6TransactionBuilder completedAt(Instant time) {
-    txn.setCompletedAt(time);
+  public Sep6TransactionBuilder amountInAsset(String amountInAsset) {
+    txn.setAmountInAsset(amountInAsset);
+    return this;
+  }
+
+  public Sep6TransactionBuilder amountOut(String amountOut) {
+    txn.setAmountOut(amountOut);
+    return this;
+  }
+
+  public Sep6TransactionBuilder amountOutAsset(String amountOutAsset) {
+    txn.setAmountOutAsset(amountOutAsset);
+    return this;
+  }
+
+  public Sep6TransactionBuilder amountFee(String amountFee) {
+    txn.setAmountFee(amountFee);
+    return this;
+  }
+
+  public Sep6TransactionBuilder amountFeeAsset(String amountFeeAsset) {
+    txn.setAmountFeeAsset(amountFeeAsset);
+    return this;
+  }
+
+  public Sep6TransactionBuilder amountExpected(String amountExpected) {
+    txn.setAmountExpected(amountExpected);
     return this;
   }
 
@@ -69,53 +114,23 @@ public class Sep6TransactionBuilder {
     return this;
   }
 
-  public Sep6TransactionBuilder memoType(String memoType) {
-    txn.setMemoType(memoType);
-    return this;
-  }
-
   public Sep6TransactionBuilder memo(String memo) {
     txn.setMemo(memo);
     return this;
   }
 
-  public Sep6TransactionBuilder claimableBalanceSupported(boolean claimableBalanceSupported) {
-    txn.setClaimableBalanceSupported(claimableBalanceSupported);
+  public Sep6TransactionBuilder memoType(String memoType) {
+    txn.setMemoType(memoType);
     return this;
   }
 
-  public Sep6TransactionBuilder amountIn(String amountIn) {
-    txn.setAmountIn(amountIn);
+  public Sep6TransactionBuilder quoteId(String quoteId) {
+    txn.setQuoteId(quoteId);
     return this;
   }
 
-  public Sep6TransactionBuilder amountOut(String amountOut) {
-    txn.setAmountOut(amountOut);
-    return this;
-  }
-
-  public Sep6TransactionBuilder amountFee(String amountFee) {
-    txn.setAmountFee(amountFee);
-    return this;
-  }
-
-  public Sep6TransactionBuilder amountInAsset(String amountInAsset) {
-    txn.setAmountInAsset(amountInAsset);
-    return this;
-  }
-
-  public Sep6TransactionBuilder amountOutAsset(String amountOutAsset) {
-    txn.setAmountOutAsset(amountOutAsset);
-    return this;
-  }
-
-  public Sep6TransactionBuilder amountFeeAsset(String amountFeeAsset) {
-    txn.setAmountFeeAsset(amountFeeAsset);
-    return this;
-  }
-
-  public Sep6TransactionBuilder amountExpected(String amountExpected) {
-    txn.setAmountExpected(amountExpected);
+  public Sep6TransactionBuilder refunds(Sep6Refunds refunds) {
+    txn.setRefunds(refunds);
     return this;
   }
 
