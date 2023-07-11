@@ -98,4 +98,6 @@ public class JdbcSep6Transaction extends JdbcSepTransaction
   @SerializedName("refund_memo_type")
   @Column(name = "refund_memo_type")
   String refundMemoType;
+
+  // TODO: ANCHOR-356 Add required_info_* fields with /withdraw implementation
 }
