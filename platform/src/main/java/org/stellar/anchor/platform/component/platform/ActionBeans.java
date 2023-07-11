@@ -27,6 +27,7 @@ import org.stellar.anchor.platform.action.NotifyTrustSetHandler;
 import org.stellar.anchor.platform.action.RequestOffchainFundsHandler;
 import org.stellar.anchor.platform.action.RequestOnchainFundsHandler;
 import org.stellar.anchor.platform.action.RequestTrustHandler;
+import org.stellar.anchor.platform.data.JdbcTransactionPendingTrustRepo;
 import org.stellar.anchor.platform.service.ActionService;
 import org.stellar.anchor.sep24.Sep24DepositInfoGenerator;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
@@ -48,9 +49,17 @@ public class ActionBeans {
       CustodyConfig custodyConfig,
       Horizon horizon,
       AssetService assetService,
-      CustodyService custodyService) {
+      CustodyService custodyService,
+      JdbcTransactionPendingTrustRepo transactionPendingTrustRepo) {
     return new DoStellarPaymentHandler(
-        txn24Store, txn31Store, validator, custodyConfig, horizon, assetService, custodyService);
+        txn24Store,
+        txn31Store,
+        validator,
+        custodyConfig,
+        horizon,
+        assetService,
+        custodyService,
+        transactionPendingTrustRepo);
   }
 
   @Bean
@@ -172,9 +181,10 @@ public class ActionBeans {
       Sep31TransactionStore txn31Store,
       Validator validator,
       Horizon horizon,
-      AssetService assetService) {
+      AssetService assetService,
+      JdbcTransactionPendingTrustRepo transactionPendingTrustRepo) {
     return new NotifyTransactionErrorHandler(
-        txn24Store, txn31Store, validator, horizon, assetService);
+        txn24Store, txn31Store, validator, horizon, assetService, transactionPendingTrustRepo);
   }
 
   @Bean
@@ -183,9 +193,10 @@ public class ActionBeans {
       Sep31TransactionStore txn31Store,
       Validator validator,
       Horizon horizon,
-      AssetService assetService) {
+      AssetService assetService,
+      JdbcTransactionPendingTrustRepo transactionPendingTrustRepo) {
     return new NotifyTransactionExpiredHandler(
-        txn24Store, txn31Store, validator, horizon, assetService);
+        txn24Store, txn31Store, validator, horizon, assetService, transactionPendingTrustRepo);
   }
 
   @Bean

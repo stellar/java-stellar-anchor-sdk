@@ -9,7 +9,7 @@ import static org.stellar.anchor.api.sep.SepTransactionStatus.EXPIRED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.REFUNDED;
 import static org.stellar.anchor.platform.service.PaymentOperationToEventListener.parsePaymentTime;
 import static org.stellar.anchor.platform.utils.TransactionHelper.toGetTransactionResponse;
-import static org.stellar.anchor.util.Log.error;
+import static org.stellar.anchor.util.Log.errorEx;
 import static org.stellar.anchor.util.MathHelper.decimal;
 
 import com.google.gson.Gson;
@@ -265,7 +265,7 @@ public abstract class ActionHandler<T extends RpcActionParamsRequest> {
                       (PathPaymentBaseOperationResponse) operation);
                 }
               } catch (SepException e) {
-                error("Failed to parse operation response", e);
+                errorEx("Failed to parse operation response", e);
               }
               return null;
             })

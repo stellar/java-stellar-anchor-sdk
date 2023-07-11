@@ -25,6 +25,8 @@ import org.stellar.anchor.config.CustodyConfig
 import org.stellar.anchor.custody.CustodyService
 import org.stellar.anchor.horizon.Horizon
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
+import org.stellar.anchor.platform.data.JdbcTransactionPendingTrust
+import org.stellar.anchor.platform.data.JdbcTransactionPendingTrustRepo
 import org.stellar.anchor.sep24.Sep24TransactionStore
 import org.stellar.anchor.sep31.Sep31TransactionStore
 import org.stellar.anchor.util.GsonUtils
@@ -52,6 +54,9 @@ class DoStellarPaymentHandlerTest {
 
   @MockK(relaxed = true) private lateinit var custodyService: CustodyService
 
+  @MockK(relaxed = true)
+  private lateinit var transactionPendingTrustRepo: JdbcTransactionPendingTrustRepo
+
   private lateinit var handler: DoStellarPaymentHandler
 
   @BeforeEach
@@ -65,7 +70,8 @@ class DoStellarPaymentHandlerTest {
         custodyConfig,
         horizon,
         assetService,
-        custodyService
+        custodyService,
+        transactionPendingTrustRepo
       )
   }
 
@@ -186,6 +192,7 @@ class DoStellarPaymentHandlerTest {
     val endDate = Instant.now()
 
     verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { transactionPendingTrustRepo.save(any()) }
     verify(exactly = 1) { custodyService.createTransactionPayment(TX_ID, null) }
 
     val expectedSep24Txn = JdbcSep24Transaction()
@@ -228,18 +235,21 @@ class DoStellarPaymentHandlerTest {
     val transferReceivedAt = Instant.now()
     val request = DoStellarPaymentRequest.builder().transactionId(TX_ID).build()
     val txn24 = JdbcSep24Transaction()
+    txn24.id = TX_ID
     txn24.status = PENDING_ANCHOR.toString()
     txn24.kind = DEPOSIT.kind
     txn24.transferReceivedAt = transferReceivedAt
     txn24.toAccount = TO_ACCOUNT
     txn24.amountOutAsset = AMOUNT_OUT_ASSET
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
+    val txnPendingTrustCapture = slot<JdbcTransactionPendingTrust>()
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
     every { custodyConfig.isCustodyIntegrationEnabled } returns true
     every { horizon.isTrustLineConfigured(TO_ACCOUNT, AMOUNT_OUT_ASSET) } returns false
+    every { transactionPendingTrustRepo.save(capture(txnPendingTrustCapture)) } returns null
 
     val startDate = Instant.now()
     val response = handler.handle(request)
@@ -249,6 +259,7 @@ class DoStellarPaymentHandlerTest {
     verify(exactly = 0) { custodyService.createTransactionPayment(any(), any()) }
 
     val expectedSep24Txn = JdbcSep24Transaction()
+    expectedSep24Txn.id = TX_ID
     expectedSep24Txn.kind = DEPOSIT.kind
     expectedSep24Txn.status = PENDING_TRUST.toString()
     expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
@@ -263,6 +274,7 @@ class DoStellarPaymentHandlerTest {
     )
 
     val expectedResponse = GetTransactionResponse()
+    expectedResponse.id = TX_ID
     expectedResponse.sep = SEP_24
     expectedResponse.kind = DEPOSIT
     expectedResponse.status = PENDING_TRUST
@@ -277,7 +289,22 @@ class DoStellarPaymentHandlerTest {
       JSONCompareMode.STRICT
     )
 
+    val expectedTxnPendingTrust = JdbcTransactionPendingTrust()
+    expectedTxnPendingTrust.id = TX_ID
+    expectedTxnPendingTrust.count = 0
+    expectedTxnPendingTrust.asset = AMOUNT_OUT_ASSET
+    expectedTxnPendingTrust.account = TO_ACCOUNT
+    expectedTxnPendingTrust.createdAt = txnPendingTrustCapture.captured.createdAt
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedTxnPendingTrust),
+      gson.toJson(txnPendingTrustCapture.captured),
+      JSONCompareMode.STRICT
+    )
+
     assertTrue(expectedSep24Txn.updatedAt >= startDate)
     assertTrue(expectedSep24Txn.updatedAt <= endDate)
+    assertTrue(txnPendingTrustCapture.captured.createdAt >= startDate)
+    assertTrue(txnPendingTrustCapture.captured.createdAt <= endDate)
   }
 }

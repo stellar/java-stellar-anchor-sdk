@@ -6,6 +6,7 @@ import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_STELLAR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_TRUST;
 
+import java.time.Instant;
 import java.util.Set;
 import javax.validation.Validator;
 import org.stellar.anchor.api.exception.AnchorException;
@@ -21,6 +22,8 @@ import org.stellar.anchor.custody.CustodyService;
 import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
+import org.stellar.anchor.platform.data.JdbcTransactionPendingTrust;
+import org.stellar.anchor.platform.data.JdbcTransactionPendingTrustRepo;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 
@@ -28,6 +31,7 @@ public class DoStellarPaymentHandler extends ActionHandler<DoStellarPaymentReque
 
   private final CustodyService custodyService;
   private final CustodyConfig custodyConfig;
+  private final JdbcTransactionPendingTrustRepo transactionPendingTrustRepo;
 
   public DoStellarPaymentHandler(
       Sep24TransactionStore txn24Store,
@@ -36,10 +40,12 @@ public class DoStellarPaymentHandler extends ActionHandler<DoStellarPaymentReque
       CustodyConfig custodyConfig,
       Horizon horizon,
       AssetService assetService,
-      CustodyService custodyService) {
+      CustodyService custodyService,
+      JdbcTransactionPendingTrustRepo transactionPendingTrustRepo) {
     super(txn24Store, txn31Store, validator, horizon, assetService, DoStellarPaymentRequest.class);
     this.custodyService = custodyService;
     this.custodyConfig = custodyConfig;
+    this.transactionPendingTrustRepo = transactionPendingTrustRepo;
   }
 
   @Override
@@ -93,7 +99,14 @@ public class DoStellarPaymentHandler extends ActionHandler<DoStellarPaymentReque
       // TODO: Do we need to send request body?
       custodyService.createTransactionPayment(txn24.getId(), null);
     } else {
-      // TODO: Add account and asset to DB table, so that the cron job can check trust
+      transactionPendingTrustRepo.save(
+          JdbcTransactionPendingTrust.builder()
+              .id(txn24.getId())
+              .createdAt(Instant.now())
+              .count(0)
+              .asset(txn24.getAmountOutAsset())
+              .account(txn24.getToAccount())
+              .build());
     }
   }
 }

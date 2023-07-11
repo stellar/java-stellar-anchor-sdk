@@ -13,17 +13,21 @@ import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
+import org.stellar.anchor.platform.data.JdbcTransactionPendingTrustRepo;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 
 public class NotifyTransactionErrorHandler extends ActionHandler<NotifyTransactionErrorRequest> {
+
+  private final JdbcTransactionPendingTrustRepo transactionPendingTrustRepo;
 
   public NotifyTransactionErrorHandler(
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       Validator validator,
       Horizon horizon,
-      AssetService assetService) {
+      AssetService assetService,
+      JdbcTransactionPendingTrustRepo transactionPendingTrustRepo) {
     super(
         txn24Store,
         txn31Store,
@@ -31,6 +35,7 @@ public class NotifyTransactionErrorHandler extends ActionHandler<NotifyTransacti
         horizon,
         assetService,
         NotifyTransactionErrorRequest.class);
+    this.transactionPendingTrustRepo = transactionPendingTrustRepo;
   }
 
   @Override
@@ -58,5 +63,7 @@ public class NotifyTransactionErrorHandler extends ActionHandler<NotifyTransacti
 
   @Override
   protected void updateTransactionWithAction(
-      JdbcSepTransaction txn, NotifyTransactionErrorRequest request) {}
+      JdbcSepTransaction txn, NotifyTransactionErrorRequest request) {
+    transactionPendingTrustRepo.deleteById(txn.getId());
+  }
 }
