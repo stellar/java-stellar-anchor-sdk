@@ -2,6 +2,7 @@ package org.stellar.anchor.platform.component.platform;
 
 import java.util.Optional;
 import javax.servlet.Filter;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -15,8 +16,12 @@ import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.filter.ApiKeyFilter;
 import org.stellar.anchor.filter.NoneFilter;
 import org.stellar.anchor.filter.PlatformAuthJwtFilter;
+import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.platform.apiclient.CustodyApiClient;
 import org.stellar.anchor.platform.config.PlatformServerConfig;
+import org.stellar.anchor.platform.config.PropertyCustodyConfig;
+import org.stellar.anchor.platform.data.JdbcTransactionPendingTrustRepo;
+import org.stellar.anchor.platform.job.TrustLineCheckJob;
 import org.stellar.anchor.platform.service.Sep24DepositInfoCustodyGenerator;
 import org.stellar.anchor.platform.service.Sep24DepositInfoNoneGenerator;
 import org.stellar.anchor.platform.service.Sep24DepositInfoSelfGenerator;
@@ -96,5 +101,25 @@ public class PlatformServerBeans {
         sep24DepositInfoGenerator,
         custodyService,
         custodyConfig);
+  }
+
+  @ConditionalOnExpression(value = "'${custody.type}' != 'none'")
+  @Bean
+  TrustLineCheckJob trustLineCheckJob(
+      Horizon horizon,
+      JdbcTransactionPendingTrustRepo transactionPendingTrustRepo,
+      PropertyCustodyConfig custodyConfig,
+      TransactionService transactionService,
+      Sep24TransactionStore txn24Store,
+      Sep31TransactionStore txn31Store,
+      CustodyService custodyService) {
+    return new TrustLineCheckJob(
+        horizon,
+        transactionPendingTrustRepo,
+        custodyConfig,
+        transactionService,
+        txn24Store,
+        txn31Store,
+        custodyService);
   }
 }

@@ -83,11 +83,8 @@ public class TrustLineCheckJob {
       } else {
         boolean trustLineConfigured = horizon.isTrustLineConfigured(t.getAccount(), t.getAsset());
         if (trustLineConfigured) {
-          try {
-            custodyService.createTransactionPayment(t.getId(), null);
-          } catch (AnchorException e) {
-            throw new RuntimeException(e);
-          }
+          custodyService.createTransactionPayment(t.getId(), null);
+          transactionPendingTrustRepo.delete(t);
         } else {
           t.setCount(t.getCount() + 1);
           transactionPendingTrustRepo.save(t);
