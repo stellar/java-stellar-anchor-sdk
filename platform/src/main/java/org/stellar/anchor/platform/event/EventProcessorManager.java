@@ -59,6 +59,10 @@ public class EventProcessorManager {
       // clientsConfig
       if (eventProcessorConfig.getClientStatusCallback().isEnabled()) {
         for (ClientsConfig.ClientConfig clientConfig : clientsConfig.getClients()) {
+          if (clientConfig.getCallbackUrl().isEmpty()) {
+            continue;
+          }
+
           String processorName;
           switch (clientConfig.getType()) {
             case CUSTODIAL:
@@ -141,7 +145,21 @@ public class EventProcessorManager {
           ReadResponse readResponse = queueSession.read();
           List<AnchorEvent> events = readResponse.getEvents();
           debugF("Received {} events from queue", events.size());
-          events.forEach(eventHandler::handleEvent);
+          events.forEach(event -> {
+            // TODO: Implement retry mechanism here
+            boolean isProcessed = false;
+            while (!isProcessed) {
+              try{
+                eventHandler.handleEvent(event);
+                isProcessed = true;
+              } catch (Exception e) {
+                // TODO: handle retry according to response
+                // if downstream cannot consume event -> keep retry
+                // if it's code issue -> event goes to dead letter queue
+                Log.errorEx(e);
+              }
+            }
+          });
           queueSession.ack(readResponse);
         }
 
