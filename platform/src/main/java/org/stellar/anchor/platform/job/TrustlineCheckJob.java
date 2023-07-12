@@ -93,8 +93,6 @@ public class TrustlineCheckJob {
           }
 
           transactionPendingTrustRepo.delete(t);
-        } else {
-          transactionPendingTrustRepo.save(t);
         }
       }
     }

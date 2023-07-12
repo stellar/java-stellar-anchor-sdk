@@ -70,11 +70,9 @@ class TrustlineCheckJobTest {
     txnPendingTrust.account = ACCOUNT
     val trustline = Trustline()
     trustline.checkDuration = 10
-    val txnPendingTrustCapture = slot<JdbcTransactionPendingTrust>()
 
     every { transactionPendingTrustRepo.findAll() } returns listOf(txnPendingTrust)
     every { custodyConfig.trustline } returns trustline
-    every { transactionPendingTrustRepo.save(capture(txnPendingTrustCapture)) } returns null
     every { horizon.isTrustlineConfigured(ACCOUNT, ASSET) } returns false
 
     trustlineCheckJob.checkTrust()
@@ -82,6 +80,7 @@ class TrustlineCheckJobTest {
     verify { custodyService wasNot Called }
     verify { txn24Store wasNot Called }
     verify { txn31Store wasNot Called }
+    verify(exactly = 0) { transactionPendingTrustRepo.save(any()) }
     verify(exactly = 0) { transactionPendingTrustRepo.delete(any()) }
   }
 
