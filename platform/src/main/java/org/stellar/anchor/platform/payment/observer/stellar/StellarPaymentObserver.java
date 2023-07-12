@@ -142,10 +142,10 @@ public class StellarPaymentObserver implements HealthCheckable {
         new EventListener<>() {
           @Override
           public void onEvent(OperationResponse operationResponse) {
+            // update the received metrics when the events are received and before they are handled.
             updateReceivedMetrics(operationResponse);
             if (isHealthy()) {
               debugF("Received event {}", operationResponse.getId());
-              updateProcessedMetrics(operationResponse);
               // clear stream timeout/reconnect status
               lastActivityTime = Instant.now();
               silenceTimeoutCount = 0;
@@ -153,6 +153,8 @@ public class StellarPaymentObserver implements HealthCheckable {
               try {
                 debugF("Dispatching event {}", operationResponse.getId());
                 handleEvent(operationResponse);
+                // update processed metrics when the events are handled successfully.
+                updateProcessedMetrics(operationResponse);
               } catch (TransactionException ex) {
                 errorEx("Error handling events", ex);
                 setStatus(DATABASE_ERROR);
