@@ -40,8 +40,4 @@ public class JdbcTransactionPendingTrust {
   @SerializedName("account")
   @Column(name = "account")
   String account;
-
-  @SerializedName("count")
-  @Column(name = "count")
-  int count;
 }

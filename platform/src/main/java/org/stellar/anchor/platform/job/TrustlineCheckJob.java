@@ -1,14 +1,10 @@
 package org.stellar.anchor.platform.job;
 
-import static java.util.Comparator.comparing;
-import static java.util.stream.Collectors.toList;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
 import static org.stellar.anchor.util.Log.info;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
-import java.util.List;
-import java.util.stream.StreamSupport;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.platform.PlatformTransactionData.Sep;
@@ -24,7 +20,7 @@ import org.stellar.anchor.platform.service.TransactionService;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 
-public class TrustLineCheckJob {
+public class TrustlineCheckJob {
 
   private final Horizon horizon;
   private final JdbcTransactionPendingTrustRepo transactionPendingTrustRepo;
@@ -34,7 +30,7 @@ public class TrustLineCheckJob {
   private final Sep31TransactionStore txn31Store;
   private final CustodyService custodyService;
 
-  public TrustLineCheckJob(
+  public TrustlineCheckJob(
       Horizon horizon,
       JdbcTransactionPendingTrustRepo transactionPendingTrustRepo,
       PropertyCustodyConfig custodyConfig,
@@ -51,16 +47,11 @@ public class TrustLineCheckJob {
     this.custodyService = custodyService;
   }
 
-  @Scheduled(cron = "${custody.trust_line.check_cron_expression}")
+  @Scheduled(cron = "${custody.trustline.check_cron_expression}")
   public void checkTrust() throws AnchorException {
-    info("TrustLine Check job started");
+    info("Trustline Check job started");
 
-    List<JdbcTransactionPendingTrust> pendingTrusts =
-        StreamSupport.stream(transactionPendingTrustRepo.findAll().spliterator(), false)
-            .sorted(comparing(JdbcTransactionPendingTrust::getCount))
-            .collect(toList());
-
-    for (JdbcTransactionPendingTrust t : pendingTrusts) {
+    for (JdbcTransactionPendingTrust t : transactionPendingTrustRepo.findAll()) {
       if (isCheckTimedOut(t)) {
         JdbcSepTransaction txn = transactionService.findTransaction(t.getId());
         txn.setUpdatedAt(Instant.now());
@@ -69,36 +60,35 @@ public class TrustLineCheckJob {
         switch (Sep.from(txn.getProtocol())) {
           case SEP_24:
             JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
-            txn24.setMessage(custodyConfig.getTrustLine().getTimeoutMessage());
+            txn24.setMessage(custodyConfig.getTrustline().getTimeoutMessage());
             txn24Store.save(txn24);
             break;
           case SEP_31:
             JdbcSep31Transaction txn31 = (JdbcSep31Transaction) txn;
-            txn31.setRequiredInfoMessage(custodyConfig.getTrustLine().getTimeoutMessage());
+            txn31.setRequiredInfoMessage(custodyConfig.getTrustline().getTimeoutMessage());
             txn31Store.save(txn31);
             break;
         }
 
         transactionPendingTrustRepo.delete(t);
       } else {
-        boolean trustLineConfigured = horizon.isTrustLineConfigured(t.getAccount(), t.getAsset());
-        if (trustLineConfigured) {
+        boolean trustlineConfigured = horizon.isTrustlineConfigured(t.getAccount(), t.getAsset());
+        if (trustlineConfigured) {
           custodyService.createTransactionPayment(t.getId(), null);
           transactionPendingTrustRepo.delete(t);
         } else {
-          t.setCount(t.getCount() + 1);
           transactionPendingTrustRepo.save(t);
         }
       }
     }
 
-    info("TrustLine Check job finished");
+    info("Trustline Check job finished");
   }
 
   private boolean isCheckTimedOut(JdbcTransactionPendingTrust trust) {
     return trust
         .getCreatedAt()
-        .plus(custodyConfig.getTrustLine().getCheckDuration(), ChronoUnit.MINUTES)
+        .plus(custodyConfig.getTrustline().getCheckDuration(), ChronoUnit.MINUTES)
         .isBefore(Instant.now());
   }
 }

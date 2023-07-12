@@ -16,7 +16,7 @@ public class PropertyCustodyConfig implements CustodyConfig, Validator {
 
   private String type;
   private HttpClientConfig httpClient;
-  private TrustLine trustLine;
+  private Trustline trustline;
 
   @Override
   public boolean supports(@NotNull Class<?> clazz) {
@@ -41,30 +41,30 @@ public class PropertyCustodyConfig implements CustodyConfig, Validator {
   }
 
   private void validateCheckCronExpression(Errors errors) {
-    if (isEmpty(trustLine.checkCronExpression)) {
+    if (isEmpty(trustline.checkCronExpression)) {
       errors.reject(
-          "custody-trust_line-check_cron_expression-empty",
-          "The custody.trust_line.check_cron_expression is empty");
+          "custody-trustline-check_cron_expression-empty",
+          "The custody.trustline.check_cron_expression is empty");
     }
-    if (!CronExpression.isValidExpression(trustLine.checkCronExpression)) {
+    if (!CronExpression.isValidExpression(trustline.checkCronExpression)) {
       errors.reject(
-          "custody-trust_line-check_cron_expression-invalid",
-          "The custody.trust_line.check_cron_expression is invalid");
+          "custody-trustline-check_cron_expression-invalid",
+          "The custody.trustline.check_cron_expression is invalid");
     }
   }
 
   private void validateCheckDuration(Errors errors) {
-    if (trustLine.checkDuration <= 0) {
+    if (trustline.checkDuration <= 0) {
       errors.reject(
-          "custody-trust_line-check_duration-invalid",
-          "trust_line-check_duration must be greater than 0");
+          "custody-trustline-check_duration-invalid",
+          "trustline-check_duration must be greater than 0");
     }
   }
 
   @Data
   @AllArgsConstructor
   @NoArgsConstructor
-  public static class TrustLine {
+  public static class Trustline {
     private String checkCronExpression;
     private int checkDuration;
     private String timeoutMessage;

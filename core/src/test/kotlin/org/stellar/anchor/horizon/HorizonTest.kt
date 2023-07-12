@@ -41,7 +41,7 @@ internal class HorizonTest {
   }
 
   @Test
-  fun test_isTrustLineConfigured_native() {
+  fun test_isTrustlineConfigured_native() {
     val appConfig = mockk<AppConfig>()
     every { appConfig.horizonUrl } returns TEST_HORIZON_URI
     every { appConfig.stellarNetworkPassphrase } returns TEST_HORIZON_PASSPHRASE
@@ -51,11 +51,11 @@ internal class HorizonTest {
     val account = "testAccount"
     val asset = "stellar:native"
 
-    assertTrue(horizon.isTrustLineConfigured(account, asset))
+    assertTrue(horizon.isTrustlineConfigured(account, asset))
   }
 
   @Test
-  fun test_isTrustLineConfigured_horizonError() {
+  fun test_isTrustlineConfigured_horizonError() {
     val appConfig = mockk<AppConfig>()
     val server = mockk<Server>()
     val account = "testAccount"
@@ -68,11 +68,11 @@ internal class HorizonTest {
     val horizon = Horizon(appConfig)
     replaceServer(horizon, server)
 
-    assertFalse(horizon.isTrustLineConfigured(account, asset))
+    assertFalse(horizon.isTrustlineConfigured(account, asset))
   }
 
   @Test
-  fun test_isTrustLineConfigured_present() {
+  fun test_isTrustlineConfigured_present() {
     val appConfig = mockk<AppConfig>()
     val server = mockk<Server>()
     val account = "testAccount"
@@ -101,11 +101,11 @@ internal class HorizonTest {
     val horizon = Horizon(appConfig)
     replaceServer(horizon, server)
 
-    assertTrue(horizon.isTrustLineConfigured(account, asset))
+    assertTrue(horizon.isTrustlineConfigured(account, asset))
   }
 
   @Test
-  fun test_isTrustLineConfigured_absent() {
+  fun test_isTrustlineConfigured_absent() {
     val appConfig = mockk<AppConfig>()
     val server = mockk<Server>()
     val account = "testAccount"
@@ -140,7 +140,7 @@ internal class HorizonTest {
     val horizon = Horizon(appConfig)
     replaceServer(horizon, server)
 
-    assertFalse(horizon.isTrustLineConfigured(account, asset))
+    assertFalse(horizon.isTrustlineConfigured(account, asset))
   }
 
   private fun replaceServer(horizon: Horizon, server: Server) {

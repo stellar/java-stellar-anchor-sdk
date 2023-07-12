@@ -169,7 +169,7 @@ class DoStellarPaymentHandlerTest {
   }
 
   @Test
-  fun test_handle_ok_trustLineConfigured() {
+  fun test_handle_ok_trustlineConfigured() {
     val transferReceivedAt = Instant.now()
     val request = DoStellarPaymentRequest.builder().transactionId(TX_ID).build()
     val txn24 = JdbcSep24Transaction()
@@ -185,7 +185,7 @@ class DoStellarPaymentHandlerTest {
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
     every { custodyConfig.isCustodyIntegrationEnabled } returns true
-    every { horizon.isTrustLineConfigured(TO_ACCOUNT, AMOUNT_OUT_ASSET) } returns true
+    every { horizon.isTrustlineConfigured(TO_ACCOUNT, AMOUNT_OUT_ASSET) } returns true
 
     val startDate = Instant.now()
     val response = handler.handle(request)
@@ -231,7 +231,7 @@ class DoStellarPaymentHandlerTest {
   }
 
   @Test
-  fun test_handle_ok_trustLineNotConfigured() {
+  fun test_handle_ok_trustlineNotConfigured() {
     val transferReceivedAt = Instant.now()
     val request = DoStellarPaymentRequest.builder().transactionId(TX_ID).build()
     val txn24 = JdbcSep24Transaction()
@@ -248,7 +248,7 @@ class DoStellarPaymentHandlerTest {
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
     every { custodyConfig.isCustodyIntegrationEnabled } returns true
-    every { horizon.isTrustLineConfigured(TO_ACCOUNT, AMOUNT_OUT_ASSET) } returns false
+    every { horizon.isTrustlineConfigured(TO_ACCOUNT, AMOUNT_OUT_ASSET) } returns false
     every { transactionPendingTrustRepo.save(capture(txnPendingTrustCapture)) } returns null
 
     val startDate = Instant.now()
@@ -291,7 +291,6 @@ class DoStellarPaymentHandlerTest {
 
     val expectedTxnPendingTrust = JdbcTransactionPendingTrust()
     expectedTxnPendingTrust.id = TX_ID
-    expectedTxnPendingTrust.count = 0
     expectedTxnPendingTrust.asset = AMOUNT_OUT_ASSET
     expectedTxnPendingTrust.account = TO_ACCOUNT
     expectedTxnPendingTrust.createdAt = txnPendingTrustCapture.captured.createdAt

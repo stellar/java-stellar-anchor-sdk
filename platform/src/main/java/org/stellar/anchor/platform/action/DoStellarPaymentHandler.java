@@ -68,7 +68,7 @@ public class DoStellarPaymentHandler extends ActionHandler<DoStellarPaymentReque
   protected SepTransactionStatus getNextStatus(
       JdbcSepTransaction txn, DoStellarPaymentRequest request) {
     JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
-    if (horizon.isTrustLineConfigured(txn24.getToAccount(), txn24.getAmountOutAsset())) {
+    if (horizon.isTrustlineConfigured(txn24.getToAccount(), txn24.getAmountOutAsset())) {
       return PENDING_STELLAR;
     } else {
       return PENDING_TRUST;
@@ -95,7 +95,7 @@ public class DoStellarPaymentHandler extends ActionHandler<DoStellarPaymentReque
   protected void updateTransactionWithAction(
       JdbcSepTransaction txn, DoStellarPaymentRequest request) throws AnchorException {
     JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
-    if (horizon.isTrustLineConfigured(txn24.getToAccount(), txn24.getAmountOutAsset())) {
+    if (horizon.isTrustlineConfigured(txn24.getToAccount(), txn24.getAmountOutAsset())) {
       // TODO: Do we need to send request body?
       custodyService.createTransactionPayment(txn24.getId(), null);
     } else {
@@ -103,7 +103,6 @@ public class DoStellarPaymentHandler extends ActionHandler<DoStellarPaymentReque
           JdbcTransactionPendingTrust.builder()
               .id(txn24.getId())
               .createdAt(Instant.now())
-              .count(0)
               .asset(txn24.getAmountOutAsset())
               .account(txn24.getToAccount())
               .build());

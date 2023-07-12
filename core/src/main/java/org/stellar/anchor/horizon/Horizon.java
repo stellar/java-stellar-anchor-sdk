@@ -27,7 +27,7 @@ public class Horizon {
     return this.horizonServer;
   }
 
-  public boolean isTrustLineConfigured(String account, String asset) {
+  public boolean isTrustlineConfigured(String account, String asset) {
     try {
       String assetCode = AssetHelper.getAssetCode(asset);
       if (NATIVE_ASSET_CODE.equals(assetCode)) {

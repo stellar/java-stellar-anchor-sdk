@@ -7,7 +7,7 @@ import org.junit.jupiter.params.provider.NullSource
 import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.validation.BindException
 import org.springframework.validation.Errors
-import org.stellar.anchor.platform.config.PropertyCustodyConfig.TrustLine
+import org.stellar.anchor.platform.config.PropertyCustodyConfig.Trustline
 
 class PropertyCustodyConfigTest {
 
@@ -19,7 +19,7 @@ class PropertyCustodyConfigTest {
     config = PropertyCustodyConfig()
     config.type = "custodyType"
     config.httpClient = HttpClientConfig(10, 30, 30, 60)
-    config.trustLine = TrustLine("* * * * * *", 10, "testMessage")
+    config.trustline = Trustline("* * * * * *", 10, "testMessage")
     errors = BindException(config, "config")
   }
 
@@ -118,49 +118,49 @@ class PropertyCustodyConfigTest {
 
   @ParameterizedTest
   @ValueSource(strings = ["* * * * * *", "0 0/15 * * * *"])
-  fun `test valid trust_line_check_cron`(cron: String) {
-    config.trustLine.checkCronExpression = cron
+  fun `test valid trustline_check_cron`(cron: String) {
+    config.trustline.checkCronExpression = cron
     config.validate(config, errors)
     assertFalse(errors.hasErrors())
   }
 
   @ParameterizedTest
   @ValueSource(strings = [""])
-  fun `test empty trust_line_check_cron`(cron: String) {
-    config.trustLine.checkCronExpression = cron
+  fun `test empty trustline_check_cron`(cron: String) {
+    config.trustline.checkCronExpression = cron
     config.validate(config, errors)
-    assertErrorCode(errors, "custody-trust_line-check_cron_expression-empty")
+    assertErrorCode(errors, "custody-trustline-check_cron_expression-empty")
   }
 
   @ParameterizedTest
   @ValueSource(strings = ["* * * * *", "* * * * * * *", "0/a * * * * *"])
-  fun `test invalid trust_line_check_cron`(cron: String) {
-    config.trustLine.checkCronExpression = cron
+  fun `test invalid trustline_check_cron`(cron: String) {
+    config.trustline.checkCronExpression = cron
     config.validate(config, errors)
-    assertErrorCode(errors, "custody-trust_line-check_cron_expression-invalid")
+    assertErrorCode(errors, "custody-trustline-check_cron_expression-invalid")
   }
 
   @ParameterizedTest
   @ValueSource(ints = [1, Int.MAX_VALUE])
-  fun `test valid trust_line_check_duration`(duration: Int) {
-    config.trustLine.checkDuration = duration
+  fun `test valid trustline_check_duration`(duration: Int) {
+    config.trustline.checkDuration = duration
     config.validate(config, errors)
     assertFalse(errors.hasErrors())
   }
 
   @ParameterizedTest
   @ValueSource(ints = [0, -1, Int.MIN_VALUE])
-  fun `test invalid trust_line_check_duration`(duration: Int) {
-    config.trustLine.checkDuration = duration
+  fun `test invalid trustline_check_duration`(duration: Int) {
+    config.trustline.checkDuration = duration
     config.validate(config, errors)
-    assertErrorCode(errors, "custody-trust_line-check_duration-invalid")
+    assertErrorCode(errors, "custody-trustline-check_duration-invalid")
   }
 
   @ParameterizedTest
   @ValueSource(ints = [-1, Int.MIN_VALUE])
-  fun `test invalid trust_line none type`(timeout: Int) {
+  fun `test invalid trustline none type`(timeout: Int) {
     config.type = "none"
-    config.trustLine.checkDuration = timeout
+    config.trustline.checkDuration = timeout
     config.validate(config, errors)
     assertFalse(errors.hasErrors())
   }

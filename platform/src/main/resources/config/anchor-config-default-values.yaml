@@ -461,23 +461,23 @@ custody:
     read_timeout: 30
     write_timeout: 30
     call_timeout: 60
-  ## TrustLine check configuration. Is used only when custody integration is enabled
-  trust_line:
+  ## Trustline check configuration. Is used only when custody integration is enabled
+  trustline:
     ## @param: checkCronExpression
     ## @type: string
-    ## Cron expression which defines how often trustLine check job runs. By default, job runs every 15 minutes
+    ## Cron expression which defines how often trustline check job runs. By default, job runs every minute
     #
-    check_cron_expression: "0 0/15 * * * *"
+    check_cron_expression: "0 * * * * *"
     ## @param: checkDuration
     ## @type: integer
-    ## Determines how (in MINUTES) trustLine will be checked. By default - 1 day (1440 minutes)
+    ## Determines how (in MINUTES) trustline will be checked. By default - 1 hour (60 minutes)
     #
-    check_duration: 1440
+    check_duration: 60
     ## @param: checkTimeoutMessage
     ## @type: string
     ## The message, that will be added to SEP transaction after check duration is exceeded
     #
-    check_timeout_message:
+    check_timeout_message: Trustline check timed out
   fireblocks:
     ## @param: baseUrl
     ## @type: string

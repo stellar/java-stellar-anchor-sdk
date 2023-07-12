@@ -21,7 +21,7 @@ import org.stellar.anchor.platform.apiclient.CustodyApiClient;
 import org.stellar.anchor.platform.config.PlatformServerConfig;
 import org.stellar.anchor.platform.config.PropertyCustodyConfig;
 import org.stellar.anchor.platform.data.JdbcTransactionPendingTrustRepo;
-import org.stellar.anchor.platform.job.TrustLineCheckJob;
+import org.stellar.anchor.platform.job.TrustlineCheckJob;
 import org.stellar.anchor.platform.service.Sep24DepositInfoCustodyGenerator;
 import org.stellar.anchor.platform.service.Sep24DepositInfoNoneGenerator;
 import org.stellar.anchor.platform.service.Sep24DepositInfoSelfGenerator;
@@ -105,7 +105,7 @@ public class PlatformServerBeans {
 
   @ConditionalOnExpression(value = "'${custody.type}' != 'none'")
   @Bean
-  TrustLineCheckJob trustLineCheckJob(
+  TrustlineCheckJob trustlineCheckJob(
       Horizon horizon,
       JdbcTransactionPendingTrustRepo transactionPendingTrustRepo,
       PropertyCustodyConfig custodyConfig,
@@ -113,7 +113,7 @@ public class PlatformServerBeans {
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       CustodyService custodyService) {
-    return new TrustLineCheckJob(
+    return new TrustlineCheckJob(
         horizon,
         transactionPendingTrustRepo,
         custodyConfig,

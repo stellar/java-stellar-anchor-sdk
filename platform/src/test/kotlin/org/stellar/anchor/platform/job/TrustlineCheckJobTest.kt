@@ -14,14 +14,14 @@ import org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR
 import org.stellar.anchor.custody.CustodyService
 import org.stellar.anchor.horizon.Horizon
 import org.stellar.anchor.platform.config.PropertyCustodyConfig
-import org.stellar.anchor.platform.config.PropertyCustodyConfig.TrustLine
+import org.stellar.anchor.platform.config.PropertyCustodyConfig.Trustline
 import org.stellar.anchor.platform.data.*
 import org.stellar.anchor.platform.service.TransactionService
 import org.stellar.anchor.sep24.Sep24TransactionStore
 import org.stellar.anchor.sep31.Sep31TransactionStore
 import org.stellar.anchor.util.GsonUtils
 
-class TrustLineCheckJobTest {
+class TrustlineCheckJobTest {
 
   companion object {
     private val gson = GsonUtils.getInstance()
@@ -40,13 +40,13 @@ class TrustLineCheckJobTest {
   @MockK(relaxed = true) private lateinit var txn31Store: Sep31TransactionStore
   @MockK(relaxed = true) private lateinit var custodyService: CustodyService
 
-  private lateinit var trustLineCheckJob: TrustLineCheckJob
+  private lateinit var trustlineCheckJob: TrustlineCheckJob
 
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
-    trustLineCheckJob =
-      TrustLineCheckJob(
+    trustlineCheckJob =
+      TrustlineCheckJob(
         horizon,
         transactionPendingTrustRepo,
         custodyConfig,
@@ -63,19 +63,18 @@ class TrustLineCheckJobTest {
     val txnPendingTrust = JdbcTransactionPendingTrust()
     txnPendingTrust.id = TX_ID
     txnPendingTrust.createdAt = createdAt
-    txnPendingTrust.count = 0
     txnPendingTrust.asset = ASSET
     txnPendingTrust.account = ACCOUNT
-    val trustLine = TrustLine()
-    trustLine.checkDuration = 10
+    val trustline = Trustline()
+    trustline.checkDuration = 10
     val txnPendingTrustCapture = slot<JdbcTransactionPendingTrust>()
 
     every { transactionPendingTrustRepo.findAll() } returns listOf(txnPendingTrust)
-    every { custodyConfig.trustLine } returns trustLine
+    every { custodyConfig.trustline } returns trustline
     every { transactionPendingTrustRepo.save(capture(txnPendingTrustCapture)) } returns null
-    every { horizon.isTrustLineConfigured(ACCOUNT, ASSET) } returns false
+    every { horizon.isTrustlineConfigured(ACCOUNT, ASSET) } returns false
 
-    trustLineCheckJob.checkTrust()
+    trustlineCheckJob.checkTrust()
 
     verify { custodyService wasNot Called }
     verify { txn24Store wasNot Called }
@@ -84,7 +83,6 @@ class TrustLineCheckJobTest {
 
     val expectedTxnPendingTrust = JdbcTransactionPendingTrust()
     expectedTxnPendingTrust.id = TX_ID
-    expectedTxnPendingTrust.count = 1
     expectedTxnPendingTrust.createdAt = createdAt
     expectedTxnPendingTrust.account = ACCOUNT
     expectedTxnPendingTrust.asset = ASSET
@@ -102,17 +100,16 @@ class TrustLineCheckJobTest {
     val txnPendingTrust = JdbcTransactionPendingTrust()
     txnPendingTrust.id = TX_ID
     txnPendingTrust.createdAt = createdAt
-    txnPendingTrust.count = 0
     txnPendingTrust.asset = ASSET
     txnPendingTrust.account = ACCOUNT
-    val trustLine = TrustLine()
-    trustLine.checkDuration = 10
+    val trustline = Trustline()
+    trustline.checkDuration = 10
 
     every { transactionPendingTrustRepo.findAll() } returns listOf(txnPendingTrust)
-    every { custodyConfig.trustLine } returns trustLine
-    every { horizon.isTrustLineConfigured(ACCOUNT, ASSET) } returns true
+    every { custodyConfig.trustline } returns trustline
+    every { horizon.isTrustlineConfigured(ACCOUNT, ASSET) } returns true
 
-    trustLineCheckJob.checkTrust()
+    trustlineCheckJob.checkTrust()
 
     verify(exactly = 1) { custodyService.createTransactionPayment(TX_ID, null) }
     verify(exactly = 1) { transactionPendingTrustRepo.delete(txnPendingTrust) }
@@ -127,23 +124,22 @@ class TrustLineCheckJobTest {
     val txnPendingTrust = JdbcTransactionPendingTrust()
     txnPendingTrust.id = TX_ID
     txnPendingTrust.createdAt = createdAt
-    txnPendingTrust.count = 0
     txnPendingTrust.asset = ASSET
     txnPendingTrust.account = ACCOUNT
-    val trustLine = TrustLine()
-    trustLine.checkDuration = 10
-    trustLine.timeoutMessage = TX_MESSAGE
+    val trustline = Trustline()
+    trustline.checkDuration = 10
+    trustline.timeoutMessage = TX_MESSAGE
     val txn24 = JdbcSep24Transaction()
     txn24.id = TX_ID
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
 
     every { transactionPendingTrustRepo.findAll() } returns listOf(txnPendingTrust)
-    every { custodyConfig.trustLine } returns trustLine
+    every { custodyConfig.trustline } returns trustline
     every { transactionService.findTransaction(TX_ID) } returns txn24
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
 
     val startDate = Instant.now()
-    trustLineCheckJob.checkTrust()
+    trustlineCheckJob.checkTrust()
     val endDate = Instant.now()
 
     verify(exactly = 1) { transactionPendingTrustRepo.delete(txnPendingTrust) }
@@ -174,23 +170,22 @@ class TrustLineCheckJobTest {
     val txnPendingTrust = JdbcTransactionPendingTrust()
     txnPendingTrust.id = TX_ID
     txnPendingTrust.createdAt = createdAt
-    txnPendingTrust.count = 0
     txnPendingTrust.asset = ASSET
     txnPendingTrust.account = ACCOUNT
-    val trustLine = TrustLine()
-    trustLine.checkDuration = 10
-    trustLine.timeoutMessage = TX_MESSAGE
+    val trustline = Trustline()
+    trustline.checkDuration = 10
+    trustline.timeoutMessage = TX_MESSAGE
     val txn31 = JdbcSep31Transaction()
     txn31.id = TX_ID
     val sep31TxnCapture = slot<JdbcSep31Transaction>()
 
     every { transactionPendingTrustRepo.findAll() } returns listOf(txnPendingTrust)
-    every { custodyConfig.trustLine } returns trustLine
+    every { custodyConfig.trustline } returns trustline
     every { transactionService.findTransaction(TX_ID) } returns txn31
     every { txn31Store.save(capture(sep31TxnCapture)) } returns null
 
     val startDate = Instant.now()
-    trustLineCheckJob.checkTrust()
+    trustlineCheckJob.checkTrust()
     val endDate = Instant.now()
 
     verify(exactly = 1) { transactionPendingTrustRepo.delete(txnPendingTrust) }
