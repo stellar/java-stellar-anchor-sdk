@@ -51,7 +51,8 @@ public class SepBeans {
 
   @Bean
   @ConfigurationProperties(prefix = "sep10")
-  Sep10Config sep10Config(AppConfig appConfig, SecretConfig secretConfig) {
+  Sep10Config sep10Config(
+      AppConfig appConfig, SecretConfig secretConfig, ClientsConfig clientsConfig) {
     return new PropertySep10Config(appConfig, secretConfig);
   }
 

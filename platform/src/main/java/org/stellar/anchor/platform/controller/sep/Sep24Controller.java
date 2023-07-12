@@ -47,7 +47,7 @@ public class Sep24Controller {
       method = {RequestMethod.POST})
   public InteractiveTransactionResponse deposit(
       HttpServletRequest request, @RequestBody HashMap<String, String> requestData)
-      throws SepException, MalformedURLException, URISyntaxException, EventPublishException {
+      throws AnchorException, MalformedURLException, URISyntaxException {
     debug("/deposit", requestData);
     Sep10Jwt token = getSep10Token(request);
     InteractiveTransactionResponse itr = sep24Service.deposit(token, requestData);
@@ -61,7 +61,7 @@ public class Sep24Controller {
       method = {RequestMethod.POST},
       consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
   public InteractiveTransactionResponse depositAllType(HttpServletRequest request)
-      throws SepException, MalformedURLException, URISyntaxException, EventPublishException {
+      throws AnchorException, MalformedURLException, URISyntaxException {
     HashMap<String, String> requestData = new HashMap<>();
     for (Map.Entry<String, String[]> entry : request.getParameterMap().entrySet()) {
       requestData.put(entry.getKey(), entry.getValue()[0]);
@@ -77,7 +77,7 @@ public class Sep24Controller {
       method = {RequestMethod.POST})
   public InteractiveTransactionResponse withdraw(
       HttpServletRequest request, @RequestBody HashMap<String, String> requestData)
-      throws SepException, MalformedURLException, URISyntaxException, EventPublishException {
+      throws AnchorException, MalformedURLException, URISyntaxException {
     debug("/withdraw", requestData);
     Sep10Jwt token = getSep10Token(request);
     InteractiveTransactionResponse itr = sep24Service.withdraw(token, requestData);
@@ -91,7 +91,7 @@ public class Sep24Controller {
       method = {RequestMethod.POST},
       consumes = {MediaType.MULTIPART_FORM_DATA_VALUE})
   public InteractiveTransactionResponse withdrawAllType(HttpServletRequest request)
-      throws SepException, MalformedURLException, URISyntaxException, EventPublishException {
+      throws AnchorException, MalformedURLException, URISyntaxException {
     HashMap<String, String> requestData = new HashMap<>();
     for (Map.Entry<String, String[]> entry : request.getParameterMap().entrySet()) {
       requestData.put(entry.getKey(), entry.getValue()[0]);

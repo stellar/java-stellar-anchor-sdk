@@ -21,6 +21,12 @@ public class SharedConfigBeans {
   }
 
   @Bean
+  @ConfigurationProperties(prefix = "callback-api")
+  CallbackApiConfig callbackApiConfig(PropertySecretConfig secretConfig) {
+    return new CallbackApiConfig(secretConfig);
+  }
+
+  @Bean
   @ConfigurationProperties(prefix = "platform-server")
   PlatformServerConfig platformServerConfig(PropertySecretConfig secretConfig) {
     return new PlatformServerConfig(secretConfig);

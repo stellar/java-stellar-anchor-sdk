@@ -11,7 +11,9 @@ import org.springframework.validation.Validator;
 @Configuration
 @ConfigurationProperties(prefix = "queue.kafka")
 public class EventProcessorConfig implements Validator {
-  QueueConfig queue;
+
+  ClientStatusCallbackConfig clientStatusCallback;
+  CallbackApiRequestConfig callbackApiRequest;
 
   @Override
   public boolean supports(@NotNull Class<?> clazz) {
@@ -19,32 +21,15 @@ public class EventProcessorConfig implements Validator {
   }
 
   @Override
-  public void validate(@NotNull Object target, @NotNull Errors errors) {
-    // TODO: Add validations after implementation
+  public void validate(@NotNull Object target, @NotNull Errors errors) {}
+
+  @Data
+  public static class ClientStatusCallbackConfig {
+    boolean enabled;
   }
 
   @Data
-  public static class QueueConfig {
-    QueueType type;
-    KafkaConfig kafka;
-  }
-
-  public enum QueueType {
-    KAFKA
-  }
-
-  @Data
-  public static class KafkaConfig {
-    String bootStrapServer;
-    KafkaTopicMapping eventTypeToTopic;
-  }
-
-  @Data
-  public static class KafkaTopicMapping {
-    String all;
-    String quoteCreated;
-    String transactionCreated;
-    String transactionStatusUpdated;
-    String transactionError;
+  public static class CallbackApiRequestConfig {
+    boolean enabled;
   }
 }

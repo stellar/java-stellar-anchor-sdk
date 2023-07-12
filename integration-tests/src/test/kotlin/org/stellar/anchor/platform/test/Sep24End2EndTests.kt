@@ -70,12 +70,7 @@ class Sep24End2EndTest(
       waitStatus(txId, COMPLETED, token)
     }
 
-  private suspend fun makeDeposit(
-    asset: StellarAssetId,
-    amount: String,
-    token: AuthToken,
-    keyPair: SigningKeyPair = keypair
-  ): String {
+  private suspend fun makeDeposit(asset: StellarAssetId, amount: String, token: AuthToken): String {
     // Start interactive deposit
     val deposit = anchor.interactive().deposit(asset, token, mapOf("amount" to amount))
     // Get transaction status and make sure it is INCOMPLETE
@@ -165,8 +160,7 @@ class Sep24End2EndTest(
     wallet.stellar().submitTransaction(tx)
 
     val token = anchor.auth().authenticate(newAcc)
-    val deposits =
-      (0..5).map { makeDeposit(asset, amount, token, newAcc).also { delay(7.seconds) } }
+    val deposits = (0..5).map { makeDeposit(asset, amount, token).also { delay(7.seconds) } }
     deposits.forEach { waitStatus(it, COMPLETED, token) }
     val history = anchor.getHistory(asset, token)
 

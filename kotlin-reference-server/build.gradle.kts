@@ -16,7 +16,7 @@ dependencies {
   implementation(libs.hoplite.core)
   implementation(libs.hoplite.yaml)
 
-  implementation(libs.slf4j2.simple)
+  implementation(libs.slf4j.log4j12)
   implementation(libs.kotlin.logging)
 }
 
