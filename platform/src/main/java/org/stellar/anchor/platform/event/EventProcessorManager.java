@@ -61,7 +61,6 @@ public class EventProcessorManager {
       if (eventProcessorConfig.getClientStatusCallback().isEnabled()) {
         for (ClientsConfig.ClientConfig clientConfig : clientsConfig.getClients()) {
           if (clientConfig.getCallbackUrl().isEmpty()) {
-
             Log.info(String.format("Client status callback skipped: %s", json(clientConfig)));
             continue;
           }
