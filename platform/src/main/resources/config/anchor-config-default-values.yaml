@@ -470,7 +470,7 @@ custody:
     check_cron_expression: "0 * * * * *"
     ## @param: checkDuration
     ## @type: integer
-    ## Determines how (in MINUTES) trustline will be checked. By default - 1 hour (60 minutes)
+    ## Determines how long (in MINUTES) trustline will be checked. By default - 1 hour (60 minutes)
     #
     check_duration: 60
     ## @param: checkTimeoutMessage
