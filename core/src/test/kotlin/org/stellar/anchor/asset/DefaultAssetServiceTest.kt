@@ -155,10 +155,12 @@ internal class DefaultAssetServiceTest {
               "fields": {
                 "transaction": {
                   "receiver_routing_number": {
-                    "description": "routing number of the destination bank account"
+                    "description": "routing number of the destination bank account",
+                    "optional": false
                   },
                   "receiver_account_number": {
-                    "description": "bank account number of the destination"
+                    "description": "bank account number of the destination",
+                    "optional": false
                   },
                   "type": {
                     "description": "type of deposit to make",
@@ -224,10 +226,12 @@ internal class DefaultAssetServiceTest {
               "fields": {
                 "transaction": {
                   "receiver_routing_number": {
-                    "description": "routing number of the destination bank account"
+                    "description": "routing number of the destination bank account",
+                    "optional": false
                   },
                   "receiver_account_number": {
-                    "description": "bank account number of the destination"
+                    "description": "bank account number of the destination",
+                    "optional": false
                   },
                   "type": {
                     "description": "type of deposit to make",
