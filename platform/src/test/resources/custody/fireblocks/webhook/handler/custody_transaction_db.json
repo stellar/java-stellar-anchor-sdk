@@ -1,5 +1,6 @@
 {
   "id": "testId",
+  "sep_txn_id": "testId",
   "external_id": "testEventId",
   "status": "completed",
   "amount": "1",
