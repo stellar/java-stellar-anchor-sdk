@@ -1,11 +1,9 @@
 package org.stellar.anchor.api.callback;
 
-import com.google.gson.Gson;
 import com.google.gson.annotations.SerializedName;
 import java.time.Instant;
 import lombok.Builder;
 import lombok.Data;
-import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest;
 
 /**
  * The request body of PUT /customer endpoint.
@@ -17,8 +15,6 @@ import org.stellar.anchor.api.sep.sep12.Sep12PutCustomerRequest;
 @Data
 @Builder
 public class PutCustomerRequest {
-  private static Gson gson = new Gson();
-
   String id;
   String account;
   String memo;
@@ -122,11 +118,7 @@ public class PutCustomerRequest {
   String idNumber;
 
   @SerializedName("ip_address")
-  String ip_address;
+  String ipAddress;
 
   String sex;
-
-  public static PutCustomerRequest from(Sep12PutCustomerRequest request) {
-    return gson.fromJson(gson.toJson(request), PutCustomerRequest.class);
-  }
 }

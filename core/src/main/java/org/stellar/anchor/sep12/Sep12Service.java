@@ -2,6 +2,7 @@ package org.stellar.anchor.sep12;
 
 import static org.stellar.anchor.util.Log.infoF;
 
+import com.google.gson.Gson;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -12,6 +13,7 @@ import org.stellar.anchor.api.exception.*;
 import org.stellar.anchor.api.sep.sep12.*;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.Sep10Jwt;
+import org.stellar.anchor.util.GsonUtils;
 import org.stellar.anchor.util.Log;
 import org.stellar.anchor.util.MemoHelper;
 import org.stellar.sdk.xdr.MemoType;
@@ -44,8 +46,7 @@ public class Sep12Service {
 
     GetCustomerResponse response =
         customerIntegration.getCustomer(GetCustomerRequest.from(request));
-    Sep12GetCustomerResponse res = GetCustomerResponse.to(response);
-    return res;
+    return GetCustomerResponse.to(response);
   }
 
   public Sep12PutCustomerResponse putCustomer(Sep10Jwt token, Sep12PutCustomerRequest request)
@@ -56,8 +57,7 @@ public class Sep12Service {
       request.setAccount(token.getAccount());
     }
 
-    return PutCustomerResponse.to(
-        customerIntegration.putCustomer(PutCustomerRequest.from(request)));
+    return PutCustomerResponse.to(customerIntegration.putCustomer(from(request)));
   }
 
   public void deleteCustomer(Sep10Jwt sep10Jwt, String account, String memo, String memoType)
@@ -184,5 +184,10 @@ public class Sep12Service {
 
     requestBase.setMemo(memo);
     requestBase.setMemoType(memoType);
+  }
+
+  public static PutCustomerRequest from(Sep12PutCustomerRequest request) {
+    Gson gson = GsonUtils.getInstance();
+    return gson.fromJson(gson.toJson(request), PutCustomerRequest.class);
   }
 }

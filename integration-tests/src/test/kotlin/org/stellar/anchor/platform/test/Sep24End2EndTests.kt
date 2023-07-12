@@ -113,7 +113,7 @@ class Sep24End2EndTest(
     // Submit transfer transaction
     val txn = (anchor.getTransaction(withdrawal.id, token) as WithdrawalTransaction)
     val transfer =
-      wallet.stellar().transaction(txn.from).transferWithdrawalTransaction(txn, asset).build()
+      wallet.stellar().transaction(keypair).transferWithdrawalTransaction(txn, asset).build()
     transfer.sign(keypair)
     wallet.stellar().submitTransaction(transfer)
     // Wait for the status to change to PENDING_USER_TRANSFER_END
