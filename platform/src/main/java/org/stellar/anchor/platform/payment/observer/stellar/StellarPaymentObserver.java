@@ -2,10 +2,13 @@ package org.stellar.anchor.platform.payment.observer.stellar;
 
 import static org.stellar.anchor.api.platform.HealthCheckStatus.*;
 import static org.stellar.anchor.platform.payment.observer.stellar.ObserverStatus.*;
+import static org.stellar.anchor.platform.service.AnchorMetrics.*;
 import static org.stellar.anchor.util.Log.*;
 import static org.stellar.anchor.util.ReflectionUtil.getField;
 
 import com.google.gson.annotations.SerializedName;
+import io.micrometer.core.instrument.Metrics;
+import io.micrometer.core.instrument.Tags;
 import java.io.IOException;
 import java.time.Duration;
 import java.time.Instant;
@@ -15,6 +18,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import lombok.Builder;
 import lombok.Data;
@@ -66,7 +70,8 @@ public class StellarPaymentObserver implements HealthCheckable {
   int silenceTimeoutCount = 0;
   ObserverStatus status = RUNNING;
   Instant lastActivityTime;
-
+  AtomicLong metricLatestBlockReceived = null;
+  AtomicLong metricLatestBlockProcessed = null;
   // timers
   final ExponentialBackoffTimer publishingBackoffTimer = new ExponentialBackoffTimer();
   final ExponentialBackoffTimer streamBackoffTimer = new ExponentialBackoffTimer();
@@ -137,6 +142,8 @@ public class StellarPaymentObserver implements HealthCheckable {
         new EventListener<>() {
           @Override
           public void onEvent(OperationResponse operationResponse) {
+            // update the received metrics when the events are received and before they are handled.
+            updateReceivedMetrics(operationResponse);
             if (isHealthy()) {
               debugF("Received event {}", operationResponse.getId());
               // clear stream timeout/reconnect status
@@ -146,6 +153,8 @@ public class StellarPaymentObserver implements HealthCheckable {
               try {
                 debugF("Dispatching event {}", operationResponse.getId());
                 handleEvent(operationResponse);
+                // update processed metrics when the events are handled successfully.
+                updateProcessedMetrics(operationResponse);
               } catch (TransactionException ex) {
                 errorEx("Error handling events", ex);
                 setStatus(DATABASE_ERROR);
@@ -160,6 +169,40 @@ public class StellarPaymentObserver implements HealthCheckable {
             handleFailure(exception);
           }
         });
+  }
+
+  private void updateReceivedMetrics(OperationResponse operationResponse) {
+    if (metricLatestBlockReceived == null) {
+      metricLatestBlockReceived =
+          new AtomicLong(operationResponse.getTransaction().get().getLedger());
+      Metrics.gauge(
+          STELLAR_PAYMENT_OBSERVER.toString(),
+          Tags.of("status", TAG_OBSERVER_LATEST_BLOCK_RECEIVED.toString()),
+          metricLatestBlockReceived);
+    }
+    Log.debugF(
+        "Update metrics {}{status=\"{}\"}: {}",
+        STELLAR_PAYMENT_OBSERVER,
+        TAG_OBSERVER_LATEST_BLOCK_RECEIVED,
+        operationResponse.getTransaction().get().getLedger());
+    metricLatestBlockReceived.set(operationResponse.getTransaction().get().getLedger());
+  }
+
+  private void updateProcessedMetrics(OperationResponse operationResponse) {
+    if (metricLatestBlockProcessed == null) {
+      metricLatestBlockProcessed =
+          new AtomicLong(operationResponse.getTransaction().get().getLedger());
+      Metrics.gauge(
+          STELLAR_PAYMENT_OBSERVER.toString(),
+          Tags.of("status", TAG_OBSERVER_LATEST_BLOCK_PROCESSED.toString()),
+          metricLatestBlockProcessed);
+    }
+    Log.debugF(
+        "Update metrics {}{status=\"{}\"}: {}",
+        STELLAR_PAYMENT_OBSERVER,
+        TAG_OBSERVER_LATEST_BLOCK_PROCESSED,
+        operationResponse.getTransaction().get().getLedger());
+    metricLatestBlockProcessed.set(operationResponse.getTransaction().get().getLedger());
   }
 
   void stopStream() {
