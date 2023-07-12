@@ -167,7 +167,8 @@ internal class DefaultAssetServiceTest {
                     "choices": [
                       "SEPA",
                       "SWIFT"
-                    ]
+                    ],
+                    "optional": false
                   }
                 }
               }
@@ -239,7 +240,8 @@ internal class DefaultAssetServiceTest {
                       "ACH",
                       "SWIFT",
                       "WIRE"
-                    ]
+                    ],
+                    "optional": false
                   }
                 }
               }
