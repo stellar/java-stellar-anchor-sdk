@@ -1,10 +1,12 @@
 package org.stellar.anchor.api.sep;
 
 import com.google.gson.annotations.SerializedName;
+import java.util.Map;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
+import org.stellar.anchor.api.sep.operation.Field;
 import org.stellar.anchor.api.sep.operation.Sep31Operation;
 import org.stellar.anchor.api.sep.operation.Sep38Operation;
-import org.stellar.anchor.api.sep.operation.Sep6Operation;
 
 @SuppressWarnings("unused")
 @Data
@@ -32,7 +34,6 @@ public class AssetInfo {
   DepositOperation deposit;
   WithdrawOperation withdraw;
   SendOperation send;
-  Sep6Operation sep6;
   Sep31Operation sep31;
   Sep38Operation sep38;
 
@@ -80,7 +81,20 @@ public class AssetInfo {
 
   public static class DepositOperation extends AssetOperation {}
 
-  public static class WithdrawOperation extends AssetOperation {}
+  @EqualsAndHashCode(callSuper = true)
+  @Data
+  public static class WithdrawOperation extends AssetOperation {
+    /**
+     * The types of withdrawal and required fields supported for this asset. This is only required
+     * when SEP-6 is enabled, since this is collected by the anchor in the SEP-24 interactive flow.
+     */
+    Map<String, Fields> types;
+
+    @Data
+    public static class Fields {
+      Map<String, Field> fields;
+    }
+  }
 
   @Data
   public static class SendOperation {

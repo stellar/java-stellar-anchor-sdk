@@ -7,24 +7,6 @@ import lombok.Getter;
 public interface Sep6Config {
   boolean isEnabled();
 
-  Transactions getTransactions();
-
-  @AllArgsConstructor
-  @Getter
-  class Transactions {
-    @SerializedName("enabled")
-    boolean enabled;
-  }
-
-  Transaction getTransaction();
-
-  @AllArgsConstructor
-  @Getter
-  class Transaction {
-    @SerializedName("enabled")
-    boolean enabled;
-  }
-
   Features getFeatures();
 
   @AllArgsConstructor

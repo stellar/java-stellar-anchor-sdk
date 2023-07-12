@@ -270,22 +270,6 @@ sep6:
   ## Whether to enable SEP-6 for this instance of AP server.
   #
   enabled: false
-  ## @param: transactions
-  ## Configures the GET transactions endpoint
-  #
-  transactions:
-    ## @param: enabled
-    ## Whether to enable the GET transactions endpoint
-    #
-    enabled: true
-  ## @param: transaction
-  ## Configures the GET transaction endpoint
-  #
-  transaction:
-    ## @param: enabled
-    ## Whether to enable the GET transaction endpoint
-    #
-    enabled: true
   # Configures the features flag returned by the SEP-6 /info endpoint
   # For details, please refer to https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#response-4
   #

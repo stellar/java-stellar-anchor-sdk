@@ -11,8 +11,6 @@ import org.stellar.anchor.config.Sep6Config;
 @Setter
 public class PropertySep6Config implements Sep6Config, Validator {
   boolean enabled;
-  Transactions transactions;
-  Transaction transaction;
   Features features;
 
   @Override
@@ -22,14 +20,6 @@ public class PropertySep6Config implements Sep6Config, Validator {
 
   @Override
   public void validate(@NonNull Object target, @NonNull Errors errors) {
-    if (transactions == null) {
-      errors.rejectValue(
-          "transactions", "sep6-transactions-invalid", "sep6.transactions is not defined");
-    }
-    if (transaction == null) {
-      errors.rejectValue(
-          "transaction", "sep6-transaction-invalid", "sep6.transaction is not defined");
-    }
     if (features == null) {
       errors.rejectValue("features", "sep6-features-invalid", "sep6.features is not defined");
     } else if (features.isAccountCreation()) {

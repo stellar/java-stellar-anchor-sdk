@@ -15,8 +15,6 @@ class Sep6ConfigTest {
   fun setUp() {
     config = PropertySep6Config()
     config.enabled = true
-    config.transactions = Sep6Config.Transactions(true)
-    config.transaction = Sep6Config.Transaction(true)
     config.features = Sep6Config.Features(false, false)
     errors = BindException(config, "config")
   }
@@ -25,20 +23,6 @@ class Sep6ConfigTest {
   fun `test valid sep6 configuration`() {
     config.validate(config, errors)
     Assertions.assertFalse(errors.hasErrors())
-  }
-
-  @Test
-  fun `test validation rejecting undefined transactions config`() {
-    config.transactions = null
-    config.validate(config, errors)
-    Assertions.assertEquals("sep6-transactions-invalid", errors.allErrors[0].code)
-  }
-
-  @Test
-  fun `test validation rejecting undefined transaction config`() {
-    config.transaction = null
-    config.validate(config, errors)
-    Assertions.assertEquals("sep6-transaction-invalid", errors.allErrors[0].code)
   }
 
   @Test
