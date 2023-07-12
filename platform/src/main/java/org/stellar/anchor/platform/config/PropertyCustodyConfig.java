@@ -57,7 +57,7 @@ public class PropertyCustodyConfig implements CustodyConfig, Validator {
     if (trustline.checkDuration <= 0) {
       errors.reject(
           "custody-trustline-check_duration-invalid",
-          "trustline-check_duration must be greater than 0");
+          "custody-trustline-check_duration must be greater than 0");
     }
   }
 

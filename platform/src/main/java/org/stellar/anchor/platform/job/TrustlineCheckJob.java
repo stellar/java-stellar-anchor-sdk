@@ -1,6 +1,7 @@
 package org.stellar.anchor.platform.job;
 
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
+import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_STELLAR;
 import static org.stellar.anchor.util.Log.info;
 
 import java.time.Instant;
@@ -52,8 +53,9 @@ public class TrustlineCheckJob {
     info("Trustline Check job started");
 
     for (JdbcTransactionPendingTrust t : transactionPendingTrustRepo.findAll()) {
+      JdbcSepTransaction txn = transactionService.findTransaction(t.getId());
+
       if (isCheckTimedOut(t)) {
-        JdbcSepTransaction txn = transactionService.findTransaction(t.getId());
         txn.setUpdatedAt(Instant.now());
         txn.setStatus(PENDING_ANCHOR.toString());
 
@@ -75,6 +77,21 @@ public class TrustlineCheckJob {
         boolean trustlineConfigured = horizon.isTrustlineConfigured(t.getAccount(), t.getAsset());
         if (trustlineConfigured) {
           custodyService.createTransactionPayment(t.getId(), null);
+
+          txn.setUpdatedAt(Instant.now());
+          txn.setStatus(PENDING_STELLAR.toString());
+
+          switch (Sep.from(txn.getProtocol())) {
+            case SEP_24:
+              JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
+              txn24Store.save(txn24);
+              break;
+            case SEP_31:
+              JdbcSep31Transaction txn31 = (JdbcSep31Transaction) txn;
+              txn31Store.save(txn31);
+              break;
+          }
+
           transactionPendingTrustRepo.delete(t);
         } else {
           transactionPendingTrustRepo.save(t);

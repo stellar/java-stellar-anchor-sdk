@@ -103,8 +103,8 @@ public class PlatformServerBeans {
         custodyConfig);
   }
 
-  @ConditionalOnExpression(value = "'${custody.type}' != 'none'")
   @Bean
+  @ConditionalOnExpression(value = "'${custody.type}' != 'none'")
   TrustlineCheckJob trustlineCheckJob(
       Horizon horizon,
       JdbcTransactionPendingTrustRepo transactionPendingTrustRepo,
