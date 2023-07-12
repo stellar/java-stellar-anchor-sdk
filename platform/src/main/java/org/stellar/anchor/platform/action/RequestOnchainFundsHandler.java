@@ -167,8 +167,10 @@ public class RequestOnchainFundsHandler extends ActionHandler<RequestOnchainFund
 
     if (sep24DepositInfoGenerator instanceof Sep24DepositInfoNoneGenerator) {
       Memo memo = makeMemo(request.getMemo(), request.getMemoType());
-      txn24.setMemo(memo.toString());
-      txn24.setMemoType(memoTypeString(memoType(memo)));
+      if (memo != null) {
+        txn24.setMemo(memo.toString());
+        txn24.setMemoType(memoTypeString(memoType(memo)));
+      }
       txn24.setWithdrawAnchorAccount(request.getDestinationAccount());
       txn24.setToAccount(request.getDestinationAccount());
     } else {

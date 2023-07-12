@@ -47,7 +47,7 @@ public class ActionService {
               } catch (Exception ex) {
                 error(
                     String.format(
-                        "AN internal error occurred while processing ana RPC call with action[%s] and id[%s]",
+                        "An internal error occurred while processing an RPC call with action[%s] and id[%s]",
                         rc.getMethod(), rpcId),
                     ex);
                 return getRpcErrorResponse(rpcId, new InternalErrorException(ex.getMessage()));
