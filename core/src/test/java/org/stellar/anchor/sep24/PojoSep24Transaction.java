@@ -1,7 +1,9 @@
 package org.stellar.anchor.sep24;
 
 import java.time.Instant;
+import java.util.List;
 import lombok.Data;
+import org.stellar.anchor.api.shared.StellarTransaction;
 
 @Data
 public class PojoSep24Transaction implements Sep24Transaction {
@@ -14,6 +16,7 @@ public class PojoSep24Transaction implements Sep24Transaction {
   String kind;
   Instant startedAt;
   Instant completedAt;
+  Instant updatedAt;
   String requestAssetCode;
   String requestAssetIssuer;
   String sep10Account;
@@ -35,6 +38,8 @@ public class PojoSep24Transaction implements Sep24Transaction {
   Boolean refunded;
   Sep24Refunds refunds;
   String amountExpected;
+  List<StellarTransaction> stellarTransactions;
+  String message;
   String refundMemo;
   String refundMemoType;
 }
