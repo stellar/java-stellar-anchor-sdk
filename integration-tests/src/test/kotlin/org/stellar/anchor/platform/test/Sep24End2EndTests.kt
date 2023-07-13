@@ -64,7 +64,7 @@ class Sep24End2EndTest(
 
   private fun `typical deposit end-to-end flow`(asset: StellarAssetId, amount: String) =
     runBlocking {
-      val token = anchor.auth().authenticate(keypair)
+      val token = anchor.sep10().authenticate(keypair)
       val txId = makeDeposit(asset, amount, token)
       // Wait for the status to change to COMPLETED
       waitStatus(txId, COMPLETED, token)
@@ -72,7 +72,7 @@ class Sep24End2EndTest(
 
   private suspend fun makeDeposit(asset: StellarAssetId, amount: String, token: AuthToken): String {
     // Start interactive deposit
-    val deposit = anchor.interactive().deposit(asset, token, mapOf("amount" to amount))
+    val deposit = anchor.sep24().deposit(asset, token, mapOf("amount" to amount))
     // Get transaction status and make sure it is INCOMPLETE
     val transaction = anchor.getTransaction(deposit.id, token)
     assertEquals(INCOMPLETE, transaction.status)
@@ -94,11 +94,11 @@ class Sep24End2EndTest(
     asset: StellarAssetId,
     extraFields: Map<String, String>
   ) = runBlocking {
-    val token = anchor.auth().authenticate(keypair)
+    val token = anchor.sep10().authenticate(keypair)
     // TODO: Add the test where the amount is not specified
     //    val withdrawal = anchor.interactive().withdraw(keypair.address, asset, token)
     // Start interactive withdrawal
-    val withdrawal = anchor.interactive().withdraw(asset, token, extraFields)
+    val withdrawal = anchor.sep24().withdraw(asset, token, extraFields)
 
     // Get transaction status and make sure it is INCOMPLETE
     val transaction = anchor.getTransaction(withdrawal.id, token)
@@ -159,7 +159,7 @@ class Sep24End2EndTest(
 
     wallet.stellar().submitTransaction(tx)
 
-    val token = anchor.auth().authenticate(newAcc)
+    val token = anchor.sep10().authenticate(newAcc)
     val deposits = (0..5).map { makeDeposit(asset, amount, token).also { delay(7.seconds) } }
     deposits.forEach { waitStatus(it, COMPLETED, token) }
     val history = anchor.getHistory(asset, token)
@@ -169,7 +169,7 @@ class Sep24End2EndTest(
 
   private fun `list by stellar transaction id works`(asset: StellarAssetId, amount: String) =
     runBlocking {
-      val token = anchor.auth().authenticate(keypair)
+      val token = anchor.sep10().authenticate(keypair)
 
       val txId = makeDeposit(asset, amount, token)
 

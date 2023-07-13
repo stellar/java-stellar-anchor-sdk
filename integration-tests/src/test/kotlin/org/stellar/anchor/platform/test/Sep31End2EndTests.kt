@@ -8,7 +8,6 @@ import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
 import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionRequest
-import org.stellar.anchor.api.sep.sep31.Sep31PostTransactionResponse
 import org.stellar.anchor.platform.CLIENT_WALLET_SECRET
 import org.stellar.anchor.platform.Sep31Client
 import org.stellar.anchor.platform.TestConfig
@@ -42,8 +41,8 @@ class Sep31End2EndTests(
   private val maxTries = 40
 
   private fun `typical send asset end-to-end flow`() = runBlocking {
-    val token = anchor.auth().authenticate(keypair)
-    val customer = anchor.customer(token)
+    val token = anchor.sep10().authenticate(keypair)
+    val customer = anchor.sep12(token)
     val sep31Client = Sep31Client(toml.getString("DIRECT_PAYMENT_SERVER"), token.toString())
 
     // Create customers
@@ -67,10 +66,12 @@ class Sep31End2EndTests(
     val receiver = customer.add(receivingClientPayload)
 
     // Create SEP-31 transaction
+    val amount = "10.0"
+
     val sep31PostTransactionRequest = Sep31PostTransactionRequest()
     sep31PostTransactionRequest.senderId = sender.id
     sep31PostTransactionRequest.receiverId = receiver.id
-    sep31PostTransactionRequest.amount = "10.0"
+    sep31PostTransactionRequest.amount = amount
     sep31PostTransactionRequest.assetCode = asset.code
     sep31PostTransactionRequest.assetIssuer = asset.issuer
     sep31PostTransactionRequest.fields =
@@ -81,7 +82,7 @@ class Sep31End2EndTests(
           "type" to "SWIFT"
         )
       )
-    val transaction = createTransaction(sep31PostTransactionRequest, sep31Client)
+    val transaction = sep31Client.postTransaction(sep31PostTransactionRequest)
 
     // Check transaction status
     val sep31GetTransactionResponse = sep31Client.getTransaction(transaction.id)
@@ -89,32 +90,29 @@ class Sep31End2EndTests(
 
     // Set parameters to send a transfer transaction
     val memo = Pair(MemoType.HASH, convertBase64ToHex(transaction.stellarMemo))
-    val amount = 10
 
     // Submit transfer transaction
-    sendAsset(asset, memo, amount)
+    sendAsset(asset, memo, amount, transaction.stellarAccountId)
 
     // Wait for the status to change to COMPLETED
     waitStatus(transaction.id, COMPLETED.toString(), sep31Client)
   }
 
-  private suspend fun sendAsset(asset: StellarAssetId, memo: Pair<MemoType, String>, amount: Int) {
+  private suspend fun sendAsset(
+    asset: StellarAssetId,
+    memo: Pair<MemoType, String>,
+    amount: String,
+    receiverAccountId: String
+  ) {
     val transfer =
       wallet
         .stellar()
         .transaction(sourceAddress = keypair, memo = memo)
-        .transfer(keypair.address, asset, amount.toString())
+        .transfer(receiverAccountId, asset, amount)
         .build()
 
     transfer.sign(keypair)
     wallet.stellar().submitTransaction(transfer)
-  }
-
-  private fun createTransaction(
-    transactionPayload: Sep31PostTransactionRequest,
-    sep31Client: Sep31Client
-  ): Sep31PostTransactionResponse {
-    return sep31Client.postTransaction(transactionPayload)
   }
 
   private suspend fun waitStatus(id: String, expectedStatus: String, sep31Client: Sep31Client) {
