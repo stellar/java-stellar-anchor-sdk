@@ -15,6 +15,7 @@ import org.stellar.anchor.platform.service.TransactionService;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
+import org.stellar.anchor.sep6.Sep6TransactionStore;
 
 @Configuration
 public class PlatformServerBeans {
@@ -49,11 +50,13 @@ public class PlatformServerBeans {
 
   @Bean
   TransactionService transactionService(
+      Sep6TransactionStore txn6Store,
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       Sep38QuoteStore quoteStore,
       AssetService assetService,
       EventService eventService) {
-    return new TransactionService(txn24Store, txn31Store, quoteStore, assetService, eventService);
+    return new TransactionService(
+        txn6Store, txn24Store, txn31Store, quoteStore, assetService, eventService);
   }
 }

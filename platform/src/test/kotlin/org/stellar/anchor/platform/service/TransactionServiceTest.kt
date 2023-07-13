@@ -31,6 +31,7 @@ import org.stellar.anchor.platform.data.*
 import org.stellar.anchor.sep24.Sep24TransactionStore
 import org.stellar.anchor.sep31.Sep31TransactionStore
 import org.stellar.anchor.sep38.Sep38QuoteStore
+import org.stellar.anchor.sep6.Sep6TransactionStore
 import org.stellar.anchor.util.GsonUtils
 
 @Suppress("unused")
@@ -48,6 +49,7 @@ class TransactionServiceTest {
   @MockK(relaxed = true) private lateinit var sep38QuoteStore: Sep38QuoteStore
   @MockK(relaxed = true) private lateinit var sep31TransactionStore: Sep31TransactionStore
   @MockK(relaxed = true) private lateinit var sep24TransactionStore: Sep24TransactionStore
+  @MockK(relaxed = true) private lateinit var sep6TransactionStore: Sep6TransactionStore
   @MockK(relaxed = true) private lateinit var assetService: AssetService
   @MockK(relaxed = true) private lateinit var eventService: EventService
   private lateinit var transactionService: TransactionService
@@ -57,6 +59,7 @@ class TransactionServiceTest {
     MockKAnnotations.init(this, relaxUnitFun = true)
     transactionService =
       TransactionService(
+        sep6TransactionStore,
         sep24TransactionStore,
         sep31TransactionStore,
         sep38QuoteStore,
@@ -189,6 +192,7 @@ class TransactionServiceTest {
     this.assetService = DefaultAssetService.fromJsonResource("test_assets.json")
     transactionService =
       TransactionService(
+        sep6TransactionStore,
         sep24TransactionStore,
         sep31TransactionStore,
         sep38QuoteStore,
@@ -336,6 +340,7 @@ class TransactionServiceTest {
     this.assetService = DefaultAssetService.fromJsonResource("test_assets.json")
     transactionService =
       TransactionService(
+        sep6TransactionStore,
         sep24TransactionStore,
         sep31TransactionStore,
         sep38QuoteStore,
