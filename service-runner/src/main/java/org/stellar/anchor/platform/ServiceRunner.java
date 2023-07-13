@@ -45,7 +45,7 @@ public class ServiceRunner {
       }
 
       if (cmd.hasOption("event-processor") || cmd.hasOption("all")) {
-        startEventProcessor(null);
+        startEventProcessingServer(null);
         anyServerStarted = true;
       }
 
@@ -84,7 +84,7 @@ public class ServiceRunner {
     return new StellarObservingServer().start(env);
   }
 
-  public static ConfigurableApplicationContext startEventProcessor(Map<String, String> env) {
+  public static ConfigurableApplicationContext startEventProcessingServer(Map<String, String> env) {
     return new EventProcessingServer().start(env);
   }
 

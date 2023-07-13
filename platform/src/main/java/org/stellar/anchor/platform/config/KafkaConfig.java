@@ -28,4 +28,7 @@ public class KafkaConfig {
 
   /** Determines the maximum amount of data to be collected before sending the batch. */
   int batchSize;
+
+  /** Determines the maximum amount of time to wait for the batch to be filled. */
+  int pollTimeoutSeconds;
 }

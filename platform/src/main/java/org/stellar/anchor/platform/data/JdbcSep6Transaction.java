@@ -9,6 +9,7 @@ import lombok.Setter;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.springframework.beans.BeanUtils;
+import org.stellar.anchor.SepTransaction;
 import org.stellar.anchor.sep6.Sep6Refunds;
 import org.stellar.anchor.sep6.Sep6Transaction;
 

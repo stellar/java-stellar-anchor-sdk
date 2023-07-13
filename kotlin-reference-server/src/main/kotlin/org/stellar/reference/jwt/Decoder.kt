@@ -28,6 +28,7 @@ object JwtDecoder {
 
     val claims: Claims = jwt.body
 
+    @Suppress("UNCHECKED_CAST")
     return JwtToken(
       claims["jti"] as String,
       claims["exp"].toString().toLong(),

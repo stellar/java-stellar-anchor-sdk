@@ -2,7 +2,8 @@ package org.stellar.anchor.platform.service;
 
 import static org.stellar.anchor.api.event.AnchorEvent.Type.TRANSACTION_STATUS_CHANGED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.*;
-import static org.stellar.anchor.platform.utils.TransactionHelper.toGetTransactionResponse;
+import static org.stellar.anchor.event.EventService.EventQueue.TRANSACTION;
+import static org.stellar.anchor.platform.utils.PlatformTransactionHelper.toGetTransactionResponse;
 import static org.stellar.anchor.sep31.Sep31Helper.allAmountAvailable;
 import static org.stellar.anchor.util.BeanHelper.updateField;
 import static org.stellar.anchor.util.MathHelper.decimal;
@@ -16,6 +17,7 @@ import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.StringUtils;
+import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.InternalServerErrorException;
@@ -27,6 +29,7 @@ import org.stellar.anchor.api.shared.Amount;
 import org.stellar.anchor.apiclient.TransactionsSeps;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.event.EventService;
+import org.stellar.anchor.event.EventService.Session;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSep31Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
@@ -38,6 +41,7 @@ import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep38.Sep38Quote;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
 import org.stellar.anchor.sep6.Sep6TransactionStore;
+import org.stellar.anchor.util.*;
 import org.stellar.anchor.util.Log;
 import org.stellar.anchor.util.SepHelper;
 import org.stellar.anchor.util.StringHelper;
@@ -53,7 +57,7 @@ public class TransactionService {
   private final Sep6TransactionStore txn6Store;
 
   private final List<AssetInfo> assets;
-  private final EventService eventService;
+  private final Session eventSession;
   private final AssetService assetService;
 
   static boolean isStatusError(String status) {
@@ -73,7 +77,7 @@ public class TransactionService {
     this.txn31Store = txn31Store;
     this.quoteStore = quoteStore;
     this.assets = assetService.listAllAssets();
-    this.eventService = eventService;
+    this.eventSession = eventService.createSession(this.getClass().getName(), TRANSACTION);
     this.assetService = assetService;
   }
 
@@ -184,11 +188,25 @@ public class TransactionService {
           sep24Transaction.setMemoType(memoTypeAsString(MEMO_HASH));
         }
         txn24Store.save(sep24Transaction);
-        eventService.publish(sep24Transaction, TRANSACTION_STATUS_CHANGED);
+        eventSession.publish(
+            AnchorEvent.builder()
+                .id(UUID.randomUUID().toString())
+                .sep("24")
+                .type(TRANSACTION_STATUS_CHANGED)
+                .transaction(
+                    TransactionHelper.toGetTransactionResponse(sep24Transaction, assetService))
+                .build());
         break;
       case "31":
-        txn31Store.save((JdbcSep31Transaction) txn);
-        eventService.publish((JdbcSep31Transaction) txn, TRANSACTION_STATUS_CHANGED);
+        JdbcSep31Transaction sep31Transaction = (JdbcSep31Transaction) txn;
+        txn31Store.save(sep31Transaction);
+        eventSession.publish(
+            AnchorEvent.builder()
+                .id(UUID.randomUUID().toString())
+                .sep("24")
+                .type(TRANSACTION_STATUS_CHANGED)
+                .transaction(TransactionHelper.toGetTransactionResponse(sep31Transaction))
+                .build());
         break;
     }
     if (!lastStatus.equals(txn.getStatus())) updateMetrics(txn);

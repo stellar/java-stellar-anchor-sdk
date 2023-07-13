@@ -11,6 +11,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import lombok.Builder;
 import lombok.Data;
@@ -38,9 +39,21 @@ public class KafkaListener extends AbstractEventListener implements HealthChecka
       KafkaListenerSettings kafkaListenerSettings, AnchorEventProcessor processor) {
     this.kafkaListenerSettings = kafkaListenerSettings;
     this.processor = processor;
+  }
+
+  @PostConstruct
+  public void start() {
     if (kafkaListenerSettings.getEnabled()) {
       this.executor.submit(this::listen);
     }
+  }
+
+  @PreDestroy
+  public void stop() {
+    if (consumer != null) {
+      consumer.close();
+    }
+    executor.shutdown();
   }
 
   Consumer<String, AnchorEvent> createKafkaConsumer() {
@@ -95,16 +108,6 @@ public class KafkaListener extends AbstractEventListener implements HealthChecka
         Log.errorEx(ex);
       }
     }
-  }
-
-  public void stop() {
-    executor.shutdownNow();
-  }
-
-  @PreDestroy
-  public void destroy() {
-    consumer.close();
-    stop();
   }
 
   @Override

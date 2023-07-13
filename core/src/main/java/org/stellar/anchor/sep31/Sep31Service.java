@@ -3,6 +3,7 @@ package org.stellar.anchor.sep31;
 import static org.stellar.anchor.api.event.AnchorEvent.Type.TRANSACTION_CREATED;
 import static org.stellar.anchor.api.sep.sep31.Sep31InfoResponse.AssetResponse;
 import static org.stellar.anchor.config.Sep31Config.PaymentType.STRICT_SEND;
+import static org.stellar.anchor.event.EventService.EventQueue.TRANSACTION;
 import static org.stellar.anchor.util.Log.*;
 import static org.stellar.anchor.util.MathHelper.decimal;
 import static org.stellar.anchor.util.MathHelper.formatAmount;
@@ -19,6 +20,7 @@ import javax.transaction.Transactional;
 import lombok.Data;
 import lombok.SneakyThrows;
 import org.stellar.anchor.api.callback.*;
+import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.*;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.AssetInfo.Sep12Operation;
@@ -36,6 +38,7 @@ import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.sep38.Sep38Quote;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
 import org.stellar.anchor.util.Log;
+import org.stellar.anchor.util.TransactionHelper;
 
 public class Sep31Service {
   private final AppConfig appConfig;
@@ -47,7 +50,7 @@ public class Sep31Service {
   private final FeeIntegration feeIntegration;
   private final CustomerIntegration customerIntegration;
   private final Sep31InfoResponse infoResponse;
-  private final EventService eventService;
+  private final EventService.Session eventSession;
 
   public Sep31Service(
       AppConfig appConfig,
@@ -69,7 +72,7 @@ public class Sep31Service {
     this.assetService = assetService;
     this.feeIntegration = feeIntegration;
     this.customerIntegration = customerIntegration;
-    this.eventService = eventService;
+    this.eventSession = eventService.createSession(this.getClass().getName(), TRANSACTION);
     this.infoResponse = sep31InfoResponseFromAssetInfoList(assetService.listAllAssets());
     Log.info("Sep31Service initialized.");
   }
@@ -178,7 +181,13 @@ public class Sep31Service {
 
     updateDepositInfo();
 
-    eventService.publish(txn, TRANSACTION_CREATED);
+    eventSession.publish(
+        AnchorEvent.builder()
+            .id(UUID.randomUUID().toString())
+            .sep("31")
+            .type(TRANSACTION_CREATED)
+            .transaction(TransactionHelper.toGetTransactionResponse(txn))
+            .build());
 
     return Sep31PostTransactionResponse.builder()
         .id(txn.getId())
