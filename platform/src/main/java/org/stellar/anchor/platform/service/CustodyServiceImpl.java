@@ -37,15 +37,6 @@ public class CustodyServiceImpl implements CustodyService {
     create(toCustodyTransaction(txn));
   }
 
-  private void create(CreateCustodyTransactionRequest request)
-      throws CustodyException, InvalidConfigException {
-    if (custodyApiClient.isEmpty()) {
-      // custody.type is set to 'none'
-      throw new InvalidConfigException("Integration with custody service is not enabled");
-    }
-    custodyApiClient.get().createTransaction(request);
-  }
-
   @Override
   public CreateTransactionPaymentResponse createTransactionPayment(String txnId, String requestBody)
       throws AnchorException {
@@ -74,5 +65,14 @@ public class CustodyServiceImpl implements CustodyService {
     }
 
     return response;
+  }
+
+  private void create(CreateCustodyTransactionRequest request)
+      throws CustodyException, InvalidConfigException {
+    if (custodyApiClient.isEmpty()) {
+      // custody.type is set to 'none'
+      throw new InvalidConfigException("Integration with custody service is not enabled");
+    }
+    custodyApiClient.get().createTransaction(request);
   }
 }

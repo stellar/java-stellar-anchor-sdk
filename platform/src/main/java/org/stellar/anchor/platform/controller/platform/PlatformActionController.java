@@ -20,11 +20,11 @@ import org.stellar.anchor.api.rpc.RpcResponse;
 import org.stellar.anchor.platform.service.ActionService;
 
 @RestController
-public class ActionController {
+public class PlatformActionController {
 
   private final ActionService actionService;
 
-  public ActionController(ActionService actionService) {
+  public PlatformActionController(ActionService actionService) {
     this.actionService = actionService;
   }
 
