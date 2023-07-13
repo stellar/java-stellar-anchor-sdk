@@ -177,10 +177,6 @@ public class NotifyRefundSentHandler extends ActionHandler<NotifyRefundSentReque
         List<Sep24RefundPayment> payments = sep24Refunds.getRefundPayments();
         payments.removeIf(payment -> payment.getId().equals(request.getRefund().getId()));
         payments.add(refundPayment);
-        //        payments.replaceAll(
-        //            payment ->
-        //                payment.getId().equals(request.getRefund().getId()) ? refundPayment :
-        // payment);
         sep24Refunds.setRefundPayments(payments);
       }
 
