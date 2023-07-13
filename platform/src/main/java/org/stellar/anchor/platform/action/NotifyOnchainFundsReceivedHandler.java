@@ -12,7 +12,6 @@ import java.io.IOException;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import javax.validation.Validator;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException;
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException;
@@ -27,6 +26,7 @@ import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.platform.utils.AssetValidationUtils;
+import org.stellar.anchor.platform.validator.RequestValidator;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.sdk.responses.operations.OperationResponse;
@@ -37,13 +37,13 @@ public class NotifyOnchainFundsReceivedHandler
   public NotifyOnchainFundsReceivedHandler(
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
-      Validator validator,
+      RequestValidator requestValidator,
       Horizon horizon,
       AssetService assetService) {
     super(
         txn24Store,
         txn31Store,
-        validator,
+        requestValidator,
         horizon,
         assetService,
         NotifyOnchainFundsReceivedRequest.class);

@@ -4,8 +4,6 @@ import com.google.gson.reflect.TypeToken
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import java.time.Instant
-import javax.validation.ConstraintViolation
-import javax.validation.Validator
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import org.junit.jupiter.api.BeforeEach
@@ -29,6 +27,7 @@ import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.horizon.Horizon
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
+import org.stellar.anchor.platform.validator.RequestValidator
 import org.stellar.anchor.sep24.Sep24TransactionStore
 import org.stellar.anchor.sep31.Sep31TransactionStore
 import org.stellar.anchor.util.FileUtil
@@ -53,7 +52,7 @@ class NotifyOnchainFundsReceivedHandlerTest {
 
   @MockK(relaxed = true) private lateinit var txn31Store: Sep31TransactionStore
 
-  @MockK(relaxed = true) private lateinit var validator: Validator
+  @MockK(relaxed = true) private lateinit var requestValidator: RequestValidator
 
   @MockK(relaxed = true) private lateinit var assetService: AssetService
 
@@ -70,7 +69,13 @@ class NotifyOnchainFundsReceivedHandlerTest {
     MockKAnnotations.init(this, relaxUnitFun = true)
     this.assetService = DefaultAssetService.fromJsonResource("test_assets.json")
     this.handler =
-      NotifyOnchainFundsReceivedHandler(txn24Store, txn31Store, validator, horizon, assetService)
+      NotifyOnchainFundsReceivedHandler(
+        txn24Store,
+        txn31Store,
+        requestValidator,
+        horizon,
+        assetService
+      )
   }
 
   @Test
@@ -135,20 +140,12 @@ class NotifyOnchainFundsReceivedHandlerTest {
     txn24.kind = WITHDRAWAL.kind
     txn24.transferReceivedAt = Instant.now()
 
-    val violation1: ConstraintViolation<NotifyOnchainFundsReceivedRequest> = mockk()
-    val violation2: ConstraintViolation<NotifyOnchainFundsReceivedRequest> = mockk()
-
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
-    every { violation1.message } returns "violation error message 1"
-    every { violation2.message } returns "violation error message 2"
-    every { validator.validate(request) } returns setOf(violation1, violation2)
+    every { requestValidator.validate(request) } throws InvalidParamsException("Invalid request")
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
-    assertEquals(
-      "violation error message 1\n" + "violation error message 2",
-      ex.message?.trimIndent()
-    )
+    assertEquals("Invalid request", ex.message?.trimIndent())
   }
 
   @Test

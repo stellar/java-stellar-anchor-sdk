@@ -1,6 +1,5 @@
 package org.stellar.anchor.platform.action;
 
-import static java.util.stream.Collectors.joining;
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.RECEIVE;
 import static org.stellar.anchor.api.sep.AssetInfo.NATIVE_ASSET_CODE;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.COMPLETED;
@@ -14,9 +13,6 @@ import com.google.gson.Gson;
 import java.time.Instant;
 import java.util.Arrays;
 import java.util.Set;
-import javax.validation.ConstraintViolation;
-import javax.validation.Validator;
-import org.apache.commons.collections.CollectionUtils;
 import org.springframework.transaction.annotation.Transactional;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
@@ -32,6 +28,7 @@ import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSep31Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
+import org.stellar.anchor.platform.validator.RequestValidator;
 import org.stellar.anchor.sep24.Sep24Transaction;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31Transaction;
@@ -47,7 +44,7 @@ public abstract class ActionHandler<T extends RpcActionParamsRequest> {
 
   protected final Sep24TransactionStore txn24Store;
   protected final Sep31TransactionStore txn31Store;
-  private final Validator validator;
+  private final RequestValidator requestValidator;
   protected final Horizon horizon;
   protected final AssetService assetService;
   private final Class<T> requestType;
@@ -55,13 +52,13 @@ public abstract class ActionHandler<T extends RpcActionParamsRequest> {
   public ActionHandler(
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
-      Validator validator,
+      RequestValidator requestValidator,
       Horizon horizon,
       AssetService assetService,
       Class<T> requestType) {
     this.txn24Store = txn24Store;
     this.txn31Store = txn31Store;
-    this.validator = validator;
+    this.requestValidator = requestValidator;
     this.horizon = horizon;
     this.assetService = assetService;
     this.requestType = requestType;
@@ -125,13 +122,7 @@ public abstract class ActionHandler<T extends RpcActionParamsRequest> {
 
   protected void validate(JdbcSepTransaction txn, T request)
       throws InvalidParamsException, InvalidRequestException, BadRequestException {
-    Set<ConstraintViolation<T>> violations = validator.validate(request);
-    if (CollectionUtils.isNotEmpty(violations)) {
-      throw new InvalidParamsException(
-          violations.stream()
-              .map(ConstraintViolation::getMessage)
-              .collect(joining(System.lineSeparator())));
-    }
+    requestValidator.validate(request);
   }
 
   protected boolean isTrustLineConfigured(String account, String asset) {

@@ -3,7 +3,6 @@ package org.stellar.anchor.platform.action
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import java.util.*
-import javax.validation.Validator
 import kotlin.collections.Set
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -21,6 +20,7 @@ import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.horizon.Horizon
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
 import org.stellar.anchor.platform.data.JdbcSepTransaction
+import org.stellar.anchor.platform.validator.RequestValidator
 import org.stellar.anchor.sep24.Sep24TransactionStore
 import org.stellar.anchor.sep31.Sep31TransactionStore
 import org.stellar.sdk.AssetTypeCreditAlphaNum
@@ -36,14 +36,14 @@ class ActionHandlerTest {
   class ActionHandlerTestImpl(
     txn24Store: Sep24TransactionStore,
     txn31Store: Sep31TransactionStore,
-    validator: Validator,
+    requestValidator: RequestValidator,
     horizon: Horizon,
     assetService: AssetService
   ) :
     ActionHandler<NotifyInteractiveFlowCompletedRequest>(
       txn24Store,
       txn31Store,
-      validator,
+      requestValidator,
       horizon,
       assetService,
       NotifyInteractiveFlowCompletedRequest::class.java
@@ -83,7 +83,7 @@ class ActionHandlerTest {
 
   @MockK(relaxed = true) private lateinit var horizon: Horizon
 
-  @MockK(relaxed = true) private lateinit var validator: Validator
+  @MockK(relaxed = true) private lateinit var requestValidator: RequestValidator
 
   @MockK(relaxed = true) private lateinit var assetService: AssetService
 
@@ -92,7 +92,8 @@ class ActionHandlerTest {
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
-    this.handler = ActionHandlerTestImpl(txn24Store, txn31Store, validator, horizon, assetService)
+    this.handler =
+      ActionHandlerTestImpl(txn24Store, txn31Store, requestValidator, horizon, assetService)
   }
 
   @Test

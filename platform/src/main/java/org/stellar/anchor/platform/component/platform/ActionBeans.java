@@ -1,7 +1,6 @@
 package org.stellar.anchor.platform.component.platform;
 
 import java.util.List;
-import javax.validation.Validator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.stellar.anchor.asset.AssetService;
@@ -16,6 +15,7 @@ import org.stellar.anchor.platform.action.NotifyOnchainFundsReceivedHandler;
 import org.stellar.anchor.platform.action.RequestOffchainFundsHandler;
 import org.stellar.anchor.platform.action.RequestOnchainFundsHandler;
 import org.stellar.anchor.platform.service.ActionService;
+import org.stellar.anchor.platform.validator.RequestValidator;
 import org.stellar.anchor.sep24.Sep24DepositInfoGenerator;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
@@ -32,64 +32,70 @@ public class ActionBeans {
   NotifyInteractiveFlowCompletedHandler notifyInteractiveFlowCompletedHandler(
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
-      Validator validator,
+      RequestValidator requestValidator,
       Horizon horizon,
       AssetService assetService) {
     return new NotifyInteractiveFlowCompletedHandler(
-        txn24Store, txn31Store, validator, horizon, assetService);
+        txn24Store, txn31Store, requestValidator, horizon, assetService);
   }
 
   @Bean
   NotifyOffchainFundsReceivedHandler notifyOffchainFundsReceivedHandler(
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
-      Validator validator,
+      RequestValidator requestValidator,
       Horizon horizon,
       AssetService assetService,
       CustodyService custodyService,
       CustodyConfig custodyConfig) {
     return new NotifyOffchainFundsReceivedHandler(
-        txn24Store, txn31Store, validator, horizon, assetService, custodyService, custodyConfig);
+        txn24Store,
+        txn31Store,
+        requestValidator,
+        horizon,
+        assetService,
+        custodyService,
+        custodyConfig);
   }
 
   @Bean
   NotifyOffchainFundsSentHandler notifyOffchainFundsSentHandler(
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
-      Validator validator,
+      RequestValidator requestValidator,
       Horizon horizon,
       AssetService assetService) {
     return new NotifyOffchainFundsSentHandler(
-        txn24Store, txn31Store, validator, horizon, assetService);
+        txn24Store, txn31Store, requestValidator, horizon, assetService);
   }
 
   @Bean
   NotifyOnchainFundsReceivedHandler notifyOnchainFundsReceivedHandler(
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
-      Validator validator,
+      RequestValidator requestValidator,
       Horizon horizon,
       AssetService assetService) {
     return new NotifyOnchainFundsReceivedHandler(
-        txn24Store, txn31Store, validator, horizon, assetService);
+        txn24Store, txn31Store, requestValidator, horizon, assetService);
   }
 
   @Bean
   RequestOffchainFundsHandler requestOffchainFundsHandler(
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
-      Validator validator,
+      RequestValidator requestValidator,
       Horizon horizon,
       AssetService assetService) {
     return new RequestOffchainFundsHandler(
-        txn24Store, txn31Store, validator, horizon, assetService);
+        txn24Store, txn31Store, requestValidator, horizon, assetService);
   }
 
   @Bean
   RequestOnchainFundsHandler requestOnchainFundsHandler(
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
-      Validator validator,
+      RequestValidator requestValidator,
       Horizon horizon,
       AssetService assetService,
       CustodyService custodyService,
@@ -98,7 +104,7 @@ public class ActionBeans {
     return new RequestOnchainFundsHandler(
         txn24Store,
         txn31Store,
-        validator,
+        requestValidator,
         horizon,
         assetService,
         custodyService,

@@ -12,7 +12,6 @@ import static org.stellar.anchor.util.SepHelper.memoTypeString;
 
 import java.util.HashSet;
 import java.util.Set;
-import javax.validation.Validator;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.SepException;
@@ -33,6 +32,7 @@ import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.platform.service.Sep24DepositInfoNoneGenerator;
 import org.stellar.anchor.platform.utils.AssetValidationUtils;
+import org.stellar.anchor.platform.validator.RequestValidator;
 import org.stellar.anchor.sep24.Sep24DepositInfoGenerator;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
@@ -47,14 +47,19 @@ public class RequestOnchainFundsHandler extends ActionHandler<RequestOnchainFund
   public RequestOnchainFundsHandler(
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
-      Validator validator,
+      RequestValidator requestValidator,
       Horizon horizon,
       AssetService assetService,
       CustodyService custodyService,
       CustodyConfig custodyConfig,
       Sep24DepositInfoGenerator sep24DepositInfoGenerator) {
     super(
-        txn24Store, txn31Store, validator, horizon, assetService, RequestOnchainFundsRequest.class);
+        txn24Store,
+        txn31Store,
+        requestValidator,
+        horizon,
+        assetService,
+        RequestOnchainFundsRequest.class);
     this.custodyService = custodyService;
     this.custodyConfig = custodyConfig;
     this.sep24DepositInfoGenerator = sep24DepositInfoGenerator;
