@@ -3,7 +3,6 @@ package org.stellar.anchor.platform.action;
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24;
 import static org.stellar.anchor.api.rpc.action.ActionMethod.NOTIFY_AMOUNTS_UPDATED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
-import static org.stellar.anchor.platform.utils.AssetValidationUtils.validateAsset;
 
 import java.util.Set;
 import org.stellar.anchor.api.exception.BadRequestException;
@@ -17,6 +16,7 @@ import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
+import org.stellar.anchor.platform.utils.AssetValidationUtils;
 import org.stellar.anchor.platform.validator.RequestValidator;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
@@ -37,14 +37,14 @@ public class NotifyAmountsUpdatedHandler extends ActionHandler<NotifyAmountsUpda
       throws InvalidParamsException, InvalidRequestException, BadRequestException {
     super.validate(txn, request);
 
-    validateAsset(
+    AssetValidationUtils.validateAsset(
         "amount_out",
         AmountAssetRequest.builder()
             .amount(request.getAmountOut().getAmount())
             .asset(txn.getAmountOutAsset())
             .build(),
         assetService);
-    validateAsset(
+    AssetValidationUtils.validateAsset(
         "amount_fee",
         AmountAssetRequest.builder()
             .amount(request.getAmountFee().getAmount())

@@ -18,6 +18,7 @@ import org.stellar.anchor.api.exception.rpc.InvalidRequestException;
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind;
 import org.stellar.anchor.api.platform.PlatformTransactionData.Sep;
 import org.stellar.anchor.api.rpc.action.ActionMethod;
+import org.stellar.anchor.api.rpc.action.AmountAssetRequest;
 import org.stellar.anchor.api.rpc.action.DoStellarRefundRequest;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
@@ -25,6 +26,7 @@ import org.stellar.anchor.config.CustodyConfig;
 import org.stellar.anchor.custody.CustodyService;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
+import org.stellar.anchor.platform.utils.AssetValidationUtils;
 import org.stellar.anchor.platform.validator.RequestValidator;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
@@ -59,10 +61,25 @@ public class DoStellarRefundHandler extends ActionHandler<DoStellarRefundRequest
 
     try {
       makeMemo(request.getMemo(), request.getMemoType());
-    } catch (SepException e) {
+    } catch (SepException | IllegalArgumentException e) {
       throw new InvalidParamsException(
           String.format("Invalid memo or memo_type: %s", e.getMessage()), e);
     }
+
+    AssetValidationUtils.validateAsset(
+        "refund.amount",
+        AmountAssetRequest.builder()
+            .amount(request.getRefund().getAmount())
+            .asset(txn.getAmountInAsset())
+            .build(),
+        assetService);
+    AssetValidationUtils.validateAsset(
+        "refund.amountFee",
+        AmountAssetRequest.builder()
+            .amount(request.getRefund().getAmountFee())
+            .asset(txn.getAmountInAsset())
+            .build(),
+        assetService);
   }
 
   @Override
@@ -100,7 +117,6 @@ public class DoStellarRefundHandler extends ActionHandler<DoStellarRefundRequest
       txn24.setRefundMemoType(memoTypeString(memoType(memo)));
     }
 
-    // TODO: Do we need to send request body?
-    custodyService.createTransactionRefund(txn.getId(), null);
+    custodyService.createTransactionRefund(txn.getId(), request);
   }
 }

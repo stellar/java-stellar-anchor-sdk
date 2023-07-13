@@ -9,16 +9,22 @@ import static org.stellar.anchor.util.AssetHelper.getAssetCode;
 
 import java.util.List;
 import java.util.Set;
+import org.stellar.anchor.api.exception.BadRequestException;
+import org.stellar.anchor.api.exception.rpc.InvalidParamsException;
+import org.stellar.anchor.api.exception.rpc.InvalidRequestException;
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind;
 import org.stellar.anchor.api.platform.PlatformTransactionData.Sep;
 import org.stellar.anchor.api.rpc.action.ActionMethod;
+import org.stellar.anchor.api.rpc.action.AmountAssetRequest;
 import org.stellar.anchor.api.rpc.action.NotifyRefundInitiatedRequest;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.platform.data.JdbcSep24RefundPayment;
+import org.stellar.anchor.platform.data.JdbcSep24Refunds;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
+import org.stellar.anchor.platform.utils.AssetValidationUtils;
 import org.stellar.anchor.platform.validator.RequestValidator;
 import org.stellar.anchor.sep24.Sep24RefundPayment;
 import org.stellar.anchor.sep24.Sep24Refunds;
@@ -34,6 +40,27 @@ public class NotifyRefundInitiatedHandler extends ActionHandler<NotifyRefundInit
       AssetService assetService) {
     super(
         txn24Store, txn31Store, requestValidator, assetService, NotifyRefundInitiatedRequest.class);
+  }
+
+  @Override
+  protected void validate(JdbcSepTransaction txn, NotifyRefundInitiatedRequest request)
+      throws InvalidParamsException, InvalidRequestException, BadRequestException {
+    super.validate(txn, request);
+
+    AssetValidationUtils.validateAsset(
+        "refund.amount",
+        AmountAssetRequest.builder()
+            .amount(request.getRefund().getAmount())
+            .asset(txn.getAmountInAsset())
+            .build(),
+        assetService);
+    AssetValidationUtils.validateAsset(
+        "refund.amountFee",
+        AmountAssetRequest.builder()
+            .amount(request.getRefund().getAmountFee())
+            .asset(txn.getAmountInAsset())
+            .build(),
+        assetService);
   }
 
   @Override
@@ -61,7 +88,7 @@ public class NotifyRefundInitiatedHandler extends ActionHandler<NotifyRefundInit
   @Override
   protected void updateTransactionWithAction(
       JdbcSepTransaction txn, NotifyRefundInitiatedRequest request) {
-    Sep24Refunds sep24Refunds = ((JdbcSep24Transaction) txn).getRefunds();
+    JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
 
     NotifyRefundInitiatedRequest.Refund refund = request.getRefund();
     Sep24RefundPayment refundPayment =
@@ -71,12 +98,20 @@ public class NotifyRefundInitiatedHandler extends ActionHandler<NotifyRefundInit
             .fee(refund.getAmountFee())
             .build();
 
+    Sep24Refunds sep24Refunds = txn24.getRefunds();
+    if (sep24Refunds == null) {
+      sep24Refunds = new JdbcSep24Refunds();
+    }
+
     if (sep24Refunds.getRefundPayments() == null) {
       sep24Refunds.setRefundPayments(List.of());
     }
-    sep24Refunds.getRefundPayments().add(refundPayment);
+    List<Sep24RefundPayment> refundPayments = sep24Refunds.getRefundPayments();
+    refundPayments.add(refundPayment);
+    sep24Refunds.setRefundPayments(refundPayments);
 
     AssetInfo assetInfo = assetService.getAsset(getAssetCode(txn.getAmountInAsset()));
     sep24Refunds.recalculateAmounts(assetInfo);
+    txn24.setRefunds(sep24Refunds);
   }
 }
