@@ -3,8 +3,6 @@ package org.stellar.anchor.platform.action
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import java.time.Instant
-import javax.validation.ConstraintViolation
-import javax.validation.Validator
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import org.junit.jupiter.api.BeforeEach
@@ -12,12 +10,14 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
+import org.stellar.anchor.api.exception.BadRequestException
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException
 import org.stellar.anchor.api.platform.GetTransactionResponse
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL
 import org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24
+import org.stellar.anchor.api.rpc.action.AmountAssetRequest
 import org.stellar.anchor.api.rpc.action.AmountRequest
 import org.stellar.anchor.api.rpc.action.RequestOnchainFundsRequest
 import org.stellar.anchor.api.sep.SepTransactionStatus.*
@@ -27,10 +27,10 @@ import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.config.CustodyConfig
 import org.stellar.anchor.custody.CustodyService
-import org.stellar.anchor.horizon.Horizon
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
 import org.stellar.anchor.platform.service.Sep24DepositInfoNoneGenerator
 import org.stellar.anchor.platform.service.Sep24DepositInfoSelfGenerator
+import org.stellar.anchor.platform.validator.RequestValidator
 import org.stellar.anchor.sep24.Sep24Transaction
 import org.stellar.anchor.sep24.Sep24TransactionStore
 import org.stellar.anchor.sep31.Sep31TransactionStore
@@ -51,9 +51,7 @@ class RequestOnchainFundsHandlerTest {
 
   @MockK(relaxed = true) private lateinit var txn31Store: Sep31TransactionStore
 
-  @MockK(relaxed = true) private lateinit var horizon: Horizon
-
-  @MockK(relaxed = true) private lateinit var validator: Validator
+  @MockK(relaxed = true) private lateinit var requestValidator: RequestValidator
 
   @MockK(relaxed = true) private lateinit var assetService: AssetService
 
@@ -74,8 +72,7 @@ class RequestOnchainFundsHandlerTest {
       RequestOnchainFundsHandler(
         txn24Store,
         txn31Store,
-        validator,
-        horizon,
+        requestValidator,
         assetService,
         custodyService,
         custodyConfig,
@@ -88,14 +85,18 @@ class RequestOnchainFundsHandlerTest {
     val request = RequestOnchainFundsRequest.builder().transactionId(TX_ID).build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = INCOMPLETE.toString()
+    txn24.kind = DEPOSIT.kind
     val spyTxn24 = spyk(txn24)
 
     every { txn24Store.findByTransactionId(TX_ID) } returns spyTxn24
     every { txn31Store.findByTransactionId(any()) } returns null
-    every { spyTxn24.protocol } returns "100"
+    every { spyTxn24.protocol } returns "38"
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
-    assertEquals("Protocol[100] is not supported by action[request_onchain_funds]", ex.message)
+    assertEquals(
+      "Action[request_onchain_funds] is not supported for status[incomplete], kind[null] and protocol[38]",
+      ex.message
+    )
   }
 
   @Test
@@ -110,7 +111,7 @@ class RequestOnchainFundsHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[request_onchain_funds] is not supported for status[pending_trust]",
+      "Action[request_onchain_funds] is not supported for status[pending_trust], kind[withdrawal] and protocol[24]",
       ex.message
     )
   }
@@ -128,7 +129,7 @@ class RequestOnchainFundsHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[request_onchain_funds] is not supported for status[pending_anchor]",
+      "Action[request_onchain_funds] is not supported for status[pending_anchor], kind[withdrawal] and protocol[24]",
       ex.message
     )
   }
@@ -145,7 +146,7 @@ class RequestOnchainFundsHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[request_onchain_funds] is not supported for status[incomplete]",
+      "Action[request_onchain_funds] is not supported for status[incomplete], kind[deposit] and protocol[24]",
       ex.message
     )
   }
@@ -157,20 +158,12 @@ class RequestOnchainFundsHandlerTest {
     txn24.status = INCOMPLETE.toString()
     txn24.kind = WITHDRAWAL.kind
 
-    val violation1: ConstraintViolation<RequestOnchainFundsRequest> = mockk()
-    val violation2: ConstraintViolation<RequestOnchainFundsRequest> = mockk()
-
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
-    every { violation1.message } returns "violation error message 1"
-    every { violation2.message } returns "violation error message 2"
-    every { validator.validate(request) } returns setOf(violation1, violation2)
+    every { requestValidator.validate(request) } throws InvalidParamsException("Invalid request")
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
-    assertEquals(
-      "violation error message 1\n" + "violation error message 2",
-      ex.message?.trimIndent()
-    )
+    assertEquals("Invalid request", ex.message?.trimIndent())
   }
 
   @Test
@@ -178,10 +171,10 @@ class RequestOnchainFundsHandlerTest {
     val request =
       RequestOnchainFundsRequest.builder()
         .transactionId(TX_ID)
-        .amountIn(AmountRequest("1", FIAT_USD))
-        .amountOut(AmountRequest("0.9", STELLAR_USDC))
-        .amountFee(AmountRequest("0.1", STELLAR_USDC))
-        .amountExpected("1")
+        .amountIn(AmountAssetRequest("1", FIAT_USD))
+        .amountOut(AmountAssetRequest("0.9", STELLAR_USDC))
+        .amountFee(AmountAssetRequest("0.1", STELLAR_USDC))
+        .amountExpected(AmountRequest("1"))
         .memo("testMemo")
         .memoType("text")
         .destinationAccount("testDestinationAccount")
@@ -257,8 +250,7 @@ class RequestOnchainFundsHandlerTest {
       RequestOnchainFundsHandler(
         txn24Store,
         txn31Store,
-        validator,
-        horizon,
+        requestValidator,
         assetService,
         custodyService,
         custodyConfig,
@@ -268,13 +260,10 @@ class RequestOnchainFundsHandlerTest {
     val request =
       RequestOnchainFundsRequest.builder()
         .transactionId(TX_ID)
-        .amountIn(AmountRequest("1", FIAT_USD))
-        .amountOut(AmountRequest("0.9", STELLAR_USDC))
-        .amountFee(AmountRequest("0.1", STELLAR_USDC))
-        .amountExpected("1")
-        .memo("testMemo")
-        .memoType("text")
-        .destinationAccount("testDestinationAccount")
+        .amountIn(AmountAssetRequest("1", FIAT_USD))
+        .amountOut(AmountAssetRequest("0.9", STELLAR_USDC))
+        .amountFee(AmountAssetRequest("0.1", STELLAR_USDC))
+        .amountExpected(AmountRequest("1"))
         .build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = INCOMPLETE.toString()
@@ -348,10 +337,10 @@ class RequestOnchainFundsHandlerTest {
     val request =
       RequestOnchainFundsRequest.builder()
         .transactionId(TX_ID)
-        .amountIn(AmountRequest("1", FIAT_USD))
-        .amountOut(AmountRequest("0.9", STELLAR_USDC))
-        .amountFee(AmountRequest("0.1", STELLAR_USDC))
-        .amountExpected("1")
+        .amountIn(AmountAssetRequest("1", FIAT_USD))
+        .amountOut(AmountAssetRequest("0.9", STELLAR_USDC))
+        .amountFee(AmountAssetRequest("0.1", STELLAR_USDC))
+        .amountExpected(AmountRequest("1"))
         .memo("testMemo")
         .memoType("text")
         .destinationAccount("testDestinationAccount")
@@ -432,9 +421,9 @@ class RequestOnchainFundsHandlerTest {
     val request =
       RequestOnchainFundsRequest.builder()
         .transactionId(TX_ID)
-        .amountIn(AmountRequest("1", FIAT_USD))
-        .amountOut(AmountRequest("0.9", STELLAR_USDC))
-        .amountFee(AmountRequest("0.1", STELLAR_USDC))
+        .amountIn(AmountAssetRequest("1", FIAT_USD))
+        .amountOut(AmountAssetRequest("0.9", STELLAR_USDC))
+        .amountFee(AmountAssetRequest("0.1", STELLAR_USDC))
         .memo("testMemo")
         .memoType("text")
         .destinationAccount("testDestinationAccount")
@@ -584,7 +573,7 @@ class RequestOnchainFundsHandlerTest {
   }
 
   @Test
-  fun test_handle_ok_withoutAmounts_amountsAbsent() {
+  fun test_handle_withoutAmounts_amountsAbsent() {
     val request = RequestOnchainFundsRequest.builder().transactionId(TX_ID).build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = INCOMPLETE.toString()
@@ -600,11 +589,50 @@ class RequestOnchainFundsHandlerTest {
   }
 
   @Test
+  fun test_handle_notNoneGenerator() {
+    val sep24DepositInfoGenerator: Sep24DepositInfoSelfGenerator = mockk()
+    this.handler =
+      RequestOnchainFundsHandler(
+        txn24Store,
+        txn31Store,
+        requestValidator,
+        assetService,
+        custodyService,
+        custodyConfig,
+        sep24DepositInfoGenerator
+      )
+
+    val request =
+      RequestOnchainFundsRequest.builder()
+        .transactionId(TX_ID)
+        .memo("testMemo")
+        .memoType("text")
+        .amountIn(AmountAssetRequest("1", FIAT_USD))
+        .amountOut(AmountAssetRequest("1", FIAT_USD))
+        .amountFee(AmountAssetRequest("1", FIAT_USD))
+        .build()
+    val txn24 = JdbcSep24Transaction()
+    txn24.status = INCOMPLETE.toString()
+    txn24.kind = WITHDRAWAL.kind
+    val sep24TxnCapture = slot<JdbcSep24Transaction>()
+
+    every { txn24Store.findByTransactionId(TX_ID) } returns txn24
+    every { txn31Store.findByTransactionId(any()) } returns null
+    every { txn24Store.save(capture(sep24TxnCapture)) } returns null
+
+    val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
+    assertEquals(
+      "Anchor is not configured to accept memo, memo_type and destination_account",
+      ex.message
+    )
+  }
+
+  @Test
   fun test_handle_notAllAmounts() {
     val request =
       RequestOnchainFundsRequest.builder()
-        .amountIn(AmountRequest("1", FIAT_USD))
-        .amountOut(AmountRequest("1", FIAT_USD))
+        .amountIn(AmountAssetRequest("1", FIAT_USD))
+        .amountOut(AmountAssetRequest("1", FIAT_USD))
         .transactionId(TX_ID)
         .build()
     val txn24 = JdbcSep24Transaction()
@@ -627,9 +655,9 @@ class RequestOnchainFundsHandlerTest {
   fun test_handle_ok_invalidMemo() {
     val request =
       RequestOnchainFundsRequest.builder()
-        .amountIn(AmountRequest("1", FIAT_USD))
-        .amountOut(AmountRequest("1", FIAT_USD))
-        .amountFee(AmountRequest("1", FIAT_USD))
+        .amountIn(AmountAssetRequest("1", FIAT_USD))
+        .amountOut(AmountAssetRequest("1", FIAT_USD))
+        .amountFee(AmountAssetRequest("1", FIAT_USD))
         .transactionId(TX_ID)
         .memo("testMemo")
         .memoType("invalidMemoType")
@@ -652,9 +680,9 @@ class RequestOnchainFundsHandlerTest {
   fun test_handle_ok_missingMemo() {
     val request =
       RequestOnchainFundsRequest.builder()
-        .amountIn(AmountRequest("1", FIAT_USD))
-        .amountOut(AmountRequest("1", FIAT_USD))
-        .amountFee(AmountRequest("1", FIAT_USD))
+        .amountIn(AmountAssetRequest("1", FIAT_USD))
+        .amountOut(AmountAssetRequest("1", FIAT_USD))
+        .amountFee(AmountAssetRequest("1", FIAT_USD))
         .transactionId(TX_ID)
         .destinationAccount("testDestinationAccount")
         .build()
@@ -675,9 +703,9 @@ class RequestOnchainFundsHandlerTest {
   fun test_handle_ok_missingDestinationAccount() {
     val request =
       RequestOnchainFundsRequest.builder()
-        .amountIn(AmountRequest("1", FIAT_USD))
-        .amountOut(AmountRequest("1", FIAT_USD))
-        .amountFee(AmountRequest("1", FIAT_USD))
+        .amountIn(AmountAssetRequest("1", FIAT_USD))
+        .amountOut(AmountAssetRequest("1", FIAT_USD))
+        .amountFee(AmountAssetRequest("1", FIAT_USD))
         .transactionId(TX_ID)
         .memo("testMemo")
         .memoType("text")
@@ -700,10 +728,10 @@ class RequestOnchainFundsHandlerTest {
     val request =
       RequestOnchainFundsRequest.builder()
         .transactionId(TX_ID)
-        .amountIn(AmountRequest("1", FIAT_USD))
-        .amountOut(AmountRequest("1", STELLAR_USDC))
-        .amountFee(AmountRequest("1", STELLAR_USDC))
-        .amountExpected("1")
+        .amountIn(AmountAssetRequest("1", FIAT_USD))
+        .amountOut(AmountAssetRequest("1", STELLAR_USDC))
+        .amountFee(AmountAssetRequest("1", STELLAR_USDC))
+        .amountExpected(AmountRequest("1"))
         .build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = INCOMPLETE.toString()
@@ -716,7 +744,7 @@ class RequestOnchainFundsHandlerTest {
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
 
     request.amountIn.amount = "-1"
-    var ex = assertThrows<InvalidParamsException> { handler.handle(request) }
+    var ex = assertThrows<BadRequestException> { handler.handle(request) }
     assertEquals("amount_in.amount should be positive", ex.message)
     request.amountIn.amount = "1"
 
@@ -730,7 +758,7 @@ class RequestOnchainFundsHandlerTest {
     assertEquals("amount_fee.amount should be non-negative", ex.message)
     request.amountFee.amount = "1"
 
-    request.amountExpected = "-1"
+    request.amountExpected.amount = "-1"
     ex = assertThrows { handler.handle(request) }
     assertEquals("amount_expected.amount should be positive", ex.message)
   }

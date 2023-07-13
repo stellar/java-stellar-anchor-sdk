@@ -11,6 +11,7 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
+import org.stellar.anchor.api.exception.BadRequestException
 import org.stellar.anchor.api.platform.GetTransactionResponse
 import org.stellar.anchor.api.rpc.RpcRequest
 import org.stellar.anchor.api.rpc.action.ActionMethod.NOTIFY_INTERACTIVE_FLOW_COMPLETED
@@ -31,14 +32,14 @@ class ActionServiceTest {
     private const val INVALID_RPC_PROTOCOL = "invalid_rpc_protocol"
   }
 
-  private val gson = GsonUtils.getInstance()
-
   @MockK(relaxed = true)
   private lateinit var actionHandler: ActionHandler<NotifyInteractiveFlowCompletedRequest>
 
   private lateinit var actionService: ActionService
 
-  private val RPC_RESPONSE =
+  private val gson = GsonUtils.getInstance()
+
+  private val rpcResponse =
     GetTransactionResponse.builder().id("testId").message("testMessage").build()
 
   @BeforeEach
@@ -58,7 +59,7 @@ class ActionServiceTest {
         .params(RPC_PARAMS)
         .build()
 
-    every { actionHandler.handle(any()) } returns RPC_RESPONSE
+    every { actionHandler.handle(any()) } returns rpcResponse
 
     val response = actionService.handleRpcCalls(listOf(rpcRequest, rpcRequest))
 
@@ -126,6 +127,32 @@ class ActionServiceTest {
   }
 
   @Test
+  fun `test handle invalid rpc call`() {
+    val invalidRpcRequest = RpcRequest.builder().method(INVALID_RPC_METHOD).id(RPC_ID).build()
+
+    val response = actionService.handleRpcCalls(listOf(invalidRpcRequest))
+
+    val expectedResponse =
+      """
+    [
+      {
+        "jsonrpc": "2.0",
+        "error": {
+          "code": -32600,
+          "message": "Unsupported JSON-RPC protocol version[null]"
+        },
+        "id": 1
+      }
+    ]
+    """
+        .trimIndent()
+
+    JSONAssert.assertEquals(expectedResponse, gson.toJson(response), JSONCompareMode.STRICT)
+
+    verify(exactly = 0) { actionHandler.handle(any()) }
+  }
+
+  @Test
   fun `test handle invalid rpc method`() {
     val invalidRpcRequest =
       RpcRequest.builder()
@@ -175,7 +202,7 @@ class ActionServiceTest {
       {
         "jsonrpc": "2.0",
         "error": {
-          "code": -32600,
+          "code": -32601,
           "message": "Action[request_offchain_funds] handler is not found"
         },
         "id": 1
@@ -205,7 +232,7 @@ class ActionServiceTest {
         .id(RPC_ID)
         .build()
 
-    every { actionHandler.handle(any()) } returns RPC_RESPONSE
+    every { actionHandler.handle(any()) } returns rpcResponse
 
     val response = actionService.handleRpcCalls(listOf(rpcRequest, invalidRpcRequest))
 
@@ -254,6 +281,34 @@ class ActionServiceTest {
         "jsonrpc": "2.0",
         "error": {
           "code": -32603,
+          "message": "Error message"
+        }
+      }
+    ]
+    """
+        .trimIndent()
+
+    JSONAssert.assertEquals(expectedResponse, gson.toJson(response), JSONCompareMode.STRICT)
+
+    verify(exactly = 0) { actionHandler.handle(any()) }
+  }
+
+  @Test
+  fun `test handle bad request exception`() {
+    val rpcRequest = RpcRequest.builder().build()
+
+    mockkStatic(RpcUtil::class)
+    every { RpcUtil.validateRpcRequest(rpcRequest) } throws BadRequestException(ERROR_MSG)
+
+    val response = actionService.handleRpcCalls(listOf(rpcRequest))
+
+    val expectedResponse =
+      """
+    [
+      {
+        "jsonrpc": "2.0",
+        "error": {
+          "code": -32602,
           "message": "Error message"
         }
       }

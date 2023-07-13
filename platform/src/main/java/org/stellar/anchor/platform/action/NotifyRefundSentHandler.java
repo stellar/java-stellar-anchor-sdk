@@ -12,7 +12,6 @@ import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import javax.validation.Validator;
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException;
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind;
 import org.stellar.anchor.api.rpc.action.ActionMethod;
@@ -20,10 +19,10 @@ import org.stellar.anchor.api.rpc.action.NotifyRefundSentRequest;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
-import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.platform.data.JdbcSep24RefundPayment;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
+import org.stellar.anchor.platform.validator.RequestValidator;
 import org.stellar.anchor.sep24.Sep24RefundPayment;
 import org.stellar.anchor.sep24.Sep24Refunds;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
@@ -34,10 +33,9 @@ public class NotifyRefundSentHandler extends ActionHandler<NotifyRefundSentReque
   public NotifyRefundSentHandler(
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
-      Validator validator,
-      Horizon horizon,
+      RequestValidator requestValidator,
       AssetService assetService) {
-    super(txn24Store, txn31Store, validator, horizon, assetService, NotifyRefundSentRequest.class);
+    super(txn24Store, txn31Store, requestValidator, assetService, NotifyRefundSentRequest.class);
   }
 
   @Override
@@ -86,11 +84,6 @@ public class NotifyRefundSentHandler extends ActionHandler<NotifyRefundSentReque
     }
 
     return supportedStatuses;
-  }
-
-  @Override
-  protected Set<String> getSupportedProtocols() {
-    return Set.of("24");
   }
 
   @Override

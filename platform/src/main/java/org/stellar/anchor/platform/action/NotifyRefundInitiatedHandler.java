@@ -1,6 +1,7 @@
 package org.stellar.anchor.platform.action;
 
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT;
+import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24;
 import static org.stellar.anchor.api.rpc.action.ActionMethod.NOTIFY_REFUND_INITIATED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_EXTERNAL;
@@ -8,17 +9,17 @@ import static org.stellar.anchor.util.AssetHelper.getAssetCode;
 
 import java.util.List;
 import java.util.Set;
-import javax.validation.Validator;
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind;
+import org.stellar.anchor.api.platform.PlatformTransactionData.Sep;
 import org.stellar.anchor.api.rpc.action.ActionMethod;
 import org.stellar.anchor.api.rpc.action.NotifyRefundInitiatedRequest;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
-import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.platform.data.JdbcSep24RefundPayment;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
+import org.stellar.anchor.platform.validator.RequestValidator;
 import org.stellar.anchor.sep24.Sep24RefundPayment;
 import org.stellar.anchor.sep24.Sep24Refunds;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
@@ -29,16 +30,10 @@ public class NotifyRefundInitiatedHandler extends ActionHandler<NotifyRefundInit
   public NotifyRefundInitiatedHandler(
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
-      Validator validator,
-      Horizon horizon,
+      RequestValidator requestValidator,
       AssetService assetService) {
     super(
-        txn24Store,
-        txn31Store,
-        validator,
-        horizon,
-        assetService,
-        NotifyRefundInitiatedRequest.class);
+        txn24Store, txn31Store, requestValidator, assetService, NotifyRefundInitiatedRequest.class);
   }
 
   @Override
@@ -54,16 +49,13 @@ public class NotifyRefundInitiatedHandler extends ActionHandler<NotifyRefundInit
 
   @Override
   protected Set<SepTransactionStatus> getSupportedStatuses(JdbcSepTransaction txn) {
-    JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
-    if (DEPOSIT == Kind.from(txn24.getKind())) {
-      return Set.of(PENDING_ANCHOR);
+    if (SEP_24 == Sep.from(txn.getProtocol())) {
+      JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
+      if (DEPOSIT == Kind.from(txn24.getKind())) {
+        return Set.of(PENDING_ANCHOR);
+      }
     }
     return Set.of();
-  }
-
-  @Override
-  protected Set<String> getSupportedProtocols() {
-    return Set.of("24");
   }
 
   @Override

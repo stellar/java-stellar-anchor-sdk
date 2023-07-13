@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
+import org.stellar.anchor.api.exception.BadRequestException
 import org.stellar.anchor.api.exception.rpc.InternalErrorException
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException
@@ -64,6 +65,14 @@ class RpcUtilTest {
   @Test
   fun `test get rpc invalid params response`() {
     val response = RpcUtil.getRpcErrorResponse(RPC_ID, InvalidParamsException(ERROR_MSG))
+    verifyErrorResponse(response)
+    assertEquals(ERROR_MSG, response.error.message)
+    assertEquals(RpcErrorCode.INVALID_PARAMS.errorCode, response.error.code)
+  }
+
+  @Test
+  fun `test get rpc bad request response`() {
+    val response = RpcUtil.getRpcErrorResponse(RPC_ID, BadRequestException(ERROR_MSG))
     verifyErrorResponse(response)
     assertEquals(ERROR_MSG, response.error.message)
     assertEquals(RpcErrorCode.INVALID_PARAMS.errorCode, response.error.code)

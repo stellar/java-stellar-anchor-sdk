@@ -1,6 +1,5 @@
 package org.stellar.anchor.api.rpc.action;
 
-import com.google.gson.annotations.SerializedName;
 import javax.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -11,13 +10,12 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = false)
-public class NotifyAmountsUpdatedRequest extends RpcActionParamsRequest {
+public class AmountAssetRequest extends AmountRequest {
 
-  @SerializedName("amount_out")
-  @NotBlank
-  private AmountRequest amountOut;
+  @NotBlank private String asset;
 
-  @SerializedName("amount_fee")
-  @NotBlank
-  private AmountRequest amountFee;
+  public AmountAssetRequest(String amount, String asset) {
+    super(amount);
+    this.asset = asset;
+  }
 }

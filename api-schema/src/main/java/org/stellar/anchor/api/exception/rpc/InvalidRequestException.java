@@ -8,6 +8,6 @@ import lombok.EqualsAndHashCode;
 @EqualsAndHashCode(callSuper = false)
 public class InvalidRequestException extends RpcException {
   public InvalidRequestException(String message) {
-    super(INVALID_REQUEST.getErrorCode(), message);
+    super(INVALID_REQUEST, message);
   }
 }

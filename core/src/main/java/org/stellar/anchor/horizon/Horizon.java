@@ -3,16 +3,20 @@ package org.stellar.anchor.horizon;
 import static org.stellar.anchor.api.sep.AssetInfo.NATIVE_ASSET_CODE;
 import static org.stellar.anchor.util.Log.errorEx;
 
+import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
 import lombok.Getter;
 import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.util.AssetHelper;
 import org.stellar.sdk.AssetTypeCreditAlphaNum;
 import org.stellar.sdk.Server;
 import org.stellar.sdk.responses.AccountResponse;
+import org.stellar.sdk.responses.operations.OperationResponse;
 
 /** The horizon-server. */
 public class Horizon {
+
   @Getter private final String horizonUrl;
   @Getter private final String stellarNetworkPassphrase;
   private final Server horizonServer;
@@ -53,5 +57,14 @@ public class Horizon {
           String.format("Unable to check trust for account[%s] and asset[%s]", account, asset), e);
       return false;
     }
+  }
+
+  public List<OperationResponse> getStellarTxnOperations(String stellarTxnId) throws IOException {
+    return getServer()
+        .payments()
+        .includeTransactions(true)
+        .forTransaction(stellarTxnId)
+        .execute()
+        .getRecords();
   }
 }

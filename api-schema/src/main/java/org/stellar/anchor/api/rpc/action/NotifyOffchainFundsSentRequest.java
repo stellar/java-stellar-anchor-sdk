@@ -13,8 +13,8 @@ import lombok.experimental.SuperBuilder;
 @EqualsAndHashCode(callSuper = false)
 public class NotifyOffchainFundsSentRequest extends RpcActionParamsRequest {
 
-  @SerializedName("funds_received_at")
-  private Instant fundsReceivedAt;
+  @SerializedName("funds_sent_at")
+  private Instant fundsSentAt;
 
   @SerializedName("external_transaction_id")
   private String externalTransactionId;
