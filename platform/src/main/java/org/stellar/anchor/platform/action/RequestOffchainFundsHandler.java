@@ -19,7 +19,6 @@ import org.stellar.anchor.api.rpc.action.AmountAssetRequest;
 import org.stellar.anchor.api.rpc.action.RequestOffchainFundsRequest;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
-import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.platform.utils.AssetValidationUtils;
@@ -33,15 +32,9 @@ public class RequestOffchainFundsHandler extends ActionHandler<RequestOffchainFu
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
-      Horizon horizon,
       AssetService assetService) {
     super(
-        txn24Store,
-        txn31Store,
-        requestValidator,
-        horizon,
-        assetService,
-        RequestOffchainFundsRequest.class);
+        txn24Store, txn31Store, requestValidator, assetService, RequestOffchainFundsRequest.class);
   }
 
   @Override

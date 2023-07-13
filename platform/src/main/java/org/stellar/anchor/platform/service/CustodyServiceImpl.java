@@ -45,26 +45,11 @@ public class CustodyServiceImpl implements CustodyService {
       throw new InvalidConfigException("Integration with custody service is not enabled");
     }
 
-    CreateTransactionPaymentResponse response;
     try {
-      response = custodyApiClient.get().createTransactionPayment(txnId, requestBody);
+      return custodyApiClient.get().createTransactionPayment(txnId, requestBody);
     } catch (CustodyException e) {
-      switch (HttpStatus.valueOf(e.getStatusCode())) {
-        case NOT_FOUND:
-          throw new CustodyNotFoundException(e.getRawMessage());
-        case TOO_MANY_REQUESTS:
-          throw new CustodyTooManyRequestsException(e.getRawMessage());
-        case BAD_REQUEST:
-          throw new CustodyBadRequestException(e.getRawMessage());
-        case SERVICE_UNAVAILABLE:
-          throw new CustodyServiceUnavailableException(e.getRawMessage());
-        default:
-          debugF("Unhandled status code (%s)", e.getStatusCode());
-          throw e;
-      }
+      throw (getResponseException(e));
     }
-
-    return response;
   }
 
   private void create(CreateCustodyTransactionRequest request)
@@ -74,5 +59,21 @@ public class CustodyServiceImpl implements CustodyService {
       throw new InvalidConfigException("Integration with custody service is not enabled");
     }
     custodyApiClient.get().createTransaction(request);
+  }
+
+  public AnchorException getResponseException(CustodyException e) {
+    switch (HttpStatus.valueOf(e.getStatusCode())) {
+      case NOT_FOUND:
+        return new CustodyNotFoundException(e.getRawMessage());
+      case TOO_MANY_REQUESTS:
+        return new CustodyTooManyRequestsException(e.getRawMessage());
+      case BAD_REQUEST:
+        return new CustodyBadRequestException(e.getRawMessage());
+      case SERVICE_UNAVAILABLE:
+        return new CustodyServiceUnavailableException(e.getRawMessage());
+      default:
+        debugF("Unhandled status code (%s)", e.getStatusCode());
+        return e;
+    }
   }
 }

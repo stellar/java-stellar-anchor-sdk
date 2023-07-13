@@ -3,6 +3,7 @@ package org.stellar.anchor.platform.action
 import com.google.gson.reflect.TypeToken
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
+import java.io.IOException
 import java.time.Instant
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -12,6 +13,7 @@ import org.junit.jupiter.api.assertThrows
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
 import org.stellar.anchor.api.exception.BadRequestException
+import org.stellar.anchor.api.exception.rpc.InternalErrorException
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException
 import org.stellar.anchor.api.platform.GetTransactionResponse
@@ -32,8 +34,6 @@ import org.stellar.anchor.sep24.Sep24TransactionStore
 import org.stellar.anchor.sep31.Sep31TransactionStore
 import org.stellar.anchor.util.FileUtil
 import org.stellar.anchor.util.GsonUtils
-import org.stellar.sdk.Server
-import org.stellar.sdk.requests.PaymentsRequestBuilder
 import org.stellar.sdk.responses.operations.OperationResponse
 import org.stellar.sdk.responses.operations.PaymentOperationResponse
 
@@ -57,10 +57,6 @@ class NotifyOnchainFundsReceivedHandlerTest {
   @MockK(relaxed = true) private lateinit var assetService: AssetService
 
   @MockK(relaxed = true) private lateinit var horizon: Horizon
-
-  @MockK(relaxed = true) private lateinit var server: Server
-
-  @MockK(relaxed = true) private lateinit var paymentsRequestBuilder: PaymentsRequestBuilder
 
   private lateinit var handler: NotifyOnchainFundsReceivedHandler
 
@@ -398,46 +394,14 @@ class NotifyOnchainFundsReceivedHandlerTest {
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
-    every { horizon.server } returns server
-    every { server.payments() } returns paymentsRequestBuilder
-    every { paymentsRequestBuilder.includeTransactions(true) } returns paymentsRequestBuilder
-    every { paymentsRequestBuilder.forTransaction("stellarTxId") } throws
-      RuntimeException("Invalid stellar " + "transaction")
+    every { horizon.getStellarTxnOperations(any()) } throws
+      IOException("Invalid stellar transaction")
 
-    val startDate = Instant.now()
-    val response = handler.handle(request)
-    val endDate = Instant.now()
+    val ex = assertThrows<InternalErrorException> { handler.handle(request) }
+    assertEquals("Failed to retrieve Stellar transaction by ID[stellarTxId]", ex.message)
 
+    verify(exactly = 0) { txn24Store.save(any()) }
     verify(exactly = 0) { txn31Store.save(any()) }
-
-    val expectedSep24Txn = JdbcSep24Transaction()
-    expectedSep24Txn.kind = WITHDRAWAL.kind
-    expectedSep24Txn.status = PENDING_ANCHOR.toString()
-    expectedSep24Txn.status = PENDING_ANCHOR.toString()
-    expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
-    expectedSep24Txn.requestAssetCode = FIAT_USD_CODE
-
-    JSONAssert.assertEquals(
-      gson.toJson(expectedSep24Txn),
-      gson.toJson(sep24TxnCapture.captured),
-      JSONCompareMode.STRICT
-    )
-
-    val expectedResponse = GetTransactionResponse()
-    expectedResponse.sep = SEP_24
-    expectedResponse.kind = WITHDRAWAL
-    expectedResponse.status = PENDING_ANCHOR
-    expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
-    expectedResponse.amountExpected = Amount(null, FIAT_USD)
-
-    JSONAssert.assertEquals(
-      gson.toJson(expectedResponse),
-      gson.toJson(response),
-      JSONCompareMode.STRICT
-    )
-
-    assertTrue(expectedSep24Txn.updatedAt.isAfter(startDate))
-    assertTrue(expectedSep24Txn.updatedAt.isBefore(endDate))
   }
 
   @Test

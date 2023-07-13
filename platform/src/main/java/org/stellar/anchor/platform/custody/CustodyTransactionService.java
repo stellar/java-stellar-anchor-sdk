@@ -9,6 +9,7 @@ import static org.stellar.anchor.util.Log.debugF;
 import java.time.Instant;
 import java.util.List;
 import java.util.Set;
+import java.util.UUID;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.stellar.anchor.api.custody.CreateCustodyTransactionRequest;
@@ -42,13 +43,16 @@ public abstract class CustodyTransactionService {
    * Create custody transaction
    *
    * @param request custody transaction info
+   * @return {@link JdbcCustodyTransaction} object
    */
-  public void create(CreateCustodyTransactionRequest request) throws CustodyBadRequestException {
+  public JdbcCustodyTransaction create(CreateCustodyTransactionRequest request)
+      throws CustodyBadRequestException {
     validateRequest(request);
 
-    custodyTransactionRepo.save(
+    return custodyTransactionRepo.save(
         JdbcCustodyTransaction.builder()
-            .id(request.getId())
+            .id(UUID.randomUUID().toString())
+            .sepTxId(request.getId())
             .status(CustodyTransactionStatus.CREATED.toString())
             .createdAt(Instant.now())
             .memo(request.getMemo())
@@ -74,7 +78,7 @@ public abstract class CustodyTransactionService {
    */
   public CreateTransactionPaymentResponse createPayment(String txnId, String requestBody)
       throws AnchorException {
-    JdbcCustodyTransaction txn = custodyTransactionRepo.findById(txnId).orElse(null);
+    JdbcCustodyTransaction txn = custodyTransactionRepo.findBySepTxId(txnId).orElse(null);
     if (txn == null) {
       throw new CustodyNotFoundException(String.format("Transaction (id=%s) is not found", txnId));
     }
@@ -85,17 +89,7 @@ public abstract class CustodyTransactionService {
       updateCustodyTransaction(txn, response.getId(), SUBMITTED);
     } catch (FireblocksException e) {
       updateCustodyTransaction(txn, StringUtils.EMPTY, CustodyTransactionStatus.FAILED);
-      switch (HttpStatus.valueOf(e.getStatusCode())) {
-        case TOO_MANY_REQUESTS:
-          throw new CustodyTooManyRequestsException(e.getRawMessage());
-        case BAD_REQUEST:
-          throw new CustodyBadRequestException(e.getRawMessage());
-        case SERVICE_UNAVAILABLE:
-          throw new CustodyServiceUnavailableException(e.getRawMessage());
-        default:
-          debugF("Unhandled status code (%s)", e.getStatusCode());
-          throw e;
-      }
+      throw (getResponseException(e));
     }
 
     return response;
@@ -120,5 +114,19 @@ public abstract class CustodyTransactionService {
   public List<JdbcCustodyTransaction> getInboundTransactionsEligibleForReconciliation() {
     return custodyTransactionRepo.findAllByStatusAndKindIn(
         CREATED.toString(), Set.of(RECEIVE.getKind(), WITHDRAWAL.getKind()));
+  }
+
+  private AnchorException getResponseException(FireblocksException e) {
+    switch (HttpStatus.valueOf(e.getStatusCode())) {
+      case TOO_MANY_REQUESTS:
+        return new CustodyTooManyRequestsException(e.getRawMessage());
+      case BAD_REQUEST:
+        return new CustodyBadRequestException(e.getRawMessage());
+      case SERVICE_UNAVAILABLE:
+        return new CustodyServiceUnavailableException(e.getRawMessage());
+      default:
+        debugF("Unhandled status code (%s)", e.getStatusCode());
+        return e;
+    }
   }
 }

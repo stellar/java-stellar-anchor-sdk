@@ -24,8 +24,8 @@ import org.stellar.anchor.util.GsonUtils
 class ActionServiceTest {
   companion object {
     private const val RPC_ID = 1
-    private const val ERROR_MSG = "Error message"
     private const val RPC_PARAMS = "testParams"
+    private const val ERROR_MSG = "Error message"
     private const val VALID_RPC_METHOD_1 = "notify_interactive_flow_completed"
     private const val VALID_RPC_METHOD_2 = "request_offchain_funds"
     private const val INVALID_RPC_METHOD = "invalid_rpc_method"
@@ -127,6 +127,32 @@ class ActionServiceTest {
   }
 
   @Test
+  fun `test handle invalid rpc call`() {
+    val invalidRpcRequest = RpcRequest.builder().method(INVALID_RPC_METHOD).id(RPC_ID).build()
+
+    val response = actionService.handleRpcCalls(listOf(invalidRpcRequest))
+
+    val expectedResponse =
+      """
+    [
+      {
+        "jsonrpc": "2.0",
+        "error": {
+          "code": -32600,
+          "message": "Unsupported JSON-RPC protocol version[null]"
+        },
+        "id": 1
+      }
+    ]
+    """
+        .trimIndent()
+
+    JSONAssert.assertEquals(expectedResponse, gson.toJson(response), JSONCompareMode.STRICT)
+
+    verify(exactly = 0) { actionHandler.handle(any()) }
+  }
+
+  @Test
   fun `test handle invalid rpc method`() {
     val invalidRpcRequest =
       RpcRequest.builder()
@@ -188,30 +214,6 @@ class ActionServiceTest {
     JSONAssert.assertEquals(expectedResponse, gson.toJson(response), JSONCompareMode.STRICT)
 
     verify(exactly = 0) { actionHandler.handle(any()) }
-  }
-
-  @Test
-  fun `test handle invalid rpc call`() {
-    val invalidRpcRequest = RpcRequest.builder().method(INVALID_RPC_METHOD).id(RPC_ID).build()
-
-    val response = actionService.handleRpcCalls(listOf(invalidRpcRequest))
-
-    val expectedResponse =
-      """
-    [
-      {
-        "jsonrpc": "2.0",
-        "error": {
-          "code": -32600,
-          "message": "Unsupported JSON-RPC protocol version[null]"
-        },
-        "id": 1
-      }
-    ]
-    """
-        .trimIndent()
-
-    JSONAssert.assertEquals(expectedResponse, gson.toJson(response), JSONCompareMode.STRICT)
   }
 
   @Test

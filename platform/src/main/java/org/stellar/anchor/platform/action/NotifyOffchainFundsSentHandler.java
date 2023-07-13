@@ -6,6 +6,7 @@ import static org.stellar.anchor.api.rpc.action.ActionMethod.NOTIFY_OFFCHAIN_FUN
 import static org.stellar.anchor.api.sep.SepTransactionStatus.COMPLETED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_EXTERNAL;
+import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_USR_TRANSFER_COMPLETE;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_USR_TRANSFER_START;
 
 import java.time.Instant;
@@ -18,7 +19,6 @@ import org.stellar.anchor.api.rpc.action.ActionMethod;
 import org.stellar.anchor.api.rpc.action.NotifyOffchainFundsSentRequest;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
-import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.platform.validator.RequestValidator;
@@ -31,13 +31,11 @@ public class NotifyOffchainFundsSentHandler extends ActionHandler<NotifyOffchain
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
-      Horizon horizon,
       AssetService assetService) {
     super(
         txn24Store,
         txn31Store,
         requestValidator,
-        horizon,
         assetService,
         NotifyOffchainFundsSentRequest.class);
   }
@@ -75,7 +73,10 @@ public class NotifyOffchainFundsSentHandler extends ActionHandler<NotifyOffchain
           supportedStatuses.add(PENDING_USR_TRANSFER_START);
           break;
         case WITHDRAWAL:
-          supportedStatuses.add(PENDING_ANCHOR);
+          if (txn24.getTransferReceivedAt() != null) {
+            supportedStatuses.add(PENDING_ANCHOR);
+          }
+          supportedStatuses.add(PENDING_USR_TRANSFER_COMPLETE);
           break;
       }
     }

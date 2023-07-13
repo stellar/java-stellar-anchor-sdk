@@ -11,18 +11,9 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = false)
-public class NotifyOnchainFundsReceivedRequest extends RpcActionParamsRequest {
+public class NotifyOnchainFundsSentRequest extends RpcActionParamsRequest {
 
-  @NotBlank
   @SerializedName("stellar_transaction_id")
+  @NotBlank
   private String stellarTransactionId;
-
-  @SerializedName("amount_in")
-  private AmountRequest amountIn;
-
-  @SerializedName("amount_out")
-  private AmountRequest amountOut;
-
-  @SerializedName("amount_fee")
-  private AmountRequest amountFee;
 }

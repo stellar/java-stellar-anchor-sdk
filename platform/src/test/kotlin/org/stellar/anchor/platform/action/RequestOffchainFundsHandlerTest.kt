@@ -24,7 +24,6 @@ import org.stellar.anchor.api.sep.SepTransactionStatus.*
 import org.stellar.anchor.api.shared.Amount
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
-import org.stellar.anchor.horizon.Horizon
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
 import org.stellar.anchor.platform.validator.RequestValidator
 import org.stellar.anchor.sep24.Sep24TransactionStore
@@ -34,7 +33,7 @@ import org.stellar.anchor.util.GsonUtils
 class RequestOffchainFundsHandlerTest {
 
   companion object {
-    private val GSON = GsonUtils.getInstance()
+    private val gson = GsonUtils.getInstance()
     private const val TX_ID = "testId"
     private const val FIAT_USD = "iso4217:USD"
     private const val STELLAR_USDC =
@@ -45,8 +44,6 @@ class RequestOffchainFundsHandlerTest {
   @MockK(relaxed = true) private lateinit var txn24Store: Sep24TransactionStore
 
   @MockK(relaxed = true) private lateinit var txn31Store: Sep31TransactionStore
-
-  @MockK(relaxed = true) private lateinit var horizon: Horizon
 
   @MockK(relaxed = true) private lateinit var requestValidator: RequestValidator
 
@@ -59,7 +56,7 @@ class RequestOffchainFundsHandlerTest {
     MockKAnnotations.init(this, relaxUnitFun = true)
     this.assetService = DefaultAssetService.fromJsonResource("test_assets.json")
     this.handler =
-      RequestOffchainFundsHandler(txn24Store, txn31Store, requestValidator, horizon, assetService)
+      RequestOffchainFundsHandler(txn24Store, txn31Store, requestValidator, assetService)
   }
 
   @Test
@@ -188,8 +185,8 @@ class RequestOffchainFundsHandlerTest {
     expectedSep24Txn.amountExpected = "1"
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedSep24Txn),
-      GSON.toJson(sep24TxnCapture.captured),
+      gson.toJson(expectedSep24Txn),
+      gson.toJson(sep24TxnCapture.captured),
       JSONCompareMode.STRICT
     )
 
@@ -204,8 +201,8 @@ class RequestOffchainFundsHandlerTest {
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedResponse),
-      GSON.toJson(response),
+      gson.toJson(expectedResponse),
+      gson.toJson(response),
       JSONCompareMode.STRICT
     )
 
@@ -252,8 +249,8 @@ class RequestOffchainFundsHandlerTest {
     expectedSep24Txn.amountExpected = "1"
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedSep24Txn),
-      GSON.toJson(sep24TxnCapture.captured),
+      gson.toJson(expectedSep24Txn),
+      gson.toJson(sep24TxnCapture.captured),
       JSONCompareMode.STRICT
     )
 
@@ -268,8 +265,8 @@ class RequestOffchainFundsHandlerTest {
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedResponse),
-      GSON.toJson(response),
+      gson.toJson(expectedResponse),
+      gson.toJson(response),
       JSONCompareMode.STRICT
     )
 
@@ -317,8 +314,8 @@ class RequestOffchainFundsHandlerTest {
     expectedSep24Txn.amountExpected = "1"
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedSep24Txn),
-      GSON.toJson(sep24TxnCapture.captured),
+      gson.toJson(expectedSep24Txn),
+      gson.toJson(sep24TxnCapture.captured),
       JSONCompareMode.STRICT
     )
 
@@ -333,8 +330,8 @@ class RequestOffchainFundsHandlerTest {
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedResponse),
-      GSON.toJson(response),
+      gson.toJson(expectedResponse),
+      gson.toJson(response),
       JSONCompareMode.STRICT
     )
 

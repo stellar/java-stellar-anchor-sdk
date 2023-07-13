@@ -165,7 +165,7 @@ public abstract class CustodyPaymentHandler {
                     PatchTransactionRequest.builder()
                         .transaction(
                             PlatformTransactionData.builder()
-                                .id(txn.getId())
+                                .id(txn.getSepTxId())
                                 .updatedAt(payment.getCreatedAt())
                                 .transferReceivedAt(payment.getCreatedAt())
                                 .status(newSepTransactionStatus)
@@ -175,8 +175,8 @@ public abstract class CustodyPaymentHandler {
                         .build()))
             .build();
 
-    debugF("Patching transaction {}.", txn.getId());
-    traceF("Patching transaction {} with request {}.", txn.getId(), patchTransactionsRequest);
+    debugF("Patching transaction {}.", txn.getSepTxId());
+    traceF("Patching transaction {} with request {}.", txn.getSepTxId(), patchTransactionsRequest);
 
     platformApiClient.patchTransaction(patchTransactionsRequest);
   }

@@ -2,9 +2,9 @@ package org.stellar.anchor.platform.test
 
 import com.google.gson.reflect.TypeToken
 import java.lang.reflect.Type
-import kotlin.test.assertNull
 import org.apache.commons.lang3.StringUtils
 import org.apache.http.HttpStatus
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.stellar.anchor.api.rpc.RpcErrorCode.INVALID_REQUEST
