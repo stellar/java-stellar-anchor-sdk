@@ -35,7 +35,6 @@ import org.stellar.anchor.util.FileUtil
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.sdk.Server
 import org.stellar.sdk.requests.PaymentsRequestBuilder
-import org.stellar.sdk.responses.Page
 import org.stellar.sdk.responses.operations.OperationResponse
 import org.stellar.sdk.responses.operations.PaymentOperationResponse
 
@@ -63,8 +62,6 @@ class NotifyOnchainFundsReceivedHandlerTest {
   @MockK(relaxed = true) private lateinit var server: Server
 
   @MockK(relaxed = true) private lateinit var paymentsRequestBuilder: PaymentsRequestBuilder
-
-  @MockK(relaxed = true) private lateinit var page: Page<OperationResponse>
 
   private lateinit var handler: NotifyOnchainFundsReceivedHandler
 
@@ -148,7 +145,10 @@ class NotifyOnchainFundsReceivedHandlerTest {
     every { validator.validate(request) } returns setOf(violation1, violation2)
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
-    assertEquals("violation error message 1\n" + "violation error message 2", ex.message)
+    assertEquals(
+      "violation error message 1\n" + "violation error message 2",
+      ex.message?.trimIndent()
+    )
   }
 
   @Test
@@ -186,12 +186,7 @@ class NotifyOnchainFundsReceivedHandlerTest {
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
-    every { horizon.server } returns server
-    every { server.payments() } returns paymentsRequestBuilder
-    every { paymentsRequestBuilder.includeTransactions(true) } returns paymentsRequestBuilder
-    every { paymentsRequestBuilder.forTransaction("stellarTxId") } returns paymentsRequestBuilder
-    every { paymentsRequestBuilder.execute() } returns page
-    every { page.records } returns operationRecords
+    every { horizon.getStellarTxnOperations("stellarTxId") } returns operationRecords
 
     val startDate = Instant.now()
     val response = handler.handle(request)
@@ -238,8 +233,8 @@ class NotifyOnchainFundsReceivedHandlerTest {
       JSONCompareMode.STRICT
     )
 
-    assertTrue(expectedSep24Txn.updatedAt.isAfter(startDate))
-    assertTrue(expectedSep24Txn.updatedAt.isBefore(endDate))
+    assertTrue(expectedSep24Txn.updatedAt >= startDate)
+    assertTrue(expectedSep24Txn.updatedAt <= endDate)
   }
 
   @Test
@@ -273,12 +268,7 @@ class NotifyOnchainFundsReceivedHandlerTest {
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
-    every { horizon.server } returns server
-    every { server.payments() } returns paymentsRequestBuilder
-    every { paymentsRequestBuilder.includeTransactions(true) } returns paymentsRequestBuilder
-    every { paymentsRequestBuilder.forTransaction("stellarTxId") } returns paymentsRequestBuilder
-    every { paymentsRequestBuilder.execute() } returns page
-    every { page.records } returns operationRecords
+    every { horizon.getStellarTxnOperations("stellarTxId") } returns operationRecords
 
     val startDate = Instant.now()
     val response = handler.handle(request)
@@ -319,8 +309,8 @@ class NotifyOnchainFundsReceivedHandlerTest {
       JSONCompareMode.STRICT
     )
 
-    assertTrue(expectedSep24Txn.updatedAt.isAfter(startDate))
-    assertTrue(expectedSep24Txn.updatedAt.isBefore(endDate))
+    assertTrue(expectedSep24Txn.updatedAt >= startDate)
+    assertTrue(expectedSep24Txn.updatedAt <= endDate)
   }
 
   @Test
@@ -352,12 +342,7 @@ class NotifyOnchainFundsReceivedHandlerTest {
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
-    every { horizon.server } returns server
-    every { server.payments() } returns paymentsRequestBuilder
-    every { paymentsRequestBuilder.includeTransactions(true) } returns paymentsRequestBuilder
-    every { paymentsRequestBuilder.forTransaction("stellarTxId") } returns paymentsRequestBuilder
-    every { paymentsRequestBuilder.execute() } returns page
-    every { page.records } returns operationRecords
+    every { horizon.getStellarTxnOperations("stellarTxId") } returns operationRecords
 
     val startDate = Instant.now()
     val response = handler.handle(request)
@@ -396,8 +381,8 @@ class NotifyOnchainFundsReceivedHandlerTest {
       JSONCompareMode.STRICT
     )
 
-    assertTrue(expectedSep24Txn.updatedAt.isAfter(startDate))
-    assertTrue(expectedSep24Txn.updatedAt.isBefore(endDate))
+    assertTrue(expectedSep24Txn.updatedAt >= startDate)
+    assertTrue(expectedSep24Txn.updatedAt <= endDate)
   }
 
   @Test
