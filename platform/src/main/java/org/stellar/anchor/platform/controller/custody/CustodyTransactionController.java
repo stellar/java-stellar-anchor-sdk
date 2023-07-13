@@ -12,7 +12,6 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 import org.stellar.anchor.api.custody.CreateCustodyTransactionRequest;
 import org.stellar.anchor.api.custody.CreateTransactionPaymentResponse;
-import org.stellar.anchor.api.custody.CreateTransactionRefundRequest;
 import org.stellar.anchor.platform.custody.CustodyTransactionService;
 
 @RestController
@@ -44,18 +43,5 @@ public class CustodyTransactionController {
   public CreateTransactionPaymentResponse createTransactionPayment(
       @PathVariable(name = "id") String txnId, @RequestBody String requestBody) {
     return custodyTransactionService.createPayment(txnId, requestBody);
-  }
-
-  @SneakyThrows
-  @CrossOrigin(origins = "*")
-  @ResponseStatus(code = HttpStatus.OK)
-  @RequestMapping(
-      value = "/transactions/{id}/refunds",
-      method = {RequestMethod.POST},
-      consumes = {MediaType.APPLICATION_JSON_VALUE})
-  public CreateTransactionPaymentResponse createTransactionRefund(
-      @PathVariable(name = "id") String txnId,
-      @RequestBody CreateTransactionRefundRequest refundRequest) {
-    return custodyTransactionService.createRefund(txnId, refundRequest);
   }
 }
