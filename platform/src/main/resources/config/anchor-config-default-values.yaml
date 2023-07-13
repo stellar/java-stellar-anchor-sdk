@@ -357,6 +357,7 @@ sep24:
   ## @supported_values:
   ##     self: the memo and memo type are generated in the local code, and the distribution account is used for the deposit address.
   ##     custody: the memo and memo type are generated through Custody API, for example Fireblocks, as well as the deposit address.
+  ##     none: deposit address, memo and memo type should be provided by the business in requests/action.
   #
   deposit_info_generator_type: self
 

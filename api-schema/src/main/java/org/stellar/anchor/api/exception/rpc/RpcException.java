@@ -1,7 +1,8 @@
-package org.stellar.anchor.api.exception;
+package org.stellar.anchor.api.exception.rpc;
 
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.rpc.RpcErrorCode;
 
 @Getter

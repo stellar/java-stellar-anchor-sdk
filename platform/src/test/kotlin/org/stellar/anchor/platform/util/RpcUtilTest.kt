@@ -8,6 +8,7 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
+import org.stellar.anchor.api.exception.BadRequestException
 import org.stellar.anchor.api.exception.rpc.InternalErrorException
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException
@@ -69,13 +70,21 @@ class RpcUtilTest {
     assertEquals(RpcErrorCode.INVALID_PARAMS.errorCode, response.error.code)
   }
 
+  @Test
+  fun `test get rpc bad request response`() {
+    val response = RpcUtil.getRpcErrorResponse(RPC_ID, BadRequestException(ERROR_MSG))
+    verifyErrorResponse(response)
+    assertEquals(ERROR_MSG, response.error.message)
+    assertEquals(RpcErrorCode.INVALID_PARAMS.errorCode, response.error.code)
+  }
+
   @ParameterizedTest
   @ValueSource(strings = ["", "1.0", "2", "2.", "2.1"])
   fun `test validate unsupported JSON-RPC protocol`(protocolVersion: String) {
     val rpcRequest = RpcRequest.builder().jsonrpc(protocolVersion).method(RPC_METHOD).build()
     val exception = assertThrows<InvalidRequestException> { RpcUtil.validateRpcRequest(rpcRequest) }
     assertEquals(
-      java.lang.String.format("Unsupported JSON-RPC protocol version [%s]", protocolVersion),
+      java.lang.String.format("Unsupported JSON-RPC protocol version[%s]", protocolVersion),
       exception.message
     )
   }

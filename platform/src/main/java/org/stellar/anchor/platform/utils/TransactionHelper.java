@@ -51,7 +51,8 @@ public class TransactionHelper {
             DEPOSIT.getKind().equals(txn.getKind())
                 ? txn.getToAccount()
                 : txn.getWithdrawAnchorAccount())
-        .amount(DEPOSIT.getKind().equals(txn.getKind()) ? txn.getAmountOut() : txn.getAmountIn())
+        .amount(
+            DEPOSIT.getKind().equals(txn.getKind()) ? txn.getAmountOut() : txn.getAmountExpected())
         .amountAsset(
             DEPOSIT.getKind().equals(txn.getKind())
                 ? txn.getAmountOutAsset()
