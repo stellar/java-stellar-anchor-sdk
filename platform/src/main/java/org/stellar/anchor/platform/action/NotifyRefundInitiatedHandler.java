@@ -61,7 +61,8 @@ public class NotifyRefundInitiatedHandler extends ActionHandler<NotifyRefundInit
         AmountRequest.builder()
             .amount(request.getRefund().getAmountFee())
             .asset(txn.getAmountInAsset())
-            .build());
+            .build(),
+        true);
   }
 
   @Override

@@ -165,7 +165,7 @@ class NotifyRefundInitiatedHandlerTest {
     request.refund.amount = "1"
 
     ex = assertThrows { handler.handle(request) }
-    assertEquals("refund.amountFee.amount should be positive", ex.message)
+    assertEquals("refund.amountFee.amount should be non-negative", ex.message)
   }
 
   @Test
