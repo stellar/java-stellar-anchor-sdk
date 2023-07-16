@@ -260,7 +260,7 @@ private const val webhookRequest =
 """
 
 private const val webhookSignature =
-  "CycRUfeq5n5AXWZ4sip2LsJWeFI8GDa8KCDvB8efztgK5ZoLdkLw8+hb/kd0HZnQEFf5qHBpTNlKzJCXoRQoMM22t1IzPKajCiHiPb4aMm6Rx04e2VDOsBPrRN7pw3zmkma7ebVvq2q9ZtDvdRIxTm0ZbKhak0uOAIM5XJ46JgI="
+  "jwWIW/EX4XdkD9sS0YSybaYCnITwdDsCADV99mVyimhLPz6EhQDV6hJEfA4/BcNtXveJNbchKCwVI1l5o0eHc/1F0l4WsfIGNcDl68CDBWpe6LyQ3ZWUS7X/VMEeFFTBkgGcRl7aDjX2Yn9HuLFnSFRR2r4eDKP8y4G7hUbPUdE="
 
 private const val expectedTransactionResponse =
   """

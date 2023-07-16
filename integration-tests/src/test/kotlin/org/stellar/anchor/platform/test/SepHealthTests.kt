@@ -14,7 +14,7 @@ class SepHealthTests(config: TestConfig, toml: TomlContent, jwt: String) {
   private fun testHealth() {
     val response = platformApiClient.health(listOf("all"))
     assertEquals(5, response.size)
-    assertEquals(1.0, response["number_of_checks"])
+    assertEquals(1L, response["number_of_checks"])
     assertNotNull(response["checks"])
     assertNotNull(response["started_at"])
     assertNotNull(response["elapsed_time_ms"])

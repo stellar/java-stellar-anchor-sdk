@@ -60,6 +60,7 @@ public class NotifyRefundInitiatedHandler extends ActionHandler<NotifyRefundInit
             .amount(request.getRefund().getAmountFee())
             .asset(txn.getAmountInAsset())
             .build(),
+        true,
         assetService);
   }
 
