@@ -1,6 +1,5 @@
 package org.stellar.anchor.filter;
 
-import static org.stellar.anchor.util.Log.*;
 import static org.stellar.anchor.util.Log.error;
 
 import com.google.gson.Gson;

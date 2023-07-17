@@ -15,16 +15,11 @@ import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.api.platform.*;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.auth.AuthHelper;
-import org.stellar.anchor.util.AuthHeader;
 import org.stellar.anchor.util.OkHttpUtil;
 
 public class PlatformApiClient extends BaseApiClient {
-  private final AuthHelper authHelper;
-  private final String endpoint;
-
   public PlatformApiClient(AuthHelper authHelper, String endpoint) {
-    this.authHelper = authHelper;
-    this.endpoint = endpoint;
+    super(authHelper, endpoint);
   }
 
   public GetTransactionResponse getTransaction(String id) throws IOException, AnchorException {
@@ -108,15 +103,5 @@ public class PlatformApiClient extends BaseApiClient {
 
     String responseBody = handleResponse(client.newCall(request).execute());
     return gson.fromJson(responseBody, HashMap.class);
-  }
-
-  Request.Builder getRequestBuilder() throws InvalidConfigException {
-    Request.Builder requestBuilder =
-        new Request.Builder().header("Content-Type", "application/json");
-
-    AuthHeader<String, String> authHeader = authHelper.createPlatformServerAuthHeader();
-    return authHeader == null
-        ? requestBuilder
-        : requestBuilder.header(authHeader.getName(), authHeader.getValue());
   }
 }

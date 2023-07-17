@@ -7,7 +7,6 @@ import org.springframework.core.io.DefaultResourceLoader
 import org.springframework.util.FileCopyUtils
 import org.stellar.anchor.util.GsonUtils
 
-// val gson: Gson = GsonUtils.builder().setPrettyPrinting().create()
 val gson: Gson = GsonUtils.getInstance()
 
 fun json(value: Any?): String {

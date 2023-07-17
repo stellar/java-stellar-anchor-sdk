@@ -83,7 +83,7 @@ class TestProfileExecutor(val config: TestConfig) {
 
       if (shouldStartAllServers || shouldStartKotlinReferenceServer) {
         info("Starting Kotlin reference server...")
-        jobs += scope.launch { ServiceRunner.startKotlinReferenceServer(envMap, false) }
+        jobs += scope.launch { ServiceRunner.startKotlinReferenceServer(envMap, wait) }
       }
       if (shouldStartAllServers || shouldStartReferenceServer) {
         info("Starting Java reference server...")
