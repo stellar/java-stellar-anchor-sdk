@@ -81,7 +81,8 @@ class RpcUtilTest {
   @ParameterizedTest
   @ValueSource(strings = ["", "1.0", "2", "2.", "2.1"])
   fun `test validate unsupported JSON-RPC protocol`(protocolVersion: String) {
-    val rpcRequest = RpcRequest.builder().jsonrpc(protocolVersion).method(RPC_METHOD).build()
+    val rpcRequest =
+      RpcRequest.builder().id(RPC_ID).jsonrpc(protocolVersion).method(RPC_METHOD).build()
     val exception = assertThrows<InvalidRequestException> { RpcUtil.validateRpcRequest(rpcRequest) }
     assertEquals(
       java.lang.String.format("Unsupported JSON-RPC protocol version[%s]", protocolVersion),
@@ -91,15 +92,22 @@ class RpcUtilTest {
 
   @Test
   fun `test validate NULL method name`() {
-    val rpcRequest = RpcRequest.builder().jsonrpc(JSON_RPC_VERSION).build()
+    val rpcRequest = RpcRequest.builder().id(RPC_ID).jsonrpc(JSON_RPC_VERSION).build()
     val exception = assertThrows<InvalidRequestException> { RpcUtil.validateRpcRequest(rpcRequest) }
     assertEquals("Method name can't be NULL or empty", exception.message)
   }
 
   @Test
+  fun `test validate NULL id`() {
+    val rpcRequest = RpcRequest.builder().jsonrpc(JSON_RPC_VERSION).method(RPC_METHOD).build()
+    val exception = assertThrows<InvalidRequestException> { RpcUtil.validateRpcRequest(rpcRequest) }
+    assertEquals("Id can't be NULL", exception.message)
+  }
+
+  @Test
   fun `test validate empty method name`() {
     val rpcRequest =
-      RpcRequest.builder().jsonrpc(JSON_RPC_VERSION).method(StringUtils.EMPTY).build()
+      RpcRequest.builder().id(RPC_ID).jsonrpc(JSON_RPC_VERSION).method(StringUtils.EMPTY).build()
     val exception = assertThrows<InvalidRequestException> { RpcUtil.validateRpcRequest(rpcRequest) }
     assertEquals("Method name can't be NULL or empty", exception.message)
   }
@@ -109,7 +117,7 @@ class RpcUtilTest {
     val rpcRequest =
       RpcRequest.builder().jsonrpc(JSON_RPC_VERSION).method(RPC_METHOD).id(true).build()
     val exception = assertThrows<InvalidRequestException> { RpcUtil.validateRpcRequest(rpcRequest) }
-    assertEquals("An identifier MUST contain a String, Number, or NULL value", exception.message)
+    assertEquals("An identifier MUST contain a String or a Number", exception.message)
   }
 
   private fun verifyErrorResponse(response: RpcResponse) {

@@ -16,11 +16,7 @@ public class RpcUtil {
   public static final String JSON_RPC_VERSION = "2.0";
 
   public static RpcResponse getRpcSuccessResponse(Object id, Object result) {
-    return RpcResponse.builder()
-        .jsonrpc(JSON_RPC_VERSION)
-        .id(id)
-        .result(id != null ? result : null)
-        .build();
+    return RpcResponse.builder().jsonrpc(JSON_RPC_VERSION).id(id).result(result).build();
   }
 
   public static RpcResponse getRpcErrorResponse(Object id, BadRequestException ex) {
@@ -61,9 +57,11 @@ public class RpcUtil {
     }
 
     Object id = rpcRequest.getId();
-    if (id != null) {
+    if (id == null) {
+      messages.add("Id can't be NULL");
+    } else {
       if (!(id instanceof Number) && !(id instanceof String)) {
-        messages.add("An identifier MUST contain a String, Number, or NULL value");
+        messages.add("An identifier MUST contain a String or a Number");
       }
     }
 

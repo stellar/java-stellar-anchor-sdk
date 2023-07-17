@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform.action;
 
+import static java.util.Collections.emptySet;
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT;
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24;
 import static org.stellar.anchor.api.rpc.action.ActionMethod.NOTIFY_REFUND_INITIATED;
@@ -50,14 +51,14 @@ public class NotifyRefundInitiatedHandler extends ActionHandler<NotifyRefundInit
     AssetValidationUtils.validateAsset(
         "refund.amount",
         AmountAssetRequest.builder()
-            .amount(request.getRefund().getAmount())
+            .amount(request.getRefund().getAmount().getAmount())
             .asset(txn.getAmountInAsset())
             .build(),
         assetService);
     AssetValidationUtils.validateAsset(
         "refund.amountFee",
         AmountAssetRequest.builder()
-            .amount(request.getRefund().getAmountFee())
+            .amount(request.getRefund().getAmountFee().getAmount())
             .asset(txn.getAmountInAsset())
             .build(),
         assetService);
@@ -82,7 +83,7 @@ public class NotifyRefundInitiatedHandler extends ActionHandler<NotifyRefundInit
         return Set.of(PENDING_ANCHOR);
       }
     }
-    return Set.of();
+    return emptySet();
   }
 
   @Override
@@ -94,8 +95,8 @@ public class NotifyRefundInitiatedHandler extends ActionHandler<NotifyRefundInit
     Sep24RefundPayment refundPayment =
         JdbcSep24RefundPayment.builder()
             .id(refund.getId())
-            .amount(refund.getAmount())
-            .fee(refund.getAmountFee())
+            .amount(refund.getAmount().getAmount())
+            .fee(refund.getAmountFee().getAmount())
             .build();
 
     Sep24Refunds sep24Refunds = txn24.getRefunds();
