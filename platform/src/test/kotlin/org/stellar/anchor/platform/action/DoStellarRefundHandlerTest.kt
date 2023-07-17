@@ -21,6 +21,7 @@ import org.stellar.anchor.api.platform.GetTransactionResponse
 import org.stellar.anchor.api.platform.PlatformTransactionData
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL
+import org.stellar.anchor.api.rpc.action.AmountRequest
 import org.stellar.anchor.api.rpc.action.DoStellarRefundRequest
 import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.api.sep.SepTransactionStatus.INCOMPLETE
@@ -169,9 +170,12 @@ class DoStellarRefundHandlerTest {
     val request =
       DoStellarRefundRequest.builder()
         .transactionId(TX_ID)
-        .memo("testMemo")
-        .memoType("text")
-        .refund(DoStellarRefundRequest.Refund.builder().amount("-1").amountFee("-0.1").build())
+        .refund(
+          DoStellarRefundRequest.Refund.builder()
+            .amount(AmountRequest("-1"))
+            .amountFee(AmountRequest("-0.1"))
+            .build()
+        )
         .build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_ANCHOR.toString()
@@ -190,38 +194,10 @@ class DoStellarRefundHandlerTest {
 
     var ex = assertThrows<BadRequestException> { handler.handle(request) }
     assertEquals("refund.amount.amount should be positive", ex.message)
-    request.refund.amount = "1"
+    request.refund.amount = AmountRequest("1")
 
     ex = assertThrows { handler.handle(request) }
-    assertEquals("refund.amountFee.amount should be positive", ex.message)
-    request.refund.amountFee = "1"
-  }
-
-  @Test
-  fun test_handle_invalidMemo() {
-    val request =
-      DoStellarRefundRequest.builder()
-        .transactionId(TX_ID)
-        .memo("testMemo")
-        .memoType("hash")
-        .refund(DoStellarRefundRequest.Refund.builder().amount("1").amountFee("0.1").build())
-        .build()
-    val txn24 = JdbcSep24Transaction()
-    txn24.status = PENDING_ANCHOR.toString()
-    txn24.requestAssetCode = FIAT_USD_CODE
-    txn24.amountOutAsset = STELLAR_USDC
-    txn24.amountFeeAsset = STELLAR_USDC
-    txn24.transferReceivedAt = Instant.now()
-    txn24.kind = WITHDRAWAL.kind
-    val sep24TxnCapture = slot<JdbcSep24Transaction>()
-
-    every { txn24Store.findByTransactionId(TX_ID) } returns txn24
-    every { txn31Store.findByTransactionId(any()) } returns null
-    every { txn24Store.save(capture(sep24TxnCapture)) } returns null
-    every { custodyConfig.isCustodyIntegrationEnabled } returns true
-
-    val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
-    assertEquals("Invalid memo or memo_type: bytes must be 32-bytes long.", ex.message)
+    assertEquals("refund.amountFee.amount should be non-negative", ex.message)
   }
 
   @Test
@@ -230,9 +206,12 @@ class DoStellarRefundHandlerTest {
     val request =
       DoStellarRefundRequest.builder()
         .transactionId(TX_ID)
-        .memo("testMemo")
-        .memoType("text")
-        .refund(DoStellarRefundRequest.Refund.builder().amount("1").amountFee("0.1").build())
+        .refund(
+          DoStellarRefundRequest.Refund.builder()
+            .amount(AmountRequest("1"))
+            .amountFee(AmountRequest("0.1"))
+            .build()
+        )
         .build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_ANCHOR.toString()
@@ -245,6 +224,8 @@ class DoStellarRefundHandlerTest {
     txn24.amountOut = "1"
     txn24.amountFeeAsset = STELLAR_USDC
     txn24.amountFee = "0.1"
+    txn24.refundMemo = "memo"
+    txn24.refundMemoType = "text"
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
@@ -269,8 +250,8 @@ class DoStellarRefundHandlerTest {
     expectedSep24Txn.amountOut = "1"
     expectedSep24Txn.amountFeeAsset = STELLAR_USDC
     expectedSep24Txn.amountFee = "0.1"
-    expectedSep24Txn.refundMemo = request.memo
-    expectedSep24Txn.refundMemoType = request.memoType
+    expectedSep24Txn.refundMemo = "memo"
+    expectedSep24Txn.refundMemoType = "text"
     expectedSep24Txn.transferReceivedAt = transferReceivedAt
 
     JSONAssert.assertEquals(

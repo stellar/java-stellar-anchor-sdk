@@ -117,12 +117,14 @@ public class FireblocksPaymentService implements CustodyPaymentService<Transacti
 
     CreateTransactionRequest request = getCreateTransactionRefundRequest(txn);
 
-    CreateTransactionResponse response =
-        gson.fromJson(
-            fireblocksApiClient.post(TRANSACTIONS_URL, gson.toJson(request)),
-            CreateTransactionResponse.class);
+    //    TODO: uncomment when getCreateTransactionRefundRequest() generates valid request
+    //    CreateTransactionResponse response =
+    //        gson.fromJson(
+    //            fireblocksApiClient.post(TRANSACTIONS_URL, gson.toJson(request)),
+    //            CreateTransactionResponse.class);
 
-    return new CreateTransactionPaymentResponse(response.getId());
+    //    return new CreateTransactionPaymentResponse(response.getId());
+    return new CreateTransactionPaymentResponse(txn.getId());
   }
 
   private CreateTransactionRequest getCreateTransactionRequest(JdbcCustodyTransaction txn)

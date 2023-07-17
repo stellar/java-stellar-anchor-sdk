@@ -38,11 +38,11 @@ public interface CustodyService {
   /**
    * Create custody transaction refund
    *
-   * @param txnId transaction ID
+   * @param txn24 {@link Sep24Transaction} object
    * @param refundRequest {@link DoStellarRefundRequest} object
    * @return {@link CreateTransactionPaymentResponse} object
    * @throws AnchorException if error happens
    */
   CreateTransactionPaymentResponse createTransactionRefund(
-      String txnId, DoStellarRefundRequest refundRequest) throws AnchorException;
+      Sep24Transaction txn24, DoStellarRefundRequest refundRequest) throws AnchorException;
 }

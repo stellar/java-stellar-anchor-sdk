@@ -23,6 +23,7 @@ import org.stellar.anchor.api.platform.GetTransactionResponse
 import org.stellar.anchor.api.platform.PlatformTransactionData
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL
+import org.stellar.anchor.api.rpc.action.AmountRequest
 import org.stellar.anchor.api.rpc.action.NotifyRefundSentRequest
 import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.api.sep.SepTransactionStatus.INCOMPLETE
@@ -146,7 +147,11 @@ class NotifyRefundSentHandlerTest {
       NotifyRefundSentRequest.builder()
         .transactionId(TX_ID)
         .refund(
-          NotifyRefundSentRequest.Refund.builder().amount("-1").amountFee("-0.1").id("1").build()
+          NotifyRefundSentRequest.Refund.builder()
+            .amount(AmountRequest("-1"))
+            .amountFee(AmountRequest("-0.1"))
+            .id("1")
+            .build()
         )
         .build()
     val txn24 = JdbcSep24Transaction()
@@ -168,7 +173,7 @@ class NotifyRefundSentHandlerTest {
 
     var ex = assertThrows<BadRequestException> { handler.handle(request) }
     assertEquals("refund.amount.amount should be positive", ex.message)
-    request.refund.amount = "1"
+    request.refund.amount = AmountRequest("1")
 
     ex = assertThrows { handler.handle(request) }
     assertEquals("refund.amountFee.amount should be non-negative", ex.message)
@@ -181,7 +186,11 @@ class NotifyRefundSentHandlerTest {
       NotifyRefundSentRequest.builder()
         .transactionId(TX_ID)
         .refund(
-          NotifyRefundSentRequest.Refund.builder().amount("1").amountFee("0.1").id("1").build()
+          NotifyRefundSentRequest.Refund.builder()
+            .amount(AmountRequest("1"))
+            .amountFee(AmountRequest("0.1"))
+            .id("1")
+            .build()
         )
         .build()
     val txn24 = JdbcSep24Transaction()
@@ -200,8 +209,8 @@ class NotifyRefundSentHandlerTest {
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
     val payment = JdbcSep24RefundPayment()
     payment.id = request.refund.id
-    payment.amount = request.refund.amount
-    payment.fee = request.refund.amountFee
+    payment.amount = request.refund.amount.amount
+    payment.fee = request.refund.amountFee.amount
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
@@ -273,7 +282,11 @@ class NotifyRefundSentHandlerTest {
       NotifyRefundSentRequest.builder()
         .transactionId(TX_ID)
         .refund(
-          NotifyRefundSentRequest.Refund.builder().amount("1").amountFee("0.1").id("2").build()
+          NotifyRefundSentRequest.Refund.builder()
+            .amount(AmountRequest("1"))
+            .amountFee(AmountRequest("0.1"))
+            .id("2")
+            .build()
         )
         .build()
     val txn24 = JdbcSep24Transaction()
@@ -296,8 +309,8 @@ class NotifyRefundSentHandlerTest {
     payment1.fee = "0.1"
     val payment2 = JdbcSep24RefundPayment()
     payment2.id = request.refund.id
-    payment2.amount = request.refund.amount
-    payment2.fee = request.refund.amountFee
+    payment2.amount = request.refund.amount.amount
+    payment2.fee = request.refund.amountFee.amount
     val refunds = JdbcSep24Refunds()
     refunds.amountRefunded = "1"
     refunds.amountFee = "0.1"
@@ -473,7 +486,11 @@ class NotifyRefundSentHandlerTest {
       NotifyRefundSentRequest.builder()
         .transactionId(TX_ID)
         .refund(
-          NotifyRefundSentRequest.Refund.builder().amount("1.5").amountFee("0.2").id("1").build()
+          NotifyRefundSentRequest.Refund.builder()
+            .amount(AmountRequest("1.5"))
+            .amountFee(AmountRequest("0.2"))
+            .id("1")
+            .build()
         )
         .build()
     val txn24 = JdbcSep24Transaction()
@@ -574,7 +591,11 @@ class NotifyRefundSentHandlerTest {
       NotifyRefundSentRequest.builder()
         .transactionId(TX_ID)
         .refund(
-          NotifyRefundSentRequest.Refund.builder().amount("1").amountFee("0.1").id("2").build()
+          NotifyRefundSentRequest.Refund.builder()
+            .amount(AmountRequest("1"))
+            .amountFee(AmountRequest("0.1"))
+            .id("2")
+            .build()
         )
         .build()
     val txn24 = JdbcSep24Transaction()

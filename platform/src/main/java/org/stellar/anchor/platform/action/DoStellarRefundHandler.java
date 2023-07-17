@@ -5,14 +5,10 @@ import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24
 import static org.stellar.anchor.api.rpc.action.ActionMethod.DO_STELLAR_REFUND;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_STELLAR;
-import static org.stellar.anchor.util.MemoHelper.makeMemo;
-import static org.stellar.anchor.util.MemoHelper.memoType;
-import static org.stellar.anchor.util.SepHelper.memoTypeString;
 
 import java.util.Set;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
-import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException;
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException;
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind;
@@ -30,7 +26,6 @@ import org.stellar.anchor.platform.utils.AssetValidationUtils;
 import org.stellar.anchor.platform.validator.RequestValidator;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
-import org.stellar.sdk.Memo;
 
 public class DoStellarRefundHandler extends ActionHandler<DoStellarRefundRequest> {
 
@@ -59,26 +54,20 @@ public class DoStellarRefundHandler extends ActionHandler<DoStellarRefundRequest
           String.format("Action[%s] requires enabled custody integration", getActionType()));
     }
 
-    try {
-      makeMemo(request.getMemo(), request.getMemoType());
-    } catch (SepException | IllegalArgumentException e) {
-      throw new InvalidParamsException(
-          String.format("Invalid memo or memo_type: %s", e.getMessage()), e);
-    }
-
     AssetValidationUtils.validateAsset(
         "refund.amount",
         AmountAssetRequest.builder()
-            .amount(request.getRefund().getAmount())
+            .amount(request.getRefund().getAmount().getAmount())
             .asset(txn.getAmountInAsset())
             .build(),
         assetService);
     AssetValidationUtils.validateAsset(
         "refund.amountFee",
         AmountAssetRequest.builder()
-            .amount(request.getRefund().getAmountFee())
+            .amount(request.getRefund().getAmountFee().getAmount())
             .asset(txn.getAmountInAsset())
             .build(),
+        true,
         assetService);
   }
 
@@ -110,13 +99,6 @@ public class DoStellarRefundHandler extends ActionHandler<DoStellarRefundRequest
   protected void updateTransactionWithAction(JdbcSepTransaction txn, DoStellarRefundRequest request)
       throws AnchorException {
     JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
-
-    Memo memo = makeMemo(request.getMemo(), request.getMemoType());
-    if (memo != null) {
-      txn24.setRefundMemo(memo.toString());
-      txn24.setRefundMemoType(memoTypeString(memoType(memo)));
-    }
-
-    custodyService.createTransactionRefund(txn.getId(), request);
+    custodyService.createTransactionRefund(txn24, request);
   }
 }

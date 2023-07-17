@@ -57,14 +57,14 @@ public class NotifyRefundSentHandler extends ActionHandler<NotifyRefundSentReque
       AssetValidationUtils.validateAsset(
           "refund.amount",
           AmountAssetRequest.builder()
-              .amount(request.getRefund().getAmount())
+              .amount(request.getRefund().getAmount().getAmount())
               .asset(txn.getAmountInAsset())
               .build(),
           assetService);
       AssetValidationUtils.validateAsset(
           "refund.amountFee",
           AmountAssetRequest.builder()
-              .amount(request.getRefund().getAmountFee())
+              .amount(request.getRefund().getAmountFee().getAmount())
               .asset(txn.getAmountInAsset())
               .build(),
           true,
@@ -90,7 +90,7 @@ public class NotifyRefundSentHandler extends ActionHandler<NotifyRefundSentReque
       if (PENDING_ANCHOR == SepTransactionStatus.from(txn.getStatus())) {
         totalRefunded =
             decimal(txn24.getRefunds().getAmountRefunded(), assetInfo)
-                .add(decimal(request.getRefund().getAmount(), assetInfo));
+                .add(decimal(request.getRefund().getAmount().getAmount(), assetInfo));
       } else { // PENDING_EXTERNAL
         if (request.getRefund() == null) {
           totalRefunded = decimal(txn24.getRefunds().getAmountRefunded(), assetInfo);
@@ -109,7 +109,7 @@ public class NotifyRefundSentHandler extends ActionHandler<NotifyRefundSentReque
                   .map(
                       payment -> {
                         if (payment.getId().equals(request.getRefund().getId())) {
-                          return request.getRefund().getAmount();
+                          return request.getRefund().getAmount().getAmount();
                         } else {
                           return payment.getAmount();
                         }
@@ -159,8 +159,8 @@ public class NotifyRefundSentHandler extends ActionHandler<NotifyRefundSentReque
       Sep24RefundPayment refundPayment =
           JdbcSep24RefundPayment.builder()
               .id(refund.getId())
-              .amount(refund.getAmount())
-              .fee(refund.getAmountFee())
+              .amount(refund.getAmount().getAmount())
+              .fee(refund.getAmountFee().getAmount())
               .build();
 
       Sep24Refunds sep24Refunds = txn24.getRefunds();
