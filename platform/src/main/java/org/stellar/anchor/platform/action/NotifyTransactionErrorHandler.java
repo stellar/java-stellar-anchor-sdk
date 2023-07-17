@@ -64,6 +64,8 @@ public class NotifyTransactionErrorHandler extends ActionHandler<NotifyTransacti
   @Override
   protected void updateTransactionWithAction(
       JdbcSepTransaction txn, NotifyTransactionErrorRequest request) {
-    transactionPendingTrustRepo.deleteById(txn.getId());
+    if (transactionPendingTrustRepo.existsById(txn.getId())) {
+      transactionPendingTrustRepo.deleteById(txn.getId());
+    }
   }
 }

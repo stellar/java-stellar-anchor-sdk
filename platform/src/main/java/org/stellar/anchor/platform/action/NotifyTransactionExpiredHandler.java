@@ -65,6 +65,8 @@ public class NotifyTransactionExpiredHandler
   @Override
   protected void updateTransactionWithAction(
       JdbcSepTransaction txn, NotifyTransactionExpiredRequest request) {
-    transactionPendingTrustRepo.deleteById(txn.getId());
+    if (transactionPendingTrustRepo.existsById(txn.getId())) {
+      transactionPendingTrustRepo.deleteById(txn.getId());
+    }
   }
 }
