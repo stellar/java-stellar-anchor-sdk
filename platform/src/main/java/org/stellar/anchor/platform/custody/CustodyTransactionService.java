@@ -80,7 +80,8 @@ public abstract class CustodyTransactionService {
    */
   public CreateTransactionPaymentResponse createPayment(String txnId, String requestBody)
       throws AnchorException {
-    JdbcCustodyTransaction txn = custodyTransactionRepo.findBySepTxId(txnId).orElse(null);
+    JdbcCustodyTransaction txn =
+        custodyTransactionRepo.findFirstBySepTxIdOrderByCreatedAtAsc(txnId).orElse(null);
     if (txn == null) {
       throw new CustodyNotFoundException(String.format("Transaction (id=%s) is not found", txnId));
     }
@@ -107,7 +108,8 @@ public abstract class CustodyTransactionService {
    */
   public CreateTransactionPaymentResponse createRefund(
       String txnId, CreateTransactionRefundRequest refundRequest) throws AnchorException {
-    JdbcCustodyTransaction txn = custodyTransactionRepo.findBySepTxId(txnId).orElse(null);
+    JdbcCustodyTransaction txn =
+        custodyTransactionRepo.findFirstBySepTxIdOrderByCreatedAtAsc(txnId).orElse(null);
     if (txn == null) {
       throw new CustodyNotFoundException(String.format("Transaction (id=%s) is not found", txnId));
     }
