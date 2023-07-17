@@ -10,6 +10,7 @@ import java.util.concurrent.TimeUnit;
 import lombok.SneakyThrows;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import okhttp3.RequestBody;
 import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.platform.config.ClientsConfig.ClientConfig;
 import org.stellar.anchor.platform.config.PropertySecretConfig;
@@ -45,8 +46,8 @@ public class ClientStatusCallbackHandler extends EventHandler {
     // Prepare the payload to sign
     String currentTs = String.valueOf(TimeUnit.MILLISECONDS.toSeconds(System.currentTimeMillis()));
     String domain = getDomainFromURL(clientConfig.getCallbackUrl());
-    String eventJson = json(event);
-    String payload = currentTs + "." + domain + "." + eventJson;
+    RequestBody requestBody = buildJsonRequestBody(json(event));
+    String payload = currentTs + "." + domain + "." + requestBody;
     // Sign the payload using the Anchor private key
     // Base64 encode the signature
     String encodedSignature =
@@ -55,8 +56,8 @@ public class ClientStatusCallbackHandler extends EventHandler {
     // Build the X-Stellar-Signature header
     return new Request.Builder()
         .url(clientConfig.getCallbackUrl())
-        .header("X-Stellar-Signature", String.format("t=%s, s=%s", currentTs, encodedSignature))
-        .post(buildJsonRequestBody(eventJson))
+        .header("Signature", String.format("t=%s, s=%s", currentTs, encodedSignature))
+        .post(requestBody)
         .build();
   }
 }

@@ -2,6 +2,7 @@ package org.stellar.anchor.platform.event;
 
 import static org.stellar.anchor.event.EventService.*;
 import static org.stellar.anchor.util.Log.*;
+import static org.stellar.anchor.util.StringHelper.json;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,6 +61,8 @@ public class EventProcessorManager {
       if (eventProcessorConfig.getClientStatusCallback().isEnabled()) {
         for (ClientsConfig.ClientConfig clientConfig : clientsConfig.getClients()) {
           if (clientConfig.getCallbackUrl().isEmpty()) {
+
+            Log.info(String.format("Client status callback skipped: %s", json(clientConfig)));
             continue;
           }
 
@@ -112,6 +115,7 @@ public class EventProcessorManager {
         DaemonExecutors.newScheduledThreadPool(1);
     private ScheduledFuture<?> processingTask = null;
     private boolean stopped = false;
+    private static final int INITIAL_DELAY = 1000; // Initial delay in milliseconds
 
     public EventProcessor(String name, EventQueue eventQueue, EventHandler eventHandler) {
       this.name = name;
@@ -145,21 +149,24 @@ public class EventProcessorManager {
           ReadResponse readResponse = queueSession.read();
           List<AnchorEvent> events = readResponse.getEvents();
           debugF("Received {} events from queue", events.size());
-          events.forEach(event -> {
-            // TODO: Implement retry mechanism here
-            boolean isProcessed = false;
-            while (!isProcessed) {
-              try{
-                eventHandler.handleEvent(event);
-                isProcessed = true;
-              } catch (Exception e) {
-                // TODO: handle retry according to response
-                // if downstream cannot consume event -> keep retry
-                // if it's code issue -> event goes to dead letter queue
-                Log.errorEx(e);
-              }
-            }
-          });
+          events.forEach(
+              event -> {
+                // TODO: Implement retry mechanism here
+                boolean isProcessed = false;
+                int attempts = 0;
+                while (!isProcessed) {
+                  try {
+                    eventHandler.handleEvent(event);
+                    isProcessed = true;
+                  } catch (Exception e) {
+                    Log.errorEx(e);
+                    backoffTimer(attempts++);
+                    // TODO: handle retry according to response
+                    // if downstream cannot consume event -> keep retry
+                    // if it's code issue -> event goes to dead letter queue
+                  }
+                }
+              });
           queueSession.ack(readResponse);
         }
 
@@ -170,6 +177,15 @@ public class EventProcessorManager {
       } finally {
         queueSession.close();
         infoF("Closing queue session [{}]", queueSession.getSessionName());
+      }
+    }
+
+    private void backoffTimer(int attempts) {
+      int delay = (int) (Math.pow(2, attempts) * INITIAL_DELAY);
+      try {
+        Thread.sleep(delay);
+      } catch (InterruptedException e) {
+        e.printStackTrace();
       }
     }
 

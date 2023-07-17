@@ -3,6 +3,8 @@ package org.stellar.anchor.platform.config;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 
 import com.google.common.collect.Lists;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.List;
 import lombok.Data;
 import org.jetbrains.annotations.NotNull;
@@ -52,6 +54,13 @@ public class ClientsConfig implements Validator {
       errors.reject(
           "empty-client-signing-key", "The client.signingKey cannot be empty and must be defined");
     }
+    if (!isEmpty(clientConfig.callbackUrl)) {
+      try {
+        new URL(clientConfig.callbackUrl);
+      } catch (MalformedURLException e) {
+        errors.reject("client-invalid-callback_url", "The client.callbackUrl is invalid");
+      }
+    }
   }
 
   void validateNonCustodialClient(ClientConfig clientConfig, Errors errors) {
@@ -71,6 +80,14 @@ public class ClientsConfig implements Validator {
         errors.reject(
             "client-signing-key-toml-read-failure",
             "SIGNING_KEY not present in 'client_domain' TOML or TOML file does not exist");
+      }
+    }
+
+    if (!isEmpty(clientConfig.callbackUrl)) {
+      try {
+        new URL(clientConfig.callbackUrl);
+      } catch (MalformedURLException e) {
+        errors.reject("client-invalid-callback_url", "The client.callbackUrl is invalid");
       }
     }
   }
