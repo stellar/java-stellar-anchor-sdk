@@ -85,7 +85,7 @@ public class NotifyRefundSentHandler extends ActionHandler<NotifyRefundSentReque
     AssetInfo assetInfo = assetService.getAsset(getAssetCode(txn.getAmountInAsset()));
     BigDecimal totalRefunded;
     if (txn24.getRefunds() == null || txn24.getRefunds().getRefundPayments() == null) {
-      totalRefunded = BigDecimal.ZERO;
+      totalRefunded = decimal(request.getRefund().getAmount().getAmount(), assetInfo);
     } else {
       if (PENDING_ANCHOR == SepTransactionStatus.from(txn.getStatus())) {
         totalRefunded =

@@ -389,6 +389,104 @@ class NotifyRefundSentHandlerTest {
   }
 
   @Test
+  fun `test handle ok full refund in single call`() {
+    val transferReceivedAt = Instant.now()
+    val request =
+      NotifyRefundSentRequest.builder()
+        .transactionId(TX_ID)
+        .refund(
+          NotifyRefundSentRequest.Refund.builder()
+            .amount(AmountRequest("1"))
+            .amountFee(AmountRequest("0"))
+            .id("1")
+            .build()
+        )
+        .build()
+    val txn24 = JdbcSep24Transaction()
+    txn24.status = PENDING_ANCHOR.toString()
+    txn24.kind = DEPOSIT.kind
+    txn24.transferReceivedAt = transferReceivedAt
+    txn24.amountInAsset = STELLAR_USDC
+    txn24.requestAssetCode = FIAT_USD_CODE
+    txn24.amountIn = "1"
+    txn24.amountInAsset = STELLAR_USDC
+    txn24.amountOutAsset = STELLAR_USDC
+    txn24.amountOut = "0"
+    txn24.amountFeeAsset = STELLAR_USDC
+    txn24.amountFee = "0"
+
+    val sep24TxnCapture = slot<JdbcSep24Transaction>()
+    val payment = JdbcSep24RefundPayment()
+    payment.id = "1"
+    payment.amount = "1"
+    payment.fee = "0"
+
+    every { txn24Store.findByTransactionId(TX_ID) } returns txn24
+    every { txn31Store.findByTransactionId(any()) } returns null
+    every { txn24Store.save(capture(sep24TxnCapture)) } returns null
+
+    val startDate = Instant.now()
+    val response = handler.handle(request)
+    val endDate = Instant.now()
+
+    verify(exactly = 0) { txn31Store.save(any()) }
+
+    val expectedSep24Txn = JdbcSep24Transaction()
+    expectedSep24Txn.kind = DEPOSIT.kind
+    expectedSep24Txn.status = SepTransactionStatus.REFUNDED.toString()
+    expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
+    expectedSep24Txn.requestAssetCode = FIAT_USD_CODE
+    expectedSep24Txn.amountIn = "1"
+    expectedSep24Txn.amountInAsset = STELLAR_USDC
+    expectedSep24Txn.amountOutAsset = STELLAR_USDC
+    expectedSep24Txn.amountOut = "0"
+    expectedSep24Txn.amountFeeAsset = STELLAR_USDC
+    expectedSep24Txn.amountFee = "0"
+    expectedSep24Txn.transferReceivedAt = transferReceivedAt
+    val expectedRefunds = JdbcSep24Refunds()
+    expectedRefunds.amountRefunded = "1"
+    expectedRefunds.amountFee = "0"
+    expectedRefunds.payments = listOf(payment)
+    expectedSep24Txn.refunds = expectedRefunds
+    expectedSep24Txn.completedAt = endDate
+
+    JSONAssert.assertEquals(
+      GSON.toJson(expectedSep24Txn),
+      GSON.toJson(sep24TxnCapture.captured),
+      CustomComparator(JSONCompareMode.STRICT, Customization("completed_at") { _, _ -> true })
+    )
+
+    val expectedResponse = GetTransactionResponse()
+    expectedResponse.sep = PlatformTransactionData.Sep.SEP_24
+    expectedResponse.kind = DEPOSIT
+    expectedResponse.status = SepTransactionStatus.REFUNDED
+    expectedResponse.amountExpected = Amount(null, FIAT_USD)
+    expectedResponse.amountIn = Amount("1", STELLAR_USDC)
+    expectedResponse.amountOut = Amount("0", STELLAR_USDC)
+    expectedResponse.amountFee = Amount("0", STELLAR_USDC)
+    expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
+    expectedResponse.transferReceivedAt = transferReceivedAt
+    val refundPayment = RefundPayment()
+    refundPayment.amount = Amount("1", txn24.amountInAsset)
+    refundPayment.fee = Amount("0", txn24.amountInAsset)
+    refundPayment.id = "1"
+    refundPayment.idType = RefundPayment.IdType.STELLAR
+    val refunded = Amount("1", txn24.amountInAsset)
+    val refundedFee = Amount("0", txn24.amountInAsset)
+    expectedResponse.refunds = Refunds(refunded, refundedFee, arrayOf(refundPayment))
+    expectedResponse.completedAt = endDate
+
+    JSONAssert.assertEquals(
+      GSON.toJson(expectedResponse),
+      GSON.toJson(response),
+      CustomComparator(JSONCompareMode.STRICT, Customization("completed_at") { _, _ -> true })
+    )
+
+    assertTrue(expectedSep24Txn.updatedAt >= startDate)
+    assertTrue(expectedSep24Txn.updatedAt <= endDate)
+  }
+
+  @Test
   fun test_handle_ok_pending_external_empty_refund() {
     val transferReceivedAt = Instant.now()
     val request = NotifyRefundSentRequest.builder().transactionId(TX_ID).build()
