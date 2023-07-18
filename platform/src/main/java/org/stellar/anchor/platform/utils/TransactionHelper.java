@@ -4,6 +4,7 @@ import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOS
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.RECEIVE;
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL;
 
+import java.util.Optional;
 import javax.annotation.Nullable;
 import lombok.SneakyThrows;
 import org.stellar.anchor.api.custody.CreateCustodyTransactionRequest;
@@ -52,7 +53,9 @@ public class TransactionHelper {
                 ? txn.getToAccount()
                 : txn.getWithdrawAnchorAccount())
         .amount(
-            DEPOSIT.getKind().equals(txn.getKind()) ? txn.getAmountOut() : txn.getAmountExpected())
+            DEPOSIT.getKind().equals(txn.getKind())
+                ? txn.getAmountOut()
+                : Optional.ofNullable(txn.getAmountExpected()).orElse(txn.getAmountIn()))
         .amountAsset(
             DEPOSIT.getKind().equals(txn.getKind())
                 ? txn.getAmountOutAsset()

@@ -68,7 +68,7 @@ class NotifyTrustSetHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[notify_trust_set] is not supported for status[pending_trust], kind[null] and protocol[38]",
+      "Action[notify_trust_set] is not supported. Status[pending_trust], kind[null], protocol[38], funds received[false]",
       ex.message
     )
   }
@@ -85,7 +85,7 @@ class NotifyTrustSetHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[notify_trust_set] is not supported for status[pending_anchor], kind[deposit] and protocol[24]",
+      "Action[notify_trust_set] is not supported. Status[pending_anchor], kind[deposit], protocol[24], funds received[false]",
       ex.message
     )
   }
@@ -102,7 +102,7 @@ class NotifyTrustSetHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[notify_trust_set] is not supported for status[pending_anchor], kind[withdrawal] and protocol[24]",
+      "Action[notify_trust_set] is not supported. Status[pending_anchor], kind[withdrawal], protocol[24], funds received[false]",
       ex.message
     )
   }

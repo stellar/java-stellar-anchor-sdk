@@ -94,7 +94,7 @@ class RequestOnchainFundsHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[request_onchain_funds] is not supported for status[incomplete], kind[null] and protocol[38]",
+      "Action[request_onchain_funds] is not supported. Status[incomplete], kind[null], protocol[38], funds received[false]",
       ex.message
     )
   }
@@ -111,7 +111,7 @@ class RequestOnchainFundsHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[request_onchain_funds] is not supported for status[pending_trust], kind[withdrawal] and protocol[24]",
+      "Action[request_onchain_funds] is not supported. Status[pending_trust], kind[withdrawal], protocol[24], funds received[false]",
       ex.message
     )
   }
@@ -129,7 +129,7 @@ class RequestOnchainFundsHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[request_onchain_funds] is not supported for status[pending_anchor], kind[withdrawal] and protocol[24]",
+      "Action[request_onchain_funds] is not supported. Status[pending_anchor], kind[withdrawal], protocol[24], funds received[true]",
       ex.message
     )
   }
@@ -146,7 +146,7 @@ class RequestOnchainFundsHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[request_onchain_funds] is not supported for status[incomplete], kind[deposit] and protocol[24]",
+      "Action[request_onchain_funds] is not supported. Status[incomplete], kind[deposit], protocol[24], funds received[false]",
       ex.message
     )
   }

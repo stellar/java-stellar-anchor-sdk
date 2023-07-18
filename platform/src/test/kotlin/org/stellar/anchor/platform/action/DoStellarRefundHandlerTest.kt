@@ -90,7 +90,7 @@ class DoStellarRefundHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[do_stellar_refund] is not supported for status[pending_anchor], kind[null] and protocol[38]",
+      "Action[do_stellar_refund] is not supported. Status[pending_anchor], kind[null], protocol[38], funds received[false]",
       ex.message
     )
   }
@@ -107,7 +107,7 @@ class DoStellarRefundHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[do_stellar_refund] is not supported for status[incomplete], kind[deposit] and protocol[24]",
+      "Action[do_stellar_refund] is not supported. Status[incomplete], kind[deposit], protocol[24], funds received[false]",
       ex.message
     )
   }
@@ -124,7 +124,7 @@ class DoStellarRefundHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[do_stellar_refund] is not supported for status[incomplete], kind[withdrawal] and protocol[24]",
+      "Action[do_stellar_refund] is not supported. Status[incomplete], kind[withdrawal], protocol[24], funds received[false]",
       ex.message
     )
   }

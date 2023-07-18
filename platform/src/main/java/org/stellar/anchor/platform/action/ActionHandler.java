@@ -78,8 +78,8 @@ public abstract class ActionHandler<T extends RpcActionParamsRequest> {
       }
       throw new InvalidRequestException(
           String.format(
-              "Action[%s] is not supported for status[%s], kind[%s] and protocol[%s]",
-              getActionType(), txn.getStatus(), kind, txn.getProtocol()));
+              "Action[%s] is not supported. Status[%s], kind[%s], protocol[%s], funds received[%b]",
+              getActionType(), txn.getStatus(), kind, txn.getProtocol(), areFundsReceived(txn)));
     }
 
     updateTransaction(txn, request);
@@ -151,6 +151,10 @@ public abstract class ActionHandler<T extends RpcActionParamsRequest> {
         txn31Store.save(txn31);
         break;
     }
+  }
+
+  protected boolean areFundsReceived(JdbcSepTransaction txn) {
+    return txn.getTransferReceivedAt() != null;
   }
 
   protected boolean isErrorStatus(SepTransactionStatus status) {

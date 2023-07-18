@@ -79,7 +79,7 @@ class NotifyRefundSentHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[notify_refund_sent] is not supported for status[pending_anchor], kind[null] and protocol[38]",
+      "Action[notify_refund_sent] is not supported. Status[pending_anchor], kind[null], protocol[38], funds received[false]",
       ex.message
     )
   }
@@ -97,7 +97,7 @@ class NotifyRefundSentHandlerTest {
 
     var ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[notify_refund_sent] is not supported for status[incomplete], kind[deposit] and protocol[24]",
+      "Action[notify_refund_sent] is not supported. Status[incomplete], kind[deposit], protocol[24], funds received[true]",
       ex.message
     )
 
@@ -105,7 +105,7 @@ class NotifyRefundSentHandlerTest {
 
     ex = assertThrows { handler.handle(request) }
     assertEquals(
-      "Action[notify_refund_sent] is not supported for status[incomplete], kind[withdrawal] and protocol[24]",
+      "Action[notify_refund_sent] is not supported. Status[incomplete], kind[withdrawal], protocol[24], funds received[true]",
       ex.message
     )
   }

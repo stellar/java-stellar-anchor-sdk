@@ -3,6 +3,7 @@ package org.stellar.reference.data
 import io.ktor.server.application.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.JsonObject
 
 @Serializable
 data class Transaction(
@@ -36,6 +37,14 @@ data class PatchTransactionTransaction(
   @SerialName("stellar_transactions") val stellarTransactions: List<StellarTransaction>? = null,
   val memo: String? = null,
   @SerialName("memo_type") val memoType: String? = null,
+)
+
+@Serializable
+data class RpcRequest(
+  val id: String,
+  val jsonrpc: String,
+  val method: String,
+  val params: JsonObject
 )
 
 @Serializable data class Amount(val amount: String? = null, val asset: String? = null)

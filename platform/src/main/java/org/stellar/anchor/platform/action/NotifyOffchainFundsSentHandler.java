@@ -73,7 +73,7 @@ public class NotifyOffchainFundsSentHandler extends ActionHandler<NotifyOffchain
           supportedStatuses.add(PENDING_USR_TRANSFER_START);
           break;
         case WITHDRAWAL:
-          if (txn24.getTransferReceivedAt() != null) {
+          if (areFundsReceived(txn24)) {
             supportedStatuses.add(PENDING_ANCHOR);
           }
           supportedStatuses.add(PENDING_USR_TRANSFER_COMPLETE);
@@ -92,10 +92,11 @@ public class NotifyOffchainFundsSentHandler extends ActionHandler<NotifyOffchain
       if (DEPOSIT == Kind.from(txn24.getKind())) {
         if (request.getFundsSentAt() != null) {
           txn24.setTransferReceivedAt(request.getFundsSentAt());
-        } else {
-          txn24.setTransferReceivedAt(Instant.now());
         }
       }
+    }
+    if (DEPOSIT == Kind.from(txn24.getKind()) && !areFundsReceived(txn24)) {
+      txn24.setTransferReceivedAt(Instant.now());
     }
   }
 }

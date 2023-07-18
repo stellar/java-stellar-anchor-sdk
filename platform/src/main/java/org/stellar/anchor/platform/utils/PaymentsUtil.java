@@ -5,8 +5,10 @@ import static java.util.stream.Collectors.toList;
 import static org.stellar.anchor.platform.service.PaymentOperationToEventListener.parsePaymentTime;
 import static org.stellar.anchor.util.Log.error;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.shared.Amount;
 import org.stellar.anchor.api.shared.StellarPayment;
@@ -33,7 +35,9 @@ public class PaymentsUtil {
       StellarTransaction stellarTransaction =
           StellarTransaction.builder()
               .id(stellarTransactionId)
-              .createdAt(parsePaymentTime(firstPayment.getCreatedAt()))
+              .createdAt(
+                  Optional.ofNullable(parsePaymentTime(firstPayment.getCreatedAt()))
+                      .orElse(Instant.now()))
               .memo(txn24.getMemo())
               .memoType(txn24.getMemoType())
               .envelope(firstPayment.getTransactionEnvelope())
@@ -60,7 +64,8 @@ public class PaymentsUtil {
         txn.getStellarTransactions().add(stellarTransaction);
       }
 
-      txn.setTransferReceivedAt(parsePaymentTime(lastPayment.getCreatedAt()));
+      txn.setTransferReceivedAt(
+          Optional.ofNullable(parsePaymentTime(lastPayment.getCreatedAt())).orElse(Instant.now()));
       txn.setStellarTransactionId(stellarTransactionId);
     }
   }

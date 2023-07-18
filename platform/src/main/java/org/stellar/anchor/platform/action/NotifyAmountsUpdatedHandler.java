@@ -69,7 +69,7 @@ public class NotifyAmountsUpdatedHandler extends ActionHandler<NotifyAmountsUpda
   protected Set<SepTransactionStatus> getSupportedStatuses(JdbcSepTransaction txn) {
     if (SEP_24 == Sep.from(txn.getProtocol())) {
       JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
-      if (txn24.getTransferReceivedAt() != null) {
+      if (areFundsReceived(txn24)) {
         return Set.of(PENDING_ANCHOR);
       }
     }
