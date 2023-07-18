@@ -22,6 +22,7 @@ import org.stellar.anchor.platform.config.CallbackApiConfig;
 import org.stellar.anchor.platform.config.ClientsConfig;
 import org.stellar.anchor.platform.config.EventProcessorConfig;
 import org.stellar.anchor.platform.utils.DaemonExecutors;
+import org.stellar.anchor.util.ExponentialBackoffTimer;
 import org.stellar.anchor.util.Log;
 
 public class EventProcessorManager {
@@ -114,12 +115,13 @@ public class EventProcessorManager {
         DaemonExecutors.newScheduledThreadPool(1);
     private ScheduledFuture<?> processingTask = null;
     private boolean stopped = false;
-    private static final int INITIAL_DELAY = 1000; // Initial delay in milliseconds
+    final ExponentialBackoffTimer callbackBackoffTimer;
 
     public EventProcessor(String name, EventQueue eventQueue, EventHandler eventHandler) {
       this.name = name;
       this.eventQueue = eventQueue;
       this.eventHandler = eventHandler;
+      this.callbackBackoffTimer = new ExponentialBackoffTimer();
     }
 
     public void start() {
@@ -152,14 +154,22 @@ public class EventProcessorManager {
               event -> {
                 // TODO: Implement retry mechanism here
                 boolean isProcessed = false;
-                int attempts = 0;
                 while (!isProcessed) {
                   try {
                     eventHandler.handleEvent(event);
                     isProcessed = true;
-                  } catch (Exception e) {
-                    Log.errorEx(e);
-                    backoffTimer(attempts++);
+                    callbackBackoffTimer.reset();
+                  } catch (Exception ex) {
+                    Log.errorEx(ex);
+                    try {
+                      infoF(
+                          "Start the callback backoff timer: {} seconds",
+                          callbackBackoffTimer.currentTimer());
+                      callbackBackoffTimer.sleep();
+                      callbackBackoffTimer.increase();
+                    } catch (InterruptedException e) {
+                      infoF("The event processor is interrupted. Shutdown.");
+                    }
                     // TODO: handle retry according to response
                     // if downstream cannot consume event -> keep retry
                     // if it's code issue -> event goes to dead letter queue
@@ -176,15 +186,6 @@ public class EventProcessorManager {
       } finally {
         queueSession.close();
         infoF("Closing queue session [{}]", queueSession.getSessionName());
-      }
-    }
-
-    private void backoffTimer(int attempts) {
-      int delay = (int) (Math.pow(2, attempts) * INITIAL_DELAY);
-      try {
-        Thread.sleep(delay);
-      } catch (InterruptedException e) {
-        e.printStackTrace();
       }
     }
 

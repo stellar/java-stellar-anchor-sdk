@@ -25,7 +25,6 @@ class ClientStatusCallbackHandlerTest {
 
   @BeforeEach
   fun setUp() {
-
     clientConfig = ClientsConfig.ClientConfig()
     clientConfig.type = ClientsConfig.ClientType.CUSTODIAL
     clientConfig.signingKey = "GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEGN2"
