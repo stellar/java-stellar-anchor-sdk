@@ -32,7 +32,7 @@ public class CallbackApiClient extends BaseApiClient {
             .scheme(url.scheme())
             .host(url.host())
             .port(url.port())
-            .addPathSegment("events")
+            .addPathSegment("event")
             .build();
 
     RequestBody requestBody = OkHttpUtil.buildJsonRequestBody(gson.toJson(sendEventRequest));

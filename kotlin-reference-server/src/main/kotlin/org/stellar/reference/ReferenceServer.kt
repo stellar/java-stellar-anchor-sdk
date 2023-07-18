@@ -76,7 +76,7 @@ fun Application.configureRouting(cfg: Config) {
     val helper = Sep24Helper(cfg)
     val depositService = DepositService(cfg)
     val withdrawalService = WithdrawalService(cfg)
-    val eventService = EventService(cfg)
+    val eventService = EventService()
 
     sep24(helper, depositService, withdrawalService, cfg.sep24.interactiveJwtKey)
     event(eventService)

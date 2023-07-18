@@ -5,10 +5,9 @@ import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import org.stellar.anchor.api.event.AnchorEvent
-import org.stellar.reference.data.Config
 import org.stellar.reference.data.SendEventRequest
 
-class EventService(cfg: Config) {
+class EventService {
   private val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
   private val receivedEvents: MutableList<AnchorEvent> = mutableListOf()
   fun processEvent(receivedEvent: SendEventRequest) {

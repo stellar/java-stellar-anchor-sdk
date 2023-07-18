@@ -1,12 +1,12 @@
 package org.stellar.anchor.platform
 
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.BeforeAll
-import org.junit.jupiter.api.Test
-import org.junit.jupiter.api.TestInstance
+import io.ktor.http.*
+import kotlinx.coroutines.runBlocking
+import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.skyscreamer.jsonassert.JSONAssert
 import org.stellar.anchor.api.callback.SendEventRequest
-import org.stellar.anchor.apiclient.CallbackApiClient
-import org.stellar.anchor.auth.AuthHelper
+import org.stellar.reference.client.AnchorReferenceServerClient
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 internal class KotlinReferenceServerIntegrationTest {
@@ -21,20 +21,35 @@ internal class KotlinReferenceServerIntegrationTest {
 
   @BeforeAll
   fun setup() {
-    //    testProfileRunner.start()
+    testProfileRunner.start()
   }
 
   @AfterAll
   fun destroy() {
-    //    testProfileRunner.shutdown()
+    testProfileRunner.shutdown()
   }
 
   @Test
   fun `test if the reference server records the events sent by sendEvent() method`() {
-    val callbackApiClient = CallbackApiClient(AuthHelper.forNone(), "http://localhost:8091")
-    val response =
-      callbackApiClient.sendEvent(gson.fromJson(sendEventRequestJson, SendEventRequest::class.java))
-    println(response)
+    val client = AnchorReferenceServerClient(Url("http://localhost:8091"))
+    val sendEventRequest1 = gson.fromJson(sendEventRequestJson, SendEventRequest::class.java)
+    val sendEventRequest2 = gson.fromJson(sendEventRequestJson2, SendEventRequest::class.java)
+    runBlocking {
+      // Send event1
+      client.sendEvent(sendEventRequest1)
+      var latestEvent = client.getLatestEvent()
+      Assertions.assertNotNull(latestEvent)
+      JSONAssert.assertEquals(json(latestEvent), json(sendEventRequest1.payload), true)
+      // send event2
+      client.sendEvent(sendEventRequest2)
+      latestEvent = client.getLatestEvent()
+      Assertions.assertNotNull(latestEvent)
+      JSONAssert.assertEquals(json(latestEvent), json(sendEventRequest2.payload), true)
+      // check if there are totally two events recorded
+      assertEquals(client.getEvents().size, 2)
+      JSONAssert.assertEquals(json(client.getEvents()[0]), json(sendEventRequest1.payload), true)
+      JSONAssert.assertEquals(json(client.getEvents()[1]), json(sendEventRequest2.payload), true)
+    }
   }
 
   companion object {
@@ -46,10 +61,32 @@ internal class KotlinReferenceServerIntegrationTest {
               "type": "TRANSACTION_CREATED",
               "id": 100,
               "sep": 24,
-              "transaction": {}
+              "transaction": {
+                "amount_in": {
+                  "amount": "10.0",
+                  "asset": "USDC"
+                }
+              }
           }
       }
     """
+        .trimIndent()
+
+    val sendEventRequestJson2 =
+      """
+{
+  "timestamp": 1000000,
+  "payload": {
+    "type": "TRANSACTION_CREATED",
+    "id": 100,
+    "sep": 24,
+    "quote": {
+      "sell_amount": "10.0",
+      "buy_amount": "1"
+    }
+  }
+}
+      """
         .trimIndent()
   }
 }
