@@ -1,6 +1,6 @@
 {
   "id": "testId",
-  "sep_txn_id": "testId",
+  "sep_tx_id": "testId",
   "status": "saved",
   "amount": "1",
   "amount_asset": "stellar:testAmountInAsset",
