@@ -10,15 +10,15 @@
         "enabled": true,
         "min_amount": 1,
         "max_amount": 10000,
-        "types": [
-          "SEPA",
-          "SWIFT"
-        ]
       },
       "withdraw": {
         "enabled": true,
         "min_amount": 1,
-        "max_amount": 10000
+        "max_amount": 10000,
+        "types": [
+          "bank_account",
+          "cash"
+        ]
       },
       "sep6_enabled": true,
       "sep24_enabled": true,

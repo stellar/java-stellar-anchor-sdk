@@ -78,7 +78,11 @@ public class AssetInfo {
     Long maxAmount;
   }
 
-  public static class DepositOperation extends AssetOperation {}
+  @EqualsAndHashCode(callSuper = true)
+  @Data
+  public static class DepositOperation extends AssetOperation {
+    List<String> types;
+  }
 
   @EqualsAndHashCode(callSuper = true)
   @Data

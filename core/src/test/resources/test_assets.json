@@ -9,7 +9,11 @@
       "deposit": {
         "enabled": true,
         "min_amount": 1,
-        "max_amount": 10000
+        "max_amount": 10000,
+        "types": [
+          "SEPA",
+          "SWIFT"
+        ]
       },
       "withdraw": {
         "enabled": true,

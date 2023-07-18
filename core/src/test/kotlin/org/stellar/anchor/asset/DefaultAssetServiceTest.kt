@@ -93,6 +93,26 @@ internal class DefaultAssetServiceTest {
     }
   }
 
+  @Test
+  fun `test invalid config with missing deposit type when sep-6 enabled`() {
+    assertThrows<InvalidConfigException> {
+      DefaultAssetService.fromYamlResource("test_assets_missing_deposit_type.json")
+    }
+    assertThrows<InvalidConfigException> {
+      DefaultAssetService.fromYamlResource("test_assets_missing_deposit_type.yaml")
+    }
+  }
+
+  @Test
+  fun `test invalid config with duplicate deposit type when sep-6 enabled`() {
+    assertThrows<InvalidConfigException> {
+      DefaultAssetService.fromYamlResource("test_assets_duplicate_deposit_type.json")
+    }
+    assertThrows<InvalidConfigException> {
+      DefaultAssetService.fromYamlResource("test_assets_duplicate_deposit_type.yaml")
+    }
+  }
+
   // This is supposed to match the result from loading test_assets.json file.
   private val expectedAssetsJson =
     """
@@ -107,7 +127,11 @@ internal class DefaultAssetServiceTest {
             "deposit": {
               "enabled": true,
               "min_amount": 1,
-              "max_amount": 10000
+              "max_amount": 10000,
+              "types": [
+                "SEPA",
+                "SWIFT"
+              ]
             },
             "withdraw": {
               "enabled": true,
@@ -167,8 +191,7 @@ internal class DefaultAssetServiceTest {
                     "choices": [
                       "SEPA",
                       "SWIFT"
-                    ],
-                    "optional": false
+                    ]
                   }
                 }
               }
@@ -240,8 +263,7 @@ internal class DefaultAssetServiceTest {
                       "ACH",
                       "SWIFT",
                       "WIRE"
-                    ],
-                    "optional": false
+                    ]
                   }
                 }
               }

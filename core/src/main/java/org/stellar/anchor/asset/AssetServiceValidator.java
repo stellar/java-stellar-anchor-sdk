@@ -34,12 +34,13 @@ public class AssetServiceValidator {
 
     // Asset level validation
     for (AssetInfo assetInfo : assetService.listAllAssets()) {
-      validateDepositConfig(assetInfo);
+      validateWithdraw(assetInfo);
+      validateDeposit(assetInfo);
       // TODO: ANCHOR-374 add more validation
     }
   }
 
-  private static void validateDepositConfig(AssetInfo assetInfo) throws InvalidConfigException {
+  private static void validateWithdraw(AssetInfo assetInfo) throws InvalidConfigException {
     // Validate withdraw fields
     if (assetInfo.getSep6Enabled()) {
       if (assetInfo.getWithdraw() != null && assetInfo.getWithdraw().getEnabled()) {
@@ -56,6 +57,32 @@ public class AssetServiceValidator {
           if (!existingWithdrawTypes.add(type)) {
             throw new InvalidConfigException(
                 "Duplicate withdraw types defined for asset "
+                    + assetInfo.getAssetName()
+                    + ". Type = "
+                    + type);
+          }
+        }
+      }
+    }
+  }
+
+  private static void validateDeposit(AssetInfo assetInfo) throws InvalidConfigException {
+    // Validate deposit fields
+    if (assetInfo.getSep6Enabled()) {
+      if (assetInfo.getDeposit() != null && assetInfo.getDeposit().getEnabled()) {
+
+        // Check for missing SEP-6 deposit types
+        if (isEmpty(assetInfo.getDeposit().getTypes())) {
+          throw new InvalidConfigException(
+              "Deposit types not defined for asset " + assetInfo.getAssetName());
+        }
+
+        // Check for duplicate SEP-6 deposit types
+        Set<String> existingDepositTypes = new HashSet<>();
+        for (String type : assetInfo.getDeposit().getTypes()) {
+          if (!existingDepositTypes.add(type)) {
+            throw new InvalidConfigException(
+                "Duplicate deposit types defined for asset "
                     + assetInfo.getAssetName()
                     + ". Type = "
                     + type);
