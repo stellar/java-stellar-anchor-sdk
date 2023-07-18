@@ -169,6 +169,10 @@ internal class DefaultAssetServiceTest {
                   },
                   "receiver_account_number": {
                     "description": "bank account number of the destination",
+                    "optional": false
+                  },
+                  "receiver_phone_number": {
+                    "description": "phone number of the receiver",
                     "optional": true
                   },
                   "type": {
