@@ -53,15 +53,14 @@ class ClientsConfigTest {
   }
 
   @Test
-  fun `test invalid non-custodial client with empty domain`() {
+  fun `test invalid non-custodial client with empty domain and callback url`() {
     val config = ClientConfig()
     config.domain = ""
     config.callbackUrl = "  "
     configs.clients.add(config)
 
     configs.validateNonCustodialClient(config, errors)
-    Assertions.assertEquals(1, errors.errorCount)
-    assertErrorCode(errors, "empty-client-domain")
+    Assertions.assertEquals(2, errors.errorCount)
   }
 
   @Test
