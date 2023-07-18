@@ -81,13 +81,13 @@ public abstract class CustodyPaymentHandler {
         case "24":
           if (DEPOSIT.getKind().equals(txn.getKind())) {
             platformApiClient.notifyOnchainFundsSent(
-                txn.getId(),
+                txn.getSepTxId(),
                 payment.getTransactionHash(),
                 rpcConfig.getCustomMessages().getOutgoingPaymentSent());
             return;
           } else if (WITHDRAWAL.getKind().equals(txn.getKind())) {
             platformApiClient.notifyOnchainFundsReceived(
-                txn.getId(),
+                txn.getSepTxId(),
                 payment.getTransactionHash(),
                 payment.getAmount(),
                 rpcConfig.getCustomMessages().getIncomingPaymentReceived());
@@ -97,7 +97,7 @@ public abstract class CustodyPaymentHandler {
         case "31":
           if (RECEIVE.getKind().equals(txn.getKind())) {
             platformApiClient.notifyOnchainFundsReceived(
-                txn.getId(),
+                txn.getSepTxId(),
                 payment.getTransactionHash(),
                 payment.getAmount(),
                 rpcConfig.getCustomMessages().getIncomingPaymentReceived());
