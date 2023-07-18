@@ -7,13 +7,13 @@ assets:
     deposit:
       enabled: true
       min_amount: 1
-      types:
+      methods:
         - SEPA
         - SWIFT
     withdraw:
       enabled: true
       max_amount: 1000000
-      types:
+      methods:
         - bank_account
         - cash
     send:

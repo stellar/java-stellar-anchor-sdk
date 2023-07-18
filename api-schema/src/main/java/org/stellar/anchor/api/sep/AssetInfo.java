@@ -2,8 +2,10 @@ package org.stellar.anchor.api.sep;
 
 import com.google.gson.annotations.SerializedName;
 import java.util.List;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import lombok.NoArgsConstructor;
 import org.stellar.anchor.api.sep.operation.Sep31Operation;
 import org.stellar.anchor.api.sep.operation.Sep38Operation;
 
@@ -81,13 +83,13 @@ public class AssetInfo {
   @EqualsAndHashCode(callSuper = true)
   @Data
   public static class DepositOperation extends AssetOperation {
-    List<String> types;
+    List<String> methods;
   }
 
   @EqualsAndHashCode(callSuper = true)
   @Data
   public static class WithdrawOperation extends AssetOperation {
-    List<String> types;
+    List<String> methods;
   }
 
   @Data
@@ -103,5 +105,14 @@ public class AssetInfo {
 
     @SerializedName("max_amount")
     Long maxAmount;
+  }
+
+  @Data
+  @AllArgsConstructor
+  @NoArgsConstructor
+  public static class Field {
+    String description;
+    List<String> choices;
+    boolean optional;
   }
 }

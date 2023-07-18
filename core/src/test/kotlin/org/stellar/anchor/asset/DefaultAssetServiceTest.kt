@@ -66,18 +66,12 @@ internal class DefaultAssetServiceTest {
   @Test
   fun `test invalid config with duplicate assets`() {
     assertThrows<InvalidConfigException> {
-      DefaultAssetService.fromJsonResource("test_assets_duplicate_asset.json")
-    }
-    assertThrows<InvalidConfigException> {
       DefaultAssetService.fromYamlResource("test_assets_duplicate_asset.yaml")
     }
   }
 
   @Test
   fun `test invalid config with missing withdraw type when sep-6 enabled`() {
-    assertThrows<InvalidConfigException> {
-      DefaultAssetService.fromYamlResource("test_assets_missing_withdraw_type.json")
-    }
     assertThrows<InvalidConfigException> {
       DefaultAssetService.fromYamlResource("test_assets_missing_withdraw_type.yaml")
     }
@@ -86,9 +80,6 @@ internal class DefaultAssetServiceTest {
   @Test
   fun `test invalid config with duplicate withdraw type when sep-6 enabled`() {
     assertThrows<InvalidConfigException> {
-      DefaultAssetService.fromYamlResource("test_assets_duplicate_withdraw_type.json")
-    }
-    assertThrows<InvalidConfigException> {
       DefaultAssetService.fromYamlResource("test_assets_duplicate_withdraw_type.yaml")
     }
   }
@@ -96,18 +87,12 @@ internal class DefaultAssetServiceTest {
   @Test
   fun `test invalid config with missing deposit type when sep-6 enabled`() {
     assertThrows<InvalidConfigException> {
-      DefaultAssetService.fromYamlResource("test_assets_missing_deposit_type.json")
-    }
-    assertThrows<InvalidConfigException> {
       DefaultAssetService.fromYamlResource("test_assets_missing_deposit_type.yaml")
     }
   }
 
   @Test
   fun `test invalid config with duplicate deposit type when sep-6 enabled`() {
-    assertThrows<InvalidConfigException> {
-      DefaultAssetService.fromYamlResource("test_assets_duplicate_deposit_type.json")
-    }
     assertThrows<InvalidConfigException> {
       DefaultAssetService.fromYamlResource("test_assets_duplicate_deposit_type.yaml")
     }
@@ -128,7 +113,7 @@ internal class DefaultAssetServiceTest {
               "enabled": true,
               "min_amount": 1,
               "max_amount": 10000,
-              "types": [
+              "methods": [
                 "SEPA",
                 "SWIFT"
               ]
@@ -137,7 +122,7 @@ internal class DefaultAssetServiceTest {
               "enabled": true,
               "min_amount": 1,
               "max_amount": 10000,
-              "types": [
+              "methods": [
                 "bank_account",
                 "cash"
               ]
@@ -184,7 +169,7 @@ internal class DefaultAssetServiceTest {
                   },
                   "receiver_account_number": {
                     "description": "bank account number of the destination",
-                    "optional": false
+                    "optional": true
                   },
                   "type": {
                     "description": "type of deposit to make",

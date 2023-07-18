@@ -8,14 +8,14 @@ assets:
       enabled: true
       min_amount: 1
       max_amount: 10000
-      types:
+      methods:
         - SEPA
         - SWIFT
     withdraw:
       enabled: true
       min_amount: 1
       max_amount: 10000
-      types:
+      methods:
         - bank_account
         - cash
     send:
@@ -50,7 +50,7 @@ assets:
             optional: false
           receiver_account_number:
             description: bank account number of the destination
-            optional: false
+            optional: true
           type:
             description: type of deposit to make
             choices:

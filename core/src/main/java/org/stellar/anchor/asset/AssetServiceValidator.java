@@ -46,14 +46,14 @@ public class AssetServiceValidator {
       if (assetInfo.getWithdraw() != null && assetInfo.getWithdraw().getEnabled()) {
 
         // Check for missing SEP-6 withdrawal types
-        if (isEmpty(assetInfo.getWithdraw().getTypes())) {
+        if (isEmpty(assetInfo.getWithdraw().getMethods())) {
           throw new InvalidConfigException(
               "Withdraw types not defined for asset " + assetInfo.getAssetName());
         }
 
         // Check for duplicate SEP-6 withdrawal types
         Set<String> existingWithdrawTypes = new HashSet<>();
-        for (String type : assetInfo.getWithdraw().getTypes()) {
+        for (String type : assetInfo.getWithdraw().getMethods()) {
           if (!existingWithdrawTypes.add(type)) {
             throw new InvalidConfigException(
                 "Duplicate withdraw types defined for asset "
@@ -72,14 +72,14 @@ public class AssetServiceValidator {
       if (assetInfo.getDeposit() != null && assetInfo.getDeposit().getEnabled()) {
 
         // Check for missing SEP-6 deposit types
-        if (isEmpty(assetInfo.getDeposit().getTypes())) {
+        if (isEmpty(assetInfo.getDeposit().getMethods())) {
           throw new InvalidConfigException(
               "Deposit types not defined for asset " + assetInfo.getAssetName());
         }
 
         // Check for duplicate SEP-6 deposit types
         Set<String> existingDepositTypes = new HashSet<>();
-        for (String type : assetInfo.getDeposit().getTypes()) {
+        for (String type : assetInfo.getDeposit().getMethods()) {
           if (!existingDepositTypes.add(type)) {
             throw new InvalidConfigException(
                 "Duplicate deposit types defined for asset "

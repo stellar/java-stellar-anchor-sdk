@@ -12,7 +12,7 @@ assets:
       enabled: true
       min_amount: 1
       max_amount: 10000
-      types:
+      methods:
         - cash
         - bank_account
     sep6_enabled: true

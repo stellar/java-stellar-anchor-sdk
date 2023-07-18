@@ -10,7 +10,7 @@
         "enabled": true,
         "min_amount": 1,
         "max_amount": 10000,
-        "types": [
+        "methods": [
           "SEPA",
           "SWIFT"
         ]
@@ -19,7 +19,7 @@
         "enabled": true,
         "min_amount": 1,
         "max_amount": 10000,
-        "types": [
+        "methods": [
           "bank_account",
           "cash"
         ]
@@ -66,7 +66,7 @@
             },
             "receiver_account_number": {
               "description": "bank account number of the destination",
-              "optional": false
+              "optional": true
             },
             "type": {
               "description": "type of deposit to make",

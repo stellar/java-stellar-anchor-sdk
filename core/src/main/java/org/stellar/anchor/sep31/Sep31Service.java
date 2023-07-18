@@ -24,7 +24,6 @@ import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.*;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
-import org.stellar.anchor.api.sep.operation.Field;
 import org.stellar.anchor.api.sep.operation.Sep12Operation;
 import org.stellar.anchor.api.sep.operation.Sep31Operation.Fields;
 import org.stellar.anchor.api.sep.sep12.Sep12Status;
@@ -381,7 +380,7 @@ public class Sep31Service {
           String.format("Transaction (%s) is not expecting any updates", txn.getId()));
     }
 
-    Map<String, Field> expectedFields = txn.getRequiredInfoUpdates().getTransaction();
+    Map<String, AssetInfo.Field> expectedFields = txn.getRequiredInfoUpdates().getTransaction();
     Map<String, String> requestFields = request.getFields().getTransaction();
 
     // validate if any of the fields from the request is not expected in the transaction.
@@ -591,11 +590,11 @@ public class Sep31Service {
       throw new BadRequestException("'fields' field must have one 'transaction' field");
     }
 
-    Map<String, Field> missingFields =
+    Map<String, AssetInfo.Field> missingFields =
         fieldSpecs.getFields().getTransaction().entrySet().stream()
             .filter(
                 entry -> {
-                  Field field = entry.getValue();
+                  AssetInfo.Field field = entry.getValue();
                   if (field.isOptional()) return false;
                   return requestFields.get(entry.getKey()) == null;
                 })

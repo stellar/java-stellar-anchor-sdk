@@ -21,7 +21,7 @@ import org.stellar.anchor.TestHelper
 import org.stellar.anchor.api.callback.*
 import org.stellar.anchor.api.exception.*
 import org.stellar.anchor.api.sep.AssetInfo
-import org.stellar.anchor.api.sep.operation.Field
+import org.stellar.anchor.api.sep.AssetInfo.Field
 import org.stellar.anchor.api.sep.operation.Sep31Operation
 import org.stellar.anchor.api.sep.sep12.Sep12Status
 import org.stellar.anchor.api.sep.sep31.*

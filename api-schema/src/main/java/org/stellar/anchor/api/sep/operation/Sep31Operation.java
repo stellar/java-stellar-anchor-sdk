@@ -3,6 +3,7 @@ package org.stellar.anchor.api.sep.operation;
 import com.google.gson.annotations.SerializedName;
 import java.util.Map;
 import lombok.Data;
+import org.stellar.anchor.api.sep.AssetInfo;
 
 @Data
 public class Sep31Operation {
@@ -17,6 +18,6 @@ public class Sep31Operation {
 
   @Data
   public static class Fields {
-    Map<String, Field> transaction;
+    Map<String, AssetInfo.Field> transaction;
   }
 }

@@ -8,7 +8,7 @@ assets:
       enabled: true
       min_amount: 1
       max_amount: 10000
-      types:
+      methods:
         - SEPA
         - SWIFT
     withdraw:
