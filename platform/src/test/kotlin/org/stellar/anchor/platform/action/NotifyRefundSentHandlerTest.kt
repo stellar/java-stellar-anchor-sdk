@@ -201,10 +201,6 @@ class NotifyRefundSentHandlerTest {
     txn24.requestAssetCode = FIAT_USD_CODE
     txn24.amountIn = "2"
     txn24.amountInAsset = STELLAR_USDC
-    txn24.amountOutAsset = STELLAR_USDC
-    txn24.amountOut = "0"
-    txn24.amountFeeAsset = STELLAR_USDC
-    txn24.amountFee = "0.1"
 
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
     val payment = JdbcSep24RefundPayment()
@@ -229,13 +225,9 @@ class NotifyRefundSentHandlerTest {
     expectedSep24Txn.requestAssetCode = FIAT_USD_CODE
     expectedSep24Txn.amountIn = "2"
     expectedSep24Txn.amountInAsset = STELLAR_USDC
-    expectedSep24Txn.amountOutAsset = STELLAR_USDC
-    expectedSep24Txn.amountOut = "0"
-    expectedSep24Txn.amountFeeAsset = STELLAR_USDC
-    expectedSep24Txn.amountFee = "0.1"
     expectedSep24Txn.transferReceivedAt = transferReceivedAt
     val expectedRefunds = JdbcSep24Refunds()
-    expectedRefunds.amountRefunded = "1"
+    expectedRefunds.amountRefunded = "1.1"
     expectedRefunds.amountFee = "0.1"
     expectedRefunds.payments = listOf(payment)
     expectedSep24Txn.refunds = expectedRefunds
@@ -252,8 +244,6 @@ class NotifyRefundSentHandlerTest {
     expectedResponse.status = PENDING_ANCHOR
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
     expectedResponse.amountIn = Amount("2", STELLAR_USDC)
-    expectedResponse.amountOut = Amount("0", STELLAR_USDC)
-    expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.transferReceivedAt = transferReceivedAt
     val refundPayment = RefundPayment()
@@ -261,7 +251,7 @@ class NotifyRefundSentHandlerTest {
     refundPayment.fee = Amount("0.1", txn24.amountInAsset)
     refundPayment.id = request.refund.id
     refundPayment.idType = RefundPayment.IdType.STELLAR
-    val refunded = Amount("1", txn24.amountInAsset)
+    val refunded = Amount("1.1", txn24.amountInAsset)
     val refundedFee = Amount("0.1", txn24.amountInAsset)
     expectedResponse.refunds = Refunds(refunded, refundedFee, arrayOf(refundPayment))
 
@@ -295,12 +285,8 @@ class NotifyRefundSentHandlerTest {
     txn24.transferReceivedAt = transferReceivedAt
     txn24.amountInAsset = STELLAR_USDC
     txn24.requestAssetCode = FIAT_USD_CODE
-    txn24.amountIn = "2"
+    txn24.amountIn = "2.2"
     txn24.amountInAsset = STELLAR_USDC
-    txn24.amountOutAsset = STELLAR_USDC
-    txn24.amountOut = "0"
-    txn24.amountFeeAsset = STELLAR_USDC
-    txn24.amountFee = "0.1"
 
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
     val payment1 = JdbcSep24RefundPayment()
@@ -312,7 +298,7 @@ class NotifyRefundSentHandlerTest {
     payment2.amount = request.refund.amount.amount
     payment2.fee = request.refund.amountFee.amount
     val refunds = JdbcSep24Refunds()
-    refunds.amountRefunded = "1"
+    refunds.amountRefunded = "1.1"
     refunds.amountFee = "0.1"
     refunds.payments = listOf(payment1)
     txn24.refunds = refunds
@@ -332,15 +318,11 @@ class NotifyRefundSentHandlerTest {
     expectedSep24Txn.status = SepTransactionStatus.REFUNDED.toString()
     expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedSep24Txn.requestAssetCode = FIAT_USD_CODE
-    expectedSep24Txn.amountIn = "2"
+    expectedSep24Txn.amountIn = "2.2"
     expectedSep24Txn.amountInAsset = STELLAR_USDC
-    expectedSep24Txn.amountOutAsset = STELLAR_USDC
-    expectedSep24Txn.amountOut = "0"
-    expectedSep24Txn.amountFeeAsset = STELLAR_USDC
-    expectedSep24Txn.amountFee = "0.1"
     expectedSep24Txn.transferReceivedAt = transferReceivedAt
     val expectedRefunds = JdbcSep24Refunds()
-    expectedRefunds.amountRefunded = "2"
+    expectedRefunds.amountRefunded = "2.2"
     expectedRefunds.amountFee = "0.2"
     expectedRefunds.payments = listOf(payment1, payment2)
     expectedSep24Txn.refunds = expectedRefunds
@@ -357,9 +339,7 @@ class NotifyRefundSentHandlerTest {
     expectedResponse.kind = DEPOSIT
     expectedResponse.status = SepTransactionStatus.REFUNDED
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
-    expectedResponse.amountIn = Amount("2", STELLAR_USDC)
-    expectedResponse.amountOut = Amount("0", STELLAR_USDC)
-    expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
+    expectedResponse.amountIn = Amount("2.2", STELLAR_USDC)
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.transferReceivedAt = transferReceivedAt
     val refundPayment1 = RefundPayment()
@@ -372,7 +352,7 @@ class NotifyRefundSentHandlerTest {
     refundPayment2.fee = Amount("0.1", txn24.amountInAsset)
     refundPayment2.id = "2"
     refundPayment2.idType = RefundPayment.IdType.STELLAR
-    val refunded = Amount("2", txn24.amountInAsset)
+    val refunded = Amount("2.2", txn24.amountInAsset)
     val refundedFee = Amount("0.2", txn24.amountInAsset)
     expectedResponse.refunds =
       Refunds(refunded, refundedFee, arrayOf(refundPayment1, refundPayment2))
@@ -410,10 +390,6 @@ class NotifyRefundSentHandlerTest {
     txn24.requestAssetCode = FIAT_USD_CODE
     txn24.amountIn = "1"
     txn24.amountInAsset = STELLAR_USDC
-    txn24.amountOutAsset = STELLAR_USDC
-    txn24.amountOut = "0"
-    txn24.amountFeeAsset = STELLAR_USDC
-    txn24.amountFee = "0"
 
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
     val payment = JdbcSep24RefundPayment()
@@ -438,10 +414,6 @@ class NotifyRefundSentHandlerTest {
     expectedSep24Txn.requestAssetCode = FIAT_USD_CODE
     expectedSep24Txn.amountIn = "1"
     expectedSep24Txn.amountInAsset = STELLAR_USDC
-    expectedSep24Txn.amountOutAsset = STELLAR_USDC
-    expectedSep24Txn.amountOut = "0"
-    expectedSep24Txn.amountFeeAsset = STELLAR_USDC
-    expectedSep24Txn.amountFee = "0"
     expectedSep24Txn.transferReceivedAt = transferReceivedAt
     val expectedRefunds = JdbcSep24Refunds()
     expectedRefunds.amountRefunded = "1"
@@ -462,8 +434,6 @@ class NotifyRefundSentHandlerTest {
     expectedResponse.status = SepTransactionStatus.REFUNDED
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
     expectedResponse.amountIn = Amount("1", STELLAR_USDC)
-    expectedResponse.amountOut = Amount("0", STELLAR_USDC)
-    expectedResponse.amountFee = Amount("0", STELLAR_USDC)
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.transferReceivedAt = transferReceivedAt
     val refundPayment = RefundPayment()
@@ -487,6 +457,42 @@ class NotifyRefundSentHandlerTest {
   }
 
   @Test
+  fun `test handle sent more then amount_in`() {
+    val request =
+      NotifyRefundSentRequest.builder()
+        .transactionId(TX_ID)
+        .refund(
+          NotifyRefundSentRequest.Refund.builder()
+            .amount(AmountRequest("10"))
+            .amountFee(AmountRequest("0"))
+            .id("1")
+            .build()
+        )
+        .build()
+    val txn24 = JdbcSep24Transaction()
+    txn24.status = PENDING_ANCHOR.toString()
+    txn24.kind = DEPOSIT.kind
+    txn24.transferReceivedAt = Instant.now()
+    txn24.amountInAsset = STELLAR_USDC
+    txn24.requestAssetCode = FIAT_USD_CODE
+    txn24.amountIn = "1"
+    txn24.amountInAsset = STELLAR_USDC
+
+    val sep24TxnCapture = slot<JdbcSep24Transaction>()
+    val payment = JdbcSep24RefundPayment()
+    payment.id = "1"
+    payment.amount = "1"
+    payment.fee = "0"
+
+    every { txn24Store.findByTransactionId(TX_ID) } returns txn24
+    every { txn31Store.findByTransactionId(any()) } returns null
+    every { txn24Store.save(capture(sep24TxnCapture)) } returns null
+
+    val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
+    assertEquals("Refund amount exceeds amount_in", ex.message)
+  }
+
+  @Test
   fun test_handle_ok_pending_external_empty_refund() {
     val transferReceivedAt = Instant.now()
     val request = NotifyRefundSentRequest.builder().transactionId(TX_ID).build()
@@ -498,10 +504,6 @@ class NotifyRefundSentHandlerTest {
     txn24.requestAssetCode = FIAT_USD_CODE
     txn24.amountIn = "2"
     txn24.amountInAsset = STELLAR_USDC
-    txn24.amountOutAsset = STELLAR_USDC
-    txn24.amountOut = "0"
-    txn24.amountFeeAsset = STELLAR_USDC
-    txn24.amountFee = "0.1"
 
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
     val payment = JdbcSep24RefundPayment()
@@ -531,10 +533,6 @@ class NotifyRefundSentHandlerTest {
     expectedSep24Txn.requestAssetCode = FIAT_USD_CODE
     expectedSep24Txn.amountIn = "2"
     expectedSep24Txn.amountInAsset = STELLAR_USDC
-    expectedSep24Txn.amountOutAsset = STELLAR_USDC
-    expectedSep24Txn.amountOut = "0"
-    expectedSep24Txn.amountFeeAsset = STELLAR_USDC
-    expectedSep24Txn.amountFee = "0.1"
     expectedSep24Txn.transferReceivedAt = transferReceivedAt
     val expectedRefunds = JdbcSep24Refunds()
     expectedRefunds.amountRefunded = "1"
@@ -554,8 +552,6 @@ class NotifyRefundSentHandlerTest {
     expectedResponse.status = PENDING_ANCHOR
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
     expectedResponse.amountIn = Amount("2", STELLAR_USDC)
-    expectedResponse.amountOut = Amount("0", STELLAR_USDC)
-    expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.transferReceivedAt = transferReceivedAt
     val refundPayment = RefundPayment()
@@ -599,10 +595,6 @@ class NotifyRefundSentHandlerTest {
     txn24.requestAssetCode = FIAT_USD_CODE
     txn24.amountIn = "2"
     txn24.amountInAsset = STELLAR_USDC
-    txn24.amountOutAsset = STELLAR_USDC
-    txn24.amountOut = "0"
-    txn24.amountFeeAsset = STELLAR_USDC
-    txn24.amountFee = "0.1"
 
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
     val payment = JdbcSep24RefundPayment()
@@ -632,13 +624,9 @@ class NotifyRefundSentHandlerTest {
     expectedSep24Txn.requestAssetCode = FIAT_USD_CODE
     expectedSep24Txn.amountIn = "2"
     expectedSep24Txn.amountInAsset = STELLAR_USDC
-    expectedSep24Txn.amountOutAsset = STELLAR_USDC
-    expectedSep24Txn.amountOut = "0"
-    expectedSep24Txn.amountFeeAsset = STELLAR_USDC
-    expectedSep24Txn.amountFee = "0.1"
     expectedSep24Txn.transferReceivedAt = transferReceivedAt
     val expectedRefunds = JdbcSep24Refunds()
-    expectedRefunds.amountRefunded = "1.5"
+    expectedRefunds.amountRefunded = "1.7"
     expectedRefunds.amountFee = "0.2"
     val expectedPayment = JdbcSep24RefundPayment()
     expectedPayment.id = request.refund.id
@@ -659,8 +647,6 @@ class NotifyRefundSentHandlerTest {
     expectedResponse.status = PENDING_ANCHOR
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
     expectedResponse.amountIn = Amount("2", STELLAR_USDC)
-    expectedResponse.amountOut = Amount("0", STELLAR_USDC)
-    expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.transferReceivedAt = transferReceivedAt
     val refundPayment = RefundPayment()
@@ -668,7 +654,7 @@ class NotifyRefundSentHandlerTest {
     refundPayment.fee = Amount("0.2", txn24.amountInAsset)
     refundPayment.id = request.refund.id
     refundPayment.idType = RefundPayment.IdType.STELLAR
-    val refunded = Amount("1.5", txn24.amountInAsset)
+    val refunded = Amount("1.7", txn24.amountInAsset)
     val refundedFee = Amount("0.2", txn24.amountInAsset)
     expectedResponse.refunds = Refunds(refunded, refundedFee, arrayOf(refundPayment))
 
@@ -684,7 +670,6 @@ class NotifyRefundSentHandlerTest {
 
   @Test
   fun test_handle_ok_pending_external_invalid_id() {
-    val transferReceivedAt = Instant.now()
     val request =
       NotifyRefundSentRequest.builder()
         .transactionId(TX_ID)
@@ -699,15 +684,11 @@ class NotifyRefundSentHandlerTest {
     val txn24 = JdbcSep24Transaction()
     txn24.status = SepTransactionStatus.PENDING_EXTERNAL.toString()
     txn24.kind = PlatformTransactionData.Kind.DEPOSIT.kind
-    txn24.transferReceivedAt = transferReceivedAt
+    txn24.transferReceivedAt = Instant.now()
     txn24.amountInAsset = STELLAR_USDC
     txn24.requestAssetCode = FIAT_USD_CODE
     txn24.amountIn = "2"
     txn24.amountInAsset = STELLAR_USDC
-    txn24.amountOutAsset = STELLAR_USDC
-    txn24.amountOut = "0"
-    txn24.amountFeeAsset = STELLAR_USDC
-    txn24.amountFee = "0.1"
 
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
     val payment = JdbcSep24RefundPayment()
