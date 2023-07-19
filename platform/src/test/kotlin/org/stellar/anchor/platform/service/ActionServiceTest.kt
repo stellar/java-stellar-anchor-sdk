@@ -113,7 +113,7 @@ class ActionServiceTest {
         "jsonrpc": "2.0",
         "error": {
           "code": -32600,
-          "message": "Unsupported JSON-RPC protocol version[invalid_rpc_protocol]"
+          "message": "Unsupported JSON-RPC protocol version [invalid_rpc_protocol]"
         },
         "id": 1
       }
@@ -139,7 +139,7 @@ class ActionServiceTest {
         "jsonrpc": "2.0",
         "error": {
           "code": -32600,
-          "message": "Unsupported JSON-RPC protocol version[null]"
+          "message": "Unsupported JSON-RPC protocol version [null]"
         },
         "id": 1
       }
@@ -251,7 +251,7 @@ class ActionServiceTest {
         "jsonrpc": "2.0",
         "error": {
           "code": -32600,
-          "message": "Unsupported JSON-RPC protocol version[invalid_rpc_protocol]"
+          "message": "Unsupported JSON-RPC protocol version [invalid_rpc_protocol]"
         },
         "id": 1
       }
