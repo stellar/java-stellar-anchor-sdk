@@ -66,10 +66,35 @@ internal class DefaultAssetServiceTest {
   @Test
   fun `test invalid config with duplicate assets`() {
     assertThrows<InvalidConfigException> {
-      DefaultAssetService.fromJsonResource("test_assets_duplicate_asset.json")
-    }
-    assertThrows<InvalidConfigException> {
       DefaultAssetService.fromYamlResource("test_assets_duplicate_asset.yaml")
+    }
+  }
+
+  @Test
+  fun `test invalid config with missing withdraw type when sep-6 enabled`() {
+    assertThrows<InvalidConfigException> {
+      DefaultAssetService.fromYamlResource("test_assets_missing_withdraw_type.yaml")
+    }
+  }
+
+  @Test
+  fun `test invalid config with duplicate withdraw type when sep-6 enabled`() {
+    assertThrows<InvalidConfigException> {
+      DefaultAssetService.fromYamlResource("test_assets_duplicate_withdraw_type.yaml")
+    }
+  }
+
+  @Test
+  fun `test invalid config with missing deposit type when sep-6 enabled`() {
+    assertThrows<InvalidConfigException> {
+      DefaultAssetService.fromYamlResource("test_assets_missing_deposit_type.yaml")
+    }
+  }
+
+  @Test
+  fun `test invalid config with duplicate deposit type when sep-6 enabled`() {
+    assertThrows<InvalidConfigException> {
+      DefaultAssetService.fromYamlResource("test_assets_duplicate_deposit_type.yaml")
     }
   }
 
@@ -79,20 +104,28 @@ internal class DefaultAssetServiceTest {
       {
         "assets": [
           {
+            "schema": "stellar",
             "code": "USDC",
             "issuer": "GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP",
             "distribution_account": "GA7FYRB5VREZKOBIIKHG5AVTPFGWUBPOBF7LTYG4GTMFVIOOD2DWAL7I",
-            "schema": "stellar",
             "significant_decimals": 2,
             "deposit": {
               "enabled": true,
               "min_amount": 1,
-              "max_amount": 10000
+              "max_amount": 10000,
+              "methods": [
+                "SEPA",
+                "SWIFT"
+              ]
             },
             "withdraw": {
               "enabled": true,
               "min_amount": 1,
-              "max_amount": 10000
+              "max_amount": 10000,
+              "methods": [
+                "bank_account",
+                "cash"
+              ]
             },
             "send": {
               "fee_fixed": 0,
@@ -138,13 +171,16 @@ internal class DefaultAssetServiceTest {
                     "description": "bank account number of the destination",
                     "optional": false
                   },
+                  "receiver_phone_number": {
+                    "description": "phone number of the receiver",
+                    "optional": true
+                  },
                   "type": {
                     "description": "type of deposit to make",
                     "choices": [
                       "SEPA",
                       "SWIFT"
-                    ],
-                    "optional": false
+                    ]
                   }
                 }
               }
@@ -155,14 +191,15 @@ internal class DefaultAssetServiceTest {
                 "iso4217:USD"
               ]
             },
+            "sep6_enabled": true,
             "sep24_enabled": true,
             "sep31_enabled": true,
             "sep38_enabled": true
           },
           {
+            "schema": "stellar",
             "code": "JPYC",
             "issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
-            "schema": "stellar",
             "significant_decimals": 2,
             "deposit": {
               "enabled": true,
@@ -215,8 +252,7 @@ internal class DefaultAssetServiceTest {
                       "ACH",
                       "SWIFT",
                       "WIRE"
-                    ],
-                    "optional": false
+                    ]
                   }
                 }
               }
@@ -227,13 +263,14 @@ internal class DefaultAssetServiceTest {
                 "iso4217:USD"
               ]
             },
+            "sep6_enabled": false,
             "sep24_enabled": true,
             "sep31_enabled": true,
             "sep38_enabled": true
           },
           {
-            "code": "USD",
             "schema": "iso4217",
+            "code": "USD",
             "significant_decimals": 2,
             "deposit": {
               "enabled": true,
@@ -259,10 +296,11 @@ internal class DefaultAssetServiceTest {
               "country_codes": [
                 "USA"
               ],
+              "decimals": 4,
               "sell_delivery_methods": [
                 {
                   "name": "WIRE",
-                  "description": "Send USD directly to the Anchor\u0027s bank account."
+                  "description": "Send USD directly to the Anchor's bank account."
                 }
               ],
               "buy_delivery_methods": [
@@ -270,10 +308,10 @@ internal class DefaultAssetServiceTest {
                   "name": "WIRE",
                   "description": "Have USD sent directly to your bank account."
                 }
-              ],
-              "decimals": 4
+              ]
             },
-            "sep24_enabled": false,
+            "sep6_enabled": false,
+            "sep24_enabled": true,
             "sep31_enabled": false,
             "sep38_enabled": true
           },
@@ -297,7 +335,7 @@ internal class DefaultAssetServiceTest {
               "min_amount": 1,
               "max_amount": 1000000
             },
-           "sep31": {
+            "sep31": {
               "quotes_supported": true,
               "quotes_required": true,
               "sep12": {
@@ -349,11 +387,13 @@ internal class DefaultAssetServiceTest {
               ],
               "decimals": 7
             },
+            "sep6_enabled": false,
+            "sep24_enabled": true,
             "sep31_enabled": false,
-            "sep38_enabled": false 
+            "sep38_enabled": false
           }
         ]
-      }    
-  """
+      }
+    """
       .trimIndent()
 }

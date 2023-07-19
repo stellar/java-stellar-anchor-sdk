@@ -264,6 +264,18 @@ sep1:
     #
     value: |
 
+sep6:
+  ## @param: enabled
+  ## @type: bool
+  ## Whether to enable SEP-6 for this instance of AP server.
+  #
+  enabled: false
+  # Configures the features flag returned by the SEP-6 /info endpoint
+  # For details, please refer to https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0006.md#response-4
+  #
+  features:
+    account_creation: false
+    claimable_balances: false
 
 sep10:
   ## @param: enabled

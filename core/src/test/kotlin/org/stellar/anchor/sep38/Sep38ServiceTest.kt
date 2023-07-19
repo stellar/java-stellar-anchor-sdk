@@ -25,7 +25,7 @@ import org.stellar.anchor.api.exception.BadRequestException
 import org.stellar.anchor.api.exception.NotFoundException
 import org.stellar.anchor.api.exception.ServerErrorException
 import org.stellar.anchor.api.platform.GetQuoteResponse
-import org.stellar.anchor.api.sep.AssetInfo
+import org.stellar.anchor.api.sep.operation.Sep38Operation
 import org.stellar.anchor.api.sep.sep38.*
 import org.stellar.anchor.api.sep.sep38.Sep38Context.SEP31
 import org.stellar.anchor.api.sep.sep38.Sep38Context.SEP6
@@ -124,16 +124,10 @@ class Sep38ServiceTest {
     assertNotNull(fiatUSD)
     assertEquals(listOf("USA"), fiatUSD!!.countryCodes)
     val wantSellDeliveryMethod =
-      AssetInfo.Sep38Operation.DeliveryMethod(
-        "WIRE",
-        "Send USD directly to the Anchor's bank account."
-      )
+      Sep38Operation.DeliveryMethod("WIRE", "Send USD directly to the Anchor's bank account.")
     assertEquals(listOf(wantSellDeliveryMethod), fiatUSD.sellDeliveryMethods)
     val wantBuyDeliveryMethod =
-      AssetInfo.Sep38Operation.DeliveryMethod(
-        "WIRE",
-        "Have USD sent directly to your bank account."
-      )
+      Sep38Operation.DeliveryMethod("WIRE", "Have USD sent directly to your bank account.")
     assertEquals(listOf(wantBuyDeliveryMethod), fiatUSD.buyDeliveryMethods)
     wantAssets =
       listOf("stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5", stellarUSDC)
