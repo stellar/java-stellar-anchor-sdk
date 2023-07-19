@@ -431,11 +431,16 @@ public class Sep24Service {
     List<AssetInfo> assets = assetService.listAllAssets();
     debugF("{} assets found", assets.size());
 
-    Map<String, AssetInfo.AssetOperation> depositMap = new HashMap<>();
-    Map<String, AssetInfo.AssetOperation> withdrawMap = new HashMap<>();
+    Map<String, InfoResponse.OperationResponse> depositMap = new HashMap<>();
+    Map<String, InfoResponse.OperationResponse> withdrawMap = new HashMap<>();
     for (AssetInfo asset : assets) {
-      if (asset.getDeposit().getEnabled()) depositMap.put(asset.getCode(), asset.getDeposit());
-      if (asset.getWithdraw().getEnabled()) withdrawMap.put(asset.getCode(), asset.getWithdraw());
+      if (asset.getDeposit().getEnabled())
+        depositMap.put(
+            asset.getCode(), InfoResponse.OperationResponse.fromAssetOperation(asset.getDeposit()));
+      if (asset.getWithdraw().getEnabled())
+        withdrawMap.put(
+            asset.getCode(),
+            InfoResponse.OperationResponse.fromAssetOperation(asset.getWithdraw()));
     }
 
     return InfoResponse.builder()
