@@ -9,7 +9,7 @@ import org.stellar.anchor.platform.TestProfileExecutor
 import org.stellar.anchor.platform.testProfileExecutor
 
 fun main() = runBlocking {
-  testProfileExecutor = TestProfileExecutor(TestConfig(profileName = "sep24"))
+  testProfileExecutor = TestProfileExecutor(TestConfig(testProfileName = "sep24"))
   launch { registerShutdownHook(testProfileExecutor) }
   testProfileExecutor.start(true) {
     it.env["run_docker"] = "false"

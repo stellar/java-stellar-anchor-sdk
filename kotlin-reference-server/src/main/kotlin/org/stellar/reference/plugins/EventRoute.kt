@@ -23,7 +23,7 @@ fun Route.event(eventService: EventService) {
     }
   }
   route("/events") {
-    get { call.respond(gson.toJson(eventService.getEvents())) }
+    get { call.respond(gson.toJson(eventService.getEvents(call.parameters["txnId"]))) }
     delete {
       eventService.clearEvents()
       call.respond("Events cleared")

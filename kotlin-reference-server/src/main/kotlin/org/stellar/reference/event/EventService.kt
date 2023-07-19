@@ -19,7 +19,13 @@ class EventService {
   }
 
   // Get all events. This is for testing purpose.
-  fun getEvents(): List<AnchorEvent> {
+  // If txnId is not null, the events are filtered.
+  fun getEvents(txnId: String?): List<AnchorEvent> {
+    if (txnId != null) {
+      // filter events with txnId
+      return receivedEvents.filter { it.transaction.id == txnId }
+    }
+    // return all events
     return receivedEvents
   }
 

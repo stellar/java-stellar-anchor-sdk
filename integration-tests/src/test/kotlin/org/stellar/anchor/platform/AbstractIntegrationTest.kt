@@ -58,7 +58,7 @@ open class AbstractIntegrationTest(private val config: TestConfig) {
     platformApiTests = PlatformApiTests(config, toml, jwt)
     callbackApiTests = CallbackApiTests(config, toml, jwt)
     stellarObserverTests = StellarObserverTests()
-    sep24E2eTests = Sep24End2EndTest(config, toml, jwt)
+    sep24E2eTests = Sep24End2EndTest(config, jwt)
     eventProcessingServerTests = EventProcessingServerTests(config, toml, jwt)
   }
 }

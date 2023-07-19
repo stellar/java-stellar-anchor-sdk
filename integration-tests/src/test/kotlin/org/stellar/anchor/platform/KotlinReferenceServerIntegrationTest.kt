@@ -6,6 +6,7 @@ import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.skyscreamer.jsonassert.JSONAssert
 import org.stellar.anchor.api.callback.SendEventRequest
+import org.stellar.anchor.util.StringHelper.json
 import org.stellar.reference.client.AnchorReferenceServerClient
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)

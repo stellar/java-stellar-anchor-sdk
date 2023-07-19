@@ -28,7 +28,7 @@ class AnchorReferenceServerClient(val endpoint: Url) {
 
     return gson.fromJson(response.body<String>(), SendEventResponse::class.java)
   }
-  suspend fun getEvents(): List<AnchorEvent> {
+  suspend fun getEvents(txnId: String? = null): List<AnchorEvent> {
     val response =
       client.get {
         url {
@@ -36,13 +36,12 @@ class AnchorReferenceServerClient(val endpoint: Url) {
           host = endpoint.host
           port = endpoint.port
           encodedPath = "/events"
+          txnId?.let { parameter("txnId", it) }
         }
       }
 
-    val listType = object : TypeToken<List<AnchorEvent>>() {}.type
-
     // Parse the JSON string into a list of Person objects
-    return gson.fromJson(response.body<String>(), listType)
+    return gson.fromJson(response.body<String>(), object : TypeToken<List<AnchorEvent>>() {}.type)
   }
 
   suspend fun getLatestEvent(): AnchorEvent? {
