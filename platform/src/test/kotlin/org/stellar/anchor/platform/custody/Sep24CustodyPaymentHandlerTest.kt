@@ -63,7 +63,7 @@ class Sep24CustodyPaymentHandlerTest {
 
     mockkStatic(Metrics::class)
 
-    every { rpcConfig.customMessages.incomingPaymentReceived } returns "payment received"
+    every { rpcConfig.actions.customMessages.incomingPaymentReceived } returns "payment received"
     every { custodyTransactionRepo.save(capture(custodyTxCapture)) } returns txn
     every {
       platformApiClient.notifyOnchainFundsReceived(
@@ -120,7 +120,7 @@ class Sep24CustodyPaymentHandlerTest {
 
     mockkStatic(Metrics::class)
 
-    every { rpcConfig.customMessages.outgoingPaymentSent } returns "payment sent"
+    every { rpcConfig.actions.customMessages.outgoingPaymentSent } returns "payment sent"
     every { custodyTransactionRepo.save(capture(custodyTxCapture)) } returns txn
     every {
       platformApiClient.notifyOnchainFundsSent(

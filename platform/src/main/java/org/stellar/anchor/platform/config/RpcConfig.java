@@ -6,7 +6,14 @@ import lombok.NoArgsConstructor;
 
 @Data
 public class RpcConfig {
-  private CustomMessages customMessages;
+  private Actions actions;
+
+  @Data
+  @AllArgsConstructor
+  @NoArgsConstructor
+  public static class Actions {
+    private CustomMessages customMessages;
+  }
 
   @Data
   @AllArgsConstructor

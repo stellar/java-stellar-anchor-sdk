@@ -1,8 +1,6 @@
 package org.stellar.anchor.platform.custody;
 
-import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT;
-import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.RECEIVE;
-import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL;
+import static org.stellar.anchor.api.sep.SepTransactionStatus.ERROR;
 import static org.stellar.anchor.util.Log.debugF;
 import static org.stellar.anchor.util.Log.warnF;
 import static org.stellar.anchor.util.MathHelper.decimal;
@@ -12,6 +10,7 @@ import java.io.IOException;
 import java.math.BigDecimal;
 import java.util.Set;
 import org.stellar.anchor.api.exception.AnchorException;
+import org.stellar.anchor.api.platform.PlatformTransactionData.Kind;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.apiclient.PlatformApiClient;
 import org.stellar.anchor.platform.config.RpcConfig;
@@ -73,36 +72,24 @@ public abstract class CustodyPaymentHandler {
     txn.setStatus(getCustodyTransactionStatus(payment.getStatus()).toString());
     custodyTransactionRepo.save(txn);
 
-    if (SepTransactionStatus.ERROR.equals(newSepTxnStatus)) {
+    if (ERROR == newSepTxnStatus) {
       platformApiClient.notifyTransactionError(
-          txn.getId(), rpcConfig.getCustomMessages().getCustodyTransactionFailed());
+          txn.getId(), rpcConfig.getActions().getCustomMessages().getCustodyTransactionFailed());
     } else {
-      switch (txn.getProtocol()) {
-        case "24":
-          if (DEPOSIT.getKind().equals(txn.getKind())) {
-            platformApiClient.notifyOnchainFundsSent(
-                txn.getSepTxId(),
-                payment.getTransactionHash(),
-                rpcConfig.getCustomMessages().getOutgoingPaymentSent());
-            return;
-          } else if (WITHDRAWAL.getKind().equals(txn.getKind())) {
-            platformApiClient.notifyOnchainFundsReceived(
-                txn.getSepTxId(),
-                payment.getTransactionHash(),
-                payment.getAmount(),
-                rpcConfig.getCustomMessages().getIncomingPaymentReceived());
-            return;
-          }
+      switch (Kind.from(txn.getKind())) {
+        case DEPOSIT:
+          platformApiClient.notifyOnchainFundsSent(
+              txn.getSepTxId(),
+              payment.getTransactionHash(),
+              rpcConfig.getActions().getCustomMessages().getOutgoingPaymentSent());
           break;
-        case "31":
-          if (RECEIVE.getKind().equals(txn.getKind())) {
-            platformApiClient.notifyOnchainFundsReceived(
-                txn.getSepTxId(),
-                payment.getTransactionHash(),
-                payment.getAmount(),
-                rpcConfig.getCustomMessages().getIncomingPaymentReceived());
-            return;
-          }
+        case WITHDRAWAL:
+        case RECEIVE:
+          platformApiClient.notifyOnchainFundsReceived(
+              txn.getSepTxId(),
+              payment.getTransactionHash(),
+              payment.getAmount(),
+              rpcConfig.getActions().getCustomMessages().getIncomingPaymentReceived());
           break;
       }
     }

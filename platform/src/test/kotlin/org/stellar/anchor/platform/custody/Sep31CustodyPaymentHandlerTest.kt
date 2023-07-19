@@ -67,7 +67,7 @@ class Sep31CustodyPaymentHandlerTest {
 
     mockkStatic(Metrics::class)
 
-    every { rpcConfig.customMessages.incomingPaymentReceived } returns "payment received"
+    every { rpcConfig.actions.customMessages.incomingPaymentReceived } returns "payment received"
     every { custodyTransactionRepo.save(capture(custodyTxCapture)) } returns txn
     every {
       platformApiClient.notifyOnchainFundsReceived(

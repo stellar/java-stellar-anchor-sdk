@@ -145,7 +145,7 @@ public class PaymentOperationToEventListener implements PaymentListener {
         txn.getId(),
         payment.getTransactionHash(),
         payment.getAmount(),
-        rpcConfig.getCustomMessages().getIncomingPaymentReceived());
+        rpcConfig.getActions().getCustomMessages().getIncomingPaymentReceived());
 
     // Update metrics
     Metrics.counter(
@@ -187,13 +187,13 @@ public class PaymentOperationToEventListener implements PaymentListener {
       platformApiClient.notifyOnchainFundsSent(
           txn.getId(),
           payment.getTransactionHash(),
-          rpcConfig.getCustomMessages().getOutgoingPaymentSent());
+          rpcConfig.getActions().getCustomMessages().getOutgoingPaymentSent());
     } else if (WITHDRAWAL.getKind().equals(txn.getKind())) {
       platformApiClient.notifyOnchainFundsReceived(
           txn.getId(),
           payment.getTransactionHash(),
           payment.getAmount(),
-          rpcConfig.getCustomMessages().getIncomingPaymentReceived());
+          rpcConfig.getActions().getCustomMessages().getIncomingPaymentReceived());
     }
 
     // Update metrics

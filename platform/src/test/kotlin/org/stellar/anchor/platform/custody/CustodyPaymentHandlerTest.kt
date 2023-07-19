@@ -116,7 +116,7 @@ class CustodyPaymentHandlerTest {
     val stellarTxnIdCapture = slot<String>()
     val messageCapture = slot<String>()
 
-    every { rpcConfig.customMessages.outgoingPaymentSent } returns "payment sent"
+    every { rpcConfig.actions.customMessages.outgoingPaymentSent } returns "payment sent"
 
     every { custodyTransactionRepo.save(capture(custodyTxCapture)) } returns txn
     every {
@@ -161,7 +161,7 @@ class CustodyPaymentHandlerTest {
     val stellarTxnIdCapture = slot<String>()
     val messageCapture = slot<String>()
 
-    every { rpcConfig.customMessages.outgoingPaymentSent } returns "payment sent"
+    every { rpcConfig.actions.customMessages.outgoingPaymentSent } returns "payment sent"
     every { custodyTransactionRepo.save(capture(custodyTxCapture)) } returns txn
     every {
       platformApiClient.notifyOnchainFundsSent(
@@ -204,7 +204,7 @@ class CustodyPaymentHandlerTest {
     val txnIdCapture = slot<String>()
     val messageCapture = slot<String>()
 
-    every { rpcConfig.customMessages.custodyTransactionFailed } returns "custody error"
+    every { rpcConfig.actions.customMessages.custodyTransactionFailed } returns "custody error"
     every { custodyTransactionRepo.save(capture(custodyTxCapture)) } returns txn
     every {
       platformApiClient.notifyTransactionError(capture(txnIdCapture), capture(messageCapture))
