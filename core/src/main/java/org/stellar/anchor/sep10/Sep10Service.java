@@ -91,16 +91,6 @@ public class Sep10Service {
         throw new SepValidationException("client_domain is required");
       }
 
-      List<String> denyList = sep10Config.getClientAttributionDenyList();
-      if (denyList != null
-          && denyList.size() > 0
-          && denyList.contains(challengeRequest.getClientDomain())) {
-        infoF(
-            "client_domain({}) provided is in the configured deny list",
-            challengeRequest.getClientDomain());
-        throw new SepNotAuthorizedException("unable to process.");
-      }
-
       List<String> allowList = sep10Config.getClientAttributionAllowList();
       if (allowList != null
           && allowList.size() > 0

@@ -6,7 +6,10 @@ import com.google.common.collect.Lists;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
+
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
@@ -18,6 +21,8 @@ public class ClientsConfig implements Validator {
   List<ClientConfig> clients = Lists.newLinkedList();
 
   @Data
+  @AllArgsConstructor
+  @NoArgsConstructor
   public static class ClientConfig {
     ClientType type;
     String signingKey;

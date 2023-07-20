@@ -15,8 +15,6 @@ public interface Sep10Config {
 
   Integer getJwtTimeout();
 
-  List<String> getClientAttributionDenyList();
-
   List<String> getClientAttributionAllowList();
 
   List<String> getOmnibusAccountList();
