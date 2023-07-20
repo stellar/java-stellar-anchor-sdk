@@ -23,7 +23,6 @@ public class SepConfigManager extends ConfigManager {
     // Read configuration from system environment variables, configuration file, and default values
     info("Read and process configurations");
     configMap = processConfigurations(applicationContext);
-    info("Configurations: " + configMap.data);
 
     // Make sure no secret is leaked.
     sanitize(configMap);
