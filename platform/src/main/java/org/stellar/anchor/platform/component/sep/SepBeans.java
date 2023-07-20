@@ -51,6 +51,12 @@ public class SepBeans {
   }
 
   @Bean
+  @ConfigurationProperties(prefix = "sep6")
+  Sep6Config sep6Config() {
+    return new PropertySep6Config();
+  }
+
+  @Bean
   @ConfigurationProperties(prefix = "sep10")
   Sep10Config sep10Config(
       AppConfig appConfig, SecretConfig secretConfig, ClientsConfig clientsConfig) {
@@ -109,8 +115,8 @@ public class SepBeans {
 
   @Bean
   @ConditionalOnAllSepsEnabled(seps = {"sep6"})
-  Sep6Service sep6Service(AssetService assetService) {
-    return new Sep6Service(assetService);
+  Sep6Service sep6Service(Sep6Config sep6Config, AssetService assetService) {
+    return new Sep6Service(sep6Config, assetService);
   }
 
   @Bean

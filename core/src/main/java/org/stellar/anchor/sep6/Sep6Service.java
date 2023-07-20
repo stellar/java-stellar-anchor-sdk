@@ -8,13 +8,16 @@ import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.sep6.InfoResponse;
 import org.stellar.anchor.api.sep.sep6.InfoResponse.*;
 import org.stellar.anchor.asset.AssetService;
+import org.stellar.anchor.config.Sep6Config;
 
 public class Sep6Service {
+  private final Sep6Config sep6Config;
   private final AssetService assetService;
 
   private final InfoResponse infoResponse;
 
-  public Sep6Service(AssetService assetService) {
+  public Sep6Service(Sep6Config sep6Config, AssetService assetService) {
+    this.sep6Config = sep6Config;
     this.assetService = assetService;
     this.infoResponse = buildInfoResponse();
   }
@@ -30,6 +33,20 @@ public class Sep6Service {
             .depositExchange(new HashMap<>())
             .withdraw(new HashMap<>())
             .withdrawExchange(new HashMap<>())
+            .fee(
+                FeeResponse.builder()
+                    .enabled(false)
+                    .description("Fee endpoint is not supported.")
+                    .build())
+            .transactions(
+                TransactionsResponse.builder().enabled(true).authenticationRequired(true).build())
+            .transaction(
+                TransactionResponse.builder().enabled(true).authenticationRequired(true).build())
+            .features(
+                FeaturesResponse.builder()
+                    .accountCreation(sep6Config.getFeatures().isAccountCreation())
+                    .claimableBalances(sep6Config.getFeatures().isClaimableBalances())
+                    .build())
             .build();
 
     for (AssetInfo asset : assetService.listAllAssets()) {

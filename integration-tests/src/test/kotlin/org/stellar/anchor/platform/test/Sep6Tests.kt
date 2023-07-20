@@ -1,48 +1,16 @@
-package org.stellar.anchor
+package org.stellar.anchor.platform.test
 
-import com.google.gson.Gson
-import io.mockk.MockKAnnotations
-import io.mockk.clearAllMocks
-import io.mockk.every
-import io.mockk.impl.annotations.MockK
-import io.mockk.unmockkAll
-import kotlin.test.assertEquals
-import org.junit.jupiter.api.AfterEach
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
-import org.stellar.anchor.api.sep.sep6.InfoResponse
-import org.stellar.anchor.asset.AssetService
-import org.stellar.anchor.asset.DefaultAssetService
-import org.stellar.anchor.config.Sep6Config
-import org.stellar.anchor.sep6.Sep6Service
-import org.stellar.anchor.util.GsonUtils
+import org.skyscreamer.jsonassert.JSONAssert
+import org.skyscreamer.jsonassert.JSONCompareMode
+import org.stellar.anchor.platform.Sep6Client
+import org.stellar.anchor.platform.gson
+import org.stellar.anchor.util.Log
+import org.stellar.anchor.util.Sep1Helper.TomlContent
 
-class Sep6ServiceTest {
-  companion object {
-    val gson: Gson = GsonUtils.getInstance()
-  }
+class Sep6Tests(val toml: TomlContent) {
+  private val sep6Client = Sep6Client(toml.getString("TRANSFER_SERVER"))
 
-  private val assetService: AssetService = DefaultAssetService.fromJsonResource("test_assets.json")
-
-  @MockK(relaxed = true) lateinit var sep6Config: Sep6Config
-
-  private lateinit var sep6Service: Sep6Service
-
-  @BeforeEach
-  fun setup() {
-    MockKAnnotations.init(this, relaxUnitFun = true)
-    every { sep6Config.features.isAccountCreation } returns false
-    every { sep6Config.features.isClaimableBalances } returns false
-    sep6Service = Sep6Service(sep6Config, assetService)
-  }
-
-  @AfterEach
-  fun teardown() {
-    clearAllMocks()
-    unmockkAll()
-  }
-
-  private val infoJson =
+  private val expectedSep6Info =
     """
       {
         "deposit": {
@@ -117,9 +85,13 @@ class Sep6ServiceTest {
     """
       .trimIndent()
 
-  @Test
-  fun `test INFO response`() {
-    val infoResponse = sep6Service.info
-    assertEquals(gson.fromJson(infoJson, InfoResponse::class.java), infoResponse)
+  private fun `test Sep6 info endpoint`() {
+    val info = sep6Client.getInfo()
+    JSONAssert.assertEquals(expectedSep6Info, gson.toJson(info), JSONCompareMode.LENIENT)
+  }
+
+  fun testAll() {
+    Log.info("Performing SEP6 tests")
+    `test Sep6 info endpoint`()
   }
 }
