@@ -370,6 +370,7 @@ internal class Sep10ServiceTest {
   )
   fun `test create challenge ok`(clientAttributionRequired: String, clientDomain: String) {
     every { sep10Config.isClientAttributionRequired } returns clientAttributionRequired.toBoolean()
+    every { sep10Config.clientAttributionAllowList } returns listOf(TEST_CLIENT_DOMAIN)
     val cr =
       ChallengeRequest.builder()
         .account(TEST_ACCOUNT)
