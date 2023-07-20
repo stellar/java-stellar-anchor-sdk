@@ -6,7 +6,6 @@ import com.google.common.collect.Lists;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
