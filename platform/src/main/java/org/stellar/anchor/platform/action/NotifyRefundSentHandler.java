@@ -7,6 +7,7 @@ import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_STELLAR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.REFUNDED;
 import static org.stellar.anchor.util.AssetHelper.getAssetCode;
 import static org.stellar.anchor.util.MathHelper.decimal;
+import static org.stellar.anchor.util.MathHelper.sum;
 
 import java.math.BigDecimal;
 import java.util.HashSet;
@@ -83,19 +84,26 @@ public class NotifyRefundSentHandler extends ActionHandler<NotifyRefundSentReque
 
     JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
     AssetInfo assetInfo = assetService.getAsset(getAssetCode(txn.getAmountInAsset()));
+    Sep24Refunds sep24Refunds = txn24.getRefunds();
+    NotifyRefundSentRequest.Refund refund = request.getRefund();
+
     BigDecimal totalRefunded;
-    if (txn24.getRefunds() == null || txn24.getRefunds().getRefundPayments() == null) {
-      totalRefunded = BigDecimal.ZERO;
+    if (sep24Refunds == null || sep24Refunds.getRefundPayments() == null) {
+      totalRefunded =
+          sum(assetInfo, refund.getAmount().getAmount(), refund.getAmountFee().getAmount());
     } else {
       if (PENDING_ANCHOR == SepTransactionStatus.from(txn.getStatus())) {
         totalRefunded =
-            decimal(txn24.getRefunds().getAmountRefunded(), assetInfo)
-                .add(decimal(request.getRefund().getAmount().getAmount(), assetInfo));
+            sum(
+                assetInfo,
+                sep24Refunds.getAmountRefunded(),
+                refund.getAmount().getAmount(),
+                refund.getAmountFee().getAmount());
       } else { // PENDING_EXTERNAL
         if (request.getRefund() == null) {
-          totalRefunded = decimal(txn24.getRefunds().getAmountRefunded(), assetInfo);
+          totalRefunded = decimal(sep24Refunds.getAmountRefunded(), assetInfo);
         } else {
-          List<Sep24RefundPayment> payments = txn24.getRefunds().getRefundPayments();
+          List<Sep24RefundPayment> payments = sep24Refunds.getRefundPayments();
 
           // make sure refund, provided in request, was sent on refund_initialized
           payments.stream()
@@ -109,20 +117,26 @@ public class NotifyRefundSentHandler extends ActionHandler<NotifyRefundSentReque
                   .map(
                       payment -> {
                         if (payment.getId().equals(request.getRefund().getId())) {
-                          return request.getRefund().getAmount().getAmount();
+                          return sum(
+                              assetInfo,
+                              refund.getAmount().getAmount(),
+                              refund.getAmountFee().getAmount());
                         } else {
-                          return payment.getAmount();
+                          return sum(assetInfo, payment.getAmount(), payment.getFee());
                         }
                       })
-                  .map(amount -> decimal(amount, assetInfo))
                   .reduce(BigDecimal.ZERO, BigDecimal::add);
         }
       }
     }
-    if (totalRefunded.compareTo(decimal(txn.getAmountIn(), assetInfo)) >= 0) {
+
+    BigDecimal amountIn = decimal(txn.getAmountIn(), assetInfo);
+    if (totalRefunded.compareTo(amountIn) == 0) {
       return REFUNDED;
-    } else {
+    } else if (totalRefunded.compareTo(amountIn) < 0) {
       return PENDING_ANCHOR;
+    } else {
+      throw new InvalidParamsException("Refund amount exceeds amount_in");
     }
   }
 

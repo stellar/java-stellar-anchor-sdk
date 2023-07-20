@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform.action;
 
+import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL;
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24;
 import static org.stellar.anchor.api.rpc.action.ActionMethod.NOTIFY_AMOUNTS_UPDATED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
@@ -8,6 +9,7 @@ import java.util.Set;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException;
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException;
+import org.stellar.anchor.api.platform.PlatformTransactionData.Kind;
 import org.stellar.anchor.api.platform.PlatformTransactionData.Sep;
 import org.stellar.anchor.api.rpc.action.ActionMethod;
 import org.stellar.anchor.api.rpc.action.AmountAssetRequest;
@@ -69,8 +71,10 @@ public class NotifyAmountsUpdatedHandler extends ActionHandler<NotifyAmountsUpda
   protected Set<SepTransactionStatus> getSupportedStatuses(JdbcSepTransaction txn) {
     if (SEP_24 == Sep.from(txn.getProtocol())) {
       JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
-      if (txn24.getTransferReceivedAt() != null) {
-        return Set.of(PENDING_ANCHOR);
+      if (WITHDRAWAL == Kind.from(txn24.getKind())) {
+        if (txn24.getTransferReceivedAt() != null) {
+          return Set.of(PENDING_ANCHOR);
+        }
       }
     }
     return Set.of();
