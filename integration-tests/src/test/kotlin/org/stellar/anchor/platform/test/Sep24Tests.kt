@@ -17,6 +17,7 @@ import org.stellar.anchor.auth.Sep24InteractiveUrlJwt
 import org.stellar.anchor.auth.Sep24MoreInfoUrlJwt
 import org.stellar.anchor.platform.*
 import org.stellar.anchor.util.Sep1Helper.*
+import org.stellar.anchor.util.StringHelper.json
 
 lateinit var savedWithdrawTxn: Sep24GetTransactionResponse
 lateinit var savedDepositTxn: Sep24GetTransactionResponse
