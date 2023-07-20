@@ -6,15 +6,17 @@ import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import org.stellar.anchor.api.event.AnchorEvent
 import org.stellar.reference.data.SendEventRequest
+import org.stellar.reference.log
 
 class EventService {
   private val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
   private val receivedEvents: MutableList<AnchorEvent> = mutableListOf()
+
   fun processEvent(receivedEvent: SendEventRequest) {
     val instant = Instant.ofEpochSecond(receivedEvent.timestamp)
     val dateTime = LocalDateTime.ofInstant(instant, ZoneId.systemDefault())
 
-    println("Received event created on ${dateTime.format(formatter)}")
+    log.trace("Received event created on ${dateTime.format(formatter)}")
     receivedEvents.add(receivedEvent.payload)
   }
 
@@ -36,6 +38,7 @@ class EventService {
 
   // Clear all events. This is for testing purpose
   fun clearEvents() {
+    log.debug("Clearing events")
     receivedEvents.clear()
   }
 }

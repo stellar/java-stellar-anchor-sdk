@@ -14,27 +14,42 @@ import org.stellar.anchor.auth.AuthHelper;
 import org.stellar.anchor.util.GsonUtils;
 import org.stellar.anchor.util.OkHttpUtil;
 
+/** The client for the CallbackAPI endpoints. */
 public class CallbackApiClient extends BaseApiClient {
   static final Gson gson = GsonUtils.getInstance();
+  final HttpUrl url;
 
-  public CallbackApiClient(AuthHelper authHelper, String endpoint) {
+  /**
+   * Creates a new CallbackApiClient.
+   *
+   * @param authHelper the AuthHelper to use for authentication.
+   * @param endpoint the API endpoint.
+   */
+  public CallbackApiClient(AuthHelper authHelper, String endpoint) throws InvalidConfigException {
     super(authHelper, endpoint);
-  }
-
-  public SendEventResponse sendEvent(SendEventRequest sendEventRequest)
-      throws AnchorException, IOException {
-    HttpUrl url = HttpUrl.parse(endpoint);
-    if (url == null)
+    HttpUrl endpointUrl = HttpUrl.parse(endpoint);
+    if (endpointUrl == null)
       throw new InvalidConfigException(
           String.format("Invalid endpoint: %s of the client.", endpoint));
-    url =
+    this.url =
         new HttpUrl.Builder()
-            .scheme(url.scheme())
-            .host(url.host())
-            .port(url.port())
+            .scheme(endpointUrl.scheme())
+            .host(endpointUrl.host())
+            .port(endpointUrl.port())
             .addPathSegment("event")
             .build();
+  }
 
+  /**
+   * Sends an event to the /event Callback API endpoint.
+   *
+   * @param sendEventRequest the SendEventRequest to send.
+   * @return the SendEventResponse.
+   * @throws AnchorException if the response is not successful.
+   * @throws IOException if the request fails due to IO errors.
+   */
+  public SendEventResponse sendEvent(SendEventRequest sendEventRequest)
+      throws AnchorException, IOException {
     RequestBody requestBody = OkHttpUtil.buildJsonRequestBody(gson.toJson(sendEventRequest));
     Request request = getRequestBuilder().url(url).post(requestBody).build();
     Response response = client.newCall(request).execute();

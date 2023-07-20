@@ -15,6 +15,7 @@ fun Route.event(eventService: EventService) {
   val gson: Gson = GsonUtils.getInstance()
 
   route("/event") {
+    // The `POST /event` endpoint of the CallbackAPI to receive an event.
     post {
       val receivedEventJson = call.receive<String>()
       val receivedEvent = gson.fromJson(receivedEventJson, SendEventRequest::class.java)
@@ -23,13 +24,17 @@ fun Route.event(eventService: EventService) {
     }
   }
   route("/events") {
+    // Test endpoint to get the events recorded by the reference server.
+    // The `txnId` parameter is optional. If it is provided, only the events with the given `txnId` will be returned.
     get { call.respond(gson.toJson(eventService.getEvents(call.parameters["txnId"]))) }
+    // Test endpoint to clear the events recorded by the reference server.
     delete {
       eventService.clearEvents()
       call.respond("Events cleared")
     }
   }
   route("/events/latest") {
+    // Test endpoint to get the latest event recorded by the reference server.
     get {
       val latestEvent = eventService.getLatestEvent()
       if (latestEvent != null) {
