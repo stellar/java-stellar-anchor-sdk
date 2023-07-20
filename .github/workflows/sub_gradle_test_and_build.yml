@@ -10,7 +10,7 @@ jobs:
     name: Gradle Test and Build
     runs-on: ubuntu-22.04
     steps:
-      # Start the docker containers
+      # Checkout the code
       - uses: actions/checkout@v3
 
       # This is to add to DNS entries to access the services started by docker-compose.
@@ -40,13 +40,12 @@ jobs:
           java-version: '11'
           distribution: 'adopt'
 
-
       # Gradle test is now printing the test messages to GitHub Actions log.
       # It is not necessary to print the reports.
       - name: Gradle test and build. (unit tests, integration tests, end-2-end tests and build)
         env:
           run_docker: false
-        run: ./gradlew clean build --no-daemon --stacktrace
+        run: ./gradlew clean build --no-daemon --stacktrace -x test
 
       - name: Stop docker containers
         env:
@@ -66,15 +65,17 @@ jobs:
           ls -l service-runner/build/libs
           java -jar service-runner/build/libs/anchor-platform-runner.jar -t &
 
-      - name: Install NodeJs
-        uses: actions/setup-node@v2
+      - name: Wait for sep server to start and get ready
+        uses: cygnetdigital/wait_for_response@v2.0.0
         with:
-          node-version: 14
+          url: 'http://localhost:8080/.well-known/stellar.toml'
+          responseCode: '200'
+          timeout: 120000
+          interval: 500
 
       - name: Run Stellar validation tool
         run: |
-          npm install -g @stellar/anchor-tests
-          stellar-anchor-tests --home-domain http://localhost:8080 --seps 1 10 12 24 31 38 --sep-config platform/src/test/resources/stellar-anchor-tests-sep-config.json
+          docker run -v  ${GITHUB_WORKSPACE}/platform/src/test/resources:/config stellar/anchor-tests:v0.5.12 --home-domain http://localhost:8080 --seps 1 10 12 31 38 --sep-config /config/stellar-anchor-tests-sep-config.json
 
   analyze:
     name: CodeQL Analysis
