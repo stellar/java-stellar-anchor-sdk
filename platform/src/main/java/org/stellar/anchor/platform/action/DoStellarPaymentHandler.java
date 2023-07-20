@@ -92,10 +92,7 @@ public class DoStellarPaymentHandler extends ActionHandler<DoStellarPaymentReque
       JdbcSepTransaction txn, DoStellarPaymentRequest request) throws AnchorException {
     JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
     if (horizon.isTrustLineConfigured(txn24.getToAccount(), txn24.getAmountOutAsset())) {
-      // TODO: Do we need to send request body?
       custodyService.createTransactionPayment(txn24.getId(), null);
-    } else {
-      // TODO: Add account and asset to DB table, so that the cron job can check trust
     }
   }
 }
