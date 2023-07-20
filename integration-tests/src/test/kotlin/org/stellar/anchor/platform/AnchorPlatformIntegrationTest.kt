@@ -53,6 +53,12 @@ class AnchorPlatformIntegrationTest : AbstractIntegrationTest(TestConfig(profile
   }
 
   @Test
+  @Order(16)
+  fun runSep6Test() {
+    singleton.sep6Tests.testAll()
+  }
+
+  @Test
   @Order(21)
   fun runSepHealthTest() {
     singleton.sepHealthTests.testAll()

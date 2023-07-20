@@ -2,10 +2,7 @@ package org.stellar.anchor.api.sep;
 
 import com.google.gson.annotations.SerializedName;
 import java.util.List;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.EqualsAndHashCode;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.stellar.anchor.api.sep.operation.Sep31Operation;
 import org.stellar.anchor.api.sep.operation.Sep38Operation;
 
@@ -108,6 +105,7 @@ public class AssetInfo {
   }
 
   @Data
+  @Builder
   @AllArgsConstructor
   @NoArgsConstructor
   public static class Field {

@@ -36,6 +36,7 @@ import org.stellar.anchor.sep31.Sep31Service;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
 import org.stellar.anchor.sep38.Sep38Service;
+import org.stellar.anchor.sep6.Sep6Service;
 
 /** SEP configurations */
 @Configuration
@@ -104,6 +105,12 @@ public class SepBeans {
   @ConditionalOnAllSepsEnabled(seps = {"sep1"})
   Sep1Service sep1Service(Sep1Config sep1Config) throws IOException, InvalidConfigException {
     return new Sep1Service(sep1Config);
+  }
+
+  @Bean
+  @ConditionalOnAllSepsEnabled(seps = {"sep6"})
+  Sep6Service sep6Service(AssetService assetService) {
+    return new Sep6Service(assetService);
   }
 
   @Bean

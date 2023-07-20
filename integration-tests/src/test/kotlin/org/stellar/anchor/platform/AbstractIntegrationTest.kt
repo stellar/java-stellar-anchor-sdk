@@ -18,6 +18,7 @@ open class AbstractIntegrationTest(private val config: TestConfig) {
   }
 
   private val testProfileRunner = TestProfileExecutor(config)
+  lateinit var sep6Tests: Sep6Tests
   lateinit var sep10Tests: Sep10Tests
   lateinit var sep12Tests: Sep12Tests
   lateinit var sep24Tests: Sep24Tests
@@ -50,6 +51,7 @@ open class AbstractIntegrationTest(private val config: TestConfig) {
     // Get JWT
     val jwt = sep10Tests.sep10Client.auth()
 
+    sep6Tests = Sep6Tests(toml)
     sep12Tests = Sep12Tests(config, toml, jwt)
     sep24Tests = Sep24Tests(config, toml, jwt)
     sep31Tests = Sep31Tests(config, toml, jwt)
