@@ -8,6 +8,7 @@ import org.jetbrains.annotations.NotNull;
 import org.springframework.validation.Errors;
 import org.springframework.validation.Validator;
 import org.stellar.anchor.auth.AuthConfig;
+import org.stellar.anchor.auth.AuthHelper;
 import org.stellar.anchor.auth.AuthType;
 import org.stellar.anchor.util.NetUtil;
 
@@ -74,5 +75,9 @@ public class CallbackApiConfig implements Validator {
         }
       }
     }
+  }
+
+  public AuthHelper buildAuthHelper() {
+    return AuthHelper.from(getAuth().getType(), getAuth().getSecret(), 60000);
   }
 }

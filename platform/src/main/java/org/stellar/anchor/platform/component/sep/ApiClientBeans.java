@@ -65,7 +65,7 @@ public class ApiClientBeans {
   @Bean
   UniqueAddressIntegration uniqueAddressIntegration(
       CallbackApiConfig callbackApiConfig, OkHttpClient httpClient, Gson gson) {
-    AuthHelper authHelper = buildAuthHelper(callbackApiConfig);
+    AuthHelper authHelper = callbackApiConfig.buildAuthHelper();
     return new RestUniqueAddressIntegration(
         callbackApiConfig.getBaseUrl(), httpClient, authHelper, gson);
   }
@@ -74,25 +74,20 @@ public class ApiClientBeans {
   CustomerIntegration customerIntegration(
       CallbackApiConfig callbackApiConfig, OkHttpClient httpClient, Gson gson) {
     return new RestCustomerIntegration(
-        callbackApiConfig.getBaseUrl(), httpClient, buildAuthHelper(callbackApiConfig), gson);
+        callbackApiConfig.getBaseUrl(), httpClient, callbackApiConfig.buildAuthHelper(), gson);
   }
 
   @Bean
   RateIntegration rateIntegration(
       CallbackApiConfig callbackApiConfig, OkHttpClient httpClient, Gson gson) {
     return new RestRateIntegration(
-        callbackApiConfig.getBaseUrl(), httpClient, buildAuthHelper(callbackApiConfig), gson);
+        callbackApiConfig.getBaseUrl(), httpClient, callbackApiConfig.buildAuthHelper(), gson);
   }
 
   @Bean
   FeeIntegration feeIntegration(
       CallbackApiConfig callbackApiConfig, OkHttpClient httpClient, Gson gson) {
     return new RestFeeIntegration(
-        callbackApiConfig.getBaseUrl(), httpClient, buildAuthHelper(callbackApiConfig), gson);
-  }
-
-  AuthHelper buildAuthHelper(CallbackApiConfig callbackApiConfig) {
-    return AuthHelper.from(
-        callbackApiConfig.getAuth().getType(), callbackApiConfig.getAuth().getSecret(), 60000);
+        callbackApiConfig.getBaseUrl(), httpClient, callbackApiConfig.buildAuthHelper(), gson);
   }
 }

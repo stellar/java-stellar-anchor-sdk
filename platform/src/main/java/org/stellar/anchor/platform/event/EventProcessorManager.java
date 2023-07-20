@@ -55,7 +55,7 @@ public class EventProcessorManager {
           new EventProcessor(
               CALLBACK_API_EVENT_PROCESSOR_NAME,
               EventQueue.TRANSACTION,
-              new CallbackApiHandler(callbackApiConfig)));
+              new CallbackApiEventHandler(callbackApiConfig)));
       // Create a processor of the client status callback handler for each client defined in the
       // clientsConfig
       if (eventProcessorConfig.getClientStatusCallback().isEnabled()) {

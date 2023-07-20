@@ -5,7 +5,8 @@ import org.junit.jupiter.api.*
 import org.stellar.anchor.platform.test.*
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
-class AnchorPlatformIntegrationTest : AbstractIntegrationTest(TestConfig(profileName = "default")) {
+class AnchorPlatformIntegrationTest :
+  AbstractIntegrationTest(TestConfig(testProfileName = "default")) {
   companion object {
     private val singleton = AnchorPlatformIntegrationTest()
 

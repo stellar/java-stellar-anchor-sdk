@@ -17,7 +17,7 @@ lateinit var testProfileExecutor: TestProfileExecutor
 
 fun main() = runBlocking {
   info("Starting TestPfofileExecutor...")
-  testProfileExecutor = TestProfileExecutor(TestConfig(profileName = "default"))
+  testProfileExecutor = TestProfileExecutor(TestConfig(testProfileName = "default"))
 
   launch {
     Runtime.getRuntime()
@@ -83,7 +83,7 @@ class TestProfileExecutor(val config: TestConfig) {
 
       if (shouldStartAllServers || shouldStartKotlinReferenceServer) {
         info("Starting Kotlin reference server...")
-        jobs += scope.launch { ServiceRunner.startKotlinReferenceServer(envMap, false) }
+        jobs += scope.launch { ServiceRunner.startKotlinReferenceServer(envMap, wait) }
       }
       if (shouldStartAllServers || shouldStartReferenceServer) {
         info("Starting Java reference server...")
