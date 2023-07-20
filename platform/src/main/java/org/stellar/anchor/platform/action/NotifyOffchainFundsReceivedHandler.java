@@ -63,9 +63,12 @@ public class NotifyOffchainFundsReceivedHandler
             && request.getAmountFee() == null)
         || (request.getAmountIn() != null
             && request.getAmountOut() != null
-            && request.getAmountFee() != null))) {
+            && request.getAmountFee() != null)
+        || (request.getAmountIn() != null
+            && request.getAmountOut() == null
+            && request.getAmountFee() == null))) {
       throw new InvalidParamsException(
-          "All or none of the amount_in, amount_out, and amount_fee should be set");
+          "Invalid amounts combination provided: all, none or only amount_in should be set");
     }
 
     if (request.getAmountIn() != null) {
