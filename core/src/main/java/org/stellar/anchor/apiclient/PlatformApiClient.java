@@ -7,6 +7,7 @@ import static org.stellar.anchor.api.rpc.action.ActionMethod.NOTIFY_TRANSACTION_
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 import java.util.function.Function;
 import javax.annotation.Nullable;
 import okhttp3.HttpUrl;
@@ -130,6 +131,7 @@ public class PlatformApiClient extends BaseApiClient {
       throws IOException, AnchorException {
     RpcRequest rpcRequest =
         RpcRequest.builder()
+            .id(UUID.randomUUID().toString())
             .method(method.toString())
             .jsonrpc(JSON_RPC_VERSION)
             .params(requestParams)

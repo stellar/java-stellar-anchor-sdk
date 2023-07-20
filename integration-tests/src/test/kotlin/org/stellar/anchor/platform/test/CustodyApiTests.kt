@@ -13,8 +13,6 @@ import org.stellar.anchor.api.exception.SepException
 import org.stellar.anchor.api.exception.SepNotFoundException
 import org.stellar.anchor.api.rpc.RpcRequest
 import org.stellar.anchor.api.rpc.action.ActionMethod
-import org.stellar.anchor.api.rpc.action.AmountAssetRequest
-import org.stellar.anchor.api.rpc.action.AmountRequest
 import org.stellar.anchor.api.rpc.action.NotifyOffchainFundsReceivedRequest
 import org.stellar.anchor.api.rpc.action.RequestOffchainFundsRequest
 import org.stellar.anchor.api.sep.SepTransactionStatus
@@ -25,6 +23,7 @@ import org.stellar.anchor.platform.Sep24Client
 import org.stellar.anchor.platform.TestConfig
 import org.stellar.anchor.platform.custody.fireblocks.FireblocksEventService.FIREBLOCKS_SIGNATURE_HEADER
 import org.stellar.anchor.platform.gson
+import org.stellar.anchor.platform.utils.RpcUtil.JSON_RPC_VERSION
 import org.stellar.anchor.util.Sep1Helper
 
 class CustodyApiTests(val config: TestConfig, val toml: Sep1Helper.TomlContent, jwt: String) {
@@ -97,33 +96,14 @@ class CustodyApiTests(val config: TestConfig, val toml: Sep1Helper.TomlContent, 
     )
 
     val requestOffchainFundsParams =
-      RequestOffchainFundsRequest.builder()
-        .transactionId(txId)
-        .amountIn(
-          AmountAssetRequest(
-            "1",
-            "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
-          )
-        )
-        .amountOut(
-          AmountAssetRequest(
-            "0.9",
-            "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
-          )
-        )
-        .amountFee(
-          AmountAssetRequest(
-            "0.1",
-            "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
-          )
-        )
-        .amountExpected(AmountRequest("0.9"))
-        .build()
+      gson.fromJson(REQUEST_OFFCHAIN_FUNDS, RequestOffchainFundsRequest::class.java)
+    requestOffchainFundsParams.transactionId = txId
     var rpcRequest =
       RpcRequest.builder()
         .method(ActionMethod.REQUEST_OFFCHAIN_FUNDS.toString())
-        .jsonrpc(PlatformApiClient.JSON_RPC_VERSION)
+        .jsonrpc(JSON_RPC_VERSION)
         .params(requestOffchainFundsParams)
+        .id(1)
         .build()
     platformApiClient.callRpcAction(listOf(rpcRequest))
 
@@ -131,32 +111,13 @@ class CustodyApiTests(val config: TestConfig, val toml: Sep1Helper.TomlContent, 
     Assertions.assertEquals(SepTransactionStatus.PENDING_USR_TRANSFER_START, txResponse.status)
 
     val notifyOffchainFundsReceivedParams =
-      NotifyOffchainFundsReceivedRequest.builder()
-        .transactionId(txId)
-        .amountIn(
-          AmountAssetRequest(
-            "1",
-            "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
-          )
-        )
-        .amountOut(
-          AmountAssetRequest(
-            "0.9",
-            "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
-          )
-        )
-        .amountFee(
-          AmountAssetRequest(
-            "0.1",
-            "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
-          )
-        )
-        .externalTransactionId("1")
-        .build()
+      gson.fromJson(NOTIFY_OFFCHAIN_FUNDS_RECEIVED, NotifyOffchainFundsReceivedRequest::class.java)
+    notifyOffchainFundsReceivedParams.transactionId = txId
     rpcRequest =
       RpcRequest.builder()
+        .id(2)
         .method(ActionMethod.NOTIFY_OFFCHAIN_FUNDS_RECEIVED.toString())
-        .jsonrpc(PlatformApiClient.JSON_RPC_VERSION)
+        .jsonrpc(JSON_RPC_VERSION)
         .params(notifyOffchainFundsReceivedParams)
         .build()
     platformApiClient.callRpcAction(listOf(rpcRequest))
@@ -365,7 +326,7 @@ private const val expectedTransactionResponse =
     "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
   },
   "amount_expected": {
-    "amount": "0.9",
+    "amount": "1",
     "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
   },
   "transfer_received_at": "2023-06-22T08:46:39.336Z",
@@ -393,3 +354,43 @@ private const val expectedTransactionResponse =
   "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
 }
 """
+
+private const val REQUEST_OFFCHAIN_FUNDS =
+  """{
+    "transaction_id": "testTxId",
+    "message": "test message",
+    "amount_in": {
+        "amount": "1",
+        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+    },
+    "amount_out": {
+        "amount": "0.9",
+        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+    },
+    "amount_fee": {
+        "amount": "0.1",
+        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+    },
+    "amount_expected": {
+        "amount": "1"
+    }
+  }"""
+
+private const val NOTIFY_OFFCHAIN_FUNDS_RECEIVED =
+  """{
+    "transaction_id": "testTxId",
+    "message": "test message",
+    "amount_in": {
+        "amount": "1",
+        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+    },
+    "amount_out": {
+        "amount": "0.9",
+        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+    },
+    "amount_fee": {
+        "amount": "0.1",
+        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+    },
+    "external_transaction_id": "1"
+  }"""
