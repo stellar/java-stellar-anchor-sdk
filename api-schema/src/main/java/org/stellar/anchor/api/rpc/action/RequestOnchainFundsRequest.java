@@ -1,5 +1,6 @@
 package org.stellar.anchor.api.rpc.action;
 
+import com.google.gson.annotations.SerializedName;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -11,11 +12,23 @@ import lombok.experimental.SuperBuilder;
 @EqualsAndHashCode(callSuper = false)
 public class RequestOnchainFundsRequest extends RpcActionParamsRequest {
 
+  @SerializedName("amount_in")
   private AmountAssetRequest amountIn;
+
+  @SerializedName("amount_out")
   private AmountAssetRequest amountOut;
+
+  @SerializedName("amount_fee")
   private AmountAssetRequest amountFee;
+
+  @SerializedName("amount_expected")
   private AmountRequest amountExpected;
+
+  @SerializedName("destination_account")
   private String destinationAccount;
-  private String memo;
+
+  @SerializedName("memo_type")
   private String memoType;
+
+  private String memo;
 }

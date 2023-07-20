@@ -23,7 +23,6 @@ import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.CustodyConfig;
 import org.stellar.anchor.custody.CustodyService;
-import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.platform.utils.AssetValidationUtils;
@@ -41,7 +40,6 @@ public class NotifyOffchainFundsReceivedHandler
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
-      Horizon horizon,
       AssetService assetService,
       CustodyService custodyService,
       CustodyConfig custodyConfig) {
@@ -49,7 +47,6 @@ public class NotifyOffchainFundsReceivedHandler
         txn24Store,
         txn31Store,
         requestValidator,
-        horizon,
         assetService,
         NotifyOffchainFundsReceivedRequest.class);
     this.custodyService = custodyService;
@@ -110,14 +107,7 @@ public class NotifyOffchainFundsReceivedHandler
   protected SepTransactionStatus getNextStatus(
       JdbcSepTransaction txn, NotifyOffchainFundsReceivedRequest request)
       throws InvalidRequestException {
-    JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
-    if (DEPOSIT == Kind.from(txn24.getKind())) {
-      return PENDING_ANCHOR;
-    }
-    throw new InvalidRequestException(
-        String.format(
-            "Invalid kind[%s] for protocol[%s] and action[%s]",
-            txn24.getKind(), txn24.getProtocol(), getActionType()));
+    return PENDING_ANCHOR;
   }
 
   @Override

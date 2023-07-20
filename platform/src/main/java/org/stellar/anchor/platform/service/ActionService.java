@@ -7,6 +7,7 @@ import static org.stellar.anchor.platform.utils.RpcUtil.getRpcErrorResponse;
 import static org.stellar.anchor.platform.utils.RpcUtil.getRpcSuccessResponse;
 import static org.stellar.anchor.platform.utils.RpcUtil.validateRpcRequest;
 import static org.stellar.anchor.util.Log.debugF;
+import static org.stellar.anchor.util.Log.error;
 
 import java.util.List;
 import java.util.Map;
@@ -32,16 +33,26 @@ public class ActionService {
   public List<RpcResponse> handleRpcCalls(List<RpcRequest> rpcCalls) {
     return rpcCalls.stream()
         .map(
-            rpcCall -> {
-              final Object rpcId = rpcCall.getId();
+            rc -> {
+              final Object rpcId = rc.getId();
               try {
-                validateRpcRequest(rpcCall);
-                return getRpcSuccessResponse(rpcId, processRpcCall(rpcCall));
+                validateRpcRequest(rc);
+                return getRpcSuccessResponse(rpcId, processRpcCall(rc));
               } catch (RpcException ex) {
+                error(
+                    String.format(
+                        "An RPC error occurred while processing an RPC call with action[%s] and id[%s]",
+                        rc.getMethod(), rpcId),
+                    ex);
                 return getRpcErrorResponse(rpcId, ex);
               } catch (BadRequestException ex) {
                 return getRpcErrorResponse(rpcId, ex);
               } catch (Exception ex) {
+                error(
+                    String.format(
+                        "An internal error occurred while processing an RPC call with action[%s] and id[%s]",
+                        rc.getMethod(), rpcId),
+                    ex);
                 return getRpcErrorResponse(rpcId, new InternalErrorException(ex.getMessage()));
               }
             })

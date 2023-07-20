@@ -6,7 +6,6 @@ import io.mockk.impl.annotations.MockK
 import io.mockk.mockkStatic
 import io.mockk.verify
 import kotlin.test.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -33,12 +32,12 @@ class ActionServiceTest {
     private const val INVALID_RPC_PROTOCOL = "invalid_rpc_protocol"
   }
 
-  private val gson = GsonUtils.getInstance()
-
   @MockK(relaxed = true)
   private lateinit var actionHandler: ActionHandler<NotifyInteractiveFlowCompletedRequest>
 
   private lateinit var actionService: ActionService
+
+  private val gson = GsonUtils.getInstance()
 
   private val rpcResponse =
     GetTransactionResponse.builder().id("testId").message("testMessage").build()
@@ -128,6 +127,32 @@ class ActionServiceTest {
   }
 
   @Test
+  fun `test handle invalid rpc call`() {
+    val invalidRpcRequest = RpcRequest.builder().method(INVALID_RPC_METHOD).id(RPC_ID).build()
+
+    val response = actionService.handleRpcCalls(listOf(invalidRpcRequest))
+
+    val expectedResponse =
+      """
+    [
+      {
+        "jsonrpc": "2.0",
+        "error": {
+          "code": -32600,
+          "message": "Unsupported JSON-RPC protocol version[null]"
+        },
+        "id": 1
+      }
+    ]
+    """
+        .trimIndent()
+
+    JSONAssert.assertEquals(expectedResponse, gson.toJson(response), JSONCompareMode.STRICT)
+
+    verify(exactly = 0) { actionHandler.handle(any()) }
+  }
+
+  @Test
   fun `test handle invalid rpc method`() {
     val invalidRpcRequest =
       RpcRequest.builder()
@@ -189,14 +214,6 @@ class ActionServiceTest {
     JSONAssert.assertEquals(expectedResponse, gson.toJson(response), JSONCompareMode.STRICT)
 
     verify(exactly = 0) { actionHandler.handle(any()) }
-  }
-
-  @Test
-  fun `test handle invalid rpc call`() {
-    val invalidRpcRequest = RpcRequest.builder().method(INVALID_RPC_METHOD).id(RPC_ID).build()
-    val response = actionService.handleRpcCalls(listOf(invalidRpcRequest))
-    assertEquals(1, response.size)
-    assertNotNull(response[0].error)
   }
 
   @Test

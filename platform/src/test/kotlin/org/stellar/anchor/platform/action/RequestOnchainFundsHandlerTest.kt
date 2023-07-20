@@ -27,7 +27,6 @@ import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.config.CustodyConfig
 import org.stellar.anchor.custody.CustodyService
-import org.stellar.anchor.horizon.Horizon
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
 import org.stellar.anchor.platform.service.Sep24DepositInfoNoneGenerator
 import org.stellar.anchor.platform.service.Sep24DepositInfoSelfGenerator
@@ -40,7 +39,7 @@ import org.stellar.anchor.util.GsonUtils
 class RequestOnchainFundsHandlerTest {
 
   companion object {
-    private val GSON = GsonUtils.getInstance()
+    private val gson = GsonUtils.getInstance()
     private const val TX_ID = "testId"
     private const val FIAT_USD = "iso4217:USD"
     private const val STELLAR_USDC =
@@ -51,8 +50,6 @@ class RequestOnchainFundsHandlerTest {
   @MockK(relaxed = true) private lateinit var txn24Store: Sep24TransactionStore
 
   @MockK(relaxed = true) private lateinit var txn31Store: Sep31TransactionStore
-
-  @MockK(relaxed = true) private lateinit var horizon: Horizon
 
   @MockK(relaxed = true) private lateinit var requestValidator: RequestValidator
 
@@ -76,7 +73,6 @@ class RequestOnchainFundsHandlerTest {
         txn24Store,
         txn31Store,
         requestValidator,
-        horizon,
         assetService,
         custodyService,
         custodyConfig,
@@ -219,8 +215,8 @@ class RequestOnchainFundsHandlerTest {
     expectedSep24Txn.withdrawAnchorAccount = "testDestinationAccount"
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedSep24Txn),
-      GSON.toJson(sep24TxnCapture.captured),
+      gson.toJson(expectedSep24Txn),
+      gson.toJson(sep24TxnCapture.captured),
       JSONCompareMode.STRICT
     )
 
@@ -238,8 +234,8 @@ class RequestOnchainFundsHandlerTest {
     expectedResponse.destinationAccount = "testDestinationAccount"
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedResponse),
-      GSON.toJson(response),
+      gson.toJson(expectedResponse),
+      gson.toJson(response),
       JSONCompareMode.STRICT
     )
 
@@ -255,7 +251,6 @@ class RequestOnchainFundsHandlerTest {
         txn24Store,
         txn31Store,
         requestValidator,
-        horizon,
         assetService,
         custodyService,
         custodyConfig,
@@ -309,8 +304,8 @@ class RequestOnchainFundsHandlerTest {
     expectedSep24Txn.withdrawAnchorAccount = "testDestinationAccount2"
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedSep24Txn),
-      GSON.toJson(sep24TxnCapture.captured),
+      gson.toJson(expectedSep24Txn),
+      gson.toJson(sep24TxnCapture.captured),
       JSONCompareMode.STRICT
     )
 
@@ -328,8 +323,8 @@ class RequestOnchainFundsHandlerTest {
     expectedResponse.destinationAccount = "testDestinationAccount2"
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedResponse),
-      GSON.toJson(response),
+      gson.toJson(expectedResponse),
+      gson.toJson(response),
       JSONCompareMode.STRICT
     )
 
@@ -387,14 +382,14 @@ class RequestOnchainFundsHandlerTest {
     expectedSep24Txn.withdrawAnchorAccount = "testDestinationAccount"
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedSep24Txn),
-      GSON.toJson(sep24TxnCapture.captured),
+      gson.toJson(expectedSep24Txn),
+      gson.toJson(sep24TxnCapture.captured),
       JSONCompareMode.STRICT
     )
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedSep24Txn),
-      GSON.toJson(sep24CustodyTxnCapture.captured),
+      gson.toJson(expectedSep24Txn),
+      gson.toJson(sep24CustodyTxnCapture.captured),
       JSONCompareMode.STRICT
     )
 
@@ -412,8 +407,8 @@ class RequestOnchainFundsHandlerTest {
     expectedResponse.destinationAccount = "testDestinationAccount"
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedResponse),
-      GSON.toJson(response),
+      gson.toJson(expectedResponse),
+      gson.toJson(response),
       JSONCompareMode.STRICT
     )
 
@@ -469,8 +464,8 @@ class RequestOnchainFundsHandlerTest {
     expectedSep24Txn.withdrawAnchorAccount = "testDestinationAccount"
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedSep24Txn),
-      GSON.toJson(sep24TxnCapture.captured),
+      gson.toJson(expectedSep24Txn),
+      gson.toJson(sep24TxnCapture.captured),
       JSONCompareMode.STRICT
     )
 
@@ -488,8 +483,8 @@ class RequestOnchainFundsHandlerTest {
     expectedResponse.destinationAccount = "testDestinationAccount"
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedResponse),
-      GSON.toJson(response),
+      gson.toJson(expectedResponse),
+      gson.toJson(response),
       JSONCompareMode.STRICT
     )
 
@@ -549,8 +544,8 @@ class RequestOnchainFundsHandlerTest {
     expectedSep24Txn.withdrawAnchorAccount = "testDestinationAccount"
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedSep24Txn),
-      GSON.toJson(sep24TxnCapture.captured),
+      gson.toJson(expectedSep24Txn),
+      gson.toJson(sep24TxnCapture.captured),
       JSONCompareMode.STRICT
     )
 
@@ -568,8 +563,8 @@ class RequestOnchainFundsHandlerTest {
     expectedResponse.destinationAccount = "testDestinationAccount"
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedResponse),
-      GSON.toJson(response),
+      gson.toJson(expectedResponse),
+      gson.toJson(response),
       JSONCompareMode.STRICT
     )
 
@@ -601,7 +596,6 @@ class RequestOnchainFundsHandlerTest {
         txn24Store,
         txn31Store,
         requestValidator,
-        horizon,
         assetService,
         custodyService,
         custodyConfig,

@@ -27,7 +27,6 @@ import org.stellar.anchor.api.shared.SepDepositInfo;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.CustodyConfig;
 import org.stellar.anchor.custody.CustodyService;
-import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.platform.service.Sep24DepositInfoNoneGenerator;
@@ -48,18 +47,11 @@ public class RequestOnchainFundsHandler extends ActionHandler<RequestOnchainFund
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
-      Horizon horizon,
       AssetService assetService,
       CustodyService custodyService,
       CustodyConfig custodyConfig,
       Sep24DepositInfoGenerator sep24DepositInfoGenerator) {
-    super(
-        txn24Store,
-        txn31Store,
-        requestValidator,
-        horizon,
-        assetService,
-        RequestOnchainFundsRequest.class);
+    super(txn24Store, txn31Store, requestValidator, assetService, RequestOnchainFundsRequest.class);
     this.custodyService = custodyService;
     this.custodyConfig = custodyConfig;
     this.sep24DepositInfoGenerator = sep24DepositInfoGenerator;
@@ -179,8 +171,10 @@ public class RequestOnchainFundsHandler extends ActionHandler<RequestOnchainFund
 
     if (sep24DepositInfoGenerator instanceof Sep24DepositInfoNoneGenerator) {
       Memo memo = makeMemo(request.getMemo(), request.getMemoType());
-      txn24.setMemo(memo.toString());
-      txn24.setMemoType(memoTypeString(memoType(memo)));
+      if (memo != null) {
+        txn24.setMemo(memo.toString());
+        txn24.setMemoType(memoTypeString(memoType(memo)));
+      }
       txn24.setWithdrawAnchorAccount(request.getDestinationAccount());
       txn24.setToAccount(request.getDestinationAccount());
     } else {

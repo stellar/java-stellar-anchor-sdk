@@ -57,9 +57,11 @@ public class RpcUtil {
     }
 
     Object id = rpcRequest.getId();
-    if (id != null) {
+    if (id == null) {
+      messages.add("Id can't be NULL");
+    } else {
       if (!(id instanceof Number) && !(id instanceof String)) {
-        messages.add("An identifier MUST contain a String, Number, or NULL value");
+        messages.add("An identifier MUST contain a String or a Number");
       }
     }
 

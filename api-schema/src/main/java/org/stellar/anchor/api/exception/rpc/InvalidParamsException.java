@@ -7,7 +7,6 @@ import lombok.EqualsAndHashCode;
 /** Invalid method parameter(s). */
 @EqualsAndHashCode(callSuper = false)
 public class InvalidParamsException extends RpcException {
-
   public InvalidParamsException(String message) {
     super(INVALID_PARAMS, message);
   }

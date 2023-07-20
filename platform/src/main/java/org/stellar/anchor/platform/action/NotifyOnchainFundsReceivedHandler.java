@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform.action;
 
+import static java.util.Collections.emptySet;
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL;
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24;
 import static org.stellar.anchor.api.rpc.action.ActionMethod.NOTIFY_ONCHAIN_FUNDS_RECEIVED;
@@ -9,10 +10,11 @@ import static org.stellar.anchor.platform.utils.PaymentsUtil.addStellarTransacti
 import static org.stellar.anchor.util.Log.errorEx;
 
 import java.io.IOException;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
+import org.stellar.anchor.api.exception.rpc.InternalErrorException;
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException;
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException;
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind;
@@ -34,6 +36,8 @@ import org.stellar.sdk.responses.operations.OperationResponse;
 public class NotifyOnchainFundsReceivedHandler
     extends ActionHandler<NotifyOnchainFundsReceivedRequest> {
 
+  private final Horizon horizon;
+
   public NotifyOnchainFundsReceivedHandler(
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
@@ -44,9 +48,9 @@ public class NotifyOnchainFundsReceivedHandler
         txn24Store,
         txn31Store,
         requestValidator,
-        horizon,
         assetService,
         NotifyOnchainFundsReceivedRequest.class);
+    this.horizon = horizon;
   }
 
   @Override
@@ -106,37 +110,31 @@ public class NotifyOnchainFundsReceivedHandler
   protected SepTransactionStatus getNextStatus(
       JdbcSepTransaction txn, NotifyOnchainFundsReceivedRequest request)
       throws InvalidRequestException {
-    JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
-    if (WITHDRAWAL == Kind.from(txn24.getKind())) {
-      return PENDING_ANCHOR;
-    }
-    throw new InvalidRequestException(
-        String.format(
-            "Invalid kind[%s] for protocol[%s] and action[%s]",
-            txn24.getKind(), txn24.getProtocol(), getActionType()));
+    return PENDING_ANCHOR;
   }
 
   @Override
   protected Set<SepTransactionStatus> getSupportedStatuses(JdbcSepTransaction txn) {
-    Set<SepTransactionStatus> supportedStatuses = new HashSet<>();
     if (SEP_24 == Sep.from(txn.getProtocol())) {
       JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
       if (WITHDRAWAL == Kind.from(txn24.getKind())) {
-        supportedStatuses.add(PENDING_USR_TRANSFER_START);
+        return Set.of(PENDING_USR_TRANSFER_START);
       }
     }
-    return supportedStatuses;
+    return emptySet();
   }
 
   @Override
   protected void updateTransactionWithAction(
-      JdbcSepTransaction txn, NotifyOnchainFundsReceivedRequest request) {
-    final String stellarTxnId = request.getStellarTransactionId();
+      JdbcSepTransaction txn, NotifyOnchainFundsReceivedRequest request) throws AnchorException {
+    String stellarTxnId = request.getStellarTransactionId();
     try {
       List<OperationResponse> txnOperations = horizon.getStellarTxnOperations(stellarTxnId);
       addStellarTransaction(txn, stellarTxnId, txnOperations);
     } catch (IOException ex) {
-      errorEx("Failed to retrieve stellar transactions", ex);
+      errorEx(String.format("Failed to retrieve stellar transaction by ID[%s]", stellarTxnId), ex);
+      throw new InternalErrorException(
+          String.format("Failed to retrieve Stellar transaction by ID[%s]", stellarTxnId), ex);
     }
 
     if (request.getAmountIn() != null) {

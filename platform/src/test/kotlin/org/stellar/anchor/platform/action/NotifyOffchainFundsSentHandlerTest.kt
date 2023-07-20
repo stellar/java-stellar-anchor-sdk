@@ -19,7 +19,6 @@ import org.stellar.anchor.api.rpc.action.NotifyOffchainFundsSentRequest
 import org.stellar.anchor.api.sep.SepTransactionStatus.*
 import org.stellar.anchor.api.shared.Amount
 import org.stellar.anchor.asset.AssetService
-import org.stellar.anchor.horizon.Horizon
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
 import org.stellar.anchor.platform.validator.RequestValidator
 import org.stellar.anchor.sep24.Sep24TransactionStore
@@ -37,8 +36,6 @@ class NotifyOffchainFundsSentHandlerTest {
 
   @MockK(relaxed = true) private lateinit var txn31Store: Sep31TransactionStore
 
-  @MockK(relaxed = true) private lateinit var horizon: Horizon
-
   @MockK(relaxed = true) private lateinit var requestValidator: RequestValidator
 
   @MockK(relaxed = true) private lateinit var assetService: AssetService
@@ -49,13 +46,7 @@ class NotifyOffchainFundsSentHandlerTest {
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
     this.handler =
-      NotifyOffchainFundsSentHandler(
-        txn24Store,
-        txn31Store,
-        requestValidator,
-        horizon,
-        assetService
-      )
+      NotifyOffchainFundsSentHandler(txn24Store, txn31Store, requestValidator, assetService)
   }
 
   @Test
@@ -90,6 +81,23 @@ class NotifyOffchainFundsSentHandlerTest {
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
       "Action[notify_offchain_funds_sent] is not supported for status[pending_external], kind[deposit] and protocol[24]",
+      ex.message
+    )
+  }
+
+  @Test
+  fun test_handle_transferNotReceived() {
+    val request = NotifyOffchainFundsSentRequest.builder().transactionId(TX_ID).build()
+    val txn24 = JdbcSep24Transaction()
+    txn24.status = PENDING_ANCHOR.toString()
+    txn24.kind = WITHDRAWAL.kind
+
+    every { txn24Store.findByTransactionId(TX_ID) } returns txn24
+    every { txn31Store.findByTransactionId(any()) } returns null
+
+    val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
+    assertEquals(
+      "Action[notify_offchain_funds_sent] is not supported for status[pending_anchor], kind[withdrawal] and protocol[24]",
       ex.message
     )
   }
@@ -275,11 +283,12 @@ class NotifyOffchainFundsSentHandlerTest {
       NotifyOffchainFundsSentRequest.builder()
         .transactionId(TX_ID)
         .externalTransactionId("externalTxId")
-        .fundsSentAt(transferReceivedAt)
+        .fundsSentAt(transferReceivedAt.minusSeconds(100))
         .build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_ANCHOR.toString()
     txn24.kind = WITHDRAWAL.kind
+    txn24.transferReceivedAt = transferReceivedAt
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
@@ -298,6 +307,7 @@ class NotifyOffchainFundsSentHandlerTest {
     expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedSep24Txn.completedAt = sep24TxnCapture.captured.completedAt
     expectedSep24Txn.externalTransactionId = "externalTxId"
+    expectedSep24Txn.transferReceivedAt = transferReceivedAt
 
     JSONAssert.assertEquals(
       gson.toJson(expectedSep24Txn),
@@ -313,6 +323,7 @@ class NotifyOffchainFundsSentHandlerTest {
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.completedAt = sep24TxnCapture.captured.completedAt
     expectedResponse.amountExpected = Amount(null, "")
+    expectedResponse.transferReceivedAt = transferReceivedAt
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -327,11 +338,13 @@ class NotifyOffchainFundsSentHandlerTest {
   }
 
   @Test
-  fun test_handle_ok_withdrawal_withoutExternalTxIdAndDate() {
+  fun test_handle_ok_withdrawal_withoutExternalTxId() {
+    val transferReceivedAt = Instant.now()
     val request = NotifyOffchainFundsSentRequest.builder().transactionId(TX_ID).build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_ANCHOR.toString()
     txn24.kind = WITHDRAWAL.kind
+    txn24.transferReceivedAt = transferReceivedAt
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
@@ -349,6 +362,7 @@ class NotifyOffchainFundsSentHandlerTest {
     expectedSep24Txn.status = COMPLETED.toString()
     expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedSep24Txn.completedAt = sep24TxnCapture.captured.completedAt
+    expectedSep24Txn.transferReceivedAt = transferReceivedAt
 
     JSONAssert.assertEquals(
       gson.toJson(expectedSep24Txn),
@@ -363,6 +377,7 @@ class NotifyOffchainFundsSentHandlerTest {
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.completedAt = sep24TxnCapture.captured.completedAt
     expectedResponse.amountExpected = Amount(null, "")
+    expectedResponse.transferReceivedAt = transferReceivedAt
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),

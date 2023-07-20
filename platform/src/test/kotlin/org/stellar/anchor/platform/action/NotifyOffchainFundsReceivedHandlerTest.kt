@@ -25,7 +25,6 @@ import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.config.CustodyConfig
 import org.stellar.anchor.custody.CustodyService
-import org.stellar.anchor.horizon.Horizon
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
 import org.stellar.anchor.platform.validator.RequestValidator
 import org.stellar.anchor.sep24.Sep24Transaction
@@ -48,8 +47,6 @@ class NotifyOffchainFundsReceivedHandlerTest {
 
   @MockK(relaxed = true) private lateinit var txn31Store: Sep31TransactionStore
 
-  @MockK(relaxed = true) private lateinit var horizon: Horizon
-
   @MockK(relaxed = true) private lateinit var requestValidator: RequestValidator
 
   @MockK(relaxed = true) private lateinit var assetService: AssetService
@@ -69,7 +66,6 @@ class NotifyOffchainFundsReceivedHandlerTest {
         txn24Store,
         txn31Store,
         requestValidator,
-        horizon,
         assetService,
         custodyService,
         custodyConfig
@@ -125,6 +121,24 @@ class NotifyOffchainFundsReceivedHandlerTest {
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
       "Action[notify_offchain_funds_received] is not supported for status[pending_user_transfer_start], kind[withdrawal] and protocol[24]",
+      ex.message
+    )
+  }
+
+  @Test
+  fun test_handle_transferReceived() {
+    val request = NotifyOffchainFundsReceivedRequest.builder().transactionId(TX_ID).build()
+    val txn24 = JdbcSep24Transaction()
+    txn24.status = PENDING_EXTERNAL.toString()
+    txn24.kind = WITHDRAWAL.kind
+    txn24.transferReceivedAt = Instant.now()
+
+    every { txn24Store.findByTransactionId(TX_ID) } returns txn24
+    every { txn31Store.findByTransactionId(any()) } returns null
+
+    val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
+    assertEquals(
+      "Action[notify_offchain_funds_received] is not supported for status[pending_external], kind[withdrawal] and protocol[24]",
       ex.message
     )
   }

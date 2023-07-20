@@ -1,11 +1,11 @@
 package org.stellar.anchor.platform.action;
 
+import static java.util.Collections.emptySet;
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24;
 import static org.stellar.anchor.api.rpc.action.ActionMethod.NOTIFY_INTERACTIVE_FLOW_COMPLETED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.INCOMPLETE;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
 
-import java.util.HashSet;
 import java.util.Set;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException;
@@ -16,7 +16,6 @@ import org.stellar.anchor.api.rpc.action.AmountAssetRequest;
 import org.stellar.anchor.api.rpc.action.NotifyInteractiveFlowCompletedRequest;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
-import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.platform.utils.AssetValidationUtils;
@@ -31,20 +30,18 @@ public class NotifyInteractiveFlowCompletedHandler
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
-      Horizon horizon,
       AssetService assetService) {
     super(
         txn24Store,
         txn31Store,
         requestValidator,
-        horizon,
         assetService,
         NotifyInteractiveFlowCompletedRequest.class);
   }
 
   @Override
   protected void validate(JdbcSepTransaction txn, NotifyInteractiveFlowCompletedRequest request)
-      throws InvalidParamsException, InvalidRequestException, BadRequestException {
+      throws BadRequestException, InvalidParamsException, InvalidRequestException {
     super.validate(txn, request);
 
     AssetValidationUtils.validateAsset("amount_in", request.getAmountIn(), assetService);
@@ -74,11 +71,10 @@ public class NotifyInteractiveFlowCompletedHandler
 
   @Override
   protected Set<SepTransactionStatus> getSupportedStatuses(JdbcSepTransaction txn) {
-    Set<SepTransactionStatus> supportedStatuses = new HashSet<>();
     if (SEP_24 == Sep.from(txn.getProtocol())) {
-      supportedStatuses.add(INCOMPLETE);
+      return Set.of(INCOMPLETE);
     }
-    return supportedStatuses;
+    return emptySet();
   }
 
   @Override
