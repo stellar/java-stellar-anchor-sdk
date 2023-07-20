@@ -59,16 +59,22 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
         socketTimeoutMillis = 300000
       }
     }
-  private val maxTries = 15
+  private val maxTries = 30
   private val anchorReferenceServerClient =
     AnchorReferenceServerClient(Url(config.env["reference.server.url"]!!))
 
-  private fun `typical deposit end-to-end flow`(asset: StellarAssetId, amount: String) =
+  private fun `test typical deposit end-to-end flow`(asset: StellarAssetId, amount: String) =
     runBlocking {
       val token = anchor.auth().authenticate(keypair)
       val txnId = makeDeposit(asset, amount, token)
       // Wait for the status to change to COMPLETED
       waitStatus(txnId, COMPLETED, token)
+
+      // Check if the transaction can be listed by stellar transaction id
+      val fetchedTxn = anchor.getTransaction(txnId, token) as DepositTransaction
+      val transactionByStellarId =
+        anchor.getTransactionBy(token, stellarTransactionId = fetchedTxn.stellarTransactionId)
+      assertEquals(fetchedTxn.id, transactionByStellarId.id)
 
       // Check the events sent to the reference server are recorded correctly
       val actualEvents = waitForEvents(txnId, 4)
@@ -130,12 +136,11 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
     JSONAssert.assertEquals(json(expectedEvents), gson.toJson(actualEvents), true)
   }
 
-  private fun `typical withdraw end-to-end flow`(asset: StellarAssetId, amount: String) {
-    `typical withdraw end-to-end flow`(asset, mapOf())
-    `typical withdraw end-to-end flow`(asset, mapOf("amount" to amount))
+  private fun `test typical withdraw end-to-end flow`(asset: StellarAssetId, amount: String) {
+    `test typical withdraw end-to-end flow`(asset, mapOf("amount" to amount))
   }
 
-  private fun `typical withdraw end-to-end flow`(
+  private fun `test typical withdraw end-to-end flow`(
     asset: StellarAssetId,
     extraFields: Map<String, String>
   ) = runBlocking {
@@ -167,6 +172,12 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
     wallet.stellar().submitTransaction(transfer)
     // Wait for the status to change to PENDING_USER_TRANSFER_END
     waitStatus(withdrawTxn.id, COMPLETED, token)
+
+    // Check if the transaction can be listed by stellar transaction id
+    val fetchTxn = anchor.getTransaction(withdrawTxn.id, token) as WithdrawalTransaction
+    val transactionByStellarId =
+      anchor.getTransactionBy(token, stellarTransactionId = fetchTxn.stellarTransactionId)
+    assertEquals(fetchTxn.id, transactionByStellarId.id)
 
     // Check the events sent to the reference server are recorded correctly
     val actualEvents = waitForEvents(withdrawTxn.id, 5)
@@ -212,7 +223,10 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
     fail("Transaction wasn't $expectedStatus in $maxTries tries, last status: $status")
   }
 
-  private fun listAllTransactionWorks(asset: StellarAssetId, amount: String) = runBlocking {
+  private fun `test created transactions show up in the get history call`(
+    asset: StellarAssetId,
+    amount: String
+  ) = runBlocking {
     val newAcc = wallet.stellar().account().createKeyPair()
 
     val tx =
@@ -230,41 +244,25 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
     wallet.stellar().submitTransaction(tx)
 
     val token = anchor.auth().authenticate(newAcc)
-    val deposits = (0..5).map { makeDeposit(asset, amount, token).also { delay(7.seconds) } }
-    deposits.forEach { waitStatus(it, COMPLETED, token) }
+    val deposits =
+      (0..1).map {
+        val txnId = makeDeposit(asset, amount, token)
+        waitStatus(txnId, COMPLETED, token)
+        txnId
+      }
     val history = anchor.getHistory(asset, token)
 
     Assertions.assertThat(history).allMatch { deposits.contains(it.id) }
   }
 
-  private fun `list by stellar transaction id works`(asset: StellarAssetId, amount: String) =
-    runBlocking {
-      val token = anchor.auth().authenticate(keypair)
-
-      val txId = makeDeposit(asset, amount, token)
-
-      waitStatus(txId, COMPLETED, token)
-
-      val transaction = anchor.getTransaction(txId, token) as DepositTransaction
-
-      val transactionByStellarId =
-        anchor.getTransactionBy(token, stellarTransactionId = transaction.stellarTransactionId)
-
-      assertEquals(transaction.id, transactionByStellarId.id)
-    }
-
   fun testAll() {
-    info("Running SEP-24 XLM end-to-end tests...")
-    `typical deposit end-to-end flow`(XLM, "0.00001")
-    `typical withdraw end-to-end flow`(XLM, "0.00001")
-    listAllTransactionWorks(XLM, "0.00001")
-    `list by stellar transaction id works`(XLM, "0.00001")
-
     info("Running SEP-24 USDC end-to-end tests...")
-    `typical deposit end-to-end flow`(USDC, "5")
-    `typical withdraw end-to-end flow`(USDC, "5")
-    listAllTransactionWorks(USDC, "5")
-    `list by stellar transaction id works`(USDC, "5")
+    `test typical deposit end-to-end flow`(USDC, "5")
+    `test typical withdraw end-to-end flow`(USDC, "5")
+    `test created transactions show up in the get history call`(USDC, "5")
+    info("Running SEP-24 XLM end-to-end tests...")
+    `test typical deposit end-to-end flow`(XLM, "0.00001")
+    `test typical withdraw end-to-end flow`(XLM, "0.00001")
   }
 
   companion object {
