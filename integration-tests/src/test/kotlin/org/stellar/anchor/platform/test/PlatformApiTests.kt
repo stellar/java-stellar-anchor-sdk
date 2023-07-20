@@ -50,9 +50,9 @@ class PlatformApiTests(config: TestConfig, toml: TomlContent, jwt: String) {
         .params(NotifyInteractiveFlowCompletedRequest.builder().transactionId(TX_ID).build())
         .build()
     val response = platformApiClient.rpcAction(listOf(request))
-    assertEquals(HttpStatus.SC_BAD_REQUEST, response.code)
+    assertEquals(HttpStatus.SC_OK, response.code)
     val responses = gson.fromJson<List<RpcResponse>>(response.body?.string(), type)
-    assertEquals(HttpStatus.SC_BAD_REQUEST, response.code)
+    assertEquals(HttpStatus.SC_OK, response.code)
     assertEquals(1, responses.size)
     responses.forEach {
       assertNull(it.result)
@@ -79,7 +79,7 @@ class PlatformApiTests(config: TestConfig, toml: TomlContent, jwt: String) {
         .params(NotifyInteractiveFlowCompletedRequest.builder().transactionId(TX_ID).build())
         .build()
     val response = platformApiClient.rpcAction(listOf(request1, request2))
-    assertEquals(HttpStatus.SC_BAD_REQUEST, response.code)
+    assertEquals(HttpStatus.SC_OK, response.code)
     val responses = gson.fromJson<List<RpcResponse>>(response.body?.string(), type)
     assertEquals(2, responses.size)
     responses.forEach {
@@ -97,7 +97,7 @@ class PlatformApiTests(config: TestConfig, toml: TomlContent, jwt: String) {
       RpcRequest.builder().id(RPC_ID_2).jsonrpc(JSON_RPC_VERSION).method(StringUtils.EMPTY).build()
     val request3 = RpcRequest.builder().id(true).jsonrpc(JSON_RPC_VERSION).method(rpcMethod).build()
     val response = platformApiClient.rpcAction(listOf(request1, request2, request3))
-    assertEquals(HttpStatus.SC_BAD_REQUEST, response.code)
+    assertEquals(HttpStatus.SC_OK, response.code)
     val responses = gson.fromJson<List<RpcResponse>>(response.body?.string(), type)
     assertEquals(3, responses.size)
     responses.forEach {

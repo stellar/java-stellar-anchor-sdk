@@ -2,7 +2,6 @@ package org.stellar.anchor.platform.component.platform;
 
 import java.util.Optional;
 import javax.servlet.Filter;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnExpression;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -104,8 +103,7 @@ public class PlatformServerBeans {
   }
 
   @Bean
-  @ConditionalOnExpression(value = "'${custody.type}' != 'none'")
-  TrustlineCheckJob trustlineCheckJob(
+  Optional<TrustlineCheckJob> trustlineCheckJob(
       Horizon horizon,
       JdbcTransactionPendingTrustRepo transactionPendingTrustRepo,
       PropertyCustodyConfig custodyConfig,
@@ -113,13 +111,18 @@ public class PlatformServerBeans {
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       CustodyService custodyService) {
-    return new TrustlineCheckJob(
-        horizon,
-        transactionPendingTrustRepo,
-        custodyConfig,
-        transactionService,
-        txn24Store,
-        txn31Store,
-        custodyService);
+    if (custodyConfig.isCustodyIntegrationEnabled()) {
+      return Optional.of(
+          new TrustlineCheckJob(
+              horizon,
+              transactionPendingTrustRepo,
+              custodyConfig,
+              transactionService,
+              txn24Store,
+              txn31Store,
+              custodyService));
+    } else {
+      return Optional.empty();
+    }
   }
 }
