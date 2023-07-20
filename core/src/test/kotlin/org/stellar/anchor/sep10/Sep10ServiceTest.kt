@@ -95,8 +95,6 @@ internal class Sep10ServiceTest {
   fun setUp() {
     MockKAnnotations.init(this, relaxUnitFun = true)
     every { sep10Config.webAuthDomain } returns TEST_WEB_AUTH_DOMAIN
-    every { sep10Config.clientAttributionDenyList } returns listOf("")
-    every { sep10Config.clientAttributionAllowList } returns listOf(TEST_CLIENT_DOMAIN)
     every { sep10Config.authTimeout } returns 900
     every { sep10Config.jwtTimeout } returns 900
     every { sep10Config.homeDomain } returns TEST_HOME_DOMAIN
@@ -533,11 +531,8 @@ internal class Sep10ServiceTest {
 
     // Test client domain rejection
     cr.clientDomain = TEST_CLIENT_DOMAIN
-    every { sep10Config.clientAttributionDenyList } returns listOf(TEST_CLIENT_DOMAIN, "")
     assertThrows<SepNotAuthorizedException> { sep10Service.createChallenge(cr) }
 
-    every { sep10Config.clientAttributionDenyList } returns listOf("")
-    every { sep10Config.clientAttributionAllowList } returns listOf("")
     // Test client domain not allowed
     assertThrows<SepNotAuthorizedException> { sep10Service.createChallenge(cr) }
   }

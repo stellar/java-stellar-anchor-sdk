@@ -92,11 +92,9 @@ public class Sep10Service {
       }
 
       List<String> allowList = sep10Config.getClientAttributionAllowList();
-      if (allowList != null
-          && allowList.size() > 0
-          && !allowList.contains(challengeRequest.getClientDomain())) {
+      if (!allowList.contains(challengeRequest.getClientDomain())) {
         infoF(
-            "client_domain provided ({}) is not in configured allow list",
+            "client_domain provided ({}) is not in the configured allow list",
             challengeRequest.getClientDomain());
         throw new SepNotAuthorizedException("unable to process");
       }
