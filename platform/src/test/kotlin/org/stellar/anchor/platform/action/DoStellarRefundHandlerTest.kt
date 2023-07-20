@@ -3,13 +3,10 @@ package org.stellar.anchor.platform.action
 import io.mockk.MockKAnnotations
 import io.mockk.every
 import io.mockk.impl.annotations.MockK
-import io.mockk.mockk
 import io.mockk.slot
 import io.mockk.spyk
 import io.mockk.verify
 import java.time.Instant
-import javax.validation.ConstraintViolation
-import javax.validation.Validator
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import org.junit.jupiter.api.BeforeEach
@@ -17,19 +14,25 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
+import org.stellar.anchor.api.exception.BadRequestException
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException
 import org.stellar.anchor.api.platform.GetTransactionResponse
 import org.stellar.anchor.api.platform.PlatformTransactionData
+import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT
+import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL
+import org.stellar.anchor.api.rpc.action.AmountRequest
 import org.stellar.anchor.api.rpc.action.DoStellarRefundRequest
 import org.stellar.anchor.api.sep.SepTransactionStatus
+import org.stellar.anchor.api.sep.SepTransactionStatus.INCOMPLETE
+import org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR
 import org.stellar.anchor.api.shared.Amount
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.config.CustodyConfig
 import org.stellar.anchor.custody.CustodyService
-import org.stellar.anchor.horizon.Horizon
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
+import org.stellar.anchor.platform.validator.RequestValidator
 import org.stellar.anchor.sep24.Sep24TransactionStore
 import org.stellar.anchor.sep31.Sep31TransactionStore
 import org.stellar.anchor.util.GsonUtils
@@ -46,11 +49,15 @@ class DoStellarRefundHandlerTest {
   }
 
   @MockK(relaxed = true) private lateinit var txn24Store: Sep24TransactionStore
+
   @MockK(relaxed = true) private lateinit var txn31Store: Sep31TransactionStore
-  @MockK(relaxed = true) private lateinit var validator: Validator
-  @MockK(relaxed = true) private lateinit var horizon: Horizon
+
+  @MockK(relaxed = true) private lateinit var requestValidator: RequestValidator
+
   @MockK(relaxed = true) private lateinit var assetService: AssetService
+
   @MockK(relaxed = true) private lateinit var custodyConfig: CustodyConfig
+
   @MockK(relaxed = true) private lateinit var custodyService: CustodyService
 
   private lateinit var handler: DoStellarRefundHandler
@@ -63,9 +70,8 @@ class DoStellarRefundHandlerTest {
       DoStellarRefundHandler(
         txn24Store,
         txn31Store,
-        validator,
+        requestValidator,
         custodyConfig,
-        horizon,
         assetService,
         custodyService
       )
@@ -75,79 +81,80 @@ class DoStellarRefundHandlerTest {
   fun test_handle_unsupportedProtocol() {
     val request = DoStellarRefundRequest.builder().transactionId(TX_ID).build()
     val txn24 = JdbcSep24Transaction()
-    txn24.status = SepTransactionStatus.PENDING_ANCHOR.toString()
+    txn24.status = PENDING_ANCHOR.toString()
     val spyTxn24 = spyk(txn24)
 
     every { txn24Store.findByTransactionId(TX_ID) } returns spyTxn24
     every { txn31Store.findByTransactionId(any()) } returns null
-    every { spyTxn24.protocol } returns "100"
+    every { spyTxn24.protocol } returns "38"
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
-    assertEquals("Protocol[100] is not supported by action[do_stellar_refund]", ex.message)
+    assertEquals(
+      "Action[do_stellar_refund] is not supported for status[pending_anchor], kind[null] and protocol[38]",
+      ex.message
+    )
   }
 
   @Test
   fun test_handle_unsupportedKind() {
     val request = DoStellarRefundRequest.builder().transactionId(TX_ID).build()
     val txn24 = JdbcSep24Transaction()
-    txn24.status = SepTransactionStatus.INCOMPLETE.toString()
-    txn24.kind = PlatformTransactionData.Kind.DEPOSIT.kind
+    txn24.status = INCOMPLETE.toString()
+    txn24.kind = DEPOSIT.kind
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
-    assertEquals("Action[do_stellar_refund] is not supported for status[incomplete]", ex.message)
+    assertEquals(
+      "Action[do_stellar_refund] is not supported for status[incomplete], kind[deposit] and protocol[24]",
+      ex.message
+    )
   }
 
   @Test
   fun test_handle_unsupportedStatus() {
     val request = DoStellarRefundRequest.builder().transactionId(TX_ID).build()
     val txn24 = JdbcSep24Transaction()
-    txn24.status = SepTransactionStatus.INCOMPLETE.toString()
-    txn24.kind = PlatformTransactionData.Kind.WITHDRAWAL.kind
+    txn24.status = INCOMPLETE.toString()
+    txn24.kind = WITHDRAWAL.kind
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
-    assertEquals("Action[do_stellar_refund] is not supported for status[incomplete]", ex.message)
+    assertEquals(
+      "Action[do_stellar_refund] is not supported for status[incomplete], kind[withdrawal] and protocol[24]",
+      ex.message
+    )
   }
 
   @Test
   fun test_handle_invalidRequest() {
     val request = DoStellarRefundRequest.builder().transactionId(TX_ID).build()
     val txn24 = JdbcSep24Transaction()
-    txn24.status = SepTransactionStatus.PENDING_ANCHOR.toString()
+    txn24.status = PENDING_ANCHOR.toString()
     txn24.transferReceivedAt = Instant.now()
-    txn24.kind = PlatformTransactionData.Kind.WITHDRAWAL.kind
-
-    val violation1: ConstraintViolation<DoStellarRefundRequest> = mockk()
-    val violation2: ConstraintViolation<DoStellarRefundRequest> = mockk()
+    txn24.kind = WITHDRAWAL.kind
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
-    every { violation1.message } returns "violation error message 1"
-    every { violation2.message } returns "violation error message 2"
-    every { validator.validate(request) } returns setOf(violation1, violation2)
+    every { requestValidator.validate(request) } throws InvalidParamsException("Invalid request")
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
-    assertEquals(
-      "violation error message 1\n" + "violation error message 2",
-      ex.message?.trimIndent()
-    )
+    assertEquals("Invalid request", ex.message?.trimIndent())
   }
 
   @Test
   fun test_handle_disabledCustodyIntegration() {
     val request = DoStellarRefundRequest.builder().transactionId(TX_ID).build()
     val txn24 = JdbcSep24Transaction()
-    txn24.status = SepTransactionStatus.PENDING_ANCHOR.toString()
+    txn24.status = PENDING_ANCHOR.toString()
     txn24.requestAssetCode = FIAT_USD_CODE
     txn24.amountOutAsset = STELLAR_USDC
     txn24.amountFeeAsset = STELLAR_USDC
     txn24.transferReceivedAt = Instant.now()
-    txn24.kind = PlatformTransactionData.Kind.WITHDRAWAL.kind
+    txn24.kind = WITHDRAWAL.kind
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
@@ -163,18 +170,21 @@ class DoStellarRefundHandlerTest {
     val request =
       DoStellarRefundRequest.builder()
         .transactionId(TX_ID)
-        .memo("testMemo")
-        .memoType("text")
-        .refund(DoStellarRefundRequest.Refund.builder().amount("-1").amountFee("-0.1").build())
+        .refund(
+          DoStellarRefundRequest.Refund.builder()
+            .amount(AmountRequest("-1"))
+            .amountFee(AmountRequest("-0.1"))
+            .build()
+        )
         .build()
     val txn24 = JdbcSep24Transaction()
-    txn24.status = SepTransactionStatus.PENDING_ANCHOR.toString()
+    txn24.status = PENDING_ANCHOR.toString()
     txn24.requestAssetCode = FIAT_USD_CODE
     txn24.amountInAsset = STELLAR_USDC
     txn24.amountOutAsset = STELLAR_USDC
     txn24.amountFeeAsset = STELLAR_USDC
     txn24.transferReceivedAt = Instant.now()
-    txn24.kind = PlatformTransactionData.Kind.WITHDRAWAL.kind
+    txn24.kind = WITHDRAWAL.kind
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
@@ -182,40 +192,12 @@ class DoStellarRefundHandlerTest {
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
     every { custodyConfig.isCustodyIntegrationEnabled } returns true
 
-    var ex = assertThrows<InvalidParamsException> { handler.handle(request) }
+    var ex = assertThrows<BadRequestException> { handler.handle(request) }
     assertEquals("refund.amount.amount should be positive", ex.message)
-    request.refund.amount = "1"
+    request.refund.amount = AmountRequest("1")
 
     ex = assertThrows { handler.handle(request) }
-    assertEquals("refund.amountFee.amount should be positive", ex.message)
-    request.refund.amountFee = "1"
-  }
-
-  @Test
-  fun test_handle_invalidMemo() {
-    val request =
-      DoStellarRefundRequest.builder()
-        .transactionId(TX_ID)
-        .memo("testMemo")
-        .memoType("hash")
-        .refund(DoStellarRefundRequest.Refund.builder().amount("1").amountFee("0.1").build())
-        .build()
-    val txn24 = JdbcSep24Transaction()
-    txn24.status = SepTransactionStatus.PENDING_ANCHOR.toString()
-    txn24.requestAssetCode = FIAT_USD_CODE
-    txn24.amountOutAsset = STELLAR_USDC
-    txn24.amountFeeAsset = STELLAR_USDC
-    txn24.transferReceivedAt = Instant.now()
-    txn24.kind = PlatformTransactionData.Kind.WITHDRAWAL.kind
-    val sep24TxnCapture = slot<JdbcSep24Transaction>()
-
-    every { txn24Store.findByTransactionId(TX_ID) } returns txn24
-    every { txn31Store.findByTransactionId(any()) } returns null
-    every { txn24Store.save(capture(sep24TxnCapture)) } returns null
-    every { custodyConfig.isCustodyIntegrationEnabled } returns true
-
-    val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
-    assertEquals("Invalid memo or memo_type: bytes must be 32-bytes long.", ex.message)
+    assertEquals("refund.amountFee.amount should be non-negative", ex.message)
   }
 
   @Test
@@ -224,13 +206,16 @@ class DoStellarRefundHandlerTest {
     val request =
       DoStellarRefundRequest.builder()
         .transactionId(TX_ID)
-        .memo("testMemo")
-        .memoType("text")
-        .refund(DoStellarRefundRequest.Refund.builder().amount("1").amountFee("0.1").build())
+        .refund(
+          DoStellarRefundRequest.Refund.builder()
+            .amount(AmountRequest("1"))
+            .amountFee(AmountRequest("0.1"))
+            .build()
+        )
         .build()
     val txn24 = JdbcSep24Transaction()
-    txn24.status = SepTransactionStatus.PENDING_ANCHOR.toString()
-    txn24.kind = PlatformTransactionData.Kind.WITHDRAWAL.kind
+    txn24.status = PENDING_ANCHOR.toString()
+    txn24.kind = WITHDRAWAL.kind
     txn24.transferReceivedAt = transferReceivedAt
     txn24.requestAssetCode = FIAT_USD_CODE
     txn24.amountInAsset = STELLAR_USDC
@@ -239,6 +224,8 @@ class DoStellarRefundHandlerTest {
     txn24.amountOut = "1"
     txn24.amountFeeAsset = STELLAR_USDC
     txn24.amountFee = "0.1"
+    txn24.refundMemo = "memo"
+    txn24.refundMemoType = "text"
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
@@ -253,7 +240,7 @@ class DoStellarRefundHandlerTest {
     verify(exactly = 0) { txn31Store.save(any()) }
 
     val expectedSep24Txn = JdbcSep24Transaction()
-    expectedSep24Txn.kind = PlatformTransactionData.Kind.WITHDRAWAL.kind
+    expectedSep24Txn.kind = WITHDRAWAL.kind
     expectedSep24Txn.status = SepTransactionStatus.PENDING_STELLAR.toString()
     expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedSep24Txn.requestAssetCode = FIAT_USD_CODE
@@ -263,8 +250,8 @@ class DoStellarRefundHandlerTest {
     expectedSep24Txn.amountOut = "1"
     expectedSep24Txn.amountFeeAsset = STELLAR_USDC
     expectedSep24Txn.amountFee = "0.1"
-    expectedSep24Txn.refundMemo = request.memo
-    expectedSep24Txn.refundMemoType = request.memoType
+    expectedSep24Txn.refundMemo = "memo"
+    expectedSep24Txn.refundMemoType = "text"
     expectedSep24Txn.transferReceivedAt = transferReceivedAt
 
     JSONAssert.assertEquals(
@@ -275,7 +262,7 @@ class DoStellarRefundHandlerTest {
 
     val expectedResponse = GetTransactionResponse()
     expectedResponse.sep = PlatformTransactionData.Sep.SEP_24
-    expectedResponse.kind = PlatformTransactionData.Kind.WITHDRAWAL
+    expectedResponse.kind = WITHDRAWAL
     expectedResponse.status = SepTransactionStatus.PENDING_STELLAR
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
     expectedResponse.amountIn = Amount("1", STELLAR_USDC)

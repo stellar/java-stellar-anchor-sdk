@@ -1,7 +1,6 @@
 package org.stellar.anchor.platform.component.platform;
 
 import java.util.List;
-import javax.validation.Validator;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.stellar.anchor.asset.AssetService;
@@ -29,6 +28,7 @@ import org.stellar.anchor.platform.action.RequestOnchainFundsHandler;
 import org.stellar.anchor.platform.action.RequestTrustHandler;
 import org.stellar.anchor.platform.data.JdbcTransactionPendingTrustRepo;
 import org.stellar.anchor.platform.service.ActionService;
+import org.stellar.anchor.platform.validator.RequestValidator;
 import org.stellar.anchor.sep24.Sep24DepositInfoGenerator;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
@@ -45,7 +45,7 @@ public class ActionBeans {
   DoStellarPaymentHandler doStellarPaymentHandler(
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
-      Validator validator,
+      RequestValidator requestValidator,
       CustodyConfig custodyConfig,
       Horizon horizon,
       AssetService assetService,
@@ -54,7 +54,7 @@ public class ActionBeans {
     return new DoStellarPaymentHandler(
         txn24Store,
         txn31Store,
-        validator,
+        requestValidator,
         custodyConfig,
         horizon,
         assetService,
@@ -66,179 +66,162 @@ public class ActionBeans {
   DoStellarRefundHandler doStellarRefundHandler(
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
-      Validator validator,
+      RequestValidator requestValidator,
       CustodyConfig custodyConfig,
-      Horizon horizon,
       AssetService assetService,
       CustodyService custodyService) {
     return new DoStellarRefundHandler(
-        txn24Store, txn31Store, validator, custodyConfig, horizon, assetService, custodyService);
+        txn24Store, txn31Store, requestValidator, custodyConfig, assetService, custodyService);
   }
 
   @Bean
   NotifyAmountsUpdatedHandler notifyAmountsUpdatedHandler(
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
-      Validator validator,
-      Horizon horizon,
+      RequestValidator requestValidator,
       AssetService assetService) {
-    return new NotifyAmountsUpdatedHandler(
-        txn24Store, txn31Store, validator, horizon, assetService);
+    return new NotifyAmountsUpdatedHandler(txn24Store, txn31Store, requestValidator, assetService);
   }
 
   @Bean
   NotifyInteractiveFlowCompletedHandler notifyInteractiveFlowCompletedHandler(
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
-      Validator validator,
-      Horizon horizon,
+      RequestValidator requestValidator,
       AssetService assetService) {
     return new NotifyInteractiveFlowCompletedHandler(
-        txn24Store, txn31Store, validator, horizon, assetService);
+        txn24Store, txn31Store, requestValidator, assetService);
   }
 
   @Bean
   NotifyOffchainFundsAvailableHandler notifyOffchainFundsAvailableHandler(
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
-      Validator validator,
-      Horizon horizon,
+      RequestValidator requestValidator,
       AssetService assetService) {
     return new NotifyOffchainFundsAvailableHandler(
-        txn24Store, txn31Store, validator, horizon, assetService);
+        txn24Store, txn31Store, requestValidator, assetService);
   }
 
   @Bean
   NotifyOffchainFundsReceivedHandler notifyOffchainFundsReceivedHandler(
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
-      Validator validator,
-      Horizon horizon,
+      RequestValidator requestValidator,
       AssetService assetService,
       CustodyService custodyService,
       CustodyConfig custodyConfig) {
     return new NotifyOffchainFundsReceivedHandler(
-        txn24Store, txn31Store, validator, horizon, assetService, custodyService, custodyConfig);
+        txn24Store, txn31Store, requestValidator, assetService, custodyService, custodyConfig);
   }
 
   @Bean
   NotifyOffchainFundsSentHandler notifyOffchainFundsSentHandler(
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
-      Validator validator,
-      Horizon horizon,
+      RequestValidator requestValidator,
       AssetService assetService) {
     return new NotifyOffchainFundsSentHandler(
-        txn24Store, txn31Store, validator, horizon, assetService);
+        txn24Store, txn31Store, requestValidator, assetService);
   }
 
   @Bean
   NotifyOnchainFundsReceivedHandler notifyOnchainFundsReceivedHandler(
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
-      Validator validator,
+      RequestValidator requestValidator,
       Horizon horizon,
       AssetService assetService) {
     return new NotifyOnchainFundsReceivedHandler(
-        txn24Store, txn31Store, validator, horizon, assetService);
+        txn24Store, txn31Store, requestValidator, horizon, assetService);
   }
 
   @Bean
   NotifyOnchainFundsSentHandler notifyOnchainFundsSentHandler(
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
-      Validator validator,
+      RequestValidator requestValidator,
       Horizon horizon,
       AssetService assetService) {
     return new NotifyOnchainFundsSentHandler(
-        txn24Store, txn31Store, validator, horizon, assetService);
+        txn24Store, txn31Store, requestValidator, horizon, assetService);
   }
 
   @Bean
   NotifyRefundInitiatedHandler notifyRefundInitiatedHandler(
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
-      Validator validator,
-      Horizon horizon,
+      RequestValidator requestValidator,
       AssetService assetService) {
-    return new NotifyRefundInitiatedHandler(
-        txn24Store, txn31Store, validator, horizon, assetService);
+    return new NotifyRefundInitiatedHandler(txn24Store, txn31Store, requestValidator, assetService);
   }
 
   @Bean
   NotifyRefundSentHandler notifyRefundSentHandler(
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
-      Validator validator,
-      Horizon horizon,
+      RequestValidator requestValidator,
       AssetService assetService) {
-    return new NotifyRefundSentHandler(txn24Store, txn31Store, validator, horizon, assetService);
+    return new NotifyRefundSentHandler(txn24Store, txn31Store, requestValidator, assetService);
   }
 
   @Bean
   NotifyTransactionErrorHandler notifyTransactionErrorHandler(
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
-      Validator validator,
-      Horizon horizon,
+      RequestValidator requestValidator,
       AssetService assetService,
       JdbcTransactionPendingTrustRepo transactionPendingTrustRepo) {
     return new NotifyTransactionErrorHandler(
-        txn24Store, txn31Store, validator, horizon, assetService, transactionPendingTrustRepo);
+        txn24Store, txn31Store, requestValidator, assetService, transactionPendingTrustRepo);
   }
 
   @Bean
   NotifyTransactionExpiredHandler notifyTransactionExpiredHandler(
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
-      Validator validator,
-      Horizon horizon,
+      RequestValidator requestValidator,
       AssetService assetService,
       JdbcTransactionPendingTrustRepo transactionPendingTrustRepo) {
     return new NotifyTransactionExpiredHandler(
-        txn24Store, txn31Store, validator, horizon, assetService, transactionPendingTrustRepo);
+        txn24Store, txn31Store, requestValidator, assetService, transactionPendingTrustRepo);
   }
 
   @Bean
   NotifyTransactionRecoveryHandler notifyTransactionRecoveryHandler(
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
-      Validator validator,
-      Horizon horizon,
+      RequestValidator requestValidator,
       AssetService assetService) {
     return new NotifyTransactionRecoveryHandler(
-        txn24Store, txn31Store, validator, horizon, assetService);
+        txn24Store, txn31Store, requestValidator, assetService);
   }
 
   @Bean
   NotifyTrustSetHandler notifyTrustSetHandler(
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
-      Validator validator,
-      Horizon horizon,
+      RequestValidator requestValidator,
       AssetService assetService,
       CustodyConfig custodyConfig) {
     return new NotifyTrustSetHandler(
-        txn24Store, txn31Store, validator, horizon, assetService, custodyConfig);
+        txn24Store, txn31Store, requestValidator, assetService, custodyConfig);
   }
 
   @Bean
   RequestOffchainFundsHandler requestOffchainFundsHandler(
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
-      Validator validator,
-      Horizon horizon,
+      RequestValidator requestValidator,
       AssetService assetService) {
-    return new RequestOffchainFundsHandler(
-        txn24Store, txn31Store, validator, horizon, assetService);
+    return new RequestOffchainFundsHandler(txn24Store, txn31Store, requestValidator, assetService);
   }
 
   @Bean
   RequestOnchainFundsHandler requestOnchainFundsHandler(
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
-      Validator validator,
-      Horizon horizon,
+      RequestValidator requestValidator,
       AssetService assetService,
       CustodyService custodyService,
       CustodyConfig custodyConfig,
@@ -246,8 +229,7 @@ public class ActionBeans {
     return new RequestOnchainFundsHandler(
         txn24Store,
         txn31Store,
-        validator,
-        horizon,
+        requestValidator,
         assetService,
         custodyService,
         custodyConfig,
@@ -258,11 +240,10 @@ public class ActionBeans {
   RequestTrustHandler requestTrustHandler(
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
-      Validator validator,
-      Horizon horizon,
+      RequestValidator requestValidator,
       AssetService assetService,
       CustodyConfig custodyConfig) {
     return new RequestTrustHandler(
-        txn24Store, txn31Store, validator, horizon, assetService, custodyConfig);
+        txn24Store, txn31Store, requestValidator, assetService, custodyConfig);
   }
 }

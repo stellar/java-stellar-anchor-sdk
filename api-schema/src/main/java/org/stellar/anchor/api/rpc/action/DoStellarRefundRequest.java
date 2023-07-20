@@ -16,19 +16,14 @@ public class DoStellarRefundRequest extends RpcActionParamsRequest {
 
   @NotNull private Refund refund;
 
-  private String memo;
-
-  @SerializedName("memo_type")
-  private String memoType;
-
   @Data
   @Builder
   public static class Refund {
 
-    @NotNull private String amount;
+    @NotNull private AmountRequest amount;
 
     @SerializedName("amount_fee")
     @NotNull
-    private String amountFee;
+    private AmountRequest amountFee;
   }
 }

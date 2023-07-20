@@ -13,18 +13,18 @@ import lombok.experimental.SuperBuilder;
 @EqualsAndHashCode(callSuper = false)
 public class NotifyInteractiveFlowCompletedRequest extends RpcActionParamsRequest {
 
+  @NotNull
   @SerializedName("amount_in")
-  @NotNull
-  private AmountRequest amountIn;
+  private AmountAssetRequest amountIn;
 
+  @NotNull
   @SerializedName("amount_out")
-  @NotNull
-  private AmountRequest amountOut;
+  private AmountAssetRequest amountOut;
 
-  @SerializedName("amount_fee")
   @NotNull
-  private AmountRequest amountFee;
+  @SerializedName("amount_fee")
+  private AmountAssetRequest amountFee;
 
   @SerializedName("amount_expected")
-  private String amountExpected;
+  private AmountRequest amountExpected;
 }

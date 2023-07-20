@@ -20,11 +20,11 @@ public class NotifyOffchainFundsReceivedRequest extends RpcActionParamsRequest {
   private String externalTransactionId;
 
   @SerializedName("amount_in")
-  private String amountIn;
+  private AmountRequest amountIn;
 
   @SerializedName("amount_out")
-  private String amountOut;
+  private AmountRequest amountOut;
 
   @SerializedName("amount_fee")
-  private String amountFee;
+  private AmountRequest amountFee;
 }

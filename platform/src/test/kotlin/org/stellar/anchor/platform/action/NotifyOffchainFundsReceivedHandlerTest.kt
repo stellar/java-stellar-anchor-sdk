@@ -3,8 +3,6 @@ package org.stellar.anchor.platform.action
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
 import java.time.Instant
-import javax.validation.ConstraintViolation
-import javax.validation.Validator
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import org.junit.jupiter.api.BeforeEach
@@ -12,12 +10,14 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
+import org.stellar.anchor.api.exception.BadRequestException
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException
 import org.stellar.anchor.api.platform.GetTransactionResponse
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL
 import org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24
+import org.stellar.anchor.api.rpc.action.AmountRequest
 import org.stellar.anchor.api.rpc.action.NotifyOffchainFundsReceivedRequest
 import org.stellar.anchor.api.sep.SepTransactionStatus.*
 import org.stellar.anchor.api.shared.Amount
@@ -25,8 +25,8 @@ import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.config.CustodyConfig
 import org.stellar.anchor.custody.CustodyService
-import org.stellar.anchor.horizon.Horizon
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
+import org.stellar.anchor.platform.validator.RequestValidator
 import org.stellar.anchor.sep24.Sep24Transaction
 import org.stellar.anchor.sep24.Sep24TransactionStore
 import org.stellar.anchor.sep31.Sep31TransactionStore
@@ -47,9 +47,7 @@ class NotifyOffchainFundsReceivedHandlerTest {
 
   @MockK(relaxed = true) private lateinit var txn31Store: Sep31TransactionStore
 
-  @MockK(relaxed = true) private lateinit var horizon: Horizon
-
-  @MockK(relaxed = true) private lateinit var validator: Validator
+  @MockK(relaxed = true) private lateinit var requestValidator: RequestValidator
 
   @MockK(relaxed = true) private lateinit var assetService: AssetService
 
@@ -67,8 +65,7 @@ class NotifyOffchainFundsReceivedHandlerTest {
       NotifyOffchainFundsReceivedHandler(
         txn24Store,
         txn31Store,
-        validator,
-        horizon,
+        requestValidator,
         assetService,
         custodyService,
         custodyConfig
@@ -79,16 +76,17 @@ class NotifyOffchainFundsReceivedHandlerTest {
   fun test_handle_unsupportedProtocol() {
     val request = NotifyOffchainFundsReceivedRequest.builder().transactionId(TX_ID).build()
     val txn24 = JdbcSep24Transaction()
+    txn24.kind = DEPOSIT.kind
     txn24.status = PENDING_USR_TRANSFER_START.toString()
     val spyTxn24 = spyk(txn24)
 
     every { txn24Store.findByTransactionId(TX_ID) } returns spyTxn24
     every { txn31Store.findByTransactionId(any()) } returns null
-    every { spyTxn24.protocol } returns "100"
+    every { spyTxn24.protocol } returns "38"
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Protocol[100] is not supported by action[notify_offchain_funds_received]",
+      "Action[notify_offchain_funds_received] is not supported for status[pending_user_transfer_start], kind[null] and protocol[38]",
       ex.message
     )
   }
@@ -105,7 +103,7 @@ class NotifyOffchainFundsReceivedHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[notify_offchain_funds_received] is not supported for status[incomplete]",
+      "Action[notify_offchain_funds_received] is not supported for status[incomplete], kind[deposit] and protocol[24]",
       ex.message
     )
   }
@@ -122,7 +120,7 @@ class NotifyOffchainFundsReceivedHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[notify_offchain_funds_received] is not supported for status[pending_user_transfer_start]",
+      "Action[notify_offchain_funds_received] is not supported for status[pending_user_transfer_start], kind[withdrawal] and protocol[24]",
       ex.message
     )
   }
@@ -140,7 +138,7 @@ class NotifyOffchainFundsReceivedHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[notify_offchain_funds_received] is not supported for status[pending_external]",
+      "Action[notify_offchain_funds_received] is not supported for status[pending_external], kind[withdrawal] and protocol[24]",
       ex.message
     )
   }
@@ -153,20 +151,12 @@ class NotifyOffchainFundsReceivedHandlerTest {
     txn24.kind = DEPOSIT.kind
     txn24.transferReceivedAt = Instant.now()
 
-    val violation1: ConstraintViolation<NotifyOffchainFundsReceivedRequest> = mockk()
-    val violation2: ConstraintViolation<NotifyOffchainFundsReceivedRequest> = mockk()
-
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
-    every { violation1.message } returns "violation error message 1"
-    every { violation2.message } returns "violation error message 2"
-    every { validator.validate(request) } returns setOf(violation1, violation2)
+    every { requestValidator.validate(request) } throws InvalidParamsException("Invalid request")
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
-    assertEquals(
-      "violation error message 1\n" + "violation error message 2",
-      ex.message?.trimIndent()
-    )
+    assertEquals("Invalid request", ex.message?.trimIndent())
   }
 
   @Test
@@ -175,9 +165,9 @@ class NotifyOffchainFundsReceivedHandlerTest {
     val request =
       NotifyOffchainFundsReceivedRequest.builder()
         .transactionId(TX_ID)
-        .amountIn("1")
-        .amountOut("0.9")
-        .amountFee("0.1")
+        .amountIn(AmountRequest("1"))
+        .amountOut(AmountRequest("0.9"))
+        .amountFee(AmountRequest("0.1"))
         .externalTransactionId("externalTxId")
         .fundsReceivedAt(transferReceivedAt)
         .build()
@@ -232,6 +222,66 @@ class NotifyOffchainFundsReceivedHandlerTest {
     expectedResponse.amountIn = Amount("1", FIAT_USD)
     expectedResponse.amountOut = Amount("0.9", STELLAR_USDC)
     expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
+    expectedResponse.amountExpected = Amount(null, FIAT_USD)
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedResponse),
+      gson.toJson(response),
+      JSONCompareMode.STRICT
+    )
+
+    assertTrue(expectedSep24Txn.updatedAt >= startDate)
+    assertTrue(expectedSep24Txn.updatedAt <= endDate)
+  }
+
+  @Test
+  fun test_handle_ok_onlyWithAmountIn() {
+    val request =
+      NotifyOffchainFundsReceivedRequest.builder()
+        .transactionId(TX_ID)
+        .amountIn(AmountRequest("1"))
+        .build()
+    val txn24 = JdbcSep24Transaction()
+    txn24.status = PENDING_USR_TRANSFER_START.toString()
+    txn24.kind = DEPOSIT.kind
+    txn24.requestAssetCode = FIAT_USD_CODE
+    txn24.amountInAsset = FIAT_USD
+    val sep24TxnCapture = slot<JdbcSep24Transaction>()
+
+    every { txn24Store.findByTransactionId(TX_ID) } returns txn24
+    every { txn31Store.findByTransactionId(any()) } returns null
+    every { txn24Store.save(capture(sep24TxnCapture)) } returns null
+    every { custodyConfig.isCustodyIntegrationEnabled } returns false
+
+    val startDate = Instant.now()
+    val response = handler.handle(request)
+    val endDate = Instant.now()
+
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { custodyService.createTransaction(ofType(Sep24Transaction::class)) }
+
+    val expectedSep24Txn = JdbcSep24Transaction()
+    expectedSep24Txn.kind = DEPOSIT.kind
+    expectedSep24Txn.status = PENDING_ANCHOR.toString()
+    expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
+    expectedSep24Txn.transferReceivedAt = sep24TxnCapture.captured.transferReceivedAt
+    expectedSep24Txn.requestAssetCode = FIAT_USD_CODE
+    expectedSep24Txn.amountIn = "1"
+    expectedSep24Txn.amountInAsset = FIAT_USD
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedSep24Txn),
+      gson.toJson(sep24TxnCapture.captured),
+      JSONCompareMode.STRICT
+    )
+
+    val expectedResponse = GetTransactionResponse()
+    expectedResponse.sep = SEP_24
+    expectedResponse.kind = DEPOSIT
+    expectedResponse.status = PENDING_ANCHOR
+    expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
+    expectedResponse.transferReceivedAt = sep24TxnCapture.captured.transferReceivedAt
+    expectedResponse.amountIn = Amount("1", FIAT_USD)
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
 
     JSONAssert.assertEquals(
@@ -364,8 +414,8 @@ class NotifyOffchainFundsReceivedHandlerTest {
   fun test_handle_notAllAmounts() {
     val request =
       NotifyOffchainFundsReceivedRequest.builder()
-        .amountIn("1")
-        .amountOut("1")
+        .amountIn(AmountRequest("1"))
+        .amountOut(AmountRequest("1"))
         .transactionId(TX_ID)
         .build()
     val txn24 = JdbcSep24Transaction()
@@ -379,7 +429,7 @@ class NotifyOffchainFundsReceivedHandlerTest {
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
     assertEquals(
-      "All or none of the amount_in, amount_out, and amount_fee should be set",
+      "Invalid amounts combination provided: all, none or only amount_in should be set",
       ex.message
     )
   }
@@ -388,9 +438,9 @@ class NotifyOffchainFundsReceivedHandlerTest {
   fun test_handle_invalidAmounts() {
     val request =
       NotifyOffchainFundsReceivedRequest.builder()
-        .amountIn("1")
-        .amountOut("1")
-        .amountFee("1")
+        .amountIn(AmountRequest("1"))
+        .amountOut(AmountRequest("1"))
+        .amountFee(AmountRequest("1"))
         .transactionId(TX_ID)
         .build()
     val txn24 = JdbcSep24Transaction()
@@ -406,19 +456,19 @@ class NotifyOffchainFundsReceivedHandlerTest {
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
 
-    request.amountIn = "-1"
-    var ex = assertThrows<InvalidParamsException> { handler.handle(request) }
+    request.amountIn.amount = "-1"
+    var ex = assertThrows<BadRequestException> { handler.handle(request) }
     assertEquals("amount_in.amount should be positive", ex.message)
-    request.amountIn = "1"
+    request.amountIn.amount = "1"
 
-    request.amountOut = "-1"
+    request.amountOut.amount = "-1"
     ex = assertThrows { handler.handle(request) }
     assertEquals("amount_out.amount should be positive", ex.message)
-    request.amountOut = "1"
+    request.amountOut.amount = "1"
 
-    request.amountFee = "-1"
+    request.amountFee.amount = "-1"
     ex = assertThrows { handler.handle(request) }
     assertEquals("amount_fee.amount should be non-negative", ex.message)
-    request.amountFee = "1"
+    request.amountFee.amount = "1"
   }
 }

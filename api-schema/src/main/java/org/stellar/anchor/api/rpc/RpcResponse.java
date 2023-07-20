@@ -14,6 +14,7 @@ public class RpcResponse {
   @Data
   @Builder
   public static class RpcError {
+    private String id;
     private int code;
     private String message;
     private Object data;

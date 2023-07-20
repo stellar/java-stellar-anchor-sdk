@@ -7,26 +7,28 @@ import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_STELLAR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.REFUNDED;
 import static org.stellar.anchor.util.AssetHelper.getAssetCode;
 import static org.stellar.anchor.util.MathHelper.decimal;
+import static org.stellar.anchor.util.MathHelper.sum;
 
 import java.math.BigDecimal;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-import javax.validation.Validator;
+import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException;
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException;
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind;
 import org.stellar.anchor.api.rpc.action.ActionMethod;
-import org.stellar.anchor.api.rpc.action.AmountRequest;
+import org.stellar.anchor.api.rpc.action.AmountAssetRequest;
 import org.stellar.anchor.api.rpc.action.NotifyRefundSentRequest;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
-import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.platform.data.JdbcSep24RefundPayment;
 import org.stellar.anchor.platform.data.JdbcSep24Refunds;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
+import org.stellar.anchor.platform.utils.AssetValidationUtils;
+import org.stellar.anchor.platform.validator.RequestValidator;
 import org.stellar.anchor.sep24.Sep24RefundPayment;
 import org.stellar.anchor.sep24.Sep24Refunds;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
@@ -37,15 +39,14 @@ public class NotifyRefundSentHandler extends ActionHandler<NotifyRefundSentReque
   public NotifyRefundSentHandler(
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
-      Validator validator,
-      Horizon horizon,
+      RequestValidator requestValidator,
       AssetService assetService) {
-    super(txn24Store, txn31Store, validator, horizon, assetService, NotifyRefundSentRequest.class);
+    super(txn24Store, txn31Store, requestValidator, assetService, NotifyRefundSentRequest.class);
   }
 
   @Override
   protected void validate(JdbcSepTransaction txn, NotifyRefundSentRequest request)
-      throws InvalidParamsException, InvalidRequestException {
+      throws InvalidParamsException, InvalidRequestException, BadRequestException {
     super.validate(txn, request);
 
     if (request.getRefund() == null
@@ -53,18 +54,23 @@ public class NotifyRefundSentHandler extends ActionHandler<NotifyRefundSentReque
       throw new InvalidParamsException("refund is required");
     }
 
-    validateAsset(
-        "refund.amount",
-        AmountRequest.builder()
-            .amount(request.getRefund().getAmount())
-            .asset(txn.getAmountInAsset())
-            .build());
-    validateAsset(
-        "refund.amountFee",
-        AmountRequest.builder()
-            .amount(request.getRefund().getAmountFee())
-            .asset(txn.getAmountInAsset())
-            .build());
+    if (request.getRefund() != null) {
+      AssetValidationUtils.validateAsset(
+          "refund.amount",
+          AmountAssetRequest.builder()
+              .amount(request.getRefund().getAmount().getAmount())
+              .asset(txn.getAmountInAsset())
+              .build(),
+          assetService);
+      AssetValidationUtils.validateAsset(
+          "refund.amountFee",
+          AmountAssetRequest.builder()
+              .amount(request.getRefund().getAmountFee().getAmount())
+              .asset(txn.getAmountInAsset())
+              .build(),
+          true,
+          assetService);
+    }
   }
 
   @Override
@@ -78,18 +84,59 @@ public class NotifyRefundSentHandler extends ActionHandler<NotifyRefundSentReque
 
     JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
     AssetInfo assetInfo = assetService.getAsset(getAssetCode(txn.getAmountInAsset()));
+    Sep24Refunds sep24Refunds = txn24.getRefunds();
+    NotifyRefundSentRequest.Refund refund = request.getRefund();
+
     BigDecimal totalRefunded;
-    if (txn24.getRefunds() == null || txn24.getRefunds().getRefundPayments() == null) {
-      totalRefunded = BigDecimal.ZERO;
-    } else {
+    if (sep24Refunds == null || sep24Refunds.getRefundPayments() == null) {
       totalRefunded =
-          decimal(txn24.getRefunds().getAmountRefunded(), assetInfo)
-              .add(decimal(request.getRefund().getAmount(), assetInfo));
-    }
-    if (totalRefunded.compareTo(decimal(txn.getAmountIn(), assetInfo)) >= 0) {
-      return REFUNDED;
+          sum(assetInfo, refund.getAmount().getAmount(), refund.getAmountFee().getAmount());
     } else {
+      if (PENDING_ANCHOR == SepTransactionStatus.from(txn.getStatus())) {
+        totalRefunded =
+            sum(
+                assetInfo,
+                sep24Refunds.getAmountRefunded(),
+                refund.getAmount().getAmount(),
+                refund.getAmountFee().getAmount());
+      } else { // PENDING_EXTERNAL
+        if (request.getRefund() == null) {
+          totalRefunded = decimal(sep24Refunds.getAmountRefunded(), assetInfo);
+        } else {
+          List<Sep24RefundPayment> payments = sep24Refunds.getRefundPayments();
+
+          // make sure refund, provided in request, was sent on refund_initialized
+          payments.stream()
+              .map(Sep24RefundPayment::getId)
+              .filter(id -> id.equals(request.getRefund().getId()))
+              .findFirst()
+              .orElseThrow(() -> new InvalidParamsException("Invalid refund id"));
+
+          totalRefunded =
+              payments.stream()
+                  .map(
+                      payment -> {
+                        if (payment.getId().equals(request.getRefund().getId())) {
+                          return sum(
+                              assetInfo,
+                              refund.getAmount().getAmount(),
+                              refund.getAmountFee().getAmount());
+                        } else {
+                          return sum(assetInfo, payment.getAmount(), payment.getFee());
+                        }
+                      })
+                  .reduce(BigDecimal.ZERO, BigDecimal::add);
+        }
+      }
+    }
+
+    BigDecimal amountIn = decimal(txn.getAmountIn(), assetInfo);
+    if (totalRefunded.compareTo(amountIn) == 0) {
+      return REFUNDED;
+    } else if (totalRefunded.compareTo(amountIn) < 0) {
       return PENDING_ANCHOR;
+    } else {
+      throw new InvalidParamsException("Refund amount exceeds amount_in");
     }
   }
 
@@ -117,41 +164,36 @@ public class NotifyRefundSentHandler extends ActionHandler<NotifyRefundSentReque
   }
 
   @Override
-  protected Set<String> getSupportedProtocols() {
-    return Set.of("24");
-  }
-
-  @Override
   protected void updateTransactionWithAction(
       JdbcSepTransaction txn, NotifyRefundSentRequest request) {
     JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
 
     NotifyRefundSentRequest.Refund refund = request.getRefund();
-    Sep24RefundPayment refundPayment =
-        JdbcSep24RefundPayment.builder()
-            .id(refund.getId())
-            .amount(refund.getAmount())
-            .fee(refund.getAmountFee())
-            .build();
+    if (refund != null) {
+      Sep24RefundPayment refundPayment =
+          JdbcSep24RefundPayment.builder()
+              .id(refund.getId())
+              .amount(refund.getAmount().getAmount())
+              .fee(refund.getAmountFee().getAmount())
+              .build();
 
-    Sep24Refunds sep24Refunds = txn24.getRefunds();
-    if (sep24Refunds == null) {
-      sep24Refunds = new JdbcSep24Refunds();
+      Sep24Refunds sep24Refunds = txn24.getRefunds();
+      if (sep24Refunds == null) {
+        sep24Refunds = new JdbcSep24Refunds();
+      }
+
+      if (sep24Refunds.getRefundPayments() == null) {
+        sep24Refunds.setRefundPayments(List.of(refundPayment));
+      } else {
+        List<Sep24RefundPayment> payments = sep24Refunds.getRefundPayments();
+        payments.removeIf(payment -> payment.getId().equals(request.getRefund().getId()));
+        payments.add(refundPayment);
+        sep24Refunds.setRefundPayments(payments);
+      }
+
+      AssetInfo assetInfo = assetService.getAsset(getAssetCode(txn.getAmountInAsset()));
+      sep24Refunds.recalculateAmounts(assetInfo);
+      txn24.setRefunds(sep24Refunds);
     }
-
-    if (sep24Refunds.getRefundPayments() == null) {
-      sep24Refunds.setRefundPayments(List.of(refundPayment));
-    } else {
-      sep24Refunds
-          .getRefundPayments()
-          .removeIf(payment -> payment.getId().equals(request.getRefund().getId()));
-      List<Sep24RefundPayment> refundPayments = sep24Refunds.getRefundPayments();
-      refundPayments.add(refundPayment);
-      sep24Refunds.setRefundPayments(refundPayments);
-    }
-
-    AssetInfo assetInfo = assetService.getAsset(getAssetCode(txn.getAmountInAsset()));
-    sep24Refunds.recalculateAmounts(assetInfo);
-    txn24.setRefunds(sep24Refunds);
   }
 }

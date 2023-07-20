@@ -1,19 +1,20 @@
 package org.stellar.anchor.platform.action;
 
 import static java.util.stream.Collectors.toSet;
+import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24;
 import static org.stellar.anchor.api.rpc.action.ActionMethod.NOTIFY_TRANSACTION_EXPIRED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.EXPIRED;
 
 import java.util.Arrays;
 import java.util.Set;
-import javax.validation.Validator;
+import org.stellar.anchor.api.platform.PlatformTransactionData.Sep;
 import org.stellar.anchor.api.rpc.action.ActionMethod;
 import org.stellar.anchor.api.rpc.action.NotifyTransactionExpiredRequest;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
-import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.platform.data.JdbcTransactionPendingTrustRepo;
+import org.stellar.anchor.platform.validator.RequestValidator;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 
@@ -25,15 +26,13 @@ public class NotifyTransactionExpiredHandler
   public NotifyTransactionExpiredHandler(
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
-      Validator validator,
-      Horizon horizon,
+      RequestValidator requestValidator,
       AssetService assetService,
       JdbcTransactionPendingTrustRepo transactionPendingTrustRepo) {
     super(
         txn24Store,
         txn31Store,
-        validator,
-        horizon,
+        requestValidator,
         assetService,
         NotifyTransactionExpiredRequest.class);
     this.transactionPendingTrustRepo = transactionPendingTrustRepo;
@@ -52,14 +51,12 @@ public class NotifyTransactionExpiredHandler
 
   @Override
   protected Set<SepTransactionStatus> getSupportedStatuses(JdbcSepTransaction txn) {
-    return Arrays.stream(SepTransactionStatus.values())
-        .filter(s -> !isErrorStatus(s) && !isFinalStatus(s))
-        .collect(toSet());
-  }
-
-  @Override
-  protected Set<String> getSupportedProtocols() {
-    return Set.of("24");
+    if (SEP_24 == Sep.from(txn.getProtocol())) {
+      return Arrays.stream(SepTransactionStatus.values())
+          .filter(s -> !isErrorStatus(s) && !isFinalStatus(s))
+          .collect(toSet());
+    }
+    return Set.of();
   }
 
   @Override

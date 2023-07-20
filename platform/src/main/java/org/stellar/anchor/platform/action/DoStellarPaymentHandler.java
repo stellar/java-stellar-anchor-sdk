@@ -1,6 +1,7 @@
 package org.stellar.anchor.platform.action;
 
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT;
+import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24;
 import static org.stellar.anchor.api.rpc.action.ActionMethod.DO_STELLAR_PAYMENT;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_STELLAR;
@@ -8,11 +9,12 @@ import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_TRUST;
 
 import java.time.Instant;
 import java.util.Set;
-import javax.validation.Validator;
 import org.stellar.anchor.api.exception.AnchorException;
+import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException;
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException;
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind;
+import org.stellar.anchor.api.platform.PlatformTransactionData.Sep;
 import org.stellar.anchor.api.rpc.action.ActionMethod;
 import org.stellar.anchor.api.rpc.action.DoStellarPaymentRequest;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
@@ -24,6 +26,7 @@ import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.platform.data.JdbcTransactionPendingTrust;
 import org.stellar.anchor.platform.data.JdbcTransactionPendingTrustRepo;
+import org.stellar.anchor.platform.validator.RequestValidator;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 
@@ -32,25 +35,27 @@ public class DoStellarPaymentHandler extends ActionHandler<DoStellarPaymentReque
   private final CustodyService custodyService;
   private final CustodyConfig custodyConfig;
   private final JdbcTransactionPendingTrustRepo transactionPendingTrustRepo;
+  private final Horizon horizon;
 
   public DoStellarPaymentHandler(
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
-      Validator validator,
+      RequestValidator requestValidator,
       CustodyConfig custodyConfig,
       Horizon horizon,
       AssetService assetService,
       CustodyService custodyService,
       JdbcTransactionPendingTrustRepo transactionPendingTrustRepo) {
-    super(txn24Store, txn31Store, validator, horizon, assetService, DoStellarPaymentRequest.class);
+    super(txn24Store, txn31Store, requestValidator, assetService, DoStellarPaymentRequest.class);
     this.custodyService = custodyService;
     this.custodyConfig = custodyConfig;
+    this.horizon = horizon;
     this.transactionPendingTrustRepo = transactionPendingTrustRepo;
   }
 
   @Override
   protected void validate(JdbcSepTransaction txn, DoStellarPaymentRequest request)
-      throws InvalidRequestException, InvalidParamsException {
+      throws InvalidRequestException, InvalidParamsException, BadRequestException {
     super.validate(txn, request);
 
     if (!custodyConfig.isCustodyIntegrationEnabled()) {
@@ -77,18 +82,15 @@ public class DoStellarPaymentHandler extends ActionHandler<DoStellarPaymentReque
 
   @Override
   protected Set<SepTransactionStatus> getSupportedStatuses(JdbcSepTransaction txn) {
-    JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
-    if (DEPOSIT == Kind.from(txn24.getKind())) {
-      if (txn24.getTransferReceivedAt() != null) {
-        return Set.of(PENDING_ANCHOR);
+    if (SEP_24 == Sep.from(txn.getProtocol())) {
+      JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
+      if (DEPOSIT == Kind.from(txn24.getKind())) {
+        if (txn24.getTransferReceivedAt() != null) {
+          return Set.of(PENDING_ANCHOR);
+        }
       }
     }
     return Set.of();
-  }
-
-  @Override
-  protected Set<String> getSupportedProtocols() {
-    return Set.of("24");
   }
 
   @Override

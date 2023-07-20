@@ -13,22 +13,22 @@ import lombok.experimental.SuperBuilder;
 public class RequestOnchainFundsRequest extends RpcActionParamsRequest {
 
   @SerializedName("amount_in")
-  private AmountRequest amountIn;
+  private AmountAssetRequest amountIn;
 
   @SerializedName("amount_out")
-  private AmountRequest amountOut;
+  private AmountAssetRequest amountOut;
 
   @SerializedName("amount_fee")
-  private AmountRequest amountFee;
+  private AmountAssetRequest amountFee;
 
   @SerializedName("amount_expected")
-  private String amountExpected;
+  private AmountRequest amountExpected;
 
   @SerializedName("destination_account")
   private String destinationAccount;
 
-  private String memo;
-
   @SerializedName("memo_type")
   private String memoType;
+
+  private String memo;
 }

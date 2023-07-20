@@ -1,33 +1,31 @@
 package org.stellar.anchor.platform.action;
 
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL;
+import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24;
 import static org.stellar.anchor.api.rpc.action.ActionMethod.DO_STELLAR_REFUND;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_STELLAR;
-import static org.stellar.anchor.util.MemoHelper.makeMemo;
-import static org.stellar.anchor.util.MemoHelper.memoType;
-import static org.stellar.anchor.util.SepHelper.memoTypeString;
 
 import java.util.Set;
-import javax.validation.Validator;
 import org.stellar.anchor.api.exception.AnchorException;
-import org.stellar.anchor.api.exception.SepException;
+import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException;
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException;
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind;
+import org.stellar.anchor.api.platform.PlatformTransactionData.Sep;
 import org.stellar.anchor.api.rpc.action.ActionMethod;
-import org.stellar.anchor.api.rpc.action.AmountRequest;
+import org.stellar.anchor.api.rpc.action.AmountAssetRequest;
 import org.stellar.anchor.api.rpc.action.DoStellarRefundRequest;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.CustodyConfig;
 import org.stellar.anchor.custody.CustodyService;
-import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
+import org.stellar.anchor.platform.utils.AssetValidationUtils;
+import org.stellar.anchor.platform.validator.RequestValidator;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
-import org.stellar.sdk.Memo;
 
 public class DoStellarRefundHandler extends ActionHandler<DoStellarRefundRequest> {
 
@@ -37,19 +35,18 @@ public class DoStellarRefundHandler extends ActionHandler<DoStellarRefundRequest
   public DoStellarRefundHandler(
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
-      Validator validator,
+      RequestValidator requestValidator,
       CustodyConfig custodyConfig,
-      Horizon horizon,
       AssetService assetService,
       CustodyService custodyService) {
-    super(txn24Store, txn31Store, validator, horizon, assetService, DoStellarRefundRequest.class);
+    super(txn24Store, txn31Store, requestValidator, assetService, DoStellarRefundRequest.class);
     this.custodyService = custodyService;
     this.custodyConfig = custodyConfig;
   }
 
   @Override
   protected void validate(JdbcSepTransaction txn, DoStellarRefundRequest request)
-      throws InvalidParamsException, InvalidRequestException {
+      throws InvalidParamsException, InvalidRequestException, BadRequestException {
     super.validate(txn, request);
 
     if (!custodyConfig.isCustodyIntegrationEnabled()) {
@@ -57,25 +54,21 @@ public class DoStellarRefundHandler extends ActionHandler<DoStellarRefundRequest
           String.format("Action[%s] requires enabled custody integration", getActionType()));
     }
 
-    try {
-      makeMemo(request.getMemo(), request.getMemoType());
-    } catch (SepException | IllegalArgumentException e) {
-      throw new InvalidParamsException(
-          String.format("Invalid memo or memo_type: %s", e.getMessage()), e);
-    }
-
-    validateAsset(
+    AssetValidationUtils.validateAsset(
         "refund.amount",
-        AmountRequest.builder()
-            .amount(request.getRefund().getAmount())
+        AmountAssetRequest.builder()
+            .amount(request.getRefund().getAmount().getAmount())
             .asset(txn.getAmountInAsset())
-            .build());
-    validateAsset(
+            .build(),
+        assetService);
+    AssetValidationUtils.validateAsset(
         "refund.amountFee",
-        AmountRequest.builder()
-            .amount(request.getRefund().getAmountFee())
+        AmountAssetRequest.builder()
+            .amount(request.getRefund().getAmountFee().getAmount())
             .asset(txn.getAmountInAsset())
-            .build());
+            .build(),
+        true,
+        assetService);
   }
 
   @Override
@@ -91,31 +84,21 @@ public class DoStellarRefundHandler extends ActionHandler<DoStellarRefundRequest
 
   @Override
   protected Set<SepTransactionStatus> getSupportedStatuses(JdbcSepTransaction txn) {
-    JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
-    if (WITHDRAWAL == Kind.from(txn24.getKind())) {
-      if (txn24.getTransferReceivedAt() != null) {
-        return Set.of(PENDING_ANCHOR);
+    if (SEP_24 == Sep.from(txn.getProtocol())) {
+      JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
+      if (WITHDRAWAL == Kind.from(txn24.getKind())) {
+        if (txn24.getTransferReceivedAt() != null) {
+          return Set.of(PENDING_ANCHOR);
+        }
       }
     }
     return Set.of();
   }
 
   @Override
-  protected Set<String> getSupportedProtocols() {
-    return Set.of("24");
-  }
-
-  @Override
   protected void updateTransactionWithAction(JdbcSepTransaction txn, DoStellarRefundRequest request)
       throws AnchorException {
     JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
-
-    Memo memo = makeMemo(request.getMemo(), request.getMemoType());
-    if (memo != null) {
-      txn24.setRefundMemo(memo.toString());
-      txn24.setRefundMemoType(memoTypeString(memoType(memo)));
-    }
-
-    custodyService.createTransactionRefund(txn.getId(), request);
+    custodyService.createTransactionRefund(txn24, request);
   }
 }

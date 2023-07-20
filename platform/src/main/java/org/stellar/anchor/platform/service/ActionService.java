@@ -7,13 +7,14 @@ import static org.stellar.anchor.platform.utils.RpcUtil.getRpcErrorResponse;
 import static org.stellar.anchor.platform.utils.RpcUtil.getRpcSuccessResponse;
 import static org.stellar.anchor.platform.utils.RpcUtil.validateRpcRequest;
 import static org.stellar.anchor.util.Log.debugF;
-import static org.stellar.anchor.util.Log.error;
+import static org.stellar.anchor.util.Log.errorEx;
 
 import java.util.List;
 import java.util.Map;
 import org.stellar.anchor.api.exception.AnchorException;
+import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.rpc.InternalErrorException;
-import org.stellar.anchor.api.exception.rpc.InvalidRequestException;
+import org.stellar.anchor.api.exception.rpc.MethodNotFoundException;
 import org.stellar.anchor.api.exception.rpc.RpcException;
 import org.stellar.anchor.api.rpc.RpcRequest;
 import org.stellar.anchor.api.rpc.RpcResponse;
@@ -38,19 +39,21 @@ public class ActionService {
                 validateRpcRequest(rc);
                 return getRpcSuccessResponse(rpcId, processRpcCall(rc));
               } catch (RpcException ex) {
-                error(
+                errorEx(
                     String.format(
                         "An RPC error occurred while processing an RPC call with action[%s] and id[%s]",
                         rc.getMethod(), rpcId),
                     ex);
-                return getRpcErrorResponse(rpcId, ex);
+                return getRpcErrorResponse(rc, ex);
+              } catch (BadRequestException ex) {
+                return getRpcErrorResponse(rc, ex);
               } catch (Exception ex) {
-                error(
+                errorEx(
                     String.format(
                         "An internal error occurred while processing an RPC call with action[%s] and id[%s]",
                         rc.getMethod(), rpcId),
                     ex);
-                return getRpcErrorResponse(rpcId, new InternalErrorException(ex.getMessage()));
+                return getRpcErrorResponse(rc, new InternalErrorException(ex.getMessage()));
               }
             })
         .collect(toList());
@@ -60,7 +63,7 @@ public class ActionService {
     debugF("Started processing of RPC call with method [{}]", rpcCall.getMethod());
     ActionHandler<?> actionHandler = actionHandlerMap.get(ActionMethod.from(rpcCall.getMethod()));
     if (actionHandler == null) {
-      throw new InvalidRequestException(
+      throw new MethodNotFoundException(
           String.format("Action[%s] handler is not found", rpcCall.getMethod()));
     }
     return actionHandler.handle(rpcCall.getParams());
