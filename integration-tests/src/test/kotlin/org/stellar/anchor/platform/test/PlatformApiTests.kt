@@ -1,110 +1,265 @@
 package org.stellar.anchor.platform.test
 
-import com.google.gson.reflect.TypeToken
-import java.lang.reflect.Type
-import org.apache.commons.lang3.StringUtils
 import org.apache.http.HttpStatus
-import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
-import org.stellar.anchor.api.rpc.RpcErrorCode.INVALID_REQUEST
+import org.skyscreamer.jsonassert.Customization
+import org.skyscreamer.jsonassert.JSONAssert
+import org.skyscreamer.jsonassert.JSONCompareMode
+import org.skyscreamer.jsonassert.comparator.CustomComparator
 import org.stellar.anchor.api.rpc.RpcRequest
-import org.stellar.anchor.api.rpc.RpcResponse
-import org.stellar.anchor.api.rpc.action.ActionMethod.NOTIFY_INTERACTIVE_FLOW_COMPLETED
-import org.stellar.anchor.api.rpc.action.NotifyInteractiveFlowCompletedRequest
+import org.stellar.anchor.api.rpc.action.ActionMethod
+import org.stellar.anchor.api.rpc.action.NotifyOffchainFundsReceivedRequest
+import org.stellar.anchor.api.rpc.action.RequestOffchainFundsRequest
+import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.apiclient.PlatformApiClient
 import org.stellar.anchor.auth.AuthHelper
+import org.stellar.anchor.platform.Sep24Client
 import org.stellar.anchor.platform.TestConfig
-import org.stellar.anchor.platform.utils.RpcUtil.JSON_RPC_VERSION
 import org.stellar.anchor.util.GsonUtils
 import org.stellar.anchor.util.Sep1Helper.TomlContent
 
-// TODO: Update tests
 class PlatformApiTests(config: TestConfig, toml: TomlContent, jwt: String) {
   companion object {
     private const val TX_ID = "testTxId"
-    private const val RPC_ID_1 = 1
-    private const val RPC_ID_2 = 2
+    private const val JSON_RPC_VERSION = "2.0"
   }
 
-  private val type: Type = object : TypeToken<ArrayList<RpcResponse>>() {}.type
   private val gson = GsonUtils.getInstance()
-  private val rpcMethod = NOTIFY_INTERACTIVE_FLOW_COMPLETED.toString()
 
   private val platformApiClient =
     PlatformApiClient(AuthHelper.forNone(), config.env["platform.server.url"]!!)
+  private val sep24Client = Sep24Client(toml.getString("TRANSFER_SERVER_SEP0024"), jwt)
 
   fun testAll() {
     println("Performing Platform API tests...")
-    `send rpc action`()
+    `send single rpc action`()
     `send batch of rpc actions`()
-    `send batch of invalid rpc actions`()
   }
 
-  private fun `send rpc action`() {
-    val request =
+  private fun `send single rpc action`() {
+    val depositRequest = gson.fromJson(DEPOSIT_REQUEST, HashMap::class.java)
+    val depositResponse = sep24Client.deposit(depositRequest as HashMap<String, String>)
+    val txId = depositResponse.id
+
+    val requestOffchainFundsParams =
+      gson.fromJson(REQUEST_OFFCHAIN_FUNDS, RequestOffchainFundsRequest::class.java)
+    requestOffchainFundsParams.transactionId = txId
+    val rpcRequest =
       RpcRequest.builder()
-        .id(RPC_ID_1)
+        .method(ActionMethod.REQUEST_OFFCHAIN_FUNDS.toString())
         .jsonrpc(JSON_RPC_VERSION)
-        .method(rpcMethod)
-        .params(NotifyInteractiveFlowCompletedRequest.builder().transactionId(TX_ID).build())
+        .params(requestOffchainFundsParams)
+        .id(1)
         .build()
-    val response = platformApiClient.rpcAction(listOf(request))
+    val response = platformApiClient.rpcAction(listOf(rpcRequest))
     assertEquals(HttpStatus.SC_OK, response.code)
-    val responses = gson.fromJson<List<RpcResponse>>(response.body?.string(), type)
-    assertEquals(HttpStatus.SC_OK, response.code)
-    assertEquals(1, responses.size)
-    responses.forEach {
-      assertNull(it.result)
-      assertNotNull(it.error)
-      assertEquals(request.jsonrpc, it.jsonrpc)
-      assertNotNull(it.error.message)
-      assertEquals(INVALID_REQUEST.errorCode, it.error.code)
-    }
+    JSONAssert.assertEquals(
+      EXPECTED_RPC_RESPONSE.replace(TX_ID, txId).trimIndent(),
+      response.body?.string()?.trimIndent(),
+      CustomComparator(
+        JSONCompareMode.STRICT,
+        Customization("[0].result.started_at") { _, _ -> true },
+        Customization("[0].result.updated_at") { _, _ -> true }
+      )
+    )
+
+    val txResponse = platformApiClient.getTransaction(txId)
+    assertEquals(SepTransactionStatus.PENDING_USR_TRANSFER_START, txResponse.status)
   }
 
   private fun `send batch of rpc actions`() {
-    val request1 =
-      RpcRequest.builder()
-        .id(RPC_ID_1)
-        .jsonrpc(JSON_RPC_VERSION)
-        .method(rpcMethod)
-        .params(NotifyInteractiveFlowCompletedRequest.builder().transactionId(TX_ID).build())
-        .build()
-    val request2 =
-      RpcRequest.builder()
-        .id(RPC_ID_2)
-        .jsonrpc(JSON_RPC_VERSION)
-        .method(rpcMethod)
-        .params(NotifyInteractiveFlowCompletedRequest.builder().transactionId(TX_ID).build())
-        .build()
-    val response = platformApiClient.rpcAction(listOf(request1, request2))
-    assertEquals(HttpStatus.SC_OK, response.code)
-    val responses = gson.fromJson<List<RpcResponse>>(response.body?.string(), type)
-    assertEquals(2, responses.size)
-    responses.forEach {
-      assertNull(it.result)
-      assertNotNull(it.error)
-      assertEquals(request1.jsonrpc, it.jsonrpc)
-      assertNotNull(it.error.message)
-      assertEquals(INVALID_REQUEST.errorCode, it.error.code)
-    }
-  }
+    val depositRequest = gson.fromJson(DEPOSIT_REQUEST, HashMap::class.java)
+    val depositResponse = sep24Client.deposit(depositRequest as HashMap<String, String>)
+    val txId = depositResponse.id
 
-  private fun `send batch of invalid rpc actions`() {
-    val request1 = RpcRequest.builder().id(RPC_ID_1).method(rpcMethod).build()
-    val request2 =
-      RpcRequest.builder().id(RPC_ID_2).jsonrpc(JSON_RPC_VERSION).method(StringUtils.EMPTY).build()
-    val request3 = RpcRequest.builder().id(true).jsonrpc(JSON_RPC_VERSION).method(rpcMethod).build()
-    val response = platformApiClient.rpcAction(listOf(request1, request2, request3))
+    val requestOffchainFundsParams =
+      gson.fromJson(REQUEST_OFFCHAIN_FUNDS, RequestOffchainFundsRequest::class.java)
+    val notifyOffchainFundsReceivedParams =
+      gson.fromJson(NOTIFY_OFFCHAIN_FUNDS_RECEIVED, NotifyOffchainFundsReceivedRequest::class.java)
+    requestOffchainFundsParams.transactionId = txId
+    notifyOffchainFundsReceivedParams.transactionId = txId
+    val rpcRequest1 =
+      RpcRequest.builder()
+        .id(1)
+        .method(ActionMethod.REQUEST_OFFCHAIN_FUNDS.toString())
+        .jsonrpc(JSON_RPC_VERSION)
+        .params(requestOffchainFundsParams)
+        .build()
+    val rpcRequest2 =
+      RpcRequest.builder()
+        .id(2)
+        .method(ActionMethod.NOTIFY_OFFCHAIN_FUNDS_RECEIVED.toString())
+        .jsonrpc(JSON_RPC_VERSION)
+        .params(notifyOffchainFundsReceivedParams)
+        .build()
+    val response = platformApiClient.rpcAction(listOf(rpcRequest1, rpcRequest2))
     assertEquals(HttpStatus.SC_OK, response.code)
-    val responses = gson.fromJson<List<RpcResponse>>(response.body?.string(), type)
-    assertEquals(3, responses.size)
-    responses.forEach {
-      assertNull(it.result)
-      assertNotNull(it.error)
-      assertNotNull(it.error.message)
-      assertEquals(INVALID_REQUEST.errorCode, it.error.code)
-    }
+
+    JSONAssert.assertEquals(
+      EXPECTED_RPC_BATCH_RESPONSE.replace(TX_ID, txId).trimIndent(),
+      response.body?.string()?.trimIndent(),
+      CustomComparator(
+        JSONCompareMode.STRICT,
+        Customization("[0].result.started_at") { _, _ -> true },
+        Customization("[0].result.updated_at") { _, _ -> true },
+        Customization("[1].result.started_at") { _, _ -> true },
+        Customization("[1].result.updated_at") { _, _ -> true },
+        Customization("[1].result.transfer_received_at") { _, _ -> true }
+      )
+    )
+
+    val txResponse = platformApiClient.getTransaction(txId)
+    assertEquals(SepTransactionStatus.PENDING_ANCHOR, txResponse.status)
   }
 }
+
+private const val DEPOSIT_REQUEST =
+  """{
+    "asset_code": "USDC",
+    "asset_issuer": "GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5",
+    "lang": "en"
+  }"""
+
+private const val REQUEST_OFFCHAIN_FUNDS =
+  """{
+    "transaction_id": "testTxId",
+    "message": "test message",
+    "amount_in": {
+        "amount": "1",
+        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+    },
+    "amount_out": {
+        "amount": "0.9",
+        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+    },
+    "amount_fee": {
+        "amount": "0.1",
+        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+    },
+    "amount_expected": {
+        "amount": "1"
+    }
+  }"""
+
+private const val NOTIFY_OFFCHAIN_FUNDS_RECEIVED =
+  """{
+    "transaction_id": "testTxId",
+    "message": "test message",
+    "amount_in": {
+        "amount": "1",
+        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+    },
+    "amount_out": {
+        "amount": "0.9",
+        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+    },
+    "amount_fee": {
+        "amount": "0.1",
+        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+    },
+    "external_transaction_id": "1"
+  }"""
+
+private const val EXPECTED_RPC_RESPONSE =
+  """
+  [
+   {
+      "jsonrpc":"2.0",
+      "result":{
+         "id":"testTxId",
+         "sep":"24",
+         "kind":"deposit",
+         "status":"pending_user_transfer_start",
+         "amount_expected":{
+            "amount":"1",
+            "asset":"stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+         },
+         "amount_in":{
+            "amount":"1",
+            "asset":"stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+         },
+         "amount_out":{
+            "amount":"0.9",
+            "asset":"stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+         },
+         "amount_fee":{
+            "amount":"0.1",
+            "asset":"stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+         },
+         "started_at":"2023-07-20T08:57:05.380736Z",
+         "updated_at":"2023-07-20T08:57:16.672110400Z",
+         "message":"test message",
+         "destination_account":"GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+      },
+      "id":1
+   }
+] 
+"""
+
+private const val EXPECTED_RPC_BATCH_RESPONSE =
+  """
+  [
+   {
+      "jsonrpc":"2.0",
+      "result":{
+         "id":"testTxId",
+         "sep":"24",
+         "kind":"deposit",
+         "status":"pending_user_transfer_start",
+         "amount_expected":{
+            "amount":"1",
+            "asset":"stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+         },
+         "amount_in":{
+            "amount":"1",
+            "asset":"stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+         },
+         "amount_out":{
+            "amount":"0.9",
+            "asset":"stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+         },
+         "amount_fee":{
+            "amount":"0.1",
+            "asset":"stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+         },
+         "started_at":"2023-07-20T09:07:51.007629Z",
+         "updated_at":"2023-07-20T09:07:59.425534900Z",
+         "message":"test message",
+         "destination_account":"GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+      },
+      "id":1
+   },
+   {
+      "jsonrpc":"2.0",
+      "result":{
+         "id":"testTxId",
+         "sep":"24",
+         "kind":"deposit",
+         "status":"pending_anchor",
+         "amount_expected":{
+            "amount":"1",
+            "asset":"stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+         },
+         "amount_in":{
+            "amount":"1",
+            "asset":"stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+         },
+         "amount_out":{
+            "amount":"0.9",
+            "asset":"stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+         },
+         "amount_fee":{
+            "amount":"0.1",
+            "asset":"stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+         },
+         "started_at":"2023-07-20T09:07:51.007629Z",
+         "updated_at":"2023-07-20T09:07:59.448888600Z",
+         "transfer_received_at":"2023-07-20T09:07:59.448888600Z",
+         "message":"test message",
+         "external_transaction_id": "1",
+         "destination_account":"GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+      },
+      "id":2
+   }
+] 
+"""
