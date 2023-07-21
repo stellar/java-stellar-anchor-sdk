@@ -369,7 +369,7 @@ public class Sep24Service {
     List<TransactionResponse> list = new ArrayList<>();
     debugF("found {} transactions", txns.size());
     for (Sep24Transaction txn : txns) {
-      TransactionResponse transactionResponse = fromTxn(txn, txReq.getLang());
+      TransactionResponse transactionResponse = fromTxn(assetService, moreInfoUrlConstructor, txn);
       list.add(transactionResponse);
     }
     result.setTransactions(list);
@@ -423,7 +423,7 @@ public class Sep24Service {
       throw new SepNotFoundException("transaction not found");
     }
 
-    return Sep24GetTransactionResponse.of(fromTxn(txn, txReq.getLang()));
+    return Sep24GetTransactionResponse.of(fromTxn(assetService, moreInfoUrlConstructor, txn));
   }
 
   public InfoResponse getInfo() {
@@ -452,60 +452,5 @@ public class Sep24Service {
                 sep24Config.getFeatures().getAccountCreation(),
                 sep24Config.getFeatures().getClaimableBalances()))
         .build();
-  }
-
-  TransactionResponse fromTxn(Sep24Transaction txn, String lang)
-      throws MalformedURLException, URISyntaxException, SepException {
-    debugF(
-        "Converting Sep24Transaction to Transaction Response. kind={}, transactionId={}, lang={}",
-        txn.getTransactionId(),
-        txn.getTransactionId(),
-        lang);
-    TransactionResponse response;
-    if (txn.getKind().equals(Sep24Transaction.Kind.DEPOSIT.toString())) {
-      response = fromDepositTxn(txn);
-    } else if (txn.getKind().equals(WITHDRAWAL.toString())) {
-      response = fromWithdrawTxn(txn);
-    } else {
-      throw new SepException(String.format("unsupported txn kind:%s", txn.getKind()));
-    }
-
-    // Calculate refund information.
-    AssetInfo assetInfo =
-        assetService.getAsset(txn.getRequestAssetCode(), txn.getRequestAssetIssuer());
-    return Sep24Helper.updateRefundInfo(response, txn, assetInfo);
-  }
-
-  public TransactionResponse fromDepositTxn(Sep24Transaction txn)
-      throws MalformedURLException, URISyntaxException {
-
-    DepositTransactionResponse txnR =
-        gson.fromJson(gson.toJson(txn), DepositTransactionResponse.class);
-
-    setSharedTransactionResponseFields(txnR, txn);
-
-    txnR.setDepositMemo(txn.getMemo());
-    txnR.setDepositMemoType(txn.getMemoType());
-
-    txnR.setMoreInfoUrl(moreInfoUrlConstructor.construct(txn));
-
-    return txnR;
-  }
-
-  public WithdrawTransactionResponse fromWithdrawTxn(Sep24Transaction txn)
-      throws MalformedURLException, URISyntaxException {
-
-    WithdrawTransactionResponse txnR =
-        gson.fromJson(gson.toJson(txn), WithdrawTransactionResponse.class);
-
-    setSharedTransactionResponseFields(txnR, txn);
-
-    txnR.setWithdrawMemo(txn.getMemo());
-    txnR.setWithdrawMemoType(txn.getMemoType());
-    txnR.setWithdrawAnchorAccount(txn.getWithdrawAnchorAccount());
-
-    txnR.setMoreInfoUrl(moreInfoUrlConstructor.construct(txn));
-
-    return txnR;
   }
 }

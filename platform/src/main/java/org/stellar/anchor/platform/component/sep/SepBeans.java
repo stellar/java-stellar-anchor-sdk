@@ -23,7 +23,6 @@ import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountsMana
 import org.stellar.anchor.platform.service.Sep31DepositInfoGeneratorApi;
 import org.stellar.anchor.platform.service.Sep31DepositInfoGeneratorSelf;
 import org.stellar.anchor.platform.service.SimpleInteractiveUrlConstructor;
-import org.stellar.anchor.platform.service.SimpleMoreInfoUrlConstructor;
 import org.stellar.anchor.sep1.Sep1Service;
 import org.stellar.anchor.sep10.Sep10Service;
 import org.stellar.anchor.sep12.Sep12Service;
@@ -169,12 +168,6 @@ public class SepBeans {
       CustomerIntegration customerIntegration,
       JwtService jwtService) {
     return new SimpleInteractiveUrlConstructor(sep24Config, customerIntegration, jwtService);
-  }
-
-  @Bean
-  MoreInfoUrlConstructor moreInfoUrlConstructor(
-      PropertySep24Config sep24Config, JwtService jwtService) {
-    return new SimpleMoreInfoUrlConstructor(sep24Config.getMoreInfoUrl(), jwtService);
   }
 
   @Bean
