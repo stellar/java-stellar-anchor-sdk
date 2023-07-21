@@ -13,9 +13,7 @@ import org.stellar.anchor.auth.AuthHelper;
 import org.stellar.anchor.util.AuthHeader;
 import org.stellar.anchor.util.GsonUtils;
 
-/**
- * The base class for CallbackAPI and PlatformAPI clients.
- */
+/** The base class for CallbackAPI and PlatformAPI clients. */
 public abstract class BaseApiClient {
   static final Gson gson = GsonUtils.getInstance();
   static final OkHttpClient client =
@@ -30,6 +28,7 @@ public abstract class BaseApiClient {
 
   /**
    * Creates a new BaseApiClient.
+   *
    * @param authHelper the AuthHelper to use for authentication.
    * @param endpoint the API endpoint.
    */

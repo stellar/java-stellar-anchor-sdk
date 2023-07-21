@@ -25,7 +25,8 @@ fun Route.event(eventService: EventService) {
   }
   route("/events") {
     // Test endpoint to get the events recorded by the reference server.
-    // The `txnId` parameter is optional. If it is provided, only the events with the given `txnId` will be returned.
+    // The `txnId` parameter is optional. If it is provided, only the events with the given `txnId`
+    // will be returned.
     get { call.respond(gson.toJson(eventService.getEvents(call.parameters["txnId"]))) }
     // Test endpoint to clear the events recorded by the reference server.
     delete {

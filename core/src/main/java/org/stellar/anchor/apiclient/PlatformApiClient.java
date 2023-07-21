@@ -3,6 +3,7 @@ package org.stellar.anchor.apiclient;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Objects;
 import java.util.function.Function;
 import javax.annotation.Nullable;
 import okhttp3.HttpUrl;
@@ -46,9 +47,9 @@ public class PlatformApiClient extends BaseApiClient {
    * @param statuses The statuses to filter by.
    * @param pageSize The number of transactions to return per page.
    * @param pageNumber The page number of the search.
-   * @return
-   * @throws IOException
-   * @throws AnchorException
+   * @return The GetTransactionsResponse.
+   * @throws IOException if the request fails due to IO errors.
+   * @throws AnchorException if the response is not successful.
    */
   public GetTransactionsResponse getTransactions(
       TransactionsSeps sep,
@@ -58,7 +59,8 @@ public class PlatformApiClient extends BaseApiClient {
       @Nullable Integer pageSize,
       @Nullable Integer pageNumber)
       throws IOException, AnchorException {
-    HttpUrl.Builder builder = HttpUrl.parse(endpoint + "/transactions").newBuilder();
+    HttpUrl.Builder builder =
+        Objects.requireNonNull(HttpUrl.parse(endpoint + "/transactions")).newBuilder();
 
     builder.addQueryParameter("sep", sep.name().toLowerCase().replaceAll("sep_", ""));
 
