@@ -589,6 +589,44 @@ class RequestOnchainFundsHandlerTest {
   }
 
   @Test
+  fun test_handle_withoutAmounts_amount_out_absent() {
+    val request = RequestOnchainFundsRequest.builder().transactionId(TX_ID).build()
+    val txn24 = JdbcSep24Transaction()
+    txn24.status = INCOMPLETE.toString()
+    txn24.kind = WITHDRAWAL.kind
+    txn24.amountIn = "1"
+    txn24.amountInAsset = FIAT_USD
+    val sep24TxnCapture = slot<JdbcSep24Transaction>()
+
+    every { txn24Store.findByTransactionId(TX_ID) } returns txn24
+    every { txn31Store.findByTransactionId(any()) } returns null
+    every { txn24Store.save(capture(sep24TxnCapture)) } returns null
+
+    val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
+    assertEquals("amount_out is required", ex.message)
+  }
+
+  @Test
+  fun test_handle_withoutAmounts_amount_fee_absent() {
+    val request = RequestOnchainFundsRequest.builder().transactionId(TX_ID).build()
+    val txn24 = JdbcSep24Transaction()
+    txn24.status = INCOMPLETE.toString()
+    txn24.kind = WITHDRAWAL.kind
+    txn24.amountIn = "1"
+    txn24.amountInAsset = FIAT_USD
+    txn24.amountOut = "0.9"
+    txn24.amountOutAsset = STELLAR_USDC
+    val sep24TxnCapture = slot<JdbcSep24Transaction>()
+
+    every { txn24Store.findByTransactionId(TX_ID) } returns txn24
+    every { txn31Store.findByTransactionId(any()) } returns null
+    every { txn24Store.save(capture(sep24TxnCapture)) } returns null
+
+    val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
+    assertEquals("amount_fee is required", ex.message)
+  }
+
+  @Test
   fun test_handle_notNoneGenerator() {
     val sep24DepositInfoGenerator: Sep24DepositInfoSelfGenerator = mockk()
     this.handler =

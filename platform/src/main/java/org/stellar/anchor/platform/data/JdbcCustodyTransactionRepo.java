@@ -9,7 +9,7 @@ public interface JdbcCustodyTransactionRepo extends CrudRepository<JdbcCustodyTr
 
   JdbcCustodyTransaction findByExternalTxId(String externalTxId);
 
-  Optional<JdbcCustodyTransaction> findBySepTxId(String txnId);
+  Optional<JdbcCustodyTransaction> findFirstBySepTxIdOrderByCreatedAtAsc(String txnId);
 
   JdbcCustodyTransaction findByToAccountAndMemo(String toAccount, String memo);
 

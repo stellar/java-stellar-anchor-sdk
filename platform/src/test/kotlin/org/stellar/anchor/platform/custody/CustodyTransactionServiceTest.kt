@@ -95,7 +95,8 @@ class CustodyTransactionServiceTest {
 
   @Test
   fun test_createPayment_transaction_does_not_exist() {
-    every { custodyTransactionRepo.findBySepTxId(TRANSACTION_ID) } returns Optional.empty()
+    every { custodyTransactionRepo.findFirstBySepTxIdOrderByCreatedAtAsc(TRANSACTION_ID) } returns
+      Optional.empty()
 
     val exception =
       assertThrows<CustodyNotFoundException> {
@@ -108,7 +109,8 @@ class CustodyTransactionServiceTest {
   @Test
   fun test_createPayment_transaction_exists() {
     val transaction = JdbcCustodyTransaction()
-    every { custodyTransactionRepo.findBySepTxId(TRANSACTION_ID) } returns Optional.of(transaction)
+    every { custodyTransactionRepo.findFirstBySepTxIdOrderByCreatedAtAsc(TRANSACTION_ID) } returns
+      Optional.of(transaction)
     every { custodyTransactionRepo.save(any()) } returns null
 
     custodyTransactionService.createPayment(TRANSACTION_ID, REQUEST_BODY)
@@ -121,7 +123,8 @@ class CustodyTransactionServiceTest {
   @Test
   fun test_createPayment_bad_request() {
     val transaction = JdbcCustodyTransaction()
-    every { custodyTransactionRepo.findBySepTxId(TRANSACTION_ID) } returns Optional.of(transaction)
+    every { custodyTransactionRepo.findFirstBySepTxIdOrderByCreatedAtAsc(TRANSACTION_ID) } returns
+      Optional.of(transaction)
     every { custodyTransactionRepo.save(any()) } returns null
     every { custodyPaymentService.createTransactionPayment(transaction, REQUEST_BODY) } throws
       FireblocksException("Bad request", 400)
@@ -136,7 +139,8 @@ class CustodyTransactionServiceTest {
   @Test
   fun test_createPayment_too_many_requests() {
     val transaction = JdbcCustodyTransaction()
-    every { custodyTransactionRepo.findBySepTxId(TRANSACTION_ID) } returns Optional.of(transaction)
+    every { custodyTransactionRepo.findFirstBySepTxIdOrderByCreatedAtAsc(TRANSACTION_ID) } returns
+      Optional.of(transaction)
     every { custodyTransactionRepo.save(any()) } returns null
     every { custodyPaymentService.createTransactionPayment(transaction, REQUEST_BODY) } throws
       FireblocksException("Too many requests", 429)
@@ -151,7 +155,8 @@ class CustodyTransactionServiceTest {
   @Test
   fun test_createPayment_service_unavailable() {
     val transaction = JdbcCustodyTransaction()
-    every { custodyTransactionRepo.findBySepTxId(TRANSACTION_ID) } returns Optional.of(transaction)
+    every { custodyTransactionRepo.findFirstBySepTxIdOrderByCreatedAtAsc(TRANSACTION_ID) } returns
+      Optional.of(transaction)
     every { custodyTransactionRepo.save(any()) } returns null
     every { custodyPaymentService.createTransactionPayment(transaction, REQUEST_BODY) } throws
       FireblocksException("Service unavailable", 503)
@@ -166,7 +171,8 @@ class CustodyTransactionServiceTest {
   @Test
   fun test_createPayment_unexpected_status_code() {
     val transaction = JdbcCustodyTransaction()
-    every { custodyTransactionRepo.findBySepTxId(TRANSACTION_ID) } returns Optional.of(transaction)
+    every { custodyTransactionRepo.findFirstBySepTxIdOrderByCreatedAtAsc(TRANSACTION_ID) } returns
+      Optional.of(transaction)
     every { custodyTransactionRepo.save(any()) } returns null
     every { custodyPaymentService.createTransactionPayment(transaction, REQUEST_BODY) } throws
       FireblocksException("Forbidden", 403)
