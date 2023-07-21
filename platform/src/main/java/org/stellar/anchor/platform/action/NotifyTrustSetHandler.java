@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform.action;
 
+import static java.util.Collections.emptySet;
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT;
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24;
 import static org.stellar.anchor.api.rpc.action.ActionMethod.NOTIFY_TRUST_SET;
@@ -67,7 +68,7 @@ public class NotifyTrustSetHandler extends ActionHandler<NotifyTrustSetRequest> 
         return Set.of(PENDING_TRUST);
       }
     }
-    return Set.of();
+    return emptySet();
   }
 
   @Override
