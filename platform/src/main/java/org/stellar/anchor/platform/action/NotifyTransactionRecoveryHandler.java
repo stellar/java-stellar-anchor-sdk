@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform.action;
 
+import static java.util.Collections.emptySet;
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24;
 import static org.stellar.anchor.api.rpc.action.ActionMethod.NOTIFY_TRANSACTION_RECOVERY;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.ERROR;
@@ -54,7 +55,7 @@ public class NotifyTransactionRecoveryHandler
         return Set.of(ERROR, EXPIRED);
       }
     }
-    return Set.of();
+    return emptySet();
   }
 
   @Override

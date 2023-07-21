@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform.action;
 
+import static java.util.Collections.emptySet;
 import static java.util.stream.Collectors.toSet;
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24;
 import static org.stellar.anchor.api.rpc.action.ActionMethod.NOTIFY_TRANSACTION_EXPIRED;
@@ -51,7 +52,7 @@ public class NotifyTransactionExpiredHandler
           .filter(s -> !isErrorStatus(s) && !isFinalStatus(s))
           .collect(toSet());
     }
-    return Set.of();
+    return emptySet();
   }
 
   @Override

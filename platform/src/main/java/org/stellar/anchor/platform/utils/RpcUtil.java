@@ -21,11 +21,7 @@ public class RpcUtil {
   private static final Gson gson = GsonUtils.getInstance();
 
   public static RpcResponse getRpcSuccessResponse(Object id, Object result) {
-    return RpcResponse.builder()
-        .jsonrpc(JSON_RPC_VERSION)
-        .id(id)
-        .result(id != null ? result : null)
-        .build();
+    return RpcResponse.builder().jsonrpc(JSON_RPC_VERSION).id(id).result(result).build();
   }
 
   public static RpcResponse getRpcErrorResponse(RpcRequest rpcRequest, BadRequestException ex) {

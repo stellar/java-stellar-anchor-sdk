@@ -110,7 +110,6 @@ public class RSAUtil {
   public static boolean isValidSignature(
       String signature, String dataString, PublicKey publicKey, String signatureAlgorithm)
       throws NoSuchAlgorithmException, InvalidKeyException, SignatureException {
-    System.out.println(generate(dataString, signatureAlgorithm));
     if (publicKey == null) {
       throw new IllegalArgumentException("Public key is null");
     }
@@ -120,22 +119,5 @@ public class RSAUtil {
     sign.update(dataString.getBytes());
 
     return sign.verify(Base64.getDecoder().decode(signature));
-  }
-
-  private static String generate(String dataString, String signatureAlgorithm) {
-    try {
-      String key =
-          "MIICdwIBADANBgkqhkiG9w0BAQEFAASCAmEwggJdAgEAAoGBAJPq9AU6f8GrkSccloRb+UJmbxilZ7iLkvp0FeR/yymQuJDMNXPXwt5MYR9VJoY0uMDHThaEwbQAc2M4L9wl0EtsESebODUTqnsWZ8/a6GsmvIM3kz02ZOUHLst0krSkECPUHLLUKuw/HWz3LWxWLeqVRIcsCwKJNaBPZJzFw/8PAgMBAAECgYBhWXSYLFQApmW1k/8LxWxa4wei9Nk6f8GPy+7Mn76Z8IFH6t4TC6FYpHQXJvdfxDsDxSgDcgP574IBfu0gulJHEIsoDy1xR8TPobfhwoS1NJn70a8KQA6Whu+K5pjJxGUC7bpJH4ZK0O+szB1mNC0WgUywIc0lXCFFnCrgbNFWQQJBAM7+zgHAyD6rqQem09JcabMkwxu0mYih1mvQ3uv/fay8BdgZAqMuacMAPQ/A1TLeuTbMQ0LojnK/QlotbhHVnSkCQQC27684POaRrVIsVo5uKvQsKSNlYPpvGrGapHKiVgIQYfZSEY9SrazqKbA5yux0OR8ZFFSiJCThRElpzhnWFYl3AkEArNsLnVsn3W3sUX93FAwoGHlylQhTzk2XiaF7BwjsIftBxhvcn/h6SWVBmI4ne7uSX7hj0tPxYNFmz3dwm2QPQQJBAKS8mPSy2wtqoiotVBvfcHzoGujrePpednuFBXosq7UnEpN7Hq7cmW9RVVHl7CMJYXjLNx/AHroBLX8rS1bflCcCQBclpUG1PybVy1jHXTdI0w6zB6AwjaeFN5x4+b7hRe29yLNF532uIatxif19LHb5jUC7EefpLWBxx/bB4JCIyug=";
-      PrivateKey privateKey = RSAUtil.generatePrivateKey(key, RSAUtil.RSA_ALGORITHM);
-
-      Signature sign = Signature.getInstance(signatureAlgorithm);
-      sign.initSign(privateKey);
-      sign.update(dataString.getBytes());
-
-      byte[] signatureBytes = sign.sign();
-      return Base64.getEncoder().encodeToString(signatureBytes);
-    } catch (Exception e) {
-      return null;
-    }
   }
 }
