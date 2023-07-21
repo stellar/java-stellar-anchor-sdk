@@ -67,9 +67,9 @@ public class Sep10Service {
     }
 
     boolean omnibusWallet = false;
-    if (sep10Config.getOmnibusAccountList() != null) {
+    if (sep10Config.getKnownCustodialAccountList() != null) {
       omnibusWallet =
-          sep10Config.getOmnibusAccountList().contains(challengeRequest.getAccount().trim());
+          sep10Config.getKnownCustodialAccountList().contains(challengeRequest.getAccount().trim());
     }
 
     if (sep10Config.isKnownCustodialAccountRequired() && !omnibusWallet) {

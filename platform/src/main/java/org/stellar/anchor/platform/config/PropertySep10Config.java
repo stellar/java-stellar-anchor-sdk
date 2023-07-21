@@ -169,7 +169,7 @@ public class PropertySep10Config implements Sep10Config, Validator {
   }
 
   void validateOmnibusAccounts(Errors errors) {
-    for (String account : getOmnibusAccountList()) {
+    for (String account : getKnownCustodialAccountList()) {
       try {
         if (account != null) KeyPair.fromAccountId(account);
       } catch (Throwable ex) {
@@ -180,7 +180,7 @@ public class PropertySep10Config implements Sep10Config, Validator {
       }
     }
 
-    if (knownCustodialAccountRequired && ListHelper.isEmpty(getOmnibusAccountList())) {
+    if (knownCustodialAccountRequired && ListHelper.isEmpty(getKnownCustodialAccountList())) {
       errors.rejectValue(
           "omnibusAccountList",
           "sep10-omnibus-account-list-empty",
@@ -197,7 +197,7 @@ public class PropertySep10Config implements Sep10Config, Validator {
   }
 
   @Override
-  public List<String> getOmnibusAccountList() {
+  public List<String> getKnownCustodialAccountList() {
     return clientsConfig.clients.stream()
         .filter(cfg -> cfg.getType() == CUSTODIAL && StringHelper.isNotEmpty(cfg.getSigningKey()))
         .map(ClientConfig::getSigningKey)

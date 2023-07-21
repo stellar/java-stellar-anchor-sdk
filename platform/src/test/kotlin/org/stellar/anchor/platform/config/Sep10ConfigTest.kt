@@ -76,7 +76,7 @@ class Sep10ConfigTest {
     config.validateClientAttribution(errors)
     assertFalse(errors.hasErrors())
     println(config.clientAttributionAllowList)
-    println(config.omnibusAccountList)
+    println(config.knownCustodialAccountList)
   }
 
   @Test
