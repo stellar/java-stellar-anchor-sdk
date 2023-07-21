@@ -28,6 +28,7 @@ public class PropertySep10Config implements Sep10Config, Validator {
   private String webAuthDomain;
   private String homeDomain;
   private boolean clientAttributionRequired = false;
+  private final List<String> clientAttributionAllowList;
   private Integer authTimeout = 900;
   private Integer jwtTimeout = 86400;
   private boolean knownCustodialAccountRequired = false;
@@ -40,6 +41,12 @@ public class PropertySep10Config implements Sep10Config, Validator {
     this.appConfig = appConfig;
     this.clientsConfig = clientsConfig;
     this.secretConfig = secretConfig;
+    this.clientAttributionAllowList =
+        clientsConfig.clients.stream()
+            .filter(
+                cfg -> cfg.getType() == NONCUSTODIAL && StringHelper.isNotEmpty(cfg.getDomain()))
+            .map(ClientConfig::getDomain)
+            .collect(Collectors.toList());
   }
 
   @PostConstruct
@@ -187,10 +194,7 @@ public class PropertySep10Config implements Sep10Config, Validator {
 
   @Override
   public List<String> getClientAttributionAllowList() {
-    return clientsConfig.clients.stream()
-        .filter(cfg -> cfg.getType() == NONCUSTODIAL && StringHelper.isNotEmpty(cfg.getDomain()))
-        .map(ClientConfig::getDomain)
-        .collect(Collectors.toList());
+    return clientAttributionAllowList;
   }
 
   @Override
