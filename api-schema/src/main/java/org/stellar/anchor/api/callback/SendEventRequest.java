@@ -6,20 +6,14 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.stellar.anchor.api.event.AnchorEvent;
 
-/**
- * SendEventRequest is the request body for the /event Callback API endpoint.
- */
+/** SendEventRequest is the request body for the /event Callback API endpoint. */
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class SendEventRequest {
-  /**
-   * The seconds since the Unix epoch, UTC.
-   */
+  /** The seconds since the Unix epoch, UTC. */
   Long timestamp;
-  /**
-   * The event payload.
-   */
+  /** The event payload. */
   AnchorEvent payload;
 
   /**

@@ -90,7 +90,7 @@ class Sep10ConfigTest {
 
   @Test
   fun `test required known omnibus account`() {
-    config.isRequireKnownOmnibusAccount = true
+    config.isKnownCustodialAccountRequired = true
     config.validateOmnibusAccounts(errors)
     assertFalse(errors.hasErrors())
   }
@@ -98,7 +98,7 @@ class Sep10ConfigTest {
   @Test
   fun `test known omnibus account required but no custodial clients not defined`() {
     config = PropertySep10Config(appConfig, ClientsConfig(), secretConfig)
-    config.isRequireKnownOmnibusAccount = true
+    config.isKnownCustodialAccountRequired = true
     config.validateOmnibusAccounts(errors)
     assertErrorCode(errors, "sep10-omnibus-account-list-empty")
   }

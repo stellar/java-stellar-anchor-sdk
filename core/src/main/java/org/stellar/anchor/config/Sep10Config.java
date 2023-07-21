@@ -25,7 +25,7 @@ public interface Sep10Config {
 
   /**
    * The `home_domain` property of <a
-   * href="https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#request">SEP-10<a>.
+   * href="https://github.com/stellar/stellar-protocol/blob/master/ecosystem/sep-0010.md#request">SEP-10</a>.
    * `home_domain` value must be equal to the host of the toml file. If sep1 is enabled, toml file
    * will be hosted on the SEP server.
    *

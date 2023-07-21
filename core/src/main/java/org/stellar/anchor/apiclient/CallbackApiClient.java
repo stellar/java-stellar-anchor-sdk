@@ -24,7 +24,6 @@ public class CallbackApiClient extends BaseApiClient {
    *
    * @param authHelper the AuthHelper to use for authentication.
    * @param endpoint the API endpoint.
-   *
    * @throws InvalidConfigException if the endpoint is invalid.
    */
   public CallbackApiClient(AuthHelper authHelper, String endpoint) throws InvalidConfigException {

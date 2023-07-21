@@ -51,24 +51,31 @@ public interface EventService {
      * the Session.
      *
      * @param event the event to publish
+     * @throws AnchorException if the event could not be published.
      */
     void publish(AnchorEvent event) throws AnchorException;
 
     /**
      * Reads events from the event queue.
      *
-     * @return
+     * @return a ReadResponse object.
+     * @throws AnchorException if the events could not be read.
      */
     ReadResponse read() throws AnchorException;
 
     /**
      * Acknowledges that the events returned by the read() method have been processed.
      *
-     * @param readResponse
+     * @param readResponse the read response object.
+     * @throws AnchorException if the events could not be acknowledged.
      */
     void ack(ReadResponse readResponse) throws AnchorException;
 
-    /** Closes the session. */
+    /**
+     * Closes the session.
+     *
+     * @throws AnchorException if the session could not be closed.
+     */
     void close() throws AnchorException;
 
     /**
