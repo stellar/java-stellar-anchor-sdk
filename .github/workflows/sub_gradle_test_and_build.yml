@@ -22,7 +22,9 @@ jobs:
           sudo echo "127.0.0.1 kafka" | sudo tee -a /etc/hosts
           sudo echo "127.0.0.1 reference-server" | sudo tee -a /etc/hosts
           sudo echo "127.0.0.1 sep24-reference-ui" | sudo tee -a /etc/hosts
-          sudo echo "127.0.0.1 platform" | sudo tee -a /etc/hosts        
+          sudo echo "127.0.0.1 platform" | sudo tee -a /etc/hosts
+          sudo echo "127.0.0.1 host.docker.internal" | sudo tee -a /etc/hosts 
+
 
       - name: Build and run the stack with docker compose
         env:
@@ -45,7 +47,7 @@ jobs:
       - name: Gradle test and build. (unit tests, integration tests, end-2-end tests and build)
         env:
           run_docker: false
-        run: ./gradlew clean build --no-daemon --stacktrace -x test
+        run: ./gradlew clean build --no-daemon --stacktrace
 
       - name: Stop docker containers
         env:
@@ -60,22 +62,24 @@ jobs:
       - name: Run sep server, observer, java reference server and kotlin reference server
         env:
           run_docker: false
+          SEP1_TOML_VALUE: service-runner/src/main/resources/config/stellar.host.docker.internal.toml
+          SEP10_HOME_DOMAIN: host.docker.internal:8080
         run: |
+          pwd
           cp service-runner/build/libs/anchor-platform-runner-*.jar service-runner/build/libs/anchor-platform-runner.jar
-          ls -l service-runner/build/libs
           java -jar service-runner/build/libs/anchor-platform-runner.jar -t &
 
       - name: Wait for sep server to start and get ready
-        uses: cygnetdigital/wait_for_response@v2.0.0
+        uses: mydea/action-wait-for-api@v1
         with:
-          url: 'http://localhost:8080/.well-known/stellar.toml'
-          responseCode: '200'
-          timeout: 120000
-          interval: 500
+          url: "http://localhost:8080/.well-known/stellar.toml"
+          expected-status: "200"
+          timeout: "300"
+          interval: "1"
 
       - name: Run Stellar validation tool
         run: |
-          docker run -v  ${GITHUB_WORKSPACE}/platform/src/test/resources:/config stellar/anchor-tests:v0.5.12 --home-domain http://localhost:8080 --seps 1 10 12 31 38 --sep-config /config/stellar-anchor-tests-sep-config.json
+          docker run --network host -v ${GITHUB_WORKSPACE}/platform/src/test/resources://config stellar/anchor-tests:v0.5.12 --home-domain http://host.docker.internal:8080 --seps 1 10 12 24 31 38 --sep-config //config/stellar-anchor-tests-sep-config.json
 
   analyze:
     name: CodeQL Analysis
