@@ -1,7 +1,6 @@
 package org.stellar.anchor.api.callback;
 
 import java.time.Instant;
-
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -25,6 +24,7 @@ public class SendEventRequest {
 
   /**
    * Creates a SendEventRequest from an AnchorEvent.
+   *
    * @param event
    * @return a SendEventRequest
    */

@@ -607,7 +607,7 @@ internal class Sep10ServiceTest {
 
   @Test
   fun `test createChallenge() ok when isRequireKnownOmnibusAccount is enabled`() {
-    every { sep10Config.isRequireKnownOmnibusAccount } returns true
+    every { sep10Config.isKnownCustodialAccountRequired } returns true
     every { sep10Config.omnibusAccountList } returns listOf(TEST_ACCOUNT)
     val cr =
       ChallengeRequest.builder()
@@ -618,13 +618,13 @@ internal class Sep10ServiceTest {
         .build()
 
     assertDoesNotThrow { sep10Service.createChallenge(cr) }
-    verify(exactly = 1) { sep10Config.isRequireKnownOmnibusAccount }
+    verify(exactly = 1) { sep10Config.isKnownCustodialAccountRequired }
     verify(exactly = 2) { sep10Config.omnibusAccountList }
   }
 
   @Test
   fun `Test createChallenge() when isRequireKnownOmnibusAccount is not enabled`() {
-    every { sep10Config.isRequireKnownOmnibusAccount } returns false
+    every { sep10Config.isKnownCustodialAccountRequired } returns false
     every { sep10Config.omnibusAccountList } returns
       listOf("G321E23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP")
     val cr =
@@ -636,13 +636,13 @@ internal class Sep10ServiceTest {
         .build()
 
     assertDoesNotThrow { sep10Service.createChallenge(cr) }
-    verify(exactly = 1) { sep10Config.isRequireKnownOmnibusAccount }
+    verify(exactly = 1) { sep10Config.isKnownCustodialAccountRequired }
     verify(exactly = 2) { sep10Config.omnibusAccountList }
   }
 
   @Test
   fun `test createChallenge() failure when isRequireKnownOmnibusAccount is enabled and account mis-match`() {
-    every { sep10Config.isRequireKnownOmnibusAccount } returns true
+    every { sep10Config.isKnownCustodialAccountRequired } returns true
     every { sep10Config.omnibusAccountList } returns
       listOf("G321E23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP")
     val cr =
@@ -654,7 +654,7 @@ internal class Sep10ServiceTest {
         .build()
 
     val ex = assertThrows<SepException> { sep10Service.createChallenge(cr) }
-    verify(exactly = 1) { sep10Config.isRequireKnownOmnibusAccount }
+    verify(exactly = 1) { sep10Config.isKnownCustodialAccountRequired }
     verify(exactly = 2) { sep10Config.omnibusAccountList }
     assertInstanceOf(SepNotAuthorizedException::class.java, ex)
     assertEquals("unable to process", ex.message)

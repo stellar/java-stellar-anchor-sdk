@@ -39,6 +39,8 @@ public interface EventService {
   /**
    * Creates a session for publishing and reading events.
    *
+   * @param name the name of the session.
+   * @param eventQueue the event queue to use for the session.
    * @return a session object.
    */
   Session createSession(String name, EventQueue eventQueue);

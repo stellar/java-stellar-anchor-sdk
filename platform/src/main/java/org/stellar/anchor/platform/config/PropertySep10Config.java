@@ -31,7 +31,7 @@ public class PropertySep10Config implements Sep10Config, Validator {
   private boolean clientAttributionRequired = false;
   private Integer authTimeout = 900;
   private Integer jwtTimeout = 86400;
-  private boolean requireKnownOmnibusAccount;
+  private boolean knownCustodialAccountRequired = false;
   private AppConfig appConfig;
   private final ClientsConfig clientsConfig;
   private SecretConfig secretConfig;
@@ -180,7 +180,7 @@ public class PropertySep10Config implements Sep10Config, Validator {
       }
     }
 
-    if (requireKnownOmnibusAccount && ListHelper.isEmpty(getOmnibusAccountList())) {
+    if (knownCustodialAccountRequired && ListHelper.isEmpty(getOmnibusAccountList())) {
       errors.rejectValue(
           "omnibusAccountList",
           "sep10-omnibus-account-list-empty",

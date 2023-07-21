@@ -19,5 +19,5 @@ public interface Sep10Config {
 
   List<String> getOmnibusAccountList();
 
-  boolean isRequireKnownOmnibusAccount();
+  boolean isKnownCustodialAccountRequired();
 }

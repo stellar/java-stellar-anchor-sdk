@@ -323,14 +323,14 @@ sep10:
   ## This is the timeout period after the client has authenticated.
   #
   jwt_timeout: 86400
-  ## @param: require_known_custodial_account
+  ## @param: known_custodial_account_required
   ## @type: bool
   ## Whether to require authenticating clients to be in the list of known custodial accounts.
   #
   # If the flag is set to true, the client must be one of the custodial clients defined in the clients section
   # of this configuration file.
   #
-  require_known_custodial_account: false
+  known_custodial_account_required: false
 
 sep12:
   ## @param: enabled
