@@ -66,26 +66,26 @@ public class Sep10Service {
           String.format("home_domain [%s] is not supported.", challengeRequest.getHomeDomain()));
     }
 
-    boolean omnibusWallet = false;
+    boolean custodialWallet = false;
     if (sep10Config.getKnownCustodialAccountList() != null) {
-      omnibusWallet =
+      custodialWallet =
           sep10Config.getKnownCustodialAccountList().contains(challengeRequest.getAccount().trim());
     }
 
-    if (sep10Config.isKnownCustodialAccountRequired() && !omnibusWallet) {
+    if (sep10Config.isKnownCustodialAccountRequired() && !custodialWallet) {
       // validate that requesting account is allowed access
       infoF("requesting account: {} is not in allow list", challengeRequest.getAccount().trim());
       throw new SepNotAuthorizedException("unable to process");
     }
 
-    if (omnibusWallet) {
+    if (custodialWallet) {
       if (challengeRequest.getClientDomain() != null) {
         throw new SepValidationException(
-            "client_domain must not be specified if the account is an omni-wallet account");
+            "client_domain must not be specified if the account is an custodial-wallet account");
       }
     }
 
-    if (!omnibusWallet && sep10Config.isClientAttributionRequired()) {
+    if (!custodialWallet && sep10Config.isClientAttributionRequired()) {
       if (challengeRequest.getClientDomain() == null) {
         info("client_domain is required but not provided");
         throw new SepValidationException("client_domain is required");

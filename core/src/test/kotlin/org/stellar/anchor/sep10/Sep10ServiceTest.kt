@@ -606,7 +606,7 @@ internal class Sep10ServiceTest {
   }
 
   @Test
-  fun `test createChallenge() ok when isRequireKnownOmnibusAccount is enabled`() {
+  fun `test createChallenge() ok when knownCustodialAccountRequired is enabled`() {
     every { sep10Config.isKnownCustodialAccountRequired } returns true
     every { sep10Config.knownCustodialAccountList } returns listOf(TEST_ACCOUNT)
     val cr =
@@ -623,7 +623,7 @@ internal class Sep10ServiceTest {
   }
 
   @Test
-  fun `Test createChallenge() when isRequireKnownOmnibusAccount is not enabled`() {
+  fun `Test createChallenge() when isKnownCustodialAccountRequired is not enabled`() {
     every { sep10Config.isKnownCustodialAccountRequired } returns false
     every { sep10Config.knownCustodialAccountList } returns
       listOf("G321E23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP")

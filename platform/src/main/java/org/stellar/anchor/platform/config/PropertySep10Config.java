@@ -6,7 +6,6 @@ import static org.stellar.anchor.platform.config.ClientsConfig.ClientType.NONCUS
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 import static org.stellar.anchor.util.StringHelper.isNotEmpty;
 
-import java.net.MalformedURLException;
 import java.util.List;
 import java.util.stream.Collectors;
 import javax.annotation.PostConstruct;
@@ -44,7 +43,7 @@ public class PropertySep10Config implements Sep10Config, Validator {
   }
 
   @PostConstruct
-  public void postConstruct() throws MalformedURLException {
+  public void postConstruct() {
     if (isEmpty(webAuthDomain)) {
       webAuthDomain = homeDomain;
     }
@@ -62,7 +61,7 @@ public class PropertySep10Config implements Sep10Config, Validator {
     if (config.getEnabled()) {
       validateConfig(errors);
       validateClientAttribution(errors);
-      validateOmnibusAccounts(errors);
+      validateCustodialAccounts(errors);
     }
   }
 
@@ -168,23 +167,21 @@ public class PropertySep10Config implements Sep10Config, Validator {
     }
   }
 
-  void validateOmnibusAccounts(Errors errors) {
+  void validateCustodialAccounts(Errors errors) {
     for (String account : getKnownCustodialAccountList()) {
       try {
         if (account != null) KeyPair.fromAccountId(account);
       } catch (Throwable ex) {
-        errors.rejectValue(
-            "omnibusAccountList",
-            "sep10-omnibus-account-not-valid",
-            format("Invalid omnibus account:%s in sep10.omnibus_account_list", account));
+        errors.reject(
+            "sep10-custodial-account-not-valid",
+            format("Invalid custodial account:%s in clients:", account));
       }
     }
 
     if (knownCustodialAccountRequired && ListHelper.isEmpty(getKnownCustodialAccountList())) {
-      errors.rejectValue(
-          "omnibusAccountList",
-          "sep10-omnibus-account-list-empty",
-          "sep10.omnibus_account_list is empty while sep10.require_known_omnibus_account is set to true");
+      errors.reject(
+          "sep10-custodial-account-list-empty",
+          "No custodial clients custodial while sep10.known_custodial_account_required is set to true");
     }
   }
 
