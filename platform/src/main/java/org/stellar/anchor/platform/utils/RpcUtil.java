@@ -55,7 +55,7 @@ public class RpcUtil {
     List<String> messages = new ArrayList<>();
     if (!JSON_RPC_VERSION.equals(rpcRequest.getJsonrpc())) {
       messages.add(
-          String.format("Unsupported JSON-RPC protocol version [%s]", rpcRequest.getJsonrpc()));
+          String.format("Unsupported JSON-RPC protocol version[%s]", rpcRequest.getJsonrpc()));
     }
 
     String method = rpcRequest.getMethod();
@@ -83,7 +83,7 @@ public class RpcUtil {
           gson.fromJson(gson.toJson(params), RpcActionParamsRequest.class);
       return request.getTransactionId();
     } catch (Exception e) {
-      Log.debug("Failed to retrieve transaction id from request");
+      Log.errorEx("Failed to retrieve transaction id from request", e);
     }
 
     return null;
