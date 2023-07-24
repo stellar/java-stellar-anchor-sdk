@@ -344,7 +344,7 @@ class NotifyRefundInitiatedHandlerTest {
   }
 
   @Test
-  fun `test handle more then amount_in`() {
+  fun test_handle_more_then_amount_in() {
     val transferReceivedAt = Instant.now()
     val request =
       NotifyRefundInitiatedRequest.builder()
