@@ -175,7 +175,7 @@ class NotifyRefundInitiatedHandlerTest {
         .refund(
           NotifyRefundInitiatedRequest.Refund.builder()
             .amount(AmountRequest("1"))
-            .amountFee(AmountRequest("0.1"))
+            .amountFee(AmountRequest("0"))
             .id("1")
             .build()
         )
@@ -214,8 +214,8 @@ class NotifyRefundInitiatedHandlerTest {
     expectedSep24Txn.amountInAsset = STELLAR_USDC
     expectedSep24Txn.transferReceivedAt = transferReceivedAt
     val expectedRefunds = JdbcSep24Refunds()
-    expectedRefunds.amountRefunded = "1.1"
-    expectedRefunds.amountFee = "0.1"
+    expectedRefunds.amountRefunded = "1"
+    expectedRefunds.amountFee = "0"
     expectedRefunds.payments = listOf(payment)
     expectedSep24Txn.refunds = expectedRefunds
 
@@ -235,11 +235,11 @@ class NotifyRefundInitiatedHandlerTest {
     expectedResponse.transferReceivedAt = transferReceivedAt
     val refundPayment = RefundPayment()
     refundPayment.amount = Amount("1", txn24.amountInAsset)
-    refundPayment.fee = Amount("0.1", txn24.amountInAsset)
+    refundPayment.fee = Amount("0", txn24.amountInAsset)
     refundPayment.id = request.refund.id
     refundPayment.idType = RefundPayment.IdType.STELLAR
-    val refunded = Amount("1.1", txn24.amountInAsset)
-    val refundedFee = Amount("0.1", txn24.amountInAsset)
+    val refunded = Amount("1", txn24.amountInAsset)
+    val refundedFee = Amount("0", txn24.amountInAsset)
     expectedResponse.refunds = Refunds(refunded, refundedFee, arrayOf(refundPayment))
 
     JSONAssert.assertEquals(
@@ -272,7 +272,7 @@ class NotifyRefundInitiatedHandlerTest {
     txn24.transferReceivedAt = transferReceivedAt
     txn24.amountInAsset = STELLAR_USDC
     txn24.requestAssetCode = FIAT_USD_CODE
-    txn24.amountIn = "1"
+    txn24.amountIn = "2.2"
     txn24.amountInAsset = STELLAR_USDC
 
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
@@ -301,7 +301,7 @@ class NotifyRefundInitiatedHandlerTest {
     expectedSep24Txn.status = SepTransactionStatus.PENDING_EXTERNAL.toString()
     expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedSep24Txn.requestAssetCode = FIAT_USD_CODE
-    expectedSep24Txn.amountIn = "1"
+    expectedSep24Txn.amountIn = "2.2"
     expectedSep24Txn.amountInAsset = STELLAR_USDC
     expectedSep24Txn.transferReceivedAt = transferReceivedAt
     val expectedRefunds = JdbcSep24Refunds()
@@ -321,7 +321,7 @@ class NotifyRefundInitiatedHandlerTest {
     expectedResponse.kind = DEPOSIT
     expectedResponse.status = SepTransactionStatus.PENDING_EXTERNAL
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
-    expectedResponse.amountIn = Amount("1", STELLAR_USDC)
+    expectedResponse.amountIn = Amount("2.2", STELLAR_USDC)
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.transferReceivedAt = transferReceivedAt
     val refundPayment = RefundPayment()
@@ -341,5 +341,36 @@ class NotifyRefundInitiatedHandlerTest {
 
     assertTrue(expectedSep24Txn.updatedAt >= startDate)
     assertTrue(expectedSep24Txn.updatedAt <= endDate)
+  }
+
+  @Test
+  fun `test handle more then amount_in`() {
+    val transferReceivedAt = Instant.now()
+    val request =
+      NotifyRefundInitiatedRequest.builder()
+        .transactionId(TX_ID)
+        .refund(
+          NotifyRefundInitiatedRequest.Refund.builder()
+            .amount(AmountRequest("1"))
+            .amountFee(AmountRequest("0.1"))
+            .id("1")
+            .build()
+        )
+        .build()
+    val txn24 = JdbcSep24Transaction()
+    txn24.status = PENDING_ANCHOR.toString()
+    txn24.kind = DEPOSIT.kind
+    txn24.transferReceivedAt = transferReceivedAt
+    txn24.amountInAsset = STELLAR_USDC
+    txn24.requestAssetCode = FIAT_USD_CODE
+    txn24.amountIn = "1"
+    txn24.amountInAsset = STELLAR_USDC
+
+    every { txn24Store.findByTransactionId(TX_ID) } returns txn24
+    every { txn31Store.findByTransactionId(any()) } returns null
+    every { txn24Store.save(any()) } returns null
+
+    val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
+    assertEquals("Refund amount exceeds amount_in", ex.message)
   }
 }
