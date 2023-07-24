@@ -7,7 +7,10 @@ import static org.stellar.anchor.api.rpc.action.ActionMethod.NOTIFY_REFUND_INITI
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_EXTERNAL;
 import static org.stellar.anchor.util.AssetHelper.getAssetCode;
+import static org.stellar.anchor.util.MathHelper.decimal;
+import static org.stellar.anchor.util.MathHelper.sum;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Set;
 import org.stellar.anchor.api.exception.BadRequestException;
@@ -72,7 +75,26 @@ public class NotifyRefundInitiatedHandler extends ActionHandler<NotifyRefundInit
 
   @Override
   protected SepTransactionStatus getNextStatus(
-      JdbcSepTransaction txn, NotifyRefundInitiatedRequest request) {
+      JdbcSepTransaction txn, NotifyRefundInitiatedRequest request) throws InvalidParamsException {
+    JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
+    AssetInfo assetInfo = assetService.getAsset(getAssetCode(txn.getAmountInAsset()));
+
+    Sep24Refunds sep24Refunds = txn24.getRefunds();
+    String amount = request.getRefund().getAmount().getAmount();
+    String amountFee = request.getRefund().getAmountFee().getAmount();
+
+    BigDecimal totalRefunded;
+    if (sep24Refunds == null || sep24Refunds.getRefundPayments() == null) {
+      totalRefunded = sum(assetInfo, amount, amountFee);
+    } else {
+      totalRefunded = sum(assetInfo, sep24Refunds.getAmountRefunded(), amount, amountFee);
+    }
+
+    BigDecimal amountIn = decimal(txn.getAmountIn(), assetInfo);
+    if (totalRefunded.compareTo(amountIn) > 0) {
+      throw new InvalidParamsException("Refund amount exceeds amount_in");
+    }
+
     return PENDING_EXTERNAL;
   }
 
