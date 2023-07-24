@@ -20,6 +20,19 @@ class Sep6ConfigTest {
   }
 
   @Test
+  fun `test disabled sep6 configuration skips remaining validation`() {
+    config.enabled = false
+
+    config.features = null
+    config.validate(config, errors)
+    Assertions.assertFalse(errors.hasErrors())
+
+    config.features = Sep6Config.Features(true, true)
+    config.validate(config, errors)
+    Assertions.assertFalse(errors.hasErrors())
+  }
+
+  @Test
   fun `test valid sep6 configuration`() {
     config.validate(config, errors)
     Assertions.assertFalse(errors.hasErrors())
