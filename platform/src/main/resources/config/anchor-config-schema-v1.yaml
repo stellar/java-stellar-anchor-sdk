@@ -28,8 +28,8 @@ events.queue.kafka.batch_size:
 events.queue.kafka.bootstrap_server:
 events.queue.kafka.client_id:
 events.queue.kafka.linger_ms:
-events.queue.kafka.retries:
 events.queue.kafka.poll_timeout_seconds:
+events.queue.kafka.retries:
 events.queue.msk.batch_size:
 events.queue.msk.bootstrap_server:
 events.queue.msk.client_id:
@@ -67,14 +67,11 @@ sep1.enabled:
 sep1.toml.type:
 sep1.toml.value:
 sep10.auth_timeout:
-sep10.client_attribution_allow_list:
-sep10.client_attribution_deny_list:
 sep10.client_attribution_required:
 sep10.enabled:
 sep10.home_domain:
 sep10.jwt_timeout:
-sep10.omnibus_account_list:
-sep10.require_known_omnibus_account:
+sep10.known_custodial_account_required:
 sep10.web_auth_domain:
 sep12.enabled:
 sep24.enabled:

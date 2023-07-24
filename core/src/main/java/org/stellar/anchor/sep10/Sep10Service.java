@@ -66,47 +66,35 @@ public class Sep10Service {
           String.format("home_domain [%s] is not supported.", challengeRequest.getHomeDomain()));
     }
 
-    boolean omnibusWallet = false;
-    if (sep10Config.getOmnibusAccountList() != null) {
-      omnibusWallet =
-          sep10Config.getOmnibusAccountList().contains(challengeRequest.getAccount().trim());
+    boolean custodialWallet = false;
+    if (sep10Config.getKnownCustodialAccountList() != null) {
+      custodialWallet =
+          sep10Config.getKnownCustodialAccountList().contains(challengeRequest.getAccount().trim());
     }
 
-    if (sep10Config.isRequireKnownOmnibusAccount() && !omnibusWallet) {
+    if (sep10Config.isKnownCustodialAccountRequired() && !custodialWallet) {
       // validate that requesting account is allowed access
       infoF("requesting account: {} is not in allow list", challengeRequest.getAccount().trim());
       throw new SepNotAuthorizedException("unable to process");
     }
 
-    if (omnibusWallet) {
+    if (custodialWallet) {
       if (challengeRequest.getClientDomain() != null) {
         throw new SepValidationException(
-            "client_domain must not be specified if the account is an omni-wallet account");
+            "client_domain must not be specified if the account is an custodial-wallet account");
       }
     }
 
-    if (!omnibusWallet && sep10Config.isClientAttributionRequired()) {
+    if (!custodialWallet && sep10Config.isClientAttributionRequired()) {
       if (challengeRequest.getClientDomain() == null) {
         info("client_domain is required but not provided");
         throw new SepValidationException("client_domain is required");
       }
 
-      List<String> denyList = sep10Config.getClientAttributionDenyList();
-      if (denyList != null
-          && denyList.size() > 0
-          && denyList.contains(challengeRequest.getClientDomain())) {
-        infoF(
-            "client_domain({}) provided is in the configured deny list",
-            challengeRequest.getClientDomain());
-        throw new SepNotAuthorizedException("unable to process.");
-      }
-
       List<String> allowList = sep10Config.getClientAttributionAllowList();
-      if (allowList != null
-          && allowList.size() > 0
-          && !allowList.contains(challengeRequest.getClientDomain())) {
+      if (!allowList.contains(challengeRequest.getClientDomain())) {
         infoF(
-            "client_domain provided ({}) is not in configured allow list",
+            "client_domain provided ({}) is not in the configured allow list",
             challengeRequest.getClientDomain());
         throw new SepNotAuthorizedException("unable to process");
       }

@@ -8,25 +8,54 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.CsvSource
-import org.junit.jupiter.params.provider.MethodSource
 import org.junit.jupiter.params.provider.NullSource
 import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.validation.BindException
 import org.springframework.validation.Errors
 import org.stellar.anchor.config.AppConfig
+import org.stellar.anchor.platform.config.ClientsConfig.ClientType.CUSTODIAL
+import org.stellar.anchor.platform.config.ClientsConfig.ClientType.NONCUSTODIAL
 
 class Sep10ConfigTest {
   lateinit var config: PropertySep10Config
   lateinit var errors: Errors
-  lateinit var secretConfig: PropertySecretConfig
-  lateinit var appConfig: AppConfig
+  private lateinit var secretConfig: PropertySecretConfig
+  private lateinit var appConfig: AppConfig
+  private var clientsConfig = ClientsConfig()
 
   @BeforeEach
   fun setUp() {
     secretConfig = mockk()
     appConfig = mockk()
 
-    config = PropertySep10Config(appConfig, secretConfig)
+    clientsConfig.clients.add(
+      ClientsConfig.ClientConfig(
+        CUSTODIAL,
+        "GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEGN2",
+        null,
+        null
+      )
+    )
+
+    clientsConfig.clients.add(
+      ClientsConfig.ClientConfig(
+        NONCUSTODIAL,
+        "GC4HAYCFQYQLJV5SE6FB3LGC37D6XGIXGMAXCXWNBLH7NWW2JH4OZLHQ",
+        "lobstr.co",
+        "https://callback.lobstr.co/api/v2/anchor/callback"
+      )
+    )
+
+    clientsConfig.clients.add(
+      ClientsConfig.ClientConfig(
+        NONCUSTODIAL,
+        "GCSGSR6KQQ5BP2FXVPWRL6SWPUSFWLVONLIBJZUKTVQB5FYJFVL6XOXE",
+        "stellar.org",
+        "https://callback.stellar.org/api/v2/anchor/callback"
+      )
+    )
+
+    config = PropertySep10Config(appConfig, clientsConfig, secretConfig)
     config.enabled = true
     config.homeDomain = "stellar.org"
     errors = BindException(config, "config")
@@ -44,80 +73,34 @@ class Sep10ConfigTest {
   @Test
   fun `test client attribution and lists`() {
     config.isClientAttributionRequired = true
-    config.clientAttributionAllowList = listOf("stellar.org", "lobstr.com")
     config.validateClientAttribution(errors)
     assertFalse(errors.hasErrors())
-
-    config.clientAttributionAllowList = listOf()
-    config.clientAttributionDenyList = listOf("stellar.org", "lobstr.com")
-    config.validateClientAttribution(errors)
-    assertFalse(errors.hasErrors())
-  }
-
-  @Test
-  fun `test client attribution allow list is not empty while client_attrbution_required is set to false`() {
-    config.isClientAttributionRequired = false
-    config.clientAttributionAllowList = listOf("stellar.org", "lobstr.com")
-    config.validateClientAttribution(errors)
-    assertErrorCode(errors, "sep10-client-attribution-allow-list-not-empty")
-  }
-
-  @Test
-  fun `test client attribution deny list is not empty while client_attrbution_required is set to false`() {
-    config.isClientAttributionRequired = false
-    config.clientAttributionDenyList = listOf("stellar.org", "lobstr.com")
-    config.validateClientAttribution(errors)
-    assertErrorCode(errors, "sep10-client-attribution-deny-list-not-empty")
-  }
-
-  @Test
-  fun `test both client attribution deny and allow lists are defined`() {
-    config.isClientAttributionRequired = true
-    config.clientAttributionAllowList = listOf("stellar.org", "lobstr.com")
-    config.clientAttributionDenyList = listOf("mgi.com")
-    config.validateClientAttribution(errors)
-    assertErrorCode(errors, "sep10-client-attribution-lists-conflict")
+    println(config.clientAttributionAllowList)
+    println(config.knownCustodialAccountList)
   }
 
   @Test
   fun `test both client attribution deny and allow lists are empty`() {
+    // Create a cofnig with empty ClientsConfig lists
+    val config = PropertySep10Config(appConfig, ClientsConfig(), secretConfig)
     config.isClientAttributionRequired = true
-    config.clientAttributionAllowList = listOf()
-    config.clientAttributionDenyList = listOf()
     config.validateClientAttribution(errors)
     assertErrorCode(errors, "sep10-client-attribution-lists-empty")
   }
 
-  @ParameterizedTest
-  @MethodSource("validOmnibusAccounts")
-  fun `test omnibus account list`(omnibusAccounts: List<String>) {
-    config.omnibusAccountList = omnibusAccounts
-    config.validateOmnibusAccounts(errors)
-    assertFalse(errors.hasErrors())
-  }
-
-  @ParameterizedTest
-  @MethodSource("invalidOmnibusAccounts")
-  fun `test invalid omnibus account list`(omnibusAccounts: List<String>) {
-    config.omnibusAccountList = omnibusAccounts
-    config.validateOmnibusAccounts(errors)
-    assertErrorCode(errors, "sep10-omnibus-account-not-valid")
-  }
-
   @Test
-  fun `test required known omnibus account`() {
-    config.isRequireKnownOmnibusAccount = true
-    config.omnibusAccountList = listOf("GCS2KBEGIWILNKFYY6ORT72Y2HUFYG6IIIOESHVQC3E5NIYT3L2I5F5E")
-    config.validateOmnibusAccounts(errors)
+  fun `test required known custodial account`() {
+    config.isKnownCustodialAccountRequired = true
+    config.validateCustodialAccounts(errors)
     assertFalse(errors.hasErrors())
   }
 
   @Test
-  fun `test known omnibus account required but not defined`() {
-    config.isRequireKnownOmnibusAccount = true
-    config.omnibusAccountList = listOf()
-    config.validateOmnibusAccounts(errors)
-    assertErrorCode(errors, "sep10-omnibus-account-list-empty")
+  fun `test known custodial account required but no custodial clients not defined`() {
+    config = PropertySep10Config(appConfig, ClientsConfig(), secretConfig)
+    config.isKnownCustodialAccountRequired = true
+    config.validateCustodialAccounts(errors)
+    assertErrorCode(errors, "sep10-custodial-account-list-empty")
   }
 
   @ParameterizedTest
