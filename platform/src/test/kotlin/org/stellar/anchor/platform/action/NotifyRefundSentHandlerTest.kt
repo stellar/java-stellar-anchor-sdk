@@ -597,14 +597,18 @@ class NotifyRefundSentHandlerTest {
     txn24.amountInAsset = STELLAR_USDC
 
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
-    val payment = JdbcSep24RefundPayment()
-    payment.id = request.refund.id
-    payment.amount = "1"
-    payment.fee = "0.1"
+    val payment1 = JdbcSep24RefundPayment()
+    payment1.id = request.refund.id
+    payment1.amount = "1"
+    payment1.fee = "0.1"
+    val payment2 = JdbcSep24RefundPayment()
+    payment2.id = "2"
+    payment2.amount = "0.1"
+    payment2.fee = "0"
     val refunds = JdbcSep24Refunds()
     refunds.amountRefunded = "1"
     refunds.amountFee = "0.1"
-    refunds.payments = listOf(payment)
+    refunds.payments = listOf(payment1, payment2)
     txn24.refunds = refunds
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
@@ -626,13 +630,17 @@ class NotifyRefundSentHandlerTest {
     expectedSep24Txn.amountInAsset = STELLAR_USDC
     expectedSep24Txn.transferReceivedAt = transferReceivedAt
     val expectedRefunds = JdbcSep24Refunds()
-    expectedRefunds.amountRefunded = "1.7"
+    expectedRefunds.amountRefunded = "1.8"
     expectedRefunds.amountFee = "0.2"
-    val expectedPayment = JdbcSep24RefundPayment()
-    expectedPayment.id = request.refund.id
-    expectedPayment.amount = "1.5"
-    expectedPayment.fee = "0.2"
-    expectedRefunds.payments = listOf(expectedPayment)
+    val expectedPayment1 = JdbcSep24RefundPayment()
+    expectedPayment1.id = request.refund.id
+    expectedPayment1.amount = "1.5"
+    expectedPayment1.fee = "0.2"
+    val expectedPayment2 = JdbcSep24RefundPayment()
+    expectedPayment2.id = "2"
+    expectedPayment2.amount = "0.1"
+    expectedPayment2.fee = "0"
+    expectedRefunds.payments = listOf(expectedPayment2, expectedPayment1)
     expectedSep24Txn.refunds = expectedRefunds
 
     JSONAssert.assertEquals(
@@ -649,14 +657,20 @@ class NotifyRefundSentHandlerTest {
     expectedResponse.amountIn = Amount("2", STELLAR_USDC)
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.transferReceivedAt = transferReceivedAt
-    val refundPayment = RefundPayment()
-    refundPayment.amount = Amount("1.5", txn24.amountInAsset)
-    refundPayment.fee = Amount("0.2", txn24.amountInAsset)
-    refundPayment.id = request.refund.id
-    refundPayment.idType = RefundPayment.IdType.STELLAR
-    val refunded = Amount("1.7", txn24.amountInAsset)
+    val refundPayment1 = RefundPayment()
+    refundPayment1.amount = Amount("1.5", txn24.amountInAsset)
+    refundPayment1.fee = Amount("0.2", txn24.amountInAsset)
+    refundPayment1.id = request.refund.id
+    refundPayment1.idType = RefundPayment.IdType.STELLAR
+    val refundPayment2 = RefundPayment()
+    refundPayment2.amount = Amount("0.1", txn24.amountInAsset)
+    refundPayment2.fee = Amount("0", txn24.amountInAsset)
+    refundPayment2.id = "2"
+    refundPayment2.idType = RefundPayment.IdType.STELLAR
+    val refunded = Amount("1.8", txn24.amountInAsset)
     val refundedFee = Amount("0.2", txn24.amountInAsset)
-    expectedResponse.refunds = Refunds(refunded, refundedFee, arrayOf(refundPayment))
+    expectedResponse.refunds =
+      Refunds(refunded, refundedFee, arrayOf(refundPayment2, refundPayment1))
 
     JSONAssert.assertEquals(
       GSON.toJson(expectedResponse),

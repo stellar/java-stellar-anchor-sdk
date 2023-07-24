@@ -96,7 +96,7 @@ class RpcUtilTest {
       RpcRequest.builder().id(RPC_ID).jsonrpc(protocolVersion).method(RPC_METHOD).build()
     val exception = assertThrows<InvalidRequestException> { RpcUtil.validateRpcRequest(rpcRequest) }
     assertEquals(
-      java.lang.String.format("Unsupported JSON-RPC protocol version [%s]", protocolVersion),
+      java.lang.String.format("Unsupported JSON-RPC protocol version[%s]", protocolVersion),
       exception.message
     )
   }

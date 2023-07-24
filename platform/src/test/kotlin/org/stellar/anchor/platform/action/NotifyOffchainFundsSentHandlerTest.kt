@@ -16,7 +16,6 @@ import org.stellar.anchor.api.platform.GetTransactionResponse
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.*
 import org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24
 import org.stellar.anchor.api.rpc.action.NotifyOffchainFundsSentRequest
-import org.stellar.anchor.api.rpc.action.NotifyOnchainFundsSentRequest
 import org.stellar.anchor.api.sep.SepTransactionStatus.*
 import org.stellar.anchor.api.shared.Amount
 import org.stellar.anchor.asset.AssetService
@@ -88,7 +87,7 @@ class NotifyOffchainFundsSentHandlerTest {
 
   @Test
   fun test_handle_transferNotReceived() {
-    val request = NotifyOnchainFundsSentRequest.builder().transactionId(TX_ID).build()
+    val request = NotifyOffchainFundsSentRequest.builder().transactionId(TX_ID).build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_ANCHOR.toString()
     txn24.kind = WITHDRAWAL.kind

@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform.action;
 
+import static java.util.Collections.emptySet;
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24;
 import static org.stellar.anchor.api.rpc.action.ActionMethod.NOTIFY_INTERACTIVE_FLOW_COMPLETED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.INCOMPLETE;
@@ -73,7 +74,7 @@ public class NotifyInteractiveFlowCompletedHandler
     if (SEP_24 == Sep.from(txn.getProtocol())) {
       return Set.of(INCOMPLETE);
     }
-    return Set.of();
+    return emptySet();
   }
 
   @Override

@@ -20,10 +20,10 @@ public class NotifyRefundInitiatedRequest extends RpcActionParamsRequest {
   @Builder
   public static class Refund {
     @NotNull private String id;
-    @NotNull private String amount;
+    @NotNull private AmountRequest amount;
 
     @SerializedName("amount_fee")
     @NotNull
-    private String amountFee;
+    private AmountRequest amountFee;
   }
 }
