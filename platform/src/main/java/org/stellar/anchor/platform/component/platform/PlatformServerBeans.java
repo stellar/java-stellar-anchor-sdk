@@ -103,7 +103,7 @@ public class PlatformServerBeans {
   }
 
   @Bean
-  Optional<TrustlineCheckJob> trustlineCheckJob(
+  TrustlineCheckJob trustlineCheckJob(
       Horizon horizon,
       JdbcTransactionPendingTrustRepo transactionPendingTrustRepo,
       PropertyCustodyConfig custodyConfig,
@@ -112,17 +112,16 @@ public class PlatformServerBeans {
       Sep31TransactionStore txn31Store,
       CustodyService custodyService) {
     if (custodyConfig.isCustodyIntegrationEnabled()) {
-      return Optional.of(
-          new TrustlineCheckJob(
-              horizon,
-              transactionPendingTrustRepo,
-              custodyConfig,
-              transactionService,
-              txn24Store,
-              txn31Store,
-              custodyService));
+      return new TrustlineCheckJob(
+          horizon,
+          transactionPendingTrustRepo,
+          custodyConfig,
+          transactionService,
+          txn24Store,
+          txn31Store,
+          custodyService);
     } else {
-      return Optional.empty();
+      return null;
     }
   }
 }
