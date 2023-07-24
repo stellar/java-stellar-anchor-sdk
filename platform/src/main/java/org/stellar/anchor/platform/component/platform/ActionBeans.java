@@ -13,6 +13,7 @@ import org.stellar.anchor.platform.action.DoStellarRefundHandler;
 import org.stellar.anchor.platform.action.NotifyAmountsUpdatedHandler;
 import org.stellar.anchor.platform.action.NotifyInteractiveFlowCompletedHandler;
 import org.stellar.anchor.platform.action.NotifyOffchainFundsAvailableHandler;
+import org.stellar.anchor.platform.action.NotifyOffchainFundsPendingHandler;
 import org.stellar.anchor.platform.action.NotifyOffchainFundsReceivedHandler;
 import org.stellar.anchor.platform.action.NotifyOffchainFundsSentHandler;
 import org.stellar.anchor.platform.action.NotifyOnchainFundsReceivedHandler;
@@ -97,6 +98,16 @@ public class ActionBeans {
       RequestValidator requestValidator,
       AssetService assetService) {
     return new NotifyOffchainFundsAvailableHandler(
+        txn24Store, txn31Store, requestValidator, assetService);
+  }
+
+  @Bean
+  NotifyOffchainFundsPendingHandler notifyOffchainFundsPendingHandler(
+      Sep24TransactionStore txn24Store,
+      Sep31TransactionStore txn31Store,
+      RequestValidator requestValidator,
+      AssetService assetService) {
+    return new NotifyOffchainFundsPendingHandler(
         txn24Store, txn31Store, requestValidator, assetService);
   }
 
