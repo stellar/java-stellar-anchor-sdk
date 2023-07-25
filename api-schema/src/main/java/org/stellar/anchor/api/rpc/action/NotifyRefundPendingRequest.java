@@ -12,7 +12,7 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = false)
-public class NotifyRefundInitiatedRequest extends RpcActionParamsRequest {
+public class NotifyRefundPendingRequest extends RpcActionParamsRequest {
 
   @NotNull private Refund refund;
 
