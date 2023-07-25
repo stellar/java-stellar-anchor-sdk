@@ -71,8 +71,6 @@ public class Transaction {
 
   String message;
 
-  Boolean refunded;
-
   Refunds refunds;
 
   @SerializedName("required_info_message")

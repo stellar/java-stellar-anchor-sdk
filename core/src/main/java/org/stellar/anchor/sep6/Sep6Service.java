@@ -1,14 +1,10 @@
 package org.stellar.anchor.sep6;
 
 import com.google.common.collect.ImmutableMap;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 import org.apache.commons.lang3.NotImplementedException;
-import org.stellar.anchor.api.exception.SepException;
-import org.stellar.anchor.api.exception.SepValidationException;
+import org.stellar.anchor.api.exception.*;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.sep6.*;
 import org.stellar.anchor.api.sep.sep6.InfoResponse.*;
@@ -37,33 +33,40 @@ public class Sep6Service {
 
   public GetTransactionsResponse findTransactions(Sep10Jwt token, GetTransactionsRequest request)
       throws SepException {
+    // Pre-validation
     if (token == null) {
-      throw new SepValidationException("missing token");
+      throw new SepNotAuthorizedException("missing token");
     }
     if (request == null) {
       throw new SepValidationException("missing request");
     }
-
+    if (!request.getAccount().equals(token.getAccount())) {
+      throw new SepNotAuthorizedException("account does not match token");
+    }
     if (assetService.getAsset(request.getAssetCode()) == null) {
       throw new SepValidationException("asset code not supported");
     }
 
-    List<Sep6Transaction> txns =
+    // Query the transaction store
+    List<Sep6Transaction> transactions =
         txnStore.findTransactions(token.getAccount(), token.getAccountMemo(), request);
-    List<Transaction> responses = txns.stream().map(this::fromTxn).collect(Collectors.toList());
+    List<Transaction> responses =
+        transactions.stream().map(this::fromTxn).collect(Collectors.toList());
 
     return new GetTransactionsResponse(responses);
   }
 
   public GetTransactionResponse findTransaction(Sep10Jwt token, GetTransactionRequest request)
-      throws SepException {
+      throws AnchorException {
+    // Pre-validation
     if (token == null) {
-      throw new SepValidationException("missing token");
+      throw new SepNotAuthorizedException("missing token");
     }
     if (request == null) {
       throw new SepValidationException("missing request");
     }
 
+    // Query the transaction store
     Sep6Transaction txn;
     if (request.getId() != null) {
       txn = txnStore.findByTransactionId(request.getId());
@@ -76,13 +79,15 @@ public class Sep6Service {
           "One of id, stellar_transaction_id, or external_transaction_id is required");
     }
 
-    if (txn == null || !txn.getSep10Account().equals(token.getAccount())) {
-      throw new SepValidationException("transaction not found");
+    // Validate the transaction
+    if (txn == null) {
+      throw new NotFoundException("transaction not found");
     }
-
-    if (token.getAccountMemo() != null
-        && txn.getSep10Account().equals(token.getAccount() + ":" + token.getAccountMemo())) {
-      throw new SepValidationException("transaction not found");
+    if (!Objects.equals(txn.getSep10Account(), token.getAccount())) {
+      throw new NotFoundException("account does not match token");
+    }
+    if (!Objects.equals(txn.getSep10AccountMemo(), token.getAccountMemo())) {
+      throw new NotFoundException("account memo does not match token");
     }
 
     return new GetTransactionResponse(fromTxn(txn));
@@ -90,8 +95,7 @@ public class Sep6Service {
 
   private Transaction fromTxn(Sep6Transaction txn) {
     Refunds refunds = null;
-    boolean refunded = false;
-    if (txn.getRefunds() != null) {
+    if (txn.getRefunds() != null && txn.getRefunds().getPayments() != null) {
       List<RefundPayment> payments = new ArrayList<>();
       for (Sep6RefundPayment payment : txn.getRefunds().getPayments()) {
         payments.add(
@@ -108,7 +112,6 @@ public class Sep6Service {
               .amountFee(txn.getRefunds().getAmountFee())
               .payments(payments)
               .build();
-      refunded = txn.getRefunds().getAmountRefunded().equals(txn.getAmountIn());
     }
     Transaction.TransactionBuilder builder =
         Transaction.builder()
@@ -125,12 +128,13 @@ public class Sep6Service {
             .amountFeeAsset(txn.getAmountFeeAsset())
             .startedAt(txn.getStartedAt().toString())
             .updatedAt(txn.getUpdatedAt().toString())
+            .completedAt(txn.getCompletedAt().toString())
+            .stellarTransactionId(txn.getStellarTransactionId())
+            .externalTransactionId(txn.getExternalTransactionId())
             .from(txn.getFromAccount())
             .to(txn.getToAccount())
             .completedAt(txn.getCompletedAt().toString())
             .message(txn.getMessage())
-            .refunded(refunded)
-            // TODO: why is this always null
             .refunds(refunds)
             .requiredInfoMessage(txn.getRequiredInfoMessage())
             .requiredInfoUpdates(txn.getRequiredInfoUpdates());
@@ -138,7 +142,7 @@ public class Sep6Service {
     if (Sep6Transaction.Kind.DEPOSIT.toString().equals(txn.getKind())) {
       return builder.depositMemo(txn.getMemo()).depositMemoType(txn.getMemoType()).build();
     } else {
-      throw new NotImplementedException("Other kinds are not supported");
+      throw new NotImplementedException(String.format("kind %s not implemented", txn.getKind()));
     }
   }
 

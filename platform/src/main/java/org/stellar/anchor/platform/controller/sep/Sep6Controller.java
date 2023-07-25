@@ -4,6 +4,7 @@ import static org.stellar.anchor.util.Log.debugF;
 
 import javax.servlet.http.HttpServletRequest;
 import org.springframework.web.bind.annotation.*;
+import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.sep.sep6.*;
 import org.stellar.anchor.auth.Sep10Jwt;
@@ -75,7 +76,7 @@ public class Sep6Controller {
       @RequestParam(required = false, value = "external_transaction_id")
           String externalTransactionId,
       @RequestParam(required = false, value = "lang") String lang)
-      throws SepException {
+      throws AnchorException {
     debugF(
         "/transaction id={} stellar_transaction_id={} external_transaction_id={} lang={}",
         id,
