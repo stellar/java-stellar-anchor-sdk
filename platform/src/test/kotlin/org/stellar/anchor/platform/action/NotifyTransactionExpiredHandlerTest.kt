@@ -151,7 +151,7 @@ class NotifyTransactionExpiredHandlerTest {
     val expectedSep24Txn = JdbcSep24Transaction()
     expectedSep24Txn.kind = DEPOSIT.kind
     expectedSep24Txn.status = EXPIRED.toString()
-    sep24TxnCapture.captured.updatedAt = sep24TxnCapture.captured.updatedAt
+    expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedSep24Txn.message = TX_MESSAGE
 
     JSONAssert.assertEquals(

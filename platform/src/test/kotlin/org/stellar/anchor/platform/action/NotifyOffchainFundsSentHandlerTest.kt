@@ -148,7 +148,7 @@ class NotifyOffchainFundsSentHandlerTest {
     val expectedSep24Txn = JdbcSep24Transaction()
     expectedSep24Txn.kind = DEPOSIT.kind
     expectedSep24Txn.status = PENDING_EXTERNAL.toString()
-    sep24TxnCapture.captured.updatedAt = sep24TxnCapture.captured.updatedAt
+    expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedSep24Txn.externalTransactionId = "externalTxId"
     expectedSep24Txn.transferReceivedAt = transferReceivedAt
 
@@ -202,7 +202,7 @@ class NotifyOffchainFundsSentHandlerTest {
     val expectedSep24Txn = JdbcSep24Transaction()
     expectedSep24Txn.kind = DEPOSIT.kind
     expectedSep24Txn.status = PENDING_EXTERNAL.toString()
-    sep24TxnCapture.captured.updatedAt = sep24TxnCapture.captured.updatedAt
+    expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedSep24Txn.externalTransactionId = "externalTxId"
     expectedSep24Txn.transferReceivedAt = sep24TxnCapture.captured.transferReceivedAt
 
@@ -254,7 +254,7 @@ class NotifyOffchainFundsSentHandlerTest {
     val expectedSep24Txn = JdbcSep24Transaction()
     expectedSep24Txn.kind = DEPOSIT.kind
     expectedSep24Txn.status = PENDING_EXTERNAL.toString()
-    sep24TxnCapture.captured.updatedAt = sep24TxnCapture.captured.updatedAt
+    expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
 
     JSONAssert.assertEquals(
       gson.toJson(expectedSep24Txn),
@@ -307,7 +307,7 @@ class NotifyOffchainFundsSentHandlerTest {
     val expectedSep24Txn = JdbcSep24Transaction()
     expectedSep24Txn.kind = WITHDRAWAL.kind
     expectedSep24Txn.status = COMPLETED.toString()
-    sep24TxnCapture.captured.updatedAt = sep24TxnCapture.captured.updatedAt
+    expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedSep24Txn.completedAt = sep24TxnCapture.captured.completedAt
     expectedSep24Txn.externalTransactionId = "externalTxId"
     expectedSep24Txn.transferReceivedAt = transferReceivedAt
@@ -363,7 +363,7 @@ class NotifyOffchainFundsSentHandlerTest {
     val expectedSep24Txn = JdbcSep24Transaction()
     expectedSep24Txn.kind = WITHDRAWAL.kind
     expectedSep24Txn.status = COMPLETED.toString()
-    sep24TxnCapture.captured.updatedAt = sep24TxnCapture.captured.updatedAt
+    expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedSep24Txn.completedAt = sep24TxnCapture.captured.completedAt
     expectedSep24Txn.transferReceivedAt = transferReceivedAt
 

@@ -187,7 +187,7 @@ class NotifyOnchainFundsSentHandlerTest {
     val expectedSep24Txn = JdbcSep24Transaction()
     expectedSep24Txn.kind = DEPOSIT.kind
     expectedSep24Txn.status = COMPLETED.toString()
-    sep24TxnCapture.captured.updatedAt = sep24TxnCapture.captured.updatedAt
+    expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedSep24Txn.completedAt = sep24TxnCapture.captured.completedAt
     expectedSep24Txn.transferReceivedAt = transferReceivedAt
     expectedSep24Txn.stellarTransactionId = "stellarTxId"

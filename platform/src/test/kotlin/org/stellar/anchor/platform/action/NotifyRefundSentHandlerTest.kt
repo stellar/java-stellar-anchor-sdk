@@ -218,7 +218,7 @@ class NotifyRefundSentHandlerTest {
     val expectedSep24Txn = JdbcSep24Transaction()
     expectedSep24Txn.kind = DEPOSIT.kind
     expectedSep24Txn.status = PENDING_ANCHOR.toString()
-    sep24TxnCapture.captured.updatedAt = sep24TxnCapture.captured.updatedAt
+    expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedSep24Txn.requestAssetCode = FIAT_USD_CODE
     expectedSep24Txn.amountIn = "2"
     expectedSep24Txn.amountInAsset = STELLAR_USDC
@@ -313,7 +313,7 @@ class NotifyRefundSentHandlerTest {
     val expectedSep24Txn = JdbcSep24Transaction()
     expectedSep24Txn.kind = DEPOSIT.kind
     expectedSep24Txn.status = SepTransactionStatus.REFUNDED.toString()
-    sep24TxnCapture.captured.updatedAt = sep24TxnCapture.captured.updatedAt
+    expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedSep24Txn.requestAssetCode = FIAT_USD_CODE
     expectedSep24Txn.amountIn = "2.2"
     expectedSep24Txn.amountInAsset = STELLAR_USDC
@@ -407,7 +407,7 @@ class NotifyRefundSentHandlerTest {
     val expectedSep24Txn = JdbcSep24Transaction()
     expectedSep24Txn.kind = DEPOSIT.kind
     expectedSep24Txn.status = SepTransactionStatus.REFUNDED.toString()
-    sep24TxnCapture.captured.updatedAt = sep24TxnCapture.captured.updatedAt
+    expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedSep24Txn.requestAssetCode = FIAT_USD_CODE
     expectedSep24Txn.amountIn = "1"
     expectedSep24Txn.amountInAsset = STELLAR_USDC
@@ -526,7 +526,7 @@ class NotifyRefundSentHandlerTest {
     val expectedSep24Txn = JdbcSep24Transaction()
     expectedSep24Txn.kind = PlatformTransactionData.Kind.DEPOSIT.kind
     expectedSep24Txn.status = PENDING_ANCHOR.toString()
-    sep24TxnCapture.captured.updatedAt = sep24TxnCapture.captured.updatedAt
+    expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedSep24Txn.requestAssetCode = FIAT_USD_CODE
     expectedSep24Txn.amountIn = "2"
     expectedSep24Txn.amountInAsset = STELLAR_USDC
@@ -621,7 +621,7 @@ class NotifyRefundSentHandlerTest {
     val expectedSep24Txn = JdbcSep24Transaction()
     expectedSep24Txn.kind = PlatformTransactionData.Kind.DEPOSIT.kind
     expectedSep24Txn.status = PENDING_ANCHOR.toString()
-    sep24TxnCapture.captured.updatedAt = sep24TxnCapture.captured.updatedAt
+    expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedSep24Txn.requestAssetCode = FIAT_USD_CODE
     expectedSep24Txn.amountIn = "2"
     expectedSep24Txn.amountInAsset = STELLAR_USDC

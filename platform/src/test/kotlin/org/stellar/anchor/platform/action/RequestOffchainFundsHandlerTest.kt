@@ -175,7 +175,7 @@ class RequestOffchainFundsHandlerTest {
     val expectedSep24Txn = JdbcSep24Transaction()
     expectedSep24Txn.kind = DEPOSIT.kind
     expectedSep24Txn.status = PENDING_USR_TRANSFER_START.toString()
-    sep24TxnCapture.captured.updatedAt = sep24TxnCapture.captured.updatedAt
+    expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedSep24Txn.requestAssetCode = FIAT_USD_CODE
     expectedSep24Txn.amountIn = "1"
     expectedSep24Txn.amountInAsset = FIAT_USD
@@ -239,7 +239,7 @@ class RequestOffchainFundsHandlerTest {
     val expectedSep24Txn = JdbcSep24Transaction()
     expectedSep24Txn.kind = DEPOSIT.kind
     expectedSep24Txn.status = PENDING_USR_TRANSFER_START.toString()
-    sep24TxnCapture.captured.updatedAt = sep24TxnCapture.captured.updatedAt
+    expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedSep24Txn.requestAssetCode = FIAT_USD_CODE
     expectedSep24Txn.amountIn = "1"
     expectedSep24Txn.amountInAsset = FIAT_USD
@@ -304,7 +304,7 @@ class RequestOffchainFundsHandlerTest {
     val expectedSep24Txn = JdbcSep24Transaction()
     expectedSep24Txn.kind = DEPOSIT.kind
     expectedSep24Txn.status = PENDING_USR_TRANSFER_START.toString()
-    sep24TxnCapture.captured.updatedAt = sep24TxnCapture.captured.updatedAt
+    expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedSep24Txn.requestAssetCode = FIAT_USD_CODE
     expectedSep24Txn.amountIn = "1"
     expectedSep24Txn.amountInAsset = FIAT_USD

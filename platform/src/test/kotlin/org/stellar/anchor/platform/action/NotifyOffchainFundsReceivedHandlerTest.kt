@@ -196,7 +196,7 @@ class NotifyOffchainFundsReceivedHandlerTest {
     val expectedSep24Txn = JdbcSep24Transaction()
     expectedSep24Txn.kind = DEPOSIT.kind
     expectedSep24Txn.status = PENDING_ANCHOR.toString()
-    sep24TxnCapture.captured.updatedAt = sep24TxnCapture.captured.updatedAt
+    expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedSep24Txn.externalTransactionId = "externalTxId"
     expectedSep24Txn.transferReceivedAt = transferReceivedAt
     expectedSep24Txn.requestAssetCode = FIAT_USD_CODE
@@ -264,7 +264,7 @@ class NotifyOffchainFundsReceivedHandlerTest {
     val expectedSep24Txn = JdbcSep24Transaction()
     expectedSep24Txn.kind = DEPOSIT.kind
     expectedSep24Txn.status = PENDING_ANCHOR.toString()
-    sep24TxnCapture.captured.updatedAt = sep24TxnCapture.captured.updatedAt
+    expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedSep24Txn.transferReceivedAt = sep24TxnCapture.captured.transferReceivedAt
     expectedSep24Txn.requestAssetCode = FIAT_USD_CODE
     expectedSep24Txn.amountIn = "1"
@@ -325,7 +325,7 @@ class NotifyOffchainFundsReceivedHandlerTest {
     expectedSep24Txn.kind = DEPOSIT.kind
     expectedSep24Txn.status = PENDING_ANCHOR.toString()
     expectedSep24Txn.status = PENDING_ANCHOR.toString()
-    sep24TxnCapture.captured.updatedAt = sep24TxnCapture.captured.updatedAt
+    expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedSep24Txn.externalTransactionId = "externalTxId"
     expectedSep24Txn.transferReceivedAt = sep24TxnCapture.captured.transferReceivedAt
     expectedSep24Txn.requestAssetCode = FIAT_USD_CODE
@@ -385,7 +385,7 @@ class NotifyOffchainFundsReceivedHandlerTest {
     val expectedSep24Txn = JdbcSep24Transaction()
     expectedSep24Txn.kind = DEPOSIT.kind
     expectedSep24Txn.status = PENDING_ANCHOR.toString()
-    sep24TxnCapture.captured.updatedAt = sep24TxnCapture.captured.updatedAt
+    expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedSep24Txn.requestAssetCode = FIAT_USD_CODE
 
     JSONAssert.assertEquals(

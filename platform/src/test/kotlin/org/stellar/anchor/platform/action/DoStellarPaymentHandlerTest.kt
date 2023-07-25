@@ -189,7 +189,7 @@ class DoStellarPaymentHandlerTest {
     expectedSep24Txn.id = TX_ID
     expectedSep24Txn.kind = DEPOSIT.kind
     expectedSep24Txn.status = PENDING_STELLAR.toString()
-    sep24TxnCapture.captured.updatedAt = sep24TxnCapture.captured.updatedAt
+    expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedSep24Txn.transferReceivedAt = transferReceivedAt
     expectedSep24Txn.toAccount = TO_ACCOUNT
     expectedSep24Txn.amountOutAsset = AMOUNT_OUT_ASSET
@@ -248,7 +248,7 @@ class DoStellarPaymentHandlerTest {
     val expectedSep24Txn = JdbcSep24Transaction()
     expectedSep24Txn.kind = DEPOSIT.kind
     expectedSep24Txn.status = PENDING_TRUST.toString()
-    sep24TxnCapture.captured.updatedAt = sep24TxnCapture.captured.updatedAt
+    expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedSep24Txn.transferReceivedAt = transferReceivedAt
     expectedSep24Txn.toAccount = TO_ACCOUNT
     expectedSep24Txn.amountOutAsset = AMOUNT_OUT_ASSET
