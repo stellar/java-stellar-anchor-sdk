@@ -13,7 +13,6 @@ public interface JdbcSep6TransactionRepo
 
   Sep6Transaction findOneByExternalTransactionId(String externalTransactionId);
 
-  // TODO: check if the query is correct
   List<Sep6Transaction> findBySep10AccountAndRequestAssetCodeOrderByStartedAtDesc(
       String stellarAccount, String assetCode);
 }

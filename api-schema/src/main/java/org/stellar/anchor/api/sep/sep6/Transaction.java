@@ -14,7 +14,7 @@ public class Transaction {
   String status;
 
   @SerializedName("status_eta")
-  String statusEta;
+  Long statusEta;
 
   @SerializedName("more_info_url")
   String moreInfoUrl;
@@ -76,7 +76,7 @@ public class Transaction {
   @SerializedName("required_info_message")
   String requiredInfoMessage;
 
-  // TODO: type tbd
+  // TODO: use a more structured type
   @SerializedName("required_info_updates")
   String requiredInfoUpdates;
 }

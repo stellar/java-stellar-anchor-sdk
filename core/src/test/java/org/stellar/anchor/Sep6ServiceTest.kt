@@ -347,6 +347,7 @@ class Sep6ServiceTest {
     txn.id = UUID.randomUUID().toString()
     txn.kind = "deposit"
     txn.status = "complete"
+    txn.statusEta = 5
     txn.moreInfoUrl = "https://example.com/more_info"
     txn.amountIn = "100"
     txn.amountInAsset = "USD"

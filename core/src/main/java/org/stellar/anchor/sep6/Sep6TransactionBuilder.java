@@ -29,7 +29,7 @@ public class Sep6TransactionBuilder {
     return this;
   }
 
-  public Sep6TransactionBuilder statusEta(String statusEta) {
+  public Sep6TransactionBuilder statusEta(Long statusEta) {
     txn.setStatusEta(statusEta);
     return this;
   }

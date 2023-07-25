@@ -25,7 +25,7 @@ public class JdbcSep6Transaction extends JdbcSepTransaction implements Sep6Trans
 
   @SerializedName("status_eta")
   @Column(name = "status_eta")
-  String statusEta;
+  Long statusEta;
 
   @SerializedName("more_info_url")
   @Column(name = "more_info_url")
@@ -95,14 +95,6 @@ public class JdbcSep6Transaction extends JdbcSepTransaction implements Sep6Trans
   @Type(type = "json")
   JdbcSep6Refunds refunds;
 
-  @SerializedName("required_info_message")
-  @Column(name = "required_info_message")
-  String requiredInfoMessage;
-
-  @SerializedName("required_info_updates")
-  @Column(name = "required_info_updates")
-  String requiredInfoUpdates;
-
   @Override
   public Sep6Refunds getRefunds() {
     return refunds;
@@ -124,5 +116,11 @@ public class JdbcSep6Transaction extends JdbcSepTransaction implements Sep6Trans
   @Column(name = "refund_memo_type")
   String refundMemoType;
 
-  // TODO: ANCHOR-356 Add required_info_* fields with /withdraw implementation
+  @SerializedName("required_info_message")
+  @Column(name = "required_info_message")
+  String requiredInfoMessage;
+
+  @SerializedName("required_info_updates")
+  @Column(name = "required_info_updates")
+  String requiredInfoUpdates;
 }

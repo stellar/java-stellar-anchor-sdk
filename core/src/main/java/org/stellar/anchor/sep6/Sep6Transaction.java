@@ -52,10 +52,20 @@ public interface Sep6Transaction extends SepTransaction {
 
   void setStatus(String status);
 
-  String getStatusEta();
+  /**
+   * Estimated number of seconds until a status change is expected.
+   *
+   * @return the status ETA.
+   */
+  Long getStatusEta();
 
-  void setStatusEta(String statusEta);
+  void setStatusEta(Long statusEta);
 
+  /**
+   * A URL that the user can visit if they want more infomration about their account / status.
+   *
+   * @return the more info URL.
+   */
   String getMoreInfoUrl();
 
   void setMoreInfoUrl(String moreInfoUrl);
@@ -89,6 +99,11 @@ public interface Sep6Transaction extends SepTransaction {
 
   void setCompletedAt(Instant completedAt);
 
+  /**
+   * The deposit or withdrawal method used. E.g. <code>bank_account</code>, <code>cash</code>
+   *
+   * @return the deposit or withdraw method.
+   */
   String getType();
 
   void setType(String type);
@@ -258,6 +273,11 @@ public interface Sep6Transaction extends SepTransaction {
 
   void setQuoteId(String quoteId);
 
+  /**
+   * Human-readable explanation of the transaction status.
+   *
+   * @return the message.
+   */
   String getMessage();
 
   void setMessage(String message);
@@ -282,14 +302,6 @@ public interface Sep6Transaction extends SepTransaction {
 
   void setRefundMemo(String refundMemo);
 
-  String getRequiredInfoMessage();
-
-  void setRequiredInfoMessage(String requiredInfoMessage);
-
-  String getRequiredInfoUpdates();
-
-  void setRequiredInfoUpdates(String requiredInfoUpdates);
-
   /**
    * The refund memo type.
    *
@@ -298,6 +310,24 @@ public interface Sep6Transaction extends SepTransaction {
   String getRefundMemoType();
 
   void setRefundMemoType(String refundMemoType);
+
+  /**
+   * A human-readable message indicating any errors that require updated information from the user.
+   *
+   * @return the required info message.
+   */
+  String getRequiredInfoMessage();
+
+  void setRequiredInfoMessage(String requiredInfoMessage);
+
+  /**
+   * A set of fields that require updates from the user.
+   *
+   * @return the required info updates.
+   */
+  String getRequiredInfoUpdates();
+
+  void setRequiredInfoUpdates(String requiredInfoUpdates);
 
   enum Kind {
     DEPOSIT("deposit"),

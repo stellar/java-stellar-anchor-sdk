@@ -13,7 +13,7 @@ public class PojoSep6Transaction implements Sep6Transaction {
   String stellarTransactionId;
   String externalTransactionId;
   String status;
-  String statusEta;
+  Long statusEta;
   String moreInfoUrl;
   String kind;
   Instant startedAt;

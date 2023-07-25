@@ -44,7 +44,8 @@ public class Sep6Service {
       throw new SepNotAuthorizedException("account does not match token");
     }
     if (assetService.getAsset(request.getAssetCode()) == null) {
-      throw new SepValidationException("asset code not supported");
+      throw new SepValidationException(
+          String.format("asset code %s not supported", request.getAssetCode()));
     }
 
     // Query the transaction store
