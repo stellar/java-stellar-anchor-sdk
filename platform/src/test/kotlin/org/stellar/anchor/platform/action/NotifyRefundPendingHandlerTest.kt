@@ -22,7 +22,7 @@ import org.stellar.anchor.api.platform.PlatformTransactionData
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL
 import org.stellar.anchor.api.rpc.action.AmountRequest
-import org.stellar.anchor.api.rpc.action.NotifyRefundInitiatedRequest
+import org.stellar.anchor.api.rpc.action.NotifyRefundPendingRequest
 import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.api.sep.SepTransactionStatus.INCOMPLETE
 import org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR
@@ -39,7 +39,7 @@ import org.stellar.anchor.sep24.Sep24TransactionStore
 import org.stellar.anchor.sep31.Sep31TransactionStore
 import org.stellar.anchor.util.GsonUtils
 
-class NotifyRefundInitiatedHandlerTest {
+class NotifyRefundPendingHandlerTest {
   companion object {
     private val GSON = GsonUtils.getInstance()
     private const val TX_ID = "testId"
@@ -57,19 +57,19 @@ class NotifyRefundInitiatedHandlerTest {
 
   @MockK(relaxed = true) private lateinit var assetService: AssetService
 
-  private lateinit var handler: NotifyRefundInitiatedHandler
+  private lateinit var handler: NotifyRefundPendingHandler
 
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
     this.assetService = DefaultAssetService.fromJsonResource("test_assets.json")
     this.handler =
-      NotifyRefundInitiatedHandler(txn24Store, txn31Store, requestValidator, assetService)
+      NotifyRefundPendingHandler(txn24Store, txn31Store, requestValidator, assetService)
   }
 
   @Test
   fun test_handle_unsupportedProtocol() {
-    val request = NotifyRefundInitiatedRequest.builder().transactionId(TX_ID).build()
+    val request = NotifyRefundPendingRequest.builder().transactionId(TX_ID).build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_ANCHOR.toString()
     val spyTxn24 = spyk(txn24)
@@ -80,14 +80,14 @@ class NotifyRefundInitiatedHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[notify_refund_initiated] is not supported for status[pending_anchor], kind[null] and protocol[38]",
+      "Action[notify_refund_pending] is not supported for status[pending_anchor], kind[null] and protocol[38]",
       ex.message
     )
   }
 
   @Test
   fun test_handle_unsupportedKind() {
-    val request = NotifyRefundInitiatedRequest.builder().transactionId(TX_ID).build()
+    val request = NotifyRefundPendingRequest.builder().transactionId(TX_ID).build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_ANCHOR.toString()
     txn24.kind = WITHDRAWAL.kind
@@ -98,14 +98,14 @@ class NotifyRefundInitiatedHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[notify_refund_initiated] is not supported for status[pending_anchor], kind[withdrawal] and protocol[24]",
+      "Action[notify_refund_pending] is not supported for status[pending_anchor], kind[withdrawal] and protocol[24]",
       ex.message
     )
   }
 
   @Test
   fun test_handle_unsupportedStatus() {
-    val request = NotifyRefundInitiatedRequest.builder().transactionId(TX_ID).build()
+    val request = NotifyRefundPendingRequest.builder().transactionId(TX_ID).build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = INCOMPLETE.toString()
     txn24.kind = DEPOSIT.kind
@@ -115,14 +115,14 @@ class NotifyRefundInitiatedHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[notify_refund_initiated] is not supported for status[incomplete], kind[deposit] and protocol[24]",
+      "Action[notify_refund_pending] is not supported for status[incomplete], kind[deposit] and protocol[24]",
       ex.message
     )
   }
 
   @Test
   fun test_handle_invalidRequest() {
-    val request = NotifyRefundInitiatedRequest.builder().transactionId(TX_ID).build()
+    val request = NotifyRefundPendingRequest.builder().transactionId(TX_ID).build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_ANCHOR.toString()
     txn24.kind = DEPOSIT.kind
@@ -139,10 +139,10 @@ class NotifyRefundInitiatedHandlerTest {
   @Test
   fun test_handle_invalidAmounts() {
     val request =
-      NotifyRefundInitiatedRequest.builder()
+      NotifyRefundPendingRequest.builder()
         .transactionId(TX_ID)
         .refund(
-          NotifyRefundInitiatedRequest.Refund.builder()
+          NotifyRefundPendingRequest.Refund.builder()
             .amount(AmountRequest("-1"))
             .amountFee(AmountRequest("-0.1"))
             .id("1")
@@ -170,10 +170,10 @@ class NotifyRefundInitiatedHandlerTest {
   fun test_handle_ok_first_refund() {
     val transferReceivedAt = Instant.now()
     val request =
-      NotifyRefundInitiatedRequest.builder()
+      NotifyRefundPendingRequest.builder()
         .transactionId(TX_ID)
         .refund(
-          NotifyRefundInitiatedRequest.Refund.builder()
+          NotifyRefundPendingRequest.Refund.builder()
             .amount(AmountRequest("1"))
             .amountFee(AmountRequest("0"))
             .id("1")
@@ -256,10 +256,10 @@ class NotifyRefundInitiatedHandlerTest {
   fun test_handle_ok_second_refund() {
     val transferReceivedAt = Instant.now()
     val request =
-      NotifyRefundInitiatedRequest.builder()
+      NotifyRefundPendingRequest.builder()
         .transactionId(TX_ID)
         .refund(
-          NotifyRefundInitiatedRequest.Refund.builder()
+          NotifyRefundPendingRequest.Refund.builder()
             .amount(AmountRequest("1"))
             .amountFee(AmountRequest("0.1"))
             .id("1")
@@ -347,10 +347,10 @@ class NotifyRefundInitiatedHandlerTest {
   fun test_handle_more_then_amount_in() {
     val transferReceivedAt = Instant.now()
     val request =
-      NotifyRefundInitiatedRequest.builder()
+      NotifyRefundPendingRequest.builder()
         .transactionId(TX_ID)
         .refund(
-          NotifyRefundInitiatedRequest.Refund.builder()
+          NotifyRefundPendingRequest.Refund.builder()
             .amount(AmountRequest("1"))
             .amountFee(AmountRequest("0.1"))
             .id("1")

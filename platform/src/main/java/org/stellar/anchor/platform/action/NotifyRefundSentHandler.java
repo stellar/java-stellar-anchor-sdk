@@ -105,7 +105,7 @@ public class NotifyRefundSentHandler extends ActionHandler<NotifyRefundSentReque
         } else {
           List<Sep24RefundPayment> payments = sep24Refunds.getRefundPayments();
 
-          // make sure refund, provided in request, was sent on refund_initialized
+          // make sure refund, provided in request, was sent on refund_pending
           payments.stream()
               .map(Sep24RefundPayment::getId)
               .filter(id -> id.equals(request.getRefund().getId()))
