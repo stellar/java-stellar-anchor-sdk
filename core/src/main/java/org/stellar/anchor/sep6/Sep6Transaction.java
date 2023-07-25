@@ -1,8 +1,9 @@
 package org.stellar.anchor.sep6;
 
 import java.time.Instant;
+import org.stellar.anchor.SepTransaction;
 
-public interface Sep6Transaction {
+public interface Sep6Transaction extends SepTransaction {
 
   /**
    * The database ID.
@@ -51,6 +52,14 @@ public interface Sep6Transaction {
 
   void setStatus(String status);
 
+  String getStatusEta();
+
+  void setStatusEta(String statusEta);
+
+  String getMoreInfoUrl();
+
+  void setMoreInfoUrl(String moreInfoUrl);
+
   /**
    * <code>deposit</code>, <code>deposit-exchange</code>, <code>withdrawal</code> or <code>
    * withdrawal-exchange</code>.
@@ -79,6 +88,10 @@ public interface Sep6Transaction {
   Instant getCompletedAt();
 
   void setCompletedAt(Instant completedAt);
+
+  String getType();
+
+  void setType(String type);
 
   /**
    * The code of the asset of interest. E.g. BTC, ETH, USD, INR, etc.
@@ -195,8 +208,8 @@ public interface Sep6Transaction {
   void setWithdrawAnchorAccount(String withdrawAnchorAccount);
 
   /**
-   * For withdrawals, the Stellar account the assets were withdrawn from. For deposits, the Stellar
-   * account the assets were deposited to.
+   * For withdrawals, the Stellar account the assets were withdrawn from. For deposits, the
+   * sent-from address (perhaps BTC, IBAN, bank account).
    *
    * @return the account the assets were deposited to or withdrawn from.
    */
@@ -245,6 +258,10 @@ public interface Sep6Transaction {
 
   void setQuoteId(String quoteId);
 
+  String getMessage();
+
+  void setMessage(String message);
+
   /**
    * Describes any on or off-chain refund associated with this transaction.
    *
@@ -264,6 +281,14 @@ public interface Sep6Transaction {
   String getRefundMemo();
 
   void setRefundMemo(String refundMemo);
+
+  String getRequiredInfoMessage();
+
+  void setRequiredInfoMessage(String requiredInfoMessage);
+
+  String getRequiredInfoUpdates();
+
+  void setRequiredInfoUpdates(String requiredInfoUpdates);
 
   /**
    * The refund memo type.

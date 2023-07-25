@@ -2,6 +2,7 @@ package org.stellar.anchor.sep6;
 
 import java.util.List;
 import org.stellar.anchor.api.exception.SepException;
+import org.stellar.anchor.api.sep.sep6.GetTransactionsRequest;
 import org.stellar.anchor.util.TransactionsParams;
 
 public interface Sep6TransactionStore {
