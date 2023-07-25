@@ -235,6 +235,66 @@ class NotifyOffchainFundsReceivedHandlerTest {
   }
 
   @Test
+  fun test_handle_ok_onlyWithAmountIn() {
+    val request =
+      NotifyOffchainFundsReceivedRequest.builder()
+        .transactionId(TX_ID)
+        .amountIn(AmountRequest("1"))
+        .build()
+    val txn24 = JdbcSep24Transaction()
+    txn24.status = PENDING_USR_TRANSFER_START.toString()
+    txn24.kind = DEPOSIT.kind
+    txn24.requestAssetCode = FIAT_USD_CODE
+    txn24.amountInAsset = FIAT_USD
+    val sep24TxnCapture = slot<JdbcSep24Transaction>()
+
+    every { txn24Store.findByTransactionId(TX_ID) } returns txn24
+    every { txn31Store.findByTransactionId(any()) } returns null
+    every { txn24Store.save(capture(sep24TxnCapture)) } returns null
+    every { custodyConfig.isCustodyIntegrationEnabled } returns false
+
+    val startDate = Instant.now()
+    val response = handler.handle(request)
+    val endDate = Instant.now()
+
+    verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 0) { custodyService.createTransaction(ofType(Sep24Transaction::class)) }
+
+    val expectedSep24Txn = JdbcSep24Transaction()
+    expectedSep24Txn.kind = DEPOSIT.kind
+    expectedSep24Txn.status = PENDING_ANCHOR.toString()
+    expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
+    expectedSep24Txn.transferReceivedAt = sep24TxnCapture.captured.transferReceivedAt
+    expectedSep24Txn.requestAssetCode = FIAT_USD_CODE
+    expectedSep24Txn.amountIn = "1"
+    expectedSep24Txn.amountInAsset = FIAT_USD
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedSep24Txn),
+      gson.toJson(sep24TxnCapture.captured),
+      JSONCompareMode.STRICT
+    )
+
+    val expectedResponse = GetTransactionResponse()
+    expectedResponse.sep = SEP_24
+    expectedResponse.kind = DEPOSIT
+    expectedResponse.status = PENDING_ANCHOR
+    expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
+    expectedResponse.transferReceivedAt = sep24TxnCapture.captured.transferReceivedAt
+    expectedResponse.amountIn = Amount("1", FIAT_USD)
+    expectedResponse.amountExpected = Amount(null, FIAT_USD)
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedResponse),
+      gson.toJson(response),
+      JSONCompareMode.STRICT
+    )
+
+    assertTrue(expectedSep24Txn.updatedAt >= startDate)
+    assertTrue(expectedSep24Txn.updatedAt <= endDate)
+  }
+
+  @Test
   fun test_handle_ok_withExternalTxIdAndWithoutFundsReceivedAt_custodyIntegrationEnabled() {
     val request =
       NotifyOffchainFundsReceivedRequest.builder()
@@ -373,7 +433,7 @@ class NotifyOffchainFundsReceivedHandlerTest {
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
     assertEquals(
-      "All or none of the amount_in, amount_out, and amount_fee should be set",
+      "Invalid amounts combination provided: all, none or only amount_in should be set",
       ex.message
     )
   }

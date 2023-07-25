@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform.action;
 
+import static java.util.Collections.emptySet;
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT;
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24;
 import static org.stellar.anchor.api.rpc.action.ActionMethod.DO_STELLAR_PAYMENT;
@@ -84,7 +85,7 @@ public class DoStellarPaymentHandler extends ActionHandler<DoStellarPaymentReque
         }
       }
     }
-    return Set.of();
+    return emptySet();
   }
 
   @Override
@@ -92,10 +93,7 @@ public class DoStellarPaymentHandler extends ActionHandler<DoStellarPaymentReque
       JdbcSepTransaction txn, DoStellarPaymentRequest request) throws AnchorException {
     JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
     if (horizon.isTrustLineConfigured(txn24.getToAccount(), txn24.getAmountOutAsset())) {
-      // TODO: Do we need to send request body?
       custodyService.createTransactionPayment(txn24.getId(), null);
-    } else {
-      // TODO: Add account and asset to DB table, so that the cron job can check trust
     }
   }
 }

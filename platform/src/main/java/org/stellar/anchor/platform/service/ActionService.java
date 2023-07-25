@@ -44,16 +44,16 @@ public class ActionService {
                         "An RPC error occurred while processing an RPC call with action[%s] and id[%s]",
                         rc.getMethod(), rpcId),
                     ex);
-                return getRpcErrorResponse(rpcId, ex);
+                return getRpcErrorResponse(rc, ex);
               } catch (BadRequestException ex) {
-                return getRpcErrorResponse(rpcId, ex);
+                return getRpcErrorResponse(rc, ex);
               } catch (Exception ex) {
                 errorEx(
                     String.format(
                         "An internal error occurred while processing an RPC call with action[%s] and id[%s]",
                         rc.getMethod(), rpcId),
                     ex);
-                return getRpcErrorResponse(rpcId, new InternalErrorException(ex.getMessage()));
+                return getRpcErrorResponse(rc, new InternalErrorException(ex.getMessage()));
               }
             })
         .collect(toList());

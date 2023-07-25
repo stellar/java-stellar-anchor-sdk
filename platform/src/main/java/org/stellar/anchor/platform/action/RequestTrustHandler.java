@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform.action;
 
+import static java.util.Collections.emptySet;
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT;
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24;
 import static org.stellar.anchor.api.rpc.action.ActionMethod.REQUEST_TRUST;
@@ -69,7 +70,7 @@ public class RequestTrustHandler extends ActionHandler<RequestTrustRequest> {
         }
       }
     }
-    return Set.of();
+    return emptySet();
   }
 
   @Override
