@@ -1,11 +1,7 @@
 package org.stellar.anchor.platform.action
 
-import io.mockk.MockKAnnotations
-import io.mockk.every
+import io.mockk.*
 import io.mockk.impl.annotations.MockK
-import io.mockk.slot
-import io.mockk.spyk
-import io.mockk.verify
 import java.time.Instant
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -21,6 +17,7 @@ import org.stellar.anchor.api.platform.GetTransactionResponse
 import org.stellar.anchor.api.platform.PlatformTransactionData
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL
+import org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_38
 import org.stellar.anchor.api.rpc.action.AmountRequest
 import org.stellar.anchor.api.rpc.action.NotifyRefundInitiatedRequest
 import org.stellar.anchor.api.sep.SepTransactionStatus
@@ -76,7 +73,7 @@ class NotifyRefundInitiatedHandlerTest {
 
     every { txn24Store.findByTransactionId(TX_ID) } returns spyTxn24
     every { txn31Store.findByTransactionId(any()) } returns null
-    every { spyTxn24.protocol } returns "38"
+    every { spyTxn24.protocol } returns SEP_38.sep.toString()
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
@@ -208,7 +205,7 @@ class NotifyRefundInitiatedHandlerTest {
     val expectedSep24Txn = JdbcSep24Transaction()
     expectedSep24Txn.kind = DEPOSIT.kind
     expectedSep24Txn.status = SepTransactionStatus.PENDING_EXTERNAL.toString()
-    expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
+    sep24TxnCapture.captured.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedSep24Txn.requestAssetCode = FIAT_USD_CODE
     expectedSep24Txn.amountIn = "1"
     expectedSep24Txn.amountInAsset = STELLAR_USDC
@@ -248,8 +245,8 @@ class NotifyRefundInitiatedHandlerTest {
       JSONCompareMode.STRICT
     )
 
-    assertTrue(expectedSep24Txn.updatedAt >= startDate)
-    assertTrue(expectedSep24Txn.updatedAt <= endDate)
+    assertTrue(sep24TxnCapture.captured.updatedAt >= startDate)
+    assertTrue(sep24TxnCapture.captured.updatedAt <= endDate)
   }
 
   @Test
@@ -299,7 +296,7 @@ class NotifyRefundInitiatedHandlerTest {
     val expectedSep24Txn = JdbcSep24Transaction()
     expectedSep24Txn.kind = DEPOSIT.kind
     expectedSep24Txn.status = SepTransactionStatus.PENDING_EXTERNAL.toString()
-    expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
+    sep24TxnCapture.captured.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedSep24Txn.requestAssetCode = FIAT_USD_CODE
     expectedSep24Txn.amountIn = "2.2"
     expectedSep24Txn.amountInAsset = STELLAR_USDC
@@ -339,8 +336,8 @@ class NotifyRefundInitiatedHandlerTest {
       JSONCompareMode.STRICT
     )
 
-    assertTrue(expectedSep24Txn.updatedAt >= startDate)
-    assertTrue(expectedSep24Txn.updatedAt <= endDate)
+    assertTrue(sep24TxnCapture.captured.updatedAt >= startDate)
+    assertTrue(sep24TxnCapture.captured.updatedAt <= endDate)
   }
 
   @Test

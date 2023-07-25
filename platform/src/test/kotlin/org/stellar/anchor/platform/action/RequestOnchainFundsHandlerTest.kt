@@ -17,6 +17,7 @@ import org.stellar.anchor.api.platform.GetTransactionResponse
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL
 import org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24
+import org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_38
 import org.stellar.anchor.api.rpc.action.AmountAssetRequest
 import org.stellar.anchor.api.rpc.action.AmountRequest
 import org.stellar.anchor.api.rpc.action.RequestOnchainFundsRequest
@@ -90,7 +91,7 @@ class RequestOnchainFundsHandlerTest {
 
     every { txn24Store.findByTransactionId(TX_ID) } returns spyTxn24
     every { txn31Store.findByTransactionId(any()) } returns null
-    every { spyTxn24.protocol } returns "38"
+    every { spyTxn24.protocol } returns SEP_38.sep.toString()
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
@@ -200,7 +201,7 @@ class RequestOnchainFundsHandlerTest {
     val expectedSep24Txn = JdbcSep24Transaction()
     expectedSep24Txn.kind = WITHDRAWAL.kind
     expectedSep24Txn.status = PENDING_USR_TRANSFER_START.toString()
-    expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
+    sep24TxnCapture.captured.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedSep24Txn.requestAssetCode = FIAT_USD_CODE
     expectedSep24Txn.amountIn = "1"
     expectedSep24Txn.amountInAsset = FIAT_USD
@@ -239,8 +240,8 @@ class RequestOnchainFundsHandlerTest {
       JSONCompareMode.STRICT
     )
 
-    assertTrue(expectedSep24Txn.updatedAt >= startDate)
-    assertTrue(expectedSep24Txn.updatedAt <= endDate)
+    assertTrue(sep24TxnCapture.captured.updatedAt >= startDate)
+    assertTrue(sep24TxnCapture.captured.updatedAt <= endDate)
   }
 
   @Test
@@ -289,7 +290,7 @@ class RequestOnchainFundsHandlerTest {
     val expectedSep24Txn = JdbcSep24Transaction()
     expectedSep24Txn.kind = WITHDRAWAL.kind
     expectedSep24Txn.status = PENDING_USR_TRANSFER_START.toString()
-    expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
+    sep24TxnCapture.captured.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedSep24Txn.requestAssetCode = FIAT_USD_CODE
     expectedSep24Txn.amountIn = "1"
     expectedSep24Txn.amountInAsset = FIAT_USD
@@ -328,8 +329,8 @@ class RequestOnchainFundsHandlerTest {
       JSONCompareMode.STRICT
     )
 
-    assertTrue(expectedSep24Txn.updatedAt >= startDate)
-    assertTrue(expectedSep24Txn.updatedAt <= endDate)
+    assertTrue(sep24TxnCapture.captured.updatedAt >= startDate)
+    assertTrue(sep24TxnCapture.captured.updatedAt <= endDate)
   }
 
   @Test
@@ -367,7 +368,7 @@ class RequestOnchainFundsHandlerTest {
     val expectedSep24Txn = JdbcSep24Transaction()
     expectedSep24Txn.kind = WITHDRAWAL.kind
     expectedSep24Txn.status = PENDING_USR_TRANSFER_START.toString()
-    expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
+    sep24TxnCapture.captured.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedSep24Txn.requestAssetCode = FIAT_USD_CODE
     expectedSep24Txn.amountIn = "1"
     expectedSep24Txn.amountInAsset = FIAT_USD
@@ -412,8 +413,8 @@ class RequestOnchainFundsHandlerTest {
       JSONCompareMode.STRICT
     )
 
-    assertTrue(expectedSep24Txn.updatedAt >= startDate)
-    assertTrue(expectedSep24Txn.updatedAt <= endDate)
+    assertTrue(sep24TxnCapture.captured.updatedAt >= startDate)
+    assertTrue(sep24TxnCapture.captured.updatedAt <= endDate)
   }
 
   @Test
@@ -449,7 +450,7 @@ class RequestOnchainFundsHandlerTest {
     val expectedSep24Txn = JdbcSep24Transaction()
     expectedSep24Txn.kind = WITHDRAWAL.kind
     expectedSep24Txn.status = PENDING_USR_TRANSFER_START.toString()
-    expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
+    sep24TxnCapture.captured.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedSep24Txn.requestAssetCode = FIAT_USD_CODE
     expectedSep24Txn.amountIn = "1"
     expectedSep24Txn.amountInAsset = FIAT_USD
@@ -488,8 +489,8 @@ class RequestOnchainFundsHandlerTest {
       JSONCompareMode.STRICT
     )
 
-    assertTrue(expectedSep24Txn.updatedAt >= startDate)
-    assertTrue(expectedSep24Txn.updatedAt <= endDate)
+    assertTrue(sep24TxnCapture.captured.updatedAt >= startDate)
+    assertTrue(sep24TxnCapture.captured.updatedAt <= endDate)
   }
 
   @Test
@@ -529,7 +530,7 @@ class RequestOnchainFundsHandlerTest {
     val expectedSep24Txn = JdbcSep24Transaction()
     expectedSep24Txn.kind = WITHDRAWAL.kind
     expectedSep24Txn.status = PENDING_USR_TRANSFER_START.toString()
-    expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
+    sep24TxnCapture.captured.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedSep24Txn.requestAssetCode = FIAT_USD_CODE
     expectedSep24Txn.amountIn = "1"
     expectedSep24Txn.amountInAsset = FIAT_USD
@@ -568,8 +569,8 @@ class RequestOnchainFundsHandlerTest {
       JSONCompareMode.STRICT
     )
 
-    assertTrue(expectedSep24Txn.updatedAt >= startDate)
-    assertTrue(expectedSep24Txn.updatedAt <= endDate)
+    assertTrue(sep24TxnCapture.captured.updatedAt >= startDate)
+    assertTrue(sep24TxnCapture.captured.updatedAt <= endDate)
   }
 
   @Test

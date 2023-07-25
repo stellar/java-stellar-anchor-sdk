@@ -20,6 +20,7 @@ import org.stellar.anchor.api.rpc.action.NotifyOffchainFundsSentRequest;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
+import org.stellar.anchor.platform.data.JdbcSep31Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.platform.validator.RequestValidator;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
@@ -103,15 +104,27 @@ public class NotifyOffchainFundsSentHandler extends ActionHandler<NotifyOffchain
   @Override
   protected void updateTransactionWithAction(
       JdbcSepTransaction txn, NotifyOffchainFundsSentRequest request) {
-    JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
     if (request.getExternalTransactionId() != null) {
-      txn24.setExternalTransactionId(request.getExternalTransactionId());
-      if (DEPOSIT == Kind.from(txn24.getKind())) {
-        if (request.getFundsSentAt() != null) {
-          txn24.setTransferReceivedAt(request.getFundsSentAt());
-        } else {
-          txn24.setTransferReceivedAt(Instant.now());
-        }
+      txn.setExternalTransactionId(request.getExternalTransactionId());
+      switch (Sep.from(txn.getProtocol())) {
+        case SEP_24:
+          JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
+          if (DEPOSIT == Kind.from(txn24.getKind())) {
+            if (request.getFundsSentAt() != null) {
+              txn24.setTransferReceivedAt(request.getFundsSentAt());
+            } else {
+              txn24.setTransferReceivedAt(Instant.now());
+            }
+          }
+          break;
+        case SEP_31:
+          JdbcSep31Transaction txn31 = (JdbcSep31Transaction) txn;
+          if (request.getFundsSentAt() != null) {
+            txn31.setTransferReceivedAt(request.getFundsSentAt());
+          } else {
+            txn31.setTransferReceivedAt(Instant.now());
+          }
+          break;
       }
     }
   }

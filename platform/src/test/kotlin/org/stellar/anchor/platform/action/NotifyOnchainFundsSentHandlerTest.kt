@@ -18,6 +18,7 @@ import org.stellar.anchor.api.exception.rpc.InvalidRequestException
 import org.stellar.anchor.api.platform.GetTransactionResponse
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.*
 import org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24
+import org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_38
 import org.stellar.anchor.api.rpc.action.NotifyOnchainFundsSentRequest
 import org.stellar.anchor.api.sep.SepTransactionStatus.*
 import org.stellar.anchor.api.shared.Amount
@@ -68,7 +69,7 @@ class NotifyOnchainFundsSentHandlerTest {
 
     every { txn24Store.findByTransactionId(TX_ID) } returns spyTxn24
     every { txn31Store.findByTransactionId(any()) } returns null
-    every { spyTxn24.protocol } returns "38"
+    every { spyTxn24.protocol } returns SEP_38.sep.toString()
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
@@ -186,7 +187,7 @@ class NotifyOnchainFundsSentHandlerTest {
     val expectedSep24Txn = JdbcSep24Transaction()
     expectedSep24Txn.kind = DEPOSIT.kind
     expectedSep24Txn.status = COMPLETED.toString()
-    expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
+    sep24TxnCapture.captured.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedSep24Txn.completedAt = sep24TxnCapture.captured.completedAt
     expectedSep24Txn.transferReceivedAt = transferReceivedAt
     expectedSep24Txn.stellarTransactionId = "stellarTxId"
@@ -214,10 +215,10 @@ class NotifyOnchainFundsSentHandlerTest {
       JSONCompareMode.STRICT
     )
 
-    assertTrue(expectedSep24Txn.updatedAt >= startDate)
-    assertTrue(expectedSep24Txn.updatedAt <= endDate)
-    assertTrue(expectedSep24Txn.completedAt >= startDate)
-    assertTrue(expectedSep24Txn.completedAt <= endDate)
+    assertTrue(sep24TxnCapture.captured.updatedAt >= startDate)
+    assertTrue(sep24TxnCapture.captured.updatedAt <= endDate)
+    assertTrue(sep24TxnCapture.captured.completedAt >= startDate)
+    assertTrue(sep24TxnCapture.captured.completedAt <= endDate)
   }
 
   @Test
