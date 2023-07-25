@@ -8,7 +8,7 @@ public interface Sep6Refunds {
    * The total amount refunded to the user, in units of <code>amount_in_asset</code>. If a full
    * refund was issued, this amount should match <code>amount_in</code>.
    *
-   * @return
+   * @return the total amount refunded.
    */
   String getAmountRefunded();
 

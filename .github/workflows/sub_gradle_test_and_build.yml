@@ -10,7 +10,7 @@ jobs:
     name: Gradle Test and Build
     runs-on: ubuntu-22.04
     steps:
-      # Start the docker containers
+      # Checkout the code
       - uses: actions/checkout@v3
 
       # This is to add to DNS entries to access the services started by docker-compose.
@@ -22,7 +22,9 @@ jobs:
           sudo echo "127.0.0.1 kafka" | sudo tee -a /etc/hosts
           sudo echo "127.0.0.1 reference-server" | sudo tee -a /etc/hosts
           sudo echo "127.0.0.1 sep24-reference-ui" | sudo tee -a /etc/hosts
-          sudo echo "127.0.0.1 platform" | sudo tee -a /etc/hosts        
+          sudo echo "127.0.0.1 platform" | sudo tee -a /etc/hosts
+          sudo echo "127.0.0.1 host.docker.internal" | sudo tee -a /etc/hosts 
+
 
       - name: Build and run the stack with docker compose
         env:
@@ -39,7 +41,6 @@ jobs:
         with:
           java-version: '11'
           distribution: 'adopt'
-
 
       # Gradle test is now printing the test messages to GitHub Actions log.
       # It is not necessary to print the reports.
@@ -61,20 +62,24 @@ jobs:
       - name: Run sep server, observer, java reference server and kotlin reference server
         env:
           run_docker: false
+          SEP1_TOML_VALUE: service-runner/src/main/resources/config/stellar.host.docker.internal.toml
+          SEP10_HOME_DOMAIN: host.docker.internal:8080
         run: |
+          pwd
           cp service-runner/build/libs/anchor-platform-runner-*.jar service-runner/build/libs/anchor-platform-runner.jar
-          ls -l service-runner/build/libs
           java -jar service-runner/build/libs/anchor-platform-runner.jar -t &
 
-      - name: Install NodeJs
-        uses: actions/setup-node@v2
+      - name: Wait for sep server to start and get ready
+        uses: mydea/action-wait-for-api@v1
         with:
-          node-version: 14
+          url: "http://localhost:8080/.well-known/stellar.toml"
+          expected-status: "200"
+          timeout: "300"
+          interval: "1"
 
       - name: Run Stellar validation tool
         run: |
-          npm install -g @stellar/anchor-tests
-          stellar-anchor-tests --home-domain http://localhost:8080 --seps 1 10 12 24 31 38 --sep-config platform/src/test/resources/stellar-anchor-tests-sep-config.json
+          docker run --network host -v ${GITHUB_WORKSPACE}/platform/src/test/resources://config stellar/anchor-tests:v0.5.12 --home-domain http://host.docker.internal:8080 --seps 1 10 12 24 31 38 --sep-config //config/stellar-anchor-tests-sep-config.json
 
   analyze:
     name: CodeQL Analysis
