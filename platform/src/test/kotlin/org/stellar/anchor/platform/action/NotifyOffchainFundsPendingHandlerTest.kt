@@ -33,6 +33,8 @@ class NotifyOffchainFundsPendingHandlerTest {
   companion object {
     private val gson = GsonUtils.getInstance()
     private const val TX_ID = "testId"
+    private const val EXTERNAL_TX_ID = "testExternalTxId"
+    private const val VALIDATION_ERROR_MESSAGE = "Invalid request"
   }
 
   @MockK(relaxed = true) private lateinit var txn24Store: Sep24TransactionStore
@@ -135,10 +137,11 @@ class NotifyOffchainFundsPendingHandlerTest {
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
-    every { requestValidator.validate(request) } throws InvalidParamsException("Invalid request")
+    every { requestValidator.validate(request) } throws
+      InvalidParamsException(VALIDATION_ERROR_MESSAGE)
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
-    assertEquals("Invalid request", ex.message?.trimIndent())
+    assertEquals(VALIDATION_ERROR_MESSAGE, ex.message?.trimIndent())
   }
 
   @Test
@@ -147,7 +150,7 @@ class NotifyOffchainFundsPendingHandlerTest {
     val request =
       NotifyOffchainFundsPendingRequest.builder()
         .transactionId(TX_ID)
-        .externalTransactionId("externalTxId")
+        .externalTransactionId(EXTERNAL_TX_ID)
         .build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_ANCHOR.toString()
@@ -170,7 +173,7 @@ class NotifyOffchainFundsPendingHandlerTest {
     expectedSep24Txn.status = PENDING_EXTERNAL.toString()
     expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedSep24Txn.transferReceivedAt = transferReceivedAt
-    expectedSep24Txn.externalTransactionId = "externalTxId"
+    expectedSep24Txn.externalTransactionId = EXTERNAL_TX_ID
 
     JSONAssert.assertEquals(
       gson.toJson(expectedSep24Txn),
@@ -182,7 +185,7 @@ class NotifyOffchainFundsPendingHandlerTest {
     expectedResponse.sep = SEP_24
     expectedResponse.kind = WITHDRAWAL
     expectedResponse.status = PENDING_EXTERNAL
-    expectedResponse.externalTransactionId = "externalTxId"
+    expectedResponse.externalTransactionId = EXTERNAL_TX_ID
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.transferReceivedAt = transferReceivedAt
     expectedResponse.amountExpected = Amount(null, "")
@@ -202,7 +205,7 @@ class NotifyOffchainFundsPendingHandlerTest {
     val request =
       NotifyOffchainFundsPendingRequest.builder()
         .transactionId(TX_ID)
-        .externalTransactionId("externalTxId")
+        .externalTransactionId(EXTERNAL_TX_ID)
         .build()
     val txn31 = JdbcSep31Transaction()
     txn31.status = PENDING_RECEIVER.toString()
@@ -221,7 +224,7 @@ class NotifyOffchainFundsPendingHandlerTest {
     val expectedSep31Txn = JdbcSep24Transaction()
     expectedSep31Txn.status = PENDING_EXTERNAL.toString()
     expectedSep31Txn.updatedAt = sep31TxnCapture.captured.updatedAt
-    expectedSep31Txn.externalTransactionId = "externalTxId"
+    expectedSep31Txn.externalTransactionId = EXTERNAL_TX_ID
 
     JSONAssert.assertEquals(
       gson.toJson(expectedSep31Txn),
@@ -233,7 +236,7 @@ class NotifyOffchainFundsPendingHandlerTest {
     expectedResponse.sep = SEP_31
     expectedResponse.kind = RECEIVE
     expectedResponse.status = PENDING_EXTERNAL
-    expectedResponse.externalTransactionId = "externalTxId"
+    expectedResponse.externalTransactionId = EXTERNAL_TX_ID
     expectedResponse.updatedAt = sep31TxnCapture.captured.updatedAt
     expectedResponse.amountIn = Amount()
     expectedResponse.amountOut = Amount()

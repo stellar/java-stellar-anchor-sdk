@@ -32,6 +32,7 @@ class NotifyTransactionErrorHandlerTest {
     private val gson = GsonUtils.getInstance()
     private const val TX_ID = "testId"
     private const val TX_MESSAGE = "testMessage"
+    private const val VALIDATION_ERROR_MESSAGE = "Invalid request"
   }
 
   @MockK(relaxed = true) private lateinit var txn24Store: Sep24TransactionStore
@@ -123,10 +124,11 @@ class NotifyTransactionErrorHandlerTest {
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
-    every { requestValidator.validate(request) } throws InvalidParamsException("Invalid request")
+    every { requestValidator.validate(request) } throws
+      InvalidParamsException(VALIDATION_ERROR_MESSAGE)
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
-    assertEquals("Invalid request", ex.message?.trimIndent())
+    assertEquals(VALIDATION_ERROR_MESSAGE, ex.message?.trimIndent())
   }
 
   @Test

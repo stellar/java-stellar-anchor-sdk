@@ -32,6 +32,8 @@ class NotifyOffchainFundsAvailableHandlerTest {
   companion object {
     private val gson = GsonUtils.getInstance()
     private const val TX_ID = "testId"
+    private const val EXTERNAL_TX_ID = "testExternalTxId"
+    private const val VALIDATION_ERROR_MESSAGE = "Invalid request"
   }
 
   @MockK(relaxed = true) private lateinit var txn24Store: Sep24TransactionStore
@@ -134,10 +136,11 @@ class NotifyOffchainFundsAvailableHandlerTest {
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
-    every { requestValidator.validate(request) } throws InvalidParamsException("Invalid request")
+    every { requestValidator.validate(request) } throws
+      InvalidParamsException(VALIDATION_ERROR_MESSAGE)
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
-    assertEquals("Invalid request", ex.message?.trimIndent())
+    assertEquals(VALIDATION_ERROR_MESSAGE, ex.message?.trimIndent())
   }
 
   @Test
@@ -146,7 +149,7 @@ class NotifyOffchainFundsAvailableHandlerTest {
     val request =
       NotifyOffchainFundsAvailableRequest.builder()
         .transactionId(TX_ID)
-        .externalTransactionId("externalTxId")
+        .externalTransactionId(EXTERNAL_TX_ID)
         .build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_ANCHOR.toString()
@@ -169,7 +172,7 @@ class NotifyOffchainFundsAvailableHandlerTest {
     expectedSep24Txn.status = PENDING_USR_TRANSFER_COMPLETE.toString()
     expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedSep24Txn.transferReceivedAt = transferReceivedAt
-    expectedSep24Txn.externalTransactionId = "externalTxId"
+    expectedSep24Txn.externalTransactionId = EXTERNAL_TX_ID
 
     JSONAssert.assertEquals(
       gson.toJson(expectedSep24Txn),
@@ -181,7 +184,7 @@ class NotifyOffchainFundsAvailableHandlerTest {
     expectedResponse.sep = SEP_24
     expectedResponse.kind = WITHDRAWAL
     expectedResponse.status = PENDING_USR_TRANSFER_COMPLETE
-    expectedResponse.externalTransactionId = "externalTxId"
+    expectedResponse.externalTransactionId = EXTERNAL_TX_ID
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.transferReceivedAt = transferReceivedAt
     expectedResponse.amountExpected = Amount(null, "")

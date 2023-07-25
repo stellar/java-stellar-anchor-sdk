@@ -25,7 +25,6 @@ import org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR
 import org.stellar.anchor.api.shared.Amount
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
-import org.stellar.anchor.horizon.Horizon
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
 import org.stellar.anchor.platform.validator.RequestValidator
 import org.stellar.anchor.sep24.Sep24TransactionStore
@@ -41,13 +40,12 @@ class NotifyInteractiveFlowCompletedHandlerTest {
     private const val STELLAR_USDC =
       "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
     private const val FIAT_USD_CODE = "USD"
+    private const val VALIDATION_ERROR_MESSAGE = "Invalid request"
   }
 
   @MockK(relaxed = true) private lateinit var txn24Store: Sep24TransactionStore
 
   @MockK(relaxed = true) private lateinit var txn31Store: Sep31TransactionStore
-
-  @MockK(relaxed = true) private lateinit var horizon: Horizon
 
   @MockK(relaxed = true) private lateinit var requestValidator: RequestValidator
 
@@ -107,10 +105,11 @@ class NotifyInteractiveFlowCompletedHandlerTest {
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
-    every { requestValidator.validate(request) } throws InvalidParamsException("Invalid request")
+    every { requestValidator.validate(request) } throws
+      InvalidParamsException(VALIDATION_ERROR_MESSAGE)
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
-    assertEquals("Invalid request", ex.message?.trimIndent())
+    assertEquals(VALIDATION_ERROR_MESSAGE, ex.message?.trimIndent())
   }
 
   @Test

@@ -43,6 +43,9 @@ class DoStellarRefundHandlerTest {
     private const val STELLAR_USDC =
       "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
     private const val FIAT_USD_CODE = "USD"
+    private const val MEMO = "testMemo"
+    private const val MEMO_TYPE = "text"
+    private const val VALIDATION_ERROR_MESSAGE = "Invalid request"
   }
 
   @MockK(relaxed = true) private lateinit var txn24Store: Sep24TransactionStore
@@ -136,10 +139,11 @@ class DoStellarRefundHandlerTest {
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
-    every { requestValidator.validate(request) } throws InvalidParamsException("Invalid request")
+    every { requestValidator.validate(request) } throws
+      InvalidParamsException(VALIDATION_ERROR_MESSAGE)
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
-    assertEquals("Invalid request", ex.message?.trimIndent())
+    assertEquals(VALIDATION_ERROR_MESSAGE, ex.message?.trimIndent())
   }
 
   @Test
@@ -221,8 +225,8 @@ class DoStellarRefundHandlerTest {
     txn24.amountOut = "1"
     txn24.amountFeeAsset = STELLAR_USDC
     txn24.amountFee = "0.1"
-    txn24.refundMemo = "memo"
-    txn24.refundMemoType = "text"
+    txn24.refundMemo = MEMO
+    txn24.refundMemoType = MEMO_TYPE
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
@@ -247,8 +251,8 @@ class DoStellarRefundHandlerTest {
     expectedSep24Txn.amountOut = "1"
     expectedSep24Txn.amountFeeAsset = STELLAR_USDC
     expectedSep24Txn.amountFee = "0.1"
-    expectedSep24Txn.refundMemo = "memo"
-    expectedSep24Txn.refundMemoType = "text"
+    expectedSep24Txn.refundMemo = MEMO
+    expectedSep24Txn.refundMemoType = MEMO_TYPE
     expectedSep24Txn.transferReceivedAt = transferReceivedAt
 
     JSONAssert.assertEquals(

@@ -46,6 +46,13 @@ class RequestOnchainFundsHandlerTest {
     private const val STELLAR_USDC =
       "stellar:USDC:GA5ZSEJYB37JRC5AVCIA5MOP4RHTM335X2KGX3IHOJAPP5RE34K4KZVN"
     private const val FIAT_USD_CODE = "USD"
+    private const val MEMO = "testMemo"
+    private const val MEMO_2 = "testMemo2"
+    private const val MEMO_TYPE = "text"
+    private const val INVALID_MEMO_TYPE = "invalidMemoType"
+    private const val DESTINATION_ACCOUNT = "testDestinationAccount"
+    private const val DESTINATION_ACCOUNT_2 = "testDestinationAccount2"
+    private const val VALIDATION_ERROR_MESSAGE = "Invalid request"
   }
 
   @MockK(relaxed = true) private lateinit var txn24Store: Sep24TransactionStore
@@ -161,10 +168,11 @@ class RequestOnchainFundsHandlerTest {
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
-    every { requestValidator.validate(request) } throws InvalidParamsException("Invalid request")
+    every { requestValidator.validate(request) } throws
+      InvalidParamsException(VALIDATION_ERROR_MESSAGE)
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
-    assertEquals("Invalid request", ex.message?.trimIndent())
+    assertEquals(VALIDATION_ERROR_MESSAGE, ex.message?.trimIndent())
   }
 
   @Test
@@ -176,9 +184,9 @@ class RequestOnchainFundsHandlerTest {
         .amountOut(AmountAssetRequest("0.9", STELLAR_USDC))
         .amountFee(AmountAssetRequest("0.1", STELLAR_USDC))
         .amountExpected(AmountRequest("1"))
-        .memo("testMemo")
-        .memoType("text")
-        .destinationAccount("testDestinationAccount")
+        .memo(MEMO)
+        .memoType(MEMO_TYPE)
+        .destinationAccount(DESTINATION_ACCOUNT)
         .build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = INCOMPLETE.toString()
@@ -210,10 +218,10 @@ class RequestOnchainFundsHandlerTest {
     expectedSep24Txn.amountFee = "0.1"
     expectedSep24Txn.amountFeeAsset = STELLAR_USDC
     expectedSep24Txn.amountExpected = "1"
-    expectedSep24Txn.memo = "testMemo"
-    expectedSep24Txn.memoType = "text"
-    expectedSep24Txn.toAccount = "testDestinationAccount"
-    expectedSep24Txn.withdrawAnchorAccount = "testDestinationAccount"
+    expectedSep24Txn.memo = MEMO
+    expectedSep24Txn.memoType = MEMO_TYPE
+    expectedSep24Txn.toAccount = DESTINATION_ACCOUNT
+    expectedSep24Txn.withdrawAnchorAccount = DESTINATION_ACCOUNT
 
     JSONAssert.assertEquals(
       gson.toJson(expectedSep24Txn),
@@ -230,9 +238,9 @@ class RequestOnchainFundsHandlerTest {
     expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
     expectedResponse.amountExpected = Amount("1", FIAT_USD)
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
-    expectedResponse.memo = "testMemo"
-    expectedResponse.memoType = "text"
-    expectedResponse.destinationAccount = "testDestinationAccount"
+    expectedResponse.memo = MEMO
+    expectedResponse.memoType = MEMO_TYPE
+    expectedResponse.destinationAccount = DESTINATION_ACCOUNT
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -271,7 +279,7 @@ class RequestOnchainFundsHandlerTest {
     txn24.kind = WITHDRAWAL.kind
     txn24.requestAssetCode = FIAT_USD_CODE
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
-    val depositInfo = SepDepositInfo("testDestinationAccount2", "testMemo2", "text")
+    val depositInfo = SepDepositInfo(DESTINATION_ACCOUNT_2, MEMO_2, MEMO_TYPE)
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
@@ -299,10 +307,10 @@ class RequestOnchainFundsHandlerTest {
     expectedSep24Txn.amountFee = "0.1"
     expectedSep24Txn.amountFeeAsset = STELLAR_USDC
     expectedSep24Txn.amountExpected = "1"
-    expectedSep24Txn.memo = "testMemo2"
-    expectedSep24Txn.memoType = "text"
-    expectedSep24Txn.toAccount = "testDestinationAccount2"
-    expectedSep24Txn.withdrawAnchorAccount = "testDestinationAccount2"
+    expectedSep24Txn.memo = MEMO_2
+    expectedSep24Txn.memoType = MEMO_TYPE
+    expectedSep24Txn.toAccount = DESTINATION_ACCOUNT_2
+    expectedSep24Txn.withdrawAnchorAccount = DESTINATION_ACCOUNT_2
 
     JSONAssert.assertEquals(
       gson.toJson(expectedSep24Txn),
@@ -319,9 +327,9 @@ class RequestOnchainFundsHandlerTest {
     expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
     expectedResponse.amountExpected = Amount("1", FIAT_USD)
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
-    expectedResponse.memo = "testMemo2"
-    expectedResponse.memoType = "text"
-    expectedResponse.destinationAccount = "testDestinationAccount2"
+    expectedResponse.memo = MEMO_2
+    expectedResponse.memoType = MEMO_TYPE
+    expectedResponse.destinationAccount = DESTINATION_ACCOUNT_2
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -342,9 +350,9 @@ class RequestOnchainFundsHandlerTest {
         .amountOut(AmountAssetRequest("0.9", STELLAR_USDC))
         .amountFee(AmountAssetRequest("0.1", STELLAR_USDC))
         .amountExpected(AmountRequest("1"))
-        .memo("testMemo")
-        .memoType("text")
-        .destinationAccount("testDestinationAccount")
+        .memo(MEMO)
+        .memoType(MEMO_TYPE)
+        .destinationAccount(DESTINATION_ACCOUNT)
         .build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = INCOMPLETE.toString()
@@ -377,10 +385,10 @@ class RequestOnchainFundsHandlerTest {
     expectedSep24Txn.amountFee = "0.1"
     expectedSep24Txn.amountFeeAsset = STELLAR_USDC
     expectedSep24Txn.amountExpected = "1"
-    expectedSep24Txn.memo = "testMemo"
-    expectedSep24Txn.memoType = "text"
-    expectedSep24Txn.toAccount = "testDestinationAccount"
-    expectedSep24Txn.withdrawAnchorAccount = "testDestinationAccount"
+    expectedSep24Txn.memo = MEMO
+    expectedSep24Txn.memoType = MEMO_TYPE
+    expectedSep24Txn.toAccount = DESTINATION_ACCOUNT
+    expectedSep24Txn.withdrawAnchorAccount = DESTINATION_ACCOUNT
 
     JSONAssert.assertEquals(
       gson.toJson(expectedSep24Txn),
@@ -403,9 +411,9 @@ class RequestOnchainFundsHandlerTest {
     expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
     expectedResponse.amountExpected = Amount("1", FIAT_USD)
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
-    expectedResponse.memo = "testMemo"
-    expectedResponse.memoType = "text"
-    expectedResponse.destinationAccount = "testDestinationAccount"
+    expectedResponse.memo = MEMO
+    expectedResponse.memoType = MEMO_TYPE
+    expectedResponse.destinationAccount = DESTINATION_ACCOUNT
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -425,9 +433,9 @@ class RequestOnchainFundsHandlerTest {
         .amountIn(AmountAssetRequest("1", FIAT_USD))
         .amountOut(AmountAssetRequest("0.9", STELLAR_USDC))
         .amountFee(AmountAssetRequest("0.1", STELLAR_USDC))
-        .memo("testMemo")
-        .memoType("text")
-        .destinationAccount("testDestinationAccount")
+        .memo(MEMO)
+        .memoType(MEMO_TYPE)
+        .destinationAccount(DESTINATION_ACCOUNT)
         .build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = INCOMPLETE.toString()
@@ -459,10 +467,10 @@ class RequestOnchainFundsHandlerTest {
     expectedSep24Txn.amountFee = "0.1"
     expectedSep24Txn.amountFeeAsset = STELLAR_USDC
     expectedSep24Txn.amountExpected = "1"
-    expectedSep24Txn.memo = "testMemo"
-    expectedSep24Txn.memoType = "text"
-    expectedSep24Txn.toAccount = "testDestinationAccount"
-    expectedSep24Txn.withdrawAnchorAccount = "testDestinationAccount"
+    expectedSep24Txn.memo = MEMO
+    expectedSep24Txn.memoType = MEMO_TYPE
+    expectedSep24Txn.toAccount = DESTINATION_ACCOUNT
+    expectedSep24Txn.withdrawAnchorAccount = DESTINATION_ACCOUNT
 
     JSONAssert.assertEquals(
       gson.toJson(expectedSep24Txn),
@@ -479,9 +487,9 @@ class RequestOnchainFundsHandlerTest {
     expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
     expectedResponse.amountExpected = Amount("1", FIAT_USD)
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
-    expectedResponse.memo = "testMemo"
-    expectedResponse.memoType = "text"
-    expectedResponse.destinationAccount = "testDestinationAccount"
+    expectedResponse.memo = MEMO
+    expectedResponse.memoType = MEMO_TYPE
+    expectedResponse.destinationAccount = DESTINATION_ACCOUNT
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -498,9 +506,9 @@ class RequestOnchainFundsHandlerTest {
     val request =
       RequestOnchainFundsRequest.builder()
         .transactionId(TX_ID)
-        .memo("testMemo")
-        .memoType("text")
-        .destinationAccount("testDestinationAccount")
+        .memo(MEMO)
+        .memoType(MEMO_TYPE)
+        .destinationAccount(DESTINATION_ACCOUNT)
         .build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = INCOMPLETE.toString()
@@ -539,10 +547,10 @@ class RequestOnchainFundsHandlerTest {
     expectedSep24Txn.amountFee = "0.1"
     expectedSep24Txn.amountFeeAsset = STELLAR_USDC
     expectedSep24Txn.amountExpected = "1"
-    expectedSep24Txn.memo = "testMemo"
-    expectedSep24Txn.memoType = "text"
-    expectedSep24Txn.toAccount = "testDestinationAccount"
-    expectedSep24Txn.withdrawAnchorAccount = "testDestinationAccount"
+    expectedSep24Txn.memo = MEMO
+    expectedSep24Txn.memoType = MEMO_TYPE
+    expectedSep24Txn.toAccount = DESTINATION_ACCOUNT
+    expectedSep24Txn.withdrawAnchorAccount = DESTINATION_ACCOUNT
 
     JSONAssert.assertEquals(
       gson.toJson(expectedSep24Txn),
@@ -559,9 +567,9 @@ class RequestOnchainFundsHandlerTest {
     expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
     expectedResponse.amountExpected = Amount("1", FIAT_USD)
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
-    expectedResponse.memo = "testMemo"
-    expectedResponse.memoType = "text"
-    expectedResponse.destinationAccount = "testDestinationAccount"
+    expectedResponse.memo = MEMO
+    expectedResponse.memoType = MEMO_TYPE
+    expectedResponse.destinationAccount = DESTINATION_ACCOUNT
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -644,8 +652,8 @@ class RequestOnchainFundsHandlerTest {
     val request =
       RequestOnchainFundsRequest.builder()
         .transactionId(TX_ID)
-        .memo("testMemo")
-        .memoType("text")
+        .memo(MEMO)
+        .memoType(MEMO_TYPE)
         .amountIn(AmountAssetRequest("1", FIAT_USD))
         .amountOut(AmountAssetRequest("1", FIAT_USD))
         .amountFee(AmountAssetRequest("1", FIAT_USD))
@@ -698,9 +706,9 @@ class RequestOnchainFundsHandlerTest {
         .amountOut(AmountAssetRequest("1", FIAT_USD))
         .amountFee(AmountAssetRequest("1", FIAT_USD))
         .transactionId(TX_ID)
-        .memo("testMemo")
-        .memoType("invalidMemoType")
-        .destinationAccount("testDestinationAccount")
+        .memo(MEMO)
+        .memoType(INVALID_MEMO_TYPE)
+        .destinationAccount(DESTINATION_ACCOUNT)
         .build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = INCOMPLETE.toString()
@@ -723,7 +731,7 @@ class RequestOnchainFundsHandlerTest {
         .amountOut(AmountAssetRequest("1", FIAT_USD))
         .amountFee(AmountAssetRequest("1", FIAT_USD))
         .transactionId(TX_ID)
-        .destinationAccount("testDestinationAccount")
+        .destinationAccount(DESTINATION_ACCOUNT)
         .build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = INCOMPLETE.toString()
@@ -746,8 +754,8 @@ class RequestOnchainFundsHandlerTest {
         .amountOut(AmountAssetRequest("1", FIAT_USD))
         .amountFee(AmountAssetRequest("1", FIAT_USD))
         .transactionId(TX_ID)
-        .memo("testMemo")
-        .memoType("text")
+        .memo(MEMO)
+        .memoType(MEMO_TYPE)
         .build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = INCOMPLETE.toString()

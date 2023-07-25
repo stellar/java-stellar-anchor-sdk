@@ -33,6 +33,7 @@ class NotifyCustomerInfoUpdatedHandlerTest {
   companion object {
     private val gson = GsonUtils.getInstance()
     private const val TX_ID = "testId"
+    private const val VALIDATION_ERROR_MESSAGE = "Invalid request"
   }
 
   @MockK(relaxed = true) private lateinit var txn24Store: Sep24TransactionStore
@@ -94,10 +95,11 @@ class NotifyCustomerInfoUpdatedHandlerTest {
 
     every { txn24Store.findByTransactionId(any()) } returns null
     every { txn31Store.findByTransactionId(TX_ID) } returns txn31
-    every { requestValidator.validate(request) } throws InvalidParamsException("Invalid request")
+    every { requestValidator.validate(request) } throws
+      InvalidParamsException(VALIDATION_ERROR_MESSAGE)
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
-    assertEquals("Invalid request", ex.message?.trimIndent())
+    assertEquals(VALIDATION_ERROR_MESSAGE, ex.message?.trimIndent())
   }
 
   @Test
@@ -144,7 +146,7 @@ class NotifyCustomerInfoUpdatedHandlerTest {
       JSONCompareMode.STRICT
     )
 
-    assertTrue(expectedSep31Txn.updatedAt >= startDate)
-    assertTrue(expectedSep31Txn.updatedAt <= endDate)
+    assertTrue(sep31TxnCapture.captured.updatedAt >= startDate)
+    assertTrue(sep31TxnCapture.captured.updatedAt <= endDate)
   }
 }

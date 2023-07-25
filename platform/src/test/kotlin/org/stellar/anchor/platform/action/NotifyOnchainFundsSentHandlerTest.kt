@@ -39,6 +39,10 @@ class NotifyOnchainFundsSentHandlerTest {
   companion object {
     private val gson = GsonUtils.getInstance()
     private const val TX_ID = "testId"
+    private const val STELLAR_TX_ID = "stellarTxId"
+    private const val VALIDATION_ERROR_MESSAGE = "Invalid request"
+    private const val PAYMENT_OPERATION_RECORD_FILE_PATH = "action/payment_operation_record.json"
+    private const val STELLAR_TRANSACTIONS_FILE_PATH = "action/stellar_transactions.json"
   }
 
   @MockK(relaxed = true) private lateinit var txn24Store: Sep24TransactionStore
@@ -140,10 +144,11 @@ class NotifyOnchainFundsSentHandlerTest {
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
-    every { requestValidator.validate(request) } throws InvalidParamsException("Invalid request")
+    every { requestValidator.validate(request) } throws
+      InvalidParamsException(VALIDATION_ERROR_MESSAGE)
 
     val ex = assertThrows<InvalidParamsException> { handler.handle(request) }
-    assertEquals("Invalid request", ex.message?.trimIndent())
+    assertEquals(VALIDATION_ERROR_MESSAGE, ex.message?.trimIndent())
   }
 
   @Test
@@ -152,7 +157,7 @@ class NotifyOnchainFundsSentHandlerTest {
     val request =
       NotifyOnchainFundsSentRequest.builder()
         .transactionId(TX_ID)
-        .stellarTransactionId("stellarTxId")
+        .stellarTransactionId(STELLAR_TX_ID)
         .build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_ANCHOR.toString()
@@ -160,15 +165,13 @@ class NotifyOnchainFundsSentHandlerTest {
     txn24.transferReceivedAt = transferReceivedAt
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
 
-    val operationRecordsJson =
-      FileUtil.getResourceFileAsString("action/payment_operation_record.json")
+    val operationRecordsJson = FileUtil.getResourceFileAsString(PAYMENT_OPERATION_RECORD_FILE_PATH)
     val operationRecordsTypeToken =
       object : TypeToken<ArrayList<PaymentOperationResponse>>() {}.type
     val operationRecords: ArrayList<OperationResponse> =
       gson.fromJson(operationRecordsJson, operationRecordsTypeToken)
 
-    val stellarTransactionsJson =
-      FileUtil.getResourceFileAsString("action/payment_stellar_transaction.json")
+    val stellarTransactionsJson = FileUtil.getResourceFileAsString(STELLAR_TRANSACTIONS_FILE_PATH)
     val stellarTransactionsToken = object : TypeToken<List<StellarTransaction>>() {}.type
     val stellarTransactions: List<StellarTransaction> =
       gson.fromJson(stellarTransactionsJson, stellarTransactionsToken)
@@ -176,7 +179,7 @@ class NotifyOnchainFundsSentHandlerTest {
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
-    every { horizon.getStellarTxnOperations("stellarTxId") } returns operationRecords
+    every { horizon.getStellarTxnOperations(STELLAR_TX_ID) } returns operationRecords
 
     val startDate = Instant.now()
     val response = handler.handle(request)
@@ -190,7 +193,7 @@ class NotifyOnchainFundsSentHandlerTest {
     expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedSep24Txn.completedAt = sep24TxnCapture.captured.completedAt
     expectedSep24Txn.transferReceivedAt = transferReceivedAt
-    expectedSep24Txn.stellarTransactionId = "stellarTxId"
+    expectedSep24Txn.stellarTransactionId = STELLAR_TX_ID
     expectedSep24Txn.stellarTransactions = stellarTransactions
 
     JSONAssert.assertEquals(
@@ -227,7 +230,7 @@ class NotifyOnchainFundsSentHandlerTest {
     val request =
       NotifyOnchainFundsSentRequest.builder()
         .transactionId(TX_ID)
-        .stellarTransactionId("stellarTxId")
+        .stellarTransactionId(STELLAR_TX_ID)
         .build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = PENDING_ANCHOR.toString()
