@@ -187,10 +187,11 @@ class NotifyOffchainFundsSentHandlerTest {
       NotifyOffchainFundsSentRequest.builder()
         .transactionId(TX_ID)
         .externalTransactionId(EXTERNAL_TX_ID)
-        .fundsSentAt(transferReceivedAt)
+        .fundsSentAt(transferReceivedAt.minusSeconds(100))
         .build()
     val txn31 = JdbcSep31Transaction()
     txn31.status = PENDING_RECEIVER.toString()
+    txn31.transferReceivedAt = transferReceivedAt
     val sep31TxnCapture = slot<JdbcSep31Transaction>()
 
     every { txn24Store.findByTransactionId(any()) } returns null
@@ -296,66 +297,6 @@ class NotifyOffchainFundsSentHandlerTest {
     assertTrue(sep24TxnCapture.captured.updatedAt <= endDate)
     assertTrue(sep24TxnCapture.captured.transferReceivedAt >= startDate)
     assertTrue(sep24TxnCapture.captured.transferReceivedAt <= endDate)
-  }
-
-  @Test
-  fun test_handle_sep31_ok_deposit_withExternalTxIdAndWithoutDate() {
-    val request =
-      NotifyOffchainFundsSentRequest.builder()
-        .transactionId(TX_ID)
-        .externalTransactionId(EXTERNAL_TX_ID)
-        .build()
-    val txn31 = JdbcSep31Transaction()
-    txn31.status = PENDING_RECEIVER.toString()
-    val sep31TxnCapture = slot<JdbcSep31Transaction>()
-
-    every { txn24Store.findByTransactionId(any()) } returns null
-    every { txn31Store.findByTransactionId(TX_ID) } returns txn31
-    every { txn31Store.save(capture(sep31TxnCapture)) } returns null
-
-    val startDate = Instant.now()
-    val response = handler.handle(request)
-    val endDate = Instant.now()
-
-    verify(exactly = 0) { txn24Store.save(any()) }
-
-    val expectedSep31Txn = JdbcSep31Transaction()
-    expectedSep31Txn.status = COMPLETED.toString()
-    expectedSep31Txn.updatedAt = sep31TxnCapture.captured.updatedAt
-    expectedSep31Txn.externalTransactionId = EXTERNAL_TX_ID
-    expectedSep31Txn.transferReceivedAt = sep31TxnCapture.captured.transferReceivedAt
-    expectedSep31Txn.completedAt = sep31TxnCapture.captured.completedAt
-
-    JSONAssert.assertEquals(
-      gson.toJson(expectedSep31Txn),
-      gson.toJson(sep31TxnCapture.captured),
-      JSONCompareMode.STRICT
-    )
-
-    val expectedResponse = GetTransactionResponse()
-    expectedResponse.sep = SEP_31
-    expectedResponse.kind = RECEIVE
-    expectedResponse.status = COMPLETED
-    expectedResponse.externalTransactionId = EXTERNAL_TX_ID
-    expectedResponse.transferReceivedAt = sep31TxnCapture.captured.transferReceivedAt
-    expectedResponse.updatedAt = sep31TxnCapture.captured.updatedAt
-    expectedResponse.completedAt = sep31TxnCapture.captured.completedAt
-    expectedResponse.amountIn = Amount()
-    expectedResponse.amountOut = Amount()
-    expectedResponse.amountFee = Amount()
-    expectedResponse.amountExpected = Amount()
-    expectedResponse.customers = Customers(StellarId(), StellarId())
-
-    JSONAssert.assertEquals(
-      gson.toJson(expectedResponse),
-      gson.toJson(response),
-      JSONCompareMode.STRICT
-    )
-
-    assertTrue(sep31TxnCapture.captured.updatedAt >= startDate)
-    assertTrue(sep31TxnCapture.captured.updatedAt <= endDate)
-    assertTrue(sep31TxnCapture.captured.transferReceivedAt >= startDate)
-    assertTrue(sep31TxnCapture.captured.transferReceivedAt <= endDate)
   }
 
   @Test

@@ -1,6 +1,7 @@
 package org.stellar.anchor.platform.action;
 
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT;
+import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24;
 import static org.stellar.anchor.api.rpc.action.ActionMethod.NOTIFY_OFFCHAIN_FUNDS_SENT;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.COMPLETED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
@@ -20,7 +21,6 @@ import org.stellar.anchor.api.rpc.action.NotifyOffchainFundsSentRequest;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
-import org.stellar.anchor.platform.data.JdbcSep31Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.platform.validator.RequestValidator;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
@@ -106,25 +106,15 @@ public class NotifyOffchainFundsSentHandler extends ActionHandler<NotifyOffchain
       JdbcSepTransaction txn, NotifyOffchainFundsSentRequest request) {
     if (request.getExternalTransactionId() != null) {
       txn.setExternalTransactionId(request.getExternalTransactionId());
-      switch (Sep.from(txn.getProtocol())) {
-        case SEP_24:
-          JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
-          if (DEPOSIT == Kind.from(txn24.getKind())) {
-            if (request.getFundsSentAt() != null) {
-              txn24.setTransferReceivedAt(request.getFundsSentAt());
-            } else {
-              txn24.setTransferReceivedAt(Instant.now());
-            }
-          }
-          break;
-        case SEP_31:
-          JdbcSep31Transaction txn31 = (JdbcSep31Transaction) txn;
+      if (SEP_24 == Sep.from(txn.getProtocol())) {
+        JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
+        if (DEPOSIT == Kind.from(txn24.getKind())) {
           if (request.getFundsSentAt() != null) {
-            txn31.setTransferReceivedAt(request.getFundsSentAt());
+            txn24.setTransferReceivedAt(request.getFundsSentAt());
           } else {
-            txn31.setTransferReceivedAt(Instant.now());
+            txn24.setTransferReceivedAt(Instant.now());
           }
-          break;
+        }
       }
     }
   }
