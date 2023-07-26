@@ -13,15 +13,21 @@ import org.skyscreamer.jsonassert.JSONCompareMode
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException
 import org.stellar.anchor.api.platform.GetTransactionResponse
+import org.stellar.anchor.api.platform.PlatformTransactionData
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT
 import org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24
+import org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_31
 import org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_38
 import org.stellar.anchor.api.rpc.action.NotifyTransactionRecoveryRequest
 import org.stellar.anchor.api.sep.SepTransactionStatus.ERROR
 import org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR
+import org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_RECEIVER
 import org.stellar.anchor.api.shared.Amount
+import org.stellar.anchor.api.shared.Customers
+import org.stellar.anchor.api.shared.StellarId
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
+import org.stellar.anchor.platform.data.JdbcSep31Transaction
 import org.stellar.anchor.platform.validator.RequestValidator
 import org.stellar.anchor.sep24.Sep24TransactionStore
 import org.stellar.anchor.sep31.Sep31TransactionStore
@@ -33,6 +39,7 @@ class NotifyTransactionRecoveryHandlerTest {
     private val gson = GsonUtils.getInstance()
     private const val TX_ID = "testId"
     private const val VALIDATION_ERROR_MESSAGE = "Invalid request"
+    private const val TX_MESSAGE = "testMessage"
   }
 
   @MockK(relaxed = true) private lateinit var txn24Store: Sep24TransactionStore
@@ -122,12 +129,13 @@ class NotifyTransactionRecoveryHandlerTest {
   }
 
   @Test
-  fun test_handle_ok() {
+  fun test_handle_sep24_ok() {
     val transferReceivedAt = Instant.now()
     val request = NotifyTransactionRecoveryRequest.builder().transactionId(TX_ID).build()
     val txn24 = JdbcSep24Transaction()
     txn24.status = ERROR.toString()
     txn24.kind = DEPOSIT.kind
+    txn24.message = TX_MESSAGE
     txn24.transferReceivedAt = transferReceivedAt
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
 
@@ -169,5 +177,58 @@ class NotifyTransactionRecoveryHandlerTest {
 
     assertTrue(sep24TxnCapture.captured.updatedAt >= startDate)
     assertTrue(sep24TxnCapture.captured.updatedAt <= endDate)
+  }
+
+  @Test
+  fun test_handle_sep31_ok() {
+    val transferReceivedAt = Instant.now()
+    val request = NotifyTransactionRecoveryRequest.builder().transactionId(TX_ID).build()
+    val txn31 = JdbcSep31Transaction()
+    txn31.status = ERROR.toString()
+    txn31.transferReceivedAt = transferReceivedAt
+    txn31.requiredInfoMessage = TX_MESSAGE
+    val sep31TxnCapture = slot<JdbcSep31Transaction>()
+
+    every { txn24Store.findByTransactionId(any()) } returns null
+    every { txn31Store.findByTransactionId(TX_ID) } returns txn31
+    every { txn31Store.save(capture(sep31TxnCapture)) } returns null
+
+    val startDate = Instant.now()
+    val response = handler.handle(request)
+    val endDate = Instant.now()
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+
+    val expectedSep31Txn = JdbcSep31Transaction()
+    expectedSep31Txn.status = PENDING_RECEIVER.toString()
+    expectedSep31Txn.updatedAt = sep31TxnCapture.captured.updatedAt
+    expectedSep31Txn.transferReceivedAt = transferReceivedAt
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedSep31Txn),
+      gson.toJson(sep31TxnCapture.captured),
+      JSONCompareMode.STRICT
+    )
+
+    val expectedResponse = GetTransactionResponse()
+    expectedResponse.sep = SEP_31
+    expectedResponse.kind = PlatformTransactionData.Kind.RECEIVE
+    expectedResponse.status = PENDING_RECEIVER
+    expectedResponse.amountIn = Amount(null, null)
+    expectedResponse.amountOut = Amount(null, null)
+    expectedResponse.amountExpected = Amount(null, null)
+    expectedResponse.amountFee = Amount(null, null)
+    expectedResponse.updatedAt = sep31TxnCapture.captured.updatedAt
+    expectedResponse.transferReceivedAt = transferReceivedAt
+    expectedResponse.customers = Customers(StellarId(null, null), StellarId(null, null))
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedResponse),
+      gson.toJson(response),
+      JSONCompareMode.STRICT
+    )
+
+    assertTrue(sep31TxnCapture.captured.updatedAt >= startDate)
+    assertTrue(sep31TxnCapture.captured.updatedAt <= endDate)
   }
 }

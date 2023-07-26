@@ -14,13 +14,18 @@ import org.stellar.anchor.api.exception.rpc.InvalidParamsException
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException
 import org.stellar.anchor.api.platform.GetTransactionResponse
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT
+import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.RECEIVE
 import org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24
+import org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_31
 import org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_38
 import org.stellar.anchor.api.rpc.action.NotifyTransactionErrorRequest
 import org.stellar.anchor.api.sep.SepTransactionStatus.*
 import org.stellar.anchor.api.shared.Amount
+import org.stellar.anchor.api.shared.Customers
+import org.stellar.anchor.api.shared.StellarId
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
+import org.stellar.anchor.platform.data.JdbcSep31Transaction
 import org.stellar.anchor.platform.validator.RequestValidator
 import org.stellar.anchor.sep24.Sep24TransactionStore
 import org.stellar.anchor.sep31.Sep31TransactionStore
@@ -132,7 +137,7 @@ class NotifyTransactionErrorHandlerTest {
   }
 
   @Test
-  fun test_handle_ok() {
+  fun test_handle_sep24_ok() {
     val request =
       NotifyTransactionErrorRequest.builder().transactionId(TX_ID).message(TX_MESSAGE).build()
     val txn24 = JdbcSep24Transaction()
@@ -178,5 +183,56 @@ class NotifyTransactionErrorHandlerTest {
 
     assertTrue(sep24TxnCapture.captured.updatedAt >= startDate)
     assertTrue(sep24TxnCapture.captured.updatedAt <= endDate)
+  }
+
+  @Test
+  fun test_handle_sep31_ok() {
+    val request =
+      NotifyTransactionErrorRequest.builder().transactionId(TX_ID).message(TX_MESSAGE).build()
+    val txn31 = JdbcSep31Transaction()
+    txn31.status = PENDING_ANCHOR.toString()
+    val sep31TxnCapture = slot<JdbcSep31Transaction>()
+
+    every { txn24Store.findByTransactionId(any()) } returns null
+    every { txn31Store.findByTransactionId(TX_ID) } returns txn31
+    every { txn31Store.save(capture(sep31TxnCapture)) } returns null
+
+    val startDate = Instant.now()
+    val response = handler.handle(request)
+    val endDate = Instant.now()
+
+    verify(exactly = 0) { txn24Store.save(any()) }
+
+    val expectedSep31Txn = JdbcSep31Transaction()
+    expectedSep31Txn.status = ERROR.toString()
+    expectedSep31Txn.updatedAt = sep31TxnCapture.captured.updatedAt
+    expectedSep31Txn.requiredInfoMessage = TX_MESSAGE
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedSep31Txn),
+      gson.toJson(sep31TxnCapture.captured),
+      JSONCompareMode.STRICT
+    )
+
+    val expectedResponse = GetTransactionResponse()
+    expectedResponse.sep = SEP_31
+    expectedResponse.kind = RECEIVE
+    expectedResponse.status = ERROR
+    expectedResponse.amountIn = Amount(null, null)
+    expectedResponse.amountOut = Amount(null, null)
+    expectedResponse.amountExpected = Amount(null, null)
+    expectedResponse.amountFee = Amount(null, null)
+    expectedResponse.updatedAt = sep31TxnCapture.captured.updatedAt
+    expectedResponse.message = TX_MESSAGE
+    expectedResponse.customers = Customers(StellarId(null, null), StellarId(null, null))
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedResponse),
+      gson.toJson(response),
+      JSONCompareMode.STRICT
+    )
+
+    assertTrue(sep31TxnCapture.captured.updatedAt >= startDate)
+    assertTrue(sep31TxnCapture.captured.updatedAt <= endDate)
   }
 }
