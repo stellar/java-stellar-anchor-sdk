@@ -5,9 +5,11 @@ import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOS
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24;
 import static org.stellar.anchor.api.rpc.action.ActionMethod.NOTIFY_TRUST_SET;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
+import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_STELLAR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_TRUST;
 
 import java.util.Set;
+import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException;
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException;
@@ -17,7 +19,8 @@ import org.stellar.anchor.api.rpc.action.ActionMethod;
 import org.stellar.anchor.api.rpc.action.NotifyTrustSetRequest;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
-import org.stellar.anchor.config.CustodyConfig;
+import org.stellar.anchor.custody.CustodyService;
+import org.stellar.anchor.platform.config.PropertyCustodyConfig;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.platform.validator.RequestValidator;
@@ -26,27 +29,25 @@ import org.stellar.anchor.sep31.Sep31TransactionStore;
 
 public class NotifyTrustSetHandler extends ActionHandler<NotifyTrustSetRequest> {
 
-  private final CustodyConfig custodyConfig;
+  private final PropertyCustodyConfig custodyConfig;
+  private final CustodyService custodyService;
 
   public NotifyTrustSetHandler(
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
       AssetService assetService,
-      CustodyConfig custodyConfig) {
+      PropertyCustodyConfig custodyConfig,
+      CustodyService custodyService) {
     super(txn24Store, txn31Store, requestValidator, assetService, NotifyTrustSetRequest.class);
     this.custodyConfig = custodyConfig;
+    this.custodyService = custodyService;
   }
 
   @Override
   protected void validate(JdbcSepTransaction txn, NotifyTrustSetRequest request)
       throws InvalidRequestException, InvalidParamsException, BadRequestException {
     super.validate(txn, request);
-
-    if (custodyConfig.isCustodyIntegrationEnabled()) {
-      throw new InvalidRequestException(
-          String.format("Action[%s] requires disabled custody integration", getActionType()));
-    }
   }
 
   @Override
@@ -57,7 +58,11 @@ public class NotifyTrustSetHandler extends ActionHandler<NotifyTrustSetRequest> 
   @Override
   protected SepTransactionStatus getNextStatus(
       JdbcSepTransaction txn, NotifyTrustSetRequest request) {
-    return PENDING_ANCHOR;
+    if (!custodyConfig.isCustodyIntegrationEnabled() || !request.isSuccess()) {
+      return PENDING_ANCHOR;
+    } else {
+      return PENDING_STELLAR;
+    }
   }
 
   @Override
@@ -72,6 +77,10 @@ public class NotifyTrustSetHandler extends ActionHandler<NotifyTrustSetRequest> 
   }
 
   @Override
-  protected void updateTransactionWithAction(
-      JdbcSepTransaction txn, NotifyTrustSetRequest request) {}
+  protected void updateTransactionWithAction(JdbcSepTransaction txn, NotifyTrustSetRequest request)
+      throws AnchorException {
+    if (custodyConfig.isCustodyIntegrationEnabled() && request.isSuccess()) {
+      custodyService.createTransactionPayment(txn.getId(), null);
+    }
+  }
 }

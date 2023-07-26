@@ -27,6 +27,7 @@ import org.stellar.anchor.platform.action.NotifyTrustSetHandler;
 import org.stellar.anchor.platform.action.RequestOffchainFundsHandler;
 import org.stellar.anchor.platform.action.RequestOnchainFundsHandler;
 import org.stellar.anchor.platform.action.RequestTrustHandler;
+import org.stellar.anchor.platform.config.PropertyCustodyConfig;
 import org.stellar.anchor.platform.data.JdbcTransactionPendingTrustRepo;
 import org.stellar.anchor.platform.service.ActionService;
 import org.stellar.anchor.platform.validator.RequestValidator;
@@ -214,9 +215,10 @@ public class ActionBeans {
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
       AssetService assetService,
-      CustodyConfig custodyConfig) {
+      PropertyCustodyConfig custodyConfig,
+      CustodyService custodyService) {
     return new NotifyTrustSetHandler(
-        txn24Store, txn31Store, requestValidator, assetService, custodyConfig);
+        txn24Store, txn31Store, requestValidator, assetService, custodyConfig, custodyService);
   }
 
   @Bean
