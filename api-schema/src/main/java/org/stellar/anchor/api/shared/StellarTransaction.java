@@ -1,5 +1,6 @@
 package org.stellar.anchor.api.shared;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.SerializedName;
 import java.time.Instant;
 import java.util.ArrayList;
@@ -18,9 +19,11 @@ public class StellarTransaction {
   String id;
   String memo;
 
+  @JsonProperty("memo_type")
   @SerializedName("memo_type")
   String memoType;
 
+  @JsonProperty("created_at")
   @SerializedName("created_at")
   Instant createdAt;
 
