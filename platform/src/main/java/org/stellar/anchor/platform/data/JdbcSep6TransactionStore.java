@@ -7,6 +7,8 @@ import java.util.stream.Collectors;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.exception.SepValidationException;
 import org.stellar.anchor.api.sep.sep6.GetTransactionsRequest;
+import org.stellar.anchor.api.shared.RefundPayment;
+import org.stellar.anchor.api.shared.Refunds;
 import org.stellar.anchor.sep6.*;
 import org.stellar.anchor.util.DateUtil;
 import org.stellar.anchor.util.TransactionsParams;
@@ -24,13 +26,13 @@ public class JdbcSep6TransactionStore implements Sep6TransactionStore {
   }
 
   @Override
-  public Sep6Refunds newRefunds() {
-    return new JdbcSep6Refunds();
+  public Refunds newRefunds() {
+    return new Refunds();
   }
 
   @Override
-  public Sep6RefundPayment newRefundPayment() {
-    return new JdbcSep6RefundPayment();
+  public RefundPayment newRefundPayment() {
+    return new RefundPayment();
   }
 
   @Override

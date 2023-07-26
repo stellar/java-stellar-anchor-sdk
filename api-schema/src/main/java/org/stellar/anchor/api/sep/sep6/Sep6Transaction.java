@@ -3,10 +3,11 @@ package org.stellar.anchor.api.sep.sep6;
 import com.google.gson.annotations.SerializedName;
 import lombok.Builder;
 import lombok.Data;
+import org.stellar.anchor.api.shared.Refunds;
 
 @Data
 @Builder
-public class Transaction {
+public class Sep6Transaction {
   String id;
 
   String kind;

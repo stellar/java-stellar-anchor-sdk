@@ -8,6 +8,8 @@ import org.stellar.anchor.api.exception.*;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.sep6.*;
 import org.stellar.anchor.api.sep.sep6.InfoResponse.*;
+import org.stellar.anchor.api.shared.RefundPayment;
+import org.stellar.anchor.api.shared.Refunds;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.auth.Sep10Jwt;
 import org.stellar.anchor.config.Sep6Config;
@@ -51,7 +53,7 @@ public class Sep6Service {
     // Query the transaction store
     List<Sep6Transaction> transactions =
         txnStore.findTransactions(token.getAccount(), token.getAccountMemo(), request);
-    List<Transaction> responses =
+    List<org.stellar.anchor.api.sep.sep6.Sep6Transaction> responses =
         transactions.stream().map(this::fromTxn).collect(Collectors.toList());
 
     return new GetTransactionsResponse(responses);
@@ -94,11 +96,11 @@ public class Sep6Service {
     return new GetTransactionResponse(fromTxn(txn));
   }
 
-  private Transaction fromTxn(Sep6Transaction txn) {
+  private org.stellar.anchor.api.sep.sep6.Sep6Transaction fromTxn(Sep6Transaction txn) {
     Refunds refunds = null;
     if (txn.getRefunds() != null && txn.getRefunds().getPayments() != null) {
       List<RefundPayment> payments = new ArrayList<>();
-      for (Sep6RefundPayment payment : txn.getRefunds().getPayments()) {
+      for (RefundPayment payment : txn.getRefunds().getPayments()) {
         payments.add(
             RefundPayment.builder()
                 .id(payment.getId())
@@ -111,11 +113,11 @@ public class Sep6Service {
           Refunds.builder()
               .amountRefunded(txn.getRefunds().getAmountRefunded())
               .amountFee(txn.getRefunds().getAmountFee())
-              .payments(payments)
+              .payments(payments.toArray(new RefundPayment[0]))
               .build();
     }
-    Transaction.TransactionBuilder builder =
-        Transaction.builder()
+    org.stellar.anchor.api.sep.sep6.Sep6Transaction.Sep6TransactionBuilder builder =
+        org.stellar.anchor.api.sep.sep6.Sep6Transaction.builder()
             .id(txn.getId())
             .kind(txn.getKind())
             .status(txn.getStatus())
@@ -140,7 +142,7 @@ public class Sep6Service {
             .requiredInfoMessage(txn.getRequiredInfoMessage())
             .requiredInfoUpdates(txn.getRequiredInfoUpdates());
 
-    if (Sep6Transaction.Kind.DEPOSIT.toString().equals(txn.getKind())) {
+    if (org.stellar.anchor.sep6.Sep6Transaction.Kind.DEPOSIT.toString().equals(txn.getKind())) {
       return builder.depositMemo(txn.getMemo()).depositMemoType(txn.getMemoType()).build();
     } else {
       throw new NotImplementedException(String.format("kind %s not implemented", txn.getKind()));

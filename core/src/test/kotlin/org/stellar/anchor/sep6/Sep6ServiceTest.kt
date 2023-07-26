@@ -1,4 +1,4 @@
-package org.stellar.anchor
+package org.stellar.anchor.sep6
 
 import com.google.gson.Gson
 import io.mockk.*
@@ -12,21 +12,19 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.stellar.anchor.TestConstants.Companion.TEST_ACCOUNT
 import org.stellar.anchor.TestConstants.Companion.TEST_ASSET
+import org.stellar.anchor.TestHelper
 import org.stellar.anchor.api.exception.NotFoundException
 import org.stellar.anchor.api.exception.SepNotAuthorizedException
 import org.stellar.anchor.api.exception.SepValidationException
 import org.stellar.anchor.api.sep.sep6.GetTransactionRequest
 import org.stellar.anchor.api.sep.sep6.GetTransactionsRequest
 import org.stellar.anchor.api.sep.sep6.InfoResponse
+import org.stellar.anchor.api.shared.Amount
+import org.stellar.anchor.api.shared.RefundPayment
+import org.stellar.anchor.api.shared.Refunds
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.config.Sep6Config
-import org.stellar.anchor.sep6.PojoSep6RefundPayment
-import org.stellar.anchor.sep6.PojoSep6Refunds
-import org.stellar.anchor.sep6.PojoSep6Transaction
-import org.stellar.anchor.sep6.Sep6Service
-import org.stellar.anchor.sep6.Sep6Transaction
-import org.stellar.anchor.sep6.Sep6TransactionStore
 import org.stellar.anchor.util.GsonUtils
 
 class Sep6ServiceTest {
@@ -333,16 +331,16 @@ class Sep6ServiceTest {
   ): Sep6Transaction {
     val txn = PojoSep6Transaction()
 
-    val payment = PojoSep6RefundPayment()
+    val payment = RefundPayment()
     payment.id = "refund-payment-id"
-    payment.idType = "refund-payment-id-type"
-    payment.amount = "100"
-    payment.fee = "0"
+    payment.idType = RefundPayment.IdType.EXTERNAL
+    payment.amount = Amount.create("100", "USD")
+    payment.fee = Amount.create("0", "USD")
 
-    val refunds = PojoSep6Refunds()
-    refunds.amountRefunded = "0"
-    refunds.amountFee = "0"
-    refunds.payments = listOf(payment)
+    val refunds = Refunds()
+    refunds.amountRefunded = Amount.create("100", "USD")
+    refunds.amountFee = Amount.create("0", "USD")
+    refunds.payments = arrayOf(payment)
 
     txn.id = UUID.randomUUID().toString()
     txn.kind = "deposit"

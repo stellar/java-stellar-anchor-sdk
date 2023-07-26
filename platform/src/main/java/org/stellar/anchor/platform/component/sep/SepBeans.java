@@ -98,7 +98,8 @@ public class SepBeans {
     FilterRegistrationBean<Filter> registrationBean = new FilterRegistrationBean<>();
     registrationBean.setFilter(new Sep10JwtFilter(jwtService));
     registrationBean.addUrlPatterns("/sep6/transaction");
-    registrationBean.addUrlPatterns("/sep6/transactions");
+    registrationBean.addUrlPatterns("/sep6/transactions*");
+    registrationBean.addUrlPatterns("/sep6/transactions/*");
     registrationBean.addUrlPatterns("/sep12/*");
     registrationBean.addUrlPatterns("/sep24/transaction");
     registrationBean.addUrlPatterns("/sep24/transactions*");

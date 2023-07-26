@@ -3,6 +3,7 @@ package org.stellar.anchor.sep6;
 import java.time.Instant;
 import java.util.List;
 import lombok.Data;
+import org.stellar.anchor.api.shared.Refunds;
 import org.stellar.anchor.api.shared.StellarTransaction;
 
 @Data
@@ -38,7 +39,7 @@ public class PojoSep6Transaction implements Sep6Transaction {
   String memoType;
   String quoteId;
   String message;
-  Sep6Refunds refunds;
+  Refunds refunds;
   String refundMemo;
   String refundMemoType;
   String requiredInfoMessage;

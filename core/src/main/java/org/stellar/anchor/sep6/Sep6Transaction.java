@@ -2,6 +2,7 @@ package org.stellar.anchor.sep6;
 
 import java.time.Instant;
 import org.stellar.anchor.SepTransaction;
+import org.stellar.anchor.api.shared.Refunds;
 
 public interface Sep6Transaction extends SepTransaction {
 
@@ -287,9 +288,9 @@ public interface Sep6Transaction extends SepTransaction {
    *
    * @return the refunds.
    */
-  Sep6Refunds getRefunds();
+  Refunds getRefunds();
 
-  void setRefunds(Sep6Refunds refunds);
+  void setRefunds(Refunds refunds);
 
   /**
    * The memo the anchor must use when sending refund payments back to the user. If not specified,

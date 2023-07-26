@@ -14,5 +14,5 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class GetTransactionsResponse {
-  List<Transaction> transactions;
+  List<Sep6Transaction> transactions;
 }

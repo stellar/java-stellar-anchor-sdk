@@ -1,6 +1,7 @@
 package org.stellar.anchor.sep6;
 
 import java.time.Instant;
+import org.stellar.anchor.api.shared.Refunds;
 
 public class Sep6TransactionBuilder {
   final Sep6Transaction txn;
@@ -149,7 +150,7 @@ public class Sep6TransactionBuilder {
     return this;
   }
 
-  public Sep6TransactionBuilder refunds(Sep6Refunds refunds) {
+  public Sep6TransactionBuilder refunds(Refunds refunds) {
     txn.setRefunds(refunds);
     return this;
   }

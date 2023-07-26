@@ -3,14 +3,16 @@ package org.stellar.anchor.sep6;
 import java.util.List;
 import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.sep.sep6.GetTransactionsRequest;
+import org.stellar.anchor.api.shared.RefundPayment;
+import org.stellar.anchor.api.shared.Refunds;
 import org.stellar.anchor.util.TransactionsParams;
 
 public interface Sep6TransactionStore {
   Sep6Transaction newInstance();
 
-  Sep6Refunds newRefunds();
+  Refunds newRefunds();
 
-  Sep6RefundPayment newRefundPayment();
+  RefundPayment newRefundPayment();
 
   Sep6Transaction findByTransactionId(String transactionId) throws SepException;
 

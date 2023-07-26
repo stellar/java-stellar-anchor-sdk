@@ -9,7 +9,7 @@ import lombok.Setter;
 import org.hibernate.annotations.Type;
 import org.hibernate.annotations.TypeDef;
 import org.springframework.beans.BeanUtils;
-import org.stellar.anchor.sep6.Sep6Refunds;
+import org.stellar.anchor.api.shared.Refunds;
 import org.stellar.anchor.sep6.Sep6Transaction;
 
 @Getter
@@ -93,17 +93,17 @@ public class JdbcSep6Transaction extends JdbcSepTransaction implements Sep6Trans
 
   @Column(columnDefinition = "json")
   @Type(type = "json")
-  JdbcSep6Refunds refunds;
+  Refunds refunds;
 
   @Override
-  public Sep6Refunds getRefunds() {
+  public Refunds getRefunds() {
     return refunds;
   }
 
   @Override
-  public void setRefunds(Sep6Refunds refunds) {
+  public void setRefunds(Refunds refunds) {
     if (refunds != null) {
-      this.refunds = new JdbcSep6Refunds();
+      this.refunds = new Refunds();
       BeanUtils.copyProperties(refunds, this.refunds);
     }
   }
