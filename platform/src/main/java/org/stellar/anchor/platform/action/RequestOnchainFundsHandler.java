@@ -73,9 +73,24 @@ public class RequestOnchainFundsHandler extends ActionHandler<RequestOnchainFund
           "All or none of the amount_in, amount_out, and amount_fee should be set");
     }
 
-    AssetValidationUtils.validateAsset("amount_in", request.getAmountIn(), assetService);
-    AssetValidationUtils.validateAsset("amount_out", request.getAmountOut(), assetService);
-    AssetValidationUtils.validateAsset("amount_fee", request.getAmountFee(), true, assetService);
+    if (request.getAmountIn() != null) {
+      if (!AssetValidationUtils.isStellarAsset(request.getAmountIn().getAsset())) {
+        throw new InvalidParamsException("amount_in should be stellar asset");
+      }
+      AssetValidationUtils.validateAsset("amount_in", request.getAmountIn(), assetService);
+    }
+    if (request.getAmountOut() != null) {
+      if (AssetValidationUtils.isStellarAsset(request.getAmountOut().getAsset())) {
+        throw new InvalidParamsException("amount_out should be non-stellar asset");
+      }
+      AssetValidationUtils.validateAsset("amount_out", request.getAmountOut(), assetService);
+    }
+    if (request.getAmountFee() != null) {
+      if (!AssetValidationUtils.isStellarAsset(request.getAmountFee().getAsset())) {
+        throw new InvalidParamsException("amount_fee should be stellar asset");
+      }
+      AssetValidationUtils.validateAsset("amount_fee", request.getAmountFee(), true, assetService);
+    }
     if (request.getAmountExpected() != null) {
       AssetValidationUtils.validateAsset(
           "amount_expected",
