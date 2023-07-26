@@ -51,12 +51,12 @@ public class NotifyInteractiveFlowCompletedHandler
     switch (Kind.from(txn24.getKind())) {
       case DEPOSIT:
         if (AssetValidationUtils.isStellarAsset(request.getAmountIn().getAsset())) {
-          throw new InvalidParamsException("amount_in should be non-stellar asset");
+          throw new InvalidParamsException("amount_in.asset should be non-stellar asset");
         }
         break;
       case WITHDRAWAL:
         if (!AssetValidationUtils.isStellarAsset(request.getAmountIn().getAsset())) {
-          throw new InvalidParamsException("amount_in should be stellar asset");
+          throw new InvalidParamsException("amount_in.asset should be stellar asset");
         }
         break;
     }
@@ -65,12 +65,12 @@ public class NotifyInteractiveFlowCompletedHandler
     switch (Kind.from(txn24.getKind())) {
       case DEPOSIT:
         if (!AssetValidationUtils.isStellarAsset(request.getAmountOut().getAsset())) {
-          throw new InvalidParamsException("amount_out should be stellar asset");
+          throw new InvalidParamsException("amount_out.asset should be stellar asset");
         }
         break;
       case WITHDRAWAL:
         if (AssetValidationUtils.isStellarAsset(request.getAmountOut().getAsset())) {
-          throw new InvalidParamsException("amount_out should be non-stellar asset");
+          throw new InvalidParamsException("amount_out.asset should be non-stellar asset");
         }
         break;
     }
@@ -79,12 +79,12 @@ public class NotifyInteractiveFlowCompletedHandler
     switch (Kind.from(txn24.getKind())) {
       case DEPOSIT:
         if (AssetValidationUtils.isStellarAsset(request.getAmountFee().getAsset())) {
-          throw new InvalidParamsException("amount_fee should be non-stellar asset");
+          throw new InvalidParamsException("amount_fee.asset should be non-stellar asset");
         }
         break;
       case WITHDRAWAL:
         if (!AssetValidationUtils.isStellarAsset(request.getAmountFee().getAsset())) {
-          throw new InvalidParamsException("amount_fee should be stellar asset");
+          throw new InvalidParamsException("amount_fee.asset should be stellar asset");
         }
         break;
     }

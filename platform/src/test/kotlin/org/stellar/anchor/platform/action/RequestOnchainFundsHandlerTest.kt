@@ -838,16 +838,16 @@ class RequestOnchainFundsHandlerTest {
 
     request.amountIn.asset = FIAT_USD
     var ex = assertThrows<InvalidParamsException> { handler.handle(request) }
-    assertEquals("amount_in should be stellar asset", ex.message)
+    assertEquals("amount_in.asset should be stellar asset", ex.message)
     request.amountIn.asset = STELLAR_USDC
 
     request.amountOut.asset = STELLAR_USDC
     ex = assertThrows { handler.handle(request) }
-    assertEquals("amount_out should be non-stellar asset", ex.message)
+    assertEquals("amount_out.asset should be non-stellar asset", ex.message)
     request.amountOut.asset = FIAT_USD
 
     request.amountFee.asset = FIAT_USD
     ex = assertThrows { handler.handle(request) }
-    assertEquals("amount_fee should be stellar asset", ex.message)
+    assertEquals("amount_fee.asset should be stellar asset", ex.message)
   }
 }
