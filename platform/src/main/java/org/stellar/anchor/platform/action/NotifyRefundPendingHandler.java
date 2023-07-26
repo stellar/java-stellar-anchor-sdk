@@ -65,6 +65,15 @@ public class NotifyRefundPendingHandler extends ActionHandler<NotifyRefundPendin
             .build(),
         true,
         assetService);
+
+    if (!txn.getAmountInAsset().equals(request.getRefund().getAmount().getAsset())) {
+      throw new InvalidParamsException(
+          "refund.amount.asset does not match transaction amount_fee_asset");
+    }
+    if (!txn.getAmountFeeAsset().equals(request.getRefund().getAmountFee().getAsset())) {
+      throw new InvalidParamsException(
+          "refund.amount_fee.asset does not match match transaction amount_fee_asset");
+    }
   }
 
   @Override

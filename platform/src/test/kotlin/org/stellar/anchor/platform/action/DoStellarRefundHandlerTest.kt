@@ -21,7 +21,7 @@ import org.stellar.anchor.api.platform.GetTransactionResponse
 import org.stellar.anchor.api.platform.PlatformTransactionData
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL
-import org.stellar.anchor.api.rpc.action.AmountRequest
+import org.stellar.anchor.api.rpc.action.AmountAssetRequest
 import org.stellar.anchor.api.rpc.action.DoStellarRefundRequest
 import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.api.sep.SepTransactionStatus.INCOMPLETE
@@ -152,7 +152,7 @@ class DoStellarRefundHandlerTest {
     txn24.status = PENDING_ANCHOR.toString()
     txn24.requestAssetCode = FIAT_USD_CODE
     txn24.amountOutAsset = STELLAR_USDC
-    txn24.amountFeeAsset = STELLAR_USDC
+    txn24.amountFeeAsset = FIAT_USD
     txn24.transferReceivedAt = Instant.now()
     txn24.kind = WITHDRAWAL.kind
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
@@ -172,8 +172,8 @@ class DoStellarRefundHandlerTest {
         .transactionId(TX_ID)
         .refund(
           DoStellarRefundRequest.Refund.builder()
-            .amount(AmountRequest("-1"))
-            .amountFee(AmountRequest("-0.1"))
+            .amount(AmountAssetRequest("1", STELLAR_USDC))
+            .amountFee(AmountAssetRequest("0.1", FIAT_USD))
             .build()
         )
         .build()
@@ -182,7 +182,7 @@ class DoStellarRefundHandlerTest {
     txn24.requestAssetCode = FIAT_USD_CODE
     txn24.amountInAsset = STELLAR_USDC
     txn24.amountOutAsset = STELLAR_USDC
-    txn24.amountFeeAsset = STELLAR_USDC
+    txn24.amountFeeAsset = FIAT_USD
     txn24.transferReceivedAt = Instant.now()
     txn24.kind = WITHDRAWAL.kind
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
@@ -192,12 +192,54 @@ class DoStellarRefundHandlerTest {
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
     every { custodyConfig.isCustodyIntegrationEnabled } returns true
 
+    request.refund.amount.amount = "-1"
     var ex = assertThrows<BadRequestException> { handler.handle(request) }
     assertEquals("refund.amount.amount should be positive", ex.message)
-    request.refund.amount = AmountRequest("1")
+    request.refund.amount.amount = "1"
 
+    request.refund.amountFee.amount = "-0.1"
     ex = assertThrows { handler.handle(request) }
     assertEquals("refund.amountFee.amount should be non-negative", ex.message)
+  }
+
+  @Test
+  fun test_handle_invalidAssets() {
+    val request =
+      DoStellarRefundRequest.builder()
+        .transactionId(TX_ID)
+        .refund(
+          DoStellarRefundRequest.Refund.builder()
+            .amount(AmountAssetRequest("1", STELLAR_USDC))
+            .amountFee(AmountAssetRequest("0.1", FIAT_USD))
+            .build()
+        )
+        .build()
+    val txn24 = JdbcSep24Transaction()
+    txn24.status = PENDING_ANCHOR.toString()
+    txn24.requestAssetCode = FIAT_USD_CODE
+    txn24.amountInAsset = STELLAR_USDC
+    txn24.amountOutAsset = STELLAR_USDC
+    txn24.amountFeeAsset = FIAT_USD
+    txn24.transferReceivedAt = Instant.now()
+    txn24.kind = WITHDRAWAL.kind
+    val sep24TxnCapture = slot<JdbcSep24Transaction>()
+
+    every { txn24Store.findByTransactionId(TX_ID) } returns txn24
+    every { txn31Store.findByTransactionId(any()) } returns null
+    every { txn24Store.save(capture(sep24TxnCapture)) } returns null
+    every { custodyConfig.isCustodyIntegrationEnabled } returns true
+
+    request.refund.amount.asset = FIAT_USD
+    var ex = assertThrows<InvalidParamsException> { handler.handle(request) }
+    assertEquals("refund.amount.asset does not match transaction amount_fee_asset", ex.message)
+    request.refund.amount.asset = STELLAR_USDC
+
+    request.refund.amountFee.asset = STELLAR_USDC
+    ex = assertThrows { handler.handle(request) }
+    assertEquals(
+      "refund.amount_fee.asset does not match match transaction amount_fee_asset",
+      ex.message
+    )
   }
 
   @Test
@@ -208,8 +250,8 @@ class DoStellarRefundHandlerTest {
         .transactionId(TX_ID)
         .refund(
           DoStellarRefundRequest.Refund.builder()
-            .amount(AmountRequest("1"))
-            .amountFee(AmountRequest("0.1"))
+            .amount(AmountAssetRequest("1", STELLAR_USDC))
+            .amountFee(AmountAssetRequest("0.1", FIAT_USD))
             .build()
         )
         .build()
@@ -222,7 +264,7 @@ class DoStellarRefundHandlerTest {
     txn24.amountIn = "1"
     txn24.amountOutAsset = STELLAR_USDC
     txn24.amountOut = "1"
-    txn24.amountFeeAsset = STELLAR_USDC
+    txn24.amountFeeAsset = FIAT_USD
     txn24.amountFee = "0.1"
     txn24.refundMemo = "memo"
     txn24.refundMemoType = "text"
@@ -248,7 +290,7 @@ class DoStellarRefundHandlerTest {
     expectedSep24Txn.amountIn = "1"
     expectedSep24Txn.amountOutAsset = STELLAR_USDC
     expectedSep24Txn.amountOut = "1"
-    expectedSep24Txn.amountFeeAsset = STELLAR_USDC
+    expectedSep24Txn.amountFeeAsset = FIAT_USD
     expectedSep24Txn.amountFee = "0.1"
     expectedSep24Txn.refundMemo = "memo"
     expectedSep24Txn.refundMemoType = "text"
@@ -267,7 +309,7 @@ class DoStellarRefundHandlerTest {
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
     expectedResponse.amountIn = Amount("1", STELLAR_USDC)
     expectedResponse.amountOut = Amount("1", STELLAR_USDC)
-    expectedResponse.amountFee = Amount("0.1", STELLAR_USDC)
+    expectedResponse.amountFee = Amount("0.1", FIAT_USD)
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.transferReceivedAt = transferReceivedAt
 
