@@ -231,7 +231,7 @@ class DoStellarRefundHandlerTest {
 
     request.refund.amount.asset = FIAT_USD
     var ex = assertThrows<InvalidParamsException> { handler.handle(request) }
-    assertEquals("refund.amount.asset does not match transaction amount_fee_asset", ex.message)
+    assertEquals("refund.amount.asset does not match transaction amount_in_asset", ex.message)
     request.refund.amount.asset = STELLAR_USDC
 
     request.refund.amountFee.asset = STELLAR_USDC

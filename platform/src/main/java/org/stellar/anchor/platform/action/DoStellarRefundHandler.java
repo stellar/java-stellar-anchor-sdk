@@ -73,7 +73,7 @@ public class DoStellarRefundHandler extends ActionHandler<DoStellarRefundRequest
 
     if (!txn.getAmountInAsset().equals(request.getRefund().getAmount().getAsset())) {
       throw new InvalidParamsException(
-          "refund.amount.asset does not match transaction amount_fee_asset");
+          "refund.amount.asset does not match transaction amount_in_asset");
     }
     if (!txn.getAmountFeeAsset().equals(request.getRefund().getAmountFee().getAsset())) {
       throw new InvalidParamsException(
