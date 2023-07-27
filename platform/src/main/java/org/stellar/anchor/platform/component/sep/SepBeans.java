@@ -37,6 +37,7 @@ import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
 import org.stellar.anchor.sep38.Sep38Service;
 import org.stellar.anchor.sep6.Sep6Service;
+import org.stellar.anchor.sep6.Sep6TransactionStore;
 
 /** SEP configurations */
 @Configuration
@@ -96,6 +97,9 @@ public class SepBeans {
   public FilterRegistrationBean<Filter> sep10TokenFilter(JwtService jwtService) {
     FilterRegistrationBean<Filter> registrationBean = new FilterRegistrationBean<>();
     registrationBean.setFilter(new Sep10JwtFilter(jwtService));
+    registrationBean.addUrlPatterns("/sep6/transaction");
+    registrationBean.addUrlPatterns("/sep6/transactions*");
+    registrationBean.addUrlPatterns("/sep6/transactions/*");
     registrationBean.addUrlPatterns("/sep12/*");
     registrationBean.addUrlPatterns("/sep24/transaction");
     registrationBean.addUrlPatterns("/sep24/transactions*");
@@ -115,8 +119,9 @@ public class SepBeans {
 
   @Bean
   @ConditionalOnAllSepsEnabled(seps = {"sep6"})
-  Sep6Service sep6Service(Sep6Config sep6Config, AssetService assetService) {
-    return new Sep6Service(sep6Config, assetService);
+  Sep6Service sep6Service(
+      Sep6Config sep6Config, AssetService assetService, Sep6TransactionStore txnStore) {
+    return new Sep6Service(sep6Config, assetService, txnStore);
   }
 
   @Bean
