@@ -51,7 +51,7 @@ class PlatformApiTests(config: TestConfig, toml: TomlContent, jwt: String) {
         .params(requestOffchainFundsParams)
         .id(1)
         .build()
-    val response = platformApiClient.rpcAction(listOf(rpcRequest))
+    val response = platformApiClient.callRpcAction(listOf(rpcRequest))
     assertEquals(HttpStatus.SC_OK, response.code)
     JSONAssert.assertEquals(
       EXPECTED_RPC_RESPONSE.replace(TX_ID, txId).trimIndent(),
@@ -92,7 +92,7 @@ class PlatformApiTests(config: TestConfig, toml: TomlContent, jwt: String) {
         .jsonrpc(JSON_RPC_VERSION)
         .params(notifyOffchainFundsReceivedParams)
         .build()
-    val response = platformApiClient.rpcAction(listOf(rpcRequest1, rpcRequest2))
+    val response = platformApiClient.callRpcAction(listOf(rpcRequest1, rpcRequest2))
     assertEquals(HttpStatus.SC_OK, response.code)
 
     JSONAssert.assertEquals(
@@ -126,7 +126,7 @@ private const val REQUEST_OFFCHAIN_FUNDS =
     "message": "test message",
     "amount_in": {
         "amount": "1",
-        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+        "asset": "iso4217:USD"
     },
     "amount_out": {
         "amount": "0.9",
@@ -134,7 +134,7 @@ private const val REQUEST_OFFCHAIN_FUNDS =
     },
     "amount_fee": {
         "amount": "0.1",
-        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+        "asset": "iso4217:USD"
     },
     "amount_expected": {
         "amount": "1"
@@ -146,16 +146,13 @@ private const val NOTIFY_OFFCHAIN_FUNDS_RECEIVED =
     "transaction_id": "testTxId",
     "message": "test message",
     "amount_in": {
-        "amount": "1",
-        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+        "amount": "1"
     },
     "amount_out": {
-        "amount": "0.9",
-        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+        "amount": "0.9"
     },
     "amount_fee": {
-        "amount": "0.1",
-        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+        "amount": "0.1"
     },
     "external_transaction_id": "1"
   }"""
@@ -176,7 +173,7 @@ private const val EXPECTED_RPC_RESPONSE =
          },
          "amount_in":{
             "amount":"1",
-            "asset":"stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+            "asset":"iso4217:USD"
          },
          "amount_out":{
             "amount":"0.9",
@@ -184,7 +181,7 @@ private const val EXPECTED_RPC_RESPONSE =
          },
          "amount_fee":{
             "amount":"0.1",
-            "asset":"stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+            "asset":"iso4217:USD"
          },
          "started_at":"2023-07-20T08:57:05.380736Z",
          "updated_at":"2023-07-20T08:57:16.672110400Z",
@@ -212,7 +209,7 @@ private const val EXPECTED_RPC_BATCH_RESPONSE =
          },
          "amount_in":{
             "amount":"1",
-            "asset":"stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+            "asset":"iso4217:USD"
          },
          "amount_out":{
             "amount":"0.9",
@@ -220,7 +217,7 @@ private const val EXPECTED_RPC_BATCH_RESPONSE =
          },
          "amount_fee":{
             "amount":"0.1",
-            "asset":"stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+            "asset":"iso4217:USD"
          },
          "started_at":"2023-07-20T09:07:51.007629Z",
          "updated_at":"2023-07-20T09:07:59.425534900Z",
@@ -242,7 +239,7 @@ private const val EXPECTED_RPC_BATCH_RESPONSE =
          },
          "amount_in":{
             "amount":"1",
-            "asset":"stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+            "asset":"iso4217:USD"
          },
          "amount_out":{
             "amount":"0.9",
@@ -250,7 +247,7 @@ private const val EXPECTED_RPC_BATCH_RESPONSE =
          },
          "amount_fee":{
             "amount":"0.1",
-            "asset":"stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+            "asset":"iso4217:USD"
          },
          "started_at":"2023-07-20T09:07:51.007629Z",
          "updated_at":"2023-07-20T09:07:59.448888600Z",

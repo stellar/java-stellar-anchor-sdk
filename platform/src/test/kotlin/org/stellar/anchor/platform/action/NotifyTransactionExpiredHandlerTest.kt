@@ -114,6 +114,24 @@ class NotifyTransactionExpiredHandlerTest {
   }
 
   @Test
+  fun test_handle_set_expired_after_receiving_funds() {
+    val request =
+      NotifyTransactionExpiredRequest.builder().transactionId(TX_ID).message(TX_MESSAGE).build()
+    val txn24 = JdbcSep24Transaction()
+    txn24.status = PENDING_ANCHOR.toString()
+    txn24.transferReceivedAt = Instant.now()
+
+    every { txn24Store.findByTransactionId(TX_ID) } returns txn24
+    every { txn31Store.findByTransactionId(any()) } returns null
+
+    val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
+    assertEquals(
+      "Action[notify_transaction_expired] is not supported for status[pending_anchor], kind[null] and protocol[24]",
+      ex.message
+    )
+  }
+
+  @Test
   fun test_handle_invalidRequest() {
     val request = NotifyTransactionExpiredRequest.builder().transactionId(TX_ID).build()
     val txn24 = JdbcSep24Transaction()

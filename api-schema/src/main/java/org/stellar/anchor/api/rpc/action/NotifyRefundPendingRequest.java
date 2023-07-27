@@ -19,11 +19,12 @@ public class NotifyRefundPendingRequest extends RpcActionParamsRequest {
   @Data
   @Builder
   public static class Refund {
+
     @NotNull private String id;
-    @NotNull private AmountRequest amount;
+    @NotNull private AmountAssetRequest amount;
 
     @SerializedName("amount_fee")
     @NotNull
-    private AmountRequest amountFee;
+    private AmountAssetRequest amountFee;
   }
 }
