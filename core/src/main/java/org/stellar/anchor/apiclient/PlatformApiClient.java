@@ -1,9 +1,14 @@
 package org.stellar.anchor.apiclient;
 
+import static org.stellar.anchor.api.rpc.action.ActionMethod.NOTIFY_ONCHAIN_FUNDS_RECEIVED;
+import static org.stellar.anchor.api.rpc.action.ActionMethod.NOTIFY_ONCHAIN_FUNDS_SENT;
+import static org.stellar.anchor.api.rpc.action.ActionMethod.NOTIFY_TRANSACTION_ERROR;
+
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.function.Function;
 import javax.annotation.Nullable;
 import okhttp3.HttpUrl;
@@ -15,12 +20,20 @@ import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.api.platform.*;
 import org.stellar.anchor.api.rpc.RpcRequest;
+import org.stellar.anchor.api.rpc.action.ActionMethod;
+import org.stellar.anchor.api.rpc.action.AmountRequest;
+import org.stellar.anchor.api.rpc.action.NotifyOnchainFundsReceivedRequest;
+import org.stellar.anchor.api.rpc.action.NotifyOnchainFundsSentRequest;
+import org.stellar.anchor.api.rpc.action.NotifyTransactionErrorRequest;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.auth.AuthHelper;
 import org.stellar.anchor.util.OkHttpUtil;
 
 /** The client for the PlatformAPI endpoints. */
 public class PlatformApiClient extends BaseApiClient {
+
+  public static final String JSON_RPC_VERSION = "2.0";
+
   public PlatformApiClient(AuthHelper authHelper, String endpoint) {
     super(authHelper, endpoint);
   }
@@ -104,7 +117,51 @@ public class PlatformApiClient extends BaseApiClient {
     return gson.fromJson(handleResponse(response), PatchTransactionsResponse.class);
   }
 
-  public Response rpcAction(List<RpcRequest> rpcRequests) throws IOException, AnchorException {
+  public void notifyOnchainFundsSent(String txnId, String stellarTxnId, String message)
+      throws AnchorException, IOException {
+    NotifyOnchainFundsSentRequest request =
+        NotifyOnchainFundsSentRequest.builder()
+            .transactionId(txnId)
+            .stellarTransactionId(stellarTxnId)
+            .message(message)
+            .build();
+    sendRpcNotification(NOTIFY_ONCHAIN_FUNDS_SENT, request);
+  }
+
+  public void notifyOnchainFundsReceived(
+      String txnId, String stellarTxnId, String amountIn, String message)
+      throws AnchorException, IOException {
+    NotifyOnchainFundsReceivedRequest request =
+        NotifyOnchainFundsReceivedRequest.builder()
+            .transactionId(txnId)
+            .stellarTransactionId(stellarTxnId)
+            .message(message)
+            .amountIn(new AmountRequest(amountIn))
+            .build();
+    sendRpcNotification(NOTIFY_ONCHAIN_FUNDS_RECEIVED, request);
+  }
+
+  public void notifyTransactionError(String txnId, String message)
+      throws AnchorException, IOException {
+    NotifyTransactionErrorRequest request =
+        NotifyTransactionErrorRequest.builder().transactionId(txnId).message(message).build();
+    sendRpcNotification(NOTIFY_TRANSACTION_ERROR, request);
+  }
+
+  public void sendRpcNotification(ActionMethod method, Object requestParams)
+      throws IOException, AnchorException {
+    RpcRequest rpcRequest =
+        RpcRequest.builder()
+            .id(UUID.randomUUID().toString())
+            .method(method.toString())
+            .jsonrpc(JSON_RPC_VERSION)
+            .params(requestParams)
+            .build();
+
+    callRpcAction(List.of(rpcRequest));
+  }
+
+  public Response callRpcAction(List<RpcRequest> rpcRequests) throws IOException, AnchorException {
     HttpUrl url = HttpUrl.parse(endpoint);
     if (url == null)
       throw new InvalidConfigException(
