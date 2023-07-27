@@ -48,9 +48,11 @@ public class NotifyTransactionExpiredHandler
   @Override
   protected Set<SepTransactionStatus> getSupportedStatuses(JdbcSepTransaction txn) {
     if (SEP_24 == Sep.from(txn.getProtocol())) {
-      return Arrays.stream(SepTransactionStatus.values())
-          .filter(s -> !isErrorStatus(s) && !isFinalStatus(s))
-          .collect(toSet());
+      if (txn.getTransferReceivedAt() == null) {
+        return Arrays.stream(SepTransactionStatus.values())
+            .filter(s -> !isErrorStatus(s) && !isFinalStatus(s))
+            .collect(toSet());
+      }
     }
     return emptySet();
   }
