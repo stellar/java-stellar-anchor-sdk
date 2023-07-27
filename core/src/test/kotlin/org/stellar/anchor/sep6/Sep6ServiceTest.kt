@@ -10,6 +10,7 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
+import org.skyscreamer.jsonassert.JSONAssert
 import org.stellar.anchor.TestConstants.Companion.TEST_ACCOUNT
 import org.stellar.anchor.TestConstants.Companion.TEST_ASSET
 import org.stellar.anchor.TestHelper
@@ -124,6 +125,63 @@ class Sep6ServiceTest {
           "account_creation": false,
           "claimable_balances": false
         }
+      }
+    """
+      .trimIndent()
+
+  val transactionsJson =
+    """
+      {
+          "transactions": [
+              {
+                  "id": "2cb630d3-030b-4a0e-9d9d-f26b1df25d12",
+                  "kind": "deposit",
+                  "status": "complete",
+                  "status_eta": 5,
+                  "more_info_url": "https://example.com/more_info",
+                  "amount_in": "100",
+                  "amount_in_asset": "USD",
+                  "amount_out": "98",
+                  "amount_out_asset": "stellar:USDC:GABCD",
+                  "amount_fee": "2",
+                  "from": "GABCD",
+                  "to": "GABCD",
+                  "depositMemo": "some memo",
+                  "depositMemoType": "text",
+                  "started_at": "2023-08-01T16:53:20Z",
+                  "updated_at": "2023-08-01T16:53:20Z",
+                  "completed_at": "2023-08-01T16:53:20Z",
+                  "stellar_transaction_id": "stellar-id",
+                  "external_transaction_id": "external-id",
+                  "message": "some message",
+                  "refunds": {
+                      "amount_refunded": {
+                          "amount": "100",
+                          "asset": "USD"
+                      },
+                      "amount_fee": {
+                          "amount": "0",
+                          "asset": "USD"
+                      },
+                      "payments": [
+                          {
+                              "id": "refund-payment-id",
+                              "id_type": "external",
+                              "amount": {
+                                  "amount": "100",
+                                  "asset": "USD"
+                              },
+                              "fee": {
+                                  "amount": "0",
+                                  "asset": "USD"
+                              }
+                          }
+                      ]
+                  },
+                  "required_info_message": "some info message",
+                  "required_info_updates": "some info updates"
+              }
+          ]
       }
     """
       .trimIndent()
@@ -282,47 +340,7 @@ class Sep6ServiceTest {
 
     verify(exactly = 1) { txnStore.findTransactions(TEST_ACCOUNT, null, request) }
 
-    assert(response.transactions.size == 1)
-    assertEquals(depositTxn.id, response.transactions[0].id)
-    assertEquals(depositTxn.kind, response.transactions[0].kind)
-    assertEquals(depositTxn.status, response.transactions[0].status)
-    assertEquals(depositTxn.statusEta, response.transactions[0].statusEta)
-    assertEquals(depositTxn.moreInfoUrl, response.transactions[0].moreInfoUrl)
-    assertEquals(depositTxn.amountIn, response.transactions[0].amountIn)
-    assertEquals(depositTxn.amountInAsset, response.transactions[0].amountInAsset)
-    assertEquals(depositTxn.amountOut, response.transactions[0].amountOut)
-    assertEquals(depositTxn.amountOutAsset, response.transactions[0].amountOutAsset)
-    assertEquals(depositTxn.amountFee, response.transactions[0].amountFee)
-    assertEquals(depositTxn.amountFeeAsset, response.transactions[0].amountFeeAsset)
-    assertEquals(depositTxn.fromAccount, response.transactions[0].from)
-    assertEquals(depositTxn.toAccount, response.transactions[0].to)
-    assertEquals(depositTxn.memo, response.transactions[0].depositMemo)
-    assertEquals(depositTxn.memoType, response.transactions[0].depositMemoType)
-    assertEquals(depositTxn.startedAt.toString(), response.transactions[0].startedAt)
-    assertEquals(depositTxn.updatedAt.toString(), response.transactions[0].updatedAt)
-    assertEquals(depositTxn.completedAt.toString(), response.transactions[0].completedAt)
-    assertEquals(depositTxn.stellarTransactionId, response.transactions[0].stellarTransactionId)
-    assertEquals(depositTxn.externalTransactionId, response.transactions[0].externalTransactionId)
-    assertEquals(depositTxn.message, response.transactions[0].message)
-    assertEquals(depositTxn.requiredInfoMessage, response.transactions[0].requiredInfoMessage)
-    assertEquals(depositTxn.requiredInfoUpdates, response.transactions[0].requiredInfoUpdates)
-
-    assertEquals(depositTxn.refunds.amountFee, response.transactions[0].refunds.amountFee)
-    assertEquals(depositTxn.refunds.amountRefunded, response.transactions[0].refunds.amountRefunded)
-    assertEquals(depositTxn.refunds.payments.size, response.transactions[0].refunds.payments.size)
-    assertEquals(depositTxn.refunds.payments[0].id, response.transactions[0].refunds.payments[0].id)
-    assertEquals(
-      depositTxn.refunds.payments[0].idType,
-      response.transactions[0].refunds.payments[0].idType
-    )
-    assertEquals(
-      depositTxn.refunds.payments[0].amount,
-      response.transactions[0].refunds.payments[0].amount
-    )
-    assertEquals(
-      depositTxn.refunds.payments[0].fee,
-      response.transactions[0].refunds.payments[0].fee
-    )
+    JSONAssert.assertEquals(transactionsJson, gson.toJson(response), true)
   }
 
   private fun createDepositTxn(
@@ -342,7 +360,7 @@ class Sep6ServiceTest {
     refunds.amountFee = Amount.create("0", "USD")
     refunds.payments = arrayOf(payment)
 
-    txn.id = UUID.randomUUID().toString()
+    txn.id = "2cb630d3-030b-4a0e-9d9d-f26b1df25d12"
     txn.kind = "deposit"
     txn.status = "complete"
     txn.statusEta = 5
@@ -359,9 +377,9 @@ class Sep6ServiceTest {
     txn.toAccount = "GABCD"
     txn.memo = "some memo"
     txn.memoType = "text"
-    txn.startedAt = Instant.now()
-    txn.updatedAt = Instant.now()
-    txn.completedAt = Instant.now()
+    txn.startedAt = Instant.ofEpochMilli(1690908800000L)
+    txn.updatedAt = Instant.ofEpochMilli(1690908800000L)
+    txn.completedAt = Instant.ofEpochMilli(1690908800000L)
     txn.stellarTransactionId = "stellar-id"
     txn.externalTransactionId = "external-id"
     txn.message = "some message"
