@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform.custody;
 
+import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT;
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.RECEIVE;
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL;
 import static org.stellar.anchor.platform.data.CustodyTransactionStatus.CREATED;
@@ -14,6 +15,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.http.HttpStatus;
 import org.stellar.anchor.api.custody.CreateCustodyTransactionRequest;
 import org.stellar.anchor.api.custody.CreateTransactionPaymentResponse;
+import org.stellar.anchor.api.custody.CreateTransactionRefundRequest;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.FireblocksException;
 import org.stellar.anchor.api.exception.custody.CustodyBadRequestException;
@@ -78,7 +80,8 @@ public abstract class CustodyTransactionService {
    */
   public CreateTransactionPaymentResponse createPayment(String txnId, String requestBody)
       throws AnchorException {
-    JdbcCustodyTransaction txn = custodyTransactionRepo.findBySepTxId(txnId).orElse(null);
+    JdbcCustodyTransaction txn =
+        custodyTransactionRepo.findFirstBySepTxIdOrderByCreatedAtAsc(txnId).orElse(null);
     if (txn == null) {
       throw new CustodyNotFoundException(String.format("Transaction (id=%s) is not found", txnId));
     }
@@ -93,6 +96,52 @@ public abstract class CustodyTransactionService {
     }
 
     return response;
+  }
+
+  /**
+   * Create custody transaction refund. This method acts like a proxy. It forwards request to
+   * custody payment service, updates custody transaction and handles errors
+   *
+   * @param txnId custody/SEP transaction ID
+   * @param refundRequest {@link CreateTransactionRefundRequest} object
+   * @return external transaction payment ID
+   */
+  public CreateTransactionPaymentResponse createRefund(
+      String txnId, CreateTransactionRefundRequest refundRequest) throws AnchorException {
+    JdbcCustodyTransaction txn =
+        custodyTransactionRepo.findFirstBySepTxIdOrderByCreatedAtAsc(txnId).orElse(null);
+    if (txn == null) {
+      throw new CustodyNotFoundException(String.format("Transaction (id=%s) is not found", txnId));
+    }
+
+    JdbcCustodyTransaction refundTxn = createTransactionRefundRecord(txn, refundRequest);
+
+    CreateTransactionPaymentResponse response;
+    try {
+      response = custodyPaymentService.createTransactionRefund(refundTxn);
+      updateCustodyTransaction(refundTxn, response.getId(), SUBMITTED);
+    } catch (FireblocksException e) {
+      custodyTransactionRepo.deleteById(refundTxn.getId());
+      throw (getResponseException(e));
+    }
+
+    return response;
+  }
+
+  private JdbcCustodyTransaction createTransactionRefundRecord(
+      JdbcCustodyTransaction txn, CreateTransactionRefundRequest refundRequest)
+      throws CustodyBadRequestException {
+    return create(
+        CreateCustodyTransactionRequest.builder()
+            .id(txn.getSepTxId())
+            .memo(refundRequest.getMemo())
+            .memoType(refundRequest.getMemoType())
+            .protocol(txn.getProtocol())
+            .toAccount(txn.getFromAccount())
+            .amount(refundRequest.getAmount())
+            .amountAsset(txn.getAmountAsset())
+            .kind(DEPOSIT.getKind())
+            .build());
   }
 
   private void updateCustodyTransaction(

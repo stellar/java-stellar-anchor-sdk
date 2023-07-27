@@ -17,8 +17,8 @@ public enum ActionMethod {
   @SerializedName("notify_offchain_funds_received")
   NOTIFY_OFFCHAIN_FUNDS_RECEIVED("notify_offchain_funds_received"),
 
-  @SerializedName("notify_refund_initiated")
-  NOTIFY_REFUND_INITIATED("notify_refund_initiated"),
+  @SerializedName("notify_refund_pending")
+  NOTIFY_REFUND_PENDING("notify_refund_pending"),
 
   @SerializedName("notify_refund_sent")
   NOTIFY_REFUND_SENT("notify_refund_sent"),
@@ -40,6 +40,9 @@ public enum ActionMethod {
 
   @SerializedName("notify_offchain_funds_available")
   NOTIFY_OFFCHAIN_FUNDS_AVAILABLE("notify_offchain_funds_available"),
+
+  @SerializedName("notify_offchain_funds_pending")
+  NOTIFY_OFFCHAIN_FUNDS_PENDING("notify_offchain_funds_pending"),
 
   @SerializedName("notify_transaction_error")
   NOTIFY_TRANSACTION_ERROR("notify_transaction_error"),

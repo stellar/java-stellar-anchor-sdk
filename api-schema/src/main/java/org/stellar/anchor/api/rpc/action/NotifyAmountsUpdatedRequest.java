@@ -3,7 +3,6 @@ package org.stellar.anchor.api.rpc.action;
 import com.google.gson.annotations.SerializedName;
 import javax.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.experimental.SuperBuilder;
@@ -12,18 +11,13 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = false)
-public class NotifyRefundInitiatedRequest extends RpcActionParamsRequest {
+public class NotifyAmountsUpdatedRequest extends RpcActionParamsRequest {
 
-  @NotNull private Refund refund;
+  @SerializedName("amount_out")
+  @NotNull
+  private AmountRequest amountOut;
 
-  @Data
-  @Builder
-  public static class Refund {
-    @NotNull private String id;
-    @NotNull private AmountRequest amount;
-
-    @SerializedName("amount_fee")
-    @NotNull
-    private AmountRequest amountFee;
-  }
+  @SerializedName("amount_fee")
+  @NotNull
+  private AmountRequest amountFee;
 }

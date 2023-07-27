@@ -10,6 +10,7 @@ import java.util.Set;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException;
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException;
+import org.stellar.anchor.api.platform.PlatformTransactionData.Kind;
 import org.stellar.anchor.api.platform.PlatformTransactionData.Sep;
 import org.stellar.anchor.api.rpc.action.ActionMethod;
 import org.stellar.anchor.api.rpc.action.AmountAssetRequest;
@@ -44,9 +45,50 @@ public class NotifyInteractiveFlowCompletedHandler
       throws BadRequestException, InvalidParamsException, InvalidRequestException {
     super.validate(txn, request);
 
+    JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
+
     AssetValidationUtils.validateAsset("amount_in", request.getAmountIn(), assetService);
+    switch (Kind.from(txn24.getKind())) {
+      case DEPOSIT:
+        if (AssetValidationUtils.isStellarAsset(request.getAmountIn().getAsset())) {
+          throw new InvalidParamsException("amount_in.asset should be non-stellar asset");
+        }
+        break;
+      case WITHDRAWAL:
+        if (!AssetValidationUtils.isStellarAsset(request.getAmountIn().getAsset())) {
+          throw new InvalidParamsException("amount_in.asset should be stellar asset");
+        }
+        break;
+    }
+
     AssetValidationUtils.validateAsset("amount_out", request.getAmountOut(), assetService);
+    switch (Kind.from(txn24.getKind())) {
+      case DEPOSIT:
+        if (!AssetValidationUtils.isStellarAsset(request.getAmountOut().getAsset())) {
+          throw new InvalidParamsException("amount_out.asset should be stellar asset");
+        }
+        break;
+      case WITHDRAWAL:
+        if (AssetValidationUtils.isStellarAsset(request.getAmountOut().getAsset())) {
+          throw new InvalidParamsException("amount_out.asset should be non-stellar asset");
+        }
+        break;
+    }
+
     AssetValidationUtils.validateAsset("amount_fee", request.getAmountFee(), true, assetService);
+    switch (Kind.from(txn24.getKind())) {
+      case DEPOSIT:
+        if (AssetValidationUtils.isStellarAsset(request.getAmountFee().getAsset())) {
+          throw new InvalidParamsException("amount_fee.asset should be non-stellar asset");
+        }
+        break;
+      case WITHDRAWAL:
+        if (!AssetValidationUtils.isStellarAsset(request.getAmountFee().getAsset())) {
+          throw new InvalidParamsException("amount_fee.asset should be stellar asset");
+        }
+        break;
+    }
+
     if (request.getAmountExpected() != null) {
       AssetValidationUtils.validateAsset(
           "amount_expected",

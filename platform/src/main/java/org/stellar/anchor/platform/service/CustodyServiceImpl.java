@@ -7,6 +7,7 @@ import java.util.Optional;
 import org.springframework.http.HttpStatus;
 import org.stellar.anchor.api.custody.CreateCustodyTransactionRequest;
 import org.stellar.anchor.api.custody.CreateTransactionPaymentResponse;
+import org.stellar.anchor.api.custody.CreateTransactionRefundRequest;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.CustodyException;
 import org.stellar.anchor.api.exception.InvalidConfigException;
@@ -14,6 +15,7 @@ import org.stellar.anchor.api.exception.custody.CustodyBadRequestException;
 import org.stellar.anchor.api.exception.custody.CustodyNotFoundException;
 import org.stellar.anchor.api.exception.custody.CustodyServiceUnavailableException;
 import org.stellar.anchor.api.exception.custody.CustodyTooManyRequestsException;
+import org.stellar.anchor.api.rpc.action.DoStellarRefundRequest;
 import org.stellar.anchor.custody.CustodyService;
 import org.stellar.anchor.platform.apiclient.CustodyApiClient;
 import org.stellar.anchor.sep24.Sep24Transaction;
@@ -47,6 +49,29 @@ public class CustodyServiceImpl implements CustodyService {
 
     try {
       return custodyApiClient.get().createTransactionPayment(txnId, requestBody);
+    } catch (CustodyException e) {
+      throw (getResponseException(e));
+    }
+  }
+
+  @Override
+  public CreateTransactionPaymentResponse createTransactionRefund(
+      Sep24Transaction txn24, DoStellarRefundRequest rpcRequest) throws AnchorException {
+    if (custodyApiClient.isEmpty()) {
+      // custody.type is set to 'none'
+      throw new InvalidConfigException("Integration with custody service is not enabled");
+    }
+
+    CreateTransactionRefundRequest request =
+        CreateTransactionRefundRequest.builder()
+            .amount(rpcRequest.getRefund().getAmount().getAmount())
+            .amountFee(rpcRequest.getRefund().getAmountFee().getAmount())
+            .memo(txn24.getRefundMemo())
+            .memoType(txn24.getRefundMemoType())
+            .build();
+
+    try {
+      return custodyApiClient.get().createTransactionRefund(txn24.getId(), request);
     } catch (CustodyException e) {
       throw (getResponseException(e));
     }

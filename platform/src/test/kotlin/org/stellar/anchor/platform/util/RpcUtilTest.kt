@@ -16,6 +16,7 @@ import org.stellar.anchor.api.exception.rpc.MethodNotFoundException
 import org.stellar.anchor.api.rpc.RpcErrorCode
 import org.stellar.anchor.api.rpc.RpcRequest
 import org.stellar.anchor.api.rpc.RpcResponse
+import org.stellar.anchor.api.rpc.action.RpcActionParamsRequest
 import org.stellar.anchor.platform.utils.RpcUtil
 import org.stellar.anchor.platform.utils.RpcUtil.JSON_RPC_VERSION
 
@@ -23,9 +24,15 @@ class RpcUtilTest {
 
   companion object {
     private const val RPC_ID = 1
+    private const val TXN_ID = "123454321"
     private const val RPC_RESULT = 2L
     private const val ERROR_MSG = "Error message"
     private const val RPC_METHOD = "test_rpc_method"
+    private val rpcRequest =
+      RpcRequest.builder()
+        .id(RPC_ID)
+        .params(RpcActionParamsRequest.builder().transactionId(TXN_ID).build())
+        .build()
   }
 
   @Test
@@ -40,7 +47,7 @@ class RpcUtilTest {
 
   @Test
   fun `test get rpc invalid request response`() {
-    val response = RpcUtil.getRpcErrorResponse(RPC_ID, InvalidRequestException(ERROR_MSG))
+    val response = RpcUtil.getRpcErrorResponse(rpcRequest, InvalidRequestException(ERROR_MSG))
     verifyErrorResponse(response)
     assertEquals(ERROR_MSG, response.error.message)
     assertEquals(RpcErrorCode.INVALID_REQUEST.errorCode, response.error.code)
@@ -48,33 +55,37 @@ class RpcUtilTest {
 
   @Test
   fun `test get rpc internal error response`() {
-    val response = RpcUtil.getRpcErrorResponse(RPC_ID, InternalErrorException(ERROR_MSG))
+    val response = RpcUtil.getRpcErrorResponse(rpcRequest, InternalErrorException(ERROR_MSG))
     verifyErrorResponse(response)
     assertEquals(ERROR_MSG, response.error.message)
+    assertEquals(TXN_ID, response.error.id)
     assertEquals(RpcErrorCode.INTERNAL_ERROR.errorCode, response.error.code)
   }
 
   @Test
   fun `test get rpc method not found response`() {
-    val response = RpcUtil.getRpcErrorResponse(RPC_ID, MethodNotFoundException(ERROR_MSG))
+    val response = RpcUtil.getRpcErrorResponse(rpcRequest, MethodNotFoundException(ERROR_MSG))
     verifyErrorResponse(response)
     assertEquals(ERROR_MSG, response.error.message)
+    assertEquals(TXN_ID, response.error.id)
     assertEquals(RpcErrorCode.METHOD_NOT_FOUND.errorCode, response.error.code)
   }
 
   @Test
   fun `test get rpc invalid params response`() {
-    val response = RpcUtil.getRpcErrorResponse(RPC_ID, InvalidParamsException(ERROR_MSG))
+    val response = RpcUtil.getRpcErrorResponse(rpcRequest, InvalidParamsException(ERROR_MSG))
     verifyErrorResponse(response)
     assertEquals(ERROR_MSG, response.error.message)
+    assertEquals(TXN_ID, response.error.id)
     assertEquals(RpcErrorCode.INVALID_PARAMS.errorCode, response.error.code)
   }
 
   @Test
   fun `test get rpc bad request response`() {
-    val response = RpcUtil.getRpcErrorResponse(RPC_ID, BadRequestException(ERROR_MSG))
+    val response = RpcUtil.getRpcErrorResponse(rpcRequest, BadRequestException(ERROR_MSG))
     verifyErrorResponse(response)
     assertEquals(ERROR_MSG, response.error.message)
+    assertEquals(TXN_ID, response.error.id)
     assertEquals(RpcErrorCode.INVALID_PARAMS.errorCode, response.error.code)
   }
 
