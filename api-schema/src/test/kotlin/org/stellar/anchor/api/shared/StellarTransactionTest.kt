@@ -1,8 +1,11 @@
 package org.stellar.anchor.api.shared
 
+import com.fasterxml.jackson.databind.ObjectMapper
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule
 import java.time.Instant
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import org.skyscreamer.jsonassert.JSONAssert
 
 class StellarTransactionTest {
   companion object {
@@ -10,7 +13,7 @@ class StellarTransactionTest {
       "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
   }
 
-  private val createdAt = Instant.now()
+  private val createdAt = Instant.ofEpochMilli(1690415946788L)
   private val mockPayment1 =
     StellarPayment.builder()
       .id("1111")
@@ -246,5 +249,49 @@ class StellarTransactionTest {
       )
 
     assertEquals(wantTxList, txList)
+  }
+
+  @Test
+  fun `test Kafka serialization`() {
+    // Kafka uses Jackson for serialization
+    val mapper = ObjectMapper()
+    val module = JavaTimeModule()
+    mapper.registerModule(module)
+
+    val expected =
+      """
+        {
+            "id": "2b862ac297c93e2db43fc58d407cc477396212bce5e6d5f61789f963d5a11300",
+            "memo": "my-memo",
+            "envelope": "here_comes_the_envelope",
+            "payments": [
+                {
+                    "id": "1111",
+                    "amount": {
+                        "amount": "100.0000",
+                        "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+                    },
+                    "payment_type": "payment",
+                    "source_account": "GAS4OW4HKJCC2D6VWUHVFR3MJRRVQBXBFQ3LCZJXBR7TWOOBJWE4SRWZ",
+                    "destination_account": "GBQC7NCZMQIPWN6ASUJYIDKDPRK34IOIZNQE5WOHPQH536VMOMQVJTN7"
+                }
+            ],
+            "memo_type": "text",
+            "created_at": 1690415946.788000000
+        }
+    """.trimIndent()
+    val actual =
+      mapper.writeValueAsString(
+        StellarTransaction.builder()
+          .id("2b862ac297c93e2db43fc58d407cc477396212bce5e6d5f61789f963d5a11300")
+          .memo("my-memo")
+          .memoType("text")
+          .createdAt(createdAt)
+          .envelope("here_comes_the_envelope")
+          .payments(listOf(mockPayment1))
+          .build()
+      )
+
+    JSONAssert.assertEquals(expected, actual, true)
   }
 }

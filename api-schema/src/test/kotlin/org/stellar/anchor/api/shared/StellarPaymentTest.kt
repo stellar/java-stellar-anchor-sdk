@@ -1,7 +1,9 @@
 package org.stellar.anchor.api.shared
 
+import com.fasterxml.jackson.databind.ObjectMapper
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
+import org.skyscreamer.jsonassert.JSONAssert
 
 class StellarPaymentTest {
   companion object {
@@ -77,5 +79,27 @@ class StellarPaymentTest {
     val wantPaymentList = listOf(mockPayment1, mockPayment2, mockPayment3)
 
     assertEquals(wantPaymentList, paymentList)
+  }
+
+  @Test
+  fun `test Kafka serialization`() {
+    // Kafka uses Jackson for serialization
+    val mapper = ObjectMapper()
+    val expected =
+      """
+      {
+          "id": "1111",
+          "amount": {
+              "amount": "100.0000",
+              "asset": "stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP"
+          },
+          "payment_type": "payment",
+          "source_account": "GAS4OW4HKJCC2D6VWUHVFR3MJRRVQBXBFQ3LCZJXBR7TWOOBJWE4SRWZ",
+          "destination_account": "GBQC7NCZMQIPWN6ASUJYIDKDPRK34IOIZNQE5WOHPQH536VMOMQVJTN7"
+      }
+    """.trimIndent()
+    val actual = mapper.writeValueAsString(mockPayment1)
+
+    JSONAssert.assertEquals(expected, actual, true)
   }
 }

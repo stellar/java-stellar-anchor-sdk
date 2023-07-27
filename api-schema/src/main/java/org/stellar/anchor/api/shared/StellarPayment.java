@@ -1,5 +1,6 @@
 package org.stellar.anchor.api.shared;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.google.gson.annotations.SerializedName;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -18,19 +19,24 @@ public class StellarPayment {
 
   Amount amount;
 
+  @JsonProperty("payment_type")
   @SerializedName("payment_type")
   Type paymentType;
 
+  @JsonProperty("source_account")
   @SerializedName("source_account")
   String sourceAccount;
 
+  @JsonProperty("destination_account")
   @SerializedName("destination_account")
   String destinationAccount;
 
   public enum Type {
+    @JsonProperty("payment")
     @SerializedName("payment")
     PAYMENT("payment"),
 
+    @JsonProperty("path_payment")
     @SerializedName("path_payment")
     PATH_PAYMENT("path_payment");
 
