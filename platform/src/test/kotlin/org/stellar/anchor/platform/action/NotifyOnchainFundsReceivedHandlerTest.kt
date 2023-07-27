@@ -212,7 +212,6 @@ class NotifyOnchainFundsReceivedHandlerTest {
     expectedResponse.sep = SEP_24
     expectedResponse.kind = WITHDRAWAL
     expectedResponse.status = PENDING_ANCHOR
-    expectedResponse.transferReceivedAt = Instant.parse("2023-05-10T10:18:20Z")
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.amountIn = Amount("1", FIAT_USD)
     expectedResponse.amountOut = Amount("0.9", STELLAR_USDC)
@@ -290,7 +289,6 @@ class NotifyOnchainFundsReceivedHandlerTest {
     expectedResponse.sep = SEP_24
     expectedResponse.kind = WITHDRAWAL
     expectedResponse.status = PENDING_ANCHOR
-    expectedResponse.transferReceivedAt = Instant.parse("2023-05-10T10:18:20Z")
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.amountIn = Amount("1", FIAT_USD)
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
@@ -363,7 +361,6 @@ class NotifyOnchainFundsReceivedHandlerTest {
     expectedResponse.sep = SEP_24
     expectedResponse.kind = WITHDRAWAL
     expectedResponse.status = PENDING_ANCHOR
-    expectedResponse.transferReceivedAt = Instant.parse("2023-05-10T10:18:20Z")
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
     expectedResponse.stellarTransactions = stellarTransactions

@@ -182,7 +182,6 @@ class NotifyOffchainFundsPendingHandlerTest {
     expectedResponse.status = PENDING_EXTERNAL
     expectedResponse.externalTransactionId = "externalTxId"
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
-    expectedResponse.transferReceivedAt = transferReceivedAt
     expectedResponse.amountExpected = Amount(null, "")
 
     JSONAssert.assertEquals(
@@ -232,7 +231,6 @@ class NotifyOffchainFundsPendingHandlerTest {
     expectedResponse.kind = WITHDRAWAL
     expectedResponse.status = PENDING_EXTERNAL
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
-    expectedResponse.transferReceivedAt = transferReceivedAt
     expectedResponse.amountExpected = Amount(null, "")
 
     JSONAssert.assertEquals(

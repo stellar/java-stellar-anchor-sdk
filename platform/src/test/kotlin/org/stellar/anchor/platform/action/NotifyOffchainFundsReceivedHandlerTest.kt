@@ -217,7 +217,6 @@ class NotifyOffchainFundsReceivedHandlerTest {
     expectedResponse.kind = DEPOSIT
     expectedResponse.status = PENDING_ANCHOR
     expectedResponse.externalTransactionId = "externalTxId"
-    expectedResponse.transferReceivedAt = transferReceivedAt
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.amountIn = Amount("1", FIAT_USD)
     expectedResponse.amountOut = Amount("0.9", STELLAR_USDC)
@@ -346,7 +345,6 @@ class NotifyOffchainFundsReceivedHandlerTest {
     expectedResponse.kind = DEPOSIT
     expectedResponse.status = PENDING_ANCHOR
     expectedResponse.externalTransactionId = "externalTxId"
-    expectedResponse.transferReceivedAt = sep24TxnCapture.captured.transferReceivedAt
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
 

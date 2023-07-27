@@ -156,7 +156,6 @@ class NotifyTransactionRecoveryHandlerTest {
     expectedResponse.status = PENDING_ANCHOR
     expectedResponse.amountExpected = Amount(null, "")
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
-    expectedResponse.transferReceivedAt = transferReceivedAt
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),

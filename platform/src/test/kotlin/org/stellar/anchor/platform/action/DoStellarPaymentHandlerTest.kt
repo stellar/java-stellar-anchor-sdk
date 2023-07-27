@@ -206,7 +206,6 @@ class DoStellarPaymentHandlerTest {
     expectedResponse.status = PENDING_STELLAR
     expectedResponse.amountExpected = Amount(null, "")
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
-    expectedResponse.transferReceivedAt = transferReceivedAt
     expectedResponse.destinationAccount = TO_ACCOUNT
 
     JSONAssert.assertEquals(
@@ -264,7 +263,6 @@ class DoStellarPaymentHandlerTest {
     expectedResponse.status = PENDING_TRUST
     expectedResponse.amountExpected = Amount(null, "")
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
-    expectedResponse.transferReceivedAt = transferReceivedAt
     expectedResponse.destinationAccount = TO_ACCOUNT
 
     JSONAssert.assertEquals(

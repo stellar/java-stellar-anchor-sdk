@@ -103,8 +103,7 @@ class PlatformApiTests(config: TestConfig, toml: TomlContent, jwt: String) {
         Customization("[0].result.started_at") { _, _ -> true },
         Customization("[0].result.updated_at") { _, _ -> true },
         Customization("[1].result.started_at") { _, _ -> true },
-        Customization("[1].result.updated_at") { _, _ -> true },
-        Customization("[1].result.transfer_received_at") { _, _ -> true }
+        Customization("[1].result.updated_at") { _, _ -> true }
       )
     )
 
@@ -251,7 +250,6 @@ private const val EXPECTED_RPC_BATCH_RESPONSE =
          },
          "started_at":"2023-07-20T09:07:51.007629Z",
          "updated_at":"2023-07-20T09:07:59.448888600Z",
-         "transfer_received_at":"2023-07-20T09:07:59.448888600Z",
          "message":"test message",
          "external_transaction_id": "1",
          "destination_account":"GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"

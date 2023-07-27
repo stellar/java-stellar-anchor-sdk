@@ -202,7 +202,6 @@ class NotifyOnchainFundsSentHandlerTest {
     expectedResponse.sep = SEP_24
     expectedResponse.kind = DEPOSIT
     expectedResponse.status = COMPLETED
-    expectedResponse.transferReceivedAt = transferReceivedAt
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.completedAt = sep24TxnCapture.captured.completedAt
     expectedResponse.amountExpected = Amount(null, "")

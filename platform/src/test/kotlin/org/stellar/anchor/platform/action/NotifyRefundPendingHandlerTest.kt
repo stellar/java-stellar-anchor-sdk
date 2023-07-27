@@ -269,7 +269,6 @@ class NotifyRefundPendingHandlerTest {
     expectedResponse.amountIn = Amount("1", STELLAR_USDC)
     expectedResponse.amountFee = Amount("0.1", FIAT_USD)
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
-    expectedResponse.transferReceivedAt = transferReceivedAt
     val refundPayment = RefundPayment()
     refundPayment.amount = Amount("1", txn24.amountInAsset)
     refundPayment.fee = Amount("0", txn24.amountInAsset)
@@ -364,7 +363,6 @@ class NotifyRefundPendingHandlerTest {
     expectedResponse.amountIn = Amount("2.2", STELLAR_USDC)
     expectedResponse.amountFee = Amount("0.1", FIAT_USD)
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
-    expectedResponse.transferReceivedAt = transferReceivedAt
     val refundPayment = RefundPayment()
     refundPayment.amount = Amount("1", txn24.amountInAsset)
     refundPayment.fee = Amount("0.1", txn24.amountInAsset)

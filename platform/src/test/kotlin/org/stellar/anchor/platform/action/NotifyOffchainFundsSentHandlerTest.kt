@@ -160,7 +160,6 @@ class NotifyOffchainFundsSentHandlerTest {
     expectedResponse.kind = DEPOSIT
     expectedResponse.status = PENDING_EXTERNAL
     expectedResponse.externalTransactionId = "externalTxId"
-    expectedResponse.transferReceivedAt = transferReceivedAt
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.amountExpected = Amount(null, "")
 
@@ -214,7 +213,6 @@ class NotifyOffchainFundsSentHandlerTest {
     expectedResponse.kind = DEPOSIT
     expectedResponse.status = PENDING_EXTERNAL
     expectedResponse.externalTransactionId = "externalTxId"
-    expectedResponse.transferReceivedAt = sep24TxnCapture.captured.transferReceivedAt
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.amountExpected = Amount(null, "")
 
@@ -323,7 +321,6 @@ class NotifyOffchainFundsSentHandlerTest {
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.completedAt = sep24TxnCapture.captured.completedAt
     expectedResponse.amountExpected = Amount(null, "")
-    expectedResponse.transferReceivedAt = transferReceivedAt
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
@@ -377,7 +374,6 @@ class NotifyOffchainFundsSentHandlerTest {
     expectedResponse.updatedAt = sep24TxnCapture.captured.updatedAt
     expectedResponse.completedAt = sep24TxnCapture.captured.completedAt
     expectedResponse.amountExpected = Amount(null, "")
-    expectedResponse.transferReceivedAt = transferReceivedAt
 
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),

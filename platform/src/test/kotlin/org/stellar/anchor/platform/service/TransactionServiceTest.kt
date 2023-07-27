@@ -67,6 +67,7 @@ class TransactionServiceTest {
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
+    every { eventService.createSession(any(), TRANSACTION) } returns eventSession
     transactionService =
       TransactionService(
         sep6TransactionStore,
@@ -270,7 +271,6 @@ class TransactionServiceTest {
 
     every { sep31TransactionStore.findByTransactionId(any()) } returns null
     every { sep24TransactionStore.findByTransactionId(any()) } returns tx
-    every { eventService.createSession(any(), TRANSACTION) } returns eventSession
 
     transactionService.patchTransactions(request)
 
@@ -295,7 +295,6 @@ class TransactionServiceTest {
 
     every { sep31TransactionStore.findByTransactionId(any()) } returns null
     every { sep24TransactionStore.findByTransactionId(any()) } returns tx
-    every { eventService.createSession(any(), TRANSACTION) } returns eventSession
 
     transactionService.patchTransactions(request)
 
@@ -321,7 +320,6 @@ class TransactionServiceTest {
     every { sep31TransactionStore.findByTransactionId(any()) } returns null
     every { sep24TransactionStore.findByTransactionId(any()) } returns tx
     every { custodyConfig.isCustodyIntegrationEnabled } returns true
-    every { eventService.createSession(any(), TRANSACTION) } returns eventSession
 
     transactionService.patchTransactions(request)
 
@@ -347,7 +345,6 @@ class TransactionServiceTest {
     every { sep31TransactionStore.findByTransactionId(any()) } returns null
     every { sep24TransactionStore.findByTransactionId(any()) } returns tx
     every { custodyConfig.isCustodyIntegrationEnabled } returns true
-    every { eventService.createSession(any(), TRANSACTION) } returns eventSession
 
     transactionService.patchTransactions(request)
 
@@ -372,7 +369,6 @@ class TransactionServiceTest {
 
     every { sep31TransactionStore.findByTransactionId(any()) } returns null
     every { sep24TransactionStore.findByTransactionId(any()) } returns tx
-    every { eventService.createSession(any(), TRANSACTION) } returns eventSession
 
     transactionService.patchTransactions(request)
 
