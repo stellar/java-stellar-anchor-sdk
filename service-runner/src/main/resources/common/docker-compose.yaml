@@ -19,6 +19,11 @@ services:
     ports:
       - "8081:8081"
 
+  sep24-reference-ui:
+    image: stellar/sep24-reference-ui
+    ports:
+      - "3000:80"
+
   observer:
     image: stellar/anchor-platform:edge
     build:

@@ -1,19 +1,9 @@
 package org.stellar.anchor.sep24;
 
-import java.time.Instant;
+import org.stellar.anchor.SepTransaction;
 
 @SuppressWarnings("unused")
-public interface Sep24Transaction {
-
-  /**
-   * The database ID.
-   *
-   * @return The generated database ID.
-   */
-  String getId();
-
-  void setId(String id);
-
+public interface Sep24Transaction extends SepTransaction {
   /**
    * Unique, anchor-generated id for the transaction.
    *
@@ -22,16 +12,6 @@ public interface Sep24Transaction {
   String getTransactionId();
 
   void setTransactionId(String transactionId);
-
-  /**
-   * <code>transaction_id</code> on Stellar network of the transfer that either completed the
-   * deposit or started the withdrawal.
-   *
-   * @return The <code>stellar_transction_id</code> field of the SEP-24 transaction history.
-   */
-  String getStellarTransactionId();
-
-  void setStellarTransactionId(String stellarTransactionId);
 
   /**
    * ID of transaction on external network that either started the deposit or completed the
@@ -44,15 +24,6 @@ public interface Sep24Transaction {
   void setExternalTransactionId(String externalTransactionId);
 
   /**
-   * Processing status of deposit/withdrawal.
-   *
-   * @return The <code>status</code> field of the SEP-24 transaction history.
-   */
-  String getStatus();
-
-  void setStatus(String status);
-
-  /**
    * <code>deposit</code> or <code>withdrawal</code> .
    *
    * @return The <code>kind</code> field of the SEP-24 transaction history.
@@ -60,25 +31,6 @@ public interface Sep24Transaction {
   String getKind();
 
   void setKind(String kind);
-
-  /**
-   * Start date and time of transaction.
-   *
-   * @return The <code>started_at</code> field of the SEP-24 transaction history.
-   */
-  Instant getStartedAt();
-
-  void setStartedAt(Instant startedAt);
-
-  /**
-   * The date and time of transaction reaching <code>completed</code> or <code>refunded</code>
-   * status.
-   *
-   * @return <code>completed</code> field of the SEP-24 transaction history.
-   */
-  Instant getCompletedAt();
-
-  void setCompletedAt(Instant completedAt);
 
   /**
    * The code of the asset of interest. E.g. BTC, ETH, USD, INR, etc.
@@ -282,30 +234,15 @@ public interface Sep24Transaction {
 
   void setRefundMemoType(String refundMemoType);
 
+  String getMessage();
+
   enum Kind {
     DEPOSIT("deposit"),
-    WITHDRAWAL("withdrawal"),
-    SEND("send");
+    WITHDRAWAL("withdrawal");
 
     private final String name;
 
     Kind(String name) {
-      this.name = name;
-    }
-
-    public String toString() {
-      return name;
-    }
-  }
-
-  enum Protocol {
-    SEP6("sep6"),
-    SEP24("sep24"),
-    SEP31("sep31");
-
-    private final String name;
-
-    Protocol(String name) {
       this.name = name;
     }
 

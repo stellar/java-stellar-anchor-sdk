@@ -1,0 +1,25 @@
+assets:
+  - schema: stellar
+    code: USDC
+    issuer: GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP
+    distribution_account: GA7FYRB5VREZKOBIIKHG5AVTPFGWUBPOBF7LTYG4GTMFVIOOD2DWAL7I
+    significant_decimals: 2
+    deposit:
+      enabled: true
+      min_amount: 1
+      max_amount: 10000
+      types:
+        - SEPA
+        - SEPA
+        - SWIFT
+    withdraw:
+      enabled: true
+      min_amount: 1
+      max_amount: 10000
+      types:
+        - cash
+        - bank_account
+    sep6_enabled: true
+    sep24_enabled: true
+    sep31_enabled: false
+    sep38_enabled: false

@@ -3,7 +3,7 @@ package org.stellar.anchor.platform
 import org.junit.jupiter.api.*
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
-class AnchorPlatformEnd2EndTest : AbstractIntegrationTest(TestConfig(profileName = "sep24")) {
+class AnchorPlatformEnd2EndTest : AbstractIntegrationTest(TestConfig(testProfileName = "sep24")) {
 
   companion object {
     private val singleton = AnchorPlatformEnd2EndTest()

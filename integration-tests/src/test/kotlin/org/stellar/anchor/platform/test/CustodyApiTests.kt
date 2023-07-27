@@ -272,7 +272,6 @@ private const val expectedTransactionResponse =
   "amount_expected": {
     "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
   },
-  "transfer_received_at": "2023-06-22T08:46:39.336Z",
   "stellar_transactions": [
     {
       "id": "fba01f815acfe1f493271017f02929e97e30656ba57a5ac8f3d1356dd4926ea1",

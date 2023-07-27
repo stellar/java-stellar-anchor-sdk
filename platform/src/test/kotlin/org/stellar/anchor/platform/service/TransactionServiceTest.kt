@@ -14,7 +14,6 @@ import org.junit.jupiter.params.provider.NullSource
 import org.junit.jupiter.params.provider.ValueSource
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode.LENIENT
-import org.stellar.anchor.api.event.AnchorEvent.Type.TRANSACTION_STATUS_CHANGED
 import org.stellar.anchor.api.exception.AnchorException
 import org.stellar.anchor.api.exception.BadRequestException
 import org.stellar.anchor.api.exception.NotFoundException
@@ -29,12 +28,15 @@ import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.config.CustodyConfig
 import org.stellar.anchor.custody.CustodyService
 import org.stellar.anchor.event.EventService
+import org.stellar.anchor.event.EventService.EventQueue.TRANSACTION
+import org.stellar.anchor.event.EventService.Session
 import org.stellar.anchor.platform.data.*
 import org.stellar.anchor.sep24.Sep24DepositInfoGenerator
 import org.stellar.anchor.sep24.Sep24Transaction
 import org.stellar.anchor.sep24.Sep24TransactionStore
 import org.stellar.anchor.sep31.Sep31TransactionStore
 import org.stellar.anchor.sep38.Sep38QuoteStore
+import org.stellar.anchor.sep6.Sep6TransactionStore
 import org.stellar.anchor.util.GsonUtils
 
 @Suppress("unused")
@@ -52,8 +54,10 @@ class TransactionServiceTest {
   @MockK(relaxed = true) private lateinit var sep38QuoteStore: Sep38QuoteStore
   @MockK(relaxed = true) private lateinit var sep31TransactionStore: Sep31TransactionStore
   @MockK(relaxed = true) private lateinit var sep24TransactionStore: Sep24TransactionStore
+  @MockK(relaxed = true) private lateinit var sep6TransactionStore: Sep6TransactionStore
   @MockK(relaxed = true) private lateinit var assetService: AssetService
   @MockK(relaxed = true) private lateinit var eventService: EventService
+  @MockK(relaxed = true) private lateinit var eventSession: Session
   @MockK(relaxed = true) private lateinit var sep24DepositInfoGenerator: Sep24DepositInfoGenerator
   @MockK(relaxed = true) private lateinit var custodyService: CustodyService
   @MockK(relaxed = true) private lateinit var custodyConfig: CustodyConfig
@@ -65,6 +69,7 @@ class TransactionServiceTest {
     MockKAnnotations.init(this, relaxUnitFun = true)
     transactionService =
       TransactionService(
+        sep6TransactionStore,
         sep24TransactionStore,
         sep31TransactionStore,
         sep38QuoteStore,
@@ -200,6 +205,7 @@ class TransactionServiceTest {
     this.assetService = DefaultAssetService.fromJsonResource("test_assets.json")
     transactionService =
       TransactionService(
+        sep6TransactionStore,
         sep24TransactionStore,
         sep31TransactionStore,
         sep38QuoteStore,
@@ -264,14 +270,13 @@ class TransactionServiceTest {
 
     every { sep31TransactionStore.findByTransactionId(any()) } returns null
     every { sep24TransactionStore.findByTransactionId(any()) } returns tx
+    every { eventService.createSession(any(), TRANSACTION) } returns eventSession
 
     transactionService.patchTransactions(request)
 
     verify(exactly = 0) { custodyService.createTransaction(ofType(Sep24Transaction::class)) }
     verify(exactly = 1) { sep24TransactionStore.save(any()) }
-    verify(exactly = 1) {
-      eventService.publish(ofType(Sep24Transaction::class), TRANSACTION_STATUS_CHANGED)
-    }
+    verify(exactly = 1) { eventSession.publish(any()) }
   }
 
   @Test
@@ -290,14 +295,13 @@ class TransactionServiceTest {
 
     every { sep31TransactionStore.findByTransactionId(any()) } returns null
     every { sep24TransactionStore.findByTransactionId(any()) } returns tx
+    every { eventService.createSession(any(), TRANSACTION) } returns eventSession
 
     transactionService.patchTransactions(request)
 
     verify(exactly = 0) { custodyService.createTransaction(ofType(Sep24Transaction::class)) }
     verify(exactly = 1) { sep24TransactionStore.save(any()) }
-    verify(exactly = 1) {
-      eventService.publish(ofType(Sep24Transaction::class), TRANSACTION_STATUS_CHANGED)
-    }
+    verify(exactly = 1) { eventSession.publish(any()) }
   }
 
   @Test
@@ -317,14 +321,13 @@ class TransactionServiceTest {
     every { sep31TransactionStore.findByTransactionId(any()) } returns null
     every { sep24TransactionStore.findByTransactionId(any()) } returns tx
     every { custodyConfig.isCustodyIntegrationEnabled } returns true
+    every { eventService.createSession(any(), TRANSACTION) } returns eventSession
 
     transactionService.patchTransactions(request)
 
     verify(exactly = 1) { custodyService.createTransaction(ofType(Sep24Transaction::class)) }
     verify(exactly = 1) { sep24TransactionStore.save(any()) }
-    verify(exactly = 1) {
-      eventService.publish(ofType(Sep24Transaction::class), TRANSACTION_STATUS_CHANGED)
-    }
+    verify(exactly = 1) { eventSession.publish(any()) }
   }
 
   @Test
@@ -344,14 +347,13 @@ class TransactionServiceTest {
     every { sep31TransactionStore.findByTransactionId(any()) } returns null
     every { sep24TransactionStore.findByTransactionId(any()) } returns tx
     every { custodyConfig.isCustodyIntegrationEnabled } returns true
+    every { eventService.createSession(any(), TRANSACTION) } returns eventSession
 
     transactionService.patchTransactions(request)
 
     verify(exactly = 1) { custodyService.createTransaction(ofType(Sep24Transaction::class)) }
     verify(exactly = 1) { sep24TransactionStore.save(any()) }
-    verify(exactly = 1) {
-      eventService.publish(ofType(Sep24Transaction::class), TRANSACTION_STATUS_CHANGED)
-    }
+    verify(exactly = 1) { eventSession.publish(any()) }
   }
 
   @Test
@@ -370,14 +372,13 @@ class TransactionServiceTest {
 
     every { sep31TransactionStore.findByTransactionId(any()) } returns null
     every { sep24TransactionStore.findByTransactionId(any()) } returns tx
+    every { eventService.createSession(any(), TRANSACTION) } returns eventSession
 
     transactionService.patchTransactions(request)
 
     verify(exactly = 0) { custodyService.createTransaction(ofType(Sep24Transaction::class)) }
     verify(exactly = 1) { sep24TransactionStore.save(any()) }
-    verify(exactly = 1) {
-      eventService.publish(ofType(Sep24Transaction::class), TRANSACTION_STATUS_CHANGED)
-    }
+    verify(exactly = 1) { eventSession.publish(any()) }
   }
 
   @Test
@@ -482,6 +483,7 @@ class TransactionServiceTest {
     this.assetService = DefaultAssetService.fromJsonResource("test_assets.json")
     transactionService =
       TransactionService(
+        sep6TransactionStore,
         sep24TransactionStore,
         sep31TransactionStore,
         sep38QuoteStore,

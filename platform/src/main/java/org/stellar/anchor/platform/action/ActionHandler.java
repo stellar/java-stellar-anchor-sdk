@@ -5,7 +5,7 @@ import static org.stellar.anchor.api.sep.SepTransactionStatus.COMPLETED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.ERROR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.EXPIRED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.REFUNDED;
-import static org.stellar.anchor.platform.utils.TransactionHelper.toGetTransactionResponse;
+import static org.stellar.anchor.platform.utils.PlatformTransactionHelper.toGetTransactionResponse;
 
 import com.google.gson.Gson;
 import java.time.Instant;

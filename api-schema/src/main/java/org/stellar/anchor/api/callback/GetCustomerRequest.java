@@ -10,7 +10,7 @@ import org.stellar.anchor.api.sep.sep12.Sep12GetCustomerRequest;
  * The request body of GET /customer endpoint.
  *
  * @see <a
- *     href="https://github.com/stellar/stellar-docs/blob/main/openapi/ap/Callbacks%20API.yml">Callback
+ *     href="https://github.com/stellar/stellar-docs/blob/main/openapi/anchor-platform/Callbacks%20API.yml">Callback
  *     API</a>
  */
 @Data

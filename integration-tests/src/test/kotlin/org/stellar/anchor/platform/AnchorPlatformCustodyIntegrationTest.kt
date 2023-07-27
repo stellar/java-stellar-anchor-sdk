@@ -7,7 +7,7 @@ import org.stellar.anchor.platform.test.*
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
 class AnchorPlatformCustodyIntegrationTest :
-  AbstractIntegrationTest(TestConfig(profileName = "default-custody")) {
+  AbstractIntegrationTest(TestConfig(testProfileName = "default-custody")) {
   companion object {
     private val singleton = AnchorPlatformCustodyIntegrationTest()
     private val custodyMockServer = MockWebServer()

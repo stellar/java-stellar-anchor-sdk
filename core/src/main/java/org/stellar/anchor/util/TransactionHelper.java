@@ -1,13 +1,11 @@
-package org.stellar.anchor.platform.utils;
+package org.stellar.anchor.util;
 
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT;
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.RECEIVE;
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL;
 
 import javax.annotation.Nullable;
-import lombok.SneakyThrows;
 import org.stellar.anchor.api.custody.CreateCustodyTransactionRequest;
-import org.stellar.anchor.api.exception.SepException;
 import org.stellar.anchor.api.platform.GetTransactionResponse;
 import org.stellar.anchor.api.platform.PlatformTransactionData;
 import org.stellar.anchor.api.sep.AssetInfo;
@@ -16,9 +14,6 @@ import org.stellar.anchor.api.shared.Amount;
 import org.stellar.anchor.api.shared.RefundPayment;
 import org.stellar.anchor.api.shared.Refunds;
 import org.stellar.anchor.asset.AssetService;
-import org.stellar.anchor.platform.data.JdbcSep24Transaction;
-import org.stellar.anchor.platform.data.JdbcSep31Transaction;
-import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.sep24.Sep24RefundPayment;
 import org.stellar.anchor.sep24.Sep24Refunds;
 import org.stellar.anchor.sep24.Sep24Transaction;
@@ -26,19 +21,6 @@ import org.stellar.anchor.sep31.Sep31Refunds;
 import org.stellar.anchor.sep31.Sep31Transaction;
 
 public class TransactionHelper {
-
-  @SneakyThrows
-  public static GetTransactionResponse toGetTransactionResponse(
-      JdbcSepTransaction txn, AssetService assetService) {
-    switch (txn.getProtocol()) {
-      case "24":
-        return toGetTransactionResponse((JdbcSep24Transaction) txn, assetService);
-      case "31":
-        return toGetTransactionResponse((JdbcSep31Transaction) txn);
-      default:
-        throw new SepException(String.format("Unsupported protocol:%s", txn.getProtocol()));
-    }
-  }
 
   public static CreateCustodyTransactionRequest toCustodyTransaction(Sep24Transaction txn) {
     return CreateCustodyTransactionRequest.builder()
@@ -74,7 +56,7 @@ public class TransactionHelper {
         .build();
   }
 
-  static GetTransactionResponse toGetTransactionResponse(JdbcSep31Transaction txn) {
+  public static GetTransactionResponse toGetTransactionResponse(Sep31Transaction txn) {
     Refunds refunds = null;
     if (txn.getRefunds() != null) {
       refunds = toRefunds(txn.getRefunds(), txn.getAmountInAsset());
@@ -103,8 +85,8 @@ public class TransactionHelper {
         .build();
   }
 
-  static GetTransactionResponse toGetTransactionResponse(
-      JdbcSep24Transaction txn, AssetService assetService) {
+  public static GetTransactionResponse toGetTransactionResponse(
+      Sep24Transaction txn, AssetService assetService) {
     Refunds refunds = null;
     if (txn.getRefunds() != null) {
       refunds = toRefunds(txn.getRefunds(), txn.getAmountInAsset());
@@ -128,7 +110,6 @@ public class TransactionHelper {
         .startedAt(txn.getStartedAt())
         .updatedAt(txn.getUpdatedAt())
         .completedAt(txn.getCompletedAt())
-        .transferReceivedAt(txn.getTransferReceivedAt())
         .message(txn.getMessage())
         .refunds(refunds)
         .stellarTransactions(txn.getStellarTransactions())
@@ -142,7 +123,7 @@ public class TransactionHelper {
   }
 
   private static String makeAsset(
-      @Nullable String dbAsset, AssetService service, JdbcSep24Transaction txn) {
+      @Nullable String dbAsset, AssetService service, Sep24Transaction txn) {
     if (dbAsset != null) {
       return dbAsset;
     }

@@ -4,7 +4,6 @@ import static org.stellar.anchor.util.Log.debugF;
 import static org.stellar.anchor.util.Log.traceF;
 import static org.stellar.anchor.util.Log.warnF;
 import static org.stellar.anchor.util.MathHelper.decimal;
-import static org.stellar.anchor.util.MathHelper.formatAmount;
 import static org.stellar.anchor.util.StringHelper.isNotEmpty;
 
 import java.io.IOException;
@@ -112,14 +111,15 @@ public abstract class CustodyPaymentHandler {
     BigDecimal expectedAmount = decimal(txn.getAmount());
     BigDecimal gotAmount = decimal(payment.getAmount());
 
-    if (gotAmount.compareTo(expectedAmount) < 0) {
-      warnF(
-          "The incoming payment amount was insufficient. Expected: [{}], Received: [{}]. Payment: id[{}], externalTxId[{}]",
-          formatAmount(expectedAmount),
-          formatAmount(gotAmount),
-          payment.getId(),
-          payment.getExternalTxId());
-    }
+    //    if (gotAmount.compareTo(expectedAmount) < 0) {
+    //      warnF(
+    //          "The incoming payment amount was insufficient. Expected: [{}], Received: [{}].
+    // Payment: id[{}], externalTxId[{}]",
+    //          formatAmount(expectedAmount),
+    //          formatAmount(gotAmount),
+    //          payment.getId(),
+    //          payment.getExternalTxId());
+    //    }
   }
 
   private void patchTransaction(
