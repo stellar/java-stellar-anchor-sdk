@@ -32,7 +32,7 @@ app_logging:
 # Stellar Network Configuration
 ##############################
 stellar_network:
-  # Use testnet (TESTNET) or pubnet (PUBNET)
+  # Use TESTNET or PUBLIC
   network: TESTNET
 
   # The horizon server endpoint.
@@ -405,10 +405,10 @@ sep31:
 
   # Used to choose how the SEP-31 deposit information will be generated, which includes the
   #     deposit address, memo and memo type.
-  # Tje `deposit_info_generator_type` must be one of the following:
-  ##     self: the memo and memo type are generated in the local code, and the distribution account is used for the deposit address.
-  ##     circle: the memo and memo type are generated through Circle API, as well as the deposit address.
-  ##     api: the memo and memo type are generated through calling the anchor's GET /unique_address endpoint.
+  # The `deposit_info_generator_type` must be one of the following:
+  #     self: the memo and memo type are generated in the local code, and the distribution account is used for the deposit address.
+  #     circle: the memo and memo type are generated through Circle API, as well as the deposit address.
+  #     api: the memo and memo type are generated through calling the anchor's GET /unique_address endpoint.
   #
   deposit_info_generator_type: self
 

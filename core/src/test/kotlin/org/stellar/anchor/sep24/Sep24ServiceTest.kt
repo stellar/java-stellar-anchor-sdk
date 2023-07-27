@@ -15,7 +15,6 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.ValueSource
-import org.stellar.anchor.TestConstants
 import org.stellar.anchor.TestConstants.Companion.TEST_ACCOUNT
 import org.stellar.anchor.TestConstants.Companion.TEST_ASSET
 import org.stellar.anchor.TestConstants.Companion.TEST_ASSET_ISSUER_ACCOUNT_ID
@@ -48,6 +47,7 @@ import org.stellar.anchor.util.MemoHelper.makeMemo
 import org.stellar.sdk.MemoHash
 import org.stellar.sdk.MemoId
 import org.stellar.sdk.MemoText
+import org.stellar.sdk.Network.TESTNET
 
 internal class Sep24ServiceTest {
   companion object {
@@ -84,7 +84,7 @@ internal class Sep24ServiceTest {
   @BeforeEach
   fun setUp() {
     MockKAnnotations.init(this, relaxUnitFun = true)
-    every { appConfig.stellarNetworkPassphrase } returns TestConstants.TEST_NETWORK_PASS_PHRASE
+    every { appConfig.stellarNetworkPassphrase } returns TESTNET.networkPassphrase
     every { secretConfig.sep10JwtSecretKey } returns TEST_JWT_SECRET
     every { secretConfig.sep24MoreInfoUrlJwtSecret } returns TEST_JWT_SECRET
     every { secretConfig.sep24InteractiveUrlJwtSecret } returns TEST_JWT_SECRET
