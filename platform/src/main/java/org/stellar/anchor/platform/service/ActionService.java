@@ -7,7 +7,7 @@ import static org.stellar.anchor.platform.utils.RpcUtil.getRpcErrorResponse;
 import static org.stellar.anchor.platform.utils.RpcUtil.getRpcSuccessResponse;
 import static org.stellar.anchor.platform.utils.RpcUtil.validateRpcRequest;
 import static org.stellar.anchor.util.Log.debugF;
-import static org.stellar.anchor.util.Log.error;
+import static org.stellar.anchor.util.Log.errorEx;
 
 import java.util.List;
 import java.util.Map;
@@ -39,21 +39,21 @@ public class ActionService {
                 validateRpcRequest(rc);
                 return getRpcSuccessResponse(rpcId, processRpcCall(rc));
               } catch (RpcException ex) {
-                error(
+                errorEx(
                     String.format(
                         "An RPC error occurred while processing an RPC call with action[%s] and id[%s]",
                         rc.getMethod(), rpcId),
                     ex);
-                return getRpcErrorResponse(rpcId, ex);
+                return getRpcErrorResponse(rc, ex);
               } catch (BadRequestException ex) {
-                return getRpcErrorResponse(rpcId, ex);
+                return getRpcErrorResponse(rc, ex);
               } catch (Exception ex) {
-                error(
+                errorEx(
                     String.format(
                         "An internal error occurred while processing an RPC call with action[%s] and id[%s]",
                         rc.getMethod(), rpcId),
                     ex);
-                return getRpcErrorResponse(rpcId, new InternalErrorException(ex.getMessage()));
+                return getRpcErrorResponse(rc, new InternalErrorException(ex.getMessage()));
               }
             })
         .collect(toList());

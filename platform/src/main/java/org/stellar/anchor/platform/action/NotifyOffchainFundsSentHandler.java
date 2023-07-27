@@ -77,6 +77,7 @@ public class NotifyOffchainFundsSentHandler extends ActionHandler<NotifyOffchain
             supportedStatuses.add(PENDING_ANCHOR);
           }
           supportedStatuses.add(PENDING_USR_TRANSFER_COMPLETE);
+          supportedStatuses.add(PENDING_EXTERNAL);
           break;
       }
     }

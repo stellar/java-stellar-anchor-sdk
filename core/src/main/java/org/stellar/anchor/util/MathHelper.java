@@ -3,6 +3,7 @@ package org.stellar.anchor.util;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
+import java.util.Arrays;
 import org.stellar.anchor.api.sep.AssetInfo;
 
 public class MathHelper {
@@ -49,5 +50,11 @@ public class MathHelper {
 
   public static String formatAmount(BigDecimal amount) {
     return formatAmount(amount, 4);
+  }
+
+  public static BigDecimal sum(AssetInfo assetInfo, String... values) {
+    return Arrays.stream(values)
+        .map(value -> decimal(value, assetInfo))
+        .reduce(BigDecimal.ZERO, BigDecimal::add);
   }
 }
