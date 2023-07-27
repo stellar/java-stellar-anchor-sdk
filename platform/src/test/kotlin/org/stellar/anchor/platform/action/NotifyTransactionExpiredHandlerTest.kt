@@ -126,7 +126,7 @@ class NotifyTransactionExpiredHandlerTest {
 
     val ex = assertThrows<InvalidRequestException> { handler.handle(request) }
     assertEquals(
-      "Action[notify_transaction_expired] is not supported for status[pending_anchor], kind[null] and protocol[24]",
+      "Action[notify_transaction_expired] is not supported. Status[pending_anchor], kind[null], protocol[24], funds received[true]",
       ex.message
     )
   }

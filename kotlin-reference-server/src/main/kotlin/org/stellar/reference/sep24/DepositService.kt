@@ -85,7 +85,7 @@ class DepositService(private val cfg: Config) {
           put(
             "amount_in",
             buildJsonObject {
-              put("asset", JsonPrimitive(stellarAsset))
+              put("asset", JsonPrimitive("iso4217:USD"))
               put("amount", JsonPrimitive(amount.toPlainString()))
             }
           )
@@ -99,7 +99,7 @@ class DepositService(private val cfg: Config) {
           put(
             "amount_fee",
             buildJsonObject {
-              put("asset", JsonPrimitive(stellarAsset))
+              put("asset", JsonPrimitive("iso4217:USD"))
               put("amount", JsonPrimitive(fee.toPlainString()))
             }
           )

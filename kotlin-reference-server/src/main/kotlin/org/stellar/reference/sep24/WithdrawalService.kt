@@ -81,7 +81,7 @@ class WithdrawalService(private val cfg: Config) {
           put(
             "amount_out",
             buildJsonObject {
-              put("asset", JsonPrimitive(stellarAsset))
+              put("asset", JsonPrimitive("iso4217:USD"))
               put("amount", JsonPrimitive(amount.subtract(fee).toPlainString()))
             }
           )
