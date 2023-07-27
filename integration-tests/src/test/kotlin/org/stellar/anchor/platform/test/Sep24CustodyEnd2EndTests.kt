@@ -77,9 +77,9 @@ class Sep24CustodyEnd2EndTests(config: TestConfig, val jwt: String) {
       assertEquals(fetchedTxn.id, transactionByStellarId.id)
 
       // Check the events sent to the reference server are recorded correctly
-      val actualEvents = waitForEvents(txnId, 4)
+      val actualEvents = waitForEvents(txnId, 5)
       assertNotNull(actualEvents)
-      actualEvents?.let { assertEquals(4, it.size) }
+      actualEvents?.let { assertEquals(5, it.size) }
       val expectedEvents: List<AnchorEvent> =
         gson.fromJson(expectedDepositEventsJson, object : TypeToken<List<AnchorEvent>>() {}.type)
       compareAndAssertEvents(asset, expectedEvents, actualEvents!!)
@@ -114,6 +114,7 @@ class Sep24CustodyEnd2EndTests(config: TestConfig, val jwt: String) {
         expectedEvent.transaction.stellarTransactions = actualEvent.transaction.stellarTransactions
         expectedEvent.transaction.memo = actualEvent.transaction.memo
         expectedEvent.transaction.amountExpected.asset = asset.id
+        expectedEvent.transaction.completedAt = actualEvent.transaction.completedAt
         actualEvent.transaction.amountIn?.let {
           expectedEvent.transaction.amountIn.amount = actualEvent.transaction.amountIn.amount
           expectedEvent.transaction.amountIn.asset = asset.sep38
@@ -206,6 +207,7 @@ class Sep24CustodyEnd2EndTests(config: TestConfig, val jwt: String) {
       }
       delay(1.seconds)
       retries--
+      info("Size: " + events.size)
     }
     return null
   }
@@ -332,6 +334,25 @@ class Sep24CustodyEnd2EndTests(config: TestConfig, val jwt: String) {
       "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
     }
   },
+   {
+    "type": "TRANSACTION_STATUS_CHANGED",
+    "sep": "24",
+    "transaction": {
+      "sep": "24",
+      "kind": "deposit",
+      "status": "pending_stellar",
+      "amount_expected": {
+      },
+      "amount_in": {
+      },
+      "amount_out": {
+      },
+      "amount_fee": {
+      },
+      "message": "funds received, transaction is being processed",
+      "destination_account": "GDJLBYYKMCXNVVNABOE66NYXQGIA5AC5D223Z2KF6ZEYK4UBCA7FKLTG"
+    }
+  },
   {
     "type": "TRANSACTION_STATUS_CHANGED",
     "sep": "24",
@@ -347,7 +368,8 @@ class Sep24CustodyEnd2EndTests(config: TestConfig, val jwt: String) {
       },
       "amount_fee": {
       },
-      "message": "funds received, transaction is being processed",
+      "message": "Outgoing payment sent",
+      "completed_at": "2023-06-22T08:46:39.336Z",
       "stellar_transactions": [
         {
           "id": "111129e48806cdc4873c98e769c8c736a0d157d4e6a24c5ecb4c64b3b0e4a890",
@@ -423,7 +445,7 @@ class Sep24CustodyEnd2EndTests(config: TestConfig, val jwt: String) {
           },
           "amount_fee": {
           },
-          "message": "waiting on the user to transfer funds",
+          "message": "Received an incoming payment",
           "stellar_transactions": [
             {
               "id": "9234bd186612f4d48cafed4c702509f680a581c3e02945f0206b4c8ac627b83a",

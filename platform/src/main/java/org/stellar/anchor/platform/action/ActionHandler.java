@@ -1,16 +1,20 @@
 package org.stellar.anchor.platform.action;
 
+import static org.stellar.anchor.api.event.AnchorEvent.Type.TRANSACTION_STATUS_CHANGED;
 import static org.stellar.anchor.api.platform.PlatformTransactionData.Kind.RECEIVE;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.COMPLETED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.ERROR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.EXPIRED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.REFUNDED;
+import static org.stellar.anchor.event.EventService.EventQueue.TRANSACTION;
 import static org.stellar.anchor.platform.utils.PlatformTransactionHelper.toGetTransactionResponse;
 
 import com.google.gson.Gson;
 import java.time.Instant;
 import java.util.Set;
+import java.util.UUID;
 import org.springframework.transaction.annotation.Transactional;
+import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException;
@@ -21,6 +25,8 @@ import org.stellar.anchor.api.rpc.action.ActionMethod;
 import org.stellar.anchor.api.rpc.action.RpcActionParamsRequest;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
+import org.stellar.anchor.event.EventService;
+import org.stellar.anchor.event.EventService.Session;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSep31Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
@@ -39,18 +45,21 @@ public abstract class ActionHandler<T extends RpcActionParamsRequest> {
   protected final AssetService assetService;
   private final RequestValidator requestValidator;
   private final Class<T> requestType;
+  private final Session eventSession;
 
   public ActionHandler(
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
       AssetService assetService,
+      EventService eventService,
       Class<T> requestType) {
     this.txn24Store = txn24Store;
     this.txn31Store = txn31Store;
     this.requestValidator = requestValidator;
     this.assetService = assetService;
     this.requestType = requestType;
+    this.eventSession = eventService.createSession(this.getClass().getName(), TRANSACTION);
   }
 
   @Transactional
@@ -83,6 +92,16 @@ public abstract class ActionHandler<T extends RpcActionParamsRequest> {
     }
 
     updateTransaction(txn, request);
+
+    GetTransactionResponse txResponse = toGetTransactionResponse(txn, assetService);
+
+    eventSession.publish(
+        AnchorEvent.builder()
+            .id(UUID.randomUUID().toString())
+            .sep(txn.getProtocol())
+            .type(TRANSACTION_STATUS_CHANGED)
+            .transaction(txResponse)
+            .build());
 
     return toGetTransactionResponse(txn, assetService);
   }

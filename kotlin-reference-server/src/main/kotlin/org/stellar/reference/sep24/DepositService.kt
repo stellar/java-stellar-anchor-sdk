@@ -35,6 +35,11 @@ class DepositService(private val cfg: Config) {
         "pending_anchor",
         "funds received, transaction is being processed"
       )
+      sep24.patchTransaction(
+        transactionId,
+        "pending_stellar",
+        "funds received, transaction is being processed"
+      )
 
       transaction = sep24.getTransaction(transactionId)
       log.info { "Transaction status changed: $transaction" }

@@ -8,17 +8,17 @@ import kotlin.test.assertTrue
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
-import org.skyscreamer.jsonassert.Customization
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
-import org.skyscreamer.jsonassert.comparator.CustomComparator
+import org.stellar.anchor.api.event.AnchorEvent
+import org.stellar.anchor.api.event.AnchorEvent.Type.TRANSACTION_STATUS_CHANGED
 import org.stellar.anchor.api.exception.BadRequestException
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException
 import org.stellar.anchor.api.platform.GetTransactionResponse
-import org.stellar.anchor.api.platform.PlatformTransactionData
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.DEPOSIT
 import org.stellar.anchor.api.platform.PlatformTransactionData.Kind.WITHDRAWAL
+import org.stellar.anchor.api.platform.PlatformTransactionData.Sep.SEP_24
 import org.stellar.anchor.api.rpc.action.AmountAssetRequest
 import org.stellar.anchor.api.rpc.action.NotifyRefundSentRequest
 import org.stellar.anchor.api.sep.SepTransactionStatus.*
@@ -27,6 +27,9 @@ import org.stellar.anchor.api.shared.RefundPayment
 import org.stellar.anchor.api.shared.Refunds
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
+import org.stellar.anchor.event.EventService
+import org.stellar.anchor.event.EventService.EventQueue.TRANSACTION
+import org.stellar.anchor.event.EventService.Session
 import org.stellar.anchor.platform.data.JdbcSep24RefundPayment
 import org.stellar.anchor.platform.data.JdbcSep24Refunds
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
@@ -37,7 +40,7 @@ import org.stellar.anchor.util.GsonUtils
 
 class NotifyRefundSentHandlerTest {
   companion object {
-    private val GSON = GsonUtils.getInstance()
+    private val gson = GsonUtils.getInstance()
     private const val TX_ID = "testId"
     private const val FIAT_USD = "iso4217:USD"
     private const val STELLAR_USDC =
@@ -46,17 +49,26 @@ class NotifyRefundSentHandlerTest {
   }
 
   @MockK(relaxed = true) private lateinit var txn24Store: Sep24TransactionStore
+
   @MockK(relaxed = true) private lateinit var txn31Store: Sep31TransactionStore
+
   @MockK(relaxed = true) private lateinit var requestValidator: RequestValidator
+
   @MockK(relaxed = true) private lateinit var assetService: AssetService
+
+  @MockK(relaxed = true) private lateinit var eventService: EventService
+
+  @MockK(relaxed = true) private lateinit var eventSession: Session
 
   private lateinit var handler: NotifyRefundSentHandler
 
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
+    every { eventService.createSession(any(), TRANSACTION) } returns eventSession
     this.assetService = DefaultAssetService.fromJsonResource("test_assets.json")
-    this.handler = NotifyRefundSentHandler(txn24Store, txn31Store, requestValidator, assetService)
+    this.handler =
+      NotifyRefundSentHandler(txn24Store, txn31Store, requestValidator, assetService, eventService)
   }
 
   @Test
@@ -235,6 +247,7 @@ class NotifyRefundSentHandlerTest {
     txn24.amountInAsset = STELLAR_USDC
 
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
+    val anchorEventCapture = slot<AnchorEvent>()
     val payment = JdbcSep24RefundPayment()
     payment.id = request.refund.id
     payment.amount = request.refund.amount.amount
@@ -243,6 +256,7 @@ class NotifyRefundSentHandlerTest {
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
+    every { eventSession.publish(capture(anchorEventCapture)) } just Runs
 
     val startDate = Instant.now()
     val response = handler.handle(request)
@@ -267,13 +281,13 @@ class NotifyRefundSentHandlerTest {
     expectedSep24Txn.refunds = expectedRefunds
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedSep24Txn),
-      GSON.toJson(sep24TxnCapture.captured),
+      gson.toJson(expectedSep24Txn),
+      gson.toJson(sep24TxnCapture.captured),
       JSONCompareMode.STRICT
     )
 
     val expectedResponse = GetTransactionResponse()
-    expectedResponse.sep = PlatformTransactionData.Sep.SEP_24
+    expectedResponse.sep = SEP_24
     expectedResponse.kind = DEPOSIT
     expectedResponse.status = PENDING_ANCHOR
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
@@ -290,8 +304,22 @@ class NotifyRefundSentHandlerTest {
     expectedResponse.refunds = Refunds(refunded, refundedFee, arrayOf(refundPayment))
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedResponse),
-      GSON.toJson(response),
+      gson.toJson(expectedResponse),
+      gson.toJson(response),
+      JSONCompareMode.STRICT
+    )
+
+    val expectedEvent =
+      AnchorEvent.builder()
+        .id(anchorEventCapture.captured.id)
+        .sep(SEP_24.sep.toString())
+        .type(TRANSACTION_STATUS_CHANGED)
+        .transaction(expectedResponse)
+        .build()
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedEvent),
+      gson.toJson(anchorEventCapture.captured),
       JSONCompareMode.STRICT
     )
 
@@ -324,6 +352,7 @@ class NotifyRefundSentHandlerTest {
     txn24.amountFeeAsset = FIAT_USD
 
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
+    val anchorEventCapture = slot<AnchorEvent>()
     val payment1 = JdbcSep24RefundPayment()
     payment1.id = "1"
     payment1.amount = "1"
@@ -341,6 +370,7 @@ class NotifyRefundSentHandlerTest {
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
+    every { eventSession.publish(capture(anchorEventCapture)) } just Runs
 
     val startDate = Instant.now()
     val response = handler.handle(request)
@@ -363,16 +393,16 @@ class NotifyRefundSentHandlerTest {
     expectedRefunds.amountFee = "0.2"
     expectedRefunds.payments = listOf(payment1, payment2)
     expectedSep24Txn.refunds = expectedRefunds
-    expectedSep24Txn.completedAt = endDate
+    expectedSep24Txn.completedAt = sep24TxnCapture.captured.completedAt
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedSep24Txn),
-      GSON.toJson(sep24TxnCapture.captured),
-      CustomComparator(JSONCompareMode.STRICT, Customization("completed_at") { _, _ -> true })
+      gson.toJson(expectedSep24Txn),
+      gson.toJson(sep24TxnCapture.captured),
+      JSONCompareMode.STRICT
     )
 
     val expectedResponse = GetTransactionResponse()
-    expectedResponse.sep = PlatformTransactionData.Sep.SEP_24
+    expectedResponse.sep = SEP_24
     expectedResponse.kind = DEPOSIT
     expectedResponse.status = REFUNDED
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
@@ -393,20 +423,36 @@ class NotifyRefundSentHandlerTest {
     val refundedFee = Amount("0.2", txn24.amountInAsset)
     expectedResponse.refunds =
       Refunds(refunded, refundedFee, arrayOf(refundPayment1, refundPayment2))
-    expectedResponse.completedAt = endDate
+    expectedResponse.completedAt = sep24TxnCapture.captured.completedAt
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedResponse),
-      GSON.toJson(response),
-      CustomComparator(JSONCompareMode.STRICT, Customization("completed_at") { _, _ -> true })
+      gson.toJson(expectedResponse),
+      gson.toJson(response),
+      JSONCompareMode.STRICT
+    )
+
+    val expectedEvent =
+      AnchorEvent.builder()
+        .id(anchorEventCapture.captured.id)
+        .sep(SEP_24.sep.toString())
+        .type(TRANSACTION_STATUS_CHANGED)
+        .transaction(expectedResponse)
+        .build()
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedEvent),
+      gson.toJson(anchorEventCapture.captured),
+      JSONCompareMode.STRICT
     )
 
     assertTrue(expectedSep24Txn.updatedAt >= startDate)
     assertTrue(expectedSep24Txn.updatedAt <= endDate)
+    assertTrue(expectedSep24Txn.completedAt >= startDate)
+    assertTrue(expectedSep24Txn.completedAt <= endDate)
   }
 
   @Test
-  fun `test handle ok full refund in single call`() {
+  fun `test_handle_ok full_refund_in_single_call`() {
     val transferReceivedAt = Instant.now()
     val request =
       NotifyRefundSentRequest.builder()
@@ -430,6 +476,7 @@ class NotifyRefundSentHandlerTest {
     txn24.amountFeeAsset = FIAT_USD
 
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
+    val anchorEventCapture = slot<AnchorEvent>()
     val payment = JdbcSep24RefundPayment()
     payment.id = "1"
     payment.amount = "1"
@@ -438,6 +485,7 @@ class NotifyRefundSentHandlerTest {
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
+    every { eventSession.publish(capture(anchorEventCapture)) } just Runs
 
     val startDate = Instant.now()
     val response = handler.handle(request)
@@ -460,16 +508,16 @@ class NotifyRefundSentHandlerTest {
     expectedRefunds.amountFee = "0"
     expectedRefunds.payments = listOf(payment)
     expectedSep24Txn.refunds = expectedRefunds
-    expectedSep24Txn.completedAt = endDate
+    expectedSep24Txn.completedAt = sep24TxnCapture.captured.completedAt
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedSep24Txn),
-      GSON.toJson(sep24TxnCapture.captured),
-      CustomComparator(JSONCompareMode.STRICT, Customization("completed_at") { _, _ -> true })
+      gson.toJson(expectedSep24Txn),
+      gson.toJson(sep24TxnCapture.captured),
+      JSONCompareMode.STRICT
     )
 
     val expectedResponse = GetTransactionResponse()
-    expectedResponse.sep = PlatformTransactionData.Sep.SEP_24
+    expectedResponse.sep = SEP_24
     expectedResponse.kind = DEPOSIT
     expectedResponse.status = REFUNDED
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
@@ -484,16 +532,32 @@ class NotifyRefundSentHandlerTest {
     val refunded = Amount("1", txn24.amountInAsset)
     val refundedFee = Amount("0", txn24.amountInAsset)
     expectedResponse.refunds = Refunds(refunded, refundedFee, arrayOf(refundPayment))
-    expectedResponse.completedAt = endDate
+    expectedResponse.completedAt = sep24TxnCapture.captured.completedAt
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedResponse),
-      GSON.toJson(response),
-      CustomComparator(JSONCompareMode.STRICT, Customization("completed_at") { _, _ -> true })
+      gson.toJson(expectedResponse),
+      gson.toJson(response),
+      JSONCompareMode.STRICT
+    )
+
+    val expectedEvent =
+      AnchorEvent.builder()
+        .id(anchorEventCapture.captured.id)
+        .sep(SEP_24.sep.toString())
+        .type(TRANSACTION_STATUS_CHANGED)
+        .transaction(expectedResponse)
+        .build()
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedEvent),
+      gson.toJson(anchorEventCapture.captured),
+      JSONCompareMode.STRICT
     )
 
     assertTrue(expectedSep24Txn.updatedAt >= startDate)
     assertTrue(expectedSep24Txn.updatedAt <= endDate)
+    assertTrue(expectedSep24Txn.completedAt >= startDate)
+    assertTrue(expectedSep24Txn.completedAt <= endDate)
   }
 
   @Test
@@ -548,6 +612,7 @@ class NotifyRefundSentHandlerTest {
     txn24.amountFeeAsset = FIAT_USD
 
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
+    val anchorEventCapture = slot<AnchorEvent>()
     val payment = JdbcSep24RefundPayment()
     payment.id = "1"
     payment.amount = "1"
@@ -561,6 +626,7 @@ class NotifyRefundSentHandlerTest {
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
+    every { eventSession.publish(capture(anchorEventCapture)) } just Runs
 
     val startDate = Instant.now()
     val response = handler.handle(request)
@@ -585,13 +651,13 @@ class NotifyRefundSentHandlerTest {
     expectedSep24Txn.refunds = expectedRefunds
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedSep24Txn),
-      GSON.toJson(sep24TxnCapture.captured),
+      gson.toJson(expectedSep24Txn),
+      gson.toJson(sep24TxnCapture.captured),
       JSONCompareMode.STRICT
     )
 
     val expectedResponse = GetTransactionResponse()
-    expectedResponse.sep = PlatformTransactionData.Sep.SEP_24
+    expectedResponse.sep = SEP_24
     expectedResponse.kind = DEPOSIT
     expectedResponse.status = PENDING_ANCHOR
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
@@ -608,8 +674,22 @@ class NotifyRefundSentHandlerTest {
     expectedResponse.refunds = Refunds(refunded, refundedFee, arrayOf(refundPayment))
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedResponse),
-      GSON.toJson(response),
+      gson.toJson(expectedResponse),
+      gson.toJson(response),
+      JSONCompareMode.STRICT
+    )
+
+    val expectedEvent =
+      AnchorEvent.builder()
+        .id(anchorEventCapture.captured.id)
+        .sep(SEP_24.sep.toString())
+        .type(TRANSACTION_STATUS_CHANGED)
+        .transaction(expectedResponse)
+        .build()
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedEvent),
+      gson.toJson(anchorEventCapture.captured),
       JSONCompareMode.STRICT
     )
 
@@ -642,6 +722,7 @@ class NotifyRefundSentHandlerTest {
     txn24.amountFeeAsset = FIAT_USD
 
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
+    val anchorEventCapture = slot<AnchorEvent>()
     val payment1 = JdbcSep24RefundPayment()
     payment1.id = request.refund.id
     payment1.amount = "1"
@@ -659,6 +740,7 @@ class NotifyRefundSentHandlerTest {
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
+    every { eventSession.publish(capture(anchorEventCapture)) } just Runs
 
     val startDate = Instant.now()
     val response = handler.handle(request)
@@ -691,13 +773,13 @@ class NotifyRefundSentHandlerTest {
     expectedSep24Txn.refunds = expectedRefunds
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedSep24Txn),
-      GSON.toJson(sep24TxnCapture.captured),
+      gson.toJson(expectedSep24Txn),
+      gson.toJson(sep24TxnCapture.captured),
       JSONCompareMode.STRICT
     )
 
     val expectedResponse = GetTransactionResponse()
-    expectedResponse.sep = PlatformTransactionData.Sep.SEP_24
+    expectedResponse.sep = SEP_24
     expectedResponse.kind = DEPOSIT
     expectedResponse.status = PENDING_ANCHOR
     expectedResponse.amountExpected = Amount(null, FIAT_USD)
@@ -720,8 +802,22 @@ class NotifyRefundSentHandlerTest {
       Refunds(refunded, refundedFee, arrayOf(refundPayment2, refundPayment1))
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedResponse),
-      GSON.toJson(response),
+      gson.toJson(expectedResponse),
+      gson.toJson(response),
+      JSONCompareMode.STRICT
+    )
+
+    val expectedEvent =
+      AnchorEvent.builder()
+        .id(anchorEventCapture.captured.id)
+        .sep(SEP_24.sep.toString())
+        .type(TRANSACTION_STATUS_CHANGED)
+        .transaction(expectedResponse)
+        .build()
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedEvent),
+      gson.toJson(anchorEventCapture.captured),
       JSONCompareMode.STRICT
     )
 
