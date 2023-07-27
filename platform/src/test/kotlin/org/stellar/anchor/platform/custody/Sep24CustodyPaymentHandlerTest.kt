@@ -4,12 +4,14 @@ import io.micrometer.core.instrument.Counter
 import io.micrometer.core.instrument.Metrics
 import io.mockk.*
 import io.mockk.impl.annotations.MockK
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
-import org.stellar.anchor.api.platform.PatchTransactionsRequest
+import org.stellar.anchor.api.platform.PlatformTransactionData
 import org.stellar.anchor.apiclient.PlatformApiClient
+import org.stellar.anchor.platform.config.RpcConfig
 import org.stellar.anchor.platform.data.JdbcCustodyTransaction
 import org.stellar.anchor.platform.data.JdbcCustodyTransactionRepo
 import org.stellar.anchor.util.FileUtil
@@ -22,6 +24,7 @@ class Sep24CustodyPaymentHandlerTest {
   @MockK(relaxed = true) private lateinit var sep24TransactionCounter: Counter
   @MockK(relaxed = true) private lateinit var paymentReceivedCounter: Counter
   @MockK(relaxed = true) private lateinit var paymentSentCounter: Counter
+  @MockK(relaxed = true) private lateinit var rpcConfig: RpcConfig
 
   private lateinit var sep24CustodyPaymentHandler: Sep24CustodyPaymentHandler
 
@@ -31,7 +34,7 @@ class Sep24CustodyPaymentHandlerTest {
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
     sep24CustodyPaymentHandler =
-      Sep24CustodyPaymentHandler(custodyTransactionRepo, platformApiClient)
+      Sep24CustodyPaymentHandler(custodyTransactionRepo, platformApiClient, rpcConfig)
   }
 
   @Test
@@ -43,6 +46,7 @@ class Sep24CustodyPaymentHandlerTest {
         ),
         JdbcCustodyTransaction::class.java
       )
+    txn.kind = PlatformTransactionData.Kind.WITHDRAWAL.kind
     val payment =
       gson.fromJson(
         FileUtil.getResourceFileAsString(
@@ -52,12 +56,23 @@ class Sep24CustodyPaymentHandlerTest {
       )
 
     val custodyTxCapture = slot<JdbcCustodyTransaction>()
-    val patchTxRequestCapture = slot<PatchTransactionsRequest>()
+    val txnIdCapture = slot<String>()
+    val stellarTxnIdCapture = slot<String>()
+    val amountCapture = slot<String>()
+    val messageCapture = slot<String>()
 
     mockkStatic(Metrics::class)
 
+    every { rpcConfig.actions.customMessages.incomingPaymentReceived } returns "payment received"
     every { custodyTransactionRepo.save(capture(custodyTxCapture)) } returns txn
-    every { platformApiClient.patchTransaction(capture(patchTxRequestCapture)) } returns null
+    every {
+      platformApiClient.notifyOnchainFundsReceived(
+        capture(txnIdCapture),
+        capture(stellarTxnIdCapture),
+        capture(amountCapture),
+        capture(messageCapture)
+      )
+    } just Runs
     every { Metrics.counter("sep24.transaction", "status", "pending_anchor") } returns
       sep24TransactionCounter
     every { Metrics.counter("payment.received", "asset", "testAmountInAsset") } returns
@@ -70,18 +85,15 @@ class Sep24CustodyPaymentHandlerTest {
 
     JSONAssert.assertEquals(
       FileUtil.getResourceFileAsString(
-        "custody/fireblocks/webhook/handler/custody_transaction_db.json"
+        "custody/fireblocks/webhook/handler/custody_transaction_db_withdrawal.json"
       ),
       gson.toJson(custodyTxCapture.captured),
       JSONCompareMode.STRICT
     )
-    JSONAssert.assertEquals(
-      FileUtil.getResourceFileAsString(
-        "custody/fireblocks/webhook/handler/patch_transaction_request_with_id_sep24_withdrawal.json"
-      ),
-      gson.toJson(patchTxRequestCapture.captured),
-      JSONCompareMode.STRICT
-    )
+    Assertions.assertEquals(txn.id, txnIdCapture.captured)
+    Assertions.assertEquals(payment.transactionHash, stellarTxnIdCapture.captured)
+    Assertions.assertEquals(payment.amount, amountCapture.captured)
+    Assertions.assertEquals("payment received", messageCapture.captured)
   }
 
   @Test
@@ -102,12 +114,21 @@ class Sep24CustodyPaymentHandlerTest {
       )
 
     val custodyTxCapture = slot<JdbcCustodyTransaction>()
-    val patchTxRequestCapture = slot<PatchTransactionsRequest>()
+    val txnIdCapture = slot<String>()
+    val stellarTxnIdCapture = slot<String>()
+    val messageCapture = slot<String>()
 
     mockkStatic(Metrics::class)
 
+    every { rpcConfig.actions.customMessages.outgoingPaymentSent } returns "payment sent"
     every { custodyTransactionRepo.save(capture(custodyTxCapture)) } returns txn
-    every { platformApiClient.patchTransaction(capture(patchTxRequestCapture)) } returns null
+    every {
+      platformApiClient.notifyOnchainFundsSent(
+        capture(txnIdCapture),
+        capture(stellarTxnIdCapture),
+        capture(messageCapture)
+      )
+    } just Runs
     every { Metrics.counter("sep24.transaction", "status", "completed") } returns
       sep24TransactionCounter
     every { Metrics.counter("payment.sent", "asset", "testAmountInAsset") } returns
@@ -125,12 +146,8 @@ class Sep24CustodyPaymentHandlerTest {
       gson.toJson(custodyTxCapture.captured),
       JSONCompareMode.STRICT
     )
-    JSONAssert.assertEquals(
-      FileUtil.getResourceFileAsString(
-        "custody/fireblocks/webhook/handler/patch_transaction_request_with_id_sep24_deposit.json"
-      ),
-      gson.toJson(patchTxRequestCapture.captured),
-      JSONCompareMode.STRICT
-    )
+    Assertions.assertEquals(txn.id, txnIdCapture.captured)
+    Assertions.assertEquals(payment.transactionHash, stellarTxnIdCapture.captured)
+    Assertions.assertEquals("payment sent", messageCapture.captured)
   }
 }
