@@ -314,7 +314,7 @@ private const val expectedTransactionResponse =
   "status": "completed",
   "amount_in": {
     "amount": "1",
-    "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+    "asset": "iso4217:USD"
   },
   "message": "Outgoing payment sent",
   "amount_out": {
@@ -323,7 +323,7 @@ private const val expectedTransactionResponse =
   },
   "amount_fee": {
     "amount": "0.1",
-    "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+    "asset": "iso4217:USD"
   },
   "amount_expected": {
     "amount": "1",
@@ -361,7 +361,7 @@ private const val REQUEST_OFFCHAIN_FUNDS =
     "message": "test message",
     "amount_in": {
         "amount": "1",
-        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+        "asset": "iso4217:USD"
     },
     "amount_out": {
         "amount": "0.9",
@@ -369,7 +369,7 @@ private const val REQUEST_OFFCHAIN_FUNDS =
     },
     "amount_fee": {
         "amount": "0.1",
-        "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
+        "asset": "iso4217:USD"
     },
     "amount_expected": {
         "amount": "1"
