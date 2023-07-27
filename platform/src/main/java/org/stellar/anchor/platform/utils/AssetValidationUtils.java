@@ -14,6 +14,12 @@ import org.stellar.anchor.util.StringHelper;
 
 public class AssetValidationUtils {
 
+  private static final String STELLAR_ASSET_PREFIX = "stellar:";
+
+  public static boolean isStellarAsset(String asset) {
+    return asset.startsWith(STELLAR_ASSET_PREFIX);
+  }
+
   /**
    * validateAsset will validate if the provided amount has valid values and if its asset is
    * supported.

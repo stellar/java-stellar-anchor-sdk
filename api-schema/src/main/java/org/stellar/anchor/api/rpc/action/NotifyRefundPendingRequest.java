@@ -12,18 +12,19 @@ import lombok.experimental.SuperBuilder;
 @SuperBuilder
 @AllArgsConstructor
 @EqualsAndHashCode(callSuper = false)
-public class NotifyRefundInitiatedRequest extends RpcActionParamsRequest {
+public class NotifyRefundPendingRequest extends RpcActionParamsRequest {
 
   @NotNull private Refund refund;
 
   @Data
   @Builder
   public static class Refund {
+
     @NotNull private String id;
-    @NotNull private AmountRequest amount;
+    @NotNull private AmountAssetRequest amount;
 
     @SerializedName("amount_fee")
     @NotNull
-    private AmountRequest amountFee;
+    private AmountAssetRequest amountFee;
   }
 }

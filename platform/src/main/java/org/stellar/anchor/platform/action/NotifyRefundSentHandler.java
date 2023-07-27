@@ -70,6 +70,15 @@ public class NotifyRefundSentHandler extends ActionHandler<NotifyRefundSentReque
               .build(),
           true,
           assetService);
+
+      if (!txn.getAmountInAsset().equals(request.getRefund().getAmount().getAsset())) {
+        throw new InvalidParamsException(
+            "refund.amount.asset does not match transaction amount_in_asset");
+      }
+      if (!txn.getAmountFeeAsset().equals(request.getRefund().getAmountFee().getAsset())) {
+        throw new InvalidParamsException(
+            "refund.amount_fee.asset does not match match transaction amount_fee_asset");
+      }
     }
   }
 
@@ -105,7 +114,7 @@ public class NotifyRefundSentHandler extends ActionHandler<NotifyRefundSentReque
         } else {
           List<Sep24RefundPayment> payments = sep24Refunds.getRefundPayments();
 
-          // make sure refund, provided in request, was sent on refund_initialized
+          // make sure refund, provided in request, was sent on refund_pending
           payments.stream()
               .map(Sep24RefundPayment::getId)
               .filter(id -> id.equals(request.getRefund().getId()))
