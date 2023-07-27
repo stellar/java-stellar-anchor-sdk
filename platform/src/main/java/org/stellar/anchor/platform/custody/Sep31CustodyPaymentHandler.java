@@ -8,6 +8,7 @@ import java.io.IOException;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.apiclient.PlatformApiClient;
+import org.stellar.anchor.platform.config.RpcConfig;
 import org.stellar.anchor.platform.custody.CustodyPayment.CustodyPaymentStatus;
 import org.stellar.anchor.platform.data.JdbcCustodyTransaction;
 import org.stellar.anchor.platform.data.JdbcCustodyTransactionRepo;
@@ -17,8 +18,10 @@ import org.stellar.anchor.platform.service.AnchorMetrics;
 public class Sep31CustodyPaymentHandler extends CustodyPaymentHandler {
 
   public Sep31CustodyPaymentHandler(
-      JdbcCustodyTransactionRepo custodyTransactionRepo, PlatformApiClient platformApiClient) {
-    super(custodyTransactionRepo, platformApiClient);
+      JdbcCustodyTransactionRepo custodyTransactionRepo,
+      PlatformApiClient platformApiClient,
+      RpcConfig rpcConfig) {
+    super(custodyTransactionRepo, platformApiClient, rpcConfig);
   }
 
   @Override

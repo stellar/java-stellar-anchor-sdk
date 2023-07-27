@@ -129,3 +129,6 @@ custody.fireblocks.retry_config.delay:
 custody.fireblocks.asset_mappings:
 custody.fireblocks.reconciliation.cron_expression:
 custody.fireblocks.reconciliation.max_attempts:
+rpc.actions.custom_messages.custody_transaction_failed:
+rpc.actions.custom_messages.incoming_payment_received:
+rpc.actions.custom_messages.outgoing_payment_sent:

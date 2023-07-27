@@ -51,7 +51,7 @@ class PlatformApiTests(config: TestConfig, toml: TomlContent, jwt: String) {
         .params(requestOffchainFundsParams)
         .id(1)
         .build()
-    val response = platformApiClient.rpcAction(listOf(rpcRequest))
+    val response = platformApiClient.callRpcAction(listOf(rpcRequest))
     assertEquals(HttpStatus.SC_OK, response.code)
     JSONAssert.assertEquals(
       EXPECTED_RPC_RESPONSE.replace(TX_ID, txId).trimIndent(),
@@ -92,7 +92,7 @@ class PlatformApiTests(config: TestConfig, toml: TomlContent, jwt: String) {
         .jsonrpc(JSON_RPC_VERSION)
         .params(notifyOffchainFundsReceivedParams)
         .build()
-    val response = platformApiClient.rpcAction(listOf(rpcRequest1, rpcRequest2))
+    val response = platformApiClient.callRpcAction(listOf(rpcRequest1, rpcRequest2))
     assertEquals(HttpStatus.SC_OK, response.code)
 
     JSONAssert.assertEquals(

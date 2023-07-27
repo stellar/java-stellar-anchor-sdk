@@ -14,6 +14,7 @@ import org.stellar.anchor.filter.CustodyAuthJwtFilter;
 import org.stellar.anchor.filter.NoneFilter;
 import org.stellar.anchor.platform.config.CustodyApiConfig;
 import org.stellar.anchor.platform.config.PropertyCustodyConfig;
+import org.stellar.anchor.platform.config.RpcConfig;
 import org.stellar.anchor.platform.custody.Sep24CustodyPaymentHandler;
 import org.stellar.anchor.platform.custody.Sep31CustodyPaymentHandler;
 import org.stellar.anchor.platform.data.JdbcCustodyTransactionRepo;
@@ -55,14 +56,18 @@ public class CustodyBeans {
 
   @Bean
   Sep24CustodyPaymentHandler sep24CustodyPaymentHandler(
-      JdbcCustodyTransactionRepo custodyTransactionRepo, PlatformApiClient platformApiClient) {
-    return new Sep24CustodyPaymentHandler(custodyTransactionRepo, platformApiClient);
+      JdbcCustodyTransactionRepo custodyTransactionRepo,
+      PlatformApiClient platformApiClient,
+      RpcConfig rpcConfig) {
+    return new Sep24CustodyPaymentHandler(custodyTransactionRepo, platformApiClient, rpcConfig);
   }
 
   @Bean
   Sep31CustodyPaymentHandler sep31CustodyPaymentHandler(
-      JdbcCustodyTransactionRepo custodyTransactionRepo, PlatformApiClient platformApiClient) {
-    return new Sep31CustodyPaymentHandler(custodyTransactionRepo, platformApiClient);
+      JdbcCustodyTransactionRepo custodyTransactionRepo,
+      PlatformApiClient platformApiClient,
+      RpcConfig rpcConfig) {
+    return new Sep31CustodyPaymentHandler(custodyTransactionRepo, platformApiClient, rpcConfig);
   }
 
   @Bean(name = "custodyHttpClient")

@@ -711,3 +711,16 @@ data:
   #
   flyway_baseline_on_migrate: false
 
+################################
+## RPC Configuration
+################################
+rpc:
+  actions:
+    ## Custom messages for updating transaction via RPC calls
+    custom_messages:
+      ## Custody transaction failed
+      custody_transaction_failed: "The custody transaction has failed"
+      ## Incoming payment received
+      incoming_payment_received: "Received an incoming payment"
+      ## Outgoing payment sent
+      outgoing_payment_sent: "Outgoing payment sent"
