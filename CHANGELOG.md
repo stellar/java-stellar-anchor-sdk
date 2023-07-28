@@ -1,4 +1,10 @@
 # Changelog
+## 1.2.16
+* Fix AnchorEvent field serialization in Kafka publisher [#1011](https://github.com/stellar/java-stellar-anchor-sdk/pull/1011)
+
+## 1.2.15
+* Add latest_block_processed and latest_block_read to Prometheus endpoint [#980](https://github.com/stellar/java-stellar-anchor-sdk/pull/980)
+
 ## 1.2.14
 * Use buy and sell amounts calculated by rate integration in SEP-38 [#911](https://github.com/stellar/java-stellar-anchor-sdk/pull/911)
 
