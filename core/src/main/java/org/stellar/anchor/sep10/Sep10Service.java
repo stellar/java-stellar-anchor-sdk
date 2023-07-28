@@ -1,6 +1,9 @@
 package org.stellar.anchor.sep10;
 
 import static org.stellar.anchor.util.Log.*;
+import static org.stellar.anchor.util.Metric.counter;
+import static org.stellar.anchor.util.MetricNames.SEP10_CHALLENGE_CREATED;
+import static org.stellar.anchor.util.MetricNames.SEP10_CHALLENGE_VALIDATED;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
@@ -158,6 +161,7 @@ public class Sep10Service {
       ChallengeResponse challengeResponse =
           ChallengeResponse.of(txn.toEnvelopeXdrBase64(), appConfig.getStellarNetworkPassphrase());
       trace("challengeResponse:", challengeResponse);
+      counter(SEP10_CHALLENGE_CREATED);
       return challengeResponse;
     } catch (InvalidSep10ChallengeException ex) {
       warnEx(ex);
@@ -245,6 +249,7 @@ public class Sep10Service {
           sep10Config.getWebAuthDomain(),
           signers);
 
+      counter(SEP10_CHALLENGE_VALIDATED);
       return clientDomain;
     }
 
@@ -272,6 +277,7 @@ public class Sep10Service {
         threshold,
         signers);
 
+    counter(SEP10_CHALLENGE_VALIDATED);
     return clientDomain;
   }
 

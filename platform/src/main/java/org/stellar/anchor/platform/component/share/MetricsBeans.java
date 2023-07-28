@@ -11,7 +11,7 @@ import org.stellar.anchor.platform.service.MetricEmitterService;
 public class MetricsBeans {
 
   /**********************************
-   * Metrics configurations
+   * Metric configurations
    */
   @Bean
   @ConfigurationProperties(prefix = "metrics")

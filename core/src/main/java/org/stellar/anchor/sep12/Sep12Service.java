@@ -1,6 +1,9 @@
 package org.stellar.anchor.sep12;
 
 import static org.stellar.anchor.util.Log.infoF;
+import static org.stellar.anchor.util.Metric.counter;
+import static org.stellar.anchor.util.MetricNames.*;
+import static org.stellar.anchor.util.MetricNames.SEP12_CUSTOMER;
 
 import java.util.Objects;
 import java.util.Set;
@@ -45,6 +48,8 @@ public class Sep12Service {
     GetCustomerResponse response =
         customerIntegration.getCustomer(GetCustomerRequest.from(request));
     Sep12GetCustomerResponse res = GetCustomerResponse.to(response);
+
+    counter(SEP12_CUSTOMER, TYPE, TV_SEP12_GET_CUSTOMER);
     return res;
   }
 
@@ -55,9 +60,10 @@ public class Sep12Service {
     if (request.getAccount() == null && token.getAccount() != null) {
       request.setAccount(token.getAccount());
     }
-
-    return PutCustomerResponse.to(
-        customerIntegration.putCustomer(PutCustomerRequest.from(request)));
+    Sep12PutCustomerResponse response =
+        PutCustomerResponse.to(customerIntegration.putCustomer(PutCustomerRequest.from(request)));
+    counter(SEP12_CUSTOMER, TYPE, TV_SEP12_PUT_CUSTOMER);
+    return response;
   }
 
   public void deleteCustomer(Sep10Jwt sep10Jwt, String account, String memo, String memoType)
@@ -103,6 +109,8 @@ public class Sep12Service {
           "No existing customer found for account={} memo={} memoType={}", account, memo, memoType);
       throw new SepNotFoundException("User not found.");
     }
+
+    counter(SEP12_CUSTOMER, TYPE, TV_SEP12_DELETE_CUSTOMER);
   }
 
   void validateGetOrPutRequest(Sep12CustomerRequestBase requestBase, Sep10Jwt token)

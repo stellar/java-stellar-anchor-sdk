@@ -7,6 +7,9 @@ import static org.stellar.anchor.event.EventService.EventQueue.TRANSACTION;
 import static org.stellar.anchor.util.Log.*;
 import static org.stellar.anchor.util.MathHelper.decimal;
 import static org.stellar.anchor.util.MathHelper.formatAmount;
+import static org.stellar.anchor.util.Metric.counter;
+import static org.stellar.anchor.util.MetricNames.SEP31_TRANSACTION_CREATED;
+import static org.stellar.anchor.util.MetricNames.SEP31_TRANSACTION_PATCHED;
 import static org.stellar.anchor.util.SepHelper.*;
 import static org.stellar.anchor.util.SepLanguageHelper.validateLanguage;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
@@ -189,13 +192,16 @@ public class Sep31Service {
             .transaction(TransactionHelper.toGetTransactionResponse(txn))
             .build());
 
-    return Sep31PostTransactionResponse.builder()
-        .id(txn.getId())
-        .stellarAccountId(txn.getStellarAccountId())
-        .stellarMemo(isEmpty(txn.getStellarMemo()) ? "" : txn.getStellarMemo())
-        .stellarMemoType(
-            isEmpty(txn.getStellarMemoType()) ? MEMO_NONE.name() : txn.getStellarMemoType())
-        .build();
+    Sep31PostTransactionResponse response =
+        Sep31PostTransactionResponse.builder()
+            .id(txn.getId())
+            .stellarAccountId(txn.getStellarAccountId())
+            .stellarMemo(isEmpty(txn.getStellarMemo()) ? "" : txn.getStellarMemo())
+            .stellarMemoType(
+                isEmpty(txn.getStellarMemoType()) ? MEMO_NONE.name() : txn.getStellarMemoType())
+            .build();
+    counter(SEP31_TRANSACTION_CREATED);
+    return response;
   }
 
   /**
@@ -357,8 +363,11 @@ public class Sep31Service {
     Context.get().setTransactionFields(txn.getFields());
     validateRequiredFields();
 
-    Sep31Transaction savedTxn = sep31TransactionStore.save(txn);
-    return savedTxn.toSep31GetTransactionResponse();
+    Sep31GetTransactionResponse response =
+        sep31TransactionStore.save(txn).toSep31GetTransactionResponse();
+
+    counter(SEP31_TRANSACTION_PATCHED);
+    return response;
   }
 
   /**

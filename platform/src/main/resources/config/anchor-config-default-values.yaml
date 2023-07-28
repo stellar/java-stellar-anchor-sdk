@@ -122,7 +122,8 @@ payment_observer:
   context_path: /
   # The listening port of the Stellar observer server
   port: 8083
-  # The management server port
+  # The management_server_port is the port used by Spring actuator.
+  # https://docs.spring.io/spring-boot/docs/current/reference/html/actuator.html
   management_server_port: 9083
   #
   # The type of the observer.
@@ -158,7 +159,8 @@ event_processor:
   context_path: /
   # The listening port of the event processing server
   port: 8088
-  # The management server port
+  # The management_server_port is the port used by Spring actuator.
+  # https://docs.spring.io/spring-boot/docs/current/reference/html/actuator.html
   management_server_port: 9088
   # The configuration of the status callback to the client domain
   client_status_callback:
@@ -223,7 +225,8 @@ platform_server:
   context_path: /
   # The listening port of the Platform server
   port: 8085
-  # The management server port
+  # The management_server_port is the port used by Spring actuator.
+  # https://docs.spring.io/spring-boot/docs/current/reference/html/actuator.html
   management_server_port: 9085
   # Defines the authentication requirements of the platform_api requests. This is used to ensure that the requests
   # must satisfy the authentication requirements before they can be processed.
@@ -260,7 +263,8 @@ sep_server:
   context_path: /
   # The listening port of the SEP server
   port: 8080
-  # the management server port
+  # The management_server_port is the port used by Spring actuator.
+  # https://docs.spring.io/spring-boot/docs/current/reference/html/actuator.html
   management_server_port: 9080
 
 ######################
@@ -434,7 +438,7 @@ sep38:
 
 
 ##########################
-# Metrics Configuration
+# Metric Configuration
 ##########################
 # The metrics are exposed at the port specified by each server's (eg: sep, platform, event processor and observer)
 # management_server_port

@@ -2,6 +2,8 @@ package org.stellar.anchor.sep1;
 
 import static org.stellar.anchor.util.Log.debug;
 import static org.stellar.anchor.util.Log.debugF;
+import static org.stellar.anchor.util.Metric.counter;
+import static org.stellar.anchor.util.MetricNames.SEP1_TOML_ACCESSED;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -47,6 +49,7 @@ public class Sep1Service {
   }
 
   public String getStellarToml() {
+    counter(SEP1_TOML_ACCESSED);
     return tomlValue;
   }
 }

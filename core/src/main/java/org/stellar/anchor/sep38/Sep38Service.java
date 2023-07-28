@@ -7,6 +7,9 @@ import static org.stellar.anchor.util.BeanHelper.updateField;
 import static org.stellar.anchor.util.Log.debug;
 import static org.stellar.anchor.util.MathHelper.decimal;
 import static org.stellar.anchor.util.MathHelper.formatAmount;
+import static org.stellar.anchor.util.Metric.counter;
+import static org.stellar.anchor.util.MetricNames.SEP38_PRICE_QUERIED;
+import static org.stellar.anchor.util.MetricNames.SEP38_QUOTE_CREATED;
 import static org.stellar.anchor.util.SepHelper.validateAmount;
 import static org.stellar.anchor.util.SepHelper.validateAmountLimit;
 import static org.stellar.anchor.util.StringHelper.isNotEmpty;
@@ -118,6 +121,7 @@ public class Sep38Service {
       response.addAsset(buyAssetName, buyAsset.getDecimals(), rate.getPrice());
     }
 
+    counter(SEP38_PRICE_QUERIED);
     return response;
   }
 
@@ -439,7 +443,7 @@ public class Sep38Service {
     updateField(rate, "fee", event, "quote.fee");
 
     eventSession.publish(event);
-
+    counter(SEP38_QUOTE_CREATED);
     return builder.build();
   }
 
