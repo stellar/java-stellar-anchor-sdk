@@ -12,6 +12,7 @@ import java.util.*
 import kotlinx.coroutines.*
 import org.springframework.context.ConfigurableApplicationContext
 import org.stellar.anchor.util.Log.info
+import org.stellar.anchor.util.Log.infoF
 
 lateinit var testProfileExecutor: TestProfileExecutor
 
@@ -75,8 +76,10 @@ class TestProfileExecutor(val config: TestConfig) {
   }
 
   private fun startServers(wait: Boolean): MutableList<ConfigurableApplicationContext> {
+    config
     runBlocking {
       val envMap = config.env
+      envMap.forEach { infoF("key: [{}]. value: [{}]", it.key, it.value) }
 
       envMap["assets.value"] = getResourceFile(envMap["assets.value"]!!).absolutePath
       envMap["sep1.toml.value"] = getResourceFile(envMap["sep1.toml.value"]!!).absolutePath
