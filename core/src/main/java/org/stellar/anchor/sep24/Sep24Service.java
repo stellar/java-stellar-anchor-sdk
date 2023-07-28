@@ -243,14 +243,6 @@ public class Sep24Service {
       destinationAccount = token.getAccount();
     }
 
-    if (!destinationAccount.equals(token.getAccount())) {
-      infoF(
-          "The request account:{} does not match the one in the token:{}",
-          destinationAccount,
-          token.getAccount());
-      throw new SepValidationException("'account' does not match the one in the token");
-    }
-
     // Verify that the asset code exists in our database, with withdraw enabled.
     AssetInfo asset = assetService.getAsset(assetCode, assetIssuer);
     if (asset == null || !asset.getDeposit().getEnabled() || !asset.getSep24Enabled()) {
