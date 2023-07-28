@@ -191,7 +191,7 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
   }
 
   private suspend fun waitForEvents(txnId: String, count: Int): List<AnchorEvent>? {
-    var retries = 5
+    var retries = 60
     while (retries > 0) {
       val events = anchorReferenceServerClient.getEvents(txnId)
       if (events.size >= count) {
