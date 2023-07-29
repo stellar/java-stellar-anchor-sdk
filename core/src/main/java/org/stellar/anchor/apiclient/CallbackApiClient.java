@@ -12,6 +12,7 @@ import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.auth.AuthHelper;
 import org.stellar.anchor.util.GsonUtils;
+import org.stellar.anchor.util.Log;
 import org.stellar.anchor.util.OkHttpUtil;
 
 /** The client for the CallbackAPI endpoints. */
@@ -28,6 +29,7 @@ public class CallbackApiClient extends BaseApiClient {
    */
   public CallbackApiClient(AuthHelper authHelper, String endpoint) throws InvalidConfigException {
     super(authHelper, endpoint);
+    Log.infoF("init callback api client: endpoint {}", endpoint);
     HttpUrl endpointUrl = HttpUrl.parse(endpoint);
     if (endpointUrl == null)
       throw new InvalidConfigException(
@@ -51,6 +53,7 @@ public class CallbackApiClient extends BaseApiClient {
    */
   public SendEventResponse sendEvent(SendEventRequest sendEventRequest)
       throws AnchorException, IOException {
+    Log.infoF("call callback post: URL {}", url);
     RequestBody requestBody = OkHttpUtil.buildJsonRequestBody(gson.toJson(sendEventRequest));
     Request request = getRequestBuilder().url(url).post(requestBody).build();
     Response response = client.newCall(request).execute();
