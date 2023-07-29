@@ -302,7 +302,7 @@ internal class CustodyJwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
       .build()
 
   private val custodyApiConfig: CustodyApiConfig =
-    CustodyApiConfig(PropertyCustodySecretConfig()).apply { baseUrl = "http://localhost:8086" }
+    CustodyApiConfig(PropertyCustodySecretConfig()).apply { baseUrl = "http://localhost:8087" }
 
   private val jwtCustodyClient: org.stellar.anchor.platform.apiclient.CustodyApiClient =
     org.stellar.anchor.platform.apiclient.CustodyApiClient(

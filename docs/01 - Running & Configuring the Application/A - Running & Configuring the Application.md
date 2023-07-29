@@ -194,10 +194,10 @@ Update the configuration file of the Anchor Platform with the base URL and port.
 ```yaml
 custody_server:
   # The listening port of the Custody Server. 
-  # Default value: 8086
+  # Default value: 8087
   port: <port>
   # The base URL of the Custody Server. 
-  # Default value: http://localhost:8086
+  # Default value: http://localhost:8087
   base_url: <base_url>
 ```
 

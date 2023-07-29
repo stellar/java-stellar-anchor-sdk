@@ -9,7 +9,7 @@ open class AbstractIntegrationTest(private val config: TestConfig) {
     const val PLATFORM_TO_ANCHOR_SECRET = "myPlatformToAnchorSecret"
     const val PLATFORM_TO_CUSTODY_SECRET = "myPlatformToCustodySecret"
     const val PLATFORM_SERVER_PORT = 8085
-    const val CUSTODY_SERVER_SERVER_PORT = 8086
+    const val CUSTODY_SERVER_SERVER_PORT = 8087
     const val REFERENCE_SERVER_PORT = 8081
     const val JWT_EXPIRATION_MILLISECONDS = 10000L
   }
