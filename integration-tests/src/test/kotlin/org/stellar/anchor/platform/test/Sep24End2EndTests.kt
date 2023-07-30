@@ -78,8 +78,6 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
 
       // Check the events sent to the reference server are recorded correctly
       val actualEvents = waitForEvents(txnId, 5)
-      info("Received events: {}", actualEvents?.size)
-      actualEvents?.forEach { info(it) }
       assertNotNull(actualEvents)
       actualEvents?.let { assertEquals(5, it.size) }
       val expectedEvents: List<AnchorEvent> =
@@ -194,13 +192,13 @@ class Sep24End2EndTest(config: TestConfig, val jwt: String) {
     var retries = 5
     while (retries > 0) {
       val events = anchorReferenceServerClient.getEvents(txnId)
-      if (events.size >= count) {
+      if (events.size == count) {
         return events
       }
       delay(1.seconds)
       retries--
     }
-    return anchorReferenceServerClient.getEvents(txnId)
+    return null
   }
 
   private suspend fun waitStatus(id: String, expectedStatus: TransactionStatus, token: AuthToken) {
