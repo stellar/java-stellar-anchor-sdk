@@ -41,7 +41,7 @@ class CustodyApiTests(val config: TestConfig, val toml: Sep1Helper.TomlContent, 
     println("Performing Custody API tests...")
 
     `test generate deposit address`(custodyMockServer)
-    //    `test custody transaction payment`(custodyMockServer)
+    `test custody transaction payment`(custodyMockServer)
   }
 
   private fun `test generate deposit address`(custodyMockServer: MockWebServer) {

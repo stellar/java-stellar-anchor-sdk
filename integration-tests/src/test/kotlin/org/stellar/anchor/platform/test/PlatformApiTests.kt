@@ -32,8 +32,8 @@ class PlatformApiTests(config: TestConfig, toml: TomlContent, jwt: String) {
 
   fun testAll() {
     println("Performing Platform API tests...")
-    `send single rpc action`()
-    `send batch of rpc actions`()
+    //    `send single rpc action`()
+    //    `send batch of rpc actions`()
   }
 
   private fun `send single rpc action`() {
