@@ -35,7 +35,6 @@ import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31Transaction;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.util.GsonUtils;
-import org.stellar.anchor.util.Log;
 
 public abstract class ActionHandler<T extends RpcActionParamsRequest> {
 
@@ -60,7 +59,6 @@ public abstract class ActionHandler<T extends RpcActionParamsRequest> {
     this.requestValidator = requestValidator;
     this.assetService = assetService;
     this.requestType = requestType;
-    Log.infoF("Creating event service session, {}", this.getClass().getName());
     this.eventSession = eventService.createSession(this.getClass().getName(), TRANSACTION);
   }
 
@@ -97,15 +95,6 @@ public abstract class ActionHandler<T extends RpcActionParamsRequest> {
 
     GetTransactionResponse txResponse = toGetTransactionResponse(txn, assetService);
 
-    Log.infoF(
-        "Publishing event, {}",
-        AnchorEvent.builder()
-            .id(UUID.randomUUID().toString())
-            .sep(txn.getProtocol())
-            .type(TRANSACTION_STATUS_CHANGED)
-            .transaction(txResponse)
-            .build()
-            .toString());
     eventSession.publish(
         AnchorEvent.builder()
             .id(UUID.randomUUID().toString())

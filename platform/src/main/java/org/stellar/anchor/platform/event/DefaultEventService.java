@@ -4,7 +4,6 @@ import org.apache.commons.lang3.NotImplementedException;
 import org.stellar.anchor.config.event.EventConfig;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.platform.config.PropertyEventConfig;
-import org.stellar.anchor.util.Log;
 
 public class DefaultEventService implements EventService {
   private final PropertyEventConfig eventConfig;
@@ -16,7 +15,6 @@ public class DefaultEventService implements EventService {
   @Override
   public Session createSession(String sessionName, EventQueue eventQueue) {
     if (eventConfig.isEnabled()) {
-      Log.infoF("Create event service session, {}", eventConfig.getQueue().getType());
       switch (eventConfig.getQueue().getType()) {
         case KAFKA:
           return new KafkaSession(eventConfig.getQueue().getKafka(), sessionName, eventQueue);
@@ -29,7 +27,6 @@ public class DefaultEventService implements EventService {
       }
       throw new RuntimeException("Unknown queue type");
     } else {
-      Log.info("Created NoOpSession");
       return new NoOpSession();
     }
   }
