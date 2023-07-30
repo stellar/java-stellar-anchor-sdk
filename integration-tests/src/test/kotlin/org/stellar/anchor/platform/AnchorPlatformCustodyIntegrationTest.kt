@@ -31,6 +31,6 @@ class AnchorPlatformCustodyIntegrationTest :
   @Test
   @Order(1)
   fun runCustodyApiTest() {
-    //    singleton.custodyApiTests.testAll(custodyMockServer)
+    singleton.custodyApiTests.testAll(custodyMockServer)
   }
 }
