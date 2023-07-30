@@ -145,7 +145,7 @@ public class EventProcessorManager {
           getConsumerRestartCount() + 1);
       Session queueSession = eventService.createSession(name, eventQueue);
       try {
-        while (!Thread.currentThread().isInterrupted() && !stopped) {
+        while (!Thread.currentThread().isInterrupted() || !stopped) {
           ReadResponse readResponse = queueSession.read();
           List<AnchorEvent> events = readResponse.getEvents();
           debugF("Received {} events from queue", events.size());
