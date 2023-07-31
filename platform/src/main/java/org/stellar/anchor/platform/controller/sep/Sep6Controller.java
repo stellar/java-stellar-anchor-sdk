@@ -1,5 +1,6 @@
 package org.stellar.anchor.platform.controller.sep;
 
+import static org.stellar.anchor.platform.controller.sep.Sep10Helper.getSep10Token;
 import static org.stellar.anchor.util.Log.debugF;
 
 import javax.servlet.http.HttpServletRequest;
@@ -33,6 +34,46 @@ public class Sep6Controller {
 
   @CrossOrigin(origins = "*")
   @RequestMapping(
+      value = "/deposit",
+      method = {RequestMethod.GET})
+  public GetDepositResponse deposit(
+      HttpServletRequest request,
+      @RequestParam(value = "asset_code") String assetCode,
+      @RequestParam(value = "account") String account,
+      @RequestParam(value = "memo_type", required = false) String memoType,
+      @RequestParam(value = "memo", required = false) String memo,
+      @RequestParam(value = "email_address", required = false) String emailAddress,
+      @RequestParam(value = "type") String type,
+      @RequestParam(value = "wallet_name", required = false) String walletName,
+      @RequestParam(value = "wallet_url", required = false) String walletUrl,
+      @RequestParam(value = "lang", required = false) String lang,
+      @RequestParam(value = "amount") String amount,
+      @RequestParam(value = "country_code", required = false) String countryCode,
+      @RequestParam(value = "claimable_balances_supported", required = false)
+          Boolean claimableBalancesSupported)
+      throws AnchorException {
+    debugF("GET /deposit");
+    Sep10Jwt token = getSep10Token(request);
+    GetDepositRequest getDepositRequest =
+        GetDepositRequest.builder()
+            .assetCode(assetCode)
+            .account(account)
+            .memoType(memoType)
+            .memo(memo)
+            .emailAddress(emailAddress)
+            .type(type)
+            .walletName(walletName)
+            .walletUrl(walletUrl)
+            .lang(lang)
+            .amount(amount)
+            .countryCode(countryCode)
+            .claimableBalancesSupported(claimableBalancesSupported)
+            .build();
+    return sep6Service.deposit(token, getDepositRequest);
+  }
+
+  @CrossOrigin(origins = "*")
+  @RequestMapping(
       value = "/transactions",
       method = {RequestMethod.GET})
   public GetTransactionsResponse getTransactions(
@@ -52,7 +93,7 @@ public class Sep6Controller {
         pagingId,
         noOlderThan,
         lang);
-    Sep10Jwt token = Sep10Helper.getSep10Token(request);
+    Sep10Jwt token = getSep10Token(request);
     GetTransactionsRequest getTransactionsRequest =
         GetTransactionsRequest.builder()
             .assetCode(assetCode)
@@ -83,7 +124,7 @@ public class Sep6Controller {
         stellarTransactionId,
         externalTransactionId,
         lang);
-    Sep10Jwt token = Sep10Helper.getSep10Token(request);
+    Sep10Jwt token = getSep10Token(request);
     GetTransactionRequest getTransactionRequest =
         GetTransactionRequest.builder()
             .id(id)

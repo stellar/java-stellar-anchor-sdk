@@ -16,6 +16,7 @@ import org.stellar.anchor.sep6.Sep6Transaction;
 @Setter
 @Entity
 @Access(AccessType.FIELD)
+@Table(name = "sep6_transaction")
 @TypeDef(name = "json", typeClass = JsonType.class)
 @NoArgsConstructor
 public class JdbcSep6Transaction extends JdbcSepTransaction implements Sep6Transaction {

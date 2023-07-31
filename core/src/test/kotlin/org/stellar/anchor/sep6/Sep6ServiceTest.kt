@@ -14,9 +14,11 @@ import org.skyscreamer.jsonassert.JSONAssert
 import org.stellar.anchor.TestConstants.Companion.TEST_ACCOUNT
 import org.stellar.anchor.TestConstants.Companion.TEST_ASSET
 import org.stellar.anchor.TestHelper
+import org.stellar.anchor.api.event.AnchorEvent
 import org.stellar.anchor.api.exception.NotFoundException
 import org.stellar.anchor.api.exception.SepNotAuthorizedException
 import org.stellar.anchor.api.exception.SepValidationException
+import org.stellar.anchor.api.sep.sep6.GetDepositRequest
 import org.stellar.anchor.api.sep.sep6.GetTransactionRequest
 import org.stellar.anchor.api.sep.sep6.GetTransactionsRequest
 import org.stellar.anchor.api.sep.sep6.InfoResponse
@@ -26,6 +28,7 @@ import org.stellar.anchor.api.shared.Refunds
 import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.config.Sep6Config
+import org.stellar.anchor.event.EventService
 import org.stellar.anchor.util.GsonUtils
 
 class Sep6ServiceTest {
@@ -37,6 +40,8 @@ class Sep6ServiceTest {
 
   @MockK(relaxed = true) lateinit var sep6Config: Sep6Config
   @MockK(relaxed = true) lateinit var txnStore: Sep6TransactionStore
+  @MockK(relaxed = true) lateinit var eventService: EventService
+  @MockK(relaxed = true) lateinit var eventSession: EventService.Session
 
   private lateinit var sep6Service: Sep6Service
 
@@ -45,7 +50,9 @@ class Sep6ServiceTest {
     MockKAnnotations.init(this, relaxUnitFun = true)
     every { sep6Config.features.isAccountCreation } returns false
     every { sep6Config.features.isClaimableBalances } returns false
-    sep6Service = Sep6Service(sep6Config, assetService, txnStore)
+    every { txnStore.newInstance() } returns PojoSep6Transaction()
+    every { eventService.createSession(any(), any()) } returns eventSession
+    sep6Service = Sep6Service(sep6Config, assetService, txnStore, eventService)
   }
 
   @AfterEach
@@ -190,6 +197,37 @@ class Sep6ServiceTest {
   fun `test INFO response`() {
     val infoResponse = sep6Service.info
     assertEquals(gson.fromJson(infoJson, InfoResponse::class.java), infoResponse)
+  }
+
+  @Test
+  fun `test deposit`() {
+    val slotTxn = slot<Sep6Transaction>()
+    every { txnStore.save(capture(slotTxn)) } returns null
+
+    val slotEvent = slot<AnchorEvent>()
+    every { eventSession.publish(capture(slotEvent)) } returns Unit
+
+    val request =
+      GetDepositRequest.builder()
+        .assetCode(TEST_ASSET)
+        .account(TEST_ACCOUNT)
+        .type("bank_account")
+        .amount("100")
+        .build()
+    val response = sep6Service.deposit(TestHelper.createSep10Jwt(TEST_ACCOUNT), request)
+
+    // Verify effects
+    verify(exactly = 1) { txnStore.save(any()) }
+    verify(exactly = 1) { eventSession.publish(any()) }
+
+    // TODO: more assertions
+    assert(slotTxn.captured.id.isNotEmpty())
+    assert(slotTxn.captured.requestAssetIssuer.isNotEmpty())
+    assert(slotEvent.captured.id.isNotEmpty())
+
+    // Verify response
+    assertEquals(slotTxn.captured.id, response.id)
+    assert(response.how.isNotBlank())
   }
 
   @Test

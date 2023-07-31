@@ -16,6 +16,7 @@ import org.stellar.anchor.sep24.Sep24Refunds;
 import org.stellar.anchor.sep24.Sep24Transaction;
 import org.stellar.anchor.sep31.Sep31Refunds;
 import org.stellar.anchor.sep31.Sep31Transaction;
+import org.stellar.anchor.sep6.Sep6Transaction;
 
 public class TransactionHelper {
   public static GetTransactionResponse toGetTransactionResponse(Sep31Transaction txn) {
@@ -44,6 +45,31 @@ public class TransactionHelper {
         .externalTransactionId(txn.getExternalTransactionId())
         .customers(txn.getCustomers())
         .creator(txn.getCreator())
+        .build();
+  }
+
+  public static GetTransactionResponse toGetTransactionResponse(Sep6Transaction txn) {
+    return GetTransactionResponse.builder()
+        .id(txn.getId())
+        .sep(PlatformTransactionData.Sep.SEP_6)
+        .kind(PlatformTransactionData.Kind.from(txn.getKind()))
+        .status(SepTransactionStatus.from(txn.getStatus()))
+        // TODO: check if these asset codes are in the correct format
+        .amountIn(new Amount(txn.getAmountIn(), txn.getAmountInAsset()))
+        .amountOut(new Amount(txn.getAmountOut(), txn.getAmountOutAsset()))
+        .amountFee(new Amount(txn.getAmountFee(), txn.getAmountFeeAsset()))
+        .quoteId(txn.getQuoteId())
+        .startedAt(txn.getStartedAt())
+        .updatedAt(txn.getUpdatedAt())
+        .completedAt(txn.getCompletedAt())
+        .message(txn.getMessage())
+        .refunds(txn.getRefunds())
+        .stellarTransactions(txn.getStellarTransactions())
+        .sourceAccount(txn.getFromAccount())
+        .destinationAccount(txn.getToAccount())
+        .externalTransactionId(txn.getExternalTransactionId())
+        .memo(txn.getMemo())
+        .memoType(txn.getMemoType())
         .build();
   }
 

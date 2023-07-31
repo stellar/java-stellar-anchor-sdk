@@ -10,6 +10,12 @@ public class Sep6TransactionBuilder {
     txn = factory.newInstance();
   }
 
+  public Sep6TransactionBuilder id(String id) {
+    txn.setId(id);
+    return this;
+  }
+
+  // TODO: remove this
   public Sep6TransactionBuilder transactionId(String txnId) {
     txn.setTransactionId(txnId);
     return this;

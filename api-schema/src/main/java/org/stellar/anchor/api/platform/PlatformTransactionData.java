@@ -81,6 +81,8 @@ public class PlatformTransactionData {
   StellarId creator;
 
   public enum Sep {
+    @SerializedName("6")
+    SEP_6(6),
     @SuppressWarnings("unused")
     @SerializedName("24")
     SEP_24(24),
