@@ -174,7 +174,8 @@ event_processor:
 ##############################
 # The list of clients for the Anchor server to safely communicate with the outside wallet servers or clients.
 # Each item in the list may contain the following fields:
-#   - type: `custodial` or `noncustodial`
+#   - name: (required) the name of the client
+#   - type: (required) `custodial` or `noncustodial`
 #
 #   If the type is `custodial`,
 #   - signing_key: (required) the custodial SEP-10 signing key of the client. If the signing key of the client
@@ -190,21 +191,26 @@ event_processor:
 #                 If they don't match, a validation error will be thrown.
 #
 # Examples:
-#     - type: custodial
+#     - name: circle
+#       type: custodial
 #       signing_key: GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEGN2
 #       callback_url: https://callback.circle.com/api/v1/anchor/callback
-#     - type: noncustodial
+#     - name: lobstr
+#       type: noncustodial
 #       domain: lobstr.co
 #       callback_url: https://callback.lobstr.co/api/v2/anchor/callback
-#     - type: noncustodial
+#     - name: vibrant
+#       type: noncustodial
 #       domain: vibrant.co
 #       callback_url: https://callback.vibrant.com/api/v2/anchor/callback
 #       signing_key: GA22WORKYRXB6AW7XR5GIOAOQUY4KKCENEAI34FN3KJNWHKDZTZSVLTU
 clients:
-#     - type: custodial
+#     - name:
+#       type: custodial
 #       signing_key:
 #       callback_url:
-#     - type: noncustodial
+#     - name:
+#       type: noncustodial
 #       domain:
 #       callback_url:
 #       signing_key:
@@ -313,6 +319,12 @@ sep10:
   # If the client_attribution_required is set to true, the list of allowed clients must be configured in the `clients`
   # section of this configuration file. The `domain` field of the client must be provided.
   client_attribution_required: false
+  # The list of allowed clients for the SEP-10 authentication.
+  # Each item in the list must match the names of one of the client defined in the `clients` section.
+  # If the list is empty, all clients defined in the `clients` section are allowed.
+  # Ex: client_allow_list: [circle, lobstr]
+  # Ex: client_allow_list: circle,lobstr
+  client_allow_list:
   # Set the authentication challenge transaction timeout in seconds. An expired signed transaction will be rejected.
   # This is the timeout period the client must finish the authentication process. (ie: sign and respond the challenge
   # transaction).

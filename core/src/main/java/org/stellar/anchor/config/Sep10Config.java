@@ -67,9 +67,9 @@ public interface Sep10Config {
   boolean isClientAttributionRequired();
 
   /**
-   * Set the list of allowed clients.
+   * Get the list of allowed client domains if the client attribution is required.
    *
-   * @return the list of allowed clients.
+   * @return the list of allowed client domains.
    */
   List<String> getClientAttributionAllowList();
 

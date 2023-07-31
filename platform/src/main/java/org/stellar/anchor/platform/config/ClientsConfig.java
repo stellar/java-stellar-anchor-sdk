@@ -3,9 +3,11 @@ package org.stellar.anchor.platform.config;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.List;
+import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,11 +20,13 @@ import org.stellar.anchor.sep10.Sep10Helper;
 @Data
 public class ClientsConfig implements Validator {
   List<ClientConfig> clients = Lists.newLinkedList();
+  Map<String, ClientConfig> clientMap = null;
 
   @Data
   @AllArgsConstructor
   @NoArgsConstructor
   public static class ClientConfig {
+    String name;
     ClientType type;
     String signingKey;
     String domain;
@@ -32,6 +36,14 @@ public class ClientsConfig implements Validator {
   public enum ClientType {
     CUSTODIAL,
     NONCUSTODIAL
+  }
+
+  public ClientConfig getClientConfigByName(String name) {
+    if (clientMap == null) {
+      clientMap = Maps.newHashMap();
+      clients.forEach(clientConfig -> clientMap.put(clientConfig.name, clientConfig));
+    }
+    return clientMap.get(name);
   }
 
   @Override
@@ -46,6 +58,9 @@ public class ClientsConfig implements Validator {
   }
 
   private void validateClient(ClientConfig clientConfig, Errors errors) {
+    if (isEmpty(clientConfig.name)) {
+      errors.reject("empty-client-name", "The client.name cannot be empty and must be defined");
+    }
     if (clientConfig.type.equals(ClientType.CUSTODIAL)) {
       validateCustodialClient(clientConfig, errors);
     } else {

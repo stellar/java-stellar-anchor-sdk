@@ -70,6 +70,7 @@ sep1.enabled:
 sep1.toml.type:
 sep1.toml.value:
 sep10.auth_timeout:
+sep10.client_allow_list:
 sep10.client_attribution_required:
 sep10.enabled:
 sep10.home_domain:

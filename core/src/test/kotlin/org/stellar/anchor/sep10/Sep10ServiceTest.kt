@@ -533,9 +533,6 @@ internal class Sep10ServiceTest {
     // Test client domain rejection
     cr.clientDomain = TEST_CLIENT_DOMAIN
     assertThrows<SepNotAuthorizedException> { sep10Service.createChallenge(cr) }
-
-    // Test client domain not allowed
-    assertThrows<SepNotAuthorizedException> { sep10Service.createChallenge(cr) }
   }
 
   @Test

@@ -30,6 +30,7 @@ class Sep10ConfigTest {
 
     clientsConfig.clients.add(
       ClientsConfig.ClientConfig(
+        "unknown",
         CUSTODIAL,
         "GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEGN2",
         null,
@@ -39,6 +40,7 @@ class Sep10ConfigTest {
 
     clientsConfig.clients.add(
       ClientsConfig.ClientConfig(
+        "lobstr",
         NONCUSTODIAL,
         "GC4HAYCFQYQLJV5SE6FB3LGC37D6XGIXGMAXCXWNBLH7NWW2JH4OZLHQ",
         "lobstr.co",
@@ -48,10 +50,11 @@ class Sep10ConfigTest {
 
     clientsConfig.clients.add(
       ClientsConfig.ClientConfig(
+        "circle",
         NONCUSTODIAL,
         "GCSGSR6KQQ5BP2FXVPWRL6SWPUSFWLVONLIBJZUKTVQB5FYJFVL6XOXE",
-        "stellar.org",
-        "https://callback.stellar.org/api/v2/anchor/callback"
+        "circle.com",
+        "https://callback.circle.com/api/v2/anchor/callback"
       )
     )
 
@@ -75,17 +78,42 @@ class Sep10ConfigTest {
     config.isClientAttributionRequired = true
     config.validateClientAttribution(errors)
     assertFalse(errors.hasErrors())
-    println(config.clientAttributionAllowList)
-    println(config.knownCustodialAccountList)
   }
 
   @Test
-  fun `test both client attribution deny and allow lists are empty`() {
-    // Create a cofnig with empty ClientsConfig lists
+  fun `test validation of empty client allow list when client attribution is required`() {
     val config = PropertySep10Config(appConfig, ClientsConfig(), secretConfig)
     config.isClientAttributionRequired = true
     config.validateClientAttribution(errors)
     assertErrorCode(errors, "sep10-client-attribution-lists-empty")
+  }
+
+  @Test
+  fun `test ClientsConfig getClientConfigByName`() {
+    assertEquals(clientsConfig.getClientConfigByName("unknown"), clientsConfig.clients[0])
+    assertEquals(clientsConfig.getClientConfigByName("lobstr"), clientsConfig.clients[1])
+    assertEquals(clientsConfig.getClientConfigByName("circle"), clientsConfig.clients[2])
+  }
+
+  @Test
+  fun `test when clientAllowList is not defined, clientAttributionAllowList equals to the list of all clients`() {
+    val config = PropertySep10Config(appConfig, clientsConfig, secretConfig)
+    assertEquals(config.clientAttributionAllowList, listOf("lobstr.co", "circle.com"))
+  }
+
+  @Test
+  fun `test when clientAllowList is defined, clientAttributionAllowList returns correct values`() {
+    val config = PropertySep10Config(appConfig, clientsConfig, secretConfig)
+    config.clientAllowList = listOf("lobstr")
+    assertEquals(config.clientAttributionAllowList, listOf("lobstr.co"))
+
+    config.clientAllowList = listOf("circle")
+    assertEquals(config.clientAttributionAllowList, listOf("circle.com"))
+
+    config.clientAllowList = listOf("invalid")
+    config.validateClientAttribution(errors)
+    assertErrorCode(errors, "sep10-client-allow-list-invalid")
+    assertTrue(config.clientAttributionAllowList.isEmpty())
   }
 
   @Test
@@ -197,5 +225,28 @@ class Sep10ConfigTest {
         listOf("1234")
       )
     }
+
+    val TEST_CLIENTS_CONFIG =
+      """
+        {
+          "clients": [
+            {
+              "name": "lobstr",
+              "type": "NONCUSTODIAL",
+              "signingKey": "0x1234",
+              "domain": "lobstr.co",
+              "callbackUrl": "https://lobstr.co/callback"
+            },
+            {
+              "name": "circle",
+              "type": "CUSTODIAL",
+              "signingKey": "0x5678",
+              "domain": "circle.com",
+              "callbackUrl": "https://circle.com/callback"
+            }
+          ]
+        }          
+    """
+        .trimIndent()
   }
 }
