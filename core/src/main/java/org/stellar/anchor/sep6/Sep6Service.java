@@ -84,6 +84,9 @@ public class Sep6Service {
             .type(request.getType())
             .assetCode(request.getAssetCode())
             .assetIssuer(asset.getIssuer())
+            // TODO: get fees
+            .amountOut(request.getAmount())
+            .amountOutAsset(asset.getAssetName())
             .startedAt(Instant.now())
             .sep10Account(token.getAccount())
             .sep10AccountMemo(token.getAccountMemo())

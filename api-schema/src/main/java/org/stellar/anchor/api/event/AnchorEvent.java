@@ -29,7 +29,8 @@ public class AnchorEvent {
     TRANSACTION_STATUS_CHANGED("transaction_status_changed"),
     @SuppressWarnings("unused")
     TRANSACTION_ERROR("transaction_error"),
-    QUOTE_CREATED("quote_created");
+    QUOTE_CREATED("quote_created"),
+    KYC_UPDATED("kyc_updated");
 
     @JsonValue public final String type;
 

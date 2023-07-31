@@ -42,6 +42,7 @@ public class KafkaSession implements EventService.Session {
 
   @Override
   public void publish(AnchorEvent event) throws AnchorException {
+    Log.info("Publishing event to Kafka: " + event.getType().type);
     try {
       if (producer == null) {
         producer = createProducer();

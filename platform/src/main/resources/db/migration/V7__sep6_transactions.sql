@@ -36,5 +36,6 @@ CREATE TABLE sep6_transaction (
     refund_memo_type VARCHAR(255),
     required_info_message VARCHAR(255),
     required_info_updates VARCHAR(255),
+    how VARCHAR(255),
     CONSTRAINT pk_sep6_transaction PRIMARY KEY (id)
 )

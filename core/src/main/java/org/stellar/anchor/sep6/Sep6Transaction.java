@@ -330,6 +330,10 @@ public interface Sep6Transaction extends SepTransaction {
 
   void setRequiredInfoUpdates(String requiredInfoUpdates);
 
+  String getHow();
+
+  void setHow(String how);
+
   enum Kind {
     DEPOSIT("deposit"),
     WITHDRAWAL("withdrawal"),

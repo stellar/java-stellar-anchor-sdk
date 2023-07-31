@@ -14,4 +14,6 @@ public class AppSettings {
   String distributionWallet;
   String distributionWalletMemo;
   String distributionWalletMemoType;
+  // TODO: figure out what to do with this config
+  String secret;
 }

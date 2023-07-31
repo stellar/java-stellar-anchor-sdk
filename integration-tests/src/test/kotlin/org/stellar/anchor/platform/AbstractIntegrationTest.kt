@@ -30,6 +30,7 @@ open class AbstractIntegrationTest(private val config: TestConfig) {
   lateinit var stellarObserverTests: StellarObserverTests
   lateinit var eventProcessingServerTests: EventProcessingServerTests
   lateinit var sep24E2eTests: Sep24End2EndTest
+  lateinit var sep6E2eTests: Sep6End2EndTest
 
   fun setUp() {
     testProfileRunner.start()
@@ -61,6 +62,7 @@ open class AbstractIntegrationTest(private val config: TestConfig) {
     callbackApiTests = CallbackApiTests(config, toml, jwt)
     stellarObserverTests = StellarObserverTests()
     sep24E2eTests = Sep24End2EndTest(config, jwt)
+    sep6E2eTests = Sep6End2EndTest(config, jwt)
     eventProcessingServerTests = EventProcessingServerTests(config, toml, jwt)
   }
 }

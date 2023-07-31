@@ -45,4 +45,5 @@ public class PojoSep6Transaction implements Sep6Transaction {
   String requiredInfoMessage;
   String requiredInfoUpdateMessage;
   String requiredInfoUpdates;
+  String how;
 }

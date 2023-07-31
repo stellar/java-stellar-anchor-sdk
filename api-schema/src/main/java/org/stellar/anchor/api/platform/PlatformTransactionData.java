@@ -80,6 +80,8 @@ public class PlatformTransactionData {
   Customers customers;
   StellarId creator;
 
+  String how;
+
   public enum Sep {
     @SerializedName("6")
     SEP_6(6),

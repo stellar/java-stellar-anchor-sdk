@@ -124,4 +124,6 @@ public class JdbcSep6Transaction extends JdbcSepTransaction implements Sep6Trans
   @SerializedName("required_info_updates")
   @Column(name = "required_info_updates")
   String requiredInfoUpdates;
+
+  String how;
 }

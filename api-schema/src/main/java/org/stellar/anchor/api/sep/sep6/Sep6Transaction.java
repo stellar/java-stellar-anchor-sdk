@@ -80,4 +80,6 @@ public class Sep6Transaction {
   // TODO: use a more structured type
   @SerializedName("required_info_updates")
   String requiredInfoUpdates;
+
+  String how;
 }

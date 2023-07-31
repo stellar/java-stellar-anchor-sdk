@@ -181,6 +181,11 @@ public class Sep6TransactionBuilder {
     return this;
   }
 
+  public Sep6TransactionBuilder how(String how) {
+    txn.setHow(how);
+    return this;
+  }
+
   public Sep6Transaction build() {
     return txn;
   }

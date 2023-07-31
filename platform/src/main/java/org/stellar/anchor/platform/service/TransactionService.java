@@ -32,6 +32,7 @@ import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.event.EventService.Session;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSep31Transaction;
+import org.stellar.anchor.platform.data.JdbcSep6Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.sep24.Sep24Refunds;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
@@ -40,6 +41,7 @@ import org.stellar.anchor.sep31.Sep31Transaction;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep38.Sep38Quote;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
+import org.stellar.anchor.sep6.Sep6Transaction;
 import org.stellar.anchor.sep6.Sep6TransactionStore;
 import org.stellar.anchor.util.*;
 import org.stellar.anchor.util.Log;
@@ -130,6 +132,10 @@ public class TransactionService {
     if (txn31 != null) {
       return (JdbcSep31Transaction) txn31;
     }
+    Sep6Transaction txn6 = txn6Store.findByTransactionId(txnId);
+    if (txn6 != null) {
+      return (JdbcSep6Transaction) txn6;
+    }
 
     return (JdbcSep24Transaction) txn24Store.findByTransactionId(txnId);
   }
@@ -175,6 +181,9 @@ public class TransactionService {
     String lastStatus = txn.getStatus();
     updateSepTransaction(patch.getTransaction(), txn);
     switch (txn.getProtocol()) {
+      case "6":
+        txn6Store.save((JdbcSep6Transaction) txn);
+        break;
       case "24":
         JdbcSep24Transaction sep24Transaction = (JdbcSep24Transaction) txn;
         // add a memo for the transaction if the transaction is ready for user to send funds
@@ -262,6 +271,10 @@ public class TransactionService {
     }
 
     switch (txn.getProtocol()) {
+      case "6":
+        JdbcSep6Transaction sep6Txn = (JdbcSep6Transaction) txn;
+        txnUpdated = updateField(patch, sep6Txn, "how", txnUpdated);
+        break;
       case "24":
         JdbcSep24Transaction sep24Txn = (JdbcSep24Transaction) txn;
 
