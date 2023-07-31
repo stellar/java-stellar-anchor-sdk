@@ -23,6 +23,7 @@ import org.stellar.anchor.api.rpc.action.NotifyRefundSentRequest;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
+import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.platform.data.JdbcSep24RefundPayment;
 import org.stellar.anchor.platform.data.JdbcSep24Refunds;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
@@ -40,8 +41,15 @@ public class NotifyRefundSentHandler extends ActionHandler<NotifyRefundSentReque
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
-      AssetService assetService) {
-    super(txn24Store, txn31Store, requestValidator, assetService, NotifyRefundSentRequest.class);
+      AssetService assetService,
+      EventService eventService) {
+    super(
+        txn24Store,
+        txn31Store,
+        requestValidator,
+        assetService,
+        eventService,
+        NotifyRefundSentRequest.class);
   }
 
   @Override

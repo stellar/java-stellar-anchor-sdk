@@ -23,6 +23,7 @@ import org.stellar.anchor.config.Sep1Config;
 import org.stellar.anchor.config.Sep24Config;
 import org.stellar.anchor.config.Sep31Config;
 import org.stellar.anchor.config.Sep38Config;
+import org.stellar.anchor.config.Sep6Config;
 import org.stellar.anchor.custody.CustodyService;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.filter.Sep10JwtFilter;
@@ -30,12 +31,14 @@ import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.platform.apiclient.CustodyApiClient;
 import org.stellar.anchor.platform.condition.ConditionalOnAllSepsEnabled;
 import org.stellar.anchor.platform.config.CallbackApiConfig;
+import org.stellar.anchor.platform.config.ClientsConfig;
 import org.stellar.anchor.platform.config.PropertySep10Config;
 import org.stellar.anchor.platform.config.PropertySep12Config;
 import org.stellar.anchor.platform.config.PropertySep1Config;
 import org.stellar.anchor.platform.config.PropertySep24Config;
 import org.stellar.anchor.platform.config.PropertySep31Config;
 import org.stellar.anchor.platform.config.PropertySep38Config;
+import org.stellar.anchor.platform.config.PropertySep6Config;
 import org.stellar.anchor.platform.observer.stellar.PaymentObservingAccountsManager;
 import org.stellar.anchor.platform.service.Sep31DepositInfoApiGenerator;
 import org.stellar.anchor.platform.service.Sep31DepositInfoCustodyGenerator;
@@ -54,6 +57,7 @@ import org.stellar.anchor.sep31.Sep31Service;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
 import org.stellar.anchor.sep38.Sep38Service;
+import org.stellar.anchor.sep6.Sep6Service;
 
 /** SEP configurations */
 @Configuration
@@ -69,9 +73,16 @@ public class SepBeans {
   }
 
   @Bean
+  @ConfigurationProperties(prefix = "sep6")
+  Sep6Config sep6Config() {
+    return new PropertySep6Config();
+  }
+
+  @Bean
   @ConfigurationProperties(prefix = "sep10")
-  Sep10Config sep10Config(AppConfig appConfig, SecretConfig secretConfig) {
-    return new PropertySep10Config(appConfig, secretConfig);
+  Sep10Config sep10Config(
+      AppConfig appConfig, SecretConfig secretConfig, ClientsConfig clientsConfig) {
+    return new PropertySep10Config(appConfig, clientsConfig, secretConfig);
   }
 
   @Bean
@@ -116,6 +127,12 @@ public class SepBeans {
   @ConditionalOnAllSepsEnabled(seps = {"sep1"})
   Sep1Service sep1Service(Sep1Config sep1Config) throws IOException, InvalidConfigException {
     return new Sep1Service(sep1Config);
+  }
+
+  @Bean
+  @ConditionalOnAllSepsEnabled(seps = {"sep6"})
+  Sep6Service sep6Service(Sep6Config sep6Config, AssetService assetService) {
+    return new Sep6Service(sep6Config, assetService);
   }
 
   @Bean

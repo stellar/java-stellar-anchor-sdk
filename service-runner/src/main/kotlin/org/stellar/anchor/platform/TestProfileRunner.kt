@@ -17,7 +17,7 @@ lateinit var testProfileExecutor: TestProfileExecutor
 
 fun main() = runBlocking {
   info("Starting TestPfofileExecutor...")
-  testProfileExecutor = TestProfileExecutor(TestConfig(profileName = "default"))
+  testProfileExecutor = TestProfileExecutor(TestConfig(testProfileName = "default"))
 
   launch {
     Runtime.getRuntime()
@@ -43,6 +43,7 @@ class TestProfileExecutor(val config: TestConfig) {
   private var shouldStartReferenceServer: Boolean = false
   private var shouldStartObserver: Boolean = false
   private var shouldStartCustodyServer: Boolean = false
+  private var shouldStartEventProcessingServer: Boolean = false
   private var shouldStartKotlinReferenceServer: Boolean = false
   private var custodyEnabled: Boolean = false
 
@@ -58,6 +59,7 @@ class TestProfileExecutor(val config: TestConfig) {
     shouldStartReferenceServer = config.env["run_reference_server"].toBoolean()
     shouldStartObserver = config.env["run_observer"].toBoolean()
     shouldStartCustodyServer = config.env["run_custody_server"].toBoolean()
+    shouldStartEventProcessingServer = config.env["run_event_processing_server"].toBoolean()
     shouldStartKotlinReferenceServer = config.env["run_kotlin_reference_server"].toBoolean()
     custodyEnabled = "none" != config.env["custody.type"]
 
@@ -85,7 +87,7 @@ class TestProfileExecutor(val config: TestConfig) {
 
       if (shouldStartAllServers || shouldStartKotlinReferenceServer) {
         info("Starting Kotlin reference server...")
-        jobs += scope.launch { ServiceRunner.startKotlinReferenceServer(envMap, false) }
+        jobs += scope.launch { ServiceRunner.startKotlinReferenceServer(envMap, wait) }
       }
       if (shouldStartAllServers || shouldStartReferenceServer) {
         info("Starting Java reference server...")
@@ -100,6 +102,11 @@ class TestProfileExecutor(val config: TestConfig) {
         info("Starting Custody server...")
 
         jobs += scope.launch { runningServers.add(ServiceRunner.startCustodyServer(envMap)) }
+      }
+      if (shouldStartAllServers || shouldStartEventProcessingServer) {
+        info("Starting event processing server...")
+        jobs +=
+          scope.launch { runningServers.add(ServiceRunner.startEventProcessingServer(envMap)) }
       }
       if (shouldStartAllServers || shouldStartSepServer) {
         info("Starting SEP server...")
@@ -155,6 +162,13 @@ class TestProfileExecutor(val config: TestConfig) {
       it.close()
       it.stop()
     }
+
+    runningServers.forEach {
+      while (it.isRunning || it.isActive) {
+        sleep(1000)
+      }
+    }
+
     org.stellar.reference.stop()
   }
 

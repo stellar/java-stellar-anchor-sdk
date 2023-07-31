@@ -97,8 +97,6 @@ internal class Sep10ServiceTest {
   fun setUp() {
     MockKAnnotations.init(this, relaxUnitFun = true)
     every { sep10Config.webAuthDomain } returns TEST_WEB_AUTH_DOMAIN
-    every { sep10Config.clientAttributionDenyList } returns listOf("")
-    every { sep10Config.clientAttributionAllowList } returns listOf(TEST_CLIENT_DOMAIN)
     every { sep10Config.authTimeout } returns 900
     every { sep10Config.jwtTimeout } returns 900
     every { sep10Config.homeDomain } returns TEST_HOME_DOMAIN
@@ -374,6 +372,7 @@ internal class Sep10ServiceTest {
   )
   fun `test create challenge ok`(clientAttributionRequired: String, clientDomain: String) {
     every { sep10Config.isClientAttributionRequired } returns clientAttributionRequired.toBoolean()
+    every { sep10Config.clientAttributionAllowList } returns listOf(TEST_CLIENT_DOMAIN)
     val cr =
       ChallengeRequest.builder()
         .account(TEST_ACCOUNT)
@@ -535,11 +534,8 @@ internal class Sep10ServiceTest {
 
     // Test client domain rejection
     cr.clientDomain = TEST_CLIENT_DOMAIN
-    every { sep10Config.clientAttributionDenyList } returns listOf(TEST_CLIENT_DOMAIN, "")
     assertThrows<SepNotAuthorizedException> { sep10Service.createChallenge(cr) }
 
-    every { sep10Config.clientAttributionDenyList } returns listOf("")
-    every { sep10Config.clientAttributionAllowList } returns listOf("")
     // Test client domain not allowed
     assertThrows<SepNotAuthorizedException> { sep10Service.createChallenge(cr) }
   }
@@ -583,14 +579,14 @@ internal class Sep10ServiceTest {
       "       NETWORK_PASSPHRASE=\"Public Global Stellar Network ; September 2015\"\n"
     mockkStatic(KeyPair::class)
 
-    assertThrows<SepException> { sep10Service.getClientAccountId(TEST_CLIENT_DOMAIN) }
+    assertThrows<SepException> { Sep10Helper.fetchSigningKeyFromClientDomain(TEST_CLIENT_DOMAIN) }
 
     every { NetUtil.fetch(any()) } answers { throw IOException("Cannot connect") }
-    assertThrows<SepException> { sep10Service.getClientAccountId(TEST_CLIENT_DOMAIN) }
+    assertThrows<SepException> { Sep10Helper.fetchSigningKeyFromClientDomain(TEST_CLIENT_DOMAIN) }
 
     every { NetUtil.fetch(any()) } returns TEST_CLIENT_TOML
     every { KeyPair.fromAccountId(any()) } answers { throw FormatException("Bad Format") }
-    assertThrows<SepException> { sep10Service.getClientAccountId(TEST_CLIENT_DOMAIN) }
+    assertThrows<SepException> { Sep10Helper.fetchSigningKeyFromClientDomain(TEST_CLIENT_DOMAIN) }
   }
 
   @Test
@@ -612,9 +608,9 @@ internal class Sep10ServiceTest {
   }
 
   @Test
-  fun `test createChallenge() ok when isRequireKnownOmnibusAccount is enabled`() {
-    every { sep10Config.isRequireKnownOmnibusAccount } returns true
-    every { sep10Config.omnibusAccountList } returns listOf(TEST_ACCOUNT)
+  fun `test createChallenge() ok when knownCustodialAccountRequired is enabled`() {
+    every { sep10Config.isKnownCustodialAccountRequired } returns true
+    every { sep10Config.knownCustodialAccountList } returns listOf(TEST_ACCOUNT)
     val cr =
       ChallengeRequest.builder()
         .account(TEST_ACCOUNT)
@@ -624,14 +620,14 @@ internal class Sep10ServiceTest {
         .build()
 
     assertDoesNotThrow { sep10Service.createChallenge(cr) }
-    verify(exactly = 1) { sep10Config.isRequireKnownOmnibusAccount }
-    verify(exactly = 2) { sep10Config.omnibusAccountList }
+    verify(exactly = 1) { sep10Config.isKnownCustodialAccountRequired }
+    verify(exactly = 2) { sep10Config.knownCustodialAccountList }
   }
 
   @Test
-  fun `Test createChallenge() when isRequireKnownOmnibusAccount is not enabled`() {
-    every { sep10Config.isRequireKnownOmnibusAccount } returns false
-    every { sep10Config.omnibusAccountList } returns
+  fun `Test createChallenge() when isKnownCustodialAccountRequired is not enabled`() {
+    every { sep10Config.isKnownCustodialAccountRequired } returns false
+    every { sep10Config.knownCustodialAccountList } returns
       listOf("G321E23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP")
     val cr =
       ChallengeRequest.builder()
@@ -642,14 +638,14 @@ internal class Sep10ServiceTest {
         .build()
 
     assertDoesNotThrow { sep10Service.createChallenge(cr) }
-    verify(exactly = 1) { sep10Config.isRequireKnownOmnibusAccount }
-    verify(exactly = 2) { sep10Config.omnibusAccountList }
+    verify(exactly = 1) { sep10Config.isKnownCustodialAccountRequired }
+    verify(exactly = 2) { sep10Config.knownCustodialAccountList }
   }
 
   @Test
   fun `test createChallenge() failure when isRequireKnownOmnibusAccount is enabled and account mis-match`() {
-    every { sep10Config.isRequireKnownOmnibusAccount } returns true
-    every { sep10Config.omnibusAccountList } returns
+    every { sep10Config.isKnownCustodialAccountRequired } returns true
+    every { sep10Config.knownCustodialAccountList } returns
       listOf("G321E23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP")
     val cr =
       ChallengeRequest.builder()
@@ -660,8 +656,8 @@ internal class Sep10ServiceTest {
         .build()
 
     val ex = assertThrows<SepException> { sep10Service.createChallenge(cr) }
-    verify(exactly = 1) { sep10Config.isRequireKnownOmnibusAccount }
-    verify(exactly = 2) { sep10Config.omnibusAccountList }
+    verify(exactly = 1) { sep10Config.isKnownCustodialAccountRequired }
+    verify(exactly = 2) { sep10Config.knownCustodialAccountList }
     assertInstanceOf(SepNotAuthorizedException::class.java, ex)
     assertEquals("unable to process", ex.message)
   }

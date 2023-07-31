@@ -71,7 +71,7 @@ internal class PlatformJwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
     fun setup() {
       testProfileRunner =
         TestProfileExecutor(
-          TestConfig(profileName = "default").also {
+          TestConfig(testProfileName = "default").also {
             // enable platform server jwt auth
             it.env["platform_server.auth.type"] = "jwt"
             // enable business server callback auth
@@ -279,7 +279,7 @@ internal class CustodyJwtAuthIntegrationTest : AbstractAuthIntegrationTest() {
     fun setup() {
       testProfileRunner =
         TestProfileExecutor(
-          TestConfig(profileName = "default-custody").also {
+          TestConfig(testProfileName = "default-custody").also {
             // enable custody server jwt auth
             it.env["custody_server.auth.type"] = "jwt"
           }
@@ -369,7 +369,7 @@ internal class PlatformApiKeyAuthIntegrationTest : AbstractAuthIntegrationTest()
     fun setup() {
       testProfileRunner =
         TestProfileExecutor(
-          TestConfig(profileName = "default").also {
+          TestConfig(testProfileName = "default").also {
             // enable platform server api_key auth
             it.env["platform_server.auth.type"] = "api_key"
           }
@@ -450,7 +450,7 @@ internal class CustodyApiKeyAuthIntegrationTest : AbstractAuthIntegrationTest() 
     fun setup() {
       testProfileRunner =
         TestProfileExecutor(
-          TestConfig(profileName = "default-custody").also {
+          TestConfig(testProfileName = "default-custody").also {
             // enable custody server api_key auth
             it.env["custody_server.auth.type"] = "api_key"
           }

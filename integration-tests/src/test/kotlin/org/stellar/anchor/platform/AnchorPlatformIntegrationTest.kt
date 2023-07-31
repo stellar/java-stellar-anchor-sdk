@@ -5,7 +5,8 @@ import org.junit.jupiter.api.*
 import org.stellar.anchor.platform.test.*
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
-class AnchorPlatformIntegrationTest : AbstractIntegrationTest(TestConfig(profileName = "default")) {
+class AnchorPlatformIntegrationTest :
+  AbstractIntegrationTest(TestConfig(testProfileName = "default")) {
   companion object {
     private val singleton = AnchorPlatformIntegrationTest()
 
@@ -23,56 +24,68 @@ class AnchorPlatformIntegrationTest : AbstractIntegrationTest(TestConfig(profile
   }
 
   @Test
-  @Order(1)
+  @Order(11)
   fun runSep10Test() {
     singleton.sep10Tests.testAll()
   }
 
   @Test
-  @Order(2)
+  @Order(12)
   fun runSep12Test() {
     singleton.sep12Tests.testAll()
   }
 
   @Test
-  @Order(3)
+  @Order(13)
   fun runSep24Test() {
     singleton.sep24Tests.testAll()
   }
 
   @Test
-  @Order(4)
+  @Order(14)
   fun runSep31Test() {
     singleton.sep31Tests.testAll()
   }
 
   @Test
-  @Order(5)
+  @Order(15)
   fun runSep38Test() {
     singleton.sep38Tests.testAll()
   }
 
   @Test
-  @Order(6)
+  @Order(16)
+  fun runSep6Test() {
+    singleton.sep6Tests.testAll()
+  }
+
+  @Test
+  @Order(21)
   fun runSepHealthTest() {
     singleton.sepHealthTests.testAll()
   }
 
   @Test
-  @Order(7)
+  @Order(31)
   fun runPlatformApiTest() {
     singleton.platformApiTests.testAll()
   }
 
   @Test
-  @Order(8)
+  @Order(41)
   fun runCallbackApiTest() {
     singleton.callbackApiTests.testAll()
   }
 
   @Test
-  @Order(9)
+  @Order(51)
   fun runStellarObserverTest() {
     singleton.stellarObserverTests.testAll()
+  }
+
+  @Test
+  @Order(61)
+  fun runEventProcessingServerTest() {
+    singleton.eventProcessingServerTests.testAll()
   }
 }

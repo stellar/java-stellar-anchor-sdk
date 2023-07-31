@@ -3,6 +3,7 @@ package org.stellar.anchor.sep24;
 import static org.stellar.anchor.api.event.AnchorEvent.Type.TRANSACTION_CREATED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.INCOMPLETE;
 import static org.stellar.anchor.api.sep.sep24.InfoResponse.*;
+import static org.stellar.anchor.event.EventService.EventQueue.TRANSACTION;
 import static org.stellar.anchor.sep24.Sep24Helper.*;
 import static org.stellar.anchor.sep24.Sep24Transaction.Kind.WITHDRAWAL;
 import static org.stellar.anchor.util.Log.*;
@@ -20,6 +21,7 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.time.Instant;
 import java.util.*;
+import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.*;
 import org.stellar.anchor.api.sep.AssetInfo;
 import org.stellar.anchor.api.sep.sep24.*;
@@ -30,6 +32,7 @@ import org.stellar.anchor.config.AppConfig;
 import org.stellar.anchor.config.Sep24Config;
 import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.util.GsonUtils;
+import org.stellar.anchor.util.TransactionHelper;
 import org.stellar.sdk.KeyPair;
 import org.stellar.sdk.Memo;
 
@@ -39,7 +42,7 @@ public class Sep24Service {
   final AssetService assetService;
   final JwtService jwtService;
   final Sep24TransactionStore txnStore;
-  final EventService eventService;
+  final EventService.Session eventSession;
   final InteractiveUrlConstructor interactiveUrlConstructor;
   final MoreInfoUrlConstructor moreInfoUrlConstructor;
 
@@ -64,7 +67,7 @@ public class Sep24Service {
     this.assetService = assetService;
     this.jwtService = jwtService;
     this.txnStore = txnStore;
-    this.eventService = eventService;
+    this.eventSession = eventService.createSession(this.getClass().getName(), TRANSACTION);
     this.interactiveUrlConstructor = interactiveUrlConstructor;
     this.moreInfoUrlConstructor = moreInfoUrlConstructor;
     info("Sep24Service initialized.");
@@ -72,7 +75,7 @@ public class Sep24Service {
 
   public InteractiveTransactionResponse withdraw(
       Sep10Jwt token, Map<String, String> withdrawRequest)
-      throws SepException, MalformedURLException, URISyntaxException, EventPublishException {
+      throws AnchorException, MalformedURLException, URISyntaxException {
     info("Creating withdrawal transaction.");
     if (token == null) {
       info("missing SEP-10 token");
@@ -180,7 +183,14 @@ public class Sep24Service {
 
     Sep24Transaction txn = builder.build();
     txnStore.save(txn);
-    eventService.publish(txn, TRANSACTION_CREATED);
+
+    eventSession.publish(
+        AnchorEvent.builder()
+            .id(UUID.randomUUID().toString())
+            .sep("24")
+            .type(TRANSACTION_CREATED)
+            .transaction(TransactionHelper.toGetTransactionResponse(txn, assetService))
+            .build());
 
     infoF(
         "Saved withdraw transaction. from={}, amountIn={}, amountOut={}.",
@@ -195,7 +205,7 @@ public class Sep24Service {
   }
 
   public InteractiveTransactionResponse deposit(Sep10Jwt token, Map<String, String> depositRequest)
-      throws SepException, MalformedURLException, URISyntaxException, EventPublishException {
+      throws AnchorException, MalformedURLException, URISyntaxException {
     info("Creating deposit transaction.");
     if (token == null) {
       info("missing SEP-10 token");
@@ -304,7 +314,14 @@ public class Sep24Service {
 
     Sep24Transaction txn = builder.build();
     txnStore.save(txn);
-    eventService.publish(txn, TRANSACTION_CREATED);
+
+    eventSession.publish(
+        AnchorEvent.builder()
+            .id(UUID.randomUUID().toString())
+            .sep("24")
+            .type(TRANSACTION_CREATED)
+            .transaction(TransactionHelper.toGetTransactionResponse(txn, assetService))
+            .build());
 
     infoF(
         "Saved deposit transaction. to={}, amountIn={}, amountOut={}.",
@@ -414,11 +431,16 @@ public class Sep24Service {
     List<AssetInfo> assets = assetService.listAllAssets();
     debugF("{} assets found", assets.size());
 
-    Map<String, AssetInfo.AssetOperation> depositMap = new HashMap<>();
-    Map<String, AssetInfo.AssetOperation> withdrawMap = new HashMap<>();
+    Map<String, InfoResponse.OperationResponse> depositMap = new HashMap<>();
+    Map<String, InfoResponse.OperationResponse> withdrawMap = new HashMap<>();
     for (AssetInfo asset : assets) {
-      if (asset.getDeposit().getEnabled()) depositMap.put(asset.getCode(), asset.getDeposit());
-      if (asset.getWithdraw().getEnabled()) withdrawMap.put(asset.getCode(), asset.getWithdraw());
+      if (asset.getDeposit().getEnabled())
+        depositMap.put(
+            asset.getCode(), InfoResponse.OperationResponse.fromAssetOperation(asset.getDeposit()));
+      if (asset.getWithdraw().getEnabled())
+        withdrawMap.put(
+            asset.getCode(),
+            InfoResponse.OperationResponse.fromAssetOperation(asset.getWithdraw()));
     }
 
     return InfoResponse.builder()

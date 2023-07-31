@@ -1,12 +1,14 @@
 package org.stellar.anchor.platform.service;
 
 import static org.stellar.anchor.api.event.AnchorEvent.Type.TRANSACTION_STATUS_CHANGED;
+import static org.stellar.anchor.api.sep.SepTransactionStatus.*;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.ERROR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.EXPIRED;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_CUSTOMER_INFO_UPDATE;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_USR_TRANSFER_START;
-import static org.stellar.anchor.platform.utils.TransactionHelper.toGetTransactionResponse;
+import static org.stellar.anchor.event.EventService.EventQueue.TRANSACTION;
+import static org.stellar.anchor.platform.utils.PlatformTransactionHelper.toGetTransactionResponse;
 import static org.stellar.anchor.sep31.Sep31Helper.allAmountAvailable;
 import static org.stellar.anchor.util.BeanHelper.updateField;
 import static org.stellar.anchor.util.MathHelper.decimal;
@@ -19,7 +21,9 @@ import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 import java.util.stream.Collectors;
+import org.stellar.anchor.api.event.AnchorEvent;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
 import org.stellar.anchor.api.exception.InternalServerErrorException;
@@ -40,6 +44,7 @@ import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.CustodyConfig;
 import org.stellar.anchor.custody.CustodyService;
 import org.stellar.anchor.event.EventService;
+import org.stellar.anchor.event.EventService.Session;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSep31Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
@@ -51,6 +56,8 @@ import org.stellar.anchor.sep31.Sep31Transaction;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep38.Sep38Quote;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
+import org.stellar.anchor.sep6.Sep6TransactionStore;
+import org.stellar.anchor.util.*;
 import org.stellar.anchor.util.Log;
 import org.stellar.anchor.util.SepHelper;
 import org.stellar.anchor.util.StringHelper;
@@ -62,8 +69,12 @@ public class TransactionService {
   private final Sep38QuoteStore quoteStore;
   private final Sep31TransactionStore txn31Store;
   private final Sep24TransactionStore txn24Store;
+
+  @SuppressWarnings("unused")
+  private final Sep6TransactionStore txn6Store;
+
   private final List<AssetInfo> assets;
-  private final EventService eventService;
+  private final Session eventSession;
   private final AssetService assetService;
   private final Sep24DepositInfoGenerator sep24DepositInfoGenerator;
   private final CustodyService custodyService;
@@ -75,6 +86,7 @@ public class TransactionService {
   }
 
   public TransactionService(
+      Sep6TransactionStore txn6Store,
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       Sep38QuoteStore quoteStore,
@@ -83,11 +95,12 @@ public class TransactionService {
       Sep24DepositInfoGenerator sep24DepositInfoGenerator,
       CustodyService custodyService,
       CustodyConfig custodyConfig) {
+    this.txn6Store = txn6Store;
     this.txn24Store = txn24Store;
     this.txn31Store = txn31Store;
     this.quoteStore = quoteStore;
     this.assets = assetService.listAllAssets();
-    this.eventService = eventService;
+    this.eventSession = eventService.createSession(this.getClass().getName(), TRANSACTION);
     this.assetService = assetService;
     this.sep24DepositInfoGenerator = sep24DepositInfoGenerator;
     this.custodyService = custodyService;
@@ -212,12 +225,24 @@ public class TransactionService {
         }
 
         txn24Store.save(sep24Txn);
-        eventService.publish(sep24Txn, TRANSACTION_STATUS_CHANGED);
+        eventSession.publish(
+            AnchorEvent.builder()
+                .id(UUID.randomUUID().toString())
+                .sep("24")
+                .type(TRANSACTION_STATUS_CHANGED)
+                .transaction(TransactionHelper.toGetTransactionResponse(sep24Txn, assetService))
+                .build());
         break;
       case "31":
         JdbcSep31Transaction sep31Txn = (JdbcSep31Transaction) txn;
         txn31Store.save(sep31Txn);
-        eventService.publish(sep31Txn, TRANSACTION_STATUS_CHANGED);
+        eventSession.publish(
+            AnchorEvent.builder()
+                .id(UUID.randomUUID().toString())
+                .sep("24")
+                .type(TRANSACTION_STATUS_CHANGED)
+                .transaction(TransactionHelper.toGetTransactionResponse(sep31Txn))
+                .build());
         break;
     }
 

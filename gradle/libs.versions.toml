@@ -130,7 +130,6 @@ servlet-api = { module = "javax.servlet:servlet-api", version.ref = "servlet-api
 sqlite-jdbc = { module = "org.xerial:sqlite-jdbc", version.ref = "sqlite-jdbc" }
 slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j" }
 slf4j-log4j12 = { module = "org.slf4j:slf4j-log4j12", version.ref = "slf4j" }
-slf4j2-simple = { module = "org.slf4j:slf4j-simple", version.ref = "slf4j2" }
 stellar-wallet-sdk = { module = "org.stellar:wallet-sdk", version.ref = "stellar-wallet-sdk"}
 toml4j = { module = "com.moandjiezana.toml:toml4j", version.ref = "toml4j" }
 spring-kafka = { module = "org.springframework.kafka:spring-kafka", version.ref = "spring-kafka" }
