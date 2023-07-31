@@ -28,6 +28,8 @@ import org.stellar.anchor.platform.action.NotifyTrustSetHandler;
 import org.stellar.anchor.platform.action.RequestOffchainFundsHandler;
 import org.stellar.anchor.platform.action.RequestOnchainFundsHandler;
 import org.stellar.anchor.platform.action.RequestTrustHandler;
+import org.stellar.anchor.platform.config.PropertyCustodyConfig;
+import org.stellar.anchor.platform.data.JdbcTransactionPendingTrustRepo;
 import org.stellar.anchor.platform.service.ActionService;
 import org.stellar.anchor.platform.validator.RequestValidator;
 import org.stellar.anchor.sep24.Sep24DepositInfoGenerator;
@@ -51,7 +53,8 @@ public class ActionBeans {
       Horizon horizon,
       AssetService assetService,
       CustodyService custodyService,
-      EventService eventService) {
+      EventService eventService,
+      JdbcTransactionPendingTrustRepo transactionPendingTrustRepo) {
     return new DoStellarPaymentHandler(
         txn24Store,
         txn31Store,
@@ -60,7 +63,8 @@ public class ActionBeans {
         horizon,
         assetService,
         custodyService,
-        eventService);
+        eventService,
+        transactionPendingTrustRepo);
   }
 
   @Bean
@@ -208,9 +212,15 @@ public class ActionBeans {
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
       AssetService assetService,
-      EventService eventService) {
+      EventService eventService,
+      JdbcTransactionPendingTrustRepo transactionPendingTrustRepo) {
     return new NotifyTransactionErrorHandler(
-        txn24Store, txn31Store, requestValidator, assetService, eventService);
+        txn24Store,
+        txn31Store,
+        requestValidator,
+        assetService,
+        eventService,
+        transactionPendingTrustRepo);
   }
 
   @Bean
@@ -219,9 +229,15 @@ public class ActionBeans {
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
       AssetService assetService,
-      EventService eventService) {
+      EventService eventService,
+      JdbcTransactionPendingTrustRepo transactionPendingTrustRepo) {
     return new NotifyTransactionExpiredHandler(
-        txn24Store, txn31Store, requestValidator, assetService, eventService);
+        txn24Store,
+        txn31Store,
+        requestValidator,
+        assetService,
+        eventService,
+        transactionPendingTrustRepo);
   }
 
   @Bean
@@ -241,10 +257,17 @@ public class ActionBeans {
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
       AssetService assetService,
-      CustodyConfig custodyConfig,
-      EventService eventService) {
+      EventService eventService,
+      PropertyCustodyConfig custodyConfig,
+      CustodyService custodyService) {
     return new NotifyTrustSetHandler(
-        txn24Store, txn31Store, requestValidator, assetService, custodyConfig, eventService);
+        txn24Store,
+        txn31Store,
+        requestValidator,
+        assetService,
+        eventService,
+        custodyConfig,
+        custodyService);
   }
 
   @Bean

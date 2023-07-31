@@ -15,8 +15,13 @@ import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.filter.ApiKeyFilter;
 import org.stellar.anchor.filter.NoneFilter;
 import org.stellar.anchor.filter.PlatformAuthJwtFilter;
+import org.stellar.anchor.horizon.Horizon;
+import org.stellar.anchor.platform.action.NotifyTrustSetHandler;
 import org.stellar.anchor.platform.apiclient.CustodyApiClient;
 import org.stellar.anchor.platform.config.PlatformServerConfig;
+import org.stellar.anchor.platform.config.PropertyCustodyConfig;
+import org.stellar.anchor.platform.data.JdbcTransactionPendingTrustRepo;
+import org.stellar.anchor.platform.job.TrustlineCheckJob;
 import org.stellar.anchor.platform.service.Sep24DepositInfoCustodyGenerator;
 import org.stellar.anchor.platform.service.Sep24DepositInfoNoneGenerator;
 import org.stellar.anchor.platform.service.Sep24DepositInfoSelfGenerator;
@@ -99,5 +104,19 @@ public class PlatformServerBeans {
         sep24DepositInfoGenerator,
         custodyService,
         custodyConfig);
+  }
+
+  @Bean
+  TrustlineCheckJob trustlineCheckJob(
+      Horizon horizon,
+      JdbcTransactionPendingTrustRepo transactionPendingTrustRepo,
+      PropertyCustodyConfig custodyConfig,
+      NotifyTrustSetHandler notifyTrustSetHandler) {
+    if (custodyConfig.isCustodyIntegrationEnabled()) {
+      return new TrustlineCheckJob(
+          horizon, transactionPendingTrustRepo, custodyConfig, notifyTrustSetHandler);
+    } else {
+      return null;
+    }
   }
 }

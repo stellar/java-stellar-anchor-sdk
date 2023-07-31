@@ -25,6 +25,7 @@ import org.stellar.anchor.event.EventService
 import org.stellar.anchor.event.EventService.EventQueue.TRANSACTION
 import org.stellar.anchor.event.EventService.Session
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
+import org.stellar.anchor.platform.data.JdbcTransactionPendingTrustRepo
 import org.stellar.anchor.platform.validator.RequestValidator
 import org.stellar.anchor.sep24.Sep24TransactionStore
 import org.stellar.anchor.sep31.Sep31TransactionStore
@@ -50,6 +51,9 @@ class NotifyTransactionExpiredHandlerTest {
 
   @MockK(relaxed = true) private lateinit var eventSession: Session
 
+  @MockK(relaxed = true)
+  private lateinit var transactionPendingTrustRepo: JdbcTransactionPendingTrustRepo
+
   private lateinit var handler: NotifyTransactionExpiredHandler
 
   @BeforeEach
@@ -62,7 +66,8 @@ class NotifyTransactionExpiredHandlerTest {
         txn31Store,
         requestValidator,
         assetService,
-        eventService
+        eventService,
+        transactionPendingTrustRepo
       )
   }
 
@@ -167,6 +172,7 @@ class NotifyTransactionExpiredHandlerTest {
     val request =
       NotifyTransactionExpiredRequest.builder().transactionId(TX_ID).message(TX_MESSAGE).build()
     val txn24 = JdbcSep24Transaction()
+    txn24.id = TX_ID
     txn24.status = PENDING_ANCHOR.toString()
     txn24.kind = DEPOSIT.kind
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
@@ -175,6 +181,8 @@ class NotifyTransactionExpiredHandlerTest {
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
+    every { transactionPendingTrustRepo.deleteById(TX_ID) } just Runs
+    every { transactionPendingTrustRepo.existsById(TX_ID) } returns true
     every { eventSession.publish(capture(anchorEventCapture)) } just Runs
 
     val startDate = Instant.now()
@@ -182,8 +190,10 @@ class NotifyTransactionExpiredHandlerTest {
     val endDate = Instant.now()
 
     verify(exactly = 0) { txn31Store.save(any()) }
+    verify(exactly = 1) { transactionPendingTrustRepo.deleteById(TX_ID) }
 
     val expectedSep24Txn = JdbcSep24Transaction()
+    expectedSep24Txn.id = TX_ID
     expectedSep24Txn.kind = DEPOSIT.kind
     expectedSep24Txn.status = EXPIRED.toString()
     expectedSep24Txn.updatedAt = sep24TxnCapture.captured.updatedAt
@@ -196,6 +206,7 @@ class NotifyTransactionExpiredHandlerTest {
     )
 
     val expectedResponse = GetTransactionResponse()
+    expectedResponse.id = TX_ID
     expectedResponse.sep = SEP_24
     expectedResponse.kind = DEPOSIT
     expectedResponse.status = EXPIRED
