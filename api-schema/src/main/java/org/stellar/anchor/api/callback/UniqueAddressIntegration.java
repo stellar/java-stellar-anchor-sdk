@@ -6,7 +6,7 @@ import org.stellar.anchor.api.exception.AnchorException;
  * The interface for the unique address endpoint of the callback API.
  *
  * @see <a
- *     href="https://github.com/stellar/stellar-docs/blob/main/openapi/ap/Callbacks%20API.yml">Callback
+ *     href="https://github.com/stellar/stellar-docs/blob/main/openapi/anchor-platform/Callbacks%20API.yml">Callback
  *     API</a>
  */
 public interface UniqueAddressIntegration {

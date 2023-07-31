@@ -4,7 +4,7 @@ import org.junit.jupiter.api.*
 
 @TestMethodOrder(MethodOrderer.OrderAnnotation::class)
 class AnchorPlatformCustodyEnd2EndTest :
-  AbstractIntegrationTest(TestConfig(profileName = "sep24-custody")) {
+  AbstractIntegrationTest(TestConfig(testProfileName = "sep24-custody")) {
 
   companion object {
     private val singleton = AnchorPlatformCustodyEnd2EndTest()

@@ -22,6 +22,7 @@ import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.CustodyConfig;
 import org.stellar.anchor.custody.CustodyService;
+import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
@@ -46,8 +47,15 @@ public class DoStellarPaymentHandler extends ActionHandler<DoStellarPaymentReque
       Horizon horizon,
       AssetService assetService,
       CustodyService custodyService,
+      EventService eventService,
       JdbcTransactionPendingTrustRepo transactionPendingTrustRepo) {
-    super(txn24Store, txn31Store, requestValidator, assetService, DoStellarPaymentRequest.class);
+    super(
+        txn24Store,
+        txn31Store,
+        requestValidator,
+        assetService,
+        eventService,
+        DoStellarPaymentRequest.class);
     this.custodyService = custodyService;
     this.custodyConfig = custodyConfig;
     this.horizon = horizon;

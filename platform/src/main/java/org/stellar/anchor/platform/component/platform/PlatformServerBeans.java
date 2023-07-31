@@ -30,6 +30,7 @@ import org.stellar.anchor.sep24.Sep24DepositInfoGenerator;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
+import org.stellar.anchor.sep6.Sep6TransactionStore;
 
 @Configuration
 public class PlatformServerBeans {
@@ -84,6 +85,7 @@ public class PlatformServerBeans {
 
   @Bean
   TransactionService transactionService(
+      Sep6TransactionStore txn6Store,
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       Sep38QuoteStore quoteStore,
@@ -93,6 +95,7 @@ public class PlatformServerBeans {
       CustodyService custodyService,
       CustodyConfig custodyConfig) {
     return new TransactionService(
+        txn6Store,
         txn24Store,
         txn31Store,
         quoteStore,

@@ -21,6 +21,7 @@ import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.CustodyConfig;
 import org.stellar.anchor.custody.CustodyService;
+import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.platform.utils.AssetValidationUtils;
@@ -39,8 +40,15 @@ public class DoStellarRefundHandler extends ActionHandler<DoStellarRefundRequest
       RequestValidator requestValidator,
       CustodyConfig custodyConfig,
       AssetService assetService,
-      CustodyService custodyService) {
-    super(txn24Store, txn31Store, requestValidator, assetService, DoStellarRefundRequest.class);
+      CustodyService custodyService,
+      EventService eventService) {
+    super(
+        txn24Store,
+        txn31Store,
+        requestValidator,
+        assetService,
+        eventService,
+        DoStellarRefundRequest.class);
     this.custodyService = custodyService;
     this.custodyConfig = custodyConfig;
   }

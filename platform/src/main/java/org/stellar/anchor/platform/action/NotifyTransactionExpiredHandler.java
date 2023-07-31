@@ -13,6 +13,7 @@ import org.stellar.anchor.api.rpc.action.ActionMethod;
 import org.stellar.anchor.api.rpc.action.NotifyTransactionExpiredRequest;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
+import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.platform.data.JdbcTransactionPendingTrustRepo;
 import org.stellar.anchor.platform.validator.RequestValidator;
@@ -29,12 +30,14 @@ public class NotifyTransactionExpiredHandler
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
       AssetService assetService,
+      EventService eventService,
       JdbcTransactionPendingTrustRepo transactionPendingTrustRepo) {
     super(
         txn24Store,
         txn31Store,
         requestValidator,
         assetService,
+        eventService,
         NotifyTransactionExpiredRequest.class);
     this.transactionPendingTrustRepo = transactionPendingTrustRepo;
   }

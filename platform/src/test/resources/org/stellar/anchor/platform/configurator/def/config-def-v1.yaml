@@ -1,6 +1,5 @@
 version: 1
 
-stellar:
-  aster:
-  bianca:
-  ceilo:
+stellar.aster:
+stellar.bianca:
+stellar.ceilo:

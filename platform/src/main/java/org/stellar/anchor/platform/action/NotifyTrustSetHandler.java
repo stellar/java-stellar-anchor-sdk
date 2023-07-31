@@ -20,6 +20,7 @@ import org.stellar.anchor.api.rpc.action.NotifyTrustSetRequest;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.custody.CustodyService;
+import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.platform.config.PropertyCustodyConfig;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
@@ -37,9 +38,16 @@ public class NotifyTrustSetHandler extends ActionHandler<NotifyTrustSetRequest> 
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
       AssetService assetService,
+      EventService eventService,
       PropertyCustodyConfig custodyConfig,
       CustodyService custodyService) {
-    super(txn24Store, txn31Store, requestValidator, assetService, NotifyTrustSetRequest.class);
+    super(
+        txn24Store,
+        txn31Store,
+        requestValidator,
+        assetService,
+        eventService,
+        NotifyTrustSetRequest.class);
     this.custodyConfig = custodyConfig;
     this.custodyService = custodyService;
   }

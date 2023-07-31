@@ -18,6 +18,7 @@ import org.stellar.anchor.api.rpc.action.RequestTrustRequest;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.CustodyConfig;
+import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.platform.validator.RequestValidator;
@@ -33,8 +34,15 @@ public class RequestTrustHandler extends ActionHandler<RequestTrustRequest> {
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
       AssetService assetService,
-      CustodyConfig custodyConfig) {
-    super(txn24Store, txn31Store, requestValidator, assetService, RequestTrustRequest.class);
+      CustodyConfig custodyConfig,
+      EventService eventService) {
+    super(
+        txn24Store,
+        txn31Store,
+        requestValidator,
+        assetService,
+        eventService,
+        RequestTrustRequest.class);
     this.custodyConfig = custodyConfig;
   }
 

@@ -4,8 +4,8 @@ import lombok.Data;
 import org.stellar.anchor.config.event.*;
 
 @Data
-public class PropertyPublisherConfig implements PublisherConfig {
-  String type;
+public class PropertyQueueConfig implements QueueConfig {
+  QueueType type;
   KafkaConfig kafka;
   SqsConfig sqs;
   MskConfig msk;

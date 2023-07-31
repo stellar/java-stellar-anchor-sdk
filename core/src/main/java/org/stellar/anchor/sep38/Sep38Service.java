@@ -2,6 +2,7 @@ package org.stellar.anchor.sep38;
 
 import static org.stellar.anchor.api.sep.sep38.Sep38Context.SEP31;
 import static org.stellar.anchor.api.sep.sep38.Sep38Context.SEP6;
+import static org.stellar.anchor.event.EventService.EventQueue.TRANSACTION;
 import static org.stellar.anchor.util.BeanHelper.updateField;
 import static org.stellar.anchor.util.Log.debug;
 import static org.stellar.anchor.util.MathHelper.decimal;
@@ -38,7 +39,7 @@ public class Sep38Service {
   final AssetService assetService;
   final RateIntegration rateIntegration;
   final Sep38QuoteStore sep38QuoteStore;
-  final EventService eventService;
+  final EventService.Session eventSession;
   final InfoResponse infoResponse;
   final Map<String, InfoResponse.Asset> assetMap;
   final int pricePrecision = 10;
@@ -54,7 +55,7 @@ public class Sep38Service {
     this.assetService = assetService;
     this.rateIntegration = rateIntegration;
     this.sep38QuoteStore = sep38QuoteStore;
-    this.eventService = eventService;
+    this.eventSession = eventService.createSession(this.getClass().getName(), TRANSACTION);
     this.infoResponse = new InfoResponse(this.assetService.listAllAssets());
     assetMap = new HashMap<>();
     this.infoResponse.getAssets().forEach(asset -> assetMap.put(asset.getAsset(), asset));
@@ -437,7 +438,7 @@ public class Sep38Service {
     updateField(newQuote, "transactionId", event, "quote.transactionId");
     updateField(rate, "fee", event, "quote.fee");
 
-    eventService.publish(event);
+    eventSession.publish(event);
 
     return builder.build();
   }
