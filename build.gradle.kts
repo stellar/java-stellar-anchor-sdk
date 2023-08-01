@@ -129,7 +129,7 @@ subprojects {
     register<Test>("testFireblocksE2E") {
       useJUnitPlatform()
 
-//      include("**/AnchorPlatformCustodyEnd2EndTest**")
+      include("**/AnchorPlatformCustodyEnd2EndTest**")
       include("**/AnchorPlatformCustodyActionsEnd2EndTest**")
 
       testLogging {
