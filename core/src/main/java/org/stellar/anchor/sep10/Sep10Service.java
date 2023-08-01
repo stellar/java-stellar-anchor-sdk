@@ -2,8 +2,8 @@ package org.stellar.anchor.sep10;
 
 import static org.stellar.anchor.util.Log.*;
 import static org.stellar.anchor.util.Metric.counter;
-import static org.stellar.anchor.util.MetricNames.SEP10_CHALLENGE_CREATED;
-import static org.stellar.anchor.util.MetricNames.SEP10_CHALLENGE_VALIDATED;
+import static org.stellar.anchor.util.MetricName.SEP10_CHALLENGE_CREATED;
+import static org.stellar.anchor.util.MetricName.SEP10_CHALLENGE_VALIDATED;
 
 import java.io.IOException;
 import java.net.MalformedURLException;

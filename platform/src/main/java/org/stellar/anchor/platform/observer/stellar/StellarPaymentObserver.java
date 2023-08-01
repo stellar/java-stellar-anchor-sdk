@@ -5,6 +5,8 @@ import static org.stellar.anchor.healthcheck.HealthCheckable.Tags.ALL;
 import static org.stellar.anchor.healthcheck.HealthCheckable.Tags.EVENT;
 import static org.stellar.anchor.platform.observer.stellar.ObserverStatus.*;
 import static org.stellar.anchor.util.Log.*;
+import static org.stellar.anchor.util.Metric.*;
+import static org.stellar.anchor.util.MetricName.*;
 import static org.stellar.anchor.util.ReflectionUtil.getField;
 import static org.stellar.anchor.util.StringHelper.isEmpty;
 
@@ -17,6 +19,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import lombok.Builder;
 import lombok.Data;
@@ -63,10 +66,10 @@ public class StellarPaymentObserver implements HealthCheckable {
   final ExponentialBackoffTimer databaseBackoffTimer = new ExponentialBackoffTimer(1, 20);
 
   int silenceTimeoutCount = 0;
-
   ObserverStatus status = RUNNING;
-
   Instant lastActivityTime;
+  AtomicLong metricLatestBlockRead = null;
+  AtomicLong metricLatestBlockProcessed = null;
 
   final ScheduledExecutorService silenceWatcher = DaemonExecutors.newScheduledThreadPool(1);
   final ScheduledExecutorService statusWatcher = DaemonExecutors.newScheduledThreadPool(1);
@@ -141,6 +144,7 @@ public class StellarPaymentObserver implements HealthCheckable {
         new EventListener<>() {
           @Override
           public void onEvent(OperationResponse operationResponse) {
+            updateLatestBlockRead(operationResponse);
             if (isHealthy()) {
               debugF("Received event {}", operationResponse.getId());
               // clear stream timeout/reconnect status
@@ -150,6 +154,7 @@ public class StellarPaymentObserver implements HealthCheckable {
               try {
                 debugF("Dispatching event {}", operationResponse.getId());
                 handleEvent(operationResponse);
+                updateLatestBlockProcessed(operationResponse);
               } catch (TransactionException ex) {
                 errorEx("Error handling events", ex);
                 setStatus(DATABASE_ERROR);
@@ -172,6 +177,29 @@ public class StellarPaymentObserver implements HealthCheckable {
       this.stream.close();
       this.stream = null;
     }
+  }
+
+  void updateLatestBlockRead(OperationResponse operationResponse) {
+    if (metricLatestBlockRead == null) {
+      metricLatestBlockRead = new AtomicLong(operationResponse.getTransaction().get().getLedger());
+    }
+    metricLatestBlockRead.set(operationResponse.getTransaction().get().getLedger());
+    gauge(PAYMENT_OBSERVER_LATEST_BLOCK_READ, metricLatestBlockRead);
+    Log.traceF(
+        "Update metrics {}: {}", PAYMENT_OBSERVER_LATEST_BLOCK_READ, metricLatestBlockRead.get());
+  }
+
+  void updateLatestBlockProcessed(OperationResponse operationResponse) {
+    if (metricLatestBlockProcessed == null) {
+      metricLatestBlockProcessed =
+          new AtomicLong(operationResponse.getTransaction().get().getLedger());
+    }
+    metricLatestBlockProcessed.set(operationResponse.getTransaction().get().getLedger());
+    gauge(PAYMENT_OBSERVER_LATEST_BLOCK_PROCESSED, metricLatestBlockProcessed);
+    Log.traceF(
+        "Update metrics {}: {}",
+        PAYMENT_OBSERVER_LATEST_BLOCK_PROCESSED,
+        metricLatestBlockProcessed.get());
   }
 
   void checkSilence() {

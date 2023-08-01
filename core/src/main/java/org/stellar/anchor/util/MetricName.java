@@ -1,6 +1,6 @@
 package org.stellar.anchor.util;
 
-public enum MetricNames {
+public enum MetricName {
   // SEP-1 metrics
   SEP1_TOML_ACCESSED("sep1.toml_accessed"),
 
@@ -36,18 +36,27 @@ public enum MetricNames {
   SEP38_QUOTE_CREATED("sep38.quote.created"),
 
   // payment observer metrics
-  PAYMENT_OBSERVER("payment_observer"),
-  TV_PAYMENT_RECEIVED("payment_received"),
+  PAYMENT_OBSERVER_LATEST_BLOCK_READ("payment_observer.latest_block_read"),
+  PAYMENT_OBSERVER_LATEST_BLOCK_PROCESSED("payment_observer.latest_block_processed"),
+
+  // event processor metrics
+  EVENT_RECEIVED("event_processor.event_received"),
+  EVENT_PROCESSED("event_processor.event_processed"),
+  TV_BUSINESS_SERVER_CALLBACK("business_server_callback_api"),
+  TV_STATUS_CALLBACK("status_callback"),
+  TV_KNOWN("known"),
 
   // Logger metrics
   LOGGER("logger"),
 
-  TYPE("type"),
-  STATUS("status");
+  // Tag names
+  QUEUE("queue"),
+  STATUS("status"),
+  TYPE("type");
 
   private final String name;
 
-  MetricNames(String name) {
+  MetricName(String name) {
     this.name = name;
   }
 }

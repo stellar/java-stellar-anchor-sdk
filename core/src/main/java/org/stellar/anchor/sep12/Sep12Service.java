@@ -2,8 +2,8 @@ package org.stellar.anchor.sep12;
 
 import static org.stellar.anchor.util.Log.infoF;
 import static org.stellar.anchor.util.Metric.counter;
-import static org.stellar.anchor.util.MetricNames.*;
-import static org.stellar.anchor.util.MetricNames.SEP12_CUSTOMER;
+import static org.stellar.anchor.util.MetricName.*;
+import static org.stellar.anchor.util.MetricName.SEP12_CUSTOMER;
 
 import java.util.Objects;
 import java.util.Set;
