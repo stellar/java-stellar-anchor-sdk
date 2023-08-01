@@ -46,7 +46,7 @@ import org.stellar.anchor.util.GsonUtils
 class DoStellarRefundHandlerTest {
 
   companion object {
-    private val GSON = GsonUtils.getInstance()
+    private val gson = GsonUtils.getInstance()
     private const val TX_ID = "testId"
     private const val FIAT_USD = "iso4217:USD"
     private const val STELLAR_USDC =
@@ -265,8 +265,8 @@ class DoStellarRefundHandlerTest {
     expectedSep24Txn.transferReceivedAt = transferReceivedAt
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedSep24Txn),
-      GSON.toJson(sep24TxnCapture.captured),
+      gson.toJson(expectedSep24Txn),
+      gson.toJson(sep24TxnCapture.captured),
       JSONCompareMode.STRICT
     )
 
@@ -282,8 +282,8 @@ class DoStellarRefundHandlerTest {
     expectedResponse.transferReceivedAt = transferReceivedAt
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedResponse),
-      GSON.toJson(response),
+      gson.toJson(expectedResponse),
+      gson.toJson(response),
       JSONCompareMode.STRICT
     )
 
@@ -338,8 +338,8 @@ class DoStellarRefundHandlerTest {
     expectedSep31Txn.transferReceivedAt = transferReceivedAt
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedSep31Txn),
-      GSON.toJson(sep31TxnCapture.captured),
+      gson.toJson(expectedSep31Txn),
+      gson.toJson(sep31TxnCapture.captured),
       JSONCompareMode.STRICT
     )
 
@@ -356,8 +356,8 @@ class DoStellarRefundHandlerTest {
     expectedResponse.customers = Customers(StellarId(null, null), StellarId(null, null))
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedResponse),
-      GSON.toJson(response),
+      gson.toJson(expectedResponse),
+      gson.toJson(response),
       JSONCompareMode.STRICT
     )
 

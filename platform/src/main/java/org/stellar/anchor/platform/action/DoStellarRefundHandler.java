@@ -121,8 +121,8 @@ public class DoStellarRefundHandler extends ActionHandler<DoStellarRefundRequest
       default:
         throw new InvalidRequestException(
             String.format(
-                "Kind[%s] is not supported for protocol[%s] and action[%s]",
-                null, txn.getProtocol(), getActionType()));
+                "Action[%s] is not supported for protocol[%s]",
+                getActionType(), txn.getProtocol()));
     }
 
     BigDecimal amountIn = decimal(txn.getAmountIn(), assetInfo);

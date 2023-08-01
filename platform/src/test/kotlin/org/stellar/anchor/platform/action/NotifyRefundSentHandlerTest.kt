@@ -47,7 +47,7 @@ import org.stellar.anchor.util.GsonUtils
 
 class NotifyRefundSentHandlerTest {
   companion object {
-    private val GSON = GsonUtils.getInstance()
+    private val gson = GsonUtils.getInstance()
     private const val TX_ID = "testId"
     private const val FIAT_USD = "iso4217:USD"
     private const val STELLAR_USDC =
@@ -239,8 +239,8 @@ class NotifyRefundSentHandlerTest {
     expectedSep24Txn.refunds = expectedRefunds
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedSep24Txn),
-      GSON.toJson(sep24TxnCapture.captured),
+      gson.toJson(expectedSep24Txn),
+      gson.toJson(sep24TxnCapture.captured),
       JSONCompareMode.STRICT
     )
 
@@ -262,8 +262,8 @@ class NotifyRefundSentHandlerTest {
     expectedResponse.refunds = Refunds(refunded, refundedFee, arrayOf(refundPayment))
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedResponse),
-      GSON.toJson(response),
+      gson.toJson(expectedResponse),
+      gson.toJson(response),
       JSONCompareMode.STRICT
     )
 
@@ -335,8 +335,8 @@ class NotifyRefundSentHandlerTest {
     expectedSep24Txn.completedAt = endDate
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedSep24Txn),
-      GSON.toJson(sep24TxnCapture.captured),
+      gson.toJson(expectedSep24Txn),
+      gson.toJson(sep24TxnCapture.captured),
       CustomComparator(JSONCompareMode.STRICT, Customization("completed_at") { _, _ -> true })
     )
 
@@ -365,8 +365,8 @@ class NotifyRefundSentHandlerTest {
     expectedResponse.completedAt = endDate
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedResponse),
-      GSON.toJson(response),
+      gson.toJson(expectedResponse),
+      gson.toJson(response),
       CustomComparator(JSONCompareMode.STRICT, Customization("completed_at") { _, _ -> true })
     )
 
@@ -429,8 +429,8 @@ class NotifyRefundSentHandlerTest {
     expectedSep24Txn.completedAt = endDate
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedSep24Txn),
-      GSON.toJson(sep24TxnCapture.captured),
+      gson.toJson(expectedSep24Txn),
+      gson.toJson(sep24TxnCapture.captured),
       CustomComparator(JSONCompareMode.STRICT, Customization("completed_at") { _, _ -> true })
     )
 
@@ -453,8 +453,8 @@ class NotifyRefundSentHandlerTest {
     expectedResponse.completedAt = endDate
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedResponse),
-      GSON.toJson(response),
+      gson.toJson(expectedResponse),
+      gson.toJson(response),
       CustomComparator(JSONCompareMode.STRICT, Customization("completed_at") { _, _ -> true })
     )
 
@@ -547,8 +547,8 @@ class NotifyRefundSentHandlerTest {
     expectedSep24Txn.refunds = expectedRefunds
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedSep24Txn),
-      GSON.toJson(sep24TxnCapture.captured),
+      gson.toJson(expectedSep24Txn),
+      gson.toJson(sep24TxnCapture.captured),
       JSONCompareMode.STRICT
     )
 
@@ -570,8 +570,8 @@ class NotifyRefundSentHandlerTest {
     expectedResponse.refunds = Refunds(refunded, refundedFee, arrayOf(refundPayment))
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedResponse),
-      GSON.toJson(response),
+      gson.toJson(expectedResponse),
+      gson.toJson(response),
       JSONCompareMode.STRICT
     )
 
@@ -650,8 +650,8 @@ class NotifyRefundSentHandlerTest {
     expectedSep24Txn.refunds = expectedRefunds
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedSep24Txn),
-      GSON.toJson(sep24TxnCapture.captured),
+      gson.toJson(expectedSep24Txn),
+      gson.toJson(sep24TxnCapture.captured),
       JSONCompareMode.STRICT
     )
 
@@ -679,8 +679,8 @@ class NotifyRefundSentHandlerTest {
       Refunds(refunded, refundedFee, arrayOf(refundPayment2, refundPayment1))
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedResponse),
-      GSON.toJson(response),
+      gson.toJson(expectedResponse),
+      gson.toJson(response),
       JSONCompareMode.STRICT
     )
 
@@ -789,8 +789,8 @@ class NotifyRefundSentHandlerTest {
     expectedSep31Txn.refunds = expectedRefunds
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedSep31Txn),
-      GSON.toJson(sep31TxnCapture.captured),
+      gson.toJson(expectedSep31Txn),
+      gson.toJson(sep31TxnCapture.captured),
       JSONCompareMode.STRICT
     )
 
@@ -817,8 +817,8 @@ class NotifyRefundSentHandlerTest {
     expectedResponse.completedAt = sep31TxnCapture.captured.completedAt
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedResponse),
-      GSON.toJson(response),
+      gson.toJson(expectedResponse),
+      gson.toJson(response),
       JSONCompareMode.STRICT
     )
 
@@ -878,8 +878,8 @@ class NotifyRefundSentHandlerTest {
     expectedSep31Txn.refunds = expectedRefunds
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedSep31Txn),
-      GSON.toJson(sep31TxnCapture.captured),
+      gson.toJson(expectedSep31Txn),
+      gson.toJson(sep31TxnCapture.captured),
       JSONCompareMode.STRICT
     )
 
@@ -905,8 +905,8 @@ class NotifyRefundSentHandlerTest {
     expectedResponse.completedAt = sep31TxnCapture.captured.completedAt
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedResponse),
-      GSON.toJson(response),
+      gson.toJson(expectedResponse),
+      gson.toJson(response),
       JSONCompareMode.STRICT
     )
 
@@ -980,8 +980,8 @@ class NotifyRefundSentHandlerTest {
     expectedSep31Txn.refunds = expectedRefunds
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedSep31Txn),
-      GSON.toJson(sep31TxnCapture.captured),
+      gson.toJson(expectedSep31Txn),
+      gson.toJson(sep31TxnCapture.captured),
       JSONCompareMode.STRICT
     )
 
@@ -1007,8 +1007,8 @@ class NotifyRefundSentHandlerTest {
     expectedResponse.completedAt = sep31TxnCapture.captured.completedAt
 
     JSONAssert.assertEquals(
-      GSON.toJson(expectedResponse),
-      GSON.toJson(response),
+      gson.toJson(expectedResponse),
+      gson.toJson(response),
       JSONCompareMode.STRICT
     )
 
