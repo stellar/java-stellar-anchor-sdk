@@ -1,10 +1,11 @@
 package org.stellar.anchor.sep12;
 
 import static org.stellar.anchor.util.Log.infoF;
-import static org.stellar.anchor.util.Metric.counter;
-import static org.stellar.anchor.util.MetricName.*;
-import static org.stellar.anchor.util.MetricName.SEP12_CUSTOMER;
+import static org.stellar.anchor.util.MetricConstants.*;
+import static org.stellar.anchor.util.MetricConstants.SEP12_CUSTOMER;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Metrics;
 import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -21,6 +22,13 @@ import org.stellar.sdk.xdr.MemoType;
 
 public class Sep12Service {
   private final CustomerIntegration customerIntegration;
+  private final Counter sep12GetCustomerCounter =
+      Metrics.counter(SEP12_CUSTOMER, TYPE, TV_SEP12_GET_CUSTOMER);
+  private final Counter sep12PutCustomerCounter =
+      Metrics.counter(SEP12_CUSTOMER, TYPE, TV_SEP12_PUT_CUSTOMER);
+  private final Counter sep12DeleteCustomerCounter =
+      Metrics.counter(SEP12_CUSTOMER, TYPE, TV_SEP12_DELETE_CUSTOMER);
+
   private final Set<String> knownTypes;
 
   public Sep12Service(CustomerIntegration customerIntegration, AssetService assetService) {
@@ -49,7 +57,8 @@ public class Sep12Service {
         customerIntegration.getCustomer(GetCustomerRequest.from(request));
     Sep12GetCustomerResponse res = GetCustomerResponse.to(response);
 
-    counter(SEP12_CUSTOMER, TYPE, TV_SEP12_GET_CUSTOMER);
+    // increment counter
+    sep12GetCustomerCounter.increment();
     return res;
   }
 
@@ -62,7 +71,8 @@ public class Sep12Service {
     }
     Sep12PutCustomerResponse response =
         PutCustomerResponse.to(customerIntegration.putCustomer(PutCustomerRequest.from(request)));
-    counter(SEP12_CUSTOMER, TYPE, TV_SEP12_PUT_CUSTOMER);
+    // increment counter
+    sep12PutCustomerCounter.increment();
     return response;
   }
 
@@ -110,7 +120,8 @@ public class Sep12Service {
       throw new SepNotFoundException("User not found.");
     }
 
-    counter(SEP12_CUSTOMER, TYPE, TV_SEP12_DELETE_CUSTOMER);
+    // increment counter
+    sep12DeleteCustomerCounter.increment();
   }
 
   void validateGetOrPutRequest(Sep12CustomerRequestBase requestBase, Sep10Jwt token)

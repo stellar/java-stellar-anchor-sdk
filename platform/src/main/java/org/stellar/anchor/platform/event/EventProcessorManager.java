@@ -2,11 +2,11 @@ package org.stellar.anchor.platform.event;
 
 import static org.stellar.anchor.event.EventService.*;
 import static org.stellar.anchor.util.Log.*;
-import static org.stellar.anchor.util.Metric.*;
-import static org.stellar.anchor.util.MetricName.*;
-import static org.stellar.anchor.util.MetricName.EVENT_RECEIVED;
+import static org.stellar.anchor.util.MetricConstants.*;
+import static org.stellar.anchor.util.MetricConstants.EVENT_RECEIVED;
 import static org.stellar.anchor.util.StringHelper.json;
 
+import io.micrometer.core.instrument.Metrics;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ScheduledExecutorService;
@@ -29,7 +29,6 @@ import org.stellar.anchor.platform.utils.DaemonExecutors;
 import org.stellar.anchor.sep24.MoreInfoUrlConstructor;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.util.Log;
-import org.stellar.anchor.util.MetricName;
 
 public class EventProcessorManager {
   public static final String CLIENT_STATUS_CALLBACK_EVENT_PROCESSOR_NAME_PREFIX =
@@ -165,7 +164,8 @@ public class EventProcessorManager {
         while (!Thread.currentThread().isInterrupted() && !stopped) {
           ReadResponse readResponse = queueSession.read();
           List<AnchorEvent> events = readResponse.getEvents();
-          counter(EVENT_RECEIVED, events.size(), QUEUE, toMetricName(eventQueue.name()));
+          Metrics.counter(EVENT_RECEIVED, QUEUE, toMetricTag(eventQueue.name()))
+              .increment(events.size());
           debugF("Received {} events from queue", events.size());
           events.forEach(
               event -> {
@@ -176,7 +176,8 @@ public class EventProcessorManager {
                   try {
                     eventHandler.handleEvent(event);
                     isProcessed = true;
-                    counter(EVENT_PROCESSED, events.size(), QUEUE, toMetricName(eventQueue.name()));
+                    Metrics.counter(EVENT_PROCESSED, QUEUE, toMetricTag(eventQueue.name()))
+                        .increment(events.size());
                   } catch (Exception e) {
                     Log.errorEx(e);
                     backoffTimer(attempts++);
@@ -213,14 +214,14 @@ public class EventProcessorManager {
     }
   }
 
-  private MetricName toMetricName(String name) {
+  private String toMetricTag(String name) {
     switch (name) {
       case CALLBACK_API_EVENT_PROCESSOR_NAME:
         return TV_BUSINESS_SERVER_CALLBACK;
       case CLIENT_STATUS_CALLBACK_EVENT_PROCESSOR_NAME_PREFIX:
         return TV_STATUS_CALLBACK;
       default:
-        return TV_KNOWN;
+        return TV_UNKNOWN;
     }
   }
 }

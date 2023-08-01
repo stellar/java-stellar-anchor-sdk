@@ -10,10 +10,11 @@ import static org.stellar.anchor.util.MathHelper.decimal;
 import static org.stellar.anchor.util.MathHelper.equalsAsDecimals;
 import static org.stellar.anchor.util.MemoHelper.makeMemo;
 import static org.stellar.anchor.util.MemoHelper.memoTypeAsString;
-import static org.stellar.anchor.util.Metric.*;
-import static org.stellar.anchor.util.MetricName.*;
+import static org.stellar.anchor.util.MetricConstants.*;
 import static org.stellar.sdk.xdr.MemoType.MEMO_HASH;
 
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.Metrics;
 import java.time.Instant;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -60,6 +61,30 @@ public class TransactionService {
   private final List<AssetInfo> assets;
   private final Session eventSession;
   private final AssetService assetService;
+  private final Counter findSep6TransactionCounter =
+      Metrics.counter(PLATFORM_FIND_TRANSACTION, SEP, TV_SEP6);
+  private final Counter findSep24TransactionCounter =
+      Metrics.counter(PLATFORM_FIND_TRANSACTION, TYPE, TV_SEP24);
+  private final Counter findSep31TransactionCounter =
+      Metrics.counter(PLATFORM_FIND_TRANSACTION, TYPE, TV_SEP31);
+  private final Counter findUnknownTransactionCounter =
+      Metrics.counter(PLATFORM_FIND_TRANSACTION, TYPE, TV_UNKNOWN);
+
+  private final Counter findSep6TransactionsCounter =
+      Metrics.counter(PLATFORM_FIND_TRANSACTIONS, TYPE, TV_UNKNOWN);
+  private final Counter findSep24TransactionsCounter =
+      Metrics.counter(PLATFORM_FIND_TRANSACTIONS, TYPE, TV_UNKNOWN);
+  private final Counter findSep31TransactionsCounter =
+      Metrics.counter(PLATFORM_FIND_TRANSACTIONS, TYPE, TV_UNKNOWN);
+
+  @SuppressWarnings("unused")
+  private final Counter patchSep6TransactionCounter =
+      Metrics.counter(PLATFORM_PATCH_TRANSACTION, SEP, TV_SEP6);
+
+  private final Counter patchSep24TransactionCounter =
+      Metrics.counter(PLATFORM_PATCH_TRANSACTION, SEP, TV_SEP24);
+  private final Counter patchSep31TransactionCounter =
+      Metrics.counter(PLATFORM_PATCH_TRANSACTION, SEP, TV_SEP31);
 
   static boolean isStatusError(String status) {
     return List.of(PENDING_CUSTOMER_INFO_UPDATE.getStatus(), EXPIRED.getStatus(), ERROR.getStatus())
@@ -98,16 +123,16 @@ public class TransactionService {
     if (txn != null) {
       switch (txn.getProtocol()) {
         case "6":
-          counter(PLATFORM_FIND_TRANSACTION, SEP, TV_SEP6);
+          findSep6TransactionCounter.increment();
           break;
         case "24":
-          counter(PLATFORM_FIND_TRANSACTION, SEP, TV_SEP24);
+          findSep24TransactionCounter.increment();
           break;
         case "31":
-          counter(PLATFORM_FIND_TRANSACTION, SEP, TV_SEP31);
+          findSep31TransactionCounter.increment();
           break;
         default:
-          counter(PLATFORM_FIND_TRANSACTION, SEP, TV_KNOWN);
+          findUnknownTransactionCounter.increment();
       }
 
       return toGetTransactionResponse(txn, assetService);
@@ -123,15 +148,15 @@ public class TransactionService {
     switch (sep) {
       case SEP_31:
         txn = txn31Store.findTransactions(params);
-        counter(PLATFORM_FIND_TRANSACTIONS, SEP, TV_SEP31);
+        findSep6TransactionsCounter.increment();
         break;
       case SEP_24:
         txn = txn24Store.findTransactions(params);
-        counter(PLATFORM_FIND_TRANSACTIONS, SEP, TV_SEP24);
+        findSep24TransactionsCounter.increment();
         break;
       case SEP_6:
         txn = txn6Store.findTransactions(params);
-        counter(PLATFORM_FIND_TRANSACTIONS, SEP, TV_SEP6);
+        findSep31TransactionsCounter.increment();
         break;
       default:
         throw new BadRequestException("SEP not supported");
@@ -224,7 +249,7 @@ public class TransactionService {
                 .transaction(
                     TransactionHelper.toGetTransactionResponse(sep24Transaction, assetService))
                 .build());
-        counter(PLATFORM_PATCH_TRANSACTION, SEP, TV_SEP24);
+        patchSep24TransactionCounter.increment();
         break;
       case "31":
         JdbcSep31Transaction sep31Transaction = (JdbcSep31Transaction) txn;
@@ -236,7 +261,7 @@ public class TransactionService {
                 .type(TRANSACTION_STATUS_CHANGED)
                 .transaction(TransactionHelper.toGetTransactionResponse(sep31Transaction))
                 .build());
-        counter(PLATFORM_PATCH_TRANSACTION, SEP, TV_SEP31);
+        patchSep31TransactionCounter.increment();
         break;
     }
     return toGetTransactionResponse(txn, assetService);
