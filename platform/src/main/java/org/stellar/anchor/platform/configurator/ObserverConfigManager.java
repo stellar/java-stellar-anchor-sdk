@@ -45,7 +45,11 @@ class ObserverConfigAdapter extends SpringConfigAdapter {
     // Enable the management server for Spring Actuator
     copy(config, "payment_observer.management_server_port", "management.server.port");
     set("management.endpoints.enabled-by-default", true);
-    set("management.endpoints.web.exposure.include", "health,info,prometheus");
+    if (config.getBoolean("metrics.enabled")) {
+      set("management.endpoints.web.exposure.include", "health,info,prometheus");
+    } else {
+      set("management.endpoints.web.exposure.include", "health,info");
+    }
   }
 
   @Override

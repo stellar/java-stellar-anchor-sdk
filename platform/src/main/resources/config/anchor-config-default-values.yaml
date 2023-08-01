@@ -445,12 +445,6 @@ sep38:
 metrics:
   # If true, enable metrics will be enabled.
   enabled: false
-  # The configuration of making extended metrics available.
-  extended_metrics:
-    # If true, the extended metrics will be enabled.
-    enabled: false
-    # Interval in seconds to query the database to generate metrics
-    run_interval: 30
 
 
 #########################

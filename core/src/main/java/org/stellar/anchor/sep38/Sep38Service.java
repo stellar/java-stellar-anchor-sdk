@@ -39,15 +39,15 @@ import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.util.Log;
 
 public class Sep38Service {
-  private final AssetService assetService;
-  private final RateIntegration rateIntegration;
-  private final Sep38QuoteStore sep38QuoteStore;
-  private final EventService.Session eventSession;
-  private final InfoResponse infoResponse;
-  private final Map<String, InfoResponse.Asset> assetMap;
-  private final int pricePrecision = 10;
-  private final Counter sep38PriceQueried = Metrics.counter(SEP38_PRICE_QUERIED);
-  private final Counter sep38QuoteCreated = Metrics.counter(SEP38_QUOTE_CREATED);
+  final AssetService assetService;
+  final RateIntegration rateIntegration;
+  final Sep38QuoteStore sep38QuoteStore;
+  final EventService.Session eventSession;
+  final InfoResponse infoResponse;
+  final Map<String, InfoResponse.Asset> assetMap;
+  final int pricePrecision = 10;
+  final Counter sep38PriceQueried = Metrics.counter(SEP38_PRICE_QUERIED);
+  final Counter sep38QuoteCreated = Metrics.counter(SEP38_QUOTE_CREATED);
 
   public Sep38Service(
       Sep38Config sep38Config,
