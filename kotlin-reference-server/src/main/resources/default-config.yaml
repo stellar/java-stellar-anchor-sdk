@@ -15,4 +15,4 @@ sep24:
   # Indicates, that custody integration is enabled
   custodyEnabled: false
   # Indicates, that RPC actions should be used instead of PATCH /transactions endpoint
-  rpcActionsEnabled: false
+  rpcActionsEnabled: true

@@ -10,6 +10,8 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.skyscreamer.jsonassert.JSONAssert
 import org.skyscreamer.jsonassert.JSONCompareMode
+import org.stellar.anchor.api.event.AnchorEvent
+import org.stellar.anchor.api.event.AnchorEvent.Type.TRANSACTION_STATUS_CHANGED
 import org.stellar.anchor.api.exception.BadRequestException
 import org.stellar.anchor.api.exception.rpc.InvalidParamsException
 import org.stellar.anchor.api.exception.rpc.InvalidRequestException
@@ -27,6 +29,9 @@ import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.asset.DefaultAssetService
 import org.stellar.anchor.config.CustodyConfig
 import org.stellar.anchor.custody.CustodyService
+import org.stellar.anchor.event.EventService
+import org.stellar.anchor.event.EventService.EventQueue.TRANSACTION
+import org.stellar.anchor.event.EventService.Session
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
 import org.stellar.anchor.platform.service.Sep24DepositInfoNoneGenerator
 import org.stellar.anchor.platform.service.Sep24DepositInfoSelfGenerator
@@ -65,11 +70,16 @@ class RequestOnchainFundsHandlerTest {
   @MockK(relaxed = true)
   private lateinit var sep24DepositInfoGenerator: Sep24DepositInfoNoneGenerator
 
+  @MockK(relaxed = true) private lateinit var eventService: EventService
+
+  @MockK(relaxed = true) private lateinit var eventSession: Session
+
   private lateinit var handler: RequestOnchainFundsHandler
 
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
+    every { eventService.createSession(any(), TRANSACTION) } returns eventSession
     this.assetService = DefaultAssetService.fromJsonResource("test_assets.json")
     this.handler =
       RequestOnchainFundsHandler(
@@ -79,7 +89,8 @@ class RequestOnchainFundsHandlerTest {
         assetService,
         custodyService,
         custodyConfig,
-        sep24DepositInfoGenerator
+        sep24DepositInfoGenerator,
+        eventService
       )
   }
 
@@ -188,11 +199,13 @@ class RequestOnchainFundsHandlerTest {
     txn24.requestAssetCode = STELLAR_USDC_CODE
     txn24.requestAssetIssuer = STELLAR_USDC_ISSUER
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
+    val anchorEventCapture = slot<AnchorEvent>()
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
     every { custodyConfig.isCustodyIntegrationEnabled } returns false
+    every { eventSession.publish(capture(anchorEventCapture)) } just Runs
 
     val startDate = Instant.now()
     val response = handler.handle(request)
@@ -244,6 +257,20 @@ class RequestOnchainFundsHandlerTest {
       JSONCompareMode.STRICT
     )
 
+    val expectedEvent =
+      AnchorEvent.builder()
+        .id(anchorEventCapture.captured.id)
+        .sep(SEP_24.sep.toString())
+        .type(TRANSACTION_STATUS_CHANGED)
+        .transaction(expectedResponse)
+        .build()
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedEvent),
+      gson.toJson(anchorEventCapture.captured),
+      JSONCompareMode.STRICT
+    )
+
     assertTrue(expectedSep24Txn.updatedAt >= startDate)
     assertTrue(expectedSep24Txn.updatedAt <= endDate)
   }
@@ -259,7 +286,8 @@ class RequestOnchainFundsHandlerTest {
         assetService,
         custodyService,
         custodyConfig,
-        sep24DepositInfoGenerator
+        sep24DepositInfoGenerator,
+        eventService
       )
 
     val request =
@@ -276,6 +304,7 @@ class RequestOnchainFundsHandlerTest {
     txn24.requestAssetCode = STELLAR_USDC_CODE
     txn24.requestAssetIssuer = STELLAR_USDC_ISSUER
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
+    val anchorEventCapture = slot<AnchorEvent>()
     val depositInfo = SepDepositInfo("testDestinationAccount2", "testMemo2", "text")
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
@@ -284,6 +313,7 @@ class RequestOnchainFundsHandlerTest {
     every { custodyConfig.isCustodyIntegrationEnabled } returns false
     every { sep24DepositInfoGenerator.generate(ofType(Sep24Transaction::class)) } returns
       depositInfo
+    every { eventSession.publish(capture(anchorEventCapture)) } just Runs
 
     val startDate = Instant.now()
     val response = handler.handle(request)
@@ -335,6 +365,20 @@ class RequestOnchainFundsHandlerTest {
       JSONCompareMode.STRICT
     )
 
+    val expectedEvent =
+      AnchorEvent.builder()
+        .id(anchorEventCapture.captured.id)
+        .sep(SEP_24.sep.toString())
+        .type(TRANSACTION_STATUS_CHANGED)
+        .transaction(expectedResponse)
+        .build()
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedEvent),
+      gson.toJson(anchorEventCapture.captured),
+      JSONCompareMode.STRICT
+    )
+
     assertTrue(expectedSep24Txn.updatedAt >= startDate)
     assertTrue(expectedSep24Txn.updatedAt <= endDate)
   }
@@ -359,12 +403,14 @@ class RequestOnchainFundsHandlerTest {
     txn24.requestAssetIssuer = STELLAR_USDC_ISSUER
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
     val sep24CustodyTxnCapture = slot<JdbcSep24Transaction>()
+    val anchorEventCapture = slot<AnchorEvent>()
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
     every { custodyConfig.isCustodyIntegrationEnabled } returns true
     every { custodyService.createTransaction(capture(sep24CustodyTxnCapture)) } just Runs
+    every { eventSession.publish(capture(anchorEventCapture)) } just Runs
 
     val startDate = Instant.now()
     val response = handler.handle(request)
@@ -421,6 +467,20 @@ class RequestOnchainFundsHandlerTest {
       JSONCompareMode.STRICT
     )
 
+    val expectedEvent =
+      AnchorEvent.builder()
+        .id(anchorEventCapture.captured.id)
+        .sep(SEP_24.sep.toString())
+        .type(TRANSACTION_STATUS_CHANGED)
+        .transaction(expectedResponse)
+        .build()
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedEvent),
+      gson.toJson(anchorEventCapture.captured),
+      JSONCompareMode.STRICT
+    )
+
     assertTrue(expectedSep24Txn.updatedAt >= startDate)
     assertTrue(expectedSep24Txn.updatedAt <= endDate)
   }
@@ -443,11 +503,13 @@ class RequestOnchainFundsHandlerTest {
     txn24.requestAssetCode = STELLAR_USDC_CODE
     txn24.requestAssetIssuer = STELLAR_USDC_ISSUER
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
+    val anchorEventCapture = slot<AnchorEvent>()
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
     every { custodyConfig.isCustodyIntegrationEnabled } returns false
+    every { eventSession.publish(capture(anchorEventCapture)) } just Runs
 
     val startDate = Instant.now()
     val response = handler.handle(request)
@@ -496,6 +558,20 @@ class RequestOnchainFundsHandlerTest {
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
       gson.toJson(response),
+      JSONCompareMode.STRICT
+    )
+
+    val expectedEvent =
+      AnchorEvent.builder()
+        .id(anchorEventCapture.captured.id)
+        .sep(SEP_24.sep.toString())
+        .type(TRANSACTION_STATUS_CHANGED)
+        .transaction(expectedResponse)
+        .build()
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedEvent),
+      gson.toJson(anchorEventCapture.captured),
       JSONCompareMode.STRICT
     )
 
@@ -525,11 +601,13 @@ class RequestOnchainFundsHandlerTest {
     txn24.amountFeeAsset = STELLAR_USDC
     txn24.amountExpected = "1"
     val sep24TxnCapture = slot<JdbcSep24Transaction>()
+    val anchorEventCapture = slot<AnchorEvent>()
 
     every { txn24Store.findByTransactionId(TX_ID) } returns txn24
     every { txn31Store.findByTransactionId(any()) } returns null
     every { txn24Store.save(capture(sep24TxnCapture)) } returns null
     every { custodyConfig.isCustodyIntegrationEnabled } returns false
+    every { eventSession.publish(capture(anchorEventCapture)) } just Runs
 
     val startDate = Instant.now()
     val response = handler.handle(request)
@@ -578,6 +656,20 @@ class RequestOnchainFundsHandlerTest {
     JSONAssert.assertEquals(
       gson.toJson(expectedResponse),
       gson.toJson(response),
+      JSONCompareMode.STRICT
+    )
+
+    val expectedEvent =
+      AnchorEvent.builder()
+        .id(anchorEventCapture.captured.id)
+        .sep(SEP_24.sep.toString())
+        .type(TRANSACTION_STATUS_CHANGED)
+        .transaction(expectedResponse)
+        .build()
+
+    JSONAssert.assertEquals(
+      gson.toJson(expectedEvent),
+      gson.toJson(anchorEventCapture.captured),
       JSONCompareMode.STRICT
     )
 
@@ -650,7 +742,8 @@ class RequestOnchainFundsHandlerTest {
         assetService,
         custodyService,
         custodyConfig,
-        sep24DepositInfoGenerator
+        sep24DepositInfoGenerator,
+        eventService
       )
 
     val request =

@@ -116,7 +116,7 @@ subprojects {
       useJUnitPlatform()
 
       exclude("**/AnchorPlatformCustodyEnd2EndTest**")
-      exclude("**/AnchorPlatformCustodyEnd2EndActionsTest**")
+      exclude("**/AnchorPlatformCustodyActionsEnd2EndTest**")
 
       testLogging {
         events("SKIPPED", "FAILED")
@@ -129,8 +129,8 @@ subprojects {
     register<Test>("testFireblocksE2E") {
       useJUnitPlatform()
 
-      include("**/AnchorPlatformCustodyEnd2EndTest**")
-      include("**/AnchorPlatformCustodyEnd2EndActionsTest**")
+//      include("**/AnchorPlatformCustodyEnd2EndTest**")
+      include("**/AnchorPlatformCustodyActionsEnd2EndTest**")
 
       testLogging {
         events("SKIPPED", "FAILED")
@@ -152,7 +152,7 @@ subprojects {
 
 allprojects {
   group = "org.stellar.anchor-sdk"
-  version = "2.1.0"
+  version = "2.1.1"
 
   tasks.jar {
     manifest {
@@ -161,8 +161,4 @@ allprojects {
       )
     }
   }
-}
-
-tasks.register("printVersionName") {
-  println(rootProject.version.toString())
 }

@@ -19,7 +19,7 @@
       </ENTRIES>
     </extension>
     <option name="PACKAGE_NAME" value="org.stellar.anchor.platform" />
-    <option name="MAIN_CLASS_NAME" value="org.stellar.anchor.platform.AnchorPlatformCustodyEnd2EndActionsTest" />
+    <option name="MAIN_CLASS_NAME" value="org.stellar.anchor.platform.AnchorPlatformCustodyActionsEnd2EndTest" />
     <option name="METHOD_NAME" value="" />
     <option name="TEST_OBJECT" value="class" />
     <envs>

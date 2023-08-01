@@ -13,7 +13,9 @@ import org.stellar.anchor.api.rpc.action.ActionMethod;
 import org.stellar.anchor.api.rpc.action.NotifyTransactionExpiredRequest;
 import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
+import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
+import org.stellar.anchor.platform.data.JdbcTransactionPendingTrustRepo;
 import org.stellar.anchor.platform.validator.RequestValidator;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
@@ -21,17 +23,23 @@ import org.stellar.anchor.sep31.Sep31TransactionStore;
 public class NotifyTransactionExpiredHandler
     extends ActionHandler<NotifyTransactionExpiredRequest> {
 
+  private final JdbcTransactionPendingTrustRepo transactionPendingTrustRepo;
+
   public NotifyTransactionExpiredHandler(
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       RequestValidator requestValidator,
-      AssetService assetService) {
+      AssetService assetService,
+      EventService eventService,
+      JdbcTransactionPendingTrustRepo transactionPendingTrustRepo) {
     super(
         txn24Store,
         txn31Store,
         requestValidator,
         assetService,
+        eventService,
         NotifyTransactionExpiredRequest.class);
+    this.transactionPendingTrustRepo = transactionPendingTrustRepo;
   }
 
   @Override
@@ -59,5 +67,9 @@ public class NotifyTransactionExpiredHandler
 
   @Override
   protected void updateTransactionWithAction(
-      JdbcSepTransaction txn, NotifyTransactionExpiredRequest request) {}
+      JdbcSepTransaction txn, NotifyTransactionExpiredRequest request) {
+    if (transactionPendingTrustRepo.existsById(txn.getId())) {
+      transactionPendingTrustRepo.deleteById(txn.getId());
+    }
+  }
 }

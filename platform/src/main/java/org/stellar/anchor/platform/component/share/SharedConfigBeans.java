@@ -7,6 +7,7 @@ import org.stellar.anchor.config.CustodyConfig;
 import org.stellar.anchor.config.CustodySecretConfig;
 import org.stellar.anchor.config.SecretConfig;
 import org.stellar.anchor.platform.config.AppLoggingConfig;
+import org.stellar.anchor.platform.config.CallbackApiConfig;
 import org.stellar.anchor.platform.config.CustodyApiConfig;
 import org.stellar.anchor.platform.config.PlatformApiConfig;
 import org.stellar.anchor.platform.config.PlatformServerConfig;
@@ -46,6 +47,12 @@ public class SharedConfigBeans {
   @ConfigurationProperties(prefix = "custody")
   PropertyCustodyConfig propertyCustodyConfig() {
     return new PropertyCustodyConfig();
+  }
+
+  @Bean
+  @ConfigurationProperties(prefix = "callback-api")
+  CallbackApiConfig callbackApiConfig(PropertySecretConfig secretConfig) {
+    return new CallbackApiConfig(secretConfig);
   }
 
   @Bean

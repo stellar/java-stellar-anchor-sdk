@@ -27,6 +27,7 @@ import org.stellar.anchor.api.shared.SepDepositInfo;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.CustodyConfig;
 import org.stellar.anchor.custody.CustodyService;
+import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.platform.service.Sep24DepositInfoNoneGenerator;
@@ -50,8 +51,15 @@ public class RequestOnchainFundsHandler extends ActionHandler<RequestOnchainFund
       AssetService assetService,
       CustodyService custodyService,
       CustodyConfig custodyConfig,
-      Sep24DepositInfoGenerator sep24DepositInfoGenerator) {
-    super(txn24Store, txn31Store, requestValidator, assetService, RequestOnchainFundsRequest.class);
+      Sep24DepositInfoGenerator sep24DepositInfoGenerator,
+      EventService eventService) {
+    super(
+        txn24Store,
+        txn31Store,
+        requestValidator,
+        assetService,
+        eventService,
+        RequestOnchainFundsRequest.class);
     this.custodyService = custodyService;
     this.custodyConfig = custodyConfig;
     this.sep24DepositInfoGenerator = sep24DepositInfoGenerator;

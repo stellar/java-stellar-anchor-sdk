@@ -2,8 +2,6 @@ package org.stellar.reference.sep24
 
 import java.math.BigDecimal
 import java.math.RoundingMode
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.buildJsonObject
 import mu.KotlinLogging
 import org.stellar.reference.data.*
 import org.stellar.sdk.responses.operations.PaymentOperationResponse
@@ -12,11 +10,6 @@ private val log = KotlinLogging.logger {}
 
 class DepositService(private val cfg: Config) {
   val sep24 = Sep24Helper(cfg)
-
-  suspend fun getClientInfo(transactionId: String) {
-    // 1. Gather all information from the client here, such as KYC.
-    // In this simple implementation we do not require any additional input from the user.
-  }
 
   suspend fun processDeposit(
     transactionId: String,
@@ -77,33 +70,16 @@ class DepositService(private val cfg: Config) {
     val stellarAsset = "stellar:$asset"
 
     if (cfg.sep24.rpcActionsEnabled) {
-      sep24.rpcAction(
+      sep24.rpcAction2(
         "request_offchain_funds",
-        buildJsonObject {
-          put("transaction_id", JsonPrimitive(transactionId))
-          put("message", JsonPrimitive("waiting on the user to transfer funds"))
-          put(
-            "amount_in",
-            buildJsonObject {
-              put("asset", JsonPrimitive("iso4217:USD"))
-              put("amount", JsonPrimitive(amount.toPlainString()))
-            }
-          )
-          put(
-            "amount_out",
-            buildJsonObject {
-              put("asset", JsonPrimitive(stellarAsset))
-              put("amount", JsonPrimitive(amount.subtract(fee).toPlainString()))
-            }
-          )
-          put(
-            "amount_fee",
-            buildJsonObject {
-              put("asset", JsonPrimitive("iso4217:USD"))
-              put("amount", JsonPrimitive(fee.toPlainString()))
-            }
-          )
-        }
+        RequestOffchainFundsRequest(
+          transactionId = transactionId,
+          message = "waiting on the user to transfer funds",
+          amountIn = AmountAssetRequest(asset = "iso4217:USD", amount = amount.toPlainString()),
+          amountOut =
+            AmountAssetRequest(asset = stellarAsset, amount = amount.subtract(fee).toPlainString()),
+          amountFee = AmountAssetRequest(asset = "iso4217:USD", amount = fee.toPlainString())
+        )
       )
     } else {
       sep24.patchTransaction(
@@ -123,10 +99,10 @@ class DepositService(private val cfg: Config) {
     if (cfg.sep24.rpcActionsEnabled) {
       sep24.rpcAction(
         "notify_offchain_funds_received",
-        buildJsonObject {
-          put("transaction_id", JsonPrimitive(transactionId))
-          put("message", JsonPrimitive("funds received, transaction is being processed"))
-        }
+        NotifyOffchainFundsReceivedRequest(
+          transactionId = transactionId,
+          message = "funds received, transaction is being processed"
+        )
       )
     } else {
       sep24.patchTransaction(
@@ -134,15 +110,17 @@ class DepositService(private val cfg: Config) {
         "pending_anchor",
         "funds received, transaction is being processed"
       )
+      sep24.patchTransaction(
+        transactionId,
+        "pending_stellar",
+        "funds received, transaction is being processed"
+      )
     }
   }
 
   private suspend fun sendCustodyStellarTransaction(transactionId: String) {
     if (cfg.sep24.rpcActionsEnabled) {
-      sep24.rpcAction(
-        "do_stellar_payment",
-        buildJsonObject { put("transaction_id", JsonPrimitive(transactionId)) }
-      )
+      sep24.rpcAction("do_stellar_payment", DoStellarPaymentRequest(transactionId = transactionId))
     } else {
       sep24.sendCustodyStellarTransaction(transactionId)
     }
@@ -165,10 +143,10 @@ class DepositService(private val cfg: Config) {
     if (cfg.sep24.rpcActionsEnabled) {
       sep24.rpcAction(
         "notify_onchain_funds_sent",
-        buildJsonObject {
-          put("transaction_id", JsonPrimitive(transactionId))
-          put("stellar_transaction_id", JsonPrimitive(stellarTransactionId))
-        }
+        NotifyOnchainFundsSentRequest(
+          transactionId = transactionId,
+          stellarTransactionId = stellarTransactionId
+        )
       )
     } else {
       val operationId: Long =
@@ -208,10 +186,7 @@ class DepositService(private val cfg: Config) {
     if (cfg.sep24.rpcActionsEnabled) {
       sep24.rpcAction(
         "notify_transaction_error",
-        buildJsonObject {
-          put("transaction_id", JsonPrimitive(transactionId))
-          put("message", JsonPrimitive(message))
-        }
+        NotifyTransactionErrorRequest(transactionId = transactionId, message = message)
       )
     } else {
       sep24.patchTransaction(transactionId, "error", message)

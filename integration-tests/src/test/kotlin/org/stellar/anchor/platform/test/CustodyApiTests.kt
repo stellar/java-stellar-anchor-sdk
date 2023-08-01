@@ -153,7 +153,6 @@ class CustodyApiTests(val config: TestConfig, val toml: Sep1Helper.TomlContent, 
       CustomComparator(
         JSONCompareMode.STRICT,
         Customization("completed_at") { _, _ -> true },
-        Customization("transfer_received_at") { _, _ -> true },
         Customization("stellar_transactions[0].created_at") { _, _ -> true }
       )
     )
@@ -329,7 +328,6 @@ private const val expectedTransactionResponse =
     "amount": "1",
     "asset": "stellar:USDC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5"
   },
-  "transfer_received_at": "2023-06-22T08:46:39.336Z",
   "completed_at": "2023-06-22T08:46:39.336Z",
   "external_transaction_id": "1",
   "stellar_transactions": [

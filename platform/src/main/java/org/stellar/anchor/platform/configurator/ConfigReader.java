@@ -7,6 +7,8 @@ import static org.stellar.anchor.util.StringHelper.isEmpty;
 import java.io.IOException;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.springframework.core.io.ClassPathResource;
 import org.stellar.anchor.api.exception.InvalidConfigException;
 import org.stellar.anchor.platform.configurator.ConfigMap.ConfigEntry;
@@ -36,18 +38,41 @@ public class ConfigReader {
 
   public void validate(ConfigMap configMap) throws InvalidConfigException {
     List<String> errors = new LinkedList<>();
-    for (String key : configMap.names()) {
-      if (this.configSchema.getString(key) == null) {
+    for (String name : configMap.names()) {
+      // If the name is an array field, the element of the field is not validated.
+      name = trimToArrayName(name);
+      if (this.configSchema.getString(name) == null) {
         errors.add(
             String.format(
                 "Invalid configuration: %s=%s. (version=%d)",
-                key, configMap.getString(key), version));
+                name, configMap.getString(name), version));
       }
     }
 
     if (errors.size() > 0) {
       throw new InvalidConfigException(errors);
     }
+  }
+
+  private Pattern arrayPattern = Pattern.compile("\\[\\d+\\]");
+
+  /**
+   * If the name is an array field, return the name without the array index and truncate the rest of
+   * the name.
+   *
+   * <p>Example: "assets[0].code" -> "assets"
+   *
+   * @param fieldName
+   * @return name of the array
+   */
+  String trimToArrayName(String fieldName) {
+    Matcher matcher = arrayPattern.matcher(fieldName);
+
+    if (matcher.find()) {
+      int start = matcher.start();
+      return fieldName.substring(0, start);
+    }
+    return fieldName;
   }
 
   public ConfigMap readFrom(ConfigMap configMap) {

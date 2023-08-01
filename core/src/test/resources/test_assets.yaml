@@ -8,10 +8,16 @@ assets:
       enabled: true
       min_amount: 1
       max_amount: 10000
+      methods:
+        - SEPA
+        - SWIFT
     withdraw:
       enabled: true
       min_amount: 1
       max_amount: 10000
+      methods:
+        - bank_account
+        - cash
     send:
       fee_fixed: 0
       fee_percent: 0
@@ -41,8 +47,13 @@ assets:
         transaction:
           receiver_routing_number:
             description: routing number of the destination bank account
+            optional: false
           receiver_account_number:
             description: bank account number of the destination
+            optional: false
+          receiver_phone_number:
+            description: phone number of the receiver
+            optional: true
           type:
             description: type of deposit to make
             choices:
@@ -52,6 +63,7 @@ assets:
       exchangeable_assets:
         - stellar:JPYC:GBBD47IF6LWK7P7MDEVSCWR7DPUWV3NY3DTQEVFL4NAT4AQH3ZLLFLA5
         - iso4217:USD
+    sep6_enabled: true
     sep24_enabled: true
     sep31_enabled: true
     sep38_enabled: true
@@ -88,8 +100,10 @@ assets:
         transaction:
           receiver_routing_number:
             description: routing number of the destination bank account
+            optional: false
           receiver_account_number:
             description: bank account number of the destination
+            optional: false
           type:
             description: type of deposit to make
             choices:
@@ -100,6 +114,7 @@ assets:
       exchangeable_assets:
         - stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP
         - iso4217:USD
+    sep6_enabled: false
     sep24_enabled: true
     sep31_enabled: true
     sep38_enabled: true
@@ -132,6 +147,8 @@ assets:
       buy_delivery_methods:
         - name: WIRE
           description: Have USD sent directly to your bank account.
+    sep6_enabled: false
+    sep24_enabled: true
     sep31_enabled: false
     sep38_enabled: true
   - schema: stellar
@@ -186,5 +203,7 @@ assets:
       exchangeable_assets:
         - stellar:USDC:GDQOE23CFSUMSVQK4Y5JHPPYK73VYCNHZHA7ENKCV37P6SUEO6XQBKPP
       decimals: 7
+    sep6_enabled: false
+    sep24_enabled: true
     sep31_enabled: false
     sep38_enabled: false

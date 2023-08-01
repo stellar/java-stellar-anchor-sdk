@@ -15,8 +15,13 @@ import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.filter.ApiKeyFilter;
 import org.stellar.anchor.filter.NoneFilter;
 import org.stellar.anchor.filter.PlatformAuthJwtFilter;
+import org.stellar.anchor.horizon.Horizon;
+import org.stellar.anchor.platform.action.NotifyTrustSetHandler;
 import org.stellar.anchor.platform.apiclient.CustodyApiClient;
 import org.stellar.anchor.platform.config.PlatformServerConfig;
+import org.stellar.anchor.platform.config.PropertyCustodyConfig;
+import org.stellar.anchor.platform.data.JdbcTransactionPendingTrustRepo;
+import org.stellar.anchor.platform.job.TrustlineCheckJob;
 import org.stellar.anchor.platform.service.Sep24DepositInfoCustodyGenerator;
 import org.stellar.anchor.platform.service.Sep24DepositInfoNoneGenerator;
 import org.stellar.anchor.platform.service.Sep24DepositInfoSelfGenerator;
@@ -25,6 +30,7 @@ import org.stellar.anchor.sep24.Sep24DepositInfoGenerator;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
 import org.stellar.anchor.sep38.Sep38QuoteStore;
+import org.stellar.anchor.sep6.Sep6TransactionStore;
 
 @Configuration
 public class PlatformServerBeans {
@@ -79,6 +85,7 @@ public class PlatformServerBeans {
 
   @Bean
   TransactionService transactionService(
+      Sep6TransactionStore txn6Store,
       Sep24TransactionStore txn24Store,
       Sep31TransactionStore txn31Store,
       Sep38QuoteStore quoteStore,
@@ -88,6 +95,7 @@ public class PlatformServerBeans {
       CustodyService custodyService,
       CustodyConfig custodyConfig) {
     return new TransactionService(
+        txn6Store,
         txn24Store,
         txn31Store,
         quoteStore,
@@ -96,5 +104,19 @@ public class PlatformServerBeans {
         sep24DepositInfoGenerator,
         custodyService,
         custodyConfig);
+  }
+
+  @Bean
+  TrustlineCheckJob trustlineCheckJob(
+      Horizon horizon,
+      JdbcTransactionPendingTrustRepo transactionPendingTrustRepo,
+      PropertyCustodyConfig custodyConfig,
+      NotifyTrustSetHandler notifyTrustSetHandler) {
+    if (custodyConfig.isCustodyIntegrationEnabled()) {
+      return new TrustlineCheckJob(
+          horizon, transactionPendingTrustRepo, custodyConfig, notifyTrustSetHandler);
+    } else {
+      return null;
+    }
   }
 }

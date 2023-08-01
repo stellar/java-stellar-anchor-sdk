@@ -8,6 +8,7 @@ import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_ANCHOR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_STELLAR;
 import static org.stellar.anchor.api.sep.SepTransactionStatus.PENDING_TRUST;
 
+import java.time.Instant;
 import java.util.Set;
 import org.stellar.anchor.api.exception.AnchorException;
 import org.stellar.anchor.api.exception.BadRequestException;
@@ -21,9 +22,12 @@ import org.stellar.anchor.api.sep.SepTransactionStatus;
 import org.stellar.anchor.asset.AssetService;
 import org.stellar.anchor.config.CustodyConfig;
 import org.stellar.anchor.custody.CustodyService;
+import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.horizon.Horizon;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
+import org.stellar.anchor.platform.data.JdbcTransactionPendingTrust;
+import org.stellar.anchor.platform.data.JdbcTransactionPendingTrustRepo;
 import org.stellar.anchor.platform.validator.RequestValidator;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31TransactionStore;
@@ -32,6 +36,7 @@ public class DoStellarPaymentHandler extends ActionHandler<DoStellarPaymentReque
 
   private final CustodyService custodyService;
   private final CustodyConfig custodyConfig;
+  private final JdbcTransactionPendingTrustRepo transactionPendingTrustRepo;
   private final Horizon horizon;
 
   public DoStellarPaymentHandler(
@@ -41,11 +46,20 @@ public class DoStellarPaymentHandler extends ActionHandler<DoStellarPaymentReque
       CustodyConfig custodyConfig,
       Horizon horizon,
       AssetService assetService,
-      CustodyService custodyService) {
-    super(txn24Store, txn31Store, requestValidator, assetService, DoStellarPaymentRequest.class);
+      CustodyService custodyService,
+      EventService eventService,
+      JdbcTransactionPendingTrustRepo transactionPendingTrustRepo) {
+    super(
+        txn24Store,
+        txn31Store,
+        requestValidator,
+        assetService,
+        eventService,
+        DoStellarPaymentRequest.class);
     this.custodyService = custodyService;
     this.custodyConfig = custodyConfig;
     this.horizon = horizon;
+    this.transactionPendingTrustRepo = transactionPendingTrustRepo;
   }
 
   @Override
@@ -68,7 +82,7 @@ public class DoStellarPaymentHandler extends ActionHandler<DoStellarPaymentReque
   protected SepTransactionStatus getNextStatus(
       JdbcSepTransaction txn, DoStellarPaymentRequest request) {
     JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
-    if (horizon.isTrustLineConfigured(txn24.getToAccount(), txn24.getAmountOutAsset())) {
+    if (horizon.isTrustlineConfigured(txn24.getToAccount(), txn24.getAmountOutAsset())) {
       return PENDING_STELLAR;
     } else {
       return PENDING_TRUST;
@@ -92,8 +106,16 @@ public class DoStellarPaymentHandler extends ActionHandler<DoStellarPaymentReque
   protected void updateTransactionWithAction(
       JdbcSepTransaction txn, DoStellarPaymentRequest request) throws AnchorException {
     JdbcSep24Transaction txn24 = (JdbcSep24Transaction) txn;
-    if (horizon.isTrustLineConfigured(txn24.getToAccount(), txn24.getAmountOutAsset())) {
+    if (horizon.isTrustlineConfigured(txn24.getToAccount(), txn24.getAmountOutAsset())) {
       custodyService.createTransactionPayment(txn24.getId(), null);
+    } else {
+      transactionPendingTrustRepo.save(
+          JdbcTransactionPendingTrust.builder()
+              .id(txn24.getId())
+              .createdAt(Instant.now())
+              .asset(txn24.getAmountOutAsset())
+              .account(txn24.getToAccount())
+              .build());
     }
   }
 }

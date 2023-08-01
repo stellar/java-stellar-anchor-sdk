@@ -2,22 +2,13 @@ package org.stellar.reference.sep24
 
 import java.math.BigDecimal
 import java.math.RoundingMode
-import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.json.buildJsonObject
 import mu.KotlinLogging
-import org.stellar.reference.data.Amount
-import org.stellar.reference.data.Config
-import org.stellar.reference.data.PatchTransactionTransaction
+import org.stellar.reference.data.*
 
 private val log = KotlinLogging.logger {}
 
 class WithdrawalService(private val cfg: Config) {
   private val sep24 = Sep24Helper(cfg)
-
-  suspend fun getClientInfo(transactionId: String) {
-    // 1. Gather all information from the client here, such as KYC.
-    // In this simple implementation we do not require any additional input from the user.
-  }
 
   suspend fun processWithdrawal(
     transactionId: String,
@@ -68,31 +59,17 @@ class WithdrawalService(private val cfg: Config) {
     if (cfg.sep24.rpcActionsEnabled) {
       sep24.rpcAction(
         "request_onchain_funds",
-        buildJsonObject {
-          put("transaction_id", JsonPrimitive(transactionId))
-          put("message", JsonPrimitive("waiting on the user to transfer funds"))
-          put(
-            "amount_in",
-            buildJsonObject {
-              put("asset", JsonPrimitive(stellarAsset))
-              put("amount", JsonPrimitive(amount.toPlainString()))
-            }
-          )
-          put(
-            "amount_out",
-            buildJsonObject {
-              put("asset", JsonPrimitive("iso4217:USD"))
-              put("amount", JsonPrimitive(amount.subtract(fee).toPlainString()))
-            }
-          )
-          put(
-            "amount_fee",
-            buildJsonObject {
-              put("asset", JsonPrimitive(stellarAsset))
-              put("amount", JsonPrimitive(fee.toPlainString()))
-            }
-          )
-        }
+        RequestOnchainFundsRequest(
+          transactionId = transactionId,
+          message = "waiting on the user to transfer funds",
+          amountIn = AmountAssetRequest(asset = stellarAsset, amount = amount.toPlainString()),
+          amountOut =
+            AmountAssetRequest(
+              asset = "iso4217:USD",
+              amount = amount.subtract(fee).toPlainString()
+            ),
+          amountFee = AmountAssetRequest(asset = stellarAsset, amount = fee.toPlainString())
+        )
       )
     } else {
       sep24.patchTransaction(
@@ -112,10 +89,10 @@ class WithdrawalService(private val cfg: Config) {
     if (cfg.sep24.rpcActionsEnabled) {
       sep24.rpcAction(
         "notify_offchain_funds_sent",
-        buildJsonObject {
-          put("transaction_id", JsonPrimitive(transactionId))
-          put("message", JsonPrimitive("pending external transfer"))
-        }
+        NotifyOffchainFundsSentRequest(
+          transactionId = transactionId,
+          message = "pending external transfer"
+        )
       )
     } else {
       sep24.patchTransaction(
@@ -142,10 +119,7 @@ class WithdrawalService(private val cfg: Config) {
     if (cfg.sep24.rpcActionsEnabled) {
       sep24.rpcAction(
         "notify_transaction_error",
-        buildJsonObject {
-          put("transaction_id", JsonPrimitive(transactionId))
-          put("message", JsonPrimitive(message))
-        }
+        NotifyTransactionErrorRequest(transactionId = transactionId, message = message)
       )
     } else {
       sep24.patchTransaction(transactionId, "error", message)

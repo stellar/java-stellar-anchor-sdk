@@ -1,5 +1,6 @@
 package org.stellar.reference.sep24
 
+import com.google.gson.reflect.TypeToken
 import io.ktor.client.*
 import io.ktor.client.call.*
 import io.ktor.client.plugins.contentnegotiation.*
@@ -12,15 +13,16 @@ import java.util.*
 import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.delay
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonObject
 import mu.KotlinLogging
 import org.apache.commons.codec.binary.Hex
+import org.stellar.anchor.util.GsonUtils
 import org.stellar.reference.data.*
 import org.stellar.reference.data.Transaction
 import org.stellar.sdk.*
 
 class Sep24Helper(private val cfg: Config) {
   private val log = KotlinLogging.logger {}
+  private val gson = GsonUtils.getInstance()
 
   val client = HttpClient {
     install(ContentNegotiation) { json(Json { ignoreUnknownKeys = true }) }
@@ -52,18 +54,25 @@ class Sep24Helper(private val cfg: Config) {
     }
   }
 
-  internal suspend fun rpcAction(method: String, params: JsonObject) {
+  internal suspend fun rpcAction2(method: String, params: RequestOffchainFundsRequest) {
+    rpcAction(method, params)
+  }
+
+  internal suspend fun rpcAction(method: String, params: RpcActionParamsRequest) {
     val resp =
       client.post("$baseUrl/actions") {
         contentType(ContentType.Application.Json)
         setBody(listOf(RpcRequest(UUID.randomUUID().toString(), "2.0", method, params)))
       }
 
-    if (resp.status != HttpStatusCode.OK) {
-      val respBody = resp.bodyAsText()
+    val respBody = resp.bodyAsText()
 
-      log.error { "Unexpected status code on rpc action. Response body: $respBody" }
-
+    val rpcResponseType = object : TypeToken<List<RpcResponse>>() {}.type
+    if (
+      resp.status != HttpStatusCode.OK ||
+        gson.fromJson<List<RpcResponse>>(respBody, rpcResponseType)[0].error != null
+    ) {
+      log.error { "Unexpected error on rpc action. Response body: $respBody" }
       throw Exception(respBody)
     }
   }

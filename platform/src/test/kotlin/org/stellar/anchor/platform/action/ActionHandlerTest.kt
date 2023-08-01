@@ -16,6 +16,7 @@ import org.stellar.anchor.api.rpc.action.NotifyInteractiveFlowCompletedRequest
 import org.stellar.anchor.api.sep.SepTransactionStatus
 import org.stellar.anchor.api.sep.SepTransactionStatus.*
 import org.stellar.anchor.asset.AssetService
+import org.stellar.anchor.event.EventService
 import org.stellar.anchor.platform.data.JdbcSep24Transaction
 import org.stellar.anchor.platform.data.JdbcSepTransaction
 import org.stellar.anchor.platform.validator.RequestValidator
@@ -29,13 +30,15 @@ class ActionHandlerTest {
     txn24Store: Sep24TransactionStore,
     txn31Store: Sep31TransactionStore,
     requestValidator: RequestValidator,
-    assetService: AssetService
+    assetService: AssetService,
+    eventService: EventService
   ) :
     ActionHandler<NotifyInteractiveFlowCompletedRequest>(
       txn24Store,
       txn31Store,
       requestValidator,
       assetService,
+      eventService,
       NotifyInteractiveFlowCompletedRequest::class.java
     ) {
     override fun getActionType(): ActionMethod {
@@ -71,12 +74,15 @@ class ActionHandlerTest {
 
   @MockK(relaxed = true) private lateinit var assetService: AssetService
 
+  @MockK(relaxed = true) private lateinit var eventService: EventService
+
   private lateinit var handler: ActionHandler<NotifyInteractiveFlowCompletedRequest>
 
   @BeforeEach
   fun setup() {
     MockKAnnotations.init(this, relaxUnitFun = true)
-    this.handler = ActionHandlerTestImpl(txn24Store, txn31Store, requestValidator, assetService)
+    this.handler =
+      ActionHandlerTestImpl(txn24Store, txn31Store, requestValidator, assetService, eventService)
   }
 
   @Test
