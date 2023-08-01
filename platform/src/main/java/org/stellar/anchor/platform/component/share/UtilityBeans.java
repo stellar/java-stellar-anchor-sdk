@@ -45,6 +45,12 @@ public class UtilityBeans {
     return new SimpleMoreInfoUrlConstructor(sep24Config.getMoreInfoUrl(), jwtService);
   }
 
+  @Bean
+  @ConfigurationProperties(prefix = "sep24")
+  PropertySep24Config sep24Config(SecretConfig secretConfig) {
+    return new PropertySep24Config(secretConfig);
+  }
+
   /**********************************
    * Secret configurations
    */

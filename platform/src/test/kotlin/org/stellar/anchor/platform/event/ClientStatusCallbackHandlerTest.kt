@@ -1,6 +1,7 @@
 package org.stellar.anchor.platform.event
 
 import io.mockk.every
+import io.mockk.impl.annotations.MockK
 import io.mockk.mockk
 import java.util.*
 import java.util.concurrent.TimeUnit
@@ -8,8 +9,11 @@ import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.stellar.anchor.api.event.AnchorEvent
+import org.stellar.anchor.asset.AssetService
 import org.stellar.anchor.platform.config.ClientsConfig
 import org.stellar.anchor.platform.config.PropertySecretConfig
+import org.stellar.anchor.sep24.MoreInfoUrlConstructor
+import org.stellar.anchor.sep24.Sep24TransactionStore
 import org.stellar.anchor.util.NetUtil
 import org.stellar.anchor.util.StringHelper.json
 import org.stellar.sdk.KeyPair
@@ -23,13 +27,23 @@ class ClientStatusCallbackHandlerTest {
   private lateinit var event: AnchorEvent
   private lateinit var payload: String
 
+  @MockK(relaxed = true) private lateinit var sep24TransactionStore: Sep24TransactionStore
+  @MockK(relaxed = true) private lateinit var assetService: AssetService
+  @MockK(relaxed = true) lateinit var moreInfoUrlConstructor: MoreInfoUrlConstructor
+
   @BeforeEach
   fun setUp() {
     clientConfig = ClientsConfig.ClientConfig()
     clientConfig.type = ClientsConfig.ClientType.CUSTODIAL
     clientConfig.signingKey = "GBI2IWJGR4UQPBIKPP6WG76X5PHSD2QTEBGIP6AZ3ZXWV46ZUSGNEGN2"
     clientConfig.callbackUrl = "https://callback.circle.com/api/v1/anchor/callback"
-    handler = ClientStatusCallbackHandler(clientConfig)
+    handler =
+      ClientStatusCallbackHandler(
+        clientConfig,
+        sep24TransactionStore,
+        assetService,
+        moreInfoUrlConstructor
+      )
 
     secretConfig = mockk()
     every { secretConfig.sep10SigningSeed } returns

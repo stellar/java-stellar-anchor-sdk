@@ -70,12 +70,6 @@ public class SepBeans {
   }
 
   @Bean
-  @ConfigurationProperties(prefix = "sep24")
-  PropertySep24Config sep24Config(SecretConfig secretConfig) {
-    return new PropertySep24Config(secretConfig);
-  }
-
-  @Bean
   @ConfigurationProperties(prefix = "sep31")
   Sep31Config sep31Config() {
     return new PropertySep31Config();
