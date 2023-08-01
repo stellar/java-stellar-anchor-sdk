@@ -34,10 +34,8 @@ import org.stellar.anchor.event.EventService;
 import org.stellar.anchor.event.EventService.Session;
 import org.stellar.anchor.platform.data.JdbcSep24Transaction;
 import org.stellar.anchor.platform.data.JdbcSep31Transaction;
-import org.stellar.anchor.platform.data.JdbcSep6Transaction;
 import org.stellar.anchor.platform.data.JdbcSepTransaction;
 import org.stellar.anchor.sep24.Sep24Refunds;
-import org.stellar.anchor.sep24.Sep24Transaction;
 import org.stellar.anchor.sep24.Sep24TransactionStore;
 import org.stellar.anchor.sep31.Sep31Refunds;
 import org.stellar.anchor.sep31.Sep31Transaction;
@@ -180,12 +178,7 @@ public class TransactionService {
       return (JdbcSep31Transaction) txn31;
     }
 
-    Sep24Transaction txn24 = txn24Store.findByTransactionId(txnId);
-    if (txn24 != null) {
-      return (JdbcSep24Transaction) txn24;
-    }
-
-    return (JdbcSep6Transaction) txn6Store.findByTransactionId(txnId);
+    return (JdbcSep24Transaction) txn24Store.findByTransactionId(txnId);
   }
 
   /**
